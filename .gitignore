@@ -11,9 +11,10 @@ build/
 .env
 
 # Godot
+# Only the engine cache is ignored: in Godot 4 the .import and .uid files carry
+# asset UIDs and must be committed, or a fresh clone regenerates different ones.
 godot/.godot/
 godot/export_presets.cfg
-*.import
 
 # Blender
 *.blend1

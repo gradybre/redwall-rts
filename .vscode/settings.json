@@ -1,0 +1,17 @@
+{
+  "python.defaultInterpreterPath": ".venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "editor.formatOnSave": true,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "[gdscript]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": false
+  },
+  "files.associations": {
+    "*.gd": "gdscript",
+    "*.tscn": "ini",
+    "*.tres": "ini"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Pipeline: Run Full",
+      "type": "shell",
+      "command": "python -m orchestrator.main run '${input:taskDescription}' -f '${input:featureName}'",
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "new", "focus": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pipeline: Planning Only",
+      "type": "shell",
+      "command": "python -m orchestrator.main run '${input:taskDescription}' -f '${input:featureName}' -p planning",
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pipeline: Dry Run",
+      "type": "shell",
+      "command": "python -m orchestrator.main run '${input:taskDescription}' -f '${input:featureName}' --dry-run",
+      "presentation": { "reveal": "always", "panel": "new" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pipeline: Status",
+      "type": "shell",
+      "command": "python -m orchestrator.main status",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Pipeline: List Agents",
+      "type": "shell",
+      "command": "python -m orchestrator.main agents",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    { "id": "taskDescription", "description": "Describe the feature or task for the pipeline", "type": "promptString", "default": "" },
+    { "id": "featureName", "description": "Feature name (kebab-case, e.g., resource-gathering)", "type": "promptString", "default": "" }
+  ]
+}

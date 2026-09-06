@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document | SET-DEC-001 |
-| Revision | 0.14, 2026-09-06 |
+| Revision | 0.17, 2026-09-06 |
 | Companion | [Setting bible](setting_bible.md) |
 | Purpose | Preserve Brendan's decisions, distinguish recommendations from answers, and expose cross-document consequences |
 | Current interview | Six-book focus, mouse-keeper Rowan and displaced founding recorded; exclusion versus offscreen-reference clarification pending |
@@ -684,7 +684,7 @@ The user retains whole-series context and names Redwall, Mossflower, The Long Pa
 | affected_lore | `[LORE-U27]` |
 | affected_docs | `[docs/setting_bible.md, docs/setting_decisions.md, CLAUDE.md]`; every future feature, scenario and asset context capsule |
 | mechanical_change | None. This is reference emphasis, not six commissioned campaigns, a single shared era, or permission to bypass adopted gameplay/content boundaries |
-| remaining_questions | Verified passages/maps and specific era/cast anchors for each concrete scenario; no full-novel or illustration review has yet been performed |
+| remaining_questions | Specific era/cast anchors and verified maps for each concrete scenario remain open. Lord Brocktree now has a complete supplied-text reading and eleven additional novels have targeted passage studies; no complete illustration review has been performed |
 | revisit_trigger | `NONE` |
 | supersedes | No supersession of DEC-024; this refines focus within its whole-series scope |
 | provenance_boundary | User supplied the book selection. The guide’s thematic allocations are agent interpretations based on narrow publisher evidence, not user-ranked percentages or claims of exhaustive novel analysis |
@@ -830,12 +830,14 @@ Completed specification reconciliation for DEC-006: identify every raw_game/hide
 
 ## 8. Unresolved facts and research follow-through
 
+Research request, 2026-09-06: “Can you do novel analysis to get a deeper understanding?” [SET-RESEARCH-001](redwall_novel_analysis.md) records the initial bounded excerpt pass and the subsequent complete reading of the supplied Lord Brocktree narrative. Brendan supplied a local EPUB; its metadata claims a collection, but the actual contents contain only Lord Brocktree. The [dedicated study](lord_brocktree_analysis.md) and [source audit](lord_brocktree_source_audit.json) document all 40 narrative sections, passage locators, interpretation and adaptation conflicts. The [expanded package](redwall-series/README.md) now studies eleven additional user-supplied novels through 96 targeted passage records (102,954 inspected extracted words). Four of these belong to the six-book focus; seven expand its supporting evidence. None of these eleven has a complete sequential reading in this pass. Eulalia! still has only the previously inspected excerpts. The source audit records file identity and exact inspected ranges. This is research authorization, not adoption of its new design recommendations; no DEC record is closed. Continue independent work under existing decisions.
+
 | Topic | Current evidence limit | How to close it |
 |---|---|---|
 | Exact Redwall era and cast | Multiple setting types and whole-series scope confirmed; individual eras and casts not chosen | Resolve DEC-004 for each selected scenario, then verify the relevant books and timeline relationships |
-| Species morality and exceptions | A few source-supported examples; adopted game policy is scenario-specific admission without hidden species betrayal | Apply DEC-005; verify selected character examples before using them as precedents |
-| Diet and sapience | Cookbook examples do not define all creature diets or fauna | Use adopted DEC-006; verify any additional source-specific claims rather than rewriting the policy by assumption |
-| Religion and visions | Guide provides general descriptions, not a complete theology | Apply DEC-009 rarity/significance; apply DEC-030 uncertain truth; distinguish source text, interpretation and deliberate game invention |
+| Species morality and exceptions | The expanded passages include Romsca, peaceful water rats, Veil and Tagg alongside moralized narration and conflicting judgments; adopted admission policy remains distinct | Apply DEC-005; verify selected character examples before using them as precedents |
+| Diet and sapience | The expanded corpus directly adds speaking predators and bird consumption; no complete sapience taxonomy follows, and silence still does not prove nonsapience | Use adopted DEC-006; verify any additional source-specific claims rather than rewriting the policy by assumption |
+| Religion and visions | The expanded studies add concealment through clothing, the tortoise Walking Stone and consequential prophetic appointments; no universal theology or skepticism is established | Apply DEC-009 rarity/significance; apply DEC-030 uncertain truth; distinguish source text, interpretation and deliberate game invention |
 | Architectural authenticity | Gameplay map and technical scale exist; no canonical measured floor plan inspected | Apply DEC-010 style variety and earth-built homes; implement DEC-029 all-method scope, apply DEC-031 interoperability and inspect scenario references before claiming fidelity |
 | Preferred illustration/animation | Storybook/grounded-realism blend selected; no particular edition, film or illustrator named | Apply DEC-018 and review concrete original reference assets; verify any later named source before claiming fidelity |
 | Rowan, founding and neighbors | Experienced mouse keeper and displaced founding confirmed; neighbors/cause/route unknown | Finish concrete DEC-003/004 records, including hall provision history; do not claim a canonical identity or location |
@@ -858,5 +860,8 @@ Completed specification reconciliation for DEC-006: identify every raw_game/hide
 | 2026-09-06, revision 0.12 | Adopted blended naming, all offered feast meanings and contextual sound/music blend; asked Round 9 | Exact names/customs/audio contracts, story delivery, Charter meaning and antagonist motives remain open |
 | 2026-09-06, revision 0.13 | Adopted mixed story delivery, the Refuge’s community-written Charter and varied antagonist motives/scales; asked Round 10 | Rowan/founding, wider content limits, exact story UI and future faction rules remain open |
 | 2026-09-06, revision 0.14 | Added six-book primary focus with publisher evidence; recorded mouse-keeper Rowan, displaced founding and two boundary subjects | Offscreen/exclusion clarification pending; detailed cause, place, cast and engineering remain open |
+| 2026-09-06, revision 0.15 | Added passage-analysis companion, explicit source coverage and adaptation checks | Complete six-novel analysis needs full texts and reading; no interview decisions changed |
+| 2026-09-06, revision 0.16 | Read all supplied Lord Brocktree narrative sections; recorded source mismatch, detailed analysis and bounded bible integration | Other five complete readings, edition verification and existing decision gaps remain; no new interview answers or mechanics |
+| 2026-09-06, revision 0.17 | Verified eleven additional files and authored targeted studies, source audit, comparative contradictions and context integration | All eleven new sequential readings, full Eulalia! access, edition checks and existing DEC gaps remain open; no user answers or mechanics invented |
 
 Rounds 1–10 establish product range, first-release coverage, admission, diet, scenario-dependent player roles, rare meaningful wonder and player-selectable settlement forms including earth-built homes. Round 4 adds all underground construction methods, serious consequences/grief and visible family life. Round 5 confirms construction interoperability and uncertain supernatural truth; DEC-032 subsequently adopts the dependent-resident model. Round 6 adopts child survival vulnerability and warm everyday humor; the visual follow-up adopts a blend of storybook and grounded realism. Round 7 confirms recognizable anatomy, light dialect and selective canon flexibility. Round 8 adopts naming, feast and sound blends. Round 9 adopts story-delivery variety, the community-written Refuge Charter and varied antagonist motives/scales. Round 10 confirms experienced mouse-keeper Rowan and displaced founding, adds six-book reference emphasis, and names torture/child cruelty as boundaries with offscreen treatment being clarified. Policy adoption does not complete the game implementation or interview.

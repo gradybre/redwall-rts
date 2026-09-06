@@ -1,0 +1,1018 @@
+{
+  "schema_version": 1,
+  "document_id": "SET-RESEARCH-LB-AUDIT-001",
+  "evidence_id": "EV-LB02",
+  "inspected_on": "2026-09-06",
+  "source_file_name": "Brian Jacques Redwall Series Set (Book 1-20)_ Redwall; -- Brian Jacques - undifferentiated -- Nov 23, 2002 -- Various publication years -- isbn13 9780077381127 -- f5129d41f05b0d8c1706ad50b940ebb2 -- Anna’s Archive.epub",
+  "source_sha256": "8d1f30f25ca0a3a4f0d158f96b4aa86d1d66fab4a080f4d1602c06c3a38a5b8f",
+  "source_bytes": 353601,
+  "declared_metadata_title": "Brian Jacques Redwall Series Set (Book 1-20): Redwall; Mossflower; Mattimeo; Mariel of Redwall; Salamandastron; Martin the Warrior; Bellmaker; Outcast of Redwall; Pearls of Lutra; Long Patrol; Marlfox; Legend of Luke; Lord Brocktree; Taggerung; Triss",
+  "verified_narrative_title": "Lord Brocktree",
+  "author": "Brian Jacques",
+  "edition": null,
+  "publication_date": null,
+  "validated_isbn": null,
+  "collection_metadata_verified": false,
+  "narrative_titles_found": [
+    "Lord Brocktree"
+  ],
+  "archive_entry_count": 13,
+  "spine_item_count": 5,
+  "spine_narrative_files": [
+    "Jacques,_Brian_-_Redwall_13_-_L_split_000.html",
+    "Jacques,_Brian_-_Redwall_13_-_L_split_001.html",
+    "Jacques,_Brian_-_Redwall_13_-_L_split_002.html",
+    "Jacques,_Brian_-_Redwall_13_-_L_split_003.html"
+  ],
+  "extracted_word_count": 105774,
+  "word_count_method": "Whitespace split of concatenated extracted reading text, including section labels and incidental headings.",
+  "locator_unit": "ONE_BASED_NONEMPTY_EXTRACTED_BLOCK_WITHIN_SECTION",
+  "locator_extraction": "Omit HTML head/style/script. Insert line boundaries at paragraph/division/break/heading elements, normalize whitespace within lines and drop blank lines. Split at Prologue, Chapter N and Epilogue labels; enumerate remaining lines from 1 within each section. Verse and conversion fragments can be distinct blocks. These are not print page or paragraph numbers.",
+  "reading_status": "ALL_SUPPLIED_NARRATIVE_READ",
+  "read_in_narrative_order": true,
+  "section_count": 40,
+  "reading_gaps": [],
+  "publisher_master_compared": false,
+  "integrity_limits": [
+    "Visible conversion and spelling errors",
+    "Actual edition unknown",
+    "Publisher-perfect completeness not certified",
+    "Other five focus works absent from supplied archive"
+  ],
+  "full_text_included": false,
+  "sections": [
+    {
+      "label": "Prologue",
+      "block_count": 28,
+      "word_count": 1082,
+      "status": "READ",
+      "normalized_blocks_sha256": "e6dba52005e2d6fba79faa23f208bf87a1eff2f8ecb013cefb8a9e322c9126ed"
+    },
+    {
+      "label": "Chapter 1",
+      "block_count": 27,
+      "word_count": 1349,
+      "status": "READ",
+      "normalized_blocks_sha256": "47d0c72320ba955750bf42065ff9e5588389031f750f1a9a27c2eb58dc34196f"
+    },
+    {
+      "label": "Chapter 2",
+      "block_count": 39,
+      "word_count": 1595,
+      "status": "READ",
+      "normalized_blocks_sha256": "c4a5dffd7de09f72cc0143e06931faa960931e3ade1b7b7e271fe2c73bf603c9"
+    },
+    {
+      "label": "Chapter 3",
+      "block_count": 32,
+      "word_count": 1311,
+      "status": "READ",
+      "normalized_blocks_sha256": "9255746884c3ea7022b347f8737d5ac0080ecd22a415146645fc088d9e2c175a"
+    },
+    {
+      "label": "Chapter 4",
+      "block_count": 86,
+      "word_count": 2862,
+      "status": "READ",
+      "normalized_blocks_sha256": "44ff4b201c32ef9f25edb862ecb78d70ea551a04021f995f92db276d5eda77b3"
+    },
+    {
+      "label": "Chapter 5",
+      "block_count": 63,
+      "word_count": 2060,
+      "status": "READ",
+      "normalized_blocks_sha256": "20fee8be78e250ce5d1e81f1478dbb8fe8ebcb6375e29107d01805117236c3e5"
+    },
+    {
+      "label": "Chapter 6",
+      "block_count": 67,
+      "word_count": 1955,
+      "status": "READ",
+      "normalized_blocks_sha256": "4a03c2db6aa295fe9ab240a270d6f09d89e123386d43f674990985a5d44ac536"
+    },
+    {
+      "label": "Chapter 7",
+      "block_count": 87,
+      "word_count": 3222,
+      "status": "READ",
+      "normalized_blocks_sha256": "9ce042a627257b16ecbeb10f6db249e40d14a85b2cfa528735a3dc9c23af10bd"
+    },
+    {
+      "label": "Chapter 8",
+      "block_count": 130,
+      "word_count": 3733,
+      "status": "READ",
+      "normalized_blocks_sha256": "9bcd49e6dd23ffd7c67bfd3da3f464b80f347fcb73a29b4e7e39c3f7d084b063"
+    },
+    {
+      "label": "Chapter 9",
+      "block_count": 94,
+      "word_count": 2898,
+      "status": "READ",
+      "normalized_blocks_sha256": "c55511d4b9326fb605e902bed1c878fa1172416084720ad0ab36558603f6819b"
+    },
+    {
+      "label": "Chapter 10",
+      "block_count": 103,
+      "word_count": 3283,
+      "status": "READ",
+      "normalized_blocks_sha256": "2361f91f880c53a0b214781dee4f2ff359e7c4e080dda82b798b8febfb3212b4"
+    },
+    {
+      "label": "Chapter 11",
+      "block_count": 70,
+      "word_count": 1808,
+      "status": "READ",
+      "normalized_blocks_sha256": "a9dceaced28486f09835908c8b50fbdd62f6aca4d4508f29d538c6b0ba720584"
+    },
+    {
+      "label": "Chapter 12",
+      "block_count": 116,
+      "word_count": 3391,
+      "status": "READ",
+      "normalized_blocks_sha256": "696c4aa0023fa540796fa2bbfdb7e72d556cb7aa32a0d1b6e9a8d07c48199917"
+    },
+    {
+      "label": "Chapter 13",
+      "block_count": 90,
+      "word_count": 2506,
+      "status": "READ",
+      "normalized_blocks_sha256": "e8e2f0a1ab91bc8b84bc1798c86a3abc9c93f89734a1704567b64d375b0f4b91"
+    },
+    {
+      "label": "Chapter 14",
+      "block_count": 120,
+      "word_count": 3297,
+      "status": "READ",
+      "normalized_blocks_sha256": "5d34c122203e445a1ec294652d1b27c47b5fc44b2873e85dc73d7a24d58a1b89"
+    },
+    {
+      "label": "Chapter 15",
+      "block_count": 113,
+      "word_count": 3455,
+      "status": "READ",
+      "normalized_blocks_sha256": "77107479c4b14015150cce51a364f64e5421d36812d595634f01eb3b2beccfa7"
+    },
+    {
+      "label": "Chapter 16",
+      "block_count": 111,
+      "word_count": 2979,
+      "status": "READ",
+      "normalized_blocks_sha256": "98e8ebd051d4a0e12197aad2e6703d385ebafdc9d56001cbc3d53b2fc25550b9"
+    },
+    {
+      "label": "Chapter 17",
+      "block_count": 149,
+      "word_count": 4068,
+      "status": "READ",
+      "normalized_blocks_sha256": "8fb214c0626e8caa080e2eb5e974e69c800108bad5f80cbb5ec57a54f09ddd71"
+    },
+    {
+      "label": "Chapter 18",
+      "block_count": 86,
+      "word_count": 2119,
+      "status": "READ",
+      "normalized_blocks_sha256": "b694f64564389c718402aa316d2a02d775f584cdf7bcdc6dfd4f52a243ed40c0"
+    },
+    {
+      "label": "Chapter 19",
+      "block_count": 66,
+      "word_count": 2372,
+      "status": "READ",
+      "normalized_blocks_sha256": "0553bb26ab36ed07b142028d4dc493c20f90727e34435507f0e7a063e67eee82"
+    },
+    {
+      "label": "Chapter 20",
+      "block_count": 95,
+      "word_count": 3399,
+      "status": "READ",
+      "normalized_blocks_sha256": "4c80db42fe604311f0879100cc4e38d6b59b080eb46dc9d3e8aec448afd13318"
+    },
+    {
+      "label": "Chapter 21",
+      "block_count": 106,
+      "word_count": 2890,
+      "status": "READ",
+      "normalized_blocks_sha256": "7d1437e463a7cae57461f95fde26090c72f8f20daef2dd48e0d273e2603dc70d"
+    },
+    {
+      "label": "Chapter 22",
+      "block_count": 88,
+      "word_count": 2510,
+      "status": "READ",
+      "normalized_blocks_sha256": "c7f1bb5a96371d51b617bd7581d257d23be6a436e90eb1dca245406247c7afb0"
+    },
+    {
+      "label": "Chapter 23",
+      "block_count": 128,
+      "word_count": 3439,
+      "status": "READ",
+      "normalized_blocks_sha256": "f28ecb6baf2f8f9a49db5f5f6d856ae885cde28ab6909b33b4727793d30c147d"
+    },
+    {
+      "label": "Chapter 24",
+      "block_count": 73,
+      "word_count": 2603,
+      "status": "READ",
+      "normalized_blocks_sha256": "74d2013f440ec682ff262a273d69417e80914df5f1074abc3e320c9d38e18c80"
+    },
+    {
+      "label": "Chapter 25",
+      "block_count": 90,
+      "word_count": 2502,
+      "status": "READ",
+      "normalized_blocks_sha256": "bd84a5af6abeb8ec856c416f779601a08e5107404a9cfcd705b39a3f89b55cbd"
+    },
+    {
+      "label": "Chapter 26",
+      "block_count": 71,
+      "word_count": 1738,
+      "status": "READ",
+      "normalized_blocks_sha256": "bc556e90c1d494494c36826ca965f6a98f40ca8511a979d911f58c1a0f8c4624"
+    },
+    {
+      "label": "Chapter 27",
+      "block_count": 137,
+      "word_count": 3462,
+      "status": "READ",
+      "normalized_blocks_sha256": "15581657b661203d6c74387fc28f4fc9c0da19b317d0404264d9766095bbf29f"
+    },
+    {
+      "label": "Chapter 28",
+      "block_count": 113,
+      "word_count": 3407,
+      "status": "READ",
+      "normalized_blocks_sha256": "dc5cefa5b3265efb7b1fe85ced0129115008d214578d8795cd6d8417635b67d4"
+    },
+    {
+      "label": "Chapter 29",
+      "block_count": 139,
+      "word_count": 4290,
+      "status": "READ",
+      "normalized_blocks_sha256": "b0dda0ea8de2f242ec8166610cb0d2fd426e3841be0914f6fbf31db72623a9a8"
+    },
+    {
+      "label": "Chapter 30",
+      "block_count": 99,
+      "word_count": 2341,
+      "status": "READ",
+      "normalized_blocks_sha256": "56ce8e386c5c87df92dc4573adde248ac9c5b2b8ecb4b99c19691371993713eb"
+    },
+    {
+      "label": "Chapter 31",
+      "block_count": 126,
+      "word_count": 3025,
+      "status": "READ",
+      "normalized_blocks_sha256": "d7378750fa4f611861044c4993e095ee5739538199a769e8b641a302c95906a7"
+    },
+    {
+      "label": "Chapter 32",
+      "block_count": 101,
+      "word_count": 2736,
+      "status": "READ",
+      "normalized_blocks_sha256": "e8f7e2bc542d10ffa2e618d97ce7c64b82ecb62b391173a020cd7808bd71b9be"
+    },
+    {
+      "label": "Chapter 33",
+      "block_count": 107,
+      "word_count": 3388,
+      "status": "READ",
+      "normalized_blocks_sha256": "0d50834e4d28bc7f19c50a7ce52e5fe4351c639abf0e620134047e216cca2523"
+    },
+    {
+      "label": "Chapter 34",
+      "block_count": 98,
+      "word_count": 2573,
+      "status": "READ",
+      "normalized_blocks_sha256": "80030f757709fd36e00fde2cb94569a2dbfa96b6d1b891eb2b4cd2502e273486"
+    },
+    {
+      "label": "Chapter 35",
+      "block_count": 189,
+      "word_count": 5142,
+      "status": "READ",
+      "normalized_blocks_sha256": "f2ab6928922a7af8f2c9b948642ffe4733b65eb424eb75fed6616b0e78a6183d"
+    },
+    {
+      "label": "Chapter 36",
+      "block_count": 74,
+      "word_count": 2752,
+      "status": "READ",
+      "normalized_blocks_sha256": "b586c21b27f58dd8e2b2d75f3c9b5e03c2538424770a8439a25da04b946f0326"
+    },
+    {
+      "label": "Chapter 37",
+      "block_count": 9,
+      "word_count": 499,
+      "status": "READ",
+      "normalized_blocks_sha256": "887eb96b7ab5b32de87a4fd7a642cbe8da025514167719c270d5844de55d5e0e"
+    },
+    {
+      "label": "Chapter 38",
+      "block_count": 27,
+      "word_count": 1043,
+      "status": "READ",
+      "normalized_blocks_sha256": "51e55be5a280bf2aa1272515b11c9db75095fa601a519557e93bf41126d8b3a8"
+    },
+    {
+      "label": "Epilogue",
+      "block_count": 13,
+      "word_count": 471,
+      "status": "READ",
+      "normalized_blocks_sha256": "82a11d20b76b7f38d2e218e5394f9cabe035812b199f7d896fc91b4e538caa5a"
+    }
+  ],
+  "passages": [
+    {
+      "id": "LB-P01",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Prologue",
+          "block_start": 1,
+          "block_end": 24
+        },
+        {
+          "section": "Epilogue",
+          "block_start": 1,
+          "block_end": 13
+        }
+      ],
+      "observation": "A ruler shares a researched history with a domestic, mixed community; the concluding transmission of duty happens while putting a child to bed"
+    },
+    {
+      "id": "LB-P02",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Prologue",
+          "block_start": 23,
+          "block_end": 23
+        },
+        {
+          "section": "Chapter 38",
+          "block_start": 12,
+          "block_end": 24
+        }
+      ],
+      "observation": "Brocktree's institutional legacy includes learning, food-growing places and habitation; Dotti's command role is explicit at the ending"
+    },
+    {
+      "id": "LB-P03",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 1",
+          "block_start": 3,
+          "block_end": 25
+        }
+      ],
+      "observation": "Stonepaw's bodily difficulties, Fleetscut's care, absent younger defenders and succession concerns share the opening"
+    },
+    {
+      "id": "LB-P04",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 3",
+          "block_start": 1,
+          "block_end": 4
+        },
+        {
+          "section": "Chapter 22",
+          "block_start": 27,
+          "block_end": 29
+        }
+      ],
+      "observation": "Stiffener's exercise history and present endurance distinguish him from other elders"
+    },
+    {
+      "id": "LB-P05",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 4",
+          "block_start": 4,
+          "block_end": 15
+        },
+        {
+          "section": "Chapter 31",
+          "block_start": 112,
+          "block_end": 120
+        }
+      ],
+      "observation": "Dotti's prescribed upbringing and Brocktree's account of male badger separation establish different family tensions"
+    },
+    {
+      "id": "LB-P06",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 6",
+          "block_start": 9,
+          "block_end": 32
+        },
+        {
+          "section": "Chapter 6",
+          "block_start": 36,
+          "block_end": 62
+        }
+      ],
+      "observation": "Conflict is repaired, travel becomes cooperative, song coordinates work, and Ruff argues for taking only the fish needed"
+    },
+    {
+      "id": "LB-P07",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 8",
+          "block_start": 103,
+          "block_end": 130
+        }
+      ],
+      "observation": "A distinctive mole household combines roots, stone, storage, light and furniture; Dotti's dialect knowledge comes through a family connection"
+    },
+    {
+      "id": "LB-P08",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 7",
+          "block_start": 56,
+          "block_end": 87
+        },
+        {
+          "section": "Chapter 9",
+          "block_start": 29,
+          "block_end": 54
+        }
+      ],
+      "observation": "Jukka distinguishes hospitality, tribal safety and participation in war; Ruro defends her earlier restraint"
+    },
+    {
+      "id": "LB-P09",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 12",
+          "block_start": 1,
+          "block_end": 41
+        }
+      ],
+      "observation": "Udara has territorial authority and useful knowledge without literacy; access to information is negotiated"
+    },
+    {
+      "id": "LB-P10",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 10",
+          "block_start": 71,
+          "block_end": 103
+        }
+      ],
+      "observation": "Refugees take stock of needs, discuss a course of action and depend on incomplete remembered knowledge"
+    },
+    {
+      "id": "LB-P11",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 16",
+          "block_start": 7,
+          "block_end": 12
+        },
+        {
+          "section": "Chapter 16",
+          "block_start": 65,
+          "block_end": 103
+        }
+      ],
+      "observation": "Patient help with Bramwil's memory and several practical contributions make escape possible"
+    },
+    {
+      "id": "LB-P12",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 11",
+          "block_start": 43,
+          "block_end": 57
+        },
+        {
+          "section": "Chapter 14",
+          "block_start": 2,
+          "block_end": 37
+        },
+        {
+          "section": "Chapter 14",
+          "block_start": 55,
+          "block_end": 99
+        }
+      ],
+      "observation": "Gurth is explicitly grown, has learned competence and helps with rescue and instruction; Dotti contributes interpretation"
+    },
+    {
+      "id": "LB-P13",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 17",
+          "block_start": 69,
+          "block_end": 116
+        },
+        {
+          "section": "Chapter 20",
+          "block_start": 11,
+          "block_end": 24
+        },
+        {
+          "section": "Chapter 20",
+          "block_start": 55,
+          "block_end": 95
+        }
+      ],
+      "observation": "Provisioning and a common danger bring leaders together, while coercion also shapes the coalition"
+    },
+    {
+      "id": "LB-P14",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 18",
+          "block_start": 4,
+          "block_end": 59
+        },
+        {
+          "section": "Chapter 19",
+          "block_start": 63,
+          "block_end": 66
+        }
+      ],
+      "observation": "Stonepaw prioritizes escape, dies, and leaves obligations that Stiffener carries forward"
+    },
+    {
+      "id": "LB-P15",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 21",
+          "block_start": 8,
+          "block_end": 21
+        }
+      ],
+      "observation": "Displaced sea otters shelter displaced hares; Frutch and Brogalaw connect welcome with practical assistance"
+    },
+    {
+      "id": "LB-P16",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 21",
+          "block_start": 87,
+          "block_end": 106
+        },
+        {
+          "section": "Chapter 22",
+          "block_start": 23,
+          "block_end": 58
+        }
+      ],
+      "observation": "Rulango communicates through drawings and delivers help; the rescue plan changes when travel consumes available darkness"
+    },
+    {
+      "id": "LB-P17",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 25",
+          "block_start": 34,
+          "block_end": 49
+        },
+        {
+          "section": "Chapter 25",
+          "block_start": 80,
+          "block_end": 90
+        }
+      ],
+      "observation": "Rescue distinguishes assistance needs, also includes coercive treatment, and ends with Brogalaw refusing to kill helpless captives"
+    },
+    {
+      "id": "LB-P18",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 26",
+          "block_start": 21,
+          "block_end": 34
+        },
+        {
+          "section": "Chapter 28",
+          "block_start": 67,
+          "block_end": 88
+        }
+      ],
+      "observation": "Shared song, recollection, cooking and storage accompany organized resistance"
+    },
+    {
+      "id": "LB-P19",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 23",
+          "block_start": 2,
+          "block_end": 50
+        },
+        {
+          "section": "Chapter 24",
+          "block_start": 58,
+          "block_end": 68
+        },
+        {
+          "section": "Chapter 27",
+          "block_start": 34,
+          "block_end": 61
+        }
+      ],
+      "observation": "Dotti learns through a coalition, questions the fairness of a victory and protects a defeated opponent"
+    },
+    {
+      "id": "LB-P20",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 27",
+          "block_start": 110,
+          "block_end": 131
+        }
+      ],
+      "observation": "A coalition deliberates, then hereditary law and a public symbolic act establish Brocktree's leadership"
+    },
+    {
+      "id": "LB-P21",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 29",
+          "block_start": 22,
+          "block_end": 24
+        },
+        {
+          "section": "Chapter 29",
+          "block_start": 55,
+          "block_end": 65
+        },
+        {
+          "section": "Chapter 29",
+          "block_start": 87,
+          "block_end": 100
+        }
+      ],
+      "observation": "Sympathy for enemies is disputed; hostages become a living shield; an enemy soldier refuses to kill his own comrades; captives are later released"
+    },
+    {
+      "id": "LB-P22",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 30",
+          "block_start": 80,
+          "block_end": 99
+        },
+        {
+          "section": "Chapter 31",
+          "block_start": 1,
+          "block_end": 6
+        }
+      ],
+      "observation": "The rescuers initially take no prisoners, Brocktree orders killing to stop, and surviving captives receive both mercy and harsh treatment"
+    },
+    {
+      "id": "LB-P23",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 31",
+          "block_start": 68,
+          "block_end": 89
+        },
+        {
+          "section": "Chapter 31",
+          "block_start": 112,
+          "block_end": 120
+        }
+      ],
+      "observation": "A healer's expertise, shared cooking, a damaged heirloom and mourning occupy the same gathering"
+    },
+    {
+      "id": "LB-P24",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 32",
+          "block_start": 49,
+          "block_end": 76
+        }
+      ],
+      "observation": "A storage cave becomes a refuge; Frutch prefers return to her old home over a room and garden in the mountain"
+    },
+    {
+      "id": "LB-P25",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 33",
+          "block_start": 30,
+          "block_end": 62
+        },
+        {
+          "section": "Chapter 34",
+          "block_start": 1,
+          "block_end": 18
+        }
+      ],
+      "observation": "Tide, body size, light, airflow and imperfect knowledge affect passage through underground space"
+    },
+    {
+      "id": "LB-P26",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 34",
+          "block_start": 23,
+          "block_end": 41
+        }
+      ],
+      "observation": "Fleetscut and Jukka's antagonistic relationship ends in shared defense and a final recognition of friendship"
+    },
+    {
+      "id": "LB-P27",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 35",
+          "block_start": 54,
+          "block_end": 63
+        },
+        {
+          "section": "Chapter 35",
+          "block_start": 87,
+          "block_end": 110
+        },
+        {
+          "section": "Chapter 35",
+          "block_start": 173,
+          "block_end": 189
+        }
+      ],
+      "observation": "Brocktree refuses a costly assault, imposes his duel decision, and friends independently plan protection around him"
+    },
+    {
+      "id": "LB-P28",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 36",
+          "block_start": 8,
+          "block_end": 17
+        },
+        {
+          "section": "Chapter 36",
+          "block_start": 47,
+          "block_end": 74
+        },
+        {
+          "section": "Chapter 37",
+          "block_start": 1,
+          "block_end": 9
+        }
+      ],
+      "observation": "A friend's intervention matters to the duel; victory language is partisan; Trunn survives the immediate defeat and Groddil acts afterward"
+    },
+    {
+      "id": "LB-P29",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 38",
+          "block_start": 2,
+          "block_end": 24
+        }
+      ],
+      "observation": "Allies depart for distinct homes, others stay, Ruro receives a Jukka memorial medal, and Dotti combines leadership with further learning"
+    },
+    {
+      "id": "LB-P30",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 7",
+          "block_start": 10,
+          "block_end": 19
+        },
+        {
+          "section": "Chapter 7",
+          "block_start": 49,
+          "block_end": 54
+        }
+      ],
+      "observation": "The falling-stars and earth-shaking displays have explained physical causes"
+    },
+    {
+      "id": "LB-P31",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 4",
+          "block_start": 11,
+          "block_end": 15
+        },
+        {
+          "section": "Chapter 11",
+          "block_start": 30,
+          "block_end": 43
+        },
+        {
+          "section": "Chapter 35",
+          "block_start": 135,
+          "block_end": 138
+        }
+      ],
+      "observation": "Dreams carry information and emotional force; the ancestral chamber joins material objects, scent, memory and visions"
+    },
+    {
+      "id": "LB-P32",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 28",
+          "block_start": 94,
+          "block_end": 113
+        },
+        {
+          "section": "Chapter 29",
+          "block_start": 109,
+          "block_end": 117
+        }
+      ],
+      "observation": "Some immediate terrors have mundane triggers; Ungatt's fear and isolation persist"
+    },
+    {
+      "id": "LB-P33",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 16",
+          "block_start": 21,
+          "block_end": 26
+        },
+        {
+          "section": "Chapter 22",
+          "block_start": 79,
+          "block_end": 86
+        },
+        {
+          "section": "Chapter 28",
+          "block_start": 89,
+          "block_end": 93
+        }
+      ],
+      "observation": "Food depletion, damaged fishing and unequal access undermine the occupying force"
+    },
+    {
+      "id": "LB-P34",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 32",
+          "block_start": 16,
+          "block_end": 47
+        },
+        {
+          "section": "Chapter 35",
+          "block_start": 61,
+          "block_end": 95
+        }
+      ],
+      "observation": "Both sides recognize limits to supply and open combat; the defenders' apparent abundance is partly performed"
+    },
+    {
+      "id": "LB-P35",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 36",
+          "block_start": 74,
+          "block_end": 74
+        },
+        {
+          "section": "Chapter 38",
+          "block_start": 2,
+          "block_end": 2
+        }
+      ],
+      "observation": "Returning birds and travelers carry the narrative's outward signs of changed conditions"
+    },
+    {
+      "id": "LB-P36",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 2",
+          "block_start": 1,
+          "block_end": 1
+        },
+        {
+          "section": "Chapter 28",
+          "block_start": 62,
+          "block_end": 62
+        },
+        {
+          "section": "Chapter 29",
+          "block_start": 64,
+          "block_end": 64
+        }
+      ],
+      "observation": "The narrator uses moralized species and appearance language, yet a hostile soldier demonstrates a limited loyalty to comrades"
+    },
+    {
+      "id": "LB-P37",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 34",
+          "block_start": 34,
+          "block_end": 36
+        },
+        {
+          "section": "Chapter 38",
+          "block_start": 22,
+          "block_end": 24
+        }
+      ],
+      "observation": "Dotti's leadership achievement coexists with gendered protective treatment and expectations about domestic learning"
+    },
+    {
+      "id": "LB-P38",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 35",
+          "block_start": 3,
+          "block_end": 5
+        },
+        {
+          "section": "Chapter 38",
+          "block_start": 8,
+          "block_end": 9
+        }
+      ],
+      "observation": "Enemy characters can provision themselves; Ruff expresses an ambition to learn sea-otter life"
+    },
+    {
+      "id": "LB-P39",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 19",
+          "block_start": 8,
+          "block_end": 18
+        },
+        {
+          "section": "Chapter 21",
+          "block_start": 37,
+          "block_end": 59
+        },
+        {
+          "section": "Chapter 26",
+          "block_start": 35,
+          "block_end": 50
+        }
+      ],
+      "observation": "Arbitrary punishment and fearful reporting damage Ungatt's information and create new enemies"
+    },
+    {
+      "id": "LB-P40",
+      "evidence_id": "EV-LB02",
+      "spans": [
+        {
+          "section": "Chapter 31",
+          "block_start": 89,
+          "block_end": 89
+        },
+        {
+          "section": "Chapter 33",
+          "block_start": 51,
+          "block_end": 59
+        },
+        {
+          "section": "Epilogue",
+          "block_start": 6,
+          "block_end": 13
+        }
+      ],
+      "observation": "Guard relief enables participation; remembrance occurs during work; hospitality is part of the concluding law"
+    }
+  ],
+  "new_gameplay_numbers": []
+}

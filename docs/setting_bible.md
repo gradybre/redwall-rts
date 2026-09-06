@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document | SET-LORE-001 |
-| Revision | 0.14 — six-book focus, mouse-keeper Rowan, displacement and content boundaries recorded, 2026-09-06 |
+| Revision | 0.17 — eleven additional targeted novel studies and comparative context, 2026-09-06 |
 | Purpose | Shared creative context for the human director, planning agent, Claude Code, and asset agents |
 | Creative source order | Redwall: six-book focus plus whole-series context → current Redwall-rts project → earlier woodland-colony material; see §3.2 |
 | Decision owner | Brendan; explicit project choices may deliberately depart from Redwall |
@@ -54,7 +54,7 @@ Every feature plan and asset brief shall name its relevant lore records, its mec
 ```yaml
 context_contract_version: 1
 creative_document: docs/setting_bible.md
-creative_revision: "0.14"
+creative_revision: "0.17"
 decision_document: docs/setting_decisions.md
 mechanical_documents:
   - docs/game_gdd.md
@@ -75,7 +75,7 @@ This is a document header example for a release 1 communal-life task, not a runt
 
 ### 2.1 Redwall evidence consulted
 
-Initial web sources were inspected on 2026-09-05; the six-book publisher descriptions were checked on 2026-09-06. The book titles below identify creative anchors; the evidence used here is the linked publisher text or identified guide pages. Full novels and illustration interiors were not reviewed for this draft.
+Initial web sources were inspected on 2026-09-05; the six-book publisher descriptions were checked on 2026-09-06. The book titles below identify creative anchors; the evidence used here is the linked publisher text or identified guide pages. The subsequent [novel research](redwall_novel_analysis.md) adds selected primary-text excerpts and a complete reading of the supplied Lord Brocktree text. Its [dedicated study](lord_brocktree_analysis.md) and [source audit](lord_brocktree_source_audit.json) distinguish that coverage from unverified edition integrity. The [expanded series package](redwall-series/README.md) now adds targeted primary-passage studies of eleven supplied novels, including four more focus books. It records 96 passage entries across 102,954 inspected extracted words. The other five focus novels still lack complete sequential readings. Selected PDF pages were visually checked for text extraction; no edition-wide illustration analysis was performed. The original publisher-source rows below retain their original evidence status.
 
 | Source ID | Source | Evidence used | Appropriate use |
 |---|---|---|---|
@@ -88,6 +88,10 @@ Initial web sources were inspected on 2026-09-05; the six-book publisher descrip
 | SRC-R08 | [Eulalia! — publisher description](https://www.penguinrandomhouse.com/books/292509/eulalia-by-brian-jacques/) | Sea raiders, a succession search and a separate force in Mossflower | Several threat groups and leadership continuity; no automatic import of every plot incident |
 | SRC-R09 | [Lord Brocktree — publisher description](https://www.penguinrandomhouse.com/books/296445/lord-brocktree-by-brian-jacques/) | Brocktree and Dotti rally varied allies against an occupied Salamandastron | Coalition-building and resourceful leadership; no full campaign/chronology verification |
 | SRC-R05 | [Publisher-hosted teacher's guide](https://images.penguinrandomhouse.com/promo_image/9780142302378_5151.pdf) | Printed pp. 2–4: author/editor conversation and introduction; p. 8: classroom discussion of material culture | Evidence about accents, recurring abbey identity, chronology distinction, symbols and simple machinery |
+
+SRC-R10 / EV-LB02 is the user-supplied Lord Brocktree text, fully read in the supplied form. Its filename and metadata claim a Books 1–20 collection, but its actual narrative contains only Lord Brocktree. Use the source audit and Chapter/block locators; do not treat the collection ISBN as a verified edition identifier.
+
+SRC-R11 identifies the eleven-file user-supplied corpus in [the expanded source audit](redwall-series/source_audit.json). Individual EV identifiers and coverage resolve there. The user requested deeper analysis of these additional books; this expands evidence, not the approved launch lineup or the six-book focus.
 
 Do not cite fan discussion as though Jacques wrote it. The official author's FAQ did not load successfully during this research; no claim in this draft depends on its contents. No supposed chapter numbers or novel page numbers have been invented.
 
@@ -160,6 +164,47 @@ The evidence column below summarizes only the consulted official publisher descr
 For every scenario/feature/asset brief, identify which focus-book anchor informs it and the supported claim. If another novel supplies a better specific reference, name it and explain the connection; do not exclude it because it is outside the six. If a visual or detail is original game design, label it original rather than attaching an unrelated book citation. Include the exact source evidence before claiming canonical dialogue, geometry, clothing, chronology or biography.
 
 Reference selection does not commission six campaigns, combine their casts into one era, or replace source-supported contradictions with an invented answer. Boundary subjects named under DEC-027 are filtered during adaptation even when a focus novel contains relevant material. Existing numeric simulation and asset budgets remain unchanged by this creative refinement.
+
+### 3.3 Passage analysis and adaptation research
+
+[Novel analysis and adaptation research](redwall_novel_analysis.md), SET-RESEARCH-001 revision 0.3, supplements this bible. [Lord Brocktree: novel analysis](lord_brocktree_analysis.md), SET-RESEARCH-LB-001 revision 1.0, now covers its entire supplied narrative: Prologue, Chapters 1–38 and Epilogue. Selected Eulalia! excerpts and limited author evidence retain their stated limits. [SET-RESEARCH-SERIES-001](redwall-series/README.md) adds eleven targeted primary-passage studies, including Redwall, Mossflower, The Long Patrol and Salamandastron. Earlier publisher rows remain premise-level evidence, while the new studies supply separate passage-backed findings. **One of six focus novels has a complete supplied-text reading; this does not certify its edition or complete the other five.** Use the evidence ledgers before describing an observation as canonical.
+
+The research's Section 5 contains `PROPOSED` applications, not new user decisions. Its Section 6 identifies adaptation risks and Section 7 defines the evidence handoff. Read those sections when planning care, institutional routines, history, character writing or related assets. Existing DEC records, mechanical owners and content boundaries remain binding. The reference table in §3.2 is a set of useful emphases, not an exclusive division of domestic and military life between books.
+
+### 3.4 Lord Brocktree findings for shared creative context
+
+The observations below are `SOURCE_SUPPORTED` within EV-LB02 / SRC-R10; the implications are `PROPOSED` interpretations constrained by adopted DEC records. Passage IDs resolve in [the dedicated study](lord_brocktree_analysis.md#3-evidence-index). They do not approve new mechanics or select scenarios.
+
+| Record | Bounded source finding | Consequence for planning |
+|---|---|---|
+| LORE-R10 | Salamandastron combines domestic care, education, food-growing places, hospitality and defense. LB-P01–04, LB-P40 | Give every settlement form an inhabited social identity; preserve distinctions between Abbey, fortress and civic refuge |
+| LORE-R11 | Hosts and allies have distinct local obligations, and some return to their own homes after victory. LB-P08–09, LB-P15, LB-P24, LB-P29 | Do not equate hospitality with submission or assume every successful community absorbs its neighbors |
+| LORE-R12 | Elders differ in capability; practical assistance and distributed knowledge enable survival. LB-P03–04, LB-P11, LB-P16–17 | Apply DEC-032 through individual capability and care contracts; no universal elder decline or wisdom multiplier |
+| LORE-R13 | Food, family objects, shared songs and remembrance connect ordinary life with major events. LB-P18–19, LB-P23, LB-P40 | Author participants and context before extra effects; feasts do not automatically erase grief |
+| LORE-R14 | Explained spectacles coexist with consequential visions. LB-P30–32 | DEC-030 is an explicit adaptation; do not claim universal source skepticism or quietly settle supernatural truth in hidden data |
+| LORE-R15 | Source ideals coexist with moralized species language, coercion and severe enemy treatment. LB-P17, LB-P21–22, LB-P28, LB-P36 | Apply DEC-005/027 to sympathetic and hostile characters alike; acknowledge departures rather than sanitizing claims about the books |
+| LORE-R16 | Root-built homes and cave refuges have specific uses; tide, air, body width and uncertain routes matter underground. LB-P07, LB-P24–25 | Use qualitative references for inhabited burrows; exact terrain topology, dimensions, costs and navigation require approved engineering |
+
+For Rowan's Refuge, this reading most strongly motivates resolving what the displaced founders retained and how their existing hall and supplies were provided. It supplies no cause of displacement, named homeland, trauma history or hidden personality for Rowan. For a Lord Brocktree scenario, consult the study's ending corrections and DEC-025 before importing canonical outcomes.
+
+### 3.5 Expanded series findings and contradictions
+
+The observations are `SOURCE_SUPPORTED` within the specifically inspected passages, not whole-book completeness claims. Their planning implications are `PROPOSED`, constrained by existing decisions. Read [the comparative study](redwall-series/README.md) for 96 passage records, measured coverage, source tensions and a static authoring handoff. Eleven individual studies include the additional titles requested by Brendan.
+
+| Record | Bounded source finding | Consequence for planning |
+|---|---|---|
+| LORE-R17 | Redwall's ending changes offices, welcomes sparrows throughout the Abbey and repurposes bells as memorials. RW-P08–09 | Survival should have an inhabited aftermath; do not reduce the community to its champion |
+| LORE-R18 | Mossflower joins council deliberation, root-hall shelter, landscape engineering and recovery before Abbey construction. MF-P03–09 | Explain founding through prior relationships and provision; root imagery does not supply excavation algorithms |
+| LORE-R19 | The Long Patrol links failed infrastructure to historical decisions and preserves injury and reconstruction after victory. LP-P03, LP-P06–08 | Restoration and aftermath need context; no new structural or combat system is approved |
+| LORE-R20 | Salamandastron distributes care across tasks and exposes a bottleneck when medical knowledge becomes unavailable. SA-P03–05 | Exact care scheduling and relief matter; fictional remedies do not become game or medical instructions |
+| LORE-R21 | Romsca, peaceful water rats and other specific exceptions coexist with prejudice, harsh judgments and moralized species language. PL-P04; MX-P09; OC-P01–06; TG-P02–03 | Apply DEC-005 as an explicit adaptation; preserve individual acts without inventing moral genetics |
+| LORE-R22 | Grief includes private silence, changed routines, continued humor and material remembrance. MW-P07–09; TG-P04; TR-P04; OC-P08 | Support DEC-011 without forcing one response, timetable, diagnosis or bonus |
+| LORE-R23 | Recovered tapestries, discarded pearls/crowns and renamed ships carry different meanings. MX-P05; PL-P07; RT-P07; TR-P04 | Give focal objects use, custody and claims; no universal treasure morality or reward rule |
+| LORE-R24 | Several endings preserve different destinations and chosen families rather than universal Abbey settlement. MF-P06; PL-P06; MX-P09; TR-P07; RT-P07 | Hospitality need not mean assimilation; exact travel/admission mechanics remain separately owned |
+| LORE-R25 | Some wonder has an ordinary mechanism, while dreams and prophecy retain narrative weight. MF-P07; MX-P05, MX-P08; RT-P03–04 | DEC-030 remains a deliberate uncertain-truth choice; do not debunk every vision or add a hidden truth flag |
+| LORE-R26 | Martin explicitly plans his shortened origin account, but the inspected Abbey-founding accounts remain in conflict. MW-P08; RW-P01; MF-P01, MF-P09; LP-P06 | Use SERIES-C01–02; distinguish an explained omission from an unresolved source contradiction |
+
+This research does not supply Rowan's displacement cause, prior home, pronouns, personal trauma or the furnished hall's history. It does not commission scenes from the newly studied novels. Torture and deliberate child cruelty remain excluded from new content, including backstory while treatment scope remains open. No new numeric gameplay values or runtime state were adopted.
 
 ## 4. Existing game foundation
 
@@ -947,7 +992,7 @@ Revision 1.0 requires these gates to close or record an explicit user deferral w
 | Category | Origin |
 |---|---|
 | Population, roster, initial conditions, calendar, map, scale and asset limits | Inherited from the cited current specifications |
-| Source evidence | Narrow paraphrases of the linked publisher/author material; no full-novel verification claimed |
+| Source evidence | Bounded publisher/author/excerpt evidence, complete supplied Lord Brocktree reading, and eleven additional targeted primary-passage studies; edition integrity, remaining sequential readings and whole-series completeness remain unverified |
 | Legacy ideas | Explicit candidates extracted from the separate woodland-colony bible |
 | New work in this draft | Document/record IDs, status vocabulary, review rules, proposed pillars, original example prose, asset brief fields and interview questions |
 | New gameplay quantities or balance values | SET-AMEND-001 records NEW roast inputs, admission pool order and a minimal original petition date/text; inherited output/work values are labelled separately |
@@ -973,3 +1018,6 @@ Revision 1.0 requires these gates to close or record an explicit user deferral w
 | 0.12 | Adopted blended naming traditions, layered feast meanings and contextual sound/music blend; asked Round 9 | Exact content lists/customs/audio contracts and remaining scenario/story decisions stay open; no commit or push |
 | 0.13 | Adopted mixed story delivery, the community-written Refuge Charter and varied antagonist motives/scales; asked Round 10 | Rowan/founding, wider boundaries and exact story/faction implementations remain open; no commit or push |
 | 0.14 | Added six-book focus with bounded publisher evidence; confirmed experienced mouse-keeper Rowan and displaced founding; recorded torture/child-cruelty boundaries | Offscreen-reference clarification pending; exact biography/cause/maps and mechanics remain open; no commit or push |
+| 0.15 | Added bounded primary-excerpt research companion and evidence handoff | Full six-novel reading remains incomplete; no new creative decisions, runtime or numeric changes |
+| 0.16 | Added complete supplied Lord Brocktree study, audited the mislabeled EPUB and integrated bounded findings LORE-R10–R16 | Other five full readings, edition verification and existing creative/engineering gaps remain; no new policy or gameplay values |
+| 0.17 | Added eleven targeted primary-passage studies, 96 evidence records, comparative handoff and LORE-R17–R26 | No new full sequential reading, policy approval, gameplay values or runtime changes; Eulalia! full text remains unavailable in verified files |

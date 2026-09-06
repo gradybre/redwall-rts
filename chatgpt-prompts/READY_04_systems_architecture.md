@@ -1,14 +1,12 @@
 # READY TO PASTE — Settlement Systems Architecture (ChatGPT Pro / GPT-6 Astra)
 
-> **Run `READY_02_crowd_rendering.md` first.** The GDD defers to
-> `docs/crowd_rendering_architecture.md` in six places — for the deterministic
+> **Attach all three existing documents**: `docs/game_gdd.md`,
+> `docs/ui_ux_controls.md`, and `docs/crowd_rendering_architecture.md`. The GDD
+> defers to the crowd document in six places — for the deterministic
 > command/RNG boundary, the bounded integer separation grid, and the hardware
-> qualification floor — and that document does not exist yet. This prompt can
-> run without it (there is a fallback clause below), but the result will be
-> weaker and you will have two documents to reconcile later.
+> qualification floor — so an architecture written without it will contradict
+> both.
 >
-> **Attach `docs/game_gdd.md` and `docs/ui_ux_controls.md`** before sending,
-> plus `docs/crowd_rendering_architecture.md` if you have produced it.
 > Save the output to `docs/systems_architecture.md`.
 
 ---
@@ -48,10 +46,15 @@ CPU p95 ≤6 ms per render frame at 4x; UI work p95 ≤1.5 ms; simulation-owned
 memory ≤100 MB; full process ≤4 GB; job route ready p95 ≤0.25 real seconds
 at 1x; at most 24 skeletal actors of the 256 residents.
 
-**If `crowd_rendering_architecture.md` is not attached:** define the
-deterministic command/RNG boundary and the bounded integer separation grid
-yourself, mark that section `[ASSUMED — pending crowd doc]`, and list every
-decision the crowd document would need to confirm.
+**The crowd document is battle-layer and the GDD is settlement-layer.** They
+share conventions — packed integer columns, `(slot, generation)` handles,
+1/1024 m positions, 65536 yaw units — but differ in scope and capacity: the
+crowd store allocates 2048 model slots for battle, while the settlement caps at
+256 living residents in 512 slots. Your architecture must serve the settlement
+layer while remaining **compatible** with the crowd store, since a settlement
+citizen keeps its persistent ID when entering battle and transfers state through
+an explicit catalog-versioned conversion (crowd doc §4.1). Call out anywhere the
+two impose incompatible requirements.
 
 ## Deliverables
 
@@ -152,7 +155,7 @@ during the transition. Be blunt — if something should be thrown away, say so.
 - ASCII data-flow diagrams for the tick pipeline and the job lifecycle
 - Every memory figure derived, never asserted
 - Include `## Conflicts Found` even if empty — say "none found"
-- Mark anything the crowd document should confirm `[ASSUMED — pending crowd doc]`
+- Cite the source document and section for every constraint you inherit
 - No placeholders. No "TBD". No "etc."
 - Where you must judge, judge decisively with a one-line italic rationale. Do
   not hand the decision back to the reader.

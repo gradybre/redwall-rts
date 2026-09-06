@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cqk5yuphoyfqc"
-path="res://.godot/imported/mouse_warrior.glb-3f301ccd1d7085aa88b06ee16efe9a2e.scn"
+uid="uid://r6l7vgqsh7w8"
+path="res://.godot/imported/species_mouse_body_a_lod0.glb-5629f58acf75dbf29915266318b494a2.scn"
 
 [deps]
 
-source_file="res://assets/units/mouse_warrior.glb"
-dest_files=["res://.godot/imported/mouse_warrior.glb-3f301ccd1d7085aa88b06ee16efe9a2e.scn"]
+source_file="res://assets/units/species_mouse_body_a_lod0.glb"
+dest_files=["res://.godot/imported/species_mouse_body_a_lod0.glb-5629f58acf75dbf29915266318b494a2.scn"]
 
 [params]
 

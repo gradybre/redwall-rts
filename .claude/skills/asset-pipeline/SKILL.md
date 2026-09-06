@@ -29,19 +29,50 @@ meshy-6 for units that ship.
 ## Scale tiers
 
 Godot units are metres. Every creature is normalised to its tier height so
-squads read correctly beside each other. Tiers follow the roster in
-`docs/game_concept.md`.
+squads read correctly beside each other.
 
-| Tier | Height | Models/squad | Species |
+**The anchor is fixed**: `docs/crowd_rendering_architecture.md` §9.1 specifies
+prototype mouse height **1.0 m gameplay scale — "fantasy relative scale, not
+biological meters."** Do not substitute a biologically plausible mouse.
+
+| Tier | Height | Source | Species |
 |---|---|---|---|
-| Small | **0.55 m** | 40–60 | Shrews, mice, moles, voles, rats, squirrels, bats, sparrows |
-| Medium | **0.82 m** | 30–40 | Otters, hares, ferrets, weasels, hedgehogs, lizards, kestrels |
-| Large | **1.40 m** | 10–15 | Badgers, foxes, wildcats, monitors, wolverines |
-| Giant | **2.40 m+** | 1 | Falcons, snakes, eels, water rats, shrikes |
+| Small | **1.00 m** | crowd doc §9.1 | Shrews, mice, moles, voles, rats, squirrels, bats, sparrows |
+| Medium | 1.49 m | **derived, unconfirmed** | Otters, hares, ferrets, weasels, hedgehogs, lizards, kestrels |
+| Large | 2.55 m | **derived, unconfirmed** | Badgers, foxes, wildcats, monitors, wolverines |
+| Giant | per-creature | **undefined** | Falcons, snakes, eels, water rats, shrikes |
 
-> These heights are **provisional** — set once, by eye, in an actual scene with
-> two tiers side by side. Changing them later means re-running every asset, so
-> settle them before bulk generation. Giant is per-creature, not a single value.
+> Only Small is sourced. Medium and Large are the small anchor scaled by 1.49
+> and 2.55 — ratios chosen for readability, confirmed by nothing. No document
+> states a height for any species but the mouse. Settle the remaining tiers by
+> eye with two side by side before bulk generation; re-running every asset later
+> is the expensive alternative.
+
+## Coordinate and naming conventions
+
+From crowd doc §9.1, and **not optional** — these are project conventions that
+deliberately differ from the usual Godot/glTF defaults:
+
+| Field | Required value |
+|---|---|
+| Blender units | Metric, unit scale 1.0, 1 unit = 1 m |
+| Simulation convention | Godot **+Y up, −Z forward, +X right** |
+| Authoring convention | Blender +Z up, +Y forward, +X right |
+| Axis conversion | `(x_g, y_g, z_g) = (x_b, z_b, −y_b)` |
+| Origin | Ground contact centre between the feet |
+| Transforms | Applied; scale exactly (1,1,1); no negative determinant |
+| Topology | Triangulated before bake |
+| Naming | `species_mouse_body_a_lod1`, `rig_mouse_v1`, `clip_attack_a`, `socket_main` |
+
+**Facing is the one thing the script cannot verify.** glTF's common convention
+is +Z front; this project uses −Z forward. The crowd doc requires applying the
+conversion once and validating against a "face north" fixture, and using
+`use_model_front=false` on presentation roots — do **not** let `look_at()` add a
+second 180° rotation. Check facing by eye after import; a model that is upright,
+correctly scaled and backwards passes every automated check in the script.
+
+Crowd doc §9.2 also fixes the generation order: **produce one body and one sword
+first and validate the bake before generating further species.** Do not batch.
 
 ## The workflow
 
@@ -74,7 +105,7 @@ One command. Runs headless, needs no Blender MCP connection:
 blender --background --python .claude/skills/asset-pipeline/scripts/prep_unit.py -- \
   assets/source/<name>.glb \
   godot/assets/units/<name>.glb \
-  --height 0.55
+  --height 1.00
 ```
 
 It rotates the model upright, scales it to the tier height, moves the pivot to

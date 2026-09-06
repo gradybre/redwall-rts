@@ -1,0 +1,258 @@
+{
+  "docs/gameplay_balance.md": {
+    "tables": 20,
+    "structure": "PASS",
+    "source_sha256": "66b784467348bb28126fc947b9c979aeea5fe23c831d6d04e6f8190c62e3b56f"
+  },
+  "docs/systems_architecture.md": {
+    "tables": 12,
+    "structure": "PASS",
+    "source_sha256": "8e0150605b331210ec45a97c0bd1f481ff9662f4f5d6f0ad31e375b6ce3d0e58"
+  },
+  "docs/validation_resolution.md": {
+    "tables": 6,
+    "structure": "PASS",
+    "source_sha256": "553b7795273e0d767f62709248fbd9cd3cca96b5a0b2d1f39adc6f8d7b8ba232"
+  },
+  "docs/validation/README.md": {
+    "tables": 6,
+    "structure": "PASS",
+    "source_sha256": "040814ef10144670bf76e01cf7dc16620c65a59b4b51504bfec36fafd56b6652"
+  },
+  "winter_report": {
+    "code_and_source_digests": "PASS",
+    "daily_rows": 12,
+    "death_event_counts": {
+      "conversion_disabled": 12,
+      "conversion_enabled": 0
+    }
+  },
+  "reference_tests": {
+    "tests": 33,
+    "failures": 0,
+    "errors": 0,
+    "observed_exit_code": 0,
+    "scope": "Python reference/arithmetic/evidence-checker tests; not Windows qualification"
+  },
+  "windows": {
+    "status": "BLOCKED",
+    "observed_exit_code": 2
+  },
+  "godot_mac": {
+    "status": "PASS_SAME_PLATFORM_REFERENCE",
+    "godot_checks": 324,
+    "engine": "4.7.2.stable.official.ed1daf0bf",
+    "platform": "macOS",
+    "python_results": "EXACT_MATCH",
+    "daily_and_terminal_rows": 18,
+    "death_events": 12,
+    "next_tick_comparisons": 15000,
+    "speed_parity": true,
+    "observed_runner_duration_ms": 6768,
+    "known_environment_diagnostics": [
+      "ERROR: Could not create directory: '/Users/brendan/Library/Application Support/Godot/app_userdata/Redwall Settlement Validation'.",
+      "ERROR: Error attempting to create data dir: /Users/brendan/Library/Application Support/Godot/app_userdata/Redwall Settlement Validation.",
+      "ERROR: Condition \"ret != noErr\" is true. Returning: \"\""
+    ],
+    "source_sha256": {
+      "control_checkpoint.gd": "ae9e1f448d9fc16465b98263c9802d18d1f6d1a281869375e0a2d281245290fc",
+      "fixed_clock.gd": "131b52bc59f149f6b93b4eb1c968338bbfce6b656ce36572a244f2a0508db053",
+      "resident_slots.gd": "52e26f9241b9c292f192e6c45533d6960dfbf96c0336ebd949fb508ab4dd7f78",
+      "run_controls.gd": "1c3e4375cb3d8e04dc73e0a0f2e3adbbb11da235d67c7d24e4b12cbdf6ec3f7e",
+      "test_foundation.gd": "84fa573599c6d32e9f8067447732871bf246362721b4798674a7d11b01fb86fa",
+      "winter_world.gd": "a466e405367218419ea5994247ace1ba59cd8a9fc372f81d97035d258921e086"
+    },
+    "evidence_sha256": {
+      "report.json": "02d582c57995f374110756af5f7e217d5eac1f28789b4c4be64419db37abfbff",
+      "winter.control": "e3b82f87e3ec5a2e81a77747ec244c2c86cecdddba94898173850a8d9dac6781",
+      "checkpoint_hashes.csv": "154f250f5d303d8e36246bcff8964104e7da95e479949b04422a6a4d625208b0"
+    },
+    "python_reference_sha256": "72e8d4c6e90b6fe31de00f0f7d7f3e1bd69177391d856f5adfff794f18011cfa",
+    "limitation": "Isolated headless engine controls; not the full settlement runtime, release save format, renderer or Windows-floor performance qualification."
+  },
+  "mac_file_reload": {
+    "compared_hash_rows": 15001,
+    "cross_platform": false,
+    "loaded_mac_checkpoint": true
+  },
+  "windows_execution": {
+    "status": "DEFERRED_BY_USER",
+    "hardware_profile": "docs/validation/hardware.json"
+  },
+  "docs/game_gdd.md": {
+    "tables": 39,
+    "structure": "PASS",
+    "source_sha256": "f6b073ef618d2e8144f2c84cac3cb55f680863491672447096487be4cfe40453"
+  },
+  "docs/ui_ux_controls.md": {
+    "tables": 16,
+    "structure": "PASS",
+    "source_sha256": "9ff100d135ccf98ccb528edc3354fd0e3ab835b67652f8087dfb789710b7268e"
+  },
+  "docs/setting_bible.md": {
+    "tables": 33,
+    "structure": "PASS",
+    "source_sha256": "7334329321b62040e19aeb5d82f3cec901cfc691d65e20cae4cc2b1fb4b8d297"
+  },
+  "docs/setting_decisions.md": {
+    "tables": 19,
+    "structure": "PASS",
+    "source_sha256": "2fedc200860ec3991275792369d867be8bd1425cc7f27254e0f3cf5bee5f1761"
+  },
+  "docs/setting_rules_amendment.md": {
+    "tables": 8,
+    "structure": "PASS",
+    "source_sha256": "64fb7429a33aa40a3635ea83c17f8c97e32c4ddb4435c898c90965d2e08c709c"
+  },
+  "ruleset": "settlement_rules_v2",
+  "setting_contract": {
+    "status": "PASS_STATIC_SPEC_AND_REFERENCE_ONLY",
+    "catalog_counts": {
+      "items": 60,
+      "recipes": 24,
+      "ancillary": 12,
+      "buildings": 30,
+      "furniture": 9,
+      "crops": 5
+    },
+    "resolved_dependency_edges": 183,
+    "roast_levels": [
+      {
+        "cook_level": 0,
+        "quantities_milli": [
+          3000,
+          2000,
+          1000,
+          250
+        ],
+        "mass_g": 1563
+      },
+      {
+        "cook_level": 1,
+        "quantities_milli": [
+          2970,
+          1980,
+          1000,
+          250
+        ],
+        "mass_g": 1551
+      },
+      {
+        "cook_level": 2,
+        "quantities_milli": [
+          2940,
+          1960,
+          1000,
+          250
+        ],
+        "mass_g": 1538
+      },
+      {
+        "cook_level": 3,
+        "quantities_milli": [
+          2910,
+          1940,
+          1000,
+          250
+        ],
+        "mass_g": 1526
+      },
+      {
+        "cook_level": 4,
+        "quantities_milli": [
+          2880,
+          1920,
+          1000,
+          250
+        ],
+        "mass_g": 1513
+      },
+      {
+        "cook_level": 5,
+        "quantities_milli": [
+          2850,
+          1900,
+          1000,
+          250
+        ],
+        "mass_g": 1501
+      },
+      {
+        "cook_level": 6,
+        "quantities_milli": [
+          2820,
+          1880,
+          1000,
+          250
+        ],
+        "mass_g": 1488
+      },
+      {
+        "cook_level": 7,
+        "quantities_milli": [
+          2790,
+          1860,
+          1000,
+          250
+        ],
+        "mass_g": 1476
+      },
+      {
+        "cook_level": 8,
+        "quantities_milli": [
+          2760,
+          1840,
+          1000,
+          250
+        ],
+        "mass_g": 1463
+      },
+      {
+        "cook_level": 9,
+        "quantities_milli": [
+          2730,
+          1820,
+          1000,
+          250
+        ],
+        "mass_g": 1451
+      },
+      {
+        "cook_level": 10,
+        "quantities_milli": [
+          2700,
+          1800,
+          1000,
+          250
+        ],
+        "mass_g": 1438
+      }
+    ],
+    "admission_reference_fixtures": {
+      "4": [
+        "mole",
+        "otter"
+      ],
+      "7": [
+        "otter",
+        "squirrel"
+      ],
+      "10": [
+        "squirrel",
+        "rat"
+      ],
+      "13": [
+        "shrew",
+        "hedgehog"
+      ]
+    },
+    "source_sha256": {
+      "game_gdd.md": "f6b073ef618d2e8144f2c84cac3cb55f680863491672447096487be4cfe40453",
+      "gameplay_balance.md": "66b784467348bb28126fc947b9c979aeea5fe23c831d6d04e6f8190c62e3b56f",
+      "systems_architecture.md": "8e0150605b331210ec45a97c0bd1f481ff9662f4f5d6f0ad31e375b6ce3d0e58",
+      "ui_ux_controls.md": "9ff100d135ccf98ccb528edc3354fd0e3ab835b67652f8087dfb789710b7268e",
+      "setting_rules_amendment.md": "64fb7429a33aa40a3635ea83c17f8c97e32c4ddb4435c898c90965d2e08c709c"
+    },
+    "limitations": "Checks catalog definitions and independent arithmetic fixtures. Does not run admission, UI, saves, ecology, or full settlement survival in Godot."
+  }
+}

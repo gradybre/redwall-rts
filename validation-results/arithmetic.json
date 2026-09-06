@@ -1,0 +1,102 @@
+{
+  "status": "ARITHMETIC_ONLY_NOT_THREE_YEAR_SURVIVAL",
+  "provenance": {
+    "economy": "GDD \u00a77.1; formulas \u00a75.2, \u00a75.6, \u00a75.7",
+    "path": "GDD \u00a75.11 fixed 2048 expansions/tick and route gate; NEW cold FIFO workload of 256 expansions per route",
+    "orchard": "GDD \u00a75.6, \u00a75.11; DERIVED earliest planting at day 49",
+    "memory": "systems_architecture.md \u00a72\u20133; planned packed-array capacities, not observed allocation"
+  },
+  "demand": {
+    "small200": 1200000,
+    "small200_winter": 1440000,
+    "mixed200": 1344000,
+    "mixed200_winter": 1612800
+  },
+  "field": {
+    "grain_milli": 544000,
+    "seed_milli": 16000,
+    "seed_grain_milli": 4000,
+    "net_grain_milli": 540000,
+    "np_before_seed": 979200,
+    "np_after_seed": 972000,
+    "crop_work_mwu": 1152000,
+    "cooking_work_mwu": 3264000,
+    "water_milli": 544000,
+    "cooking_wood_milli": 27200
+  },
+  "winter_stock": {
+    "np": 17280000,
+    "ration_milli": 8280000,
+    "batches": 2760,
+    "flour_milli": 5520000,
+    "dried_fish_milli": 2760000,
+    "nuts_milli": 2760000,
+    "water_milli": 2760000,
+    "work_mwu": 66240000,
+    "mass_g": 4140000,
+    "cellars": 5
+  },
+  "starter": {
+    "np": 408000,
+    "demand_np": 74400,
+    "food_days_centi": 548
+  },
+  "quality": {
+    "score": 66,
+    "fish_stew_np": 6930
+  },
+  "mood": {
+    "base": 6200,
+    "meal": 6500,
+    "friend_loss": 4700
+  },
+  "calendar": {
+    "calendar_three_year_ticks": 2587500,
+    "elapsed_three_year_ticks": 2592000
+  },
+  "orchard": {
+    "apple_mature_day": 145,
+    "apple_first_harvest_day": 169,
+    "pear_mature_day": 193,
+    "pear_first_harvest_day": 219
+  },
+  "path": [
+    {
+      "requests": 1,
+      "expansions_per_route": 256,
+      "p95_rank": 1,
+      "p95_ready_tick": 1,
+      "p95_real_us": 33334,
+      "within_250000_us": true
+    },
+    {
+      "requests": 58,
+      "expansions_per_route": 256,
+      "p95_rank": 56,
+      "p95_ready_tick": 7,
+      "p95_real_us": 233334,
+      "within_250000_us": true
+    },
+    {
+      "requests": 59,
+      "expansions_per_route": 256,
+      "p95_rank": 57,
+      "p95_ready_tick": 8,
+      "p95_real_us": 266667,
+      "within_250000_us": false
+    },
+    {
+      "requests": 256,
+      "expansions_per_route": 256,
+      "p95_rank": 244,
+      "p95_ready_tick": 31,
+      "p95_real_us": 1033334,
+      "within_250000_us": false
+    }
+  ],
+  "memory": {
+    "one_world_with_reserve": 66101862,
+    "two_worlds_with_reserve": 117599532,
+    "two_world_over_budget": 17599532
+  }
+}

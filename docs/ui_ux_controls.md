@@ -4,8 +4,8 @@
 
 | Field | Value |
 |---|---|
-| Document | SET-UX-001, revision 1.0, 2026-09-05 |
-| Rules source | `game_gdd.md`, settlement release 1 |
+| Document | SET-UX-001, revision 1.1, 2026-09-05 |
+| Rules source | `game_gdd.md` revision 1.1 and `setting_rules_amendment.md`; settlement rules v2 |
 | Engine | Godot 4.7.2 Control-based UI, Windows primary, Mac development |
 | Supported display range |1280×720 through 3840×2160; windowed/borderless/fullscreen |
 | Input |Mouse+keyboard; Mac trackpad equivalents; no controller-only release claim |
@@ -234,12 +234,16 @@ Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Contain
 | UI-SET-067 Cancel |Owning modal/workspace, bottom left |96×44→160×48 |BUTTON |“Cancel ”+operation |MODAL/WORKSPACE; Esc same; no financial effect before commit |
 | UI-SET-068 Immigration review |TC alert opens CENTER 051 |480×360→960×720 |PANEL |“Immigration candidates; ”+selected+“ accepted; ”+spare beds+“ spare beds” |CONDITION immigration event;069 rows;065 override;066 commit |
 | UI-SET-069 Resident row |BC roster or 068 |280×56→896×72 |ROW |Name/anonymous label+species+role+mood+health+current job |WORKSPACE/SELECTED; click single; Shift multi; double centers world |
-| UI-SET-070 Job matrix |BC, inside 051 |480×320→960×720 |PANEL |“Work priorities” |WORKSPACE 029;12 job columns; resident rows 069; cells 041; virtualized |
+| UI-SET-070 Job matrix |BC, inside 051 |480×320→960×720 |PANEL |“Work priorities” |WORKSPACE 029;11 active job columns, omitting reserved index 3; resident rows 069; cells 041; virtualized |
 | UI-SET-071 Forecast/chart |TR calendaror BCobjectives |320×240→896×480 |PANEL |Chart title+current value+next change+table alternative |CONDITION forecast/progression; keyboard readable table, not image-only |
 | UI-SET-072 Tutorial card |TC, below alerts |280×120→420×192 |NOTICE |“Tutorial: ”+step_title+instruction |TUTORIAL; one card; Next 066/Skip 067; does not intercept world outside card |
 | UI-SET-073 Tooltip |Owning zone, pointer/focus adjacent |160×48→360×240 |PANEL |Description associated with owner, not duplicated announcement |CONDITION hover 350 ms/focus 0 ms; clamp inside viewport; IGNORE |
 | UI-SET-074 Focus outline |All zones, focused rect |Owner rect+4 px |OVERLAY |Excluded; owner provides semantics |CONDITION keyboard focus; never hidden by selected state |
 | UI-SET-075 Search/filter |Owning workspace, top |200×44→640×44 |FIELD |“Search ”+collection_name; result count description |WORKSPACE with list; debounce 150 ms UI-time; Esc first clears text only if text field owns it |
+
+For UI-SET-068/069, an authored admission exception has the explicit readout label “Individual petition” and its catalog description in the selected-row detail. Use 16 px READOUT text, wrapping within the panel and scrolling above the fixed action footer. Show species and exact housing/food consequences. UI-SET-066 action instances use `accept_candidates` (“Accept selected”) and `decline_candidates` (“Decline selected”); both bind only live selected candidate rows. UI-SET-067 closes without deciding. Pending rows expire next midnight under SET-AMEND-001; auto-immigration skips exception rows. Do not present aid, probation or trust controls: those mechanics do not exist. The same resident-row definition in an ordinary roster retains its existing selection behavior.
+
+All content pickers exclude retired hunt zones, hunter huts, hunting gear, game meat and game recipes. Meal descriptions and Orchard feast previews use `nut_roast` and the exact replacement ingredients; meals do not imply hidden leather or prey production. Use SET-AMEND-001 §3 to validate active keys; removed content is not shown as a future unlock.
 
 ### 4.3 Menus, accessibility, and uncommon states
 

@@ -1,0 +1,9 @@
+; Isolated settlement validation project. Does not load the legacy game autoloads.
+config_version=5
+
+[application]
+config/name="Redwall Settlement Validation"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

@@ -4,7 +4,7 @@
 
 | Field | Value |
 |---|---|
-| Document | SET-GDD-001, revision 1.0, 2026-09-05 |
+| Document | SET-GDD-001, revision 1.1, 2026-09-05 |
 | Product scope | Standalone single-player settlement game; no battles, armies, campaign map, or multiplayer |
 | Engine baseline | Godot 4.7.2, GDScript; development on Apple Silicon, Windows primary shipping target |
 | Companion | `ui_ux_controls.md`; shared technical foundation in `crowd_rendering_architecture.md` |
@@ -18,13 +18,15 @@ All functional requirements are the uniquely numbered EARS statements in Section
 
 *Rationale: an implementable initial release needs a finite content catalog and measurable rules; “deep” means interacting, understandable systems rather than an unlimited feature list.*
 
+Ruleset `settlement_rules_v2` adopts DEC-005/006. [setting_rules_amendment.md](setting_rules_amendment.md) supplies the exact admission profile, exception, retired content, replacement roast and compatibility rules. New content values are identified there as authored choices. The single refuge initialization below is one scenario baseline; DEC-028 requires additional fully specified first-release scenarios, not a single-scenario final release.
+
 ## 1. Feature Overview
 
 **Creature autonomy.** Every resident has persistent identity, five needs, health, skills, preferences, relationships, and an explicit schedule. Anonymous presentation does not mean disposable simulation. The player sets priorities and policies; residents find eligible work, eat, sleep, socialize, seek treatment, and react to sustained hardship. Growth comes through immigration; childbirth, child care, reproduction, and age-related death are outside release 1.
 
 **Fishing.** River, lake, and coastal habitats have separate species stocks, seasonal catches, spawning closures, fishing capacity, and hazards. Nets, traps, weirs, and boats trade labor, access, efficiency, and risk. A temporarily abundant salmon run can fund preservation and a feast, while excessive extraction damages later seasons.
 
-**Hunting and foraging.** Expeditions follow track information into managed forest zones. Wildlife stocks migrate and recover. Berries, nuts, mushrooms, roots, and herbs mature on different calendars. Parties carry appropriate tools and first-aid supplies; deeper woods offer higher yield with explicit exposure risk. Protected habitat remains useful even when it is not harvested.
+**Foraging and woodland stewardship.** Berries, nuts, mushrooms, roots and herbs mature on different calendars. Deeper woods offer higher yields with explicit exposure risk. Protected habitat remains useful without harvesting. Mammals and birds are not food stocks; wilderness danger remains in the existing foraging and fishing hazard rules.
 
 **Farming and husbandry.** Fields track soil texture, fertility, moisture, crop family, progress, disease, and harvest readiness. Rotation and compost affect future harvests. Orchards require years of care; hives produce honey and wax and improve nearby pollinated crops. There is no livestock breeding subsystem in release 1.
 
@@ -42,7 +44,7 @@ All functional requirements are the uniquely numbered EARS statements in Section
 |---|---|
 | Residents | “The mouse I noticed in the kitchen has become the cook everyone relies on.” |
 | Fishing | “I know this river well enough to feed the abbey without emptying it.” |
-| Hunting/foraging | “The woodland is generous when respected, and dangerous when treated carelessly.” |
+| Foraging/woodland | “The woodland is generous when respected, and dangerous when treated carelessly.” |
 | Farming/orchards | “I planted something whose best years I have not reached yet.” |
 | Cooking | “A warm meal is the visible result of many residents caring for one another.” |
 | Feasts | “We are celebrating a surplus we earned, without gambling away winter.” |
@@ -68,7 +70,7 @@ All functional requirements are the uniquely numbered EARS statements in Section
 
 1. At season start inspect the twelve-day calendar, ecological stocks, planting windows, and forecast.
 2. Reserve seeds and winter food before spending harvests on growth or celebration.
-3. Plant, fish, hunt, and forage within sustainable quotas.
+3. Plant, fish, and forage within sustainable quotas.
 4. Process surplus through mills, kitchens, drying racks, smokehouses, and cellars.
 5. Expand heat, beds, tools, and storage only when the reserve forecast remains sufficient.
 6. Respond to one bounded weather/ecology event and recover production.
@@ -104,7 +106,7 @@ All functional requirements are the uniquely numbered EARS statements in Section
 | Time | 30 ticks/real second at 1×; 18000 ticks/day; 750 ticks/game hour |
 | Birth/growth scope | Adult immigration only; no demographic reproduction simulation |
 
-Persistent creature IDs are monotonically allocated positive int32 values and never reused. Runtime slots are reused with generation validation. Resident storage capacity is 512 to leave room for transfers and deferred removal, but living population never exceeds 256. Species identity is independent of job, faction, rendering rig, and sapience.
+Persistent creature IDs are monotonically allocated positive int32 values and never reused. Runtime slots are reused with generation validation. Resident storage capacity is 512 to leave room for transfers and deferred removal, but living population never exceeds 256. Species identity is independent of job, faction and rendering rig; sapience classification is consistent per species and disjoint from edible stock keys.
 
 *Rationale: the settlement keeps the integer, fixed-tick, structure-of-arrays boundary established by the crowd document; it does not inherit battle formations, combat stats, or a requirement for one node per resident.*
 
@@ -141,10 +143,10 @@ All fields below are authoritative unless marked `P` for presentation or `C` for
 | FishHabitat | type: enum, zone: EntityRef, capacity_milli: int64, effort_slots: int32, pollution: int32, danger: int32, protected_fraction: int32 | One per marked water basin; up to 32 |
 | FishStock | habitat: EntityRef, species_id: int32, population_milli: int64, capacity_milli: int64, harvested_today_milli: int64, closed: bool | 3 stocks/habitat; no shared global fish counter |
 | HarvestZone | type: enum, tiles: packed int32[], danger: int32, quota_milli: int64, protected: bool, enabled: bool | Up to 128; tile membership max 16384 total zone links |
-| FaunaStock | zone: EntityRef, species_id: int32, population: int32, capacity: int32, tracks: int32, harvest_today: int32, migration_link: int32, birth_remainder: int64 | 3 stocks/forest zone |
+| FaunaStockReserved | zone: EntityRef, species_id: int32, population: int32, capacity: int32, tracks: int32, harvest_today: int32, migration_link: int32, birth_remainder: int64 | Reserved allocation only: all numeric fields 0, refs (-1,0), no active rows or updates |
 | ForagePatch | zone: EntityRef, item_id: int32, stock_milli: int64, capacity_milli: int64, harvested_year_milli: int64 | 5 patches/forest zone |
 | ResourceNode | resource_id: int32, quantity_milli: int64, capacity_milli: int64, regrow_days: int32, planted_day: int32, exhausted: bool | Tree/stone/iron source; at most 4096 |
-| Expedition | kind: enum, zone: EntityRef, member_ids: int32[3], member_count: int32, phase: enum, remaining_mwu: int64, cargo: EntityRef, hazard_roll: int32, consent: bool | Fishing 1–2 members; hunting 2–3; one job/member |
+| Expedition | kind: enum, zone: EntityRef, member_ids: int32[3], member_count: int32, phase: enum, remaining_mwu: int64, cargo: EntityRef, hazard_roll: int32, consent: bool | Fishing 1–2 members; third member slot reserved empty; one job/member |
 | FarmPlot | crop_id: int32, state: enum, soil: enum, fertility: int32, moisture: int32, growth_milli_hours: int64, health: int32, last_family: int32, family_streak: int32, compost_milli: int64, sow_day: int32 | One per 2 m tile; up to 4096 active farm tiles |
 | OrchardPlot | species_id: int32, age_days: int32, health: int32, tended_today: bool, harvested_year: bool, chill_days: int32 | One per 4×4 farm-tile orchard block |
 | Hive | building: EntityRef, strength: int32, feed_milli: int64, serviced_day: int32, honey_milli: int64, wax_milli: int64 | One per apiary; six pollination links max per field block |
@@ -181,9 +183,9 @@ All gameplay enum numeric values not individually listed are generated once from
 | Activity | SLEEP=0, ANYTHING=1, WORK=2, SOCIAL=3 |
 | ResidentStatus | ACTIVE=0, RESTING=1, INJURED=2, INCAPACITATED=3, LEAVING=4, DEAD=5, TRANSFERRED=6 |
 | Role | RESIDENT=0, WARDEN=1, SPECIALIST=2 |
-| JobKind/skill index | HAUL=0, BUILD=1, FISH=2, HUNT=3, FORAGE=4, FARM=5, COOK=6, PRESERVE=7, CRAFT=8, TEND=9, KEEP=10, HEAL=11 |
+| JobKind/skill index | HAUL=0, BUILD=1, FISH=2, RESERVED_3=3, FORAGE=4, FARM=5, COOK=6, PRESERVE=7, CRAFT=8, TEND=9, KEEP=10, HEAL=11 |
 | JobState | QUEUED=0, RESERVED=1, TRAVEL=2, WORK=3, HAUL_OUTPUT=4, COMPLETE=5, BLOCKED=6, CANCELLED=7 |
-| ZoneType | FISH=0, HUNT=1, FORAGE=2, FARM=3, ORCHARD=4, FORESTRY=5, QUARRY=6, STOCKPILE=7, CONSERVATION=8 |
+| ZoneType | FISH=0, RESERVED_1=1, FORAGE=2, FARM=3, ORCHARD=4, FORESTRY=5, QUARRY=6, STOCKPILE=7, CONSERVATION=8 |
 | RoomType | DORMITORY=0, PRIVATE_ROOM=1, KITCHEN=2, DINING=3, COMMON=4, INFIRMARY=5, PANTRY=6, CORRIDOR=7 |
 | BuildingState | BLUEPRINT=0, BUILDING=1, ACTIVE=2, PAUSED=3, DAMAGED=4, DEMOLISHING=5 |
 | Soil | LOAM=0, CLAY=1, SAND=2 |
@@ -224,17 +226,17 @@ Species catalog release 1: mouse, shrew, mole, rat, squirrel, sparrow, otter, ha
 
 At 1×: day 10 minutes, season 120 minutes, year 8 hours. At 2×: day 5 minutes, season 60 minutes, year 4 hours. At 4×: day 2.5 minutes, season 30 minutes, year 2 hours. Pause adds arbitrary wall time. Tick 0 corresponds to 06:00 on the first day; calendar time uses `(tick+4500) mod18000`, with the first midnight at tick 13500. Daily events use crossings of this offset calendar, not `tick mod18000==0`.
 
-Initial conditions:12 adults (6 mice,2 moles,2 otters,2 squirrels); IDs 1–12; ID 1 named Warden Rowan; all five needs 7500, health 100, job skills level 2 except Rowan KEEP 3; no injuries; relationship edges(1,2),(3,4),(5,6),(7,8),(9,10),(11,12) affinity 20. Start with one completed refuge hall containing 12 beds, one kitchen bench, twelve seat places, one hearth, and one pantry; one well, four open stockpiles, and one outdoor workbench.
+Initial conditions:12 adults (6 mice,2 moles,2 otters,2 squirrels); IDs 1–12; ID 1 named Warden Rowan; all five needs 7500, health 100, active job skills level 2 except Rowan KEEP 3; reserved skill index 3 has XP/level 0; no injuries; relationship edges(1,2),(3,4),(5,6),(7,8),(9,10),(11,12) affinity 20. Start with one completed refuge hall containing 12 beds, one kitchen bench, twelve seat places, one hearth, and one pantry; one well, four open stockpiles, and one outdoor workbench.
 
 Initial inventory U: wood 180, stone 100, iron 20, rope 20, tool 24, cloth 24, water 60, grain 80, roots 80, berries 40, nuts 40, dried_fish 60, ration 60, seed_grain 32, seed_roots 32, seed_beans 16, seed_cabbage 16, seed_flax 16, herb 12, compost 32. Initial tool durability 1000, clothing tier 1. The starter hall and resource placement fit a 32 m radius of map center.
 
-Initial loose lots are PLAIN quality, effective age 0, provenance STARTER, with no reservations. The 24 initial tool units include 12 equipped tools (one per resident) and 12 stored tools; they are not duplicated. All residents wear tier 1 clothing supplied as spawn equipment. Initial priorities are HAUL=2 and all other jobs=3, auto_fallback=true, dangerous_work=false; orders are initially empty. Warden KEEP XP=45000; other initial skills XP=20000. Initial room assignments follow resident ID ascending and bed ID ascending. Initial farm moisture is 6000, health 10000; empty plots have no previous crop family. All other initial fields follow the registry zero/null defaults unless a catalog specifies a different value.
+Initial loose lots are PLAIN quality, effective age 0, provenance STARTER, with no reservations. The 24 initial tool units include 12 equipped tools (one per resident) and 12 stored tools; they are not duplicated. All residents wear tier 1 clothing supplied as spawn equipment. Initial priorities are HAUL=2, RESERVED_3=0 and all other active jobs=3, auto_fallback=true, dangerous_work=false; orders are initially empty. Warden KEEP XP=45000; other active initial skills XP=20000; reserved index 3 XP=0. Initial room assignments follow resident ID ascending and bed ID ascending. Initial farm moisture is 6000, health 10000; empty plots have no previous crop family. All other initial fields follow the registry zero/null defaults unless a catalog specifies a different value.
 
 The standard map preset has river, lake, and coastal inlets so all three fishing systems are accessible without a campaign. The player may choose Abbey, Holt, or Fortress architecture; these are visual kits with identical costs/capacities. A fixed-seed tutorial uses seed 20260905. Terrain generator validation guarantees: one river edge within 24 m, one forest zone within 32 m,64 loam tiles within 24 m, a 1200 U wood stock and 1200 U stone deposit within 48 m, renewable saplings, and an iron deposit within 80 m. Invalid seeds are rejected and regenerated with seed+1.
 
 The shipping map is a deterministic authored estuary preset; the seed changes ecology events, resource variants, and names, not the following navigability guarantees. Exterior tile index is `z*128+x`; tile center in simulation units is `(2048*x+1024,0,2048*z+1024)`. Apply terrain masks in this priority: coast, river, lake, land. Coast is z=0..15; river is x=76..78 and z=16..127; lake is `(x-100)^2+(z-66)^2<=14^2`. Water surface is y=0; navigable land y=512 units. The natural ford at river tiles z=48..51 is walkable, y=−128 units, and is not a fishing work tile. All other water blocks residents, including bird residents; no swimming/flying path bypass exists in this release. Water-bank interpolation affects visuals only. There is one stock basin of each habitat type; dividing a player zone never creates extra ecology stock.
 
-Land soil is LOAM for x=40..74,z=40..88, SAND within 4 tiles of coast or x>=112, CLAY otherwise. Clear initial building footprints, a one-tile apron, and the loam rectangle x=58..65,z=46..53 before placing resource nodes. Forest ecology basins are west x=8..49,z=20..105 and east x=82..119,z=20..105 excluding water; each is split at z=62 into north/south migration partners. Initial fauna population is floor(0.8×capacity) per basin, tracks 0; forage stocks are floor(0.8×capacity), including dormant stocks. Player harvest zones reference basin IDs; all intersecting zones share its quotas and do not multiply capacity.
+Land soil is LOAM for x=40..74,z=40..88, SAND within 4 tiles of coast or x>=112, CLAY otherwise. Clear initial building footprints, a one-tile apron, and the loam rectangle x=58..65,z=46..53 before placing resource nodes. Forest ecology basins are west x=8..49,z=20..105 and east x=82..119,z=20..105 excluding water; each is split at z=62 into north/south migration partners. FaunaStockReserved has no active instances; forage stocks are floor(0.8×capacity), including dormant stocks. Player harvest zones reference basin IDs; all intersecting zones share its quotas and do not multiply capacity.
 
 Tree centers occupy every second x/every second z in forest masks. If more than 3000 centers qualify, retain the lowest tile indices. Each mature node contains 12 wood U. Add a guaranteed grove of 100 trees at x=40..49,z=54..63, one per tile, skipping duplicate centers and all cleared aprons; replace any skipped center at the lowest unused land tile inside x=36..49,z=50..67 until exactly 100 guaranteed nodes exist. Guaranteed stone deposit origin (44,70), footprint 4×4, quantity 1200 U; renewable bedrock access (48,70); iron origin (32,60), footprint 4×4, quantity 300 U. Ore footprints replace tree nodes. Arrival/departure exit is (64,126), joined to the hall by ordinary land navigation. A failed topology assertion rejects generation after at most 16 seed attempts and returns the explicit failed assertion to the new-settlement form; the authored geometry makes repeated topology failure an implementation error, not an endless retry.
 
@@ -302,7 +304,7 @@ Default schedule:22:00–06:00 SLEEP,06:00–07:00 ANYTHING,07:00–12:00 WORK,1
 
 | ID | EARS requirement |
 |---|---|
-| REQ-SET-025 | The system shall track XP independently for all twelve skill/job kinds and award XP only for productive work that consumes or advances a valid job. |
+| REQ-SET-025 | The system shall retain twelve XP columns but track/award XP only for the eleven active skill/job kinds, with RESERVED_3 permanently zero, and award XP only for productive work that consumes or advances a valid job. |
 | REQ-SET-026 | When a player changes a job priority, the system shall accept 0=forbidden,1=highest,2=high,3=normal,4=low and apply the change at the next job-selection boundary. |
 | REQ-SET-027 | The system shall select jobs in the exact eligibility and ordering sequence defined below. |
 | REQ-SET-028 | If no permitted job is available and automatic fallback is enabled, then the system shall allow HAUL, KEEP, and low-risk FORAGE at priority 4 only when their configured priority is nonzero. |
@@ -323,7 +325,7 @@ Default schedule:22:00–06:00 SLEEP,06:00–07:00 ANYTHING,07:00–12:00 WORK,1
 
 Eligibility order: health/rescue safety; activity permits work; job kind priority nonzero; required station/tool/skill/unlock; dangerous consent; complete inputs; legal destination. Urgency buckets ascending:0 rescue/feeding an incapacitated resident;1 personal critical needs;2 food/fuel jobs while projected reserve<2 days;3 ordinary production/construction;4 cosmetic upkeep. Within a bucket sort `(player_priority,job_priority,−skill_level,estimated_path_cells,created_tick,job_id)`. Reevaluate idle residents every 30 ticks, staggered by resident ID mod 30. A worker evaluates at most 32 indexed candidate jobs per pass, continuing next pass from the saved cursor when needed; this budget never changes eligibility.
 
-Construction, expedition, and processing WU are total work shared by the declared party, not a requirement repeated per member. A job accumulates the sum of each working member's tick contribution; productive XP is awarded to each contributing resident from their own WU. Passive waits advance calendar time once and do not accelerate with crew count. Failed tracking uses a deterministic roll bound at tracking start and stops at half of the listed tracking WU if it fails; success completes all listed tracking WU. Party members reserve their own required equipment; the shared hunting_tool and medical kit occupy the leader's satchel.
+Construction, expedition, and processing WU are total work shared by the declared party, not a requirement repeated per member. A job accumulates the sum of each working member's tick contribution; productive XP is awarded to each contributing resident from their own WU. Passive waits advance calendar time once and do not accelerate with crew count. Fishing parties reserve their specified gear and aid supplies. No hunting/tracking task or hunting gear is active in rules v2.
 
 Manual “work here” is a temporary preferred destination for 6 game hours; it does not override sleep at≤500, starvation, incapacity, explicit job prohibition, or hazardous-zone consent. Job progress belongs to the job/station, so changing workers retains progress. Input consumption occurs at WORK start; cancellation before that returns all reservations, cancellation afterward retains consumed inputs as work-in-progress salvage as defined for the recipe/building.
 
@@ -386,19 +388,9 @@ Habitat effort capacity: river 4, lake 6, coast 6. Base injury chances per 10000
 
 *Rationale: this preserves dangerous pike/eel fishing while avoiding a species-catalog conflict with later sapient eel characters.*
 
-### 5.5 Hunting, trackable wildlife, and foraging
+### 5.5 Food-source boundary and foraging
 
-Sapient resident species are never game animals. Release 1 huntable fauna are red deer, wild boar, and wood grouse, each explicitly `sapient=false` in a separate fauna catalog. Wildlife is represented by stock-linked herds with 2–6 visible proxy animals per zone, deterministic way point motion, and track markers; individual proxy counts are not the harvest able population. A herd proxy contains `(stock_ref,visual_seed,waypoint_index,phase_tick,proxy_count)` and never owns independent meat/HP.
-
-| Fauna | Zone capacity/head | Meat U/head | Hide U/head | Minimum party | Tracking WU | Hunt WU | Base hazard/10000 | Seasonal population modifier |
-|---|---:|---:|---:|---:|---:|---:|---:|---|
-| Red deer |80 |30 |4 |2 |90 |150 |30 |25% move to deep woods at winter start; return spring |
-| Wild boar |40 |24 |3 |3 |120 |180 |90 |No migration; winter hunt work×1250/1000 |
-| Wood grouse |160 |5 |0 |2 |45 |75 |10 |20% move to adjoining zones at autumn start |
-
-Each hunt requires one bow/100 durability reserve per hunter, one hunting_tool, and herb 2/cloth 1 in the party satchel; supplies are only consumed when treating injury, except bow wear 10/hunt. The leading hunter is highest HUNT skill, ties ID. Tracking success per 10000=`min(9500,6500+300*lead_level+500*(party_size−2)+tracks*20)`, tracks 0–100. Failed tracking consumes half tracking WU and adds 10 tracks; no animal is killed. Successful tracking adds 20 tracks, then a completed hunt removes one head and produces one carcass lot. Processing carcass into meat/hide takes 60 WU at the hunter hut. Stocks are debited at hunt completion, not at tracking start.
-
-At midnight, per fauna stock accumulate `P*(K−P)*(3 if spring else 1)` into birth_remainder, extract whole births by division by 100*K, and retain the remainder. Add 1 external migrant every third day if P<K/2. P=0 can recover through migration. Conservation minimum is 40%K; intensive hunting can lower this to 20% but never below. Migration moves exact whole heads between paired zones and conserves total world population; insufficient destination capacity leaves overflow at source. Hunting has a daily zone quota of 2 deer,1 boar,4 grouse, shared by all parties.
+Residents and food-source creatures are disjoint classifications. Edible aquatic species are exactly carp, dace, herring, mackerel, mussel, perch, salmon, trout and whitefish, each explicitly sapient=false in the food-stock catalog. Pike/eel encounters cannot be harvested. Mammal and bird hunting, carcasses, hides, the hunter hut and hunting gear are retired under SET-AMEND-001. FaunaStockReserved keeps only canonical empty allocation; it creates no herd proxies or stock updates. The retained forest basin partition supports forage and resource zones without a game-animal population.
 
 | Forage item | Spring | Summer | Autumn | Winter | Patch capacity U | Base work WU/U | Daily regrowth fraction/1000 |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -412,19 +404,19 @@ Season multipliers alter regenerated quantity, not the nutrition of an item. Dai
 
 | ID | EARS requirement |
 |---|---|
-| REQ-SET-057 | The system shall keep sapient species and huntable fauna in disjoint catalog classifications and reject any hunt job targeting a resident. |
-| REQ-SET-058 | When a tracking task completes, the system shall update stock-linked track markers and resolve the stated tracking chance without exposing hidden exact herd counts before discovery. |
-| REQ-SET-059 | When tracks are discovered, the system shall reveal an estimate rounded to the nearest 10 heads, its survey age, and the zone's quota/protection state. |
-| REQ-SET-060 | When a qualified hunt party assembles, the system shall reserve one legal animal, the required crew, gear, aid kit, and cargo capacity before travel. |
-| REQ-SET-061 | If a party loses a required member before hunting begins, then the system shall return the remaining party safely and release the hunt reservation. |
-| REQ-SET-062 | When a hunt completes, the system shall debit one animal, create carcass cargo, apply wear, and perform one hazard roll using the stated fauna chance. |
-| REQ-SET-063 | When a hunting hazard passes, the system shall injure the lowest-health hunter, ties ID, for 25 health and severity 1, or severity 2 for boar; available aid shall start treatment automatically. |
-| REQ-SET-064 | The system shall apply hunting risk `max(1,base*(1+zone_danger)−4*lead_level−10*(party_size−2))` per 10000 and display this risk before consent. |
-| REQ-SET-065 | When a seasonal migration occurs, the system shall move stock between paired zones without duplicating animals or violating destination capacity. |
+| REQ-SET-057 | The system shall reject sapient food stocks, species classified as both residents and food, and mammal/bird harvest sources. |
+| REQ-SET-058 | When catalog definitions are compiled, the system shall restrict edible aquatic stocks to the exact nine-key whitelist and reject contradictory sapience classifications. |
+| REQ-SET-059 | While rules v2 is active, the system shall keep FaunaStockReserved canonical empty and create no huntable herd proxy, carcass or hide output. |
+| REQ-SET-060 | If a command requests RESERVED_3 work or a RESERVED_1 zone, then the system shall reject it before allocating a job or changing the world. |
+| REQ-SET-061 | When skills are initialized, displayed, assigned or tested for milestones, the system shall keep reserved index 3 zero and exclude it from active skills. |
+| REQ-SET-062 | If a recipe, scenario or save references a retired content key, then the validator shall reject it rather than substituting a resource. |
+| REQ-SET-063 | When recipe catalogs are compiled, the system shall use nut_roast in place of game_roast with the exact SET-AMEND-001 Section 4 inputs and inherited output rules. |
+| REQ-SET-064 | When an Orchard feast is prepared, the system shall reserve ceil(E/4) nut_roast batches for its main course and retain all other feast rules. |
+| REQ-SET-065 | When old hunting RNG or stock slots are retained for schema stability, the system shall keep them inactive and reject noncanonical saved data. |
 | REQ-SET-066 | The system shall maintain separate forage stocks, regrowth, availability, and protection floors for all five patch types. |
 | REQ-SET-067 | While a forage zone has danger 2 or 3, the system shall require the resident's dangerous-work permission and show an exposure warning. |
 | REQ-SET-068 | When a forager completes 60 WU in danger≥1, the system shall roll injury chance `max(1,8*danger−FORAGE_level)` per 10000, causing 10 health loss and severity 1 injury on success. |
-| REQ-SET-069 | If a hunt/forage quota or storage limit is reached, then the system shall stop new reservations and retain already collected cargo for hauling. |
+| REQ-SET-069 | If a forage quota or storage limit is reached, then the system shall stop new reservations and retain already collected cargo for hauling. |
 
 ### 5.6 Farming, soil, orchards, and hives
 
@@ -480,7 +472,7 @@ Hive strength starts 8000, healthy≥5000. During spring/summer/autumn, a tended
 
 ### 5.7 Item, cooking, preservation, and feast catalogs
 
-All raw food units weigh 250 g; prepared meal/ration units weigh 500 g; honey/nuts still use 250 g/U. Water is 1000 g/U. Material masses: wood 5000g, stone 5000g, iron 2000g, rope 500g, cloth 250g, tool 1000g, hide 1000g, wax 250g, compost 1000g, seed 100g, sapling 1000g, salt 250g. Portable gear masses are net 1000 g, trap 3000 g, bow 1500 g, hunting_tool 2000 g, ice_kit 2000 g, outfit_tier2 500 g, candle 125 g. Equipped tools/outfits are outside satchel capacity. Boats/weirs are assembled in place and never hauled as single inventory items; only their materials are hauled. Construction and crafting transform recipe units; resource masses are storage costs, not a physical conservation model.
+All raw food units weigh 250 g; prepared meal/ration units weigh 500 g; honey/nuts still use 250 g/U. Water is 1000 g/U. Material masses: wood 5000g, stone 5000g, iron 2000g, rope 500g, cloth 250g, tool 1000g, wax 250g, compost 1000g, seed 100g, sapling 1000g, salt 250g. Portable gear masses are net 1000 g, trap 3000 g, ice_kit 2000 g, outfit_tier2 500 g, candle 125 g. Equipped tools/outfits are outside satchel capacity. Boats/weirs are assembled in place and never hauled as single inventory items; only their materials are hauled. Construction and crafting transform recipe units; resource masses are storage costs, not a physical conservation model.
 
 | Food category/item | NP/U raw | Raw edible | Base shelf hours | Ingredient effect |
 |---|---:|---|---:|---|
@@ -495,7 +487,6 @@ All raw food units weigh 250 g; prepared meal/ration units weigh 500 g; honey/nu
 | Honey |1200 |Yes |1440 |Social: social restoration+10% for 6 h |
 | All fish species except mussel |1400 |No |48 |Recovery: passive health restoration+1/hour for 6 h |
 | Mussel |1000 |No |36 |Stamina: awake rest decay−5% for 6 h |
-| Raw game |1400 |No |48 |Stamina: awake rest decay−5% for 6 h |
 | Herb |0 |No |480 |Care ingredient; no nutritional replacement |
 | Mead |0 |No |1440 |Feast ingredient only; no intoxication subsystem |
 
@@ -510,7 +501,7 @@ Recipe quantities are U, work is WU per batch, output meal nutrition is per port
 | fish_stew |fish 2, roots 2, water 2 |meal_fish_stew 3×2200 |20 |Kitchen/COOK |24 |Start |
 | bean_hotpot |beans 2, cabbage 2, water 2 |meal_bean_hotpot 3×2100 |20 |Kitchen/COOK |36 |M1 |
 | woodland_pie |flour 2, mushrooms 2, roots 1, water 1 |meal_pie 3×2300 |30 |Kitchen/COOK |48 |M2 |
-| game_roast |raw_game 3, roots 2, herb 0.25 |meal_game_roast 4×2400 |30 |Kitchen/COOK |36 |M2 |
+| nut_roast |beans 3, roots 2, nuts 1, herb 0.25 |meal_nut_roast 4×2400 |30 |Kitchen/COOK |36 |M2 |
 | berry_tart |flour 2, berries 2, honey 0.5, water 1 |meal_tart 3×2200 |28 |Kitchen/COOK |48 |M2 |
 | orchard_crumble |fruit 3, flour 2, honey 0.5 |meal_crumble 3×2300 |28 |Kitchen/COOK |48 |M3 |
 | nut_loaf |flour 2, nuts 2, water 1 |meal_nut_loaf 3×2600 |24 |Kitchen/COOK |72 |M1 |
@@ -519,15 +510,12 @@ Recipe quantities are U, work is WU per batch, output meal nutrition is per port
 | dry_fish |fish 4 |dried_fish 3×1800 |24+12 h passive |Dryer/PRESERVE |720 |Start |
 | dry_fruit |fruit 4 |dried_fruit3×1400 |20+12 h passive |Dryer/PRESERVE |720 |M3 |
 | salt_fish |fish 4, salt 1 |salted_fish4×1600 |20+6 h passive |Preserver/PRESERVE |960 |M1 |
-| smoke_game |raw_game 4, wood 1 |smoked_game3×1800 |24+8 h passive |Preserver/PRESERVE |720 |M1 |
 | ration |flour 2, dried_fish 1, nuts 1, water 1 |ration 3×2400 |24 |Kitchen/PRESERVE |1440 |M2 |
 | mead |honey 3, water 3 |mead 4 |20+72 h passive |Brewery/COOK |1440 |M2 |
 | compost |spoiled_food 4 or roots 4 |compost 2 |20+24 h passive |Composter/KEEP |Unlimited |Start |
 | cloth |flax 4 |cloth 2 |30 |Workshop/CRAFT |Unlimited |M1 |
 | rope |flax 2 |rope 2 |20 |Workbench/CRAFT |Unlimited |Start |
 | tool |wood 2, stone 1 |tool 1 |30 |Workbench/CRAFT |Unlimited |Start |
-| bow |wood 3, rope 2 |bow 1 |40 |Workbench/CRAFT |Unlimited |Start |
-| hunting_tool |wood 2, stone 2 |hunting_tool 1 |40 |Workbench/CRAFT |Unlimited |Start |
 | iron_tool |wood 1, iron 1 |tool 1 at 1500 durability |40 |Workshop/CRAFT |Unlimited |M2 |
 | outfit |cloth 2 |outfit_tier2 1 |40 |Workshop/CRAFT |Unlimited |M1 |
 | salt |water 4 |salt 1 |20+24 h passive |Saltpan/PRESERVE |Unlimited |M1/coastal water source |
@@ -565,7 +553,7 @@ Feast costs use actual portions; raw inputs follow the recipe table without a se
 |---|---|---|---|---|---|
 | Hearth |M1 |ceil(E/3) bean_hotpot |ceil(E/3) nut_loaf |Warm infusion: water ceil(E/4) U + herb 0.25×ceil(E/12) U |Shared Warmth: cold-exposure accumulation−25% and mood+400 for 48 h |
 | Harvest |M2 |ceil(E/6) feast_fish |ceil(E/3) berry_tart |mead ceil(E/4) U |Abundant Tables: purpose restoration+20% and work speed+5% for 48 h |
-| Orchard |M3 |ceil(E/4) game_roast |ceil(E/3) orchard_crumble |mead ceil(E/4) U |Rooted Community: social decay−20% for 48 h; immigration candidates+2 at the next event within 72 h |
+| Orchard |M3 |ceil(E/4) nut_roast |ceil(E/3) orchard_crumble |mead ceil(E/4) U |Rooted Community: social decay−20% for 48 h; immigration candidates+2 at the next event within 72 h |
 
 Hearth infusion is prepared during service from its reserved water/herb; it has no stored output item or extra work beyond the staffing/service duration. It grants no separate nutrition or ingredient buff. Thus the M1 feast requires only M1-or-earlier inputs and stations. Mead is brewed before M2/M3 service. All feast beverage reservations use concrete item IDs; coastal brine never substitutes for water.
 
@@ -622,7 +610,6 @@ Footprints are 2 m tiles, rotation in 90° steps. Materials are U; WU is total s
 | Fisher shelter |4×3 |wood 18, rope 2 |240 |Fisher 2 |Gear locker; bank access |Start |
 | Weir |4×2 |wood 30, stone 12, rope 6 |480 |Fisher 1 |2 habitat effort slots |M2 |
 | Boathouse |6×4 |wood 40, stone 16, rope 4 |720 |Fisher 4 |2 stored boats; shore line |M3 |
-| Hunter hut |5×4 |wood 24, stone 8 |360 |Hunter 3 |1 carcass processing slot |Start |
 | Composter |3×3 |wood 10 |120 |Keeper 1 |4 passive batch slots |Start |
 | Apiary |3×3 |wood 12, rope 2 |180 |Keeper 1 |1 hive |M2 |
 | Nursery |4×4 |wood 16, stone 8 |300 |Tender 2 |4 propagation slots |M3 |
@@ -642,9 +629,9 @@ Construction materials are delivered to the project container before BUILD phase
 
 Managed-building heat is a connected service: a fueled hearth supplies every valid room connected by open boundaries or interior doors within that building, up to 120 total interior tiles per hearth. Thus the starter dormitory receives its kitchen hearth's heat. Closed impermeable partitions without doors split the heated component. Allocate capacity by hearth ID, then room ID; a room is heated only if its entire tile count fits. Unheated indoors restores no room comfort and follows the hourly temperature convergence rule. Outdoor comfort restoration stops at 6000.
 
-Operational stores for black-box production structures hold 100000 g input/output mass total, except hunter hut 150000 g and fisher/boathouse gear lockers 200000 g. Passive batch slots and active worker slots are separate constraints. Ground piles hold at most 400000 g each and have 1500 aging factor; create adjacent passable tiles in N,E,S,W breadth-first order when a pile is full. Carcass items weigh `250*meat_U+1000*hide_U` g/head, NP 0, shelf 48 h; processing creates the fauna table's raw_game/hide. Flax weighs 250 g/U, has no nutrition, and never spoils; dried_fish/salted_fish/smoked_game/dried_fruit weigh 250 g/U. Spoiled_food weighs 250 g/U, raw edible false; loss conversion uses milli-U to conserve its declared mass. General nonfood materials have shelf 0 and default quality PLAIN.
+Operational stores for black-box production structures hold 100000 g input/output mass total, except fisher/boathouse gear lockers 200000 g. Passive batch slots and active worker slots are separate constraints. Ground piles hold at most 400000 g each and have 1500 aging factor; create adjacent passable tiles in N,E,S,W breadth-first order when a pile is full. Flax weighs 250 g/U, has no nutrition, and never spoils; dried_fish/salted_fish/dried_fruit weigh 250 g/U. Spoiled_food weighs 250 g/U, raw edible false; loss conversion uses milli-U to conserve its declared mass. General nonfood materials have shelf 0 and default quality PLAIN.
 
-Generic BUILD/CRAFT/FARM/KEEP extraction work consumes 1 equipped tool durability per completed 10 WU; preserve remainder across tasks. No generic wear applies to eating, sleeping, socializing, healing, hauling, cooking, or gear-specific fish/hunt cycles. Basic tools cap 1000, iron tools cap 1500; the fishing table's 1000 cap applies to fishing gear only. Repair uses wood 1+stone 0.5 and 30 WU to restore 200 general-tool durability up to its cap. Broken tools block tool-required work; bare-hand branch/stone recovery and basic-tool crafting remain available. Basic gear crafting at a workbench costs 30 WU/net, 40/trap, 40/ice_kit; boat assembly at boathouse costs 480 WU using its fishing-table materials. Changing equipment is a HAUL task of 4 WU plus travel and never creates a new item.
+Generic BUILD/CRAFT/FARM/KEEP extraction work consumes 1 equipped tool durability per completed 10 WU; preserve remainder across tasks. No generic wear applies to eating, sleeping, socializing, healing, hauling, cooking, or gear-specific fishing cycles. Basic tools cap 1000, iron tools cap 1500; the fishing table's 1000 cap applies to fishing gear only. Repair uses wood 1+stone 0.5 and 30 WU to restore 200 general-tool durability up to its cap. Broken tools block tool-required work; bare-hand branch/stone recovery and basic-tool crafting remain available. Basic gear crafting at a workbench costs 30 WU/net, 40/trap, 40/ice_kit; boat assembly at boathouse costs 480 WU using its fishing-table materials. Changing equipment is a HAUL task of 4 WU plus travel and never creates a new item.
 
 Wildlife pressure is one existing midnight ecology check per forage basin/apiary during summer/autumn: chance 200/10000, halved to 100 by a complete enclosing fence/wall boundary. On success remove min(2 U, current honey) from an apiary, or min(5 U,current stock) from that basin's highest-stock currently available forage item, ties item ID. Emit an advisory; do not injure residents. Lookout staffing reduces zone danger only, not this roll. No additional random disaster, structure fire, siege, or raider simulation exists in release 1.
 
@@ -746,13 +733,13 @@ Winter failure order is causal, not a scripted massacre: insufficient preserved 
 
 ### 5.11 Immigration, milestones, victory, saves, and performance
 
-Immigration events occur every third midnight from day 4. Candidate count=`min(8,2+floor(reputation/2000)+orchard_feast_bonus)`, reputation 0–10000. Candidates arrive only after player acceptance; capacity is limited by spare valid beds and the 256 resident cap. Default automatic acceptance is off. Acceptance predicts resulting food demand and rejects if ready food-days<4 after acceptance; an explicit event-specific override permits it. Candidate species cycle through the 16-species roster using the world seed; giant residents are not candidates. New residents arrive with health 100, needs 6500, tier 1 clothing, one basic tool, skill XP 5000 in two seeded skills and 0 otherwise. Immigration adds no food or currency.
+Immigration events occur every third midnight from day 4. Candidate count=`min(8,2+floor(reputation/2000)+orchard_feast_bonus)`, reputation 0–10000. Candidates arrive only after player acceptance; capacity is limited by spare valid beds and the 256 resident cap. Default automatic acceptance is off. Acceptance predicts resulting food demand and rejects if ready food-days<4 after acceptance; an explicit event-specific override permits it. Candidate species use the scenario AdmissionProfile under SET-AMEND-001 §5. The refuge normal pool is mouse,mole,otter,squirrel,shrew,hedgehog,hare,badger in that order. At event day D=4+3*e, ordinary slot i uses pool[(world_seed mod N+e+i) mod N]. A declared exception replaces slot C-1 and requires explicit acceptance; it is never auto-admitted. The refuge has the authored rat petition at absolute day 10. Pending rows expire next midnight; acceptance/refusal clears the row atomically. The global 16-species catalog remains available to other validated profiles; giant residents are not candidates. New residents arrive with health 100, needs 6500, tier 1 clothing, one basic tool, skill XP 5000 in two seeded active skills and 0 otherwise; reserved skill index 3 remains zero. Immigration adds no food or currency.
 
 Reputation is recomputed daily: `clamp(floor(mean_mood/2)+min(3000,100*completed_feasts)+1000*charter_awarded−500*deaths_last_12_days,0,10000)`. Empty population mean is 0. Acceptance cannot hide current deaths by resetting history.
 
 | Milestone | Condition | Unlock/reward |
 |---|---|---|
-| M0 Refuge |Start |All basic survival buildings, farming, nets, safe hunting, drying, composting |
+| M0 Refuge |Start |All basic survival buildings, farming, nets, safe foraging, drying, composting |
 | M1 Settled Hearth |Day≥4 AND at least 12 residents AND prepared 200 portions cumulatively |Mill, workshop, cellar, preserver, saltpan, infirmary, lookout, traps; bean_hotpot, nut_loaf, tier 2 outfits; Hearth feast |
 | M2 Abundance |Population≥48 AND survive first winter AND master 3 recipes |Weirs, apiary, brewery, stone walls, paved paths; pie, roast, tart, feast_fish, rations, mead, iron_tool |
 | M3 Deep Roots |Population≥80 AND year≥2 AND food-days≥8 |Boats, boathouse, nursery, orchards;2 apple+2 pear saplings once; fruit recipes; Orchard feast |
@@ -805,7 +792,7 @@ Disclosure uses saved objective/milestone state, not elapsed wall time. The foll
 | Case | Required resolution/data consequence |
 |---|---|
 | Starvation while asleep |Hunger≤1500 interrupts sleep for reachable food; no wait until morning |
-| Single remaining resident |Self-feeding/sleep remain available; basic recipes do not require two workers; dangerous party hunts remain unavailable |
+| Single remaining resident |Self-feeding/sleep remain available; basic recipes do not require two workers; no party hunting is available in rules v2 |
 | All priorities 0 |No hidden labor override; critical alert links to “Enable safe survival jobs” command for selected residents |
 | Tool chain exhausted |Workbench can craft basic tool from wood+stone by bare-hand work at 50% speed; fallen branches provide wood 1/20 WU without tool |
 | No reachable stone |Guaranteed bedrock source allows bare-hand gathering stone 1/90 WU; quarry accelerates it |

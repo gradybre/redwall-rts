@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "user_pc": {
+    "profile": "USER-PC",
+    "platform": "Windows",
+    "gpu_reported": "5090",
+    "ram_reported": "64 GB",
+    "cpu": null,
+    "os_version": null,
+    "gpu_driver_version": null,
+    "ram_bytes_measured": null,
+    "availability": "NOT_CURRENTLY_AVAILABLE",
+    "source": "User report; no hardware detection performed",
+    "use": "Development performance, graphics correctness and cross-platform replay testing",
+    "qualifies_reference_floor": false
+  },
+  "windows_testing": {
+    "status": "DEFERRED_BY_USER",
+    "resume_when": [
+      "The user reports that the Windows PC is available",
+      "The relevant Godot test package or representative release build exists"
+    ],
+    "first_actions": [
+      "Detect and record CPU, Windows version, installed RAM, GPU and driver version",
+      "Run the headless Godot controls and compare results with the retained Mac evidence",
+      "Run the representative release capture when the settlement renderer and runtime exist",
+      "Label USER-PC results separately from W-N and W-A reference-floor captures"
+    ],
+    "continue_now": "Implement and validate the headless Godot foundation on macOS",
+    "scheduled_reminder": false
+  }
+}

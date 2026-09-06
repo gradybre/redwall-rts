@@ -1,0 +1,32 @@
+{
+  "status": "PASS_SAME_PLATFORM_REFERENCE",
+  "godot_checks": 324,
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "platform": "macOS",
+  "python_results": "EXACT_MATCH",
+  "daily_and_terminal_rows": 18,
+  "death_events": 12,
+  "next_tick_comparisons": 15000,
+  "speed_parity": true,
+  "observed_runner_duration_ms": 6768,
+  "known_environment_diagnostics": [
+    "ERROR: Could not create directory: '/Users/brendan/Library/Application Support/Godot/app_userdata/Redwall Settlement Validation'.",
+    "ERROR: Error attempting to create data dir: /Users/brendan/Library/Application Support/Godot/app_userdata/Redwall Settlement Validation.",
+    "ERROR: Condition \"ret != noErr\" is true. Returning: \"\""
+  ],
+  "source_sha256": {
+    "control_checkpoint.gd": "ae9e1f448d9fc16465b98263c9802d18d1f6d1a281869375e0a2d281245290fc",
+    "fixed_clock.gd": "131b52bc59f149f6b93b4eb1c968338bbfce6b656ce36572a244f2a0508db053",
+    "resident_slots.gd": "52e26f9241b9c292f192e6c45533d6960dfbf96c0336ebd949fb508ab4dd7f78",
+    "run_controls.gd": "1c3e4375cb3d8e04dc73e0a0f2e3adbbb11da235d67c7d24e4b12cbdf6ec3f7e",
+    "test_foundation.gd": "84fa573599c6d32e9f8067447732871bf246362721b4798674a7d11b01fb86fa",
+    "winter_world.gd": "a466e405367218419ea5994247ace1ba59cd8a9fc372f81d97035d258921e086"
+  },
+  "evidence_sha256": {
+    "report.json": "02d582c57995f374110756af5f7e217d5eac1f28789b4c4be64419db37abfbff",
+    "winter.control": "e3b82f87e3ec5a2e81a77747ec244c2c86cecdddba94898173850a8d9dac6781",
+    "checkpoint_hashes.csv": "154f250f5d303d8e36246bcff8964104e7da95e479949b04422a6a4d625208b0"
+  },
+  "python_reference_sha256": "72e8d4c6e90b6fe31de00f0f7d7f3e1bd69177391d856f5adfff794f18011cfa",
+  "limitation": "Isolated headless engine controls; not the full settlement runtime, release save format, renderer or Windows-floor performance qualification."
+}

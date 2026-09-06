@@ -5,28 +5,28 @@ A Redwall-inspired RTS colony-builder built in Godot 4.x with GDScript.
 All development is orchestrated through Claude Code using sub-agents for
 parallel work. No external APIs or tooling needed.
 
-## Document Authority
+## Read AGENTS.md first
 
-`docs/game_gdd.md` and `docs/ui_ux_controls.md` are **authoritative**. Where
-this file disagrees with them, the GDD wins and this file is the thing to fix.
+**[AGENTS.md](AGENTS.md) holds the shared rules for every agent working in this
+repository** — authority order, the GDD's non-negotiable constraints, and the
+requirement to record decisions in `docs/decisions/`. It is not duplicated here,
+so that the two cannot drift apart. **If this file and AGENTS.md ever disagree,
+AGENTS.md wins and this file gets fixed.**
 
-Binding constraints from the GDD that override anything below:
-- **Integer arithmetic only** for authoritative state. `float` is for
-  presentation and import values; it never decides gameplay outcomes.
-- **30 fixed ticks/second** at 1x; 18000 ticks/day; 750 ticks/game hour.
-  Speeds are `PAUSED=0, NORMAL=1, DOUBLE=2, QUADRUPLE=4` — there is no 3x.
-- **Structure-of-arrays** component storage (`PackedInt32Array` /
-  `PackedInt64Array` columns), not one object per entity.
-- **`EntityRef` is `(slot:int32, generation:int32)`**, null `(-1,0)`. Slots are
-  reused with generation validation.
-- **Living population caps at 256.** Balance tables must not extrapolate past it.
-- Quantities are `quantity_milli:int64` (1000 = one catalog unit). Needs and
-  mood are integers 0–10000. Positions are int32 in 1/1024 m units.
+This file adds what is specific to Claude Code: the development pipeline below,
+and the GDScript standards.
+
+Also read before writing code:
+- `docs/ENVIRONMENT.md` — working commands; several obvious-looking ones fail silently
+- `docs/decisions/0006-prototype-diverges-from-gdd.md` — how `godot/` violates the spec
 
 ## Project Structure
 ```
 redwall-rts/
 ├── docs/                        ← Design specs & task checklists
+│   ├── setting_bible.md          (Shared theme, lore, creative source authority)
+│   ├── setting_decisions.md      (User decisions, open questions, adaptation impacts)
+│   ├── setting_rules_amendment.md (Adopted admission/food rules, exact catalog changes)
 │   ├── game_gdd.md               (Game Design Document — EARS notation)
 │   ├── ui_ux_controls.md         (Screen zones, input mapping, HUD specs)
 │   ├── gameplay_balance.md       (Production rates, cost curves, stress tests)
@@ -139,6 +139,10 @@ Adversarial review of all code from Phase 2. Flags:
 #### 3B — Fix critical/high issues from the review
 
 #### 3C — Release Manager
+- **Record any decision made during the work in `docs/decisions/`.** If the work
+  involved choosing between approaches, anchoring a value, or discovering a tool
+  behaves unexpectedly, that reasoning must land in the repository before the
+  task is done — not in a chat transcript, and not only in assistant memory.
 - Update task checklist in `docs/tasks/` (mark items `[x]`)
 - Stage specific files (never `git add .`)
 - Semantic commit (Conventional Commits format):

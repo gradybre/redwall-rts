@@ -5,6 +5,24 @@ A Redwall-inspired RTS colony-builder built in Godot 4.x with GDScript.
 All development is orchestrated through Claude Code using sub-agents for
 parallel work. No external APIs or tooling needed.
 
+## Document Authority
+
+`docs/game_gdd.md` and `docs/ui_ux_controls.md` are **authoritative**. Where
+this file disagrees with them, the GDD wins and this file is the thing to fix.
+
+Binding constraints from the GDD that override anything below:
+- **Integer arithmetic only** for authoritative state. `float` is for
+  presentation and import values; it never decides gameplay outcomes.
+- **30 fixed ticks/second** at 1x; 18000 ticks/day; 750 ticks/game hour.
+  Speeds are `PAUSED=0, NORMAL=1, DOUBLE=2, QUADRUPLE=4` — there is no 3x.
+- **Structure-of-arrays** component storage (`PackedInt32Array` /
+  `PackedInt64Array` columns), not one object per entity.
+- **`EntityRef` is `(slot:int32, generation:int32)`**, null `(-1,0)`. Slots are
+  reused with generation validation.
+- **Living population caps at 256.** Balance tables must not extrapolate past it.
+- Quantities are `quantity_milli:int64` (1000 = one catalog unit). Needs and
+  mood are integers 0–10000. Positions are int32 in 1/1024 m units.
+
 ## Project Structure
 ```
 redwall-rts/
@@ -186,17 +204,32 @@ func do_thing():        # ← NO (missing return type)
 - **ECS over node hierarchy**: Entities are IDs, components are data arrays
 - **Object pooling**: Projectiles, particles, transient entities
 - **Spatial partitioning**: Grid-based hash maps for broad-phase
-- **Autoloads**: Max 6 singletons (GameManager, EconomySystem, CombatSystem, UIManager, EntityManager, AudioManager)
+- **Autoloads**: Max 6 singletons. The settlement layer uses EntityManager,
+  GameManager, EconomySystem, UIManager (+ AudioManager when audio lands).
+  **CombatSystem is battle-layer**: the settlement GDD models `Injury`
+  (kind/severity/untreated_hours/care_progress) and healing, with no damage or
+  attack model. Do not extend it against the settlement spec.
 - **Signal connections**: UI updates only — game logic uses direct system calls
 - **Max function length**: 30 lines. Decompose if longer.
 
 ## Performance Targets
+
+From `docs/game_gdd.md` REQ-SET-163, at 256 residents on the qualification floor
+(Ryzen 5 3600 / GTX 1660 Super 6GB / 16GB, 1920x1080):
+
 | Metric | Target | How to measure |
 |--------|--------|----------------|
-| Frame time (200 units) | < 16.6ms | Godot profiler |
-| Economy tick | < 2ms | `Time.get_ticks_usec()` delta |
-| Entity data memory | < 50 MB at 1000 | Godot memory monitor |
-| GC pauses | < 1ms | Frame time spike detection |
+| Frame time | p95 < 16.67ms, p99 < 20ms | Godot profiler |
+| Simulation tick at 1x | p99 < 2ms | `Time.get_ticks_usec()` delta |
+| Aggregate sim CPU at 4x | p95 < 6ms per render frame | Profiler |
+| UI work | p95 < 1.5ms | Profiler |
+| Simulation-owned memory | < 100 MB | Godot memory monitor |
+| Full process | < 4 GB | OS |
+| Job route ready at 1x | p95 < 0.25 real seconds | Instrumented pathfinder |
+
+At most 24 of the 256 residents use conventional skeletal actors; the rest use
+the crowd presentation path. No physics body, navigation agent, or
+AnimationTree per resident.
 
 ## Optional: ChatGPT Pro for Planning
 For features that need frontier-level reasoning (complex combat systems,

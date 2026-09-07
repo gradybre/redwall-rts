@@ -1,35 +1,63 @@
-# 0017 — Party work contradicts the singular `Job.worker` field
-Date: 2026-09-06 · Status: **Open** · Blocks: BUILD and FISH job acceptance
+# 0017 — Party work uses a coordinator Job
+Date: 2026-09-06 · Status: **Accepted** (Brendan, 2026-09-06)
+Requires: an amendment to ARCH-JOB-005
 
-## The contradiction
-GDD §4.2 gives `Job.worker` as a **single** `EntityRef`. But §5.3 states
-construction, expedition and processing WU are "total work shared by the
-declared party, not a requirement repeated per member", and `Construction`
-carries `assigned_count`/`max_workers` while `Expedition` carries
-`member_ids: int32[3]` with "one job/member".
+## Decision
+Each worker holds their own `Job`. Each shared activity additionally has **one
+coordinator Job** that survives worker replacement and owns the shared
+reservations, batch identity, lifecycle and completion.
 
-Neither `game_gdd.md` nor `systems_architecture.md` says how a party member's
-`Job.remaining_mwu` relates to the shared `remaining_mwu` on the destination
-`Construction` or `Expedition` entity.
+| Record | Owns |
+|---|---|
+| Coordinator Job | Shared reservations, batch identity, lifecycle, completion |
+| Member Job | One worker's assignment, eligibility, contribution |
+| `Construction` | Sole authoritative `remaining_mwu` for construction |
+| `Expedition` | Sole authoritative `remaining_mwu` for fishing |
+| Processing coordinator | Sole authoritative `remaining_mwu` for its batch |
 
-## Reading that appears most consistent (NOT adopted)
-Each party member holds their own `Job` row — satisfying both "one job/member"
-and the one-job-per-resident `JobAgent` rule — all pointing at the same
-destination, with the authoritative shared `remaining_mwu` living on that
-destination rather than being meaningfully duplicated per member.
+## Why the extra record
+The obvious model — members pointing straight at a destination — has a bad
+failure case: the original worker leaves, and cancellation releases *everyone's*
+ingredients or discards their progress. A coordinator that outlives any
+individual worker gives departure and cancellation separate paths.
 
-**This is a reading, not a decision.** It is recorded so nobody implements a
-different one by accident, and so nobody mistakes it for settled.
+## Rules
+- The coordinator has `worker = null`, cannot be selected by a resident, and
+  contributes no work.
+- Member Jobs reference the coordinator. Their shared-phase `remaining_mwu`
+  stays **zero** — members never hold copies of shared progress.
+- Coordinator and member Jobs both count against the existing 8192-row capacity.
+- A shared-capable activity keeps its coordinator even when down to one worker.
+- **Worker departure** releases that worker's assignment and personal claims
+  only. Shared progress, consumed inputs and batch data survive.
+- **Only explicit activity cancellation** invokes refund rules.
+- Only the coordinator creates outputs, applies cycle wear, rolls the cycle
+  result, and records completion.
+
+## Per productive tick
+```
+potential_i    = each worker's contribution per BAL-WORK-001
+accepted_total = min(remaining_mwu, sum(potential_i))
+remaining_mwu -= accepted_total
+```
+On the finishing tick, allocate accepted work proportionally: floor each share,
+then distribute leftover milli-WU by **largest fractional remainder**, ties by
+**ascending resident persistent ID**. Award XP only from accepted work. Retain
+fractional XP progress separately per resident and skill.
+
+## Acceptance
+A synthetic 120-WU shared activity with two base-rate workers takes
+80 + 80 = 160 milli-WU/tick, finishes after **750 productive ticks**, credits
+**60 WU per worker**, and produces **one** completion. Passive waiting never
+accelerates with crew size.
 
 ## Consequences
-- Job selection, eligibility, urgency and the sort key do **not** depend on this
-  and may proceed.
-- The WU accumulator may proceed for single-worker jobs.
-- **BUILD and FISH acceptance must not be implemented until this is resolved.**
-  Getting it wrong inflates output by the party size, which a test with a known
-  party and known per-member work factors would catch — see the acceptance note
-  in `docs/tasks/02_settlement_foundation.md`.
+- **ARCH-JOB-005 needs amending**: completion belongs to the coordinator, not to
+  every member Job.
+- BUILD and FISH acceptance are unblocked once the coordinator exists.
+- A test with a known party and known per-member work factors must catch
+  per-member inflation — the failure this model exists to prevent.
 
 ## Source
-Found by specification audit, 2026-09-06, while parsing §5.3 for task 2.11.
-Same class as U4: a capacity relationship implying a layout no document states.
+Specification audit 2026-09-06 found the contradiction; Brendan ruled the same
+day, adding the coordinator record beyond the reading originally proposed.

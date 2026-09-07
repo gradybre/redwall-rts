@@ -68,3 +68,31 @@ Re-measure on a release build; these numbers are from a development build.
 ## Source
 Task 2.9 implementation measurement, 2026-09-06, escalated rather than resolved
 unilaterally by the implementing agent.
+
+
+## Correction and measurement plan (Brendan, 2026-09-06)
+
+**The causation claim in this record overreaches.** Stating that call overhead
+is the cause requires profiling evidence separating calls, allocations, checks
+and arithmetic. The measurements so far establish **pressure**; they do not
+prove the cause. Treat the per-call inference as a hypothesis to test.
+
+Collect all of the following before choosing between the four options:
+
+| Measurement | Purpose |
+|---|---|
+| Needs alone, WU alone, and the combined tick | Separate individual cost from interaction |
+| At 12 and at 256 residents | Check how it scales |
+| **Release build**, with machine and build documented | Make comparisons reproducible |
+| 1x tick **p99** and 4x aggregate simulation **p95** | Match what REQ-SET-163 actually specifies |
+| Deterministic state comparison | Verify any optimisation preserves behaviour |
+
+### Two corrections to the options
+- **Staggering is not behaviour-neutral.** Spreading needs across ticks can move
+  when hunger, collapse and interruption thresholds fire. Preserving hourly
+  totals alone is **not** sufficient evidence that it is safe.
+- **Inlining need not destroy verifiability.** An optimised implementation can be
+  compared against the retained reference integrator. That keeps inlining on the
+  table as an option to evaluate, not one ruled out.
+
+Status stays **open**. The WU model supplies the next data point.

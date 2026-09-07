@@ -67,6 +67,8 @@ func _refresh_counters() -> void:
 	"""
 	if not _has_hud():
 		return
+	_hud.set_counter_text(&"Food-days", EconomySystem.food_days_text())
+	_hud.set_counter_text(&"Fuel-days", EconomySystem.fuel_days_text())
 	_hud.set_counter(&"Ready NP", EconomySystem.ready_nutrition_points(), "NP")
 	_hud.set_counter(&"Wood", EconomySystem.stock_units(&"wood"), "U")
 	_hud.set_counter(&"Stone", EconomySystem.stock_units(&"stone"), "U")

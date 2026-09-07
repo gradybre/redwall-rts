@@ -26,9 +26,24 @@ extends Node
 ##
 ## Blocked by U4 (docs/tasks/02_settlement_foundation.md): reservations are honoured when
 ## computing available quantity, but nothing here allocates them.
+##
+## FOOD-DAYS (task 2.10). `ready_nutrition_points()` was always the GDD §5.8 NUMERATOR; the
+## denominator now exists. Binding a `residents.gd` store supplies daily demand from each living
+## resident's size and today's season multiplier, so `food_days_centi()` completes the figure
+##     food_days = floor(100 * ready_unreserved_NP / daily_demand_NP) / 100
+## exactly as §5.8 writes it, in integers, displayed to two decimals.
+##
+## FUEL-DAYS REMAINS UNPOPULATED, and is deliberately not approximated here. §5.8 defines it as
+## `available_wood_equivalent / daily_heating_demand`, and the denominator needs the count of
+## active hearths, the interior tiles each covers, and the daily mean temperature that decides
+## whether a hearth burns 4, 2 or 0 wood per day. Building, Room and Weather stores do not exist
+## in this milestone, so the heating demand has no input at all. Wood stock alone is a numerator
+## with nothing to divide by.
 
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
+const ResidentsScript := preload("res://scripts/core/residents.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
 
 ## GDD §5.9 starter fixture: "Four pantry shelves supply 200000g storage" and "Four stockpiles
@@ -56,6 +71,18 @@ const FRESH_AGE_REMAINDER: int = 0
 const REFUSE_NONE: StringName = &""
 const REFUSE_CATALOG_UNAVAILABLE: StringName = &"CATALOG_UNAVAILABLE"
 const REFUSE_NO_ELIGIBLE_STORE: StringName = &"NO_ELIGIBLE_STORE"
+const REFUSE_NO_RESIDENT_STORE: StringName = &"NO_RESIDENT_STORE"
+
+## GDD §5.8 displays food-days to two decimals, so the integer figure is carried in hundredths.
+const FOOD_DAYS_SCALE: int = 100
+
+## Rendered in place of a counter with no computable value. Matches hud.gd's UNPOPULATED marker
+## so an unpopulated figure never reaches the screen as a zero or an invented number.
+const UNPOPULATED_TEXT: String = "--"
+
+## What is missing before fuel-days can be computed, named rather than approximated.
+const FUEL_DAYS_MISSING_INPUT: String = (
+	"daily heating demand: no hearth, interior-tile or daily-mean-temperature input exists")
 
 ## UI-only notifications. Game logic calls the accessors below directly instead.
 signal stocks_changed()
@@ -68,6 +95,8 @@ var _material_store: Vector2i = InventoryScript.NULL_REF
 var _pantry_filters: int = 0
 var _material_filters: int = 0
 var _ready_nutrition_points: int = 0
+var _residents: ResidentsScript = null
+var _food_days_timer: PerfTimerScript = PerfTimerScript.new()
 var _catalog_error: String = ""
 var _last_refusal: StringName = REFUSE_NONE
 var _timer: PerfTimerScript = PerfTimerScript.new()
@@ -239,11 +268,98 @@ func _available_in(container: Vector2i, item_id: int) -> int:
 func ready_nutrition_points() -> int:
 	"""Nutrition points of food that is edible right now (GDD §5.8's food-days NUMERATOR).
 
-	This is NOT food-days. Food-days additionally divides by daily demand from each living
-	resident's size and today's season multiplier, and no resident, need or season data exists
-	yet, so the divisor cannot be computed and is not invented.
+	This is NOT food-days on its own. Bind a residents store with bind_residents() and read
+	food_days_centi() for the complete §5.8 figure; without one, the divisor is refused rather
+	than invented.
 	"""
 	return _ready_nutrition_points
+
+
+func bind_residents(residents: ResidentsScript) -> void:
+	"""Adopt the residents store that supplies GDD §5.8's daily-demand divisor.
+
+	Binding null unbinds, which returns food-days to explicitly unpopulated. The store is read,
+	never mutated: this system owns stock, not population.
+	"""
+	_residents = residents
+
+
+func residents() -> ResidentsScript:
+	"""The bound residents store, or null while none supplies the food-days divisor."""
+	return _residents
+
+
+func has_residents() -> bool:
+	"""True when a residents store is bound and has not been freed out from under us."""
+	return _residents != null and is_instance_valid(_residents)
+
+
+func daily_demand_np() -> IntMath.IntResult:
+	"""GDD §5.8's food-days DENOMINATOR: today's total daily nutrition demand across residents.
+
+	Refuses with NO_RESIDENT_STORE when nothing supplies a population, and passes through the
+	residents store's own refusal when the settlement holds no living resident.
+	"""
+	if not has_residents():
+		var out: IntMath.IntResult = IntMath.IntResult.new()
+		out.refuse(String(REFUSE_NO_RESIDENT_STORE))
+		return out
+	return _residents.daily_demand_np()
+
+
+func food_days_centi() -> IntMath.IntResult:
+	"""GDD §5.8 food-days in hundredths: floor(100 * ready_unreserved_NP / daily_demand_NP).
+
+	The whole formula in integers, with the x100 applied BEFORE the divide so the two displayed
+	decimals are exact rather than a rounded float. Refuses whenever the denominator is refused;
+	it never falls back to a placeholder value.
+	"""
+	_food_days_timer.start()
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	_food_days_centi_into(out)
+	_food_days_timer.stop()
+	return out
+
+
+func _food_days_centi_into(out: IntMath.IntResult) -> bool:
+	"""Non-allocating food_days_centi(): write the hundredths into `out` and return out.ok."""
+	var demand: IntMath.IntResult = daily_demand_np()
+	if not demand.ok:
+		return out.refuse(demand.error)
+	if not IntMath.checked_mul_into(FOOD_DAYS_SCALE, _ready_nutrition_points, out):
+		return false
+	return IntMath.floor_div_into(out.value, demand.value, out)
+
+
+func food_days_text() -> String:
+	"""Food-days rendered as GDD §5.8's two-decimal display, or the unpopulated marker.
+
+	Never returns a number the formula could not produce: a refused divisor renders as "--".
+	"""
+	var centi: IntMath.IntResult = food_days_centi()
+	if not centi.ok:
+		return UNPOPULATED_TEXT
+	return "%d.%02d" % [centi.value / FOOD_DAYS_SCALE, centi.value % FOOD_DAYS_SCALE]
+
+
+func fuel_days_text() -> String:
+	"""Fuel-days is not computable in this milestone and always renders as unpopulated.
+
+	See fuel_days_missing_input() for the exact input that is absent. GDD §5.8's own zero-demand
+	rule ("display 'No current heat demand', not infinite days") cannot even be evaluated,
+	because nothing can tell heating demand zero from heating demand unknown.
+	"""
+	return UNPOPULATED_TEXT
+
+
+func fuel_days_missing_input() -> String:
+	"""The single missing input that keeps fuel-days unpopulated, named for the UI and reports."""
+	return FUEL_DAYS_MISSING_INPUT
+
+
+func get_last_food_days_usec() -> int:
+	"""Duration of the most recent food-days computation, in microseconds."""
+	return _food_days_timer.get_last_usec()
 
 
 func recompute_summary() -> void:

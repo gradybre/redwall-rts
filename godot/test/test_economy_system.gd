@@ -29,6 +29,8 @@ extends "res://test/framework/test_case.gd"
 
 const EconomySystemScript := preload("res://scripts/systems/economy_system.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
+const ResidentsScript := preload("res://scripts/core/residents.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 
 const SUMMARY_BUDGET_USEC: int = 2000
 const MILLI: int = 1000
@@ -45,7 +47,14 @@ const STARTING_INVENTORY_U: Dictionary = {
 ## + 40 nuts x1600. Grain is potential food, not ready food, and is excluded.
 const STARTER_READY_NP: int = 408000
 
+## GDD §7.1 starter fixture, the rest of the sentence: "10 small and 2 medium residents consume
+## 74400 NP/day, thus 5.48 ready food-days at start".
+const STARTER_DEMAND_NP: int = 74400
+const STARTER_FOOD_DAYS_CENTI: int = 548
+const STARTER_FOOD_DAYS_TEXT: String = "5.48"
+
 var _economy: EconomySystemScript = null
+var _residents: ResidentsScript = null
 var _depleted: Array[StringName] = []
 var _changes: int = 0
 
@@ -53,6 +62,7 @@ var _changes: int = 0
 func before_each() -> void:
 	"""Build a fresh economy system and listen for its UI signals."""
 	_economy = EconomySystemScript.new()
+	_residents = null
 	_depleted = []
 	_changes = 0
 	_economy.stock_depleted.connect(_on_stock_depleted)
@@ -61,9 +71,20 @@ func before_each() -> void:
 
 func after_each() -> void:
 	"""Free the economy system built for the test."""
+	_residents = null
 	if _economy != null:
 		_economy.free()
 		_economy = null
+
+
+func _bind_starting_settlement() -> void:
+	"""Seed the §5.1 stores and bind the §5.1 starting cohort, the full §7.1 starter fixture."""
+	_seed_starting_inventory()
+	_residents = ResidentsScript.new()
+	var spawned: ResidentsScript.OpResult = _residents.spawn_initial_settlement()
+	if not spawned.ok:
+		fail("the starting settlement was refused: %s" % spawned.error)
+	_economy.bind_residents(_residents)
 
 
 func _seed_starting_inventory() -> void:
@@ -276,3 +297,125 @@ func _on_stock_depleted(item_key: StringName) -> void:
 func _on_stocks_changed() -> void:
 	"""Count committed-change signals for assertion."""
 	_changes += 1
+
+
+# --- GDD §5.8 food-days ------------------------------------------------------------------------
+
+func test_food_days_is_unpopulated_without_a_residents_store() -> void:
+	"""No population means no divisor. §5.8 gets a refusal, never a placeholder number."""
+	_seed_starting_inventory()
+	assert_false(_economy.has_residents(), "nothing supplies a population")
+	var centi: IntMath.IntResult = _economy.food_days_centi()
+	assert_false(centi.ok, "food-days is refused")
+	assert_equal(centi.error, String(EconomySystemScript.REFUSE_NO_RESIDENT_STORE), "the refusal names the cause")
+	assert_equal(centi.value, 0, "a refusal carries no usable value")
+	assert_equal(_economy.food_days_text(), "--", "the display stays unpopulated")
+
+
+func test_food_days_is_unpopulated_while_nobody_is_alive() -> void:
+	"""A bound but empty settlement still has no divisor; the numerator alone is not food-days."""
+	_seed_starting_inventory()
+	_residents = ResidentsScript.new()
+	_economy.bind_residents(_residents)
+	assert_true(_economy.has_residents(), "a residents store is bound")
+	assert_false(_economy.daily_demand_np().ok, "an empty settlement has no daily demand")
+	assert_equal(_economy.food_days_text(), "--", "food-days remains unpopulated")
+	assert_equal(_economy.ready_nutrition_points(), STARTER_READY_NP, "the numerator is still there")
+
+
+func test_food_days_reproduces_the_gdd_starter_fixture() -> void:
+	"""GDD §7.1: 408000 ready NP over 74400 NP/day is 5.48 ready food-days at start."""
+	_bind_starting_settlement()
+	assert_equal(_economy.ready_nutrition_points(), STARTER_READY_NP, "the numerator is 408000")
+	assert_equal(_economy.daily_demand_np().value, STARTER_DEMAND_NP, "the divisor is 74400")
+	var centi: IntMath.IntResult = _economy.food_days_centi()
+	assert_true(centi.ok, "food-days is computable")
+	assert_equal(centi.value, STARTER_FOOD_DAYS_CENTI, "food-days is 548 hundredths")
+	assert_equal(_economy.food_days_text(), STARTER_FOOD_DAYS_TEXT, "displayed to two decimals")
+
+
+func test_food_days_truncates_rather_than_rounds() -> void:
+	"""§5.8 writes floor(100*NP/demand)/100: 548.38 hundredths displays as 5.48, never 5.49."""
+	_bind_starting_settlement()
+	assert_equal(STARTER_READY_NP * 100 / STARTER_DEMAND_NP, 548, "the exact quotient floors to 548")
+	assert_true(STARTER_READY_NP * 100 % STARTER_DEMAND_NP > 0, "the quotient is not exact")
+	assert_equal(_economy.food_days_text(), "5.48", "the discarded remainder is not rounded up")
+
+
+func test_food_days_uses_the_winter_demand_multiplier() -> void:
+	"""GDD §5.8: the divisor uses today's season multiplier, which §5.2 sets to x1.20 in winter."""
+	_bind_starting_settlement()
+	assert_true(_residents.set_winter(true).ok, "winter arrives")
+	assert_equal(_economy.daily_demand_np().value, 89280, "winter demand is 74400 x 1.20")
+	assert_equal(_economy.food_days_centi().value, 456, "the same stores now cover 4.56 days")
+	assert_equal(_economy.food_days_text(), "4.56", "the display followed the season")
+
+
+func test_food_days_excludes_reserved_and_inedible_stock() -> void:
+	"""The numerator stays §5.8's: seeds, raw ingredients and reservations never inflate it."""
+	_residents = ResidentsScript.new()
+	_residents.spawn(&"mouse")
+	_economy.bind_residents(_residents)
+	_economy.deposit(&"nuts", 10 * MILLI)
+	_economy.deposit(&"grain", 100 * MILLI)
+	_economy.deposit(&"seed_grain", 100 * MILLI)
+	assert_equal(_economy.food_days_centi().value, 266, "10 nuts U is 16000 NP over 6000 NP/day")
+	var lot: Vector2i = _find_lot(&"nuts")
+	assert_true(_economy.inventory().reserve_lot(lot, 5 * MILLI).ok, "half the nuts are reserved")
+	_economy.recompute_summary()
+	assert_equal(_economy.food_days_centi().value, 133, "reserving half the nuts halves food-days")
+
+
+func _find_lot(item_key: StringName) -> Vector2i:
+	"""The first pantry lot holding one item, so a test never assumes container link order."""
+	var item_id: int = _economy.definitions().compiled_id(item_key)
+	var lot: Vector2i = _economy.inventory().container_first_lot(_economy.pantry())
+	while lot != InventoryScript.NULL_REF:
+		if _economy.inventory().lot_item_id(lot) == item_id:
+			return lot
+		lot = _economy.inventory().container_next_lot(lot)
+	fail("no %s lot in the pantry" % item_key)
+	return InventoryScript.NULL_REF
+
+
+func test_food_days_falls_as_the_population_grows() -> void:
+	"""The divisor is live: an arriving resident lowers food-days without any stock changing."""
+	_bind_starting_settlement()
+	var before: int = _economy.food_days_centi().value
+	assert_true(_residents.spawn(&"badger").ok, "a large resident joins")
+	var after: IntMath.IntResult = _economy.food_days_centi()
+	assert_equal(_economy.daily_demand_np().value, STARTER_DEMAND_NP + 9600, "a large resident adds 9600")
+	assert_true(after.value < before, "the same stores now cover fewer days")
+	assert_equal(after.value, 485, "408000 NP over 84000 NP/day is 4.85 days")
+
+
+func test_unbinding_returns_food_days_to_unpopulated() -> void:
+	"""Losing the population source must return the counter to "--", not freeze a stale figure."""
+	_bind_starting_settlement()
+	assert_true(_economy.food_days_centi().ok, "food-days is populated while bound")
+	_economy.bind_residents(null)
+	assert_false(_economy.has_residents(), "the store was unbound")
+	assert_equal(_economy.food_days_text(), "--", "the counter returns to unpopulated")
+
+
+func test_fuel_days_stays_unpopulated_and_names_its_missing_input() -> void:
+	"""GDD §5.8 fuel-days needs a heating demand no implemented system supplies."""
+	_bind_starting_settlement()
+	_economy.deposit(&"wood", 100 * MILLI)
+	assert_equal(_economy.fuel_days_text(), "--", "fuel-days is not computable")
+	assert_true(_economy.fuel_days_missing_input().contains("heating demand"),
+		"the missing input is named rather than approximated")
+	assert_true(_economy.stock_units(&"wood") > 0, "wood stock alone is not a fuel forecast")
+
+
+func test_food_days_computation_stays_within_budget() -> void:
+	"""Deriving food-days over a full 256-resident settlement costs less than 2 ms."""
+	_seed_starting_inventory()
+	_residents = ResidentsScript.new()
+	for index: int in ResidentsScript.RESIDENT_LIVING_CAP:
+		if not _residents.spawn(&"mouse").ok:
+			fail("spawn %d refused" % index)
+			return
+	_economy.bind_residents(_residents)
+	assert_true(_economy.food_days_centi().ok, "food-days is computable at the living cap")
+	assert_less_than(_economy.get_last_food_days_usec(), SUMMARY_BUDGET_USEC, "under 2ms at 256 residents")

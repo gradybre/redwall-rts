@@ -55,6 +55,14 @@ func set_counter(label: StringName, value: int, unit: String) -> void:
 	_render_counters()
 
 
+func set_counter_text(label: StringName, text: String) -> void:
+	"""Render a counter whose value is not a plain integer, such as a two-decimal
+	food-days figure or the unpopulated marker. The caller supplies the exact
+	string so this never formats, rounds, or substitutes a number of its own."""
+	_counters[label] = text
+	_render_counters()
+
+
 func clear_counters() -> void:
 	"""Drop every recorded counter value so the zone returns to unpopulated."""
 	_counters.clear()

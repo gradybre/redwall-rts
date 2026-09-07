@@ -2,6 +2,7 @@ extends Node
 ## Boot scene: wires the HUD to UIManager and seeds the starting settlement stores.
 
 const HudScript := preload("res://scripts/ui/hud.gd")
+const ResidentsScript := preload("res://scripts/core/residents.gd")
 
 ## GDD §5.1 initial inventory, in whole catalog units. Copied verbatim from the specification
 ## line "Initial inventory U: wood 180, stone 100, ..."; nothing here is invented or rounded.
@@ -47,10 +48,30 @@ func _ready() -> void:
 	if _hud == null:
 		push_error("main.tscn has no HUD at UI/HUD; the interface will not update.")
 	UIManager.register_hud(_hud)
+	_spawn_initial_cohort()
 	_seed_stores()
 	GameManager.start_game()
 	UIManager.push_alert("Mossflower stirs.")
-	print("[Main] boot complete: %s" % GameManager.get_state_name())
+	print("[Main] boot complete: %s  food-days %s  ready %d NP  fuel-days %s" % [
+		GameManager.get_state_name(),
+		EconomySystem.food_days_text(),
+		EconomySystem.ready_nutrition_points(),
+		EconomySystem.fuel_days_text(),
+	])
+
+
+func _spawn_initial_cohort() -> void:
+	"""Create the GDD §5.1 starting settlement and bind it as the food-days divisor.
+
+	Without a living cohort the food-days denominator is undefined, so
+	EconomySystem refuses the figure rather than displaying an unbounded reserve.
+	"""
+	var residents := ResidentsScript.new()
+	var spawned := residents.spawn_initial_settlement()
+	if not spawned.ok:
+		push_error("Initial settlement could not be created: %s" % spawned.error)
+		return
+	EconomySystem.bind_residents(residents)
 
 
 func _exit_tree() -> void:

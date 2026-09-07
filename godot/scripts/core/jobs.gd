@@ -104,12 +104,47 @@ extends RefCounted
 ## "cannot say". GATE_NOT_REQUIRED remains the default and means the job declares NO such
 ## requirement -- it is not an absent subsystem reading as ready.
 ##
-## Decision 0017's coordinator Job is NOT built here, and nothing here prevents it: `worker`
-## defaults to the null reference and is never assumed present, `remaining_mwu` is a plain
-## per-row column that no worker owns, and `release_worker()` clears the assignment while
-## leaving `remaining_mwu` untouched -- the exact separation 0017 exists to guarantee. A later
-## task adds the coordinator flag and the "a coordinator cannot be selected by a resident"
-## eligibility exclusion; no unused column is added for it in advance.
+## ---------------------------------------------------------------------------------------
+## DECISION 0017'S COORDINATOR JOB IS BUILT HERE. A shared activity has one coordinator Job
+## that outlives any individual worker, plus one member Job per worker:
+##   * The coordinator has `worker = null` (`make_coordinator()` refuses a job that already has
+##     one, and `assign_worker()` refuses a coordinator), CANNOT BE SELECTED BY A RESIDENT
+##     (eligibility refuses it before any of the six steps, as a categorical exclusion rather
+##     than a failed rule), and contributes no work -- `work.gd` computes a contribution only
+##     from a member Job's own bound worker, never from the coordinator row.
+##   * Member Jobs reference the coordinator through `_coordinator_slot/_coordinator_generation`,
+##     an EntityRef pair like every other reference column here, and their SHARED-PHASE
+##     `remaining_mwu` stays ZERO. That is enforced, not documented: `set_coordinator()` refuses
+##     a member carrying progress, and `set_remaining_mwu()` refuses a nonzero write while a job
+##     is a member. Members therefore cannot hold a copy of shared progress, which is the
+##     mechanism by which per-member inflation -- the failure 0017 exists to prevent -- becomes
+##     unrepresentable rather than merely untested. INTERPRETATION, NAMED: 0017 qualifies the
+##     rule with "shared-phase", so a member Job with its OWN later personal phase (hauling an
+##     output, say) is not addressed by the decision; this file takes the strict reading and a
+##     caller that needs a personal allocation must `clear_coordinator()` first.
+##   * Worker departure (`release_worker()`) touches the member's assignment only. Shared
+##     progress lives on the coordinator row, so nothing here can discard it, and the member
+##     link survives a departure: a shared-capable activity keeps its coordinator even when it
+##     is down to one worker, or to none.
+##   * `destroy_job()` refuses a coordinator that still has members, so no member can be left
+##     pointing at a released row; destroying a member unlinks it from its coordinator first.
+##   * ONLY THE COORDINATOR RECORDS COMPLETION -- this AMENDS ARCH-JOB-005, which gives
+##     completion to every member Job. `work.gd` writes JOB_STATE_COMPLETE on the coordinator
+##     and on nothing else, so a party of any size produces exactly one completion.
+##
+## Members are enumerated through an intrusive singly-linked list, `_member_head` on the
+## coordinator row and `_member_next` on each member, so a party tick walks its own members with
+## no allocation and no scan of the 8192 rows. Insertion is at the head, which is why the list
+## order is arbitrary; nothing depends on it, because 0017's leftover tie-break is on ASCENDING
+## RESIDENT PERSISTENT ID and `work.gd` applies that explicitly rather than relying on any
+## enumeration order.
+##
+## A COORDINATOR STAYS IN THE LIVE CANDIDATE INDEX and is refused by eligibility, rather than
+## being withheld from enumeration. It therefore costs a candidate from the 32-per-pass budget
+## like any ineligible job. Named as a cost, not hidden: withholding it would put `job_count()`,
+## `_bucket_begin` and every continuation key on two different notions of "live", and the budget
+## is a throughput limit rather than a filter (above), so the only effect is that a settlement
+## with many coordinators reaches a given job in more passes -- never that it cannot reach it.
 ##
 ## ---------------------------------------------------------------------------------------
 ## ALLOCATION. Every column is a packed array sized once in `_init()`; `clear()` refills the
@@ -159,9 +194,13 @@ extends RefCounted
 ##     owner-major index formula for the 8-per-resident child store is unspecified.
 ##     `manual_until` exists, is 0, and is never written.
 ##   * The WU model and XP (§5.2's 80 milli-WU x factor/1000, §5.3's 10 XP per productive WU)
-##     are a later task. `remaining_mwu` is stored and settable; nothing here decrements it.
-##   * REQ-SET-034's "finish at most the current 30-WU safe work segment" is stated in WU and
-##     needs that same model.
+##     live in `work.gd`, which owns the per-tick arithmetic, the retained remainders and the
+##     0017 party split. This file owns the storage and the coordinator structure it runs on:
+##     `remaining_mwu` is decremented ONLY through `consume_remaining_mwu_into()`, which refuses
+##     to take more than the row holds, so no path here can drive a job's work total negative.
+##   * REQ-SET-034's "finish at most the current 30-WU safe work segment" needs a segment
+##     boundary that neither §5.3 nor ARCH-JOB-001 defines against the WU model, and is not
+##     implemented. Nothing here or in `work.gd` claims a safe interruption point.
 ##
 ## ---------------------------------------------------------------------------------------
 ## `required_skill` IS A MINIMUM LEVEL -- SETTLED BY DECISION 0022, no longer a gap:
@@ -191,7 +230,14 @@ extends RefCounted
 ##             ascending persistent ID so a bucket is a contiguous run and a continuation key can
 ##             be located in it by binary search), _job_persistent_id (I32 8192, a cache of the
 ##             directory's persistent ID so the candidate loop and the ordered index never call
-##             back into the directory -- the same trick `_agent_persistent_id` already uses).
+##             back into the directory -- the same trick `_agent_persistent_id` already uses),
+##             and decision 0017's four coordinator columns: _is_coordinator (B8 8192),
+##             _coordinator_slot/_coordinator_generation (I32 8192 x2, the member's EntityRef to
+##             its coordinator -- "Member Jobs reference the coordinator"), and _member_head /
+##             _member_next (I32 8192 x2, the intrusive member list that lets a party tick
+##             enumerate its own members without allocating or scanning 8192 rows). 0017 states
+##             that coordinator and member Jobs "both count against the existing 8192-row
+##             capacity", which they do; the five columns are the per-row cost of that record.
 ##   JobAgent: _present (B8 512), _hazard_locked (B8 512, REQ-SET-015's rest<=500 / rest>=4000
 ##             latch that `schedule.gd`'s header explicitly hands to this module so exactly one
 ##             hazard gate exists), _agent_persistent_id (I32 512, a cache of the directory's
@@ -373,6 +419,18 @@ const REFUSE_TOOL_UNAVAILABLE: StringName = &"STEP4_TOOL_UNAVAILABLE"
 const REFUSE_UNLOCK_UNAVAILABLE: StringName = &"STEP4_UNLOCK_UNAVAILABLE"
 const REFUSE_INPUTS_UNAVAILABLE: StringName = &"STEP6_INPUTS_UNAVAILABLE"
 const REFUSE_NEEDS_UNAVAILABLE: StringName = &"NEEDS_ROW_UNAVAILABLE"
+# Decision 0017 coordinator refusals.
+const REFUSE_COORDINATOR_JOB: StringName = &"COORDINATOR_JOB_NOT_SELECTABLE"
+const REFUSE_NOT_A_COORDINATOR: StringName = &"JOB_IS_NOT_A_COORDINATOR"
+const REFUSE_ALREADY_A_COORDINATOR: StringName = &"JOB_IS_ALREADY_A_COORDINATOR"
+const REFUSE_JOB_IS_MEMBER: StringName = &"JOB_IS_A_PARTY_MEMBER"
+const REFUSE_JOB_NOT_MEMBER: StringName = &"JOB_IS_NOT_A_PARTY_MEMBER"
+const REFUSE_COORDINATOR_HAS_MEMBERS: StringName = &"COORDINATOR_STILL_HAS_MEMBERS"
+const REFUSE_MEMBER_HOLDS_PROGRESS: StringName = &"MEMBER_MAY_NOT_HOLD_SHARED_PROGRESS"
+const REFUSE_SELF_COORDINATION: StringName = &"JOB_MAY_NOT_COORDINATE_ITSELF"
+const REFUSE_NO_MEMBERS: StringName = &"COORDINATOR_HAS_NO_MEMBERS"
+const REFUSE_END_OF_MEMBERS: StringName = &"END_OF_MEMBER_LIST"
+const REFUSE_MWU_UNDERFLOW: StringName = &"REMAINING_MWU_UNDERFLOW"
 const REFUSE_PRIORITIES_UNAVAILABLE: StringName = &"PRIORITIES_ROW_UNAVAILABLE"
 const REFUSE_SKILLS_UNAVAILABLE: StringName = &"SKILLS_ROW_UNAVAILABLE"
 
@@ -431,6 +489,15 @@ var _station_gate: PackedByteArray = PackedByteArray()
 var _tool_gate: PackedByteArray = PackedByteArray()
 var _unlock_gate: PackedByteArray = PackedByteArray()
 var _inputs_gate: PackedByteArray = PackedByteArray()
+## Decision 0017. `_is_coordinator` flags the one Job per shared activity that owns the shared
+## `remaining_mwu`, the lifecycle and completion; `_coordinator_slot/_coordinator_generation` is
+## each member's EntityRef back to it; `_member_head` and `_member_next` are the intrusive list
+## that enumerates a coordinator's members without allocating.
+var _is_coordinator: PackedByteArray = PackedByteArray()
+var _coordinator_slot: PackedInt32Array = PackedInt32Array()
+var _coordinator_generation: PackedInt32Array = PackedInt32Array()
+var _member_head: PackedInt32Array = PackedInt32Array()
+var _member_next: PackedInt32Array = PackedInt32Array()
 ## The live-job index, ordered by declared urgency and then by ascending persistent ID.
 var _live_slots: PackedInt32Array = PackedInt32Array()
 ## Cache of the directory's never-reused persistent ID, so the ordered index and the candidate
@@ -579,12 +646,13 @@ func _allocate_columns() -> void:
 	for column: PackedInt32Array in [_kind, _requester_slot, _requester_generation,
 			_destination_slot, _destination_generation, _source_slot, _source_generation,
 			_priority, _required_skill, _state, _worker_slot, _worker_generation,
-			_job_ref_slot, _job_ref_generation, _live_slots, _job_persistent_id]:
+			_job_ref_slot, _job_ref_generation, _live_slots, _job_persistent_id,
+			_coordinator_slot, _coordinator_generation, _member_head, _member_next]:
 		column.resize(JOB_CAPACITY)
 	for column: PackedInt64Array in [_remaining_mwu, _created_tick]:
 		column.resize(JOB_CAPACITY)
 	for column: PackedByteArray in [_job_present, _urgency, _dangerous, _station_gate,
-			_tool_gate, _unlock_gate, _inputs_gate]:
+			_tool_gate, _unlock_gate, _inputs_gate, _is_coordinator]:
 		column.resize(JOB_CAPACITY)
 	_bucket_begin.resize(URGENCY_COUNT + 1)
 	_allocate_agent_columns()
@@ -607,6 +675,15 @@ func _allocate_agent_columns() -> void:
 
 func clear() -> void:
 	"""Return every Job and JobAgent row to the empty state without reallocating a column."""
+	_clear_job_columns()
+	_clear_job_references()
+	_clear_agents()
+	_food_reserve_below_two_days = false
+	_reset_best()
+
+
+func _clear_job_columns() -> void:
+	"""Refill every scalar Job column with its empty-row default. Split out to stay under 30."""
 	_kind.fill(JOB_KIND_HAUL)
 	_priority.fill(0)
 	_required_skill.fill(0)
@@ -620,19 +697,24 @@ func clear() -> void:
 	_tool_gate.fill(GATE_NOT_REQUIRED)
 	_unlock_gate.fill(GATE_NOT_REQUIRED)
 	_inputs_gate.fill(GATE_NOT_REQUIRED)
+	_is_coordinator.fill(0)
+	_member_head.fill(EntityDirectory.NULL_SLOT)
+	_member_next.fill(EntityDirectory.NULL_SLOT)
 	_live_slots.fill(0)
 	_job_persistent_id.fill(0)
 	_bucket_begin.fill(0)
 	_live_count = 0
+
+
+func _clear_job_references() -> void:
+	"""Refill every Job EntityRef column pair with the null reference."""
 	for column: PackedInt32Array in [_requester_slot, _destination_slot, _source_slot,
-			_worker_slot, _job_ref_slot]:
+			_worker_slot, _job_ref_slot, _coordinator_slot]:
 		column.fill(EntityDirectory.NULL_SLOT)
 	for column: PackedInt32Array in [_requester_generation, _destination_generation,
-			_source_generation, _worker_generation, _job_ref_generation]:
+			_source_generation, _worker_generation, _job_ref_generation,
+			_coordinator_generation]:
 		column.fill(EntityDirectory.NULL_GENERATION)
-	_clear_agents()
-	_food_reserve_below_two_days = false
-	_reset_best()
 
 
 func _clear_agents() -> void:
@@ -796,6 +878,10 @@ func _write_new_job_row(job_slot: int, ref: Vector2i, kind: int, priority: int,
 	_tool_gate[job_slot] = GATE_NOT_REQUIRED
 	_unlock_gate[job_slot] = GATE_NOT_REQUIRED
 	_inputs_gate[job_slot] = GATE_NOT_REQUIRED
+	_is_coordinator[job_slot] = 0
+	_member_head[job_slot] = EntityDirectory.NULL_SLOT
+	_member_next[job_slot] = EntityDirectory.NULL_SLOT
+	_set_ref_columns(job_slot, NULL_REF, _coordinator_slot, _coordinator_generation)
 	_set_ref_columns(job_slot, NULL_REF, _requester_slot, _requester_generation)
 	_set_ref_columns(job_slot, NULL_REF, _destination_slot, _destination_generation)
 	_set_ref_columns(job_slot, NULL_REF, _source_slot, _source_generation)
@@ -815,12 +901,21 @@ func destroy_job(job_slot: int) -> OpResult:
 	Refusing rather than silently unbinding is deliberate: decision 0017 gives worker departure
 	and job cancellation separate paths, and a destroy that quietly detached a worker would
 	merge them. Call `release_worker()` first.
+
+	A coordinator that still has members is refused for the same reason: releasing it would
+	leave every member Job pointing at a dead row, and 0017 requires shared progress and batch
+	data to survive a departure, not to be deleted out from under the party. A member is
+	unlinked from its coordinator here, which is the only structural change a destroy makes.
 	"""
 	var code: StringName = _check_job_slot(job_slot)
 	if code != REFUSE_NONE:
 		return _refuse(code)
 	if _worker_slot[job_slot] != EntityDirectory.NULL_SLOT:
 		return _refuse(REFUSE_JOB_HAS_WORKER)
+	if _member_head[job_slot] != EntityDirectory.NULL_SLOT:
+		return _refuse(REFUSE_COORDINATOR_HAS_MEMBERS)
+	if _coordinator_slot[job_slot] != EntityDirectory.NULL_SLOT:
+		_unlink_member(job_slot)
 	var ref: Vector2i = ref_of(job_slot)
 	_directory.destroy(ref)
 	_remove_live_slot(job_slot)
@@ -848,6 +943,10 @@ func _clear_job_row(job_slot: int) -> void:
 	_tool_gate[job_slot] = GATE_NOT_REQUIRED
 	_unlock_gate[job_slot] = GATE_NOT_REQUIRED
 	_inputs_gate[job_slot] = GATE_NOT_REQUIRED
+	_is_coordinator[job_slot] = 0
+	_member_head[job_slot] = EntityDirectory.NULL_SLOT
+	_member_next[job_slot] = EntityDirectory.NULL_SLOT
+	_set_ref_columns(job_slot, NULL_REF, _coordinator_slot, _coordinator_generation)
 	_set_ref_columns(job_slot, NULL_REF, _job_ref_slot, _job_ref_generation)
 	_set_ref_columns(job_slot, NULL_REF, _requester_slot, _requester_generation)
 	_set_ref_columns(job_slot, NULL_REF, _destination_slot, _destination_generation)
@@ -1110,6 +1209,12 @@ func inactive_job_row_is_clear(job_slot: int) -> bool:
 		return false
 	if _unlock_gate[job_slot] != GATE_NOT_REQUIRED or _inputs_gate[job_slot] != GATE_NOT_REQUIRED:
 		return false
+	if _is_coordinator[job_slot] != 0 or _member_head[job_slot] != EntityDirectory.NULL_SLOT:
+		return false
+	if _member_next[job_slot] != EntityDirectory.NULL_SLOT:
+		return false
+	if coordinator_of(job_slot) != NULL_REF:
+		return false
 	return worker_of(job_slot) == NULL_REF and destination_of(job_slot) == NULL_REF
 
 
@@ -1135,14 +1240,69 @@ func set_state(job_slot: int, state: int) -> OpResult:
 
 
 func set_remaining_mwu(job_slot: int, remaining_mwu: int) -> OpResult:
-	"""Write Job.remaining_mwu. Refuses a negative total rather than clamping it to zero."""
+	"""Write Job.remaining_mwu. Refuses a negative total rather than clamping it to zero.
+
+	Decision 0017: a member Job's shared-phase `remaining_mwu` stays ZERO, so a nonzero write to
+	a member is refused rather than stored. That is what makes per-member inflation
+	unrepresentable: shared progress exists in exactly one row, the coordinator's.
+	"""
 	var code: StringName = _check_job_slot(job_slot)
 	if code != REFUSE_NONE:
 		return _refuse(code)
 	if remaining_mwu < 0:
 		return _refuse(REFUSE_INVALID_MWU)
+	if remaining_mwu != 0 and _coordinator_slot[job_slot] != EntityDirectory.NULL_SLOT:
+		return _refuse(REFUSE_MEMBER_HOLDS_PROGRESS)
 	_remaining_mwu[job_slot] = remaining_mwu
 	return _succeed(remaining_mwu, ref_of(job_slot))
+
+
+func remaining_mwu_into(job_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `remaining_mwu_of()`: write the outstanding work into `out`, return out.ok.
+
+	`work.gd` reads this once per job per productive tick, so it publishes an `_into` form per
+	AGENTS.md's no-allocation-on-hot-paths rule.
+	"""
+	var code: StringName = _check_job_slot(job_slot)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	return out.succeed(_remaining_mwu[job_slot])
+
+
+func consume_remaining_mwu_into(job_slot: int, amount: int, out: IntMath.IntResult) -> bool:
+	"""Subtract accepted milli-WU from a job's outstanding work; write the new total into `out`.
+
+	THE ONLY DECREMENTING PATH. It refuses an amount larger than the row holds instead of
+	clamping to zero or wrapping negative: decision 0017 caps acceptance at
+	`min(remaining_mwu, sum(potential_i))`, so a caller asking for more has already miscomputed
+	acceptance, and silently absorbing that would hide exactly the per-member inflation the
+	coordinator exists to prevent. Refuses a negative amount for the same reason.
+	"""
+	var code: StringName = _check_job_slot(job_slot)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	if amount < 0:
+		return out.refuse(String(REFUSE_INVALID_MWU))
+	if amount > _remaining_mwu[job_slot]:
+		return out.refuse(String(REFUSE_MWU_UNDERFLOW))
+	_remaining_mwu[job_slot] -= amount
+	return out.succeed(_remaining_mwu[job_slot])
+
+
+func state_into(job_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `state_of()`: write Job.state into `out` and return out.ok."""
+	var code: StringName = _check_job_slot(job_slot)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	return out.succeed(_state[job_slot])
+
+
+func kind_into(job_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `kind_of()`: write Job.kind into `out` and return out.ok."""
+	var code: StringName = _check_job_slot(job_slot)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	return out.succeed(_kind[job_slot])
 
 
 func set_urgency(job_slot: int, urgency: int) -> OpResult:
@@ -1271,6 +1431,183 @@ func set_food_reserve_below_two_days(below: bool) -> void:
 func food_reserve_below_two_days() -> bool:
 	"""The currently supplied answer to §5.3 bucket 2's reserve condition."""
 	return _food_reserve_below_two_days
+
+
+# --- decision 0017: the coordinator Job ----------------------------------------------------------
+
+func make_coordinator(job_slot: int) -> OpResult:
+	"""Promote a Job to decision 0017's coordinator: the row that owns a shared activity.
+
+	A coordinator holds the sole authoritative `remaining_mwu` for the activity, survives worker
+	replacement, and records the one completion. It has `worker = null` and cannot be selected,
+	so a job that already has a worker, or that is itself a member of another party, is refused
+	rather than converted. Idempotent conversion is refused too: promoting twice is a caller
+	error, not a no-op to be swallowed.
+	"""
+	var code: StringName = _check_job_slot(job_slot)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	if _is_coordinator[job_slot] == 1:
+		return _refuse(REFUSE_ALREADY_A_COORDINATOR)
+	if _worker_slot[job_slot] != EntityDirectory.NULL_SLOT:
+		return _refuse(REFUSE_JOB_HAS_WORKER)
+	if _coordinator_slot[job_slot] != EntityDirectory.NULL_SLOT:
+		return _refuse(REFUSE_JOB_IS_MEMBER)
+	_is_coordinator[job_slot] = 1
+	return _succeed(job_slot, ref_of(job_slot))
+
+
+func is_coordinator(job_slot: int) -> bool:
+	"""True when this live Job row is a shared activity's coordinator."""
+	return _check_job_slot(job_slot) == REFUSE_NONE and _is_coordinator[job_slot] == 1
+
+
+func is_member(job_slot: int) -> bool:
+	"""True when this live Job row is a member of some coordinator's party."""
+	if _check_job_slot(job_slot) != REFUSE_NONE:
+		return false
+	return _coordinator_slot[job_slot] != EntityDirectory.NULL_SLOT
+
+
+func coordinator_of(job_slot: int) -> Vector2i:
+	"""The EntityRef of this member's coordinator, or the null reference when it has none."""
+	return _ref_of_columns(job_slot, _coordinator_slot, _coordinator_generation)
+
+
+func set_coordinator(member_slot: int, coordinator_slot: int) -> OpResult:
+	"""Attach a member Job to a coordinator, per decision 0017.
+
+	Refuses a member that carries shared progress (`remaining_mwu != 0`), a member that is
+	already in a party, a job coordinating itself, a coordinator that is not one, and a member
+	that is itself a coordinator. Every one of those would put shared progress or lifecycle
+	ownership in two places at once, which is the state 0017 exists to make unreachable.
+	"""
+	var code: StringName = _check_coordinator_link(member_slot, coordinator_slot)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_set_ref_columns(member_slot, ref_of(coordinator_slot), _coordinator_slot,
+		_coordinator_generation)
+	_member_next[member_slot] = _member_head[coordinator_slot]
+	_member_head[coordinator_slot] = member_slot
+	return _succeed(coordinator_slot, ref_of(coordinator_slot))
+
+
+func _check_coordinator_link(member_slot: int, coordinator_slot: int) -> StringName:
+	"""REFUSE_NONE when `member_slot` may legally join `coordinator_slot`'s party."""
+	var code: StringName = _check_job_slot(member_slot)
+	if code != REFUSE_NONE:
+		return code
+	code = _check_job_slot(coordinator_slot)
+	if code != REFUSE_NONE:
+		return code
+	if member_slot == coordinator_slot:
+		return REFUSE_SELF_COORDINATION
+	if _is_coordinator[coordinator_slot] == 0:
+		return REFUSE_NOT_A_COORDINATOR
+	if _is_coordinator[member_slot] == 1:
+		return REFUSE_ALREADY_A_COORDINATOR
+	if _coordinator_slot[member_slot] != EntityDirectory.NULL_SLOT:
+		return REFUSE_JOB_IS_MEMBER
+	if _remaining_mwu[member_slot] != 0:
+		return REFUSE_MEMBER_HOLDS_PROGRESS
+	return REFUSE_NONE
+
+
+func clear_coordinator(member_slot: int) -> OpResult:
+	"""Detach a member Job from its party without touching the shared progress it never held."""
+	var code: StringName = _check_job_slot(member_slot)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	if _coordinator_slot[member_slot] == EntityDirectory.NULL_SLOT:
+		return _refuse(REFUSE_JOB_NOT_MEMBER)
+	_unlink_member(member_slot)
+	return _succeed(member_slot, ref_of(member_slot))
+
+
+func _unlink_member(member_slot: int) -> void:
+	"""Remove one member from its coordinator's intrusive list and clear its coordinator ref."""
+	var coordinator: int = _directory.get_typed_row(coordinator_of(member_slot))
+	if coordinator != EntityDirectory.NULL_SLOT and _job_present[coordinator] == 1:
+		var cursor: int = _member_head[coordinator]
+		if cursor == member_slot:
+			_member_head[coordinator] = _member_next[member_slot]
+		else:
+			while cursor != EntityDirectory.NULL_SLOT and _member_next[cursor] != member_slot:
+				cursor = _member_next[cursor]
+			if cursor != EntityDirectory.NULL_SLOT:
+				_member_next[cursor] = _member_next[member_slot]
+	_member_next[member_slot] = EntityDirectory.NULL_SLOT
+	_set_ref_columns(member_slot, NULL_REF, _coordinator_slot, _coordinator_generation)
+
+
+func first_member_into(coordinator_slot: int, out: IntMath.IntResult) -> bool:
+	"""Write the first member's job slot into `out`; refuse REFUSE_NO_MEMBERS on an empty party.
+
+	Paired with `next_member_into()` this walks a party allocation-free. An empty party is an
+	explicit refusal, never a -1 slot masquerading as a row.
+	"""
+	var code: StringName = _check_job_slot(coordinator_slot)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	if _is_coordinator[coordinator_slot] == 0:
+		return out.refuse(String(REFUSE_NOT_A_COORDINATOR))
+	if _member_head[coordinator_slot] == EntityDirectory.NULL_SLOT:
+		return out.refuse(String(REFUSE_NO_MEMBERS))
+	return out.succeed(_member_head[coordinator_slot])
+
+
+func next_member_into(member_slot: int, out: IntMath.IntResult) -> bool:
+	"""Write the next member's job slot into `out`; refuse REFUSE_END_OF_MEMBERS at the tail."""
+	var code: StringName = _check_job_slot(member_slot)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	if _member_next[member_slot] == EntityDirectory.NULL_SLOT:
+		return out.refuse(String(REFUSE_END_OF_MEMBERS))
+	return out.succeed(_member_next[member_slot])
+
+
+func member_count_of(coordinator_slot: int) -> IntMath.IntResult:
+	"""How many member Jobs this coordinator currently holds, by walking its member list."""
+	var code: StringName = _check_job_slot(coordinator_slot)
+	if code != REFUSE_NONE:
+		return _read(code, 0)
+	if _is_coordinator[coordinator_slot] == 0:
+		return _read(REFUSE_NOT_A_COORDINATOR, 0)
+	var count: int = 0
+	var cursor: int = _member_head[coordinator_slot]
+	while cursor != EntityDirectory.NULL_SLOT:
+		count += 1
+		cursor = _member_next[cursor]
+	return _read(REFUSE_NONE, count)
+
+
+func resident_may_work(resident_slot: int) -> OpResult:
+	"""§5.3 eligibility step 1 as a published predicate: dead, incapacitated or collapsed refuses.
+
+	`work.gd` needs the same gate on the PRODUCTIVE tick that selection applies at assignment --
+	REQ-SET-015 cancels ordinary work at rest<=500 and REQ-SET-023 replaces an incapacitated
+	resident's work with a rescue -- and publishing the one implementation is what stops a
+	second, disagreeing copy of step 1 existing in another file.
+	"""
+	var code: StringName = _check_agent_slot(resident_slot)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	code = _health_and_rescue_gate(resident_slot)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _succeed(resident_slot, _residents.ref_of(resident_slot))
+
+
+func agent_persistent_id_of(resident_slot: int) -> IntMath.IntResult:
+	"""The never-reused persistent ID cached in this resident's JobAgent row.
+
+	Decision 0017 breaks a leftover-milli-WU tie by ASCENDING RESIDENT PERSISTENT ID, and this
+	is the copy that costs no directory call.
+	"""
+	var code: StringName = _check_agent_slot(resident_slot)
+	if code != REFUSE_NONE:
+		return _read(code, 0)
+	return _read(REFUSE_NONE, _agent_persistent_id[resident_slot])
 
 
 # --- JobAgent lifecycle --------------------------------------------------------------------------
@@ -1487,6 +1824,8 @@ func _check_bind_arguments(resident_slot: int, job_slot: int) -> StringName:
 		return code
 	if job_of(resident_slot) != NULL_REF:
 		return REFUSE_AGENT_BUSY
+	if _is_coordinator[job_slot] == 1:
+		return REFUSE_COORDINATOR_JOB
 	if _worker_slot[job_slot] != EntityDirectory.NULL_SLOT:
 		return REFUSE_JOB_HAS_WORKER
 	if _state[job_slot] != JOB_STATE_QUEUED:
@@ -1639,8 +1978,13 @@ func _job_eligibility(job_slot: int) -> StringName:
 	"""Eligibility steps 3-6 for one candidate, using the scratch loaded for this pass.
 
 	Candidacy comes first and is not one of the six steps: a job already worked, or in any state
-	but QUEUED, is not on offer at all.
+	but QUEUED, is not on offer at all. Decision 0017's coordinator is excluded ahead of even
+	that, as a CATEGORICAL exclusion -- "cannot be selected by a resident" is a property of the
+	record, not a rule it happens to fail, and it carries its own code so a caller is never told
+	a coordinator was merely busy or unqueued.
 	"""
+	if _is_coordinator[job_slot] == 1:
+		return REFUSE_COORDINATOR_JOB
 	if _worker_slot[job_slot] != EntityDirectory.NULL_SLOT:
 		return REFUSE_JOB_HAS_WORKER
 	if _state[job_slot] != JOB_STATE_QUEUED:

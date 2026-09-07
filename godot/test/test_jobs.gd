@@ -1386,3 +1386,199 @@ func test_every_reader_refuses_an_absent_row_instead_of_answering_with_a_default
 		String(JobsScript.REFUSE_INVALID_RESIDENT_SLOT), "an out-of-range resident slot refuses")
 	assert_equal(_jobs.ref_of(0), EntityDirectory.NULL_REF, "and an absent row has no reference")
 	assert_false(_jobs.live_job_at(0).ok, "an empty live index refuses too")
+
+
+# --- decision 0017: the coordinator Job -------------------------------------------------------------
+
+func test_a_coordinator_cannot_be_selected_by_a_resident() -> void:
+	"""0017: "The coordinator has worker = null, cannot be selected by a resident"."""
+	var worker: int = _spawn_worker()
+	var coordinator: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.make_coordinator(coordinator).ok, "the job becomes a coordinator")
+	var eligible: JobsScript.OpResult = _jobs.is_eligible(worker, coordinator)
+	assert_false(eligible.ok, "a coordinator is never an eligible candidate")
+	assert_equal(eligible.error, JobsScript.REFUSE_COORDINATOR_JOB,
+		"and refuses categorically, not as a failed step")
+	var selected: JobsScript.OpResult = _select(worker)
+	assert_false(selected.ok, "so a pass over a store holding only it finds nothing")
+	assert_equal(selected.error, JobsScript.REFUSE_NO_ELIGIBLE_JOB, "and says so plainly")
+
+
+func test_a_resident_is_selected_onto_the_member_and_not_the_coordinator() -> void:
+	"""The member Job is what a worker takes; the coordinator sits beside it, unselectable."""
+	var worker: int = _spawn_worker()
+	var coordinator: int = _make_job(JobsScript.JOB_KIND_BUILD, 0, 0, SHARED_CREATED_TICK - 1)
+	assert_true(_jobs.make_coordinator(coordinator).ok, "the coordinator exists first")
+	var member: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.set_coordinator(member, coordinator).ok, "the member joins its party")
+	var selected: JobsScript.OpResult = _select(worker)
+	assert_true(selected.ok, "the pass finds a job (error: %s)" % selected.error)
+	assert_equal(selected.value, member, "and it is the member, never the older coordinator")
+
+
+func test_a_coordinator_refuses_a_worker_binding() -> void:
+	"""`worker = null` is enforced at the commitment point, with its own refusal code."""
+	var worker: int = _spawn_worker()
+	var coordinator: int = _make_job(JobsScript.JOB_KIND_FISH)
+	assert_true(_jobs.make_coordinator(coordinator).ok, "the job becomes a coordinator")
+	var bound: JobsScript.OpResult = _jobs.assign_worker(worker, coordinator)
+	assert_false(bound.ok, "no resident may be bound to a coordinator")
+	assert_equal(bound.error, JobsScript.REFUSE_COORDINATOR_JOB, "and it says exactly why")
+	assert_equal(_jobs.worker_of(coordinator), EntityDirectory.NULL_REF, "its worker stays null")
+
+
+func test_a_worked_job_cannot_become_a_coordinator() -> void:
+	"""The rule runs both ways: a row with a worker is a member's shape, not a coordinator's."""
+	var worker: int = _spawn_worker()
+	var job: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.assign_worker(worker, job).ok, "the worker binds first")
+	var promoted: JobsScript.OpResult = _jobs.make_coordinator(job)
+	assert_false(promoted.ok, "a job with a worker cannot become a coordinator")
+	assert_equal(promoted.error, JobsScript.REFUSE_JOB_HAS_WORKER, "and it says exactly why")
+	assert_false(_jobs.is_coordinator(job), "the flag is not set on a refusal")
+
+
+func test_a_member_may_not_hold_shared_progress() -> void:
+	"""0017: "Their shared-phase remaining_mwu stays zero" -- enforced, not merely intended."""
+	var coordinator: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.make_coordinator(coordinator).ok, "the coordinator exists")
+	var carrying: JobsScript.OpResult = _jobs.create_job(JobsScript.JOB_KIND_BUILD, 0, 0, 5000, 0)
+	assert_true(carrying.ok, "a job carrying work creates normally")
+	var linked: JobsScript.OpResult = _jobs.set_coordinator(carrying.value, coordinator)
+	assert_false(linked.ok, "but it may not join a party while it carries work")
+	assert_equal(linked.error, JobsScript.REFUSE_MEMBER_HOLDS_PROGRESS, "and it says exactly why")
+	var member: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.set_coordinator(member, coordinator).ok, "an empty job joins")
+	var written: JobsScript.OpResult = _jobs.set_remaining_mwu(member, 1)
+	assert_false(written.ok, "and cannot be given work afterwards either")
+	assert_equal(_jobs.remaining_mwu_of(member).value, 0, "so its work total stays zero")
+
+
+func test_shared_progress_lives_in_exactly_one_row() -> void:
+	"""Consuming work moves the coordinator's total and touches no member row."""
+	var coordinator: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.make_coordinator(coordinator).ok, "the coordinator exists")
+	assert_true(_jobs.set_remaining_mwu(coordinator, 5000).ok, "and holds the shared total")
+	var first: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	var second: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.set_coordinator(first, coordinator).ok, "the first member joins")
+	assert_true(_jobs.set_coordinator(second, coordinator).ok, "the second member joins")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_jobs.consume_remaining_mwu_into(coordinator, 160, out), "160 milli-WU is taken")
+	assert_equal(out.value, 4840, "from the coordinator's own total")
+	assert_equal(_jobs.remaining_mwu_of(first).value, 0, "the first member holds nothing")
+	assert_equal(_jobs.remaining_mwu_of(second).value, 0, "nor does the second")
+
+
+func test_consuming_more_than_a_job_holds_is_refused() -> void:
+	"""0017 caps acceptance at min(remaining, sum(potential)); over-consuming is a caller error."""
+	var job: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.set_remaining_mwu(job, 100).ok, "the job holds 100 milli-WU")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_false(_jobs.consume_remaining_mwu_into(job, 101, out), "101 is refused")
+	assert_equal(out.error, String(JobsScript.REFUSE_MWU_UNDERFLOW), "with its own code")
+	assert_equal(_jobs.remaining_mwu_of(job).value, 100, "and nothing was consumed")
+	assert_false(_jobs.consume_remaining_mwu_into(job, -1, out), "a negative amount is refused")
+	assert_true(_jobs.consume_remaining_mwu_into(job, 100, out), "the exact total is accepted")
+	assert_equal(out.value, 0, "leaving nothing outstanding")
+
+
+func test_member_enumeration_walks_every_member_once() -> void:
+	"""The member list is what a party tick walks; it must reach each member exactly once."""
+	var coordinator: int = _make_job(JobsScript.JOB_KIND_FISH)
+	assert_true(_jobs.make_coordinator(coordinator).ok, "the coordinator exists")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_false(_jobs.first_member_into(coordinator, out), "an empty party has no first member")
+	assert_equal(out.error, String(JobsScript.REFUSE_NO_MEMBERS), "and refuses rather than -1")
+	var expected: Array[int] = []
+	for _index: int in 3:
+		var member: int = _make_job(JobsScript.JOB_KIND_FISH)
+		assert_true(_jobs.set_coordinator(member, coordinator).ok, "the member joins")
+		expected.append(member)
+	assert_equal(_jobs.member_count_of(coordinator).value, 3, "the party holds three members")
+	var seen: Array[int] = []
+	if _jobs.first_member_into(coordinator, out):
+		seen.append(out.value)
+		while _jobs.next_member_into(seen[seen.size() - 1], out):
+			seen.append(out.value)
+	seen.sort()
+	expected.sort()
+	assert_equal(seen, expected, "and the walk reaches each of them exactly once")
+
+
+func test_a_coordinator_with_members_refuses_destruction() -> void:
+	"""Releasing it would leave members pointing at a dead row; 0017 wants the batch to survive."""
+	var coordinator: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.make_coordinator(coordinator).ok, "the coordinator exists")
+	var member: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.set_coordinator(member, coordinator).ok, "a member joins")
+	var destroyed: JobsScript.OpResult = _jobs.destroy_job(coordinator)
+	assert_false(destroyed.ok, "the coordinator cannot be destroyed under its party")
+	assert_equal(destroyed.error, JobsScript.REFUSE_COORDINATOR_HAS_MEMBERS, "and says why")
+	assert_true(_jobs.destroy_job(member).ok, "destroying the member unlinks it first")
+	assert_equal(_jobs.member_count_of(coordinator).value, 0, "leaving an empty party")
+	assert_true(_jobs.destroy_job(coordinator).ok, "which may then be destroyed")
+
+
+func test_departure_releases_the_assignment_and_leaves_the_party_intact() -> void:
+	"""0017: departure releases that worker's assignment and personal claims ONLY."""
+	var worker: int = _spawn_worker()
+	var coordinator: int = _make_job(JobsScript.JOB_KIND_FISH)
+	assert_true(_jobs.make_coordinator(coordinator).ok, "the coordinator exists")
+	assert_true(_jobs.set_remaining_mwu(coordinator, 4000).ok, "holding the shared total")
+	var member: int = _make_job(JobsScript.JOB_KIND_FISH)
+	assert_true(_jobs.assign_worker(worker, member).ok, "the worker takes the member job")
+	assert_true(_jobs.set_coordinator(member, coordinator).ok, "which joins the party")
+	assert_true(_jobs.release_worker(worker).ok, "the worker departs")
+	assert_equal(_jobs.worker_of(member), EntityDirectory.NULL_REF, "the assignment is released")
+	assert_equal(_jobs.remaining_mwu_of(coordinator).value, 4000, "shared progress survives")
+	assert_equal(_jobs.member_count_of(coordinator).value, 1,
+		"and the member Job stays in the party, which keeps its coordinator")
+
+
+func test_a_job_may_not_coordinate_itself_or_join_twice() -> void:
+	"""Every link rule that would put lifecycle ownership in two places at once is refused."""
+	var coordinator: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.make_coordinator(coordinator).ok, "the coordinator exists")
+	assert_equal(_jobs.set_coordinator(coordinator, coordinator).error,
+		JobsScript.REFUSE_SELF_COORDINATION, "a job may not coordinate itself")
+	assert_equal(_jobs.make_coordinator(coordinator).error,
+		JobsScript.REFUSE_ALREADY_A_COORDINATOR, "nor be promoted twice")
+	var member: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.set_coordinator(member, coordinator).ok, "a member joins once")
+	assert_equal(_jobs.set_coordinator(member, coordinator).error, JobsScript.REFUSE_JOB_IS_MEMBER,
+		"and may not join again")
+	assert_equal(_jobs.make_coordinator(member).error, JobsScript.REFUSE_JOB_IS_MEMBER,
+		"nor become a coordinator while it is a member")
+	var ordinary: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_equal(_jobs.set_coordinator(ordinary, member).error,
+		JobsScript.REFUSE_NOT_A_COORDINATOR, "and a member coordinates nobody")
+
+
+func test_clearing_a_coordinator_link_restores_an_ordinary_job() -> void:
+	"""A detached member is an ordinary job again, and may then carry its own work."""
+	var coordinator: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.make_coordinator(coordinator).ok, "the coordinator exists")
+	var member: int = _make_job(JobsScript.JOB_KIND_BUILD)
+	assert_true(_jobs.set_coordinator(member, coordinator).ok, "the member joins")
+	assert_equal(_jobs.coordinator_of(member), _jobs.ref_of(coordinator),
+		"and references its coordinator by EntityRef")
+	assert_true(_jobs.clear_coordinator(member).ok, "the member leaves the party")
+	assert_false(_jobs.is_member(member), "it is an ordinary job again")
+	assert_equal(_jobs.coordinator_of(member), EntityDirectory.NULL_REF, "with no coordinator")
+	assert_true(_jobs.set_remaining_mwu(member, 500).ok, "which may now carry its own work")
+	assert_equal(_jobs.member_count_of(coordinator).value, 0, "and the party is empty")
+
+
+func test_resident_may_work_reports_eligibility_step_one() -> void:
+	"""One published implementation of step 1, so `work.gd` cannot carry a disagreeing copy."""
+	var worker: int = _spawn_worker()
+	assert_true(_jobs.resident_may_work(worker).ok, "a healthy, rested resident may work")
+	var rest: IntMath.IntResult = _needs.need_of(worker, NeedsScript.NEED_REST)
+	assert_true(_needs.apply_need_event(worker, NeedsScript.NEED_REST, 400 - rest.value).ok,
+		"rest falls to 400")
+	var collapsed: JobsScript.OpResult = _jobs.resident_may_work(worker)
+	assert_false(collapsed.ok, "REQ-SET-015 stops work at rest<=500")
+	assert_equal(collapsed.error, JobsScript.REFUSE_REST_COLLAPSED, "with step 1's own code")
+	assert_false(_jobs.resident_may_work(JobsScript.AGENT_CAPACITY).ok,
+		"and an out-of-range resident refuses rather than answering yes")

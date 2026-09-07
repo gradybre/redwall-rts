@@ -29,7 +29,7 @@ are recorded here and are NOT promoted into approved constants.**
 | U1 | `catalog_ids.json` is named only in GDD §4.2 and BAL-CAT-001; the architecture document never specifies its document shape, canonical byte serialization, hash relationship to save-header offset 72, location, or whether it is built or shipped | Task 2.2 persistence | Compile and validate in memory; **do not** emit the file or claim hash verification |
 | U2 | Speed/pause scheduler events have no command kind (ARCH-CMD-003 has 24 kinds, none for speed/pause), no ordering tiebreak, no save section (ARCH-SAVE-002 §12 is `PENDING_COMMANDS` only) | Task 2.4 queued pause determinism | Implement immediate speed/pause state; **defer** queued scheduler events |
 | U3 | ARCH-CLOCK-001 "never discard completed or owed ticks" vs ARCH-CLOCK-002 "may clear scheduler debt"; GDD REQ-SET-008 says pause rather than skip | Task 2.4 debt rule | Follow the **conservative** rule: never discard implicitly. Explicit acknowledgement is counted, not silent |
-| U4 | Reservation indexing unspecified: 32768 reservation rows against 8192 job rows is exactly 4×, implying owner-major `job*4+i`, which neither document states and which would cap a recipe at 4 input lots | Task 2.5 reservations | Implement lots and transactions; **defer** reservation allocation |
+| U4 | Reservation indexing unspecified: 32768 reservation rows against 8192 job rows is exactly 4×, implying owner-major `job*4+i`, which neither document states and which would cap a recipe at 4 input lots | Task 2.5 reservations | **Resolved by decision 0019 / task 2.11**: global lowest-free-index allocation, variable-length claim lists |
 | U5 | No allocator storage budgeted for non-directory child stores (Reservation, GearInstance, BatchState, LotEffect, NoticeCondition, ChildSliceIndex) | Tasks 2.3, 2.5 and the memory ledger | Directory-kind allocation only |
 | U6 | Missing owner-major index formulas for MoodMemory, ManualTask, HivePollinationLinks, Feast.attendees, Feast.reserved_lots | Later tasks | Not required this milestone |
 | U7 | ARCH-MIG-006 step 2 requires "golden GDD fixtures" but never enumerates them | Task 2.1 acceptance | Use GDD §7.1 worked examples, the only worked arithmetic in the spec |
@@ -98,7 +98,7 @@ must be re-derived before movement work, and this task does not do so.
 - **Acceptance** all-or-nothing under partial failure; conservation across
   arbitrary operation sequences; capacity refusal is explicit; mass debit uses
   per-lot `ceil_div`
-- **Blocked by U4**: reservations deferred
+- **U4 resolved**: reservations implemented in task 2.11, see below
 
 ## Test migration ledger
 
@@ -167,9 +167,36 @@ divergences recorded in the implementation report, control left byte-identical.
 residents against a 2 ms whole-tick budget, and the residual is GDScript call
 overhead rather than arithmetic.
 
-### 2.10 — Residents store and food-days (**next**)
+### 2.10 — Residents store and food-days (**done**)
 Allocate residents through `entity_directory.gd`, attach the needs columns, and
 compute GDD §5.8 daily demand from each living resident's size and season
 multiplier. That supplies food-days its missing divisor so the HUD counter can
 populate honestly for the first time. It also produces the second per-resident
 timing data point decision 0016 needs before its options can be judged.
+
+### 2.11 — Reservation pool (**done**)
+- **Owns** `godot/scripts/core/reservations.gd`, `godot/test/test_reservations.gd`
+- **Spec** GDD §4.2 (`Reservation`), decision 0019, resolving **U4**
+- 32768 rows allocated **globally from the lowest free index**, with
+  variable-length claim lists per Job and per InventoryLot, rather than the
+  owner-major `job*4+i` layout the 4:1 ratio superficially implied — that
+  reading would have capped a recipe at four input lots.
+  `test_recipe_reserves_across_five_or_more_lots` claims seven lots on one job
+  and `test_one_job_may_claim_far_more_lots_than_four` claims twelve,
+  precisely the case owner-major indexing would have made impossible.
+  `claim_batch()` preflights the complete transaction — ref
+  validity, per-lot availability, and free-row count after coalescing — so
+  insufficient rows refuse explicitly (`CAPACITY_RESERVATION`) with no partial
+  reservation left behind. Indexing overhead measures exactly the 786,436
+  bytes decision 0019 budgets, and `indexing_bytes()` re-derives that figure
+  from the live columns rather than asserting the literal, so a layout change
+  cannot silently drift from the ledger. `reserved_milli` is changed only
+  through `inventory.gd`'s public API; this module never reads an inventory
+  column directly.
+- **Acceptance** five-or-more-lot claim, pool exhaustion, spoiled-lot release,
+  party-member replacement (decision 0017's coordinator, not a member, owns a
+  shared claim) — met. Save/load of active claims is **not** covered; no save
+  system exists yet.
+- 38 tests. Mutation-tested against every load-bearing rule; three mutants
+  survived the first pass and were closed with new tests rather than accepted.
+- **U4 is resolved.** Task 2.5's inventory module is otherwise unchanged.

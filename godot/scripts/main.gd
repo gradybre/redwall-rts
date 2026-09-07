@@ -1,30 +1,53 @@
 extends Node
-## Boot scene: wires the HUD to UIManager and seeds the starting settlement.
+## Boot scene: wires the HUD to UIManager and seeds the starting settlement stores.
 
 const HudScript := preload("res://scripts/ui/hud.gd")
 
-const STARTING_STOCKPILES: Dictionary = {
-	&"food": 120.0,
-	&"wood": 80.0,
-	&"stone": 40.0,
-	&"herbs": 10.0,
+## GDD §5.1 initial inventory, in whole catalog units. Copied verbatim from the specification
+## line "Initial inventory U: wood 180, stone 100, ..."; nothing here is invented or rounded.
+## Placement order does not matter: the pantry and material store take disjoint categories and
+## every listed item fits, so the GDD's "food first, then item ID" fill order and this order
+## produce the same result.
+const STARTING_INVENTORY_U: Dictionary = {
+	&"wood": 180,
+	&"stone": 100,
+	&"iron": 20,
+	&"rope": 20,
+	&"tool": 24,
+	&"cloth": 24,
+	&"water": 60,
+	&"grain": 80,
+	&"roots": 80,
+	&"berries": 40,
+	&"nuts": 40,
+	&"dried_fish": 60,
+	&"ration": 60,
+	&"seed_grain": 32,
+	&"seed_roots": 32,
+	&"seed_beans": 16,
+	&"seed_cabbage": 16,
+	&"seed_flax": 16,
+	&"herb": 12,
+	&"compost": 32,
 }
+
+const MILLI_PER_UNIT: int = 1000
 
 @onready var _hud: HudScript = $UI/HUD as HudScript
 
 
 func _ready() -> void:
-	"""Reset autoload state, register the HUD, seed stockpiles, and start play.
+	"""Reset autoload state, register the HUD, seed the stores, and start play.
 
 	EntityManager and EconomySystem are autoloads and outlive this scene, so a
-	reload would otherwise inherit the previous run's entities and stockpiles.
+	reload would otherwise inherit the previous run's entities and stores.
 	"""
 	EntityManager.clear()
 	EconomySystem.reset()
 	if _hud == null:
 		push_error("main.tscn has no HUD at UI/HUD; the interface will not update.")
 	UIManager.register_hud(_hud)
-	_seed_stockpiles()
+	_seed_stores()
 	GameManager.start_game()
 	UIManager.push_alert("Mossflower stirs.")
 	print("[Main] boot complete: %s" % GameManager.get_state_name())
@@ -42,7 +65,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func _seed_stockpiles() -> void:
-	"""Fill the opening stockpiles the settlement starts the game with."""
-	for resource_type: StringName in STARTING_STOCKPILES:
-		EconomySystem.add_resource(resource_type, STARTING_STOCKPILES[resource_type])
+func _seed_stores() -> void:
+	"""Deposit the GDD §5.1 starting inventory, reporting any item the stores refuse."""
+	for item_key: StringName in STARTING_INVENTORY_U:
+		var quantity_milli: int = int(STARTING_INVENTORY_U[item_key]) * MILLI_PER_UNIT
+		if not EconomySystem.deposit(item_key, quantity_milli):
+			push_error("Starting inventory refused for '%s': %s" % [item_key, EconomySystem.last_refusal()])

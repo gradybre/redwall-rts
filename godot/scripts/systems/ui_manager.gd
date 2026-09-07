@@ -12,10 +12,12 @@ var _hud: HudScript = null
 func _ready() -> void:
 	"""Stay alive through pauses, connect system signals, and report readiness."""
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	EconomySystem.resource_changed.connect(_on_resource_changed)
-	EconomySystem.resource_depleted.connect(_on_resource_depleted)
+	EconomySystem.stocks_changed.connect(_on_stocks_changed)
+	EconomySystem.stock_depleted.connect(_on_stock_depleted)
 	GameManager.state_changed.connect(_on_state_changed)
 	GameManager.speed_changed.connect(_on_speed_changed)
+	GameManager.day_advanced.connect(_on_day_advanced)
+	GameManager.clock_diagnostic.connect(_on_clock_diagnostic)
 	print("[UIManager] ready")
 
 
@@ -51,30 +53,57 @@ func _refresh_hud() -> void:
 	"""Push every current value into a freshly registered HUD."""
 	if not _has_hud():
 		return
-	var amounts: Dictionary = EconomySystem.get_all_amounts()
-	for resource_type: StringName in amounts:
-		_hud.set_resource(resource_type, amounts[resource_type])
-	_hud.set_status(GameManager.get_state_name(), GameManager.get_speed())
+	_refresh_counters()
+	_refresh_status()
 
 
-func _on_resource_changed(resource_type: StringName, amount: float) -> void:
-	"""Update one resource counter in the top-left zone."""
-	if _has_hud():
-		_hud.set_resource(resource_type, amount)
+func _refresh_counters() -> void:
+	"""Push every top-left counter this milestone can honestly derive.
+
+	Only these three are supplied. `Food-days` and `Fuel-days` need divisors -- resident daily
+	demand (GDD §5.8) and daily heating demand -- that no implemented system provides, and
+	`Residents`/`Beds` have no model yet, so the HUD leaves all four unpopulated rather than
+	showing a fabricated number. `Ready NP` is the food-days numerator, which IS derivable.
+	"""
+	if not _has_hud():
+		return
+	_hud.set_counter(&"Ready NP", EconomySystem.ready_nutrition_points(), "NP")
+	_hud.set_counter(&"Wood", EconomySystem.stock_units(&"wood"), "U")
+	_hud.set_counter(&"Stone", EconomySystem.stock_units(&"stone"), "U")
 
 
-func _on_resource_depleted(resource_type: StringName) -> void:
-	"""Raise an alert when a stockpile runs dry."""
-	push_alert("Out of %s!" % resource_type)
+func _refresh_status() -> void:
+	"""Repaint the top-right state, speed and date readout from current clock state."""
+	if not _has_hud():
+		return
+	_hud.set_status(GameManager.get_state_name(), GameManager.get_speed(), GameManager.get_calendar_text())
+
+
+func _on_stocks_changed() -> void:
+	"""Repaint the top-left counters after a committed change to the stores."""
+	_refresh_counters()
+
+
+func _on_stock_depleted(item_key: StringName) -> void:
+	"""Raise an alert when the last unit of an item leaves the stores."""
+	push_alert("Out of %s!" % item_key)
 
 
 func _on_state_changed(_new_state: int) -> void:
 	"""Refresh the status readout after a state transition."""
-	if _has_hud():
-		_hud.set_status(GameManager.get_state_name(), GameManager.get_speed())
+	_refresh_status()
 
 
-func _on_speed_changed(multiplier: float) -> void:
-	"""Refresh the status readout after a speed change."""
-	if _has_hud():
-		_hud.set_status(GameManager.get_state_name(), multiplier)
+func _on_speed_changed(_speed: int) -> void:
+	"""Refresh the status readout after a speed change, including an overload step-down."""
+	_refresh_status()
+
+
+func _on_day_advanced(_absolute_day: int) -> void:
+	"""Refresh the date readout when the offset calendar crosses into a new day."""
+	_refresh_status()
+
+
+func _on_clock_diagnostic(message: String) -> void:
+	"""Surface a scheduler overload warning or diagnostic pause in the alert zone."""
+	push_alert(message)

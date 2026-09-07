@@ -17,6 +17,9 @@ This file adds what is specific to Claude Code: the development pipeline below,
 and the GDScript standards.
 
 Also read before writing code:
+- `docs/movement_direction_amendment.md` — adopted movement scope, owner obligations and incomplete engineering gates
+- `docs/redwall-content-library/README.md` and `authoring_handoff.md` within that directory — systematic source library, book-qualified catalog/recipes, explicit AI ingredient completions, pantry dependencies, identity/era reconciliation and activation rules
+- `docs/redwall-design/README.md` — earlier separate thematic/material-world sample; retained as historical research with its original coverage
 - `docs/ENVIRONMENT.md` — working commands; several obvious-looking ones fail silently
 - `docs/decisions/0006-prototype-diverges-from-gdd.md` — how `godot/` violates the spec
 
@@ -40,7 +43,7 @@ redwall-rts/
 │   │   ├── entities/             (Entity scenes + controllers)
 │   │   ├── ui/                   (HUD + menu scripts)
 │   │   └── utils/                (Shared helpers)
-│   └── test/                    (GUT unit tests)
+│   └── test/                    (headless suite, in-repo framework — decision 0004)
 ├── chatgpt-prompts/             ← Optional: paste into ChatGPT Pro for Astra planning
 └── CLAUDE.md                    ← You are here
 ```
@@ -52,7 +55,7 @@ to parallelize independent work within each phase.
 
 ### Phase 1: Planning & Architecture
 
-**If planning docs already exist in `docs/`**: Read them and proceed to Phase 2.
+**If planning docs already exist in `docs/`**: Read the owning contracts and their amendments. Proceed to Phase 2 only for work whose required contracts are complete. DEC-035 movement is adopted but MOVE-G01–05 contain outstanding engineering work; document existence alone does not close those gates or authorize invented production constants.
 
 **If starting fresh**: Generate all four planning documents before writing any code.
 
@@ -89,8 +92,9 @@ Generate `docs/gameplay_balance.md`:
 - Building cost curves with formula: `cost(level) = base * (factor ^ (level-1))`
   - Growth factors must NOT be clean numbers (use 1.47, not 1.5)
 - Asymmetric timing ratios (1 mill feeds 2.3 workshops, not 2 or 3)
-- Population scaling: `wealth(n) = base * ln(n+1) * multiplier`
-- Tables at population: 10, 25, 50, 100, 200, 500, 1000
+- Population scaling: integer formulas only — see `docs/gameplay_balance.md`.
+  Float/logarithmic scaling is forbidden (integer authoritative state)
+- Tables at population: 10, 25, 50, 100, 200, 256 — **never beyond the 256 cap**
 - Stress tests: rush, boom, balanced, starvation cascade
 - Anti-exploit constraints: storage caps, diminishing returns, trade limits
 
@@ -100,9 +104,11 @@ Generate `docs/systems_architecture.md`:
 - ECS design: entities, components (typed), systems (read/write deps)
 - System execution order table with frequency (every frame / fixed / timer)
 - ASCII data flow diagrams
-- Pathfinding: A* for <20 units, flow-field for 20-200, flow-field+LOD for >200
-- Memory budget table per component (target: <50MB at 1000 entities)
-- Godot patterns: autoload vs node, PackedFloat32Array vs Array, signal rules
+- Pathfinding: see `docs/systems_architecture.md` §7 (A* with macro-cell route
+  cache). There is no flow-field tier in the adopted design
+- Memory budget table per component (target: <100MB at 256 residents, REQ-SET-163)
+- Godot patterns: autoload vs node, `PackedInt32Array`/`PackedInt64Array` vs
+  `Array` (float is presentation-only), signal rules
 - Performance targets: 60 FPS / 200 units / <2ms economy tick / <1ms GC
 
 ### Phase 2: Development & Execution
@@ -114,13 +120,15 @@ Writes production GDScript into `godot/scripts/`. **Never stubs or TODOs.**
 
 File organization:
 - `scripts/systems/` — Autoloaded singletons (GameManager, EconomySystem, etc.)
-- `scripts/components/` — Component data (Resource subclasses or typed dicts)
+- `scripts/components/` — Component data as **packed columns**
+  (`PackedInt32Array`/`PackedInt64Array`/`PackedByteArray`), never one
+  `Resource` per entity (ARCH-MEM-001)
 - `scripts/entities/` — Entity scenes + scripts
 - `scripts/ui/` — HUD, menus, panels
 - `scripts/utils/` — Shared helpers
 
 #### 2B — QA Tester Agent
-Writes GUT test files into `godot/test/`:
+Writes test files into `godot/test/` using the in-repo framework (decision 0004):
 - One file per module: `test_<module>.gd`
 - Every public function gets at least one test
 - Boundary tests for balance table values

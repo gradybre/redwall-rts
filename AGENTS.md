@@ -15,7 +15,7 @@ The active ruleset is **`settlement_rules_v2`**.
 1. `docs/setting_decisions.md` — Brendan's policy decisions (`DEC-nnn`).
 2. `docs/game_gdd.md` (rev 1.1) — Settlement GDD. **Authoritative**, as amended by
    `docs/setting_rules_amendment.md` (`SET-AMEND-001`), which supersedes the
-   earlier admission and food rules. Hunting is **not** active in rules v2.
+   earlier admission and food rules. [SET-MOVE-001](docs/movement_direction_amendment.md) additionally owns DEC-035 connected movement; its direction is adopted and MOVE-G01–05 remain engineering closure gates. Hunting is **not** active in rules v2.
 3. `docs/ui_ux_controls.md` (rev 1.1) — UI, UX, controls.
 4. `docs/gameplay_balance.md` and `docs/systems_architecture.md` — derived from
    the above.
@@ -63,6 +63,9 @@ reading the existing code — which predates the GDD and violates several.
 - `docs/validation_resolution.md` records what has been genuinely verified and
   what is still `BLOCKED_RUNTIME`. Do not treat an asserted budget as a
   measured one; that document is explicit about the difference.
+
+- Before movement/space work, read `docs/movement_direction_amendment.md`; ground-only and one-floor baseline contracts do not satisfy the adopted scope.
+- Before theme, culture, food, location or cast work, read `docs/redwall-content-library/README.md` and `authoring_handoff.md` there. The shared catalog and recipe library use book-qualified IDs; the pantry resolves explicitly authored game components. Earlier `docs/redwall-design/` and `docs/redwall-series/` retain their narrower historical coverage. Source facts, AI recipe completions and active numerical catalogs remain separate; full Eulalia text and the known Salamandastron source gap remain unresolved.
 
 ## Working rules
 

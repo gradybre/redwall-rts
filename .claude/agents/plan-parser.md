@@ -48,12 +48,28 @@ Consult these for authoring context; they do **not** override gameplay owners.
 - `docs/art-reference/` — `README.md`, `model_reference_guide.md`,
   `traversal_design_review.md`, `screenshot_review.md`
 - `docs/redwall-design/` (18 files) — per-novel design handoffs
-- `docs/redwall-series/`, `docs/lord_brocktree_analysis.md`,
-  `docs/redwall_novel_analysis.md` — primary-text research. Coverage is
-  **bounded**: Lord Brocktree is the only complete reading; the series studies
-  are `TARGETED_PRIMARY_PASSAGES`. Never treat a passage claim as canon-wide,
-  and never treat a source character's speech as objective fact (decisions
-  0009–0011).
+- **`docs/redwall-content-library/` is the current, systematic pass** and
+  supersedes the earlier studies. All twelve available books are read block by
+  block (`source_audit.json` carries `FULL_AVAILABLE_CORPUS_INSPECTED`;
+  `validation.json` is `PASS` at 12/12 packages, 39,768 blocks, 1,280,344
+  inspected words). Prefer it over any older study.
+
+  Its own stated limits, which must be carried forward rather than rounded off:
+  **Eulalia! full text is absent** from the corpus, and **Salamandastron has a
+  confirmed break in the supplied EPUB, apparently missing printed pages
+  314–315**. Systematic coverage of the supplied narrative is not an infallible
+  concordance, and no missing prose was invented.
+
+- `docs/redwall-series/`, `docs/redwall-design/`,
+  `docs/lord_brocktree_analysis.md`, `docs/redwall_novel_analysis.md` —
+  **historical companions** from earlier targeted passes, retained at their
+  original narrower coverage. Read them for their analysis, but where they and
+  the content library disagree on coverage, the library is current.
+
+- In all cases: a source character's speech is not automatically objective fact,
+  and source characters and factions stay tied to their eras — do not merge
+  reused titles or silently resolve source contradictions (decisions 0009–0011,
+  0014).
 
 There is no `architecture.md` (it is `systems_architecture.md`) and no
 `asset_pipeline.md` (the asset pipeline is a skill at

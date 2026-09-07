@@ -203,17 +203,40 @@ timing data point decision 0016 needs before its options can be judged.
 
 ### 2.12 — Job store and selection (**done**)
 - **Owns** `godot/scripts/core/jobs.gd`, `godot/test/test_jobs.gd`
-- **Spec** GDD §5.3, §4.2/§4.3 (`Job`, `JobAgent`), ARCH-JOB-002, decision 0018
+- **Spec** GDD §5.3, §4.2/§4.3 (`Job`, `JobAgent`), ARCH-JOB-002, ARCH-STATE-005,
+  decisions 0018, 0022, 0023
 - Implements six of GDD §5.3's seven eligibility steps (health/rescue safety,
   activity permits work, job-kind priority nonzero, required station/tool/
   skill/unlock, dangerous consent, complete inputs), all five ascending
   urgency buckets, five of the six sort terms
-  (`player_priority, job_priority, -skill_level, created_tick, job_id`), the
-  30-tick reevaluation cadence staggered by persistent resident ID, and the
-  32-candidate budget with a saved per-resident cursor that resumes rather
-  than restarting. `evaluate()` selects but does not assign; it mutates only
-  the resident's scan cursor and hazard latch, leaving atomic reservation
-  (REQ-SET-030) to a caller composing this module with `reservations.gd`.
+  (`player_priority, job_priority, -skill_level, created_tick, job_id`), and
+  the 30-tick reevaluation cadence staggered by persistent resident ID.
+  `evaluate()` selects but does not assign; it mutates only the resident's
+  continuation and hazard latch, leaving atomic reservation (REQ-SET-030) to
+  a caller composing this module with `reservations.gd`.
+- **Corrected by decision 0023.** The originally shipped selector (`48998c6`)
+  examined its 32-candidate budget in ascending live-row order, so thirty-two
+  cosmetic jobs could hide a rescue at position 33 — sorting the examined
+  window did nothing for urgency outside it. Enumeration now walks urgency
+  buckets 0→4 with one shared 32-candidate budget across the whole pass,
+  descending to a lower bucket only after the higher ones are exhausted
+  without an eligible candidate; ranking is approximate within a bucket and
+  exact between buckets. The positional cursor is replaced with the
+  `(bucket, job persistent_id)` continuation key decision 0023 requires,
+  because positions shift under repeated insertion/deletion while persistent
+  IDs are never reused. A newly available higher-urgency job invalidates any
+  continuation that could otherwise walk past it. `assign_worker()` is the
+  commitment point and re-runs the hazard latch and all six eligibility
+  steps against freshly read gates before binding, so a nomination from
+  `evaluate()` is never treated as an authorisation. `GATE_UNAVAILABLE` is a
+  new fourth gate state: a declared requirement whose owning subsystem
+  cannot answer refuses explicitly instead of reading as satisfied.
+- **`required_skill` settled by decision 0022.** It is a minimum level
+  (0–10) in the job's own kind, tested through one published
+  `validate_job_definition()` used by both `create_job()` and the standalone
+  reader; an out-of-range level or a `RESERVED_3` job kind is refused, never
+  clamped, with boundary tests at one level below, exactly equal, and one
+  level above the required minimum.
 - **Named absences, not invented values.** Eligibility step 7 ("legal
   destination") and the `estimated_path_cells` sort term are both absent
   because no pathfinder exists this milestone; two candidates differing only
@@ -226,6 +249,11 @@ timing data point decision 0016 needs before its options can be judged.
   separation 0017 needs from whichever module builds it.
 - **Acceptance** each eligibility step has a test that fails when that step is
   deleted; the five implemented sort terms are proven with candidates
-  differing in exactly one dimension at a time; the cursor is proven with a
-  pass over more than 32 candidates.
-- 50 tests, 21 mutations applied, none survived.
+  differing in exactly one dimension at a time; a rescue behind more than 32
+  cosmetic jobs is proven found; reverting enumeration to row order fails
+  that rescue test and eight others, and does not fail any pre-existing
+  bucket-ordering test — which is exactly why the defect shipped and why
+  decision 0023 exists.
+- 72 tests in `test_jobs.gd` (was 50 before the 0022/0023 correction).
+  Ledger reconciled in `systems_architecture.md` §2.2/§2.3/§3 (ARCH-STATE-005)
+  for the module's runtime columns.

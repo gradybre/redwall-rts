@@ -36,35 +36,73 @@ extends RefCounted
 ##
 ## Implemented here: eligibility steps 1-6, all five urgency buckets, five of the six sort
 ## terms, the 30-tick cadence with the persistent-ID stagger, and the 32-candidate budget with
-## its saved per-resident cursor. Step 7 and the sixth sort term are NOT implemented; see GAPS.
+## its saved per-resident continuation. Step 7 and the sixth sort term are NOT implemented; see
+## GAPS.
 ##
 ## `is_eligible()` reports the FIRST failing step by its own refusal code, so a caller -- and a
 ## test -- can tell which of the six rules rejected a job instead of receiving one flat "no".
 ##
 ## ---------------------------------------------------------------------------------------
-## THE BUDGET IS A THROUGHPUT LIMIT, NOT A FILTER. One pass examines at most 32 candidates
-## starting at the resident's saved cursor and picks the best of those it examined; the cursor
-## then resumes after the last candidate examined, wrapping over the live-job index. Every
-## eligible job is therefore reached within ceil(live_jobs/32) passes and no job is ever marked
-## ineligible, blocked or skipped because the cursor has not arrived -- which is exactly what
-## "this budget never changes eligibility" forbids. The alternative reading (defer any
-## assignment until a whole sweep completes so the choice equals an unbudgeted scan) is
-## rejected: at the 8192-row capacity it would leave a resident idle for 256 passes, i.e. 256
-## real seconds at 1x, and §5.3 says the budget continues "when needed", not that selection
-## waits for a full sweep. This reading is a judgement call on an ambiguous sentence and is
-## reported as such.
+## ENUMERATION VISITS URGENCY BUCKETS, NOT ROW ORDER (decision 0023, superseding the live-row
+## scan shipped in 48998c6). The first implementation examined 32 candidates in ascending
+## live-row index order, so THIRTY-TWO COSMETIC JOBS COULD HIDE A RESCUE AT POSITION 33 --
+## sorting the examined window correctly does nothing for urgency outside it. A pass now walks
+## urgency buckets 0 -> 4 and, within the highest bucket that contained an examined eligible
+## candidate, picks the best of those it examined by the §5.3 comparison terms. It descends to
+## a lower bucket only after exhausting the higher ones without an eligible candidate. At most
+## 32 candidates are examined per pass IN TOTAL across every bucket the pass touches.
 ##
-## The cursor is a POSITION in the live-job index, not a job identity. Destroying a job shifts
-## the index, so a saved cursor can re-examine or skip one candidate on the pass after a
-## destroy. That costs one pass of latency and never costs eligibility, which is the property
-## the sentence protects.
+## SAY IT PLAINLY: this deliberately permits APPROXIMATE RANKING WITHIN A BUCKET while
+## preserving EXACT URGENCY BETWEEN BUCKETS. If a bucket holds more candidates than the pass has
+## budget for, the winner is the best of those examined, not necessarily the best in the bucket;
+## but no candidate in a higher bucket is ever passed over for one in a lower bucket.
+##
+## THE BUDGET IS A THROUGHPUT LIMIT, NOT A FILTER. When the budget expires with no candidate the
+## continuation is retained and the resident retries on its next scheduled pass, so every
+## eligible job is reached within ceil(live_jobs/32) passes and no job is ever marked ineligible,
+## blocked or skipped because enumeration has not arrived. UNEXAMINED MEANS NOT EVALUATED --
+## never ineligible, never unreachable, which is exactly what "this budget never changes
+## eligibility" forbids. The alternative reading (defer any assignment until a whole sweep
+## completes so the choice equals an unbudgeted scan) is rejected: at the 8192-row capacity it
+## would leave a resident idle for 256 passes, i.e. 256 real seconds at 1x, and §5.3 says the
+## budget continues "when needed", not that selection waits for a full sweep. That reading is a
+## judgement call on an ambiguous sentence and is reported as such.
+##
+## THE CONTINUATION KEY IS `(bucket, job persistent_id)`, NOT A POSITION (decision 0023). The
+## earlier positional cursor claimed a deletion costs "one pass"; that is not generally true
+## under repeated insertion and deletion, because positions shift and a positional cursor
+## therefore changes meaning. Persistent IDs are never reused, so this key does not: a
+## continuation names the bucket to resume in and the last job examined there, and the next pass
+## resumes at the first job of that bucket whose persistent ID is greater.
+##
+## A NEWLY AVAILABLE HIGHER-URGENCY JOB INVALIDATES A CONTINUATION INTO LOWER BUCKETS. Every
+## event that can make a job available -- creation, an urgency change, a return to QUEUED, a
+## worker release, a gate ceasing to block, danger being lifted, and the bucket-2 reserve
+## condition -- calls `_admit()`, which resets every continuation that could otherwise have
+## walked past the newly available job. Invalidation is exact, not conservative: a continuation
+## is reset only when the admitted job sits in a strictly higher bucket than the continuation,
+## or in the SAME bucket at a persistent ID the continuation has already walked past.
 ##
 ## ---------------------------------------------------------------------------------------
 ## SELECTION DOES NOT ASSIGN. `evaluate()` returns the winning candidate and mutates nothing
-## but the resident's scan cursor and hazard latch. REQ-SET-030 requires worker, inputs, output
+## but the resident's continuation and hazard latch. REQ-SET-030 requires worker, inputs, output
 ## capacity and destination slot to be reserved atomically before movement, and the reservation
 ## pool is a different module; `assign_worker()` binds a worker only once its caller has
 ## obtained whatever reservations that module requires. Nothing here reserves anything.
+##
+## GATES ARE REVALIDATED AT COMMITMENT (decision 0023). `assign_worker()` is this module's
+## commitment point, and it re-runs the whole of eligibility -- reading every gate column
+## afresh -- before it binds. A result returned by an earlier `evaluate()` is a NOMINATION, never
+## an authorisation: between the two, another job may have reserved the inputs this one counted
+## on, a station may have gone offline, or the resident's hour may have turned to SLEEP. A cached
+## "inputs satisfied" therefore cannot authorise acceptance, and a caller that ignores the
+## refusal cannot bind anyway.
+##
+## A MISSING SUBSYSTEM READS AS UNAVAILABLE, NEVER AS SATISFIED. GATE_UNAVAILABLE is how an
+## owning system says "this job declares this requirement and I cannot currently answer for it";
+## it refuses, exactly like GATE_BLOCKED, with its own code so the caller can tell "no" from
+## "cannot say". GATE_NOT_REQUIRED remains the default and means the job declares NO such
+## requirement -- it is not an absent subsystem reading as ready.
 ##
 ## Decision 0017's coordinator Job is NOT built here, and nothing here prevents it: `worker`
 ## defaults to the null reference and is never assumed present, `remaining_mwu` is a plain
@@ -82,7 +120,13 @@ extends RefCounted
 ## are read into packed scratch columns once per pass before the candidate loop begins. Those
 ## four modules publish no `_into` reader forms and this task does not own their files, so 27
 ## per pass is the floor available here; a resident evaluates at most once per 30 ticks, so
-## this is not a per-tick-per-resident path. Named, not worked around.
+## this is not a per-tick-per-resident path. Named, not worked around. `assign_worker()`'s
+## revalidation pays the same 27 once per binding, which happens at most once per job taken.
+##
+## The candidate loop itself allocates nothing: bucket enumeration is a binary search plus a
+## two-pointer merge over `_live_slots`, both reading packed columns through plain integers.
+## `_admit()` walks the 512 agent rows only when a continuation is at or below the admitted
+## bucket, which one integer comparison decides.
 ##
 ## REFUSAL, NOT SENTINELS. Every mutator returns an OpResult and every reader an
 ## IntMath.IntResult whose `.ok` must be inspected. "No eligible job this pass" is an explicit
@@ -118,11 +162,19 @@ extends RefCounted
 ##     are a later task. `remaining_mwu` is stored and settable; nothing here decrements it.
 ##   * REQ-SET-034's "finish at most the current 30-WU safe work segment" is stated in WU and
 ##     needs that same model.
-##   * `required_skill: int32` is read as a MINIMUM SKILL LEVEL (0-10) in the job's own kind,
-##     because §4.3 makes JobKind and skill index the same number ("JobKind/skill index"), which
-##     leaves a "which skill" reading of the field carrying no information at all while
-##     eligibility step 4 explicitly demands a skill test. This is a reading of an underspecified
-##     field, not a settled contract, and is reported as such.
+##
+## ---------------------------------------------------------------------------------------
+## `required_skill` IS A MINIMUM LEVEL -- SETTLED BY DECISION 0022, no longer a gap:
+##     skill_index  = Job.kind
+##     skill_passes = resident.skill_level[skill_index] >= Job.required_skill
+## 0 means no minimum experience; 1-10 is a minimum level in that job's own skill; a value
+## OUTSIDE 0-10 is an INVALID JOB DEFINITION and is refused, never clamped, and so is any job of
+## kind RESERVED_3. §4.3 makes JobKind and the skill index the same number, so "which skill"
+## carries no information and the field name is kept only for compatibility. The default stays 0:
+## no additional minimum is introduced here that no recipe or task definition specifies.
+## PARTY MEMBERS ARE CHECKED INDIVIDUALLY -- this test runs against one resident's own column, and
+## a crew-average fishing skill belongs to the catch calculation, not to eligibility. No party or
+## crew concept exists in this module and none is invented here.
 ##
 ## ---------------------------------------------------------------------------------------
 ## LEDGER DELTA. `systems_architecture.md` §2.2 budgets the Job and JobAgent columns listed at
@@ -135,12 +187,28 @@ extends RefCounted
 ##             step 5's consent subject -- §4.2 gives danger to HarvestZone and FishHabitat,
 ##             neither of which exists yet, so it is carried per job), four gate columns
 ##             _station/_tool/_unlock/_inputs_gate (B8 8192 each, see GATE_* below),
-##             _live_slots (I32 8192, the ascending live-job index the cursor addresses).
-##   JobAgent: _present (B8 512), _scan_cursor (I32 512, §5.3's "saved cursor" itself, which
-##             §4.2's JobAgent row has no field for), _hazard_locked (B8 512, REQ-SET-015's
-##             rest<=500 / rest>=4000 latch that `schedule.gd`'s header explicitly hands to this
-##             module so exactly one hazard gate exists), _agent_persistent_id (I32 512, a cache
-##             of the directory's persistent ID so the stagger test allocates nothing).
+##             _live_slots (I32 8192, the live-job index, ordered by declared urgency and then by
+##             ascending persistent ID so a bucket is a contiguous run and a continuation key can
+##             be located in it by binary search), _job_persistent_id (I32 8192, a cache of the
+##             directory's persistent ID so the candidate loop and the ordered index never call
+##             back into the directory -- the same trick `_agent_persistent_id` already uses).
+##   JobAgent: _present (B8 512), _hazard_locked (B8 512, REQ-SET-015's rest<=500 / rest>=4000
+##             latch that `schedule.gd`'s header explicitly hands to this module so exactly one
+##             hazard gate exists), _agent_persistent_id (I32 512, a cache of the directory's
+##             persistent ID so the stagger test allocates nothing), _continuation_bucket
+##             (B8 512, the bucket half of decision 0023's continuation key).
+##
+## `_job_scan_cursor` IS NOT AN ADDITIONAL ALLOCATION. It is the physical realisation of
+## `ResidentRuntime.job_scan_cursor` (`systems_architecture.md` §3, line 245: an I32 column of
+## 512 inside a seven-column group already budgeted as "[NEW] Need/job continuation; GDD
+## §5.2-5.3"). No ResidentRuntime store object exists yet; when one lands, this column moves into
+## it unchanged rather than being duplicated. It is indexed by the RESIDENT typed row, exactly as
+## that table specifies, and this module allocates no second buffer for the same logical state.
+## Decision 0023's key needs a bucket alongside the ID, and a persistent ID legitimately uses the
+## whole int32 range (`entity_directory.gd` refuses at MAX_INT32), so the bucket cannot be packed
+## into the same word without inventing an ID cap. It is therefore ONE ADDED BYTE per resident --
+## `_continuation_bucket`, 512 bytes in total -- and not a second int32. Named here because
+## silently widening a budgeted allocation is exactly what this note exists to prevent.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
@@ -226,12 +294,19 @@ const URGENCY_COUNT: int = 5
 ##
 ## GATE_NOT_REQUIRED is the default and means "this job declares no such requirement", NOT "the
 ## station is ready". GATE_SATISFIED is an owning system's positive answer, GATE_BLOCKED its
-## negative one. Only GATE_BLOCKED makes a job ineligible, so an unfurnished world runs the
-## honest behaviour of a settlement with no stations rather than a fabricated readiness.
+## negative one. An unfurnished world therefore runs the honest behaviour of a settlement with no
+## stations rather than a fabricated readiness.
+##
+## GATE_UNAVAILABLE is decision 0023's "a missing subsystem must never silently read as
+## requirement satisfied": it means the job DOES declare this requirement and the system that
+## owns it cannot answer -- no Building store, no Equipment store, a station whose row was
+## destroyed. It refuses, like GATE_BLOCKED, but with its own code so "cannot say" is never
+## mistaken for "no". Both GATE_BLOCKED and GATE_UNAVAILABLE make a job ineligible.
 const GATE_NOT_REQUIRED: int = 0
 const GATE_SATISFIED: int = 1
 const GATE_BLOCKED: int = 2
-const GATE_COUNT: int = 3
+const GATE_UNAVAILABLE: int = 3
+const GATE_COUNT: int = 4
 
 # --- GDD §5.3 cadence and budget -------------------------------------------------------------
 
@@ -291,6 +366,12 @@ const REFUSE_UNLOCK_BLOCKED: StringName = &"STEP4_UNLOCK_BLOCKED"
 const REFUSE_DANGEROUS_CONSENT: StringName = &"STEP5_DANGEROUS_CONSENT"
 const REFUSE_HAZARD_LOCKED: StringName = &"STEP5_HAZARD_LOCKED"
 const REFUSE_INPUTS_INCOMPLETE: StringName = &"STEP6_INPUTS_INCOMPLETE"
+# Decision 0023: a declared requirement whose owning system cannot answer refuses as UNAVAILABLE,
+# never as satisfied. One code per gate, so "cannot say" never reads as "no".
+const REFUSE_STATION_UNAVAILABLE: StringName = &"STEP4_STATION_UNAVAILABLE"
+const REFUSE_TOOL_UNAVAILABLE: StringName = &"STEP4_TOOL_UNAVAILABLE"
+const REFUSE_UNLOCK_UNAVAILABLE: StringName = &"STEP4_UNLOCK_UNAVAILABLE"
+const REFUSE_INPUTS_UNAVAILABLE: StringName = &"STEP6_INPUTS_UNAVAILABLE"
 const REFUSE_NEEDS_UNAVAILABLE: StringName = &"NEEDS_ROW_UNAVAILABLE"
 const REFUSE_PRIORITIES_UNAVAILABLE: StringName = &"PRIORITIES_ROW_UNAVAILABLE"
 const REFUSE_SKILLS_UNAVAILABLE: StringName = &"SKILLS_ROW_UNAVAILABLE"
@@ -350,9 +431,17 @@ var _station_gate: PackedByteArray = PackedByteArray()
 var _tool_gate: PackedByteArray = PackedByteArray()
 var _unlock_gate: PackedByteArray = PackedByteArray()
 var _inputs_gate: PackedByteArray = PackedByteArray()
+## The live-job index, ordered by declared urgency and then by ascending persistent ID.
 var _live_slots: PackedInt32Array = PackedInt32Array()
+## Cache of the directory's never-reused persistent ID, so the ordered index and the candidate
+## loop compare integers out of a packed column instead of calling back into the directory.
+var _job_persistent_id: PackedInt32Array = PackedInt32Array()
 
 var _live_count: int = 0
+
+## Half-open bounds of each declared-urgency run inside `_live_slots`: bucket u occupies
+## [_bucket_begin[u], _bucket_begin[u + 1]). URGENCY_COUNT + 1 entries, the last one _live_count.
+var _bucket_begin: PackedInt32Array = PackedInt32Array()
 
 # --- JobAgent columns, one row per resident slot ------------------------------------------------
 
@@ -372,9 +461,25 @@ var _agent_manual_until: PackedInt64Array = PackedInt64Array()
 
 # Ledger delta, listed in the header.
 var _agent_present: PackedByteArray = PackedByteArray()
-var _agent_scan_cursor: PackedInt32Array = PackedInt32Array()
 var _agent_hazard_locked: PackedByteArray = PackedByteArray()
 var _agent_persistent_id: PackedInt32Array = PackedInt32Array()
+
+## The ID half of decision 0023's `(bucket, job persistent_id)` continuation key: the last job
+## examined in the continuation bucket, 0 when no scan is in progress. This IS
+## `ResidentRuntime.job_scan_cursor` from `systems_architecture.md` §3, realised here because no
+## ResidentRuntime store exists yet -- not a second buffer for the same logical state.
+var _job_scan_cursor: PackedInt32Array = PackedInt32Array()
+## The bucket half of the same key. One byte per resident; see the header for why it cannot be
+## folded into the int32 above.
+var _continuation_bucket: PackedByteArray = PackedByteArray()
+
+## An UPPER BOUND on the deepest (numerically largest) bucket any live continuation resumes in,
+## and -1 when no resident holds one. `_admit()` compares one integer against it before walking
+## the agent rows, so the common case -- an admission while nobody is mid-scan -- costs a single
+## comparison. Only `_admit()` tightens it; every other path that clears a continuation leaves it
+## high, which is safe because a too-high bound only costs one wasted walk, never a missed
+## invalidation.
+var _deepest_continuation_bucket: int = -1
 
 var _agent_count: int = 0
 
@@ -405,6 +510,20 @@ var _best_job_priority: int = 0
 var _best_skill_level: int = 0
 var _best_created_tick: int = 0
 var _best_job_id: int = 0
+
+## The bucket walk in progress. One effective bucket spans at most TWO runs of `_live_slots`,
+## because a declared FOOD_FUEL job occupies bucket 3 while the reserve is fine; the two runs are
+## merged by ascending persistent ID so a bucket still enumerates in one total order. Plain
+## members rather than a returned iterator, so a pass allocates nothing.
+var _walk_primary_index: int = 0
+var _walk_primary_end: int = 0
+var _walk_merged_index: int = 0
+var _walk_merged_end: int = 0
+var _walk_slot: int = 0
+var _walk_job_id: int = 0
+## The persistent ID a suspended pass resumes after: the last candidate examined in the bucket it
+## was suspended in, or the ID it entered that bucket at when it examined none.
+var _walk_last_examined_id: int = 0
 
 
 func _init(p_residents: ResidentsScript = null, p_priorities: PrioritiesScript = null,
@@ -460,13 +579,14 @@ func _allocate_columns() -> void:
 	for column: PackedInt32Array in [_kind, _requester_slot, _requester_generation,
 			_destination_slot, _destination_generation, _source_slot, _source_generation,
 			_priority, _required_skill, _state, _worker_slot, _worker_generation,
-			_job_ref_slot, _job_ref_generation, _live_slots]:
+			_job_ref_slot, _job_ref_generation, _live_slots, _job_persistent_id]:
 		column.resize(JOB_CAPACITY)
 	for column: PackedInt64Array in [_remaining_mwu, _created_tick]:
 		column.resize(JOB_CAPACITY)
 	for column: PackedByteArray in [_job_present, _urgency, _dangerous, _station_gate,
 			_tool_gate, _unlock_gate, _inputs_gate]:
 		column.resize(JOB_CAPACITY)
+	_bucket_begin.resize(URGENCY_COUNT + 1)
 	_allocate_agent_columns()
 	_skill_scratch.resize(JOB_KIND_COUNT)
 	_priority_scratch.resize(JOB_KIND_COUNT)
@@ -476,12 +596,12 @@ func _allocate_agent_columns() -> void:
 	"""Size every JobAgent column exactly once. Split out to keep each function under 30 lines."""
 	for column: PackedInt32Array in [_agent_job_slot, _agent_job_generation, _agent_phase,
 			_agent_target_slot, _agent_target_generation, _agent_path_id, _agent_path_cursor,
-			_agent_scan_cursor, _agent_persistent_id]:
+			_job_scan_cursor, _agent_persistent_id]:
 		column.resize(AGENT_CAPACITY)
 	for column: PackedInt64Array in [_agent_lease_expiry, _agent_blocked_tick,
 			_agent_manual_until]:
 		column.resize(AGENT_CAPACITY)
-	for column: PackedByteArray in [_agent_present, _agent_hazard_locked]:
+	for column: PackedByteArray in [_agent_present, _agent_hazard_locked, _continuation_bucket]:
 		column.resize(AGENT_CAPACITY)
 
 
@@ -501,6 +621,8 @@ func clear() -> void:
 	_unlock_gate.fill(GATE_NOT_REQUIRED)
 	_inputs_gate.fill(GATE_NOT_REQUIRED)
 	_live_slots.fill(0)
+	_job_persistent_id.fill(0)
+	_bucket_begin.fill(0)
 	_live_count = 0
 	for column: PackedInt32Array in [_requester_slot, _destination_slot, _source_slot,
 			_worker_slot, _job_ref_slot]:
@@ -520,13 +642,15 @@ func _clear_agents() -> void:
 	for column: PackedInt32Array in [_agent_job_generation, _agent_target_generation]:
 		column.fill(EntityDirectory.NULL_GENERATION)
 	for column: PackedInt32Array in [_agent_phase, _agent_path_id, _agent_path_cursor,
-			_agent_scan_cursor, _agent_persistent_id]:
+			_job_scan_cursor, _agent_persistent_id]:
 		column.fill(0)
 	for column: PackedInt64Array in [_agent_lease_expiry, _agent_blocked_tick,
 			_agent_manual_until]:
 		column.fill(0)
 	_agent_present.fill(0)
 	_agent_hazard_locked.fill(0)
+	_continuation_bucket.fill(0)
+	_deepest_continuation_bucket = -1
 	_agent_count = 0
 
 
@@ -614,11 +738,11 @@ func create_job(kind: int, priority: int, required_skill: int, remaining_mwu: in
 		created_tick: int) -> OpResult:
 	"""Allocate one Job row through the directory's KIND_JOB arena and write its §4.2 defaults.
 
-	`required_skill` is the minimum skill LEVEL 0-10 the job's own kind demands; see the header
-	GAPS entry on that field's underspecified meaning. Refuses without allocating anything on an
-	unknown or reserved kind, an out-of-int32 priority, an out-of-range level, a negative work
-	total or a negative creation tick, and passes a directory refusal through with its own
-	ARCH-ID-004 code.
+	`required_skill` is the minimum skill LEVEL 0-10 in the job's own kind (decision 0022).
+	Refuses without allocating anything on an unknown or reserved kind, an out-of-int32 priority,
+	a level outside 0-10, a negative work total or a negative creation tick, and passes a
+	directory refusal through with its own ARCH-ID-004 code. Nothing is clamped: an invalid job
+	definition is refused, so no row can exist carrying one.
 	"""
 	var code: StringName = _check_create_arguments(kind, priority, required_skill,
 		remaining_mwu, created_tick)
@@ -632,20 +756,22 @@ func create_job(kind: int, priority: int, required_skill: int, remaining_mwu: in
 	_remaining_mwu[job_slot] = remaining_mwu
 	_created_tick[job_slot] = created_tick
 	_insert_live_slot(job_slot)
+	_admit(job_slot)
 	return _succeed(job_slot, ref)
 
 
 func _check_create_arguments(kind: int, priority: int, required_skill: int, remaining_mwu: int,
 		created_tick: int) -> StringName:
-	"""REFUSE_NONE when every create_job() argument is inside its specified domain."""
-	if kind < 0 or kind >= JOB_KIND_COUNT:
-		return REFUSE_INVALID_JOB_KIND
-	if kind == JOB_KIND_RESERVED_INDEX:
-		return REFUSE_RESERVED_JOB_KIND
+	"""REFUSE_NONE when every create_job() argument is inside its specified domain.
+
+	The kind and minimum-level halves are decision 0022's definition check, run through the one
+	published `validate_job_definition()` so the two can never drift apart.
+	"""
+	var definition: OpResult = validate_job_definition(kind, required_skill)
+	if not definition.ok:
+		return definition.error
 	if not IntMath.fits_int32(priority):
 		return REFUSE_INVALID_PRIORITY
-	if required_skill < SKILL_LEVEL_MIN or required_skill > SKILL_LEVEL_MAX:
-		return REFUSE_INVALID_REQUIRED_SKILL
 	if remaining_mwu < 0:
 		return REFUSE_INVALID_MWU
 	if created_tick < 0:
@@ -659,6 +785,7 @@ func _write_new_job_row(job_slot: int, ref: Vector2i, kind: int, priority: int,
 	_job_present[job_slot] = 1
 	_job_ref_slot[job_slot] = ref.x
 	_job_ref_generation[job_slot] = ref.y
+	_job_persistent_id[job_slot] = _directory.get_persistent_id(ref)
 	_kind[job_slot] = kind
 	_priority[job_slot] = priority
 	_required_skill[job_slot] = required_skill
@@ -714,6 +841,7 @@ func _clear_job_row(job_slot: int) -> void:
 	_state[job_slot] = JOB_STATE_QUEUED
 	_remaining_mwu[job_slot] = 0
 	_created_tick[job_slot] = 0
+	_job_persistent_id[job_slot] = 0
 	_urgency[job_slot] = URGENCY_ORDINARY
 	_dangerous[job_slot] = 0
 	_station_gate[job_slot] = GATE_NOT_REQUIRED
@@ -728,27 +856,47 @@ func _clear_job_row(job_slot: int) -> void:
 
 
 func _insert_live_slot(job_slot: int) -> void:
-	"""Insert a created job into the ascending live index the scan cursor addresses."""
-	var index: int = _live_count
-	while index > 0 and _live_slots[index - 1] > job_slot:
-		_live_slots[index] = _live_slots[index - 1]
+	"""Insert a job into its declared-urgency run, keeping that run in ascending persistent ID.
+
+	A freshly created job holds the largest ID in the store, so the backward walk terminates
+	immediately; it only iterates when `set_urgency()` moves an older job into a new run.
+	"""
+	var bucket: int = _urgency[job_slot]
+	var job_id: int = _job_persistent_id[job_slot]
+	var index: int = _bucket_begin[bucket + 1]
+	while index > _bucket_begin[bucket] and _job_persistent_id[_live_slots[index - 1]] > job_id:
 		index -= 1
+	var shift: int = _live_count
+	while shift > index:
+		_live_slots[shift] = _live_slots[shift - 1]
+		shift -= 1
 	_live_slots[index] = job_slot
 	_live_count += 1
+	_shift_bucket_begins(bucket, 1)
 
 
 func _remove_live_slot(job_slot: int) -> void:
-	"""Remove a destroyed job from the ascending live index, closing the gap it leaves."""
-	var index: int = 0
-	while index < _live_count and _live_slots[index] != job_slot:
+	"""Remove a job from its declared-urgency run, closing the gap it leaves."""
+	var bucket: int = _urgency[job_slot]
+	var index: int = _bucket_begin[bucket]
+	var end: int = _bucket_begin[bucket + 1]
+	while index < end and _live_slots[index] != job_slot:
 		index += 1
-	if index >= _live_count:
+	assert(index < end, "a live job must sit inside the run of the urgency it declares")
+	if index >= end:
 		return
 	while index + 1 < _live_count:
 		_live_slots[index] = _live_slots[index + 1]
 		index += 1
 	_live_count -= 1
 	_live_slots[_live_count] = 0
+	_shift_bucket_begins(bucket, -1)
+
+
+func _shift_bucket_begins(bucket: int, delta: int) -> void:
+	"""Move every run boundary above `bucket` by `delta` after one insertion or removal."""
+	for higher: int in range(bucket + 1, URGENCY_COUNT + 1):
+		_bucket_begin[higher] += delta
 
 
 # --- Job readers ----------------------------------------------------------------------------------
@@ -764,7 +912,7 @@ func job_count() -> int:
 
 
 func live_job_at(index: int) -> IntMath.IntResult:
-	"""The job slot at `index` of the ascending live index the scan cursor walks."""
+	"""The job slot at `index` of the live index, ordered by declared urgency then persistent ID."""
 	if index < 0 or index >= _live_count:
 		return _read(REFUSE_INVALID_JOB_SLOT, 0)
 	return _read(REFUSE_NONE, _live_slots[index])
@@ -778,9 +926,14 @@ func ref_of(job_slot: int) -> Vector2i:
 
 
 func job_id_of(job_slot: int) -> IntMath.IntResult:
-	"""The never-reused persistent ID that breaks the last tie in the §5.3 sort key."""
+	"""The never-reused persistent ID: the last tie-break of the §5.3 sort key, and the ID half of
+	decision 0023's continuation key.
+
+	Served from the cached column rather than the directory so the candidate loop, the ordered
+	live index and this reader all agree on one number.
+	"""
 	var code: StringName = _check_job_slot(job_slot)
-	return _read(code, _directory.get_persistent_id(ref_of(job_slot)) if code == REFUSE_NONE else 0)
+	return _read(code, _job_persistent_id[job_slot] if code == REFUSE_NONE else 0)
 
 
 func kind_of(job_slot: int) -> IntMath.IntResult:
@@ -796,9 +949,48 @@ func priority_of(job_slot: int) -> IntMath.IntResult:
 
 
 func required_skill_of(job_slot: int) -> IntMath.IntResult:
-	"""Job.required_skill, read as a minimum skill level 0-10 (see the header GAPS entry)."""
+	"""Job.required_skill: the MINIMUM LEVEL 0-10 the job's own skill demands (decision 0022)."""
 	var code: StringName = _check_job_slot(job_slot)
 	return _read(code, _required_skill[job_slot] if code == REFUSE_NONE else 0)
+
+
+func skill_index_of(job_slot: int) -> IntMath.IntResult:
+	"""The skill index eligibility step 4 tests, which decision 0022 fixes as `Job.kind` itself.
+
+	Published as its own reader so a caller never has to rediscover that §4.3 makes JobKind and
+	the skill index one enum; `required_skill` names the LEVEL, not the skill.
+	"""
+	var code: StringName = _check_job_slot(job_slot)
+	return _read(code, _kind[job_slot] if code == REFUSE_NONE else 0)
+
+
+func validate_job_definition(kind: int, required_skill: int) -> OpResult:
+	"""Decision 0022's definition check, without allocating a row: kind and minimum level.
+
+	`required_skill` outside 0-10 is an INVALID JOB DEFINITION and any job of kind RESERVED_3 is
+	an invalid productive job kind. Both are refused, never clamped, here and in `create_job()`,
+	which runs exactly these tests.
+	"""
+	if kind < 0 or kind >= JOB_KIND_COUNT:
+		return _refuse(REFUSE_INVALID_JOB_KIND)
+	if kind == JOB_KIND_RESERVED_INDEX:
+		return _refuse(REFUSE_RESERVED_JOB_KIND)
+	if required_skill < SKILL_LEVEL_MIN or required_skill > SKILL_LEVEL_MAX:
+		return _refuse(REFUSE_INVALID_REQUIRED_SKILL)
+	return _succeed(required_skill, NULL_REF)
+
+
+func skill_requirement_is_met(resident_slot: int, job_slot: int) -> bool:
+	"""Decision 0022's test alone: `resident.skill_level[Job.kind] >= Job.required_skill`.
+
+	Every party member is checked INDIVIDUALLY through this one resident-column read. A crew's
+	average fishing skill belongs to the catch calculation, never to eligibility, and no party
+	aggregate exists in this module.
+	"""
+	if not is_job_present(job_slot) or not _residents.is_present(resident_slot):
+		return false
+	var level: IntMath.IntResult = _residents.skill_level_of(resident_slot, _kind[job_slot])
+	return level.ok and level.value >= _required_skill[job_slot]
 
 
 func remaining_mwu_of(job_slot: int) -> IntMath.IntResult:
@@ -910,6 +1102,8 @@ func inactive_job_row_is_clear(job_slot: int) -> bool:
 		return false
 	if _remaining_mwu[job_slot] != 0 or _created_tick[job_slot] != 0:
 		return false
+	if _job_persistent_id[job_slot] != 0:
+		return false
 	if _urgency[job_slot] != URGENCY_ORDINARY or _dangerous[job_slot] != 0:
 		return false
 	if _station_gate[job_slot] != GATE_NOT_REQUIRED or _tool_gate[job_slot] != GATE_NOT_REQUIRED:
@@ -933,7 +1127,10 @@ func set_state(job_slot: int, state: int) -> OpResult:
 		return _refuse(code)
 	if state < 0 or state >= JOB_STATE_COUNT:
 		return _refuse(REFUSE_INVALID_JOB_STATE)
+	var was_queued: bool = _state[job_slot] == JOB_STATE_QUEUED
 	_state[job_slot] = state
+	if state == JOB_STATE_QUEUED and not was_queued:
+		_admit(job_slot)
 	return _succeed(state, ref_of(job_slot))
 
 
@@ -953,13 +1150,20 @@ func set_urgency(job_slot: int, urgency: int) -> OpResult:
 
 	URGENCY_FOOD_FUEL declares a food or fuel job; §5.3 puts it in bucket 2 only while the
 	projected reserve is under two days, which `effective_urgency_of()` applies.
+
+	The job moves between runs of the ordered live index, and the write is an admission into the
+	new bucket: any continuation that has already walked past this job's position is reset.
 	"""
 	var code: StringName = _check_job_slot(job_slot)
 	if code != REFUSE_NONE:
 		return _refuse(code)
 	if urgency < 0 or urgency >= URGENCY_COUNT:
 		return _refuse(REFUSE_INVALID_URGENCY)
-	_urgency[job_slot] = urgency
+	if urgency != _urgency[job_slot]:
+		_remove_live_slot(job_slot)
+		_urgency[job_slot] = urgency
+		_insert_live_slot(job_slot)
+		_admit(job_slot)
 	return _succeed(urgency, ref_of(job_slot))
 
 
@@ -968,7 +1172,10 @@ func set_dangerous(job_slot: int, dangerous: bool) -> OpResult:
 	var code: StringName = _check_job_slot(job_slot)
 	if code != REFUSE_NONE:
 		return _refuse(code)
+	var was_dangerous: bool = _dangerous[job_slot] == 1
 	_dangerous[job_slot] = 1 if dangerous else 0
+	if was_dangerous and not dangerous:
+		_admit(job_slot)
 	return _succeed(_dangerous[job_slot], ref_of(job_slot))
 
 
@@ -993,14 +1200,26 @@ func set_inputs_gate(job_slot: int, gate: int) -> OpResult:
 
 
 func _set_gate(job_slot: int, gate: int, column: PackedByteArray) -> OpResult:
-	"""Validate and write one tri-state eligibility gate."""
+	"""Validate and write one four-state eligibility gate.
+
+	A gate that stops refusing makes the job newly available, so it is an admission: a
+	continuation that has already walked past this job must not keep walking past it.
+	"""
 	var code: StringName = _check_job_slot(job_slot)
 	if code != REFUSE_NONE:
 		return _refuse(code)
 	if gate < 0 or gate >= GATE_COUNT:
 		return _refuse(REFUSE_INVALID_GATE)
+	var was_refusing: bool = _gate_refuses(column[job_slot])
 	column[job_slot] = gate
+	if was_refusing and not _gate_refuses(gate):
+		_admit(job_slot)
 	return _succeed(gate, ref_of(job_slot))
+
+
+func _gate_refuses(gate: int) -> bool:
+	"""True for the two gate values that make a job ineligible: BLOCKED and UNAVAILABLE."""
+	return gate == GATE_BLOCKED or gate == GATE_UNAVAILABLE
 
 
 func set_requester(job_slot: int, ref: Vector2i) -> OpResult:
@@ -1036,8 +1255,17 @@ func set_food_reserve_below_two_days(below: bool) -> void:
 
 	An explicit input with an honest default of false: the projection needs the food-days figure
 	and the inventory, and nothing here computes or guesses it.
+
+	Flipping it moves every declared FOOD_FUEL job between effective buckets 2 and 3 at once, so
+	it is an admission into whichever bucket they land in, at the oldest of their persistent IDs.
 	"""
+	if below == _food_reserve_below_two_days:
+		return
 	_food_reserve_below_two_days = below
+	if _bucket_begin[URGENCY_FOOD_FUEL] == _bucket_begin[URGENCY_FOOD_FUEL + 1]:
+		return
+	var oldest: int = _job_persistent_id[_live_slots[_bucket_begin[URGENCY_FOOD_FUEL]]]
+	_admit_into(URGENCY_FOOD_FUEL if below else URGENCY_ORDINARY, oldest)
 
 
 func food_reserve_below_two_days() -> bool:
@@ -1088,7 +1316,7 @@ func despawn_agent(resident_slot: int) -> OpResult:
 
 
 func _clear_agent_row(resident_slot: int) -> void:
-	"""Reset one JobAgent row's job, phase, target, reserved columns, cursor and hazard latch."""
+	"""Reset one JobAgent row: job, phase, target, reserved columns, continuation and hazard latch."""
 	_set_ref_columns(resident_slot, NULL_REF, _agent_job_slot, _agent_job_generation)
 	_set_ref_columns(resident_slot, NULL_REF, _agent_target_slot, _agent_target_generation)
 	_agent_phase[resident_slot] = 0
@@ -1097,7 +1325,8 @@ func _clear_agent_row(resident_slot: int) -> void:
 	_agent_lease_expiry[resident_slot] = 0
 	_agent_blocked_tick[resident_slot] = 0
 	_agent_manual_until[resident_slot] = 0
-	_agent_scan_cursor[resident_slot] = 0
+	_job_scan_cursor[resident_slot] = 0
+	_continuation_bucket[resident_slot] = 0
 	_agent_hazard_locked[resident_slot] = 0
 
 
@@ -1176,10 +1405,28 @@ func manual_until_of(resident_slot: int) -> IntMath.IntResult:
 	return _read(code, _agent_manual_until[resident_slot] if code == REFUSE_NONE else 0)
 
 
-func scan_cursor_of(resident_slot: int) -> IntMath.IntResult:
-	"""§5.3's saved candidate cursor: the live-index position the next pass resumes from."""
+func continuation_job_id_of(resident_slot: int) -> IntMath.IntResult:
+	"""The ID half of decision 0023's continuation key: the last job persistent ID examined.
+
+	This is `ResidentRuntime.job_scan_cursor`. It is a job IDENTITY, never a position: persistent
+	IDs are never reused, so insertions and deletions elsewhere in the index cannot change what a
+	saved key means. 0 means no scan is in progress.
+	"""
 	var code: StringName = _check_agent_slot(resident_slot)
-	return _read(code, _agent_scan_cursor[resident_slot] if code == REFUSE_NONE else 0)
+	return _read(code, _job_scan_cursor[resident_slot] if code == REFUSE_NONE else 0)
+
+
+func continuation_bucket_of(resident_slot: int) -> IntMath.IntResult:
+	"""The bucket half of the continuation key: the urgency bucket the next pass resumes in."""
+	var code: StringName = _check_agent_slot(resident_slot)
+	return _read(code, _continuation_bucket[resident_slot] if code == REFUSE_NONE else 0)
+
+
+func has_continuation(resident_slot: int) -> bool:
+	"""True while a suspended scan is waiting to resume, i.e. the key is not (bucket 0, ID 0)."""
+	if not is_agent_present(resident_slot):
+		return false
+	return _continuation_bucket[resident_slot] != 0 or _job_scan_cursor[resident_slot] != 0
 
 
 func is_hazard_locked(resident_slot: int) -> bool:
@@ -1192,10 +1439,18 @@ func is_hazard_locked(resident_slot: int) -> bool:
 func assign_worker(resident_slot: int, job_slot: int) -> OpResult:
 	"""Bind a resident to a QUEUED, unworked job and move it to RESERVED.
 
+	COMMITMENT REVALIDATES (decision 0023). Eligibility is re-run here, reading every gate column
+	afresh, because a candidate nominated by an earlier `evaluate()` may have been overtaken:
+	another job may have reserved its inputs, a station may have gone offline, or the resident's
+	hour may have turned. A cached "inputs satisfied" cannot authorise this acceptance.
+
 	Reserves nothing: REQ-SET-030's atomic input, output and destination-slot reservation belongs
 	to the reservation pool, and the caller performs it before calling this.
 	"""
 	var code: StringName = _check_bind_arguments(resident_slot, job_slot)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	code = _revalidate_for_commitment(resident_slot, job_slot)
 	if code != REFUSE_NONE:
 		return _refuse(code)
 	var job_ref: Vector2i = ref_of(job_slot)
@@ -1204,6 +1459,22 @@ func assign_worker(resident_slot: int, job_slot: int) -> OpResult:
 	_set_ref_columns(resident_slot, job_ref, _agent_job_slot, _agent_job_generation)
 	_agent_phase[resident_slot] = JOB_STATE_RESERVED
 	return _succeed(job_slot, job_ref)
+
+
+func _revalidate_for_commitment(resident_slot: int, job_slot: int) -> StringName:
+	"""Re-run the hazard latch and eligibility steps 1-6 at the moment of commitment.
+
+	Every value is read from its column again here; nothing is carried over from the pass that
+	nominated this job. The hazard latch is refreshed first because eligibility step 5 consults
+	it, and a latch left over from an earlier tick would authorise hazardous work on stale rest.
+	"""
+	var latch: OpResult = refresh_hazard_latch(resident_slot)
+	if not latch.ok:
+		return latch.error
+	var code: StringName = _load_resident_scratch(resident_slot)
+	if code != REFUSE_NONE:
+		return code
+	return _job_eligibility(job_slot)
 
 
 func _check_bind_arguments(resident_slot: int, job_slot: int) -> StringName:
@@ -1242,6 +1513,7 @@ func release_worker(resident_slot: int) -> OpResult:
 	if job_slot != EntityDirectory.NULL_SLOT and _job_present[job_slot] == 1:
 		_set_ref_columns(job_slot, NULL_REF, _worker_slot, _worker_generation)
 		_state[job_slot] = JOB_STATE_QUEUED
+		_admit(job_slot)
 	return _succeed(resident_slot, NULL_REF)
 
 
@@ -1384,19 +1656,32 @@ func _job_eligibility(job_slot: int) -> StringName:
 		return code
 	if _inputs_gate[job_slot] == GATE_BLOCKED:
 		return REFUSE_INPUTS_INCOMPLETE
+	if _inputs_gate[job_slot] == GATE_UNAVAILABLE:
+		return REFUSE_INPUTS_UNAVAILABLE
 	return REFUSE_NONE
 
 
 func _station_tool_skill_unlock_gate(job_slot: int, kind: int) -> StringName:
-	"""Eligibility step 4, in §5.3's own order: station, tool, skill, unlock."""
+	"""Eligibility step 4, in §5.3's own order: station, tool, skill, unlock.
+
+	Decision 0022 fixes the skill half: the skill index IS the job's kind, and the test is
+	`resident.skill_level[kind] >= Job.required_skill`, a MINIMUM LEVEL. `create_job()` has
+	already refused any definition outside 0-10, so no clamp is applied here.
+	"""
 	if _station_gate[job_slot] == GATE_BLOCKED:
 		return REFUSE_STATION_BLOCKED
+	if _station_gate[job_slot] == GATE_UNAVAILABLE:
+		return REFUSE_STATION_UNAVAILABLE
 	if _tool_gate[job_slot] == GATE_BLOCKED:
 		return REFUSE_TOOL_BLOCKED
+	if _tool_gate[job_slot] == GATE_UNAVAILABLE:
+		return REFUSE_TOOL_UNAVAILABLE
 	if _skill_scratch[kind] < _required_skill[job_slot]:
 		return REFUSE_SKILL_TOO_LOW
 	if _unlock_gate[job_slot] == GATE_BLOCKED:
 		return REFUSE_UNLOCK_BLOCKED
+	if _unlock_gate[job_slot] == GATE_UNAVAILABLE:
+		return REFUSE_UNLOCK_UNAVAILABLE
 	return REFUSE_NONE
 
 
@@ -1440,8 +1725,9 @@ func evaluate(resident_slot: int, tick: int) -> OpResult:
 	"""Run one §5.3 selection pass for an idle resident and return the winning candidate.
 
 	Refuses REFUSE_NOT_DUE_THIS_TICK off the resident's staggered tick, REFUSE_AGENT_BUSY while
-	they already hold a job, and REFUSE_NO_ELIGIBLE_JOB when the examined window offered nothing.
-	Mutates only the hazard latch and the saved cursor; binding a worker is `assign_worker()`.
+	they already hold a job, and REFUSE_NO_ELIGIBLE_JOB when the candidates it examined offered
+	nothing. Mutates only the hazard latch and the resident's continuation; the result is a
+	NOMINATION that `assign_worker()` revalidates before it binds anything.
 	"""
 	var code: StringName = _check_evaluable(resident_slot, tick)
 	if code != REFUSE_NONE:
@@ -1456,26 +1742,156 @@ func evaluate(resident_slot: int, tick: int) -> OpResult:
 
 
 func _scan_pass(resident_slot: int) -> OpResult:
-	"""Examine at most 32 indexed candidates from the saved cursor, keeping the best of them.
+	"""Walk urgency buckets 0 -> 4 from the saved continuation, examining at most 32 candidates.
 
-	The cursor resumes after the last candidate examined and wraps over the live index, so every
-	eligible job is reached within ceil(live_jobs/32) passes and none is ever made ineligible by
-	the budget -- see the header on why the budget is a throughput limit, not a filter.
+	The pass stops at the FIRST bucket that yielded an examined eligible candidate and returns the
+	best of that bucket's examined candidates, so no lower-bucket job can ever be taken while a
+	higher-bucket one was eligible. It descends only after exhausting a bucket without one. When
+	the 32-candidate budget runs out first the continuation is saved and the pass refuses; nothing
+	it failed to reach is marked ineligible.
 	"""
-	var count: int = _live_count
-	if count == 0:
-		return _refuse(REFUSE_NO_ELIGIBLE_JOB)
-	var start: int = _agent_scan_cursor[resident_slot] % count
-	var budget: int = CANDIDATE_BUDGET_PER_PASS if CANDIDATE_BUDGET_PER_PASS < count else count
+	var bucket: int = _continuation_bucket[resident_slot]
+	var after_id: int = _job_scan_cursor[resident_slot]
+	var budget: int = CANDIDATE_BUDGET_PER_PASS
 	_reset_best()
-	for step: int in budget:
-		var job_slot: int = _live_slots[(start + step) % count]
-		if _job_eligibility(job_slot) == REFUSE_NONE:
-			_offer_candidate(job_slot)
-	_agent_scan_cursor[resident_slot] = (start + budget) % count
+	while bucket < URGENCY_COUNT:
+		budget = _examine_bucket(bucket, after_id, budget)
+		if _best_slot >= 0:
+			return _finish_scan(resident_slot)
+		if budget <= 0:
+			return _suspend_scan(resident_slot, bucket)
+		bucket += 1
+		after_id = 0
+	return _finish_scan(resident_slot)
+
+
+func _examine_bucket(bucket: int, after_id: int, budget: int) -> int:
+	"""Examine one bucket's candidates in ascending persistent ID and return the budget left.
+
+	Offers every eligible one to the incumbent comparison, so the winner is the best of those
+	EXAMINED in this bucket -- approximate within the bucket, exact between buckets.
+	"""
+	_begin_bucket_walk(bucket, after_id)
+	_walk_last_examined_id = after_id
+	var remaining: int = budget
+	while remaining > 0 and _advance_bucket_walk():
+		remaining -= 1
+		_walk_last_examined_id = _walk_job_id
+		if _job_eligibility(_walk_slot) == REFUSE_NONE:
+			_offer_candidate(_walk_slot)
+	return remaining
+
+
+func _finish_scan(resident_slot: int) -> OpResult:
+	"""End a completed scan: clear the continuation and return the winner or an explicit refusal."""
+	_job_scan_cursor[resident_slot] = 0
+	_continuation_bucket[resident_slot] = 0
 	if _best_slot < 0:
 		return _refuse(REFUSE_NO_ELIGIBLE_JOB)
 	return _succeed(_best_slot, ref_of(_best_slot))
+
+
+func _suspend_scan(resident_slot: int, bucket: int) -> OpResult:
+	"""Save `(bucket, last examined persistent ID)` and refuse, so the next pass resumes there.
+
+	§5.3's budget "continues next pass when needed": the candidates this pass did not reach are
+	UNEXAMINED, which is not the same as ineligible, and the next scheduled pass takes them up.
+	"""
+	_continuation_bucket[resident_slot] = bucket
+	_job_scan_cursor[resident_slot] = _walk_last_examined_id
+	if bucket > _deepest_continuation_bucket:
+		_deepest_continuation_bucket = bucket
+	return _refuse(REFUSE_NO_ELIGIBLE_JOB)
+
+
+func _begin_bucket_walk(bucket: int, after_id: int) -> void:
+	"""Position the walk at the first job of an EFFECTIVE bucket with a persistent ID > after_id.
+
+	`_live_slots` is ordered by DECLARED urgency, so one effective bucket can span two runs: while
+	the reserve is fine, declared FOOD_FUEL jobs rank as ordinary production and bucket 3 is the
+	merge of runs 2 and 3. Bucket 2 is then empty -- no job occupies it at all.
+	"""
+	_walk_primary_index = 0
+	_walk_primary_end = 0
+	_walk_merged_index = 0
+	_walk_merged_end = 0
+	if bucket == URGENCY_FOOD_FUEL and not _food_reserve_below_two_days:
+		return
+	_walk_primary_index = _first_index_after(bucket, after_id)
+	_walk_primary_end = _bucket_begin[bucket + 1]
+	if bucket == URGENCY_ORDINARY and not _food_reserve_below_two_days:
+		_walk_merged_index = _first_index_after(URGENCY_FOOD_FUEL, after_id)
+		_walk_merged_end = _bucket_begin[URGENCY_FOOD_FUEL + 1]
+
+
+func _first_index_after(run: int, after_id: int) -> int:
+	"""Binary-search one run of the live index for the first entry with persistent ID > after_id."""
+	var low: int = _bucket_begin[run]
+	var high: int = _bucket_begin[run + 1]
+	while low < high:
+		var middle: int = low + ((high - low) >> 1)
+		if _job_persistent_id[_live_slots[middle]] <= after_id:
+			low = middle + 1
+		else:
+			high = middle
+	return low
+
+
+func _advance_bucket_walk() -> bool:
+	"""Take the next job of the bucket in ascending persistent ID. False once it is exhausted.
+
+	Two-pointer merge over the at most two runs an effective bucket spans, so the bucket still
+	enumerates in one total order and the continuation key stays meaningful across the seam.
+	"""
+	var has_primary: bool = _walk_primary_index < _walk_primary_end
+	var has_merged: bool = _walk_merged_index < _walk_merged_end
+	if not has_primary and not has_merged:
+		return false
+	var take_primary: bool = has_primary
+	if has_primary and has_merged:
+		take_primary = _job_persistent_id[_live_slots[_walk_primary_index]] \
+			< _job_persistent_id[_live_slots[_walk_merged_index]]
+	if take_primary:
+		_walk_slot = _live_slots[_walk_primary_index]
+		_walk_primary_index += 1
+	else:
+		_walk_slot = _live_slots[_walk_merged_index]
+		_walk_merged_index += 1
+	_walk_job_id = _job_persistent_id[_walk_slot]
+	return true
+
+
+func _admit(job_slot: int) -> void:
+	"""Record that a job became available, invalidating every continuation that could skip it."""
+	_admit_into(_effective_urgency(job_slot), _job_persistent_id[job_slot])
+
+
+func _admit_into(bucket: int, job_id: int) -> void:
+	"""Reset every continuation a job admitted at `(bucket, job_id)` would otherwise be missed by.
+
+	Decision 0023: "a newly available higher-urgency job invalidates a continuation into lower
+	buckets". A continuation resuming in a LOWER-urgency (numerically larger) bucket has already
+	descended past this one; a continuation in the SAME bucket has walked past every ID up to its
+	key. Anything else would reach the job on its own, and is left alone so a resident scanning a
+	long queue still makes progress. The single comparison below skips the walk entirely in the
+	common case, where no resident is mid-scan at all.
+	"""
+	if bucket > _deepest_continuation_bucket:
+		return
+	var deepest: int = -1
+	for slot: int in AGENT_CAPACITY:
+		if _agent_present[slot] == 0:
+			continue
+		var resume_bucket: int = _continuation_bucket[slot]
+		var resume_id: int = _job_scan_cursor[slot]
+		if resume_bucket == 0 and resume_id == 0:
+			continue
+		if resume_bucket > bucket or (resume_bucket == bucket and job_id <= resume_id):
+			_continuation_bucket[slot] = 0
+			_job_scan_cursor[slot] = 0
+		elif resume_bucket > deepest:
+			deepest = resume_bucket
+	_deepest_continuation_bucket = deepest
 
 
 func _reset_best() -> void:
@@ -1497,7 +1913,7 @@ func _offer_candidate(job_slot: int) -> void:
 	var job_priority: int = _priority[job_slot]
 	var skill_level: int = _skill_scratch[kind]
 	var created_tick: int = _created_tick[job_slot]
-	var job_id: int = _directory.get_persistent_id(ref_of(job_slot))
+	var job_id: int = _job_persistent_id[job_slot]
 	if _best_slot >= 0 and not _beats_incumbent(bucket, player_priority, job_priority,
 			skill_level, created_tick, job_id):
 		return

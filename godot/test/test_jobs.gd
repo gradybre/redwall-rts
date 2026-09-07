@@ -99,6 +99,31 @@ func _select(resident_slot: int, window: int = 0) -> JobsScript.OpResult:
 	return _jobs.evaluate(resident_slot, _due_tick(resident_slot, window))
 
 
+func _make_blocked_jobs(count: int, urgency: int) -> Array[int]:
+	"""Create `count` KEEP jobs in one urgency bucket, every one ineligible at step 6.
+
+	Blocked rather than absent so each one still costs a candidate from the pass's budget: these
+	fixtures exist to make a pass run out of budget without ever finding a winner.
+	"""
+	var slots: Array[int] = []
+	for index: int in count:
+		var slot: int = _make_job(JobsScript.JOB_KIND_KEEP)
+		assert_true(_jobs.set_urgency(slot, urgency).ok, "the job declares bucket %d" % urgency)
+		assert_true(_jobs.set_inputs_gate(slot, JobsScript.GATE_BLOCKED).ok, "its inputs are short")
+		slots.append(slot)
+	return slots
+
+
+func _make_open_jobs(count: int, urgency: int) -> Array[int]:
+	"""Create `count` eligible KEEP jobs in one urgency bucket, oldest first."""
+	var slots: Array[int] = []
+	for index: int in count:
+		var slot: int = _make_job(JobsScript.JOB_KIND_KEEP)
+		assert_true(_jobs.set_urgency(slot, urgency).ok, "the job declares bucket %d" % urgency)
+		slots.append(slot)
+	return slots
+
+
 func _grant_skill(resident_slot: int, kind: int, level: int) -> void:
 	"""Give a resident exactly `level` in one skill using §5.3's 5000*L*L cumulative curve."""
 	var xp: int = ResidentsScript.SKILL_XP_PER_LEVEL_SQUARE * level * level
@@ -215,7 +240,7 @@ func test_the_store_fills_and_then_refuses_at_the_8192_row_capacity() -> void:
 
 
 func test_state_and_gate_writes_refuse_values_outside_their_enums() -> void:
-	"""JobState is 0-7 and every eligibility gate is 0-2; neither clamps a bad value."""
+	"""JobState is 0-7 and every eligibility gate is 0-3; neither clamps a bad value."""
 	var job: int = _make_job(JobsScript.JOB_KIND_HAUL)
 	assert_true(_jobs.set_state(job, JobsScript.JOB_STATE_BLOCKED).ok, "BLOCKED is a real state")
 	assert_equal(_jobs.state_of(job).value, JobsScript.JOB_STATE_BLOCKED, "the state is stored")
@@ -223,8 +248,11 @@ func test_state_and_gate_writes_refuse_values_outside_their_enums() -> void:
 		"state 8 is outside the eight values")
 	assert_equal(_jobs.set_state(job, -1).error, JobsScript.REFUSE_INVALID_JOB_STATE,
 		"a negative state is refused")
-	assert_equal(_jobs.set_station_gate(job, 3).error, JobsScript.REFUSE_INVALID_GATE,
-		"gate 3 is outside NOT_REQUIRED/SATISFIED/BLOCKED")
+	assert_true(_jobs.set_station_gate(job, JobsScript.GATE_UNAVAILABLE).ok,
+		"UNAVAILABLE is a real gate value: a subsystem that cannot answer must be able to say so")
+	assert_equal(_jobs.set_station_gate(job, JobsScript.GATE_COUNT).error,
+		JobsScript.REFUSE_INVALID_GATE,
+		"gate 4 is outside NOT_REQUIRED/SATISFIED/BLOCKED/UNAVAILABLE")
 	assert_equal(_jobs.set_urgency(job, JobsScript.URGENCY_COUNT).error,
 		JobsScript.REFUSE_INVALID_URGENCY, "there is no sixth urgency bucket")
 	assert_equal(_jobs.set_remaining_mwu(job, -1).error, JobsScript.REFUSE_INVALID_MWU,
@@ -478,6 +506,74 @@ func test_step4_a_job_demanding_more_skill_than_the_resident_has_is_excluded() -
 	assert_true(_jobs.is_eligible(worker, job).ok, "level 4 exactly meets the requirement")
 
 
+# --- decision 0022: required_skill is a MINIMUM LEVEL in the job's own skill ----------------------
+
+func test_required_skill_is_a_minimum_level_tested_one_below_exactly_equal_and_one_above() -> void:
+	"""Decision 0022: `skill_passes = resident.skill_level[Job.kind] >= Job.required_skill`."""
+	var worker: int = _spawn_worker()
+	var job: int = _make_job(JobsScript.JOB_KIND_CRAFT, 0, 5)
+	assert_equal(_jobs.skill_index_of(job).value, JobsScript.JOB_KIND_CRAFT,
+		"the skill index IS the job's kind; required_skill names the level, not the skill")
+	_grant_skill(worker, JobsScript.JOB_KIND_CRAFT, 4)
+	assert_false(_jobs.skill_requirement_is_met(worker, job), "level 4 is one below the minimum")
+	assert_equal(_jobs.is_eligible(worker, job).error, JobsScript.REFUSE_SKILL_TOO_LOW,
+		"and step 4 refuses it")
+	_grant_skill(worker, JobsScript.JOB_KIND_CRAFT, 5)
+	assert_true(_jobs.skill_requirement_is_met(worker, job), "level 5 exactly meets the minimum")
+	assert_true(_jobs.is_eligible(worker, job).ok, "so the job is eligible at exactly equal")
+	_grant_skill(worker, JobsScript.JOB_KIND_CRAFT, 6)
+	assert_true(_jobs.skill_requirement_is_met(worker, job), "and level 6 is one above")
+	assert_true(_jobs.is_eligible(worker, job).ok, "which is also eligible")
+
+
+func test_a_required_skill_of_zero_means_no_minimum_experience_at_all() -> void:
+	"""Decision 0022 keeps 0 as the default and as "no minimum", not "level zero required"."""
+	var worker: int = _spawn_worker()
+	var job: int = _make_job(JobsScript.JOB_KIND_CRAFT)
+	assert_equal(_jobs.required_skill_of(job).value, 0, "0 is the default minimum")
+	assert_equal(_residents.skill_level_of(worker, JobsScript.JOB_KIND_CRAFT).value, 0,
+		"and the resident is completely unskilled")
+	assert_true(_jobs.skill_requirement_is_met(worker, job), "which passes the test")
+	assert_true(_jobs.is_eligible(worker, job).ok, "and the job is eligible")
+
+
+func test_a_required_skill_outside_zero_to_ten_is_an_invalid_definition_and_is_refused() -> void:
+	"""Decision 0022: outside 0-10 is an INVALID JOB DEFINITION -- refused, never clamped."""
+	assert_true(_jobs.validate_job_definition(JobsScript.JOB_KIND_CRAFT, 0).ok, "0 is valid")
+	assert_true(_jobs.validate_job_definition(JobsScript.JOB_KIND_CRAFT, 10).ok, "and so is 10")
+	var above: JobsScript.OpResult = _jobs.validate_job_definition(JobsScript.JOB_KIND_CRAFT, 11)
+	assert_false(above.ok, "11 is one above the top level and is invalid")
+	assert_equal(above.error, JobsScript.REFUSE_INVALID_REQUIRED_SKILL, "with its own code")
+	assert_false(_jobs.validate_job_definition(JobsScript.JOB_KIND_CRAFT, -1).ok, "-1 is invalid")
+	assert_equal(_jobs.create_job(JobsScript.JOB_KIND_CRAFT, 0, 11, 0, 0).error,
+		JobsScript.REFUSE_INVALID_REQUIRED_SKILL, "create_job runs the same check")
+	assert_equal(_jobs.job_count(), 0, "and no row was allocated for the invalid definition")
+	var reserved: JobsScript.OpResult = _jobs.validate_job_definition(
+		JobsScript.JOB_KIND_RESERVED_INDEX, 0)
+	assert_false(reserved.ok, "RESERVED_3 is not a valid productive job kind at any level")
+	assert_equal(reserved.error, JobsScript.REFUSE_RESERVED_JOB_KIND, "with the reserved code")
+
+
+func test_party_members_are_checked_individually_not_against_a_crew_average() -> void:
+	"""Decision 0022: a crew-average skill belongs to the catch calculation, not to eligibility.
+
+	The two residents below average exactly the job's minimum, so an average test would admit
+	both; the individual test admits only the one who actually has the skill.
+	"""
+	var expert: int = _spawn_worker()
+	var novice: int = _spawn_worker()
+	var job: int = _make_job(JobsScript.JOB_KIND_FISH, 0, 6)
+	_grant_skill(expert, JobsScript.JOB_KIND_FISH, 10)
+	_grant_skill(novice, JobsScript.JOB_KIND_FISH, 2)
+	assert_equal((10 + 2) / 2, _jobs.required_skill_of(job).value,
+		"the crew average is exactly the required minimum")
+	assert_true(_jobs.skill_requirement_is_met(expert, job), "the expert passes on their own level")
+	assert_false(_jobs.skill_requirement_is_met(novice, job), "the novice fails on theirs")
+	assert_true(_jobs.is_eligible(expert, job).ok, "so only the expert is eligible")
+	assert_equal(_jobs.is_eligible(novice, job).error, JobsScript.REFUSE_SKILL_TOO_LOW,
+		"and the novice is refused despite the crew average clearing the bar")
+
+
 # --- §5.3 eligibility step 5: dangerous consent --------------------------------------------------
 
 func test_step5_a_dangerous_job_needs_the_residents_recorded_consent() -> void:
@@ -565,6 +661,68 @@ func test_a_job_already_worked_or_out_of_the_queue_is_not_a_candidate() -> void:
 	var selected: JobsScript.OpResult = _select(second)
 	assert_false(selected.ok, "so the second worker finds nothing")
 	assert_equal(selected.error, JobsScript.REFUSE_NO_ELIGIBLE_JOB, "with the no-candidate code")
+
+
+# --- decision 0023: gates revalidate at commitment, and never fail open ---------------------------
+
+func test_a_gate_whose_subsystem_cannot_answer_refuses_instead_of_reading_as_satisfied() -> void:
+	"""Decision 0023: "a missing subsystem must never silently read as requirement satisfied"."""
+	var worker: int = _spawn_worker()
+	var job: int = _make_job(JobsScript.JOB_KIND_COOK)
+	assert_true(_jobs.set_station_gate(job, JobsScript.GATE_UNAVAILABLE).ok,
+		"the Building store cannot answer for this job's station")
+	var station: JobsScript.OpResult = _jobs.is_eligible(worker, job)
+	assert_false(station.ok, "an unanswerable requirement is not a satisfied one")
+	assert_equal(station.error, JobsScript.REFUSE_STATION_UNAVAILABLE,
+		"and reports 'cannot answer', which is not the refusal a blocked station gives")
+	assert_true(_jobs.set_station_gate(job, JobsScript.GATE_SATISFIED).ok, "the station answers")
+	assert_true(_jobs.set_inputs_gate(job, JobsScript.GATE_UNAVAILABLE).ok,
+		"but no reservation pool can answer for the inputs")
+	assert_equal(_jobs.is_eligible(worker, job).error, JobsScript.REFUSE_INPUTS_UNAVAILABLE,
+		"step 6 refuses on the same principle")
+	assert_false(_select(worker).ok, "and a pass will not select the job either")
+	assert_true(_jobs.set_inputs_gate(job, JobsScript.GATE_SATISFIED).ok, "the inputs are answered")
+	assert_equal(_select(worker, 1).value, job, "and only then is it selectable")
+
+
+func test_commitment_revalidates_the_gates_rather_than_trusting_the_nomination() -> void:
+	"""Decision 0023: a cached "inputs satisfied" cannot authorise acceptance after another job
+	has reserved those inputs. `assign_worker()` re-reads every gate before it binds anything."""
+	var worker: int = _spawn_worker()
+	var job: int = _make_job(JobsScript.JOB_KIND_COOK)
+	assert_true(_jobs.set_inputs_gate(job, JobsScript.GATE_SATISFIED).ok, "the inputs are there")
+	var nominated: JobsScript.OpResult = _select(worker)
+	assert_equal(nominated.value, job, "the pass nominates the job")
+	assert_true(_jobs.set_inputs_gate(job, JobsScript.GATE_BLOCKED).ok,
+		"and then another job reserves the very same inputs")
+	var refused: JobsScript.OpResult = _jobs.assign_worker(worker, job)
+	assert_false(refused.ok, "the stale nomination cannot authorise the binding")
+	assert_equal(refused.error, JobsScript.REFUSE_INPUTS_INCOMPLETE, "with the live step 6 code")
+	assert_equal(_jobs.worker_of(job), EntityDirectory.NULL_REF, "the job took no worker")
+	assert_equal(_jobs.state_of(job).value, JobsScript.JOB_STATE_QUEUED, "and stayed QUEUED")
+	assert_true(_jobs.is_agent_idle(worker), "the agent is still idle")
+	assert_true(_jobs.set_inputs_gate(job, JobsScript.GATE_SATISFIED).ok, "the inputs return")
+	assert_true(_jobs.assign_worker(worker, job).ok, "and the binding is allowed again")
+
+
+func test_commitment_refuses_a_resident_whose_own_state_moved_since_the_nomination() -> void:
+	"""The revalidation covers the resident too: the hazard latch is refreshed at the commitment
+	point, so hazardous work cannot be bound on rest that was current several ticks ago."""
+	var worker: int = _spawn_worker()
+	var job: int = _make_job(JobsScript.JOB_KIND_FISH)
+	assert_true(_jobs.set_dangerous(job, true).ok, "the job is dangerous")
+	assert_true(_priorities.set_dangerous_work(worker, true).ok, "and consent is on record")
+	assert_equal(_select(worker).value, job, "the pass nominates it while the resident is rested")
+	assert_true(_needs.apply_need_event(worker, NeedsScript.NEED_REST, -7100).ok, "rest hits 400")
+	var collapsed: JobsScript.OpResult = _jobs.assign_worker(worker, job)
+	assert_false(collapsed.ok, "a collapsed resident cannot be bound to the nominated job")
+	assert_equal(collapsed.error, JobsScript.REFUSE_REST_COLLAPSED, "with the step 1 code")
+	assert_true(_jobs.is_hazard_locked(worker), "and the commitment refreshed the hazard latch")
+	assert_true(_needs.apply_need_event(worker, NeedsScript.NEED_REST, 2600).ok, "rest reaches 3000")
+	assert_equal(_jobs.assign_worker(worker, job).error, JobsScript.REFUSE_HAZARD_LOCKED,
+		"3000 clears step 1 but the latch holds until 4000, and commitment honours it")
+	assert_true(_needs.apply_need_event(worker, NeedsScript.NEED_REST, 1000).ok, "rest reaches 4000")
+	assert_true(_jobs.assign_worker(worker, job).ok, "only a fully rested resident may commit")
 
 
 # --- §5.3 urgency buckets ------------------------------------------------------------------------
@@ -808,46 +966,56 @@ func test_a_resident_already_holding_a_job_is_never_reevaluated() -> void:
 		"the resident reevaluates and now takes the better job")
 
 
-# --- §5.3 candidate budget and saved cursor ------------------------------------------------------
+# --- §5.3 candidate budget and the decision 0023 continuation key ------------------------------
 
-func test_the_saved_cursor_resumes_the_next_pass_instead_of_restarting_at_index_zero() -> void:
-	"""64 identical candidates: pass 1 takes slot 0, pass 2 must take slot 32, pass 3 wraps."""
-	var worker: int = _spawn_worker()
-	for index: int in 64:
-		var _slot: int = _make_job(JobsScript.JOB_KIND_HAUL)
-	assert_equal(_jobs.job_count(), 64, "sixty-four candidates are queued")
-	assert_equal(_jobs.scan_cursor_of(worker).value, 0, "the cursor starts at index 0")
-	assert_equal(_select(worker, 0).value, _jobs.live_job_at(0).value,
-		"pass 1 wins with the first job in the examined window")
-	assert_equal(_jobs.scan_cursor_of(worker).value, 32, "and saves the cursor after 32 candidates")
-	assert_equal(_select(worker, 1).value, _jobs.live_job_at(32).value,
-		"pass 2 resumes at index 32 rather than restarting at index 0")
-	assert_equal(_jobs.scan_cursor_of(worker).value, 0, "the cursor wraps past the last candidate")
-	assert_equal(_select(worker, 2).value, _jobs.live_job_at(0).value, "pass 3 begins again at 0")
-
-
-func test_a_pass_examines_at_most_thirty_two_candidates() -> void:
-	"""The budget is 32 per pass, so a 40-job queue leaves eight candidates for the next pass."""
-	var worker: int = _spawn_worker()
-	for index: int in 40:
-		var _slot: int = _make_job(JobsScript.JOB_KIND_HAUL)
-	assert_true(_select(worker, 0).ok, "the first pass selects")
-	assert_equal(_jobs.scan_cursor_of(worker).value, 32,
-		"exactly thirty-two candidates were examined")
-	assert_true(_select(worker, 1).ok, "the second pass selects")
-	assert_equal(_jobs.scan_cursor_of(worker).value, 24,
-		"and resumes at 32, wrapping eight candidates past the end into the next 24")
-
-
-func test_a_queue_shorter_than_the_budget_is_examined_whole_and_the_cursor_returns_to_zero() -> void:
-	"""With fewer than 32 candidates the whole queue is one window, so no cursor state accrues."""
+func test_a_queue_shorter_than_the_budget_needs_no_continuation_at_all() -> void:
+	"""A whole queue examined inside one budget is a completed scan: there is nothing to resume,
+	so the key stays at its (bucket 0, id 0) resting value and the next pass sees the queue whole.
+	(That a completed pass CLEARS a key it inherited is proved by the resume test below, which
+	suspends first.)"""
 	var worker: int = _spawn_worker()
 	for index: int in 5:
 		var _slot: int = _make_job(JobsScript.JOB_KIND_HAUL)
+	assert_false(_jobs.has_continuation(worker), "a fresh agent holds no continuation")
 	assert_equal(_select(worker, 0).value, _jobs.live_job_at(0).value, "the oldest job wins")
-	assert_equal(_jobs.scan_cursor_of(worker).value, 0, "and the cursor returns to index 0")
+	assert_false(_jobs.has_continuation(worker), "and the completed scan leaves none behind")
+	assert_equal(_jobs.continuation_bucket_of(worker).value, 0, "the bucket half returns to 0")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, 0, "and so does the id half")
 	assert_equal(_select(worker, 1).value, _jobs.live_job_at(0).value,
-		"so the next pass sees the same whole queue")
+		"so the next pass sees the same whole queue from the top")
+
+
+func test_a_pass_examines_at_most_thirty_two_candidates_across_every_bucket_it_touches() -> void:
+	"""The 32 is a TOTAL, not a per-bucket allowance: 20 rescue jobs leave only 12 for bucket 4."""
+	var worker: int = _spawn_worker()
+	var rescues: Array[int] = _make_blocked_jobs(20, JobsScript.URGENCY_RESCUE)
+	var cosmetics: Array[int] = _make_blocked_jobs(20, JobsScript.URGENCY_COSMETIC)
+	var refused: JobsScript.OpResult = _select(worker, 0)
+	assert_false(refused.ok, "every candidate is blocked at step 6, so the pass selects nothing")
+	assert_equal(refused.error, JobsScript.REFUSE_NO_ELIGIBLE_JOB, "with the no-candidate code")
+	assert_equal(_jobs.continuation_bucket_of(worker).value, JobsScript.URGENCY_COSMETIC,
+		"the budget ran out in bucket 4, after all twenty rescues were examined")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, _jobs.job_id_of(cosmetics[11]).value,
+		"exactly twelve cosmetic jobs fitted in the twelve remaining candidate slots")
+	assert_equal(_jobs.job_id_of(rescues[19]).value + 1, _jobs.job_id_of(cosmetics[0]).value,
+		"the two runs are consecutive in persistent id, so 20+12 is the only reading of that key")
+
+
+func test_the_continuation_resumes_the_next_pass_instead_of_restarting_at_bucket_zero() -> void:
+	"""40 blocked jobs then 8 open ones: pass 2 must resume where pass 1 stopped, not re-walk."""
+	var worker: int = _spawn_worker()
+	var blocked: Array[int] = _make_blocked_jobs(32, JobsScript.URGENCY_ORDINARY)
+	var open: Array[int] = []
+	for index: int in 8:
+		open.append(_make_job(JobsScript.JOB_KIND_HAUL))
+	assert_false(_select(worker, 0).ok, "pass 1 spends its whole budget on the blocked jobs")
+	assert_equal(_jobs.continuation_bucket_of(worker).value, JobsScript.URGENCY_ORDINARY,
+		"and suspends in bucket 3")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, _jobs.job_id_of(blocked[31]).value,
+		"at the persistent id of the thirty-second candidate it examined")
+	assert_equal(_select(worker, 1).value, open[0],
+		"pass 2 resumes after that id and takes the first open job")
+	assert_false(_jobs.has_continuation(worker), "the completed scan clears the key")
 
 
 func test_the_budget_never_changes_eligibility_only_when_a_candidate_is_reached() -> void:
@@ -881,7 +1049,307 @@ func test_an_empty_queue_refuses_explicitly_rather_than_returning_a_sentinel_slo
 	assert_equal(empty.error, JobsScript.REFUSE_NO_ELIGIBLE_JOB, "with an explicit refusal")
 	assert_equal(empty.value, 0, "carrying no job slot")
 	assert_equal(empty.ref, EntityDirectory.NULL_REF, "and the null reference")
-	assert_equal(_jobs.scan_cursor_of(worker).value, 0, "an empty queue leaves the cursor alone")
+	assert_false(_jobs.has_continuation(worker),
+		"an empty queue exhausts every bucket, so it leaves no continuation behind")
+
+
+# --- decision 0023: enumeration visits urgency buckets, not row order -----------------------------
+
+func test_a_rescue_behind_more_than_thirty_two_cosmetic_jobs_is_still_found() -> void:
+	"""Decision 0023's defect, stated as a test: forty cosmetic jobs queued ahead of one rescue.
+
+	In ascending live-row order the rescue sits at position 41 and cannot be examined inside a
+	32-candidate budget, so the resident would sweep a floor while someone lay incapacitated.
+	Bucket enumeration reaches it on the FIRST pass, without raising the budget.
+	"""
+	var worker: int = _spawn_worker()
+	var cosmetics: Array[int] = _make_open_jobs(40, JobsScript.URGENCY_COSMETIC)
+	var rescue: int = _make_job(JobsScript.JOB_KIND_KEEP)
+	assert_true(_jobs.set_urgency(rescue, JobsScript.URGENCY_RESCUE).ok, "the rescue declares 0")
+	assert_equal(_jobs.job_count(), 41, "forty-one candidates are queued")
+	assert_true(_jobs.job_id_of(cosmetics[39]).value < _jobs.job_id_of(rescue).value,
+		"and the rescue is the newest of them all, behind every cosmetic job")
+	assert_true(_jobs.is_eligible(worker, cosmetics[0]).ok, "the cosmetic jobs are all eligible")
+	var selected: JobsScript.OpResult = _select(worker, 0)
+	assert_true(selected.ok, "the first pass selects (error: %s)" % selected.error)
+	assert_equal(selected.value, rescue,
+		"thirty-two cosmetic jobs cannot hide a rescue: bucket 0 is walked first")
+	assert_false(_jobs.has_continuation(worker), "the pass decided, so it left no continuation")
+
+
+func test_higher_urgency_work_appearing_during_a_continued_scan_invalidates_it() -> void:
+	"""Decision 0023: a newly available higher-urgency job invalidates a continuation into lower
+	buckets, which is the only reason the second pass can see bucket 0 at all."""
+	var worker: int = _spawn_worker()
+	var blocked: Array[int] = _make_blocked_jobs(40, JobsScript.URGENCY_ORDINARY)
+	assert_false(_select(worker, 0).ok, "pass 1 spends the budget without finding a candidate")
+	assert_equal(_jobs.continuation_bucket_of(worker).value, JobsScript.URGENCY_ORDINARY,
+		"and suspends inside bucket 3")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, _jobs.job_id_of(blocked[31]).value,
+		"at the thirty-second candidate")
+	var rescue: int = _make_job(JobsScript.JOB_KIND_KEEP)
+	assert_true(_jobs.set_urgency(rescue, JobsScript.URGENCY_RESCUE).ok, "a rescue is raised")
+	assert_false(_jobs.has_continuation(worker),
+		"which invalidates the continuation rather than leaving it pointing into bucket 3")
+	assert_equal(_select(worker, 1).value, rescue,
+		"so pass 2 restarts at bucket 0 and takes the rescue instead of resuming past it")
+
+
+func test_lower_urgency_work_appearing_during_a_continued_scan_leaves_it_alone() -> void:
+	"""Only HIGHER urgency invalidates. Resetting on every insertion would starve a long queue:
+	the resident would re-walk the same blocked jobs forever and never reach the open ones."""
+	var worker: int = _spawn_worker()
+	var blocked: Array[int] = _make_blocked_jobs(40, JobsScript.URGENCY_ORDINARY)
+	assert_false(_select(worker, 0).ok, "pass 1 suspends inside bucket 3")
+	var saved_id: int = _jobs.continuation_job_id_of(worker).value
+	assert_equal(saved_id, _jobs.job_id_of(blocked[31]).value, "at the thirty-second candidate")
+	var cosmetic: int = _make_job(JobsScript.JOB_KIND_KEEP)
+	assert_true(_jobs.set_urgency(cosmetic, JobsScript.URGENCY_COSMETIC).ok, "bucket 4 work arrives")
+	assert_true(_jobs.has_continuation(worker), "the continuation survives a lower-urgency job")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, saved_id, "unchanged")
+	assert_equal(_jobs.continuation_bucket_of(worker).value, JobsScript.URGENCY_ORDINARY,
+		"and still pointing into bucket 3")
+	assert_equal(_select(worker, 1).value, cosmetic,
+		"pass 2 finishes bucket 3's remaining eight, finds nothing, and descends to the new job")
+
+
+func test_deleting_a_job_before_the_continuation_point_does_not_change_what_it_means() -> void:
+	"""The key is `(bucket, persistent id)`, so deletions cannot shift it. A POSITIONAL cursor of
+	32 would point at the thirty-eighth job once five earlier rows were destroyed."""
+	var worker: int = _spawn_worker()
+	var blocked: Array[int] = _make_blocked_jobs(32, JobsScript.URGENCY_ORDINARY)
+	var open: Array[int] = _make_open_jobs(8, JobsScript.URGENCY_ORDINARY)
+	assert_false(_select(worker, 0).ok, "pass 1 suspends after the thirty-two blocked jobs")
+	var saved_id: int = _jobs.continuation_job_id_of(worker).value
+	assert_equal(saved_id, _jobs.job_id_of(blocked[31]).value, "on the last one it examined")
+	for index: int in 5:
+		assert_true(_jobs.destroy_job(blocked[index]).ok, "an early job is destroyed")
+	assert_equal(_jobs.job_count(), 35, "the live index is five shorter")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, saved_id,
+		"the key names a job, not a position, so five deletions before it change nothing")
+	assert_equal(_select(worker, 1).value, open[0],
+		"pass 2 still resumes at the first open job, not five places past it")
+
+
+func test_more_than_thirty_two_higher_urgency_candidates_that_all_fail_eligibility() -> void:
+	"""Forty ineligible rescues must not trap the resident: the pass descends once bucket 0 is
+	EXHAUSTED, which takes two passes, and the budget never marks any of them ineligible."""
+	var worker: int = _spawn_worker()
+	var rescues: Array[int] = _make_blocked_jobs(40, JobsScript.URGENCY_RESCUE)
+	var ordinary: int = _make_job(JobsScript.JOB_KIND_KEEP)
+	var first: JobsScript.OpResult = _select(worker, 0)
+	assert_false(first.ok, "pass 1 finds nothing eligible in bucket 0")
+	assert_equal(first.error, JobsScript.REFUSE_NO_ELIGIBLE_JOB, "with the no-candidate code")
+	assert_equal(_jobs.continuation_bucket_of(worker).value, JobsScript.URGENCY_RESCUE,
+		"and does NOT descend past a bucket it has not exhausted")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, _jobs.job_id_of(rescues[31]).value,
+		"having examined exactly thirty-two of the forty")
+	assert_equal(_select(worker, 1).value, ordinary,
+		"pass 2 finishes the last eight rescues and only then takes the ordinary job")
+	assert_equal(_jobs.is_eligible(worker, rescues[39]).error, JobsScript.REFUSE_INPUTS_INCOMPLETE,
+		"the unexamined rescues were never evaluated, and are still refused only by step 6")
+
+
+func test_the_continuation_key_is_deterministic_across_two_identically_built_worlds() -> void:
+	"""SAVE/LOAD MID-SCAN IS DEFERRED: there is no save format, no world writer and no loader in
+	this milestone, so no round trip can be asserted and none is faked here.
+
+	What is provable now is the property a round trip would have to preserve. Both halves of the
+	key are already world state -- the job's declared urgency bucket and the directory's
+	never-reused persistent id -- and neither is a position into a runtime array. Two worlds built
+	by the same sequence of operations therefore suspend on the same key, byte for byte.
+	"""
+	var worker: int = _spawn_worker()
+	var blocked: Array[int] = _make_blocked_jobs(40, JobsScript.URGENCY_ORDINARY)
+	assert_false(_select(worker, 0).ok, "the scan suspends mid-bucket")
+	var key: Vector2i = Vector2i(_jobs.continuation_bucket_of(worker).value,
+		_jobs.continuation_job_id_of(worker).value)
+	assert_equal(key.x, JobsScript.URGENCY_ORDINARY, "the bucket half is the job's own urgency")
+	assert_equal(key.y, _jobs.job_id_of(blocked[31]).value, "the id half is a real job's id")
+	assert_equal(_replay_in_a_fresh_world(), key,
+		"an independently built world replaying the same operations suspends on the same key")
+
+
+func _replay_in_a_fresh_world() -> Vector2i:
+	"""Build a second, independent set of stores, replay the same script, and return its key.
+
+	The member stores are swapped for the duration so one fixture drives both worlds, and are
+	restored before returning so the caller's world is left exactly as it was.
+	"""
+	var kept_residents: ResidentsScript = _residents
+	var kept_priorities: PrioritiesScript = _priorities
+	var kept_schedule: ScheduleScript = _schedule
+	var kept_jobs: JobsScript = _jobs
+	before_each()
+	var worker: int = _spawn_worker()
+	var blocked: Array[int] = _make_blocked_jobs(40, JobsScript.URGENCY_ORDINARY)
+	assert_false(_select(worker, 0).ok, "the replayed scan suspends in the same place")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, _jobs.job_id_of(blocked[31]).value,
+		"on its own thirty-second candidate")
+	var key: Vector2i = Vector2i(_jobs.continuation_bucket_of(worker).value,
+		_jobs.continuation_job_id_of(worker).value)
+	_residents = kept_residents
+	_needs = _residents.needs()
+	_priorities = kept_priorities
+	_schedule = kept_schedule
+	_jobs = kept_jobs
+	return key
+
+
+func _suspend_in_the_cosmetic_bucket() -> int:
+	"""Spawn a worker and leave it suspended mid-scan in bucket 4 over forty blocked jobs.
+
+	The fixture for every "a job becomes available in a HIGHER bucket" test: the resident has
+	already descended past buckets 0-3 and would never look at them again on its own.
+	"""
+	var worker: int = _spawn_worker()
+	var blocked: Array[int] = _make_blocked_jobs(40, JobsScript.URGENCY_COSMETIC)
+	assert_false(_select(worker, 0).ok, "pass 1 finds nothing eligible and suspends")
+	assert_equal(_jobs.continuation_bucket_of(worker).value, JobsScript.URGENCY_COSMETIC,
+		"inside bucket 4, having exhausted every higher bucket")
+	assert_true(_jobs.has_continuation(worker), "so a continuation is held (%d blocked)"
+		% blocked.size())
+	return worker
+
+
+func test_a_newly_created_job_invalidates_a_continuation_that_descended_below_it() -> void:
+	"""Plain creation is an admission too: a new job is ORDINARY, which outranks bucket 4."""
+	var worker: int = _suspend_in_the_cosmetic_bucket()
+	var ordinary: int = _make_job(JobsScript.JOB_KIND_KEEP)
+	assert_false(_jobs.has_continuation(worker),
+		"creating ordinary work invalidates a continuation that already sits in cosmetic upkeep")
+	assert_equal(_select(worker, 1).value, ordinary,
+		"so pass 2 takes the new job instead of resuming eight blocked cosmetic ones")
+
+
+func test_a_job_returning_to_the_queue_invalidates_a_lower_bucket_continuation() -> void:
+	"""A released worker puts its job back on offer, which is an admission into that job's bucket."""
+	var owner: int = _spawn_worker()
+	var rescue: int = _make_job(JobsScript.JOB_KIND_KEEP)
+	assert_true(_jobs.set_urgency(rescue, JobsScript.URGENCY_RESCUE).ok, "a rescue is queued")
+	assert_true(_jobs.assign_worker(owner, rescue).ok, "and taken, so it is not a candidate")
+	var worker: int = _suspend_in_the_cosmetic_bucket()
+	assert_true(_jobs.release_worker(owner).ok, "then its worker departs")
+	assert_false(_jobs.has_continuation(worker), "which invalidates the other's continuation")
+	assert_equal(_select(worker, 1).value, rescue, "and pass 2 picks the rescue back up")
+
+
+func test_a_job_restored_to_queued_state_invalidates_a_lower_bucket_continuation() -> void:
+	"""The same rule through the state column: CANCELLED back to QUEUED puts a job back on offer."""
+	var rescue: int = _make_job(JobsScript.JOB_KIND_KEEP)
+	assert_true(_jobs.set_urgency(rescue, JobsScript.URGENCY_RESCUE).ok, "a rescue is queued")
+	assert_true(_jobs.set_state(rescue, JobsScript.JOB_STATE_CANCELLED).ok, "then withdrawn")
+	var worker: int = _suspend_in_the_cosmetic_bucket()
+	assert_true(_jobs.set_state(rescue, JobsScript.JOB_STATE_QUEUED).ok, "and reinstated")
+	assert_false(_jobs.has_continuation(worker), "which invalidates the continuation")
+	assert_equal(_select(worker, 1).value, rescue, "so pass 2 takes the reinstated rescue")
+
+
+func test_danger_being_lifted_invalidates_a_lower_bucket_continuation() -> void:
+	"""Step 5 is an eligibility gate like any other: a job that stops being dangerous is on offer."""
+	var rescue: int = _make_job(JobsScript.JOB_KIND_KEEP)
+	assert_true(_jobs.set_urgency(rescue, JobsScript.URGENCY_RESCUE).ok, "a rescue is queued")
+	assert_true(_jobs.set_dangerous(rescue, true).ok, "but it is dangerous work")
+	var worker: int = _suspend_in_the_cosmetic_bucket()
+	assert_equal(_jobs.is_eligible(worker, rescue).error, JobsScript.REFUSE_DANGEROUS_CONSENT,
+		"and this resident has given no consent")
+	assert_true(_jobs.set_dangerous(rescue, false).ok, "the hazard is cleared")
+	assert_false(_jobs.has_continuation(worker), "which invalidates the continuation")
+	assert_equal(_select(worker, 1).value, rescue, "and pass 2 takes the now-safe rescue")
+
+
+func test_the_two_day_reserve_condition_invalidates_a_continuation_below_bucket_two() -> void:
+	"""The reserve condition moves every declared food/fuel job up to bucket 2 at once, which is
+	an admission into bucket 2 for any resident already scanning below it."""
+	var worker: int = _spawn_worker()
+	var food: Array[int] = _make_blocked_jobs(40, JobsScript.URGENCY_FOOD_FUEL)
+	assert_false(_select(worker, 0).ok, "pass 1 walks them as ordinary work and suspends")
+	assert_equal(_jobs.continuation_bucket_of(worker).value, JobsScript.URGENCY_ORDINARY,
+		"in bucket 3, because the reserve is fine")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, _jobs.job_id_of(food[31]).value,
+		"after thirty-two of them")
+	_jobs.set_food_reserve_below_two_days(true)
+	assert_false(_jobs.has_continuation(worker),
+		"stocks falling below two days invalidates a continuation that sits below bucket 2")
+	assert_false(_select(worker, 1).ok, "pass 2 finds them all still blocked at step 6")
+	assert_equal(_jobs.continuation_bucket_of(worker).value, JobsScript.URGENCY_FOOD_FUEL,
+		"but it re-walked bucket 2 from the start rather than resuming in an empty bucket 3")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, _jobs.job_id_of(food[31]).value,
+		"examining the same first thirty-two, now as bucket 2 work")
+
+
+func test_a_food_job_is_still_enumerated_as_ordinary_work_while_stocks_are_fine() -> void:
+	"""A declared FOOD_FUEL job occupies bucket 2 only under a two-day reserve -- and while it does
+	not, it must be enumerated WITH bucket 3, in persistent id order, not fall out of the walk.
+
+	Unreachable is exactly what decision 0023 forbids: unexamined means not evaluated.
+	"""
+	var worker: int = _spawn_worker()
+	var food: int = _make_job(JobsScript.JOB_KIND_KEEP)
+	assert_true(_jobs.set_urgency(food, JobsScript.URGENCY_FOOD_FUEL).ok, "it declares bucket 2")
+	var ordinary: int = _make_job(JobsScript.JOB_KIND_KEEP)
+	assert_false(_jobs.food_reserve_below_two_days(), "but the reserve is fine")
+	assert_equal(_jobs.effective_urgency_of(food).value, JobsScript.URGENCY_ORDINARY,
+		"so it ranks as ordinary production")
+	assert_true(_jobs.job_id_of(food).value < _jobs.job_id_of(ordinary).value,
+		"and it is the older of the two candidates")
+	assert_equal(_select(worker, 0).value, food,
+		"bucket 3 merges the two runs by persistent id, so the older food job wins the tie")
+	assert_true(_jobs.destroy_job(ordinary).ok, "with the ordinary job gone")
+	assert_equal(_select(worker, 1).value, food,
+		"a food job alone with stocks fine is still reached, never enumerated by no bucket at all")
+
+
+func test_a_job_becoming_available_behind_the_continuation_point_invalidates_it() -> void:
+	"""Same bucket, lower persistent id: the scan has already walked past that position, so the
+	continuation would step over the job entirely. That is invalidation's other half."""
+	var worker: int = _spawn_worker()
+	var blocked: Array[int] = _make_blocked_jobs(40, JobsScript.URGENCY_ORDINARY)
+	assert_false(_select(worker, 0).ok, "pass 1 suspends after thirty-two blocked jobs")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, _jobs.job_id_of(blocked[31]).value,
+		"on the thirty-second")
+	assert_true(_jobs.job_id_of(blocked[5]).value < _jobs.continuation_job_id_of(worker).value,
+		"the sixth job sits behind that point")
+	assert_true(_jobs.set_inputs_gate(blocked[5], JobsScript.GATE_SATISFIED).ok,
+		"and its inputs arrive")
+	assert_false(_jobs.has_continuation(worker), "which invalidates the continuation")
+	assert_equal(_select(worker, 1).value, blocked[5],
+		"so pass 2 re-walks the bucket from the start and finds it")
+
+
+func test_the_live_index_is_ordered_by_urgency_bucket_and_then_by_persistent_id() -> void:
+	"""The index enumeration walks: a bucket is one contiguous run, oldest job first inside it."""
+	var _worker: int = _spawn_worker()
+	var ordinary: Array[int] = _make_open_jobs(3, JobsScript.URGENCY_ORDINARY)
+	var rescues: Array[int] = _make_open_jobs(2, JobsScript.URGENCY_RESCUE)
+	assert_true(_jobs.job_id_of(ordinary[0]).value < _jobs.job_id_of(rescues[0]).value,
+		"the rescues were created last, so row order would put them last")
+	assert_equal(_jobs.live_job_at(0).value, rescues[0], "but bucket 0 comes first in the index")
+	assert_equal(_jobs.live_job_at(1).value, rescues[1], "oldest rescue before newest")
+	assert_equal(_jobs.live_job_at(2).value, ordinary[0], "then the bucket 3 run")
+	assert_equal(_jobs.live_job_at(3).value, ordinary[1], "in ascending persistent id")
+	assert_equal(_jobs.live_job_at(4).value, ordinary[2], "to its end")
+	assert_false(_jobs.live_job_at(5).ok, "and the index holds exactly five live jobs")
+	assert_true(_jobs.destroy_job(rescues[0]).ok, "destroying out of the middle of a run")
+	assert_equal(_jobs.live_job_at(0).value, rescues[1], "closes the gap inside bucket 0")
+	assert_equal(_jobs.live_job_at(1).value, ordinary[0], "and pulls the bucket 3 run down with it")
+	assert_false(_jobs.live_job_at(4).ok, "leaving four live jobs")
+
+
+func test_a_resumed_pass_starts_after_the_last_job_it_examined_not_on_it() -> void:
+	"""Budget accounting across a resume: re-examining the job the key names would spend one of
+	the thirty-two candidate slots twice, and the second suspension point shows whether it did."""
+	var worker: int = _spawn_worker()
+	var ordinary: Array[int] = _make_blocked_jobs(40, JobsScript.URGENCY_ORDINARY)
+	var cosmetic: Array[int] = _make_blocked_jobs(40, JobsScript.URGENCY_COSMETIC)
+	assert_false(_select(worker, 0).ok, "pass 1 examines thirty-two ordinary jobs")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, _jobs.job_id_of(ordinary[31]).value,
+		"and suspends on the thirty-second")
+	assert_false(_select(worker, 1).ok, "pass 2 finds nothing either")
+	assert_equal(_jobs.continuation_bucket_of(worker).value, JobsScript.URGENCY_COSMETIC,
+		"having finished bucket 3 and descended into bucket 4")
+	assert_equal(_jobs.continuation_job_id_of(worker).value, _jobs.job_id_of(cosmetic[23]).value,
+		"exactly eight ordinary plus twenty-four cosmetic: the thirty-second is not re-examined")
 
 
 # --- store-wide invariants ------------------------------------------------------------------------
@@ -909,8 +1377,11 @@ func test_every_reader_refuses_an_absent_row_instead_of_answering_with_a_default
 		"a negative job slot refuses")
 	assert_equal(_jobs.kind_of(JobsScript.JOB_CAPACITY).error,
 		String(JobsScript.REFUSE_INVALID_JOB_SLOT), "an out-of-range job slot refuses")
-	assert_equal(_jobs.scan_cursor_of(0).error, String(JobsScript.REFUSE_AGENT_NOT_PRESENT),
-		"an empty agent row refuses")
+	assert_equal(_jobs.continuation_job_id_of(0).error,
+		String(JobsScript.REFUSE_AGENT_NOT_PRESENT), "an empty agent row refuses")
+	assert_equal(_jobs.continuation_bucket_of(JobsScript.AGENT_CAPACITY).error,
+		String(JobsScript.REFUSE_INVALID_RESIDENT_SLOT),
+		"and so does an out-of-range one, rather than answering bucket 0")
 	assert_equal(_jobs.stagger_offset_of(JobsScript.AGENT_CAPACITY).error,
 		String(JobsScript.REFUSE_INVALID_RESIDENT_SLOT), "an out-of-range resident slot refuses")
 	assert_equal(_jobs.ref_of(0), EntityDirectory.NULL_REF, "and an absent row has no reference")

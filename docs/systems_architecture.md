@@ -77,6 +77,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | Priorities.flags | auto_fallback, dangerous_work | B8 | 1 | 2 | 512 | 1024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Schedule.hourly_activity | hourly_activity[owner*24+hour] | B8 | 1 | 1 | 12288 | 12288 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Schedule.state | template, current_activity | I32 | 4 | 2 | 512 | 4096 | [GDD §4.2; lengths ARCH-MEM-002–004] |
+| Schedule.latch | sleep_satisfied, resolved, present | B8 | 1 | 3 | 512 | 1536 | [NEW decision 0021] Latched sleep-window state; saved and hashed |
 | JobAgent | job_slot, job_generation, phase, target_slot, target_generation, path_id, path_cursor | I32 | 4 | 7 | 512 | 14336 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | JobAgent | lease_expiry, blocked_tick, manual_until | I64 | 8 | 3 | 512 | 12288 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | MoodMemory | memory_kind, value, source_id | I32 | 4 | 3 | 4096 | 49152 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -166,7 +167,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | WorldPolicy | auto_immigration, raw_emergency_food, variety_first | B8 | 1 | 3 | 1 | 3 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | GeneratorState | requested_seed, effective_seed, attempt, architecture, settlement_name | I32 | 4 | 5 | 1 | 20 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 
-Fixed-field payload sum = **24146898 bytes**. The table includes selected_P for allocation but excludes it from canonical hashing. All zero-capacity TransferManifest fields remain declared in the schema and codec; enabling the adapter requires a versioned capacity/budget revision. The chronicle total is unbounded on disk; the row is only its two resident pages. `[DERIVED]`
+Fixed-field payload sum = **24148434 bytes** (24146898 before decision 0021 added the 1536-byte `Schedule.latch` group, taking the Schedule packed payload from 16384 to 12288+4096+1536=**17920** bytes). The table includes selected_P for allocation but excludes it from canonical hashing. All zero-capacity TransferManifest fields remain declared in the schema and codec; enabling the adapter requires a versioned capacity/budget revision. The chronicle total is unbounded on disk; the row is only its two resident pages. `[DERIVED]`
 
 ### 2.3 Complete allocation ledger
 
@@ -174,8 +175,8 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
-| Fixed registry payload | 24146898 | 1 | 24146898 | mutable | Sum §2.2 |
-| Auxiliary payload | 15439604 | 1 | 15439604 | mutable | Sum §3 |
+| Fixed registry payload | 24148434 | 1 | 24148434 | mutable | Sum §2.2 (+1536, decision 0021) |
+| Auxiliary payload | 16384856 | 1 | 16384856 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
 | Route cell arena | 1048576 | 4 | 4194304 | mutable | ARCH-PATH-005 cells |
@@ -193,15 +194,26 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 57713254 | Sum above |
+| Planned allocated payload | 58660042 | Sum above |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 66101862 | Payload + reserve |
-| Headroom below decimal 100 MB | 33898138 | 100000000 − live total |
-| Additional candidate mutable state | 51497670 | Second mutable world during transactional load |
-| Transactional peak plus same reserve | 117599532 | Live total + candidate mutable state |
-| Transactional headroom | -17599532 | 100000000 − transactional peak |
+| One live world plus reserve | 67048650 | Payload + reserve |
+| Headroom below decimal 100 MB | 32951350 | 100000000 − live total |
+| Additional candidate mutable state | 52444458 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 119493108 | Live total + candidate mutable state |
+| Transactional headroom | -19493108 | 100000000 − transactional peak |
 
-**ARCH-MEM-006.** The calculated two-world peak is 117599532 bytes, exceeding the gate by 17599532 bytes. Therefore the selected release architecture SHALL use a transactional **disk-backed rollback checkpoint**, not two resident mutable worlds: validate the entire incoming file and construct it in a separate inactive on-disk checkpoint, retain the old world's validated checkpoint, then reuse the old world's mutable allocations to decode the already validated incoming snapshot. On decode/I/O failure restore the validated old checkpoint before exposing any world. This avoids the second 51497670-byte mutable world and adds loading I/O. The original world remains logically unchanged on failure; UI remains in LOAD pause until rollback completes. If rollback itself encounters an I/O fault, keep both files and expose the load error without exposing a partially decoded world. `[NEW selected design; DERIVED ledger; GDD REQ-SET-161]`
+**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 58660042 in three recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021]`:
+
+| Step | Governing record | Delta bytes | Running payload | Running payload + 8388608 reserve |
+|---|---|---:|---:|---:|
+| Baseline as generated | — | — | 57713254 | 66101862 |
+| Schedule latch columns | decision 0021 | +1536 | 57714790 | 66103398 |
+| Reservation pool indexing | decision 0019 | +786436 | 58501226 | 66889834 |
+| Job/JobAgent runtime columns | ARCH-STATE-005 | +158816 | 58660042 | 67048650 |
+
+The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because two further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
+
+**ARCH-MEM-006.** The calculated two-world peak is 119493108 bytes, exceeding the gate by 19493108 bytes. Therefore the selected release architecture SHALL use a transactional **disk-backed rollback checkpoint**, not two resident mutable worlds: validate the entire incoming file and construct it in a separate inactive on-disk checkpoint, retain the old world's validated checkpoint, then reuse the old world's mutable allocations to decode the already validated incoming snapshot. On decode/I/O failure restore the validated old checkpoint before exposing any world. This avoids the second 52444458-byte mutable world and adds loading I/O. The original world remains logically unchanged on failure; UI remains in LOAD pause until rollback completes. If rollback itself encounters an I/O fault, keep both files and expose the load error without exposing a partially decoded world. `[NEW selected design; DERIVED ledger; GDD REQ-SET-161]`
 
 **ARCH-MEM-007.** The allocator reserve is a budget to measure, not a claim that Godot headers occupy exactly that amount. Count all live packed capacities and engine-owned copies separately. A measured reserve overrun fails qualification. The main planned payload contributors are directory bookkeeping, fixed field stores, A* scratch, and route cells; active resident fields are a small fraction. Avoid copying packed arrays into temporary local Variants during hot updates. `[NEW instrumentation; crowd §4.2, §7]`
 
@@ -253,6 +265,20 @@ The GDD registry does not encode every deadline, ownership mapping, or remainder
 | BatchDetails | weighted_quality_sum, input_mass_sum, oldest_age_fraction, work_denominator, work_remainder | I64 | 8 | 5 | 8192 | 327680 | [NEW] Retain source-dependent quality/effect after input consumption |
 | JobRuntime | player_priority, phase, completion_sequence, path_request_id, input_slice, output_slice | I32 | 4 | 6 | 8192 | 196608 | [NEW] Rank/context/transaction progress |
 | JobRuntime | last_progress_tick, lease_progress_mwu | I64 | 8 | 2 | 8192 | 131072 | [NEW] Rank/context/transaction progress |
+| JobPresence | job_present | B8 | 1 | 1 | 8192 | 8192 | [NEW ARCH-STATE-005] Row liveness for the Job store; saved and hashed |
+| JobDirectoryRef | job_ref_slot, job_ref_generation | I32 | 4 | 2 | 8192 | 65536 | [NEW ARCH-STATE-005] Directory reference cache; rebuilt on load, not hashed |
+| JobSelection | urgency, dangerous | B8 | 1 | 2 | 8192 | 16384 | [NEW ARCH-STATE-005] GDD §5.3 declared bucket and consent subject; saved and hashed |
+| JobSelection.gates | station_gate, tool_gate, unlock_gate, inputs_gate | B8 | 1 | 4 | 8192 | 32768 | [NEW ARCH-STATE-005] Eligibility step 4/6 inputs; saved and hashed |
+| JobLiveIndex | live_slot | I32 | 4 | 1 | 8192 | 32768 | [NEW ARCH-STATE-005] Ascending live-job index the scan cursor addresses; rebuilt on load, not hashed |
+| JobAgentRuntime | agent_present, hazard_locked | B8 | 1 | 2 | 512 | 1024 | [NEW ARCH-STATE-005] Agent liveness and REQ-SET-015 latch; saved and hashed |
+| JobAgentRuntime | agent_persistent_id | I32 | 4 | 1 | 512 | 2048 | [NEW ARCH-STATE-005] Persistent-ID cache for the stagger test; rebuilt on load, not hashed |
+| JobSelectionScratch | skill_scratch, priority_scratch | I32 | 4 | 2 | 12 | 96 | [NEW ARCH-STATE-005] Per-pass strides; never saved or hashed, memory still counted |
+| ReservationIndex | occupied | B8 | 1 | 1 | 32768 | 32768 | [NEW decision 0019] Global pool occupancy |
+| ReservationIndex | free_heap | I32 | 4 | 1 | 32768 | 131072 | [NEW decision 0019] Free-row min-heap, lowest index first |
+| ReservationIndex | free_count | I32 | 4 | 1 | 1 | 4 | [NEW decision 0019] Heap occupancy counter |
+| ReservationIndex | job_head | I32 | 4 | 1 | 8192 | 32768 | [NEW decision 0019] Per-Job list head |
+| ReservationIndex | lot_head | I32 | 4 | 1 | 16384 | 65536 | [NEW decision 0019] Per-lot list head |
+| ReservationIndex | job_prev, job_next, lot_prev, lot_next | I32 | 4 | 4 | 32768 | 524288 | [NEW decision 0019] Intrusive links by Job and by lot |
 | Candidate | species_id, skill_0, skill_1, event_day | I32 | 4 | 4 | 8 | 128 | [NEW] Reviewable pending immigration; GDD candidate cap 8 |
 | Candidate | event_tick | I64 | 8 | 1 | 8 | 64 | [NEW] Reviewable pending immigration; GDD candidate cap 8 |
 | RngStream | domain, state | I32 | 4 | 2 | 9 | 72 | [NEW] §8 exact stream domains |
@@ -276,7 +302,7 @@ The GDD registry does not encode every deadline, ownership mapping, or remainder
 | BuildingItemAllow | allowed | B8 | 1 | 1 | 262144 | 262144 | [NEW] NEW per-item override; filters bitset remains category mask |
 | ConstructionPaidLedger | base_type, upgrade_mask | I32 | 4 | 2 | 82944 | 663552 | [NEW] Exact immutable paid package keys; costs retrieved by rules hash |
 
-Auxiliary payload sum = **15439604 bytes** `[DERIVED]`. Arena links and exact owner counts must validate before activation; unused child descriptors are zero. These are explicit schema extensions, not permission to omit the original fields. Snapshotting original plus auxiliary columns is mandatory for replay.
+Auxiliary payload sum = **16384856 bytes** `[DERIVED]`. That is 15439604 before this reconciliation, plus 786436 of reservation-pool indexing (decision 0019) and 158816 of Job/JobAgent runtime columns (ARCH-STATE-005): 15439604+786436+158816=16384856. Arena links and exact owner counts must validate before activation; unused child descriptors are zero. These are explicit schema extensions, not permission to omit the original fields. Snapshotting original plus auxiliary columns is mandatory for replay.
 
 
 **ARCH-STATE-001.** Model item instances with `GearInstance` rather than assigning durability to the immutable ItemDefinition. A gear lot is indivisible: `quantity_milli=1000`; one gear instance points at that lot. Stacking partially used tools is forbidden. Equipped tools/outfits transfer to the resident's Equipment fields and retain their source instance record outside satchel mass. Unequipping reverses that transfer without resetting durability. `tool_item_id` still uses the original catalog ID; its metadata records basic versus iron manufacture. `[GDD §4.2, §5.7, §5.9; NEW instance representation]`
@@ -288,6 +314,31 @@ Auxiliary payload sum = **15439604 bytes** `[DERIVED]`. Arena links and exact ow
 **ARCH-STATE-004.** BuildingItemMinimum/BuildingItemAllow apply only to the 1024 exterior main stores. Satchels, ground piles, WIP/project stores, and expedition cargo inherit their owning job's permitted contents; they do not allocate independently editable per-item policies `[NEW UI scope]`. The original 64-bit filters field is a category mask; an optional per-item allow byte further restricts it. This release's compiled ItemDefinition catalog must contain at most 256 keys `[NEW content envelope]`; reject a larger authored catalog at compile time and require a new memory/rules revision. Two 65536-byte name pages hold at most 4096 live alias/localization bindings; retired historical aliases are written to the save's streamed NAME_POOL section before their live pages can be reused. Historic ID bindings never point to a new alias with a recycled key `[NEW name-pool lifetime]`.
 
 AdmissionProfile and AuthoredAdmission definitions follow SET-AMEND-001 §5 and count inside the existing immutable catalog/lookup arenas. The current scenario manifest binds the profile; its catalog hash participates in the existing save compatibility check. Candidate origin is derived from profile/event_day/species_id because normal and exception species are disjoint and exception dates unique. A cleared candidate uses species_id=-1 and all other columns 0. Pending expiration, explicit exception acceptance and atomic clearing follow the amendment. No extra packed runtime allocation or per-resident lore object is added. FaunaStockReserved reference fields remain (-1,0), numeric fields 0; no directory entry may reference a live reserved fauna row. All eleven active skills retain their prior indices; transferred/saved index 3 must be zero. V1 saves are rejected before decoding into live state; no implicit catalog remapping is permitted.
+
+**ARCH-STATE-005.** The Job/JobAgent runtime columns above are the eligibility and continuation state GDD §5.3 requires and §4.2 has no field for. They are implemented in `godot/scripts/core/jobs.gd`, whose header enumerates the same delta; this table is now their owning budget `[NEW; GDD §5.3, REQ-SET-015, REQ-SET-028]`.
+
+- **Scan cursor.** §5.3's saved cursor is `ResidentRuntime.job_scan_cursor`, already budgeted above inside that 7-column I32 group (4*7*512=14336). The implementation names the same value `_agent_scan_cursor` and allocates it once at length 512 in the jobs module. That is **one** physical buffer serving one logical column; **no second allocation is counted, and none may be created**. The implementation must either move the column into a ResidentRuntime store or record the jobs module as its owner; it may not allocate a cursor in both places. Its index space is `JobLiveIndex`, not the raw job slot.
+- **Declared urgency.** `urgency` stores the bucket a job *declares* (0 rescue, 1 personal critical, 2 food/fuel, 3 ordinary, 4 cosmetic). The **effective** bucket additionally reads current reserve conditions: a job declaring bucket 2 occupies bucket 2 only while the projected food/fuel reserve is under two days, and ranks as ordinary otherwise. The reserve condition is world state owned by the food-days figure and the inventory; it SHALL be an explicit input to selection and SHALL NOT be baked into the stored byte, so the stored column stays correct across a changing reserve.
+- **Dangerous-work flag.** `dangerous` is per **Job**, and is the subject of eligibility step 5's consent test and REQ-SET-015's hazard bar. Its owning sources are HarvestZone `danger` and FishHabitat `danger` in §2.2; until those stores exist the flag is set explicitly by whoever creates the job, and it SHALL be recomputed from the owning zone/habitat danger value when the job's source or destination is bound and whenever that danger value changes. It is not the same field as `Priorities.flags.dangerous_work`, which is the **resident's** standing consent.
+- **Station/tool/unlock/input gates.** Four derived eligibility inputs with three states: not-required (the job declares no such requirement), satisfied, blocked. Only *blocked* makes a job ineligible; not-required never means ready. Their owning systems are Building/Room/Furniture (station), Equipment (tool), Progress `unlocked_mask` (unlock) and Reservation/InventoryLot (inputs). Each SHALL be invalidated and rewritten by its owning system when that system's state changes — station on building state/condition/occupancy change, tool on equip/unequip/durability loss, unlock on milestone award, inputs on any reservation or lot change touching the job — and never lazily recomputed inside a selection pass. The skill half of step 4 is not a gate column: it is decided from the resident's Skills row against the job's `required_skill`.
+- **Hazard lock.** `hazard_locked` is authoritative latched history, not a recomputable view: it is set when rest falls to the collapse threshold and cleared only when rest reaches the hazard-clear threshold, so its value at a given rest level depends on which threshold was crossed last. It is **saved and hashed**. Exactly one hazard gate exists and it lives here; the schedule store does not duplicate it.
+- **Presence and reference caches.** `job_present` and `agent_present` are the row-liveness authority for their stores and are saved and hashed. `job_ref_slot`/`job_ref_generation` and `agent_persistent_id` are caches of values the global directory already owns; they are allocated for the life of the world, are reconstructed from the directory during load's derived-index rebuild, and are **excluded from canonical hashing** so a rebuilt cache cannot change a state digest. A cache that disagrees with the directory after rebuild is a load failure, not a repair.
+- **Live-job index and per-pass scratch.** `JobLiveIndex` is the ascending live-job list the scan cursor addresses; the scratch columns hold one resident's twelve skill levels and twelve job priorities for the duration of a selection pass. Neither is saved and neither is hashed — and **both are counted in the ledger anyway**, because excluding state from a save does not remove it from resident memory. `JobLiveIndex` is rebuilt from `job_present` at load. The scratch columns hold no meaning between passes and SHALL NOT be read outside the pass that filled them.
+
+**ARCH-STATE-006.** `ReservationIndex` is decision 0019's global reservation pool made explicit in the budget. The 32768 rows in §2.2's Reservation component are allocated from the lowest free index; there is no `job*4+i` owner-major indexing, and the 4:1 row-to-job ratio is a storage budget, not a per-recipe limit. Variable-length lists per Job and per inventory lot are formed by the head and prev/next link columns; free rows come from the min-heap. A transaction SHALL preflight its complete row requirement, and insufficient rows produce an explicit capacity refusal with **no partial reservations**. The 786436-byte indexing payload is additional to the 1179648 bytes the Reservation component already occupies in §2.2 (655360 I32 + 524288 I64). One implementation deviation is recorded rather than budgeted: `free_count` is a scalar GDScript `int` (64-bit) in `godot/scripts/core/reservations.gd`, where the ledger and decision 0019 both carry it as one int32; the 4-byte figure stands and the deviation is immaterial to the total. `[NEW; decision 0019]`
+
+### 3.1 Still unbudgeted
+
+These are known allocations that no line of §2.2, §3 or §2.3 counts. They are listed so the 32951350-byte headroom is read as *headroom against an incomplete ledger*, not as a certified margin `[NEW reconciliation note]`.
+
+| Item | Governing record | Status |
+|---|---|---|
+| Coordinator-Job bookkeeping | decision 0017 | **Not counted anywhere.** Coordinator and member Jobs share the existing 8192-row capacity, but the coordinator's own state — the member-to-coordinator link, per-member accepted-work and fractional XP retention, shared-phase ownership marks, and the coordinator flag that excludes it from resident selection — has no column here. Decision 0017 states this is budgeted separately; it has not yet been. Sizing it requires the WU/XP model, which is a later task. |
+| Expanded movement scope | decisions 0013, 0020; SET-MOVE-001; MOVE-G02 | **Not counted anywhere.** Finite multi-level location/connection/profile/reservation state, crossing queues, work contacts, topology-edit transactions and save migration. ARCH-MEM-002 already flags every figure here as baseline-only. Decision 0020 is explicit that **this one-floor ledger cannot qualify the connected-movement pathfinder**; do not present the totals above as movement-inclusive, and do not multiply them by an invented floor count. |
+| ManualTask child store | U6 | Owner-major indexing for the 8-per-resident store is unspecified. §2.2 budgets `ManualTask` at 4096 rows, but the per-resident index and its slice descriptors are not separately allocated. |
+| Path/lease bookkeeping fields | REQ-SET-032/033; ARCH-JOB-004 | Allocated but never written: `path_id`, `path_cursor`, `lease_expiry`, `blocked_tick`, `manual_until`. The **memory is counted** in §2.2's JobAgent rows; the point is that the behavior these back is unimplemented, so no further allocation should be assumed absent. |
+| Other implemented core stores | — | `residents.gd`, `needs.gd`, `priorities.gd`, `inventory.gd` and `entity_directory.gd` each allocate presence, liveness, free-list, environment-input and journal columns beyond their §2.2 rows, in the same way `jobs.gd` did before this pass. Only the jobs module was reconciled here. Each of the others needs the same column-by-column pass against §2.2/§3 before any measured-memory qualification is attempted; their deltas are **not** in the 58660042 total. |
+| Measured allocator and engine overhead | ARCH-MEM-007; ARCH-CONFLICT-009 | The 8388608-byte reserve is a budget to measure, not a measurement. No Godot process memory has been measured against this ledger. |
 
 ## 4. Entity allocation, lifetime, and safe references
 
@@ -626,11 +677,13 @@ Keep a test migration ledger `old_test_name,new_test_name,retained_semantic,reti
 | ARCH-CONFLICT-008 | CLAUDE.md older design guidance versus Document Authority/GDD | Earlier logarithmic scaling, broader population language, and generic flow-field advice do not define this capped settlement. | Follow its Document Authority precedence and the settlement GDD; keep battle guidance in battle scope. |
 | ARCH-CONFLICT-009 | READY_04 deliverables 1 and 6; REQ-SET-163 | Packed payload arithmetic can be bounded, but engine headers, allocator reserve, long route storage pressure, and real Windows stage timings are not certified by this document. | Budget these explicitly and report unqualified performance. Do not claim ≤100 MB or deadline support from payload arithmetic alone. |
 | ARCH-CONFLICT-010 | Prototype implementation versus GDD REQ-SET-002–008, REQ-SET-162 | Current stockpiles/clock use noninteger authority, speed 3, Engine.time_scale, dropped debt, and Resource components. | Rewrite core modules under §11; the old 52-test suite tests a different model. |
-| ARCH-CONFLICT-011 | READY_04 memory budget and transactional loading | Fully resident old plus candidate worlds require 117599532 bytes including reserve, exceeding 100000000 by 17599532. | Select disk-backed validation/rollback with one reusable world allocation under ARCH-MEM-006 and ARCH-SAVE-004. Its planned resident payload plus reserve is 66101862 bytes; actual allocator/I/O peaks still require measurement. |
+| ARCH-CONFLICT-011 | READY_04 memory budget and transactional loading | Fully resident old plus candidate worlds require 119493108 bytes including reserve, exceeding 100000000 by 19493108. Reconciled 2026-09-07 for decisions 0019 and 0021 and ARCH-STATE-005; was 117599532 / 17599532. | Select disk-backed validation/rollback with one reusable world allocation under ARCH-MEM-006 and ARCH-SAVE-004. Its planned resident payload plus reserve is 67048650 bytes; actual allocator/I/O peaks still require measurement. The one-world gate still holds with 32951350 bytes spare, but §3.1 lists budget items not yet counted at all. |
 
 ## 13. Verification record
 
-Observed during document generation: all 140 memory-field group products satisfy `element_width*column_count*allocated_length=payload_bytes`; the complete allocation ledger sums to 57713254 bytes before the 8388608-byte reserve. The selected one-world design totals 66101862 planned bytes, with 33898138 bytes below the decimal 100 MB gate. The rejected two-world design totals 117599532 bytes. These are allocation arithmetic, not measured Godot process memory.
+Observed during document generation: all 140 memory-field group products satisfied `element_width*column_count*allocated_length=payload_bytes`; the complete allocation ledger summed to 57713254 bytes before the 8388608-byte reserve, the selected one-world design totalled 66101862 planned bytes with 33898138 below the decimal 100 MB gate, and the rejected two-world design totalled 117599532 bytes.
+
+Reconciled 2026-09-07 against decisions 0019 and 0021 and the implemented `godot/scripts/core/jobs.gd` columns (ARCH-STATE-005): all **155** memory-field group products satisfy that identity; the ledger now sums to **58660042** bytes before the same 8388608-byte reserve. The selected one-world design totals **67048650** planned bytes, **32951350** below the decimal 100 MB gate, so that gate still holds on payload arithmetic. The rejected two-world design totals **119493108** bytes and is rejected by a larger margin than before. §3.1 records what remains uncounted; the gate conclusion is therefore provisional on those items, not final. These are allocation arithmetic, not measured Godot process memory.
 
 The required unfinished-text scan returned no matches; the balance document's forbidden-population and disallowed-formula scans returned no matches. Each document contains exactly one required conflict heading. Markdown tables/fences passed structural checks. The unchanged legacy prototype passed 52 tests and 106 assertions with exit 0; no new settlement implementation or Windows performance/parity run is claimed. Arithmetic probes and schema inspection do not resolve the documented survival, path-latency, or qualification gaps.
 

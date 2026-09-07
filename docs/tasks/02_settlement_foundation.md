@@ -257,3 +257,62 @@ timing data point decision 0016 needs before its options can be judged.
 - 72 tests in `test_jobs.gd` (was 50 before the 0022/0023 correction).
   Ledger reconciled in `systems_architecture.md` §2.2/§2.3/§3 (ARCH-STATE-005)
   for the module's runtime columns.
+
+### 2.13 — Allocation-free readers on `needs.gd` and `residents.gd` (**in progress**)
+
+Owning decision: `docs/decisions/0016-needs-tick-consumes-most-of-the-budget.md`.
+Authorised by Brendan 2026-09-06: *"add allocation-free `_into` readers to the
+four owning modules, retain their existing convenience readers, and measure
+again. This does not require deciding on GDExtension or changing needs timing."*
+
+**Why this target and not another.** The WU tick was decomposed by measurement,
+not inferred: at 256 residents the `work_factor_of()` reader chain is **45%** of
+the tick and `resident_may_work()` **19%**, so **~64% is reader-call plumbing
+across module boundaries**. `work.gd`'s own party walk, acceptance, split and
+carries already allocate nothing, and `jobs.gd` already publishes `_into` forms.
+The gap is precisely `needs.gd` and `residents.gd`.
+
+#### Definition of done
+
+**1. The new readers are tested.** As of this writing they are not — the suite
+is unchanged at 624 tests, and `test_needs.gd` and `test_residents.gd` contain no
+reference to `_into`. New public API with no test is the exact defect class this
+project has been bitten by three times: `narrow_to_int32()` shipped with zero
+production callers; the ARCH-ID-003 reverse-owner clause could be replaced with
+`return true` while all 195 tests passed; the §5.8 seed exclusion could be
+deleted with the suite green. CLAUDE.md requires a test per public function.
+
+**2. Each `_into` form is proven equivalent to the convenience reader it
+mirrors.** A test that calls only the new form proves it returns *something*, not
+that it returns *the same thing*. Assert both forms agree across the input range,
+including refusal cases — a refusal must remain a refusal, and must not surface a
+stale value in the caller's `out` object. Both readers survive; the convenience
+form is not deleted.
+
+**3. Mutation evidence, one mutation per run.** Break each `_into` reader and
+confirm a named test fails. A reader that can be broken silently is worse than no
+reader, because the hot path now depends on it.
+
+**4. The re-measurement — this is the point of the task.** Repeat the exact
+benchmark from decision 0016's measurement section: needs alone, WU alone, and
+combined, at 12 and 256 residents, p99 at 1x and p95 on the 4x aggregate, 300
+warm-up ticks discarded and 3000 sampled, each configuration run twice in
+independent processes. Report before and after side by side. **A change with no
+re-measurement does not close this task** — the whole justification is a number.
+
+**5. Determinism preserved.** The prior measurement produced byte-identical
+FNV-1a hashes across independent processes over every authoritative column. Those
+hashes must still match. An optimisation that changes state is not an
+optimisation.
+
+#### What this task does NOT establish
+Not a release-build measurement — the export templates directory is empty and no
+`export_presets.cfg` exists. Not a qualification-floor result — development is on
+an M5 Pro, not the Ryzen 5 3600 / GTX 1660 Super / 16 GB reference. **Decision
+0016 stays open regardless of the outcome**, and closing it needs a release build
+on documented hardware.
+
+If the measured gain is small, report the real number. An honest 20% is worth
+more than a claimed 60%, and it is evidence for the remaining options in 0016 —
+which include inlining compared against the retained reference integrator, and
+GDExtension. Neither is decided.

@@ -36,6 +36,11 @@ const MILLI_PER_UNIT: int = 1000
 
 @onready var _hud: HudScript = $UI/HUD as HudScript
 
+## The settlement's population, owned here for as long as this scene lives. EconomySystem only
+## BORROWS it as the food-days divisor, so the reference must be held somewhere that outlives
+## the binding; a local would make `bind_residents(null)` free the settlement.
+var _residents: ResidentsScript = null
+
 
 func _ready() -> void:
 	"""Reset autoload state, register the HUD, seed the stores, and start play.
@@ -65,18 +70,27 @@ func _spawn_initial_cohort() -> void:
 
 	Without a living cohort the food-days denominator is undefined, so
 	EconomySystem refuses the figure rather than displaying an unbounded reserve.
+
+	A refused spawn unbinds explicitly. Leaving an earlier run's cohort bound after a scene
+	reload would divide this run's stores by the previous run's population, which is a wrong
+	number on screen rather than an absent one.
 	"""
-	var residents := ResidentsScript.new()
-	var spawned := residents.spawn_initial_settlement()
+	var residents: ResidentsScript = ResidentsScript.new()
+	var spawned: ResidentsScript.OpResult = residents.spawn_initial_settlement()
 	if not spawned.ok:
+		_residents = null
+		EconomySystem.bind_residents(null)
 		push_error("Initial settlement could not be created: %s" % spawned.error)
 		return
-	EconomySystem.bind_residents(residents)
+	_residents = residents
+	EconomySystem.bind_residents(_residents)
 
 
 func _exit_tree() -> void:
-	"""Release the HUD reference before this scene is freed."""
+	"""Release the HUD reference and the borrowed residents binding before this scene is freed."""
 	UIManager.unregister_hud()
+	EconomySystem.bind_residents(null)
+	_residents = null
 
 
 func _unhandled_input(event: InputEvent) -> void:

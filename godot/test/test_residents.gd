@@ -282,6 +282,77 @@ func test_initial_settlement_refuses_a_second_cohort() -> void:
 	assert_equal(_residents.population(), 12, "the population is unchanged")
 
 
+func test_a_refused_cohort_leaves_no_resident_behind() -> void:
+	"""OpResult promises a refusal carries no partially applied effect; the cohort must honour it.
+
+	The refusal is provoked from outside: a shared needs store already holds a row at the typed
+	slot the sixth spawn will be handed, so `needs.spawn()` refuses mid-cohort. Without a
+	rollback the caller is told nothing was created while five residents stand in the store,
+	unreachable because the call returned no references.
+	"""
+	var directory: EntityDirectory = EntityDirectory.new()
+	var needs: NeedsScript = NeedsScript.new()
+	var shared: Residents = Residents.new(directory, needs)
+	var blocked_slot: int = _reserve_needs_row(directory, needs, 5)
+	var spawned: Residents.OpResult = shared.spawn_initial_settlement()
+	assert_false(spawned.ok, "the cohort is refused at the blocked slot")
+	assert_equal(spawned.error, NeedsScript.REFUSE_ALREADY_PRESENT, "the needs refusal travels out")
+	assert_equal(spawned.value, 0, "a refusal carries no count")
+	assert_equal(shared.population(), 0, "no resident row survives the refusal")
+	assert_equal(directory.live_count(EntityDirectory.KIND_RESIDENT), 0,
+		"no directory slot survives the refusal")
+	assert_equal(needs.present_count(), 1, "only the pre-existing blocking row remains")
+	assert_true(needs.is_present(blocked_slot), "and it is untouched")
+	var occupied: int = 0
+	for slot: int in Residents.RESIDENT_CAPACITY:
+		if shared.is_present(slot):
+			occupied += 1
+	assert_equal(occupied, 0, "not one of the 512 resident rows is occupied")
+
+
+func _reserve_needs_row(directory: EntityDirectory, needs: NeedsScript, ordinal: int) -> int:
+	"""Occupy the needs row the `ordinal`-th spawn will be handed, and return that slot.
+
+	The typed row is learned from the directory rather than assumed: `ordinal` refs are created
+	to walk the allocator forward, the next one is taken and immediately destroyed so the row
+	returns to the free heap, and only the needs row is left occupied.
+	"""
+	var held: Array[Vector2i] = []
+	for index: int in ordinal:
+		held.append(directory.create(EntityDirectory.KIND_RESIDENT))
+	var probe: Vector2i = directory.create(EntityDirectory.KIND_RESIDENT)
+	var slot: int = directory.get_typed_row(probe)
+	directory.destroy(probe)
+	for ref: Vector2i in held:
+		directory.destroy(ref)
+	assert_true(needs.spawn(slot, Residents.SIZE_SMALL).ok, "the blocking needs row is written")
+	return slot
+
+
+func test_a_refused_spawn_does_not_burn_a_directory_slot() -> void:
+	"""spawn() must roll its directory allocation back when the needs row is refused.
+
+	Without the rollback every such refusal permanently consumes a RESIDENT row and a
+	never-reused persistent id while telling the caller nothing was allocated -- 512 refusals
+	would exhaust the settlement's capacity with an empty store.
+	"""
+	var directory: EntityDirectory = EntityDirectory.new()
+	var needs: NeedsScript = NeedsScript.new()
+	var shared: Residents = Residents.new(directory, needs)
+	var blocked_slot: int = _reserve_needs_row(directory, needs, 0)
+	var free_rows_before: int = directory.free_row_count(EntityDirectory.KIND_RESIDENT)
+	var refused: Residents.OpResult = shared.spawn(&"mouse")
+	assert_false(refused.ok, "the spawn is refused at the occupied needs row")
+	assert_equal(refused.error, NeedsScript.REFUSE_ALREADY_PRESENT, "the refusal is explicit")
+	assert_equal(refused.ref, EntityDirectory.NULL_REF, "a refusal hands back the null reference")
+	assert_equal(directory.live_count(EntityDirectory.KIND_RESIDENT), 0,
+		"the directory allocation was rolled back")
+	assert_equal(directory.free_row_count(EntityDirectory.KIND_RESIDENT), free_rows_before,
+		"the typed row was returned to the free heap, not burned")
+	assert_equal(shared.population(), 0, "no resident row was written")
+	assert_true(needs.is_present(blocked_slot), "the blocking needs row is left alone")
+
+
 func test_home_and_bed_stay_null_because_no_building_store_exists() -> void:
 	"""GDD §5.1 assigns 12 beds, but no Building/Room/Furniture store exists in this milestone."""
 	_residents.spawn_initial_settlement()
@@ -370,8 +441,17 @@ func test_projected_cohort_demand_matches_the_spawned_cohort() -> void:
 	assert_equal(_residents.daily_demand_for_cohort(120, 60, 20).value, DEMAND_MIXED, "projection agrees")
 	_residents.set_winter(true)
 	assert_equal(_residents.daily_demand_for_cohort(120, 60, 20).value, DEMAND_MIXED_WINTER, "in winter too")
-	assert_false(_residents.daily_demand_for_cohort(0, 0, 0).ok, "an empty cohort is refused")
-	assert_false(_residents.daily_demand_for_cohort(-1, 0, 0).ok, "a negative count is refused")
+	var empty: IntMath.IntResult = _residents.daily_demand_for_cohort(0, 0, 0)
+	assert_false(empty.ok, "an empty cohort is refused")
+	assert_equal(empty.error, String(Residents.REFUSE_NO_LIVING_RESIDENTS),
+		"an empty cohort is refused for having no residents")
+	for negative: Array in [[-1, 0, 0], [0, -1, 0], [0, 0, -1]]:
+		var refused: IntMath.IntResult = _residents.daily_demand_for_cohort(
+			negative[0], negative[1], negative[2])
+		assert_false(refused.ok, "a negative count %s is refused" % [negative])
+		assert_equal(refused.error, String(Residents.REFUSE_INVALID_COUNT),
+			"the refusal names the bad count, not a skill XP value")
+		assert_equal(refused.value, 0, "a refusal carries no usable number")
 
 
 func test_per_resident_demand_matches_the_size_multipliers() -> void:

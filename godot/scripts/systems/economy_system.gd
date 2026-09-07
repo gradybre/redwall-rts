@@ -114,14 +114,24 @@ func _ready() -> void:
 	print("[EconomySystem] ready")
 
 
-func reset() -> void:
-	"""Empty every store, reload the catalog, and reopen the starting containers."""
+func reset(catalog_path: String = ItemDefinitionsScript.DEFAULT_JSON_PATH) -> void:
+	"""Empty every store, reload the catalog, and reopen the starting containers.
+
+	The residents binding is dropped too. It is a borrowed store belonging to the scene that
+	supplied it, and a reset that kept it would divide the reloaded (empty) stores by the
+	previous run's population and put a stale food-days figure on screen.
+
+	`catalog_path` exists so a test can open the stores against a fixture catalog; production
+	callers pass nothing and get the authoritative res://data/item_definitions.json.
+	"""
 	_inventory.clear()
 	_definitions = ItemDefinitionsScript.new()
 	_pantry = InventoryScript.NULL_REF
 	_material_store = InventoryScript.NULL_REF
 	_last_refusal = REFUSE_NONE
-	var load_result: ItemDefinitionsScript.LoadResult = _definitions.load_default(_inventory)
+	_residents = null
+	var load_result: ItemDefinitionsScript.LoadResult = _definitions.load_from_file(
+		catalog_path, _inventory)
 	_catalog_error = load_result.error
 	if load_result.ok:
 		_open_stores()

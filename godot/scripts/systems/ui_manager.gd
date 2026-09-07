@@ -60,10 +60,18 @@ func _refresh_hud() -> void:
 func _refresh_counters() -> void:
 	"""Push every top-left counter this milestone can honestly derive.
 
-	Only these three are supplied. `Food-days` and `Fuel-days` need divisors -- resident daily
-	demand (GDD §5.8) and daily heating demand -- that no implemented system provides, and
-	`Residents`/`Beds` have no model yet, so the HUD leaves all four unpopulated rather than
-	showing a fabricated number. `Ready NP` is the food-days numerator, which IS derivable.
+	Five of the seven are supplied. `Food-days` is now among them: task 2.10 gave GDD §5.8 its
+	divisor, so EconomySystem computes the figure whenever a residents store is bound and
+	returns the unpopulated marker when one is not. Every value crosses this boundary EXACTLY as
+	the system produced it -- the two text counters are forwarded verbatim and the three integer
+	counters are forwarded unscaled, because a number invented or adjusted here would be
+	indistinguishable on screen from one the simulation actually derived.
+
+	`Fuel-days` stays unpopulated: its daily heating demand has no input in any implemented
+	system (see EconomySystem.fuel_days_missing_input()). `Residents` and `Beds` stay
+	unpopulated too -- residents.gd could supply a population, but `Beds` needs a Building/Room/
+	Furniture store that does not exist, and the two are a §1.1 pair whose value is the
+	comparison. Neither is approximated here.
 	"""
 	if not _has_hud():
 		return

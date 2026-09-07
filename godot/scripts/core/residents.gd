@@ -136,6 +136,7 @@ const REFUSE_UNKNOWN_SPECIES: StringName = &"UNKNOWN_SPECIES"
 const REFUSE_INVALID_ROLE: StringName = &"INVALID_ROLE"
 const REFUSE_INVALID_SKILL: StringName = &"INVALID_SKILL"
 const REFUSE_INVALID_XP: StringName = &"INVALID_XP"
+const REFUSE_INVALID_COUNT: StringName = &"INVALID_COUNT"
 const REFUSE_RESERVED_SKILL: StringName = &"RESERVED_SKILL_INDEX"
 const REFUSE_SETTLEMENT_NOT_EMPTY: StringName = &"SETTLEMENT_NOT_EMPTY"
 const REFUSE_NO_LIVING_RESIDENTS: StringName = &"NO_LIVING_RESIDENTS"
@@ -201,6 +202,10 @@ var _skill_level: PackedInt32Array = PackedInt32Array()
 ## Ascending list of spawned rows, so demand iterates the population and not all 512 slots.
 var _live_slots: PackedInt32Array = PackedInt32Array()
 var _live_count: int = 0
+
+## Rows created by the in-flight spawn_initial_settlement(), so a mid-cohort refusal can undo
+## exactly what that call made and nothing else. Sized once with every other column.
+var _cohort_slots: PackedInt32Array = PackedInt32Array()
 
 # --- scratch (not simulation state) ----------------------------------------------------------
 
@@ -274,6 +279,7 @@ func _allocate_columns() -> void:
 	_skill_xp.resize(RESIDENT_CAPACITY * SKILL_COUNT)
 	_skill_level.resize(RESIDENT_CAPACITY * SKILL_COUNT)
 	_live_slots.resize(RESIDENT_CAPACITY)
+	_cohort_slots.resize(INITIAL_POPULATION)
 
 
 func clear() -> void:
@@ -300,6 +306,7 @@ func clear() -> void:
 	_skill_level.fill(0)
 	_live_slots.fill(EntityDirectory.NULL_SLOT)
 	_live_count = 0
+	_cohort_slots.fill(EntityDirectory.NULL_SLOT)
 	if _owns_collaborators:
 		_directory.clear()
 		_needs.clear()
@@ -507,15 +514,37 @@ func spawn_initial_settlement() -> OpResult:
 
 	Refuses on a non-empty store rather than adding a second cohort beside the first, so the
 	§5.1 "IDs 1-12" contract cannot be quietly broken by a double call.
+
+	A refusal partway through the twelve despawns every resident this call had already made.
+	OpResult states that a refusal "never carries a partially applied effect", and a half-built
+	cohort is exactly that: the caller is told nothing was created while the store holds a
+	population it never asked for and can no longer name.
 	"""
 	if _live_count != 0 or _directory.live_count(EntityDirectory.KIND_RESIDENT) != 0:
 		return _refuse(REFUSE_SETTLEMENT_NOT_EMPTY)
 	for index: int in INITIAL_POPULATION:
 		var spawned: OpResult = spawn(INITIAL_SPECIES[index])
 		if not spawned.ok:
+			_rollback_cohort(index)
 			return _refuse(spawned.error)
+		_cohort_slots[index] = spawned.value
 		_write_initial_resident(spawned.value, index)
 	return _succeed(INITIAL_POPULATION, NULL_REF)
+
+
+func _rollback_cohort(created: int) -> void:
+	"""Despawn the `created` starters an aborted spawn_initial_settlement() had already made.
+
+	Reverse creation order, so the most recently allocated directory slot is released first.
+	Nothing else is touched: the store was verified empty before the first spawn.
+	"""
+	var index: int = created
+	while index > 0:
+		index -= 1
+		var slot: int = _cohort_slots[index]
+		if slot != EntityDirectory.NULL_SLOT:
+			despawn(ref_of(slot))
+		_cohort_slots[index] = EntityDirectory.NULL_SLOT
 
 
 func _write_initial_resident(slot: int, index: int) -> void:
@@ -815,7 +844,7 @@ func daily_demand_for_cohort(small: int, medium: int, large: int) -> IntMath.Int
 	"""
 	var out: IntMath.IntResult = IntMath.IntResult.new()
 	if small < 0 or medium < 0 or large < 0:
-		out.refuse(String(REFUSE_INVALID_XP))
+		out.refuse(String(REFUSE_INVALID_COUNT))
 		return out
 	if small + medium + large == 0:
 		out.refuse(String(REFUSE_NO_LIVING_RESIDENTS))

@@ -5,10 +5,17 @@ extends CanvasLayer
 ## game state beyond the values currently on screen.
 ##
 ## The top-left zone shows the UI §1.1 counter set. A counter nobody has supplied a value for
-## renders as UNPOPULATED rather than as a zero or an invented figure: `Food-days` and
-## `Fuel-days` are derived quantities whose divisors (resident demand, heating demand) come
-## from systems that do not exist yet, and `Residents`/`Beds` have no model at all. The
-## honestly derivable part of the food forecast is published beside them as `Ready NP`.
+## renders as UNPOPULATED rather than as a zero or an invented figure: `Fuel-days` has no
+## heating-demand divisor in any implemented system, and `Residents`/`Beds` have no model at
+## all. `Food-days` IS supplied now that task 2.10 gave GDD §5.8 its divisor, alongside its
+## numerator `Ready NP`.
+##
+## This script renders; it does not derive. `set_counter_text()` prints the caller's string
+## byte for byte and `set_counter()` prints the caller's integer unaltered, so a figure on
+## screen is always the one the simulation produced. Reformatting a value here -- rounding
+## "5.48" to "5.5", or turning the "--" marker into "0.00" -- would fabricate a reading that
+## the player cannot tell apart from a computed one, which is why test_hud.gd asserts the
+## rendered label text and not just the call.
 
 const ALERT_HOLD_SECONDS: float = 4.0
 

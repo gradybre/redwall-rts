@@ -35,6 +35,14 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SUMMARY_BUDGET_USEC: int = 2000
 const MILLI: int = 1000
 
+## The authoritative catalog, spliced into fixture copies. Never written to.
+const REAL_CATALOG_PATH: String = "res://data/item_definitions.json"
+
+## A fixture-only item: a SEED row that is also raw-edible and nutritious. No authoritative row
+## is both, which is exactly why the §5.8 seed exclusion needs one to be tested at all.
+const EDIBLE_SEED_KEY: StringName = &"zz_fixture_edible_seed"
+const EDIBLE_SEED_NUTRITION_PER_U: int = 900
+
 ## GDD §5.1 "Initial inventory U", restated independently of main.gd.
 const STARTING_INVENTORY_U: Dictionary = {
 	&"wood": 180, &"stone": 100, &"iron": 20, &"rope": 20, &"tool": 24, &"cloth": 24,
@@ -239,6 +247,49 @@ func test_seeds_and_raw_ingredients_are_excluded_from_ready_nutrition() -> void:
 	assert_equal(_economy.ready_nutrition_points(), 16000, "only the directly edible nuts count")
 
 
+func _catalog_with_edible_seed() -> String:
+	"""Write a copy of the real catalog with one added SEED row that IS edible and nutritious.
+
+	Every seed in the authoritative catalog also carries raw_edible=0 and nutrition_per_u=0, so
+	the live rows cannot tell the §5.8 seed exclusion apart from the raw-edible test that
+	follows it: deleting the seed clause changes no number anywhere. This fixture separates
+	them. It is not a prediction of a balance change; it is the only way to hold the clause the
+	specification states twice (§5.8 "excludes seeds", REQ-SET-013 "never consuming seed items")
+	to its own contract, independent of a catalog row that happens to agree.
+	"""
+	var payload: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(REAL_CATALOG_PATH)) as Dictionary
+	var items: Array = payload["items"]
+	items.append({
+		"id": String(EDIBLE_SEED_KEY), "category": "SEED", "mass_g": 100,
+		"nutrition_per_u": EDIBLE_SEED_NUTRITION_PER_U, "shelf_hours": 0,
+		"raw_edible": 1, "seed": 1, "effect": "NONE", "effect_value": 0,
+	})
+	var path: String = "user://test_economy_edible_seed_catalog.json"
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(payload))
+	file.close()
+	return path
+
+
+func test_a_nutritious_seed_is_still_excluded_because_it_is_a_seed() -> void:
+	"""GDD §5.8 / REQ-SET-013: seed stock is never food, whatever its nutrition row says."""
+	_economy.reset(_catalog_with_edible_seed())
+	assert_equal(_economy.catalog_error(), "", "the fixture catalog opened the stores")
+	assert_true(_economy.is_known_item(EDIBLE_SEED_KEY), "the edible seed registered")
+	assert_true(_economy.definitions().is_seed(_economy.definitions().compiled_id(EDIBLE_SEED_KEY)),
+		"the fixture row really is a seed")
+	assert_true(_economy.definitions().is_raw_edible(_economy.definitions().compiled_id(EDIBLE_SEED_KEY)),
+		"and it really is raw-edible, unlike every authoritative seed row")
+	assert_true(_economy.deposit(EDIBLE_SEED_KEY, 10 * MILLI), "the seed stock is stored")
+	assert_equal(_economy.stock_units(EDIBLE_SEED_KEY), 10, "ten units are in the pantry")
+	assert_equal(_economy.ready_nutrition_points(), 0,
+		"seed stock contributes nothing to ready food even when it is edible and nutritious")
+	assert_true(_economy.deposit(&"nuts", 10 * MILLI), "genuinely ready food is stored beside it")
+	assert_equal(_economy.ready_nutrition_points(), 16000,
+		"only the nuts count; the seed row is still excluded alongside them")
+
+
 func test_reserved_food_is_excluded_from_ready_nutrition() -> void:
 	"""GDD §5.8 excludes locked reservations from ready food-days."""
 	_economy.deposit(&"nuts", 10 * MILLI)
@@ -261,13 +312,26 @@ func test_expired_food_is_excluded_from_ready_nutrition() -> void:
 
 
 func test_reset_returns_to_empty_stores() -> void:
-	"""reset() clears every lot and reopens the stores with the catalog reloaded."""
-	_seed_starting_inventory()
+	"""reset() clears every lot, reopens the stores, and drops the borrowed residents store.
+
+	The binding must go with the stock. A reset that kept it would divide the reloaded, empty
+	stores by the previous run's population, which is a wrong food-days figure on screen rather
+	than an honestly absent one.
+	"""
+	_bind_starting_settlement()
+	assert_true(_economy.has_residents(), "the cohort is bound before the reset")
+	assert_equal(_economy.food_days_text(), STARTER_FOOD_DAYS_TEXT, "and food-days is populated")
 	_economy.reset()
 	assert_equal(_economy.inventory().live_lot_count(), 0, "every lot was cleared")
 	assert_equal(_economy.stock_milli(&"wood"), 0, "wood is empty")
 	assert_equal(_economy.ready_nutrition_points(), 0, "the derived summary was cleared too")
 	assert_equal(_economy.item_count(), 60, "the catalog is registered again")
+	assert_false(_economy.has_residents(), "the stale residents binding was dropped")
+	assert_false(_economy.daily_demand_np().ok, "the divisor is refused, not stale")
+	assert_equal(_economy.daily_demand_np().error, String(EconomySystemScript.REFUSE_NO_RESIDENT_STORE),
+		"the refusal names the missing store")
+	assert_equal(_economy.food_days_text(), "--",
+		"food-days is unpopulated after a reset, never the previous run's figure")
 
 
 func test_stores_conserve_quantity_across_a_sequence() -> void:

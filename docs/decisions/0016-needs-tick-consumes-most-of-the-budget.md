@@ -68,3 +68,105 @@ Re-measure on a release build; these numbers are from a development build.
 ## Source
 Task 2.9 implementation measurement, 2026-09-06, escalated rather than resolved
 unilaterally by the implementing agent.
+
+
+## Correction and measurement plan (Brendan, 2026-09-06)
+
+**The causation claim in this record overreaches.** Stating that call overhead
+is the cause requires profiling evidence separating calls, allocations, checks
+and arithmetic. The measurements so far establish **pressure**; they do not
+prove the cause. Treat the per-call inference as a hypothesis to test.
+
+Collect all of the following before choosing between the four options:
+
+| Measurement | Purpose |
+|---|---|
+| Needs alone, WU alone, and the combined tick | Separate individual cost from interaction |
+| At 12 and at 256 residents | Check how it scales |
+| **Release build**, with machine and build documented | Make comparisons reproducible |
+| 1x tick **p99** and 4x aggregate simulation **p95** | Match what REQ-SET-163 actually specifies |
+| Deterministic state comparison | Verify any optimisation preserves behaviour |
+
+### Two corrections to the options
+- **Staggering is not behaviour-neutral.** Spreading needs across ticks can move
+  when hunger, collapse and interruption thresholds fire. Preserving hourly
+  totals alone is **not** sufficient evidence that it is safe.
+- **Inlining need not destroy verifiability.** An optimised implementation can be
+  compared against the retained reference integrator. That keeps inlining on the
+  table as an option to evaluate, not one ruled out.
+
+Status stays **open**. The WU model supplies the next data point.
+
+
+## Measurement (2026-09-06) — the second data point, taken
+
+**Build and machine, stated because both matter.** Godot
+`4.7.2.stable.official.ed1daf0bf`, the **editor/development binary** — `assert()`
+live, debugger compiled in. **No release build was possible**: the export
+templates directory is empty and `godot/export_presets.cfg` does not exist, both
+verified. Machine: Apple M5 Pro, 18 cores, 48 GB, macOS 26.6.2. **This is not the
+qualification floor** (Ryzen 5 3600 / GTX 1660 Super / 16 GB), so nothing here
+settles REQ-SET-163 either way.
+
+Method: 300 warm-up ticks discarded, 3000 sampled, p99 by nearest rank; 4x
+aggregate is consecutive tick pairs, p95 over 1500 windows. Every configuration
+run twice in independent processes.
+
+Budgets: 1x tick p99 ≤ 2000 µs; 4x aggregate p95 ≤ 6000 µs.
+
+| Configuration | Pop | p50 µs | **p99 @1x** | **p95 4x-agg** |
+|---|---:|---:|---:|---:|
+| Needs alone | 12 | 60 | 74 | 134 |
+| WU alone | 12 | 169 | 211 | 377 |
+| Combined | 12 | 236 | 284 | 518 |
+| Needs alone | 256 | 1152 | 1225 | 2377 |
+| WU alone | 256 | 3651 | **4370** | **7970** |
+| Combined | 256 | 4880 | **5622** | **10446** |
+
+### What this settles
+
+1. **WU alone breaks the 1x budget on its own** — 4370 µs against 2000, ~2.2x
+   over, and roughly **3x the cost of needs**. Combined is 2.8x the budget; the
+   4x aggregate is 1.7x over. The pressure is worse than this record assumed.
+2. **The two systems are additive, not interacting.** At 256, needs p50 + WU p50
+   = 4803 vs 4880 combined (+1.6%). So this is per-system per-resident cost, not
+   an interaction — which is what the "separate individual cost from
+   interaction" row was for.
+3. **Scaling is linear-plus, nothing superlinear.** 12→256 is 21.3x population;
+   needs costs 19.2x, WU 21.6x.
+4. **The needs figures reproduce this record's originals** — 60 µs at 12 and
+   1152 µs at 256 against the recorded 65 µs / 1.19 ms. The harness agrees with
+   the earlier measurement.
+
+### The causation hypothesis is now measured, not inferred
+
+This record previously claimed call overhead was the cause, and that claim was
+correctly called out as an overreach. It was then **decomposed by measurement**,
+same method, 256 residents, p50:
+
+| Component | µs | Share |
+|---|---:|---:|
+| Whole WU tick | 3651 | 100% |
+| `work_factor_of()` reader chain (5 allocated `IntResult`s per worker) | 1651 | **45%** |
+| `jobs.resident_may_work()` (status + need reads, 2 `OpResult`s) | 693 | **19%** |
+| Everything else — job state, acceptance, consumption, XP, result | ~1307 | ~36% |
+
+**~64% of the WU tick is reader-call plumbing across module boundaries.** The
+hypothesis holds, and now on evidence rather than inference. `work.gd`'s own
+party walk, acceptance, split and carries allocate nothing; `jobs.gd` already
+publishes `_into` forms. The modules without them are `needs.gd` and
+`residents.gd`.
+
+### Determinism evidence, which was missing
+
+Every configuration emitted an FNV-1a hash over all authoritative columns — work
+carries, XP remainders, skill XP, job `remaining_mwu`, health, all five needs and
+their remainders. **All six produced byte-identical hashes across independent
+processes under identical commands.** Identical test counts prove only repeatable
+suite results; these hashes are the determinism evidence.
+
+### Next, per the ruling of 2026-09-06
+Add allocation-free `_into` readers to the owning modules, retain the existing
+convenience readers, and **measure again**. That does not require choosing
+between this record's four options, and does not change needs timing. Status
+stays open until a release-build measurement on documented hardware exists.

@@ -142,8 +142,84 @@ func test_fixed_season_quality_severity_enums_match_gdd_4_3() -> void:
 	assert_equal(CatalogScript.fixed_enum("Severity"), {"INFO": 0, "ADVISORY": 1, "WARNING": 2, "CRITICAL": 3}, "Severity")
 
 
+func test_fixed_activity_enum_matches_gdd_4_3_exactly() -> void:
+	"""Decision 0018: Activity is protected data, numbered by §4.3 and never regenerated."""
+	var activity: Dictionary = CatalogScript.fixed_enum("Activity")
+	assert_equal(activity, {"SLEEP": 0, "ANYTHING": 1, "WORK": 2, "SOCIAL": 3}, "Activity enum")
+	assert_equal(activity.size(), 4, "all 4 Activity values are present")
+	assert_equal(CatalogScript.ACTIVITY, activity, "fixed_enum returns the ACTIVITY table itself")
+
+
+const EXPECTED_JOB_STATE: Dictionary = {
+	"QUEUED": 0, "RESERVED": 1, "TRAVEL": 2, "WORK": 3,
+	"HAUL_OUTPUT": 4, "COMPLETE": 5, "BLOCKED": 6, "CANCELLED": 7,
+}
+
+
+func test_fixed_job_state_enum_matches_gdd_4_3_exactly() -> void:
+	"""Decision 0018: JobState was absent from the codebase entirely; §4.3 numbers all eight.
+
+	The whole-dictionary comparison comes FIRST and is the load-bearing assertion. Indexing a
+	Dictionary with a key that a mutation removed aborts the rest of the method at runtime, so a
+	suite built only from per-key lookups reports PASS against a table with a missing member --
+	which is exactly how a deleted CANCELLED survived the first mutation run of this file."""
+	var job_state: Dictionary = CatalogScript.fixed_enum("JobState")
+	assert_equal(job_state, EXPECTED_JOB_STATE, "the whole JobState table")
+	assert_equal(job_state.size(), 8, "all 8 JobState values are present")
+	for key: String in EXPECTED_JOB_STATE:
+		assert_true(job_state.has(key), "JobState is missing %s" % key)
+		if job_state.has(key):
+			assert_equal(job_state[key], EXPECTED_JOB_STATE[key], "JobState.%s" % key)
+
+
+func test_the_whole_job_kind_and_zone_type_tables_are_unchanged() -> void:
+	"""Whole-table equality for the two enums with reserved gaps, so a dropped or renumbered
+	member fails an assertion rather than aborting a method mid-way through per-key lookups."""
+	assert_equal(CatalogScript.fixed_enum("JobKind"), {
+		"HAUL": 0, "BUILD": 1, "FISH": 2, "RESERVED_3": 3, "FORAGE": 4, "FARM": 5,
+		"COOK": 6, "PRESERVE": 7, "CRAFT": 8, "TEND": 9, "KEEP": 10, "HEAL": 11,
+	}, "the whole JobKind table")
+	assert_equal(CatalogScript.fixed_enum("ZoneType"), {
+		"FISH": 0, "RESERVED_1": 1, "FORAGE": 2, "FARM": 3, "ORCHARD": 4,
+		"FORESTRY": 5, "QUARRY": 6, "STOCKPILE": 7, "CONSERVATION": 8,
+	}, "the whole ZoneType table")
+
+
+func test_job_state_work_is_not_activity_work() -> void:
+	"""§4.3 gives WORK=3 in JobState and WORK=2 in Activity. Two enums, two numbers; confusing
+	them would silently mislabel a job phase as a schedule activity."""
+	assert_equal(CatalogScript.fixed_enum("JobState")["WORK"], 3, "JobState.WORK is 3")
+	assert_equal(CatalogScript.fixed_enum("Activity")["WORK"], 2, "Activity.WORK is 2")
+
+
+func test_activity_and_job_state_refuse_recompilation() -> void:
+	"""Decision 0018's whole point: the protected table is the thing that REFUSES a recompile,
+	so a sorted-key regeneration of either enum cannot produce IDs."""
+	var activity_keys: Array[StringName] = [&"SLEEP", &"ANYTHING", &"WORK", &"SOCIAL"]
+	var activity: CatalogScript.DomainResult = CatalogScript.compile_domain("Activity", activity_keys)
+	assert_false(activity.ok, "compiling Activity must refuse")
+	assert_true(activity.ids.is_empty(), "a refused compile produces no IDs")
+	var state_keys: Array[StringName] = [&"QUEUED", &"RESERVED", &"TRAVEL"]
+	var job_state: CatalogScript.DomainResult = CatalogScript.compile_domain("JobState", state_keys)
+	assert_false(job_state.ok, "compiling JobState must refuse")
+	assert_true(job_state.ids.is_empty(), "a refused compile produces no IDs")
+
+
+func test_every_protected_domain_has_a_fixed_enum_table() -> void:
+	"""A name in PROTECTED_ENUM_DOMAINS with no fixed_enum entry would refuse compilation while
+	publishing nothing, leaving that enum with no numbers at all."""
+	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 8, "eight protected enum domains")
+	for domain_name: String in CatalogScript.PROTECTED_ENUM_DOMAINS:
+		assert_false(CatalogScript.fixed_enum(domain_name).is_empty(),
+			"protected domain %s must publish a fixed enum table" % domain_name)
+		var refused: CatalogScript.DomainResult = CatalogScript.compile_domain(
+			domain_name, [&"A", &"B"] as Array[StringName]
+		)
+		assert_false(refused.ok, "protected domain %s must refuse recompilation" % domain_name)
+
+
 func test_fixed_enum_returns_empty_for_an_unknown_domain() -> void:
-	"""A domain name that is not one of the six protected enums yields no fixed data."""
+	"""A domain name that is not one of the eight protected enums yields no fixed data."""
 	assert_true(CatalogScript.fixed_enum("ItemDefinition").is_empty(), "not a fixed enum domain")
 
 

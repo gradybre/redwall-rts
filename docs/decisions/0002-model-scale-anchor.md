@@ -1,5 +1,5 @@
 # 0002 — Model scale is anchored on a 1.0 m mouse
-Date: 2026-09-05 · Status: Accepted
+Date: 2026-09-05 · Status: Accepted · **Amended 2026-09-06 (Brendan)**
 
 ## Decision
 The Small tier is **1.00 m**. Medium (1.49 m) and Large (2.55 m) are derived and
@@ -23,3 +23,27 @@ rather than the ratios — a plausible-looking scheme built on nothing.
 
 ## Source
 `docs/crowd_rendering_architecture.md` §9.1.
+
+
+## Amendment — approve a comparison, not final heights (Brendan, 2026-09-06)
+
+**Small stays 1.00 m.** Medium 1.49 m and Large 2.55 m are **comparison
+candidates only**, not approved values.
+
+Build a review scene containing:
+- Mouse beside hare/otter
+- Mouse and hare beside badger
+- All three beside the **same doorway, table and workbench**
+- Standing, walking, carrying and crouched poses
+- Both close inspection and the normal gameplay camera
+
+This tests community proportions and usable spaces, not only silhouette
+readability. **Define how height is measured** first, so ears, equipment and pose
+do not accidentally drive body normalisation.
+
+**Giant is deferred entirely.** The GDD excludes Giant residents from settlement
+release 1. Birds and serpents later need creature-specific body length, wingspan
+and clearance measurements — not one universal standing height.
+
+**No bulk generation until the applicable proportions are approved.**
+Decision 0020 puts scale on the critical path for movement assets (gate G04).

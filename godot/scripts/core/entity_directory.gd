@@ -278,14 +278,19 @@ func last_refusal() -> StringName:
 
 
 func clear() -> void:
-	"""Return every column and heap to its initial state without reallocating."""
+	"""Drop every row and refill both heaps without reallocating a column.
+
+	`_generation` and `_retired` are deliberately NOT reset. Zeroing the generation column
+	would hand the next create the very `(slot, generation)` pair a reference taken before
+	the clear still holds, and that reference would then validate against an unrelated row --
+	the aliasing ARCH-ID-002's generation counter exists to make impossible. Generations
+	therefore only ever move forward: across reuse, and across a clear as well.
+	"""
 	_persistent_id.fill(0)
-	_generation.fill(0)
 	_kind.fill(KIND_ANY)
 	_active.fill(0)
 	_typed_row.fill(NULL_SLOT)
 	_typed_owner_slot.fill(NULL_SLOT)
-	_retired.fill(0)
 	_rebuild_free_heaps()
 	_live_count = 0
 	_next_persistent_id = 1
@@ -314,10 +319,25 @@ func _allocate_columns() -> void:
 
 
 func _rebuild_free_heaps() -> void:
-	"""Fill both arenas with ascending indices, which is already a valid min-heap."""
+	"""Fill both arenas with ascending indices, which is already a valid min-heap.
+
+	A slot that has spent its last generation is left out and marked retired instead: handing
+	it back would need a wrapped generation, and a wrapped generation is exactly the collision
+	ARCH-ID-002 forbids. Ascending order survives the gaps, so the window stays a min-heap.
+	"""
+	var free_slots: int = 0
 	for slot: int in range(DIRECTORY_CAPACITY):
-		_free_heap[slot] = slot
-	_free_count = DIRECTORY_CAPACITY
+		if _generation[slot] >= MAX_INT32:
+			_retired[slot] = 1
+			continue
+		_free_heap[free_slots] = slot
+		free_slots += 1
+	_free_count = free_slots
+	_rebuild_kind_heaps()
+
+
+func _rebuild_kind_heaps() -> void:
+	"""Refill each kind's free-row window with that kind's rows in ascending order."""
 	for kind: int in range(KIND_COUNT):
 		var base: int = _kind_base[kind]
 		var capacity: int = KIND_CAPACITY[kind]

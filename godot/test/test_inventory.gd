@@ -12,6 +12,9 @@ extends "res://test/framework/test_case.gd"
 ## tool 1000 g.
 
 const InventoryScript := preload("res://scripts/core/inventory.gd")
+## Preloaded for the drift guard only: ARCH-STATE-004's 256 item keys are written down in
+## both modules and nothing but that test keeps the two copies agreeing.
+const CatalogScript := preload("res://scripts/core/catalog.gd")
 
 const ITEM_GRAIN: int = 0
 const ITEM_MEAL: int = 1
@@ -100,6 +103,25 @@ func test_item_masses_match_gdd_5_7() -> void:
 	assert_equal(_inv.item_mass_g(ITEM_TOOL), 1000, "tool is 1000 g")
 
 
+func test_item_id_space_does_not_drift_from_the_catalog() -> void:
+	"""DRIFT GUARD. ARCH-STATE-004 caps the compiled ItemDefinition domain at 256 keys, and
+	that 256 is written down twice: `catalog.gd`'s ITEM_DEFINITION_MAX_KEYS, which refuses a
+	larger domain, and this module's ITEM_CAPACITY, which sizes the mass, category and
+	conservation-ledger columns an item id indexes. If the catalog ever compiled more keys
+	than the inventory has columns for, every id past the smaller bound would be refused as
+	INVALID_ITEM_ID with a perfectly valid catalog entry behind it. Nothing enforces the
+	agreement, so this test does; giving one module ownership of the number is a cross-module
+	refactor this suite deliberately does not perform.
+	"""
+	assert_equal(InventoryScript.ITEM_CAPACITY, CatalogScript.ITEM_DEFINITION_MAX_KEYS, "item id space agrees with the catalog")
+	assert_equal(InventoryScript.ITEM_CAPACITY, 256, "ARCH-STATE-004's compiled key cap")
+	assert_false(_inv.is_item_registered(InventoryScript.ITEM_CAPACITY), "the id one past the cap is not registrable")
+	var refused: InventoryScript.OpResult = _inv.register_item(InventoryScript.ITEM_CAPACITY, 250, CATEGORY_FOOD)
+	assert_false(refused.ok, "registering past the cap refuses")
+	assert_equal(refused.error, InventoryScript.REFUSE_INVALID_ITEM_ID, "the refusal names the id")
+	assert_true(_inv.register_item(InventoryScript.ITEM_CAPACITY - 1, 250, CATEGORY_FOOD).ok, "the last id in range registers")
+
+
 func test_unregistered_item_is_refused() -> void:
 	"""Creating a lot of an item with no compiled mass refuses instead of assuming one."""
 	var container: Vector2i = _container()
@@ -127,16 +149,21 @@ func test_per_lot_rounding_differs_from_summed_total_rounding() -> void:
 	summed total 4*250 = 1000 would still say 1 g, so 2 g proves the per-lot rule is in force
 	and that splitting cannot manufacture free capacity (BAL-NUM-001, BAL-SAFE-016).
 	"""
-	var container: Vector2i = _container()
-	var parent: Vector2i = _lot(container, ITEM_GRAIN, 4)
-	var parent_debit: int = _inv.container_used_mass_g(container)
-	assert_equal(parent_debit, 1, "whole lot charges 1 g")
+	var split_container: Vector2i = _container()
+	var parent: Vector2i = _lot(split_container, ITEM_GRAIN, 4)
+	var parent_debit: int = _inv.container_used_mass_g(split_container)
 	var child: InventoryScript.OpResult = _inv.split_lot(parent, 1)
 	assert_true(child.ok, "split of unreserved quantity succeeds")
-	var summed_total_debit: int = 1
-	assert_equal(_inv.container_used_mass_g(container), 2, "per-lot ceiling charges 1 g + 1 g")
-	assert_true(_inv.container_used_mass_g(container) != summed_total_debit, "per-lot rounding differs from summed-total rounding")
-	assert_true(_inv.container_used_mass_g(container) >= parent_debit, "BAL-SAFE-016: children charge at least the parent")
+	var split_debit: int = _inv.container_used_mass_g(split_container)
+	# The comparison charge is the module's own, for the same 4 milli-U held as one lot --
+	# not a number this test computed, which would hold whatever the module did.
+	var whole_container: Vector2i = _container(BIG_MASS, OWNER_B)
+	_lot(whole_container, ITEM_GRAIN, 4)
+	var summed_total_debit: int = _inv.container_used_mass_g(whole_container)
+	assert_equal(summed_total_debit, 1, "the same quantity held whole charges one ceiling: 1 g")
+	assert_equal(split_debit, 2, "per-lot ceiling charges 1 g + 1 g")
+	assert_true(split_debit > summed_total_debit, "per-lot rounding charges strictly more than summed-total rounding")
+	assert_equal(parent_debit, summed_total_debit, "the parent charged the whole-lot debit before the split")
 	assert_equal(_inv.lot_quantity_milli(parent) + _inv.lot_quantity_milli(child.ref), 4, "split conserves quantity exactly")
 
 
@@ -534,7 +561,91 @@ func test_journal_exhaustion_refuses_and_rolls_back() -> void:
 	assert_true(_inv.state_bytes() == before, "the oversized transaction rolled back completely")
 
 
+func test_poisoning_does_not_outlive_the_transaction_that_caused_it() -> void:
+	"""is_transaction_poisoned() describes the OPEN transaction, so a closed one reports false.
+
+	The flag self-heals at the next begin(), which makes a stale `true` cosmetic rather than
+	dangerous -- but it is a public predicate, and between the close and the next begin it
+	answered a question about a transaction that no longer existed.
+	"""
+	var container: Vector2i = _container()
+	var lot: Vector2i = _lot(container, ITEM_GRAIN, 4000)
+	assert_true(_inv.begin().ok, "the transaction opens")
+	assert_false(_inv.reserve_lot(lot, 999999).ok, "a step refuses")
+	assert_true(_inv.is_transaction_poisoned(), "the open transaction reports itself poisoned")
+	assert_false(_inv.commit().ok, "commit reports the refusal")
+	assert_false(_inv.is_transaction_open(), "the transaction closed")
+	assert_false(_inv.is_transaction_poisoned(), "no open transaction, so nothing is poisoned")
+	assert_true(_inv.begin().ok, "a second transaction opens")
+	assert_false(_inv.reserve_lot(lot, 999999).ok, "a step refuses again")
+	_inv.abort()
+	assert_false(_inv.is_transaction_poisoned(), "abort clears the poison too")
+	assert_false(_inv.sink_lot_quantity(lot, -1).ok, "an implicit operation refuses")
+	assert_false(_inv.is_transaction_poisoned(), "an implicit operation leaves no poison behind")
+	assert_true(_inv.reserve_lot(lot, 1000).ok, "a valid operation still applies afterwards")
+
+
+func test_refusal_names_the_cause_that_actually_blocked_the_operation() -> void:
+	"""A claim far past the lot must report the claim, not a wrapped sum's phantom shortfall.
+
+	Deciding on `held + delta` means a delta near INT64_MAX wraps the sum negative, and a
+	negative sum reads as "released more than was held" -- the opposite of what the caller
+	asked for. Both bounds are therefore tested against the delta itself.
+	"""
+	var container: Vector2i = _container()
+	var lot: Vector2i = _lot(container, ITEM_GRAIN, 4000)
+	assert_true(_inv.reserve_lot(lot, 1000).ok, "a modest claim applies")
+	var wrapped: InventoryScript.OpResult = _inv.reserve_lot(lot, INT64_MAX)
+	assert_false(wrapped.ok, "a claim past the lot refuses")
+	assert_equal(wrapped.error, InventoryScript.REFUSE_RESERVED_EXCEEDS_QUANTITY, "the refusal names the claim, not a shortfall")
+	var shortfall: InventoryScript.OpResult = _inv.release_reservation(lot, 2000)
+	assert_false(shortfall.ok, "releasing more than is held refuses")
+	assert_equal(shortfall.error, InventoryScript.REFUSE_INSUFFICIENT_RESERVED, "and that one really is a shortfall")
+	assert_equal(_inv.lot_reserved_milli(lot), 1000, "neither refusal moved the claim")
+
+
+func test_container_mass_refusals_name_capacity_and_shortfall_separately() -> void:
+	"""INVALID_MASS means a zero delta only; the other two causes have their own codes."""
+	var container: Vector2i = _container(5000)
+	assert_true(_inv.reserve_container_mass(container, 1000).ok, "a commitment that fits applies")
+	var over: InventoryScript.OpResult = _inv.reserve_container_mass(container, 9000)
+	assert_false(over.ok, "a commitment past the container refuses")
+	assert_equal(over.error, InventoryScript.REFUSE_CAPACITY_EXCEEDED, "over capacity is named as capacity")
+	var under: InventoryScript.OpResult = _inv.release_container_mass(container, 4000)
+	assert_false(under.ok, "releasing more than is committed refuses")
+	assert_equal(under.error, InventoryScript.REFUSE_INSUFFICIENT_RESERVED, "under-release is named as a shortfall")
+	assert_equal(_inv.container_reserved_mass_g(container), 1000, "neither refusal moved the commitment")
+	var zero: InventoryScript.OpResult = _inv.reserve_container_mass(container, 0)
+	assert_false(zero.ok, "a zero commitment refuses")
+	assert_equal(zero.error, InventoryScript.REFUSE_INVALID_MASS, "a zero delta is what INVALID_MASS now means")
+
+
 # --- Stale refs -------------------------------------------------------------------------------
+
+func test_clear_does_not_let_a_pre_clear_ref_alias_a_rebuilt_row() -> void:
+	"""Refs taken before clear() must stay dead once the same slots are handed out again.
+
+	Emptying the store is not rewinding it. With both generation columns refilled with 1, the
+	first lot and container created after a clear are issued the identical `(slot, generation)`
+	pairs the caller was holding beforehand, and a stale ref then reads a quantity, charges
+	mass against, and retires a row it has nothing to do with.
+	"""
+	var stale_container: Vector2i = _container()
+	var stale_lot: Vector2i = _lot(stale_container, ITEM_GRAIN, 4000)
+	_inv.clear()
+	_inv.register_item(ITEM_WOOD, 5000, CATEGORY_MATERIAL)
+	var rebuilt_container: Vector2i = _container()
+	var rebuilt_lot: Vector2i = _lot(rebuilt_container, ITEM_WOOD, 2000)
+	assert_equal(rebuilt_container.x, stale_container.x, "the container slot is handed back")
+	assert_equal(rebuilt_lot.x, stale_lot.x, "the lot slot is handed back")
+	assert_true(rebuilt_container.y > stale_container.y, "the container generation moved forward")
+	assert_true(rebuilt_lot.y > stale_lot.y, "the lot generation moved forward")
+	assert_false(_inv.is_container_valid(stale_container), "the pre-clear container ref does not validate")
+	assert_false(_inv.is_lot_valid(stale_lot), "the pre-clear lot ref does not validate")
+	assert_equal(_inv.lot_quantity_milli(stale_lot), 0, "it cannot read the rebuilt lot's quantity")
+	assert_false(_inv.sink_lot_quantity(stale_lot, 1000).ok, "and it cannot consume from it")
+	assert_equal(_inv.lot_quantity_milli(rebuilt_lot), 2000, "the rebuilt lot is untouched")
+
 
 func test_stale_lot_ref_is_rejected_after_retirement() -> void:
 	"""A ref to a retired lot never validates again, even once its slot is reused."""
@@ -776,6 +887,32 @@ func test_audit_detects_a_container_over_its_capacity() -> void:
 	var result: InventoryScript.OpResult = _inv.audit()
 	assert_false(result.ok, "used + reserved above max is a breach audit must see")
 	assert_equal(result.error, InventoryScript.REFUSE_AUDIT_CAPACITY, "the refusal names the capacity invariant")
+
+
+func test_audit_scans_through_to_the_highest_row_ever_allocated() -> void:
+	"""audit() walks occupancy rather than capacity, so its bound must include the last slot.
+
+	The bound is one past the highest slot either store has handed out. Off by one, or reset
+	while rows are still live, and a breach in the newest container or the newest lot is
+	never looked at -- audit() would return clean over broken state, which is worse than not
+	auditing at all. The breaches below are planted in the LAST row of each store.
+	"""
+	var containers: Array[Vector2i] = []
+	for index: int in range(4):
+		containers.append(_container(10000, OWNER_A))
+	var last_container: Vector2i = containers[containers.size() - 1]
+	assert_equal(last_container.x, 3, "the fourth container took the highest slot")
+	var last_lot: Vector2i = _lot(last_container, ITEM_WOOD, 1000)
+	assert_true(_inv.audit().ok, "the honest state audits clean")
+	_inv._c_reserved_mass_g[last_container.x] = 6000
+	var breach: InventoryScript.OpResult = _inv.audit()
+	assert_false(breach.ok, "the breach in the highest container row is found")
+	assert_equal(breach.error, InventoryScript.REFUSE_AUDIT_CAPACITY, "the refusal names the capacity invariant")
+	_inv._c_reserved_mass_g[last_container.x] = 0
+	_inv._l_reserved_milli[last_lot.x] = 9000
+	var lot_breach: InventoryScript.OpResult = _inv.audit()
+	assert_false(lot_breach.ok, "the breach in the highest lot row is found")
+	assert_equal(lot_breach.error, InventoryScript.REFUSE_AUDIT_RESERVED, "the refusal names the reservation bound")
 
 
 func test_audit_detects_a_negative_reserved_mass() -> void:

@@ -247,7 +247,11 @@ func test_golden_field_fixture_grain_yield_and_seed_replacement() -> void:
 func test_golden_field_fixture_work_and_byproducts() -> void:
 	"""GDD §7.1 field fixture: 1152 WU of crop work; 272 cooking batches at 12 WU and 0.1 wood
 	U each, using 544 water U — 3264 cooking WU and 27.2 wood U in total."""
-	var crop_work_mwu: int = (64 * 4 + 64 * 8 + 64 * 6) * 1000
+	var sow_mwu: int = _assert_ok(IntMathScript.checked_mul(64, 4000), "sowing work").value
+	var tend_mwu: int = _assert_ok(IntMathScript.checked_mul(64, 8000), "tending work").value
+	var harvest_mwu: int = _assert_ok(IntMathScript.checked_mul(64, 6000), "harvest work").value
+	var tended_mwu: int = _assert_ok(IntMathScript.checked_add(sow_mwu, tend_mwu), "sow+tend").value
+	var crop_work_mwu: int = _assert_ok(IntMathScript.checked_add(tended_mwu, harvest_mwu), "crop work").value
 	assert_equal(crop_work_mwu, 1152000, "1152 WU of sowing/tending/harvest work")
 	var batches: int = _assert_ok(IntMathScript.floor_div(544000, 2000), "porridge batches").value
 	assert_equal(batches, 272, "544 U of grain makes 272 porridge batches")
@@ -261,16 +265,16 @@ func test_golden_winter_stock_fixture_rations_and_ingredients() -> void:
 	"""GDD §7.1 winter fixture: 200 residents need 17,280,000 NP over 12 days, covered by 8280 U
 	of ration at a 15% reserve margin, made in 2760 batches needing 5520 flour/2760 each of
 	dried_fish/nuts/water and 66240 WU."""
-	var winter_np: int = _winter_np(_demand_np(200, 0, 0)) * 12
+	var winter_np: int = _assert_ok(IntMathScript.checked_mul(_winter_np(_demand_np(200, 0, 0)), 12), "twelve winter days").value
 	assert_equal(winter_np, 17280000, "17,280,000 NP over 12 winter days")
 	var ration_needed_milli: int = _assert_ok(IntMathScript.ceil_div(winter_np * 1000, 2400), "ration need").value
 	var ration_milli: int = _assert_ok(IntMathScript.floor_div(ration_needed_milli * 115, 100), "reserve margin").value
 	assert_equal(ration_milli, 8280000, "8280 U of ration after the 15% reserve margin")
 	var batches: int = _assert_ok(IntMathScript.ceil_div(ration_milli, 3000), "ration batches").value
 	assert_equal(batches, 2760, "2760 ration batches")
-	assert_equal(batches * 2000, 5520000, "5520 U of flour")
-	assert_equal(batches * 1000, 2760000, "2760 U each of dried_fish/nuts/water")
-	assert_equal(batches * 24000, 66240000, "66240 WU of preservation work")
+	assert_equal(_assert_ok(IntMathScript.checked_mul(batches, 2000), "flour").value, 5520000, "5520 U of flour")
+	assert_equal(_assert_ok(IntMathScript.checked_mul(batches, 1000), "each ingredient").value, 2760000, "2760 U each of dried_fish/nuts/water")
+	assert_equal(_assert_ok(IntMathScript.checked_mul(batches, 24000), "preservation work").value, 66240000, "66240 WU of preservation work")
 
 
 func test_golden_winter_stock_fixture_mass_and_cellars() -> void:
@@ -282,10 +286,25 @@ func test_golden_winter_stock_fixture_mass_and_cellars() -> void:
 	assert_equal(cellars, 5, "5 cellars of 1,000,000g each")
 
 
+func _starter_ready_np() -> int:
+	"""GDD §7.1 starter stock: five ready foods, each `count x NP`, accumulated by the module.
+
+	Written out as a GDScript expression this sums to 408000 whatever int_math.gd does, which
+	is why it is accumulated through checked_mul/checked_add instead.
+	"""
+	var counts: PackedInt32Array = PackedInt32Array([60, 60, 80, 40, 40])
+	var np_each: PackedInt32Array = PackedInt32Array([2400, 1800, 800, 700, 1600])
+	var total: int = 0
+	for index: int in range(counts.size()):
+		var line: int = _assert_ok(IntMathScript.checked_mul(counts[index], np_each[index]), "starter line %d" % index).value
+		total = _assert_ok(IntMathScript.checked_add(total, line), "starter running total %d" % index).value
+	return total
+
+
 func test_golden_starter_food_fixture() -> void:
 	"""GDD §7.1 starter fixture: 408000 ready NP against a 74400 NP/day cohort demand gives
 	5.48 food-days (548 centi-days), rounded down rather than up."""
-	var starter_np: int = 60 * 2400 + 60 * 1800 + 80 * 800 + 40 * 700 + 40 * 1600
+	var starter_np: int = _starter_ready_np()
 	assert_equal(starter_np, 408000, "408000 NP of ready starter food")
 	var cohort_demand: int = _demand_np(10, 2, 0)
 	assert_equal(cohort_demand, 74400, "74400 NP/day for 10 small + 2 medium residents")

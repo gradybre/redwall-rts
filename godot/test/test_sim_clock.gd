@@ -101,9 +101,25 @@ func test_hours_and_minutes_advance_at_750_ticks_per_hour() -> void:
 	assert_equal(SimClockScript.calendar_at(750 * 17).clock_text(), "23:00", "tick 12750 clock text")
 
 
+func _first_boundary_tick_by_scan() -> int:
+	"""The earliest positive tick the module itself calls a day boundary, found by scanning.
+
+	Scanned rather than read from FIRST_MIDNIGHT_TICK so the assertion is about what
+	is_day_boundary() does, not about two constants agreeing with each other. A full day of
+	ticks is scanned, so a raw-modulo rule would be caught at 18000 as readily as at 13500.
+	"""
+	for tick: int in range(1, SimClockScript.TICKS_PER_DAY + 1):
+		if SimClockScript.is_day_boundary(tick):
+			return tick
+	fail("no day boundary in the first full day of ticks")
+	return 0
+
+
 func test_day_boundaries_use_the_offset_calendar_not_raw_modulo() -> void:
 	"""Boundaries are crossings of `(tick+4500) mod 18000`, never `tick mod 18000 == 0`."""
-	assert_true(SimClockScript.FIRST_MIDNIGHT_TICK % SimClockScript.TICKS_PER_DAY != 0, "13500 is not a raw multiple of 18000")
+	var first_boundary: int = _first_boundary_tick_by_scan()
+	assert_equal(first_boundary, SimClockScript.FIRST_MIDNIGHT_TICK, "the first boundary the module reports is 13500")
+	assert_true(first_boundary % SimClockScript.TICKS_PER_DAY != 0, "that boundary is not a raw multiple of the day length")
 	assert_true(SimClockScript.is_day_boundary(13500), "tick 13500 opens day 2")
 	assert_false(SimClockScript.is_day_boundary(18000), "tick 18000 is 06:00 of day 2, not a boundary")
 	assert_equal(SimClockScript.calendar_at(18000).hour, 6, "tick 18000 hour")
@@ -179,18 +195,32 @@ func test_normal_speed_runs_thirty_ticks_per_real_second() -> void:
 	assert_equal(_clock.completed_tick(), 30, "completed tick after one real second")
 
 
-func test_double_and_quadruple_run_exactly_two_and_four_times_the_ticks() -> void:
-	"""REQ-SET-003: the same elapsed real time yields exactly 2x and 4x as many identical ticks."""
-	assert_true(_clock.set_speed(SimClockScript.SPEED_DOUBLE), "2x accepted")
-	assert_equal(_run_frames(FRAMES_PER_REAL_SECOND, FRAME_USEC), 60, "ticks in one real second at 2x")
-	var quad: SimClockScript = SimClockScript.new()
-	assert_true(quad.set_pause(SimClockScript.PLAYER, false), "player pause released")
-	assert_true(quad.set_speed(SimClockScript.SPEED_QUADRUPLE), "4x accepted")
-	var quad_ticks: int = 0
+func _ticks_in_one_real_second(speed: int) -> int:
+	"""Run a fresh clock at `speed` for one real second of equal frames; return the ticks run."""
+	var clock: SimClockScript = SimClockScript.new()
+	assert_true(clock.set_pause(SimClockScript.PLAYER, false), "player pause released at %dx" % speed)
+	assert_true(clock.set_speed(speed), "%dx accepted" % speed)
+	var ticks: int = 0
 	for _index: int in FRAMES_PER_REAL_SECOND:
-		quad_ticks += quad.advance(FRAME_USEC)
+		ticks += clock.advance(FRAME_USEC)
+	return ticks
+
+
+func test_double_and_quadruple_run_exactly_two_and_four_times_the_ticks() -> void:
+	"""REQ-SET-003: the same elapsed real time yields exactly 2x and 4x as many identical ticks.
+
+	The multiples are asserted against the 1x rate this same clock actually runs, measured in
+	this test. Comparing 120 to a written-out `4 * 30` compares two literals and holds even
+	if advance() never runs a tick at any speed.
+	"""
+	var single_ticks: int = _ticks_in_one_real_second(SimClockScript.SPEED_NORMAL)
+	var double_ticks: int = _ticks_in_one_real_second(SimClockScript.SPEED_DOUBLE)
+	var quad_ticks: int = _ticks_in_one_real_second(SimClockScript.SPEED_QUADRUPLE)
+	assert_equal(single_ticks, 30, "ticks in one real second at 1x")
+	assert_equal(double_ticks, 60, "ticks in one real second at 2x")
 	assert_equal(quad_ticks, 120, "ticks in one real second at 4x")
-	assert_equal(quad_ticks, 4 * 30, "4x is exactly four times the 1x rate")
+	assert_equal(double_ticks, single_ticks * 2, "2x runs exactly twice the ticks 1x runs")
+	assert_equal(quad_ticks, single_ticks * 4, "4x runs exactly four times the ticks 1x runs")
 
 
 func test_speed_change_does_not_clear_a_pause_reason() -> void:

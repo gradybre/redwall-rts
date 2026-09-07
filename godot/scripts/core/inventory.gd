@@ -305,6 +305,15 @@ var _out_value: int = 0
 ## audit()'s per-item live tally, allocated once with the other columns (ARCH-MEM-005) and
 ## refilled rather than rebuilt on each audit.
 var _audit_live_milli: PackedInt64Array = PackedInt64Array()
+## One past the highest slot either store has ever handed out. NOT authoritative state and
+## NOT a count of live rows: it is a conservative upper bound on where a live row can be,
+## which lets the diagnostic walks below scan occupancy instead of capacity. Every live row
+## was allocated, so no live row sits at or above it. It only grows within a run -- a
+## rollback that un-allocates a slot leaves it high, which is still a correct bound -- it is
+## never journaled, and state_bytes() excludes it, because two byte images of identical
+## authoritative state must not differ over a scan hint.
+var _c_slot_high_water: int = 0
+var _l_slot_high_water: int = 0
 
 
 func _init(p_container_capacity: int = CONTAINER_CAPACITY, p_lot_capacity: int = LOT_CAPACITY) -> void:
@@ -374,6 +383,10 @@ func clear() -> void:
 	"""Return every store to its empty state by refilling the existing buffers.
 
 	Never calls resize(): ARCH-MEM-001 allocates once, and updates must not reallocate.
+
+	Emptying a store is not the same as rewinding it. Both generation columns step FORWARD
+	here instead of being refilled with 1, so a lot or container ref taken before the clear
+	can never validate against a row handed out after it; see _advance_generations().
 	"""
 	_clear_container_rows()
 	_clear_lot_rows()
@@ -393,7 +406,6 @@ func _clear_container_rows() -> void:
 	_c_owner_slot.fill(NULL_SLOT)
 	_c_owner_generation.fill(NULL_GENERATION)
 	_c_policy.fill(UNSET_POLICY)
-	_c_generation.fill(1)
 	_c_lot_count.fill(0)
 	_c_first_lot.fill(NULL_SLOT)
 	_c_max_mass_g.fill(0)
@@ -402,10 +414,10 @@ func _clear_container_rows() -> void:
 	_c_used_mass_g.fill(0)
 	_c_live.fill(0)
 	_c_reachable.fill(0)
-	for i: int in range(_c_capacity):
-		_c_free[i] = _c_capacity - 1 - i
-	_c_free_count = _c_capacity
+	_advance_generations(_c_generation, _c_capacity)
+	_c_free_count = _refill_free_stack(_c_free, _c_generation, _c_capacity)
 	_c_live_count = 0
+	_c_slot_high_water = 0
 
 
 func _clear_lot_rows() -> void:
@@ -416,7 +428,6 @@ func _clear_lot_rows() -> void:
 	_l_recipe_id.fill(0)
 	_l_container_slot.fill(NULL_SLOT)
 	_l_container_generation.fill(NULL_GENERATION)
-	_l_generation.fill(1)
 	_l_next.fill(NULL_SLOT)
 	_l_prev.fill(NULL_SLOT)
 	_l_quantity_milli.fill(0)
@@ -424,10 +435,42 @@ func _clear_lot_rows() -> void:
 	_l_age_milli_hours.fill(0)
 	_l_age_remainder.fill(0)
 	_l_live.fill(0)
-	for i: int in range(_l_capacity):
-		_l_free[i] = _l_capacity - 1 - i
-	_l_free_count = _l_capacity
+	_advance_generations(_l_generation, _l_capacity)
+	_l_free_count = _refill_free_stack(_l_free, _l_generation, _l_capacity)
 	_l_live_count = 0
+	_l_slot_high_water = 0
+
+
+func _advance_generations(generations: PackedInt32Array, capacity: int) -> void:
+	"""Step every slot's generation one past the value it last handed out.
+
+	A generation column refilled with 1 hands the next create the very `(slot, generation)`
+	pair a ref taken before the clear still holds, and that ref then reads and mutates an
+	unrelated row. Generations only move forward -- on free, and across a clear. A slot whose
+	generation is spent is left at its maximum; _refill_free_stack() then keeps it out of the
+	pool, so nothing here can wrap an int32 column negative.
+	"""
+	for slot: int in range(capacity):
+		if generations[slot] < MAX_INT32:
+			generations[slot] += 1
+
+
+func _refill_free_stack(stack: PackedInt32Array, generations: PackedInt32Array, capacity: int) -> int:
+	"""Rebuild a free stack highest-slot-first and return how many slots it holds.
+
+	The count is returned rather than assumed to be the capacity because a slot whose
+	generation is spent is skipped: handing it out again would need a wrapped generation,
+	which is the aliasing the generation column exists to prevent.
+	"""
+	stack.fill(NULL_SLOT)
+	var pushed: int = 0
+	var slot: int = capacity - 1
+	while slot >= 0:
+		if generations[slot] < MAX_INT32:
+			stack[pushed] = slot
+			pushed += 1
+		slot -= 1
+	return pushed
 
 
 # --- Item registry (catalog time) ---------------------------------------------------------
@@ -503,10 +546,10 @@ func commit() -> OpResult:
 	if _tx_poisoned:
 		var code: StringName = _tx_error
 		_rollback()
-		_tx_open = false
+		_close_transaction()
 		return _refuse(code)
 	_j_count = 0
-	_tx_open = false
+	_close_transaction()
 	return _ok(NULL_REF, 0)
 
 
@@ -515,7 +558,7 @@ func abort() -> void:
 	if not _tx_open:
 		return
 	_rollback()
-	_tx_open = false
+	_close_transaction()
 
 
 func is_transaction_open() -> bool:
@@ -524,8 +567,26 @@ func is_transaction_open() -> bool:
 
 
 func is_transaction_poisoned() -> bool:
-	"""True when an operation in the open transaction refused, so commit() will roll back."""
+	"""True when an operation in the OPEN transaction refused, so commit() will roll back.
+
+	False whenever no transaction is open: the flag is cleared as the transaction closes, so
+	this predicate never reports a poisoning that belongs to a sequence already finished.
+	"""
 	return _tx_poisoned
+
+
+func _close_transaction() -> void:
+	"""Close the open transaction and clear the poison that belonged to it.
+
+	The flag describes the transaction accepting operations right now. Left raised past
+	commit(), abort() or the implicit close in _leave(), it would have a caller asking a
+	store with no transaction open and being told one of its operations refused -- true of
+	the past, false of the object. _open_transaction() lowering it again at the next begin()
+	makes the lie short-lived, not correct.
+	"""
+	_tx_open = false
+	_tx_poisoned = false
+	_tx_error = REFUSE_NONE
 
 
 func _open_transaction() -> void:
@@ -568,7 +629,7 @@ func _leave(owned: bool, code: StringName) -> OpResult:
 			_rollback()
 		else:
 			_j_count = 0
-		_tx_open = false
+		_close_transaction()
 	if failed:
 		return OpResult.new(false, code, NULL_REF, 0)
 	return OpResult.new(true, REFUSE_NONE, _out_ref, _out_value)
@@ -711,12 +772,17 @@ func _journal_scalar(kind: int, index: int, old_value: int) -> void:
 func _alloc_lot_slot() -> int:
 	"""Pop the next free lot slot, or NULL_SLOT when the lot store is full.
 
-	The pop writes nothing, so a rollback restores it by resetting the saved free count alone.
+	The pop writes no authoritative state, so a rollback restores it by resetting the saved
+	free count alone; the high-water mark it raises is a scan bound, not state, and a
+	rollback deliberately leaves it raised.
 	"""
 	if _l_free_count == 0:
 		return NULL_SLOT
 	_l_free_count -= 1
-	return _l_free[_l_free_count]
+	var slot: int = _l_free[_l_free_count]
+	if slot >= _l_slot_high_water:
+		_l_slot_high_water = slot + 1
+	return slot
 
 
 func _free_lot_slot(slot: int) -> void:
@@ -738,7 +804,10 @@ func _alloc_container_slot() -> int:
 	if _c_free_count == 0:
 		return NULL_SLOT
 	_c_free_count -= 1
-	return _c_free[_c_free_count]
+	var slot: int = _c_free[_c_free_count]
+	if slot >= _c_slot_high_water:
+		_c_slot_high_water = slot + 1
+	return slot
 
 
 func _free_container_slot(slot: int) -> void:
@@ -862,22 +931,33 @@ func release_container_mass(container_ref: Vector2i, mass_g: int) -> OpResult:
 
 
 func _change_reserved_mass(container_ref: Vector2i, delta_g: int) -> StringName:
-	"""Validate then apply a signed change to the container's reserved mass."""
+	"""Validate then apply a signed change to the container's reserved mass.
+
+	The cause is established BEFORE the arithmetic, so the reported code names the real
+	reason. Deciding on the sum first reported a commitment the container could not take as
+	INVALID_MASS -- an argument the caller had passed correctly. INVALID_MASS now means only
+	a delta of zero; over-capacity is CAPACITY_EXCEEDED and releasing more than is held is
+	INSUFFICIENT_RESERVED.
+	"""
 	var guard: StringName = _guard()
 	if guard != REFUSE_NONE:
 		return guard
 	if not is_container_valid(container_ref):
 		return REFUSE_INVALID_CONTAINER
-	var slot: int = container_ref.x
-	if not IntMath.checked_add_into(_c_reserved_mass_g[slot], delta_g, _math):
-		return REFUSE_OVERFLOW
-	var next: int = _math.value
-	if delta_g == 0 or next < 0:
+	if delta_g == 0:
 		return REFUSE_INVALID_MASS
+	var slot: int = container_ref.x
+	var held: int = _c_reserved_mass_g[slot]
 	if delta_g > 0:
 		var fits: StringName = _check_fits(slot, delta_g)
 		if fits != REFUSE_NONE:
 			return fits
+	elif delta_g < -held:
+		# `-held` cannot overflow (held >= 0), where negating delta_g could.
+		return REFUSE_INSUFFICIENT_RESERVED
+	if not IntMath.checked_add_into(held, delta_g, _math):
+		return REFUSE_OVERFLOW
+	var next: int = _math.value
 	_journal_container(slot)
 	_c_reserved_mass_g[slot] = next
 	return _succeed(NULL_REF, next)
@@ -1624,7 +1704,14 @@ func release_all_reservations(lot_ref: Vector2i) -> OpResult:
 
 
 func _change_reservation(lot_ref: Vector2i, delta_milli: int) -> StringName:
-	"""Validate then apply a signed change to a lot's reserved quantity."""
+	"""Validate then apply a signed change to a lot's reserved quantity.
+
+	Each bound is tested against the delta itself rather than against the sum, for the same
+	reason as _change_reserved_mass(): `held + delta` wraps for a delta near INT64_MAX, and a
+	wrapped sum reads as negative, so a claim far larger than the lot holds was reported as
+	INSUFFICIENT_RESERVED -- the opposite of what happened. Neither comparison below can
+	overflow: `held` and `quantity` are non-negative with `held <= quantity`.
+	"""
 	var guard: StringName = _guard()
 	if guard != REFUSE_NONE:
 		return guard
@@ -1633,11 +1720,12 @@ func _change_reservation(lot_ref: Vector2i, delta_milli: int) -> StringName:
 	if delta_milli == 0:
 		return REFUSE_INVALID_QUANTITY
 	var slot: int = lot_ref.x
-	var next: int = _l_reserved_milli[slot] + delta_milli
-	if next < 0:
-		return REFUSE_INSUFFICIENT_RESERVED
-	if next > _l_quantity_milli[slot]:
+	var held: int = _l_reserved_milli[slot]
+	if delta_milli > _l_quantity_milli[slot] - held:
 		return REFUSE_RESERVED_EXCEEDS_QUANTITY
+	if delta_milli < -held:
+		return REFUSE_INSUFFICIENT_RESERVED
+	var next: int = held + delta_milli
 	_journal_lot(slot)
 	_l_reserved_milli[slot] = next
 	return _succeed(lot_ref, next)
@@ -1811,9 +1899,14 @@ func total_sunk_milli(item_id: int) -> int:
 
 
 func total_live_milli(item_id: int) -> int:
-	"""Quantity of an item currently held across every container, re-derived from the rows."""
+	"""Quantity of an item currently held across every container, re-derived from the rows.
+
+	DIAGNOSTIC, not a per-tick query: it walks the lot column rather than reading a
+	maintained total. The walk is bounded by the highest slot ever allocated, so it costs
+	occupancy and not the 16384-row capacity, but it is still a linear scan.
+	"""
 	var total: int = 0
-	for slot: int in range(_l_capacity):
+	for slot: int in range(_l_slot_high_water):
 		if _l_live[slot] == 1 and _l_item_id[slot] == item_id:
 			total += _l_quantity_milli[slot]
 	return total
@@ -1824,8 +1917,18 @@ func total_live_milli(item_id: int) -> int:
 func audit() -> OpResult:
 	"""Re-derive every invariant from the row columns and refuse on the first violation.
 
-	Checks conservation per item, `reserved <= quantity` per lot, and each container's used
-	mass and lot count against a fresh walk of its list. Nothing here trusts a running total.
+	NOT A PRODUCTION CALL. This is a verification tool for tests, save/load checks and debug
+	builds. Do NOT call it from a simulation tick, a UI refresh, or any per-frame path: it
+	re-derives conservation per item, `reserved <= quantity` per lot, and every container's
+	used mass, lot count and capacity bound from a fresh walk, trusting no running total.
+	That is the whole point of it, and it is why it costs a full pass over the occupied part
+	of both stores. Measured at spec capacity, it costs 2.1 ms with 2000 containers and 2000
+	lots live -- past the 2 ms economy-tick budget on its own, at a fraction of full.
+
+	The passes are bounded by the highest slot each store has ever handed out rather than by
+	capacity, so an audit of a lightly occupied store is proportional to what it holds. The
+	invariants checked are exactly the same; only the range that cannot contain a live row is
+	skipped.
 	"""
 	var code: StringName = _audit_lots()
 	if code == REFUSE_NONE:
@@ -1837,7 +1940,7 @@ func audit() -> OpResult:
 
 func _audit_lots() -> StringName:
 	"""Verify the per-lot reservation bound across every live lot."""
-	for slot: int in range(_l_capacity):
+	for slot: int in range(_l_slot_high_water):
 		if _l_live[slot] != 1:
 			continue
 		if _l_reserved_milli[slot] > _l_quantity_milli[slot] or _l_reserved_milli[slot] < 0:
@@ -1847,7 +1950,7 @@ func _audit_lots() -> StringName:
 
 func _audit_containers() -> StringName:
 	"""Verify every live container's cached mass, lot count and capacity bound from its rows."""
-	for slot: int in range(_c_capacity):
+	for slot: int in range(_c_slot_high_water):
 		if _c_live[slot] != 1:
 			continue
 		var row: StringName = _audit_container_row(slot)
@@ -1899,7 +2002,7 @@ func _audit_conservation() -> StringName:
 	array resized per call (ARCH-MEM-005 allocates once).
 	"""
 	_audit_live_milli.fill(0)
-	for slot: int in range(_l_capacity):
+	for slot: int in range(_l_slot_high_water):
 		if _l_live[slot] == 1:
 			_audit_live_milli[_l_item_id[slot]] += _l_quantity_milli[slot]
 	for item_id: int in range(ITEM_CAPACITY):
@@ -1913,8 +2016,20 @@ func _audit_conservation() -> StringName:
 func state_bytes() -> PackedByteArray:
 	"""Exact serialization of all authoritative state, for byte-identical rollback checks.
 
+	NOT A PRODUCTION CALL, and the most expensive method on this class. It builds a fresh
+	buffer holding every column at its FULL allocated length -- roughly 7.5 MB at spec
+	capacity, in milliseconds -- so that two images can be compared byte for byte. Use it in
+	tests and verification harnesses only; never on a tick, a frame, or a UI refresh.
+
+	Unlike audit(), this one cannot be bounded to occupancy: the comparison it exists for
+	requires the image to depend on authoritative state alone. Trimming it to the highest
+	slot allocated so far would make two images of identical state differ in length whenever
+	an allocation happened and was rolled back between them, which is precisely the case the
+	rollback checks are testing.
+
 	The journal arena is excluded: it is scratch that both commit() and rollback() reset, and
-	its residue is not part of the simulation.
+	its residue is not part of the simulation. The high-water scan bounds are excluded for
+	the same reason -- they are not state.
 	"""
 	var out: PackedByteArray = PackedByteArray()
 	_append_lot_state(out)

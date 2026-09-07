@@ -15,9 +15,16 @@ extends "res://test/framework/test_case.gd"
 
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
+## Preloaded for the drift guard below only: these modules duplicate spec numbers this one
+## also carries, and nothing but that test keeps the copies agreeing.
+const InventoryScript := preload("res://scripts/core/inventory.gd")
+const IntMathScript := preload("res://scripts/core/int_math.gd")
 
 const PERF_ENTITY_COUNT: int = 1000
 const PERF_BUDGET_MSEC: float = 16.0
+## Repeats of the timed pass. The budget is checked against the fastest sample, so a machine
+## that deschedules one pass does not fail a build the code did not break.
+const PERF_SAMPLES: int = 3
 const CHURN_CYCLES: int = 2000
 
 var _directory: EntityDirectoryScript = null
@@ -291,6 +298,24 @@ func test_kind_capacities_sum_to_the_directory_length() -> void:
 	assert_equal(_directory.capacity_of_kind(EntityDirectoryScript.KIND_RESIDENT), 512, "resident storage is 512 slots")
 
 
+func test_spec_capacities_do_not_drift_from_the_inventory_copies() -> void:
+	"""DRIFT GUARD. ARCH-MEM-002's 101376 containers and GDD §4.2's 16384 lots are written
+	down twice -- once in this directory's per-kind capacity table and once as
+	`inventory.gd`'s own CONTAINER_CAPACITY/LOT_CAPACITY -- and int32's bound is written down
+	twice again. The two stores must size to the same numbers or a lot can exist in one and
+	not the other. Nothing in either module enforces that, so this test does: if a future
+	edit changes one copy, this fails loudly instead of the mismatch surfacing as a capacity
+	refusal no caller expected. Ownership belongs in one module, which is a cross-module
+	refactor this suite deliberately does not perform.
+	"""
+	assert_equal(_directory.capacity_of_kind(EntityDirectoryScript.KIND_INVENTORY_CONTAINER), InventoryScript.CONTAINER_CAPACITY, "container capacity agrees with inventory.gd")
+	assert_equal(_directory.capacity_of_kind(EntityDirectoryScript.KIND_INVENTORY_LOT), InventoryScript.LOT_CAPACITY, "lot capacity agrees with inventory.gd")
+	assert_equal(EntityDirectoryScript.KIND_CAPACITY[EntityDirectoryScript.KIND_INVENTORY_CONTAINER], 101376, "ARCH-MEM-002 container count")
+	assert_equal(EntityDirectoryScript.KIND_CAPACITY[EntityDirectoryScript.KIND_INVENTORY_LOT], 16384, "GDD §4.2 live lot count")
+	assert_equal(EntityDirectoryScript.MAX_INT32, InventoryScript.MAX_INT32, "int32 bound agrees with inventory.gd")
+	assert_equal(EntityDirectoryScript.MAX_INT32, IntMathScript.INT32_MAX, "int32 bound agrees with int_math.gd")
+
+
 func test_kind_ids_follow_ascending_ascii_keys() -> void:
 	"""ARCH-ID-001 fixes kind IDs as the index of each key in ascending ASCII order."""
 	var keys: Array[StringName] = EntityDirectoryScript.KIND_KEYS
@@ -345,13 +370,51 @@ func test_clear_resets_the_directory() -> void:
 	assert_equal(_directory.free_slot_count(), EntityDirectoryScript.DIRECTORY_CAPACITY, "every slot is free again")
 	assert_equal(_directory.free_row_count(EntityDirectoryScript.KIND_FEAST), 1, "the feast row returned to its pool")
 	var rebuilt: Vector2i = _directory.create(EntityDirectoryScript.KIND_RESIDENT)
-	assert_equal(rebuilt, Vector2i(0, 1), "allocation restarts at slot 0 generation 1")
+	assert_equal(rebuilt.x, 0, "allocation restarts at slot 0")
 	assert_equal(_directory.get_persistent_id(rebuilt), 1, "the persistent id counter restarted")
 
 
-func test_thousand_entity_lifecycle_within_frame_budget() -> void:
-	"""Create, validate and destroy 1000 directory rows inside a single 16ms frame."""
-	var timer := PerfTimerScript.new()
+func test_clear_does_not_let_a_pre_clear_reference_alias_a_rebuilt_row() -> void:
+	"""The reference taken before clear() must stay dead once the same slot is handed out again.
+
+	Asserting invalidity only in the gap between clear() and the next create proves nothing:
+	no row is live there, so every reference is invalid for the trivial reason. The aliasing
+	shows up one create later, when the slot comes back -- with a reset generation column it
+	comes back as the identical `(slot, generation)` pair and the stale reference reads and
+	destroys a row that has nothing to do with it.
+	"""
+	var stale: Vector2i = _directory.create(EntityDirectoryScript.KIND_RESIDENT)
+	assert_equal(stale.y, 1, "the pre-clear reference is issued at generation 1")
+	_directory.clear()
+	var rebuilt: Vector2i = _directory.create(EntityDirectoryScript.KIND_RESIDENT)
+	assert_equal(rebuilt.x, stale.x, "the same slot is handed back after the clear")
+	assert_true(rebuilt.y > stale.y, "the rebuilt row carries a generation past the cleared one")
+	assert_false(_directory.is_valid(stale), "the pre-clear reference does not validate against it")
+	assert_equal(_directory.get_persistent_id(stale), 0, "the pre-clear reference reads no identity")
+	assert_equal(_directory.get_typed_row(stale), EntityDirectoryScript.NULL_SLOT, "and no typed row")
+	assert_false(_directory.destroy(stale), "the pre-clear reference cannot destroy the rebuilt row")
+	assert_true(_directory.is_valid(rebuilt), "the rebuilt row survived the stale destroy")
+
+
+func test_clear_does_not_resurrect_a_generation_exhausted_slot() -> void:
+	"""A retired slot stays retired across clear(); reuse would need a wrapped generation."""
+	_force_generation(0, EntityDirectoryScript.MAX_INT32 - 1)
+	var final_use: Vector2i = _directory.create(EntityDirectoryScript.KIND_RESIDENT)
+	assert_equal(final_use.y, EntityDirectoryScript.MAX_INT32, "the last generation is issued")
+	_directory.clear()
+	assert_true(_directory.is_slot_retired(0), "the exhausted slot is still retired after clear")
+	assert_equal(_directory.free_slot_count(), EntityDirectoryScript.DIRECTORY_CAPACITY - 1, "it stayed out of the pool")
+	assert_equal(_directory.create(EntityDirectoryScript.KIND_RESIDENT).x, 1, "the next create skips it")
+	assert_false(_directory.is_valid(final_use), "the exhausted reference never validates again")
+
+
+func _measure_lifecycle_usec() -> int:
+	"""Time one create/validate/destroy pass over PERF_ENTITY_COUNT rows, asserting correctness.
+
+	The functional assertions are the point of the pass; the duration it returns is only the
+	sample the budget assertion takes its minimum over.
+	"""
+	var timer: PerfTimerScript = PerfTimerScript.new()
 	var refs: Array[Vector2i] = []
 	timer.start()
 	for index: int in range(PERF_ENTITY_COUNT):
@@ -362,7 +425,25 @@ func test_thousand_entity_lifecycle_within_frame_budget() -> void:
 			validated += 1
 	for ref: Vector2i in refs:
 		_directory.destroy(ref)
-	var elapsed_msec: float = timer.stop() / 1000.0
+	var elapsed_usec: int = timer.stop()
 	assert_equal(validated, PERF_ENTITY_COUNT, "every reference validated")
 	assert_equal(_directory.total_live_count(), 0, "every row was released")
-	assert_less_than(elapsed_msec, PERF_BUDGET_MSEC, "1000-row lifecycle stays under the frame budget")
+	return elapsed_usec
+
+
+func test_thousand_entity_lifecycle_within_frame_budget() -> void:
+	"""Create, validate and destroy 1000 directory rows inside a single 16ms frame.
+
+	Wall clock on a shared machine is noisy in one direction only: a descheduled run can be
+	arbitrarily slow, but no run can finish faster than the work takes. The budget is
+	therefore asserted against the FASTEST of PERF_SAMPLES identical passes, which discards a
+	scheduling hiccup without ever hiding a real regression -- if the operation genuinely
+	costs more than the budget, every sample exceeds it and the minimum does too. The margin
+	is wide by construction: the pass is 3000 O(log n) heap operations against a budget of a
+	whole 16 ms frame, and it measures in the low hundreds of microseconds here, so only a
+	regression of more than an order of magnitude trips it.
+	"""
+	var fastest_usec: int = _measure_lifecycle_usec()
+	for sample: int in range(PERF_SAMPLES - 1):
+		fastest_usec = mini(fastest_usec, _measure_lifecycle_usec())
+	assert_less_than(float(fastest_usec) / 1000.0, PERF_BUDGET_MSEC, "1000-row lifecycle stays under the frame budget")

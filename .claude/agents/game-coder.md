@@ -1,7 +1,7 @@
 ---
 name: game-coder
 description: Implements game logic, Godot GDScript code, and interfaces with Blender MCP based on active tasks. Use for core development.
-tools: Read, Write, Edit, Glob, Grep, mcp__blender__get_scene_info, mcp__blender__get_object_info, mcp__blender__execute_blender_code, mcp__blender__get_viewport_screenshot, mcp__blender__get_addon_status
+tools: Read, Write, Edit, Bash, Glob, Grep, mcp__blender__get_scene_info, mcp__blender__get_object_info, mcp__blender__execute_blender_code, mcp__blender__get_viewport_screenshot, mcp__blender__get_addon_status
 model: inherit
 ---
 
@@ -68,6 +68,36 @@ report that rather than trying to launch it.
   conventionally uses +Z front, so a model can pass every automated check and
   still face backwards. Flag it for a human eye.
 
-You have **no Bash**, so you cannot run tests. Hand verification to
-`test-runner`. You also cannot spend Meshy credits — generation stays with the
-main session, which must confirm cost with the user first.
+## Verify your own work
+
+You have Bash. **Run the suite on what you wrote and iterate until it is green
+before reporting.** An agent that cannot run its own code does not know whether
+it works.
+
+```bash
+godot --headless --path godot --script test/run_tests.gd
+godot --headless --path godot --editor --quit
+```
+
+`--path godot` is mandatory — from the repository root `godot` finds no
+`project.godot`, opens the project manager, imports nothing and **exits 0**, so
+success and total no-op are indistinguishable.
+
+- **Mutation-test your own tests.** Break the line you just wrote and confirm a
+  test fails. A test that passes against broken code is worse than no test — this
+  has already been found twice here, once on a 352418-entry column whose
+  validation could be replaced with `return true` with the whole suite still
+  green.
+- Report the **exact** final runner line and the count. Never round or paraphrase.
+- Never weaken or delete an existing test to make your change pass. If a fix
+  legitimately changes a tested behaviour, update the test and say so.
+- Scratch scripts go in `/tmp`, never `godot/test/` — the runner collects
+  anything matching `test_*.gd`. Keep timing loops small and bounded; delete them
+  afterwards.
+
+`test-runner` still verifies independently afterwards. Your run is for
+iterating; its run is the evidence, because an author confirming their own work
+is the weakest form of it.
+
+You cannot spend Meshy credits — generation stays with the main session, which
+must confirm cost with the user first.

@@ -200,3 +200,32 @@ timing data point decision 0016 needs before its options can be judged.
 - 38 tests. Mutation-tested against every load-bearing rule; three mutants
   survived the first pass and were closed with new tests rather than accepted.
 - **U4 is resolved.** Task 2.5's inventory module is otherwise unchanged.
+
+### 2.12 — Job store and selection (**done**)
+- **Owns** `godot/scripts/core/jobs.gd`, `godot/test/test_jobs.gd`
+- **Spec** GDD §5.3, §4.2/§4.3 (`Job`, `JobAgent`), ARCH-JOB-002, decision 0018
+- Implements six of GDD §5.3's seven eligibility steps (health/rescue safety,
+  activity permits work, job-kind priority nonzero, required station/tool/
+  skill/unlock, dangerous consent, complete inputs), all five ascending
+  urgency buckets, five of the six sort terms
+  (`player_priority, job_priority, -skill_level, created_tick, job_id`), the
+  30-tick reevaluation cadence staggered by persistent resident ID, and the
+  32-candidate budget with a saved per-resident cursor that resumes rather
+  than restarting. `evaluate()` selects but does not assign; it mutates only
+  the resident's scan cursor and hazard latch, leaving atomic reservation
+  (REQ-SET-030) to a caller composing this module with `reservations.gd`.
+- **Named absences, not invented values.** Eligibility step 7 ("legal
+  destination") and the `estimated_path_cells` sort term are both absent
+  because no pathfinder exists this milestone; two candidates differing only
+  in distance fall through to `created_tick` and then `job_id` rather than
+  being ordered by a fabricated distance. Travel leases and the 900-tick
+  blocked retry (ARCH-JOB-004), the WU/XP model, `ManualTask` (blocked by
+  U6), and decision 0017's coordinator Job are all absent. The store does not
+  itself prevent the coordinator: `worker` defaults to the null reference and
+  `release_worker()` leaves `remaining_mwu` untouched, which is the exact
+  separation 0017 needs from whichever module builds it.
+- **Acceptance** each eligibility step has a test that fails when that step is
+  deleted; the five implemented sort terms are proven with candidates
+  differing in exactly one dimension at a time; the cursor is proven with a
+  pass over more than 32 candidates.
+- 50 tests, 21 mutations applied, none survived.

@@ -4,6 +4,15 @@ extends RefCounted
 ## GUT is not vendored into this repo, so suites extend this instead. Suites
 ## live in `res://test/` as `test_<module>.gd`; every method named `test_*` is
 ## run once, wrapped in before_each()/after_each().
+##
+## EVERY TEST METHOD MUST MAKE AT LEAST ONE ASSERTION. `assertions` is a running
+## total for the whole suite, and the runner reads it as a before/after delta
+## around each method: a method that leaves it unchanged is reported as a
+## failure, because it is either vacuous or it died before reaching its first
+## assertion. A suite must therefore never reset or assign this counter itself.
+## `run_tests.gd`'s header explains why a GDScript runtime error inside a test
+## is otherwise invisible, and what the runner does to catch one that lands
+## partway down a method.
 
 var failures: PackedStringArray = PackedStringArray()
 var assertions: int = 0

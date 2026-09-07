@@ -18,6 +18,13 @@ const ANYTHING: int = ScheduleScript.ACTIVITY_ANYTHING
 const WORK: int = ScheduleScript.ACTIVITY_WORK
 const SOCIAL: int = ScheduleScript.ACTIVITY_SOCIAL
 
+## §5.2's rest decay in whole need-points per hour, read from needs.gd rather than restated as
+## a literal: if the specified rate ever changes, this suite must decay at the new rate or stop
+## claiming to model it. Two constants divide exactly (375000/1000), so this stays integer.
+const REST_DECAY_PER_HOUR: int = (
+	NeedsScript.REST_DECAY_MILLI_PER_HOUR / NeedsScript.MILLI_PER_POINT
+)
+
 ## GDD §5.3: "22:00-06:00 SLEEP, 06:00-07:00 ANYTHING, 07:00-12:00 WORK, 12:00-13:00 ANYTHING,
 ## 13:00-18:00 WORK, 18:00-20:00 SOCIAL, 20:00-22:00 ANYTHING", written out hour by hour so a
 ## single shifted boundary fails a named assertion.
@@ -518,6 +525,50 @@ func test_the_sleep_exception_clears_when_the_window_ends() -> void:
 	assert_equal(_schedule.sleep_satisfied_of(0).value, 0, "the latch cleared with the window")
 	_set_need(0, NeedsScript.NEED_REST, 6000)
 	assert_equal(_resolve(0, 22, true), SLEEP, "the next night's 22:00 sleeps normally")
+
+
+func _decay_rest_one_hour(slot: int, rest: int) -> int:
+	"""Write one hour of §5.2 rest decay, checking the new value is one only the latch survives.
+
+	Below 9000 a live comparison would order this resident back to bed; above 500 REQ-SET-015's
+	collapse rule is not what is keeping them up. Between those, only `_sleep_satisfied` can.
+	"""
+	var decayed: int = rest - REST_DECAY_PER_HOUR
+	assert_true(decayed < ScheduleScript.REST_SLEEP_SATISFIED_THRESHOLD,
+		"rest %d is below the 9000 a recomputed exception would test" % decayed)
+	assert_true(decayed > NeedsScript.REST_COLLAPSE_THRESHOLD,
+		"rest %d is above collapse, so no other rule forces sleep" % decayed)
+	_set_need(slot, NeedsScript.NEED_REST, decayed)
+	return decayed
+
+
+func test_decision_0021_the_latch_holds_all_window_while_rest_decays() -> void:
+	"""Decision 0021: `_sleep_satisfied` is latched window state, not a live comparison.
+
+	A resident who reaches rest 9000 at 23:00 wakes to ANYTHING, and rest then falls by
+	REST_DECAY_PER_HOUR every hour while awake. A resolver that recomputed the exception from
+	current rest would send that satisfied resident back to bed inside the same 22:00-06:00
+	window -- roughly 2.7 hours later at 375/hour -- which §5.3 forbids.
+
+	This is decision 0021's critical regression test with its second half missing: the record
+	requires the same run to survive a save and load, and no save format exists yet, so that
+	cannot be written. `_sleep_satisfied` is one of the three columns (with `_resolved` and
+	`_present`) that must be saved and hashed once it does, or a reloaded world puts this
+	resident straight back to sleep.
+	"""
+	_spawn(0, ScheduleScript.TEMPLATE_DEFAULT_KEY)
+	_set_need(0, NeedsScript.NEED_REST, ScheduleScript.REST_SLEEP_SATISFIED_THRESHOLD)
+	assert_equal(_resolve(0, 23, true), ANYTHING, "23:00 wakes at rest 9000")
+	assert_equal(_schedule.sleep_satisfied_of(0).value, 1, "23:00 latched the exception")
+	var rest: int = ScheduleScript.REST_SLEEP_SATISFIED_THRESHOLD
+	for hour: int in range(0, 6):
+		rest = _decay_rest_one_hour(0, rest)
+		assert_equal(_resolve(0, hour, true), ANYTHING,
+			"%02d:00 stays awake at rest %d" % [hour, rest])
+	assert_equal(rest, 6750, "six hours of 375/hour decay from 9000")
+	assert_equal(_schedule.sleep_satisfied_of(0).value, 1, "05:00 ends still latched")
+	assert_equal(_resolve(0, 6, true), ANYTHING, "06:00 is scheduled ANYTHING, ending the window")
+	assert_equal(_schedule.sleep_satisfied_of(0).value, 0, "06:00 clears the latch")
 
 
 func test_a_collapse_restarts_sleep_even_after_the_exception_latched() -> void:

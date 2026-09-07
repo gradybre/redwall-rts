@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document | SET-LORE-001 |
-| Revision | 0.17 — eleven additional targeted novel studies and comparative context, 2026-09-06 |
+| Revision | 0.20 — systematic supplied-book content library and recipe provenance, 2026-09-06 |
 | Purpose | Shared creative context for the human director, planning agent, Claude Code, and asset agents |
 | Creative source order | Redwall: six-book focus plus whole-series context → current Redwall-rts project → earlier woodland-colony material; see §3.2 |
 | Decision owner | Brendan; explicit project choices may deliberately depart from Redwall |
@@ -54,7 +54,7 @@ Every feature plan and asset brief shall name its relevant lore records, its mec
 ```yaml
 context_contract_version: 1
 creative_document: docs/setting_bible.md
-creative_revision: "0.17"
+creative_revision: "0.20"
 decision_document: docs/setting_decisions.md
 mechanical_documents:
   - docs/game_gdd.md
@@ -75,7 +75,7 @@ This is a document header example for a release 1 communal-life task, not a runt
 
 ### 2.1 Redwall evidence consulted
 
-Initial web sources were inspected on 2026-09-05; the six-book publisher descriptions were checked on 2026-09-06. The book titles below identify creative anchors; the evidence used here is the linked publisher text or identified guide pages. The subsequent [novel research](redwall_novel_analysis.md) adds selected primary-text excerpts and a complete reading of the supplied Lord Brocktree text. Its [dedicated study](lord_brocktree_analysis.md) and [source audit](lord_brocktree_source_audit.json) distinguish that coverage from unverified edition integrity. The [expanded series package](redwall-series/README.md) now adds targeted primary-passage studies of eleven supplied novels, including four more focus books. It records 96 passage entries across 102,954 inspected extracted words. The other five focus novels still lack complete sequential readings. Selected PDF pages were visually checked for text extraction; no edition-wide illustration analysis was performed. The original publisher-source rows below retain their original evidence status.
+Initial web sources were inspected on 2026-09-05; the six-book publisher descriptions were checked on 2026-09-06. The book titles below identify creative anchors; the evidence used here is the linked publisher text or identified guide pages. The subsequent [novel research](redwall_novel_analysis.md) adds selected primary-text excerpts and a complete reading of the supplied Lord Brocktree text. Its [dedicated study](lord_brocktree_analysis.md) and [source audit](lord_brocktree_source_audit.json) distinguish that coverage from unverified edition integrity. The [expanded series package](redwall-series/README.md) now adds targeted primary-passage studies of eleven supplied novels, including four more focus books. It records 96 passage entries across 102,954 inspected extracted words. At that stage the other five focus novels lacked complete sequential readings; the later systematic pass in §23 supersedes that coverage status. Selected PDF pages were visually checked for text extraction; no edition-wide illustration analysis was performed. The original publisher-source rows below retain their original evidence status.
 
 | Source ID | Source | Evidence used | Appropriate use |
 |---|---|---|---|
@@ -167,7 +167,7 @@ Reference selection does not commission six campaigns, combine their casts into 
 
 ### 3.3 Passage analysis and adaptation research
 
-[Novel analysis and adaptation research](redwall_novel_analysis.md), SET-RESEARCH-001 revision 0.3, supplements this bible. [Lord Brocktree: novel analysis](lord_brocktree_analysis.md), SET-RESEARCH-LB-001 revision 1.0, now covers its entire supplied narrative: Prologue, Chapters 1–38 and Epilogue. Selected Eulalia! excerpts and limited author evidence retain their stated limits. [SET-RESEARCH-SERIES-001](redwall-series/README.md) adds eleven targeted primary-passage studies, including Redwall, Mossflower, The Long Patrol and Salamandastron. Earlier publisher rows remain premise-level evidence, while the new studies supply separate passage-backed findings. **One of six focus novels has a complete supplied-text reading; this does not certify its edition or complete the other five.** Use the evidence ledgers before describing an observation as canonical.
+[Novel analysis and adaptation research](redwall_novel_analysis.md), SET-RESEARCH-001 revision 0.3, supplements this bible. [Lord Brocktree: novel analysis](lord_brocktree_analysis.md), SET-RESEARCH-LB-001 revision 1.0, now covers its entire supplied narrative: Prologue, Chapters 1–38 and Epilogue. Selected Eulalia! excerpts and limited author evidence retain their stated limits. [SET-RESEARCH-SERIES-001](redwall-series/README.md) adds eleven targeted primary-passage studies, including Redwall, Mossflower, The Long Patrol and Salamandastron. Earlier publisher rows remain premise-level evidence, while the new studies supply separate passage-backed findings. **That earlier pass fully read one focus novel. The later §23 systematic pass inspects all available text for five focus novels and seven additional works; full Eulalia! is still absent and Salamandastron has a known source gap.** Use the evidence ledgers before describing an observation as canonical.
 
 The research's Section 5 contains `PROPOSED` applications, not new user decisions. Its Section 6 identifies adaptation risks and Section 7 defines the evidence handoff. Read those sections when planning care, institutional routines, history, character writing or related assets. Existing DEC records, mechanical owners and content boundaries remain binding. The reference table in §3.2 is a set of useful emphases, not an exclusive division of domestic and military life between books.
 
@@ -206,6 +206,16 @@ The observations are `SOURCE_SUPPORTED` within the specifically inspected passag
 
 This research does not supply Rowan's displacement cause, prior home, pronouns, personal trauma or the furnished hall's history. It does not commission scenes from the newly studied novels. Torture and deliberate child cruelty remain excluded from new content, including backstory while treatment scope remains open. No new numeric gameplay values or runtime state were adopted.
 
+### 3.6 Reviewed visual and game-concept references
+
+Brendan supplied 28 PNG screenshots in `ImageReference/` and explicitly requested individual review, direct use as model references, and particular attention to tunneling, swimming and climbing. [SET-ART-PACKAGE-001](art-reference/README.md) records all 28 inspections, 62 named viewing windows, direct model-reference assignments and a traversal design review. IMG-02/28 repeat the same specialist slide; the originals remain separately indexed. Source creators, original presentation URL and illustration editions are unidentified.
+
+Use [the individual reviews](art-reference/screenshot_review.md) and [direct modeling guide](art-reference/model_reference_guide.md) while building assets. These images are now concrete visual references under DEC-018/019; keep their species silhouettes, practical clothing, material distinctions and movement poses through the stated adaptations. Hidden anatomy, rear views, exact relative dimensions and rig construction still need authored sheets. The reference does not replace existing geometry, scale, animation or Windows qualification contracts.
+
+The slides also contain game-design proposals that are not novel evidence or blanket gameplay adoption. [The movement review](art-reference/traversal_design_review.md) distinguishes excavation from tunnel travel and sapping; wading from swimming/diving; and ladders from trunk/branch movement. DEC-029/031's interoperable multi-level construction remains required. DEC-035 now adopts ordinary connected swimming/diving and climbing/canopy direction through [SET-MOVE-001](movement_direction_amendment.md). Exact production profiles, hazards and tactical effects remain separately specified engineering work. The review explicitly flags the current single-floor memory derivation, ground-only routes and absent traversal clips.
+
+The package records source contradictions rather than importing them: IMG-15's five pearls conflicts with six in the supplied Pearls of Lutra text; IMG-04's waterfowl diet conflicts with DEC-006; era-spanning faction tables and launch/DLC labels do not set our campaigns or release plan. All original screenshots remain in their supplied folder; research docs carry portable source paths and digests.
+
 ## 4. Existing game foundation
 
 All records here are `PROJECT_BASELINE`. These are game facts, not assertions of literary canon.
@@ -227,7 +237,7 @@ All records here are `PROJECT_BASELINE`. These are game facts, not assertions of
 | LORE-P13 | Feasts consume real portions and have exact attendance, staffing, reserve and effect rules | GDD §5.7; food descriptions cannot stack additional effects |
 | LORE-P14 | Four 12-day seasons form a 48-day game year; play begins in spring at 06:00 | GDD §5.1; this is simulation time, not a claim about book chronology |
 | LORE-P15 | The Hearth Charter is the settlement completion objective, with continued play afterward | GDD §5.11; no granting sovereign, abbey hierarchy or magical authority is specified |
-| LORE-P16 | Birds and other residents use ground navigation in release 1 | GDD §5.1; lore about flight, swimming or digging does not authorize traversal |
+| LORE-P16 | Existing runtime uses ground navigation; required settlement design now includes connected movement under DEC-035 | SET-MOVE-001 supersedes the ground-only release exclusion; anatomy alone still grants no flight or route bypass |
 | LORE-P17 | The mouse prototype is 1.0 m high at gameplay scale; Godot and Blender conventions are fixed | Crowd architecture §9.1; do not rescale the world to biological mouse dimensions |
 
 ## 5. Creative pillars and scene tests
@@ -832,6 +842,8 @@ Required coverage includes all three methods. Delivering one method first during
 
 ### 14.7 Adopted art direction — storybook expression and grounded construction
 
+Concrete reference follow-through: [SET-ART-MODEL-001](art-reference/model_reference_guide.md) assigns the reviewed images to species bodies, garments, props and traversal poses. Open those originals during modeling; retain observed features and label original construction of hidden surfaces. This supplements the responsibilities below without changing the art direction or numeric asset limits.
+
 `LORE-U17`, `USER_CONFIRMED`, DEC-018 / SRC-U09: combine options 1 and 3. The guiding direction is **expressive woodland inhabitants in a materially believable world**. The domain allocation below is `[NEW art direction under the adopted blend]`; no percentage such as “70% realism” is specified because it would not tell an asset author what to build.
 
 | Domain | Grounded foundation | Storybook contribution | Asset review condition |
@@ -955,7 +967,7 @@ The current task creates documents only. No additional culture, religion, morali
 | LORE-C06 | Confirmed selectable settlement forms versus only three current visual kits | Required first-release expansion; author scenario availability and geometry without silently reducing player choice | DEC-010 confirmed |
 | LORE-C07 | Anonymous population in early concept versus persistent identities and notability in GDD | GDD wins; anonymous presentation never means interchangeable simulation | DEC-016 |
 | LORE-C08 | Early dish effect stacking versus one bounded current food effect | GDD wins; flavor descriptions add no bonuses | No open mechanical decision |
-| LORE-C09 | Species movement fantasy versus ground-only release 1 navigation | Keep movement contract; label additional traversal future | DEC-019 |
+| LORE-C09 | Adopted connected movement versus ground-only baseline | Follow SET-MOVE-001; finish MOVE-G01–05; do not label approved movement merely a future candidate | DEC-019/035 |
 | LORE-C10 | Legacy threats never humorous versus broader Redwall tonal inspiration | Warm everyday humor confirmed; antagonist-specific menace/humor remains open | DEC-012 confirmed; DEC-013/027 open |
 | LORE-C11 | Confirmed visible family/age diversity versus adult-only simulation | Dependent-resident model adopted; complete family rules/schema/UI revisions with adopted non-graphic child survival vulnerability | DEC-015/032/033 confirmed |
 | LORE-C12 | Rare meaningful wonder and its supernatural interpretation | Resolved direction: truth uncertain; preserve attributed beliefs without objective confirmation or debunking | DEC-009/030 confirmed |
@@ -992,7 +1004,7 @@ Revision 1.0 requires these gates to close or record an explicit user deferral w
 | Category | Origin |
 |---|---|
 | Population, roster, initial conditions, calendar, map, scale and asset limits | Inherited from the cited current specifications |
-| Source evidence | Bounded publisher/author/excerpt evidence, complete supplied Lord Brocktree reading, and eleven additional targeted primary-passage studies; edition integrity, remaining sequential readings and whole-series completeness remain unverified |
+| Source evidence | Earlier bounded studies plus systematic full available-text inspection of twelve supplied narratives; known Salamandastron source gap, absent full Eulalia!, edition integrity and whole-series completeness remain explicit limits |
 | Legacy ideas | Explicit candidates extracted from the separate woodland-colony bible |
 | New work in this draft | Document/record IDs, status vocabulary, review rules, proposed pillars, original example prose, asset brief fields and interview questions |
 | New gameplay quantities or balance values | SET-AMEND-001 records NEW roast inputs, admission pool order and a minimal original petition date/text; inherited output/work values are labelled separately |
@@ -1021,3 +1033,25 @@ Revision 1.0 requires these gates to close or record an explicit user deferral w
 | 0.15 | Added bounded primary-excerpt research companion and evidence handoff | Full six-novel reading remains incomplete; no new creative decisions, runtime or numeric changes |
 | 0.16 | Added complete supplied Lord Brocktree study, audited the mislabeled EPUB and integrated bounded findings LORE-R10–R16 | Other five full readings, edition verification and existing creative/engineering gaps remain; no new policy or gameplay values |
 | 0.17 | Added eleven targeted primary-passage studies, 96 evidence records, comparative handoff and LORE-R17–R26 | No new full sequential reading, policy approval, gameplay values or runtime changes; Eulalia! full text remains unavailable in verified files |
+| 0.18 | Reviewed all 28 screenshots; added direct modeling references, 62 viewing windows, traversal analysis and source/spec conflict register | No meshes or runtime changes; multi-level engineering and swimming/climbing contracts remain to complete; changes uncommitted |
+| 0.19 | Adopted DEC-035 movement in owning specs; added separate twelve-book design/material-world pass, catalog, atlas and handoff | MOVE-G01–05 engineering, new recipe catalogs, scenario bindings and Windows evidence remain open |
+| 0.20 | Systematically inspected the available twelve-book corpus; added per-book content libraries, source/game recipe provenance, shared pantry and continuity checks | Full Eulalia!, Salamandastron source gap, recipe balance, scenario selection and existing engineering gates remain open; no runtime values or policies changed |
+
+## 22. Adopted movement and material-world direction — revision 0.19
+
+`USER_CONFIRMED`, DEC-035. The settlement's ordinary life uses persistent tunnels, inhabited underground rooms, surface swimming/diving and connected climbing/canopy access. [SET-MOVE-001](movement_direction_amendment.md) owns this adopted direction. DEC-029/031's interoperable construction scope remains intact. Individual body, training, posture, gear and carried loads determine eligibility through completed profiles; species identity alone grants no bypass.
+
+[The separate design-reading package](redwall-design/README.md) adds twelve thematic studies, a food/ingredient/object catalog, qualitative location atlas and authoring handoff. Its 115 evidence records cover 47,139 inspected extracted words; this is targeted reading, not a complete rereading of the corpus. Eulalia's full text remains unavailable in the verified sources.
+
+New useful source details include Polleekin's inhabited tree home, greensap plant cheese, Didjety's grain/vegetable sausages, cooperative earth/water/tree work, regional hosting customs, ordinary sewing and recipe transmission. These enrich the shared direction; recipe names and source processes do not supply complete game math. The current edible whitelist and content boundaries still apply. The source's early goat milk/eggs and later plant preparations are recorded separately rather than harmonized by assumption.
+
+Artists use the direct IMG assignments together with textual materials and room functions. Writers bind characters/factions to scenario eras and preserve attributed belief. Implementers use the owning numeric catalogs, MOVE-G01–05 and the authoring validation rules. No new recipe, canonical cast, founding biography or measured map is activated by literary interpretation.
+
+
+## 23. Systematic book-by-book content library — revision 0.20
+
+The [systematic content library](redwall-content-library/README.md), CONTENT-LIB-001, now records full sequential inspection of all available normalized narrative blocks in twelve supplied works: 1,280,344 words across 221 chunks. It indexes 7,665 records and 1,755 food/recipe/discourse candidates, with source ingredients separated from explicitly AI-authored game completions. The source audit retains the confirmed Salamandastron gap, apparently printed pages 314–315; full Eulalia! remains absent; the collection-labeled EPUB contains Lord Brocktree only. This is not complete-series or verified-edition certification.
+
+Use the [authoring contract](redwall-content-library/authoring_handoff.md), [shared pantry](redwall-content-library/shared/pantry.md), [continuity reconciliation](redwall-content-library/shared/continuity.md), [location/movement atlas](redwall-content-library/shared/locations_and_movement.md) and [theme/material direction](redwall-content-library/shared/theme_and_material_direction.md). Character and faction appearances retain eras and source uncertainty; shared titles are not automatically shared individuals. All records remain research candidates, with recipe quantities, yields, work and unlocks requiring the owning balance specification.
+
+Outcast block 3549 explicitly resolves Sunflash’s later name as Sunstripe. Outcast blocks 434–437 support one particular plant-derived greensap milk and cheese preparation; other books’ unspecified milk/cream/cheese origins remain unspecified. Source conflicts over first mountain lord, sapience, geography, visions and moral judgments are preserved rather than silently harmonized. Current admission, diet, content boundaries and DEC-035 movement direction retain their authority. The broader interim boundary guard in §12.5 still applies.

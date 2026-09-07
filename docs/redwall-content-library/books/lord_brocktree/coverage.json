@@ -1,0 +1,231 @@
+{
+  "book": "Lord Brocktree",
+  "book_code": "LB",
+  "source_file_name": "Brian Jacques Redwall Series Set (Book 1-20)_ Redwall; -- Brian Jacques - undifferentiated -- Nov 23, 2002 -- Various publication years -- isbn13 9780077381127 -- f5129d41f05b0d8c1706ad50b940ebb2 -- Anna’s Archive.epub",
+  "source_sha256": "8d1f30f25ca0a3a4f0d158f96b4aa86d1d66fab4a080f4d1602c06c3a38a5b8f",
+  "status": "ALL_NORMALIZED_NARRATIVE_BLOCKS_FULLY_INSPECTED",
+  "available_blocks": 3560,
+  "inspected_blocks": 3560,
+  "available_words": 105555,
+  "inspected_words": 105555,
+  "chunks": [
+    {
+      "chunk": 1,
+      "range": [
+        1,
+        136
+      ],
+      "words": 5907,
+      "digest": "2d24e92b2790e8507dd2b060b5608f2a8a499039118bd2d1a253ed3d8f4407e6",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk01.md"
+    },
+    {
+      "chunk": 2,
+      "range": [
+        137,
+        336
+      ],
+      "words": 5955,
+      "digest": "cfe1831d22ee183e1e0babe3ffc04ed45003bbf0a22ab71d72a606c969e4b925",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk02.md"
+    },
+    {
+      "chunk": 3,
+      "range": [
+        337,
+        513
+      ],
+      "words": 6000,
+      "digest": "954e4f5e1ebc1181ef4fb1244c2438cd61b5f6caf2ce197b9ffcd1b9467b6e3b",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk03.md"
+    },
+    {
+      "chunk": 4,
+      "range": [
+        514,
+        701
+      ],
+      "words": 5991,
+      "digest": "7c798d9efa1660a8044913d68c1bfad02e75941a3995fe845b85b358d86af836",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk04.md"
+    },
+    {
+      "chunk": 5,
+      "range": [
+        702,
+        915
+      ],
+      "words": 5997,
+      "digest": "4d409ed5a6bf7cd360b2da322b8c96ca58eab0cb6dd0149b36300b6ac620f4b7",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk05.md"
+    },
+    {
+      "chunk": 6,
+      "range": [
+        916,
+        1134
+      ],
+      "words": 5999,
+      "digest": "161e268c637fdd053eea4c7867bc666b53fa6e20e6bc8a4683fbdebad753c72d",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk06.md"
+    },
+    {
+      "chunk": 7,
+      "range": [
+        1135,
+        1345
+      ],
+      "words": 5968,
+      "digest": "3f6a94131aff61bbb6bb6efb8f21c225ff4b39ebad4c28b1f3ce9e6f4a7d9d42",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk07.md"
+    },
+    {
+      "chunk": 8,
+      "range": [
+        1346,
+        1555
+      ],
+      "words": 5982,
+      "digest": "02dee176eb1a0452244e413057d924fb37e2385e8e546c06c92d536fa1b6cbf6",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk08.md"
+    },
+    {
+      "chunk": 9,
+      "range": [
+        1556,
+        1735
+      ],
+      "words": 5979,
+      "digest": "90a2853ab8cadff65eea12a0aa6ad5142a1844890760dd8c633999e296836e22",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk09.md"
+    },
+    {
+      "chunk": 10,
+      "range": [
+        1736,
+        1952
+      ],
+      "words": 5995,
+      "digest": "b718034ce35f16af7abc1ee799611320499e7b4338180cb433b08803ebf432ec",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk10.md"
+    },
+    {
+      "chunk": 11,
+      "range": [
+        1953,
+        2156
+      ],
+      "words": 5980,
+      "digest": "1c74fcff56bdfae401aa8f47074527d98514cb2f4ef8f421f331e5843d43d0cd",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk11.md"
+    },
+    {
+      "chunk": 12,
+      "range": [
+        2157,
+        2363
+      ],
+      "words": 5970,
+      "digest": "13be2a531064b1c4c81db4ff12ca3460794f899b78efd03fdfc76eac81a06f59",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk12.md"
+    },
+    {
+      "chunk": 13,
+      "range": [
+        2364,
+        2591
+      ],
+      "words": 5999,
+      "digest": "409d853dfce4d9572f7d9b8b9daade559ad699e5121099a1eaee14c5ecb50939",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk13.md"
+    },
+    {
+      "chunk": 14,
+      "range": [
+        2592,
+        2813
+      ],
+      "words": 5979,
+      "digest": "e18fee8aee134d2867edc9be632249e7d4b0af3e0c5706ea4edfcd98dfd06bb1",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk14.md"
+    },
+    {
+      "chunk": 15,
+      "range": [
+        2814,
+        3043
+      ],
+      "words": 5986,
+      "digest": "f8084e0ba63719e3e63fd3964fc56489cc783ddd5bf9120feeb35507b4cfb010",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk15.md"
+    },
+    {
+      "chunk": 16,
+      "range": [
+        3044,
+        3248
+      ],
+      "words": 5961,
+      "digest": "1b36d0f62e54102317fc603ff0b7f8831d17a18831960caaae1761bf0f8813fa",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk16.md"
+    },
+    {
+      "chunk": 17,
+      "range": [
+        3249,
+        3447
+      ],
+      "words": 5951,
+      "digest": "612f500a6c91822395865450f3accc52f6799f5143a5955ebb3158aa4fd7f369",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk17.md"
+    },
+    {
+      "chunk": 18,
+      "range": [
+        3448,
+        3560
+      ],
+      "words": 3956,
+      "digest": "7d672f4a5cbaafa2b76100983f763ef1c81a7d228689d436c1720291cf84b617",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk18.md"
+    }
+  ],
+  "record_counts": {
+    "CHARACTER": 107,
+    "FACTION": 16,
+    "PLACE": 44,
+    "OBJECT": 38,
+    "CULTURE": 12,
+    "THEME": 9,
+    "SYSTEM": 14,
+    "ECOLOGY": 8,
+    "FOOD": 139,
+    "INGREDIENT": 112
+  },
+  "recipe_candidates": 139,
+  "limitations": [
+    "The supplied collection filename and title metadata are misleading: the actual narrative is Lord Brocktree only.",
+    "105,555 normalized narrative words exclude 219 front-matter/title words included in the earlier 105,774-word extraction total.",
+    "Full available narrative inspection does not guarantee perfect text extraction or an index entry for every lexical mention.",
+    "The last shore action is described as bloodless for allied deaths; earlier allied deaths and enemy drownings remain explicit.",
+    "Salamandastron rulership, Blue Hordes dye and apparently fatal wounds contain source contradictions or uncertain claims retained in the catalog."
+  ]
+}

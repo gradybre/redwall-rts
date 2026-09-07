@@ -1,0 +1,231 @@
+{
+  "book": "Pearls of Lutra",
+  "source_file": "Pearls of Lutra -- Jacques, Brian -- Redwall 9, 2011 -- 5b2db31d4261a030810222d374ae8410 -- Anna’s Archive.pdf",
+  "source_sha256": "76b1b4ebc92235690acedc2386515f98aae2acad1600be33813d5c03de6ff40b",
+  "source_format": "pdf",
+  "full_read_status": "COMPLETE_ALL_EXTRACTED_BLOCKS_INSPECTED",
+  "blocks_total": 481,
+  "blocks_inspected": 481,
+  "word_count_whitespace": 110415,
+  "chunks": [
+    {
+      "chunk": 1,
+      "range": [
+        1,
+        29
+      ],
+      "words": 5888,
+      "digest": "63c69eb72167f16fe24be7fd984dbeede5e26bc291f4648cb34bf33768a36ff2",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk01.md"
+    },
+    {
+      "chunk": 2,
+      "range": [
+        30,
+        53
+      ],
+      "words": 5976,
+      "digest": "f373fbab7ba22baebefb2bb535fd597a22494cc16d0c384c0447421790f952a5",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk02.md"
+    },
+    {
+      "chunk": 3,
+      "range": [
+        54,
+        78
+      ],
+      "words": 5829,
+      "digest": "e4fe87e3b8a083900643ccb5d47e9e09a1fa8768f684bfae458943372680aff1",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk03.md"
+    },
+    {
+      "chunk": 4,
+      "range": [
+        79,
+        104
+      ],
+      "words": 5998,
+      "digest": "5a96d17478e4664b1c18e901caf08bf2ceaa0775fad9362a504d4be4a92e580d",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk04.md"
+    },
+    {
+      "chunk": 5,
+      "range": [
+        105,
+        130
+      ],
+      "words": 5778,
+      "digest": "657db6ad0800a0f98290bbb759d8a832a7b857090229da7e4124afca46a49f7c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk05.md"
+    },
+    {
+      "chunk": 6,
+      "range": [
+        131,
+        155
+      ],
+      "words": 5714,
+      "digest": "3992acb5a0d5e01c2945f7a3306f25f5e64ccee28ecd3d13f1cf476c9a7f1243",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk06.md"
+    },
+    {
+      "chunk": 7,
+      "range": [
+        156,
+        179
+      ],
+      "words": 5883,
+      "digest": "2d973b72d7f5578a9abcc0b1523b12ff345ac46b7ffb4a40c59a4de9fa29b539",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk07.md"
+    },
+    {
+      "chunk": 8,
+      "range": [
+        180,
+        206
+      ],
+      "words": 5953,
+      "digest": "5770c6238a67af68084904da7dc30d3194bd6e93557ee7ca311b86ef9e6ec94d",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk08.md"
+    },
+    {
+      "chunk": 9,
+      "range": [
+        207,
+        231
+      ],
+      "words": 5905,
+      "digest": "2ab2d3766ef2c44b2e4dbb9500084aed20168df112d025ab80004b6d39300fb1",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk09.md"
+    },
+    {
+      "chunk": 10,
+      "range": [
+        232,
+        256
+      ],
+      "words": 5745,
+      "digest": "5d44a55d47c37cb86a557acfe64ee04b8c9a377e000b29aebd13fde3142647d4",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk10.md"
+    },
+    {
+      "chunk": 11,
+      "range": [
+        257,
+        280
+      ],
+      "words": 5773,
+      "digest": "8e789ff6d999f7251e6db09ff932b5ae02cff762d223b8083ddee19b90a4d513",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk11.md"
+    },
+    {
+      "chunk": 12,
+      "range": [
+        281,
+        306
+      ],
+      "words": 5892,
+      "digest": "11e2e9859fcc2417ad6bcf9d1e2ea8faee69ecbb16828f77b9fe3591e35f2249",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk12.md"
+    },
+    {
+      "chunk": 13,
+      "range": [
+        307,
+        330
+      ],
+      "words": 5799,
+      "digest": "dbaa975f7e687c95e392cad41469d8788f75ef4c6d09eff16292e2d2697e67a1",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk13.md"
+    },
+    {
+      "chunk": 14,
+      "range": [
+        331,
+        358
+      ],
+      "words": 5830,
+      "digest": "d79d3c4f36cf5f8e95c0d81e348ba7f8c8f1faa83819721ea497c460a40075e8",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk14.md"
+    },
+    {
+      "chunk": 15,
+      "range": [
+        359,
+        384
+      ],
+      "words": 5883,
+      "digest": "dde8317b4bfeb857a29de403727828bf1b4e262fe213ec71e789fabbe89b40a8",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk15.md"
+    },
+    {
+      "chunk": 16,
+      "range": [
+        385,
+        408
+      ],
+      "words": 5873,
+      "digest": "b3a99e503e4bcc805cbd6a168d5e49060b7af39984c5a13877e1a86419fad5c1",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk16.md"
+    },
+    {
+      "chunk": 17,
+      "range": [
+        409,
+        433
+      ],
+      "words": 5895,
+      "digest": "e84494d88c4245c3ff923006b1a65ef398573cbfc11b4dd5f0bab2b52ea81717",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk17.md"
+    },
+    {
+      "chunk": 18,
+      "range": [
+        434,
+        459
+      ],
+      "words": 5737,
+      "digest": "39fd7910565edc4c7d9b30e5c230cb76c56750da2efe56ec4bb610a93f833e56",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk18.md"
+    },
+    {
+      "chunk": 19,
+      "range": [
+        460,
+        481
+      ],
+      "words": 5064,
+      "digest": "49c015a2dccf4542d3ef710d33fa400e2f0b7cdf2eca3b54ec9b3bec504dc61c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk19.md"
+    }
+  ],
+  "categories_per_chunk": 11,
+  "catalog_records": 662,
+  "recipe_candidates": 172,
+  "limitations": [
+    "Completeness is against this supplied normalized extraction, not every edition or other series novels.",
+    "Full sequential inspection is documented; a fallible literary catalog can still contain overlooked/merged minor references.",
+    "Compound ingredients and generic food groups are retained alongside individually named ingredients.",
+    "Recipe ratios, production work, nutrition, yields, unlocks and runtime activation are deliberately not claimed.",
+    "Novel source contradictions and role/era distinctions remain visible; medicine and unsafe botanicals are not real-world preparation advice."
+  ]
+}

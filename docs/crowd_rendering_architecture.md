@@ -2,6 +2,8 @@
 
 # Crowd Rendering & Performance Architecture
 
+**Settlement traversal dependency:** DEC-035 and [SET-MOVE-001](movement_direction_amendment.md) adopt connected underground, swimming/diving and climbing/canopy movement. This does not add battle mechanics. The existing biped clips and asset budgets do not qualify the added movement families.
+
 | Document field | Value |
 |---|---|
 | Specification ID | CROWD-ARCH-001 |
@@ -1373,3 +1375,11 @@ Official Godot API references were consulted for the selected engine branch. Mem
 This is a complete architecture proposal and execution contract for the requested crowd problem. It is not evidence that the proposed visual target already runs at 60 FPS, nor a replacement for the full game's economy, settlement, or air/water movement specifications.
 
 ---DOC:crowd_rendering_architecture.md---
+
+## CROWD-MOVE-001 — traversal asset qualification
+
+The existing 16-clip/609-frame palette remains a baseline; close MOVE-G04 with a versioned complete catalog. Include mode-appropriate entry, travel, hold, reverse/return and exit where supported, plus digging versus tunnel travel, wading versus surface swim/dive, and ladder/trunk/branch contacts. Define every clip's frame count, sample rate, required bones/gear state, transition mapping and bounds; recalculate texture memory and LOD mapping. No new clip IDs, timings or production geometry budgets are invented here.
+
+The existing 30 Hz bake, in-place root convention, 64-bone/sockets limit, triangle/atlas limits and 1.0 m mouse anchor remain constraints. If an authored traversal requires a change, revise the owner with arithmetic before export. Keep held cargo, tails, wet/dry presentation and supported limbs coherent at close view, while distant LOD retains the correct domain and movement family. Fixed-tick simulation owns movement; IK or animation completion cannot decide arrival.
+
+Use `art-reference/model_reference_guide.md` for IMG assignments and `redwall-design/location_atlas.md` for textual environment context. A completed illustration review is not a completed species clearance sheet. Settlement close actors retain their separate budget; this amendment does not grant the battle budget to settlement scenes. Requalify bounds/culling, overlap between floors, cutaway/picking and saves during movement. Windows remains deferred pending hardware access; the 5090 is not a substitute for qualification-floor evidence.

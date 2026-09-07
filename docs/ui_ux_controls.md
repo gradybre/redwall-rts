@@ -2,6 +2,8 @@
 
 # Redwall RTS — Settlement UI, UX & Controls
 
+**Adopted movement amendment:** [SET-MOVE-001](movement_direction_amendment.md) implements DEC-035 at the direction/specification level. Its requirements supersede ground-only and one-floor claims as the complete settlement design. `settlement_rules_v2` remains the incomplete implementation baseline; MOVE-G01–05 identify exact engineering closure still required.
+
 | Field | Value |
 |---|---|
 | Document | SET-UX-001, revision 1.1, 2026-09-05 |
@@ -510,3 +512,18 @@ No job matrix requires drag-only editing: arrow keys select cell,0–4 set prior
 | UX-T14 Performance |UI update p95≤1.5 ms at 256 residents; virtualized roster/lot lists avoid per frame Node creation |
 
 Document checks passed for unique UI IDs, Markdown structure, and persistent HUD bounds/nonoverlap at all nine combinations of 1280×720, 1920×1080, 3840×2160 with 100%, 125%, and 150% text scaling. Contrast values and layout equations are specification checks. Actual Godot rendering, Windows/Mac input behavior, and assistive-technology completion remain release-validation tasks; this document does not claim those tests have already passed.
+
+## UI-MOVE-001 — required connected-movement controls
+
+Close MOVE-G03 by extending this document's component registry and existing responsive/focus contracts. No new hotkey or final pixel geometry is assigned by the research sketch. Until registered controls and layouts are complete, the UI feature is `SPEC_INCOMPLETE`, not satisfied by an unlabeled layer toggle.
+
+| Required control/content | Binding and behavior to carry into the completed registry |
+|---|---|
+| Layer/level selection | Ground, canopy, water and underground views; explicit underground level; retain selected identity and a follow action |
+| Route inspection | Actual destination with level, ordered movement modes, committed activity, carried load and blocked/wait reason |
+| Picking | Select visible active-layer candidates; entity-list selection follows explicit ID to another layer; no accidental selection through a floor |
+| Construction preview | Show planned versus finished space, affected access, occupants and edit refusal before commit |
+| Cancellation | Acknowledge pending stop/return until authority reaches safe supported state; never imply immediate teleport |
+| Accessibility | Domain and route state indicated by text/icon as well as color; keyboard focus and screen-reader labels included |
+
+Canonical state labels for binding are `Planning route`, `Waiting for access`, `Digging`, `Using tunnel`, `Climbing`, `Swimming`, `Diving`, `Returning to air`, `Blocked: no exit`, and `Blocked: load does not fit`. Show each only when the corresponding committed state/reason exists. A closed visual cutaway cannot change discovery or simulation visibility. The existing 1280×720 through 3840×2160 layout range and plain operational wording remain required.

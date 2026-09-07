@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Search returns book-qualified Rulango identity",
+    "Exact record retains correct grey-heron alias",
+    "Exact recipe joins pantry by book and local ID",
+    "Proposed occurrence and inactive state preserved",
+    "Component query resolves prepared wheat flour to wheat dependency"
+  ],
+  "scope": "Read-only retrieval behavior; no runtime gameplay test"
+}

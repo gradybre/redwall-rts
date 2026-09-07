@@ -1,0 +1,1552 @@
+{
+  "schema_version": 1,
+  "document_id": "SET-ART-MANIFEST-001",
+  "date": "2026-09-06",
+  "source_folder_repo_path": "ImageReference",
+  "source_files": 28,
+  "files_visually_reviewed": 28,
+  "distinct_slide_compositions": 27,
+  "duplicate_pairs": [
+    [
+      "IMG-02",
+      "IMG-28"
+    ]
+  ],
+  "selection_bounds_definition": "Top-left origin, per-mille image width/height; authored selection guides, not segmentation or anatomical measurements.",
+  "region_pixel_formula": "[floor(x0*W/1000),floor(y0*H/1000),ceil(x1*W/1000),ceil(y1*H/1000)]",
+  "canonical_authority": "Visual reference and source-presentation claims only; individual claims require novel/project verification.",
+  "review_limits": [
+    "Only the 28 supplied screenshots, not unseen carousel slides.",
+    "Small, occluded or decorative details are not complete construction drawings.",
+    "Creators, original presentation URL and illustration editions unidentified.",
+    "No production asset or engine behavior tested."
+  ],
+  "technical_source": {
+    "url": "https://docs.godotengine.org/en/stable/tutorials/navigation/navigation_using_navigationlinks.html",
+    "claim_used": "Navigation links do not themselves implement special traversal movement.",
+    "consulted_on": "2026-09-06"
+  },
+  "supplementary_novel_check": {
+    "work": "Pearls of Lutra",
+    "prior_evidence_id": "EV-PL02",
+    "source_audit_repo_path": "docs/redwall-series/source_audit.json",
+    "inspected_excerpts": [
+      {
+        "physical_pdf_page": 12,
+        "extraction_block": 14,
+        "characters_inspected": [
+          0,
+          900
+        ]
+      },
+      {
+        "physical_pdf_page": 49,
+        "extraction_block": 54,
+        "characters_inspected": [
+          0,
+          900
+        ]
+      }
+    ],
+    "finding": "Six pearls / six recesses contradict IMG-15 statement of five.",
+    "coverage_limit": "Supplementary excerpt check only; does not change earlier novel-pass word coverage."
+  },
+  "entries": [
+    {
+      "id": "IMG-01",
+      "filename": "Screenshot 2026-09-06 at 2.18.43 PM.png",
+      "width": 1400,
+      "height": 958,
+      "sha256": "484f55a716081c47619b0dd3bea3092bfc6de7295dc2650a53183b71b59a97f3",
+      "title": "Long Patrol Color Sergeant",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.18.43 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-01",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-01/hare_body",
+          "bounds_per_mille": [
+            530,
+            215,
+            805,
+            995
+          ],
+          "bounds_pixels_half_open": [
+            742,
+            205,
+            1127,
+            954
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-01/banner",
+          "bounds_per_mille": [
+            505,
+            35,
+            995,
+            455
+          ],
+          "bounds_pixels_half_open": [
+            707,
+            33,
+            1393,
+            436
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-02",
+      "filename": "Screenshot 2026-09-06 at 2.19.00 PM.png",
+      "width": 1426,
+      "height": 1000,
+      "sha256": "e2b9f50a10f16151abd16f9df5d6040a4df325dfd41f8955e80c33620ccf73f5",
+      "title": "Four attached specialists",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.19.00 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-02",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-02/scout",
+          "bounds_per_mille": [
+            40,
+            55,
+            285,
+            495
+          ],
+          "bounds_pixels_half_open": [
+            57,
+            55,
+            407,
+            495
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-02/badger_group",
+          "bounds_per_mille": [
+            495,
+            55,
+            752,
+            510
+          ],
+          "bounds_pixels_half_open": [
+            705,
+            55,
+            1073,
+            510
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-02/corsair",
+          "bounds_per_mille": [
+            37,
+            552,
+            293,
+            990
+          ],
+          "bounds_pixels_half_open": [
+            52,
+            552,
+            418,
+            990
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-02/kestrel",
+          "bounds_per_mille": [
+            495,
+            552,
+            762,
+            995
+          ],
+          "bounds_pixels_half_open": [
+            705,
+            552,
+            1087,
+            995
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-03",
+      "filename": "Screenshot 2026-09-06 at 2.19.34 PM.png",
+      "width": 1422,
+      "height": 1054,
+      "sha256": "b3087595893a3300a8c8ea195beea217744ff10a500b984efe8f6c3f6ce3c4d4",
+      "title": "Recipes and communal kitchens",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.19.34 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-03",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-03/kitchen_group",
+          "bounds_per_mille": [
+            25,
+            583,
+            454,
+            993
+          ],
+          "bounds_pixels_half_open": [
+            35,
+            614,
+            646,
+            1047
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-03/ale_pourer",
+          "bounds_per_mille": [
+            510,
+            69,
+            705,
+            346
+          ],
+          "bounds_pixels_half_open": [
+            725,
+            72,
+            1003,
+            365
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-03/soup_bowl",
+          "bounds_per_mille": [
+            510,
+            376,
+            705,
+            625
+          ],
+          "bounds_pixels_half_open": [
+            725,
+            396,
+            1003,
+            659
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-03/pie_bearer",
+          "bounds_per_mille": [
+            510,
+            677,
+            705,
+            931
+          ],
+          "bounds_pixels_half_open": [
+            725,
+            713,
+            1003,
+            982
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-04",
+      "filename": "Screenshot 2026-09-06 at 2.19.57 PM.png",
+      "width": 1398,
+      "height": 1008,
+      "sha256": "955d15506b1e7e80ac0cf7c6400f82ceeff7b38175f2e54c60e3b7f16759b573",
+      "title": "Ingredients and vertical domestic activity",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.19.57 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-04",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-04/ladder_pair",
+          "bounds_per_mille": [
+            835,
+            118,
+            975,
+            752
+          ],
+          "bounds_pixels_half_open": [
+            1167,
+            118,
+            1364,
+            759
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-04/kitchen_group",
+          "bounds_per_mille": [
+            40,
+            566,
+            471,
+            987
+          ],
+          "bounds_pixels_half_open": [
+            55,
+            570,
+            659,
+            995
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-04/hearth_household",
+          "bounds_per_mille": [
+            496,
+            530,
+            989,
+            989
+          ],
+          "bounds_pixels_half_open": [
+            693,
+            534,
+            1383,
+            997
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-05",
+      "filename": "Screenshot 2026-09-06 at 2.20.15 PM.png",
+      "width": 1406,
+      "height": 1028,
+      "sha256": "52c632351c668facea86c1f9d8f75b64c536e6f2f24e8ba06983578ffb796a46",
+      "title": "Food production across a wider world",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.20.15 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-05",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-05/barrel",
+          "bounds_per_mille": [
+            51,
+            226,
+            204,
+            425
+          ],
+          "bounds_pixels_half_open": [
+            71,
+            232,
+            287,
+            437
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-05/carriers",
+          "bounds_per_mille": [
+            52,
+            442,
+            202,
+            672
+          ],
+          "bounds_pixels_half_open": [
+            73,
+            454,
+            285,
+            691
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-05/wagon",
+          "bounds_per_mille": [
+            49,
+            677,
+            203,
+            920
+          ],
+          "bounds_pixels_half_open": [
+            68,
+            695,
+            286,
+            946
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-05/scout",
+          "bounds_per_mille": [
+            516,
+            221,
+            673,
+            438
+          ],
+          "bounds_pixels_half_open": [
+            725,
+            227,
+            947,
+            451
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-06",
+      "filename": "Screenshot 2026-09-06 at 2.20.44 PM.png",
+      "width": 1406,
+      "height": 1064,
+      "sha256": "f6c2ba530ba904c47c79435fcf3fba5da8ab57b2ed6d7c39ececafcadcfe9075",
+      "title": "Toadlands",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.20.44 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-06",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-06/toad_body",
+          "bounds_per_mille": [
+            555,
+            109,
+            995,
+            954
+          ],
+          "bounds_pixels_half_open": [
+            780,
+            115,
+            1399,
+            1016
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-07",
+      "filename": "Screenshot 2026-09-06 at 2.20.59 PM.png",
+      "width": 1416,
+      "height": 980,
+      "sha256": "5537f58f3c51e5c23705c61a51431d6a281b99b6b5dd5321779b6a1cc58ee90b",
+      "title": "Border Squirrels",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.20.59 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-07",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-07/squirrel_group",
+          "bounds_per_mille": [
+            548,
+            5,
+            994,
+            995
+          ],
+          "bounds_pixels_half_open": [
+            775,
+            4,
+            1408,
+            976
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-08",
+      "filename": "Screenshot 2026-09-06 at 2.21.25 PM.png",
+      "width": 1428,
+      "height": 1072,
+      "sha256": "6b7e1d32588a08116dc7a128101344693702adb6cf4ff4c9edef340bded8e025",
+      "title": "Tunneling",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.21.25 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-08",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-08/mole_body",
+          "bounds_per_mille": [
+            9,
+            388,
+            521,
+            994
+          ],
+          "bounds_pixels_half_open": [
+            12,
+            415,
+            744,
+            1066
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-08/lantern_arm",
+          "bounds_per_mille": [
+            14,
+            18,
+            243,
+            531
+          ],
+          "bounds_pixels_half_open": [
+            19,
+            19,
+            348,
+            570
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-08/pick",
+          "bounds_per_mille": [
+            381,
+            373,
+            528,
+            988
+          ],
+          "bounds_pixels_half_open": [
+            544,
+            399,
+            754,
+            1060
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-09",
+      "filename": "Screenshot 2026-09-06 at 2.22.08 PM.png",
+      "width": 1396,
+      "height": 1018,
+      "sha256": "265b300662aec919d56f75c3f7ac5a2f9b67f224e181aa63cb8077b580f8eac4",
+      "title": "Climbing",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.22.08 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-09",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-09/climber",
+          "bounds_per_mille": [
+            527,
+            156,
+            995,
+            991
+          ],
+          "bounds_pixels_half_open": [
+            735,
+            158,
+            1390,
+            1009
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-09/canopy_contacts",
+          "bounds_per_mille": [
+            526,
+            8,
+            995,
+            991
+          ],
+          "bounds_pixels_half_open": [
+            734,
+            8,
+            1390,
+            1009
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-10",
+      "filename": "Screenshot 2026-09-06 at 2.22.21 PM.png",
+      "width": 1426,
+      "height": 1022,
+      "sha256": "1bf4ff5cfa5747503376f2de530a3b6e6dc4ee1ecbac47ce15e5038af4982215",
+      "title": "Swimming",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.22.21 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-10",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-10/aquatic_scene",
+          "bounds_per_mille": [
+            536,
+            83,
+            994,
+            990
+          ],
+          "bounds_pixels_half_open": [
+            764,
+            84,
+            1418,
+            1012
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-11",
+      "filename": "Screenshot 2026-09-06 at 2.22.41 PM.png",
+      "width": 1406,
+      "height": 1000,
+      "sha256": "eb60edc8686d0eff3fec14a88630fabab68bf765f1b695e96e24535621e9277f",
+      "title": "Flying, hiding, mud and sand",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.22.41 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-11",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-11/owl",
+          "bounds_per_mille": [
+            27,
+            223,
+            331,
+            758
+          ],
+          "bounds_pixels_half_open": [
+            37,
+            223,
+            466,
+            758
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-11/concealment",
+          "bounds_per_mille": [
+            351,
+            225,
+            655,
+            763
+          ],
+          "bounds_pixels_half_open": [
+            493,
+            225,
+            921,
+            763
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-11/terrain_group",
+          "bounds_per_mille": [
+            664,
+            219,
+            996,
+            761
+          ],
+          "bounds_pixels_half_open": [
+            933,
+            219,
+            1401,
+            761
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-12",
+      "filename": "Screenshot 2026-09-06 at 2.23.01 PM.png",
+      "width": 1436,
+      "height": 1052,
+      "sha256": "aee98d08657dea37722e349f016984bebdc85e8936130b1a7e992f79b5b8155a",
+      "title": "Mossflower Coalition",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.23.01 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-12",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-12/mouse_guardian",
+          "bounds_per_mille": [
+            710,
+            365,
+            997,
+            908
+          ],
+          "bounds_pixels_half_open": [
+            1019,
+            383,
+            1432,
+            956
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-12/mixed_group",
+          "bounds_per_mille": [
+            157,
+            32,
+            928,
+            517
+          ],
+          "bounds_pixels_half_open": [
+            225,
+            33,
+            1333,
+            544
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-12/construction",
+          "bounds_per_mille": [
+            442,
+            716,
+            997,
+            991
+          ],
+          "bounds_pixels_half_open": [
+            634,
+            753,
+            1432,
+            1043
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-13",
+      "filename": "Screenshot 2026-09-06 at 2.23.24 PM.png",
+      "width": 1404,
+      "height": 998,
+      "sha256": "65817e1fe50ff66cf59ed95cf52db81dc009cbc6dcc6c6d27c68de7322fb8c4e",
+      "title": "Corsair Kingdoms atmosphere",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.23.24 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-13",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-13/helmsbeast",
+          "bounds_per_mille": [
+            98,
+            93,
+            528,
+            980
+          ],
+          "bounds_pixels_half_open": [
+            137,
+            92,
+            742,
+            979
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-13/rigging_helm",
+          "bounds_per_mille": [
+            8,
+            11,
+            469,
+            984
+          ],
+          "bounds_pixels_half_open": [
+            11,
+            10,
+            659,
+            983
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-14",
+      "filename": "Screenshot 2026-09-06 at 2.23.37 PM.png",
+      "width": 1398,
+      "height": 992,
+      "sha256": "c09ec8ec09c7260b5cb8267542a5fcf0b250e402a877b5784b754580cac4283f",
+      "title": "Corsair mechanics and laden rat",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.23.37 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-14",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-14/laden_rat",
+          "bounds_per_mille": [
+            532,
+            203,
+            977,
+            903
+          ],
+          "bounds_pixels_half_open": [
+            743,
+            201,
+            1366,
+            896
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-15",
+      "filename": "Screenshot 2026-09-06 at 2.23.57 PM.png",
+      "width": 1404,
+      "height": 1040,
+      "sha256": "107b06ee06c83aea0b06bff22394f6b9fdcf9498c7416a060560743bd22da2ad",
+      "title": "Ublaz Mad-Eyes",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.23.57 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-15",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-15/marten_portrait",
+          "bounds_per_mille": [
+            544,
+            300,
+            995,
+            995
+          ],
+          "bounds_pixels_half_open": [
+            763,
+            312,
+            1397,
+            1035
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-15/crown",
+          "bounds_per_mille": [
+            588,
+            42,
+            936,
+            300
+          ],
+          "bounds_pixels_half_open": [
+            825,
+            43,
+            1315,
+            312
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-16",
+      "filename": "Screenshot 2026-09-06 at 2.24.08 PM.png",
+      "width": 1404,
+      "height": 1054,
+      "sha256": "d186ba7f87f9d7f459d6f20dbdb1d86dd57cd3b81f30e74c71e1c58490d3e937",
+      "title": "Corsair unit roster",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.24.08 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-16",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-16/fox_strip",
+          "bounds_per_mille": [
+            5,
+            160,
+            219,
+            994
+          ],
+          "bounds_pixels_half_open": [
+            7,
+            168,
+            308,
+            1048
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-16/knife_fighter",
+          "bounds_per_mille": [
+            707,
+            676,
+            993,
+            995
+          ],
+          "bounds_pixels_half_open": [
+            992,
+            712,
+            1395,
+            1049
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-17",
+      "filename": "Screenshot 2026-09-06 at 2.24.20 PM.png",
+      "width": 1396,
+      "height": 1040,
+      "sha256": "c6ec266df130511b6776d5a574ebdd1d9b3127182c5f71b3e72376369e8d659b",
+      "title": "Otter Clans and waterways",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.24.20 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-17",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-17/raft_group",
+          "bounds_per_mille": [
+            474,
+            298,
+            995,
+            910
+          ],
+          "bounds_pixels_half_open": [
+            661,
+            309,
+            1390,
+            947
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-17/water_landing",
+          "bounds_per_mille": [
+            408,
+            367,
+            996,
+            990
+          ],
+          "bounds_pixels_half_open": [
+            569,
+            381,
+            1391,
+            1030
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-18",
+      "filename": "Screenshot 2026-09-06 at 2.24.31 PM.png",
+      "width": 1406,
+      "height": 968,
+      "sha256": "259f3ec2f721f256b1813035dc78a1ef352b4bc9ae7534beeda34c77fd9ca622",
+      "title": "Otter livelihoods and faction mechanics",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.24.31 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-18",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-18/otter_body",
+          "bounds_per_mille": [
+            549,
+            163,
+            913,
+            962
+          ],
+          "bounds_pixels_half_open": [
+            771,
+            157,
+            1284,
+            932
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-19",
+      "filename": "Screenshot 2026-09-06 at 2.24.46 PM.png",
+      "width": 1402,
+      "height": 958,
+      "sha256": "df1775754f78eb611ec8e4107f9ca4031c98f00e3fc018d501c78ef314d0bef6",
+      "title": "Tiria Wildlough",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.24.46 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-19",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-19/otter_hero",
+          "bounds_per_mille": [
+            559,
+            175,
+            996,
+            995
+          ],
+          "bounds_pixels_half_open": [
+            783,
+            167,
+            1397,
+            954
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-20",
+      "filename": "Screenshot 2026-09-06 at 2.24.58 PM.png",
+      "width": 1406,
+      "height": 1054,
+      "sha256": "ad07ff6fafbafdb0f7e8acd567dabdf5da0e9cfcff78c7a770e550d942051e37",
+      "title": "Otter roster",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.24.58 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-20",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-20/archer",
+          "bounds_per_mille": [
+            5,
+            163,
+            220,
+            995
+          ],
+          "bounds_pixels_half_open": [
+            7,
+            171,
+            310,
+            1049
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-20/fisher",
+          "bounds_per_mille": [
+            688,
+            652,
+            942,
+            995
+          ],
+          "bounds_pixels_half_open": [
+            967,
+            687,
+            1325,
+            1049
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-21",
+      "filename": "Screenshot 2026-09-06 at 2.25.29 PM.png",
+      "width": 1398,
+      "height": 1058,
+      "sha256": "d50c50df842acb59c692da23b328d46ab0726eafd0b4c6197e8b56bb0281de47",
+      "title": "Major factions, launch table",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.25.29 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-21",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-21/launch_matrix",
+          "bounds_per_mille": [
+            13,
+            106,
+            982,
+            907
+          ],
+          "bounds_pixels_half_open": [
+            18,
+            112,
+            1373,
+            960
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-22",
+      "filename": "Screenshot 2026-09-06 at 2.25.44 PM.png",
+      "width": 1340,
+      "height": 940,
+      "sha256": "17cd7d2e045619403b1c946948b160a2b71cf90b5596bafe5a0394ed2385ecf9",
+      "title": "Additional factions and hooded hare",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.25.44 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-22",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-22/hare_body",
+          "bounds_per_mille": [
+            604,
+            54,
+            974,
+            883
+          ],
+          "bounds_pixels_half_open": [
+            809,
+            50,
+            1306,
+            831
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-22/faction_matrix",
+          "bounds_per_mille": [
+            27,
+            156,
+            540,
+            932
+          ],
+          "bounds_pixels_half_open": [
+            36,
+            146,
+            724,
+            877
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-23",
+      "filename": "Screenshot 2026-09-06 at 2.26.14 PM.png",
+      "width": 1394,
+      "height": 1058,
+      "sha256": "d6d301cff164f02b60abab59bd1f204812f4d8f1f8f9f36640c1a32ca8ab3372",
+      "title": "War machines and ships",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.26.14 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-23",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-23/ship",
+          "bounds_per_mille": [
+            575,
+            86,
+            973,
+            865
+          ],
+          "bounds_pixels_half_open": [
+            801,
+            90,
+            1357,
+            916
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-23/forest_materials",
+          "bounds_per_mille": [
+            497,
+            7,
+            995,
+            988
+          ],
+          "bounds_pixels_half_open": [
+            692,
+            7,
+            1388,
+            1046
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-24",
+      "filename": "Screenshot 2026-09-06 at 2.26.24 PM.png",
+      "width": 1384,
+      "height": 1034,
+      "sha256": "dac30d9002f2f9ce26d05f8f7e78ba4facd66c70ec2155d7199c7309f7b9f7f0",
+      "title": "Colossi",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.26.24 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-24",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-24/owl",
+          "bounds_per_mille": [
+            493,
+            90,
+            991,
+            893
+          ],
+          "bounds_pixels_half_open": [
+            682,
+            93,
+            1372,
+            924
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-24/scale_comparison",
+          "bounds_per_mille": [
+            504,
+            736,
+            632,
+            997
+          ],
+          "bounds_pixels_half_open": [
+            697,
+            761,
+            875,
+            1031
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-25",
+      "filename": "Screenshot 2026-09-06 at 2.26.38 PM.png",
+      "width": 1366,
+      "height": 1026,
+      "sha256": "1fc1b690d54745da09b08cc21a3d0b6b19d3daa5a78182384c34a8dfbd9677f2",
+      "title": "Sizing and species lineup",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.26.38 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-25",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-25/woodland_lineup",
+          "bounds_per_mille": [
+            303,
+            241,
+            954,
+            550
+          ],
+          "bounds_pixels_half_open": [
+            413,
+            247,
+            1304,
+            565
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-25/second_lineup",
+          "bounds_per_mille": [
+            303,
+            558,
+            958,
+            872
+          ],
+          "bounds_pixels_half_open": [
+            413,
+            572,
+            1309,
+            895
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-25/count_labels",
+          "bounds_per_mille": [
+            14,
+            200,
+            295,
+            827
+          ],
+          "bounds_pixels_half_open": [
+            19,
+            205,
+            403,
+            849
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-26",
+      "filename": "Screenshot 2026-09-06 at 2.27.01 PM.png",
+      "width": 784,
+      "height": 1038,
+      "sha256": "1991f1f76d191435354ba1e374b02621b5acfed06d3d198835428c38ae6390ae",
+      "title": "Two combat compositions",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.27.01 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-26",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-26/upper_combat",
+          "bounds_per_mille": [
+            3,
+            3,
+            956,
+            516
+          ],
+          "bounds_pixels_half_open": [
+            2,
+            3,
+            750,
+            536
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-26/lower_combat",
+          "bounds_per_mille": [
+            3,
+            520,
+            956,
+            994
+          ],
+          "bounds_pixels_half_open": [
+            2,
+            539,
+            750,
+            1032
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-27",
+      "filename": "Screenshot 2026-09-06 at 2.27.42 PM.png",
+      "width": 1382,
+      "height": 1026,
+      "sha256": "6fef1702075985540531e8154bdf10b092ac141e4eb560aa25481b490ea9984f",
+      "title": "Salamandastron roster and running hare",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.27.42 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-27",
+      "duplicate_of": null,
+      "regions": [
+        {
+          "region_id": "IMG-27/badger_strip",
+          "bounds_per_mille": [
+            3,
+            159,
+            216,
+            995
+          ],
+          "bounds_pixels_half_open": [
+            4,
+            163,
+            299,
+            1021
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-27/running_hare",
+          "bounds_per_mille": [
+            634,
+            630,
+            993,
+            988
+          ],
+          "bounds_pixels_half_open": [
+            876,
+            646,
+            1373,
+            1014
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    },
+    {
+      "id": "IMG-28",
+      "filename": "Screenshot 2026-09-06 at 2.28.32 PM.png",
+      "width": 1378,
+      "height": 1038,
+      "sha256": "bbde32ba4e94e0ee5295b1ecc8a80d3204413ff67bbd1625dd9080f046590182",
+      "title": "Repeated specialist slide, second framing",
+      "source_repo_path": "ImageReference/Screenshot 2026-09-06 at 2.28.32 PM.png",
+      "review_status": "VISUALLY_INSPECTED_FULL_SCREENSHOT",
+      "visible_text_status": "READ_MANUALLY",
+      "source_creator": null,
+      "source_presentation_url": null,
+      "original_artwork_edition": null,
+      "review_anchor": "img-28",
+      "duplicate_of": "IMG-02",
+      "regions": [
+        {
+          "region_id": "IMG-28/scout",
+          "bounds_per_mille": [
+            48,
+            45,
+            279,
+            494
+          ],
+          "bounds_pixels_half_open": [
+            66,
+            46,
+            385,
+            513
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-28/badger_group",
+          "bounds_per_mille": [
+            501,
+            51,
+            748,
+            503
+          ],
+          "bounds_pixels_half_open": [
+            690,
+            52,
+            1031,
+            523
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-28/corsair",
+          "bounds_per_mille": [
+            42,
+            516,
+            289,
+            978
+          ],
+          "bounds_pixels_half_open": [
+            57,
+            535,
+            399,
+            1016
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        },
+        {
+          "region_id": "IMG-28/kestrel",
+          "bounds_per_mille": [
+            490,
+            515,
+            752,
+            981
+          ],
+          "bounds_pixels_half_open": [
+            675,
+            534,
+            1037,
+            1019
+          ],
+          "purpose": "Authored viewing window; inspect original, exclude slide UI/text from modeled subject."
+        }
+      ]
+    }
+  ]
+}

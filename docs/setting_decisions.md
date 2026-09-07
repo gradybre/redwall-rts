@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Document | SET-DEC-001 |
-| Revision | 0.17, 2026-09-06 |
+| Revision | 0.20, 2026-09-06 |
 | Companion | [Setting bible](setting_bible.md) |
 | Purpose | Preserve Brendan's decisions, distinguish recommendations from answers, and expose cross-document consequences |
 | Current interview | Six-book focus, mouse-keeper Rowan and displaced founding recorded; exclusion versus offscreen-reference clarification pending |
@@ -462,7 +462,7 @@ Brendan selected “A combination of 1 and 3 appropriately combined”, referrin
 | affected_lore | `[LORE-U17]` |
 | affected_docs | `[docs/setting_bible.md, docs/setting_decisions.md, CLAUDE.md]`; Blender briefs and future asset/look-development contracts |
 | mechanical_change | Presentation policy only. Existing scales, geometry, rigs, atlases, crowd paths and performance gates remain the numeric owners; no new renderer or fidelity budget follows automatically |
-| remaining_questions | `[DEC-020]`; specific cultural materials plus exact audio-production/runtime choices; broad sound blend is confirmed under DEC-021. DEC-019 confirms recognizable anatomy; exact size ratios remain engineering/art work. Exact reference assets still require visual review |
+| remaining_questions | `[DEC-020]`; specific cultural materials plus exact audio-production/runtime choices; broad sound blend is confirmed under DEC-021. DEC-019 confirms recognizable anatomy; exact size ratios remain engineering/art work. All 28 supplied screenshots now have individual visual reviews and direct model-reference assignments in docs/art-reference; neutral turnarounds, exact species sizes and production models remain to author |
 | revisit_trigger | `NONE` |
 | supersedes | `[DEC-018/open art choice, DEC-018/storybook-only recommendation]` |
 | provenance_boundary | The blend is user-approved. Its domain allocation and review procedure are NEW art-direction decisions authored here; no numerical blend percentage or canonical reproduction is claimed |
@@ -830,7 +830,7 @@ Completed specification reconciliation for DEC-006: identify every raw_game/hide
 
 ## 8. Unresolved facts and research follow-through
 
-Research request, 2026-09-06: “Can you do novel analysis to get a deeper understanding?” [SET-RESEARCH-001](redwall_novel_analysis.md) records the initial bounded excerpt pass and the subsequent complete reading of the supplied Lord Brocktree narrative. Brendan supplied a local EPUB; its metadata claims a collection, but the actual contents contain only Lord Brocktree. The [dedicated study](lord_brocktree_analysis.md) and [source audit](lord_brocktree_source_audit.json) document all 40 narrative sections, passage locators, interpretation and adaptation conflicts. The [expanded package](redwall-series/README.md) now studies eleven additional user-supplied novels through 96 targeted passage records (102,954 inspected extracted words). Four of these belong to the six-book focus; seven expand its supporting evidence. None of these eleven has a complete sequential reading in this pass. Eulalia! still has only the previously inspected excerpts. The source audit records file identity and exact inspected ranges. This is research authorization, not adoption of its new design recommendations; no DEC record is closed. Continue independent work under existing decisions.
+Research request, 2026-09-06: “Can you do novel analysis to get a deeper understanding?” [SET-RESEARCH-001](redwall_novel_analysis.md) records the initial bounded excerpt pass and the subsequent complete reading of the supplied Lord Brocktree narrative. Brendan supplied a local EPUB; its metadata claims a collection, but the actual contents contain only Lord Brocktree. The [dedicated study](lord_brocktree_analysis.md) and [source audit](lord_brocktree_source_audit.json) document all 40 narrative sections, passage locators, interpretation and adaptation conflicts. The [expanded package](redwall-series/README.md) now studies eleven additional user-supplied novels through 96 targeted passage records (102,954 inspected extracted words). Four of these belong to the six-book focus; seven expand its supporting evidence. None of these eleven had a complete sequential reading in that earlier pass. The later systematic library in §8.3 supersedes the current coverage status; Eulalia! still lacks full supplied text. The source audit records file identity and exact inspected ranges. This is research authorization, not adoption of its new design recommendations; no DEC record is closed. Continue independent work under existing decisions.
 
 | Topic | Current evidence limit | How to close it |
 |---|---|---|
@@ -839,8 +839,39 @@ Research request, 2026-09-06: “Can you do novel analysis to get a deeper under
 | Diet and sapience | The expanded corpus directly adds speaking predators and bird consumption; no complete sapience taxonomy follows, and silence still does not prove nonsapience | Use adopted DEC-006; verify any additional source-specific claims rather than rewriting the policy by assumption |
 | Religion and visions | The expanded studies add concealment through clothing, the tortoise Walking Stone and consequential prophetic appointments; no universal theology or skepticism is established | Apply DEC-009 rarity/significance; apply DEC-030 uncertain truth; distinguish source text, interpretation and deliberate game invention |
 | Architectural authenticity | Gameplay map and technical scale exist; no canonical measured floor plan inspected | Apply DEC-010 style variety and earth-built homes; implement DEC-029 all-method scope, apply DEC-031 interoperability and inspect scenario references before claiming fidelity |
-| Preferred illustration/animation | Storybook/grounded-realism blend selected; no particular edition, film or illustrator named | Apply DEC-018 and review concrete original reference assets; verify any later named source before claiming fidelity |
+| Preferred illustration/animation | Storybook/grounded-realism blend selected; all 28 supplied screenshots visually reviewed and assigned as direct references; creators/editions remain unidentified | Apply DEC-018/019 and docs/art-reference/model_reference_guide.md; author missing model views and verify any later source attribution |
 | Rowan, founding and neighbors | Experienced mouse keeper and displaced founding confirmed; neighbors/cause/route unknown | Finish concrete DEC-003/004 records, including hall provision history; do not claim a canonical identity or location |
+
+### 8.1 Supplied visual references reviewed
+
+On 2026-09-06 Brendan requested detailed review of every screenshot in the project's image-reference folder, explicitly including their use as direct modeling references and special attention to tunneling, swimming and climbing. [The completed package](art-reference/README.md) records 28 inspected PNGs, 27 distinct slide compositions and 62 viewing windows. The [model guide](art-reference/model_reference_guide.md) is the direct-reference handoff; the [traversal review](art-reference/traversal_design_review.md) contains proposed interfaces, formulas, fixtures and remaining engineering decisions.
+
+This authorizes direct-reference use and analysis; it does not turn every slide bonus, faction, era, hazard or release label into a confirmed DEC. Existing underground scope remains confirmed. Source-specific art choices are documented as observed features or authored adaptations. No gameplay value, species morality rule, Rowan biography, full campaign or completed runtime is inferred from an image.
+
+### DEC-035 — Connected movement for ordinary settlement life
+
+| Field | Value |
+|---|---|
+| Status | `USER_CONFIRMED` |
+| Source | Brendan, 2026-09-06, current conversation |
+| User wording | “Agreed with your recommendation on movement, let’s make sure that’s built in the right places in the various spec/md files.” |
+| Adopted direction | Persistent tunnels and inhabited underground routes; surface swimming and diving with valid shore/air access; connected climbing/canopy routes for daily work and access; body, equipment and load compatibility |
+| Preserved scope | DEC-029/031 all three underground methods interoperable in first release; ordinary settlement and battle stores remain separate |
+| Mechanical change | SET-MOVE-001 supersedes ground-only/one-floor claims as complete product scope; old runtime remains incomplete baseline |
+| Not decided | Species-wide innate permissions, exact speeds/depths/air values, sapping/traps/water combat, free flight, arbitrary jumping, new hazard penalties or production recipes |
+| Save/version impact | Expanded spatial identity and traversal state require a completed versioned save contract; no new active ruleset or migration number assigned here |
+| Owners | GDD, UI, balance, systems architecture, crowd/assets, validation, setting bible and agent reading order |
+| Engineering remaining | MOVE-G01–05; accepted direction does not imply finished algorithms, catalogs or qualification |
+
+### 8.2 Separate design-focused novel pass
+
+[DESIGN-READ-SERIES-002](redwall-design/README.md) responds to Brendan's request for themes, feeling, people, factions, food, objects, places and other useful design context. Twelve supplied works receive separate studies, with 115 records and 47,139 unique extracted words inspected this pass; 36,073 lie outside previous inspected ranges. This remains targeted reading, not twelve new complete sequential readings. The earlier research is retained separately; full Eulalia text remains absent from the verified corpus. Content candidates have no automatic mechanical authority.
+
+### 8.3 Systematic content-library pass
+
+The [systematic content library](redwall-content-library/README.md), CONTENT-LIB-001, now records full sequential inspection of all available normalized narrative blocks in twelve supplied works: 1,280,344 words across 221 chunks. It indexes 7,665 records and 1,755 food/recipe/discourse candidates, with source ingredients separated from explicitly AI-authored game completions. The source audit retains the confirmed Salamandastron gap, apparently printed pages 314–315; full Eulalia! remains absent; the collection-labeled EPUB contains Lord Brocktree only. This is not complete-series or verified-edition certification.
+
+Brendan requested a systematic book-by-book library for all previously named content areas and explicitly allowed AI guesses for missing recipe ingredients, then authorized parallel work. The package preserves canon lists separately from inferred ingredients and methods, exposes source-only discourse versus production candidates, and keeps all numerical recipe values inactive. This is authorization for research and labeled content completion, not a new gameplay policy or an answer to outstanding interview questions. [Decision 0014](decisions/0014-systematic-content-library-keeps-source-and-game-separate.md) records the handoff.
 
 ## 9. Progress ledger
 
@@ -863,5 +894,10 @@ Research request, 2026-09-06: “Can you do novel analysis to get a deeper under
 | 2026-09-06, revision 0.15 | Added passage-analysis companion, explicit source coverage and adaptation checks | Complete six-novel analysis needs full texts and reading; no interview decisions changed |
 | 2026-09-06, revision 0.16 | Read all supplied Lord Brocktree narrative sections; recorded source mismatch, detailed analysis and bounded bible integration | Other five complete readings, edition verification and existing decision gaps remain; no new interview answers or mechanics |
 | 2026-09-06, revision 0.17 | Verified eleven additional files and authored targeted studies, source audit, comparative contradictions and context integration | All eleven new sequential readings, full Eulalia! access, edition checks and existing DEC gaps remain open; no user answers or mechanics invented |
+| 2026-09-06, revision 0.18 | Reviewed every supplied screenshot and recorded direct model-reference use, traversal analysis and source conflicts | Model production and complete traversal amendments remain; no slide-wide gameplay adoption or new interview answers |
 
 Rounds 1–10 establish product range, first-release coverage, admission, diet, scenario-dependent player roles, rare meaningful wonder and player-selectable settlement forms including earth-built homes. Round 4 adds all underground construction methods, serious consequences/grief and visible family life. Round 5 confirms construction interoperability and uncertain supernatural truth; DEC-032 subsequently adopts the dependent-resident model. Round 6 adopts child survival vulnerability and warm everyday humor; the visual follow-up adopts a blend of storybook and grounded realism. Round 7 confirms recognizable anatomy, light dialect and selective canon flexibility. Round 8 adopts naming, feast and sound blends. Round 9 adopts story-delivery variety, the community-written Refuge Charter and varied antagonist motives/scales. Round 10 confirms experienced mouse-keeper Rowan and displaced founding, adds six-book reference emphasis, and names torture/child cruelty as boundaries with offscreen treatment being clarified. Policy adoption does not complete the game implementation or interview.
+
+Revision 0.19 records DEC-035 and the separate design-focused pass. SET-MOVE-001 and all owning-document integration notes are adopted direction with explicit engineering gates, not a claim of runtime completion.
+
+Revision 0.20 adds the systematic supplied-book content library. Source coverage is complete for available normalized blocks; missing source material and all existing engineering/creative decisions retain their stated limits. No DEC-nnn policy is newly closed.

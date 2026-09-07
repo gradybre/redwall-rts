@@ -1,0 +1,1183 @@
+{
+  "book": "Triss",
+  "book_key": "triss",
+  "full_read_status": "FULLY_INSPECTED",
+  "source_blocks": 3857,
+  "inspected_blocks": 3857,
+  "source_words": 110414,
+  "delivered_and_inspected_chunks": [
+    {
+      "chunk": 1,
+      "range": [
+        1,
+        269
+      ],
+      "words": 5971,
+      "digest": "b885726e1f4494010a62b1e22d96921d4b3c2f94bdefadad231c65b6e01c2e08",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk01.md"
+    },
+    {
+      "chunk": 2,
+      "range": [
+        270,
+        472
+      ],
+      "words": 5961,
+      "digest": "fbd82184afe13ed2f09d72e88bff206723f3ce2d051514d2507c59c67364463e",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk02.md"
+    },
+    {
+      "chunk": 3,
+      "range": [
+        473,
+        645
+      ],
+      "words": 5956,
+      "digest": "af5c53206456467b854f761e1c058b0f32207551d6d19c2e272a5e9dac5d505e",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk03.md"
+    },
+    {
+      "chunk": 4,
+      "range": [
+        646,
+        863
+      ],
+      "words": 5982,
+      "digest": "b97876969364c8823ea0c6b50eca663a7b239116212ba25acf8e6a5814afe94b",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk04.md"
+    },
+    {
+      "chunk": 5,
+      "range": [
+        864,
+        1063
+      ],
+      "words": 5998,
+      "digest": "d30abcac47cb5afb912339b37cd35f68f8bf350619b9c8c1b58a851a7871107c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk05.md"
+    },
+    {
+      "chunk": 6,
+      "range": [
+        1064,
+        1280
+      ],
+      "words": 6000,
+      "digest": "aebed1a909db3e8108b01b0c9a792867ac44aa6d41d2b16c736de2456e6f58de",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk06.md"
+    },
+    {
+      "chunk": 7,
+      "range": [
+        1281,
+        1482
+      ],
+      "words": 5997,
+      "digest": "9965885d6939ca5245cb686f0e7d163bbefb33f27c4831742d379070549f93e8",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk07.md"
+    },
+    {
+      "chunk": 8,
+      "range": [
+        1483,
+        1667
+      ],
+      "words": 5973,
+      "digest": "e670b2784cdd1012cfd2e3b15dc9b97b19524f2faf84b4633ecad1b6a4a66f7a",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk08.md"
+    },
+    {
+      "chunk": 9,
+      "range": [
+        1668,
+        1883
+      ],
+      "words": 5993,
+      "digest": "f1e71483e5f0ce4cd51165f4eaf812fae72eeca0de2015a255c13d385195c026",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk09.md"
+    },
+    {
+      "chunk": 10,
+      "range": [
+        1884,
+        2079
+      ],
+      "words": 5969,
+      "digest": "56c67d64bbe04e25981761f1b62befe8777822d5d4ba9b863c58b9e75d26302f",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk10.md"
+    },
+    {
+      "chunk": 11,
+      "range": [
+        2080,
+        2289
+      ],
+      "words": 5997,
+      "digest": "9fd1dc09c7607100f08b24b42b3d871d357ba4292952827c2adee0e1d27b0141",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk11.md"
+    },
+    {
+      "chunk": 12,
+      "range": [
+        2290,
+        2511
+      ],
+      "words": 5975,
+      "digest": "f3409054c2176d9c75804a95364b389252d293014d01efd76b7140defa6d10e6",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk12.md"
+    },
+    {
+      "chunk": 13,
+      "range": [
+        2512,
+        2738
+      ],
+      "words": 5994,
+      "digest": "b2c402e4cb650b302671ae48ca391885f3fdae3ac61b69fcd513b433e018d4f0",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk13.md"
+    },
+    {
+      "chunk": 14,
+      "range": [
+        2739,
+        2978
+      ],
+      "words": 5995,
+      "digest": "0a14e77116b1a79351ba5fb5e1f5e5d4d8a5824a2031a9a664a6f3f87cd457ca",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk14.md"
+    },
+    {
+      "chunk": 15,
+      "range": [
+        2979,
+        3189
+      ],
+      "words": 5962,
+      "digest": "369785fbc7218ea9c9b465cc4b8969ba2c6e7d47f9fc0dfeee5dd408aa13c312",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk15.md"
+    },
+    {
+      "chunk": 16,
+      "range": [
+        3190,
+        3433
+      ],
+      "words": 5997,
+      "digest": "858941677fa852b36d94465a7d2be320aaaec5389ba7c652dfa435be84f23153",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk16.md"
+    },
+    {
+      "chunk": 17,
+      "range": [
+        3434,
+        3634
+      ],
+      "words": 5974,
+      "digest": "f1bb278fce2565e96bc435bf784aa3c717108d6176ff0b8e5fca5a8eba263b95",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk17.md"
+    },
+    {
+      "chunk": 18,
+      "range": [
+        3635,
+        3757
+      ],
+      "words": 5994,
+      "digest": "34fef5bee224532d9c23f8627e83bf0b38adc4031b3709bd2f9efc95ed748558",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk18.md"
+    },
+    {
+      "chunk": 19,
+      "range": [
+        3758,
+        3857
+      ],
+      "words": 2726,
+      "digest": "e72fe9a66eb91728292344b5d23c412235ac65e80bb32ee04762b0b079deb6a8",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk19.md"
+    }
+  ],
+  "source_units": [
+    {
+      "source_unit": "index_split_000.html",
+      "first_block": 1,
+      "last_block": 17,
+      "blocks": 17,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_001.html",
+      "first_block": 18,
+      "last_block": 46,
+      "blocks": 29,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_004.html",
+      "first_block": 47,
+      "last_block": 63,
+      "blocks": 17,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_005.html",
+      "first_block": 64,
+      "last_block": 65,
+      "blocks": 2,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_006.html",
+      "first_block": 66,
+      "last_block": 121,
+      "blocks": 56,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_007.html",
+      "first_block": 122,
+      "last_block": 246,
+      "blocks": 125,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_008.html",
+      "first_block": 247,
+      "last_block": 320,
+      "blocks": 74,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_009.html",
+      "first_block": 321,
+      "last_block": 372,
+      "blocks": 52,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_010.html",
+      "first_block": 373,
+      "last_block": 433,
+      "blocks": 61,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_011.html",
+      "first_block": 434,
+      "last_block": 478,
+      "blocks": 45,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_012.html",
+      "first_block": 479,
+      "last_block": 563,
+      "blocks": 85,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_013.html",
+      "first_block": 564,
+      "last_block": 674,
+      "blocks": 111,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_014.html",
+      "first_block": 675,
+      "last_block": 745,
+      "blocks": 71,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_015.html",
+      "first_block": 746,
+      "last_block": 865,
+      "blocks": 120,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_016.html",
+      "first_block": 866,
+      "last_block": 966,
+      "blocks": 101,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_017.html",
+      "first_block": 967,
+      "last_block": 1074,
+      "blocks": 108,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_018.html",
+      "first_block": 1075,
+      "last_block": 1226,
+      "blocks": 152,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_019.html",
+      "first_block": 1227,
+      "last_block": 1320,
+      "blocks": 94,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_020.html",
+      "first_block": 1321,
+      "last_block": 1323,
+      "blocks": 3,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_021.html",
+      "first_block": 1324,
+      "last_block": 1451,
+      "blocks": 128,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_022.html",
+      "first_block": 1452,
+      "last_block": 1527,
+      "blocks": 76,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_023.html",
+      "first_block": 1528,
+      "last_block": 1596,
+      "blocks": 69,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_024.html",
+      "first_block": 1597,
+      "last_block": 1701,
+      "blocks": 105,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_025.html",
+      "first_block": 1702,
+      "last_block": 1795,
+      "blocks": 94,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_026.html",
+      "first_block": 1796,
+      "last_block": 1884,
+      "blocks": 89,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_027.html",
+      "first_block": 1885,
+      "last_block": 1999,
+      "blocks": 115,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_028.html",
+      "first_block": 2000,
+      "last_block": 2070,
+      "blocks": 71,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_029.html",
+      "first_block": 2071,
+      "last_block": 2120,
+      "blocks": 50,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_030.html",
+      "first_block": 2121,
+      "last_block": 2223,
+      "blocks": 103,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_031.html",
+      "first_block": 2224,
+      "last_block": 2335,
+      "blocks": 112,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_032.html",
+      "first_block": 2336,
+      "last_block": 2412,
+      "blocks": 77,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_033.html",
+      "first_block": 2413,
+      "last_block": 2501,
+      "blocks": 89,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_034.html",
+      "first_block": 2502,
+      "last_block": 2582,
+      "blocks": 81,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_035.html",
+      "first_block": 2583,
+      "last_block": 2661,
+      "blocks": 79,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_036.html",
+      "first_block": 2662,
+      "last_block": 2663,
+      "blocks": 2,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_037.html",
+      "first_block": 2664,
+      "last_block": 2772,
+      "blocks": 109,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_038.html",
+      "first_block": 2773,
+      "last_block": 2885,
+      "blocks": 113,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_039.html",
+      "first_block": 2886,
+      "last_block": 2997,
+      "blocks": 112,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_040.html",
+      "first_block": 2998,
+      "last_block": 3072,
+      "blocks": 75,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_041.html",
+      "first_block": 3073,
+      "last_block": 3177,
+      "blocks": 105,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_042.html",
+      "first_block": 3178,
+      "last_block": 3227,
+      "blocks": 50,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_043.html",
+      "first_block": 3228,
+      "last_block": 3354,
+      "blocks": 127,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_044.html",
+      "first_block": 3355,
+      "last_block": 3459,
+      "blocks": 105,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_045.html",
+      "first_block": 3460,
+      "last_block": 3566,
+      "blocks": 107,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_046.html",
+      "first_block": 3567,
+      "last_block": 3667,
+      "blocks": 101,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_047.html",
+      "first_block": 3668,
+      "last_block": 3729,
+      "blocks": 62,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_048.html",
+      "first_block": 3730,
+      "last_block": 3748,
+      "blocks": 19,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_049.html",
+      "first_block": 3749,
+      "last_block": 3800,
+      "blocks": 52,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_050.html",
+      "first_block": 3801,
+      "last_block": 3804,
+      "blocks": 4,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_051.html",
+      "first_block": 3805,
+      "last_block": 3854,
+      "blocks": 50,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "index_split_052.html",
+      "first_block": 3855,
+      "last_block": 3857,
+      "blocks": 3,
+      "fully_inspected": true
+    }
+  ],
+  "observed_headings": [
+    {
+      "text": "BOOK ONE",
+      "block": 64,
+      "source_unit": "index_split_005.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "A Season of Runaways",
+      "block": 65,
+      "source_unit": "index_split_005.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "1",
+      "block": 66,
+      "source_unit": "index_split_006.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "2",
+      "block": 122,
+      "source_unit": "index_split_007.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "3",
+      "block": 247,
+      "source_unit": "index_split_008.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "4",
+      "block": 321,
+      "source_unit": "index_split_009.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "5",
+      "block": 373,
+      "source_unit": "index_split_010.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "6",
+      "block": 434,
+      "source_unit": "index_split_011.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "7",
+      "block": 479,
+      "source_unit": "index_split_012.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "8",
+      "block": 564,
+      "source_unit": "index_split_013.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "9",
+      "block": 675,
+      "source_unit": "index_split_014.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "10",
+      "block": 746,
+      "source_unit": "index_split_015.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "11",
+      "block": 866,
+      "source_unit": "index_split_016.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "12",
+      "block": 967,
+      "source_unit": "index_split_017.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "13",
+      "block": 1075,
+      "source_unit": "index_split_018.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "14",
+      "block": 1227,
+      "source_unit": "index_split_019.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "BOOK TWO",
+      "block": 1321,
+      "source_unit": "index_split_020.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "15",
+      "block": 1324,
+      "source_unit": "index_split_021.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "16",
+      "block": 1452,
+      "source_unit": "index_split_022.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "17",
+      "block": 1528,
+      "source_unit": "index_split_023.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "18",
+      "block": 1597,
+      "source_unit": "index_split_024.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "19",
+      "block": 1702,
+      "source_unit": "index_split_025.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "20",
+      "block": 1796,
+      "source_unit": "index_split_026.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "21",
+      "block": 1885,
+      "source_unit": "index_split_027.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "22",
+      "block": 2000,
+      "source_unit": "index_split_028.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "23",
+      "block": 2071,
+      "source_unit": "index_split_029.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "24",
+      "block": 2121,
+      "source_unit": "index_split_030.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "25",
+      "block": 2224,
+      "source_unit": "index_split_031.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "26",
+      "block": 2336,
+      "source_unit": "index_split_032.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "27",
+      "block": 2413,
+      "source_unit": "index_split_033.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "28",
+      "block": 2502,
+      "source_unit": "index_split_034.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "29",
+      "block": 2583,
+      "source_unit": "index_split_035.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "BOOK THREE",
+      "block": 2662,
+      "source_unit": "index_split_036.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "The Swordmaid",
+      "block": 2663,
+      "source_unit": "index_split_036.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "30",
+      "block": 2664,
+      "source_unit": "index_split_037.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "31",
+      "block": 2773,
+      "source_unit": "index_split_038.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "32",
+      "block": 2886,
+      "source_unit": "index_split_039.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "33",
+      "block": 2998,
+      "source_unit": "index_split_040.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "34",
+      "block": 3073,
+      "source_unit": "index_split_041.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "35",
+      "block": 3178,
+      "source_unit": "index_split_042.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "36",
+      "block": 3228,
+      "source_unit": "index_split_043.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "37",
+      "block": 3355,
+      "source_unit": "index_split_044.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "38",
+      "block": 3460,
+      "source_unit": "index_split_045.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "39",
+      "block": 3567,
+      "source_unit": "index_split_046.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "40",
+      "block": 3668,
+      "source_unit": "index_split_047.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "41",
+      "block": 3730,
+      "source_unit": "index_split_048.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "42",
+      "block": 3749,
+      "source_unit": "index_split_049.html",
+      "role": "STORY_HEADING"
+    },
+    {
+      "text": "ABOUT THE AUTHOR",
+      "block": 3801,
+      "source_unit": "index_split_050.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "BOOK ONE",
+      "block": 3806,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "A Season of Runaways",
+      "block": 3807,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "1",
+      "block": 3808,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "2",
+      "block": 3809,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "3",
+      "block": 3810,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "4",
+      "block": 3811,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "5",
+      "block": 3812,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "6",
+      "block": 3813,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "7",
+      "block": 3814,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "8",
+      "block": 3815,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "9",
+      "block": 3816,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "10",
+      "block": 3817,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "11",
+      "block": 3818,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "12",
+      "block": 3819,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "13",
+      "block": 3820,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "14",
+      "block": 3821,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "BOOK TWO",
+      "block": 3822,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "Of Serpents and Paradoxes",
+      "block": 3823,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "15",
+      "block": 3824,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "16",
+      "block": 3825,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "17",
+      "block": 3826,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "18",
+      "block": 3827,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "19",
+      "block": 3828,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "20",
+      "block": 3829,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "21",
+      "block": 3830,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "22",
+      "block": 3831,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "23",
+      "block": 3832,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "24",
+      "block": 3833,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "25",
+      "block": 3834,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "26",
+      "block": 3835,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "27",
+      "block": 3836,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "28",
+      "block": 3837,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "29",
+      "block": 3838,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "BOOK THREE",
+      "block": 3839,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "The Swordmaid",
+      "block": 3840,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "30",
+      "block": 3841,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "31",
+      "block": 3842,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "32",
+      "block": 3843,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "33",
+      "block": 3844,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "34",
+      "block": 3845,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "35",
+      "block": 3846,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "36",
+      "block": 3847,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "37",
+      "block": 3848,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "38",
+      "block": 3849,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "39",
+      "block": 3850,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "40",
+      "block": 3851,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "41",
+      "block": 3852,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "42",
+      "block": 3853,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    },
+    {
+      "text": "ABOUT THE AUTHOR",
+      "block": 3854,
+      "source_unit": "index_split_051.html",
+      "role": "PARATEXT_OR_CONTENTS"
+    }
+  ],
+  "missing_block_ids": [],
+  "normalized_source_sha256": "d25d5de3485683e5fab0691303e40c18aba296e5d75cf032fe9b67479325d362",
+  "catalog_record_count": 626,
+  "recipe_candidate_count": 147,
+  "method": "All normalized blocks were sequentially delivered and model-inspected; 11-category notes were written for every chunk before catalog completion. Keyword search did not replace reading.",
+  "scope_note": "Full reading is verified. Systematic editorial extraction is not a mathematical proof that every minor noun or possible interpretation has been cataloged. Front and back matter are inspected but not treated as contemporary story entities.",
+  "validation": {
+    "unique_catalog_ids": true,
+    "unique_recipe_ids": true,
+    "all_fact_bounds_valid": true,
+    "every_block_covered": true,
+    "notes_present_for_every_chunk": true
+  },
+  "recipe_method_completion": {
+    "authorship": "AI_AUTHORED_GAME_ADAPTATION",
+    "recipe_count": 147,
+    "scope": "Every existing recipe now has concrete ordered game operations, preserving source ingredients and context.",
+    "source_status_policy": "Nonuniform conservative context classification; no default assertion that named dishes were served.",
+    "number_policy": "Production numbers remain null/unbalanced.",
+    "helper": "work/content-library/complete_taggerung_triss_methods.py"
+  }
+}

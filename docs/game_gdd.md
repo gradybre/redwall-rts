@@ -2,6 +2,8 @@
 
 # Redwall RTS — Settlement Layer Game Design Document
 
+**Adopted movement amendment:** [SET-MOVE-001](movement_direction_amendment.md) implements DEC-035 at the direction/specification level. Its requirements supersede ground-only and one-floor claims as the complete settlement design. `settlement_rules_v2` remains the incomplete implementation baseline; MOVE-G01–05 identify exact engineering closure still required.
+
 | Field | Value |
 |---|---|
 | Document | SET-GDD-001, revision 1.1, 2026-09-05 |
@@ -32,7 +34,7 @@ Ruleset `settlement_rules_v2` adopts DEC-005/006. [setting_rules_amendment.md](s
 
 **Cooking and preservation.** Food moves through inventory lots, work orders, recipes, quality, storage, and consumption. Dishes carry nutritional value and a bounded ingredient effect. Variety matters, and preservation converts short harvest windows into winter reserves. Feasts consume real multi-course supplies and grant a timed settlement benefit.
 
-**Construction and interiors.** Exterior buildings occupy the terrain grid. Residential halls, community halls, and infirmaries have single-floor managed interiors; production buildings and stores are accessible black boxes with explicit worker slots. Room validity, beds, seating, warmth, and walkable access are visible constraints. Defensive construction controls access and protects stores from wildlife; there is no settlement combat mode.
+**Construction and interiors.** Exterior buildings occupy the terrain grid. The current starter fixture gives residential halls, community halls, and infirmaries managed interiors; the complete design must additionally support the interoperable underground construction and connected movement required by SET-MOVE-001. In the baseline fixture, production buildings and stores are accessible black boxes with explicit worker slots. Room validity, beds, seating, warmth, and walkable access are visible constraints. Defensive construction controls access and protects stores from wildlife; there is no settlement combat mode.
 
 **Seasons and weather.** Four twelve-day seasons create a forty-eight-day year. Winter lowers available food, raises appetite and heating demand, and exposes weak storage and staffing. Forecasts provide time to respond; disasters follow a bounded event schedule. Day/night lighting, sleep schedules, opening hours, and outdoor darkness exist independently of season.
 
@@ -234,7 +236,7 @@ Initial loose lots are PLAIN quality, effective age 0, provenance STARTER, with 
 
 The standard map preset has river, lake, and coastal inlets so all three fishing systems are accessible without a campaign. The player may choose Abbey, Holt, or Fortress architecture; these are visual kits with identical costs/capacities. A fixed-seed tutorial uses seed 20260905. Terrain generator validation guarantees: one river edge within 24 m, one forest zone within 32 m,64 loam tiles within 24 m, a 1200 U wood stock and 1200 U stone deposit within 48 m, renewable saplings, and an iron deposit within 80 m. Invalid seeds are rejected and regenerated with seed+1.
 
-The shipping map is a deterministic authored estuary preset; the seed changes ecology events, resource variants, and names, not the following navigability guarantees. Exterior tile index is `z*128+x`; tile center in simulation units is `(2048*x+1024,0,2048*z+1024)`. Apply terrain masks in this priority: coast, river, lake, land. Coast is z=0..15; river is x=76..78 and z=16..127; lake is `(x-100)^2+(z-66)^2<=14^2`. Water surface is y=0; navigable land y=512 units. The natural ford at river tiles z=48..51 is walkable, y=−128 units, and is not a fishing work tile. All other water blocks residents, including bird residents; no swimming/flying path bypass exists in this release. Water-bank interpolation affects visuals only. There is one stock basin of each habitat type; dividing a player zone never creates extra ecology stock.
+The shipping map is a deterministic authored estuary preset; the seed changes ecology events, resource variants, and names, not the following navigability guarantees. Exterior tile index is `z*128+x`; tile center in simulation units is `(2048*x+1024,0,2048*z+1024)`. Apply terrain masks in this priority: coast, river, lake, land. Coast is z=0..15; river is x=76..78 and z=16..127; lake is `(x-100)^2+(z-66)^2<=14^2`. Water surface is y=0; navigable land y=512 units. The natural ford at river tiles z=48..51 is walkable, y=−128 units, and is not a fishing work tile. In the existing baseline fixture all other water blocks residents, including bird residents. SET-MOVE-001 supersedes this as a release-wide swimming exclusion: surface swimming, diving and shore transitions are required under completed traversal profiles. Flight remains separately unspecified; anatomy alone grants no bypass. Water-bank interpolation affects visuals only. There is one stock basin of each habitat type; dividing a player zone never creates extra ecology stock.
 
 Land soil is LOAM for x=40..74,z=40..88, SAND within 4 tiles of coast or x>=112, CLAY otherwise. Clear initial building footprints, a one-tile apron, and the loam rectangle x=58..65,z=46..53 before placing resource nodes. Forest ecology basins are west x=8..49,z=20..105 and east x=82..119,z=20..105 excluding water; each is split at z=62 into north/south migration partners. FaunaStockReserved has no active instances; forage stocks are floor(0.8×capacity), including dormant stocks. Player harvest zones reference basin IDs; all intersecting zones share its quotas and do not multiply capacity.
 
@@ -666,7 +668,7 @@ BBBB..TTTT
 
 Every seat has an adjacent walk tile above or below; shelves can be reached from the open common-room edge. Four pantry shelves supply 200000g storage. On the 128×128 exterior tile grid, place the hall at(58,59), stockpiles at(50,60),(50,65),(70,60),(70,65), well at(64,54), and workbench at(58,54), all rotation 0. Clear these footprints before resource placement. Hall interior origin is exterior origin+(1,1). Four stockpiles provide 1600000g material storage; starting food fits the pantry. All initial items are assigned to legal containers by food first, then item ID, filling container IDs ascending.
 
-*Rationale: managed interiors are limited to three building families and one floor, preserving the room-planning fantasy without requiring a full fortress excavation simulation.*
+*Baseline fixture boundary: the layout above specifies the existing starter interior, not the limit of the required construction system. DEC-029/031 and SET-MOVE-001 require placed burrows, planned tunnels/rooms and free multi-level excavation to work together. The former one-floor release restriction is superseded. Finish MOVE-G01/G02 before treating room/service rules and capacity bounds as complete for expanded space.*
 
 | ID | EARS requirement |
 |---|---|
@@ -877,3 +879,9 @@ The settlement is executable without a battle or campaign module. Future integra
 | Performance | Representative woodland/indoor release build passes 256 resident budgets on the Windows floor |
 
 Document checks passed for requirement ID continuity, Markdown table/fence structure, starter food arithmetic, crop output, winter ration/storage demand, recipe quality, mood, and starter interior walk/furniture access. The authored numeric rules and dependency calculations are specification data. No Godot gameplay implementation or multi-year economic simulation was executed while writing this document. The release gates above remain implementation acceptance work, not claimed results.
+
+## Connected movement scope — SET-MOVE-001
+
+MOVE-REQ-001–020 are normative adopted behavior. Extend §5.1 terrain, §5.3 jobs, §5.6 fishing access, §5.9 rooms/construction and §5.11 routing/saves together. A usable home, storage or workstation must have real same-domain/transition access; X/Z proximity is insufficient. Finished tunnels persist, loads and profiles constrain passage, dive plans require valid air endpoints, and canopy work requires supported return routes. Exact production parameters and hazards remain MOVE-G01, not implementer discretion.
+
+The [new design-reading package](redwall-design/README.md) is creative evidence. It adds no active recipe, caste, faction bonus or scenario initialization.

@@ -1,0 +1,210 @@
+{
+  "schema_version": "redwall_research_relations_v1",
+  "scope": "Curated identity links and selected local route evidence. Full source appearances remain in catalog.json. This is not an exhaustive dated chronology or georeferenced atlas.",
+  "relations": [
+    {
+      "id": "PERSON_ORIGINAL_MARTIN",
+      "relation_type": "CURATED_SAME_INDIVIDUAL",
+      "label": "Original Martin the Warrior",
+      "appearance_record_ids": [
+        "martin_warrior::MW_CHARACTER_martin",
+        "mossflower::MF_character_martin_the_warrior",
+        "redwall::RW-CHARACTER-martin-the-warrior",
+        "salamandastron::SAL_character_martin_the_warrior",
+        "outcast::OUT_character_martin_the_warrior",
+        "pearls_lutra::PL_CHARACTER_martin_the_first_warrior",
+        "long_patrol::LP-CHARACTER-martin-the-warrior",
+        "marlfox::MF_CHARACTER_martin_the_warrior_ancient",
+        "taggerung::TAG_character_martin_the_warrior",
+        "triss::TRI_character_martin_the_warrior"
+      ],
+      "evidence_status": "SOURCE_SYNTHESIS",
+      "note": "Historical, remembered and visionary appearances must remain distinct from a living appearance.",
+      "authority": "RESEARCH_IDENTITY_ONLY_NOT_RUNTIME_CAST"
+    },
+    {
+      "id": "PERSON_MATTHIAS",
+      "relation_type": "CURATED_SAME_INDIVIDUAL",
+      "label": "Matthias",
+      "appearance_record_ids": [
+        "redwall::RW-CHARACTER-matthias",
+        "pearls_lutra::PL_CHARACTER_matthias",
+        "long_patrol::LP-CHARACTER-matthias",
+        "taggerung::TAG_character_matthias"
+      ],
+      "evidence_status": "SOURCE_SYNTHESIS",
+      "note": "Later records can be historical references, not contemporaneous residents.",
+      "authority": "RESEARCH_IDENTITY_ONLY_NOT_RUNTIME_CAST"
+    },
+    {
+      "id": "PERSON_SUNFLASH_SUNSTRIPE",
+      "relation_type": "CURATED_SAME_INDIVIDUAL",
+      "label": "Sunflash, later Sunstripe",
+      "appearance_record_ids": [
+        "mossflower::MF_character_sunflash_the_mace",
+        "outcast::OUT_character_sunflash_the_mace",
+        "salamandastron::SAL_character_sunstripe_the_mace",
+        "long_patrol::LP-CHARACTER-sunflash-the-mace"
+      ],
+      "evidence_status": "SOURCE_SYNTHESIS",
+      "note": "Explicit rename in Outcast block 3549; preserves original Salamandastron spelling.",
+      "authority": "RESEARCH_IDENTITY_ONLY_NOT_RUNTIME_CAST"
+    },
+    {
+      "id": "PERSON_CREGGA",
+      "relation_type": "CURATED_SAME_INDIVIDUAL",
+      "label": "Cregga Rose Eyes",
+      "appearance_record_ids": [
+        "long_patrol::LP-CHARACTER-cregga-rose-eyes",
+        "marlfox::MF_CHARACTER_cregga_rose_eyes",
+        "taggerung::TAG_character_cregga_rose_eyes"
+      ],
+      "evidence_status": "SOURCE_SYNTHESIS",
+      "note": "Military role, acquired blindness, later care role, death and memorial are different states.",
+      "authority": "RESEARCH_IDENTITY_ONLY_NOT_RUNTIME_CAST"
+    },
+    {
+      "id": "PERSON_TANSY",
+      "relation_type": "CURATED_SAME_INDIVIDUAL",
+      "label": "Tansy",
+      "appearance_record_ids": [
+        "pearls_lutra::PL_CHARACTER_tansy",
+        "long_patrol::LP-CHARACTER-abbess-tansy",
+        "marlfox::MF_CHARACTER_abbess_tansy_historical",
+        "taggerung::TAG_character_tansy"
+      ],
+      "evidence_status": "SOURCE_SYNTHESIS",
+      "note": "Living office-holder versus later remembered predecessor must remain explicit.",
+      "authority": "RESEARCH_IDENTITY_ONLY_NOT_RUNTIME_CAST"
+    },
+    {
+      "id": "PERSON_RUSSANO",
+      "relation_type": "CURATED_SAME_INDIVIDUAL",
+      "label": "Russano",
+      "appearance_record_ids": [
+        "long_patrol::LP-CHARACTER-russano",
+        "lord_brocktree::LB-CHARACTER-lord-russano",
+        "taggerung::TAG_character_russano_the_wise",
+        "triss::TRI_character_russano_the_wise"
+      ],
+      "evidence_status": "SOURCE_SYNTHESIS",
+      "note": "Lord Brocktree appearance is in the later frame; Long Patrol appearance is infancy.",
+      "authority": "RESEARCH_IDENTITY_ONLY_NOT_RUNTIME_CAST"
+    },
+    {
+      "id": "PERSON_LORD_BROCKTREE",
+      "relation_type": "CURATED_SAME_INDIVIDUAL",
+      "label": "Lord Brocktree",
+      "appearance_record_ids": [
+        "lord_brocktree::LB-CHARACTER-lord-brocktree-of-brockhall",
+        "mossflower::MF_character_old_lord_brocktree",
+        "salamandastron::SAL_character_lord_brocktree",
+        "long_patrol::LP-CHARACTER-old-lord-brocktree"
+      ],
+      "evidence_status": "SOURCE_SYNTHESIS",
+      "note": "Ancestors and office-holders are distinct individuals; this relation does not settle the first-lord contradiction.",
+      "authority": "RESEARCH_IDENTITY_ONLY_NOT_RUNTIME_CAST"
+    },
+    {
+      "id": "PERSON_BOAR",
+      "relation_type": "CURATED_SAME_INDIVIDUAL",
+      "label": "Boar the Fighter",
+      "appearance_record_ids": [
+        "lord_brocktree::LB-CHARACTER-boar-the-fighter",
+        "mossflower::MF_character_boar_the_fighter",
+        "outcast::OUT_character_boar_the_fighter",
+        "salamandastron::SAL_character_boar_the_fighter",
+        "long_patrol::LP-CHARACTER-boar-the-fighter"
+      ],
+      "evidence_status": "SOURCE_SYNTHESIS",
+      "note": "Family mentions, living warrior and ancestor references belong to different eras.",
+      "authority": "RESEARCH_IDENTITY_ONLY_NOT_RUNTIME_CAST"
+    },
+    {
+      "id": "DISTINCT_MARTINS",
+      "relation_type": "DISTINCT_INDIVIDUALS",
+      "record_ids": [
+        "pearls_lutra::PL_CHARACTER_martin_of_redwall",
+        "pearls_lutra::PL_CHARACTER_martin_the_first_warrior"
+      ],
+      "note": "The later Redwall warrior and original Martin are separate people."
+    }
+  ],
+  "route_examples": [
+    {
+      "id": "LB_ROUTE_POOL_OVERHEAD",
+      "book_key": "lord_brocktree",
+      "from_record_id": "lord_brocktree::LB-PLACE-hidden-pool-cavern",
+      "to_record_id": "lord_brocktree::LB-PLACE-coiling-snake-ceiling-route",
+      "source_block_start": 1346,
+      "source_block_end": 1368,
+      "topology_status": "INTERPRETIVE_SOURCE_TOPOLOGY",
+      "movement_descriptors": [
+        "CLIMB",
+        "ASSISTED_ROPE"
+      ],
+      "distance_m": null,
+      "duration_ticks": null,
+      "automatic_reverse_edge": false,
+      "note": "Overhead route and assisted movement; line geometry and body clearance must be authored.",
+      "runtime_activation": "NOT_RUNTIME_ACTIVE"
+    },
+    {
+      "id": "LB_ROUTE_OVERHEAD_SEA_PASSAGE",
+      "book_key": "lord_brocktree",
+      "from_record_id": "lord_brocktree::LB-PLACE-coiling-snake-ceiling-route",
+      "to_record_id": "lord_brocktree::LB-PLACE-low-sea-exit-tunnel",
+      "source_block_start": 1346,
+      "source_block_end": 1673,
+      "topology_status": "INTERPRETIVE_SOURCE_TOPOLOGY",
+      "movement_descriptors": [
+        "CLIMB",
+        "WALK",
+        "CRAWL"
+      ],
+      "distance_m": null,
+      "duration_ticks": null,
+      "automatic_reverse_edge": false,
+      "note": "Selected sequence through cave descent and low passage; intermediate nodes omitted in this research graph must be supplied in a runtime map.",
+      "runtime_activation": "NOT_RUNTIME_ACTIVE"
+    },
+    {
+      "id": "LB_ROUTE_TIDAL_EXIT",
+      "book_key": "lord_brocktree",
+      "from_record_id": "lord_brocktree::LB-PLACE-low-sea-exit-tunnel",
+      "to_record_id": "lord_brocktree::LB-PLACE-northern-mountain-rock-spur",
+      "source_block_start": 1662,
+      "source_block_end": 1675,
+      "topology_status": "INTERPRETIVE_SOURCE_TOPOLOGY",
+      "movement_descriptors": [
+        "WALK",
+        "CRAWL",
+        "WATER_ACCESS"
+      ],
+      "distance_m": null,
+      "duration_ticks": null,
+      "automatic_reverse_edge": false,
+      "note": "Tidal mouth and shore; reverse traversal and low-tide return require separate scenario conditions.",
+      "runtime_activation": "NOT_RUNTIME_ACTIVE"
+    },
+    {
+      "id": "LP_ROUTE_TOWER_PASSAGE",
+      "book_key": "long_patrol",
+      "from_record_id": "long_patrol::LP-PLACE-kotir-northwest-tower",
+      "to_record_id": "long_patrol::LP-PLACE-kotir-treasure-passage",
+      "source_block_start": 2427,
+      "source_block_end": 2653,
+      "topology_status": "INTERPRETIVE_SOURCE_TOPOLOGY",
+      "movement_descriptors": [
+        "CLIMB",
+        "WALK"
+      ],
+      "distance_m": null,
+      "duration_ticks": null,
+      "automatic_reverse_edge": false,
+      "note": "Elevated entrance and bent passage; collapse changes return route. No measured coordinate is inferred.",
+      "runtime_activation": "NOT_RUNTIME_ACTIVE"
+    }
+  ],
+  "validation_errors": []
+}

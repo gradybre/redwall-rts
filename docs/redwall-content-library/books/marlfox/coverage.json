@@ -1,0 +1,231 @@
+{
+  "book": "Marlfox",
+  "source_file": "Marlfox -- Jacques, Brian -- Redwall 11, 2011 -- bf266088fb4e4a85c79e23a12c499350 -- Anna’s Archive.mobi",
+  "source_sha256": "52f5b3128a65f7fe8fdf6207af13a28c0666b98b388a7983e76bb624e9ebb568",
+  "source_format": "mobi",
+  "full_read_status": "COMPLETE_ALL_EXTRACTED_BLOCKS_INSPECTED",
+  "blocks_total": 3473,
+  "blocks_inspected": 3473,
+  "word_count_whitespace": 108548,
+  "chunks": [
+    {
+      "chunk": 1,
+      "range": [
+        1,
+        238
+      ],
+      "words": 5993,
+      "digest": "a5ffd9c687531a42c8f336554ce6e7eb8e5ca334e123f617e5da2e17969e59ab",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk01.md"
+    },
+    {
+      "chunk": 2,
+      "range": [
+        239,
+        416
+      ],
+      "words": 5989,
+      "digest": "a292adc67c09f693c711a2f3df76573d51c8bed235c20aa6c304ce1b3f6834a0",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk02.md"
+    },
+    {
+      "chunk": 3,
+      "range": [
+        417,
+        606
+      ],
+      "words": 5998,
+      "digest": "919d370b044c811772677ed233d17d1a7039921fc10582fed4586dd6f8e56ecd",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk03.md"
+    },
+    {
+      "chunk": 4,
+      "range": [
+        607,
+        792
+      ],
+      "words": 5977,
+      "digest": "81856891495069490c4431384e5c6dcef67d19e6afea451769857480bc81ed9a",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk04.md"
+    },
+    {
+      "chunk": 5,
+      "range": [
+        793,
+        1006
+      ],
+      "words": 5992,
+      "digest": "c5ca71cc369b8888786c2a9cbd5a7f774cee09b79ba253ea9781760e6eea9977",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk05.md"
+    },
+    {
+      "chunk": 6,
+      "range": [
+        1007,
+        1174
+      ],
+      "words": 5988,
+      "digest": "066dfe7ba89a8e5493f91c131eea0a43515a6cd43bcbae068b4aabc39ffe5476",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk06.md"
+    },
+    {
+      "chunk": 7,
+      "range": [
+        1175,
+        1358
+      ],
+      "words": 5892,
+      "digest": "5ae4325918fb5b59708641f34f43a125169d556315278ef0c5dd54a8969bc61f",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk07.md"
+    },
+    {
+      "chunk": 8,
+      "range": [
+        1359,
+        1564
+      ],
+      "words": 5996,
+      "digest": "87319529cf3d341eca29e3eaf5ecc668a589935904eab35c5373e13a16d9cc79",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk08.md"
+    },
+    {
+      "chunk": 9,
+      "range": [
+        1565,
+        1725
+      ],
+      "words": 5994,
+      "digest": "facd562af30f26f5b885045f8c217c1725a7c0094f257ecf6639f6bfa0edd8ab",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk09.md"
+    },
+    {
+      "chunk": 10,
+      "range": [
+        1726,
+        1927
+      ],
+      "words": 5904,
+      "digest": "3e61ab5f30c262fb1c1fb7b9f4c9134ead428729ac14476f2af838cca5673815",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk10.md"
+    },
+    {
+      "chunk": 11,
+      "range": [
+        1928,
+        2102
+      ],
+      "words": 5945,
+      "digest": "62201edca929f32c3592a7cc8948e6fb079a373421ab2f0b32c38dab5b0a82d6",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk11.md"
+    },
+    {
+      "chunk": 12,
+      "range": [
+        2103,
+        2305
+      ],
+      "words": 5953,
+      "digest": "1d9e10466ee9f2460285af97b5b2a56ee07693e51b22270b0678f706a9ccd93e",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk12.md"
+    },
+    {
+      "chunk": 13,
+      "range": [
+        2306,
+        2483
+      ],
+      "words": 5952,
+      "digest": "3ba8b9ad35ab9febf3802a19964c0954d24fbdcaa1cb3b60470fc2a9e98d3091",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk13.md"
+    },
+    {
+      "chunk": 14,
+      "range": [
+        2484,
+        2678
+      ],
+      "words": 5977,
+      "digest": "4c71ce2f439ee5f3cc66070b32f013c38e7568a20b79e419fbb565be9a22d5e3",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk14.md"
+    },
+    {
+      "chunk": 15,
+      "range": [
+        2679,
+        2827
+      ],
+      "words": 5967,
+      "digest": "0cc299be8fb46cdc94ff1c46b1eb1d6066bd04c38232c6a8399d2644a9452116",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk15.md"
+    },
+    {
+      "chunk": 16,
+      "range": [
+        2828,
+        3010
+      ],
+      "words": 5968,
+      "digest": "8cea8eef5a55f6b737032e9be227ff51562cd282232fde7b3201159800370998",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk16.md"
+    },
+    {
+      "chunk": 17,
+      "range": [
+        3011,
+        3233
+      ],
+      "words": 5985,
+      "digest": "5fb0f282bbdb9bcd99e831e4555f74bdbf9b7ec6347e725db900e896f8c89069",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk17.md"
+    },
+    {
+      "chunk": 18,
+      "range": [
+        3234,
+        3450
+      ],
+      "words": 5873,
+      "digest": "79b4adae0d302641c6911f172fc39c02adde671ebf1c66b9f3596d45a02174a1",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk18.md"
+    },
+    {
+      "chunk": 19,
+      "range": [
+        3451,
+        3473
+      ],
+      "words": 1205,
+      "digest": "0feb73bee97572e243338946edfa764f9c867e2600f7063f63be62f18d4a4417",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk19.md"
+    }
+  ],
+  "categories_per_chunk": 11,
+  "catalog_records": 684,
+  "recipe_candidates": 177,
+  "limitations": [
+    "Completeness is against this supplied normalized extraction, not every edition or other series novels.",
+    "Full sequential inspection is documented; a fallible literary catalog can still contain overlooked/merged minor references.",
+    "Compound ingredients and generic food groups are retained alongside individually named ingredients.",
+    "Recipe ratios, production work, nutrition, yields, unlocks and runtime activation are deliberately not claimed.",
+    "Novel source contradictions and role/era distinctions remain visible; medicine and unsafe botanicals are not real-world preparation advice."
+  ]
+}

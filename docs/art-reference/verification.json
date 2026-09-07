@@ -1,0 +1,65 @@
+{
+  "date": "2026-09-06",
+  "reviewed_images": 28,
+  "distinct_compositions": 27,
+  "viewing_windows": 62,
+  "installed_document_files": 9,
+  "checked_local_repository_links": 98,
+  "checks": {
+    "source_file_digests": "PASS",
+    "all_supplied_pngs_represented": "PASS",
+    "individual_reviews_and_previews": "PASS",
+    "selection_windows_in_bounds": "PASS",
+    "reference_ids": "PASS",
+    "markdown_tables_and_fences": "PASS",
+    "local_repository_links": "PASS",
+    "documentary_arithmetic": "PASS",
+    "unchanged_owner_baselines_before_install": "PASS",
+    "repository_matches_prepared_copies": "PASS",
+    "git_diff_check": "PASS",
+    "staging_area_empty": "PASS",
+    "output_copy_links": "PASS",
+    "post_install_content_hashes": "PASS"
+  },
+  "runtime_tests": "NOT_RUN: documentation review only; traversal fixtures are proposed, not executed game tests.",
+  "model_generation": "NOT_PERFORMED",
+  "source_images_modified": false,
+  "committed": false,
+  "pushed": false,
+  "output_link_note": "Output-copy links resolve locally; repository documents retain portable relative links.",
+  "files": [
+    {
+      "repo_path": "docs/art-reference/README.md",
+      "sha256": "3de0e51fb498c02b92dc8a470ab5549e3cc5e3bd7cd9f9b407fc43479d610295"
+    },
+    {
+      "repo_path": "docs/art-reference/screenshot_review.md",
+      "sha256": "d2dc92358c11862f1c2d31e5a624973b92b55244433ab24516c18430c39d25f4"
+    },
+    {
+      "repo_path": "docs/art-reference/model_reference_guide.md",
+      "sha256": "2ade0715e14eefbe00f4a2896b77f4655ad432b37b1aa5d53dd184c17420d844"
+    },
+    {
+      "repo_path": "docs/art-reference/traversal_design_review.md",
+      "sha256": "1d65528961cdfc7fe7043ad4caea45505c4708fb656b604b461bf4addaa7f01b"
+    },
+    {
+      "repo_path": "docs/art-reference/reference_manifest.json",
+      "sha256": "836f6f80ac6d6cccc7341e41f600dbd8e437c624e972d386ed2ccc6ff3b260b7"
+    },
+    {
+      "repo_path": "docs/setting_bible.md",
+      "sha256": "cbdf2353b1d37fe6113e76b18cce8281cfd797585860770f2b677985aaa34e63"
+    },
+    {
+      "repo_path": "docs/setting_decisions.md",
+      "sha256": "0e12173fcea928c4f0860c7dc8dc7ac3747258fc0c8cd4f64c7508c2f0bc410c"
+    },
+    {
+      "repo_path": "docs/decisions/0012-reviewed-images-guide-models-and-traversal.md",
+      "sha256": "e3abdc83dab95c161488e6507b3f4a15132ad09e2fdfa9006aa6106629573247"
+    }
+  ],
+  "file_hash_scope": "Eight content documents; verification report excluded from its own hash list."
+}

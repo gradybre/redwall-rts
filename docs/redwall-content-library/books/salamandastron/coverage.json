@@ -1,0 +1,433 @@
+{
+  "book_key": "salamandastron",
+  "status": "FULLY_INSPECTED_AVAILABLE_SOURCE_ORIGINAL_EDITION_INCOMPLETE",
+  "extracted_blocks": 3959,
+  "inspected_blocks": 3959,
+  "missing_normalized_blocks": [],
+  "source_integrity": {
+    "book": "salamandastron",
+    "source_sha256": "8d9dc5d366915a86ea17ed7ee2131cf40b3d6480936af46c6089b1ac6cc221d6",
+    "status": "SOURCE_FILE_CONTINUITY_GAP_CONFIRMED",
+    "normalized_boundary": [
+      3498,
+      3501
+    ],
+    "members": [
+      "index-1406_split_259.html",
+      "index-1406_split_260.html"
+    ],
+    "finding": "Original EPUB body ends incomplete sentence about Urthstripe muttering, followed by printed 316 and next member beginning mid-sentence badger. Samkim. No image scans or alternative body text supplied for apparent omitted printed pages314–315. This is present in original EPUB, not introduced by normalized block extraction.",
+    "standalone_page314_315_matches": [],
+    "action": "Preserve existing block locators; flag missing source content. Do not synthesize omitted canon. All available blocks can be inspected but full-edition completeness cannot be certified."
+  },
+  "chunks": [
+    {
+      "chunk": 1,
+      "range": [
+        1,
+        224
+      ],
+      "words": 5988,
+      "digest": "3d54e73cb829d2542b04a9648b1ad341085f863ed6cc5f3fe641e26a5868cd13",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk01.md"
+    },
+    {
+      "chunk": 2,
+      "range": [
+        225,
+        484
+      ],
+      "words": 5986,
+      "digest": "a9dce7c52b63022c1e2dfde251c141b4641df80eb71e0ca71fd7059855068394",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk02.md"
+    },
+    {
+      "chunk": 3,
+      "range": [
+        485,
+        724
+      ],
+      "words": 5994,
+      "digest": "781f35d113a60055c49b8d42108225786a1f6c5b85dc299092c02291a553a002",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk03.md"
+    },
+    {
+      "chunk": 4,
+      "range": [
+        725,
+        973
+      ],
+      "words": 5987,
+      "digest": "9bbd0a24819d8f5ae6c30ecf47b7222001fcef1b7c2090d561f72b5e0fbde2e7",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk04.md"
+    },
+    {
+      "chunk": 5,
+      "range": [
+        974,
+        1174
+      ],
+      "words": 5933,
+      "digest": "ff70ae43a7d28a41049eda457d41f9cba2a0e4cef85cd0edb031fad6f974212c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk05.md"
+    },
+    {
+      "chunk": 6,
+      "range": [
+        1175,
+        1391
+      ],
+      "words": 5979,
+      "digest": "259df45cd761092306ee50d2599354b4fd6991e4fc2327cdb440a00e074ca789",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk06.md"
+    },
+    {
+      "chunk": 7,
+      "range": [
+        1392,
+        1621
+      ],
+      "words": 5967,
+      "digest": "363d4244e76e201ce1660e042a81b5b5301e4a6f5d9e2599c66622271bc5792d",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk07.md"
+    },
+    {
+      "chunk": 8,
+      "range": [
+        1622,
+        1873
+      ],
+      "words": 5991,
+      "digest": "242ae90d37c60f2b2b190c1b0d0b45b495fc2cfa706b3fa51215bc3225700fba",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk08.md"
+    },
+    {
+      "chunk": 9,
+      "range": [
+        1874,
+        2085
+      ],
+      "words": 5977,
+      "digest": "aef394e24e87c689318d4f62b856f37d298ab0d7ea8a50573c78cecf790751ba",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk09.md"
+    },
+    {
+      "chunk": 10,
+      "range": [
+        2086,
+        2326
+      ],
+      "words": 5978,
+      "digest": "5dea4c32a4c7407edbf909db59779f2b52b2f0faa5668cdf26f66750686f2384",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk10.md"
+    },
+    {
+      "chunk": 11,
+      "range": [
+        2327,
+        2522
+      ],
+      "words": 5962,
+      "digest": "c1c00a2250e471e8d5fa7451d1ba5341430c17687800d9edd61cddba77407517",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk11.md"
+    },
+    {
+      "chunk": 12,
+      "range": [
+        2523,
+        2736
+      ],
+      "words": 5971,
+      "digest": "f8066fd84690bc9e4cd97cab71bcef5981b3c633beb64dfc3f2f3f10493e0578",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk12.md"
+    },
+    {
+      "chunk": 13,
+      "range": [
+        2737,
+        2986
+      ],
+      "words": 5990,
+      "digest": "745d736744f261638683f95f7ea885f8faa7062b9fc73067cb3ebc34edfad309",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk13.md"
+    },
+    {
+      "chunk": 14,
+      "range": [
+        2987,
+        3198
+      ],
+      "words": 5990,
+      "digest": "0895442284ece7874005aa9f12b7ad115621611447857b1d70aabf77aa5ba25c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk14.md"
+    },
+    {
+      "chunk": 15,
+      "range": [
+        3199,
+        3415
+      ],
+      "words": 5969,
+      "digest": "015eacd70c7ca8fe857c51a4534d26ea3aca0be17b40e3c1ec90cbfb1c6acffe",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk15.md"
+    },
+    {
+      "chunk": 16,
+      "range": [
+        3416,
+        3640
+      ],
+      "words": 5970,
+      "digest": "a03dd1dc4e1ef098a79e252ee99f27509e0cd038002d1416d039f7cd0272e285",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk16.md"
+    },
+    {
+      "chunk": 17,
+      "range": [
+        3641,
+        3869
+      ],
+      "words": 5893,
+      "digest": "716f98af385f73c9a1c84a7179f09d3c411bfd5905b2755b776a7d78605ef77d",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk17.md"
+    },
+    {
+      "chunk": 18,
+      "range": [
+        3870,
+        3959
+      ],
+      "words": 2168,
+      "digest": "127177634f8551f6b0589fa6a8959ddd1bd88a0795817f0898b83ea631b5f61a",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk18.md"
+    }
+  ],
+  "chunk_count": 18,
+  "word_count_chunk_sum": 103693,
+  "source_sha256": "8d9dc5d366915a86ea17ed7ee2131cf40b3d6480936af46c6089b1ac6cc221d6",
+  "category_dossiers": [
+    "SAL_note_01_people",
+    "SAL_note_01_groups",
+    "SAL_note_01_places_routes",
+    "SAL_note_01_food_ingredients_prep",
+    "SAL_note_01_objects_materials",
+    "SAL_note_01_ecology",
+    "SAL_note_01_occupation_knowledge",
+    "SAL_note_01_customs_music_voice",
+    "SAL_note_01_theme_style_feeling",
+    "SAL_note_01_movement_building_systems",
+    "SAL_note_01_uncertainty_adaptation",
+    "SAL_note_02_people",
+    "SAL_note_02_groups",
+    "SAL_note_02_places_routes",
+    "SAL_note_02_food_ingredients_prep",
+    "SAL_note_02_objects_materials",
+    "SAL_note_02_ecology",
+    "SAL_note_02_occupation_knowledge",
+    "SAL_note_02_customs_music_voice",
+    "SAL_note_02_theme_style_feeling",
+    "SAL_note_02_movement_building_systems",
+    "SAL_note_02_uncertainty_adaptation",
+    "SAL_note_03_people",
+    "SAL_note_03_groups",
+    "SAL_note_03_places_routes",
+    "SAL_note_03_food_ingredients_prep",
+    "SAL_note_03_objects_materials",
+    "SAL_note_03_ecology",
+    "SAL_note_03_occupation_knowledge",
+    "SAL_note_03_customs_music_voice",
+    "SAL_note_03_theme_style_feeling",
+    "SAL_note_03_movement_building_systems",
+    "SAL_note_03_uncertainty_adaptation",
+    "SAL_note_04_people",
+    "SAL_note_04_groups",
+    "SAL_note_04_places_routes",
+    "SAL_note_04_food_ingredients_prep",
+    "SAL_note_04_objects_materials",
+    "SAL_note_04_ecology",
+    "SAL_note_04_occupation_knowledge",
+    "SAL_note_04_customs_music_voice",
+    "SAL_note_04_theme_style_feeling",
+    "SAL_note_04_movement_building_systems",
+    "SAL_note_04_uncertainty_adaptation",
+    "SAL_note_05_people",
+    "SAL_note_05_groups",
+    "SAL_note_05_places_routes",
+    "SAL_note_05_food_ingredients_prep",
+    "SAL_note_05_objects_materials",
+    "SAL_note_05_ecology",
+    "SAL_note_05_occupation_knowledge",
+    "SAL_note_05_customs_music_voice",
+    "SAL_note_05_theme_style_feeling",
+    "SAL_note_05_movement_building_systems",
+    "SAL_note_05_uncertainty_adaptation",
+    "SAL_note_06_people",
+    "SAL_note_06_groups",
+    "SAL_note_06_places_routes",
+    "SAL_note_06_food_ingredients_prep",
+    "SAL_note_06_objects_materials",
+    "SAL_note_06_ecology",
+    "SAL_note_06_occupation_knowledge",
+    "SAL_note_06_customs_music_voice",
+    "SAL_note_06_theme_style_feeling",
+    "SAL_note_06_movement_building_systems",
+    "SAL_note_06_uncertainty_adaptation",
+    "SAL_note_07_people",
+    "SAL_note_07_groups",
+    "SAL_note_07_places_routes",
+    "SAL_note_07_food_ingredients_prep",
+    "SAL_note_07_objects_materials",
+    "SAL_note_07_ecology",
+    "SAL_note_07_occupation_knowledge",
+    "SAL_note_07_customs_music_voice",
+    "SAL_note_07_theme_style_feeling",
+    "SAL_note_07_movement_building_systems",
+    "SAL_note_07_uncertainty_adaptation",
+    "SAL_note_08_people",
+    "SAL_note_08_groups",
+    "SAL_note_08_places_routes",
+    "SAL_note_08_food_ingredients_prep",
+    "SAL_note_08_objects_materials",
+    "SAL_note_08_ecology",
+    "SAL_note_08_occupation_knowledge",
+    "SAL_note_08_customs_music_voice",
+    "SAL_note_08_theme_style_feeling",
+    "SAL_note_08_movement_building_systems",
+    "SAL_note_08_uncertainty_adaptation",
+    "SAL_note_09_people",
+    "SAL_note_09_groups",
+    "SAL_note_09_places_routes",
+    "SAL_note_09_food_ingredients_prep",
+    "SAL_note_09_objects_materials",
+    "SAL_note_09_ecology",
+    "SAL_note_09_occupation_knowledge",
+    "SAL_note_09_customs_music_voice",
+    "SAL_note_09_theme_style_feeling",
+    "SAL_note_09_movement_building_systems",
+    "SAL_note_09_uncertainty_adaptation",
+    "SAL_note_10_people",
+    "SAL_note_10_groups",
+    "SAL_note_10_places_routes",
+    "SAL_note_10_food_ingredients_prep",
+    "SAL_note_10_objects_materials",
+    "SAL_note_10_ecology",
+    "SAL_note_10_occupation_knowledge",
+    "SAL_note_10_customs_music_voice",
+    "SAL_note_10_theme_style_feeling",
+    "SAL_note_10_movement_building_systems",
+    "SAL_note_10_uncertainty_adaptation",
+    "SAL_note_11_people",
+    "SAL_note_11_groups",
+    "SAL_note_11_places_routes",
+    "SAL_note_11_food_ingredients_prep",
+    "SAL_note_11_objects_materials",
+    "SAL_note_11_ecology",
+    "SAL_note_11_occupation_knowledge",
+    "SAL_note_11_customs_music_voice",
+    "SAL_note_11_theme_style_feeling",
+    "SAL_note_11_movement_building_systems",
+    "SAL_note_11_uncertainty_adaptation",
+    "SAL_note_12_people",
+    "SAL_note_12_groups",
+    "SAL_note_12_places_routes",
+    "SAL_note_12_food_ingredients_prep",
+    "SAL_note_12_objects_materials",
+    "SAL_note_12_ecology",
+    "SAL_note_12_occupation_knowledge",
+    "SAL_note_12_customs_music_voice",
+    "SAL_note_12_theme_style_feeling",
+    "SAL_note_12_movement_building_systems",
+    "SAL_note_12_uncertainty_adaptation",
+    "SAL_note_13_people",
+    "SAL_note_13_groups",
+    "SAL_note_13_places_routes",
+    "SAL_note_13_food_ingredients_prep",
+    "SAL_note_13_objects_materials",
+    "SAL_note_13_ecology",
+    "SAL_note_13_occupation_knowledge",
+    "SAL_note_13_customs_music_voice",
+    "SAL_note_13_theme_style_feeling",
+    "SAL_note_13_movement_building_systems",
+    "SAL_note_13_uncertainty_adaptation",
+    "SAL_note_14_people",
+    "SAL_note_14_groups",
+    "SAL_note_14_places_routes",
+    "SAL_note_14_food_ingredients_prep",
+    "SAL_note_14_objects_materials",
+    "SAL_note_14_ecology",
+    "SAL_note_14_occupation_knowledge",
+    "SAL_note_14_customs_music_voice",
+    "SAL_note_14_theme_style_feeling",
+    "SAL_note_14_movement_building_systems",
+    "SAL_note_14_uncertainty_adaptation",
+    "SAL_note_15_people",
+    "SAL_note_15_groups",
+    "SAL_note_15_places_routes",
+    "SAL_note_15_food_ingredients_prep",
+    "SAL_note_15_objects_materials",
+    "SAL_note_15_ecology",
+    "SAL_note_15_occupation_knowledge",
+    "SAL_note_15_customs_music_voice",
+    "SAL_note_15_theme_style_feeling",
+    "SAL_note_15_movement_building_systems",
+    "SAL_note_15_uncertainty_adaptation",
+    "SAL_note_16_people",
+    "SAL_note_16_groups",
+    "SAL_note_16_places_routes",
+    "SAL_note_16_food_ingredients_prep",
+    "SAL_note_16_objects_materials",
+    "SAL_note_16_ecology",
+    "SAL_note_16_occupation_knowledge",
+    "SAL_note_16_customs_music_voice",
+    "SAL_note_16_theme_style_feeling",
+    "SAL_note_16_movement_building_systems",
+    "SAL_note_16_uncertainty_adaptation",
+    "SAL_note_17_people",
+    "SAL_note_17_groups",
+    "SAL_note_17_places_routes",
+    "SAL_note_17_food_ingredients_prep",
+    "SAL_note_17_objects_materials",
+    "SAL_note_17_ecology",
+    "SAL_note_17_occupation_knowledge",
+    "SAL_note_17_customs_music_voice",
+    "SAL_note_17_theme_style_feeling",
+    "SAL_note_17_movement_building_systems",
+    "SAL_note_17_uncertainty_adaptation",
+    "SAL_note_18_people",
+    "SAL_note_18_groups",
+    "SAL_note_18_places_routes",
+    "SAL_note_18_food_ingredients_prep",
+    "SAL_note_18_objects_materials",
+    "SAL_note_18_ecology",
+    "SAL_note_18_occupation_knowledge",
+    "SAL_note_18_customs_music_voice",
+    "SAL_note_18_theme_style_feeling",
+    "SAL_note_18_movement_building_systems",
+    "SAL_note_18_uncertainty_adaptation"
+  ],
+  "completeness_claim": "All3959 available normalized blocks sequentially inspected in18chunks with11-category notes. Original EPUB has confirmed missing continuity around printed314–315; full novel completeness cannot be certified. Systematic inventory not a guarantee against human omission.",
+  "remaining_audit_limits": [
+    "Original missing pages need another user-supplied edition to close.",
+    "OCR variants and cross-book chronology contradictions retained.",
+    "Broad character summaries require precise event notes before implementation.",
+    "Recipe quantities,yields,work times and unlocks deliberately unbalanced."
+  ]
+}

@@ -1,5 +1,7 @@
 # Validation resolution and evidence record
 
+**New adopted scope:** [SET-MOVE-001](movement_direction_amendment.md), DEC-035, adds required connected movement. Existing controls/measurements remain evidence for their original baseline only. No traversal runtime test or Windows benchmark was executed by this document/research update.
+
 Specification `SET-RESOLUTION-001`, revision 1, 2026-09-05. Applies to `/Users/brendan/Developer/redwall-rts`. Status: partial validation completed; full settlement simulation and Windows qualification remain incomplete. No inherited GDD number has been changed. No files have been staged or committed.
 
 ## 1. Requirement disposition
@@ -149,3 +151,16 @@ The headless reference checkpoint has its own explicitly scoped codec and does n
 ## 10. Adopted setting rules v2
 
 DEC-005/006 are adopted. `setting_rules_amendment.md` defines scenario admission, the authored refuge petition, retired hunting content, replacement nut roast and Orchard main course. The non-orchard ten-recipe policy now uses nut_roast. The packed memory budget stays unchanged through reserved fields; full-game admission transactions, mastery reachability and all-scenario survival still require runtime integration. Prior measurements describe isolated controls and are not retroactively evidence for new admission behavior. Source-bound winter evidence was regenerated after the GDD/UI revision and now also hashes the amendment. The refreshed run passes 33 Python tests, 324 Godot checks, exact Python/Godot winter outcome comparison and 15001 saved-boundary/continuation hashes through a second Mac process. The new static contract check validates 60 items, 24 main recipes, 12 ancillary recipes, 30 buildings, 9 furniture types, 5 crops and 183 input/output/material dependency edges. It also checks roast levels 0–10, feast batch coverage for 1–256 attendees, the non-orchard recipe set and four admission reference examples. These examples are independent arithmetic checks, not game admission tests.
+
+## RES-MOVE-001 — movement disposition after adoption
+
+| Requirement | Status | Exact next evidence |
+|---|---|---|
+| User movement decision and owning-document reconciliation | `DOCUMENTED` | DEC-035; SET-MOVE-001; linked GDD/UI/balance/architecture/crowd obligations |
+| Complete production catalogs, finite schema and UI/asset contracts | `SPEC_INCOMPLETE` | MOVE-G01–04 closure artifacts; no defaulted constants |
+| Movement correctness and conservation | `BLOCKED_RUNTIME` | F01–F14 from traversal review plus MOVE-TEST-01–10, replay and transaction evidence |
+| Expanded memory and route latency | `UNMEASURED` | Recomputed bounds, arena saturation, mixed-domain path bursts and workload p95 |
+| Mac/Windows parity | `DEFERRED_WINDOWS` | Same seeds/commands/checkpoints with hashes on available Mac and returning Windows PC |
+| Qualification floor | `UNMEASURED` | Required floor target runs; 64 GB/RTX 5090 specs do not establish floor results |
+
+Research coverage is recorded separately in `redwall-design/source_audit.json`: 12 works, 115 passage records, 47,139 inspected extracted words in this targeted pass. It proves passage coverage, not gameplay completeness, complete sequential rereading, canonical map measurements or working recipes.

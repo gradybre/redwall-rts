@@ -1,0 +1,515 @@
+{
+  "book": "The Taggerung",
+  "book_key": "taggerung",
+  "full_read_status": "FULLY_INSPECTED",
+  "source_blocks": 4065,
+  "inspected_blocks": 4065,
+  "source_words": 126217,
+  "delivered_and_inspected_chunks": [
+    {
+      "chunk": 1,
+      "range": [
+        1,
+        151
+      ],
+      "words": 5981,
+      "digest": "a411fa9c6b174bfc16fa42277aab4194a04aea2b0f1450eab688f0d9287c9532",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk01.md"
+    },
+    {
+      "chunk": 2,
+      "range": [
+        152,
+        340
+      ],
+      "words": 5982,
+      "digest": "3f593efd23f2e8776c89dcb5c7296cc16a62c63890d03d768f800ecd50aa698c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk02.md"
+    },
+    {
+      "chunk": 3,
+      "range": [
+        341,
+        591
+      ],
+      "words": 5997,
+      "digest": "6d6ef087d40fc187cd4c5fb4690567a19cf73f936a6b0b34b47d6faf3cfe8432",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk03.md"
+    },
+    {
+      "chunk": 4,
+      "range": [
+        592,
+        769
+      ],
+      "words": 5985,
+      "digest": "52e5338b4894ef40ebef5f31b802766ba53f1a3bb3468a99517bec56d39e6e51",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk04.md"
+    },
+    {
+      "chunk": 5,
+      "range": [
+        770,
+        959
+      ],
+      "words": 5960,
+      "digest": "d3a7ba97c815b307e069c966ee920429c05d2f99b52798ccd14379b3375683e4",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk05.md"
+    },
+    {
+      "chunk": 6,
+      "range": [
+        960,
+        1178
+      ],
+      "words": 5870,
+      "digest": "4e3a01657b8f442823a9f13df3de142a65558700ac72850cd2eebfa1b49b9a11",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk06.md"
+    },
+    {
+      "chunk": 7,
+      "range": [
+        1179,
+        1355
+      ],
+      "words": 5996,
+      "digest": "cfbb3f2247d988fd2ffa78798ed0110b784fa613ec5f07980095a3e6f49f0081",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk07.md"
+    },
+    {
+      "chunk": 8,
+      "range": [
+        1356,
+        1532
+      ],
+      "words": 5990,
+      "digest": "1511dcc4e2c83c6b1190a1480029e383c8c79a98b32b9895e2aee6c9de70002d",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk08.md"
+    },
+    {
+      "chunk": 9,
+      "range": [
+        1533,
+        1731
+      ],
+      "words": 5997,
+      "digest": "82683ca9ae9b07f6dc2a27e12807e65257d991ab10c3fcd78efdfc4afa6ea844",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk09.md"
+    },
+    {
+      "chunk": 10,
+      "range": [
+        1732,
+        1975
+      ],
+      "words": 5931,
+      "digest": "f12cd9c38831cd294a1c9e2c32d8187b9d6382a6b0e60ad0a31c7e8bc4558b8f",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk10.md"
+    },
+    {
+      "chunk": 11,
+      "range": [
+        1976,
+        2148
+      ],
+      "words": 5971,
+      "digest": "0b740ad395032df25d2222a60f461daa23e2e3a100260cb2e49f8263a2c9bc9c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk11.md"
+    },
+    {
+      "chunk": 12,
+      "range": [
+        2149,
+        2367
+      ],
+      "words": 5985,
+      "digest": "5d8a5a88b11b7330b912e7ea9b8d7e9f61c274d879798f418cc2e67519cac3d4",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk12.md"
+    },
+    {
+      "chunk": 13,
+      "range": [
+        2368,
+        2509
+      ],
+      "words": 5991,
+      "digest": "6906895d84190edc989e99c965dee17891abeaf606f5ce2639486ae58a8a8760",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk13.md"
+    },
+    {
+      "chunk": 14,
+      "range": [
+        2510,
+        2692
+      ],
+      "words": 5957,
+      "digest": "93c8df49f56eba78c2a689d7d09343f0c88d17d4e4d2892ae0c907c2036d0345",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk14.md"
+    },
+    {
+      "chunk": 15,
+      "range": [
+        2693,
+        2919
+      ],
+      "words": 5992,
+      "digest": "369a4d679278f42d5df514e0b3512643532c422b0617b996632fcb10e16deedb",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk15.md"
+    },
+    {
+      "chunk": 16,
+      "range": [
+        2920,
+        3113
+      ],
+      "words": 5891,
+      "digest": "e94ff3d874354c07ae654b9f37207c64d44c76b5d1f72b46bf0fed406797c939",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk16.md"
+    },
+    {
+      "chunk": 17,
+      "range": [
+        3114,
+        3294
+      ],
+      "words": 5953,
+      "digest": "f94f04a572b79c43f930010a6ddb6afd5c72da9cb7ca2b8a3a17591f410507fd",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk17.md"
+    },
+    {
+      "chunk": 18,
+      "range": [
+        3295,
+        3493
+      ],
+      "words": 5970,
+      "digest": "056a8048825d3d7871a5fa0a75aee97b3aa8854b6293211e7d0ac2d8cb73b019",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk18.md"
+    },
+    {
+      "chunk": 19,
+      "range": [
+        3494,
+        3691
+      ],
+      "words": 5974,
+      "digest": "a66ed43ffdefad37132ad37a84e41907ab1accd99ad01d9695e95d9f78175919",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk19.md"
+    },
+    {
+      "chunk": 20,
+      "range": [
+        3692,
+        3878
+      ],
+      "words": 5964,
+      "digest": "5ee4c3c28626a61fd16b5023527b2883bc066f42cd0918197afee9ede5ca956f",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk20.md"
+    },
+    {
+      "chunk": 21,
+      "range": [
+        3879,
+        4051
+      ],
+      "words": 5992,
+      "digest": "e451b13a27a4f8d8379beb3fc50bcb2df2623d619ec4f4c86a36b15e1507d9b1",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk21.md"
+    },
+    {
+      "chunk": 22,
+      "range": [
+        4052,
+        4065
+      ],
+      "words": 888,
+      "digest": "b8558f5ba3a487d949c6b01c280ecd34c7d66125593cabaa92fd13f118591e62",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk22.md"
+    }
+  ],
+  "source_units": [
+    {
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html",
+      "first_block": 1,
+      "last_block": 1005,
+      "blocks": 1005,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html",
+      "first_block": 1006,
+      "last_block": 2028,
+      "blocks": 1023,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html",
+      "first_block": 2029,
+      "last_block": 3060,
+      "blocks": 1032,
+      "fully_inspected": true
+    },
+    {
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html",
+      "first_block": 3061,
+      "last_block": 4065,
+      "blocks": 1005,
+      "fully_inspected": true
+    }
+  ],
+  "observed_headings": [
+    {
+      "text": "Prologue",
+      "block": 2,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Book 1",
+      "block": 9,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Chapter 1",
+      "block": 11,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Chapter 2",
+      "block": 67,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Chapter 3",
+      "block": 153,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Chapter 4",
+      "block": 264,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Chapter 5",
+      "block": 436,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Book 2",
+      "block": 600,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Chapter 6",
+      "block": 602,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Chapter 7",
+      "block": 622,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Chapter 8",
+      "block": 759,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Chapter 9",
+      "block": 878,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html"
+    },
+    {
+      "text": "Chapter 10",
+      "block": 1066,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html"
+    },
+    {
+      "text": "Chapter 11",
+      "block": 1184,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html"
+    },
+    {
+      "text": "Chapter 12",
+      "block": 1303,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html"
+    },
+    {
+      "text": "Chapter 13",
+      "block": 1419,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html"
+    },
+    {
+      "text": "Chapter 14",
+      "block": 1556,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html"
+    },
+    {
+      "text": "Chapter 15",
+      "block": 1648,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html"
+    },
+    {
+      "text": "Chapter 16",
+      "block": 1728,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html"
+    },
+    {
+      "text": "Chapter 17",
+      "block": 1888,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html"
+    },
+    {
+      "text": "Chapter 18",
+      "block": 2060,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Chapter 19",
+      "block": 2145,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Chapter 20",
+      "block": 2268,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Chapter 21",
+      "block": 2356,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Chapter 22",
+      "block": 2435,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Book 3",
+      "block": 2564,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Chapter 23",
+      "block": 2566,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Chapter 24",
+      "block": 2649,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Chapter 25",
+      "block": 2718,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Chapter 26",
+      "block": 2918,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Chapter 27",
+      "block": 2995,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html"
+    },
+    {
+      "text": "Chapter 28",
+      "block": 3067,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    },
+    {
+      "text": "Chapter 29",
+      "block": 3200,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    },
+    {
+      "text": "Chapter 30",
+      "block": 3301,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    },
+    {
+      "text": "Chapter 31",
+      "block": 3437,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    },
+    {
+      "text": "Chapter 32",
+      "block": 3510,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    },
+    {
+      "text": "Chapter 33",
+      "block": 3619,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    },
+    {
+      "text": "Chapter 34",
+      "block": 3679,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    },
+    {
+      "text": "Chapter 35",
+      "block": 3818,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    },
+    {
+      "text": "Chapter 36",
+      "block": 3887,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    },
+    {
+      "text": "Chapter 37",
+      "block": 3971,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    },
+    {
+      "text": "Epilogue",
+      "block": 4057,
+      "source_unit": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html"
+    }
+  ],
+  "missing_block_ids": [],
+  "normalized_source_sha256": "191e78cb46b63dace3bce543a25969fc5d7a47ed8eadd4fc34f5b87834496f9d",
+  "catalog_record_count": 623,
+  "recipe_candidate_count": 155,
+  "method": "Every normalized source block was sequentially delivered and model-inspected; durable per-chunk extraction notes precede catalog authoring. Searches did not replace reading.",
+  "scope_note": "Full reading coverage is demonstrated; cataloging is a systematic editorial extraction, not a formal proof that no minor noun or interpretive possibility remains. Source words are privately retained, not republished in deliverables.",
+  "validation": {
+    "unique_catalog_ids": true,
+    "unique_recipe_ids": true,
+    "all_fact_bounds_valid": true,
+    "every_block_covered": true,
+    "notes_present_for_every_chunk": true
+  },
+  "recipe_method_completion": {
+    "authorship": "AI_AUTHORED_GAME_ADAPTATION",
+    "recipe_count": 155,
+    "scope": "Every existing recipe now has concrete ordered game operations, preserving source ingredients and context.",
+    "source_status_policy": "Nonuniform conservative context classification; no default assertion that named dishes were served.",
+    "number_policy": "Production numbers remain null/unbalanced.",
+    "helper": "work/content-library/complete_taggerung_triss_methods.py"
+  }
+}

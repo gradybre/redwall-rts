@@ -94,6 +94,17 @@ success and total no-op are indistinguishable.
 - Scratch scripts go in `/tmp`, never `godot/test/` — the runner collects
   anything matching `test_*.gd`. Keep timing loops small and bounded; delete them
   afterwards.
+- **Use a private scratch directory, not a shared one.** Agents run in parallel.
+  Put mutation harnesses and backups under `/tmp/<your-own-unique-name>/` — a
+  shared path such as `scratchpad/mutate.sh` has already been overwritten by
+  another agent mid-run, producing three phantom failures and one false
+  "mutation survived".
+- **Mutate one line per run.** Godot caches scripts, so batching several
+  mutations into one invocation can report a mutant as surviving when it does
+  not. Verified: a batched run reported a false survivor that failed correctly
+  when re-run alone.
+- **Byte-compare every production file you mutated after restoring it** — a
+  `shasum` against a pristine copy, not a visual check.
 
 `test-runner` still verifies independently afterwards. Your run is for
 iterating; its run is the evidence, because an author confirming their own work

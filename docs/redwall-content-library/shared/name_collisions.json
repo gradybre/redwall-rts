@@ -1,0 +1,863 @@
+{
+  "policy": "Name or office-title equality is not identity evidence. Curated reconciliation is separate.",
+  "collisions": [
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "abbess_tansy",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-abbess-tansy",
+        "pearls_lutra::PL_CHARACTER_tansy"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "ambrose_spike",
+      "record_ids": [
+        "pearls_lutra::PL_CHARACTER_ambrose_spike",
+        "redwall::RW-CHARACTER-ambrose-spike"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "arven",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-arven",
+        "pearls_lutra::PL_CHARACTER_arven",
+        "taggerung::TAG_character_arven"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "barfle",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-barfle",
+        "salamandastron::SAL_character_barfle"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "barkstripe",
+      "record_ids": [
+        "mossflower::MF_character_barkstripe",
+        "outcast::OUT_character_barkstripe"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "bella",
+      "record_ids": [
+        "mossflower::MF_character_bella_of_brockhall",
+        "outcast::OUT_character_bella_of_brocktree"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "ben_stickle",
+      "record_ids": [
+        "mossflower::MF_character_ben_stickle",
+        "outcast::OUT_character_ben_stickle"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "bikkle",
+      "record_ids": [
+        "salamandastron::SAL_character_pikkle_ffolger",
+        "triss::TRI_character_bikkle"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "bluestripe_the_wild",
+      "record_ids": [
+        "lord_brocktree::LB-CHARACTER-bluestripe-the-wild",
+        "mossflower::MF_character_bluestripe_the_wild",
+        "salamandastron::SAL_character_bluestripe_the_wild"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "boar",
+      "record_ids": [
+        "mossflower::MF_character_boar_the_fighter",
+        "outcast::OUT_character_boar_the_fighter"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "boar_the_fighter",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-boar-the-fighter",
+        "lord_brocktree::LB-CHARACTER-boar-the-fighter",
+        "mossflower::MF_character_boar_the_fighter",
+        "outcast::OUT_character_boar_the_fighter",
+        "rakkety_tam::RAK_character_boar_the_fighter",
+        "salamandastron::SAL_character_boar_the_fighter"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "breeze",
+      "record_ids": [
+        "mossflower::MF_character_breeze",
+        "outcast::OUT_character_breeze"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "brocktree",
+      "record_ids": [
+        "outcast::OUT_character_lord_brocktree",
+        "salamandastron::SAL_character_lord_brocktree"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "ceteruler",
+      "record_ids": [
+        "mossflower::MF_character_ceteruler",
+        "salamandastron::SAL_character_ceteruler_the_wise"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "columbine",
+      "record_ids": [
+        "mossflower::MF_character_columbine",
+        "outcast::OUT_character_columbine"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "craklyn",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-craklyn",
+        "pearls_lutra::PL_CHARACTER_craklyn"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "cregga_rose_eyes",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-cregga-rose-eyes",
+        "marlfox::MF_CHARACTER_cregga_rose_eyes",
+        "taggerung::TAG_character_cregga_rose_eyes"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "diggum",
+      "record_ids": [
+        "marlfox::MF_CHARACTER_diggum",
+        "pearls_lutra::PL_CHARACTER_diggum"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "dinny",
+      "record_ids": [
+        "mossflower::MF_character_young_dinny",
+        "outcast::OUT_character_dinny"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "felldoh",
+      "record_ids": [
+        "martin_warrior::MW_CHARACTER_felldoh",
+        "mossflower::MF_character_felldoh_the_wrestler"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "ferahgo",
+      "record_ids": [
+        "salamandastron::SAL_character_ferahgo_the_assassin",
+        "taggerung::TAG_character_ferahgo"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "foremole",
+      "record_ids": [
+        "mossflower::MF_character_foremole",
+        "outcast::OUT_character_foremole",
+        "pearls_lutra::PL_CHARACTER_foremole",
+        "redwall::RW-CHARACTER-foremole",
+        "salamandastron::SAL_character_foremole"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "germaine",
+      "record_ids": [
+        "mossflower::MF_character_abbess_germaine",
+        "outcast::OUT_character_germaine",
+        "redwall::RW-CHARACTER-germaine"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "gonff",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-gonff",
+        "mossflower::MF_character_gonff",
+        "outcast::OUT_character_gonff"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "gruzzle",
+      "record_ids": [
+        "martin_warrior::MW_CHARACTER_gruzzle",
+        "taggerung::TAG_character_gruzzle"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "gubbio",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-gubbio",
+        "marlfox::MF_CHARACTER_gubbio"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "gurgan_spearback",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-gurgan-spearback",
+        "taggerung::TAG_character_gurgan_spearback"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "gurrbowl",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-goodwife-gurrbowl",
+        "marlfox::MF_CHARACTER_gurrbowl",
+        "pearls_lutra::PL_CHARACTER_gurrbowl"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "janglur_swifteye",
+      "record_ids": [
+        "marlfox::MF_CHARACTER_janglur_swifteye",
+        "taggerung::TAG_character_janglur_swifteye"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "log_a_log",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-log-a-log",
+        "mossflower::MF_character_log_a_log",
+        "outcast::OUT_character_log_a_log",
+        "pearls_lutra::PL_CHARACTER_log_a_log",
+        "redwall::RW-CHARACTER-log-a-log",
+        "salamandastron::SAL_character_log_a_log"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "logalog",
+      "record_ids": [
+        "outcast::OUT_character_log_a_log",
+        "salamandastron::SAL_character_log_a_log"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "lord_brocktree",
+      "record_ids": [
+        "mossflower::MF_character_old_lord_brocktree",
+        "outcast::OUT_character_lord_brocktree",
+        "salamandastron::SAL_character_lord_brocktree"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "luke",
+      "record_ids": [
+        "mossflower::MF_character_luke_the_warrior",
+        "rakkety_tam::RAK_character_luke"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "luke_the_warrior",
+      "record_ids": [
+        "martin_warrior::MW_CHARACTER_luke_the_warrior",
+        "mossflower::MF_character_luke_the_warrior"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "mariel",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-mariel",
+        "martin_warrior::MW_CHARACTER_mariel"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "martin",
+      "record_ids": [
+        "martin_warrior::MW_CHARACTER_martin",
+        "mossflower::MF_character_martin_the_warrior",
+        "outcast::OUT_character_martin_the_warrior",
+        "pearls_lutra::PL_CHARACTER_martin_of_redwall",
+        "salamandastron::SAL_character_martin_the_warrior"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "martin_the_warrior",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-martin-the-warrior",
+        "martin_warrior::MW_CHARACTER_martin",
+        "mossflower::MF_character_martin_the_warrior",
+        "outcast::OUT_character_martin_the_warrior",
+        "rakkety_tam::RAK_character_martin_the_warrior",
+        "redwall::RW-CHARACTER-martin-the-warrior",
+        "salamandastron::SAL_character_martin_the_warrior",
+        "taggerung::TAG_character_martin_the_warrior",
+        "triss::TRI_character_martin_the_warrior"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "matthias",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-matthias",
+        "pearls_lutra::PL_CHARACTER_matthias",
+        "redwall::RW-CHARACTER-matthias",
+        "taggerung::TAG_character_matthias"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "mattimeo",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-mattimeo",
+        "pearls_lutra::PL_CHARACTER_mattimeo",
+        "redwall::RW-CHARACTER-mattimeo"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "methuselah",
+      "record_ids": [
+        "redwall::RW-CHARACTER-methuselah",
+        "taggerung::TAG_character_methuselah"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "nutwing",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-nutwing",
+        "marlfox::MF_CHARACTER_nutwing"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "old_lord_brocktree",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-old-lord-brocktree",
+        "mossflower::MF_character_old_lord_brocktree"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "ripfang",
+      "record_ids": [
+        "lord_brocktree::LB-CHARACTER-ripfang",
+        "mossflower::MF_character_ripfang"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "russano_the_wise",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-russano",
+        "taggerung::TAG_character_russano_the_wise",
+        "triss::TRI_character_russano_the_wise"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "saxtus",
+      "record_ids": [
+        "martin_warrior::MW_CHARACTER_saxtus",
+        "salamandastron::SAL_character_saxtus"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "scratch",
+      "record_ids": [
+        "mossflower::MF_character_scratch",
+        "redwall::RW-CHARACTER-scratch"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "skipper_of_otters",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-skipper-of-otters",
+        "mossflower::MF_character_skipper_of_otters",
+        "rakkety_tam::RAK_character_skipper_of_otters",
+        "taggerung::TAG_character_skipper_of_otters",
+        "triss::TRI_character_skipper_of_otters"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "spearlady_gorse",
+      "record_ids": [
+        "lord_brocktree::LB-CHARACTER-spearlady-gorse",
+        "mossflower::MF_character_spearlady_gorse",
+        "salamandastron::SAL_character_spearlady_gorse"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "starbuck",
+      "record_ids": [
+        "mossflower::MF_character_starbuck",
+        "outcast::OUT_character_starbuck"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "sunflash",
+      "record_ids": [
+        "mossflower::MF_character_sunflash_the_mace",
+        "outcast::OUT_character_sunflash_the_mace"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "sunflash_the_mace",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-sunflash-the-mace",
+        "mossflower::MF_character_sunflash_the_mace",
+        "outcast::OUT_character_sunflash_the_mace",
+        "salamandastron::SAL_character_sunstripe_the_mace"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "sunstripe",
+      "record_ids": [
+        "outcast::OUT_character_sunflash_the_mace",
+        "salamandastron::SAL_character_sunstripe_the_mace"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "tansy",
+      "record_ids": [
+        "pearls_lutra::PL_CHARACTER_tansy",
+        "taggerung::TAG_character_tansy"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "tess_churchmouse",
+      "record_ids": [
+        "pearls_lutra::PL_CHARACTER_tess_churchmouse",
+        "redwall::RW-CHARACTER-tess-churchmouse"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "thrugg",
+      "record_ids": [
+        "mossflower::MF_character_thrugg_the_strong",
+        "salamandastron::SAL_character_thrugg"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "tim_churchmouse",
+      "record_ids": [
+        "pearls_lutra::PL_CHARACTER_tim_churchmouse",
+        "redwall::RW-CHARACTER-tim-churchmouse"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "timballisto",
+      "record_ids": [
+        "martin_warrior::MW_CHARACTER_timballisto",
+        "mossflower::MF_character_timballisto",
+        "outcast::OUT_character_timballisto"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "urthclaw",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-urthclaw",
+        "mossflower::MF_character_urthclaw",
+        "salamandastron::SAL_character_urthclaw"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "urthwyte",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-urthwyte",
+        "salamandastron::SAL_character_urthwyte_the_mighty"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "CHARACTER",
+      "normalized_label": "verdauga",
+      "record_ids": [
+        "long_patrol::LP-CHARACTER-verdauga",
+        "mossflower::MF_character_verdauga_greeneyes"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "FACTION",
+      "normalized_label": "guosim",
+      "record_ids": [
+        "long_patrol::LP-FACTION-guosim",
+        "outcast::OUT_faction_guosim",
+        "pearls_lutra::PL_FACTION_guosim",
+        "rakkety_tam::RAK_faction_guosim",
+        "triss::TRI_faction_guosim"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "FACTION",
+      "normalized_label": "long_patrol",
+      "record_ids": [
+        "outcast::OUT_faction_long_patrol",
+        "rakkety_tam::RAK_faction_long_patrol",
+        "taggerung::TAG_faction_long_patrol"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "FACTION",
+      "normalized_label": "redwall_abbey_community",
+      "record_ids": [
+        "long_patrol::LP-FACTION-redwall-abbey-community",
+        "marlfox::MF_FACTION_redwall_abbey_community",
+        "outcast::OUT_faction_redwall_abbey_community",
+        "pearls_lutra::PL_FACTION_redwall_abbey_community",
+        "rakkety_tam::RAK_faction_redwall_abbey_community",
+        "triss::TRI_faction_redwall_abbey_community"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "FACTION",
+      "normalized_label": "redwall_community",
+      "record_ids": [
+        "salamandastron::SAL_faction_redwall_community",
+        "taggerung::TAG_faction_redwall_community"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "FACTION",
+      "normalized_label": "redwall_otter_crew",
+      "record_ids": [
+        "taggerung::TAG_faction_redwall_otter_crew",
+        "triss::TRI_faction_redwall_otter_crew"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "FACTION",
+      "normalized_label": "salamandastron_community",
+      "record_ids": [
+        "outcast::OUT_faction_salamandastron_community",
+        "triss::TRI_faction_salamandastron_community"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "abbey_orchard",
+      "record_ids": [
+        "salamandastron::SAL_place_abbey_orchard",
+        "taggerung::TAG_place_abbey_orchard"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "abbey_pond",
+      "record_ids": [
+        "redwall::RW-PLACE-abbey-pond",
+        "taggerung::TAG_place_abbey_pond"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "brockhall",
+      "record_ids": [
+        "lord_brocktree::LB-PLACE-brockhall",
+        "mossflower::MF_place_brockhall"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "cavern_hole",
+      "record_ids": [
+        "long_patrol::LP-PLACE-cavern-hole",
+        "marlfox::MF_PLACE_cavern_hole",
+        "martin_warrior::MW_PLACE_cavern_hole",
+        "pearls_lutra::PL_PLACE_cavern_hole",
+        "rakkety_tam::RAK_place_cavern_hole",
+        "redwall::RW-PLACE-cavern-hole",
+        "salamandastron::SAL_place_cavern_hole",
+        "taggerung::TAG_place_cavern_hole"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "dark_forest",
+      "record_ids": [
+        "mossflower::MF_place_dark_forest",
+        "outcast::OUT_place_dark_forest"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "great_hall",
+      "record_ids": [
+        "marlfox::MF_PLACE_great_hall",
+        "rakkety_tam::RAK_place_great_hall",
+        "redwall::RW-PLACE-great-hall",
+        "salamandastron::SAL_place_great_hall",
+        "taggerung::TAG_place_great_hall"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "great_south_stream",
+      "record_ids": [
+        "mossflower::MF_place_great_south_stream",
+        "salamandastron::SAL_place_great_south_stream"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "mossflower_coastal_stream_mouth",
+      "record_ids": [
+        "pearls_lutra::PL_PLACE_mossflower_coastal_stream_mouth",
+        "triss::TRI_place_mossflower_coastal_stream_mouth"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "mossflower_wood",
+      "record_ids": [
+        "marlfox::MF_PLACE_mossflower_wood",
+        "pearls_lutra::PL_PLACE_mossflower_wood",
+        "redwall::RW-PLACE-mossflower-wood"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "mossflower_woods",
+      "record_ids": [
+        "martin_warrior::MW_PLACE_mossflower_woods",
+        "outcast::OUT_place_mossflower_woods",
+        "salamandastron::SAL_place_mossflower_woods"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "redwall_abbey",
+      "record_ids": [
+        "martin_warrior::MW_PLACE_redwall_abbey",
+        "outcast::OUT_place_redwall_abbey",
+        "redwall::RW-PLACE-redwall-abbey",
+        "salamandastron::SAL_place_redwall_abbey",
+        "taggerung::TAG_place_redwall_abbey"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "redwall_belltower",
+      "record_ids": [
+        "marlfox::MF_PLACE_redwall_belltower",
+        "rakkety_tam::RAK_place_redwall_belltower"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "redwall_east_wallgate",
+      "record_ids": [
+        "long_patrol::LP-PLACE-redwall-east-wallgate",
+        "marlfox::MF_PLACE_redwall_east_wallgate"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "redwall_gatehouse",
+      "record_ids": [
+        "pearls_lutra::PL_PLACE_redwall_gatehouse",
+        "rakkety_tam::RAK_place_redwall_gatehouse",
+        "triss::TRI_place_redwall_gatehouse"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "redwall_great_hall",
+      "record_ids": [
+        "pearls_lutra::PL_PLACE_redwall_great_hall",
+        "triss::TRI_place_redwall_great_hall"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "redwall_infirmary",
+      "record_ids": [
+        "pearls_lutra::PL_PLACE_redwall_infirmary",
+        "rakkety_tam::RAK_place_redwall_infirmary"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "redwall_kitchens",
+      "record_ids": [
+        "marlfox::MF_PLACE_redwall_kitchens",
+        "pearls_lutra::PL_PLACE_redwall_kitchens",
+        "rakkety_tam::RAK_place_redwall_kitchens"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "redwall_orchard",
+      "record_ids": [
+        "long_patrol::LP-PLACE-redwall-orchard",
+        "marlfox::MF_PLACE_redwall_orchard",
+        "pearls_lutra::PL_PLACE_redwall_orchard",
+        "triss::TRI_place_redwall_orchard"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "redwall_pond",
+      "record_ids": [
+        "marlfox::MF_PLACE_redwall_pond",
+        "pearls_lutra::PL_PLACE_redwall_pond",
+        "rakkety_tam::RAK_place_redwall_pond",
+        "triss::TRI_place_redwall_pond"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "salamandastron",
+      "record_ids": [
+        "long_patrol::LP-PLACE-salamandastron",
+        "mossflower::MF_place_salamandastron",
+        "outcast::OUT_place_salamandastron",
+        "pearls_lutra::PL_PLACE_salamandastron",
+        "rakkety_tam::RAK_place_salamandastron",
+        "salamandastron::SAL_place_salamandastron",
+        "triss::TRI_place_salamandastron"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    },
+    {
+      "kind": "PLACE",
+      "normalized_label": "salamandastron_forge",
+      "record_ids": [
+        "long_patrol::LP-PLACE-salamandastron-forge",
+        "mossflower::MF_place_salamandastron_forge",
+        "outcast::OUT_place_salamandastron_forge",
+        "rakkety_tam::RAK_place_salamandastron_forge"
+      ],
+      "resolution": "NOT_AUTOMATICALLY_MERGED"
+    }
+  ]
+}

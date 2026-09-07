@@ -1,0 +1,200 @@
+{
+  "schema_version": "redwall_library_validation_v1",
+  "status": "PASS",
+  "checks": {
+    "research_schema_contracts": {
+      "passed": true,
+      "detail": []
+    },
+    "all_twelve_packages_present": {
+      "passed": true,
+      "detail": null
+    },
+    "all_available_text_inspected": {
+      "passed": true,
+      "detail": null
+    },
+    "unique_qualified_record_ids": {
+      "passed": true,
+      "detail": null
+    },
+    "unique_qualified_recipe_ids": {
+      "passed": true,
+      "detail": null
+    },
+    "catalog_inactive": {
+      "passed": true,
+      "detail": null
+    },
+    "recipes_inactive": {
+      "passed": true,
+      "detail": null
+    },
+    "raw_package_hashes_current": {
+      "passed": true,
+      "detail": null
+    },
+    "supplied_source_file_hashes_match": {
+      "passed": true,
+      "detail": {
+        "checked": 12
+      }
+    },
+    "coverage_word_sums_match": {
+      "passed": true,
+      "detail": null
+    },
+    "fact_locators_in_bounds": {
+      "passed": true,
+      "detail": null
+    },
+    "recipe_locators_in_bounds": {
+      "passed": true,
+      "detail": null
+    },
+    "recipe_food_references_resolve": {
+      "passed": true,
+      "detail": null
+    },
+    "qualified_ids_match_book_and_local": {
+      "passed": true,
+      "detail": null
+    },
+    "record_types_and_scopes": {
+      "passed": true,
+      "detail": null
+    },
+    "production_candidate_boolean": {
+      "passed": true,
+      "detail": null
+    },
+    "production_methods_and_labels_present": {
+      "passed": true,
+      "detail": null
+    },
+    "production_candidates_have_inputs": {
+      "passed": true,
+      "detail": null
+    },
+    "source_only_no_normalized_production_method": {
+      "passed": true,
+      "detail": null
+    },
+    "inference_has_reason_and_confidence": {
+      "passed": true,
+      "detail": null
+    },
+    "game_inputs_duplicate_free": {
+      "passed": true,
+      "detail": null
+    },
+    "balance_not_invented": {
+      "passed": true,
+      "detail": null
+    },
+    "pantry_exact_recipe_joins": {
+      "passed": true,
+      "detail": null
+    },
+    "pantry_eligibility_matches": {
+      "passed": true,
+      "detail": null
+    },
+    "pantry_inputs_match_production_candidates": {
+      "passed": true,
+      "detail": null
+    },
+    "pantry_input_manifest_current": {
+      "passed": true,
+      "detail": null
+    },
+    "pantry_no_unknown_components": {
+      "passed": true,
+      "detail": null
+    },
+    "pantry_no_cycles": {
+      "passed": true,
+      "detail": null
+    },
+    "pantry_no_owner_issues": {
+      "passed": true,
+      "detail": null
+    },
+    "pantry_targets_exist": {
+      "passed": true,
+      "detail": null
+    },
+    "pantry_component_order_unique": {
+      "passed": true,
+      "detail": null
+    },
+    "curated_relations_valid": {
+      "passed": true,
+      "detail": null
+    },
+    "markdown_package_links_resolve": {
+      "passed": true,
+      "detail": []
+    },
+    "no_book_binaries_in_package": {
+      "passed": true,
+      "detail": []
+    }
+  },
+  "errors": [],
+  "warnings": [],
+  "totals": {
+    "available_books": 12,
+    "expected_books": 12,
+    "inspected_blocks": 39768,
+    "inspected_words": 1280344,
+    "inspected_chunks": 221,
+    "catalog_records": 7665,
+    "individual_reference_records": 6235,
+    "chunk_dossiers": 1430,
+    "recipe_candidates": 1755,
+    "category_counts": {
+      "CHARACTER": 1344,
+      "FACTION": 308,
+      "PLACE": 627,
+      "OBJECT": 630,
+      "CULTURE": 323,
+      "SYSTEM": 562,
+      "THEME": 278,
+      "FOOD": 1886,
+      "INGREDIENT": 1430,
+      "ECOLOGY": 277
+    }
+  },
+  "production_recipe_candidates": 1707,
+  "source_only_food_discourse_records": 48,
+  "pantry_counts": {
+    "books_available": 12,
+    "books_expected": 12,
+    "recipes": 1755,
+    "production_candidates": 1707,
+    "excluded_production_rows": 48,
+    "source_terms": 723,
+    "source_occurrences": 4225,
+    "distinct_normalized_game_inputs": 371,
+    "components_total": 331,
+    "book_component_variants": 137,
+    "shared_authored_components": 194,
+    "leaf_inputs_used": 159,
+    "opaque_unknown_terms": 0,
+    "dependency_cycles": 0,
+    "owner_issue_records": 0
+  },
+  "known_limits": [
+    "Salamandastron: confirmed gap in supplied EPUB, apparently printed pages 314–315.",
+    "Eulalia!: full source not supplied/verified.",
+    "Available-text coverage is not perfect concordance, full-series coverage or certified edition integrity.",
+    "Source recipes and authored component methods are research candidates, not balanced runtime data.",
+    "Existing movement engineering and Windows qualification remain separate."
+  ],
+  "validation_scope": "Structural checks plus durable full-reading ledgers and bounded independent semantic QA. Passing does not prove absence of all editorial omissions.",
+  "runtime_tested": false,
+  "runtime_changes": false,
+  "commit_created": false,
+  "pushed": false
+}

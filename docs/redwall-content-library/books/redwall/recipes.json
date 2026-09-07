@@ -1,0 +1,4336 @@
+{
+  "book": "Redwall",
+  "status": "AI_ADAPTATIONS_PROPOSED_NOT_RUNTIME_ACTIVE",
+  "recipes": [
+    {
+      "id": "RW-RECIPE-grayling-la-redwall",
+      "source_food_id": "RW-FOOD-grayling-la-redwall",
+      "source_label": "Grayling à la Redwall",
+      "game_label": "Refuge trout with gooseberry wine and herbs",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 71,
+          "block_end": 106,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "grayling",
+          "evidence_type": "NARRATOR",
+          "block_start": 71,
+          "block_end": 106,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "white gooseberry wine",
+          "evidence_type": "NARRATOR",
+          "block_start": 71,
+          "block_end": 106,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "rosemary",
+          "evidence_type": "NARRATOR",
+          "block_start": 71,
+          "block_end": 106,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "thyme",
+          "evidence_type": "NARRATOR",
+          "block_start": 71,
+          "block_end": 106,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "beechnuts",
+          "evidence_type": "NARRATOR",
+          "block_start": 71,
+          "block_end": 106,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "honey",
+          "evidence_type": "NARRATOR",
+          "block_start": 71,
+          "block_end": 106,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "cream",
+          "evidence_type": "NARRATOR",
+          "block_start": 71,
+          "block_end": 106,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "mint",
+          "evidence_type": "NARRATOR",
+          "block_start": 71,
+          "block_end": 106,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "trout",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source grayling; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "oat cream",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source cream; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fish bake base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "trout",
+        "white gooseberry wine",
+        "rosemary",
+        "thyme",
+        "beechnuts",
+        "honey",
+        "oat cream",
+        "mint",
+        "salt"
+      ],
+      "method": "Combine fish, named fruit wine, herbs, nuts and sweetener in a covered baking dish; bake, then finish with the named fresh herb.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Source gives unusually full ingredient description; game trout and oat cream substitutions must be named."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "white gooseberry wine",
+          "component_id": "RW-GAME-COMPONENT-white-gooseberry-wine"
+        },
+        {
+          "ingredient": "oat cream",
+          "component_id": "RW-GAME-COMPONENT-oat-cream"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-raspberry-cordial",
+      "source_food_id": "RW-FOOD-raspberry-cordial",
+      "source_label": "Raspberry cordial",
+      "game_label": "Raspberry cordial",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 74,
+          "block_end": 74,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "raspberry",
+          "evidence_type": "NARRATOR",
+          "block_start": 74,
+          "block_end": 74,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored cordial base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored cordial base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "raspberry",
+        "water",
+        "honey"
+      ],
+      "method": "Cook the named fruit with water, strain and sweeten; store as a concentrated drink ingredient.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-peach-and-elderberry-brandy",
+      "source_food_id": "RW-FOOD-peach-and-elderberry-brandy",
+      "source_label": "Peach and elderberry brandy",
+      "game_label": "Peach and elderberry brandy",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 75,
+          "block_end": 75,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "peach",
+          "evidence_type": "NARRATOR",
+          "block_start": 75,
+          "block_end": 75,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "elderberry",
+          "evidence_type": "NARRATOR",
+          "block_start": 75,
+          "block_end": 75,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored brandy base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored brandy base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "peach",
+        "elderberry",
+        "water",
+        "fermentation culture"
+      ],
+      "method": "Represent fruit fermentation and spirit maturation as an abstract game production chain; no real distillation procedure or dosing is specified.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-apple-and-mint-ice-cream",
+      "source_food_id": "RW-FOOD-apple-and-mint-ice-cream",
+      "source_label": "Apple and mint ice cream",
+      "game_label": "Apple and mint oat ice",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 79,
+          "block_end": 79,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "apple",
+          "evidence_type": "NARRATOR",
+          "block_start": 79,
+          "block_end": 79,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "mint",
+          "evidence_type": "NARRATOR",
+          "block_start": 79,
+          "block_end": 79,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oat cream",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored frozen cream base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored frozen cream base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "apple",
+        "mint",
+        "oat cream",
+        "honey"
+      ],
+      "method": "Combine fruit and herb flavorings with sweetened oat cream, chill and churn to a frozen dessert.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Cream type is not specified by the dish name; game uses oat cream."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "oat cream",
+          "component_id": "RW-GAME-COMPONENT-oat-cream"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-candied-chestnuts",
+      "source_food_id": "RW-FOOD-candied-chestnuts",
+      "source_label": "Candied chestnuts",
+      "game_label": "Candied chestnuts",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 86,
+          "block_end": 2173,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_014.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "chestnut",
+          "evidence_type": "NARRATOR",
+          "block_start": 86,
+          "block_end": 2173,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored candied nuts base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored candied nuts base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "chestnut",
+        "honey",
+        "water"
+      ],
+      "method": "Coat edible chestnuts in a reduced honey glaze and allow the coating to set.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Candynuts alias in Sparra dialogue; never substitute horse chestnuts."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-acorn-crunch",
+      "source_food_id": "RW-FOOD-acorn-crunch",
+      "source_label": "Acorn crunch",
+      "game_label": "Acorn crunch",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 86,
+          "block_end": 86,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "acorn",
+          "evidence_type": "NARRATOR",
+          "block_start": 86,
+          "block_end": 86,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "processed acorn meal",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source acorn; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored nut sweet base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored nut sweet base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "processed acorn meal",
+        "honey",
+        "sunflower oil"
+      ],
+      "method": "Combine processed acorn meal with honey and seed oil, bake crisp and break into pieces.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Game acorn ingredient is processed acorn meal, not unprocessed raw nut."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-cheddar",
+      "source_food_id": "RW-FOOD-cheddar",
+      "source_label": "Cheddar",
+      "game_label": "Aged oat-and-seed cheese",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 88,
+          "block_end": 88,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "cheese",
+          "evidence_type": "NARRATOR",
+          "block_start": 88,
+          "block_end": 88,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oats",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source cheese; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower seeds",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "oats",
+        "sunflower seeds",
+        "water",
+        "salt",
+        "fermentation culture"
+      ],
+      "method": "Culture an oat-and-seed base, drain and press; age for firm texture. This is a fictional plant-cheese production recipe.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Source named cheese with production origin unspecified locally; game aged oat-seed cheese analogue explicitly renamed."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-shrimp-in-cream-with-rose-leaves",
+      "source_food_id": "RW-FOOD-shrimp-in-cream-with-rose-leaves",
+      "source_label": "Shrimp in cream with rose leaves",
+      "game_label": "Mussels in oat cream with rose petals",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 102,
+          "block_end": 102,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "shrimp",
+          "evidence_type": "NARRATOR",
+          "block_start": 102,
+          "block_end": 102,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "cream",
+          "evidence_type": "NARRATOR",
+          "block_start": 102,
+          "block_end": 102,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "rose leaves",
+          "evidence_type": "NARRATOR",
+          "block_start": 102,
+          "block_end": 102,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "mussel",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source shrimp; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "oat cream",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source cream; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "rose petals",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source rose leaves; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored savory cream base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "mussel",
+        "oat cream",
+        "rose petals",
+        "salt"
+      ],
+      "method": "Cook mussels, combine with oat cream and the named botanical garnish.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Game mussel and oat cream variant; no shrimp whitelist expansion."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "oat cream",
+          "component_id": "RW-GAME-COMPONENT-oat-cream"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-devilled-barley-pearls-in-acorn-puree",
+      "source_food_id": "RW-FOOD-devilled-barley-pearls-in-acorn-puree",
+      "source_label": "Devilled barley pearls in acorn puree",
+      "game_label": "Devilled barley pearls in acorn puree",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 102,
+          "block_end": 102,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "barley pearls",
+          "evidence_type": "NARRATOR",
+          "block_start": 102,
+          "block_end": 102,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "acorn puree",
+          "evidence_type": "NARRATOR",
+          "block_start": 102,
+          "block_end": 102,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "processed acorn puree",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source acorn puree; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored grain puree base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored grain puree base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "mustard",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored grain puree base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored grain puree base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "barley pearls",
+        "processed acorn puree",
+        "water",
+        "salt",
+        "mustard",
+        "sunflower oil"
+      ],
+      "method": "Cook barley pearls; combine with processed acorn puree and mustard seasoning.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Heat/spice source unspecified; game mustard chosen as explicit inference."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "processed acorn puree",
+          "component_id": "RW-GAME-COMPONENT-processed-acorn-puree"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-apple-and-carrot-chews",
+      "source_food_id": "RW-FOOD-apple-and-carrot-chews",
+      "source_label": "Apple and carrot chews",
+      "game_label": "Apple and carrot chews",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 102,
+          "block_end": 102,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "apple",
+          "evidence_type": "NARRATOR",
+          "block_start": 102,
+          "block_end": 102,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "carrot",
+          "evidence_type": "NARRATOR",
+          "block_start": 102,
+          "block_end": 102,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit chew base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "apple",
+        "carrot",
+        "honey"
+      ],
+      "method": "Cook fruit and root puree until thick, spread thinly and dry into chewy pieces.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-marinated-cabbage-stalks-with-creamed-white-turnip-and-nutmeg",
+      "source_food_id": "RW-FOOD-marinated-cabbage-stalks-with-creamed-white-turnip-and-nutmeg",
+      "source_label": "Marinated cabbage stalks with creamed white turnip and nutmeg",
+      "game_label": "Marinated cabbage stalks with creamed white turnip and nutmeg",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 102,
+          "block_end": 102,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "cabbage stalk",
+          "evidence_type": "NARRATOR",
+          "block_start": 102,
+          "block_end": 102,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "white turnip",
+          "evidence_type": "NARRATOR",
+          "block_start": 102,
+          "block_end": 102,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "nutmeg",
+          "evidence_type": "NARRATOR",
+          "block_start": 102,
+          "block_end": 102,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "apple vinegar",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored marinated vegetables base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored marinated vegetables base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "oat cream",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored marinated vegetables base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored marinated vegetables base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "cabbage stalk",
+        "white turnip",
+        "nutmeg",
+        "apple vinegar",
+        "water",
+        "oat cream",
+        "salt"
+      ],
+      "method": "Marinate cabbage stalks, cook the turnip separately and mash with oat cream and nutmeg; serve together.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Marinade and cream base not specified; game vinegar and oat cream inferred."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "oat cream",
+          "component_id": "RW-GAME-COMPONENT-oat-cream"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-bread",
+      "source_food_id": "RW-FOOD-bread",
+      "source_label": "Bread",
+      "game_label": "Bread",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 132,
+          "block_end": 2475,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_014.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "bread starter",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "wheat flour",
+        "water",
+        "bread starter",
+        "salt"
+      ],
+      "method": "Mix flour, water, starter and named additions, allow to rise, shape and bake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "Generic bread references, no single canonical flour specified."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-cakes",
+      "source_food_id": "RW-FOOD-cakes",
+      "source_label": "Cakes",
+      "game_label": "Cakes",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 132,
+          "block_end": 132,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored cake base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored cake base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored cake base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored cake base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "wheat flour",
+        "water",
+        "honey",
+        "sunflower oil"
+      ],
+      "method": "Mix the flour, sweetener and oil into a soft batter and bake; flavor remains a game-authored generic cake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "Generic charity food; no named flavor or complete recipe."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-nutbread",
+      "source_food_id": "RW-FOOD-nutbread",
+      "source_label": "Nutbread",
+      "game_label": "Nutbread",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 321,
+          "block_end": 1204,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_010.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "nuts",
+          "evidence_type": "NARRATOR",
+          "block_start": 321,
+          "block_end": 1204,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "hazelnut",
+          "confidence": "LOW",
+          "reason": "Source gives broad term nuts; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "bread starter",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "hazelnut",
+        "wheat flour",
+        "water",
+        "bread starter",
+        "salt"
+      ],
+      "method": "Mix flour, water, starter and named additions, allow to rise, shape and bake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Named nut species not fixed by source label."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-honeyed-milk",
+      "source_food_id": "RW-FOOD-honeyed-milk",
+      "source_label": "Honeyed milk",
+      "game_label": "Honeyed oat drink",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 420,
+          "block_end": 1120,
+          "source_start": "index-1403_split_004.html",
+          "source_end": "index-1403_split_008.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "milk",
+          "evidence_type": "NARRATOR",
+          "block_start": 420,
+          "block_end": 1120,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "honey",
+          "evidence_type": "NARRATOR",
+          "block_start": 420,
+          "block_end": 1120,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oat drink",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source milk; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "oat drink",
+        "honey"
+      ],
+      "method": "Stir honey into oat drink; serve cool or warmed according to the scene.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Game oat drink with honey; distinguish original milk reference with unspecified production origin."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "oat drink",
+          "component_id": "RW-GAME-COMPONENT-oat-drink"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-nutbrown-october-ale",
+      "source_food_id": "RW-FOOD-nutbrown-october-ale",
+      "source_label": "Nutbrown October ale",
+      "game_label": "Nutbrown October ale",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 502,
+          "block_end": 3728,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_018.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "malted barley",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored ale base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored ale base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored ale base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "malted barley",
+        "water",
+        "fermentation culture"
+      ],
+      "method": "Use an abstract malted-grain fermentation and cellar-conditioning process for a dark seasonal ale.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "October ale and October nutbrown ale linked by explicit later naming; brown describes beverage, not proof of nuts as ingredients."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-strong-cider",
+      "source_food_id": "RW-FOOD-strong-cider",
+      "source_label": "Strong cider",
+      "game_label": "Strong cider",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 561,
+          "block_end": 561,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_005.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "apple",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored cider base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored cider base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "apple",
+        "fermentation culture"
+      ],
+      "method": "Press apples and use the game fermentation process; strength is a narrative quality, not a real alcohol formula.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "Apple is plausible inferred base, not explicitly named in this list."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-creamy-stout",
+      "source_food_id": "RW-FOOD-creamy-stout",
+      "source_label": "Creamy stout",
+      "game_label": "Creamy stout",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 561,
+          "block_end": 561,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_005.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "roasted malted barley",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stout base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "oats",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stout base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stout base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stout base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "roasted malted barley",
+        "oats",
+        "water",
+        "fermentation culture"
+      ],
+      "method": "Use roasted malt and oats in an abstract dark grain-beverage process; creamy texture does not require dairy.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "Creamy texture does not prove added dairy."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-elderberry-wine",
+      "source_food_id": "RW-FOOD-elderberry-wine",
+      "source_label": "Elderberry wine",
+      "game_label": "Elderberry wine",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 561,
+          "block_end": 561,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_005.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "elderberry",
+          "evidence_type": "NARRATOR",
+          "block_start": 561,
+          "block_end": 561,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "elderberry",
+        "water",
+        "honey",
+        "fermentation culture"
+      ],
+      "method": "Press or steep the named fruit, sweeten and ferment through the game cellar workflow.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-mulberry-brandy",
+      "source_food_id": "RW-FOOD-mulberry-brandy",
+      "source_label": "Mulberry brandy",
+      "game_label": "Mulberry brandy",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 561,
+          "block_end": 561,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_005.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "mulberry",
+          "evidence_type": "NARRATOR",
+          "block_start": 561,
+          "block_end": 561,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored brandy base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored brandy base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "mulberry",
+        "water",
+        "fermentation culture"
+      ],
+      "method": "Represent fruit fermentation and spirit maturation as an abstract game production chain; no real distillation procedure or dosing is specified.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-blackcurrant-port",
+      "source_food_id": "RW-FOOD-blackcurrant-port",
+      "source_label": "Blackcurrant port",
+      "game_label": "Blackcurrant port",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 561,
+          "block_end": 561,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_005.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "blackcurrant",
+          "evidence_type": "NARRATOR",
+          "block_start": 561,
+          "block_end": 561,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fortified fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fortified fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fortified fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fruit spirit",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fortified fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "blackcurrant",
+        "water",
+        "honey",
+        "fermentation culture",
+        "fruit spirit"
+      ],
+      "method": "Ferment the named fruit drink and blend with a game fruit-spirit ingredient; no real alcohol quantities specified.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "fruit spirit",
+          "component_id": "RW-GAME-COMPONENT-fruit-spirit"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-wild-grape-sherry",
+      "source_food_id": "RW-FOOD-wild-grape-sherry",
+      "source_label": "Wild-grape sherry",
+      "game_label": "Wild-grape sherry",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 561,
+          "block_end": 561,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_005.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "wild grape",
+          "evidence_type": "NARRATOR",
+          "block_start": 561,
+          "block_end": 561,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fortified fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fortified fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fortified fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fruit spirit",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fortified fruit wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "wild grape",
+        "water",
+        "honey",
+        "fermentation culture",
+        "fruit spirit"
+      ],
+      "method": "Ferment the named fruit drink and blend with a game fruit-spirit ingredient; no real alcohol quantities specified.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "fruit spirit",
+          "component_id": "RW-GAME-COMPONENT-fruit-spirit"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-wheaten-loaf",
+      "source_food_id": "RW-FOOD-wheaten-loaf",
+      "source_label": "Wheaten loaf",
+      "game_label": "Wheaten loaf",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 586,
+          "block_end": 586,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_005.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "wheat",
+          "evidence_type": "NARRATOR",
+          "block_start": 586,
+          "block_end": 586,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "LOW",
+          "reason": "Source gives broad term wheat; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "bread starter",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "wheat flour",
+        "water",
+        "bread starter",
+        "salt"
+      ],
+      "method": "Mix flour, water, starter and named additions, allow to rise, shape and bake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-goat-milk-cheese",
+      "source_food_id": "RW-FOOD-goat-milk-cheese",
+      "source_label": "Goat-milk cheese",
+      "game_label": "Pressed oat-and-seed cheese",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 586,
+          "block_end": 3200,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_016.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "goat milk",
+          "evidence_type": "NARRATOR",
+          "block_start": 586,
+          "block_end": 3200,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oats",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source goat milk; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower seeds",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "oats",
+        "sunflower seeds",
+        "water",
+        "salt",
+        "fermentation culture"
+      ],
+      "method": "Culture an oat-and-seed base, drain and press; age for firm texture. This is a fictional plant-cheese production recipe.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Keep canon source and separately named game oat-seed cheese."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-fennel-and-oatcakes",
+      "source_food_id": "RW-FOOD-fennel-and-oatcakes",
+      "source_label": "Fennel and oatcakes",
+      "game_label": "Fennel and oatcakes",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 772,
+          "block_end": 773,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_005.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "fennel",
+          "evidence_type": "NARRATOR",
+          "block_start": 772,
+          "block_end": 773,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "oats",
+          "evidence_type": "NARRATOR",
+          "block_start": 772,
+          "block_end": 773,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored oatcakes base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored oatcakes base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored oatcakes base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored oatcakes base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "fennel",
+        "oats",
+        "oat flour",
+        "water",
+        "sunflower oil",
+        "salt"
+      ],
+      "method": "Mix oats and fennel into dough, shape thin cakes and griddle; combining fennel into the cake is an inferred game choice.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Uncertain whether fennel seasons oatcakes or accompanies them; combined game version labeled inference."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-mint-tea",
+      "source_food_id": "RW-FOOD-mint-tea",
+      "source_label": "Mint tea",
+      "game_label": "Mint tea",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 925,
+          "block_end": 931,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_005.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "mint",
+          "evidence_type": "NARRATOR",
+          "block_start": 925,
+          "block_end": 931,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored herbal tea base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "mint",
+        "water"
+      ],
+      "method": "Steep the named culinary herbs in hot water and strain.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-stew",
+      "source_food_id": "RW-FOOD-stew",
+      "source_label": "Stew",
+      "game_label": "Stew",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 961,
+          "block_end": 961,
+          "source_start": "index-1403_split_006.html",
+          "source_end": "index-1403_split_006.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "turnip",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stew base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "carrot",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stew base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "beans",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stew base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "onion",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stew base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "thyme",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stew base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stew base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored stew base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "turnip",
+        "carrot",
+        "beans",
+        "onion",
+        "thyme",
+        "water",
+        "salt"
+      ],
+      "method": "Cook diced roots, beans and onion together with thyme in a thick broth.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "No ingredients specified; game root-and-bean version wholly inferred."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-honeyed-nutbread",
+      "source_food_id": "RW-FOOD-honeyed-nutbread",
+      "source_label": "Honeyed nutbread",
+      "game_label": "Honeyed nutbread",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 961,
+          "block_end": 961,
+          "source_start": "index-1403_split_006.html",
+          "source_end": "index-1403_split_006.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "honey",
+          "evidence_type": "NARRATOR",
+          "block_start": 961,
+          "block_end": 961,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "nuts",
+          "evidence_type": "NARRATOR",
+          "block_start": 961,
+          "block_end": 961,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "hazelnut",
+          "confidence": "LOW",
+          "reason": "Source gives broad term nuts; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "bread starter",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "honey",
+        "hazelnut",
+        "wheat flour",
+        "water",
+        "bread starter",
+        "salt"
+      ],
+      "method": "Mix flour, water, starter and named additions, allow to rise, shape and bake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-salad",
+      "source_food_id": "RW-FOOD-salad",
+      "source_label": "Salad",
+      "game_label": "Salad",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 1204,
+          "block_end": 1209,
+          "source_start": "index-1403_split_010.html",
+          "source_end": "index-1403_split_010.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "lettuce",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "watercress",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "radish",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "apple vinegar",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "lettuce",
+        "watercress",
+        "radish",
+        "apple vinegar",
+        "sunflower oil"
+      ],
+      "method": "Combine washed greens and sliced radish with a light vinegar-and-seed-oil dressing.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "General salad, no canonical single composition."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-friar-hugo-s-quince-pie",
+      "source_food_id": "RW-FOOD-friar-hugo-s-quince-pie",
+      "source_label": "Friar Hugo's quince pie",
+      "game_label": "Friar Hugo's quince pie",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 1204,
+          "block_end": 1354,
+          "source_start": "index-1403_split_010.html",
+          "source_end": "index-1403_split_011.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "quince",
+          "evidence_type": "NARRATOR",
+          "block_start": 1204,
+          "block_end": 1354,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "quince",
+        "wheat flour",
+        "water",
+        "sunflower oil",
+        "honey"
+      ],
+      "method": "Enclose named fruit in a wheat-and-seed-oil pastry and bake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-summer-salad",
+      "source_food_id": "RW-FOOD-summer-salad",
+      "source_label": "Summer salad",
+      "game_label": "Summer salad",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 1353,
+          "block_end": 2653,
+          "source_start": "index-1403_split_011.html",
+          "source_end": "index-1403_split_015.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "lettuce",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "watercress",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "radish",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "apple vinegar",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "lettuce",
+        "watercress",
+        "radish",
+        "apple vinegar",
+        "sunflower oil"
+      ],
+      "method": "Combine washed greens and sliced radish with a light vinegar-and-seed-oil dressing.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "Seasonal name does not enumerate vegetables."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-goat-milk-cheese-with-hazelnuts",
+      "source_food_id": "RW-FOOD-goat-milk-cheese-with-hazelnuts",
+      "source_label": "Goat-milk cheese with hazelnuts",
+      "game_label": "Hazelnut oat-and-seed cheese",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 1354,
+          "block_end": 1354,
+          "source_start": "index-1403_split_011.html",
+          "source_end": "index-1403_split_011.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "goat milk",
+          "evidence_type": "NARRATOR",
+          "block_start": 1354,
+          "block_end": 1354,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "hazelnut",
+          "evidence_type": "NARRATOR",
+          "block_start": 1354,
+          "block_end": 1354,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oats",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source goat milk; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower seeds",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored firm cheese base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "oats",
+        "hazelnut",
+        "sunflower seeds",
+        "water",
+        "salt",
+        "fermentation culture"
+      ],
+      "method": "Culture an oat-and-seed base, drain and press; age for firm texture. This is a fictional plant-cheese production recipe.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Nut addition distinguishes from plain goat cheese; game plant analogue explicitly renamed."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-blackberry-muffin",
+      "source_food_id": "RW-FOOD-blackberry-muffin",
+      "source_label": "Blackberry muffin",
+      "game_label": "Blackberry muffin",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 1424,
+          "block_end": 1424,
+          "source_start": "index-1403_split_011.html",
+          "source_end": "index-1403_split_011.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "blackberry",
+          "evidence_type": "NARRATOR",
+          "block_start": 1424,
+          "block_end": 1424,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored muffin base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "oat drink",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored muffin base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "bread starter",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored muffin base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored muffin base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored muffin base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "blackberry",
+        "wheat flour",
+        "oat drink",
+        "bread starter",
+        "honey",
+        "sunflower oil"
+      ],
+      "method": "Fold named fruit into a soft sweet dough and bake in small molds.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "oat drink",
+          "component_id": "RW-GAME-COMPONENT-oat-drink"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-red-currant-tart",
+      "source_food_id": "RW-FOOD-red-currant-tart",
+      "source_label": "Red-currant tart",
+      "game_label": "Red-currant tart",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 1424,
+          "block_end": 1424,
+          "source_start": "index-1403_split_011.html",
+          "source_end": "index-1403_split_011.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "redcurrant",
+          "evidence_type": "NARRATOR",
+          "block_start": 1424,
+          "block_end": 1424,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit tart base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit tart base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit tart base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit tart base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "redcurrant",
+        "wheat flour",
+        "water",
+        "sunflower oil",
+        "honey"
+      ],
+      "method": "Fill an open pastry shell with the named sweetened fruit and bake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-st-ninian-s-barley-wine",
+      "source_food_id": "RW-FOOD-st-ninian-s-barley-wine",
+      "source_label": "St Ninian's barley wine",
+      "game_label": "St Ninian's barley wine",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 1565,
+          "block_end": 2903,
+          "source_start": "index-1403_split_011.html",
+          "source_end": "index-1403_split_016.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "barley",
+          "evidence_type": "NARRATOR",
+          "block_start": 1565,
+          "block_end": 2903,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "malted barley",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored barley wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored barley wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored barley wine base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "barley",
+        "malted barley",
+        "water",
+        "fermentation culture"
+      ],
+      "method": "Represent a strong malted-barley cellar drink through an abstract fermentation process; no real alcohol recipe.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "St Ninian's cellar provenance and later best-barley-wine reference; name not a separate winery claim."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-porridge",
+      "source_food_id": "RW-FOOD-porridge",
+      "source_label": "Porridge",
+      "game_label": "Porridge",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 1609,
+          "block_end": 1609,
+          "source_start": "index-1403_split_011.html",
+          "source_end": "index-1403_split_011.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oats",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored porridge base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored porridge base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored porridge base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "oats",
+        "water",
+        "salt"
+      ],
+      "method": "Simmer oats in water to a soft breakfast porridge.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "Grain unspecified here; oats inferred for game."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-toffee-apple",
+      "source_food_id": "RW-FOOD-toffee-apple",
+      "source_label": "Toffee apple",
+      "game_label": "Toffee apple",
+      "source_status": "DISCOURSE_ONLY",
+      "source_locators": [
+        {
+          "block_start": 1822,
+          "block_end": 1822,
+          "source_start": "index-1403_split_013.html",
+          "source_end": "index-1403_split_013.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "apple",
+          "evidence_type": "CHARACTER_REPORT",
+          "block_start": 1822,
+          "block_end": 1822,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored toffee fruit base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored toffee fruit base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "apple",
+        "honey",
+        "sunflower oil"
+      ],
+      "method": "Coat apple in a cooked honey-and-seed-oil glaze and let it set; game analogue rather than canonical toffee ingredients.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Appears in sarcastic impossible story; not evidence a character ate it."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-cornflower-s-homemade-vegetable-soup",
+      "source_food_id": "RW-FOOD-cornflower-s-homemade-vegetable-soup",
+      "source_label": "Cornflower's homemade vegetable soup",
+      "game_label": "Cornflower's homemade vegetable soup",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2005,
+          "block_end": 3233,
+          "source_start": "index-1403_split_013.html",
+          "source_end": "index-1403_split_016.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "vegetables",
+          "evidence_type": "NARRATOR",
+          "block_start": 2005,
+          "block_end": 3233,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "carrot",
+          "confidence": "LOW",
+          "reason": "Source gives broad term vegetables; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "turnip",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored vegetable soup base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "onion",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored vegetable soup base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "leek",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored vegetable soup base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "celery",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored vegetable soup base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored vegetable soup base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "thyme",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored vegetable soup base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored vegetable soup base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "carrot",
+        "turnip",
+        "onion",
+        "leek",
+        "celery",
+        "water",
+        "thyme",
+        "salt"
+      ],
+      "method": "Simmer diced vegetables and thyme in water until tender; serve hot in mugs during night rounds.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Her own recipe is mentioned but vegetable list absent. Repeated night service, including soup used in tower incident."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-sparra-raw-flowers-and-shoots-meal",
+      "source_food_id": "RW-FOOD-sparra-raw-flowers-and-shoots-meal",
+      "source_label": "Sparra raw flowers and shoots meal",
+      "game_label": "Sparra raw flowers and shoots meal",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2112,
+          "block_end": 2120,
+          "source_start": "index-1403_split_013.html",
+          "source_end": "index-1403_split_013.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "fresh flowers",
+          "evidence_type": "NARRATOR",
+          "block_start": 2112,
+          "block_end": 2120,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "tender shoots",
+          "evidence_type": "NARRATOR",
+          "block_start": 2112,
+          "block_end": 2120,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "berries",
+          "evidence_type": "NARRATOR",
+          "block_start": 2112,
+          "block_end": 2120,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "fruit",
+          "evidence_type": "NARRATOR",
+          "block_start": 2112,
+          "block_end": 2120,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "dandelion petals",
+          "confidence": "LOW",
+          "reason": "Source gives broad term fresh flowers; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "lettuce shoots",
+          "confidence": "LOW",
+          "reason": "Source gives broad term tender shoots; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "blackberry",
+          "confidence": "LOW",
+          "reason": "Source gives broad term berries; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "apple",
+          "confidence": "LOW",
+          "reason": "Source gives broad term fruit; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "dandelion petals",
+        "lettuce shoots",
+        "blackberry",
+        "apple"
+      ],
+      "method": "Prepare a raw plant plate from edible flowers, young greens, berries and cut fruit. These exact species are game choices.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Source birds also eat worms/insects; game adaptation uses plant portion and approved food ingredients, not source insect diet."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-dandelion-meal",
+      "source_food_id": "RW-FOOD-dandelion-meal",
+      "source_label": "Dandelion meal",
+      "game_label": "Dandelion meal",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 943,
+          "block_end": 2132,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_014.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "dandelion leaves",
+          "evidence_type": "NARRATOR",
+          "block_start": 943,
+          "block_end": 2132,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "dandelion buds",
+          "evidence_type": "NARRATOR",
+          "block_start": 943,
+          "block_end": 2132,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [],
+      "game_ingredients": [
+        "dandelion leaves",
+        "dandelion buds"
+      ],
+      "method": "Combine tender dandelion leaves and buds as a simple gathered food serving.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Matthias eats young leaves/buds; Warbeak brings dandelions later."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-quince-and-elderberry-pie",
+      "source_food_id": "RW-FOOD-quince-and-elderberry-pie",
+      "source_label": "Quince and elderberry pie",
+      "game_label": "Quince and elderberry pie",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2345,
+          "block_end": 2345,
+          "source_start": "index-1403_split_014.html",
+          "source_end": "index-1403_split_014.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "quince",
+          "evidence_type": "NARRATOR",
+          "block_start": 2345,
+          "block_end": 2345,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "elderberry",
+          "evidence_type": "NARRATOR",
+          "block_start": 2345,
+          "block_end": 2345,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "quince",
+        "elderberry",
+        "wheat flour",
+        "water",
+        "sunflower oil",
+        "honey"
+      ],
+      "method": "Enclose named fruit in a wheat-and-seed-oil pastry and bake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-apple-cream-pudding",
+      "source_food_id": "RW-FOOD-apple-cream-pudding",
+      "source_label": "Apple cream pudding",
+      "game_label": "Apple oat-cream pudding",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2353,
+          "block_end": 2353,
+          "source_start": "index-1403_split_014.html",
+          "source_end": "index-1403_split_014.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "apple",
+          "evidence_type": "NARRATOR",
+          "block_start": 2353,
+          "block_end": 2353,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "cream",
+          "evidence_type": "NARRATOR",
+          "block_start": 2353,
+          "block_end": 2353,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oat cream",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source cream; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "oat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored cream pudding base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored cream pudding base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "apple",
+        "oat cream",
+        "oat flour",
+        "honey"
+      ],
+      "method": "Cook apple into sweetened oat cream, thicken with oat flour and cool to pudding texture.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Game oat cream adaptation."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "oat cream",
+          "component_id": "RW-GAME-COMPONENT-oat-cream"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-gruel",
+      "source_food_id": "RW-FOOD-gruel",
+      "source_label": "Gruel",
+      "game_label": "Gruel",
+      "source_status": "PROPOSED_JOKE",
+      "source_locators": [
+        {
+          "block_start": 2650,
+          "block_end": 2653,
+          "source_start": "index-1403_split_015.html",
+          "source_end": "index-1403_split_015.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oats",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored gruel base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored gruel base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "oats",
+        "water"
+      ],
+      "method": "Cook ground oats in extra water for a thin cereal dish; no therapeutic claim.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "Offered as joke, rejected in favor of substantial brunch."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-boiled-eggs",
+      "source_food_id": "RW-FOOD-boiled-eggs",
+      "source_label": "Boiled eggs",
+      "game_label": "Bean-and-seed dumplings",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2653,
+          "block_end": 2658,
+          "source_start": "index-1403_split_015.html",
+          "source_end": "index-1403_split_015.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "egg",
+          "evidence_type": "NARRATOR",
+          "block_start": 2653,
+          "block_end": 2658,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "white beans",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source egg; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower seeds",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored egg analogue base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "oat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored egg analogue base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored egg analogue base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored egg analogue base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "white beans",
+        "sunflower seeds",
+        "oat flour",
+        "water",
+        "salt"
+      ],
+      "method": "Shape a bean-and-seed mixture into oval dumplings and simmer; explicitly a game replacement for the source eggs.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Explicit source eggs; game bean-and-seed dumpling analogue is a different dish, not canon egg recipe."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-hazelnut-cream-junket",
+      "source_food_id": "RW-FOOD-hazelnut-cream-junket",
+      "source_label": "Hazelnut cream junket",
+      "game_label": "Hazelnut oat-cream cups",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2653,
+          "block_end": 2667,
+          "source_start": "index-1403_split_015.html",
+          "source_end": "index-1403_split_015.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "hazelnut",
+          "evidence_type": "NARRATOR",
+          "block_start": 2653,
+          "block_end": 2667,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "cream",
+          "evidence_type": "NARRATOR",
+          "block_start": 2653,
+          "block_end": 2667,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oat cream",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source cream; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "oat starch",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored set pudding base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored set pudding base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "hazelnut",
+        "oat cream",
+        "oat starch",
+        "honey"
+      ],
+      "method": "Combine hazelnut flavor with sweetened oat cream, thicken with oat starch and cool in cups.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Game oat cream plus starch setting, not dairy/rennet pipeline."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": [
+        {
+          "ingredient": "oat cream",
+          "component_id": "RW-GAME-COMPONENT-oat-cream"
+        }
+      ]
+    },
+    {
+      "id": "RW-RECIPE-oven-baked-apple-pie",
+      "source_food_id": "RW-FOOD-oven-baked-apple-pie",
+      "source_label": "Oven-baked apple pie",
+      "game_label": "Oven-baked apple pie",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2653,
+          "block_end": 2664,
+          "source_start": "index-1403_split_015.html",
+          "source_end": "index-1403_split_015.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "apple",
+          "evidence_type": "NARRATOR",
+          "block_start": 2653,
+          "block_end": 2664,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit pie base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "apple",
+        "wheat flour",
+        "water",
+        "sunflower oil",
+        "honey"
+      ],
+      "method": "Enclose named fruit in a wheat-and-seed-oil pastry and bake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Oven baking explicit; other pastry ingredients inferred."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-quince-tart",
+      "source_food_id": "RW-FOOD-quince-tart",
+      "source_label": "Quince tart",
+      "game_label": "Quince tart",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2653,
+          "block_end": 2660,
+          "source_start": "index-1403_split_015.html",
+          "source_end": "index-1403_split_015.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "quince",
+          "evidence_type": "NARRATOR",
+          "block_start": 2653,
+          "block_end": 2660,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit tart base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit tart base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit tart base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fruit tart base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "quince",
+        "wheat flour",
+        "water",
+        "sunflower oil",
+        "honey"
+      ],
+      "method": "Fill an open pastry shell with the named sweetened fruit and bake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-sweet-berry-juice",
+      "source_food_id": "RW-FOOD-sweet-berry-juice",
+      "source_label": "Sweet berry juice",
+      "game_label": "Sweet berry juice",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 2752,
+          "block_end": 2752,
+          "source_start": "index-1403_split_015.html",
+          "source_end": "index-1403_split_015.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "berries",
+          "evidence_type": "NARRATOR",
+          "block_start": 2752,
+          "block_end": 2752,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "blackberry",
+          "confidence": "LOW",
+          "reason": "Source gives broad term berries; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored juice base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "blackberry",
+        "water"
+      ],
+      "method": "Crush and strain berries with water; chosen berry species is inferred.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Berry species unspecified; game blackberry selected explicitly."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-rough-nutbread",
+      "source_food_id": "RW-FOOD-rough-nutbread",
+      "source_label": "Rough nutbread",
+      "game_label": "Rough nutbread",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2752,
+          "block_end": 2752,
+          "source_start": "index-1403_split_015.html",
+          "source_end": "index-1403_split_015.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "nuts",
+          "evidence_type": "NARRATOR",
+          "block_start": 2752,
+          "block_end": 2752,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "hazelnut",
+          "confidence": "LOW",
+          "reason": "Source gives broad term nuts; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "wholemeal wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored rough bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored rough bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "bread starter",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored rough bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored rough bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "hazelnut",
+        "wholemeal wheat flour",
+        "water",
+        "bread starter",
+        "salt"
+      ],
+      "method": "Mix coarse wholemeal dough with nuts, rise, bake and pack for travel.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Shrew travel breakfast; coarse game flour inferred."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-unidentified-fresh-roots",
+      "source_food_id": "RW-FOOD-unidentified-fresh-roots",
+      "source_label": "Unidentified fresh roots",
+      "game_label": "Unidentified fresh roots",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2752,
+          "block_end": 2752,
+          "source_start": "index-1403_split_015.html",
+          "source_end": "index-1403_split_015.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "unidentified roots",
+          "evidence_type": "NARRATOR",
+          "block_start": 2752,
+          "block_end": 2752,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "carrot",
+          "confidence": "LOW",
+          "reason": "Source gives broad term unidentified roots; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "turnip",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored root plate base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "carrot",
+        "turnip"
+      ],
+      "method": "Slice washed game carrots and turnips into a simple raw root plate.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Do not invent source root species; game carrot/turnip selected."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-wood-pigeon-portion",
+      "source_food_id": "RW-FOOD-wood-pigeon-portion",
+      "source_label": "Wood-pigeon portion",
+      "game_label": "Roasted woodland mushrooms",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 2903,
+          "block_end": 2904,
+          "source_start": "index-1403_split_016.html",
+          "source_end": "index-1403_split_016.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "wood pigeon",
+          "evidence_type": "NARRATOR",
+          "block_start": 2903,
+          "block_end": 2904,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "mushrooms",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source wood pigeon; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "onion",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored savory roast base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored savory roast base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "thyme",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored savory roast base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored savory roast base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "mushrooms",
+        "onion",
+        "sunflower oil",
+        "thyme",
+        "salt"
+      ],
+      "method": "Roast mushrooms with onion and thyme; this replaces the source bird-meat portion and must be renamed.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Cluny's leftovers eaten by Cheesethief; preparation unknown. Game mushroom roast is an expressly different plant dish."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-old-apple-brandy",
+      "source_food_id": "RW-FOOD-old-apple-brandy",
+      "source_label": "Old apple brandy",
+      "game_label": "Old apple brandy",
+      "source_status": "DISCOURSE_ONLY",
+      "source_locators": [
+        {
+          "block_start": 2972,
+          "block_end": 2972,
+          "source_start": "index-1403_split_016.html",
+          "source_end": "index-1403_split_016.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "apple",
+          "evidence_type": "CHARACTER_REPORT",
+          "block_start": 2972,
+          "block_end": 2972,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored brandy base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored brandy base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "apple",
+        "water",
+        "fermentation culture"
+      ],
+      "method": "Represent fruit fermentation and spirit maturation as an abstract game production chain; no real distillation procedure or dosing is specified.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Snow's mocking question, not observed serving."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-toasted-wheatcake",
+      "source_food_id": "RW-FOOD-toasted-wheatcake",
+      "source_label": "Toasted wheatcake",
+      "game_label": "Toasted wheatcake",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 3094,
+          "block_end": 3094,
+          "source_start": "index-1403_split_016.html",
+          "source_end": "index-1403_split_016.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "wheat",
+          "evidence_type": "NARRATOR",
+          "block_start": 3094,
+          "block_end": 3094,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "LOW",
+          "reason": "Source gives broad term wheat; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored toasted cake base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored toasted cake base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored toasted cake base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "wheat flour",
+        "water",
+        "salt",
+        "sunflower oil"
+      ],
+      "method": "Cook a flat wheat cake and toast its surfaces before serving.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Toasting explicit; leavening/other base inferred."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-herb-tea",
+      "source_food_id": "RW-FOOD-herb-tea",
+      "source_label": "Herb tea",
+      "game_label": "Herb tea",
+      "source_status": "DRINK",
+      "source_locators": [
+        {
+          "block_start": 3094,
+          "block_end": 3094,
+          "source_start": "index-1403_split_016.html",
+          "source_end": "index-1403_split_016.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "herbs",
+          "evidence_type": "NARRATOR",
+          "block_start": 3094,
+          "block_end": 3094,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "mint",
+          "confidence": "LOW",
+          "reason": "Source gives broad term herbs; this specific ingredient is an AI choice.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored herbal tea base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "thyme",
+          "confidence": "LOW",
+          "reason": "Second culinary herb chosen to distinguish this camp blend from named mint tea.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "mint",
+        "water",
+        "thyme"
+      ],
+      "method": "Steep the named culinary herbs in hot water and strain.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Herb identity unspecified; mint/thyme selected for game."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-hardtack",
+      "source_food_id": "RW-FOOD-hardtack",
+      "source_label": "Hardtack",
+      "game_label": "Hardtack",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 3162,
+          "block_end": 3162,
+          "source_start": "index-1403_split_016.html",
+          "source_end": "index-1403_split_016.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored hardtack base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored hardtack base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored hardtack base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "wheat flour",
+        "water",
+        "salt"
+      ],
+      "method": "Mix stiff unleavened dough, shape flat pieces and bake dry for a travel ration.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "Travel lunch, source does not list flour or process."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-oatmeal",
+      "source_food_id": "RW-FOOD-oatmeal",
+      "source_label": "Oatmeal",
+      "game_label": "Oatmeal",
+      "source_status": "PREPARED",
+      "source_locators": [
+        {
+          "block_start": 3198,
+          "block_end": 3233,
+          "source_start": "index-1403_split_016.html",
+          "source_end": "index-1403_split_016.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "oats",
+          "evidence_type": "NARRATOR",
+          "block_start": 3198,
+          "block_end": 3233,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored porridge base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored porridge base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "oats",
+        "water",
+        "salt"
+      ],
+      "method": "Simmer oats in water to a soft breakfast porridge.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Pans readied and later stirred for breakfast."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-oven-bread",
+      "source_food_id": "RW-FOOD-oven-bread",
+      "source_label": "Oven bread",
+      "game_label": "Oven bread",
+      "source_status": "PREPARED",
+      "source_locators": [
+        {
+          "block_start": 3198,
+          "block_end": 3233,
+          "source_start": "index-1403_split_016.html",
+          "source_end": "index-1403_split_016.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "wheat flour",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "bread starter",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored bread base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "wheat flour",
+        "water",
+        "bread starter",
+        "salt"
+      ],
+      "method": "Mix flour, water, starter and named additions, allow to rise, shape and bake.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "Bread baked in oven; flour not identified."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-fresh-trout-salad-with-mustard-and-cress",
+      "source_food_id": "RW-FOOD-fresh-trout-salad-with-mustard-and-cress",
+      "source_label": "Fresh trout salad with mustard and cress",
+      "game_label": "Fresh trout salad with mustard and cress",
+      "source_status": "OFFERED",
+      "source_locators": [
+        {
+          "block_start": 3448,
+          "block_end": 3448,
+          "source_start": "index-1403_split_017.html",
+          "source_end": "index-1403_split_017.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "trout",
+          "evidence_type": "NARRATOR",
+          "block_start": 3448,
+          "block_end": 3448,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "mustard",
+          "evidence_type": "NARRATOR",
+          "block_start": 3448,
+          "block_end": 3448,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        },
+        {
+          "ingredient": "cress",
+          "evidence_type": "NARRATOR",
+          "block_start": 3448,
+          "block_end": 3448,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "apple vinegar",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fish salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fish salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fish salad base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "trout",
+        "mustard",
+        "cress",
+        "apple vinegar",
+        "sunflower oil",
+        "salt"
+      ],
+      "method": "Cook trout, cool it, then combine with mustard, cress and a vinegar-and-seed-oil dressing.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Trout preparation unspecified; game cooks fish before combining."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-truffle",
+      "source_food_id": "RW-FOOD-truffle",
+      "source_label": "Truffle",
+      "game_label": "Roasted woodland fungus",
+      "source_status": "SERVED_AMBIGUOUS",
+      "source_locators": [
+        {
+          "block_start": 3512,
+          "block_end": 3512,
+          "source_start": "index-1403_split_018.html",
+          "source_end": "index-1403_split_018.html"
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "truffle",
+          "evidence_type": "NARRATOR",
+          "block_start": 3512,
+          "block_end": 3512,
+          "confidence": "HIGH",
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "mushroom",
+          "confidence": "MEDIUM",
+          "reason": "Explicit game adaptation of source truffle; original ingredient retained separately.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fungus dish base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "salt",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored fungus dish base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "mushroom",
+        "sunflower oil",
+        "salt"
+      ],
+      "method": "Roast a game woodland fungus with a light oil coating; source meaning of truffle remains ambiguous.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Could mean fungus or confection; no chocolate evidence. Game chooses woodland fungus candidate, uncertainty retained."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-lollipop",
+      "source_food_id": "RW-FOOD-lollipop",
+      "source_label": "Lollipop",
+      "game_label": "Honey sweet on a stick",
+      "source_status": "DISCOURSE_ONLY",
+      "source_locators": [
+        {
+          "block_start": 3665,
+          "block_end": 3665,
+          "source_start": "index-1403_split_018.html",
+          "source_end": "index-1403_split_018.html"
+        }
+      ],
+      "source_ingredients": [],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "honey",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored sweet stick base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "MEDIUM",
+          "reason": "AI-authored sweet stick base ingredient fills the source recipe gap.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "honey",
+        "water"
+      ],
+      "method": "Create a hardened honey sweet on a clean wooden stick as a game-authored confection.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_NAME_ONLY",
+      "adaptation_notes": [
+        "Only in hostage-threat simile; game honey sweet is independent inference."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-white-gooseberry-wine",
+      "source_food_id": "RW-FOOD-white-gooseberry-wine",
+      "source_label": "White gooseberry wine",
+      "game_label": "White gooseberry game cellar wine",
+      "source_status": "COOKING_COMPONENT",
+      "source_locators": [
+        {
+          "block_start": 71,
+          "block_end": 71,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html",
+          "unit_block_start": 51,
+          "unit_block_end": 51
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "white gooseberry",
+          "evidence_type": "NARRATOR",
+          "confidence": "HIGH",
+          "block_start": 71,
+          "block_end": 71,
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "water",
+          "confidence": "LOW",
+          "reason": "Explicit game completion or plant-pantry adaptation, not recovered canon.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "LOW",
+          "reason": "Explicit game completion or plant-pantry adaptation, not recovered canon.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "LOW",
+          "reason": "Explicit game completion or plant-pantry adaptation, not recovered canon.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "white gooseberry",
+        "water",
+        "honey",
+        "fermentation culture"
+      ],
+      "method": "Represent white gooseberry juice, honey, water and a beverage culture as an abstract game cellar wine; no actual fermentation parameters or source ratios are supplied.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "Hugo explicitly requests white gooseberry wine for Grayling à la Redwall. The fruit identity is inherited from the drink name; the novel gives no beverage formula."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-fresh-goat-milk",
+      "source_food_id": "RW-FOOD-fresh-goat-milk",
+      "source_label": "Fresh goat milk",
+      "game_label": "Plain oat drink — fresh goat milk adaptation",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 321,
+          "block_end": 321,
+          "source_start": "index-1403_split_003.html",
+          "source_end": "index-1403_split_003.html",
+          "unit_block_start": 301,
+          "unit_block_end": 301
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "goat milk",
+          "evidence_type": "NARRATOR",
+          "confidence": "HIGH",
+          "block_start": 321,
+          "block_end": 321,
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oats",
+          "confidence": "LOW",
+          "reason": "Explicit game completion or plant-pantry adaptation, not recovered canon.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "LOW",
+          "reason": "Explicit game completion or plant-pantry adaptation, not recovered canon.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "oats",
+        "water"
+      ],
+      "method": "Represent an oat-and-water game beverage; source goat milk is retained only as a source food and does not authorize livestock.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "The breakfast explicitly includes fresh goatsmilk. Game oat drink is a separately authored replacement."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    },
+    {
+      "id": "RW-RECIPE-fresh-milk-unspecified-origin",
+      "source_food_id": "RW-FOOD-fresh-milk-unspecified-origin",
+      "source_label": "Fresh milk (unspecified origin)",
+      "game_label": "Plain oat drink — unspecified milk adaptation",
+      "source_status": "SERVED",
+      "source_locators": [
+        {
+          "block_start": 586,
+          "block_end": 586,
+          "source_start": "index-1403_split_005.html",
+          "source_end": "index-1403_split_005.html",
+          "unit_block_start": 123,
+          "unit_block_end": 123
+        }
+      ],
+      "source_ingredients": [
+        {
+          "ingredient": "milk",
+          "evidence_type": "NARRATOR",
+          "confidence": "HIGH",
+          "block_start": 586,
+          "block_end": 586,
+          "confidence_scope": "Named in this source context; not proof of complete formula, safe botanical identity or narrator confirmation."
+        }
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oats",
+          "confidence": "LOW",
+          "reason": "Explicit game completion or plant-pantry adaptation, not recovered canon.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "LOW",
+          "reason": "Explicit game completion or plant-pantry adaptation, not recovered canon.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "game_ingredients": [
+        "oats",
+        "water"
+      ],
+      "method": "Represent an oat-and-water game beverage; this does not establish what animal or plant supplies the source milk.",
+      "method_status": "AI_AUTHORED_GAME_ADAPTATION",
+      "ingredient_completeness": "SOURCE_PARTIAL_LIST",
+      "adaptation_notes": [
+        "The orchard lunch names fresh milk alongside explicitly goat-milk cheese; adjacency does not independently establish the milk bowl origin."
+      ],
+      "quantities_status": "NOT_BALANCED_LIBRARY_CANDIDATE",
+      "activation": "NOT_RUNTIME_ACTIVE",
+      "diet_evidence_note": "Explicit goat milk and eggs are retained when stated; unspecified cheese, cream and milk are not automatically animal-derived. Greensap has plant-origin evidence elsewhere in this corpus. Oat preparations are authored choices.",
+      "component_dependencies": []
+    }
+  ],
+  "game_components": [
+    {
+      "id": "RW-GAME-COMPONENT-oat-cream",
+      "label": "oat cream",
+      "evidence_type": "INFERRED_GAME",
+      "source_ingredients": [],
+      "game_ingredients": [
+        "oats",
+        "water",
+        "sunflower oil"
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oats",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "sunflower oil",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "source_status": "AI_AUTHORED_COMPONENT_DEFINITION",
+      "method": "Soften oats in water, grind with sunflower oil, strain and thicken to a spoonable game cream. This is an authored plant preparation.",
+      "adaptation_notes": [
+        "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients."
+      ],
+      "activation": "NOT_RUNTIME_ACTIVE"
+    },
+    {
+      "id": "RW-GAME-COMPONENT-oat-drink",
+      "label": "oat drink",
+      "evidence_type": "INFERRED_GAME",
+      "source_ingredients": [],
+      "game_ingredients": [
+        "oats",
+        "water"
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "oats",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "source_status": "AI_AUTHORED_COMPONENT_DEFINITION",
+      "method": "Soften oats in water, grind and strain into a pourable game drink.",
+      "adaptation_notes": [
+        "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients."
+      ],
+      "activation": "NOT_RUNTIME_ACTIVE"
+    },
+    {
+      "id": "RW-GAME-COMPONENT-fruit-spirit",
+      "label": "fruit spirit",
+      "evidence_type": "INFERRED_GAME",
+      "source_ingredients": [],
+      "game_ingredients": [
+        "apple",
+        "water",
+        "fermentation culture"
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "apple",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "source_status": "AI_AUTHORED_COMPONENT_DEFINITION",
+      "method": "Represent apple juice fermentation followed by an abstract spirit-production and maturation job. No real distillation procedure, alcohol strength or dose is provided.",
+      "adaptation_notes": [
+        "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients."
+      ],
+      "activation": "NOT_RUNTIME_ACTIVE"
+    },
+    {
+      "id": "RW-GAME-COMPONENT-processed-acorn-puree",
+      "label": "processed acorn puree",
+      "evidence_type": "INFERRED_GAME",
+      "source_ingredients": [],
+      "game_ingredients": [
+        "processed acorn meal",
+        "water"
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "processed acorn meal",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "source_status": "AI_AUTHORED_COMPONENT_DEFINITION",
+      "method": "Mix preprocessed edible acorn meal with water and heat to a smooth game puree; raw acorn processing is not specified or endorsed.",
+      "adaptation_notes": [
+        "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients."
+      ],
+      "activation": "NOT_RUNTIME_ACTIVE"
+    },
+    {
+      "id": "RW-GAME-COMPONENT-white-gooseberry-wine",
+      "label": "white gooseberry wine",
+      "evidence_type": "INFERRED_GAME",
+      "source_ingredients": [],
+      "game_ingredients": [
+        "white gooseberry",
+        "water",
+        "honey",
+        "fermentation culture"
+      ],
+      "inferred_game_ingredients": [
+        {
+          "ingredient": "white gooseberry",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients. Fruit identity follows the source drink name; water, honey and culture remain authored.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "water",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients. Fruit identity follows the source drink name; water, honey and culture remain authored.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "honey",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients. Fruit identity follows the source drink name; water, honey and culture remain authored.",
+          "evidence_type": "INFERRED_GAME"
+        },
+        {
+          "ingredient": "fermentation culture",
+          "confidence": "LOW",
+          "reason": "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients. Fruit identity follows the source drink name; water, honey and culture remain authored.",
+          "evidence_type": "INFERRED_GAME"
+        }
+      ],
+      "source_status": "AI_AUTHORED_COMPONENT_DEFINITION",
+      "method": "Crush white gooseberries into juice, mix with water and honey and represent culture fermentation and cellar conditioning as abstract ordered game jobs.",
+      "adaptation_notes": [
+        "Explicit game-authored compound definition; the local novel does not provide these constituent ingredients. Fruit identity follows the source drink name; water, honey and culture remain authored."
+      ],
+      "activation": "NOT_RUNTIME_ACTIVE"
+    }
+  ]
+}

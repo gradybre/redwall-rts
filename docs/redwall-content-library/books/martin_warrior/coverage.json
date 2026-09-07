@@ -1,0 +1,209 @@
+{
+  "book": "Martin the Warrior",
+  "source_file": "Redwall 06 - Martin The Warrior -- Martin The Warrior -- Redwall 06 -- a8301e3f8b1b4cbe28ed7068bc86e2aa -- Anna’s Archive.epub",
+  "source_sha256": "ec0c10ee7b76a8a999710b83e921b6200d47773216945e0be851d16c943741c4",
+  "source_format": "epub",
+  "full_read_status": "COMPLETE_ALL_EXTRACTED_BLOCKS_INSPECTED",
+  "blocks_total": 3995,
+  "blocks_inspected": 3995,
+  "word_count_whitespace": 100604,
+  "chunks": [
+    {
+      "chunk": 1,
+      "range": [
+        1,
+        223
+      ],
+      "words": 5992,
+      "digest": "11e86e53bb6f6758f0f8522fb89cc9be8ea788c89ec622b0040127ce757ed231",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk01.md"
+    },
+    {
+      "chunk": 2,
+      "range": [
+        224,
+        483
+      ],
+      "words": 5995,
+      "digest": "247c024fea94a94cb680a2a7916ba39ddfa855f396dca52276e47061850cb3f9",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk02.md"
+    },
+    {
+      "chunk": 3,
+      "range": [
+        484,
+        740
+      ],
+      "words": 5973,
+      "digest": "b7886c9bd4391a819f15bae1d726c64f442a21bfbdccfee4a770bc79973a79d7",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk03.md"
+    },
+    {
+      "chunk": 4,
+      "range": [
+        741,
+        976
+      ],
+      "words": 5996,
+      "digest": "ab31f7252b2265a2f51d7c8de8f531f109bd55a793ea0eb59c8f50766ae8a0f3",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk04.md"
+    },
+    {
+      "chunk": 5,
+      "range": [
+        977,
+        1261
+      ],
+      "words": 5998,
+      "digest": "2f3521400abf2bc4ed6a21e1de55c18578b8b69a684bb9695ccc2b3d5c556726",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk05.md"
+    },
+    {
+      "chunk": 6,
+      "range": [
+        1262,
+        1497
+      ],
+      "words": 5993,
+      "digest": "a41bbf24d80e4bf4acf206fcde04d3a4e66303ba8368aac101d8b4e903abb058",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk06.md"
+    },
+    {
+      "chunk": 7,
+      "range": [
+        1498,
+        1771
+      ],
+      "words": 5982,
+      "digest": "0b67534d91f081ae667c9024965c9af76457dfdf0fb4bb31c80c37caaa575455",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk07.md"
+    },
+    {
+      "chunk": 8,
+      "range": [
+        1772,
+        2005
+      ],
+      "words": 5998,
+      "digest": "7712b3a11f3eef85bfa760f4aaf6aebe0169de52d5b922bb927947d195c23258",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk08.md"
+    },
+    {
+      "chunk": 9,
+      "range": [
+        2006,
+        2253
+      ],
+      "words": 5999,
+      "digest": "270de6cd8c235217ca4b0733f41cc534c003b7c36f1dbf7f24fcdba4d056e875",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk09.md"
+    },
+    {
+      "chunk": 10,
+      "range": [
+        2254,
+        2478
+      ],
+      "words": 5981,
+      "digest": "db1115d4794f913901b6384a89e453aa0f180851612f7a4306a376020c25e59a",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk10.md"
+    },
+    {
+      "chunk": 11,
+      "range": [
+        2479,
+        2729
+      ],
+      "words": 5951,
+      "digest": "fd7965a811fe9facfdeebf0d8441f0901208687979ba158fa6e61be7d1f5cd7f",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk11.md"
+    },
+    {
+      "chunk": 12,
+      "range": [
+        2730,
+        2946
+      ],
+      "words": 5986,
+      "digest": "1cbebd1c46d310626d7ead420146b3c4d42e6e805aab5e0bd6a87678312c64ae",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk12.md"
+    },
+    {
+      "chunk": 13,
+      "range": [
+        2947,
+        3178
+      ],
+      "words": 5958,
+      "digest": "69f5dc2d7f346ca96596e62773b8c0ad375737e2a6ad3c3e1b830031fdcd0050",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk13.md"
+    },
+    {
+      "chunk": 14,
+      "range": [
+        3179,
+        3410
+      ],
+      "words": 5999,
+      "digest": "67095ca429ddc28652d4d959ec19452a33c1f5b2fcdd8b3f07456fd01d41366b",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk14.md"
+    },
+    {
+      "chunk": 15,
+      "range": [
+        3411,
+        3636
+      ],
+      "words": 5990,
+      "digest": "907b06783aab7569bd4a590d666658b03220283bcbbd32cf1f3636d9f9cd2640",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk15.md"
+    },
+    {
+      "chunk": 16,
+      "range": [
+        3637,
+        3849
+      ],
+      "words": 5992,
+      "digest": "f263c3b1e7707dabf6966dad1cec45ee0eddb71b5c99134a0a1d366147df2956",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk16.md"
+    },
+    {
+      "chunk": 17,
+      "range": [
+        3850,
+        3995
+      ],
+      "words": 4821,
+      "digest": "a203f260cb0390ab2acd2b507ed3f9136fcd28d100ca69ad541dd8f0bf182686",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk17.md"
+    }
+  ],
+  "categories_per_chunk": 11,
+  "catalog_records": 630,
+  "recipe_candidates": 171,
+  "limitations": [
+    "Completeness is against this supplied normalized extraction, not every edition or other series novels.",
+    "Full sequential inspection is documented; a fallible literary catalog can still contain overlooked/merged minor references.",
+    "Compound ingredients and generic food groups are retained alongside individually named ingredients.",
+    "Recipe ratios, production work, nutrition, yields, unlocks and runtime activation are deliberately not claimed.",
+    "Novel source contradictions and role/era distinctions remain visible; medicine and unsafe botanicals are not real-world preparation advice."
+  ]
+}

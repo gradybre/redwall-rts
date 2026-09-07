@@ -2,6 +2,8 @@
 
 # Settlement Economy: Catalogs, Labor, and Validation
 
+**Adopted movement amendment:** [SET-MOVE-001](movement_direction_amendment.md) implements DEC-035 at the direction/specification level. Its requirements supersede ground-only and one-floor claims as the complete settlement design. `settlement_rules_v2` remains the incomplete implementation baseline; MOVE-G01–05 identify exact engineering closure still required.
+
 Specification `SET-BALANCE-001`, revision 1.1; authored 2026-09-05. Scope: settlement release 1. This is an implementation contract and an analytical audit, **not a certified three-year playthrough**. Read §8 and Conflicts Found before treating a calculated surplus as demonstrated survival.
 
 Ruleset v2 follows the adopted [setting_rules_amendment.md](setting_rules_amendment.md). This revision removes land-animal hunting and uses scenario-bound admission. Changed content is tagged `[AMEND-001]`; unchanged numeric values remain inherited.
@@ -534,3 +536,11 @@ Follow-up validation adds 27 passing standard-library tests and both full-winter
 The documents are review artifacts. Creating them does not stage, commit, or push repository changes.
 
 Mac continuation: the same winter controls now execute in a standalone typed GDScript project and exactly match all Python daily/death/final results. The current validation suite passes 33 Python tests and 324 Godot checks, including the GDD economy examples and fixed-clock/identity boundaries. At tick 18000, 1×/2×/4× control states match; checkpoint continuation matches all 15000 ticks after save. `validation_resolution.md` §9 records the evidence and deferred 5090 / 64 GB Windows return point. These are engine controls, not the missing three-year settlement strategies.
+
+## BAL-MOVE-001 — adopted movement and material conservation
+
+Close MOVE-G01 before activating production traversal. Required complete catalog fields: available modes per validated profile; body/gear/load clearance; supported grip/posture; speed and transition duration; movement work/need costs if any; air budget, recovery and contingency rules; allowed interruption and hazard outcomes; excavation work, spoil/material accounting and finite depth/space limits. Values are not supplied by photographed turn counts or novel feats. Existing ground walking coefficients remain baseline-only.
+
+Travel, waiting and work must account for disjoint authoritative time; a swimmer or climber may not receive duplicate work progress. Water-reached fishing shares existing basin stock and the nine-species edible whitelist; underground stores use real capacity and service paths. Re-run the labor/survival scenarios after changed travel costs; prior controls do not establish extended-layout feasibility.
+
+The [food catalog](redwall-design/content_catalog.md) lists source dishes and explicit policy conflicts. Greensap cheese and plant sausages are supported creative candidates, not active recipes. Current `root_stew`, `woodland_pie` and `mead` retain their existing formulas and names. No numeric economy value is changed by this research pass.

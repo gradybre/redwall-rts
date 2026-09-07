@@ -1,0 +1,2430 @@
+{
+  "document_id": "DESIGN-READ-SERIES-002",
+  "date": "2026-09-06",
+  "method": "Keyword discovery across complete local extracts followed by full inspection of selected passages; separate design-focused analysis. Not a complete sequential rereading.",
+  "word_count": "len(block.text.split()), including conversion fragments; unique union per book, repeated deliveries count once",
+  "source_text_included": false,
+  "coverage_limits": "Eulalia full text absent from verified corpus. No collection claim from mislabeled Lord Brocktree EPUB. Prior ledgers unchanged.",
+  "truncation_repairs": "Long Patrol 824:832/1068:1080/1382:1389; Taggerung 2282:2286/3552:3560; Triss 160:166/205:213/524:535; Lord Brocktree 1:5/15:24/332:340 were redelivered to repair truncated outputs.",
+  "books": [
+    {
+      "key": "redwall",
+      "source_file_name": "Redwall 01 - Redwall -- Redwall -- Redwall 01 -- bb85255e7e33b05e2bba5aa56d3604ae -- Anna’s Archive.epub",
+      "source_sha256": "6c1353451c6c2fd72fc73eec50b3853d5a0a290f23938ad1b707c13b24dac3cd",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "epub",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 102835,
+      "unique_inspected_words_this_pass": 5393,
+      "words_outside_prior_inspected_ranges": 4864,
+      "coverage_percent": 5.24,
+      "inspected_block_ranges": [
+        [
+          90,
+          110
+        ],
+        [
+          308,
+          325
+        ],
+        [
+          551,
+          567
+        ],
+        [
+          750,
+          779
+        ],
+        [
+          1168,
+          1188
+        ],
+        [
+          1864,
+          1880
+        ],
+        [
+          2428,
+          2443
+        ],
+        [
+          2643,
+          2661
+        ],
+        [
+          3193,
+          3206
+        ]
+      ],
+      "passages": [
+        {
+          "id": "RW-D01",
+          "first_block": 90,
+          "last_block": 110,
+          "first_locator": {
+            "source": "index-1403_split_003.html",
+            "unit_block": 70
+          },
+          "last_locator": {
+            "source": "index-1403_split_003.html",
+            "unit_block": 90
+          },
+          "words": 631,
+          "text_sha256": "499894f388ff91462357069c0c247402953f3c019060d582b132a381006e62fa"
+        },
+        {
+          "id": "RW-D02",
+          "first_block": 308,
+          "last_block": 325,
+          "first_locator": {
+            "source": "index-1403_split_003.html",
+            "unit_block": 288
+          },
+          "last_locator": {
+            "source": "index-1403_split_003.html",
+            "unit_block": 305
+          },
+          "words": 788,
+          "text_sha256": "a462f1386f7ffc5732b3ab388d792854c81a9ba779c0631557a7ae200d8c3fe7"
+        },
+        {
+          "id": "RW-D03",
+          "first_block": 551,
+          "last_block": 567,
+          "first_locator": {
+            "source": "index-1403_split_005.html",
+            "unit_block": 88
+          },
+          "last_locator": {
+            "source": "index-1403_split_005.html",
+            "unit_block": 104
+          },
+          "words": 554,
+          "text_sha256": "ef6d6eb4286ede02d6bde90abfbb5a6ce93dbe1a1efcb0c907b089f89aaaa79f"
+        },
+        {
+          "id": "RW-D04",
+          "first_block": 750,
+          "last_block": 779,
+          "first_locator": {
+            "source": "index-1403_split_005.html",
+            "unit_block": 287
+          },
+          "last_locator": {
+            "source": "index-1403_split_005.html",
+            "unit_block": 316
+          },
+          "words": 820,
+          "text_sha256": "9977adf96613b4735838d84e101a07f49d0b54e943c16c12b98fb196335eccd9"
+        },
+        {
+          "id": "RW-D05",
+          "first_block": 1168,
+          "last_block": 1188,
+          "first_locator": {
+            "source": "index-1403_split_008.html",
+            "unit_block": 173
+          },
+          "last_locator": {
+            "source": "index-1403_split_008.html",
+            "unit_block": 193
+          },
+          "words": 405,
+          "text_sha256": "3b4fabde3b174cd9b635f5f7ceeeb3cb7237b8bd043dd0c5d78ace89dba0fbb5"
+        },
+        {
+          "id": "RW-D06",
+          "first_block": 1864,
+          "last_block": 1880,
+          "first_locator": {
+            "source": "index-1403_split_013.html",
+            "unit_block": 108
+          },
+          "last_locator": {
+            "source": "index-1403_split_013.html",
+            "unit_block": 124
+          },
+          "words": 529,
+          "text_sha256": "c3a3074a265b30f29edd51b56e199468e52b7c5dfa1604af6d038308697e1b60"
+        },
+        {
+          "id": "RW-D07",
+          "first_block": 2428,
+          "last_block": 2443,
+          "first_locator": {
+            "source": "index-1403_split_014.html",
+            "unit_block": 302
+          },
+          "last_locator": {
+            "source": "index-1403_split_014.html",
+            "unit_block": 317
+          },
+          "words": 566,
+          "text_sha256": "2b6cba217ef37a804adaac742145e4912d12077b9ff2089c924fea46cb1cfa85"
+        },
+        {
+          "id": "RW-D08",
+          "first_block": 2643,
+          "last_block": 2661,
+          "first_locator": {
+            "source": "index-1403_split_015.html",
+            "unit_block": 71
+          },
+          "last_locator": {
+            "source": "index-1403_split_015.html",
+            "unit_block": 89
+          },
+          "words": 594,
+          "text_sha256": "93e684100c652ba148cf593460dca9ece16142f1e6bd9e733ce54e6f7103bd8f"
+        },
+        {
+          "id": "RW-D09",
+          "first_block": 3193,
+          "last_block": 3206,
+          "first_locator": {
+            "source": "index-1403_split_016.html",
+            "unit_block": 365
+          },
+          "last_locator": {
+            "source": "index-1403_split_016.html",
+            "unit_block": 378
+          },
+          "words": 506,
+          "text_sha256": "736f8894bb881dba86cf03bb2080edf9899d212c76bbc9c203d91e2fba06e68c"
+        }
+      ],
+      "extract_sha256": "2759c98e0b917afc4308288b5629e8b28985fb9156108ec75285a0307f4e187c",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    },
+    {
+      "key": "mossflower",
+      "source_file_name": "Jacques, Brian - Redwall 02 - Mossflower -- Jacques, Brian -- Redwall 02 -- 02a82836df42ec6eae8c0b3bac84c9e1 -- Anna’s Archive.epub",
+      "source_sha256": "7b4c84cecf652867e38ccf5752b829041abdab70e153d0ce09614b1a1b2f3370",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "epub",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 114268,
+      "unique_inspected_words_this_pass": 5324,
+      "words_outside_prior_inspected_ranges": 3811,
+      "coverage_percent": 4.66,
+      "inspected_block_ranges": [
+        [
+          58,
+          76
+        ],
+        [
+          355,
+          370
+        ],
+        [
+          494,
+          513
+        ],
+        [
+          714,
+          735
+        ],
+        [
+          750,
+          765
+        ],
+        [
+          940,
+          959
+        ],
+        [
+          1176,
+          1190
+        ],
+        [
+          1328,
+          1343
+        ],
+        [
+          2296,
+          2318
+        ],
+        [
+          3354,
+          3376
+        ],
+        [
+          4767,
+          4783
+        ]
+      ],
+      "passages": [
+        {
+          "id": "MF-D01",
+          "first_block": 58,
+          "last_block": 76,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 58
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 76
+          },
+          "words": 363,
+          "text_sha256": "8b9914ddd194b1b1a5f91c36bd09185e768fd5c9deca437cda1682bc2f38f2aa"
+        },
+        {
+          "id": "MF-D02",
+          "first_block": 355,
+          "last_block": 370,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 355
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 370
+          },
+          "words": 394,
+          "text_sha256": "ce84dc75de62bae2e0debb104ea0159bd10d96404c5737a698f59ec83d9c968a"
+        },
+        {
+          "id": "MF-D03",
+          "first_block": 494,
+          "last_block": 513,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 494
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 513
+          },
+          "words": 656,
+          "text_sha256": "a3549b683b435e6e7fcae21b47bf162a578182e08d4cdaab23be23c214815813"
+        },
+        {
+          "id": "MF-D04",
+          "first_block": 714,
+          "last_block": 735,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 714
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 735
+          },
+          "words": 838,
+          "text_sha256": "f6167c0bd4f80efbe18b188bb9bb30f12c8ba4e99c03e13ff68c2669f53ca72b"
+        },
+        {
+          "id": "MF-D05",
+          "first_block": 750,
+          "last_block": 765,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 750
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 765
+          },
+          "words": 494,
+          "text_sha256": "60f51ee7e9bf64814659c55c1ca634ac8dadd714876c9df750135091dfe57e47"
+        },
+        {
+          "id": "MF-D06",
+          "first_block": 940,
+          "last_block": 959,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 940
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 959
+          },
+          "words": 470,
+          "text_sha256": "f8135fc7a404ee82effabe22bc07ea37af23851888cf1299473171b9631f2fff"
+        },
+        {
+          "id": "MF-D07",
+          "first_block": 1176,
+          "last_block": 1190,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 1176
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 1190
+          },
+          "words": 287,
+          "text_sha256": "cbc40694d171b0f270209cd41b084ca3a257582e89cbccb8fbff42b7f92cf558"
+        },
+        {
+          "id": "MF-D08",
+          "first_block": 1328,
+          "last_block": 1343,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 1328
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 1343
+          },
+          "words": 234,
+          "text_sha256": "a31c36e90014d8ba40d87c4d67619cf04e4b7e1083ddc9d6d69ad87a7863021e"
+        },
+        {
+          "id": "MF-D09",
+          "first_block": 2296,
+          "last_block": 2318,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 2296
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 2318
+          },
+          "words": 525,
+          "text_sha256": "4d59265a6c002061adfac0e311aab16034be0edf20b529fe867434ec7848a248"
+        },
+        {
+          "id": "MF-D10",
+          "first_block": 3354,
+          "last_block": 3376,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 3354
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 3376
+          },
+          "words": 628,
+          "text_sha256": "fbf654ad3551f8c6ec098ca7fa4eb00642677b58bade1fb620147a6b49bfdf28"
+        },
+        {
+          "id": "MF-D11",
+          "first_block": 4767,
+          "last_block": 4783,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 4767
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+            "unit_block": 4783
+          },
+          "words": 435,
+          "text_sha256": "6df27f40307bee741a8b1d6b6a82f680f586b9be11373baeacdf649193099ed2"
+        }
+      ],
+      "extract_sha256": "5c72044ff5df9cf485333bb0cccecde9cba6df13839a592867a91b2e6b9b2e6b",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    },
+    {
+      "key": "long_patrol",
+      "source_file_name": "Jacques, Brian - Redwall 10 - The Long Patrol -- The Long Patrol -- Redwall 10 -- 32dd6318cc2139f7ccf206741d0747f6 -- Anna’s Archive.epub",
+      "source_sha256": "83bde585e690fed7f371b5b77e407fcaff8c14a761a739c25e712b6704a96265",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "epub",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 95163,
+      "unique_inspected_words_this_pass": 4992,
+      "words_outside_prior_inspected_ranges": 4413,
+      "coverage_percent": 5.25,
+      "inspected_block_ranges": [
+        [
+          105,
+          119
+        ],
+        [
+          385,
+          401
+        ],
+        [
+          418,
+          431
+        ],
+        [
+          810,
+          832
+        ],
+        [
+          1068,
+          1080
+        ],
+        [
+          1382,
+          1395
+        ],
+        [
+          1455,
+          1472
+        ],
+        [
+          2395,
+          2410
+        ],
+        [
+          2678,
+          2691
+        ],
+        [
+          2850,
+          2864
+        ]
+      ],
+      "passages": [
+        {
+          "id": "LP-D01",
+          "first_block": 105,
+          "last_block": 119,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 105
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 119
+          },
+          "words": 448,
+          "text_sha256": "97eeea55325a348b4a901f90dbd82f57eecbad796d2168b10c8a8d6120b6a62b"
+        },
+        {
+          "id": "LP-D02",
+          "first_block": 385,
+          "last_block": 401,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 385
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 401
+          },
+          "words": 671,
+          "text_sha256": "1350724738c7333e5df45dcd7adefe53779978345262f085e60c1c5d544908dc"
+        },
+        {
+          "id": "LP-D03",
+          "first_block": 418,
+          "last_block": 431,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 418
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 431
+          },
+          "words": 469,
+          "text_sha256": "0f9467f24c62e430f55572af377b9dfd1032f8cba5ed05cfda1eb8cd0078f311"
+        },
+        {
+          "id": "LP-D04",
+          "first_block": 810,
+          "last_block": 832,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 810
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 832
+          },
+          "words": 658,
+          "text_sha256": "fb482eb3abaca11a65b9cd661acba87c726f8a4483c195eee71931382000ab84"
+        },
+        {
+          "id": "LP-D05",
+          "first_block": 1068,
+          "last_block": 1080,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 1068
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 1080
+          },
+          "words": 520,
+          "text_sha256": "f4951a11d034155c339ff2ff4bd5307fff9ae0773a6f81719e399cbdfb63948a"
+        },
+        {
+          "id": "LP-D06",
+          "first_block": 1382,
+          "last_block": 1395,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 1382
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 1395
+          },
+          "words": 388,
+          "text_sha256": "d609f73e30c6defd6136cdf56b239433f4c6921bd6e1de38a90bc67beefb24d8"
+        },
+        {
+          "id": "LP-D07",
+          "first_block": 1455,
+          "last_block": 1472,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 1455
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 1472
+          },
+          "words": 480,
+          "text_sha256": "b9b7cdb96b8fc657223ecf6e4c477d92c570088937a149284ef6e0877e1f8475"
+        },
+        {
+          "id": "LP-D08",
+          "first_block": 2395,
+          "last_block": 2410,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 2395
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 2410
+          },
+          "words": 366,
+          "text_sha256": "e49bdbec90d7b817a2483aa4af120d2bfb82cae7258a5d5e64467801fa24d1d5"
+        },
+        {
+          "id": "LP-D09",
+          "first_block": 2678,
+          "last_block": 2691,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 2678
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 2691
+          },
+          "words": 569,
+          "text_sha256": "883ba610beeb6444eacd2d2cd32ab06608a5837a18328fc77a5782b54b6cfb8e"
+        },
+        {
+          "id": "LP-D10",
+          "first_block": 2850,
+          "last_block": 2864,
+          "first_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 2850
+          },
+          "last_locator": {
+            "source": "Jacques, Brian - Redwall 10 - The Long Patrol.htm",
+            "unit_block": 2864
+          },
+          "words": 423,
+          "text_sha256": "352558d52bcb6adf3d7b1eef70ccd4d274e2315c8a7b53982c9a8e5a72688f9d"
+        }
+      ],
+      "extract_sha256": "ace9ff4f8f5267f78ecd17e25b400dfd893c555815448d28217f07778e3478eb",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    },
+    {
+      "key": "salamandastron",
+      "source_file_name": "Redwall 05 - Salamandastron -- Salamandastron -- Redwall 05 -- 214470bf5decbf47171e40d74e9fb851 -- Anna’s Archive.epub",
+      "source_sha256": "8d9dc5d366915a86ea17ed7ee2131cf40b3d6480936af46c6089b1ac6cc221d6",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "epub",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 103693,
+      "unique_inspected_words_this_pass": 2273,
+      "words_outside_prior_inspected_ranges": 2273,
+      "coverage_percent": 2.19,
+      "inspected_block_ranges": [
+        [
+          88,
+          94
+        ],
+        [
+          250,
+          264
+        ],
+        [
+          399,
+          407
+        ],
+        [
+          1834,
+          1844
+        ],
+        [
+          1941,
+          1948
+        ],
+        [
+          2774,
+          2782
+        ],
+        [
+          3908,
+          3914
+        ]
+      ],
+      "passages": [
+        {
+          "id": "SA-D01",
+          "first_block": 88,
+          "last_block": 94,
+          "first_locator": {
+            "source": "index-1406_split_006.html",
+            "unit_block": 3
+          },
+          "last_locator": {
+            "source": "index-1406_split_006.html",
+            "unit_block": 9
+          },
+          "words": 219,
+          "text_sha256": "888107052093c02628a13929e37e3d71a11bef7c2ecf21a7d7ec725dc99064e0"
+        },
+        {
+          "id": "SA-D02",
+          "first_block": 250,
+          "last_block": 264,
+          "first_locator": {
+            "source": "index-1406_split_019.html",
+            "unit_block": 14
+          },
+          "last_locator": {
+            "source": "index-1406_split_020.html",
+            "unit_block": 4
+          },
+          "words": 309,
+          "text_sha256": "5b27eb16786f59d1a7f8ea1ea9b473953fc9587f14f35e96b8c3ec61fe2d2e51"
+        },
+        {
+          "id": "SA-D03",
+          "first_block": 399,
+          "last_block": 407,
+          "first_locator": {
+            "source": "index-1406_split_026.html",
+            "unit_block": 20
+          },
+          "last_locator": {
+            "source": "index-1406_split_027.html",
+            "unit_block": 8
+          },
+          "words": 366,
+          "text_sha256": "e0b6f1ca84b4e078299d4d2450a04816ab9d867a9f2c1984f08fbbf3e2510757"
+        },
+        {
+          "id": "SA-D04",
+          "first_block": 1834,
+          "last_block": 1844,
+          "first_locator": {
+            "source": "index-1406_split_133.html",
+            "unit_block": 39
+          },
+          "last_locator": {
+            "source": "index-1406_split_134.html",
+            "unit_block": 10
+          },
+          "words": 504,
+          "text_sha256": "bde03d25feb85d085e4f94827e2aa4702249589ddc0d430422b7245277d9b0ee"
+        },
+        {
+          "id": "SA-D05",
+          "first_block": 1941,
+          "last_block": 1948,
+          "first_locator": {
+            "source": "index-1406_split_141.html",
+            "unit_block": 10
+          },
+          "last_locator": {
+            "source": "index-1406_split_142.html",
+            "unit_block": 6
+          },
+          "words": 288,
+          "text_sha256": "056a6a97dec77e54d821b21130f51b2d5bf6ff56964a745ffa2f2b182564ffc5"
+        },
+        {
+          "id": "SA-D06",
+          "first_block": 2774,
+          "last_block": 2782,
+          "first_locator": {
+            "source": "index-1406_split_206.html",
+            "unit_block": 5
+          },
+          "last_locator": {
+            "source": "index-1406_split_207.html",
+            "unit_block": 4
+          },
+          "words": 363,
+          "text_sha256": "72bfcd0b0e310811bcf5be68320694e6749d566800dfdf2b44ecf9f08d5267c4"
+        },
+        {
+          "id": "SA-D07",
+          "first_block": 3908,
+          "last_block": 3914,
+          "first_locator": {
+            "source": "index-1406_split_288.html",
+            "unit_block": 10
+          },
+          "last_locator": {
+            "source": "index-1406_split_289.html",
+            "unit_block": 6
+          },
+          "words": 224,
+          "text_sha256": "bdf91f55c62f313a4b38f6443214b4e5995bcdd061ca415e4d0fc15c6fdcd736"
+        }
+      ],
+      "extract_sha256": "f146722116def8b449e5c14ff344e09172e3a1e15173bd6744efa0e5bb780980",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    },
+    {
+      "key": "lord_brocktree",
+      "source_file_name": "Brian Jacques Redwall Series Set (Book 1-20)_ Redwall; -- Brian Jacques - undifferentiated -- Nov 23, 2002 -- Various publication years -- isbn13 9780077381127 -- f5129d41f05b0d8c1706ad50b940ebb2 -- Anna’s Archive.epub",
+      "source_sha256": "8d1f30f25ca0a3a4f0d158f96b4aa86d1d66fab4a080f4d1602c06c3a38a5b8f",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "epub",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 105555,
+      "unique_inspected_words_this_pass": 4184,
+      "words_outside_prior_inspected_ranges": 0,
+      "coverage_percent": 3.96,
+      "inspected_block_ranges": [
+        [
+          1,
+          5
+        ],
+        [
+          15,
+          24
+        ],
+        [
+          332,
+          340
+        ],
+        [
+          548,
+          560
+        ],
+        [
+          755,
+          765
+        ],
+        [
+          1777,
+          1786
+        ],
+        [
+          2545,
+          2553
+        ],
+        [
+          2903,
+          2910
+        ],
+        [
+          3080,
+          3088
+        ],
+        [
+          3381,
+          3387
+        ],
+        [
+          3549,
+          3556
+        ]
+      ],
+      "passages": [
+        {
+          "id": "LB-D01",
+          "first_block": 1,
+          "last_block": 5,
+          "first_locator": {
+            "source": "Prologue",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "Prologue",
+            "unit_block": 5
+          },
+          "words": 189,
+          "text_sha256": "8d4164039117b4a48bf5877d14dab95100339bf8d5c59828c6db9d1185e98b23"
+        },
+        {
+          "id": "LB-D02",
+          "first_block": 15,
+          "last_block": 24,
+          "first_locator": {
+            "source": "Prologue",
+            "unit_block": 15
+          },
+          "last_locator": {
+            "source": "Prologue",
+            "unit_block": 24
+          },
+          "words": 439,
+          "text_sha256": "c22485b3ad4c5a9605513f9fed7fb56d86c6a57e15506cc4dd0a62a7f29259cf"
+        },
+        {
+          "id": "LB-D03",
+          "first_block": 332,
+          "last_block": 340,
+          "first_locator": {
+            "source": "Chapter 6",
+            "unit_block": 57
+          },
+          "last_locator": {
+            "source": "Chapter 6",
+            "unit_block": 65
+          },
+          "words": 388,
+          "text_sha256": "903c1d13e0640725e90669f88522f32dbfdbe97d7b2d5d2e15823b9f6bcbd265"
+        },
+        {
+          "id": "LB-D04",
+          "first_block": 548,
+          "last_block": 560,
+          "first_locator": {
+            "source": "Chapter 8",
+            "unit_block": 119
+          },
+          "last_locator": {
+            "source": "Chapter 9",
+            "unit_block": 1
+          },
+          "words": 465,
+          "text_sha256": "4058c7409d60772858ffc922172890a6ca8e833c53d2ea4a68f8c562d4468af1"
+        },
+        {
+          "id": "LB-D05",
+          "first_block": 755,
+          "last_block": 765,
+          "first_locator": {
+            "source": "Chapter 10",
+            "unit_block": 102
+          },
+          "last_locator": {
+            "source": "Chapter 11",
+            "unit_block": 9
+          },
+          "words": 396,
+          "text_sha256": "e9c73aae86c444ba641fd5c93a19278ce9931330fcc4c83c0c9cb5724a77c886"
+        },
+        {
+          "id": "LB-D06",
+          "first_block": 1777,
+          "last_block": 1786,
+          "first_locator": {
+            "source": "Chapter 21",
+            "unit_block": 5
+          },
+          "last_locator": {
+            "source": "Chapter 21",
+            "unit_block": 14
+          },
+          "words": 444,
+          "text_sha256": "b9376f5190dcc3420b2fe9a87816b963a8ac25e8d389d8879024ea6be3b0e319"
+        },
+        {
+          "id": "LB-D07",
+          "first_block": 2545,
+          "last_block": 2553,
+          "first_locator": {
+            "source": "Chapter 28",
+            "unit_block": 80
+          },
+          "last_locator": {
+            "source": "Chapter 28",
+            "unit_block": 88
+          },
+          "words": 372,
+          "text_sha256": "8a7427c8029d56a3008784914338dfd25f65a684f509db85d6c23c6defc9d0f3"
+        },
+        {
+          "id": "LB-D08",
+          "first_block": 2903,
+          "last_block": 2910,
+          "first_locator": {
+            "source": "Chapter 31",
+            "unit_block": 87
+          },
+          "last_locator": {
+            "source": "Chapter 31",
+            "unit_block": 94
+          },
+          "words": 228,
+          "text_sha256": "5d0101f32c2b4e36c59e34c31d936176b4477cb737f077ff51f053e09dd078e0"
+        },
+        {
+          "id": "LB-D09",
+          "first_block": 3080,
+          "last_block": 3088,
+          "first_locator": {
+            "source": "Chapter 33",
+            "unit_block": 37
+          },
+          "last_locator": {
+            "source": "Chapter 33",
+            "unit_block": 45
+          },
+          "words": 386,
+          "text_sha256": "cd101210e8fb47e1a6212608f2a3fc4badc1c92de6cb8112f8a62f71d19b33ff"
+        },
+        {
+          "id": "LB-D10",
+          "first_block": 3381,
+          "last_block": 3387,
+          "first_locator": {
+            "source": "Chapter 35",
+            "unit_block": 133
+          },
+          "last_locator": {
+            "source": "Chapter 35",
+            "unit_block": 139
+          },
+          "words": 520,
+          "text_sha256": "bbd2864da5b0792158041ec995b85361ebabd9bf86e3f2cc54965056aa0fa951"
+        },
+        {
+          "id": "LB-D11",
+          "first_block": 3549,
+          "last_block": 3556,
+          "first_locator": {
+            "source": "Epilogue",
+            "unit_block": 2
+          },
+          "last_locator": {
+            "source": "Epilogue",
+            "unit_block": 9
+          },
+          "words": 357,
+          "text_sha256": "9cc574c2e68546588d1bf1d5d0c191f59a25841e15ddcc611725028e12a091d2"
+        }
+      ],
+      "extract_sha256": "c1f23b67996c3f2567d8bc3206cf2144bc8f2e2805283bf7e085dda787493d4d",
+      "locator_scheme": "chapter label plus paragraph within chapter; normalized global block IDs differ from LB-P register"
+    },
+    {
+      "key": "martin_warrior",
+      "source_file_name": "Redwall 06 - Martin The Warrior -- Martin The Warrior -- Redwall 06 -- a8301e3f8b1b4cbe28ed7068bc86e2aa -- Anna’s Archive.epub",
+      "source_sha256": "ec0c10ee7b76a8a999710b83e921b6200d47773216945e0be851d16c943741c4",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "epub",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 100604,
+      "unique_inspected_words_this_pass": 2484,
+      "words_outside_prior_inspected_ranges": 2373,
+      "coverage_percent": 2.47,
+      "inspected_block_ranges": [
+        [
+          44,
+          55
+        ],
+        [
+          619,
+          627
+        ],
+        [
+          1423,
+          1433
+        ],
+        [
+          1661,
+          1668
+        ],
+        [
+          2681,
+          2690
+        ],
+        [
+          3062,
+          3073
+        ],
+        [
+          3216,
+          3223
+        ],
+        [
+          3398,
+          3407
+        ],
+        [
+          3436,
+          3442
+        ]
+      ],
+      "passages": [
+        {
+          "id": "MW-D01",
+          "first_block": 44,
+          "last_block": 55,
+          "first_locator": {
+            "source": "index-1408_split_000.html",
+            "unit_block": 44
+          },
+          "last_locator": {
+            "source": "index-1408_split_000.html",
+            "unit_block": 55
+          },
+          "words": 341,
+          "text_sha256": "74a126dda419a7d3c6d5d40f8cf2d8bad3fcb73bc42124bafc7f0e5d5ceffdc3"
+        },
+        {
+          "id": "MW-D02",
+          "first_block": 619,
+          "last_block": 627,
+          "first_locator": {
+            "source": "index-1408_split_008.html",
+            "unit_block": 211
+          },
+          "last_locator": {
+            "source": "index-1408_split_008.html",
+            "unit_block": 219
+          },
+          "words": 303,
+          "text_sha256": "956991cb544711fcecf1bcb39211dff3c82be7d42483c9505447eac50f8cbb28"
+        },
+        {
+          "id": "MW-D03",
+          "first_block": 1423,
+          "last_block": 1433,
+          "first_locator": {
+            "source": "index-1408_split_011.html",
+            "unit_block": 147
+          },
+          "last_locator": {
+            "source": "index-1408_split_011.html",
+            "unit_block": 157
+          },
+          "words": 332,
+          "text_sha256": "eb2d6506d1e021794f9211bb19e501379f4675e6082535f14540a1a228f75ddb"
+        },
+        {
+          "id": "MW-D04",
+          "first_block": 1661,
+          "last_block": 1668,
+          "first_locator": {
+            "source": "index-1408_split_012.html",
+            "unit_block": 179
+          },
+          "last_locator": {
+            "source": "index-1408_split_012.html",
+            "unit_block": 186
+          },
+          "words": 212,
+          "text_sha256": "389bf52e723f7a2871c428e2b76b3842894e6cc5bb3aa140800f849c791df87c"
+        },
+        {
+          "id": "MW-D05",
+          "first_block": 2681,
+          "last_block": 2690,
+          "first_locator": {
+            "source": "index-1408_split_015.html",
+            "unit_block": 18
+          },
+          "last_locator": {
+            "source": "index-1408_split_015.html",
+            "unit_block": 27
+          },
+          "words": 210,
+          "text_sha256": "aded0354b95aa34d05b46b8ccd6935c40b2ab36329be0296177958cdf7584e14"
+        },
+        {
+          "id": "MW-D06",
+          "first_block": 3062,
+          "last_block": 3073,
+          "first_locator": {
+            "source": "index-1408_split_017.html",
+            "unit_block": 59
+          },
+          "last_locator": {
+            "source": "index-1408_split_017.html",
+            "unit_block": 70
+          },
+          "words": 304,
+          "text_sha256": "fca26c27091795900e946d70475188f154a693ce124776ae6da79de1c90a63eb"
+        },
+        {
+          "id": "MW-D07",
+          "first_block": 3216,
+          "last_block": 3223,
+          "first_locator": {
+            "source": "index-1408_split_019.html",
+            "unit_block": 55
+          },
+          "last_locator": {
+            "source": "index-1408_split_019.html",
+            "unit_block": 62
+          },
+          "words": 241,
+          "text_sha256": "92d8965583e1c5e70032f53876448f2a67ff3c2bd5929cb95591ea4971ab5a61"
+        },
+        {
+          "id": "MW-D08",
+          "first_block": 3398,
+          "last_block": 3407,
+          "first_locator": {
+            "source": "index-1408_split_022.html",
+            "unit_block": 3
+          },
+          "last_locator": {
+            "source": "index-1408_split_022.html",
+            "unit_block": 12
+          },
+          "words": 370,
+          "text_sha256": "04326ce330918f8de53f21ada7339691a2d08cd8ad26c078df3c35e7f59ee4c9"
+        },
+        {
+          "id": "MW-D09",
+          "first_block": 3436,
+          "last_block": 3442,
+          "first_locator": {
+            "source": "index-1408_split_022.html",
+            "unit_block": 41
+          },
+          "last_locator": {
+            "source": "index-1408_split_022.html",
+            "unit_block": 47
+          },
+          "words": 171,
+          "text_sha256": "742f7b92a2f3660a24682bdd441584a9b055bfb523c8bfd889f234d97a3f236d"
+        }
+      ],
+      "extract_sha256": "6fe883ff0926b573f0613275fe5d794c681dc04f3bea1fdf86ec2c549b59f139",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    },
+    {
+      "key": "outcast",
+      "source_file_name": "Redwall 08 - The Outcast Of Redwall -- The Outcast Of Redwall -- Redwall 08 -- 61511ff1177f0c1f65e9d5f894597347 -- Anna’s Archive.epub",
+      "source_sha256": "6285b265ddd1a6e0daa1190dbc0d737a130591ddcb59536df90ac8fa220dcd8a",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "epub",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 97362,
+      "unique_inspected_words_this_pass": 2800,
+      "words_outside_prior_inspected_ranges": 2800,
+      "coverage_percent": 2.88,
+      "inspected_block_ranges": [
+        [
+          1,
+          6
+        ],
+        [
+          254,
+          261
+        ],
+        [
+          430,
+          440
+        ],
+        [
+          943,
+          951
+        ],
+        [
+          1414,
+          1422
+        ],
+        [
+          1524,
+          1529
+        ],
+        [
+          1538,
+          1545
+        ],
+        [
+          1839,
+          1848
+        ],
+        [
+          3108,
+          3116
+        ]
+      ],
+      "passages": [
+        {
+          "id": "OC-D01",
+          "first_block": 1,
+          "last_block": 6,
+          "first_locator": {
+            "source": "index-1410_split_000.html",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "index-1410_split_000.html",
+            "unit_block": 6
+          },
+          "words": 248,
+          "text_sha256": "105c470a3ea88b35c592384d3e1b6b57bb2543f1d231054f9558fb7b4601dcda"
+        },
+        {
+          "id": "OC-D02",
+          "first_block": 254,
+          "last_block": 261,
+          "first_locator": {
+            "source": "index-1410_split_019.html",
+            "unit_block": 3
+          },
+          "last_locator": {
+            "source": "index-1410_split_019.html",
+            "unit_block": 10
+          },
+          "words": 211,
+          "text_sha256": "5b59252e94498ec8fdc95b57342246c6cfe4ab5fb977a8f3545ea9971d3a9072"
+        },
+        {
+          "id": "OC-D03",
+          "first_block": 430,
+          "last_block": 440,
+          "first_locator": {
+            "source": "index-1410_split_031.html",
+            "unit_block": 6
+          },
+          "last_locator": {
+            "source": "index-1410_split_031.html",
+            "unit_block": 16
+          },
+          "words": 571,
+          "text_sha256": "e9edac4ef5522daa3b0458b59a80b5b5c98d1338515c6b0071d8cc323a80dc44"
+        },
+        {
+          "id": "OC-D04",
+          "first_block": 943,
+          "last_block": 951,
+          "first_locator": {
+            "source": "index-1410_split_075.html",
+            "unit_block": 12
+          },
+          "last_locator": {
+            "source": "index-1410_split_076.html",
+            "unit_block": 8
+          },
+          "words": 404,
+          "text_sha256": "1db8802498bf687ba8f425805e9811110fa49c3f74186e5f801d8f9c032961fe"
+        },
+        {
+          "id": "OC-D05",
+          "first_block": 1414,
+          "last_block": 1422,
+          "first_locator": {
+            "source": "index-1410_split_119.html",
+            "unit_block": 2
+          },
+          "last_locator": {
+            "source": "index-1410_split_119.html",
+            "unit_block": 10
+          },
+          "words": 233,
+          "text_sha256": "b82b320defac4ab83d43392f2f70a0eb19603492d0b3c6d1b5aa855aac7cbc3d"
+        },
+        {
+          "id": "OC-D06",
+          "first_block": 1524,
+          "last_block": 1529,
+          "first_locator": {
+            "source": "index-1410_split_127.html",
+            "unit_block": 12
+          },
+          "last_locator": {
+            "source": "index-1410_split_128.html",
+            "unit_block": 1
+          },
+          "words": 158,
+          "text_sha256": "3bd00430273696c9d25b63caf88a729cc38d6ec339afb6bff3c61c87e674e5c9"
+        },
+        {
+          "id": "OC-D07",
+          "first_block": 1538,
+          "last_block": 1545,
+          "first_locator": {
+            "source": "index-1410_split_128.html",
+            "unit_block": 10
+          },
+          "last_locator": {
+            "source": "index-1410_split_130.html",
+            "unit_block": 1
+          },
+          "words": 263,
+          "text_sha256": "7b94bd260df78a33c7f79b69cd42591905f52782eec64eb93713f2dd6a69d308"
+        },
+        {
+          "id": "OC-D08",
+          "first_block": 1839,
+          "last_block": 1848,
+          "first_locator": {
+            "source": "index-1410_split_152.html",
+            "unit_block": 2
+          },
+          "last_locator": {
+            "source": "index-1410_split_153.html",
+            "unit_block": 1
+          },
+          "words": 324,
+          "text_sha256": "aa85fe66aaee768c520d8ffba8bbfc93ad5935e612cd4c68d9ecd0b1ee50a068"
+        },
+        {
+          "id": "OC-D09",
+          "first_block": 3108,
+          "last_block": 3116,
+          "first_locator": {
+            "source": "index-1410_split_260.html",
+            "unit_block": 2
+          },
+          "last_locator": {
+            "source": "index-1410_split_261.html",
+            "unit_block": 3
+          },
+          "words": 388,
+          "text_sha256": "dcb9cdfb4d15587a78c080b26645b70b788bdfdb70be728667b0827a9ac7cb4e"
+        }
+      ],
+      "extract_sha256": "d466bc2b1fa62b8a72a71d8ac9c6846647e30bcb34cf4056c65dbe968feac73d",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    },
+    {
+      "key": "pearls_lutra",
+      "source_file_name": "Pearls of Lutra -- Jacques, Brian -- Redwall 9, 2011 -- 5b2db31d4261a030810222d374ae8410 -- Anna’s Archive.pdf",
+      "source_sha256": "76b1b4ebc92235690acedc2386515f98aae2acad1600be33813d5c03de6ff40b",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "pdf",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 110415,
+      "unique_inspected_words_this_pass": 2720,
+      "words_outside_prior_inspected_ranges": 2171,
+      "coverage_percent": 2.46,
+      "inspected_block_ranges": [
+        [
+          6,
+          6
+        ],
+        [
+          25,
+          25
+        ],
+        [
+          75,
+          75
+        ],
+        [
+          79,
+          79
+        ],
+        [
+          114,
+          114
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          344,
+          344
+        ],
+        [
+          353,
+          353
+        ],
+        [
+          420,
+          420
+        ],
+        [
+          478,
+          478
+        ]
+      ],
+      "passages": [
+        {
+          "id": "PL-D01",
+          "first_block": 6,
+          "last_block": 6,
+          "first_locator": {
+            "source": "pdf_page_0004",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0004",
+            "unit_block": 1
+          },
+          "words": 299,
+          "text_sha256": "cb8e851eafcccb7caaf2bcaae82ab281e10b3e279c18df457ef7a54dbc783e0b"
+        },
+        {
+          "id": "PL-D02",
+          "first_block": 25,
+          "last_block": 25,
+          "first_locator": {
+            "source": "pdf_page_0022",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0022",
+            "unit_block": 1
+          },
+          "words": 307,
+          "text_sha256": "d80488eeffad98b96697424a88ec71b90371884a56b58c649d13f26bceb4f6d8"
+        },
+        {
+          "id": "PL-D03",
+          "first_block": 75,
+          "last_block": 75,
+          "first_locator": {
+            "source": "pdf_page_0068",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0068",
+            "unit_block": 1
+          },
+          "words": 183,
+          "text_sha256": "0c8893117e4d726b208ec81f9e70432dbfb2832676cee335cd68216db6377946"
+        },
+        {
+          "id": "PL-D04",
+          "first_block": 79,
+          "last_block": 79,
+          "first_locator": {
+            "source": "pdf_page_0072",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0072",
+            "unit_block": 1
+          },
+          "words": 270,
+          "text_sha256": "09c57754b1f6f1e995821a933cba4ecddf597cbe3837e2398da0808e794a5d55"
+        },
+        {
+          "id": "PL-D05",
+          "first_block": 114,
+          "last_block": 114,
+          "first_locator": {
+            "source": "pdf_page_0103",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0103",
+            "unit_block": 1
+          },
+          "words": 269,
+          "text_sha256": "16a5ad5796467744f3aaca41b89ffa8340b52c565e3a2f336831dde1d87dd831"
+        },
+        {
+          "id": "PL-D06",
+          "first_block": 200,
+          "last_block": 200,
+          "first_locator": {
+            "source": "pdf_page_0184",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0184",
+            "unit_block": 1
+          },
+          "words": 279,
+          "text_sha256": "ca629acab0210f876ee280b756f6ddb6bb946c0461eef30f6235b4c96a45d53c"
+        },
+        {
+          "id": "PL-D07",
+          "first_block": 344,
+          "last_block": 344,
+          "first_locator": {
+            "source": "pdf_page_0320",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0320",
+            "unit_block": 1
+          },
+          "words": 280,
+          "text_sha256": "e2005a72d90ad01fef5add9329c5712449f5dc29bcf69ac1cb1b4630242278d9"
+        },
+        {
+          "id": "PL-D08",
+          "first_block": 353,
+          "last_block": 353,
+          "first_locator": {
+            "source": "pdf_page_0328",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0328",
+            "unit_block": 1
+          },
+          "words": 310,
+          "text_sha256": "bcbe748a00d7d36b4da80020c2258d08659d7bdd90dc28e52a5af2f2e1ed8e09"
+        },
+        {
+          "id": "PL-D09",
+          "first_block": 420,
+          "last_block": 420,
+          "first_locator": {
+            "source": "pdf_page_0390",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0390",
+            "unit_block": 1
+          },
+          "words": 281,
+          "text_sha256": "c143af1afbe02a3cc35507c150509d4fe1fe249cea693bb7e27bbfbf8c6f80b0"
+        },
+        {
+          "id": "PL-D10",
+          "first_block": 478,
+          "last_block": 478,
+          "first_locator": {
+            "source": "pdf_page_0444",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0444",
+            "unit_block": 1
+          },
+          "words": 242,
+          "text_sha256": "705b2276c78fa6e0444fc73e55346a1da090c34f551173295a5887e40373c287"
+        }
+      ],
+      "extract_sha256": "eb0b5b75b08e1079985d07fb7cdf07ec431488bb097c3b90c084b2d0f28163df",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    },
+    {
+      "key": "marlfox",
+      "source_file_name": "Marlfox -- Jacques, Brian -- Redwall 11, 2011 -- bf266088fb4e4a85c79e23a12c499350 -- Anna’s Archive.mobi",
+      "source_sha256": "52f5b3128a65f7fe8fdf6207af13a28c0666b98b388a7983e76bb624e9ebb568",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "mobi",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 108548,
+      "unique_inspected_words_this_pass": 5019,
+      "words_outside_prior_inspected_ranges": 4156,
+      "coverage_percent": 4.62,
+      "inspected_block_ranges": [
+        [
+          149,
+          156
+        ],
+        [
+          253,
+          260
+        ],
+        [
+          324,
+          332
+        ],
+        [
+          385,
+          392
+        ],
+        [
+          796,
+          803
+        ],
+        [
+          1137,
+          1146
+        ],
+        [
+          1624,
+          1634
+        ],
+        [
+          1903,
+          1912
+        ],
+        [
+          2215,
+          2223
+        ],
+        [
+          3449,
+          3454
+        ]
+      ],
+      "passages": [
+        {
+          "id": "MX-D01",
+          "first_block": 149,
+          "last_block": 156,
+          "first_locator": {
+            "source": "mobi_text",
+            "unit_block": 149
+          },
+          "last_locator": {
+            "source": "mobi_text",
+            "unit_block": 156
+          },
+          "words": 333,
+          "text_sha256": "bc292f992786e9ad05087f723b93fd9d8006e3880acc61d514af0da6a2f7537a"
+        },
+        {
+          "id": "MX-D02",
+          "first_block": 253,
+          "last_block": 260,
+          "first_locator": {
+            "source": "mobi_text",
+            "unit_block": 253
+          },
+          "last_locator": {
+            "source": "mobi_text",
+            "unit_block": 260
+          },
+          "words": 628,
+          "text_sha256": "f016fc0c1e65cbf928c4059ddef794c0d5855eb37010dbccf676f552a99ba550"
+        },
+        {
+          "id": "MX-D03",
+          "first_block": 324,
+          "last_block": 332,
+          "first_locator": {
+            "source": "mobi_text",
+            "unit_block": 324
+          },
+          "last_locator": {
+            "source": "mobi_text",
+            "unit_block": 332
+          },
+          "words": 446,
+          "text_sha256": "3ad6888016dcd30e3fd4b20c75af14e1a07a6d9a6d4d91c1fb3ae20d30628f45"
+        },
+        {
+          "id": "MX-D04",
+          "first_block": 385,
+          "last_block": 392,
+          "first_locator": {
+            "source": "mobi_text",
+            "unit_block": 385
+          },
+          "last_locator": {
+            "source": "mobi_text",
+            "unit_block": 392
+          },
+          "words": 233,
+          "text_sha256": "cfe2e2ad28b5201b1ebfeb43505513ac8343a8800b54084251868f66382dd8bc"
+        },
+        {
+          "id": "MX-D05",
+          "first_block": 796,
+          "last_block": 803,
+          "first_locator": {
+            "source": "mobi_text",
+            "unit_block": 796
+          },
+          "last_locator": {
+            "source": "mobi_text",
+            "unit_block": 803
+          },
+          "words": 168,
+          "text_sha256": "0b856ee9ba1667c2102d8cf514691391bb0c03b5d8f4a150212aebb7d1467882"
+        },
+        {
+          "id": "MX-D06",
+          "first_block": 1137,
+          "last_block": 1146,
+          "first_locator": {
+            "source": "mobi_text",
+            "unit_block": 1137
+          },
+          "last_locator": {
+            "source": "mobi_text",
+            "unit_block": 1146
+          },
+          "words": 698,
+          "text_sha256": "d59f91490916c430470203d3edaeca66c2d1ec16fc11a616de93c21c56345b28"
+        },
+        {
+          "id": "MX-D07",
+          "first_block": 1624,
+          "last_block": 1634,
+          "first_locator": {
+            "source": "mobi_text",
+            "unit_block": 1624
+          },
+          "last_locator": {
+            "source": "mobi_text",
+            "unit_block": 1634
+          },
+          "words": 488,
+          "text_sha256": "36acb8158f0ae51a822d692b04a812656a14e5c3516ced774f0d3f6970b597e9"
+        },
+        {
+          "id": "MX-D08",
+          "first_block": 1903,
+          "last_block": 1912,
+          "first_locator": {
+            "source": "mobi_text",
+            "unit_block": 1903
+          },
+          "last_locator": {
+            "source": "mobi_text",
+            "unit_block": 1912
+          },
+          "words": 798,
+          "text_sha256": "4095f9f51fb67fae85c090a683f75ac1b9253db61fbccb8eb3411e62f9d6599c"
+        },
+        {
+          "id": "MX-D09",
+          "first_block": 2215,
+          "last_block": 2223,
+          "first_locator": {
+            "source": "mobi_text",
+            "unit_block": 2215
+          },
+          "last_locator": {
+            "source": "mobi_text",
+            "unit_block": 2223
+          },
+          "words": 364,
+          "text_sha256": "b752cfc2e3105a1b79da1624c31180662d499071eb053553f62c08775e7369c7"
+        },
+        {
+          "id": "MX-D10",
+          "first_block": 3449,
+          "last_block": 3454,
+          "first_locator": {
+            "source": "mobi_text",
+            "unit_block": 3449
+          },
+          "last_locator": {
+            "source": "mobi_text",
+            "unit_block": 3454
+          },
+          "words": 863,
+          "text_sha256": "09d17953c0129a9b7b0886599b9aeeca2dce587c69848ccdc3549231338ea1f3"
+        }
+      ],
+      "extract_sha256": "3a8490d8f089b76b94b589cfddd4b34302c387561a9312b4336557f4d081bc2c",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    },
+    {
+      "key": "taggerung",
+      "source_file_name": "The Taggerung -- Jacques, Brian -- Redwall 14, 2011 -- a8b30809c118dcf8e862b763cd7c0b0e -- Anna’s Archive.epub",
+      "source_sha256": "b26c3c8dbd6bbcf8dbe0d99c5e799091155ebfc96e311f74815acf57e28b8cf5",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "epub",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 126217,
+      "unique_inspected_words_this_pass": 3841,
+      "words_outside_prior_inspected_ranges": 2937,
+      "coverage_percent": 3.04,
+      "inspected_block_ranges": [
+        [
+          1,
+          5
+        ],
+        [
+          75,
+          81
+        ],
+        [
+          213,
+          224
+        ],
+        [
+          635,
+          643
+        ],
+        [
+          1276,
+          1286
+        ],
+        [
+          1980,
+          1990
+        ],
+        [
+          2229,
+          2238
+        ],
+        [
+          2274,
+          2286
+        ],
+        [
+          3552,
+          3560
+        ]
+      ],
+      "passages": [
+        {
+          "id": "TG-D01",
+          "first_block": 1,
+          "last_block": 5,
+          "first_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html",
+            "unit_block": 5
+          },
+          "words": 564,
+          "text_sha256": "654d6fc572cd23f1e584440ded79b60fcf7004741c2bb70ac8a1b07326769d80"
+        },
+        {
+          "id": "TG-D02",
+          "first_block": 75,
+          "last_block": 81,
+          "first_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html",
+            "unit_block": 75
+          },
+          "last_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html",
+            "unit_block": 81
+          },
+          "words": 351,
+          "text_sha256": "e0a47af9e213138a6355c44727c77bc291d1719ece0b20fa89c6ae4ad94108d0"
+        },
+        {
+          "id": "TG-D03",
+          "first_block": 213,
+          "last_block": 224,
+          "first_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html",
+            "unit_block": 213
+          },
+          "last_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html",
+            "unit_block": 224
+          },
+          "words": 341,
+          "text_sha256": "ccb14e1217703b226280a409d76703829f2b53d4f69d9d462a9e23d14931cfec"
+        },
+        {
+          "id": "TG-D04",
+          "first_block": 635,
+          "last_block": 643,
+          "first_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html",
+            "unit_block": 635
+          },
+          "last_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_000.html",
+            "unit_block": 643
+          },
+          "words": 347,
+          "text_sha256": "b7c80c7fc1b9ad3e226e4fcc9128ad21d31e9dc79ce550ebc5baf647771d8294"
+        },
+        {
+          "id": "TG-D05",
+          "first_block": 1276,
+          "last_block": 1286,
+          "first_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html",
+            "unit_block": 271
+          },
+          "last_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html",
+            "unit_block": 281
+          },
+          "words": 540,
+          "text_sha256": "a5b86ecd58331deec3ff1039c7dea823076ffba2832d4ccefb510c72196fab13"
+        },
+        {
+          "id": "TG-D06",
+          "first_block": 1980,
+          "last_block": 1990,
+          "first_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html",
+            "unit_block": 975
+          },
+          "last_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_001.html",
+            "unit_block": 985
+          },
+          "words": 475,
+          "text_sha256": "bfc709157d962da519f8feefaaae4c5e4eca96110cef88cd3baaf7628af49950"
+        },
+        {
+          "id": "TG-D07",
+          "first_block": 2229,
+          "last_block": 2238,
+          "first_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html",
+            "unit_block": 201
+          },
+          "last_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html",
+            "unit_block": 210
+          },
+          "words": 480,
+          "text_sha256": "740d624904b3cc1a7095d8782b6ceb213a62cdbaab76bead65f6aad8d646f4cb"
+        },
+        {
+          "id": "TG-D08",
+          "first_block": 2274,
+          "last_block": 2286,
+          "first_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html",
+            "unit_block": 246
+          },
+          "last_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_002.html",
+            "unit_block": 258
+          },
+          "words": 403,
+          "text_sha256": "7e03f4328ab610972e46f15efcb91278ec252267419ad9c1a8005d151924442e"
+        },
+        {
+          "id": "TG-D09",
+          "first_block": 3552,
+          "last_block": 3560,
+          "first_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html",
+            "unit_block": 492
+          },
+          "last_locator": {
+            "source": "Jacques_Brian_-_Redwall_14_-_Th_split_003.html",
+            "unit_block": 500
+          },
+          "words": 340,
+          "text_sha256": "8e004c0896385224597bb99031795bee29b96e36c1d6e2153c2a50ea3f669e1c"
+        }
+      ],
+      "extract_sha256": "191e78cb46b63dace3bce543a25969fc5d7a47ed8eadd4fc34f5b87834496f9d",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    },
+    {
+      "key": "triss",
+      "source_file_name": "Triss_ A Novel of Redwall -- Jacques, Brian -- 2003 -- Penguin Group -- bf3cdbfa8e02320ce2598be9d7be6d79 -- Anna’s Archive.epub",
+      "source_sha256": "9b03687b17f08f3506d70f0c7f917f781d253cfbabc871dee73b09281de542a7",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "epub",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 110414,
+      "unique_inspected_words_this_pass": 4207,
+      "words_outside_prior_inspected_ranges": 3062,
+      "coverage_percent": 3.81,
+      "inspected_block_ranges": [
+        [
+          160,
+          166
+        ],
+        [
+          205,
+          213
+        ],
+        [
+          524,
+          535
+        ],
+        [
+          674,
+          681
+        ],
+        [
+          1296,
+          1307
+        ],
+        [
+          1410,
+          1423
+        ],
+        [
+          1752,
+          1760
+        ],
+        [
+          3733,
+          3744
+        ]
+      ],
+      "passages": [
+        {
+          "id": "TR-D01",
+          "first_block": 160,
+          "last_block": 166,
+          "first_locator": {
+            "source": "index_split_007.html",
+            "unit_block": 39
+          },
+          "last_locator": {
+            "source": "index_split_007.html",
+            "unit_block": 45
+          },
+          "words": 223,
+          "text_sha256": "f1efadacbab6b8e58b12a65555f5b443a00c465c91af1837bd3cb077041f686e"
+        },
+        {
+          "id": "TR-D02",
+          "first_block": 205,
+          "last_block": 213,
+          "first_locator": {
+            "source": "index_split_007.html",
+            "unit_block": 84
+          },
+          "last_locator": {
+            "source": "index_split_007.html",
+            "unit_block": 92
+          },
+          "words": 266,
+          "text_sha256": "024afad8f96ff2bee78fb49d9c4045e0f1813ec0551cdd7dd5ae3ff945946000"
+        },
+        {
+          "id": "TR-D03",
+          "first_block": 524,
+          "last_block": 535,
+          "first_locator": {
+            "source": "index_split_012.html",
+            "unit_block": 46
+          },
+          "last_locator": {
+            "source": "index_split_012.html",
+            "unit_block": 57
+          },
+          "words": 334,
+          "text_sha256": "dc38b5a785f21956a55c16e9cd128ea86c2e81dda4d2f37496a0e5fa3a8e9c47"
+        },
+        {
+          "id": "TR-D04",
+          "first_block": 674,
+          "last_block": 681,
+          "first_locator": {
+            "source": "index_split_013.html",
+            "unit_block": 111
+          },
+          "last_locator": {
+            "source": "index_split_014.html",
+            "unit_block": 7
+          },
+          "words": 676,
+          "text_sha256": "c6a3912f50233896175389f20b09b2dde20689d7faa42ae9b6238336dd942734"
+        },
+        {
+          "id": "TR-D05",
+          "first_block": 1296,
+          "last_block": 1307,
+          "first_locator": {
+            "source": "index_split_019.html",
+            "unit_block": 70
+          },
+          "last_locator": {
+            "source": "index_split_019.html",
+            "unit_block": 81
+          },
+          "words": 383,
+          "text_sha256": "5464144c1f4309e58b1fcf833b7351ed0215945d76f915c2884862dfd86e7e18"
+        },
+        {
+          "id": "TR-D06",
+          "first_block": 1410,
+          "last_block": 1423,
+          "first_locator": {
+            "source": "index_split_021.html",
+            "unit_block": 87
+          },
+          "last_locator": {
+            "source": "index_split_021.html",
+            "unit_block": 100
+          },
+          "words": 397,
+          "text_sha256": "3c15449697049035a070b9924ae98d5aff11c003872a932b8eda041b30a8b03e"
+        },
+        {
+          "id": "TR-D07",
+          "first_block": 1752,
+          "last_block": 1760,
+          "first_locator": {
+            "source": "index_split_025.html",
+            "unit_block": 51
+          },
+          "last_locator": {
+            "source": "index_split_025.html",
+            "unit_block": 59
+          },
+          "words": 374,
+          "text_sha256": "cff88e289bcefb1f4b999230871ecb12703c9e106102536b7bd7111d642ab964"
+        },
+        {
+          "id": "TR-D08",
+          "first_block": 3733,
+          "last_block": 3744,
+          "first_locator": {
+            "source": "index_split_048.html",
+            "unit_block": 4
+          },
+          "last_locator": {
+            "source": "index_split_048.html",
+            "unit_block": 15
+          },
+          "words": 1554,
+          "text_sha256": "c2e8b0ae1ba6d7aa7b75bd78c0d26fbf27f611ca8b6651dc67899d287ff4ce5b"
+        }
+      ],
+      "extract_sha256": "d25d5de3485683e5fab0691303e40c18aba296e5d75cf032fe9b67479325d362",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    },
+    {
+      "key": "rakkety_tam",
+      "source_file_name": "Rakkety Tam_ A Novel of Redwall -- Brian Jacques -- Redwall, 17, 2005 -- Penguin Group -- 81ad43c0bcbf0af9da2e86ebf7858537 -- Anna’s Archive.pdf",
+      "source_sha256": "66f24abba7b489e10bbd560b6e0bd80d7db6d9e8d7de15e4e007c862425c91ed",
+      "source_hash_origin": "existing verified extraction manifest; not reread from Downloads in this pass",
+      "format": "pdf",
+      "validated_edition": null,
+      "complete_sequential_reading_this_pass": false,
+      "extracted_words": 105270,
+      "unique_inspected_words_this_pass": 3902,
+      "words_outside_prior_inspected_ranges": 3213,
+      "coverage_percent": 3.71,
+      "inspected_block_ranges": [
+        [
+          19,
+          19
+        ],
+        [
+          22,
+          22
+        ],
+        [
+          39,
+          39
+        ],
+        [
+          68,
+          68
+        ],
+        [
+          150,
+          150
+        ],
+        [
+          183,
+          183
+        ],
+        [
+          302,
+          302
+        ],
+        [
+          430,
+          430
+        ],
+        [
+          446,
+          446
+        ],
+        [
+          456,
+          456
+        ],
+        [
+          493,
+          493
+        ],
+        [
+          571,
+          571
+        ]
+      ],
+      "passages": [
+        {
+          "id": "RT-D01",
+          "first_block": 19,
+          "last_block": 19,
+          "first_locator": {
+            "source": "pdf_page_0014",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0014",
+            "unit_block": 1
+          },
+          "words": 301,
+          "text_sha256": "fdf57873c3fb19272e9e8383e56c7332e1c5f6d65599c4758d504f1c844e1e82"
+        },
+        {
+          "id": "RT-D02",
+          "first_block": 22,
+          "last_block": 22,
+          "first_locator": {
+            "source": "pdf_page_0016",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0016",
+            "unit_block": 1
+          },
+          "words": 366,
+          "text_sha256": "1b14760806e0fb37352256e116282edc1eac882841fb0834d72ccd3a4adf454c"
+        },
+        {
+          "id": "RT-D03",
+          "first_block": 39,
+          "last_block": 39,
+          "first_locator": {
+            "source": "pdf_page_0029",
+            "unit_block": 3
+          },
+          "last_locator": {
+            "source": "pdf_page_0029",
+            "unit_block": 3
+          },
+          "words": 239,
+          "text_sha256": "8668243b0b802b6099a25034bebe7cb63fc071d66ac8b577c78e99519c15103d"
+        },
+        {
+          "id": "RT-D04",
+          "first_block": 68,
+          "last_block": 68,
+          "first_locator": {
+            "source": "pdf_page_0049",
+            "unit_block": 2
+          },
+          "last_locator": {
+            "source": "pdf_page_0049",
+            "unit_block": 2
+          },
+          "words": 250,
+          "text_sha256": "457bfdda7d91df9b1109f485eb4b1d3d00b3a44b77af7466f265d32596afe046"
+        },
+        {
+          "id": "RT-D05",
+          "first_block": 150,
+          "last_block": 150,
+          "first_locator": {
+            "source": "pdf_page_0093",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0093",
+            "unit_block": 1
+          },
+          "words": 415,
+          "text_sha256": "ad798d65719bd9ad419e1f9aa0b51251515d6f7fac4f03683141f50eb856635b"
+        },
+        {
+          "id": "RT-D06",
+          "first_block": 183,
+          "last_block": 183,
+          "first_locator": {
+            "source": "pdf_page_0107",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0107",
+            "unit_block": 1
+          },
+          "words": 189,
+          "text_sha256": "c3716f8e48fc3580902f960aa527a874e4b3d994ffc0e7cb53b96b2beb0947a1"
+        },
+        {
+          "id": "RT-D07",
+          "first_block": 302,
+          "last_block": 302,
+          "first_locator": {
+            "source": "pdf_page_0178",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0178",
+            "unit_block": 1
+          },
+          "words": 403,
+          "text_sha256": "c33b78fafc27f6ca117e97a3725c2b4ee8e394950d525d984f5431b479d5ed4a"
+        },
+        {
+          "id": "RT-D08",
+          "first_block": 446,
+          "last_block": 446,
+          "first_locator": {
+            "source": "pdf_page_0253",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0253",
+            "unit_block": 1
+          },
+          "words": 262,
+          "text_sha256": "54c6a7c58c5280e58a4f3495f17796d25c0a13bec78acb9f4bf943e2528f8ca2"
+        },
+        {
+          "id": "RT-D09",
+          "first_block": 493,
+          "last_block": 493,
+          "first_locator": {
+            "source": "pdf_page_0278",
+            "unit_block": 2
+          },
+          "last_locator": {
+            "source": "pdf_page_0278",
+            "unit_block": 2
+          },
+          "words": 359,
+          "text_sha256": "3d4eaa658874a974b766318e63d53b905b219440151b8ea8d79029a632db8d8d"
+        },
+        {
+          "id": "RT-D10",
+          "first_block": 571,
+          "last_block": 571,
+          "first_locator": {
+            "source": "pdf_page_0325",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0325",
+            "unit_block": 1
+          },
+          "words": 450,
+          "text_sha256": "cc47593ac1e0038b9507c5046e7c09726c64513a5177655801eab28fe6f1422d"
+        },
+        {
+          "id": "RT-D11",
+          "first_block": 430,
+          "last_block": 430,
+          "first_locator": {
+            "source": "pdf_page_0245",
+            "unit_block": 1
+          },
+          "last_locator": {
+            "source": "pdf_page_0245",
+            "unit_block": 1
+          },
+          "words": 407,
+          "text_sha256": "24affd30a740b15562438246f51bdd9af185adb64d6909bcad6e8de588373bc3"
+        },
+        {
+          "id": "RT-D12",
+          "first_block": 456,
+          "last_block": 456,
+          "first_locator": {
+            "source": "pdf_page_0259",
+            "unit_block": 2
+          },
+          "last_locator": {
+            "source": "pdf_page_0259",
+            "unit_block": 2
+          },
+          "words": 261,
+          "text_sha256": "7246d136be1c0d5d9c805314617da71017bb6324c4dd67cac6d388afc4c47d18"
+        }
+      ],
+      "extract_sha256": "d20a4ca2ea85f938a53cc5665760478bef7fea7ad301e53300f1474359d26922",
+      "locator_scheme": "same normalized block IDs as prior series extraction; PDF source units are one-based physical viewer pages"
+    }
+  ],
+  "totals": {
+    "works": 12,
+    "unique_inspected_words_this_pass": 47139,
+    "words_outside_prior_inspected_ranges": 36073,
+    "passages": 115
+  }
+}

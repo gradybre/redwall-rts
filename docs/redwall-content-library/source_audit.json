@@ -1,0 +1,2290 @@
+{
+  "schema_version": "redwall_source_audit_v1",
+  "status": "FULL_AVAILABLE_CORPUS_INSPECTED",
+  "totals": {
+    "available_books": 12,
+    "expected_books": 12,
+    "inspected_blocks": 39768,
+    "inspected_words": 1280344,
+    "inspected_chunks": 221,
+    "catalog_records": 7665,
+    "individual_reference_records": 6235,
+    "chunk_dossiers": 1430,
+    "recipe_candidates": 1755,
+    "category_counts": {
+      "CHARACTER": 1344,
+      "FACTION": 308,
+      "PLACE": 627,
+      "OBJECT": 630,
+      "CULTURE": 323,
+      "SYSTEM": 562,
+      "THEME": 278,
+      "FOOD": 1886,
+      "INGREDIENT": 1430,
+      "ECOLOGY": 277
+    }
+  },
+  "books": [
+    {
+      "book_key": "redwall",
+      "title": "Redwall",
+      "source_filename": "Redwall 01 - Redwall -- Redwall -- Redwall 01 -- bb85255e7e33b05e2bba5aa56d3604ae -- Anna’s Archive.epub",
+      "source_sha256": "6c1353451c6c2fd72fc73eec50b3853d5a0a290f23938ad1b707c13b24dac3cd",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "epub",
+      "available_blocks": 3730,
+      "inspected_blocks": 3730,
+      "available_words": 102835,
+      "inspected_words": 102835,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 212,
+          "words": 6000,
+          "normalized_text_sha256": "fa075b7864179d01d80071afebe4d4170839a26d5e49f301b9ec5e471b719f65",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 213,
+          "block_end": 426,
+          "words": 5992,
+          "normalized_text_sha256": "c2f4290ecb0ab46671e61d14693155b9ccc1aadc8dfa83b09a1cc6eded858411",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 427,
+          "block_end": 629,
+          "words": 5911,
+          "normalized_text_sha256": "3468a10c426dd674d08b4efa7d8c6c7591b414db5d200b8c59ffad550f5df38a",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 630,
+          "block_end": 820,
+          "words": 5969,
+          "normalized_text_sha256": "94a50e8beec0352adef0592f52269e1b650773c0872cb6e2fbc3abed0ebd2e4b",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 821,
+          "block_end": 1021,
+          "words": 5981,
+          "normalized_text_sha256": "1dfa71253cf40d78122063d0d56221c65f966627b26b99bb59b2e6ab3217d012",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 1022,
+          "block_end": 1261,
+          "words": 5965,
+          "normalized_text_sha256": "b18fe17fc0040a4090688b1ad384d413a214a5789856382798c6c3e8622f8252",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 1262,
+          "block_end": 1495,
+          "words": 5990,
+          "normalized_text_sha256": "65e97762c4ebc73390cb0ef159317495e05f17c64bb5ee204207a7063075c65c",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 1496,
+          "block_end": 1735,
+          "words": 5981,
+          "normalized_text_sha256": "d5d2cd17ac66b4444762d3d03814a9df2784af6cc6d6513bf55fe06cfe49193c",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 1736,
+          "block_end": 1961,
+          "words": 5997,
+          "normalized_text_sha256": "39cc66c735883f8619e245afaea33e516861e551e86cf3c23a9c20bd19678a60",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 1962,
+          "block_end": 2189,
+          "words": 5891,
+          "normalized_text_sha256": "07fc2d1bfbe4a25c61158a0732ca7e90389fc21c8c7a56920cdcd43dd6174ef7",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 2190,
+          "block_end": 2404,
+          "words": 5998,
+          "normalized_text_sha256": "b72247f6c8ce207ad9b1b1df9ff1fab2c6b44231759da927c277803bfc122294",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 2405,
+          "block_end": 2634,
+          "words": 5972,
+          "normalized_text_sha256": "abd40774d10efb51a8a27413fb664dd4ef49f53f94ba27ab8b4e23a3cddf3ae7",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 2635,
+          "block_end": 2858,
+          "words": 5988,
+          "normalized_text_sha256": "eec5d857814e6553b413ec23a5e9fd4c3f69ad1316496e453907309b658c5d3e",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 2859,
+          "block_end": 3065,
+          "words": 5984,
+          "normalized_text_sha256": "8c39addbbdc3bcf3fec2b9640b0a74de72b8c004554d009900bd52e93e65e5f1",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 3066,
+          "block_end": 3270,
+          "words": 5998,
+          "normalized_text_sha256": "4ed5ff94f78d46f4f42a5ca9fa37e8e3efc6c3c1e8b609b14a6c15255c76e005",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 3271,
+          "block_end": 3489,
+          "words": 5976,
+          "normalized_text_sha256": "15b26ca8e7592cf8a282a93e5a0146cad456d8c15ec4dd0b0e0e895c0d47eae0",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 3490,
+          "block_end": 3691,
+          "words": 5999,
+          "normalized_text_sha256": "2506236699e3ca4ebbc378e0a9104e44a98a7ec03a5c1dac194fedfd37590a36",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 18,
+          "block_start": 3692,
+          "block_end": 3730,
+          "words": 1243,
+          "normalized_text_sha256": "07aab853734c66c7d66b7bfb9009b44c7cce5d3594136db20829857b23ba368d",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 446,
+      "recipe_candidate_count": 63,
+      "category_counts": {
+        "CHARACTER": 74,
+        "FACTION": 11,
+        "PLACE": 35,
+        "OBJECT": 53,
+        "CULTURE": 15,
+        "SYSTEM": 120,
+        "THEME": 12,
+        "FOOD": 63,
+        "INGREDIENT": 56,
+        "ECOLOGY": 7
+      },
+      "package_file_sha256": {
+        "catalog.json": "68671ad584b8e15cf4c088d770476c002989e3a34ae0b766f10fc7e3d67023bb",
+        "recipes.json": "c948a54d1da685a54b6edf5e757d825160f6b6e890f0466a5406432c28164f7e",
+        "coverage.json": "8759b51de099154f36c5be2c9d21e051cda3b6d042a6651f7f7447d2065af8b4",
+        "library.md": "0e50f1ac2fe3cbaad61262782180ada334ff494e68bad94026063eefc7eb2f89"
+      }
+    },
+    {
+      "book_key": "mossflower",
+      "title": "Mossflower",
+      "source_filename": "Jacques, Brian - Redwall 02 - Mossflower -- Jacques, Brian -- Redwall 02 -- 02a82836df42ec6eae8c0b3bac84c9e1 -- Anna’s Archive.epub",
+      "source_sha256": "7b4c84cecf652867e38ccf5752b829041abdab70e153d0ce09614b1a1b2f3370",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "epub",
+      "available_blocks": 5099,
+      "inspected_blocks": 5099,
+      "available_words": 114268,
+      "inspected_words": 114268,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 203,
+          "words": 5986,
+          "normalized_text_sha256": "572fbfac4430c2932e2e030ef52c4ecdb958262df83d24da5647d97fd8fc9696",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 204,
+          "block_end": 387,
+          "words": 5971,
+          "normalized_text_sha256": "ec3157a705ae6038e90e3e454c1c2034ef8bc44b0c7d731fb400bb5906877372",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 388,
+          "block_end": 575,
+          "words": 5995,
+          "normalized_text_sha256": "c728cbbdc1a870fa5f783e045327d5e83a97cd2b7d1e5359bd0d3cb5c95ca46e",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 576,
+          "block_end": 785,
+          "words": 5999,
+          "normalized_text_sha256": "54c2ce73bdefccd6ca68618d5740c76eef896f687f1607ee0f257e47b23ad043",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 786,
+          "block_end": 1020,
+          "words": 5978,
+          "normalized_text_sha256": "39ffc0e1fe67035bcb46dfa6ab8f3a11b155a517640b5b305d5de07f62e89efd",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 1021,
+          "block_end": 1287,
+          "words": 5995,
+          "normalized_text_sha256": "fe8a7c1206a1319e7df41b393a0ac3594ae22d27cf2daec8143a6229b3458bd2",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 1288,
+          "block_end": 1587,
+          "words": 5983,
+          "normalized_text_sha256": "6f8f853f8e4b8fe8ff9cbb6e9ec31e3ea7ea56a2f03ffbf753cdd39a25f8e5e8",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 1588,
+          "block_end": 1845,
+          "words": 5989,
+          "normalized_text_sha256": "1ecc0aeab3a87ded2f609058a26eac281f97f7d1f49a1d92ec310dded0a372dc",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 1846,
+          "block_end": 2135,
+          "words": 5989,
+          "normalized_text_sha256": "d563e0d28f9b1f978bbfb6a0226bfb5be874ba730dd6147d0cf6d44a1042d67d",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 2136,
+          "block_end": 2415,
+          "words": 5993,
+          "normalized_text_sha256": "b07f0cf085cdc8b1d15be478edc8e34fe1e65fb3da21e344d9bedb223d22c614",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 2416,
+          "block_end": 2671,
+          "words": 5970,
+          "normalized_text_sha256": "7cf66445123894a8667b699355fc8a1e693fb67040a4d087afbae9f4607859fc",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 2672,
+          "block_end": 2950,
+          "words": 5994,
+          "normalized_text_sha256": "020c26abdef1c63c75abd128799c4ae4d69ceed188cf3230abbe7413387677c6",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 2951,
+          "block_end": 3233,
+          "words": 5989,
+          "normalized_text_sha256": "c9c4ff5bd7977d91b7fb52c1e30d7ba5bdb7036c2da8045e76b9a6d9831a9219",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 3234,
+          "block_end": 3524,
+          "words": 5998,
+          "normalized_text_sha256": "81579a8d3dc11e1846332a7aae2602c41f051cab5cc9bcf616d2e48f9450cc22",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 3525,
+          "block_end": 3839,
+          "words": 5992,
+          "normalized_text_sha256": "d39ff2bd5fa351b3bc9bb33a1e35ce9c34ce9f667e1854eb9dc228781e42a8d7",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 3840,
+          "block_end": 4136,
+          "words": 5980,
+          "normalized_text_sha256": "b6d67651177dbd916f5c62828337c873c490c09e551e8b9903aefb876c422c57",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 4137,
+          "block_end": 4433,
+          "words": 5992,
+          "normalized_text_sha256": "fe2b0ce5504b474ff123b3c2f550aef98b6e18de9cf3b8f0611a8a06b9f215a8",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 18,
+          "block_start": 4434,
+          "block_end": 4760,
+          "words": 5975,
+          "normalized_text_sha256": "bcefc5e2c2daef4a3a18aafc370102f1914f31b9623a7fda88dc5d274338fe12",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 19,
+          "block_start": 4761,
+          "block_end": 5072,
+          "words": 5993,
+          "normalized_text_sha256": "e214edac696f39cc4d7178a0295c4af012c2caa2060987c5e0fb509d68f5f287",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 20,
+          "block_start": 5073,
+          "block_end": 5099,
+          "words": 507,
+          "normalized_text_sha256": "38357a429aae50ee8b7d3080cab773b86e057f54fb96521295c57c302316bc9d",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 608,
+      "recipe_candidate_count": 89,
+      "category_counts": {
+        "CHARACTER": 123,
+        "PLACE": 62,
+        "FACTION": 37,
+        "FOOD": 109,
+        "INGREDIENT": 86,
+        "OBJECT": 57,
+        "ECOLOGY": 28,
+        "SYSTEM": 40,
+        "CULTURE": 26,
+        "THEME": 40
+      },
+      "package_file_sha256": {
+        "catalog.json": "b65e4bd87f8f46f7990cce8039926e7b092f2f10c913b6b21e135b87386771c7",
+        "recipes.json": "954c0c3366cf1e1ac5ce8a47b44212d74d2b227f5412f64d24b4d2eb8da2a497",
+        "coverage.json": "3f1a4c04682954a08784599dee081847cf6cbc183e6035e067e6b6e6ca1d14df",
+        "library.md": "8f9e5832967aaf34c3472dd6f619fdefdc5382c228f18a22e7d04d7ee22f67c8"
+      }
+    },
+    {
+      "book_key": "salamandastron",
+      "title": "Salamandastron",
+      "source_filename": "Redwall 05 - Salamandastron -- Salamandastron -- Redwall 05 -- 214470bf5decbf47171e40d74e9fb851 -- Anna’s Archive.epub",
+      "source_sha256": "8d9dc5d366915a86ea17ed7ee2131cf40b3d6480936af46c6089b1ac6cc221d6",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "epub",
+      "available_blocks": 3959,
+      "inspected_blocks": 3959,
+      "available_words": 103693,
+      "inspected_words": 103693,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 224,
+          "words": 5988,
+          "normalized_text_sha256": "3d54e73cb829d2542b04a9648b1ad341085f863ed6cc5f3fe641e26a5868cd13",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 225,
+          "block_end": 484,
+          "words": 5986,
+          "normalized_text_sha256": "a9dce7c52b63022c1e2dfde251c141b4641df80eb71e0ca71fd7059855068394",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 485,
+          "block_end": 724,
+          "words": 5994,
+          "normalized_text_sha256": "781f35d113a60055c49b8d42108225786a1f6c5b85dc299092c02291a553a002",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 725,
+          "block_end": 973,
+          "words": 5987,
+          "normalized_text_sha256": "9bbd0a24819d8f5ae6c30ecf47b7222001fcef1b7c2090d561f72b5e0fbde2e7",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 974,
+          "block_end": 1174,
+          "words": 5933,
+          "normalized_text_sha256": "ff70ae43a7d28a41049eda457d41f9cba2a0e4cef85cd0edb031fad6f974212c",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 1175,
+          "block_end": 1391,
+          "words": 5979,
+          "normalized_text_sha256": "259df45cd761092306ee50d2599354b4fd6991e4fc2327cdb440a00e074ca789",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 1392,
+          "block_end": 1621,
+          "words": 5967,
+          "normalized_text_sha256": "363d4244e76e201ce1660e042a81b5b5301e4a6f5d9e2599c66622271bc5792d",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 1622,
+          "block_end": 1873,
+          "words": 5991,
+          "normalized_text_sha256": "242ae90d37c60f2b2b190c1b0d0b45b495fc2cfa706b3fa51215bc3225700fba",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 1874,
+          "block_end": 2085,
+          "words": 5977,
+          "normalized_text_sha256": "aef394e24e87c689318d4f62b856f37d298ab0d7ea8a50573c78cecf790751ba",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 2086,
+          "block_end": 2326,
+          "words": 5978,
+          "normalized_text_sha256": "5dea4c32a4c7407edbf909db59779f2b52b2f0faa5668cdf26f66750686f2384",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 2327,
+          "block_end": 2522,
+          "words": 5962,
+          "normalized_text_sha256": "c1c00a2250e471e8d5fa7451d1ba5341430c17687800d9edd61cddba77407517",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 2523,
+          "block_end": 2736,
+          "words": 5971,
+          "normalized_text_sha256": "f8066fd84690bc9e4cd97cab71bcef5981b3c633beb64dfc3f2f3f10493e0578",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 2737,
+          "block_end": 2986,
+          "words": 5990,
+          "normalized_text_sha256": "745d736744f261638683f95f7ea885f8faa7062b9fc73067cb3ebc34edfad309",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 2987,
+          "block_end": 3198,
+          "words": 5990,
+          "normalized_text_sha256": "0895442284ece7874005aa9f12b7ad115621611447857b1d70aabf77aa5ba25c",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 3199,
+          "block_end": 3415,
+          "words": 5969,
+          "normalized_text_sha256": "015eacd70c7ca8fe857c51a4534d26ea3aca0be17b40e3c1ec90cbfb1c6acffe",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 3416,
+          "block_end": 3640,
+          "words": 5970,
+          "normalized_text_sha256": "a03dd1dc4e1ef098a79e252ee99f27509e0cd038002d1416d039f7cd0272e285",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 3641,
+          "block_end": 3869,
+          "words": 5893,
+          "normalized_text_sha256": "716f98af385f73c9a1c84a7179f09d3c411bfd5905b2755b776a7d78605ef77d",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 18,
+          "block_start": 3870,
+          "block_end": 3959,
+          "words": 2168,
+          "normalized_text_sha256": "127177634f8551f6b0589fa6a8959ddd1bd88a0795817f0898b83ea631b5f61a",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "KNOWN_GAP_IN_SUPPLIED_EPUB",
+        "edition_verified": false,
+        "affected_boundary": [
+          3498,
+          3501
+        ],
+        "apparently_missing_printed_pages": [
+          314,
+          315
+        ],
+        "claim": "All available blocks inspected; complete novel text cannot be certified."
+      },
+      "catalog_record_count": 757,
+      "recipe_candidate_count": 172,
+      "category_counts": {
+        "CHARACTER": 120,
+        "PLACE": 60,
+        "FACTION": 32,
+        "FOOD": 190,
+        "INGREDIENT": 160,
+        "OBJECT": 55,
+        "ECOLOGY": 27,
+        "SYSTEM": 42,
+        "THEME": 45,
+        "CULTURE": 26
+      },
+      "package_file_sha256": {
+        "catalog.json": "68cd47776b927fbe74ffdb9b09ee694d37c29f4a295105dc6142b99de646beb1",
+        "recipes.json": "8f9feaec4fa6f01f6162c54e69f4b615512d61ddd062f9755df9ea429421beb8",
+        "coverage.json": "7fb3382c205a608249c515a35018336afcee78485c6d323529c1b0fc9555b403",
+        "library.md": "cdf036df7060d0130f4c92aac2f4956156eff035f5e921e7a1e25baa4f350a23"
+      }
+    },
+    {
+      "book_key": "martin_warrior",
+      "title": "Martin the Warrior",
+      "source_filename": "Redwall 06 - Martin The Warrior -- Martin The Warrior -- Redwall 06 -- a8301e3f8b1b4cbe28ed7068bc86e2aa -- Anna’s Archive.epub",
+      "source_sha256": "ec0c10ee7b76a8a999710b83e921b6200d47773216945e0be851d16c943741c4",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "epub",
+      "available_blocks": 3995,
+      "inspected_blocks": 3995,
+      "available_words": 100604,
+      "inspected_words": 100604,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 223,
+          "words": 5992,
+          "normalized_text_sha256": "11e86e53bb6f6758f0f8522fb89cc9be8ea788c89ec622b0040127ce757ed231",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 224,
+          "block_end": 483,
+          "words": 5995,
+          "normalized_text_sha256": "247c024fea94a94cb680a2a7916ba39ddfa855f396dca52276e47061850cb3f9",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 484,
+          "block_end": 740,
+          "words": 5973,
+          "normalized_text_sha256": "b7886c9bd4391a819f15bae1d726c64f442a21bfbdccfee4a770bc79973a79d7",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 741,
+          "block_end": 976,
+          "words": 5996,
+          "normalized_text_sha256": "ab31f7252b2265a2f51d7c8de8f531f109bd55a793ea0eb59c8f50766ae8a0f3",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 977,
+          "block_end": 1261,
+          "words": 5998,
+          "normalized_text_sha256": "2f3521400abf2bc4ed6a21e1de55c18578b8b69a684bb9695ccc2b3d5c556726",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 1262,
+          "block_end": 1497,
+          "words": 5993,
+          "normalized_text_sha256": "a41bbf24d80e4bf4acf206fcde04d3a4e66303ba8368aac101d8b4e903abb058",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 1498,
+          "block_end": 1771,
+          "words": 5982,
+          "normalized_text_sha256": "0b67534d91f081ae667c9024965c9af76457dfdf0fb4bb31c80c37caaa575455",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 1772,
+          "block_end": 2005,
+          "words": 5998,
+          "normalized_text_sha256": "7712b3a11f3eef85bfa760f4aaf6aebe0169de52d5b922bb927947d195c23258",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 2006,
+          "block_end": 2253,
+          "words": 5999,
+          "normalized_text_sha256": "270de6cd8c235217ca4b0733f41cc534c003b7c36f1dbf7f24fcdba4d056e875",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 2254,
+          "block_end": 2478,
+          "words": 5981,
+          "normalized_text_sha256": "db1115d4794f913901b6384a89e453aa0f180851612f7a4306a376020c25e59a",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 2479,
+          "block_end": 2729,
+          "words": 5951,
+          "normalized_text_sha256": "fd7965a811fe9facfdeebf0d8441f0901208687979ba158fa6e61be7d1f5cd7f",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 2730,
+          "block_end": 2946,
+          "words": 5986,
+          "normalized_text_sha256": "1cbebd1c46d310626d7ead420146b3c4d42e6e805aab5e0bd6a87678312c64ae",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 2947,
+          "block_end": 3178,
+          "words": 5958,
+          "normalized_text_sha256": "69f5dc2d7f346ca96596e62773b8c0ad375737e2a6ad3c3e1b830031fdcd0050",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 3179,
+          "block_end": 3410,
+          "words": 5999,
+          "normalized_text_sha256": "67095ca429ddc28652d4d959ec19452a33c1f5b2fcdd8b3f07456fd01d41366b",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 3411,
+          "block_end": 3636,
+          "words": 5990,
+          "normalized_text_sha256": "907b06783aab7569bd4a590d666658b03220283bcbbd32cf1f3636d9f9cd2640",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 3637,
+          "block_end": 3849,
+          "words": 5992,
+          "normalized_text_sha256": "f263c3b1e7707dabf6966dad1cec45ee0eddb71b5c99134a0a1d366147df2956",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 3850,
+          "block_end": 3995,
+          "words": 4821,
+          "normalized_text_sha256": "a203f260cb0390ab2acd2b507ed3f9136fcd28d100ca69ad541dd8f0bf182686",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 630,
+      "recipe_candidate_count": 171,
+      "category_counts": {
+        "CHARACTER": 120,
+        "PLACE": 48,
+        "FACTION": 34,
+        "OBJECT": 25,
+        "ECOLOGY": 18,
+        "FOOD": 188,
+        "INGREDIENT": 112,
+        "SYSTEM": 51,
+        "CULTURE": 17,
+        "THEME": 17
+      },
+      "package_file_sha256": {
+        "catalog.json": "ea1c91061a1cfdd394d807ab1023f3d2b17b02ece9c2974a3433136866c5b0a8",
+        "recipes.json": "6d6587707b128b5884830b2f3c5bc113afbaabf93a0393b2068ac1a9fd486415",
+        "coverage.json": "7f824ad8324c928bcbf38bc31036a94de220efe62129c6237eb01c4813f961c6",
+        "library.md": "741f8ab7c9ae3cac69f8c71a5a7160d9eb28cd9eab1b292030d1527a9f9f535d"
+      }
+    },
+    {
+      "book_key": "outcast",
+      "title": "The Outcast of Redwall",
+      "source_filename": "Redwall 08 - The Outcast Of Redwall -- The Outcast Of Redwall -- Redwall 08 -- 61511ff1177f0c1f65e9d5f894597347 -- Anna’s Archive.epub",
+      "source_sha256": "6285b265ddd1a6e0daa1190dbc0d737a130591ddcb59536df90ac8fa220dcd8a",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "epub",
+      "available_blocks": 3577,
+      "inspected_blocks": 3577,
+      "available_words": 97362,
+      "inspected_words": 97362,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 198,
+          "words": 5979,
+          "normalized_text_sha256": "a4bf4086249182c3d3669ea5675a6ef2707097ad3e6bc06133ff77a769efa6da",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 199,
+          "block_end": 442,
+          "words": 5991,
+          "normalized_text_sha256": "befd65c2e7346dea31362e1be98bbaf25a1886b4bb33422469d87bc587069617",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 443,
+          "block_end": 625,
+          "words": 6000,
+          "normalized_text_sha256": "6ed4484d809f9d300676d99a56a0f1ec20f92a96c77a6a12e3438ef6940eed48",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 626,
+          "block_end": 813,
+          "words": 5951,
+          "normalized_text_sha256": "28fa2ea2851554bd16951b58462012edd5c36f1a9eb49236e593bacff446cde4",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 814,
+          "block_end": 1047,
+          "words": 5947,
+          "normalized_text_sha256": "7486177a619c6b1962979929ecd9dc4d1fdb4c67d7bb66d9413ff237d516a886",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 1048,
+          "block_end": 1273,
+          "words": 5988,
+          "normalized_text_sha256": "359bf45323318a8ba1dfcf0154dbd6db9f1cb3e7528f72d4c6ee95f6b4c22098",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 1274,
+          "block_end": 1501,
+          "words": 5994,
+          "normalized_text_sha256": "87051bc76580fddea682a65a738420cb4be184290cbef958b249991c1d30ffeb",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 1502,
+          "block_end": 1736,
+          "words": 5949,
+          "normalized_text_sha256": "4ba44e2dc2930a1569faa0b94dab69ae220b27236d16580677ed0c74b5389ecc",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 1737,
+          "block_end": 1984,
+          "words": 5980,
+          "normalized_text_sha256": "42fdf9f5df33c82ca2c6d405461cf5021377a279688e87ffbcfccf9cc5f24190",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 1985,
+          "block_end": 2201,
+          "words": 5995,
+          "normalized_text_sha256": "165271e8c8b7eff5b89041fa7af88dbf7cb889782027f3e78bab93d7303887f3",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 2202,
+          "block_end": 2384,
+          "words": 5996,
+          "normalized_text_sha256": "c36608cb10494e426133a99c3150b7d7b1e78d71fbdca48df13280ee9b461239",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 2385,
+          "block_end": 2595,
+          "words": 6000,
+          "normalized_text_sha256": "8d8a6e62fdd68e5947d00145ae9aa83f469743f416c8a4bf8a328efa86d9ec09",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 2596,
+          "block_end": 2859,
+          "words": 5998,
+          "normalized_text_sha256": "7841844d933f7a166727da00decf1ac33a3d1719a1a7bae197db4b4f61fde9ad",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 2860,
+          "block_end": 3057,
+          "words": 5973,
+          "normalized_text_sha256": "afd8af3ff22b87f56a75eecc7c0e5aa7886f965dfdd039d8b316feb404555d2b",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 3058,
+          "block_end": 3265,
+          "words": 5899,
+          "normalized_text_sha256": "07efeaecd693901a57d6407103f8ad671a3d838b1921054acb6811f3f90e8256",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 3266,
+          "block_end": 3509,
+          "words": 5989,
+          "normalized_text_sha256": "30a37cc19743155940b0b258660f11745ff3a6ce40ca3daf30eecbaf0b08871e",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 3510,
+          "block_end": 3577,
+          "words": 1733,
+          "normalized_text_sha256": "8075353d11aaf0a57dd38905f81f35e8d87697b8cce5f30db3472b91ffad3b9e",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 817,
+      "recipe_candidate_count": 189,
+      "category_counts": {
+        "CHARACTER": 156,
+        "FACTION": 35,
+        "PLACE": 58,
+        "FOOD": 206,
+        "INGREDIENT": 168,
+        "OBJECT": 50,
+        "ECOLOGY": 27,
+        "SYSTEM": 49,
+        "CULTURE": 26,
+        "THEME": 42
+      },
+      "package_file_sha256": {
+        "catalog.json": "932d388f2982b60a8877ac0513f6b382bee5ae0018a4db30a41c96bbb7924d4d",
+        "recipes.json": "1e2091b32835981b43aea4d33caf5c5fb59c3c3af569b13e8de314e5d144ed31",
+        "coverage.json": "9a802d4685f1c754d2d5aa5b95cbb50e433ba18bbae66b7d0be9847d26ca746d",
+        "library.md": "6c68f18dc05d720de8b1733c169a890498759579f05173ce501ed0aa15b2db5a"
+      }
+    },
+    {
+      "book_key": "pearls_lutra",
+      "title": "Pearls of Lutra",
+      "source_filename": "Pearls of Lutra -- Jacques, Brian -- Redwall 9, 2011 -- 5b2db31d4261a030810222d374ae8410 -- Anna’s Archive.pdf",
+      "source_sha256": "76b1b4ebc92235690acedc2386515f98aae2acad1600be33813d5c03de6ff40b",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "pdf",
+      "available_blocks": 481,
+      "inspected_blocks": 481,
+      "available_words": 110415,
+      "inspected_words": 110415,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 29,
+          "words": 5888,
+          "normalized_text_sha256": "63c69eb72167f16fe24be7fd984dbeede5e26bc291f4648cb34bf33768a36ff2",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 30,
+          "block_end": 53,
+          "words": 5976,
+          "normalized_text_sha256": "f373fbab7ba22baebefb2bb535fd597a22494cc16d0c384c0447421790f952a5",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 54,
+          "block_end": 78,
+          "words": 5829,
+          "normalized_text_sha256": "e4fe87e3b8a083900643ccb5d47e9e09a1fa8768f684bfae458943372680aff1",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 79,
+          "block_end": 104,
+          "words": 5998,
+          "normalized_text_sha256": "5a96d17478e4664b1c18e901caf08bf2ceaa0775fad9362a504d4be4a92e580d",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 105,
+          "block_end": 130,
+          "words": 5778,
+          "normalized_text_sha256": "657db6ad0800a0f98290bbb759d8a832a7b857090229da7e4124afca46a49f7c",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 131,
+          "block_end": 155,
+          "words": 5714,
+          "normalized_text_sha256": "3992acb5a0d5e01c2945f7a3306f25f5e64ccee28ecd3d13f1cf476c9a7f1243",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 156,
+          "block_end": 179,
+          "words": 5883,
+          "normalized_text_sha256": "2d973b72d7f5578a9abcc0b1523b12ff345ac46b7ffb4a40c59a4de9fa29b539",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 180,
+          "block_end": 206,
+          "words": 5953,
+          "normalized_text_sha256": "5770c6238a67af68084904da7dc30d3194bd6e93557ee7ca311b86ef9e6ec94d",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 207,
+          "block_end": 231,
+          "words": 5905,
+          "normalized_text_sha256": "2ab2d3766ef2c44b2e4dbb9500084aed20168df112d025ab80004b6d39300fb1",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 232,
+          "block_end": 256,
+          "words": 5745,
+          "normalized_text_sha256": "5d44a55d47c37cb86a557acfe64ee04b8c9a377e000b29aebd13fde3142647d4",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 257,
+          "block_end": 280,
+          "words": 5773,
+          "normalized_text_sha256": "8e789ff6d999f7251e6db09ff932b5ae02cff762d223b8083ddee19b90a4d513",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 281,
+          "block_end": 306,
+          "words": 5892,
+          "normalized_text_sha256": "11e2e9859fcc2417ad6bcf9d1e2ea8faee69ecbb16828f77b9fe3591e35f2249",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 307,
+          "block_end": 330,
+          "words": 5799,
+          "normalized_text_sha256": "dbaa975f7e687c95e392cad41469d8788f75ef4c6d09eff16292e2d2697e67a1",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 331,
+          "block_end": 358,
+          "words": 5830,
+          "normalized_text_sha256": "d79d3c4f36cf5f8e95c0d81e348ba7f8c8f1faa83819721ea497c460a40075e8",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 359,
+          "block_end": 384,
+          "words": 5883,
+          "normalized_text_sha256": "dde8317b4bfeb857a29de403727828bf1b4e262fe213ec71e789fabbe89b40a8",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 385,
+          "block_end": 408,
+          "words": 5873,
+          "normalized_text_sha256": "b3a99e503e4bcc805cbd6a168d5e49060b7af39984c5a13877e1a86419fad5c1",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 409,
+          "block_end": 433,
+          "words": 5895,
+          "normalized_text_sha256": "e84494d88c4245c3ff923006b1a65ef398573cbfc11b4dd5f0bab2b52ea81717",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 18,
+          "block_start": 434,
+          "block_end": 459,
+          "words": 5737,
+          "normalized_text_sha256": "39fd7910565edc4c7d9b30e5c230cb76c56750da2efe56ec4bb610a93f833e56",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 19,
+          "block_start": 460,
+          "block_end": 481,
+          "words": 5064,
+          "normalized_text_sha256": "49c015a2dccf4542d3ef710d33fa400e2f0b7cdf2eca3b54ec9b3bec504dc61c",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 662,
+      "recipe_candidate_count": 172,
+      "category_counts": {
+        "CHARACTER": 119,
+        "FACTION": 30,
+        "PLACE": 48,
+        "OBJECT": 32,
+        "THEME": 22,
+        "SYSTEM": 59,
+        "FOOD": 191,
+        "INGREDIENT": 123,
+        "ECOLOGY": 19,
+        "CULTURE": 19
+      },
+      "package_file_sha256": {
+        "catalog.json": "03a57764c15c43e3e8a7643d1801d74ffad0ac06a3e08f0c81b5a89e86af2b15",
+        "recipes.json": "09d8685f6d6404083976e5f9bb333280b8c7cbef15bd27c600b7200d0ca12360",
+        "coverage.json": "ed40db694a6a29ba147ff942ceb6c0b4b4f7dae259a28f17e3e9d67162315472",
+        "library.md": "afe5af57981969d9200cbbea3a68b6cc5ed754311d5b82672c17a928aad286e9"
+      }
+    },
+    {
+      "book_key": "long_patrol",
+      "title": "The Long Patrol",
+      "source_filename": "Jacques, Brian - Redwall 10 - The Long Patrol -- The Long Patrol -- Redwall 10 -- 32dd6318cc2139f7ccf206741d0747f6 -- Anna’s Archive.epub",
+      "source_sha256": "83bde585e690fed7f371b5b77e407fcaff8c14a761a739c25e712b6704a96265",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "epub",
+      "available_blocks": 3389,
+      "inspected_blocks": 3389,
+      "available_words": 95163,
+      "inspected_words": 95163,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 185,
+          "words": 5905,
+          "normalized_text_sha256": "74cc8a5c842585b99c819a0badd00d3151639a2bb7859bf31c922cf36da76df4",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 186,
+          "block_end": 384,
+          "words": 5923,
+          "normalized_text_sha256": "d351c84e58a14dba475756649bfc6c0bd916143230c3959d280afcd4497696a3",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 385,
+          "block_end": 574,
+          "words": 5999,
+          "normalized_text_sha256": "bdba10c82067c40f92c35943dc2583c20142cd239ed62095f3918fad9f9627d8",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 575,
+          "block_end": 798,
+          "words": 5957,
+          "normalized_text_sha256": "1abc3f03dbb82ced35e9e7b4fa57d2046571817222b6f559ed7b90732e57f0a2",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 799,
+          "block_end": 1007,
+          "words": 5975,
+          "normalized_text_sha256": "efa5155ca14afab65f539d12c226dde328f558ced3f7e3ed427b6506bf6afc7c",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 1008,
+          "block_end": 1237,
+          "words": 5997,
+          "normalized_text_sha256": "08a0ea02ae79c10539f33a97bb3e3aeede2564ecce94e0835050d6c9fd7998a6",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 1238,
+          "block_end": 1475,
+          "words": 5990,
+          "normalized_text_sha256": "1078bd271a8e74e4ce005b7c78834321f94741b1dfc04b386f93e7dd888f0a1a",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 1476,
+          "block_end": 1692,
+          "words": 5998,
+          "normalized_text_sha256": "c2c8bc44a010e12f3d618cd2e2a40df8f2b5bea6bb3d0e121c322e5196da0772",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 1693,
+          "block_end": 1933,
+          "words": 5972,
+          "normalized_text_sha256": "7978faf952b707061ac465ff68f650a51ce14bd45aac038257270d4c2b36a251",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 1934,
+          "block_end": 2157,
+          "words": 5971,
+          "normalized_text_sha256": "078a5f91696f16e0152f08998e5d7d207d14bdf3db95f969d74f2d555f72bed9",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 2158,
+          "block_end": 2357,
+          "words": 5999,
+          "normalized_text_sha256": "eb4fa11dc285bb826775d5a74598f2f964e696f93c4a51d9846cda4ebcbfd059",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 2358,
+          "block_end": 2551,
+          "words": 5996,
+          "normalized_text_sha256": "010a676fc88ef3e94d097c2a8aeea2823b4ead6e7f8976ef0da7bbe3d1f82292",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 2552,
+          "block_end": 2764,
+          "words": 5997,
+          "normalized_text_sha256": "ab92d839341bf0e58b8ad4ef198d5e1e47075a778511d3f2ad6f69444e354db5",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 2765,
+          "block_end": 2984,
+          "words": 5981,
+          "normalized_text_sha256": "cb6a80ec171c0fb53039cb5587322021cba0cc86adb4cd002b3424da9d24a307",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 2985,
+          "block_end": 3207,
+          "words": 5992,
+          "normalized_text_sha256": "de64e66af5159bb6f00ca024e44e4c919710d2083adc943bc7003fab4aa83f8c",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 3208,
+          "block_end": 3389,
+          "words": 5511,
+          "normalized_text_sha256": "4b22f33026970ffb6dab8ef3296f72e8392fe1b7d9dea8a07a83291d8e7abbc6",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 600,
+      "recipe_candidate_count": 135,
+      "category_counts": {
+        "CHARACTER": 123,
+        "FACTION": 16,
+        "PLACE": 54,
+        "OBJECT": 52,
+        "CULTURE": 32,
+        "THEME": 7,
+        "SYSTEM": 31,
+        "ECOLOGY": 24,
+        "FOOD": 151,
+        "INGREDIENT": 110
+      },
+      "package_file_sha256": {
+        "catalog.json": "95eb925b2df520c9e7e7fe06e1a654748f1572e7c1965d2c6225fc9090bf1055",
+        "recipes.json": "f77a609c04ed5a80b75f5df4306af11d65c6de4dc1d7e5f2edaada9813a15656",
+        "coverage.json": "6cde3d9e06690d5a5de15cc74fdee6633a24af55c7a66aa18bce14f685b43b31",
+        "library.md": "ccedbc970a9d4c745d2346010874f6c52480ab326f040838d0aae1a24ac26082"
+      }
+    },
+    {
+      "book_key": "marlfox",
+      "title": "Marlfox",
+      "source_filename": "Marlfox -- Jacques, Brian -- Redwall 11, 2011 -- bf266088fb4e4a85c79e23a12c499350 -- Anna’s Archive.mobi",
+      "source_sha256": "52f5b3128a65f7fe8fdf6207af13a28c0666b98b388a7983e76bb624e9ebb568",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "mobi",
+      "available_blocks": 3473,
+      "inspected_blocks": 3473,
+      "available_words": 108548,
+      "inspected_words": 108548,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 238,
+          "words": 5993,
+          "normalized_text_sha256": "a5ffd9c687531a42c8f336554ce6e7eb8e5ca334e123f617e5da2e17969e59ab",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 239,
+          "block_end": 416,
+          "words": 5989,
+          "normalized_text_sha256": "a292adc67c09f693c711a2f3df76573d51c8bed235c20aa6c304ce1b3f6834a0",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 417,
+          "block_end": 606,
+          "words": 5998,
+          "normalized_text_sha256": "919d370b044c811772677ed233d17d1a7039921fc10582fed4586dd6f8e56ecd",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 607,
+          "block_end": 792,
+          "words": 5977,
+          "normalized_text_sha256": "81856891495069490c4431384e5c6dcef67d19e6afea451769857480bc81ed9a",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 793,
+          "block_end": 1006,
+          "words": 5992,
+          "normalized_text_sha256": "c5ca71cc369b8888786c2a9cbd5a7f774cee09b79ba253ea9781760e6eea9977",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 1007,
+          "block_end": 1174,
+          "words": 5988,
+          "normalized_text_sha256": "066dfe7ba89a8e5493f91c131eea0a43515a6cd43bcbae068b4aabc39ffe5476",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 1175,
+          "block_end": 1358,
+          "words": 5892,
+          "normalized_text_sha256": "5ae4325918fb5b59708641f34f43a125169d556315278ef0c5dd54a8969bc61f",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 1359,
+          "block_end": 1564,
+          "words": 5996,
+          "normalized_text_sha256": "87319529cf3d341eca29e3eaf5ecc668a589935904eab35c5373e13a16d9cc79",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 1565,
+          "block_end": 1725,
+          "words": 5994,
+          "normalized_text_sha256": "facd562af30f26f5b885045f8c217c1725a7c0094f257ecf6639f6bfa0edd8ab",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 1726,
+          "block_end": 1927,
+          "words": 5904,
+          "normalized_text_sha256": "3e61ab5f30c262fb1c1fb7b9f4c9134ead428729ac14476f2af838cca5673815",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 1928,
+          "block_end": 2102,
+          "words": 5945,
+          "normalized_text_sha256": "62201edca929f32c3592a7cc8948e6fb079a373421ab2f0b32c38dab5b0a82d6",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 2103,
+          "block_end": 2305,
+          "words": 5953,
+          "normalized_text_sha256": "1d9e10466ee9f2460285af97b5b2a56ee07693e51b22270b0678f706a9ccd93e",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 2306,
+          "block_end": 2483,
+          "words": 5952,
+          "normalized_text_sha256": "3ba8b9ad35ab9febf3802a19964c0954d24fbdcaa1cb3b60470fc2a9e98d3091",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 2484,
+          "block_end": 2678,
+          "words": 5977,
+          "normalized_text_sha256": "4c71ce2f439ee5f3cc66070b32f013c38e7568a20b79e419fbb565be9a22d5e3",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 2679,
+          "block_end": 2827,
+          "words": 5967,
+          "normalized_text_sha256": "0cc299be8fb46cdc94ff1c46b1eb1d6066bd04c38232c6a8399d2644a9452116",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 2828,
+          "block_end": 3010,
+          "words": 5968,
+          "normalized_text_sha256": "8cea8eef5a55f6b737032e9be227ff51562cd282232fde7b3201159800370998",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 3011,
+          "block_end": 3233,
+          "words": 5985,
+          "normalized_text_sha256": "5fb0f282bbdb9bcd99e831e4555f74bdbf9b7ec6347e725db900e896f8c89069",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 18,
+          "block_start": 3234,
+          "block_end": 3450,
+          "words": 5873,
+          "normalized_text_sha256": "79b4adae0d302641c6911f172fc39c02adde671ebf1c66b9f3596d45a02174a1",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 19,
+          "block_start": 3451,
+          "block_end": 3473,
+          "words": 1205,
+          "normalized_text_sha256": "0feb73bee97572e243338946edfa764f9c867e2600f7063f63be62f18d4a4417",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 684,
+      "recipe_candidate_count": 177,
+      "category_counts": {
+        "CHARACTER": 101,
+        "FACTION": 33,
+        "PLACE": 62,
+        "OBJECT": 28,
+        "CULTURE": 43,
+        "SYSTEM": 59,
+        "THEME": 20,
+        "FOOD": 196,
+        "INGREDIENT": 123,
+        "ECOLOGY": 19
+      },
+      "package_file_sha256": {
+        "catalog.json": "0610c911c9d4f01dc62547f0c09311310bbadd3d308e088dca9fd71d482cec7f",
+        "recipes.json": "78b3767503d0f57b7a87deee72b0e56349594c3a70260bf374895fc07af4f46f",
+        "coverage.json": "25eb088f46b6d0c4143f33a6eaaff2158e15ddb134fc042cec317af312401bc0",
+        "library.md": "4f6ab1688ae9e39284a2bce842a64a353722ce97aba4db028e23476671a80016"
+      }
+    },
+    {
+      "book_key": "lord_brocktree",
+      "title": "Lord Brocktree",
+      "source_filename": "Brian Jacques Redwall Series Set (Book 1-20)_ Redwall; -- Brian Jacques - undifferentiated -- Nov 23, 2002 -- Various publication years -- isbn13 9780077381127 -- f5129d41f05b0d8c1706ad50b940ebb2 -- Anna’s Archive.epub",
+      "source_sha256": "8d1f30f25ca0a3a4f0d158f96b4aa86d1d66fab4a080f4d1602c06c3a38a5b8f",
+      "normalization": "CHAPTER_PARAGRAPHS",
+      "format": "epub",
+      "available_blocks": 3560,
+      "inspected_blocks": 3560,
+      "available_words": 105555,
+      "inspected_words": 105555,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 136,
+          "words": 5907,
+          "normalized_text_sha256": "2d24e92b2790e8507dd2b060b5608f2a8a499039118bd2d1a253ed3d8f4407e6",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 137,
+          "block_end": 336,
+          "words": 5955,
+          "normalized_text_sha256": "cfe1831d22ee183e1e0babe3ffc04ed45003bbf0a22ab71d72a606c969e4b925",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 337,
+          "block_end": 513,
+          "words": 6000,
+          "normalized_text_sha256": "954e4f5e1ebc1181ef4fb1244c2438cd61b5f6caf2ce197b9ffcd1b9467b6e3b",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 514,
+          "block_end": 701,
+          "words": 5991,
+          "normalized_text_sha256": "7c798d9efa1660a8044913d68c1bfad02e75941a3995fe845b85b358d86af836",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 702,
+          "block_end": 915,
+          "words": 5997,
+          "normalized_text_sha256": "4d409ed5a6bf7cd360b2da322b8c96ca58eab0cb6dd0149b36300b6ac620f4b7",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 916,
+          "block_end": 1134,
+          "words": 5999,
+          "normalized_text_sha256": "161e268c637fdd053eea4c7867bc666b53fa6e20e6bc8a4683fbdebad753c72d",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 1135,
+          "block_end": 1345,
+          "words": 5968,
+          "normalized_text_sha256": "3f6a94131aff61bbb6bb6efb8f21c225ff4b39ebad4c28b1f3ce9e6f4a7d9d42",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 1346,
+          "block_end": 1555,
+          "words": 5982,
+          "normalized_text_sha256": "02dee176eb1a0452244e413057d924fb37e2385e8e546c06c92d536fa1b6cbf6",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 1556,
+          "block_end": 1735,
+          "words": 5979,
+          "normalized_text_sha256": "90a2853ab8cadff65eea12a0aa6ad5142a1844890760dd8c633999e296836e22",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 1736,
+          "block_end": 1952,
+          "words": 5995,
+          "normalized_text_sha256": "b718034ce35f16af7abc1ee799611320499e7b4338180cb433b08803ebf432ec",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 1953,
+          "block_end": 2156,
+          "words": 5980,
+          "normalized_text_sha256": "1c74fcff56bdfae401aa8f47074527d98514cb2f4ef8f421f331e5843d43d0cd",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 2157,
+          "block_end": 2363,
+          "words": 5970,
+          "normalized_text_sha256": "13be2a531064b1c4c81db4ff12ca3460794f899b78efd03fdfc76eac81a06f59",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 2364,
+          "block_end": 2591,
+          "words": 5999,
+          "normalized_text_sha256": "409d853dfce4d9572f7d9b8b9daade559ad699e5121099a1eaee14c5ecb50939",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 2592,
+          "block_end": 2813,
+          "words": 5979,
+          "normalized_text_sha256": "e18fee8aee134d2867edc9be632249e7d4b0af3e0c5706ea4edfcd98dfd06bb1",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 2814,
+          "block_end": 3043,
+          "words": 5986,
+          "normalized_text_sha256": "f8084e0ba63719e3e63fd3964fc56489cc783ddd5bf9120feeb35507b4cfb010",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 3044,
+          "block_end": 3248,
+          "words": 5961,
+          "normalized_text_sha256": "1b36d0f62e54102317fc603ff0b7f8831d17a18831960caaae1761bf0f8813fa",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 3249,
+          "block_end": 3447,
+          "words": 5951,
+          "normalized_text_sha256": "612f500a6c91822395865450f3accc52f6799f5143a5955ebb3158aa4fd7f369",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 18,
+          "block_start": 3448,
+          "block_end": 3560,
+          "words": 3956,
+          "normalized_text_sha256": "7d672f4a5cbaafa2b76100983f763ef1c81a7d228689d436c1720291cf84b617",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 499,
+      "recipe_candidate_count": 139,
+      "category_counts": {
+        "CHARACTER": 107,
+        "FACTION": 16,
+        "PLACE": 44,
+        "OBJECT": 38,
+        "CULTURE": 12,
+        "THEME": 9,
+        "SYSTEM": 14,
+        "ECOLOGY": 8,
+        "FOOD": 139,
+        "INGREDIENT": 112
+      },
+      "package_file_sha256": {
+        "catalog.json": "3451f8d08d1c5fa34c87f292c98553f3ce86986e0743c8f8e14e91ee4ba9916a",
+        "recipes.json": "9d34dbc58c47b22079a0bdf0f6ae22eebcf9e39a722dafff439b06b7b91a8452",
+        "coverage.json": "dbf006d7b133cfebcc2896c7b8db3c93812853832a09c34f3194a723a9e2630d",
+        "library.md": "57a008889b85088452c3808736f6ead42a74f1bbde4689d0df51d963f55962c0"
+      }
+    },
+    {
+      "book_key": "taggerung",
+      "title": "The Taggerung",
+      "source_filename": "The Taggerung -- Jacques, Brian -- Redwall 14, 2011 -- a8b30809c118dcf8e862b763cd7c0b0e -- Anna’s Archive.epub",
+      "source_sha256": "b26c3c8dbd6bbcf8dbe0d99c5e799091155ebfc96e311f74815acf57e28b8cf5",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "epub",
+      "available_blocks": 4065,
+      "inspected_blocks": 4065,
+      "available_words": 126217,
+      "inspected_words": 126217,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 151,
+          "words": 5981,
+          "normalized_text_sha256": "a411fa9c6b174bfc16fa42277aab4194a04aea2b0f1450eab688f0d9287c9532",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 152,
+          "block_end": 340,
+          "words": 5982,
+          "normalized_text_sha256": "3f593efd23f2e8776c89dcb5c7296cc16a62c63890d03d768f800ecd50aa698c",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 341,
+          "block_end": 591,
+          "words": 5997,
+          "normalized_text_sha256": "6d6ef087d40fc187cd4c5fb4690567a19cf73f936a6b0b34b47d6faf3cfe8432",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 592,
+          "block_end": 769,
+          "words": 5985,
+          "normalized_text_sha256": "52e5338b4894ef40ebef5f31b802766ba53f1a3bb3468a99517bec56d39e6e51",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 770,
+          "block_end": 959,
+          "words": 5960,
+          "normalized_text_sha256": "d3a7ba97c815b307e069c966ee920429c05d2f99b52798ccd14379b3375683e4",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 960,
+          "block_end": 1178,
+          "words": 5870,
+          "normalized_text_sha256": "4e3a01657b8f442823a9f13df3de142a65558700ac72850cd2eebfa1b49b9a11",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 1179,
+          "block_end": 1355,
+          "words": 5996,
+          "normalized_text_sha256": "cfbb3f2247d988fd2ffa78798ed0110b784fa613ec5f07980095a3e6f49f0081",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 1356,
+          "block_end": 1532,
+          "words": 5990,
+          "normalized_text_sha256": "1511dcc4e2c83c6b1190a1480029e383c8c79a98b32b9895e2aee6c9de70002d",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 1533,
+          "block_end": 1731,
+          "words": 5997,
+          "normalized_text_sha256": "82683ca9ae9b07f6dc2a27e12807e65257d991ab10c3fcd78efdfc4afa6ea844",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 1732,
+          "block_end": 1975,
+          "words": 5931,
+          "normalized_text_sha256": "f12cd9c38831cd294a1c9e2c32d8187b9d6382a6b0e60ad0a31c7e8bc4558b8f",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 1976,
+          "block_end": 2148,
+          "words": 5971,
+          "normalized_text_sha256": "0b740ad395032df25d2222a60f461daa23e2e3a100260cb2e49f8263a2c9bc9c",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 2149,
+          "block_end": 2367,
+          "words": 5985,
+          "normalized_text_sha256": "5d8a5a88b11b7330b912e7ea9b8d7e9f61c274d879798f418cc2e67519cac3d4",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 2368,
+          "block_end": 2509,
+          "words": 5991,
+          "normalized_text_sha256": "6906895d84190edc989e99c965dee17891abeaf606f5ce2639486ae58a8a8760",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 2510,
+          "block_end": 2692,
+          "words": 5957,
+          "normalized_text_sha256": "93c8df49f56eba78c2a689d7d09343f0c88d17d4e4d2892ae0c907c2036d0345",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 2693,
+          "block_end": 2919,
+          "words": 5992,
+          "normalized_text_sha256": "369a4d679278f42d5df514e0b3512643532c422b0617b996632fcb10e16deedb",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 2920,
+          "block_end": 3113,
+          "words": 5891,
+          "normalized_text_sha256": "e94ff3d874354c07ae654b9f37207c64d44c76b5d1f72b46bf0fed406797c939",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 3114,
+          "block_end": 3294,
+          "words": 5953,
+          "normalized_text_sha256": "f94f04a572b79c43f930010a6ddb6afd5c72da9cb7ca2b8a3a17591f410507fd",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 18,
+          "block_start": 3295,
+          "block_end": 3493,
+          "words": 5970,
+          "normalized_text_sha256": "056a8048825d3d7871a5fa0a75aee97b3aa8854b6293211e7d0ac2d8cb73b019",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 19,
+          "block_start": 3494,
+          "block_end": 3691,
+          "words": 5974,
+          "normalized_text_sha256": "a66ed43ffdefad37132ad37a84e41907ab1accd99ad01d9695e95d9f78175919",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 20,
+          "block_start": 3692,
+          "block_end": 3878,
+          "words": 5964,
+          "normalized_text_sha256": "5ee4c3c28626a61fd16b5023527b2883bc066f42cd0918197afee9ede5ca956f",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 21,
+          "block_start": 3879,
+          "block_end": 4051,
+          "words": 5992,
+          "normalized_text_sha256": "e451b13a27a4f8d8379beb3fc50bcb2df2623d619ec4f4c86a36b15e1507d9b1",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 22,
+          "block_start": 4052,
+          "block_end": 4065,
+          "words": 888,
+          "normalized_text_sha256": "b8558f5ba3a487d949c6b01c280ecd34c7d66125593cabaa92fd13f118591e62",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 623,
+      "recipe_candidate_count": 155,
+      "category_counts": {
+        "CHARACTER": 101,
+        "FACTION": 17,
+        "PLACE": 40,
+        "FOOD": 160,
+        "INGREDIENT": 163,
+        "OBJECT": 53,
+        "ECOLOGY": 23,
+        "CULTURE": 26,
+        "SYSTEM": 25,
+        "THEME": 15
+      },
+      "package_file_sha256": {
+        "catalog.json": "dc50d7fc0bfecedf72d396d21d5c6f299f489eaf13610946fb89e23e688e5701",
+        "recipes.json": "7a04510084e055b155df7ffb4d8306e4e06966c7ffe6600621d5b7ceaa5ee966",
+        "coverage.json": "ab24a6154102985ca01fa08263e7c2de9c676b4716bb106ab3d7f9d0de8fea25",
+        "library.md": "0245b68fff3eca678bdecdd505d0f098e48b6cad73a5159e33b9eef21ff357e0"
+      }
+    },
+    {
+      "book_key": "triss",
+      "title": "Triss",
+      "source_filename": "Triss_ A Novel of Redwall -- Jacques, Brian -- 2003 -- Penguin Group -- bf3cdbfa8e02320ce2598be9d7be6d79 -- Anna’s Archive.epub",
+      "source_sha256": "9b03687b17f08f3506d70f0c7f917f781d253cfbabc871dee73b09281de542a7",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "epub",
+      "available_blocks": 3857,
+      "inspected_blocks": 3857,
+      "available_words": 110414,
+      "inspected_words": 110414,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 269,
+          "words": 5971,
+          "normalized_text_sha256": "b885726e1f4494010a62b1e22d96921d4b3c2f94bdefadad231c65b6e01c2e08",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 270,
+          "block_end": 472,
+          "words": 5961,
+          "normalized_text_sha256": "fbd82184afe13ed2f09d72e88bff206723f3ce2d051514d2507c59c67364463e",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 473,
+          "block_end": 645,
+          "words": 5956,
+          "normalized_text_sha256": "af5c53206456467b854f761e1c058b0f32207551d6d19c2e272a5e9dac5d505e",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 646,
+          "block_end": 863,
+          "words": 5982,
+          "normalized_text_sha256": "b97876969364c8823ea0c6b50eca663a7b239116212ba25acf8e6a5814afe94b",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 864,
+          "block_end": 1063,
+          "words": 5998,
+          "normalized_text_sha256": "d30abcac47cb5afb912339b37cd35f68f8bf350619b9c8c1b58a851a7871107c",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 1064,
+          "block_end": 1280,
+          "words": 6000,
+          "normalized_text_sha256": "aebed1a909db3e8108b01b0c9a792867ac44aa6d41d2b16c736de2456e6f58de",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 1281,
+          "block_end": 1482,
+          "words": 5997,
+          "normalized_text_sha256": "9965885d6939ca5245cb686f0e7d163bbefb33f27c4831742d379070549f93e8",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 1483,
+          "block_end": 1667,
+          "words": 5973,
+          "normalized_text_sha256": "e670b2784cdd1012cfd2e3b15dc9b97b19524f2faf84b4633ecad1b6a4a66f7a",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 1668,
+          "block_end": 1883,
+          "words": 5993,
+          "normalized_text_sha256": "f1e71483e5f0ce4cd51165f4eaf812fae72eeca0de2015a255c13d385195c026",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 1884,
+          "block_end": 2079,
+          "words": 5969,
+          "normalized_text_sha256": "56c67d64bbe04e25981761f1b62befe8777822d5d4ba9b863c58b9e75d26302f",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 2080,
+          "block_end": 2289,
+          "words": 5997,
+          "normalized_text_sha256": "9fd1dc09c7607100f08b24b42b3d871d357ba4292952827c2adee0e1d27b0141",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 2290,
+          "block_end": 2511,
+          "words": 5975,
+          "normalized_text_sha256": "f3409054c2176d9c75804a95364b389252d293014d01efd76b7140defa6d10e6",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 2512,
+          "block_end": 2738,
+          "words": 5994,
+          "normalized_text_sha256": "b2c402e4cb650b302671ae48ca391885f3fdae3ac61b69fcd513b433e018d4f0",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 2739,
+          "block_end": 2978,
+          "words": 5995,
+          "normalized_text_sha256": "0a14e77116b1a79351ba5fb5e1f5e5d4d8a5824a2031a9a664a6f3f87cd457ca",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 2979,
+          "block_end": 3189,
+          "words": 5962,
+          "normalized_text_sha256": "369785fbc7218ea9c9b465cc4b8969ba2c6e7d47f9fc0dfeee5dd408aa13c312",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 3190,
+          "block_end": 3433,
+          "words": 5997,
+          "normalized_text_sha256": "858941677fa852b36d94465a7d2be320aaaec5389ba7c652dfa435be84f23153",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 3434,
+          "block_end": 3634,
+          "words": 5974,
+          "normalized_text_sha256": "f1bb278fce2565e96bc435bf784aa3c717108d6176ff0b8e5fca5a8eba263b95",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 18,
+          "block_start": 3635,
+          "block_end": 3757,
+          "words": 5994,
+          "normalized_text_sha256": "34fef5bee224532d9c23f8627e83bf0b38adc4031b3709bd2f9efc95ed748558",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 19,
+          "block_start": 3758,
+          "block_end": 3857,
+          "words": 2726,
+          "normalized_text_sha256": "e72fe9a66eb91728292344b5d23c412235ac65e80bb32ee04762b0b079deb6a8",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 626,
+      "recipe_candidate_count": 147,
+      "category_counts": {
+        "CHARACTER": 95,
+        "FACTION": 23,
+        "PLACE": 59,
+        "FOOD": 147,
+        "INGREDIENT": 102,
+        "OBJECT": 89,
+        "ECOLOGY": 34,
+        "CULTURE": 33,
+        "SYSTEM": 28,
+        "THEME": 16
+      },
+      "package_file_sha256": {
+        "catalog.json": "1fe452cf4c6e62706b03f63caa757785c5f7c7ca6a79e41f2b2991d1b70c9078",
+        "recipes.json": "8afa350c8ae04949e0a546cf9182e9a92742bc7ccffd26e5b77ebe8ac1aab145",
+        "coverage.json": "a5c0948c6c078dc07d0e21254dfe77fb8c35d357bd3e5a49154d71d9666c3fdb",
+        "library.md": "3ba1746d18688bbc791c5ef6dbfbd128ac72ade26000032deedcea62a1fec2ae"
+      }
+    },
+    {
+      "book_key": "rakkety_tam",
+      "title": "Rakkety Tam",
+      "source_filename": "Rakkety Tam_ A Novel of Redwall -- Brian Jacques -- Redwall, 17, 2005 -- Penguin Group -- 81ad43c0bcbf0af9da2e86ebf7858537 -- Anna’s Archive.pdf",
+      "source_sha256": "66f24abba7b489e10bbd560b6e0bd80d7db6d9e8d7de15e4e007c862425c91ed",
+      "normalization": "RETAINED_FORMAT_SPECIFIC_BLOCKS",
+      "format": "pdf",
+      "available_blocks": 583,
+      "inspected_blocks": 583,
+      "available_words": 105270,
+      "inspected_words": 105270,
+      "missing_normalized_block_ids": [],
+      "read_chunks": [
+        {
+          "chunk": 1,
+          "block_start": 1,
+          "block_end": 33,
+          "words": 5798,
+          "normalized_text_sha256": "a8e68f3f1ee6363e6e19221e272e298ed7295d2a9849c6ef15fb7f8cb01cc8a9",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 2,
+          "block_start": 34,
+          "block_end": 60,
+          "words": 5867,
+          "normalized_text_sha256": "4fabe766eafb30756c603d2b6bb656143328294495f4dfb93ffc9a59583fcd4f",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 3,
+          "block_start": 61,
+          "block_end": 99,
+          "words": 5727,
+          "normalized_text_sha256": "69ac6ff077859f28f8e1afc5dcd9b63441e3800c34de64eca453b8ac4e801e65",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 4,
+          "block_start": 100,
+          "block_end": 130,
+          "words": 5760,
+          "normalized_text_sha256": "9720911a62ac83159e5e3afa11c9fa94276451304467b16e9ec112c5fb434ecc",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 5,
+          "block_start": 131,
+          "block_end": 159,
+          "words": 5972,
+          "normalized_text_sha256": "9b8ccad7196fa8b6a143ec5f72078d4d945a3e18d14fd5a4108dfa7f2a7bd13a",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 6,
+          "block_start": 160,
+          "block_end": 196,
+          "words": 5909,
+          "normalized_text_sha256": "c3394780093bd61fbdc74b868c3c9ebe5fea49aa1a9f827ed2826f46edf480e4",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 7,
+          "block_start": 197,
+          "block_end": 232,
+          "words": 5593,
+          "normalized_text_sha256": "71983f2f87d9b035973d78e5627c958258a1a40f1dabf439b22164210b340ac2",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 8,
+          "block_start": 233,
+          "block_end": 254,
+          "words": 5816,
+          "normalized_text_sha256": "85682bdd3b47d03165be2e9518414c8914f5436ab6324fb2bea629f0cdeabed2",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 9,
+          "block_start": 255,
+          "block_end": 282,
+          "words": 5852,
+          "normalized_text_sha256": "40cf5235ac34619c5e547a9970c620c99e95713a48653e025fb7e1e006cdb660",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 10,
+          "block_start": 283,
+          "block_end": 312,
+          "words": 5953,
+          "normalized_text_sha256": "378530299ba1ef44ae7de10de2f4f37b6c1529bf70a719ac6200443be0fea29b",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 11,
+          "block_start": 313,
+          "block_end": 345,
+          "words": 5982,
+          "normalized_text_sha256": "16a4316b09cd6ccdd19351e320581c43fe985c5505816a0cdec2cebb529338f1",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 12,
+          "block_start": 346,
+          "block_end": 383,
+          "words": 5760,
+          "normalized_text_sha256": "828e34162fa347dafeac2c3441f6e17346f3ac78ac81a782e5e1da9cb05fdb98",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 13,
+          "block_start": 384,
+          "block_end": 413,
+          "words": 5833,
+          "normalized_text_sha256": "c5230cba68db9b5621ce70f19e4e600270d5e8a8b5b088115e352b92888daed9",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 14,
+          "block_start": 414,
+          "block_end": 451,
+          "words": 5907,
+          "normalized_text_sha256": "69ae8ace8e87d56ff4d26d30f0df0cd7e16da6eaa6b2e48478b2723e0251b377",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 15,
+          "block_start": 452,
+          "block_end": 485,
+          "words": 5825,
+          "normalized_text_sha256": "c79912831786e108d12652ef8440c30ec6ef5780aa3b3153444751f45c325401",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 16,
+          "block_start": 486,
+          "block_end": 518,
+          "words": 5988,
+          "normalized_text_sha256": "dfd58d80e77e0a75cea6dc40bbaf838e0d154340e5866105fd47191ac1d78c63",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 17,
+          "block_start": 519,
+          "block_end": 555,
+          "words": 5984,
+          "normalized_text_sha256": "c7e8cc9352d14286a342aa4a5bccedc3895ecf9b3b41a38112e36b13f0a7dad7",
+          "inspection_status": "FULLY_INSPECTED"
+        },
+        {
+          "chunk": 18,
+          "block_start": 556,
+          "block_end": 583,
+          "words": 5744,
+          "normalized_text_sha256": "bc203d5ddd893d9c494f0cecb3068556c4d88069a8b633b2ad92db340eaa7879",
+          "inspection_status": "FULLY_INSPECTED"
+        }
+      ],
+      "source_integrity": {
+        "status": "NO_KNOWN_NARRATIVE_GAP_IN_AVAILABLE_NORMALIZATION",
+        "edition_verified": false
+      },
+      "catalog_record_count": 713,
+      "recipe_candidate_count": 146,
+      "category_counts": {
+        "CHARACTER": 105,
+        "CULTURE": 48,
+        "FACTION": 24,
+        "PLACE": 57,
+        "FOOD": 146,
+        "INGREDIENT": 115,
+        "OBJECT": 98,
+        "ECOLOGY": 43,
+        "THEME": 33,
+        "SYSTEM": 44
+      },
+      "package_file_sha256": {
+        "catalog.json": "77b9612e3c9bf24610fbfd4360af5f9b91a2c196c1d41593e469932c8275984b",
+        "recipes.json": "503849ba40eed0fe688b9050b91d92852a96234db47f93a2c54af2898e4c86e3",
+        "coverage.json": "3a468c632a2293efc7647e5fb0577a72dc9bb2b563c57cab96fffa9e29188134",
+        "library.md": "542936f59c67b029cba66b8a17384a276c96e836050d38777de7d790e1f70d68"
+      }
+    }
+  ],
+  "absent_requested_source": [
+    {
+      "title": "Eulalia!",
+      "status": "FULL_TEXT_NOT_SUPPLIED_OR_VERIFIED",
+      "counted_in_full_read": false
+    }
+  ],
+  "limitations": [
+    "Every available normalized narrative block is inspected; this does not prove every lexical mention has its own index entry.",
+    "Known Salamandastron source gap prevents complete-edition certification.",
+    "The collection-labeled EPUB supplies Lord Brocktree only.",
+    "EPUB member names and PDF physical-page units are edition-specific; printed-page correspondence is not assumed.",
+    "Ingredient inference does not create canonical fact or numerical recipe balance."
+  ],
+  "errors": [],
+  "warnings": []
+}

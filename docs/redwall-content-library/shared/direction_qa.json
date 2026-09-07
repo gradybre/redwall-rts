@@ -1,0 +1,69 @@
+{
+  "review_scope": [
+    "shared/continuity.md",
+    "shared/locations_and_movement.md",
+    "shared/theme_and_material_direction.md",
+    "authoring_handoff.md"
+  ],
+  "review_basis": [
+    "Full sequential Mossflower/Salamandastron/Outcast extraction and catalogs",
+    "Current project setting_bible.md, setting_decisions.md and movement_direction_amendment.md relevant rules",
+    "Current shared catalog/recipe/pantry schema snapshot"
+  ],
+  "status": "ALL_FINDINGS_RESOLVED",
+  "findings": [
+    {
+      "id": "DIR-QA-001",
+      "priority": "P1",
+      "file": "authoring_handoff.md",
+      "line": 74,
+      "title": "Promised production_candidate boolean is absent from every current normalized recipe",
+      "evidence": "At review time all1608 shared/recipes.json rows lacked production_candidate, although handoff requires boolean and uses it to control label/method behavior. Outcast raw recipes already distinguish candidate and source-only records.",
+      "required_change": "Emit an explicit boolean on every shared recipe, preserve per-book false values, and validate false => game_label null and game_method_steps empty; true => concrete game ingredients and nonempty methods.",
+      "owner": "Root shared adapter/contract",
+      "state": "RESOLVED",
+      "recheck": "Final12book output: all1753rows have boolean production_candidate. Every true row has nonempty ordered string methods; all29false rows have game_label=null and game_method_steps=[]. TAG/TRI302methods explicitly authored, source context/ingredients/IDs preserved, and repeatable helper is called by their builders."
+    },
+    {
+      "id": "DIR-QA-002",
+      "priority": "P2",
+      "file": "authoring_handoff.md",
+      "line": 90,
+      "title": "Pantry lookup needs its explicit join and normalization stage",
+      "evidence": "shared recipe IDs use book::local_id, but pantry recipe_dependencies.id uses book:book_recipe_id. Pantry also maps almonds->almond and barley malt->malted barley while shared recipe game_ingredients retain raw game terms. Literal exact-variant lookup described in handoff fails without that bridge.",
+      "required_change": "Document exact join on (shared.book_key, shared.local_id) == (pantry.book, pantry.book_recipe_id), or normalize pantry IDs. Prefer precomputed game_inputs.target_kind/target_id; when resolving from labels, apply the declared game_only_normalization_map and preserve book_term before local/shared/leaf lookup. This is explicit mapping, never fuzzy matching or source rewriting.",
+      "owner": "Root handoff and pantry owner",
+      "state": "RESOLVED",
+      "recheck": "Verified current handoff and related outputs implement requested change."
+    },
+    {
+      "id": "DIR-QA-003",
+      "priority": "P2",
+      "file": "shared/theme_and_material_direction.md",
+      "line": 85,
+      "related": [
+        "authoring_handoff.md:115",
+        "shared/continuity.md:52"
+      ],
+      "title": "Repeat existing interim boundary for offscreen and implied content",
+      "evidence": "Project setting_bible.md657\u2013659 explicitly prohibits depiction and conservatively excludes new backstory, implied threats and offscreen events involving torture/deliberate child cruelty until treatment clarified. Shared docs mention only playable exclusion or unresolved offscreen treatment, weakening the practical handoff qualifier.",
+      "required_change": "State that user-confirmed boundary subjects remain distinct from unresolved treatment; until clarified, existing project interim guard excludes these subjects from new depiction, backstory, implied threats and offscreen events. Source research may retain critical context; no new user approval is needed for this review.",
+      "owner": "Root shared direction docs",
+      "state": "RESOLVED",
+      "recheck": "Verified current handoff and related outputs implement requested change."
+    }
+  ],
+  "checked_without_actionable_findings": [
+    "Sunflash/Sunstripe reconciliation correctly linked to Outcast3549 without merging title holders.",
+    "Source greensap plant preparation carefully limited to explicit local evidence.",
+    "Veil protective act separated from Meriam/Bryony judgments.",
+    "Salamandastron original source gap preserved.",
+    "Movement diagrams labeled selected topology, not measured canonical geometry; finite engineering gates remain open.",
+    "1.0m mouse gameplay anchor matches current setting_bible and movement amendment.",
+    "Three underground construction methods and ordinary connected swimming/climbing remain required rather than reduced to decorative content."
+  ],
+  "limits": [
+    "This bounded review does not certify source facts in books owned by other readers.",
+    "Shared data may be rebuilt after this snapshot; owner must rerun validation and update resolution status."
+  ]
+}

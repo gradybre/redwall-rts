@@ -1,5 +1,5 @@
 # 0006 — The task-01 bootstrap knowingly diverges from the GDD
-Date: 2026-09-05 · Status: Accepted · **Audit is against GDD rev 1.0; re-check against rev 1.1**
+Date: 2026-09-05 · Status: Accepted · **Re-verified against GDD rev 1.1 on 2026-09-06**
 
 ## Decision
 The Godot code committed in task 01 predates the GDD and violates it in ways
@@ -36,3 +36,32 @@ runner, and `entity_manager.gd`'s API shape.
 ## Source
 Audit against `docs/game_gdd.md` §4.1–4.3, §5.1, and
 `docs/ui_ux_controls.md` §1.1, §5, on 2026-09-05.
+
+## Recheck against `settlement_rules_v2` (2026-09-06)
+
+All ten divergence rows were re-verified against GDD rev 1.1 as amended by
+`SET-AMEND-001` and `SET-MOVE-001`. **Every row is still valid**; the amendments
+change none of them. Corroborated independently by
+`docs/systems_architecture.md`'s own `## Conflicts Found` table
+(ARCH-CONFLICT-008, ARCH-CONFLICT-010).
+
+Retired content in `SET-AMEND-001` (hunting, `hunter_hut`, carcass/hide items)
+has no counterpart in the prototype, so the amendment adds no new code-level
+divergence there.
+
+### One gap the original audit could not have listed
+
+`SET-MOVE-001` adopts connected multi-floor movement (DEC-035), but there is
+**no movement or pathfinding code at all** in `godot/scripts/`. That is not a
+divergence — there is nothing to diverge — but whoever writes the first movement
+system must start from `MOVE-G01–05` and ARCH-PATH-002/003, **not** from a
+ground-only assumption. The existing one-floor spatial bounds and memory ledger
+are not sufficient for the adopted underground, swimming and climbing scope.
+
+### Status of the replacements
+
+Task 02 builds release modules **beside** the prototype rather than editing it
+(ARCH-MIG-006 step 2). As of 2026-09-06 the prototype and its 52 tests are
+untouched and green. Rows 1–3 (economy), 4–6 (entity/component storage) and 7–8
+(speeds/calendar) now have release-side replacements in `godot/scripts/core/`;
+rows 9 (CombatSystem) and 10 (input map) are untouched and remain open.

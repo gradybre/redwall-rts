@@ -1,0 +1,218 @@
+{
+  "book": "The Long Patrol",
+  "book_code": "LP",
+  "source_file_name": "Jacques, Brian - Redwall 10 - The Long Patrol -- The Long Patrol -- Redwall 10 -- 32dd6318cc2139f7ccf206741d0747f6 -- Anna’s Archive.epub",
+  "source_sha256": "83bde585e690fed7f371b5b77e407fcaff8c14a761a739c25e712b6704a96265",
+  "status": "ALL_NORMALIZED_SOURCE_BLOCKS_FULLY_INSPECTED",
+  "available_blocks": 3389,
+  "inspected_blocks": 3389,
+  "available_words": 95163,
+  "inspected_words": 95163,
+  "chunks": [
+    {
+      "chunk": 1,
+      "range": [
+        1,
+        185
+      ],
+      "words": 5905,
+      "digest": "74cc8a5c842585b99c819a0badd00d3151639a2bb7859bf31c922cf36da76df4",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk01.md"
+    },
+    {
+      "chunk": 2,
+      "range": [
+        186,
+        384
+      ],
+      "words": 5923,
+      "digest": "d351c84e58a14dba475756649bfc6c0bd916143230c3959d280afcd4497696a3",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk02.md"
+    },
+    {
+      "chunk": 3,
+      "range": [
+        385,
+        574
+      ],
+      "words": 5999,
+      "digest": "bdba10c82067c40f92c35943dc2583c20142cd239ed62095f3918fad9f9627d8",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk03.md"
+    },
+    {
+      "chunk": 4,
+      "range": [
+        575,
+        798
+      ],
+      "words": 5957,
+      "digest": "1abc3f03dbb82ced35e9e7b4fa57d2046571817222b6f559ed7b90732e57f0a2",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk04.md"
+    },
+    {
+      "chunk": 5,
+      "range": [
+        799,
+        1007
+      ],
+      "words": 5975,
+      "digest": "efa5155ca14afab65f539d12c226dde328f558ced3f7e3ed427b6506bf6afc7c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk05.md"
+    },
+    {
+      "chunk": 6,
+      "range": [
+        1008,
+        1237
+      ],
+      "words": 5997,
+      "digest": "08a0ea02ae79c10539f33a97bb3e3aeede2564ecce94e0835050d6c9fd7998a6",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk06.md"
+    },
+    {
+      "chunk": 7,
+      "range": [
+        1238,
+        1475
+      ],
+      "words": 5990,
+      "digest": "1078bd271a8e74e4ce005b7c78834321f94741b1dfc04b386f93e7dd888f0a1a",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk07.md"
+    },
+    {
+      "chunk": 8,
+      "range": [
+        1476,
+        1692
+      ],
+      "words": 5998,
+      "digest": "c2c8bc44a010e12f3d618cd2e2a40df8f2b5bea6bb3d0e121c322e5196da0772",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk08.md"
+    },
+    {
+      "chunk": 9,
+      "range": [
+        1693,
+        1933
+      ],
+      "words": 5972,
+      "digest": "7978faf952b707061ac465ff68f650a51ce14bd45aac038257270d4c2b36a251",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk09.md"
+    },
+    {
+      "chunk": 10,
+      "range": [
+        1934,
+        2157
+      ],
+      "words": 5971,
+      "digest": "078a5f91696f16e0152f08998e5d7d207d14bdf3db95f969d74f2d555f72bed9",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk10.md"
+    },
+    {
+      "chunk": 11,
+      "range": [
+        2158,
+        2357
+      ],
+      "words": 5999,
+      "digest": "eb4fa11dc285bb826775d5a74598f2f964e696f93c4a51d9846cda4ebcbfd059",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk11.md"
+    },
+    {
+      "chunk": 12,
+      "range": [
+        2358,
+        2551
+      ],
+      "words": 5996,
+      "digest": "010a676fc88ef3e94d097c2a8aeea2823b4ead6e7f8976ef0da7bbe3d1f82292",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk12.md"
+    },
+    {
+      "chunk": 13,
+      "range": [
+        2552,
+        2764
+      ],
+      "words": 5997,
+      "digest": "ab92d839341bf0e58b8ad4ef198d5e1e47075a778511d3f2ad6f69444e354db5",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk13.md"
+    },
+    {
+      "chunk": 14,
+      "range": [
+        2765,
+        2984
+      ],
+      "words": 5981,
+      "digest": "cb6a80ec171c0fb53039cb5587322021cba0cc86adb4cd002b3424da9d24a307",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk14.md"
+    },
+    {
+      "chunk": 15,
+      "range": [
+        2985,
+        3207
+      ],
+      "words": 5992,
+      "digest": "de64e66af5159bb6f00ca024e44e4c919710d2083adc943bc7003fab4aa83f8c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk15.md"
+    },
+    {
+      "chunk": 16,
+      "range": [
+        3208,
+        3389
+      ],
+      "words": 5511,
+      "digest": "4b22f33026970ffb6dab8ef3296f72e8392fe1b7d9dea8a07a83291d8e7abbc6",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk16.md"
+    }
+  ],
+  "record_counts": {
+    "CHARACTER": 123,
+    "FACTION": 16,
+    "PLACE": 54,
+    "OBJECT": 52,
+    "CULTURE": 32,
+    "THEME": 7,
+    "SYSTEM": 31,
+    "ECOLOGY": 24,
+    "FOOD": 151,
+    "INGREDIENT": 110
+  },
+  "recipe_candidates": 135,
+  "limitations": [
+    "Coverage means every normalized block inspected, not a claim that OCR is perfect or that no indexing omission can exist.",
+    "Gaduss occurrence continuity, Urthclaw name and multiple OCR spellings remain flagged.",
+    "Source narrative counts and distances are not game balance; ingredients and component completions are explicitly AI-authored where absent.",
+    "Source visions sometimes receive narrator confirmation; project uncertain wonder is an intentional adaptation."
+  ],
+  "catalog_records": 600,
+  "independent_qa": {
+    "scope": "All root sequential category notes inspected; six targeted source blocks verified across these two books. No second full novel read claimed.",
+    "source_checks": [
+      118,
+      2361,
+      1836
+    ],
+    "game_components": 8
+  }
+}

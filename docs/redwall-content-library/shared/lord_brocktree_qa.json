@@ -1,0 +1,509 @@
+{
+  "schema_version": "1.0",
+  "book": "Lord Brocktree",
+  "scope": "Independent review of all18 completed root reading notes and current catalog/recipe data, plus selected source blocks. This is NOT a second full105555-word novel reading.",
+  "notes_inspected": [
+    {
+      "path": "work/content-library/lord_brocktree/chunk01.md",
+      "sha256": "5e5a341eeaa88c8fb87e60545c66cc46d91b0a20480c23c49dff18a82712d1c4"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk02.md",
+      "sha256": "fd83996ebed389638a12168a6d0d180d21b756c9bed44029a8a6e2a3bbf879ed"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk03.md",
+      "sha256": "d26d115d6fe126610ca05aeda2f1ae7c58f12cbdb90d8f6972848158321886c8"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk04.md",
+      "sha256": "f2aa2b904a60470903b084490f412d17928c6a33d54a4e985fcf3e070c8b7a98"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk05.md",
+      "sha256": "5f27bf1b46d75737bd9832cff37e1458c3540251db600d228f5ea990d1f584d6"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk06.md",
+      "sha256": "e7d3553d21e7247aa1b8276a29f69ad960e115506e063a36878bf2e7efc93d1c"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk07.md",
+      "sha256": "38d0a5ee2105a9c41671acd37fc52d9d806ab9ad62d9f3c77769241276642b56"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk08.md",
+      "sha256": "d6546cfdfa4458f74cd78993ca9719c971adb5e28ed535cb98db037d304e2af5"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk09.md",
+      "sha256": "c6a7bd5bd0fbef53e9e3a43ae785c1bae8569f3508f5ec86079e12d9d0f214b3"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk10.md",
+      "sha256": "1084ad7e1e60d91964d2f5b908eca88946c99e7e57ae0c8fc94cbe02399b3c79"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk11.md",
+      "sha256": "e6ec0246bde160d4635eb4131c9869f0a3715e7619b7719e2e7102668e6cce72"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk12.md",
+      "sha256": "f68e0e22a3a3303c18444e568fa37ab0106bf9f00378cdda010e653f748963f2"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk13.md",
+      "sha256": "60a66d4e36383a6544877f3b77b5683ec4e395facb3814023664247f907270f1"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk14.md",
+      "sha256": "54f1889f4ba93e14ec2f2f54a4039864e7b2e780e254de008c8ae613261d651e"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk15.md",
+      "sha256": "4b3896ea61376ab0fd0f4fb71f082b5bfd18aadd1beb18cf4447d6a85c308262"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk16.md",
+      "sha256": "c9fcf44b8707eaf6928c31102ac8bcea0a10b598a055d515151ee8926d2c0830"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk17.md",
+      "sha256": "46ad7fb7ab1946a76af41179c04c5265764ae13491cbeab99318bf98adda017f"
+    },
+    {
+      "path": "work/content-library/lord_brocktree/chunk18.md",
+      "sha256": "792365e69cfd253918eb00f4aab0dda8fe3eb8b14cae5754dc52597cc74a9b51"
+    }
+  ],
+  "source_blocks_spot_checked": [
+    {
+      "block": 128,
+      "source": "Chapter 4",
+      "unit_block": 2
+    },
+    {
+      "block": 131,
+      "source": "Chapter 4",
+      "unit_block": 5
+    },
+    {
+      "block": 337,
+      "source": "Chapter 6",
+      "unit_block": 62
+    },
+    {
+      "block": 610,
+      "source": "Chapter 9",
+      "unit_block": 51
+    },
+    {
+      "block": 803,
+      "source": "Chapter 11",
+      "unit_block": 47
+    },
+    {
+      "block": 804,
+      "source": "Chapter 11",
+      "unit_block": 48
+    },
+    {
+      "block": 1141,
+      "source": "Chapter 14",
+      "unit_block": 109
+    },
+    {
+      "block": 1472,
+      "source": "Chapter 17",
+      "unit_block": 96
+    },
+    {
+      "block": 1473,
+      "source": "Chapter 17",
+      "unit_block": 97
+    },
+    {
+      "block": 1474,
+      "source": "Chapter 17",
+      "unit_block": 98
+    },
+    {
+      "block": 1475,
+      "source": "Chapter 17",
+      "unit_block": 99
+    },
+    {
+      "block": 1476,
+      "source": "Chapter 17",
+      "unit_block": 100
+    },
+    {
+      "block": 1781,
+      "source": "Chapter 21",
+      "unit_block": 9
+    },
+    {
+      "block": 1788,
+      "source": "Chapter 21",
+      "unit_block": 16
+    },
+    {
+      "block": 2317,
+      "source": "Chapter 26",
+      "unit_block": 60
+    },
+    {
+      "block": 2318,
+      "source": "Chapter 26",
+      "unit_block": 61
+    },
+    {
+      "block": 2905,
+      "source": "Chapter 31",
+      "unit_block": 89
+    },
+    {
+      "block": 3251,
+      "source": "Chapter 35",
+      "unit_block": 3
+    },
+    {
+      "block": 3252,
+      "source": "Chapter 35",
+      "unit_block": 4
+    },
+    {
+      "block": 3253,
+      "source": "Chapter 35",
+      "unit_block": 5
+    },
+    {
+      "block": 3550,
+      "source": "Epilogue",
+      "unit_block": 3
+    }
+  ],
+  "auxiliary_checks": [
+    "Case-insensitive eagle keyword search in complete normalized extraction returned no occurrences; this supported the alias check and did not replace note inspection.",
+    "Every recipe label/source ingredient list/game ingredient list/method inspected for generic-template mismatch.",
+    "Named character index compared against all18 reading-note people/faction sections.",
+    "Final adjacent refinement rechecked: crusted dace method separates descriptive source assembly from cultivated-parsley game instructions; original16 findings remain resolved."
+  ],
+  "reviewed_catalog_record_count": 497,
+  "reviewed_recipe_count": 138,
+  "findings": [
+    {
+      "id": "LB-QA-001",
+      "priority": "P1",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-CHARACTER-rulango"
+      ],
+      "observed_problem": "Alias list includes sea eagle although the character is a grey heron. This is an identity/species error, not an unresolved source variant.",
+      "required_correction": "Remove sea eagle from Rulango aliases. Preserve grey heron and nonverbal communication. Source1781/1788 inspected; an auxiliary search found no eagle occurrence anywhere in the available normalized source.",
+      "source_blocks": [
+        1781,
+        1788
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Rechecked Rulango: only grey heron alias remains."
+    },
+    {
+      "id": "LB-QA-002",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-CHARACTER-ruffgar-brookback",
+        "LB-CHARACTER-brogalaw",
+        "LB-CHARACTER-gurth-son-of-longladle",
+        "LB-CHARACTER-log-a-log-grenn",
+        "LB-CHARACTER-torleep",
+        "LB-CHARACTER-grinak",
+        "LB-CHARACTER-windcoat-bramwil-lepus-the-second",
+        "LB-CHARACTER-skittles"
+      ],
+      "observed_problem": "Several verified aliases appear in fact prose but their machine alias arrays are empty. Search/identity reconciliation loses these mappings.",
+      "required_correction": "Add Ruff to Ruffgar; Brog and applicable Skipper title to Brogalaw; Gurth, Gurt Gurth and raw engraved Gwrt to Gurth; Grenn to this book-qualified chief; Tor to Torleep; Grin to Grinak; Dribbler to Windcoat; Skikkles/Skikkle Bee Spikediggle and Burrtrump only as explicitly qualified speech/name fragments for Skittles. Do not fabricate a single normalized full legal name from toddler speech.",
+      "source_blocks": [
+        288,
+        798,
+        1104,
+        1094,
+        1096,
+        1690,
+        1776,
+        1927
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Rechecked all eight identity records: aliases now indexed; toddler fragments remain separate strings and qualified in source fact."
+    },
+    {
+      "id": "LB-QA-003",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-RECIPE-soft-crust-trimmed-bread",
+        "LB-RECIPE-dry-bread-slice"
+      ],
+      "observed_problem": "Each serving recipe consumes prepared wholemeal bread and the ingredients needed to manufacture that same bread; the generic method then mixes dough and omits the defining serving operation.",
+      "required_correction": "Make these serving recipes consume only the prepared loaf/slice component. Soft-crust variant: slice, remove crusts, and serve/dip in Stonepaw’s separately referenced soup. Dry slice: cut the prepared bread and serve in its stated dry state. Link the shared bread-production component rather than double-counting raw ingredients.",
+      "source_blocks": [
+        36,
+        37,
+        38,
+        2136
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Both bread servings now consume only wholemeal bread and specify crust removal or plain serving."
+    },
+    {
+      "id": "LB-QA-004",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-RECIPE-cheese-topped-baked-bread"
+      ],
+      "observed_problem": "Method inherited from sandwich splits and fills the loaf, although source1781 explicitly puts baked cheese on top.",
+      "required_correction": "Use prepared bread plus authored oat-and-seed cheese. Place cheese on the bread surface and bake the topped portion. Do not fill a split sandwich unless separately authored and labeled as a changed presentation.",
+      "source_blocks": [
+        1781
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Method now specifies an open cheese-topped bread slice."
+    },
+    {
+      "id": "LB-QA-005",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-RECIPE-guosim-pear-flans"
+      ],
+      "observed_problem": "Generic flan method tells the agent to use named vegetables even though the source filling is pear. The source-supported pear identity is correct, but the execution text mismatches it.",
+      "required_correction": "Write a fruit-flan-specific method: prepare pears, place in an authored pastry case, add the selected plant binder and bake. Choose savory or sweet game completion explicitly; do not quietly replace pear with vegetables.",
+      "source_blocks": [
+        2905
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Method now specifies sweet pear filling and authored plant binder."
+    },
+    {
+      "id": "LB-QA-006",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-RECIPE-almond-cake-with-candied-lilac-buds",
+        "LB-RECIPE-cranberry-tarts-with-crystallized-cuckoo-flower-petals"
+      ],
+      "observed_problem": "Game labels promise candied/crystallized rose-petal alternatives, but ingredient lists supply plain petals and generic methods do not candy or crystallize them.",
+      "required_correction": "Introduce a separately defined honey-candied game rose-petal component or explicit syrup-coating/cooling step; use it as the finishing garnish after baking. Preserve lilac/cuckoo-flower terms only in source evidence.",
+      "source_blocks": [
+        757,
+        1475
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Both methods now explicitly coat selected game petals with honey and water, cool and apply after baking."
+    },
+    {
+      "id": "LB-QA-007",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-RECIPE-cranberry-tarts-with-sweet-chestnut-sauce",
+        "LB-RECIPE-cranberry-tarts-with-rosehip-honey-syrup"
+      ],
+      "observed_problem": "The generic tart method ignores the sauces/finishes that distinguish these proposed variants.",
+      "required_correction": "Prepare the authored tart first, then apply the separately prepared sweet chestnut sauce or rosehip-honey syrup as a finish. Keep PROPOSED_VARIANT status: the argument does not confirm all toppings were served.",
+      "source_blocks": [
+        1472,
+        1473,
+        1474,
+        1475,
+        1476
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Both finish methods present; source status remains PROPOSED_VARIANT."
+    },
+    {
+      "id": "LB-QA-008",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-RECIPE-honey-soaked-fruit-trekking-farl"
+      ],
+      "observed_problem": "Game ingredients include raspberries but the detailed method fills the farl only with dried apple, dried plum and blackberries. The raw oats/rye plus flour entries also require a deliberate split to avoid accidental double demand.",
+      "required_correction": "Either add raspberry to the filling step or remove it as an authored choice. Choose grain flour as the dough ingredient and record source oats/rye separately; retain whole grains only if explicitly included as a deliberate game texture ingredient.",
+      "source_blocks": [
+        610
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Unused raspberry and duplicate raw oats/rye removed; specified dried fruit and blackberry match method."
+    },
+    {
+      "id": "LB-QA-009",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-RECIPE-rogg-s-baked-honey-oatmeal"
+      ],
+      "observed_problem": "Game list includes raw apple and pear alongside already candied apple/pear flakes; the method does not assign a distinct role to the raw fruit. It also mixes the flakes into the mass while the source describes them as a covering sprinkle.",
+      "required_correction": "Use oats, honey, chopped chestnuts/hazelnuts, the explicitly authored liquid, and prepared candied flakes as a top layer. Remove duplicate raw apple/pear inputs unless a separate game variation intentionally adds fresh fruit. Retain source ingredient derivation through the compound flakes.",
+      "source_blocks": [
+        803,
+        804
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Raw apple/pear duplicate inputs removed; prepared candied flakes applied as top layer."
+    },
+    {
+      "id": "LB-QA-010",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-RECIPE-grandmother-brookback-s-crusted-dace",
+        "LB-RECIPE-honey-soaked-fruit-trekking-farl",
+        "LB-RECIPE-rogg-s-baked-honey-oatmeal",
+        "LB-RECIPE-stewed-pear-and-chestnut-flan",
+        "LB-RECIPE-frutch-s-beech-hazelnut-and-plum-slice",
+        "LB-RECIPE-doomeye-s-coastal-shield-stew"
+      ],
+      "observed_problem": "Ingredient evidence is uniformly NARRATOR for recipes whose detailed composition is directly given by named characters. That loses the explicitly requested source/report distinction. The pear-and-chestnut flan at1141 is a proposal.",
+      "required_correction": "Tag recipe-composition claims CHARACTER_REPORT, retaining narrator evidence separately when it confirms serving. Use PROPOSED_RECIPE or equivalent context for Grenn’s pear/chestnut plan unless a later specific variant is confirmed. Preserve direct narrator status for the actual berry/apple/hazelnut salad if appropriate.",
+      "source_blocks": [
+        337,
+        610,
+        804,
+        1141,
+        2317,
+        2318,
+        3253
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "All six detailed ingredient lists now CHARACTER_REPORT; early pear/chestnut flan PROPOSED_RECIPE."
+    },
+    {
+      "id": "LB-QA-011",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-RECIPE-doomeye-s-coastal-shield-stew"
+      ],
+      "observed_problem": "Method leads with imperative-style preparation of source charlock, stonecrop, tutsan and periwinkles before describing the safe game counterpart; source assembly is also more specific than the text, which says cooked together rather than explicitly boiled.",
+      "required_correction": "Preserve the source ingredients and descriptive cooking context without an actionable source-botanical procedure. Give executable steps only for the explicitly authored mussel/cultivated-greens game recipe in a normal pot. Use CHARACTER_REPORT for Doomeye’s explanation.",
+      "source_blocks": [
+        3251,
+        3252,
+        3253
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Source shield cooking descriptive; explicit executable game version uses cultivated greens and approved mussels in normal pot."
+    },
+    {
+      "id": "LB-QA-012",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-RECIPE-poor-mackerel-ration"
+      ],
+      "observed_problem": "Source spoilage is appropriately labeled suspected, but the game name remains Poor mackerel ration and does not state that its sourcing is changed.",
+      "required_correction": "Retain the suspect-source record and label the authored candidate Fresh mackerel camp ration, with a sourcing note that fresh approved game fish replaces the uncertain source condition. No real salvage/cooking safety claim.",
+      "source_blocks": [
+        1957,
+        1958
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Game label Fresh mackerel camp ration and explicit fresh sourcing; source SUSPECTED_SPOILAGE preserved."
+    },
+    {
+      "id": "LB-QA-013",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "MISSING_FOOD_dotti_windowsill_pie"
+      ],
+      "observed_problem": "All eighteen notes include a windowsill pie in Dotti’s accusation anecdote, but no individually addressed FOOD/recipe candidate covers block128.",
+      "required_correction": "Add a discourse-only unspecified windowsill pie candidate with no claimed canonical filling. If authoring an apple or root version, label that filling and every base ingredient as AI-authored.",
+      "source_blocks": [
+        128
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "New block128 food/recipe pair preserves accusation context, empty source ingredient list and all inferred game filling/base components."
+    },
+    {
+      "id": "LB-QA-014",
+      "priority": "P3",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-CULTURE-remembering-dead-and-captives-separately"
+      ],
+      "observed_problem": "Mother Fortune is present in the detailed notes but not named in this individual cultural record or an individually searchable belief entry.",
+      "required_correction": "Add a Mother Fortune invocation alias/record under CULTURE with BELIEF status, attributed to the prayer; do not assert an objectively existing deity or add a character biography.",
+      "source_blocks": [
+        726,
+        727,
+        728,
+        729,
+        730,
+        731,
+        732,
+        733,
+        734
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "New Mother Fortune invocation CULTURE record uses BELIEF and disclaims objective deity inference."
+    },
+    {
+      "id": "LB-QA-015",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "ALL_RECIPE_SOURCE_INGREDIENTS"
+      ],
+      "observed_problem": "Source ingredient entries have derivation text but no explicit confidence fields, although the contract requests ingredient confidence.",
+      "required_correction": "Add confidence for named-in-source evidence (e.g. HIGH_NAME_OR_EXPLICIT_COMPONENT) and separate the confidence scope from recipe completeness, actual serving, botanical identity and safety. Keep ambiguous component interpretations explicitly qualified.",
+      "source_blocks": [],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Every named source ingredient now has confidence plus explicit confidence scope."
+    },
+    {
+      "id": "LB-QA-016",
+      "priority": "P2",
+      "scope": "BOOK_DATA",
+      "references": [
+        "LB-CHARACTER-littlebob-hare"
+      ],
+      "observed_problem": "The record correctly says a nursery-rhyme protagonist rather than historical person, but its fact evidence type is NARRATOR.",
+      "required_correction": "Use CHARACTER_REPORT or an explicit FICTIONAL_CULTURAL_PERSONA source status so downstream identity aggregation does not treat the nursery character as a historical NPC.",
+      "source_blocks": [
+        1267,
+        1330
+      ],
+      "status": "RESOLVED_OUTPUT_RECHECKED",
+      "resolution_observed": "Littlebob fact now CHARACTER_REPORT with explicit FICTIONAL_CULTURAL_PERSONA adaptation note."
+    }
+  ],
+  "findings_count": 16,
+  "passed_observations": [
+    "No further named real-character omission was found in the inspected note-to-index comparison; missing machine aliases and a belief-personification index are separately reported.",
+    "Snowstripe is correctly the son and Melanius the older daughter after source3550 clarification.",
+    "Stonepaw/Jukka/Fleetscut/Torleep/Willip deaths and Ripfang/Groddil survival states retain important distinctions.",
+    "Trunn survives the duel and his eventual death is implied rather than directly observed; Karangool final death remains unconfirmed.",
+    "Source-only medicinal herbs are retained separately from the proposed berry/pear drink and its game recipe has no healing effect.",
+    "Cranberry topping argument is correctly represented as proposed variants rather than multiple confirmed servings.",
+    "Shared pantry resolves all current LB compound game inputs; no unrecognized fish or unresolved compound term remains after explicit shared defaults."
+  ],
+  "remaining_limitations": [
+    "Some issues are exact behavioral errors, others are source-attribution or authoring-completeness corrections.",
+    "Root owns book changes; this report records findings at review time and does not itself alter the book.",
+    "Narrative ingredient quantities, troop counts and route distances were not converted into runtime parameters."
+  ],
+  "status": "ALL_16_REPORTED_FINDINGS_RESOLVED_OUTPUT_RECHECKED",
+  "recheck": {
+    "catalog_record_count": 499,
+    "recipe_count": 139,
+    "review_method": "Targeted inspection of every corrected record, recipe methods and ingredient/source fields; no additional full novel reread.",
+    "input_sha256": {
+      "catalog.json": "3451f8d08d1c5fa34c87f292c98553f3ce86986e0743c8f8e14e91ee4ba9916a",
+      "recipes.json": "9d34dbc58c47b22079a0bdf0f6ae22eebcf9e39a722dafff439b06b7b91a8452"
+    }
+  }
+}

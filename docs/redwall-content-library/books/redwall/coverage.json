@@ -1,0 +1,448 @@
+{
+  "book": "Redwall",
+  "full_read_status": "FULLY_INSPECTED",
+  "source_manifest": {
+    "key": "redwall",
+    "source_file_name": "Redwall 01 - Redwall -- Redwall -- Redwall 01 -- bb85255e7e33b05e2bba5aa56d3604ae -- Anna’s Archive.epub",
+    "source_sha256": "6c1353451c6c2fd72fc73eec50b3853d5a0a290f23938ad1b707c13b24dac3cd",
+    "source_bytes": 335405,
+    "format": "epub",
+    "extraction_status": "EXTRACTED_NOT_READ",
+    "reading_status": "NOT_READ",
+    "validated_edition": null,
+    "validated_isbn": null,
+    "units": [
+      {
+        "source": "titlepage.xhtml",
+        "first_block": 1,
+        "last_block": 0,
+        "words": 0,
+        "blocks": 0,
+        "text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "source": "index-1403_split_000.html",
+        "first_block": 1,
+        "last_block": 4,
+        "words": 19,
+        "blocks": 4,
+        "text_sha256": "fd459ee2a39a845b482c082ba61269bd6025f75590f88f656340be7e07bf397a"
+      },
+      {
+        "source": "index-1403_split_001.html",
+        "first_block": 5,
+        "last_block": 8,
+        "words": 18,
+        "blocks": 4,
+        "text_sha256": "678a987e7188972e8ccaaa48cfe35c25e32580261b5a2d761121b03ac5acb075"
+      },
+      {
+        "source": "index-1403_split_002.html",
+        "first_block": 9,
+        "last_block": 20,
+        "words": 211,
+        "blocks": 12,
+        "text_sha256": "3da557f1ca4a7967a17650296712747a5e3684c2c5b680212ed6d711ddb3fcc2"
+      },
+      {
+        "source": "index-1403_split_003.html",
+        "first_block": 21,
+        "last_block": 371,
+        "words": 10371,
+        "blocks": 351,
+        "text_sha256": "8b7aa9bbe42adc237f86b7353583c0e144ec2d064b3181a70766dc79631e8375"
+      },
+      {
+        "source": "index-1403_split_004.html",
+        "first_block": 372,
+        "last_block": 463,
+        "words": 2379,
+        "blocks": 92,
+        "text_sha256": "12d23984d4863647ab1cfbd957a877fe38cb3d63177688a6a0324447b176a556"
+      },
+      {
+        "source": "index-1403_split_005.html",
+        "first_block": 464,
+        "last_block": 949,
+        "words": 14734,
+        "blocks": 486,
+        "text_sha256": "0a2b1a8eefd5adc721e0df40c33643ffe360dea346942ce59961cd58d6f516f9"
+      },
+      {
+        "source": "index-1403_split_006.html",
+        "first_block": 950,
+        "last_block": 988,
+        "words": 1562,
+        "blocks": 39,
+        "text_sha256": "2a9c9c7bae4e7ba3c9b72b1b759a512cdffdcb701915d5b38eb50bd8b3301a68"
+      },
+      {
+        "source": "index-1403_split_007.html",
+        "first_block": 989,
+        "last_block": 995,
+        "words": 244,
+        "blocks": 7,
+        "text_sha256": "db92149350ccd57bea4266c834d9ca818e3e0669e161a39ba54b9692b3f369d9"
+      },
+      {
+        "source": "index-1403_split_008.html",
+        "first_block": 996,
+        "last_block": 1189,
+        "words": 4963,
+        "blocks": 194,
+        "text_sha256": "d2419fdc65c305d37f4027d1455fba654d59c8504a96ed76bddb58ee8187b8a5"
+      },
+      {
+        "source": "index-1403_split_009.html",
+        "first_block": 1190,
+        "last_block": 1193,
+        "words": 18,
+        "blocks": 4,
+        "text_sha256": "ddaf79fd904fba2cf679eccaa489ffe4aac6685229efd1a3f286e5933b81930e"
+      },
+      {
+        "source": "index-1403_split_010.html",
+        "first_block": 1194,
+        "last_block": 1345,
+        "words": 3376,
+        "blocks": 152,
+        "text_sha256": "9c5620b86cbbab44e753c87879b1704f3fd874eaeb6afc72ab96f8665a27e114"
+      },
+      {
+        "source": "index-1403_split_011.html",
+        "first_block": 1346,
+        "last_block": 1681,
+        "words": 8655,
+        "blocks": 336,
+        "text_sha256": "1c3880454e4bbd74b4a66d6bb5ce591737f1e8c25bf6e99490bce30d73bc025a"
+      },
+      {
+        "source": "index-1403_split_012.html",
+        "first_block": 1682,
+        "last_block": 1756,
+        "words": 1736,
+        "blocks": 75,
+        "text_sha256": "965217ca88eb6aea0652eb0d53cc47ee7091c921bbc16b01b74b1dbe0df207c5"
+      },
+      {
+        "source": "index-1403_split_013.html",
+        "first_block": 1757,
+        "last_block": 2126,
+        "words": 10098,
+        "blocks": 370,
+        "text_sha256": "0fb2b940545e510808d1a6afaf3a3e75e0d8210179fa8c9ed97b05246693ae33"
+      },
+      {
+        "source": "index-1403_split_014.html",
+        "first_block": 2127,
+        "last_block": 2572,
+        "words": 11620,
+        "blocks": 446,
+        "text_sha256": "add74dfd8565945c2bb2974c4ba8c051ba2961e50ff7d4462af851365e21d4ba"
+      },
+      {
+        "source": "index-1403_split_015.html",
+        "first_block": 2573,
+        "last_block": 2828,
+        "words": 6963,
+        "blocks": 256,
+        "text_sha256": "bf111af2ef0aa490e53008cfdbafd6d3d5c308aaeac16505141421fdab459800"
+      },
+      {
+        "source": "index-1403_split_016.html",
+        "first_block": 2829,
+        "last_block": 3380,
+        "words": 16101,
+        "blocks": 552,
+        "text_sha256": "350b90319125dfc3b07f4b57258bec1393d93bfddd861e78699d5a4aa0aaec2f"
+      },
+      {
+        "source": "index-1403_split_017.html",
+        "first_block": 3381,
+        "last_block": 3510,
+        "words": 3299,
+        "blocks": 130,
+        "text_sha256": "72d908552c2f1d7bdd98897649d25b8c040a267f5903df22d17affa27bfabce0"
+      },
+      {
+        "source": "index-1403_split_018.html",
+        "first_block": 3511,
+        "last_block": 3730,
+        "words": 6468,
+        "blocks": 220,
+        "text_sha256": "e94bc6e305f07654184d2d0b3e1bfa59620f86c67e13ef0b0fbad278e2a0028a"
+      }
+    ],
+    "declared_titles": [
+      "Redwall 01 - Redwall"
+    ],
+    "declared_identifiers": [
+      "c10d54e7-d052-4c49-980d-900519fccab6",
+      "d03e8fdc-c49f-454d-8f10-f5ae4fb953cc"
+    ],
+    "archive_entries": 29,
+    "spine_items": 20,
+    "outline": [
+      {
+        "label": "BOOK ONE",
+        "src": "index-1403_split_003.html"
+      },
+      {
+        "label": "BOOK TWO",
+        "src": "index-1403_split_007.html"
+      },
+      {
+        "label": "BOOK THREE",
+        "src": "index-1403_split_016.html"
+      }
+    ],
+    "extracted_words": 102835,
+    "extracted_blocks": 3730
+  },
+  "blocks_total": 3730,
+  "blocks_inspected": 3730,
+  "word_count_whitespace": 102835,
+  "chunks": [
+    {
+      "chunk": 1,
+      "range": [
+        1,
+        212
+      ],
+      "words": 6000,
+      "digest": "fa075b7864179d01d80071afebe4d4170839a26d5e49f301b9ec5e471b719f65",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk01.md"
+    },
+    {
+      "chunk": 2,
+      "range": [
+        213,
+        426
+      ],
+      "words": 5992,
+      "digest": "c2f4290ecb0ab46671e61d14693155b9ccc1aadc8dfa83b09a1cc6eded858411",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk02.md"
+    },
+    {
+      "chunk": 3,
+      "range": [
+        427,
+        629
+      ],
+      "words": 5911,
+      "digest": "3468a10c426dd674d08b4efa7d8c6c7591b414db5d200b8c59ffad550f5df38a",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk03.md"
+    },
+    {
+      "chunk": 4,
+      "range": [
+        630,
+        820
+      ],
+      "words": 5969,
+      "digest": "94a50e8beec0352adef0592f52269e1b650773c0872cb6e2fbc3abed0ebd2e4b",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk04.md"
+    },
+    {
+      "chunk": 5,
+      "range": [
+        821,
+        1021
+      ],
+      "words": 5981,
+      "digest": "1dfa71253cf40d78122063d0d56221c65f966627b26b99bb59b2e6ab3217d012",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk05.md"
+    },
+    {
+      "chunk": 6,
+      "range": [
+        1022,
+        1261
+      ],
+      "words": 5965,
+      "digest": "b18fe17fc0040a4090688b1ad384d413a214a5789856382798c6c3e8622f8252",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk06.md"
+    },
+    {
+      "chunk": 7,
+      "range": [
+        1262,
+        1495
+      ],
+      "words": 5990,
+      "digest": "65e97762c4ebc73390cb0ef159317495e05f17c64bb5ee204207a7063075c65c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk07.md"
+    },
+    {
+      "chunk": 8,
+      "range": [
+        1496,
+        1735
+      ],
+      "words": 5981,
+      "digest": "d5d2cd17ac66b4444762d3d03814a9df2784af6cc6d6513bf55fe06cfe49193c",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk08.md"
+    },
+    {
+      "chunk": 9,
+      "range": [
+        1736,
+        1961
+      ],
+      "words": 5997,
+      "digest": "39cc66c735883f8619e245afaea33e516861e551e86cf3c23a9c20bd19678a60",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk09.md"
+    },
+    {
+      "chunk": 10,
+      "range": [
+        1962,
+        2189
+      ],
+      "words": 5891,
+      "digest": "07fc2d1bfbe4a25c61158a0732ca7e90389fc21c8c7a56920cdcd43dd6174ef7",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk10.md"
+    },
+    {
+      "chunk": 11,
+      "range": [
+        2190,
+        2404
+      ],
+      "words": 5998,
+      "digest": "b72247f6c8ce207ad9b1b1df9ff1fab2c6b44231759da927c277803bfc122294",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk11.md"
+    },
+    {
+      "chunk": 12,
+      "range": [
+        2405,
+        2634
+      ],
+      "words": 5972,
+      "digest": "abd40774d10efb51a8a27413fb664dd4ef49f53f94ba27ab8b4e23a3cddf3ae7",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk12.md"
+    },
+    {
+      "chunk": 13,
+      "range": [
+        2635,
+        2858
+      ],
+      "words": 5988,
+      "digest": "eec5d857814e6553b413ec23a5e9fd4c3f69ad1316496e453907309b658c5d3e",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk13.md"
+    },
+    {
+      "chunk": 14,
+      "range": [
+        2859,
+        3065
+      ],
+      "words": 5984,
+      "digest": "8c39addbbdc3bcf3fec2b9640b0a74de72b8c004554d009900bd52e93e65e5f1",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk14.md"
+    },
+    {
+      "chunk": 15,
+      "range": [
+        3066,
+        3270
+      ],
+      "words": 5998,
+      "digest": "4ed5ff94f78d46f4f42a5ca9fa37e8e3efc6c3c1e8b609b14a6c15255c76e005",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk15.md"
+    },
+    {
+      "chunk": 16,
+      "range": [
+        3271,
+        3489
+      ],
+      "words": 5976,
+      "digest": "15b26ca8e7592cf8a282a93e5a0146cad456d8c15ec4dd0b0e0e895c0d47eae0",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk16.md"
+    },
+    {
+      "chunk": 17,
+      "range": [
+        3490,
+        3691
+      ],
+      "words": 5999,
+      "digest": "2506236699e3ca4ebbc378e0a9104e44a98a7ec03a5c1dac194fedfd37590a36",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk17.md"
+    },
+    {
+      "chunk": 18,
+      "range": [
+        3692,
+        3730
+      ],
+      "words": 1243,
+      "digest": "07aab853734c66c7d66b7bfb9009b44c7cce5d3594136db20829857b23ba368d",
+      "status": "FULLY_INSPECTED",
+      "notes": "chunk18.md"
+    }
+  ],
+  "catalog_records": 446,
+  "recipe_candidates": 63,
+  "limitations": [
+    "Completeness means all normalized extracted source blocks were inspected. It is not a mathematical proof that no content mention escaped catalog indexing.",
+    "Recipes preserve missing source information and label game-authored additions. Quantities, labor, nutrition, yields and unlocks are not balanced or active.",
+    "The source has OCR artifacts and source-internal geography/pronoun contradictions, retained in library notes."
+  ],
+  "record_counts": {
+    "CHARACTER": 74,
+    "FACTION": 11,
+    "PLACE": 35,
+    "OBJECT": 53,
+    "CULTURE": 15,
+    "SYSTEM": 120,
+    "THEME": 12,
+    "FOOD": 63,
+    "INGREDIENT": 56,
+    "ECOLOGY": 7
+  },
+  "independent_qa": {
+    "scope": "All root sequential category notes inspected; targeted source blocks verified across these two books. No second full novel read claimed.",
+    "source_checks": [
+      71,
+      80,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      321,
+      586
+    ],
+    "game_components": 5
+  }
+}

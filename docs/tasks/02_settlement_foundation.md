@@ -488,3 +488,59 @@ GDExtension. Neither is decided.
   cache is justified — decision 0024 section 4 requires any cache's invalidation contract to cover
   every mutation before one may be authorised, and none is proposed here. Decision 0016 stays
   open.
+
+
+### ARCH-MIG-006 step 6 wiring — SettlementSystem production caller (done, 2026-09-08)
+
+Every core module measured across the WU-tick optimisation entries above —
+needs, schedule, priorities, jobs, work, reservations, and the entity directory
+beneath them — was built, tested and benchmarked with **no production caller**.
+The running game never invoked any of them, so every one of those figures
+described a benchmark fixture, not the game. This entry wires them in.
+
+- [x] Add the `SettlementSystem` autoload: compose the six stores once in
+  `_init()`, bind to `GameManager` as its simulation via a direct call rather
+  than a signal, and run the §5 stages that have an implemented owner —
+  interval integration, activity resolution immediately before the pass that
+  reads it, job selection, then productive work over live jobs — once per
+  completed tick, plus the season handover at the daily boundary.
+- [x] Give `GameManager` a `bind_simulation()`/`unbind_simulation()` pair that
+  refuses a second binding, forwards `completed_tick() + 1` so no second tick
+  counter can drift, and runs the day-boundary callback before the existing
+  `day_advanced` UI signal so the HUD never observes an uncommitted day.
+- [x] Point `main.gd` at `SettlementSystem.create_initial_settlement()` for the
+  §5.1 cohort instead of constructing `residents.gd` locally, and reset
+  `EconomySystem` before `SettlementSystem` on boot so the borrowed residents
+  binding is dropped before the store it points at is cleared.
+- [x] Name every one of the remaining 18 of 23 `systems_architecture.md` §5
+  stages in the new file's header, with the store each is blocked on, rather
+  than leaving the gap implicit.
+- [x] Mutation-test the new file: sixteen single-line mutations, one per run,
+  each restored and hash-verified. Fifteen killed; the one survivor was a
+  redundant emptiness guard duplicating a refusal `residents.gd` already owns
+  and was fixed by deleting the duplicate, not by adding a test that defends
+  duplicated logic (decision 0025).
+- [x] Re-measure; suite at 696 tests / 24,800 assertions / 0 failures (previous
+  entry 662/24,689/0), verified twice independently with identical numbers, plus
+  a clean editor import and a 300-frame boot with zero ERROR lines.
+- **Owners:** REQ-SET-003/004/007/011/143, ARCH-SYS-003/008/010/013/017,
+  ARCH-MIG-006 step 6. Depends on every store built and measured in the WU-tick
+  optimisation entries above.
+- **Evidence:** decision `0025-settlement-system-wiring.md`. First real
+  measurement of the actual autoload composition rather than a fixture: a
+  settlement tick costs a mean of 82 microseconds and a maximum of 135 at the
+  twelve-resident starting cohort, debug editor binary, macOS. This is not
+  REQ-SET-163 evidence — twelve residents is not 256, and qualification needs
+  an exported release build on the Windows reference floor. The job queue is
+  empty and stays empty: nothing creates a job (no production orders, recipes,
+  construction, care requests, hauling policy or harvest zones exist), and no
+  job source was invented to make the loop look busy. Known coverage gap:
+  `needs.tick_all()`'s refusal branch is unreachable from this suite without
+  corrupting needs state through a file this task does not own, so it is
+  untested and not claimed otherwise.
+- **Does not establish:** a playable colony, movement, a job source of any
+  kind, the remaining 18 §5 stages, or any REQ-SET-163 qualification claim. Two
+  further gaps block job completion even once a source exists: `jobs.gd`
+  eligibility implements 6 of 7 steps (no pathfinder), and `assign_worker()`
+  leaves a job at `JOB_STATE_RESERVED` because `RESERVED -> TRAVEL -> WORK` is
+  movement's responsibility and movement does not exist yet.

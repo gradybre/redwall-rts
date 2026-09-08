@@ -16,6 +16,7 @@ config/icon="res://icon.svg"
 
 EntityManager="*res://scripts/systems/entity_manager.gd"
 GameManager="*res://scripts/systems/game_manager.gd"
+SettlementSystem="*res://scripts/systems/settlement_system.gd"
 EconomySystem="*res://scripts/systems/economy_system.gd"
 CombatSystem="*res://scripts/systems/combat_system.gd"
 UIManager="*res://scripts/systems/ui_manager.gd"

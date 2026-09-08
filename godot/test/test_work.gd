@@ -194,6 +194,27 @@ func test_default_mood_worker_uses_the_1100_band() -> void:
 	assert_equal(_work.tick_solo(job).accepted_mwu, 88, "80*1100/1000 is 88 milli-WU a tick")
 
 
+func test_factor_reader_scratch_preserves_mood_and_health_boundaries() -> void:
+	"""Repeated hot-chain reads keep exact band edges while one internal result is reused."""
+	var worker: int = _spawn_worker()
+	assert_true(_residents.set_skill_xp(worker, JobsScript.JOB_KIND_KEEP, 500000).ok,
+		"the worker reaches level 10")
+	_set_all_needs(worker, 8500)
+	assert_true(_needs.apply_health_event(worker, -30).ok, "health reaches the 70 boundary")
+	assert_equal(_work.work_factor_of(worker, JobsScript.JOB_KIND_KEEP).value, 1725,
+		"mood 8500 and health 70 use their upper bands")
+	assert_true(_needs.apply_health_event(worker, -1).ok, "health crosses to 69")
+	assert_equal(_work.work_factor_of(worker, JobsScript.JOB_KIND_KEEP).value, 1466,
+		"health 69 uses the 850 band and floors once")
+	_set_all_needs(worker, 1999)
+	assert_equal(_work.work_factor_of(worker, JobsScript.JOB_KIND_KEEP).value, 765,
+		"mood 1999 uses the 600 band without losing the copied health")
+	var job: int = _worked_job(worker, 100000)
+	var ticked: WorkScript.TickResult = _work.tick_solo(job)
+	assert_equal(ticked.accepted_mwu, 61, "80*765/1000 releases 61 milli-WU")
+	assert_equal(_work.potential_remainder_of(worker).value, 200, "and retains the exact 200")
+
+
 func test_first_fractional_tick_carries_its_remainder() -> void:
 	"""80*510 = 40800 over 1000 releases 40 milli-WU and retains 800, per §5.2."""
 	var worker: int = _fractional_rate_worker()

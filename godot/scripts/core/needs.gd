@@ -56,7 +56,9 @@ extends RefCounted
 ## Its checked primitives ARE used, always in their non-allocating `_into` forms:
 ## checked_add_into() on the per-tick path in _integrate_step(), and checked_mul_into() /
 ## floor_div_into() for the compound size-and-season multiplication, the milli-hour readers,
-## and the mood and work factors. See _integrate_step() for why exactly one of the four
+## and the mood and work factors. The work-facing readers also publish caller-owned `_into`
+## forms; their allocating wrappers stay available for retained and cold-path results. See
+## _integrate_step() for why exactly one of the four
 ## accumulator operations still needs a runtime check and what is proven about the other
 ## three -- the answer is a bound with three explicit refusals guarding it, not an assumption.
 ##
@@ -701,10 +703,17 @@ func last_refused_slot() -> int:
 
 func need_of(slot: int, need: int) -> IntMath.IntResult:
 	"""Current value of one need, 0-10000. Refuses an unknown slot or need index."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	need_into(slot, need, out)
+	return out
+
+
+func need_into(slot: int, need: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `need_of()`: write one need into the caller-owned `out`."""
 	var code: StringName = _check_need_address(slot, need)
 	if code != REFUSE_NONE:
-		return _read(code, 0)
-	return _read(REFUSE_NONE, _need_value[slot * NEED_COUNT + need])
+		return out.refuse(String(code))
+	return out.succeed(_need_value[slot * NEED_COUNT + need])
 
 
 func need_remainder_of(slot: int, need: int) -> IntMath.IntResult:
@@ -727,8 +736,17 @@ func _check_need_address(slot: int, need: int) -> StringName:
 
 func health_of(slot: int) -> IntMath.IntResult:
 	"""Current health, 0-100."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	health_into(slot, out)
+	return out
+
+
+func health_into(slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `health_of()`: write current health into the caller-owned `out`."""
 	var code: StringName = _check_present_slot(slot)
-	return _read(code, _health[slot] if code == REFUSE_NONE else 0)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	return out.succeed(_health[slot])
 
 
 func health_remainder_of(slot: int) -> IntMath.IntResult:
@@ -771,8 +789,17 @@ func departure_days_of(slot: int) -> IntMath.IntResult:
 
 func status_of(slot: int) -> IntMath.IntResult:
 	"""ResidentStatus under the §5.2 precedence. See _refresh_status() for the ordering."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	status_into(slot, out)
+	return out
+
+
+func status_into(slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `status_of()`: write ResidentStatus into the caller-owned `out`."""
 	var code: StringName = _check_present_slot(slot)
-	return _read(code, _status[slot] if code == REFUSE_NONE else 0)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	return out.succeed(_status[slot])
 
 
 func size_class_of(slot: int) -> IntMath.IntResult:
@@ -1330,18 +1357,26 @@ func mood_of(slot: int, memory_total: int) -> IntMath.IntResult:
 	owner-major index formula unspecified; memory_value_of() publishes the §5.2 catalog values
 	so a caller can sum them without inventing anything.
 	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	mood_into(slot, memory_total, out)
+	return out
+
+
+func mood_into(slot: int, memory_total: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `mood_of()`, using caller-owned `out` for both arithmetic steps."""
 	var code: StringName = _check_present_slot(slot)
 	if code != REFUSE_NONE:
-		return _read(code, 0)
+		return out.refuse(String(code))
 	var base: int = slot * NEED_COUNT
 	var weighted: int = 0
 	for need: int in NEED_COUNT:
 		weighted += MOOD_WEIGHT[need] * _need_value[base + need]
-	if not IntMath.floor_div_into(weighted, MOOD_DIVISOR, _math):
-		return _read(REFUSE_OVERFLOW, 0)
-	if not IntMath.checked_add_into(_math.value, memory_total, _math):
-		return _read(REFUSE_OVERFLOW, 0)
-	return _read(REFUSE_NONE, clampi(_math.value, MOOD_MIN, MOOD_MAX))
+	if not IntMath.floor_div_into(weighted, MOOD_DIVISOR, out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	var needs_mood: int = out.value
+	if not IntMath.checked_add_into(needs_mood, memory_total, out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	return out.succeed(clampi(out.value, MOOD_MIN, MOOD_MAX))
 
 
 func mood_factor(mood: int) -> int:
@@ -1363,9 +1398,16 @@ func health_factor(health: int) -> int:
 
 func skill_factor(skill_level: int) -> IntMath.IntResult:
 	"""§5.2 skill factor: 1000 + 50*level, for a skill level of 0..10."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	skill_factor_into(skill_level, out)
+	return out
+
+
+func skill_factor_into(skill_level: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `skill_factor()`: write the factor into the caller-owned `out`."""
 	if skill_level < 0 or skill_level > SKILL_LEVEL_MAX:
-		return _read(REFUSE_INVALID_SKILL_LEVEL, 0)
-	return _read(REFUSE_NONE, SKILL_FACTOR_BASE + SKILL_FACTOR_PER_LEVEL * skill_level)
+		return out.refuse(String(REFUSE_INVALID_SKILL_LEVEL))
+	return out.succeed(SKILL_FACTOR_BASE + SKILL_FACTOR_PER_LEVEL * skill_level)
 
 
 func work_factor(skill_level: int, mood: int, health: int) -> IntMath.IntResult:
@@ -1375,16 +1417,26 @@ func work_factor(skill_level: int, mood: int, health: int) -> IntMath.IntResult:
 	no caller can pair a mood value with a health factor by mistake. The per-tick 80 milli-WU
 	work output that consumes this factor belongs to the labour slice, not to needs.
 	"""
-	var skill: IntMath.IntResult = skill_factor(skill_level)
-	if not skill.ok:
-		return skill
-	if not IntMath.checked_mul_into(skill.value, mood_factor(mood), _math):
-		return _read(REFUSE_OVERFLOW, 0)
-	if not IntMath.checked_mul_into(_math.value, health_factor(health), _math):
-		return _read(REFUSE_OVERFLOW, 0)
-	if not IntMath.floor_div_into(_math.value, WORK_FACTOR_DIVISOR, _math):
-		return _read(REFUSE_OVERFLOW, 0)
-	return _read(REFUSE_NONE, clampi(_math.value, WORK_FACTOR_MIN, WORK_FACTOR_MAX))
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	work_factor_into(skill_level, mood, health, out)
+	return out
+
+
+func work_factor_into(skill_level: int, mood: int, health: int,
+		out: IntMath.IntResult) -> bool:
+	"""Non-allocating `work_factor()`, reusing caller-owned `out` through every checked step."""
+	if not skill_factor_into(skill_level, out):
+		return false
+	var skill: int = out.value
+	if not IntMath.checked_mul_into(skill, mood_factor(mood), out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	var skill_mood: int = out.value
+	if not IntMath.checked_mul_into(skill_mood, health_factor(health), out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	var numerator: int = out.value
+	if not IntMath.floor_div_into(numerator, WORK_FACTOR_DIVISOR, out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	return out.succeed(clampi(out.value, WORK_FACTOR_MIN, WORK_FACTOR_MAX))
 
 
 func memory_value_of(memory_key: StringName) -> IntMath.IntResult:

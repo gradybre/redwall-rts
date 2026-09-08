@@ -16,6 +16,7 @@ extends "res://test/framework/test_case.gd"
 
 const NeedsScript := preload("res://scripts/core/needs.gd")
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 
 ## One game hour, in ticks (REQ-SET-006).
 const HOUR: int = 750
@@ -125,6 +126,55 @@ func test_readers_refuse_absent_rows_instead_of_answering_zero() -> void:
 	assert_false(_needs.need_of(0, NeedsScript.NEED_COUNT).ok, "unknown need index refuses")
 	assert_false(_needs.health_of(-1).ok, "negative slot refuses")
 	assert_true(_needs.health_of(0).ok, "a present row reads")
+
+
+func test_work_facing_into_readers_match_wrappers_at_their_boundaries() -> void:
+	"""Caller-owned readers preserve exact values at the bands the work chain depends on."""
+	_spawn()
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_needs.need_into(0, NeedsScript.NEED_REST, out), "rest reads into scratch")
+	assert_equal(out.value, _needs.need_of(0, NeedsScript.NEED_REST).value, "need parity")
+	assert_true(_needs.health_into(0, out), "health reads into the same scratch")
+	assert_equal(out.value, _needs.health_of(0).value, "health parity at 100")
+	assert_true(_needs.status_into(0, out), "status reads into the same scratch")
+	assert_equal(out.value, _needs.status_of(0).value, "status parity")
+	assert_true(_needs.mood_into(0, 0, out), "mood reads into the same scratch")
+	assert_equal(out.value, _needs.mood_of(0, 0).value, "mood parity at 7500")
+	assert_true(_needs.skill_factor_into(10, out), "maximum skill factor reads")
+	assert_equal(out.value, _needs.skill_factor(10).value, "skill factor parity at level 10")
+	assert_true(_needs.work_factor_into(10, 8500, 70, out), "threshold factors compose")
+	assert_equal(out.value, _needs.work_factor(10, 8500, 70).value, "work factor parity")
+	assert_equal(out.value, 1725, "level 10, mood 8500 and health 70 produce 1725")
+
+
+func test_work_facing_into_reuse_clears_stale_values_and_errors() -> void:
+	"""One output may cross success and refusal without leaking either prior channel."""
+	_spawn()
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_needs.need_into(0, NeedsScript.NEED_HUNGER, out), "seed a successful read")
+	assert_false(_needs.need_into(0, NeedsScript.NEED_COUNT, out), "invalid need refuses")
+	assert_equal(out.error, String(NeedsScript.REFUSE_INVALID_NEED), "the exact code is retained")
+	assert_equal(out.value, 0, "refusal clears the previous need")
+	assert_true(_needs.status_into(0, out), "a later status read succeeds")
+	assert_equal(out.error, "", "success clears the old refusal")
+	assert_false(_needs.mood_into(0, IntMath.INT64_MAX, out), "mood addition overflow refuses")
+	assert_equal(out.error, String(NeedsScript.REFUSE_OVERFLOW), "overflow keeps the public code")
+	assert_equal(out.value, 0, "overflow clears the previous status")
+	assert_false(_needs.work_factor_into(11, 8500, 70, out), "invalid skill still refuses")
+	assert_equal(out.error, String(NeedsScript.REFUSE_INVALID_SKILL_LEVEL), "factor refusal parity")
+	assert_equal(out.value, 0, "factor refusal also clears its scratch")
+
+
+func test_work_facing_allocating_wrappers_stay_fresh() -> void:
+	"""Convenience results may escape, so every call must return a distinct IntResult."""
+	_spawn()
+	assert_false(_needs.need_of(0, 0) == _needs.need_of(0, 0), "need results are fresh")
+	assert_false(_needs.health_of(0) == _needs.health_of(0), "health results are fresh")
+	assert_false(_needs.status_of(0) == _needs.status_of(0), "status results are fresh")
+	assert_false(_needs.mood_of(0, 0) == _needs.mood_of(0, 0), "mood results are fresh")
+	assert_false(_needs.skill_factor(0) == _needs.skill_factor(0), "skill results are fresh")
+	assert_false(_needs.work_factor(0, 5000, 100) == _needs.work_factor(0, 5000, 100),
+		"work-factor results are fresh")
 
 
 func test_despawn_clears_the_row_and_the_living_count() -> void:

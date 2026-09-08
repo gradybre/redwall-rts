@@ -1570,15 +1570,34 @@ func test_clearing_a_coordinator_link_restores_an_ordinary_job() -> void:
 	assert_equal(_jobs.member_count_of(coordinator).value, 0, "and the party is empty")
 
 
-func test_resident_may_work_reports_eligibility_step_one() -> void:
-	"""One published implementation of step 1, so `work.gd` cannot carry a disagreeing copy."""
+func test_resident_may_work_into_preserves_step_one_and_wrapper_references() -> void:
+	"""The non-allocating predicate keeps exact refusals; wrappers stay fresh with full refs."""
 	var worker: int = _spawn_worker()
-	assert_true(_jobs.resident_may_work(worker).ok, "a healthy, rested resident may work")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_jobs.resident_may_work_into(worker, out), "a healthy resident may work")
+	assert_equal(out.value, worker, "the caller-owned result carries the resident slot")
+	var first: JobsScript.OpResult = _jobs.resident_may_work(worker)
+	var second: JobsScript.OpResult = _jobs.resident_may_work(worker)
+	assert_true(first.ok, "healthy allocating predicate succeeds")
+	assert_true(second.ok, "repeated allocating predicate succeeds")
+	assert_false(first == second, "each convenience call returns a fresh OpResult")
+	assert_equal(first.ref, _residents.ref_of(worker), "the wrapper preserves the resident ref")
 	var rest: IntMath.IntResult = _needs.need_of(worker, NeedsScript.NEED_REST)
-	assert_true(_needs.apply_need_event(worker, NeedsScript.NEED_REST, 400 - rest.value).ok,
-		"rest falls to 400")
+	assert_true(_needs.apply_need_event(worker, NeedsScript.NEED_REST, 500 - rest.value).ok,
+		"rest reaches the exact collapse boundary")
+	assert_false(_jobs.resident_may_work_into(worker, out), "rest 500 refuses")
+	assert_equal(out.error, String(JobsScript.REFUSE_REST_COLLAPSED), "with step 1's code")
+	assert_equal(out.value, 0, "the refusal clears the prior worker slot")
 	var collapsed: JobsScript.OpResult = _jobs.resident_may_work(worker)
-	assert_false(collapsed.ok, "REQ-SET-015 stops work at rest<=500")
-	assert_equal(collapsed.error, JobsScript.REFUSE_REST_COLLAPSED, "with step 1's own code")
+	assert_false(collapsed.ok, "the allocating predicate also refuses collapsed residents")
+	assert_equal(collapsed.error, JobsScript.REFUSE_REST_COLLAPSED, "wrapper retains collapse code")
+	assert_equal(collapsed.ref, EntityDirectory.NULL_REF, "a refused wrapper keeps the null ref")
+	assert_true(_needs.apply_need_event(worker, NeedsScript.NEED_REST, 1).ok, "rest reaches 501")
+	assert_true(_jobs.resident_may_work_into(worker, out), "501 permits work")
+	assert_equal(out.error, "", "success clears the old refusal")
+	assert_false(_jobs.resident_may_work_into(JobsScript.AGENT_CAPACITY, out),
+		"an out-of-range resident refuses")
 	assert_false(_jobs.resident_may_work(JobsScript.AGENT_CAPACITY).ok,
-		"and an out-of-range resident refuses rather than answering yes")
+		"the allocating wrapper also refuses an out-of-range resident")
+	assert_equal(out.error, String(JobsScript.REFUSE_INVALID_RESIDENT_SLOT), "the address code")
+	assert_equal(out.value, 0, "the address refusal clears the reused output")

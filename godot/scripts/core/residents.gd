@@ -663,18 +663,32 @@ func is_selected(slot: int) -> bool:
 
 func skill_xp_of(slot: int, skill: int) -> IntMath.IntResult:
 	"""XP in one of the 12 skill columns, or an explicit refusal."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	skill_xp_into(slot, skill, out)
+	return out
+
+
+func skill_xp_into(slot: int, skill: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `skill_xp_of()`: write one XP column into caller-owned `out`."""
 	var code: StringName = _check_skill_address(slot, skill)
 	if code != REFUSE_NONE:
-		return _read_refusal(code)
-	return _read_value(_skill_xp[slot * SKILL_COUNT + skill])
+		return out.refuse(String(code))
+	return out.succeed(_skill_xp[slot * SKILL_COUNT + skill])
 
 
 func skill_level_of(slot: int, skill: int) -> IntMath.IntResult:
 	"""Level in one of the 12 skill columns, or an explicit refusal."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	skill_level_into(slot, skill, out)
+	return out
+
+
+func skill_level_into(slot: int, skill: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `skill_level_of()`: write one level column into caller-owned `out`."""
 	var code: StringName = _check_skill_address(slot, skill)
 	if code != REFUSE_NONE:
-		return _read_refusal(code)
-	return _read_value(_skill_level[slot * SKILL_COUNT + skill])
+		return out.refuse(String(code))
+	return out.succeed(_skill_level[slot * SKILL_COUNT + skill])
 
 
 func skill_level_for_xp(xp: int) -> int:

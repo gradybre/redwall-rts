@@ -567,6 +567,9 @@ var _skill_scratch: PackedInt32Array = PackedInt32Array()
 var _priority_scratch: PackedInt32Array = PackedInt32Array()
 var _dangerous_consent_scratch: bool = false
 var _hazard_locked_scratch: bool = false
+## Caller-owned reader output for internal eligibility paths. Values are consumed before reuse;
+## no callback or signal can re-enter this module while one is live.
+var _math: IntMath.IntResult = IntMath.IntResult.new()
 
 ## The incumbent best candidate of the pass in progress. `_best_slot` is -1 only while no
 ## candidate has been offered; it is internal scratch and never leaves this module as a value.
@@ -1589,13 +1592,21 @@ func resident_may_work(resident_slot: int) -> OpResult:
 	resident's work with a rescue -- and publishing the one implementation is what stops a
 	second, disagreeing copy of step 1 existing in another file.
 	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not resident_may_work_into(resident_slot, out):
+		return _refuse(StringName(out.error))
+	return _succeed(out.value, _residents.ref_of(resident_slot))
+
+
+func resident_may_work_into(resident_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `resident_may_work()`, preserving step 1's explicit refusal code in `out`."""
 	var code: StringName = _check_agent_slot(resident_slot)
 	if code != REFUSE_NONE:
-		return _refuse(code)
-	code = _health_and_rescue_gate(resident_slot)
+		return out.refuse(String(code))
+	code = _health_and_rescue_gate(resident_slot, out)
 	if code != REFUSE_NONE:
-		return _refuse(code)
-	return _succeed(resident_slot, _residents.ref_of(resident_slot))
+		return out.refuse(String(code))
+	return out.succeed(resident_slot)
 
 
 func agent_persistent_id_of(resident_slot: int) -> IntMath.IntResult:
@@ -1941,7 +1952,7 @@ func _load_resident_scratch(resident_slot: int) -> StringName:
 
 func _resident_work_gate(resident_slot: int) -> StringName:
 	"""Eligibility steps 1 and 2: health/rescue safety, then activity permits work."""
-	var code: StringName = _health_and_rescue_gate(resident_slot)
+	var code: StringName = _health_and_rescue_gate(resident_slot, _math)
 	if code != REFUSE_NONE:
 		return code
 	var activity: IntMath.IntResult = _schedule.current_activity_of(resident_slot)
@@ -1952,24 +1963,22 @@ func _resident_work_gate(resident_slot: int) -> StringName:
 	return REFUSE_NONE
 
 
-func _health_and_rescue_gate(resident_slot: int) -> StringName:
+func _health_and_rescue_gate(resident_slot: int, out: IntMath.IntResult) -> StringName:
 	"""Eligibility step 1: a dead, incapacitated or collapsed resident takes no job.
 
 	REQ-SET-023 replaces an incapacitated resident's own work with a rescue job created for them,
 	and REQ-SET-015 cancels ordinary work outright at rest<=500. Both are exclusions, not
 	rankings: bucket 0 is about the job that rescues someone, never about the casualty working.
 	"""
-	var status: IntMath.IntResult = _needs.status_of(resident_slot)
-	if not status.ok:
+	if not _needs.status_into(resident_slot, out):
 		return REFUSE_NEEDS_UNAVAILABLE
-	if status.value == NeedsScript.STATUS_DEAD:
+	if out.value == NeedsScript.STATUS_DEAD:
 		return REFUSE_RESIDENT_DEAD
-	if status.value == NeedsScript.STATUS_INCAPACITATED:
+	if out.value == NeedsScript.STATUS_INCAPACITATED:
 		return REFUSE_RESIDENT_INCAPACITATED
-	var rest: IntMath.IntResult = _needs.need_of(resident_slot, NeedsScript.NEED_REST)
-	if not rest.ok:
+	if not _needs.need_into(resident_slot, NeedsScript.NEED_REST, out):
 		return REFUSE_NEEDS_UNAVAILABLE
-	if rest.value <= REST_COLLAPSE_THRESHOLD:
+	if out.value <= REST_COLLAPSE_THRESHOLD:
 		return REFUSE_REST_COLLAPSED
 	return REFUSE_NONE
 
@@ -2053,12 +2062,11 @@ func refresh_hazard_latch(resident_slot: int) -> OpResult:
 	var code: StringName = _check_agent_slot(resident_slot)
 	if code != REFUSE_NONE:
 		return _refuse(code)
-	var rest: IntMath.IntResult = _needs.need_of(resident_slot, NeedsScript.NEED_REST)
-	if not rest.ok:
+	if not _needs.need_into(resident_slot, NeedsScript.NEED_REST, _math):
 		return _refuse(REFUSE_NEEDS_UNAVAILABLE)
-	if rest.value <= REST_COLLAPSE_THRESHOLD:
+	if _math.value <= REST_COLLAPSE_THRESHOLD:
 		_agent_hazard_locked[resident_slot] = 1
-	elif rest.value >= REST_HAZARD_CLEAR_THRESHOLD:
+	elif _math.value >= REST_HAZARD_CLEAR_THRESHOLD:
 		_agent_hazard_locked[resident_slot] = 0
 	return _succeed(_agent_hazard_locked[resident_slot], NULL_REF)
 

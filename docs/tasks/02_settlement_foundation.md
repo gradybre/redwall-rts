@@ -316,3 +316,19 @@ If the measured gain is small, report the real number. An honest 20% is worth
 more than a claimed 60%, and it is evidence for the remaining options in 0016 —
 which include inlining compared against the retained reference integrator, and
 GDExtension. Neither is decided.
+
+
+### WU reader follow-up — ADR 0016 (done, 2026-09-07)
+
+- [x] Add reusable needs/residents readers and migrate work-factor/eligibility/XP callers.
+- [x] Preserve convenience-result ownership, exact refusal behavior and integer formulas.
+- [x] Add regression coverage; 631 tests / 19,381 assertions / 0 failures.
+- [x] Retain a benchmark harness and compare six fixtures twice before and after.
+- **Owners:** REQ-SET-015/020/023, BAL-WORK-001, ARCH-AUTH-003, ARCH-MEM-001,
+  ARCH-MIG-006; ADR 0015/0016. Depends on existing needs, residents, jobs and WU stores.
+- **Evidence and exact next task:** [work reader report](../validation/work_reader_benchmark.md).
+  No existing semantic test retired. The earlier 2.12 absences describe that milestone:
+  WU/XP and coordinator subsequently landed in `a8e6e18`; movement, production and save
+  limitations are not closed by this follow-up.
+- **Does not establish:** release/minimum-hardware budgets, actual 4× rendered-frame CPU,
+  complete colony gameplay, expanded movement gates, or missing environmental work factors.

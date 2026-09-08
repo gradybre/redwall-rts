@@ -170,3 +170,17 @@ Add allocation-free `_into` readers to the owning modules, retain the existing
 convenience readers, and **measure again**. That does not require choosing
 between this record's four options, and does not change needs timing. Status
 stays open until a release-build measurement on documented hardware exists.
+
+
+## Reader optimization follow-up (2026-09-07)
+
+Implemented caller-owned needs/residents readers and migrated factor, work eligibility,
+hazard-latch and XP reads without changing integration timing or gameplay formulas.
+Convenience results remain fresh; the whole WU tick still has other allocations.
+
+The original benchmark driver was missing, so the retained new harness compares source
+commit `48e92ce` with the updated code under the same explicit fixture. Measurements,
+24-process before/after parity, limitations, reproduction commands and test evidence are
+recorded in [the validation report](../validation/work_reader_benchmark.md). The two-tick
+aggregate is a CPU proxy, not a rendered-frame qualification. This follow-up does not
+choose among the four architectural options. **Status remains open.**

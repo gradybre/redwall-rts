@@ -88,7 +88,7 @@ extends RefCounted
 ##   * the Job is in JOB_STATE_WORK -- JOB_STATE_TRAVEL, RESERVED and HAUL_OUTPUT are the same
 ##     row in a non-producing phase, and eating, social and sleep are not Jobs at all,
 ##   * the Job has a live bound worker with a live JobAgent row,
-##   * `jobs.resident_may_work()` passes -- §5.3 eligibility step 1, the ONE implementation,
+##   * `jobs.resident_may_work_into()` passes -- §5.3 eligibility step 1, the ONE implementation,
 ##     called rather than copied, so REQ-SET-015's rest<=500 cancellation and REQ-SET-023's
 ##     incapacity exclusion apply on the productive tick and not only at assignment.
 ##
@@ -122,15 +122,12 @@ extends RefCounted
 ##
 ## ---------------------------------------------------------------------------------------
 ## ALLOCATION. Every column is sized once in `_init()` and nothing outside `_allocate_columns()`
-## calls `resize()`. The party walk, the acceptance arithmetic, the proportional split and the
-## remainder carries allocate NOTHING: they run on packed columns through a single reused
-## IntResult, and `jobs.gd` publishes `remaining_mwu_into()`, `consume_remaining_mwu_into()`,
-## `state_into()`, `kind_into()`, `first_member_into()` and `next_member_into()` for exactly that
-## reason. The unavoidable cost is FOUR IntResult objects per contributing worker per tick, from
-## `residents.skill_level_of()`, `needs.health_of()`, `needs.mood_of()` and `needs.work_factor()`
-## -- plus one more inside `work_factor()` for `skill_factor()`, so five. Those two files publish
-## no `_into` reader forms and are NOT owned by this task, so five per contributing worker per
-## tick is the floor available here. Named, measured, and reported rather than worked around.
+## calls `resize()`. The party walk, acceptance arithmetic, proportional split and remainder
+## carries run on packed columns through one reused IntResult. The factor and resident work-gate
+## reader chains use caller-owned `_into` forms; each live value is copied into an integer before
+## that scratch is reused, so nested reads cannot alias an input. The persistent-ID convenience
+## read, escaping TickResult, and XP mutator result retain their existing allocations. Allocating
+## reader wrappers remain fresh for cold paths and callers that keep a result.
 ##
 ## REFUSAL, NOT SENTINELS. Every operation returns a TickResult or an OpResult whose `.ok` must
 ## be inspected, and a refusal carries zero work, zero contributors and `completed = false`. "No
@@ -450,21 +447,20 @@ func _compute_factor(resident_slot: int, skill: int) -> StringName:
 	Nothing is derived here. Every band, weight and clamp lives in `needs.gd`; this assembles the
 	three arguments from their owning columns and passes them straight through.
 	"""
-	var level: IntMath.IntResult = _residents.skill_level_of(resident_slot, skill)
-	if not level.ok:
+	if not _residents.skill_level_into(resident_slot, skill, _math):
 		return REFUSE_SKILLS_UNAVAILABLE
-	var health: IntMath.IntResult = _needs.health_of(resident_slot)
-	if not health.ok:
+	var level: int = _math.value
+	if not _needs.health_into(resident_slot, _math):
 		return REFUSE_NEEDS_UNAVAILABLE
-	var mood: IntMath.IntResult = _needs.mood_of(resident_slot, _memory_total[resident_slot])
-	if not mood.ok:
+	var health: int = _math.value
+	if not _needs.mood_into(resident_slot, _memory_total[resident_slot], _math):
 		return REFUSE_NEEDS_UNAVAILABLE
-	var factor: IntMath.IntResult = _needs.work_factor(level.value, mood.value, health.value)
-	if not factor.ok:
+	var mood: int = _math.value
+	if not _needs.work_factor_into(level, mood, health, _math):
 		return REFUSE_FACTOR_UNAVAILABLE
-	assert(factor.value >= WORK_FACTOR_MIN and factor.value <= WORK_FACTOR_MAX,
+	assert(_math.value >= WORK_FACTOR_MIN and _math.value <= WORK_FACTOR_MAX,
 		"§5.2 clamps the work factor to 300..1800")
-	_factor_out = factor.value
+	_factor_out = _math.value
 	return REFUSE_NONE
 
 
@@ -580,7 +576,7 @@ func _offer_contributor(job_slot: int) -> StringName:
 	var resident_slot: int = _directory.get_typed_row(worker)
 	if resident_slot == EntityDirectory.NULL_SLOT:
 		return REFUSE_JOB_HAS_NO_WORKER
-	if not _jobs.resident_may_work(resident_slot).ok:
+	if not _jobs.resident_may_work_into(resident_slot, _math):
 		return REFUSE_JOB_NOT_WORKING
 	if not _jobs.kind_into(job_slot, _math):
 		return StringName(_math.error)
@@ -710,10 +706,10 @@ func _credit_xp(resident_slot: int, skill: int, accepted: int) -> StringName:
 	_xp_remainder[index] = accumulator - whole * MILLI_WU_PER_WU
 	if whole == 0:
 		return REFUSE_NONE
-	var current: IntMath.IntResult = _residents.skill_xp_of(resident_slot, skill)
-	if not current.ok:
+	if not _residents.skill_xp_into(resident_slot, skill, _math):
 		return REFUSE_SKILLS_UNAVAILABLE
-	if not IntMath.checked_add_into(current.value, whole * XP_PER_WU, _math):
+	var current: int = _math.value
+	if not IntMath.checked_add_into(current, whole * XP_PER_WU, _math):
 		return REFUSE_OVERFLOW
 	if not _residents.set_skill_xp(resident_slot, skill, _math.value).ok:
 		return REFUSE_XP_WRITE_FAILED

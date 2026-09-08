@@ -332,3 +332,25 @@ GDExtension. Neither is decided.
   limitations are not closed by this follow-up.
 - **Does not establish:** release/minimum-hardware budgets, actual 4× rendered-frame CPU,
   complete colony gameplay, expanded movement gates, or missing environmental work factors.
+
+
+### WU tick profiling and adversarial workloads — ADR 0016 (done, 2026-09-08)
+
+- [x] Profile the remaining productive-WU cost with isolated per-part probes: persistent-ID
+  reader, XP write, escaping tick result, plus the factor chain and eligibility gate for
+  comparison.
+- [x] Add adversarial mixed-band (`bands`) and party-structure (`party`, decision 0017
+  coordinators sizes 1–8) workloads beyond the original single-job-per-resident fixture.
+- [x] Re-measure; suite unchanged at 631 tests / 19,381 assertions / 0 failures because no
+  `godot/scripts` file was modified.
+- **Owners:** REQ-SET-015/020/023, BAL-WORK-001, ARCH-AUTH-003, ARCH-MEM-001, ARCH-MIG-006;
+  ADR 0015/0016/0017. Depends on the retained benchmark harness from the reader follow-up above.
+- **Evidence:** [WU tick profiling report](../validation/work_profile_2026-09-08.md) and
+  `docs/decisions/0016-needs-tick-consumes-most-of-the-budget.md`'s 2026-09-08 entry. The
+  three named suspects (pid/xp/result) are a smaller share of the tick than the reader
+  follow-up's inferred ~64%; the factor chain and un-isolated call-graph work are larger.
+  Party structure (256 progress rows vs. 59 coordinators) is the largest effect measured, found
+  incidentally rather than by a workload built to isolate it.
+- **Does not establish:** a choice among decision 0016's four architectural options, a release
+  or qualification-floor measurement, or any change to work arithmetic, needs timing, or
+  coordinator/member job structure.

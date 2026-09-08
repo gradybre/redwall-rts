@@ -184,3 +184,65 @@ commit `48e92ce` with the updated code under the same explicit fixture. Measurem
 recorded in [the validation report](../validation/work_reader_benchmark.md). The two-tick
 aggregate is a CPU proxy, not a rendered-frame qualification. This follow-up does not
 choose among the four architectural options. **Status remains open.**
+
+
+## Profiling and adversarial workloads (2026-09-08) — the 64% figure does not survive decomposition
+
+Per the reader follow-up's own "exact next task," the remaining productive-WU tick cost was
+profiled directly instead of estimated again, and adversarial workloads were added before any
+further change to work arithmetic or needs timing. No file under `godot/scripts` was touched by
+this entry; `tools/benchmark_work.gd` and `tools/run_work_benchmark.py` gained isolated-part
+probes (`loop`, `pid`, `xp`, `result`, `factor`, `gate`) and two workloads beyond the original
+single-job-per-resident fixture (`bands`, spreading residents across §5.2's mood/health bands so
+the population is not uniform; `party`, decision 0017 coordinators of sizes 1–8). Evidence is in
+[the new validation report](../validation/work_profile_2026-09-08.md) and
+`validation-results/work-profile-2026-09-08/`.
+
+**The three named suspects are not the load-bearing cost.** The reader follow-up's 45%/19%
+figures were themselves decomposed further: the `work_factor_of()` reader chain (`factor` probe)
+and `resident_may_work()` (`gate` probe) had already been optimized by the reader follow-up above,
+and profiling the three remaining named suspects — `jobs.agent_persistent_id_of()` (`pid`), the
+XP-credit write (`xp`), and the escaping `TickResult` (`result`) — puts them at roughly **16%** of
+the WU tick combined at 256 residents, not the ~64% the original reader-plumbing estimate implied
+for the whole reader-call category. The `factor` probe alone, at roughly **24%**, is still larger
+than the three named suspects combined, and roughly half the tick is call-graph work no isolated
+probe accounts for. **A probe measures the cost of running that named part alone, in the same loop
+shape, with the same fixed per-iteration floor (`loop`) paid by every probe** — it does not measure
+what removing that part from the full tick would recover, because probes omit interaction
+(instruction-cache pressure, branch history, allocator state) that a full tick carries. The
+percentages above are ratios of isolated measurements, not attributions of cause. The correction
+already on record above — "the causation claim in this record overreaches" — stands and is not
+reintroduced by this entry.
+
+**Party structure is the largest measured effect found so far.** Holding resident state identical
+(the `bands` workload) and changing only job plumbing — 256 solo progress rows versus 59
+decision-0017 coordinators for the same 256 residents — costs about 450 microseconds less at the
+median for the combined needs+WU tick at 256 residents. Against 197 fewer progress rows
+(256 − 59), that implies a fixed per-progress-row overhead of at least 2.28 microseconds, against a
+whole-tick cost on the order of 11.34 microseconds per contributor. This was not a change under
+test; it is an incidental finding from comparing the `bands` and `party` workloads that existed
+only to give the per-part probes a non-synchronized population.
+
+**The `uniform` workload — the one this record's own earlier measurements used — has a p99
+artifact.** It gives every one of the 256 residents work factor exactly 1100 (the default spawn
+stats), so `80 * 1100 / 1000` releases exactly 88 milli-WU with a remainder of exactly zero on
+every tick, which means all 256 XP accumulators cross the 1000-milli-WU threshold on the same
+tick. Its p99 tail is a synchronized burst that no realistic settlement produces, not a genuine
+worst case. `bands` desynchronizes it and should be the reference workload for any future p99
+claim; a change scored against `uniform` p99 alone is partly being scored against this artifact.
+
+**Incidental finding, nothing changed:** `needs.gd`'s `work_factor()` clamp of
+`WORK_FACTOR_MIN`/`WORK_FACTOR_MAX` (300/1800) can never bind. The published band tables give a
+legal range of 360–1725, so no fixture — adversarial or otherwise — can drive that branch. It is
+unreachable rather than untested.
+
+**Scope of this measurement, restated because it still applies.** This is the editor binary
+(Godot 4.7.2.stable.official.ed1daf0bf) on an Apple M5 Pro; `godot/export_presets.cfg` is absent
+and the local export-template directory is empty, both recorded directly in the driver's
+`build_context`. This is neither a release measurement nor the REQ-SET-163 qualification-floor
+measurement (Ryzen 5 3600 / GTX 1660 Super / 16 GB), and no figure in this entry may be read
+against that budget. Verified: 631 tests / 19,381 assertions / 0 failures, unchanged from the
+prior entry, because no game code was touched. **Status remains open.** Selecting between this
+record's four architectural options still requires a release-build measurement on documented
+qualification hardware; this entry only replaces an inferred 64% reader-plumbing share with a
+measured, and smaller, one.

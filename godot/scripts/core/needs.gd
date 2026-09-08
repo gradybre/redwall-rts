@@ -57,7 +57,11 @@ extends RefCounted
 ## checked_add_into() on the per-tick path in _integrate_step(), and checked_mul_into() /
 ## floor_div_into() for the compound size-and-season multiplication, the milli-hour readers,
 ## and the mood and work factors. The work-facing readers also publish caller-owned `_into`
-## forms; their allocating wrappers stay available for retained and cold-path results. See
+## forms; their allocating wrappers stay available for retained and cold-path results.
+## work_factor_for_resident_into() fuses the three of them a work tick calls per resident into
+## one call that validates the row once (decision 0024 section 4). It is a call-count
+## reduction and NOT A CACHE: it retains nothing, holds no dirty flag, adds no invalidation
+## rule, and observes exactly the tick's own column values. See
 ## _integrate_step() for why exactly one of the four
 ## accumulator operations still needs a runtime check and what is proven about the other
 ## three -- the answer is a bound with three explicit refusals guarding it, not an assumption.
@@ -1367,6 +1371,19 @@ func mood_into(slot: int, memory_total: int, out: IntMath.IntResult) -> bool:
 	var code: StringName = _check_present_slot(slot)
 	if code != REFUSE_NONE:
 		return out.refuse(String(code))
+	return _mood_of_checked_row_into(slot, memory_total, out)
+
+
+func _mood_of_checked_row_into(slot: int, memory_total: int, out: IntMath.IntResult) -> bool:
+	"""REQ-SET-020's mood for a row `_check_present_slot()` has ALREADY accepted.
+
+	THIS IS THE ONE IMPLEMENTATION OF THE MOOD FORMULA. `mood_into()` validates the slot and
+	delegates here; `work_factor_for_resident_into()` calls it after its own single validation.
+	The weighted sum, the divisor, the memory term and the clamp therefore exist exactly once,
+	so the fused reader cannot drift away from the unfused chain (decision 0024 section 4).
+
+	It is private because it trusts its caller about the slot, which no published reader may.
+	"""
 	var base: int = slot * NEED_COUNT
 	var weighted: int = 0
 	for need: int in NEED_COUNT:
@@ -1437,6 +1454,37 @@ func work_factor_into(skill_level: int, mood: int, health: int,
 	if not IntMath.floor_div_into(numerator, WORK_FACTOR_DIVISOR, out):
 		return out.refuse(String(REFUSE_OVERFLOW))
 	return out.succeed(clampi(out.value, WORK_FACTOR_MIN, WORK_FACTOR_MAX))
+
+
+func work_factor_for_resident_into(resident_slot: int, skill_level: int, memory_total: int,
+		out: IntMath.IntResult) -> bool:
+	"""Decision 0024 section 4's fused reader: §5.2's work factor for one resident, in one call.
+
+	VALIDATES THE ROW ONCE. The chain this replaces cost a work tick three calls into this module
+	per resident -- `health_into()`, `mood_into()`, `work_factor_into()` -- and the first two
+	each ran `_check_present_slot()` on the same row. This is one call, one presence check, and
+	a direct read of the health column. That is the whole of the change: a CALL-COUNT REDUCTION.
+
+	IT KEEPS ONE CANONICAL FORMULA. The mood term comes from `_mood_of_checked_row_into()` and
+	the factor from `work_factor_into()` -- the same two implementations the unfused chain runs,
+	called rather than copied. There is no second copy of a §7.1-verified formula here.
+
+	IT IS NOT A CACHE. Nothing is retained between calls, no dirty flag exists and no validity
+	rule is introduced, so every call reads the columns as they stand this instant and observes
+	exactly the tick the unfused chain would have observed. Decision 0024 section 4 reserves
+	caching for a separate decision whose contract must cover every mutation.
+
+	REFUSAL ORDER MATCHES THE CHAIN: the resident row is judged before the skill level, exactly
+	as the chain judged it in `health_into()` before `work_factor_into()`.
+	"""
+	var code: StringName = _check_present_slot(resident_slot)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	if not _mood_of_checked_row_into(resident_slot, memory_total, out):
+		return false
+	var mood: int = out.value
+	var health: int = _health[resident_slot]
+	return work_factor_into(skill_level, mood, health, out)
 
 
 func memory_value_of(memory_key: StringName) -> IntMath.IntResult:

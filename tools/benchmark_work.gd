@@ -55,8 +55,43 @@ extends SceneTree
 ## `coordinator|...` lines after the per-worker lines; a workload with no coordinator rows
 ## appends none, so v1 compatibility is a property of the rows present, not of a version flag.
 ## `hash_lines` is reported so the line count of any run can be checked against that claim.
+##
+## ---------------------------------------------------------------------------------------
+## THE DRIFT CONTROLS, AND WHY `needs` STOPPED BEING ONE.
+##
+## Every measurement in this series has carried a same-session control: a config whose code is
+## BYTE-IDENTICAL on both sides, run interleaved with the config under test, so a machine that
+## drifts between the two sides is visible rather than attributed to the change. `needs` played
+## that part while every change landed in `work.gd`.
+##
+## The fused-reader step of decision 0024 section 4 lands IN `needs.gd`, so `needs.tick_all()`
+## is compiled from a file that differs between the two sides and can no longer serve, whether
+## or not the functions it calls were themselves edited. `loop` cannot replace it either: it is
+## a bare index-and-add pass, tens of microseconds at population 256, small enough that the
+## 1 us clock quantisation of `Time.get_ticks_usec()` is a material share of its reading.
+##
+## `dirctl` and `prioctl` replace it. Each sweeps every resident of the SAME fixture at the SAME
+## population through readers owned by a module the fused-reader change does not touch --
+## `entity_directory.gd` and `priorities.gd` respectively -- doing the same KIND of work the
+## configs under test do: bounds-checked and generation-checked reads out of packed integer
+## columns, returned through this repository's ordinary result protocol.
+##
+## THEY ARE DELIBERATELY A PAIR, AND DELIBERATELY DIFFERENT IN ONE PROPERTY. `dirctl` allocates
+## nothing: every `entity_directory.gd` reader it calls returns a plain `int` or `bool`.
+## `prioctl` allocates one `IntMath.IntResult` per call, five per resident, because
+## `priorities.gd` publishes no `_into` form. A control that only measured one of those two
+## regimes could move for a reason the config under test does not share -- allocator state on
+## the one hand, pure integer throughput on the other. Two controls that move together
+## characterise the session's drift; two that disagree say the drift is not uniform and the
+## comparison needs more runs, which is a finding rather than a silent error.
+##
+## WHAT THEY ARE NOT. They are not a model of the work tick and no arithmetic may be performed
+## between a control's reading and a measured config's. Their only claim is that identical code
+## measured under identical conditions should report an identical time, and their movement is
+## the size of the error bar the machine imposed on everything measured beside them.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
+const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const NeedsScript := preload("res://scripts/core/needs.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const PrioritiesScript := preload("res://scripts/core/priorities.gd")
@@ -89,7 +124,7 @@ const KIND_STRIDE: int = 5
 const SKILL_LEVEL_STRIDE: int = 7
 
 const CONFIGS: Array[String] = ["needs", "wu", "combined", "loop", "pid", "xp", "result",
-	"factor", "gate", "party_fast", "party_finish"]
+	"factor", "gate", "party_fast", "party_finish", "dirctl", "prioctl"]
 const WORKLOADS: Array[String] = ["uniform", "bands", "party"]
 const PARTY_ONLY_CONFIGS: Array[String] = ["party_fast", "party_finish"]
 
@@ -101,6 +136,7 @@ var _priorities: PrioritiesScript
 var _schedule: ScheduleScript
 var _jobs: JobsScript
 var _work: WorkScript
+var _directory: EntityDirectory
 
 ## One entry per worker. `_worker_job` is the row that worker is bound to: its own solo job in
 ## the `uniform`/`bands` workloads, its member job in `party`.
@@ -111,6 +147,11 @@ var _worker_skill: PackedInt32Array = PackedInt32Array()
 ## `mood_into()` the same integer `work._compute_factor()` reads from its own column, without a
 ## convenience reader's allocation appearing inside a probe that is not about allocation.
 var _worker_memory: PackedInt32Array = PackedInt32Array()
+## Each worker's EntityRef, split into its slot and generation columns so no Vector2i array
+## exists in the fixture. `dirctl` rebuilds the Vector2i inside its loop, which is a stack value
+## in GDScript and allocates nothing, so that control stays allocation-free as its name claims.
+var _worker_ref_slot: PackedInt32Array = PackedInt32Array()
+var _worker_ref_generation: PackedInt32Array = PackedInt32Array()
 ## The rows a productive tick is issued against, and which hold the authoritative outstanding
 ## work: the solo jobs, or the coordinators of the `party` workload.
 var _progress_slots: PackedInt32Array = PackedInt32Array()
@@ -222,12 +263,15 @@ func _setup(population: int, workload: String) -> bool:
 	_schedule = ScheduleScript.new(_needs)
 	_jobs = JobsScript.new(_residents, _priorities, _schedule)
 	_work = WorkScript.new(_jobs)
+	_directory = _residents.directory()
 	_is_party = workload == "party"
 	_fill_kind_cycle()
 	_worker_slots.resize(population)
 	_worker_job.resize(population)
 	_worker_skill.resize(population)
 	_worker_memory.resize(population)
+	_worker_ref_slot.resize(population)
+	_worker_ref_generation.resize(population)
 	for index: int in population:
 		if not _spawn_worker(index, workload):
 			return false
@@ -252,6 +296,11 @@ func _spawn_worker(index: int, workload: String) -> bool:
 		return _fail("resident %d spawn refused: %s" % [index, spawned.error])
 	var worker_slot: int = spawned.value
 	_worker_slots[index] = worker_slot
+	var worker_ref: Vector2i = _residents.ref_of(worker_slot)
+	if worker_ref == ResidentsScript.NULL_REF:
+		return _fail("resident %d has no directory ref" % index)
+	_worker_ref_slot[index] = worker_ref.x
+	_worker_ref_generation[index] = worker_ref.y
 	var priority_result: PrioritiesScript.OpResult = _priorities.spawn(worker_slot)
 	if not priority_result.ok:
 		return _fail("resident %d priorities refused: %s" % [index, priority_result.error])
@@ -500,6 +549,10 @@ func _tick_config(config: String) -> bool:
 			return _probe_factor_chain()
 		"gate":
 			return _probe_work_gate()
+		"dirctl":
+			return _control_directory()
+		"prioctl":
+			return _control_priorities()
 		"party_fast":
 			return _tick_reset_party(LONG_REMAINING_MWU)
 		"party_finish":
@@ -698,6 +751,77 @@ func _probe_work_gate() -> bool:
 			return _fail("gate probe refused at %d: %s" % [index, _probe_math.error])
 		accumulator += job + resident + _probe_math.value
 	_probe_accumulator = accumulator
+	return true
+
+
+# --- drift controls ------------------------------------------------------------------------------
+
+func _control_directory() -> bool:
+	"""Drift control: `entity_directory.gd`'s ARCH-ID-003 ref readers, once per resident.
+
+	SIX VALIDATED READS PER RESIDENT. `is_valid_of_kind()` runs the full predicate -- bounds,
+	active flag, generation, kind, typed row and reverse owner -- `is_valid()` runs it in
+	KIND_ANY mode, each of the three getters beside them re-runs it before indexing its column,
+	and `is_slot_retired()` reads the generation ceiling. That is exactly the bounds-checked
+	packed-column shape the configs under test are made of. Every reader here returns a plain
+	`int` or `bool`, so this control allocates nothing at all.
+
+	IT ENTERS `needs.gd` AND `work.gd` NOWHERE. Both files are read-only to it, which is the
+	whole point: `entity_directory.gd` is untouched by decision 0024 section 4, so a difference
+	between this control's two sides is the machine and cannot be the change.
+	"""
+	var accumulator: int = 0
+	for index: int in _worker_slots.size():
+		var ref: Vector2i = Vector2i(_worker_ref_slot[index], _worker_ref_generation[index])
+		if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_RESIDENT):
+			return _fail("directory control: worker %d ref is not a live resident" % index)
+		if not _directory.is_valid(ref) or _directory.is_slot_retired(ref.x):
+			return _fail("directory control: worker %d ref is stale or retired" % index)
+		var row: int = _directory.get_typed_row(ref)
+		if row != _worker_slots[index]:
+			return _fail("directory control: worker %d ref names row %d" % [index, row])
+		accumulator += row + _directory.get_persistent_id(ref) + _directory.get_kind(ref)
+	_probe_accumulator = accumulator
+	return true
+
+
+func _control_priorities() -> bool:
+	"""Drift control: `priorities.gd`'s per-resident readers, five calls per resident.
+
+	`priority_of()` over REQ-SET-028's HAUL/KEEP/FORAGE fallback set walks three columns of one
+	resident's priority row, and `auto_fallback_of()` and `dangerous_work_of()` add the two
+	row-level flag readers beside them. `priorities.gd` publishes no `_into` form, so every one
+	of those five calls allocates one `IntMath.IntResult`; that is the property this control
+	exists to cover, `dirctl` being allocation-free.
+
+	FIVE, NOT THE WHOLE TWELVE-KIND ROW: a fifteen-call sweep measured about 1.6x the `wu` tick
+	it sits beside, and a control that dwarfs the thing it controls for spends the session's
+	machine time on the wrong measurement.
+
+	`priorities.gd` is untouched by decision 0024 section 4 and this control reaches neither
+	`needs.gd` nor `work.gd`, so any movement in its reading is the machine's.
+	"""
+	_probe_accumulator = 0
+	for index: int in _worker_slots.size():
+		var worker: int = _worker_slots[index]
+		for kind: int in PrioritiesScript.FALLBACK_JOB_KINDS:
+			var priority: IntMath.IntResult = _priorities.priority_of(worker, kind)
+			if not priority.ok:
+				return _fail("priorities control refused worker %d kind %d: %s"
+					% [index, kind, priority.error])
+			_probe_accumulator += priority.value
+		if not _accumulate_priority_flags(index, worker):
+			return false
+	return true
+
+
+func _accumulate_priority_flags(index: int, worker: int) -> bool:
+	"""The two row-level `priorities.gd` flag readers of one resident, for the drift control."""
+	var fallback: IntMath.IntResult = _priorities.auto_fallback_of(worker)
+	var dangerous: IntMath.IntResult = _priorities.dangerous_work_of(worker)
+	if not fallback.ok or not dangerous.ok:
+		return _fail("priorities control flag reader refused for worker %d" % index)
+	_probe_accumulator += fallback.value + dangerous.value
 	return true
 
 

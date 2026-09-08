@@ -40,7 +40,7 @@ import time
 
 
 CONFIGS = ("needs", "wu", "combined", "loop", "pid", "xp", "result", "factor", "gate",
-           "party_fast", "party_finish")
+           "party_fast", "party_finish", "dirctl", "prioctl")
 WORKLOADS = ("uniform", "bands", "party")
 PARTY_ONLY_CONFIGS = ("party_fast", "party_finish")
 POPULATIONS = (12, 256)

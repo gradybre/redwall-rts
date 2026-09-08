@@ -441,3 +441,50 @@ GDExtension. Neither is decided.
   macOS arm64 export requires: the export helper applies it only to a throwaway project copy and
   records the delta rather than modifying `godot/project.godot`. Does not establish the fused
   reader or a choice among decision 0016's four architectural options. Decision 0016 stays open.
+
+
+### WU tick optimisation, step 7 — fused work-factor reader (done, 2026-09-08)
+
+- [x] Add `needs.work_factor_for_resident_into()`, validating one resident row once and calling
+  the two existing formula implementations (`_mood_of_checked_row_into()`, `work_factor_into()`)
+  rather than copying either; `work._compute_factor()` now makes one needs call instead of three.
+- [x] Keep exactly one implementation of the mood formula: `mood_into()` now delegates to the
+  same private `_mood_of_checked_row_into()` the fused reader calls.
+- [x] Prove it is a call-count reduction and NOT a cache — nothing retained, no dirty flag, no
+  invalidation rule — in the module docstring, the function docstring and a test that changes a
+  need and then health between two calls on the same resident and asserts both moves are seen.
+- [x] Replace the `needs` drift control, which this change invalidates by editing `needs.gd`
+  itself, with a pair of controls differing in one property: an allocation-free
+  `entity_directory.gd` sweep (`dirctl`) and an allocating `priorities.gd` sweep (`prioctl`),
+  both reading the same fixture and population as the configs under test.
+- [x] Re-measure; suite at 662 tests / 24,689 assertions / 0 failures (previous entry
+  653/20,567/0).
+- **Owners:** REQ-SET-015/020/023, BAL-WORK-001, ARCH-AUTH-003, ARCH-MEM-001, ARCH-MIG-006;
+  ADR 0016/0024 section 4. Depends on the release-build benchmark harness from step 6 above.
+- **Evidence:** `validation-results/work-fused-2026-09-08/`. The realised effect is far below the
+  expectation set from the isolated factor-chain probe (roughly a third to mid teens): 1.0-1.6%
+  across the three workloads at 256 residents, permutation p between five and one hundred fifteen
+  ten-thousandths. The factor chain is ~32% of the tick, but the fused reader removes only the
+  duplicated presence validation and one call frame within it — about two of roughly fifteen call
+  frames per resident — not the chain itself; treating the isolated probe's cost as the removable
+  amount is exactly the error decision 0024 warns against, and it is the error the pre-change
+  expectation made. The `prioctl` control moved +1.33% on the party workload (p = 0.0105) while
+  `dirctl` stayed flat on the same runs; this does not explain the work-tick result, since the
+  control moved up while the measured tick moved down on the same session, which is what the
+  allocating/allocation-free pair exists to distinguish, and it is reported rather than absorbed
+  into the headline number. A found cost: sharing one mood implementation means `mood_into()` now
+  delegates, and the unfused factor probe measured 2.8-3.8% slower as a result, accepted because a
+  duplicated §7.1-verified formula is the drift hazard decision 0024 section 4 forbids and neither
+  `mood_into()` nor `mood_of()` has a production caller. Mutation evidence: six single-line
+  mutations to the shared work-factor divisor, each restored and hash-verified before the next,
+  were each caught — the per-path absolute-value tests fail (59 tests), while the fused/unfused
+  equivalence test correctly stays green because both paths move together. Equivalence is swept
+  across 660 mood/health/skill-level combinations plus memory-total extremes, and refusal parity
+  is checked for 7 invalid-input cases. Determinism held exactly: all three `wu` digests match the
+  values already committed in the step-4/5 and step-6 entries. The full 20-run interleaved series
+  was discarded and re-run once, after a harness docstring was found to disagree with its own code
+  following a control resize; the repeated series agreed with the discarded one.
+- **Does not establish:** a choice among decision 0016's four architectural options, or whether a
+  cache is justified — decision 0024 section 4 requires any cache's invalidation contract to cover
+  every mutation before one may be authorised, and none is proposed here. Decision 0016 stays
+  open.

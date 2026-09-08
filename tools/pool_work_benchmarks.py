@@ -21,6 +21,14 @@ WHAT IT WILL NOT DO. It never combines the three workloads of decision 0024 sect
 weighted score, and it reports the drift control alongside every measured configuration rather
 than netting one off the other. A permutation p-value is evidence that two samples differ on
 THIS machine in THIS session; it is not a REQ-SET-163 qualification-floor result.
+
+CHOOSING `--drift-configs`. Its default is `needs`, which was valid only while every change
+landed in `work.gd`. A DRIFT CONTROL MUST EXERCISE A MODULE THE CHANGE DOES NOT TOUCH, so the
+correct value depends on the change under test and has to be chosen per run: the fused-reader
+step of decision 0024 section 4 edits `needs.gd`, and used `dirctl prioctl` -- one
+allocation-free `entity_directory.gd` sweep and one allocating `priorities.gd` sweep -- instead.
+The bare `loop` config is NOT a substitute: tens of microseconds at population 256 leaves the
+1 us clock quantisation a material share of its reading.
 """
 
 from __future__ import annotations

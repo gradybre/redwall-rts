@@ -355,3 +355,66 @@ release build manifest's executable hash is identical across builds that differ 
 GDScript lives in the `.pck`; the binary hash proves which template the probe ran against but
 cannot discriminate two builds' code. The packed-fixture and packed-core-source hashes are what
 do that, and both fired correctly on every run in this entry.
+
+
+## Fused work-factor reader (2026-09-08) — the isolated-probe expectation was the error it warns about
+
+Decision 0024 section 4 orders the last remaining step: a needs-owned
+`work_factor_for_resident_into()` that validates one resident row once and calls the two existing
+formula implementations rather than copying either, so `work._compute_factor()` drops from three
+needs calls per resident to one. `mood_into()` now delegates to the same private
+`_mood_of_checked_row_into()` the fused reader calls, so the mood formula has exactly one
+implementation. This is explicitly not a cache: nothing is retained between calls, there is no
+dirty flag and no validity rule, stated in both the module header and the function's own
+docstring, because section 4 requires a cache's invalidation contract to cover every mutation
+before one may be authorised, and none is proposed here. Suite: 662 tests / 24,689 assertions / 0
+failures (previous entry 653/20,567/0). Evidence: `validation-results/work-fused-2026-09-08/`.
+
+**The realised figure landed far below the expectation set beforehand, and the shortfall is
+diagnostic rather than surprising.** Expectation going in was low-to-mid teens, drawn from the
+factor chain's ~32% share of the tick; the realised effect is 1.0-1.6% across the three workloads
+at 256 residents, permutation p between five and one hundred fifteen ten-thousandths. The fused
+reader does not remove the factor chain — it removes the duplicated presence validation and one
+call frame within it, roughly two of about fifteen call frames per resident. Treating an isolated
+probe's cost as the removable amount is precisely the error this decision's standing correction
+warns against, and the pre-change expectation made exactly that error by anchoring on the probe
+share instead of on what the change actually deletes.
+
+**The drift control had to be replaced, and its replacement is reported honestly, anomaly
+included.** This change edits `needs.gd`, so `needs.tick_all()` — the control used by every prior
+entry in this series — is no longer byte-identical across sides and cannot serve. Two replacements
+were added as a deliberate pair differing in one property: `dirctl`, an allocation-free
+`entity_directory.gd` sweep, and `prioctl`, an allocating `priorities.gd` sweep (`priorities.gd`
+publishes no `_into` form). Both sweep the same fixture at the same population doing the same kind
+of bounds- and generation-checked packed-column reads as the configs under test. A bare
+index-and-add loop was rejected as quantisation-dominated at single-digit microseconds. `prioctl`
+moved +1.33% on the party workload (p = 0.0105) while `dirctl` stayed flat on the same runs. That
+does not explain the work-tick result: the control moved up while the measured tick moved down on
+the same session, and drift would move both the same way. That is exactly what the allocating/
+allocation-free pair exists to distinguish, and the disagreement is recorded rather than netted
+into the headline number.
+
+**A cost was found, not assumed.** Sharing one mood implementation means `mood_into()` now
+delegates, adding a frame, and the unfused factor probe measured 2.8-3.8% slower as a result. This
+was accepted because a duplicated copy of a §7.1-verified formula is the drift hazard section 4
+forbids, and because neither `mood_into()` nor `mood_of()` has a production caller anywhere in the
+codebase.
+
+**Mutation evidence for one implementation, not two.** Breaking the shared work-factor divisor
+fails an absolute-value test on each path separately — 59 tests in total — while the equivalence
+test between the fused and unfused paths correctly stays green, because both paths move together
+under the same mutation. Six mutations were applied one line per run, each restored and
+hash-verified before the next ran, and none survived. Equivalence itself is swept across 660
+mood/health/skill-level combinations plus memory-total extremes, and refusal parity is checked for
+7 invalid-input cases.
+
+**Determinism and the harness's own honesty check.** All three `wu` digests match the values
+already committed in the step-4/5 and step-6 entries above, so this is bit-for-bit
+behaviour-preserving on these fixtures. The full 20-run interleaved series was discarded and
+re-run once, after a harness docstring was found to disagree with its own code following a
+control resize; the repeated series agreed with the discarded one, so nothing here rests on the
+run that was thrown away.
+
+**Status.** This closes decision 0024's execution order. Decision 0016 itself stays open: no
+choice has been made among the four architectural options, and no cache is proposed or justified
+by this entry.

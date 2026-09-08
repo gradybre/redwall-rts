@@ -21,6 +21,13 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 ## One game hour, in ticks (REQ-SET-006).
 const HOUR: int = 750
 
+## Both edges of every §5.2 mood band, for the fused work-factor reader's equivalence sweep.
+const FUSED_MOOD_PROBES: Array[int] = [0, 1999, 2000, 3999, 4000, 6999, 7000, 8499, 8500, 10000]
+## Both edges of every §5.2 health band. 1 rather than 0 because 0 is death, not a band edge.
+const FUSED_HEALTH_PROBES: Array[int] = [1, 39, 40, 69, 70, 100]
+## Memory totals spanning both ends of REQ-SET-020's 0-10000 clamp from a mood of 5000.
+const FUSED_MEMORY_PROBES: Array[int] = [-1000000, -5001, -5000, -1000, 0, 1000, 5000, 1000000]
+
 var _needs: NeedsScript = null
 
 
@@ -820,6 +827,161 @@ func test_work_factor_multiplies_skill_mood_and_health_before_dividing() -> void
 	assert_equal(_needs.work_factor(10, 10000, 100).value, 1725, "the best case is 1725, under 1800")
 	assert_equal(_needs.work_factor(0, 1000, 30).value, 360, "1000*600*600/1000000")
 	assert_false(_needs.work_factor(99, 5000, 50).ok, "an impossible skill level refuses")
+
+
+# --- decision 0024 section 4: the fused work-factor reader ---------------------------------------
+
+func _place_row(slot: int, mood: int, health: int) -> void:
+	"""Move one resident's five needs so its weighted mood is exactly `mood`, and set health.
+
+	Every need holds the same value, so REQ-SET-020's weighted sum is `10*value` and its divisor
+	is 10 -- the weights cancel and the mood term is the value itself, with no rounding involved.
+	"""
+	for need: int in NeedsScript.NEED_COUNT:
+		_set_need(slot, need, mood)
+	assert_equal(_needs.mood_of(slot, 0).value, mood, "the row sits at mood %d" % mood)
+	var current: int = _health(slot)
+	assert_true(_needs.apply_health_event(slot, health - current).ok,
+		"health moves to %d" % health)
+
+
+func _chain_factor_into(slot: int, level: int, memory_total: int,
+		out: IntMath.IntResult) -> bool:
+	"""The three-call reader chain work.gd ran before the fused reader: health, mood, factor.
+
+	Kept here rather than in production so the equivalence tests compare the fused reader with
+	the sequence it replaced, in the same order and through the same published readers.
+	"""
+	if not _needs.health_into(slot, out):
+		return false
+	var health: int = out.value
+	if not _needs.mood_into(slot, memory_total, out):
+		return false
+	var mood: int = out.value
+	return _needs.work_factor_into(level, mood, health, out)
+
+
+func _assert_factor_parity(slot: int, level: int, memory_total: int, label: String) -> void:
+	"""Assert the fused reader and the unfused chain agree in flag, value and reason."""
+	var chain: IntMath.IntResult = IntMath.IntResult.new()
+	var fused: IntMath.IntResult = IntMath.IntResult.new()
+	var chain_ok: bool = _chain_factor_into(slot, level, memory_total, chain)
+	var fused_ok: bool = _needs.work_factor_for_resident_into(slot, level, memory_total, fused)
+	assert_equal(fused_ok, chain_ok, "%s: both paths agree on success" % label)
+	assert_equal(fused.value, chain.value, "%s: both paths agree on the value" % label)
+	assert_equal(fused.error, chain.error, "%s: both paths agree on the reason" % label)
+
+
+func test_the_fused_work_factor_reader_agrees_with_the_unfused_chain_in_every_band() -> void:
+	"""Decision 0024 section 4's reader must return what the three-call chain returned, exactly.
+
+	The sweep covers both edges of every §5.2 mood band (<2000, 2000-3999, 4000-6999, 7000-8499,
+	>=8500), both edges of every health band (<40, 40-69, >=70) and every legal skill level 0-10
+	-- 660 combinations, each compared against the chain rather than against a recorded number.
+	"""
+	_spawn()
+	for mood: int in FUSED_MOOD_PROBES:
+		for health: int in FUSED_HEALTH_PROBES:
+			_place_row(0, mood, health)
+			for level: int in NeedsScript.SKILL_LEVEL_MAX + 1:
+				_assert_factor_parity(0, level, 0,
+					"mood %d health %d level %d" % [mood, health, level])
+
+
+func test_the_fused_work_factor_reader_agrees_with_the_chain_on_memory_totals() -> void:
+	"""The memory term is an argument, not stored state, so it is swept separately.
+
+	The extremes push mood past both ends of REQ-SET-020's 0-10000 clamp, which is the one place
+	the two paths could disagree by clamping in different orders.
+	"""
+	_spawn()
+	_place_row(0, 5000, 70)
+	for memory_total: int in FUSED_MEMORY_PROBES:
+		for level: int in NeedsScript.SKILL_LEVEL_MAX + 1:
+			_assert_factor_parity(0, level, memory_total,
+				"memory %d level %d" % [memory_total, level])
+
+
+func test_the_fused_work_factor_reader_refuses_exactly_as_the_unfused_chain_does() -> void:
+	"""Refusal parity, not just value parity: an unusable input must be unusable identically.
+
+	A negative slot, a slot past capacity, a never-spawned row and a despawned row all fail in
+	the needs store; a negative and an over-cap skill level fail in the factor step. Both paths
+	must refuse each of them with the same reason and carry no number.
+	"""
+	_spawn(0)
+	_spawn(1)
+	assert_true(_needs.despawn(1).ok, "the second row despawns")
+	_assert_factor_parity(-1, 0, 0, "a negative slot")
+	_assert_factor_parity(NeedsScript.RESIDENT_CAPACITY, 0, 0, "a slot past capacity")
+	_assert_factor_parity(7, 0, 0, "a never-spawned row")
+	_assert_factor_parity(1, 0, 0, "a despawned row")
+	_assert_factor_parity(0, -1, 0, "a negative skill level")
+	_assert_factor_parity(0, NeedsScript.SKILL_LEVEL_MAX + 1, 0, "a skill level past the cap")
+	_assert_factor_parity(-1, NeedsScript.SKILL_LEVEL_MAX + 1, 0,
+		"a bad slot and a bad level together, where the ORDER of the two checks decides")
+	var fused: IntMath.IntResult = IntMath.IntResult.new()
+	assert_false(_needs.work_factor_for_resident_into(1, 0, 0, fused), "the despawned row refuses")
+	assert_equal(fused.error, String(NeedsScript.REFUSE_NOT_PRESENT), "with the presence code")
+	assert_equal(fused.value, 0, "and no plausible-looking number")
+
+
+func test_the_fused_work_factor_reader_computes_the_gdd_factors_from_the_stored_row() -> void:
+	"""Absolute §5.2 answers, so a change to the shared formula fails HERE as well as in the
+	chain's own tests -- which is what proves the two share one implementation."""
+	_spawn()
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	_place_row(0, 6500, 100)
+	assert_true(_needs.work_factor_for_resident_into(0, 4, 0, out), "level 4 at mood 6500 reads")
+	assert_equal(out.value, 1200, "1200*1000*1000/1000000")
+	_place_row(0, 10000, 100)
+	assert_true(_needs.work_factor_for_resident_into(0, 10, 0, out), "the best case reads")
+	assert_equal(out.value, 1725, "1500*1150*1000/1000000, under the 1800 ceiling")
+	_place_row(0, 1000, 30)
+	assert_true(_needs.work_factor_for_resident_into(0, 0, 0, out), "the worst case reads")
+	assert_equal(out.value, 360, "1000*600*600/1000000, above the 300 floor")
+	_place_row(0, 5000, 100)
+	assert_true(_needs.work_factor_for_resident_into(0, 0, 3000, out), "a memory total reads")
+	assert_equal(out.value, 1100, "mood 5000+3000 lands in the 7000-8499 band")
+	assert_true(_needs.work_factor_for_resident_into(0, 0, -100000, out), "a huge penalty reads")
+	assert_equal(out.value, 600, "mood clamps to 0, whose band is 600")
+
+
+func test_the_fused_work_factor_reader_reads_the_row_as_it_stands_on_every_call() -> void:
+	"""Decision 0024 section 4: a call-count reduction, NOT a cache.
+
+	Each call must observe the columns at that instant. A need change, then a health change,
+	between calls on the same resident must both move the answer immediately -- there is nothing
+	retained to invalidate, and this test is what would fail if a cache were ever added quietly.
+	"""
+	_spawn()
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	_place_row(0, 8500, 100)
+	assert_true(_needs.work_factor_for_resident_into(0, 10, 0, out), "the first read succeeds")
+	assert_equal(out.value, 1725, "mood 8500 at full health and level 10 gives 1725")
+	_set_need(0, NeedsScript.NEED_HUNGER, 0)
+	assert_true(_needs.work_factor_for_resident_into(0, 10, 0, out), "the second read succeeds")
+	assert_equal(out.value, 1500, "emptying hunger drops mood to 5950, whose band is 1000")
+	assert_true(_needs.apply_health_event(0, -40).ok, "health falls to 60")
+	assert_true(_needs.work_factor_for_resident_into(0, 10, 0, out), "the third read succeeds")
+	assert_equal(out.value, 1275, "1500*1000*850/1000000 floors to 1275")
+
+
+func test_a_fused_refusal_overwrites_a_previous_success_in_the_same_result() -> void:
+	"""A caller-owned result reused across calls must never let an earlier factor read as this
+	call's answer -- the finding H4 sentinel, in the shape this reader could reintroduce it."""
+	_spawn()
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	_place_row(0, 6500, 100)
+	assert_true(_needs.work_factor_for_resident_into(0, 4, 0, out), "a successful read first")
+	assert_equal(out.value, 1200, "carrying a real factor")
+	assert_false(_needs.work_factor_for_resident_into(0, NeedsScript.SKILL_LEVEL_MAX + 1, 0, out),
+		"then an impossible skill level")
+	assert_false(out.ok, "the result reads as a refusal")
+	assert_equal(out.value, 0, "the earlier factor cannot survive as this call's answer")
+	assert_equal(out.error, String(NeedsScript.REFUSE_INVALID_SKILL_LEVEL), "with the reason")
+	assert_false(_needs.work_factor_for_resident_into(9, 4, 0, out), "and an absent row too")
+	assert_equal(out.error, String(NeedsScript.REFUSE_NOT_PRESENT), "reported as absence")
 
 
 # --- the §5.2 memory catalog ---------------------------------------------------------------------------------

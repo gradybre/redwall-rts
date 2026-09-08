@@ -506,26 +506,47 @@ func work_factor_of(resident_slot: int, skill: int) -> IntMath.IntResult:
 # --- the §5.2 per-tick core -------------------------------------------------------------------------
 
 func _compute_factor(resident_slot: int, skill: int) -> StringName:
-	"""Read skill level, mood and health, and leave `needs.work_factor()`'s answer in _factor_out.
+	"""Read the skill level, then leave `needs`' work factor for this resident in _factor_out.
 
-	Nothing is derived here. Every band, weight and clamp lives in `needs.gd`; this assembles the
-	three arguments from their owning columns and passes them straight through.
+	Nothing is derived here. Every band, weight and clamp lives in `needs.gd`; this supplies the
+	skill level from the residents store and the memory total from this store's own column, and
+	passes both straight through.
+
+	ONE NEEDS CALL, NOT THREE (decision 0024 section 4). This read health, mood and the factor
+	separately, and each of those three re-validated the same resident row. The fused reader
+	validates it once and runs the same two formula implementations. WHICH TICK'S VALUES ARE
+	OBSERVED IS UNCHANGED: nothing is cached and nothing is carried between calls.
 	"""
 	if not _residents.skill_level_into(resident_slot, skill, _math):
 		return REFUSE_SKILLS_UNAVAILABLE
 	var level: int = _math.value
-	if not _needs.health_into(resident_slot, _math):
-		return REFUSE_NEEDS_UNAVAILABLE
-	var health: int = _math.value
-	if not _needs.mood_into(resident_slot, _memory_total[resident_slot], _math):
-		return REFUSE_NEEDS_UNAVAILABLE
-	var mood: int = _math.value
-	if not _needs.work_factor_into(level, mood, health, _math):
-		return REFUSE_FACTOR_UNAVAILABLE
+	if not _needs.work_factor_for_resident_into(resident_slot, level,
+			_memory_total[resident_slot], _math):
+		return _factor_refusal(StringName(_math.error))
 	assert(_math.value >= WORK_FACTOR_MIN and _math.value <= WORK_FACTOR_MAX,
 		"§5.2 clamps the work factor to 300..1800")
 	_factor_out = _math.value
 	return REFUSE_NONE
+
+
+func _factor_refusal(code: StringName) -> StringName:
+	"""Map a fused-reader refusal onto the code the three-call chain returned for the same cause.
+
+	The chain read health, then mood, then the factor, so every failure of the resident's needs
+	row surfaced as REFUSE_NEEDS_UNAVAILABLE and only the factor step could produce
+	REFUSE_FACTOR_UNAVAILABLE. The fused reader runs the same steps in the same order and
+	reports the same underlying needs codes, so INVALID_SKILL_LEVEL -- the only refusal the
+	factor step raises -- maps to the factor code and everything else to the needs code.
+
+	OVERFLOW is published by both steps and is therefore the one code this map could be wrong
+	about. It cannot be, because neither step can reach it from here: the mood add is at most
+	10000 plus a memory total `set_memory_total()` refuses above INT32_MAX, and the factor
+	product is at most 1500*1150*1000 = 1_725_000_000. Both are far inside int64, so the
+	unreachable case is unreachable in the chain this replaces as well.
+	"""
+	if code == NeedsScript.REFUSE_INVALID_SKILL_LEVEL:
+		return REFUSE_FACTOR_UNAVAILABLE
+	return REFUSE_NEEDS_UNAVAILABLE
 
 
 func _produce_potential(resident_slot: int, factor: int) -> int:

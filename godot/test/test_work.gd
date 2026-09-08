@@ -684,6 +684,80 @@ func test_memory_total_moves_the_work_factor() -> void:
 		"mood 5000 plus 3000 lands in the 7000-8499 band, whose factor is 1100")
 
 
+func _set_health(resident_slot: int, health: int) -> void:
+	"""Move one resident's health to an exact value with a whole-point event."""
+	var current: IntMath.IntResult = _needs.health_of(resident_slot)
+	assert_true(current.ok, "health reads (error: %s)" % current.error)
+	assert_true(_needs.apply_health_event(resident_slot, health - current.value).ok,
+		"health moves to %d" % health)
+
+
+func test_the_factor_call_site_still_reports_the_unfused_chains_number() -> void:
+	"""work.gd's `_compute_factor()` now makes ONE needs call (decision 0024 section 4).
+
+	The number it produces must not have moved. Every combination here is compared against
+	`needs.work_factor_into()` fed the same three arguments the three-call chain read for
+	itself, so a fused reader that assembled its arguments differently fails immediately.
+	"""
+	var worker: int = _spawn_worker()
+	var expected: IntMath.IntResult = IntMath.IntResult.new()
+	for level: int in [0, 10]:
+		assert_true(_residents.set_skill_xp(worker, JobsScript.JOB_KIND_KEEP,
+			ResidentsScript.SKILL_XP_PER_LEVEL_SQUARE * level * level).ok,
+			"the worker reaches level %d" % level)
+		for mood: int in [0, 2000, 4000, 7000, 8500]:
+			_set_all_needs(worker, mood)
+			for health: int in [39, 40, 70]:
+				_set_health(worker, health)
+				assert_true(_needs.work_factor_into(level, mood, health, expected),
+					"needs computes level %d mood %d health %d" % [level, mood, health])
+				assert_equal(_work.work_factor_of(worker, JobsScript.JOB_KIND_KEEP).value,
+					expected.value,
+					"work agrees at level %d mood %d health %d" % [level, mood, health])
+
+
+func test_the_factor_call_site_maps_a_missing_needs_row_to_the_same_code_as_before() -> void:
+	"""The three-call chain refused a resident with no needs row at its health read, reporting
+	NEEDS_ROW_UNAVAILABLE. The fused reader refuses it as RESIDENT_NOT_PRESENT, which
+	`_factor_refusal()` must map back to exactly that code.
+
+	The needs row is despawned out from under a live residents row, which is the only way to
+	reach that branch: any slot that fails in the residents store refuses earlier, at the skill
+	level read, with SKILLS_ROW_UNAVAILABLE.
+
+	The tick is asserted to consume nothing as well, though it refuses one step earlier than the
+	factor: §5.3's step-1 gate reads the same missing needs row and declines the worker before
+	any factor is asked for. Both refusals are recorded so neither can quietly change.
+	"""
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 100000)
+	assert_true(_needs.despawn(worker).ok, "the needs row despawns under the residents row")
+	var factor: IntMath.IntResult = _work.work_factor_of(worker, JobsScript.JOB_KIND_KEEP)
+	assert_false(factor.ok, "a resident with no needs row has no work factor")
+	assert_equal(factor.error, String(WorkScript.REFUSE_NEEDS_UNAVAILABLE),
+		"reported with the code the chain used for the same cause")
+	assert_equal(factor.value, 0, "and carrying no plausible-looking number")
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_false(_work.tick_solo_into(job, out), "and the tick itself refuses")
+	assert_equal(out.error, WorkScript.REFUSE_JOB_NOT_WORKING, "at the step-1 gate before it")
+	assert_equal(_jobs.remaining_mwu_of(job).value, 100000, "consuming no outstanding work")
+
+
+func test_the_factor_call_site_refuses_an_unspawned_row_at_the_skills_read() -> void:
+	"""Ordering is part of the contract: the skill level is read before the needs row is judged,
+	so a row absent from BOTH stores refuses with SKILLS_ROW_UNAVAILABLE, as it did before."""
+	var worker: int = _base_rate_worker()
+	var absent: IntMath.IntResult = _work.work_factor_of(worker + 40,
+		JobsScript.JOB_KIND_KEEP)
+	assert_false(absent.ok, "an unspawned resident row has no work factor")
+	assert_equal(absent.error, String(WorkScript.REFUSE_SKILLS_UNAVAILABLE),
+		"refused at the skills read, which still runs first")
+	var high: IntMath.IntResult = _work.work_factor_of(WorkScript.RESIDENT_CAPACITY,
+		JobsScript.JOB_KIND_KEEP)
+	assert_false(high.ok, "a slot past capacity refuses before any store is asked")
+	assert_equal(high.error, String(WorkScript.REFUSE_INVALID_RESIDENT_SLOT), "with its own code")
+
+
 func test_reserved_skill_index_is_refused() -> void:
 	"""§5.1 fixes RESERVED_3 at XP and level 0, so no accumulator addresses it."""
 	var worker: int = _base_rate_worker()

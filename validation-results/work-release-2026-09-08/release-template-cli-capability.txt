@@ -1,0 +1,26 @@
+### release template --help legend
+
+Option legend (this build = release export template):
+  R  Available in editor builds, debug export templates and release export templates.
+
+
+### editor --help legend
+Option legend (this build = editor):
+  R  Available in editor builds, debug export templates and release export templates.
+  D  Available in editor builds and debug export templates only.
+  X  Only available in editor builds, and export templates compiled with `disable_path_overrides=false`.
+  E  Only available in editor builds.
+
+### editor: the three options, with availability class
+  --path <directory>                X  Path to a project (<directory> must contain a "project.godot" file).
+  --main-pack <file>                X  Path to a pack (.pck) file to load.
+  -s, --script <script>             X  Run a script.
+
+### release template: same three options in its own help
+0
+ERROR: `--path` was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.
+To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.
+
+   at: setup (main/main.cpp:1784)
+
+RC=1

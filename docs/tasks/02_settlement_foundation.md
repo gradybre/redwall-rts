@@ -376,3 +376,33 @@ GDExtension. Neither is decided.
   profile, so the change is bit-for-bit behaviour preserving on these fixtures.
 - **Does not establish:** the `TickResult` `_into` step, release-build setup, the fused reader,
   or a choice among decision 0016's four architectural options. Decision 0016 stays open.
+
+
+### WU tick optimisation, step 6 — release-build setup and re-measurement (done, 2026-09-08)
+
+- [x] Reach an exported release build from the benchmark driver at all, given that the official
+  export templates are built with `disable_path_overrides=true` and reject `--path`,
+  `--main-pack` and `-s/--script` outright.
+- [x] Prove `assert()` is compiled out of the binary being timed, rather than assume it, with a
+  three-way probe (editor, `template_debug`, `template_release`) so the result distinguishes
+  release from debug templates and not merely editor from non-editor.
+- [x] Re-measure editor vs. release across all three workloads at 12 and 256 residents; suite
+  unchanged at 644 tests / 20,118 assertions / 0 failures because no `godot/scripts` file was
+  touched.
+- **Owners:** REQ-SET-015/020/023, BAL-WORK-001, ARCH-AUTH-003, ARCH-MEM-001, ARCH-MIG-006;
+  ADR 0015/0016/0017/0024. Depends on the benchmark harness and lazy-ID change from step 1 above.
+- **Evidence:** `docs/decisions/0016-needs-tick-consumes-most-of-the-budget.md`'s 2026-09-08
+  release-build entry and `validation-results/work-release-2026-09-08/`. The cost ranking did
+  not change: the factor chain remains the largest named cost at roughly 30% of the work tick on
+  the ordinary-play (mixed-bands) reference, in the same order across all three workloads at
+  both populations. Release mode is 28-31% faster across the board, well outside the 2.6-4.1%
+  machine drift the byte-identical needs control measured over the session. Combined at 256
+  residents is 2160-2700 microseconds at p99 in release, still above the 2000 microsecond tick
+  budget, on an M5 Pro that is far faster than the qualification floor. All 58 determinism-digest
+  triples present in both runs agree.
+- **Does not establish:** a REQ-SET-163 qualification-floor measurement — the reference is a
+  Ryzen 5 3600 / GTX 1660 Super 6GB / 16GB machine at 1920x1080, and Windows remains deferred.
+  Does not decide who owns the `textures/vram_compression/import_etc2_astc` project setting the
+  macOS arm64 export requires: the export helper applies it only to a throwaway project copy and
+  records the delta rather than modifying `godot/project.godot`. Does not establish the fused
+  reader or a choice among decision 0016's four architectural options. Decision 0016 stays open.

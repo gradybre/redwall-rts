@@ -246,3 +246,60 @@ prior entry, because no game code was touched. **Status remains open.** Selectin
 record's four architectural options still requires a release-build measurement on documented
 qualification hardware; this entry only replaces an inferred 64% reader-plumbing share with a
 measured, and smaller, one.
+
+
+## Release-build setup and re-measurement (2026-09-08) — the ranking survives release mode
+
+Decision 0024 orders release-build setup as step 6, after the baseline and the lazy-ID change.
+This entry does that step: every prior number in this record came from the editor binary with
+twenty-nine live asserts across the core modules, and a cost ranking taken on a binary that does
+not ship might reorder once those asserts and the editor's own overhead are gone. No file under
+`godot/scripts` was touched; `tools/benchmark_main_loop.gd`, `tools/compare_work_benchmarks.py`
+and `tools/export_benchmark_build.py` are new, and `tools/run_work_benchmark.py` gained a
+`--runner release` mode. Suite: 644 tests / 20,118 assertions / 0 failures, unchanged from the
+prior entry. Evidence: `validation-results/work-release-2026-09-08/`.
+
+**The command-line wrinkle was solved by testing, not assumption.** The release template binary
+cannot run a project directory at all: Godot's official export templates are built with
+`disable_path_overrides=true`, so `--path`, `--main-pack` and `-s/--script` are marked
+editor-only and the template aborts with an explicit compiled-without-support error rather than
+silently ignoring them. The benchmark driver therefore reaches an exported build through a
+project-setting delta naming a `SceneTree`-derived main loop class, with the benchmark fixture
+file itself left byte-identical between the editor and release runs, so both sides measure the
+same code through different entry points.
+
+**Asserts were proven stripped, not assumed.** A three-way probe places a call inside an assert
+condition and reports how many times it was evaluated. In both the editor binary and a
+`template_debug` export, the call is evaluated three times and execution halts at the failing
+assert. In `template_release` the call is evaluated zero times and execution continues past the
+same statement. Including the debug template alongside editor and release is what makes this a
+real proof rather than a coincidence of `OS.is_debug_build()`: it shows the probe distinguishes
+release from debug templates, not merely editor from non-editor. The driver now refuses to time
+anything under `--runner release` unless the build manifest shows asserts compiled out and the
+packed fixture, packed core sources and on-disk binary all hash as expected — every one of those
+checks raises, it does not warn.
+
+**The ranking did not change.** The factor chain (`work_factor_for_resident_into`'s call graph)
+remains the largest named cost at roughly 30% of the work tick on the mixed-bands ordinary-play
+reference, in the same relative order — factor > xp > gate > pid > result — across all three
+workloads at both 12 and 256 residents. Release mode is 28-31% faster than the editor binary
+across the board, well outside the 2.6-4.1% machine drift the byte-identical needs control
+measured across the session (recorded in `editor-drift-recheck-summary.md`, re-run to bound
+session-to-session noise rather than assumed from the earlier reader-follow-up figure). Stated
+plainly because it is the number that matters most: combined at 256 residents is 2160-2700
+microseconds at p99 in release mode, still above the 2000 microsecond tick budget, on an Apple
+M5 Pro that is far faster than the qualification floor. All 58 determinism-digest triples present
+in both the editor and release runs agree, so the release build produces bit-identical simulation
+state to the editor build on this fixture. This is explicitly not a REQ-SET-163 measurement: an
+Apple M5 Pro is not the Ryzen 5 3600 / GTX 1660 Super 6GB / 16GB reference, and Windows remains
+deferred.
+
+**The blocker that was not worked around.** Exporting for arm64 macOS requires
+`rendering/textures/vram_compression/import_etc2_astc`, which `project.godot` does not set. The
+export helper applies that setting to a throwaway copy of the project under `--work-dir` and
+records it as an explicit delta in the build manifest, rather than modifying the shipped
+`godot/project.godot`. Whoever owns `project.godot` must decide whether that setting belongs
+there permanently. **Status remains open.** This entry closes the release-build half of what the
+prior entry named as required before choosing among the four architectural options; the
+qualification-floor half — documented Ryzen 5 3600 / GTX 1660 Super hardware — is still
+outstanding.

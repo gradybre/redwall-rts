@@ -10,11 +10,19 @@ every core source the fixture preloads, bounds each subprocess to 120 seconds, r
 whose output contains a logged script error even at exit code 0, and rejects any group of
 repetitions whose final state digests disagree.
 
-WHAT THIS DRIVER DOES NOT MEASURE. The Godot binary used here is the EDITOR binary. There are
-no export presets in the project and the export-template directory is empty, both of which are
-recorded in `build_context`. These numbers are therefore not a release measurement and not the
-REQ-SET-163 qualification-floor measurement; they compare configurations against each other on
-one machine and nothing more.
+TWO RUNNERS, ONE PROTOCOL. `--runner editor` is the invocation above. `--runner release` times
+the SAME fixture source inside an exported release build produced by
+`tools/export_benchmark_build.py`, because Godot 4.7.2's official export templates are built
+with `disable_path_overrides=true` and reject `--path`, `--main-pack` and `-s/--script`
+outright, so the editor invocation has no release equivalent. In release mode the driver
+refuses to run at all unless that build's manifest shows (a) the packed fixture is byte-identical
+to `--script-path`, (b) the packed core sources are byte-identical to the project's, and (c) the
+paired assert probe proved `assert()` is compiled out of the binary being timed.
+
+WHAT NEITHER RUNNER MEASURES. Neither is the REQ-SET-163 qualification-floor measurement
+(Ryzen 5 3600 / GTX 1660 Super 6GB / 16GB at 1920x1080). Windows is deferred. `--runner editor`
+additionally times a binary that does not ship, with `assert()` live. No figure from either
+runner may be presented as satisfying REQ-SET-163.
 """
 
 from __future__ import annotations
@@ -60,6 +68,11 @@ def parse_args() -> argparse.Namespace:
                         help="write the per-workload Markdown table for this run")
     parser.add_argument("--compare-path", type=Path, default=None,
                         help="an earlier driver JSON to place beside this one in the summary")
+    parser.add_argument("--runner", choices=("editor", "release"), default="editor",
+                        help="editor binary via --path/--script, or an exported release build")
+    parser.add_argument("--release-manifest", type=Path, default=None,
+                        help="the build manifest from tools/export_benchmark_build.py; "
+                             "required by --runner release and verified before any timing")
     return parser.parse_args()
 
 
@@ -98,7 +111,58 @@ def probe(command: list[str]) -> dict:
     }
 
 
-def build_context(args: argparse.Namespace) -> dict:
+def load_manifest(args: argparse.Namespace, fixture_sha256: str,
+                  project_sources: dict) -> dict | None:
+    """Load and verify the release build manifest, or return None in editor mode.
+
+    Every check here is a refusal, not a warning. A release measurement is worth nothing unless
+    the binary being timed provably contains this fixture, this core source, and no asserts.
+    """
+    if args.runner != "release":
+        return None
+    if args.release_manifest is None:
+        raise SystemExit("--runner release requires --release-manifest")
+    manifest = json.loads(args.release_manifest.read_text())
+    if manifest.get("schema") != "redwall-benchmark-build-manifest-v1":
+        raise SystemExit(f"unrecognised build manifest: {args.release_manifest}")
+    sources = manifest["sources"]
+    if sources["packed_fixture_sha256"] != fixture_sha256:
+        raise SystemExit("the exported build packs a different fixture than --script-path")
+    packed = {name: digest for name, digest in sources["core_source_hashes"].items()}
+    if packed != {Path(name).name: digest for name, digest in project_sources.items()}:
+        raise SystemExit("the exported build packs different core sources than --project-path")
+    if not manifest["assert_probes"]["verdict"]["release_asserts_compiled_out"]:
+        raise SystemExit("the exported build did not prove asserts are compiled out")
+    executable = Path(manifest["build"]["executable"])
+    if not executable.is_file():
+        raise SystemExit(f"the manifest's executable is missing: {executable}")
+    on_disk = hashlib.sha256(executable.read_bytes()).hexdigest()
+    if on_disk != manifest["build"]["executable_sha256"]:
+        raise SystemExit("the binary on disk is not the one the assert probe was run against")
+    return manifest
+
+
+def release_note(manifest: dict) -> str:
+    """The one sentence a release run is entitled to say about what it measured."""
+    verdict = manifest["assert_probes"]["verdict"]
+    return (
+        "Exported release build (template_release), asserts proven compiled out: the probe "
+        f"evaluated {verdict['release_argument_evaluations']} assert conditions in this binary "
+        f"against {verdict['editor_argument_evaluations']} in the editor control, and walked "
+        "past a failing assert the editor control halted on. This is a release measurement on "
+        "one machine. It is NOT the REQ-SET-163 qualification-floor measurement "
+        "(Ryzen 5 3600 / GTX 1660 Super 6GB / 16GB at 1920x1080), and Windows is deferred."
+    )
+
+
+EDITOR_NOTE = (
+    "Editor binary, with assert() live. These figures compare configurations against each "
+    "other on one machine. They are not a release measurement and not the REQ-SET-163 "
+    "qualification-floor measurement."
+)
+
+
+def build_context(args: argparse.Namespace, manifest: dict | None) -> dict:
     """Record the machine and the build under test, and what that build cannot be used to claim.
 
     Collected once before any timed run, never between runs, so nothing here competes with a
@@ -107,22 +171,27 @@ def build_context(args: argparse.Namespace) -> dict:
     templates = Path.home() / "Library/Application Support/Godot/export_templates"
     presets = args.project_path.resolve() / "export_presets.cfg"
     template_entries = sorted(p.name for p in templates.iterdir()) if templates.is_dir() else []
+    release = manifest is not None
     return {
         "godot_version": probe([args.godot, "--version"]),
-        "godot_binary_kind": "editor",
-        "godot_binary_note": "the editor binary, not an exported release build",
+        "runner": args.runner,
+        "godot_binary_kind": "template_release" if release else "editor",
+        "godot_binary_note": ("an exported release build, running its own main loop"
+                              if release else
+                              "the editor binary, not an exported release build"),
+        "release_manifest_path": str(args.release_manifest) if release else None,
+        "release_executable": manifest["build"]["executable"] if release else None,
+        "release_executable_sha256": manifest["build"]["executable_sha256"] if release else None,
+        "assert_probe_verdict": manifest["assert_probes"]["verdict"] if release else None,
+        "asserts_live_in_timed_binary": not release,
         "export_presets_path": str(presets),
         "export_presets_present": presets.is_file(),
         "export_templates_path": str(templates),
         "export_templates_present": templates.is_dir(),
         "export_templates_entries": template_entries,
-        "is_release_measurement": False,
+        "is_release_measurement": release,
         "is_qualification_floor_measurement": False,
-        "measurement_scope_note": (
-            "Editor binary, no export presets, empty export-template directory. These figures "
-            "compare configurations against each other on one machine. They are not a release "
-            "measurement and not the REQ-SET-163 qualification-floor measurement."
-        ),
+        "measurement_scope_note": release_note(manifest) if release else EDITOR_NOTE,
         "machine": {
             "platform": platform.platform(),
             "machine": platform.machine(),
@@ -135,15 +204,25 @@ def build_context(args: argparse.Namespace) -> dict:
     }
 
 
+def launch_prefix(args: argparse.Namespace, manifest: dict | None) -> list[str]:
+    """The part of the command line that selects the binary and the fixture inside it.
+
+    Editor mode points the editor binary at the project and the frozen fixture. Release mode
+    launches the exported build, which reaches the same fixture through its own main loop
+    because the release template rejects `--path` and `--script`.
+    """
+    if manifest is None:
+        return [args.godot, "--headless",
+                "--path", str(args.project_path.resolve()),
+                "--script", str(args.script_path.resolve())]
+    return [manifest["build"]["executable"], "--headless"]
+
+
 def run_one(args: argparse.Namespace, config: str, workload: str, population: int,
-            repetition: int, result_dir: Path) -> dict:
+            repetition: int, result_dir: Path, manifest: dict | None) -> dict:
     """Run one benchmark subprocess and return its record, raising on any sign of trouble."""
     output_file = result_dir / f"{config}-{workload}-{population}-rep{repetition}.json"
-    command = [
-        args.godot,
-        "--headless",
-        "--path", str(args.project_path.resolve()),
-        "--script", str(args.script_path.resolve()),
+    command = launch_prefix(args, manifest) + [
         "--",
         "--config", config,
         "--workload", workload,
@@ -301,9 +380,14 @@ def summary_header(payload: dict, prior: dict | None) -> list[str]:
              f"- fixture SHA-256: `{payload['fixture_sha256']}`",
              f"- subprocess bound: {payload['subprocess_timeout_seconds']} s",
              f"- started: {payload['started_utc']}",
+             f"- runner: `{payload['build_context'].get('runner', 'editor')}` "
+             f"({payload['build_context']['godot_binary_kind']}); asserts live in the timed "
+             f"binary: {payload['build_context'].get('asserts_live_in_timed_binary')}",
              f"- build: {payload['build_context']['measurement_scope_note']}", ""]
     if prior is not None:
         lines += ["Prior columns come from a separate driver run:",
+                  f"- prior runner: `{prior['build_context'].get('runner', 'editor')}` "
+                  f"({prior['build_context']['godot_binary_kind']})",
                   f"- prior fixture SHA-256: `{prior['fixture_sha256']}`",
                   f"- prior started: {prior['started_utc']}",
                   "- prior and current fixtures are byte-identical: "
@@ -359,7 +443,8 @@ def main() -> int:
         raise SystemExit(f"benchmark script does not exist: {script}")
     fixture_bytes = script.read_bytes()
     hashes = source_hashes(project)
-    context = build_context(args)
+    manifest = load_manifest(args, hashlib.sha256(fixture_bytes).hexdigest(), hashes)
+    context = build_context(args, manifest)
     plan = run_plan(args.configs, args.workloads, args.populations)
     args.output_path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="redwall-work-bench-") as temp:
@@ -370,7 +455,7 @@ def main() -> int:
         for config, workload, population in plan:
             for repetition in range(1, args.repetitions + 1):
                 records.append(run_one(args, config, workload, population, repetition,
-                                       Path(temp)))
+                                       Path(temp), manifest))
 
     comparisons = compare_hashes(records)
     if not all(item["hashes_identical"] for item in comparisons):

@@ -76,8 +76,8 @@ extends RefCounted
 ## scratch column that already existed for it. An ordinary tick performs ZERO identity reads, and
 ## so does a finishing tick whose floored shares happen to leave nothing over.
 ##
-## WHERE THAT FETCH SITS, AND WHY. `_commit()` consumes the coordinator's outstanding work BEFORE
-## the leftover is handed out. A read that can refuse therefore cannot live in
+## WHERE THAT FETCH SITS, AND WHY. `_commit_into()` consumes the coordinator's outstanding work
+## BEFORE the leftover is handed out. A read that can refuse therefore cannot live in
 ## `_distribute_leftover()`, which runs after that subtraction: a refusal there would abandon a
 ## tick whose shared progress had already been spent. `_allocate_shares()` runs BEFORE the
 ## subtraction, computes the floored shares, learns the leftover and loads the identities there,
@@ -90,7 +90,7 @@ extends RefCounted
 ## member produces nothing however many rows point at it.
 ##
 ## COMPLETION BELONGS TO THE COORDINATOR -- THIS AMENDS ARCH-JOB-005, which gives completion to
-## every member Job. `_finish()` writes JOB_STATE_COMPLETE on the coordinator row and on no
+## every member Job. `_finish_into()` writes JOB_STATE_COMPLETE on the coordinator row and on no
 ## other, and a second tick against a completed coordinator is refused rather than producing a
 ## second completion. Worker departure releases that worker's member assignment only: shared
 ## progress lives on the coordinator, which no departure path touches. Only explicit
@@ -130,8 +130,8 @@ extends RefCounted
 ##   * REQ-SET-034's "finish at most the current 30-WU safe work segment" needs a segment
 ##     boundary that no document defines against this model; no interruption point is claimed.
 ##   * §5.3's "A completed batch's quality uses its lead worker's level at batch start" needs a
-##     lead-worker field and a batch/recipe store, neither of which exists. `_finish()` records
-##     completion and nothing else -- no outputs, no cycle wear, no cycle roll -- which is the
+##     lead-worker field and a batch/recipe store, neither of which exists. `_finish_into()`
+##     records completion and nothing else -- no outputs, no cycle wear, no cycle roll -- the
 ##     honest subset of 0017's "only the coordinator creates outputs ... and records completion"
 ##     that is implementable with no production system in the milestone.
 ##
@@ -149,6 +149,27 @@ extends RefCounted
 ## be inspected, and a refusal carries zero work, zero contributors and `completed = false`. "No
 ## contributor this tick" is REFUSE_NO_CONTRIBUTORS, never a silent zero that a caller could read
 ## as progress.
+##
+## ---------------------------------------------------------------------------------------
+## THE TWO TICK ENTRY POINTS (decision 0024 §2). `tick_solo_into(job_slot, out)` and
+## `tick_party_into(coordinator_slot, out)` write into a CALLER-OWNED TickResult and allocate
+## nothing; `tick_solo()` and `tick_party()` remain, each allocating one TickResult and handing
+## it to the `_into` form. THE IMPLEMENTATION IS NOT FORKED -- the wrappers are two lines and a
+## return, so there is one solo tick and one party tick in this file and no behaviour can drift
+## between the forms.
+##
+## EVERY CALL OVERWRITES EVERY FIELD, REFUSALS INCLUDED. `_refuse_into()` assigns all six fields
+## of the result and `_finish_into()` assigns all six before it attempts the completion write, so
+## a refusal into an object that last held a success cannot leave that success's `accepted_mwu`,
+## `remaining_mwu`, `contributor_count` or `completed` readable behind a false `.ok`. A refusal
+## path that wrote only `ok` and `error` is precisely the leak this contract forbids.
+##
+## RETAINED RESULTS NEED THEIR OWN STORAGE. The `_into` forms MUTATE the object they are given.
+## A caller that keeps a result past the tick -- to compare with the next one, to hand to UI, to
+## queue for a later frame -- must give each retained outcome its OWN TickResult, or call the
+## allocating wrapper, which supplies a fresh one every time. Passing one reused scratch result
+## and also storing a reference to it means the stored reference changes underneath the holder on
+## the next tick. That is not a bug in these functions; it is what caller-owned storage means.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -215,6 +236,11 @@ class TickResult:
 
 	`.ok` MUST be inspected before any other field. A refusal carries zero accepted work, zero
 	contributors and `completed = false`, so an ignored refusal cannot read as quiet progress.
+
+	AN INSTANCE PASSED TO `tick_solo_into()` OR `tick_party_into()` IS OVERWRITTEN IN FULL BY
+	THAT CALL, refusals included. Storage is the caller's: one reused instance is correct for a
+	tick loop that consumes the outcome immediately, and a caller that retains outcomes must own
+	one instance per retained outcome rather than a shared one.
 	"""
 	var ok: bool
 	var error: StringName
@@ -342,9 +368,22 @@ func clear() -> void:
 
 # --- results ------------------------------------------------------------------------------------
 
-func _refuse_tick(code: StringName) -> TickResult:
-	"""Build a refused TickResult. It carries no work, no contributors and no completion."""
-	return TickResult.new(false, code)
+func _refuse_into(out: TickResult, code: StringName) -> bool:
+	"""Write a refusal over EVERY field of a caller-owned TickResult and return false.
+
+	THIS IS THE LEAK GATE. A refusal that wrote only `ok` and `error` would leave `accepted_mwu`,
+	`remaining_mwu`, `contributor_count` and `completed` holding whatever the last successful
+	tick into this same object left there, and a caller that read them past a false `.ok` would
+	see a previous completion attributed to a failed operation. Six fields exist and six fields
+	are written here, which is why `TickResult` has no field this function does not name.
+	"""
+	out.ok = false
+	out.error = code
+	out.accepted_mwu = 0
+	out.remaining_mwu = 0
+	out.contributor_count = 0
+	out.completed = false
+	return false
 
 
 func _succeed(value: int) -> OpResult:
@@ -508,46 +547,74 @@ func _produce_potential(resident_slot: int, factor: int) -> int:
 # --- productive ticks ---------------------------------------------------------------------------
 
 func tick_solo(job_slot: int) -> TickResult:
+	"""Allocating convenience form of `tick_solo_into()`, for cold paths and retained results.
+
+	It calls that function and returns the result it filled, so there is exactly one solo-tick
+	implementation and the two entry points cannot disagree about anything.
+	"""
+	var out: TickResult = TickResult.new(false, REFUSE_NONE)
+	var _ticked: bool = tick_solo_into(job_slot, out)
+	return out
+
+
+func tick_solo_into(job_slot: int, out: TickResult) -> bool:
 	"""Advance one single-worker Job by one productive tick and credit its worker's XP.
 
 	Refuses a coordinator and refuses a member Job: a member holds no shared progress, so a
-	party -- even a party of one -- must be ticked through `tick_party()` on its coordinator.
+	party -- even a party of one -- must be ticked through `tick_party_into()` on its
+	coordinator. Returns `out.ok`; `out` is overwritten in full, refusals included.
 	"""
+	if out == null:
+		return false
 	if _jobs.is_coordinator(job_slot):
-		return _refuse_tick(REFUSE_JOB_IS_COORDINATOR)
+		return _refuse_into(out, REFUSE_JOB_IS_COORDINATOR)
 	if _jobs.is_member(job_slot):
-		return _refuse_tick(REFUSE_JOB_IS_MEMBER)
+		return _refuse_into(out, REFUSE_JOB_IS_MEMBER)
 	var code: StringName = _check_progress_row(job_slot)
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
+		return _refuse_into(out, code)
 	_begin_contributors()
 	code = _offer_contributor(job_slot)
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
+		return _refuse_into(out, code)
 	if _party_count == 0:
-		return _refuse_tick(REFUSE_NO_CONTRIBUTORS)
-	return _commit(job_slot)
+		return _refuse_into(out, REFUSE_NO_CONTRIBUTORS)
+	return _commit_into(job_slot, out)
 
 
 func tick_party(coordinator_slot: int) -> TickResult:
+	"""Allocating convenience form of `tick_party_into()`, for cold paths and retained results.
+
+	It calls that function and returns the result it filled, so there is exactly one party-tick
+	implementation and the two entry points cannot disagree about anything.
+	"""
+	var out: TickResult = TickResult.new(false, REFUSE_NONE)
+	var _ticked: bool = tick_party_into(coordinator_slot, out)
+	return out
+
+
+func tick_party_into(coordinator_slot: int, out: TickResult) -> bool:
 	"""Advance one shared activity by one productive tick, per decision 0017.
 
 	Acceptance is `min(remaining_mwu, sum(potential_i))` against the COORDINATOR's row, allocated
 	proportionally on the finishing tick, and completion is written on the coordinator alone.
 	Members that have lost their worker, or that are not in JOB_STATE_WORK, contribute nothing
 	and are skipped rather than failing the party's tick -- a departure must not stop the crew.
+	Returns `out.ok`; `out` is overwritten in full, refusals included.
 	"""
+	if out == null:
+		return false
 	if not _jobs.is_coordinator(coordinator_slot):
-		return _refuse_tick(REFUSE_NOT_A_COORDINATOR)
+		return _refuse_into(out, REFUSE_NOT_A_COORDINATOR)
 	var code: StringName = _check_progress_row(coordinator_slot)
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
+		return _refuse_into(out, code)
 	code = _collect_contributors(coordinator_slot)
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
+		return _refuse_into(out, code)
 	if _party_count == 0:
-		return _refuse_tick(REFUSE_NO_CONTRIBUTORS)
-	return _commit(coordinator_slot)
+		return _refuse_into(out, REFUSE_NO_CONTRIBUTORS)
+	return _commit_into(coordinator_slot, out)
 
 
 func _check_progress_row(job_slot: int) -> StringName:
@@ -647,15 +714,15 @@ func _append_contributor(job_slot: int, resident_slot: int, skill: int) -> Strin
 
 # --- decision 0017 acceptance and allocation -----------------------------------------------------
 
-func _commit(progress_slot: int) -> TickResult:
+func _commit_into(progress_slot: int, out: TickResult) -> bool:
 	"""Apply `accepted_total = min(remaining_mwu, sum(potential_i))` and settle the party.
 
 	The whole of 0017's per-tick rule lives in these few lines: acceptance is capped by the
 	activity's own outstanding work, subtracted from the ONE row that holds it, allocated to the
-	workers, and turned into XP from the accepted amounts alone.
+	workers, and turned into XP from the accepted amounts alone. Every exit writes `out` in full.
 	"""
 	if not _jobs.remaining_mwu_into(progress_slot, _math):
-		return _refuse_tick(StringName(_math.error))
+		return _refuse_into(out, StringName(_math.error))
 	var remaining: int = _math.value
 	var potential_total: int = 0
 	for index: int in _party_count:
@@ -663,15 +730,15 @@ func _commit(progress_slot: int) -> TickResult:
 	var accepted: int = potential_total if potential_total < remaining else remaining
 	var code: StringName = _allocate_shares(accepted, potential_total)
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
+		return _refuse_into(out, code)
 	if not _jobs.consume_remaining_mwu_into(progress_slot, accepted, _math):
-		return _refuse_tick(StringName(_math.error))
+		return _refuse_into(out, StringName(_math.error))
 	var left: int = _math.value
 	_distribute_leftover(_pending_leftover)
 	code = _award_all_xp()
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
-	return _finish(progress_slot, accepted, left)
+		return _refuse_into(out, code)
+	return _finish_into(progress_slot, accepted, left, out)
 
 
 func _allocate_shares(accepted: int, potential_total: int) -> StringName:
@@ -683,7 +750,7 @@ func _allocate_shares(accepted: int, potential_total: int) -> StringName:
 	fractional remainder, ties by ascending resident persistent ID (decision 0017).
 
 	THIS RUNS BEFORE ANY PROGRESS IS CONSUMED, which is why the identity fetch it may need lives
-	here rather than in `_distribute_leftover()`. `_commit()` spends the coordinator's remaining
+	here rather than in `_distribute_leftover()`. `_commit_into()` spends the coordinator's remaining
 	work between this call and that one, so a read that can refuse must refuse while the row is
 	still untouched -- decision 0024's named hazard. Nothing here mutates a collaborating store.
 
@@ -718,7 +785,7 @@ func _load_identities() -> StringName:
 	be credited.
 
 	A refusal returns REFUSE_SKILLS_UNAVAILABLE -- the code `_append_contributor()` used for this
-	same read before decision 0024 moved it -- and reaches `_commit()` before
+	same read before decision 0024 moved it -- and reaches `_commit_into()` before
 	`consume_remaining_mwu_into()`, so the activity's outstanding work and every XP column are
 	still exactly as the tick found them.
 	"""
@@ -795,19 +862,24 @@ func _credit_xp(resident_slot: int, skill: int, accepted: int) -> StringName:
 	return REFUSE_NONE
 
 
-func _finish(progress_slot: int, accepted: int, left: int) -> TickResult:
-	"""Build the tick's result and, when the work total reaches zero, record ONE completion.
+func _finish_into(progress_slot: int, accepted: int, left: int, out: TickResult) -> bool:
+	"""Write the tick's success and, when the work total reaches zero, record ONE completion.
 
 	The completion is written on `progress_slot` -- the coordinator for a party, the job itself
 	for a solo job -- and on no member row. THIS AMENDS ARCH-JOB-005, which gives completion to
 	every member Job; decision 0017 gives it to the coordinator alone.
+
+	All six fields are assigned before the completion write is attempted, so the late refusal
+	below hands `_refuse_into()` an object with nothing of an earlier tick left in it either.
 	"""
-	var out: TickResult = TickResult.new(true, REFUSE_NONE)
+	out.ok = true
+	out.error = REFUSE_NONE
 	out.accepted_mwu = accepted
 	out.remaining_mwu = left
 	out.contributor_count = _party_count
+	out.completed = false
 	if left == 0:
 		if not _jobs.set_state(progress_slot, JOB_STATE_COMPLETE).ok:
-			return _refuse_tick(REFUSE_JOB_NOT_WORKING)
+			return _refuse_into(out, REFUSE_JOB_NOT_WORKING)
 		out.completed = true
-	return out
+	return true

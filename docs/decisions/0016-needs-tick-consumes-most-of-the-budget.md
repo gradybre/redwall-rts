@@ -303,3 +303,55 @@ there permanently. **Status remains open.** This entry closes the release-build 
 prior entry named as required before choosing among the four architectural options; the
 qualification-floor half — documented Ryzen 5 3600 / GTX 1660 Super hardware — is still
 outstanding.
+
+
+## `TickResult` `_into` and re-measurement (2026-09-08) — the blocked protocol had to be replaced
+
+Decision 0024 orders steps 4 and 5 next: an additive, caller-owned `_into` form for the tick
+result, then re-measure. `tick_solo_into()` and `tick_party_into()` write into a caller-owned
+`TickResult` and allocate nothing; `tick_solo()` and `tick_party()` remain as two-line allocating
+wrappers over the same implementation, so there is one solo-tick and one party-tick
+implementation in `work.gd`, not a fork. Suite: 653 tests / 20,567 assertions / 0 failures
+(previous entry 644/20,118/0). Evidence: `validation-results/work-into-2026-09-08/`.
+
+**Every call overwrites every field, refusals included.** `_refuse_into()` assigns all six
+`TickResult` fields and `_finish_into()` assigns all six before attempting the completion write,
+so a refusal into an object that last held a success cannot leave that success's `accepted_mwu`,
+`remaining_mwu`, `contributor_count` or `completed` readable behind a false `.ok`. This is
+mutation-proven: seven mutations, each skipping exactly one field write, were applied one line
+per run, and every one was caught by a named test. The test that matters most ticks a success
+into a result object, then a refusal into the same object, and asserts all six fields reflect the
+refusal rather than the prior success.
+
+**The standing blocked measurement protocol was inconclusive, and is reported as such rather than
+reported on its first number.** Two blocked before/after runs gave work-tick deltas whose sign
+depended on which block ran first, while the unmodified needs control moved 5.4% on one workload
+— too much to trust either block. Ten interleaved runs per side with a seeded permutation test
+(20000 permutations, seed 20260908) resolved it: against that protocol the mixed-bands
+ordinary-play reference fell 4.85% and uniform fell 4.48%, both with permutation p < 0.0001,
+while the byte-identical needs drift control moved within 0.5% with p between 0.19 and 0.84. This
+is the first result in this series distinguishable from machine drift by that test, and
+interleaved sampling with a permutation test, not a single before/after block, is now the
+protocol for any future work-tick comparison in this series.
+
+**The honest accounting against expectation.** The isolated persistent-ID-reader probe from the
+release-build entry above put a ceiling of 6.4% on mixed bands; the realised figure is 4.85%,
+about three-quarters of that ceiling — consistent with an isolated probe overstating a full-tick
+effect, per the standing correction that a probe measures the cost of running a part alone, not
+proof of what removing it returns. Parties realised 1.68% against a corrected expectation of
+roughly 2%. Nothing exceeded its prediction in either direction.
+
+**A cost that was found, not assumed.** The retained allocating wrappers now measure 1-2% slower
+than calling the `_into` forms directly (bands +1.64% p=0.13, uniform +2.29% p=0.0043, party
++0.70% p=0.28), from the added call indirection of the wrapper delegating to the `_into` form.
+The wrappers stay what decision 0024 calls them — a convenience for cold paths and retained
+results — and new callers should call `_into` directly.
+
+**Two findings for whoever works here next, recorded incidentally.** First, `work.gd` has no
+production caller at all: it is not wired into any autoload, scene or system, so every call site
+that moved to `_into` this session was in the benchmark harness, not gameplay code. Second, the
+release build manifest's executable hash is identical across builds that differ in
+`godot/scripts` content, because the exported Mach-O binary is the stock export template and the
+GDScript lives in the `.pck`; the binary hash proves which template the probe ran against but
+cannot discriminate two builds' code. The packed-fixture and packed-core-source hashes are what
+do that, and both fired correctly on every run in this entry.

@@ -1,0 +1,303 @@
+{
+  "schema": "redwall-work-benchmark-pooled-v1",
+  "generated_utc": "2026-09-08T17:34:06.032992+00:00",
+  "before_label": "old work.gd, fixture calls tick_solo()/tick_party()",
+  "after_label": "new work.gd, fixture STILL calls the allocating wrappers",
+  "drift_configs": [],
+  "permutations": 20000,
+  "permutation_seed": 20260908,
+  "before_runs": [
+    {
+      "path": "validation-results/work-into-2026-09-08/wrapctl-before-1.json",
+      "started_utc": "2026-09-08T17:26:19.936630+00:00",
+      "fixture_sha256": "a73f265f290dd41968cb726167ed81ab01e3d89947451a303ec84bacdec3795a",
+      "runner": "release",
+      "asserts_live": false,
+      "work_gd_sha256": "efeea4965e30c2c85b54ac037c52efe13b8d89447dc1b7927cba171c01462491"
+    },
+    {
+      "path": "validation-results/work-into-2026-09-08/wrapctl-before-2.json",
+      "started_utc": "2026-09-08T17:27:48.797652+00:00",
+      "fixture_sha256": "a73f265f290dd41968cb726167ed81ab01e3d89947451a303ec84bacdec3795a",
+      "runner": "release",
+      "asserts_live": false,
+      "work_gd_sha256": "efeea4965e30c2c85b54ac037c52efe13b8d89447dc1b7927cba171c01462491"
+    },
+    {
+      "path": "validation-results/work-into-2026-09-08/wrapctl-before-3.json",
+      "started_utc": "2026-09-08T17:29:18.818725+00:00",
+      "fixture_sha256": "a73f265f290dd41968cb726167ed81ab01e3d89947451a303ec84bacdec3795a",
+      "runner": "release",
+      "asserts_live": false,
+      "work_gd_sha256": "efeea4965e30c2c85b54ac037c52efe13b8d89447dc1b7927cba171c01462491"
+    },
+    {
+      "path": "validation-results/work-into-2026-09-08/wrapctl-before-4.json",
+      "started_utc": "2026-09-08T17:30:48.981355+00:00",
+      "fixture_sha256": "a73f265f290dd41968cb726167ed81ab01e3d89947451a303ec84bacdec3795a",
+      "runner": "release",
+      "asserts_live": false,
+      "work_gd_sha256": "efeea4965e30c2c85b54ac037c52efe13b8d89447dc1b7927cba171c01462491"
+    }
+  ],
+  "after_runs": [
+    {
+      "path": "validation-results/work-into-2026-09-08/wrapctl-wrapper-1.json",
+      "started_utc": "2026-09-08T17:26:49.679386+00:00",
+      "fixture_sha256": "a73f265f290dd41968cb726167ed81ab01e3d89947451a303ec84bacdec3795a",
+      "runner": "release",
+      "asserts_live": false,
+      "work_gd_sha256": "e15d1493870464103638ab31f2a768f0d989f8788cd98608524c3cad6b86079a"
+    },
+    {
+      "path": "validation-results/work-into-2026-09-08/wrapctl-wrapper-2.json",
+      "started_utc": "2026-09-08T17:28:19.038081+00:00",
+      "fixture_sha256": "a73f265f290dd41968cb726167ed81ab01e3d89947451a303ec84bacdec3795a",
+      "runner": "release",
+      "asserts_live": false,
+      "work_gd_sha256": "e15d1493870464103638ab31f2a768f0d989f8788cd98608524c3cad6b86079a"
+    },
+    {
+      "path": "validation-results/work-into-2026-09-08/wrapctl-wrapper-3.json",
+      "started_utc": "2026-09-08T17:29:49.408297+00:00",
+      "fixture_sha256": "a73f265f290dd41968cb726167ed81ab01e3d89947451a303ec84bacdec3795a",
+      "runner": "release",
+      "asserts_live": false,
+      "work_gd_sha256": "e15d1493870464103638ab31f2a768f0d989f8788cd98608524c3cad6b86079a"
+    },
+    {
+      "path": "validation-results/work-into-2026-09-08/wrapctl-wrapper-4.json",
+      "started_utc": "2026-09-08T17:31:19.202129+00:00",
+      "fixture_sha256": "a73f265f290dd41968cb726167ed81ab01e3d89947451a303ec84bacdec3795a",
+      "runner": "release",
+      "asserts_live": false,
+      "work_gd_sha256": "e15d1493870464103638ab31f2a768f0d989f8788cd98608524c3cad6b86079a"
+    }
+  ],
+  "comparisons": [
+    {
+      "config": "wu",
+      "workload": "bands",
+      "population": 256,
+      "final_digest": "bbc36cf7828a5c90b16121e370b0965debd1a049b11e9761a7d56724c0b3a06e",
+      "metrics": {
+        "p99_us": {
+          "label": "p99 1x",
+          "n_before": 8,
+          "n_after": 8,
+          "before_median_us": 1646.5,
+          "after_median_us": 1673.5,
+          "before_min_us": 1601,
+          "before_max_us": 1782,
+          "after_min_us": 1640,
+          "after_max_us": 1728,
+          "delta_percent": 1.6398420892802916,
+          "permutation_p": 0.12999350032498375,
+          "before_samples": [
+            1691,
+            1601,
+            1655,
+            1637,
+            1782,
+            1638,
+            1664,
+            1634
+          ],
+          "after_samples": [
+            1698,
+            1640,
+            1663,
+            1667,
+            1718,
+            1671,
+            1728,
+            1676
+          ]
+        },
+        "p95_pair_us": {
+          "label": "p95 pair",
+          "n_before": 8,
+          "n_after": 8,
+          "before_median_us": 3207.0,
+          "after_median_us": 3269.0,
+          "before_min_us": 3123,
+          "before_max_us": 3478,
+          "after_min_us": 3203,
+          "after_max_us": 3304,
+          "delta_percent": 1.9332709697536639,
+          "permutation_p": 0.07259637018149093,
+          "before_samples": [
+            3260,
+            3123,
+            3205,
+            3209,
+            3478,
+            3209,
+            3203,
+            3204
+          ],
+          "after_samples": [
+            3258,
+            3203,
+            3259,
+            3272,
+            3303,
+            3266,
+            3304,
+            3281
+          ]
+        }
+      }
+    },
+    {
+      "config": "wu",
+      "workload": "party",
+      "population": 256,
+      "final_digest": "bc13c46bb6325eefdd778092951d34c3a031f02e4eec733a309f41277e2100da",
+      "metrics": {
+        "p99_us": {
+          "label": "p99 1x",
+          "n_before": 8,
+          "n_after": 8,
+          "before_median_us": 1281.5,
+          "after_median_us": 1290.5,
+          "before_min_us": 1248,
+          "before_max_us": 1293,
+          "after_min_us": 1276,
+          "after_max_us": 1687,
+          "delta_percent": 0.702301989855638,
+          "permutation_p": 0.28303584820758965,
+          "before_samples": [
+            1262,
+            1248,
+            1293,
+            1283,
+            1292,
+            1273,
+            1280,
+            1293
+          ],
+          "after_samples": [
+            1276,
+            1289,
+            1687,
+            1282,
+            1309,
+            1286,
+            1292,
+            1356
+          ]
+        },
+        "p95_pair_us": {
+          "label": "p95 pair",
+          "n_before": 8,
+          "n_after": 8,
+          "before_median_us": 2500.0,
+          "after_median_us": 2518.0,
+          "before_min_us": 2433,
+          "before_max_us": 2521,
+          "after_min_us": 2477,
+          "after_max_us": 2598,
+          "delta_percent": 0.72,
+          "permutation_p": 0.2382880855957202,
+          "before_samples": [
+            2445,
+            2433,
+            2521,
+            2496,
+            2514,
+            2479,
+            2504,
+            2510
+          ],
+          "after_samples": [
+            2477,
+            2490,
+            2559,
+            2501,
+            2531,
+            2515,
+            2521,
+            2598
+          ]
+        }
+      }
+    },
+    {
+      "config": "wu",
+      "workload": "uniform",
+      "population": 256,
+      "final_digest": "e261bb3e721633503c0fc6b16a12d478ceef700899498884e8bba4f5275c5a01",
+      "metrics": {
+        "p99_us": {
+          "label": "p99 1x",
+          "n_before": 8,
+          "n_after": 8,
+          "before_median_us": 1898.0,
+          "after_median_us": 1941.5,
+          "before_min_us": 1852,
+          "before_max_us": 1913,
+          "after_min_us": 1908,
+          "after_max_us": 1969,
+          "delta_percent": 2.2918861959957852,
+          "permutation_p": 0.0042997850107494625,
+          "before_samples": [
+            1852,
+            1866,
+            1892,
+            1883,
+            1904,
+            1904,
+            1908,
+            1913
+          ],
+          "after_samples": [
+            1911,
+            1908,
+            1928,
+            1944,
+            1969,
+            1939,
+            1946,
+            1945
+          ]
+        },
+        "p95_pair_us": {
+          "label": "p95 pair",
+          "n_before": 8,
+          "n_after": 8,
+          "before_median_us": 3408.5,
+          "after_median_us": 3494.5,
+          "before_min_us": 3335,
+          "before_max_us": 3440,
+          "after_min_us": 3436,
+          "after_max_us": 3590,
+          "delta_percent": 2.523104004694147,
+          "permutation_p": 0.0027498625068746564,
+          "before_samples": [
+            3335,
+            3364,
+            3395,
+            3385,
+            3433,
+            3422,
+            3440,
+            3434
+          ],
+          "after_samples": [
+            3436,
+            3442,
+            3467,
+            3497,
+            3590,
+            3492,
+            3500,
+            3506
+          ]
+        }
+      }
+    }
+  ],
+  "combined_score": null,
+  "combined_score_note": "decision 0024 section 3 forbids one; no workload distribution is defined, so none is produced"
+}

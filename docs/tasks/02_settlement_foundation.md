@@ -378,6 +378,41 @@ GDExtension. Neither is decided.
   or a choice among decision 0016's four architectural options. Decision 0016 stays open.
 
 
+### WU tick optimisation, steps 4-5 — `TickResult` `_into` and re-measurement (done, 2026-09-08)
+
+- [x] Add caller-owned `tick_solo_into()`/`tick_party_into()` alongside the allocating
+  `tick_solo()`/`tick_party()` wrappers, retaining one canonical implementation per tick kind
+  rather than forking it.
+- [x] Overwrite every `TickResult` field on every call, refusals included, so a previous success
+  cannot leak into a later failed operation; prove it with mutation evidence, one field-skip per
+  run, and a leak test that ticks a success then a refusal into the same object.
+- [x] Resolve the standing blocked measurement protocol, which had returned an inconclusive,
+  order-dependent sign on two prior blocked runs, with ten interleaved runs per side and a seeded
+  permutation test.
+- [x] Re-measure; suite at 653 tests / 20,567 assertions / 0 failures (previous entry
+  644/20,118/0).
+- **Owners:** REQ-SET-015/020/023, BAL-WORK-001, ARCH-AUTH-003, ARCH-MEM-001, ARCH-MIG-006;
+  ADR 0015/0016/0017/0024. Depends on the release-build benchmark harness from step 6 below,
+  run out of execution order because the release harness already existed from prior work.
+- **Evidence:** `validation-results/work-into-2026-09-08/`. Against the interleaved protocol the
+  ordinary-play (mixed-bands) reference fell 4.85% and uniform 4.48%, both with permutation
+  p < 0.0001; the byte-identical needs drift control moved within 0.5% with p between 0.19 and
+  0.84, the first result in this series distinguishable from machine drift. The isolated
+  persistent-ID-reader probe ceiling from the release-build entry was 6.4% on mixed bands; the
+  realised 4.85% is about three-quarters of that ceiling, consistent with an isolated probe
+  overstating a full-tick effect. Parties realised 1.68% against a corrected expectation of
+  roughly 2%. The retained allocating wrappers measure 1-2% slower than calling the `_into` forms
+  directly, from the added call indirection, so they remain a convenience for cold paths and
+  retained results rather than the recommended hot-path call. Also recorded: `work.gd` has no
+  production caller yet — it is not wired into any autoload, scene or system, so only the
+  benchmark's call sites moved — and the release build manifest's executable hash is identical
+  across differing builds because the exported Mach-O is the stock template with GDScript in the
+  PCK, so only the packed-fixture and core-source hashes discriminate two builds' code; both
+  fired correctly here.
+- **Does not establish:** the fused reader (step 7) or a choice among decision 0016's four
+  architectural options. Decision 0016 stays open.
+
+
 ### WU tick optimisation, step 6 — release-build setup and re-measurement (done, 2026-09-08)
 
 - [x] Reach an exported release build from the benchmark driver at all, given that the official

@@ -35,6 +35,20 @@ extends SceneTree
 ## state and remaining milli-WU. It is deliberately explicit rather than using JSON so integer
 ## width and dictionary ordering cannot affect the digest.
 ##
+## ---------------------------------------------------------------------------------------
+## WHICH TICK ENTRY POINT THE `wu`, `party_fast` AND `party_finish` CONFIGS CALL. They call
+## decision 0024 section 2's `tick_solo_into()` / `tick_party_into()` with ONE caller-owned
+## `TickResult` allocated at fixture construction, which is the form a simulation caller is
+## required to use. The earlier fixture called the allocating `tick_solo()` / `tick_party()`
+## wrappers, so a before/after release comparison of those three configs is a comparison of two
+## fixture revisions as well as two `work.gd` revisions -- THE CALL SITE IS PART OF THE CHANGE
+## BEING MEASURED, and the driver's `fixture_sha256` will differ between the two sides for that
+## reason and no other.
+##
+## `_tick_needs()` IS BYTE-IDENTICAL ACROSS THAT CHANGE and touches `work.gd` not at all, so the
+## `needs` config remains a valid same-session drift control on both sides. So does `result`,
+## whose probe body still builds one escaping TickResult per contributor exactly as before.
+##
 ## THE PROTOCOL NAME IS UNCHANGED AND THE `uniform` WORKLOAD EMITS THE v1 LINE SET BYTE FOR
 ## BYTE, so its digests are directly comparable with the ones committed under
 ## validation-results/work-readers-2026-09-07/. A workload that owns coordinator rows appends
@@ -110,6 +124,13 @@ var _factor_max: int = 0
 ## this fixture added.
 var _probe_accumulator: int = 0
 var _probe_math: IntMath.IntResult = IntMath.IntResult.new()
+## The caller-owned result the `wu`, `party_fast` and `party_finish` configs tick into
+## (decision 0024 section 2). Allocated once here, at fixture construction and outside every
+## timed region, so the sampled tick allocates no result at all. Its contents are read and
+## finished with before the next tick overwrites them, which is the one usage pattern a single
+## shared result is correct for -- nothing in this fixture retains a tick outcome.
+var _tick_result: WorkScript.TickResult = WorkScript.TickResult.new(false,
+	WorkScript.REFUSE_NONE)
 
 
 func _initialize() -> void:
@@ -501,11 +522,12 @@ func _tick_work() -> bool:
 	"""One productive work tick against every progress row, solo or party as the workload has it."""
 	for index: int in _progress_slots.size():
 		var progress: int = _progress_slots[index]
-		var tick_result: WorkScript.TickResult = _work.tick_party(progress) if _is_party \
-			else _work.tick_solo(progress)
-		if not tick_result.ok:
-			return _fail("work tick %d refused: %s" % [index, tick_result.error])
-		if tick_result.completed or tick_result.accepted_mwu <= 0 or tick_result.remaining_mwu <= 0:
+		var ticked: bool = _work.tick_party_into(progress, _tick_result) if _is_party \
+			else _work.tick_solo_into(progress, _tick_result)
+		if not ticked:
+			return _fail("work tick %d refused: %s" % [index, _tick_result.error])
+		if _tick_result.completed or _tick_result.accepted_mwu <= 0 \
+				or _tick_result.remaining_mwu <= 0:
 			return _fail("work tick %d violated productive non-completion outcome" % index)
 	return true
 
@@ -527,10 +549,9 @@ func _tick_reset_party(remaining_mwu: int) -> bool:
 			return _fail("party %d reset refused" % index)
 		if not _jobs.set_state(coordinator, JobsScript.JOB_STATE_WORK).ok:
 			return _fail("party %d state reset refused" % index)
-		var tick_result: WorkScript.TickResult = _work.tick_party(coordinator)
-		if not tick_result.ok:
-			return _fail("party tick %d refused: %s" % [index, tick_result.error])
-		if not _party_outcome_holds(tick_result, finishing):
+		if not _work.tick_party_into(coordinator, _tick_result):
+			return _fail("party tick %d refused: %s" % [index, _tick_result.error])
+		if not _party_outcome_holds(_tick_result, finishing):
 			return _fail("party tick %d violated its expected outcome" % index)
 	return true
 
@@ -611,8 +632,14 @@ func _probe_tick_result() -> bool:
 	"""The floor plus one escaping `TickResult`, built and read exactly as `work._finish()` does.
 
 	The object is constructed in its refused shape, has its three outcome fields written, is
-	read by this caller, and is then dropped -- the same lifetime a real tick's result has when
-	the caller inspects it and returns.
+	read by this caller, and is then dropped.
+
+	ITS BODY IS UNCHANGED BY DECISION 0024 SECTION 2, deliberately, so this probe stays
+	comparable with every earlier run. What it no longer describes is the `wu` config beside it:
+	since that config ticks into one caller-owned result, this probe now measures the allocation
+	the `_into` form REMOVED rather than one it still performs. It remains an isolated ceiling
+	and, for the party workload, a large over-estimate -- it builds one result per contributor
+	where a party tick builds one per progress row.
 	"""
 	var accumulator: int = 0
 	for index: int in _worker_slots.size():

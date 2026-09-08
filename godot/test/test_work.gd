@@ -927,3 +927,155 @@ func test_leftover_allocation_reloads_identities_after_a_scratch_reset() -> void
 		"the higher ID keeps its floored share")
 	assert_equal(_work.xp_remainder_of(party[3], JobsScript.JOB_KIND_KEEP).value, 20,
 		"and the fractional worker keeps its own")
+
+
+# --- decision 0024 section 2: the `_into` forms and the field-overwrite contract -------------------
+
+func _assert_refused_shape(out: WorkScript.TickResult, code: StringName, context: String) -> void:
+	"""Assert all six fields of `out` hold the refused shape -- the whole leak contract, once.
+
+	Named separately so each caller's failure message says which sequence produced the residue,
+	and so no test can accidentally check five fields and call it six.
+	"""
+	assert_false(out.ok, "%s: the reused result reports a refusal" % context)
+	assert_equal(out.error, code, "%s: and carries the refusal code" % context)
+	assert_equal(out.accepted_mwu, 0, "%s: no accepted work survives the refusal" % context)
+	assert_equal(out.remaining_mwu, 0, "%s: no remaining total survives the refusal" % context)
+	assert_equal(out.contributor_count, 0, "%s: no contributor count survives it" % context)
+	assert_false(out.completed, "%s: and no completion survives it" % context)
+
+
+func test_tick_solo_into_produces_the_same_outcome_as_the_wrapper() -> void:
+	"""One implementation, two entry points: identical inputs give identical fields."""
+	var first: int = _base_rate_worker()
+	var second: int = _base_rate_worker()
+	var wrapped: WorkScript.TickResult = _work.tick_solo(_worked_job(first, 100000))
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	var ticked: bool = _work.tick_solo_into(_worked_job(second, 100000), out)
+	assert_true(ticked, "the _into form reports success through its return value")
+	assert_equal(out.ok, wrapped.ok, "both entry points succeed")
+	assert_equal(out.error, wrapped.error, "both carry the same refusal code")
+	assert_equal(out.accepted_mwu, wrapped.accepted_mwu, "both accept 80 milli-WU")
+	assert_equal(out.remaining_mwu, wrapped.remaining_mwu, "both report 99920 outstanding")
+	assert_equal(out.contributor_count, wrapped.contributor_count, "both count one contributor")
+	assert_equal(out.completed, wrapped.completed, "and neither completes the job")
+
+
+func test_tick_party_into_produces_the_same_outcome_as_the_wrapper() -> void:
+	"""The party entry points agree field for field, including the contributor count."""
+	var first: int = _coordinator_job(100000)
+	var _first_member: int = _member_job(first, _base_rate_worker())
+	var _first_mate: int = _member_job(first, _base_rate_worker())
+	var second: int = _coordinator_job(100000)
+	var _second_member: int = _member_job(second, _base_rate_worker())
+	var _second_mate: int = _member_job(second, _base_rate_worker())
+	var wrapped: WorkScript.TickResult = _work.tick_party(first)
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_true(_work.tick_party_into(second, out), "the _into form reports success")
+	assert_equal(out.ok, wrapped.ok, "both entry points succeed")
+	assert_equal(out.accepted_mwu, wrapped.accepted_mwu, "both accept 160 milli-WU")
+	assert_equal(out.remaining_mwu, wrapped.remaining_mwu, "both report 99840 outstanding")
+	assert_equal(out.contributor_count, 2, "and both counted the two members")
+	assert_equal(out.contributor_count, wrapped.contributor_count, "as the same number")
+
+
+func test_a_solo_refusal_overwrites_every_field_of_a_reused_result() -> void:
+	"""THE LEAK TEST: a success then a refusal into the SAME object leaves no residue.
+
+	The success is deliberately a productive, non-completing tick, so `accepted_mwu` is 80,
+	`remaining_mwu` is 99920 and `contributor_count` is 1 before the refusal. A refusal path that
+	wrote only `ok` and `error` would leave all three readable behind a false `.ok`.
+	"""
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 100000)
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_true(_work.tick_solo_into(job, out), "the first tick succeeds")
+	assert_equal(out.accepted_mwu, 80, "and leaves 80 accepted milli-WU in the result")
+	assert_equal(out.remaining_mwu, 99920, "and 99920 outstanding")
+	assert_equal(out.contributor_count, 1, "and one contributor")
+	assert_true(_jobs.set_state(job, JobsScript.JOB_STATE_TRAVEL).ok, "the job leaves WORK")
+	assert_false(_work.tick_solo_into(job, out), "the second tick is refused")
+	_assert_refused_shape(out, WorkScript.REFUSE_JOB_NOT_WORKING, "solo success then refusal")
+
+
+func test_a_refusal_after_a_completing_tick_clears_the_completion_flag() -> void:
+	"""A refused operation must never be readable as the completion the last success recorded."""
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 80)
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_true(_work.tick_solo_into(job, out), "the tick that finishes the job succeeds")
+	assert_true(out.completed, "and records the completion")
+	assert_false(_work.tick_solo_into(job, out), "a second tick against it is refused")
+	_assert_refused_shape(out, WorkScript.REFUSE_JOB_NOT_WORKING, "completion then refusal")
+
+
+func test_a_party_refusal_overwrites_every_field_of_a_reused_result() -> void:
+	"""The same leak contract on the party path, where the contributor count is above one."""
+	var coordinator: int = _coordinator_job(100000)
+	var _first: int = _member_job(coordinator, _base_rate_worker())
+	var _second: int = _member_job(coordinator, _base_rate_worker())
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_true(_work.tick_party_into(coordinator, out), "the party tick succeeds")
+	assert_equal(out.accepted_mwu, 160, "two base-rate workers accept 160 milli-WU")
+	assert_equal(out.remaining_mwu, 99840, "leaving 99840 outstanding")
+	assert_equal(out.contributor_count, 2, "from two contributors")
+	var solo: int = _worked_job(_base_rate_worker(), 100000)
+	assert_false(_work.tick_party_into(solo, out), "an ordinary job is refused into that result")
+	_assert_refused_shape(out, WorkScript.REFUSE_NOT_A_COORDINATOR, "party success then refusal")
+
+
+func test_a_later_unfinished_tick_clears_a_previous_completion() -> void:
+	"""A success must overwrite `completed` too, not only when the refusal path runs."""
+	var finisher: int = _worked_job(_base_rate_worker(), 80)
+	var ongoing: int = _worked_job(_base_rate_worker(), 100000)
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_true(_work.tick_solo_into(finisher, out), "the first job finishes")
+	assert_true(out.completed, "and the result says so")
+	assert_true(_work.tick_solo_into(ongoing, out), "the second job takes a productive tick")
+	assert_false(out.completed, "which must not inherit the earlier completion")
+	assert_equal(out.accepted_mwu, 80, "and reports its own accepted work")
+	assert_equal(out.remaining_mwu, 99920, "and its own outstanding total")
+
+
+func test_a_success_clears_a_previous_refusal_code() -> void:
+	"""The reverse direction: a refusal's code must not survive into the next success."""
+	var coordinator: int = _coordinator_job(100000)
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_false(_work.tick_solo_into(coordinator, out), "a coordinator is not a solo job")
+	assert_equal(out.error, WorkScript.REFUSE_JOB_IS_COORDINATOR, "and the code is recorded")
+	var job: int = _worked_job(_base_rate_worker(), 100000)
+	assert_true(_work.tick_solo_into(job, out), "the next tick succeeds into the same result")
+	assert_equal(out.error, WorkScript.REFUSE_NONE, "and carries no leftover refusal code")
+	assert_true(out.ok, "with ok restored")
+
+
+func test_the_into_forms_refuse_a_null_result_without_ticking() -> void:
+	"""There is nowhere to record an outcome, so nothing is ticked and no work is consumed."""
+	var job: int = _worked_job(_base_rate_worker(), 100000)
+	var coordinator: int = _coordinator_job(100000)
+	var _member: int = _member_job(coordinator, _base_rate_worker())
+	assert_false(_work.tick_solo_into(job, null), "a null solo result is refused")
+	assert_false(_work.tick_party_into(coordinator, null), "a null party result is refused")
+	assert_equal(_jobs.remaining_mwu_of(job).value, 100000, "the solo job took no work")
+	assert_equal(_jobs.remaining_mwu_of(coordinator).value, 100000, "nor did the coordinator")
+
+
+func test_the_allocating_wrappers_hand_back_a_fresh_result_each_call() -> void:
+	"""Retained outcomes need separate storage; the wrapper is what supplies it.
+
+	Two wrapper calls must not return the same object, or a caller keeping the first would watch
+	it change. The reused `_into` object is then shown doing exactly what the docstring warns of,
+	so the difference between the two entry points is asserted rather than only described.
+	"""
+	var first_job: int = _worked_job(_base_rate_worker(), 100000)
+	var second_job: int = _worked_job(_base_rate_worker(), 500)
+	var kept: WorkScript.TickResult = _work.tick_solo(first_job)
+	var later: WorkScript.TickResult = _work.tick_solo(second_job)
+	assert_false(kept == later, "each wrapper call allocates its own result")
+	assert_equal(kept.remaining_mwu, 99920, "so the retained first outcome is unchanged")
+	assert_equal(later.remaining_mwu, 420, "and the second reports its own job")
+	var shared: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_true(_work.tick_solo_into(first_job, shared), "one shared result takes a tick")
+	assert_equal(shared.remaining_mwu, 99840, "reporting the first job")
+	assert_true(_work.tick_solo_into(second_job, shared), "and then another")
+	assert_equal(shared.remaining_mwu, 340, "overwriting it, which is why it is caller-owned")

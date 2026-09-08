@@ -1613,12 +1613,26 @@ func agent_persistent_id_of(resident_slot: int) -> IntMath.IntResult:
 	"""The never-reused persistent ID cached in this resident's JobAgent row.
 
 	Decision 0017 breaks a leftover-milli-WU tie by ASCENDING RESIDENT PERSISTENT ID, and this
-	is the copy that costs no directory call.
+	is the copy that costs no directory call. Allocating; `agent_persistent_id_into()` is the
+	form the tick path uses.
 	"""
 	var code: StringName = _check_agent_slot(resident_slot)
 	if code != REFUSE_NONE:
 		return _read(code, 0)
 	return _read(REFUSE_NONE, _agent_persistent_id[resident_slot])
+
+
+func agent_persistent_id_into(resident_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `agent_persistent_id_of()`: write the cached ID into `out`, return out.ok.
+
+	Decision 0024 makes this a LEFTOVER-ONLY read: `work.gd` calls it only on a finishing tick
+	that actually has milli-WU left over after flooring, and never on an ordinary tick. It is an
+	`_into` form all the same, so the one path that does need it allocates nothing per member.
+	"""
+	var code: StringName = _check_agent_slot(resident_slot)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	return out.succeed(_agent_persistent_id[resident_slot])
 
 
 # --- JobAgent lifecycle --------------------------------------------------------------------------

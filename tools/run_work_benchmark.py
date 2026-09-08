@@ -56,6 +56,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--workloads", nargs="+", default=list(WORKLOADS), choices=list(WORKLOADS))
     parser.add_argument("--populations", nargs="+", type=int, default=list(POPULATIONS),
                         choices=list(POPULATIONS))
+    parser.add_argument("--summary-path", type=Path, default=None,
+                        help="write the per-workload Markdown table for this run")
+    parser.add_argument("--compare-path", type=Path, default=None,
+                        help="an earlier driver JSON to place beside this one in the summary")
     return parser.parse_args()
 
 
@@ -217,6 +221,129 @@ def source_hashes(project: Path) -> dict:
     }
 
 
+WORKLOAD_LABEL = {
+    "bands": "mixed bands, solo jobs -- ordinary-play comparison",
+    "uniform": "uniform, solo jobs -- synchronised XP/write burst",
+    "party": "mixed bands, parties -- coordinator/member structure",
+}
+SUMMARY_WORKLOAD_ORDER = ("bands", "uniform", "party")
+
+
+def index_runs(payload: dict) -> dict:
+    """Map (config, workload, population) to the per-repetition benchmark dicts, in run order."""
+    indexed: dict[tuple[str, str, int], list[dict]] = {}
+    for record in payload.get("runs", []):
+        key = (record["config"], record["workload"], record["population"])
+        indexed.setdefault(key, []).append(record["benchmark"])
+    return indexed
+
+
+def series(entries: list[dict], key: str) -> list[int]:
+    """Every repetition's value of one metric, in repetition order."""
+    return [int(entry[key]) for entry in entries]
+
+
+def mean_us(values: list[int]) -> float:
+    """The arithmetic mean of the repetitions of one metric. Presentation only."""
+    return sum(values) / len(values) if values else 0.0
+
+
+def delta_percent(before: float, after: float) -> str:
+    """The signed change from `before` to `after`, or an explicit dash when there is no before."""
+    if before <= 0.0:
+        return "-"
+    return f"{100.0 * (after - before) / before:+.1f}%"
+
+
+def summary_row(workload: str, entries: list[dict], prior: list[dict] | None) -> str:
+    """One Markdown row: this workload's two repetitions, their mean, and any prior mean."""
+    p99 = series(entries, "p99_us")
+    pair = series(entries, "p95_pair_us")
+    cells = [WORKLOAD_LABEL.get(workload, workload),
+             "/".join(str(value) for value in p99), f"{mean_us(p99):.1f}",
+             "/".join(str(value) for value in pair), f"{mean_us(pair):.1f}"]
+    if prior is None:
+        cells += ["-", "-", "-", "-"]
+    else:
+        prior_p99 = mean_us(series(prior, "p99_us"))
+        prior_pair = mean_us(series(prior, "p95_pair_us"))
+        cells += [f"{prior_p99:.1f}", delta_percent(prior_p99, mean_us(p99)),
+                  f"{prior_pair:.1f}", delta_percent(prior_pair, mean_us(pair))]
+    return "| " + " | ".join(cells) + " |"
+
+
+def summary_table(payload: dict, prior: dict | None, config: str, population: int) -> list[str]:
+    """The three-workload block for one config at one population. Never a combined score."""
+    indexed = index_runs(payload)
+    prior_indexed = index_runs(prior) if prior is not None else {}
+    rows = [summary_row(workload, indexed[(config, workload, population)],
+                        prior_indexed.get((config, workload, population)))
+            for workload in SUMMARY_WORKLOAD_ORDER
+            if indexed.get((config, workload, population))]
+    if not rows:
+        return []
+    return [f"### `{config}` at population {population}", "",
+            "| Workload | p99 1x per rep (us) | p99 mean | p95 pair per rep (us) | pair mean "
+            "| prior p99 mean | p99 delta | prior pair mean | pair delta |",
+            "|---|---|---|---|---|---|---|---|---|"] + rows + [""]
+
+
+def summary_header(payload: dict, prior: dict | None) -> list[str]:
+    """Protocol, provenance and the standing refusal to combine the three workloads."""
+    lines = ["# Work benchmark -- three workloads, reported independently", "",
+             "Decision 0024 section 3 forbids combining these into one weighted score without an",
+             "explicitly defined workload distribution. No such distribution exists, so no",
+             "combined figure is produced here.", "",
+             f"- protocol: `{payload['hash_protocol']}`",
+             f"- nearest rank, {payload['warmup_ticks']} warm-up ticks discarded, "
+             f"{payload['sample_ticks']} sampled, {payload['repetitions']} independent processes "
+             "per configuration",
+             f"- fixture SHA-256: `{payload['fixture_sha256']}`",
+             f"- subprocess bound: {payload['subprocess_timeout_seconds']} s",
+             f"- started: {payload['started_utc']}",
+             f"- build: {payload['build_context']['measurement_scope_note']}", ""]
+    if prior is not None:
+        lines += ["Prior columns come from a separate driver run:",
+                  f"- prior fixture SHA-256: `{prior['fixture_sha256']}`",
+                  f"- prior started: {prior['started_utc']}",
+                  "- prior and current fixtures are byte-identical: "
+                  f"{prior['fixture_sha256'] == payload['fixture_sha256']}", ""]
+    return lines
+
+
+def summary_sources(payload: dict, prior: dict | None) -> list[str]:
+    """The core sources each side timed, so a row names the code it measured."""
+    lines = ["## Core sources timed", "", "| File | this run | prior run |", "|---|---|---|"]
+    prior_hashes = prior.get("source_hashes", {}) if prior is not None else {}
+    for name, digest in sorted(payload["source_hashes"].items()):
+        lines.append(f"| `{name}` | `{digest[:16]}` | `{prior_hashes.get(name, '-')[:16]}` |")
+    lines.append("")
+    return lines
+
+
+def summary_digests(payload: dict) -> list[str]:
+    """Whether every repetition group agreed on its setup and final state digests."""
+    lines = ["## Determinism digests", "",
+             "| Config | Workload | Population | repetitions agree | final digest |",
+             "|---|---|---|---|---|"]
+    for item in payload["hash_comparisons"]:
+        lines.append(f"| `{item['config']}` | {item['workload']} | {item['population']} "
+                     f"| {item['hashes_identical']} | `{item['final_hashes'][0][:16]}` |")
+    lines.append("")
+    return lines
+
+
+def write_summary(payload: dict, prior: dict | None, path: Path) -> None:
+    """Write the per-config, per-workload Markdown tables for this driver run."""
+    lines = summary_header(payload, prior)
+    for config in payload["configs"]:
+        for population in payload["populations"]:
+            lines += summary_table(payload, prior, config, population)
+    lines += summary_sources(payload, prior) + summary_digests(payload)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n")
+
+
 def main() -> int:
     started_utc = utc_now()
     args = parse_args()
@@ -275,6 +402,9 @@ def main() -> int:
         "finished_utc": utc_now(),
     }
     args.output_path.write_text(json.dumps(payload, indent=2) + "\n")
+    if args.summary_path is not None:
+        prior = json.loads(args.compare_path.read_text()) if args.compare_path else None
+        write_summary(payload, prior, args.summary_path)
     return 0
 
 

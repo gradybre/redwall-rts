@@ -47,6 +47,36 @@ const FACTOR_FRACTIONAL: int = 510
 ## floor(1000*1100*1000/1000000): the default spawn mood of 7500 at full health.
 const FACTOR_DEFAULT_MOOD: int = 1100
 
+class IdentityWatchingJobs extends JobsScript:
+	"""A Job store that counts persistent-ID reads and can refuse every one of them.
+
+	Decision 0024 requires an ORDINARY tick to perform zero identity reads for work allocation.
+	That is a claim about calls made, and no amount of state inspection can confirm it: the
+	answer a read would have given is already sitting in the JobAgent row, so a tick that reads
+	it needlessly produces exactly the same numbers as one that does not. Counting the calls at
+	the one seam `work.gd` reads them through is therefore the only direct evidence, and it lives
+	here so that production carries no test instrumentation.
+
+	`refuse_identities` drives the hazard case: an identity read that fails must be resolved
+	BEFORE the coordinator's outstanding work is consumed, and the only way to test that is to
+	make the read fail on demand.
+	"""
+	var identity_reads: int = 0
+	var refuse_identities: bool = false
+
+	func agent_persistent_id_into(resident_slot: int, out: IntMath.IntResult) -> bool:
+		"""Count this read, refuse it when armed, and otherwise answer as the base store does."""
+		identity_reads += 1
+		if refuse_identities:
+			return out.refuse("IDENTITY_UNREADABLE_IN_TEST")
+		return super.agent_persistent_id_into(resident_slot, out)
+
+	func agent_persistent_id_of(resident_slot: int) -> IntMath.IntResult:
+		"""Count the allocating form too, so no identity read can escape the count."""
+		identity_reads += 1
+		return super.agent_persistent_id_of(resident_slot)
+
+
 var _residents: ResidentsScript = null
 var _needs: NeedsScript = null
 var _priorities: PrioritiesScript = null
@@ -152,6 +182,40 @@ func _member_job(coordinator_slot: int, resident_slot: int) -> int:
 	assert_true(_jobs.set_coordinator(job_slot, coordinator_slot).ok, "the member joins the party")
 	assert_true(_jobs.set_state(job_slot, JobsScript.JOB_STATE_WORK).ok, "the member works")
 	return job_slot
+
+
+func _use_identity_watching_jobs() -> IdentityWatchingJobs:
+	"""Rebuild the Job and work stores over one that counts persistent-ID reads.
+
+	Called before any worker is spawned, so every row this test uses lives in the watching store
+	and no read can happen through the store it replaced.
+	"""
+	var watcher: IdentityWatchingJobs = IdentityWatchingJobs.new(_residents, _priorities,
+		_schedule)
+	_jobs = watcher
+	_work = WorkScript.new(watcher)
+	return watcher
+
+
+func _tie_party(watcher: IdentityWatchingJobs, remaining_mwu: int,
+		reversed_order: bool) -> PackedInt32Array:
+	"""Three workers of potential 80, 80 and 40 on one coordinator, in either linking order.
+
+	Returns `[coordinator, low, high, slow]`. `low` is spawned first and therefore holds the
+	lower persistent ID; `reversed_order` links `high` before `low`, which reverses the order the
+	head-inserted member list is walked in without changing a single input to the split.
+	"""
+	assert_not_null(watcher, "the fixture ticks against the watching store")
+	var low: int = _base_rate_worker()
+	var high: int = _base_rate_worker()
+	var slow: int = _fractional_rate_worker()
+	var coordinator: int = _coordinator_job(remaining_mwu)
+	var order: Array[int] = [low, high, slow]
+	if reversed_order:
+		order = [high, low, slow]
+	for worker: int in order:
+		var _member: int = _member_job(coordinator, worker)
+	return PackedInt32Array([coordinator, low, high, slow])
 
 
 func _xp(resident_slot: int) -> int:
@@ -652,3 +716,214 @@ func test_clear_returns_every_carry_to_zero() -> void:
 	assert_equal(_work.xp_remainder_of(worker, JobsScript.JOB_KIND_KEEP).value, 0,
 		"the XP progress is cleared")
 	assert_equal(_work.memory_total_of(worker).value, 0, "and the memory input returns to zero")
+
+
+# --- decision 0024: lazy persistent IDs -----------------------------------------------------------
+
+func test_an_ordinary_solo_tick_reads_no_persistent_id() -> void:
+	"""0024, verbatim: ordinary ticks perform ZERO identity reads for work allocation."""
+	var watcher: IdentityWatchingJobs = _use_identity_watching_jobs()
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 100000)
+	for _tick: int in 5:
+		assert_true(_work.tick_solo(job).ok, "each productive solo tick succeeds")
+	assert_equal(_jobs.remaining_mwu_of(job).value, 100000 - 400,
+		"five base-rate ticks really did the work")
+	assert_equal(watcher.identity_reads, 0,
+		"and not one of them read a persistent ID")
+
+
+func test_an_ordinary_party_tick_reads_no_persistent_id() -> void:
+	"""The same rule on the shared path, where the tie-break the ID exists for cannot arise."""
+	var watcher: IdentityWatchingJobs = _use_identity_watching_jobs()
+	var party: PackedInt32Array = _tie_party(watcher, 100000, false)
+	for _tick: int in 5:
+		assert_true(_work.tick_party(party[0]).ok, "each productive party tick succeeds")
+	assert_equal(_jobs.remaining_mwu_of(party[0]).value, 100000 - 1004,
+		"800 from the two base-rate workers plus 40+41+41+41+41 as the factor-510 carry releases")
+	assert_equal(watcher.identity_reads, 0,
+		"acceptance equalled the summed potential every tick, so no identity was needed")
+
+
+func test_a_finishing_tick_with_no_leftover_reads_no_persistent_id() -> void:
+	"""0024: "A finishing tick with no leftover milli-WU also requires none."
+
+	Two equal potentials of 80 against 100 outstanding milli-WU floor to 50 each with nothing
+	over, so the proportional split runs but the tie-break never does.
+	"""
+	var watcher: IdentityWatchingJobs = _use_identity_watching_jobs()
+	var coordinator: int = _coordinator_job(100)
+	var first: int = _base_rate_worker()
+	var second: int = _base_rate_worker()
+	for worker: int in [first, second]:
+		var _member: int = _member_job(coordinator, worker)
+	var out: WorkScript.TickResult = _work.tick_party(coordinator)
+	assert_true(out.completed, "the shared activity finishes on this tick")
+	assert_equal(out.accepted_mwu, 100, "acceptance is the outstanding 100 milli-WU")
+	assert_equal(_work.xp_remainder_of(first, JobsScript.JOB_KIND_KEEP).value, 50,
+		"the split floors to 50 for the first worker")
+	assert_equal(_work.xp_remainder_of(second, JobsScript.JOB_KIND_KEEP).value, 50,
+		"and 50 for the second, leaving nothing over")
+	assert_equal(watcher.identity_reads, 0, "so the finishing tick read no identity either")
+
+
+func test_a_leftover_tick_reads_each_frozen_identity_exactly_once() -> void:
+	"""0024: fetch each participating identity AT MOST ONCE into existing scratch storage.
+
+	The selection pass is O(leftover x party) and consults `_beats()` repeatedly, so a naive
+	implementation could read three identities several times over. Three contributors and one
+	leftover milli-WU must cost exactly three reads.
+	"""
+	var watcher: IdentityWatchingJobs = _use_identity_watching_jobs()
+	var party: PackedInt32Array = _tie_party(watcher, 101, false)
+	var out: WorkScript.TickResult = _work.tick_party(party[0])
+	assert_true(out.completed, "the finishing tick completes the activity")
+	assert_equal(out.contributor_count, 3, "with three frozen contributors")
+	assert_equal(watcher.identity_reads, 3, "one identity read per contributor, and no more")
+
+
+func test_reversed_member_order_gives_the_tie_to_the_same_worker() -> void:
+	"""0024's reordered-member-storage case: storage order must not decide a tie.
+
+	Members are head-inserted, so linking `high` before `low` reverses the walk. The tie-break is
+	total on the persistent ID, so the lower ID still takes the leftover milli-WU.
+	"""
+	var watcher: IdentityWatchingJobs = _use_identity_watching_jobs()
+	var party: PackedInt32Array = _tie_party(watcher, 101, true)
+	assert_true(_jobs.agent_persistent_id_of(party[1]).value
+		< _jobs.agent_persistent_id_of(party[2]).value, "the first-spawned worker has the lower ID")
+	assert_true(_work.tick_party(party[0]).ok, "the finishing tick succeeds")
+	assert_equal(_work.xp_remainder_of(party[1], JobsScript.JOB_KIND_KEEP).value, 41,
+		"the lower persistent ID still wins the tie when it is walked second")
+	assert_equal(_work.xp_remainder_of(party[2], JobsScript.JOB_KIND_KEEP).value, 40,
+		"and the higher ID still loses it when it is walked first")
+	assert_equal(_work.xp_remainder_of(party[3], JobsScript.JOB_KIND_KEEP).value, 20,
+		"the third worker's floored share is unchanged by the reordering")
+
+
+func test_reversed_member_order_keeps_the_largest_fraction_winner() -> void:
+	"""The untied case reordered: fraction 96 beats 64 and 48 whichever end it is walked from."""
+	var slow: int = _fractional_rate_worker()
+	var fast: int = _spawn_worker()
+	var base: int = _base_rate_worker()
+	var coordinator: int = _coordinator_job(100)
+	for worker: int in [slow, fast, base]:
+		var _member: int = _member_job(coordinator, worker)
+	var out: WorkScript.TickResult = _work.tick_party(coordinator)
+	assert_true(out.ok, "the finishing tick succeeds (error: %s)" % out.error)
+	assert_equal(_work.xp_remainder_of(base, JobsScript.JOB_KIND_KEEP).value, 39,
+		"the largest fraction still takes the leftover when it is walked first")
+	assert_equal(_work.xp_remainder_of(fast, JobsScript.JOB_KIND_KEEP).value, 42,
+		"the 88 worker keeps its floored share")
+	assert_equal(_work.xp_remainder_of(slow, JobsScript.JOB_KIND_KEEP).value, 19,
+		"and the 40 worker keeps its floored share")
+
+
+func test_an_identity_refusal_leaves_shared_progress_and_xp_untouched() -> void:
+	"""0024's named hazard: `_commit()` consumes remaining work BEFORE the leftover pass.
+
+	The identity read therefore has to happen before that subtraction. With the read armed to
+	refuse, the coordinator must still hold every one of its 101 outstanding milli-WU and no
+	worker may hold any XP progress -- a refusal after the consume would leave 0 remaining and a
+	completed-looking row that nobody was credited for.
+
+	The workers' OWN retained potential carries are spent by the collection pass and are not
+	rolled back. That is pre-existing §5.2 behaviour, documented in `_produce_potential()`: the
+	worker spent the tick whether or not the activity accepted the output.
+	"""
+	var watcher: IdentityWatchingJobs = _use_identity_watching_jobs()
+	var party: PackedInt32Array = _tie_party(watcher, 101, false)
+	watcher.refuse_identities = true
+	var out: WorkScript.TickResult = _work.tick_party(party[0])
+	assert_false(out.ok, "an unreadable identity refuses the tick")
+	assert_equal(out.error, WorkScript.REFUSE_SKILLS_UNAVAILABLE, "with an explicit code")
+	assert_equal(out.accepted_mwu, 0, "a refusal carries no accepted work")
+	assert_false(out.completed, "and no completion")
+	assert_equal(_jobs.remaining_mwu_of(party[0]).value, 101,
+		"the coordinator's outstanding work was never consumed")
+	assert_equal(_jobs.state_of(party[0]).value, JobsScript.JOB_STATE_WORK,
+		"and the row is still workable")
+	assert_equal(watcher.identity_reads, 1, "the first refusal stopped the tick at once")
+	assert_equal(_work.potential_remainder_of(party[3]).value, 800,
+		"the fractional worker's own §5.2 carry advanced, as it does on any spent tick")
+	for index: int in [1, 2, 3]:
+		assert_equal(_work.xp_remainder_of(party[index], JobsScript.JOB_KIND_KEEP).value, 0,
+			"no worker was credited any XP progress before the refusal")
+
+
+func test_a_refused_tick_leaves_the_activity_finishable() -> void:
+	"""The refusal is not terminal: with identities readable again the same row completes.
+
+	The second tick's numbers differ from the first only because the fractional worker's carry
+	advanced -- potentials 80, 80 and 41 against 201 -- which puts the leftover milli-WU on
+	fraction 121 rather than on the tie. That is the split reading current state, not stale
+	scratch surviving the refusal.
+	"""
+	var watcher: IdentityWatchingJobs = _use_identity_watching_jobs()
+	var party: PackedInt32Array = _tie_party(watcher, 101, false)
+	watcher.refuse_identities = true
+	assert_false(_work.tick_party(party[0]).ok, "the armed read refuses the first tick")
+	watcher.refuse_identities = false
+	var out: WorkScript.TickResult = _work.tick_party(party[0])
+	assert_true(out.ok, "the retry succeeds (error: %s)" % out.error)
+	assert_equal(out.accepted_mwu, 101, "and accepts the whole outstanding total")
+	assert_true(out.completed, "finishing the activity")
+	assert_equal(_work.xp_remainder_of(party[1], JobsScript.JOB_KIND_KEEP).value, 40,
+		"floor(101*80/201) reaches the lower-ID worker")
+	assert_equal(_work.xp_remainder_of(party[2], JobsScript.JOB_KIND_KEEP).value, 40,
+		"and the higher-ID worker")
+	assert_equal(_work.xp_remainder_of(party[3], JobsScript.JOB_KIND_KEEP).value, 21,
+		"and fraction 121 is the largest, so the leftover goes to the carried worker")
+
+
+func test_a_departure_on_the_completion_tick_freezes_the_contributor_set() -> void:
+	"""0024: "Freeze contributor membership through allocation and commit."
+
+	The departure is scheduled for the tick that completes the activity. The crew is frozen at
+	collection, so the split, the tie-break and the identity reads all cover exactly the two
+	workers who are still bound -- not the three who were bound a moment earlier.
+	"""
+	var watcher: IdentityWatchingJobs = _use_identity_watching_jobs()
+	var party: PackedInt32Array = _tie_party(watcher, 101, false)
+	assert_true(_jobs.release_worker(party[3]).ok, "the third worker leaves on this very tick")
+	var out: WorkScript.TickResult = _work.tick_party(party[0])
+	assert_true(out.completed, "the two who stayed finish the activity")
+	assert_equal(out.contributor_count, 2, "the frozen crew is two, not three")
+	assert_equal(out.accepted_mwu, 101, "acceptance is still the outstanding total")
+	assert_equal(watcher.identity_reads, 2, "and exactly two identities were read")
+	assert_equal(_work.xp_remainder_of(party[1], JobsScript.JOB_KIND_KEEP).value, 51,
+		"floor(101*80/160) is 50 and the tie sends the leftover to the lower ID")
+	assert_equal(_work.xp_remainder_of(party[2], JobsScript.JOB_KIND_KEEP).value, 50,
+		"the higher ID keeps its floored share")
+	assert_equal(_work.xp_remainder_of(party[3], JobsScript.JOB_KIND_KEEP).value, 0,
+		"and the departed worker is credited nothing at all")
+	assert_equal(_jobs.state_of(party[0]).value, JobsScript.JOB_STATE_COMPLETE,
+		"the coordinator records the completion")
+
+
+func test_leftover_allocation_reloads_identities_after_a_scratch_reset() -> void:
+	"""0024's save/load-before-completion case, as far as it is assertable in this milestone.
+
+	NO SAVE SYSTEM EXISTS, so a serialise/deserialise round trip cannot be exercised here and
+	that half of the case is DEFERRED, not asserted. What is assertable is the property a load
+	would rest on: the tie-break holds no state of its own between ticks. `work.clear()` is the
+	closest thing to a load boundary this milestone has -- it wipes every per-tick scratch column
+	including the persistent-ID cache -- and the finishing tick straight after it re-reads the
+	identities from the durable JobAgent rows and produces the documented winner.
+	"""
+	var watcher: IdentityWatchingJobs = _use_identity_watching_jobs()
+	var party: PackedInt32Array = _tie_party(watcher, 301, false)
+	assert_equal(_work.tick_party(party[0]).accepted_mwu, 200, "one ordinary tick runs first")
+	assert_equal(watcher.identity_reads, 0, "which reads no identity")
+	_work.clear()
+	watcher.identity_reads = 0
+	var out: WorkScript.TickResult = _work.tick_party(party[0])
+	assert_true(out.completed, "the tick after the reset finishes the remaining 101 milli-WU")
+	assert_equal(watcher.identity_reads, 3,
+		"the tie-break reloaded every identity rather than trusting cleared scratch")
+	assert_equal(_work.xp_remainder_of(party[1], JobsScript.JOB_KIND_KEEP).value, 41,
+		"and the lower persistent ID still takes the leftover milli-WU")
+	assert_equal(_work.xp_remainder_of(party[2], JobsScript.JOB_KIND_KEEP).value, 40,
+		"the higher ID keeps its floored share")
+	assert_equal(_work.xp_remainder_of(party[3], JobsScript.JOB_KIND_KEEP).value, 20,
+		"and the fractional worker keeps its own")

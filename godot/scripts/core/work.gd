@@ -70,6 +70,21 @@ extends RefCounted
 ## reproducible across a save. On every other tick acceptance equals the sum of the potentials
 ## and each worker is credited their own, with no division performed at all.
 ##
+## IDENTITIES ARE READ LAZILY (decision 0024). A persistent ID decides nothing except a tie
+## between two equal fractional remainders, so it is fetched only on a finishing tick that still
+## has milli-WU left over after flooring, and then exactly once per frozen contributor into the
+## scratch column that already existed for it. An ordinary tick performs ZERO identity reads, and
+## so does a finishing tick whose floored shares happen to leave nothing over.
+##
+## WHERE THAT FETCH SITS, AND WHY. `_commit()` consumes the coordinator's outstanding work BEFORE
+## the leftover is handed out. A read that can refuse therefore cannot live in
+## `_distribute_leftover()`, which runs after that subtraction: a refusal there would abandon a
+## tick whose shared progress had already been spent. `_allocate_shares()` runs BEFORE the
+## subtraction, computes the floored shares, learns the leftover and loads the identities there,
+## so every identity-read refusal is resolved while the activity's remaining work and every XP
+## column are still untouched. The order of store mutations -- consume, then XP, then completion
+## -- is exactly what it was.
+##
 ## PASSIVE WAITING NEVER ACCELERATES WITH CREW SIZE, and cannot here: work is produced only from
 ## a member Job's own bound worker in JOB_STATE_WORK, so a coordinator with no contributing
 ## member produces nothing however many rows point at it.
@@ -125,9 +140,10 @@ extends RefCounted
 ## calls `resize()`. The party walk, acceptance arithmetic, proportional split and remainder
 ## carries run on packed columns through one reused IntResult. The factor and resident work-gate
 ## reader chains use caller-owned `_into` forms; each live value is copied into an integer before
-## that scratch is reused, so nested reads cannot alias an input. The persistent-ID convenience
-## read, escaping TickResult, and XP mutator result retain their existing allocations. Allocating
-## reader wrappers remain fresh for cold paths and callers that keep a result.
+## that scratch is reused, so nested reads cannot alias an input. The leftover-only persistent-ID
+## read uses `jobs.agent_persistent_id_into()` and allocates nothing either. The escaping
+## TickResult and the XP mutator result retain their existing allocations. Allocating reader
+## wrappers remain fresh for cold paths and callers that keep a result.
 ##
 ## REFUSAL, NOT SENTINELS. Every operation returns a TickResult or an OpResult whose `.ok` must
 ## be inspected, and a refusal carries zero work, zero contributors and `completed = false`. "No
@@ -265,6 +281,13 @@ var _party_share: PackedInt64Array = PackedInt64Array()
 var _party_fraction: PackedInt64Array = PackedInt64Array()
 
 var _party_count: int = 0
+## How many rows of `_party_persistent_id` `_load_identities()` filled for the tick in progress.
+## Zero on every tick that needed no identity, which is every ordinary tick and every finishing
+## tick whose floored shares left nothing over.
+var _party_identity_count: int = 0
+## The milli-WU that flooring left over, computed by `_allocate_shares()` before any progress is
+## consumed and handed out by `_distribute_leftover()` after it. Always 0..`_party_count - 1`.
+var _pending_leftover: int = 0
 var _factor_out: int = 0
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -312,6 +335,8 @@ func clear() -> void:
 	_party_share.fill(0)
 	_party_fraction.fill(0)
 	_party_count = 0
+	_party_identity_count = 0
+	_pending_leftover = 0
 	_factor_out = 0
 
 
@@ -495,7 +520,7 @@ func tick_solo(job_slot: int) -> TickResult:
 	var code: StringName = _check_progress_row(job_slot)
 	if code != REFUSE_NONE:
 		return _refuse_tick(code)
-	_party_count = 0
+	_begin_contributors()
 	code = _offer_contributor(job_slot)
 	if code != REFUSE_NONE:
 		return _refuse_tick(code)
@@ -545,7 +570,7 @@ func _collect_contributors(coordinator_slot: int) -> StringName:
 	reused IntResult, and the walk terminates on their explicit end-of-list refusal rather than
 	on a slot value that could be mistaken for a row.
 	"""
-	_party_count = 0
+	_begin_contributors()
 	if not _jobs.first_member_into(coordinator_slot, _math):
 		return REFUSE_NONE
 	var member: int = _math.value
@@ -559,6 +584,18 @@ func _collect_contributors(coordinator_slot: int) -> StringName:
 		if walking:
 			member = _math.value
 	return REFUSE_NONE
+
+
+func _begin_contributors() -> void:
+	"""Start a fresh contributor set for one tick: no members, no identities, nothing left over.
+
+	`_party_identity_count` must be cleared here and not only in `clear()`: it is the record that
+	the persistent IDs in the scratch belong to THIS tick's frozen membership, and a stale count
+	would let `_distribute_leftover()` rank a party against another tick's identities.
+	"""
+	_party_count = 0
+	_party_identity_count = 0
+	_pending_leftover = 0
 
 
 func _offer_contributor(job_slot: int) -> StringName:
@@ -584,7 +621,14 @@ func _offer_contributor(job_slot: int) -> StringName:
 
 
 func _append_contributor(job_slot: int, resident_slot: int, skill: int) -> StringName:
-	"""Compute this worker's potential milli-WU and write one row of the party scratch."""
+	"""Compute this worker's potential milli-WU and write one row of the party scratch.
+
+	NO IDENTITY IS READ HERE (decision 0024). The persistent ID decides nothing but a tie between
+	equal fractional remainders, which can only arise on a finishing tick that has milli-WU left
+	over after flooring, so `_allocate_shares()` fetches it there and an ordinary tick pays
+	nothing for it. `_party_persistent_id` therefore holds a value from an earlier tick until
+	`_load_identities()` refills it, and `_party_identity_count` records that it has.
+	"""
 	var code: StringName = _check_skill(skill)
 	if code != REFUSE_NONE:
 		return code
@@ -593,13 +637,9 @@ func _append_contributor(job_slot: int, resident_slot: int, skill: int) -> Strin
 	code = _compute_factor(resident_slot, skill)
 	if code != REFUSE_NONE:
 		return code
-	var identity: IntMath.IntResult = _jobs.agent_persistent_id_of(resident_slot)
-	if not identity.ok:
-		return REFUSE_SKILLS_UNAVAILABLE
 	_party_job[_party_count] = job_slot
 	_party_resident[_party_count] = resident_slot
 	_party_skill[_party_count] = skill
-	_party_persistent_id[_party_count] = identity.value
 	_party_potential[_party_count] = _produce_potential(resident_slot, _factor_out)
 	_party_count += 1
 	return REFUSE_NONE
@@ -621,31 +661,40 @@ func _commit(progress_slot: int) -> TickResult:
 	for index: int in _party_count:
 		potential_total += _party_potential[index]
 	var accepted: int = potential_total if potential_total < remaining else remaining
+	var code: StringName = _allocate_shares(accepted, potential_total)
+	if code != REFUSE_NONE:
+		return _refuse_tick(code)
 	if not _jobs.consume_remaining_mwu_into(progress_slot, accepted, _math):
 		return _refuse_tick(StringName(_math.error))
 	var left: int = _math.value
-	_allocate_shares(accepted, potential_total)
-	var code: StringName = _award_all_xp()
+	_distribute_leftover(_pending_leftover)
+	code = _award_all_xp()
 	if code != REFUSE_NONE:
 		return _refuse_tick(code)
 	return _finish(progress_slot, accepted, left)
 
 
-func _allocate_shares(accepted: int, potential_total: int) -> void:
+func _allocate_shares(accepted: int, potential_total: int) -> StringName:
 	"""Split `accepted` across the party in proportion to each worker's potential.
 
 	On every tick but the last, `accepted == potential_total` and each worker keeps exactly their
 	own potential, with no division performed. On the finishing tick each share is floored and
-	the leftover milli-WU are distributed by largest fractional remainder, ties by ascending
-	resident persistent ID (decision 0017).
+	the leftover milli-WU are recorded in `_pending_leftover`, to be distributed by largest
+	fractional remainder, ties by ascending resident persistent ID (decision 0017).
+
+	THIS RUNS BEFORE ANY PROGRESS IS CONSUMED, which is why the identity fetch it may need lives
+	here rather than in `_distribute_leftover()`. `_commit()` spends the coordinator's remaining
+	work between this call and that one, so a read that can refuse must refuse while the row is
+	still untouched -- decision 0024's named hazard. Nothing here mutates a collaborating store.
 
 	`accepted <= potential_total <= PARTY_CAPACITY * MAX_POTENTIAL_MWU` (512*144), so the
 	proportional numerator cannot exceed about 1.1e7 and no checked multiplication is needed.
 	"""
+	_pending_leftover = 0
 	if accepted == potential_total:
 		for index: int in _party_count:
 			_party_share[index] = _party_potential[index]
-		return
+		return REFUSE_NONE
 	var distributed: int = 0
 	for index: int in _party_count:
 		var numerator: int = accepted * _party_potential[index]
@@ -653,7 +702,32 @@ func _allocate_shares(accepted: int, potential_total: int) -> void:
 		_party_share[index] = share
 		_party_fraction[index] = numerator - share * potential_total
 		distributed += share
-	_distribute_leftover(accepted - distributed)
+	_pending_leftover = accepted - distributed
+	if _pending_leftover == 0:
+		return REFUSE_NONE
+	return _load_identities()
+
+
+func _load_identities() -> StringName:
+	"""Fetch each frozen contributor's persistent ID exactly once, into the party scratch.
+
+	Reached only when flooring left milli-WU to hand out -- the sole condition under which
+	decision 0017's tie-break reads an identity at all. The contributor set is already frozen by
+	`_collect_contributors()`/`_offer_contributor()` and is not re-walked here, so the identities
+	loaded belong to exactly the workers whose shares were just computed and whose XP is about to
+	be credited.
+
+	A refusal returns REFUSE_SKILLS_UNAVAILABLE -- the code `_append_contributor()` used for this
+	same read before decision 0024 moved it -- and reaches `_commit()` before
+	`consume_remaining_mwu_into()`, so the activity's outstanding work and every XP column are
+	still exactly as the tick found them.
+	"""
+	for index: int in _party_count:
+		if not _jobs.agent_persistent_id_into(_party_resident[index], _math):
+			return REFUSE_SKILLS_UNAVAILABLE
+		_party_persistent_id[index] = _math.value
+	_party_identity_count = _party_count
+	return REFUSE_NONE
 
 
 func _distribute_leftover(leftover: int) -> void:
@@ -662,7 +736,12 @@ func _distribute_leftover(leftover: int) -> void:
 	`leftover` is strictly below the party size, so this runs at most `_party_count - 1` times
 	and only ever on a finishing tick. A share that has received its extra milli-WU has its
 	fraction set to -1, which no real fraction can equal, so it cannot be chosen twice.
+
+	`_beats()` reads `_party_persistent_id`, which only `_load_identities()` fills, so a nonzero
+	`leftover` here without that call would compare identities from an earlier tick.
 	"""
+	assert(leftover == 0 or _party_identity_count == _party_count,
+		"the tie-break may only read persistent IDs this tick loaded")
 	for _pass_index: int in leftover:
 		var best: int = -1
 		for index: int in _party_count:

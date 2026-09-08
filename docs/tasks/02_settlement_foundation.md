@@ -354,3 +354,25 @@ GDExtension. Neither is decided.
 - **Does not establish:** a choice among decision 0016's four architectural options, a release
   or qualification-floor measurement, or any change to work arithmetic, needs timing, or
   coordinator/member job structure.
+
+
+### WU tick optimisation, step 1 — three-workload baseline and lazy persistent IDs (done, 2026-09-08)
+
+- [x] Establish the three-workload baseline (bands/uniform/party, decision 0024) before changing
+  any `godot/scripts` file.
+- [x] Remove the routine per-contributor persistent-ID read; fetch each frozen contributor's
+  identity at most once, only on a finishing tick with milli-WU left over after flooring.
+- [x] Re-measure; suite at 644 tests / 20,118 assertions / 0 failures (baseline 631/19,381/0).
+- **Owners:** REQ-SET-015/020/023, BAL-WORK-001, ARCH-AUTH-003, ARCH-MEM-001, ARCH-MIG-006;
+  ADR 0015/0016/0017/0024. Depends on the benchmark harness from the profiling task above.
+- **Evidence:** `docs/decisions/0024-work-tick-optimization-order.md` (the ruling this task
+  follows) and `validation-results/work-lazy-id-2026-09-08/`. Raw p50 fell ~5% (bands), ~10%
+  (uniform) and ~14% (party) at 256 residents; the needs control (byte-identical file, no code
+  change) also fell ~3.6-3.7%, which is measurement drift rather than a code effect. Net of that
+  drift the honest estimates are roughly +1.5% (bands), ~6% (uniform) and ~10.5% (party); bands
+  is the ordinary-play reference and is the smallest of the three. Finishing-tick stress
+  configurations were too noisy to carry a number; no post-change run exceeded its baseline on
+  any workload. Every setup and final digest matches the baseline and the previously committed
+  profile, so the change is bit-for-bit behaviour preserving on these fixtures.
+- **Does not establish:** the `TickResult` `_into` step, release-build setup, the fused reader,
+  or a choice among decision 0016's four architectural options. Decision 0016 stays open.

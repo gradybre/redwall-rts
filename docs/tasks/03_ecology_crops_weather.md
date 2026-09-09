@@ -39,7 +39,7 @@ prerequisite. It is **not** the thing that animates the loop.
 | 3 | **ResourceNode** + minimal tile placement | — | **done** |
 | 4 | **HarvestZone + ForagePatch** — REQ-SET-066–069 | 1, 3 | **done**; quota reworked to the ruled daily aggregate, decisions 0026/0030 |
 | 5 | **FishHabitat + FishStock** — §5.4 | 1 | **stock half done**; gear half still blocked by U5 (`GearInstance` has no allocator budget, so wear cycles cannot be completed) |
-| 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | **unblocked now that 2 is done**; still **the only real job-creation site** |
+| 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | **done**; `TileHistory` built, five open contracts recorded in decision 0032 |
 | 7 | **FieldPolicy + sowing** — REQ-SET-070/071/077/078/088 | 6 | **needs a decision**: the GDD states the sowing validation gate but never the triggering event |
 | 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **pollination blocked by U6** (`HivePollinationLinks` has no owner-major index formula) |
 | 9 | **ARCH-SYS-005 Ecology** daily orchestration | 3,4,5,8 | closes one leg of REQ-SET-007 |
@@ -55,14 +55,17 @@ immigration/departures and progression come later.
   REQ-SET-059 require the schema stay allocated, zeroed, with no live rows and no
   system writing it — but nothing says how large. Reserved is not the same as
   absent; REQ-SET-065 still requires its field shape be validated on load.
-- **The `FarmPlot` tile-backing store is named but not itemised.**
-  ARCH-STATE-003 requires per-tile soil history (last crop family, last
-  legume-harvest day, compost season, ripe tick, service state) to **outlive** a
-  deleted `FarmPlot` row, but `WorldTileMaps` has only four columns
-  (`building_slot`, `room_slot`, `zone_link_head`, `resource_slot`) — no
-  `farm_plot_slot`, and no fields or capacity for the history it must keep.
-- **`CropState`, `Soil` and `OrderMode` are not compiled** into `catalog.gd`'s
-  protected enum table, unlike the eight already there (decision 0018).
+- ~~**The `FarmPlot` tile-backing store is named but not itemised.**~~
+  **STALE, corrected 2026-09-09.** `systems_architecture.md` §2 itemises
+  `TileHistory` at 16384 rows with `fertility, last_family, last_legume_day,
+  compost_season, active_plot_row, orchard_row`, `ripe_tick, growth_remainder`
+  and `tended_today` — the backing store ARCH-STATE-003 requires, tile→plot link
+  included. The original note looked only at `WorldTileMaps`. Implemented in
+  increment 6. **One real shortfall survives**: `family_streak` has no
+  `TileHistory` column, so a redraw restores the family but not the count — see
+  decision 0032.
+- ~~**`CropState`, `Soil` and `OrderMode` are not compiled**~~ — **done in
+  increment 6.** `PROTECTED_ENUM_DOMAINS` now holds eleven domains.
 - **No RNG module exists.** ARCH-RNG-002 names `ECOLOGY`, `FISHING`, `FORAGE` and
   `WEATHER` streams with exact draw disciplines. This is a genuine new-module
   dependency not previously tracked as a blocker. **Resolved by increment 1.**

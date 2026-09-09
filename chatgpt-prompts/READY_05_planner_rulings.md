@@ -6,7 +6,7 @@ and are implemented — the handoff is stored at
 §4.2 and ARCH-RNG-002. Decisions 0028, 0029, 0030 record them; 0026 is now
 Accepted with the five ownership constraints.
 
-**Still open: ruling 4 below, which the handoff did not answer** (it responded to
+**Still open: rulings 4, 5 and 6 below. Ruling 4 the handoff did not answer** (it responded to
 the three-ruling version at head `90739ef`, written before the fishing module
 existed), **and ruling 5, which the weather implementation newly surfaced.**
 
@@ -333,6 +333,50 @@ appears exactly once**, so the bare forms are implemented as absolute. There is
 mechanical corroboration: BAL-CROP-001 makes `frost_tolerance` damage accrue per
 subzero hour, and the relative reading would put early frost at autumn 10 − 3 =
 **+7°C**, leaving "frost effects" with no mechanism at all. Confirm if you agree.
+
+---
+
+## Ruling 6 — Farming's five open contracts, and one ARCH-STATE-003 shortfall
+
+From increment 6 (`farming.gd`), now implemented. **1161 tests, 34543
+assertions, 0 failures.** §5.6 is unusually complete on arithmetic and unusually
+silent on state transitions — every number transcribed cleanly; these five did
+not.
+
+**Three govern persisted columns**, so a later change breaks saves rather than
+just behaviour.
+
+1. **`SOWN` vs `GROWING`.** §4.3 numbers both; §5.6 never says what separates
+   them. Read as SOWN = seed committed with the 4 WU outstanding, GROWING =
+   REQ-SET-072 integrating. `state` is persisted.
+2. **`family_streak` counts harvests, not sowings** — from "a second consecutive
+   same-family *harvest*", so a withered crop does not advance it.
+3. **What `FarmPlot.compost_milli` holds.** `TileHistory.compost_season` is
+   already the once-per-season gate, leaving the §4.2 column without an obvious
+   job. Used as a quantity ledger (0, then 2000).
+4. **Do the 48-hour grace and the 5-day withering share one instant?** They do in
+   the implementation. The alternative starts the five days *after* the grace
+   expires. **The two differ by two whole days of yield decay** — the largest
+   balance consequence of anything in this list.
+5. **No crop-family enum exists.** `last_family` is persisted, and `FAMILY_*` are
+   module-local ordinals in §5.6's printed order. **This is the third instance of
+   the same gap**, after `HabitatType` and `WeatherEvent` — worth one general
+   ruling rather than three.
+
+### The shortfall is the architecture's, not the implementation's
+ARCH-STATE-003 is otherwise satisfied and tested verbatim: a redraw does not
+restore fertility and does not reset compost eligibility.
+
+But **`family_streak` has no `TileHistory` column.** §4.2 puts the streak *length*
+on the `FarmPlot` row; §2's `TileHistory` carries only `last_family`. A redraw
+restores the family but not the count.
+
+The direction of the error was checked and is the safe one: a restored family
+with a zero count reads as a **second** consecutive harvest (850), never a first
+(1000), so **a redraw can never fabricate a rotation bonus** — BAL-SAFE-014's
+actual concern. It can still *lose* a penalty, turning a third-or-later 700 into
+850. Closing it needs a seventh I32 column, **+65536 bytes** over the budgeted
+393216. Your call whether that is worth spending.
 
 ---
 

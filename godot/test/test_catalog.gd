@@ -207,8 +207,12 @@ func test_activity_and_job_state_refuse_recompilation() -> void:
 
 func test_every_protected_domain_has_a_fixed_enum_table() -> void:
 	"""A name in PROTECTED_ENUM_DOMAINS with no fixed_enum entry would refuse compilation while
-	publishing nothing, leaving that enum with no numbers at all."""
-	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 8, "eight protected enum domains")
+	publishing nothing, leaving that enum with no numbers at all.
+
+	The count rose from eight to eleven when Soil, CropState and OrderMode joined the table
+	(decision 0018: every enum §4.3 numbers explicitly belongs here). The number is asserted so
+	a domain added without a fixed_enum table, or a table added without its domain name, fails."""
+	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 11, "eleven protected enum domains")
 	for domain_name: String in CatalogScript.PROTECTED_ENUM_DOMAINS:
 		assert_false(CatalogScript.fixed_enum(domain_name).is_empty(),
 			"protected domain %s must publish a fixed enum table" % domain_name)
@@ -279,3 +283,79 @@ func test_compile_catalog_refuses_an_untyped_array_with_a_non_string_element() -
 	assert_not_null(report, "compile_catalog must never return null")
 	assert_false(report.ok, "a non-string, non-StringName key must refuse the batch")
 	assert_true(report.domains.is_empty(), "no domain's IDs are produced on refusal")
+
+
+const EXPECTED_SOIL: Dictionary = {"LOAM": 0, "CLAY": 1, "SAND": 2}
+const EXPECTED_CROP_STATE: Dictionary = {
+	"EMPTY": 0, "SOWN": 1, "GROWING": 2, "RIPE": 3, "WITHERED": 4,
+}
+const EXPECTED_ORDER_MODE: Dictionary = {"ONCE": 0, "REPEAT": 1, "MAINTAIN_STOCK": 2}
+
+
+func test_fixed_soil_enum_matches_gdd_4_3_exactly() -> void:
+	"""§4.3: "Soil | LOAM=0, CLAY=1, SAND=2". BAL-CROP-001 derives every crop's `allowed_soils`
+	mask as `1<<Soil`, so a renumbering here repoints grain's mask 3 at a different pair of soils.
+
+	The whole-dictionary comparison comes FIRST and is the load-bearing assertion: indexing a
+	Dictionary with a key a mutation removed aborts the rest of the method at runtime, which is
+	how a deleted member survived this file's first mutation run."""
+	var soil: Dictionary = CatalogScript.fixed_enum("Soil")
+	assert_equal(soil, EXPECTED_SOIL, "the whole Soil table")
+	assert_equal(soil.size(), 3, "all 3 Soil values are present")
+	assert_equal(CatalogScript.SOIL, soil, "fixed_enum returns the SOIL table itself")
+	for key: String in EXPECTED_SOIL:
+		assert_true(soil.has(key), "Soil is missing %s" % key)
+		if soil.has(key):
+			assert_equal(soil[key], EXPECTED_SOIL[key], "Soil.%s" % key)
+
+
+func test_fixed_crop_state_enum_matches_gdd_4_3_exactly() -> void:
+	"""§4.3: "CropState | EMPTY=0, SOWN=1, GROWING=2, RIPE=3, WITHERED=4". `FarmPlot.state` is
+	persisted, so any renumbering here silently rewrites every saved plot's state."""
+	var crop_state: Dictionary = CatalogScript.fixed_enum("CropState")
+	assert_equal(crop_state, EXPECTED_CROP_STATE, "the whole CropState table")
+	assert_equal(crop_state.size(), 5, "all 5 CropState values are present")
+	assert_equal(CatalogScript.CROP_STATE, crop_state, "fixed_enum returns the CROP_STATE table")
+	for key: String in EXPECTED_CROP_STATE:
+		assert_true(crop_state.has(key), "CropState is missing %s" % key)
+		if crop_state.has(key):
+			assert_equal(crop_state[key], EXPECTED_CROP_STATE[key], "CropState.%s" % key)
+
+
+func test_fixed_order_mode_enum_matches_gdd_4_3_exactly() -> void:
+	"""§4.3: "OrderMode | ONCE=0, REPEAT=1, MAINTAIN_STOCK=2", the type of `ProductionOrder.mode`."""
+	var order_mode: Dictionary = CatalogScript.fixed_enum("OrderMode")
+	assert_equal(order_mode, EXPECTED_ORDER_MODE, "the whole OrderMode table")
+	assert_equal(order_mode.size(), 3, "all 3 OrderMode values are present")
+	assert_equal(CatalogScript.ORDER_MODE, order_mode, "fixed_enum returns the ORDER_MODE table")
+	for key: String in EXPECTED_ORDER_MODE:
+		assert_true(order_mode.has(key), "OrderMode is missing %s" % key)
+		if order_mode.has(key):
+			assert_equal(order_mode[key], EXPECTED_ORDER_MODE[key], "OrderMode.%s" % key)
+
+
+func test_soil_crop_state_and_order_mode_refuse_recompilation() -> void:
+	"""Decision 0018's whole point: the protected table is the thing that REFUSES a recompile.
+
+	Sorted-key regeneration would number Soil CLAY=0, LOAM=1, SAND=2 and CropState EMPTY=0,
+	GROWING=1, RIPE=2, SOWN=3, WITHERED=4 -- neither of which is what §4.3 states."""
+	var soil_keys: Array[StringName] = [&"LOAM", &"CLAY", &"SAND"]
+	var soil: CatalogScript.DomainResult = CatalogScript.compile_domain("Soil", soil_keys)
+	assert_false(soil.ok, "compiling Soil must refuse")
+	assert_true(soil.ids.is_empty(), "a refused compile produces no IDs")
+	var state_keys: Array[StringName] = [&"EMPTY", &"SOWN", &"GROWING", &"RIPE", &"WITHERED"]
+	var crop_state: CatalogScript.DomainResult = CatalogScript.compile_domain("CropState", state_keys)
+	assert_false(crop_state.ok, "compiling CropState must refuse")
+	assert_true(crop_state.ids.is_empty(), "a refused compile produces no IDs")
+	var mode_keys: Array[StringName] = [&"ONCE", &"REPEAT", &"MAINTAIN_STOCK"]
+	var order_mode: CatalogScript.DomainResult = CatalogScript.compile_domain("OrderMode", mode_keys)
+	assert_false(order_mode.ok, "compiling OrderMode must refuse")
+	assert_true(order_mode.ids.is_empty(), "a refused compile produces no IDs")
+
+
+func test_the_three_new_protected_enums_are_named_in_the_protected_table() -> void:
+	"""A fixed_enum table whose domain name is absent from PROTECTED_ENUM_DOMAINS would still be
+	recompilable, which is the exact drift decision 0018 exists to prevent."""
+	for domain_name: String in ["Soil", "CropState", "OrderMode"]:
+		assert_true(CatalogScript.PROTECTED_ENUM_DOMAINS.has(domain_name),
+			"%s must be a protected domain" % domain_name)

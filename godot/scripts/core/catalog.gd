@@ -8,9 +8,9 @@ extends RefCounted
 ## discovered in. Dictionary insertion order never leaks into an ID.
 ##
 ## The handful of gameplay enums that GDD §4.3 gives explicit numeric values (Speed, Activity,
-## JobKind, JobState, ZoneType, Season, Quality, Severity) are fixed data here, never run through
-## the compiler: they must never be renumbered, including the intentionally reserved gaps
-## (JobKind.RESERVED_3, ZoneType.RESERVED_1).
+## JobKind, JobState, ZoneType, Season, Soil, CropState, OrderMode, Quality, Severity) are fixed
+## data here, never run through the compiler: they must never be renumbered, including the
+## intentionally reserved gaps (JobKind.RESERVED_3, ZoneType.RESERVED_1).
 ##
 ## Decision 0018 fixes the rule: every enum §4.3 numbers explicitly lives in
 ## PROTECTED_ENUM_DOMAINS, because the protected table is the thing that REFUSES a recompile. A
@@ -50,11 +50,23 @@ const ZONE_TYPE: Dictionary = {
 	"FORESTRY": 5, "QUARRY": 6, "STOCKPILE": 7, "CONSERVATION": 8,
 }
 const SEASON: Dictionary = {"SPRING": 0, "SUMMER": 1, "AUTUMN": 2, "WINTER": 3}
+## §4.3: "Soil | LOAM=0, CLAY=1, SAND=2". GDD §5.6 and BAL-CROP-001 build `allowed_soils` as
+## `1<<Soil` from exactly these ordinals, so renumbering them silently repoints every crop's
+## soil mask at a different soil.
+const SOIL: Dictionary = {"LOAM": 0, "CLAY": 1, "SAND": 2}
+## §4.3: "CropState | EMPTY=0, SOWN=1, GROWING=2, RIPE=3, WITHERED=4". `FarmPlot.state` is
+## persisted state, so these five are save-carried.
+const CROP_STATE: Dictionary = {
+	"EMPTY": 0, "SOWN": 1, "GROWING": 2, "RIPE": 3, "WITHERED": 4,
+}
+## §4.3: "OrderMode | ONCE=0, REPEAT=1, MAINTAIN_STOCK=2". `ProductionOrder.mode` in §4.2.
+const ORDER_MODE: Dictionary = {"ONCE": 0, "REPEAT": 1, "MAINTAIN_STOCK": 2}
 const QUALITY: Dictionary = {"POOR": 0, "PLAIN": 1, "GOOD": 2, "EXCELLENT": 3}
 const SEVERITY: Dictionary = {"INFO": 0, "ADVISORY": 1, "WARNING": 2, "CRITICAL": 3}
 
 const PROTECTED_ENUM_DOMAINS: Array[String] = [
-	"Speed", "Activity", "JobKind", "JobState", "ZoneType", "Season", "Quality", "Severity",
+	"Speed", "Activity", "JobKind", "JobState", "ZoneType", "Season", "Soil", "CropState",
+	"OrderMode", "Quality", "Severity",
 ]
 
 
@@ -106,6 +118,12 @@ static func fixed_enum(domain_name: String) -> Dictionary:
 			return ZONE_TYPE
 		"Season":
 			return SEASON
+		"Soil":
+			return SOIL
+		"CropState":
+			return CROP_STATE
+		"OrderMode":
+			return ORDER_MODE
 		"Quality":
 			return QUALITY
 		"Severity":

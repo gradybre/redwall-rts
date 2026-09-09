@@ -114,14 +114,23 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | FishStock | habitat_slot, habitat_generation, species_id | I32 | 4 | 3 | 96 | 1152 | [GDD §4.2; 32*3] |
 | FishStock | population_milli, capacity_milli, harvested_today_milli | I64 | 8 | 3 | 96 | 2304 | [GDD §4.2; 32*3] |
 | FishStock | closed | B8 | 1 | 1 | 96 | 96 | [GDD §4.2; 32*3] |
+| FishHabitat | effort_used | I32 | 4 | 1 | 32 | 128 | [decision 0027 **PROVISIONAL**] §4.2 gives `effort_slots` as a capacity with nowhere to record occupancy, which REQ-SET-044/050 require |
+| FishStock | restocking | B8 | 1 | 1 | 96 | 96 | [decision 0027 **PROVISIONAL**] REQ-SET-048's 30-down/40-up band needs one bit population alone cannot supply |
 | HarvestZone | type, danger | I32 | 4 | 2 | 128 | 1024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | HarvestZone | quota_milli | I64 | 8 | 1 | 128 | 1024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | HarvestZone | protected, enabled | B8 | 1 | 2 | 128 | 256 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | HarvestZone.tiles | tile_id | I32 | 4 | 1 | 16384 | 65536 | [GDD §4.2; lengths ARCH-MEM-002–004] |
+| HarvestZone | basin_slot, basin_generation | I32 | 4 | 2 | 128 | 1024 | [decision 0026, planner ruling §3.1] Basin ownership; designations bind, never create |
+| HarvestZone | harvested_today_milli, quota_reserved_milli | I64 | 8 | 2 | 128 | 2048 | [decision 0030 §4.7] Daily collected is authoritative; outstanding-reserved is a derived cache rebuilt from active claims |
+| HarvestZone | quota_mode | B8 | 1 | 1 | 128 | 128 | [decision 0030 §4.6] Automatic / Inherit / Manual |
 | FaunaStockReserved | zone_slot, zone_generation, species_id, population, capacity, tracks, harvest_today, migration_link | I32 | 4 | 8 | 384 | 12288 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | FaunaStockReserved | birth_remainder | I64 | 8 | 1 | 384 | 3072 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | ForagePatch | zone_slot, zone_generation, item_id | I32 | 4 | 3 | 640 | 7680 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | ForagePatch | stock_milli, capacity_milli, harvested_year_milli | I64 | 8 | 3 | 640 | 15360 | [GDD §4.2; lengths ARCH-MEM-002–004] |
+| ForageClaim | job_slot, job_generation, designation_slot, designation_generation, basin_slot, basin_generation, patch_kind | I32 | 4 | 7 | 8192 | 229376 | [decision 0030 §4.7] `claim_row = owning_job_typed_row`; no separate allocator |
+| ForageClaim | remaining_milli | I64 | 8 | 1 | 8192 | 65536 | [decision 0030 §4.7] |
+| ForageClaim | active | B8 | 1 | 1 | 8192 | 8192 | [decision 0030 §4.7] |
+| ForageClaim.ordering | job_created_tick, job_persistent_id | I64 | 8 | 2 | 8192 | 131072 | [decision 0030, **outside** the ruling's 305280 payload per R05-QUOTA-024] Cache of the owning Job's own fields, rebuilt on load; not a separate claim timestamp |
 | ResourceNode | resource_id, regrow_days, planted_day | I32 | 4 | 3 | 4096 | 49152 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | ResourceNode | quantity_milli, capacity_milli | I64 | 8 | 2 | 4096 | 65536 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | ResourceNode | exhausted | B8 | 1 | 1 | 4096 | 4096 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -175,7 +184,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
-| Fixed registry payload | 24148434 | 1 | 24148434 | mutable | Sum §2.2 (+1536, decision 0021) |
+| Fixed registry payload | 24586034 | 1 | 24586034 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +224 decision 0027 **provisional**) |
 | Auxiliary payload | 16384856 | 1 | 16384856 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
@@ -525,7 +534,7 @@ hash_pair(a,b):
 | MAP | Map generation choices only | Attempt, tile ID, feature ID; generation state retained | [GDD §5.1; NEW stream isolation] |
 | QUALITY | One roll per batch whose inputs commit | Job ID; `R=(draw mod 21)-10`; never reroll on worker swap | [GDD §5.7] |
 | SOCIAL | One roll per eligible conflict pair at 18:00 | Room ID then ordered pair IDs; consume for every eligible pair, resolve lowest-ID passing pair | [GDD §5.3; NEW draw discipline] |
-| WEATHER | One weighted event-selection roll per new season after the forced first spring | Season index; forced onboarding event consumes zero draws | [GDD §5.10; NEW forced-event draw policy] |
+| WEATHER | One weighted event-selection roll per new season after the forced first spring. **Roll-to-row mapping ruled 2026-09-09**: scan §5.10's printed event order filtered to eligible rows, raw integer weights, `roll = draw mod weight_sum`, strict `roll < cumulative`. Sums: spring 85, summer 120, autumn 135, winter 110. Modulo bias disclosed; rejection sampling remains forbidden | Season index ORDERS the event and shall not cause per-season reseeding; forced onboarding event consumes zero draws | [GDD §5.10; decision 0028] |
 
 Names and candidate species use deterministic hashes/cycles, not these stochastic streams `[GDD §5.3, §5.11]`. Rendering phase uses a separate stateless hash `[crowd §3.2]`. RNG draw state is included in saves and hashes.
 

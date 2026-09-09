@@ -55,14 +55,56 @@ extends RefCounted
 ##     `WorldTileMaps.building_slot`, which no store owns yet. `is_regrow_ready()` implements the
 ##     day condition alone; the ecology system (ARCH-SYS-005) must apply the occupancy condition
 ##     before calling `regrow()`, and this comment is the record that it is still missing.
-##   * §5.1's "footprint 4x4" DEPOSITS HAVE NO SCHEMA. The §4.2 row has no footprint field and a
-##     tile holds one node, so a 4x4 stone deposit of 1200 U is either 16 nodes whose per-tile
-##     split the document never states, or one node with an extent the schema cannot store. That
-##     is world generation's blocker (REQ-SET-009, a later increment), not this store's, and no
-##     grove, deposit or per-node quantity from §5.1 is compiled in here.
+##   * §5.1's "footprint 4x4" DEPOSITS ARE SETTLED AND IMPLEMENTED (see the section below). No
+##     grove, tree-centre rule or arrival exit from §5.1 is compiled in here.
 ##   * The `FarmPlot` tile-backing store of ARCH-STATE-003 is NOT built here. Its per-tile soil
 ##     history must outlive a deleted row, but its fields and capacity are itemised nowhere; see
 ##     docs/tasks/03_ecology_crops_weather.md.
+##
+## ---------------------------------------------------------------------------------------
+## THE GUARANTEED ORE DEPOSITS (GDD §5.1 as amended by decision 0029, 2026-09-09).
+##
+## §5.1 gives "Guaranteed stone deposit origin (44,70), footprint 4x4, quantity 1200 U ... iron
+## origin (32,60), footprint 4x4, quantity 300 U", and the §4.2 row has no footprint field. The
+## planner ruled Option A: a deposit's listed quantity is the SUM ACROSS ITS FOOTPRINT, and each
+## 4x4 deposit is SIXTEEN independently exhaustible `ResourceNode` rows, one per tile, created in
+## ascending tile-index order -- stone `x=44..47, z=70..73` at 75000 milli-U each, iron
+## `x=32..35, z=60..63` at 18750 milli-U each, 32 of the 4096 rows. `1200/16 = 75 U` and
+## `300/16 = 18.75 U = 18750 milli` both divide exactly in the units the schema already stores.
+## NO FOOTPRINT COLUMN IS ADDED: `place_deposit()` writes sixteen ordinary §4.2 rows, per-tile
+## depletion is the intended visible behaviour, and every existing reader keeps working.
+##
+##   * THIS IS ONE PRIMITIVE, NOT WORLD GENERATION. REQ-SET-009's terrain masks, the soil bands,
+##     the forest ecology basins, the 3000-tree-centre rule, the guaranteed grove of 100 trees,
+##     the arrival/departure exit at (64,126), seed validation and the 16-attempt retry are all
+##     absent -- not stubbed, absent. This call places one 4x4 deposit on demand; the world
+##     generator that will call it twice does not exist yet and owns all of the above.
+##   * THE RENEWABLE BEDROCK ACCESS AT (48,70) IS NOT PLACED HERE. §5.1 names it and decision
+##     0029 confirms it belongs to neither deposit total, but no document gives it a quantity, a
+##     regrow period or a footprint, and "renewable" fixes no number. Inventing one is exactly
+##     the constant AGENTS.md forbids, so it stays unimplemented and its tile is left empty.
+##   * WHICH OCCUPANT MAY BE REPLACED IS A CALLER'S DECLARATION, NOT A GUESS. INTERPRETATION:
+##     §5.1 says "Ore footprints replace tree nodes", but `resource_id`'s domain is unstated
+##     (above), so this store cannot tell a tree row from any other row. `place_deposit()`
+##     therefore takes the replaceable id as an ARGUMENT: an occupied footprint tile whose node
+##     carries that id is destroyed and rebuilt as ore, and one carrying any other id refuses the
+##     whole deposit. Reading it as "replace whatever stands there" would let a deposit silently
+##     delete a node §5.1 never authorised it to touch.
+##   * THE REPLACEMENT IS AN EXPLICIT `destroy()`, matching the invariant above. The tree's
+##     directory row is released, so no live row is stranded with no tile and no owner.
+##   * ALLOCATE BEFORE CONSUME -- the hazard decision 0024 named. The sixteen directory rows are
+##     reserved FIRST; only then are the replaced nodes destroyed and the ore rows published. A
+##     refusal at any point rolls the reservation back and leaves the store exactly as it was:
+##     there is no half-built deposit and no felled tree with nothing standing in its place. The
+##     price is a stricter capacity test -- the sixteen rows must be free BEFORE the replaced
+##     nodes hand theirs back, so a nearly full store refuses with CAPACITY_RESOURCE_NODE where a
+##     destroy-first order might have squeezed in. That refusal is explicit and costs nothing;
+##     the failure the other order risks is a consumed tree that cannot be given back.
+##   * `regrow_days` IS A PARAMETER, NOT A COMPILED-IN 0. §5.9 gives trees 48 days and states no
+##     period for stone or iron, while §5.1's separate "renewable bedrock access" shows an ore
+##     node CAN be renewable. The caller states the period; this store does not decide it.
+##   * `resource_id` IS ALSO THE CALLER'S. Its domain is unstated (above), so no ore item id is
+##     compiled in; the deposit validates the id's range exactly as `create_at_tile()` does.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -87,6 +129,26 @@ const TILE_CENTER_Y_UNITS: int = 0
 ## names no day, so it is refused rather than stored as a plausible planting date.
 const MIN_CALENDAR_DAY: int = 1
 
+## GDD §5.1's "footprint 4x4" and decision 0029's "Nodes | 16" are two separately stated numbers
+## describing one block, inclusive of both corners. Neither is derived from the other here;
+## `_assert_deposit_constants()` checks that they still agree.
+const DEPOSIT_FOOTPRINT_SIZE: int = 4
+const DEPOSIT_NODE_COUNT: int = 16
+
+## Decision 0029's table, transcribed. Stone: origin (44,70) from §5.1, so `x=44..47, z=70..73`;
+## 75000 milli-U per node; 1200000 milli-U across the footprint (§5.1's "quantity 1200 U").
+const STONE_DEPOSIT_ORIGIN_X: int = 44
+const STONE_DEPOSIT_ORIGIN_Z: int = 70
+const STONE_DEPOSIT_NODE_MILLI: int = 75000
+const STONE_DEPOSIT_TOTAL_MILLI: int = 1200000
+
+## Decision 0029's table, transcribed. Iron: origin (32,60) from §5.1, so `x=32..35, z=60..63`;
+## 18750 milli-U per node; 300000 milli-U across the footprint (§5.1's "quantity 300 U").
+const IRON_DEPOSIT_ORIGIN_X: int = 32
+const IRON_DEPOSIT_ORIGIN_Z: int = 60
+const IRON_DEPOSIT_NODE_MILLI: int = 18750
+const IRON_DEPOSIT_TOTAL_MILLI: int = 300000
+
 ## Empty value of the `WorldTileMaps.resource_slot` column, matching the directory's null slot.
 const NO_NODE: int = EntityDirectory.NULL_SLOT
 
@@ -110,6 +172,12 @@ const REFUSE_NOT_RENEWABLE: StringName = &"NOT_RENEWABLE"
 const REFUSE_REGROW_NOT_DUE: StringName = &"REGROW_NOT_DUE"
 const REFUSE_INVALID_INDEX: StringName = &"INVALID_INDEX"
 const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
+
+## A deposit footprint that runs off the 128x128 grid, and a footprint tile held by a node the
+## caller did not declare replaceable. Both are deposit-only, so neither can be confused with
+## `create_at_tile()`'s single-tile INVALID_TILE and TILE_OCCUPIED.
+const REFUSE_INVALID_FOOTPRINT: StringName = &"INVALID_FOOTPRINT"
+const REFUSE_FOOTPRINT_OCCUPIED: StringName = &"FOOTPRINT_OCCUPIED"
 
 
 class OpResult:
@@ -169,6 +237,13 @@ var _live_count: int = 0
 ## signal, so no public operation can re-enter while it holds a live value.
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 
+## The footprint of the deposit being placed, ascending, and the sixteen directory rows reserved
+## for it before anything is destroyed. Sized once in `_allocate_columns()`. `place_deposit()`
+## invokes no callback and emits no signal, so no second placement can re-enter and overwrite it.
+var _deposit_tiles: PackedInt32Array = PackedInt32Array()
+var _deposit_ref_slot: PackedInt32Array = PackedInt32Array()
+var _deposit_ref_generation: PackedInt32Array = PackedInt32Array()
+
 
 func _init(p_directory: EntityDirectory = null) -> void:
 	"""Allocate every column once and adopt or build the directory behind every node reference.
@@ -179,10 +254,35 @@ func _init(p_directory: EntityDirectory = null) -> void:
 	assert(RESOURCE_NODE_CAPACITY
 			== EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_RESOURCE_NODE],
 		"resource-node columns must match the directory's RESOURCE_NODE row capacity")
+	_assert_deposit_constants()
 	_owns_directory = p_directory == null
 	_directory = p_directory if p_directory != null else EntityDirectory.new()
 	_allocate_columns()
 	clear()
+
+
+func _assert_deposit_constants() -> void:
+	"""Guard decision 0029's arithmetic against a later edit that quietly breaks one of its sums.
+
+	Every relation checked here is stated twice in the documents, so a drifting edit contradicts
+	the ruling rather than merely changing a number this module chose.
+	"""
+	assert(DEPOSIT_FOOTPRINT_SIZE * DEPOSIT_FOOTPRINT_SIZE == DEPOSIT_NODE_COUNT,
+		"a 4x4 deposit footprint must be exactly the ruling's 16 nodes")
+	assert(STONE_DEPOSIT_NODE_MILLI * DEPOSIT_NODE_COUNT == STONE_DEPOSIT_TOTAL_MILLI,
+		"the stone deposit's per-node quantity must sum to its stated 1200 U total")
+	assert(IRON_DEPOSIT_NODE_MILLI * DEPOSIT_NODE_COUNT == IRON_DEPOSIT_TOTAL_MILLI,
+		"the iron deposit's per-node quantity must sum to its stated 300 U total")
+	assert(STONE_DEPOSIT_ORIGIN_X >= 0 and IRON_DEPOSIT_ORIGIN_X >= 0
+			and STONE_DEPOSIT_ORIGIN_X + DEPOSIT_FOOTPRINT_SIZE <= MAP_TILES_X
+			and IRON_DEPOSIT_ORIGIN_X + DEPOSIT_FOOTPRINT_SIZE <= MAP_TILES_X,
+		"both deposit footprints must fit the exterior grid on x")
+	assert(STONE_DEPOSIT_ORIGIN_Z >= 0 and IRON_DEPOSIT_ORIGIN_Z >= 0
+			and STONE_DEPOSIT_ORIGIN_Z + DEPOSIT_FOOTPRINT_SIZE <= MAP_TILES_Z
+			and IRON_DEPOSIT_ORIGIN_Z + DEPOSIT_FOOTPRINT_SIZE <= MAP_TILES_Z,
+		"both deposit footprints must fit the exterior grid on z")
+	assert(2 * DEPOSIT_NODE_COUNT <= RESOURCE_NODE_CAPACITY,
+		"the ruling's 32 deposit rows must fit inside the 4096 ResourceNode rows")
 
 
 func _allocate_columns() -> void:
@@ -199,6 +299,9 @@ func _allocate_columns() -> void:
 	_ref_generation.resize(RESOURCE_NODE_CAPACITY)
 	_live_slots.resize(RESOURCE_NODE_CAPACITY)
 	_resource_slot.resize(TILE_COUNT)
+	_deposit_tiles.resize(DEPOSIT_NODE_COUNT)
+	_deposit_ref_slot.resize(DEPOSIT_NODE_COUNT)
+	_deposit_ref_generation.resize(DEPOSIT_NODE_COUNT)
 
 
 func clear() -> void:
@@ -362,6 +465,16 @@ func _refuse_create(tile: int, resource_id: int, capacity_milli: int, regrow_day
 		return REFUSE_INVALID_TILE
 	if _resource_slot[tile] != NO_NODE:
 		return REFUSE_TILE_OCCUPIED
+	return _refuse_node_fields(resource_id, capacity_milli, regrow_days, planted_day)
+
+
+func _refuse_node_fields(resource_id: int, capacity_milli: int, regrow_days: int,
+		planted_day: int) -> StringName:
+	"""The code blocking the non-tile half of a §4.2 row, shared by single and deposit placement.
+
+	A deposit validates exactly what one node validates, so the two cannot drift apart into
+	accepting a field on sixteen tiles that one tile would have refused.
+	"""
 	if resource_id < 0 or not IntMath.fits_int32(resource_id):
 		return REFUSE_INVALID_RESOURCE_ID
 	if capacity_milli <= 0:
@@ -435,6 +548,151 @@ func _remove_live_slot(slot: int) -> void:
 		index += 1
 	_live_count -= 1
 	_live_slots[_live_count] = EntityDirectory.NULL_SLOT
+
+
+# --- guaranteed ore deposits (GDD §5.1, decision 0029) ------------------------------------------
+
+func place_stone_deposit(resource_id: int, regrow_days: int, planted_day: int,
+		replaceable_resource_id: int) -> OpResult:
+	"""Place §5.1's guaranteed stone deposit: `x=44..47, z=70..73`, 75000 milli-U per node.
+
+	Sixteen nodes summing to the stated 1200 U. See `place_deposit()` for the arguments, the
+	replacement rule and the refusal codes; nothing but the origin and the quantity is decided
+	here. The renewable bedrock access at (48,70) is outside this footprint and is not placed.
+	"""
+	return place_deposit(STONE_DEPOSIT_ORIGIN_X, STONE_DEPOSIT_ORIGIN_Z, resource_id,
+		STONE_DEPOSIT_NODE_MILLI, regrow_days, planted_day, replaceable_resource_id)
+
+
+func place_iron_deposit(resource_id: int, regrow_days: int, planted_day: int,
+		replaceable_resource_id: int) -> OpResult:
+	"""Place §5.1's guaranteed iron deposit: `x=32..35, z=60..63`, 18750 milli-U per node.
+
+	Sixteen nodes summing to the stated 300 U. See `place_deposit()` for the arguments, the
+	replacement rule and the refusal codes.
+	"""
+	return place_deposit(IRON_DEPOSIT_ORIGIN_X, IRON_DEPOSIT_ORIGIN_Z, resource_id,
+		IRON_DEPOSIT_NODE_MILLI, regrow_days, planted_day, replaceable_resource_id)
+
+
+func place_deposit(origin_x: int, origin_z: int, resource_id: int, per_node_milli: int,
+		regrow_days: int, planted_day: int, replaceable_resource_id: int) -> OpResult:
+	"""Place one 4x4 ore deposit as sixteen full nodes, in ascending tile-index order, or refuse.
+
+	`origin_x`/`origin_z` are the low corner; the block runs to origin+3 inclusive on both axes.
+	Every node starts full at `per_node_milli` and exhausts independently of the other fifteen.
+	A footprint tile holding a node whose id is `replaceable_resource_id` has that node
+	destroyed before the ore node is published (§5.1's "Ore footprints replace tree nodes"); an
+	occupant with any other id refuses the whole deposit. Returns the number of nodes placed and
+	a reference to the lowest-tile-index one. Refuses -- changing NOTHING, no node created and
+	none destroyed -- on a footprint that leaves the grid, an unstorable field, a foreign
+	occupant, or fewer than sixteen free rows.
+	"""
+	var code: StringName = _refuse_deposit(origin_x, origin_z, resource_id, per_node_milli,
+		regrow_days, planted_day, replaceable_resource_id)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	code = _reserve_deposit_rows()
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_destroy_replaced_footprint_nodes()
+	return _publish_deposit_nodes(resource_id, per_node_milli, regrow_days, planted_day)
+
+
+func _refuse_deposit(origin_x: int, origin_z: int, resource_id: int, per_node_milli: int,
+		regrow_days: int, planted_day: int, replaceable_resource_id: int) -> StringName:
+	"""The code blocking a deposit, or REFUSE_NONE with the footprint written to scratch.
+
+	Nothing is mutated but the scratch footprint, so every refusal below reaches the caller with
+	the store untouched.
+	"""
+	if not _fill_deposit_tiles(origin_x, origin_z):
+		return REFUSE_INVALID_FOOTPRINT
+	if replaceable_resource_id < 0 or not IntMath.fits_int32(replaceable_resource_id):
+		return REFUSE_INVALID_RESOURCE_ID
+	var fields: StringName = _refuse_node_fields(resource_id, per_node_milli, regrow_days,
+		planted_day)
+	if fields != REFUSE_NONE:
+		return fields
+	return _refuse_footprint_occupancy(replaceable_resource_id)
+
+
+func _fill_deposit_tiles(origin_x: int, origin_z: int) -> bool:
+	"""Write the footprint's sixteen `z*128+x` indices in ascending order; false if it runs off.
+
+	The z loop is outer and the x loop inner precisely because `tile = z*128+x` then rises
+	monotonically, which is decision 0029's stated creation order and not an incidental one.
+	"""
+	if origin_x < 0 or origin_z < 0:
+		return false
+	if origin_x + DEPOSIT_FOOTPRINT_SIZE > MAP_TILES_X:
+		return false
+	if origin_z + DEPOSIT_FOOTPRINT_SIZE > MAP_TILES_Z:
+		return false
+	var index: int = 0
+	for dz: int in DEPOSIT_FOOTPRINT_SIZE:
+		for dx: int in DEPOSIT_FOOTPRINT_SIZE:
+			_deposit_tiles[index] = (origin_z + dz) * MAP_TILES_X + origin_x + dx
+			index += 1
+	return true
+
+
+func _refuse_footprint_occupancy(replaceable_resource_id: int) -> StringName:
+	"""REFUSE_NONE when every occupied footprint tile carries a node the caller may replace."""
+	for index: int in DEPOSIT_NODE_COUNT:
+		var slot: int = _resource_slot[_deposit_tiles[index]]
+		if slot == NO_NODE:
+			continue
+		if _resource_id[slot] != replaceable_resource_id:
+			return REFUSE_FOOTPRINT_OCCUPIED
+	return REFUSE_NONE
+
+
+func _reserve_deposit_rows() -> StringName:
+	"""Reserve sixteen directory rows BEFORE any replaced node is consumed (decision 0024).
+
+	A refusal part-way hands every row already taken straight back, so the store and the
+	directory are left exactly as they were found. No store row is written here.
+	"""
+	for index: int in DEPOSIT_NODE_COUNT:
+		var ref: Vector2i = _directory.create(EntityDirectory.KIND_RESOURCE_NODE)
+		if ref == NULL_REF:
+			var code: StringName = _directory.last_refusal()
+			_release_reserved_rows(index)
+			return code
+		_deposit_ref_slot[index] = ref.x
+		_deposit_ref_generation[index] = ref.y
+	return REFUSE_NONE
+
+
+func _release_reserved_rows(count: int) -> void:
+	"""Hand the first `count` reserved directory rows back; none of them reached a store row."""
+	for index: int in count:
+		_directory.destroy(Vector2i(_deposit_ref_slot[index], _deposit_ref_generation[index]))
+
+
+func _destroy_replaced_footprint_nodes() -> void:
+	"""§5.1's "Ore footprints replace tree nodes", as an explicit destroy per occupied tile.
+
+	Only reachable once every occupant has been confirmed replaceable and the ore's own sixteen
+	rows are reserved, so this consumes nothing whose replacement could still be refused.
+	"""
+	for index: int in DEPOSIT_NODE_COUNT:
+		var slot: int = _resource_slot[_deposit_tiles[index]]
+		if slot == NO_NODE:
+			continue
+		destroy(Vector2i(_ref_slot[slot], _ref_generation[slot]))
+
+
+func _publish_deposit_nodes(resource_id: int, per_node_milli: int, regrow_days: int,
+		planted_day: int) -> OpResult:
+	"""Write the sixteen reserved rows onto their tiles in ascending tile-index order."""
+	for index: int in DEPOSIT_NODE_COUNT:
+		var ref: Vector2i = Vector2i(_deposit_ref_slot[index], _deposit_ref_generation[index])
+		_write_created_row(_directory.get_typed_row(ref), ref, _deposit_tiles[index],
+			resource_id, per_node_milli, regrow_days, planted_day)
+	return _succeed(DEPOSIT_NODE_COUNT,
+		Vector2i(_deposit_ref_slot[0], _deposit_ref_generation[0]))
 
 
 # --- readers ---------------------------------------------------------------------------------------

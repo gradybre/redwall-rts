@@ -47,6 +47,27 @@ const RESOURCE_IRON: int = 2
 const FIRST_DAY: int = 1
 const INT32_MAX: int = 2147483647
 
+## Decision 0029's table, transcribed here and not read back out of the module: stone
+## `x=44..47, z=70..73`, 16 nodes, 75000 milli-U each, 1200000 total; iron `x=32..35, z=60..63`,
+## 16 nodes, 18750 milli-U each, 300000 total; 32 of the 4096 rows. Tile indices below are
+## computed by `_tile()` from §5.1's own `z*128+x`, never by calling the module's encoder.
+const DEPOSIT_NODES: int = 16
+const DEPOSIT_SIZE: int = 4
+const BOTH_DEPOSITS_NODES: int = 32
+const STONE_ORIGIN_X: int = 44
+const STONE_ORIGIN_Z: int = 70
+const STONE_NODE_MILLI: int = 75000
+const STONE_TOTAL_MILLI: int = 1200000
+const IRON_ORIGIN_X: int = 32
+const IRON_ORIGIN_Z: int = 60
+const IRON_NODE_MILLI: int = 18750
+const IRON_TOTAL_MILLI: int = 300000
+
+## §5.1's renewable bedrock access, which decision 0029 puts in neither deposit total and this
+## module does not place. It is one tile east of the stone footprint's east edge (47).
+const BEDROCK_ACCESS_X: int = 48
+const BEDROCK_ACCESS_Z: int = 70
+
 var _nodes: ResourceNodes = null
 
 
@@ -68,6 +89,11 @@ func _place_tree(tile: int, day: int) -> int:
 		fail("placing a tree on tile %d refused: %s" % [tile, result.error])
 		return -1
 	return result.value
+
+
+func _tile(x: int, z: int) -> int:
+	"""GDD §5.1's exterior tile index, computed here so no assertion trusts the module's own."""
+	return z * 128 + x
 
 
 # --- GDD §5.1 tile geometry -----------------------------------------------------------------
@@ -507,3 +533,290 @@ func test_a_shared_directory_is_not_cleared_by_this_store() -> void:
 		"and its rows were released rather than stranded in a directory it does not own")
 	assert_true(directory.is_valid(resident), "the resident reference still validates")
 	assert_equal(directory.live_count(EntityDirectory.KIND_RESIDENT), 1, "and is still counted")
+
+
+# --- the guaranteed 4x4 ore deposits (GDD §5.1, decision 0029) ----------------------------------
+
+func _ore_node_quantity(x: int, z: int, resource_id: int, per_node_milli: int) -> int:
+	"""Assert one footprint tile carries a full ore node, and return the stock it actually holds."""
+	var tile: int = _tile(x, z)
+	assert_true(_nodes.has_node_at_tile(tile), "(%d,%d) carries a deposit node" % [x, z])
+	var slot: int = _nodes.slot_at_tile(tile).value
+	assert_equal(_nodes.resource_id_of(slot).value, resource_id, "(%d,%d) is ore" % [x, z])
+	assert_equal(_nodes.capacity_milli_of(slot).value, per_node_milli,
+		"(%d,%d) capacity equals its initial quantity" % [x, z])
+	assert_false(_nodes.is_exhausted(slot), "(%d,%d) starts full, not exhausted" % [x, z])
+	assert_equal(_nodes.tile_of(slot).value, tile, "(%d,%d) remembers its own tile" % [x, z])
+	return _nodes.quantity_milli_of(slot).value
+
+
+func _footprint_tile(origin_x: int, origin_z: int, index: int) -> int:
+	"""The `index`-th tile of a 4x4 footprint in ascending tile-index order (z outer, x inner)."""
+	return _tile(origin_x + index % DEPOSIT_SIZE, origin_z + index / DEPOSIT_SIZE)
+
+
+func _fill_trees(count: int) -> int:
+	"""Place `count` trees on tiles 0..count-1, well clear of both footprints; last row placed."""
+	var last: int = -1
+	for tile: int in count:
+		last = _place_tree(tile, FIRST_DAY)
+	return last
+
+
+func test_the_module_constants_transcribe_decision_0029() -> void:
+	"""Every deposit constant matches the ruling's table, and each per-node quantity sums right."""
+	assert_equal(ResourceNodes.DEPOSIT_FOOTPRINT_SIZE, DEPOSIT_SIZE, "a 4x4 footprint")
+	assert_equal(ResourceNodes.DEPOSIT_NODE_COUNT, DEPOSIT_NODES, "sixteen nodes per deposit")
+	assert_equal(ResourceNodes.STONE_DEPOSIT_ORIGIN_X, STONE_ORIGIN_X, "stone origin x is 44")
+	assert_equal(ResourceNodes.STONE_DEPOSIT_ORIGIN_Z, STONE_ORIGIN_Z, "stone origin z is 70")
+	assert_equal(ResourceNodes.STONE_DEPOSIT_NODE_MILLI, STONE_NODE_MILLI, "75000 milli-U each")
+	assert_equal(ResourceNodes.STONE_DEPOSIT_TOTAL_MILLI, STONE_TOTAL_MILLI, "1200000 in total")
+	assert_equal(ResourceNodes.IRON_DEPOSIT_ORIGIN_X, IRON_ORIGIN_X, "iron origin x is 32")
+	assert_equal(ResourceNodes.IRON_DEPOSIT_ORIGIN_Z, IRON_ORIGIN_Z, "iron origin z is 60")
+	assert_equal(ResourceNodes.IRON_DEPOSIT_NODE_MILLI, IRON_NODE_MILLI, "18750 milli-U each")
+	assert_equal(ResourceNodes.IRON_DEPOSIT_TOTAL_MILLI, IRON_TOTAL_MILLI, "300000 in total")
+	assert_equal(ResourceNodes.STONE_DEPOSIT_NODE_MILLI * DEPOSIT_NODES, STONE_TOTAL_MILLI,
+		"75000 * 16 = 1200000, §5.1's 1200 U")
+	assert_equal(ResourceNodes.IRON_DEPOSIT_NODE_MILLI * DEPOSIT_NODES, IRON_TOTAL_MILLI,
+		"18750 * 16 = 300000, §5.1's 300 U")
+	assert_equal(DEPOSIT_SIZE * DEPOSIT_SIZE, DEPOSIT_NODES, "4x4 is sixteen tiles")
+
+
+func test_the_stone_deposit_is_sixteen_full_nodes_on_its_stated_tiles() -> void:
+	"""Decision 0029's stone row: `x=44..47, z=70..73`, 16 nodes, 75000 milli-U each."""
+	var placed: ResourceNodes.OpResult = _nodes.place_stone_deposit(
+		RESOURCE_STONE, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE)
+	assert_true(placed.ok, "the stone deposit is placed")
+	assert_equal(placed.value, DEPOSIT_NODES, "it reports sixteen nodes")
+	assert_equal(_nodes.count(), DEPOSIT_NODES, "sixteen live rows")
+	var total: int = 0
+	for z: int in [70, 71, 72, 73]:
+		for x: int in [44, 45, 46, 47]:
+			total += _ore_node_quantity(x, z, RESOURCE_STONE, STONE_NODE_MILLI)
+			assert_equal(_nodes.quantity_milli_of(_nodes.slot_at_tile(_tile(x, z)).value).value,
+				STONE_NODE_MILLI, "(%d,%d) holds 75000 milli-U" % [x, z])
+	assert_equal(total, STONE_TOTAL_MILLI, "the sixteen nodes sum to §5.1's 1200 U")
+
+
+func test_the_iron_deposit_is_sixteen_full_nodes_on_its_stated_tiles() -> void:
+	"""Decision 0029's iron row: `x=32..35, z=60..63`, 16 nodes, 18750 milli-U each."""
+	var placed: ResourceNodes.OpResult = _nodes.place_iron_deposit(
+		RESOURCE_IRON, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE)
+	assert_true(placed.ok, "the iron deposit is placed")
+	assert_equal(placed.value, DEPOSIT_NODES, "it reports sixteen nodes")
+	assert_equal(_nodes.count(), DEPOSIT_NODES, "sixteen live rows")
+	var total: int = 0
+	for z: int in [60, 61, 62, 63]:
+		for x: int in [32, 33, 34, 35]:
+			total += _ore_node_quantity(x, z, RESOURCE_IRON, IRON_NODE_MILLI)
+			assert_equal(_nodes.quantity_milli_of(_nodes.slot_at_tile(_tile(x, z)).value).value,
+				IRON_NODE_MILLI, "(%d,%d) holds 18750 milli-U" % [x, z])
+	assert_equal(total, IRON_TOTAL_MILLI, "the sixteen nodes sum to §5.1's 300 U")
+
+
+func test_a_deposit_touches_no_tile_outside_its_own_footprint() -> void:
+	"""The block stops at origin+3 on both axes; the bedrock access tile (48,70) stays empty."""
+	assert_true(_nodes.place_stone_deposit(
+		RESOURCE_STONE, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE).ok, "the deposit is placed")
+	assert_false(_nodes.has_node_at_tile(_tile(43, 70)), "one tile west of the footprint")
+	assert_false(_nodes.has_node_at_tile(_tile(48, 73)), "one tile east of the footprint")
+	assert_false(_nodes.has_node_at_tile(_tile(44, 69)), "one tile north of the footprint")
+	assert_false(_nodes.has_node_at_tile(_tile(47, 74)), "one tile south of the footprint")
+	assert_false(_nodes.has_node_at_tile(_tile(BEDROCK_ACCESS_X, BEDROCK_ACCESS_Z)),
+		"§5.1's renewable bedrock access at (48,70) is not placed by the deposit")
+	var occupied: int = 0
+	for z: int in range(68, 76):
+		for x: int in range(42, 50):
+			if _nodes.has_node_at_tile(_tile(x, z)):
+				occupied += 1
+	assert_equal(occupied, DEPOSIT_NODES, "exactly sixteen tiles of the 8x8 ring are occupied")
+
+
+func test_deposit_nodes_are_created_in_ascending_tile_index_order() -> void:
+	"""R05-DEPOSIT-001, read through the directory's monotonic persistent ids.
+
+	A persistent id is issued once per create and never reused, so ids rising with the tile index
+	are direct evidence of the creation order. On a fresh store the typed rows rise with them,
+	because the directory always hands out its lowest free row.
+	"""
+	assert_true(_nodes.place_stone_deposit(
+		RESOURCE_STONE, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE).ok, "the deposit is placed")
+	var directory: EntityDirectory = _nodes.directory()
+	var previous_tile: int = -1
+	var previous_id: int = 0
+	for index: int in DEPOSIT_NODES:
+		var tile: int = _footprint_tile(STONE_ORIGIN_X, STONE_ORIGIN_Z, index)
+		assert_true(tile > previous_tile, "tile %d follows tile %d" % [tile, previous_tile])
+		var id: int = directory.get_persistent_id(_nodes.ref_at_tile(tile))
+		assert_true(id > previous_id,
+			"tile %d's node was created after the node on tile %d" % [tile, previous_tile])
+		assert_equal(_nodes.slot_at_tile(tile).value, index,
+			"tile %d took row %d on a fresh store" % [tile, index])
+		previous_tile = tile
+		previous_id = id
+
+
+func test_both_deposits_take_thirty_two_of_the_four_thousand_ninety_six_rows() -> void:
+	"""R05-DEPOSIT-004: 32 rows, on 32 distinct tiles, holding 1500000 milli-U between them."""
+	assert_true(_nodes.place_stone_deposit(
+		RESOURCE_STONE, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE).ok, "stone is placed")
+	assert_true(_nodes.place_iron_deposit(
+		RESOURCE_IRON, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE).ok, "iron is placed")
+	assert_equal(_nodes.count(), BOTH_DEPOSITS_NODES, "thirty-two live rows")
+	assert_equal(_nodes.directory().live_count(EntityDirectory.KIND_RESOURCE_NODE),
+		BOTH_DEPOSITS_NODES, "thirty-two directory rows")
+	assert_equal(_nodes.directory().free_row_count(EntityDirectory.KIND_RESOURCE_NODE),
+		EXPECTED_CAPACITY - BOTH_DEPOSITS_NODES, "4064 of the 4096 rows are still free")
+	var occupied: int = 0
+	var total: int = 0
+	for tile: int in EXPECTED_TILE_COUNT:
+		if not _nodes.has_node_at_tile(tile):
+			continue
+		occupied += 1
+		total += _nodes.quantity_milli_of(_nodes.slot_at_tile(tile).value).value
+	assert_equal(occupied, BOTH_DEPOSITS_NODES, "the two footprints do not overlap")
+	assert_equal(total, STONE_TOTAL_MILLI + IRON_TOTAL_MILLI, "1200000 + 300000 milli-U")
+
+
+func test_a_deposit_replaces_a_tree_on_its_footprint_without_stranding_the_row() -> void:
+	"""R05-DEPOSIT-002: an explicit destroy, so the felled tree's directory row is released."""
+	var corner: int = _place_tree(_tile(STONE_ORIGIN_X, STONE_ORIGIN_Z), FIRST_DAY)
+	var middle: int = _place_tree(_tile(46, 72), FIRST_DAY)
+	var far: int = _place_tree(_tile(47, 73), FIRST_DAY)
+	var corner_ref: Vector2i = _nodes.ref_of(corner)
+	var middle_ref: Vector2i = _nodes.ref_of(middle)
+	var far_ref: Vector2i = _nodes.ref_of(far)
+	assert_equal(_nodes.count(), 3, "three trees stand on the footprint")
+	assert_true(_nodes.place_stone_deposit(
+		RESOURCE_STONE, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE).ok, "the deposit is placed")
+	assert_equal(_nodes.count(), DEPOSIT_NODES, "sixteen rows, not nineteen")
+	assert_equal(_nodes.directory().live_count(EntityDirectory.KIND_RESOURCE_NODE),
+		DEPOSIT_NODES, "the three tree rows were released, not stranded")
+	for stale: Vector2i in [corner_ref, middle_ref, far_ref]:
+		assert_false(_nodes.directory().is_valid(stale), "the tree reference no longer validates")
+		var repeat: ResourceNodes.OpResult = _nodes.destroy(stale)
+		assert_false(repeat.ok, "and cannot be destroyed a second time")
+		assert_equal(repeat.error, "RESOURCE_NODE_NOT_PRESENT", "with the not-present code")
+	assert_equal(_ore_node_quantity(STONE_ORIGIN_X, STONE_ORIGIN_Z, RESOURCE_STONE,
+		STONE_NODE_MILLI), STONE_NODE_MILLI, "ore stands where the corner tree did")
+	assert_equal(_ore_node_quantity(46, 72, RESOURCE_STONE, STONE_NODE_MILLI), STONE_NODE_MILLI,
+		"ore stands where the middle tree did")
+
+
+func test_a_deposit_refuses_a_foreign_occupant_and_changes_nothing() -> void:
+	"""Only the caller's declared replaceable id may be felled; anything else refuses whole."""
+	var tree: int = _place_tree(_tile(STONE_ORIGIN_X, STONE_ORIGIN_Z), FIRST_DAY)
+	var tree_ref: Vector2i = _nodes.ref_of(tree)
+	var foreign: ResourceNodes.OpResult = _nodes.create_at_tile(
+		_tile(46, 72), RESOURCE_IRON, 5000, NON_RENEWABLE, FIRST_DAY)
+	assert_true(foreign.ok, "an iron node stands inside the stone footprint")
+	var refused: ResourceNodes.OpResult = _nodes.place_stone_deposit(
+		RESOURCE_STONE, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE)
+	assert_false(refused.ok, "the deposit is refused")
+	assert_equal(refused.error, "FOOTPRINT_OCCUPIED", "with the footprint-occupied code")
+	assert_equal(refused.value, 0, "a refusal carries no node count")
+	assert_equal(refused.ref, EntityDirectory.NULL_REF, "and no reference")
+	assert_equal(_nodes.count(), 2, "no ore row was created")
+	assert_equal(_nodes.directory().live_count(EntityDirectory.KIND_RESOURCE_NODE), 2,
+		"and no reserved directory row leaked")
+	assert_true(_nodes.directory().is_valid(tree_ref), "the replaceable tree was not felled")
+	assert_equal(_nodes.quantity_milli_of(tree).value, TREE_WOOD_MILLI, "with its stock intact")
+	assert_equal(_nodes.quantity_milli_of(foreign.value).value, 5000, "the foreign node stands")
+	assert_false(_nodes.has_node_at_tile(_tile(45, 70)), "no half-built deposit was left behind")
+	assert_false(_nodes.has_node_at_tile(_tile(47, 73)), "on either side of the blocked tile")
+
+
+func test_a_deposit_refuses_a_footprint_that_leaves_the_grid() -> void:
+	"""The block runs to origin+3, so 125 refuses on either axis and 124 is the last that fits."""
+	var cases: Array[Vector2i] = [
+		Vector2i(125, 70), Vector2i(70, 125), Vector2i(-1, 70), Vector2i(70, -1),
+		Vector2i(128, 0), Vector2i(0, 128),
+	]
+	for origin: Vector2i in cases:
+		var refused: ResourceNodes.OpResult = _nodes.place_deposit(
+			origin.x, origin.y, RESOURCE_STONE, STONE_NODE_MILLI, NON_RENEWABLE, FIRST_DAY,
+			RESOURCE_TREE)
+		assert_false(refused.ok, "origin (%d,%d) is refused" % [origin.x, origin.y])
+		assert_equal(refused.error, "INVALID_FOOTPRINT", "with the footprint code")
+	assert_equal(_nodes.count(), 0, "no refused footprint left a node behind")
+	assert_equal(_nodes.directory().live_count(EntityDirectory.KIND_RESOURCE_NODE), 0,
+		"and none leaked a directory row")
+	var corner: ResourceNodes.OpResult = _nodes.place_deposit(
+		124, 124, RESOURCE_STONE, STONE_NODE_MILLI, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE)
+	assert_true(corner.ok, "a footprint ending on (127,127) fits")
+	assert_true(_nodes.has_node_at_tile(_tile(127, 127)), "its far corner is the last tile")
+	assert_equal(_nodes.count(), DEPOSIT_NODES, "sixteen nodes in the grid corner")
+
+
+func test_a_deposit_refuses_every_unstorable_field_without_placing_a_node() -> void:
+	"""A deposit validates each §4.2 field exactly as a single placement does, and refuses whole."""
+	var cases: Array[Array] = [
+		[-1, STONE_NODE_MILLI, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE, "INVALID_RESOURCE_ID"],
+		[RESOURCE_STONE, 0, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE, "INVALID_CAPACITY"],
+		[RESOURCE_STONE, -1, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE, "INVALID_CAPACITY"],
+		[RESOURCE_STONE, STONE_NODE_MILLI, -1, FIRST_DAY, RESOURCE_TREE, "INVALID_REGROW_DAYS"],
+		[RESOURCE_STONE, STONE_NODE_MILLI, NON_RENEWABLE, 0, RESOURCE_TREE, "INVALID_DAY"],
+		[RESOURCE_STONE, STONE_NODE_MILLI, NON_RENEWABLE, FIRST_DAY, -1, "INVALID_RESOURCE_ID"],
+	]
+	for case: Array in cases:
+		var refused: ResourceNodes.OpResult = _nodes.place_deposit(
+			STONE_ORIGIN_X, STONE_ORIGIN_Z, case[0], case[1], case[2], case[3], case[4])
+		assert_false(refused.ok, "refused: %s" % case[5])
+		assert_equal(refused.error, case[5], "refusal code for %s" % case[5])
+	assert_equal(_nodes.count(), 0, "no refused deposit left a row behind")
+	assert_equal(_nodes.directory().live_count(EntityDirectory.KIND_RESOURCE_NODE), 0,
+		"and none leaked a directory row")
+	assert_false(_nodes.has_node_at_tile(_tile(STONE_ORIGIN_X, STONE_ORIGIN_Z)),
+		"the origin tile is still empty")
+
+
+func test_a_deposit_reserves_its_rows_before_it_fells_anything() -> void:
+	"""Allocate before consume: fifteen free rows refuse and spare the tree; sixteen succeed."""
+	var footprint_tree: int = _place_tree(_tile(STONE_ORIGIN_X, STONE_ORIGIN_Z), FIRST_DAY)
+	var tree_ref: Vector2i = _nodes.ref_of(footprint_tree)
+	var spare: int = _fill_trees(EXPECTED_CAPACITY - DEPOSIT_NODES)
+	var directory: EntityDirectory = _nodes.directory()
+	assert_equal(directory.free_row_count(EntityDirectory.KIND_RESOURCE_NODE), DEPOSIT_NODES - 1,
+		"fifteen rows are free, one short of a deposit")
+	var refused: ResourceNodes.OpResult = _nodes.place_stone_deposit(
+		RESOURCE_STONE, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE)
+	assert_false(refused.ok, "the deposit is refused")
+	assert_equal(refused.error, "CAPACITY_RESOURCE_NODE", "with the directory's capacity code")
+	assert_equal(directory.free_row_count(EntityDirectory.KIND_RESOURCE_NODE), DEPOSIT_NODES - 1,
+		"every reserved row was handed back")
+	assert_true(directory.is_valid(tree_ref), "the tree on the footprint was not felled")
+	assert_equal(_nodes.quantity_milli_of(footprint_tree).value, TREE_WOOD_MILLI, "nor debited")
+	assert_false(_nodes.has_node_at_tile(_tile(45, 70)), "and no ore node was published")
+	assert_true(_nodes.destroy(_nodes.ref_of(spare)).ok, "one unrelated row is freed")
+	var placed: ResourceNodes.OpResult = _nodes.place_stone_deposit(
+		RESOURCE_STONE, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE)
+	assert_true(placed.ok, "sixteen free rows are exactly enough")
+	assert_false(directory.is_valid(tree_ref), "and now the tree is replaced")
+	assert_equal(_ore_node_quantity(STONE_ORIGIN_X, STONE_ORIGIN_Z, RESOURCE_STONE,
+		STONE_NODE_MILLI), STONE_NODE_MILLI, "ore stands on the origin tile")
+
+
+func test_each_deposit_node_exhausts_independently_of_the_other_fifteen() -> void:
+	"""R05-DEPOSIT-003: working one tile out leaves the other fifteen full and standing."""
+	assert_true(_nodes.place_stone_deposit(
+		RESOURCE_STONE, NON_RENEWABLE, FIRST_DAY, RESOURCE_TREE).ok, "the deposit is placed")
+	var worked_out: int = _nodes.slot_at_tile(_tile(45, 71)).value
+	assert_true(_nodes.harvest_all(worked_out, FIRST_DAY).ok, "one tile is worked out")
+	assert_true(_nodes.is_exhausted(worked_out), "that node is exhausted")
+	assert_equal(_nodes.quantity_milli_of(worked_out).value, 0, "and holds nothing")
+	var partial: int = _nodes.slot_at_tile(_tile(47, 73)).value
+	assert_true(_nodes.harvest(partial, 25000, FIRST_DAY).ok, "another tile is part-worked")
+	var standing: int = 0
+	var total: int = 0
+	for index: int in DEPOSIT_NODES:
+		var slot: int = _nodes.slot_at_tile(_footprint_tile(
+			STONE_ORIGIN_X, STONE_ORIGIN_Z, index)).value
+		total += _nodes.quantity_milli_of(slot).value
+		if slot == worked_out or slot == partial:
+			continue
+		assert_false(_nodes.is_exhausted(slot), "row %d is untouched" % slot)
+		assert_equal(_nodes.quantity_milli_of(slot).value, STONE_NODE_MILLI, "row %d is full" % slot)
+		standing += 1
+	assert_equal(standing, DEPOSIT_NODES - 2, "fourteen nodes were never touched")
+	assert_equal(total, STONE_TOTAL_MILLI - STONE_NODE_MILLI - 25000, "1100000 milli-U remain")
+	assert_equal(_nodes.count(), DEPOSIT_NODES, "the worked-out node is still a row on its tile")

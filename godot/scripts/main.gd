@@ -92,8 +92,14 @@ func _exit_tree() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	"""Map the cancel action to the pause toggle."""
-	if event.is_action_pressed(&"cancel"):
+	"""Toggle the player pause reason on UI §5's `time_pause` action.
+
+	UI §5 puts pause on Space with world focus (and Ctrl+Space outside text/rebind contexts).
+	Escape is NOT pause: it is `ui_cancel`, which dismisses exactly one layer, falling through
+	to `open_menu` once the dismissal stack is empty. The prototype bound pause to a `cancel`
+	action on Escape; that was a wrong behaviour, not merely a wrong name.
+	"""
+	if event.is_action_pressed(&"time_pause"):
 		GameManager.toggle_pause()
 		get_viewport().set_input_as_handled()
 

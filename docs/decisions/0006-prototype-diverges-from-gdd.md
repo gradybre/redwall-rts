@@ -117,3 +117,57 @@ Two of the eight mutations run against this work were killed **only** by the
 newly added tests — dropping `clampi` in the health-event path, and returning
 `NOT_PRESENT` for an out-of-range slot. Both were real coverage gaps in existing
 code that the port exposed.
+
+
+## Row 10 closed (2026-09-09) — and one architectural residual
+
+The prototype's four action IDs are gone. `godot/project.godot` now declares
+**87 actions**, the full `docs/ui_ux_controls.md` §5 map — 51 table rows expand
+to 87 because five rows name two or more IDs and three are families of ten
+(`group_assign_0..9`, `group_recall_0..9`, `group_center_0..9`).
+
+**The consumer change was a semantic fix, not a rename.** `main.gd` mapped
+`cancel` (Escape) to the pause toggle. §5 puts pause on **`time_pause`** (Space,
+and Ctrl+Space outside text contexts), while Escape is `ui_cancel`, which
+dismisses one layer. Renaming `cancel` to `ui_cancel` would have preserved the
+wrong behaviour behind a correct name — worse than the original, because it would
+look compliant. The sole consumer now reads `time_pause`.
+
+### Engine behaviour that cannot be fixed in the InputMap
+Verified on Godot 4.7.2: a key action matches when the **action's** modifier mask
+is a *subset* of the pressed event's mask. So `Ctrl+3` raises both
+`group_assign_3` and `group_recall_3`; `Ctrl+Z` raises both `tool_undo` and
+`open_zones`; `Shift+Enter` raises both `select_toggle` and `select_primary`.
+That is §5's "modifier gesture before plain" precedence, which the **router** must
+resolve — it is not expressible as bindings. All **43** such pairs are pinned by
+test so a new one cannot appear unnoticed.
+
+Only three exact-chord collisions exist, and §5 states all three outright: Enter,
+Shift+Enter and Escape dismissal ladders.
+
+`ui_accept` and `ui_cancel` explicitly **replace** Godot's built-ins, because the
+default `ui_accept` also carries Space, which §5 assigns to `time_pause`.
+Cmd+Q and Alt+F4 are asserted uncaptured. W/A/S/D/Q/E use `physical_keycode`;
+everything else uses the logical `keycode`, including the Cmd+Z / Cmd+A variants.
+
+### The residual, which is a new task and not this row
+**§5's input router does not exist.** Consequently:
+- `group_center_0..9` are registered with **empty event arrays** — a same-key
+  double tap inside 300 ms is not expressible as an `InputEventKey`. Binding the
+  plain digit would make every `group_recall_N` also fire `group_center_N`.
+- **No pointer gesture is bound as a raw mouse event** except the wheel.
+  `select_primary`, `placement_commit`, `interior_commit` and `command_context`
+  deliberately carry no click binding, because they share raw buttons and §5
+  forbids exactly that independent double-fire.
+
+So the map is correct and the pointer half is unreachable until a router exists.
+
+### One unresolved contract found in the spec
+§5 says `placement_rotate` is "R; Shift+R reverse" but **names no second ID**.
+Both are bound to `placement_rotate`; the direction must come from the shift
+modifier at the consumer. No `placement_rotate_reverse` was invented.
+
+### Status of decision 0006
+**All ten divergence rows are now closed.** What remains of the prototype is
+`entity_manager.gd` and `scripts/components/`, superseded by
+`entity_directory.gd` but still autoloaded and still referenced by `main.gd`.

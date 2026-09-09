@@ -46,6 +46,22 @@ stored ID were the same ordering. Decision 0028's ruled traversal — §5.10's
 printed order — is unchanged and still governs which event a seed selects. Only
 the **stored number** changes, and no draw count or interval boundary moves.
 
+## Two categories in `catalog.gd`, not one
+Decision 0018 said new enums go into `PROTECTED_ENUM_DOMAINS`. That stays true
+for enums **§4.3 numbers explicitly** — the protected table is the thing that
+refuses a recompile, and those values must never be regenerated.
+
+These three are the other kind, and they now have their own registry:
+`COMPILED_ENUM_DOMAINS`. The distinction is exactly §4.2's: *individually
+listed* values are protected, *not individually listed* values are compiled from
+sorted keys. Protecting a compiled domain would be the original error in a new
+form — pinning a guess as though someone had specified it.
+
+`verify_compiled_enum()` re-derives each table from its own keys through the
+existing ASCII compiler and every owning module calls it from `_init`, so the
+tables are transcriptions of a generated result rather than a second set of
+hand-picked ordinals.
+
 ## Migration
 No production save module exists yet, which does not make silent reinterpretation
 acceptable. Retained snapshots and replay fixtures translate through explicit

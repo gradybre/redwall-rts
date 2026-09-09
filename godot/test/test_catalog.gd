@@ -359,3 +359,175 @@ func test_the_three_new_protected_enums_are_named_in_the_protected_table() -> vo
 	for domain_name: String in ["Soil", "CropState", "OrderMode"]:
 		assert_true(CatalogScript.PROTECTED_ENUM_DOMAINS.has(domain_name),
 			"%s must be a protected domain" % domain_name)
+
+
+# --- compiled enum domains (GDD §4.2's closing paragraph, BAL-CAT-001/002) --------------------------
+
+## The three domains §4.2's closing paragraph numbers from their own ascending ASCII keys.
+## Transcribed from the contract, never read back out of the module under test.
+const EXPECTED_CROP_FAMILY: Dictionary = {
+	"CEREAL": 0, "FIBER": 1, "LEAF": 2, "LEGUME": 3, "ROOT": 4,
+}
+const EXPECTED_EVENT_DEFINITION: Dictionary = {
+	"blight": 0, "calm_days": 1, "drought": 2, "early_frost": 3,
+	"hard_freeze": 4, "heavy_rain": 5, "ideal_spell": 6,
+}
+const EXPECTED_HABITAT_TYPE: Dictionary = {"COAST": 0, "LAKE": 1, "RIVER": 2}
+
+
+func test_the_compiled_enum_tables_are_the_generated_ascii_order() -> void:
+	"""Whole-table equality first, so a dropped key fails an assertion instead of aborting."""
+	assert_equal(CatalogScript.CROP_FAMILY, EXPECTED_CROP_FAMILY, "the whole CropFamily table")
+	assert_equal(CatalogScript.EVENT_DEFINITION, EXPECTED_EVENT_DEFINITION,
+		"the whole EventDefinition table")
+	assert_equal(CatalogScript.HABITAT_TYPE, EXPECTED_HABITAT_TYPE, "the whole HabitatType table")
+	assert_equal(CatalogScript.compiled_enum("CropFamily"), EXPECTED_CROP_FAMILY,
+		"compiled_enum returns the CropFamily table")
+	assert_equal(CatalogScript.compiled_enum("EventDefinition"), EXPECTED_EVENT_DEFINITION,
+		"compiled_enum returns the EventDefinition table")
+	assert_equal(CatalogScript.compiled_enum("HabitatType"), EXPECTED_HABITAT_TYPE,
+		"compiled_enum returns the HabitatType table")
+	assert_true(CatalogScript.compiled_enum("Nonesuch").is_empty(),
+		"an unknown domain name owns no compiled table")
+
+
+func _assert_compiles_to(domain_name: String, expected: Dictionary) -> void:
+	"""Compile one domain's keys in both directions and assert both give `expected`."""
+	var keys: Array[StringName] = CatalogScript.compiled_enum_keys(domain_name)
+	assert_equal(keys.size(), expected.size(), "%s key count" % domain_name)
+	var forward: CatalogScript.DomainResult = _assert_domain_ok(
+		CatalogScript.compile_domain(domain_name, keys), "%s forward" % domain_name)
+	var shuffled: Array[StringName] = keys.duplicate()
+	shuffled.reverse()
+	var backward: CatalogScript.DomainResult = _assert_domain_ok(
+		CatalogScript.compile_domain(domain_name, shuffled), "%s reversed" % domain_name)
+	assert_equal(forward.ids, backward.ids, "%s: input order must not change ids" % domain_name)
+	for key: String in expected:
+		assert_true(forward.ids.has(StringName(key)), "%s compiled %s" % [domain_name, key])
+		if forward.ids.has(StringName(key)):
+			assert_equal(forward.ids[StringName(key)], expected[key],
+				"%s.%s is the generated id" % [domain_name, key])
+
+
+func test_every_compiled_domain_regenerates_its_own_table_from_its_keys() -> void:
+	"""The acceptance test: shuffled input order produces identical mappings, table for table."""
+	_assert_compiles_to("CropFamily", EXPECTED_CROP_FAMILY)
+	_assert_compiles_to("EventDefinition", EXPECTED_EVENT_DEFINITION)
+	_assert_compiles_to("HabitatType", EXPECTED_HABITAT_TYPE)
+
+
+func test_verify_compiled_enum_accepts_the_three_domains_and_refuses_others() -> void:
+	"""verify_compiled_enum() is what every owning module's `_init()` calls; it must pass here."""
+	for domain_name: String in ["CropFamily", "EventDefinition", "HabitatType"]:
+		var result: CatalogScript.DomainResult = CatalogScript.verify_compiled_enum(domain_name)
+		assert_true(result.ok, "%s must verify (error: %s)" % [domain_name, result.error])
+		assert_equal(result.ids.size(), CatalogScript.compiled_enum(domain_name).size(),
+			"%s verifies its whole table" % domain_name)
+	var unknown: CatalogScript.DomainResult = CatalogScript.verify_compiled_enum("Nonesuch")
+	assert_false(unknown.ok, "an unknown domain cannot be verified")
+	assert_true(unknown.ids.is_empty(), "a refusal carries no ids")
+	var protected: CatalogScript.DomainResult = CatalogScript.verify_compiled_enum("Season")
+	assert_false(protected.ok, "a protected §4.3 enum is not a compiled domain")
+
+
+func test_the_compiled_domains_are_registered_and_never_protected() -> void:
+	"""Decision 0018 protects what §4.3 NUMBERS; these three it does not number, so they compile."""
+	for domain_name: String in ["CropFamily", "EventDefinition", "HabitatType"]:
+		assert_true(CatalogScript.COMPILED_ENUM_DOMAINS.has(domain_name),
+			"%s must be a registered compiled domain" % domain_name)
+		assert_false(CatalogScript.PROTECTED_ENUM_DOMAINS.has(domain_name),
+			"%s must NOT be protected: §4.3 states none of its numbers" % domain_name)
+		assert_true(CatalogScript.fixed_enum(domain_name).is_empty(),
+			"%s owns no fixed §4.3 table" % domain_name)
+	assert_equal(CatalogScript.COMPILED_ENUM_DOMAINS.size(), 3, "three compiled domains today")
+
+
+func test_compiled_id_of_resolves_every_key_and_refuses_the_unknown() -> void:
+	"""Key lookups answer with an id or refuse; there is no sentinel to mistake for an answer."""
+	var river: CatalogScript.EnumLookup = CatalogScript.compiled_id_of("HabitatType", &"RIVER")
+	assert_true(river.ok, "RIVER is a HabitatType key")
+	assert_equal(river.id, 2, "RIVER sorts third of COAST, LAKE, RIVER")
+	assert_equal(river.key, &"RIVER", "the lookup echoes the key it resolved")
+	var legume: CatalogScript.EnumLookup = CatalogScript.compiled_id_of("CropFamily", &"LEGUME")
+	assert_true(legume.ok, "LEGUME is a CropFamily key")
+	assert_equal(legume.id, 3, "LEGUME sorts fourth")
+	var unknown_key: CatalogScript.EnumLookup = CatalogScript.compiled_id_of("HabitatType",
+		&"river")
+	assert_false(unknown_key.ok, "keys are case-sensitive ASCII (BAL-CAT-001)")
+	assert_false(unknown_key.error.is_empty(), "a refusal names what it rejected")
+	var unknown_domain: CatalogScript.EnumLookup = CatalogScript.compiled_id_of("Nonesuch",
+		&"RIVER")
+	assert_false(unknown_domain.ok, "an unknown domain is refused, not searched")
+
+
+func test_compiled_key_of_resolves_every_id_and_refuses_the_unknown() -> void:
+	"""Id lookups answer with a key or refuse, including for §4.2's empty catalog id -1."""
+	assert_equal(CatalogScript.compiled_key_of("EventDefinition", 0).key, &"blight",
+		"EventDefinition 0 is blight")
+	assert_equal(CatalogScript.compiled_key_of("EventDefinition", 6).key, &"ideal_spell",
+		"EventDefinition 6 is ideal_spell")
+	assert_equal(CatalogScript.compiled_key_of("HabitatType", 0).key, &"COAST",
+		"HabitatType 0 is COAST")
+	assert_false(CatalogScript.compiled_key_of("EventDefinition", 7).ok, "there is no eighth id")
+	assert_false(CatalogScript.compiled_key_of("HabitatType", 3).ok, "there is no fourth habitat")
+	assert_false(CatalogScript.compiled_key_of("CropFamily", -1).ok,
+		"-1 is absence, and absence names no key")
+	assert_false(CatalogScript.compiled_key_of("Nonesuch", 0).ok, "an unknown domain is refused")
+
+
+func test_the_legacy_conversion_maps_translate_every_old_ordinal() -> void:
+	"""The old provisional ordinals are translated key by key, never reinterpreted as new ones."""
+	_assert_legacy("HabitatType", [&"RIVER", &"LAKE", &"COAST"])
+	_assert_legacy("EventDefinition", [&"ideal_spell", &"heavy_rain", &"drought", &"blight",
+		&"early_frost", &"hard_freeze", &"calm_days"])
+	_assert_legacy("CropFamily", [&"CEREAL", &"ROOT", &"LEGUME", &"LEAF", &"FIBER"])
+
+
+func _assert_legacy(domain_name: String, old_order: Array[StringName]) -> void:
+	"""Assert each old ordinal converts to the compiled id of the key it used to name."""
+	assert_equal(CatalogScript.legacy_ids_of(domain_name).size(), old_order.size(),
+		"%s has one legacy entry per old ordinal" % domain_name)
+	for legacy_id: int in old_order.size():
+		var got: CatalogScript.EnumLookup = CatalogScript.convert_legacy_id(domain_name, legacy_id)
+		assert_true(got.ok, "%s legacy %d converts" % [domain_name, legacy_id])
+		assert_equal(got.key, old_order[legacy_id],
+			"%s legacy %d named %s" % [domain_name, legacy_id, old_order[legacy_id]])
+		var expected: CatalogScript.EnumLookup = CatalogScript.compiled_id_of(domain_name,
+			old_order[legacy_id])
+		assert_equal(got.id, expected.id,
+			"%s legacy %d becomes the compiled id of %s" % [domain_name, legacy_id,
+			old_order[legacy_id]])
+
+
+func test_the_legacy_maps_are_the_ruled_permutations() -> void:
+	"""READY_06 §2's own numbers: Habitat [2,1,0], Weather [6,5,2,0,3,4,1], Family [0,4,3,2,1]."""
+	assert_equal(CatalogScript.legacy_ids_of("HabitatType"), [2, 1, 0] as Array[int],
+		"the HabitatType conversion map")
+	assert_equal(CatalogScript.legacy_ids_of("EventDefinition"),
+		[6, 5, 2, 0, 3, 4, 1] as Array[int], "the EventDefinition conversion map")
+	assert_equal(CatalogScript.legacy_ids_of("CropFamily"), [0, 4, 3, 2, 1] as Array[int],
+		"the CropFamily conversion map")
+	assert_true(CatalogScript.legacy_ids_of("Nonesuch").is_empty(), "an unknown domain has none")
+
+
+func test_an_untranslatable_ordinal_is_refused_rather_than_reinterpreted() -> void:
+	"""A snapshot carrying an ordinal no old schema had is rejected with an unsupported message."""
+	var too_high: CatalogScript.EnumLookup = CatalogScript.convert_legacy_id("HabitatType", 3)
+	assert_false(too_high.ok, "the old HabitatType had three ordinals, not four")
+	assert_true(too_high.error.contains("unsupported schema"),
+		"and says so as an unsupported schema/catalog, not as a missing key")
+	assert_false(CatalogScript.convert_legacy_id("EventDefinition", 7).ok, "no eighth old event")
+	assert_false(CatalogScript.convert_legacy_id("CropFamily", 5).ok, "no sixth old family")
+	assert_false(CatalogScript.convert_legacy_id("CropFamily", -2).ok, "-2 names nothing at all")
+	assert_false(CatalogScript.convert_legacy_id("Nonesuch", 0).ok, "an unknown domain refuses")
+
+
+func test_absence_converts_to_absence_in_every_compiled_domain() -> void:
+	"""§4.2: "empty catalog IDs are -1". Absence means the same in both schemas."""
+	for domain_name: String in ["CropFamily", "EventDefinition", "HabitatType"]:
+		var empty: CatalogScript.EnumLookup = CatalogScript.convert_legacy_id(domain_name, -1)
+		assert_true(empty.ok, "%s: -1 is absence, not a corrupt ordinal" % domain_name)
+		assert_equal(empty.id, CatalogScript.EMPTY_CATALOG_ID,
+			"%s: absence converts to absence" % domain_name)
+		assert_equal(empty.key, &"", "%s: absence names no key" % domain_name)
+	assert_equal(CatalogScript.EMPTY_CATALOG_ID, -1, "§4.2's empty catalog id is -1")

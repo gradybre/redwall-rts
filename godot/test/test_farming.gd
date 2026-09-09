@@ -17,8 +17,17 @@ const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 
 ## Row order is catalog.gd's ascending-ASCII compile order, which §4.3 fixes for CropDefinition.
 const KEYS: Array[StringName] = [&"beans", &"cabbage", &"flax", &"grain", &"roots"]
+## The compiled CropFamily ids. BAL-CAT-002 names crop-family as a domain whose numeric IDs come
+## from BAL-CAT-001, i.e. the ascending ASCII order of §5.6's own uppercase family names --
+## restated here from that contract, not read back out of catalog.gd or the module.
+const CEREAL: int = 0
+const FIBER: int = 1
+const LEAF: int = 2
+const LEGUME: int = 3
+const ROOT: int = 4
+const FAMILY_COUNT: int = 5
 ## §5.6 "Family": beans LEGUME, cabbage LEAF, flax FIBER, grain CEREAL, roots ROOT.
-const FAMILY: Array[int] = [2, 3, 4, 0, 1]
+const FAMILY: Array[int] = [LEGUME, LEAF, FIBER, CEREAL, ROOT]
 ## §5.6 "Soils" as BAL-CROP-001's `1<<Soil` mask: loam 1, clay 2, sand 4.
 const SOILS: Array[int] = [3, 3, 5, 3, 5]
 ## §5.6 "Growth game hours".
@@ -133,6 +142,17 @@ func test_every_crop_family_matches_the_gdd_table() -> void:
 	for crop: int in KEYS.size():
 		assert_equal(_store.family_of(crop).value, FAMILY[crop], "family of %s" % KEYS[crop])
 	assert_equal(_store.family_of(BEANS).value, Farming.FAMILY_LEGUME, "beans are the LEGUME")
+
+
+func test_family_ids_are_the_generated_ascii_order() -> void:
+	"""BAL-CAT-002: crop-family uses BAL-CAT-001's generated IDs, i.e. ascending ASCII keys."""
+	assert_equal(Farming.FAMILY_CEREAL, CEREAL, "CEREAL sorts first of the five keys")
+	assert_equal(Farming.FAMILY_FIBER, FIBER, "FIBER sorts second")
+	assert_equal(Farming.FAMILY_LEAF, LEAF, "LEAF sorts third")
+	assert_equal(Farming.FAMILY_LEGUME, LEGUME, "LEGUME sorts fourth")
+	assert_equal(Farming.FAMILY_ROOT, ROOT, "ROOT sorts fifth")
+	assert_equal(Farming.FAMILY_COUNT, FAMILY_COUNT, "§5.6 names five families")
+	assert_equal(Farming.FAMILY_NONE, -1, "§4.2: no previous family is the empty catalog id -1")
 
 
 func test_every_allowed_soil_mask_matches_the_gdd_table() -> void:
@@ -504,7 +524,7 @@ func test_the_first_crop_on_a_tile_scores_the_first_crop_rotation_factor() -> vo
 func test_repeating_a_family_scores_850_then_700() -> void:
 	"""§5.6: "850 for a second consecutive same-family harvest, 700 for third+"."""
 	var slot: int = _harvest_grain_cycles(1)
-	assert_equal(_store.last_family_of(slot).value, 0, "grain's CEREAL family is recorded")
+	assert_equal(_store.last_family_of(slot).value, CEREAL, "grain's CEREAL family is recorded")
 	assert_equal(_store.family_streak_of(slot).value, 1, "one harvest in the streak")
 	_replant_grain(slot)
 	assert_equal(_store.rotation_factor_of(slot).value, 850, "a second consecutive grain")
@@ -1040,11 +1060,12 @@ func test_recreating_a_field_keeps_the_last_family_and_the_legume_clock() -> voi
 	var slot: int = _ripe(BEANS)
 	_store.harvest(slot, 10, _ripe_tick_of(BEANS), 1000)
 	_store.destroy(_store.ref_of(slot))
-	assert_equal(_store.tile_last_family_of(TILE).value, 2, "the LEGUME family survives")
+	assert_equal(_store.tile_last_family_of(TILE).value, LEGUME, "the LEGUME family survives")
 	assert_equal(_store.tile_last_legume_day_of(TILE).value, 10, "the legume day survives")
 	assert_equal(_store.fallow_gain_for(TILE, 11).value, 100, "and still pays its bonus")
 	var rebuilt: int = _plot()
-	assert_equal(_store.last_family_of(rebuilt).value, 2, "the new row copies the family in")
+	assert_equal(_store.last_family_of(rebuilt).value, LEGUME,
+		"the new row copies the family in")
 
 
 func test_a_redrawn_designation_cannot_fabricate_a_rotation_bonus() -> void:

@@ -112,19 +112,24 @@ extends RefCounted
 ##
 ## ---------------------------------------------------------------------------------------
 ## GAPS -- named, not invented (AGENTS.md: "do not invent a constant"):
-##   * THERE IS NO `WeatherEvent` ENUM. §4.2 types `Weather.event` as `enum` and §4.3's
-##     enumeration table does not list one, exactly as it listed no HabitatType for fishing.gd.
-##     The ordinals below are §5.10's own printed table order, which the ruling above already
-##     makes authoritative for the SELECTION scan; using the same order for the STORED value is
-##     the simplest reading, not a stated one. They are MODULE-LOCAL constants and are
-##     deliberately NOT added to catalog.gd's PROTECTED_ENUM_DOMAINS: decision 0018 covers the
-##     eight enums §4.3 numbers explicitly, and protecting a number nobody stated would lend an
-##     implementer's guess the standing of a specified value.
-##     THE AMBIGUITY IS CONCRETE, not theoretical. §4.3 also lists an `EventDefinition` catalog
-##     row, and catalog.gd compiles catalog keys in ascending ASCII order, which would number
-##     these seven blight=0, calm_days=1, drought=2, early_frost=3, hard_freeze=4, heavy_rain=5,
-##     ideal_spell=6 -- agreeing with the table order on drought alone. `event` is persisted
-##     state, so a later renumbering breaks saves. NEEDS A PLANNER RULING.
+##   * `Weather.event` IS AN `EventDefinition` ID, AND THIS MODULE PREVIOUSLY GOT IT WRONG. An
+##     earlier header here claimed §4.3 numbers no weather-event enum and concluded a ruling was
+##     needed. The rule was already stated and was missed: GDD §4.2's closing paragraph numbers
+##     every gameplay enum it does not individually list from the ascending ASCII keys of its own
+##     domain, `EventDefinition` is one of §4.3's own catalog rows, and BAL-CAT-001 repeats the
+##     rule. The ids are therefore blight=0, calm_days=1, drought=2, early_frost=3,
+##     hard_freeze=4, heavy_rain=5, ideal_spell=6 -- agreeing with §5.10's printed table order on
+##     drought alone. They live in catalog.gd's COMPILED_ENUM_DOMAINS and are read from there,
+##     never mirrored, and stay OUT of PROTECTED_ENUM_DOMAINS, which means "§4.3 stated this
+##     number" and applies to none of them (decision 0018).
+##     SELECTION ORDER IS NOT ID ORDER, and conflating them was the actual defect. The ruled
+##     traversal above is unchanged and lives in EVENT_SELECTION_ORDER; the scan picks a row in
+##     that sequence and then stores that row's compiled id, so every draw count and every
+##     interval boundary is byte-identical to before and only the stored number differs. Every
+##     EVENT_* table is reindexed to the compiled ids, so no array is written in one order and
+##     read in another. `event` is persisted state: the old ordinals are NOT interchangeable with
+##     these, so any retained snapshot is translated through Catalog.convert_legacy_id()
+##     (EventDefinition map [6,5,2,0,3,4,1]) or refused.
 ##   * `EventDefinition.modifiers` IS "a fixed int32 vector" WITH NO STATED WIDTH OR FIELD ORDER.
 ##     §4.3 names the field and nothing anywhere says what its slots mean. No modifier vector is
 ##     emitted here; the effects column is compiled as one named constant table per stated
@@ -226,26 +231,40 @@ const ROW_COLUMN_COUNT: int = 8
 ## §4.2: "One active major event/world".
 const ROW_COUNT: int = 1
 
-# --- §5.10 event table: MODULE-LOCAL ordinals in the document's printed order, see the header --------
+# --- §5.10 event table: catalog.gd's compiled EventDefinition ids, see the header -------------------
 
-const EVENT_IDEAL_SPELL: int = 0
-const EVENT_HEAVY_RAIN: int = 1
-const EVENT_DROUGHT: int = 2
-const EVENT_BLIGHT: int = 3
-const EVENT_EARLY_FROST: int = 4
-const EVENT_HARD_FREEZE: int = 5
-const EVENT_CALM_DAYS: int = 6
+## Read from catalog.gd, never mirrored: `Catalog.EVENT_DEFINITION[...]` is a constant expression,
+## so there is exactly one copy of each id. EVERY EVENT_* TABLE BELOW IS INDEXED BY THESE IDS, in
+## their ascending order blight, calm_days, drought, early_frost, hard_freeze, heavy_rain,
+## ideal_spell -- NOT by §5.10's printed row order, which now survives only in
+## EVENT_SELECTION_ORDER, where the ruled weighted scan needs it.
+const EVENT_DEFINITION_DOMAIN: String = Catalog.EVENT_DEFINITION_DOMAIN
+const EVENT_BLIGHT: int = Catalog.EVENT_DEFINITION["blight"]
+const EVENT_CALM_DAYS: int = Catalog.EVENT_DEFINITION["calm_days"]
+const EVENT_DROUGHT: int = Catalog.EVENT_DEFINITION["drought"]
+const EVENT_EARLY_FROST: int = Catalog.EVENT_DEFINITION["early_frost"]
+const EVENT_HARD_FREEZE: int = Catalog.EVENT_DEFINITION["hard_freeze"]
+const EVENT_HEAVY_RAIN: int = Catalog.EVENT_DEFINITION["heavy_rain"]
+const EVENT_IDEAL_SPELL: int = Catalog.EVENT_DEFINITION["ideal_spell"]
 const EVENT_COUNT: int = 7
 ## "No event scheduled", following §4.2's "empty catalog IDs are -1". This is a STATE, never a
 ## refusal channel: every operation that can fail returns an OpResult or writes an IntResult, and
 ## is_event_scheduled() answers the same question as a bool.
-const EVENT_NONE: int = -1
+const EVENT_NONE: int = Catalog.EMPTY_CATALOG_ID
 
-## Keys for §4.3's EventDefinition catalog, in §5.10's table order. Compiling them through
-## catalog.gd would number them in ASCII order instead -- see the header's ruling request.
+## §4.3's EventDefinition catalog keys, in the compiled id order these tables are indexed by.
 const EVENT_KEYS: Array[StringName] = [
-	&"ideal_spell", &"heavy_rain", &"drought", &"blight",
-	&"early_frost", &"hard_freeze", &"calm_days",
+	&"blight", &"calm_days", &"drought", &"early_frost",
+	&"hard_freeze", &"heavy_rain", &"ideal_spell",
+]
+
+## DECISION 0028's RULED SELECTION TRAVERSAL, unchanged: §5.10's printed row order. Selection
+## order and stored id are two different things (see the header). The scan visits these seven ids
+## in this sequence; the id it lands on is what gets stored, so every draw count and every
+## interval boundary is exactly what it was before the ids were corrected.
+const EVENT_SELECTION_ORDER: Array[int] = [
+	EVENT_IDEAL_SPELL, EVENT_HEAVY_RAIN, EVENT_DROUGHT, EVENT_BLIGHT,
+	EVENT_EARLY_FROST, EVENT_HARD_FREEZE, EVENT_CALM_DAYS,
 ]
 
 ## `1<<Season` per BAL-CROP-001's stated convention for `allowed_soils` (an analogy; see header).
@@ -256,29 +275,31 @@ const SEASON_MASK_WINTER: int = 1 << SEASON_WINTER
 const SEASON_MASK_ANY: int = SEASON_MASK_SPRING | SEASON_MASK_SUMMER \
 		| SEASON_MASK_AUTUMN | SEASON_MASK_WINTER
 
-## §5.10's "Eligible season" column: Any, Spring/autumn, Summer, Summer/autumn, Autumn, Winter, Any.
+## §5.10's "Eligible season" column, by compiled id: blight summer/autumn, calm days any, drought
+## summer, early frost autumn, hard freeze winter, heavy rain spring/autumn, ideal spell any.
 const EVENT_SEASON_MASK: Array[int] = [
-	SEASON_MASK_ANY,
-	SEASON_MASK_SPRING | SEASON_MASK_AUTUMN,
-	SEASON_MASK_SUMMER,
 	SEASON_MASK_SUMMER | SEASON_MASK_AUTUMN,
+	SEASON_MASK_ANY,
+	SEASON_MASK_SUMMER,
 	SEASON_MASK_AUTUMN,
 	SEASON_MASK_WINTER,
+	SEASON_MASK_SPRING | SEASON_MASK_AUTUMN,
 	SEASON_MASK_ANY,
 ]
 
-## §5.10's "Weight" column, RAW integers -- never converted to percentages (see the ruling).
-const EVENT_WEIGHT: Array[int] = [30, 35, 50, 20, 30, 60, 20]
+## §5.10's "Weight" column by compiled id, RAW integers -- never converted to percentages.
+## blight 20, calm days 20, drought 50, early frost 30, hard freeze 60, heavy rain 35, ideal 30.
+const EVENT_WEIGHT: Array[int] = [20, 20, 50, 30, 60, 35, 30]
 
-## §5.10's "Duration" column, in days.
-const EVENT_DURATION_DAYS: Array[int] = [3, 2, 4, 3, 2, 3, 2]
+## §5.10's "Duration" column by compiled id, in days.
+const EVENT_DURATION_DAYS: Array[int] = [3, 2, 4, 2, 3, 2, 3]
 
 ## §5.10: "start day is 6, except early frost day 10", the latter restated in its effects column.
 const DEFAULT_START_DAY: int = 6
 const EARLY_FROST_START_DAY: int = 10
 const EVENT_START_DAY: Array[int] = [
-	DEFAULT_START_DAY, DEFAULT_START_DAY, DEFAULT_START_DAY, DEFAULT_START_DAY,
-	EARLY_FROST_START_DAY, DEFAULT_START_DAY, DEFAULT_START_DAY,
+	DEFAULT_START_DAY, DEFAULT_START_DAY, DEFAULT_START_DAY, EARLY_FROST_START_DAY,
+	DEFAULT_START_DAY, DEFAULT_START_DAY, DEFAULT_START_DAY,
 ]
 
 ## REQ-SET-142 / §5.10: "announced three days before its start".
@@ -303,12 +324,14 @@ const SEASON_RAIN: Array[int] = [1200, 300, 700, 0]
 const TEMPERATURE_BASELINE: int = 0
 const TEMPERATURE_ABSOLUTE: int = 1
 const TEMPERATURE_DELTA: int = 2
+## By compiled id: blight --, calm days --, drought absolute, early frost absolute, hard freeze
+## absolute, heavy rain delta, ideal spell absolute.
 const EVENT_TEMPERATURE_MODE: Array[int] = [
-	TEMPERATURE_ABSOLUTE, TEMPERATURE_DELTA, TEMPERATURE_ABSOLUTE, TEMPERATURE_BASELINE,
-	TEMPERATURE_ABSOLUTE, TEMPERATURE_ABSOLUTE, TEMPERATURE_BASELINE,
+	TEMPERATURE_BASELINE, TEMPERATURE_BASELINE, TEMPERATURE_ABSOLUTE, TEMPERATURE_ABSOLUTE,
+	TEMPERATURE_ABSOLUTE, TEMPERATURE_DELTA, TEMPERATURE_ABSOLUTE,
 ]
-## 18°C, -3°C from baseline, 30°C, --, -3°C, -12°C, -- ; all in tenths.
-const EVENT_TEMPERATURE_TENTHS: Array[int] = [180, -30, 300, 0, -30, -120, 0]
+## By compiled id: --, --, 30°C, -3°C, -12°C, -3°C from baseline, 18°C; all in tenths.
+const EVENT_TEMPERATURE_TENTHS: Array[int] = [0, 0, 300, -30, -120, -30, 180]
 ## "Temperature 18°C except winter 2°C" -- the only season-conditional value in the table.
 const IDEAL_SPELL_WINTER_TEMPERATURE_TENTHS: int = 20
 
@@ -317,25 +340,30 @@ const IDEAL_SPELL_WINTER_TEMPERATURE_TENTHS: int = 20
 const RAIN_BASELINE: int = 0
 const RAIN_ABSOLUTE: int = 1
 const RAIN_DELTA: int = 2
+## By compiled id: blight --, calm days --, drought absolute, early frost --, hard freeze --,
+## heavy rain delta, ideal spell delta.
 const EVENT_RAIN_MODE: Array[int] = [
-	RAIN_DELTA, RAIN_DELTA, RAIN_ABSOLUTE, RAIN_BASELINE,
-	RAIN_BASELINE, RAIN_BASELINE, RAIN_BASELINE,
+	RAIN_BASELINE, RAIN_BASELINE, RAIN_ABSOLUTE, RAIN_BASELINE,
+	RAIN_BASELINE, RAIN_DELTA, RAIN_DELTA,
 ]
-## "rain+600/day", "rain+2000/day", "rain 0", and four rows that state none.
-const EVENT_RAIN: Array[int] = [600, 2000, 0, 0, 0, 0, 0]
+## By compiled id: drought's "rain 0", heavy rain's "+2000/day", ideal spell's "+600/day", and
+## four rows that state none.
+const EVENT_RAIN: Array[int] = [0, 0, 0, 0, 0, 2000, 600]
 
 ## Drought's "extra moisture-1500/day", applied as extra evaporation (see the header).
 const DROUGHT_EXTRA_EVAPORATION: int = 1500
 const EVENT_EXTRA_EVAPORATION: Array[int] = [0, 0, DROUGHT_EXTRA_EVAPORATION, 0, 0, 0, 0]
 
-## Ideal spell's "crop growth×1.20", per 1000. Reported only -- increment 6 owns FarmPlot.
-const EVENT_CROP_GROWTH_PER_1000: Array[int] = [1200, 1000, 1000, 1000, 1000, 1000, 1000]
-## Blight's "Crop damage 400/day". Reported only.
-const EVENT_CROP_DAMAGE_PER_DAY: Array[int] = [0, 0, 0, 400, 0, 0, 0]
-## Heavy rain's "outdoor work×0.80", per 1000.
-const EVENT_OUTDOOR_WORK_PER_1000: Array[int] = [1000, 800, 1000, 1000, 1000, 1000, 1000]
-## Hard freeze's "outdoor exposure accumulation×2", per 1000. REQ-SET-144 accumulates nothing here.
-const EVENT_EXPOSURE_PER_1000: Array[int] = [1000, 1000, 1000, 1000, 1000, 2000, 1000]
+## Ideal spell's "crop growth×1.20", per 1000, at compiled id 6. Reported only -- increment 6
+## owns FarmPlot.
+const EVENT_CROP_GROWTH_PER_1000: Array[int] = [1000, 1000, 1000, 1000, 1000, 1000, 1200]
+## Blight's "Crop damage 400/day", at compiled id 0. Reported only.
+const EVENT_CROP_DAMAGE_PER_DAY: Array[int] = [400, 0, 0, 0, 0, 0, 0]
+## Heavy rain's "outdoor work×0.80", per 1000, at compiled id 5.
+const EVENT_OUTDOOR_WORK_PER_1000: Array[int] = [1000, 1000, 1000, 1000, 1000, 800, 1000]
+## Hard freeze's "outdoor exposure accumulation×2", per 1000, at compiled id 4. REQ-SET-144
+## accumulates nothing here.
+const EVENT_EXPOSURE_PER_1000: Array[int] = [1000, 1000, 1000, 1000, 2000, 1000, 1000]
 
 ## REQ-SET-142's "affected systems", one bit per stated phrase of §5.10's effects column. DERIVED
 ## from the event and never stored, so no save carries this taxonomy (see the header).
@@ -351,14 +379,15 @@ const AFFECTS_LAKE_ICE: int = 1 << 8
 const AFFECTS_MUSSEL_HARVEST: int = 1 << 9
 const AFFECTS_ORCHARD_WATER: int = 1 << 10
 const AFFECTS_FROST: int = 1 << 11
+## By compiled id: blight, calm days, drought, early frost, hard freeze, heavy rain, ideal spell.
 const EVENT_AFFECTED_SYSTEMS: Array[int] = [
-	AFFECTS_TEMPERATURE | AFFECTS_RAIN | AFFECTS_CROP_GROWTH,
-	AFFECTS_TEMPERATURE | AFFECTS_RAIN | AFFECTS_OUTDOOR_WORK | AFFECTS_BOATS,
-	AFFECTS_TEMPERATURE | AFFECTS_RAIN | AFFECTS_MOISTURE | AFFECTS_ORCHARD_WATER,
 	AFFECTS_CROP_DAMAGE | AFFECTS_MUSSEL_HARVEST,
+	0,
+	AFFECTS_TEMPERATURE | AFFECTS_RAIN | AFFECTS_MOISTURE | AFFECTS_ORCHARD_WATER,
 	AFFECTS_TEMPERATURE | AFFECTS_FROST,
 	AFFECTS_TEMPERATURE | AFFECTS_EXPOSURE | AFFECTS_LAKE_ICE,
-	0,
+	AFFECTS_TEMPERATURE | AFFECTS_RAIN | AFFECTS_OUTDOOR_WORK | AFFECTS_BOATS,
+	AFFECTS_TEMPERATURE | AFFECTS_RAIN | AFFECTS_CROP_GROWTH,
 ]
 
 # --- §5.10 moisture arithmetic ----------------------------------------------------------------------
@@ -448,9 +477,31 @@ func _init() -> void:
 	assert(EVENT_OUTDOOR_WORK_PER_1000.size() == EVENT_COUNT, "one work factor per §5.10 row")
 	assert(EVENT_EXPOSURE_PER_1000.size() == EVENT_COUNT, "one exposure factor per §5.10 row")
 	assert(EVENT_AFFECTED_SYSTEMS.size() == EVENT_COUNT, "one affected-system mask per §5.10 row")
+	_assert_event_ids()
 	_assert_season_tables()
 	_allocate_columns()
 	clear()
+
+
+func _assert_event_ids() -> void:
+	"""Assert the compiled EventDefinition ids, and that selection order is a permutation of them.
+
+	The traversal order and the stored ids are separate contracts, so both are checked: every id
+	appears in EVENT_SELECTION_ORDER exactly once (nothing can be dropped or visited twice), and
+	EVENT_KEYS is in compiled-id order, which is what every EVENT_* table above is indexed by.
+	"""
+	assert(Catalog.verify_compiled_enum(EVENT_DEFINITION_DOMAIN).ok,
+		"EventDefinition ids must be what ascending ASCII order generates")
+	assert(Catalog.EVENT_DEFINITION.size() == EVENT_COUNT, "§5.10 lists exactly seven events")
+	assert(EVENT_SELECTION_ORDER.size() == EVENT_COUNT, "the ruled traversal visits all seven")
+	var seen: int = 0
+	for event: int in EVENT_SELECTION_ORDER:
+		assert(event >= 0 and event < EVENT_COUNT, "the traversal names only compiled ids")
+		assert((seen & (1 << event)) == 0, "the ruled traversal visits each event exactly once")
+		seen |= 1 << event
+	for event: int in EVENT_COUNT:
+		assert(Catalog.EVENT_DEFINITION[String(EVENT_KEYS[event])] == event,
+			"EVENT_KEYS must be in compiled id order, which indexes every §5.10 table")
 
 
 func _assert_season_tables() -> void:
@@ -597,13 +648,14 @@ func weight_sum_of_into(season: int, out: IntMath.IntResult) -> bool:
 
 
 static func _weight_sum_of(season: int) -> int:
-	"""Sum §5.10's weights over the season's eligible rows, in the table's printed order.
+	"""Sum §5.10's weights over the season's eligible rows, in the ruled traversal order.
 
 	The seven weights are compiled constants of at most 60, so this sum is at most 215 and cannot
-	overflow; no caller-supplied number reaches it.
+	overflow; no caller-supplied number reaches it. Addition is commutative, so the order does not
+	change the sum -- it is the ruled one anyway, so the bound and the scan below read one list.
 	"""
 	var total: int = 0
-	for event: int in EVENT_COUNT:
+	for event: int in EVENT_SELECTION_ORDER:
 		if _is_eligible(event, season):
 			total += EVENT_WEIGHT[event]
 	return total
@@ -635,11 +687,13 @@ func event_for_roll(season: int, roll: int) -> IntMath.IntResult:
 func event_for_roll_into(season: int, roll: int, out: IntMath.IntResult) -> bool:
 	"""Non-allocating event_for_roll(): apply the ruled cumulative scan to a roll in `[0, sum)`.
 
-	The scan visits §5.10's rows in the document's printed order, skips the rows this season does
-	not admit, accumulates RAW weights, and stops at the first row where `roll < cumulative` --
-	strictly less than, so an interval's upper endpoint belongs to that interval and its successor
-	starts at the next integer. A roll outside `[0, weight_sum)` is refused rather than folded
-	back into range, because folding would silently bias the first row.
+	The scan visits §5.10's rows in the document's printed order (EVENT_SELECTION_ORDER, which is
+	decision 0028's ruled traversal and is NOT the stored id order), skips the rows this season
+	does not admit, accumulates RAW weights, and stops at the first row where `roll < cumulative`
+	-- strictly less than, so an interval's upper endpoint belongs to that interval and its
+	successor starts at the next integer. The value written out is that row's compiled
+	EventDefinition id. A roll outside `[0, weight_sum)` is refused rather than folded back into
+	range, because folding would silently bias the first row.
 	"""
 	if not is_season(season):
 		return out.refuse(String(REFUSE_INVALID_SEASON))
@@ -658,7 +712,7 @@ static func _event_for_roll(season: int, roll: int) -> int:
 	sum cannot do; the caller refuses that outcome rather than storing it.
 	"""
 	var cumulative: int = 0
-	for event: int in EVENT_COUNT:
+	for event: int in EVENT_SELECTION_ORDER:
 		if not _is_eligible(event, season):
 			continue
 		cumulative += EVENT_WEIGHT[event]

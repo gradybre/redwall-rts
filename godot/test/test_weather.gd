@@ -12,8 +12,13 @@ extends "res://test/framework/test_case.gd"
 ## agrees with itself, so the intervals are asserted as literals and every boundary is probed on
 ## both sides.
 ##
-## §4.3 numbers no WeatherEvent enum (see the module header), so the ordinals here are §5.10's
-## printed table order, restated, and one test asserts the module uses that order.
+## THE STORED IDS AND THE SELECTION ORDER ARE SEPARATE, and this file keeps them separate.
+## `Weather.event` is an `EventDefinition` id, numbered by GDD §4.2's closing paragraph from the
+## domain's ascending ASCII keys: blight=0, calm_days=1, drought=2, early_frost=3, hard_freeze=4,
+## heavy_rain=5, ideal_spell=6, restated below from that contract. Decision 0028's ruled
+## selection traversal is §5.10's printed order and is unchanged, so every MAP_* interval below
+## still names the same event IDENTITY it always did -- the symbols in those fixtures did not
+## move, only the numbers they stand for.
 
 const Weather := preload("res://scripts/core/weather.gd")
 const Rng := preload("res://scripts/core/rng.gd")
@@ -29,26 +34,33 @@ const WINTER: int = 3
 ## REQ-SET-006: "one season as 12 days".
 const DAYS_PER_SEASON: int = 12
 
-## §5.10's event table order: 1 Ideal spell ... 7 Calm days, zero-based.
-const IDEAL: int = 0
-const HEAVY_RAIN: int = 1
+## The compiled EventDefinition ids: the ascending ASCII order of §5.10's seven keys.
+const BLIGHT: int = 0
+const CALM: int = 1
 const DROUGHT: int = 2
-const BLIGHT: int = 3
-const EARLY_FROST: int = 4
-const HARD_FREEZE: int = 5
-const CALM: int = 6
+const EARLY_FROST: int = 3
+const HARD_FREEZE: int = 4
+const HEAVY_RAIN: int = 5
+const IDEAL: int = 6
 const EVENT_COUNT: int = 7
 const NONE: int = -1
+
+## Decision 0028's ruled selection traversal: §5.10's printed table order, 1 Ideal spell ...
+## 7 Calm days. This is a SCAN SEQUENCE, never an id.
+const SELECTION_ORDER: Array[int] = [
+	IDEAL, HEAVY_RAIN, DROUGHT, BLIGHT, EARLY_FROST, HARD_FREEZE, CALM,
+]
 
 ## §4.2 / systems_architecture.md §2.2: eight int32 columns in exactly one row.
 const ROW_COLUMNS: int = 8
 
-## §5.10's "Weight" column, raw integers.
-const WEIGHTS: Array[int] = [30, 35, 50, 20, 30, 60, 20]
-## §5.10's "Duration" column, in days.
-const DURATIONS: Array[int] = [3, 2, 4, 3, 2, 3, 2]
-## §5.10: "start day is 6, except early frost day 10".
-const START_DAYS: Array[int] = [6, 6, 6, 6, 10, 6, 6]
+## §5.10's "Weight" column, raw integers, indexed by the compiled id: blight 20, calm days 20,
+## drought 50, early frost 30, hard freeze 60, heavy rain 35, ideal spell 30.
+const WEIGHTS: Array[int] = [20, 20, 50, 30, 60, 35, 30]
+## §5.10's "Duration" column, in days, indexed by the compiled id.
+const DURATIONS: Array[int] = [3, 2, 4, 2, 3, 2, 3]
+## §5.10: "start day is 6, except early frost day 10", indexed by the compiled id.
+const START_DAYS: Array[int] = [6, 6, 6, 10, 6, 6, 6]
 
 ## §5.10's "Baseline temperature" column, in tenths: 12°C, 22°C, 10°C, -5°C.
 const BASELINE_TEMPERATURE: Array[int] = [120, 220, 100, -50]
@@ -167,18 +179,42 @@ func test_clear_returns_a_used_row_to_empty() -> void:
 	assert_equal(_weather.rain(), 0, "the daily rain is cleared")
 
 
-func test_event_ordinals_follow_the_printed_table_order() -> void:
-	"""The ruling fixes §5.10's printed order; the module's ordinals must be that order."""
-	assert_equal(Weather.EVENT_IDEAL_SPELL, IDEAL, "ideal spell is row 1")
-	assert_equal(Weather.EVENT_HEAVY_RAIN, HEAVY_RAIN, "heavy rain/storm is row 2")
-	assert_equal(Weather.EVENT_DROUGHT, DROUGHT, "drought is row 3")
-	assert_equal(Weather.EVENT_BLIGHT, BLIGHT, "blight is row 4")
-	assert_equal(Weather.EVENT_EARLY_FROST, EARLY_FROST, "early frost is row 5")
-	assert_equal(Weather.EVENT_HARD_FREEZE, HARD_FREEZE, "hard freeze is row 6")
-	assert_equal(Weather.EVENT_CALM_DAYS, CALM, "calm days is row 7")
+func test_event_ids_are_the_generated_ascii_order() -> void:
+	"""GDD §4.2's closing paragraph numbers EventDefinition from its own ascending ASCII keys."""
+	assert_equal(Weather.EVENT_BLIGHT, BLIGHT, "blight sorts first of the seven keys")
+	assert_equal(Weather.EVENT_CALM_DAYS, CALM, "calm_days sorts second")
+	assert_equal(Weather.EVENT_DROUGHT, DROUGHT, "drought sorts third")
+	assert_equal(Weather.EVENT_EARLY_FROST, EARLY_FROST, "early_frost sorts fourth")
+	assert_equal(Weather.EVENT_HARD_FREEZE, HARD_FREEZE, "hard_freeze sorts fifth")
+	assert_equal(Weather.EVENT_HEAVY_RAIN, HEAVY_RAIN, "heavy_rain sorts sixth")
+	assert_equal(Weather.EVENT_IDEAL_SPELL, IDEAL, "ideal_spell sorts seventh")
 	assert_equal(Weather.EVENT_COUNT, EVENT_COUNT, "§5.10 lists seven event rows")
 	assert_equal(Weather.EVENT_NONE, NONE, "the empty event follows §4.2's -1 convention")
 	assert_equal(Weather.EVENT_KEYS.size(), EVENT_COUNT, "one catalog key per row")
+
+
+func test_the_event_keys_are_in_compiled_id_order() -> void:
+	"""EVENT_KEYS indexes every §5.10 table, so its order IS the compiled id order."""
+	var expected: Array[StringName] = [&"blight", &"calm_days", &"drought", &"early_frost",
+		&"hard_freeze", &"heavy_rain", &"ideal_spell"]
+	for event: int in EVENT_COUNT:
+		assert_equal(Weather.EVENT_KEYS[event], expected[event],
+			"compiled id %d is %s" % [event, expected[event]])
+
+
+func test_the_selection_traversal_is_the_printed_order_not_the_id_order() -> void:
+	"""Decision 0028's ruled scan sequence is §5.10's printed order, which is NOT id order."""
+	assert_equal(Weather.EVENT_SELECTION_ORDER.size(), EVENT_COUNT, "all seven rows are visited")
+	for position: int in EVENT_COUNT:
+		assert_equal(Weather.EVENT_SELECTION_ORDER[position], SELECTION_ORDER[position],
+			"the ruled traversal's position %d" % position)
+	assert_equal(Weather.EVENT_SELECTION_ORDER[0], IDEAL,
+		"the scan starts at ideal spell, which is compiled id 6 -- order is not identity")
+	var ascending: Array[int] = []
+	for event: int in EVENT_COUNT:
+		ascending.append(event)
+	assert_true(Weather.EVENT_SELECTION_ORDER != ascending,
+		"the two contracts genuinely differ: traversing ids 0..6 is a different scan")
 
 
 # --- §5.10's event table ------------------------------------------------------------------------

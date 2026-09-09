@@ -8,10 +8,10 @@ extends "res://test/framework/test_case.gd"
 ## stated thresholds. Season days are §5.1's 1..12 within a season, which is what
 ## `SimClock.Calendar.season_day` reports.
 ##
-## §4.2 never states what catalog `FishStock.species_id` is drawn from and §4.3 numbers no
-## HabitatType (see the module header), so the ids here are opaque small integers, no test
-## asserts a meaning for them, and the habitat ordinals are used only as this module defines
-## them.
+## §4.2 never states what catalog `FishStock.species_id` is drawn from, so the ids here are
+## opaque small integers and no test asserts a meaning for them. `FishHabitat.type` is different:
+## GDD §4.2's closing paragraph numbers it from its own domain's ascending ASCII keys, so the
+## habitat ordinals below are restated from that contract rather than from the module.
 
 const Fishing := preload("res://scripts/core/fishing.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -23,12 +23,16 @@ const EXPECTED_HABITAT_CAPACITY: int = 32
 const EXPECTED_SPECIES_PER_HABITAT: int = 3
 const EXPECTED_STOCK_CAPACITY: int = 96
 
-## §5.4's table order: River, Lake, Coast.
-const RIVER: int = 0
+## GDD §4.2's closing paragraph numbers `HabitatType` from its own ascending ASCII keys, and the
+## 2026-09-09 READY_06 ruling §2 fixes those keys as COAST, LAKE, RIVER. Restated here from the
+## contract, NOT read back out of catalog.gd or the module under test. Deliberately not §5.4's
+## printed River/Lake/Coast table order, which numbers no enum.
+const COAST: int = 0
 const LAKE: int = 1
-const COAST: int = 2
+const RIVER: int = 2
 
-## §5.4's nine species, grouped three per habitat in the document's own order.
+## §5.4's nine table ROWS, grouped three per habitat in the document's own printed order. These
+## are row indices into §5.4's table, not habitat ids and not catalog ids.
 const TROUT: int = 0
 const DACE: int = 1
 const SALMON: int = 2
@@ -192,6 +196,16 @@ func test_capacities_match_the_specification() -> void:
 		"§5.4: coast effort capacity 6")
 
 
+func test_habitat_ids_are_the_generated_ascii_order() -> void:
+	"""GDD §4.2's closing paragraph and READY_06 §2: COAST=0, LAKE=1, RIVER=2, from the keys."""
+	assert_equal(Fishing.HABITAT_COAST, COAST, "COAST sorts first of the three keys")
+	assert_equal(Fishing.HABITAT_LAKE, LAKE, "LAKE sorts second")
+	assert_equal(Fishing.HABITAT_RIVER, RIVER, "RIVER sorts third")
+	assert_equal(Fishing.HABITAT_TYPE_COUNT, 3, "§5.4 defines three habitats")
+	assert_false(_fishing.is_habitat_type(3), "there is no fourth habitat type")
+	assert_false(_fishing.is_habitat_type(-1), "and no habitat type -1")
+
+
 func test_species_capacities_transcribe_the_table() -> void:
 	"""§5.4's "Capacity U" column, species by species, in milli-U."""
 	var expected: Array[int] = [TROUT_K, DACE_K, SALMON_K, PERCH_K, CARP_K, WHITEFISH_K,
@@ -224,17 +238,57 @@ func test_availability_transcribes_every_season() -> void:
 
 
 func test_species_index_addresses_the_table_by_habitat() -> void:
-	"""§5.4 groups three species under each habitat, so `species = type*3 + index`."""
-	var expected: Array[int] = [TROUT, DACE, SALMON, PERCH, CARP, WHITEFISH, HERRING, MACKEREL,
-		MUSSEL]
-	for habitat_type: int in 3:
-		for species_index: int in EXPECTED_SPECIES_PER_HABITAT:
-			var resolved: IntMath.IntResult = _fishing.species_of(habitat_type, species_index)
-			assert_true(resolved.ok, "every habitat type has three species")
-			assert_equal(resolved.value, expected[habitat_type * 3 + species_index],
-				"§5.4 species for habitat %d slot %d" % [habitat_type, species_index])
-			var owner: IntMath.IntResult = _fishing.habitat_type_of_species(resolved.value)
-			assert_equal(owner.value, habitat_type, "the species must map back to its habitat")
+	"""§5.4 groups three species under each habitat, through an EXPLICIT binding.
+
+	The expectations are written per habitat and NEVER as `expected[habitat_type*3 + index]`:
+	that expression is only correct while the habitat ids happen to match §5.4's printed row
+	order, which the compiled ids do not. See the key-level test below.
+	"""
+	_assert_species_of(RIVER, [TROUT, DACE, SALMON])
+	_assert_species_of(LAKE, [PERCH, CARP, WHITEFISH])
+	_assert_species_of(COAST, [HERRING, MACKEREL, MUSSEL])
+
+
+func _assert_species_of(habitat_type: int, expected: Array[int]) -> void:
+	"""Assert one habitat's three §5.4 rows, and that each maps back to that same habitat."""
+	for species_index: int in EXPECTED_SPECIES_PER_HABITAT:
+		var resolved: IntMath.IntResult = _fishing.species_of(habitat_type, species_index)
+		assert_true(resolved.ok, "every habitat type has three species")
+		assert_equal(resolved.value, expected[species_index],
+			"§5.4 species for habitat %d slot %d" % [habitat_type, species_index])
+		var owner: IntMath.IntResult = _fishing.habitat_type_of_species(resolved.value)
+		assert_equal(owner.value, habitat_type, "the species must map back to its habitat")
+
+
+func test_a_river_habitats_species_are_trout_dace_and_salmon_by_key() -> void:
+	"""§5.4's River row names trout, dace and salmon -- asserted by KEY, not by computed index.
+
+	This is the test the old `species = habitat_type*3 + species_index` assumption fails: under
+	the compiled ids (COAST=0, LAKE=1, RIVER=2) that formula hands a RIVER habitat the coast
+	species herring/mackerel/mussel, silently and with no refusal anywhere.
+	"""
+	var expected: Array[StringName] = [&"trout", &"dace", &"salmon"]
+	for species_index: int in EXPECTED_SPECIES_PER_HABITAT:
+		var resolved: IntMath.IntResult = _fishing.species_of(RIVER, species_index)
+		assert_true(resolved.ok, "a river habitat has three species")
+		assert_equal(Fishing.SPECIES_KEYS[resolved.value], expected[species_index],
+			"§5.4's river row %d is %s" % [species_index, expected[species_index]])
+	var ref: Vector2i = _river()
+	for species_index: int in EXPECTED_SPECIES_PER_HABITAT:
+		var row: int = _row(ref, species_index)
+		var species: int = _fishing.species_of_row(row).value
+		assert_equal(Fishing.SPECIES_KEYS[species], expected[species_index],
+			"a created river habitat's stock %d is %s" % [species_index, expected[species_index]])
+
+
+func test_the_species_keys_transcribe_the_printed_table() -> void:
+	"""§5.4's "Species" column in the document's printed order, transcribed independently here."""
+	var expected: Array[StringName] = [&"trout", &"dace", &"salmon", &"perch", &"carp",
+		&"whitefish", &"herring", &"mackerel", &"mussel"]
+	assert_equal(Fishing.SPECIES_KEYS.size(), expected.size(), "§5.4 lists nine species")
+	for species: int in expected.size():
+		assert_equal(Fishing.SPECIES_KEYS[species], expected[species],
+			"§5.4's species row %d" % species)
 
 
 func test_species_lookups_refuse_out_of_range_arguments() -> void:

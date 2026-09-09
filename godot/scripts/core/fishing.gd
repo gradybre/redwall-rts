@@ -22,9 +22,15 @@ extends RefCounted
 ##     and Coast. Nothing is invented to obtain it. Decision 0026 drew this distinction for
 ##     `ForagePatch` (derivable, 640 == 128 * 5) against `HivePollinationLinks` (blocker U6, no
 ##     stated formula and none derivable); this index is on the derivable side of that line.
-##   * The three species of a habitat ARE §5.4's three table rows for its type, in the
-##     document's own order, so `species_index` addresses the table without a fourth column:
-##     `species = habitat_type * 3 + species_index`.
+##   * The three species of a habitat ARE §5.4's three table rows for its type, so
+##     `species_index` addresses the table without a fourth column. WHICH three is an EXPLICIT
+##     BINDING, not a formula: HABITAT_SPECIES_ROWS maps a compiled habitat id to its three
+##     §5.4 rows. Stock addressing (`habitat_slot*3 + species_index`) and species identity used
+##     to share the single expression `habitat_type*3 + species_index`, which was only ever
+##     correct while the habitat ordinals happened to match §5.4's printed River/Lake/Coast row
+##     order. They are two different things and are now stored as two different tables; under
+##     the compiled ids (COAST=0, LAKE=1, RIVER=2) the shared formula would have handed a river
+##     habitat the coast species silently, with no error anywhere.
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE QUOTA, AND WHY IT IS EVIDENCE ABOUT FORAGE. §5.4 states the period outright -- "A
@@ -77,9 +83,10 @@ extends RefCounted
 ##     FISHING draws. §4.2's Expedition row exists and its store does not.
 ##   * WEATHER-GATED ACCESS. REQ-SET-051 (winter ice, ice-kit crews, ice-access station) and
 ##     REQ-SET-052 (storm departures), plus mussel's "Summer blight event closes harvest", are
-##     all weather-event conditions. Increment 2 (Weather) is itself blocked on a planner ruling
-##     about the WEATHER stream's roll-to-row mapping, so no weather condition is evaluated here
-##     and no closure below is a blight closure.
+##     all weather-event conditions. CORRECTED 2026-09-09: weather is no longer blocked -- the
+##     roll-to-row mapping was ruled (decision 0028) and weather.gd exists. This module still
+##     evaluates no weather condition and no closure below is a blight closure, because JOINING
+##     the two stores is ARCH-SYS-006's job (increment 10), not this store's.
 ##   * JOBS AND LOTS. REQ-SET-045's "create corresponding fish lots" and any FISH job creation
 ##     belong to later increments; §5.5's fishing has no stated job-creation trigger at all
 ##     (docs/tasks/03_ecology_crops_weather.md).
@@ -90,16 +97,20 @@ extends RefCounted
 ##
 ## ---------------------------------------------------------------------------------------
 ## GAPS -- named, not invented (AGENTS.md: "do not invent a constant"):
-##   * THERE IS NO `HabitatType` ENUM. §4.2 types `FishHabitat.type` as `enum` and §4.3's
-##     enumeration table does not list one; no catalog row defines it either. The ordinal is
-##     genuinely ambiguous, not merely absent: §5.1 orders the terrain masks "coast, river,
-##     lake" while §5.4's table orders them "River, Lake, Coast". This module uses §5.4's order,
-##     because §5.4 is the section that defines the habitats, and keeps it as a MODULE-LOCAL
-##     constant rather than adding it to catalog.gd's PROTECTED_ENUM_DOMAINS. Decision 0018
-##     covers the enums §4.3 numbers explicitly; this one §4.3 does not number at all, so
-##     protecting a number nobody stated would give an implementer's guess the same standing as
-##     a specified value. NEEDS A PLANNER RULING -- `type` is persisted state, so a later
-##     renumbering breaks saves.
+##   * `HabitatType` IS A COMPILED DOMAIN, AND THIS MODULE PREVIOUSLY GOT IT WRONG. An earlier
+##     header here claimed §4.3 numbers no HabitatType and concluded a ruling was needed. The
+##     rule was already stated -- GDD §4.2's closing paragraph numbers every gameplay enum it
+##     does not individually list from the ascending ASCII keys of its own domain, and
+##     BAL-CAT-001 repeats it -- and this module missed it, using §5.4's printed table order
+##     (RIVER=0, LAKE=1, COAST=2) instead. What was genuinely open was only the key spelling:
+##     docs/rulings/2026-09-09_ready06_open_item_answers.md §2 binds `FishHabitat.type` to the
+##     canonical uppercase keys COAST, LAKE, RIVER, whose inherited ASCII order is COAST=0,
+##     LAKE=1, RIVER=2. The ids live in catalog.gd's COMPILED_ENUM_DOMAINS -- read from there,
+##     never mirrored -- and deliberately NOT in PROTECTED_ENUM_DOMAINS, which means "§4.3
+##     stated this number". §5.1's terrain-mask phrase "coast, river, lake" orders prose, not
+##     ordinals, and settles nothing either way. `type` is persisted state: the old ordinals are
+##     NOT interchangeable with these, so any retained snapshot is translated through
+##     Catalog.convert_legacy_id() (HabitatType map [2,1,0]) or refused.
 ##   * `species_id`'s DOMAIN IS UNSTATED. §4.2 types it int32 and never says which catalog. The
 ##     nine fish are not in item_definitions.gd, and §5.5 names them only as "edible aquatic
 ##     species ... explicitly sapient=false in the food-stock catalog", a catalog that does not
@@ -188,22 +199,30 @@ const SEASON_COUNT: int = 4
 const DAYS_PER_SEASON: int = SimClock.DAYS_PER_SEASON
 const FIRST_SEASON_DAY: int = 1
 
-# --- habitat type: MODULE-LOCAL, see the header ---------------------------------------------------
+# --- habitat type: catalog.gd's compiled HabitatType domain, see the header -----------------------
 
-## §5.4's table order. NOT in catalog.gd's PROTECTED_ENUM_DOMAINS: §4.3 numbers no HabitatType,
-## and §5.1's mask order ("coast, river, lake") disagrees with §5.4's. Needs a planner ruling.
-const HABITAT_RIVER: int = 0
-const HABITAT_LAKE: int = 1
-const HABITAT_COAST: int = 2
+## Read from catalog.gd, never mirrored: `Catalog.HABITAT_TYPE[...]` is a constant expression, so
+## there is exactly one copy of each id (GDD §4.2's closing paragraph via decision 0018's rule).
+const HABITAT_TYPE_DOMAIN: String = Catalog.HABITAT_TYPE_DOMAIN
+const HABITAT_COAST: int = Catalog.HABITAT_TYPE["COAST"]
+const HABITAT_LAKE: int = Catalog.HABITAT_TYPE["LAKE"]
+const HABITAT_RIVER: int = Catalog.HABITAT_TYPE["RIVER"]
 const HABITAT_TYPE_COUNT: int = 3
 
-## §5.4: "Habitat effort capacity: river 4, lake 6, coast 6." Indexed by habitat type, so a
-## caller can never supply a slot count that disagrees with the specification.
-const EFFORT_SLOTS_BY_TYPE: Array[int] = [4, 6, 6]
+## §5.4: "Habitat effort capacity: river 4, lake 6, coast 6." Indexed by the COMPILED habitat id,
+## so a caller can never supply a slot count that disagrees with the specification. _init()
+## asserts each entry against its named habitat, so this literal cannot drift out of that order.
+const RIVER_EFFORT_SLOTS: int = 4
+const LAKE_EFFORT_SLOTS: int = 6
+const COAST_EFFORT_SLOTS: int = 6
+const EFFORT_SLOTS_BY_TYPE: Array[int] = [
+	COAST_EFFORT_SLOTS, LAKE_EFFORT_SLOTS, RIVER_EFFORT_SLOTS,
+]
 
 # --- GDD §5.4 species table, row for row ----------------------------------------------------------
 
-## `species = habitat_type * 3 + species_index`, so these indices ARE §5.4's table order.
+## §5.4's nine table rows in the document's printed order. These are TABLE ROWS, not habitat ids
+## and not catalog ids: HABITAT_SPECIES_ROWS binds a habitat to its three rows explicitly.
 const SPECIES_TROUT: int = 0
 const SPECIES_DACE: int = 1
 const SPECIES_SALMON: int = 2
@@ -214,6 +233,24 @@ const SPECIES_HERRING: int = 6
 const SPECIES_MACKEREL: int = 7
 const SPECIES_MUSSEL: int = 8
 const SPECIES_COUNT: int = HABITAT_TYPE_COUNT * SPECIES_PER_HABITAT
+
+## THE EXPLICIT HABITAT-ID-TO-SPECIES BINDING, flattened as `habitat_type*3 + species_index`.
+## §5.4 lists trout/dace/salmon under River, perch/carp/whitefish under Lake and
+## herring/mackerel/mussel under Coast; the compiled ids order those habitats COAST, LAKE, RIVER.
+## Indexing a TABLE by a compiled id is not the same as COMPUTING identity from one -- see the
+## header -- and _init() asserts this table and SPECIES_HABITAT_TYPE are mutual inverses.
+const HABITAT_SPECIES_ROWS: Array[int] = [
+	SPECIES_HERRING, SPECIES_MACKEREL, SPECIES_MUSSEL,
+	SPECIES_PERCH, SPECIES_CARP, SPECIES_WHITEFISH,
+	SPECIES_TROUT, SPECIES_DACE, SPECIES_SALMON,
+]
+
+## The same binding read backwards: §5.4's nine rows in printed order, each naming its habitat.
+const SPECIES_HABITAT_TYPE: Array[int] = [
+	HABITAT_RIVER, HABITAT_RIVER, HABITAT_RIVER,
+	HABITAT_LAKE, HABITAT_LAKE, HABITAT_LAKE,
+	HABITAT_COAST, HABITAT_COAST, HABITAT_COAST,
+]
 
 ## §5.4's "Species" column. §5.5 confirms the same nine: "Edible aquatic species are exactly
 ## carp, dace, herring, mackerel, mussel, perch, salmon, trout and whitefish". Ids are compiled
@@ -428,10 +465,34 @@ func _init(p_directory: EntityDirectory = null) -> void:
 	assert(SPECIES_AVAILABILITY_PER_1000.size() == SPECIES_COUNT * SEASON_COUNT,
 		"§5.4 gives four seasonal availabilities for each of the nine species rows")
 	assert(EFFORT_SLOTS_BY_TYPE.size() == HABITAT_TYPE_COUNT, "§5.4 gives three effort capacities")
+	_assert_habitat_binding()
 	_owns_directory = p_directory == null
 	_directory = p_directory if p_directory != null else EntityDirectory.new()
 	_allocate_columns()
 	clear()
+
+
+func _assert_habitat_binding() -> void:
+	"""Assert the compiled HabitatType ids and the explicit species binding agree with §5.4.
+
+	Three separate statements are checked against each other: catalog.gd's compiled ids against
+	its own ASCII compiler, §5.4's effort capacities against the NAMED habitat they belong to
+	(never a bare position), and HABITAT_SPECIES_ROWS against its inverse SPECIES_HABITAT_TYPE.
+	"""
+	assert(Catalog.verify_compiled_enum(HABITAT_TYPE_DOMAIN).ok,
+		"HabitatType ids must be what ascending ASCII order generates")
+	assert(Catalog.HABITAT_TYPE.size() == HABITAT_TYPE_COUNT, "§5.4 defines three habitats")
+	assert(SPECIES_HABITAT_TYPE.size() == SPECIES_COUNT, "one habitat per §5.4 species row")
+	assert(HABITAT_SPECIES_ROWS.size() == SPECIES_COUNT, "three species per §5.4 habitat")
+	assert(EFFORT_SLOTS_BY_TYPE[HABITAT_RIVER] == RIVER_EFFORT_SLOTS, "§5.4: river 4")
+	assert(EFFORT_SLOTS_BY_TYPE[HABITAT_LAKE] == LAKE_EFFORT_SLOTS, "§5.4: lake 6")
+	assert(EFFORT_SLOTS_BY_TYPE[HABITAT_COAST] == COAST_EFFORT_SLOTS, "§5.4: coast 6")
+	for habitat_type: int in HABITAT_TYPE_COUNT:
+		for species_index: int in SPECIES_PER_HABITAT:
+			var species: int = HABITAT_SPECIES_ROWS[habitat_type * SPECIES_PER_HABITAT
+				+ species_index]
+			assert(SPECIES_HABITAT_TYPE[species] == habitat_type,
+				"the habitat-to-species binding must read back to the same habitat")
 
 
 func _allocate_columns() -> void:
@@ -555,21 +616,25 @@ func species_of(habitat_type: int, species_index: int) -> IntMath.IntResult:
 
 
 func species_of_into(habitat_type: int, species_index: int, out: IntMath.IntResult) -> bool:
-	"""Non-allocating species_of(): write `habitat_type*3 + species_index` into caller-owned `out`."""
+	"""Non-allocating species_of(): read the explicit habitat-to-species binding into `out`.
+
+	The lookup is a TABLE READ, never `habitat_type*3 + species_index` arithmetic: the compiled
+	habitat ids do not follow §5.4's printed row order (see the header).
+	"""
 	if not is_habitat_type(habitat_type):
 		return out.refuse(String(REFUSE_INVALID_HABITAT_TYPE))
 	if not is_species_index(species_index):
 		return out.refuse(String(REFUSE_INVALID_SPECIES_INDEX))
-	return out.succeed(habitat_type * SPECIES_PER_HABITAT + species_index)
+	return out.succeed(HABITAT_SPECIES_ROWS[habitat_type * SPECIES_PER_HABITAT + species_index])
 
 
 func habitat_type_of_species(species: int) -> IntMath.IntResult:
-	"""Which of §5.4's three habitats a species belongs to, from the table's own grouping."""
+	"""Which of §5.4's three habitats a species belongs to, from the explicit binding read back."""
 	var out: IntMath.IntResult = IntMath.IntResult.new()
 	if not is_species(species):
 		out.refuse(String(REFUSE_INVALID_SPECIES))
 		return out
-	out.succeed(species / SPECIES_PER_HABITAT)
+	out.succeed(SPECIES_HABITAT_TYPE[species])
 	return out
 
 
@@ -611,7 +676,7 @@ static func _capacity_milli_for_type(habitat_type: int) -> int:
 	"""
 	var total: int = 0
 	for species_index: int in SPECIES_PER_HABITAT:
-		var species: int = habitat_type * SPECIES_PER_HABITAT + species_index
+		var species: int = HABITAT_SPECIES_ROWS[habitat_type * SPECIES_PER_HABITAT + species_index]
 		total += SPECIES_CAPACITY_U[species] * MILLI_PER_UNIT
 	return total
 
@@ -714,10 +779,14 @@ func _write_created_habitat(slot: int, ref: Vector2i, habitat_type: int, zone_re
 
 func _write_created_stocks(slot: int, ref: Vector2i, habitat_type: int,
 		species_ids: PackedInt32Array) -> void:
-	"""Write the habitat's three FishStock rows at §5.4's "Initial stocks are 80% of capacity"."""
+	"""Write the habitat's three FishStock rows at §5.4's "Initial stocks are 80% of capacity".
+
+	`row` is the owner-major STOCK address `habitat_slot*3 + species_index`; `species` is the
+	§5.4 table row the explicit binding gives this habitat. The two indices are unrelated.
+	"""
 	for species_index: int in SPECIES_PER_HABITAT:
 		var row: int = slot * SPECIES_PER_HABITAT + species_index
-		var species: int = habitat_type * SPECIES_PER_HABITAT + species_index
+		var species: int = HABITAT_SPECIES_ROWS[habitat_type * SPECIES_PER_HABITAT + species_index]
 		var capacity: int = SPECIES_CAPACITY_U[species] * MILLI_PER_UNIT
 		_stock_present[row] = 1
 		_stock_habitat_slot[row] = ref.x
@@ -1056,10 +1125,15 @@ func species_of_row(row: int) -> IntMath.IntResult:
 
 
 func _species_of_row(row: int) -> int:
-	"""§5.4's table row for a validated stock row: `habitat_type*3 + species_index`."""
+	"""§5.4's table row for a validated stock row, through the explicit habitat binding.
+
+	The stock row is decomposed with `SPECIES_PER_HABITAT` because stock storage IS owner-major;
+	the species then comes from HABITAT_SPECIES_ROWS, not from the habitat id's arithmetic.
+	"""
 	var habitat_slot: int = row / SPECIES_PER_HABITAT
 	var species_index: int = row % SPECIES_PER_HABITAT
-	return _habitat_type[habitat_slot] * SPECIES_PER_HABITAT + species_index
+	var habitat_type: int = _habitat_type[habitat_slot]
+	return HABITAT_SPECIES_ROWS[habitat_type * SPECIES_PER_HABITAT + species_index]
 
 
 func stock_habitat_ref_of(row: int) -> Vector2i:

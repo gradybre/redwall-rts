@@ -17,6 +17,11 @@ const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const Rng := preload("res://scripts/core/rng.gd")
+const Catalog := preload("res://scripts/core/catalog.gd")
+const JobsScript := preload("res://scripts/core/jobs.gd")
+const ResidentsScript := preload("res://scripts/core/residents.gd")
+const PrioritiesScript := preload("res://scripts/core/priorities.gd")
+const ScheduleScript := preload("res://scripts/core/schedule.gd")
 
 ## GDD §4.2: "Up to 128; tile membership max 16384 total zone links".
 const EXPECTED_ZONE_CAPACITY: int = 128
@@ -80,7 +85,48 @@ const FIRST_MIDNIGHT_TICK: int = 13500
 
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 
+## GDD §4.3 JobKind and JobState, restated here rather than read from catalog.gd.
+const JOB_KIND_FORAGE: int = 4
+const CANCELLED_STATE: int = 7
+
+## Decision 0030 §4.7: one claim row per Job row, and the payload arithmetic of R05-QTEST-16.
+## 8192 * 1 + 8192 * 7 * 4 + 8192 * 8 = 8192 + 229376 + 65536 = 303104.
+const EXPECTED_CLAIM_CAPACITY: int = 8192
+const EXPECTED_CLAIM_PAYLOAD_BYTES: int = 303104
+## Plus HarvestZone's 128-row int64 pair (2048) and its byte mode column (128).
+const EXPECTED_QUOTA_ADDITION_BYTES: int = 305280
+## The two release-order columns this implementation adds: 2 * 8192 * 8, counted separately.
+const EXPECTED_ORDERING_BUFFER_BYTES: int = 131072
+
+## Decision 0030 §4.6, worked by hand from §5.5's capacity, regrowth and availability columns as
+## `min(K - floor(0.8K), floor((K - floor(0.8K)) * r * S / 1000000) + 1000)`, flattened as
+## `kind * 4 + season`. Nothing here is read back out of the module under test.
+const EXPECTED_AUTOMATIC_ALLOWANCE: Array[int] = [
+	0, 8200, 3880, 0,
+	0, 1576, 4456, 1864,
+	2800, 2080, 5320, 0,
+	3560, 4072, 2536, 1512,
+	4360, 5200, 6040, 2680,
+]
+## Their column sums: the four ruled automatic daily quotas, in milli-U/day.
+const SPRING_AUTOMATIC_QUOTA: int = 10720
+const SUMMER_AUTOMATIC_QUOTA: int = 21128
+const AUTUMN_AUTOMATIC_QUOTA: int = 22232
+const WINTER_AUTOMATIC_QUOTA: int = 6056
+## `sum(K_i)` over §5.5's capacity column: 300+240+180+160+300 U.
+const MANUAL_MAX: int = 1180000
+
+## Offset-calendar midnights that open a new season, from `13500 + (day - 2) * 18000`:
+## absolute day 13 opens summer, day 25 autumn and day 37 winter.
+const SUMMER_MIDNIGHT_TICK: int = 211500
+const AUTUMN_MIDNIGHT_TICK: int = 427500
+const WINTER_MIDNIGHT_TICK: int = 643500
+
 var _forage: Forage = null
+var _jobs: JobsScript = null
+var _residents: ResidentsScript = null
+var _priorities: PrioritiesScript = null
+var _schedule: ScheduleScript = null
 
 
 func before_each() -> void:
@@ -89,13 +135,91 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	"""Drop the store built for the test."""
+	"""Drop the store built for the test, and any Job store it owned claims through."""
 	_forage = null
+	_jobs = null
+	_residents = null
+	_priorities = null
+	_schedule = null
+
+
+func _use_job_store() -> void:
+	"""Rebuild the forage store over a live Job store, so it can own forage claims.
+
+	Claims are indexed by owning Job typed row and validate that Job's reference through one
+	directory, so the two stores must share it; Forage adopts the Job store's directory.
+	"""
+	_residents = ResidentsScript.new()
+	_priorities = PrioritiesScript.new()
+	_schedule = ScheduleScript.new(_residents.needs())
+	_jobs = JobsScript.new(_residents, _priorities, _schedule)
+	_forage = Forage.new(null, _jobs)
+
+
+func _make_job(created_tick: int, remaining_mwu: int = 100) -> Vector2i:
+	"""Create one FORAGE job with a stated creation tick and hand back its reference.
+
+	Decision 0017 keeps shared progress in the coordinator alone, so a Job that is going to JOIN
+	a party must be created with `remaining_mwu` 0; that is what the parameter is for.
+	"""
+	var made: JobsScript.OpResult = _jobs.create_job(JOB_KIND_FORAGE, 0, 0, remaining_mwu,
+		created_tick)
+	assert_true(made.ok, "job creates (error: %s)" % made.error)
+	return made.ref
+
+
+func _job_slot(job_ref: Vector2i) -> int:
+	"""The Job typed row a reference names, which is also its claim row."""
+	return _jobs.directory().get_typed_row(job_ref)
+
+
+func _spawn_worker() -> int:
+	"""Spawn one mouse with the rows a JobAgent needs, and return its resident slot."""
+	var spawned: ResidentsScript.OpResult = _residents.spawn(&"mouse")
+	assert_true(spawned.ok, "resident spawns (error: %s)" % spawned.error)
+	var slot: int = spawned.value
+	assert_true(_priorities.spawn(slot).ok, "priorities row spawns")
+	var template: IntMath.IntResult = _schedule.default_template_id()
+	assert_true(_schedule.spawn(slot, template.value).ok, "schedule row spawns")
+	assert_true(_schedule.resolve(slot, 8, false).ok, "the work-hour activity resolves")
+	assert_true(_jobs.spawn_agent(slot).ok, "job agent spawns")
+	return slot
+
+
+func _slot(zone_ref: Vector2i) -> int:
+	"""The HarvestZone row a live zone reference names."""
+	return _forage.zone_slot_of(zone_ref).value
+
+
+func _make_designation(basin: Vector2i) -> Vector2i:
+	"""Draw a player designation over an existing basin: created, bound, and therefore Inherit.
+
+	R05-BASIN-002: a designation binds to existing ecological ownership; set_basin() is the only
+	binding path this module has, and binding is what moves the default mode from Automatic to
+	Inherit.
+	"""
+	var made: Forage.OpResult = _forage.create_zone(ZONE_FORAGE, 1, 0, false, true)
+	assert_true(_forage.set_basin(made.ref, basin).ok, "the designation binds to the basin")
+	return made.ref
+
+
+func _make_automatic_basin(danger: int) -> Vector2i:
+	"""A basin left on its Automatic default, whose quota is the seasonal formula."""
+	var made: Forage.OpResult = _forage.create_zone(ZONE_FORAGE, danger, 0, false, true)
+	_forage.create_patch_set(made.ref, PackedInt32Array([10, 11, 12, 13, 14]))
+	return made.ref
 
 
 func _make_zone(zone_type: int, danger: int, quota_milli: int) -> Vector2i:
-	"""Designate one enabled, unprotected zone and hand back its reference."""
+	"""Designate one enabled, unprotected zone with a MANUAL daily quota, and hand back its ref.
+
+	Decision 0030 defaults a newly created zone -- which owns itself, and so is a basin -- to
+	Automatic, whose limit is the seasonal formula and not the value §4.2 stores. A test that
+	wants a specific daily budget therefore supplies it through the manual path R05-QUOTA-020
+	defines, which is also what makes the setting survive a season change.
+	"""
 	var made: Forage.OpResult = _forage.create_zone(zone_type, danger, quota_milli, false, true)
+	_forage.set_quota_milli(made.ref, quota_milli, SUMMER)
 	return made.ref
 
 
@@ -466,8 +590,8 @@ func test_a_second_zone_cannot_restart_the_shared_quota() -> void:
 	var player_zone: Vector2i = _make_zone(ZONE_FORAGE, 1, 100000)
 	_forage.set_basin(player_zone, basin)
 	assert_true(_forage.harvest(basin, BERRIES, 100000, SUMMER, false).ok, "the basin takes 100 U")
-	assert_equal(_forage.remaining_quota_milli(player_zone, BERRIES).value, 0,
-		"the second zone inherits the exhausted quota")
+	assert_equal(_forage.available_quota_milli(player_zone, SUMMER).value, 0,
+		"the second zone inherits the exhausted daily allowance")
 	var doubled: Forage.OpResult = _forage.harvest(player_zone, BERRIES, 1, SUMMER, false)
 	assert_false(doubled.ok, "and cannot take one more milli-unit")
 	assert_equal(String(doubled.error), "QUOTA_REACHED", "with the quota code")
@@ -543,15 +667,23 @@ func test_a_zone_whose_basin_was_destroyed_refuses_rather_than_resolving() -> vo
 
 
 func test_the_effective_quota_is_the_stricter_of_the_zone_and_its_basin() -> void:
-	"""§5.1 gives the quota to the basin; §4.2 gives every zone one. The minimum honours both."""
+	"""Decision 0030: both limits are enforced against their own totals, so the stricter binds.
+
+	Rewritten from the superseded `effective_quota_milli()`, which took `min(basin, zone)` of the
+	two stored values. The ruled formula is `max(0, min(Q_b - H_b - R_b, Q_z - H_z - R_z))`; with
+	nothing collected or reserved it reduces to the same minimum, which is what is asserted here.
+	"""
 	var basin: Vector2i = _make_basin(1, 30000)
 	var generous: Vector2i = _make_zone(ZONE_FORAGE, 1, 90000)
 	_forage.set_basin(generous, basin)
-	assert_equal(_forage.effective_quota_milli(generous).value, 30000, "the basin's is stricter")
+	assert_equal(_forage.available_quota_milli(generous, SUMMER).value, 30000,
+		"the basin's is stricter")
 	var mean: Vector2i = _make_zone(ZONE_FORAGE, 1, 5000)
 	_forage.set_basin(mean, basin)
-	assert_equal(_forage.effective_quota_milli(mean).value, 5000, "the zone's own is stricter")
-	assert_equal(_forage.effective_quota_milli(basin).value, 30000, "a basin uses its own")
+	assert_equal(_forage.available_quota_milli(mean, SUMMER).value, 5000,
+		"the zone's own is stricter")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 30000,
+		"a basin measures against itself alone")
 
 
 # --- §5.5 seasonal availability -------------------------------------------------------------------------
@@ -756,36 +888,45 @@ func test_a_reached_quota_stops_further_harvest() -> void:
 	"""REQ-SET-069: "If a forage quota ... is reached, then the system shall stop new
 	reservations and retain already collected cargo for hauling"."""
 	var basin: Vector2i = _make_basin(1, 50000)
-	assert_false(_forage.is_quota_reached(basin, BERRIES), "the quota starts unspent")
+	assert_false(_forage.is_quota_reached(basin, SUMMER), "the quota starts unspent")
 	assert_true(_forage.harvest(basin, BERRIES, 30000, SUMMER, false).ok, "30 U is taken")
-	assert_equal(_forage.remaining_quota_milli(basin, BERRIES).value, 20000, "20 U remains")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 20000, "20 U remains")
 	var over: Forage.OpResult = _forage.harvest(basin, BERRIES, 25000, SUMMER, false)
 	assert_false(over.ok, "a 25 U request over a 20 U remainder is refused, not clamped")
 	assert_equal(String(over.error), "QUOTA_REACHED", "with the quota code")
 	assert_true(_forage.harvest(basin, BERRIES, 20000, SUMMER, false).ok, "20 U exactly fits")
-	assert_true(_forage.is_quota_reached(basin, BERRIES), "and the quota is now reached")
+	assert_true(_forage.is_quota_reached(basin, SUMMER), "and the quota is now reached")
 
 
 func test_a_zero_quota_permits_nothing() -> void:
 	"""The document states no "unlimited" encoding, so 0 is read as a zero budget."""
 	var basin: Vector2i = _make_basin(1, 0)
-	assert_true(_forage.is_quota_reached(basin, BERRIES), "a zero quota is reached immediately")
+	assert_true(_forage.is_quota_reached(basin, SUMMER), "a zero quota is reached immediately")
 	var refused: Forage.OpResult = _forage.harvest(basin, BERRIES, 1, SUMMER, false)
 	assert_false(refused.ok, "and nothing can be taken")
 	assert_equal(String(refused.error), "QUOTA_REACHED", "with the quota code")
 
 
-func test_the_year_accumulator_is_reset_by_its_owner() -> void:
-	"""`harvested_year_milli` is the only accumulator in the forage schema (module header)."""
+func test_the_year_accumulator_is_reset_by_its_owner_and_is_not_the_quota() -> void:
+	"""Decision 0030: `harvested_year_milli` is annual history, NOT the quota accumulator.
+
+	CHANGED. This test used to assert that resetting the year total "opens the quota again",
+	which was true only of the superseded annual per-patch enforcement. The ruled quota is daily
+	and lives on HarvestZone, so a year boundary must leave it exactly where it was; run_midnight()
+	is the only thing that reopens it.
+	"""
 	var basin: Vector2i = _make_basin(1, 50000)
 	var row: int = _forage.patch_row_for_zone(basin, BERRIES).value
 	_forage.harvest(basin, BERRIES, 50000, SUMMER, false)
 	assert_equal(_forage.harvested_year_milli_of(row).value, 50000, "50 U was taken this year")
 	_forage.reset_harvested_year()
 	assert_equal(_forage.harvested_year_milli_of(row).value, 0, "the year total is cleared")
-	assert_false(_forage.is_quota_reached(basin, BERRIES), "and the quota opens again")
+	assert_true(_forage.is_quota_reached(basin, SUMMER),
+		"and today's spent quota is NOT reopened by a year boundary")
+	assert_equal(_forage.harvested_today_milli_of(_forage.zone_slot_of(basin).value).value, 50000,
+		"the daily collected total is untouched by the annual reset")
 	assert_equal(_forage.stock_milli_of(row).value, BERRIES_INITIAL - 50000,
-		"but the stock is not refilled by a new year")
+		"and the stock is not refilled by a new year")
 
 
 func test_a_protected_zone_refuses_automatic_harvest() -> void:
@@ -1061,3 +1202,954 @@ func test_a_shared_directory_is_adopted_rather_than_rebuilt() -> void:
 	assert_equal(shared.live_count(EntityDirectory.KIND_HARVEST_ZONE), 1,
 		"the shared directory counts it")
 	assert_equal(store.directory(), shared, "and the store hands back the same directory")
+
+
+# --- decision 0030 §4.6: quota modes, compiled ids and the automatic seasonal allowance -----------
+
+func test_the_quota_mode_ids_are_the_catalog_compilers_own_ascending_ascii_ids() -> void:
+	"""Ruling §4.6: mode ids compile "through the existing catalog conventions", not a second scheme.
+
+	Recompiled here from the same three keys the module publishes, through the same public
+	compiler, so the module cannot be holding a private numbering that happens to look right.
+	"""
+	var compiled: Catalog.DomainResult = Catalog.compile_domain("ForageQuotaMode",
+		[&"automatic", &"inherit", &"manual"] as Array[StringName])
+	assert_true(compiled.ok, "the quota-mode domain compiles")
+	assert_equal(compiled.ids[&"automatic"], 0, "automatic is 0")
+	assert_equal(compiled.ids[&"inherit"], 1, "inherit is 1")
+	assert_equal(compiled.ids[&"manual"], 2, "manual is 2")
+	assert_equal(Forage.QUOTA_MODE_AUTOMATIC, 0, "and the module publishes the same three")
+	assert_equal(Forage.QUOTA_MODE_INHERIT, 1, "inherit")
+	assert_equal(Forage.QUOTA_MODE_MANUAL, 2, "manual")
+
+
+func test_the_quota_mode_domain_is_not_a_protected_enum() -> void:
+	"""§4.3 numbers no quota mode, so protecting one would give a choice a specification's standing."""
+	assert_false(Catalog.PROTECTED_ENUM_DOMAINS.has("ForageQuotaMode"),
+		"ForageQuotaMode is not in the protected table, like HabitatType and WeatherEvent")
+	assert_equal(Catalog.fixed_enum("ForageQuotaMode"), {},
+		"and the protected table hands back nothing for it")
+
+
+func test_every_automatic_allowance_matches_the_hand_computed_table() -> void:
+	"""R05-QTEST-11: all five patch allowances across all four seasons, as literal expectations.
+
+	Computed by hand from §5.5's capacity, regrowth-fraction and availability columns and the
+	ruling's `min(K - floor(0.8K), floor((K - floor(0.8K)) * r * S / 1000000) + 1000)`, not read
+	back out of the module.
+	"""
+	for kind: int in EXPECTED_PATCHES_PER_ZONE:
+		for season: int in 4:
+			var expected: int = EXPECTED_AUTOMATIC_ALLOWANCE[kind * 4 + season]
+			var actual: IntMath.IntResult = _forage.automatic_allowance_milli(kind, season)
+			assert_true(actual.ok, "kind %d season %d has an allowance" % [kind, season])
+			assert_equal(actual.value, expected,
+				"kind %d season %d allowance is %d" % [kind, season, expected])
+
+
+func test_the_automatic_daily_quota_matches_the_four_ruled_season_totals() -> void:
+	"""R05-QTEST-11: spring 10720, summer 21128, autumn 22232, winter 6056 milli-U/day."""
+	assert_equal(_forage.automatic_daily_quota_milli(SPRING).value, SPRING_AUTOMATIC_QUOTA,
+		"spring is 10720 milli-U/day")
+	assert_equal(_forage.automatic_daily_quota_milli(SUMMER).value, SUMMER_AUTOMATIC_QUOTA,
+		"summer is 21128")
+	assert_equal(_forage.automatic_daily_quota_milli(AUTUMN).value, AUTUMN_AUTOMATIC_QUOTA,
+		"autumn is 22232")
+	assert_equal(_forage.automatic_daily_quota_milli(WINTER).value, WINTER_AUTOMATIC_QUOTA,
+		"winter is 6056")
+	assert_false(_forage.automatic_daily_quota_milli(4).ok, "an unknown season is refused")
+
+
+func test_a_created_zone_defaults_to_automatic_and_uses_the_seasonal_quota() -> void:
+	"""R05-QUOTA-017: a created zone owns itself, so it is a basin, and a basin starts Automatic."""
+	var made: Forage.OpResult = _forage.create_zone(ZONE_FORAGE, 1, 999, false, true)
+	var slot: int = _forage.zone_slot_of(made.ref).value
+	assert_equal(_forage.quota_mode_of(slot).value, Forage.QUOTA_MODE_AUTOMATIC,
+		"the default mode is Automatic")
+	assert_equal(_forage.zone_quota_milli_of(slot).value, 999, "§4.2's column still stores 999")
+	assert_equal(_forage.daily_quota_milli_of(slot, SUMMER).value, SUMMER_AUTOMATIC_QUOTA,
+		"but the effective summer quota is the automatic one, not the stored value")
+	assert_equal(_forage.daily_quota_milli_of(slot, WINTER).value, WINTER_AUTOMATIC_QUOTA,
+		"and it follows the season")
+
+
+func test_binding_a_zone_to_another_basin_makes_it_inherit() -> void:
+	"""R05-QUOTA-018 with §4.6's Valid-use column: Automatic is a basin mode, Inherit a designation's."""
+	var basin: Vector2i = _make_basin(1, 30000)
+	var designation: Vector2i = _make_designation(basin)
+	var slot: int = _forage.zone_slot_of(designation).value
+	assert_equal(_forage.quota_mode_of(slot).value, Forage.QUOTA_MODE_INHERIT,
+		"a bound zone inherits")
+	assert_equal(_forage.daily_quota_milli_of(slot, SUMMER).value, 30000,
+		"and its limit follows the basin's effective quota")
+	assert_true(_forage.set_quota_milli(basin, 12000, SUMMER).ok, "the basin is lowered")
+	assert_equal(_forage.daily_quota_milli_of(slot, SUMMER).value, 12000, "the designation follows")
+
+
+func test_unbinding_a_designation_returns_it_to_automatic() -> void:
+	"""Inherit is a designation mode; a zone that owns itself again cannot keep it."""
+	var basin: Vector2i = _make_basin(1, 30000)
+	var designation: Vector2i = _make_designation(basin)
+	var slot: int = _forage.zone_slot_of(designation).value
+	assert_true(_forage.set_basin(designation, designation).ok, "it becomes its own basin again")
+	assert_equal(_forage.quota_mode_of(slot).value, Forage.QUOTA_MODE_AUTOMATIC,
+		"and returns to Automatic")
+
+
+func test_the_mode_table_refuses_a_mode_that_is_not_valid_for_the_zone() -> void:
+	"""§4.6's Valid-use column is enforced, not decorative."""
+	var basin: Vector2i = _make_basin(1, 30000)
+	var designation: Vector2i = _make_designation(basin)
+	var wrong: Forage.OpResult = _forage.set_quota_mode(basin, Forage.QUOTA_MODE_INHERIT, SUMMER)
+	assert_false(wrong.ok, "a self-owned basin cannot inherit")
+	assert_equal(String(wrong.error), "QUOTA_MODE_NOT_VALID_HERE", "with the mode code")
+	var other: Forage.OpResult = _forage.set_quota_mode(designation,
+		Forage.QUOTA_MODE_AUTOMATIC, SUMMER)
+	assert_false(other.ok, "and a designation cannot be Automatic")
+	assert_false(_forage.set_quota_mode(basin, 3, SUMMER).ok, "an unknown mode is refused")
+	assert_equal(String(_forage.set_quota_mode(basin, -1, SUMMER).error), "INVALID_QUOTA_MODE",
+		"with the invalid-mode code")
+
+
+func test_a_manual_quota_is_accepted_only_between_zero_and_the_combined_capacity() -> void:
+	"""R05-QUOTA-020: "only finite values from zero through the basin's combined patch capacity"."""
+	var basin: Vector2i = _make_basin(1, 1000)
+	assert_equal(Forage.MANUAL_QUOTA_MAX_MILLI, MANUAL_MAX,
+		"the ceiling is sum(K_i) = 1180000 milli-U/day")
+	assert_true(_forage.set_quota_milli(basin, 0, SUMMER).ok, "zero is the minimum, not a sentinel")
+	assert_true(_forage.set_quota_milli(basin, MANUAL_MAX, SUMMER).ok, "the ceiling is inclusive")
+	var over: Forage.OpResult = _forage.set_quota_milli(basin, MANUAL_MAX + 1, SUMMER)
+	assert_false(over.ok, "one milli-unit above the ceiling is refused, not clamped")
+	assert_equal(String(over.error), "INVALID_QUOTA", "with the invalid-quota code")
+	assert_false(_forage.set_quota_milli(basin, -1, SUMMER).ok, "and a negative value is refused")
+	var slot: int = _forage.zone_slot_of(basin).value
+	assert_equal(_forage.zone_quota_milli_of(slot).value, MANUAL_MAX,
+		"a refused write leaves the accepted value standing")
+
+
+func test_a_zone_created_above_the_manual_ceiling_cannot_switch_to_manual() -> void:
+	"""§4.2's column is unbounded above; R05-QUOTA-020's ceiling guards the mode that uses it."""
+	var made: Forage.OpResult = _forage.create_zone(ZONE_FORAGE, 1, MANUAL_MAX + 1, false, true)
+	var refused: Forage.OpResult = _forage.set_quota_mode(made.ref, Forage.QUOTA_MODE_MANUAL,
+		SUMMER)
+	assert_false(refused.ok, "an over-ceiling stored value cannot be made effective")
+	assert_equal(String(refused.error), "INVALID_QUOTA", "with the invalid-quota code")
+
+
+func test_a_manual_setting_survives_a_season_change() -> void:
+	"""R05-QUOTA-019: seasons update Automatic and inherited limits, never a Manual one."""
+	var manual: Vector2i = _make_basin(1, 5000)
+	var automatic: Vector2i = _make_automatic_basin(1)
+	var manual_slot: int = _forage.zone_slot_of(manual).value
+	var automatic_slot: int = _forage.zone_slot_of(automatic).value
+	assert_true(_forage.run_midnight(WINTER_MIDNIGHT_TICK, WINTER).ok, "winter opens")
+	assert_equal(_forage.quota_mode_of(manual_slot).value, Forage.QUOTA_MODE_MANUAL,
+		"the manual zone is still Manual")
+	assert_equal(_forage.daily_quota_milli_of(manual_slot, WINTER).value, 5000,
+		"and still holds the player's 5000")
+	assert_equal(_forage.daily_quota_milli_of(automatic_slot, WINTER).value,
+		WINTER_AUTOMATIC_QUOTA, "while the automatic basin moved to winter's 6056")
+
+
+# --- decision 0030 §4.2: the daily aggregate quota ------------------------------------------------
+
+func test_r05_qtest_01_one_daily_allowance_covers_all_five_kinds() -> void:
+	"""R05-QTEST-01: berries 4000 then nuts 3000 leave 3000, not a separate 10000 for each kind."""
+	var basin: Vector2i = _make_basin(1, 10000)
+	var berry_zone: Vector2i = _make_designation(basin)
+	var nut_zone: Vector2i = _make_designation(basin)
+	assert_true(_forage.harvest(berry_zone, BERRIES, 4000, SUMMER, false).ok, "4 U of berries")
+	assert_true(_forage.harvest(nut_zone, NUTS, 3000, SUMMER, false).ok, "3 U of nuts")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 7000,
+		"the basin collected 7000 across both kinds")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 3000,
+		"leaving 3000 of one shared daily allowance")
+	assert_equal(_forage.available_quota_milli(nut_zone, SUMMER).value, 3000,
+		"and the nut designation sees the berries' spend, not a fresh budget")
+	assert_equal(_forage.claim_count(), 0, "no claim was involved")
+
+
+func test_a_collection_through_the_basin_itself_moves_its_totals_once() -> void:
+	"""Ruling §4.2: "For `z == b`, update that zone's aggregates once." The double-count guard."""
+	var basin: Vector2i = _make_basin(1, 10000)
+	assert_true(_forage.harvest(basin, BERRIES, 4000, SUMMER, false).ok, "4 U comes off")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 4000,
+		"collected today is 4000, not 8000")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 6000, "leaving 6000")
+
+
+func test_a_collection_through_a_designation_debits_both_applicable_limits() -> void:
+	"""One harvest, two policy limits, one stock debit and one annual counter."""
+	var basin: Vector2i = _make_basin(1, 10000)
+	var designation: Vector2i = _make_designation(basin)
+	var row: int = _forage.patch_row_for_zone(basin, BERRIES).value
+	assert_true(_forage.harvest(designation, BERRIES, 4000, SUMMER, false).ok, "4 U comes off")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 4000, "the basin counted it")
+	assert_equal(_forage.harvested_today_milli_of(_slot(designation)).value, 4000,
+		"and so did the designation")
+	assert_equal(_forage.stock_milli_of(row).value, BERRIES_INITIAL - 4000,
+		"but only one stock was debited")
+	assert_equal(_forage.harvested_year_milli_of(row).value, 4000,
+		"and only one annual counter moved")
+
+
+func test_r05_qtest_03_a_stricter_designation_limit_binds_below_its_basin() -> void:
+	"""R05-QTEST-03: basin 10000, designation 3000 with H=1000 and R=500, gives 1500."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var designation: Vector2i = _make_designation(basin)
+	assert_true(_forage.set_quota_milli(designation, 3000, SUMMER).ok, "the local limit is 3000")
+	assert_true(_forage.harvest(designation, BERRIES, 1000, SUMMER, false).ok, "1 U is collected")
+	var job: Vector2i = _make_job(10)
+	assert_true(_forage.claim_forage(job, designation, BERRIES, 500, SUMMER, false).ok,
+		"and 0.5 U is claimed")
+	assert_equal(_forage.harvested_today_milli_of(_slot(designation)).value, 1000, "H is 1000")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(designation)).value, 500, "R is 500")
+	assert_equal(_forage.available_quota_milli(designation, SUMMER).value, 1500,
+		"so 3000 - 1000 - 500 binds below the basin's 8500")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 8500,
+		"while the basin itself still has 8500")
+
+
+func test_a_designation_with_a_larger_manual_limit_cannot_widen_its_basin() -> void:
+	"""§4.6: "A designation's larger manual setting cannot expand its basin's allowance"."""
+	var basin: Vector2i = _make_basin(1, 4000)
+	var designation: Vector2i = _make_designation(basin)
+	assert_true(_forage.set_quota_milli(designation, MANUAL_MAX, SUMMER).ok, "it asks for the lot")
+	assert_equal(_forage.available_quota_milli(designation, SUMMER).value, 4000,
+		"the basin's 4000 still binds")
+	var over: Forage.OpResult = _forage.harvest(designation, BERRIES, 4001, SUMMER, false)
+	assert_false(over.ok, "and 4001 is refused")
+	assert_equal(String(over.error), "QUOTA_REACHED", "with the quota code")
+
+
+func test_the_available_quota_reader_never_reports_a_negative_allowance() -> void:
+	"""`max(0, ...)`: a limit lowered below what is already spent reports zero, never a deficit."""
+	var basin: Vector2i = _make_basin(1, 10000)
+	assert_true(_forage.harvest(basin, BERRIES, 8000, SUMMER, false).ok, "8 U is collected")
+	assert_true(_forage.set_quota_milli(basin, 3000, SUMMER).ok, "the limit drops below that")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 0, "availability is zero")
+	assert_true(_forage.is_quota_reached(basin, SUMMER), "and the quota reads as reached")
+
+
+# --- decision 0030 §4.3: claims ------------------------------------------------------------------
+
+func test_a_store_without_a_job_store_refuses_every_claim_operation() -> void:
+	"""Claims are owned by Jobs; a store with no Job store refuses rather than inventing an owner."""
+	var basin: Vector2i = _make_basin(1, 10000)
+	assert_null(_forage.jobs(), "this store has no Job store")
+	var refused: Forage.OpResult = _forage.claim_forage(NULL_REF, basin, BERRIES, 100, SUMMER,
+		false)
+	assert_false(refused.ok, "claiming is refused")
+	assert_equal(String(refused.error), "NO_JOB_STORE", "with the no-job-store code")
+	assert_equal(String(_forage.release_claim(NULL_REF).error), "NO_JOB_STORE", "so is releasing")
+	assert_equal(String(_forage.collect_claim(NULL_REF, 1, SUMMER, false).error), "NO_JOB_STORE",
+		"so is collecting")
+	assert_equal(String(_forage.rebuild_reservation_aggregates().error), "NO_JOB_STORE",
+		"and so is rebuilding")
+
+
+func test_a_claim_reserves_the_complete_intended_collection_on_both_limits() -> void:
+	"""R05-QUOTA-006: an outstanding claim counts in both applicable quota reservation totals."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var designation: Vector2i = _make_designation(basin)
+	var job: Vector2i = _make_job(10)
+	var claimed: Forage.OpResult = _forage.claim_forage(job, designation, BERRIES, 6000, SUMMER,
+		false)
+	assert_true(claimed.ok, "the claim is accepted (error: %s)" % claimed.error)
+	assert_equal(_forage.claim_count(), 1, "one claim is active")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 6000, "the basin reserved it")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(designation)).value, 6000,
+		"and so did the designation")
+	assert_equal(_forage.stock_reserved_milli(basin, BERRIES).value, 6000,
+		"the basin's berry stock is spoken for")
+	assert_equal(_forage.stock_reserved_milli(basin, NUTS).value, 0, "its nuts are not")
+	assert_equal(_forage.claim_remaining_milli_of(claimed.value).value, 6000, "nothing collected")
+
+
+func test_a_claim_on_the_basin_itself_reserves_once() -> void:
+	"""The `z == b` rule applies to reservation exactly as it applies to collection."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var job: Vector2i = _make_job(10)
+	assert_true(_forage.claim_forage(job, basin, BERRIES, 6000, SUMMER, false).ok, "6 U is claimed")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 6000, "reserved once")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 4000, "leaving 4000")
+
+
+func test_r05_qtest_02_a_second_designation_cannot_reserve_past_the_shared_allowance() -> void:
+	"""R05-QTEST-02: the second complete reservation is refused atomically; 4000 remains."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var first: Vector2i = _make_designation(basin)
+	var second: Vector2i = _make_designation(basin)
+	assert_true(_forage.claim_forage(_make_job(10), first, BERRIES, 6000, SUMMER, false).ok,
+		"the first designation reserves 6 U")
+	var late_job: Vector2i = _make_job(20)
+	var refused: Forage.OpResult = _forage.claim_forage(late_job, second, BERRIES, 5000, SUMMER,
+		false)
+	assert_false(refused.ok, "the second cannot reserve 5 U")
+	assert_equal(String(refused.error), "QUOTA_REACHED", "with the quota code")
+	assert_equal(_forage.claim_count(), 1, "and no partial claim was written")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 6000, "R is unchanged")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(second)).value, 0,
+		"the refused designation reserved nothing")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 4000, "4000 remains")
+	assert_true(_forage.claim_forage(late_job, second, BERRIES, 4000, SUMMER, false).ok,
+		"and exactly 4000 does fit")
+
+
+func test_one_job_owns_at_most_one_claim_and_a_member_owns_none() -> void:
+	"""§4.3: one pending claim per owning Job; shared work claims through its COORDINATOR."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 100000)
+	var coordinator: Vector2i = _make_job(10)
+	var member: Vector2i = _make_job(20, 0)
+	assert_true(_jobs.make_coordinator(_job_slot(coordinator)).ok, "one job coordinates")
+	assert_true(_jobs.set_coordinator(_job_slot(member), _job_slot(coordinator)).ok,
+		"the other joins its party")
+	var refused: Forage.OpResult = _forage.claim_forage(member, basin, BERRIES, 1000, SUMMER,
+		false)
+	assert_false(refused.ok, "a member cannot hold a claim of its own")
+	assert_equal(String(refused.error), "JOB_IS_MEMBER", "with the member code")
+	assert_true(_forage.claim_forage(coordinator, basin, BERRIES, 1000, SUMMER, false).ok,
+		"the coordinator can")
+	var again: Forage.OpResult = _forage.claim_forage(coordinator, basin, NUTS, 1000, SUMMER,
+		false)
+	assert_false(again.ok, "a second kind needs a second job")
+	assert_equal(String(again.error), "CLAIM_ALREADY_PRESENT", "with the already-present code")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 1000, "one reservation only")
+
+
+func test_r05_qtest_07_a_partial_collection_keeps_only_the_uncollected_quantity() -> void:
+	"""R05-QTEST-07: claim 6000, collect 2000; R and the claim fall to 4000 and one cargo is due."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var designation: Vector2i = _make_designation(basin)
+	var job: Vector2i = _make_job(10)
+	var row: int = _forage.claim_forage(job, designation, BERRIES, 6000, SUMMER, false).value
+	var patch: int = _forage.patch_row_for_zone(basin, BERRIES).value
+	var collected: Forage.OpResult = _forage.collect_claim(job, 2000, SUMMER, false)
+	assert_true(collected.ok, "2 U is collected (error: %s)" % collected.error)
+	assert_equal(collected.value, 2000, "and exactly 2000 is reported, for one cargo creation")
+	assert_equal(_forage.claim_remaining_milli_of(row).value, 4000, "4000 is still promised")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 4000, "the basin's R fell")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(designation)).value, 4000, "so did its own")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 2000, "the basin's H rose")
+	assert_equal(_forage.harvested_today_milli_of(_slot(designation)).value, 2000, "so did its own")
+	assert_equal(_forage.harvested_year_milli_of(patch).value, 2000, "the annual counter rose once")
+	assert_equal(_forage.stock_milli_of(patch).value, BERRIES_INITIAL - 2000, "stock fell once")
+
+
+func test_collecting_the_whole_claim_closes_it() -> void:
+	"""A claim collected to zero closes: its Job must reacquire before collecting again."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var job: Vector2i = _make_job(10)
+	var row: int = _forage.claim_forage(job, basin, BERRIES, 3000, SUMMER, false).value
+	assert_true(_forage.collect_claim(job, 3000, SUMMER, false).ok, "the whole claim is collected")
+	assert_false(_forage.is_claim_active(row), "the claim row is empty")
+	assert_equal(_forage.claim_count(), 0, "and the live count fell")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 0, "nothing stays reserved")
+	var again: Forage.OpResult = _forage.collect_claim(job, 1, SUMMER, false)
+	assert_false(again.ok, "a closed claim collects nothing further")
+	assert_equal(String(again.error), "CLAIM_NOT_PRESENT", "with the not-present code")
+
+
+func test_a_collection_larger_than_the_claim_is_refused_not_clamped() -> void:
+	"""A silent over-collection would let a job book cargo the claim never promised."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var job: Vector2i = _make_job(10)
+	var row: int = _forage.claim_forage(job, basin, BERRIES, 3000, SUMMER, false).value
+	var over: Forage.OpResult = _forage.collect_claim(job, 3001, SUMMER, false)
+	assert_false(over.ok, "3001 against a 3000 claim is refused")
+	assert_equal(String(over.error), "INVALID_AMOUNT", "with the invalid-amount code")
+	assert_false(_forage.collect_claim(job, 0, SUMMER, false).ok, "zero is refused")
+	assert_equal(_forage.claim_remaining_milli_of(row).value, 3000, "and the claim is untouched")
+
+
+func test_a_claim_does_not_bypass_collection_time_validation() -> void:
+	"""§4.3: "A claim does not bypass collection-time validation"."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var job: Vector2i = _make_job(10)
+	assert_true(_forage.claim_forage(job, basin, BERRIES, 3000, SUMMER, false).ok, "3 U is claimed")
+	_forage.set_zone_protected(basin, true)
+	assert_equal(String(_forage.collect_claim(job, 1000, SUMMER, false).error), "ZONE_PROTECTED",
+		"a protected zone still refuses")
+	_forage.set_zone_protected(basin, false)
+	_forage.set_zone_enabled(basin, false)
+	assert_equal(String(_forage.collect_claim(job, 1000, SUMMER, false).error), "ZONE_DISABLED",
+		"and so does a disabled one")
+	_forage.set_zone_enabled(basin, true)
+	assert_equal(String(_forage.collect_claim(job, 1000, WINTER, false).error), "PATCH_DORMANT",
+		"and a dormant season refuses too")
+	assert_true(_forage.collect_claim(job, 1000, SUMMER, false).ok, "the valid case still passes")
+
+
+func test_releasing_a_claim_returns_its_allowance_and_produces_nothing_else() -> void:
+	"""§4.5: "Releasing a claim does not itself generate productive WU, XP, cargo or a refund"."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var job: Vector2i = _make_job(10)
+	var patch: int = _forage.patch_row_for_zone(basin, BERRIES).value
+	var row: int = _forage.claim_forage(job, basin, BERRIES, 3000, SUMMER, false).value
+	var mwu_before: int = _jobs.remaining_mwu_of(_job_slot(job)).value
+	assert_true(_forage.release_claim(job).ok, "the claim releases")
+	assert_false(_forage.is_claim_active(row), "its row is empty")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 0, "R returns to zero")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 0, "H did not move")
+	assert_equal(_forage.stock_milli_of(patch).value, BERRIES_INITIAL, "no stock was returned")
+	assert_equal(_forage.harvested_year_milli_of(patch).value, 0, "no annual counter moved")
+	assert_equal(_jobs.remaining_mwu_of(_job_slot(job)).value, mwu_before, "and no work was booked")
+
+
+func test_r05_qtest_08_a_worker_change_keeps_the_owning_jobs_claim_and_cancellation_ends_it() -> void:
+	"""R05-QTEST-08: replacement preserves the claim; cancellation releases only what is uncollected."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var coordinator: Vector2i = _make_job(10)
+	var member: Vector2i = _make_job(20, 0)
+	assert_true(_jobs.make_coordinator(_job_slot(coordinator)).ok, "the party has a coordinator")
+	assert_true(_jobs.set_coordinator(_job_slot(member), _job_slot(coordinator)).ok, "and a member")
+	var row: int = _forage.claim_forage(coordinator, basin, BERRIES, 5000, SUMMER, false).value
+	assert_true(_forage.collect_claim(coordinator, 2000, SUMMER, false).ok, "2 U is collected")
+	var first_worker: int = _spawn_worker()
+	assert_true(_jobs.assign_worker(first_worker, _job_slot(member)).ok, "a worker takes the member")
+	assert_true(_jobs.release_worker(first_worker).ok, "and then leaves")
+	assert_true(_jobs.assign_worker(_spawn_worker(), _job_slot(member)).ok, "another replaces them")
+	assert_equal(_forage.claim_remaining_milli_of(row).value, 3000,
+		"the coordinator's claim is untouched by the replacement")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 3000, "and so is R")
+	assert_true(_jobs.set_state(_job_slot(coordinator), CANCELLED_STATE).ok, "the job is cancelled")
+	assert_equal(_forage.release_cancelled_claims().value, 1, "its claim is released")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 0, "R returns to zero")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 2000,
+		"and the 2 U already collected is retained")
+
+
+func test_r05_qtest_13_a_reused_job_row_cannot_act_under_the_previous_generation_claim() -> void:
+	"""R05-QTEST-13 / R05-QUOTA-023: the stored Job reference AND generation are validated."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var first: Vector2i = _make_job(10)
+	var row: int = _forage.claim_forage(first, basin, BERRIES, 3000, SUMMER, false).value
+	assert_true(_jobs.destroy_job(_job_slot(first)).ok, "the owning job is retired")
+	var second: Vector2i = _make_job(20)
+	assert_equal(_job_slot(second), row, "the replacement job reuses that very row")
+	assert_equal(String(_forage.collect_claim(second, 1000, SUMMER, false).error),
+		"CLAIM_STALE_JOB", "the newcomer cannot collect under the old claim")
+	assert_equal(String(_forage.release_claim(second).error), "CLAIM_STALE_JOB",
+		"nor release it")
+	assert_equal(String(_forage.claim_forage(second, basin, NUTS, 100, SUMMER, false).error),
+		"CLAIM_STALE_JOB", "nor claim over it")
+	assert_equal(_forage.purge_stale_claims().value, 1, "purging is the explicit way out")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 0, "R is returned")
+	assert_true(_forage.claim_forage(second, basin, NUTS, 100, SUMMER, false).ok,
+		"and the row is claimable again")
+
+
+func test_r05_qtest_15_a_failed_preflight_leaves_every_quantity_unchanged() -> void:
+	"""R05-QTEST-15: quota, floor and reservation preflights each refuse without partial effect.
+
+	The OUTPUT-CAPACITY leg of this fixture is not exercised: container capacity and the Job-owned
+	output reservation live in inventory.gd and jobs.gd, and no binding between a Job and a
+	reserved container exists yet (module header).
+	"""
+	_use_job_store()
+	var tight: Vector2i = _make_basin(1, 10000)
+	var patch: int = _forage.patch_row_for_zone(tight, BERRIES).value
+	var over_quota: Forage.OpResult = _forage.claim_forage(_make_job(10), tight, BERRIES, 10001,
+		SUMMER, false)
+	assert_equal(String(over_quota.error), "QUOTA_REACHED", "the quota leg refuses")
+	_assert_nothing_reserved(tight, patch)
+	var rich: Vector2i = _make_basin(1, MANUAL_MAX)
+	var rich_patch: int = _forage.patch_row_for_zone(rich, BERRIES).value
+	var over_floor: Forage.OpResult = _forage.claim_forage(_make_job(20), rich, BERRIES, 180001,
+		SUMMER, false)
+	assert_equal(String(over_floor.error), "BELOW_HARVEST_FLOOR", "the floor leg refuses")
+	_assert_nothing_reserved(rich, rich_patch)
+	assert_true(_forage.claim_forage(_make_job(30), rich, BERRIES, 180000, SUMMER, false).ok,
+		"the whole harvestable stock is claimed")
+	var over_reserved: Forage.OpResult = _forage.claim_forage(_make_job(40), rich, BERRIES, 1,
+		SUMMER, false)
+	assert_equal(String(over_reserved.error), "STOCK_RESERVED", "the reservation leg refuses")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(rich)).value, 180000, "R is unchanged")
+	assert_equal(_forage.stock_milli_of(rich_patch).value, BERRIES_INITIAL, "stock is unchanged")
+
+
+func _assert_nothing_reserved(zone: Vector2i, patch_row: int) -> void:
+	"""No claim, no reservation, no collected total and no stock movement survived a refusal."""
+	assert_equal(_forage.claim_count(), 0, "no claim exists")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(zone)).value, 0, "nothing is reserved")
+	assert_equal(_forage.harvested_today_milli_of(_slot(zone)).value, 0, "nothing was collected")
+	assert_equal(_forage.stock_milli_of(patch_row).value, BERRIES_INITIAL, "stock is untouched")
+
+
+func test_an_unclaimed_harvest_cannot_take_stock_another_claim_promised() -> void:
+	"""`stock_available = max(0, stock - floor - stock_reserved)` binds the unclaimed path too."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, MANUAL_MAX)
+	assert_true(_forage.claim_forage(_make_job(10), basin, BERRIES, 179000, SUMMER, false).ok,
+		"179 U is claimed")
+	assert_equal(_forage.stock_available_milli(basin, BERRIES, false).value, 1000,
+		"1 U is left unclaimed above the floor")
+	assert_equal(_forage.harvestable_milli(basin, BERRIES, SUMMER, false).value, 1000,
+		"and that is what harvestable reports")
+	var refused: Forage.OpResult = _forage.harvest(basin, BERRIES, 1001, SUMMER, false)
+	assert_false(refused.ok, "1001 is refused")
+	assert_equal(String(refused.error), "STOCK_RESERVED", "with the reserved code")
+	assert_true(_forage.harvest(basin, BERRIES, 1000, SUMMER, false).ok, "1000 exactly fits")
+
+
+# --- decision 0030 §4.5: reconciliation ------------------------------------------------------------
+
+func test_r05_qtest_05_a_quota_cut_releases_whole_claims_newest_first() -> void:
+	"""R05-QTEST-05: H=2000 with claims 3000 and 4000; cutting to 6000 releases the newest whole."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	assert_true(_forage.harvest(basin, BERRIES, 2000, SUMMER, false).ok, "2 U is collected")
+	var older: Vector2i = _make_job(100)
+	var newer: Vector2i = _make_job(200)
+	var older_row: int = _forage.claim_forage(older, basin, BERRIES, 3000, SUMMER, false).value
+	var newer_row: int = _forage.claim_forage(newer, basin, BERRIES, 4000, SUMMER, false).value
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 7000, "7000 is outstanding")
+	assert_equal(_forage.claims_released_by_quota(basin, 6000, SUMMER).value, 1,
+		"the preview reader says one job is affected")
+	var cut: Forage.OpResult = _forage.set_quota_milli(basin, 6000, SUMMER)
+	assert_true(cut.ok, "the cut applies")
+	assert_equal(cut.value, 1, "and releases exactly one claim")
+	assert_false(_forage.is_claim_active(newer_row), "the newest claim went")
+	assert_true(_forage.is_claim_active(older_row), "the oldest stayed")
+	assert_equal(_forage.claim_remaining_milli_of(older_row).value, 3000,
+		"whole, not shrunk to fit")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 3000, "R is 3000")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 1000, "and 1000 is available")
+
+
+func test_the_release_order_breaks_a_created_tick_tie_by_persistent_id() -> void:
+	"""§4.5 orders by `(job.created_tick, job.persistent_id)` descending, so the tiebreak matters."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var first: Vector2i = _make_job(100)
+	var second: Vector2i = _make_job(100)
+	var first_row: int = _forage.claim_forage(first, basin, BERRIES, 3000, SUMMER, false).value
+	var second_row: int = _forage.claim_forage(second, basin, BERRIES, 3000, SUMMER, false).value
+	assert_true(_forage.claim_persistent_id_of(second_row).value
+		> _forage.claim_persistent_id_of(first_row).value,
+		"the later job carries the higher persistent id")
+	assert_equal(_forage.claim_created_tick_of(first_row).value,
+		_forage.claim_created_tick_of(second_row).value, "and both were created on the same tick")
+	assert_equal(_forage.set_quota_milli(basin, 3000, SUMMER).value, 1, "one claim is released")
+	assert_true(_forage.is_claim_active(first_row), "the lower persistent id survives")
+	assert_false(_forage.is_claim_active(second_row), "the higher one goes first")
+
+
+func test_r05_qtest_06_a_cut_below_todays_collected_total_releases_everything() -> void:
+	"""R05-QTEST-06: H stays, every affected claim goes, availability is zero, cargo persists."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var patch: int = _forage.patch_row_for_zone(basin, BERRIES).value
+	assert_true(_forage.harvest(basin, BERRIES, 5000, SUMMER, false).ok, "5 U is collected")
+	var job: Vector2i = _make_job(10)
+	assert_true(_forage.claim_forage(job, basin, BERRIES, 1000, SUMMER, false).ok, "1 U is claimed")
+	assert_equal(_forage.set_quota_milli(basin, 2000, SUMMER).value, 1, "the cut releases it")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 5000, "H is still 5000")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 0, "R is zero")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 0, "availability is zero")
+	assert_equal(_forage.harvested_year_milli_of(patch).value, 5000, "history is not undone")
+	assert_equal(_forage.stock_milli_of(patch).value, BERRIES_INITIAL - 5000,
+		"and the collected stock is not returned")
+
+
+func test_a_zero_quota_releases_every_claim_that_limit_reaches() -> void:
+	"""§4.6: "Minimum is zero: no new harvesting, with existing claims reconciled by §4.5"."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var designation: Vector2i = _make_designation(basin)
+	assert_true(_forage.claim_forage(_make_job(10), designation, BERRIES, 2000, SUMMER, false).ok,
+		"a designation claim exists")
+	assert_true(_forage.claim_forage(_make_job(20), basin, NUTS, 2000, SUMMER, false).ok,
+		"and a basin claim")
+	assert_equal(_forage.set_quota_milli(designation, 0, SUMMER).value, 1,
+		"zeroing the designation releases only the claim that limit reaches")
+	assert_equal(_forage.claim_count(), 1, "the basin's own claim survives")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 2000, "carrying 2000 of R")
+	assert_equal(_forage.set_quota_milli(basin, 0, SUMMER).value, 1, "zeroing the basin takes it")
+	assert_equal(_forage.claim_count(), 0, "no claim survives a zero basin limit")
+
+
+func test_a_claim_released_by_reconciliation_must_be_reacquired_before_collecting() -> void:
+	"""R05-QUOTA-014: a released claim collects nothing until its Job reacquires."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var job: Vector2i = _make_job(10)
+	assert_true(_forage.claim_forage(job, basin, BERRIES, 4000, SUMMER, false).ok, "4 U is claimed")
+	assert_equal(_forage.set_quota_milli(basin, 0, SUMMER).value, 1, "the limit releases it")
+	var refused: Forage.OpResult = _forage.collect_claim(job, 1000, SUMMER, false)
+	assert_false(refused.ok, "collection is refused")
+	assert_equal(String(refused.error), "CLAIM_NOT_PRESENT", "with the not-present code")
+	assert_true(_forage.set_quota_milli(basin, 10000, SUMMER).ok, "the limit is restored")
+	assert_true(_forage.claim_forage(job, basin, BERRIES, 4000, SUMMER, false).ok,
+		"and the job reacquires before it can collect")
+	assert_true(_forage.collect_claim(job, 1000, SUMMER, false).ok, "then collection works")
+
+
+func test_reconciliation_considers_both_applicable_limits() -> void:
+	"""§4.5: "release a claim when its applicable basin OR designation remains over its total"."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, MANUAL_MAX)
+	var designation: Vector2i = _make_designation(basin)
+	assert_true(_forage.set_quota_milli(designation, 8000, SUMMER).ok, "the local limit is 8000")
+	assert_true(_forage.claim_forage(_make_job(10), designation, BERRIES, 8000, SUMMER, false).ok,
+		"the designation reserves all 8 U of its own limit")
+	assert_equal(_forage.set_quota_milli(designation, 4000, SUMMER).value, 1,
+		"halving the DESIGNATION limit releases the claim, though the basin is untroubled")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 0,
+		"and the basin's own outstanding total came back down with it")
+
+
+func test_the_affected_job_reader_counts_without_changing_anything() -> void:
+	"""R05-QUOTA-015's number. The preview panel that would show it is the UI's, not this store's."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 12000)
+	_forage.claim_forage(_make_job(100), basin, BERRIES, 3000, SUMMER, false)
+	_forage.claim_forage(_make_job(200), basin, BERRIES, 3000, SUMMER, false)
+	_forage.claim_forage(_make_job(300), basin, BERRIES, 3000, SUMMER, false)
+	assert_equal(_forage.claims_released_by_quota(basin, 12000, SUMMER).value, 0,
+		"no cut, no affected jobs")
+	assert_equal(_forage.claims_released_by_quota(basin, 9000, SUMMER).value, 0,
+		"a limit that exactly equals the outstanding total affects none either")
+	assert_equal(_forage.claims_released_by_quota(basin, 8000, SUMMER).value, 1,
+		"9000 outstanding against 8000 affects one job")
+	assert_equal(_forage.claims_released_by_quota(basin, 2000, SUMMER).value, 3,
+		"and a 2000 limit affects all three")
+	assert_equal(_forage.claim_count(), 3, "the reader changed nothing")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 9000, "R is untouched")
+
+
+func test_deleting_or_rebinding_a_designation_releases_its_claims_first() -> void:
+	"""R05-QUOTA-016, and "neither deletion nor rebinding resets basin usage"."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var other: Vector2i = _make_basin(1, 20000)
+	var designation: Vector2i = _make_designation(basin)
+	assert_true(_forage.harvest(designation, BERRIES, 4000, SUMMER, false).ok, "4 U is collected")
+	assert_true(_forage.claim_forage(_make_job(10), designation, BERRIES, 3000, SUMMER, false).ok,
+		"and 3 U is claimed")
+	assert_true(_forage.set_basin(designation, other).ok, "the designation is rebound")
+	assert_equal(_forage.claim_count(), 0, "its claim went first")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 0, "the old basin's R cleared")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 4000,
+		"but its collected total is not reset")
+	assert_true(_forage.claim_forage(_make_job(20), designation, BERRIES, 3000, SUMMER, false).ok,
+		"a fresh claim against the new basin is accepted")
+	assert_true(_forage.destroy_zone(designation).ok, "and deleting it releases that one too")
+	assert_equal(_forage.claim_count(), 0, "no claim outlives its designation")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 4000,
+		"with the basin's usage still standing")
+
+
+func test_r05_qtest_09_deleting_and_redrawing_a_designation_creates_no_stock_or_allowance() -> void:
+	"""R05-QTEST-09: basin H and the annual counter persist; the new designation gains nothing."""
+	var basin: Vector2i = _make_basin(1, 10000)
+	var first: Vector2i = _make_designation(basin)
+	var patch: int = _forage.patch_row_for_zone(basin, BERRIES).value
+	assert_true(_forage.harvest(first, BERRIES, 4000, SUMMER, false).ok, "4 U is collected")
+	assert_true(_forage.destroy_zone(first).ok, "the designation is deleted")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 4000, "basin H persists")
+	assert_equal(_forage.harvested_year_milli_of(patch).value, 4000, "the annual counter persists")
+	var second: Vector2i = _make_designation(basin)
+	assert_equal(_forage.available_quota_milli(second, SUMMER).value, 6000,
+		"the redrawn designation inherits the spend, not a fresh allowance")
+	assert_equal(_forage.patch_count_of(_slot(second)).value, 0, "it owns no patches")
+	var conjured: Forage.OpResult = _forage.create_patch(second, BERRIES, 10)
+	assert_false(conjured.ok, "and it cannot conjure a stock of its own")
+	assert_equal(String(conjured.error), "ZONE_IS_BOUND", "with the bound code")
+
+
+# --- decision 0030 §4.4: midnight -----------------------------------------------------------------
+
+func test_midnight_is_an_offset_calendar_crossing_and_not_a_tick_multiple() -> void:
+	"""§4.4: "Do not reset on `tick % 18000 == 0`: tick zero begins at 06:00"."""
+	var basin: Vector2i = _make_basin(1, 10000)
+	assert_true(_forage.harvest(basin, BERRIES, 4000, SUMMER, false).ok, "4 U is collected")
+	var not_midnight: Forage.OpResult = _forage.run_midnight(TICKS_PER_DAY, SUMMER)
+	assert_false(not_midnight.ok, "tick 18000 is 06:00 of day 2, not a boundary")
+	assert_equal(String(not_midnight.error), "NOT_DAY_BOUNDARY", "with the boundary code")
+	assert_false(_forage.run_midnight(0, SUMMER).ok, "tick 0 starts no new day either")
+	assert_false(_forage.run_midnight(-1, SUMMER).ok, "and a negative tick is refused")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 4000,
+		"none of those refusals reset anything")
+	assert_true(_forage.run_midnight(FIRST_MIDNIGHT_TICK, SUMMER).ok, "tick 13500 is the first")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 0, "and it resets H")
+
+
+func test_r05_qtest_04_claims_survive_midnight_and_consume_the_new_days_allowance() -> void:
+	"""R05-QTEST-04: H=4000 R=3000 becomes H=0 R=3000 with 7000 available; collecting 2000 holds it."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var job: Vector2i = _make_job(10)
+	assert_true(_forage.harvest(basin, BERRIES, 4000, SUMMER, false).ok, "4 U is collected")
+	var row: int = _forage.claim_forage(job, basin, BERRIES, 3000, SUMMER, false).value
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 3000, "3000 is left today")
+	assert_equal(_forage.run_midnight(SUMMER_MIDNIGHT_TICK, SUMMER).value, 0, "nothing is released")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 0, "H resets to zero")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 3000, "R is preserved")
+	assert_true(_forage.is_claim_active(row), "and so is the claim itself")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 7000,
+		"the outstanding claim consumes part of the new day's allowance")
+	assert_true(_forage.collect_claim(job, 2000, SUMMER, false).ok, "2 U is collected")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 2000, "H is 2000")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 1000, "R is 1000")
+	assert_equal(_forage.available_quota_milli(basin, SUMMER).value, 7000,
+		"and availability is unchanged, because reserved became collected")
+
+
+func test_midnight_does_not_reset_the_annual_counter_or_renew_a_lease() -> void:
+	"""R05-QUOTA-011 and §4.4's "Annual patch counters reset only at the year boundary"."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var patch: int = _forage.patch_row_for_zone(basin, BERRIES).value
+	var job: Vector2i = _make_job(10)
+	assert_true(_forage.harvest(basin, BERRIES, 4000, SUMMER, false).ok, "4 U is collected")
+	assert_true(_forage.claim_forage(job, basin, BERRIES, 1000, SUMMER, false).ok, "1 U is claimed")
+	var worker: int = _spawn_worker()
+	assert_true(_jobs.assign_worker(worker, _job_slot(job)).ok, "a worker holds the job")
+	assert_equal(_jobs.lease_expiry_of(worker).value, 0, "its lease starts at 0, unimplemented")
+	assert_true(_forage.run_midnight(SUMMER_MIDNIGHT_TICK, SUMMER).ok, "midnight runs")
+	assert_equal(_forage.harvested_year_milli_of(patch).value, 4000, "the annual counter stands")
+	assert_equal(_jobs.lease_expiry_of(worker).value, 0,
+		"and no lease was renewed or extended by the crossing")
+	assert_equal(_jobs.created_tick_of(_job_slot(job)).value, 10, "the job's own tick is untouched")
+
+
+func test_r05_qtest_10_a_boundary_releases_closed_and_excess_claims_deterministically() -> void:
+	"""R05-QTEST-10: a kind that closes for the season goes; valid claims stay; nothing collects between."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, MANUAL_MAX)
+	var berry_job: Vector2i = _make_job(10)
+	var root_job: Vector2i = _make_job(20)
+	var berry_row: int = _forage.claim_forage(berry_job, basin, BERRIES, 2000, SUMMER, false).value
+	var root_row: int = _forage.claim_forage(root_job, basin, ROOTS, 2000, SUMMER, false).value
+	assert_equal(_forage.run_midnight(WINTER_MIDNIGHT_TICK, WINTER).value, 1,
+		"winter closes berries, so exactly that claim is released")
+	assert_false(_forage.is_claim_active(berry_row), "the dormant kind's claim went")
+	assert_true(_forage.is_claim_active(root_row), "the still-available kind's claim stayed")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 2000, "R holds only the roots")
+	assert_equal(String(_forage.collect_claim(berry_job, 1, WINTER, false).error),
+		"CLAIM_NOT_PRESENT", "and the released claim admits no collection afterwards")
+
+
+func test_a_lower_automatic_quota_at_a_boundary_releases_the_excess_claim() -> void:
+	"""R05-QTEST-10's other half: autumn 22232 falls to winter 6056 and the excess must go."""
+	_use_job_store()
+	var basin: Vector2i = _make_automatic_basin(1)
+	var fits: Vector2i = _make_job(10)
+	var fits_row: int = _forage.claim_forage(fits, basin, ROOTS, 6000, AUTUMN, false).value
+	assert_equal(_forage.run_midnight(WINTER_MIDNIGHT_TICK, WINTER).value, 0,
+		"6000 still fits winter's 6056")
+	assert_true(_forage.is_claim_active(fits_row), "so that claim survives")
+	assert_true(_forage.release_claim(fits).ok, "clear it and try one that does not fit")
+	var over: Vector2i = _make_job(20)
+	var over_row: int = _forage.claim_forage(over, basin, ROOTS, 6100, AUTUMN, false).value
+	assert_equal(_forage.run_midnight(WINTER_MIDNIGHT_TICK, WINTER).value, 1,
+		"6100 exceeds winter's 6056, so the whole claim is released")
+	assert_false(_forage.is_claim_active(over_row), "nothing is shrunk to fit")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 0, "and R returns to zero")
+
+
+func test_midnight_refuses_an_unknown_season_without_resetting_anything() -> void:
+	"""A refusal at the boundary must not half-apply the ruled order."""
+	var basin: Vector2i = _make_basin(1, 10000)
+	assert_true(_forage.harvest(basin, BERRIES, 4000, SUMMER, false).ok, "4 U is collected")
+	var refused: Forage.OpResult = _forage.run_midnight(FIRST_MIDNIGHT_TICK, 4)
+	assert_false(refused.ok, "an unknown season is refused")
+	assert_equal(String(refused.error), "INVALID_SEASON", "with the season code")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 4000, "and H is untouched")
+
+
+# --- decision 0030 §4.7: the load path, its aggregates and the packed payload ----------------------
+
+func test_r05_qtest_12_restored_claims_rebuild_the_reservation_aggregates() -> void:
+	"""R05-QTEST-12's in-process substance: authoritative records restore, derived totals rebuild.
+
+	BLOCKED: the fixture's cross-process save/load round trip cannot be run, because this
+	repository has no save module at all. What is exercised here is the load path itself --
+	restore_claim() writes the authoritative record without maintaining the derived cache, and
+	rebuild_reservation_aggregates() reconstructs every outstanding total from the claim table.
+	"""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var designation: Vector2i = _make_designation(basin)
+	assert_true(_forage.harvest(designation, BERRIES, 2000, SUMMER, false).ok, "2 U was collected")
+	var job: Vector2i = _make_job(10)
+	var row: int = _forage.restore_claim(job, designation, BERRIES, 3000).value
+	assert_true(_forage.is_claim_active(row), "the saved claim record is restored")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 0,
+		"and the derived total is still empty, exactly as a loader leaves it")
+	assert_equal(_forage.rebuild_reservation_aggregates().value, 1, "one claim is counted")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 3000, "the basin's R rebuilds")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(designation)).value, 3000, "and its own")
+	assert_equal(_forage.harvested_today_milli_of(_slot(basin)).value, 2000,
+		"no synthetic daily reset happened")
+	assert_true(_forage.collect_claim(job, 3000, SUMMER, false).ok,
+		"and the restored claim collects normally afterwards")
+
+
+func test_the_rebuild_counts_a_claim_once_when_its_two_references_are_identical() -> void:
+	"""§4.7: "counting a claim once when those references are identical"."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var job: Vector2i = _make_job(10)
+	assert_true(_forage.restore_claim(job, basin, BERRIES, 3000).ok, "a basin-owned claim restores")
+	assert_equal(_forage.rebuild_reservation_aggregates().value, 1, "one claim is counted")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 3000,
+		"the basin reserved 3000, not 6000")
+
+
+func test_the_rebuild_discards_a_stale_cached_total_instead_of_adding_to_it() -> void:
+	"""Every zone total is zeroed before the claim table is summed, so drift cannot survive."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var job: Vector2i = _make_job(10)
+	assert_true(_forage.claim_forage(job, basin, BERRIES, 3000, SUMMER, false).ok, "3 U is claimed")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 3000, "R is maintained live")
+	assert_equal(_forage.rebuild_reservation_aggregates().value, 1, "rebuilding counts it once")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 3000,
+		"and rebuilding an already-correct total does not double it")
+
+
+func test_restore_claim_validates_its_references_kind_and_quantity() -> void:
+	"""§4.7's load validation: references, positive quantities, patch kinds and owner indexing."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 20000)
+	var job: Vector2i = _make_job(10)
+	assert_equal(String(_forage.restore_claim(job, basin, BERRIES, 0).error), "INVALID_AMOUNT",
+		"a zero quantity is refused")
+	assert_equal(String(_forage.restore_claim(job, basin, BERRIES, MANUAL_MAX + 1).error),
+		"INVALID_AMOUNT", "so is one above the policy ceiling")
+	assert_equal(String(_forage.restore_claim(job, basin, 5, 1000).error), "INVALID_PATCH_KIND",
+		"an unknown kind is refused")
+	assert_equal(String(_forage.restore_claim(NULL_REF, basin, BERRIES, 1000).error),
+		"JOB_NOT_PRESENT", "and so is a job reference that names nothing")
+	assert_equal(_forage.claim_count(), 0, "no refusal wrote a row")
+
+
+func test_r05_qtest_16_the_packed_payload_matches_the_ruled_allocation() -> void:
+	"""R05-QTEST-16: sizes derived from the actual fixed columns, with extras separately visible."""
+	assert_equal(Forage.FORAGE_CLAIM_CAPACITY, EXPECTED_CLAIM_CAPACITY,
+		"claim rows are the 8192 Job rows")
+	assert_equal(Forage.FORAGE_CLAIM_CAPACITY,
+		EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_JOB],
+		"and the directory reserves KIND_JOB at exactly that many")
+	assert_equal(_forage.claim_payload_bytes(), EXPECTED_CLAIM_PAYLOAD_BYTES,
+		"the claim payload is 303104 bytes")
+	assert_equal(_forage.quota_addition_bytes(), EXPECTED_QUOTA_ADDITION_BYTES,
+		"the specified quota additions total 305280 bytes")
+	assert_equal(_forage.extra_ordering_buffer_bytes(), EXPECTED_ORDERING_BUFFER_BYTES,
+		"and the two release-order columns are 131072 bytes counted outside that total")
+
+
+func test_the_claim_readers_refuse_an_empty_row_rather_than_describing_one() -> void:
+	"""A refusal never carries a usable number, so an ignored one cannot surface a plausible claim."""
+	_use_job_store()
+	assert_false(_forage.is_claim_active(-1), "a negative row holds nothing")
+	assert_false(_forage.is_claim_active(EXPECTED_CLAIM_CAPACITY), "nor does one past the end")
+	assert_false(_forage.claim_remaining_milli_of(0).ok, "an empty row reports no quantity")
+	assert_equal(_forage.claim_remaining_milli_of(0).error, "CLAIM_NOT_PRESENT", "with the code")
+	assert_false(_forage.claim_kind_of(0).ok, "nor a kind")
+	assert_false(_forage.claim_created_tick_of(0).ok, "nor a created tick")
+	assert_false(_forage.claim_persistent_id_of(0).ok, "nor a persistent id")
+	assert_equal(_forage.claim_job_ref_of(0), NULL_REF, "and its references are null")
+	assert_equal(_forage.claim_designation_ref_of(0), NULL_REF, "designation")
+	assert_equal(_forage.claim_basin_ref_of(0), NULL_REF, "basin")
+
+
+func test_a_cut_releases_as_many_whole_claims_as_it_takes() -> void:
+	"""§4.5 releases newest-first "until the remaining claims fit", which is often more than one."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 12000)
+	var oldest: int = _forage.claim_forage(_make_job(100), basin, BERRIES, 3000, SUMMER,
+		false).value
+	var middle: int = _forage.claim_forage(_make_job(200), basin, BERRIES, 3000, SUMMER,
+		false).value
+	var newest: int = _forage.claim_forage(_make_job(300), basin, BERRIES, 3000, SUMMER,
+		false).value
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 9000, "9000 is outstanding")
+	assert_equal(_forage.claims_released_by_quota(basin, 3000, SUMMER).value, 2,
+		"the preview says two jobs are affected")
+	assert_equal(_forage.set_quota_milli(basin, 3000, SUMMER).value, 2,
+		"and the cut releases both of them, not just the newest one")
+	assert_true(_forage.is_claim_active(oldest), "the oldest claim survives")
+	assert_false(_forage.is_claim_active(middle), "the middle one goes")
+	assert_false(_forage.is_claim_active(newest), "and so does the newest")
+	assert_equal(_forage.quota_reserved_milli_of(_slot(basin)).value, 3000, "leaving 3000 of R")
+
+
+func test_a_reference_of_another_kind_is_never_read_as_a_claim_owner() -> void:
+	"""A claim row is a JOB row; a live reference of some other kind must not index into it.
+
+	Both references below name typed row 0 -- the first zone and the first job -- so a lookup that
+	validated liveness without validating KIND would land on this very claim.
+	"""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, 10000)
+	var job: Vector2i = _make_job(10)
+	assert_equal(_slot(basin), 0, "the basin is harvest-zone row 0")
+	assert_equal(_job_slot(job), 0, "and the job is job row 0")
+	assert_true(_forage.claim_forage(job, basin, BERRIES, 3000, SUMMER, false).ok, "3 U is claimed")
+	assert_equal(String(_forage.collect_claim(basin, 100, SUMMER, false).error), "JOB_NOT_PRESENT",
+		"a harvest-zone reference cannot collect that claim")
+	assert_equal(String(_forage.release_claim(basin).error), "JOB_NOT_PRESENT",
+		"nor release it")
+	assert_equal(String(_forage.claim_forage(basin, basin, NUTS, 100, SUMMER, false).error),
+		"JOB_NOT_PRESENT", "nor own a claim of its own")
+	assert_equal(_forage.claim_remaining_milli_of(0).value, 3000, "and the real claim is untouched")
+
+
+func test_the_affected_job_reader_counts_claims_held_through_a_designation() -> void:
+	"""R05-QUOTA-015 on the designation's own limit, not only on the basin's."""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, MANUAL_MAX)
+	var designation: Vector2i = _make_designation(basin)
+	assert_true(_forage.set_quota_milli(designation, 9000, SUMMER).ok, "the local limit is 9000")
+	for tick: int in [100, 200, 300]:
+		assert_true(_forage.claim_forage(_make_job(tick), designation, BERRIES, 3000, SUMMER,
+			false).ok, "3 U is claimed through the designation")
+	assert_equal(_forage.claims_released_by_quota(designation, 9000, SUMMER).value, 0,
+		"no cut, no affected jobs")
+	assert_equal(_forage.claims_released_by_quota(designation, 5000, SUMMER).value, 2,
+		"cutting the DESIGNATION to 5000 affects two of its own jobs")
+	assert_equal(_forage.claims_released_by_quota(basin, 5000, SUMMER).value, 2,
+		"and the basin sees the same two, because it is their basin")
+
+
+func test_collection_checks_both_limits_against_a_restored_claim_that_exceeds_one() -> void:
+	"""§4.7's load path runs no preflight, so collection-time validation must hold both limits.
+
+	A saved claim larger than a limit is the one state in which `H + amount > Q` can be reached,
+	because every admission path already guarantees `H + R <= Q`. Each limit is shown separately.
+	"""
+	_use_job_store()
+	var basin: Vector2i = _make_basin(1, MANUAL_MAX)
+	var designation: Vector2i = _make_designation(basin)
+	assert_true(_forage.set_quota_milli(designation, 1000, SUMMER).ok, "the local limit is 1 U")
+	var job: Vector2i = _make_job(10)
+	assert_true(_forage.restore_claim(job, designation, BERRIES, 4000).ok, "a 4 U claim restores")
+	assert_equal(_forage.rebuild_reservation_aggregates().value, 1, "and its total rebuilds")
+	var over_local: Forage.OpResult = _forage.collect_claim(job, 4000, SUMMER, false)
+	assert_false(over_local.ok, "collecting all 4 U breaks the designation's own limit")
+	assert_equal(String(over_local.error), "QUOTA_REACHED", "with the quota code")
+	assert_true(_forage.collect_claim(job, 1000, SUMMER, false).ok, "1 U inside that limit passes")
+	var other_basin: Vector2i = _make_basin(1, 1000)
+	var other_zone: Vector2i = _make_designation(other_basin)
+	assert_true(_forage.set_quota_milli(other_zone, MANUAL_MAX, SUMMER).ok, "a lax designation")
+	var other_job: Vector2i = _make_job(20)
+	assert_true(_forage.restore_claim(other_job, other_zone, BERRIES, 4000).ok, "4 U restores")
+	assert_true(_forage.rebuild_reservation_aggregates().ok, "totals rebuild")
+	var over_basin: Forage.OpResult = _forage.collect_claim(other_job, 4000, SUMMER, false)
+	assert_false(over_basin.ok, "and the BASIN's 1 U limit stops that one")
+	assert_equal(String(over_basin.error), "QUOTA_REACHED", "with the same code")

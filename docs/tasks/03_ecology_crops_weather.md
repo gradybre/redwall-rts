@@ -35,11 +35,11 @@ prerequisite. It is **not** the thing that animates the loop.
 | # | Increment | Depends on | Status |
 |---|---|---|---|
 | 1 | **RNG module** — ARCH-RNG-001/002 xorshift32, the named streams, seed derivation, draw-count persistence | nothing | **done** (`ea06c1c`) |
-| 2 | **Weather** — §5.10, REQ-SET-141–150, single global row | 1 | unblocked |
+| 2 | **Weather** — §5.10, REQ-SET-141–150, single global row | 1 | **done** (`83db3c4`); selection mapping ruled, decision 0028 |
 | 3 | **ResourceNode** + minimal tile placement | — | **done** |
-| 4 | **HarvestZone + ForagePatch** — REQ-SET-066–069 | 1, 3 | unblocked |
+| 4 | **HarvestZone + ForagePatch** — REQ-SET-066–069 | 1, 3 | **done**; quota reworked to the ruled daily aggregate, decisions 0026/0030 |
 | 5 | **FishHabitat + FishStock** — §5.4 | 1 | **stock half done**; gear half still blocked by U5 (`GearInstance` has no allocator budget, so wear cycles cannot be completed) |
-| 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | unblocked; **the only real job-creation site** |
+| 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | **unblocked now that 2 is done**; still **the only real job-creation site** |
 | 7 | **FieldPolicy + sowing** — REQ-SET-070/071/077/078/088 | 6 | **needs a decision**: the GDD states the sowing validation gate but never the triggering event |
 | 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **pollination blocked by U6** (`HivePollinationLinks` has no owner-major index formula) |
 | 9 | **ARCH-SYS-005 Ecology** daily orchestration | 3,4,5,8 | closes one leg of REQ-SET-007 |
@@ -68,6 +68,49 @@ immigration/departures and progression come later.
   dependency not previously tracked as a blocker. **Resolved by increment 1.**
 
 ### Found while implementing (2026-09-09)
+
+### Planner rulings received 2026-09-09 — see `docs/rulings/2026-09-09_task03_planner_rulings.md`
+
+Rulings 1–3 answered and implemented; the contracts are folded into §5.10, §5.1,
+§4.2 and ARCH-RNG-002 so the handoff is not their only home.
+
+- **Weather selection** (decision 0028) — mapping ruled, increment 2 **done**.
+- **4×4 deposits** (decision 0029) — sixteen independently exhaustible nodes
+  each; placement implemented, and decision 0031 records the one judgement call
+  (the caller declares which occupant may be replaced, because `resource_id`'s
+  domain is still unstated).
+- **Basin ownership** (0026, now Accepted) — confirmed with five constraints. A
+  designation must **bind to existing** ownership; the current
+  self-reference-at-creation is provisional only because no designation command
+  exists (blocker U2).
+- **Forage quotas** (decision 0030) — the shipped annual per-patch enforcement is
+  **replaced** by a daily aggregate shared by the basin, with a Job-indexed claim
+  table. `harvested_year_milli` is ecological history, not the quota accumulator.
+
+**A claim this repository made repeatedly was wrong.** `quota_milli`'s period was
+*not* unstated: `ui_ux_controls.md:219` (UI-SET-050) already labelled it "units
+per day". The GDD and the architecture were searched; the UI document was not.
+The narrower defect stands — the UI stated a period the GDD gave no contract for.
+
+### Still open after the rulings
+
+- **Ruling 4 was never answered** — the handoff responded to the three-ruling
+  brief at head `90739ef`, written before `fishing.gd` existed, so decision 0027
+  (effort-slot occupancy and REQ-SET-048's hysteresis bit) is still provisional.
+- **Ruling 5 is new** — §4.3 has no `WeatherEvent`, but it *does* list an
+  `EventDefinition` catalog, and `catalog.gd` compiles keys in ascending ASCII
+  order. That numbering agrees with §5.10's printed order on `drought` alone, and
+  `event` is persisted.
+
+### Acceptance evidence that could not be executed, and why
+
+| Fixture | Blocking dependency |
+|---|---|
+| R05-QTEST-12 cross-process round trip | **No save module exists in the repository.** The in-process rebuild — its substance — is implemented and tested |
+| R05-QTEST-14 designation preview | Command queue (U2) and UI |
+| R05-QTEST-15 output-capacity leg | No Job↔reserved-container binding exists; the quota and floor legs pass |
+| R05-QTEST-07 cargo creation | `inventory.gd` owns cargo; `collect_claim()` returns the amount so a caller creates it once |
+| R05-QUOTA-007 lease-expiry trigger | `jobs.gd` states `lease_expiry` is always 0 and never written (ARCH-JOB-004). The **cancellation** trigger is implemented and tested |
 
 - **Increment 5's stock half is done** (`fishing.gd`): both stores, §5.4's nine-row
   species table, daily recovery, seasonal windows and closures, the daily quota,

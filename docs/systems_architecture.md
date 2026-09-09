@@ -130,6 +130,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | ForageClaim | job_slot, job_generation, designation_slot, designation_generation, basin_slot, basin_generation, patch_kind | I32 | 4 | 7 | 8192 | 229376 | [decision 0030 §4.7] `claim_row = owning_job_typed_row`; no separate allocator |
 | ForageClaim | remaining_milli | I64 | 8 | 1 | 8192 | 65536 | [decision 0030 §4.7] |
 | ForageClaim | active | B8 | 1 | 1 | 8192 | 8192 | [decision 0030 §4.7] |
+| ForageClaim.ordering | job_created_tick, job_persistent_id | I64 | 8 | 2 | 8192 | 131072 | [decision 0030, **outside** the ruling's 305280 payload per R05-QUOTA-024] Cache of the owning Job's own fields, rebuilt on load; not a separate claim timestamp |
 | ResourceNode | resource_id, regrow_days, planted_day | I32 | 4 | 3 | 4096 | 49152 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | ResourceNode | quantity_milli, capacity_milli | I64 | 8 | 2 | 4096 | 65536 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | ResourceNode | exhausted | B8 | 1 | 1 | 4096 | 4096 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -183,7 +184,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
-| Fixed registry payload | 24454962 | 1 | 24454962 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +224 decision 0027 **provisional**) |
+| Fixed registry payload | 24586034 | 1 | 24586034 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +224 decision 0027 **provisional**) |
 | Auxiliary payload | 16384856 | 1 | 16384856 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |

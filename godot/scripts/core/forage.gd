@@ -39,9 +39,85 @@ extends RefCounted
 ##   * A zone that already owns patches cannot be bound to another basin, and a zone bound to
 ##     another basin cannot be given patches. Those two refusals are what make "drawn twice"
 ##     unprofitable: the second designation cannot conjure a second stock to draw from.
-##   * The quota applied to a harvest is `min(basin quota, harvesting zone quota)`. §5.1 says
-##     intersecting zones share the BASIN's quota; §4.2 also gives every zone its own
-##     `quota_milli`. Taking the minimum honours both fields and can only ever be stricter.
+##   * The quota is DAILY, AGGREGATE and SHARED -- see the next block. Both applicable limits are
+##     enforced against their own collected and reserved totals, so a designation can be stricter
+##     than its basin but never larger in effect.
+##
+## PROVISIONAL: SELF-REFERENCE AT CREATION. decision 0026's R05-BASIN-001/002 rule that a
+## stock-owning basin may be created only by world generation or an explicit ecology-creation
+## operation, and that a player designation binds to EXISTING ownership rather than creating a
+## self-owned basin. create_zone() still makes a new zone its own basin. That stands only because
+## no designation command exists (blocker U2) and a null basin would be an unbound state; it is
+## NOT the finished contract. When the designation command lands it must bind through set_basin()
+## and must not reach the self-owning creation path.
+##
+## ---------------------------------------------------------------------------------------
+## THE DAILY AGGREGATE QUOTA (decision 0030; planner ruling 2026-09-09 §4, approved by Brendan).
+## `HarvestZone.quota_milli` limits TOTAL forage collected per calendar day across all five kinds
+## -- not per kind, and not per year. The basin's limit is shared by every designation bound to
+## it, and a designation may impose an additional stricter local limit. With `Q` the effective
+## daily quota, `H` today's collected total and `R` the outstanding reserved total:
+##
+##     available_quota = max(0, min(Q_b - H_b - R_b, Q_z - H_z - R_z))
+##
+## Stock floors, seasonal availability, protection, work eligibility and output capacity are
+## INDEPENDENT restrictions; a larger quota overrides none of them. Collecting `amount` through
+## designation `z` of basin `b` debits ONE harvest against TWO applicable policy limits -- it does
+## not create duplicate inventory -- and when `z == b` that one zone's aggregates move ONCE.
+##
+## `ForagePatch.harvested_year_milli` stays ANNUAL ECOLOGICAL HISTORY and is not the quota
+## accumulator. reset_harvested_year() is still the caller's year boundary and does not reopen a
+## spent daily quota; run_midnight() is what does that.
+##
+## CLAIMS. One pending ForageClaim per owning Job, naming one basin, one designation, one kind and
+## a remaining quantity; different kinds need different jobs, and shared work uses its COORDINATOR
+## Job as the claim owner (decision 0017), so member Jobs duplicate nothing. Uncollected forage is
+## ECOLOGICAL STOCK, not an InventoryLot, and no lot is fabricated to represent it.
+##
+##     stock_reserved  = sum(remaining_milli of active claims for this basin/patch)
+##     stock_available = max(0, patch.stock_milli - applicable_stock_floor - stock_reserved)
+##     admissible     <= min(available_quota, stock_available)
+##
+## claim_forage() preflights and commits quota and stock atomically or leaves every quantity
+## unchanged. `claim_row = owning_job_typed_row` inside the existing 8192-Job capacity: an
+## approved rule, not an inference from matching capacities, so there is no separate allocator and
+## no free heap. The stored Job reference AND generation are validated before any use, so a
+## retired or reused Job row can never act under a previous generation's claim.
+##
+## MIDNIGHT. run_midnight() applies the ruled order at a genuine offset-calendar crossing --
+## `SimClock.is_day_boundary()`, NEVER `tick % 18000 == 0`, because tick 0 is 06:00 and the first
+## midnight is tick 13500: reset collected totals, PRESERVE outstanding claims and their
+## reservation totals, apply seasonal/automatic quota changes, release closure-invalidated claims
+## and reconcile excess, and only then admit or collect. Outstanding claims consume part of the
+## new day's allowance; collection is charged to the day it happens; hauling already collected
+## cargo debits nothing. Annual counters reset only at the year boundary, and midnight never
+## renews or extends a Job lease.
+##
+## RECONCILIATION. For a new effective quota `Q` and collected total `H`, the allowance for
+## outstanding claims is `max(0, Q - H)`. Excess is released as WHOLE claims, newest first by
+## `(job.created_tick, job.persistent_id)` DESCENDING, until the remainder fits: a job's promised
+## collection is never silently shrunk, and a released claim must be reacquired before that job
+## collects again. Releasing a claim yields no WU, XP, cargo or refund. Collected cargo always
+## survives; a quota below today's collected total stops further collection without undoing
+## history; quota zero releases every claim that zero limit reaches; deleting or rebinding a
+## designation releases its claims FIRST and neither resets basin usage.
+##
+## MODES. Basins default to Automatic, designations to Inherit, and Manual survives a season
+## change. The mode ids are compiled through catalog.gd's own ascending-ASCII mechanism rather
+## than a second independent numbering scheme, and _init() asserts the compiled result, so
+## `automatic=0, inherit=1, manual=2` cannot drift. They are NOT added to PROTECTED_ENUM_DOMAINS:
+## §4.3 numbers no quota mode, and protecting a number nobody stated would give an implementer's
+## choice the standing of a specified value -- the same reasoning HabitatType and WeatherEvent get.
+##
+##     target_stock_i = floor(800 * K_i / 1000)
+##     allowance_i    = 0 if S_i == 0, else
+##                      min(K_i - target_stock_i,
+##                          floor((K_i - target_stock_i) * r_i * S_i / 1000000) + 1000)
+##     automatic_daily_quota = sum over the five kinds
+##
+## giving spring 10720, summer 21128, autumn 22232 and winter 6056 milli-U/day. Manual settings run
+## from 0 (no unlimited sentinel) to `sum(K_i)` = 1180000 milli-U/day, and a designation's larger
+## manual value cannot expand its basin's allowance.
 ##
 ## ---------------------------------------------------------------------------------------
 ## RNG. ARCH-RNG-002 fixes the FORAGE stream's discipline exactly: "One hazard roll after each
@@ -65,25 +141,61 @@ extends RefCounted
 ##     needs.gd and the Injury row of §4.2 has no store yet. roll_exposure_injuries() reports how
 ##     many injuries were rolled; INJURY_HEALTH_LOSS and INJURY_SEVERITY are compiled here so the
 ##     store that lands them does not restate the numbers.
-##   * It does not stop RESERVATIONS. REQ-SET-069's "stop new reservations and retain already
-##     collected cargo for hauling" spans reservations.gd and jobs.gd. What is owned here is the
-##     truthful limit: remaining_quota_milli(), is_quota_reached() and a harvest that refuses
-##     past the quota. Storage limits are inventory.gd's half of that requirement.
+##   * It CREATES NO CARGO and RESERVES NO OUTPUT CAPACITY. §4.2's collection step says "create the
+##     corresponding collected cargo exactly once"; lots and container capacity belong to
+##     inventory.gd and the Job-owned output-capacity contract, and no binding between a Job and a
+##     reserved container exists yet. collect_claim() returns the collected amount so its caller
+##     creates that cargo exactly once. R05-QTEST-15's output-capacity leg therefore cannot be
+##     exercised here; the quota and stock legs can, and are.
+##   * It does not own STORAGE limits. REQ-SET-069's "stop new reservations and retain already
+##     collected cargo for hauling" spans this store and inventory.gd; the forage-quota half is
+##     owned here in full, the storage half is not.
+##   * It does not implement the DESIGNATION PREVIEW (R05-DESIGNATION-001..004, ruling §4.8). That
+##     needs the command queue (blocker U2) and the UI, and the ruling itself defers it to "when
+##     their command/UI dependencies are available". Nothing here stubs it.
+##   * It does not display R05-QUOTA-015's preview. claims_released_by_quota() is the
+##     count-of-affected-jobs reader that display would read; the panel is ui's.
 ##   * It does not run §5.9's midnight wildlife-pressure roll. That is an ECOLOGY-stream draw
 ##     owned by ARCH-SYS-005, and its "complete enclosing fence/wall boundary" halving reads a
 ##     building store that does not exist.
 ##
 ## ---------------------------------------------------------------------------------------
 ## GAPS -- named, not invented (AGENTS.md: "do not invent a constant"):
-##   * `quota_milli` HAS NO STATED PERIOD. §4.2 types it and REQ-SET-069 says a reached quota
-##     stops reservations, but no clause says whether it is a daily, seasonal or annual budget.
-##     The only accumulator in the forage schema is ForagePatch.harvested_year_milli, so the
-##     quota is enforced against that year-to-date total; reset_harvested_year() is the caller's
-##     year boundary. If the intended period is daily, this schema has nowhere to keep the
-##     counter -- §5.4's FishStock has `harvested_today_milli` and ForagePatch pointedly does not.
-##   * `quota_milli == 0` PERMITS NOTHING. The document states no "unlimited" encoding, and §4.2
-##     says empty counters are 0. Reading 0 as unlimited would make the default state of a field
-##     the most permissive one, so it is read as a zero budget and refuses every harvest.
+##   * CORRECTED 2026-09-09. This header used to claim `quota_milli` "HAS NO STATED PERIOD" and
+##     enforced the quota against each patch's ANNUAL total, which invented both an annual period
+##     and a separate allowance per kind. THAT CLAIM WAS FALSE: `ui_ux_controls.md:219`
+##     (UI-SET-050) already labelled the field "units per day". The period was stated, in the UI
+##     document, and only the GDD and the architecture were searched. Decision 0030 records the
+##     correction and the approved daily aggregate contract that replaced it.
+##   * `quota_milli == 0` PERMITS NOTHING. The document states no "unlimited" encoding, §4.2 says
+##     empty counters are 0, and the ruling makes the manual minimum zero with NO unlimited
+##     sentinel. Zero is a zero budget: it admits nothing and releases every claim it reaches.
+##   * R05-QUOTA-007's LEASE-EXPIRY TRIGGER IS UNREACHABLE. jobs.gd states that `lease_expiry`
+##     exists, is always 0, and is never written because ARCH-JOB-004 is unimplemented. The
+##     CANCELLATION half of that requirement is reachable and is implemented by
+##     release_cancelled_claims(); the expiry half has nothing to fire on yet.
+##   * THERE IS NO SAVE MODULE IN THIS REPOSITORY. R05-QUOTA-022's load path is implemented as
+##     restore_claim() plus rebuild_reservation_aggregates(), which is the in-process substance of
+##     it, but R05-QTEST-12's cross-process round trip CANNOT be executed and is not claimed.
+##   * THE AUTOMATIC ALLOWANCE'S `K_i - target_stock_i` CAP NEVER BINDS with §5.5's published
+##     capacities and regrowth fractions: the largest `floor((K-T)*r*S/1000000) + 1000` is 8200
+##     against a 60000 headroom. It is implemented because the ruling states it, and a test that
+##     removed it would still pass on the shipped table. Recorded rather than dropped.
+##   * `stock_reserved` IS A LINEAR SCAN over the 8192 claim rows, deliberately. The ruling forbids
+##     adding a stock-reservation index or cache inside §4.7's budget ("any such index must be
+##     budgeted separately"), so the straightforward sum is used. UNMEASURED CONCERN: a claim-heavy
+##     world pays 8192 byte reads per admissibility query and per reconciliation step, and no
+##     profile of that cost has been taken on the REQ-SET-163 qualification floor.
+##   * TWO ORDERING COLUMNS ARE EXTRA, AND COUNTED SEPARATELY. `(job.created_tick,
+##     job.persistent_id)` is read from the owning Job ONCE at claim time and cached, because
+##     jobs.gd's `created_tick_of()` allocates an IntResult and reconciliation compares that key
+##     for every candidate claim. Neither value can change while a Job row lives, and both are
+##     rebuilt by rebuild_reservation_aggregates(). They are 131072 bytes OUTSIDE the ruling's
+##     305280-byte payload total, reported by extra_ordering_buffer_bytes() rather than hidden in
+##     it (R05-QUOTA-024). No separate claim creation timestamp is introduced.
+##   * A CLAIM'S OWNING JOB KIND IS NOT CHECKED. The ruling names the owner "the owning Job" and
+##     never restricts it to JobKind.FORAGE. Refusing another kind would be inventing a contract,
+##     so only membership (a member Job may not own a claim; its coordinator does) is enforced.
 ##   * ONE `danger` COLUMN, TWO STATED QUANTITIES. §5.5 defines natural danger ("the basin
 ##     center's distance category before lookout reductions, fixed at generation") for the
 ##     work-per-U formula, and separately says "Actual hazard danger still uses staffed lookouts
@@ -115,6 +227,8 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const Rng := preload("res://scripts/core/rng.gd")
+const SimClock := preload("res://scripts/core/sim_clock.gd")
+const JobsScript := preload("res://scripts/core/jobs.gd")
 
 # --- capacities (GDD §4.2, systems_architecture.md §2.2, entity_directory.gd) ---------------------
 
@@ -126,6 +240,9 @@ const ZONE_LINK_CAPACITY: int = 16384
 const PATCHES_PER_ZONE: int = 5
 ## systems_architecture.md §2.2 ForagePatch length: 640 == 128 * 5.
 const FORAGE_PATCH_CAPACITY: int = HARVEST_ZONE_CAPACITY * PATCHES_PER_ZONE
+## decision 0030 §4.7: `claim_row = owning_job_typed_row` inside the existing 8192 Job rows.
+## `_init()` asserts this equals the directory's own KIND_JOB capacity rather than restating it.
+const FORAGE_CLAIM_CAPACITY: int = 8192
 
 ## GDD §5.1 exterior grid: index `z*128+x`, 16384 tiles, matching WorldTileMaps' row count.
 const MAP_TILES_X: int = 128
@@ -222,8 +339,43 @@ const INJURY_CHANCE_MINIMUM: int = 1
 const INJURY_HEALTH_LOSS: int = 10
 const INJURY_SEVERITY: int = 1
 
+# --- decision 0030 §4.6 quota modes, compiled through catalog.gd's own mechanism ------------------
+
+## The domain name compile_domain() is called with in `_init()`. NOT a PROTECTED_ENUM_DOMAIN:
+## GDD §4.3 numbers no quota mode, so there is nothing specified here to protect (see the header).
+const QUOTA_MODE_DOMAIN: String = "ForageQuotaMode"
+## catalog.gd assigns ids in ascending ASCII order, so these three keys compile to 0, 1, 2 in
+## exactly this order. `_init()` runs the compiler and asserts that, so no second numbering
+## scheme exists and none can drift.
+const QUOTA_MODE_KEYS: Array[StringName] = [&"automatic", &"inherit", &"manual"]
+## Ruling §4.6: Automatic is a BASIN mode, Inherit is a DESIGNATION mode, Manual is either.
+const QUOTA_MODE_AUTOMATIC: int = 0
+const QUOTA_MODE_INHERIT: int = 1
+const QUOTA_MODE_MANUAL: int = 2
+const QUOTA_MODE_COUNT: int = 3
+
+## Ruling §4.6: "This policy uses an 80% stock management target", as `floor(800 * K / 1000)`.
+const AUTOMATIC_TARGET_PER_1000: int = 800
+const AUTOMATIC_TARGET_DENOMINATOR: int = 1000
+## `floor((K - target) * r * S / 1000000) + 1000`, the existing additive 1 U regrowth term.
+const AUTOMATIC_ALLOWANCE_DENOMINATOR: int = 1000000
+const AUTOMATIC_ALLOWANCE_TERM_MILLI: int = MILLI_PER_UNIT
+
+## Ruling §4.6: "Minimum is zero: no unlimited sentinel is supported. Maximum is `sum(K_i)` across
+## the basin's five patches: currently 1180000 milli-U/day." `_init()` asserts the sum.
+const MANUAL_QUOTA_MIN_MILLI: int = 0
+const MANUAL_QUOTA_MAX_MILLI: int = 1180000
+
+# --- packed payload accounting (ruling §4.7 / R05-QUOTA-024) --------------------------------------
+
+const BYTES_PER_BYTE_COLUMN: int = 1
+const BYTES_PER_INT32: int = 4
+const BYTES_PER_INT64: int = 8
+
 ## Empty value of `WorldTileMaps.zone_link_head` and of every link cursor.
 const NO_LINK: int = -1
+## Empty value of every claim cursor and of "no claim row selected".
+const NO_CLAIM: int = -1
 const NULL_REF: Vector2i = EntityDirectory.NULL_REF
 
 # --- refusal codes -------------------------------------------------------------------------------
@@ -260,6 +412,17 @@ const REFUSE_INVALID_SKILL_LEVEL: StringName = &"INVALID_SKILL_LEVEL"
 const REFUSE_INVALID_WORK: StringName = &"INVALID_WORK"
 const REFUSE_NO_RNG: StringName = &"NO_RNG"
 const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
+const REFUSE_INVALID_QUOTA_MODE: StringName = &"INVALID_QUOTA_MODE"
+const REFUSE_QUOTA_MODE_NOT_VALID_HERE: StringName = &"QUOTA_MODE_NOT_VALID_HERE"
+const REFUSE_NO_JOB_STORE: StringName = &"NO_JOB_STORE"
+const REFUSE_JOB_NOT_PRESENT: StringName = &"JOB_NOT_PRESENT"
+const REFUSE_JOB_IS_MEMBER: StringName = &"JOB_IS_MEMBER"
+const REFUSE_CLAIM_PRESENT: StringName = &"CLAIM_ALREADY_PRESENT"
+const REFUSE_CLAIM_NOT_PRESENT: StringName = &"CLAIM_NOT_PRESENT"
+const REFUSE_CLAIM_STALE_JOB: StringName = &"CLAIM_STALE_JOB"
+const REFUSE_STOCK_RESERVED: StringName = &"STOCK_RESERVED"
+const REFUSE_NOT_DAY_BOUNDARY: StringName = &"NOT_DAY_BOUNDARY"
+const REFUSE_INVALID_TICK: StringName = &"INVALID_TICK"
 
 
 class OpResult:
@@ -285,6 +448,9 @@ class OpResult:
 
 var _directory: EntityDirectory = null
 var _owns_directory: bool = false
+## The Job store every claim is owned by. Optional: a store built without one holds no claims and
+## refuses every claim operation with REFUSE_NO_JOB_STORE rather than inventing an owner.
+var _jobs: JobsScript = null
 
 # --- HarvestZone columns (ARCH-MEM-001: packed, allocated once) -----------------------------------
 
@@ -302,6 +468,13 @@ var _zone_ref_generation: PackedInt32Array = PackedInt32Array()
 ## GDD §5.1's "Player harvest zones reference basin IDs". A new zone is its own basin.
 var _zone_basin_slot: PackedInt32Array = PackedInt32Array()
 var _zone_basin_generation: PackedInt32Array = PackedInt32Array()
+
+## decision 0030 §4.7. `harvested_today_milli` and `quota_mode` are AUTHORITATIVE state;
+## `quota_reserved_milli` is a DERIVED CACHE, maintained atomically and rebuilt from active claims
+## by rebuild_reservation_aggregates().
+var _zone_harvested_today_milli: PackedInt64Array = PackedInt64Array()
+var _zone_quota_reserved_milli: PackedInt64Array = PackedInt64Array()
+var _zone_quota_mode: PackedByteArray = PackedByteArray()
 
 ## Head of each zone's own tile-link list, and the length of that list.
 var _zone_link_head: PackedInt32Array = PackedInt32Array()
@@ -340,6 +513,26 @@ var _patch_stock_milli: PackedInt64Array = PackedInt64Array()
 var _patch_capacity_milli: PackedInt64Array = PackedInt64Array()
 var _patch_harvested_year_milli: PackedInt64Array = PackedInt64Array()
 
+# --- ForageClaim columns, indexed by OWNING JOB TYPED ROW (decision 0030 §4.7) ---------------------
+
+var _claim_active: PackedByteArray = PackedByteArray()
+var _claim_job_slot: PackedInt32Array = PackedInt32Array()
+var _claim_job_generation: PackedInt32Array = PackedInt32Array()
+var _claim_designation_slot: PackedInt32Array = PackedInt32Array()
+var _claim_designation_generation: PackedInt32Array = PackedInt32Array()
+var _claim_basin_slot: PackedInt32Array = PackedInt32Array()
+var _claim_basin_generation: PackedInt32Array = PackedInt32Array()
+var _claim_patch_kind: PackedInt32Array = PackedInt32Array()
+var _claim_remaining_milli: PackedInt64Array = PackedInt64Array()
+
+## The §4.5 release order key, cached from the owning Job at claim time. EXTRA to the ruling's
+## 305280-byte payload and counted separately -- see the header and extra_ordering_buffer_bytes().
+var _claim_created_tick: PackedInt64Array = PackedInt64Array()
+var _claim_persistent_id: PackedInt64Array = PackedInt64Array()
+
+## Live claim total. A scalar counter, not an index: no per-claim list is allocated.
+var _claim_count: int = 0
+
 # --- scratch (not simulation state) ---------------------------------------------------------------
 
 ## Checked-arithmetic scratch for int_math's `_into` forms. Nothing here invokes a callback or a
@@ -347,23 +540,71 @@ var _patch_harvested_year_milli: PackedInt64Array = PackedInt64Array()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 ## A second scratch for the two places that need a live value while computing another.
 var _math_b: IntMath.IntResult = IntMath.IntResult.new()
+## A third scratch, owned exclusively by the quota/claim paths so they can nest inside a caller
+## that is already holding `_math` or `_math_b`.
+var _math_c: IntMath.IntResult = IntMath.IntResult.new()
+
+## Rows resolved by the last claim preflight, consumed by the commit that immediately follows it.
+## Plain ints, written and read inside one public call with no callback in between.
+var _pending_designation_slot: int = EntityDirectory.NULL_SLOT
+var _pending_basin_slot: int = EntityDirectory.NULL_SLOT
+var _pending_patch_row: int = -1
 
 
-func _init(p_directory: EntityDirectory = null) -> void:
-	"""Allocate every column once and adopt or build the directory behind every zone reference."""
+func _init(p_directory: EntityDirectory = null, p_jobs: JobsScript = null) -> void:
+	"""Allocate every column once and adopt or build the directory behind every zone reference.
+
+	A Job store may be supplied so this store can own forage claims; when it is, its directory is
+	adopted, because a claim validates its owning Job reference through exactly one directory.
+	"""
 	assert(HARVEST_ZONE_CAPACITY
 			== EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_HARVEST_ZONE],
 		"harvest-zone columns must match the directory's HARVEST_ZONE row capacity")
+	assert(FORAGE_CLAIM_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_JOB],
+		"claim rows are Job rows: decision 0030 indexes them by owning Job typed row")
+	_assert_forage_table()
+	_assert_quota_contracts()
+	_jobs = p_jobs
+	var adopted: EntityDirectory = p_directory
+	if adopted == null and _jobs != null:
+		adopted = _jobs.directory()
+	assert(_jobs == null or adopted == _jobs.directory(),
+		"a forage store and its Job store must validate references through one directory")
+	_owns_directory = adopted == null
+	_directory = adopted if adopted != null else EntityDirectory.new()
+	_allocate_columns()
+	clear()
+
+
+func _assert_forage_table() -> void:
+	"""Every §5.5 column carries exactly one entry per forage row."""
 	assert(PATCH_KEYS.size() == PATCHES_PER_ZONE, "GDD §5.5 lists exactly five forage items")
 	assert(PATCH_CAPACITY_U.size() == PATCHES_PER_ZONE, "one capacity per §5.5 forage row")
 	assert(PATCH_BASE_WORK_WU.size() == PATCHES_PER_ZONE, "one base work per §5.5 forage row")
 	assert(PATCH_REGROWTH_PER_1000.size() == PATCHES_PER_ZONE, "one r per §5.5 forage row")
 	assert(PATCH_AVAILABILITY_PER_1000.size() == PATCHES_PER_ZONE * SEASON_COUNT,
 		"§5.5 gives four seasonal availabilities for each of the five forage rows")
-	_owns_directory = p_directory == null
-	_directory = p_directory if p_directory != null else EntityDirectory.new()
-	_allocate_columns()
-	clear()
+
+
+func _assert_quota_contracts() -> void:
+	"""Recompile the quota-mode ids through catalog.gd and re-derive the manual ceiling.
+
+	Neither number is restated independently: the mode ids come back out of the same
+	ascending-ASCII compiler every other domain uses, and 1180000 is `sum(K_i)` over §5.5's own
+	capacity column, so a table edit breaks construction instead of silently shifting a policy.
+	"""
+	var compiled: Catalog.DomainResult = Catalog.compile_domain(QUOTA_MODE_DOMAIN, QUOTA_MODE_KEYS)
+	assert(compiled.ok, "the quota-mode domain must compile through catalog.gd")
+	assert(compiled.ids[&"automatic"] == QUOTA_MODE_AUTOMATIC
+			and compiled.ids[&"inherit"] == QUOTA_MODE_INHERIT
+			and compiled.ids[&"manual"] == QUOTA_MODE_MANUAL,
+		"quota-mode ids must be catalog.gd's ascending-ASCII ids, not a second numbering")
+	assert(QUOTA_MODE_KEYS.size() == QUOTA_MODE_COUNT, "three modes: automatic, inherit, manual")
+	var capacity_sum: int = 0
+	for kind: int in PATCHES_PER_ZONE:
+		capacity_sum += PATCH_CAPACITY_U[kind] * MILLI_PER_UNIT
+	assert(capacity_sum == MANUAL_QUOTA_MAX_MILLI,
+		"the manual ceiling is sum(K_i) over §5.5's capacity column")
 
 
 func _allocate_columns() -> void:
@@ -371,10 +612,26 @@ func _allocate_columns() -> void:
 	_allocate_zone_columns()
 	_allocate_link_columns()
 	_allocate_patch_columns()
+	_allocate_claim_columns()
+
+
+func _allocate_claim_columns() -> void:
+	"""Size the eleven ForageClaim columns at one row per Job row (decision 0030 §4.7)."""
+	_claim_active.resize(FORAGE_CLAIM_CAPACITY)
+	_claim_job_slot.resize(FORAGE_CLAIM_CAPACITY)
+	_claim_job_generation.resize(FORAGE_CLAIM_CAPACITY)
+	_claim_designation_slot.resize(FORAGE_CLAIM_CAPACITY)
+	_claim_designation_generation.resize(FORAGE_CLAIM_CAPACITY)
+	_claim_basin_slot.resize(FORAGE_CLAIM_CAPACITY)
+	_claim_basin_generation.resize(FORAGE_CLAIM_CAPACITY)
+	_claim_patch_kind.resize(FORAGE_CLAIM_CAPACITY)
+	_claim_remaining_milli.resize(FORAGE_CLAIM_CAPACITY)
+	_claim_created_tick.resize(FORAGE_CLAIM_CAPACITY)
+	_claim_persistent_id.resize(FORAGE_CLAIM_CAPACITY)
 
 
 func _allocate_zone_columns() -> void:
-	"""Size the twelve HarvestZone columns and the live-zone index at 128 rows."""
+	"""Size the fifteen HarvestZone columns and the live-zone index at 128 rows."""
 	_zone_present.resize(HARVEST_ZONE_CAPACITY)
 	_zone_type.resize(HARVEST_ZONE_CAPACITY)
 	_zone_danger.resize(HARVEST_ZONE_CAPACITY)
@@ -385,6 +642,9 @@ func _allocate_zone_columns() -> void:
 	_zone_ref_generation.resize(HARVEST_ZONE_CAPACITY)
 	_zone_basin_slot.resize(HARVEST_ZONE_CAPACITY)
 	_zone_basin_generation.resize(HARVEST_ZONE_CAPACITY)
+	_zone_harvested_today_milli.resize(HARVEST_ZONE_CAPACITY)
+	_zone_quota_reserved_milli.resize(HARVEST_ZONE_CAPACITY)
+	_zone_quota_mode.resize(HARVEST_ZONE_CAPACITY)
 	_zone_link_head.resize(HARVEST_ZONE_CAPACITY)
 	_zone_tile_count.resize(HARVEST_ZONE_CAPACITY)
 	_zone_patch_count.resize(HARVEST_ZONE_CAPACITY)
@@ -421,8 +681,25 @@ func clear() -> void:
 	_clear_zone_columns()
 	_clear_link_columns()
 	_clear_patch_columns()
+	_clear_claim_columns()
 	if _owns_directory:
 		_directory.clear()
+
+
+func _clear_claim_columns() -> void:
+	"""Refill every ForageClaim column with its empty value and drop the live count."""
+	_claim_active.fill(0)
+	_claim_job_slot.fill(EntityDirectory.NULL_SLOT)
+	_claim_job_generation.fill(EntityDirectory.NULL_GENERATION)
+	_claim_designation_slot.fill(EntityDirectory.NULL_SLOT)
+	_claim_designation_generation.fill(EntityDirectory.NULL_GENERATION)
+	_claim_basin_slot.fill(EntityDirectory.NULL_SLOT)
+	_claim_basin_generation.fill(EntityDirectory.NULL_GENERATION)
+	_claim_patch_kind.fill(-1)
+	_claim_remaining_milli.fill(0)
+	_claim_created_tick.fill(0)
+	_claim_persistent_id.fill(0)
+	_claim_count = 0
 
 
 func _release_live_zones() -> void:
@@ -446,6 +723,9 @@ func _clear_zone_columns() -> void:
 	_zone_ref_generation.fill(EntityDirectory.NULL_GENERATION)
 	_zone_basin_slot.fill(EntityDirectory.NULL_SLOT)
 	_zone_basin_generation.fill(EntityDirectory.NULL_GENERATION)
+	_zone_harvested_today_milli.fill(0)
+	_zone_quota_reserved_milli.fill(0)
+	_zone_quota_mode.fill(QUOTA_MODE_AUTOMATIC)
 	_zone_link_head.fill(NO_LINK)
 	_zone_tile_count.fill(0)
 	_zone_patch_count.fill(0)
@@ -479,6 +759,11 @@ func _clear_patch_columns() -> void:
 func directory() -> EntityDirectory:
 	"""The allocator behind every harvest-zone reference."""
 	return _directory
+
+
+func jobs() -> JobsScript:
+	"""The Job store every forage claim is owned by, or null when this store holds no claims."""
+	return _jobs
 
 
 # --- GDD §5.1 exterior tile geometry ---------------------------------------------------------------
@@ -539,8 +824,16 @@ func _refuse_create_zone(zone_type: int, danger: int, quota_milli: int) -> Strin
 
 func _write_created_zone(slot: int, ref: Vector2i, zone_type: int, danger: int, quota_milli: int,
 		is_protected: bool, is_enabled: bool) -> void:
-	"""Write every §4.2 column of a freshly designated zone and make it its own basin."""
+	"""Write every §4.2 column of a freshly designated zone and make it its own basin.
+
+	R05-QUOTA-017: a created zone owns itself, so it is a basin, and a basin defaults to
+	Automatic. Its stored `quota_milli` is §4.2's own column and takes effect only once
+	set_quota_milli() puts the zone in Manual mode.
+	"""
 	_zone_present[slot] = 1
+	_zone_harvested_today_milli[slot] = 0
+	_zone_quota_reserved_milli[slot] = 0
+	_zone_quota_mode[slot] = QUOTA_MODE_AUTOMATIC
 	_zone_type[slot] = zone_type
 	_zone_danger[slot] = danger
 	_zone_quota_milli[slot] = quota_milli
@@ -561,14 +854,22 @@ func destroy_zone(ref: Vector2i) -> OpResult:
 
 	Returns the number of tile links released. Refuses a stale or wrong-kind reference rather
 	than clearing whatever row it points at, which is what makes a reused slot safe.
+
+	Ruling §4.5: deleting a designation "releases its outstanding claims first" and does not reset
+	the basin's usage. Only THIS row's daily totals are cleared; the basin it drew from keeps its
+	collected total, its own claims and its annual patch counters.
 	"""
 	if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_HARVEST_ZONE):
 		return _refuse(REFUSE_ZONE_NOT_PRESENT)
 	var slot: int = _directory.get_typed_row(ref)
 	if not is_zone_present(slot):
 		return _refuse(REFUSE_ZONE_NOT_PRESENT)
+	_release_claims_of_zone_slot(slot)
 	var released: int = _release_zone_links(slot)
 	_release_zone_patches(slot)
+	_zone_harvested_today_milli[slot] = 0
+	_zone_quota_reserved_milli[slot] = 0
+	_zone_quota_mode[slot] = QUOTA_MODE_AUTOMATIC
 	_zone_present[slot] = 0
 	_zone_ref_slot[slot] = EntityDirectory.NULL_SLOT
 	_zone_ref_generation[slot] = EntityDirectory.NULL_GENERATION
@@ -690,7 +991,11 @@ func zone_danger_of(slot: int) -> IntMath.IntResult:
 
 
 func zone_quota_milli_of(slot: int) -> IntMath.IntResult:
-	"""The zone's §4.2 `quota_milli`, or an explicit refusal. See the header on its period."""
+	"""The zone's stored §4.2 `quota_milli`: the MANUAL daily value, in milli-U per calendar day.
+
+	It is the effective limit only while the zone's quota mode is Manual; daily_quota_milli_of()
+	is the reader that resolves Automatic and Inherit as well.
+	"""
 	var out: IntMath.IntResult = IntMath.IntResult.new()
 	if not is_zone_present(slot):
 		out.refuse(String(REFUSE_ZONE_NOT_PRESENT))
@@ -911,6 +1216,10 @@ func set_basin(ref: Vector2i, basin_ref: Vector2i) -> OpResult:
 	This is the anti-multiplication gate. Refuses a zone that already owns patches (its stock
 	would be stranded), a basin that is itself bound elsewhere (a chain would give two answers
 	for one zone), and a basin of a different ZoneType.
+
+	Ruling §4.5: rebinding "releases its outstanding claims first ... before changing its identity
+	or basin", and neither release nor rebind resets basin usage. Both zones' collected totals
+	survive; only the claims this zone owned go.
 	"""
 	if not zone_slot_of_into(ref, _math) or not zone_slot_of_into(basin_ref, _math_b):
 		return _refuse(REFUSE_ZONE_NOT_PRESENT)
@@ -922,9 +1231,28 @@ func set_basin(ref: Vector2i, basin_ref: Vector2i) -> OpResult:
 		return _refuse(REFUSE_ZONE_TYPE_MISMATCH)
 	if basin_slot != slot and _zone_basin_slot[basin_slot] != basin_ref.x:
 		return _refuse(REFUSE_BASIN_CHAIN)
+	_release_claims_of_zone_slot(slot)
 	_zone_basin_slot[slot] = basin_ref.x
 	_zone_basin_generation[slot] = basin_ref.y
+	_normalise_quota_mode(slot)
 	return _succeed(basin_slot, basin_ref)
+
+
+func _normalise_quota_mode(slot: int) -> void:
+	"""Keep a zone's quota mode legal for what it now is (ruling §4.6's Valid-use column).
+
+	Automatic is a BASIN mode and Inherit is a DESIGNATION mode, so binding a self-owned zone to
+	another basin turns Automatic into Inherit -- which is also R05-QUOTA-018's default for a new
+	designation -- and unbinding turns Inherit back into Automatic. Manual is valid on both and is
+	never touched, so a player setting survives a rebind exactly as it survives a season change.
+	INTERPRETATION: the ruling states the valid-use table and the Inherit default, and this is the
+	only operation in this module that turns a basin into a designation.
+	"""
+	var is_designation: bool = _zone_basin_slot[slot] != _zone_ref_slot[slot]
+	if is_designation and _zone_quota_mode[slot] == QUOTA_MODE_AUTOMATIC:
+		_zone_quota_mode[slot] = QUOTA_MODE_INHERIT
+	elif not is_designation and _zone_quota_mode[slot] == QUOTA_MODE_INHERIT:
+		_zone_quota_mode[slot] = QUOTA_MODE_AUTOMATIC
 
 
 func basin_ref_of(slot: int) -> Vector2i:
@@ -1119,7 +1447,12 @@ func patch_capacity_milli_of(row: int) -> IntMath.IntResult:
 
 
 func harvested_year_milli_of(row: int) -> IntMath.IntResult:
-	"""The patch's year-to-date harvested total, the accumulator the quota is measured against."""
+	"""The patch's year-to-date harvested total: ANNUAL ECOLOGICAL HISTORY (decision 0030).
+
+	This is NOT the quota accumulator. The daily aggregate quota is measured against
+	HarvestZone.harvested_today_milli; this column exists so a year of pressure on one patch stays
+	visible after the daily counters have been reset 48 times.
+	"""
 	var out: IntMath.IntResult = IntMath.IntResult.new()
 	if not is_patch_present(row):
 		out.refuse(String(REFUSE_PATCH_NOT_PRESENT))
@@ -1129,7 +1462,11 @@ func harvested_year_milli_of(row: int) -> IntMath.IntResult:
 
 
 func reset_harvested_year() -> void:
-	"""Zero every patch's year-to-date total. The caller owns the year boundary (48 days, §5.1)."""
+	"""Zero every patch's year-to-date total. The caller owns the year boundary (48 days, §5.1).
+
+	Ruling §4.4: "Annual patch counters reset only at the existing year boundary." This does NOT
+	reopen a spent daily quota, and run_midnight() does not call it.
+	"""
 	_patch_harvested_year_milli.fill(0)
 
 
@@ -1257,89 +1594,338 @@ func harvest_floor_milli_into(row: int, intensive: bool, out: IntMath.IntResult)
 	return IntMath.floor_div_into(out.value, PERCENT_DENOMINATOR, out)
 
 
-func effective_quota_milli(ref: Vector2i) -> IntMath.IntResult:
-	"""The quota binding a harvest through this zone: `min(basin quota, this zone's quota)`.
+# --- decision 0030 §4.6: quota modes and the automatic seasonal allowance -------------------------
 
-	§5.1 gives the quota to the basin and §4.2 gives every zone one of its own; the stricter of
-	the two applies, so a second designation over the same basin can never raise the ceiling.
-	"""
+func is_quota_mode(mode: int) -> bool:
+	"""True when `mode` names one of catalog.gd's three compiled ForageQuotaMode ids."""
+	return mode >= 0 and mode < QUOTA_MODE_COUNT
+
+
+func quota_mode_of(slot: int) -> IntMath.IntResult:
+	"""The zone's quota mode, or an explicit refusal for a row holding no zone."""
 	var out: IntMath.IntResult = IntMath.IntResult.new()
-	effective_quota_milli_into(ref, out)
+	if not is_zone_present(slot):
+		out.refuse(String(REFUSE_ZONE_NOT_PRESENT))
+		return out
+	out.succeed(_zone_quota_mode[slot])
 	return out
 
 
-func effective_quota_milli_into(ref: Vector2i, out: IntMath.IntResult) -> bool:
-	"""Non-allocating effective_quota_milli(): write the binding quota into caller-owned `out`."""
+func is_designation(slot: int) -> bool:
+	"""True when this live zone draws from ANOTHER zone's basin, which is what makes it one."""
+	return is_zone_present(slot) and _zone_basin_slot[slot] != _zone_ref_slot[slot]
+
+
+func set_quota_mode(ref: Vector2i, mode: int, season: int) -> OpResult:
+	"""Set a zone's quota mode, then reconcile. Returns how many whole claims were released.
+
+	Ruling §4.6's Valid-use column is enforced, not merely documented: Automatic is a BASIN mode,
+	Inherit is a DESIGNATION mode, and Manual needs its stored value to be inside R05-QUOTA-020's
+	0..1180000 range, so a zone created with a larger §4.2 value cannot smuggle it in here.
+	"""
+	if not is_quota_mode(mode):
+		return _refuse(REFUSE_INVALID_QUOTA_MODE)
+	if not is_season(season):
+		return _refuse(REFUSE_INVALID_SEASON)
+	if not zone_slot_of_into(ref, _math):
+		return _refuse(StringName(_math.error))
+	var slot: int = _math.value
+	if mode == QUOTA_MODE_AUTOMATIC and is_designation(slot):
+		return _refuse(REFUSE_QUOTA_MODE_NOT_VALID_HERE)
+	if mode == QUOTA_MODE_INHERIT and not is_designation(slot):
+		return _refuse(REFUSE_QUOTA_MODE_NOT_VALID_HERE)
+	if mode == QUOTA_MODE_MANUAL and not _is_manual_quota(_zone_quota_milli[slot]):
+		return _refuse(REFUSE_INVALID_QUOTA)
+	_zone_quota_mode[slot] = mode
+	return reconcile_claims(season)
+
+
+func set_quota_milli(ref: Vector2i, quota_milli: int, season: int) -> OpResult:
+	"""Supply a manual daily quota (R05-QUOTA-020), then reconcile §4.5's excess claims.
+
+	Returns how many whole claims the change released. Supplying a value IS the manual override,
+	so the mode moves to Manual and then survives every later season change. The value is refused
+	outside 0..1180000 rather than clamped: there is no unlimited sentinel, and a designation's
+	larger value could never expand its basin's allowance anyway.
+	"""
+	if not _is_manual_quota(quota_milli):
+		return _refuse(REFUSE_INVALID_QUOTA)
+	if not is_season(season):
+		return _refuse(REFUSE_INVALID_SEASON)
+	if not zone_slot_of_into(ref, _math):
+		return _refuse(StringName(_math.error))
+	var slot: int = _math.value
+	_zone_quota_milli[slot] = quota_milli
+	_zone_quota_mode[slot] = QUOTA_MODE_MANUAL
+	return reconcile_claims(season)
+
+
+func _is_manual_quota(quota_milli: int) -> bool:
+	"""True when a value is inside ruling §4.6's inclusive 0..sum(K_i) manual range."""
+	return quota_milli >= MANUAL_QUOTA_MIN_MILLI and quota_milli <= MANUAL_QUOTA_MAX_MILLI
+
+
+func automatic_allowance_milli(kind: int, season: int) -> IntMath.IntResult:
+	"""Ruling §4.6's per-kind automatic allowance in milli-U/day."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	automatic_allowance_milli_into(kind, season, out)
+	return out
+
+
+func automatic_allowance_milli_into(kind: int, season: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating automatic_allowance_milli(): the §4.6 formula, into caller-owned `out`.
+
+	`0` when the kind is dormant; otherwise `min(K - target, floor((K - target) * r * S / 1000000)
+	+ 1000)` with `target = floor(800 * K / 1000)`. The headroom cap never binds on §5.5's shipped
+	table (header); it is implemented because the ruling states it.
+	"""
+	if not availability_per_1000_into(kind, season, out):
+		return false
+	var availability: int = out.value
+	if availability == 0:
+		return out.succeed(0)
+	var capacity: int = PATCH_CAPACITY_U[kind] * MILLI_PER_UNIT
+	var target: int = capacity * AUTOMATIC_TARGET_PER_1000 / AUTOMATIC_TARGET_DENOMINATOR
+	var headroom: int = capacity - target
+	if not IntMath.checked_mul_into(headroom, PATCH_REGROWTH_PER_1000[kind], out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	if not IntMath.checked_mul_into(out.value, availability, out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	if not IntMath.floor_div_into(out.value, AUTOMATIC_ALLOWANCE_DENOMINATOR, out):
+		return false
+	return out.succeed(mini(headroom, out.value + AUTOMATIC_ALLOWANCE_TERM_MILLI))
+
+
+func automatic_daily_quota_milli(season: int) -> IntMath.IntResult:
+	"""Ruling §4.6's automatic basin quota: the sum of the five per-kind allowances."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	automatic_daily_quota_milli_into(season, out)
+	return out
+
+
+func automatic_daily_quota_milli_into(season: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating automatic_daily_quota_milli(): the five-kind sum into caller-owned `out`.
+
+	It depends on §5.5's table and the season alone, not on any basin's current stock, exactly as
+	the ruling specifies: "It does not substitute current stock for target_stock_i."
+	"""
+	var total: int = 0
+	for kind: int in PATCHES_PER_ZONE:
+		if not automatic_allowance_milli_into(kind, season, out):
+			return false
+		total += out.value
+	return out.succeed(total)
+
+
+func daily_quota_milli_of(slot: int, season: int) -> IntMath.IntResult:
+	"""One zone's effective daily quota under its own mode."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	daily_quota_milli_into(slot, season, out)
+	return out
+
+
+func daily_quota_milli_into(slot: int, season: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating daily_quota_milli_of(): resolve Manual/Automatic/Inherit into `out`.
+
+	Inherit follows the basin's own effective quota, and basin chains are refused by set_basin(),
+	so this recurses exactly once. A zone left Inherit while owning itself is refused rather than
+	looped on; _normalise_quota_mode() is what stops that state existing.
+	"""
+	if not is_zone_present(slot):
+		return out.refuse(String(REFUSE_ZONE_NOT_PRESENT))
+	if not is_season(season):
+		return out.refuse(String(REFUSE_INVALID_SEASON))
+	var mode: int = _zone_quota_mode[slot]
+	if mode == QUOTA_MODE_MANUAL:
+		return out.succeed(_zone_quota_milli[slot])
+	if mode == QUOTA_MODE_AUTOMATIC:
+		return automatic_daily_quota_milli_into(season, out)
+	if not basin_slot_of_into(zone_ref_of(slot), out):
+		return false
+	var basin_slot: int = out.value
+	if basin_slot == slot:
+		return out.refuse(String(REFUSE_QUOTA_MODE_NOT_VALID_HERE))
+	return daily_quota_milli_into(basin_slot, season, out)
+
+
+# --- decision 0030 §4.2: the daily aggregate quota ------------------------------------------------
+
+func harvested_today_milli_of(slot: int) -> IntMath.IntResult:
+	"""`H`: total forage collected through this zone today, across all five kinds."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_zone_present(slot):
+		out.refuse(String(REFUSE_ZONE_NOT_PRESENT))
+		return out
+	out.succeed(_zone_harvested_today_milli[slot])
+	return out
+
+
+func quota_reserved_milli_of(slot: int) -> IntMath.IntResult:
+	"""`R`: uncollected quantity of every active claim naming this zone. A DERIVED CACHE.
+
+	Maintained atomically by the claim paths and rebuildable in full from the claim table by
+	rebuild_reservation_aggregates(); the ruling excludes it from canonical hashing for that
+	reason.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_zone_present(slot):
+		out.refuse(String(REFUSE_ZONE_NOT_PRESENT))
+		return out
+	out.succeed(_zone_quota_reserved_milli[slot])
+	return out
+
+
+func available_quota_milli(ref: Vector2i, season: int) -> IntMath.IntResult:
+	"""`max(0, min(Q_b - H_b - R_b, Q_z - H_z - R_z))` for a harvest through this designation."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	available_quota_milli_into(ref, season, out)
+	return out
+
+
+func available_quota_milli_into(ref: Vector2i, season: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating available_quota_milli(): write the ruling §4.2 formula into `out`."""
+	if not is_season(season):
+		return out.refuse(String(REFUSE_INVALID_SEASON))
 	if not zone_slot_of_into(ref, out):
 		return false
-	var own_quota: int = _zone_quota_milli[out.value]
+	var designation_slot: int = out.value
 	if not basin_slot_of_into(ref, out):
 		return false
-	return out.succeed(mini(own_quota, _zone_quota_milli[out.value]))
+	return _available_quota_into(designation_slot, out.value, season, out)
 
 
-func remaining_quota_milli(ref: Vector2i, kind: int) -> IntMath.IntResult:
-	"""How much of the shared quota is left for one kind this year, never below 0.
+func _available_quota_into(designation_slot: int, basin_slot: int, season: int,
+		out: IntMath.IntResult) -> bool:
+	"""Both applicable limits against their own collected and reserved totals, never below zero.
 
-	REQ-SET-069's stop condition. The accumulator is the BASIN's harvested_year_milli, so a
-	second zone over the same basin inherits the total the first one already took.
+	When the designation IS the basin there is one limit, read once. Otherwise the stricter of the
+	two binds, which is what makes a designation able to be stricter but never larger in effect.
 	"""
-	var out: IntMath.IntResult = IntMath.IntResult.new()
-	remaining_quota_milli_into(ref, kind, out)
-	return out
-
-
-func remaining_quota_milli_into(ref: Vector2i, kind: int, out: IntMath.IntResult) -> bool:
-	"""Non-allocating remaining_quota_milli(): write the remaining quota into caller-owned `out`."""
-	if not patch_row_for_zone_into(ref, kind, out):
+	if not daily_quota_milli_into(basin_slot, season, out):
 		return false
-	var taken: int = _patch_harvested_year_milli[out.value]
-	if not effective_quota_milli_into(ref, out):
+	var basin_left: int = (out.value - _zone_harvested_today_milli[basin_slot]
+		- _zone_quota_reserved_milli[basin_slot])
+	if designation_slot == basin_slot:
+		return out.succeed(maxi(0, basin_left))
+	if not daily_quota_milli_into(designation_slot, season, out):
 		return false
-	return out.succeed(maxi(out.value - taken, 0))
+	var zone_left: int = (out.value - _zone_harvested_today_milli[designation_slot]
+		- _zone_quota_reserved_milli[designation_slot])
+	return out.succeed(maxi(0, mini(basin_left, zone_left)))
 
 
-func is_quota_reached(ref: Vector2i, kind: int) -> bool:
-	"""True when REQ-SET-069's quota condition holds and no new reservation may be made."""
-	if not remaining_quota_milli_into(ref, kind, _math_b):
+func is_quota_reached(ref: Vector2i, season: int) -> bool:
+	"""True when REQ-SET-069's daily quota condition holds and no new claim may be admitted."""
+	if not available_quota_milli_into(ref, season, _math_b):
 		return true
 	return _math_b.value <= 0
 
 
-func harvestable_milli(ref: Vector2i, kind: int, season: int, intensive: bool)\
-		-> IntMath.IntResult:
-	"""The largest harvest this zone could take right now: stock above the floor, capped by quota.
+# --- decision 0030 §4.3: stock reserved by outstanding claims -------------------------------------
 
-	0 is a truthful answer here, not a sentinel: a dormant, floored or quota-stopped patch really
-	does offer nothing. harvest() is the form that refuses with the reason.
-	"""
+func stock_reserved_milli(ref: Vector2i, kind: int) -> IntMath.IntResult:
+	"""Uncollected quantity of every active claim on this basin's patch of one kind."""
 	var out: IntMath.IntResult = IntMath.IntResult.new()
-	if not patch_row_for_zone_into(ref, kind, out):
+	if not is_patch_kind(kind):
+		out.refuse(String(REFUSE_INVALID_PATCH_KIND))
 		return out
-	var row: int = out.value
-	if not availability_per_1000_into(kind, season, out):
+	if not basin_slot_of_into(ref, out):
 		return out
-	if out.value == 0:
-		out.succeed(0)
-		return out
-	if not harvest_floor_milli_into(row, intensive, out):
-		return out
-	var above_floor: int = maxi(_patch_stock_milli[row] - out.value, 0)
-	if not remaining_quota_milli_into(ref, kind, out):
-		return out
-	out.succeed(mini(above_floor, out.value))
+	out.succeed(_stock_reserved_milli(out.value, kind))
 	return out
 
 
-# --- harvest -----------------------------------------------------------------------------------------------
+func _stock_reserved_milli(basin_slot: int, kind: int) -> int:
+	"""Sum `remaining_milli` over active claims naming this basin and kind.
+
+	A STRAIGHT SCAN of the 8192 claim rows, deliberately: the ruling budgets any acceleration
+	index separately and excludes it from §4.7's total, so none is added here. See the header's
+	unmeasured-cost note.
+	"""
+	var basin_ref: Vector2i = Vector2i(_zone_ref_slot[basin_slot], _zone_ref_generation[basin_slot])
+	var total: int = 0
+	for row: int in FORAGE_CLAIM_CAPACITY:
+		if _claim_active[row] != 1 or _claim_patch_kind[row] != kind:
+			continue
+		if _claim_basin_slot[row] != basin_ref.x or _claim_basin_generation[row] != basin_ref.y:
+			continue
+		total += _claim_remaining_milli[row]
+	return total
+
+
+func stock_available_milli(ref: Vector2i, kind: int, intensive: bool) -> IntMath.IntResult:
+	"""`max(0, stock - applicable_floor - stock_reserved)` for this zone's basin patch."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_patch_kind(kind):
+		out.refuse(String(REFUSE_INVALID_PATCH_KIND))
+		return out
+	if not basin_slot_of_into(ref, out):
+		return out
+	stock_available_milli_into(out.value, kind, intensive, out)
+	return out
+
+
+func stock_available_milli_into(basin_slot: int, kind: int, intensive: bool,
+		out: IntMath.IntResult) -> bool:
+	"""Non-allocating stock_available_milli(), taking the already-resolved BASIN row."""
+	if not is_patch_kind(kind):
+		return out.refuse(String(REFUSE_INVALID_PATCH_KIND))
+	var row: int = basin_slot * PATCHES_PER_ZONE + kind
+	if not is_patch_present(row):
+		return out.refuse(String(REFUSE_PATCH_NOT_PRESENT))
+	if not harvest_floor_milli_into(row, intensive, out):
+		return false
+	var above_floor: int = _patch_stock_milli[row] - out.value
+	return out.succeed(maxi(0, above_floor - _stock_reserved_milli(basin_slot, kind)))
+
+
+func harvestable_milli(ref: Vector2i, kind: int, season: int, intensive: bool)\
+		-> IntMath.IntResult:
+	"""The largest collection admissible right now: `min(available_quota, stock_available)`.
+
+	0 is a truthful answer here, not a sentinel: a dormant, floored, fully reserved or
+	quota-stopped patch really does offer nothing. harvest() refuses with the reason.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_patch_kind(kind):
+		out.refuse(String(REFUSE_INVALID_PATCH_KIND))
+		return out
+	if not zone_slot_of_into(ref, out):
+		return out
+	var designation_slot: int = out.value
+	if not patch_row_for_zone_into(ref, kind, out):
+		return out
+	_harvestable_into(designation_slot, out.value / PATCHES_PER_ZONE, kind, season, intensive, out)
+	return out
+
+
+func _harvestable_into(designation_slot: int, basin_slot: int, kind: int, season: int,
+		intensive: bool, out: IntMath.IntResult) -> bool:
+	"""`min(available_quota, stock_available)` for already-resolved designation and basin rows."""
+	if not availability_per_1000_into(kind, season, out):
+		return false
+	if out.value == 0:
+		return out.succeed(0)
+	if not stock_available_milli_into(basin_slot, kind, intensive, out):
+		return false
+	var stock: int = out.value
+	if not _available_quota_into(designation_slot, basin_slot, season, out):
+		return false
+	return out.succeed(mini(stock, out.value))
+
+
+# --- harvest: collection with no outstanding claim ------------------------------------------------
 
 func harvest(ref: Vector2i, kind: int, amount_milli: int, season: int, intensive: bool)\
 		-> OpResult:
-	"""Take `amount_milli` of one forage kind through a zone. Returns the stock left after it.
+	"""Collect `amount_milli` of one forage kind through a zone. Returns the stock left after it.
 
-	Refuses rather than clamping when the patch cannot give up exactly that much: a silent short
-	delivery would let a job book more cargo than the basin released. The debit lands on the
-	BASIN's row, so overlapping zones draw down one shared stock and one shared year total.
+	The unclaimed path: nothing was reserved in advance, so the whole amount is checked against
+	today's remaining allowance and against stock that no claim has already spoken for. Refuses
+	rather than clamping when the patch cannot give up exactly that much: a silent short delivery
+	would let a job book more cargo than the basin released. The stock debit and the annual
+	counter land on the BASIN's row; the collected total lands on the basin and, when it differs,
+	on the designation -- one harvest against two policy limits, never duplicate inventory.
 	"""
 	if not patch_row_for_zone_into(ref, kind, _math):
 		return _refuse(StringName(_math.error))
@@ -1354,38 +1940,86 @@ func harvest_into(ref: Vector2i, kind: int, amount_milli: int, season: int, inte
 	"""Non-allocating harvest(): write the stock remaining after the debit into caller-owned `out`.
 
 	`out` doubles as this call's scratch, so it must not be a result the caller still needs. A
-	refusal debits nothing: neither the shared stock nor the shared year total is touched.
+	refusal debits nothing: stock, the annual counter and both collected totals are untouched.
 	"""
+	if not is_patch_kind(kind):
+		return out.refuse(String(REFUSE_INVALID_PATCH_KIND))
+	if not zone_slot_of_into(ref, out):
+		return false
+	var designation_slot: int = out.value
 	if not patch_row_for_zone_into(ref, kind, out):
 		return false
 	var row: int = out.value
+	var basin_slot: int = row / PATCHES_PER_ZONE
 	var code: StringName = _check_harvest(ref, row, kind, amount_milli, season, intensive)
 	if code != REFUSE_NONE:
 		return out.refuse(String(code))
+	if not _may_credit_collected(designation_slot, basin_slot, amount_milli, out):
+		return false
+	_credit_collected(designation_slot, basin_slot, amount_milli)
 	_patch_stock_milli[row] -= amount_milli
 	_patch_harvested_year_milli[row] += amount_milli
 	return out.succeed(_patch_stock_milli[row])
 
 
+func _may_credit_collected(designation_slot: int, basin_slot: int, amount_milli: int,
+		out: IntMath.IntResult) -> bool:
+	"""Preflight both collected-total additions, so the commit that follows cannot wrap midway."""
+	if not IntMath.checked_add_into(_zone_harvested_today_milli[basin_slot], amount_milli, out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	if designation_slot == basin_slot:
+		return true
+	if not IntMath.checked_add_into(_zone_harvested_today_milli[designation_slot], amount_milli,
+			out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	return true
+
+
+func _credit_collected(designation_slot: int, basin_slot: int, amount_milli: int) -> void:
+	"""Add one collection to today's totals: the basin always, the designation only if different.
+
+	Ruling §4.2: "For `z == b`, update that zone's aggregates once." The two writes are sequential
+	`+=` on purpose, so crediting the same row twice would visibly double the total.
+	"""
+	_zone_harvested_today_milli[basin_slot] += amount_milli
+	if designation_slot != basin_slot:
+		_zone_harvested_today_milli[designation_slot] += amount_milli
+
+
 func _check_harvest(ref: Vector2i, row: int, kind: int, amount_milli: int, season: int,
 		intensive: bool) -> StringName:
-	"""REFUSE_NONE when this zone may take exactly `amount_milli` from `row` this season."""
+	"""REFUSE_NONE when this zone may collect exactly `amount_milli` from `row` this season."""
 	var zone_code: StringName = _check_harvest_zone(ref)
 	if zone_code != REFUSE_NONE:
 		return zone_code
-	if not availability_per_1000_into(kind, season, _math):
-		return StringName(_math.error)
-	if _math.value == 0:
+	if not availability_per_1000_into(kind, season, _math_c):
+		return StringName(_math_c.error)
+	if _math_c.value == 0:
 		return REFUSE_PATCH_DORMANT
 	if amount_milli <= 0:
 		return REFUSE_INVALID_AMOUNT
-	if not harvest_floor_milli_into(row, intensive, _math):
-		return StringName(_math.error)
-	if _patch_stock_milli[row] - amount_milli < _math.value:
+	return _check_harvest_limits(ref, row, kind, amount_milli, season, intensive)
+
+
+func _check_harvest_limits(ref: Vector2i, row: int, kind: int, amount_milli: int, season: int,
+		intensive: bool) -> StringName:
+	"""The floor, the claim-reserved stock and both daily quota limits, in that order.
+
+	The floor is reported separately from the reservation so a caller can tell "the ecology says
+	no" from "another job already promised this".
+	"""
+	var basin_slot: int = row / PATCHES_PER_ZONE
+	if not harvest_floor_milli_into(row, intensive, _math_c):
+		return StringName(_math_c.error)
+	if _patch_stock_milli[row] - amount_milli < _math_c.value:
 		return REFUSE_BELOW_HARVEST_FLOOR
-	if not remaining_quota_milli_into(ref, kind, _math):
-		return StringName(_math.error)
-	if amount_milli > _math.value:
+	if not stock_available_milli_into(basin_slot, kind, intensive, _math_c):
+		return StringName(_math_c.error)
+	if amount_milli > _math_c.value:
+		return REFUSE_STOCK_RESERVED
+	if not available_quota_milli_into(ref, season, _math_c):
+		return StringName(_math_c.error)
+	if amount_milli > _math_c.value:
 		return REFUSE_QUOTA_REACHED
 	return REFUSE_NONE
 
@@ -1406,6 +2040,740 @@ func _check_harvest_zone(ref: Vector2i) -> StringName:
 	if _zone_protected[slot] == 1:
 		return REFUSE_ZONE_PROTECTED
 	return REFUSE_NONE
+
+
+# --- decision 0030 §4.3: ForageClaim lifecycle ----------------------------------------------------
+
+func claim_count() -> int:
+	"""Number of active forage claims across the whole 8192-row table."""
+	return _claim_count
+
+
+func is_claim_active(row: int) -> bool:
+	"""True when `row` is in range and holds an active claim."""
+	return row >= 0 and row < FORAGE_CLAIM_CAPACITY and _claim_active[row] == 1
+
+
+func claim_row_of(job_ref: Vector2i) -> IntMath.IntResult:
+	"""The claim row a Job owns, or an explicit refusal naming why it owns none."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	claim_row_of_into(job_ref, out)
+	return out
+
+
+func claim_row_of_into(job_ref: Vector2i, out: IntMath.IntResult) -> bool:
+	"""Non-allocating claim_row_of(): validate the Job reference AND its generation into `out`.
+
+	R05-QUOTA-023: a retired or reused Job row must not leave a prior generation's claim usable.
+	The claim stores the reference it was created with, so a row whose Job has been destroyed and
+	replaced refuses with CLAIM_STALE_JOB instead of acting for the newcomer.
+	"""
+	if not _directory.is_valid_of_kind(job_ref, EntityDirectory.KIND_JOB):
+		return out.refuse(String(REFUSE_JOB_NOT_PRESENT))
+	var row: int = _directory.get_typed_row(job_ref)
+	if row < 0 or row >= FORAGE_CLAIM_CAPACITY:
+		return out.refuse(String(REFUSE_JOB_NOT_PRESENT))
+	if _claim_active[row] != 1:
+		return out.refuse(String(REFUSE_CLAIM_NOT_PRESENT))
+	if _claim_job_slot[row] != job_ref.x or _claim_job_generation[row] != job_ref.y:
+		return out.refuse(String(REFUSE_CLAIM_STALE_JOB))
+	return out.succeed(row)
+
+
+func claim_remaining_milli_of(row: int) -> IntMath.IntResult:
+	"""The uncollected quantity a claim still promises its owning Job."""
+	return _read_claim(row, _claim_remaining_milli)
+
+
+func claim_created_tick_of(row: int) -> IntMath.IntResult:
+	"""The owning Job's `created_tick`, cached at claim time: §4.5's first release-order term."""
+	return _read_claim(row, _claim_created_tick)
+
+
+func claim_persistent_id_of(row: int) -> IntMath.IntResult:
+	"""The owning Job's persistent ID, cached at claim time: §4.5's release-order tiebreak."""
+	return _read_claim(row, _claim_persistent_id)
+
+
+func _read_claim(row: int, column: PackedInt64Array) -> IntMath.IntResult:
+	"""Read one int64 claim column of an active row, refusing rather than returning a default."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_claim_active(row):
+		out.refuse(String(REFUSE_CLAIM_NOT_PRESENT))
+		return out
+	out.succeed(column[row])
+	return out
+
+
+func claim_kind_of(row: int) -> IntMath.IntResult:
+	"""Which of §5.5's five forage rows a claim names. One claim names exactly one kind."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_claim_active(row):
+		out.refuse(String(REFUSE_CLAIM_NOT_PRESENT))
+		return out
+	out.succeed(_claim_patch_kind[row])
+	return out
+
+
+func claim_job_ref_of(row: int) -> Vector2i:
+	"""The owning Job reference of an active claim, or the §4.1 null reference `(-1, 0)`."""
+	if not is_claim_active(row):
+		return NULL_REF
+	return Vector2i(_claim_job_slot[row], _claim_job_generation[row])
+
+
+func claim_designation_ref_of(row: int) -> Vector2i:
+	"""The designation an active claim harvests through, or the §4.1 null reference."""
+	if not is_claim_active(row):
+		return NULL_REF
+	return Vector2i(_claim_designation_slot[row], _claim_designation_generation[row])
+
+
+func claim_basin_ref_of(row: int) -> Vector2i:
+	"""The basin an active claim draws stock from, or the §4.1 null reference."""
+	if not is_claim_active(row):
+		return NULL_REF
+	return Vector2i(_claim_basin_slot[row], _claim_basin_generation[row])
+
+
+func claim_forage(job_ref: Vector2i, designation_ref: Vector2i, kind: int, amount_milli: int,
+		season: int, intensive: bool) -> OpResult:
+	"""Reserve the COMPLETE intended collection for one Job. Returns its claim row.
+
+	R05-QUOTA-005: quota and stock are preflighted and committed atomically, or every quantity is
+	left unchanged. One pending claim per owning Job, naming one basin, one designation and one
+	kind, so a second kind needs a second Job; shared work claims through its COORDINATOR, and a
+	member Job is refused rather than reserving the same stock twice. Output capacity, consent and
+	destination legality are the caller's preflights and are not checked here (header).
+	"""
+	if _jobs == null:
+		return _refuse(REFUSE_NO_JOB_STORE)
+	var owner_code: StringName = _check_claim_owner(job_ref)
+	if owner_code != REFUSE_NONE:
+		return _refuse(owner_code)
+	var request_code: StringName = _check_claim_request(designation_ref, kind, amount_milli,
+		season, intensive)
+	if request_code != REFUSE_NONE:
+		return _refuse(request_code)
+	if not _may_reserve_quota(_pending_designation_slot, _pending_basin_slot, amount_milli,
+			_math_c):
+		return _refuse(StringName(_math_c.error))
+	_reserve_quota(_pending_designation_slot, _pending_basin_slot, amount_milli)
+	var row: int = _directory.get_typed_row(job_ref)
+	_write_claim(row, job_ref, designation_ref, kind, amount_milli)
+	return _succeed(row, job_ref)
+
+
+func _check_claim_owner(job_ref: Vector2i) -> StringName:
+	"""REFUSE_NONE when this Job may own a new forage claim on its own row."""
+	if not _directory.is_valid_of_kind(job_ref, EntityDirectory.KIND_JOB):
+		return REFUSE_JOB_NOT_PRESENT
+	var job_slot: int = _directory.get_typed_row(job_ref)
+	if not _jobs.is_job_present(job_slot):
+		return REFUSE_JOB_NOT_PRESENT
+	if _jobs.is_member(job_slot):
+		return REFUSE_JOB_IS_MEMBER
+	if _claim_active[job_slot] != 1:
+		return REFUSE_NONE
+	if _claim_job_slot[job_slot] == job_ref.x and _claim_job_generation[job_slot] == job_ref.y:
+		return REFUSE_CLAIM_PRESENT
+	return REFUSE_CLAIM_STALE_JOB
+
+
+func _check_claim_request(designation_ref: Vector2i, kind: int, amount_milli: int, season: int,
+		intensive: bool) -> StringName:
+	"""REFUSE_NONE when the designation, kind, season and amount are claimable.
+
+	Leaves the resolved designation row, basin row and patch row in `_pending_*` for the commit
+	that immediately follows. Nothing between the two calls can re-enter this store.
+	"""
+	var zone_code: StringName = _check_harvest_zone(designation_ref)
+	if zone_code != REFUSE_NONE:
+		return zone_code
+	if not is_patch_kind(kind):
+		return REFUSE_INVALID_PATCH_KIND
+	if not zone_slot_of_into(designation_ref, _math_c):
+		return StringName(_math_c.error)
+	_pending_designation_slot = _math_c.value
+	if not patch_row_for_zone_into(designation_ref, kind, _math_c):
+		return StringName(_math_c.error)
+	_pending_patch_row = _math_c.value
+	_pending_basin_slot = _pending_patch_row / PATCHES_PER_ZONE
+	if amount_milli <= 0:
+		return REFUSE_INVALID_AMOUNT
+	if not availability_per_1000_into(kind, season, _math_c):
+		return StringName(_math_c.error)
+	if _math_c.value == 0:
+		return REFUSE_PATCH_DORMANT
+	return _check_claim_limits(designation_ref, kind, amount_milli, season, intensive)
+
+
+func _check_claim_limits(designation_ref: Vector2i, kind: int, amount_milli: int, season: int,
+		intensive: bool) -> StringName:
+	"""`admissible <= min(available_quota, stock_available)`, with the floor reported separately."""
+	if not available_quota_milli_into(designation_ref, season, _math_c):
+		return StringName(_math_c.error)
+	if amount_milli > _math_c.value:
+		return REFUSE_QUOTA_REACHED
+	if not harvest_floor_milli_into(_pending_patch_row, intensive, _math_c):
+		return StringName(_math_c.error)
+	if _patch_stock_milli[_pending_patch_row] - amount_milli < _math_c.value:
+		return REFUSE_BELOW_HARVEST_FLOOR
+	if not stock_available_milli_into(_pending_basin_slot, kind, intensive, _math_c):
+		return StringName(_math_c.error)
+	if amount_milli > _math_c.value:
+		return REFUSE_STOCK_RESERVED
+	return REFUSE_NONE
+
+
+func _may_reserve_quota(designation_slot: int, basin_slot: int, amount_milli: int,
+		out: IntMath.IntResult) -> bool:
+	"""Preflight both reservation additions, so the commit that follows cannot wrap midway."""
+	if not IntMath.checked_add_into(_zone_quota_reserved_milli[basin_slot], amount_milli, out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	if designation_slot == basin_slot:
+		return true
+	if not IntMath.checked_add_into(_zone_quota_reserved_milli[designation_slot], amount_milli,
+			out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	return true
+
+
+func _reserve_quota(designation_slot: int, basin_slot: int, amount_milli: int) -> void:
+	"""Add one claim to the outstanding totals: the basin always, the designation if different."""
+	_zone_quota_reserved_milli[basin_slot] += amount_milli
+	if designation_slot != basin_slot:
+		_zone_quota_reserved_milli[designation_slot] += amount_milli
+
+
+func _write_claim(row: int, job_ref: Vector2i, designation_ref: Vector2i, kind: int,
+		amount_milli: int) -> void:
+	"""Write one claim row and cache §4.5's release-order key from the owning Job.
+
+	`created_tick` and the persistent ID are read from the Job exactly once here. Neither can
+	change while that Job row lives, and both are rebuilt on load, so this is a cache of the
+	Job's own fields and NOT a separate claim creation timestamp.
+	"""
+	var basin_ref: Vector2i = Vector2i(_zone_ref_slot[_pending_basin_slot],
+		_zone_ref_generation[_pending_basin_slot])
+	_claim_active[row] = 1
+	_claim_job_slot[row] = job_ref.x
+	_claim_job_generation[row] = job_ref.y
+	_claim_designation_slot[row] = designation_ref.x
+	_claim_designation_generation[row] = designation_ref.y
+	_claim_basin_slot[row] = basin_ref.x
+	_claim_basin_generation[row] = basin_ref.y
+	_claim_patch_kind[row] = kind
+	_claim_remaining_milli[row] = amount_milli
+	_claim_created_tick[row] = _jobs.created_tick_of(row).value
+	_claim_persistent_id[row] = _directory.get_persistent_id(job_ref)
+	_claim_count += 1
+
+
+func collect_claim(job_ref: Vector2i, amount_milli: int, season: int, intensive: bool)\
+		-> OpResult:
+	"""Collect part or all of a Job's claim. Returns the amount collected, for one cargo creation.
+
+	R05-QUOTA-003: the amount moves from reserved to collected in one atomic transaction, the
+	basin's stock and annual counter move with it, and a fully collected claim closes. Collection
+	is charged to the day it happens. The claim does NOT bypass collection-time validation: the
+	designation must still be enabled, unprotected and in season, and the floor still binds.
+	"""
+	if _jobs == null:
+		return _refuse(REFUSE_NO_JOB_STORE)
+	if not claim_row_of_into(job_ref, _math):
+		return _refuse(StringName(_math.error))
+	var row: int = _math.value
+	var code: StringName = _check_collect(row, amount_milli, season, intensive)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_apply_collection(row, amount_milli)
+	return _succeed(amount_milli, job_ref)
+
+
+func _check_collect(row: int, amount_milli: int, season: int, intensive: bool) -> StringName:
+	"""REFUSE_NONE when this claim may collect exactly `amount_milli` right now.
+
+	Leaves the resolved designation, basin and patch rows in `_pending_*` for _apply_collection().
+	"""
+	if amount_milli <= 0 or amount_milli > _claim_remaining_milli[row]:
+		return REFUSE_INVALID_AMOUNT
+	var designation_ref: Vector2i = claim_designation_ref_of(row)
+	var zone_code: StringName = _check_harvest_zone(designation_ref)
+	if zone_code != REFUSE_NONE:
+		return zone_code
+	var kind: int = _claim_patch_kind[row]
+	if not availability_per_1000_into(kind, season, _math_c):
+		return StringName(_math_c.error)
+	if _math_c.value == 0:
+		return REFUSE_PATCH_DORMANT
+	if not zone_slot_of_into(designation_ref, _math_c):
+		return StringName(_math_c.error)
+	_pending_designation_slot = _math_c.value
+	if not patch_row_for_zone_into(designation_ref, kind, _math_c):
+		return StringName(_math_c.error)
+	_pending_patch_row = _math_c.value
+	_pending_basin_slot = _pending_patch_row / PATCHES_PER_ZONE
+	if not harvest_floor_milli_into(_pending_patch_row, intensive, _math_c):
+		return StringName(_math_c.error)
+	if _patch_stock_milli[_pending_patch_row] - amount_milli < _math_c.value:
+		return REFUSE_BELOW_HARVEST_FLOOR
+	return _check_collect_quota(amount_milli, season)
+
+
+func _check_collect_quota(amount_milli: int, season: int) -> StringName:
+	"""Both daily limits still admit this collection, measured against collected totals alone.
+
+	The amount is already inside `R`, so converting it to `H` leaves `Q - H - R` unchanged. What
+	is checked is the limit itself. Every admission path guarantees `H + R <= Q`, so this can only
+	fire where that invariant was not established here: a caller collecting under a DIFFERENT
+	season than the boundary reconciled with meets a lower automatic quota, and restore_claim()
+	writes a saved record with no preflight at all. Both must stop the collection rather than
+	overshoot the limit.
+	"""
+	if not daily_quota_milli_into(_pending_basin_slot, season, _math_c):
+		return StringName(_math_c.error)
+	if _zone_harvested_today_milli[_pending_basin_slot] + amount_milli > _math_c.value:
+		return REFUSE_QUOTA_REACHED
+	if _pending_designation_slot == _pending_basin_slot:
+		return REFUSE_NONE
+	if not daily_quota_milli_into(_pending_designation_slot, season, _math_c):
+		return StringName(_math_c.error)
+	if _zone_harvested_today_milli[_pending_designation_slot] + amount_milli > _math_c.value:
+		return REFUSE_QUOTA_REACHED
+	return REFUSE_NONE
+
+
+func _apply_collection(row: int, amount_milli: int) -> void:
+	"""Ruling §4.2's collection transaction, in its stated order and with its `z == b` rule.
+
+	Reserved falls and collected rises by the same amount on the basin, and again on the
+	designation ONLY when it is a different row; stock falls and the annual counter rises once.
+	A claim collected to zero closes, so its Job must reacquire before collecting again.
+	"""
+	var designation_slot: int = _pending_designation_slot
+	var basin_slot: int = _pending_basin_slot
+	_claim_remaining_milli[row] -= amount_milli
+	_zone_quota_reserved_milli[basin_slot] -= amount_milli
+	_zone_harvested_today_milli[basin_slot] += amount_milli
+	if designation_slot != basin_slot:
+		_zone_quota_reserved_milli[designation_slot] -= amount_milli
+		_zone_harvested_today_milli[designation_slot] += amount_milli
+	_patch_stock_milli[_pending_patch_row] -= amount_milli
+	_patch_harvested_year_milli[_pending_patch_row] += amount_milli
+	if _claim_remaining_milli[row] == 0:
+		_clear_claim_row(row)
+		_claim_count -= 1
+
+
+func release_claim(job_ref: Vector2i) -> OpResult:
+	"""Release a Job's uncollected claim. Returns the row it occupied.
+
+	R05-QUOTA-007's cancellation half. Releasing produces no WU, no XP, no cargo and no refund; it
+	returns the uncollected quantity to both applicable allowances and nothing else. Cargo already
+	collected under this claim is untouched.
+	"""
+	if _jobs == null:
+		return _refuse(REFUSE_NO_JOB_STORE)
+	if not claim_row_of_into(job_ref, _math):
+		return _refuse(StringName(_math.error))
+	var row: int = _math.value
+	_release_claim_row(row)
+	return _succeed(row, job_ref)
+
+
+func _release_claim_row(row: int) -> void:
+	"""Return one claim's uncollected quantity to both allowances and empty its row.
+
+	A zone that no longer exists is skipped rather than written to: destroy_zone() already zeroed
+	its totals, and the basin it drew from keeps its own usage either way.
+	"""
+	var amount: int = _claim_remaining_milli[row]
+	var basin_slot: int = _typed_zone_row_of(claim_basin_ref_of(row))
+	var designation_slot: int = _typed_zone_row_of(claim_designation_ref_of(row))
+	if basin_slot != EntityDirectory.NULL_SLOT:
+		_zone_quota_reserved_milli[basin_slot] -= amount
+	if designation_slot != EntityDirectory.NULL_SLOT and designation_slot != basin_slot:
+		_zone_quota_reserved_milli[designation_slot] -= amount
+	_clear_claim_row(row)
+	_claim_count -= 1
+
+
+func _clear_claim_row(row: int) -> void:
+	"""Return one claim row to exactly the state _clear_claim_columns() produces."""
+	_claim_active[row] = 0
+	_claim_job_slot[row] = EntityDirectory.NULL_SLOT
+	_claim_job_generation[row] = EntityDirectory.NULL_GENERATION
+	_claim_designation_slot[row] = EntityDirectory.NULL_SLOT
+	_claim_designation_generation[row] = EntityDirectory.NULL_GENERATION
+	_claim_basin_slot[row] = EntityDirectory.NULL_SLOT
+	_claim_basin_generation[row] = EntityDirectory.NULL_GENERATION
+	_claim_patch_kind[row] = -1
+	_claim_remaining_milli[row] = 0
+	_claim_created_tick[row] = 0
+	_claim_persistent_id[row] = 0
+
+
+func _typed_zone_row_of(ref: Vector2i) -> int:
+	"""The live HarvestZone row a reference names, or NULL_SLOT when it names none."""
+	if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_HARVEST_ZONE):
+		return EntityDirectory.NULL_SLOT
+	var slot: int = _directory.get_typed_row(ref)
+	return slot if is_zone_present(slot) else EntityDirectory.NULL_SLOT
+
+
+func release_claims_of_zone(ref: Vector2i) -> OpResult:
+	"""Release every claim naming this zone as basin or designation. Returns how many went."""
+	if not zone_slot_of_into(ref, _math):
+		return _refuse(StringName(_math.error))
+	return _succeed(_release_claims_of_zone_slot(_math.value), ref)
+
+
+func _release_claims_of_zone_slot(slot: int) -> int:
+	"""Release every claim naming this zone row, in ascending claim-row order."""
+	var zone_ref: Vector2i = Vector2i(_zone_ref_slot[slot], _zone_ref_generation[slot])
+	var released: int = 0
+	for row: int in FORAGE_CLAIM_CAPACITY:
+		if _claim_active[row] != 1:
+			continue
+		var names_zone: bool = ((_claim_basin_slot[row] == zone_ref.x
+				and _claim_basin_generation[row] == zone_ref.y)
+			or (_claim_designation_slot[row] == zone_ref.x
+				and _claim_designation_generation[row] == zone_ref.y))
+		if not names_zone:
+			continue
+		_release_claim_row(row)
+		released += 1
+	return released
+
+
+func purge_stale_claims() -> OpResult:
+	"""Release every claim whose owning Job reference no longer validates. Returns how many.
+
+	R05-QUOTA-023's housekeeping half: a Job destroyed without releasing its claim first leaves a
+	row that must not survive into the next Job to occupy it. claim_forage() refuses such a row
+	explicitly rather than reclaiming it silently, so this is the only path that clears it.
+	"""
+	var released: int = 0
+	for row: int in FORAGE_CLAIM_CAPACITY:
+		if _claim_active[row] != 1:
+			continue
+		if _directory.is_valid_of_kind(claim_job_ref_of(row), EntityDirectory.KIND_JOB):
+			continue
+		_release_claim_row(row)
+		released += 1
+	return _succeed(released, NULL_REF)
+
+
+func release_cancelled_claims() -> OpResult:
+	"""R05-QUOTA-007: release the claims of Jobs that are cancelled or gone. Returns how many.
+
+	The LEASE-EXPIRY half of that requirement is unreachable: jobs.gd records that `lease_expiry`
+	exists, is always 0 and is never written because ARCH-JOB-004 is unimplemented. Nothing here
+	invents an expiry rule to fire on.
+	"""
+	if _jobs == null:
+		return _refuse(REFUSE_NO_JOB_STORE)
+	var released: int = 0
+	for row: int in FORAGE_CLAIM_CAPACITY:
+		if _claim_active[row] != 1:
+			continue
+		if not _claim_is_cancelled(row):
+			continue
+		_release_claim_row(row)
+		released += 1
+	return _succeed(released, NULL_REF)
+
+
+func _claim_is_cancelled(row: int) -> bool:
+	"""True when a claim's owning Job is gone, replaced, or in JobState CANCELLED."""
+	var job_ref: Vector2i = claim_job_ref_of(row)
+	if not _directory.is_valid_of_kind(job_ref, EntityDirectory.KIND_JOB):
+		return true
+	var job_slot: int = _directory.get_typed_row(job_ref)
+	if not _jobs.state_into(job_slot, _math_c):
+		return true
+	return _math_c.value == JobsScript.JOB_STATE_CANCELLED
+
+
+# --- decision 0030 §4.5: reconciliation by whole claims, newest first ------------------------------
+
+func reconcile_claims(season: int) -> OpResult:
+	"""Release whole claims, newest first, until every applicable limit is satisfied.
+
+	Ruling §4.5: `maximum_outstanding_claims = max(0, Q - H)`, and excess is removed by releasing
+	WHOLE claims in `(job.created_tick, job.persistent_id)` DESCENDING order -- a job's promised
+	collection is never silently shrunk. One global order serves every zone at once, so a claim
+	over on either of its two applicable limits is released exactly once. Returns the count.
+	"""
+	if not is_season(season):
+		return _refuse(REFUSE_INVALID_SEASON)
+	var released: int = 0
+	while true:
+		var row: int = _newest_over_claim(season)
+		if row == NO_CLAIM:
+			break
+		_release_claim_row(row)
+		released += 1
+	return _succeed(released, NULL_REF)
+
+
+func _newest_over_claim(season: int) -> int:
+	"""The newest active claim whose basin or designation is over its allowance, or NO_CLAIM."""
+	var best: int = NO_CLAIM
+	var best_tick: int = 0
+	var best_id: int = 0
+	for row: int in FORAGE_CLAIM_CAPACITY:
+		if _claim_active[row] != 1 or not _claim_is_over_allowance(row, season):
+			continue
+		var tick: int = _claim_created_tick[row]
+		var persistent_id: int = _claim_persistent_id[row]
+		if best != NO_CLAIM and not _key_is_newer(tick, persistent_id, best_tick, best_id):
+			continue
+		best = row
+		best_tick = tick
+		best_id = persistent_id
+	return best
+
+
+func _key_is_newer(tick: int, persistent_id: int, other_tick: int, other_id: int) -> bool:
+	"""True when `(tick, persistent_id)` sorts strictly after `(other_tick, other_id)`."""
+	if tick != other_tick:
+		return tick > other_tick
+	return persistent_id > other_id
+
+
+func _claim_is_over_allowance(row: int, season: int) -> bool:
+	"""True when this claim must go: its zone is gone, or a zone it names is over its allowance."""
+	var basin_slot: int = _typed_zone_row_of(claim_basin_ref_of(row))
+	var designation_slot: int = _typed_zone_row_of(claim_designation_ref_of(row))
+	if basin_slot == EntityDirectory.NULL_SLOT or designation_slot == EntityDirectory.NULL_SLOT:
+		return true
+	if _zone_is_over_allowance(basin_slot, season):
+		return true
+	return designation_slot != basin_slot and _zone_is_over_allowance(designation_slot, season)
+
+
+func _zone_is_over_allowance(slot: int, season: int) -> bool:
+	"""True when a zone's outstanding total exceeds `max(0, Q - H)` for this season."""
+	if not daily_quota_milli_into(slot, season, _math_c):
+		return true
+	var allowance: int = maxi(0, _math_c.value - _zone_harvested_today_milli[slot])
+	return _zone_quota_reserved_milli[slot] > allowance
+
+
+func claims_released_by_quota(ref: Vector2i, quota_milli: int, season: int)\
+		-> IntMath.IntResult:
+	"""How many whole claims a reduction to `quota_milli` would release on this zone.
+
+	R05-QUOTA-015's number, without applying anything: the preview panel that would display it is
+	the UI's and is not built here. Walks the same newest-first order §4.5 releases in.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_season(season):
+		out.refuse(String(REFUSE_INVALID_SEASON))
+		return out
+	if not zone_slot_of_into(ref, out):
+		return out
+	var slot: int = out.value
+	out.succeed(_count_claims_over(slot, maxi(0, quota_milli - _zone_harvested_today_milli[slot])))
+	return out
+
+
+func _count_claims_over(slot: int, allowance_milli: int) -> int:
+	"""How many newest-first claims on one zone must go before its outstanding total fits.
+
+	The walk descends the `(created_tick, persistent_id)` order by carrying the previously chosen
+	key as an exclusive upper bound, so it needs no scratch list and mutates nothing.
+	"""
+	var outstanding: int = _zone_quota_reserved_milli[slot]
+	var bound_tick: int = IntMath.INT64_MAX
+	var bound_id: int = IntMath.INT64_MAX
+	var count: int = 0
+	while outstanding > allowance_milli:
+		var row: int = _newest_claim_of_zone_below(slot, bound_tick, bound_id)
+		if row == NO_CLAIM:
+			break
+		outstanding -= _claim_remaining_milli[row]
+		bound_tick = _claim_created_tick[row]
+		bound_id = _claim_persistent_id[row]
+		count += 1
+	return count
+
+
+func _newest_claim_of_zone_below(slot: int, bound_tick: int, bound_id: int) -> int:
+	"""The newest claim on one zone whose order key is strictly below `(bound_tick, bound_id)`."""
+	var zone_ref: Vector2i = Vector2i(_zone_ref_slot[slot], _zone_ref_generation[slot])
+	var best: int = NO_CLAIM
+	var best_tick: int = 0
+	var best_id: int = 0
+	for row: int in FORAGE_CLAIM_CAPACITY:
+		if _claim_active[row] != 1 or not _claim_names_zone(row, zone_ref):
+			continue
+		var tick: int = _claim_created_tick[row]
+		var persistent_id: int = _claim_persistent_id[row]
+		if not _key_is_newer(bound_tick, bound_id, tick, persistent_id):
+			continue
+		if best != NO_CLAIM and not _key_is_newer(tick, persistent_id, best_tick, best_id):
+			continue
+		best = row
+		best_tick = tick
+		best_id = persistent_id
+	return best
+
+
+func _claim_names_zone(row: int, zone_ref: Vector2i) -> bool:
+	"""True when a claim names this exact zone reference as its basin or its designation."""
+	if _claim_basin_slot[row] == zone_ref.x and _claim_basin_generation[row] == zone_ref.y:
+		return true
+	return (_claim_designation_slot[row] == zone_ref.x
+		and _claim_designation_generation[row] == zone_ref.y)
+
+
+# --- decision 0030 §4.4: the midnight boundary -----------------------------------------------------
+
+func run_midnight(tick: int, season: int) -> OpResult:
+	"""Apply the ruled quota order at one offset-calendar midnight. Returns claims released.
+
+	The order is exactly §4.4's: reset collected totals, PRESERVE outstanding claims and their
+	reservation totals, apply seasonal and automatic quota changes, release closure-invalidated
+	claims and reconcile the excess -- and only then may a caller admit or collect again.
+
+	`tick` must be a real crossing of `(tick + 4500) mod 18000`, taken from SimClock and never
+	re-derived: tick 0 is 06:00 and the first midnight is tick 13500, so `tick % 18000 == 0` names
+	06:00 of the next day and is refused here. Annual patch counters are NOT reset (that is
+	reset_harvested_year(), at the year boundary), and no Job lease is renewed or extended.
+	"""
+	if tick < 0:
+		return _refuse(REFUSE_INVALID_TICK)
+	if not SimClock.is_day_boundary(tick):
+		return _refuse(REFUSE_NOT_DAY_BOUNDARY)
+	if not is_season(season):
+		return _refuse(REFUSE_INVALID_SEASON)
+	_zone_harvested_today_milli.fill(0)
+	var closed: int = _release_closed_claims(season)
+	var reconciled: OpResult = reconcile_claims(season)
+	if not reconciled.ok:
+		return reconciled
+	return _succeed(closed + reconciled.value, NULL_REF)
+
+
+func _release_closed_claims(season: int) -> int:
+	"""Release every claim whose forage kind is dormant in the season now beginning.
+
+	§5.5 makes an unavailable patch "dormant, not destroyed", and a dormant patch yields nothing,
+	so a claim on one can never be collected and holds an allowance hostage until it is released.
+	"""
+	var released: int = 0
+	for row: int in FORAGE_CLAIM_CAPACITY:
+		if _claim_active[row] != 1:
+			continue
+		if not availability_per_1000_into(_claim_patch_kind[row], season, _math_c):
+			continue
+		if _math_c.value != 0:
+			continue
+		_release_claim_row(row)
+		released += 1
+	return released
+
+
+# --- decision 0030 §4.7: the load path and its derived aggregates ----------------------------------
+
+func restore_claim(job_ref: Vector2i, designation_ref: Vector2i, kind: int,
+		remaining_milli: int) -> OpResult:
+	"""Write one saved claim record WITHOUT touching the derived reservation totals.
+
+	R05-QUOTA-022's load half. A loader restores authoritative claim records and then calls
+	rebuild_reservation_aggregates() before any admission or collection resumes; that is why this
+	deliberately leaves `quota_reserved_milli` alone rather than maintaining it. It performs NO
+	quota or stock preflight either: the world being restored already committed those. References,
+	the patch kind and a positive quantity ARE validated, because a save that fails them must be
+	refused rather than loaded.
+	"""
+	if _jobs == null:
+		return _refuse(REFUSE_NO_JOB_STORE)
+	if remaining_milli <= 0 or remaining_milli > MANUAL_QUOTA_MAX_MILLI:
+		return _refuse(REFUSE_INVALID_AMOUNT)
+	var owner_code: StringName = _check_claim_owner(job_ref)
+	if owner_code != REFUSE_NONE:
+		return _refuse(owner_code)
+	if not is_patch_kind(kind):
+		return _refuse(REFUSE_INVALID_PATCH_KIND)
+	if not zone_slot_of_into(designation_ref, _math):
+		return _refuse(StringName(_math.error))
+	_pending_designation_slot = _math.value
+	if not patch_row_for_zone_into(designation_ref, kind, _math):
+		return _refuse(StringName(_math.error))
+	_pending_patch_row = _math.value
+	_pending_basin_slot = _pending_patch_row / PATCHES_PER_ZONE
+	var row: int = _directory.get_typed_row(job_ref)
+	_write_claim(row, job_ref, designation_ref, kind, remaining_milli)
+	return _succeed(row, job_ref)
+
+
+func rebuild_reservation_aggregates() -> OpResult:
+	"""Rebuild every derived quota total from the claim table. Returns the claims counted.
+
+	Ruling §4.7: "For each zone, reconstruct its outstanding total by summing active claims for
+	which it is the basin or designation, COUNTING A CLAIM ONCE when those references are
+	identical." Every zone total is zeroed first, so a stale cache cannot survive as an addend,
+	and the release-order keys are re-read from the owning Jobs at the same time.
+	"""
+	if _jobs == null:
+		return _refuse(REFUSE_NO_JOB_STORE)
+	_zone_quota_reserved_milli.fill(0)
+	var counted: int = 0
+	for row: int in FORAGE_CLAIM_CAPACITY:
+		if _claim_active[row] != 1:
+			continue
+		counted += 1
+		_refresh_claim_order_key(row)
+		var amount: int = _claim_remaining_milli[row]
+		var basin_slot: int = _typed_zone_row_of(claim_basin_ref_of(row))
+		var designation_slot: int = _typed_zone_row_of(claim_designation_ref_of(row))
+		if basin_slot != EntityDirectory.NULL_SLOT:
+			_zone_quota_reserved_milli[basin_slot] += amount
+		if designation_slot != EntityDirectory.NULL_SLOT and designation_slot != basin_slot:
+			_zone_quota_reserved_milli[designation_slot] += amount
+	_claim_count = counted
+	return _succeed(counted, NULL_REF)
+
+
+func _refresh_claim_order_key(row: int) -> void:
+	"""Re-read §4.5's release-order key from the owning Job, leaving it alone when the Job is gone."""
+	var job_ref: Vector2i = claim_job_ref_of(row)
+	if not _directory.is_valid_of_kind(job_ref, EntityDirectory.KIND_JOB):
+		return
+	var job_slot: int = _directory.get_typed_row(job_ref)
+	_claim_created_tick[row] = _jobs.created_tick_of(job_slot).value
+	_claim_persistent_id[row] = _directory.get_persistent_id(job_ref)
+
+
+func claim_payload_bytes() -> int:
+	"""Packed bytes of the ForageClaim columns the ruling specifies, from their actual sizes."""
+	return (_claim_active.size() * BYTES_PER_BYTE_COLUMN
+		+ (_claim_job_slot.size() + _claim_job_generation.size()
+			+ _claim_designation_slot.size() + _claim_designation_generation.size()
+			+ _claim_basin_slot.size() + _claim_basin_generation.size()
+			+ _claim_patch_kind.size()) * BYTES_PER_INT32
+		+ _claim_remaining_milli.size() * BYTES_PER_INT64)
+
+
+func quota_addition_bytes() -> int:
+	"""Ruling §4.7's whole quota addition: the claim payload plus the three HarvestZone columns.
+
+	It EXCLUDES decision 0026's separate 1024-byte basin reference and the ordering cache reported
+	by extra_ordering_buffer_bytes(), exactly as R05-QUOTA-024 requires.
+	"""
+	return (claim_payload_bytes()
+		+ (_zone_harvested_today_milli.size() + _zone_quota_reserved_milli.size())
+			* BYTES_PER_INT64
+		+ _zone_quota_mode.size() * BYTES_PER_BYTE_COLUMN)
+
+
+func extra_ordering_buffer_bytes() -> int:
+	"""The two release-order columns, counted OUTSIDE the ruling's payload total (header)."""
+	return (_claim_created_tick.size() + _claim_persistent_id.size()) * BYTES_PER_INT64
 
 
 # --- §5.5 work, REQ-SET-067 consent, REQ-SET-068 injury ------------------------------------------------------

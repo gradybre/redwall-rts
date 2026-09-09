@@ -41,11 +41,22 @@ under time pressure. The alternative readings are: patches genuinely are
 per-designation and §5.1's rule is enforced somewhere else entirely; or basin
 membership is derived from tile geometry rather than stored.
 
-The geometric reading was rejected on evidence, not preference: **no store owns a
-tile→basin mask** (`WorldTileMaps` has `building_slot`, `room_slot`,
-`zone_link_head`, `resource_slot` and no basin column), and registering both
-shipping-map forest basins tile by tile — roughly 7000 tiles — would consume most
-of §4.2's 16384 total link budget. `zones_intersect()` is exposed so the eventual
+**Amended 2026-09-09 — the first version of this paragraph overstated the case.**
+It said the geometric reading was rejected because no store owns a tile→basin
+mask. That is true of `WorldTileMaps` (`building_slot`, `room_slot`,
+`zone_link_head`, `resource_slot`, no basin column), but it is not the whole
+picture: `game_gdd.md:241` defines the basins geometrically — west
+`x=8..49,z=20..105`, east `x=82..119,z=20..105` — so membership *can* be computed
+by a predicate needing no storage. The 16384-link-budget objection applies only to
+the variant that registers ~6880 tiles as zone links, not to a pure test.
+
+The surviving objections are narrower. The rectangles exclude water, so the
+predicate must also apply §5.1's coast/river/lake mask priority, and each basin
+splits at `z=62` into north/south partners — four regions, not two. And it
+hardcodes one authored preset's geometry into the ecology store, where §5.1 calls
+the shipping map "a deterministic authored estuary preset". A stored reference
+answers for any map; a predicate answers only for this one. Neither objection is
+fatal, and the planner may still prefer derivation. `zones_intersect()` is exposed so the eventual
 designation command can enforce §5.1's intersection rule when a command path
 exists.
 

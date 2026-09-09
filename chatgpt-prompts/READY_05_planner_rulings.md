@@ -1,4 +1,14 @@
-# Ruling request — four open contracts in task 03
+# Ruling request — task 03 open contracts
+
+**Status 2026-09-09, revision 2.** Rulings 1, 2 and 3 have been **answered**
+and are implemented — the handoff is stored at
+`docs/rulings/2026-09-09_task03_planner_rulings.md` and folded into §5.10, §5.1,
+§4.2 and ARCH-RNG-002. Decisions 0028, 0029, 0030 record them; 0026 is now
+Accepted with the five ownership constraints.
+
+**Still open: ruling 4 below, which the handoff did not answer** (it responded to
+the three-ruling version at head `90739ef`, written before the fishing module
+existed), **and ruling 5, which the weather implementation newly surfaced.**
 
 **To:** Astra (planner / GDD + systems_architecture owner)
 **From:** Claude Code (executor)
@@ -265,6 +275,64 @@ was meant to warn rather than block, say so and column 2 disappears entirely.
   are, leaving REQ-SET-047's override prohibition ambiguous in scope. Treated as
   a closure, which is strictly the safer reading — it can only hold the floor at
   30%, never lower it.
+
+---
+
+## Ruling 5 — `WeatherEvent` has no enum, and two orderings contradict each other
+
+**New, found while implementing the now-unblocked weather module.** This is the
+same class as fishing's `HabitatType`, but **sharper, and it affects saves.**
+
+§4.2's `Weather` row types `event: enum`. §4.3 lists no `WeatherEvent` — the
+enum table runs Season through Severity with nothing weather-related.
+
+The sharper part: **§4.3 *does* list an `EventDefinition` catalog** with
+`id: StringName`, and `catalog.gd` compiles every catalog domain's keys in
+**ascending ASCII order** (that is its stated, tested contract — it exists so ids
+are independent of insertion order). Compiling the seven weather events that way
+would number them:
+
+| ASCII order | Value | §5.10 table order | Value |
+|---|---:|---|---:|
+| blight | 0 | ideal_spell | 0 |
+| calm_days | 1 | heavy_rain | 1 |
+| drought | 2 | drought | 2 |
+| early_frost | 3 | blight | 3 |
+| hard_freeze | 4 | early_frost | 4 |
+| heavy_rain | 5 | hard_freeze | 5 |
+| ideal_spell | 6 | calm_days | 6 |
+
+**The two orders agree on `drought` alone.** They cannot both be right, and
+`event` is persisted in the `Weather` row, so choosing wrong later renumbers a
+saved field.
+
+The implementation uses §5.10's printed order as module-local constants and
+deliberately does **not** add them to `PROTECTED_ENUM_DOMAINS`, for the reason
+given under ruling 4 — protecting a guess lends it the standing of a specified
+value.
+
+**What I need:** either add `WeatherEvent` to §4.3 with explicit values, or say
+the events are an `EventDefinition` catalog and therefore ASCII-numbered. Please
+also confirm whether `HabitatType` should be handled the same way, since the two
+questions now have the same shape.
+
+### Two related gaps, recorded but not blocking
+- **`EventDefinition.modifiers` is "a fixed int32 vector" with no stated width or
+  field order.** No modifier vector is emitted; each stated quantity has its own
+  named constant instead.
+- **The `Weather` row has no column naming the season its `start_day` belongs
+  to.** The caller supplies it, so the eligibility guard is only partial, and
+  §5.10's "exactly one major event per season" **cannot be enforced inside the
+  module** — ARCH-SYS-006 will own it. A test asserts that limit explicitly
+  rather than hiding it.
+
+### One interpretation worth a second opinion
+§5.10 writes "Temperature−3°C from baseline" for heavy rain but bare
+"Temperature−3°C" for early frost and "−12°C" for hard freeze. **"From baseline"
+appears exactly once**, so the bare forms are implemented as absolute. There is
+mechanical corroboration: BAL-CROP-001 makes `frost_tolerance` damage accrue per
+subzero hour, and the relative reading would put early frost at autumn 10 − 3 =
+**+7°C**, leaving "frost effects" with no mechanism at all. Confirm if you agree.
 
 ---
 

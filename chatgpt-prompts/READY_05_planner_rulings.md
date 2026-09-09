@@ -1,14 +1,18 @@
-# Ruling request — three open contracts blocking task 03
+# Ruling request — four open contracts in task 03
 
 **To:** Astra (planner / GDD + systems_architecture owner)
 **From:** Claude Code (executor)
 **Date:** 2026-09-09 · Branch `feat/ecology-rng` · Head `90739ef`
 
-Task 03 (ecology, crops, weather) has 10 increments. **1, 3 and 4 are done**
-— 853 tests, 26753 assertions, 0 failures, 24 mutations with no survivors.
-Everything unblocked in the group is now finished. The three items below are
-the whole remaining blocking set, and each is a **contract you own**, not an
-implementation choice I can make.
+Task 03 (ecology, crops, weather) has 10 increments. **1, 3, 4 and the stock
+half of 5 are done** — 926 tests, 27550 assertions, 0 failures. Everything
+unblocked in the group is now finished. The four items below are the whole
+remaining set, and each is a **contract you own**, not an implementation choice
+I can make.
+
+Rulings 1 and 2 **block work**. Rulings 3 and 4 cover schema that is already
+implemented and shipped as provisional, standing on my judgement rather than
+yours — which is not where it belongs.
 
 For each I give the exact clauses, why the gap is decision-shaped rather than
 guessable, the options with their measured consequences, and my recommendation.
@@ -201,12 +205,79 @@ say where, because nothing in the current schema can enforce it.
 
 ---
 
+## Ruling 4 — Fishing needs two state columns §4.2 does not provide
+
+**Already implemented and shipped as provisional** (decision 0027). Same class
+as ruling 3, but simpler: these are not contradictions. Nothing in the GDD
+*denies* these columns. They are absent, and the requirement text is
+unimplementable without them.
+
+### Column 1 — effort-slot occupancy
+
+§5.4 states the capacities ("Habitat effort capacity: river 4, lake 6, coast 6")
+and REQ-SET-044 says a starting cycle "shall reserve its effort slots". §4.2's
+`FishHabitat` row carries only `effort_slots` — **a capacity, with nowhere to
+record how many are taken.** REQ-SET-050 then requires occupied slots to queue
+further fishers "rather than multiply yield with unbounded workers", which
+cannot be enforced without the count.
+
+An occupancy counter is added, and **it is state a save must carry.**
+REQ-SET-050's *queue* is deliberately not added here — `JobState` already has
+`QUEUED=0` and §4.2 sizes the Job store at 8192 rows, so the queue lives there.
+
+### Column 2 — REQ-SET-048's hysteresis bit
+
+> When fishing stock falls below 30% capacity, the system shall warn of
+> depletion and default to restocking until stock recovers above 40%.
+
+Two thresholds, 30 down and 40 up. **Between them the required behaviour depends
+on which was crossed last, and population alone cannot answer that.** A
+`restocking` bit is added to `FishStock`; §4.2 gives that row only `closed`.
+
+I did not collapse this to one threshold. A single-threshold reading needs no
+column at all — which is exactly why "it would be simpler" is not a reason to
+choose it.
+
+### The interpretation this forces — and where I may have it wrong
+
+Below 30% the minimum-stock floor already refuses every harvest, so the
+restocking flag **can only bite in the 30–40% band.** I read it there as blocking
+harvest unless the visible intensive-harvest policy is on. "Default to" implies
+something overridable, and that policy is the only override §5.4 offers.
+
+**The alternative is warning-only**, and it is three lines away. If REQ-SET-048
+was meant to warn rather than block, say so and column 2 disappears entirely.
+
+### Also worth your attention
+
+- **There is no `HabitatType` enum.** §4.2 types `FishHabitat.type` as `enum`;
+  §4.3 does not list one; and the ordinal is genuinely ambiguous, since §5.1
+  orders the terrain masks "coast, river, lake" while §5.4's table orders them
+  "River, Lake, Coast". Held as module-local constants and deliberately **not**
+  added to the protected catalog table, because protecting a guess would give it
+  the standing of a specified value. **`type` is persisted, so renumbering it
+  later breaks saves** — this one is worth answering early.
+- **`pollution` has no stated effect** anywhere in the GDD, and **§5.4 gives the
+  25% refuge no mechanical effect** either. Both columns are stored and
+  range-validated, and tests assert that neither currently changes recovery,
+  catch, or allowed stock. If they are meant to do something, they do not yet.
+- **Carp's window is not labelled a spawning closure** while trout's and salmon's
+  are, leaving REQ-SET-047's override prohibition ambiguous in scope. Treated as
+  a closure, which is strictly the safer reading — it can only hold the floor at
+  30%, never lower it.
+
+---
+
 ## One gap I am *not* asking you to rule on yet
 
 **`quota_milli` has no stated period.** No clause says daily, seasonal or
 annual, and the only accumulator in the forage schema is
-`harvested_year_milli`. Worth your attention because §5.4's `FishStock` *does*
-carry `harvested_today_milli` and `ForagePatch` pointedly does not — so if a
-daily forage quota was intended, **this schema has nowhere to keep the
-counter.** Seven further undefined contracts are named in the module header of
+`harvested_year_milli`.
+
+Increment 5 has now made this concrete rather than theoretical. §5.4 states its
+quota is daily **and** §4.2 supplies `harvested_today_milli` — the same mechanism,
+fully specified. `HarvestZone.quota_milli` has neither, and `ForagePatch` has no
+daily accumulator at all. **So if a daily forage quota was intended, that schema
+has nowhere to keep the counter**, and fishing shows exactly what the complete
+version looks like. Seven further undefined contracts are named in the module header of
 `godot/scripts/core/forage.gd` rather than silently filled.

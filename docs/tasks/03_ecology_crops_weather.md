@@ -38,7 +38,7 @@ prerequisite. It is **not** the thing that animates the loop.
 | 2 | **Weather** — §5.10, REQ-SET-141–150, single global row | 1 | unblocked |
 | 3 | **ResourceNode** + minimal tile placement | — | **done** |
 | 4 | **HarvestZone + ForagePatch** — REQ-SET-066–069 | 1, 3 | unblocked |
-| 5 | **FishHabitat + FishStock** — §5.4 | 1 | **partly blocked by U5** (`GearInstance` has no allocator budget, so gear-wear cycles cannot be completed) |
+| 5 | **FishHabitat + FishStock** — §5.4 | 1 | **stock half done**; gear half still blocked by U5 (`GearInstance` has no allocator budget, so wear cycles cannot be completed) |
 | 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | unblocked; **the only real job-creation site** |
 | 7 | **FieldPolicy + sowing** — REQ-SET-070/071/077/078/088 | 6 | **needs a decision**: the GDD states the sowing validation gate but never the triggering event |
 | 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **pollination blocked by U6** (`HivePollinationLinks` has no owner-major index formula) |
@@ -68,6 +68,33 @@ immigration/departures and progression come later.
   dependency not previously tracked as a blocker. **Resolved by increment 1.**
 
 ### Found while implementing (2026-09-09)
+
+- **Increment 5's stock half is done** (`fishing.gd`): both stores, §5.4's nine-row
+  species table, daily recovery, seasonal windows and closures, the daily quota,
+  conservation floors, effort-slot capacity and the catch formula as a pure
+  parameterised reader. Gear, expeditions, hazard/rare rolls, weather-gated access
+  and lot creation are out and documented, not stubbed. **No RNG draws** — every
+  §5.4 draw belongs to a cycle, and cycles need gear.
+- **Two §4.2 columns had to be added, recorded as provisional decision 0027.**
+  `FishHabitat` has `effort_slots` (a capacity) but nowhere to record occupancy,
+  which REQ-SET-044/050 require; and REQ-SET-048's 30-down/40-up hysteresis needs
+  one bit that population alone cannot supply. Both are save-carried state.
+- **No `HabitatType` enum exists.** §4.2 types `FishHabitat.type` as `enum`, §4.3
+  does not list one, and the ordinal is ambiguous — §5.1 orders the terrain masks
+  "coast, river, lake", §5.4's table orders them "River, Lake, Coast". Held as
+  module-local constants and deliberately **not** added to `PROTECTED_ENUM_DOMAINS`
+  (decision 0018 covers enums §4.3 *numbers*). `type` is persisted, so a later
+  renumbering breaks saves.
+- **`pollution` has no stated effect** anywhere, and **§5.4 states no mechanical
+  effect for the 25% refuge** either. Both are stored and range-validated; tests
+  assert neither changes recovery, catch, or allowed stock.
+- **Carp's window is not labelled a spawning closure** while trout's and salmon's
+  are, leaving REQ-SET-047's scope ambiguous. Treated as a closure for the
+  override prohibition — strictly safer, since it can only hold the floor at 30%.
+- **`quota_milli`'s missing period, by contrast.** §5.4 states its quota is daily
+  *and* §4.2 supplies `harvested_today_milli`. `HarvestZone.quota_milli` has
+  neither, and `ForagePatch` has no daily accumulator. This is the worked example
+  of what the complete version looks like.
 
 - **The WEATHER stream has no roll-to-row mapping.** ARCH-RNG-002 fixes the draw
   count at one per season and §5.10 says weights are normalised within the

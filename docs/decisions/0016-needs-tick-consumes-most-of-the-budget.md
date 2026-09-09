@@ -170,3 +170,251 @@ Add allocation-free `_into` readers to the owning modules, retain the existing
 convenience readers, and **measure again**. That does not require choosing
 between this record's four options, and does not change needs timing. Status
 stays open until a release-build measurement on documented hardware exists.
+
+
+## Reader optimization follow-up (2026-09-07)
+
+Implemented caller-owned needs/residents readers and migrated factor, work eligibility,
+hazard-latch and XP reads without changing integration timing or gameplay formulas.
+Convenience results remain fresh; the whole WU tick still has other allocations.
+
+The original benchmark driver was missing, so the retained new harness compares source
+commit `48e92ce` with the updated code under the same explicit fixture. Measurements,
+24-process before/after parity, limitations, reproduction commands and test evidence are
+recorded in [the validation report](../validation/work_reader_benchmark.md). The two-tick
+aggregate is a CPU proxy, not a rendered-frame qualification. This follow-up does not
+choose among the four architectural options. **Status remains open.**
+
+
+## Profiling and adversarial workloads (2026-09-08) — the 64% figure does not survive decomposition
+
+Per the reader follow-up's own "exact next task," the remaining productive-WU tick cost was
+profiled directly instead of estimated again, and adversarial workloads were added before any
+further change to work arithmetic or needs timing. No file under `godot/scripts` was touched by
+this entry; `tools/benchmark_work.gd` and `tools/run_work_benchmark.py` gained isolated-part
+probes (`loop`, `pid`, `xp`, `result`, `factor`, `gate`) and two workloads beyond the original
+single-job-per-resident fixture (`bands`, spreading residents across §5.2's mood/health bands so
+the population is not uniform; `party`, decision 0017 coordinators of sizes 1–8). Evidence is in
+[the new validation report](../validation/work_profile_2026-09-08.md) and
+`validation-results/work-profile-2026-09-08/`.
+
+**The three named suspects are not the load-bearing cost.** The reader follow-up's 45%/19%
+figures were themselves decomposed further: the `work_factor_of()` reader chain (`factor` probe)
+and `resident_may_work()` (`gate` probe) had already been optimized by the reader follow-up above,
+and profiling the three remaining named suspects — `jobs.agent_persistent_id_of()` (`pid`), the
+XP-credit write (`xp`), and the escaping `TickResult` (`result`) — puts them at roughly **16%** of
+the WU tick combined at 256 residents, not the ~64% the original reader-plumbing estimate implied
+for the whole reader-call category. The `factor` probe alone, at roughly **24%**, is still larger
+than the three named suspects combined, and roughly half the tick is call-graph work no isolated
+probe accounts for. **A probe measures the cost of running that named part alone, in the same loop
+shape, with the same fixed per-iteration floor (`loop`) paid by every probe** — it does not measure
+what removing that part from the full tick would recover, because probes omit interaction
+(instruction-cache pressure, branch history, allocator state) that a full tick carries. The
+percentages above are ratios of isolated measurements, not attributions of cause. The correction
+already on record above — "the causation claim in this record overreaches" — stands and is not
+reintroduced by this entry.
+
+**Party structure is the largest measured effect found so far.** Holding resident state identical
+(the `bands` workload) and changing only job plumbing — 256 solo progress rows versus 59
+decision-0017 coordinators for the same 256 residents — costs about 450 microseconds less at the
+median for the combined needs+WU tick at 256 residents. Against 197 fewer progress rows
+(256 − 59), that implies a fixed per-progress-row overhead of at least 2.28 microseconds, against a
+whole-tick cost on the order of 11.34 microseconds per contributor. This was not a change under
+test; it is an incidental finding from comparing the `bands` and `party` workloads that existed
+only to give the per-part probes a non-synchronized population.
+
+**The `uniform` workload — the one this record's own earlier measurements used — has a p99
+artifact.** It gives every one of the 256 residents work factor exactly 1100 (the default spawn
+stats), so `80 * 1100 / 1000` releases exactly 88 milli-WU with a remainder of exactly zero on
+every tick, which means all 256 XP accumulators cross the 1000-milli-WU threshold on the same
+tick. Its p99 tail is a synchronized burst that no realistic settlement produces, not a genuine
+worst case. `bands` desynchronizes it and should be the reference workload for any future p99
+claim; a change scored against `uniform` p99 alone is partly being scored against this artifact.
+
+**Incidental finding, nothing changed:** `needs.gd`'s `work_factor()` clamp of
+`WORK_FACTOR_MIN`/`WORK_FACTOR_MAX` (300/1800) can never bind. The published band tables give a
+legal range of 360–1725, so no fixture — adversarial or otherwise — can drive that branch. It is
+unreachable rather than untested.
+
+**Scope of this measurement, restated because it still applies.** This is the editor binary
+(Godot 4.7.2.stable.official.ed1daf0bf) on an Apple M5 Pro; `godot/export_presets.cfg` is absent
+and the local export-template directory is empty, both recorded directly in the driver's
+`build_context`. This is neither a release measurement nor the REQ-SET-163 qualification-floor
+measurement (Ryzen 5 3600 / GTX 1660 Super / 16 GB), and no figure in this entry may be read
+against that budget. Verified: 631 tests / 19,381 assertions / 0 failures, unchanged from the
+prior entry, because no game code was touched. **Status remains open.** Selecting between this
+record's four architectural options still requires a release-build measurement on documented
+qualification hardware; this entry only replaces an inferred 64% reader-plumbing share with a
+measured, and smaller, one.
+
+
+## Release-build setup and re-measurement (2026-09-08) — the ranking survives release mode
+
+Decision 0024 orders release-build setup as step 6, after the baseline and the lazy-ID change.
+This entry does that step: every prior number in this record came from the editor binary with
+twenty-nine live asserts across the core modules, and a cost ranking taken on a binary that does
+not ship might reorder once those asserts and the editor's own overhead are gone. No file under
+`godot/scripts` was touched; `tools/benchmark_main_loop.gd`, `tools/compare_work_benchmarks.py`
+and `tools/export_benchmark_build.py` are new, and `tools/run_work_benchmark.py` gained a
+`--runner release` mode. Suite: 644 tests / 20,118 assertions / 0 failures, unchanged from the
+prior entry. Evidence: `validation-results/work-release-2026-09-08/`.
+
+**The command-line wrinkle was solved by testing, not assumption.** The release template binary
+cannot run a project directory at all: Godot's official export templates are built with
+`disable_path_overrides=true`, so `--path`, `--main-pack` and `-s/--script` are marked
+editor-only and the template aborts with an explicit compiled-without-support error rather than
+silently ignoring them. The benchmark driver therefore reaches an exported build through a
+project-setting delta naming a `SceneTree`-derived main loop class, with the benchmark fixture
+file itself left byte-identical between the editor and release runs, so both sides measure the
+same code through different entry points.
+
+**Asserts were proven stripped, not assumed.** A three-way probe places a call inside an assert
+condition and reports how many times it was evaluated. In both the editor binary and a
+`template_debug` export, the call is evaluated three times and execution halts at the failing
+assert. In `template_release` the call is evaluated zero times and execution continues past the
+same statement. Including the debug template alongside editor and release is what makes this a
+real proof rather than a coincidence of `OS.is_debug_build()`: it shows the probe distinguishes
+release from debug templates, not merely editor from non-editor. The driver now refuses to time
+anything under `--runner release` unless the build manifest shows asserts compiled out and the
+packed fixture, packed core sources and on-disk binary all hash as expected — every one of those
+checks raises, it does not warn.
+
+**The ranking did not change.** The factor chain (`work_factor_for_resident_into`'s call graph)
+remains the largest named cost at roughly 30% of the work tick on the mixed-bands ordinary-play
+reference, in the same relative order — factor > xp > gate > pid > result — across all three
+workloads at both 12 and 256 residents. Release mode is 28-31% faster than the editor binary
+across the board, well outside the 2.6-4.1% machine drift the byte-identical needs control
+measured across the session (recorded in `editor-drift-recheck-summary.md`, re-run to bound
+session-to-session noise rather than assumed from the earlier reader-follow-up figure). Stated
+plainly because it is the number that matters most: combined at 256 residents is 2160-2700
+microseconds at p99 in release mode, still above the 2000 microsecond tick budget, on an Apple
+M5 Pro that is far faster than the qualification floor. All 58 determinism-digest triples present
+in both the editor and release runs agree, so the release build produces bit-identical simulation
+state to the editor build on this fixture. This is explicitly not a REQ-SET-163 measurement: an
+Apple M5 Pro is not the Ryzen 5 3600 / GTX 1660 Super 6GB / 16GB reference, and Windows remains
+deferred.
+
+**The blocker that was not worked around.** Exporting for arm64 macOS requires
+`rendering/textures/vram_compression/import_etc2_astc`, which `project.godot` does not set. The
+export helper applies that setting to a throwaway copy of the project under `--work-dir` and
+records it as an explicit delta in the build manifest, rather than modifying the shipped
+`godot/project.godot`. Whoever owns `project.godot` must decide whether that setting belongs
+there permanently. **Status remains open.** This entry closes the release-build half of what the
+prior entry named as required before choosing among the four architectural options; the
+qualification-floor half — documented Ryzen 5 3600 / GTX 1660 Super hardware — is still
+outstanding.
+
+
+## `TickResult` `_into` and re-measurement (2026-09-08) — the blocked protocol had to be replaced
+
+Decision 0024 orders steps 4 and 5 next: an additive, caller-owned `_into` form for the tick
+result, then re-measure. `tick_solo_into()` and `tick_party_into()` write into a caller-owned
+`TickResult` and allocate nothing; `tick_solo()` and `tick_party()` remain as two-line allocating
+wrappers over the same implementation, so there is one solo-tick and one party-tick
+implementation in `work.gd`, not a fork. Suite: 653 tests / 20,567 assertions / 0 failures
+(previous entry 644/20,118/0). Evidence: `validation-results/work-into-2026-09-08/`.
+
+**Every call overwrites every field, refusals included.** `_refuse_into()` assigns all six
+`TickResult` fields and `_finish_into()` assigns all six before attempting the completion write,
+so a refusal into an object that last held a success cannot leave that success's `accepted_mwu`,
+`remaining_mwu`, `contributor_count` or `completed` readable behind a false `.ok`. This is
+mutation-proven: seven mutations, each skipping exactly one field write, were applied one line
+per run, and every one was caught by a named test. The test that matters most ticks a success
+into a result object, then a refusal into the same object, and asserts all six fields reflect the
+refusal rather than the prior success.
+
+**The standing blocked measurement protocol was inconclusive, and is reported as such rather than
+reported on its first number.** Two blocked before/after runs gave work-tick deltas whose sign
+depended on which block ran first, while the unmodified needs control moved 5.4% on one workload
+— too much to trust either block. Ten interleaved runs per side with a seeded permutation test
+(20000 permutations, seed 20260908) resolved it: against that protocol the mixed-bands
+ordinary-play reference fell 4.85% and uniform fell 4.48%, both with permutation p < 0.0001,
+while the byte-identical needs drift control moved within 0.5% with p between 0.19 and 0.84. This
+is the first result in this series distinguishable from machine drift by that test, and
+interleaved sampling with a permutation test, not a single before/after block, is now the
+protocol for any future work-tick comparison in this series.
+
+**The honest accounting against expectation.** The isolated persistent-ID-reader probe from the
+release-build entry above put a ceiling of 6.4% on mixed bands; the realised figure is 4.85%,
+about three-quarters of that ceiling — consistent with an isolated probe overstating a full-tick
+effect, per the standing correction that a probe measures the cost of running a part alone, not
+proof of what removing it returns. Parties realised 1.68% against a corrected expectation of
+roughly 2%. Nothing exceeded its prediction in either direction.
+
+**A cost that was found, not assumed.** The retained allocating wrappers now measure 1-2% slower
+than calling the `_into` forms directly (bands +1.64% p=0.13, uniform +2.29% p=0.0043, party
++0.70% p=0.28), from the added call indirection of the wrapper delegating to the `_into` form.
+The wrappers stay what decision 0024 calls them — a convenience for cold paths and retained
+results — and new callers should call `_into` directly.
+
+**Two findings for whoever works here next, recorded incidentally.** First, `work.gd` has no
+production caller at all: it is not wired into any autoload, scene or system, so every call site
+that moved to `_into` this session was in the benchmark harness, not gameplay code. Second, the
+release build manifest's executable hash is identical across builds that differ in
+`godot/scripts` content, because the exported Mach-O binary is the stock export template and the
+GDScript lives in the `.pck`; the binary hash proves which template the probe ran against but
+cannot discriminate two builds' code. The packed-fixture and packed-core-source hashes are what
+do that, and both fired correctly on every run in this entry.
+
+
+## Fused work-factor reader (2026-09-08) — the isolated-probe expectation was the error it warns about
+
+Decision 0024 section 4 orders the last remaining step: a needs-owned
+`work_factor_for_resident_into()` that validates one resident row once and calls the two existing
+formula implementations rather than copying either, so `work._compute_factor()` drops from three
+needs calls per resident to one. `mood_into()` now delegates to the same private
+`_mood_of_checked_row_into()` the fused reader calls, so the mood formula has exactly one
+implementation. This is explicitly not a cache: nothing is retained between calls, there is no
+dirty flag and no validity rule, stated in both the module header and the function's own
+docstring, because section 4 requires a cache's invalidation contract to cover every mutation
+before one may be authorised, and none is proposed here. Suite: 662 tests / 24,689 assertions / 0
+failures (previous entry 653/20,567/0). Evidence: `validation-results/work-fused-2026-09-08/`.
+
+**The realised figure landed far below the expectation set beforehand, and the shortfall is
+diagnostic rather than surprising.** Expectation going in was low-to-mid teens, drawn from the
+factor chain's ~32% share of the tick; the realised effect is 1.0-1.6% across the three workloads
+at 256 residents, permutation p between five and one hundred fifteen ten-thousandths. The fused
+reader does not remove the factor chain — it removes the duplicated presence validation and one
+call frame within it, roughly two of about fifteen call frames per resident. Treating an isolated
+probe's cost as the removable amount is precisely the error this decision's standing correction
+warns against, and the pre-change expectation made exactly that error by anchoring on the probe
+share instead of on what the change actually deletes.
+
+**The drift control had to be replaced, and its replacement is reported honestly, anomaly
+included.** This change edits `needs.gd`, so `needs.tick_all()` — the control used by every prior
+entry in this series — is no longer byte-identical across sides and cannot serve. Two replacements
+were added as a deliberate pair differing in one property: `dirctl`, an allocation-free
+`entity_directory.gd` sweep, and `prioctl`, an allocating `priorities.gd` sweep (`priorities.gd`
+publishes no `_into` form). Both sweep the same fixture at the same population doing the same kind
+of bounds- and generation-checked packed-column reads as the configs under test. A bare
+index-and-add loop was rejected as quantisation-dominated at single-digit microseconds. `prioctl`
+moved +1.33% on the party workload (p = 0.0105) while `dirctl` stayed flat on the same runs. That
+does not explain the work-tick result: the control moved up while the measured tick moved down on
+the same session, and drift would move both the same way. That is exactly what the allocating/
+allocation-free pair exists to distinguish, and the disagreement is recorded rather than netted
+into the headline number.
+
+**A cost was found, not assumed.** Sharing one mood implementation means `mood_into()` now
+delegates, adding a frame, and the unfused factor probe measured 2.8-3.8% slower as a result. This
+was accepted because a duplicated copy of a §7.1-verified formula is the drift hazard section 4
+forbids, and because neither `mood_into()` nor `mood_of()` has a production caller anywhere in the
+codebase.
+
+**Mutation evidence for one implementation, not two.** Breaking the shared work-factor divisor
+fails an absolute-value test on each path separately — 59 tests in total — while the equivalence
+test between the fused and unfused paths correctly stays green, because both paths move together
+under the same mutation. Six mutations were applied one line per run, each restored and
+hash-verified before the next ran, and none survived. Equivalence itself is swept across 660
+mood/health/skill-level combinations plus memory-total extremes, and refusal parity is checked for
+7 invalid-input cases.
+
+**Determinism and the harness's own honesty check.** All three `wu` digests match the values
+already committed in the step-4/5 and step-6 entries above, so this is bit-for-bit
+behaviour-preserving on these fixtures. The full 20-run interleaved series was discarded and
+re-run once, after a harness docstring was found to disagree with its own code following a
+control resize; the repeated series agreed with the discarded one, so nothing here rests on the
+run that was thrown away.
+
+**Status.** This closes decision 0024's execution order. Decision 0016 itself stays open: no
+choice has been made among the four architectural options, and no cache is proposed or justified
+by this entry.

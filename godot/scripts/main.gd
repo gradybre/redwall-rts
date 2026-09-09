@@ -2,7 +2,6 @@ extends Node
 ## Boot scene: wires the HUD to UIManager and seeds the starting settlement stores.
 
 const HudScript := preload("res://scripts/ui/hud.gd")
-const ResidentsScript := preload("res://scripts/core/residents.gd")
 
 ## GDD §5.1 initial inventory, in whole catalog units. Copied verbatim from the specification
 ## line "Initial inventory U: wood 180, stone 100, ..."; nothing here is invented or rounded.
@@ -36,20 +35,19 @@ const MILLI_PER_UNIT: int = 1000
 
 @onready var _hud: HudScript = $UI/HUD as HudScript
 
-## The settlement's population, owned here for as long as this scene lives. EconomySystem only
-## BORROWS it as the food-days divisor, so the reference must be held somewhere that outlives
-## the binding; a local would make `bind_residents(null)` free the settlement.
-var _residents: ResidentsScript = null
-
 
 func _ready() -> void:
 	"""Reset autoload state, register the HUD, seed the stores, and start play.
 
-	EntityManager and EconomySystem are autoloads and outlive this scene, so a
-	reload would otherwise inherit the previous run's entities and stores.
+	EntityManager, EconomySystem and SettlementSystem are autoloads and outlive this scene, so a
+	reload would otherwise inherit the previous run's entities, stores and settlement.
+
+	EconomySystem is reset BEFORE SettlementSystem: its reset drops the borrowed residents
+	binding, so the old settlement is unbound before it is cleared, never after.
 	"""
 	EntityManager.clear()
 	EconomySystem.reset()
+	SettlementSystem.reset()
 	if _hud == null:
 		push_error("main.tscn has no HUD at UI/HUD; the interface will not update.")
 	UIManager.register_hud(_hud)
@@ -66,36 +64,42 @@ func _ready() -> void:
 
 
 func _spawn_initial_cohort() -> void:
-	"""Create the GDD §5.1 starting settlement and bind it as the food-days divisor.
+	"""Ask SettlementSystem for the GDD §5.1 cohort and bind it as the food-days divisor.
 
-	Without a living cohort the food-days denominator is undefined, so
+	The population belongs to SettlementSystem, which ticks it; this scene only points
+	EconomySystem at it. Without a living cohort the food-days denominator is undefined, so
 	EconomySystem refuses the figure rather than displaying an unbounded reserve.
 
 	A refused spawn unbinds explicitly. Leaving an earlier run's cohort bound after a scene
 	reload would divide this run's stores by the previous run's population, which is a wrong
 	number on screen rather than an absent one.
 	"""
-	var residents: ResidentsScript = ResidentsScript.new()
-	var spawned: ResidentsScript.OpResult = residents.spawn_initial_settlement()
-	if not spawned.ok:
-		_residents = null
+	if not SettlementSystem.create_initial_settlement():
 		EconomySystem.bind_residents(null)
-		push_error("Initial settlement could not be created: %s" % spawned.error)
+		push_error("Initial settlement could not be created: %s" % SettlementSystem.last_refusal())
 		return
-	_residents = residents
-	EconomySystem.bind_residents(_residents)
+	EconomySystem.bind_residents(SettlementSystem.residents())
 
 
 func _exit_tree() -> void:
-	"""Release the HUD reference and the borrowed residents binding before this scene is freed."""
+	"""Release the HUD reference and the borrowed residents binding before this scene is freed.
+
+	The settlement itself is NOT cleared here. It is authoritative state owned by an autoload and
+	this scene is one view of it; the next boot resets it before creating a new cohort.
+	"""
 	UIManager.unregister_hud()
 	EconomySystem.bind_residents(null)
-	_residents = null
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	"""Map the cancel action to the pause toggle."""
-	if event.is_action_pressed(&"cancel"):
+	"""Toggle the player pause reason on UI §5's `time_pause` action.
+
+	UI §5 puts pause on Space with world focus (and Ctrl+Space outside text/rebind contexts).
+	Escape is NOT pause: it is `ui_cancel`, which dismisses exactly one layer, falling through
+	to `open_menu` once the dismissal stack is empty. The prototype bound pause to a `cancel`
+	action on Escape; that was a wrong behaviour, not merely a wrong name.
+	"""
+	if event.is_action_pressed(&"time_pause"):
 		GameManager.toggle_pause()
 		get_viewport().set_input_as_handled()
 

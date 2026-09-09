@@ -70,12 +70,27 @@ extends RefCounted
 ## reproducible across a save. On every other tick acceptance equals the sum of the potentials
 ## and each worker is credited their own, with no division performed at all.
 ##
+## IDENTITIES ARE READ LAZILY (decision 0024). A persistent ID decides nothing except a tie
+## between two equal fractional remainders, so it is fetched only on a finishing tick that still
+## has milli-WU left over after flooring, and then exactly once per frozen contributor into the
+## scratch column that already existed for it. An ordinary tick performs ZERO identity reads, and
+## so does a finishing tick whose floored shares happen to leave nothing over.
+##
+## WHERE THAT FETCH SITS, AND WHY. `_commit_into()` consumes the coordinator's outstanding work
+## BEFORE the leftover is handed out. A read that can refuse therefore cannot live in
+## `_distribute_leftover()`, which runs after that subtraction: a refusal there would abandon a
+## tick whose shared progress had already been spent. `_allocate_shares()` runs BEFORE the
+## subtraction, computes the floored shares, learns the leftover and loads the identities there,
+## so every identity-read refusal is resolved while the activity's remaining work and every XP
+## column are still untouched. The order of store mutations -- consume, then XP, then completion
+## -- is exactly what it was.
+##
 ## PASSIVE WAITING NEVER ACCELERATES WITH CREW SIZE, and cannot here: work is produced only from
 ## a member Job's own bound worker in JOB_STATE_WORK, so a coordinator with no contributing
 ## member produces nothing however many rows point at it.
 ##
 ## COMPLETION BELONGS TO THE COORDINATOR -- THIS AMENDS ARCH-JOB-005, which gives completion to
-## every member Job. `_finish()` writes JOB_STATE_COMPLETE on the coordinator row and on no
+## every member Job. `_finish_into()` writes JOB_STATE_COMPLETE on the coordinator row and on no
 ## other, and a second tick against a completed coordinator is refused rather than producing a
 ## second completion. Worker departure releases that worker's member assignment only: shared
 ## progress lives on the coordinator, which no departure path touches. Only explicit
@@ -88,7 +103,7 @@ extends RefCounted
 ##   * the Job is in JOB_STATE_WORK -- JOB_STATE_TRAVEL, RESERVED and HAUL_OUTPUT are the same
 ##     row in a non-producing phase, and eating, social and sleep are not Jobs at all,
 ##   * the Job has a live bound worker with a live JobAgent row,
-##   * `jobs.resident_may_work()` passes -- §5.3 eligibility step 1, the ONE implementation,
+##   * `jobs.resident_may_work_into()` passes -- §5.3 eligibility step 1, the ONE implementation,
 ##     called rather than copied, so REQ-SET-015's rest<=500 cancellation and REQ-SET-023's
 ##     incapacity exclusion apply on the productive tick and not only at assignment.
 ##
@@ -115,27 +130,46 @@ extends RefCounted
 ##   * REQ-SET-034's "finish at most the current 30-WU safe work segment" needs a segment
 ##     boundary that no document defines against this model; no interruption point is claimed.
 ##   * §5.3's "A completed batch's quality uses its lead worker's level at batch start" needs a
-##     lead-worker field and a batch/recipe store, neither of which exists. `_finish()` records
-##     completion and nothing else -- no outputs, no cycle wear, no cycle roll -- which is the
+##     lead-worker field and a batch/recipe store, neither of which exists. `_finish_into()`
+##     records completion and nothing else -- no outputs, no cycle wear, no cycle roll -- the
 ##     honest subset of 0017's "only the coordinator creates outputs ... and records completion"
 ##     that is implementable with no production system in the milestone.
 ##
 ## ---------------------------------------------------------------------------------------
 ## ALLOCATION. Every column is sized once in `_init()` and nothing outside `_allocate_columns()`
-## calls `resize()`. The party walk, the acceptance arithmetic, the proportional split and the
-## remainder carries allocate NOTHING: they run on packed columns through a single reused
-## IntResult, and `jobs.gd` publishes `remaining_mwu_into()`, `consume_remaining_mwu_into()`,
-## `state_into()`, `kind_into()`, `first_member_into()` and `next_member_into()` for exactly that
-## reason. The unavoidable cost is FOUR IntResult objects per contributing worker per tick, from
-## `residents.skill_level_of()`, `needs.health_of()`, `needs.mood_of()` and `needs.work_factor()`
-## -- plus one more inside `work_factor()` for `skill_factor()`, so five. Those two files publish
-## no `_into` reader forms and are NOT owned by this task, so five per contributing worker per
-## tick is the floor available here. Named, measured, and reported rather than worked around.
+## calls `resize()`. The party walk, acceptance arithmetic, proportional split and remainder
+## carries run on packed columns through one reused IntResult. The factor and resident work-gate
+## reader chains use caller-owned `_into` forms; each live value is copied into an integer before
+## that scratch is reused, so nested reads cannot alias an input. The leftover-only persistent-ID
+## read uses `jobs.agent_persistent_id_into()` and allocates nothing either. The escaping
+## TickResult and the XP mutator result retain their existing allocations. Allocating reader
+## wrappers remain fresh for cold paths and callers that keep a result.
 ##
 ## REFUSAL, NOT SENTINELS. Every operation returns a TickResult or an OpResult whose `.ok` must
 ## be inspected, and a refusal carries zero work, zero contributors and `completed = false`. "No
 ## contributor this tick" is REFUSE_NO_CONTRIBUTORS, never a silent zero that a caller could read
 ## as progress.
+##
+## ---------------------------------------------------------------------------------------
+## THE TWO TICK ENTRY POINTS (decision 0024 §2). `tick_solo_into(job_slot, out)` and
+## `tick_party_into(coordinator_slot, out)` write into a CALLER-OWNED TickResult and allocate
+## nothing; `tick_solo()` and `tick_party()` remain, each allocating one TickResult and handing
+## it to the `_into` form. THE IMPLEMENTATION IS NOT FORKED -- the wrappers are two lines and a
+## return, so there is one solo tick and one party tick in this file and no behaviour can drift
+## between the forms.
+##
+## EVERY CALL OVERWRITES EVERY FIELD, REFUSALS INCLUDED. `_refuse_into()` assigns all six fields
+## of the result and `_finish_into()` assigns all six before it attempts the completion write, so
+## a refusal into an object that last held a success cannot leave that success's `accepted_mwu`,
+## `remaining_mwu`, `contributor_count` or `completed` readable behind a false `.ok`. A refusal
+## path that wrote only `ok` and `error` is precisely the leak this contract forbids.
+##
+## RETAINED RESULTS NEED THEIR OWN STORAGE. The `_into` forms MUTATE the object they are given.
+## A caller that keeps a result past the tick -- to compare with the next one, to hand to UI, to
+## queue for a later frame -- must give each retained outcome its OWN TickResult, or call the
+## allocating wrapper, which supplies a fresh one every time. Passing one reused scratch result
+## and also storing a reference to it means the stored reference changes underneath the holder on
+## the next tick. That is not a bug in these functions; it is what caller-owned storage means.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -202,6 +236,11 @@ class TickResult:
 
 	`.ok` MUST be inspected before any other field. A refusal carries zero accepted work, zero
 	contributors and `completed = false`, so an ignored refusal cannot read as quiet progress.
+
+	AN INSTANCE PASSED TO `tick_solo_into()` OR `tick_party_into()` IS OVERWRITTEN IN FULL BY
+	THAT CALL, refusals included. Storage is the caller's: one reused instance is correct for a
+	tick loop that consumes the outcome immediately, and a caller that retains outcomes must own
+	one instance per retained outcome rather than a shared one.
 	"""
 	var ok: bool
 	var error: StringName
@@ -268,6 +307,13 @@ var _party_share: PackedInt64Array = PackedInt64Array()
 var _party_fraction: PackedInt64Array = PackedInt64Array()
 
 var _party_count: int = 0
+## How many rows of `_party_persistent_id` `_load_identities()` filled for the tick in progress.
+## Zero on every tick that needed no identity, which is every ordinary tick and every finishing
+## tick whose floored shares left nothing over.
+var _party_identity_count: int = 0
+## The milli-WU that flooring left over, computed by `_allocate_shares()` before any progress is
+## consumed and handed out by `_distribute_leftover()` after it. Always 0..`_party_count - 1`.
+var _pending_leftover: int = 0
 var _factor_out: int = 0
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -315,14 +361,29 @@ func clear() -> void:
 	_party_share.fill(0)
 	_party_fraction.fill(0)
 	_party_count = 0
+	_party_identity_count = 0
+	_pending_leftover = 0
 	_factor_out = 0
 
 
 # --- results ------------------------------------------------------------------------------------
 
-func _refuse_tick(code: StringName) -> TickResult:
-	"""Build a refused TickResult. It carries no work, no contributors and no completion."""
-	return TickResult.new(false, code)
+func _refuse_into(out: TickResult, code: StringName) -> bool:
+	"""Write a refusal over EVERY field of a caller-owned TickResult and return false.
+
+	THIS IS THE LEAK GATE. A refusal that wrote only `ok` and `error` would leave `accepted_mwu`,
+	`remaining_mwu`, `contributor_count` and `completed` holding whatever the last successful
+	tick into this same object left there, and a caller that read them past a false `.ok` would
+	see a previous completion attributed to a failed operation. Six fields exist and six fields
+	are written here, which is why `TickResult` has no field this function does not name.
+	"""
+	out.ok = false
+	out.error = code
+	out.accepted_mwu = 0
+	out.remaining_mwu = 0
+	out.contributor_count = 0
+	out.completed = false
+	return false
 
 
 func _succeed(value: int) -> OpResult:
@@ -445,27 +506,47 @@ func work_factor_of(resident_slot: int, skill: int) -> IntMath.IntResult:
 # --- the §5.2 per-tick core -------------------------------------------------------------------------
 
 func _compute_factor(resident_slot: int, skill: int) -> StringName:
-	"""Read skill level, mood and health, and leave `needs.work_factor()`'s answer in _factor_out.
+	"""Read the skill level, then leave `needs`' work factor for this resident in _factor_out.
 
-	Nothing is derived here. Every band, weight and clamp lives in `needs.gd`; this assembles the
-	three arguments from their owning columns and passes them straight through.
+	Nothing is derived here. Every band, weight and clamp lives in `needs.gd`; this supplies the
+	skill level from the residents store and the memory total from this store's own column, and
+	passes both straight through.
+
+	ONE NEEDS CALL, NOT THREE (decision 0024 section 4). This read health, mood and the factor
+	separately, and each of those three re-validated the same resident row. The fused reader
+	validates it once and runs the same two formula implementations. WHICH TICK'S VALUES ARE
+	OBSERVED IS UNCHANGED: nothing is cached and nothing is carried between calls.
 	"""
-	var level: IntMath.IntResult = _residents.skill_level_of(resident_slot, skill)
-	if not level.ok:
+	if not _residents.skill_level_into(resident_slot, skill, _math):
 		return REFUSE_SKILLS_UNAVAILABLE
-	var health: IntMath.IntResult = _needs.health_of(resident_slot)
-	if not health.ok:
-		return REFUSE_NEEDS_UNAVAILABLE
-	var mood: IntMath.IntResult = _needs.mood_of(resident_slot, _memory_total[resident_slot])
-	if not mood.ok:
-		return REFUSE_NEEDS_UNAVAILABLE
-	var factor: IntMath.IntResult = _needs.work_factor(level.value, mood.value, health.value)
-	if not factor.ok:
-		return REFUSE_FACTOR_UNAVAILABLE
-	assert(factor.value >= WORK_FACTOR_MIN and factor.value <= WORK_FACTOR_MAX,
+	var level: int = _math.value
+	if not _needs.work_factor_for_resident_into(resident_slot, level,
+			_memory_total[resident_slot], _math):
+		return _factor_refusal(StringName(_math.error))
+	assert(_math.value >= WORK_FACTOR_MIN and _math.value <= WORK_FACTOR_MAX,
 		"§5.2 clamps the work factor to 300..1800")
-	_factor_out = factor.value
+	_factor_out = _math.value
 	return REFUSE_NONE
+
+
+func _factor_refusal(code: StringName) -> StringName:
+	"""Map a fused-reader refusal onto the code the three-call chain returned for the same cause.
+
+	The chain read health, then mood, then the factor, so every failure of the resident's needs
+	row surfaced as REFUSE_NEEDS_UNAVAILABLE and only the factor step could produce
+	REFUSE_FACTOR_UNAVAILABLE. The fused reader runs the same steps in the same order and
+	reports the same underlying needs codes, so INVALID_SKILL_LEVEL -- the only refusal the
+	factor step raises -- maps to the factor code and everything else to the needs code.
+
+	OVERFLOW is published by both steps and is therefore the one code this map could be wrong
+	about. It cannot be, because neither step can reach it from here: the mood add is at most
+	10000 plus a memory total `set_memory_total()` refuses above INT32_MAX, and the factor
+	product is at most 1500*1150*1000 = 1_725_000_000. Both are far inside int64, so the
+	unreachable case is unreachable in the chain this replaces as well.
+	"""
+	if code == NeedsScript.REFUSE_INVALID_SKILL_LEVEL:
+		return REFUSE_FACTOR_UNAVAILABLE
+	return REFUSE_NEEDS_UNAVAILABLE
 
 
 func _produce_potential(resident_slot: int, factor: int) -> int:
@@ -487,46 +568,74 @@ func _produce_potential(resident_slot: int, factor: int) -> int:
 # --- productive ticks ---------------------------------------------------------------------------
 
 func tick_solo(job_slot: int) -> TickResult:
+	"""Allocating convenience form of `tick_solo_into()`, for cold paths and retained results.
+
+	It calls that function and returns the result it filled, so there is exactly one solo-tick
+	implementation and the two entry points cannot disagree about anything.
+	"""
+	var out: TickResult = TickResult.new(false, REFUSE_NONE)
+	var _ticked: bool = tick_solo_into(job_slot, out)
+	return out
+
+
+func tick_solo_into(job_slot: int, out: TickResult) -> bool:
 	"""Advance one single-worker Job by one productive tick and credit its worker's XP.
 
 	Refuses a coordinator and refuses a member Job: a member holds no shared progress, so a
-	party -- even a party of one -- must be ticked through `tick_party()` on its coordinator.
+	party -- even a party of one -- must be ticked through `tick_party_into()` on its
+	coordinator. Returns `out.ok`; `out` is overwritten in full, refusals included.
 	"""
+	if out == null:
+		return false
 	if _jobs.is_coordinator(job_slot):
-		return _refuse_tick(REFUSE_JOB_IS_COORDINATOR)
+		return _refuse_into(out, REFUSE_JOB_IS_COORDINATOR)
 	if _jobs.is_member(job_slot):
-		return _refuse_tick(REFUSE_JOB_IS_MEMBER)
+		return _refuse_into(out, REFUSE_JOB_IS_MEMBER)
 	var code: StringName = _check_progress_row(job_slot)
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
-	_party_count = 0
+		return _refuse_into(out, code)
+	_begin_contributors()
 	code = _offer_contributor(job_slot)
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
+		return _refuse_into(out, code)
 	if _party_count == 0:
-		return _refuse_tick(REFUSE_NO_CONTRIBUTORS)
-	return _commit(job_slot)
+		return _refuse_into(out, REFUSE_NO_CONTRIBUTORS)
+	return _commit_into(job_slot, out)
 
 
 func tick_party(coordinator_slot: int) -> TickResult:
+	"""Allocating convenience form of `tick_party_into()`, for cold paths and retained results.
+
+	It calls that function and returns the result it filled, so there is exactly one party-tick
+	implementation and the two entry points cannot disagree about anything.
+	"""
+	var out: TickResult = TickResult.new(false, REFUSE_NONE)
+	var _ticked: bool = tick_party_into(coordinator_slot, out)
+	return out
+
+
+func tick_party_into(coordinator_slot: int, out: TickResult) -> bool:
 	"""Advance one shared activity by one productive tick, per decision 0017.
 
 	Acceptance is `min(remaining_mwu, sum(potential_i))` against the COORDINATOR's row, allocated
 	proportionally on the finishing tick, and completion is written on the coordinator alone.
 	Members that have lost their worker, or that are not in JOB_STATE_WORK, contribute nothing
 	and are skipped rather than failing the party's tick -- a departure must not stop the crew.
+	Returns `out.ok`; `out` is overwritten in full, refusals included.
 	"""
+	if out == null:
+		return false
 	if not _jobs.is_coordinator(coordinator_slot):
-		return _refuse_tick(REFUSE_NOT_A_COORDINATOR)
+		return _refuse_into(out, REFUSE_NOT_A_COORDINATOR)
 	var code: StringName = _check_progress_row(coordinator_slot)
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
+		return _refuse_into(out, code)
 	code = _collect_contributors(coordinator_slot)
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
+		return _refuse_into(out, code)
 	if _party_count == 0:
-		return _refuse_tick(REFUSE_NO_CONTRIBUTORS)
-	return _commit(coordinator_slot)
+		return _refuse_into(out, REFUSE_NO_CONTRIBUTORS)
+	return _commit_into(coordinator_slot, out)
 
 
 func _check_progress_row(job_slot: int) -> StringName:
@@ -549,7 +658,7 @@ func _collect_contributors(coordinator_slot: int) -> StringName:
 	reused IntResult, and the walk terminates on their explicit end-of-list refusal rather than
 	on a slot value that could be mistaken for a row.
 	"""
-	_party_count = 0
+	_begin_contributors()
 	if not _jobs.first_member_into(coordinator_slot, _math):
 		return REFUSE_NONE
 	var member: int = _math.value
@@ -563,6 +672,18 @@ func _collect_contributors(coordinator_slot: int) -> StringName:
 		if walking:
 			member = _math.value
 	return REFUSE_NONE
+
+
+func _begin_contributors() -> void:
+	"""Start a fresh contributor set for one tick: no members, no identities, nothing left over.
+
+	`_party_identity_count` must be cleared here and not only in `clear()`: it is the record that
+	the persistent IDs in the scratch belong to THIS tick's frozen membership, and a stale count
+	would let `_distribute_leftover()` rank a party against another tick's identities.
+	"""
+	_party_count = 0
+	_party_identity_count = 0
+	_pending_leftover = 0
 
 
 func _offer_contributor(job_slot: int) -> StringName:
@@ -580,7 +701,7 @@ func _offer_contributor(job_slot: int) -> StringName:
 	var resident_slot: int = _directory.get_typed_row(worker)
 	if resident_slot == EntityDirectory.NULL_SLOT:
 		return REFUSE_JOB_HAS_NO_WORKER
-	if not _jobs.resident_may_work(resident_slot).ok:
+	if not _jobs.resident_may_work_into(resident_slot, _math):
 		return REFUSE_JOB_NOT_WORKING
 	if not _jobs.kind_into(job_slot, _math):
 		return StringName(_math.error)
@@ -588,7 +709,14 @@ func _offer_contributor(job_slot: int) -> StringName:
 
 
 func _append_contributor(job_slot: int, resident_slot: int, skill: int) -> StringName:
-	"""Compute this worker's potential milli-WU and write one row of the party scratch."""
+	"""Compute this worker's potential milli-WU and write one row of the party scratch.
+
+	NO IDENTITY IS READ HERE (decision 0024). The persistent ID decides nothing but a tie between
+	equal fractional remainders, which can only arise on a finishing tick that has milli-WU left
+	over after flooring, so `_allocate_shares()` fetches it there and an ordinary tick pays
+	nothing for it. `_party_persistent_id` therefore holds a value from an earlier tick until
+	`_load_identities()` refills it, and `_party_identity_count` records that it has.
+	"""
 	var code: StringName = _check_skill(skill)
 	if code != REFUSE_NONE:
 		return code
@@ -597,13 +725,9 @@ func _append_contributor(job_slot: int, resident_slot: int, skill: int) -> Strin
 	code = _compute_factor(resident_slot, skill)
 	if code != REFUSE_NONE:
 		return code
-	var identity: IntMath.IntResult = _jobs.agent_persistent_id_of(resident_slot)
-	if not identity.ok:
-		return REFUSE_SKILLS_UNAVAILABLE
 	_party_job[_party_count] = job_slot
 	_party_resident[_party_count] = resident_slot
 	_party_skill[_party_count] = skill
-	_party_persistent_id[_party_count] = identity.value
 	_party_potential[_party_count] = _produce_potential(resident_slot, _factor_out)
 	_party_count += 1
 	return REFUSE_NONE
@@ -611,45 +735,54 @@ func _append_contributor(job_slot: int, resident_slot: int, skill: int) -> Strin
 
 # --- decision 0017 acceptance and allocation -----------------------------------------------------
 
-func _commit(progress_slot: int) -> TickResult:
+func _commit_into(progress_slot: int, out: TickResult) -> bool:
 	"""Apply `accepted_total = min(remaining_mwu, sum(potential_i))` and settle the party.
 
 	The whole of 0017's per-tick rule lives in these few lines: acceptance is capped by the
 	activity's own outstanding work, subtracted from the ONE row that holds it, allocated to the
-	workers, and turned into XP from the accepted amounts alone.
+	workers, and turned into XP from the accepted amounts alone. Every exit writes `out` in full.
 	"""
 	if not _jobs.remaining_mwu_into(progress_slot, _math):
-		return _refuse_tick(StringName(_math.error))
+		return _refuse_into(out, StringName(_math.error))
 	var remaining: int = _math.value
 	var potential_total: int = 0
 	for index: int in _party_count:
 		potential_total += _party_potential[index]
 	var accepted: int = potential_total if potential_total < remaining else remaining
-	if not _jobs.consume_remaining_mwu_into(progress_slot, accepted, _math):
-		return _refuse_tick(StringName(_math.error))
-	var left: int = _math.value
-	_allocate_shares(accepted, potential_total)
-	var code: StringName = _award_all_xp()
+	var code: StringName = _allocate_shares(accepted, potential_total)
 	if code != REFUSE_NONE:
-		return _refuse_tick(code)
-	return _finish(progress_slot, accepted, left)
+		return _refuse_into(out, code)
+	if not _jobs.consume_remaining_mwu_into(progress_slot, accepted, _math):
+		return _refuse_into(out, StringName(_math.error))
+	var left: int = _math.value
+	_distribute_leftover(_pending_leftover)
+	code = _award_all_xp()
+	if code != REFUSE_NONE:
+		return _refuse_into(out, code)
+	return _finish_into(progress_slot, accepted, left, out)
 
 
-func _allocate_shares(accepted: int, potential_total: int) -> void:
+func _allocate_shares(accepted: int, potential_total: int) -> StringName:
 	"""Split `accepted` across the party in proportion to each worker's potential.
 
 	On every tick but the last, `accepted == potential_total` and each worker keeps exactly their
 	own potential, with no division performed. On the finishing tick each share is floored and
-	the leftover milli-WU are distributed by largest fractional remainder, ties by ascending
-	resident persistent ID (decision 0017).
+	the leftover milli-WU are recorded in `_pending_leftover`, to be distributed by largest
+	fractional remainder, ties by ascending resident persistent ID (decision 0017).
+
+	THIS RUNS BEFORE ANY PROGRESS IS CONSUMED, which is why the identity fetch it may need lives
+	here rather than in `_distribute_leftover()`. `_commit_into()` spends the coordinator's remaining
+	work between this call and that one, so a read that can refuse must refuse while the row is
+	still untouched -- decision 0024's named hazard. Nothing here mutates a collaborating store.
 
 	`accepted <= potential_total <= PARTY_CAPACITY * MAX_POTENTIAL_MWU` (512*144), so the
 	proportional numerator cannot exceed about 1.1e7 and no checked multiplication is needed.
 	"""
+	_pending_leftover = 0
 	if accepted == potential_total:
 		for index: int in _party_count:
 			_party_share[index] = _party_potential[index]
-		return
+		return REFUSE_NONE
 	var distributed: int = 0
 	for index: int in _party_count:
 		var numerator: int = accepted * _party_potential[index]
@@ -657,7 +790,32 @@ func _allocate_shares(accepted: int, potential_total: int) -> void:
 		_party_share[index] = share
 		_party_fraction[index] = numerator - share * potential_total
 		distributed += share
-	_distribute_leftover(accepted - distributed)
+	_pending_leftover = accepted - distributed
+	if _pending_leftover == 0:
+		return REFUSE_NONE
+	return _load_identities()
+
+
+func _load_identities() -> StringName:
+	"""Fetch each frozen contributor's persistent ID exactly once, into the party scratch.
+
+	Reached only when flooring left milli-WU to hand out -- the sole condition under which
+	decision 0017's tie-break reads an identity at all. The contributor set is already frozen by
+	`_collect_contributors()`/`_offer_contributor()` and is not re-walked here, so the identities
+	loaded belong to exactly the workers whose shares were just computed and whose XP is about to
+	be credited.
+
+	A refusal returns REFUSE_SKILLS_UNAVAILABLE -- the code `_append_contributor()` used for this
+	same read before decision 0024 moved it -- and reaches `_commit_into()` before
+	`consume_remaining_mwu_into()`, so the activity's outstanding work and every XP column are
+	still exactly as the tick found them.
+	"""
+	for index: int in _party_count:
+		if not _jobs.agent_persistent_id_into(_party_resident[index], _math):
+			return REFUSE_SKILLS_UNAVAILABLE
+		_party_persistent_id[index] = _math.value
+	_party_identity_count = _party_count
+	return REFUSE_NONE
 
 
 func _distribute_leftover(leftover: int) -> void:
@@ -666,7 +824,12 @@ func _distribute_leftover(leftover: int) -> void:
 	`leftover` is strictly below the party size, so this runs at most `_party_count - 1` times
 	and only ever on a finishing tick. A share that has received its extra milli-WU has its
 	fraction set to -1, which no real fraction can equal, so it cannot be chosen twice.
+
+	`_beats()` reads `_party_persistent_id`, which only `_load_identities()` fills, so a nonzero
+	`leftover` here without that call would compare identities from an earlier tick.
 	"""
+	assert(leftover == 0 or _party_identity_count == _party_count,
+		"the tie-break may only read persistent IDs this tick loaded")
 	for _pass_index: int in leftover:
 		var best: int = -1
 		for index: int in _party_count:
@@ -710,29 +873,34 @@ func _credit_xp(resident_slot: int, skill: int, accepted: int) -> StringName:
 	_xp_remainder[index] = accumulator - whole * MILLI_WU_PER_WU
 	if whole == 0:
 		return REFUSE_NONE
-	var current: IntMath.IntResult = _residents.skill_xp_of(resident_slot, skill)
-	if not current.ok:
+	if not _residents.skill_xp_into(resident_slot, skill, _math):
 		return REFUSE_SKILLS_UNAVAILABLE
-	if not IntMath.checked_add_into(current.value, whole * XP_PER_WU, _math):
+	var current: int = _math.value
+	if not IntMath.checked_add_into(current, whole * XP_PER_WU, _math):
 		return REFUSE_OVERFLOW
 	if not _residents.set_skill_xp(resident_slot, skill, _math.value).ok:
 		return REFUSE_XP_WRITE_FAILED
 	return REFUSE_NONE
 
 
-func _finish(progress_slot: int, accepted: int, left: int) -> TickResult:
-	"""Build the tick's result and, when the work total reaches zero, record ONE completion.
+func _finish_into(progress_slot: int, accepted: int, left: int, out: TickResult) -> bool:
+	"""Write the tick's success and, when the work total reaches zero, record ONE completion.
 
 	The completion is written on `progress_slot` -- the coordinator for a party, the job itself
 	for a solo job -- and on no member row. THIS AMENDS ARCH-JOB-005, which gives completion to
 	every member Job; decision 0017 gives it to the coordinator alone.
+
+	All six fields are assigned before the completion write is attempted, so the late refusal
+	below hands `_refuse_into()` an object with nothing of an earlier tick left in it either.
 	"""
-	var out: TickResult = TickResult.new(true, REFUSE_NONE)
+	out.ok = true
+	out.error = REFUSE_NONE
 	out.accepted_mwu = accepted
 	out.remaining_mwu = left
 	out.contributor_count = _party_count
+	out.completed = false
 	if left == 0:
 		if not _jobs.set_state(progress_slot, JOB_STATE_COMPLETE).ok:
-			return _refuse_tick(REFUSE_JOB_NOT_WORKING)
+			return _refuse_into(out, REFUSE_JOB_NOT_WORKING)
 		out.completed = true
-	return out
+	return true

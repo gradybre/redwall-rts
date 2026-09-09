@@ -1570,15 +1570,95 @@ func test_clearing_a_coordinator_link_restores_an_ordinary_job() -> void:
 	assert_equal(_jobs.member_count_of(coordinator).value, 0, "and the party is empty")
 
 
-func test_resident_may_work_reports_eligibility_step_one() -> void:
-	"""One published implementation of step 1, so `work.gd` cannot carry a disagreeing copy."""
+func test_resident_may_work_into_preserves_step_one_and_wrapper_references() -> void:
+	"""The non-allocating predicate keeps exact refusals; wrappers stay fresh with full refs."""
 	var worker: int = _spawn_worker()
-	assert_true(_jobs.resident_may_work(worker).ok, "a healthy, rested resident may work")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_jobs.resident_may_work_into(worker, out), "a healthy resident may work")
+	assert_equal(out.value, worker, "the caller-owned result carries the resident slot")
+	var first: JobsScript.OpResult = _jobs.resident_may_work(worker)
+	var second: JobsScript.OpResult = _jobs.resident_may_work(worker)
+	assert_true(first.ok, "healthy allocating predicate succeeds")
+	assert_true(second.ok, "repeated allocating predicate succeeds")
+	assert_false(first == second, "each convenience call returns a fresh OpResult")
+	assert_equal(first.ref, _residents.ref_of(worker), "the wrapper preserves the resident ref")
 	var rest: IntMath.IntResult = _needs.need_of(worker, NeedsScript.NEED_REST)
-	assert_true(_needs.apply_need_event(worker, NeedsScript.NEED_REST, 400 - rest.value).ok,
-		"rest falls to 400")
+	assert_true(_needs.apply_need_event(worker, NeedsScript.NEED_REST, 500 - rest.value).ok,
+		"rest reaches the exact collapse boundary")
+	assert_false(_jobs.resident_may_work_into(worker, out), "rest 500 refuses")
+	assert_equal(out.error, String(JobsScript.REFUSE_REST_COLLAPSED), "with step 1's code")
+	assert_equal(out.value, 0, "the refusal clears the prior worker slot")
 	var collapsed: JobsScript.OpResult = _jobs.resident_may_work(worker)
-	assert_false(collapsed.ok, "REQ-SET-015 stops work at rest<=500")
-	assert_equal(collapsed.error, JobsScript.REFUSE_REST_COLLAPSED, "with step 1's own code")
+	assert_false(collapsed.ok, "the allocating predicate also refuses collapsed residents")
+	assert_equal(collapsed.error, JobsScript.REFUSE_REST_COLLAPSED, "wrapper retains collapse code")
+	assert_equal(collapsed.ref, EntityDirectory.NULL_REF, "a refused wrapper keeps the null ref")
+	assert_true(_needs.apply_need_event(worker, NeedsScript.NEED_REST, 1).ok, "rest reaches 501")
+	assert_true(_jobs.resident_may_work_into(worker, out), "501 permits work")
+	assert_equal(out.error, "", "success clears the old refusal")
+	assert_false(_jobs.resident_may_work_into(JobsScript.AGENT_CAPACITY, out),
+		"an out-of-range resident refuses")
 	assert_false(_jobs.resident_may_work(JobsScript.AGENT_CAPACITY).ok,
-		"and an out-of-range resident refuses rather than answering yes")
+		"the allocating wrapper also refuses an out-of-range resident")
+	assert_equal(out.error, String(JobsScript.REFUSE_INVALID_RESIDENT_SLOT), "the address code")
+	assert_equal(out.value, 0, "the address refusal clears the reused output")
+
+
+# --- decision 0024: the non-allocating identity read ----------------------------------------------
+
+func test_the_into_identity_read_answers_exactly_what_the_allocating_one_does() -> void:
+	"""`work.gd`'s leftover tie-break moved to the `_into` form; the two must never disagree.
+
+	Five residents rather than one, because a reader that answered from a fixed row -- or that
+	returned the last value written -- agrees with the allocating form on a single-row fixture.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	for index: int in 5:
+		var worker: int = _spawn_worker()
+		var allocating: IntMath.IntResult = _jobs.agent_persistent_id_of(worker)
+		assert_true(allocating.ok, "the allocating read succeeds for worker %d" % index)
+		assert_true(_jobs.agent_persistent_id_into(worker, out),
+			"the _into read succeeds for worker %d" % index)
+		assert_equal(out.value, allocating.value,
+			"and reports the same persistent id for worker %d" % index)
+		assert_equal(out.value, _residents.persistent_id_of(worker).value,
+			"which is the directory's own id for worker %d" % index)
+
+
+func test_the_into_identity_read_refuses_an_address_it_cannot_answer() -> void:
+	"""No sentinel: an out-of-range slot and an absent agent row each refuse with their own code."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_false(_jobs.agent_persistent_id_into(-1, out), "a negative slot refuses")
+	assert_equal(out.error, String(JobsScript.REFUSE_INVALID_RESIDENT_SLOT), "with its own code")
+	assert_false(_jobs.agent_persistent_id_into(JobsScript.AGENT_CAPACITY, out),
+		"a slot past capacity refuses")
+	assert_equal(out.error, String(JobsScript.REFUSE_INVALID_RESIDENT_SLOT), "with the same code")
+	var resident: int = _spawn_resident()
+	assert_false(_jobs.agent_persistent_id_into(resident, out),
+		"a living resident with no JobAgent row refuses")
+	assert_equal(out.error, String(JobsScript.REFUSE_AGENT_NOT_PRESENT),
+		"and says the agent row is the thing that is missing")
+
+
+func test_a_despawned_agents_identity_is_not_readable_from_its_old_row() -> void:
+	"""The tie-break may only rank live agents, so a released row must stop answering.
+
+	Decision 0017 rests on persistent IDs never being reused. This asserts the weaker property
+	that is testable without a save system: the row stops answering when the agent leaves, and a
+	resident spawned into the same slot afterwards carries a DIFFERENT id.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	var worker: int = _spawn_worker()
+	assert_true(_jobs.agent_persistent_id_into(worker, out), "the live agent answers")
+	var original_id: int = out.value
+	assert_true(_jobs.despawn_agent(worker).ok, "the agent row is released")
+	assert_false(_jobs.agent_persistent_id_into(worker, out),
+		"and the released row refuses rather than reporting a stale id")
+	assert_true(_residents.despawn(_residents.ref_of(worker)).ok, "the resident leaves too")
+	var respawned: ResidentsScript.OpResult = _residents.spawn(&"mouse")
+	assert_true(respawned.ok, "a new resident takes the freed slot (error: %s)" % respawned.error)
+	var replacement: int = respawned.value
+	assert_equal(replacement, worker, "the slot is reused, as slots are meant to be")
+	assert_true(_jobs.spawn_agent(replacement).ok, "the new resident gets a JobAgent row")
+	assert_true(_jobs.agent_persistent_id_into(replacement, out), "the new agent answers")
+	assert_true(out.value > original_id,
+		"with an id that has never been issued before, so no tie-break order is inherited")

@@ -1,0 +1,788 @@
+{
+  "schema": "redwall-work-benchmark-driver-v2",
+  "ok": true,
+  "started_utc": "2026-09-08T17:30:20.119236+00:00",
+  "project_path": "/Users/brendan/Developer/redwall-rts/godot",
+  "script_path": "/Users/brendan/Developer/redwall-rts/tools/benchmark_work.gd",
+  "fixture_sha256": "226b6d7c06480a7f60beba8ee9c697574ebea0506c9e38c80e77fefc353e95be",
+  "source_hashes": {
+    "scripts/core/catalog.gd": "1237f9c6e4c99970a421a6a2d3bc9ad3cf8b5bc264b0ddd61139a0ea8624b9cd",
+    "scripts/core/entity_directory.gd": "c70773df0bf2cae7add5ac1cc07ca2370f6c3d1042a5681d9f8260bd8486a731",
+    "scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+    "scripts/core/inventory.gd": "640460a5ae4b99491ea7d95eb8075952f04ec2c51cd723a2bc91b9522052597b",
+    "scripts/core/item_definitions.gd": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551",
+    "scripts/core/jobs.gd": "873ae548eac451f7342186afaff5e0f24e2e759da2a3d9e580f937ba520d727c",
+    "scripts/core/needs.gd": "3d601d8b6442f2ed046877c7f5b5855488d79cd0581495e3d10914fa2f5318e5",
+    "scripts/core/priorities.gd": "ef5cfeb2deb574c3c23a0478dc3b243adcbf8b9cffa964e21d391c29adc90551",
+    "scripts/core/reservations.gd": "3211416652559e63e7b3926038514e422b90a08782113d469d45f30c5cfd0ef0",
+    "scripts/core/residents.gd": "ae0844149659b903232dc4a1f57b9db4faec81469e8903deca1697d7e94ab258",
+    "scripts/core/schedule.gd": "9da6ee9fde956812017b7d01ccfcef97832145849949d9a92bb000a11fde3ab7",
+    "scripts/core/sim_clock.gd": "44ef99615ce2a05423ad4ed814866dc899b3338e73663d1d14cb8cd7800adc7f",
+    "scripts/core/work.gd": "e15d1493870464103638ab31f2a768f0d989f8788cd98608524c3cad6b86079a"
+  },
+  "godot": "godot",
+  "python": "3.9.6 (default, May 22 2026, 11:13:45) \n[Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "build_context": {
+    "godot_version": {
+      "command": [
+        "godot",
+        "--version"
+      ],
+      "returncode": 0,
+      "stdout": "4.7.2.stable.official.ed1daf0bf",
+      "stderr": ""
+    },
+    "runner": "release",
+    "godot_binary_kind": "template_release",
+    "godot_binary_note": "an exported release build, running its own main loop",
+    "release_manifest_path": "/tmp/gc-work-into-0024/build-after/manifest.json",
+    "release_executable": "/private/tmp/gc-work-into-0024/build-after/build/RedwallWorkBenchmark.app/Contents/MacOS/Redwall RTS",
+    "release_executable_sha256": "6135ad137facbb26cd73a5f7f7d541d334a84fc81650e870ef075cdd14a129cd",
+    "assert_probe_verdict": {
+      "editor_asserts_live": true,
+      "release_asserts_compiled_out": true,
+      "editor_argument_evaluations": 3,
+      "release_argument_evaluations": 0,
+      "editor_stage": "before_failing_assert",
+      "release_stage": "after_failing_assert",
+      "editor_features": {
+        "os_is_debug_build": true,
+        "feature_debug": true,
+        "feature_release": false,
+        "feature_editor": true,
+        "feature_template": false,
+        "feature_template_debug": false,
+        "feature_template_release": false,
+        "feature_arm64": true,
+        "feature_x86_64": false,
+        "processor_name": "Apple M5 Pro"
+      },
+      "release_features": {
+        "os_is_debug_build": false,
+        "feature_debug": false,
+        "feature_release": true,
+        "feature_editor": false,
+        "feature_template": true,
+        "feature_template_debug": false,
+        "feature_template_release": true,
+        "feature_arm64": true,
+        "feature_x86_64": false,
+        "processor_name": "Apple M5 Pro"
+      }
+    },
+    "asserts_live_in_timed_binary": false,
+    "export_presets_path": "/Users/brendan/Developer/redwall-rts/godot/export_presets.cfg",
+    "export_presets_present": true,
+    "export_templates_path": "/Users/brendan/Library/Application Support/Godot/export_templates",
+    "export_templates_present": true,
+    "export_templates_entries": [
+      "4.7.2.stable"
+    ],
+    "is_release_measurement": true,
+    "is_qualification_floor_measurement": false,
+    "measurement_scope_note": "Exported release build (template_release), asserts proven compiled out: the probe evaluated 0 assert conditions in this binary against 3 in the editor control, and walked past a failing assert the editor control halted on. This is a release measurement on one machine. It is NOT the REQ-SET-163 qualification-floor measurement (Ryzen 5 3600 / GTX 1660 Super 6GB / 16GB at 1920x1080), and Windows is deferred.",
+    "machine": {
+      "platform": "macOS-26.6.2-arm64-arm-64bit",
+      "machine": "arm64",
+      "processor": {
+        "command": [
+          "sysctl",
+          "-n",
+          "machdep.cpu.brand_string"
+        ],
+        "returncode": 0,
+        "stdout": "Apple M5 Pro",
+        "stderr": ""
+      },
+      "logical_cores": {
+        "command": [
+          "sysctl",
+          "-n",
+          "hw.logicalcpu"
+        ],
+        "returncode": 0,
+        "stdout": "18",
+        "stderr": ""
+      },
+      "physical_cores": {
+        "command": [
+          "sysctl",
+          "-n",
+          "hw.physicalcpu"
+        ],
+        "returncode": 0,
+        "stdout": "18",
+        "stderr": ""
+      },
+      "memory_bytes": {
+        "command": [
+          "sysctl",
+          "-n",
+          "hw.memsize"
+        ],
+        "returncode": 0,
+        "stdout": "51539607552",
+        "stderr": ""
+      },
+      "os_version": {
+        "command": [
+          "sw_vers"
+        ],
+        "returncode": 0,
+        "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83",
+        "stderr": ""
+      }
+    }
+  },
+  "repetitions": 2,
+  "warmup_ticks": 300,
+  "sample_ticks": 3000,
+  "subprocess_timeout_seconds": 120,
+  "configs": [
+    "wu"
+  ],
+  "workloads": [
+    "bands",
+    "uniform",
+    "party"
+  ],
+  "populations": [
+    256
+  ],
+  "run_plan": [
+    [
+      "wu",
+      "bands",
+      256
+    ],
+    [
+      "wu",
+      "uniform",
+      256
+    ],
+    [
+      "wu",
+      "party",
+      256
+    ]
+  ],
+  "hash_protocol": "redwall-work-benchmark-v1/sha256/utf8-canonical-lines",
+  "hash_comparisons": [
+    {
+      "config": "wu",
+      "workload": "bands",
+      "population": 256,
+      "setup_hashes": [
+        "9a5b2e8f759bc512d62353b2353a0a85c9db524a2bebb704c03a24e948a7b7f0",
+        "9a5b2e8f759bc512d62353b2353a0a85c9db524a2bebb704c03a24e948a7b7f0"
+      ],
+      "final_hashes": [
+        "bbc36cf7828a5c90b16121e370b0965debd1a049b11e9761a7d56724c0b3a06e",
+        "bbc36cf7828a5c90b16121e370b0965debd1a049b11e9761a7d56724c0b3a06e"
+      ],
+      "hashes_identical": true
+    },
+    {
+      "config": "wu",
+      "workload": "uniform",
+      "population": 256,
+      "setup_hashes": [
+        "04376abaa09ecafa325495f7be38452590a711b011998af13322e5ccf5abbec0",
+        "04376abaa09ecafa325495f7be38452590a711b011998af13322e5ccf5abbec0"
+      ],
+      "final_hashes": [
+        "e261bb3e721633503c0fc6b16a12d478ceef700899498884e8bba4f5275c5a01",
+        "e261bb3e721633503c0fc6b16a12d478ceef700899498884e8bba4f5275c5a01"
+      ],
+      "hashes_identical": true
+    },
+    {
+      "config": "wu",
+      "workload": "party",
+      "population": 256,
+      "setup_hashes": [
+        "142a062a126b248da944c9a73cf6586c95d0ddfbf9f82bc895e73f91d16ead94",
+        "142a062a126b248da944c9a73cf6586c95d0ddfbf9f82bc895e73f91d16ead94"
+      ],
+      "final_hashes": [
+        "bc13c46bb6325eefdd778092951d34c3a031f02e4eec733a309f41277e2100da",
+        "bc13c46bb6325eefdd778092951d34c3a031f02e4eec733a309f41277e2100da"
+      ],
+      "hashes_identical": true
+    }
+  ],
+  "runs": [
+    {
+      "config": "wu",
+      "workload": "bands",
+      "population": 256,
+      "repetition": 1,
+      "command": [
+        "/private/tmp/gc-work-into-0024/build-after/build/RedwallWorkBenchmark.app/Contents/MacOS/Redwall RTS",
+        "--headless",
+        "--",
+        "--config",
+        "wu",
+        "--workload",
+        "bands",
+        "--population",
+        "256",
+        "--warmup",
+        "300",
+        "--samples",
+        "3000",
+        "--output",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-work-bench-pfw1vy9g/wu-bands-256-rep1.json"
+      ],
+      "wall_seconds": 5.0685407080000004,
+      "returncode": 0,
+      "stdout_tail": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nBENCHMARK_RESULT {\"config\":\"wu\",\"engine_version\":{\"build\":\"official\",\"hash\":\"ed1daf0bf001b61586d9930840f2f1394092c079\",\"hex\":263938,\"major\":4,\"minor\":7,\"patch\":2,\"status\":\"stable\",\"string\":\"4.7.2-stable (official)\",\"timestamp\":0},\"final_hash_sha256\":\"bbc36cf7828a5c90b16121e370b0965debd1a049b11e9761a7d56724c0b3a06e\",\"fixture\":{\"benchmark_artifacts\":{\"health_by_band\":[30,55,100],\"kind_stride\":5,\"long_remaining_mwu\":1000000000000,\"memory_total_by_mood_band\":[-5501,-4000,-2000,0,2000],\"note\":\"harness inputs, not GDD, decision 0017 or decision 0022 values\",\"party_finish_mwu\":7,\"party_sizes\":[1,2,3,4,5,6,7,8],\"resolved_work_hour\":8,\"skill_level_stride\":7},\"contributor_count\":256,\"party_workload\":false,\"progress_row_count\":256,\"work_factor_max\":1725,\"work_factor_mean\":947,\"work_factor_min\":360,\"work_factor_sum\":242467,\"xp_write_duty_ppm_mean\":75770},\"hash_lines\":9985,\"hash_protocol\":\"redwall-work-benchmark-v1/sha256/utf8-canonical-lines\",\"p50_us\":1478,\"p95_pair_us\":3041,\"p99_us\":1553,\"pair_windows\":1500,\"population\":256,\"sample_ticks\":3000,\"schema\":\"redwall-work-benchmark-v1\",\"setup_hash_sha256\":\"9a5b2e8f759bc512d62353b2353a0a85c9db524a2bebb704c03a24e948a7b7f0\",\"total_sample_us\":4421111,\"warmup_ticks\":300,\"workload\":\"bands\"}\n[EntityManager] ready\n[GameManager] ready\n[EconomySystem] ready\n[CombatSystem] ready\n[UIManager] ready\n",
+      "stderr_tail": "",
+      "benchmark": {
+        "config": "wu",
+        "engine_version": {
+          "build": "official",
+          "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+          "hex": 263938,
+          "major": 4,
+          "minor": 7,
+          "patch": 2,
+          "status": "stable",
+          "string": "4.7.2-stable (official)",
+          "timestamp": 0
+        },
+        "final_hash_sha256": "bbc36cf7828a5c90b16121e370b0965debd1a049b11e9761a7d56724c0b3a06e",
+        "fixture": {
+          "benchmark_artifacts": {
+            "health_by_band": [
+              30,
+              55,
+              100
+            ],
+            "kind_stride": 5,
+            "long_remaining_mwu": 1000000000000,
+            "memory_total_by_mood_band": [
+              -5501,
+              -4000,
+              -2000,
+              0,
+              2000
+            ],
+            "note": "harness inputs, not GDD, decision 0017 or decision 0022 values",
+            "party_finish_mwu": 7,
+            "party_sizes": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "resolved_work_hour": 8,
+            "skill_level_stride": 7
+          },
+          "contributor_count": 256,
+          "party_workload": false,
+          "progress_row_count": 256,
+          "work_factor_max": 1725,
+          "work_factor_mean": 947,
+          "work_factor_min": 360,
+          "work_factor_sum": 242467,
+          "xp_write_duty_ppm_mean": 75770
+        },
+        "hash_lines": 9985,
+        "hash_protocol": "redwall-work-benchmark-v1/sha256/utf8-canonical-lines",
+        "p50_us": 1478,
+        "p95_pair_us": 3041,
+        "p99_us": 1553,
+        "pair_windows": 1500,
+        "population": 256,
+        "sample_ticks": 3000,
+        "schema": "redwall-work-benchmark-v1",
+        "setup_hash_sha256": "9a5b2e8f759bc512d62353b2353a0a85c9db524a2bebb704c03a24e948a7b7f0",
+        "total_sample_us": 4421111,
+        "warmup_ticks": 300,
+        "workload": "bands"
+      }
+    },
+    {
+      "config": "wu",
+      "workload": "bands",
+      "population": 256,
+      "repetition": 2,
+      "command": [
+        "/private/tmp/gc-work-into-0024/build-after/build/RedwallWorkBenchmark.app/Contents/MacOS/Redwall RTS",
+        "--headless",
+        "--",
+        "--config",
+        "wu",
+        "--workload",
+        "bands",
+        "--population",
+        "256",
+        "--warmup",
+        "300",
+        "--samples",
+        "3000",
+        "--output",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-work-bench-pfw1vy9g/wu-bands-256-rep2.json"
+      ],
+      "wall_seconds": 5.166499917,
+      "returncode": 0,
+      "stdout_tail": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nBENCHMARK_RESULT {\"config\":\"wu\",\"engine_version\":{\"build\":\"official\",\"hash\":\"ed1daf0bf001b61586d9930840f2f1394092c079\",\"hex\":263938,\"major\":4,\"minor\":7,\"patch\":2,\"status\":\"stable\",\"string\":\"4.7.2-stable (official)\",\"timestamp\":0},\"final_hash_sha256\":\"bbc36cf7828a5c90b16121e370b0965debd1a049b11e9761a7d56724c0b3a06e\",\"fixture\":{\"benchmark_artifacts\":{\"health_by_band\":[30,55,100],\"kind_stride\":5,\"long_remaining_mwu\":1000000000000,\"memory_total_by_mood_band\":[-5501,-4000,-2000,0,2000],\"note\":\"harness inputs, not GDD, decision 0017 or decision 0022 values\",\"party_finish_mwu\":7,\"party_sizes\":[1,2,3,4,5,6,7,8],\"resolved_work_hour\":8,\"skill_level_stride\":7},\"contributor_count\":256,\"party_workload\":false,\"progress_row_count\":256,\"work_factor_max\":1725,\"work_factor_mean\":947,\"work_factor_min\":360,\"work_factor_sum\":242467,\"xp_write_duty_ppm_mean\":75770},\"hash_lines\":9985,\"hash_protocol\":\"redwall-work-benchmark-v1/sha256/utf8-canonical-lines\",\"p50_us\":1497,\"p95_pair_us\":3082,\"p99_us\":1570,\"pair_windows\":1500,\"population\":256,\"sample_ticks\":3000,\"schema\":\"redwall-work-benchmark-v1\",\"setup_hash_sha256\":\"9a5b2e8f759bc512d62353b2353a0a85c9db524a2bebb704c03a24e948a7b7f0\",\"total_sample_us\":4478333,\"warmup_ticks\":300,\"workload\":\"bands\"}\n[EntityManager] ready\n[GameManager] ready\n[EconomySystem] ready\n[CombatSystem] ready\n[UIManager] ready\n",
+      "stderr_tail": "",
+      "benchmark": {
+        "config": "wu",
+        "engine_version": {
+          "build": "official",
+          "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+          "hex": 263938,
+          "major": 4,
+          "minor": 7,
+          "patch": 2,
+          "status": "stable",
+          "string": "4.7.2-stable (official)",
+          "timestamp": 0
+        },
+        "final_hash_sha256": "bbc36cf7828a5c90b16121e370b0965debd1a049b11e9761a7d56724c0b3a06e",
+        "fixture": {
+          "benchmark_artifacts": {
+            "health_by_band": [
+              30,
+              55,
+              100
+            ],
+            "kind_stride": 5,
+            "long_remaining_mwu": 1000000000000,
+            "memory_total_by_mood_band": [
+              -5501,
+              -4000,
+              -2000,
+              0,
+              2000
+            ],
+            "note": "harness inputs, not GDD, decision 0017 or decision 0022 values",
+            "party_finish_mwu": 7,
+            "party_sizes": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "resolved_work_hour": 8,
+            "skill_level_stride": 7
+          },
+          "contributor_count": 256,
+          "party_workload": false,
+          "progress_row_count": 256,
+          "work_factor_max": 1725,
+          "work_factor_mean": 947,
+          "work_factor_min": 360,
+          "work_factor_sum": 242467,
+          "xp_write_duty_ppm_mean": 75770
+        },
+        "hash_lines": 9985,
+        "hash_protocol": "redwall-work-benchmark-v1/sha256/utf8-canonical-lines",
+        "p50_us": 1497,
+        "p95_pair_us": 3082,
+        "p99_us": 1570,
+        "pair_windows": 1500,
+        "population": 256,
+        "sample_ticks": 3000,
+        "schema": "redwall-work-benchmark-v1",
+        "setup_hash_sha256": "9a5b2e8f759bc512d62353b2353a0a85c9db524a2bebb704c03a24e948a7b7f0",
+        "total_sample_us": 4478333,
+        "warmup_ticks": 300,
+        "workload": "bands"
+      }
+    },
+    {
+      "config": "wu",
+      "workload": "uniform",
+      "population": 256,
+      "repetition": 1,
+      "command": [
+        "/private/tmp/gc-work-into-0024/build-after/build/RedwallWorkBenchmark.app/Contents/MacOS/Redwall RTS",
+        "--headless",
+        "--",
+        "--config",
+        "wu",
+        "--workload",
+        "uniform",
+        "--population",
+        "256",
+        "--warmup",
+        "300",
+        "--samples",
+        "3000",
+        "--output",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-work-bench-pfw1vy9g/wu-uniform-256-rep1.json"
+      ],
+      "wall_seconds": 5.043427874999999,
+      "returncode": 0,
+      "stdout_tail": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nBENCHMARK_RESULT {\"config\":\"wu\",\"engine_version\":{\"build\":\"official\",\"hash\":\"ed1daf0bf001b61586d9930840f2f1394092c079\",\"hex\":263938,\"major\":4,\"minor\":7,\"patch\":2,\"status\":\"stable\",\"string\":\"4.7.2-stable (official)\",\"timestamp\":0},\"final_hash_sha256\":\"e261bb3e721633503c0fc6b16a12d478ceef700899498884e8bba4f5275c5a01\",\"fixture\":{\"benchmark_artifacts\":{\"health_by_band\":[30,55,100],\"kind_stride\":5,\"long_remaining_mwu\":1000000000000,\"memory_total_by_mood_band\":[-5501,-4000,-2000,0,2000],\"note\":\"harness inputs, not GDD, decision 0017 or decision 0022 values\",\"party_finish_mwu\":7,\"party_sizes\":[1,2,3,4,5,6,7,8],\"resolved_work_hour\":8,\"skill_level_stride\":7},\"contributor_count\":256,\"party_workload\":false,\"progress_row_count\":256,\"work_factor_max\":1100,\"work_factor_mean\":1100,\"work_factor_min\":1100,\"work_factor_sum\":281600,\"xp_write_duty_ppm_mean\":88000},\"hash_lines\":9985,\"hash_protocol\":\"redwall-work-benchmark-v1/sha256/utf8-canonical-lines\",\"p50_us\":1442,\"p95_pair_us\":3233,\"p99_us\":1809,\"pair_windows\":1500,\"population\":256,\"sample_ticks\":3000,\"schema\":\"redwall-work-benchmark-v1\",\"setup_hash_sha256\":\"04376abaa09ecafa325495f7be38452590a711b011998af13322e5ccf5abbec0\",\"total_sample_us\":4385863,\"warmup_ticks\":300,\"workload\":\"uniform\"}\n[EntityManager] ready\n[GameManager] ready\n[EconomySystem] ready\n[CombatSystem] ready\n[UIManager] ready\n",
+      "stderr_tail": "",
+      "benchmark": {
+        "config": "wu",
+        "engine_version": {
+          "build": "official",
+          "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+          "hex": 263938,
+          "major": 4,
+          "minor": 7,
+          "patch": 2,
+          "status": "stable",
+          "string": "4.7.2-stable (official)",
+          "timestamp": 0
+        },
+        "final_hash_sha256": "e261bb3e721633503c0fc6b16a12d478ceef700899498884e8bba4f5275c5a01",
+        "fixture": {
+          "benchmark_artifacts": {
+            "health_by_band": [
+              30,
+              55,
+              100
+            ],
+            "kind_stride": 5,
+            "long_remaining_mwu": 1000000000000,
+            "memory_total_by_mood_band": [
+              -5501,
+              -4000,
+              -2000,
+              0,
+              2000
+            ],
+            "note": "harness inputs, not GDD, decision 0017 or decision 0022 values",
+            "party_finish_mwu": 7,
+            "party_sizes": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "resolved_work_hour": 8,
+            "skill_level_stride": 7
+          },
+          "contributor_count": 256,
+          "party_workload": false,
+          "progress_row_count": 256,
+          "work_factor_max": 1100,
+          "work_factor_mean": 1100,
+          "work_factor_min": 1100,
+          "work_factor_sum": 281600,
+          "xp_write_duty_ppm_mean": 88000
+        },
+        "hash_lines": 9985,
+        "hash_protocol": "redwall-work-benchmark-v1/sha256/utf8-canonical-lines",
+        "p50_us": 1442,
+        "p95_pair_us": 3233,
+        "p99_us": 1809,
+        "pair_windows": 1500,
+        "population": 256,
+        "sample_ticks": 3000,
+        "schema": "redwall-work-benchmark-v1",
+        "setup_hash_sha256": "04376abaa09ecafa325495f7be38452590a711b011998af13322e5ccf5abbec0",
+        "total_sample_us": 4385863,
+        "warmup_ticks": 300,
+        "workload": "uniform"
+      }
+    },
+    {
+      "config": "wu",
+      "workload": "uniform",
+      "population": 256,
+      "repetition": 2,
+      "command": [
+        "/private/tmp/gc-work-into-0024/build-after/build/RedwallWorkBenchmark.app/Contents/MacOS/Redwall RTS",
+        "--headless",
+        "--",
+        "--config",
+        "wu",
+        "--workload",
+        "uniform",
+        "--population",
+        "256",
+        "--warmup",
+        "300",
+        "--samples",
+        "3000",
+        "--output",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-work-bench-pfw1vy9g/wu-uniform-256-rep2.json"
+      ],
+      "wall_seconds": 5.063412375,
+      "returncode": 0,
+      "stdout_tail": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nBENCHMARK_RESULT {\"config\":\"wu\",\"engine_version\":{\"build\":\"official\",\"hash\":\"ed1daf0bf001b61586d9930840f2f1394092c079\",\"hex\":263938,\"major\":4,\"minor\":7,\"patch\":2,\"status\":\"stable\",\"string\":\"4.7.2-stable (official)\",\"timestamp\":0},\"final_hash_sha256\":\"e261bb3e721633503c0fc6b16a12d478ceef700899498884e8bba4f5275c5a01\",\"fixture\":{\"benchmark_artifacts\":{\"health_by_band\":[30,55,100],\"kind_stride\":5,\"long_remaining_mwu\":1000000000000,\"memory_total_by_mood_band\":[-5501,-4000,-2000,0,2000],\"note\":\"harness inputs, not GDD, decision 0017 or decision 0022 values\",\"party_finish_mwu\":7,\"party_sizes\":[1,2,3,4,5,6,7,8],\"resolved_work_hour\":8,\"skill_level_stride\":7},\"contributor_count\":256,\"party_workload\":false,\"progress_row_count\":256,\"work_factor_max\":1100,\"work_factor_mean\":1100,\"work_factor_min\":1100,\"work_factor_sum\":281600,\"xp_write_duty_ppm_mean\":88000},\"hash_lines\":9985,\"hash_protocol\":\"redwall-work-benchmark-v1/sha256/utf8-canonical-lines\",\"p50_us\":1437,\"p95_pair_us\":3238,\"p99_us\":1811,\"pair_windows\":1500,\"population\":256,\"sample_ticks\":3000,\"schema\":\"redwall-work-benchmark-v1\",\"setup_hash_sha256\":\"04376abaa09ecafa325495f7be38452590a711b011998af13322e5ccf5abbec0\",\"total_sample_us\":4373496,\"warmup_ticks\":300,\"workload\":\"uniform\"}\n[EntityManager] ready\n[GameManager] ready\n[EconomySystem] ready\n[CombatSystem] ready\n[UIManager] ready\n",
+      "stderr_tail": "",
+      "benchmark": {
+        "config": "wu",
+        "engine_version": {
+          "build": "official",
+          "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+          "hex": 263938,
+          "major": 4,
+          "minor": 7,
+          "patch": 2,
+          "status": "stable",
+          "string": "4.7.2-stable (official)",
+          "timestamp": 0
+        },
+        "final_hash_sha256": "e261bb3e721633503c0fc6b16a12d478ceef700899498884e8bba4f5275c5a01",
+        "fixture": {
+          "benchmark_artifacts": {
+            "health_by_band": [
+              30,
+              55,
+              100
+            ],
+            "kind_stride": 5,
+            "long_remaining_mwu": 1000000000000,
+            "memory_total_by_mood_band": [
+              -5501,
+              -4000,
+              -2000,
+              0,
+              2000
+            ],
+            "note": "harness inputs, not GDD, decision 0017 or decision 0022 values",
+            "party_finish_mwu": 7,
+            "party_sizes": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "resolved_work_hour": 8,
+            "skill_level_stride": 7
+          },
+          "contributor_count": 256,
+          "party_workload": false,
+          "progress_row_count": 256,
+          "work_factor_max": 1100,
+          "work_factor_mean": 1100,
+          "work_factor_min": 1100,
+          "work_factor_sum": 281600,
+          "xp_write_duty_ppm_mean": 88000
+        },
+        "hash_lines": 9985,
+        "hash_protocol": "redwall-work-benchmark-v1/sha256/utf8-canonical-lines",
+        "p50_us": 1437,
+        "p95_pair_us": 3238,
+        "p99_us": 1811,
+        "pair_windows": 1500,
+        "population": 256,
+        "sample_ticks": 3000,
+        "schema": "redwall-work-benchmark-v1",
+        "setup_hash_sha256": "04376abaa09ecafa325495f7be38452590a711b011998af13322e5ccf5abbec0",
+        "total_sample_us": 4373496,
+        "warmup_ticks": 300,
+        "workload": "uniform"
+      }
+    },
+    {
+      "config": "wu",
+      "workload": "party",
+      "population": 256,
+      "repetition": 1,
+      "command": [
+        "/private/tmp/gc-work-into-0024/build-after/build/RedwallWorkBenchmark.app/Contents/MacOS/Redwall RTS",
+        "--headless",
+        "--",
+        "--config",
+        "wu",
+        "--workload",
+        "party",
+        "--population",
+        "256",
+        "--warmup",
+        "300",
+        "--samples",
+        "3000",
+        "--output",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-work-bench-pfw1vy9g/wu-party-256-rep1.json"
+      ],
+      "wall_seconds": 4.127382417,
+      "returncode": 0,
+      "stdout_tail": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nBENCHMARK_RESULT {\"config\":\"wu\",\"engine_version\":{\"build\":\"official\",\"hash\":\"ed1daf0bf001b61586d9930840f2f1394092c079\",\"hex\":263938,\"major\":4,\"minor\":7,\"patch\":2,\"status\":\"stable\",\"string\":\"4.7.2-stable (official)\",\"timestamp\":0},\"final_hash_sha256\":\"bc13c46bb6325eefdd778092951d34c3a031f02e4eec733a309f41277e2100da\",\"fixture\":{\"benchmark_artifacts\":{\"health_by_band\":[30,55,100],\"kind_stride\":5,\"long_remaining_mwu\":1000000000000,\"memory_total_by_mood_band\":[-5501,-4000,-2000,0,2000],\"note\":\"harness inputs, not GDD, decision 0017 or decision 0022 values\",\"party_finish_mwu\":7,\"party_sizes\":[1,2,3,4,5,6,7,8],\"resolved_work_hour\":8,\"skill_level_stride\":7},\"contributor_count\":256,\"party_workload\":true,\"progress_row_count\":59,\"work_factor_max\":1725,\"work_factor_mean\":947,\"work_factor_min\":360,\"work_factor_sum\":242467,\"xp_write_duty_ppm_mean\":75770},\"hash_lines\":10103,\"hash_protocol\":\"redwall-work-benchmark-v1/sha256/utf8-canonical-lines\",\"p50_us\":1188,\"p95_pair_us\":2461,\"p99_us\":1290,\"pair_windows\":1500,\"population\":256,\"sample_ticks\":3000,\"schema\":\"redwall-work-benchmark-v1\",\"setup_hash_sha256\":\"142a062a126b248da944c9a73cf6586c95d0ddfbf9f82bc895e73f91d16ead94\",\"total_sample_us\":3558225,\"warmup_ticks\":300,\"workload\":\"party\"}\n[EntityManager] ready\n[GameManager] ready\n[EconomySystem] ready\n[CombatSystem] ready\n[UIManager] ready\n",
+      "stderr_tail": "",
+      "benchmark": {
+        "config": "wu",
+        "engine_version": {
+          "build": "official",
+          "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+          "hex": 263938,
+          "major": 4,
+          "minor": 7,
+          "patch": 2,
+          "status": "stable",
+          "string": "4.7.2-stable (official)",
+          "timestamp": 0
+        },
+        "final_hash_sha256": "bc13c46bb6325eefdd778092951d34c3a031f02e4eec733a309f41277e2100da",
+        "fixture": {
+          "benchmark_artifacts": {
+            "health_by_band": [
+              30,
+              55,
+              100
+            ],
+            "kind_stride": 5,
+            "long_remaining_mwu": 1000000000000,
+            "memory_total_by_mood_band": [
+              -5501,
+              -4000,
+              -2000,
+              0,
+              2000
+            ],
+            "note": "harness inputs, not GDD, decision 0017 or decision 0022 values",
+            "party_finish_mwu": 7,
+            "party_sizes": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "resolved_work_hour": 8,
+            "skill_level_stride": 7
+          },
+          "contributor_count": 256,
+          "party_workload": true,
+          "progress_row_count": 59,
+          "work_factor_max": 1725,
+          "work_factor_mean": 947,
+          "work_factor_min": 360,
+          "work_factor_sum": 242467,
+          "xp_write_duty_ppm_mean": 75770
+        },
+        "hash_lines": 10103,
+        "hash_protocol": "redwall-work-benchmark-v1/sha256/utf8-canonical-lines",
+        "p50_us": 1188,
+        "p95_pair_us": 2461,
+        "p99_us": 1290,
+        "pair_windows": 1500,
+        "population": 256,
+        "sample_ticks": 3000,
+        "schema": "redwall-work-benchmark-v1",
+        "setup_hash_sha256": "142a062a126b248da944c9a73cf6586c95d0ddfbf9f82bc895e73f91d16ead94",
+        "total_sample_us": 3558225,
+        "warmup_ticks": 300,
+        "workload": "party"
+      }
+    },
+    {
+      "config": "wu",
+      "workload": "party",
+      "population": 256,
+      "repetition": 2,
+      "command": [
+        "/private/tmp/gc-work-into-0024/build-after/build/RedwallWorkBenchmark.app/Contents/MacOS/Redwall RTS",
+        "--headless",
+        "--",
+        "--config",
+        "wu",
+        "--workload",
+        "party",
+        "--population",
+        "256",
+        "--warmup",
+        "300",
+        "--samples",
+        "3000",
+        "--output",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-work-bench-pfw1vy9g/wu-party-256-rep2.json"
+      ],
+      "wall_seconds": 4.246929457999997,
+      "returncode": 0,
+      "stdout_tail": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nBENCHMARK_RESULT {\"config\":\"wu\",\"engine_version\":{\"build\":\"official\",\"hash\":\"ed1daf0bf001b61586d9930840f2f1394092c079\",\"hex\":263938,\"major\":4,\"minor\":7,\"patch\":2,\"status\":\"stable\",\"string\":\"4.7.2-stable (official)\",\"timestamp\":0},\"final_hash_sha256\":\"bc13c46bb6325eefdd778092951d34c3a031f02e4eec733a309f41277e2100da\",\"fixture\":{\"benchmark_artifacts\":{\"health_by_band\":[30,55,100],\"kind_stride\":5,\"long_remaining_mwu\":1000000000000,\"memory_total_by_mood_band\":[-5501,-4000,-2000,0,2000],\"note\":\"harness inputs, not GDD, decision 0017 or decision 0022 values\",\"party_finish_mwu\":7,\"party_sizes\":[1,2,3,4,5,6,7,8],\"resolved_work_hour\":8,\"skill_level_stride\":7},\"contributor_count\":256,\"party_workload\":true,\"progress_row_count\":59,\"work_factor_max\":1725,\"work_factor_mean\":947,\"work_factor_min\":360,\"work_factor_sum\":242467,\"xp_write_duty_ppm_mean\":75770},\"hash_lines\":10103,\"hash_protocol\":\"redwall-work-benchmark-v1/sha256/utf8-canonical-lines\",\"p50_us\":1197,\"p95_pair_us\":2469,\"p99_us\":1268,\"pair_windows\":1500,\"population\":256,\"sample_ticks\":3000,\"schema\":\"redwall-work-benchmark-v1\",\"setup_hash_sha256\":\"142a062a126b248da944c9a73cf6586c95d0ddfbf9f82bc895e73f91d16ead94\",\"total_sample_us\":3583804,\"warmup_ticks\":300,\"workload\":\"party\"}\n[EntityManager] ready\n[GameManager] ready\n[EconomySystem] ready\n[CombatSystem] ready\n[UIManager] ready\n",
+      "stderr_tail": "",
+      "benchmark": {
+        "config": "wu",
+        "engine_version": {
+          "build": "official",
+          "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+          "hex": 263938,
+          "major": 4,
+          "minor": 7,
+          "patch": 2,
+          "status": "stable",
+          "string": "4.7.2-stable (official)",
+          "timestamp": 0
+        },
+        "final_hash_sha256": "bc13c46bb6325eefdd778092951d34c3a031f02e4eec733a309f41277e2100da",
+        "fixture": {
+          "benchmark_artifacts": {
+            "health_by_band": [
+              30,
+              55,
+              100
+            ],
+            "kind_stride": 5,
+            "long_remaining_mwu": 1000000000000,
+            "memory_total_by_mood_band": [
+              -5501,
+              -4000,
+              -2000,
+              0,
+              2000
+            ],
+            "note": "harness inputs, not GDD, decision 0017 or decision 0022 values",
+            "party_finish_mwu": 7,
+            "party_sizes": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "resolved_work_hour": 8,
+            "skill_level_stride": 7
+          },
+          "contributor_count": 256,
+          "party_workload": true,
+          "progress_row_count": 59,
+          "work_factor_max": 1725,
+          "work_factor_mean": 947,
+          "work_factor_min": 360,
+          "work_factor_sum": 242467,
+          "xp_write_duty_ppm_mean": 75770
+        },
+        "hash_lines": 10103,
+        "hash_protocol": "redwall-work-benchmark-v1/sha256/utf8-canonical-lines",
+        "p50_us": 1197,
+        "p95_pair_us": 2469,
+        "p99_us": 1268,
+        "pair_windows": 1500,
+        "population": 256,
+        "sample_ticks": 3000,
+        "schema": "redwall-work-benchmark-v1",
+        "setup_hash_sha256": "142a062a126b248da944c9a73cf6586c95d0ddfbf9f82bc895e73f91d16ead94",
+        "total_sample_us": 3583804,
+        "warmup_ticks": 300,
+        "workload": "party"
+      }
+    }
+  ],
+  "finished_utc": "2026-09-08T17:30:48.937048+00:00"
+}

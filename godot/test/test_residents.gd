@@ -383,6 +383,45 @@ func test_setting_skill_xp_rederives_the_level() -> void:
 	assert_equal(_residents.skill_xp_of(slot, 6).value, 125000, "the XP reads back")
 
 
+func test_skill_into_readers_match_wrappers_at_the_level_cap() -> void:
+	"""The work-facing readers preserve XP and level exactly at level 10's boundary."""
+	var slot: int = _residents.spawn(&"mouse").value
+	assert_true(_residents.set_skill_xp(slot, 6, 500000).ok, "level-10 XP is written")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_residents.skill_xp_into(slot, 6, out), "XP reads into caller scratch")
+	assert_equal(out.value, _residents.skill_xp_of(slot, 6).value, "XP wrapper parity")
+	assert_equal(out.value, 500000, "the level-10 threshold is exact")
+	assert_true(_residents.skill_level_into(slot, 6, out), "level reuses the scratch")
+	assert_equal(out.value, _residents.skill_level_of(slot, 6).value, "level wrapper parity")
+	assert_equal(out.value, 10, "500000 XP reads as level 10")
+
+
+func test_skill_into_reuse_clears_refusals_and_stale_values() -> void:
+	"""A failed skill address zeroes a reused output, and a later success clears its error."""
+	var slot: int = _residents.spawn(&"mouse").value
+	assert_true(_residents.set_skill_xp(slot, 6, 125000).ok, "skill XP is written")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_residents.skill_xp_into(slot, 6, out), "seed the scratch with XP")
+	assert_false(_residents.skill_level_into(slot, Residents.SKILL_COUNT, out), "bad skill refuses")
+	assert_equal(out.error, String(Residents.REFUSE_INVALID_SKILL), "the exact refusal survives")
+	assert_equal(out.value, 0, "the old XP is cleared")
+	assert_true(_residents.skill_level_into(slot, 6, out), "the output can be reused")
+	assert_equal(out.value, 5, "the later level is correct")
+	assert_equal(out.error, "", "the old refusal is cleared")
+	assert_false(_residents.skill_xp_into(1, 6, out), "an absent row refuses")
+	assert_equal(out.error, String(Residents.REFUSE_NOT_PRESENT), "absence keeps its public code")
+	assert_equal(out.value, 0, "absence cannot leak level 5")
+
+
+func test_skill_allocating_wrappers_stay_fresh() -> void:
+	"""Retainable convenience reads return distinct objects while sharing the `_into` logic."""
+	var slot: int = _residents.spawn(&"mouse").value
+	assert_false(_residents.skill_xp_of(slot, 0) == _residents.skill_xp_of(slot, 0),
+		"XP wrappers are fresh")
+	assert_false(_residents.skill_level_of(slot, 0) == _residents.skill_level_of(slot, 0),
+		"level wrappers are fresh")
+
+
 func test_reserved_skill_index_and_bad_input_are_refused() -> void:
 	"""GDD §5.1 fixes reserved index 3 at zero; negative XP and unknown columns are refused."""
 	var slot: int = _residents.spawn(&"mouse").value

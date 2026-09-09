@@ -1,9 +1,35 @@
 extends "res://test/framework/test_case.gd"
-## Coverage for damage resolution, healing and death cleanup.
+## LEGACY BATTLE-LAYER PROTOTYPE SUITE. NOT A RELEASE SETTLEMENT SUITE.
+##
+## Coverage for damage resolution, healing and death cleanup in
+## `scripts/legacy_battle/combat_system.gd`. Nine of these ten methods are the original nine,
+## byte-unchanged in body: ARCH-MIG-006 step 7 separates this module from the settlement build,
+## it does not retire the proof that it works. The tenth is the regression guard below.
+##
+## ---------------------------------------------------------------------------------------
+## WHY IT STILL RUNS IN THE MAIN SUITE. `run_tests.gd` discovers `test_*.gd` DIRECTLY UNDER
+## `res://test` and does not recurse, so a `test/legacy/` subdirectory would have silently
+## stopped running these nine tests and left the module unverified while it sits waiting for the
+## battle layer. Untested retained code is worse than deleted code. The separation is therefore
+## carried by the FILE NAME, which is what the runner prints as the suite heading, by the
+## module's own directory, and by the header on both files -- not by hiding it from the runner.
+##
+## THE SETTLEMENT COUNTERPARTS OF THESE SEMANTICS LIVE IN `test_settlement_system.gd`, under
+## "health, death and unknown references". Health, status, death and the refusals for an unknown
+## or dead row are `scripts/core/needs.gd`'s, reached through SettlementSystem. Two semantics
+## here have no settlement counterpart and are battle-layer only, deliberately not ported: the
+## rejection of a non-positive DAMAGE amount (the settlement models no damage), and
+## `health_fraction()`'s float divide (settlement health is an integer 0-100).
 
-const CombatSystemScript := preload("res://scripts/systems/combat_system.gd")
+const CombatSystemScript := preload("res://scripts/legacy_battle/combat_system.gd")
 const EntityManagerScript := preload("res://scripts/systems/entity_manager.gd")
 const HealthComponentScript := preload("res://scripts/components/health_component.gd")
+
+## Prefix every autoload path is checked against: nothing under it may be autoloaded again.
+const LEGACY_DIRECTORY: String = "res://scripts/legacy_battle/"
+## The autoload key this module was registered under until ARCH-MIG-006 step 7 removed it.
+const RETIRED_AUTOLOAD_SETTING: String = "autoload/CombatSystem"
+const AUTOLOAD_PREFIX: String = "autoload/"
 
 var _entities: EntityManagerScript = null
 var _combat: CombatSystemScript = null
@@ -97,6 +123,29 @@ func test_health_fraction_is_safe_at_zero_maximum() -> void:
 	health.max_health = 0
 	health.current_health = 0
 	assert_almost_equal(health.health_fraction(), 0.0, "fraction is zero, not NaN")
+
+
+# --- the separation itself (ARCH-MIG-006 step 7, decision 0006 row 9) --------------------------
+
+func test_the_legacy_battle_module_is_not_registered_as_an_autoload() -> void:
+	"""No autoload may point into the legacy directory: this is the regression guard for step 7.
+
+	Re-adding `CombatSystem` to `project.godot`, or autoloading anything else out of
+	`scripts/legacy_battle/`, fails here rather than quietly rejoining the settlement runtime.
+	ProjectSettings is populated under `--script`, so the worker reads the real project file.
+	"""
+	assert_false(ProjectSettings.has_setting(RETIRED_AUTOLOAD_SETTING),
+		"CombatSystem is no longer an autoload of the settlement build")
+	var autoloads: int = 0
+	for property: Dictionary in ProjectSettings.get_property_list():
+		var setting: String = String(property["name"])
+		if not setting.begins_with(AUTOLOAD_PREFIX):
+			continue
+		autoloads += 1
+		var target: String = String(ProjectSettings.get_setting(setting))
+		assert_false(target.contains(LEGACY_DIRECTORY),
+			"%s does not autoload legacy battle code" % setting)
+	assert_true(autoloads > 0, "the project does declare autoloads, so the scan was not vacuous")
 
 
 func _spawn_fighter(health_points: int) -> int:

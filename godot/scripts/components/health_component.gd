@@ -1,6 +1,21 @@
 class_name HealthComponent
 extends "res://scripts/components/component.gd"
 ## Hit points for anything that can be damaged or killed.
+##
+## PROTOTYPE ECS DATA. THIS IS NOT THE SETTLEMENT HEALTH MODEL. Settlement health, status and
+## death live in `scripts/core/needs.gd` as packed integer columns (`health_of`, `status_of`,
+## `apply_health_event`), and nothing in the settlement build reads this class.
+##
+## It stayed in `scripts/components/` when ARCH-MIG-006 step 7 moved
+## `scripts/legacy_battle/combat_system.gd` out of the autoload list, because it does NOT belong
+## to that module alone: `test/test_entity_manager.gd` uses it in twelve places as its sample
+## component for add/get/remove/query coverage of the prototype EntityManager. Moving it would
+## have edited a file this task does not own to no benefit. Its two remaining readers are that
+## suite and the legacy battle module.
+##
+## It violates the GDD the same way decision 0006 row 4 records for every file in this
+## directory -- one Resource per entity rather than a packed column -- and `health_fraction()`
+## returns a float, which authoritative state may not do. Do not extend it.
 
 const COMPONENT_NAME: StringName = &"health"
 

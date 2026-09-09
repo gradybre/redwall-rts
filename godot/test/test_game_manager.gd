@@ -30,6 +30,11 @@ var _states: Array[int] = []
 var _speeds: Array[int] = []
 var _days: Array[int] = []
 var _diagnostics: Array[String] = []
+## Recorded by the fake simulation bound in the ARCH-MIG-006 step 6 tests below.
+var _sim_ticks: Array[int] = []
+var _sim_days: Array[int] = []
+var _sim_seasons: Array[int] = []
+var _order: Array[String] = []
 
 
 func before_each() -> void:
@@ -39,6 +44,10 @@ func before_each() -> void:
 	_speeds = []
 	_days = []
 	_diagnostics = []
+	_sim_ticks = []
+	_sim_days = []
+	_sim_seasons = []
+	_order = []
 	_game.state_changed.connect(_on_state_changed)
 	_game.speed_changed.connect(_on_speed_changed)
 	_game.day_advanced.connect(_on_day_advanced)
@@ -239,6 +248,88 @@ func test_overload_step_down_is_published_to_the_ui() -> void:
 	assert_equal(_diagnostics.size(), 1, "the reason was published once")
 
 
+func test_no_simulation_is_bound_by_default() -> void:
+	"""A bare GameManager runs the clock and drives no simulation, which is what a test wants."""
+	_game.start_game()
+	_run_frames(FRAMES_PER_REAL_SECOND, FRAME_USEC)
+	assert_false(_game.has_simulation(), "nothing is bound")
+	assert_equal(_sim_ticks, [] as Array[int], "no tick reached a simulation")
+	assert_true(_game.get_completed_tick() > 0, "the clock still ran")
+
+
+func test_bind_simulation_refuses_an_invalid_callable() -> void:
+	"""An empty step or day-boundary callable is refused by name and binds nothing."""
+	assert_false(_game.bind_simulation(Callable(), _on_sim_day_boundary), "an empty step refuses")
+	assert_equal(_game.last_refusal(), &"INVALID_SIMULATION_STEP", "the step refusal is named")
+	assert_false(_game.bind_simulation(_on_sim_tick, Callable()), "an empty boundary refuses")
+	assert_equal(_game.last_refusal(), &"INVALID_SIMULATION_DAY_BOUNDARY", "that refusal is named")
+	assert_false(_game.has_simulation(), "nothing was bound")
+
+
+func test_bind_simulation_refuses_a_second_binding() -> void:
+	"""Two simulations may not share one clock: the second bind is refused, not silently swapped."""
+	assert_true(_game.bind_simulation(_on_sim_tick, _on_sim_day_boundary), "the first bind holds")
+	assert_false(_game.bind_simulation(_on_sim_tick, _on_sim_day_boundary), "the second is refused")
+	assert_equal(_game.last_refusal(), &"SIMULATION_ALREADY_BOUND", "the reason is named")
+	assert_true(_game.has_simulation(), "the first binding survives")
+
+
+func test_the_bound_step_receives_every_completed_tick_index_in_order() -> void:
+	"""The simulation is called once per completed tick, with indices ascending from 1."""
+	_game.bind_simulation(_on_sim_tick, _on_sim_day_boundary)
+	_game.start_game()
+	_run_frames(4, FRAME_USEC)
+	assert_equal(_sim_ticks, [1, 2, 3, 4] as Array[int], "one call per completed tick, in order")
+	assert_equal(_sim_ticks.size(), _game.get_completed_tick(), "as many calls as completed ticks")
+
+
+func test_a_paused_clock_calls_the_bound_simulation_not_at_all() -> void:
+	"""REQ-SET-004: a paused clock accumulates no debt, so no tick reaches the simulation."""
+	_game.bind_simulation(_on_sim_tick, _on_sim_day_boundary)
+	_game.start_game()
+	_game.pause_game()
+	_run_frames(FRAMES_PER_REAL_SECOND, FRAME_USEC)
+	assert_equal(_sim_ticks, [] as Array[int], "no tick ran while paused")
+	assert_equal(_game.get_completed_tick(), 0, "and none was completed")
+
+
+func test_unbind_simulation_stops_the_calls_without_stopping_the_clock() -> void:
+	"""Releasing the binding leaves the clock running and drives nothing."""
+	_game.bind_simulation(_on_sim_tick, _on_sim_day_boundary)
+	_game.start_game()
+	_run_frames(2, FRAME_USEC)
+	var before: int = _sim_ticks.size()
+	_game.unbind_simulation()
+	_run_frames(2, FRAME_USEC)
+	assert_true(before > 0, "the simulation ran while bound")
+	assert_equal(_sim_ticks.size(), before, "no further tick reached it")
+	assert_true(_game.get_completed_tick() > before, "the clock kept running")
+
+
+func test_the_day_boundary_runs_the_simulation_before_the_ui_signal() -> void:
+	"""REQ-SET-007's daily work runs first; the HUD then observes a committed day."""
+	_game.bind_simulation(_on_sim_tick, _on_sim_day_boundary)
+	_game.start_game()
+	_game.set_speed(SimClockScript.SPEED_DOUBLE)
+	_run_frames(SimClockScript.FIRST_MIDNIGHT_TICK / 6, SIX_TICK_FRAME_USEC)
+	assert_equal(_sim_days, [2] as Array[int], "the simulation saw absolute day 2")
+	assert_equal(_sim_seasons, [0] as Array[int], "and the new day's season, spring")
+	assert_equal(_order, ["simulation", "signal"] as Array[String], "simulation first, UI second")
+
+
+func _on_sim_tick(tick_index: int) -> void:
+	"""Stand-in simulation step: record the tick index the adapter supplied."""
+	_sim_ticks.append(tick_index)
+
+
+func _on_sim_day_boundary(absolute_day: int, season: int) -> bool:
+	"""Stand-in simulation day boundary: record the day, the season and the call order."""
+	_sim_days.append(absolute_day)
+	_sim_seasons.append(season)
+	_order.append("simulation")
+	return true
+
+
 func _on_state_changed(new_state: int) -> void:
 	"""Record a state transition for assertion."""
 	_states.append(new_state)
@@ -252,6 +343,7 @@ func _on_speed_changed(speed: int) -> void:
 func _on_day_advanced(absolute_day: int) -> void:
 	"""Record a calendar day boundary for assertion."""
 	_days.append(absolute_day)
+	_order.append("signal")
 
 
 func _on_clock_diagnostic(message: String) -> void:

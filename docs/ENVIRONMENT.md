@@ -21,7 +21,10 @@ the locations they live in are recorded.
 Run these from the repository root unless stated.
 
 ```bash
-# Test suite — 52 tests, 106 assertions
+# Test suite — prefer the script: it asserts the runner actually ran (see below)
+./tools/run_tests.sh
+
+# The same thing without the guard
 godot --headless --path godot --script test/run_tests.gd
 
 # Import assets / refresh the Godot project
@@ -40,6 +43,14 @@ no `project.godot`, silently opens the project manager, imports nothing, and
 **exits 0** — so it looks like success. This has already caused one wrong
 conclusion. The exception is running from inside `godot/`, where bare `godot`
 works.
+
+**Because of that trap, an exit status of 0 is not evidence that anything ran.**
+`tools/run_tests.sh` therefore asserts on the runner's own summary line: it must
+be present, report a non-zero test count, and report zero failures. CI runs that
+script (`.github/workflows/tests.yml`), so a run that executes nothing fails
+rather than reporting success. Prefer the script over the bare command; a count
+is deliberately not quoted here, because a hardcoded one goes stale the next
+time a test is added.
 
 ## MCP servers
 

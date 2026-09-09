@@ -1,0 +1,67 @@
+name: Tests
+
+# The repository has a large headless suite that nothing ran automatically
+# until this workflow existed. See tools/run_tests.sh for why passing is
+# asserted on the runner's summary line rather than on godot's exit status.
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  godot:
+    name: Godot headless suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # docs/ENVIRONMENT.md: 4.7 is the only version anything has been run
+      # against. Pin it rather than tracking latest, so an engine release
+      # cannot turn a green branch red without a commit.
+      GODOT_VERSION: "4.7.2"
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache the Godot binary
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot-bin
+          key: godot-${{ env.GODOT_VERSION }}-linux-x86_64
+
+      - name: Download Godot ${{ env.GODOT_VERSION }}
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          release="Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          url="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/${release}.zip"
+          mkdir -p "$HOME/godot-bin"
+          curl -fsSL --retry 3 -o /tmp/godot.zip "$url"
+          unzip -q /tmp/godot.zip -d "$HOME/godot-bin"
+          mv "$HOME/godot-bin/${release}" "$HOME/godot-bin/godot"
+          chmod +x "$HOME/godot-bin/godot"
+
+      - name: Put Godot on PATH
+        run: echo "$HOME/godot-bin" >> "$GITHUB_PATH"
+
+      - name: Report the engine version
+        run: godot --version
+
+      - name: Import the project
+        # Generates godot/.godot. Without it the first --script run imports on
+        # the fly, which is slower and mixes import errors into test output.
+        run: godot --headless --path godot --editor --quit
+
+      - name: Run the suite
+        run: ./tools/run_tests.sh

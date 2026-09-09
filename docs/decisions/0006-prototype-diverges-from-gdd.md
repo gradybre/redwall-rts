@@ -65,3 +65,55 @@ Task 02 builds release modules **beside** the prototype rather than editing it
 untouched and green. Rows 1–3 (economy), 4–6 (entity/component storage) and 7–8
 (speeds/calendar) now have release-side replacements in `godot/scripts/core/`;
 rows 9 (CombatSystem) and 10 (input map) are untouched and remain open.
+
+
+## Row 9 closed (2026-09-08) — retirement, not GDD satisfaction
+
+`CombatSystem` is retired from the settlement layer under ARCH-MIG-006 step 7.
+The module moved to `godot/scripts/legacy_battle/`, its autoload was removed
+(returning autoloads from 6 to 5), and its `_ready()` was **deleted** — that hook
+called `set_entity_manager(EntityManager)` against a settlement autoload, so
+leaving it would let a future reader drop the node into a scene and have it
+silently self-wire to settlement state. The collaborator is now injected
+explicitly or not at all.
+
+A regression guard, `test_the_legacy_battle_module_is_not_registered_as_an_autoload`,
+scans `ProjectSettings` for any `autoload/*` entry targeting
+`res://scripts/legacy_battle/` and fails if one reappears. The original mistake
+now fails loudly rather than recurring quietly.
+
+**The tests stay directly under `test/` on purpose.** `run_tests.gd` does not
+recurse, so a `test/legacy/` subdirectory would have silently stopped running
+those 9 tests and left retained code unverified. Untested retained code rots into
+deleted code. Separation is carried by the suite name, not by invisibility.
+
+### The 9 legacy tests
+Seven semantics ported to `needs.gd` and `SettlementSystem`; two are
+battle-layer only and were **not** ported — rejecting non-positive *damage*
+(the settlement defines no damage model, only a signed health-event channel) and
+a float `health_fraction()` (settlement health is an integer 0–100).
+
+Two ports are upgrades rather than transcriptions. Lethal damage **destroyed**
+the entity; the settlement **retains** the row as `STATUS_DEAD`, because the
+chronicle, burial job and recoverable inventory all still have to find the
+corpse. And combat answered `0` health for an entity it never heard of — a
+forbidden sentinel, since 0 is a real corpse's health — where the settlement
+refuses `INVALID_SLOT`.
+
+### What closing this row does NOT mean
+The module still uses one `Resource` per entity, monotonic non-reused ids,
+sentinel returns and a float fraction. Those are enumerated in its own header as
+re-derivation requirements. **It is a head start for the battle layer, not an
+adoptable foundation.**
+
+### Still open
+**Row 10** — the input map still uses `select` / `move_command` / `build` /
+`cancel` where the GDD and UI spec require `select_primary`, `command_context`,
+`open_build`, `ui_cancel` and roughly fifty more. Changing them needs the UI
+consumer changed with them.
+
+### Incidental
+Two of the eight mutations run against this work were killed **only** by the
+newly added tests — dropping `clampi` in the health-event path, and returning
+`NOT_PRESENT` for an out-of-range slot. Both were real coverage gaps in existing
+code that the port exposed.

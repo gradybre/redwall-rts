@@ -35,6 +35,10 @@ const NEED_DENOMINATOR: int = 750000
 ## §5.2 spawn value for every need.
 const INITIAL_NEED: int = 7500
 
+## GDD §5.2 health bounds, restated: health is a whole integer 0-100 and a resident spawns full.
+const HEALTH_MIN: int = 0
+const HEALTH_MAX: int = 100
+
 ## GDD §7.1: "10 small and 2 medium residents consume 74400 NP/day".
 const COHORT_DEMAND_NP: int = 74400
 ## The same cohort under REQ-SET-143's x1.20: 10 x floor(6000x1.0x1.2) + 2 x floor(6000x1.2x1.2).
@@ -488,6 +492,141 @@ func test_the_first_midnight_reaches_the_settlement_day_boundary() -> void:
 func _on_day_advanced(absolute_day: int) -> void:
 	"""Record a day boundary the GameManager republished for the HUD."""
 	_boundaries.append(absolute_day)
+
+
+# --- health, death and unknown references (ARCH-MIG-006 step 7) ----------------------------------
+#
+# Step 7 retires `CombatSystem` from the settlement build (decision 0006 divergence row 9) and
+# runs the health, death and unknown-reference semantics worth keeping through the settlement's
+# own health and lifecycle path instead. That path is `scripts/core/needs.gd`, reached here
+# through the composed SettlementSystem rather than through a bare store, because the property
+# under test is that a resident of the LIVE COHORT behaves this way while the tick loop runs
+# over it.
+#
+# NO DAMAGE MODEL IS PORTED. The GDD defines none for the settlement: §5.2 has health, REQ-SET-173
+# has treatment, REQ-SET-172 has Injury, and `apply_health_event()` is the signed whole-point
+# channel all of them use. A negative health event below is a wound or a starvation debt, not an
+# attack, and nothing here computes one.
+
+func _kill(slot: int) -> void:
+	"""Drive one cohort resident's health to 0 through the settlement's own health channel."""
+	var killed: NeedsScript.OpResult = _settlement.needs().apply_health_event(slot, -HEALTH_MAX)
+	assert_true(killed.ok, "the lethal health event was accepted")
+
+
+func test_a_sublethal_health_event_lowers_health_and_keeps_the_resident_living() -> void:
+	"""A wound short of fatal moves the health column and changes nothing about the population."""
+	_populated()
+	var applied: NeedsScript.OpResult = _settlement.needs().apply_health_event(0, -30)
+	assert_true(applied.ok, "the health event was accepted")
+	assert_equal(applied.value, -30, "thirty whole points were absorbed")
+	assert_equal(_settlement.needs().health_of(0).value, HEALTH_MAX - 30, "health fell to 70")
+	assert_true(_settlement.residents().is_alive(0), "the resident is still alive")
+	assert_equal(_settlement.living_count(), COHORT_SIZE, "the living count is unchanged")
+
+
+func test_a_lethal_health_event_records_a_death_and_keeps_the_row() -> void:
+	"""REQ-SET-016: reaching health 0 marks the row dead. It does NOT destroy it.
+
+	This is the settlement counterpart of the legacy battle system's `apply_damage()`, which
+	destroys the entity outright. A settlement corpse keeps its row: the chronicle, the burial
+	job and its recoverable inventory all still have to find it.
+	"""
+	_populated()
+	_kill(0)
+	assert_equal(_settlement.needs().health_of(0).value, HEALTH_MIN, "health reached zero")
+	assert_equal(_settlement.needs().status_of(0).value, NeedsScript.STATUS_DEAD, "status is dead")
+	assert_equal(_settlement.living_count(), COHORT_SIZE - 1, "one fewer living resident")
+	assert_equal(_settlement.needs().death_count(), 1, "the death was recorded once")
+	assert_equal(_settlement.population(), COHORT_SIZE, "the row is retained, not destroyed")
+	assert_true(_settlement.needs().is_present(0), "the corpse still occupies its row")
+
+
+func test_health_is_floored_at_zero_by_an_overkill_event() -> void:
+	"""An event far past the floor clamps at 0 rather than writing a negative health."""
+	_populated()
+	var applied: NeedsScript.OpResult = _settlement.needs().apply_health_event(0, -999)
+	assert_true(applied.ok, "the event was accepted")
+	assert_equal(applied.value, -HEALTH_MAX, "only the hundred points that existed were absorbed")
+	assert_equal(_settlement.needs().health_of(0).value, HEALTH_MIN, "health floored at zero")
+	assert_equal(_settlement.needs().death_count(), 1, "overkill records exactly one death")
+
+
+func test_treatment_stops_at_the_health_maximum() -> void:
+	"""REQ-SET-173 treatment restores whole points and cannot bank past 100."""
+	_populated()
+	assert_true(_settlement.needs().apply_health_event(0, -60).ok, "the resident was wounded")
+	var treated: NeedsScript.OpResult = _settlement.needs().apply_health_event(0, 25)
+	assert_true(treated.ok, "treatment applies")
+	assert_equal(_settlement.needs().health_of(0).value, 65, "health was restored to 65")
+	var overtreated: NeedsScript.OpResult = _settlement.needs().apply_health_event(0, 500)
+	assert_true(overtreated.ok, "the oversized course still applies")
+	assert_equal(overtreated.value, HEALTH_MAX - 65, "only the missing points were absorbed")
+	assert_equal(_settlement.needs().health_of(0).value, HEALTH_MAX, "health stops at the cap")
+
+
+func test_a_dead_resident_refuses_treatment_and_is_skipped_by_the_tick() -> void:
+	"""A corpse is not a heal target, and the interval sweep steps over it without refusing."""
+	_populated()
+	_kill(0)
+	var treated: NeedsScript.OpResult = _settlement.needs().apply_health_event(0, 50)
+	assert_false(treated.ok, "the dead resident refuses treatment")
+	assert_equal(treated.error, NeedsScript.REFUSE_RESIDENT_DEAD, "and names the reason")
+	assert_equal(treated.value, 0, "a refusal carries no absorbed points")
+	assert_true(_settlement.run_tick(1), "the sweep still completes with a corpse in the cohort")
+	assert_equal(_settlement.refused_tick_count(), 0, "and refuses nothing")
+	assert_equal(_settlement.needs().health_of(0).value, HEALTH_MIN, "the corpse does not recover")
+	assert_equal(_settlement.living_count(), COHORT_SIZE - 1, "and is not counted among the living")
+
+
+func test_an_out_of_range_resident_row_is_refused_rather_than_answered() -> void:
+	"""An unknown row REFUSES on every health channel instead of reporting a plausible zero.
+
+	The legacy battle system answers 0 health for an entity it has never heard of. That is the
+	sentinel this codebase forbids: 0 is a real health value belonging to a real corpse.
+	"""
+	_populated()
+	for slot: int in [-1, NeedsScript.RESIDENT_CAPACITY]:
+		var health: IntMath.IntResult = _settlement.needs().health_of(slot)
+		assert_false(health.ok, "health of row %d is refused" % slot)
+		assert_equal(health.error, String(NeedsScript.REFUSE_INVALID_SLOT), "the slot is invalid")
+		assert_false(_settlement.needs().status_of(slot).ok, "status of row %d is refused" % slot)
+		var event: NeedsScript.OpResult = _settlement.needs().apply_health_event(slot, -10)
+		assert_false(event.ok, "a health event on row %d is refused" % slot)
+		assert_equal(event.error, NeedsScript.REFUSE_INVALID_SLOT, "and names the invalid slot")
+	assert_equal(_settlement.living_count(), COHORT_SIZE, "no refusal touched the cohort")
+
+
+func test_a_row_inside_capacity_but_outside_the_cohort_is_not_present() -> void:
+	"""A valid, empty row is refused as NOT PRESENT, distinctly from an out-of-range one."""
+	_populated()
+	var empty_slot: int = COHORT_SIZE
+	assert_false(_settlement.needs().is_present(empty_slot), "row 12 holds no resident")
+	var health: IntMath.IntResult = _settlement.needs().health_of(empty_slot)
+	assert_false(health.ok, "its health is refused")
+	assert_equal(health.error, String(NeedsScript.REFUSE_NOT_PRESENT), "as not present")
+	assert_equal(health.value, 0, "and the refusal carries no health value")
+	var event: NeedsScript.OpResult = _settlement.needs().apply_health_event(empty_slot, 10)
+	assert_false(event.ok, "a health event on an empty row is refused")
+	assert_equal(event.error, NeedsScript.REFUSE_NOT_PRESENT, "as not present")
+
+
+func test_a_resident_reference_taken_before_a_reset_is_no_longer_valid() -> void:
+	"""Generation validation: a reference held across a reset names nobody, not a new resident.
+
+	`reset()` clears the directory and a fresh cohort reuses the same slots, so the ONLY thing
+	separating a stale reference from the new resident living in that slot is the generation.
+	"""
+	_populated()
+	var stale: Vector2i = _settlement.residents().ref_of(0)
+	assert_true(_settlement.directory().is_valid(stale), "the reference is valid while it lives")
+	_settlement.reset()
+	assert_false(_settlement.directory().is_valid(stale), "a reset invalidates it")
+	assert_true(_settlement.create_initial_settlement(), "a fresh cohort was created")
+	var reissued: Vector2i = _settlement.residents().ref_of(0)
+	assert_equal(reissued.x, stale.x, "the new resident reuses the same slot")
+	assert_false(_settlement.directory().is_valid(stale), "yet the old reference stays invalid")
+	assert_true(_settlement.directory().is_valid(reissued), "and the new one is valid")
 
 
 # --- measurement ---------------------------------------------------------------------------------

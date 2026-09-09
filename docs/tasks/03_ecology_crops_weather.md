@@ -34,9 +34,9 @@ prerequisite. It is **not** the thing that animates the loop.
 
 | # | Increment | Depends on | Status |
 |---|---|---|---|
-| 1 | **RNG module** — ARCH-RNG-001/002 xorshift32, the named streams, seed derivation, draw-count persistence | nothing | **unblocked** |
+| 1 | **RNG module** — ARCH-RNG-001/002 xorshift32, the named streams, seed derivation, draw-count persistence | nothing | **done** (`ea06c1c`) |
 | 2 | **Weather** — §5.10, REQ-SET-141–150, single global row | 1 | unblocked |
-| 3 | **ResourceNode** + minimal tile placement | — | unblocked |
+| 3 | **ResourceNode** + minimal tile placement | — | **done** |
 | 4 | **HarvestZone + ForagePatch** — REQ-SET-066–069 | 1, 3 | unblocked |
 | 5 | **FishHabitat + FishStock** — §5.4 | 1 | **partly blocked by U5** (`GearInstance` has no allocator budget, so gear-wear cycles cannot be completed) |
 | 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | unblocked; **the only real job-creation site** |
@@ -65,7 +65,32 @@ immigration/departures and progression come later.
   protected enum table, unlike the eight already there (decision 0018).
 - **No RNG module exists.** ARCH-RNG-002 names `ECOLOGY`, `FISHING`, `FORAGE` and
   `WEATHER` streams with exact draw disciplines. This is a genuine new-module
-  dependency not previously tracked as a blocker.
+  dependency not previously tracked as a blocker. **Resolved by increment 1.**
+
+### Found while implementing (2026-09-09)
+
+- **The WEATHER stream has no roll-to-row mapping.** ARCH-RNG-002 fixes the draw
+  count at one per season and §5.10 says weights are normalised within the
+  season's eligible rows, but **nothing states the cumulative scan direction, the
+  tie rule, or the normalisation rounding.** No weighted picker was written —
+  that mapping would be an invented contract. **Increment 2 cannot consume the
+  stream until this is ruled on.**
+- **§5.1's 4×4 deposit footprints have no schema.** A 4x4 stone deposit of
+  1200 U is either sixteen nodes whose per-tile split the document never states,
+  or one node with an extent the §4.2 `ResourceNode` row cannot hold — it has no
+  footprint field, and a tile holds one node. **This blocks REQ-SET-009 world
+  generation**, not the store itself.
+- **`resource_id`'s domain is unstated.** §4.2 types it `int32` and never says
+  whether it is a compiled `ItemDefinition` id or a separate resource catalog.
+  The store validates range only.
+- **`regrow_days == 0` has no stated meaning.** §5.9 gives 48 days for trees and
+  no period for stone or iron while saying surface stone can exhaust. Read as
+  "never regrows", because a zero period under `day >= planted_day + 0` would
+  refill every worked-out quarry the same day. **This is an interpretation**, and
+  it is flagged in the module header.
+- **REQ-SET-138's "no building occupies the tile" regrowth condition is
+  unimplementable here** — it reads `WorldTileMaps.building_slot`, which no store
+  owns. Only the day condition is implemented; ARCH-SYS-005 owns the rest.
 
 ## What completion does NOT establish
 

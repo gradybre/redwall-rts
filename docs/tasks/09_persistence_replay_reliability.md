@@ -1,0 +1,64 @@
+# Task 09 — Persistence, replay and recovery
+
+2026-09-09 · PLANNED milestone card; schema ownership begins at task 04.
+Owners: REQ-SET-158–162, architecture §8 ARCH-SAVE/ARCH-CMD/ARCH-MEM-006,
+ARCH-SYS-022, crowd determinism contracts, MOVE-REQ-016, MOVE-TEST-06 and task-09
+CSV requirements. Read actual IDs/sections for exact field, version and refusal
+rules; this card does not replace the binary schema.
+
+## Dependencies and work
+
+- [ ] 09.1 Maintain a future-affecting-state registry as every store arrives:
+  columns/widths, null/unused representation, allocator generations/retirement,
+  child indexes, RNG, pending commands/scheduler events, clocks/leases/claims,
+  route/cache/search state, cargo/WIP, memories, scenarios and family state.
+  Fix pending scheduler serialization with 04.1; expanded movement version and
+  migration/rejection matrix with MOVE-G02. Do not silently repurpose v1 bytes.
+- [ ] 09.2 Implement canonical little-endian sections and complete validation,
+  hashes, bounded reads and overflow checks. Preserve rule/catalog/map/lookup/
+  engine identity. Reject incompatible v1 hunting state under SET-AMEND-001;
+  expanded schemas need an explicit version policy before writing release saves.
+- [ ] 09.3 Implement transactional disk-backed rollback load, validated inactive
+  checkpoint, autosave rotation and interrupted-I/O recovery. Recompute expanded
+  peak memory; the baseline single-floor ledger is insufficient. No second full
+  mutable world beyond the budget or partially visible decoded world.
+- [ ] 09.4 Implement replay sequence and every-300-tick checkpoints plus an
+  every-tick verification mode. Canonical future state must include navigation
+  admission/readiness, frozen traversals, queue ages, pending edits and interval
+  progression, not merely needs and XP. Chronicle streams retain all history.
+- [ ] 09.5 Integrate save/load UI, paused pending previews, errors, migration
+  refusal, critical-pause restoration, collapse protection and startup recovery.
+- [ ] 09.6 Preserve GDD §8's future-boundary contracts (REQ-SET-176–180): shared
+  identity/item schemas, atomic transfer manifests, exactly-once cancellation
+  and returning persistent identity into valid free slots with carried state.
+  Test through the declared boundary API; keep execution UI hidden while no
+  future consumer exists. This supplies settlement compatibility, not a battle
+  or campaign implementation.
+
+Save coder owns codec/checkpoint/replay files; each system owner supplies its
+state schema and independent continuation fixtures; integration lead alone edits
+shared registry/stage/header/version; UI owner implements dialogs. PC-01/02/04/06
+unresolved layouts block associated parity claims, not independent codecs.
+
+## Acceptance and evidence
+
+Use a continuous run and saves at meaningful boundaries: paused command queue,
+midnight, leased goods, batch work/passive completion, active climb/dive, waiting
+crossing, partial path search, occupied topology edit, death, petition expiry and
+Charter evaluation. Save at tick 3000 and compare **every tick 3001–18000** where
+that fixture applies; include shorter edge fixtures and longer scenario runs.
+Compare independent processes, same commands at 1/2/4 speeds and view changes;
+first divergence reports exact fields and revisions. Test corrupt/truncated/
+wrong-hash/oversized/unsupported files and simulated write/read/rollback failures.
+A failed load keeps the prior valid world or an explicit unrecoverable LOAD pause
+with recoverable files; no partial playable world.
+
+Check all free generations, restored lowest-free allocation, history, item/XP/
+clock remainders and fully referenced route arenas. Preserve raw commands,
+source/content/export hashes and scope exclusions. Final-only subset FNV matches
+and an isolated reference codec are not production save parity.
+
+Completion establishes persistence/replay for all implemented authoritative
+systems in the covered scenarios. Qualification still needs complete 03–08
+scope and actual task-10 hardware/renderer/accessibility evidence. Windows
+cross-platform execution remains deferred, explicitly unverified.

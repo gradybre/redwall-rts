@@ -81,9 +81,13 @@ func after_each() -> void:
 
 # --- helpers ------------------------------------------------------------------------------------------
 
-func _plot(tile: int = TILE, soil: int = LOAM) -> int:
-	"""Create one plot and return its row, failing the test if the create refused."""
-	var created: Farming.OpResult = _store.create_plot_at_tile(tile, soil)
+func _plot(tile: int = TILE, soil: int = LOAM, day: int = 1) -> int:
+	"""Create one plot and return its row, failing the test if the create refused.
+
+	`day` is required by READY_06 §6.3: `compost_milli` is a current-season mirror the store
+	derives at creation, so a create cannot be dated implicitly.
+	"""
+	var created: Farming.OpResult = _store.create_plot_at_tile(tile, soil, day)
 	assert_true(created.ok, "create_plot_at_tile (error: %s)" % created.error)
 	return created.value
 
@@ -466,7 +470,7 @@ func test_every_crop_ripens_at_its_own_duration() -> void:
 	"""Cabbage and roots at 120, beans at 144, flax at 168, grain at 192: five separate numbers."""
 	for crop: int in KEYS.size():
 		var store: Farming = Farming.new()
-		var created: Farming.OpResult = store.create_plot_at_tile(TILE, LOAM)
+		var created: Farming.OpResult = store.create_plot_at_tile(TILE, LOAM, 1)
 		var slot: int = created.value
 		store.plant(slot, crop, 1, LEGAL_SEASON[crop], LEGAL_DAY[crop])
 		store.begin_growing(slot)
@@ -683,13 +687,20 @@ func test_the_ripe_grace_is_48_hours_on_both_sides() -> void:
 
 
 func test_the_decay_takes_ten_percent_of_the_remaining_yield_each_day() -> void:
-	"""REMAINING, so it compounds: 10000 -> 9000 -> 8100 -> 7290, not a flat 1000 per day."""
+	"""REMAINING, so it compounds: 10000 -> 9000 -> 8100, not a flat 1000 per day.
+
+	READY_06 §6.4 forbids a THIRD harvestable decay step, so a third is refused rather than
+	compounded to 7290 -- at 120 hours the crop is WITHERED and completes no normal harvest. That
+	changed this test: the previous 7290 assertion described an interval no live crop can present.
+	"""
 	assert_equal(_store.spoiled_yield_milli(10000, 0).value, 10000, "no decay")
 	assert_equal(_store.spoiled_yield_milli(10000, 1).value, 9000, "one day")
 	assert_equal(_store.spoiled_yield_milli(10000, 2).value, 8100, "two days compound")
-	assert_equal(_store.spoiled_yield_milli(10000, 3).value, 7290, "three days compound")
 	assert_equal(_store.spoiled_yield_milli(8500, 1).value, 7650, "the floor is applied per day")
 	assert_equal(_store.spoiled_yield_milli(9, 1).value, 8, "small quantities floor down")
+	var third: Variant = _store.spoiled_yield_milli(10000, 3)
+	assert_false(third.ok, "a third harvestable decay step refuses")
+	assert_equal(third.value, 0, "and carries no usable number")
 	assert_false(_store.spoiled_yield_milli(10000, 6).ok, "beyond the withering window refuses")
 	assert_false(_store.spoiled_yield_milli(-1, 1).ok, "a negative base refuses")
 
@@ -753,7 +764,7 @@ func test_each_crop_takes_its_own_frost_damage() -> void:
 	"""Beans 1500, cabbage 150, flax 800, grain 1000, roots 300: five separate numbers."""
 	for crop: int in KEYS.size():
 		var store: Farming = Farming.new()
-		var slot: int = store.create_plot_at_tile(TILE, LOAM).value
+		var slot: int = store.create_plot_at_tile(TILE, LOAM, 1).value
 		store.plant(slot, crop, 1, LEGAL_SEASON[crop], LEGAL_DAY[crop])
 		store.begin_growing(slot)
 		assert_equal(store.frost_damage_per_hour_for(slot, -10).value, FROST[crop],
@@ -1069,14 +1080,15 @@ func test_recreating_a_field_keeps_the_last_family_and_the_legume_clock() -> voi
 
 
 func test_a_redrawn_designation_cannot_fabricate_a_rotation_bonus() -> void:
-	"""ARCH-STATE-003 keeps the last FAMILY but systems_architecture.md gives TileHistory no
-	column for the streak LENGTH. A redraw therefore restores the family with a zero count, and
-	that is read as a SECOND consecutive harvest (850), never a first (1000). The residual
-	shortfall -- a third-or-later 700 becoming 850 across a redraw -- is reported in the header."""
+	"""READY_06 §7: the tile owns (last_family, family_streak) and the plot row mirrors it, so a
+	redraw restores BOTH halves. One banked grain harvest still reads as a second consecutive
+	same-family harvest afterwards. Before the ruling the count was lost and this test asserted a
+	zero streak on the rebuilt row; it now asserts the restored 1."""
 	var slot: int = _harvest_grain_cycles(1)
 	_store.destroy(_store.ref_of(slot))
 	var rebuilt: int = _plot()
-	assert_equal(_store.family_streak_of(rebuilt).value, 0, "the count does not survive")
+	assert_equal(_store.family_streak_of(rebuilt).value, 1, "the count survives the redraw")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 1, "because the tile owns it")
 	_store.plant(rebuilt, GRAIN, 30, LEGAL_SEASON[GRAIN], LEGAL_DAY[GRAIN])
 	_store.begin_growing(rebuilt)
 	assert_equal(_store.rotation_factor_of(rebuilt).value, 850,
@@ -1117,8 +1129,8 @@ func test_the_tile_ledger_covers_exactly_the_stated_sixteen_thousand_rows() -> v
 	assert_true(_store.is_tile_index(16383), "the last tile")
 	assert_false(_store.is_tile_index(16384), "one past the end")
 	assert_false(_store.is_tile_index(-1), "before the beginning")
-	assert_true(_store.create_plot_at_tile(16383, LOAM).ok, "a plot on the last tile")
-	var off_grid: Farming.OpResult = _store.create_plot_at_tile(16384, LOAM)
+	assert_true(_store.create_plot_at_tile(16383, LOAM, 1).ok, "a plot on the last tile")
+	var off_grid: Farming.OpResult = _store.create_plot_at_tile(16384, LOAM, 1)
 	assert_false(off_grid.ok, "a plot off the grid refuses")
 	assert_equal(off_grid.error, Farming.REFUSE_INVALID_TILE, "refusal code")
 
@@ -1126,7 +1138,7 @@ func test_the_tile_ledger_covers_exactly_the_stated_sixteen_thousand_rows() -> v
 func test_a_tile_holds_at_most_one_plot() -> void:
 	"""One FarmPlot per 2 m tile (§4.2), enforced by refusing the second."""
 	_plot()
-	var second: Farming.OpResult = _store.create_plot_at_tile(TILE, LOAM)
+	var second: Farming.OpResult = _store.create_plot_at_tile(TILE, LOAM, 1)
 	assert_false(second.ok, "a second plot on one tile refuses")
 	assert_equal(second.error, Farming.REFUSE_TILE_OCCUPIED, "refusal code")
 	assert_equal(second.ref, Vector2i(-1, 0), "a refusal carries the null reference")
@@ -1138,11 +1150,11 @@ func test_the_store_fills_to_its_stated_four_thousand_and_ninety_six_rows() -> v
 	assert_equal(EntityDirectoryScript.KIND_CAPACITY[EntityDirectoryScript.KIND_FARM_PLOT], 4096,
 		"the directory reserves 4096 farm-plot rows")
 	for tile: int in 4096:
-		assert_true(_store.create_plot_at_tile(tile, LOAM).ok if tile == 0 else true, "first")
+		assert_true(_store.create_plot_at_tile(tile, LOAM, 1).ok if tile == 0 else true, "first")
 		if tile > 0:
-			_store.create_plot_at_tile(tile, LOAM)
+			_store.create_plot_at_tile(tile, LOAM, 1)
 	assert_equal(_store.count(), 4096, "every row is live")
-	var overflow: Farming.OpResult = _store.create_plot_at_tile(4096, LOAM)
+	var overflow: Farming.OpResult = _store.create_plot_at_tile(4096, LOAM, 1)
 	assert_false(overflow.ok, "the 4097th plot refuses")
 	assert_equal(overflow.error, &"CAPACITY_FARM_PLOT", "ARCH-ID-004's capacity refusal code")
 
@@ -1241,7 +1253,7 @@ func test_clear_releases_every_row_and_resets_the_tile_ledger() -> void:
 	assert_equal(_store.tile_active_plot_row_of(TILE).value, -1, "no plot on the tile")
 	assert_equal(_store.directory().live_count(EntityDirectoryScript.KIND_FARM_PLOT), 0,
 		"and no directory row is stranded")
-	assert_true(_store.create_plot_at_tile(TILE, LOAM).ok, "the store is usable again")
+	assert_true(_store.create_plot_at_tile(TILE, LOAM, 1).ok, "the store is usable again")
 
 
 func test_the_store_shares_a_directory_when_one_is_passed_in() -> void:
@@ -1249,7 +1261,7 @@ func test_the_store_shares_a_directory_when_one_is_passed_in() -> void:
 	var directory: EntityDirectoryScript = EntityDirectoryScript.new()
 	var store: Farming = Farming.new(directory)
 	assert_equal(store.directory(), directory, "the passed directory is adopted")
-	var created: Farming.OpResult = store.create_plot_at_tile(TILE, LOAM)
+	var created: Farming.OpResult = store.create_plot_at_tile(TILE, LOAM, 1)
 	assert_true(created.ok, "create through the shared directory")
 	assert_true(directory.is_valid_of_kind(created.ref, EntityDirectoryScript.KIND_FARM_PLOT),
 		"the reference validates against the shared directory")
@@ -1280,9 +1292,9 @@ func test_readers_that_need_a_crop_refuse_an_empty_plot() -> void:
 
 # --- helpers that drive full crop cycles ------------------------------------------------------------------------
 
-func _harvest_grain_cycles(cycles: int) -> int:
+func _harvest_grain_cycles(cycles: int, tile: int = TILE) -> int:
 	"""Grow and harvest grain `cycles` times on one plot, returning that plot's row."""
-	var slot: int = _ripe(GRAIN)
+	var slot: int = _ripe(GRAIN, tile)
 	for cycle: int in cycles:
 		if cycle > 0:
 			_replant_grain(slot)
@@ -1309,3 +1321,359 @@ func _beans_after_grain_at_full_fertility() -> int:
 	_store.begin_growing(slot)
 	_grow_hours(slot, GROWTH_HOURS[BEANS], 120)
 	return slot
+
+
+# --- READY_06 §7: the persisted family streak ------------------------------------------------------
+
+func test_the_streak_survives_an_erase_and_recreate_so_a_third_harvest_still_scores_700() -> void:
+	"""THE RULING'S REDRAW FIXTURE, verbatim: "two same-family harvests -> erase/recreate -> next
+	same-family harvest still 700". Before READY_06 §7 the tile kept the family but not the count,
+	so the rebuilt plot read as a second consecutive harvest and paid 850 instead."""
+	var slot: int = _harvest_grain_cycles(2)
+	assert_equal(_store.family_streak_of(slot).value, 2, "two banked grain harvests")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 2, "and the tile owns the count")
+	assert_true(_store.destroy(_store.ref_of(slot)).ok, "erase the designation")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 2, "erasing cannot erase the count")
+	var rebuilt: int = _plot()
+	assert_equal(_store.last_family_of(rebuilt).value, CEREAL, "the family is restored")
+	assert_equal(_store.family_streak_of(rebuilt).value, 2, "and so is the count")
+	_store.plant(rebuilt, GRAIN, 30, LEGAL_SEASON[GRAIN], LEGAL_DAY[GRAIN])
+	_store.begin_growing(rebuilt)
+	assert_equal(_store.rotation_factor_of(rebuilt).value, 700,
+		"a third same-family crop still scores 700 across the redraw, not 850")
+
+
+func test_a_family_change_after_a_redraw_still_scores_1000_and_1100_for_a_legume() -> void:
+	"""The ruling's other half: "a family change still gives 1000, or 1100 for LEGUME"."""
+	var slot: int = _harvest_grain_cycles(2)
+	_store.destroy(_store.ref_of(slot))
+	var rebuilt: int = _plot()
+	_store.plant(rebuilt, BEANS, 30, LEGAL_SEASON[BEANS], LEGAL_DAY[BEANS])
+	_store.begin_growing(rebuilt)
+	assert_equal(_store.rotation_factor_of(rebuilt).value, 1100,
+		"a LEGUME after a different family scores 1100 across a redraw")
+	var other: int = _harvest_grain_cycles(2, TILE + 1)
+	_store.destroy(_store.ref_of(other))
+	var rebuilt_roots: int = _plot(TILE + 1)
+	_store.plant(rebuilt_roots, ROOTS, 30, LEGAL_SEASON[ROOTS], LEGAL_DAY[ROOTS])
+	_store.begin_growing(rebuilt_roots)
+	assert_equal(_store.rotation_factor_of(rebuilt_roots).value, 1000,
+		"a non-legume family change scores the first-crop 1000")
+
+
+func test_a_harvest_writes_the_family_and_the_count_onto_the_tile_together() -> void:
+	"""READY_06 §7: "Update both atomically on completed harvest". Neither half can be observed
+	without the other, on the plot row or on the tile."""
+	var slot: int = _ripe(GRAIN)
+	assert_equal(_store.tile_last_family_of(TILE).value, -1, "no family before the harvest")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 0, "and no count")
+	_store.harvest(slot, 9, _ripe_tick_of(GRAIN), 1000)
+	assert_equal(_store.tile_last_family_of(TILE).value, CEREAL, "the family lands")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 1, "and the count with it")
+	assert_equal(_store.last_family_of(slot).value, CEREAL, "the plot mirrors the family")
+	assert_equal(_store.family_streak_of(slot).value, 1, "and mirrors the count")
+
+
+func test_a_different_family_resets_the_count_to_one_rather_than_continuing_it() -> void:
+	"""READY_06 §6.2: "Same family increments; a different family resets to 1"."""
+	var slot: int = _harvest_grain_cycles(3)
+	assert_equal(_store.family_streak_of(slot).value, 3, "three banked cereal harvests")
+	_store.plant(slot, BEANS, 40, LEGAL_SEASON[BEANS], LEGAL_DAY[BEANS])
+	_store.begin_growing(slot)
+	_grow_hours(slot, GROWTH_HOURS[BEANS], 120)
+	_store.harvest(slot, 50, _ripe_tick_of(BEANS), 1000)
+	assert_equal(_store.last_family_of(slot).value, LEGUME, "the family changed")
+	assert_equal(_store.family_streak_of(slot).value, 1, "so the count restarts at 1, not 4")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 1, "on the tile as well")
+
+
+func test_withering_and_fallow_days_neither_reset_nor_advance_the_count() -> void:
+	"""READY_06 §6.2: "withering, fallow time, unfinished sowing and redraw neither reset nor
+	advance it". Only a SUCCESSFUL COMPLETED harvest moves the pair."""
+	var slot: int = _harvest_grain_cycles(2)
+	_replant_grain(slot)
+	_store.apply_ripe_expiry(slot, _ripe_tick_of(GRAIN) + 120 * TICKS_PER_HOUR)
+	assert_equal(_store.state_of(slot).value, WITHERED, "the replanted crop withered")
+	assert_equal(_store.family_streak_of(slot).value, 2, "withering advanced nothing")
+	_store.clear_withered(slot)
+	assert_equal(_store.family_streak_of(slot).value, 2, "nor did clearing it")
+	_store.apply_fallow_day(TILE, 61)
+	assert_equal(_store.tile_family_streak_of(TILE).value, 2, "nor did a fallow day")
+	assert_equal(_store.tile_last_family_of(TILE).value, CEREAL, "and the family is untouched")
+
+
+func test_an_unfinished_sowing_never_advances_the_count() -> void:
+	"""READY_06 §6.2 again: the streak counts harvests, never sowings."""
+	var slot: int = _harvest_grain_cycles(1)
+	assert_true(_store.plant(slot, GRAIN, 20, LEGAL_SEASON[GRAIN], LEGAL_DAY[GRAIN]).ok, "sow")
+	assert_equal(_store.family_streak_of(slot).value, 1, "sowing banks nothing")
+	assert_true(_store.begin_growing(slot).ok, "finish the sowing work")
+	assert_equal(_store.family_streak_of(slot).value, 1, "nor does completing the sowing")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 1, "nor on the tile")
+
+
+func test_the_streak_saturates_at_int32_max_instead_of_overflowing() -> void:
+	"""READY_06 §6.2: "Saturate at INT32_MAX -- if already at the maximum, retain it; otherwise
+	increment. Never evaluate an overflowing addition." Loaded through the tile-history gate,
+	because nothing reaches 2147483647 harvests by playing."""
+	var restored: Farming.OpResult = _store.restore_tile_family_history(TILE, CEREAL, 2147483647)
+	assert_true(restored.ok, "restore a saturated tile (error: %s)" % restored.error)
+	var slot: int = _plot()
+	assert_equal(_store.family_streak_of(slot).value, 2147483647, "the plot mirrors the maximum")
+	assert_false(_store.rotation_factor_of(slot).ok, "an empty plot carries no crop to score")
+	_store.plant(slot, GRAIN, 20, LEGAL_SEASON[GRAIN], LEGAL_DAY[GRAIN])
+	_store.begin_growing(slot)
+	_grow_hours(slot, GROWTH_HOURS[GRAIN], 120)
+	assert_true(_store.harvest(slot, 30, _ripe_tick_of(GRAIN), 1000).ok, "harvest at the maximum")
+	assert_equal(_store.family_streak_of(slot).value, 2147483647, "the count is retained")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 2147483647, "on the tile too")
+
+
+func test_one_below_the_maximum_still_increments_to_the_maximum() -> void:
+	"""The other side of the saturation boundary: 2147483646 must still advance once."""
+	assert_true(_store.restore_tile_family_history(TILE, CEREAL, 2147483646).ok, "restore")
+	var slot: int = _plot()
+	_store.plant(slot, GRAIN, 20, LEGAL_SEASON[GRAIN], LEGAL_DAY[GRAIN])
+	_store.begin_growing(slot)
+	_grow_hours(slot, GROWTH_HOURS[GRAIN], 120)
+	assert_true(_store.harvest(slot, 30, _ripe_tick_of(GRAIN), 1000).ok, "harvest")
+	assert_equal(_store.family_streak_of(slot).value, 2147483647, "2147483646 + 1")
+
+
+func test_a_populated_family_with_a_zero_count_is_refused_not_reinterpreted() -> void:
+	"""READY_06 §7: "A populated family paired with zero streak must not be silently treated as
+	known complete history; any legacy snapshot with missing counts needs explicit migration or
+	rejection." This is the rejection, and it writes neither half."""
+	assert_false(Farming.is_history_pair_consistent(CEREAL, 0), "family with no count")
+	assert_true(Farming.is_history_pair_consistent(-1, 0), "no family and no count")
+	assert_false(Farming.is_history_pair_consistent(-1, 1), "a count with no family")
+	assert_true(Farming.is_history_pair_consistent(LEGUME, 1), "a family with a count")
+	var refused: Farming.OpResult = _store.restore_tile_family_history(TILE, CEREAL, 0)
+	assert_false(refused.ok, "a legacy pair with a missing count refuses")
+	assert_equal(refused.error, Farming.REFUSE_HISTORY_INCONSISTENT, "refusal code")
+	assert_equal(_store.tile_last_family_of(TILE).value, -1, "the family was not written")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 0, "nor the count")
+
+
+func test_the_tile_history_gate_refuses_invalid_arguments_and_an_occupied_tile() -> void:
+	"""A load writes tile history before designations, and it never writes a nonsense family."""
+	assert_false(_store.restore_tile_family_history(16384, CEREAL, 1).ok, "an off-grid tile")
+	assert_false(_store.restore_tile_family_history(TILE, FAMILY_COUNT, 1).ok, "no such family")
+	assert_false(_store.restore_tile_family_history(TILE, -2, 0).ok, "nor a family below -1")
+	assert_false(_store.restore_tile_family_history(TILE, CEREAL, -1).ok, "a negative count")
+	var occupied: int = _plot()
+	assert_true(_store.is_present(occupied), "the tile now carries a plot")
+	var refused: Farming.OpResult = _store.restore_tile_family_history(TILE, CEREAL, 1)
+	assert_false(refused.ok, "a tile with a live plot refuses")
+	assert_equal(refused.error, Farming.REFUSE_TILE_OCCUPIED, "refusal code")
+
+
+func test_an_invalid_or_stale_plot_reference_cannot_alter_tile_history() -> void:
+	"""READY_06 §7: "Invalid/stale plot references must not alter tile history"."""
+	var slot: int = _harvest_grain_cycles(1)
+	var ref: Vector2i = _store.ref_of(slot)
+	assert_true(_store.destroy(ref).ok, "destroy")
+	assert_false(_store.destroy(ref).ok, "the stale reference refuses")
+	assert_false(_store.harvest(slot, 9, 0, 1000).ok, "harvesting the emptied row refuses")
+	assert_false(_store.harvest(4095, 9, 0, 1000).ok, "an absent row refuses")
+	assert_equal(_store.tile_last_family_of(TILE).value, CEREAL, "the family is unchanged")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 1, "and so is the count")
+
+
+# --- READY_06 §6.4: the ripe clocks, at the exact stated boundaries -----------------------------------
+
+func test_the_planner_decay_fixture_is_100000_then_90000_then_81000_then_unharvestable() -> void:
+	"""THE RULING'S DECAY FIXTURE, verbatim: "A 100000-milli-U fixture is 100000 just before 72h,
+	90000 at 72h, 81000 at 96h, then not harvestable at 120h." Asserted on the arithmetic and on
+	the delivered quantity, so neither the schedule nor the withering deadline can drift alone."""
+	assert_equal(_store.spoiled_yield_milli(100000, 0).value, 100000, "100000 through the grace")
+	assert_equal(_store.spoiled_yield_milli(100000, 1).value, 90000, "90000 after one interval")
+	assert_equal(_store.spoiled_yield_milli(100000, 2).value, 81000, "81000 after two")
+	assert_false(_store.spoiled_yield_milli(100000, 3).ok, "no third harvestable interval")
+	var slot: int = _ripe(GRAIN)
+	var ripe_tick: int = _ripe_tick_of(GRAIN)
+	assert_equal(_store.ripe_decay_days_of(slot, ripe_tick + 71 * TICKS_PER_HOUR).value, 0,
+		"no completed interval one hour before 72")
+	assert_equal(_store.ripe_decay_days_of(slot, ripe_tick + 72 * TICKS_PER_HOUR).value, 1,
+		"one completed interval at 72 hours")
+	assert_equal(_store.ripe_decay_days_of(slot, ripe_tick + 96 * TICKS_PER_HOUR).value, 2,
+		"two at 96 hours")
+
+
+func test_a_harvest_at_120_hours_refuses_even_before_the_expiry_sweep_runs() -> void:
+	"""READY_06 §6.4: "at 120 the crop is WITHERED and cannot complete a normal harvest". The
+	state column only moves when a caller runs apply_ripe_expiry(), so the deadline is enforced by
+	harvest() itself -- otherwise a harvest landing first would collect a third decay step."""
+	var slot: int = _ripe(GRAIN)
+	var ripe_tick: int = _ripe_tick_of(GRAIN)
+	assert_equal(_store.state_of(slot).value, RIPE, "no expiry sweep has run")
+	assert_true(_store.harvest_yield_milli(slot, 1000, ripe_tick + 119 * TICKS_PER_HOUR).ok,
+		"119 hours still delivers a yield")
+	var refused: Farming.OpResult = _store.harvest(slot, 9, ripe_tick + 120 * TICKS_PER_HOUR, 1000)
+	assert_false(refused.ok, "120 hours refuses")
+	assert_equal(refused.error, Farming.REFUSE_RIPE_EXPIRED, "refusal code")
+	assert_equal(refused.value, 0, "and carries no yield")
+	assert_equal(_store.state_of(slot).value, RIPE, "a refusal changes nothing")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 0, "and banks no harvest")
+	assert_true(_store.harvest(slot, 9, ripe_tick + 119 * TICKS_PER_HOUR, 1000).ok,
+		"one hour earlier still completes")
+
+
+func test_the_ripe_and_growth_clocks_live_on_the_tile_so_a_redraw_cannot_restart_them() -> void:
+	"""READY_06 §6.4: "Retain the hourly/tick remainder and the ripe timestamp so a load or redraw
+	cannot restart either clock"."""
+	var slot: int = _ripe(GRAIN)
+	var ripe_tick: int = _ripe_tick_of(GRAIN)
+	assert_equal(_store.tile_ripe_tick_of(TILE).value, ripe_tick, "the tile carries the instant")
+	_store.destroy(_store.ref_of(slot))
+	assert_equal(_store.tile_ripe_tick_of(TILE).value, ripe_tick, "erasing does not clear it")
+	assert_equal(_store.tile_growth_remainder_of(TILE).value, 0, "nor the growth remainder")
+	var rebuilt: int = _plot()
+	assert_equal(_store.ripe_elapsed_hours_of(rebuilt, ripe_tick + 96 * TICKS_PER_HOUR).value, 96,
+		"the rebuilt row reads the same clock, it does not start a fresh one")
+
+
+# --- READY_06 §6.1: sowing, and the post-commitment cancellation regime -------------------------------
+
+func test_a_sown_plot_takes_no_growth_no_tending_no_frost_and_no_blight() -> void:
+	"""READY_06 §6.1: "No hourly growth, and no growing-crop tending, frost or blight, applies to
+	SOWN." Every one of those entry points must refuse before the sowing work completes."""
+	var slot: int = _sown(GRAIN)
+	assert_true(_store.is_sowing(slot), "seed is committed and the sowing work is outstanding")
+	var grown: Farming.OpResult = _store.advance_growth_hour(slot, 120, 0)
+	assert_false(grown.ok, "no hourly growth")
+	assert_equal(grown.error, Farming.REFUSE_NOT_GROWING, "refusal code")
+	assert_false(_store.tend(slot).ok, "no growing-crop tending")
+	assert_false(_store.apply_frost_hour(slot, -50).ok, "no frost")
+	assert_false(_store.apply_blight_day(slot).ok, "no blight")
+	assert_equal(_store.growth_milli_hours_of(slot).value, 0, "and nothing accumulated")
+	assert_equal(_store.health_of(slot).value, 10000, "at full health")
+	assert_true(_store.begin_growing(slot).ok, "successful sowing completion enters GROWING")
+	assert_false(_store.is_sowing(slot), "and the plot is no longer sowing")
+	assert_true(_store.advance_growth_hour(slot, 120, 0).ok, "which is where growth starts")
+
+
+func test_a_replacement_worker_cannot_commit_the_seed_a_second_time() -> void:
+	"""READY_06 §6.1: "A worker change preserves the WIP and cannot consume seed again." The WU
+	progress is the Job's, so a worker change calls nothing here; what this store must guarantee
+	is that a second productive start on the same plot refuses."""
+	var slot: int = _sown(GRAIN)
+	assert_equal(_store.sow_work_milli_wu(), 4000, "§5.6's 4 WU of sowing, in milli-WU")
+	var again: Farming.OpResult = _store.plant(slot, GRAIN, 1, LEGAL_SEASON[GRAIN], LEGAL_DAY[GRAIN])
+	assert_false(again.ok, "a second productive start refuses")
+	assert_equal(again.error, Farming.REFUSE_NOT_EMPTY, "refusal code")
+	assert_equal(again.value, 0, "and returns no second seed quantity")
+	assert_equal(_store.state_of(slot).value, SOWN, "the committed sowing is untouched")
+	assert_equal(_store.crop_id_of(slot).value, GRAIN, "with its crop intact")
+
+
+func test_the_seed_committed_at_productive_start_is_exactly_250_milli_units() -> void:
+	"""READY_06 §6.1: "consume the exact seed (250 milli-U per tile)". Returned, never consumed
+	here -- inventory.gd owns the lot."""
+	var slot: int = _plot()
+	var planted: Farming.OpResult = _store.plant(slot, GRAIN, 1, LEGAL_SEASON[GRAIN], LEGAL_DAY[GRAIN])
+	assert_true(planted.ok, "plant (error: %s)" % planted.error)
+	assert_equal(planted.value, 250, "the seed the caller must consume")
+	assert_equal(_store.state_of(slot).value, SOWN, "and the plot is SOWN, not GROWING")
+
+
+func test_cancelling_a_committed_sowing_refunds_nothing_and_keeps_every_history() -> void:
+	"""READY_06 §6.1's post-commitment regime: "discard the committed seed and unfinished WIP with
+	no seed or compost refund, return the plot to EMPTY, and preserve soil, family and compost
+	history and XP already earned"."""
+	var slot: int = _harvest_grain_cycles(1)
+	assert_true(_store.apply_compost(slot, 1).ok, "compost the tile this season")
+	assert_equal(_store.fertility_of(slot).value, 7300, "7000 - 1200 + 1500")
+	assert_true(_store.plant(slot, GRAIN, 2, LEGAL_SEASON[GRAIN], LEGAL_DAY[GRAIN]).ok, "sow")
+	var cancelled: Farming.OpResult = _store.cancel_sowing(slot)
+	assert_true(cancelled.ok, "cancel_sowing (error: %s)" % cancelled.error)
+	assert_equal(cancelled.value, 0, "no seed and no compost is refunded")
+	assert_equal(_store.state_of(slot).value, EMPTY, "the plot is EMPTY again")
+	assert_equal(_store.crop_id_of(slot).value, -1, "with no crop")
+	assert_equal(_store.fertility_of(slot).value, 7300, "soil history is preserved")
+	assert_equal(_store.last_family_of(slot).value, CEREAL, "family history is preserved")
+	assert_equal(_store.family_streak_of(slot).value, 1, "and its count")
+	assert_equal(_store.compost_milli_of(slot).value, 2000, "compost history is preserved")
+	assert_false(_store.is_compost_eligible(TILE, 2), "and buys no second application")
+
+
+func test_cancel_sowing_applies_only_to_a_plot_that_holds_committed_seed() -> void:
+	"""A cancellation before productive start touches nothing here, because the plot never left
+	EMPTY; a GROWING, RIPE or WITHERED plot is past the sowing regime entirely."""
+	var empty: int = _plot()
+	var refused: Farming.OpResult = _store.cancel_sowing(empty)
+	assert_false(refused.ok, "an EMPTY plot has no committed sowing to cancel")
+	assert_equal(refused.error, Farming.REFUSE_NOT_SOWN, "refusal code")
+	var growing: int = _growing(GRAIN, TILE + 1)
+	assert_false(_store.cancel_sowing(growing).ok, "a GROWING plot is past the sowing regime")
+	assert_equal(_store.state_of(growing).value, GROWING, "and is left alone")
+	var ripe: int = _ripe(GRAIN, TILE + 2)
+	assert_false(_store.cancel_sowing(ripe).ok, "a RIPE plot too")
+	assert_false(_store.cancel_sowing(4095).ok, "and an absent row refuses")
+
+
+# --- READY_06 §6.3: compost_milli is a current-season mirror ------------------------------------------
+
+func test_a_redraw_in_the_same_season_derives_the_mirror_back_to_2000() -> void:
+	"""READY_06 §6.3: "At plot creation, redraw and load, derive or validate the mirror: 2000 iff
+	the tile's application season equals the current absolute season, else 0." The mirror follows
+	the TILE, so a redraw inside the same season shows the application again."""
+	var slot: int = _plot()
+	assert_equal(_store.compost_milli_of(slot).value, 0, "nothing applied yet")
+	assert_true(_store.apply_compost(slot, 1).ok, "apply compost in the first spring")
+	assert_equal(_store.compost_milli_of(slot).value, 2000, "the mirror holds the 2 U")
+	_store.destroy(_store.ref_of(slot))
+	var same_season: int = _plot(TILE, LOAM, 12)
+	assert_equal(_store.compost_milli_of(same_season).value, 2000,
+		"day 12 is still the first season, so the mirror is derived back")
+	_store.destroy(_store.ref_of(same_season))
+	var next_season: int = _plot(TILE, LOAM, 13)
+	assert_equal(_store.compost_milli_of(next_season).value, 0,
+		"day 13 opens a new season, so the mirror is 0")
+	assert_equal(_store.tile_compost_season_of(TILE).value, 0,
+		"and the authoritative application season is untouched by either redraw")
+
+
+func test_the_season_boundary_resets_the_mirror_without_touching_history_or_fertility() -> void:
+	"""READY_06 §6.3: "Reset the mirror at a season boundary without clearing tile history or
+	fertility"."""
+	var slot: int = _harvest_grain_cycles(1)
+	assert_true(_store.apply_compost(slot, 1).ok, "apply compost in the first spring")
+	assert_equal(_store.compost_milli_of(slot).value, 2000, "the mirror is set")
+	var unchanged: Farming.OpResult = _store.refresh_compost_mirrors_for_day(12)
+	assert_true(unchanged.ok, "refresh inside the same season")
+	assert_equal(unchanged.value, 0, "changes nothing")
+	assert_equal(_store.compost_milli_of(slot).value, 2000, "and leaves the mirror set")
+	var boundary: Farming.OpResult = _store.refresh_compost_mirrors_for_day(13)
+	assert_true(boundary.ok, "refresh on the first day of the next season")
+	assert_equal(boundary.value, 1, "one mirror was reset")
+	assert_equal(_store.compost_milli_of(slot).value, 0, "the mirror is 0 in the new season")
+	assert_equal(_store.tile_compost_season_of(TILE).value, 0, "the application season stands")
+	assert_equal(_store.fertility_of(slot).value, 7300, "fertility is untouched")
+	assert_equal(_store.tile_last_family_of(TILE).value, CEREAL, "and so is the rotation pair")
+	assert_equal(_store.tile_family_streak_of(TILE).value, 1, "both halves of it")
+	assert_true(_store.is_compost_eligible(TILE, 13), "the new season is eligible as normal")
+
+
+func test_the_mirror_refresh_is_idempotent_and_refuses_a_day_before_the_calendar() -> void:
+	"""Repeated calls settle: the second reports nothing changed. Day 0 names no day."""
+	var slot: int = _plot()
+	_store.apply_compost(slot, 1)
+	assert_equal(_store.refresh_compost_mirrors_for_day(25).value, 1, "the first reset")
+	assert_equal(_store.refresh_compost_mirrors_for_day(25).value, 0, "the second changes nothing")
+	assert_equal(_store.refresh_compost_mirrors_for_day(1).value, 1, "and it can be re-derived")
+	assert_equal(_store.compost_milli_of(slot).value, 2000, "back to the applied quantity")
+	var refused: Farming.OpResult = _store.refresh_compost_mirrors_for_day(0)
+	assert_false(refused.ok, "day 0 names no day")
+	assert_equal(refused.error, Farming.REFUSE_INVALID_DAY, "refusal code")
+	assert_equal(_store.compost_milli_of(slot).value, 2000, "and a refusal moves no mirror")
+
+
+func test_creating_a_plot_refuses_a_day_before_the_calendar_and_allocates_nothing() -> void:
+	"""The mirror cannot be derived without a day, so an undatable create refuses outright."""
+	var refused: Farming.OpResult = _store.create_plot_at_tile(TILE, LOAM, 0)
+	assert_false(refused.ok, "day 0 refuses")
+	assert_equal(refused.error, Farming.REFUSE_INVALID_DAY, "refusal code")
+	assert_equal(_store.count(), 0, "and no row was allocated")
+	assert_false(_store.has_plot_at_tile(TILE), "nor was the tile claimed")
+	assert_true(_store.create_plot_at_tile(TILE, LOAM, 1).ok, "day 1 is the first storable day")

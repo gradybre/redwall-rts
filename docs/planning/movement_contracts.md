@@ -1,0 +1,85 @@
+# Movement contracts — adopted scope and engineering decisions
+
+Status: **explicitly unratified engineering proposals; MOVE-G01–05 remain open**. Prepared 2026-09-09. Execution checklist: [task 05](../tasks/05_movement_first_playable.md). Coordinate shared initialization/commands with [task 04](../tasks/04_world_commands.md), sequencing with the [release roadmap](../tasks/00_release_roadmap.md), and evidence with [requirements.csv](../planning/requirements.csv).
+
+## 1. Authority and decision inventory
+
+[SET-MOVE-001](../movement_direction_amendment.md) and DEC-029/031/035 adopt persistent constructed tunnels, inhabited underground space, interoperable burrow placement/planned tunnels/free multi-level excavation, surface swimming/diving, and connected climbing/canopy work. Ground-first sequencing is intermediate. [Decision 0020](../decisions/0020-movement-gates-close-in-dependency-order.md) orders closure: G01 → G02 alongside G03 → G04 after scale/clearance → G05 last.
+
+**Adopted policy** means existing authority. **Preferred proposal** is explicitly unratified, requiring an owner decision before binding implementation; this includes all new schemas, algorithms and values below. **Unresolved binding input** blocks its affected production scope and full gate closure. Synthetic F01–F14 values are test inputs, never approved catalogs. The 2026-09-09 [STATUS](../STATUS.md) reports no navigation/Transform/save implementation; those claims were not independently verified here. READY_06 answers require item-specific adoption checks before use as authority.
+
+**Permitted partial work:** full G01 precedes FULL G02 binding/closure. A reviewed ground/shared-interface slice may proceed while unrelated profiles remain open if its own inputs, typed handles, baseline-only capacities/bytes, refusal rules and save obligations are settled. Expanded identity/route semantics may be exercised with explicitly synthetic finite fixtures. Neither activity approves expanded capacities, activates unspecified modes or closes a full gate. Task 05.1a records that slice; 05.1b owns the complete contract.
+
+| Gate / owner | Decisions still required and exact closure outputs |
+|---|---|
+| **MOVE-G01 — GDD/balance** | Signed finite world envelope: horizontal footprint, depth/elevation limits, resolution and maximum generated/excavated cells per domain. Complete construction state/recipe tables for all three tools: work, material quantities, spoil disposition, support/water interaction, cancellation/refund rules. Versioned body/posture/gear/load/training profiles and allowed modes, integer speeds/entry/exit durations, air/recovery values where applicable. Interruption matrix for needs, exhaustion, incapacity, death, cancellation and forced hazards; explicitly disabled cases. Names or symbols without values do not close this gate. |
+| **MOVE-G02 — architecture** | Adopted typed field/enum/sentinel registry; derived finite location/edge/route/queue/transaction capacities and directory changes; complete byte ledger including scratch, double buffers and load peak. Deterministic routing/cache/readiness, queue/lease/deadlock algorithm, atomic topology/lifecycle order and versioned save migration/rejection matrix. These depend on G01, not an invented floor multiplier. |
+| **MOVE-G03 — UI** | Registered layer/route/edit controls with IDs, input precedence, geometry/breakpoints, keyboard focus, screen-reader text, generation-safe picking/follow, previews and committed blocked/cancel state mapping. Preserve 1280×720–3840×2160 coverage. |
+| **MOVE-G04 — assets/crowd** | Measured scale/clearance sheets and gear/contact fixtures; versioned full clip manifest with sample counts, transitions, hold/reverse/return/exit mappings, bones/sockets, bounds, exact texture totals and LOD mappings. The existing 16 clips/609 frames are baseline only. |
+| **MOVE-G05 — validation** | Reproducible F01–F14 and MOVE-TEST-01–10 evidence plus interrupted edits, queue/deadlock, arena exhaustion, every-tick replay/save parity and expanded workload latency/memory. Record source/content/build hashes, hardware and raw samples; disclose failures and deferred Windows/reference-floor evidence. |
+
+## 2. Shared spatial identity and packed state
+
+**Adopted:** integer authority, 30 Hz, speed modes 0/1/2/4, int32 positions in 1/1024 m, −Z forward, 1.0 m mouse anchor, 256 living/512 resident slots. Generation-validated identity replaces proximity as the relationship between jobs, rooms, containers, transfers, occupancy, selection and saves. Battle and settlement stores stay separate.
+
+**Preferred proposal:** make dynamic locations/connections referenceable directory kinds; extend the versioned kind registry and memory totals. Use `EntityRef=(slot:i32,generation:i32)`, null `(-1,0)`, with existing reverse-owner validation and nonwrapping generation retirement. World topology revision is a positive i64; refuse revision exhaustion, never wrap. Static ground cell coordinates map explicitly to location handles. Keep construction's physical state separate from domain: a planned underground cell is not traversable.
+
+Proposed minimal SoA additions follow. `Ref` expands to two I32 columns (8 bytes); all dimensions/IDs/flags below are I32 unless specified. These row widths exclude the directory, owner-row links, occupancy bitsets, indexes and arena bookkeeping, which must be separately ledgered. Counts `L,E,R,Q` remain unresolved G01-derived capacities.
+
+| Proposed table | Columns | Payload arithmetic |
+|---|---|---|
+| Location[L] | domain, level, x/y/z, clear_width_u, clear_height_u, support_kind, occupancy_capacity, flags; topology_revision:I64 | 10×4+8 = 48 B/row |
+| Connection[E] | from/to:Ref; kind, required_bits, posture_mask, width_u, height_u, load_limit_g, grip_mask, cost_profile_id, flags, polyline_offset/count; revision:I64 | 2×8+11×4+8 = 68 B/row |
+| Traversal[512] | location/edge/route/claim:Ref; mode, phase, profile_id, flags, segment_index; profile_revision, elapsed_ticks, duration_ticks, air_remaining_ticks:I64; distance_remainder:I32 | 4×8+5×4+4×8+4 = 88 B/row |
+| RouteDescriptor[R] | source/goal:Ref; topology/profile/policy revisions:I64; offset,count,refcount; last_use_tick:I64 | 16+24+12+8 = 60 B/row |
+| CrossingRequest[Q] | resident/job/edge/landing:Ref; request_tick,renewal_tick:I64; direction,phase,sequence,reason | 32+16+16 = 64 B/row |
+
+`Traversal.location` retains the departure location during a committed edge phase; logical occupancy is the edge and protected landing, not that retained endpoint. Arrival switches the location and clears the edge atomically. Route/claim refs need explicitly allocated directory kinds or a separately ratified arena-handle contract; the proposed directory approach must count them, including referenced routes that cannot be evicted. Active traversal snapshots retain committed profile semantics until a safe transition; future edges revalidate current revisions. Catalog revision lifetime/refcounts or equivalent frozen fields require additional ledger rows.
+
+Version domain/mode/phase enums; do not alias battle AIR/WATER IDs. Use explicit `UNLIMITED_LOAD` flags, not overloaded zero. Proposed profile rows bind revision:I64, capability/posture/grip masks:I32, body-plus-gear width/height:I32, committed load_g:I32 and a mode-cost slice. Profile catalog capacities and actual entries remain G01/G02 outputs. Proposed work contacts bind location:Ref, optional connection:Ref, integer interaction point and supported posture. Bind room service access and inventory transfer endpoints to the same contact. Sharing X/Z, hiding a layer or having a visually adjacent hand cannot satisfy it.
+
+## 3. Topology and occupied-exit transactions
+
+**Adopted:** unfinished excavation blocks through travel; finished tunnels persist after builders leave. Deleting occupied access or its only safe exit must refuse until occupants and held reservations are safely resolved.
+
+**Preferred proposal:** process edits in command order against a bounded overlay on the committed topology. Validate handles/revisions → reserve every required row/material/spoil/output slot → evaluate resulting clearance, room/service reach, occupied edges and protected return/air exits → stage changes → publish together at a tick boundary. No materials or stock change before all preconditions pass. Construction completion enters the same publication protocol; visibility begins on one recorded revision, never through partially written cells.
+
+Connectivity checks share deterministic search budgeting. If unfinished, retain a saved pending transaction and show pending validation; on later commit revalidate revisions and occupants. Order admission after publication so a new entrant cannot race the edit. A late lifecycle publication rechecks claims acquired earlier that tick. Roll back only provisional claims on refusal. Persist delivered work/material state according to approved construction rules; do not invent excavation prices or apply building refunds to spoil without G01 direction.
+
+Protect transitive descent/air dependencies, not just directly occupied edges. Required output is a bounded dependency/index design and transaction scratch ledger. Forced collapse, flooding or exhaustion cannot use deletion refusal as their complete hazard policy; their injury/rescue/inventory outcomes remain G01 inputs.
+
+## 4. Routing, admission, leases and deadlock
+
+**Adopted:** Dijkstra with `h=0` is the expanded-graph correctness reference. Eligibility conjuncts live endpoints, capability, posture, body-plus-gear clearance, load, grip and access policy. Each party member must pass. Occupancy is temporary admission pressure, not proof of unreachable geometry.
+
+**Preferred proposal:** positive integer tick costs include declared entry/travel/exit; deterministic heap key `(cost,location_id,mode_id)`, fixed outgoing-edge order and lower predecessor/edge tie. Overflow-safe I64 arithmetic refuses invalid catalogs. Production heuristics require a proven lower bound and reference agreement. Keep path requests ordered by job ID/request generation, distinct from proposed crossing order `(request_tick,resident_persistent_id,request_sequence)`.
+
+Expanded cache identity includes exact goal/contact, connected start component and exact-start variant, domain, topology/profile/load/equipment/policy revisions. A macro bucket is not connectivity proof. Revalidate future segments before entry; never publish an incomplete prefix. Preserve cache generations, route cells/edges, refcounts, use ticks and eviction choices. Continue the inherited total 2048 expansions/tick until an owning decision changes it; count validation/local searches too. Report storage-blocked separately. The cold 256-request burst already defeats unconditional latency guarantees.
+
+For constrained crossings, atomically reserve edge plus landing; dives reserve the validated exit before submergence. No partial multi-resource holds while queued. Use earliest eligible request and a stable resource-ID acquisition order; validate a common resource set before granting. Renew existing job travel leases every 30 ticks; 300 ticks without renewal expires unoccupied claims. Existing confirmed-unreachable 300-tick/900-tick retry behavior must exclude planning and crossing waits. Expiry/cancellation never erases occupied traversal.
+
+Preferred deadlock policy rejects admission unless the protected corridor/landing set permits completion. Build a bounded wait-for diagnostic for cycles involving retained occupancy; cycle victims release only unentered claims in reverse queue priority and retry without resetting original waiting age. If resolution requires moving an occupant, use only an approved supported retreat. Otherwise refuse the new commitment with an explicit reason. Prove corridor/no-passing, full landing, opposite-direction and aging fixtures; this proposal does not claim starvation freedom without that proof or allow automatic teleportation.
+
+## 5. Motion, needs and lifecycle
+
+For inherited ground caps 3277/4096/3072 u/second by size, propose `a=remainder+speed; distance=floor(a/30); remainder=a mod 30`. Do not round to integer u/tick and lose speed. For authored integer polylines, advance bounded progress and compute `root=from+trunc((to-from)*progress/length)` with checked I64 intermediates; explicitly type zero-length transitions. Segment clearance includes swept body/gear and blocked corners. Separation reads immutable Jacobi positions, remains domain/support-local and cannot push through forbidden edges; bounded soft separation is not exact collision.
+
+Snapshot → commands → interval needs → intent/jobs → navigation → motion → work/logistics → health/lifecycle → hash preserves architecture order. Travel gives no production WU. Hunger redirects at safe interruption; exhaustion, incapacity or death on climbs/dives needs the G01 matrix before activation. No instantaneous floor sleep on a ladder or invented drowning immunity. Stop new work on death, settle occupancy/claims, recover actual cargo, record history, then retire references once; map-exit arrival gates departure removal. Define supported recovery/drop contacts for every enabled domain.
+
+Dive preference: authored submerged macro-segments with reserved air endpoint and worst-case travel/wait/contingency duration. Reject entry unless the complete plan fits available budget. Account every submerged fixed tick, including waits; pause consumes none. Recovery/contingency values remain unapproved. Canopy work similarly validates contact, gear/grip and supported return before commitment. Fishing contacts debit the existing authoritative basin, edible whitelist and effort accounting.
+
+## 6. Presentation and clip validity
+
+Double-buffer immutable snapshots containing identity/domain/level, previous/current roots, committed mode/phase, contact anchors and prior/current animation intent. Interpolate only compatible support segments; a straight blend across floors, corners or shore transitions must not cut through solid geometry. Use the authored curve/contact phase or reset presentation history at discontinuities without modifying authoritative previous fields.
+
+Pause snaps to the completed tick and freezes pose; resume avoids backward motion. Clip sampling follows the same delayed presentation time as roots, including prior intent until its event tick. Load displays previous=current only as a presentation override. Validate all entry/travel/hold/return/exit clips, gear states, half-frame deformation, contacts and expanded bounds; missing mappings reject content, never silently substitute ground walk. Retain 30 Hz bake/in-place roots and existing rig constraints unless formally revised. At most 24 close skeletal actors; LOD/cutaway changes preserve domain, selection identity and authority. UI uses the canonical Planning/Waiting/Blocked labels and acknowledges pending safe cancellation truthfully.
+
+## 7. Save parity, capacities and evidence
+
+Save every future-affecting field: traversal/profile revision and frozen semantics, queue age/order, lease deadlines, occupied/protected claims, air/remainders, pending edits, route arena/cache and complete partial-search heap/parents/scores/cursors/quota/readiness. Use explicit little-endian versioned sections, canonical unused fields and full reference validation. Adopt a compatibility matrix specifying old-ground-location conversion and pending-route migration or explicit rejection; never reinterpret a flat cell ID as a new location. No schema version number is assigned here.
+
+Compare every tick, not merely final hashes, across uninterrupted versus save/load continuations, speeds and camera/LOD changes. Include admission, midnight, active dive, death, partial search and edit boundaries. Store first-divergence diagnostics and source/content hashes.
+
+Derive memory as `sum(capacity × column_width)` plus directory/allocator/index/route/polyline/search/claim/transaction storage, **two** presentation snapshots, Jacobi buffers, retained revisions, I/O and measured engine copies. Immutable topology may be shared only while truly immutable; editable overlays require separate accounting. Recompute the full ledger from current allocations: architecture reconciliation totals already contain historical deltas and must not be copied as a new sum. Its baseline two-world load calculation exceeds decimal 100 MB; retain the adopted disk-backed rollback design, validate before array reuse, and never expose a partial load. Report live, save/load and topology-edit peaks separately; Chronicle history is disk-streamed, not a finite total-save claim.
+
+Exhaust each finite pool with deterministic refusal, no eviction of live claims, inventory loss or dynamic growth. Production `L/E/R/Q`, label/search bounds, dependency scratch and exact asset frame totals remain required outputs. Verify 256-resident workload budgets on the specified Windows floor; Mac and eventual RTX 5090 evidence are useful but cannot close that obligation. Contracts and synthetic fixtures alone close no runtime gate.

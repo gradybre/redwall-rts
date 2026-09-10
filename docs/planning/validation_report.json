@@ -1,0 +1,26 @@
+{
+  "scope": "PLANNING_DECLARATIONS_AND_LOCAL_LINKS_ONLY",
+  "requirements": 347,
+  "families": {
+    "MOVE-REQ": 20,
+    "MOVE-TEST": 10,
+    "REQ-SET": 181,
+    "REQ-UX": 15,
+    "SET-AMEND": 18,
+    "UI-SET": 103
+  },
+  "source_declaration_count": 337,
+  "primary_declaration_count": 329,
+  "retirement_dispositions": 10,
+  "duplicate_source_declarations": {},
+  "markdown_files": 13,
+  "local_links_checked": 79,
+  "errors": [],
+  "status": "PASS",
+  "source_sha256": {
+    "docs/game_gdd.md": "86e4a19833ed6d21b7209040b3287cd06e46a12fc8fa231dde016c49bcdc99ea",
+    "docs/setting_rules_amendment.md": "64fb7429a33aa40a3635ea83c17f8c97e32c4ddb4435c898c90965d2e08c709c",
+    "docs/ui_ux_controls.md": "5e6c79cd622a75287b3d6d9fa923b910892334e98abd1d7ff3d121de6353c9e7",
+    "docs/movement_direction_amendment.md": "04c32fd2e209e341e0eb1454636b4a20e9b2100338590b51f844f6e9d8601c64"
+  }
+}

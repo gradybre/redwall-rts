@@ -89,7 +89,7 @@ not part of the settlement architecture and have not been removed.
 | 2 | Weather | **done** — mapping ruled (0028) |
 | 3 | ResourceNode + tile placement | **done** — deposits added (0029, 0031) |
 | 4 | HarvestZone + ForagePatch | **done** — quota reworked to the ruled daily aggregate (0026, 0030) |
-| 5 | FishHabitat + FishStock | **stock half done**; gear half blocked by U5 |
+| 5 | FishHabitat + FishStock | **stock half done**; effort claims added (0037), `GearInstance` allocator added (0038). Remaining gear work needs the Expedition store and the installed-gear contract, **not** U5 |
 | 6 | FarmPlot + TileHistory + catalog wiring | **done** — five open contracts recorded (0032) |
 | 7 | FieldPolicy + sowing | **not started** — unblocked by READY_06 item 1 |
 | 8 | OrchardPlot + Hive | **not started** — unblocked by READY_06 item 3 |

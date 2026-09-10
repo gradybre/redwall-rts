@@ -73,11 +73,20 @@ extends RefCounted
 ## ---------------------------------------------------------------------------------------
 ## WHAT THIS STORE DELIBERATELY DOES NOT DO. None of it is stubbed; the numbers are simply not
 ## compiled in, so nothing here can drift from a contract that does not exist yet.
-##   * GEAR. §5.4's gear table, durability 0-1000, wear per cycle, repairs and "a cycle cannot
-##     start with durability below wear" all need a `GearInstance` store, which is blocker U5:
-##     it has no row in §4.2, no length in systems_architecture.md §2.2 and no directory kind in
-##     entity_directory.gd. The catch formula takes `base_catch_milli` as an ARGUMENT precisely
-##     so §5.4's arithmetic is complete without it -- the gear table supplies that one number.
+##   * GEAR. CORRECTED 2026-09-09: U5's GearInstance half is CLOSED and this is no longer a
+##     blocker. `scripts/core/gear.gd` owns §5.4's durability 0-1000, the per-cycle wear column
+##     (net 20, trap 10, ice kit 20), the wood+rope repair recipe and the "a cycle cannot start
+##     with durability below wear" bar, budgeted as ARCH-STATE-007 (decision 0038). The earlier
+##     claim that it "has no row in §4.2, no length in systems_architecture.md §2.2" was wrong on
+##     the second half: the 16384 rows and their 540672-byte payload were always budgeted in §3,
+##     and what was missing was the allocator, which now exists.
+##     This module STILL holds no gear reference and still evaluates no durability, because
+##     JOINING a habitat to a gear object is the fishing CYCLE's job, and the cycle needs the
+##     Expedition columns named below, which do not exist. The catch formula therefore keeps
+##     `base_catch_milli` as an ARGUMENT: §5.4's arithmetic is complete without a gear row, and
+##     the gear table supplies that one number. Weirs and boats remain INSTALLED gear with no
+##     representation anywhere -- decision 0038 records why their owner/instance discriminator is
+##     still unresolved and must not be invented.
 ##   * EXPEDITIONS AND HAZARDS. REQ-SET-053/054's hazard roll, injury, rescue job and cargo
 ##     retention, and the rare-quality roll, need the `Expedition` allocator and per-cycle
 ##     FISHING draws. §4.2's Expedition row exists and its store does not.
@@ -1644,7 +1653,9 @@ func formula_catch_milli_into(row: int, base_catch_milli: int, skill: int, seaso
 	"""Non-allocating formula_catch_milli(): `floor(base*(1000+50*skill)*A*S/1000000000)`.
 
 	`base_catch_milli` is an ARGUMENT because §5.4's "Base catch U/cycle" is a column of the gear
-	table, and the gear store is blocker U5 (see the header). `skill` is a §5.3 FISH level, 0..10;
+	table. CORRECTED 2026-09-09: the gear store is no longer blocked -- `gear.gd` exists (decision
+	0038) -- but this module deliberately holds no gear reference, because the cycle that would own
+	one needs Expedition columns that do not exist. `skill` is a §5.3 FISH level, 0..10;
 	a level outside that range is refused rather than scaled, and every multiplication is checked,
 	so a caller passing an enormous base catch gets an OVERFLOW refusal and never a wrapped one.
 	"""

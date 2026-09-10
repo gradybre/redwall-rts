@@ -38,7 +38,7 @@ prerequisite. It is **not** the thing that animates the loop.
 | 2 | **Weather** — §5.10, REQ-SET-141–150, single global row | 1 | **done** (`83db3c4`); selection mapping ruled, decision 0028 |
 | 3 | **ResourceNode** + minimal tile placement | — | **done** |
 | 4 | **HarvestZone + ForagePatch** — REQ-SET-066–069 | 1, 3 | **done**; quota reworked to the ruled daily aggregate, decisions 0026/0030 |
-| 5 | **FishHabitat + FishStock** — §5.4 | 1 | **stock half done**; gear half still blocked by U5 (`GearInstance` has no allocator budget, so wear cycles cannot be completed) |
+| 5 | **FishHabitat + FishStock** — §5.4 | 1 | **stock half done**; effort claims added (0037). `GearInstance`'s allocator now exists (0038), so **U5 no longer blocks portable gear** — the remaining gear work needs the Expedition store and the installed-gear contract for boats and weirs |
 | 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | **done**; `TileHistory` built, five open contracts recorded in decision 0032 |
 | 7 | **FieldPolicy + sowing** — REQ-SET-070/071/077/078/088 | 6 | **needs a decision**: the GDD states the sowing validation gate but never the triggering event |
 | 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **pollination blocked by U6** (`HivePollinationLinks` has no owner-major index formula) |

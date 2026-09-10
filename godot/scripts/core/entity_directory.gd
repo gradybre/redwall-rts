@@ -227,6 +227,21 @@ func get_typed_row(ref: Vector2i) -> int:
 	return _typed_row[ref.x]
 
 
+func owner_slot_of_typed_row(kind: int, row: int) -> int:
+	"""The directory slot owning one kind's typed row, or NULL_SLOT when that row is free.
+
+	ARCH-ID-003's reverse map, read forwards. An owner-indexed child store whose row index IS the
+	owner's typed row (fishing.gd's FishingEffortClaim is one) needs this to rebuild the owner's
+	reference from the row alone, without spending a second slot column per row to store it.
+	No new allocation: `_typed_owner_slot` already exists for the validator.
+	"""
+	if kind < 0 or kind >= KIND_COUNT:
+		return NULL_SLOT
+	if row < 0 or row >= KIND_CAPACITY[kind]:
+		return NULL_SLOT
+	return _typed_owner_slot[_kind_base[kind] + row]
+
+
 func get_persistent_id(ref: Vector2i) -> int:
 	"""The never-reused persistent ID of a live reference, or 0 when it is stale."""
 	if not is_valid(ref):

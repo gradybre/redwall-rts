@@ -1,0 +1,39 @@
+{
+  "scope": "Planning input snapshot; hashes detect changed sources, not proof of runtime correctness",
+  "base_commit": "4fb57b1ae3759511a1a25a1a0242b44f605d80aa",
+  "source_sha256": {
+    "AGENTS.md": "a8403b6e7118eb2a47964cb31b1e8e2501c669298a2314fa47c369cfdce081cd",
+    "CLAUDE.md": "20430d5e9a5facdea5805a6049ddee62607f701d4df2b06a6be3ac6e13a87548",
+    "docs/STATUS.md": "e252397d8f0ca27c6176d0871309e04ea3cb2f76e30ba936ce2ea01de3e2bf06",
+    "docs/setting_decisions.md": "b6c653daa9703352bf631ed65c696198a515ff24014d14578b50a6eb248b8273",
+    "docs/game_gdd.md": "86e4a19833ed6d21b7209040b3287cd06e46a12fc8fa231dde016c49bcdc99ea",
+    "docs/setting_rules_amendment.md": "64fb7429a33aa40a3635ea83c17f8c97e32c4ddb4435c898c90965d2e08c709c",
+    "docs/movement_direction_amendment.md": "04c32fd2e209e341e0eb1454636b4a20e9b2100338590b51f844f6e9d8601c64",
+    "docs/ui_ux_controls.md": "5e6c79cd622a75287b3d6d9fa923b910892334e98abd1d7ff3d121de6353c9e7",
+    "docs/gameplay_balance.md": "f22332a3f0cef2b32356ad7f857589d7fb15189e9dff1a9ecb16bbe4d726f4d3",
+    "docs/systems_architecture.md": "d18044e5dc03e8fb0d433ff65f5190aa8b45b98f1648021aa23dbc87a440df9c",
+    "docs/crowd_rendering_architecture.md": "6d4035b4bee8a6eb03ff494de49071dcb68758a2a2bdd149ca2f714eda8f4352",
+    "docs/setting_bible.md": "2341e363f0e0f0837f56a0df71144998e4f5255d7d93c98d66caefee8a0a4b37",
+    "docs/validation_resolution.md": "62d3022be254644af7ee16c4dfca7e1ee6661c1f609d5152a01ff337064e737b",
+    "docs/ENVIRONMENT.md": "5567fdd2d54cbabefb933d36985088f13fb926492dfaf18b81fffe0a38411c95",
+    "docs/validation/README.md": "040814ef10144670bf76e01cf7dc16620c65a59b4b51504bfec36fafd56b6652",
+    "docs/tasks/02_settlement_foundation.md": "1c7159bca974e0a227ab262e13dfc7d5f7c6914211d9195efd850f25d87ab5af",
+    "docs/tasks/03_ecology_crops_weather.md": "44f29d3b66c4c043404d41200dbadfdc26317f11eb2e66d703269477762983fc",
+    "docs/rulings/2026-09-09_ready06_open_item_answers.md": "f2b9cead5dc3f84f0aafd40bd62423276f962de3c850c68481de9d78c4b6ebd1",
+    "docs/redwall-content-library/README.md": "3eea24f7f2bc9202ef4f2a9604c1a0d35a8565939ff7a04c70de7c4f38b2c0f4",
+    "docs/redwall-content-library/authoring_handoff.md": "8ab6510e1198412f4b50d85d2546e341e85c162981d47718bd114a5544cc19d6",
+    "docs/redwall-content-library/shared/continuity.md": "49cf1b57358925a58f6f1010dcbcc1cec63a28fa79e1521c35c93024b8605a4c",
+    "docs/redwall-content-library/shared/locations_and_movement.md": "9acce3bacb6b8698926747472e09f82d2126cde9b6ebab069a9ce2ef92ef8516",
+    "docs/redwall-content-library/shared/theme_and_material_direction.md": "84e4322201c8183234aeaf9501385f813be8b8faf3851e28ae4b91435a2250c5",
+    "docs/art-reference/README.md": "0002f6517a450bef1545ce1d41d02075f7c123b7148e0d8e8564dc789f44934c",
+    "docs/art-reference/model_reference_guide.md": "2ade0715e14eefbe00f4a2896b77f4655ad432b37b1aa5d53dd184c17420d844",
+    "docs/art-reference/traversal_design_review.md": "20e6d648879454cb6869e3cea33c1d4eac5b0a2dedcb0394a327470213b1e78b"
+  },
+  "concurrent_executor_files_observed": [
+    "godot/scripts/core/farming.gd",
+    "godot/test/test_farming.gd"
+  ],
+  "source_limits": [
+    "All twelve available books inspected per source audit; no full Eulalia text; Salamandastron source gap persists."
+  ]
+}

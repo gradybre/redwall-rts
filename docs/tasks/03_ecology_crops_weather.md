@@ -61,9 +61,13 @@ immigration/departures and progression come later.
   compost_season, active_plot_row, orchard_row`, `ripe_tick, growth_remainder`
   and `tended_today` — the backing store ARCH-STATE-003 requires, tile→plot link
   included. The original note looked only at `WorldTileMaps`. Implemented in
-  increment 6. **One real shortfall survives**: `family_streak` has no
-  `TileHistory` column, so a redraw restores the family but not the count — see
-  decision 0032.
+  increment 6. ~~**One real shortfall survives**: `family_streak` has no
+  `TileHistory` column, so a redraw restores the family but not the count.~~
+  **CLOSED 2026-09-09** by the adopted [READY_06 §7 ruling](../rulings/2026-09-09_ready06_open_item_answers.md):
+  `TileHistory.family_streak: I32[16384]` is added, that I32 group is now seven
+  columns and **458752 bytes (+65536)**, the tile owns the
+  `(last_family, family_streak)` pair and a redraw restores both — a
+  third-or-later 700 stays 700. See decision 0032's resolution section.
 - ~~**`CropState`, `Soil` and `OrderMode` are not compiled**~~ — **done in
   increment 6.** `PROTECTED_ENUM_DOMAINS` now holds eleven domains.
 - **No RNG module exists.** ARCH-RNG-002 names `ECOLOGY`, `FISHING`, `FORAGE` and

@@ -129,6 +129,19 @@ var _priorities: PrioritiesScript = null
 var _schedule: ScheduleScript = null
 
 
+class CorruptibleForage extends Forage:
+	"""A forage store that can be driven into a state its public API refuses to produce.
+
+	Ruling §8A requires a malformed `P > K` to be REFUSED rather than hidden. Nothing in
+	forage.gd's public surface can write such a stock, so the guard would otherwise be
+	untestable; this subclass writes the packed column directly and nothing else.
+	"""
+
+	func force_stock_milli(row: int, stock_milli: int) -> void:
+		"""Write one patch's stock column without any validation, corrupt values included."""
+		_patch_stock_milli[row] = stock_milli
+
+
 func before_each() -> void:
 	"""Build a forage store owning a private entity directory."""
 	_forage = Forage.new()
@@ -749,32 +762,51 @@ func test_winter_stock_is_harvested_where_availability_is_positive() -> void:
 # --- §5.5 regrowth ----------------------------------------------------------------------------------------
 
 func test_daily_regrowth_matches_the_stated_formula() -> void:
-	"""§5.5: "Daily regrowth=floor((K-P)*r*season/1000000)".
+	"""Ruling §8A: `min(K-P, floor((K-P)*r*season/1000000) + 1000)`, with the 1 U ADDED.
 
-	Berries in summer: K-P = 60000, r = 120, season = 1000, so 60000*120*1000/1000000 = 7200.
-	Nuts in autumn: K-P = 48000, r = 60, season = 1200, so 48000*60*1200/1000000 = 3456.
+	Berries in summer: K-P = 60000, r = 120, season = 1000, so the term is 7200 and the growth is
+	8200. Nuts in autumn: K-P = 48000, r = 60, season = 1200, so the term is 3456 and the growth
+	is 4456. Neither headroom binds.
 	"""
 	var basin: Vector2i = _make_basin(1, 1000000)
 	var berries_row: int = _forage.patch_row_for_zone(basin, BERRIES).value
-	assert_equal(_forage.daily_regrowth_milli(berries_row, SUMMER).value, 7200, "berries, summer")
+	assert_equal(_forage.daily_regrowth_milli(berries_row, SUMMER).value, 8200, "berries, summer")
 	var grown: Forage.OpResult = _forage.regrow_patch(berries_row, SUMMER)
 	assert_true(grown.ok, "the patch grows")
-	assert_equal(grown.value, BERRIES_INITIAL + 7200, "to 247200 milli-U")
+	assert_equal(grown.value, BERRIES_INITIAL + 8200, "to 248200 milli-U")
 	var nuts_row: int = _forage.patch_row_for_zone(basin, NUTS).value
-	assert_equal(_forage.daily_regrowth_milli(nuts_row, AUTUMN).value, 3456, "nuts, autumn")
-	assert_equal(_forage.regrow_patch(nuts_row, AUTUMN).value, NUTS_INITIAL + 3456, "to 195456")
+	assert_equal(_forage.daily_regrowth_milli(nuts_row, AUTUMN).value, 4456, "nuts, autumn")
+	assert_equal(_forage.regrow_patch(nuts_row, AUTUMN).value, NUTS_INITIAL + 4456, "to 196456")
 
 
-func test_regrowth_applies_the_one_unit_minimum() -> void:
-	"""§5.5: "plus a minimum 1 U when season>0 and P<K".
+func test_regrowth_adds_the_one_unit_minimum_rather_than_flooring_at_it() -> void:
+	"""Ruling §8A's second fixture: a 100000 gap at r=60, S=300 grows 2800, NOT 1800.
 
-	Herb in winter: K-P = 32000, r = 80, season = 200, so the formula gives 512 -- below one
-	unit, so the patch grows exactly 1000 milli-U instead.
+	This is exactly the max-versus-plus discrepancy BAL-CONFLICT-012 named. Nuts in winter have
+	r = 60 and season 300; taking the patch to 140000 leaves K-P = 100000, so the formula term is
+	100000*60*300/1000000 = 1800 and the ruled answer is 1800 + 1000. A `max(1000, ...)`
+	implementation returns 1800 here and still passes every headroom test, which is why this
+	fixture is kept separate from the capacity one below.
+	"""
+	var basin: Vector2i = _make_basin(1, 1000000)
+	var row: int = _forage.patch_row_for_zone(basin, NUTS).value
+	assert_true(_forage.harvest(basin, NUTS, 52000, WINTER, false).ok, "52 U of nuts is taken")
+	assert_equal(_forage.stock_milli_of(row).value, 140000, "leaving a 100000 milli-U gap")
+	assert_equal(_forage.daily_regrowth_milli(row, WINTER).value, 2800,
+		"ruling §8A: 1800 + 1000, not 1800")
+	assert_equal(_forage.regrow_patch(row, WINTER).value, 142800, "and the patch gains all of it")
+
+
+func test_regrowth_applies_the_one_unit_minimum_below_the_formula_term() -> void:
+	"""§5.5's "plus a minimum 1 U when season>0 and P<K", where the term is under one unit.
+
+	Herb in winter: K-P = 32000, r = 80, season = 200, so the formula term is 512 and the ruled
+	growth is 512 + 1000 = 1512. Under the superseded `max(1000, ...)` reading it was 1000.
 	"""
 	var basin: Vector2i = _make_basin(1, 1000000)
 	var row: int = _forage.patch_row_for_zone(basin, HERB).value
-	assert_equal(_forage.daily_regrowth_milli(row, WINTER).value, 1000, "the 1 U floor applies")
-	assert_equal(_forage.regrow_patch(row, WINTER).value, HERB_INITIAL + 1000, "so herb gains 1 U")
+	assert_equal(_forage.daily_regrowth_milli(row, WINTER).value, 1512, "512 plus the 1 U minimum")
+	assert_equal(_forage.regrow_patch(row, WINTER).value, HERB_INITIAL + 1512, "herb gains 1512")
 
 
 func test_a_dormant_patch_does_not_regrow() -> void:
@@ -788,20 +820,46 @@ func test_a_dormant_patch_does_not_regrow() -> void:
 
 
 func test_regrowth_never_carries_a_patch_above_its_capacity() -> void:
-	"""The 1 U minimum can exceed the room left; the increment is clamped to K-P (module header).
+	"""Ruling §8A's first fixture: a 500 milli-U gap at r=60, S=300 grows 500, not 1009.
 
-	Herb in winter gains exactly 1 U/day. After taking 1500 milli-U the room is 33500, so 33
-	days leave 500 -- and the 34th day grows 500, not 1000.
+	Nuts in winter, filled to capacity and then relieved of exactly half a unit. The raw formula
+	term is 500*60*300/1000000 = 9 and the additive minimum takes it to 1009, so the `min(K-P,..)`
+	cap is the only thing keeping the patch inside its own capacity column. Thirty-five winter
+	days fill the patch from §5.1's 80%; the loop is bounded above that and the fill is asserted.
 	"""
 	var basin: Vector2i = _make_basin(1, 1000000)
-	var row: int = _forage.patch_row_for_zone(basin, HERB).value
-	assert_true(_forage.harvest(basin, HERB, 1500, WINTER, false).ok, "1.5 U is taken")
-	for _day: int in 33:
+	var row: int = _forage.patch_row_for_zone(basin, NUTS).value
+	for _day: int in 40:
 		_forage.regrow_patch(row, WINTER)
-	assert_equal(_forage.stock_milli_of(row).value, HERB_CAPACITY - 500, "500 milli-U of room")
-	assert_equal(_forage.daily_regrowth_milli(row, WINTER).value, 500, "the last day is clamped")
-	assert_equal(_forage.regrow_patch(row, WINTER).value, HERB_CAPACITY, "the patch is full")
+	assert_equal(_forage.stock_milli_of(row).value, NUTS_CAPACITY, "the patch reaches capacity")
+	assert_equal(_forage.daily_regrowth_milli(row, WINTER).value, 0, "a full patch grows nothing")
+	assert_true(_forage.harvest(basin, NUTS, 500, WINTER, false).ok, "half a unit is taken")
+	assert_equal(_forage.stock_milli_of(row).value, NUTS_CAPACITY - 500, "500 milli-U of room")
+	assert_equal(_forage.daily_regrowth_milli(row, WINTER).value, 500,
+		"the 1009 the formula offers is capped to the room left")
+	assert_equal(_forage.regrow_patch(row, WINTER).value, NUTS_CAPACITY, "the patch is full again")
 	assert_equal(_forage.daily_regrowth_milli(row, WINTER).value, 0, "and grows no further")
+
+
+func test_regrowth_refuses_a_stock_above_its_own_capacity() -> void:
+	"""Ruling §8A: "Reject malformed P>K instead of hiding corrupt state".
+
+	No public operation in this store can produce that state, so CorruptibleForage writes the
+	column directly. The point of the guard is that a future save/load path cannot make a corrupt
+	stock look like an ordinary full patch that simply grows nothing.
+	"""
+	var store: CorruptibleForage = CorruptibleForage.new()
+	var basin: Vector2i = store.create_zone(ZONE_FORAGE, 1, 1000000, false, true).ref
+	store.create_patch_set(basin, PackedInt32Array([10, 11, 12, 13, 14]))
+	var row: int = store.patch_row_for_zone(basin, NUTS).value
+	store.force_stock_milli(row, NUTS_CAPACITY + 1)
+	var refused: IntMath.IntResult = store.daily_regrowth_milli(row, WINTER)
+	assert_false(refused.ok, "a stock above capacity is refused, not reported as zero growth")
+	assert_equal(refused.error, String(Forage.REFUSE_STOCK_ABOVE_CAPACITY), "and says why")
+	assert_false(store.regrow_patch(row, WINTER).ok, "so the day's regrowth applies nothing")
+	assert_equal(store.stock_milli_of(row).value, NUTS_CAPACITY + 1, "and the stock is untouched")
+	store.force_stock_milli(row, NUTS_CAPACITY)
+	assert_equal(store.daily_regrowth_milli(row, WINTER).value, 0, "an exactly full patch is fine")
 
 
 func test_the_daily_sweep_grows_every_live_patch_of_every_basin() -> void:
@@ -812,9 +870,9 @@ func test_the_daily_sweep_grows_every_live_patch_of_every_basin() -> void:
 	assert_true(swept.ok, "the sweep runs")
 	assert_equal(swept.value, 10, "ten patches grow: two basins x five available summer kinds")
 	assert_equal(_forage.stock_milli_of(_forage.patch_row_for_zone(first, BERRIES).value).value,
-		BERRIES_INITIAL + 7200, "the first basin's berries grew")
+		BERRIES_INITIAL + 8200, "the first basin's berries grew")
 	assert_equal(_forage.stock_milli_of(_forage.patch_row_for_zone(second, BERRIES).value).value,
-		BERRIES_INITIAL + 7200, "and so did the second's")
+		BERRIES_INITIAL + 8200, "and so did the second's")
 	assert_equal(_forage.regrow_daily(SPRING).value, 6,
 		"a spring sweep skips the two kinds §5.5 makes dormant then")
 	assert_false(_forage.regrow_daily(4).ok, "an unknown season is refused")
@@ -824,7 +882,7 @@ func test_regrowth_across_real_calendar_days_waits_for_the_season_to_turn() -> v
 	"""GDD §5.1: 12-day seasons from year 1/spring/day 1, first midnight at tick 13500.
 
 	Berries have spring availability 0, so the eleven midnights inside spring grow nothing and
-	the twelfth -- the crossing into absolute day 13, summer -- grows the full 7200.
+	the twelfth -- the crossing into absolute day 13, summer -- grows the full 8200.
 	"""
 	var basin: Vector2i = _make_basin(1, 1000000)
 	var row: int = _forage.patch_row_for_zone(basin, BERRIES).value
@@ -838,7 +896,7 @@ func test_regrowth_across_real_calendar_days_waits_for_the_season_to_turn() -> v
 	assert_equal(summer_days, 1, "exactly one of the twelve midnights lands in summer")
 	assert_equal(SimClock.Calendar.new(FIRST_MIDNIGHT_TICK + 11 * TICKS_PER_DAY).absolute_day, 13,
 		"the twelfth midnight opens absolute day 13")
-	assert_equal(_forage.stock_milli_of(row).value, BERRIES_INITIAL + 7200,
+	assert_equal(_forage.stock_milli_of(row).value, BERRIES_INITIAL + 8200,
 		"berries grew on exactly that one day")
 
 

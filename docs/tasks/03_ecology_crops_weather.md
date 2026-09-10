@@ -41,8 +41,8 @@ prerequisite. It is **not** the thing that animates the loop.
 | 5 | **FishHabitat + FishStock** — §5.4 | 1 | **stock half done**; effort claims added (0037). `GearInstance`'s allocator now exists (0038), so **U5 no longer blocks portable gear** — the remaining gear work needs the Expedition store and the installed-gear contract for boats and weirs |
 | 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | **done**; `TileHistory` built, five open contracts recorded in decision 0032 |
 | 7 | **FieldPolicy + sowing** — REQ-SET-070/071/077/078/088 | 6 | **done**. The triggering event was ruled by [READY_06 §1](../rulings/2026-09-09_ready06_open_item_answers.md): R06-JOB-004's explicit first planting (decision 0040) and R06-JOB-005's configured rotation advance (decision 0045). `FieldPolicy` is built at its budgeted 128 rows plus a 40960-byte cycle and enrolment ledger. **No plot → field mapping exists** — §5.6 calls field grouping "a UI/work aggregation" — so the participating set is a validated caller-supplied group. REQ-SET-078 was already `farming.apply_fallow_day()`; REQ-SET-088 is an **unsatisfiable gate that refuses**, because every `reservations.gd` row is Job-owned and a standing seed reserve has no Job |
-| 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **pollination blocked by U6** (`HivePollinationLinks` has no owner-major index formula) |
-| 9 | **ARCH-SYS-005 Ecology** daily orchestration | 3,4,5,8 | closes one leg of REQ-SET-007 |
+| 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **done** (`godot/scripts/core/orchard_hive.gd`); U6's `HivePollinationLinks` half closed by ruling 2026-09-09 §3 and decision 0044 — 30720 references, +49152 bytes, ARCH-STATE-008. REQ-SET-084's frost belongs to `farming.gd` and was already implemented there. **Not built here:** R06-JOB-006's 20-WU hive-service producer, apiary/Building placement (no Building store), and the FarmPlot-side link refresh, which is the increment 10 join's |
+| 9 | **ARCH-SYS-005 Ecology** daily orchestration | 3,4,5,8 | **done** (`godot/scripts/core/ecology.gd`, wired in `settlement_system.gd`); decision 0046. Closes REQ-SET-007's "update ecology" leg ONLY: fish recovery and the daily quota reset, decision 0036's additive forage regrowth and decision 0030 §4.4's quota midnight, every live hive's COMPLETED day with decision 0044's synchronous orchard link refresh, and REQ-SET-138 stump regrowth; annual counters at the year boundary only. **Not closed here:** REQ-SET-138's building-occupancy condition (no store owns `building_slot`), the FarmPlot-side pollination refresh (increment 10's join), §8's ECOLOGY wildlife-pressure roll (no store, no magnitude, so no draw is taken), and a cross-process round trip of the day latch (no save module) |
 | 10 | **ARCH-SYS-006 CropWeather** orchestration | 2,6,7,9 | closes a second leg |
 
 REQ-SET-007's five daily steps: this group closes **two** (ecology, crops/weather).
@@ -109,11 +109,36 @@ The narrower defect stands — the UI stated a period the GDD gave no contract f
   order. That numbering agrees with §5.10's printed order on `drought` alone, and
   `event` is persisted.
 
+### Found while implementing increment 9 (2026-09-10) — see decision 0046
+
+- **The §5 table does not settle who runs the hive's daily step.** ARCH-SYS-005's
+  provenance is `[GDD §5.4–5.6, §5.9–5.10]`, which includes §5.6; ARCH-SYS-006
+  lists `Hive` in its *Reads* column and writes "service counters". The split
+  taken is by dependency: the hive day needs no weather, the orchard day takes
+  `temperature_tenths`, so hives run under ARCH-SYS-005 and orchards under
+  ARCH-SYS-006. Recorded rather than resolved in the document, because either
+  reading is defensible.
+- **§8's ECOLOGY RNG stream has no implementable subject.** It asks for "one
+  wildlife-pressure roll per eligible summer/autumn basin/apiary at midnight". No
+  store models wildlife pressure, no eligibility predicate exists and no magnitude
+  is stated anywhere. **No draw is taken**, so the stream's draw count is still
+  0 — consuming a deterministic stream for an effect that does not exist would be
+  worse than the gap.
+- **REQ-SET-138's building-occupancy condition is still unevaluable.**
+  `resource_nodes.gd` recorded it and named ARCH-SYS-005 as the system that must
+  apply it. ARCH-SYS-005 now exists and still cannot: `WorldTileMaps.building_slot`
+  has no owner. Regrowth applies the day condition alone, and the limitation moved
+  forward with the caller instead of being fabricated.
+- **`settlement_system.gd`'s header undercounted its own stages.** It said THREE
+  implemented stages while listing four. Corrected to five (one partial) as part
+  of wiring ARCH-SYS-005.
+
 ### Acceptance evidence that could not be executed, and why
 
 | Fixture | Blocking dependency |
 |---|---|
 | R05-QTEST-12 cross-process round trip | **No save module exists in the repository.** The in-process rebuild — its substance — is implemented and tested |
+| ARCH-SYS-005 day-latch round trip | **No save module exists.** `ecology.gd`'s `_last_day` idempotence latch has no persisted form, so replay protection is tested within one process only |
 | R05-QTEST-14 designation preview | Command queue (U2) and UI |
 | R05-QTEST-15 output-capacity leg | No Job↔reserved-container binding exists; the quota and floor legs pass |
 | R05-QTEST-07 cargo creation | `inventory.gd` owns cargo; `collect_claim()` returns the amount so a caller creates it once |

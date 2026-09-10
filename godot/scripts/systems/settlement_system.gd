@@ -18,12 +18,14 @@ extends Node
 ##
 ## ---------------------------------------------------------------------------------------
 ## STAGE ORDER IS `systems_architecture.md` §5's TABLE, NOT CONVENIENCE. Of the 23 systems in
-## that table, FIVE have an implemented owner in this milestone and are run here in the table's
-## own order (one of them, ARCH-SYS-008, only in part). An earlier revision of this header
-## said THREE while listing four entries; the count is corrected here rather than left to
-## drift:
+## that table, SIX are dispatched here, in the table's own order (ARCH-SYS-008 only in part).
+## ARCH-SYS-017 is deliberately NOT counted among the six: it is not a separate call, and two
+## earlier revisions of this header disagreed about whether to include it -- one said THREE while
+## listing four, another said FIVE and SIX for the same milestone under different conventions.
+## The count below is of DISPATCHED stages; 017's arrangement is explained after the list:
 ##
-##   ARCH-SYS-003 IntervalIntegrator -> `needs.tick_all()`         every tick, first
+##   ARCH-SYS-002 CommandCommit      -> `command_dispatch.commit_tick_into()` every tick, FIRST
+##   ARCH-SYS-003 IntervalIntegrator -> `needs.tick_all()`         every tick, after commit
 ##   ARCH-SYS-005 Ecology            -> `ecology.run_day_into()`   MIDNIGHT ONLY, never per tick
 ##   ARCH-SYS-008 NeedIntent (PART)  -> `schedule.resolve_into()`  activity resolution only
 ##   ARCH-SYS-010 JobSelector        -> `jobs.evaluate()`/`assign_worker()`
@@ -31,14 +33,30 @@ extends Node
 ##
 ## ARCH-SYS-017 CareHealth is not a separate call because health, cold exposure and the
 ## incapacitation/death status transitions are integrated INSIDE `needs.tick_all()`; it is run,
-## not skipped, and it is run in ARCH-SYS-003's slot rather than its own.
+## not skipped, and it is run in ARCH-SYS-003's slot rather than its own. That is the sixth.
+##
+## ARCH-SYS-002 IS FIRST BECAUSE §5 SAYS "after snapshot, before selectors", and ARCH-SYS-001
+## TransformSnapshot does not exist -- there is no Transform store -- so nothing precedes it here.
+## A player edit committed at the top of tick k is therefore visible to the SAME tick's selection
+## and work stages, which is what "before selectors" buys.
+##
+## WHAT ARCH-SYS-002 NOW DOES, AND WHAT IT STILL DOES NOT. It drains `commands.gd`'s ordered
+## next-tick queue and commits each drained record through `command_dispatch.gd`. In THIS node's
+## composition that reaches four of the six implemented kinds -- CANCEL_JOB, NAME_RESIDENT,
+## SET_ACTIVITY_SCHEDULE and SET_JOB_PRIORITIES -- because this node composes the resident-side
+## stores. DESIGNATE_ZONE and SET_POLICY need `forage.gd` and `job_planner.gd`, which are
+## ARCH-SYS-005/009's stores and task 03's to compose; until `bind_ecology()` is called they refuse
+## COMMAND_STORE_NOT_BOUND, which is an explicit refusal and NOT a silent success. The remaining
+## eighteen ARCH-CMD-003 kinds refuse COMMAND_UNSUPPORTED_FEATURE and name their missing owner.
+##
+## ARCH-CMD-002's SPEED/PAUSE SCHEDULER EVENTS ARE STILL NOT IMPLEMENTED. Task 04.1 owns their
+## separate queue and every one of its widths, enum values and refusals; `sim_clock.gd`'s two
+## "BLOCKER U2 ... not implemented" comments remain accurate for that half. So blocker U2 is now
+## HALF closed: economic commands have a transport and a commit stage, speed and pause do not.
 ##
 ## EVERY OTHER STAGE IS ABSENT BECAUSE ITS OWNING STORE DOES NOT EXIST, and none of them is
 ## faked here:
 ##   ARCH-SYS-001 TransformSnapshot   no Transform store; no position, no movement.
-##   ARCH-SYS-002 CommandCommit       no ordered command queue (blocker U2: ARCH-CMD-003's 24
-##                                    command kinds are unimplemented and no player command
-##                                    reaches the simulation).
 ##   ARCH-SYS-004 StockAge            `economy_system.gd` states it: nothing advances lot age,
 ##                                    because the store and temperature factors belong to
 ##                                    systems this milestone does not build.
@@ -184,6 +202,8 @@ const ScheduleScript := preload("res://scripts/core/schedule.gd")
 const JobsScript := preload("res://scripts/core/jobs.gd")
 const WorkScript := preload("res://scripts/core/work.gd")
 const ReservationsScript := preload("res://scripts/core/reservations.gd")
+const CommandsScript := preload("res://scripts/core/commands.gd")
+const CommandDispatchScript := preload("res://scripts/core/command_dispatch.gd")
 const EcologyScript := preload("res://scripts/core/ecology.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
@@ -234,6 +254,8 @@ var _needs: NeedsScript = null
 var _schedule: ScheduleScript = null
 var _jobs: JobsScript = null
 var _work: WorkScript = null
+var _commands: CommandsScript = null
+var _dispatch: CommandDispatchScript = null
 var _ecology: EcologyScript = null
 
 # --- the live-resident index ------------------------------------------------------------------
@@ -252,6 +274,7 @@ var _live_count: int = 0
 var _calendar: SimClockScript.Calendar = SimClockScript.Calendar.new(0)
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _tick_result: WorkScript.TickResult = WorkScript.TickResult.new(false, REFUSE_NONE)
+var _command_report: CommandDispatchScript.TickReport = CommandDispatchScript.TickReport.new()
 var _ecology_day: EcologyScript.DayResult = EcologyScript.DayResult.new()
 ## The 00:00 tick of the day boundary being run, located and PROVED once per boundary.
 var _boundary_tick: int = 0
@@ -269,6 +292,8 @@ var _tick_usec_max: int = 0
 var _assignment_count: int = 0
 var _refused_assignment_count: int = 0
 var _accepted_mwu_last_tick: int = 0
+var _commands_committed_last_tick: int = 0
+var _commands_refused_last_tick: int = 0
 var _last_refusal: StringName = REFUSE_NONE
 var _reported_refusal: bool = false
 
@@ -287,6 +312,8 @@ func _init() -> void:
 	_schedule = ScheduleScript.new(_needs)
 	_jobs = JobsScript.new(_residents, _priorities, _schedule)
 	_work = WorkScript.new(_jobs)
+	_commands = CommandsScript.new(SimClockScript.new(), _directory)
+	_dispatch = CommandDispatchScript.new(_commands, _residents, _priorities, _schedule, _jobs)
 	_ecology = EcologyScript.new(_directory, _jobs)
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
@@ -401,6 +428,8 @@ func reset() -> void:
 	_jobs.clear()
 	_work.clear()
 	_reservations.clear()
+	_commands.clear()
+	_dispatch.clear()
 	_ecology.clear()
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
 	_live_count = 0
@@ -413,6 +442,8 @@ func reset() -> void:
 	_assignment_count = 0
 	_refused_assignment_count = 0
 	_accepted_mwu_last_tick = 0
+	_commands_committed_last_tick = 0
+	_commands_refused_last_tick = 0
 	_last_refusal = REFUSE_NONE
 	_reported_refusal = false
 
@@ -435,14 +466,51 @@ func run_tick(tick_index: int) -> bool:
 
 
 func _run_stages(tick_index: int) -> bool:
-	"""ARCH-SYS-003, then 008/010, then 013, in the §5 table's order. See the header for the rest."""
+	"""ARCH-SYS-002, then 003, then 008/010, then 013, in the §5 table's order.
+
+	CommandCommit is FIRST because §5 places it "after snapshot, before selectors" and no
+	TransformSnapshot exists. A refused command does not stop the tick: the stage records the
+	refusal against that command and the settlement keeps running, because one player edit
+	failing is not a reason to stop integrating everybody's needs.
+	"""
 	_last_refusal = REFUSE_NONE
 	_accepted_mwu_last_tick = 0
+	_commit_commands(tick_index)
 	if not _integrate_interval():
 		return false
 	_select_jobs(tick_index)
 	_run_productive_work()
 	return true
+
+
+func _commit_commands(tick_index: int) -> void:
+	"""ARCH-SYS-002 CommandCommit: drain and commit every player edit due at this tick."""
+	_commands_committed_last_tick = 0
+	_commands_refused_last_tick = 0
+	if not _dispatch.commit_tick_into(tick_index, _command_report):
+		_last_refusal = _dispatch.last_refusal()
+		return
+	_commands_committed_last_tick = _command_report.committed
+	_commands_refused_last_tick = _command_report.refused
+	_ensure_command_clock()
+
+
+func _ensure_command_clock() -> void:
+	"""Keep the queue stamping `completed_tick+1` from the clock the game is really running on.
+
+	`GameManager.start_game()` REPLACES its `SimClock` instance, so a queue bound once would go on
+	reading a clock that had stopped moving and would stamp every later edit with a stale tick.
+	The check is a reference comparison per tick and the rebind happens at most once per run.
+
+	IT RUNS AFTER THE DRAIN AND ONLY ON AN EMPTY QUEUE, so no accepted command is ever discarded
+	by it: records already in the queue were stamped against the OLD clock's numbering, and
+	`commands.rebind_clock()` refuses to re-base them. They are committed at their own due tick
+	first, and the rebind takes the next opportunity.
+	"""
+	var live: SimClockScript = GameManager.clock()
+	if live == null or _commands.clock() == live or _commands.pending_count() != 0:
+		return
+	_commands.rebind_clock(live)
 
 
 func _record_tick_cost(usec: int) -> void:
@@ -762,6 +830,31 @@ func jobs() -> JobsScript:
 func work() -> WorkScript:
 	"""The §5.2 work-unit model and decision 0017's party acceptance."""
 	return _work
+
+
+func commands() -> CommandsScript:
+	"""ARCH-CMD-001's ordered next-tick queue. A UI submits here; nothing else edits the stores."""
+	return _commands
+
+
+func command_dispatch() -> CommandDispatchScript:
+	"""ARCH-SYS-002's commit stage, and the named handoff point for task 03's ecology stores.
+
+	`bind_ecology()` on this object is what stops DESIGNATE_ZONE and SET_POLICY refusing
+	COMMAND_STORE_NOT_BOUND. It is deliberately not called here: `forage.gd` and `job_planner.gd`
+	are ARCH-SYS-005/009's stores, composing them would run an ecology this node does not advance.
+	"""
+	return _dispatch
+
+
+func commands_committed_last_tick() -> int:
+	"""Player commands committed by the most recent CommandCommit stage."""
+	return _commands_committed_last_tick
+
+
+func commands_refused_last_tick() -> int:
+	"""Player commands the most recent CommandCommit stage refused, with a documented result id."""
+	return _commands_refused_last_tick
 
 
 func reservations() -> ReservationsScript:

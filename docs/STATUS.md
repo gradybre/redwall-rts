@@ -50,19 +50,28 @@ column as "has been considered somewhere", not "is implemented and tested".
 
 The UI row is the honest one: **1 of 103**. The only UI is `hud.gd`.
 
-### System stages — 5 of 23 running
+### System stages — 6 of 23 running
 
-`settlement_system.gd` runs ARCH-SYS-003 (needs, with 017 folded in), 008's
-activity half, 010 and 013. The other eighteen are declared and idle.
+`settlement_system.gd` runs ARCH-SYS-002, 003 (needs, with 017 folded in), 008's
+activity half, 010 and 013. The other seventeen are declared and idle.
 
 The missing links for the player-driven loop:
 
-- **ARCH-SYS-002 CommandCommit** — the ordered ECONOMIC command queue now exists
-  (`scripts/core/commands.gd`, decision 0042): ARCH-CMD-001 ordering, ARCH-CMD-003's
-  24 compiled kinds, §8.1's 64-byte records. **Blocker U2 is only partly closed** —
-  ARCH-CMD-002's separate speed/pause scheduler-event queue still awaits task 04.1's
-  amendment, and nothing dispatches a drained command, so **no player action reaches
-  the simulation yet**.
+- **ARCH-SYS-002 CommandCommit — NOW RUNNING** (`scripts/core/command_dispatch.gd`,
+  decision 0043), on top of the ordered economic queue decision 0042 built. Six of
+  ARCH-CMD-003's 24 kinds commit into a real store: CANCEL_JOB, DESIGNATE_ZONE,
+  NAME_RESIDENT, SET_ACTIVITY_SCHEDULE, SET_JOB_PRIORITIES and SET_POLICY. **The
+  other eighteen refuse an explicit unsupported-feature code and name the missing
+  owner**; SET_MANUAL_TASK/CANCEL_MANUAL have no ManualTask store at all (blocker
+  U6). A player action reaches the simulation for the first time.
+  Two things it still does not do:
+  **(a)** in `settlement_system.gd`'s own composition, DESIGNATE_ZONE and SET_POLICY
+  refuse `COMMAND_STORE_NOT_BOUND`, because `forage.gd` and `job_planner.gd` are
+  ARCH-SYS-005/009's stores and task 03's to compose; `command_dispatch.bind_ecology()`
+  is the named handoff, and the whole path is proven end to end in the suite.
+  **(b) Blocker U2 is still only HALF closed** — ARCH-CMD-002's separate speed/pause
+  scheduler-event queue still awaits task 04.1's amendment, and `sim_clock.gd`'s two
+  "BLOCKER U2 … not implemented" comments remain accurate.
 - **ARCH-SYS-009 JobPlanner** — **nothing creates jobs.** READY_06 item 1 answers
   this with eight EARS contracts; none are built yet.
 - **ARCH-SYS-011/012 Navigation and Movement** — no pathfinder, no Transform

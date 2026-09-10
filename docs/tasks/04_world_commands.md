@@ -80,26 +80,39 @@ source IDs, binary layout/bytes and command/scheduler replay boundaries.
 
 ## 04.2 — Ordered command admission, commit and visible pending state
 
-- [ ] Add proposed `scripts/core/commands.gd` and payload schema/validation helpers.
+- [x] Add proposed `scripts/core/commands.gd` and payload schema/validation helpers.
   Keep 64-byte records, queue 4096 and payload arena 1048576 bytes from ARCH-CMD/
   SAVE. Checked integer arithmetic validates ranges and offset+length before any
   mutation. Targets use generation-checked references. Sequence order compares
   unsigned high then low words. Define duplicate and sequence-exhaustion refusal
   without wraparound in 04.1's contract.
-- [ ] Admission validates the envelope; commit revalidates current targets and
+- [x] Admission validates the envelope; commit revalidates current targets and
   availability. A preview is advisory. Whole command operations succeed or refuse
   atomically; later refusal cannot leave a policy half changed or reserve goods.
   Deterministic refusal result IDs must be documented and presented to the player.
-- [ ] Implement the bounded task-04 command set: SET_MANUAL_TASK/CANCEL_MANUAL,
+- [x] Implement the bounded task-04 command set: SET_MANUAL_TASK/CANCEL_MANUAL,
   CANCEL_JOB, DESIGNATE_ZONE, SET_POLICY, SET_JOB_PRIORITIES,
   SET_ACTIVITY_SCHEDULE and NAME_RESIDENT where their owning stores/contracts
   exist. Dispatch unavailable kinds to explicit unsupported-feature refusal,
   never silent success. Track the remaining catalog kinds under tasks 06–08.
-- [ ] Append accepted economic commands while paused to the next-tick queue;
+- [x] Append accepted economic commands while paused to the next-tick queue;
   immutable presentation projections show pending entries and cancellation state.
   No UI callback edits resident, ecology, jobs or inventory stores directly.
-- [ ] Wire ARCH-SYS-002 once, through a named runtime handoff with task 03.
+- [x] Wire ARCH-SYS-002 once, through a named runtime handoff with task 03.
   Do not advance a RESERVED job to WORK to make a command appear successful.
+
+Implemented 2026-09-10 by `scripts/core/command_dispatch.gd`
+([decision 0043](../decisions/0043-command-dispatch-commits-per-kind-schemas.md)),
+run as `settlement_system.gd`'s first stage. **Six of the 24 kinds commit**
+(CANCEL_JOB, DESIGNATE_ZONE, NAME_RESIDENT, SET_ACTIVITY_SCHEDULE,
+SET_JOB_PRIORITIES, SET_POLICY); the other eighteen refuse
+`COMMAND_UNSUPPORTED_FEATURE` and name the missing owner. **SET_MANUAL_TASK and
+CANCEL_MANUAL are among the eighteen: there is no ManualTask store (blocker U6).**
+Still outstanding within 04.2: pending-command PERSISTENCE (no save module, task
+09 owns the codec), and, in `settlement_system.gd`'s own composition,
+DESIGNATE_ZONE/SET_POLICY refuse `COMMAND_STORE_NOT_BOUND` until task 03 calls
+`command_dispatch.bind_ecology()` — the named handoff. ARCH-CMD-002's speed/pause
+scheduler queue remains 04.1's and is untouched.
 
 Acceptance: permuted input arrival produces canonical order by the owning key;
 multiple paused commands preserve sequence; target destruction/reuse between

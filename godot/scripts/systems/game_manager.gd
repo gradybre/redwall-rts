@@ -269,7 +269,12 @@ func get_clock_text() -> String:
 
 
 func clock() -> SimClockScript:
-	"""The authoritative clock, for systems that need tick or calendar state directly."""
+	"""The authoritative clock, for systems that need tick or calendar state directly.
+
+	`start_game()` REPLACES this instance, so a caller that caches it must re-read it rather than
+	hold it: a stale reference keeps a `completed_tick` that has stopped moving. ARCH-SYS-002's
+	command queue re-reads it every tick for exactly that reason.
+	"""
 	return _clock
 
 

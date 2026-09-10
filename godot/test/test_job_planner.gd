@@ -24,6 +24,7 @@ const ResidentsScript := preload("res://scripts/core/residents.gd")
 const PrioritiesScript := preload("res://scripts/core/priorities.gd")
 const ScheduleScript := preload("res://scripts/core/schedule.gd")
 const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
+const ForageScript := preload("res://scripts/core/forage.gd")
 
 ## GDD §5.1's offset calendar, transcribed: tick 0 is 06:00 of day 1 and the FIRST MIDNIGHT is
 ## tick 13500. Day N therefore begins at 13500 + (N-2)*18000 for N >= 2.
@@ -67,27 +68,75 @@ const CROP_SOWN: int = 1
 const GATE_NOT_REQUIRED: int = 0
 const GATE_UNAVAILABLE: int = 3
 
+# --- R06-JOB-001/002 constants, transcribed from the documents, never read out of the module -------
+
+## §4.3 ZoneType, in the GDD's own numbering: FISH 0, RESERVED_1 1, FORAGE 2, FARM 3.
+const ZONE_FORAGE: int = 2
+const ZONE_FARM: int = 3
+## §4.3 JobKind FORAGE, from the same numbering the FARM constant above is taken from.
+const KIND_FORAGE: int = 4
+## §5.5's five forage rows, in the table's own order.
+const PATCH_BERRIES: int = 0
+const PATCH_NUTS: int = 1
+const PATCH_MUSHROOMS: int = 2
+const PATCH_HERB: int = 3
+const PATCH_ROOTS: int = 4
+## §5.5's "Patch capacity U" for mushrooms, in milli-units, GDD §5.1's 80% initial stock, and
+## REQ-SET-066's sustainable 20% floor of that capacity.
+const MUSHROOM_CAPACITY_MILLI: int = 180000
+const MUSHROOM_INITIAL_MILLI: int = 144000
+const MUSHROOM_FLOOR_MILLI: int = 36000
+## §5.5's "Base work WU/U" for mushrooms and for herb.
+const MUSHROOM_BASE_WORK_WU: int = 5
+const HERB_BASE_WORK_WU: int = 8
+## §5.5's `ceil(base*1000000/((1000+40*level)*(1000+100*natural_danger)))` for herb at FORAGE
+## level 0 and natural danger 1: ceil(8000000/1100000) = 8. At level 1 the same expression is
+## ceil(8000000/1144000) = 7, so this number distinguishes the two levels where mushrooms cannot.
+const HERB_WORK_PER_U_AT_DANGER_ONE: int = 8
+## §5.5's herb capacity 160 U: §5.1's 80% initial stock is 128000 milli-U and REQ-SET-066's
+## sustainable 20% floor is 32000, leaving 96000 claimable.
+const HERB_STOCK_ABOVE_FLOOR_MILLI: int = 96000
+## Decision 0030 §4.6's automatic basin quota in SPRING, in milli-U/day: 2800 mushrooms + 3560
+## herb + 4360 roots, with berries and nuts dormant.
+const SPRING_AUTOMATIC_QUOTA_MILLI: int = 10720
+## Decision 0030 §4.6's manual maximum, `sum(K_i)` in milli-U/day.
+const MANUAL_QUOTA_MAX_MILLI: int = 1180000
+## §5.5's spring availabilities per 1000: berries and nuts are DORMANT in spring.
+const SPRING_BERRIES_AVAILABILITY: int = 0
+## REQ-SET-067's dangerous-work band: danger 2 or 3 needs the resident's permission.
+const DANGEROUS_BAND: int = 2
+## GDD §5.1's offset calendar with twelve-day seasons: absolute day 13 opens summer, and its
+## first tick is the midnight that starts it.
+const SUMMER_MIDNIGHT_TICK: int = 211500
+
 var _residents: ResidentsScript = null
 var _priorities: PrioritiesScript = null
 var _schedule: ScheduleScript = null
 var _jobs: JobsScript = null
 var _farming: FarmingScript = null
+var _forage: ForageScript = null
 var _planner: JobPlannerScript = null
 
 
 func before_each() -> void:
-	"""Build one consistent set of stores sharing a single entity directory."""
+	"""Build one consistent set of stores sharing a single entity directory.
+
+	The forage store additionally shares the Job store, because decision 0030 indexes a forage
+	claim by its owning Job's typed row.
+	"""
 	_residents = ResidentsScript.new()
 	_priorities = PrioritiesScript.new()
 	_schedule = ScheduleScript.new(_residents.needs())
 	_jobs = JobsScript.new(_residents, _priorities, _schedule)
 	_farming = FarmingScript.new(_jobs.directory())
-	_planner = JobPlannerScript.new(_farming, _jobs)
+	_forage = ForageScript.new(_jobs.directory(), _jobs)
+	_planner = JobPlannerScript.new(_farming, _jobs, _forage)
 
 
 func after_each() -> void:
 	"""Drop every store so no test inherits another's rows."""
 	_planner = null
+	_forage = null
 	_farming = null
 	_jobs = null
 	_schedule = null
@@ -1466,3 +1515,856 @@ func test_a_retired_tending_service_row_is_clear_as_well() -> void:
 	assert_false(_planner.service_row_is_clear(plot, TEND_OPERATION), "the row is in use")
 	assert_true(_planner.retire_service(plot, TEND_OPERATION).ok, "the service is retired")
 	assert_true(_planner.service_row_is_clear(plot, TEND_OPERATION), "and its row is clear")
+
+
+# --- R06-JOB-001/002: the forage demand producer -----------------------------------------------
+#
+# The ruling's acceptance list is again the test list: a generated basin creates nothing; disabled,
+# protected and unbound sources create no work; repeated enable/dirty events create no duplicate
+# claim; two jobs cannot spend the same quota; a failed gate consumes nothing.
+
+
+class DangerousForage extends ForageScript:
+	"""A forage store whose zone danger band can be changed after creation.
+
+	systems_architecture.md requires the Job's `dangerous` flag to be recomputed from the owning
+	zone's danger "whenever that danger value changes", and forage.gd publishes NO danger mutator,
+	so that half of the obligation has no trigger through the public API. This subclass supplies
+	one for the test alone, exactly as test_forage.gd's CorruptibleForage does for the malformed
+	stock guard. It writes the packed column and nothing else.
+	"""
+
+	func force_danger(slot: int, danger: int) -> void:
+		"""Write one zone's §5.5 danger band directly, with no validation and no side effect."""
+		_zone_danger[slot] = danger
+
+
+func _forage_basin(danger: int = 0) -> Vector2i:
+	"""A world-generated FORAGE basin owning all five §5.5 patches. It is nobody's designation."""
+	var made: ForageScript.OpResult = _forage.create_zone(ZONE_FORAGE, danger, 0, false, true)
+	assert_true(made.ok, "the basin is created (error: %s)" % made.error)
+	assert_true(_forage.create_patch_set(made.ref, PackedInt32Array([10, 11, 12, 13, 14])).ok,
+		"the basin receives §5.5's five patches")
+	return made.ref
+
+
+func _forage_designation(basin: Vector2i, danger: int = 0) -> Vector2i:
+	"""A player designation bound to an existing basin: R05-BASIN-002's only legal shape."""
+	var made: ForageScript.OpResult = _forage.create_zone(ZONE_FORAGE, danger, 0, false, true)
+	assert_true(made.ok, "the designation is created (error: %s)" % made.error)
+	assert_true(_forage.set_basin(made.ref, basin).ok, "it binds to the existing basin")
+	return made.ref
+
+
+func _zone_slot(zone_ref: Vector2i) -> int:
+	"""The HarvestZone typed row a live zone reference names."""
+	var slot: IntMath.IntResult = _forage.zone_slot_of(zone_ref)
+	assert_true(slot.ok, "the zone reference resolves (error: %s)" % slot.error)
+	return slot.value
+
+
+func _enabled_designation(danger: int = 0, basin_danger: int = 0) -> int:
+	"""A basin, a designation bound to it, and the player's demand enabled. Returns the zone row."""
+	var basin: Vector2i = _forage_basin(basin_danger)
+	var designation: Vector2i = _forage_designation(basin, danger)
+	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")
+	return _zone_slot(designation)
+
+
+func _harvest_job_slot(zone_slot: int, kind: int) -> int:
+	"""The typed Job row of this demand row's published harvest, asserting one exists."""
+	var ref: Vector2i = _planner.forage_demand_job_of(zone_slot, kind)
+	assert_true(ref != EntityDirectory.NULL_REF, "the demand row holds a published harvest")
+	return _jobs.directory().get_typed_row(ref)
+
+
+# --- R06-JOB-001: enablement -------------------------------------------------------------------
+
+func test_enabling_a_valid_designation_activates_repeat_harvest_demand() -> void:
+	"""R06-JOB-001: a confirmed FORAGE designation bound to an existing basin activates demand."""
+	var basin: Vector2i = _forage_basin()
+	var designation: Vector2i = _forage_designation(basin)
+	var enabled: JobPlannerScript.OpResult = _planner.enable_forage_demand(designation)
+	assert_true(enabled.ok, "the demand activates (error: %s)" % enabled.error)
+	var zone_slot: int = _zone_slot(designation)
+	assert_true(_planner.is_forage_demand_enabled(zone_slot), "the designation carries demand")
+	assert_equal(_planner.forage_demand_enabled_count(), 1, "exactly one designation does")
+	assert_equal(_planner.forage_demand_owner_of(zone_slot), designation,
+		"both halves of the designation's EntityRef are recorded")
+	assert_true(_planner.is_zone_dirty(zone_slot), "and its demand is marked for reconciliation")
+
+
+func test_a_generated_basin_alone_creates_no_harvest_demand() -> void:
+	"""R06-JOB-001: "World-generation basin creation alone shall create no harvest demand"."""
+	var basin: Vector2i = _forage_basin()
+	assert_equal(_forage.zone_count(), 1, "the world generated one stock-owning basin")
+	for tick: int in range(DAY_ONE_TICK, DAY_ONE_TICK + JobPlannerScript.STAGGER_MODULUS):
+		_planner.run_tick(tick)
+	assert_equal(_jobs.job_count(), 0, "a full sweep period creates no job at all")
+	assert_equal(_planner.forage_created_count(), 0, "and no harvest is published")
+	assert_equal(_forage.claim_count(), 0, "no quota is reserved against the basin")
+	assert_equal(_planner.forage_demand_enabled_count(), 0, "no demand was ever enabled")
+	assert_false(_planner.is_forage_demand_enabled(_zone_slot(basin)),
+		"a basin existing is not a player designation")
+
+
+func test_enabling_demand_on_a_basin_itself_is_refused() -> void:
+	"""R05-BASIN-002 at the producer layer: a zone that owns itself is ecology, not player intent."""
+	var basin: Vector2i = _forage_basin()
+	var refused: JobPlannerScript.OpResult = _planner.enable_forage_demand(basin)
+	assert_false(refused.ok, "the basin cannot carry harvest demand")
+	assert_equal(String(refused.error), String(JobPlannerScript.REFUSE_NOT_A_DESIGNATION),
+		"and the refusal names the anti-multiplication rule")
+	assert_equal(_planner.forage_demand_enabled_count(), 0, "nothing is enabled")
+
+
+func test_a_zone_of_another_type_is_refused() -> void:
+	"""R06-JOB-001 activates demand for a FORAGE designation; a FARM zone is not one."""
+	var made: ForageScript.OpResult = _forage.create_zone(ZONE_FARM, 0, 0, false, true)
+	assert_true(made.ok, "a FARM zone is created")
+	var refused: JobPlannerScript.OpResult = _planner.enable_forage_demand(made.ref)
+	assert_false(refused.ok, "a FARM zone carries no forage demand")
+	assert_equal(String(refused.error), String(JobPlannerScript.REFUSE_ZONE_TYPE_MISMATCH),
+		"the refusal names the type gate")
+
+
+func test_a_disabled_designation_is_refused() -> void:
+	"""§4.2's `enabled` flag: a disabled source creates no work."""
+	var designation: Vector2i = _forage_designation(_forage_basin())
+	assert_true(_forage.set_zone_enabled(designation, false).ok, "the designation is disabled")
+	var refused: JobPlannerScript.OpResult = _planner.enable_forage_demand(designation)
+	assert_false(refused.ok, "a disabled designation carries no demand")
+	assert_equal(String(refused.error), String(JobPlannerScript.REFUSE_ZONE_DISABLED),
+		"the refusal names the enabled flag")
+
+
+func test_a_protected_designation_is_refused() -> void:
+	"""§5.5: "Protected tiles are never automatically harvested"."""
+	var designation: Vector2i = _forage_designation(_forage_basin())
+	assert_true(_forage.set_zone_protected(designation, true).ok, "the designation is protected")
+	var refused: JobPlannerScript.OpResult = _planner.enable_forage_demand(designation)
+	assert_false(refused.ok, "a protected designation carries no demand")
+	assert_equal(String(refused.error), String(JobPlannerScript.REFUSE_ZONE_PROTECTED),
+		"the refusal names the protection gate")
+
+
+func test_a_designation_bound_to_no_existing_basin_is_refused() -> void:
+	"""R06-JOB-001 requires a designation BOUND TO AN EXISTING BASIN; a destroyed one is neither."""
+	var basin: Vector2i = _forage_basin()
+	var designation: Vector2i = _forage_designation(basin)
+	assert_true(_forage.destroy_zone(basin).ok, "the basin is destroyed under the designation")
+	var refused: JobPlannerScript.OpResult = _planner.enable_forage_demand(designation)
+	assert_false(refused.ok, "the designation names a basin that no longer resolves")
+	assert_equal(String(refused.error), String(JobPlannerScript.REFUSE_BASIN_NOT_PRESENT),
+		"the refusal names the basin binding")
+
+
+func test_a_stale_zone_reference_is_refused() -> void:
+	"""A destroyed designation's reference must not enable demand on whatever reuses its row."""
+	var designation: Vector2i = _forage_designation(_forage_basin())
+	assert_true(_forage.destroy_zone(designation).ok, "the designation is destroyed")
+	var refused: JobPlannerScript.OpResult = _planner.enable_forage_demand(designation)
+	assert_false(refused.ok, "a stale reference enables nothing")
+	assert_equal(String(refused.error), String(JobPlannerScript.REFUSE_ZONE_NOT_PRESENT),
+		"the refusal names the missing zone")
+
+
+func test_a_second_enable_on_the_same_designation_is_refused() -> void:
+	"""Idempotence: N confirmations activate ONE demand and allocate nothing twice."""
+	var zone_slot: int = _enabled_designation()
+	var again: JobPlannerScript.OpResult = _planner.enable_forage_demand(
+		_forage.zone_ref_of(zone_slot))
+	assert_false(again.ok, "the second enable is refused")
+	assert_equal(String(again.error), String(JobPlannerScript.REFUSE_DEMAND_ENABLED),
+		"and names the demand that is already active")
+	assert_equal(_planner.forage_demand_enabled_count(), 1, "still exactly one demand")
+
+
+# --- R06-JOB-002: quantified claims ------------------------------------------------------------
+
+func test_work_is_created_against_an_explicitly_quantified_claim() -> void:
+	"""R06-JOB-002: eligible FORAGE work against explicitly quantified claims."""
+	var zone_slot: int = _enabled_designation()
+	var created: JobPlannerScript.OpResult = _planner.reconcile_forage_kind(zone_slot,
+		PATCH_MUSHROOMS, DAY_ONE_TICK)
+	assert_true(created.ok, "the harvest is created (error: %s)" % created.error)
+	assert_equal(_jobs.job_count(), 1, "exactly one job exists")
+	var job: int = _harvest_job_slot(zone_slot, PATCH_MUSHROOMS)
+	assert_equal(_jobs.kind_of(job).value, KIND_FORAGE, "a harvest is a FORAGE job")
+	assert_equal(_forage.claim_count(), 1, "and it owns exactly one forage claim")
+	var claim: IntMath.IntResult = _forage.claim_row_of(_jobs.ref_of(job))
+	assert_true(claim.ok, "the claim is indexed by the owning Job's typed row")
+	assert_equal(_forage.claim_remaining_milli_of(claim.value).value,
+		SPRING_AUTOMATIC_QUOTA_MILLI,
+		"the claim quantifies spring's whole automatic daily allowance")
+	assert_equal(_planner.quantified_claim_milli_of(zone_slot, PATCH_MUSHROOMS).value,
+		SPRING_AUTOMATIC_QUOTA_MILLI, "and the demand row records the same quantity")
+
+
+func test_the_quantified_amount_is_forages_own_admissibility_bound() -> void:
+	"""Decision 0030's `min(available_quota, stock_available)`, read from the owning store."""
+	var basin: Vector2i = _forage_basin()
+	assert_true(_forage.set_quota_milli(basin, MANUAL_QUOTA_MAX_MILLI, SPRING).ok,
+		"the basin takes a manual quota large enough for the stock to bind instead")
+	var designation: Vector2i = _forage_designation(basin)
+	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")
+	var zone_slot: int = _zone_slot(designation)
+	var expected: IntMath.IntResult = _forage.harvestable_milli(designation, PATCH_MUSHROOMS,
+		SPRING, false)
+	assert_true(expected.ok, "forage.gd answers its own admissibility bound")
+	assert_equal(expected.value, MUSHROOM_INITIAL_MILLI - MUSHROOM_FLOOR_MILLI,
+		"which here is §5.1's 80% stock less REQ-SET-066's 20% floor")
+	assert_equal(_planner.forage_quantity_for(zone_slot, PATCH_MUSHROOMS, SPRING).value,
+		expected.value, "and the producer quantifies exactly that, from the same store")
+
+
+func test_the_harvest_carries_the_rulings_priority_three_default() -> void:
+	"""The ruling: ordinary newly generated work has priority 3."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest is created")
+	var job: int = _harvest_job_slot(zone_slot, PATCH_MUSHROOMS)
+	assert_equal(_jobs.priority_of(job).value, ORDINARY_PRIORITY, "job priority is 3")
+	assert_equal(_jobs.urgency_of(job).value, JobsScript.URGENCY_ORDINARY,
+		"the urgency bucket stays ordinary, which is a different field from job priority")
+
+
+func test_a_created_harvest_stays_queued_and_is_never_written_into_work() -> void:
+	"""The ruling: creating a job does not authorize teleporting its worker into WORK."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest is created")
+	var job: int = _harvest_job_slot(zone_slot, PATCH_MUSHROOMS)
+	assert_equal(_jobs.state_of(job).value, STATE_QUEUED, "a new harvest is QUEUED")
+	_planner.run_tick(DAY_ONE_TICK)
+	assert_equal(_jobs.state_of(job).value, STATE_QUEUED, "a planner tick does not advance it")
+	assert_true(_jobs.state_of(job).value != STATE_WORK, "nothing here writes JOB_STATE_WORK")
+
+
+func test_the_harvest_names_its_designation_as_the_source_and_no_destination() -> void:
+	"""The designation is the work's source; no output binding exists to name a destination."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest is created")
+	var job: int = _harvest_job_slot(zone_slot, PATCH_MUSHROOMS)
+	assert_equal(_jobs.source_of(job), _forage.zone_ref_of(zone_slot),
+		"source is the designation's EntityRef")
+	assert_equal(_jobs.destination_of(job), EntityDirectory.NULL_REF, "destination stays null")
+
+
+func test_the_output_space_gate_cannot_be_answered_and_refuses_at_selection() -> void:
+	"""Output space and legal access have no owning store, so the Job declares them UNANSWERABLE."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest is created")
+	var job: int = _harvest_job_slot(zone_slot, PATCH_MUSHROOMS)
+	assert_equal(_jobs.inputs_gate_of(job).value, GATE_UNAVAILABLE,
+		"the gate says the owning system cannot answer, not that a container was found")
+	var worker: int = _worker()
+	var assigned: JobsScript.OpResult = _jobs.assign_worker(worker, job)
+	assert_false(assigned.ok, "so the harvest refuses at selection")
+
+
+func test_the_work_total_is_section_five_fives_formula_at_the_unskilled_level() -> void:
+	"""§5.5's `work_per_u` times the claimed milli-units, with no worker bound to read a level."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest is created")
+	var job: int = _harvest_job_slot(zone_slot, PATCH_MUSHROOMS)
+	assert_equal(_jobs.remaining_mwu_of(job).value,
+		MUSHROOM_BASE_WORK_WU * SPRING_AUTOMATIC_QUOTA_MILLI,
+		"5 WU/U at FORAGE level 0 and natural danger 0, times the claimed milli-units")
+
+
+func test_the_same_available_quantity_is_not_reserved_twice() -> void:
+	"""R06-JOB-002: "It shall not reserve the same available quantity twice"."""
+	var basin: Vector2i = _forage_basin()
+	var first: Vector2i = _forage_designation(basin)
+	var second: Vector2i = _forage_designation(basin)
+	assert_true(_planner.enable_forage_demand(first).ok, "the first demand enables")
+	assert_true(_planner.enable_forage_demand(second).ok, "the second demand enables")
+	assert_true(_forage.zones_share_basin(first, second), "both draw from the one basin")
+	assert_true(_planner.reconcile_forage_kind(_zone_slot(first), PATCH_MUSHROOMS,
+		DAY_ONE_TICK).ok, "the first designation claims the day's allowance")
+	var refused: JobPlannerScript.OpResult = _planner.reconcile_forage_kind(_zone_slot(second),
+		PATCH_MUSHROOMS, DAY_ONE_TICK)
+	assert_false(refused.ok, "the second designation is offered nothing")
+	assert_equal(String(refused.error), String(JobPlannerScript.REFUSE_NOTHING_HARVESTABLE),
+		"because the outstanding claim already counts against the shared allowance")
+	assert_equal(_jobs.job_count(), 1, "one job, not two")
+	assert_equal(_forage.claim_count(), 1, "and one claim over the shared basin")
+
+
+func test_the_aggregate_quota_is_spent_once_across_the_five_kinds() -> void:
+	"""Decision 0030's quota is aggregate, so an early kind's claim leaves less for a later one."""
+	var zone_slot: int = _enabled_designation()
+	assert_equal(_planner.reconcile_forage_zone(zone_slot, DAY_ONE_TICK).value, 1,
+		"one harvest is published, not one per kind")
+	assert_equal(_planner.forage_claimed_milli(), SPRING_AUTOMATIC_QUOTA_MILLI,
+		"and it reserved the whole daily allowance")
+	assert_equal(_planner.forage_demand_blocker_of(zone_slot, PATCH_HERB).value,
+		JobPlannerScript.BLOCKER_NOTHING_HARVESTABLE,
+		"herb is available in spring but the allowance is already spent")
+
+
+func test_a_wider_quota_publishes_one_harvest_for_each_available_kind() -> void:
+	"""With stock rather than quota binding, every in-season kind gets its own claim and Job."""
+	var basin: Vector2i = _forage_basin()
+	assert_true(_forage.set_quota_milli(basin, MANUAL_QUOTA_MAX_MILLI, SPRING).ok,
+		"the basin takes the manual maximum")
+	var designation: Vector2i = _forage_designation(basin)
+	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")
+	var zone_slot: int = _zone_slot(designation)
+	assert_equal(_planner.reconcile_forage_zone(zone_slot, DAY_ONE_TICK).value, 3,
+		"mushrooms, herb and roots publish; berries and nuts are dormant in spring")
+	assert_equal(_jobs.job_count(), 3, "three jobs")
+	assert_equal(_forage.claim_count(), 3, "three claims, one per Job per decision 0030")
+	assert_equal(_planner.forage_demand_blocker_of(zone_slot, PATCH_BERRIES).value,
+		JobPlannerScript.BLOCKER_PATCH_DORMANT, "berries record the dormancy that stopped them")
+
+
+func test_a_dormant_kind_creates_no_work() -> void:
+	"""§5.5: berries have zero spring availability, so no harvest may be quantified."""
+	var zone_slot: int = _enabled_designation()
+	assert_equal(_forage.availability_per_1000(PATCH_BERRIES, SPRING).value,
+		SPRING_BERRIES_AVAILABILITY, "§5.5 makes berries dormant in spring")
+	var refused: JobPlannerScript.OpResult = _planner.reconcile_forage_kind(zone_slot,
+		PATCH_BERRIES, DAY_ONE_TICK)
+	assert_false(refused.ok, "a dormant kind publishes nothing")
+	assert_equal(String(refused.error), String(JobPlannerScript.REFUSE_PATCH_DORMANT),
+		"and the refusal names the season, not the quota")
+
+
+func test_a_basin_without_that_patch_refuses() -> void:
+	"""A kind the basin owns no ForagePatch of is refused rather than quantified as zero."""
+	var made: ForageScript.OpResult = _forage.create_zone(ZONE_FORAGE, 0, 0, false, true)
+	assert_true(_forage.create_patch(made.ref, PATCH_MUSHROOMS, 12).ok, "one patch only")
+	var designation: Vector2i = _forage_designation(made.ref)
+	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")
+	var refused: JobPlannerScript.OpResult = _planner.reconcile_forage_kind(
+		_zone_slot(designation), PATCH_HERB, DAY_ONE_TICK)
+	assert_false(refused.ok, "the missing patch publishes nothing")
+	assert_equal(String(refused.error), String(JobPlannerScript.REFUSE_PATCH_NOT_PRESENT),
+		"and the refusal names the absent patch")
+
+
+# --- REQ-SET-067: the derived dangerous flag ---------------------------------------------------
+
+func test_the_dangerous_flag_is_derived_from_the_designations_own_danger() -> void:
+	"""ARCH: the flag comes from the owning HarvestZone's danger, not from a caller's argument."""
+	var safe: int = _enabled_designation(1)
+	assert_true(_planner.reconcile_forage_kind(safe, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the safe designation publishes")
+	assert_false(_jobs.is_dangerous(_harvest_job_slot(safe, PATCH_MUSHROOMS)),
+		"danger band 1 is below REQ-SET-067's threshold")
+	var risky: int = _enabled_designation(DANGEROUS_BAND)
+	assert_true(_planner.reconcile_forage_kind(risky, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the risky designation publishes")
+	assert_true(_jobs.is_dangerous(_harvest_job_slot(risky, PATCH_MUSHROOMS)),
+		"danger band 2 makes the harvest subject to the dangerous-work permission")
+
+
+func test_the_dangerous_flag_reads_the_designation_not_its_basin() -> void:
+	"""forage.gd separates the basin's NATURAL danger from the harvesting zone's HAZARD band."""
+	var zone_slot: int = _enabled_designation(0, 3)
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"a safe designation over a dangerous basin publishes")
+	assert_false(_jobs.is_dangerous(_harvest_job_slot(zone_slot, PATCH_MUSHROOMS)),
+		"the flag follows the designation's own band, which is 0")
+	assert_equal(_forage.natural_danger_of(_forage.zone_ref_of(zone_slot)).value, 3,
+		"while §5.5's work formula still reads the basin's natural danger of 3")
+
+
+func test_the_dangerous_flag_is_recomputed_when_the_zones_danger_changes() -> void:
+	"""ARCH: "and whenever that danger value changes"."""
+	_forage = DangerousForage.new(_jobs.directory(), _jobs)
+	_planner = JobPlannerScript.new(_farming, _jobs, _forage)
+	var zone_slot: int = _enabled_designation(0)
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest publishes at danger 0")
+	var job: int = _harvest_job_slot(zone_slot, PATCH_MUSHROOMS)
+	assert_false(_jobs.is_dangerous(job), "and is not dangerous")
+	(_forage as DangerousForage).force_danger(zone_slot, 3)
+	_planner.mark_zone_dirty(zone_slot)
+	_planner.run_tick(DAY_ONE_TICK)
+	assert_true(_jobs.is_dangerous(job), "reconciling the changed designation recomputes the flag")
+	assert_equal(_jobs.job_count(), 1, "and publishes no second harvest")
+
+
+func test_the_consent_check_itself_is_not_duplicated_here() -> void:
+	"""Storing consent is priorities.gd's; checking it is job eligibility's."""
+	var zone_slot: int = _enabled_designation(DANGEROUS_BAND)
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"a danger-2 designation still publishes its harvest")
+	var worker: int = _worker()
+	assert_equal(_priorities.dangerous_work_of(worker).value, 0,
+		"§4.2 defaults the resident's dangerous_work permission to false")
+	assert_true(_jobs.is_dangerous(_harvest_job_slot(zone_slot, PATCH_MUSHROOMS)),
+		"the producer sets the flag the eligibility check reads, and stops there")
+
+
+# --- the midnight boundary: repeat demand is not a daily service -------------------------------
+
+func test_midnight_neither_settles_nor_reopens_forage_demand() -> void:
+	"""Repeat demand is not a daily service: midnight must not retire it as unserved."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest is published on day one")
+	var before: Vector2i = _planner.forage_demand_job_of(zone_slot, PATCH_MUSHROOMS)
+	assert_true(_planner.run_day_boundary(FIRST_MIDNIGHT_TICK).ok, "the day boundary runs")
+	_planner.run_tick(FIRST_MIDNIGHT_TICK)
+	assert_equal(_planner.forage_demand_job_of(zone_slot, PATCH_MUSHROOMS), before,
+		"the same Job survives the boundary")
+	assert_equal(_planner.settled_unserved_count(), 0,
+		"midnight settled no forage demand as unserved")
+	assert_equal(_planner.forage_cancelled_count(), 0, "and cancelled nothing")
+	assert_equal(_planner.forage_created_count(), 1, "no second harvest was opened for the new day")
+
+
+func test_a_pending_harvest_does_not_block_the_daily_service_boundary() -> void:
+	"""A demand row carries no service day, so it can never make a day unsettleable."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest is published")
+	assert_true(_planner.preceding_day_is_settled(2),
+		"the preceding day is settled with a harvest outstanding")
+	assert_true(_planner.run_day_boundary(FIRST_MIDNIGHT_TICK).ok, "so the boundary opens day two")
+
+
+func test_the_forage_operation_is_not_a_daily_service_operation() -> void:
+	"""`is_daily_service_operation()` keeps repeat demand out of the daily machinery."""
+	assert_false(_planner.is_daily_service_operation(JobPlannerScript.OPERATION_FORAGE_HARVEST),
+		"the forage operation is not reopened or settled at midnight")
+	assert_true(_planner.is_daily_service_operation(TEND_OPERATION), "tending still is")
+	assert_false(_planner.is_operation(JobPlannerScript.OPERATION_FORAGE_HARVEST),
+		"and it does not address the FarmPlot pending-service table at all")
+	assert_equal(JobPlannerScript.OPERATION_DOMAIN_COUNT, 3,
+		"three operations across the two owner classes")
+
+
+func test_the_day_boundary_marks_designations_for_the_new_days_allowance() -> void:
+	"""Resetting the day's collected totals IS quota becoming available, R06-JOB-002's trigger."""
+	var zone_slot: int = _enabled_designation()
+	_planner.reconcile_dirty_zones(DAY_ONE_TICK, JobPlannerScript.ZONE_OWNER_CAPACITY)
+	assert_false(_planner.is_zone_dirty(zone_slot), "the enable's own dirty mark is drained first")
+	assert_true(_planner.run_day_boundary(FIRST_MIDNIGHT_TICK).ok, "the day boundary runs")
+	assert_true(_planner.is_zone_dirty(zone_slot), "the designation is marked for reconciliation")
+
+
+func test_a_live_harvest_answers_pending_rather_than_an_empty_ecology() -> void:
+	"""The idempotence guard is a distinct answer: work already out is not an exhausted patch."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest publishes")
+	var again: JobPlannerScript.OpResult = _planner.reconcile_forage_kind(zone_slot,
+		PATCH_MUSHROOMS, DAY_ONE_TICK)
+	assert_false(again.ok, "a second reconciliation publishes nothing")
+	assert_equal(String(again.error), String(JobPlannerScript.REFUSE_DEMAND_PENDING),
+		"and says the harvest is already pending, not that the ecology offered nothing")
+	assert_equal(_planner.forage_demand_blocker_of(zone_slot, PATCH_MUSHROOMS).value,
+		JobPlannerScript.BLOCKER_NONE, "so no gate reason is recorded against a live harvest")
+
+
+func test_a_stale_claim_on_a_reused_job_row_refuses_and_publishes_nothing() -> void:
+	"""A claim left behind by a destroyed Job must not be silently overwritten by the next one.
+
+	Overwriting it would be exactly the double reservation R06-JOB-002 forbids: the abandoned
+	claim's quantity is still counted against the shared allowance, and a second claim on the same
+	row would hand it out again. forage.gd refuses with CLAIM_STALE_JOB and the producer passes
+	that refusal through, destroying the Job it had just allocated.
+	"""
+	var basin: Vector2i = _forage_basin()
+	var designation: Vector2i = _forage_designation(basin)
+	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")
+	var stray: JobsScript.OpResult = _jobs.create_job(KIND_FORAGE, 0, 0, 100, 0)
+	assert_true(stray.ok, "an unrelated FORAGE job takes the first claim row")
+	assert_true(_forage.claim_forage(stray.ref, designation, PATCH_MUSHROOMS, 1000, SPRING,
+		false).ok, "it claims a thousand milli-units")
+	assert_true(_jobs.destroy_job(stray.value).ok, "and is destroyed without releasing the claim")
+	var refused: JobPlannerScript.OpResult = _planner.reconcile_forage_kind(
+		_zone_slot(designation), PATCH_MUSHROOMS, DAY_ONE_TICK)
+	assert_false(refused.ok, "the producer cannot claim over the abandoned row")
+	assert_equal(String(refused.error), "CLAIM_STALE_JOB",
+		"and passes forage.gd's own refusal through rather than inventing one")
+	assert_equal(_jobs.job_count(), 0, "the Job it allocated for the attempt is destroyed")
+	assert_equal(_planner.forage_demand_status_of(_zone_slot(designation),
+		PATCH_MUSHROOMS).value, JobPlannerScript.STATUS_FREE, "and no demand row is published")
+
+
+# --- R06-JOB-008: idempotence, retention and the lifecycle -------------------------------------
+
+func test_repeated_enable_and_dirty_events_create_one_harvest() -> void:
+	"""The ruling: repeated enable/dirty events create no duplicate claim."""
+	var zone_slot: int = _enabled_designation()
+	for _repeat: int in 20:
+		_planner.enable_forage_demand(_forage.zone_ref_of(zone_slot))
+		_planner.mark_zone_dirty(zone_slot)
+		_planner.reconcile_forage_zone(zone_slot, DAY_ONE_TICK)
+	assert_equal(_jobs.job_count(), 1, "twenty reconciliations publish one harvest")
+	assert_equal(_forage.claim_count(), 1, "and reserve one claim")
+	assert_equal(_planner.forage_created_count(), 1, "the producer counts one creation")
+	assert_equal(_planner.pending_forage_demand_count(), 1, "one demand row is pending")
+
+
+func test_the_zone_dirty_set_is_idempotent_and_bounded() -> void:
+	"""One entry per designation however many events name it."""
+	var zone_slot: int = _enabled_designation()
+	for _repeat: int in 50:
+		assert_true(_planner.mark_zone_dirty(zone_slot).ok, "marking succeeds")
+	assert_equal(_planner.zone_dirty_count(), 1, "fifty events make one entry")
+	assert_true(_planner.is_zone_dirty(zone_slot), "and the membership bit is set")
+	assert_false(_planner.mark_zone_dirty(JobPlannerScript.ZONE_OWNER_CAPACITY).ok,
+		"a slot past the HarvestZone capacity refuses")
+
+
+func test_a_completed_harvest_settles_and_repeat_demand_publishes_again() -> void:
+	"""Repeat demand outlives the work it produced: released capacity is a new trigger."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the first harvest publishes")
+	var job: int = _harvest_job_slot(zone_slot, PATCH_MUSHROOMS)
+	assert_true(_jobs.set_state(job, STATE_COMPLETE).ok, "the harvest completes")
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the same reconcile settles it and publishes the next one")
+	assert_equal(_planner.forage_completed_count(), 1, "one completion is recorded")
+	assert_equal(_planner.forage_created_count(), 2, "and a second harvest is published")
+	assert_equal(_jobs.job_count(), 1, "the completed Job's row was released first")
+	assert_equal(_forage.claim_count(), 1, "and its uncollected claim released with it")
+	assert_true(_planner.is_forage_demand_enabled(zone_slot), "the standing policy is untouched")
+
+
+func test_a_cancelled_harvest_is_recorded_and_its_claim_released() -> void:
+	"""A CANCELLED Job is recorded as cancelled rather than read as a completion."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest publishes")
+	var job: int = _harvest_job_slot(zone_slot, PATCH_MUSHROOMS)
+	assert_true(_jobs.set_state(job, STATE_CANCELLED).ok, "the harvest is cancelled")
+	_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK)
+	assert_equal(_planner.forage_cancelled_count(), 1, "the cancellation is counted as one")
+	assert_equal(_planner.forage_completed_count(), 0, "and not as a completion")
+
+
+func test_a_destroyed_designation_leaves_no_job_and_no_claim_behind() -> void:
+	"""Decision 0040's lesson: a record on a vanished owner must not keep its Job alive forever."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest publishes")
+	assert_true(_forage.destroy_zone(_forage.zone_ref_of(zone_slot)).ok,
+		"the designation is destroyed under it")
+	for tick: int in range(DAY_ONE_TICK, DAY_ONE_TICK + JobPlannerScript.STAGGER_MODULUS):
+		_planner.run_tick(tick)
+	assert_equal(_jobs.job_count(), 0,
+		"one idle sweep period cancels the orphaned Job and releases its row")
+	assert_equal(_forage.claim_count(), 0, "and no claim survives it")
+	assert_false(_planner.is_forage_demand_enabled(zone_slot), "the demand record is dropped")
+	assert_true(_planner.demand_row_is_clear(zone_slot, PATCH_MUSHROOMS),
+		"and the row keeps no residue for its next occupant")
+	assert_equal(_planner.forage_demand_owner_of(zone_slot), EntityDirectory.NULL_REF,
+		"including the owner reference it was enabled against")
+
+
+func test_a_reused_zone_row_does_not_inherit_the_previous_demand() -> void:
+	"""Both halves of the owner EntityRef are checked, so a new zone starts with no demand."""
+	var basin: Vector2i = _forage_basin()
+	var first: Vector2i = _forage_designation(basin)
+	var zone_slot: int = _zone_slot(first)
+	assert_true(_planner.enable_forage_demand(first).ok, "the first designation enables demand")
+	assert_true(_forage.destroy_zone(first).ok, "it is destroyed")
+	var second: Vector2i = _forage_designation(basin)
+	assert_equal(_zone_slot(second), zone_slot, "the freed HarvestZone row is reused")
+	assert_true(second != first, "but the reference carries a new generation")
+	_planner.run_tick(DAY_ONE_TICK)
+	assert_false(_planner.is_forage_demand_enabled(zone_slot),
+		"the new designation inherits no demand and must be enabled again")
+	assert_equal(_jobs.job_count(), 0, "so nothing is published for it")
+
+
+func test_disabling_stops_new_work_and_retains_the_outstanding_harvest() -> void:
+	"""The acceptance list: disabled sources create no NEW work. Accepted work is not withdrawn."""
+	var basin: Vector2i = _forage_basin()
+	assert_true(_forage.set_quota_milli(basin, MANUAL_QUOTA_MAX_MILLI, SPRING).ok,
+		"the basin takes the manual maximum so a second kind could publish")
+	var designation: Vector2i = _forage_designation(basin)
+	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")
+	var zone_slot: int = _zone_slot(designation)
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"a harvest publishes")
+	assert_true(_planner.disable_forage_demand(designation).ok, "the player disables the demand")
+	_planner.run_tick(DAY_ONE_TICK)
+	assert_equal(_jobs.job_count(), 1, "no new harvest is published for any kind")
+	assert_equal(_planner.forage_demand_status_of(zone_slot, PATCH_MUSHROOMS).value,
+		JobPlannerScript.STATUS_PENDING, "and the accepted one is retained, not cancelled")
+	assert_equal(_planner.forage_demand_blocker_of(zone_slot, PATCH_HERB).value,
+		JobPlannerScript.BLOCKER_DEMAND_NOT_ENABLED, "the retained reason names the disable")
+
+
+func test_disabling_a_designation_that_carries_no_demand_is_refused() -> void:
+	"""Refuse rather than report a silent no-op."""
+	var designation: Vector2i = _forage_designation(_forage_basin())
+	var refused: JobPlannerScript.OpResult = _planner.disable_forage_demand(designation)
+	assert_false(refused.ok, "there is nothing to disable")
+	assert_equal(String(refused.error), String(JobPlannerScript.REFUSE_DEMAND_NOT_ENABLED),
+		"and the refusal says so")
+
+
+func test_forage_capacity_exhaustion_retains_demand_and_reports_a_blocker() -> void:
+	"""R06-JOB-008: exhaustion retains unmet policy demand and reports a blocker."""
+	var zone_slot: int = _enabled_designation()
+	assert_equal(_fill_the_job_arena(), 8192, "the arena holds GDD §4.2's 8192 jobs")
+	var refused: JobPlannerScript.OpResult = _planner.reconcile_forage_kind(zone_slot,
+		PATCH_MUSHROOMS, DAY_ONE_TICK)
+	assert_false(refused.ok, "the harvest cannot be created")
+	assert_equal(_planner.unmet_forage_demand_count(), 1, "the demand is retained")
+	assert_true(_planner.last_blocker() != JobPlannerScript.REFUSE_NONE,
+		"the blocker carries the refusing store's own code, not an invented one")
+	assert_equal(_planner.quantified_claim_milli_of(zone_slot, PATCH_MUSHROOMS).value,
+		SPRING_AUTOMATIC_QUOTA_MILLI, "retained demand remembers the quantity it could not claim")
+	assert_equal(_forage.claim_count(), 0, "and no quota was reserved for a Job that never existed")
+
+
+func test_retained_forage_demand_never_becomes_an_unbounded_queue() -> void:
+	"""R06-JOB-008: it shall not create a hidden unbounded queue."""
+	var zone_slot: int = _enabled_designation()
+	_fill_the_job_arena()
+	for _repeat: int in 200:
+		_planner.mark_zone_dirty(zone_slot)
+		_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK)
+	assert_equal(_planner.unmet_forage_demand_count(), 1,
+		"two hundred refusals retain one row, because retention is one row per demand")
+	assert_equal(_planner.pending_forage_demand_count(), 0, "and nothing was created")
+
+
+func test_released_capacity_retries_the_retained_forage_demand() -> void:
+	"""R06-JOB-008: retry when capacity is released."""
+	var zone_slot: int = _enabled_designation()
+	_fill_the_job_arena()
+	assert_false(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the first attempt is refused")
+	_planner.reconcile_dirty_zones(DAY_ONE_TICK, JobPlannerScript.ZONE_OWNER_CAPACITY)
+	assert_false(_planner.is_zone_dirty(zone_slot), "the enable's dirty mark is drained")
+	assert_true(_jobs.destroy_job(0).ok, "one job row is released")
+	assert_equal(_planner.mark_capacity_released(), 1, "the retained demand is re-marked dirty")
+	assert_true(_planner.run_tick(DAY_ONE_TICK).value >= 1, "and the retry creates the harvest")
+	assert_equal(_planner.unmet_forage_demand_count(), 0, "no demand remains unmet")
+	assert_equal(_planner.pending_forage_demand_count(), 1, "exactly one harvest is pending")
+
+
+# --- decision 0024: a refusal consumes nothing -------------------------------------------------
+
+func _quota_and_stock_fingerprint(basin: Vector2i, designation: Vector2i) -> PackedInt64Array:
+	"""Every quantity a refused reconciliation must leave byte-identical, in one comparable row."""
+	var basin_slot: int = _zone_slot(basin)
+	var zone_slot: int = _zone_slot(designation)
+	return PackedInt64Array([
+		_forage.harvested_today_milli_of(basin_slot).value,
+		_forage.quota_reserved_milli_of(basin_slot).value,
+		_forage.harvested_today_milli_of(zone_slot).value,
+		_forage.quota_reserved_milli_of(zone_slot).value,
+		_forage.stock_milli_of(basin_slot * 5 + PATCH_MUSHROOMS).value,
+		_forage.harvested_year_milli_of(basin_slot * 5 + PATCH_MUSHROOMS).value,
+		_forage.claim_count(), _jobs.job_count(),
+	])
+
+
+func test_a_refused_gate_leaves_quota_and_stock_byte_identical() -> void:
+	"""Decision 0024's allocate-before-consume: a failed gate consumes nothing."""
+	var basin: Vector2i = _forage_basin()
+	var designation: Vector2i = _forage_designation(basin)
+	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")
+	var before: PackedInt64Array = _quota_and_stock_fingerprint(basin, designation)
+	assert_true(_forage.set_zone_protected(designation, true).ok, "the designation is protected")
+	var zone_slot: int = _zone_slot(designation)
+	for _repeat: int in 20:
+		assert_false(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+			"a protected designation publishes nothing")
+	assert_equal(_quota_and_stock_fingerprint(basin, designation), before,
+		"twenty refusals leave every quota, stock and count byte-identical")
+	assert_equal(_planner.forage_claimed_milli(), 0, "and reserve not one milli-unit")
+
+
+func test_a_capacity_refusal_leaves_quota_and_stock_byte_identical() -> void:
+	"""The refusal that happens AFTER the gates pass must be atomic too."""
+	var basin: Vector2i = _forage_basin()
+	var designation: Vector2i = _forage_designation(basin)
+	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")
+	var before: PackedInt64Array = _quota_and_stock_fingerprint(basin, designation)
+	assert_equal(_fill_the_job_arena(), 8192, "the job arena is full")
+	assert_false(_planner.reconcile_forage_kind(_zone_slot(designation), PATCH_MUSHROOMS,
+		DAY_ONE_TICK).ok, "the harvest cannot be created")
+	var after: PackedInt64Array = _quota_and_stock_fingerprint(basin, designation)
+	assert_equal(after[1], before[1], "the basin reserved nothing")
+	assert_equal(after[3], before[3], "the designation reserved nothing")
+	assert_equal(after[4], before[4], "the stock is untouched")
+	assert_equal(after[6], before[6], "and no claim exists")
+	assert_equal(_planner.forage_claimed_milli(), 0, "nothing was reserved")
+
+
+# --- the schema, the reasons and the pure questions --------------------------------------------
+
+func test_the_demand_row_is_the_owner_major_index_of_the_patch_block() -> void:
+	"""`z * 5 + kind`, the same stride forage.gd's ForagePatch block uses."""
+	assert_equal(JobPlannerScript.ZONE_OWNER_CAPACITY, 128, "GDD §4.2's 128 HarvestZone rows")
+	assert_equal(JobPlannerScript.PATCH_KIND_COUNT, 5, "§5.5's five forage kinds")
+	assert_equal(JobPlannerScript.DEMAND_ROW_COUNT, 640, "one row per (designation, kind) pair")
+	assert_equal(_planner.demand_row(0, PATCH_BERRIES).value, 0, "the first row")
+	assert_equal(_planner.demand_row(0, PATCH_ROOTS).value, 4, "the first zone's last kind")
+	assert_equal(_planner.demand_row(1, PATCH_BERRIES).value, 5, "the second zone's first kind")
+	assert_equal(_planner.demand_row(127, PATCH_ROOTS).value, 639, "and the last row")
+	assert_false(_planner.demand_row(128, PATCH_BERRIES).ok, "a zone past capacity refuses")
+	assert_false(_planner.demand_row(0, 5).ok, "as does a sixth forage kind")
+
+
+func test_the_stored_blocker_and_the_returned_refusal_cannot_drift() -> void:
+	"""The byte kept on the row maps to the same StringName the refusal carried."""
+	var zone_slot: int = _enabled_designation()
+	var refused: JobPlannerScript.OpResult = _planner.reconcile_forage_kind(zone_slot,
+		PATCH_BERRIES, DAY_ONE_TICK)
+	assert_false(refused.ok, "berries are dormant in spring")
+	var stored: int = _planner.forage_demand_blocker_of(zone_slot, PATCH_BERRIES).value
+	assert_equal(String(_planner.demand_refusal_of_blocker(stored)), String(refused.error),
+		"the retained reason and the returned one are the same code")
+	assert_equal(String(_planner.demand_refusal_of_blocker(JobPlannerScript.BLOCKER_COUNT)),
+		String(JobPlannerScript.REFUSE_INVALID_BLOCKER), "and an out-of-domain byte refuses")
+
+
+func test_publishing_clears_the_reason_a_previous_gate_left() -> void:
+	"""A row that published must not still report why it once could not."""
+	var zone_slot: int = _enabled_designation()
+	assert_false(_planner.reconcile_forage_kind(zone_slot, PATCH_BERRIES, DAY_ONE_TICK).ok,
+		"berries are dormant in spring")
+	assert_equal(_planner.forage_demand_blocker_of(zone_slot, PATCH_BERRIES).value,
+		JobPlannerScript.BLOCKER_PATCH_DORMANT, "so the row records the dormancy")
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_BERRIES,
+		SUMMER_MIDNIGHT_TICK).ok, "in summer the same kind publishes")
+	assert_equal(_planner.forage_demand_blocker_of(zone_slot, PATCH_BERRIES).value,
+		JobPlannerScript.BLOCKER_NONE, "and the stale reason is gone")
+
+
+func test_abandoning_a_vanished_designation_clears_every_retained_reason() -> void:
+	"""A reused HarvestZone row must not report the previous designation's reason."""
+	var zone_slot: int = _enabled_designation()
+	assert_equal(_planner.reconcile_forage_zone(zone_slot, DAY_ONE_TICK).value, 1,
+		"one harvest publishes and the aggregate quota blocks the rest")
+	assert_equal(_planner.forage_demand_blocker_of(zone_slot, PATCH_HERB).value,
+		JobPlannerScript.BLOCKER_NOTHING_HARVESTABLE, "herb records why it got nothing")
+	assert_true(_forage.destroy_zone(_forage.zone_ref_of(zone_slot)).ok,
+		"the designation is destroyed")
+	_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK)
+	assert_equal(_planner.forage_demand_blocker_of(zone_slot, PATCH_HERB).value,
+		JobPlannerScript.BLOCKER_NONE, "abandonment clears the reasons of every kind")
+
+
+func test_the_gate_question_answers_without_publishing_anything() -> void:
+	"""`forage_gate_for()` is a pure question: panel and producer read one implementation."""
+	var zone_slot: int = _enabled_designation()
+	assert_equal(_planner.forage_gate_for(zone_slot, PATCH_BERRIES, SPRING).value,
+		JobPlannerScript.BLOCKER_PATCH_DORMANT, "it answers the dormant kind")
+	assert_equal(_planner.forage_gate_for(zone_slot, PATCH_MUSHROOMS, SPRING).value,
+		JobPlannerScript.BLOCKER_NONE, "and reports the harvestable one clear")
+	assert_equal(_jobs.job_count(), 0, "asking publishes nothing")
+	assert_equal(_forage.claim_count(), 0, "and reserves nothing")
+	assert_equal(_planner.forage_demand_blocker_of(zone_slot, PATCH_BERRIES).value,
+		JobPlannerScript.BLOCKER_NONE, "nor does it write the row's retained reason")
+
+
+func test_the_gate_question_reports_every_blocker_in_its_domain() -> void:
+	"""Including the ones the producer's own order makes unreachable through a reconcile."""
+	var basin: Vector2i = _forage_basin()
+	var designation: Vector2i = _forage_designation(basin)
+	var zone_slot: int = _zone_slot(designation)
+	assert_equal(_planner.forage_gate_for(zone_slot, PATCH_MUSHROOMS, SPRING).value,
+		JobPlannerScript.BLOCKER_DEMAND_NOT_ENABLED, "an unenabled designation blocks first")
+	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")
+	assert_equal(_planner.forage_gate_for(zone_slot, PATCH_MUSHROOMS, 9).value,
+		JobPlannerScript.BLOCKER_SOURCE_REFUSED, "an unreadable season is not a dormant patch")
+	assert_true(_forage.destroy_zone(designation).ok, "the designation is destroyed")
+	assert_equal(_planner.forage_gate_for(zone_slot, PATCH_MUSHROOMS, SPRING).value,
+		JobPlannerScript.BLOCKER_ZONE_NOT_PRESENT, "and a vanished zone reports its own blocker")
+	assert_false(_planner.forage_gate_for(128, PATCH_MUSHROOMS, SPRING).ok,
+		"an unaddressable zone refuses rather than answering a blocker")
+	assert_false(_planner.forage_gate_for(0, 5, SPRING).ok, "as does a sixth forage kind")
+
+
+func test_the_quantity_question_refuses_rather_than_answering_zero() -> void:
+	"""A blocked designation has no quantity, and 0 would read like an admissible one."""
+	var zone_slot: int = _enabled_designation()
+	assert_false(_planner.forage_quantity_for(zone_slot, PATCH_BERRIES, SPRING).ok,
+		"a dormant kind refuses")
+	assert_equal(String(_planner.forage_quantity_for(zone_slot, PATCH_BERRIES, SPRING).error),
+		String(JobPlannerScript.REFUSE_PATCH_DORMANT), "naming the gate that stopped it")
+	assert_true(_planner.forage_quantity_for(zone_slot, PATCH_MUSHROOMS, SPRING).ok,
+		"a harvestable kind answers")
+
+
+func test_a_free_demand_row_has_no_quantified_claim_to_report() -> void:
+	"""Refuse rather than return 0, which would read as a claim of nothing."""
+	var zone_slot: int = _enabled_designation()
+	var free: IntMath.IntResult = _planner.quantified_claim_milli_of(zone_slot, PATCH_MUSHROOMS)
+	assert_false(free.ok, "a row that published nothing has no quantity")
+	assert_equal(String(free.error), String(JobPlannerScript.REFUSE_DEMAND_SETTLED),
+		"and says so explicitly")
+	assert_false(_planner.quantified_claim_milli_of(128, PATCH_MUSHROOMS).ok,
+		"an unaddressable designation refuses")
+
+
+func test_no_production_order_is_created_for_repeat_harvest_demand() -> void:
+	"""The ruling's OrderMode paragraph: the ecology workflow is repeat demand, not an order."""
+	var zone_slot: int = _enabled_designation()
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_MUSHROOMS, DAY_ONE_TICK).ok,
+		"the harvest publishes")
+	var job: int = _harvest_job_slot(zone_slot, PATCH_MUSHROOMS)
+	assert_equal(_jobs.requester_of(job), EntityDirectory.NULL_REF,
+		"no order requests it: no designation or basin id is written into a recipe")
+	assert_equal(_jobs.source_of(job), _forage.zone_ref_of(zone_slot),
+		"the designation is named as an EntityRef on the Job, which is where §4.2 puts it")
+
+
+func test_the_work_total_is_computed_at_level_zero_where_the_level_changes_it() -> void:
+	"""§5.5's formula distinguishes FORAGE level 0 from level 1 only at some kind/danger pairs.
+
+	Herb at natural danger 1 is one of them: 8 WU/U unskilled, 7 WU/U at level 1. No worker is
+	bound when the harvest is created, so the unskilled -- and largest -- total is the only one
+	that can honestly be written.
+	"""
+	var basin: Vector2i = _forage_basin(1)
+	assert_true(_forage.set_quota_milli(basin, MANUAL_QUOTA_MAX_MILLI, SPRING).ok,
+		"the basin takes the manual maximum so the stock binds instead of the quota")
+	var designation: Vector2i = _forage_designation(basin)
+	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")
+	var zone_slot: int = _zone_slot(designation)
+	assert_true(_planner.reconcile_forage_kind(zone_slot, PATCH_HERB, DAY_ONE_TICK).ok,
+		"the herb harvest publishes")
+	assert_equal(_forage.natural_danger_of(designation).value, 1,
+		"the basin's natural danger is the term §5.5's formula uses")
+	assert_equal(_jobs.remaining_mwu_of(_harvest_job_slot(zone_slot, PATCH_HERB)).value,
+		HERB_WORK_PER_U_AT_DANGER_ONE * HERB_STOCK_ABOVE_FLOOR_MILLI,
+		"8 WU/U at level 0 times the claimed milli-units, not 7 at level 1")
+
+
+func test_two_designations_address_their_own_demand_rows() -> void:
+	"""`z * 5 + kind` must not let one designation's last kind land on the next one's first.
+
+	The rows are exercised across a boundary rather than only read back: designation A's ROOTS and
+	designation B's BERRIES are adjacent zone rows, so a wrong stride makes them one row and the
+	second harvest silently reports the first as already pending.
+	"""
+	var basin: Vector2i = _forage_basin()
+	assert_true(_forage.set_quota_milli(basin, MANUAL_QUOTA_MAX_MILLI, SUMMER).ok,
+		"the shared basin takes the manual maximum")
+	var first: Vector2i = _forage_designation(basin)
+	var second: Vector2i = _forage_designation(basin)
+	assert_true(_planner.enable_forage_demand(first).ok, "the first demand enables")
+	assert_true(_planner.enable_forage_demand(second).ok, "the second demand enables")
+	var a: int = _zone_slot(first)
+	var b: int = _zone_slot(second)
+	assert_equal(b, a + 1, "the two designations occupy adjacent HarvestZone rows")
+	assert_equal(_planner.demand_row(b, PATCH_BERRIES).value,
+		_planner.demand_row(a, PATCH_ROOTS).value + 1, "and their rows are adjacent too")
+	assert_true(_planner.reconcile_forage_kind(a, PATCH_ROOTS, SUMMER_MIDNIGHT_TICK).ok,
+		"the first designation publishes its roots harvest")
+	assert_true(_planner.reconcile_forage_kind(b, PATCH_BERRIES, SUMMER_MIDNIGHT_TICK).ok,
+		"and the second publishes its berries harvest")
+	assert_equal(_jobs.job_count(), 2, "two separate jobs")
+	assert_true(_planner.forage_demand_job_of(a, PATCH_ROOTS)
+		!= _planner.forage_demand_job_of(b, PATCH_BERRIES), "held by two separate rows")

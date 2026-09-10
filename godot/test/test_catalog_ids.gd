@@ -17,18 +17,22 @@ const CatalogIds := preload("res://scripts/core/catalog_ids.gd")
 const CatalogScript := preload("res://scripts/core/catalog.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 
-const COMMITTED_BYTE_LENGTH: int = 2588
+## Moved 2026-09-10 by decision 0042, which added ARCH-CMD-003's CommandKind domain: 2588 bytes /
+## 21 domains / 182 rows / 73d34d26af1f690261957ef27c0e5a14a5462d5d57b2f55a84b69e5fa900a3bd before
+## it. That is an INTENTIONAL CATALOG/SCHEMA CHANGE, not a parity result -- every save written
+## against the old digest refuses until an explicit migration exists, which is the alarm working.
+const COMMITTED_BYTE_LENGTH: int = 3064
 const COMMITTED_SHA256: String = \
-	"73d34d26af1f690261957ef27c0e5a14a5462d5d57b2f55a84b69e5fa900a3bd"
-const COMMITTED_DOMAIN_COUNT: int = 21
-const COMMITTED_ROW_COUNT: int = 182
+	"00e3ffd5c98b5f5da050cc13be91895b85744eb3b3f3cfb5e50dde85a598cbf1"
+const COMMITTED_DOMAIN_COUNT: int = 22
+const COMMITTED_ROW_COUNT: int = 206
 
 ## Every domain the artifact carries, in the ascending ASCII order it is written in.
 const COMMITTED_DOMAINS: Array[String] = [
-	"Activity", "CropDefinition", "CropFamily", "CropState", "EventDefinition", "ForageQuotaMode",
-	"HabitatType", "ItemCategory", "ItemDefinition", "ItemEffect", "JobKind", "JobState",
-	"OrderMode", "Quality", "ScheduleTemplate", "Season", "Severity", "Soil", "SpeciesDefinition",
-	"Speed", "ZoneType",
+	"Activity", "CommandKind", "CropDefinition", "CropFamily", "CropState", "EventDefinition",
+	"ForageQuotaMode", "HabitatType", "ItemCategory", "ItemDefinition", "ItemEffect", "JobKind",
+	"JobState", "OrderMode", "Quality", "ScheduleTemplate", "Season", "Severity", "Soil",
+	"SpeciesDefinition", "Speed", "ZoneType",
 ]
 
 ## The exact canonical encoding of a two-domain toy map, written out by hand: sorted at both
@@ -182,7 +186,7 @@ func test_generated_artifact_matches_the_committed_file_byte_for_byte() -> void:
 
 
 func test_committed_length_digest_domains_and_row_count_are_pinned() -> void:
-	"""The artifact is 2588 bytes, 21 domains, 182 entries, and hashes to the recorded SHA-256."""
+	"""The artifact is 3064 bytes, 22 domains, 206 entries, and hashes to the recorded SHA-256."""
 	var artifact: CatalogIds.Artifact = _artifact()
 	assert_equal(artifact.bytes.size(), COMMITTED_BYTE_LENGTH, "artifact byte length")
 	assert_equal(artifact.digest_hex(), COMMITTED_SHA256, "artifact SHA-256")
@@ -198,7 +202,7 @@ func test_committed_length_digest_domains_and_row_count_are_pinned() -> void:
 
 
 func test_registered_domains_is_exactly_the_committed_domain_list() -> void:
-	"""The build registry and the committed artifact name the same 21 domains, and no others."""
+	"""The build registry and the committed artifact name the same 22 domains, and no others."""
 	var registered: Array[String] = CatalogIds.registered_domains()
 	assert_equal(registered.size(), COMMITTED_DOMAIN_COUNT, "registered domain count")
 	var sorted_names: Array[String] = registered.duplicate()
@@ -328,7 +332,7 @@ func test_every_protected_enum_is_carried_verbatim() -> void:
 
 
 func test_compiled_enums_are_dense_ascending_ascii_ids() -> void:
-	"""The three compiled §4.2 enums carry 0..n-1 in ascending ASCII key order, and nothing else."""
+	"""Every compiled enum carries 0..n-1 in ascending ASCII key order, and nothing else."""
 	for name: String in CatalogScript.COMPILED_ENUM_DOMAINS:
 		var entries: Dictionary = _domain(name)
 		_assert_map_equals(entries, CatalogScript.compiled_enum(name), name)
@@ -806,7 +810,7 @@ func test_row_count_of_counts_every_entry_across_every_domain() -> void:
 	assert_equal(CatalogIds.row_count_of({"A": {"a": 0, "b": 1}, "B": {"c": 0}}), 3,
 		"three entries across two domains")
 	assert_equal(CatalogIds.row_count_of(_artifact().domains), COMMITTED_ROW_COUNT,
-		"the artifact's 182 entries")
+		"the artifact's 206 entries")
 
 
 func test_verify_file_refuses_a_missing_artifact_without_writing_one() -> void:

@@ -1,5 +1,5 @@
 # 0027 — Fishing needs two state columns §4.2 does not provide
-Date: 2026-09-09 · Status: **Provisional — needs a planner ruling**
+Date: 2026-09-09 · Status: **Accepted — planner ruling received 2026-09-09**
 Same class as [0026](0026-forage-patches-belong-to-the-basin.md): requirement
 text mandates behaviour that the schema has nowhere to store.
 
@@ -58,7 +58,7 @@ single-setter policy flag, which makes the requirement structural rather than a
 rule a caller must remember. REQ-SET-047's prohibition during a spawning closure
 is enforced on top of it.
 
-## What is needed
+## What was needed
 Confirm both columns as GDD schema additions, or name the state you intended to
 carry this behaviour. If REQ-SET-048 is warning-only, say so and column 2
 disappears.
@@ -66,3 +66,45 @@ disappears.
 ## Source
 Task 03 increment 5 (partial), 2026-09-09. 926 tests / 27550 assertions / 0
 failures; 36 mutations, 35 killed and one proven equivalent.
+
+
+---
+
+## Planner ruling, 2026-09-09 — both columns confirmed, and a third counted
+
+`docs/rulings/2026-09-09_ready06_open_item_answers.md` §5 ratifies
+`FishHabitat.effort_used:I32[32]` (+128 bytes) and `FishStock.restocking:B8[96]`
+(+96 bytes) as schema additions, **and adds the one this record forgot to
+count**: `FishHabitat.intensive_harvest:B8[32]` (+32 bytes), which the
+implementation already saved and the §2.2 ledger already listed. The ratified
+total is **256 bytes** for the three columns, before any cycle-ownership index.
+`systems_architecture.md` §2.2 now carries all three without the
+**PROVISIONAL** marker.
+
+### The interpretation above is now the contract, not a reading
+This record labelled "default to restocking blocks harvest" an interpretation
+and noted that "the alternative is warning-only, and it is one line away". The
+ruling closes that: the latch **blocks new harvest cycles for the affected
+stock**, "it is not just a warning". The explicitly enabled intensive policy may
+bypass that soft stop down to the existing 10% hard floor, but never a closure,
+an unavailable species, the quota, danger consent or required gear. **The line
+does not move.**
+
+Two further constraints qualify what this record described:
+
+- The two thresholds are **strict cross-multiplications** — enter at
+  `100*P < 30*K`, clear at `100*P > 40*K` — so equality at exactly 30% or 40%
+  flips nothing. `_percent_of()` agreed with that for §5.4's nine capacities,
+  all multiples of 10; the comparison is now stated rather than coincidental.
+- The latch is updated **independently of the override**. This record's
+  structural argument for `harvest()` taking no `intensive` argument survives
+  unchanged; what is added is that turning the policy *off* must restore the
+  restriction immediately, which requires the latch never to read the flag.
+
+### What this record does NOT cover
+Effort-slot **ownership**. This record added an occupancy counter; ruling §5
+requires a cycle-owned claim on top of it, because a counter alone cannot tell
+whose slots are being released. That is
+[0036](0037-fishing-effort-is-claimed-by-the-cycle.md), which also retires the
+single-slot `reserve_effort_slot()`/`release_effort_slot()` pair this record
+described in favour of an atomic multi-slot admission.

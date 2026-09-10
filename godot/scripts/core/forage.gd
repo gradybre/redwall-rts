@@ -205,11 +205,28 @@ extends RefCounted
 ##     When staffed lookouts land, the reduced value needs its own field or a stated derivation.
 ##   * REQ-SET-067's "show an exposure warning" IS NOT IMPLEMENTED. Notices are §4.2's Notice
 ##     row with no store yet. check_worker_permitted() supplies the consent half only.
-##   * THE REGROWTH FORMULA HAS NO STATED CAP. §5.5: "Daily regrowth=floor((K-P)*r*season/1000000)
-##     plus a minimum 1 U when season>0 and P<K", with no `min(K, ...)` -- unlike §5.4's fish
-##     formula, which writes its cap explicitly. The minimum-1-U term can exceed K-P when a patch
-##     is within 1 U of full, so the increment is clamped to K-P. Growing a patch above its own
-##     capacity is the only alternative reading and it contradicts the capacity column.
+##   * THE REGROWTH FORMULA IS ADDITIVE AND CAPPED -- RULED, AND A CHANGE OF SHIPPED BEHAVIOUR.
+##     §5.5 writes "Daily regrowth=floor((K-P)*r*season/1000000) plus a minimum 1 U when
+##     season>0 and P<K" with no `min(K, ...)`, unlike §5.4's fish formula, which writes its cap
+##     explicitly. Two separate questions sat inside that sentence and BAL-CONFLICT-012 named the
+##     second one on its own: whether the 1 U is a floor (`max`) or a term (`plus`), and whether
+##     the result may carry a patch above its own capacity column.
+##     docs/rulings/2026-09-09_ready06_open_item_answers.md §8A settles both:
+##
+##         if S == 0 or P == K:  growth = 0
+##         else:                 growth = min(K - P, floor((K - P) * r * S / 1000000) + 1000)
+##
+##     THE 1 U IS ADDED, NOT A FLOOR. This module previously computed `max(1000, ...)`, which is
+##     what the ruling changes; every regrowth number in this store therefore moves, and the
+##     ecology hashes with them. That is a deliberate behaviour change and NOT optimization
+##     parity. The additive reading is also what decision 0030 §4.6's approved automatic-quota
+##     allowance already used, so the two formulas in this file now read the same way rather than
+##     disagreeing about the same sentence.
+##     A MALFORMED `P > K` IS REFUSED rather than silently reported as zero growth: the ruling
+##     says "reject malformed P>K instead of hiding corrupt state". No operation in this store can
+##     produce it -- create_patch() writes 80% of K, harvest() only debits and regrowth is capped
+##     -- so the guard is unreachable through the public API and is exercised through a subclass
+##     in the suite. It is kept because a save/load path is coming and cannot be trusted.
 ##   * "5 patches/FOREST ZONE" IS READ AS ZoneType.FORAGE. §5.1 calls the ecology partitions
 ##     "forest ecology basins" and §4.3 has no FOREST zone type; FORESTRY is the wood-cutting
 ##     zone. Patch creation is therefore restricted to FORAGE zones.
@@ -312,6 +329,7 @@ const INTENSIVE_FLOOR_PERCENT: int = 5
 const PERCENT_DENOMINATOR: int = 100
 
 ## §5.5: "Daily regrowth=floor((K-P)*r*season/1000000) plus a minimum 1 U when season>0 and P<K."
+## Ruling §8A reads "plus" as ADDITIVE and caps the sum at the room left below K (see the header).
 const REGROWTH_DENOMINATOR: int = 1000000
 const REGROWTH_MINIMUM_MILLI: int = MILLI_PER_UNIT
 
@@ -396,6 +414,7 @@ const REFUSE_INVALID_PATCH_KIND: StringName = &"INVALID_PATCH_KIND"
 const REFUSE_INVALID_ITEM_ID: StringName = &"INVALID_ITEM_ID"
 const REFUSE_PATCH_PRESENT: StringName = &"PATCH_ALREADY_PRESENT"
 const REFUSE_PATCH_NOT_PRESENT: StringName = &"PATCH_NOT_PRESENT"
+const REFUSE_STOCK_ABOVE_CAPACITY: StringName = &"STOCK_ABOVE_CAPACITY"
 const REFUSE_PATCH_SET_SIZE: StringName = &"PATCH_SET_SIZE"
 const REFUSE_PATCH_DORMANT: StringName = &"PATCH_DORMANT"
 const REFUSE_INVALID_SEASON: StringName = &"INVALID_SEASON"
@@ -1515,28 +1534,35 @@ func daily_regrowth_milli(row: int, season: int) -> IntMath.IntResult:
 
 
 func daily_regrowth_milli_into(row: int, season: int, out: IntMath.IntResult) -> bool:
-	"""Non-allocating daily_regrowth_milli(): `floor((K-P)*r*season/1000000)`, min 1 U, into `out`.
+	"""Non-allocating daily_regrowth_milli(): ruling §8A's capped additive regrowth, into `out`.
 
-	The "+1 U when season>0 and P<K" floor and the clamp to K-P are both applied here; the clamp
-	is this store's reading of a formula the document leaves uncapped (see the header).
+	`min(K - P, floor((K - P) * r * S / 1000000) + 1000)`, zero when the patch is dormant or
+	already full, and an explicit refusal when the stored stock is above its own capacity.
+
+	The `room == 0` half of that early return states §5.5's "when ... P<K" rather than changing an
+	answer: with no room the cap already yields 0. Decision 0036 records that a mutation deleting
+	it survives, so a later reader does not read the survival as a missing test.
 	"""
 	if not is_patch_present(row):
 		return out.refuse(String(REFUSE_PATCH_NOT_PRESENT))
+	var room: int = _patch_capacity_milli[row] - _patch_stock_milli[row]
+	if room < 0:
+		return out.refuse(String(REFUSE_STOCK_ABOVE_CAPACITY))
 	var kind: int = row % PATCHES_PER_ZONE
 	if not availability_per_1000_into(kind, season, out):
 		return false
-	var availability: int = out.value
-	var room: int = _patch_capacity_milli[row] - _patch_stock_milli[row]
-	if availability == 0 or room <= 0:
+	if out.value == 0 or room == 0:
 		return out.succeed(0)
+	var availability: int = out.value
 	if not IntMath.checked_mul_into(room, PATCH_REGROWTH_PER_1000[kind], out):
 		return out.refuse(String(REFUSE_OVERFLOW))
 	if not IntMath.checked_mul_into(out.value, availability, out):
 		return out.refuse(String(REFUSE_OVERFLOW))
 	if not IntMath.floor_div_into(out.value, REGROWTH_DENOMINATOR, out):
 		return false
-	var grown: int = maxi(out.value, REGROWTH_MINIMUM_MILLI)
-	return out.succeed(mini(grown, room))
+	if not IntMath.checked_add_into(out.value, REGROWTH_MINIMUM_MILLI, out):
+		return out.refuse(String(REFUSE_OVERFLOW))
+	return out.succeed(mini(out.value, room))
 
 
 func regrow_patch(row: int, season: int) -> OpResult:

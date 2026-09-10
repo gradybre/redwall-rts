@@ -30,9 +30,11 @@ wider picture, so the detail below is not mistaken for overall progress.
 | `02_test_migration_ledger.md` | reference ledger, not a checklist |
 | `03_ecology_crops_weather.md` | **6 of 10 increments**, detail below |
 
-**There is no task 04 or beyond.** Everything after task 03 — commands, movement,
-buildings and rooms, cooking and preservation, feasts, immigration, progression,
-save/load, and the entire UI — has no task file yet.
+**Planning update, 2026-09-09:** [the next package](planning/README.md) now adds
+[a release roadmap](tasks/00_release_roadmap.md), detailed tasks 04/05, milestone
+cards 06–10, movement-contract decisions, requirement ownership and first-playable
+acceptance. These are plans, not runtime progress; task 03 remains the executor's
+active work. The implementation/test snapshot elsewhere in this file is unchanged.
 
 ### Requirement coverage
 
@@ -53,7 +55,7 @@ The UI row is the honest one: **1 of 103**. The only UI is `hud.gd`.
 `settlement_system.gd` runs ARCH-SYS-003 (needs, with 017 folded in), 008's
 activity half, 010 and 013. The other eighteen are declared and idle.
 
-The four that block a playable loop:
+The missing links for the player-driven loop:
 
 - **ARCH-SYS-002 CommandCommit** — no ordered command queue (blocker U2). No
   player action reaches the simulation at all.
@@ -61,7 +63,10 @@ The four that block a playable loop:
   this with eight EARS contracts; none are built yet.
 - **ARCH-SYS-011/012 Navigation and Movement** — no pathfinder, no Transform
   store. A job cannot progress past `RESERVED`.
-- **ARCH-SYS-022 CheckpointHash** — no save stream.
+
+**Separate reproducibility/persistence gap:** ARCH-SYS-022 CheckpointHash has no
+save stream. This blocks full save/replay evidence, but is not a prerequisite to
+observing the first command → travel → work → delivery loop.
 
 ### What exists as data versus what runs
 
@@ -89,7 +94,7 @@ not part of the settlement architecture and have not been removed.
 | 2 | Weather | **done** — mapping ruled (0028) |
 | 3 | ResourceNode + tile placement | **done** — deposits added (0029, 0031) |
 | 4 | HarvestZone + ForagePatch | **done** — quota reworked to the ruled daily aggregate (0026, 0030) |
-| 5 | FishHabitat + FishStock | **stock half done**; gear half blocked by U5 |
+| 5 | FishHabitat + FishStock | **stock half done**; effort claims added (0037), `GearInstance` allocator added (0038). Remaining gear work needs the Expedition store and the installed-gear contract, **not** U5 |
 | 6 | FarmPlot + TileHistory + catalog wiring | **done** — five open contracts recorded (0032) |
 | 7 | FieldPolicy + sowing | **not started** — unblocked by READY_06 item 1 |
 | 8 | OrchardPlot + Hive | **not started** — unblocked by READY_06 item 3 |

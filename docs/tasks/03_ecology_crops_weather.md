@@ -38,7 +38,7 @@ prerequisite. It is **not** the thing that animates the loop.
 | 2 | **Weather** — §5.10, REQ-SET-141–150, single global row | 1 | **done** (`83db3c4`); selection mapping ruled, decision 0028 |
 | 3 | **ResourceNode** + minimal tile placement | — | **done** |
 | 4 | **HarvestZone + ForagePatch** — REQ-SET-066–069 | 1, 3 | **done**; quota reworked to the ruled daily aggregate, decisions 0026/0030 |
-| 5 | **FishHabitat + FishStock** — §5.4 | 1 | **stock half done**; gear half still blocked by U5 (`GearInstance` has no allocator budget, so wear cycles cannot be completed) |
+| 5 | **FishHabitat + FishStock** — §5.4 | 1 | **stock half done**; effort claims added (0037). `GearInstance`'s allocator now exists (0038), so **U5 no longer blocks portable gear** — the remaining gear work needs the Expedition store and the installed-gear contract for boats and weirs |
 | 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | **done**; `TileHistory` built, five open contracts recorded in decision 0032 |
 | 7 | **FieldPolicy + sowing** — REQ-SET-070/071/077/078/088 | 6 | **needs a decision**: the GDD states the sowing validation gate but never the triggering event |
 | 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **pollination blocked by U6** (`HivePollinationLinks` has no owner-major index formula) |
@@ -61,9 +61,13 @@ immigration/departures and progression come later.
   compost_season, active_plot_row, orchard_row`, `ripe_tick, growth_remainder`
   and `tended_today` — the backing store ARCH-STATE-003 requires, tile→plot link
   included. The original note looked only at `WorldTileMaps`. Implemented in
-  increment 6. **One real shortfall survives**: `family_streak` has no
-  `TileHistory` column, so a redraw restores the family but not the count — see
-  decision 0032.
+  increment 6. ~~**One real shortfall survives**: `family_streak` has no
+  `TileHistory` column, so a redraw restores the family but not the count.~~
+  **CLOSED 2026-09-09** by the adopted [READY_06 §7 ruling](../rulings/2026-09-09_ready06_open_item_answers.md):
+  `TileHistory.family_streak: I32[16384]` is added, that I32 group is now seven
+  columns and **458752 bytes (+65536)**, the tile owns the
+  `(last_family, family_streak)` pair and a redraw restores both — a
+  third-or-later 700 stays 700. See decision 0032's resolution section.
 - ~~**`CropState`, `Soil` and `OrderMode` are not compiled**~~ — **done in
   increment 6.** `PROTECTED_ENUM_DOMAINS` now holds eleven domains.
 - **No RNG module exists.** ARCH-RNG-002 names `ECOLOGY`, `FISHING`, `FORAGE` and

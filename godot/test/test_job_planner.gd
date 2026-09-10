@@ -84,7 +84,7 @@ func after_each() -> void:
 
 func _growing_plot(tile: int = 100) -> int:
 	"""Create a loam plot, sow grain in its spring window and finish sowing. Returns its slot."""
-	var created: FarmingScript.OpResult = _farming.create_plot_at_tile(tile, LOAM)
+	var created: FarmingScript.OpResult = _farming.create_plot_at_tile(tile, LOAM, 1)
 	assert_true(created.ok, "the plot creates (error: %s)" % created.error)
 	var slot: int = created.value
 	assert_true(_farming.plant(slot, GRAIN, 1, SPRING, 1).ok, "grain plants in its window")
@@ -180,7 +180,7 @@ func test_a_dry_plot_declares_the_water_input_a_wet_one_does_not() -> void:
 
 func test_a_plot_in_any_state_but_growing_creates_no_work() -> void:
 	"""R06-JOB-007 triggers on GROWING alone; harvest and clearing keep REQ-SET-073/085."""
-	var created: FarmingScript.OpResult = _farming.create_plot_at_tile(200, LOAM)
+	var created: FarmingScript.OpResult = _farming.create_plot_at_tile(200, LOAM, 1)
 	var empty: int = created.value
 	assert_equal(_farming.state_of(empty).value, CROP_EMPTY, "a fresh plot is EMPTY")
 	assert_equal(_planner.reconcile_plot(empty, DAY_ONE_TICK).error,

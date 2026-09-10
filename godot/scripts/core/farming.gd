@@ -13,10 +13,13 @@ extends RefCounted
 ##     `entity_directory.gd` already reserves `KIND_FARM_PLOT` at 4096 rows; `_init()` asserts the
 ##     two agree rather than trusting them to.
 ##   * systems_architecture.md §2 itemises TileHistory at 16384 rows: `fertility, last_family,
-##     last_legume_day, compost_season, active_plot_row, orchard_row` (I32), `ripe_tick,
-##     growth_remainder` (I64) and `tended_today` (B8). All nine columns are here at that exact
-##     length. 16384 is also §5.1's 128x128 exterior grid, so a TileHistory row IS an exterior
-##     tile -- §5.6's "2 m x 2 m tiles" and §5.1's 2048-unit tile are the same square.
+##     family_streak, last_legume_day, compost_season, active_plot_row, orchard_row` (I32),
+##     `ripe_tick, growth_remainder` (I64) and `tended_today` (B8). All TEN columns are here at
+##     that exact length. `family_streak` is the seventh I32 column added by the 2026-09-09
+##     READY_06 ruling §7, taking that column group from 393216 to 458752 bytes (+65536); it does
+##     NOT absorb the separate ripe/growth/service columns. 16384 is also §5.1's 128x128 exterior
+##     grid, so a TileHistory row IS an exterior tile -- §5.6's "2 m x 2 m tiles" and §5.1's
+##     2048-unit tile are the same square.
 ##   * `resource_nodes.gd` owns §5.1's tile geometry primitive (`z*128+x`, tile centres). This
 ##     module never decodes a coordinate: the caller passes a tile INDEX, so there is one copy of
 ##     that formula and this store cannot disagree with it.
@@ -35,17 +38,23 @@ extends RefCounted
 ##   * TileHistory.fertility is AUTHORITATIVE. §4.2's `FarmPlot.fertility` is a mirror of it,
 ##     written by the same private helper on every change, and `create_plot_at_tile()` COPIES the
 ##     tile's value in -- it never writes the 7000 starting value over a worked tile.
-##   * TileHistory.last_family, last_legume_day, compost_season, ripe_tick, growth_remainder and
-##     tended_today all survive `destroy()` untouched. BAL-SAFE-014 states the same rule from the
-##     balance side and is satisfied by the same columns.
-##   * ONE PART OF ARCH-STATE-003 CANNOT BE SATISFIED: `family_streak`. §4.2 puts the streak
-##     LENGTH on the FarmPlot row and systems_architecture.md gives TileHistory no column for it,
-##     so a designation redraw restores the family but not the count. `_rotation_factor()`
-##     therefore treats a restored plot whose tile records the same family as a SECOND
-##     consecutive harvest (850), never a first (1000): a redraw can never fabricate a rotation
-##     bonus, which is what BAL-SAFE-014 forbids. It CAN still lose a third-or-later penalty --
-##     700 becomes 850 across a redraw. That is a REPORTED SHORTFALL in ARCH-STATE-003's column
-##     list, not a choice made here.
+##   * TileHistory.last_family, family_streak, last_legume_day, compost_season, ripe_tick,
+##     growth_remainder and tended_today all survive `destroy()` untouched. BAL-SAFE-014 states
+##     the same rule from the balance side and is satisfied by the same columns.
+##   * THE ROTATION HISTORY IS A PAIR, AND THE TILE OWNS BOTH HALVES. READY_06 ruling §7:
+##     "Tile history owns (last_family, family_streak). Plot rows mirror it." Both are written in
+##     one step by `_record_rotation()` on a completed harvest, both are copied back by
+##     `create_plot_at_tile()`, and `(-1, 0)` means no prior harvest. The designation exploit this
+##     closes is exact: before the ruling a redraw restored the family with a ZERO count, so a
+##     third-or-later 700 was read back as a second consecutive harvest and paid 850. It could
+##     never fabricate the 1000 first-crop factor, but losing a penalty is still a designation
+##     exploit, and the ruling is explicit that the smaller payload figure does not buy it off.
+##   * A POPULATED FAMILY WITH A ZERO STREAK IS REFUSED, NOT INTERPRETED. That pair is what a
+##     legacy snapshot written before the column existed carries, and the ruling forbids treating
+##     it as known complete history. `is_history_pair_consistent()` is the predicate and
+##     `restore_tile_family_history()` is the only entry that writes the pair from outside; it
+##     validates both halves TOGETHER before writing either, so the inconsistent pair cannot
+##     enter the store at all. Every other writer maintains the invariant by construction.
 ##   * TileHistory HAS NO SOIL-TYPE COLUMN, so `soil` is the caller's declaration on every
 ##     create. Soil type is not time-dependent metadata, so its absence is consistent with
 ##     ARCH-STATE-003's wording, but it means recreating a plot on a tile may declare a different
@@ -64,6 +73,18 @@ extends RefCounted
 ##     REQ-SET-071 must consume, `tend()` returns the water, `apply_compost()` returns the
 ##     compost, `harvest()` returns the produce and `clear_withered()` returns the waste compost.
 ##     `inventory.gd` owns every lot; this store returns quantities and creates nothing.
+##   * NO SOWING JOB AND NO SOWING WIP ROW. READY_06 ruling §6.1 settles WHEN seed is committed
+##     and what cancellation does; the PRODUCER that queues, reserves and travels to the plot is
+##     READY_06 item 1 (R06-JOB-004) and IS NOT BUILT. Everything the ruling gives this store is
+##     expressed as state and readers here: SOWN is the durable record that seed is committed and
+##     §5.6's 4000 milli-WU of sowing is outstanding, `sow_work_milli_wu()` is that quantity,
+##     `begin_growing()` is successful completion, and `cancel_sowing()` is the post-commitment
+##     cancellation regime. The WU PROGRESS ITSELF lives on the Job, which is why a worker change
+##     needs no call here at all -- the plot does not move, so the WIP cannot be lost, and
+##     `plant()` refuses a plot that is not EMPTY, so no replacement worker can commit seed twice.
+##     BLOCKED: the pre-commitment cancellation regime (release reservations, leave EMPTY, no seed
+##     loss) touches nothing in this store, because the plot never left EMPTY; it is entirely the
+##     unbuilt producer's, and nothing is stubbed for it here.
 ##   * NO WEATHER IS READ. Temperature arrives as `temperature_tenths` and blight as an explicit
 ##     `apply_blight_day()` call, in the manner fishing.gd takes `base_catch_milli` as an
 ##     argument. weather.gd supplies both readers (`temperature_tenths()`, `is_blight_active()`);
@@ -84,7 +105,10 @@ extends RefCounted
 ##
 ## ---------------------------------------------------------------------------------------
 ## GAPS AND INTERPRETATIONS -- named, not invented (AGENTS.md: "do not invent a constant").
-##   * CORRECTED -- `CropFamily` WAS NEVER UNNUMBERED. An earlier comment in this module claimed
+##   * RULED 2026-09-09 (READY_06 §6.5) and CORRECTED EARLIER -- `CropFamily` WAS NEVER
+##     UNNUMBERED. The ruling directs TileHistory and every family-indexed lookup at the compiled
+##     CropFamily domain, which is what `cc20c42` already did and what the constants below read.
+##     An earlier comment in this module claimed
 ##     §4.3's enumeration table lists no crop-family enum and concluded a planner ruling was
 ##     needed, and numbered the five families in §5.6's printed table order. That claim was
 ##     wrong and the rule was simply missed: GDD §4.2's closing paragraph numbers every gameplay
@@ -92,13 +116,21 @@ extends RefCounted
 ##     BAL-CAT-002 names crop-family explicitly as using BAL-CAT-001's generated IDs. The ids
 ##     are CEREAL=0, FIBER=1, LEAF=2, LEGUME=3, ROOT=4, they live in catalog.gd's compiled-enum
 ##     registry, and this module reads them from there.
-##   * INTERPRETATION -- SOWN vs GROWING. §4.3 numbers both states and §5.6 never says what
-##     separates them. Read here as: SOWN is the seed committed with the 4-WU sowing work
-##     outstanding; GROWING is that work complete and REQ-SET-072's hourly integration running,
-##     which is what §5.6's "1 WU tending/day while growing" and REQ-SET-084's "growing crop"
-##     select. `begin_growing()` is the transition, and its caller is the job that finishes the
-##     sowing work. The alternative -- SOWN as a same-tick transient -- would make one of §4.3's
-##     five states dead. NEEDS A RULING; `state` is persisted.
+##   * RULED 2026-09-09 (READY_06 §6.1) -- SOWN vs GROWING. §4.3 numbers both states and §5.6
+##     never says what separates them. The ruling settles the reading this module already took
+##     and adds the seed-commitment instant: queued, reserved and travelling sowing leave the plot
+##     EMPTY with a separate outstanding Job; at PRODUCTIVE START the exact 250 milli-U of seed is
+##     committed and the sowing WIP created atomically, and the state becomes SOWN; only
+##     SUCCESSFUL sowing completion enters GROWING. `plant()` is that productive start and
+##     `begin_growing()` that completion. No hourly growth, tending, frost or blight applies to
+##     SOWN -- every one of those entry points refuses a plot that is not GROWING.
+##   * RULED 2026-09-09 (READY_06 §6.1) -- SOWING CANCELLATION HAS TWO REGIMES, and only the
+##     second reaches this store. After seed commitment, `cancel_sowing()` discards the committed
+##     seed and the unfinished sowing WIP with NO seed and NO compost refund, returns the plot to
+##     EMPTY, and preserves soil, family, compost history and the XP already earned from valid
+##     work (XP is residents.gd's and is not touched from here). This is a SOWING-SPECIFIC rule,
+##     deliberately not the food-batch refund rule. A worker replacement or a pause is NOT this
+##     cancellation and calls nothing here.
 ##   * INTERPRETATION -- THE TEMPERATURE BANDS ARE WHOLE DEGREES. §5.6 gives "0 below 0°C, 500 at
 ##     0-7°C, 1000 at 8-26°C, 700 above 26°C" in whole degrees, while weather.gd stores TENTHS.
 ##     7.5°C falls in no stated band. The bands are read as covering their whole degree
@@ -110,33 +142,43 @@ extends RefCounted
 ##     distance > 2000 gives 0. BAL-PROBE-001 corroborates the shape but not the endpoint: grain
 ##     (3500-7500) scores 500 at moisture 9400 (distance 1900) and 0 at 9600 (distance 2100).
 ##     The 2000/2001 boundary itself is asserted by test, not by a document.
-##   * INTERPRETATION -- THE 48-HOUR GRACE AND THE 5-DAY WITHERING SHARE ONE INSTANT. §5.6:
-##     "Ripe crops remain for 48 hours before losing 10% remaining yield/day; after 5 days
-##     unharvested they become compost-equivalent waste". Both are measured from `ripe_tick`
-##     here, so decay runs on the third, fourth and fifth days and the crop withers at 120 hours.
-##     The alternative -- five days AFTER the grace, i.e. 168 hours -- is not taken, because
-##     "after 5 days unharvested" counts from the harvest becoming possible, not from the
-##     penalty starting. NEEDS A RULING: the two readings differ by two whole days of yield.
+##   * RULED 2026-09-09 (READY_06 §6.4) -- THE 48-HOUR GRACE AND THE WITHERING SHARE ONE INSTANT,
+##     AND WITHERING IS AT 120 HOURS, NOT 168. Both windows run from `ripe_tick`:
+##     `loss_count = max(0, floor((elapsed_hours-48)/24))`, each loss `yield*900/1000` floored,
+##     and the crop is WITHERED at elapsed 120. The ruling's own fixture is encoded as a test:
+##     100000 milli-U is 100000 just before 72h, 90000 at 72h, 81000 at 96h, and NOT HARVESTABLE
+##     at 120h. There is therefore NO THIRD HARVESTABLE DECAY STEP -- `MAX_HARVEST_DECAY_DAYS` is
+##     2 and `spoiled_yield_milli()` refuses a third, and `harvest()` refuses at or past 120 hours
+##     with REFUSE_RIPE_EXPIRED whether or not `apply_ripe_expiry()` has run. The hourly remainder
+##     and the ripe timestamp both live on the TILE, so a load or a redraw cannot restart either
+##     clock. The shipped `RIPE_WITHER_DAYS = 5` already gave 120 hours and is RATIFIED unchanged.
 ##   * INTERPRETATION -- LEGUME AS THE FIRST CROP EVER SCORES 1000, NOT 1100. §5.6 gives "1000
 ##     for first crop/family change, ... with LEGUME after a different family 1100". A first crop
 ##     follows no family at all, so it is not "after a different family"; it takes the first-crop
 ##     1000. The 1100 needs a previous family that is not LEGUME.
-##   * INTERPRETATION -- family_streak COUNTS HARVESTS, NOT SOWINGS. §5.6 words the penalty as
-##     "a second consecutive same-family harvest", so a crop that withers before harvest does not
-##     advance the streak. NEEDS A RULING: counting sowings would penalise a failed crop, and the
-##     column is persisted either way.
+##   * RULED 2026-09-09 (READY_06 §6.2) -- family_streak COUNTS SUCCESSFUL COMPLETED TILE
+##     HARVESTS, not sowings. Same family increments; a DIFFERENT family resets it to 1;
+##     withering, fallow time, unfinished sowing and a designation redraw neither reset nor
+##     advance it. The PRIOR completed history is what `_rotation_factor()` reads for the crop
+##     standing on the plot, and the history is updated ONCE, after a successful harvest, by
+##     `_record_rotation()`. The streak SATURATES at int32's maximum: at the maximum it is
+##     retained, otherwise incremented, so no overflowing addition is ever evaluated. That is a
+##     stated exception to this codebase's refuse-rather-than-wrap rule and is implemented as
+##     saturation, not as a refusal.
 ##   * INTERPRETATION -- compost_season HOLDS AN ABSOLUTE SEASON INDEX. §4.3's Season is 0-3 and
 ##     repeats every year, so a bare ordinal cannot tell spring of year 1 from spring of year 2
 ##     and REQ-SET-076's "until the next season" gate would become permanent. The column stores
 ##     `(absolute_day - 1) / 12`, which is 0 for the first spring and rises forever; NO_SEASON
 ##     (-1) means never composted, following §4.2's "empty catalog IDs are -1".
-##   * UNRESOLVED -- WHAT `FarmPlot.compost_milli` HOLDS. TileHistory.compost_season already
-##     gates eligibility, so the §4.2 column is not the gate. It is used here as the QUANTITY
-##     ledger: the milli-units of compost applied to this plot, 0 before an application and 2000
-##     after, reset when a plot is created. That does not survive `destroy()` -- there is no tile
-##     column for it -- which is consistent, since eligibility (which must survive) lives on the
-##     tile and the quantity (which need not) lives on the plot. NEEDS A RULING; an alternative
-##     reading is a partial-application buffer, which §5.6's flat "2 U/tile" gives no support to.
+##   * RULED 2026-09-09 (READY_06 §6.3) -- `FarmPlot.compost_milli` IS A CURRENT-SEASON MIRROR.
+##     It holds the quantity applied to this tile DURING THE CURRENT ABSOLUTE SEASON, either 0 or
+##     2000. It is NOT an input buffer, recoverable inventory, a lifetime counter, or the
+##     eligibility authority -- `TileHistory.compost_season` remains authoritative. So
+##     `create_plot_at_tile()` now takes the calendar day and DERIVES the mirror: 2000 iff the
+##     tile's application season equals the current absolute season, otherwise 0. That is why a
+##     redraw inside the same season shows 2000 again, and a redraw a season later shows 0.
+##     `refresh_compost_mirrors_for_day()` is the season-boundary reset; it moves no tile history
+##     and no fertility. The 8-WU service and the 2000 milli-U quantity are unchanged.
 ##   * INTERPRETATION -- FERTILITY IS CLAMPED TO 0..10000 EVERYWHERE. §5.6 states the 10000 cap
 ##     for compost only. Beans' fertility cost of -800 is a GAIN, and the fallow rates also add,
 ##     so without the same cap they would reach values no compost could. A floor of 0 is required
@@ -363,6 +405,12 @@ const ROTATION_FACTOR_FIRST: int = 1000
 const ROTATION_FACTOR_SECOND: int = 850
 const ROTATION_FACTOR_THIRD_PLUS: int = 700
 const ROTATION_FACTOR_LEGUME_AFTER_CHANGE: int = 1100
+## READY_06 §6.2's streak values. 0 is "no prior harvest" and pairs only with FAMILY_NONE; 1 is
+## the first completed harvest of a family; the count SATURATES at int32's maximum rather than
+## overflowing, which the ruling states as an explicit exception to refusing on overflow.
+const STREAK_NONE: int = 0
+const STREAK_FIRST: int = 1
+const STREAK_MAX: int = IntMath.INT32_MAX
 ## §5.6: "Pollination factor is ... other crops 1000". The 1100/1150 hive multipliers are
 ## increment 8; this is the stated neutral value a caller passes for an unpollinated crop.
 const POLLINATION_FACTOR_NEUTRAL: int = 1000
@@ -380,6 +428,13 @@ const RIPE_GRACE_HOURS: int = 48
 const RIPE_WITHER_DAYS: int = 5
 const RIPE_LOSS_PER_1000_PER_DAY: int = 100
 const FACTOR_DENOMINATOR: int = 1000
+## READY_06 §6.4 fixes withering at elapsed 120 hours, which is what the shipped 5 days already
+## gave; the figure is RATIFIED, and named in hours because that is the unit the ruling states.
+const RIPE_WITHER_HOURS: int = RIPE_WITHER_DAYS * HOURS_PER_DAY
+## The most 24-hour decay intervals a crop that can still be harvested has completed: at 119
+## hours `floor((119-48)/24)` is 2, and at 120 the crop is WITHERED. READY_06 §6.4: "Do not apply
+## a third harvestable decay step at 120." Derived from the two stated boundaries, not chosen.
+const MAX_HARVEST_DECAY_DAYS: int = (RIPE_WITHER_HOURS - 1 - RIPE_GRACE_HOURS) / HOURS_PER_DAY
 
 # --- REQ-SET-076 compost, REQ-SET-078 fallow ------------------------------------------------------------------
 
@@ -387,6 +442,8 @@ const FACTOR_DENOMINATOR: int = 1000
 ## once/tile/season."
 const COMPOST_MILLI_PER_TILE: int = 2000
 const COMPOST_FERTILITY_GAIN: int = 1500
+## READY_06 §6.3: `FarmPlot.compost_milli` is a current-season mirror holding "either 0 or 2000".
+const COMPOST_MIRROR_NONE: int = 0
 ## "Empty/fallow plot gains 50 fertility/day; last LEGUME crop adds another 50/day for the next
 ## 12 days."
 const FALLOW_FERTILITY_PER_DAY: int = 50
@@ -448,6 +505,13 @@ const REFUSE_NOT_WITHERED: StringName = &"PLOT_NOT_WITHERED"
 const REFUSE_NO_CROP: StringName = &"PLOT_HAS_NO_CROP"
 const REFUSE_COMPOST_NOT_ELIGIBLE: StringName = &"COMPOST_NOT_ELIGIBLE"
 const REFUSE_RIPE_TICK_MISSING: StringName = &"RIPE_TICK_MISSING"
+## READY_06 §6.4: at elapsed 120 hours the crop is WITHERED and cannot complete a normal harvest,
+## whether or not the caller has run `apply_ripe_expiry()` yet.
+const REFUSE_RIPE_EXPIRED: StringName = &"RIPE_EXPIRED"
+## READY_06 §7: a populated family paired with a zero streak is a legacy snapshot with missing
+## counts. It is refused on the way in, never reinterpreted as known complete history.
+const REFUSE_HISTORY_INCONSISTENT: StringName = &"HISTORY_INCONSISTENT"
+const REFUSE_INVALID_FAMILY: StringName = &"INVALID_FAMILY"
 const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
 
 
@@ -502,6 +566,9 @@ var _live_count: int = 0
 
 var _tile_fertility: PackedInt32Array = PackedInt32Array()
 var _tile_last_family: PackedInt32Array = PackedInt32Array()
+## READY_06 §7's added seventh I32 column: the tile owns the streak LENGTH as well as the family,
+## so a designation redraw restores the whole pair and cannot lose a rotation penalty.
+var _tile_family_streak: PackedInt32Array = PackedInt32Array()
 var _tile_last_legume_day: PackedInt32Array = PackedInt32Array()
 var _tile_compost_season: PackedInt32Array = PackedInt32Array()
 var _tile_active_plot_row: PackedInt32Array = PackedInt32Array()
@@ -623,9 +690,10 @@ func _allocate_columns() -> void:
 
 
 func _allocate_tile_history() -> void:
-	"""Size systems_architecture.md §2's nine TileHistory columns at their stated 16384 rows."""
+	"""Size systems_architecture.md §2's ten TileHistory columns at their stated 16384 rows."""
 	_tile_fertility.resize(TILE_COUNT)
 	_tile_last_family.resize(TILE_COUNT)
+	_tile_family_streak.resize(TILE_COUNT)
 	_tile_last_legume_day.resize(TILE_COUNT)
 	_tile_compost_season.resize(TILE_COUNT)
 	_tile_active_plot_row.resize(TILE_COUNT)
@@ -674,6 +742,7 @@ func _clear_tile_history() -> void:
 	"""Empty the TileHistory ledger: no worked soil, no plot, no orchard, nothing composted."""
 	_tile_fertility.fill(INITIAL_FERTILITY)
 	_tile_last_family.fill(FAMILY_NONE)
+	_tile_family_streak.fill(STREAK_NONE)
 	_tile_last_legume_day.fill(NO_LEGUME_DAY)
 	_tile_compost_season.fill(NO_SEASON)
 	_tile_active_plot_row.fill(NO_ROW)
@@ -926,14 +995,16 @@ func growth_step_milli_hours_into(temperature_factor: int, moisture_factor: int,
 
 # --- lifecycle -------------------------------------------------------------------------------------------
 
-func create_plot_at_tile(tile: int, soil: int) -> OpResult:
+func create_plot_at_tile(tile: int, soil: int, day: int) -> OpResult:
 	"""Allocate one FarmPlot row on an unoccupied tile, COPYING that tile's existing soil history.
 
 	ARCH-STATE-003: recreating a field "SHALL copy the existing tile state; it SHALL not restore
-	fertility or reset compost eligibility". Fertility, the last crop family, the last legume day
-	and the compost season therefore come from the tile, not from §5.6's 7000 starting value --
-	which a tile only still carries if nothing has ever worked it. Refuses, allocating nothing,
-	on an off-grid tile, an occupied tile or an unknown soil.
+	fertility or reset compost eligibility". Fertility, the last crop family, THE FAMILY STREAK
+	LENGTH (READY_06 §7), the last legume day and the compost season therefore come from the
+	tile, not from §5.6's 7000 starting value -- which a tile only still carries if nothing has
+	ever worked it. `day` is required because READY_06 §6.3 makes `compost_milli` a CURRENT-SEASON
+	mirror that has to be derived at creation and redraw, not zeroed. Refuses, allocating nothing,
+	on an off-grid tile, an occupied tile, an unknown soil or a day before the calendar starts.
 	"""
 	if not is_tile_index(tile):
 		return _refuse(REFUSE_INVALID_TILE)
@@ -941,15 +1012,19 @@ func create_plot_at_tile(tile: int, soil: int) -> OpResult:
 		return _refuse(REFUSE_TILE_OCCUPIED)
 	if not is_soil(soil):
 		return _refuse(REFUSE_INVALID_SOIL)
+	if not absolute_season_of_day_into(day, _math):
+		return _refuse(StringName(_math.error))
+	var season_index: int = _math.value
 	var ref: Vector2i = _directory.create(EntityDirectory.KIND_FARM_PLOT)
 	if ref == NULL_REF:
 		return _refuse(_directory.last_refusal())
 	var slot: int = _directory.get_typed_row(ref)
-	_write_created_row(slot, ref, tile, soil)
+	_write_created_row(slot, ref, tile, soil, season_index)
 	return _succeed(slot, ref)
 
 
-func _write_created_row(slot: int, ref: Vector2i, tile: int, soil: int) -> void:
+func _write_created_row(slot: int, ref: Vector2i, tile: int, soil: int,
+		season_index: int) -> void:
 	"""Write every §4.2 column of a new plot and link it to its tile in both directions."""
 	_present[slot] = 1
 	_crop_id[slot] = CROP_NONE
@@ -960,8 +1035,8 @@ func _write_created_row(slot: int, ref: Vector2i, tile: int, soil: int) -> void:
 	_growth_milli_hours[slot] = 0
 	_health[slot] = INITIAL_HEALTH
 	_last_family[slot] = _tile_last_family[tile]
-	_family_streak[slot] = 0
-	_compost_milli[slot] = 0
+	_family_streak[slot] = _tile_family_streak[tile]
+	_compost_milli[slot] = _compost_mirror_for(tile, season_index)
 	_sow_day[slot] = 0
 	_tile[slot] = tile
 	_ref_slot[slot] = ref.x
@@ -973,10 +1048,10 @@ func _write_created_row(slot: int, ref: Vector2i, tile: int, soil: int) -> void:
 func destroy(ref: Vector2i) -> OpResult:
 	"""Remove one plot and release its directory slot, LEAVING THE TILE'S HISTORY INTACT.
 
-	Returns the freed tile. Fertility, last family, last legume day, compost season, ripe tick,
-	growth remainder and the tending flag are TileHistory's and are not touched here -- that is
-	ARCH-STATE-003 and BAL-SAFE-014. Refuses a stale or wrong-kind reference rather than clearing
-	whatever row it points at, which is what makes a reused slot safe.
+	Returns the freed tile. Fertility, last family, THE FAMILY STREAK, last legume day, compost
+	season, ripe tick, growth remainder and the tending flag are TileHistory's and are not touched
+	here -- that is ARCH-STATE-003, BAL-SAFE-014 and READY_06 §7. Refuses a stale or wrong-kind
+	reference rather than clearing whatever row it points at, which makes a reused slot safe.
 	"""
 	if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_FARM_PLOT):
 		return _refuse(REFUSE_NOT_PRESENT)
@@ -995,6 +1070,18 @@ func destroy(ref: Vector2i) -> OpResult:
 	_remove_live_slot(slot)
 	_directory.destroy(ref)
 	return _succeed(tile, NULL_REF)
+
+
+func _compost_mirror_for(tile: int, season_index: int) -> int:
+	"""READY_06 §6.3's derivation: 2000 iff this tile was composted in THIS absolute season.
+
+	`TileHistory.compost_season` stays the authority; this reader only mirrors it into §4.2's
+	quantity column, which is why the mirror can be rebuilt at creation, redraw or load without
+	consulting anything the plot row itself remembers.
+	"""
+	if _tile_compost_season[tile] == season_index:
+		return COMPOST_MILLI_PER_TILE
+	return COMPOST_MIRROR_NONE
 
 
 func _insert_live_slot(slot: int) -> void:
@@ -1104,7 +1191,11 @@ func last_family_of(slot: int) -> IntMath.IntResult:
 
 
 func family_streak_of(slot: int) -> IntMath.IntResult:
-	"""§4.2's `family_streak` column: consecutive HARVESTS of `last_family` (see the header)."""
+	"""§4.2's `family_streak` column: the MIRROR of TileHistory's authoritative count.
+
+	READY_06 §7 puts the pair on the tile and makes the plot row a mirror, so this and
+	`tile_family_streak_of()` never disagree while a plot is live.
+	"""
 	return _read(slot, _family_streak)
 
 
@@ -1124,7 +1215,11 @@ func growth_milli_hours_of(slot: int) -> IntMath.IntResult:
 
 
 func compost_milli_of(slot: int) -> IntMath.IntResult:
-	"""§4.2's `compost_milli` column: compost applied to this plot (see the header on its reading)."""
+	"""§4.2's `compost_milli` column: READY_06 §6.3's CURRENT-SEASON mirror, either 0 or 2000.
+
+	Not an input buffer, not recoverable inventory, not a lifetime counter, and not the
+	eligibility authority -- `tile_compost_season_of()` is that.
+	"""
 	var out: IntMath.IntResult = IntMath.IntResult.new()
 	if not is_present(slot):
 		out.refuse(String(REFUSE_NOT_PRESENT))
@@ -1153,6 +1248,52 @@ func tile_fertility_of(tile: int) -> IntMath.IntResult:
 func tile_last_family_of(tile: int) -> IntMath.IntResult:
 	"""TileHistory.last_family: the last family harvested here, surviving a designation redraw."""
 	return _read_tile(tile, _tile_last_family)
+
+
+func tile_family_streak_of(tile: int) -> IntMath.IntResult:
+	"""TileHistory.family_streak: READY_06 §7's added column, the count that survives a redraw.
+
+	0 alongside FAMILY_NONE means no prior harvest; otherwise it is the number of consecutive
+	completed harvests of `tile_last_family_of()` banked on this tile.
+	"""
+	return _read_tile(tile, _tile_family_streak)
+
+
+static func is_history_pair_consistent(last_family: int, family_streak: int) -> bool:
+	"""READY_06 §7's pair rule: no family means no count, and a family means a count of 1 or more.
+
+	"A populated family paired with zero streak must not be silently treated as known complete
+	history." This is the predicate that says so, kept public and static so a caller validating an
+	incoming snapshot uses the same rule the store enforces rather than a second copy of it.
+	"""
+	if last_family == FAMILY_NONE:
+		return family_streak == STREAK_NONE
+	return family_streak >= STREAK_FIRST
+
+
+func restore_tile_family_history(tile: int, last_family: int,
+		family_streak: int) -> OpResult:
+	"""The ONE entry that writes TileHistory's rotation pair from outside. Refuses a broken pair.
+
+	READY_06 §7 requires a legacy snapshot with missing counts to be explicitly migrated or
+	REJECTED, never reinterpreted. Both halves are validated together before either is written, so
+	a refusal leaves the tile exactly as it was and no populated family can enter this store
+	without its count. Refuses a tile that currently carries a live plot, because a load writes
+	tile history before it allocates the designations that mirror it.
+	"""
+	if not is_tile_index(tile):
+		return _refuse(REFUSE_INVALID_TILE)
+	if _tile_active_plot_row[tile] != NO_ROW:
+		return _refuse(REFUSE_TILE_OCCUPIED)
+	if last_family < FAMILY_NONE or last_family >= FAMILY_COUNT:
+		return _refuse(REFUSE_INVALID_FAMILY)
+	if family_streak < STREAK_NONE or family_streak > STREAK_MAX:
+		return _refuse(REFUSE_INVALID_AMOUNT)
+	if not is_history_pair_consistent(last_family, family_streak):
+		return _refuse(REFUSE_HISTORY_INCONSISTENT)
+	_tile_last_family[tile] = last_family
+	_tile_family_streak[tile] = family_streak
+	return _succeed(family_streak, NULL_REF)
 
 
 func tile_last_legume_day_of(tile: int) -> IntMath.IntResult:
@@ -1213,13 +1354,18 @@ func _read_tile(tile: int, column: PackedInt32Array) -> IntMath.IntResult:
 # --- planting (the two per-plot gates of REQ-SET-070; see the header for the other three) ---------------
 
 func plant(slot: int, crop_id: int, day: int, season: int, season_day: int) -> OpResult:
-	"""Commit a crop to an EMPTY plot and return the seed milli-units REQ-SET-071 must consume.
+	"""THE PRODUCTIVE START of a sowing: commit the crop and return the seed REQ-SET-071 consumes.
+
+	READY_06 §6.1: queued, reserved and travelling sowing leave the plot EMPTY, and only at
+	productive start is the exact seed committed and the sowing WIP created, atomically, with the
+	state becoming SOWN. Every gate below is evaluated BEFORE any column moves, so a refused
+	planting commits no seed at all (decision 0024). A plot that is already SOWN refuses with
+	REFUSE_NOT_EMPTY, which is what stops a replacement worker committing seed a second time.
 
 	Validates the two gates that are per-plot facts: §5.6's "incompatible soil rejects planting"
 	and its planting window. Field connectivity, seed supply and output capacity are the other
-	three gates of REQ-SET-070 and belong to increment 7, which also owns the triggering event
-	§5.6 never states. NO SEED IS CONSUMED HERE -- the quantity is returned and `inventory.gd`
-	owns the lot. The plot enters SOWN, not GROWING; see the header on that distinction.
+	three gates of REQ-SET-070 and belong to the unbuilt producer (R06-JOB-004). NO SEED IS
+	CONSUMED HERE -- the quantity is returned and `inventory.gd` owns the lot.
 	"""
 	var code: StringName = _refuse_plant(slot, crop_id, day, season, season_day)
 	if code != REFUSE_NONE:
@@ -1254,10 +1400,11 @@ func _refuse_plant(slot: int, crop_id: int, day: int, season: int, season_day: i
 
 
 func begin_growing(slot: int) -> OpResult:
-	"""Move a SOWN plot to GROWING: §5.6's 4 WU of sowing work is complete.
+	"""SUCCESSFUL sowing completion: move a SOWN plot to GROWING (READY_06 §6.1).
 
-	The work itself belongs to `jobs.gd`; this is the state change its completion applies. See
-	the header -- §5.6 never states what separates SOWN from GROWING, and this is the reading.
+	§5.6's 4000 milli-WU of sowing work is `sow_work_milli_wu()`; its accumulation lives on the
+	Job, which is why a worker change needs no call here and cannot lose the WIP. Only successful
+	completion enters GROWING, so nothing that merely stops work reaches this entry point.
 	"""
 	if not is_present(slot):
 		return _refuse(REFUSE_NOT_PRESENT)
@@ -1265,6 +1412,33 @@ func begin_growing(slot: int) -> OpResult:
 		return _refuse(REFUSE_NOT_SOWN)
 	_state[slot] = STATE_GROWING
 	return _succeed(STATE_GROWING, ref_of(slot))
+
+
+func is_sowing(slot: int) -> bool:
+	"""True while a live plot holds committed seed with its sowing work still outstanding."""
+	return is_present(slot) and _state[slot] == STATE_SOWN
+
+
+func cancel_sowing(slot: int) -> OpResult:
+	"""READY_06 §6.1's POST-COMMITMENT cancellation. Returns the refund, which is always zero.
+
+	"After seed commitment, explicit cancellation discards the committed seed and unfinished
+	sowing WIP with no seed/compost refund, returns the plot to EMPTY, and preserves
+	soil/family/compost history and XP already earned from valid work." So the value carried back
+	is 0 and it is not a refusal: a caller that consumed 250 milli-U of seed gets none of it back
+	and must not re-credit its inventory. Fertility, the rotation pair, the compost season and its
+	mirror are untouched; earned XP is residents.gd's and is not reached into from here.
+
+	This is SOWING-SPECIFIC and deliberately not the food-batch refund rule. A worker replacement
+	or a pause is not this cancellation and must not call it. Cancelling BEFORE productive start
+	touches nothing here, because the plot never left EMPTY.
+	"""
+	if not is_present(slot):
+		return _refuse(REFUSE_NOT_PRESENT)
+	if _state[slot] != STATE_SOWN:
+		return _refuse(REFUSE_NOT_SOWN)
+	_reset_to_empty(slot)
+	return _succeed(0, ref_of(slot))
 
 
 # --- REQ-SET-072 hourly growth and REQ-SET-073 ripening ------------------------------------------------------
@@ -1388,15 +1562,19 @@ func rotation_factor_of(slot: int) -> IntMath.IntResult:
 static func _rotation_factor(family: int, last_family: int, streak: int) -> int:
 	"""§5.6's rotation factor: 1000 first/changed, 850 second, 700 third+, 1100 legume after change.
 
-	A streak below 1 alongside a matching family is what a designation redraw leaves behind --
-	TileHistory restores the family but has no column for the count -- and is read as a SECOND
-	consecutive harvest, never a first, so a redraw can never fabricate a rotation bonus.
+	`streak` is the number of consecutive completed harvests of `last_family` ALREADY BANKED, so
+	the crop standing on the plot would be harvest `streak+1`: a banked 1 makes this the second
+	consecutive same-family harvest and a banked 2 or more makes it a third or later. Since
+	READY_06 §7 the tile carries that count across a designation redraw, so the old
+	`maxi(streak,1)+1` compensation for a lost count is gone with the shortfall that needed it.
+	A matching family with a zero streak is refused by `restore_tile_family_history()` and cannot
+	be constructed by any writer here, which is what makes the two-branch test below exhaustive.
 	"""
 	if last_family != family:
 		if family == FAMILY_LEGUME and last_family != FAMILY_NONE:
 			return ROTATION_FACTOR_LEGUME_AFTER_CHANGE
 		return ROTATION_FACTOR_FIRST
-	if maxi(streak, 1) + 1 == 2:
+	if streak == STREAK_FIRST:
 		return ROTATION_FACTOR_SECOND
 	return ROTATION_FACTOR_THIRD_PLUS
 
@@ -1480,11 +1658,13 @@ func ripe_decay_days_of(slot: int, tick: int) -> IntMath.IntResult:
 
 
 func ripe_decay_days_into(slot: int, tick: int, out: IntMath.IntResult) -> bool:
-	"""Non-allocating ripe_decay_days_of(): whole days elapsed since the 48-hour grace ended.
+	"""Non-allocating ripe_decay_days_of(): READY_06 §6.4's `max(0, floor((elapsed-48)/24))`.
 
-	0 for the whole grace period, 1 at 72 hours, 2 at 96, and 3 at 120 -- where the crop has
-	already withered, so a live RIPE plot never reaches it. Both windows run from `ripe_tick`;
-	see the header on that reading.
+	0 across the whole 48-hour grace, 1 at 72 hours, 2 at 96, and 3 at 120 -- where the crop has
+	already WITHERED, so no harvestable plot ever presents a third completed interval and
+	`spoiled_yield_milli()` refuses one. The grace branch below IS the ruling's `max(0, ...)`:
+	below 48 hours the floored quotient is already 0, so the two forms agree everywhere. Both
+	windows run from the same `ripe_tick`, which lives on the tile and outlives a redraw.
 	"""
 	if not ripe_elapsed_hours_into(slot, tick, out):
 		return false
@@ -1503,13 +1683,14 @@ func spoiled_yield_milli(base_milli: int, decay_days: int) -> IntMath.IntResult:
 func spoiled_yield_milli_into(base_milli: int, decay_days: int, out: IntMath.IntResult) -> bool:
 	"""Non-allocating spoiled_yield_milli(): "losing 10% remaining yield/day", compounded.
 
-	REMAINING yield, so each day multiplies by 900/1000 and floors -- not a flat 10% of the
-	original. `decay_days` above the withering window is refused rather than compounded into an
-	answer for a crop that no longer exists.
+	REMAINING yield, so each completed 24-hour interval multiplies by 900/1000 and floors -- not a
+	flat 10% of the original. READY_06 §6.4 forbids a THIRD harvestable decay step, so anything
+	above `MAX_HARVEST_DECAY_DAYS` (2) is refused rather than compounded into an answer for a crop
+	that has already withered and cannot complete a normal harvest.
 	"""
 	if base_milli < 0:
 		return out.refuse(String(REFUSE_INVALID_AMOUNT))
-	if decay_days < 0 or decay_days > RIPE_WITHER_DAYS:
+	if decay_days < 0 or decay_days > MAX_HARVEST_DECAY_DAYS:
 		return out.refuse(String(REFUSE_INVALID_AMOUNT))
 	var remaining: int = base_milli
 	var retained: int = FACTOR_DENOMINATOR - RIPE_LOSS_PER_1000_PER_DAY
@@ -1528,7 +1709,7 @@ func is_ripe_expired(slot: int, tick: int) -> bool:
 		return false
 	if not ripe_elapsed_hours_into(slot, tick, _math):
 		return false
-	return _math.value >= RIPE_WITHER_DAYS * HOURS_PER_DAY
+	return _math.value >= RIPE_WITHER_HOURS
 
 
 func apply_ripe_expiry(slot: int, tick: int) -> OpResult:
@@ -1543,7 +1724,7 @@ func apply_ripe_expiry(slot: int, tick: int) -> OpResult:
 		return _refuse(REFUSE_NOT_RIPE)
 	if not ripe_elapsed_hours_into(slot, tick, _math):
 		return _refuse(StringName(_math.error))
-	if _math.value < RIPE_WITHER_DAYS * HOURS_PER_DAY:
+	if _math.value < RIPE_WITHER_HOURS:
 		return _succeed(0, ref_of(slot))
 	_wither(slot)
 	return _succeed(1, ref_of(slot))
@@ -1604,7 +1785,13 @@ func harvest(slot: int, day: int, tick: int, pollination_factor: int) -> OpResul
 
 
 func _refuse_harvest(slot: int, day: int, tick: int) -> StringName:
-	"""The code blocking a harvest, or REFUSE_NONE when a RIPE plot can be taken on `day`."""
+	"""The code blocking a harvest, or REFUSE_NONE when a RIPE plot can be taken on `day`.
+
+	READY_06 §6.4: at elapsed 120 hours "the crop is WITHERED and cannot complete a normal
+	harvest". That is checked HERE rather than left to `apply_ripe_expiry()`, because the state
+	column only changes when a caller runs the expiry sweep, and a harvest that lands first must
+	not collect a yield the ruling says no longer exists.
+	"""
 	if not is_present(slot):
 		return REFUSE_NOT_PRESENT
 	if _state[slot] != STATE_RIPE:
@@ -1613,28 +1800,52 @@ func _refuse_harvest(slot: int, day: int, tick: int) -> StringName:
 		return REFUSE_NO_CROP
 	if tick < 0:
 		return REFUSE_INVALID_TICK
+	if not ripe_elapsed_hours_into(slot, tick, _math):
+		return StringName(_math.error)
+	if _math.value >= RIPE_WITHER_HOURS:
+		return REFUSE_RIPE_EXPIRED
 	return _check_day(day)
 
 
 func _record_rotation(slot: int, day: int) -> void:
-	"""Advance §5.6's rotation history on the plot and mirror it onto the tile.
+	"""Advance §5.6's rotation history ONCE, on the plot and its tile together (READY_06 §6.2/§7).
 
-	The streak counts consecutive HARVESTS of one family (see the header). A LEGUME harvest also
-	dates REQ-SET-078's 12-day fallow bonus, which is tile state and outlives the plot.
+	The streak counts SUCCESSFUL COMPLETED HARVESTS of one family: a different family resets it to
+	1, the same family increments it, and nothing else -- withering, fallow days, an unfinished
+	sowing or a redraw -- moves it. Both halves of the pair are written in this one step, on the
+	plot and on the tile, so no reader can observe a family without its count. A LEGUME harvest
+	also dates REQ-SET-078's 12-day fallow bonus, which is tile state and outlives the plot.
 	"""
 	var family: int = CROP_FAMILY[_crop_id[slot]]
-	var streak: int = 1
+	var streak: int = STREAK_FIRST
 	if _last_family[slot] == family:
-		streak = maxi(_family_streak[slot], 1) + 1
+		streak = _incremented_streak(_family_streak[slot])
 	_last_family[slot] = family
 	_family_streak[slot] = streak
 	_tile_last_family[_tile[slot]] = family
+	_tile_family_streak[_tile[slot]] = streak
 	if family == FAMILY_LEGUME:
 		_tile_last_legume_day[_tile[slot]] = day
 
 
+static func _incremented_streak(streak: int) -> int:
+	"""READY_06 §6.2's saturating increment: retain int32's maximum, otherwise add one.
+
+	The ruling makes this the one stated exception to refusing rather than wrapping, and it is
+	implemented as saturation for that reason. The comparison happens BEFORE the addition, so an
+	overflowing addition is never evaluated -- this is not a checked add that recovers afterwards.
+	"""
+	if streak >= STREAK_MAX:
+		return STREAK_MAX
+	return streak + STREAK_FIRST
+
+
 func _reset_to_empty(slot: int) -> void:
 	"""Return a harvested or cleared plot to EMPTY, keeping its soil, moisture and rotation history.
+
+	Fertility, the (last_family, family_streak) pair and §4.2's compost mirror are deliberately
+	NOT touched, which is what lets `cancel_sowing()` share this path: READY_06 §6.1 requires a
+	cancelled sowing to preserve soil, family and compost history exactly as they were.
 
 	The tile's tending flag is cleared with the crop that received the service: carrying it into a
 	same-day replant would halve REQ-SET-087's blight loss for a crop nobody tended.
@@ -1898,9 +2109,13 @@ func compost_milli_per_tile() -> int:
 func apply_compost(slot: int, day: int) -> OpResult:
 	"""REQ-SET-076: add 1500 fertility, capped 10000, once per tile per season. Returns the 2 U.
 
-	The eligibility gate is TileHistory.compost_season, so destroying and recreating a plot
-	cannot buy a second application in the same season (ARCH-STATE-003). The compost itself is
-	not consumed here; the quantity is returned and `inventory.gd` owns the lot.
+	READY_06 §6.3's application completion, in one step: the 2000 milli-U the caller must consume,
+	the capped fertility gain, the tile's absolute application season and §4.2's current-season
+	mirror all move together, and every refusal happens before any of them (decision 0024). The
+	eligibility gate is TileHistory.compost_season, so destroying and recreating a plot cannot buy
+	a second application in the same season (ARCH-STATE-003). The compost itself is not consumed
+	here; the quantity is returned and `inventory.gd` owns the lot. The 8-WU service is
+	`compost_work_milli_wu()` and is unchanged.
 	"""
 	if not is_present(slot):
 		return _refuse(REFUSE_NOT_PRESENT)
@@ -1910,9 +2125,39 @@ func apply_compost(slot: int, day: int) -> OpResult:
 	if _tile_compost_season[_tile[slot]] == season_index:
 		return _refuse(REFUSE_COMPOST_NOT_ELIGIBLE)
 	_apply_fertility_delta(slot, COMPOST_FERTILITY_GAIN)
-	_compost_milli[slot] = COMPOST_MILLI_PER_TILE
 	_tile_compost_season[_tile[slot]] = season_index
+	_compost_milli[slot] = _compost_mirror_for(_tile[slot], season_index)
 	return _succeed(COMPOST_MILLI_PER_TILE, ref_of(slot))
+
+
+func refresh_compost_mirrors_for_day(day: int) -> OpResult:
+	"""READY_06 §6.3's season-boundary reset of §4.2's mirror. See refresh_compost_mirrors_into()."""
+	if not refresh_compost_mirrors_into(day, _math):
+		return _refuse(StringName(_math.error))
+	return _succeed(_math.value, NULL_REF)
+
+
+func refresh_compost_mirrors_into(day: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating refresh_compost_mirrors_for_day(): rederive every live plot's mirror.
+
+	READY_06 §6.3: "Reset the mirror at a season boundary without clearing tile history or
+	fertility." So this walks the ascending live list, writes 2000 where the tile's application
+	season is `day`'s absolute season and 0 everywhere else, AND TOUCHES NOTHING ELSE -- not
+	`compost_season`, not fertility, not the rotation pair. Idempotent, and safe to call on any
+	day, not only a boundary. Writes the number of mirrors it changed into `out`.
+	"""
+	if not absolute_season_of_day_into(day, out):
+		return false
+	var season_index: int = out.value
+	var changed: int = 0
+	for index: int in _live_count:
+		var slot: int = _live_slots[index]
+		var mirror: int = _compost_mirror_for(_tile[slot], season_index)
+		if _compost_milli[slot] == mirror:
+			continue
+		_compost_milli[slot] = mirror
+		changed += 1
+	return out.succeed(changed)
 
 
 func compost_work_milli_wu() -> int:

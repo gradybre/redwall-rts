@@ -30,7 +30,7 @@ are recorded here and are NOT promoted into approved constants.**
 | U2 | Speed/pause scheduler events have no command kind (ARCH-CMD-003 has 24 kinds, none for speed/pause), no ordering tiebreak, no save section (ARCH-SAVE-002 §12 is `PENDING_COMMANDS` only) | Task 2.4 queued pause determinism | Implement immediate speed/pause state; **defer** queued scheduler events |
 | U3 | ARCH-CLOCK-001 "never discard completed or owed ticks" vs ARCH-CLOCK-002 "may clear scheduler debt"; GDD REQ-SET-008 says pause rather than skip | Task 2.4 debt rule | Follow the **conservative** rule: never discard implicitly. Explicit acknowledgement is counted, not silent |
 | U4 | Reservation indexing unspecified: 32768 reservation rows against 8192 job rows is exactly 4×, implying owner-major `job*4+i`, which neither document states and which would cap a recipe at 4 input lots | Task 2.5 reservations | **Resolved by decision 0019 / task 2.11**: global lowest-free-index allocation, variable-length claim lists |
-| U5 | No allocator storage budgeted for non-directory child stores (Reservation, GearInstance, BatchState, LotEffect, NoticeCondition, ChildSliceIndex) | Tasks 2.3, 2.5 and the memory ledger | Directory-kind allocation only |
+| U5 | No allocator storage budgeted for non-directory child stores (Reservation, GearInstance, BatchState, LotEffect, NoticeCondition, ChildSliceIndex) | Tasks 2.3, 2.5 and the memory ledger | **PARTLY CLOSED 2026-09-09.** Reservation has decision 0019's global pool; GearInstance has decision 0038's lowest-free pool. **`BatchState`, `LotEffect`, `NoticeCondition` and `ChildSliceIndex` still have no allocator budget** — do not tick U5 as a whole |
 | U6 | Missing owner-major index formulas for MoodMemory, ManualTask, HivePollinationLinks, Feast.attendees, Feast.reserved_lots | Later tasks | Not required this milestone |
 | U7 | ARCH-MIG-006 step 2 requires "golden GDD fixtures" but never enumerates them | Task 2.1 acceptance | Use GDD §7.1 worked examples, the only worked arithmetic in the spec |
 
@@ -75,7 +75,7 @@ must be re-derived before movement work, and this task does not do so.
 - **Acceptance** stale-ref rejection after destroy; slot reuse increments
   generation; living cap refuses at 256 with explicit refusal not silent drop;
   generation exhaustion handled; no `Array` per row
-- **Blocked by U5** for non-directory child stores
+- **Blocked by U5** for the four child stores still without an allocator budget (`BatchState`, `LotEffect`, `NoticeCondition`, `ChildSliceIndex`); Reservation and GearInstance are closed
 
 ### 2.4 — Fixed clock, calendar, pause
 - **Owns** `godot/scripts/core/sim_clock.gd`, `godot/test/test_sim_clock.gd`

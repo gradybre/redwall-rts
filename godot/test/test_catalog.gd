@@ -416,9 +416,9 @@ func test_every_compiled_domain_regenerates_its_own_table_from_its_keys() -> voi
 	_assert_compiles_to("HabitatType", EXPECTED_HABITAT_TYPE)
 
 
-func test_verify_compiled_enum_accepts_the_three_domains_and_refuses_others() -> void:
+func test_verify_compiled_enum_accepts_the_compiled_domains_and_refuses_others() -> void:
 	"""verify_compiled_enum() is what every owning module's `_init()` calls; it must pass here."""
-	for domain_name: String in ["CropFamily", "EventDefinition", "HabitatType"]:
+	for domain_name: String in ["CommandKind", "CropFamily", "EventDefinition", "HabitatType"]:
 		var result: CatalogScript.DomainResult = CatalogScript.verify_compiled_enum(domain_name)
 		assert_true(result.ok, "%s must verify (error: %s)" % [domain_name, result.error])
 		assert_equal(result.ids.size(), CatalogScript.compiled_enum(domain_name).size(),
@@ -431,15 +431,16 @@ func test_verify_compiled_enum_accepts_the_three_domains_and_refuses_others() ->
 
 
 func test_the_compiled_domains_are_registered_and_never_protected() -> void:
-	"""Decision 0018 protects what §4.3 NUMBERS; these three it does not number, so they compile."""
-	for domain_name: String in ["CropFamily", "EventDefinition", "HabitatType"]:
+	"""Decision 0018 protects what §4.3 NUMBERS; these four it does not number, so they compile."""
+	for domain_name: String in ["CommandKind", "CropFamily", "EventDefinition", "HabitatType"]:
 		assert_true(CatalogScript.COMPILED_ENUM_DOMAINS.has(domain_name),
 			"%s must be a registered compiled domain" % domain_name)
 		assert_false(CatalogScript.PROTECTED_ENUM_DOMAINS.has(domain_name),
 			"%s must NOT be protected: §4.3 states none of its numbers" % domain_name)
 		assert_true(CatalogScript.fixed_enum(domain_name).is_empty(),
 			"%s owns no fixed §4.3 table" % domain_name)
-	assert_equal(CatalogScript.COMPILED_ENUM_DOMAINS.size(), 3, "three compiled domains today")
+	assert_equal(CatalogScript.COMPILED_ENUM_DOMAINS.size(), 4,
+		"four compiled domains today: CommandKind joined them under decision 0042")
 
 
 func test_compiled_id_of_resolves_every_key_and_refuses_the_unknown() -> void:

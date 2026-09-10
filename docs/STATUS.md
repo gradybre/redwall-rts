@@ -57,8 +57,12 @@ activity half, 010 and 013. The other eighteen are declared and idle.
 
 The missing links for the player-driven loop:
 
-- **ARCH-SYS-002 CommandCommit** — no ordered command queue (blocker U2). No
-  player action reaches the simulation at all.
+- **ARCH-SYS-002 CommandCommit** — the ordered ECONOMIC command queue now exists
+  (`scripts/core/commands.gd`, decision 0042): ARCH-CMD-001 ordering, ARCH-CMD-003's
+  24 compiled kinds, §8.1's 64-byte records. **Blocker U2 is only partly closed** —
+  ARCH-CMD-002's separate speed/pause scheduler-event queue still awaits task 04.1's
+  amendment, and nothing dispatches a drained command, so **no player action reaches
+  the simulation yet**.
 - **ARCH-SYS-009 JobPlanner** — **nothing creates jobs.** READY_06 item 1 answers
   this with eight EARS contracts; none are built yet.
 - **ARCH-SYS-011/012 Navigation and Movement** — no pathfinder, no Transform

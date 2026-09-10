@@ -15,7 +15,9 @@ extends RefCounted
 ## refuses; nothing here rewrites the artifact, reassigns a live ID, or mutates a world.
 ##
 ## READ FROM THE REGISTRIES, NEVER MIRRORED. Every domain table is fetched from the module that
-## owns it -- catalog.gd's protected/compiled enum tables, residents.gd's species keys,
+## owns it -- catalog.gd's protected/compiled enum tables (ARCH-CMD-003's CommandKind among them,
+## carried since `scripts/core/commands.gd` landed: adding it moved these bytes and this digest,
+## which is an intentional catalog change and not a parity result), residents.gd's species keys,
 ## farming.gd's crop keys, schedule.gd's template keys, forage.gd's quota-mode keys, and the
 ## ItemDefinition/ItemCategory/ItemEffect keys read out of `res://data/item_definitions.json`,
 ## the same file item_definitions.gd loads. There is no second copy of any domain here, so the
@@ -72,7 +74,6 @@ extends RefCounted
 ##     FurnitureDefinition (BAL-CAT-006/007): no module implements them yet. Their keys exist
 ##     only as balance-document tables, and transcribing a document into a registry here would
 ##     be the hand-written second copy this module exists to prevent.
-##   * CommandKind (ARCH-CMD-003): the 24 kinds are specified but no command module exists.
 ##   * The entity-kind domain (entity_directory.gd KIND_KEYS) and the RNG stream domain (rng.gd
 ##     STREAM_KEYS) are both ASCII-compiled, save-carried ID domains, but neither has a declared
 ##     domain NAME anywhere in the specs or the code. A domain name is the artifact's own object

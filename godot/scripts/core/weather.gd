@@ -988,8 +988,9 @@ func exposure_multiplier_per_1000_of(event: int) -> IntMath.IntResult:
 func disables_boats(event: int) -> bool:
 	"""§5.10's "boats disabled", stated for heavy rain/storm alone.
 
-	Reported, not enforced: REQ-SET-052's departure gate needs the expedition and gear stores,
-	still blocked by U5.
+	Reported, not enforced: REQ-SET-052's departure gate needs the Expedition store, which does
+	not exist. GearInstance is no longer the blocker -- decision 0038 built its allocator -- but
+	boats are INSTALLED gear whose owner discriminator the installed-gear contract still owes.
 	"""
 	return is_event(event) and (EVENT_AFFECTED_SYSTEMS[event] & AFFECTS_BOATS) != 0
 
@@ -997,7 +998,8 @@ func disables_boats(event: int) -> bool:
 func lake_ice_access_only(event: int) -> bool:
 	"""§5.10's "lake ice access only", stated for hard freeze alone.
 
-	Reported, not enforced: REQ-SET-051's ice-access station is blocked by U5 with boats.
+	Reported, not enforced: REQ-SET-051's ice-access station waits on the same installed-gear
+	contract as boats. The ice kit itself is portable and its instance path exists (0038).
 	"""
 	return is_event(event) and (EVENT_AFFECTED_SYSTEMS[event] & AFFECTS_LAKE_ICE) != 0
 

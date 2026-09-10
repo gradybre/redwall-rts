@@ -41,7 +41,7 @@ prerequisite. It is **not** the thing that animates the loop.
 | 5 | **FishHabitat + FishStock** — §5.4 | 1 | **stock half done**; effort claims added (0037). `GearInstance`'s allocator now exists (0038), so **U5 no longer blocks portable gear** — the remaining gear work needs the Expedition store and the installed-gear contract for boats and weirs |
 | 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | **done**; `TileHistory` built, five open contracts recorded in decision 0032 |
 | 7 | **FieldPolicy + sowing** — REQ-SET-070/071/077/078/088 | 6 | **needs a decision**: the GDD states the sowing validation gate but never the triggering event |
-| 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **pollination blocked by U6** (`HivePollinationLinks` has no owner-major index formula) |
+| 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **done** (`godot/scripts/core/orchard_hive.gd`); U6's `HivePollinationLinks` half closed by ruling 2026-09-09 §3 and decision 0044 — 30720 references, +49152 bytes, ARCH-STATE-008. REQ-SET-084's frost belongs to `farming.gd` and was already implemented there. **Not built here:** R06-JOB-006's 20-WU hive-service producer, apiary/Building placement (no Building store), and the FarmPlot-side link refresh, which is the increment 10 join's |
 | 9 | **ARCH-SYS-005 Ecology** daily orchestration | 3,4,5,8 | closes one leg of REQ-SET-007 |
 | 10 | **ARCH-SYS-006 CropWeather** orchestration | 2,6,7,9 | closes a second leg |
 

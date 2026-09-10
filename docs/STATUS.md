@@ -119,7 +119,7 @@ Astra's recommended order is followed. Items are marked against
 | 5 | Fishing occupancy, hysteresis, intensive policy, `FishingEffortClaim` (+12800 B) | **partial** — the three columns exist and are now fully ledgered; the claim table and the two-slot atomic reserve are not built |
 | 8A | Regrowth: additive `+1 U`, capped | **not started** — this **changes shipped behaviour**, see below |
 | 8B | Three generated habitats within the 32 ceiling | **not started** |
-| 3 | `HivePollinationLinks`, six links per recipient (+49152 B) | **not started** — unblocks increment 8 |
+| 3 | `HivePollinationLinks`, six links per recipient (+49152 B) | **DONE** — `godot/scripts/core/orchard_hive.gd`, decision 0044, ARCH-STATE-008; increment 8 unblocked and built |
 | 4 | `GearInstance` allocator (+212996 B) | **not started** — unblocks increment 5's gear half |
 | 1 | Job-creation triggers, eight EARS contracts | **not started** — the largest item, unblocks increments 7 and 10 |
 | 9 | Integration fixtures | **owners assigned, still blocked** |

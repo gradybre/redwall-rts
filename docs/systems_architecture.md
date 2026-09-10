@@ -116,6 +116,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | FishStock | closed | B8 | 1 | 1 | 96 | 96 | [GDD §4.2; 32*3] |
 | FishHabitat | effort_used | I32 | 4 | 1 | 32 | 128 | [decision 0027 **PROVISIONAL**] §4.2 gives `effort_slots` as a capacity with nowhere to record occupancy, which REQ-SET-044/050 require |
 | FishStock | restocking | B8 | 1 | 1 | 96 | 96 | [decision 0027 **PROVISIONAL**] REQ-SET-048's 30-down/40-up band needs one bit population alone cannot supply |
+| FishHabitat | intensive_harvest | B8 | 1 | 1 | 32 | 32 | [decision 0027 **PROVISIONAL**] §5.4's "explicitly visible intensive harvest" policy flag; the store's single setter, which is what makes "never by auto-fallback" structural |
 | HarvestZone | type, danger | I32 | 4 | 2 | 128 | 1024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | HarvestZone | quota_milli | I64 | 8 | 1 | 128 | 1024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | HarvestZone | protected, enabled | B8 | 1 | 2 | 128 | 256 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -184,7 +185,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
-| Fixed registry payload | 24586034 | 1 | 24586034 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +224 decision 0027 **provisional**) |
+| Fixed registry payload | 24586066 | 1 | 24586066 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027 **provisional**) |
 | Auxiliary payload | 16384856 | 1 | 16384856 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |

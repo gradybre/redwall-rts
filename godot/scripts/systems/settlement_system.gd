@@ -39,8 +39,12 @@ extends Node
 ##   ARCH-SYS-004 StockAge            `economy_system.gd` states it: nothing advances lot age,
 ##                                    because the store and temperature factors belong to
 ##                                    systems this milestone does not build.
-##   ARCH-SYS-005 Ecology             no basin, forage, tree or fish state.
-##   ARCH-SYS-006 CropWeather         no FarmPlot, OrchardPlot, Hive or Weather store.
+##   ARCH-SYS-005 Ecology             STORES NOW EXIST (resource_nodes.gd, forage.gd,
+##                                     fishing.gd) but NOTHING DRIVES THEM. This stage is
+##                                     task 03 increment 9 and is not started.
+##   ARCH-SYS-006 CropWeather         farming.gd and weather.gd NOW EXIST; OrchardPlot and
+##                                     Hive do not (U6). Nothing drives any of it: this
+##                                     stage is task 03 increment 10 and is not started.
 ##   ARCH-SYS-007 ImmigrationDeparture no candidate store; `needs.gd` leaves `departure_days`
 ##                                    explicitly unwritten pending a complete mood.
 ##   ARCH-SYS-009 JobPlanner          NOTHING CREATES JOBS. See THE JOB QUEUE IS EMPTY below.

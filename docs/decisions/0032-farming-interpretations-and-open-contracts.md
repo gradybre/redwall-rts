@@ -1,6 +1,42 @@
 # 0032 — Farming: five open contracts and the readings taken meanwhile
-Date: 2026-09-09 · Status: **Interpretations accepted; five items need a planner ruling**
+Date: 2026-09-09 · Status: **SUPERSEDED IN PART — all five items ruled on 2026-09-09**
 Source: task 03 increment 6, `godot/scripts/core/farming.gd`
+
+## Resolution, 2026-09-09
+
+All five open contracts below were answered by
+[the READY_06 ruling](../rulings/2026-09-09_ready06_open_item_answers.md) §6 and §7, which
+Brendan adopted, and the answers are implemented in `godot/scripts/core/farming.gd`. **The
+original findings are left standing below, unedited**, because what was observed and why still
+matters; this section records only what the ruling changed and what it ratified.
+
+| Item | Ruling | Outcome for the shipped code |
+|---|---|---|
+| 1 `SOWN` vs `GROWING` | §6.1 | **RATIFIED and extended.** The reading was correct. Added: seed is committed only at *productive start* (the plot is EMPTY while a sowing job is queued, reserved or travelling); a post-commitment cancellation (`cancel_sowing()`) discards seed and WIP with **no refund** and preserves soil, family, compost history and earned XP; a worker change calls nothing here and cannot commit seed twice. |
+| 2 `family_streak` counts harvests | §6.2 | **RATIFIED and extended.** Harvests, not sowings, was right. Added: a different family resets to 1; withering, fallow time, unfinished sowing and redraw neither reset nor advance it; the count **saturates at `INT32_MAX`** instead of overflowing — the one stated exception to this codebase's refuse-rather-than-wrap rule. |
+| 3 `FarmPlot.compost_milli` | §6.3 | **CHANGED.** It is not a lifetime quantity ledger; it is a **current-season mirror**, 0 or 2000, derived at creation, redraw and load from the authoritative `TileHistory.compost_season`, and reset at a season boundary without touching tile history or fertility. `create_plot_at_tile()` therefore now takes a calendar day. |
+| 4 The 48-hour grace and the withering share one instant | §6.4 | **RATIFIED, with the decay schedule tightened.** Both windows run from `ripe_tick` and withering is at **120** hours, not 168 — the shipped `RIPE_WITHER_DAYS = 5` already gave that and is unchanged. Changed: there is **no third harvestable decay step**; `MAX_HARVEST_DECAY_DAYS` is 2, `spoiled_yield_milli()` refuses a third, and `harvest()` refuses at or past 120 hours with `RIPE_EXPIRED` whether or not the expiry sweep has run. |
+| 5 No crop-family enum exists | §6.5 | **Already corrected before the ruling, in `cc20c42`.** The finding below was wrong: §4.2's closing paragraph and BAL-CAT-002 already numbered CropFamily. The module reads `Catalog.CROP_FAMILY` (CEREAL=0, FIBER=1, LEAF=2, LEGUME=3, ROOT=4), and the ruling confirms `TileHistory` and every family-indexed lookup use that compiled domain. Verified again during this pass: nothing in the module carries a local family ordinal. |
+
+**The ARCH-STATE-003 shortfall below is closed, not merely reported.** READY_06 §7 adds
+`TileHistory.family_streak: I32[16384]`. That group is now seven I32 columns and **458752 bytes,
+from 393216 — +65536**, with `systems_architecture.md`'s auxiliary sum, ledger total, one-world
+total, headroom and two-world peak all moved by the same delta. The tile owns the
+`(last_family, family_streak)` pair, plot rows mirror it, both halves move together on a
+completed harvest and both are restored on redraw. The exploit is closed: a third-or-later 700
+stays 700 across an erase-and-recreate, where it previously became 850. `_rotation_factor()`'s
+`maxi(streak, 1) + 1` compensation for the lost count is gone with the shortfall that needed it.
+A populated family paired with a zero count is now **refused** by `restore_tile_family_history()`
+rather than reinterpreted, which is the ruling's "explicit migration or rejection".
+
+**Still open, and not closed by this ruling:** there is no soil-type column, so a redrawn plot may
+declare a soil the tile did not carry and this store cannot detect it. That remains blocked on
+REQ-SET-009 world generation, exactly as recorded below, and the ruling says so explicitly.
+
+**Not built, with its blocking dependency named:** the sowing *producer* — the job that queues,
+reserves, travels and accumulates the 4000 milli-WU, and the pre-commitment cancellation regime
+that releases its reservations while the plot is still EMPTY — is READY_06 item 1 (R06-JOB-004).
+`jobs.gd` is still not called from `farming.gd`, and nothing is stubbed for it.
 
 ## Why this record exists
 §5.6 is unusually complete on arithmetic and unusually silent on state
@@ -9,7 +45,7 @@ stated and was transcribed. **Five contracts are not stated, and three of them
 govern persisted columns**, so getting them wrong later breaks saves rather than
 just behaviour.
 
-## Needing a ruling
+## Needing a ruling *(the original 2026-09-09 finding; all five now ruled — see above)*
 
 **1. `SOWN` versus `GROWING`.** §4.3 numbers both, and §5.6 never says what
 separates them. Read as: `SOWN` = seed committed with the 4 WU sowing
@@ -35,7 +71,7 @@ module-local ordinals in §5.6's printed order and deliberately **not** added to
 does not list. `last_family` is persisted. **This is the third instance of the
 same gap**, after `HabitatType` and `WeatherEvent`.
 
-## ARCH-STATE-003 is satisfied except in one place, and the shortfall is the architecture's
+## ARCH-STATE-003 is satisfied except in one place, and the shortfall is the architecture's *(closed; see the resolution above)*
 Directly tested: a redraw does **not** restore fertility and does **not** reset
 compost eligibility, and last family, last legume day, ripe tick, growth
 remainder and the tending flag all survive `destroy()`.
@@ -99,3 +135,7 @@ clearing a plot left both `ripe_tick` and `tended_today` stale.
 Task 03 increment 6, 2026-09-09. 1161 tests / 34543 assertions / 0 failures; 90
 mutations, one per run, with paired variants for the six killed only by `_init`
 drift asserts — none of which proved vacuous.
+
+Resolution pass, 2026-09-09: **1247 tests / 36091 assertions / 0 failures**; 43 mutations, one
+per run, all killed, each on a value mismatch rather than an `_init` drift assert, with the
+production file byte-compared against a pristine copy after every restore.

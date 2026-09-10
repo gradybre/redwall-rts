@@ -874,3 +874,23 @@ func test_the_queue_shares_the_clock_and_directory_it_was_given() -> void:
 	assert_not_null(private_queue.clock(), "a queue built with nothing owns a clock")
 	assert_not_null(private_queue.directory(), "and a directory")
 	assert_equal(private_queue.next_execute_tick(), 1, "whose completed tick starts at zero")
+
+
+func test_rebind_clock_refuses_a_non_empty_queue_and_a_null_clock() -> void:
+	"""ARCH-SYS-002 has to follow a replaced SimClock, and must not re-base accepted records.
+
+	`GameManager.start_game()` swaps its clock instance. Rebinding under a NON-EMPTY queue would
+	silently move when the pending records execute, because their `execute_tick` was stamped
+	against the old clock's numbering, so it refuses instead.
+	"""
+	var replacement: SimClockScript = SimClockScript.new()
+	assert_true(_submit("SET_POLICY", 1), "one command is pending")
+	assert_false(_queue.rebind_clock(replacement), "the rebind refuses")
+	assert_equal(_queue.last_refusal(), Commands.REFUSE_QUEUE_NOT_EMPTY, "as queue-not-empty")
+	assert_true(_queue.clock() == _clock, "and the queue keeps the clock it stamped against")
+	assert_true(_queue.drain_due_into(1, _read), "the pending record drains at its own tick")
+	assert_false(_queue.rebind_clock(null), "a null clock refuses")
+	assert_equal(_queue.last_refusal(), Commands.REFUSE_NO_CLOCK, "as no-clock")
+	assert_true(_queue.clock() == _clock, "and still changes nothing")
+	assert_true(_queue.rebind_clock(replacement), "an empty queue rebinds")
+	assert_true(_queue.clock() == replacement, "and now stamps from the replacement")

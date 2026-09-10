@@ -162,6 +162,7 @@ const ID_GROUP_MAX_ROWS: int = (PAYLOAD_ARENA_BYTES - ID_GROUP_COUNT_BYTES) / ID
 const REFUSE_NONE: StringName = &""
 const REFUSE_QUEUE_FULL: StringName = &"COMMAND_QUEUE_FULL"
 const REFUSE_QUEUE_NOT_EMPTY: StringName = &"COMMAND_QUEUE_NOT_EMPTY"
+const REFUSE_NO_CLOCK: StringName = &"COMMAND_NO_CLOCK"
 const REFUSE_UNKNOWN_KIND: StringName = &"COMMAND_UNKNOWN_KIND"
 const REFUSE_UNKNOWN_PLAYER: StringName = &"COMMAND_UNKNOWN_PLAYER"
 const REFUSE_TARGET_MALFORMED: StringName = &"COMMAND_TARGET_MALFORMED"
@@ -985,6 +986,26 @@ func restore_sequence(high: int, low: int) -> bool:
 		return false
 	_next_sequence_high = high
 	_next_sequence_low = low
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func rebind_clock(p_clock: SimClock) -> bool:
+	"""Point this queue at another clock. Only legal on an EMPTY queue, and never at null.
+
+	`GameManager.start_game()` replaces its `SimClock` instance, so ARCH-SYS-002's composition has
+	to be able to follow it or it would go on stamping `completed_tick+1` from a clock that stopped
+	moving. Rebinding under a non-empty queue is refused rather than performed: the pending records
+	were stamped against the OLD clock's tick numbering, and re-basing them would silently move
+	when a player's edits execute.
+	"""
+	if p_clock == null:
+		_last_refusal = REFUSE_NO_CLOCK
+		return false
+	if _count != 0:
+		_last_refusal = REFUSE_QUEUE_NOT_EMPTY
+		return false
+	_clock = p_clock
 	_last_refusal = REFUSE_NONE
 	return true
 

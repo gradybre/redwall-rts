@@ -21,6 +21,17 @@ const NeedsScript := preload("res://scripts/core/needs.gd")
 const ScheduleScript := preload("res://scripts/core/schedule.gd")
 const JobsScript := preload("res://scripts/core/jobs.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const CommandsScript := preload("res://scripts/core/commands.gd")
+const CommandDispatchScript := preload("res://scripts/core/command_dispatch.gd")
+
+## ARCH-CMD-003's sorted kind ids, transcribed from the architecture's own list.
+const COMMAND_KIND_CANCEL_JOB: int = 3
+const COMMAND_KIND_DESIGNATE_ZONE: int = 8
+const COMMAND_KIND_NAME_RESIDENT: int = 11
+const COMMAND_KIND_SET_ACTIVITY_SCHEDULE: int = 15
+const COMMAND_KIND_UPGRADE: int = 23
+## GDD §4.3's Activity numbering, transcribed.
+const ACTIVITY_SLEEP: int = 2
 
 ## GDD §5.1: the starting settlement is twelve residents.
 const COHORT_SIZE: int = 12
@@ -646,3 +657,119 @@ func test_a_settlement_tick_at_the_starting_cohort_is_measured() -> void:
 	assert_true(mean.ok, "a mean is available after the run")
 	assert_equal(_settlement.ticks_run(), MEASURED_TICKS, "every sampled tick was counted")
 	assert_less_than(float(mean.value), float(TICK_CEILING_USEC), "the mean tick is not collapsed")
+
+
+# --- ARCH-SYS-002 CommandCommit -------------------------------------------------------------------
+
+func test_the_settlement_runs_the_command_commit_stage_every_tick() -> void:
+	"""ARCH-SYS-002 is wired: a player edit submitted here reaches a real store on the next tick."""
+	var settlement: SettlementSystemScript = _populated()
+	var resident: Vector2i = settlement.residents().ref_of(0)
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.kind = COMMAND_KIND_NAME_RESIDENT
+	command.target_slot = resident.x
+	command.target_generation = resident.y
+	command.payload = "Cornflower".to_utf8_buffer()
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(settlement.commands().submit_into(command, result),
+		"the queue admits it (error: %s)" % result.error)
+	assert_true(settlement.run_tick(1), "the tick runs")
+	assert_equal(settlement.commands_committed_last_tick(), 1, "the stage committed it")
+	assert_equal(settlement.residents().name_key_of(0), &"Cornflower",
+		"and the resident really is renamed")
+
+
+func test_an_unsupported_command_refuses_in_the_running_settlement() -> void:
+	"""A kind with no owning store refuses explicitly rather than appearing to have worked."""
+	var settlement: SettlementSystemScript = _populated()
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.kind = COMMAND_KIND_UPGRADE
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(settlement.commands().submit_into(command, result), "the queue admits it")
+	assert_true(settlement.run_tick(1), "the tick runs")
+	assert_equal(settlement.commands_committed_last_tick(), 0, "nothing committed")
+	assert_equal(settlement.commands_refused_last_tick(), 1, "and one refused")
+	var row: CommandDispatchScript.ResultRow = CommandDispatchScript.ResultRow.new()
+	assert_true(settlement.command_dispatch().last_result_into(row), "the outcome is recorded")
+	assert_equal(row.code(), &"COMMAND_UNSUPPORTED_FEATURE", "under the documented code")
+
+
+func test_the_ecology_kinds_refuse_until_task_threes_stores_are_bound() -> void:
+	"""This node composes no forage store, so DESIGNATE_ZONE refuses instead of silently no-oping."""
+	var settlement: SettlementSystemScript = _populated()
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.kind = COMMAND_KIND_DESIGNATE_ZONE
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(settlement.commands().submit_into(command, result), "the queue admits it")
+	assert_true(settlement.run_tick(1), "the tick runs")
+	assert_equal(settlement.commands_refused_last_tick(), 1, "it refuses")
+	var row: CommandDispatchScript.ResultRow = CommandDispatchScript.ResultRow.new()
+	assert_true(settlement.command_dispatch().last_result_into(row), "the outcome is recorded")
+	assert_equal(row.code(), &"COMMAND_STORE_NOT_BOUND", "naming the store this node lacks")
+
+
+func test_the_command_stage_runs_before_the_selection_stage() -> void:
+	"""§5 places CommandCommit "before selectors", so an edit is visible to the same tick."""
+	var settlement: SettlementSystemScript = _populated()
+	var resident: Vector2i = settlement.residents().ref_of(0)
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.kind = COMMAND_KIND_SET_ACTIVITY_SCHEDULE
+	command.target_slot = resident.x
+	command.target_generation = resident.y
+	command.payload = PackedByteArray()
+	command.payload.resize(24)
+	command.payload.fill(ACTIVITY_SLEEP)
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(settlement.commands().submit_into(command, result), "the queue admits it")
+	assert_true(settlement.run_tick(1), "the tick runs")
+	assert_equal(settlement.schedule().hour_activity_of(0, 6).value, ACTIVITY_SLEEP,
+		"the whole day was rewritten before this tick's selection pass read it")
+
+
+func test_the_command_stage_commits_before_the_selection_stage_can_take_the_job() -> void:
+	"""§5 orders CommandCommit "before selectors", asserted by VALUE and not by comment.
+
+	One HAUL job, one cancellation queued against it, and a tick on which resident 0 is due to
+	reevaluate. Committing first cancels the job, so selection finds nothing QUEUED and binds
+	nobody. Committing after selection would bind a worker first, and the assignment counter
+	would read 1.
+	"""
+	var settlement: SettlementSystemScript = _populated()
+	var created: JobsScript.OpResult = settlement.jobs().create_job(
+		JobsScript.JOB_KIND_HAUL, 1, 0, LARGE_JOB_MWU, 0)
+	assert_true(created.ok, "the job was created")
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.kind = COMMAND_KIND_CANCEL_JOB
+	command.target_slot = created.ref.x
+	command.target_generation = created.ref.y
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(settlement.commands().submit_into(command, result), "the cancellation is queued")
+	settlement.run_tick(30 + settlement.jobs().stagger_offset_of(0).value)
+	assert_equal(settlement.commands_committed_last_tick(), 1, "the cancellation committed")
+	assert_equal(settlement.jobs().state_of(created.value).value,
+		JobsScript.JOB_STATE_CANCELLED, "the job is CANCELLED")
+	assert_equal(settlement.assignment_count(), 0,
+		"and selection bound nobody, because the commit stage ran first")
+
+
+func test_the_command_queue_follows_the_clock_the_game_is_running_on() -> void:
+	"""`start_game()` replaces the SimClock instance, so the queue must be rebound or it stalls."""
+	var settlement: SettlementSystemScript = _populated()
+	assert_true(settlement.commands().clock() != GameManager.clock(),
+		"the queue starts on the private clock it was composed with")
+	settlement.run_tick(1)
+	assert_true(settlement.commands().clock() == GameManager.clock(),
+		"and after one stage it stamps from the clock the game is really running on")
+
+
+func test_a_reset_settlement_keeps_no_pending_command() -> void:
+	"""Authoritative state and the pending queue are one settlement's; a reset empties both."""
+	var settlement: SettlementSystemScript = _populated()
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.kind = COMMAND_KIND_UPGRADE
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(settlement.commands().submit_into(command, result), "one edit is queued")
+	assert_equal(settlement.commands().pending_count(), 1, "the queue holds it")
+	settlement.reset()
+	assert_equal(settlement.commands().pending_count(), 0, "the reset discards it")
+	assert_equal(settlement.command_dispatch().result_count(), 0, "and the ledger with it")

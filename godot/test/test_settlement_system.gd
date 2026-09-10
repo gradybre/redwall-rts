@@ -32,6 +32,8 @@ const COMMAND_KIND_SET_ACTIVITY_SCHEDULE: int = 15
 const COMMAND_KIND_UPGRADE: int = 23
 ## GDD §4.3's Activity numbering, transcribed.
 const ACTIVITY_SLEEP: int = 2
+const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
+const FishingScript := preload("res://scripts/core/fishing.gd")
 
 ## GDD §5.1: the starting settlement is twelve residents.
 const COHORT_SIZE: int = 12
@@ -431,6 +433,87 @@ func test_an_out_of_range_day_boundary_is_refused() -> void:
 	assert_false(_settlement.run_day_boundary(0, SEASON_WINTER), "day 0 does not exist")
 	assert_equal(_settlement.last_refusal(), &"INVALID_ABSOLUTE_DAY", "the day refusal is named")
 	assert_false(_settlement.is_winter(), "no season was applied")
+
+
+# --- REQ-SET-007 leg order and ARCH-SYS-005 Ecology (task 03 increment 9) ------------------------
+
+func test_the_boundary_runs_the_season_handover_then_ecology_and_no_other_leg() -> void:
+	"""REQ-SET-007's five legs are ordered, and only the two with an owner here may appear."""
+	_populated()
+	assert_true(_settlement.run_day_boundary(37, SEASON_WINTER), "the winter boundary runs")
+	assert_equal(_settlement.daily_leg_count(), 2, "exactly two legs executed")
+	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_SEASON_HANDOVER,
+		"ARCH-TICK-003's handover first, between aging and ecology")
+	assert_equal(_settlement.daily_leg_at(1).value, SettlementSystemScript.LEG_ECOLOGY,
+		"then ARCH-SYS-005 Ecology")
+	assert_false(_settlement.daily_leg_at(2).ok, "and nothing after it")
+	assert_equal(String(_settlement.daily_leg_at(2).error), "INVALID_INDEX",
+		"the reader refuses rather than answering a leg that did not run")
+
+
+func test_the_boundary_advances_the_settlements_own_ecology() -> void:
+	"""ARCH-SYS-005 is wired to THIS settlement's stores, not to a detached fixture."""
+	_populated()
+	var made: FishingScript.OpResult = _settlement.ecology().fishing().create_habitat(
+		2, EntityDirectoryScript.NULL_REF, PackedInt32Array([10, 11, 12]), 0, 0, 0)
+	assert_true(made.ok, "a river habitat is placed in the settlement's fishery")
+	var row: int = _settlement.ecology().fishing().stock_row_of(made.ref, 0).value
+	assert_equal(_settlement.ecology().fishing().population_milli_of(row).value, 480000,
+		"trout start at 80% of the 600 U capacity")
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "the day 2 boundary runs")
+	assert_equal(_settlement.last_ecology_day(), 2, "the ecology consumed day 2")
+	assert_equal(_settlement.ecology().fishing().population_milli_of(row).value, 490680,
+		"and §5.4 recovery reached the stock through the settlement")
+	assert_true(_settlement.ecology_day().ok, "the day result reports a committed day")
+	assert_equal(_settlement.ecology_day().fish_stocks_recovered, 3, "with three stocks recovered")
+
+
+func test_a_season_that_does_not_belong_to_that_day_is_refused() -> void:
+	"""The day and the season are joined through the calendar, not taken on trust."""
+	_populated()
+	assert_false(_settlement.run_day_boundary(37, SEASON_SPRING),
+		"absolute day 37 is winter, not spring")
+	assert_equal(_settlement.last_refusal(), &"DAY_BOUNDARY_CALENDAR_MISMATCH", "and says so")
+	assert_false(_settlement.is_winter(), "no season was applied")
+	assert_equal(_settlement.last_ecology_day(), 0, "and no ecology day was consumed")
+	assert_equal(_settlement.daily_leg_count(), 0, "no leg ran at all")
+
+
+func test_day_one_raises_no_boundary_because_it_opens_at_six_in_the_morning() -> void:
+	"""Tick 0 is 06:00 of day 1, so day 1 has no midnight and cannot be a boundary."""
+	_populated()
+	assert_false(_settlement.run_day_boundary(1, SEASON_SPRING), "day 1 opens at no crossing")
+	assert_equal(_settlement.last_refusal(), &"NOT_A_DAY_BOUNDARY", "with the boundary code")
+	assert_equal(_settlement.daily_leg_count(), 0, "and no leg ran")
+
+
+func test_a_replayed_day_boundary_is_refused_rather_than_applied_twice() -> void:
+	"""The ecology latch reaches the settlement: the same day cannot be run again."""
+	_populated()
+	assert_true(_settlement.run_day_boundary(37, SEASON_WINTER), "the first run commits")
+	assert_false(_settlement.run_day_boundary(37, SEASON_WINTER), "the second is refused")
+	assert_equal(_settlement.last_refusal(), &"ECOLOGY_DAY_ALREADY_RUN", "with the replay code")
+	assert_equal(_settlement.daily_leg_count(), 1,
+		"the season handover ran and the ecology leg did not")
+
+
+func test_reset_drops_the_ecology_stores_and_the_leg_log() -> void:
+	"""A reset settlement is one settlement's state, ecology included."""
+	_populated()
+	_settlement.ecology().fishing().create_habitat(
+		2, EntityDirectoryScript.NULL_REF, PackedInt32Array([10, 11, 12]), 0, 0, 0)
+	assert_true(_settlement.run_day_boundary(37, SEASON_WINTER), "a boundary runs")
+	_settlement.reset()
+	assert_equal(_settlement.ecology().fishing().habitat_count(), 0, "the fishery is emptied")
+	assert_equal(_settlement.last_ecology_day(), 0, "the day latch is dropped")
+	assert_equal(_settlement.daily_leg_count(), 0, "and the leg log is cleared")
+
+
+func test_the_ecology_shares_the_settlements_one_entity_directory() -> void:
+	"""One directory validates every settlement reference, ecology references included."""
+	_populated()
+	assert_true(_settlement.ecology().directory() == _settlement.directory(),
+		"the ecology stores were composed over the settlement's own directory")
 
 
 # --- the clock binding --------------------------------------------------------------------------

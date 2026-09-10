@@ -160,24 +160,35 @@ extends RefCounted
 ## OPERATION_COUNT and to nothing else.
 ##
 ## ---------------------------------------------------------------------------------------
-## THE FIELD CYCLE IS A PER-OWNER ORDINAL THIS MODULE ALLOCATES, AND IT ASSUMES NO FieldPolicy.
-## R06-JOB-004's identity term is "the field cycle", and the ruling adds that "any non-derivable
-## cycle intent must be included in the schema/budget". There is no `FieldPolicy` store, so there
-## is no rotation cursor to read a cycle number out of, and inventing one would be inventing a
-## contract. What IS derivable without one is the ORDER of sowing cycles on a plot: cycle 1 is the
-## first sowing cycle confirmed on that plot, cycle 2 the next, and so on. `_cycle_cursor` holds
-## the last ordinal allocated for an owner and `confirm_first_planting()` is the ONLY writer; the
-## ordinal is copied onto the row, so the row's identity is `(owner EntityRef, SOW, field cycle)`
-## with every term stored and checked. `_completed_cycle` is the durable completion history the
-## ruling forbids discarding.
+## THE FIELD CYCLE IS A PER-OWNER ORDINAL THIS MODULE ALLOCATES, AND `FieldPolicy` DOES NOT
+## REPLACE IT. R06-JOB-004's identity term is "the field cycle", and the ruling adds that "any
+## non-derivable cycle intent must be included in the schema/budget". What is derivable per PLOT
+## is the ORDER of sowing cycles on it: cycle 1 is the first sowing cycle confirmed on that plot,
+## cycle 2 the next, and so on. `_cycle_cursor` holds the last ordinal allocated for an owner and
+## `confirm_first_planting()` is the ONLY writer; the ordinal is copied onto the row, so the row's
+## identity is `(owner EntityRef, SOW, field cycle)` with every term stored and checked.
+## `_completed_cycle` is the durable completion history the ruling forbids discarding.
+##
+## RECONCILED WITH `scripts/core/field_policy.gd` (task 03 increment 7, decision 0045). That store
+## now exists and holds TWO OTHER cursors, and neither is this one:
+##   * `FieldPolicy.rotation_cursor` is a PER-FIELD INDEX INTO A THREE-ENTRY LIST, 0..2, which
+##     WRAPS. It names which crop is next; it counts nothing and it is not an identity term.
+##   * `FieldPolicy._cycle_ordinal` is a PER-FIELD monotonic generation stamping a plot's
+##     enrolment in one rotation cycle.
+## A field of ten plots has ten independent per-plot cursors here and one rotation there, so
+## neither is derivable from the other. NOTHING WAS MOVED, RENUMBERED OR DUPLICATED: this module
+## still owns the per-plot ordinal, `field_policy.gd` never reads or writes it, and no second
+## per-plot cursor was added anywhere.
 ##
 ## THE CURSOR NEVER GOES BACKWARDS AND NEVER WRAPS. A confirm at int32's maximum refuses with
 ## FIELD_CYCLE_OVERFLOW rather than reusing an ordinal that a retained row might still name.
 ##
-## NOTHING HERE ADVANCES A ROTATION. R06-JOB-005 is the rotation producer and stays unbuilt; the
-## ruling's own default is `auto_rotation=false`, and "changing a rotation list without confirming
-## planting shall not start work" holds here BY CONSTRUCTION, because the only thing that opens a
-## sowing cycle is `confirm_first_planting()` and no other entry point writes `_requested_crop`.
+## NOTHING HERE ADVANCES A ROTATION, AND THAT IS STILL TRUE NOW THAT `FieldPolicy` EXISTS.
+## R06-JOB-005's advance lives entirely in `scripts/core/field_policy.gd`, which REQUESTS a crop
+## and creates no Job; nothing in this file reads that request, because U2 still delivers no
+## player command to either module. "Changing a rotation list without confirming planting shall
+## not start work" holds here BY CONSTRUCTION, because the only thing that opens a sowing cycle is
+## `confirm_first_planting()` and no other entry point writes `_requested_crop`.
 ##
 ## ---------------------------------------------------------------------------------------
 ## REQ-SET-070's FIVE GATES: TWO ARE EVALUATED, THREE HAVE NO STORE AND ARE SAID SO.
@@ -307,9 +318,12 @@ extends RefCounted
 ## ---------------------------------------------------------------------------------------
 ## DEFERRED PRODUCERS -- each named with the store that blocks it, none stubbed:
 ##   * R06-JOB-003 fishing cycles      -- the Expedition store does not exist.
-##   * R06-JOB-005 rotation advance    -- `FieldPolicy` does not exist (task 03 increment 7).
-##     Nothing here rotates a forage kind either; the §5.5 order is fixed, not a policy.
-##     Nothing here advances a cursor, substitutes a crop or reseeds after a completed cycle.
+##   * R06-JOB-005 rotation advance    -- BUILT ELSEWHERE, in `scripts/core/field_policy.gd`
+##     (task 03 increment 7, decision 0045). It advances a per-field rotation cursor and requests
+##     a crop; it creates no Job and this module does not consume its request, because U2 delivers
+##     no player command to either. Nothing here rotates a forage kind either; the §5.5 order is
+##     fixed, not a policy. Nothing here advances a cursor, substitutes a crop or reseeds after a
+##     completed cycle.
 ##   * R06-JOB-006 hive service        -- `Hive` does not exist (task 03 increment 8).
 ##   * REQ-SET-073 ripe harvest and REQ-SET-085 withered clearing keep their existing route; this
 ##     module does not reroute them and creates neither.

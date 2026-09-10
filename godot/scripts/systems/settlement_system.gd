@@ -18,10 +18,13 @@ extends Node
 ##
 ## ---------------------------------------------------------------------------------------
 ## STAGE ORDER IS `systems_architecture.md` §5's TABLE, NOT CONVENIENCE. Of the 23 systems in
-## that table, THREE have an implemented owner in this milestone and are run here in the table's
-## own order:
+## that table, FIVE have an implemented owner in this milestone and are run here in the table's
+## own order (one of them, ARCH-SYS-008, only in part). An earlier revision of this header
+## said THREE while listing four entries; the count is corrected here rather than left to
+## drift:
 ##
 ##   ARCH-SYS-003 IntervalIntegrator -> `needs.tick_all()`         every tick, first
+##   ARCH-SYS-005 Ecology            -> `ecology.run_day_into()`   MIDNIGHT ONLY, never per tick
 ##   ARCH-SYS-008 NeedIntent (PART)  -> `schedule.resolve_into()`  activity resolution only
 ##   ARCH-SYS-010 JobSelector        -> `jobs.evaluate()`/`assign_worker()`
 ##   ARCH-SYS-013 ProductiveWork     -> `work.tick_solo_into()` / `tick_party_into()`
@@ -39,12 +42,15 @@ extends Node
 ##   ARCH-SYS-004 StockAge            `economy_system.gd` states it: nothing advances lot age,
 ##                                    because the store and temperature factors belong to
 ##                                    systems this milestone does not build.
-##   ARCH-SYS-005 Ecology             STORES NOW EXIST (resource_nodes.gd, forage.gd,
-##                                     fishing.gd) but NOTHING DRIVES THEM. This stage is
-##                                     task 03 increment 9 and is not started.
-##   ARCH-SYS-006 CropWeather         farming.gd and weather.gd NOW EXIST; OrchardPlot and
-##                                     Hive do not (U6). Nothing drives any of it: this
-##                                     stage is task 03 increment 10 and is not started.
+##   ARCH-SYS-006 CropWeather         farming.gd, weather.gd, OrchardPlot and Hive ALL EXIST
+##                                    now, and NOTHING DRIVES THE CROP HALF. `farming.gd` and
+##                                    `weather.gd` are not composed here, `apply_orchard_day()`
+##                                    is never called (it needs the day's temperature, which is
+##                                    weather's), and decision 0044's FARM-side pollination
+##                                    refresh needs a plot->tile join `orchard_hive.gd` cannot
+##                                    do. All three are task 03 increment 10, not started. The
+##                                    HIVE daily step is NOT among them: it runs under
+##                                    ARCH-SYS-005, which DOES run now (decision 0046).
 ##   ARCH-SYS-007 ImmigrationDeparture no candidate store; `needs.gd` leaves `departure_days`
 ##                                    explicitly unwritten pending a complete mood.
 ##   ARCH-SYS-009 JobPlanner          EXISTS NOW (`scripts/core/job_planner.gd`, decision 0039)
@@ -71,13 +77,29 @@ extends Node
 ##                                    extracted here and this node never writes to the UI.
 ##
 ## REQ-SET-007's daily order is "age stocks, update ecology, advance crops/weather, process
-## immigration/departures, then evaluate progression". Four of those five have no owner at all.
-## The ONE thing a day boundary can do here is the season flip: ARCH-TICK-003 places it exactly
-## between aging and ecology ("aging uses the season in the elapsed interval; ecology uses the
-## new calendar day's season"), and REQ-SET-143's x1.20 winter hunger multiplier is already
-## implemented in `needs.gd` with the calendar season as its only input. So `run_day_boundary()`
-## applies the season and does nothing else. NO CONSTANT IS INVENTED: the season comes from
-## `sim_clock.gd`'s offset calendar and the multiplier from `needs.gd`.
+## immigration/departures, then evaluate progression IN THAT ORDER", and `run_day_boundary()`
+## runs exactly ONE of those five legs plus the season handover between the first two. What it
+## does, in the requirement's order:
+##
+##   age stocks              NOT RUN. ARCH-SYS-004 has no owner; `economy_system.gd` says so.
+##   [season handover]       RUN. ARCH-TICK-003 places it exactly between aging and ecology
+##                           ("aging uses the season in the elapsed interval; ecology uses the
+##                           new calendar day's season"), and REQ-SET-143's x1.20 winter hunger
+##                           multiplier lives in `needs.gd` with the calendar season as its
+##                           only input.
+##   update ecology          RUN, and this is what task 03 increment 9 added:
+##                           `scripts/core/ecology.gd` (ARCH-SYS-005) advances the fish stocks,
+##                           the forage patches and their ruled quota midnight, every live hive
+##                           and the exhausted resource nodes whose regrowth date has arrived.
+##   advance crops/weather   NOT RUN. ARCH-SYS-006, task 03 increment 10.
+##   immigration/departures  NOT RUN. ARCH-SYS-007 has no candidate store.
+##   evaluate progression    NOT RUN. ARCH-SYS-020 has no Progress store.
+##
+## THE LEG THAT DOES NOT RUN IS NOT FAKED AND THE ORDER IS NOT ASSUMED. `daily_leg_at()` and
+## `daily_leg_count()` publish the legs the most recent boundary ACTUALLY EXECUTED, in the order
+## it executed them, so "ecology runs after the season handover and nothing else runs" is a test
+## rather than a comment. NO CONSTANT IS INVENTED: the season comes from `sim_clock.gd`'s offset
+## calendar, the multiplier from `needs.gd`, and every ecology number from the four stores.
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE JOB QUEUE IN *THIS* SETTLEMENT IS EMPTY, AND THE REASON HAS CHANGED. It is no longer true
@@ -90,7 +112,8 @@ extends Node
 ##     keep their own route and are NOT rerouted through the planner); forage demand
 ##     (R06-JOB-001/002, deferred); fishing cycles (R06-JOB-003, no Expedition store); sowing
 ##     first-plant (R06-JOB-004, deferred); rotation advance (R06-JOB-005, no FieldPolicy store);
-##     hive service (R06-JOB-006, no Hive store); and every production order, recipe,
+##     hive service (R06-JOB-006 -- the Hive STORE now exists and ARCH-SYS-005 advances it,
+##     but no producer creates its 20-WU service job); and every production order, recipe,
 ##     construction, care request and hauling policy, none of which has a store.
 ##   WHAT THIS NODE DOES: nothing of the above. It composes no farming store and no planner, so
 ##     ITS OWN queue is still 0 in a fresh settlement. Joining the planner, farming.gd and
@@ -110,6 +133,17 @@ extends Node
 ##     completion of travel, which is ARCH-SYS-011/012's work. Nothing here writes JOB_STATE_WORK,
 ##     because inventing that transition would be inventing the movement layer. The work stage
 ##     ticks whatever is genuinely in JOB_STATE_WORK and nothing else.
+##
+## ---------------------------------------------------------------------------------------
+## THE ECOLOGY IS OWNED, DRIVEN AND EMPTY, AND THOSE ARE THREE DIFFERENT FACTS. `ecology.gd`
+## composes the four ecology stores over THIS settlement's directory, and `run_day_boundary()`
+## drives it at every real midnight -- the stage is wired, not declared. A FRESH SETTLEMENT
+## NONETHELESS HAS NOTHING TO ADVANCE: GDD §5.1's world generation places the tree cover, the
+## deposits, the harvest basins and the estuary, and no world generator exists, so `count()`,
+## `zone_count()`, `habitat_count()` and `hive_count()` are all 0 and the stage honestly does
+## nothing. Placing a node or a basin here to make the day look busy would measure a fiction, in
+## exactly the way a fabricated job would. `ecology()` is the accessor a world generator, a test
+## or ARCH-SYS-006 uses to reach the stores.
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE RESERVATION POOL IS OWNED AND EMPTY. `reservations.gd` exists to hold job input claims
@@ -132,6 +166,12 @@ extends Node
 ##     are no jobs; when a job source lands, `jobs.gd` needs a non-allocating live-index reader.
 ##     Reported, not worked around, and not fixed by editing a file this task does not own.
 ##
+## ARCH-SYS-005 IS NOT ON THE TICK PATH AT ALL. `ecology.gd` is called from `run_day_boundary()`
+## and never from `run_tick()`, so its per-day cost -- one OpResult per store sweep, plus one per
+## resource node actually regrown, all named in that file's header -- lands once per SIMULATED
+## DAY, which at 1x is once per 18000 ticks. The only per-tick cost this increment adds is zero:
+## the clock already tested `is_day_boundary()` every tick before this task existed.
+##
 ## REFUSAL, NOT SENTINELS. Every operation returns a bool with the reason in `last_refusal()`, or
 ## an `IntMath.IntResult` whose `.ok` must be inspected. `mean_tick_usec()` REFUSES before the
 ## first tick rather than answering 0, because 0 microseconds is a plausible-looking measurement.
@@ -144,6 +184,7 @@ const ScheduleScript := preload("res://scripts/core/schedule.gd")
 const JobsScript := preload("res://scripts/core/jobs.gd")
 const WorkScript := preload("res://scripts/core/work.gd")
 const ReservationsScript := preload("res://scripts/core/reservations.gd")
+const EcologyScript := preload("res://scripts/core/ecology.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
@@ -152,6 +193,17 @@ const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
 ## winter rather than trusting the ordering, because REQ-SET-143's multiplier hangs off it.
 const SEASON_WINTER: int = 3
 const SEASON_COUNT: int = 4
+
+## REQ-SET-007's five daily legs, in the requirement's own order, plus ARCH-TICK-003's season
+## handover between the first two. `daily_leg_at()` publishes the ones a boundary ACTUALLY ran,
+## so a leg this system does not own cannot be quietly slipped in and cannot be assumed absent.
+const LEG_STOCK_AGE: int = 0
+const LEG_SEASON_HANDOVER: int = 1
+const LEG_ECOLOGY: int = 2
+const LEG_CROP_WEATHER: int = 3
+const LEG_IMMIGRATION_DEPARTURE: int = 4
+const LEG_PROGRESSION: int = 5
+const DAILY_LEG_CAPACITY: int = 6
 
 ## REQ-SET-012's "a prepared meal is reachable and unreserved", answered false and NOT guessed.
 ## Two separate things are missing: §5.7's recipe/portion model, so no prepared MEAL exists as an
@@ -169,6 +221,8 @@ const REFUSE_INVALID_DAY: StringName = &"INVALID_ABSOLUTE_DAY"
 const REFUSE_INVALID_SEASON: StringName = &"INVALID_SEASON"
 const REFUSE_NO_TICK_MEASURED: StringName = &"NO_TICK_MEASURED"
 const REFUSE_CLOCK_BIND: StringName = &"SIMULATION_CLOCK_BIND_REFUSED"
+const REFUSE_CALENDAR_MISMATCH: StringName = &"DAY_BOUNDARY_CALENDAR_MISMATCH"
+const REFUSE_INVALID_INDEX: StringName = &"INVALID_INDEX"
 
 # --- the settlement's stores (composed once in _init, never reallocated) ----------------------
 
@@ -180,6 +234,7 @@ var _needs: NeedsScript = null
 var _schedule: ScheduleScript = null
 var _jobs: JobsScript = null
 var _work: WorkScript = null
+var _ecology: EcologyScript = null
 
 # --- the live-resident index ------------------------------------------------------------------
 
@@ -197,6 +252,12 @@ var _live_count: int = 0
 var _calendar: SimClockScript.Calendar = SimClockScript.Calendar.new(0)
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _tick_result: WorkScript.TickResult = WorkScript.TickResult.new(false, REFUSE_NONE)
+var _ecology_day: EcologyScript.DayResult = EcologyScript.DayResult.new()
+## The 00:00 tick of the day boundary being run, located and PROVED once per boundary.
+var _boundary_tick: int = 0
+## REQ-SET-007 legs the most recent boundary executed, in execution order. Sized once in _init().
+var _daily_legs: PackedInt32Array = PackedInt32Array()
+var _daily_leg_count: int = 0
 var _tick_timer: PerfTimerScript = PerfTimerScript.new()
 
 # --- observable counters ----------------------------------------------------------------------
@@ -215,17 +276,22 @@ var _reported_refusal: bool = false
 func _init() -> void:
 	"""Compose the settlement stores once and size the live index; allocate nothing later.
 
-	Every store is built here rather than at declaration because four of them borrow another:
+	Every store is built here rather than at declaration because five of them borrow another:
 	the residents store owns the directory and needs rows, the schedule reads those same needs,
-	jobs read residents/priorities/schedule, and work reads jobs.
+	jobs read residents/priorities/schedule, work reads jobs, and the ecology stores take this
+	settlement's directory and Job store so a forage claim validates its owning Job in the one
+	directory every other settlement reference already lives in.
 	"""
 	_directory = _residents.directory()
 	_needs = _residents.needs()
 	_schedule = ScheduleScript.new(_needs)
 	_jobs = JobsScript.new(_residents, _priorities, _schedule)
 	_work = WorkScript.new(_jobs)
+	_ecology = EcologyScript.new(_directory, _jobs)
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
+	_daily_legs.resize(DAILY_LEG_CAPACITY)
+	_daily_legs.fill(LEG_STOCK_AGE)
 	_assert_shared_contracts()
 
 
@@ -241,6 +307,10 @@ func _assert_shared_contracts() -> void:
 		"the calendar must publish exactly four seasons")
 	assert(SimClockScript.SEASON_NAMES[SEASON_WINTER] == "winter",
 		"SEASON_WINTER must index the calendar's winter, which REQ-SET-143 hangs off")
+	assert(_ecology.directory() == _directory,
+		"the ecology stores must validate references through this settlement's one directory")
+	assert(DAILY_LEG_CAPACITY == LEG_PROGRESSION + 1,
+		"the leg log must hold exactly REQ-SET-007's legs plus the season handover")
 
 
 func _ready() -> void:
@@ -331,8 +401,11 @@ func reset() -> void:
 	_jobs.clear()
 	_work.clear()
 	_reservations.clear()
+	_ecology.clear()
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
 	_live_count = 0
+	_daily_leg_count = 0
+	_boundary_tick = 0
 	_ticks_run = 0
 	_refused_tick_count = 0
 	_tick_usec_total = 0
@@ -477,23 +550,74 @@ func _hour_of(tick_index: int) -> int:
 
 
 func run_day_boundary(absolute_day: int, season: int) -> bool:
-	"""REQ-SET-007 daily boundary, restricted to the one stage that has an implemented owner.
+	"""REQ-SET-007's daily boundary, in the requirement's own order, running the legs it owns.
 
-	Stock aging, ecology, crops/weather, immigration/departures and progression all have no store
-	in this milestone (header). What remains is ARCH-TICK-003's season handover -- "ecology uses
-	the new calendar day's season" -- which drives REQ-SET-143's x1.20 winter hunger multiplier
-	inside `needs.gd`. `absolute_day` is validated but drives nothing yet: the systems that count
-	days (departure, progression streaks, candidate events) do not exist.
+	Age stocks (ARCH-SYS-004) is skipped first, then ARCH-TICK-003's season handover, then
+	ARCH-SYS-005 Ecology; crops/weather, immigration/departures and progression are skipped after
+	it, in that order, because they have no owner (header). Nothing is reordered and no unowned
+	leg is faked: `daily_leg_at()` reports what actually ran.
 	"""
+	_daily_leg_count = 0
 	if absolute_day <= 0:
 		return _refuse(REFUSE_INVALID_DAY)
 	if season < 0 or season >= SEASON_COUNT:
 		return _refuse(REFUSE_INVALID_SEASON)
+	if not _locate_boundary_tick(absolute_day, season):
+		return false
+	if not _apply_season_handover(season):
+		return false
+	if not _update_ecology():
+		return false
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _locate_boundary_tick(absolute_day: int, season: int) -> bool:
+	"""Find this day's 00:00 tick and PROVE it decodes back to the day and season handed in.
+
+	The ecology stage is gated on a tick, and the clock hands this callback a day and a season,
+	so the tick is recovered by `ecology.gd`'s inverse -- which is itself gated on
+	`sim_clock.gd`'s `is_day_boundary()`, the single definition of a crossing -- and then decoded
+	AGAIN through the calendar and compared. A wrong inverse, a caller inventing a day, or a
+	season that does not belong to that day all refuse here rather than running the ecology stage
+	on a tick that is not midnight. Day 1 opens at 06:00 and has no midnight, so it refuses.
+	"""
+	if not EcologyScript.midnight_tick_of_day_into(absolute_day, _read):
+		return _refuse(StringName(_read.error))
+	_boundary_tick = _read.value
+	SimClockScript.calendar_at_into(_boundary_tick, _calendar)
+	if _calendar.absolute_day != absolute_day or _calendar.season != season:
+		return _refuse(REFUSE_CALENDAR_MISMATCH)
+	return true
+
+
+func _apply_season_handover(season: int) -> bool:
+	"""ARCH-TICK-003's handover between aging and ecology: REQ-SET-143's winter multiplier."""
 	var applied: ResidentsScript.OpResult = _residents.set_winter(season == SEASON_WINTER)
 	if not applied.ok:
 		return _refuse(applied.error)
-	_last_refusal = REFUSE_NONE
+	_record_daily_leg(LEG_SEASON_HANDOVER)
 	return true
+
+
+func _update_ecology() -> bool:
+	"""ARCH-SYS-005 Ecology: REQ-SET-007's second leg, on the new calendar day (ARCH-TICK-003).
+
+	One call. Fish recovery and the daily fishing quota reset, forage regrowth and decision 0030
+	§4.4's quota midnight, every live hive's completed day, and the resource nodes whose regrowth
+	date has arrived -- all inside `ecology.gd`, which refuses a replayed day rather than
+	applying it twice.
+	"""
+	if not _ecology.run_day_into(_boundary_tick, _ecology_day):
+		return _refuse(_ecology_day.error)
+	_record_daily_leg(LEG_ECOLOGY)
+	return true
+
+
+func _record_daily_leg(leg: int) -> void:
+	"""Append one executed REQ-SET-007 leg to this boundary's order log."""
+	_daily_legs[_daily_leg_count] = leg
+	_daily_leg_count += 1
 
 
 # --- readers -----------------------------------------------------------------------------------
@@ -566,6 +690,35 @@ func is_winter() -> bool:
 	return _residents.is_winter()
 
 
+func daily_leg_count() -> int:
+	"""REQ-SET-007 legs the most recent day boundary actually executed; 0 before the first."""
+	return _daily_leg_count
+
+
+func daily_leg_at(index: int) -> IntMath.IntResult:
+	"""The `index`-th leg the most recent boundary executed, in execution order, or a refusal.
+
+	A refusal rather than a sentinel: "no leg ran" and "leg 0 ran" are different answers and a
+	returned 0 would be indistinguishable from LEG_STOCK_AGE, which this system never runs.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if index < 0 or index >= _daily_leg_count:
+		out.refuse(String(REFUSE_INVALID_INDEX))
+		return out
+	out.succeed(_daily_legs[index])
+	return out
+
+
+func last_ecology_day() -> int:
+	"""Absolute day ARCH-SYS-005 last consumed; 0 before the first midnight. See `ecology.gd`."""
+	return _ecology.last_day_run()
+
+
+func ecology_day() -> EcologyScript.DayResult:
+	"""The most recent ecology day's counts. Inspect `.ok` before any field; see `ecology.gd`."""
+	return _ecology_day
+
+
 func last_refusal() -> StringName:
 	"""Reason the most recent refused operation was refused; empty after a successful one."""
 	return _last_refusal
@@ -574,6 +727,11 @@ func last_refusal() -> StringName:
 func directory() -> EntityDirectoryScript:
 	"""The allocator behind every settlement reference."""
 	return _directory
+
+
+func ecology() -> EcologyScript:
+	"""ARCH-SYS-005's four stores. A world generator and ARCH-SYS-006 reach the ecology here."""
+	return _ecology
 
 
 func residents() -> ResidentsScript:

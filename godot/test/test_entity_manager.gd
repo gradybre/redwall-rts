@@ -8,6 +8,8 @@ const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
 
 const PERF_ENTITY_COUNT: int = 1000
 const PERF_BUDGET_MSEC: float = 16.0
+## Identical passes to sample; the budget is asserted against the fastest of them.
+const PERF_SAMPLES: int = 3
 
 var _entities: EntityManagerScript = null
 
@@ -153,8 +155,11 @@ func test_clear_resets_the_manager() -> void:
 	assert_false(_entities.is_alive(entity_id), "the old id is not alive")
 
 
-func test_thousand_entity_lifecycle_within_frame_budget() -> void:
-	"""Create, query and destroy 1000 entities inside a single 16ms frame."""
+func _measure_entity_lifecycle_usec() -> int:
+	"""One create/query/destroy pass over PERF_ENTITY_COUNT entities, in microseconds.
+
+	Asserts the functional outcome on every pass, so sampling cannot hide a wrong result.
+	"""
 	var timer := PerfTimerScript.new()
 	var ids: PackedInt64Array = PackedInt64Array()
 	timer.start()
@@ -167,10 +172,30 @@ func test_thousand_entity_lifecycle_within_frame_budget() -> void:
 	var matched: PackedInt64Array = _entities.query(types)
 	for entity_id: int in ids:
 		_entities.destroy_entity(entity_id)
-	var elapsed_msec: float = timer.stop() / 1000.0
+	var elapsed_usec: int = timer.stop()
 	assert_equal(matched.size(), PERF_ENTITY_COUNT, "every entity matched the query")
 	assert_equal(_entities.entity_count(), 0, "every entity was destroyed")
-	assert_less_than(elapsed_msec, PERF_BUDGET_MSEC, "1000-entity lifecycle stays under the frame budget")
+	return elapsed_usec
+
+
+func test_thousand_entity_lifecycle_within_frame_budget() -> void:
+	"""Create, query and destroy 1000 entities inside a single 16ms frame.
+
+	Asserted against the FASTEST of PERF_SAMPLES identical passes, matching the technique
+	test_entity_directory.gd already uses. Wall clock on a shared machine is noisy in one
+	direction only: a descheduled run can be arbitrarily slow, but no run can finish faster
+	than the work actually takes. Taking the minimum therefore discards a scheduling hiccup
+	without ever hiding a real regression -- if the operation genuinely costs more than the
+	budget, every sample exceeds it and so does the minimum.
+
+	The single-shot form this replaces failed on a shared CI runner while passing locally,
+	which is a false failure: it measured the runner's load, not this code.
+	"""
+	var fastest_usec: int = _measure_entity_lifecycle_usec()
+	for sample: int in range(PERF_SAMPLES - 1):
+		fastest_usec = mini(fastest_usec, _measure_entity_lifecycle_usec())
+	assert_less_than(float(fastest_usec) / 1000.0, PERF_BUDGET_MSEC,
+		"1000-entity lifecycle stays under the frame budget")
 
 
 func test_query_snapshot_survives_destruction_while_iterating() -> void:

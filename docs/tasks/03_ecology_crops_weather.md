@@ -40,8 +40,8 @@ prerequisite. It is **not** the thing that animates the loop.
 | 4 | **HarvestZone + ForagePatch** — REQ-SET-066–069 | 1, 3 | **done**; quota reworked to the ruled daily aggregate, decisions 0026/0030 |
 | 5 | **FishHabitat + FishStock** — §5.4 | 1 | **stock half done**; effort claims added (0037). `GearInstance`'s allocator now exists (0038), so **U5 no longer blocks portable gear** — the remaining gear work needs the Expedition store and the installed-gear contract for boats and weirs |
 | 6 | **FarmPlot** + `CropState`/`Soil` catalog wiring — REQ-SET-072/073/085 | 2 | **done**; `TileHistory` built, five open contracts recorded in decision 0032 |
-| 7 | **FieldPolicy + sowing** — REQ-SET-070/071/077/078/088 | 6 | **needs a decision**: the GDD states the sowing validation gate but never the triggering event |
-| 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **pollination blocked by U6** (`HivePollinationLinks` has no owner-major index formula) |
+| 7 | **FieldPolicy + sowing** — REQ-SET-070/071/077/078/088 | 6 | **UNBLOCKED 2026-09-10.** READY_06 item 1 supplies the triggering events: R06-JOB-004 (first plant) is **built**; R06-JOB-005 (rotation advance) still needs the `FieldPolicy` store, which is this increment |
+| 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **UNBLOCKED 2026-09-10.** READY_06 item 3 supplies the formula U6 lacked: `recipient_index(FarmPlot p) = p`, `(OrchardPlot o) = 4096 + o`, `link_row = 6*recipient_index + k`, 30720 references / 245760 bytes (+49152) |
 | 9 | **ARCH-SYS-005 Ecology** daily orchestration | 3,4,5,8 | closes one leg of REQ-SET-007 |
 | 10 | **ARCH-SYS-006 CropWeather** orchestration | 2,6,7,9 | closes a second leg |
 

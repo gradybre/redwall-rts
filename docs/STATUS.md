@@ -1,4 +1,4 @@
-# Status — task 03 programme and the READY_06 answers
+# Status — the programme, task 03, and the READY_06 answers
 
 Generated 2026-09-09. `master` at `d60b72f`; work branch `feat/catalog-ids-artifact`.
 **1224 tests, 35844 assertions, 0 failures**, enforced by CI on every PR since #7.
@@ -15,6 +15,71 @@ commit, a decision record, or a test count.
 | `master` | `d60b72f` — all of task 03's shipped increments plus CI |
 | Open branch | `feat/catalog-ids-artifact`, one commit (`33cdc2a`), not yet PR'd |
 | CI | `.github/workflows/tests.yml`, Godot 4.7.2 pinned, gate asserts the runner's summary line rather than the exit code |
+
+## The whole programme, not just task 03
+
+Task 03 is one group inside a much larger specification. This section is the
+wider picture, so the detail below is not mistaken for overall progress.
+
+### Task files
+
+| Task | State |
+|---|---|
+| `01_initial_setup.md` | **complete** — 9/9 |
+| `02_settlement_foundation.md` | **complete** — 28/28, with blockers U1–U7 recorded |
+| `02_test_migration_ledger.md` | reference ledger, not a checklist |
+| `03_ecology_crops_weather.md` | **6 of 10 increments**, detail below |
+
+**There is no task 04 or beyond.** Everything after task 03 — commands, movement,
+buildings and rooms, cooking and preservation, feasts, immigration, progression,
+save/load, and the entire UI — has no task file yet.
+
+### Requirement coverage
+
+| Family | Specified | Appears in code |
+|---|---:|---:|
+| `REQ-SET-###` (GDD) | 181 | 75 |
+| `UI-SET-###` (UI/UX) | 103 | 1 |
+| `MOVE-REQ-###` (movement) | 20 | 0 |
+
+**"Appears in code" is a weak proxy and overstates progress.** A module header
+that names `REQ-SET-051` to record it as *blocked* counts in that 75. Read the
+column as "has been considered somewhere", not "is implemented and tested".
+
+The UI row is the honest one: **1 of 103**. The only UI is `hud.gd`.
+
+### System stages — 5 of 23 running
+
+`settlement_system.gd` runs ARCH-SYS-003 (needs, with 017 folded in), 008's
+activity half, 010 and 013. The other eighteen are declared and idle.
+
+The four that block a playable loop:
+
+- **ARCH-SYS-002 CommandCommit** — no ordered command queue (blocker U2). No
+  player action reaches the simulation at all.
+- **ARCH-SYS-009 JobPlanner** — **nothing creates jobs.** READY_06 item 1 answers
+  this with eight EARS contracts; none are built yet.
+- **ARCH-SYS-011/012 Navigation and Movement** — no pathfinder, no Transform
+  store. A job cannot progress past `RESERVED`.
+- **ARCH-SYS-022 CheckpointHash** — no save stream.
+
+### What exists as data versus what runs
+
+The task-03 work built **stores**: RNG, resource nodes, forage, fishing, weather,
+farm plots and tile history. They are tested and correct in isolation. **None of
+them is wired into the tick**, because ARCH-SYS-005 and 006 — the two
+orchestration stages that would drive them — are increments 9 and 10 and are not
+started.
+
+So the accurate summary of task 03 is: *the ecology model exists and nothing
+runs it yet.*
+
+### Prototype code still present
+
+`godot/scripts/components/` (`component.gd`, `health_component.gd`,
+`position_component.gd`) and `entity_manager.gd` are the original prototype,
+still autoloaded, still diverging from the GDD as decision 0006 records. They are
+not part of the settlement architecture and have not been removed.
 
 ## Task 03 increments
 

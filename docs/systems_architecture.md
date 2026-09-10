@@ -140,6 +140,10 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | Expedition | consent | B8 | 1 | 1 | 512 | 512 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | FarmPlot | crop_id, state, soil, fertility, moisture, health, last_family, family_streak, sow_day | I32 | 4 | 9 | 4096 | 147456 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | FarmPlot | growth_milli_hours, compost_milli | I64 | 8 | 2 | 4096 | 65536 | [GDD §4.2; lengths ARCH-MEM-002–004] |
+| PendingService | owner_slot, owner_generation, service_day, job_slot, job_generation, serviced_day | I32 | 4 | 6 | 4096 | 98304 | [decision 0039; ruling 2026-09-09 §1] ARCH-SYS-009's pending-service identity `(owner EntityRef, operation, absolute service day)`; `row = owner_typed_row*DAILY_SERVICE_OPERATION_COUNT + operation`. `serviced_day` is the completion history the ruling forbids discarding |
+| PendingService | status, requires_water | B8 | 1 | 2 | 4096 | 8192 | [decision 0039] FREE/PENDING/UNMET, where UNMET is R06-JOB-008's retained demand, plus §5.6's declared water input |
+| PendingService.dirty | dirty_owner | I32 | 4 | 1 | 4096 | 16384 | [decision 0039] R06-JOB-008's dirty stack, one entry per owner; derived and rebuildable |
+| PendingService.dirty | is_dirty | B8 | 1 | 1 | 4096 | 4096 | [decision 0039] Membership bit; what makes repeated dirty marking idempotent and the set bounded |
 | OrchardPlot | species_id, age_days, health, chill_days | I32 | 4 | 4 | 1024 | 16384 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | OrchardPlot | tended_today, harvested_year | B8 | 1 | 2 | 1024 | 2048 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Hive | building_slot, building_generation, strength, serviced_day | I32 | 4 | 4 | 1024 | 16384 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -177,7 +181,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | WorldPolicy | auto_immigration, raw_emergency_food, variety_first | B8 | 1 | 3 | 1 | 3 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | GeneratorState | requested_seed, effective_seed, attempt, architecture, settlement_name | I32 | 4 | 5 | 1 | 20 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 
-Fixed-field payload sum = **24148434 bytes** (24146898 before decision 0021 added the 1536-byte `Schedule.latch` group, taking the Schedule packed payload from 16384 to 12288+4096+1536=**17920** bytes). The table includes selected_P for allocation but excludes it from canonical hashing. All zero-capacity TransferManifest fields remain declared in the schema and codec; enabling the adapter requires a versioned capacity/budget revision. The chronicle total is unbounded on disk; the row is only its two resident pages. `[DERIVED]`
+Fixed-field payload sum = **24148434 bytes** (24146898 before decision 0021 added the 1536-byte `Schedule.latch` group, taking the Schedule packed payload from 16384 to 12288+4096+1536=**17920** bytes). That figure covers the rows through decision 0021 only; the table's own Payload column now sums to **24713042 bytes**, which is 24148434 plus the four later groups §2.3 enumerates line by line (+306304 decisions 0026/0030, +131072 claim-ordering cache, +256 decision 0027, +126976 decision 0039). The table includes selected_P for allocation but excludes it from canonical hashing. All zero-capacity TransferManifest fields remain declared in the schema and codec; enabling the adapter requires a versioned capacity/budget revision. The chronicle total is unbounded on disk; the row is only its two resident pages. `[DERIVED]`
 
 ### 2.3 Complete allocation ledger
 
@@ -185,7 +189,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
-| Fixed registry payload | 24586066 | 1 | 24586066 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027 **provisional**) |
+| Fixed registry payload | 24713042 | 1 | 24713042 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027 **provisional**; +126976 decision 0039 PendingService) |
 | Auxiliary payload | 16384856 | 1 | 16384856 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
@@ -204,15 +208,15 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 58660042 | Sum above |
+| Planned allocated payload | 58787018 | Sum above |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 67048650 | Payload + reserve |
-| Headroom below decimal 100 MB | 32951350 | 100000000 − live total |
-| Additional candidate mutable state | 52444458 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 119493108 | Live total + candidate mutable state |
-| Transactional headroom | -19493108 | 100000000 − transactional peak |
+| One live world plus reserve | 67175626 | Payload + reserve |
+| Headroom below decimal 100 MB | 32824374 | 100000000 − live total |
+| Additional candidate mutable state | 52571434 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 119747060 | Live total + candidate mutable state |
+| Transactional headroom | -19747060 | 100000000 − transactional peak |
 
-**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 58660042 in three recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021]`:
+**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 58787018 in four recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021, 0039]`:
 
 | Step | Governing record | Delta bytes | Running payload | Running payload + 8388608 reserve |
 |---|---|---:|---:|---:|
@@ -220,10 +224,11 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | Schedule latch columns | decision 0021 | +1536 | 57714790 | 66103398 |
 | Reservation pool indexing | decision 0019 | +786436 | 58501226 | 66889834 |
 | Job/JobAgent runtime columns | ARCH-STATE-005 | +158816 | 58660042 | 67048650 |
+| JobPlanner pending-service ledger | decision 0039 | +126976 | 58787018 | 67175626 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because two further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
-**ARCH-MEM-006.** The calculated two-world peak is 119493108 bytes, exceeding the gate by 19493108 bytes. Therefore the selected release architecture SHALL use a transactional **disk-backed rollback checkpoint**, not two resident mutable worlds: validate the entire incoming file and construct it in a separate inactive on-disk checkpoint, retain the old world's validated checkpoint, then reuse the old world's mutable allocations to decode the already validated incoming snapshot. On decode/I/O failure restore the validated old checkpoint before exposing any world. This avoids the second 52444458-byte mutable world and adds loading I/O. The original world remains logically unchanged on failure; UI remains in LOAD pause until rollback completes. If rollback itself encounters an I/O fault, keep both files and expose the load error without exposing a partially decoded world. `[NEW selected design; DERIVED ledger; GDD REQ-SET-161]`
+**ARCH-MEM-006.** The calculated two-world peak is 119747060 bytes, exceeding the gate by 19747060 bytes. Therefore the selected release architecture SHALL use a transactional **disk-backed rollback checkpoint**, not two resident mutable worlds: validate the entire incoming file and construct it in a separate inactive on-disk checkpoint, retain the old world's validated checkpoint, then reuse the old world's mutable allocations to decode the already validated incoming snapshot. On decode/I/O failure restore the validated old checkpoint before exposing any world. This avoids the second 52571434-byte mutable world and adds loading I/O. The original world remains logically unchanged on failure; UI remains in LOAD pause until rollback completes. If rollback itself encounters an I/O fault, keep both files and expose the load error without exposing a partially decoded world. `[NEW selected design; DERIVED ledger; GDD REQ-SET-161]`
 
 **ARCH-MEM-007.** The allocator reserve is a budget to measure, not a claim that Godot headers occupy exactly that amount. Count all live packed capacities and engine-owned copies separately. A measured reserve overrun fails qualification. The main planned payload contributors are directory bookkeeping, fixed field stores, A* scratch, and route cells; active resident fields are a small fraction. Avoid copying packed arrays into temporary local Variants during hot updates. `[NEW instrumentation; crowd §4.2, §7]`
 

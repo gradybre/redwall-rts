@@ -47,7 +47,9 @@ extends Node
 ##                                     stage is task 03 increment 10 and is not started.
 ##   ARCH-SYS-007 ImmigrationDeparture no candidate store; `needs.gd` leaves `departure_days`
 ##                                    explicitly unwritten pending a complete mood.
-##   ARCH-SYS-009 JobPlanner          NOTHING CREATES JOBS. See THE JOB QUEUE IS EMPTY below.
+##   ARCH-SYS-009 JobPlanner          EXISTS NOW (`scripts/core/job_planner.gd`, decision 0039)
+##                                    but IS NOT COMPOSED HERE. See THE JOB QUEUE IS EMPTY below
+##                                    for exactly what does and does not create work.
 ##   ARCH-SYS-011 Navigation          no pathfinder, no navigation graph, no route cache.
 ##   ARCH-SYS-012 Movement            no Transform store and no path to follow.
 ##   ARCH-SYS-014 BatchCompletion     no BatchState, no recipe store, no passive-wait flag.
@@ -78,12 +80,26 @@ extends Node
 ## `sim_clock.gd`'s offset calendar and the multiplier from `needs.gd`.
 ##
 ## ---------------------------------------------------------------------------------------
-## THE JOB QUEUE IS EMPTY, AND WILL STAY EMPTY UNTIL A JOB SOURCE EXISTS. Jobs are created by
-## production orders, recipes, construction, care requests, hauling policy and harvest zones --
-## NONE of which exists. This node therefore creates no job of its own: a fabricated job would
-## make the loop look busy and would measure a fiction. `job_queue_length()` reports the real
-## number, which is 0 in a fresh settlement, and the selection and work stages run over it
-## honestly and find nothing.
+## THE JOB QUEUE IN *THIS* SETTLEMENT IS EMPTY, AND THE REASON HAS CHANGED. It is no longer true
+## that nothing in the project creates a job: `scripts/core/job_planner.gd` (ARCH-SYS-009,
+## decision 0039) creates R06-JOB-007's one 1-WU FARM tending service for each GROWING FarmPlot
+## per absolute day, on a dirty condition or its 30-tick staggered idle sweep. Precisely:
+##
+##   WHAT NOW CREATES WORK: the daily FARM tending service of a GROWING plot, and only that.
+##   WHAT STILL CREATES NONE: REQ-SET-073 ripe harvest and REQ-SET-085 withered clearing (both
+##     keep their own route and are NOT rerouted through the planner); forage demand
+##     (R06-JOB-001/002, deferred); fishing cycles (R06-JOB-003, no Expedition store); sowing
+##     first-plant (R06-JOB-004, deferred); rotation advance (R06-JOB-005, no FieldPolicy store);
+##     hive service (R06-JOB-006, no Hive store); and every production order, recipe,
+##     construction, care request and hauling policy, none of which has a store.
+##   WHAT THIS NODE DOES: nothing of the above. It composes no farming store and no planner, so
+##     ITS OWN queue is still 0 in a fresh settlement. Joining the planner, farming.gd and
+##     weather.gd into this loop is ARCH-SYS-006 (task 03 increment 10), which is not started;
+##     composing it here early would run a crop simulation nothing else in this node advances.
+##
+## `job_queue_length()` reports the real number, and the selection and work stages run over it
+## honestly and find nothing. A fabricated job would make the loop look busy and would measure a
+## fiction; that has not changed.
 ##
 ## Two further gaps mean the job pipeline could not complete a job even if one existed, and both
 ## belong to files this task does not own:

@@ -73,11 +73,14 @@ extends RefCounted
 ## ---------------------------------------------------------------------------------------
 ## WHAT THIS STORE DELIBERATELY DOES NOT DO. None of it is stubbed; the numbers are simply not
 ## compiled in, so nothing here can drift from a contract that does not exist yet.
-##   * GEAR. §5.4's gear table, durability 0-1000, wear per cycle, repairs and "a cycle cannot
-##     start with durability below wear" all need a `GearInstance` store, which is blocker U5:
-##     it has no row in §4.2, no length in systems_architecture.md §2.2 and no directory kind in
-##     entity_directory.gd. The catch formula takes `base_catch_milli` as an ARGUMENT precisely
-##     so §5.4's arithmetic is complete without it -- the gear table supplies that one number.
+##   * GEAR, EXCEPT ITS EFFORT-SLOT COLUMN. §5.4's gear table, durability 0-1000, wear per cycle,
+##     repairs and "a cycle cannot start with durability below wear" all need a `GearInstance`
+##     store, which is blocker U5: it has no row in §4.2, no length in systems_architecture.md
+##     §2.2 and no directory kind in entity_directory.gd. The catch formula takes
+##     `base_catch_milli` as an ARGUMENT precisely so §5.4's arithmetic is complete without it.
+##     ONE column of that table is compiled here and nothing else: "Workers/effort slots", whose
+##     second number ruling §5 restates as "one for net/trap/ice kit; two for weir/boat".
+##     GEAR_EFFORT_SLOTS holds it so a cycle cannot reserve a slot count from memory.
 ##   * EXPEDITIONS AND HAZARDS. REQ-SET-053/054's hazard roll, injury, rescue job and cargo
 ##     retention, and the rare-quality roll, need the `Expedition` allocator and per-cycle
 ##     FISHING draws. §4.2's Expedition row exists and its store does not.
@@ -128,53 +131,97 @@ extends RefCounted
 ##     path applies it: §5.4 states no mechanical effect for the refuge, and guessing one would
 ##     also double-count against the 30% minimum stock. When the unit is ruled on, the refuge
 ##     reader should read the column instead of the constant.
-##   * "UP TO 32" HABITATS VERSUS §5.1's THREE. §4.2 allows 32 habitats and §5.1 says "There is
-##     one stock basin of each habitat type; dividing a player zone never creates extra ecology
-##     stock" -- three basins. That is the same tension decision 0026 resolved for forage by
-##     hanging stock off the basin. It is NOT resolved unilaterally here: this store holds the
-##     32 rows §4.2 and §2.2 both size, and adds no basin indirection, because FishStock's owner
-##     is `habitat` and §5.4 gives no zone-sharing rule of its own. If a player designation is
-##     ever allowed to create a habitat, the same anti-multiplication guard forage.gd has will
-##     be needed here. NEEDS A PLANNER RULING.
-##   * EFFORT-SLOT OCCUPANCY HAS NO COLUMN. §5.4 states the capacities ("Habitat effort capacity:
-##     river 4, lake 6, coast 6") and REQ-SET-044 says a starting cycle "shall reserve its effort
-##     slots", but §4.2's FishHabitat row has only `effort_slots` -- a capacity, with nowhere to
-##     record how many are taken. The occupancy counter below is therefore an ADDED column, and
-##     it is state a save would have to carry. REQ-SET-050's queue itself is NOT added: JobState
-##     already has QUEUED=0 and §4.2 sizes the Job store at 8192 active/queued rows, so the queue
-##     lives there. What this store owns is the cap that makes queueing necessary --
-##     reserve_effort_slot() refuses once `effort_slots` are taken, so extra fishers can never
-##     multiply a habitat's yield.
-##   * REQ-SET-048's HYSTERESIS HAS NO COLUMN EITHER. "When fishing stock falls below 30%
-##     capacity, the system shall warn of depletion and default to restocking until stock
-##     recovers above 40%" needs one bit of memory: between 30% and 40% the required behaviour
-##     depends on which threshold was crossed last, and population alone cannot answer that. The
-##     two thresholds are stated explicitly and are NOT collapsed into one. `restocking` is an
-##     added FishStock bit; §4.2 gives that row only `closed`.
-##   * INTERPRETATION -- WHAT "DEFAULT TO RESTOCKING" DOES. Below 30% the 30% minimum stock
-##     already refuses every harvest, so the restocking flag can only bite in the 30..40% band.
-##     It is read there as blocking harvest, unless the habitat's visible intensive-harvest
-##     policy is on (which §5.4 says lowers the 30% limit to the 10% hard floor). "Default to"
-##     implies something the player may override, and the only override §5.4 offers is that
-##     policy. Labelled an interpretation, in the manner resource_nodes.gd labelled
-##     `regrow_days == 0`; a warning-only reading is the alternative and is one line away.
+##   * "UP TO 32" HABITATS VERSUS §5.1's THREE -- RULED. §4.2 allows 32 habitats and §5.1 says
+##     "There is one stock basin of each habitat type; dividing a player zone never creates extra
+##     ecology stock". docs/rulings/2026-09-09_ready06_open_item_answers.md §8B settles it:
+##     **32 habitats and 96 stocks are ALLOCATION CEILINGS, not an instruction to generate 32
+##     copies of the starting resources.** The specified initial estuary is exactly one river,
+##     one lake and one coast basin -- nine FishStock rows, capacities summing to 2100/2200/3100
+##     U, stocks at §5.4's 80%. generate_initial_estuary() is that operation and it refuses to
+##     run twice.
+##     Only world generation or an explicit ecology-creation operation may create a habitat and
+##     its stocks; create_habitat(), bind_habitat_zone() and generate_initial_estuary() are that
+##     path and a player command must not be wired to them. A player FISH designation BINDS to
+##     existing ecological ownership: overlapping, splitting, deleting, protecting or redrawing
+##     it creates and resets no fish, quota history, restocking state or effort capacity, and
+##     several designations share one habitat's totals. Binding resolves
+##     designation -> its existing HarvestZone.basin -> the unique FishHabitat whose `zone` equals
+##     that basin reference, validating BOTH generations and requiring EXACTLY ONE match.
+##     That match is found by SCANNING the bounded 32 habitat rows -- the ruling forbids adding
+##     an inverse-map column for it -- and a missing, chained, cross-basin or duplicate match
+##     refuses. This extends decision 0026's anti-multiplication principle to fisheries without
+##     inventing a global fish counter.
+##   * EFFORT-SLOT OCCUPANCY HAS NO COLUMN IN §4.2 -- ADDED, AND NOW RATIFIED. §5.4 states the
+##     capacities ("Habitat effort capacity: river 4, lake 6, coast 6") and REQ-SET-044 says a
+##     starting cycle "shall reserve its effort slots", but §4.2's FishHabitat row has only
+##     `effort_slots` -- a capacity, with nowhere to record how many are taken. Ruling §5 ratifies
+##     the occupancy counter (+128 bytes), FishStock.restocking (+96) and the intensive-harvest
+##     policy flag (+32) as **256 bytes** of schema addition; decision 0027 is Accepted on that
+##     basis. REQ-SET-050's queue itself is still NOT added: JobState already has QUEUED=0 and
+##     §4.2 sizes the Job store at 8192 active/queued rows, so the queue lives there.
+##   * EFFORT IS MEASURED IN SLOTS, NOT WORKERS, AND A CYCLE RESERVES ITS WHOLE GEAR REQUIREMENT
+##     AT ONCE. Ruling §5: "Two single-slot calls without rollback are not a safe two-slot
+##     admission API." reserve_effort_slots() therefore takes a count, checks every condition
+##     before it writes anything, and publishes the claim and the occupancy change together --
+##     the allocate-before-consume hazard decision 0024 named. There is no single-slot entry
+##     point to compose unsafely.
+##   * THE CLAIM SLICE. `FishingEffortClaim` is a fixed slice indexed by EXPEDITION TYPED ROW
+##     (512 rows, entity_directory.gd's KIND_EXPEDITION capacity): `active:B8`,
+##     `expedition_generation:I32`, `habitat_slot/generation:I32x2`, `job_slot/generation:I32x2`,
+##     `slot_count:I32` -- six I32 columns plus one B8, **12800 bytes**, no child heap, ADDITIONAL
+##     to the 256-byte aggregate/policy total above. The EXPEDITION STORE'S OWN COLUMNS DO NOT
+##     EXIST (§4.2 declares the row; no module implements it), but the directory does carry
+##     KIND_EXPEDITION and its typed rows, so claims are allocated and validated through it: an
+##     incoming reference is validated through the directory FIRST and then against the stored
+##     generation, which is what catches a row left behind by a previous expedition. The
+##     expedition's directory slot is NOT stored -- the row index is its typed row, and
+##     EntityDirectory.owner_slot_of_typed_row() reads it back off the existing reverse map, so
+##     the six-column budget is sufficient. Only a cycle's COORDINATOR Job may own a claim
+##     (decision 0017); a member Job is refused, which is what stops cancelling one party member
+##     from releasing the coordinator's whole cycle.
+##     On load, rebuild_effort_aggregates() recomputes `effort_used` from the live claims and
+##     refuses a mismatched owner generation or an over-capacity total: ruling §5 is explicit
+##     that "a stored total alone cannot prove ownership".
+##   * REQ-SET-048's HYSTERESIS HAS NO COLUMN EITHER -- ADDED, AND NOW RATIFIED. "When fishing
+##     stock falls below 30% capacity, the system shall warn of depletion and default to
+##     restocking until stock recovers above 40%" needs one bit of memory: between 30% and 40%
+##     the required behaviour depends on which threshold was crossed last, and population alone
+##     cannot answer that. The transitions are ruling §5's, with STRICT comparisons on both
+##     sides: enter when `100*P < 30*K`, clear when `100*P > 40*K`, otherwise retain the previous
+##     value. **Equality at exactly 30% or exactly 40% does not flip the latch.** Both products
+##     are formed with checked arithmetic rather than a percentage of K, so no capacity that is
+##     not a multiple of 10 can round the boundary into the wrong side.
+##   * "DEFAULT TO RESTOCKING" BLOCKS NEW HARVEST -- RULED, no longer this module's reading.
+##     Ruling §5: it "blocks new harvest cycles for the affected stock while its latch is set; it
+##     is not just a warning". An explicitly enabled intensive policy may bypass that soft stop
+##     down to the existing 10% hard floor, but never a closure, an unavailable species, the
+##     quota, danger consent or required gear. The player's explicit intensive choice is
+##     PRESERVED -- nothing here resets it automatically and no cycle re-confirms it -- and the
+##     latch is updated INDEPENDENTLY of the override, so turning intensive off restores the
+##     restriction on the very next call. Lowering the policy prevents new claims and
+##     revalidate_effort_claim() re-checks an uncommitted departure, but nothing recreates
+##     consumed fish or refunds spent work.
 ##   * CARP'S WINDOW IS NOT LABELLED A SPAWNING CLOSURE. §5.4 writes "Spring days 8-10 closure"
 ##     for carp against "spawning closure" for trout and salmon. REQ-SET-047 prohibits the
 ##     intensive override during "a spawning closure". is_closure_window() covers all three and
 ##     the override is refused in all three -- strictly safer, since it can only ever keep the
 ##     floor at 30%, never lower it. If carp's window is meant to permit the override, that is a
 ##     one-line change and a stated distinction this module cannot make for itself.
-##   * `FishHabitat.zone`'s ZoneType CANNOT BE CHECKED HERE. §4.3 has ZoneType.FISH=0 and
-##     forage.gd owns the HarvestZone store; reaching into it would fork ownership of that row.
-##     A zone reference is validated as a live KIND_HARVEST_ZONE reference in the shared
-##     directory, and the null reference `(-1, 0)` is accepted, because §5.1 puts a basin of each
-##     habitat type on the map whether or not the player has designated a zone over it. Whoever
-##     binds the two must check the type is FISH.
+##   * `FishHabitat.zone`'s ZoneType IS CHECKED ONLY WHEN THE ZONE STORE IS SUPPLIED. forage.gd
+##     owns the HarvestZone row, so this module does not fork it: it takes an OPTIONAL forage.gd
+##     collaborator, exactly as forage.gd takes an optional jobs.gd. With that collaborator the
+##     ecology-creation path requires §4.3's ZoneType.FISH and a self-owning basin; without it a
+##     zone reference is validated only as a live KIND_HARVEST_ZONE reference in the shared
+##     directory, and the designation binding of ruling §8B refuses with NO_ZONE_STORE rather
+##     than guessing. The null reference `(-1, 0)` stays acceptable, because §5.1 puts a basin of
+##     each habitat type on the map whether or not the player has designated a zone over it.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const ForageScript := preload("res://scripts/core/forage.gd")
+const JobsScript := preload("res://scripts/core/jobs.gd")
 
 # --- capacities (GDD §4.2, systems_architecture.md §2.2, entity_directory.gd) ---------------------
 
@@ -184,6 +231,20 @@ const FISH_HABITAT_CAPACITY: int = 32
 const SPECIES_PER_HABITAT: int = 3
 ## systems_architecture.md §2.2 FishStock length: 96 == 32 * 3.
 const FISH_STOCK_CAPACITY: int = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT
+
+## Ruling §5: the FishingEffortClaim slice is indexed by EXPEDITION TYPED ROW, so its length is
+## entity_directory.gd's KIND_EXPEDITION capacity and never a number of its own. `_init()` asserts
+## the two agree.
+const FISHING_EFFORT_CLAIM_CAPACITY: int = 512
+
+## §4.3 ZoneType.FISH, read from catalog.gd's protected table (decision 0018), never mirrored.
+const ZONE_TYPE_FISH: int = Catalog.ZONE_TYPE["FISH"]
+
+## Packed payload accounting, so the byte figures reported below are measured off the real column
+## sizes instead of being restated by hand (R05-QUOTA-024's rule, applied here too).
+const BYTES_PER_INT32: int = 4
+const BYTES_PER_INT64: int = 8
+const BYTES_PER_BYTE_COLUMN: int = 1
 
 # --- GDD §4.3 Season, read from catalog.gd's protected table (decision 0018) ----------------------
 
@@ -217,6 +278,31 @@ const LAKE_EFFORT_SLOTS: int = 6
 const COAST_EFFORT_SLOTS: int = 6
 const EFFORT_SLOTS_BY_TYPE: Array[int] = [
 	COAST_EFFORT_SLOTS, LAKE_EFFORT_SLOTS, RIVER_EFFORT_SLOTS,
+]
+
+# --- GDD §5.4 gear table: its "Workers/effort slots" column ONLY (see the header) -------------------
+
+## §5.4's five gear rows. These are MODULE-LOCAL TABLE ROWS, not catalog ids: the gear catalog is
+## blocker U5 and numbering one here would be inventing it. They are held in ascending ASCII key
+## order so that a later compiled domain, which GDD §4.2's closing paragraph would number the same
+## way, cannot disagree with them.
+const GEAR_BOAT: int = 0
+const GEAR_HAND_NET: int = 1
+const GEAR_ICE_KIT: int = 2
+const GEAR_TRAP: int = 3
+const GEAR_WEIR: int = 4
+const GEAR_COUNT: int = 5
+const GEAR_KEYS: Array[StringName] = [&"boat", &"hand_net", &"ice_kit", &"trap", &"weir"]
+
+## §5.4's "Workers/effort slots" column, second number: hand net 1/1, trap 1/1, weir 1/2,
+## boat 2/2, and the ice kit modifier is "Same as net". Ruling §5 restates it as "one for
+## net/trap/ice kit; two for weir/boat", and `_init()` asserts each entry against its NAMED gear
+## rather than a bare position.
+const BASIC_GEAR_EFFORT_SLOTS: int = 1
+const HEAVY_GEAR_EFFORT_SLOTS: int = 2
+const GEAR_EFFORT_SLOTS: Array[int] = [
+	HEAVY_GEAR_EFFORT_SLOTS, BASIC_GEAR_EFFORT_SLOTS, BASIC_GEAR_EFFORT_SLOTS,
+	BASIC_GEAR_EFFORT_SLOTS, HEAVY_GEAR_EFFORT_SLOTS,
 ]
 
 # --- GDD §5.4 species table, row for row ----------------------------------------------------------
@@ -349,6 +435,10 @@ const SKILL_LEVEL_MAX: int = 10
 const DANGER_MIN: int = 0
 const DANGER_MAX: int = 3
 
+## §4.3 JobState.CANCELLED, read from catalog.gd's protected table, never mirrored. It is the one
+## Job state this store consults: ruling §5's "completion, cancellation and stale calls".
+const JOB_STATE_CANCELLED: int = Catalog.JOB_STATE["CANCELLED"]
+
 const NULL_REF: Vector2i = EntityDirectory.NULL_REF
 
 # --- refusal codes ---------------------------------------------------------------------------------
@@ -378,9 +468,25 @@ const REFUSE_RESTOCKING: StringName = &"RESTOCKING"
 const REFUSE_BELOW_STOCK_FLOOR: StringName = &"BELOW_STOCK_FLOOR"
 const REFUSE_QUOTA_REACHED: StringName = &"QUOTA_REACHED"
 const REFUSE_EFFORT_SLOTS_FULL: StringName = &"EFFORT_SLOTS_FULL"
-const REFUSE_NO_EFFORT_SLOT_RESERVED: StringName = &"NO_EFFORT_SLOT_RESERVED"
 const REFUSE_EFFORT_SLOTS_RESERVED: StringName = &"EFFORT_SLOTS_RESERVED"
 const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
+const REFUSE_INVALID_GEAR: StringName = &"INVALID_GEAR"
+const REFUSE_INVALID_SLOT_COUNT: StringName = &"INVALID_SLOT_COUNT"
+const REFUSE_NO_JOB_STORE: StringName = &"NO_JOB_STORE"
+const REFUSE_NO_ZONE_STORE: StringName = &"NO_ZONE_STORE"
+const REFUSE_JOB_NOT_PRESENT: StringName = &"JOB_NOT_PRESENT"
+const REFUSE_JOB_IS_MEMBER: StringName = &"JOB_IS_MEMBER"
+const REFUSE_EXPEDITION_NOT_PRESENT: StringName = &"EXPEDITION_NOT_PRESENT"
+const REFUSE_EFFORT_CLAIM_PRESENT: StringName = &"EFFORT_CLAIM_ALREADY_PRESENT"
+const REFUSE_EFFORT_CLAIM_STALE: StringName = &"EFFORT_CLAIM_STALE"
+const REFUSE_NO_EFFORT_CLAIM: StringName = &"NO_EFFORT_CLAIM"
+const REFUSE_AGGREGATE_MISMATCH: StringName = &"EFFORT_AGGREGATE_MISMATCH"
+const REFUSE_ZONE_NOT_FISH: StringName = &"ZONE_NOT_FISH"
+const REFUSE_ZONE_ALREADY_BOUND: StringName = &"ZONE_ALREADY_BOUND"
+const REFUSE_BASIN_CHAIN: StringName = &"BASIN_CHAIN"
+const REFUSE_NO_HABITAT_FOR_BASIN: StringName = &"NO_HABITAT_FOR_BASIN"
+const REFUSE_DUPLICATE_HABITAT_FOR_BASIN: StringName = &"DUPLICATE_HABITAT_FOR_BASIN"
+const REFUSE_ESTUARY_PRESENT: StringName = &"ESTUARY_ALREADY_PRESENT"
 
 
 class OpResult:
@@ -406,6 +512,11 @@ class OpResult:
 
 var _directory: EntityDirectory = null
 var _owns_directory: bool = false
+## OPTIONAL collaborators, both owned elsewhere. `_zones` is forage.gd's HarvestZone store, which
+## owns §4.2's zone row; `_jobs` is jobs.gd, which owns decision 0017's coordinator/member link.
+## Every operation that needs one refuses explicitly when it is absent (see the header).
+var _zones: ForageScript = null
+var _jobs: JobsScript = null
 
 # --- FishHabitat columns (ARCH-MEM-001: packed, allocated once) --------------------------------------
 
@@ -445,6 +556,17 @@ var _stock_closed: PackedByteArray = PackedByteArray()
 ## ADDED COLUMN, see the header: REQ-SET-048's 30-down/40-up hysteresis needs one bit of memory.
 var _stock_restocking: PackedByteArray = PackedByteArray()
 
+# --- FishingEffortClaim columns, indexed by EXPEDITION TYPED ROW (ruling §5) --------------------------
+
+var _effort_claim_active: PackedByteArray = PackedByteArray()
+var _effort_claim_expedition_generation: PackedInt32Array = PackedInt32Array()
+var _effort_claim_habitat_slot: PackedInt32Array = PackedInt32Array()
+var _effort_claim_habitat_generation: PackedInt32Array = PackedInt32Array()
+var _effort_claim_job_slot: PackedInt32Array = PackedInt32Array()
+var _effort_claim_job_generation: PackedInt32Array = PackedInt32Array()
+var _effort_claim_slot_count: PackedInt32Array = PackedInt32Array()
+var _effort_claim_count: int = 0
+
 # --- scratch (not simulation state) -------------------------------------------------------------------
 
 ## Checked-arithmetic scratch for int_math's `_into` forms. Nothing here invokes a callback or a
@@ -452,13 +574,33 @@ var _stock_restocking: PackedByteArray = PackedByteArray()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 ## A second scratch for the paths that need a live value while computing another.
 var _math_b: IntMath.IntResult = IntMath.IntResult.new()
+## A third, held by the hysteresis latch alone, so it can run inside a harvest that is already
+## using both of the others.
+var _math_c: IntMath.IntResult = IntMath.IntResult.new()
+## Per-habitat occupancy recomputed from the live claims. SCRATCH, 128 bytes, counted apart from
+## the 12800-byte claim payload: it exists so the load path can total every claim BEFORE it
+## overwrites the authoritative column (decision 0024's allocate-before-consume).
+var _effort_total_scratch: PackedInt32Array = PackedInt32Array()
+## Resolved rows carried from a refusal check to the commit that immediately follows it. Nothing
+## between the two calls can re-enter this store.
+var _pending_claim_row: int = -1
+var _pending_habitat_slot: int = -1
 
 
-func _init(p_directory: EntityDirectory = null) -> void:
-	"""Allocate every column once and adopt or build the directory behind every habitat ref."""
+func _init(p_directory: EntityDirectory = null, p_zones: ForageScript = null,
+		p_jobs: JobsScript = null) -> void:
+	"""Allocate every column once and adopt or build the directory behind every habitat ref.
+
+	`p_zones` and `p_jobs` are the optional HarvestZone and Job stores of the header; when they
+	are supplied they MUST already share this store's directory, because every reference crossing
+	the boundary is validated in it.
+	"""
 	assert(FISH_HABITAT_CAPACITY
 			== EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_FISH_HABITAT],
 		"fish-habitat columns must match the directory's FISH_HABITAT row capacity")
+	assert(FISHING_EFFORT_CLAIM_CAPACITY
+			== EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_EXPEDITION],
+		"the effort-claim slice must be one row per directory Expedition row")
 	assert(SPECIES_KEYS.size() == SPECIES_COUNT, "GDD §5.4 lists exactly nine fish species")
 	assert(SPECIES_CAPACITY_U.size() == SPECIES_COUNT, "one capacity per §5.4 species row")
 	assert(SPECIES_RECOVERY_PER_1000.size() == SPECIES_COUNT, "one r per §5.4 species row")
@@ -466,10 +608,43 @@ func _init(p_directory: EntityDirectory = null) -> void:
 		"§5.4 gives four seasonal availabilities for each of the nine species rows")
 	assert(EFFORT_SLOTS_BY_TYPE.size() == HABITAT_TYPE_COUNT, "§5.4 gives three effort capacities")
 	_assert_habitat_binding()
-	_owns_directory = p_directory == null
-	_directory = p_directory if p_directory != null else EntityDirectory.new()
+	_assert_gear_binding()
+	_zones = p_zones
+	_jobs = p_jobs
+	_directory = _adopt_directory(p_directory)
 	_allocate_columns()
 	clear()
+
+
+func _adopt_directory(p_directory: EntityDirectory) -> EntityDirectory:
+	"""Adopt the directory a collaborator already uses, or build one when there is none.
+
+	Every reference crossing this store's boundary -- zone, Job and Expedition alike -- is
+	validated in one directory, so a supplied collaborator's directory wins over building a
+	second one that would validate none of them.
+	"""
+	var adopted: EntityDirectory = p_directory
+	if adopted == null and _jobs != null:
+		adopted = _jobs.directory()
+	if adopted == null and _zones != null:
+		adopted = _zones.directory()
+	assert(_zones == null or adopted == _zones.directory(),
+		"a fishery and its HarvestZone store must validate references through one directory")
+	assert(_jobs == null or adopted == _jobs.directory(),
+		"a fishery and its Job store must validate references through one directory")
+	_owns_directory = adopted == null
+	return adopted if adopted != null else EntityDirectory.new()
+
+
+func _assert_gear_binding() -> void:
+	"""Assert §5.4's effort-slot column against the NAMED gear row, never a bare position."""
+	assert(GEAR_KEYS.size() == GEAR_COUNT, "§5.4's gear table has five rows")
+	assert(GEAR_EFFORT_SLOTS.size() == GEAR_COUNT, "one effort-slot count per §5.4 gear row")
+	assert(GEAR_EFFORT_SLOTS[GEAR_HAND_NET] == BASIC_GEAR_EFFORT_SLOTS, "§5.4: hand net 1/1")
+	assert(GEAR_EFFORT_SLOTS[GEAR_TRAP] == BASIC_GEAR_EFFORT_SLOTS, "§5.4: trap 1/1")
+	assert(GEAR_EFFORT_SLOTS[GEAR_ICE_KIT] == BASIC_GEAR_EFFORT_SLOTS, "§5.4: ice kit as net")
+	assert(GEAR_EFFORT_SLOTS[GEAR_WEIR] == HEAVY_GEAR_EFFORT_SLOTS, "§5.4: weir 1/2")
+	assert(GEAR_EFFORT_SLOTS[GEAR_BOAT] == HEAVY_GEAR_EFFORT_SLOTS, "§5.4: boat 2/2")
 
 
 func _assert_habitat_binding() -> void:
@@ -499,6 +674,19 @@ func _allocate_columns() -> void:
 	"""The only place that sizes a packed array (ARCH-MEM-005: allocate once)."""
 	_allocate_habitat_columns()
 	_allocate_stock_columns()
+	_allocate_effort_claim_columns()
+
+
+func _allocate_effort_claim_columns() -> void:
+	"""Size ruling §5's claim slice at one row per Expedition, plus its 32-entry total scratch."""
+	_effort_claim_active.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+	_effort_claim_expedition_generation.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+	_effort_claim_habitat_slot.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+	_effort_claim_habitat_generation.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+	_effort_claim_job_slot.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+	_effort_claim_job_generation.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+	_effort_claim_slot_count.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+	_effort_total_scratch.resize(FISH_HABITAT_CAPACITY)
 
 
 func _allocate_habitat_columns() -> void:
@@ -541,8 +729,24 @@ func clear() -> void:
 	_release_live_habitats()
 	_clear_habitat_columns()
 	_clear_stock_columns()
+	_clear_effort_claim_columns()
 	if _owns_directory:
 		_directory.clear()
+
+
+func _clear_effort_claim_columns() -> void:
+	"""Null and zero every claim row (ruling §5: "Null/zero unused rows")."""
+	_effort_claim_active.fill(0)
+	_effort_claim_expedition_generation.fill(EntityDirectory.NULL_GENERATION)
+	_effort_claim_habitat_slot.fill(EntityDirectory.NULL_SLOT)
+	_effort_claim_habitat_generation.fill(EntityDirectory.NULL_GENERATION)
+	_effort_claim_job_slot.fill(EntityDirectory.NULL_SLOT)
+	_effort_claim_job_generation.fill(EntityDirectory.NULL_GENERATION)
+	_effort_claim_slot_count.fill(0)
+	_effort_total_scratch.fill(0)
+	_effort_claim_count = 0
+	_pending_claim_row = -1
+	_pending_habitat_slot = -1
 
 
 func _release_live_habitats() -> void:
@@ -589,6 +793,16 @@ func _clear_stock_columns() -> void:
 func directory() -> EntityDirectory:
 	"""The allocator behind every fish-habitat reference."""
 	return _directory
+
+
+func zones() -> ForageScript:
+	"""The HarvestZone store this fishery binds designations through, or null when none was given."""
+	return _zones
+
+
+func jobs() -> JobsScript:
+	"""The Job store effort-claim ownership is checked in, or null when none was given."""
+	return _jobs
 
 
 # --- GDD §5.4 species table -----------------------------------------------------------------------
@@ -728,9 +942,9 @@ func _refuse_habitat_fields(habitat_type: int, zone_ref: Vector2i, pollution: in
 	"""
 	if not is_habitat_type(habitat_type):
 		return REFUSE_INVALID_HABITAT_TYPE
-	if zone_ref != NULL_REF \
-			and not _directory.is_valid_of_kind(zone_ref, EntityDirectory.KIND_HARVEST_ZONE):
-		return REFUSE_INVALID_ZONE_REF
+	var zone_code: StringName = _refuse_zone_binding(zone_ref, EntityDirectory.NULL_SLOT)
+	if zone_code != REFUSE_NONE:
+		return zone_code
 	if pollution < 0 or not IntMath.fits_int32(pollution):
 		return REFUSE_INVALID_POLLUTION
 	if danger < DANGER_MIN or danger > DANGER_MAX:
@@ -986,40 +1200,344 @@ func habitat_refuge_milli_of(slot: int) -> IntMath.IntResult:
 	return out
 
 
+# --- ruling §8B: habitat-to-basin ownership and the initial estuary -----------------------------------
+
+func _refuse_zone_binding(zone_ref: Vector2i, exclude_slot: int) -> StringName:
+	"""REFUSE_NONE when `zone_ref` may own a habitat, ignoring habitat row `exclude_slot`.
+
+	Ruling §8B: exactly one FishHabitat may name a given basin, so binding is where a duplicate is
+	PREVENTED rather than merely detected later. The null reference is accepted -- §5.1 puts a
+	basin of each habitat type on the map whether or not a zone has been designated over it.
+	"""
+	if zone_ref == NULL_REF:
+		return REFUSE_NONE
+	if not _directory.is_valid_of_kind(zone_ref, EntityDirectory.KIND_HARVEST_ZONE):
+		return REFUSE_INVALID_ZONE_REF
+	for index: int in _live_habitat_count:
+		var slot: int = _live_habitat_slots[index]
+		if slot == exclude_slot:
+			continue
+		if _habitat_zone_slot[slot] == zone_ref.x \
+				and _habitat_zone_generation[slot] == zone_ref.y:
+			return REFUSE_ZONE_ALREADY_BOUND
+	return _refuse_basin_zone(zone_ref)
+
+
+func _refuse_basin_zone(zone_ref: Vector2i) -> StringName:
+	"""REFUSE_NONE when the HarvestZone store agrees `zone_ref` is a self-owning FISH basin.
+
+	Without that store the type cannot be read here at all -- forage.gd owns the row -- so the
+	reference is accepted on its directory kind alone and the designation binding below refuses
+	with NO_ZONE_STORE rather than guessing (see the header).
+	"""
+	if _zones == null:
+		return REFUSE_NONE
+	if not _zones.zone_slot_of_into(zone_ref, _math_b):
+		return REFUSE_INVALID_ZONE_REF
+	var zone_slot: int = _math_b.value
+	if _zones.zone_type_of(zone_slot).value != ZONE_TYPE_FISH:
+		return REFUSE_ZONE_NOT_FISH
+	if _zones.basin_ref_of(zone_slot) != zone_ref:
+		return REFUSE_BASIN_CHAIN
+	return REFUSE_NONE
+
+
+func bind_habitat_zone(habitat_ref: Vector2i, basin_ref: Vector2i) -> OpResult:
+	"""Ecology-owner operation: point one habitat at the basin HarvestZone that owns its stock.
+
+	Ruling §8B: only world generation or an explicit ecology-creation operation may do this, and a
+	player designation must never be wired to it. It creates and resets NOTHING -- stocks, daily
+	quota totals, restocking latches and effort claims are all untouched -- and refuses a zone
+	that is not a self-owning FISH basin, or one another habitat already claims.
+	"""
+	if not habitat_slot_of_into(habitat_ref, _math):
+		return _refuse(StringName(_math.error))
+	var slot: int = _math.value
+	var code: StringName = _refuse_zone_binding(basin_ref, slot)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_habitat_zone_slot[slot] = basin_ref.x
+	_habitat_zone_generation[slot] = basin_ref.y
+	return _succeed(slot, basin_ref)
+
+
+func habitat_ref_for_basin(basin_ref: Vector2i) -> OpResult:
+	"""The single habitat owning one basin's fish, or an explicit refusal."""
+	if not habitat_slot_for_basin_into(basin_ref, _math):
+		return _refuse(StringName(_math.error))
+	return _succeed(_math.value, habitat_ref_of(_math.value))
+
+
+func habitat_slot_for_basin_into(basin_ref: Vector2i, out: IntMath.IntResult) -> bool:
+	"""Scan the bounded 32 habitat rows for the UNIQUE habitat bound to `basin_ref`.
+
+	Ruling §8B forbids an inverse-map column for this, so the scan is the implementation and its
+	cost is bounded by §4.2's 32 rows. BOTH halves of the reference are compared: a habitat still
+	naming the slot under an older generation is a stale binding, not this basin's habitat.
+
+	The DUPLICATE branch is defence in depth and is currently unreachable: _refuse_zone_binding()
+	stops two habitats from ever naming one basin reference, so prevention is the half that can be
+	tested. Decision 0036 records that a mutation removing this check survives for that reason,
+	rather than leaving it to look like an untested gap.
+	"""
+	if not _directory.is_valid_of_kind(basin_ref, EntityDirectory.KIND_HARVEST_ZONE):
+		return out.refuse(String(REFUSE_INVALID_ZONE_REF))
+	var found: int = EntityDirectory.NULL_SLOT
+	for index: int in _live_habitat_count:
+		var slot: int = _live_habitat_slots[index]
+		if _habitat_zone_slot[slot] != basin_ref.x:
+			continue
+		if _habitat_zone_generation[slot] != basin_ref.y:
+			continue
+		if found != EntityDirectory.NULL_SLOT:
+			return out.refuse(String(REFUSE_DUPLICATE_HABITAT_FOR_BASIN))
+		found = slot
+	if found == EntityDirectory.NULL_SLOT:
+		return out.refuse(String(REFUSE_NO_HABITAT_FOR_BASIN))
+	return out.succeed(found)
+
+
+func habitat_ref_for_designation(designation_ref: Vector2i) -> OpResult:
+	"""The habitat a player FISH designation harvests from, or an explicit refusal."""
+	if not habitat_slot_for_designation_into(designation_ref, _math):
+		return _refuse(StringName(_math.error))
+	return _succeed(_math.value, habitat_ref_of(_math.value))
+
+
+func habitat_slot_for_designation_into(designation_ref: Vector2i,
+		out: IntMath.IntResult) -> bool:
+	"""Ruling §8B: designation -> its existing HarvestZone.basin -> the unique habitat on it.
+
+	Nothing here creates or resets anything, so overlapping, splitting, deleting, protecting or
+	redrawing a designation leaves the basin's fish, quota history, restocking latches and effort
+	capacity exactly as they were, and several designations resolve to the same totals.
+	forage.gd's basin resolution validates both zone generations; a basin that is itself bound
+	elsewhere is a chain and refuses, because it would give two answers for one designation.
+	"""
+	if _zones == null:
+		return out.refuse(String(REFUSE_NO_ZONE_STORE))
+	if not _zones.basin_slot_of_into(designation_ref, out):
+		return out.refuse(String(REFUSE_INVALID_ZONE_REF))
+	var basin_ref: Vector2i = _zones.zone_ref_of(out.value)
+	if _zones.basin_ref_of(out.value) != basin_ref:
+		return out.refuse(String(REFUSE_BASIN_CHAIN))
+	return habitat_slot_for_basin_into(basin_ref, out)
+
+
+func generate_initial_estuary(species_ids: PackedInt32Array) -> OpResult:
+	"""Ruling §8B's world-generation operation: exactly one coast, lake and river basin.
+
+	Nine FishStock rows in total, with §5.4's capacities summing to 3100/2200/2100 U and stocks at
+	its "Initial stocks are 80% of capacity". Returns the stock rows created. `species_ids` holds
+	nine ids addressed `habitat_type * 3 + species_index` under the compiled COAST=0, LAKE=1,
+	RIVER=2 ordinals. Both allocator pools are preflighted, so a refusal creates no habitat at
+	all: 32 habitats and 96 stocks are a CEILING, never an instruction to generate 32 copies.
+	"""
+	var code: StringName = _refuse_estuary(species_ids)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var created: int = 0
+	for habitat_type: int in HABITAT_TYPE_COUNT:
+		var made: OpResult = create_habitat(habitat_type, NULL_REF,
+			species_ids.slice(habitat_type * SPECIES_PER_HABITAT,
+				(habitat_type + 1) * SPECIES_PER_HABITAT), 0, 0, 0)
+		if not made.ok:
+			return _refuse(made.error)
+		created += SPECIES_PER_HABITAT
+	return _succeed(created, NULL_REF)
+
+
+func _refuse_estuary(species_ids: PackedInt32Array) -> StringName:
+	"""REFUSE_NONE when the initial estuary may be generated, with nothing allocated yet."""
+	if _live_habitat_count > 0:
+		return REFUSE_ESTUARY_PRESENT
+	if species_ids.size() != SPECIES_COUNT:
+		return REFUSE_SPECIES_SET_SIZE
+	if _directory.free_row_count(EntityDirectory.KIND_FISH_HABITAT) < HABITAT_TYPE_COUNT \
+			or _directory.free_slot_count() < HABITAT_TYPE_COUNT:
+		return EntityDirectory.KIND_CAPACITY_REFUSAL[EntityDirectory.KIND_FISH_HABITAT]
+	for habitat_type: int in HABITAT_TYPE_COUNT:
+		var code: StringName = _refuse_species_ids(species_ids.slice(
+			habitat_type * SPECIES_PER_HABITAT, (habitat_type + 1) * SPECIES_PER_HABITAT))
+		if code != REFUSE_NONE:
+			return code
+	return REFUSE_NONE
+
+
+func population_total_milli_of(habitat_slot: int) -> IntMath.IntResult:
+	"""The living biomass of one habitat's three stocks, summed. §5.4's "no shared global counter"
+	forbids a stored total, so this is computed from the three rows each time."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	population_total_milli_into(habitat_slot, out)
+	return out
+
+
+func population_total_milli_into(habitat_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating population_total_milli_of(): write the habitat's biomass into `out`."""
+	if not is_habitat_present(habitat_slot):
+		return out.refuse(String(REFUSE_HABITAT_NOT_PRESENT))
+	var total: int = 0
+	for species_index: int in SPECIES_PER_HABITAT:
+		var row: int = habitat_slot * SPECIES_PER_HABITAT + species_index
+		if _stock_present[row] != 1:
+			continue
+		if not IntMath.checked_add_into(total, _stock_population_milli[row], out):
+			return out.refuse(String(REFUSE_OVERFLOW))
+		total = out.value
+	return out.succeed(total)
+
+
 # --- REQ-SET-050 effort slots ------------------------------------------------------------------------
 
-func reserve_effort_slot(ref: Vector2i) -> OpResult:
-	"""Take one of §5.4's effort slots for a fisher. Returns the number of slots now taken.
+func is_gear(gear: int) -> bool:
+	"""True when `gear` names one of §5.4's five gear-table rows."""
+	return gear >= 0 and gear < GEAR_COUNT
+
+
+func effort_slots_for_gear(gear: int) -> IntMath.IntResult:
+	"""§5.4's "Workers/effort slots" for one gear row: 1 for net/trap/ice kit, 2 for weir/boat."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	effort_slots_for_gear_into(gear, out)
+	return out
+
+
+func effort_slots_for_gear_into(gear: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating effort_slots_for_gear(): write the cycle's slot requirement into `out`."""
+	if not is_gear(gear):
+		return out.refuse(String(REFUSE_INVALID_GEAR))
+	return out.succeed(GEAR_EFFORT_SLOTS[gear])
+
+
+func reserve_effort_slots(expedition_ref: Vector2i, job_ref: Vector2i, habitat_ref: Vector2i,
+		slot_count: int) -> OpResult:
+	"""Reserve a cycle's WHOLE effort requirement at once. Returns the slots now taken.
 
 	REQ-SET-050: "While a habitat's effort slots are occupied, the system shall queue further
 	fishers rather than multiply yield with unbounded workers." This is the half that makes
-	queueing necessary -- once `effort_slots` are taken, a further reservation is REFUSED, so no
-	extra worker can draw a second catch from the same habitat at the same time. The queue
-	itself is the Job store's `JobState.QUEUED`; see the header on why no queue is added here.
+	queueing necessary; the queue itself is the Job store's `JobState.QUEUED`.
+
+	Ruling §5: the claim and the occupancy change are published TOGETHER, and a request that does
+	not fit refuses without taking a single slot -- two single-slot calls without rollback are not
+	a safe two-slot admission API. The claim row is the Expedition's typed row and only its
+	coordinator Job may own it.
 	"""
-	if not habitat_slot_of_into(ref, _math):
-		return _refuse(StringName(_math.error))
-	var slot: int = _math.value
-	if _habitat_effort_used[slot] >= _habitat_effort_slots[slot]:
-		return _refuse(REFUSE_EFFORT_SLOTS_FULL)
-	_habitat_effort_used[slot] += 1
-	return _succeed(_habitat_effort_used[slot], ref)
+	var code: StringName = _refuse_effort_reservation(expedition_ref, job_ref, habitat_ref,
+		slot_count)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var habitat_slot: int = _pending_habitat_slot
+	_write_effort_claim(_pending_claim_row, expedition_ref, job_ref, habitat_ref, slot_count)
+	_habitat_effort_used[habitat_slot] += slot_count
+	return _succeed(_habitat_effort_used[habitat_slot], habitat_ref)
 
 
-func release_effort_slot(ref: Vector2i) -> OpResult:
-	"""Give one effort slot back. Returns the number of slots still taken.
+func _refuse_effort_reservation(expedition_ref: Vector2i, job_ref: Vector2i,
+		habitat_ref: Vector2i, slot_count: int) -> StringName:
+	"""REFUSE_NONE when this cycle may take `slot_count` slots, with nothing written yet.
 
-	Refuses when nothing is reserved rather than clamping at zero: a release without a matching
-	reservation is a bookkeeping error in the caller, and silently absorbing it would let a
-	double release open a slot that was never closed.
+	Leaves the claim row and the habitat row in `_pending_*` for the commit that follows.
 	"""
-	if not habitat_slot_of_into(ref, _math):
+	var code: StringName = _refuse_effort_owner(expedition_ref, job_ref)
+	if code != REFUSE_NONE:
+		return code
+	if not habitat_slot_of_into(habitat_ref, _math):
+		return StringName(_math.error)
+	_pending_habitat_slot = _math.value
+	if slot_count <= 0:
+		return REFUSE_INVALID_SLOT_COUNT
+	var free: int = _habitat_effort_slots[_pending_habitat_slot] \
+		- _habitat_effort_used[_pending_habitat_slot]
+	if slot_count > free:
+		return REFUSE_EFFORT_SLOTS_FULL
+	return REFUSE_NONE
+
+
+func _refuse_effort_owner(expedition_ref: Vector2i, job_ref: Vector2i) -> StringName:
+	"""REFUSE_NONE when this Expedition row is free to claim and this Job may own the claim.
+
+	The Expedition reference is validated THROUGH THE DIRECTORY FIRST and only then against the
+	generation stored on its row, which is what distinguishes "this expedition already holds a
+	claim" from "a previous expedition left one on the row this one reuses".
+	"""
+	if _jobs == null:
+		return REFUSE_NO_JOB_STORE
+	if not _directory.is_valid_of_kind(expedition_ref, EntityDirectory.KIND_EXPEDITION):
+		return REFUSE_EXPEDITION_NOT_PRESENT
+	var row: int = _directory.get_typed_row(expedition_ref)
+	if _effort_claim_active[row] == 1:
+		if _effort_claim_expedition_generation[row] == expedition_ref.y:
+			return REFUSE_EFFORT_CLAIM_PRESENT
+		return REFUSE_EFFORT_CLAIM_STALE
+	_pending_claim_row = row
+	return _refuse_effort_claim_job(job_ref)
+
+
+func _refuse_effort_claim_job(job_ref: Vector2i) -> StringName:
+	"""REFUSE_NONE when `job_ref` is a live Job that may own a claim (decision 0017's coordinator).
+
+	A MEMBER Job is refused: its coordinator owns the cycle, which is exactly what stops
+	cancelling one party member from releasing the whole cycle's effort slots.
+	"""
+	if not _directory.is_valid_of_kind(job_ref, EntityDirectory.KIND_JOB):
+		return REFUSE_JOB_NOT_PRESENT
+	var job_slot: int = _directory.get_typed_row(job_ref)
+	if not _jobs.is_job_present(job_slot):
+		return REFUSE_JOB_NOT_PRESENT
+	if _jobs.is_member(job_slot):
+		return REFUSE_JOB_IS_MEMBER
+	return REFUSE_NONE
+
+
+func _write_effort_claim(row: int, expedition_ref: Vector2i, job_ref: Vector2i,
+		habitat_ref: Vector2i, slot_count: int) -> void:
+	"""Write every column of one claim row and publish `active` last."""
+	_effort_claim_expedition_generation[row] = expedition_ref.y
+	_effort_claim_habitat_slot[row] = habitat_ref.x
+	_effort_claim_habitat_generation[row] = habitat_ref.y
+	_effort_claim_job_slot[row] = job_ref.x
+	_effort_claim_job_generation[row] = job_ref.y
+	_effort_claim_slot_count[row] = slot_count
+	_effort_claim_active[row] = 1
+	_effort_claim_count += 1
+
+
+func _clear_effort_claim_row(row: int) -> void:
+	"""Return one claim row to the null/zero state unused rows carry."""
+	_effort_claim_active[row] = 0
+	_effort_claim_expedition_generation[row] = EntityDirectory.NULL_GENERATION
+	_effort_claim_habitat_slot[row] = EntityDirectory.NULL_SLOT
+	_effort_claim_habitat_generation[row] = EntityDirectory.NULL_GENERATION
+	_effort_claim_job_slot[row] = EntityDirectory.NULL_SLOT
+	_effort_claim_job_generation[row] = EntityDirectory.NULL_GENERATION
+	_effort_claim_slot_count[row] = 0
+	_effort_claim_count -= 1
+
+
+func release_effort_slots(expedition_ref: Vector2i) -> OpResult:
+	"""Give back exactly this cycle's slots, exactly once. Returns the slots still taken.
+
+	A second release finds no active claim and refuses, and a reference whose stored generation
+	disagrees refuses too, so neither a double nor a stale call can free somebody else's slots.
+	"""
+	if not effort_claim_row_into(expedition_ref, _math):
 		return _refuse(StringName(_math.error))
-	var slot: int = _math.value
-	if _habitat_effort_used[slot] <= 0:
-		return _refuse(REFUSE_NO_EFFORT_SLOT_RESERVED)
-	_habitat_effort_used[slot] -= 1
-	return _succeed(_habitat_effort_used[slot], ref)
+	var row: int = _math.value
+	var habitat_ref: Vector2i = effort_claim_habitat_ref_of(row)
+	_release_effort_claim_row(row)
+	if not habitat_slot_of_into(habitat_ref, _math):
+		return _succeed(0, NULL_REF)
+	return _succeed(_habitat_effort_used[_math.value], habitat_ref)
+
+
+func _release_effort_claim_row(row: int) -> void:
+	"""Debit the claimed habitat's occupancy and clear the row, in that order.
+
+	The habitat is checked because a cleared store can leave a claim naming a row that is gone;
+	destroy_habitat() refuses while any slot is reserved, so no ordinary path reaches that.
+	"""
+	if habitat_slot_of_into(effort_claim_habitat_ref_of(row), _math_b):
+		_habitat_effort_used[_math_b.value] -= _effort_claim_slot_count[row]
+	_clear_effort_claim_row(row)
 
 
 func effort_slots_used_of(slot: int) -> IntMath.IntResult:
@@ -1041,16 +1559,285 @@ func effort_slots_free_into(slot: int, out: IntMath.IntResult) -> bool:
 	return out.succeed(maxi(_habitat_effort_slots[slot] - _habitat_effort_used[slot], 0))
 
 
-func must_queue(ref: Vector2i) -> bool:
-	"""REQ-SET-050: true when a further fisher must queue because every effort slot is taken.
+func must_queue(ref: Vector2i, slot_count: int = 1) -> bool:
+	"""REQ-SET-050: true when a cycle needing `slot_count` slots must queue for want of room.
 
 	A stale reference reports true, because a fisher cannot be admitted to a habitat that is not
-	there either; reserve_effort_slot() is the form that refuses with the reason.
+	there either; reserve_effort_slots() is the form that refuses with the reason. A non-positive
+	count reports true as well: no cycle reserves nothing, so there is nothing to admit.
 	"""
+	if slot_count <= 0:
+		return true
 	if not habitat_slot_of_into(ref, _math_b):
 		return true
 	var slot: int = _math_b.value
-	return _habitat_effort_used[slot] >= _habitat_effort_slots[slot]
+	return slot_count > _habitat_effort_slots[slot] - _habitat_effort_used[slot]
+
+
+# --- ruling §5: the FishingEffortClaim slice --------------------------------------------------------
+
+func effort_claim_count() -> int:
+	"""How many Expedition rows currently hold an effort claim."""
+	return _effort_claim_count
+
+
+func is_effort_claim_active(row: int) -> bool:
+	"""True when `row` is inside the 512-row slice and holds a live claim."""
+	return row >= 0 and row < FISHING_EFFORT_CLAIM_CAPACITY and _effort_claim_active[row] == 1
+
+
+func effort_claim_row_of(expedition_ref: Vector2i) -> IntMath.IntResult:
+	"""The claim row one live Expedition owns, or an explicit refusal."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	effort_claim_row_into(expedition_ref, out)
+	return out
+
+
+func effort_claim_row_into(expedition_ref: Vector2i, out: IntMath.IntResult) -> bool:
+	"""Non-allocating effort_claim_row_of(): validate through the directory, then the row.
+
+	Ruling §5's two-step ownership test. The directory settles that the Expedition reference is
+	live; the stored generation then settles that THIS expedition wrote the claim, and not a
+	previous one whose typed row it now occupies.
+	"""
+	if not _directory.is_valid_of_kind(expedition_ref, EntityDirectory.KIND_EXPEDITION):
+		return out.refuse(String(REFUSE_EXPEDITION_NOT_PRESENT))
+	var row: int = _directory.get_typed_row(expedition_ref)
+	if _effort_claim_active[row] != 1:
+		return out.refuse(String(REFUSE_NO_EFFORT_CLAIM))
+	if _effort_claim_expedition_generation[row] != expedition_ref.y:
+		return out.refuse(String(REFUSE_EFFORT_CLAIM_STALE))
+	return out.succeed(row)
+
+
+func effort_claim_habitat_ref_of(row: int) -> Vector2i:
+	"""The habitat a live claim holds slots in, or the §4.1 null reference `(-1, 0)`."""
+	if not is_effort_claim_active(row):
+		return NULL_REF
+	return Vector2i(_effort_claim_habitat_slot[row], _effort_claim_habitat_generation[row])
+
+
+func effort_claim_job_ref_of(row: int) -> Vector2i:
+	"""The coordinator Job owning a live claim, or the §4.1 null reference `(-1, 0)`."""
+	if not is_effort_claim_active(row):
+		return NULL_REF
+	return Vector2i(_effort_claim_job_slot[row], _effort_claim_job_generation[row])
+
+
+func effort_claim_expedition_ref_of(row: int) -> Vector2i:
+	"""The Expedition owning a live claim, rebuilt from the directory's reverse map.
+
+	The claim slice stores only the generation (ruling §5's six I32 columns); the slot comes back
+	from EntityDirectory.owner_slot_of_typed_row(), which reads a column that already exists.
+	"""
+	if not is_effort_claim_active(row):
+		return NULL_REF
+	var slot: int = _directory.owner_slot_of_typed_row(EntityDirectory.KIND_EXPEDITION, row)
+	if slot == EntityDirectory.NULL_SLOT:
+		return NULL_REF
+	return Vector2i(slot, _effort_claim_expedition_generation[row])
+
+
+func effort_claim_slot_count_of(row: int) -> IntMath.IntResult:
+	"""How many effort slots one live claim holds."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_effort_claim_active(row):
+		out.refuse(String(REFUSE_NO_EFFORT_CLAIM))
+		return out
+	out.succeed(_effort_claim_slot_count[row])
+	return out
+
+
+func restore_effort_claim(expedition_ref: Vector2i, job_ref: Vector2i, habitat_ref: Vector2i,
+		slot_count: int) -> OpResult:
+	"""Write one saved claim WITHOUT touching the derived occupancy column. Returns its row.
+
+	The load half of ruling §5. A loader restores authoritative claim records and then calls
+	rebuild_effort_aggregates() before any cycle resumes, which is why this deliberately leaves
+	`effort_used` alone: a stored total cannot prove ownership, so it is recomputed rather than
+	trusted. Every reference and the slot count ARE validated, because a save that fails them
+	must be refused rather than loaded.
+	"""
+	var code: StringName = _refuse_effort_owner(expedition_ref, job_ref)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	if not habitat_slot_of_into(habitat_ref, _math):
+		return _refuse(StringName(_math.error))
+	if slot_count <= 0 or slot_count > _habitat_effort_slots[_math.value]:
+		return _refuse(REFUSE_INVALID_SLOT_COUNT)
+	_write_effort_claim(_pending_claim_row, expedition_ref, job_ref, habitat_ref, slot_count)
+	return _succeed(_pending_claim_row, habitat_ref)
+
+
+func rebuild_effort_aggregates() -> OpResult:
+	"""Recompute every habitat's occupancy from the live claims. Returns the claims counted.
+
+	Ruling §5: "Rebuild/validate the aggregate against live claims on load; a stored total alone
+	cannot prove ownership." Every claim is validated and every habitat total is accumulated into
+	scratch BEFORE the authoritative column is touched, so a save carrying a mismatched owner
+	generation or an over-capacity total is refused with the column unchanged.
+	"""
+	var code: StringName = _accumulate_effort_totals()
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	for slot: int in FISH_HABITAT_CAPACITY:
+		_habitat_effort_used[slot] = _effort_total_scratch[slot]
+	return _succeed(_effort_claim_count, NULL_REF)
+
+
+func validate_effort_aggregates() -> OpResult:
+	"""Check the stored occupancy against the live claims, changing nothing. Returns the claims.
+
+	The read-only half of the same contract: a loader that wants to know whether a snapshot is
+	self-consistent asks this, and a total that no claim accounts for refuses.
+	"""
+	var code: StringName = _accumulate_effort_totals()
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	for slot: int in FISH_HABITAT_CAPACITY:
+		if _habitat_effort_used[slot] != _effort_total_scratch[slot]:
+			return _refuse(REFUSE_AGGREGATE_MISMATCH)
+	return _succeed(_effort_claim_count, NULL_REF)
+
+
+func _accumulate_effort_totals() -> StringName:
+	"""Total every live claim into `_effort_total_scratch`, validating each one on the way.
+
+	REFUSE_NONE leaves a complete per-habitat occupancy in the scratch column and the live claim
+	count in `_effort_claim_count`; any refusal leaves both meaningless and the caller applies
+	neither.
+	"""
+	if _jobs == null:
+		return REFUSE_NO_JOB_STORE
+	_effort_total_scratch.fill(0)
+	var counted: int = 0
+	for row: int in FISHING_EFFORT_CLAIM_CAPACITY:
+		if _effort_claim_active[row] != 1:
+			continue
+		var code: StringName = _refuse_stored_effort_claim(row)
+		if code != REFUSE_NONE:
+			return code
+		counted += 1
+		var slot: int = _math_b.value
+		_effort_total_scratch[slot] += _effort_claim_slot_count[row]
+		if _effort_total_scratch[slot] > _habitat_effort_slots[slot]:
+			return REFUSE_AGGREGATE_MISMATCH
+	_effort_claim_count = counted
+	return REFUSE_NONE
+
+
+func _refuse_stored_effort_claim(row: int) -> StringName:
+	"""REFUSE_NONE when one stored claim's owners are all live and agree. Leaves its habitat row
+	in `_math_b` for the accumulation that follows."""
+	var expedition_ref: Vector2i = effort_claim_expedition_ref_of(row)
+	if not _directory.is_valid_of_kind(expedition_ref, EntityDirectory.KIND_EXPEDITION):
+		return REFUSE_EXPEDITION_NOT_PRESENT
+	if _directory.get_typed_row(expedition_ref) != row:
+		return REFUSE_EFFORT_CLAIM_STALE
+	var code: StringName = _refuse_effort_claim_job(effort_claim_job_ref_of(row))
+	if code != REFUSE_NONE:
+		return code
+	if not habitat_slot_of_into(effort_claim_habitat_ref_of(row), _math_b):
+		return StringName(_math_b.error)
+	if _effort_claim_slot_count[row] <= 0:
+		return REFUSE_INVALID_SLOT_COUNT
+	return REFUSE_NONE
+
+
+func purge_stale_effort_claims() -> OpResult:
+	"""Release every claim whose Expedition is gone. Returns how many were released.
+
+	A destroyed expedition cannot call release_effort_slots() for itself, so without this sweep
+	its slots would stay taken forever. Nothing else releases a claim on somebody's behalf.
+	"""
+	var released: int = 0
+	for row: int in FISHING_EFFORT_CLAIM_CAPACITY:
+		if _effort_claim_active[row] != 1:
+			continue
+		var expedition_ref: Vector2i = effort_claim_expedition_ref_of(row)
+		if _directory.is_valid_of_kind(expedition_ref, EntityDirectory.KIND_EXPEDITION) \
+				and _directory.get_typed_row(expedition_ref) == row:
+			continue
+		_release_effort_claim_row(row)
+		released += 1
+	return _succeed(released, NULL_REF)
+
+
+func release_cancelled_effort_claims() -> OpResult:
+	"""Release every claim whose owning coordinator Job is gone or CANCELLED. Returns the count.
+
+	Ruling §5: cancellation releases exactly that owner's slots, exactly once. A cancelled MEMBER
+	Job is not an owner and never appears here, which is what keeps one member's cancellation from
+	ending the coordinator's cycle.
+	"""
+	if _jobs == null:
+		return _refuse(REFUSE_NO_JOB_STORE)
+	var released: int = 0
+	for row: int in FISHING_EFFORT_CLAIM_CAPACITY:
+		if _effort_claim_active[row] != 1:
+			continue
+		if not _effort_claim_is_cancelled(row):
+			continue
+		_release_effort_claim_row(row)
+		released += 1
+	return _succeed(released, NULL_REF)
+
+
+func _effort_claim_is_cancelled(row: int) -> bool:
+	"""True when the coordinator Job behind one live claim is gone or in JobState.CANCELLED."""
+	var job_ref: Vector2i = effort_claim_job_ref_of(row)
+	if not _directory.is_valid_of_kind(job_ref, EntityDirectory.KIND_JOB):
+		return true
+	var job_slot: int = _directory.get_typed_row(job_ref)
+	if not _jobs.is_job_present(job_slot):
+		return true
+	return _jobs.state_of(job_slot).value == JOB_STATE_CANCELLED
+
+
+func revalidate_effort_claim(expedition_ref: Vector2i, species_index: int, season: int,
+		season_day: int) -> OpResult:
+	"""Re-check an UNCOMMITTED departure against today's policy, changing nothing. Returns its row.
+
+	Ruling §5: "lowering policy prevents new claims and revalidates uncommitted departures", and
+	"never retroactively recreate consumed fish or silently refund spent work". So this REPORTS --
+	turning the intensive policy off makes it refuse REFUSE_RESTOCKING on the very next call --
+	and it releases nothing, because the same claim may belong to a cycle that has already
+	departed and spent work.
+	"""
+	if not effort_claim_row_into(expedition_ref, _math):
+		return _refuse(StringName(_math.error))
+	var row: int = _math.value
+	if not stock_row_into(effort_claim_habitat_ref_of(row), species_index, _math_b):
+		return _refuse(StringName(_math_b.error))
+	var code: StringName = harvest_block_code(_math_b.value, season, season_day)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _succeed(row, effort_claim_habitat_ref_of(row))
+
+
+func effort_claim_payload_bytes() -> int:
+	"""Ruling §5's 12800-byte claim slice, measured off the real column sizes."""
+	return (_effort_claim_active.size() * BYTES_PER_BYTE_COLUMN
+		+ (_effort_claim_expedition_generation.size() + _effort_claim_habitat_slot.size()
+			+ _effort_claim_habitat_generation.size() + _effort_claim_job_slot.size()
+			+ _effort_claim_job_generation.size() + _effort_claim_slot_count.size())
+			* BYTES_PER_INT32)
+
+
+func fishing_state_addition_bytes() -> int:
+	"""Decision 0027's ratified 256 bytes: effort_used 128, restocking 96, intensive_harvest 32.
+
+	It EXCLUDES the claim slice reported by effort_claim_payload_bytes(), which ruling §5 states
+	is additional, and the 128-byte total scratch, which is not simulation state.
+	"""
+	return (_habitat_effort_used.size() * BYTES_PER_INT32
+		+ _stock_restocking.size() * BYTES_PER_BYTE_COLUMN
+		+ _habitat_intensive.size() * BYTES_PER_BYTE_COLUMN)
+
+
+func effort_total_scratch_bytes() -> int:
+	"""The load path's per-habitat accumulator, counted OUTSIDE the ruling's payload figures."""
+	return _effort_total_scratch.size() * BYTES_PER_INT32
 
 
 # --- §5.4 intensive-harvest policy -------------------------------------------------------------------
@@ -1567,11 +2354,15 @@ func recovery_threshold_milli(row: int) -> IntMath.IntResult:
 
 
 func is_depleted(row: int) -> bool:
-	"""REQ-SET-048's warning condition: population strictly below 30% of capacity."""
+	"""REQ-SET-048's warning condition: `100*P < 30*K`, strictly, so exactly 30% is not depleted.
+
+	Ruling §5 states the comparison as a cross-multiplication rather than a percentage of K, and
+	that is what is computed here: `floor(K*30/100)` would move the boundary for any capacity
+	that is not a multiple of 10, and the ruling is explicit that equality does not warn.
+	"""
 	if not is_stock_present(row):
 		return false
-	return _stock_population_milli[row] \
-		< _percent_of(_stock_capacity_milli[row], DEPLETION_WARNING_PERCENT)
+	return _below_depletion_threshold(row)
 
 
 func is_restocking(row: int) -> bool:
@@ -1598,17 +2389,45 @@ func update_restocking(row: int) -> OpResult:
 
 
 func _update_restocking(row: int) -> void:
-	"""Apply REQ-SET-048's 30-down/40-up hysteresis to one validated stock row.
+	"""Apply ruling §5's 30-down/40-up hysteresis to one validated stock row.
 
-	Neither threshold is crossed in the band between them, so the flag is left exactly as it
-	was: that retention IS the requirement's "until stock recovers above 40%".
+	Enter when `100*P < 30*K`, clear when `100*P > 40*K`, otherwise retain the previous value.
+	Both comparisons are STRICT, so equality at exactly 30% or exactly 40% flips nothing, and
+	neither threshold is crossed in the band between them -- that retention IS the requirement's
+	"until stock recovers above 40%". The habitat's intensive-harvest policy is deliberately NOT
+	read here: ruling §5 requires the latch to move independently of the override, so turning the
+	policy off restores the restriction immediately rather than at the next depletion.
 	"""
-	var capacity: int = _stock_capacity_milli[row]
-	var population: int = _stock_population_milli[row]
-	if population < _percent_of(capacity, DEPLETION_WARNING_PERCENT):
+	if _below_depletion_threshold(row):
 		_stock_restocking[row] = 1
-	elif population > _percent_of(capacity, RESTOCK_RECOVERY_PERCENT):
+	elif _above_recovery_threshold(row):
 		_stock_restocking[row] = 0
+
+
+func _below_depletion_threshold(row: int) -> bool:
+	"""Ruling §5's `100*P < 30*K` for a validated stock row, on checked arithmetic."""
+	return _compare_population_percent(row, DEPLETION_WARNING_PERCENT) < 0
+
+
+func _above_recovery_threshold(row: int) -> bool:
+	"""Ruling §5's `100*P > 40*K` for a validated stock row, on checked arithmetic."""
+	return _compare_population_percent(row, RESTOCK_RECOVERY_PERCENT) > 0
+
+
+func _compare_population_percent(row: int, percent: int) -> int:
+	"""Sign of `100*P - percent*K` for a validated stock row: -1 below, 0 exactly on, 1 above.
+
+	Ruling §5 asks for checked arithmetic or a proved-safe equivalent, so both products are formed
+	through IntMath rather than assumed to fit. An overflow reports 0, which flips no latch: a
+	refusal has nowhere to travel from a predicate, and leaving the previous value is the only
+	answer that cannot invent a state transition.
+	"""
+	if not IntMath.checked_mul_into(PERCENT_DENOMINATOR, _stock_population_milli[row], _math_c):
+		return 0
+	var scaled_population: int = _math_c.value
+	if not IntMath.checked_mul_into(percent, _stock_capacity_milli[row], _math_c):
+		return 0
+	return signi(scaled_population - _math_c.value)
 
 
 # --- §5.4 catch formula ------------------------------------------------------------------------------

@@ -16,6 +16,11 @@ extends "res://test/framework/test_case.gd"
 const Fishing := preload("res://scripts/core/fishing.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const ForageScript := preload("res://scripts/core/forage.gd")
+const JobsScript := preload("res://scripts/core/jobs.gd")
+const ResidentsScript := preload("res://scripts/core/residents.gd")
+const PrioritiesScript := preload("res://scripts/core/priorities.gd")
+const ScheduleScript := preload("res://scripts/core/schedule.gd")
 
 ## GDD §4.2: "One per marked water basin; up to 32" and "3 stocks/habitat".
 ## systems_architecture.md §2.2 gives FishStock 96 rows, annotated "32*3".
@@ -127,7 +132,56 @@ const BOAT_BASE_CATCH: int = 36000
 ## §5.3: "Level=`min(10,floor_sqrt(floor(xp/5000)))`" -- FISH levels run 0..10.
 const MAX_SKILL: int = 10
 
+## Ruling §5's claim slice is one row per Expedition; §2.1 gives the Expedition store 512 rows.
+## Its payload is six I32 columns plus one B8: 512*6*4 + 512 = 12800 bytes.
+const EXPECTED_EFFORT_CLAIM_CAPACITY: int = 512
+const EXPECTED_EFFORT_CLAIM_BYTES: int = 12800
+## Decision 0027's ratified addition: effort_used 32*4, restocking 96*1, intensive_harvest 32*1.
+const EXPECTED_FISHING_STATE_BYTES: int = 256
+
+## §5.4's "Workers/effort slots" column, second number, restated here from the gear table.
+const NET_EFFORT_SLOTS: int = 1
+const TRAP_EFFORT_SLOTS: int = 1
+const ICE_KIT_EFFORT_SLOTS: int = 1
+const WEIR_EFFORT_SLOTS: int = 2
+const BOAT_EFFORT_SLOTS: int = 2
+
+## §5.4's "Initial stocks are 80% of capacity", summed per habitat over 2100/2200/3100 U.
+const RIVER_INITIAL_BIOMASS: int = 1680000
+const LAKE_INITIAL_BIOMASS: int = 1760000
+const COAST_INITIAL_BIOMASS: int = 2480000
+## Ruling §8B: the specified initial estuary is three habitats and nine stocks, and no more.
+const EXPECTED_ESTUARY_HABITATS: int = 3
+const EXPECTED_ESTUARY_STOCKS: int = 9
+
+## GDD §4.3 ZoneType, restated here rather than read from catalog.gd.
+const ZONE_FISH: int = 0
+const ZONE_FORAGE: int = 2
+## GDD §4.3 JobKind.FISH and JobState.CANCELLED, likewise restated.
+const JOB_KIND_FISH: int = 2
+const JOB_STATE_CANCELLED: int = 7
+
+## Ruling §5's exact latch boundaries, worked by hand against mussel's 1000000 milli-U capacity:
+## 30% of K is 300000 and 40% is 400000, and §5.4's midnight formula carries 380852 to exactly
+## 400000 -- `380852 + floor(60*380852*619148/(1000*1000000)) + floor(1000000/200)` -- and 400000
+## on to 419400.
+const MUSSEL_DEPLETION_BOUNDARY: int = 300000
+const MUSSEL_RECOVERY_BOUNDARY: int = 400000
+const MUSSEL_ONE_DAY_BELOW_RECOVERY: int = 380852
+const MUSSEL_ABOVE_RECOVERY: int = 419400
+## Five §5.4 midnights from 299999 reach 391726; the drain back to 380852 is 10874 milli-U, well
+## inside the coast habitat's 77500 daily quota.
+const MUSSEL_DRAIN_START: int = 299999
+const MUSSEL_AFTER_FIVE_RECOVERIES: int = 391726
+## §5.4's coast species order under the compiled COAST=0 ordinal: herring, mackerel, mussel.
+const MUSSEL_INDEX: int = 2
+
 var _fishing: Fishing = null
+var _zones: ForageScript = null
+var _jobs: JobsScript = null
+var _residents: ResidentsScript = null
+var _priorities: PrioritiesScript = null
+var _schedule: ScheduleScript = null
 
 
 func before_each() -> void:
@@ -138,6 +192,92 @@ func before_each() -> void:
 func after_each() -> void:
 	"""Drop the store so no directory slot survives into the next test."""
 	_fishing = null
+	_zones = null
+	_jobs = null
+	_residents = null
+	_priorities = null
+	_schedule = null
+
+
+func _use_owner_stores() -> void:
+	"""Rebuild the fishery over live HarvestZone and Job stores sharing one entity directory.
+
+	Effort claims validate an Expedition and its coordinator Job through the directory, and
+	ruling §8B's designation binding walks forage.gd's HarvestZone rows, so all three stores must
+	agree on one directory; the fishery adopts the Job store's.
+	"""
+	_residents = ResidentsScript.new()
+	_priorities = PrioritiesScript.new()
+	_schedule = ScheduleScript.new(_residents.needs())
+	_jobs = JobsScript.new(_residents, _priorities, _schedule)
+	_zones = ForageScript.new(null, _jobs)
+	_fishing = Fishing.new(null, _zones, _jobs)
+
+
+func _make_expedition() -> Vector2i:
+	"""Allocate one Expedition reference through the shared directory.
+
+	§4.2 declares the Expedition row and no module implements its columns; the directory does
+	carry KIND_EXPEDITION and its typed rows, which is all an effort claim is indexed by.
+	"""
+	var ref: Vector2i = _fishing.directory().create(EntityDirectory.KIND_EXPEDITION)
+	assert_true(ref != EntityDirectory.NULL_REF, "an expedition reference is allocated")
+	return ref
+
+
+func _make_job(remaining_mwu: int = 100) -> Vector2i:
+	"""Create one FISH job that may own a claim, and hand back its reference."""
+	var made: JobsScript.OpResult = _jobs.create_job(JOB_KIND_FISH, 0, 0, remaining_mwu, 10)
+	assert_true(made.ok, "job creates (error: %s)" % made.error)
+	return made.ref
+
+
+func _make_fish_basin() -> Vector2i:
+	"""Designate one enabled FISH HarvestZone, which owns itself and is therefore a basin."""
+	var made: ForageScript.OpResult = _zones.create_zone(ZONE_FISH, 0, 0, false, true)
+	assert_true(made.ok, "a FISH basin is designated (error: %s)" % made.error)
+	return made.ref
+
+
+func _make_designation(basin: Vector2i) -> Vector2i:
+	"""Draw a player FISH designation over an existing basin and bind it there."""
+	var designation: Vector2i = _make_fish_basin()
+	assert_true(_zones.set_basin(designation, basin).ok, "the designation binds to the basin")
+	return designation
+
+
+func _coast() -> Vector2i:
+	"""Create the standard coast habitat and hand back its reference."""
+	var created: Fishing.OpResult = _fishing.create_habitat(COAST, EntityDirectory.NULL_REF,
+		_coast_ids(), 0, 0, 0)
+	assert_true(created.ok, "the standard coast habitat must be creatable")
+	return created.ref
+
+
+func _estuary_species_ids() -> PackedInt32Array:
+	"""Nine opaque ids addressed `habitat_type * 3 + species_index` under COAST=0, LAKE=1, RIVER=2."""
+	return PackedInt32Array([30, 31, 32, 20, 21, 22, 10, 11, 12])
+
+
+func _drain_to(ref: Vector2i, species_index: int, target_milli: int, season: int,
+		season_day: int) -> void:
+	"""Harvest one stock down to exactly `target_milli`, reopening the daily quota between days.
+
+	This DRIVES the store into a stated population; nothing about the expectation is read back
+	out of it. The guard bounds the loop so a regression cannot turn this into a hang.
+	"""
+	var row: int = _row(ref, species_index)
+	var habitat_slot: int = _fishing.habitat_slot_of(ref).value
+	for _step: int in 64:
+		var remaining: int = _population(row) - target_milli
+		if remaining <= 0:
+			break
+		_fishing.reset_harvested_today()
+		var take: int = mini(_fishing.remaining_quota_milli(habitat_slot).value, remaining)
+		var taken: Fishing.OpResult = _fishing.harvest(ref, species_index, take, season,
+			season_day)
+		assert_true(taken.ok, "the drain step must be legal: %s" % taken.error)
+	assert_equal(_population(row), target_milli, "the stock is drained to exactly the target")
 
 
 func _river_ids() -> PackedInt32Array:
@@ -460,11 +600,14 @@ func test_destroy_habitat_releases_its_stocks_and_slot() -> void:
 
 func test_destroy_habitat_refuses_while_an_effort_slot_is_reserved() -> void:
 	"""A live reservation would be stranded, so the destroy is refused rather than orphaning it."""
+	_use_owner_stores()
 	var ref: Vector2i = _river()
-	assert_true(_fishing.reserve_effort_slot(ref).ok, "the first effort slot is free")
+	var expedition: Vector2i = _make_expedition()
+	assert_true(_fishing.reserve_effort_slots(expedition, _make_job(), ref, 1).ok,
+		"the first effort slot is free")
 	assert_equal(_fishing.destroy_habitat(ref).error, Fishing.REFUSE_EFFORT_SLOTS_RESERVED,
 		"a habitat with a reserved effort slot cannot be destroyed")
-	assert_true(_fishing.release_effort_slot(ref).ok, "the reservation can be released")
+	assert_true(_fishing.release_effort_slots(expedition).ok, "the claim can be released")
 	assert_true(_fishing.destroy_habitat(ref).ok, "and then the habitat can be destroyed")
 
 
@@ -532,68 +675,419 @@ func test_readers_refuse_absent_rows() -> void:
 
 func test_effort_slots_reserve_and_release() -> void:
 	"""Reservations count up to §5.4's capacity and back down again."""
+	_use_owner_stores()
 	var ref: Vector2i = _river()
 	var slot: int = _fishing.habitat_slot_of(ref).value
 	assert_equal(_fishing.effort_slots_free_of(slot).value, RIVER_EFFORT_SLOTS,
 		"a new river habitat has all four slots free")
+	var first: Vector2i = _make_expedition()
 	for taken: int in RIVER_EFFORT_SLOTS:
-		var reserved: Fishing.OpResult = _fishing.reserve_effort_slot(ref)
+		var crew: Vector2i = first if taken == 0 else _make_expedition()
+		var reserved: Fishing.OpResult = _fishing.reserve_effort_slots(crew, _make_job(), ref, 1)
 		assert_equal(reserved.value, taken + 1, "each reservation takes one more slot")
 	assert_equal(_fishing.effort_slots_used_of(slot).value, RIVER_EFFORT_SLOTS,
 		"all four river slots are taken")
 	assert_equal(_fishing.effort_slots_free_of(slot).value, 0, "none is free")
-	assert_equal(_fishing.release_effort_slot(ref).value, RIVER_EFFORT_SLOTS - 1,
+	assert_equal(_fishing.release_effort_slots(first).value, RIVER_EFFORT_SLOTS - 1,
 		"a release gives one back")
 
 
 func test_occupied_effort_slots_queue_further_fishers() -> void:
 	"""REQ-SET-050: a fifth river fisher is refused, so no extra worker multiplies the yield."""
+	_use_owner_stores()
 	var ref: Vector2i = _river()
+	var last: Vector2i = EntityDirectory.NULL_REF
 	for _taken: int in RIVER_EFFORT_SLOTS:
-		assert_true(_fishing.reserve_effort_slot(ref).ok, "the first four river slots are free")
+		last = _make_expedition()
+		assert_true(_fishing.reserve_effort_slots(last, _make_job(), ref, 1).ok,
+			"the first four river slots are free")
 	assert_true(_fishing.must_queue(ref), "REQ-SET-050: a further fisher must queue")
-	var refused: Fishing.OpResult = _fishing.reserve_effort_slot(ref)
+	var refused: Fishing.OpResult = _fishing.reserve_effort_slots(_make_expedition(), _make_job(),
+		ref, 1)
 	assert_false(refused.ok, "the fifth river reservation is refused, not granted")
 	assert_equal(refused.error, Fishing.REFUSE_EFFORT_SLOTS_FULL, "and says why")
-	assert_true(_fishing.release_effort_slot(ref).ok, "releasing one opens a slot")
+	assert_true(_fishing.release_effort_slots(last).ok, "releasing one opens a slot")
 	assert_false(_fishing.must_queue(ref), "so the queued fisher may now be admitted")
-	assert_true(_fishing.reserve_effort_slot(ref).ok, "and its reservation succeeds")
+	assert_true(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), ref, 1).ok,
+		"and its reservation succeeds")
 
 
 func test_lake_and_coast_take_six_fishers() -> void:
 	"""§5.4's per-habitat effort capacity really differs: lake 6 and coast 6, not river's 4."""
+	_use_owner_stores()
 	var lake: Vector2i = _fishing.create_habitat(LAKE, EntityDirectory.NULL_REF, _lake_ids(),
 		0, 0, 0).ref
 	for _taken: int in LAKE_EFFORT_SLOTS:
-		assert_true(_fishing.reserve_effort_slot(lake).ok, "each of the six lake slots is free")
-	assert_false(_fishing.reserve_effort_slot(lake).ok, "the seventh lake fisher must queue")
+		assert_true(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), lake, 1).ok,
+			"each of the six lake slots is free")
+	assert_false(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), lake, 1).ok,
+		"the seventh lake fisher must queue")
 	var coast: Vector2i = _fishing.create_habitat(COAST, EntityDirectory.NULL_REF, _coast_ids(),
 		0, 0, 0).ref
 	for _taken: int in COAST_EFFORT_SLOTS:
-		assert_true(_fishing.reserve_effort_slot(coast).ok, "each coast slot is free")
-	assert_false(_fishing.reserve_effort_slot(coast).ok, "the seventh coast fisher must queue")
+		assert_true(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), coast, 1).ok,
+			"each coast slot is free")
+	assert_false(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), coast, 1).ok,
+		"the seventh coast fisher must queue")
 
 
 func test_release_without_a_reservation_is_refused() -> void:
-	"""A release with no matching reservation is a caller error, not something to absorb."""
+	"""A release with no matching claim is a caller error, not something to absorb."""
+	_use_owner_stores()
 	var ref: Vector2i = _river()
-	var refused: Fishing.OpResult = _fishing.release_effort_slot(ref)
-	assert_false(refused.ok, "nothing is reserved, so nothing can be released")
-	assert_equal(refused.error, Fishing.REFUSE_NO_EFFORT_SLOT_RESERVED, "and it says so")
-	_fishing.reserve_effort_slot(ref)
-	_fishing.release_effort_slot(ref)
-	assert_false(_fishing.release_effort_slot(ref).ok, "a double release is refused too")
+	var expedition: Vector2i = _make_expedition()
+	var refused: Fishing.OpResult = _fishing.release_effort_slots(expedition)
+	assert_false(refused.ok, "nothing is claimed, so nothing can be released")
+	assert_equal(refused.error, Fishing.REFUSE_NO_EFFORT_CLAIM, "and it says so")
+	assert_true(_fishing.reserve_effort_slots(expedition, _make_job(), ref, 1).ok, "one slot")
+	assert_true(_fishing.release_effort_slots(expedition).ok, "the claim releases once")
+	assert_false(_fishing.release_effort_slots(expedition).ok, "a double release is refused too")
+	assert_equal(_fishing.effort_slots_used_of(_fishing.habitat_slot_of(ref).value).value, 0,
+		"and the habitat is left with the one release it was owed")
 
 
 func test_effort_operations_refuse_a_stale_habitat() -> void:
-	"""A destroyed habitat cannot admit or release a fisher."""
+	"""A destroyed habitat cannot admit a fisher."""
+	_use_owner_stores()
 	var ref: Vector2i = _river()
 	_fishing.destroy_habitat(ref)
-	assert_equal(_fishing.reserve_effort_slot(ref).error, Fishing.REFUSE_HABITAT_NOT_PRESENT,
-		"a stale reference reserves nothing")
-	assert_equal(_fishing.release_effort_slot(ref).error, Fishing.REFUSE_HABITAT_NOT_PRESENT,
-		"and releases nothing")
+	assert_equal(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), ref, 1).error,
+		Fishing.REFUSE_HABITAT_NOT_PRESENT, "a stale reference reserves nothing")
 	assert_true(_fishing.must_queue(ref), "and admits no fisher")
+
+
+# --- ruling §5: the gear table's effort-slot column ------------------------------------------------
+
+func test_gear_effort_slots_transcribe_the_table() -> void:
+	"""§5.4's "Workers/effort slots": net/trap/ice kit take one slot, weir and boat take two."""
+	assert_equal(_fishing.effort_slots_for_gear(Fishing.GEAR_HAND_NET).value, NET_EFFORT_SLOTS,
+		"hand net 1/1")
+	assert_equal(_fishing.effort_slots_for_gear(Fishing.GEAR_TRAP).value, TRAP_EFFORT_SLOTS,
+		"trap 1/1")
+	assert_equal(_fishing.effort_slots_for_gear(Fishing.GEAR_ICE_KIT).value, ICE_KIT_EFFORT_SLOTS,
+		"the ice kit modifier is the same as the net")
+	assert_equal(_fishing.effort_slots_for_gear(Fishing.GEAR_WEIR).value, WEIR_EFFORT_SLOTS,
+		"weir 1/2")
+	assert_equal(_fishing.effort_slots_for_gear(Fishing.GEAR_BOAT).value, BOAT_EFFORT_SLOTS,
+		"boat 2/2")
+	assert_equal(Fishing.GEAR_COUNT, 5, "§5.4's gear table has five rows")
+	assert_false(_fishing.effort_slots_for_gear(5).ok, "a sixth gear row does not exist")
+	assert_false(_fishing.effort_slots_for_gear(-1).ok, "and neither does a negative one")
+	assert_equal(_fishing.effort_slots_for_gear(-1).error, String(Fishing.REFUSE_INVALID_GEAR),
+		"which is refused by name")
+
+
+func test_the_gear_keys_transcribe_the_printed_table() -> void:
+	"""§5.4's five gear rows, held in the ascending ASCII order a compiled domain would use."""
+	assert_equal(Fishing.GEAR_KEYS[Fishing.GEAR_BOAT], &"boat", "boat")
+	assert_equal(Fishing.GEAR_KEYS[Fishing.GEAR_HAND_NET], &"hand_net", "hand net")
+	assert_equal(Fishing.GEAR_KEYS[Fishing.GEAR_ICE_KIT], &"ice_kit", "ice kit modifier")
+	assert_equal(Fishing.GEAR_KEYS[Fishing.GEAR_TRAP], &"trap", "trap")
+	assert_equal(Fishing.GEAR_KEYS[Fishing.GEAR_WEIR], &"weir", "weir")
+	var previous: String = ""
+	for gear: int in Fishing.GEAR_COUNT:
+		var key: String = String(Fishing.GEAR_KEYS[gear])
+		assert_true(key > previous, "%s follows %s in ascending ASCII order" % [key, previous])
+		previous = key
+
+
+# --- ruling §5: atomic multi-slot admission ---------------------------------------------------------
+
+func test_a_two_slot_cycle_refuses_without_changing_anything() -> void:
+	"""Ruling §5's stated acceptance: three of four river slots used, a two-slot request refuses.
+
+	It must refuse WITHOUT taking the one slot that is free -- two single-slot calls without
+	rollback are exactly the unsafe admission API the ruling names -- and a one-slot request must
+	then still succeed.
+	"""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var slot: int = _fishing.habitat_slot_of(ref).value
+	for _taken: int in 3:
+		assert_true(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), ref, 1).ok,
+			"three of the four river slots are taken")
+	assert_equal(_fishing.effort_slots_free_of(slot).value, 1, "one slot is left")
+	var weir: Vector2i = _make_expedition()
+	var refused: Fishing.OpResult = _fishing.reserve_effort_slots(weir, _make_job(), ref,
+		WEIR_EFFORT_SLOTS)
+	assert_false(refused.ok, "a weir cycle needs two slots and cannot have them")
+	assert_equal(refused.error, Fishing.REFUSE_EFFORT_SLOTS_FULL, "and says why")
+	assert_equal(_fishing.effort_slots_used_of(slot).value, 3, "nothing was taken by the refusal")
+	assert_equal(_fishing.effort_claim_count(), 3, "and no claim was published")
+	assert_false(_fishing.effort_claim_row_of(weir).ok, "the refused cycle owns no claim")
+	assert_true(_fishing.reserve_effort_slots(weir, _make_job(), ref, 1).ok,
+		"a one-slot request fits the same free slot")
+	assert_equal(_fishing.effort_slots_used_of(slot).value, RIVER_EFFORT_SLOTS, "filling it")
+
+
+func test_a_two_slot_cycle_takes_both_slots_together() -> void:
+	"""A weir or boat cycle reserves its whole gear requirement in one committed step."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var slot: int = _fishing.habitat_slot_of(ref).value
+	var boat: Vector2i = _make_expedition()
+	var reserved: Fishing.OpResult = _fishing.reserve_effort_slots(boat, _make_job(), ref,
+		BOAT_EFFORT_SLOTS)
+	assert_true(reserved.ok, "the boat cycle is admitted")
+	assert_equal(reserved.value, BOAT_EFFORT_SLOTS, "holding both of its slots")
+	assert_equal(_fishing.effort_slots_free_of(slot).value, 2, "two river slots remain")
+	assert_equal(_fishing.effort_claim_slot_count_of(_fishing.effort_claim_row_of(boat).value)
+		.value, BOAT_EFFORT_SLOTS, "and the claim records both")
+	assert_true(_fishing.must_queue(ref, 3), "a three-slot cycle still would not fit")
+	assert_false(_fishing.must_queue(ref, 2), "a second two-slot cycle would")
+	assert_equal(_fishing.release_effort_slots(boat).value, 0,
+		"releasing the claim gives back both slots at once")
+
+
+func test_a_slot_count_outside_the_habitat_is_refused() -> void:
+	"""A cycle cannot ask for no slots, and cannot ask for more than the habitat has."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	assert_equal(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), ref, 0).error,
+		Fishing.REFUSE_INVALID_SLOT_COUNT, "zero slots is not a cycle")
+	assert_equal(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), ref, -2).error,
+		Fishing.REFUSE_INVALID_SLOT_COUNT, "and neither is a negative count")
+	assert_equal(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), ref,
+		RIVER_EFFORT_SLOTS + 1).error, Fishing.REFUSE_EFFORT_SLOTS_FULL,
+		"five slots never fit a river habitat")
+	assert_equal(_fishing.effort_slots_used_of(_fishing.habitat_slot_of(ref).value).value, 0,
+		"and none of the three refusals took a slot")
+	assert_true(_fishing.must_queue(ref, 0), "no cycle reserves nothing")
+
+
+# --- ruling §5: claim ownership ---------------------------------------------------------------------
+
+func test_an_effort_claim_needs_a_live_expedition_and_a_live_job() -> void:
+	"""Ruling §5: validate the Expedition through the directory first, then its stored generation."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	assert_equal(_fishing.reserve_effort_slots(EntityDirectory.NULL_REF, _make_job(), ref, 1)
+		.error, Fishing.REFUSE_EXPEDITION_NOT_PRESENT, "the null reference owns nothing")
+	var dead: Vector2i = _make_expedition()
+	_fishing.directory().destroy(dead)
+	assert_equal(_fishing.reserve_effort_slots(dead, _make_job(), ref, 1).error,
+		Fishing.REFUSE_EXPEDITION_NOT_PRESENT, "and neither does a destroyed expedition")
+	assert_equal(_fishing.reserve_effort_slots(_make_expedition(), EntityDirectory.NULL_REF, ref,
+		1).error, Fishing.REFUSE_JOB_NOT_PRESENT, "a claim needs a live owning Job")
+	assert_equal(_fishing.effort_claim_count(), 0, "and none of that published a claim")
+
+
+func test_only_a_coordinator_job_owns_an_effort_claim() -> void:
+	"""Decision 0017: a member Job never owns the cycle, so it cannot own its effort slots."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var coordinator: Vector2i = _make_job()
+	var member: Vector2i = _make_job(0)
+	var coordinator_slot: int = _jobs.directory().get_typed_row(coordinator)
+	var member_slot: int = _jobs.directory().get_typed_row(member)
+	assert_true(_jobs.make_coordinator(coordinator_slot).ok, "the coordinator is marked")
+	assert_true(_jobs.set_coordinator(member_slot, coordinator_slot).ok, "the member joins it")
+	assert_equal(_fishing.reserve_effort_slots(_make_expedition(), member, ref, 1).error,
+		Fishing.REFUSE_JOB_IS_MEMBER, "a party member may not claim the habitat's slots")
+	assert_true(_fishing.reserve_effort_slots(_make_expedition(), coordinator, ref, 1).ok,
+		"its coordinator may")
+
+
+func test_cancelling_one_member_leaves_the_coordinators_claim_alone() -> void:
+	"""Ruling §5's acceptance: one party member's cancellation must not end the whole cycle."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var coordinator: Vector2i = _make_job()
+	var member: Vector2i = _make_job(0)
+	var coordinator_slot: int = _jobs.directory().get_typed_row(coordinator)
+	var member_slot: int = _jobs.directory().get_typed_row(member)
+	assert_true(_jobs.make_coordinator(coordinator_slot).ok, "the coordinator is marked")
+	assert_true(_jobs.set_coordinator(member_slot, coordinator_slot).ok, "the member joins it")
+	var expedition: Vector2i = _make_expedition()
+	assert_true(_fishing.reserve_effort_slots(expedition, coordinator, ref,
+		BOAT_EFFORT_SLOTS).ok, "the boat cycle claims both slots")
+	assert_true(_jobs.set_state(member_slot, JOB_STATE_CANCELLED).ok, "one member cancels")
+	assert_equal(_fishing.release_cancelled_effort_claims().value, 0,
+		"the sweep releases nothing: the member never owned the claim")
+	assert_equal(_fishing.effort_slots_used_of(_fishing.habitat_slot_of(ref).value).value,
+		BOAT_EFFORT_SLOTS, "and the coordinator still holds both slots")
+	assert_true(_jobs.set_state(coordinator_slot, JOB_STATE_CANCELLED).ok, "now it cancels")
+	assert_equal(_fishing.release_cancelled_effort_claims().value, 1, "which does release it")
+	assert_equal(_fishing.effort_slots_used_of(_fishing.habitat_slot_of(ref).value).value, 0,
+		"giving both slots back exactly once")
+	assert_equal(_fishing.release_cancelled_effort_claims().value, 0, "and never twice")
+
+
+func test_a_stale_release_cannot_free_someone_elses_slots() -> void:
+	"""Ruling §5: a stale call releases exactly nothing, even when it reuses the same claim row."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var slot: int = _fishing.habitat_slot_of(ref).value
+	var first: Vector2i = _make_expedition()
+	assert_true(_fishing.reserve_effort_slots(first, _make_job(), ref, 1).ok, "the first claims")
+	var claim_row: int = _fishing.effort_claim_row_of(first).value
+	assert_true(_fishing.release_effort_slots(first).ok, "and releases")
+	_fishing.directory().destroy(first)
+	var second: Vector2i = _make_expedition()
+	assert_equal(_fishing.directory().get_typed_row(second), claim_row,
+		"the next expedition reuses the freed typed row")
+	assert_true(_fishing.reserve_effort_slots(second, _make_job(), ref,
+		BOAT_EFFORT_SLOTS).ok, "and claims two slots on it")
+	assert_false(_fishing.release_effort_slots(first).ok,
+		"the first expedition's stale reference releases nothing")
+	assert_equal(_fishing.effort_slots_used_of(slot).value, BOAT_EFFORT_SLOTS,
+		"so the second expedition keeps both of its slots")
+
+
+func test_a_second_claim_on_one_expedition_is_refused() -> void:
+	"""One Expedition row holds one claim: a second would double-book the same cycle's slots."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var expedition: Vector2i = _make_expedition()
+	assert_true(_fishing.reserve_effort_slots(expedition, _make_job(), ref, 1).ok, "the first")
+	assert_equal(_fishing.reserve_effort_slots(expedition, _make_job(), ref, 1).error,
+		Fishing.REFUSE_EFFORT_CLAIM_PRESENT, "the second is refused")
+	assert_equal(_fishing.effort_slots_used_of(_fishing.habitat_slot_of(ref).value).value, 1,
+		"and took no further slot")
+
+
+func test_a_destroyed_expedition_leaves_a_claim_only_a_purge_can_release() -> void:
+	"""A dead expedition cannot release its own slots, so the sweep is what frees them."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var slot: int = _fishing.habitat_slot_of(ref).value
+	var expedition: Vector2i = _make_expedition()
+	assert_true(_fishing.reserve_effort_slots(expedition, _make_job(), ref,
+		BOAT_EFFORT_SLOTS).ok, "two slots are claimed")
+	_fishing.directory().destroy(expedition)
+	assert_equal(_fishing.effort_slots_used_of(slot).value, BOAT_EFFORT_SLOTS,
+		"destroying the expedition does not silently free them")
+	assert_equal(_fishing.purge_stale_effort_claims().value, 1, "the sweep finds the one claim")
+	assert_equal(_fishing.effort_slots_used_of(slot).value, 0, "and returns both slots")
+	assert_equal(_fishing.effort_claim_count(), 0, "leaving no claim behind")
+	assert_equal(_fishing.purge_stale_effort_claims().value, 0, "and nothing to find twice")
+
+
+func test_a_reused_expedition_row_cannot_inherit_the_previous_claim() -> void:
+	"""Ruling §5's second ownership step: the directory says live, the stored generation says whose.
+
+	A destroyed expedition leaves an active claim on its typed row. The next expedition takes that
+	same row, so the directory validates it -- and only the stored generation can tell that the
+	claim on it was written by somebody else.
+	"""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var slot: int = _fishing.habitat_slot_of(ref).value
+	var first: Vector2i = _make_expedition()
+	assert_true(_fishing.reserve_effort_slots(first, _make_job(), ref, BOAT_EFFORT_SLOTS).ok,
+		"the first expedition claims two slots")
+	var claim_row: int = _fishing.effort_claim_row_of(first).value
+	_fishing.directory().destroy(first)
+	var second: Vector2i = _make_expedition()
+	assert_equal(_fishing.directory().get_typed_row(second), claim_row,
+		"the next expedition takes the same claim row")
+	assert_equal(_fishing.release_effort_slots(second).error, Fishing.REFUSE_EFFORT_CLAIM_STALE,
+		"which cannot release the claim it did not write")
+	assert_equal(_fishing.reserve_effort_slots(second, _make_job(), ref, 1).error,
+		Fishing.REFUSE_EFFORT_CLAIM_STALE, "nor overwrite it with one of its own")
+	assert_equal(_fishing.effort_slots_used_of(slot).value, BOAT_EFFORT_SLOTS,
+		"and the abandoned claim still holds both slots")
+	assert_equal(_fishing.purge_stale_effort_claims().value, 1, "only the purge releases it")
+	assert_true(_fishing.reserve_effort_slots(second, _make_job(), ref, 1).ok,
+		"and then the row is the second expedition's to claim")
+
+
+func test_effort_claims_need_the_owner_stores() -> void:
+	"""Without a Job store there is no way to check decision 0017's ownership, so this refuses."""
+	var ref: Vector2i = _river()
+	assert_equal(_fishing.reserve_effort_slots(EntityDirectory.NULL_REF,
+		EntityDirectory.NULL_REF, ref, 1).error, Fishing.REFUSE_NO_JOB_STORE,
+		"a fishery with no Job store admits no cycle")
+	assert_equal(_fishing.rebuild_effort_aggregates().error, Fishing.REFUSE_NO_JOB_STORE,
+		"and rebuilds no aggregate")
+	assert_equal(_fishing.release_cancelled_effort_claims().error, Fishing.REFUSE_NO_JOB_STORE,
+		"and sweeps no cancellation")
+
+
+# --- ruling §5: the load path -------------------------------------------------------------------------
+
+func test_the_claim_slice_is_one_row_per_expedition() -> void:
+	"""Ruling §5's 512-row slice and its 12800-byte payload, plus decision 0027's 256 bytes."""
+	assert_equal(Fishing.FISHING_EFFORT_CLAIM_CAPACITY, EXPECTED_EFFORT_CLAIM_CAPACITY,
+		"one claim row per §2.1 Expedition row")
+	assert_equal(EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_EXPEDITION],
+		EXPECTED_EFFORT_CLAIM_CAPACITY, "which the directory sizes at 512")
+	assert_equal(_fishing.effort_claim_payload_bytes(), EXPECTED_EFFORT_CLAIM_BYTES,
+		"six I32 columns plus one B8 over 512 rows")
+	assert_equal(_fishing.fishing_state_addition_bytes(), EXPECTED_FISHING_STATE_BYTES,
+		"decision 0027's effort_used, restocking and intensive_harvest columns")
+	assert_false(_fishing.is_effort_claim_active(EXPECTED_EFFORT_CLAIM_CAPACITY),
+		"row 512 is not a claim")
+	assert_false(_fishing.is_effort_claim_active(-1), "and neither is row -1")
+
+
+func test_restored_claims_rebuild_the_aggregate_they_cannot_prove() -> void:
+	"""Ruling §5: restore the claims, then recompute the occupancy from them, never trust a total."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var slot: int = _fishing.habitat_slot_of(ref).value
+	var first: Vector2i = _make_expedition()
+	var second: Vector2i = _make_expedition()
+	assert_true(_fishing.restore_effort_claim(first, _make_job(), ref, BOAT_EFFORT_SLOTS).ok,
+		"a saved two-slot claim is restored")
+	assert_true(_fishing.restore_effort_claim(second, _make_job(), ref, 1).ok,
+		"and a saved one-slot claim")
+	assert_equal(_fishing.effort_slots_used_of(slot).value, 0,
+		"restoring deliberately leaves the derived occupancy alone")
+	assert_false(_fishing.validate_effort_aggregates().ok, "so the snapshot does not validate")
+	assert_equal(_fishing.rebuild_effort_aggregates().value, 2, "the rebuild counts both claims")
+	assert_equal(_fishing.effort_slots_used_of(slot).value, BOAT_EFFORT_SLOTS + 1,
+		"and totals three of the river's four slots")
+	assert_true(_fishing.validate_effort_aggregates().ok, "which now validates")
+
+
+func test_a_restored_claim_with_a_stale_owner_is_refused() -> void:
+	"""A save whose owner generation disagrees is refused rather than loaded."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var expedition: Vector2i = _make_expedition()
+	assert_true(_fishing.restore_effort_claim(expedition, _make_job(), ref, 1).ok, "restored")
+	_fishing.directory().destroy(expedition)
+	var refused: Fishing.OpResult = _fishing.rebuild_effort_aggregates()
+	assert_false(refused.ok, "the rebuild refuses a claim whose expedition is gone")
+	assert_equal(refused.error, Fishing.REFUSE_EXPEDITION_NOT_PRESENT, "and says why")
+	assert_equal(_fishing.effort_slots_used_of(_fishing.habitat_slot_of(ref).value).value, 0,
+		"leaving the authoritative column untouched")
+
+
+func test_an_aggregate_no_claim_accounts_for_is_refused() -> void:
+	"""Ruling §5: "a stored total alone cannot prove ownership"."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var expedition: Vector2i = _make_expedition()
+	assert_true(_fishing.reserve_effort_slots(expedition, _make_job(), ref, 1).ok, "one claim")
+	assert_true(_fishing.validate_effort_aggregates().ok, "which the total agrees with")
+	assert_true(_fishing.restore_effort_claim(_make_expedition(), _make_job(), ref, 1).ok,
+		"a second claim arrives without its occupancy")
+	assert_false(_fishing.validate_effort_aggregates().ok, "so the two now disagree")
+	assert_equal(_fishing.validate_effort_aggregates().error, Fishing.REFUSE_AGGREGATE_MISMATCH,
+		"and the mismatch is named")
+	assert_equal(_fishing.rebuild_effort_aggregates().value, 2, "the rebuild settles it")
+	assert_true(_fishing.validate_effort_aggregates().ok, "and it validates afterwards")
+
+
+func test_a_restored_claim_beyond_the_habitat_capacity_is_refused() -> void:
+	"""Five river slots cannot be owed to anybody: §5.4 gives the habitat four."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	assert_equal(_fishing.restore_effort_claim(_make_expedition(), _make_job(), ref,
+		RIVER_EFFORT_SLOTS + 1).error, Fishing.REFUSE_INVALID_SLOT_COUNT,
+		"a claim larger than the habitat is refused on the way in")
+	for _taken: int in RIVER_EFFORT_SLOTS:
+		assert_true(_fishing.restore_effort_claim(_make_expedition(), _make_job(), ref, 1).ok,
+			"four one-slot claims restore")
+	assert_true(_fishing.restore_effort_claim(_make_expedition(), _make_job(), ref, 1).ok,
+		"and a fifth restores, because restore applies no occupancy")
+	var refused: Fishing.OpResult = _fishing.rebuild_effort_aggregates()
+	assert_false(refused.ok, "but the rebuild refuses the over-capacity total")
+	assert_equal(refused.error, Fishing.REFUSE_AGGREGATE_MISMATCH, "and names it")
+	assert_equal(_fishing.effort_slots_used_of(_fishing.habitat_slot_of(ref).value).value, 0,
+		"with the authoritative column still untouched")
 
 
 # --- §5.4 special windows -----------------------------------------------------------------------
@@ -1325,3 +1819,394 @@ func test_harvest_block_code_explains_an_unavailable_species() -> void:
 		"and so is an impossible season")
 	assert_equal(_fishing.harvest_block_code(trout_row, SPRING, 0),
 		Fishing.REFUSE_INVALID_SEASON_DAY, "and an impossible day")
+
+
+# --- ruling §5: the depletion latch at its exact boundaries ---------------------------------------
+
+func test_the_depletion_latch_does_not_flip_at_exactly_thirty_percent() -> void:
+	"""Ruling §5: enter when `100*P < 30*K`, strictly. Equality at 30% flips nothing.
+
+	Mussel's capacity is 1000000 milli-U, so 30% of K is exactly 300000. Drained to that number
+	the stock is not depleted and not restocking; one further milli-unit is, which is the only
+	difference a `<=` implementation would erase.
+	"""
+	var coast: Vector2i = _coast()
+	assert_true(_fishing.set_intensive_harvest(coast, true).ok, "the visible policy allows this")
+	var row: int = _row(coast, MUSSEL_INDEX)
+	_drain_to(coast, MUSSEL_INDEX, MUSSEL_DEPLETION_BOUNDARY, SUMMER, 1)
+	assert_false(_fishing.is_depleted(row), "exactly 30% of K is not BELOW 30% of K")
+	assert_false(_fishing.is_restocking(row), "so the latch is not set")
+	_fishing.reset_harvested_today()
+	assert_true(_fishing.harvest(coast, MUSSEL_INDEX, 1, SUMMER, 1).ok, "one more milli-unit")
+	assert_equal(_population(row), MUSSEL_DEPLETION_BOUNDARY - 1, "takes it below the boundary")
+	assert_true(_fishing.is_depleted(row), "which IS below 30% of K")
+	assert_true(_fishing.is_restocking(row), "and sets the latch")
+
+
+func test_the_recovery_latch_does_not_clear_at_exactly_forty_percent() -> void:
+	"""Ruling §5: clear when `100*P > 40*K`, strictly. Equality at 40% clears nothing.
+
+	Mussel's 40% of K is exactly 400000, and §5.4's midnight formula carries 380852 to exactly
+	that number and 400000 on to 419400. The latch must survive the landing and clear only on the
+	step that passes it.
+	"""
+	var coast: Vector2i = _coast()
+	assert_true(_fishing.set_intensive_harvest(coast, true).ok, "the visible policy allows this")
+	var row: int = _row(coast, MUSSEL_INDEX)
+	_drain_to(coast, MUSSEL_INDEX, MUSSEL_DRAIN_START, SUMMER, 1)
+	assert_true(_fishing.is_restocking(row), "the latch is set below 30%")
+	for _day: int in 5:
+		assert_true(_fishing.recover_stock(row, SUMMER, 1).ok, "five midnights of recovery")
+	assert_equal(_population(row), MUSSEL_AFTER_FIVE_RECOVERIES, "reach 391726")
+	assert_true(_fishing.is_restocking(row), "still latched inside the 30..40% band")
+	_drain_to(coast, MUSSEL_INDEX, MUSSEL_ONE_DAY_BELOW_RECOVERY, SUMMER, 1)
+	assert_true(_fishing.is_restocking(row), "and still latched at 380852")
+	assert_equal(_fishing.recover_stock(row, SUMMER, 1).value, MUSSEL_RECOVERY_BOUNDARY,
+		"the next midnight lands on exactly 40% of K")
+	assert_true(_fishing.is_restocking(row), "which does NOT clear the latch")
+	assert_equal(_fishing.recover_stock(row, SUMMER, 1).value, MUSSEL_ABOVE_RECOVERY,
+		"the midnight after it passes 40%")
+	assert_false(_fishing.is_restocking(row), "and only then is the latch cleared")
+
+
+func test_the_latch_moves_independently_of_the_intensive_override() -> void:
+	"""Ruling §5: "Update the latch independently of the override."
+
+	The override is a separate, player-owned switch: turning it off restores REQ-SET-048's
+	restriction on the very next call, and the latch still clears on its own 40% crossing while
+	the override is off the whole time.
+	"""
+	var coast: Vector2i = _coast()
+	var row: int = _row(coast, MUSSEL_INDEX)
+	_fishing.set_intensive_harvest(coast, true)
+	_drain_to(coast, MUSSEL_INDEX, MUSSEL_DRAIN_START, SUMMER, 1)
+	assert_true(_fishing.is_restocking(row), "the latch is set")
+	assert_true(_fishing.set_intensive_harvest(coast, false).ok, "the player lowers the policy")
+	_fishing.reset_harvested_today()
+	assert_equal(_fishing.harvest(coast, MUSSEL_INDEX, 1000, SUMMER, 1).error,
+		Fishing.REFUSE_RESTOCKING, "and the restriction applies immediately, not next cycle")
+	assert_true(_fishing.is_restocking(row), "the latch itself is untouched by the switch")
+	for _day: int in 8:
+		_fishing.recover_stock(row, SUMMER, 1)
+	assert_true(_population(row) > MUSSEL_RECOVERY_BOUNDARY, "recovery passes 40% of K")
+	assert_false(_fishing.is_restocking(row), "so the latch clears with the override still off")
+	assert_true(_fishing.harvest(coast, MUSSEL_INDEX, 1000, SUMMER, 1).ok, "and work resumes")
+
+
+func test_the_explicit_intensive_choice_is_never_reset_automatically() -> void:
+	"""Ruling §5: "Preserve the player's explicit intensive choice" -- no per-cycle confirmation."""
+	var coast: Vector2i = _coast()
+	var slot: int = _fishing.habitat_slot_of(coast).value
+	var row: int = _row(coast, MUSSEL_INDEX)
+	assert_true(_fishing.set_intensive_harvest(coast, true).ok, "the player enables it once")
+	_harvest_repeatedly(coast, MUSSEL_INDEX, COAST_QUOTA, SUMMER, 1, 6)
+	assert_true(_fishing.is_intensive_harvest(slot), "six cycles later it is still on")
+	assert_equal(_fishing.floor_percent_for(row, SUMMER, 1).value, HARD_FLOOR_PERCENT,
+		"and the floor is still the 10% hard floor")
+	for _day: int in 20:
+		_fishing.recover_stock(row, SUMMER, 1)
+	assert_true(_fishing.is_intensive_harvest(slot), "recovery does not revoke it either")
+	assert_true(_fishing.set_intensive_harvest(coast, false).ok, "only the player turns it off")
+	assert_false(_fishing.is_intensive_harvest(slot), "and then it is off")
+
+
+func test_restocking_never_bypasses_a_closure_or_an_unavailable_species() -> void:
+	"""Ruling §5: intensive bypasses the soft stop, "but never closures, unavailable species"."""
+	var ref: Vector2i = _river()
+	assert_true(_fishing.set_intensive_harvest(ref, true).ok, "the policy is on")
+	assert_equal(_fishing.harvest(ref, 0, 1000, SPRING, 6).error, Fishing.REFUSE_SPECIES_CLOSED,
+		"trout's spring 5-7 spawning closure still refuses")
+	assert_equal(_fishing.harvest(ref, 2, 1000, SPRING, 1).error,
+		Fishing.REFUSE_SPECIES_UNAVAILABLE, "and salmon is still unavailable outside autumn")
+	assert_true(_fishing.set_closed(ref, 1, true).ok, "close dace by the stored bit")
+	assert_equal(_fishing.harvest(ref, 1, 1000, SPRING, 1).error, Fishing.REFUSE_SPECIES_CLOSED,
+		"which the policy does not override either")
+
+
+func test_revalidation_reports_a_lowered_policy_and_refunds_nothing() -> void:
+	"""Ruling §5: lowering policy "revalidates uncommitted departures" and refunds no spent work."""
+	_use_owner_stores()
+	var coast: Vector2i = _coast()
+	var habitat_slot: int = _fishing.habitat_slot_of(coast).value
+	var row: int = _row(coast, MUSSEL_INDEX)
+	_fishing.set_intensive_harvest(coast, true)
+	_drain_to(coast, MUSSEL_INDEX, MUSSEL_DRAIN_START, SUMMER, 1)
+	var expedition: Vector2i = _make_expedition()
+	assert_true(_fishing.reserve_effort_slots(expedition, _make_job(), coast, 1).ok, "one slot")
+	assert_true(_fishing.revalidate_effort_claim(expedition, MUSSEL_INDEX, SUMMER, 1).ok,
+		"the departure is legal while the policy is on")
+	_fishing.set_intensive_harvest(coast, false)
+	var refused: Fishing.OpResult = _fishing.revalidate_effort_claim(expedition, MUSSEL_INDEX,
+		SUMMER, 1)
+	assert_false(refused.ok, "and illegal the moment it is lowered")
+	assert_equal(refused.error, Fishing.REFUSE_RESTOCKING, "for the stated reason")
+	assert_equal(_population(row), MUSSEL_DRAIN_START, "no consumed fish is recreated")
+	assert_equal(_fishing.effort_slots_used_of(habitat_slot).value, 1,
+		"and no spent effort is silently refunded")
+	assert_true(_fishing.effort_claim_row_of(expedition).ok, "the claim is still the owner's")
+
+
+func test_revalidation_refuses_without_a_claim_or_a_stock() -> void:
+	"""Every path out of the revalidation names a condition rather than defaulting to legal."""
+	_use_owner_stores()
+	var ref: Vector2i = _river()
+	var expedition: Vector2i = _make_expedition()
+	assert_equal(_fishing.revalidate_effort_claim(expedition, 0, SPRING, 1).error,
+		Fishing.REFUSE_NO_EFFORT_CLAIM, "an expedition with no claim revalidates nothing")
+	assert_true(_fishing.reserve_effort_slots(expedition, _make_job(), ref, 1).ok, "one slot")
+	assert_equal(_fishing.revalidate_effort_claim(expedition, 3, SPRING, 1).error,
+		Fishing.REFUSE_INVALID_SPECIES_INDEX, "a fourth species does not exist")
+	assert_equal(_fishing.revalidate_effort_claim(expedition, 0, SPRING, 6).error,
+		Fishing.REFUSE_SPECIES_CLOSED, "and trout's closure is reported, not waived")
+	assert_true(_fishing.revalidate_effort_claim(expedition, 0, SPRING, 1).ok,
+		"an open trout day revalidates")
+
+
+# --- ruling §8B: the initial estuary ----------------------------------------------------------------
+
+func test_the_initial_estuary_is_three_habitats_and_nine_stocks() -> void:
+	"""Ruling §8B: exactly one river, one lake and one coast basin -- not 32 copies of them.
+
+	Capacities sum to §5.4's 2100/2200/3100 U and stocks start at its 80%, so the generated world
+	holds 1680000, 1760000 and 2480000 milli-U of fish and nothing else.
+	"""
+	var made: Fishing.OpResult = _fishing.generate_initial_estuary(_estuary_species_ids())
+	assert_true(made.ok, "the estuary generates (error: %s)" % made.error)
+	assert_equal(made.value, EXPECTED_ESTUARY_STOCKS, "nine FishStock rows in total")
+	assert_equal(_fishing.habitat_count(), EXPECTED_ESTUARY_HABITATS, "three habitats, not 32")
+	var coast_slot: int = _fishing.live_habitat_slot_at(0).value
+	var lake_slot: int = _fishing.live_habitat_slot_at(1).value
+	var river_slot: int = _fishing.live_habitat_slot_at(2).value
+	assert_equal(_fishing.habitat_type_of(coast_slot).value, COAST, "the first is the coast")
+	assert_equal(_fishing.habitat_type_of(lake_slot).value, LAKE, "the second is the lake")
+	assert_equal(_fishing.habitat_type_of(river_slot).value, RIVER, "the third is the river")
+	assert_equal(_fishing.habitat_capacity_milli_of(river_slot).value, RIVER_K_TOTAL, "2100 U")
+	assert_equal(_fishing.habitat_capacity_milli_of(lake_slot).value, LAKE_K_TOTAL, "2200 U")
+	assert_equal(_fishing.habitat_capacity_milli_of(coast_slot).value, COAST_K_TOTAL, "3100 U")
+	assert_equal(_fishing.population_total_milli_of(river_slot).value, RIVER_INITIAL_BIOMASS,
+		"the river holds 80% of 2100 U")
+	assert_equal(_fishing.population_total_milli_of(lake_slot).value, LAKE_INITIAL_BIOMASS,
+		"the lake holds 80% of 2200 U")
+	assert_equal(_fishing.population_total_milli_of(coast_slot).value, COAST_INITIAL_BIOMASS,
+		"the coast holds 80% of 3100 U")
+	assert_equal(_fishing.species_id_of(river_slot * EXPECTED_SPECIES_PER_HABITAT).value, 10,
+		"the river's three ids come from its own slice of the nine")
+	assert_equal(_fishing.species_id_of(lake_slot * EXPECTED_SPECIES_PER_HABITAT + 2).value, 22,
+		"and so do the lake's")
+	assert_equal(_fishing.species_id_of(coast_slot * EXPECTED_SPECIES_PER_HABITAT + 1).value, 31,
+		"and the coast's")
+
+
+func test_the_estuary_is_generated_once_and_never_multiplied() -> void:
+	"""Ruling §8B: 32 habitats is a CEILING; a second generation is refused, not stacked."""
+	assert_true(_fishing.generate_initial_estuary(_estuary_species_ids()).ok, "the first runs")
+	var refused: Fishing.OpResult = _fishing.generate_initial_estuary(_estuary_species_ids())
+	assert_false(refused.ok, "the second is refused")
+	assert_equal(refused.error, Fishing.REFUSE_ESTUARY_PRESENT, "by name")
+	assert_equal(_fishing.habitat_count(), EXPECTED_ESTUARY_HABITATS, "with three habitats left")
+	var coast_slot: int = _fishing.live_habitat_slot_at(0).value
+	assert_equal(_fishing.population_total_milli_of(coast_slot).value, COAST_INITIAL_BIOMASS,
+		"and no extra biomass minted")
+
+
+func test_an_estuary_with_an_unusable_species_set_creates_nothing() -> void:
+	"""A refusal happens before the first habitat row is taken, so nothing partial survives."""
+	assert_equal(_fishing.generate_initial_estuary(PackedInt32Array([1, 2, 3])).error,
+		Fishing.REFUSE_SPECIES_SET_SIZE, "nine ids are required, not three")
+	assert_equal(_fishing.generate_initial_estuary(
+		PackedInt32Array([30, 31, 32, 20, 21, 22, 10, 11, 12, 40, 41, 42])).error,
+		Fishing.REFUSE_SPECIES_SET_SIZE, "and not twelve either, however well they slice")
+	assert_equal(_fishing.generate_initial_estuary(
+		PackedInt32Array([30, 31, 32, 20, 21, 22, 10, 11, 11])).error,
+		Fishing.REFUSE_DUPLICATE_SPECIES_ID, "and the river's three must differ")
+	assert_equal(_fishing.generate_initial_estuary(
+		PackedInt32Array([30, 31, 32, 20, 21, 22, 10, 11, -1])).error,
+		Fishing.REFUSE_INVALID_SPECIES_ID, "and none may be negative")
+	assert_equal(_fishing.habitat_count(), 0, "none of the three refusals created a habitat")
+	assert_equal(_fishing.directory().live_count(EntityDirectory.KIND_FISH_HABITAT), 0,
+		"nor took a directory slot")
+
+
+func test_ecology_allocation_beyond_thirty_two_refuses_atomically() -> void:
+	"""Ruling §8B: "ecology allocation beyond 32 refuses atomically"."""
+	for index: int in EXPECTED_HABITAT_CAPACITY:
+		assert_true(_fishing.create_habitat(RIVER, EntityDirectory.NULL_REF, _river_ids(),
+			0, 0, 0).ok, "habitat %d fits inside the ceiling" % index)
+	var last_slot: int = _fishing.live_habitat_slot_at(EXPECTED_HABITAT_CAPACITY - 1).value
+	var refused: Fishing.OpResult = _fishing.create_habitat(LAKE, EntityDirectory.NULL_REF,
+		_lake_ids(), 0, 0, 0)
+	assert_false(refused.ok, "the thirty-third is refused")
+	assert_equal(_fishing.habitat_count(), EXPECTED_HABITAT_CAPACITY, "with 32 still live")
+	assert_equal(_fishing.population_total_milli_of(last_slot).value, RIVER_INITIAL_BIOMASS,
+		"and the last habitat's stocks untouched")
+	assert_true(_fishing.is_stock_present(EXPECTED_STOCK_CAPACITY - 1),
+		"the ninety-sixth stock row belongs to the thirty-second habitat")
+	assert_false(_fishing.is_stock_present(EXPECTED_STOCK_CAPACITY),
+		"and the refusal created no ninety-seventh")
+	assert_equal(refused.error, EntityDirectory.KIND_CAPACITY_REFUSAL[
+		EntityDirectory.KIND_FISH_HABITAT], "the refusal carries the store's own capacity code")
+	assert_equal(_fishing.generate_initial_estuary(_estuary_species_ids()).error,
+		Fishing.REFUSE_ESTUARY_PRESENT, "and the world generator refuses a full store too")
+
+
+# --- ruling §8B: designations bind, and never create -------------------------------------------------
+
+func test_a_designation_binds_to_the_basins_existing_habitat() -> void:
+	"""Ruling §8B: designation -> its existing HarvestZone.basin -> the unique habitat on it."""
+	_use_owner_stores()
+	var basin: Vector2i = _make_fish_basin()
+	var habitat: Vector2i = _fishing.create_habitat(RIVER, basin, _river_ids(), 0, 0, 0).ref
+	var first: Vector2i = _make_designation(basin)
+	var second: Vector2i = _make_designation(basin)
+	assert_equal(_fishing.habitat_ref_for_designation(first).ref, habitat, "the first resolves")
+	assert_equal(_fishing.habitat_ref_for_designation(second).ref, habitat,
+		"and the second resolves to the SAME habitat, sharing its totals")
+	assert_equal(_fishing.habitat_ref_for_basin(basin).ref, habitat,
+		"as does the basin the pair hang off")
+	assert_equal(_fishing.habitat_count(), 1, "and two designations created no second habitat")
+
+
+func test_designation_history_leaves_the_basins_ecology_identical() -> void:
+	"""Ruling §8B: overlapping, splitting, deleting or protecting a designation resets nothing.
+
+	Two different designation histories over one basin are compared against the same recorded
+	stock, quota and effort occupancy: the acceptance is that neither history can change them.
+	"""
+	_use_owner_stores()
+	var basin: Vector2i = _make_fish_basin()
+	var habitat: Vector2i = _fishing.create_habitat(RIVER, basin, _river_ids(), 0, 0, 0).ref
+	var habitat_slot: int = _fishing.habitat_slot_of(habitat).value
+	assert_true(_fishing.harvest(habitat, 0, 20000, SPRING, 1).ok, "20 U of trout is taken")
+	assert_true(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), habitat, 1).ok,
+		"and one effort slot is held")
+	var first: Vector2i = _make_designation(basin)
+	var second: Vector2i = _make_designation(basin)
+	assert_true(_zones.destroy_zone(first).ok, "the first designation is erased")
+	assert_true(_zones.set_zone_protected(second, true).ok, "the second is protected")
+	var third: Vector2i = _make_designation(basin)
+	assert_equal(_fishing.habitat_ref_for_designation(third).ref, habitat, "and a third is drawn")
+	assert_equal(_fishing.habitat_count(), 1, "still one habitat")
+	assert_equal(_population(_row(habitat, 0)), TROUT_INITIAL - 20000, "the same trout stock")
+	assert_equal(_fishing.harvested_today_total_of(habitat_slot).value, 20000,
+		"the same daily quota history")
+	assert_equal(_fishing.remaining_quota_milli(habitat_slot).value, RIVER_QUOTA - 20000,
+		"the same quota left today")
+	assert_equal(_fishing.effort_slots_used_of(habitat_slot).value, 1,
+		"and the same effort occupancy")
+
+
+func test_a_basin_with_no_habitat_refuses_rather_than_creating_one() -> void:
+	"""Ruling §8B: a missing match refuses. Player designations cannot reach the creation path."""
+	_use_owner_stores()
+	var basin: Vector2i = _make_fish_basin()
+	var designation: Vector2i = _make_designation(basin)
+	var refused: Fishing.OpResult = _fishing.habitat_ref_for_designation(designation)
+	assert_false(refused.ok, "an undesignated basin has no fish to bind to")
+	assert_equal(refused.error, Fishing.REFUSE_NO_HABITAT_FOR_BASIN, "and says so")
+	assert_equal(_fishing.habitat_count(), 0, "and no habitat was created to satisfy it")
+	assert_equal(_fishing.habitat_ref_for_basin(basin).error,
+		Fishing.REFUSE_NO_HABITAT_FOR_BASIN, "the basin scan agrees")
+
+
+func test_a_stale_habitat_binding_does_not_answer_for_the_reused_slot() -> void:
+	"""Ruling §8B: "Validate both generations." A slot match alone is not a basin match.
+
+	The destroyed basin's directory slot is handed straight back to the next zone, so the two
+	references differ only in their generation -- which is precisely the case a slot-only scan
+	would answer wrongly, and would then see as a duplicate once a second habitat exists.
+	"""
+	_use_owner_stores()
+	var first_basin: Vector2i = _make_fish_basin()
+	var stale_habitat: Vector2i = _fishing.create_habitat(RIVER, first_basin, _river_ids(),
+		0, 0, 0).ref
+	assert_true(_zones.destroy_zone(first_basin).ok, "the basin zone is erased")
+	var second_basin: Vector2i = _make_fish_basin()
+	assert_equal(second_basin.x, first_basin.x, "the next zone reuses the freed directory slot")
+	assert_true(second_basin.y != first_basin.y, "with a new generation")
+	assert_equal(_fishing.habitat_ref_for_basin(second_basin).error,
+		Fishing.REFUSE_NO_HABITAT_FOR_BASIN, "the stale binding does not answer for it")
+	var made: Fishing.OpResult = _fishing.create_habitat(LAKE, second_basin, _lake_ids(), 0, 0, 0)
+	assert_true(made.ok, "a habitat may still be created on the reused slot (error: %s)"
+		% made.error)
+	var live_habitat: Vector2i = made.ref
+	assert_true(live_habitat != stale_habitat, "so a second habitat now exists")
+	assert_equal(_fishing.habitat_count(), 2, "and both are live")
+	assert_equal(_fishing.habitat_ref_for_basin(second_basin).ref, live_habitat,
+		"and the scan finds exactly one match, not two")
+
+
+func test_two_habitats_cannot_claim_one_basin() -> void:
+	"""Ruling §8B requires exactly one match, so a duplicate is prevented at the binding."""
+	_use_owner_stores()
+	var basin: Vector2i = _make_fish_basin()
+	var habitat: Vector2i = _fishing.create_habitat(RIVER, basin, _river_ids(), 0, 0, 0).ref
+	assert_equal(_fishing.create_habitat(LAKE, basin, _lake_ids(), 0, 0, 0).error,
+		Fishing.REFUSE_ZONE_ALREADY_BOUND, "a second habitat cannot be created on the basin")
+	assert_equal(_fishing.habitat_count(), 1, "and none was allocated by the attempt")
+	var unbound: Vector2i = _fishing.create_habitat(LAKE, EntityDirectory.NULL_REF, _lake_ids(),
+		0, 0, 0).ref
+	assert_equal(_fishing.bind_habitat_zone(unbound, basin).error,
+		Fishing.REFUSE_ZONE_ALREADY_BOUND, "nor can an existing habitat be moved onto it")
+	assert_equal(_fishing.habitat_ref_for_basin(basin).ref, habitat, "the owner is unchanged")
+	assert_true(_fishing.bind_habitat_zone(habitat, basin).ok,
+		"rebinding a habitat to the basin it already owns is not a duplicate")
+
+
+func test_a_chained_basin_reference_refuses() -> void:
+	"""Ruling §8B: a chained match refuses -- a chain would give two answers for one designation."""
+	_use_owner_stores()
+	var basin: Vector2i = _make_fish_basin()
+	var habitat: Vector2i = _fishing.create_habitat(RIVER, basin, _river_ids(), 0, 0, 0).ref
+	var designation: Vector2i = _make_designation(basin)
+	assert_equal(_fishing.habitat_ref_for_designation(designation).ref, habitat, "it resolves")
+	var other: Vector2i = _make_fish_basin()
+	assert_true(_zones.set_basin(basin, other).ok, "the basin is itself bound onward")
+	assert_equal(_fishing.habitat_ref_for_designation(designation).error,
+		Fishing.REFUSE_BASIN_CHAIN, "so the designation now resolves through a chain, and refuses")
+	assert_equal(_fishing.create_habitat(LAKE, designation, _lake_ids(), 0, 0, 0).error,
+		Fishing.REFUSE_BASIN_CHAIN, "and no habitat may be created on a bound designation")
+
+
+func test_binding_refuses_a_zone_that_is_not_a_fish_basin() -> void:
+	"""§4.3's ZoneType.FISH is checked once the HarvestZone store is available (module header)."""
+	_use_owner_stores()
+	var forage_zone: Vector2i = _zones.create_zone(ZONE_FORAGE, 1, 1000, false, true).ref
+	assert_equal(_fishing.create_habitat(RIVER, forage_zone, _river_ids(), 0, 0, 0).error,
+		Fishing.REFUSE_ZONE_NOT_FISH, "a forage basin owns no fish")
+	var habitat: Vector2i = _fishing.create_habitat(RIVER, EntityDirectory.NULL_REF,
+		_river_ids(), 0, 0, 0).ref
+	assert_equal(_fishing.bind_habitat_zone(habitat, forage_zone).error,
+		Fishing.REFUSE_ZONE_NOT_FISH, "and cannot be bound one afterwards")
+	assert_equal(_fishing.habitat_zone_ref_of(_fishing.habitat_slot_of(habitat).value),
+		EntityDirectory.NULL_REF, "the refused binding wrote nothing")
+
+
+func test_binding_a_habitat_to_its_basin_creates_and_resets_nothing() -> void:
+	"""Ruling §8B: binding is ownership bookkeeping, never a stock, quota or latch event."""
+	_use_owner_stores()
+	var habitat: Vector2i = _fishing.create_habitat(RIVER, EntityDirectory.NULL_REF,
+		_river_ids(), 0, 0, 0).ref
+	var slot: int = _fishing.habitat_slot_of(habitat).value
+	assert_true(_fishing.harvest(habitat, 0, 20000, SPRING, 1).ok, "20 U of trout is taken first")
+	assert_true(_fishing.reserve_effort_slots(_make_expedition(), _make_job(), habitat, 1).ok,
+		"and one effort slot is held")
+	var basin: Vector2i = _make_fish_basin()
+	assert_true(_fishing.bind_habitat_zone(habitat, basin).ok, "the habitat binds to the basin")
+	assert_equal(_fishing.habitat_zone_ref_of(slot), basin, "the reference is stored")
+	assert_equal(_population(_row(habitat, 0)), TROUT_INITIAL - 20000, "the stock is unchanged")
+	assert_equal(_fishing.harvested_today_total_of(slot).value, 20000, "the quota history too")
+	assert_equal(_fishing.effort_slots_used_of(slot).value, 1, "and the effort occupancy")
+	assert_equal(_fishing.population_total_milli_of(slot).value,
+		RIVER_INITIAL_BIOMASS - 20000, "no fish were created by binding")
+
+
+func test_designation_binding_needs_the_harvest_zone_store() -> void:
+	"""Without forage.gd's HarvestZone rows the designation half cannot be answered at all."""
+	var basin: Vector2i = _fishing.directory().create(EntityDirectory.KIND_HARVEST_ZONE)
+	var habitat: Vector2i = _fishing.create_habitat(RIVER, basin, _river_ids(), 0, 0, 0).ref
+	assert_equal(_fishing.habitat_ref_for_basin(basin).ref, habitat,
+		"the basin scan needs no zone store")
+	assert_equal(_fishing.habitat_ref_for_designation(basin).error, Fishing.REFUSE_NO_ZONE_STORE,
+		"but the designation resolution refuses rather than guessing")
+	assert_equal(_fishing.habitat_ref_for_basin(EntityDirectory.NULL_REF).error,
+		Fishing.REFUSE_INVALID_ZONE_REF, "and the null reference names no basin")

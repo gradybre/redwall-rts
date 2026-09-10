@@ -114,9 +114,11 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | FishStock | habitat_slot, habitat_generation, species_id | I32 | 4 | 3 | 96 | 1152 | [GDD §4.2; 32*3] |
 | FishStock | population_milli, capacity_milli, harvested_today_milli | I64 | 8 | 3 | 96 | 2304 | [GDD §4.2; 32*3] |
 | FishStock | closed | B8 | 1 | 1 | 96 | 96 | [GDD §4.2; 32*3] |
-| FishHabitat | effort_used | I32 | 4 | 1 | 32 | 128 | [decision 0027 **PROVISIONAL**] §4.2 gives `effort_slots` as a capacity with nowhere to record occupancy, which REQ-SET-044/050 require |
-| FishStock | restocking | B8 | 1 | 1 | 96 | 96 | [decision 0027 **PROVISIONAL**] REQ-SET-048's 30-down/40-up band needs one bit population alone cannot supply |
-| FishHabitat | intensive_harvest | B8 | 1 | 1 | 32 | 32 | [decision 0027 **PROVISIONAL**] §5.4's "explicitly visible intensive harvest" policy flag; the store's single setter, which is what makes "never by auto-fallback" structural |
+| FishHabitat | effort_used | I32 | 4 | 1 | 32 | 128 | [decision 0027, ratified by ruling §5 2026-09-09] §4.2 gives `effort_slots` as a capacity with nowhere to record occupancy, which REQ-SET-044/050 require |
+| FishStock | restocking | B8 | 1 | 1 | 96 | 96 | [decision 0027, ratified by ruling §5] REQ-SET-048's 30-down/40-up band needs one bit population alone cannot supply. Transitions are strict: enter `100*P<30*K`, clear `100*P>40*K` |
+| FishHabitat | intensive_harvest | B8 | 1 | 1 | 32 | 32 | [decision 0027, ratified by ruling §5] §5.4's "explicitly visible intensive harvest" policy flag; the store's single setter, which is what makes "never by auto-fallback" structural. The three rows above total **256 bytes** |
+| FishingEffortClaim | expedition_generation, habitat_slot, habitat_generation, job_slot, job_generation, slot_count | I32 | 4 | 6 | 512 | 12288 | [decision 0037, ruling §5] `claim_row = owning Expedition typed row`; no allocator and no child heap. The Expedition's directory slot is NOT stored — it comes back from `EntityDirectory.owner_slot_of_typed_row()`, which reads ARCH-ID-003's existing reverse map |
+| FishingEffortClaim | active | B8 | 1 | 1 | 512 | 512 | [decision 0037, ruling §5] Claim publication and the `effort_used` change are one committed step; the aggregate is rebuilt from live claims on load, never trusted. Slice total **12800 bytes** |
 | HarvestZone | type, danger | I32 | 4 | 2 | 128 | 1024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | HarvestZone | quota_milli | I64 | 8 | 1 | 128 | 1024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | HarvestZone | protected, enabled | B8 | 1 | 2 | 128 | 256 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -177,7 +179,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | WorldPolicy | auto_immigration, raw_emergency_food, variety_first | B8 | 1 | 3 | 1 | 3 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | GeneratorState | requested_seed, effective_seed, attempt, architecture, settlement_name | I32 | 4 | 5 | 1 | 20 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 
-Fixed-field payload sum = **24148434 bytes** (24146898 before decision 0021 added the 1536-byte `Schedule.latch` group, taking the Schedule packed payload from 16384 to 12288+4096+1536=**17920** bytes). The table includes selected_P for allocation but excludes it from canonical hashing. All zero-capacity TransferManifest fields remain declared in the schema and codec; enabling the adapter requires a versioned capacity/budget revision. The chronicle total is unbounded on disk; the row is only its two resident pages. `[DERIVED]`
+Fixed-field payload sum = **24161234 bytes** (24148434 before decision 0037 added the 12800-byte `FishingEffortClaim` slice, and 24146898 before decision 0021 added the 1536-byte `Schedule.latch` group, which took the Schedule packed payload from 16384 to 12288+4096+1536=**17920** bytes). The table includes selected_P for allocation but excludes it from canonical hashing. All zero-capacity TransferManifest fields remain declared in the schema and codec; enabling the adapter requires a versioned capacity/budget revision. The chronicle total is unbounded on disk; the row is only its two resident pages. `[DERIVED]`
 
 ### 2.3 Complete allocation ledger
 
@@ -185,7 +187,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
-| Fixed registry payload | 24586066 | 1 | 24586066 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027 **provisional**) |
+| Fixed registry payload | 24598866 | 1 | 24598866 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037 `FishingEffortClaim`) |
 | Auxiliary payload | 16384856 | 1 | 16384856 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
@@ -204,15 +206,15 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 58660042 | Sum above |
+| Planned allocated payload | 58672842 | Sum above (58660042 before decision 0037's 12800-byte claim slice) |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 67048650 | Payload + reserve |
-| Headroom below decimal 100 MB | 32951350 | 100000000 − live total |
-| Additional candidate mutable state | 52444458 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 119493108 | Live total + candidate mutable state |
-| Transactional headroom | -19493108 | 100000000 − transactional peak |
+| One live world plus reserve | 67061450 | Payload + reserve |
+| Headroom below decimal 100 MB | 32938550 | 100000000 − live total |
+| Additional candidate mutable state | 52457258 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 119518708 | Live total + candidate mutable state |
+| Transactional headroom | -19518708 | 100000000 − transactional peak |
 
-**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 58660042 in three recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021]`:
+**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 58672842 in four recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021, 0036]`:
 
 | Step | Governing record | Delta bytes | Running payload | Running payload + 8388608 reserve |
 |---|---|---:|---:|---:|
@@ -220,10 +222,11 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | Schedule latch columns | decision 0021 | +1536 | 57714790 | 66103398 |
 | Reservation pool indexing | decision 0019 | +786436 | 58501226 | 66889834 |
 | Job/JobAgent runtime columns | ARCH-STATE-005 | +158816 | 58660042 | 67048650 |
+| FishingEffortClaim slice | decision 0037 | +12800 | 58672842 | 67061450 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because two further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
-**ARCH-MEM-006.** The calculated two-world peak is 119493108 bytes, exceeding the gate by 19493108 bytes. Therefore the selected release architecture SHALL use a transactional **disk-backed rollback checkpoint**, not two resident mutable worlds: validate the entire incoming file and construct it in a separate inactive on-disk checkpoint, retain the old world's validated checkpoint, then reuse the old world's mutable allocations to decode the already validated incoming snapshot. On decode/I/O failure restore the validated old checkpoint before exposing any world. This avoids the second 52444458-byte mutable world and adds loading I/O. The original world remains logically unchanged on failure; UI remains in LOAD pause until rollback completes. If rollback itself encounters an I/O fault, keep both files and expose the load error without exposing a partially decoded world. `[NEW selected design; DERIVED ledger; GDD REQ-SET-161]`
+**ARCH-MEM-006.** The calculated two-world peak is 119518708 bytes, exceeding the gate by 19518708 bytes. Therefore the selected release architecture SHALL use a transactional **disk-backed rollback checkpoint**, not two resident mutable worlds: validate the entire incoming file and construct it in a separate inactive on-disk checkpoint, retain the old world's validated checkpoint, then reuse the old world's mutable allocations to decode the already validated incoming snapshot. On decode/I/O failure restore the validated old checkpoint before exposing any world. This avoids the second 52457258-byte mutable world and adds loading I/O. The original world remains logically unchanged on failure; UI remains in LOAD pause until rollback completes. If rollback itself encounters an I/O fault, keep both files and expose the load error without exposing a partially decoded world. `[NEW selected design; DERIVED ledger; GDD REQ-SET-161]`
 
 **ARCH-MEM-007.** The allocator reserve is a budget to measure, not a claim that Godot headers occupy exactly that amount. Count all live packed capacities and engine-owned copies separately. A measured reserve overrun fails qualification. The main planned payload contributors are directory bookkeeping, fixed field stores, A* scratch, and route cells; active resident fields are a small fraction. Avoid copying packed arrays into temporary local Variants during hot updates. `[NEW instrumentation; crowd §4.2, §7]`
 

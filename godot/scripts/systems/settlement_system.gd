@@ -18,31 +18,55 @@ extends Node
 ##
 ## ---------------------------------------------------------------------------------------
 ## STAGE ORDER IS `systems_architecture.md` §5's TABLE, NOT CONVENIENCE. Of the 23 systems in
-## that table, SEVEN are dispatched here, in the table's own order (ARCH-SYS-008 only in part).
-## ARCH-SYS-017 is deliberately NOT counted among the seven: it is not a separate call, and three
-## earlier revisions of this header disagreed about whether to include it -- one said THREE while
-## listing four, another said FIVE and SIX for the same milestone under different conventions, and
-## the third ended "That is the sixth" after excluding 017 from a list of six, which named nothing
-## at all. The count below is of DISPATCHED CALL SITES, and the list IS the count:
+## that table, NINE are dispatched here (ARCH-SYS-008 only in part). ARCH-SYS-017 is deliberately
+## NOT counted among the nine: it is not a separate call, and three earlier revisions of this
+## header disagreed about whether to include it -- one said THREE while listing four, another said
+## FIVE and SIX for the same milestone under different conventions, and the third ended "That is
+## the sixth" after excluding 017 from a list of six, which named nothing at all. The count below
+## is of DISPATCHED CALL SITES, and the list IS the count. `tick_stage_count()` publishes the SEVEN
+## of them that are on the per-tick path, so the list and the code cannot drift apart silently:
 ##
 ##   ARCH-SYS-002 CommandCommit      -> `command_dispatch.commit_tick_into()` every tick, FIRST
 ##   ARCH-SYS-003 IntervalIntegrator -> `needs.tick_all()`         every tick, after commit
 ##   ARCH-SYS-005 Ecology            -> `ecology.run_day_into()`   MIDNIGHT ONLY, never per tick
 ##   ARCH-SYS-006 CropWeather        -> `crop_weather.run_hour_into()` EVERY HOUR CROSSING, on
 ##                                     the tick path, AND `run_day_into()` at MIDNIGHT after 005
+##   ARCH-SYS-009 JobPlanner         -> `job_planner.run_tick_into()` every tick, AND
+##                                     `run_day_boundary()` at MIDNIGHT after 006
 ##   ARCH-SYS-008 NeedIntent (PART)  -> `schedule.resolve_into()`  activity resolution only
 ##   ARCH-SYS-010 JobSelector        -> `jobs.evaluate()`/`assign_worker()`
 ##   ARCH-SYS-013 ProductiveWork     -> `work.tick_solo_into()` / `tick_party_into()`
+##   ARCH-SYS-023 PresentationExtract-> `presentation.capture()`  every tick, LAST
+##
+## TWO OF THOSE NINE ARE OUT OF THE TABLE'S ORDER, AND BOTH ARE SAID SO RATHER THAN GLOSSED:
+##
+##   * ARCH-SYS-009 RUNS BEFORE ARCH-SYS-008, not after it. The table reads 008, 009, 010; this
+##     node runs 009, then a FUSED 008/010 pass in which each resident's activity is resolved
+##     immediately before that resident is offered a job. The fusion is what stops eligibility
+##     step 2 reading a stale hour, and the two stages have NO DATA DEPENDENCY -- the planner reads
+##     FarmPlot rows and HarvestZone designations, resolution reads needs and the calendar hour.
+##     What the table's order is actually FOR is satisfied exactly: R06-JOB-008 requires demand to
+##     be reconciled "before selection", and it is.
+##   * ARCH-SYS-017 CareHealth RUNS IN ARCH-SYS-003's SLOT, WHICH IS FOURTEEN PLACES EARLY. THIS
+##     IS AN ORDERING DEBT, not a naming convenience, and it is stated here in full because the
+##     previous revision left it implicit. `needs.gd` integrates health, cold exposure and the
+##     incapacitation/death transitions INSIDE `tick_all()`, so they are computed at position 3
+##     rather than at the table's position 17. The table's own stated constraint -- "before
+##     lifecycle and progression" -- still holds, because neither ARCH-SYS-019 nor ARCH-SYS-020
+##     exists. WHAT IS ACTUALLY LOST is everything between the two positions: cold exposure cannot
+##     see THIS tick's ARCH-SYS-016 RoomHeat result (no Room store), and injury care cannot see
+##     THIS tick's ARCH-SYS-013 care work (no care request store). Both inputs are absent today,
+##     so the debt is currently unobservable -- and it becomes a real one-tick lag the moment
+##     either store lands. Repaying it means a separate CareHealth call, which is a change to
+##     `needs.gd`, a file this task does not own.
 ##
 ## ARCH-SYS-006 IS ONE STAGE WITH TWO CADENCES, not two stages: its §5 row reads "Hourly crop
 ## integration; midnight after Ecology" and both halves belong to `crop_weather.gd`. The hourly
 ## half sits in the table's own position, after ARCH-SYS-003 and before the selectors; the daily
 ## half is REQ-SET-007's third leg and runs after ARCH-SYS-005's, never before it.
 ##
-## ARCH-SYS-017 CareHealth is not a separate call because health, cold exposure and the
-## incapacitation/death status transitions are integrated INSIDE `needs.tick_all()`; it is run,
-## not skipped, and it is run in ARCH-SYS-003's slot rather than its own. It is therefore not an
-## eighth entry in the list above, and that is the whole of what this paragraph claims.
+## ARCH-SYS-017 CareHealth is therefore not a tenth entry in the list above; it is run, not
+## skipped, and the paragraph above states exactly what running it early does and does not cost.
 ##
 ## ARCH-SYS-002 IS FIRST BECAUSE §5 SAYS "after snapshot, before selectors", and ARCH-SYS-001
 ## TransformSnapshot does not exist -- there is no Transform store -- so nothing precedes it here.
@@ -51,12 +75,18 @@ extends Node
 ##
 ## WHAT ARCH-SYS-002 NOW DOES, AND WHAT IT STILL DOES NOT. It drains `commands.gd`'s ordered
 ## next-tick queue and commits each drained record through `command_dispatch.gd`. In THIS node's
-## composition that reaches four of the six implemented kinds -- CANCEL_JOB, NAME_RESIDENT,
-## SET_ACTIVITY_SCHEDULE and SET_JOB_PRIORITIES -- because this node composes the resident-side
-## stores. DESIGNATE_ZONE and SET_POLICY need `forage.gd` and `job_planner.gd`, which are
-## ARCH-SYS-005/009's stores and task 03's to compose; until `bind_ecology()` is called they refuse
-## COMMAND_STORE_NOT_BOUND, which is an explicit refusal and NOT a silent success. The remaining
-## eighteen ARCH-CMD-003 kinds refuse COMMAND_UNSUPPORTED_FEATURE and name their missing owner.
+## composition that now reaches ALL SIX implemented kinds. Four of them -- CANCEL_JOB,
+## NAME_RESIDENT, SET_ACTIVITY_SCHEDULE and SET_JOB_PRIORITIES -- always did, because this node
+## composes the resident-side stores. DESIGNATE_ZONE and SET_POLICY refused COMMAND_STORE_NOT_BOUND
+## until task 04.4, because they need `forage.gd` and `job_planner.gd`; `_bind_ecology_to_commands()`
+## is the named handoff task 04.2 reserved for it and it runs during composition, so a player's
+## zone and policy edits now reach real stores in the running game. The remaining eighteen
+## ARCH-CMD-003 kinds refuse COMMAND_UNSUPPORTED_FEATURE and name their missing owner.
+##
+## ONE PLAYER COMMAND CANNOT PRODUCE TWO DESIGNATIONS. `command_dispatch.gd` records
+## ARCH-CMD-001's `(player_id, sequence_high, sequence_low)` on the zone each DESIGNATE_ZONE
+## creates and refuses COMMAND_DUPLICATE_INTENT for a repeat of the same identity. That guard is
+## in the dispatcher rather than here, and its header records the measurement that motivated it.
 ##
 ## ARCH-CMD-002's SPEED/PAUSE SCHEDULER EVENTS ARE STILL NOT IMPLEMENTED. Task 04.1 owns their
 ## separate queue and every one of its widths, enum values and refusals; `sim_clock.gd`'s two
@@ -73,9 +103,8 @@ extends Node
 ##                                    0047. It is not in this absent list any more.
 ##   ARCH-SYS-007 ImmigrationDeparture no candidate store; `needs.gd` leaves `departure_days`
 ##                                    explicitly unwritten pending a complete mood.
-##   ARCH-SYS-009 JobPlanner          EXISTS NOW (`scripts/core/job_planner.gd`, decision 0039)
-##                                    but IS NOT COMPOSED HERE. See THE JOB QUEUE IS EMPTY below
-##                                    for exactly what does and does not create work.
+##   ARCH-SYS-009 JobPlanner          RUNS NOW -- see the dispatched list above. It is not in
+##                                    this absent list any more.
 ##   ARCH-SYS-011 Navigation          no pathfinder, no navigation graph, no route cache.
 ##   ARCH-SYS-012 Movement            no Transform store and no path to follow.
 ##   ARCH-SYS-014 BatchCompletion     no BatchState, no recipe store, no passive-wait flag.
@@ -93,8 +122,8 @@ extends Node
 ##                                    every committed change; its hourly half has nothing to
 ##                                    change while no lot ages and no policy exists.
 ##   ARCH-SYS-022 CheckpointHash      no save stream and no canonical digest yet.
-##   ARCH-SYS-023 PresentationExtract the HUD polls committed state each frame; nothing is
-##                                    extracted here and this node never writes to the UI.
+##   ARCH-SYS-023 PresentationExtract RUNS NOW -- see the dispatched list above and the float
+##                                    paragraph below. It is not in this absent list any more.
 ##
 ## REQ-SET-007's daily order is "age stocks, update ecology, advance crops/weather, process
 ## immigration/departures, then evaluate progression IN THAT ORDER", and `run_day_boundary()`
@@ -129,31 +158,56 @@ extends Node
 ## calendar, the multiplier from `needs.gd`, and every ecology number from the four stores.
 ##
 ## ---------------------------------------------------------------------------------------
-## THE JOB QUEUE IN *THIS* SETTLEMENT IS EMPTY, AND THE REASON HAS CHANGED. It is no longer true
-## that nothing in the project creates a job: `scripts/core/job_planner.gd` (ARCH-SYS-009,
-## decision 0039) creates R06-JOB-007's one 1-WU FARM tending service for each GROWING FarmPlot
-## per absolute day, on a dirty condition or its 30-tick staggered idle sweep. Precisely:
+## ARCH-SYS-023 IS WHERE A `float` BECOMES LEGAL, AND NOWHERE ELSE IN THIS LOOP. AGENTS.md fixes
+## integer arithmetic for all authoritative state; `presentation_extract.gd` is the presentation
+## side of that boundary and is the ONLY module this node composes that produces a float at all.
+## It captures fourteen COMMITTED INTEGERS once per tick and interpolates between the last two
+## captures for a renderer, at an integer alpha the renderer supplies. Three properties this node
+## depends on, each enforced there and each tested:
+##   * IT WRITES NO STORE. Its only inputs are readers; it holds no reference this node's stores
+##     can be reached through, and it is dispatched LAST so it never photographs a half-run tick.
+##   * NO MUTABLE HANDLE ESCAPES IT. `presentation()` hands out an object whose every read fills
+##     a record the CALLER owns. A UI holding it holds fourteen numbers and cannot edit one.
+##   * HIDING A LAYER CHANGES WHAT IS REPORTED, NOT WHAT IS TRUE. A hidden layer's fields refuse;
+##     the captured value, the next capture and every authoritative column are untouched.
+## A refused capture is COUNTED in `refused_extract_count()` and never fatal: a missed frame is a
+## presentation fault, and the simulation it failed to photograph is still correct.
 ##
-##   WHAT NOW CREATES WORK: the daily FARM tending service of a GROWING plot, and only that.
+## ---------------------------------------------------------------------------------------
+## THE JOB QUEUE IS EMPTY IN AN *UNGENERATED, UNCOMMANDED* SETTLEMENT, AND THAT IS NOW THE WHOLE
+## OF THE CLAIM. `job_planner.gd` (ARCH-SYS-009, decisions 0039/0040/0041) IS COMPOSED HERE and
+## runs every tick. What it creates, exactly:
+##
+##   WHAT NOW CREATES WORK IN THE RUNNING GAME:
+##     * R06-JOB-001/002 REPEAT FORAGE HARVEST, from a PLAYER COMMAND. A committed DESIGNATE_ZONE
+##       over a generated ecology basin creates the designation and enables its standing demand,
+##       and the very next planner tick publishes a QUEUED FORAGE Job against real stock. That is
+##       the whole intent-to-job path task 04.4 exists to close, and it is now one call chain.
+##     * R06-JOB-007's daily 1-WU FARM tending service for each GROWING FarmPlot.
+##     * R06-JOB-004's sowing first-plant, once something confirms a planting.
 ##   WHAT STILL CREATES NONE: REQ-SET-073 ripe harvest and REQ-SET-085 withered clearing (both
-##     keep their own route and are NOT rerouted through the planner); forage demand
-##     (R06-JOB-001/002, deferred); fishing cycles (R06-JOB-003, no Expedition store); sowing
-##     first-plant (R06-JOB-004, deferred); rotation advance (R06-JOB-005, no FieldPolicy store);
-##     hive service (R06-JOB-006 -- the Hive STORE now exists and ARCH-SYS-005 advances it,
-##     but no producer creates its 20-WU service job); and every production order, recipe,
-##     construction, care request and hauling policy, none of which has a store.
-##   WHAT THIS NODE DOES: nothing of the above, AND THE REASON IS NARROWER THAN IT WAS. It now
-##     composes `farming.gd` and `weather.gd` through ARCH-SYS-006 and advances a real crop
-##     simulation, so "composing it here early would run a crop simulation nothing else advances"
-##     is no longer why the queue is empty. IT STILL COMPOSES NO PLANNER: `job_planner.gd` is
-##     ARCH-SYS-009's and increment 10 does not call it, does not write a Job row and NEVER writes
-##     JOB_STATE_WORK. A crop that ripens here marks itself RIPE and creates no harvest job; a
-##     crop that withers marks itself WITHERED and creates no clearing job. So THIS settlement's
-##     queue is still 0 in a fresh world, for a reason that is now one wiring step, not four.
+##     keep their own route and are NOT rerouted through the planner); fishing cycles
+##     (R06-JOB-003, no Expedition store); rotation advance (R06-JOB-005, `field_policy.gd`
+##     requests a crop and creates no Job, and nothing delivers that request); hive service
+##     (R06-JOB-006 -- the Hive STORE exists and ARCH-SYS-005 advances it, but no producer creates
+##     its 20-WU service job); and every production order, recipe, construction, care request and
+##     hauling policy, none of which has a store.
+##
+## SO A FRESH SETTLEMENT'S QUEUE IS STILL 0, FOR A DIFFERENT REASON THAN BEFORE: not because
+## nothing is wired, but because §5.1's world generation has not run and no player command has
+## arrived. `world_init.gd` (decision 0048) is the generator, and IT IS NOT COMPOSED HERE -- its
+## scenario `Request` needs tree/stone/iron/forage/fish ITEM IDS that no document assigns, and the
+## New Settlement control that would supply them is task 04.4's UI half, which is not built. A
+## test or a future UI reaches the stores through `ecology()`, `farming()` and `rng()` and
+## generates over them; this node invents neither the ids nor the caller.
+##
+## NOTHING HERE WRITES JOB_STATE_WORK. A planner-published job is QUEUED; ARCH-SYS-010 may bind a
+## worker and make it RESERVED; RESERVED -> TRAVEL -> WORK is ARCH-SYS-011/012's and does not
+## exist. Task 04.4 says in terms that no delivered output is expected before task 05.
 ##
 ## `job_queue_length()` reports the real number, and the selection and work stages run over it
-## honestly and find nothing. A fabricated job would make the loop look busy and would measure a
-## fiction; that has not changed.
+## honestly. A fabricated job would make the loop look busy and would measure a fiction; that has
+## not changed.
 ##
 ## Two further gaps mean the job pipeline could not complete a job even if one existed, and both
 ## belong to files this task does not own:
@@ -170,11 +224,14 @@ extends Node
 ## composes the four ecology stores over THIS settlement's directory, and `run_day_boundary()`
 ## drives it at every real midnight -- the stage is wired, not declared. A FRESH SETTLEMENT
 ## NONETHELESS HAS NOTHING TO ADVANCE: GDD §5.1's world generation places the tree cover, the
-## deposits, the harvest basins and the estuary, and no world generator exists, so `count()`,
-## `zone_count()`, `habitat_count()` and `hive_count()` are all 0 and the stage honestly does
-## nothing. Placing a node or a basin here to make the day look busy would measure a fiction, in
-## exactly the way a fabricated job would. `ecology()` is the accessor a world generator or a
-## test uses to reach the stores, and ARCH-SYS-006 borrows the same object rather than a copy.
+## deposits, the harvest basins and the estuary, and THIS NODE DOES NOT CALL A GENERATOR, so
+## `count()`, `zone_count()`, `habitat_count()` and `hive_count()` are all 0 and the stage
+## honestly does nothing. `world_init.gd` EXISTS (decision 0048) and is not composed here for the
+## reason given above -- its scenario Request's item ids have no authored source and its caller,
+## the New Settlement control, is not built. Placing a node or a basin here to make the day look
+## busy would measure a fiction, in exactly the way a fabricated job would. `ecology()` is the
+## accessor a world generator or a test uses to reach the stores, and ARCH-SYS-006 and
+## ARCH-SYS-009 borrow the same object rather than a copy.
 ##
 ## THE CROP LAYER IS OWNED, DRIVEN AND EMPTY IN THE SAME THREE SENSES. `crop_weather.gd` composes
 ## the FarmPlot store and the single Weather row over this settlement's directory, `run_tick()`
@@ -182,7 +239,7 @@ extends Node
 ## every real midnight. THE WEATHER IS REAL FROM DAY 1 -- `create_initial_settlement()` opens the
 ## opening day's baseline, which the offset calendar's first midnight (day 2) would otherwise
 ## leave 18 hours late -- and THE FIELDS ARE EMPTY, because REQ-SET-009's world generation places
-## the starter fields and no world generator exists. `farming().count()` is 0, so the hourly leg
+## the starter fields and no generator is called here. `farming().count()` is 0, so the hourly leg
 ## honestly integrates nothing. `crop_weather()`, `farming()` and `weather()` are the accessors a
 ## world generator or a test reaches them through.
 ##
@@ -217,6 +274,12 @@ extends Node
 ##     modulo and returns before anything else runs. On the 24th it allocates nothing either,
 ##     unless a plot actually takes frost or actually withers; `crop_weather.gd`'s own header
 ##     itemises which store calls allocate on which hour and why.
+##   * `job_planner.run_tick_into()` ZERO of its own (that file's header states it): the drain,
+##     the 1/30 owner slice and the 1/30 designation slice all run through `_reconcile_owner()`,
+##     which returns an int. A tick on which it actually PUBLISHES a job allocates inside
+##     `jobs.gd` and `forage.gd`, per job, which is their published contract.
+##   * `presentation.capture()` ZERO. Both frames and both flag columns are sized once, the
+##     calendar is instance scratch, and every field is a scalar read.
 ##
 ## ARCH-SYS-005 IS NOT ON THE TICK PATH AT ALL, AND ARCH-SYS-006 IS ON IT ONLY HOURLY.
 ## `ecology.gd` is called from `run_day_boundary()` and never from `run_tick()`, so its per-day
@@ -240,6 +303,8 @@ const ReservationsScript := preload("res://scripts/core/reservations.gd")
 const CommandsScript := preload("res://scripts/core/commands.gd")
 const CommandDispatchScript := preload("res://scripts/core/command_dispatch.gd")
 const EcologyScript := preload("res://scripts/core/ecology.gd")
+const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
+const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
 const CropWeatherScript := preload("res://scripts/core/crop_weather.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const WeatherScript := preload("res://scripts/core/weather.gd")
@@ -264,6 +329,31 @@ const LEG_IMMIGRATION_DEPARTURE: int = 4
 const LEG_PROGRESSION: int = 5
 const DAILY_LEG_CAPACITY: int = 6
 
+## The §5 stages this node dispatches ON THE TICK PATH, in dispatch order. `tick_stage_usec_at()`
+## publishes what each one COST on the most recent tick, so "which stage is expensive" is a
+## measurement rather than an opinion. NO BUDGET IS ASSERTED AGAINST THEM: REQ-SET-163's figures
+## are for 256 residents on a stated machine, and nothing here qualifies against them.
+const TICK_STAGE_COMMAND_COMMIT: int = 0
+const TICK_STAGE_INTERVAL: int = 1
+const TICK_STAGE_CROP_HOUR: int = 2
+const TICK_STAGE_JOB_PLANNER: int = 3
+const TICK_STAGE_SELECTION: int = 4
+const TICK_STAGE_WORK: int = 5
+const TICK_STAGE_PRESENTATION: int = 6
+const TICK_STAGE_COUNT: int = 7
+
+## The ARCH-SYS id each measured stage is, so a reader cannot mistake the selection stage's
+## fused pair for one system. ARCH-SYS-008 appears as a PART: only activity resolution runs.
+const TICK_STAGE_KEYS: Array[StringName] = [
+	&"ARCH-SYS-002 CommandCommit",
+	&"ARCH-SYS-003 IntervalIntegrator (ARCH-SYS-017 CareHealth inside it)",
+	&"ARCH-SYS-006 CropWeather hourly",
+	&"ARCH-SYS-009 JobPlanner",
+	&"ARCH-SYS-008 NeedIntent (activity resolution only) + ARCH-SYS-010 JobSelector",
+	&"ARCH-SYS-013 ProductiveWork",
+	&"ARCH-SYS-023 PresentationExtract",
+]
+
 ## REQ-SET-012's "a prepared meal is reachable and unreserved", answered false and NOT guessed.
 ## Two separate things are missing: §5.7's recipe/portion model, so no prepared MEAL exists as an
 ## entity at all (a `ration` lot in the pantry is stock, not a served portion nobody has claimed),
@@ -285,6 +375,8 @@ const REFUSE_NO_TICK_MEASURED: StringName = &"NO_TICK_MEASURED"
 const REFUSE_CLOCK_BIND: StringName = &"SIMULATION_CLOCK_BIND_REFUSED"
 const REFUSE_CALENDAR_MISMATCH: StringName = &"DAY_BOUNDARY_CALENDAR_MISMATCH"
 const REFUSE_INVALID_INDEX: StringName = &"INVALID_INDEX"
+const REFUSE_ECOLOGY_BIND: StringName = &"COMMAND_ECOLOGY_BIND_REFUSED"
+const REFUSE_PLANNER_DAY: StringName = &"JOB_PLANNER_DAY_REFUSED"
 
 # --- the settlement's stores (composed once in _init, never reallocated) ----------------------
 
@@ -301,6 +393,8 @@ var _dispatch: CommandDispatchScript = null
 var _ecology: EcologyScript = null
 var _rng: RngScript = null
 var _crop_weather: CropWeatherScript = null
+var _planner: JobPlannerScript = null
+var _presentation: PresentationExtractScript = null
 
 # --- the live-resident index ------------------------------------------------------------------
 
@@ -322,18 +416,34 @@ var _command_report: CommandDispatchScript.TickReport = CommandDispatchScript.Ti
 var _ecology_day: EcologyScript.DayResult = EcologyScript.DayResult.new()
 var _crop_day: CropWeatherScript.DayResult = CropWeatherScript.DayResult.new()
 var _crop_hour: CropWeatherScript.HourResult = CropWeatherScript.HourResult.new()
+var _planner_result: IntMath.IntResult = IntMath.IntResult.new()
+var _planner_day: JobPlannerScript.OpResult = null
 ## The 00:00 tick of the day boundary being run, located and PROVED once per boundary.
 var _boundary_tick: int = 0
 ## REQ-SET-007 legs the most recent boundary executed, in execution order. Sized once in _init().
 var _daily_legs: PackedInt32Array = PackedInt32Array()
 var _daily_leg_count: int = 0
 var _tick_timer: PerfTimerScript = PerfTimerScript.new()
+## One reused stopwatch for every stage: each stage opens and closes it, so the cost is two
+## `Time.get_ticks_usec()` calls per stage and no allocation at all.
+var _stage_timer: PerfTimerScript = PerfTimerScript.new()
+## Microseconds the most recent tick spent in each dispatched stage, and the running totals the
+## means are taken over. Both sized once in _init(); neither is simulation state.
+var _stage_usec: PackedInt64Array = PackedInt64Array()
+var _stage_usec_total: PackedInt64Array = PackedInt64Array()
+## How many times each stage has been MEASURED since the last reset(). One per tick per stage, so
+## a stage that stopped being dispatched -- or whose window was closed against the wrong stage --
+## is visible as a count that no longer matches `ticks_run()`.
+var _stage_measured: PackedInt64Array = PackedInt64Array()
 
 # --- observable counters ----------------------------------------------------------------------
 
 var _ticks_run: int = 0
 var _refused_tick_count: int = 0
 var _refused_crop_hour_count: int = 0
+var _refused_extract_count: int = 0
+var _refused_planner_day_count: int = 0
+var _planner_day_count: int = 0
 var _tick_usec_total: int = 0
 var _tick_usec_max: int = 0
 var _assignment_count: int = 0
@@ -364,11 +474,34 @@ func _init() -> void:
 	_ecology = EcologyScript.new(_directory, _jobs)
 	_rng = RngScript.new()
 	_crop_weather = CropWeatherScript.new(_ecology, _rng)
+	_planner = JobPlannerScript.new(_crop_weather.farming(), _jobs, _ecology.forage())
+	_presentation = PresentationExtractScript.new(_residents, _jobs, _dispatch,
+		_ecology.forage(), _planner, _crop_weather.weather())
+	_bind_ecology_to_commands()
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
 	_daily_legs.resize(DAILY_LEG_CAPACITY)
 	_daily_legs.fill(LEG_STOCK_AGE)
+	_stage_usec.resize(TICK_STAGE_COUNT)
+	_stage_usec_total.resize(TICK_STAGE_COUNT)
+	_stage_measured.resize(TICK_STAGE_COUNT)
 	_assert_shared_contracts()
+
+
+func _bind_ecology_to_commands() -> void:
+	"""Task 04.2's NAMED RUNTIME HANDOFF: give ARCH-SYS-002 the ecology stores it commits into.
+
+	This one call is what stops DESIGNATE_ZONE and SET_POLICY refusing COMMAND_STORE_NOT_BOUND in
+	the real game. It was deliberately absent while the ecology had nothing to advance and the
+	world had no content; ARCH-SYS-005/006 now run and `world_init.gd` fills the world, so both
+	reasons are gone. A refused bind is fatal rather than silent: the settlement would otherwise
+	go on refusing every zone and policy edit while the HUD showed a running game.
+	"""
+	if _dispatch.bind_ecology(_ecology.forage(), _planner):
+		return
+	_last_refusal = REFUSE_ECOLOGY_BIND
+	push_error("SettlementSystem could not bind the ecology to ARCH-SYS-002: %s"
+		% _dispatch.last_refusal())
 
 
 func _assert_shared_contracts() -> void:
@@ -393,6 +526,16 @@ func _assert_shared_contracts() -> void:
 		"ARCH-SYS-006 must consume this settlement's one ARCH-RNG-002 stream set")
 	assert(DAILY_LEG_CAPACITY == LEG_PROGRESSION + 1,
 		"the leg log must hold exactly REQ-SET-007's legs plus the season handover")
+	assert(_planner.forage() == _ecology.forage(),
+		"ARCH-SYS-009 must plan over ARCH-SYS-005's own HarvestZone store, not a second one")
+	assert(_planner.jobs() == _jobs,
+		"ARCH-SYS-009 must publish into the Job store ARCH-SYS-010 selects from")
+	assert(_planner.farming() == _crop_weather.farming(),
+		"ARCH-SYS-009 must service the FarmPlot rows ARCH-SYS-006 integrates")
+	assert(TICK_STAGE_KEYS.size() == TICK_STAGE_COUNT,
+		"every measured tick stage must name the ARCH-SYS system it dispatches")
+	assert(_stage_usec.size() == TICK_STAGE_COUNT and _stage_usec_total.size() == TICK_STAGE_COUNT,
+		"the per-stage measurement columns must hold exactly one entry per dispatched stage")
 
 
 func _ready() -> void:
@@ -509,6 +652,8 @@ func _clear_stores() -> void:
 	_dispatch.clear()
 	_ecology.clear()
 	_crop_weather.clear()
+	_planner.clear()
+	_presentation.clear()
 	_rng.clear()
 
 
@@ -517,8 +662,14 @@ func _clear_counters() -> void:
 	_ticks_run = 0
 	_refused_tick_count = 0
 	_refused_crop_hour_count = 0
+	_refused_extract_count = 0
+	_refused_planner_day_count = 0
+	_planner_day_count = 0
 	_tick_usec_total = 0
 	_tick_usec_max = 0
+	_stage_usec.fill(0)
+	_stage_usec_total.fill(0)
+	_stage_measured.fill(0)
 	_assignment_count = 0
 	_refused_assignment_count = 0
 	_accepted_mwu_last_tick = 0
@@ -557,23 +708,68 @@ func _run_stages(tick_index: int) -> bool:
 	_accepted_mwu_last_tick = 0
 	_commit_commands(tick_index)
 	if not _integrate_interval():
+		_extract_presentation(tick_index)
 		return false
 	_integrate_crops(tick_index)
+	_plan_jobs(tick_index)
 	_select_jobs(tick_index)
 	_run_productive_work()
+	_extract_presentation(tick_index)
 	return true
+
+
+func _plan_jobs(tick_index: int) -> void:
+	"""ARCH-SYS-009 JobPlanner: reconcile every dirty owner and this tick's staggered idle slice.
+
+	R06-JOB-008 requires an owner's demand to be reconciled "before selection", and selection is
+	the very next stage, so this sits between them. A refusal is recorded and not fatal: one
+	unplannable owner is not a reason to discard a committed needs sweep.
+
+	IT RUNS BEFORE ARCH-SYS-008's activity resolution rather than after it, which is one place
+	off §5's table order. The two have no data dependency -- the planner reads FarmPlot rows and
+	HarvestZone designations, and resolution reads needs and the hour -- and moving it after
+	would split the fused resolve/select loop that keeps eligibility step 2 from seeing a stale
+	hour. Named here rather than left for a reader to discover.
+	"""
+	_stage_timer.start()
+	if not _planner.run_tick_into(tick_index, _planner_result):
+		_last_refusal = StringName(_planner_result.error)
+	_close_stage(TICK_STAGE_JOB_PLANNER)
+
+
+func _extract_presentation(tick_index: int) -> void:
+	"""ARCH-SYS-023 PresentationExtract: snapshot the committed tick. Writes no store, ever.
+
+	LAST, because a snapshot taken before the final stage would show a tick that never existed.
+	A refusal is recorded rather than fatal: a missed frame is a presentation fault, and the
+	simulation it failed to photograph is still correct.
+	"""
+	_stage_timer.start()
+	if not _presentation.capture(tick_index):
+		_refused_extract_count += 1
+	_close_stage(TICK_STAGE_PRESENTATION)
+
+
+func _close_stage(stage: int) -> void:
+	"""Close the open stage window and fold its cost into this tick's and the run's totals."""
+	_stage_usec[stage] = _stage_timer.stop()
+	_stage_usec_total[stage] += _stage_usec[stage]
+	_stage_measured[stage] += 1
 
 
 func _commit_commands(tick_index: int) -> void:
 	"""ARCH-SYS-002 CommandCommit: drain and commit every player edit due at this tick."""
+	_stage_timer.start()
 	_commands_committed_last_tick = 0
 	_commands_refused_last_tick = 0
 	if not _dispatch.commit_tick_into(tick_index, _command_report):
 		_last_refusal = _dispatch.last_refusal()
+		_close_stage(TICK_STAGE_COMMAND_COMMIT)
 		return
 	_commands_committed_last_tick = _command_report.committed
 	_commands_refused_last_tick = _command_report.refused
 	_ensure_command_clock()
+	_close_stage(TICK_STAGE_COMMAND_COMMIT)
 
 
 func _ensure_command_clock() -> void:
@@ -610,7 +806,9 @@ func _integrate_interval() -> bool:
 	A refusal names the row in `needs.last_refused_slot()` and stops the tick: a partial sweep
 	must be visible, not averaged away.
 	"""
+	_stage_timer.start()
 	var swept: NeedsScript.OpResult = _needs.tick_all()
+	_close_stage(TICK_STAGE_INTERVAL)
 	if swept.ok:
 		return true
 	_refused_tick_count += 1
@@ -626,6 +824,13 @@ func _integrate_crops(tick_index: int) -> void:
 	has already committed, and one refused crop hour is not a reason to discard it -- and
 	`crop_hour()` carries the reason on its own channel.
 	"""
+	_stage_timer.start()
+	_integrate_crop_hour(tick_index)
+	_close_stage(TICK_STAGE_CROP_HOUR)
+
+
+func _integrate_crop_hour(tick_index: int) -> void:
+	"""The hourly crop integration itself, so the measurement above stays one statement wide."""
 	if not CropWeatherScript.is_hour_boundary(tick_index):
 		return
 	if _crop_weather.run_hour_into(tick_index, _crop_hour):
@@ -642,6 +847,13 @@ func _select_jobs(tick_index: int) -> void:
 	already holds a job. The activity is resolved immediately before the pass that reads it, so
 	eligibility step 2 can never see a stale hour.
 	"""
+	_stage_timer.start()
+	_resolve_and_select(tick_index)
+	_close_stage(TICK_STAGE_SELECTION)
+
+
+func _resolve_and_select(tick_index: int) -> void:
+	"""The fused resolve/select pass: one resident is resolved immediately before it is offered."""
 	var hour: int = _hour_of(tick_index)
 	for index: int in _live_count:
 		var slot: int = _live_slots[index]
@@ -678,11 +890,13 @@ func _run_productive_work() -> void:
 	through its coordinator and a per-worker walk would tick it once per member. Today the walk
 	is empty: nothing creates jobs (header).
 	"""
+	_stage_timer.start()
 	for index: int in _jobs.job_count():
 		var live: IntMath.IntResult = _jobs.live_job_at(index)
 		if not live.ok:
 			continue
 		_tick_one_activity(live.value)
+	_close_stage(TICK_STAGE_WORK)
 
 
 func _tick_one_activity(job_slot: int) -> void:
@@ -735,6 +949,7 @@ func run_day_boundary(absolute_day: int, season: int) -> bool:
 		return false
 	if not _advance_crops_and_weather():
 		return false
+	_run_planner_day()
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -794,6 +1009,27 @@ func _advance_crops_and_weather() -> bool:
 		return _refuse(_crop_day.error)
 	_record_daily_leg(LEG_CROP_WEATHER)
 	return true
+
+
+func _run_planner_day() -> void:
+	"""ARCH-SYS-009's own daily maintenance. NOT a sixth REQ-SET-007 leg, and not logged as one.
+
+	REQ-SET-007 names five legs and job planning is not among them, so this is deliberately
+	absent from `daily_leg_at()`: putting it there would make the leg log claim a requirement
+	step that the requirement does not contain. What it does is the planner's own midnight --
+	settle yesterday's unserved daily services, then mark every owner and every designation dirty
+	so the next tick reconciles against the new day's quota. It runs AFTER ARCH-SYS-005 reset
+	those quotas, because released quota is R06-JOB-002's trigger and reconciling before the
+	reset would find nothing released.
+
+	A refusal is COUNTED, not fatal: the day's ecology and crop legs have already committed.
+	"""
+	_planner_day = _planner.run_day_boundary(_boundary_tick)
+	if _planner_day.ok:
+		_planner_day_count += 1
+		return
+	_refused_planner_day_count += 1
+	_last_refusal = REFUSE_PLANNER_DAY
 
 
 func _record_daily_leg(leg: int) -> void:
@@ -936,6 +1172,98 @@ func refused_crop_hour_count() -> int:
 	return _refused_crop_hour_count
 
 
+func refused_extract_count() -> int:
+	"""Ticks whose ARCH-SYS-023 snapshot refused, so a missed frame is never silent."""
+	return _refused_extract_count
+
+
+func refused_planner_day_count() -> int:
+	"""Midnights whose ARCH-SYS-009 maintenance refused, so a skipped one is never silent."""
+	return _refused_planner_day_count
+
+
+func planner_day_count() -> int:
+	"""Midnights on which ARCH-SYS-009's own daily maintenance actually ran and succeeded.
+
+	Counted rather than assumed: with no FarmPlot and no designation the planner's midnight has
+	nothing visible to do, so "it ran" would otherwise be indistinguishable from "it was skipped".
+	"""
+	return _planner_day_count
+
+
+func tick_stage_measured_count(stage: int) -> IntMath.IntResult:
+	"""How many times one stage has been measured since the last reset().
+
+	Every dispatched stage closes its window exactly once per tick, so this equals `ticks_run()`
+	for every stage. A stage that stopped being dispatched, or whose window was closed against
+	another stage's index, shows up here as a count that no longer matches.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_tick_stage(stage):
+		out.refuse(String(REFUSE_INVALID_INDEX))
+		return out
+	out.succeed(_stage_measured[stage])
+	return out
+
+
+func job_planner() -> JobPlannerScript:
+	"""ARCH-SYS-009's producer. The store DESIGNATE_ZONE enables standing demand in."""
+	return _planner
+
+
+func presentation() -> PresentationExtractScript:
+	"""ARCH-SYS-023's read-only snapshot. It exposes no store and can write to none."""
+	return _presentation
+
+
+func tick_stage_count() -> int:
+	"""How many §5 stages this node measures on the tick path."""
+	return TICK_STAGE_COUNT
+
+
+func is_tick_stage(stage: int) -> bool:
+	"""True when this index names one of the measured tick stages."""
+	return stage >= 0 and stage < TICK_STAGE_COUNT
+
+
+func tick_stage_name(stage: int) -> StringName:
+	"""The ARCH-SYS system a measured stage dispatches, or the empty name for an unknown index."""
+	if not is_tick_stage(stage):
+		return REFUSE_NONE
+	return TICK_STAGE_KEYS[stage]
+
+
+func tick_stage_usec_at(stage: int) -> IntMath.IntResult:
+	"""Microseconds the MOST RECENT tick spent in one stage, or a refusal for an unknown index.
+
+	A measurement, not a budget: nothing here compares it to REQ-SET-163, which is stated for 256
+	residents on a named machine that this has not been run on.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_tick_stage(stage):
+		out.refuse(String(REFUSE_INVALID_INDEX))
+		return out
+	out.succeed(_stage_usec[stage])
+	return out
+
+
+func mean_tick_stage_usec(stage: int) -> IntMath.IntResult:
+	"""Mean microseconds per tick in one stage since the last reset(). REFUSES before tick one.
+
+	A mean over zero ticks has no value, and 0 would be a measurement-shaped sentinel -- the same
+	rule `mean_tick_usec()` follows.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not is_tick_stage(stage):
+		out.refuse(String(REFUSE_INVALID_INDEX))
+		return out
+	if _ticks_run <= 0:
+		out.refuse(String(REFUSE_NO_TICK_MEASURED))
+		return out
+	IntMath.floor_div_into(_stage_usec_total[stage], _ticks_run, out)
+	return out
+
+
 func last_refusal() -> StringName:
 	"""Reason the most recent refused operation was refused; empty after a successful one."""
 	return _last_refusal
@@ -987,11 +1315,12 @@ func commands() -> CommandsScript:
 
 
 func command_dispatch() -> CommandDispatchScript:
-	"""ARCH-SYS-002's commit stage, and the named handoff point for task 03's ecology stores.
+	"""ARCH-SYS-002's commit stage, WITH the ecology bound: all six implemented kinds commit here.
 
-	`bind_ecology()` on this object is what stops DESIGNATE_ZONE and SET_POLICY refusing
-	COMMAND_STORE_NOT_BOUND. It is deliberately not called here: `forage.gd` and `job_planner.gd`
-	are ARCH-SYS-005/009's stores, composing them would run an ecology this node does not advance.
+	`_bind_ecology_to_commands()` calls `bind_ecology()` during composition, so DESIGNATE_ZONE and
+	SET_POLICY reach `forage.gd` and `job_planner.gd` instead of refusing COMMAND_STORE_NOT_BOUND.
+	The other eighteen ARCH-CMD-003 kinds still refuse COMMAND_UNSUPPORTED_FEATURE and name the
+	store they are waiting for.
 	"""
 	return _dispatch
 

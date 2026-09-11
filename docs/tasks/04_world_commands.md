@@ -109,10 +109,11 @@ SET_JOB_PRIORITIES, SET_POLICY); the other eighteen refuse
 `COMMAND_UNSUPPORTED_FEATURE` and name the missing owner. **SET_MANUAL_TASK and
 CANCEL_MANUAL are among the eighteen: there is no ManualTask store (blocker U6).**
 Still outstanding within 04.2: pending-command PERSISTENCE (no save module, task
-09 owns the codec), and, in `settlement_system.gd`'s own composition,
-DESIGNATE_ZONE/SET_POLICY refuse `COMMAND_STORE_NOT_BOUND` until task 03 calls
-`command_dispatch.bind_ecology()` — the named handoff. ARCH-CMD-002's speed/pause
-scheduler queue remains 04.1's and is untouched.
+09 owns the codec). The named handoff is **closed**: `settlement_system.gd` calls
+`command_dispatch.bind_ecology()` during composition as of 04.4 below, so all six
+implemented kinds commit in the running game and `COMMAND_STORE_NOT_BOUND` is now
+produced only by a composition that genuinely lacks the stores. ARCH-CMD-002's
+speed/pause scheduler queue remains 04.1's and is untouched.
 
 Acceptance: permuted input arrival produces canonical order by the owning key;
 multiple paused commands preserve sequence; target destruction/reuse between
@@ -179,14 +180,37 @@ This proves initialization, not a surviving or complete colony.
 - [ ] Apply UI registry profiles, narrow/wide geometry, actual input rectangles,
   keyboard focus and Mac trackpad alternatives. Decorative UI must not consume
   world clicks. The generic rendered shell cannot claim unbuilt panels work.
-- [ ] Connect accepted zone/policy commands to task 03's adopted standing-demand producer
+- [x] Connect accepted zone/policy commands to task 03's adopted standing-demand producer
   through ARCH-SYS-009. Record source intent/job identity so repeated evaluation
   cannot duplicate a job. Integrate task 05's route-ready/arrival callback later.
-- [ ] Extract read-only UI/render snapshots at ARCH-SYS-023. Rendering floats
+- [x] Extract read-only UI/render snapshots at ARCH-SYS-023. Rendering floats
   interpolate committed integer state only; hiding layers does not change truth.
-- [ ] Add/retain per-stage measurements and same-command replay input capture.
+- [x] Add/retain per-stage measurements and same-command replay input capture.
   List unimplemented stages honestly, including current CareHealth ordering debt;
   do not perpetuate stale comments saying three/five stages proves completeness.
+
+Bullets 3–5 implemented 2026-09-10
+([decision 0049](../decisions/0049-source-intent-is-recorded-on-what-it-produced.md)).
+`settlement_system.gd` calls `bind_ecology()` in composition and dispatches **nine**
+§5 stages, adding ARCH-SYS-009 JobPlanner (per tick, plus its own midnight) and
+ARCH-SYS-023 PresentationExtract (`scripts/core/presentation_extract.gd`, last).
+A paused `DESIGNATE_ZONE` over a generated forest basin leaves stocks untouched and the
+command pending; the resumed tick commits it, ARCH-SYS-009 publishes **one** QUEUED FORAGE
+job, `source_intent_count()` reports **one** intent, and a `CANCEL_JOB` command cancels it.
+**Source intent identity was the gap and it is now closed**: the producer's
+`(designation, kind)` idempotence is the PRODUCER's, and a replayed envelope re-admitted at a
+later tick committed a SECOND designation and a SECOND standing demand for one intent — measured,
+then fixed by recording ARCH-CMD-001's `(player_id, sequence_high, sequence_low)` plus the
+produced zone's generation on the zone itself and refusing `COMMAND_DUPLICATE_INTENT`.
+Per-stage microsecond and measurement counts are published; **no budget is asserted and no
+qualification is claimed**. The header now states the CareHealth ordering debt in full and that
+ARCH-SYS-009 runs one place ahead of ARCH-SYS-008's fused resolve/select pass.
+**Still outstanding within 04.4:** bullets 1 and 2 — the entire UI shell — are NOT built and
+nothing here claims an unbuilt panel works; `world_init.gd` is NOT composed into
+`settlement_system.gd` (its scenario Request's item ids have no authored source and the New
+Settlement control that would supply them is bullet 1's), so the acceptance runs through the
+accessors that file publishes for a generator; Mac screenshots and the command/state trace are
+not captured; and the save round trip is blocked on task 09's codec.
 
 Acceptance: launch the real main scene, make a next-tick zone/policy edit while
 paused, see the ghost and unchanged stocks, resume and observe one real source

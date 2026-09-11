@@ -29,10 +29,16 @@ const COMMAND_KIND_CANCEL_JOB: int = 3
 const COMMAND_KIND_DESIGNATE_ZONE: int = 8
 const COMMAND_KIND_NAME_RESIDENT: int = 11
 const COMMAND_KIND_SET_ACTIVITY_SCHEDULE: int = 15
+const COMMAND_KIND_SET_POLICY: int = 20
 const COMMAND_KIND_UPGRADE: int = 23
 ## GDD §4.3's Activity numbering, transcribed.
 const ACTIVITY_SLEEP: int = 2
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
+const WorldInitScript := preload("res://scripts/core/world_init.gd")
+const ForageScript := preload("res://scripts/core/forage.gd")
+const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
+const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
+const ResourceNodesScript := preload("res://scripts/core/resource_nodes.gd")
 const FishingScript := preload("res://scripts/core/fishing.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
@@ -955,18 +961,46 @@ func test_an_unsupported_command_refuses_in_the_running_settlement() -> void:
 	assert_equal(row.code(), &"COMMAND_UNSUPPORTED_FEATURE", "under the documented code")
 
 
-func test_the_ecology_kinds_refuse_until_task_threes_stores_are_bound() -> void:
-	"""This node composes no forage store, so DESIGNATE_ZONE refuses instead of silently no-oping."""
+func test_the_ecology_kinds_no_longer_refuse_store_not_bound() -> void:
+	"""Task 04.4 bullet 3: `bind_ecology()` runs in composition, so DESIGNATE_ZONE reaches its store.
+
+	BEHAVIOUR DELIBERATELY CHANGED. This test previously asserted COMMAND_STORE_NOT_BOUND, which
+	was correct while this node composed no forage store and no planner. It composes both now, so
+	a DESIGNATE_ZONE carrying the null target reaches the arm and refuses on the TARGET instead --
+	a refusal from the store's own revalidation rather than from an absent store.
+	"""
 	var settlement: SettlementSystemScript = _populated()
 	var command: CommandsScript.Command = CommandsScript.Command.new()
 	command.kind = COMMAND_KIND_DESIGNATE_ZONE
 	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
 	assert_true(settlement.commands().submit_into(command, result), "the queue admits it")
 	assert_true(settlement.run_tick(1), "the tick runs")
-	assert_equal(settlement.commands_refused_last_tick(), 1, "it refuses")
+	assert_equal(settlement.commands_refused_last_tick(), 1, "a targetless designation refuses")
 	var row: CommandDispatchScript.ResultRow = CommandDispatchScript.ResultRow.new()
 	assert_true(settlement.command_dispatch().last_result_into(row), "the outcome is recorded")
-	assert_equal(row.code(), &"COMMAND_STORE_NOT_BOUND", "naming the store this node lacks")
+	assert_equal(row.code(), &"COMMAND_TARGET_REQUIRED",
+		"naming the missing target, NOT the missing store")
+
+
+func test_an_unbound_dispatch_still_refuses_store_not_bound() -> void:
+	"""The refusal this node no longer produces is still produced by a composition without ecology.
+
+	The guard did not disappear when this node stopped triggering it: a dispatcher built without
+	`forage.gd` and `job_planner.gd` refuses exactly as before, which is what keeps every other
+	composition honest.
+	"""
+	var settlement: SettlementSystemScript = _populated()
+	var lone: CommandDispatchScript = CommandDispatchScript.new(settlement.commands(),
+		settlement.residents(), settlement.priorities(), settlement.schedule(), settlement.jobs())
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.kind = COMMAND_KIND_DESIGNATE_ZONE
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(settlement.commands().submit_into(command, result), "the queue admits it")
+	var report: CommandDispatchScript.TickReport = CommandDispatchScript.TickReport.new()
+	assert_true(lone.commit_tick_into(1, report), "the unbound stage still runs")
+	var row: CommandDispatchScript.ResultRow = CommandDispatchScript.ResultRow.new()
+	assert_true(lone.last_result_into(row), "the outcome is recorded")
+	assert_equal(row.code(), &"COMMAND_STORE_NOT_BOUND", "naming the store it lacks")
 
 
 func test_the_command_stage_runs_before_the_selection_stage() -> void:
@@ -1034,3 +1068,420 @@ func test_a_reset_settlement_keeps_no_pending_command() -> void:
 	settlement.reset()
 	assert_equal(settlement.commands().pending_count(), 0, "the reset discards it")
 	assert_equal(settlement.command_dispatch().result_count(), 0, "and the ledger with it")
+
+
+# --- task 04.4: the intent-to-job handoff, over a generated world -------------------------------
+
+func _generated() -> WorldInitScript:
+	"""Generate REQ-SET-009's world over THIS settlement's own stores, then spawn the cohort.
+
+	The generator is reached through the accessors `world_init.gd` publishes for exactly this
+	("`ecology()` is the accessor a world generator or a test uses to reach the stores"), because
+	this node composes no generator: the scenario Request's item ids have no authored source and
+	the New Settlement control that would supply them is not built.
+
+	GENERATION RUNS FIRST AND THE COHORT SECOND, deliberately: `world_init.publish()` clears the
+	entity directory, so residents spawned before it would be stranded by their own world.
+	"""
+	var world: WorldInitScript = WorldInitScript.new(_settlement.directory(),
+		_settlement.ecology().resource_nodes(), _settlement.ecology().forage(),
+		_settlement.ecology().fishing(), _settlement.rng(), _settlement.farming(),
+		_settlement.ecology().orchard_hive(), _settlement.jobs(), _settlement.commands())
+	var request: WorldInitScript.Request = WorldInitScript.Request.new()
+	request.tree_resource_id = 1
+	request.stone_resource_id = 2
+	request.iron_resource_id = 3
+	request.forage_item_ids = PackedInt32Array([10, 11, 12, 13, 14])
+	request.fish_species_item_ids = PackedInt32Array([20, 21, 22, 23, 24, 25, 26, 27, 28])
+	var result: WorldInitScript.GenerateResult = world.generate(request)
+	assert_true(result.ok, "the world generates (error: %s)" % result.error)
+	assert_true(_settlement.create_initial_settlement(), "and the cohort spawns into it")
+	return world
+
+
+func _designation_payload(tiles: PackedInt32Array) -> PackedByteArray:
+	"""GDD §8.1's "zone tiles": an i32 count followed by that many ascending i32 tile indices."""
+	var bytes: PackedByteArray = PackedByteArray()
+	bytes.resize(4 + 4 * tiles.size())
+	bytes.encode_s32(0, tiles.size())
+	for index: int in tiles.size():
+		bytes.encode_s32(4 + index * 4, tiles[index])
+	return bytes
+
+
+func _submit_designation(basin: Vector2i) -> bool:
+	"""Submit one DESIGNATE_ZONE over `basin` through the settlement's own ARCH-CMD-001 queue."""
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.reset()
+	command.kind = COMMAND_KIND_DESIGNATE_ZONE
+	command.target_slot = basin.x
+	command.target_generation = basin.y
+	command.arg0 = ForageScript.ZONE_TYPE_FORAGE
+	command.arg1 = 1
+	command.payload = _designation_payload(PackedInt32Array([
+		WorldInitScript.tile_index_of(20, 30), WorldInitScript.tile_index_of(21, 30)]))
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	return _settlement.commands().submit_into(command, result)
+
+
+func _basin_stock_milli(basin: Vector2i) -> int:
+	"""The generated basin's total forage stock across §5.5's five patches, in milli-units."""
+	var forage: ForageScript = _settlement.ecology().forage()
+	var total: int = 0
+	for kind: int in ForageScript.PATCHES_PER_ZONE:
+		var row: IntMath.IntResult = forage.patch_row_for_zone(basin, kind)
+		assert_true(row.ok, "patch %d resolves" % kind)
+		total += forage.stock_milli_of(row.value).value
+	return total
+
+
+func _first_designation_slot() -> int:
+	"""The HarvestZone row of the one player designation in this settlement."""
+	var forage: ForageScript = _settlement.ecology().forage()
+	for slot: int in ForageScript.HARVEST_ZONE_CAPACITY:
+		if forage.is_zone_present(slot) and forage.is_designation(slot):
+			return slot
+	fail("no designation exists")
+	return -1
+
+
+func _published_harvest_ref() -> Vector2i:
+	"""The Job reference ARCH-SYS-009 published for this settlement's one designation."""
+	var slot: int = _first_designation_slot()
+	for kind: int in ForageScript.PATCHES_PER_ZONE:
+		var found: Vector2i = _settlement.job_planner().forage_demand_job_of(slot, kind)
+		if found != EntityDirectoryScript.NULL_REF:
+			return found
+	fail("the planner published no harvest")
+	return EntityDirectoryScript.NULL_REF
+
+
+func test_a_paused_zone_edit_resumes_into_one_intent_one_job_and_cancels() -> void:
+	"""TASK 04.4'S OWN ACCEPTANCE SENTENCE, minus the screenshots it also asks for.
+
+	"make a next-tick zone/policy edit while paused, see the ghost and unchanged stocks, resume
+	and observe one real source intent/job, then cancel." Every step is asserted by value against
+	the real stores, through the real clock, in the real composition.
+	"""
+	var world: WorldInitScript = _generated()
+	_bind_game()
+	_game.pause_game()
+	var basin: Vector2i = world.basin_ref_of(WorldInitScript.BASIN_FOREST_WEST_NORTH)
+	var stock_before: int = _basin_stock_milli(basin)
+	var zones_before: int = _settlement.ecology().forage().zone_count()
+	assert_true(_submit_designation(basin), "the paused edit is admitted")
+	for frame: int in 10:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	assert_equal(_settlement.commands().pending_count(), 1, "THE GHOST: it is still pending")
+	assert_equal(_basin_stock_milli(basin), stock_before, "THE STOCKS ARE UNCHANGED")
+	assert_equal(_settlement.ecology().forage().zone_count(), zones_before, "and no zone exists")
+	assert_equal(_settlement.job_queue_length(), 0, "and no job exists")
+	_game.resume_game()
+	for frame: int in 3:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	assert_equal(_settlement.commands().pending_count(), 0, "the resumed tick drains the edit")
+	assert_equal(_settlement.command_dispatch().source_intent_count(), 1, "ONE real source intent")
+	assert_equal(_settlement.job_queue_length(), 1, "and ONE real job")
+	_cancel_the_harvest()
+
+
+func _cancel_the_harvest() -> void:
+	"""Cancel the published harvest through a real CANCEL_JOB command, and prove it took."""
+	var harvest: Vector2i = _published_harvest_ref()
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.reset()
+	command.kind = COMMAND_KIND_CANCEL_JOB
+	command.target_slot = harvest.x
+	command.target_generation = harvest.y
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(_settlement.commands().submit_into(command, result),
+		"the cancellation is admitted")
+	for frame: int in 2:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	assert_equal(_settlement.commands().pending_count(), 0, "the cancellation drained")
+	var job_slot: int = _settlement.directory().get_typed_row(harvest)
+	assert_equal(_settlement.jobs().state_of(job_slot).value, JobsScript.JOB_STATE_CANCELLED,
+		"and the harvest is CANCELLED")
+
+
+func test_the_published_harvest_is_never_advanced_to_job_state_work() -> void:
+	"""04.4: "No delivered output is expected until task 05". QUEUED or RESERVED, never WORK."""
+	var world: WorldInitScript = _generated()
+	_bind_game()
+	assert_true(_submit_designation(world.basin_ref_of(WorldInitScript.BASIN_FOREST_WEST_NORTH)),
+		"the designation is admitted")
+	for frame: int in 120:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	var job_slot: int = _settlement.directory().get_typed_row(_published_harvest_ref())
+	var state: int = _settlement.jobs().state_of(job_slot).value
+	assert_true(state != JobsScript.JOB_STATE_WORK, "four seconds of ticks write no WORK state")
+	assert_true(state == JobsScript.JOB_STATE_QUEUED or state == JobsScript.JOB_STATE_RESERVED,
+		"it is QUEUED or RESERVED, which is what a settlement without movement can reach")
+	assert_equal(_settlement.accepted_mwu_last_tick(), 0, "and no work unit was accepted")
+
+
+func test_a_replayed_command_in_the_running_loop_produces_no_second_job() -> void:
+	"""The identity guard, through the whole composition rather than against the dispatcher alone."""
+	var world: WorldInitScript = _generated()
+	_bind_game()
+	var basin: Vector2i = world.basin_ref_of(WorldInitScript.BASIN_FOREST_WEST_NORTH)
+	assert_true(_submit_designation(basin), "the designation is admitted")
+	for frame: int in 5:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	assert_equal(_settlement.job_queue_length(), 1, "one job exists")
+	var zones: int = _settlement.ecology().forage().zone_count()
+	assert_true(_replay_first_command(basin), "the same envelope is re-admitted at a later tick")
+	for frame: int in 40:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	assert_equal(_settlement.ecology().forage().zone_count(), zones, "no second designation")
+	assert_equal(_settlement.command_dispatch().source_intent_count(), 1, "one source intent")
+	assert_equal(_settlement.job_planner().forage_demand_enabled_count(), 1, "one standing demand")
+	assert_equal(_settlement.job_queue_length(), 1, "and still exactly one job")
+
+
+func _replay_first_command(basin: Vector2i) -> bool:
+	"""Re-admit the first command's exact envelope at a tick well past the one that ran it."""
+	var replay: CommandsScript.Command = CommandsScript.Command.new()
+	replay.reset()
+	replay.kind = COMMAND_KIND_DESIGNATE_ZONE
+	replay.target_slot = basin.x
+	replay.target_generation = basin.y
+	replay.arg0 = ForageScript.ZONE_TYPE_FORAGE
+	replay.arg1 = 1
+	replay.payload = _designation_payload(PackedInt32Array([
+		WorldInitScript.tile_index_of(20, 30), WorldInitScript.tile_index_of(21, 30)]))
+	replay.player_id = 0
+	replay.sequence_high = 0
+	replay.sequence_low = 0
+	replay.execute_tick = _settlement.ticks_run() + 20
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	return _settlement.commands().admit_stamped_into(replay, result)
+
+
+func test_a_set_policy_edit_reaches_the_forage_store_in_this_composition() -> void:
+	"""The second half of the handoff: SET_POLICY no longer refuses COMMAND_STORE_NOT_BOUND."""
+	var world: WorldInitScript = _generated()
+	_bind_game()
+	assert_true(_submit_designation(world.basin_ref_of(WorldInitScript.BASIN_FOREST_WEST_NORTH)),
+		"the designation is admitted")
+	for frame: int in 5:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	var zone: int = _first_designation_slot()
+	var forage: ForageScript = _settlement.ecology().forage()
+	assert_true(forage.is_zone_enabled(zone), "the designation is enabled")
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.reset()
+	command.kind = COMMAND_KIND_SET_POLICY
+	command.target_slot = forage.zone_ref_of(zone).x
+	command.target_generation = forage.zone_ref_of(zone).y
+	command.arg0 = CommandDispatchScript.POLICY_FORAGE_ZONE_ENABLED
+	command.arg1 = 0
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(_settlement.commands().submit_into(command, result),
+		"the policy edit is admitted")
+	for frame: int in 3:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	assert_false(forage.is_zone_enabled(zone), "and the store really changed")
+	assert_false(_settlement.job_planner().is_forage_demand_enabled(zone),
+		"with ARCH-SYS-009's standing demand stopped alongside it")
+
+
+func test_repeating_a_policy_edit_creates_no_second_job() -> void:
+	"""SET_POLICY is idempotent by content, so a redelivered enable cannot duplicate work."""
+	var world: WorldInitScript = _generated()
+	_bind_game()
+	assert_true(_submit_designation(world.basin_ref_of(WorldInitScript.BASIN_FOREST_WEST_NORTH)),
+		"the designation is admitted")
+	for frame: int in 5:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	assert_equal(_settlement.job_queue_length(), 1, "one job exists")
+	var ref: Vector2i = _settlement.ecology().forage().zone_ref_of(_first_designation_slot())
+	for repeat: int in 3:
+		var command: CommandsScript.Command = CommandsScript.Command.new()
+		command.reset()
+		command.kind = COMMAND_KIND_SET_POLICY
+		command.target_slot = ref.x
+		command.target_generation = ref.y
+		command.arg0 = CommandDispatchScript.POLICY_FORAGE_ZONE_ENABLED
+		command.arg1 = 1
+		var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+		assert_true(_settlement.commands().submit_into(command, result),
+			"repeat %d is admitted" % repeat)
+	for frame: int in 40:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	assert_equal(_settlement.job_planner().forage_demand_enabled_count(), 1, "one demand")
+	assert_equal(_settlement.job_queue_length(), 1, "and still exactly one job")
+
+
+func test_world_generation_alone_creates_no_job_and_no_intent() -> void:
+	"""R06-JOB-001: "World-generation basin creation alone shall create no harvest demand"."""
+	_generated()
+	_bind_game()
+	for frame: int in 60:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	assert_equal(_settlement.ecology().forage().zone_count(), 7, "seven generated basins")
+	assert_equal(_settlement.job_queue_length(), 0, "and not one job")
+	assert_equal(_settlement.command_dispatch().source_intent_count(), 0, "nor one source intent")
+	assert_equal(_settlement.job_planner().forage_demand_enabled_count(), 0, "nor one demand")
+
+
+# --- ARCH-SYS-009 and ARCH-SYS-023 as composed stages -------------------------------------------
+
+func test_the_planner_is_composed_over_this_settlements_own_stores() -> void:
+	"""A second Job or HarvestZone store would publish work nothing in this loop could select."""
+	assert_not_null(_settlement.job_planner(), "ARCH-SYS-009 is composed")
+	assert_true(_settlement.job_planner().jobs() == _settlement.jobs(),
+		"planning into the Job store the selector reads")
+	assert_true(_settlement.job_planner().forage() == _settlement.ecology().forage(),
+		"over ARCH-SYS-005's own HarvestZone store")
+	assert_true(_settlement.job_planner().farming() == _settlement.farming(),
+		"and servicing the FarmPlot rows ARCH-SYS-006 integrates")
+
+
+func test_the_measured_stage_list_matches_what_actually_runs() -> void:
+	"""The header's stage list is a count of dispatched call sites; this asserts the tick half."""
+	_populated()
+	assert_equal(_settlement.tick_stage_count(), 7, "seven stages are dispatched per tick")
+	for stage: int in _settlement.tick_stage_count():
+		assert_true(String(_settlement.tick_stage_name(stage)).begins_with("ARCH-SYS-"),
+			"stage %d names the ARCH-SYS system it dispatches" % stage)
+	assert_equal(_settlement.tick_stage_name(_settlement.tick_stage_count()), &"",
+		"and one past the last names nothing")
+	assert_false(_settlement.tick_stage_usec_at(-1).ok, "a negative stage index refuses")
+	assert_false(_settlement.tick_stage_usec_at(7).ok, "and so does one past the last")
+
+
+func test_every_stage_is_measured_on_every_tick() -> void:
+	"""Per-stage measurement, not a budget: nothing here compares the numbers to REQ-SET-163."""
+	_populated()
+	for stage: int in _settlement.tick_stage_count():
+		assert_false(_settlement.mean_tick_stage_usec(stage).ok,
+			"stage %d has no mean before the first tick" % stage)
+	_run_ticks(1, 60)
+	for stage: int in _settlement.tick_stage_count():
+		var last: IntMath.IntResult = _settlement.tick_stage_usec_at(stage)
+		assert_true(last.ok, "stage %d reports its most recent cost" % stage)
+		assert_true(last.value >= 0, "which is a real elapsed measurement")
+		assert_true(_settlement.mean_tick_stage_usec(stage).ok, "and a mean over the run")
+
+
+func test_the_presentation_extract_captures_every_tick() -> void:
+	"""ARCH-SYS-023 runs LAST, so its snapshot is of a tick every other stage has finished."""
+	_populated()
+	assert_equal(_settlement.presentation().capture_count(), 0, "nothing captured yet")
+	_run_ticks(1, 12)
+	assert_equal(_settlement.presentation().capture_count(), 12, "one frame per tick")
+	assert_equal(_settlement.refused_extract_count(), 0, "and none refused")
+	assert_equal(_settlement.presentation().captured_tick().value, 12, "the latest tick")
+	var read: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_settlement.presentation().value_into(
+		PresentationExtractScript.FIELD_POPULATION, read), "the population field is readable")
+	assert_equal(read.value, _settlement.population(), "and agrees with the settlement")
+
+
+func test_hiding_a_presentation_layer_changes_no_authoritative_value() -> void:
+	"""04.4: "hiding layers does not change truth", asserted against the settlement's own stores."""
+	var world: WorldInitScript = _generated()
+	_bind_game()
+	var basin: Vector2i = world.basin_ref_of(WorldInitScript.BASIN_FOREST_WEST_NORTH)
+	assert_true(_submit_designation(basin), "the designation is admitted")
+	for frame: int in 5:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	var stock: int = _basin_stock_milli(basin)
+	var zones: int = _settlement.ecology().forage().zone_count()
+	var jobs: int = _settlement.job_queue_length()
+	var living: int = _settlement.living_count()
+	for layer: int in PresentationExtractScript.LAYER_COUNT:
+		assert_true(_settlement.presentation().set_layer_visible(layer, false),
+			"layer %d is hidden" % layer)
+	for frame: int in 20:
+		_game.advance_host_time(TICK_FRAME_USEC)
+	assert_equal(_basin_stock_milli(basin), stock, "the generated stock is untouched")
+	assert_equal(_settlement.ecology().forage().zone_count(), zones, "so is the zone count")
+	assert_equal(_settlement.job_queue_length(), jobs, "so is the job queue")
+	assert_equal(_settlement.living_count(), living, "and so is the population")
+	assert_equal(_settlement.refused_extract_count(), 0, "capture kept running while hidden")
+
+
+func test_the_planner_day_boundary_is_not_a_req_set_007_leg() -> void:
+	"""ARCH-SYS-009's midnight is its own maintenance; the leg log must not claim it is a leg."""
+	_populated()
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary runs")
+	assert_equal(_settlement.refused_planner_day_count(), 0, "the planner's midnight ran")
+	assert_equal(_settlement.daily_leg_count(), 3,
+		"and the log still holds exactly the three REQ-SET-007 legs this system owns")
+
+
+func test_every_stage_closes_its_window_exactly_once_per_tick() -> void:
+	"""A stage that stopped being dispatched, or was closed against another stage's index, shows up.
+
+	The microsecond figures cannot catch that: an unclosed stage simply keeps its previous value,
+	which is still a non-negative number. The measurement COUNT can, and does.
+	"""
+	_populated()
+	_run_ticks(1, 45)
+	for stage: int in _settlement.tick_stage_count():
+		var measured: IntMath.IntResult = _settlement.tick_stage_measured_count(stage)
+		assert_true(measured.ok, "stage %d reports its measurement count" % stage)
+		assert_equal(measured.value, _settlement.ticks_run(),
+			"stage %d was measured exactly once per tick" % stage)
+	assert_false(_settlement.tick_stage_measured_count(-1).ok, "an unknown stage refuses")
+
+
+func test_the_planner_midnight_is_counted_rather_than_assumed() -> void:
+	"""With no plot and no designation the planner's midnight has no visible effect of its own."""
+	_populated()
+	assert_equal(_settlement.planner_day_count(), 0, "no midnight has run")
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "the first boundary runs")
+	assert_equal(_settlement.planner_day_count(), 1, "ARCH-SYS-009's midnight ran once")
+	assert_true(_settlement.run_day_boundary(3, SEASON_SPRING), "the second boundary runs")
+	assert_equal(_settlement.planner_day_count(), 2, "and again on the next day")
+	assert_equal(_settlement.refused_planner_day_count(), 0, "neither refused")
+
+
+func test_a_repeated_tick_index_is_counted_as_a_refused_extract() -> void:
+	"""The snapshot's tick latch is observable from here, so a silently dropped one is not."""
+	_populated()
+	assert_true(_settlement.run_tick(5), "tick 5 runs")
+	assert_equal(_settlement.refused_extract_count(), 0, "its capture succeeded")
+	assert_true(_settlement.run_tick(5), "the same tick index runs again")
+	assert_equal(_settlement.refused_extract_count(), 1,
+		"and ARCH-SYS-023 refused to photograph it twice")
+	assert_equal(_settlement.presentation().capture_count(), 1, "one frame, not two")
+
+
+func test_a_refused_interval_sweep_still_extracts_the_tick() -> void:
+	"""A presentation frame is taken even on a tick that refused, so the UI cannot freeze silently."""
+	_populated()
+	_run_ticks(1, 3)
+	var before: int = _settlement.presentation().capture_count()
+	assert_equal(before, 3, "three frames so far")
+	assert_false(_settlement.run_tick(-1), "an invalid tick refuses before any stage runs")
+	assert_equal(_settlement.presentation().capture_count(), before,
+		"and takes no frame, because no tick was committed")
+
+
+func test_a_command_due_at_tick_one_is_not_committed_by_tick_zero() -> void:
+	"""ARCH-CMD-001 stamps `completed_tick+1`, so the stage must commit AT that tick, not before.
+
+	Added after mutation testing: changing the stage's argument to `tick_index + 1` -- committing
+	every player edit one whole tick early -- passed the entire suite, because every other test
+	only ever ran the tick a command was already due at. This is the test that can see it.
+	"""
+	var settlement: SettlementSystemScript = _populated()
+	var resident: Vector2i = settlement.residents().ref_of(0)
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.reset()
+	command.kind = COMMAND_KIND_NAME_RESIDENT
+	command.target_slot = resident.x
+	command.target_generation = resident.y
+	command.payload = "Rowan".to_utf8_buffer()
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(settlement.commands().submit_into(command, result), "the edit is admitted")
+	assert_equal(settlement.commands().pending_count(), 1, "and queued for the next tick")
+	assert_true(settlement.run_tick(0), "the tick BEFORE its due tick runs")
+	assert_equal(settlement.commands_committed_last_tick(), 0, "committing nothing")
+	assert_equal(settlement.commands().pending_count(), 1, "and leaving it queued")
+	assert_true(settlement.run_tick(1), "its own due tick runs")
+	assert_equal(settlement.commands_committed_last_tick(), 1, "and commits it")
+	assert_equal(settlement.commands().pending_count(), 0, "leaving the queue empty")

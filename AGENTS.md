@@ -104,3 +104,11 @@ chatgpt-prompts/      Prompts for external model runs
 
 `CLAUDE.md` holds the Claude Code development pipeline and the GDScript style
 rules. Those style rules apply to anyone writing GDScript here.
+
+## Supplied-reference authorization
+
+Brendan authorizes direct use of supplied images/material, including IMG-25,
+for image-to-image and reference-guided builds (DEC-036 in `docs/setting_decisions.md`).
+Do not reduce supplied references to observe-and-describe-only because creator
+metadata is unknown. Record provenance; source mechanics and paid generation
+authorization remain separate. UI art follows `docs/design/ui_refinement/asset_generation_lock.md`.

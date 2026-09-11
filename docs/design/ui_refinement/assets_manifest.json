@@ -1,0 +1,31 @@
+{
+  "fonts": [
+    {
+      "file": "visuals/fonts/NotoSans-Regular.ttf",
+      "sha256": "478c558ea716033cd60c03438f628dfa75694dcf6b5f6d505a2f05fd2b4f3823",
+      "license_file": "visuals/fonts/OFL-NotoSans.txt",
+      "source_url": "https://raw.githubusercontent.com/notofonts/notofonts.github.io/main/fonts/NotoSans/hinted/ttf/NotoSans-Regular.ttf",
+      "source_note": "Existing feat/ui-shell vendored reference; source declared in its ASSETS.md",
+      "altered": false
+    },
+    {
+      "file": "visuals/fonts/NotoSans-SemiBold.ttf",
+      "sha256": "a4e91fd530ac2b4ef5367240144ff37d7d65d66cf76f2e9a2187b93c676f92d0",
+      "license_file": "visuals/fonts/OFL-NotoSans.txt",
+      "source_url": "https://raw.githubusercontent.com/notofonts/notofonts.github.io/main/fonts/NotoSans/hinted/ttf/NotoSans-SemiBold.ttf",
+      "source_note": "Existing feat/ui-shell vendored reference; source declared in its ASSETS.md",
+      "altered": false
+    },
+    {
+      "file": "visuals/fonts/NotoSerif-SemiBold.ttf",
+      "sha256": "8a344d65ba56c58991ec6c3b40faf73af4e73ecd3e1db624ea640292d98b5bb6",
+      "license_file": "visuals/fonts/OFL-NotoSerif.txt",
+      "source_url": "https://raw.githubusercontent.com/notofonts/notofonts.github.io/main/fonts/NotoSerif/hinted/ttf/NotoSerif-SemiBold.ttf",
+      "source_note": "Official download on2026-09-11",
+      "altered": false
+    }
+  ],
+  "images": "Original four programmatic structural references plus a separately documented generated art candidate",
+  "renderer": "render_targets.py",
+  "art_concept_manifest": "woodland_art_manifest.json"
+}

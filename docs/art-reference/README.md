@@ -13,6 +13,13 @@ Document `SET-ART-PACKAGE-001`, revision 1.1, 2026-09-06. Source folder: `ImageR
 | [Tunneling, swimming and climbing](traversal_design_review.md) | Connected spatial design, mode transitions, equipment clearance, route safety, UI, ECS ownership, formulas and synthetic verification fixtures |
 | [Reference manifest](reference_manifest.json) | Portable repository source paths, SHA-256 digests, dimensions, inspection status, duplicate relation and 62 selection windows |
 
+## Direct-reference permission — DEC-036
+
+Brendan explicitly authorizes these supplied images as direct image-to-image,
+image-to-3D, drawing/tracing/adaptation and model-building references. IMG-25 is
+not observe-only. Record input regions and transformations; unknown attribution
+does not negate that project instruction. Paid calls still need itemized approval.
+
 ## 1. Recommended art direction from these references
 
 Preserve animal identity before costume detail: mouse ears/muzzle, mole working body, squirrel tail/contact poses, otter torso/tail, hare ears/stride and badger mass. Use practical layered clothing and readable equipment to express role. Ground the world in timber, earth, masonry, rope, cloth and occupied workspaces. Keep domestic warmth alongside serious consequences.

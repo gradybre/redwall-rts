@@ -54,15 +54,14 @@ extends RefCounted
 ## ---------------------------------------------------------------------------------------
 ## WHAT THIS DELIBERATELY DOES NOT DO. Each is somebody's declared work, not an oversight:
 ##
-##   * ARCH-CMD-002's SPEED/PAUSE SCHEDULER EVENTS ARE A SEPARATE QUEUE AND ARE NOT HERE. Task
-##     04.1 owns them and says their "envelope fields, finite queue size, exact packed widths and
-##     stride, accepted enum values, exhaustion refusal, save subsection and memory accounting must
-##     be completed in the amendment. These are design deliverables, not unspecified values a coder
-##     may choose at runtime." None of them is invented here. THEREFORE **BLOCKER U2 IS ONLY PARTLY
-##     CLOSED BY THIS FILE**: economic commands now have a queue; speed and pause commands still do
-##     not, and `sim_clock.gd`'s two "BLOCKER U2 ... not implemented" comments remain accurate.
-##     The speed/pause keys are also kept OUT of the CommandKind catalog on 04.1's explicit
-##     instruction, because inserting one would renumber the 24 stable IDs.
+##   * ARCH-CMD-002's SPEED/PAUSE SCHEDULER EVENTS ARE A SEPARATE QUEUE AND ARE NOT HERE. They now
+##     EXIST, in `scripts/core/scheduler_events.gd`, which implements task 04.1's completed
+##     amendment R07-SCHED-001 (decision 0054) with its own 32-byte record, its own 64-bit
+##     sequence space and its own boundary pump. Nothing about THIS file changed for it: the
+##     speed/pause keys are still kept OUT of the CommandKind catalog on 04.1's explicit
+##     instruction, because inserting one would renumber the 24 stable IDs, and no economic record
+##     carries a scheduler event. **BLOCKER U2 IS NO LONGER PARTLY CLOSED BY THIS FILE ALONE**;
+##     see `sim_clock.gd`'s U2 header for what closed and what is still blocked on a save module.
 ##
 ##   * NO PRODUCER IS CALLED. This is admission and ordering, not dispatch. `job_planner.gd` is not
 ##     preloaded and not touched; binding accepted commands to its entry points is 04.2/04.4's

@@ -141,11 +141,12 @@ extends RefCounted
 ## ---------------------------------------------------------------------------------------
 ## WHAT THIS DELIBERATELY DOES NOT DO:
 ##
-##   * ARCH-CMD-002's SPEED/PAUSE SCHEDULER EVENTS ARE NOT HERE, for the same reason they are not
-##     in `commands.gd`: task 04.1 owns their envelope, widths, stride, enum values, exhaustion
-##     refusal, save subsection and memory, and calls them "design deliverables, not unspecified
-##     values a coder may choose at runtime". `sim_clock.gd`'s two "BLOCKER U2 ... not implemented"
-##     comments therefore remain accurate and are not edited.
+##   * ARCH-CMD-002's SPEED/PAUSE SCHEDULER EVENTS ARE NOT HERE, and now that they EXIST that is a
+##     stronger statement than it used to be. `scripts/core/scheduler_events.gd` implements
+##     R07-SCHED-001 (decision 0054) as a SEPARATE queue that applies its events at the boundary
+##     pump between ticks. They must never be routed through this dispatcher: an economic command
+##     commits at `completed_tick + 1`, so a pause committed here would wait for the tick it
+##     exists to prevent. `sim_clock.gd`'s U2 header records what closed and what did not.
 ##   * NO SAVE. There is no save module in this repository, so the result ledger and the pending
 ##     queue are in-process only. Task 09 owns the codec; 04.1 owns the pending-command subsection.
 ##   * `goal_x`/`goal_z` ARE NOT READ BY ANY ARM. Decision 0042 records that §8.1 types them i32 and

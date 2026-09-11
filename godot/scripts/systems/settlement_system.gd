@@ -88,10 +88,14 @@ extends Node
 ## creates and refuses COMMAND_DUPLICATE_INTENT for a repeat of the same identity. That guard is
 ## in the dispatcher rather than here, and its header records the measurement that motivated it.
 ##
-## ARCH-CMD-002's SPEED/PAUSE SCHEDULER EVENTS ARE STILL NOT IMPLEMENTED. Task 04.1 owns their
-## separate queue and every one of its widths, enum values and refusals; `sim_clock.gd`'s two
-## "BLOCKER U2 ... not implemented" comments remain accurate for that half. So blocker U2 is now
-## HALF closed: economic commands have a transport and a commit stage, speed and pause do not.
+## ARCH-CMD-002's SPEED/PAUSE SCHEDULER EVENTS NOW EXIST, IN THEIR OWN QUEUE, AND ARE NOT
+## COMMITTED BY THIS STAGE. `scripts/core/scheduler_events.gd` implements R07-SCHED-001 under
+## decision 0054, and it applies its events at the BOUNDARY PUMP between ticks -- not inside a
+## tick, and not through `command_dispatch.gd`. That is the whole point: an economic command is
+## due at `completed_tick + 1`, so routing a pause through this stage would make the unpause wait
+## for the very tick the pause prevents. The pump's owner is whoever drives the host frame; this
+## node drives a single simulation tick and must not pump inside one. Blocker U2 is closed in
+## process; what remains open is persistence, which is task 09's save module, not this file's.
 ##
 ## EVERY OTHER STAGE IS ABSENT BECAUSE ITS OWNING STORE DOES NOT EXIST, and none of them is
 ## faked here:

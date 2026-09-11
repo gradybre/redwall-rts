@@ -9,6 +9,15 @@ containers already exist; startup/world/service integration remains incomplete.
 Decision 0050 reconciles existing memory arithmetic and assigns ADR0016 ownership.
 Scheduler/Weather proposals and movement profile gates are not implementation.
 
+**Executor note, 2026-09-11 (after the planner block above was written).** Two of
+those three have since landed and are no longer proposals: Weather's absolute
+season ([decision 0055](decisions/0055-weather-carries-its-own-absolute-season.md),
++16 B) and R07-SCHED-001's scheduler-event queue
+([decision 0054](decisions/0054-the-scheduler-event-queue-drains-before-every-tick.md),
++8224 B), both counted in ARCH-MEM-009. Movement profile gates remain open.
+Suite at this merge: **2348 tests, 83675 assertions, 0 failures**; planned payload
+60821078, one world plus reserve 69209686, headroom 30790314.
+
 
 Generated 2026-09-09. `master` at `d60b72f`; work branch `feat/catalog-ids-artifact`.
 **1224 tests, 35844 assertions, 0 failures**, enforced by CI on every PR since #7.
@@ -79,9 +88,17 @@ The missing links for the player-driven loop:
   refuse `COMMAND_STORE_NOT_BOUND`, because `forage.gd` and `job_planner.gd` are
   ARCH-SYS-005/009's stores and task 03's to compose; `command_dispatch.bind_ecology()`
   is the named handoff, and the whole path is proven end to end in the suite.
-  **(b) Blocker U2 is still only HALF closed** — ARCH-CMD-002's separate speed/pause
-  scheduler-event queue still awaits task 04.1's amendment, and `sim_clock.gd`'s two
-  "BLOCKER U2 … not implemented" comments remain accurate.
+  **(b) Blocker U2 is now closed in process and open on disk** — ARCH-CMD-002's
+  separate speed/pause scheduler-event queue is
+  `godot/scripts/core/scheduler_events.gd`, implementing task 04.1's completed
+  amendment R07-SCHED-001 ([decision 0054](decisions/0054-the-scheduler-event-queue-drains-before-every-tick.md)):
+  256 records at a 32-byte stride, its own unsigned 64-bit sequence, and a boundary
+  pump that drains before every fixed-tick decision and on paused host frames.
+  `sim_clock.gd`'s two "BLOCKER U2 … not implemented" comments were false after that
+  and have been corrected. **What is still open is persistence only**: the `SCHQ0001`
+  save subsection is implemented as encode/decode plus validation and is unwired,
+  because no save module exists (task 09). ARCH-CMD-003's 24 economic kinds are
+  unchanged; the ledger gains 8224 bytes once.
 - **ARCH-SYS-009 JobPlanner** — **nothing creates jobs.** READY_06 item 1 answers
   this with eight EARS contracts; none are built yet.
 - **ARCH-SYS-011/012 Navigation and Movement** — **partly built, 2026-09-11.** Task

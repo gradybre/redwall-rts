@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+<g transform="translate(22 22) scale(-1 -1)">
+<defs><clipPath id="c"><path d="M0 22V16L16 0H22V22Z"/></clipPath></defs>
+<g clip-path="url(#c)">
+<rect x="0" y="0" width="22" height="22" fill="#1E3028"/>
+<path d="M0 0 H22 V1.2 H1.2 V22 Z" fill="#708171" opacity="1"/>
+<path d="M1.2 1.2 H22 V2.8 H2.8 V22 Z" fill="#9DB29B" opacity="0.9"/>
+<path d="M2.8 2.8 H22 V6 H6 V22 Z" fill="#32503F" opacity="1"/>
+<path d="M6 6 H22 V7 H7 V22 Z" fill="#132118" opacity="0.9"/>
+</g>
+</g>
+<g transform="translate(20 20) scale(-1 -1)">
+<path d="M0 22V16L16 0H22V3.4H17.4L3.4 17.4V22Z" fill="#3A5A47"/>
+<path d="M0 22V16L16 0H22" fill="none" stroke="#93A891" stroke-width="1.2"
+ opacity="0.9"/>
+<path d="M3.4 22V17.4L17.4 3.4H22" fill="none" stroke="#132118" stroke-width="1.0"
+ opacity="0.8"/>
+<circle cx="9.6" cy="9.6" r="2.4" fill="#8A6E2E"/>
+<circle cx="9.6" cy="9.6" r="1.45" fill="#C9A227"/>
+<path d="M8.4 8.5A2.4 2.4 0 0 1 10.6 8.1" stroke="#F0DFA4" stroke-width="0.6" fill="none"
+ stroke-linecap="round" opacity="0.85"/></g>
+</svg>

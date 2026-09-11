@@ -174,7 +174,11 @@ const ROSTER_POOL: int = 12
 ## UI-SET-059's maximum height, which its three controls need to sit inside it.
 const ZONE_BRUSH_HEIGHT: float = 160.0
 ## The three workspace pages this shell builds. §3 allows one open at a time.
-const WORKSPACE_PAGES: Array[int] = [ID_NEW_SETTLEMENT, ID_WORLD_LIST, ID_NAME_EDITOR]
+## §4.1 gives UI-SET-031 as "ALWAYS; opens roster rows 069", so the roster is a PAGE of the
+## workspace frame like the other three, not a column built unconditionally beside them.
+## UI-SET-087 stays out of this list: F6 is its only route, which `ui_registry.gd` asserts.
+const WORKSPACE_PAGES: Array[int] = [ID_NEW_SETTLEMENT, ID_WORLD_LIST, ID_NAME_EDITOR,
+	UiRegistry.ROSTER_ID]
 ## Room the Create action has inside UI-SET-103, which is at least 480 wide by §4.
 const CREATE_BUTTON_ROOM: float = 480.0
 const WARNING_ICON: String = "res://ui/icons/warning.svg"
@@ -211,6 +215,11 @@ var _theme: UiTheme = UiTheme.new()
 var _availability: UiAvailability = UiAvailability.new()
 var _hits: UiHitTest = UiHitTest.new()
 var _focus: UiFocusOrder = null
+## The runtime facts §4's Gate column is evaluated against. Owned here because the shell is
+## what knows them: selection, an in-progress stroke, and which surface is open.
+var _gates: UiAvailability.Gates = null
+## Scratch for `outgoing_into()`; sized once so a workspace switch allocates nothing.
+var _outgoing: PackedInt32Array = PackedInt32Array()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 
 ## Built controls by §4 id. One entry per element this shell renders.
@@ -246,6 +255,10 @@ var _roster_shown: int = 0
 var _workspace_page: int = ID_NEW_SETTLEMENT
 var _workspace_scroll: ScrollContainer = null
 var _workspace_column: VBoxContainer = null
+## The roster's own container. UI-SET-069's id is the first ROW's control, so the page needs a
+## holder of its own: without one the page loop would toggle row 0 and leave rows 1-11 standing
+## on every other page.
+var _roster_panel: VBoxContainer = null
 
 ## The current selection and tool stroke. None of this is authoritative state: it is what the
 ## player has pointed at, and it becomes a command only when Confirm is pressed.
@@ -264,6 +277,8 @@ var _stroke_count: int = 0
 func _init() -> void:
 	"""Compose the specification tables this shell reads, and size the stroke buffer once."""
 	_focus = UiFocusOrder.new(_availability)
+	_gates = UiAvailability.Gates.new()
+	_outgoing.resize(UiRegistry.ELEMENT_COUNT)
 	_stroke.resize(ForageScript.ZONE_LINK_CAPACITY)
 
 
@@ -678,6 +693,28 @@ func _build_create_action(new_world: Panel) -> void:
 	new_world.add_child(_create_button)
 
 
+func _show_open_page() -> void:
+	"""Show exactly the open workspace page and hide the others.
+
+	§3: "Only one primary management workspace open". Called from `open_workspace_page()` as
+	well as from the layout pass, because which page is open is not a geometry question --
+	`_apply_geometry()` refuses when the canvas has no size, and page visibility must not
+	depend on whether a layout happened to succeed."""
+	for id: int in WORKSPACE_PAGES:
+		_page_control_of(id).visible = id == _workspace_page
+
+
+func _page_control_of(page_id: int) -> Control:
+	"""The Control that IS one workspace page.
+
+	UI-SET-069 is the exception: its element id belongs to a roster ROW, not to a container,
+	so the page is `_roster_panel` and toggling `_controls[69]` would show one row and leave
+	the other eleven visible underneath every other page."""
+	if page_id == UiRegistry.ROSTER_ID:
+		return _roster_panel
+	return _controls[page_id] as Control
+
+
 func _build_roster(column: VBoxContainer) -> void:
 	"""UI-SET-069's rows: one real resident each, up to the pool this shell builds.
 
@@ -685,9 +722,15 @@ func _build_roster(column: VBoxContainer) -> void:
 	ROSTER_POOL rows and the panel says so when more residents exist than it can show, rather
 	than silently listing a prefix as though it were everybody.
 	"""
+	_roster_panel = VBoxContainer.new()
+	_roster_panel.name = "%s/Rows" % _registry.element_key(ID_RESIDENT_ROW)
+	_roster_panel.add_theme_constant_override(&"separation", int(ROW_GAP))
+	_roster_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_roster_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(_roster_panel)
 	var first: Button = _new_button(ID_RESIDENT_ROW, "")
 	first.pressed.connect(_on_resident_row_pressed.bind(0))
-	column.add_child(first)
+	_roster_panel.add_child(first)
 	_roster_rows.append(first)
 	for index: int in range(1, ROSTER_POOL):
 		var row: Button = Button.new()
@@ -699,7 +742,7 @@ func _build_roster(column: VBoxContainer) -> void:
 		row.accessibility_name = "%s resident row %d" % [_registry.element_key(ID_RESIDENT_ROW),
 			index + 1]
 		row.pressed.connect(_on_resident_row_pressed.bind(index))
-		column.add_child(row)
+		_roster_panel.add_child(row)
 		_roster_rows.append(row)
 	_set_roster_visible(0)
 
@@ -808,6 +851,7 @@ func layout_for(width: int, height: int) -> bool:
 		return _refuse(_layout.last_refusal())
 	_place_zones()
 	_register_hit_regions()
+	_wire_focus()
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -929,8 +973,7 @@ func _flow_workspace() -> void:
 	_workspace_column.custom_minimum_size = Vector2(_workspace_scroll.size.x, 0.0)
 	_set_rect(_controls[ID_BACK], Rect2(PANEL_PADDING,
 		frame.size.y - footer.y - PANEL_PADDING, footer.x, footer.y))
-	for id: int in WORKSPACE_PAGES:
-		(_controls[id] as Control).visible = id == _workspace_page
+	_show_open_page()
 
 
 func _flow_children(owner_id: int, children: Array) -> void:
@@ -969,6 +1012,20 @@ func _set_rect(control: Control, rect: Rect2) -> void:
 	control.size = rect.size
 
 
+func _wire_focus() -> int:
+	"""Write the computed focus order onto the real Controls. Returns the stops wired.
+
+	UXV-033 names "focus-list data without runtime wiring" as insufficient, and that was
+	exactly the state: `ui_focus_order.gd` computed a correct order, was unit-tested, and
+	NOTHING CALLED IT -- `bind_controls()` and `wire_hud()` had no call site anywhere in the
+	repository. `focus_next`, `focus_previous` and the four `focus_neighbor_*` properties are
+	what Godot's own Tab and arrow navigation read, so until they are written the order is a
+	data structure and not a behaviour. Called from `_apply_geometry()` because the visible
+	set changes with the profile, so the order must be recomputed when the layout changes."""
+	_focus.bind_controls(_controls)
+	return _focus.wire_hud(_gates)
+
+
 func _register_hit_regions() -> void:
 	"""Mirror the built tree's own mouse filters into the §1.2 click-through table.
 
@@ -981,7 +1038,12 @@ func _register_hit_regions() -> void:
 		if not control.visible or not _is_visible_chain(control):
 			continue
 		var consumes: bool = control.mouse_filter != Control.MOUSE_FILTER_IGNORE
-		_hits.add_region(id, _shell_rect_of(control), _layer_of(id), consumes)
+		_hits.add_visible_region(id, _shell_rect_of(control), _layer_of(id), consumes,
+			_availability.creates_control(id, _gates))
+	if _workspace_page == ID_NAME_EDITOR:
+		_hits.raise_scrim(UiHitTest.LAYER_MODAL)
+	else:
+		_hits.lower_scrim()
 
 
 func _shell_rect_of(control: Control) -> Rect2:
@@ -1257,21 +1319,47 @@ func _on_zone_tool_pressed() -> void:
 
 
 func _on_residents_pressed() -> void:
-	"""UI-SET-031: open the roster inside the workspace frame."""
-	open_workspace_page(ID_WORLD_LIST)
+	"""UI-SET-031: open the ROSTER, which §4.1 line 182 gives as "ALWAYS; opens roster rows 069".
+
+	This used to open UI-SET-087, the world-access list -- the one element `ui_availability.gd`
+	marks PANEL_NOT_BUILT, so the button opened a panel that does not exist. §4.3 gates 087 on
+	F6/accessible mode, and `ui_registry.gd` now asserts no element opens it, so F6 is its only
+	route. The destination comes from the registry rather than a literal, so the two cannot
+	disagree again."""
+	open_workspace_page(UiRegistry.OPENS[ID_RESIDENTS][0])
 	shell_action.emit(ID_RESIDENTS)
 
 
-func open_workspace_page(page_id: int) -> bool:
-	"""Show one workspace page and open the frame. Refuses a page this shell does not build."""
+func open_workspace_page(page_id: int, opener_id: int = ID_RESIDENTS) -> bool:
+	"""Show one workspace page, taking its opening focus and retiring the outgoing one.
+
+	§3 allows only one primary management workspace open, so opening a second REPLACES the
+	first. The router decides what that means for focus; this function's job is to act on the
+	answer -- hide the members it retires and re-register the hit table, so a control that is
+	no longer shown cannot keep an input rectangle."""
 	if not WORKSPACE_PAGES.has(page_id):
 		return _refuse(REFUSE_UNKNOWN_ELEMENT)
+	var members: PackedInt32Array = PackedInt32Array([page_id])
+	if not _focus.open_surface(page_id, members, members.size(), opener_id):
+		return _refuse(REFUSE_UNKNOWN_ELEMENT)
+	_retire_outgoing_members()
 	_workspace_page = page_id
+	_gates.set_surface_open(page_id, true)
 	(_zones[ID_WORKSPACE] as Control).visible = true
+	_show_open_page()
 	_apply_geometry()
-	_register_hit_regions()
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+func _retire_outgoing_members() -> void:
+	"""Hide every member of the surface the last switch retired, so none keeps a hit region."""
+	var count: int = _focus.outgoing_into(_outgoing)
+	for index: int in count:
+		var id: int = _outgoing[index]
+		if _controls.has(id):
+			(_controls[id] as Control).visible = false
+		_gates.set_surface_open(id, false)
 
 
 func workspace_page() -> int:
@@ -1484,7 +1572,14 @@ func report_action_result(accepted: bool, message: String) -> void:
 
 
 func _on_back_pressed() -> void:
-	"""UI-SET-092: close the workspace frame without deciding anything."""
+	"""UI-SET-092: close the workspace frame, returning focus where §2.2 sends it.
+
+	§2.2: focus returns to the opening control if still present, otherwise the zone's first
+	control. The router owns both branches; closing without it left focus standing on a
+	control that had just been hidden."""
+	_focus.close_surface(_gates)
+	_retire_outgoing_members()
+	_gates.set_surface_open(_workspace_page, false)
 	_toggle_zone(ID_WORKSPACE)
 	shell_action.emit(ID_BACK)
 

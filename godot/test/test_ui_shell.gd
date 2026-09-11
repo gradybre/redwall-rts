@@ -595,3 +595,60 @@ func test_the_ornament_and_the_focus_outline_are_outside_the_hit_table() -> void
 	assert_equal(sprig.mouse_filter, Control.MOUSE_FILTER_IGNORE, "which ignores input")
 	assert_equal(sprig.focus_mode, Control.FOCUS_NONE, "can never take focus")
 	assert_equal(sprig.accessibility_name, "", "and is excluded from the accessibility tree")
+
+
+# --- integration: the routing, the page container and the focus wiring actually run --------------
+
+func test_residents_opens_the_roster_and_never_the_unbuilt_world_access_panel() -> void:
+	"""UXV-004. §4.1:182 gives UI-SET-031 as "ALWAYS; opens roster rows 069".
+
+	This shell used to open UI-SET-087 here -- the one element `ui_availability.gd` marks
+	PANEL_NOT_BUILT -- so the Residents button opened a panel that does not exist. The
+	destination is read from the registry, so a literal cannot drift away from §4.1 again.
+	"""
+	assert_true(_shell.open_workspace_page(UiRegistry.OPENS[UiShell.ID_RESIDENTS][0]),
+		"the registry's destination for 031 is a page this shell builds")
+	assert_equal(_shell.workspace_page(), UiRegistry.ROSTER_ID,
+		"which is the roster, UI-SET-069")
+	assert_true(UiRegistry.ROSTER_ID != UiShell.ID_WORLD_LIST,
+		"and the roster is not the world-access list F6 owns")
+
+
+func test_opening_another_page_hides_the_whole_roster_not_just_its_first_row() -> void:
+	"""UI-SET-069's element id is the first ROW's control, so the page needs its own container.
+
+	Without one the page loop toggles row 0 and leaves rows 1-11 standing underneath whichever
+	page is open. The roster is populated first because `_set_roster_visible(0)` hides every row
+	at build time -- asserting on an empty roster would pass whether or not the container works.
+	"""
+	_shell.set_roster(PackedStringArray(["Warden Rowan mouse", "Unnamed mole"]), 2)
+	assert_true(_shell.open_workspace_page(UiRegistry.ROSTER_ID), "open the roster")
+	var row_zero: Control = _shell.control_for(UiShell.ID_RESIDENT_ROW)
+	var holder: Control = row_zero.get_parent() as Control
+	assert_true(holder != null, "the roster rows live inside a container of their own")
+	assert_true(holder.visible, "which is shown while the roster is the open page")
+	assert_true(row_zero.visible, "and a populated row is shown inside it")
+	assert_true(_shell.open_workspace_page(UiShell.ID_NEW_SETTLEMENT), "switch pages")
+	assert_false(holder.visible,
+		"the whole roster leaves with the page, so no row survives underneath the new one")
+
+
+func test_the_focus_order_is_written_onto_the_real_controls() -> void:
+	"""UXV-033 names "focus-list data without runtime wiring" as insufficient, and it WAS the state.
+
+	`bind_controls()` and `wire_hud()` had no call site anywhere in the repository, so the
+	computed order was a data structure Godot never read. `focus_next` is one of the properties
+	Godot's own Tab navigation follows, so a written one is the difference between an order that
+	exists and an order a player can feel. Counting them is what makes an unwired shell fail:
+	a shell that never calls the router leaves every one of these empty.
+	"""
+	var wired: int = 0
+	for id: int in UiRegistry.FIRST_ID + UiRegistry.ELEMENT_COUNT:
+		if id < UiRegistry.FIRST_ID:
+			continue
+		var control: Control = _shell.control_for(id)
+		if control != null and not control.focus_next.is_empty():
+			wired += 1
+	assert_true(wired > 0,
+		"at least one built control carries a focus_next path after layout; zero means nothing "
+		+ "called bind_controls()/wire_hud() and the order is data only")

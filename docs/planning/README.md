@@ -5,6 +5,14 @@ Prepared 2026-09-09 from `/Users/brendan/Developer/redwall-rts`, base revision
 new gameplay constants, adopted movement closures or independent game-test result.
 The executor continues task 03. These documents supply its next dependency queue.
 
+## First-playable UI direction — 2026-09-11
+
+For task 04.4, read [the visual implementation brief](ui_visual_direction.md)
+and [decision 0058](../decisions/0058-first-playable-ui-has-an-authored-visual-shell.md).
+The requested result is a styled woodland shell using the existing UI profiles,
+with real-state wiring and native Mac screenshots for visual review. This is a
+design handoff, not a runtime or visual acceptance result.
+
 ## READY_07 alignment — 2026-09-11
 
 Read [the new executor answers](../rulings/2026-09-11_ready07_open_item_answers.md)

@@ -22,6 +22,13 @@ if ! command -v godot >/dev/null 2>&1; then
     exit 127
 fi
 
+# Task 09.1: the future-affecting-state registry is enforced, not merely written.
+# This fails when a store under godot/scripts/core has no row, a row names a column
+# that no longer exists, or a declared width/count stops matching the GDScript.
+# It runs first because a registry that no longer describes the code is a build
+# failure whether or not the Godot suite is green.
+python3 "$repo_root/docs/validation/state_registry_coverage.py" || exit 1
+
 output_file="$(mktemp)"
 trap 'rm -f "$output_file"' EXIT
 

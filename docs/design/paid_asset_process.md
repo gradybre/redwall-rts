@@ -25,7 +25,7 @@ Answer in writing, per asset family:
 | Is it geometric or illustrative? | Nine-slice edges, stretch margins, tiling seams and small state glyphs are **authored**, never generated — generation cannot hit an exact stretch margin. Painted objects and characters are the reverse. |
 | Does the family need identical lighting? | A shared 3D render rig gives that by construction; so does one generation call producing a family sheet. Choose one deliberately. |
 | Does a usable reference already exist in the repo? | `ImageReference/` and `docs/art-reference/reference_manifest.json` hold 28 catalogued images. Check before paying to create what is already on disk. |
-| Is the reference ours to derive from? | **Decisive.** A catalogued reference may be observed and described; it may not be fed to image-to-image if its artwork was never authorized for reuse. Record which applies. |
+| Is direct reference use authorized? | **For Brendan-supplied images/material: yes, DEC-036.** IMG-25 and the supplied image library may be direct image-to-image/image-to-3D/drawing/modeling inputs. Unknown creator metadata is retained, not converted into an observe-only restriction. Record source and transformations; paid generation still requires the itemized approval below. |
 
 Conclude with an explicit **not needed** list. Naming the tools we are *not* paying for
 is as much a part of the answer as the one we are.
@@ -35,6 +35,10 @@ is as much a part of the answer as the one we are.
 Generation quality is set by the brief, not the budget. Before asking for credits,
 push Astra and Brendan for the details that are still open. Ask for more than feels
 polite; an unanswered question becomes an invented one at generation time.
+
+For current UI art, read `ui_refinement/asset_generation_lock.md`: its seven
+design decisions are settled, with final visual review still pending. Reopen only
+a concrete conflict or user change; unanswered future assets still use this list.
 
 The recurring list, which has applied to every asset family so far:
 
@@ -50,7 +54,7 @@ The recurring list, which has applied to every asset family so far:
    identity decision, not an implementation detail.
 6. **Framing and crop** for anything character-shaped.
 7. **The derivation boundary** for each named reference: observe-and-describe, or
-   derive-directly. Get this in writing.
+   derive-directly. Use the existing written authorization: DEC-036 already settles direct use of Brendan-supplied material. Do not ask again for those references.
 
 ## Step 3 — Present the itemised approval list
 
@@ -67,6 +71,11 @@ family or a second iteration round is a new request.
 Every generated file lands with its prompt, model, seed where available, credit cost,
 date, and the licence position, in `godot/ui/ASSETS.md` and the owning manifest.
 An asset whose provenance is not in the repository is not finished.
+
+Purpose-made object/species sheets may be cropped into individual exports, with
+cell coordinates and originals retained. This is distinct from cropping a finished
+HUD screenshot into production panels. Supplied images may condition generation
+and guide direct builds; ART-LOCK-001 fixes the current UI asset identities.
 
 Generated art is **source material**, not a shipped asset: it gets traced, cut,
 colour-corrected to the locked palette and exported at real sizes. Never crop a

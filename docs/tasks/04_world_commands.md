@@ -232,6 +232,13 @@ This proves initialization, not a surviving or complete colony.
 
 ## 04.4 — Inspectable application and the intent-to-job handoff
 
+**2026-09-11 visual follow-through:** [task04.5](04_5_ui_visual_refinement.md)
+now specifies the required refinement and fixes to gates, roster ownership,
+formatting, focus and responsive behavior. Read the active UI worktree/evidence
+before relying on historical completion notes below. The owning
+[SET-UX-VIS-002](../ui_visual_refinement_amendment.md) separates functional,
+structural visual and user-review status.
+
 - [ ] Wire New Settlement, initially paused world, time/calendar controls,
   camera/selection, resource summary, resident detail, zone tool, pending preview,
   cancellation and accessible refusal display to real state.

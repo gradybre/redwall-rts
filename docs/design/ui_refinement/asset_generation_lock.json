@@ -1,0 +1,300 @@
+{
+  "document": "ART-LOCK-001",
+  "revision": 1,
+  "date": "2026-09-11",
+  "authority": "SET-UX-VIS-002 revision3; DEC-036 reference permission",
+  "design_status": "ASTRA_AUTHORED_IMPLEMENTATION_LOCK; USER_VISUAL_APPROVAL_PENDING",
+  "paid_generation_authorized": false,
+  "aesthetic": "storybook watercolor with controlled ink contours and grounded anatomy",
+  "palette": [
+    {
+      "id": "I01",
+      "name": "Ink",
+      "hex": "#25372D"
+    },
+    {
+      "id": "I02",
+      "name": "Deep shade",
+      "hex": "#14211B"
+    },
+    {
+      "id": "I03",
+      "name": "Oat",
+      "hex": "#EAE1C8"
+    },
+    {
+      "id": "I04",
+      "name": "Cream",
+      "hex": "#F5F0DF"
+    },
+    {
+      "id": "I05",
+      "name": "Sage",
+      "hex": "#708171"
+    },
+    {
+      "id": "I06",
+      "name": "Leaf",
+      "hex": "#466647"
+    },
+    {
+      "id": "I07",
+      "name": "Brass",
+      "hex": "#B49A58"
+    },
+    {
+      "id": "I08",
+      "name": "Timber",
+      "hex": "#91613E"
+    },
+    {
+      "id": "I09",
+      "name": "Umber",
+      "hex": "#594332"
+    },
+    {
+      "id": "I10",
+      "name": "Clay",
+      "hex": "#B76545"
+    },
+    {
+      "id": "I11",
+      "name": "Ember",
+      "hex": "#D99743"
+    },
+    {
+      "id": "I12",
+      "name": "Flint",
+      "hex": "#8A8D84"
+    }
+  ],
+  "palette_interpolation": "Blends and antialiasing between locked pigments allowed; no new base hues",
+  "lighting": {
+    "screen_axes": "x right, y down; azimuth clockwise from +x",
+    "source_azimuth_deg": 225,
+    "elevation_deg": 45,
+    "cast_shadow_azimuth_deg": 45,
+    "shadow_opacity_max": 0.18,
+    "offset_at_24px": [
+      1,
+      1
+    ],
+    "max_shadow_extent_px": {
+      "24": 2,
+      "32": 2,
+      "48": 3,
+      "64": 4
+    },
+    "medallion_external_cast_shadow": false
+  },
+  "legibility": {
+    "contour": "ALWAYS_I01",
+    "contour_px": {
+      "24": 1,
+      "32": 1,
+      "48": 1.5,
+      "64": 1.5
+    },
+    "forest_outer_keyline": "ALWAYS_I04",
+    "journal_outer_keyline": "NONE",
+    "opaque_backing_for_object_icons": false,
+    "object_visible_bounds_at_24px": [
+      1,
+      1,
+      23,
+      23
+    ]
+  },
+  "medallion": {
+    "production_sizes": [
+      48,
+      64
+    ],
+    "diagnostic_size": 24,
+    "view": "eye-level, yaw30 degrees toward screen-left",
+    "crop": "head-and-shoulders, upper-chest lower boundary",
+    "clothing": "plain I06 tunic with I03 neck edge",
+    "frame": "shared circular I03 field, I07 ring and separate lower-left oak sprig",
+    "roundel_diameter_px": {
+      "48": 44,
+      "64": 60
+    },
+    "ring_width_px": {
+      "48": 1,
+      "64": 1.5
+    },
+    "sprig_max_bounds_px": {
+      "48": [
+        6,
+        8
+      ],
+      "64": [
+        8,
+        11
+      ]
+    },
+    "sprig_in_24px_diagnostic": false
+  },
+  "assets": [
+    {
+      "id": "RES-FOOD",
+      "label": "Ready food",
+      "object": "One shallow olive ceramic bowl, filled with vegetable stew; two cream root pieces and one green leaf; no spoon, lid, basket or loaf.",
+      "view": "Front,30° elevation; bowl rim horizontal.",
+      "state": "Full, served; no steam or motion.",
+      "silhouette_24px": "Wide elliptical rim over a single rounded bowl body.",
+      "pigments": "I06 bowl; I10 broth/roots; I03 pale chunks; I09 underside.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "RES-FUEL",
+      "label": "Fuel",
+      "object": "One upright three-tongue flame over two small dark ember stones; no timber, candle, brazier or stove.",
+      "view": "Frontal graphic, no perspective tilt.",
+      "state": "Burning symbol; no smoke, rays or external glow.",
+      "silhouette_24px": "Single pointed flame/teardrop mass; ember base subordinate.",
+      "pigments": "I10 outer flame; I11 middle; I04 small core; I02 embers.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "RES-WOOD",
+      "label": "Wood",
+      "object": "Three cut logs stacked two below and one above; visible circular cut ends and bark.",
+      "view": "Front-right three-quarter,30° elevation; length axes recede upper-right at35° above screen horizontal.",
+      "state": "Dry unburnt stack; no leaf, ember or flame.",
+      "silhouette_24px": "Three circular ends in a triangle joined to one compact stack.",
+      "pigments": "I08 cut ends; I09 bark; I03 narrow ring highlights.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "RES-STONE",
+      "label": "Stone",
+      "object": "Three rough angular gray stones: one large rear peak, two smaller front pieces.",
+      "view": "Front,25° elevation.",
+      "state": "Dry raw stones, no ore crystal, gem or metal glint.",
+      "silhouette_24px": "One jagged peaked mound; no circles or log rings.",
+      "pigments": "I12 faces; I02/I09 shadow; I03 small edge planes.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "RES-POP",
+      "label": "Population",
+      "object": "Exactly three upper-chest busts: mouse center/front, mole screen-left/rear, otter screen-right/rear; no hats or props.",
+      "view": "Frontal group, eye-level.",
+      "state": "Neutral attentive group; same plain green tunics; no age/sex/faction coding.",
+      "silhouette_24px": "Three staggered head masses, center mouse ears above the other two.",
+      "pigments": "I08 mouse; I12 mole; I09 otter; I06 clothing; I03 small muzzle highlights.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "RES-BEDS",
+      "label": "Beds",
+      "object": "One single low wooden bed with four posts, cream pillow at rear-left and a folded moss-green blanket; no canopy, bunk or row.",
+      "view": "Three-quarter from foot/right side,30° elevation; head recedes upper-left.",
+      "state": "Made and empty; no sleeper, occupancy marker or warmth glow.",
+      "silhouette_24px": "Horizontal mattress rectangle with two prominent end posts.",
+      "pigments": "I08 frame; I09 legs; I03 pillow/sheet; I06 blanket.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "CMD-BUILD",
+      "label": "Build",
+      "object": "One wooden carpenter mallet: rectangular head and straight handle; no nail, anvil or crossed tool.",
+      "view": "Side-on; handle runs lower-left to upper-right,45° above horizontal; head perpendicular.",
+      "state": "Clean serviceable mallet at rest.",
+      "silhouette_24px": "Unbroken T silhouette.",
+      "pigments": "I08 head/handle; I09 end grain; I03 small lit edge.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "CMD-ZONE",
+      "label": "Zone",
+      "object": "Four short wooden survey stakes joined by one slack rope boundary into an empty square; no crops, building or fill.",
+      "view": "Oblique top view,45° elevation; projected square is a diamond.",
+      "state": "One closed marked boundary, no active selection check.",
+      "silhouette_24px": "Hollow four-corner diamond loop.",
+      "pigments": "I08 stakes; I03 rope with I01 contour; empty transparent center.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "CMD-WORK",
+      "label": "Work",
+      "object": "One hand spade and one wooden mallet crossed, spade blade upper-left, mallet head upper-right.",
+      "view": "Front, tool plane parallel to picture plane; handles at opposing45° diagonals.",
+      "state": "Tools at rest; no sparks, person or progress state.",
+      "silhouette_24px": "X silhouette with one broad spade lobe and one T head.",
+      "pigments": "I12 blade; I08 handles/head; I09 grip shadows.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "CMD-FOOD",
+      "label": "Food",
+      "object": "Exactly the RES-FOOD bowl artwork.",
+      "view": "Identical to RES-FOOD.",
+      "state": "Identical; button state drawn separately.",
+      "silhouette_24px": "Identical bowl silhouette.",
+      "pigments": "Identical to RES-FOOD.",
+      "reuse_art_from": "RES-FOOD"
+    },
+    {
+      "id": "CMD-PEOPLE",
+      "label": "People",
+      "object": "Exactly the RES-POP group artwork.",
+      "view": "Identical to RES-POP.",
+      "state": "Identical; no selected check baked into art.",
+      "silhouette_24px": "Identical three-head group.",
+      "pigments": "Identical to RES-POP.",
+      "reuse_art_from": "RES-POP"
+    },
+    {
+      "id": "CMD-GOALS",
+      "label": "Goals",
+      "object": "One partly unfurled vertical oat parchment scroll with rolled top/bottom edges; blank surface, no lettering, seal, quill or check.",
+      "view": "Frontal, top/bottom edges horizontal.",
+      "state": "Open for reading; no completion indication.",
+      "silhouette_24px": "Tall scroll rectangle with curled top and bottom.",
+      "pigments": "I03 paper; I09 roll recess; I04 lit edge.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "MED-MOUSE",
+      "label": "Mouse medallion",
+      "object": "Natural mouse with two large round ears, pointed muzzle and fine whiskers; plain shared tunic.",
+      "view": "Eye-level,30° three-quarter toward screen-left; head-and-shoulders.",
+      "state": "Neutral attentive; clothed; common roundel/overlay.",
+      "silhouette_24px": "At24px diagnostic: two large round ears plus protruding fine muzzle.",
+      "pigments": "I08 fur; I03 muzzle; I10 inner ear; I06 tunic.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "MED-MOLE",
+      "label": "Mole medallion",
+      "object": "Natural mole with low rounded head, broad projecting nose, tiny eyes and no prominent external ears; plain shared tunic.",
+      "view": "Eye-level,30° three-quarter toward screen-left; head-and-shoulders.",
+      "state": "Neutral attentive; clothed; no shovel, hat or spectacles; common roundel.",
+      "silhouette_24px": "At24px diagnostic: low earless dome and broad blunt nose.",
+      "pigments": "I12/I09 fur; I03 muzzle highlight; I10 small nose; I06 tunic.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "MED-OTTER",
+      "label": "Otter medallion",
+      "object": "River otter with broad whisker pads, small round ears, strong tapered neck and cream throat; plain shared tunic.",
+      "view": "Eye-level,30° three-quarter toward screen-left; head-and-shoulders.",
+      "state": "Neutral attentive; clothed; no sailor scarf or profession prop; common roundel.",
+      "silhouette_24px": "At24px diagnostic: broad double-lobed muzzle and small low ears.",
+      "pigments": "I09 fur; I08 lit face; I03 throat/pads; I06 tunic.",
+      "reuse_art_from": ""
+    },
+    {
+      "id": "MED-SQUIRREL",
+      "label": "Squirrel medallion",
+      "object": "Natural squirrel with upright tufted ears, pointed muzzle and one bushy tail arc behind screen-right shoulder; plain shared tunic.",
+      "view": "Eye-level,30° three-quarter toward screen-left; head-and-shoulders.",
+      "state": "Neutral attentive; clothed; tail rests, no nut or weapon; common roundel.",
+      "silhouette_24px": "At24px diagnostic: pointed/tufted ears and a broad tail crescent.",
+      "pigments": "I08 fur; I10 warm fur accents; I03 muzzle; I09 tail shade; I06 tunic.",
+      "reuse_art_from": ""
+    }
+  ]
+}

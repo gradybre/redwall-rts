@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "scope": "Document traceability, table parity, declared palette/contour arithmetic and IMG-25 metadata only",
+  "asset_rows": 16,
+  "unique_illustrations": 14,
+  "pigments": 12,
+  "declared_contour_contrast": [
+    {
+      "outline": "I04",
+      "background": "PANEL",
+      "ratio": 12.2045
+    },
+    {
+      "outline": "I04",
+      "background": "HOVER",
+      "ratio": 9.0438
+    },
+    {
+      "outline": "I04",
+      "background": "PRESSED",
+      "ratio": 15.3139
+    },
+    {
+      "outline": "I01",
+      "background": "PAPER",
+      "ratio": 9.6827
+    },
+    {
+      "outline": "I01",
+      "background": "PAPER_HOVER",
+      "ratio": 8.5861
+    },
+    {
+      "outline": "I01",
+      "background": "PAPER_PRESSED",
+      "ratio": 7.2038
+    }
+  ],
+  "resolved_local_links": 67,
+  "reference_policy": "DEC-036 USER_CONFIRMED",
+  "independent_instruction_audit": "Completed; four known conflicts corrected or marked historical",
+  "generated_art": "NONE_THIS_TASK",
+  "actual_asset_contrast": "NOT_RUN",
+  "runtime_UI": "NOT_RUN",
+  "paid_generation": "NOT_APPROVED",
+  "user_aesthetic_verdict": "PENDING"
+}

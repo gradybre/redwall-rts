@@ -1,0 +1,246 @@
+{
+  "document": "SET-UX-VIS-002",
+  "revision": 3,
+  "status": "IMPLEMENTATION_DESIGN; VISUAL_SIGNOFF_PENDING",
+  "tokens": {
+    "PANEL": "#1E3028",
+    "TEXT": "#F5F0DF",
+    "MUTED": "#BECABF",
+    "GOLD": "#E6C77A",
+    "INK": "#14211B",
+    "HOVER": "#2B4638",
+    "PRESSED": "#111C17",
+    "PAPER": "#EAE1C8",
+    "PAPER_HOVER": "#E0D4B8",
+    "PAPER_PRESSED": "#D3C29E",
+    "PAPER_TEXT": "#25372D",
+    "PAPER_MUTED": "#43523F",
+    "PAPER_LINE": "#596953",
+    "SURFACE_EDGE": "#708171",
+    "PAPER_TRACK": "#C9C1A9",
+    "PAPER_FILL": "#466647"
+  },
+  "contrast_pairs": [
+    [
+      "PAPER_TEXT",
+      "PAPER",
+      4.5
+    ],
+    [
+      "PAPER_TEXT",
+      "PAPER_HOVER",
+      4.5
+    ],
+    [
+      "PAPER_TEXT",
+      "PAPER_PRESSED",
+      4.5
+    ],
+    [
+      "PAPER_MUTED",
+      "PAPER",
+      4.5
+    ],
+    [
+      "PAPER_MUTED",
+      "PAPER_HOVER",
+      4.5
+    ],
+    [
+      "PAPER_MUTED",
+      "PAPER_PRESSED",
+      4.5
+    ],
+    [
+      "PAPER_LINE",
+      "PAPER",
+      3
+    ],
+    [
+      "INK",
+      "PAPER",
+      3
+    ],
+    [
+      "PAPER_LINE",
+      "PAPER_HOVER",
+      3
+    ],
+    [
+      "INK",
+      "PAPER_HOVER",
+      3
+    ],
+    [
+      "PAPER_LINE",
+      "PAPER_PRESSED",
+      3
+    ],
+    [
+      "INK",
+      "PAPER_PRESSED",
+      3
+    ],
+    [
+      "SURFACE_EDGE",
+      "PANEL",
+      3
+    ],
+    [
+      "PAPER_FILL",
+      "PAPER_TRACK",
+      3
+    ],
+    [
+      "TEXT",
+      "PANEL",
+      4.5
+    ],
+    [
+      "GOLD",
+      "PANEL",
+      3
+    ]
+  ],
+  "requirements": [
+    "UXV-001",
+    "UXV-002",
+    "UXV-003",
+    "UXV-004",
+    "UXV-005",
+    "UXV-006",
+    "UXV-007",
+    "UXV-008",
+    "UXV-009",
+    "UXV-010",
+    "UXV-011",
+    "UXV-012",
+    "UXV-013",
+    "UXV-014",
+    "UXV-015",
+    "UXV-016",
+    "UXV-017",
+    "UXV-018",
+    "UXV-019",
+    "UXV-020",
+    "UXV-021",
+    "UXV-022",
+    "UXV-023",
+    "UXV-024",
+    "UXV-025",
+    "UXV-026",
+    "UXV-027",
+    "UXV-028",
+    "UXV-029",
+    "UXV-030",
+    "UXV-031",
+    "UXV-032",
+    "UXV-033",
+    "UXV-034",
+    "UXV-035",
+    "UXV-036",
+    "UXV-037",
+    "UXV-038",
+    "UXV-039",
+    "UXV-040",
+    "UXV-041",
+    "UXV-042"
+  ],
+  "acceptance_ids": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06",
+    "A07",
+    "A08",
+    "A09",
+    "A10",
+    "A11",
+    "A12",
+    "A13",
+    "A14",
+    "A15",
+    "A16",
+    "A17",
+    "A18",
+    "A19",
+    "A20",
+    "A21",
+    "A22",
+    "A23"
+  ],
+  "layout_fixtures": [
+    [
+      1280,
+      720,
+      1,
+      "STANDARD"
+    ],
+    [
+      1280,
+      720,
+      1.25,
+      "NARROW"
+    ],
+    [
+      1280,
+      720,
+      1.5,
+      "NARROW"
+    ],
+    [
+      1920,
+      1080,
+      1,
+      "WIDE"
+    ],
+    [
+      1920,
+      1080,
+      1.5,
+      "STANDARD"
+    ],
+    [
+      3840,
+      2160,
+      1,
+      "WIDE"
+    ],
+    [
+      1440,
+      900,
+      1.25,
+      "STANDARD"
+    ]
+  ],
+  "reference_images": [
+    [
+      "01_hud_resident_wide.png",
+      1920,
+      1080
+    ],
+    [
+      "02_hud_resident_narrow.png",
+      1280,
+      720
+    ],
+    [
+      "03_new_settlement.png",
+      1920,
+      1080
+    ],
+    [
+      "04_component_states.png",
+      1600,
+      1000
+    ]
+  ],
+  "runtime_status": "NOT_IMPLEMENTED_BY_THIS_PACKAGE",
+  "all_visual_state": "SYNTHETIC",
+  "art_finish_spec": "visual_art_direction.md",
+  "wide_toolbar_icon_logical_px": 24,
+  "narrow_toolbar_icon_logical_px": 16,
+  "asset_generation_lock": "asset_generation_lock.json"
+}

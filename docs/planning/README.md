@@ -1,5 +1,10 @@
 # Next settlement planning package
 
+**Immediate UI refinement:** [Claude starts here](../design/ui_refinement/README.md)
+for SET-UX-VIS-002,42 requirements, four visual targets,23 acceptance cases and
+[task04.5](../tasks/04_5_ui_visual_refinement.md). This is a design handoff, not a
+claim that the current UI already meets it.
+
 Prepared 2026-09-09 from `/Users/brendan/Developer/redwall-rts`, base revision
 `4fb57b1ae3759511a1a25a1a0242b44f605d80aa`. **Planning only:** no runtime changes,
 new gameplay constants, adopted movement closures or independent game-test result.

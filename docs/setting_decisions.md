@@ -873,6 +873,29 @@ The [systematic content library](redwall-content-library/README.md), CONTENT-LIB
 
 Brendan requested a systematic book-by-book library for all previously named content areas and explicitly allowed AI guesses for missing recipe ingredients, then authorized parallel work. The package preserves canon lists separately from inferred ingredients and methods, exposes source-only discourse versus production candidates, and keeps all numerical recipe values inactive. This is authorization for research and labeled content completion, not a new gameplay policy or an answer to outstanding interview questions. [Decision 0014](decisions/0014-systematic-content-library-keeps-source-and-game-separate.md) records the handoff.
 
+### DEC-036 — Supplied visual references may guide direct builds
+
+2026-09-11 · State: `USER_CONFIRMED` for reference use.
+
+Brendan explicitly corrected the claim that IMG-25 was limited to observation:
+“We are allowed to use those images I gave you to guide direct builds in our world.”
+His supplied images and material may be used directly as reference inputs for
+image-to-image, image-to-3D, drawing/tracing/adaptation and modeling/texturing for
+this project. This includes IMG-25 and other `ImageReference/` files, not merely
+written observations of them. Record input files/regions and transformations;
+keep unknown creator/edition/license fields unknown without making them an
+invented observe-only restriction. This records project authorization, not a new
+claim of copyright ownership, a CC license or verified source attribution.
+
+The authorization applies to supplied material; it is not an instruction to copy
+every external RTS screenshot collected as research. Source gameplay claims do
+not supersede the GDD. Do not put slide UI/text or a full HUD screenshot into the
+runtime as finished assets. Purpose-made asset sheets may be cut into clean
+individual assets. Paid generation remains a separate itemized approval under
+[the paid-asset process](design/paid_asset_process.md); no quoted spend is approved
+by this reference clarification. [ART-LOCK-001](design/ui_refinement/asset_generation_lock.md)
+records Astra-authored production details; final aesthetic approval remains pending.
+
 ## 9. Progress ledger
 
 | Date | Work completed | Still open |

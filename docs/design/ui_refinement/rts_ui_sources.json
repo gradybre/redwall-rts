@@ -1,0 +1,216 @@
+{
+  "retrieved": "2026-09-11",
+  "method": "Bounded public-page extraction and direct image inspection; original analysis retained; no whole-article or foreign asset vendoring.",
+  "sources": [
+    {
+      "id": "S01",
+      "game": "Age of Empires IV",
+      "title": "Kevin Hustler \u2014 principal UX designer case study",
+      "url": "https://kevinhustler.me/aoe4",
+      "kind": "developer_portfolio",
+      "scope": "Publication date not pinned; includes prototypes and release screenshots",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S02",
+      "game": "Age of Empires IV",
+      "title": "Season One update release notes",
+      "url": "https://www.ageofempires.com/news/age-of-empires-iv-season-one-update-release-notes/",
+      "kind": "official_release_notes",
+      "scope": "Historical Season One update",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S03",
+      "game": "Against the Storm",
+      "title": "Quality of Life Update 1.7",
+      "url": "https://eremitegames.com/quality-of-life-update-1-7/",
+      "kind": "developer_update",
+      "scope": "2025-02-18; reviewed public HTML and two image originals",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S04",
+      "game": "Against the Storm",
+      "title": "Achievements Update",
+      "url": "https://eremitegames.com/achievements-update/",
+      "kind": "developer_update",
+      "scope": "Historical update; not current-version verification",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S05",
+      "game": "Anno 1800",
+      "title": "Game Update 6",
+      "url": "https://www.anno-union.com/updates/game-update-6-december-10-2019/",
+      "kind": "official_release_notes",
+      "scope": "2019-12-10",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S06",
+      "game": "Anno 1800",
+      "title": "PC Game Update 17",
+      "url": "https://www.anno-union.com/updates/anno-1800-pc-game-update-17/",
+      "kind": "official_release_notes",
+      "scope": "Historical update17",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S07",
+      "game": "StarCraft II",
+      "title": "Game Guide: Simplified Controls",
+      "url": "https://news.blizzard.com/en-us/article/6640645/game-guide-simplified-controls",
+      "kind": "official_game_guide",
+      "scope": "Documented interaction only; no screenshot inspected",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S08",
+      "game": "Northgard",
+      "title": "Build screenshot",
+      "url": "https://interfaceingame.com/screenshots/northgard-build/",
+      "kind": "third_party_screenshot_archive",
+      "scope": "Image capture build/date not supplied; visual observation only",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S09",
+      "game": "Anno 1800",
+      "title": "Building shipyard screenshot",
+      "url": "https://interfaceingame.com/screenshots/anno-1800-building-shipyard/",
+      "kind": "third_party_screenshot_archive",
+      "scope": "Image capture build/date not supplied; visual observation only",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S10",
+      "game": "Frostpunk 2",
+      "title": "Milena Mlynarska \u2014 Game UX Case Study",
+      "url": "https://www.milenamlynarska.com/uxui/2026/5/8/game-ux-case-study-frostpunk-2-2024",
+      "kind": "developer_portfolio",
+      "scope": "2026-05-08; original annotated problem image inspected; load redesign explicitly unimplemented",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S11",
+      "game": "Frostpunk 2",
+      "title": "Adapting Frostpunk 2 depth to a gamepad",
+      "url": "https://news.xbox.com/en-us/2025/09/18/adapting-frostpunk-2s-depth-to-a-gamepad/",
+      "kind": "developer_article_on_platform_site",
+      "scope": "2025-09-18; Igor Skibinski, 11 bit studios; console-specific behavior",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S12",
+      "game": null,
+      "title": "Xbox Accessibility Guideline 101: Text display",
+      "url": "https://learn.microsoft.com/en-us/xbox/accessibility/xbox-accessibility-guidelines/101",
+      "kind": "primary_accessibility_guidance",
+      "scope": "Read 2026-09-11; body-height measurement differs from font size parameter",
+      "retrieved": "2026-09-11"
+    },
+    {
+      "id": "S13",
+      "game": null,
+      "title": "Game Accessibility Guidelines \u2014 full list",
+      "url": "https://gameaccessibilityguidelines.com/full-list/",
+      "kind": "primary_accessibility_guidance",
+      "scope": "Read 2026-09-11; not a project certification",
+      "retrieved": "2026-09-11"
+    }
+  ],
+  "images": [
+    {
+      "id": "V01",
+      "source_id": "S01",
+      "url": "https://kevinhustler.me/img/work/aoe4/screenshot1.jpg",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "sha256": "051993737026c1173a1e66f81a54cb53e8eb8a7785a3ea55e19191aa75b5e494",
+      "reviewed": "2026-09-11",
+      "evidence": "VISUALLY_INSPECTED",
+      "runtime_or_input_test": false,
+      "vendored": false
+    },
+    {
+      "id": "V02",
+      "source_id": "S03",
+      "url": "https://eremitegames.com/wp-content/uploads/2025/02/Production-Stats-1080p.jpg",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "sha256": "019bae0fe5f134aa16358eb6a035289245563ffe81a25f9dc11cb9aa9781ad03",
+      "reviewed": "2026-09-11",
+      "evidence": "VISUALLY_INSPECTED",
+      "runtime_or_input_test": false,
+      "vendored": false
+    },
+    {
+      "id": "V03",
+      "source_id": "S03",
+      "url": "https://eremitegames.com/wp-content/uploads/2025/02/Town-Statistics-1080p.jpg",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "sha256": "b27adb548fb477119fe4266c59b8204e7a6c58470558f5cfa6d2d8231c9e44a1",
+      "reviewed": "2026-09-11",
+      "evidence": "VISUALLY_INSPECTED",
+      "runtime_or_input_test": false,
+      "vendored": false
+    },
+    {
+      "id": "V04",
+      "source_id": "S08",
+      "url": "https://interfaceingame.com/wp-content/uploads/northgard/northgard-build-1920x1080.jpg",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "sha256": "f6af13d362baabd929ca33898251886e0cef4adf2e54cad4cdf383a9fc633ad6",
+      "reviewed": "2026-09-11",
+      "evidence": "VISUALLY_INSPECTED",
+      "runtime_or_input_test": false,
+      "vendored": false
+    },
+    {
+      "id": "V05",
+      "source_id": "S09",
+      "url": "https://interfaceingame.com/wp-content/uploads/anno-1800/anno-1800-building-shipyard-1920x1080.jpg",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "sha256": "5b038a6e9d12659a07d2108f6bf6c7a8ed10a3aac7c4d847f7cb202594f4bc2d",
+      "reviewed": "2026-09-11",
+      "evidence": "VISUALLY_INSPECTED",
+      "runtime_or_input_test": false,
+      "vendored": false
+    },
+    {
+      "id": "V06",
+      "source_id": "S10",
+      "url": "https://images.squarespace-cdn.com/content/v1/57c9ea98414fb50bbd486fe1/e9dbf638-7c8b-496f-865e-2160d58f3785/CP%2Bicons%2Bexplained.png",
+      "dimensions": [
+        1920,
+        999
+      ],
+      "sha256": "dcce101309b5d59f6d8e8b1f450782410fc9776882406b0138d7fc4864a26ed8",
+      "reviewed": "2026-09-11",
+      "evidence": "VISUALLY_INSPECTED",
+      "runtime_or_input_test": false,
+      "vendored": false
+    }
+  ],
+  "limits": [
+    "No live game sessions",
+    "No representative usability study",
+    "No current-build parity claim for archived screenshots",
+    "No measured contrast claim for source games",
+    "StarCraft II comparison is document-only"
+  ]
+}

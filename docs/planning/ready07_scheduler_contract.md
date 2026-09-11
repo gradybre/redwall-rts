@@ -1,8 +1,16 @@
-# READY_07 scheduler-event contract proposal
+# READY_07 scheduler-event contract — R07-SCHED-001
 
-2026-09-11 · **PROPOSED engineering amendment R07-SCHED-001.** This is the complete
-candidate requested by task04.1, not an already shipped format or a user-approved
-change to simulation rules. Parent [READY_07 answers](../rulings/2026-09-11_ready07_open_item_answers.md).
+2026-09-11 · **ADOPTED and IMPLEMENTED engineering amendment R07-SCHED-001.**
+Statuses, kept separate as the closing section requires: **proposed** here on
+2026-09-11; **adopted** the same day by [READY_07 §3](../rulings/2026-09-11_ready07_open_item_answers.md);
+**implemented** in `godot/scripts/core/scheduler_events.gd` under
+[decision 0054](../decisions/0054-the-scheduler-event-queue-drains-before-every-tick.md);
+**verified** for everything in the acceptance list below by
+`godot/test/test_scheduler_events.gd`, EXCEPT the production pending-save and
+replay acceptance, which stays **BLOCKED** because no save module exists. The
+8224 bytes are now in ARCH-MEM-010's reconciled ledger, once. The text below is
+unchanged from the proposal; it remains a specification of simulation format,
+not a user-approved change to simulation rules. Parent [READY_07 answers](../rulings/2026-09-11_ready07_open_item_answers.md).
 Owners: ARCH-CMD-002, ARCH-CLOCK-001/002, GDD REQ-SET-002–008, UI pause reasons,
 architecture §8. Preserve economic CommandKind IDs and their 64-byte records.
 

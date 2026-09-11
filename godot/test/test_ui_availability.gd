@@ -193,3 +193,223 @@ func test_blocked_elements_group_under_the_owners_that_are_missing() -> void:
 	assert_true(movement >= 2, "task 05's movement blocks world selection")
 	assert_equal(_availability.count_with_reason(UiAvailability.REASON_WIRED).value,
 		_availability.wired_count(), "counting by reason agrees with the wired total")
+
+
+# --- UXV-001: the 103-entry registry is not expanded wholesale into panels -------------------------
+
+const UiShell := preload("res://scripts/ui/ui_shell.gd")
+
+
+func test_this_milestone_renders_a_minority_of_the_registry() -> void:
+	"""§4 defines 103 elements. Building all of them as disabled panels is its own kind of lie."""
+	assert_true(_availability.rendered_count() < UiRegistry.ELEMENT_COUNT,
+		"the registry is not expanded wholesale")
+	assert_true(_availability.rendered_count() > 0, "but this milestone does render surfaces")
+	var not_rendered: int = 0
+	for id: int in range(UiRegistry.FIRST_ID, UiRegistry.LAST_ID + 1):
+		if not _availability.renders(id):
+			not_rendered += 1
+	assert_equal(not_rendered, UiRegistry.ELEMENT_COUNT - _availability.rendered_count(),
+		"every element is either rendered or a specification entry only")
+
+
+func test_the_render_claim_is_exactly_what_the_shell_actually_builds() -> void:
+	"""A render claim nobody cross-checks drifts. This compares it to the built control tree."""
+	var shell: Control = UiShell.new()
+	shell.build()
+	for id: int in range(UiRegistry.FIRST_ID, UiRegistry.LAST_ID + 1):
+		assert_equal(_availability.renders(id), shell.renders(id),
+			"UI-SET-%03d: the render claim and the built tree agree" % id)
+	shell.free()
+
+
+func test_an_element_outside_the_render_set_has_no_compact_reason_to_print() -> void:
+	"""There is no row on screen for it, so a phrase for one would describe nothing."""
+	assert_false(_availability.renders(41), "UI-SET-041 is not built this milestone")
+	assert_equal(_availability.compact_reason_of(41), "", "so it has no compact reason")
+	assert_equal(_availability.last_refusal(), UiAvailability.REFUSE_NOT_RENDERED,
+		"and asking refuses with NOT_RENDERED")
+
+
+# --- UXV-002: visibility is decided before availability --------------------------------------------
+
+func _closed_gates() -> UiAvailability.Gates:
+	"""A world with nothing selected, no tool running, every surface closed and no milestones."""
+	var gates: UiAvailability.Gates = UiAvailability.Gates.new()
+	gates.reset()
+	gates.milestone = UiAvailability.MILESTONE_UNKNOWN
+	return gates
+
+
+func test_an_unsatisfied_gate_makes_an_element_absent_without_consulting_the_claim() -> void:
+	"""UI-SET-036 is SELECTED-gated: with nothing selected it has no Control to be excused."""
+	var gates: UiAvailability.Gates = _closed_gates()
+	assert_true(_availability.is_wired(36), "the detail panel IS wired when it is shown")
+	assert_equal(_availability.state_of(36, gates).value, UiAvailability.STATE_ABSENT,
+		"but with nothing selected it is absent, not available")
+	assert_false(_availability.creates_control(36, gates), "so no Control is created for it")
+	gates.has_selection = true
+	assert_equal(_availability.state_of(36, gates).value, UiAvailability.STATE_AVAILABLE,
+		"and selecting something brings it back as available")
+
+
+func test_an_unavailable_element_behind_a_closed_gate_is_absent_not_unavailable() -> void:
+	"""The ordering under test: the gate decides first, so the missing owner never gets a say.
+
+	UI-SET-034 is gated SELECTED and its Building store does not exist. If availability were
+	evaluated first this would report UNAVAILABLE -- a disabled Demolish button drawn while
+	nothing is selected. Visibility first makes it ABSENT, which is no control at all.
+	"""
+	var gates: UiAvailability.Gates = _closed_gates()
+	assert_false(_availability.is_wired(34), "the demolish command has no Building store")
+	assert_equal(_availability.state_of(34, gates).value, UiAvailability.STATE_ABSENT,
+		"and with nothing selected it is absent")
+	gates.has_selection = true
+	assert_equal(_availability.state_of(34, gates).value, UiAvailability.STATE_UNAVAILABLE,
+		"only once it is visible does the missing owner decide its state")
+
+
+func test_a_world_tool_row_appears_only_while_a_stroke_is_running() -> void:
+	"""UI-SET-025's box selection is WORLD_TOOL-gated; idle, it is not a control at all."""
+	var gates: UiAvailability.Gates = _closed_gates()
+	assert_equal(_availability.state_of(25, gates).value, UiAvailability.STATE_ABSENT,
+		"no tool is running, so the box selection is absent")
+	gates.world_tool_active = true
+	assert_true(_availability.state_of(25, gates).value != UiAvailability.STATE_ABSENT,
+		"starting a stroke makes it exist")
+
+
+func test_a_workspace_row_is_absent_until_its_surface_is_opened() -> void:
+	"""§3 opens one workspace at a time; a closed one contributes no controls at all."""
+	var gates: UiAvailability.Gates = _closed_gates()
+	assert_equal(_availability.state_of(69, gates).value, UiAvailability.STATE_ABSENT,
+		"the roster row is absent while the roster is closed")
+	gates.set_surface_open(69, true)
+	assert_equal(_availability.state_of(69, gates).value, UiAvailability.STATE_AVAILABLE,
+		"and available once the roster is open")
+
+
+func test_an_always_gated_element_is_never_absent() -> void:
+	"""ALWAYS rows have no condition to fail, so discoverability survives every gate state."""
+	var gates: UiAvailability.Gates = _closed_gates()
+	for id: int in range(UiRegistry.FIRST_ID, UiRegistry.LAST_ID + 1):
+		if UiRegistry.GATES[id - UiRegistry.FIRST_ID] != UiRegistry.GATE_ALWAYS:
+			continue
+		assert_true(_availability.state_of(id, gates).value != UiAvailability.STATE_ABSENT,
+			"UI-SET-%03d is ALWAYS and must stay discoverable" % id)
+
+
+func test_an_unreadable_condition_is_unavailable_rather_than_hidden_or_faked() -> void:
+	"""A gate whose owning store does not exist is a named unavailable state, not a false."""
+	var gates: UiAvailability.Gates = _closed_gates()
+	gates.set_condition(87, UiAvailability.FACT_UNKNOWN)
+	assert_equal(_availability.state_of(87, gates).value, UiAvailability.STATE_UNAVAILABLE,
+		"an unreadable F6 gate leaves the world access list visible and excused")
+	gates.set_condition(87, UiAvailability.FACT_NOT_MET)
+	assert_equal(_availability.state_of(87, gates).value, UiAvailability.STATE_ABSENT,
+		"and a condition known to be false is the one that removes it")
+
+
+# --- UXV-030: four states, not "hidden or greyed" ---------------------------------------------------
+
+func test_the_four_states_are_all_reachable_and_distinct() -> void:
+	"""Collapsing these to hidden-or-greyed loses three distinctions §4 and §2.2 make."""
+	var gates: UiAvailability.Gates = _closed_gates()
+	assert_equal(UiAvailability.STATE_COUNT, 4, "there are four states")
+	assert_equal(_availability.state_of(36, gates).value, UiAvailability.STATE_ABSENT, "absent")
+	assert_equal(_availability.state_of(32, gates).value, UiAvailability.STATE_LOCKED, "locked")
+	assert_equal(_availability.state_of(3, gates).value, UiAvailability.STATE_UNAVAILABLE,
+		"unavailable")
+	assert_equal(_availability.state_of(14, gates).value, UiAvailability.STATE_AVAILABLE,
+		"available")
+
+
+func test_a_locked_milestone_control_stays_in_its_catalog_and_states_the_condition() -> void:
+	"""§4: it "remains visible in its catalog with the GDD milestone condition"."""
+	var gates: UiAvailability.Gates = _closed_gates()
+	gates.view = UiAvailability.VIEW_CATALOG
+	assert_true(_availability.is_visible(32, gates), "the Feast command is visible in the catalog")
+	var condition: String = _availability.locked_condition_of(32, gates)
+	assert_true(condition.contains("M1"), "and names its milestone: '%s'" % condition)
+	assert_true(condition.contains("12 residents"), "with the GDD's own condition")
+	assert_false(_availability.can_activate(32, gates), "while nothing can be committed from it")
+
+
+func test_a_locked_milestone_control_leaves_the_quick_commands() -> void:
+	"""§4: "it is hidden from quick commands until unlocked" -- the same row, a different view."""
+	var gates: UiAvailability.Gates = _closed_gates()
+	gates.view = UiAvailability.VIEW_QUICK_COMMANDS
+	assert_equal(_availability.state_of(32, gates).value, UiAvailability.STATE_ABSENT,
+		"the locked Feast command is absent from the quick commands")
+	gates.milestone = UiAvailability.MILESTONE_M1
+	assert_true(_availability.state_of(32, gates).value != UiAvailability.STATE_ABSENT,
+		"and reaching M1 puts it back")
+
+
+func test_reaching_the_milestone_unlocks_and_removes_the_condition() -> void:
+	"""Once unlocked there is no condition left to print, and asking for one refuses."""
+	var gates: UiAvailability.Gates = _closed_gates()
+	gates.milestone = UiAvailability.MILESTONE_M1
+	assert_true(_availability.state_of(32, gates).value != UiAvailability.STATE_LOCKED,
+		"M1 unlocks the Feast command")
+	assert_equal(_availability.locked_condition_of(32, gates), "", "with no condition to show")
+	assert_equal(_availability.last_refusal(), UiAvailability.REFUSE_NOT_LOCKED,
+		"refusing NOT_LOCKED")
+
+
+func test_unknown_milestone_state_locks_rather_than_unlocking() -> void:
+	"""No progression store exists, and an unread milestone must never read as reached."""
+	var gates: UiAvailability.Gates = _closed_gates()
+	assert_equal(gates.milestone, UiAvailability.MILESTONE_UNKNOWN, "no progression state exists")
+	assert_equal(_availability.state_of(32, gates).value, UiAvailability.STATE_LOCKED,
+		"so the M1 control is locked, not quietly unlocked")
+
+
+func test_an_always_visible_unbuilt_row_gives_a_compact_reason() -> void:
+	"""UXV-030: a compact reason on focus, not an automatically opened full-size page."""
+	var compact: String = _availability.compact_reason_of(3)
+	assert_true(compact.length() > 0, "the fuel counter has a compact reason")
+	assert_true(compact.length() <= UiAvailability.COMPACT_REASON_LIMIT,
+		"short enough for a focused row: '%s'" % compact)
+	assert_true(_availability.unavailable_label(3).length() > compact.length(),
+		"and the full sentence, which belongs in inspection, is longer")
+
+
+func test_every_compact_reason_fits_a_row_and_names_something() -> void:
+	"""A phrase too long for the row would force the page UXV-030 forbids."""
+	for id: int in range(UiRegistry.FIRST_ID, UiRegistry.LAST_ID + 1):
+		if not _availability.renders(id) or _availability.is_wired(id):
+			continue
+		var compact: String = _availability.compact_reason_of(id)
+		assert_true(compact.length() > 0
+			and compact.length() <= UiAvailability.COMPACT_REASON_LIMIT,
+			"UI-SET-%03d has a row-sized reason: '%s'" % [id, compact])
+
+
+# --- the value axis stays four situations, not one marker ------------------------------------------
+
+func test_a_true_zero_is_not_the_same_answer_as_three_kinds_of_no_answer() -> void:
+	"""A counter reading 0 and a counter with no source are different claims about the world."""
+	assert_true(_availability.value_has_figure(UiAvailability.VALUE_TRUE_ZERO),
+		"a real zero has a figure to print")
+	for kind: int in [UiAvailability.VALUE_NO_SELECTION, UiAvailability.VALUE_UNINITIALIZED,
+			UiAvailability.VALUE_UNSUPPORTED]:
+		assert_false(_availability.value_has_figure(kind), "kind %d has no figure" % kind)
+	assert_equal(_availability.value_reason_key_of(UiAvailability.VALUE_NO_SELECTION),
+		UiAvailability.VALUE_KEYS[UiAvailability.VALUE_NO_SELECTION],
+		"and each carries its own distinct code")
+	assert_true(_availability.value_reason_key_of(UiAvailability.VALUE_UNINITIALIZED)
+		!= _availability.value_reason_key_of(UiAvailability.VALUE_UNSUPPORTED),
+		"uninitialized and unsupported are not the same code")
+
+
+func test_asking_a_true_zero_for_a_no_value_reason_refuses() -> void:
+	"""That request is the moment a genuine zero would be turned into a dash."""
+	assert_equal(_availability.value_reason_key_of(UiAvailability.VALUE_TRUE_ZERO),
+		StringName(""), "a true zero has no no-value reason")
+	assert_equal(_availability.last_refusal(), UiAvailability.REFUSE_VALUE_IS_A_FIGURE,
+		"and asking refuses with VALUE_IS_A_FIGURE")
+	assert_equal(_availability.value_reason_key_of(UiAvailability.VALUE_COUNT),
+		StringName(""), "there is no fifth situation")
+	assert_equal(_availability.last_refusal(), UiAvailability.REFUSE_UNKNOWN_VALUE_KIND,
+		"with UNKNOWN_VALUE_KIND")

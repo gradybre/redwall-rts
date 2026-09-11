@@ -198,3 +198,96 @@ func test_an_invalid_region_index_is_refused() -> void:
 	assert_false(_hits.region_consumes(6), "index 6 is past the six registered")
 	assert_equal(_hits.last_refusal(), UiHitTest.REFUSE_INVALID_INDEX, "with INVALID_REGION_INDEX")
 	assert_true(_hits.region_consumes(0), "and index 0 is a real consuming region")
+
+
+# --- UXV-002: an absent element gets no input rectangle either ---------------------------------------
+#
+# §1.2's click-through rectangle is "the viewport minus the ACTUAL VISIBLE INPUT RECTANGLES". An
+# element whose §4 Gate is unsatisfied has no Control, so it has no rectangle to contribute -- and
+# the table refuses to take one rather than accepting it and hoping the caller checked.
+
+const UiAvailability := preload("res://scripts/ui/ui_availability.gd")
+
+
+func test_an_element_with_no_control_is_refused_an_input_rectangle() -> void:
+	"""The refusal is the ordering contract at the input layer, not a caller convention."""
+	var rect: Rect2 = Rect2(10.0, 10.0, 200.0, 200.0)
+	assert_false(_hits.add_visible_region(ID_DETAIL, rect, UiHitTest.LAYER_EXPANSION, true, false),
+		"a hidden detail panel cannot register a rectangle")
+	assert_equal(_hits.last_refusal(), UiHitTest.REFUSE_ELEMENT_ABSENT, "with ELEMENT_ABSENT")
+	assert_equal(_hits.region_count(), 0, "and nothing was registered")
+	assert_true(_hits.world_receives(Vector2(100.0, 100.0)),
+		"so the world still gets the point the hidden panel would have covered")
+
+
+func test_a_present_element_registers_through_the_same_call() -> void:
+	"""The gated call is the only one the shell needs; a present element goes through it."""
+	var rect: Rect2 = Rect2(10.0, 10.0, 200.0, 200.0)
+	assert_true(_hits.add_visible_region(ID_DETAIL, rect, UiHitTest.LAYER_EXPANSION, true, true),
+		"a present detail panel registers")
+	assert_equal(_hits.region_count(), 1, "one region is held")
+	assert_false(_hits.world_receives(Vector2(100.0, 100.0)), "and it owns its own rectangle")
+
+
+func test_the_gate_decides_before_the_availability_claim_does() -> void:
+	"""UI-SET-098 is unavailable AND selection-gated; with nothing selected it registers nothing.
+
+	Evaluating availability first would build a disabled pin button and give it a rectangle while
+	nothing is selected. Reading `creates_control()` -- which asks the gate first -- is what keeps
+	that rectangle off the screen entirely.
+	"""
+	var availability: UiAvailability = UiAvailability.new()
+	var gates: UiAvailability.Gates = UiAvailability.Gates.new()
+	gates.reset()
+	var rect: Rect2 = Rect2(300.0, 600.0, 44.0, 44.0)
+	assert_false(availability.is_wired(98), "the resident pin has no panel behind it")
+	assert_false(_hits.add_visible_region(98, rect, UiHitTest.LAYER_PERMANENT_HUD, true,
+		availability.creates_control(98, gates)), "and with nothing selected it has no rectangle")
+	assert_equal(_hits.last_refusal(), UiHitTest.REFUSE_ELEMENT_ABSENT, "refusing ELEMENT_ABSENT")
+	gates.has_selection = true
+	assert_true(_hits.add_visible_region(98, rect, UiHitTest.LAYER_PERMANENT_HUD, true,
+		availability.creates_control(98, gates)),
+		"selecting a resident gives it one, disabled or not")
+	assert_equal(_hits.element_at(Vector2(310.0, 610.0)).value, 98, "and the point is its own")
+
+
+# --- REQ-UX-003: the modal SCRIM blocks the background ------------------------------------------------
+
+func test_a_raised_scrim_stops_every_background_point_reaching_the_world() -> void:
+	"""§3 layer 80: "SCRIM blocks background"; REQ-UX-003 forbids background changes."""
+	_hits.add_region(ID_MODAL, Rect2(400.0, 200.0, 480.0, 320.0), UiHitTest.LAYER_MODAL, true)
+	var outside: Vector2 = Vector2(100.0, 100.0)
+	assert_true(_hits.world_receives(outside), "with no scrim the world gets the bare point")
+	assert_true(_hits.raise_scrim(UiHitTest.LAYER_MODAL), "the scrim goes up with the modal")
+	assert_true(_hits.scrim_is_up(), "and it is up")
+	assert_false(_hits.world_receives(outside), "now no background point reaches the world")
+	assert_equal(_hits.element_at(Vector2(500.0, 300.0)).value, ID_MODAL,
+		"while the dialog itself still owns its own rectangle")
+
+
+func test_a_scrim_hides_the_hud_beneath_it_rather_than_layering_over_it() -> void:
+	"""A HUD button under an open modal must not take the click that lands on it."""
+	_hits.add_region(ID_TIME_CLUSTER, Rect2(0.0, 0.0, 200.0, 88.0),
+		UiHitTest.LAYER_PERMANENT_HUD, true)
+	var on_hud: Vector2 = Vector2(50.0, 40.0)
+	assert_equal(_hits.element_at(on_hud).value, ID_TIME_CLUSTER, "the HUD owns it normally")
+	_hits.raise_scrim(UiHitTest.LAYER_MODAL)
+	assert_false(_hits.element_at(on_hud).ok, "under the scrim it owns nothing")
+	assert_equal(_hits.last_refusal(), UiHitTest.REFUSE_NO_REGION, "with NO_REGION")
+	_hits.lower_scrim()
+	assert_equal(_hits.element_at(on_hud).value, ID_TIME_CLUSTER, "and it comes back on close")
+
+
+func test_reset_lowers_the_scrim_as_well_as_dropping_the_regions() -> void:
+	"""A rebuilt layout that left a scrim standing would block the world with nothing on screen."""
+	_hits.raise_scrim(UiHitTest.LAYER_MODAL)
+	_hits.reset()
+	assert_false(_hits.scrim_is_up(), "the scrim is down after a reset")
+	assert_true(_hits.world_receives(Vector2(640.0, 360.0)), "and the world is clickable again")
+
+
+func test_an_unknown_scrim_layer_is_refused() -> void:
+	"""§3 names ten layers; a scrim at any other is a layer nobody specified."""
+	assert_false(_hits.raise_scrim(45), "layer 45 is not one of §3's ten")
+	assert_equal(_hits.last_refusal(), UiHitTest.REFUSE_UNKNOWN_LAYER, "with UNKNOWN_LAYER")
+	assert_false(_hits.scrim_is_up(), "and no scrim went up")

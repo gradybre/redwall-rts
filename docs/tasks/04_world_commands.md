@@ -124,14 +124,33 @@ may change only the documented result/event state. Verify all ledgered columns.
 
 ## 04.3 — Transactional initializer and shared starter services
 
-- [ ] Add proposed `scripts/core/world_init.gd` with prepare/validate/publish
+- [x] Add proposed `scripts/core/world_init.gd` with prepare/validate/publish
   stages. Explicitly reset RNG, generation/free-slot state, child arenas, job and
   command state before exposing an active world. Failed initialization retains
   the previous valid world and reports the exact failed assertion.
-- [ ] Reuse task 03's authored estuary masks, ore split and resource placement;
+- [x] Reuse task 03's authored estuary masks, ore split and resource placement;
   do not recreate them. Validate GDD §5.1 and §5.9 layout, seed attempts ≤16,
   hall-to-exit/forest/water/loam/deposit reachability and mask precedence using
   task 05's topology once available. Before that mark topology assertions blocked.
+Terrain and ecology implemented 2026-09-10 by `scripts/core/world_init.gd`
+([decision 0048](../decisions/0048-world-generation-anchors-and-what-it-refuses-to-invent.md)).
+`generate()` publishes §5.1's authored estuary: the four masks in their stated
+precedence, the three soil bands, the cleared loam rectangle, 1571 capped tree
+centres and the 100-node guaranteed grove, both decision-0029 ore deposits
+through `resource_nodes.gd`'s own operations, four forest and three fish ecology
+basins with decision 0037 §8B's nine stocks at 80%, `FaunaStockReserved`'s
+canonical empty 384 rows, and the seeded world RNG §5.1 fixes at 20260905.
+**1695 resource nodes, 7 basins, 9 stocks.** A `DESIGNATE_ZONE` targeting a
+generated forest basin now commits and yields one real ARCH-SYS-009 FORAGE job.
+Every §5.1 generator guarantee is validated in a STRAIGHT LINE; **every
+reachability half is BLOCKED on task 05's topology**, as this checklist requires.
+**Still outstanding within 04.3:** the resident/building/container/gear fixture
+below (no Building, Furniture or Container store exists — full initialization is
+BLOCKED, and nothing was substituted), the save round trip (task 09 owns the
+codec), the starter building footprints and their one-tile apron (§5.1 gives no
+coordinates), and composition into `settlement_system.gd`, which belongs to the
+integration lead.
+
 - [ ] Initialize the 12-resident fixture exactly: IDs 1–12, Warden Rowan, species,
   needs/health, XP (including reserved index 3 zero), relationship pairs, priorities,
   beds and assignments; catalogs supply values. Quantities use milli-U and all

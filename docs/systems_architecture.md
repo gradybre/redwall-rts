@@ -225,21 +225,27 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | I/O streaming buffers | 65536 | 4 | 262144 | temporary | NEW input/output/CRC/UTF8 chunks |
 | UI numeric snapshots | 512 | 256 | 131072 | presentation counted conservatively | NEW two 128-byte resident summaries |
 | Timing samples | 6900 | 8 | 55200 | diagnostic counted conservatively | NEW 23 stages, i64 timing samples |
+| World generation map masks and tree plan | 159968 | 1 | 159968 | mutable | [decision 0048] REQ-SET-009's authored estuary in `godot/scripts/core/world_init.gd`: NINE 16384-byte exterior-tile byte columns -- published and staged terrain, soil, ecology basin and clearing, plus the staging occupancy mask -- FOUR 7-entry i32 basin columns (published and staged §5.5 danger, basin HarvestZone slot and generation), the 3000-entry tree-centre plan and the 100-entry guaranteed-grove plan. Staged and published columns are two allocations made once; publishing SWAPS them, so a refused generation cannot have touched the live map and no `resize()` runs outside `_init()`. §5.1's basin geometry lives here rather than as ~6267 `HarvestZone` tile links, which would consume 9252 of §4.2's 16384 total zone links before the player designates anything. `FaunaStockReserved`'s 15360 bytes are NOT added here: §2.2 already carries that row and this module is the allocation it describes |
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 59656914 | Carried total (see the reconciliation note below) |
+| Planned allocated payload | 59816882 | Carried total (see the reconciliation note below) |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 68045522 | Payload + reserve |
-| Headroom below decimal 100 MB | 31954478 | 100000000 − live total |
-| Additional candidate mutable state | 53441330 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 121486852 | Live total + candidate mutable state |
-| Transactional headroom | -21486852 | 100000000 − transactional peak |
+| One live world plus reserve | 68205490 | Payload + reserve |
+| Headroom below decimal 100 MB | 31794510 | 100000000 − live total |
+| Additional candidate mutable state | 53601298 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 121806788 | Live total + candidate mutable state |
+| Transactional headroom | -21806788 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (carried total versus row sum).** The "Planned allocated payload" figure above is the
 CARRIED total of the ARCH-MEM-009 trail, not an arithmetic sum of the rows in the table above it.
-Re-adding those rows as printed gives **60004434**, which is **437632** higher `[NEW; found 2026-09-10
-while adding decision 0043]`. The difference is exactly `306304 + 131072 + 256`: decisions 0026/0030's
+Re-adding those rows as printed gives **60254514**, which is **437632** higher `[NEW; found 2026-09-10
+while adding decision 0043]`. **Corrected 2026-09-10 while adding decision 0048:** this row-sum figure
+read 60004434, which was decision 0043's own sum and was never advanced when decisions 0044 (+49152),
+0045 (+40960) and 0048 (+159968) raised both the carried total and the printed rows. 60004434 minus the
+then-carried 59656914 is 347520, not the 437632 this paragraph states, so the two halves of its own
+arithmetic had drifted apart. The gap is and remains 437632; only the row sum moved, and no conclusion
+below depends on it. The difference is exactly `306304 + 131072 + 256`: decisions 0026/0030's
 FishHabitat/HarvestZone growth, R05-QUOTA-024's separately declared 131072-byte claim-ordering cache,
 and decision 0027's ratified 256 bytes. All three are named inside the "Fixed registry payload" row's
 own derivation and are therefore inside its 24952146 figure, but none of them has a line in the
@@ -249,7 +255,7 @@ total, and silently re-basing them would change stated conclusions without a gov
 changes on either basis is the same: the one-world gate still holds with tens of megabytes to spare,
 and the two-world design is still rejected. Reconciling the two bases is its own ledger task.
 
-**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 59656914 in eleven recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021, 0037, 0038, 0039, 0040, 0041, 0042; READY_06 §7]`:
+**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 59816882 in fourteen recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021, 0037, 0038, 0039, 0040, 0041, 0042, 0043, 0044, 0045, 0048; READY_06 §7]`. **Re-checked row by row 2026-09-10 while adding decision 0048:** every running total is the row above it plus its own delta, and the reserve column is the payload plus 8388608 at every step.
 
 | Step | Governing record | Delta bytes | Running payload | Running payload + 8388608 reserve |
 |---|---|---:|---:|---:|
@@ -267,6 +273,7 @@ and the two-world design is still rejected. Reconciling the two bases is its own
 | HivePollinationLinks orchard recipients | ARCH-STATE-008 (decision 0044) | +49152 | 59370190 | 67758798 |
 | FieldPolicy cycle and enrolment ledger | decision 0045 | +40960 | 59411150 | 67799758 |
 | Command dispatch result ledger, store codes and payload scratch | decision 0043 | +245764 | 59656914 | 68045522 |
+| World generation map masks and tree plan | decision 0048 | +159968 | 59816882 | 68205490 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 

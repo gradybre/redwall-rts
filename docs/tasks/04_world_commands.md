@@ -47,25 +47,25 @@ spatial identity even while the first executable fixture uses ground access.
 
 ## 04.1 — Close U2/U3 scheduler and command persistence contracts
 
-- [ ] Audit `sim_clock.gd`, the existing immediate setters and recovery counters;
+- [x] Audit `sim_clock.gd`, the existing immediate setters and recovery counters;
   preserve evidence of the earlier conservative reading in task 02 and its ADRs.
-- [ ] Write a reviewed source amendment/ADR for the following **proposal** before
+- [x] Write a reviewed source amendment/ADR for the following **proposal** before
   implementation. ARCH-CMD-002 already requires a separate scheduler-event queue;
   retain ARCH-CMD-003's 24 stable command IDs unchanged. Do not insert speed/pause
   keys into the sorted catalog.
-- [ ] Proposed envelope fields are boundary `completed_tick`, monotonic session
+- [x] Proposed envelope fields are boundary `completed_tick`, monotonic session
   event sequence, event kind, reason mask and requested value. Finite queue size,
   exact packed widths/stride, accepted enum values, exhaustion refusal, save
   subsection/version and memory accounting must be completed in the amendment.
   These are design deliverables, not unspecified values a coder may choose at
   runtime. Preserve scheduler state and pending events in the versioned world/
   pending-command format; reject unknown versions before mutating live state.
-- [ ] Process admitted scheduler events between fixed ticks, even while paused;
+- [x] Process admitted scheduler events between fixed ticks, even while paused;
   drain them in sequence before deciding whether another tick may start. Economic
   commands remain due at `completed_tick+1`. Settle duplicate/retry behavior and
   ordering when a pause request arrives during a catch-up frame. This prevents
   unpause waiting for the very tick that pause prevents.
-- [ ] Recommended recovery policy: retain whole-tick debt and drain it on resume;
+- [x] Recommended recovery policy: retain whole-tick debt and drain it on resume;
   disable debt-discard recovery unless the higher-priority no-skipped-ticks rule
   is explicitly reconciled. Record whether sub-tick presentation debt is retained
   or discarded. This recommendation is **not** a ratification of U3 or permission
@@ -77,6 +77,29 @@ with pending commands; 4→2→1→diagnostic behavior retains debt. Save/reload
 queue once task 09 supplies a production codec; before that, report the fixture
 blocked, even if an independent envelope round-trip passes. Record updated
 source IDs, binary layout/bytes and command/scheduler replay boundaries.
+
+Implemented 2026-09-11 by `scripts/core/scheduler_events.gd`
+([decision 0054](../decisions/0054-the-scheduler-event-queue-drains-before-every-tick.md)),
+against the completed amendment
+[R07-SCHED-001](../planning/ready07_scheduler_contract.md): 32-byte record, 256
+records, 32-byte control header, **8224 bytes** added once to ARCH-MEM-010's
+basis (60256806 → 60265030 on this work's base; 60812854 → **60821078** once
+merged on top of decisions 0051, 0053 and 0055). ARCH-CMD-003's 24 economic kinds are
+unchanged and `catalog_ids.json` is byte-identical. `sim_clock.advance()` gained
+an optional `before_tick` barrier and an optional `on_overload` hook; with
+neither supplied it behaves exactly as before. Every acceptance clause above is a
+named test in `test/test_scheduler_events.gd`, together with the contract's own
+list. **`acknowledge_without_catchup()` is byte-unchanged and so are its tests.**
+
+**Still outstanding within 04.1: SAVE/RELOAD OF A PAUSED QUEUE IS BLOCKED**, and
+is reported blocked rather than passing. The `SCHQ0001` subsection is implemented
+as encode, decode and validation and is unwired, because no save module exists;
+task 09 owns the codec. The container-version-2 section-12 prefix is implemented
+only as its pure arithmetic and bounds, since wiring it needs both that codec and
+`commands.gd`'s economic records. **U2 is closed in process and open on disk.**
+U3 is NOT closed: the conservative rule stands, now with ARCH-CLOCK-002's
+recovery exception explicitly reconciled against GDD REQ-SET-008 in decision
+0054.
 
 ## 04.2 — Ordered command admission, commit and visible pending state
 
@@ -148,8 +171,21 @@ reachability half is BLOCKED on task 05's topology**, as this checklist requires
 **Still outstanding within 04.3:** the resident/building/container/gear fixture
 below (no Building, Furniture or **Room** store exists — full initialization is
 BLOCKED, and nothing was substituted), the save round trip (task 09 owns the
-codec), the starter building footprints and their one-tile apron, and composition
-into `settlement_system.gd`, which belongs to the integration lead.
+codec), and composition into `settlement_system.gd`, which belongs to the
+integration lead.
+
+**Starter footprint clearing closed 2026-09-11 (READY_07 §7.1,
+[decision 0060](../decisions/0060-starter-footprints-are-cleared-ground-not-buildings.md)).**
+`world_init.gd` now clears GDD §5.9's seven authored footprints — hall 12×10 at
+(58,59), four 4×4 stockpiles, the 2×2 well, the 3×3 workbench shelter — and
+§5.1's one-tile apron, before placing any resource node. **376 cleared tiles**
+(197 footprint + 122 apron ring + 57 loam rectangle). No authored footprint
+overlaps another; shared aprons do overlap and that is legal. The node census was
+**recalculated from the geometry rather than protected** and comes back to 1695:
+no cleared tile is an even/even forest tile, and the five grove tiles the apron
+takes at (49,59..63) relocate inside §5.1's replacement window, so the grove is
+still exactly 100 (70 in the rectangle, 30 relocated). **Still ground only** —
+no Building, Furniture or Room store is created; those remain §7.2 step 2.
 
 **Catalog binding closed 2026-09-11 (READY_07 §2,
 [decision 0052](../decisions/0052-resource-ids-are-compiled-item-definition-keys.md)).** The
@@ -196,7 +232,14 @@ This proves initialization, not a surviving or complete colony.
 
 ## 04.4 — Inspectable application and the intent-to-job handoff
 
-- [x] Wire New Settlement, initially paused world, time/calendar controls,
+**2026-09-11 visual follow-through:** [task04.5](04_5_ui_visual_refinement.md)
+now specifies the required refinement and fixes to gates, roster ownership,
+formatting, focus and responsive behavior. Read the active UI worktree/evidence
+before relying on historical completion notes below. The owning
+[SET-UX-VIS-002](../ui_visual_refinement_amendment.md) separates functional,
+structural visual and user-review status.
+
+- [ ] Wire New Settlement, initially paused world, time/calendar controls,
   camera/selection, resource summary, resident detail, zone tool, pending preview,
   cancellation and accessible refusal display to real state.
 - [x] Apply UI registry profiles, narrow/wide geometry, actual input rectangles,

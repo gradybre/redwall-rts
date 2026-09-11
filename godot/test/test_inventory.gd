@@ -32,6 +32,9 @@ const CATEGORY_WATER: int = 2
 const CATEGORY_MATERIAL: int = 3
 const CATEGORY_GEAR: int = 4
 
+## GDD §5.7 tool mass, restated: "tool 1000g". Used by the equipped-lot suite below.
+const TOOL_MASS: int = 1000
+
 const BIG_MASS: int = 100000000
 ## Opaque catalog enum stand-ins. GDD §4.3 numbers neither provenance nor container policy, so
 ## these are arbitrary in-range int32 values chosen by this suite, NOT catalog IDs and NOT
@@ -1201,3 +1204,399 @@ func test_audit_reuses_its_conservation_tally_across_repeated_calls() -> void:
 		assert_true(result.ok, "audit pass %d holds (error: %s)" % [index, result.error])
 	assert_true(_inv.sink_lot_quantity(lot, 500).ok, "sink applies")
 	assert_true(_inv.audit().ok, "audit still holds after a sink")
+# --- Equipped lots: the null-container amendment (decision 0061, ruling §4) --------------------
+#
+# The contract these pin: a lot may carry `container = NULL_REF` ONLY when a bound authority
+# proves it is an equipped record with a live owner, it is then excluded from loose-stock
+# availability and from container mass, it is never cloned, merged, split or re-aged, and it can
+# never be counted once as equipped and again in storage.
+
+
+class StubAuthority extends RefCounted:
+	"""A stand-in equipment authority: it attests for exactly the lots it was told to.
+
+	`gear.gd` is the real one. This exists so `inventory.gd`'s half of the contract can be tested
+	without the gear store deciding what the answer is.
+	"""
+	var attested: Dictionary = {}
+
+	func attest(lot_ref: Vector2i) -> void:
+		"""Start attesting for one lot."""
+		attested[lot_ref] = true
+
+	func withdraw(lot_ref: Vector2i) -> void:
+		"""Stop attesting for one lot, as a dead owner would."""
+		attested.erase(lot_ref)
+
+	func is_equipped_record(lot_ref: Vector2i) -> bool:
+		"""The attestation `inventory.gd` calls."""
+		return attested.has(lot_ref)
+
+
+class ReentrantAuthority extends RefCounted:
+	"""An authority that tries to mutate the inventory from inside its own attestation."""
+	var inventory: Variant = null
+	var lot_ref: Vector2i = Vector2i(-1, 0)
+	var container_ref: Vector2i = Vector2i(-1, 0)
+	var reentry_error: StringName = &"NOT_ATTEMPTED"
+
+	func is_equipped_record(p_lot_ref: Vector2i) -> bool:
+		"""Attest, but try to sink the very lot being validated on the way through."""
+		reentry_error = inventory.sink_lot_quantity(lot_ref, 1).error
+		return p_lot_ref == lot_ref
+
+
+class MissingMethodAuthority extends RefCounted:
+	"""An object that publishes no attestation at all."""
+	var unrelated: int = 0
+
+
+func _equip_fixture(authority: StubAuthority, box: Vector2i) -> Vector2i:
+	"""Bind `authority`, create one 1000-milli tool lot, attest for it and detach it."""
+	var bound: InventoryScript.OpResult = _inv.set_equipment_authority(authority)
+	assert_true(bound.ok, "binding an authority must succeed: %s" % bound.error)
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	authority.attest(lot)
+	var detached: InventoryScript.OpResult = _inv.detach_lot_to_equipment(lot)
+	assert_true(detached.ok, "a proved equipped lot must detach: %s" % detached.error)
+	return lot
+
+
+func test_a_null_container_lot_refuses_with_no_authority_bound() -> void:
+	"""With nothing able to prove an equipped record, no lot may leave its container."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	var before: PackedByteArray = _inv.state_bytes()
+	var detached: InventoryScript.OpResult = _inv.detach_lot_to_equipment(lot)
+	assert_false(detached.ok, "a null container needs a proof, not permission")
+	assert_equal(detached.error, InventoryScript.REFUSE_NO_EQUIPMENT_AUTHORITY,
+		"and the refusal names the missing authority")
+	assert_equal(_inv.state_bytes(), before, "the refusal wrote nothing at all")
+	assert_equal(_inv.lot_container(lot), box, "the lot keeps its container")
+
+
+func test_a_null_container_lot_refuses_when_the_authority_does_not_attest() -> void:
+	"""An authority is bound, but this lot is not an equipped record. That is still a refusal."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	var before: PackedByteArray = _inv.state_bytes()
+	var detached: InventoryScript.OpResult = _inv.detach_lot_to_equipment(lot)
+	assert_false(detached.ok, "an unattested lot may not become an orphan")
+	assert_equal(detached.error, InventoryScript.REFUSE_NOT_AN_EQUIPPED_RECORD,
+		"and the refusal says exactly why")
+	assert_equal(_inv.state_bytes(), before, "nothing was written")
+
+
+func test_an_object_without_an_attestation_method_cannot_be_the_authority() -> void:
+	"""The binding is checked at bind time, not discovered at the first detach."""
+	var bound: InventoryScript.OpResult = _inv.set_equipment_authority(MissingMethodAuthority.new())
+	assert_false(bound.ok, "an object that cannot attest cannot be the authority")
+	assert_equal(bound.error, InventoryScript.REFUSE_INVALID_EQUIPMENT_AUTHORITY,
+		"and the refusal names the reason")
+	assert_false(_inv.has_equipment_authority(), "so nothing is bound")
+
+
+func test_unbinding_the_authority_refuses_while_equipped_lots_live() -> void:
+	"""Unbinding would strand exactly the orphan lots the proof exists to prevent."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	var lot: Vector2i = _equip_fixture(authority, box)
+	var unbound: InventoryScript.OpResult = _inv.set_equipment_authority(null)
+	assert_false(unbound.ok, "an authority holding live equipped lots may not walk away")
+	assert_equal(unbound.error, InventoryScript.REFUSE_EQUIPPED_LOTS_LIVE, "named explicitly")
+	assert_true(_inv.has_equipment_authority(), "the authority is still bound after the refusal")
+	authority.withdraw(lot)
+	assert_true(_inv.attach_equipped_lot(lot, box, false).ok, "shelving it again is the way out")
+	assert_true(_inv.set_equipment_authority(null).ok, "and only then may the authority unbind")
+	assert_false(_inv.has_equipment_authority(), "leaving no authority bound")
+
+
+func test_an_equipped_lot_is_excluded_from_container_mass() -> void:
+	"""GDD §5.7: equipped tools are outside satchel capacity. The container gets its grams back."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	var loaded: int = _inv.container_used_mass_g(box)
+	assert_equal(loaded, TOOL_MASS, "one tool charges its own mass while stored")
+	authority.attest(lot)
+	assert_true(_inv.detach_lot_to_equipment(lot).ok, "the proved lot detaches")
+	assert_equal(_inv.container_used_mass_g(box), 0,
+		"an equipped lot charges no container mass")
+	assert_equal(_inv.container_lot_count(box), 0, "and is in no container's lot list")
+
+
+func test_an_equipped_lot_is_excluded_from_loose_stock_availability() -> void:
+	"""Loose stock is what can be claimed. Equipment is not loose stock."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
+	var stored: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	authority.attest(lot)
+	assert_true(_inv.detach_lot_to_equipment(lot).ok, "the proved lot detaches")
+	assert_equal(_inv.total_loose_milli(ITEM_TOOL), 1000, "only the stored tool is loose stock")
+	assert_equal(_inv.total_equipped_milli(ITEM_TOOL), 1000, "and the other is equipment")
+	assert_equal(_inv.total_live_milli(ITEM_TOOL), 2000, "both are still live and conserved")
+	assert_true(_inv.is_lot_valid(stored), "the stored lot is untouched")
+
+
+func test_loose_and_equipped_always_partition_the_live_quantity() -> void:
+	"""THE DOUBLE COUNT. One lot may never be both loose stock and equipment.
+
+	Walked over every arrangement the operations can reach -- nothing equipped, some equipped,
+	all equipped, then shelved again -- and at each step the two must sum to the live total with
+	nothing over. A lot counted twice makes this sum exceed `live`; a lot lost makes it fall
+	short. There is no arrangement in between.
+	"""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
+	var lots: Array[Vector2i] = []
+	for index: int in range(4):
+		lots.append(_inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref)
+	_assert_partitioned(4000, 0)
+	for index: int in range(4):
+		authority.attest(lots[index])
+		assert_true(_inv.detach_lot_to_equipment(lots[index]).ok, "detach %d" % index)
+		_assert_partitioned(4000, (index + 1) * 1000)
+	for index: int in range(4):
+		authority.withdraw(lots[index])
+		assert_true(_inv.attach_equipped_lot(lots[index], box, false).ok, "attach")
+		_assert_partitioned(4000, 3000 - index * 1000)
+
+
+func _assert_partitioned(live: int, equipped: int) -> void:
+	"""Loose plus equipped is exactly live, and equipped is exactly what was expected."""
+	assert_equal(_inv.total_live_milli(ITEM_TOOL), live, "live quantity is conserved")
+	assert_equal(_inv.total_equipped_milli(ITEM_TOOL), equipped, "equipped quantity is exact")
+	assert_equal(_inv.total_loose_milli(ITEM_TOOL) + _inv.total_equipped_milli(ITEM_TOOL),
+		live, "loose plus equipped is the live total: nothing counted twice, nothing lost")
+	assert_equal(_inv.equipped_lot_count(), equipped / 1000, "and the lot count agrees")
+
+
+func test_every_lot_mutator_refuses_an_equipped_lot() -> void:
+	"""Never clone it, merge it, split it, move it, sink it or reserve it while it is equipped."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	var lot: Vector2i = _equip_fixture(authority, box)
+	var other: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	var before: PackedByteArray = _inv.state_bytes()
+	assert_equal(_inv.split_lot(lot, 500).error, InventoryScript.REFUSE_LOT_EQUIPPED, "no split")
+	assert_equal(_inv.merge_lots(other, lot).error, InventoryScript.REFUSE_LOT_EQUIPPED, "no merge in")
+	assert_equal(_inv.merge_lots(lot, other).error, InventoryScript.REFUSE_LOT_EQUIPPED, "no merge out")
+	assert_equal(_inv.move_lot(lot, box).error, InventoryScript.REFUSE_LOT_EQUIPPED, "no move")
+	assert_equal(_inv.transfer(lot, box, 1000).error, InventoryScript.REFUSE_LOT_EQUIPPED,
+		"no transfer")
+	assert_equal(_inv.sink_lot_quantity(lot, 1000).error, InventoryScript.REFUSE_LOT_EQUIPPED, "no sink")
+	assert_equal(_inv.reserve_lot(lot, 1000).error, InventoryScript.REFUSE_LOT_EQUIPPED, "no reserve")
+	assert_equal(_inv.state_bytes(), before, "and not one of those refusals wrote a byte")
+
+
+func test_detach_refuses_a_lot_that_still_carries_a_reservation() -> void:
+	"""A reserved lot is promised to a job. It cannot quietly leave for a resident's hands."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	assert_true(_inv.reserve_lot(lot, 1000).ok, "the lot is reserved")
+	authority.attest(lot)
+	var detached: InventoryScript.OpResult = _inv.detach_lot_to_equipment(lot)
+	assert_false(detached.ok, "a reserved lot may not be detached")
+	assert_equal(detached.error, InventoryScript.REFUSE_LOT_HAS_RESERVATION, "named explicitly")
+
+
+func test_attach_refuses_while_the_authority_still_calls_the_lot_equipped() -> void:
+	"""The door that would otherwise admit a lot charging mass AND counting as equipment."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	var lot: Vector2i = _equip_fixture(authority, box)
+	var before: PackedByteArray = _inv.state_bytes()
+	var attached: InventoryScript.OpResult = _inv.attach_equipped_lot(lot, box, false)
+	assert_false(attached.ok, "a still-attested lot may not be shelved")
+	assert_equal(attached.error, InventoryScript.REFUSE_STILL_AN_EQUIPPED_RECORD, "named explicitly")
+	assert_equal(_inv.state_bytes(), before, "and the refusal wrote nothing")
+	assert_equal(_inv.container_used_mass_g(box), 0, "the container took no mass")
+
+
+func test_unequip_lands_in_a_reserved_destination_without_losing_its_space() -> void:
+	"""Ruling §4: unequip places the same lot into a VALID RESERVED destination.
+
+	The reserved grams become used grams in one step, so a container filled to the brim by
+	somebody else in between still has exactly this lot's space waiting.
+	"""
+	var authority: StubAuthority = StubAuthority.new()
+	var small: Vector2i = _inv.create_container(OWNER_A, TOOL_MASS,
+		InventoryScript.FILTERS_ACCEPT_ALL, 0, true).ref
+	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
+	var lot: Vector2i = _inv.create_lot(small, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	authority.attest(lot)
+	assert_true(_inv.detach_lot_to_equipment(lot).ok, "the proved lot detaches")
+	assert_true(_inv.reserve_container_mass(small, TOOL_MASS).ok, "its space is reserved")
+	assert_equal(_inv.container_free_mass_g(small), 0, "so the container admits nothing else")
+	authority.withdraw(lot)
+	var attached: InventoryScript.OpResult = _inv.attach_equipped_lot(lot, small, true)
+	assert_true(attached.ok, "the reserved destination takes it back: %s" % attached.error)
+	assert_equal(_inv.container_used_mass_g(small), TOOL_MASS, "as used mass now")
+	assert_equal(_inv.container_reserved_mass_g(small), 0, "and the reservation was spent once")
+
+
+func test_attach_from_reserved_mass_refuses_without_enough_reserved() -> void:
+	"""Spending grams that were never reserved would manufacture capacity. It refuses."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	var lot: Vector2i = _equip_fixture(authority, box)
+	authority.withdraw(lot)
+	var before: PackedByteArray = _inv.state_bytes()
+	var attached: InventoryScript.OpResult = _inv.attach_equipped_lot(lot, box, true)
+	assert_false(attached.ok, "there is no reserved mass to spend")
+	assert_equal(attached.error, InventoryScript.REFUSE_INSUFFICIENT_RESERVED_MASS, "named explicitly")
+	assert_equal(_inv.state_bytes(), before, "and nothing was written")
+
+
+func test_a_detach_and_attach_round_trip_preserves_the_whole_lot_row() -> void:
+	"""The SAME lot: same reference, quantity, quality, provenance, recipe and age."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 4, 7, 9, 12345, 678).ref
+	authority.attest(lot)
+	assert_true(_inv.detach_lot_to_equipment(lot).ok, "detach")
+	assert_true(_inv.is_lot_valid(lot), "the very same reference is still valid while equipped")
+	assert_equal(_inv.lot_container(lot), InventoryScript.NULL_REF, "its container is the null ref")
+	authority.withdraw(lot)
+	assert_true(_inv.attach_equipped_lot(lot, box, false).ok, "attach")
+	assert_equal(_inv.lot_quantity_milli(lot), 1000, "quantity is unchanged")
+	assert_equal(_inv.lot_quality(lot), 4, "quality is unchanged")
+	assert_equal(_inv.lot_provenance(lot), 7, "provenance is unchanged")
+	assert_equal(_inv.lot_recipe_id(lot), 9, "recipe id is unchanged")
+	assert_equal(_inv.lot_age_milli_hours(lot), 12345, "age is not reset")
+	assert_equal(_inv.lot_age_remainder(lot), 678, "and neither is its remainder")
+
+
+func test_audit_refuses_an_orphaned_null_container_lot() -> void:
+	"""An owner who dies withdraws the proof. The lot is then an orphan, and audit says so."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	var lot: Vector2i = _equip_fixture(authority, box)
+	assert_true(_inv.audit().ok, "a proved equipped lot audits clean")
+	authority.withdraw(lot)
+	var audited: InventoryScript.OpResult = _inv.audit()
+	assert_false(audited.ok, "an unattested null-container lot is an orphan")
+	assert_equal(audited.error, InventoryScript.REFUSE_AUDIT_ORPHAN_LOT, "named explicitly")
+
+
+func test_audit_refuses_a_shelved_lot_the_authority_still_calls_equipped() -> void:
+	"""The other half of the biconditional: equipment that is also charging container mass."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	assert_true(_inv.audit().ok, "a plain stored lot audits clean")
+	authority.attest(lot)
+	var audited: InventoryScript.OpResult = _inv.audit()
+	assert_false(audited.ok, "a lot cannot be equipment and stored stock at once")
+	assert_equal(audited.error, InventoryScript.REFUSE_AUDIT_ORPHAN_LOT, "named explicitly")
+
+
+func test_an_authority_that_re_enters_the_inventory_is_refused() -> void:
+	"""An attestation is a pure read. One that mutates is refused, not half-applied."""
+	var box: Vector2i = _container()
+	var authority: ReentrantAuthority = ReentrantAuthority.new()
+	authority.inventory = _inv
+	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	authority.lot_ref = lot
+	var detached: InventoryScript.OpResult = _inv.detach_lot_to_equipment(lot)
+	assert_equal(authority.reentry_error, InventoryScript.REFUSE_ATTESTATION_REENTRY,
+		"the re-entrant mutation was refused inside the attestation")
+	assert_equal(_inv.lot_quantity_milli(lot), 1000, "so it removed nothing")
+	assert_true(detached.ok, "and the honest attestation still completed: %s" % detached.error)
+
+
+func test_a_rolled_back_detach_restores_the_state_byte_for_byte() -> void:
+	"""An aborted transaction puts the lot, its list links, the mass and the count back."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 0, 1, 0, 0, 0).ref
+	authority.attest(lot)
+	var before: PackedByteArray = _inv.state_bytes()
+	assert_true(_inv.begin().ok, "open a transaction")
+	assert_true(_inv.detach_lot_to_equipment(lot).ok, "detach inside it")
+	assert_equal(_inv.equipped_lot_count(), 1, "which counts an equipped lot")
+	_inv.abort()
+	assert_equal(_inv.state_bytes(), before, "abort restores every column byte for byte")
+	assert_equal(_inv.equipped_lot_count(), 0, "including the equipped-lot count")
+	assert_equal(_inv.lot_container(lot), box, "and the lot is back in its container")
+
+
+func test_a_rolled_back_attach_restores_the_state_byte_for_byte() -> void:
+	"""The same on the way home: an aborted unequip leaves the lot equipped and the mass off."""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	var lot: Vector2i = _equip_fixture(authority, box)
+	authority.withdraw(lot)
+	var before: PackedByteArray = _inv.state_bytes()
+	assert_true(_inv.begin().ok, "open a transaction")
+	assert_true(_inv.attach_equipped_lot(lot, box, false).ok, "attach inside it")
+	_inv.abort()
+	assert_equal(_inv.state_bytes(), before, "abort restores every column byte for byte")
+	assert_equal(_inv.equipped_lot_count(), 1, "the lot is equipped again")
+	assert_equal(_inv.container_used_mass_g(box), 0, "and charges no container mass")
+
+
+func test_create_lot_still_demands_a_real_container() -> void:
+	"""Nothing was weakened: the amendment adds a door, it does not open the front wall."""
+	var made: InventoryScript.OpResult = _inv.create_lot(InventoryScript.NULL_REF, ITEM_TOOL, 1000, 0, 1,
+		0, 0, 0)
+	assert_false(made.ok, "a lot is never created with a null container")
+	assert_equal(made.error, InventoryScript.REFUSE_INVALID_CONTAINER, "named explicitly")
+	assert_equal(_inv.equipped_lot_count(), 0, "and no equipped record appeared")
+
+
+
+
+func test_audit_re_derives_the_equipped_lot_count_instead_of_trusting_it() -> void:
+	"""MUTATION GAP. The maintained count is a cache, and audit() exists to distrust caches.
+
+	Every operation that moves the count also moves the column it summarises, so no public call
+	can put the two out of step -- which is why the check needs the same private-column access
+	`test_reservations.gd` and `test_gear.gd` use to observe an allocator. The invariant is real:
+	`equipped_lot_count()` is published, and a cache nobody re-derives is a cache that drifts.
+	"""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	var lot: Vector2i = _equip_fixture(authority, box)
+	assert_equal(_inv.equipped_lot_count(), 1, "one lot is equipped")
+	assert_true(_inv.audit().ok, "and the audit is clean")
+	_inv.set("_equipped_lot_count", 4)
+	var audited: InventoryScript.OpResult = _inv.audit()
+	assert_false(audited.ok, "a count that disagrees with the rows is refused")
+	assert_equal(audited.error, InventoryScript.REFUSE_AUDIT_EQUIPPED_COUNT, "named explicitly")
+	_inv.set("_equipped_lot_count", 1)
+	assert_true(_inv.audit().ok, "and putting the count back makes it clean again")
+	assert_true(_inv.is_lot_valid(lot), "the lot itself was never touched by any of this")
+
+
+func test_audit_refuses_a_cyclic_lot_list_instead_of_walking_it_forever() -> void:
+	"""A corrupted `_l_next` must make audit() refuse, not hang.
+
+	No public operation can build a cycle, so the column is corrupted directly -- the same
+	private-column access `test_gear.gd` and `test_reservations.gd` use to observe an allocator.
+	The reason this branch exists at all is concrete: a mutation that left a detached lot linked
+	turned this walk into a process that had to be killed by hand.
+	"""
+	var box: Vector2i = _container()
+	var first: Vector2i = _lot(box, ITEM_TOOL, 1000)
+	var second: Vector2i = _lot(box, ITEM_TOOL, 1000)
+	assert_true(_inv.audit().ok, "two honestly linked lots audit clean")
+	var next_column: PackedInt32Array = _inv.get("_l_next")
+	next_column[second.x] = first.x
+	next_column[first.x] = second.x
+	_inv.set("_l_next", next_column)
+	var audited: InventoryScript.OpResult = _inv.audit()
+	assert_false(audited.ok, "a cycle is refused rather than walked forever")
+	assert_equal(audited.error, InventoryScript.REFUSE_AUDIT_LOT_CYCLE, "named explicitly")

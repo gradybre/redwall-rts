@@ -1,5 +1,10 @@
 # Task 10 — Complete presentation and release qualification
 
+**Immediate visual baseline:** [task04.5](04_5_ui_visual_refinement.md) owns the
+first authored UI refinement under [SET-UX-VIS-002](../ui_visual_refinement_amendment.md).
+Do not defer that work here. Task10 remains whole-release completeness/consistency
+and qualification, including later systems not covered by the first UI slice.
+
 2026-09-09 · PLANNED milestone card. Build presentation with tasks 04–08;
 this task owns remaining completeness and final qualification, not the first UI.
 Owners: UI-SET/REQ-UX registry and task-10 CSV rows; REQ-SET-163/164 and other

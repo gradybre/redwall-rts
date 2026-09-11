@@ -16,8 +16,10 @@ extends RefCounted
 ##
 ## READ FROM THE REGISTRIES, NEVER MIRRORED. Every domain table is fetched from the module that
 ## owns it -- catalog.gd's protected/compiled enum tables (ARCH-CMD-003's CommandKind among them,
-## carried since `scripts/core/commands.gd` landed: adding it moved these bytes and this digest,
-## which is an intentional catalog change and not a parity result), residents.gd's species keys,
+## carried since `scripts/core/commands.gd` landed, and BuildingDefinition, FurnitureDefinition,
+## RoomType and BuildingState since decision 0056: each addition moved these bytes and this
+## digest, which is an intentional catalog change and not a parity result), residents.gd's
+## species keys,
 ## farming.gd's crop keys, schedule.gd's template keys, forage.gd's quota-mode keys, and the
 ## ItemDefinition/ItemCategory/ItemEffect keys read out of `res://data/item_definitions.json`,
 ## the same file item_definitions.gd loads. There is no second copy of any domain here, so the
@@ -26,7 +28,8 @@ extends RefCounted
 ## WHY THE REGISTRY LIVES HERE AND NOT IN catalog.gd. The build registry must reference
 ## residents.gd, farming.gd, schedule.gd, forage.gd and item_definitions.gd, and every one of
 ## those preloads catalog.gd. Putting the registry in catalog.gd would make those preloads
-## circular. catalog.gd is left byte-untouched.
+## circular. Nothing about a domain's own key table needs to move here: catalog.gd keeps
+## owning its tables and this file keeps owning only the assembly of them.
 ##
 ## CANONICAL BYTES (ruling §10B). UTF-8 with no BOM; object keys sorted ascending ASCII at every
 ## level; no insignificant whitespace anywhere; exactly one final LF; integers in decimal with no
@@ -70,10 +73,14 @@ extends RefCounted
 ## NOT RELEASE-COMPLETE, AND SAID SO OUT LOUD. This artifact carries every id-carrying domain
 ## that has both an implementation and a declared domain name today. These are named in the
 ## specifications and are NOT in it, each with its blocker:
-##   * RecipeDefinition, RecipeFamily, Station (BAL-CAT-002/005/011), BuildingDefinition and
-##     FurnitureDefinition (BAL-CAT-006/007): no module implements them yet. Their keys exist
-##     only as balance-document tables, and transcribing a document into a registry here would
-##     be the hand-written second copy this module exists to prevent.
+##   * RecipeDefinition, RecipeFamily (BAL-CAT-002/005) and the Station service domain
+##     (BAL-CAT-011, whose keys are brewery, composter, dryer, kitchen, mill, nursery, preserver,
+##     saltpan, well, workbench, workshop and which BAL-CAT-011 says in terms "indexes a service
+##     domain, not the BuildingDefinition index"): no module implements them yet, and
+##     transcribing a document into a registry HERE would be the hand-written second copy this
+##     module exists to prevent. BuildingDefinition and FurnitureDefinition left this list on
+##     2026-09-11 (decision 0056): catalog.gd now owns both complete tables, so this file reads
+##     them from a registry like every other domain and still holds no copy of its own.
 ##   * The entity-kind domain (entity_directory.gd KIND_KEYS) and the RNG stream domain (rng.gd
 ##     STREAM_KEYS) are both ASCII-compiled, save-carried ID domains, but neither has a declared
 ##     domain NAME anywhere in the specs or the code. A domain name is the artifact's own object
@@ -113,8 +120,9 @@ const INT32_MIN: int = -2147483648
 const INT32_MAX: int = 2147483647
 
 ## The seven compiled definition domains that have both an implementation and a declared name.
-## The eleven protected §4.3 enums and the three compiled §4.2 enums come straight from
-## catalog.gd's own lists, so this file names no domain catalog.gd already names.
+## The thirteen protected §4.3 enums and the six compiled §4.2 domains come straight from
+## catalog.gd's own lists, so this file names no domain catalog.gd already names -- including
+## BuildingDefinition and FurnitureDefinition, which catalog.gd owns and this file never spells.
 const DEFINITION_DOMAINS: Array[String] = [
 	Catalog.ITEM_DEFINITION_DOMAIN,
 	ItemDefinitionsScript.CATEGORY_DOMAIN,
@@ -337,9 +345,9 @@ class _Cursor:
 static func registered_domains() -> Array[String]:
 	"""Every domain the artifact is required to carry, taken from the registries themselves.
 
-	Eleven protected §4.3 enums plus three compiled §4.2 enums, both straight out of catalog.gd,
-	plus the seven implemented definition domains. Declaration order is irrelevant: the encoder
-	sorts, so this list may be shuffled without moving a single byte of the artifact.
+	Thirteen protected §4.3 enums plus six compiled §4.2 domains, both straight out of
+	catalog.gd, plus the seven implemented definition domains. Declaration order is irrelevant:
+	the encoder sorts, so this list may be shuffled without moving a single byte of the artifact.
 	"""
 	var names: Array[String] = []
 	names.append_array(Catalog.PROTECTED_ENUM_DOMAINS)

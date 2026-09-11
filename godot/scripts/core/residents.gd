@@ -22,9 +22,24 @@ extends RefCounted
 ##   * `home` and `bed` stay null `(-1, 0)`. GDD §5.1 places 12 beds in a refuge hall and
 ##     assigns them "resident ID ascending and bed ID ascending", but no Building, Room or
 ##     Furniture store exists in this milestone, so there is no bed to reference.
-##   * Relationships (the §5.1 edges (1,2)...(11,12) at affinity 20), Priorities, Schedule,
-##     Equipment (tool durability 1000) and MoodMemory are separate §4.2 components with no
-##     store yet. Clothing tier 1 IS applied, because `needs.gd` owns that column.
+##   * Relationships (the §5.1 edges (1,2)...(11,12) at affinity 20), Priorities, Schedule and
+##     MoodMemory are separate §4.2 components with no store yet.
+##
+## THE EQUIPMENT MIRROR (decision 0061) IS NOW HERE, and only the part §4.2 actually names.
+## GDD §4.2 `Equipment` is `tool_item_id, tool_durability, clothing_tier, satchel:EntityRef`,
+## ledgered once in `systems_architecture.md` §3 as five I32 columns at length 512. Four of them
+## live below. The fifth, `clothing_tier`, ALREADY lives in `needs.gd`, which owns warmth and
+## mood and applies tier 1 at spawn; duplicating it here would be the second copy READY_07 §7.2
+## step 2 forbids ("do not bill those original fields a second time"), so the mirror allocates
+## 8192 of the ledgered 10240 bytes and the ledger total does not move.
+##
+## THE MIRROR IS NOT AUTHORITATIVE. `GearInstance.durability` in `gear.gd` is (ARCH-STATE-001);
+## these columns are the resident-side view of it that eligibility gates read. `gear.gd` is the
+## only writer: it funnels every durability change through one private setter that writes through
+## here, and `gear.audit_equipment_mirror()` re-derives every row from the gear store and refuses
+## on divergence. Writing `set_equipped_tool()` from anywhere else produces a state that audit
+## rejects -- which is the point: a mirror that can silently disagree is the same defect class as
+## counting one lot twice.
 ##   * `SpeciesDefinition.rig_id` is required by §4.3 but its value is given for no species
 ##     anywhere in the specification, so no rig column exists here.
 ##   * §5.1 lists the starting cohort as "12 adults (6 mice, 2 moles, 2 otters, 2 squirrels);
@@ -142,6 +157,19 @@ const REFUSE_SETTLEMENT_NOT_EMPTY: StringName = &"SETTLEMENT_NOT_EMPTY"
 const REFUSE_NO_LIVING_RESIDENTS: StringName = &"NO_LIVING_RESIDENTS"
 const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
 const REFUSE_SPECIES_CATALOG: StringName = &"SPECIES_CATALOG_INVALID"
+const REFUSE_NO_EQUIPPED_TOOL: StringName = &"NO_EQUIPPED_TOOL"
+const REFUSE_TOOL_ALREADY_EQUIPPED: StringName = &"TOOL_ALREADY_EQUIPPED"
+const REFUSE_INVALID_ITEM_ID: StringName = &"INVALID_ITEM_ID"
+const REFUSE_INVALID_DURABILITY: StringName = &"INVALID_DURABILITY"
+const REFUSE_INVALID_CONTAINER: StringName = &"INVALID_CONTAINER"
+
+## GDD §4.2 `Equipment`: four of its five I32 columns at length 512 (`clothing_tier` stays in
+## `needs.gd`; see the header). Re-derived by `equipment_payload_bytes()`.
+const EQUIPMENT_MIRROR_COLUMNS: int = 4
+const EQUIPMENT_MIRROR_BYTES: int = 4 * EQUIPMENT_MIRROR_COLUMNS * RESIDENT_CAPACITY
+## "No tool equipped". A cleared column value, never a refusal channel: `has_equipped_tool()`
+## answers the question and every reader is an explicit `_into`/OpResult form.
+const NO_TOOL_ITEM: int = -1
 
 
 class OpResult:
@@ -194,6 +222,13 @@ var _bed_generation: PackedInt32Array = PackedInt32Array()
 ## The directory reference that owns this row, so a row can hand back a validatable ref.
 var _ref_slot: PackedInt32Array = PackedInt32Array()
 var _ref_generation: PackedInt32Array = PackedInt32Array()
+
+## GDD §4.2 `Equipment`, minus `clothing_tier` (needs.gd owns it). The tool columns MIRROR the
+## authoritative `GearInstance` row in `gear.gd`; the satchel columns are this store's own.
+var _equip_tool_item_id: PackedInt32Array = PackedInt32Array()
+var _equip_tool_durability: PackedInt32Array = PackedInt32Array()
+var _equip_satchel_slot: PackedInt32Array = PackedInt32Array()
+var _equip_satchel_generation: PackedInt32Array = PackedInt32Array()
 
 ## GDD §4.2 `Skills`: xp int64[12] and level int32[12], resident-major in one 12-wide stripe.
 var _skill_xp: PackedInt64Array = PackedInt64Array()
@@ -276,6 +311,10 @@ func _allocate_columns() -> void:
 	_bed_generation.resize(RESIDENT_CAPACITY)
 	_ref_slot.resize(RESIDENT_CAPACITY)
 	_ref_generation.resize(RESIDENT_CAPACITY)
+	_equip_tool_item_id.resize(RESIDENT_CAPACITY)
+	_equip_tool_durability.resize(RESIDENT_CAPACITY)
+	_equip_satchel_slot.resize(RESIDENT_CAPACITY)
+	_equip_satchel_generation.resize(RESIDENT_CAPACITY)
 	_skill_xp.resize(RESIDENT_CAPACITY * SKILL_COUNT)
 	_skill_level.resize(RESIDENT_CAPACITY * SKILL_COUNT)
 	_live_slots.resize(RESIDENT_CAPACITY)
@@ -302,6 +341,10 @@ func clear() -> void:
 	_bed_generation.fill(EntityDirectory.NULL_GENERATION)
 	_ref_slot.fill(EntityDirectory.NULL_SLOT)
 	_ref_generation.fill(EntityDirectory.NULL_GENERATION)
+	_equip_tool_item_id.fill(NO_TOOL_ITEM)
+	_equip_tool_durability.fill(0)
+	_equip_satchel_slot.fill(EntityDirectory.NULL_SLOT)
+	_equip_satchel_generation.fill(EntityDirectory.NULL_GENERATION)
 	_skill_xp.fill(0)
 	_skill_level.fill(0)
 	_live_slots.fill(EntityDirectory.NULL_SLOT)
@@ -454,6 +497,7 @@ func _write_spawn_row(slot: int, ref: Vector2i, species_id_value: int, size_clas
 	_bed_generation[slot] = EntityDirectory.NULL_GENERATION
 	_ref_slot[slot] = ref.x
 	_ref_generation[slot] = ref.y
+	_clear_equipment_row(slot)
 	var base: int = slot * SKILL_COUNT
 	for skill: int in SKILL_COUNT:
 		_skill_xp[base + skill] = 0
@@ -504,6 +548,7 @@ func despawn(ref: Vector2i) -> OpResult:
 	_selected[slot] = 0
 	_ref_slot[slot] = EntityDirectory.NULL_SLOT
 	_ref_generation[slot] = EntityDirectory.NULL_GENERATION
+	_clear_equipment_row(slot)
 	_remove_live_slot(slot)
 	_directory.destroy(ref)
 	return _succeed(slot, NULL_REF)
@@ -881,6 +926,136 @@ func _cohort_demand_into(small: int, medium: int, large: int, out: IntMath.IntRe
 			return false
 		total = out.value
 	return out.succeed(total)
+
+
+# --- Equipment mirror (GDD §4.2 Equipment; decision 0061) ------------------------------------
+
+func equipment_payload_bytes() -> int:
+	"""Bytes the four ledgered Equipment columns actually occupy, re-derived from the columns.
+
+	Evidence for the §3 ledger rather than a transcribed constant: a column length change moves
+	this number and the test that pins it fails.
+	"""
+	return 4 * (_equip_tool_item_id.size() + _equip_tool_durability.size()
+		+ _equip_satchel_slot.size() + _equip_satchel_generation.size())
+
+
+func _clear_equipment_row(slot: int) -> void:
+	"""Reset one row's Equipment columns to "nothing equipped, no satchel". Caller bounds `slot`."""
+	_equip_tool_item_id[slot] = NO_TOOL_ITEM
+	_equip_tool_durability[slot] = 0
+	_equip_satchel_slot[slot] = EntityDirectory.NULL_SLOT
+	_equip_satchel_generation[slot] = EntityDirectory.NULL_GENERATION
+
+
+func has_equipped_tool(slot: int) -> bool:
+	"""True when a present resident row currently mirrors an equipped tool."""
+	return is_present(slot) and _equip_tool_item_id[slot] != NO_TOOL_ITEM
+
+
+func equipped_tool_item_id_into(slot: int, out: IntMath.IntResult) -> bool:
+	"""Write the mirrored equipped tool's compiled item id into `out`, or refuse explicitly."""
+	if not is_present(slot):
+		return out.refuse(String(REFUSE_NOT_PRESENT))
+	if _equip_tool_item_id[slot] == NO_TOOL_ITEM:
+		return out.refuse(String(REFUSE_NO_EQUIPPED_TOOL))
+	return out.succeed(_equip_tool_item_id[slot])
+
+
+func equipped_tool_durability_into(slot: int, out: IntMath.IntResult) -> bool:
+	"""Write the mirrored equipped tool's durability into `out`, or refuse explicitly.
+
+	The authoritative value is the `GearInstance` row; this is the resident-side view `gear.gd`
+	writes through on every durability change.
+	"""
+	if not is_present(slot):
+		return out.refuse(String(REFUSE_NOT_PRESENT))
+	if _equip_tool_item_id[slot] == NO_TOOL_ITEM:
+		return out.refuse(String(REFUSE_NO_EQUIPPED_TOOL))
+	return out.succeed(_equip_tool_durability[slot])
+
+
+func set_equipped_tool(slot: int, item_id: int, durability: int) -> OpResult:
+	"""Write the mirror for a newly equipped tool. `gear.equip()` is the only legitimate caller.
+
+	Refuses an occupied row rather than overwriting it: §4.2 gives a resident exactly one tool
+	field, so a second equip is a caller error and not a silent replacement.
+	"""
+	if not is_present(slot):
+		return _refuse(REFUSE_NOT_PRESENT)
+	if _equip_tool_item_id[slot] != NO_TOOL_ITEM:
+		return _refuse(REFUSE_TOOL_ALREADY_EQUIPPED)
+	if item_id < 0 or not IntMath.fits_int32(item_id):
+		return _refuse(REFUSE_INVALID_ITEM_ID)
+	if durability < 0 or not IntMath.fits_int32(durability):
+		return _refuse(REFUSE_INVALID_DURABILITY)
+	_equip_tool_item_id[slot] = item_id
+	_equip_tool_durability[slot] = durability
+	return _succeed(durability, ref_of(slot))
+
+
+func set_equipped_tool_durability(slot: int, durability: int) -> OpResult:
+	"""Refresh the mirrored durability of an already equipped tool, or refuse.
+
+	`gear.gd` funnels every durability write through this, so wear and repair cannot leave the
+	mirror behind. Refusing on an empty row is what keeps it from inventing an equipped tool.
+	"""
+	if not is_present(slot):
+		return _refuse(REFUSE_NOT_PRESENT)
+	if _equip_tool_item_id[slot] == NO_TOOL_ITEM:
+		return _refuse(REFUSE_NO_EQUIPPED_TOOL)
+	if durability < 0 or not IntMath.fits_int32(durability):
+		return _refuse(REFUSE_INVALID_DURABILITY)
+	_equip_tool_durability[slot] = durability
+	return _succeed(durability, ref_of(slot))
+
+
+func clear_equipped_tool(slot: int) -> OpResult:
+	"""Empty the mirrored tool fields. `gear.unequip()` is the only legitimate caller."""
+	if not is_present(slot):
+		return _refuse(REFUSE_NOT_PRESENT)
+	if _equip_tool_item_id[slot] == NO_TOOL_ITEM:
+		return _refuse(REFUSE_NO_EQUIPPED_TOOL)
+	_equip_tool_item_id[slot] = NO_TOOL_ITEM
+	_equip_tool_durability[slot] = 0
+	return _succeed(0, ref_of(slot))
+
+
+func satchel_of(slot: int) -> Vector2i:
+	"""The resident's satchel container reference, or the null reference when it has none."""
+	if not is_present(slot):
+		return NULL_REF
+	return Vector2i(_equip_satchel_slot[slot], _equip_satchel_generation[slot])
+
+
+func set_satchel(slot: int, container_ref: Vector2i) -> OpResult:
+	"""Bind or clear a resident's satchel container reference.
+
+	The container itself is `inventory.gd`'s; this stores only the §4.2 reference. Equipped gear
+	is outside satchel capacity (GDD §5.7) by construction: an equipped lot sits in no container
+	at all, so it can charge no satchel mass.
+	"""
+	if not is_present(slot):
+		return _refuse(REFUSE_NOT_PRESENT)
+	if container_ref != NULL_REF and (container_ref.x < 0 or container_ref.y <= 0):
+		return _refuse(REFUSE_INVALID_CONTAINER)
+	_equip_satchel_slot[slot] = container_ref.x
+	_equip_satchel_generation[slot] = container_ref.y
+	return _succeed(container_ref.x, ref_of(slot))
+
+
+func equipment_state_bytes() -> PackedByteArray:
+	"""Exact image of the four Equipment columns, for byte-identical rollback checks.
+
+	NOT a production call: it allocates. Every column at its full allocated length, so two images
+	of identical state compare equal and a half-applied equip does not.
+	"""
+	var out: PackedByteArray = PackedByteArray()
+	out.append_array(var_to_bytes(_equip_tool_item_id))
+	out.append_array(var_to_bytes(_equip_tool_durability))
+	out.append_array(var_to_bytes(_equip_satchel_slot))
+	out.append_array(var_to_bytes(_equip_satchel_generation))
+	return out
 
 
 # --- result helpers -------------------------------------------------------------------------------

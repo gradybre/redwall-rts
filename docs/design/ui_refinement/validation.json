@@ -1,0 +1,280 @@
+{
+  "status": "PASS",
+  "requirements": 42,
+  "acceptance_cases": 23,
+  "contrast_pairs": [
+    {
+      "foreground": "PAPER_TEXT",
+      "background": "PAPER",
+      "ratio": 9.6827,
+      "minimum": 4.5
+    },
+    {
+      "foreground": "PAPER_TEXT",
+      "background": "PAPER_HOVER",
+      "ratio": 8.5861,
+      "minimum": 4.5
+    },
+    {
+      "foreground": "PAPER_TEXT",
+      "background": "PAPER_PRESSED",
+      "ratio": 7.2038,
+      "minimum": 4.5
+    },
+    {
+      "foreground": "PAPER_MUTED",
+      "background": "PAPER",
+      "ratio": 6.3966,
+      "minimum": 4.5
+    },
+    {
+      "foreground": "PAPER_MUTED",
+      "background": "PAPER_HOVER",
+      "ratio": 5.6722,
+      "minimum": 4.5
+    },
+    {
+      "foreground": "PAPER_MUTED",
+      "background": "PAPER_PRESSED",
+      "ratio": 4.7591,
+      "minimum": 4.5
+    },
+    {
+      "foreground": "PAPER_LINE",
+      "background": "PAPER",
+      "ratio": 4.5101,
+      "minimum": 3
+    },
+    {
+      "foreground": "INK",
+      "background": "PAPER",
+      "ratio": 12.7483,
+      "minimum": 3
+    },
+    {
+      "foreground": "PAPER_LINE",
+      "background": "PAPER_HOVER",
+      "ratio": 3.9994,
+      "minimum": 3
+    },
+    {
+      "foreground": "INK",
+      "background": "PAPER_HOVER",
+      "ratio": 11.3046,
+      "minimum": 3
+    },
+    {
+      "foreground": "PAPER_LINE",
+      "background": "PAPER_PRESSED",
+      "ratio": 3.3555,
+      "minimum": 3
+    },
+    {
+      "foreground": "INK",
+      "background": "PAPER_PRESSED",
+      "ratio": 9.4847,
+      "minimum": 3
+    },
+    {
+      "foreground": "SURFACE_EDGE",
+      "background": "PANEL",
+      "ratio": 3.359,
+      "minimum": 3
+    },
+    {
+      "foreground": "PAPER_FILL",
+      "background": "PAPER_TRACK",
+      "ratio": 3.593,
+      "minimum": 3
+    },
+    {
+      "foreground": "TEXT",
+      "background": "PANEL",
+      "ratio": 12.2045,
+      "minimum": 4.5
+    },
+    {
+      "foreground": "GOLD",
+      "background": "PANEL",
+      "ratio": 8.4945,
+      "minimum": 3
+    }
+  ],
+  "layout_fixtures": [
+    {
+      "physical": [
+        1280,
+        720
+      ],
+      "user_scale": 1,
+      "S": 1,
+      "logical": [
+        1280,
+        720
+      ],
+      "profile": "STANDARD",
+      "command_available": 672,
+      "command_height": 76,
+      "detail_height": 576
+    },
+    {
+      "physical": [
+        1280,
+        720
+      ],
+      "user_scale": 1.25,
+      "S": 1.25,
+      "logical": [
+        1024,
+        576
+      ],
+      "profile": "NARROW",
+      "command_available": 480,
+      "command_height": 120,
+      "detail_height": 432
+    },
+    {
+      "physical": [
+        1280,
+        720
+      ],
+      "user_scale": 1.5,
+      "S": 1.5,
+      "logical": [
+        853.3333333333334,
+        480
+      ],
+      "profile": "NARROW",
+      "command_available": 309.33333333333337,
+      "command_height": 120,
+      "detail_height": 336
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "user_scale": 1,
+      "S": 1,
+      "logical": [
+        1920,
+        1080
+      ],
+      "profile": "WIDE",
+      "command_available": 1216,
+      "command_height": 76,
+      "detail_height": 640
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "user_scale": 1.5,
+      "S": 1.5,
+      "logical": [
+        1280,
+        720
+      ],
+      "profile": "STANDARD",
+      "command_available": 672,
+      "command_height": 76,
+      "detail_height": 576
+    },
+    {
+      "physical": [
+        3840,
+        2160
+      ],
+      "user_scale": 1,
+      "S": 2,
+      "logical": [
+        1920,
+        1080
+      ],
+      "profile": "WIDE",
+      "command_available": 1216,
+      "command_height": 76,
+      "detail_height": 640
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "user_scale": 1.25,
+      "S": 1.25,
+      "logical": [
+        1152,
+        720
+      ],
+      "profile": "STANDARD",
+      "command_available": 544,
+      "command_height": 120,
+      "detail_height": 576
+    }
+  ],
+  "fonts": 3,
+  "reference_images": [
+    {
+      "file": "01_hud_resident_wide.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "sha256": "24febe39d4203b6f3c34f8be0df4509a72b6489cc7fcef968f124aaa94da7131"
+    },
+    {
+      "file": "02_hud_resident_narrow.png",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "sha256": "8490d5a1cfd3db0fd2ac9ce5abd02c7e2cc0c02f7f734a2a5439a16eeadadec7"
+    },
+    {
+      "file": "03_new_settlement.png",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "sha256": "a1df4efb3ee06cbb48080c9571cde86398a480a15aee031f2a2a3fec3d16c9b2"
+    },
+    {
+      "file": "04_component_states.png",
+      "dimensions": [
+        1600,
+        1000
+      ],
+      "sha256": "910d3fc03c6ae638aad0dafe66ab98c969108a324a747d994a4edcd8f794cbf7"
+    }
+  ],
+  "checked_links": 26,
+  "runtime_UI": "NOT_RUN",
+  "user_visual_approval": "PENDING",
+  "date": "2026-09-11",
+  "scope": "Design package validation only; no runtime UI acceptance claimed.",
+  "secondary_checks": {
+    "state_registry_coverage": {
+      "status": "PASS",
+      "modules": 36,
+      "rows": 276,
+      "packed_columns": 541
+    },
+    "ready07_addendum": {
+      "status": "PASS",
+      "name_vectors": 7,
+      "layout_fixtures": 6,
+      "save_parity": "NOT_RUN",
+      "real_window_visual_check": "NOT_RUN",
+      "production_hash_kernel": "NOT_RUN"
+    },
+    "git_diff_check": "PASS"
+  },
+  "reference_rendering": {
+    "status": "PASS",
+    "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "source": "render_targets.py",
+    "evidence": "Four synthetic references rendered with text-fit and viewport text bounds assertions. All four visually inspected by planner; these are not Godot captures."
+  }
+}

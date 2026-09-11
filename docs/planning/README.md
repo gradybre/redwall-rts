@@ -1,9 +1,29 @@
 # Next settlement planning package
 
+**Immediate UI refinement:** [Claude starts here](../design/ui_refinement/README.md)
+for SET-UX-VIS-002,42 requirements, four visual targets,23 acceptance cases and
+[task04.5](../tasks/04_5_ui_visual_refinement.md). This is a design handoff, not a
+claim that the current UI already meets it.
+
 Prepared 2026-09-09 from `/Users/brendan/Developer/redwall-rts`, base revision
 `4fb57b1ae3759511a1a25a1a0242b44f605d80aa`. **Planning only:** no runtime changes,
 new gameplay constants, adopted movement closures or independent game-test result.
 The executor continues task 03. These documents supply its next dependency queue.
+
+## Save/UI addendum — 2026-09-11
+
+Before task 09.2 or responsive UI wiring, read
+[the G1–G3 / I2 rulings](../rulings/2026-09-11_ready07_save_ui_addendum.md).
+They resolve result/reachability persistence, distinguish host debt from canonical
+hashes, pin name hashing and confirm UI §1.2 over prototype stretching.
+
+## First-playable UI direction — 2026-09-11
+
+For task 04.4, read [the visual implementation brief](ui_visual_direction.md)
+and [decision 0058](../decisions/0058-first-playable-ui-has-an-authored-visual-shell.md).
+The requested result is a styled woodland shell using the existing UI profiles,
+with real-state wiring and native Mac screenshots for visual review. This is a
+design handoff, not a runtime or visual acceptance result.
 
 ## READY_07 alignment — 2026-09-11
 

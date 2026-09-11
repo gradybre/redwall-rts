@@ -30,6 +30,7 @@ creates two stores or grants credit to an unimplemented consumer.
 | [07](07_food_production_survival.md) | Integrated food production, consumption, sustainable seasonal economy | 03 ecology; 05 movement; 06 services; family coefficients require task-08 contract |
 | [08](08_community_scenarios_progression.md) | Community/care/dependents, admission, story, all scenario families, progression | Begin scenario/family authoring now; integrate after services and food |
 | [09](09_persistence_replay_reliability.md) | Transactional persistence, complete replay and failure recovery | Schema work begins with 04; final parity needs all authoritative state |
+| [04.5](04_5_ui_visual_refinement.md) | First-playable UI refinement:42 requirements, visual targets, native evidence | Component work follows04.4; visual quality grows now while independent gameplay continues |
 | [10](10_presentation_qualification.md) | Complete art/audio/UI and whole-release qualification | Presentation grows with every task; final gate requires 03–09 and all expanded contracts |
 
 Immediate order: finish task 03's current increment without changing its branch;

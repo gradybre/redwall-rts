@@ -1,0 +1,33 @@
+{
+  "date": "2026-09-11",
+  "source_revision": "28e6771fd932d6acefa0ff0b2ba10967a37419f4",
+  "scope": "Planner addendum. No production runtime changes.",
+  "naming_and_layout": {
+    "status": "PASS",
+    "name_vectors": 7,
+    "layout_fixtures": 6,
+    "save_parity": "NOT_RUN",
+    "real_window_visual_check": "NOT_RUN",
+    "production_hash_kernel": "PASS: isolated copies of production sources",
+    "engine_version": "4.7.2.stable.official.ed1daf0bf",
+    "kernel_source_sha256": {
+      "rng.gd": "3bfc333d24db8eb239c10cb5a910d00abe9e440eb897219b3894ea1fdafeffef",
+      "int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca"
+    },
+    "kernel_output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nNAME_HASH_KERNEL_PASS: 7 vectors\nERROR: Condition \"ret != noErr\" is true. Returning: \"\"\n   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)"
+  },
+  "registry_and_arithmetic": {
+    "exit_code": 0,
+    "output": "state_registry_coverage: PASS -- 36 modules, 276 rows, 541 packed columns checked\n{\"status\": \"PASS\", \"field_rows\": 141, \"allocation_rows\": 24, \"scheduler_total_bytes\": 8224, \"checked_local_links\": 94, \"runtime_tests\": \"NOT_RUN\"}\n"
+  },
+  "observations": [
+    "Godot emitted a macOS system CA certificate diagnostic. The isolated hash probe emitted its required 7-vector success marker and exited 0; full raw output is retained. No network functionality is part of this probe."
+  ],
+  "not_executed": [
+    "Production save/load codec",
+    "Name assignment/collision/transfer lifecycle",
+    "Full game suite",
+    "Live viewport layout/screenshots",
+    "Windows qualification"
+  ]
+}

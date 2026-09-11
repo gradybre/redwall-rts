@@ -805,3 +805,53 @@ func test_a_leg_refusing_midway_carries_no_count_from_the_legs_that_ran() -> voi
 	assert_equal(_population(habitat, TROUT_INDEX), TROUT_AFTER_ONE_DAY,
 		"the committed recovery itself stands, which is why the day stays consumed")
 	assert_equal(_ecology.last_day_run(), 2, "and the latch names the day that refused")
+
+
+# --- ruling 2026-09-11 §4.1: ARCH-SYS-005 writes no closure bit (decision 0055) -------------------
+
+func test_the_ecology_day_writes_no_fish_closure_bit_at_all() -> void:
+	"""Ruling §4.1 gives `FishStock.closed` to ARCH-SYS-006, which runs one call later.
+
+	A stage that copied yesterday's event state forward as today's closure would be caught here:
+	every stock's bit is recorded before four consecutive days run and compared afterwards, with
+	one stock deliberately closed and one deliberately open so a blanket write in EITHER
+	direction fails.
+	"""
+	var habitat: Vector2i = _river()
+	var trout: int = _stock_row(habitat, TROUT_INDEX)
+	var dace: int = _stock_row(habitat, DACE_INDEX)
+	assert_true(_ecology.fishing().set_closed(habitat, TROUT_INDEX, true).ok, "trout are closed")
+	var ticks: Array[int] = [DAY_2_TICK, DAY_3_TICK, DAY_3_TICK + TICKS_PER_DAY,
+		DAY_5_TICK]
+	for tick: int in ticks:
+		assert_true(_run(tick), "the boundary at tick %d runs (%s)" % [tick, _day.error])
+		assert_true(_ecology.fishing().is_event_closed(trout),
+			"the closed trout stock is still closed after tick %d" % tick)
+		assert_false(_ecology.fishing().is_event_closed(dace),
+			"and the open dace stock is still open after tick %d" % tick)
+
+
+func test_the_ecology_day_recovers_a_summer_blight_closed_mussel_bed() -> void:
+	"""Ruling §4.1: "SYS-005 owns fish stock/quota recovery ...; closed stocks still recover"."""
+	var made: FishingScript.OpResult = _ecology.fishing().create_habitat(
+		0, EntityDirectoryScript.NULL_REF, PackedInt32Array([30, 31, 32]), 0, 0, 0)
+	assert_true(made.ok, "the fixture coast habitat must be created (%s)" % made.error)
+	var mussel: int = _stock_row(made.ref, 2)
+	assert_equal(_ecology.fishing().apply_mussel_event_closure(true).value, 1,
+		"ARCH-SYS-006's writer closes the bed before this stage runs")
+	var before: int = _ecology.fishing().population_milli_of(mussel).value
+	assert_true(_run(SUMMER_DAY_1_TICK), "the summer boundary runs (%s)" % _day.error)
+	assert_true(_ecology.fishing().is_event_closed(mussel),
+		"this stage neither clears nor re-asserts the closure")
+	assert_true(_ecology.fishing().population_milli_of(mussel).value > before,
+		"and the closed bed still recovers, exactly as §5.4 requires")
+	assert_equal(_day.fish_stocks_recovered, 3, "with the closed stock counted among the three")
+
+
+func test_the_ecology_day_uses_the_new_days_season_not_the_elapsed_one() -> void:
+	"""Ruling §4.3: "SYS-005 uses new day/season". Tick 427500 opens AUTUMN day 1, not summer 12."""
+	assert_true(_run(AUTUMN_DAY_1_TICK), "the autumn crossing runs (%s)" % _day.error)
+	assert_equal(_day.boundary_tick, AUTUMN_DAY_1_TICK, "at exactly tick 427500")
+	assert_equal(_day.absolute_day, 25, "opening absolute day 25")
+	assert_equal(_day.season, AUTUMN, "whose season is autumn, the NEW day's")
+	assert_equal(_day.season_day, 1, "on its first local day")

@@ -14,11 +14,18 @@ for l in s[:a].splitlines():
 for l in s[a:b].splitlines():
  c=[x.strip() for x in l.strip('|').split('|')]
  if l.startswith('|') and len(c)==6 and c[3].isdigit():allocations.append(int(c[3]))
-assert len(fields)==135 and sum(fields)==24993106
-assert len(allocations)==23 and sum(allocations)==60256806
+# Advanced 2026-09-11 for decision 0051's hive-service slice: five new field rows
+# totalling 35840 bytes, and the same amount in one ARCH-MEM-009 step. The planner's
+# own instruction is to review changed expectations rather than treat the inspected
+# snapshot's counts as permanent limits. Row identity and the five metric identities
+# below are unchanged; only these two pinned baselines advance.
+assert len(fields)==140 and sum(fields)==25028946
+assert len(allocations)==23 and sum(allocations)==60292646
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert live==68645414 and candidate==54041222 and live+candidate==122686636
-assert payload-59819174==131072+306304+256
+assert live==68681254 and candidate==54077062 and live+candidate==122758316
+# Carried total advanced by decision 0051's +35840 (59819174 -> 59855014). Both halves
+# move together, so the 437632 gap is reproduced a third time rather than absorbed.
+assert payload-59855014==131072+306304+256
 for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below decimal 100 MB',100000000-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',100000000-live-candidate)]:
  assert f'| {label} | {value} |' in s,label
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']

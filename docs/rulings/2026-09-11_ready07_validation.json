@@ -1,0 +1,70 @@
+{
+  "scope": "STATIC_SOURCE_ARITHMETIC_AND_DOCUMENT_LINK_REVIEW_NOT_RUNTIME_TESTS",
+  "status": "PASS",
+  "revision_reviewed": "16e1efc",
+  "field_rows": 135,
+  "field_bytes": 24993106,
+  "allocation_rows": 23,
+  "payload_bytes": 60256806,
+  "live_with_reserve_bytes": 68645414,
+  "two_world_peak_bytes": 122686636,
+  "catalog_bindings": {
+    "resource": [
+      59,
+      52,
+      19
+    ],
+    "forage": [
+      1,
+      35,
+      32,
+      15,
+      39
+    ],
+    "fish": [
+      55,
+      8,
+      41,
+      37,
+      5,
+      58,
+      16,
+      20,
+      33
+    ]
+  },
+  "synthetic_weather_boundary_ticks": {
+    "1:3": 247500,
+    "1:6": 301500,
+    "1:8": 337500,
+    "1:9": 355500,
+    "2:1": 427500,
+    "2:3": 463500,
+    "2:6": 517500
+  },
+  "proposed_scheduler_record_bytes": 32,
+  "proposed_scheduler_control_bytes": 32,
+  "proposed_scheduler_total_bytes": 8224,
+  "checked_local_links": 63,
+  "files_reviewed": [
+    "docs/systems_architecture.md",
+    "docs/decisions/0016-needs-tick-consumes-most-of-the-budget.md",
+    "docs/decisions/0048-world-generation-anchors-and-what-it-refuses-to-invent.md",
+    "docs/planning/README.md",
+    "docs/STATUS.md",
+    "docs/decisions/0050-ready07-source-audit-and-ledger-reconciliation.md",
+    "docs/planning/ready07_scheduler_contract.md",
+    "docs/rulings/2026-09-11_ready07_open_item_answers.md",
+    "docs/rulings/2026-09-11_ready07_executor_brief.md",
+    "docs/rulings/2026-09-11_ready07_memory_audit.md"
+  ],
+  "runtime_tests": "NOT_RUN",
+  "runtime_code_changed": false,
+  "proposed_fields_in_existing_ledger": false,
+  "source_sha256": {
+    "docs/game_gdd.md": "b6fc91c1d4773931d501886245122151dfebf66bbf4f8e7a978597fa9e454341",
+    "docs/systems_architecture.md": "ef06ea3c69447e4d4228d829b6a47ddb715fb38f44f11fa1c0fcf1a376adfa38",
+    "godot/data/catalog_ids.json": "00e3ffd5c98b5f5da050cc13be91895b85744eb3b3f3cfb5e50dde85a598cbf1",
+    "docs/movement_direction_amendment.md": "04c32fd2e209e341e0eb1454636b4a20e9b2100338590b51f844f6e9d8601c64"
+  }
+}

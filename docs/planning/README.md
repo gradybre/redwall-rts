@@ -5,6 +5,15 @@ Prepared 2026-09-09 from `/Users/brendan/Developer/redwall-rts`, base revision
 new gameplay constants, adopted movement closures or independent game-test result.
 The executor continues task 03. These documents supply its next dependency queue.
 
+## READY_07 alignment — 2026-09-11
+
+Read [the new executor answers](../rulings/2026-09-11_ready07_open_item_answers.md)
+before using the older baseline status below. They correct resource-ID binding,
+existing starter geometry/containers, movement entry conditions and memory
+arithmetic; assign performance ownership; and supply the proposed scheduler and
+Weather amendments. New engineering choices remain distinguished from inherited
+rules and actual implementation. No movement gate is closed by that review.
+
 ## Read and dispatch
 
 1. Read [AGENTS](../../AGENTS.md) and [CLAUDE](../../CLAUDE.md), then current

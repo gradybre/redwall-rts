@@ -249,3 +249,18 @@ After those four tests, **73/73 mutants killed, no survivor and no declared equi
 
 ## Source
 Task 04.3, 2026-09-10. GDD §5.1, §5.4, §5.5, §5.9, §4.2, §4.3; REQ-SET-009 and REQ-SET-059.
+
+## READY_07 source correction — 2026-09-11 (decision0050)
+
+The claims above that the hall footprint/coordinates are authored nowhere and
+that a missing standalone Container store prevents all starter work are incorrect.
+GDD §5.9 explicitly places the hall at(58,59), size12×10, gives the four stockpile,
+well and workbench coordinates and the full10×8 interior; inventory.gd already
+owns packed InventoryContainer rows. These facts supersede those operative
+blocker claims; the original audit remains as history. Building/Furniture/Room
+components, equipped-lot integration, valid contacts and transactional bootstrap
+composition still need implementation. Clearing the specified footprints/aprons
+will intentionally change the incomplete generator's node counts and hashes.
+The current generate() directory reset/publish order must be reconciled with
+required resident IDs1–12, not bypassed or called beneath live residents.
+See [READY_07 answers](../rulings/2026-09-11_ready07_open_item_answers.md) §2/§7.

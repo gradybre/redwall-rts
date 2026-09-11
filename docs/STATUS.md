@@ -1,5 +1,15 @@
 # Status — the programme, task 03, and the READY_06 answers
 
+**2026-09-11 planner review:** the implementation has advanced beyond portions of
+this historical status text. The executor reports 1999 tests/56972 assertions at
+6cac394; see [READY_07 answers](rulings/2026-09-11_ready07_open_item_answers.md)
+and [the preserved brief](rulings/2026-09-11_ready07_executor_brief.md). Counts were
+not rerun by the planner. ADR0049/current code compose nine stages, and inventory
+containers already exist; startup/world/service integration remains incomplete.
+Decision 0050 reconciles existing memory arithmetic and assigns ADR0016 ownership.
+Scheduler/Weather proposals and movement profile gates are not implementation.
+
+
 Generated 2026-09-09. `master` at `d60b72f`; work branch `feat/catalog-ids-artifact`.
 **1224 tests, 35844 assertions, 0 failures**, enforced by CI on every PR since #7.
 

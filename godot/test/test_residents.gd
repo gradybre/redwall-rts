@@ -657,12 +657,21 @@ func test_the_mirror_refuses_a_negative_item_id_or_durability() -> void:
 
 
 func test_despawning_a_resident_empties_its_equipment_mirror() -> void:
-	"""A reused row must never inherit the previous resident's tool."""
+	"""A reused row must never inherit the previous resident's tool.
+
+	MUTATION GAP: `has_equipped_tool()` is false for an absent row whatever the columns hold, and
+	a fresh spawn rewrites them anyway, so neither reader can tell whether despawn cleared
+	anything. The byte image can, and does.
+	"""
 	var slot: int = _spawn_one()
 	var ref: Vector2i = _residents.ref_of(slot)
+	var empty: PackedByteArray = _residents.equipment_state_bytes()
 	assert_true(_residents.set_equipped_tool(slot, 8, 1000).ok, "the resident carries a tool")
 	assert_true(_residents.set_satchel(slot, Vector2i(3, 1)).ok, "and a satchel")
+	assert_true(_residents.equipment_state_bytes() != empty, "which the image shows")
 	assert_true(_residents.despawn(ref).ok, "the resident leaves")
+	assert_equal(_residents.equipment_state_bytes(), empty,
+		"and despawn cleared both columns, byte for byte, not merely hid them")
 	assert_false(_residents.has_equipped_tool(slot), "the mirror is emptied on despawn")
 	var next: int = _spawn_one()
 	assert_equal(next, slot, "the row is reused")

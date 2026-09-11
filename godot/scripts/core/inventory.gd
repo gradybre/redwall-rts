@@ -226,6 +226,7 @@ const REFUSE_INSUFFICIENT_RESERVED_MASS: StringName = &"INSUFFICIENT_RESERVED_MA
 const REFUSE_ATTESTATION_REENTRY: StringName = &"ATTESTATION_REENTRY"
 const REFUSE_AUDIT_ORPHAN_LOT: StringName = &"AUDIT_ORPHAN_LOT"
 const REFUSE_AUDIT_EQUIPPED_COUNT: StringName = &"AUDIT_EQUIPPED_COUNT_MISMATCH"
+const REFUSE_AUDIT_LOT_CYCLE: StringName = &"AUDIT_LOT_LIST_CYCLE"
 
 ## The single method name an equipment authority must publish. Duck typed on purpose: `gear.gd`
 ## preloads this module, so this module must not preload `gear.gd` back.
@@ -2336,11 +2337,20 @@ func _audit_containers() -> StringName:
 
 
 func _audit_container_row(slot: int) -> StringName:
-	"""Re-walk one container's lot list and compare the derived mass and count to the cache."""
+	"""Re-walk one container's lot list and compare the derived mass and count to the cache.
+
+	THE WALK IS BOUNDED. A container cannot legally hold more lots than the store has rows, so a
+	walk that passes that bound has found a cycle in the intrusive list and says so. Without the
+	bound this loop is the one place in the module that can hang instead of refusing -- a
+	corrupted `_l_next` turns a diagnostic into an unkillable process, which is exactly how a
+	runaway was produced while mutation-testing this change.
+	"""
 	var mass: int = 0
 	var count: int = 0
 	var lot: int = _c_first_lot[slot]
 	while lot != NULL_SLOT:
+		if count > _l_capacity:
+			return REFUSE_AUDIT_LOT_CYCLE
 		if not IntMath.inventory_capacity_debit_g_into(_l_quantity_milli[lot], _item_mass_g[_l_item_id[lot]], _math):
 			return REFUSE_OVERFLOW
 		if not IntMath.checked_add_into(mass, _math.value, _math):

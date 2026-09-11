@@ -1557,3 +1557,46 @@ func test_create_lot_still_demands_a_real_container() -> void:
 	assert_equal(_inv.equipped_lot_count(), 0, "and no equipped record appeared")
 
 
+
+
+func test_audit_re_derives_the_equipped_lot_count_instead_of_trusting_it() -> void:
+	"""MUTATION GAP. The maintained count is a cache, and audit() exists to distrust caches.
+
+	Every operation that moves the count also moves the column it summarises, so no public call
+	can put the two out of step -- which is why the check needs the same private-column access
+	`test_reservations.gd` and `test_gear.gd` use to observe an allocator. The invariant is real:
+	`equipped_lot_count()` is published, and a cache nobody re-derives is a cache that drifts.
+	"""
+	var box: Vector2i = _container()
+	var authority: StubAuthority = StubAuthority.new()
+	var lot: Vector2i = _equip_fixture(authority, box)
+	assert_equal(_inv.equipped_lot_count(), 1, "one lot is equipped")
+	assert_true(_inv.audit().ok, "and the audit is clean")
+	_inv.set("_equipped_lot_count", 4)
+	var audited: InventoryScript.OpResult = _inv.audit()
+	assert_false(audited.ok, "a count that disagrees with the rows is refused")
+	assert_equal(audited.error, InventoryScript.REFUSE_AUDIT_EQUIPPED_COUNT, "named explicitly")
+	_inv.set("_equipped_lot_count", 1)
+	assert_true(_inv.audit().ok, "and putting the count back makes it clean again")
+	assert_true(_inv.is_lot_valid(lot), "the lot itself was never touched by any of this")
+
+
+func test_audit_refuses_a_cyclic_lot_list_instead_of_walking_it_forever() -> void:
+	"""A corrupted `_l_next` must make audit() refuse, not hang.
+
+	No public operation can build a cycle, so the column is corrupted directly -- the same
+	private-column access `test_gear.gd` and `test_reservations.gd` use to observe an allocator.
+	The reason this branch exists at all is concrete: a mutation that left a detached lot linked
+	turned this walk into a process that had to be killed by hand.
+	"""
+	var box: Vector2i = _container()
+	var first: Vector2i = _lot(box, ITEM_TOOL, 1000)
+	var second: Vector2i = _lot(box, ITEM_TOOL, 1000)
+	assert_true(_inv.audit().ok, "two honestly linked lots audit clean")
+	var next_column: PackedInt32Array = _inv.get("_l_next")
+	next_column[second.x] = first.x
+	next_column[first.x] = second.x
+	_inv.set("_l_next", next_column)
+	var audited: InventoryScript.OpResult = _inv.audit()
+	assert_false(audited.ok, "a cycle is refused rather than walked forever")
+	assert_equal(audited.error, InventoryScript.REFUSE_AUDIT_LOT_CYCLE, "named explicitly")

@@ -1247,7 +1247,9 @@ func test_every_seeded_tool_starts_at_durability_1000() -> void:
 		assert_equal(_mirror_durability(owner), 1000, "each equipped tool is at 1000")
 	var lot_ref: Vector2i = _inv.container_first_lot(_container)
 	var counted: int = 0
-	while lot_ref != InventoryScript.NULL_REF:
+	# Bounded on purpose: a list walk with no ceiling is how a corrupted `_l_next` turns a test
+	# into a process that has to be killed by hand. The container cannot legally hold 24.
+	while lot_ref != InventoryScript.NULL_REF and counted <= GearScript.STARTER_TOOL_TOTAL:
 		assert_equal(_durability(lot_ref), 1000, "each stored tool is at 1000 too")
 		counted += 1
 		lot_ref = _inv.container_next_lot(lot_ref)
@@ -1323,14 +1325,68 @@ func test_a_seeding_that_runs_out_of_container_space_undoes_itself_whole() -> vo
 
 
 func test_seeding_refuses_whole_when_the_gear_pool_cannot_hold_24() -> void:
-	"""Allocate before consume: a pool one row short spends nothing at all."""
+	"""Allocate before consume: a pool one row short spends nothing at all.
+
+	MUTATION GAP: asserting only that nothing survives is not enough, because a rollback after
+	23 wasted creations also leaves nothing. The preflight is therefore asked directly, and the
+	inventory image is compared byte for byte -- creating and retiring a lot advances its slot
+	generation, so an image that never moved proves nothing was ever created.
+	"""
 	_store = GearScript.new(23)
 	_bind_residents()
 	var owners: Array[Vector2i] = _twelve_owners()
+	var before: PackedByteArray = _inv.state_bytes()
+	var ready: InventoryScript.OpResult = _store.preflight_seed_starter_tools(_defs, owners)
+	assert_false(ready.ok, "the preflight itself refuses, before anything is spent")
+	assert_equal(ready.error, GearScript.REFUSE_CAPACITY_GEAR_INSTANCE, "named explicitly")
 	var seeded: InventoryScript.OpResult = _store.seed_starter_tools(_defs, _container, owners,
 		0, TEST_PROVENANCE)
 	assert_false(seeded.ok, "23 rows cannot hold 24 starter tools")
 	assert_equal(seeded.error, GearScript.REFUSE_CAPACITY_GEAR_INSTANCE, "named explicitly")
 	assert_equal(_inv.live_lot_count(), 0, "and not one lot was created before the refusal")
+	assert_equal(_inv.state_bytes(), before,
+		"the inventory image never moved, so no lot was created and retired on the way")
 
 
+# --- Gaps found by mutation testing, fixed with the tests that were missing --------------------
+
+
+func test_owned_but_unequipped_gear_attests_nothing() -> void:
+	"""MUTATION GAP. `is_equipped_record()` must read the equipped byte, not just the owner.
+
+	`set_owner()` binds a live resident to gear that is merely stored -- §5.4's "worker owns
+	net" -- and a proof that ignored the equipped byte would then let any owned lot out of its
+	container, which is precisely the arbitrary orphan ruling §4 forbids.
+	"""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.set_owner(_residents.directory(), lot_ref, owner).ok, "the gear is owned")
+	assert_equal(_store.owner_of(lot_ref), owner, "by a live resident")
+	assert_false(_store.is_equipped(lot_ref), "but it is not equipped")
+	assert_false(_store.is_equipped_record(lot_ref), "so it attests nothing")
+	var detached: InventoryScript.OpResult = _inv.detach_lot_to_equipment(lot_ref)
+	assert_false(detached.ok, "and the inventory refuses to null its container")
+	assert_equal(detached.error, InventoryScript.REFUSE_NOT_AN_EQUIPPED_RECORD, "named exactly")
+	assert_equal(_inv.lot_container(lot_ref), _container, "the lot keeps its container")
+
+
+func test_equipping_a_worn_tool_carries_its_wear_with_it() -> void:
+	"""MUTATION GAP. Equipping is a transfer of ownership, never a fresh instance.
+
+	Every other equip test starts from a full tool, where a durability reset is invisible. This
+	one wears the tool down FIRST, so a reset to the cap has somewhere to show.
+	"""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.claim_for_job(lot_ref, JOB_A).ok, "claim the stored tool for work")
+	assert_true(_store.apply_general_wear_into(lot_ref, JOB_A, 3700000, 0, _wear), "wear 370")
+	assert_equal(_durability(lot_ref), 630, "the stored tool is down to 630")
+	var equipped: InventoryScript.OpResult = _store.equip(lot_ref, owner)
+	assert_true(equipped.ok, "equipping a worn tool must succeed: %s" % equipped.error)
+	assert_equal(_durability(lot_ref), 630, "and it is STILL 630: equipping resets nothing")
+	assert_equal(equipped.value, 630, "the reported durability is the worn one")
+	assert_equal(_mirror_durability(owner), 630, "and the mirror took the worn value")
+	assert_true(_store.unequip(lot_ref, _container, false).ok, "unequip")
+	assert_equal(_durability(lot_ref), 630, "still 630 on the way home too")

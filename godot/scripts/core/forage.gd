@@ -236,9 +236,15 @@ extends RefCounted
 ##     forest basins tile by tile would consume most of the 16384 link budget. set_basin() is
 ##     therefore explicit and zones_intersect() is exposed so the eventual designation command
 ##     can require the intersection §5.1 describes.
-##   * `item_id`'s DOMAIN IS THE CALLER'S. §4.2 types it int32 and never says which catalog.
-##     PATCH_KEYS holds §5.5's five item keys so a caller can compile them through
-##     item_definitions.gd; this store validates the range only.
+##   * `item_id`'s DOMAIN IS SETTLED: THE COMPILED `ItemDefinition` ID. §4.2 types it int32 and
+##     never says which catalog; READY_07 §2 (2026-09-11) rules that it is the same domain as
+##     `ResourceNode.resource_id` -- the compiled `ItemDefinition` id of what the patch yields.
+##     PATCH_KEYS holds §5.5's five item keys in PATCH ROW order and
+##     `scripts/core/resource_catalog_binding.gd` reads THIS array to resolve them, so the ids it
+##     produces are in patch-kind order by construction. Sorting them by compiled id would
+##     associate the wrong capacity, work cost and regrowth rate with every row, which is why
+##     `create_patch_set()` is addressed by kind and never by id. This store still validates the
+##     range only: an int32 column cannot prove a catalog, and decision 0052 records who does.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -296,8 +302,9 @@ const PATCH_MUSHROOMS: int = 2
 const PATCH_HERB: int = 3
 const PATCH_ROOTS: int = 4
 
-## §5.5's five "Forage item" rows in the document's own order. Item ids are compiled elsewhere;
-## these keys exist so a caller can resolve them through item_definitions.gd.
+## §5.5's five "Forage item" rows in the document's own order, which IS patch-kind order. Item ids
+## are compiled elsewhere: `resource_catalog_binding.gd` resolves this array against the catalog
+## and must preserve its order, so these keys are never re-typed or re-sorted anywhere else.
 const PATCH_KEYS: Array[StringName] = [&"berries", &"nuts", &"mushrooms", &"herb", &"roots"]
 
 ## §5.5 "Patch capacity U" column, whole units.

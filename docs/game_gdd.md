@@ -160,6 +160,8 @@ All fields below are authoritative unless marked `P` for presentation or `C` for
 | Notice | severity: enum, category: enum, source: EntityRef, code: StringName, created_tick: int64, resolved: bool, acknowledged: bool | 500 history entries; deduplicated active key(code, source) |
 | TransferManifest | manifest_id: int32, resident_ids: int32[], item_lot_ids: int32[], quantity_milli: int64[], status: enum, rules_hash: StringName | Inactive future adapter; no army entity in this release |
 
+**Ruled 2026-09-11 (READY_07 §2) — resource identity.** `ResourceNode.resource_id` identifies the extracted output's compiled `ItemDefinition` ID: `wood`, `stone` and `iron`. `ForagePatch.item_id` and `FishStock.species_id` use the same domain — `berries, nuts, mushrooms, herb, roots` and `trout, dace, salmon, perch, carp, whitefish, herring, mackerel, mussel`. These seventeen bindings are resolved by key against the compiled catalog and its verified `catalog_ids.json` hash; no generic `tree`, `forage` or `fish` ItemDefinition exists, and `fish` in a recipe is a selector over the approved nine species keys rather than a runtime stock item. Patch kind, fish species row and habitat type remain **different indexes from the item ID**: a compiled item ID never subscripts the five-row patch or nine-row species tables. See decision 0052.
+
 `StringName name_key` references a localized authored name or sanitized player alias; it is not part of simulation ordering. Selection flags, navigation debug visuals, skin palettes, and scene nodes are outside saved gameplay truth. Child-array capacities are hard validation limits, with explicit refusal when full.
 
 Additional fixed child stores close persistence requirements used by the job and UI contracts:

@@ -146,11 +146,20 @@ generated forest basin now commits and yields one real ARCH-SYS-009 FORAGE job.
 Every §5.1 generator guarantee is validated in a STRAIGHT LINE; **every
 reachability half is BLOCKED on task 05's topology**, as this checklist requires.
 **Still outstanding within 04.3:** the resident/building/container/gear fixture
-below (no Building, Furniture or Container store exists — full initialization is
+below (no Building, Furniture or **Room** store exists — full initialization is
 BLOCKED, and nothing was substituted), the save round trip (task 09 owns the
-codec), the starter building footprints and their one-tile apron (§5.1 gives no
-coordinates), and composition into `settlement_system.gd`, which belongs to the
-integration lead.
+codec), the starter building footprints and their one-tile apron, and composition
+into `settlement_system.gd`, which belongs to the integration lead.
+
+**Two claims here were wrong and are corrected 2026-09-11 (READY_07 §7.1),
+preserved rather than deleted.** (1) "No Container store exists" — `inventory.gd`
+already owns packed `InventoryContainer` rows with capacity and generation
+allocation, `create_container`, reserved/used mass, filters and reachability. The
+missing part is Building/Furniture/Room **ownership and composition**, not
+containers; a competing container store must not be created. (2) "§5.1 gives no
+coordinates" for the starter footprints — GDD **§5.9** authors them exactly: hall
+(58,59) 12×10, stockpiles (50,60),(50,65),(70,60),(70,65) 4×4, well (64,54) 2×2,
+workbench shelter (58,54) 3×3, all rotation 0.
 
 - [ ] Initialize the 12-resident fixture exactly: IDs 1–12, Warden Rowan, species,
   needs/health, XP (including reserved index 3 zero), relationship pairs, priorities,

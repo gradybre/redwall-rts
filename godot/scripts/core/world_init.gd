@@ -48,12 +48,20 @@ extends RefCounted
 ##     unlimited piles, fictional beds, duplicated tools or unregistered inventory owners". NO
 ##     Building, Furniture or Container store exists in `scripts/core/`. FULL INITIALIZATION IS
 ##     THEREFORE BLOCKED and this module generates terrain, resource nodes and ecology only.
-##   * BECAUSE THE STARTER BUILDINGS ARE BLOCKED, SO ARE THEIR CLEARED FOOTPRINTS. §5.1 says
-##     "Clear initial building footprints, a one-tile apron, and the loam rectangle x=58..65,z=46..53
-##     before placing resource nodes". The loam rectangle is authored as exact tiles and IS cleared
-##     here. The building footprints are authored NOWHERE as tile coordinates -- §5.1 gives only
-##     "The starter hall and resource placement fit a 32 m radius of map center" -- so no footprint
-##     and no apron is cleared, and `is_cleared()` answers for the loam rectangle alone.
+##   * CORRECTED 2026-09-11 (READY_07 §7.1). The claim below was WRONG and is kept as a dated
+##     correction rather than deleted. It said the building footprints are "authored NOWHERE as
+##     tile coordinates". They are: GDD §5.9 states "place the hall at (58,59), stockpiles at
+##     (50,60),(50,65),(70,60),(70,65), well at (64,54), and workbench at (58,54), all rotation 0.
+##     Clear these footprints before resource placement." With §5.9's footprint sizes that is
+##     hall 12x10, four stockpiles 4x4, well 2x2, workbench shelter 3x3.
+##     THE CONSEQUENCE IS NOT YET IMPLEMENTED: this module still clears only the loam rectangle,
+##     so `is_cleared()` is incomplete and the node count it produces is an OBSOLETE FIXTURE.
+##     Clearing the authored footprints and their one-tile apron legitimately changes that count
+##     and its hashes; the planner is explicit that the obsolete count must not be protected by
+##     leaving trees inside the well, workbench or apron. Shared aprons may overlap as cleared
+##     ground; building footprints may not.
+##     §5.1's own sentence is the other half: "Clear initial building footprints, a one-tile
+##     apron, and the loam rectangle x=58..65,z=46..53 before placing resource nodes".
 ##   * NO FarmPlot, OrchardPlot OR Hive IS CREATED. §5.1's initial conditions list buildings,
 ##     inventory and residents; they list no farm plot, orchard block or apiary, and §5.6/§5.7 reach
 ##     both through player designation (orchards additionally behind milestone M3). `farming.gd` and
@@ -747,7 +755,9 @@ static func is_cleared_tile(x: int, z: int) -> bool:
 	"""GDD §5.1's cleared loam rectangle x=58..65,z=46..53, cleared before resource placement.
 
 	The initial BUILDING footprints and their one-tile apron belong in this predicate and are not
-	in it: §5.1 gives no footprint coordinates and no Building store exists. See the header.
+	in it. CORRECTED 2026-09-11: the earlier reason given here -- that §5.1 gives no footprint
+	coordinates -- was wrong. GDD §5.9 authors them exactly; see the header. They remain uncleared
+	because the clearing is unimplemented, not because the coordinates are unknown.
 	"""
 	return x >= CLEARED_LOAM_FIRST_X and x <= CLEARED_LOAM_LAST_X \
 		and z >= CLEARED_LOAM_FIRST_Z and z <= CLEARED_LOAM_LAST_Z

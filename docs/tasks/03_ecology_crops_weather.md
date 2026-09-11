@@ -43,10 +43,11 @@ prerequisite. It is **not** the thing that animates the loop.
 | 7 | **FieldPolicy + sowing** — REQ-SET-070/071/077/078/088 | 6 | **done**. The triggering event was ruled by [READY_06 §1](../rulings/2026-09-09_ready06_open_item_answers.md): R06-JOB-004's explicit first planting (decision 0040) and R06-JOB-005's configured rotation advance (decision 0045). `FieldPolicy` is built at its budgeted 128 rows plus a 40960-byte cycle and enrolment ledger. **No plot → field mapping exists** — §5.6 calls field grouping "a UI/work aggregation" — so the participating set is a validated caller-supplied group. REQ-SET-078 was already `farming.apply_fallow_day()`; REQ-SET-088 is an **unsatisfiable gate that refuses**, because every `reservations.gd` row is Job-owned and a standing seed reserve has no Job |
 | 8 | **OrchardPlot + Hive** — REQ-SET-079–084 | 2, 6 | **done** (`godot/scripts/core/orchard_hive.gd`); U6's `HivePollinationLinks` half closed by ruling 2026-09-09 §3 and decision 0044 — 30720 references, +49152 bytes, ARCH-STATE-008. REQ-SET-084's frost belongs to `farming.gd` and was already implemented there. **Not built here:** R06-JOB-006's 20-WU hive-service producer, apiary/Building placement (no Building store), and the FarmPlot-side link refresh, which is the increment 10 join's |
 | 9 | **ARCH-SYS-005 Ecology** daily orchestration | 3,4,5,8 | **done** (`godot/scripts/core/ecology.gd`, wired in `settlement_system.gd`); decision 0046. Closes REQ-SET-007's "update ecology" leg ONLY: fish recovery and the daily quota reset, decision 0036's additive forage regrowth and decision 0030 §4.4's quota midnight, every live hive's COMPLETED day with decision 0044's synchronous orchard link refresh, and REQ-SET-138 stump regrowth; annual counters at the year boundary only. **Not closed here:** REQ-SET-138's building-occupancy condition (no store owns `building_slot`), the FarmPlot-side pollination refresh (increment 10's join), §8's ECOLOGY wildlife-pressure roll (no store, no magnitude, so no draw is taken), and a cross-process round trip of the day latch (no save module) |
-| 10 | **ARCH-SYS-006 CropWeather** orchestration | 2,6,7,9 | closes a second leg |
+| 10 | **ARCH-SYS-006 CropWeather** orchestration | 2,6,7,9 | **done** (`godot/scripts/core/crop_weather.gd`, wired in `settlement_system.gd`); decision 0047. Closes REQ-SET-007's "advance crops/weather" leg, which now runs AFTER "update ecology" in the published leg log. **TWO CADENCES**: hourly (REQ-SET-072 growth, REQ-SET-084 frost per subzero hour, REQ-SET-075 expiry at the exact hour) driven from `run_tick()`, and midnight (completed-day REQ-SET-087 blight, `apply_orchard_day()` for the completed day, §5.10 event scheduling/forecast/baseline, REQ-SET-086 evaporate-then-rain moisture, the service reset, and decision 0044's FarmPlot-side pollination refresh). **Not closed here:** ideal spell's crop growth x1.20 (`farming.advance_growth_hour_into()` accepts no growth factor and REQ-SET-072 requires the retained remainder); drought's orchard water cost (no inventory join); mussel's summer blight closure (`fishing.gd` names BOTH ARCH-SYS-005 and ARCH-SYS-006 as its owner -- needs a ruling); `field_policy.gd`'s cycle resolution (needs a job completion, which needs the movement layer); the world seed, so an ungenerated world refuses its second season's WEATHER draw; and a cross-process round trip of either latch (no save module) |
 
-REQ-SET-007's five daily steps: this group closes **two** (ecology, crops/weather).
-Age-stocks belongs to the earlier inventory group and is still open;
+REQ-SET-007's five daily steps: this group closes **two** (ecology, crops/weather),
+and both now run, in the requirement's order, in `settlement_system.gd`'s published leg
+log. Age-stocks belongs to the earlier inventory group and is still open;
 immigration/departures and progression come later.
 
 ## Gaps found while scoping — reported, not filled
@@ -108,6 +109,31 @@ The narrower defect stands — the UI stated a period the GDD gave no contract f
   `EventDefinition` catalog, and `catalog.gd` compiles keys in ascending ASCII
   order. That numbering agrees with §5.10's printed order on `drought` alone, and
   `event` is persisted.
+
+### Found while implementing increment 10 (2026-09-10) — see decision 0047
+
+- **`fishing.gd` names two different owners for the mussel blight closure.** One
+  comment says joining weather to the fishery is "ARCH-SYS-006's job (increment
+  10)"; the comment on `set_closed()` says "ARCH-SYS-005 owns any daily
+  orchestration that would write the bit". ARCH-SYS-006's §5 *Writes* column
+  lists no fish closure at all. **No bit is written either way**; this needs a
+  ruling, not a coin toss.
+- **Ideal spell's "crop growth ×1.20" has no API to land in.** REQ-SET-072
+  requires the fractional progress be retained, and `farming.gd` retains it
+  inside `_release_growth_milli_hours()` under one floor.
+  `advance_growth_hour_into()` accepts no growth factor, so the join cannot
+  apply the modifier without flooring twice — BAL-WORK-001 forbids that shape by
+  name. The fix is one per-1000 parameter on that function.
+- **The world seed still has no owner.** `rng.gd` needs `seed_world()` and
+  REQ-SET-009's world generation owns `World.seed`. A fresh settlement's first
+  season runs (the forced first spring consumes zero draws, structurally), and
+  its second season's midnight refuses `RNG_NOT_SEEDED` rather than defaulting to
+  an invented seed.
+- **The offset calendar gives absolute day 1 no midnight**, so the opening day's
+  weather has to be written outside the boundary. `crop_weather.prime_day()` does
+  it and `create_initial_settlement()` calls it; without it the first 18 game
+  hours read a cleared Weather row at 0.0 °C and every crop grows at §5.6's
+  cool-band half rate.
 
 ### Found while implementing increment 9 (2026-09-10) — see decision 0046
 

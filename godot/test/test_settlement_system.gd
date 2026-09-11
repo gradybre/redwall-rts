@@ -34,9 +34,16 @@ const COMMAND_KIND_UPGRADE: int = 23
 const ACTIVITY_SLEEP: int = 2
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const FishingScript := preload("res://scripts/core/fishing.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
+const RngScript := preload("res://scripts/core/rng.gd")
+const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 
 ## GDD §5.1: the starting settlement is twelve residents.
 const COHORT_SIZE: int = 12
+
+## An arbitrary int32 standing in for REQ-SET-009's world seed, which has no store yet. Nothing
+## asserts a value derived from it: it exists so the WEATHER stream is drawable at all.
+const FIXTURE_WORLD_SEED: int = 20260910
 
 ## GDD §5.2 hunger decay, restated: 250 need-points/game-hour in milli-points, scaled by the
 ## size multipliers 1.00 / 1.20 / 1.60. Indexed by size class, in milli-points per game hour.
@@ -59,6 +66,7 @@ const COHORT_WINTER_DEMAND_NP: int = 89280
 ## Index of winter in the calendar's season order, restated from GDD §5.1's spring/summer/
 ## autumn/winter year.
 const SEASON_SPRING: int = 0
+const SEASON_SUMMER: int = 1
 const SEASON_WINTER: int = 3
 
 ## §5.2 "Each work tick produces 80 milli-WU x factor/1000", with the factor clamped to 300-1800.
@@ -104,8 +112,15 @@ func after_each() -> void:
 
 
 func _populated() -> SettlementSystemScript:
-	"""A settlement holding the GDD §5.1 starting cohort."""
+	"""A settlement holding the GDD §5.1 starting cohort, over a seeded world.
+
+	The seed is what REQ-SET-009's world generation would supply, and it is supplied here because
+	§5.10 draws one WEATHER roll per season after the forced first spring: without it every day
+	boundary from the second season on refuses, which
+	`test_an_unseeded_settlement_refuses_its_second_seasons_weather_draw` asserts on purpose.
+	"""
 	_settlement.create_initial_settlement()
+	_settlement.rng().seed_world(FIXTURE_WORLD_SEED)
 	return _settlement
 
 
@@ -437,17 +452,24 @@ func test_an_out_of_range_day_boundary_is_refused() -> void:
 
 # --- REQ-SET-007 leg order and ARCH-SYS-005 Ecology (task 03 increment 9) ------------------------
 
-func test_the_boundary_runs_the_season_handover_then_ecology_and_no_other_leg() -> void:
-	"""REQ-SET-007's five legs are ordered, and only the two with an owner here may appear."""
+func test_the_boundary_runs_the_handover_then_ecology_then_crops_and_no_other_leg() -> void:
+	"""REQ-SET-007's five legs are ordered, and only the three with an owner here may appear.
+
+	CHANGED BY TASK 03 INCREMENT 10: this assertion previously ended at two legs, because
+	ARCH-SYS-006 had no owner. Crops/weather is REQ-SET-007's THIRD step and must appear AFTER
+	"update ecology", never before it and never instead of it.
+	"""
 	_populated()
 	assert_true(_settlement.run_day_boundary(37, SEASON_WINTER), "the winter boundary runs")
-	assert_equal(_settlement.daily_leg_count(), 2, "exactly two legs executed")
+	assert_equal(_settlement.daily_leg_count(), 3, "exactly three legs executed")
 	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_SEASON_HANDOVER,
 		"ARCH-TICK-003's handover first, between aging and ecology")
 	assert_equal(_settlement.daily_leg_at(1).value, SettlementSystemScript.LEG_ECOLOGY,
 		"then ARCH-SYS-005 Ecology")
-	assert_false(_settlement.daily_leg_at(2).ok, "and nothing after it")
-	assert_equal(String(_settlement.daily_leg_at(2).error), "INVALID_INDEX",
+	assert_equal(_settlement.daily_leg_at(2).value, SettlementSystemScript.LEG_CROP_WEATHER,
+		"then ARCH-SYS-006 CropWeather, REQ-SET-007's third step")
+	assert_false(_settlement.daily_leg_at(3).ok, "and nothing after it")
+	assert_equal(String(_settlement.daily_leg_at(3).error), "INVALID_INDEX",
 		"the reader refuses rather than answering a leg that did not run")
 
 
@@ -514,6 +536,162 @@ func test_the_ecology_shares_the_settlements_one_entity_directory() -> void:
 	_populated()
 	assert_true(_settlement.ecology().directory() == _settlement.directory(),
 		"the ecology stores were composed over the settlement's own directory")
+
+
+# --- ARCH-SYS-006 CropWeather (task 03 increment 10) ---------------------------------------------
+
+## GDD §5.10's spring baseline, transcribed: 12 C in tenths, and +1200 rain/day.
+const SPRING_TEMPERATURE_TENTHS: int = 120
+const SPRING_RAIN: int = 1200
+## §5.6's hourly growth step at ideal temperature and in-range moisture, in milli-hours.
+const IDEAL_GROWTH_STEP_MILLI_HOURS: int = 1000
+## §4.3's Soil, stated explicitly: LOAM=0. `farming.gd`'s fifth CropDefinition row is roots.
+const SOIL_LOAM: int = 0
+const CROP_ROOTS: int = 4
+## `sim_clock.gd`'s 750 ticks per game hour, restated. Hour crossings are its positive multiples.
+const TICKS_PER_HOUR: int = 750
+## §5.10's forced first-spring event: ideal spell, whose EventDefinition id is 6.
+const EVENT_IDEAL_SPELL: int = 6
+
+
+func _growing_plot() -> int:
+	"""Sow one roots plot in this settlement's own crop store and leave it GROWING."""
+	var crop: FarmingScript = _settlement.farming()
+	var tile: int = _settlement.ecology().resource_nodes().tile_index(40, 40).value
+	var made: FarmingScript.OpResult = _settlement.crop_weather().create_plot_at_tile(
+		tile, SOIL_LOAM, 1)
+	assert_true(made.ok, "the fixture plot must be created (%s)" % made.error)
+	assert_true(crop.plant(made.value, CROP_ROOTS, 1, SEASON_SPRING, 1).ok, "and sown")
+	assert_true(crop.begin_growing(made.value).ok, "and its sowing completed")
+	return made.value
+
+
+func test_creating_the_settlement_opens_day_ones_weather() -> void:
+	"""Day 1 opens at 06:00 and reaches no midnight, so the stage writes its baseline at creation."""
+	_populated()
+	assert_equal(_settlement.weather().temperature_tenths(), SPRING_TEMPERATURE_TENTHS,
+		"§5.10's spring baseline is 12 C")
+	assert_equal(_settlement.weather().rain(), SPRING_RAIN, "and +1200 rain/day")
+	assert_equal(_settlement.weather().event_of(), EVENT_IDEAL_SPELL,
+		"§5.10's forced first-spring event is scheduled")
+	assert_equal(_settlement.rng().draw_count_of(RngScript.STREAM_WEATHER).value, 0,
+		"and the forced event consumed no WEATHER draw")
+
+
+func test_the_hourly_crop_leg_runs_on_hour_crossings_and_not_only_at_midnight() -> void:
+	"""ARCH-SYS-006's hourly cadence is driven from `run_tick()`, 23 ticks in 24 doing nothing."""
+	_populated()
+	var slot: int = _growing_plot()
+	_run_ticks(TICKS_PER_HOUR - 1, 1)
+	assert_equal(_settlement.farming().growth_milli_hours_of(slot).value, 0,
+		"tick 749 is inside an hour and integrates nothing")
+	assert_equal(_settlement.refused_crop_hour_count(), 0,
+		"and is not DISPATCHED AND REFUSED either: a non-crossing tick must not manufacture one")
+	assert_equal(_settlement.last_refusal(), &"",
+		"so the settlement's one error channel is not overwritten 23 ticks in every 24")
+	_run_ticks(TICKS_PER_HOUR, 2)
+	assert_equal(_settlement.farming().growth_milli_hours_of(slot).value,
+		IDEAL_GROWTH_STEP_MILLI_HOURS,
+		"tick 750 is an hour crossing and tick 751 is not")
+	_run_ticks(2 * TICKS_PER_HOUR, 1)
+	assert_equal(_settlement.farming().growth_milli_hours_of(slot).value,
+		2 * IDEAL_GROWTH_STEP_MILLI_HOURS, "and tick 1500 is the next crossing")
+	assert_equal(_settlement.daily_leg_count(), 0,
+		"none of which is a midnight: no daily leg has run at all")
+
+
+func test_the_hourly_crop_leg_reports_the_hour_it_integrated() -> void:
+	"""The stage's own result reaches the settlement, so a skipped hour cannot be silent."""
+	_populated()
+	_growing_plot()
+	_run_ticks(TICKS_PER_HOUR, 1)
+	assert_true(_settlement.crop_hour().ok, "the hour committed")
+	assert_equal(_settlement.crop_hour().tick, TICKS_PER_HOUR, "at tick 750")
+	assert_equal(_settlement.crop_hour().plots_grown, 1, "integrating the one growing plot")
+	assert_equal(_settlement.refused_crop_hour_count(), 0, "and refusing no hour")
+
+
+func test_the_crop_stage_advances_this_settlements_own_stores() -> void:
+	"""ARCH-SYS-006 is wired to THIS settlement's crop store, not to a detached fixture."""
+	_populated()
+	var slot: int = _growing_plot()
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "the day 2 boundary runs")
+	assert_true(_settlement.crop_weather_day().ok, "the crop day committed")
+	assert_equal(_settlement.crop_weather_day().absolute_day, 2, "for absolute day 2")
+	assert_equal(_settlement.crop_weather_day().plots_moistened, 1,
+		"and the settlement's own plot took the day's moisture")
+	assert_equal(_settlement.farming().moisture_of(slot).value, 6600,
+		"§5.10's spring +1200 rain against 600 evaporation, from the 6000 a plot spawns with")
+
+
+func test_the_crop_stage_shares_the_settlements_directory_ecology_and_stream_set() -> void:
+	"""One directory, one orchard/hive store and one ARCH-RNG-002 stream set per settlement."""
+	_populated()
+	assert_true(_settlement.crop_weather().directory() == _settlement.directory(),
+		"the crop store validates through the settlement's one directory")
+	assert_true(_settlement.crop_weather().orchard_hive() == _settlement.ecology().orchard_hive(),
+		"ARCH-SYS-006 borrows ARCH-SYS-005's hives rather than composing a second store")
+	assert_true(_settlement.crop_weather().rng() == _settlement.rng(),
+		"and consumes the settlement's one stream set")
+
+
+func test_an_unseeded_settlement_refuses_its_second_seasons_weather_draw() -> void:
+	"""REQ-SET-009's world generation does not exist, so an unseeded world REFUSES the draw.
+
+	The forced first spring needs no seed, so eleven spring midnights commit; summer's stated
+	draw cannot be taken and the whole leg refuses rather than leaving the season eventless.
+	"""
+	_settlement.create_initial_settlement()
+	assert_false(_settlement.rng().is_seeded(), "no world generator has seeded this settlement")
+	for day: int in range(2, 13):
+		assert_true(_settlement.run_day_boundary(day, SEASON_SPRING),
+			"spring day %d commits" % day)
+	assert_false(_settlement.run_day_boundary(13, SEASON_SUMMER), "summer day 1 refuses")
+	assert_equal(_settlement.last_refusal(), &"RNG_NOT_SEEDED", "with the stream's own code")
+	assert_equal(_settlement.daily_leg_count(), 2,
+		"the handover and ecology legs ran; the crops/weather leg did not")
+
+
+func test_a_hive_eligibility_crossing_reaches_the_farm_side_of_the_boundary() -> void:
+	"""Decision 0044's FARM half: ARCH-SYS-005 commits the strength change, ARCH-SYS-006 refreshes.
+
+	`ecology.gd` refreshes its own ORCHARD recipients and states it cannot refresh farm ones. Here
+	an unserviced hive loses REQ-SET-083's 200 strength at the boundary and crosses below §5.6's
+	5000 healthy line, which invalidates the bean plot's slice; the crops/weather leg that runs
+	one call later is what puts it right, without any read having repaired it.
+	"""
+	_populated()
+	var hives: OrchardHiveScript = _settlement.ecology().orchard_hive()
+	var building: Vector2i = _settlement.directory().create(EntityDirectoryScript.KIND_BUILDING)
+	var made: OrchardHiveScript.OpResult = hives.create_hive(building, 46, 60, 46, 60, 1)
+	assert_true(made.ok, "the fixture hive is colonised (%s)" % made.error)
+	assert_true(hives.restore_hive_state(made.ref, 5100, 0, 0, 0, 1).ok,
+		"and left 100 points above the healthy line, unserviced since day 1")
+	var tile: int = _settlement.ecology().resource_nodes().tile_index(40, 60).value
+	var plot: FarmingScript.OpResult = _settlement.crop_weather().create_plot_at_tile(
+		tile, SOIL_LOAM, 1)
+	assert_true(plot.ok, "the bean plot is created inside the hive's 12 m range")
+	assert_true(_settlement.crop_weather().check_farm_links_of(plot.value),
+		"its slice is canonical at creation")
+	assert_true(_settlement.run_day_boundary(3, SEASON_SPRING), "the day 3 boundary runs")
+	assert_equal(_settlement.ecology_day().hive_eligibility_crossings, 1,
+		"ARCH-SYS-005 reports the crossing it committed")
+	assert_equal(_settlement.crop_weather_day().farm_links_refreshed, 1,
+		"and ARCH-SYS-006 refreshed the farm side of it")
+	assert_true(_settlement.crop_weather().check_farm_links_of(plot.value),
+		"so the slice is canonical again")
+
+
+func test_reset_drops_the_crop_and_weather_stores_and_the_world_seed() -> void:
+	"""A reset settlement keeps no plot, no scheduled event and no seeded stream."""
+	_populated()
+	_growing_plot()
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "a boundary runs")
+	_settlement.reset()
+	assert_equal(_settlement.farming().count(), 0, "the crop store is emptied")
+	assert_false(_settlement.weather().is_event_scheduled(), "the weather row is cleared")
+	assert_false(_settlement.rng().is_seeded(), "and the stream set is unseeded")
+	assert_equal(_settlement.crop_weather().last_day_run(), 0, "with the day latch dropped")
 
 
 # --- the clock binding --------------------------------------------------------------------------

@@ -31,6 +31,7 @@ const GearScript := preload("res://scripts/core/gear.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
+const ResidentsScript := preload("res://scripts/core/residents.gd")
 const IntMathScript := preload("res://scripts/core/int_math.gd")
 
 const CONTAINER_OWNER: Vector2i = Vector2i(7, 1)
@@ -38,6 +39,8 @@ const BIG_MASS: int = 9000000000
 const TEST_PROVENANCE: int = 3
 const TEST_POLICY: int = 0
 const SMALL_POOL: int = 64
+## GDD §5.7, restated: "tool 1000g". The mass an equipped tool stops charging its container.
+const TOOL_MASS_G: int = 1000
 
 ## Job references. Job liveness lives in the Job store, which `gear.gd` deliberately does not
 ## depend on, so these are plain in-range `(slot, generation)` pairs.
@@ -52,6 +55,8 @@ var _store: GearScript = null
 var _container: Vector2i = Vector2i(-1, 0)
 var _out: IntMathScript.IntResult = null
 var _wear: GearScript.WearOutcome = null
+## Built only by the equipped-gear tests below; every other test leaves it null.
+var _residents: ResidentsScript = null
 
 
 func before_each() -> void:
@@ -65,6 +70,7 @@ func before_each() -> void:
 		InventoryScript.FILTERS_ACCEPT_ALL, TEST_POLICY, true).ref
 	_out = IntMathScript.IntResult.new()
 	_wear = GearScript.WearOutcome.new()
+	_residents = null
 
 
 func _id(key: StringName) -> int:
@@ -824,11 +830,563 @@ func test_state_image_is_row_history_independent() -> void:
 	assert_equal(_store.state_bytes(), reference, "so it does not move the image")
 
 
-func test_equipped_column_has_no_setter_in_this_increment() -> void:
-	"""Equip/unequip waits on the inventory amendment; the column is carried, never set."""
+func test_a_created_gear_row_is_not_equipped_and_keeps_its_container() -> void:
+	"""Creation never equips. DECISION 0061 REPLACED THIS TEST'''S ORIGINAL CLAIM.
+
+	It used to assert that `equip`/`unequip` did not exist at all, which was true while ADR 0038
+	deliberately deferred the inventory amendment. That amendment has now landed, so the entry
+	points exist and the two `has_method` assertions were removed as obsolete. What the test
+	still pins is the part that did NOT change: `create_gear()` publishes an unequipped row whose
+	lot stays in a real container, so no null-container lot appears without an explicit equip.
+	"""
 	var tool: Vector2i = _gear(&"tool")
-	assert_false(_store.is_equipped(tool), "no gear is equipped in this increment")
-	assert_false(_store.has_method("equip"), "and there is no equip entry point")
-	assert_false(_store.has_method("unequip"), "nor an unequip one")
+	assert_false(_store.is_equipped(tool), "a freshly created gear row is not equipped")
+	assert_false(_store.is_equipped_record(tool), "and it attests nothing to the inventory")
 	assert_equal(_inv.lot_container(tool), _container,
-		"the lot keeps a real container: no null-container lot is created here")
+		"the lot keeps a real container: creation makes no null-container lot")
+	assert_equal(_store.equipped_count(), 0, "and the equipped-row count stays at zero")
+# --- Equipped gear (decision 0061; ruling §4; READY_07 §7.2 step 5) ---------------------------
+#
+# ADR 0038 listed "equip/unequip preserves identity, age/provenance, quantity and durability" as
+# an acceptance item it could not complete, because the inventory amendment was deferred. These
+# are that item, plus the defect the ruling names in the same paragraph: a lot must never be
+# counted once as equipped and again in storage.
+
+
+class RefusingDetachInventory extends InventoryScript:
+	"""An inventory whose detach always refuses, while its preflight still passes.
+
+	The only way to reach `_apply_equip()`'s rollback: every honest refusal happens during the
+	check, so without this the undo path would be unreachable code claiming to be tested.
+	"""
+	func detach_lot_to_equipment(_lot_ref: Vector2i) -> InventoryScript.OpResult:
+		"""Always refuse, after the preflight has already said yes."""
+		return InventoryScript.OpResult.new(false, &"FORCED_DETACH_REFUSAL", Vector2i(-1, 0), 0)
+
+
+class RefusingAttachInventory extends InventoryScript:
+	"""An inventory whose attach always refuses, while its preflight still passes."""
+	func attach_equipped_lot(_lot_ref: Vector2i, _dest_ref: Vector2i,
+			_from_reserved: bool) -> InventoryScript.OpResult:
+		"""Always refuse, after the preflight has already said yes."""
+		return InventoryScript.OpResult.new(false, &"FORCED_ATTACH_REFUSAL", Vector2i(-1, 0), 0)
+
+
+func _bind_residents() -> void:
+	"""Attach a residents store, its directory and this inventory to the gear store."""
+	_residents = ResidentsScript.new()
+	var bound: InventoryScript.OpResult = _store.bind_equipment(_inv, _residents.directory(),
+		_residents)
+	assert_true(bound.ok, "binding the equip collaborators must succeed: %s" % bound.error)
+
+
+func _resident() -> Vector2i:
+	"""Spawn one mouse and return its directory reference."""
+	var spawned: ResidentsScript.OpResult = _residents.spawn(&"mouse")
+	assert_true(spawned.ok, "spawning a resident must succeed: %s" % spawned.error)
+	return spawned.ref
+
+
+func _mirror_durability(owner_ref: Vector2i) -> int:
+	"""The Equipment mirror's tool durability for a resident, asserting the read succeeded."""
+	var slot: int = _residents.directory().get_typed_row(owner_ref)
+	assert_true(_residents.equipped_tool_durability_into(slot, _out),
+		"the mirror must carry a durability for an equipped resident")
+	return _out.value
+
+
+func test_equip_preserves_identity_age_provenance_quantity_and_durability() -> void:
+	"""ADR 0038's deferred acceptance item, now completable. Nothing is cloned or re-rolled."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _inv.create_lot(_container, _id(&"tool"), 1000, 4,
+		TEST_PROVENANCE, 6, 24000, 500).ref
+	assert_true(_store.create_gear(_inv, _defs, lot_ref, GearScript.MANUFACTURE_BASIC).ok, "made")
+	var lots_before: int = _inv.live_lot_count()
+	var equipped: InventoryScript.OpResult = _store.equip(lot_ref, owner)
+	assert_true(equipped.ok, "equipping a stored tool must succeed: %s" % equipped.error)
+	assert_equal(equipped.ref, lot_ref, "the SAME lot reference comes back")
+	assert_equal(_inv.live_lot_count(), lots_before, "no second lot was created")
+	assert_equal(_inv.lot_quantity_milli(lot_ref), 1000, "quantity is untouched")
+	assert_equal(_inv.lot_quality(lot_ref), 4, "quality is untouched")
+	assert_equal(_inv.lot_provenance(lot_ref), TEST_PROVENANCE, "provenance is untouched")
+	assert_equal(_inv.lot_recipe_id(lot_ref), 6, "recipe id is untouched")
+	assert_equal(_inv.lot_age_milli_hours(lot_ref), 24000, "age is not reset")
+	assert_equal(_inv.lot_age_remainder(lot_ref), 500, "nor its remainder")
+	assert_equal(_durability(lot_ref), GearScript.CAP_GENERAL_BASIC, "durability is untouched")
+
+
+func test_an_equipped_lot_has_a_null_container_and_charges_no_mass() -> void:
+	"""The ruling's exclusion, on the real stores rather than a stub authority."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_equal(_inv.container_used_mass_g(_container), TOOL_MASS_G, "stored, it charges mass")
+	assert_true(_store.equip(lot_ref, owner).ok, "equip")
+	assert_equal(_inv.lot_container(lot_ref), InventoryScript.NULL_REF, "container is null")
+	assert_equal(_inv.container_used_mass_g(_container), 0, "and it charges no container mass")
+	assert_equal(_inv.container_lot_count(_container), 0, "it is in no container list")
+	assert_equal(_inv.total_loose_milli(_id(&"tool")), 0, "it is not loose stock")
+	assert_equal(_inv.total_equipped_milli(_id(&"tool")), 1000, "it is equipment")
+	assert_equal(_inv.total_live_milli(_id(&"tool")), 1000, "counted exactly once in the live sum")
+	assert_true(_inv.audit().ok, "and the inventory audits clean with the gear store attesting")
+
+
+func test_unequip_returns_the_same_lot_without_resetting_durability() -> void:
+	"""Worn gear comes home worn. A repair is the only thing that raises durability."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.equip(lot_ref, owner).ok, "equip")
+	assert_true(_store.claim_for_job(lot_ref, JOB_A).ok, "claim for work")
+	assert_true(_store.apply_general_wear_into(lot_ref, JOB_A, 200000, 0, _wear), "wear 20")
+	assert_equal(_durability(lot_ref), 980, "20 points of durability were spent")
+	var freed: InventoryScript.OpResult = _store.unequip(lot_ref, _container, false)
+	assert_true(freed.ok, "unequipping into a valid container must succeed: %s" % freed.error)
+	assert_equal(freed.ref, lot_ref, "the SAME lot reference comes back")
+	assert_equal(_durability(lot_ref), 980, "durability was NOT reset by the unequip")
+	assert_equal(_inv.lot_container(lot_ref), _container, "and the lot is shelved again")
+	assert_equal(_inv.container_used_mass_g(_container), TOOL_MASS_G, "charging its mass again")
+	assert_equal(_inv.total_equipped_milli(_id(&"tool")), 0, "and counting as equipment no more")
+
+
+func test_equip_and_unequip_move_the_equipment_mirror_together() -> void:
+	"""Ruling §4: equip/unequip atomically change ownership AND the Equipment mirrors."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var slot: int = _residents.directory().get_typed_row(owner)
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_false(_residents.has_equipped_tool(slot), "the resident starts with no tool")
+	assert_true(_store.equip(lot_ref, owner).ok, "equip")
+	assert_true(_residents.has_equipped_tool(slot), "the mirror now names a tool")
+	assert_true(_residents.equipped_tool_item_id_into(slot, _out), "and its item id reads")
+	assert_equal(_out.value, _id(&"tool"), "which is the catalog tool id")
+	assert_equal(_mirror_durability(owner), GearScript.CAP_GENERAL_BASIC, "at full durability")
+	assert_equal(_store.owner_of(lot_ref), owner, "and the gear row records the owner")
+	assert_true(_store.unequip(lot_ref, _container, false).ok, "unequip")
+	assert_false(_residents.has_equipped_tool(slot), "the mirror is emptied again")
+	assert_equal(_store.owner_of(lot_ref), GearScript.NULL_REF, "and the ownership is released")
+
+
+func test_wear_and_repair_write_through_to_the_equipment_mirror() -> void:
+	"""A mirror that can silently disagree is the double count wearing a different hat."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.equip(lot_ref, owner).ok, "equip")
+	assert_true(_store.claim_for_job(lot_ref, JOB_A).ok, "claim")
+	assert_true(_store.apply_general_wear_into(lot_ref, JOB_A, 1000000, 0, _wear), "wear 100")
+	assert_equal(_durability(lot_ref), 900, "the instance is the authority")
+	assert_equal(_mirror_durability(owner), 900, "and the mirror followed it exactly")
+	assert_true(_store.repair(lot_ref, 200).ok, "repair 200, clamped at the 1000 cap")
+	assert_equal(_durability(lot_ref), 1000, "the instance clamps at its cap")
+	assert_equal(_mirror_durability(owner), 1000, "and the mirror followed that too")
+	assert_true(_store.audit_equipment_mirror().ok, "so the mirror audit is clean")
+
+
+func test_the_mirror_audit_catches_a_hand_written_mirror() -> void:
+	"""Writing the mirror from anywhere but gear.gd produces a state the audit rejects."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var slot: int = _residents.directory().get_typed_row(owner)
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.equip(lot_ref, owner).ok, "equip")
+	assert_true(_store.audit_equipment_mirror().ok, "the honest mirror audits clean")
+	assert_true(_residents.set_equipped_tool_durability(slot, 17).ok, "hand-write a durability")
+	var audited: InventoryScript.OpResult = _store.audit_equipment_mirror()
+	assert_false(audited.ok, "a mirror that disagrees with the instance is refused")
+	assert_equal(audited.error, GearScript.REFUSE_AUDIT_MIRROR, "named explicitly")
+
+
+func test_the_mirror_audit_catches_a_mirror_with_no_equipped_instance() -> void:
+	"""The other direction: a resident claiming a tool that no gear row backs."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var slot: int = _residents.directory().get_typed_row(owner)
+	assert_true(_residents.set_equipped_tool(slot, _id(&"tool"), 1000).ok, "invent a mirror")
+	var audited: InventoryScript.OpResult = _store.audit_equipment_mirror()
+	assert_false(audited.ok, "an unbacked mirror entry is refused")
+	assert_equal(audited.error, GearScript.REFUSE_AUDIT_MIRROR, "named explicitly")
+
+
+func test_a_refused_equip_leaves_every_store_byte_identical() -> void:
+	"""Allocate before consume: each refusal below happens before the first write, every time."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var second: Vector2i = _resident()
+	var net_lot: Vector2i = _gear(&"net")
+	var tool_lot: Vector2i = _gear(&"tool")
+	assert_true(_store.equip(tool_lot, owner).ok, "one honest equip first")
+	var spare: Vector2i = _gear(&"tool")
+	var inventory_before: PackedByteArray = _inv.state_bytes()
+	var gear_before: PackedByteArray = _store.state_bytes()
+	var mirror_before: PackedByteArray = _residents.equipment_state_bytes()
+	assert_equal(_store.equip(net_lot, second).error, GearScript.REFUSE_EQUIP_KIND_UNSUPPORTED,
+		"a net has no Equipment mirror field, so equipping one refuses")
+	assert_equal(_store.equip(spare, owner).error, GearScript.REFUSE_OWNER_ALREADY_EQUIPPED,
+		"a resident carries one tool, not two")
+	assert_equal(_store.equip(tool_lot, second).error, GearScript.REFUSE_GEAR_EQUIPPED,
+		"already equipped gear cannot be equipped again")
+	assert_equal(_store.equip(spare, CONTAINER_OWNER).error, GearScript.REFUSE_INVALID_OWNER,
+		"a reference that is not in the directory is not an owner")
+	assert_equal(_inv.state_bytes(), inventory_before, "the inventory is byte-identical")
+	assert_equal(_store.state_bytes(), gear_before, "the gear store is byte-identical")
+	assert_equal(_residents.equipment_state_bytes(), mirror_before, "the mirror is byte-identical")
+
+
+func test_an_equip_that_fails_after_the_mirror_write_rolls_all_three_back() -> void:
+	"""The undo path inside `_apply_equip()`, driven by a detach that refuses after preflight."""
+	_inv = RefusingDetachInventory.new(8, 256)
+	var loaded: ItemDefinitionsScript.LoadResult = _defs.load_default(_inv)
+	assert_true(loaded.ok, "the catalog reloads into the substitute inventory: %s" % loaded.error)
+	_container = _inv.create_container(CONTAINER_OWNER, BIG_MASS,
+		InventoryScript.FILTERS_ACCEPT_ALL, TEST_POLICY, true).ref
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var slot: int = _residents.directory().get_typed_row(owner)
+	var lot_ref: Vector2i = _gear(&"tool")
+	var inventory_before: PackedByteArray = _inv.state_bytes()
+	var gear_before: PackedByteArray = _store.state_bytes()
+	var mirror_before: PackedByteArray = _residents.equipment_state_bytes()
+	var equipped: InventoryScript.OpResult = _store.equip(lot_ref, owner)
+	assert_false(equipped.ok, "the forced detach refusal fails the equip")
+	assert_equal(equipped.error, &"FORCED_DETACH_REFUSAL", "carrying the inventory's own reason")
+	assert_false(_residents.has_equipped_tool(slot), "the mirror write was undone")
+	assert_false(_store.is_equipped(lot_ref), "the equipped byte was undone")
+	assert_equal(_store.equipped_count(), 0, "and so was the equipped-row count")
+	assert_equal(_inv.state_bytes(), inventory_before, "the inventory is byte-identical")
+	assert_equal(_store.state_bytes(), gear_before, "the gear store is byte-identical")
+	assert_equal(_residents.equipment_state_bytes(), mirror_before, "the mirror is byte-identical")
+
+
+func test_an_unequip_that_fails_to_shelve_restores_the_equipped_relation() -> void:
+	"""The undo path inside `_apply_unequip()`, driven by an attach that refuses after preflight."""
+	_inv = RefusingAttachInventory.new(8, 256)
+	var loaded: ItemDefinitionsScript.LoadResult = _defs.load_default(_inv)
+	assert_true(loaded.ok, "the catalog reloads into the substitute inventory: %s" % loaded.error)
+	_container = _inv.create_container(CONTAINER_OWNER, BIG_MASS,
+		InventoryScript.FILTERS_ACCEPT_ALL, TEST_POLICY, true).ref
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.equip(lot_ref, owner).ok, "equip")
+	var gear_before: PackedByteArray = _store.state_bytes()
+	var freed: InventoryScript.OpResult = _store.unequip(lot_ref, _container, false)
+	assert_false(freed.ok, "the forced attach refusal fails the unequip")
+	assert_equal(freed.error, &"FORCED_ATTACH_REFUSAL", "carrying the inventory's own reason")
+	assert_true(_store.is_equipped(lot_ref), "the gear is equipped again")
+	assert_equal(_store.owner_of(lot_ref), owner, "by the same owner")
+	assert_equal(_store.equipped_count(), 1, "and the equipped-row count is back")
+	assert_equal(_store.state_bytes(), gear_before, "the gear store is byte-identical")
+
+
+func test_equip_and_unequip_refuse_while_a_job_holds_the_claim() -> void:
+	"""Ruling §4 refuses equipment swaps while claimed, whichever direction they go."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.claim_for_job(lot_ref, JOB_A).ok, "a job claims the tool")
+	assert_equal(_store.equip(lot_ref, owner).error, GearScript.REFUSE_GEAR_CLAIMED,
+		"so it cannot be equipped out from under that job")
+	assert_true(_store.cancel_claim(lot_ref, JOB_A).ok, "release the claim")
+	assert_true(_store.equip(lot_ref, owner).ok, "and now it equips")
+	assert_true(_store.claim_for_job(lot_ref, JOB_A).ok, "the equipped tool is claimed for work")
+	assert_equal(_store.unequip(lot_ref, _container, false).error, GearScript.REFUSE_GEAR_CLAIMED,
+		"and cannot be taken off mid-cycle")
+
+
+func test_set_owner_clear_owner_and_destroy_refuse_while_equipped() -> void:
+	"""The ownership relation an equipped lot's null container is validated against is frozen."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var other: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.equip(lot_ref, owner).ok, "equip")
+	assert_equal(_store.set_owner(_residents.directory(), lot_ref, other).error,
+		GearScript.REFUSE_GEAR_EQUIPPED, "the owner may not be re-pointed while equipped")
+	assert_equal(_store.clear_owner(lot_ref).error, GearScript.REFUSE_GEAR_EQUIPPED,
+		"nor cleared")
+	assert_equal(_store.destroy_gear(_inv, _defs, lot_ref).error,
+		GearScript.REFUSE_LOT_STILL_LIVE, "and the record cannot be destroyed under a live lot")
+	assert_equal(_store.owner_of(lot_ref), owner, "the owner is exactly who it was")
+
+
+func test_a_dead_owner_stops_attesting_and_the_inventory_audit_reports_the_orphan() -> void:
+	"""The proof is re-derived every time it is asked for, so it cannot go stale unnoticed.
+
+	This state is reachable today because no death handler unequips gear yet -- that integration
+	is a named dependency of decision 0061, not something this store may invent. What the test
+	pins is that the state is LOUD: the attestation fails and the audit refuses, rather than a
+	null-container lot quietly surviving its owner.
+	"""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.equip(lot_ref, owner).ok, "equip")
+	assert_true(_store.is_equipped_record(lot_ref), "a live owner attests")
+	assert_true(_inv.audit().ok, "and the inventory audits clean")
+	assert_true(_residents.despawn(owner).ok, "the owner dies")
+	assert_false(_store.is_equipped_record(lot_ref), "the proof is withdrawn at once")
+	var audited: InventoryScript.OpResult = _inv.audit()
+	assert_false(audited.ok, "so the null-container lot is now an orphan")
+	assert_equal(audited.error, InventoryScript.REFUSE_AUDIT_ORPHAN_LOT, "named explicitly")
+	assert_true(_store.unequip(lot_ref, _container, false).ok, "and unequipping is the way out")
+	assert_true(_inv.audit().ok, "which restores a clean audit")
+
+
+func test_only_the_general_tool_may_be_equipped() -> void:
+	"""§4.2's Equipment row has one tool field and no field for carried gear. The rest refuse."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	for key: StringName in [&"net", &"trap", &"ice_kit", &"outfit_tier2"]:
+		var lot_ref: Vector2i = _gear(key)
+		assert_equal(_store.equip(lot_ref, owner).error,
+			GearScript.REFUSE_EQUIP_KIND_UNSUPPORTED,
+			"%s has no Equipment mirror field, so equipping it refuses" % key)
+		assert_equal(_inv.lot_container(lot_ref), _container, "and its lot keeps its container")
+	assert_equal(_store.equipped_count(), 0, "nothing was equipped")
+
+
+func test_equipping_refuses_an_owner_who_is_not_a_live_resident() -> void:
+	"""A null container is only ever permitted for a LIVE owner."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_residents.despawn(owner).ok, "the resident leaves before the equip")
+	var equipped: InventoryScript.OpResult = _store.equip(lot_ref, owner)
+	assert_false(equipped.ok, "a stale owner reference cannot hold equipment")
+	assert_equal(equipped.error, GearScript.REFUSE_INVALID_OWNER, "named explicitly")
+	assert_equal(_inv.lot_container(lot_ref), _container, "and the lot never left its container")
+
+
+func test_equip_refuses_without_its_bindings() -> void:
+	"""With no residents store and no directory there is no mirror and no proof to be had."""
+	var lot_ref: Vector2i = _gear(&"tool")
+	var equipped: InventoryScript.OpResult = _store.equip(lot_ref, Vector2i(1, 1))
+	assert_false(equipped.ok, "an unbound gear store cannot equip anything")
+	assert_equal(equipped.error, GearScript.REFUSE_NOT_BOUND, "named explicitly")
+	assert_false(_store.is_equipped_record(lot_ref), "and it attests for nothing")
+
+
+func test_unequip_lands_in_a_reserved_destination() -> void:
+	"""Ruling §4's "valid reserved destination", end to end through the gear store."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var small: Vector2i = _inv.create_container(CONTAINER_OWNER, TOOL_MASS_G,
+		InventoryScript.FILTERS_ACCEPT_ALL, TEST_POLICY, true).ref
+	var lot_ref: Vector2i = _lot(&"tool")
+	assert_true(_store.create_gear(_inv, _defs, lot_ref, GearScript.MANUFACTURE_BASIC).ok, "made")
+	assert_true(_store.equip(lot_ref, owner).ok, "equip")
+	assert_true(_inv.reserve_container_mass(small, TOOL_MASS_G).ok, "reserve the shelf space")
+	assert_equal(_inv.container_free_mass_g(small), 0, "which leaves no free mass at all")
+	assert_false(_store.unequip(lot_ref, small, false).ok, "an unreserved unequip cannot fit")
+	var freed: InventoryScript.OpResult = _store.unequip(lot_ref, small, true)
+	assert_true(freed.ok, "but the reserved one lands exactly: %s" % freed.error)
+	assert_equal(_inv.container_used_mass_g(small), TOOL_MASS_G, "as used mass")
+	assert_equal(_inv.container_reserved_mass_g(small), 0, "spending the reservation once")
+
+
+func test_rebinding_the_equip_collaborators_refuses_while_gear_is_equipped() -> void:
+	"""The bindings are what the proof is answered from; they may not move underneath it."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.equip(lot_ref, owner).ok, "equip")
+	var rebound: InventoryScript.OpResult = _store.bind_equipment(_inv,
+		_residents.directory(), ResidentsScript.new())
+	assert_false(rebound.ok, "rebinding under a live equipped record refuses")
+	assert_equal(rebound.error, GearScript.REFUSE_GEAR_EQUIPPED, "named explicitly")
+	assert_true(_store.is_equipped_record(lot_ref), "and the proof still answers the same way")
+
+
+# --- GDD §5.9 starter tool seeding -------------------------------------------------------------
+
+func _twelve_owners() -> Array[Vector2i]:
+	"""Spawn the twelve residents §5.9's "one per resident" allots a tool to."""
+	var owners: Array[Vector2i] = []
+	for index: int in range(GearScript.STARTER_TOOL_EQUIPPED):
+		owners.append(_resident())
+	return owners
+
+
+func test_the_starter_allotment_constants_are_the_gdd_numbers() -> void:
+	"""§5.9: 24 initial tool units, 12 equipped, 12 stored, initial tool durability 1000."""
+	assert_equal(GearScript.STARTER_TOOL_TOTAL, 24, "24 initial tool units")
+	assert_equal(GearScript.STARTER_TOOL_EQUIPPED, 12, "12 of them equipped, one per resident")
+	assert_equal(GearScript.STARTER_TOOL_STORED, 12, "and 12 stored")
+	assert_equal(GearScript.STARTER_TOOL_EQUIPPED + GearScript.STARTER_TOOL_STORED,
+		GearScript.STARTER_TOOL_TOTAL, "they are not duplicated: the two halves are the total")
+	assert_equal(GearScript.STARTER_TOOL_DURABILITY, 1000, "at durability 1000")
+
+
+func test_seeding_creates_24_tools_with_12_equipped_and_12_stored() -> void:
+	"""The seeding contract, counted from the stores rather than from its own return value."""
+	_bind_residents()
+	var owners: Array[Vector2i] = _twelve_owners()
+	var seeded: InventoryScript.OpResult = _store.seed_starter_tools(_defs, _container, owners,
+		0, TEST_PROVENANCE)
+	assert_true(seeded.ok, "seeding the starter tools must succeed: %s" % seeded.error)
+	assert_equal(seeded.value, 24, "24 tools were made")
+	assert_equal(_store.active_gear_count(), 24, "24 gear instances exist")
+	assert_equal(_store.equipped_count(), 12, "twelve of them are equipped")
+	assert_equal(_inv.container_lot_count(_container), 12, "and twelve lots are in the container")
+	assert_equal(_inv.total_live_milli(_id(&"tool")), 24000, "24 tool units exist in total")
+	assert_equal(_inv.total_equipped_milli(_id(&"tool")), 12000, "twelve units are equipment")
+	assert_equal(_inv.total_loose_milli(_id(&"tool")), 12000, "twelve units are loose stock")
+	assert_equal(_inv.container_used_mass_g(_container), 12 * TOOL_MASS_G,
+		"and only the stored twelve charge container mass")
+
+
+func test_every_seeded_tool_starts_at_durability_1000() -> void:
+	"""§5.9: "Initial tool durability 1000" -- equipped and stored alike."""
+	_bind_residents()
+	var owners: Array[Vector2i] = _twelve_owners()
+	assert_true(_store.seed_starter_tools(_defs, _container, owners, 0, TEST_PROVENANCE).ok,
+		"seeding must succeed")
+	for owner: Vector2i in owners:
+		assert_equal(_mirror_durability(owner), 1000, "each equipped tool is at 1000")
+	var lot_ref: Vector2i = _inv.container_first_lot(_container)
+	var counted: int = 0
+	# Bounded on purpose: a list walk with no ceiling is how a corrupted `_l_next` turns a test
+	# into a process that has to be killed by hand. The container cannot legally hold 24.
+	while lot_ref != InventoryScript.NULL_REF and counted <= GearScript.STARTER_TOOL_TOTAL:
+		assert_equal(_durability(lot_ref), 1000, "each stored tool is at 1000 too")
+		counted += 1
+		lot_ref = _inv.container_next_lot(lot_ref)
+	assert_equal(counted, 12, "and exactly twelve tools were walked in the container")
+	assert_true(_store.audit_equipment_mirror().ok, "with every mirror agreeing")
+	assert_true(_inv.audit().ok, "and the inventory conserved and unorphaned")
+
+
+func test_starter_seeding_mints_no_outfit_tier2_item() -> void:
+	"""§7.2 step 5: tier-1 clothing is spawn equipment, NOT twelve invented outfit items."""
+	_bind_residents()
+	var owners: Array[Vector2i] = _twelve_owners()
+	assert_true(_store.seed_starter_tools(_defs, _container, owners, 0, TEST_PROVENANCE).ok,
+		"seeding must succeed")
+	assert_equal(_inv.total_live_milli(_id(&"outfit_tier2")), 0,
+		"not one tier-2 outfit was created")
+	assert_equal(_inv.total_sourced_milli(_id(&"outfit_tier2")), 0, "not even and then consumed")
+	assert_equal(_store.active_gear_count(), GearScript.STARTER_TOOL_TOTAL,
+		"the 24 instances are all tools")
+
+
+func test_seeding_refuses_a_cohort_that_is_not_twelve_residents() -> void:
+	"""One tool per resident is an exact allotment, not a lower bound."""
+	_bind_residents()
+	var owners: Array[Vector2i] = [_resident(), _resident()]
+	var seeded: InventoryScript.OpResult = _store.seed_starter_tools(_defs, _container, owners,
+		0, TEST_PROVENANCE)
+	assert_false(seeded.ok, "two owners are not the §5.9 cohort")
+	assert_equal(seeded.error, GearScript.REFUSE_INVALID_OWNER_COUNT, "named explicitly")
+	assert_equal(_store.active_gear_count(), 0, "and nothing was created")
+
+
+func test_seeding_refuses_a_repeated_owner() -> void:
+	"""Twelve entries naming eleven residents would leave one of them with two tools."""
+	_bind_residents()
+	var owners: Array[Vector2i] = _twelve_owners()
+	owners[11] = owners[0]
+	var seeded: InventoryScript.OpResult = _store.seed_starter_tools(_defs, _container, owners,
+		0, TEST_PROVENANCE)
+	assert_false(seeded.ok, "a repeated owner is refused")
+	assert_equal(seeded.error, GearScript.REFUSE_DUPLICATE_OWNER, "named explicitly")
+	assert_equal(_store.active_gear_count(), 0, "and nothing was created")
+
+
+func test_a_seeding_that_runs_out_of_container_space_undoes_itself_whole() -> void:
+	"""Inventory capacity is refused by inventory, mid-seed. The rollback must undo it whole.
+
+	NOT byte-identical on the inventory side, and deliberately not asserted to be: creating and
+	retiring a lot advances that slot's generation, and `_advance_generations()` exists precisely
+	so a reference taken before can never validate after. What IS asserted is everything that
+	rollback actually owes -- no gear rows, no equipped rows, no lots, no charged mass, an
+	untouched Equipment mirror, and conservation still balancing under a full audit.
+	"""
+	_bind_residents()
+	var owners: Array[Vector2i] = _twelve_owners()
+	var tight: Vector2i = _inv.create_container(CONTAINER_OWNER, 4 * TOOL_MASS_G,
+		InventoryScript.FILTERS_ACCEPT_ALL, TEST_POLICY, true).ref
+	var gear_before: PackedByteArray = _store.state_bytes()
+	var mirror_before: PackedByteArray = _residents.equipment_state_bytes()
+	var seeded: InventoryScript.OpResult = _store.seed_starter_tools(_defs, tight, owners, 0,
+		TEST_PROVENANCE)
+	assert_false(seeded.ok, "a container that holds four tools cannot take twelve stored ones")
+	assert_equal(seeded.error, InventoryScript.REFUSE_CAPACITY_EXCEEDED, "named explicitly")
+	assert_equal(_store.active_gear_count(), 0, "every gear row it made was destroyed")
+	assert_equal(_store.equipped_count(), 0, "every equip it made was undone")
+	assert_equal(_inv.container_lot_count(tight), 0, "every lot it made was sunk")
+	assert_equal(_inv.container_used_mass_g(tight), 0, "and the container charges nothing")
+	assert_equal(_inv.live_lot_count(), 0, "no lot survives anywhere")
+	assert_equal(_inv.equipped_lot_count(), 0, "and no null-container lot was left behind")
+	assert_equal(_store.state_bytes(), gear_before, "the gear store is byte-identical")
+	assert_equal(_residents.equipment_state_bytes(), mirror_before, "the mirror is byte-identical")
+	assert_true(_inv.audit().ok, "and conservation still balances after the undo")
+
+
+func test_seeding_refuses_whole_when_the_gear_pool_cannot_hold_24() -> void:
+	"""Allocate before consume: a pool one row short spends nothing at all.
+
+	MUTATION GAP: asserting only that nothing survives is not enough, because a rollback after
+	23 wasted creations also leaves nothing. The preflight is therefore asked directly, and the
+	inventory image is compared byte for byte -- creating and retiring a lot advances its slot
+	generation, so an image that never moved proves nothing was ever created.
+	"""
+	_store = GearScript.new(23)
+	_bind_residents()
+	var owners: Array[Vector2i] = _twelve_owners()
+	var before: PackedByteArray = _inv.state_bytes()
+	var ready: InventoryScript.OpResult = _store.preflight_seed_starter_tools(_defs, owners)
+	assert_false(ready.ok, "the preflight itself refuses, before anything is spent")
+	assert_equal(ready.error, GearScript.REFUSE_CAPACITY_GEAR_INSTANCE, "named explicitly")
+	var seeded: InventoryScript.OpResult = _store.seed_starter_tools(_defs, _container, owners,
+		0, TEST_PROVENANCE)
+	assert_false(seeded.ok, "23 rows cannot hold 24 starter tools")
+	assert_equal(seeded.error, GearScript.REFUSE_CAPACITY_GEAR_INSTANCE, "named explicitly")
+	assert_equal(_inv.live_lot_count(), 0, "and not one lot was created before the refusal")
+	assert_equal(_inv.state_bytes(), before,
+		"the inventory image never moved, so no lot was created and retired on the way")
+
+
+# --- Gaps found by mutation testing, fixed with the tests that were missing --------------------
+
+
+func test_owned_but_unequipped_gear_attests_nothing() -> void:
+	"""MUTATION GAP. `is_equipped_record()` must read the equipped byte, not just the owner.
+
+	`set_owner()` binds a live resident to gear that is merely stored -- §5.4's "worker owns
+	net" -- and a proof that ignored the equipped byte would then let any owned lot out of its
+	container, which is precisely the arbitrary orphan ruling §4 forbids.
+	"""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.set_owner(_residents.directory(), lot_ref, owner).ok, "the gear is owned")
+	assert_equal(_store.owner_of(lot_ref), owner, "by a live resident")
+	assert_false(_store.is_equipped(lot_ref), "but it is not equipped")
+	assert_false(_store.is_equipped_record(lot_ref), "so it attests nothing")
+	var detached: InventoryScript.OpResult = _inv.detach_lot_to_equipment(lot_ref)
+	assert_false(detached.ok, "and the inventory refuses to null its container")
+	assert_equal(detached.error, InventoryScript.REFUSE_NOT_AN_EQUIPPED_RECORD, "named exactly")
+	assert_equal(_inv.lot_container(lot_ref), _container, "the lot keeps its container")
+
+
+func test_equipping_a_worn_tool_carries_its_wear_with_it() -> void:
+	"""MUTATION GAP. Equipping is a transfer of ownership, never a fresh instance.
+
+	Every other equip test starts from a full tool, where a durability reset is invisible. This
+	one wears the tool down FIRST, so a reset to the cap has somewhere to show.
+	"""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var lot_ref: Vector2i = _gear(&"tool")
+	assert_true(_store.claim_for_job(lot_ref, JOB_A).ok, "claim the stored tool for work")
+	assert_true(_store.apply_general_wear_into(lot_ref, JOB_A, 3700000, 0, _wear), "wear 370")
+	assert_equal(_durability(lot_ref), 630, "the stored tool is down to 630")
+	var equipped: InventoryScript.OpResult = _store.equip(lot_ref, owner)
+	assert_true(equipped.ok, "equipping a worn tool must succeed: %s" % equipped.error)
+	assert_equal(_durability(lot_ref), 630, "and it is STILL 630: equipping resets nothing")
+	assert_equal(equipped.value, 630, "the reported durability is the worn one")
+	assert_equal(_mirror_durability(owner), 630, "and the mirror took the worn value")
+	assert_true(_store.unequip(lot_ref, _container, false).ok, "unequip")
+	assert_equal(_durability(lot_ref), 630, "still 630 on the way home too")

@@ -33,14 +33,28 @@ extends RefCounted
 ## exist: `scripts/core/scheduler_events.gd` implements R07-SCHED-001's separate
 ## 256-record queue, its own unsigned 64-bit sequence, and the boundary pump that
 ## `advance()`'s `before_tick` hook calls before each fixed-tick decision and on
-## paused frames (decision 0054). The ordering tiebreak that was missing is that
+## paused frames WHEN A CALLER SUPPLIES IT -- and no production caller does; see
+## open item 1 below (decision 0054). The ordering tiebreak that was missing is that
 ## sequence; the ARCH-CMD-003 catalog is deliberately still 24 economic kinds,
 ## because the scheduler queue has its own two-value kind domain.
 ##
-## STILL OPEN, and it is persistence only: THERE IS NO SAVE MODULE in this
-## repository, so ARCH-SAVE-002 §12's scheduler subsection is implemented as an
-## encoder, a decoder and its validation, and is UNWIRED. A paused queue cannot
-## yet survive a process restart. Task 09 owns the codec.
+## TWO THINGS ARE STILL OPEN, NOT ONE.
+##
+##   1. THE QUEUE HAS NO PRODUCTION CALLER. `scheduler_events.gd` is preloaded
+##      by nothing but its own test file; the three other mentions of it in this
+##      repository -- `commands.gd`, `command_dispatch.gd` and
+##      `settlement_system.gd` -- are prose. The shipping driver is
+##      `scripts/systems/game_manager.gd`, whose `advance_host_time()` calls
+##      `advance(elapsed, step, day_boundary)` passing NEITHER `before_tick` NOR
+##      `on_overload`, and whose pause and speed controls call `set_pause()` and
+##      `set_speed()` directly. So in the running game the boundary barrier, the
+##      unsigned-sequence tiebreak, the 250/256 reserve and decision 0054's
+##      queued-overload behaviour DO NOT HAPPEN. They are implemented, tested and
+##      unreached. Decision 0054's open list carries what wiring them needs.
+##   2. PERSISTENCE. THERE IS NO SAVE MODULE in this repository, so
+##      ARCH-SAVE-002 §12's scheduler subsection is implemented as an encoder, a
+##      decoder and its validation, and is UNWIRED. A paused queue cannot yet
+##      survive a process restart. Task 09 owns the codec.
 ##
 ## set_speed() and set_pause() remain the IMMEDIATE setters and are what the
 ## queue's pump calls; they are no longer the only way in.
@@ -270,7 +284,8 @@ func advance(elapsed_microseconds: int, step: Callable = Callable(), day_boundar
 	about whether another tick may start, so a pause admitted during tick 3 stops tick 4.
 	`on_overload` replaces the immediate ladder step with the caller's own handling, which
 	`scheduler_events.gd` uses to carry the rung through that same barrier. BOTH DEFAULT TO
-	INVALID, and with them invalid this function behaves exactly as it did before they existed.
+	INVALID, and with them invalid this function behaves exactly as it did before they existed --
+	which is what every production caller gets today, because `game_manager.gd` passes neither.
 	"""
 	_last_error = ""
 	var speed: int = effective_speed()

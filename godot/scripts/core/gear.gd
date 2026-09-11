@@ -127,15 +127,26 @@ extends RefCounted
 ## ---------------------------------------------------------------------------------------
 ## NAMED NEXT INCREMENTS -- documented, deliberately not faked here.
 ##
-##  1. THE EQUIPPED-LOT INVENTORY AMENDMENT. Ruling §4 permits `InventoryLot.container=NULL_REF`
-##     for a validated equipped gear record with a live owner, excluded from loose-stock
-##     availability and from container/satchel mass. It says in the same breath that "the
-##     allocator alone does not authorize null-container lots": `inventory.gd`'s lot validation,
-##     its mass accounting, its availability queries and its consumers must change TOGETHER.
-##     None of that is done here, `inventory.gd` is not weakened to accommodate a lot this change
-##     never creates, and consequently there is NO equip/unequip API below. The `equipped` byte
-##     column is allocated because the ledger budgets it and a save must carry it; it is always 0
-##     in this increment and has a reader but no setter. DEPENDENCY: the inventory amendment.
+##  1. THE EQUIPPED-LOT INVENTORY AMENDMENT IS NOW DONE -- decision 0061, READY_07 §7.2 step 5.
+##     `equip()` and `unequip()` below keep the SAME lot row and the SAME gear row alive across
+##     the transition: no clone, no merge, no durability reset, no second lot. `inventory.gd` was
+##     not weakened to admit a null container; it was tightened. It now demands a PROOF, and this
+##     store is the thing that supplies it: `is_equipped_record()` is the attestation it calls,
+##     and it answers true only for a live row whose `equipped` byte is set and whose recorded
+##     owner is still a live KIND_RESIDENT in the directory. A lot with a null container that
+##     nobody attests for is an orphan, which `inventory.audit()` refuses.
+##
+##     STILL OPEN, and named rather than guessed: `restore_row()` cannot restore an equipped
+##     record. Doing so needs the matching InventoryLot image restored in the same step -- a lot
+##     whose container is null and whose gear row attests -- and `inventory.gd` has no restore
+##     path and this store has no save FORMAT. DEPENDENCY: the save module.
+##
+##     ALSO OPEN: only the general `tool` may be equipped. GDD §4.2's Equipment row is
+##     `tool_item_id, tool_durability, clothing_tier, satchel`, so it has exactly one mirror
+##     field pair and no field for a carried net, trap or ice kit, and tier-2 outfits transfer
+##     through `clothing_tier`, which `needs.gd` owns and this store must not write. Equipping
+##     those four refuses EQUIP_KIND_UNSUPPORTED rather than inventing a mirror field.
+##     DEPENDENCY: an Equipment row shape that names carried gear, and needs.gd for outfits.
 ##
 ##  2. INSTALLED GEAR (boats and weirs). §5.4's weir and boat are installed structures, not
 ##     `ItemDefinition` inventory output, and the ruling states plainly that the boat
@@ -178,6 +189,7 @@ const Inventory := preload("res://scripts/core/inventory.gd")
 const ItemDefinitions := preload("res://scripts/core/item_definitions.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Residents := preload("res://scripts/core/residents.gd")
 
 ## GearInstance rows, systems_architecture.md §3. Already budgeted before this change.
 const ROW_CAPACITY: int = 16384
@@ -299,6 +311,25 @@ const REFUSE_AUDIT_HEAP: StringName = &"AUDIT_HEAP_MISMATCH"
 const REFUSE_AUDIT_DUPLICATE_LOT: StringName = &"AUDIT_DUPLICATE_LOT"
 const REFUSE_AUDIT_DURABILITY: StringName = &"AUDIT_DURABILITY_RANGE"
 const REFUSE_AUDIT_CLAIM: StringName = &"AUDIT_CLAIM_MALFORMED"
+const REFUSE_NO_RESIDENTS: StringName = &"NO_RESIDENTS"
+const REFUSE_NOT_BOUND: StringName = &"EQUIPMENT_NOT_BOUND"
+const REFUSE_GEAR_EQUIPPED: StringName = &"GEAR_EQUIPPED"
+const REFUSE_GEAR_NOT_EQUIPPED: StringName = &"GEAR_NOT_EQUIPPED"
+const REFUSE_EQUIP_KIND_UNSUPPORTED: StringName = &"EQUIP_KIND_UNSUPPORTED"
+const REFUSE_OWNER_NOT_RESIDENT_ROW: StringName = &"OWNER_NOT_RESIDENT_ROW"
+const REFUSE_OWNER_ALREADY_EQUIPPED: StringName = &"OWNER_ALREADY_EQUIPPED"
+const REFUSE_INVALID_OWNER_COUNT: StringName = &"INVALID_OWNER_COUNT"
+const REFUSE_DUPLICATE_OWNER: StringName = &"DUPLICATE_OWNER"
+const REFUSE_AUDIT_MIRROR: StringName = &"AUDIT_EQUIPMENT_MIRROR_MISMATCH"
+
+## GDD §5.9's starter tool allotment, quoted rather than apportioned here: "The 24 initial tool
+## units include 12 equipped tools (one per resident) and 12 stored tools; they are not
+## duplicated", at "initial tool durability 1000". Tier-1 clothing is spawn equipment in the same
+## sentence -- `needs.gd`'s `clothing_tier`, NOT twelve invented `outfit_tier2` ItemDefinitions.
+const STARTER_TOOL_TOTAL: int = 24
+const STARTER_TOOL_EQUIPPED: int = 12
+const STARTER_TOOL_STORED: int = 12
+const STARTER_TOOL_DURABILITY: int = CAP_GENERAL_BASIC
 
 
 class WearOutcome:
@@ -374,6 +405,21 @@ var _id_trap: int = -1
 var _id_ice_kit: int = -1
 var _id_outfit_tier2: int = -1
 
+## Equip/unequip wiring. Not packed state and not saved: three collaborator references, exactly
+## as `residents.gd` holds a directory. `bind_equipment()` is the only writer.
+var _inventory: Inventory = null
+var _directory_binding: EntityDirectory = null
+var _residents: Residents = null
+
+## Bootstrap scratch for `seed_starter_tools()`, sized once: the lot references it created so far,
+## so a mid-seed refusal can undo exactly those and nothing else. Not simulation state.
+var _seed_lot_slot: PackedInt32Array = PackedInt32Array()
+var _seed_lot_generation: PackedInt32Array = PackedInt32Array()
+var _seed_count: int = 0
+## Live rows whose `equipped` byte is set. Maintained by equip/unequip alone -- destroy_gear()
+## and set_owner() refuse while equipped -- and re-derived by audit().
+var _equipped_count: int = 0
+
 var _row_capacity: int = 0
 var _active_count: int = 0
 ## True between `begin_restore()` and `finish_restore()`, while the free heap is not yet derived.
@@ -404,6 +450,8 @@ func _allocate_columns() -> void:
 	_equipped.resize(_row_capacity)
 	_occupied.resize(_row_capacity)
 	_free_heap.resize(_row_capacity)
+	_seed_lot_slot.resize(STARTER_TOOL_TOTAL)
+	_seed_lot_generation.resize(STARTER_TOOL_TOTAL)
 	_claim_job_slot.resize(_row_capacity)
 	_claim_job_generation.resize(_row_capacity)
 
@@ -429,6 +477,8 @@ func clear() -> void:
 	_claim_job_generation.fill(NULL_GENERATION)
 	_refill_heap_ascending()
 	_active_count = 0
+	_equipped_count = 0
+	_seed_count = 0
 	_restoring = false
 
 
@@ -721,6 +771,8 @@ func destroy_gear(inventory: Inventory, definitions: ItemDefinitions,
 		return _refuse(REFUSE_LOT_STILL_LIVE)
 	if _claim_job_slot[row] != NULL_SLOT:
 		return _refuse(REFUSE_GEAR_CLAIMED)
+	if _equipped[row] == 1:
+		return _refuse(REFUSE_GEAR_EQUIPPED)
 	_free_row(row)
 	return _ok(lot_ref, 1)
 
@@ -744,6 +796,10 @@ func set_owner(directory: EntityDirectory, lot_ref: Vector2i,
 		return _refuse(REFUSE_NO_SUCH_GEAR)
 	if _claim_job_slot[row] != NULL_SLOT:
 		return _refuse(REFUSE_GEAR_CLAIMED)
+	if _equipped[row] == 1:
+		# The owner of an equipped record is what `inventory.gd` validates its null container
+		# against. Re-pointing it here would strand that lot; `unequip()` is the way out.
+		return _refuse(REFUSE_GEAR_EQUIPPED)
 	if not directory.is_valid(owner_ref):
 		return _refuse(REFUSE_INVALID_OWNER)
 	if not directory.is_valid_of_kind(owner_ref, EntityDirectory.KIND_RESIDENT):
@@ -754,12 +810,14 @@ func set_owner(directory: EntityDirectory, lot_ref: Vector2i,
 
 
 func clear_owner(lot_ref: Vector2i) -> Inventory.OpResult:
-	"""Return a gear instance to unowned stock. Refused while the gear is claimed."""
+	"""Return a gear instance to unowned stock. Refused while claimed, and while equipped."""
 	var row: int = _resolve_row(lot_ref)
 	if row == NULL_ROW:
 		return _refuse(REFUSE_NO_SUCH_GEAR)
 	if _claim_job_slot[row] != NULL_SLOT:
 		return _refuse(REFUSE_GEAR_CLAIMED)
+	if _equipped[row] == 1:
+		return _refuse(REFUSE_GEAR_EQUIPPED)
 	_owner_slot[row] = NULL_SLOT
 	_owner_generation[row] = NULL_GENERATION
 	return _ok(lot_ref, 1)
@@ -789,6 +847,422 @@ func has_live_owner(directory: EntityDirectory, lot_ref: Vector2i) -> bool:
 	if recorded == NULL_REF:
 		return false
 	return directory.is_valid(recorded)
+
+
+# --- Equipped gear (ruling §4; READY_07 §7.2 step 5; decision 0061) ---------------------------
+
+func bind_equipment(inventory: Inventory, directory: EntityDirectory,
+		residents: Residents) -> Inventory.OpResult:
+	"""Wire the three stores an equip needs, and register this store as inventory's authority.
+
+	Refused while any row is equipped: the bindings are what `is_equipped_record()` answers from,
+	so swapping them under a live equipped record would change the answer to a proof
+	`inventory.gd` has already accepted. `.value` is the equipped-row count.
+	"""
+	if inventory == null:
+		return _refuse(REFUSE_NO_INVENTORY)
+	if directory == null:
+		return _refuse(REFUSE_NO_DIRECTORY)
+	if residents == null:
+		return _refuse(REFUSE_NO_RESIDENTS)
+	if _equipped_count > 0:
+		return _refuse(REFUSE_GEAR_EQUIPPED)
+	var registered: Inventory.OpResult = inventory.set_equipment_authority(self)
+	if not registered.ok:
+		return registered
+	_inventory = inventory
+	_directory_binding = directory
+	_residents = residents
+	return _ok(NULL_REF, _equipped_count)
+
+
+func is_equipment_bound() -> bool:
+	"""True when all three equip collaborators are wired."""
+	return _inventory != null and _directory_binding != null and _residents != null
+
+
+func equipped_count() -> int:
+	"""Number of live gear rows currently equipped by a resident."""
+	return _equipped_count
+
+
+func is_equipped_record(lot_ref: Vector2i) -> bool:
+	"""THE PROOF `inventory.gd` demands before it will let a lot carry a null container.
+
+	True only when all three hold at once: a live gear row records exactly this
+	`(slot, generation)` lot reference; its `equipped` byte is set; and its recorded owner still
+	resolves in the directory as a live resident. An owner who dies stops attesting immediately,
+	which is how `inventory.audit()` finds the orphan rather than the orphan staying invisible.
+
+	PURE READ, and it must stay one: `inventory.gd` refuses every mutator while this runs.
+	"""
+	if _directory_binding == null:
+		return false
+	var row: int = _resolve_row(lot_ref)
+	if row == NULL_ROW or _equipped[row] != 1:
+		return false
+	return _directory_binding.is_valid_of_kind(
+		Vector2i(_owner_slot[row], _owner_generation[row]), EntityDirectory.KIND_RESIDENT)
+
+
+func preflight_equip(lot_ref: Vector2i, owner_ref: Vector2i) -> Inventory.OpResult:
+	"""Answer "could this tool be equipped?" without writing a byte. `.value` is its durability."""
+	var code: StringName = _check_equip(lot_ref, owner_ref)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _ok(lot_ref, _durability[_resolve_row(lot_ref)])
+
+
+func equip(lot_ref: Vector2i, owner_ref: Vector2i) -> Inventory.OpResult:
+	"""Put a stored tool onto a resident: the SAME lot, the SAME instance, the SAME durability.
+
+	Nothing is cloned, merged or re-rolled. `.value` is the durability, which is identical before
+	and after. Three stores change together -- the resident's Equipment mirror, this row's owner
+	and `equipped` byte, and the lot's container -- and an equip that cannot finish leaves all
+	three byte-identical, because the fallible steps run first and every write after one is an
+	unconditional column assignment that the failure path reverses.
+	"""
+	var code: StringName = _check_equip(lot_ref, owner_ref)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var row: int = _resolve_row(lot_ref)
+	var owner_row: int = _directory_binding.get_typed_row(owner_ref)
+	var applied: StringName = _apply_equip(row, lot_ref, owner_ref, owner_row)
+	if applied != REFUSE_NONE:
+		return _refuse(applied)
+	return _ok(lot_ref, _durability[row])
+
+
+func _apply_equip(row: int, lot_ref: Vector2i, owner_ref: Vector2i, owner_row: int) -> StringName:
+	"""Write the mirror, the ownership and the null container; undo all three on a refusal."""
+	var mirrored: Residents.OpResult = _residents.set_equipped_tool(owner_row, _item_id[row],
+		_durability[row])
+	if not mirrored.ok:
+		return mirrored.error
+	var previous_slot: int = _owner_slot[row]
+	var previous_generation: int = _owner_generation[row]
+	_owner_slot[row] = owner_ref.x
+	_owner_generation[row] = owner_ref.y
+	_equipped[row] = 1
+	_equipped_count += 1
+	var detached: Inventory.OpResult = _inventory.detach_lot_to_equipment(lot_ref)
+	if detached.ok:
+		return REFUSE_NONE
+	_equipped[row] = 0
+	_equipped_count -= 1
+	_owner_slot[row] = previous_slot
+	_owner_generation[row] = previous_generation
+	_residents.clear_equipped_tool(owner_row)
+	return detached.error
+
+
+func _check_equip(lot_ref: Vector2i, owner_ref: Vector2i) -> StringName:
+	"""Every precondition for equipping, checked before a single byte moves.
+
+	Only the general `tool` is admitted; see named next increment 1 for why a net, a trap, an ice
+	kit and a tier-2 outfit refuse instead of being given an invented Equipment mirror field.
+	"""
+	if not is_equipment_bound():
+		return REFUSE_NOT_BOUND
+	if _inventory.is_transaction_open():
+		return REFUSE_INVENTORY_TRANSACTION_OPEN
+	var row: int = _resolve_row(lot_ref)
+	if row == NULL_ROW:
+		return REFUSE_NO_SUCH_GEAR
+	if _equipped[row] == 1:
+		return REFUSE_GEAR_EQUIPPED
+	if _claim_job_slot[row] != NULL_SLOT:
+		return REFUSE_GEAR_CLAIMED
+	if _item_id[row] != _id_tool:
+		return REFUSE_EQUIP_KIND_UNSUPPORTED
+	var owner_code: StringName = _check_equip_owner(owner_ref)
+	if owner_code != REFUSE_NONE:
+		return owner_code
+	var ready: Inventory.OpResult = _inventory.preflight_detach_to_equipment(lot_ref)
+	return REFUSE_NONE if ready.ok else ready.error
+
+
+func _check_equip_owner(owner_ref: Vector2i) -> StringName:
+	"""The owner must be a live resident with a present row and no tool already equipped.
+
+	§4.2 gives a resident exactly one `tool_item_id`, so a second tool refuses rather than
+	displacing the first into a lot with no container and no mirror.
+	"""
+	if not _directory_binding.is_valid(owner_ref):
+		return REFUSE_INVALID_OWNER
+	if not _directory_binding.is_valid_of_kind(owner_ref, EntityDirectory.KIND_RESIDENT):
+		return REFUSE_OWNER_KIND_UNSUPPORTED
+	var owner_row: int = _directory_binding.get_typed_row(owner_ref)
+	if not _residents.is_present(owner_row):
+		return REFUSE_OWNER_NOT_RESIDENT_ROW
+	if _residents.has_equipped_tool(owner_row):
+		return REFUSE_OWNER_ALREADY_EQUIPPED
+	return REFUSE_NONE
+
+
+func preflight_unequip(lot_ref: Vector2i, dest_ref: Vector2i,
+		from_reserved_mass: bool) -> Inventory.OpResult:
+	"""Answer "could this tool be shelved here?" without writing a byte. `.value` is durability."""
+	var code: StringName = _check_unequip(lot_ref, dest_ref, from_reserved_mass)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _ok(lot_ref, _durability[_resolve_row(lot_ref)])
+
+
+func unequip(lot_ref: Vector2i, dest_ref: Vector2i,
+		from_reserved_mass: bool) -> Inventory.OpResult:
+	"""Return THE SAME lot to a valid destination container. Durability is not reset or rolled.
+
+	`from_reserved_mass` spends grams the destination reserved for exactly this lot, which is
+	what ruling §4's "valid reserved destination" buys. `.value` is the durability, unchanged.
+	"""
+	var code: StringName = _check_unequip(lot_ref, dest_ref, from_reserved_mass)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var row: int = _resolve_row(lot_ref)
+	var applied: StringName = _apply_unequip(row, lot_ref, dest_ref, from_reserved_mass)
+	if applied != REFUSE_NONE:
+		return _refuse(applied)
+	return _ok(lot_ref, _durability[row])
+
+
+func _apply_unequip(row: int, lot_ref: Vector2i, dest_ref: Vector2i,
+		from_reserved_mass: bool) -> StringName:
+	"""Drop the equipped relation, shelve the same lot, then empty the Equipment mirror.
+
+	The relation is dropped FIRST because `inventory.gd` refuses to shelve a lot its authority
+	still calls equipped -- which is the door that would otherwise admit a lot charging container
+	mass while counting as equipment. A refused shelving puts the relation back exactly.
+	"""
+	var owner_ref: Vector2i = Vector2i(_owner_slot[row], _owner_generation[row])
+	_equipped[row] = 0
+	_equipped_count -= 1
+	_owner_slot[row] = NULL_SLOT
+	_owner_generation[row] = NULL_GENERATION
+	var attached: Inventory.OpResult = _inventory.attach_equipped_lot(lot_ref, dest_ref,
+		from_reserved_mass)
+	if not attached.ok:
+		_equipped[row] = 1
+		_equipped_count += 1
+		_owner_slot[row] = owner_ref.x
+		_owner_generation[row] = owner_ref.y
+		return attached.error
+	_clear_owner_mirror(owner_ref)
+	return REFUSE_NONE
+
+
+func _check_unequip(lot_ref: Vector2i, dest_ref: Vector2i,
+		from_reserved_mass: bool) -> StringName:
+	"""Every precondition for unequipping, checked before a single byte moves."""
+	if not is_equipment_bound():
+		return REFUSE_NOT_BOUND
+	if _inventory.is_transaction_open():
+		return REFUSE_INVENTORY_TRANSACTION_OPEN
+	var row: int = _resolve_row(lot_ref)
+	if row == NULL_ROW:
+		return REFUSE_NO_SUCH_GEAR
+	if _equipped[row] != 1:
+		return REFUSE_GEAR_NOT_EQUIPPED
+	if _claim_job_slot[row] != NULL_SLOT:
+		return REFUSE_GEAR_CLAIMED
+	var ready: Inventory.OpResult = _inventory.preflight_attach_equipped_lot(lot_ref, dest_ref,
+		from_reserved_mass)
+	return REFUSE_NONE if ready.ok else ready.error
+
+
+func _clear_owner_mirror(owner_ref: Vector2i) -> void:
+	"""Empty a former owner's Equipment tool fields, when that owner still has a row.
+
+	A resident who died while equipped has no row left -- `despawn()` already cleared it -- so
+	there is nothing to clear and nothing to refuse.
+	"""
+	var owner_row: int = _directory_binding.get_typed_row(owner_ref)
+	if owner_row == EntityDirectory.NULL_SLOT or not _residents.is_present(owner_row):
+		return
+	_residents.clear_equipped_tool(owner_row)
+
+
+func _set_durability(row: int, value: int) -> void:
+	"""THE ONE place a live row's durability changes, so the Equipment mirror cannot fall behind.
+
+	Fishing completion, general wear and repair all land here. When the row is equipped the
+	owner's `Equipment.tool_durability` is rewritten in the same breath, which is why
+	`residents.gd` calls itself a mirror and not a second authority. An owner whose reference has
+	gone stale has no mirror row to write; `inventory.audit()` is what reports that orphan.
+	"""
+	_durability[row] = value
+	if _equipped[row] != 1:
+		return
+	var owner_row: int = _directory_binding.get_typed_row(
+		Vector2i(_owner_slot[row], _owner_generation[row]))
+	if owner_row == EntityDirectory.NULL_SLOT:
+		return
+	_residents.set_equipped_tool_durability(owner_row, value)
+
+
+# --- Starter tool seeding (GDD §5.9; READY_07 §7.2 step 5) ------------------------------------
+
+func preflight_seed_starter_tools(definitions: ItemDefinitions,
+		owner_refs: Array[Vector2i]) -> Inventory.OpResult:
+	"""Answer "could the §5.9 starter tools exist?" without writing a byte. `.value` is 24.
+
+	Checks this store's own concerns -- bindings, the twelve distinct unequipped resident owners,
+	pool capacity for all 24 rows. Container capacity and lot capacity belong to `inventory.gd`
+	and are refused there, which `seed_starter_tools()` undoes whole.
+	"""
+	if not is_equipment_bound():
+		return _refuse(REFUSE_NOT_BOUND)
+	if owner_refs.size() != STARTER_TOOL_EQUIPPED:
+		return _refuse(REFUSE_INVALID_OWNER_COUNT)
+	if definitions == null:
+		return _refuse(REFUSE_NO_DEFINITIONS)
+	var ready: Inventory.OpResult = preflight_create(definitions,
+		definitions.compiled_id(KEY_TOOL), MANUFACTURE_BASIC)
+	if not ready.ok:
+		return ready
+	if _free_count < STARTER_TOOL_TOTAL:
+		return _refuse(REFUSE_CAPACITY_GEAR_INSTANCE)
+	var owners: StringName = _check_seed_owners(owner_refs)
+	if owners != REFUSE_NONE:
+		return _refuse(owners)
+	return _ok(NULL_REF, STARTER_TOOL_TOTAL)
+
+
+func _check_seed_owners(owner_refs: Array[Vector2i]) -> StringName:
+	"""Twelve DISTINCT live residents, each without a tool: §5.9's "one per resident"."""
+	for index: int in range(owner_refs.size()):
+		var owner: Vector2i = owner_refs[index]
+		var code: StringName = _check_equip_owner(owner)
+		if code != REFUSE_NONE:
+			return code
+		for other: int in range(index):
+			if owner_refs[other] == owner:
+				return REFUSE_DUPLICATE_OWNER
+	return REFUSE_NONE
+
+
+func seed_starter_tools(definitions: ItemDefinitions, container_ref: Vector2i,
+		owner_refs: Array[Vector2i], quality: int, provenance: int) -> Inventory.OpResult:
+	"""Create GDD §5.9's 24 starter tools: twelve equipped, twelve stored, durability 1000.
+
+	`.value` is 24. NO `outfit_tier2` item is minted: §5.9 supplies tier-1 clothing as spawn
+	equipment, which `needs.gd` already applies at spawn, and twelve invented outfit items would
+	be the fabricated ItemDefinition ruling §4 forbids. `quality` and `provenance` are passed in
+	because they are opaque compiled catalog enum values (§5.9's PLAIN and STARTER) that this
+	store must not number for itself. A refusal at any point undoes every lot and gear row this
+	call made, leaving both stores exactly as it found them.
+	"""
+	var ready: Inventory.OpResult = preflight_seed_starter_tools(definitions, owner_refs)
+	if not ready.ok:
+		return ready
+	_seed_count = 0
+	for index: int in range(STARTER_TOOL_TOTAL):
+		var owner: Vector2i = owner_refs[index] if index < STARTER_TOOL_EQUIPPED else NULL_REF
+		var code: StringName = _seed_one_tool(definitions, container_ref, owner, quality,
+			provenance)
+		if code == REFUSE_NONE:
+			continue
+		_rollback_seed(container_ref)
+		return _refuse(code)
+	return _ok(container_ref, STARTER_TOOL_TOTAL)
+
+
+func _seed_one_tool(definitions: ItemDefinitions, container_ref: Vector2i, owner_ref: Vector2i,
+		quality: int, provenance: int) -> StringName:
+	"""Create one indivisible starter tool lot and its instance, equipping it when named."""
+	var lot: Inventory.OpResult = _inventory.create_lot(container_ref,
+		definitions.compiled_id(KEY_TOOL), GEAR_LOT_QUANTITY_MILLI, quality, provenance, 0, 0, 0)
+	if not lot.ok:
+		return lot.error
+	var made: Inventory.OpResult = create_gear(_inventory, definitions, lot.ref,
+		MANUFACTURE_BASIC)
+	if not made.ok:
+		_inventory.sink_lot_quantity(lot.ref, GEAR_LOT_QUANTITY_MILLI)
+		return made.error
+	_seed_lot_slot[_seed_count] = lot.ref.x
+	_seed_lot_generation[_seed_count] = lot.ref.y
+	_seed_count += 1
+	if owner_ref == NULL_REF:
+		return REFUSE_NONE
+	var fitted: Inventory.OpResult = equip(lot.ref, owner_ref)
+	return REFUSE_NONE if fitted.ok else fitted.error
+
+
+func _rollback_seed(container_ref: Vector2i) -> void:
+	"""Undo exactly the lots and gear rows this seeding call made, newest first.
+
+	Newest first is what keeps it solvent: the stored tools come back first and free their grams,
+	and each equipped tool needs only its own mass back -- the very mass its equip released --
+	before it is sunk again. Nothing else can have taken that space inside one call.
+	"""
+	while _seed_count > 0:
+		_seed_count -= 1
+		var lot_ref: Vector2i = Vector2i(_seed_lot_slot[_seed_count],
+			_seed_lot_generation[_seed_count])
+		if is_equipped(lot_ref):
+			unequip(lot_ref, container_ref, false)
+		_inventory.sink_lot_quantity(lot_ref, GEAR_LOT_QUANTITY_MILLI)
+		destroy_gear(_inventory, null, lot_ref)
+
+
+# --- Equipment mirror audit -------------------------------------------------------------------
+
+func audit_equipment_mirror() -> Inventory.OpResult:
+	"""Re-derive every resident's Equipment tool fields from this store; refuse on divergence.
+
+	DIAGNOSTIC, not a tick call: it allocates two 512-entry scratch columns. `.value` is the
+	number of residents whose mirror matched. A mirror that can silently disagree with the
+	authoritative GearInstance is the same defect class as counting one lot twice, so it is
+	re-derived here rather than trusted.
+	"""
+	if not is_equipment_bound():
+		return _refuse(REFUSE_NOT_BOUND)
+	var expected_item: PackedInt32Array = PackedInt32Array()
+	expected_item.resize(Residents.RESIDENT_CAPACITY)
+	expected_item.fill(Residents.NO_TOOL_ITEM)
+	var expected_durability: PackedInt32Array = PackedInt32Array()
+	expected_durability.resize(Residents.RESIDENT_CAPACITY)
+	var code: StringName = _collect_expected_mirror(expected_item, expected_durability)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _compare_mirror(expected_item, expected_durability)
+
+
+func _collect_expected_mirror(items: PackedInt32Array,
+		durabilities: PackedInt32Array) -> StringName:
+	"""Fill the expected mirror from every equipped row; refuse a row whose owner is unusable."""
+	for row: int in range(_row_capacity):
+		if _occupied[row] == 0 or _equipped[row] != 1:
+			continue
+		var owner_row: int = _directory_binding.get_typed_row(
+			Vector2i(_owner_slot[row], _owner_generation[row]))
+		if owner_row == EntityDirectory.NULL_SLOT:
+			return REFUSE_AUDIT_MIRROR
+		if items[owner_row] != Residents.NO_TOOL_ITEM:
+			return REFUSE_AUDIT_MIRROR
+		items[owner_row] = _item_id[row]
+		durabilities[owner_row] = _durability[row]
+	return REFUSE_NONE
+
+
+func _compare_mirror(items: PackedInt32Array,
+		durabilities: PackedInt32Array) -> Inventory.OpResult:
+	"""Compare the derived expectation against every resident row, present or not."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	var matched: int = 0
+	for slot: int in range(Residents.RESIDENT_CAPACITY):
+		if items[slot] == Residents.NO_TOOL_ITEM:
+			if _residents.has_equipped_tool(slot):
+				return _refuse(REFUSE_AUDIT_MIRROR)
+			continue
+		if not _residents.equipped_tool_item_id_into(slot, out) or out.value != items[slot]:
+			return _refuse(REFUSE_AUDIT_MIRROR)
+		if not _residents.equipped_tool_durability_into(slot, out):
+			return _refuse(REFUSE_AUDIT_MIRROR)
+		if out.value != durabilities[slot]:
+			return _refuse(REFUSE_AUDIT_MIRROR)
+		matched += 1
+	return _ok(NULL_REF, matched)
 
 
 # --- Exclusive Job claims (decision 0017, REQ-SET-044) ----------------------------------------
@@ -883,7 +1357,7 @@ func complete_cycle(lot_ref: Vector2i, job_ref: Vector2i) -> Inventory.OpResult:
 	var wear: int = _cycle_wear_of_row(row)
 	if _durability[row] < wear:
 		return _refuse(REFUSE_INSUFFICIENT_DURABILITY)
-	_durability[row] -= wear
+	_set_durability(row, _durability[row] - wear)
 	_release_claim(row)
 	return _ok(lot_ref, wear)
 
@@ -924,7 +1398,7 @@ func _debit_general_wear(row: int, completed_mwu: int, remainder_before: int,
 	var demanded: int = total / GENERAL_WEAR_MWU_PER_POINT
 	var remainder_after: int = total % GENERAL_WEAR_MWU_PER_POINT
 	var spent: int = mini(demanded, _durability[row])
-	_durability[row] -= spent
+	_set_durability(row, _durability[row] - spent)
 	var after: int = _durability[row]
 	_release_claim(row)
 	return out.succeed(spent, after, remainder_after, demanded > spent)
@@ -978,7 +1452,7 @@ func repair(lot_ref: Vector2i, restored_points: int) -> Inventory.OpResult:
 		return _refuse(REFUSE_REPAIR_INAPPLICABLE)
 	if restored_points <= 0:
 		return _refuse(REFUSE_INVALID_REPAIR_POINTS)
-	_durability[row] = mini(_durability_cap[row], _durability[row] + restored_points)
+	_set_durability(row, mini(_durability_cap[row], _durability[row] + restored_points))
 	return _ok(lot_ref, _durability[row])
 
 
@@ -1114,11 +1588,10 @@ func claim_job_of(lot_ref: Vector2i) -> Vector2i:
 
 
 func is_equipped(lot_ref: Vector2i) -> bool:
-	"""The ledger's `equipped` byte. ALWAYS false in this increment -- there is no setter.
+	"""The ledger's `equipped` byte: true while a resident is wearing or carrying this gear.
 
-	Equip/unequip needs the ruling's `InventoryLot.container=NULL_REF` amendment, which
-	`inventory.gd` and its consumers must adopt together; see named next increment 1. The column
-	exists because the ledger budgets it and a save must carry it.
+	This is the raw byte. `is_equipped_record()` is the stronger question `inventory.gd` asks,
+	because it also requires the recorded owner to still be alive.
 	"""
 	var row: int = _resolve_row(lot_ref)
 	return row != NULL_ROW and _equipped[row] == 1
@@ -1421,10 +1894,14 @@ func audit() -> Inventory.OpResult:
 func _audit_occupancy() -> StringName:
 	"""Occupancy, live count and free heap must all describe the same set of rows."""
 	var occupied: int = 0
+	var equipped: int = 0
 	for row: int in range(_row_capacity):
 		if _occupied[row] == 1:
 			occupied += 1
+			equipped += _equipped[row]
 	if occupied != _active_count or occupied + _free_count != _row_capacity:
+		return REFUSE_AUDIT_OCCUPANCY
+	if equipped != _equipped_count:
 		return REFUSE_AUDIT_OCCUPANCY
 	for index: int in range(_free_count):
 		var row: int = _free_heap[index]

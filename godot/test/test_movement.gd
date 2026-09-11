@@ -24,6 +24,12 @@ const LARGE_CAP_U_PER_S: int = 3072
 const ANCHOR_X: int = 192
 const ANCHOR_Z: int = 288
 
+## A teleport destination with no authored cell under it, and a height that is deliberately NOT the
+## water surface's 0, so a fabricated height is distinguishable from the one the owner wrote. These
+## are test fixture values, not production movement constants.
+const OFF_MAP_UNITS: int = -8192
+const OFF_MAP_Y_UNITS: int = 777
+
 static var _shared_world: SpatialWorldScript = null
 
 var _world: SpatialWorldScript = null
@@ -77,12 +83,17 @@ func _spawn_at(species: StringName, cell: int) -> Vector2i:
 	var spawned: Variant = _residents.spawn(species)
 	assert_true(spawned.ok, "the resident spawns (error was %s)" % spawned.error)
 	var resident: Vector2i = spawned.ref
+	_place_on(resident, cell, "the resident is placed on the cell centre")
+	return resident
+
+
+func _place_on(resident: Vector2i, cell: int, message: String) -> void:
+	"""Place a resident on a cell centre at the surface layer, asserting the placement took."""
 	assert_true(
 		_transforms.place(
 			resident, SpatialWorldScript.cell_centre_x_units(cell),
 			SpatialWorldScript.LAYER_SURFACE, SpatialWorldScript.cell_centre_z_units(cell), 0),
-		"the resident is placed on the cell centre")
-	return resident
+		message)
 
 
 func _route_between(start_cell: int, goal_cell: int) -> int:
@@ -312,6 +323,110 @@ func test_a_cancelled_route_stops_the_body_where_it_stands() -> void:
 	assert_equal(_movement.travelling_count(), 0, "nothing is travelling")
 
 
+func test_a_successor_in_a_despawned_travellers_row_does_not_inherit_the_route() -> void:
+	"""A motion row outlives its occupant; a route must not. The cursor names its owner, not its row.
+
+	`residents.despawn()` does not call `movement.stop()` and nothing else does, so the row is left
+	reading TRAVELLING on a still-READY request. With the typed row handed straight back to the next
+	spawn, an owner-blind cursor walks the SUCCESSOR along its predecessor's route and keeps the
+	travelling count a resident too high for the whole interval.
+	"""
+	var mouse: Vector2i = _travelling_mouse(_cell(ANCHOR_X + 30, ANCHOR_Z))
+	var row: int = _directory.get_typed_row(mouse)
+	for tick: int in 5:
+		_movement.advance_tick(tick + 1)
+	assert_equal(_movement.travelling_count(), 1, "one body is mid-route")
+	assert_true(_residents.despawn(mouse).ok, "it despawns, and nobody calls stop()")
+	var heir: Variant = _residents.spawn(&"mouse")
+	assert_true(heir.ok, "a successor spawns (error was %s)" % heir.error)
+	var successor: Vector2i = heir.ref
+	assert_equal(_directory.get_typed_row(successor), row, "into the very same typed row")
+	var parked: int = _cell(ANCHOR_X, ANCHOR_Z + 40)
+	_place_on(successor, parked, "and is placed somewhere of its own")
+	var before: int = _transforms.authoritative_digest()
+	assert_equal(_movement.advance_tick(6), 0, "no body advances on the next tick")
+	assert_equal(
+		_transforms.authoritative_digest(), before,
+		"the successor is not walked one unit along a route it never asked for")
+	assert_equal(
+		_x_of(successor), SpatialWorldScript.cell_centre_x_units(parked), "it stands where it was put")
+	assert_equal(
+		_movement.motion_phase_name(successor), &"ROUTE_LOST", "the row settles on the owner mismatch")
+	assert_equal(_movement.travelling_count(), 0, "and the travelling count is not left inflated")
+
+
+func test_the_route_cursor_records_its_owner_and_releases_it_on_stop() -> void:
+	"""The stamp is the owner's never-reused persistent id, NOT a generation two slots both carry.
+
+	The unrelated entity created first is what makes the difference observable: it takes persistent
+	id 1, so the traveller's id and its slot generation are different numbers and an implementation
+	that stamped the generation cannot pass by coincidence.
+	"""
+	var earlier: Vector2i = _directory.create(EntityDirectoryScript.KIND_JOB)
+	assert_true(earlier.x >= 0, "an unrelated entity takes the first persistent id")
+	var mouse: Vector2i = _travelling_mouse(_cell(ANCHOR_X + 30, ANCHOR_Z))
+	var owner_id: int = _directory.get_persistent_id(mouse)
+	assert_true(owner_id > 0, "a live resident has a persistent id")
+	assert_true(owner_id != mouse.y, "which is not its generation -- a fresh slot's is always 1")
+	assert_equal(_movement.route_owner_id_of(mouse), owner_id, "the cursor was stamped with it")
+	for tick: int in 10:
+		_movement.advance_tick(tick + 1)
+	assert_equal(
+		_movement.motion_phase_name(mouse), &"TRAVELLING",
+		"and the owner it names keeps travelling on its own route")
+	assert_true(_movement.stop(mouse), "stop it")
+	assert_equal(
+		_movement.route_owner_id_of(mouse), MovementScript.NO_OWNER_ID,
+		"and stopping releases the ownership stamp with the rest of the cursor")
+
+
+func test_one_clamp_step_publishes_both_scalars_and_leaves_no_stray_budget() -> void:
+	"""The refactor's own contract: `_consume_into` writes the new position AND what is left.
+
+	Both outputs are instance scalars rather than a returned pair, because `_advance_row()` runs once
+	per travelling resident per tick and CLAUDE.md bans constructing objects there. Exercised
+	directly, as `test_needs.gd` exercises `_integrate_step`, because the partial-step branch's
+	leftover is not observable from outside: `_spend_budget()` breaks out of its loop the moment an
+	axis falls short, so a mutant that banked the spent budget there survives every public path.
+	"""
+	_movement._consume_into(100, 400, 500)
+	assert_equal(_movement._step_position, 400, "a budget past the gap lands exactly on the target")
+	assert_equal(_movement._step_budget, 200, "keeping only what the 300-unit segment did not cost")
+	_movement._consume_into(100, 400, 30)
+	assert_equal(_movement._step_position, 130, "a short budget moves as far as it reaches")
+	assert_equal(_movement._step_budget, 0, "and is spent whole -- a partial step banks nothing")
+	_movement._consume_into(400, 100, 30)
+	assert_equal(_movement._step_position, 370, "the same travelling the other way")
+	assert_equal(_movement._step_budget, 0, "and still spent whole")
+	_movement._consume_into(400, 400, 55)
+	assert_equal(_movement._step_position, 400, "a target already reached does not move")
+	assert_equal(_movement._step_budget, 55, "and its whole budget survives for the next segment")
+
+
+func test_a_body_off_the_authored_map_is_settled_rather_than_given_a_fabricated_height() -> void:
+	"""`world_init.gd`'s `WATER_SURFACE_Y_UNITS` is 0, so 0 cannot double as "no height found".
+
+	A failed height lookup that answered 0 would be indistinguishable from standing on open water,
+	and `transforms.advance()` would commit it as authoritative state. The lookup refuses instead.
+	"""
+	var mouse: Vector2i = _travelling_mouse(_cell(ANCHOR_X + 30, ANCHOR_Z))
+	_movement.advance_tick(1)
+	assert_true(
+		_transforms.place(mouse, OFF_MAP_UNITS, OFF_MAP_Y_UNITS, OFF_MAP_UNITS, 0),
+		"its owner teleports it clean off the authored map")
+	var before: int = _transforms.authoritative_digest()
+	assert_equal(_movement.advance_tick(2), 0, "the tick moves nothing")
+	assert_equal(
+		_movement.motion_phase_name(mouse), &"ROUTE_LOST",
+		"a position with no authored height settles the body instead of inventing one")
+	assert_equal(
+		_transforms.authoritative_digest(), before,
+		"and no height -- least of all the water surface's 0 -- is committed for it")
+	assert_true(_transforms.read_into(mouse, _pose), "its pose still reads")
+	assert_equal(_pose.y, OFF_MAP_Y_UNITS, "at exactly the height its owner set, not a fabricated 0")
+	assert_equal(_pose.x, OFF_MAP_UNITS, "and it did not creep toward its abandoned route")
+
+
 func test_stopping_clears_the_route_and_both_remainders() -> void:
 	"""An explicit stop returns the row to idle without leaving a half-spent fraction behind."""
 	var mouse: Vector2i = _travelling_mouse(_cell(ANCHOR_X + 30, ANCHOR_Z))
@@ -361,13 +476,14 @@ func test_a_paused_clock_runs_no_ticks_and_changes_no_state() -> void:
 	var mouse: Vector2i = _travelling_mouse(_cell(ANCHOR_X + 30, ANCHOR_Z))
 	var clock: SimClockScript = SimClockScript.new()
 	var before: int = _transforms.authoritative_digest()
+	var before_x: int = _x_of(mouse)
 	var ticks: int = 0
 	for frame: int in 120:
 		ticks += clock.advance(33334, func() -> void: _movement.advance_tick(ticks + 1))
 	assert_equal(ticks, 0, "a paused clock drains no ticks")
 	assert_equal(
 		_transforms.authoritative_digest(), before, "and the authoritative state is untouched")
-	assert_equal(_x_of(mouse), _x_of(mouse), "the body is exactly where it was")
+	assert_equal(_x_of(mouse), before_x, "the body is exactly where it was")
 
 
 func _digest_after_ticks_at_speed(speed: int, wanted: int) -> int:

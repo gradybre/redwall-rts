@@ -4,7 +4,7 @@ extends "res://test/framework/test_case.gd"
 ## These check the MEASURING INSTRUMENT, not the ledger's conclusions: that reflection finds
 ## every packed column, that a column's bytes come from its own `size()`, that the named-
 ## column filter really filters, that the store walk builds one world and not four, and that
-## the transcribed §2.3 rows still add up to the 60821078 the document prints.
+## the transcribed §2.3 rows still add up to the 60823126 the document prints.
 ##
 ## The handful of absolute byte figures asserted below are all §2.3 allocation rows with a
 ## fixed derivation in the document (262144 cells x 14 bytes, 4096 records x 64 bytes, and
@@ -15,7 +15,7 @@ const Probe := preload("res://tools/memory_ledger_probe.gd")
 const LedgerRows := preload("res://tools/memory_ledger_rows.gd")
 
 ## §2.3 prints this as the sum of its 24 allocation rows.
-const PRINTED_PAYLOAD: int = 60821078
+const PRINTED_PAYLOAD: int = 60823126
 ## §2.3's allocation table has exactly this many printed rows.
 const PRINTED_ROW_COUNT: int = 24
 ## ARCH-ID-001's directory length G.
@@ -205,7 +205,7 @@ func test_empty_string_slots_are_measured_not_assumed() -> void:
 
 
 func test_transcribed_rows_reproduce_the_printed_payload() -> void:
-	"""The transcription must add to §2.3's own printed 60821078 across 24 rows."""
+	"""The transcription must add to §2.3's own printed 60823126 across 24 rows."""
 	assert_equal(_rows.rows().size(), PRINTED_ROW_COUNT, "twenty-four allocation rows")
 	assert_equal(_rows.declared_total(), PRINTED_PAYLOAD, "sum of the printed rows")
 

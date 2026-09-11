@@ -162,6 +162,60 @@ generic UI toggle from clearing CRITICAL or LOAD.
   because no save module exists. `sim_clock.gd`'s two "BLOCKER U2 … not
   implemented" comments were false after this change and have been corrected to
   say precisely that.
+- **The queue is also unwired in the running game** — added 2026-09-11 by the
+  review below, because this record's own wording implied otherwise. See the
+  open list.
+
+## Open, as of 2026-09-11
+
+Two things, not one. `sim_clock.gd`'s header said the only open item was
+persistence; an adversarial review found that false and it has been corrected
+there and here.
+
+### 1. No production caller drains the queue
+
+`scheduler_events.gd` is `preload`ed by exactly one file in this repository,
+`godot/test/test_scheduler_events.gd`. The other three mentions of it —
+`commands.gd:58`, `command_dispatch.gd:145` and `settlement_system.gd:92` — are
+comments. The shipping driver is `godot/scripts/systems/game_manager.gd`, and it
+bypasses the queue completely:
+
+- `advance_host_time()` (`:94`) calls
+  `_clock.advance(elapsed, _step_callable, _day_boundary_callable)`, passing
+  **neither** `before_tick` **nor** `on_overload`.
+- `start_game()` (`:158`), `pause_game()` (`:167`), `resume_game()` (`:175`) and
+  `set_speed()` (`:204`) call `set_pause()`/`set_speed()` directly.
+
+So settled points 2, 5, 6 and the queued-overload behaviour change under "The
+overload ladder now crosses the same barrier" describe code that is implemented,
+tested, and **not reached in play**. Nothing above is retracted: with both hooks
+invalid `advance()` behaves exactly as it did before they existed, which is the
+property `test_the_clocks_direct_ladder_is_unchanged_when_no_hook_is_supplied`
+pins, and that is precisely what production gets today.
+
+**This is recorded, not fixed.** Wiring it is a behaviour change to the running
+game — the overload ladder moves from in-frame to next-frame — and belongs to
+whoever owns `game_manager.gd`, not to a documentation correction.
+
+### 2. What wiring it will have to get right
+
+`start_game()` (`:154`) constructs a **fresh** `SimClockScript.new()` on every
+start, discarding the previous run's clock. A queue built against the old clock
+would keep stamping boundaries from tick numbering that no longer exists, so a
+future wiring must call `scheduler_events.rebind_clock()` there.
+
+`rebind_clock()` (`scheduler_events.gd:1164`) **refuses a non-empty queue** with
+`SCHEDULER_QUEUE_NOT_EMPTY`, because pending records were stamped against the old
+clock's numbering and re-basing them would silently move when a pause or speed
+change takes effect. **The call order is therefore load-bearing**: the queue must
+be drained or cleared before the rebind, and the rebind must precede the first
+`advance()` of the new run. A wiring that rebinds a queue still holding the
+previous session's pause event gets a refusal, and a wiring that ignores that
+refusal runs the new clock against a queue pointed at a dead one.
+
+Also open, and cheaper: nothing yet in production reads
+`event_refusal()`/`last_refusal()` from the queue, so a refused admission today
+would have no UI path.
 - Blocker U3 is **not** closed. The conservative reading stands, now with the
   reconciliation above written down.
 - ARCH-MEM-010 gains **8224** bytes, added once. On this record's own base

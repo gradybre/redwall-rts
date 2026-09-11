@@ -38,9 +38,31 @@ extends RefCounted
 ##
 ## ---------------------------------------------------------------------------------------
 ## MEMORY. The sixteen motion columns ARE 2.3's "Resident motion/separation scratch", 512 x 64
-## bytes. The three-column `ResidentRouteCursor` (512 rows, 6144 bytes) is new, because
-## ARCH-MEM-008's ResidentMotion has no field naming which route a body is following or how far
-## along it is. Decision 0053 records it.
+## bytes. The `ResidentRouteCursor` is new, because ARCH-MEM-008's ResidentMotion has no field
+## naming which route a body is following or how far along it is. Decision 0053 records it at three
+## columns, 6144 bytes; decision 0066 adds the fourth, `_cursor_owner_id`, for **8192** bytes.
+##
+## LEDGER GAP, NAMED NOT INVENTED: that fourth column costs **+2048** bytes, which
+## `systems_architecture.md` §2.3's ResidentRouteCursor row and
+## `docs/validation/ready07_arithmetic.py`'s `DECISION_0053_ADDED` still state as 6144. Both files
+## are owned elsewhere and are byte-unchanged by this work, so the ledger reads 2048 low until
+## their owner applies it. Decision 0066 carries the arithmetic.
+##
+## ---------------------------------------------------------------------------------------
+## THE CURSOR NAMES ITS OWNER, NOT MERELY ITS ROW.
+##
+## A motion row is a TYPED ROW, and typed rows are reused. Resident A travels in row 7, is
+## despawned -- and `residents.despawn()` does not, and is not required to, call `stop()` -- and
+## resident B is created into row 7. `_residents.ref_of(7)` then answers with B's perfectly live
+## reference while `_movement_phase[7]` still reads TRAVELLING and the cursor still names A's
+## route, so B would walk A's route and the travelling count would be a resident too high for the
+## whole interval. `_cursor_owner_id[row]` closes that: the owner's persistent id is stamped at
+## `_attach_route()` and must still match at every `_advance_row()`, or the row settles ROUTE_LOST.
+##
+## IT IS THE PERSISTENT ID AND NOT A GENERATION, for the reason `transforms.gd`'s header gives at
+## length: a generation belongs to a directory SLOT, every slot's first use carries generation 1,
+## and slots and typed rows come from separate free heaps, so a generation stamp matches across
+## two different entities routinely. Persistent ids are never reused.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -86,6 +108,10 @@ const REFUSE_NOT_TRAVELLING: StringName = &"RESIDENT_IS_NOT_TRAVELLING"
 
 const NO_REQUEST: int = -1
 
+## `entity_directory.gd` issues persistent ids from 1 and never reuses one, and answers 0 for a
+## stale reference, so 0 is "this cursor belongs to nobody" and can never collide with an owner.
+const NO_OWNER_ID: int = 0
+
 var _directory: EntityDirectory = null
 var _world: SpatialWorld = null
 var _navigation: Navigation = null
@@ -116,11 +142,25 @@ var _blocked_ticks: PackedInt32Array = PackedInt32Array()
 var _cursor_request: PackedInt32Array = PackedInt32Array()
 var _cursor_route_generation: PackedInt32Array = PackedInt32Array()
 var _cursor_index: PackedInt32Array = PackedInt32Array()
+var _cursor_owner_id: PackedInt32Array = PackedInt32Array()
 
 var _scratch: IntMath.IntResult = IntMath.IntResult.new()
 var _pose: Transforms.Pose = Transforms.Pose.new()
 var _travelling_count: int = 0
 var _last_refusal: StringName = REFUSE_NONE
+
+# --- per-tick scalar scratch, so the hot path constructs nothing ---------------------------------
+#
+# CLAUDE.md bans object creation in a hot loop, and `_advance_row()` runs once per travelling
+# resident per tick -- 256 residents x 30 Hz x 4x. `_consume_into()` and `_spend_budget()` each
+# have two outputs and one caller apiece, so their results are written here instead of into a
+# returned pair. Every value is copied into a local or consumed before the next call that writes
+# it, exactly as `sim_clock.gd`'s `_math` scratch is used.
+
+var _step_position: int = 0
+var _step_budget: int = 0
+var _here_x: int = 0
+var _here_z: int = 0
 
 
 func _init(
@@ -158,12 +198,19 @@ func _allocate_motion() -> void:
 
 
 func _allocate_cursors() -> void:
-	"""Allocate the route cursor columns and mark every row as following no route."""
+	"""Allocate the route cursor columns and mark every row as following no route and owned by none.
+
+	Writing `NO_OWNER_ID` is redundant today -- `resize()` zero-fills and that constant is 0 -- so a
+	mutation removing it survives and is equivalent, recorded in decision 0066. It is written
+	because the column's null value is part of its contract, not a property of the allocator.
+	"""
 	_cursor_request.resize(MOTION_CAPACITY)
 	_cursor_route_generation.resize(MOTION_CAPACITY)
 	_cursor_index.resize(MOTION_CAPACITY)
+	_cursor_owner_id.resize(MOTION_CAPACITY)
 	for row: int in MOTION_CAPACITY:
 		_cursor_request[row] = NO_REQUEST
+		_cursor_owner_id[row] = NO_OWNER_ID
 		_grid_cell[row] = NO_REQUEST
 		_grid_next[row] = NO_REQUEST
 
@@ -212,6 +259,7 @@ func _attach_route(resident: Vector2i, row: int, request_row: int, here: int) ->
 	_cursor_route_generation[row] = _navigation.route_generation_of(
 		_navigation.request_route_id(request_row))
 	_cursor_index[row] = 0
+	_cursor_owner_id[row] = _directory.get_persistent_id(resident)
 	_movement_phase[row] = MOTION_TRAVELLING
 	_travelling_count += 1
 	_advance_cursor_target(row)
@@ -247,6 +295,7 @@ func stop(resident: Vector2i) -> bool:
 	_cursor_request[row] = NO_REQUEST
 	_cursor_route_generation[row] = 0
 	_cursor_index[row] = 0
+	_cursor_owner_id[row] = NO_OWNER_ID
 	_movement_phase[row] = MOTION_IDLE
 	_last_refusal = REFUSE_NONE
 	return true
@@ -294,27 +343,43 @@ func advance_tick(_tick: int) -> int:
 
 
 func _advance_row(row: int) -> bool:
-	"""Advance one travelling resident, settling it if its route or reference no longer holds."""
+	"""Advance one travelling resident, settling it if its route or its owner no longer holds."""
 	var resident: Vector2i = _resident_ref_of(row)
-	if resident.x < 0 or not _route_still_valid(row):
+	if resident.x < 0 or not _cursor_owner_matches(row, resident) or not _route_still_valid(row):
 		_settle(row, MOTION_ROUTE_LOST)
 		return false
 	if not _transforms.read_into(resident, _pose):
 		_settle(row, MOTION_ROUTE_LOST)
 		return false
-	var budget: Vector2i = Vector2i(_integrate_axis(row, true), _integrate_axis(row, false))
-	var here: Vector2i = _spend_budget(row, Vector2i(_pose.x, _pose.z), budget)
-	_vx[row] = here.x - _pose.x
-	_vz[row] = here.y - _pose.z
-	var height: int = _height_at(here.x, here.y)
-	if not _transforms.advance(resident, here.x, height, here.y):
+	var budget_x: int = _integrate_axis(row, true)
+	var budget_z: int = _integrate_axis(row, false)
+	_spend_budget(row, _pose.x, _pose.z, budget_x, budget_z)
+	var here_x: int = _here_x
+	var here_z: int = _here_z
+	if not _height_at_into(here_x, here_z, _scratch):
+		_settle(row, MOTION_ROUTE_LOST)
+		return false
+	var height: int = _scratch.value
+	_vx[row] = here_x - _pose.x
+	_vz[row] = here_z - _pose.z
+	if not _transforms.advance(resident, here_x, height, here_z):
 		_settle(row, MOTION_ROUTE_LOST)
 		return false
 	return true
 
 
-func _spend_budget(row: int, from: Vector2i, budget: Vector2i) -> Vector2i:
-	"""Walk this tick's released displacement along the route, crossing cell boundaries as it goes.
+func _cursor_owner_matches(row: int, resident: Vector2i) -> bool:
+	"""True when the entity now holding this typed row is the one the cursor was attached for.
+
+	A typed row outlives its occupant; a route must not. See the header: the stamp is the owner's
+	never-reused persistent id, so a successor spawned into a despawned traveller's row cannot
+	inherit its route.
+	"""
+	return _cursor_owner_id[row] == _directory.get_persistent_id(resident)
+
+
+func _spend_budget(row: int, from_x: int, from_z: int, budget_x: int, budget_z: int) -> void:
+	"""Walk this tick's released displacement along the route into `_here_x`/`_here_z`.
 
 	CARRYING THE LEFTOVER IS THE WHOLE REASON THIS LOOPS. Clamping at each cell centre and dropping
 	whatever budget remained silently loses part of every tick that happens to land on a boundary --
@@ -326,30 +391,40 @@ func _spend_budget(row: int, from: Vector2i, budget: Vector2i) -> Vector2i:
 	segment entry/exit costs are MOVE-G01 parameter-pack outputs; inventing one here to absorb it
 	would be inventing a production movement constant.
 	"""
-	var position: Vector2i = from
-	var remaining: Vector2i = budget
+	var position_x: int = from_x
+	var position_z: int = from_z
+	var remaining_x: int = budget_x
+	var remaining_z: int = budget_z
 	for _pass: int in MAX_SEGMENTS_PER_TICK:
-		var stepped_x: Vector2i = _consume(position.x, _next_x[row], remaining.x)
-		var stepped_z: Vector2i = _consume(position.y, _next_z[row], remaining.y)
-		position = Vector2i(stepped_x.x, stepped_z.x)
-		remaining = Vector2i(stepped_x.y, stepped_z.y)
-		if position.x != _next_x[row] or position.y != _next_z[row]:
+		_consume_into(position_x, _next_x[row], remaining_x)
+		position_x = _step_position
+		remaining_x = _step_budget
+		_consume_into(position_z, _next_z[row], remaining_z)
+		position_z = _step_position
+		remaining_z = _step_budget
+		if position_x != _next_x[row] or position_z != _next_z[row]:
 			break
 		_arrive_at_target(row)
-		if _movement_phase[row] != MOTION_TRAVELLING or remaining.x + remaining.y <= 0:
+		if _movement_phase[row] != MOTION_TRAVELLING or remaining_x + remaining_z <= 0:
 			break
-	return position
+	_here_x = position_x
+	_here_z = position_z
 
 
-static func _consume(current: int, target: int, budget: int) -> Vector2i:
-	"""Move `current` toward `target` by at most `budget`; return the new value and what is left."""
+func _consume_into(current: int, target: int, budget: int) -> void:
+	"""Move `current` toward `target` by at most `budget`, into `_step_position`/`_step_budget`."""
 	if budget <= 0 or current == target:
-		return Vector2i(current, budget)
+		_step_position = current
+		_step_budget = budget
+		return
 	var delta: int = target - current
 	var distance: int = delta if delta > 0 else -delta
 	if budget >= distance:
-		return Vector2i(target, budget - distance)
-	return Vector2i(current + (budget if delta > 0 else -budget), 0)
+		_step_position = target
+		_step_budget = budget - distance
+		return
+	_step_position = current + (budget if delta > 0 else -budget)
+	_step_budget = 0
 
 
 func _integrate_axis(row: int, is_x: bool) -> int:
@@ -392,14 +467,26 @@ func _segment_is_diagonal(row: int) -> bool:
 	return dx != 0 and dz != 0
 
 
-func _height_at(x_units: int, z_units: int) -> int:
-	"""The authored surface height under a position, so the ford's -128 is travelled, not assumed."""
-	if not _world.cell_of_position_into(x_units, z_units, _scratch):
-		return 0
-	var cell: int = _scratch.value
-	if not _world.height_units_into(cell, _scratch):
-		return 0
-	return _scratch.value
+func _height_at_into(x_units: int, z_units: int, out: IntMath.IntResult) -> bool:
+	"""The authored surface height under a position, or an explicit refusal. Never a sentinel.
+
+	THIS REFUSES BECAUSE 0 IS A REAL HEIGHT. `world_init.gd`'s `WATER_SURFACE_Y_UNITS` is 0, so a
+	returned 0 for "the lookup failed" is indistinguishable from "standing on open water" -- and the
+	value is written straight into `transforms.advance()`, which is authoritative state. A body
+	whose position has left the map has no authored height, and the caller settles it ROUTE_LOST
+	rather than committing a fabricated one. On the ordinary path the authored value is read and
+	not assumed, which is how GDD 5.1's ford at -128 is travelled through rather than skimmed.
+
+	THE SECOND REFUSAL IS UNREACHABLE AND KEPT ANYWAY. `cell_of_position_into()` only succeeds on an
+	in-range cell, which is exactly what `height_units_into()` then checks, so no caller can reach
+	its refusal through this function. A mutation that ignores that return value therefore survives
+	and is equivalent, recorded as such in decision 0066 rather than removed: the guard costs one
+	branch and stops the pair drifting apart if either module's bounds ever change.
+	"""
+	if not _world.cell_of_position_into(x_units, z_units, out):
+		return false
+	var cell: int = out.value
+	return _world.height_units_into(cell, out)
 
 
 func _arrive_at_target(row: int) -> void:
@@ -488,6 +575,12 @@ func route_index_of(resident: Vector2i) -> int:
 	"""How many route cells this resident has already reached."""
 	var row: int = _motion_row(resident)
 	return 0 if row < 0 else _cursor_index[row]
+
+
+func route_owner_id_of(resident: Vector2i) -> int:
+	"""The persistent id this row's cursor was attached for, or NO_OWNER_ID when it follows none."""
+	var row: int = _motion_row(resident)
+	return NO_OWNER_ID if row < 0 else _cursor_owner_id[row]
 
 
 func travelling_count() -> int:

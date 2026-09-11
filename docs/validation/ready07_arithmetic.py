@@ -42,10 +42,17 @@ DECISION_0055_ADDED=16
 # Decision 0054, R07-SCHED-001's scheduler queue: a 24th allocation row, read out of the GDScript
 # so a capacity change that never reaches the ledger fails here instead of drifting silently.
 DECISION_0054_ADDED=SCHEDULER_TOTAL
-assert len(allocations)==24 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED
+# Decision 0066, the route cursor's owner-persistent-id column: 512 rows x 4 bytes. It is a FOURTH
+# column on decision 0053's existing ResidentRouteCursor row, so it lands inside the Auxiliary
+# payload allocation, not as a new allocation row -- the row count stays 24.
+DECISION_0066_ADDED=512*4
+assert DECISION_0066_ADDED==2048
+assert len(allocations)==24 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==60821078
-assert live==69209686 and candidate==54605494 and live+candidate==123815180
+assert payload==60823126
+assert live==69211734 and candidate==54607542 and live+candidate==123819276
+# The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
+assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s
 for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below decimal 100 MB',100000000-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',100000000-live-candidate)]:
  assert f'| {label} | {value} |' in s,label

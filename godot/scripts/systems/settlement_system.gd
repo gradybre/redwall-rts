@@ -18,22 +18,31 @@ extends Node
 ##
 ## ---------------------------------------------------------------------------------------
 ## STAGE ORDER IS `systems_architecture.md` §5's TABLE, NOT CONVENIENCE. Of the 23 systems in
-## that table, SIX are dispatched here, in the table's own order (ARCH-SYS-008 only in part).
-## ARCH-SYS-017 is deliberately NOT counted among the six: it is not a separate call, and two
+## that table, SEVEN are dispatched here, in the table's own order (ARCH-SYS-008 only in part).
+## ARCH-SYS-017 is deliberately NOT counted among the seven: it is not a separate call, and three
 ## earlier revisions of this header disagreed about whether to include it -- one said THREE while
-## listing four, another said FIVE and SIX for the same milestone under different conventions.
-## The count below is of DISPATCHED stages; 017's arrangement is explained after the list:
+## listing four, another said FIVE and SIX for the same milestone under different conventions, and
+## the third ended "That is the sixth" after excluding 017 from a list of six, which named nothing
+## at all. The count below is of DISPATCHED CALL SITES, and the list IS the count:
 ##
 ##   ARCH-SYS-002 CommandCommit      -> `command_dispatch.commit_tick_into()` every tick, FIRST
 ##   ARCH-SYS-003 IntervalIntegrator -> `needs.tick_all()`         every tick, after commit
 ##   ARCH-SYS-005 Ecology            -> `ecology.run_day_into()`   MIDNIGHT ONLY, never per tick
+##   ARCH-SYS-006 CropWeather        -> `crop_weather.run_hour_into()` EVERY HOUR CROSSING, on
+##                                     the tick path, AND `run_day_into()` at MIDNIGHT after 005
 ##   ARCH-SYS-008 NeedIntent (PART)  -> `schedule.resolve_into()`  activity resolution only
 ##   ARCH-SYS-010 JobSelector        -> `jobs.evaluate()`/`assign_worker()`
 ##   ARCH-SYS-013 ProductiveWork     -> `work.tick_solo_into()` / `tick_party_into()`
 ##
+## ARCH-SYS-006 IS ONE STAGE WITH TWO CADENCES, not two stages: its §5 row reads "Hourly crop
+## integration; midnight after Ecology" and both halves belong to `crop_weather.gd`. The hourly
+## half sits in the table's own position, after ARCH-SYS-003 and before the selectors; the daily
+## half is REQ-SET-007's third leg and runs after ARCH-SYS-005's, never before it.
+##
 ## ARCH-SYS-017 CareHealth is not a separate call because health, cold exposure and the
 ## incapacitation/death status transitions are integrated INSIDE `needs.tick_all()`; it is run,
-## not skipped, and it is run in ARCH-SYS-003's slot rather than its own. That is the sixth.
+## not skipped, and it is run in ARCH-SYS-003's slot rather than its own. It is therefore not an
+## eighth entry in the list above, and that is the whole of what this paragraph claims.
 ##
 ## ARCH-SYS-002 IS FIRST BECAUSE §5 SAYS "after snapshot, before selectors", and ARCH-SYS-001
 ## TransformSnapshot does not exist -- there is no Transform store -- so nothing precedes it here.
@@ -60,15 +69,8 @@ extends Node
 ##   ARCH-SYS-004 StockAge            `economy_system.gd` states it: nothing advances lot age,
 ##                                    because the store and temperature factors belong to
 ##                                    systems this milestone does not build.
-##   ARCH-SYS-006 CropWeather         farming.gd, weather.gd, OrchardPlot and Hive ALL EXIST
-##                                    now, and NOTHING DRIVES THE CROP HALF. `farming.gd` and
-##                                    `weather.gd` are not composed here, `apply_orchard_day()`
-##                                    is never called (it needs the day's temperature, which is
-##                                    weather's), and decision 0044's FARM-side pollination
-##                                    refresh needs a plot->tile join `orchard_hive.gd` cannot
-##                                    do. All three are task 03 increment 10, not started. The
-##                                    HIVE daily step is NOT among them: it runs under
-##                                    ARCH-SYS-005, which DOES run now (decision 0046).
+##   ARCH-SYS-006 CropWeather         RUNS NOW -- see the dispatched list above and decision
+##                                    0047. It is not in this absent list any more.
 ##   ARCH-SYS-007 ImmigrationDeparture no candidate store; `needs.gd` leaves `departure_days`
 ##                                    explicitly unwritten pending a complete mood.
 ##   ARCH-SYS-009 JobPlanner          EXISTS NOW (`scripts/core/job_planner.gd`, decision 0039)
@@ -109,7 +111,14 @@ extends Node
 ##                           `scripts/core/ecology.gd` (ARCH-SYS-005) advances the fish stocks,
 ##                           the forage patches and their ruled quota midnight, every live hive
 ##                           and the exhausted resource nodes whose regrowth date has arrived.
-##   advance crops/weather   NOT RUN. ARCH-SYS-006, task 03 increment 10.
+##   advance crops/weather   RUN, and this is what task 03 increment 10 added:
+##                           `scripts/core/crop_weather.gd` (ARCH-SYS-006) settles the completed
+##                           day's REQ-SET-087 blight, advances every orchard block by that
+##                           completed day, schedules and discloses §5.10's weather for the day
+##                           now beginning, applies REQ-SET-086's evaporate-then-rain moisture,
+##                           clears the tending flags, and makes decision 0044's FARM-side
+##                           pollination refresh for any hive eligibility crossing the ecology
+##                           leg above just committed. Its HOURLY half is on the tick path.
 ##   immigration/departures  NOT RUN. ARCH-SYS-007 has no candidate store.
 ##   evaluate progression    NOT RUN. ARCH-SYS-020 has no Progress store.
 ##
@@ -133,10 +142,14 @@ extends Node
 ##     hive service (R06-JOB-006 -- the Hive STORE now exists and ARCH-SYS-005 advances it,
 ##     but no producer creates its 20-WU service job); and every production order, recipe,
 ##     construction, care request and hauling policy, none of which has a store.
-##   WHAT THIS NODE DOES: nothing of the above. It composes no farming store and no planner, so
-##     ITS OWN queue is still 0 in a fresh settlement. Joining the planner, farming.gd and
-##     weather.gd into this loop is ARCH-SYS-006 (task 03 increment 10), which is not started;
-##     composing it here early would run a crop simulation nothing else in this node advances.
+##   WHAT THIS NODE DOES: nothing of the above, AND THE REASON IS NARROWER THAN IT WAS. It now
+##     composes `farming.gd` and `weather.gd` through ARCH-SYS-006 and advances a real crop
+##     simulation, so "composing it here early would run a crop simulation nothing else advances"
+##     is no longer why the queue is empty. IT STILL COMPOSES NO PLANNER: `job_planner.gd` is
+##     ARCH-SYS-009's and increment 10 does not call it, does not write a Job row and NEVER writes
+##     JOB_STATE_WORK. A crop that ripens here marks itself RIPE and creates no harvest job; a
+##     crop that withers marks itself WITHERED and creates no clearing job. So THIS settlement's
+##     queue is still 0 in a fresh world, for a reason that is now one wiring step, not four.
 ##
 ## `job_queue_length()` reports the real number, and the selection and work stages run over it
 ## honestly and find nothing. A fabricated job would make the loop look busy and would measure a
@@ -160,8 +173,25 @@ extends Node
 ## deposits, the harvest basins and the estuary, and no world generator exists, so `count()`,
 ## `zone_count()`, `habitat_count()` and `hive_count()` are all 0 and the stage honestly does
 ## nothing. Placing a node or a basin here to make the day look busy would measure a fiction, in
-## exactly the way a fabricated job would. `ecology()` is the accessor a world generator, a test
-## or ARCH-SYS-006 uses to reach the stores.
+## exactly the way a fabricated job would. `ecology()` is the accessor a world generator or a
+## test uses to reach the stores, and ARCH-SYS-006 borrows the same object rather than a copy.
+##
+## THE CROP LAYER IS OWNED, DRIVEN AND EMPTY IN THE SAME THREE SENSES. `crop_weather.gd` composes
+## the FarmPlot store and the single Weather row over this settlement's directory, `run_tick()`
+## drives its hourly leg at every hour crossing and `run_day_boundary()` drives its daily leg at
+## every real midnight. THE WEATHER IS REAL FROM DAY 1 -- `create_initial_settlement()` opens the
+## opening day's baseline, which the offset calendar's first midnight (day 2) would otherwise
+## leave 18 hours late -- and THE FIELDS ARE EMPTY, because REQ-SET-009's world generation places
+## the starter fields and no world generator exists. `farming().count()` is 0, so the hourly leg
+## honestly integrates nothing. `crop_weather()`, `farming()` and `weather()` are the accessors a
+## world generator or a test reaches them through.
+##
+## THE WORLD SEED IS THE ONE THING THIS SETTLEMENT GENUINELY LACKS. `rng()` is composed here and
+## is UNSEEDED, because REQ-SET-009's world generation owns `World.seed` and no store holds one.
+## §5.10's forced first spring consumes zero draws, so a fresh settlement's whole first season
+## runs; the first midnight of its SECOND season refuses with the stream's own `RNG_NOT_SEEDED`
+## rather than defaulting to a seed this node invented. That refusal is a named blocker, and it
+## is the only thing standing between this loop and a full simulated year of weather.
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE RESERVATION POOL IS OWNED AND EMPTY. `reservations.gd` exists to hold job input claims
@@ -183,12 +213,17 @@ extends Node
 ##     form of it. THIS IS THE ONE THAT WOULD MATTER, and today it costs nothing because there
 ##     are no jobs; when a job source lands, `jobs.gd` needs a non-allocating live-index reader.
 ##     Reported, not worked around, and not fixed by editing a file this task does not own.
+##   * `crop_weather.run_hour_into()` ZERO on 23 ticks in 24, because `is_hour_boundary()` is a
+##     modulo and returns before anything else runs. On the 24th it allocates nothing either,
+##     unless a plot actually takes frost or actually withers; `crop_weather.gd`'s own header
+##     itemises which store calls allocate on which hour and why.
 ##
-## ARCH-SYS-005 IS NOT ON THE TICK PATH AT ALL. `ecology.gd` is called from `run_day_boundary()`
-## and never from `run_tick()`, so its per-day cost -- one OpResult per store sweep, plus one per
-## resource node actually regrown, all named in that file's header -- lands once per SIMULATED
-## DAY, which at 1x is once per 18000 ticks. The only per-tick cost this increment adds is zero:
-## the clock already tested `is_day_boundary()` every tick before this task existed.
+## ARCH-SYS-005 IS NOT ON THE TICK PATH AT ALL, AND ARCH-SYS-006 IS ON IT ONLY HOURLY.
+## `ecology.gd` is called from `run_day_boundary()` and never from `run_tick()`, so its per-day
+## cost -- one OpResult per store sweep, plus one per resource node actually regrown, all named in
+## that file's header -- lands once per SIMULATED DAY, which at 1x is once per 18000 ticks.
+## `crop_weather.gd`'s DAILY leg lands there too. Its HOURLY leg is the only thing this milestone
+## adds to the per-tick path, and on a non-crossing tick that is one addition and one modulo.
 ##
 ## REFUSAL, NOT SENTINELS. Every operation returns a bool with the reason in `last_refusal()`, or
 ## an `IntMath.IntResult` whose `.ok` must be inspected. `mean_tick_usec()` REFUSES before the
@@ -205,6 +240,10 @@ const ReservationsScript := preload("res://scripts/core/reservations.gd")
 const CommandsScript := preload("res://scripts/core/commands.gd")
 const CommandDispatchScript := preload("res://scripts/core/command_dispatch.gd")
 const EcologyScript := preload("res://scripts/core/ecology.gd")
+const CropWeatherScript := preload("res://scripts/core/crop_weather.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
+const WeatherScript := preload("res://scripts/core/weather.gd")
+const RngScript := preload("res://scripts/core/rng.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
@@ -235,6 +274,9 @@ const DAILY_LEG_CAPACITY: int = 6
 ## permit work and no job exists to be interrupted.
 const PREPARED_MEAL_REACHABLE: bool = false
 
+## GDD §5.1: the settlement opens on absolute day 1, at tick 0, which is 06:00 and no crossing.
+const OPENING_CALENDAR_DAY: int = 1
+
 const REFUSE_NONE: StringName = &""
 const REFUSE_INVALID_TICK: StringName = &"INVALID_TICK"
 const REFUSE_INVALID_DAY: StringName = &"INVALID_ABSOLUTE_DAY"
@@ -257,6 +299,8 @@ var _work: WorkScript = null
 var _commands: CommandsScript = null
 var _dispatch: CommandDispatchScript = null
 var _ecology: EcologyScript = null
+var _rng: RngScript = null
+var _crop_weather: CropWeatherScript = null
 
 # --- the live-resident index ------------------------------------------------------------------
 
@@ -276,6 +320,8 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _tick_result: WorkScript.TickResult = WorkScript.TickResult.new(false, REFUSE_NONE)
 var _command_report: CommandDispatchScript.TickReport = CommandDispatchScript.TickReport.new()
 var _ecology_day: EcologyScript.DayResult = EcologyScript.DayResult.new()
+var _crop_day: CropWeatherScript.DayResult = CropWeatherScript.DayResult.new()
+var _crop_hour: CropWeatherScript.HourResult = CropWeatherScript.HourResult.new()
 ## The 00:00 tick of the day boundary being run, located and PROVED once per boundary.
 var _boundary_tick: int = 0
 ## REQ-SET-007 legs the most recent boundary executed, in execution order. Sized once in _init().
@@ -287,6 +333,7 @@ var _tick_timer: PerfTimerScript = PerfTimerScript.new()
 
 var _ticks_run: int = 0
 var _refused_tick_count: int = 0
+var _refused_crop_hour_count: int = 0
 var _tick_usec_total: int = 0
 var _tick_usec_max: int = 0
 var _assignment_count: int = 0
@@ -315,6 +362,8 @@ func _init() -> void:
 	_commands = CommandsScript.new(SimClockScript.new(), _directory)
 	_dispatch = CommandDispatchScript.new(_commands, _residents, _priorities, _schedule, _jobs)
 	_ecology = EcologyScript.new(_directory, _jobs)
+	_rng = RngScript.new()
+	_crop_weather = CropWeatherScript.new(_ecology, _rng)
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
 	_daily_legs.resize(DAILY_LEG_CAPACITY)
@@ -336,6 +385,12 @@ func _assert_shared_contracts() -> void:
 		"SEASON_WINTER must index the calendar's winter, which REQ-SET-143 hangs off")
 	assert(_ecology.directory() == _directory,
 		"the ecology stores must validate references through this settlement's one directory")
+	assert(_crop_weather.directory() == _directory,
+		"the crop and weather stores must validate references through that same directory")
+	assert(_crop_weather.orchard_hive() == _ecology.orchard_hive(),
+		"ARCH-SYS-006 must borrow ARCH-SYS-005's hives, not compose a second orchard store")
+	assert(_crop_weather.rng() == _rng,
+		"ARCH-SYS-006 must consume this settlement's one ARCH-RNG-002 stream set")
 	assert(DAILY_LEG_CAPACITY == LEG_PROGRESSION + 1,
 		"the leg log must hold exactly REQ-SET-007's legs plus the season handover")
 
@@ -370,13 +425,25 @@ func create_initial_settlement() -> bool:
 	var spawned: ResidentsScript.OpResult = _residents.spawn_initial_settlement()
 	if not spawned.ok:
 		return _refuse(spawned.error)
-	if not _attach_all_residents():
+	if not _attach_all_residents() or not _open_the_first_day():
 		var code: StringName = _last_refusal
 		reset()
 		_last_refusal = code
 		return false
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+func _open_the_first_day() -> bool:
+	"""Write §5.1's opening day's §5.10 weather, because day 1 never reaches a midnight.
+
+	The offset calendar starts at 06:00 of day 1 and its first crossing is day 2, so without this
+	the first 18 game hours would read the cleared Weather row -- 0.0 C and no rain -- instead of
+	spring. It consumes no WEATHER draw: year 1's spring is §5.10's forced onboarding event.
+	"""
+	if _crop_weather.prime_day(OPENING_CALENDAR_DAY):
+		return true
+	return _refuse(_crop_weather.last_refusal())
 
 
 func _attach_all_residents() -> bool:
@@ -419,9 +486,19 @@ func _attach_resident(slot: int) -> bool:
 func reset() -> void:
 	"""Empty every settlement store, index and counter, without reallocating a column.
 
-	`residents.clear()` also clears the directory and needs rows, because this system built the
-	residents store with neither collaborator supplied and it therefore owns both.
+	`_clear_stores()`'s `residents.clear()` also clears the directory and needs rows, because this
+	system built the residents store with neither collaborator supplied and it therefore owns both.
 	"""
+	_clear_stores()
+	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
+	_live_count = 0
+	_daily_leg_count = 0
+	_boundary_tick = 0
+	_clear_counters()
+
+
+func _clear_stores() -> void:
+	"""Empty every composed store in one place, so a store added later cannot be forgotten here."""
 	_residents.clear()
 	_priorities.clear()
 	_schedule.clear()
@@ -431,12 +508,15 @@ func reset() -> void:
 	_commands.clear()
 	_dispatch.clear()
 	_ecology.clear()
-	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
-	_live_count = 0
-	_daily_leg_count = 0
-	_boundary_tick = 0
+	_crop_weather.clear()
+	_rng.clear()
+
+
+func _clear_counters() -> void:
+	"""Return every observable counter and refusal to its pre-run value."""
 	_ticks_run = 0
 	_refused_tick_count = 0
+	_refused_crop_hour_count = 0
 	_tick_usec_total = 0
 	_tick_usec_max = 0
 	_assignment_count = 0
@@ -478,6 +558,7 @@ func _run_stages(tick_index: int) -> bool:
 	_commit_commands(tick_index)
 	if not _integrate_interval():
 		return false
+	_integrate_crops(tick_index)
 	_select_jobs(tick_index)
 	_run_productive_work()
 	return true
@@ -535,6 +616,22 @@ func _integrate_interval() -> bool:
 	_refused_tick_count += 1
 	_report_first_refusal(swept.error)
 	return _refuse(swept.error)
+
+
+func _integrate_crops(tick_index: int) -> void:
+	"""ARCH-SYS-006 CropWeather, HOURLY half: one hour of §5.6 growth, frost and ripe expiry.
+
+	The predicate is the only per-tick cost: 23 ticks in 24 are not an hour crossing and this
+	returns immediately. A refusal is COUNTED rather than fatal -- the needs sweep for this tick
+	has already committed, and one refused crop hour is not a reason to discard it -- and
+	`crop_hour()` carries the reason on its own channel.
+	"""
+	if not CropWeatherScript.is_hour_boundary(tick_index):
+		return
+	if _crop_weather.run_hour_into(tick_index, _crop_hour):
+		return
+	_refused_crop_hour_count += 1
+	_last_refusal = _crop_hour.error
 
 
 func _select_jobs(tick_index: int) -> void:
@@ -636,6 +733,8 @@ func run_day_boundary(absolute_day: int, season: int) -> bool:
 		return false
 	if not _update_ecology():
 		return false
+	if not _advance_crops_and_weather():
+		return false
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -679,6 +778,21 @@ func _update_ecology() -> bool:
 	if not _ecology.run_day_into(_boundary_tick, _ecology_day):
 		return _refuse(_ecology_day.error)
 	_record_daily_leg(LEG_ECOLOGY)
+	return true
+
+
+func _advance_crops_and_weather() -> bool:
+	"""ARCH-SYS-006 CropWeather, MIDNIGHT half: REQ-SET-007's third leg, after ARCH-SYS-005's.
+
+	The eligibility crossings ARCH-SYS-005 just committed are handed straight over: `ecology.gd`
+	refreshed the ORCHARD side of decision 0044's pollination links inside `orchard_hive.gd`, and
+	the FARM side needs the plot->tile join only ARCH-SYS-006 can make. Nothing runs between the
+	two legs, so that refresh is still synchronous with the change that caused it.
+	"""
+	if not _crop_weather.run_day_into(
+			_boundary_tick, _ecology_day.hive_eligibility_crossings, _crop_day):
+		return _refuse(_crop_day.error)
+	_record_daily_leg(LEG_CROP_WEATHER)
 	return true
 
 
@@ -785,6 +899,41 @@ func last_ecology_day() -> int:
 func ecology_day() -> EcologyScript.DayResult:
 	"""The most recent ecology day's counts. Inspect `.ok` before any field; see `ecology.gd`."""
 	return _ecology_day
+
+
+func crop_weather() -> CropWeatherScript:
+	"""ARCH-SYS-006's crop and weather stores. A world generator places its plots here."""
+	return _crop_weather
+
+
+func farming() -> FarmingScript:
+	"""The §4.2 FarmPlot store and §2's TileHistory ledger, composed under ARCH-SYS-006."""
+	return _crop_weather.farming()
+
+
+func weather() -> WeatherScript:
+	"""The §4.2 single Weather row this settlement schedules and refreshes."""
+	return _crop_weather.weather()
+
+
+func rng() -> RngScript:
+	"""The settlement's one ARCH-RNG-002 stream set. UNSEEDED until a world generator seeds it."""
+	return _rng
+
+
+func crop_weather_day() -> CropWeatherScript.DayResult:
+	"""The most recent crop/weather day. Inspect `.ok` before any field; see `crop_weather.gd`."""
+	return _crop_day
+
+
+func crop_hour() -> CropWeatherScript.HourResult:
+	"""The most recent hourly crop integration. Inspect `.ok` before any field."""
+	return _crop_hour
+
+
+func refused_crop_hour_count() -> int:
+	"""Hour crossings whose crop integration refused, so a skipped hour is never silent."""
+	return _refused_crop_hour_count
 
 
 func last_refusal() -> StringName:

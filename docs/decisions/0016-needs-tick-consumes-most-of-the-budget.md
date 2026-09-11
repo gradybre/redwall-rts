@@ -1,5 +1,5 @@
 # 0016 — Needs integration costs 60% of the tick budget at the population cap
-Date: 2026-09-06 · Status: Open, measured · Owner: unassigned
+Date: 2026-09-06 · Status: Open, measured · Owner: implementation lead · Independent review: performance reviewer (decision0050)
 
 ## The measurement
 `needs.tick_all()` on this Mac (Godot 4.7.2, development build):
@@ -418,3 +418,15 @@ run that was thrown away.
 **Status.** This closes decision 0024's execution order. Decision 0016 itself stays open: no
 choice has been made among the four architectural options, and no cache is proposed or justified
 by this entry.
+
+## READY_07 ownership and next checkpoint — 2026-09-11
+
+The implementation lead owns the next integrated release measurement, with an
+independent performance reviewer (decision0050). Keep this issue open. The early
+1.19ms development result is historical; use the later methodology and current
+build. Measure the present command/needs/ecology/crop/planner composition now,
+then the legal initialized world with live travel/work. State empty/missing
+systems explicitly. Separately audit the stage003/017 health split before
+RoomHeat/injury-care integration; preserve elapsed-interval climate and test
+same-boundary care, death and work eligibility. Do not treat a semantic ordering
+correction as optimization parity or approve reduced simulation fidelity.

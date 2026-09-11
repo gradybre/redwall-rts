@@ -167,7 +167,8 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | OrchardPlot | tended_today, harvested_year | B8 | 1 | 2 | 1024 | 2048 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Hive | building_slot, building_generation, strength, serviced_day | I32 | 4 | 4 | 1024 | 16384 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Hive | feed_milli, honey_milli, wax_milli | I64 | 8 | 3 | 1024 | 24576 | [GDD §4.2; lengths ARCH-MEM-002–004] |
-| Weather | event, start_day, duration_days, temperature_tenths, rain, forecast_0, forecast_1, forecast_2 | I32 | 4 | 8 | 1 | 32 | [GDD §4.2; lengths ARCH-MEM-002–004] |
+| Weather | event, start_day, duration_days, temperature_tenths, rain, forecast_0, forecast_1, forecast_2 | I32 | 4 | 8 | 1 | 32 | [GDD §4.2; lengths ARCH-MEM-002–004] `forecast[3]` is `(event_id, start_season_day, duration_days)`, adopted by [ruling 2026-09-11 §4.2](rulings/2026-09-11_ready07_open_item_answers.md); the affected systems are DERIVED from that event id, never stored |
+| Weather | scheduled_absolute_season, forecast_absolute_season | I64 | 8 | 2 | 1 | 16 | [ruling 2026-09-11 §4.2; decision 0055] The row's temporal identity, both empty at **-1**. `absolute_season = floor((absolute_day-1)/12)` and the matching §4.3 ordinal is `absolute_season % 4`, so summer of year 1 and summer of year 2 are distinguishable and §4.2's eight I32 columns stop naming a point in four repeating seasons. `scheduled_absolute_season` is ALSO §5.10's scheduled-once latch, migrated out of `crop_weather.gd`'s private field so there is exactly one owner; it survives event expiry and moves only on a successfully scheduled next season. A disclosed forecast retains `forecast_absolute_season` after expiry. Weather's row total is therefore **48 bytes**, 32 + this 16 |
 | Feast | recipe_theme, state, capacity, coverage | I32 | 4 | 4 | 1 | 16 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Feast | start_tick | I64 | 8 | 1 | 1 | 8 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Feast.attendees | resident_id | I32 | 4 | 1 | 256 | 1024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -204,7 +205,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | WorldPolicy | auto_immigration, raw_emergency_food, variety_first | B8 | 1 | 3 | 1 | 3 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | GeneratorState | requested_seed, effective_seed, attempt, architecture, settlement_name | I32 | 4 | 5 | 1 | 20 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 
-Fixed-field payload sum = **25028946 bytes** (reconciled 2026-09-11, decision 0050: the prior carried subtotal24555474 omitted437632 bytes already in the printed rows; the following are historical carried values: 24514514 before decision 0045 added the 40960-byte FieldPolicy cycle and enrolment ledger, 24501202 before decision 0041 added the 13312-byte JobPlanner forage-demand ledger, 24288210 before decision 0040 added the 212992-byte JobPlanner sowing-request ledger, 24161234 before decision 0039 added the 126976-byte JobPlanner pending-service ledger, 24148434 before decision 0037 added the 12800-byte `FishingEffortClaim` slice, and 24146898 before decision 0021 added the 1536-byte `Schedule.latch` group, which took the Schedule packed payload from 16384 to 12288+4096+1536=**17920** bytes). The table includes selected_P for allocation but excludes it from canonical hashing. All zero-capacity TransferManifest fields remain declared in the schema and codec; enabling the adapter requires a versioned capacity/budget revision. The chronicle total is unbounded on disk; the row is only its two resident pages. `[DERIVED]`
+Fixed-field payload sum = **25028962 bytes** (advanced 2026-09-11, decision 0055: +16 for Weather's two I64 absolute-season columns, taking that row from 32 to 48 and the printed field rows from 140 to **141**; reconciled 2026-09-11, decision 0050: the prior carried subtotal24555474 omitted437632 bytes already in the printed rows; the following are historical carried values: 24514514 before decision 0045 added the 40960-byte FieldPolicy cycle and enrolment ledger, 24501202 before decision 0041 added the 13312-byte JobPlanner forage-demand ledger, 24288210 before decision 0040 added the 212992-byte JobPlanner sowing-request ledger, 24161234 before decision 0039 added the 126976-byte JobPlanner pending-service ledger, 24148434 before decision 0037 added the 12800-byte `FishingEffortClaim` slice, and 24146898 before decision 0021 added the 1536-byte `Schedule.latch` group, which took the Schedule packed payload from 16384 to 12288+4096+1536=**17920** bytes). The table includes selected_P for allocation but excludes it from canonical hashing. All zero-capacity TransferManifest fields remain declared in the schema and codec; enabling the adapter requires a versioned capacity/budget revision. The chronicle total is unbounded on disk; the row is only its two resident pages. `[DERIVED]`
 
 ### 2.3 Complete allocation ledger
 
@@ -212,7 +213,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
-| Fixed registry payload | 25028946 | 1 | 25028946 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037; +126976 decision 0039; +212992 decision 0040; +13312 decision 0041; +40960 decision 0045 FieldPolicy); +35840 decision 0051 hive-service slice) |
+| Fixed registry payload | 25028962 | 1 | 25028962 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037; +126976 decision 0039; +212992 decision 0040; +13312 decision 0041; +40960 decision 0045 FieldPolicy); +35840 decision 0051 hive-service slice; +16 decision 0055 Weather absolute-season identity) |
 | Auxiliary payload | 16712540 | 1 | 16712540 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
@@ -238,22 +239,24 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 60292646 | Mechanical sum of printed allocation rows; decision 0050 reconciliation |
+| Planned allocated payload | 60292662 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055 |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 68681254 | Payload + reserve |
-| Headroom below decimal 100 MB | 31318746 | 100000000 − live total |
-| Additional candidate mutable state | 54077062 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 122758316 | Live total + candidate mutable state |
-| Transactional headroom | -22758316 | 100000000 − transactional peak |
+| One live world plus reserve | 68681270 | Payload + reserve |
+| Headroom below decimal 100 MB | 31318730 | 100000000 − live total |
+| Additional candidate mutable state | 54077078 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 122758348 | Live total + candidate mutable state |
+| Transactional headroom | -22758348 | 100000000 − transactional peak |
 
-**ARCH-MEM-010 (reconciled 2026-09-11, decision 0050).** Current planned payload is
-**60292646**, the sum of the 23 printed allocation rows; fixed registry payload is
-**25028946**, the sum of the 135 printed field rows. The historical trail omitted
+**ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11, decision 0055).**
+Current planned payload is
+**60292662**, the sum of the 23 printed allocation rows; fixed registry payload is
+**25028962**, the sum of the 141 printed field rows. The historical trail omitted
 **437632=131072+306304+256** already present in those rows. The added reconciliation
 step corrects the carried basis only; no second allocation is added. Current
-one-world plus reserve is **68681254**, headroom **31318746**; the rejected two-world
-peak is **122758316**, over by **22758316**. Both mutable worlds contain the correction,
-so that peak rises by 875264. No new scheduler/Weather proposals are included.
+one-world plus reserve is **68681270**, headroom **31318730**; the rejected two-world
+peak is **122758348**, over by **22758348**. Both mutable worlds contain the correction,
+so that peak rises by 875264. Decision 0055's **+16** is INCLUDED in the figures above and
+is a real allocation, not a second reconciliation; the scheduler's proposed 8224 is still not.
 This remains a baseline/incomplete planning ledger, not measured RAM or full
 MOVE-G02 closure. See [the arithmetic audit](rulings/2026-09-11_ready07_memory_audit.md).
 
@@ -301,6 +304,7 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
 | World generation map masks and tree plan | decision 0048 | +159968 | 59816882 | 68205490 |
 | Command dispatch source-intent ledger and ARCH-SYS-023 presentation snapshot | decision 0049 | +2292 | 59819174 | 68207782 |
 | Historical fixed-field omission reconciled, no new allocation | decision 0050 | +437632 | 60292646 | 68681254 |
+| Weather absolute-season identity (two I64 columns) | decision 0055 | +16 | 60292662 | 68681270 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
@@ -520,8 +524,8 @@ Unscaled host clock -> scheduler debt -> fixed tick k
 | ARCH-SYS-002 CommandCommit | Ordered command queue, catalogs, directory, current stocks | Orders, policies, reservations, lifecycle intents | Every tick; after snapshot, before selectors | [GDD §5.1 REQ-SET-005] |
 | ARCH-SYS-003 IntervalIntegrator | Needs, activities, weather, lots, rooms, work context | NeedRemainders, IntegrationRemainders, age/work accrual | Every tick; prior interval state | [GDD §5.2, §5.8] |
 | ARCH-SYS-004 StockAge | Accrued lot age, storage factors | InventoryLot, spoilage intents, invalid leases | Hour crossing and expiry crossing; midnight first | [GDD §5.8 REQ-SET-107–108] |
-| ARCH-SYS-005 Ecology | Basins, fish/forage/tree state (fauna reserved empty), climate | Stock growth, quotas, migration, resource regrowth, ecology events | Midnight after StockAge | [GDD §5.4–5.6, §5.9–5.10] |
-| ARCH-SYS-006 CropWeather | FarmPlot, OrchardPlot, Hive, previous climate, event schedule | Crop progress/health/ripe state, moisture, weather forecast, service counters | Hourly crop integration; midnight after Ecology | [GDD §5.6, §5.10] |
+| ARCH-SYS-005 Ecology | Basins, fish/forage/tree state (fauna reserved empty), climate | Stock growth, quotas, migration, resource regrowth, ecology events. **NOT `FishStock.closed`** | Midnight after StockAge | [GDD §5.4–5.6, §5.9–5.10; [ruling 2026-09-11 §4.1](rulings/2026-09-11_ready07_open_item_answers.md)] Fish stock and quota recovery use the **new day's** season and closed stocks still recover, but this stage writes no closure bit under any condition — in particular it may not copy yesterday's event state forward as today's closure. ARCH-SYS-006 sets it one call later |
+| ARCH-SYS-006 CropWeather | FarmPlot, OrchardPlot, Hive, previous climate, event schedule, **Weather absolute-season identity**, **FishStock presence/species** | Crop progress/health/ripe state, moisture, weather forecast, service counters, **`Weather.scheduled_absolute_season`/`forecast_absolute_season`**, **`FishStock.closed` (the summer-blight event bit)** | Hourly crop integration; midnight after Ecology | [GDD §5.6, §5.10; [ruling 2026-09-11 §4.1](rulings/2026-09-11_ready07_open_item_answers.md), decision 0055] **This system is the ONLY writer of `FishStock.closed`.** At each midnight, after settling the completed day's crop/orchard effects and refreshing the new day's weather exactly once, it sets every present mussel stock's event bit to `new_season == SUMMER && active_new_day_event == BLIGHT` and to false otherwise — including autumn blight and the day after expiry — before any later job planning. §5.4's calendar spawning closures remain a SEPARATE derived predicate, `harvest_closed = calendar_closed \|\| event_closed`; no other subsystem may reuse the event bit for another cause, and a future additional cause would need a typed reason mask that is deliberately not added now. Season identity, the WEATHER stream and both catalogs are preflighted before the boundary may partially advance |
 | ARCH-SYS-007 ImmigrationDeparture | Needs/mood histories, reputation, candidates, policy, bed/stock availability | Review candidates, acceptance/departure intents | Daily; candidate event every third midnight from day 4; after CropWeather | [GDD §5.11] |
 | ARCH-SYS-008 NeedIntent | Committed/accrued needs, safe rooms, food | Personal feeding/sleep/rescue intent | Every tick; emergencies preempt immediately | [GDD §5.2] |
 | ARCH-SYS-009 JobPlanner | Orders, thresholds, recipe inputs, field/care/build service needs | Job rows, reservation plans, output commitments | On dirty service conditions; idle selectors every 30 ticks staggered by ID | [GDD §5.3, §5.7–5.9] |
@@ -799,7 +803,7 @@ Keep a test migration ledger `old_test_name,new_test_name,retained_semantic,reti
 | ARCH-CONFLICT-008 | CLAUDE.md older design guidance versus Document Authority/GDD | Earlier logarithmic scaling, broader population language, and generic flow-field advice do not define this capped settlement. | Follow its Document Authority precedence and the settlement GDD; keep battle guidance in battle scope. |
 | ARCH-CONFLICT-009 | READY_04 deliverables 1 and 6; REQ-SET-163 | Packed payload arithmetic can be bounded, but engine headers, allocator reserve, long route storage pressure, and real Windows stage timings are not certified by this document. | Budget these explicitly and report unqualified performance. Do not claim ≤100 MB or deadline support from payload arithmetic alone. |
 | ARCH-CONFLICT-010 | Prototype implementation versus GDD REQ-SET-002–008, REQ-SET-162 | Current stockpiles/clock use noninteger authority, speed 3, Engine.time_scale, dropped debt, and Resource components. | Rewrite core modules under §11; the old 52-test suite tests a different model. |
-| ARCH-CONFLICT-011 | READY_04 memory budget and transactional loading | Fully resident old plus candidate worlds require 122758316 bytes including reserve, exceeding 100000000 by 22758316 (decision 0050 current reconciliation). Reconciled 2026-09-07 for decisions 0019 and 0021 and ARCH-STATE-005 (119493108 / 19493108); 2026-09-09 for READY_06 §7, decisions 0037/0039/0040/0041 and ARCH-STATE-007 (120075772 / 20075772 at the gear allocator); 2026-09-10 for decision 0042's command queue order index (120815100 / 20815100) and decision 0043's command dispatch result ledger (120782332 / 20782332 before both); was 117599532 / 17599532 before all of those. | Select disk-backed validation/rollback with one reusable world allocation under ARCH-MEM-006 and ARCH-SAVE-004. Its planned resident payload plus reserve is 68681254 bytes; actual allocator/I/O peaks still require measurement. The current baseline arithmetic is 31318746 bytes below the gate, but §3.1 lists budget items not yet counted at all, and ARCH-MEM-010 now reconciles the 437632-byte historical omission; expanded movement remains uncounted. |
+| ARCH-CONFLICT-011 | READY_04 memory budget and transactional loading | Fully resident old plus candidate worlds require 122758348 bytes including reserve, exceeding 100000000 by 22758348 (decision 0050 current reconciliation, advanced by decision 0055's +16). Reconciled 2026-09-07 for decisions 0019 and 0021 and ARCH-STATE-005 (119493108 / 19493108); 2026-09-09 for READY_06 §7, decisions 0037/0039/0040/0041 and ARCH-STATE-007 (120075772 / 20075772 at the gear allocator); 2026-09-10 for decision 0042's command queue order index (120815100 / 20815100) and decision 0043's command dispatch result ledger (120782332 / 20782332 before both); was 117599532 / 17599532 before all of those. | Select disk-backed validation/rollback with one reusable world allocation under ARCH-MEM-006 and ARCH-SAVE-004. Its planned resident payload plus reserve is 68681270 bytes; actual allocator/I/O peaks still require measurement. The current baseline arithmetic is 31318730 bytes below the gate, but §3.1 lists budget items not yet counted at all, and ARCH-MEM-010 now reconciles the 437632-byte historical omission; expanded movement remains uncounted. |
 
 ## 13. Verification record
 
@@ -829,6 +833,18 @@ third time, are: carried ledger total **59855014**, selected one-world design **
 bytes, **31756378** below the decimal 100 MB gate, rejected two-world design **121883052** bytes.
 Both conclusions are unchanged: the one-world gate holds and the two-world design is rejected.
 ARCH-MEM-010's gap is **437632** on the new basis as well, reproduced above rather than moved.
+
+**Advanced 2026-09-11 while adding decision 0055.** Ruling 2026-09-11 §4.2's Weather amendment adds
+ONE §2.2 field row, checked against `element_width*column_count*allocated_length = payload_bytes`
+rather than by its total: `8*2*1=16`. The Weather row total therefore moves from 32 to **48** and
+the printed field rows from 140 to **141**; no §2.3 allocation row is added, because the Fixed
+registry payload row IS the §2.2 sum and moves with it. The CURRENT figures, with every
+ARCH-MEM-009 row re-added individually for the fourth time, are: carried ledger total
+**59855030**, selected one-world design **68243638** planned bytes, **31756362** below the decimal
+100 MB gate, rejected two-world design **121883084** bytes. Both conclusions are unchanged: the
+one-world gate holds and the two-world design is rejected. ARCH-MEM-010's gap is **437632** on this
+basis too — both halves moved by the same +16, so the gap is REPRODUCED a fourth time rather than
+absorbed or re-applied. The scheduler's proposed 8224 is still NOT included.
 
 The required unfinished-text scan returned no matches; the balance document's forbidden-population and disallowed-formula scans returned no matches. Each document contains exactly one required conflict heading. Markdown tables/fences passed structural checks. The unchanged legacy prototype passed 52 tests and 106 assertions with exit 0; no new settlement implementation or Windows performance/parity run is claimed. Arithmetic probes and schema inspection do not resolve the documented survival, path-latency, or qualification gaps.
 

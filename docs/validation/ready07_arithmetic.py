@@ -19,13 +19,25 @@ for l in s[a:b].splitlines():
 # own instruction is to review changed expectations rather than treat the inspected
 # snapshot's counts as permanent limits. Row identity and the five metric identities
 # below are unchanged; only these two pinned baselines advance.
-assert len(fields)==140 and sum(fields)==25028946
-assert len(allocations)==23 and sum(allocations)==60292646
+# Advanced 2026-09-11 for decision 0055's Weather absolute-season identity: ONE new
+# field row of 8*2*1=16 bytes, taking the Weather row from 32 to 48. No new §2.3
+# allocation row -- the Fixed registry payload row IS the §2.2 sum and moves with it.
+# Expectations are advanced deliberately, not loosened: every identity below still
+# holds exactly, and the row/allocation COUNTS are still pinned.
+assert len(fields)==141 and sum(fields)==25028962
+assert len(allocations)==23 and sum(allocations)==60292662
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert live==68681254 and candidate==54077062 and live+candidate==122758316
-# Carried total advanced by decision 0051's +35840 (59819174 -> 59855014). Both halves
-# move together, so the 437632 gap is reproduced a third time rather than absorbed.
-assert payload-59855014==131072+306304+256
+assert live==68681270 and candidate==54077078 and live+candidate==122758348
+# Carried total advanced by decision 0051's +35840 (59819174 -> 59855014) and then by
+# decision 0055's +16 (-> 59855030). Both halves move together, so the 437632 gap is
+# reproduced a fourth time rather than absorbed or re-applied.
+assert payload-59855030==131072+306304+256
+# Decision 0055's two Weather rows, pinned as printed so a silent revert fails here.
+assert '| Weather | scheduled_absolute_season, forecast_absolute_season | I64 | 8 | 2 | 1 | 16 |' in s
+assert 4*8*1+8*2*1==48 and 4*8*1==32
+# Carried-basis figures of the same +16, checked as identities rather than restated.
+assert 59855030+reserve==68243638 and 100000000-68243638==31756362
+assert 68243638+(59855030-6215584)==121883084
 for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below decimal 100 MB',100000000-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',100000000-live-candidate)]:
  assert f'| {label} | {value} |' in s,label
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']

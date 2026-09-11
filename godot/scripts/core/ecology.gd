@@ -39,6 +39,10 @@ extends RefCounted
 ## ---------------------------------------------------------------------------------------
 ## LEG ORDER, and why it is the order it is. ARCH-SYS-005's §5 row writes "Stock growth, quotas,
 ## migration, resource regrowth, ecology events", and that is the order below.
+##   0. WHAT THIS STAGE MAY NOT WRITE. Ruling 2026-09-11 §4.1 gives `FishStock.closed` to
+##      ARCH-SYS-006, which runs one call later in the same boundary. This stage owns fish stock
+##      and quota RECOVERY on the new day's season and writes no closure bit under any condition;
+##      `test_ecology.gd` asserts it against a stock closed before the day runs.
 ##   1. §5.4 FISH. `reset_harvested_today()` zeroes the daily quota accumulator, then
 ##      `recover_daily()` applies `P'=min(K,P+floor(r*P*(K-P)/(1000*K))+floor(K/200))` to EVERY
 ##      stock. A CLOSED species still recovers -- §5.4 says "closed means no harvest job, not zero
@@ -304,6 +308,15 @@ func _recover_fish(out: DayResult) -> bool:
 	The reset is first for the same reason decision 0030 §4.4 puts it first for forage: the
 	quota a caller admits against today is measured on a total that must not still hold
 	yesterday's catch. Recovery reads no quota, so the two cannot fight.
+
+	THE SEASON IS THE NEW DAY'S and NO `closed` BIT IS WRITTEN (ruling 2026-09-11 §4.1).
+	`_calendar` decodes the boundary tick, so `season`/`season_day` here are the day now opening,
+	which is what the ruling gives ARCH-SYS-005. Neither call below touches `FishStock.closed`:
+	`reset_harvested_today()` fills the daily total column and `recover_daily()` applies §5.4's
+	`P'` to every stock, CLOSED STOCKS INCLUDED ("closed means no harvest job, not zero
+	population"). The ruling's "its earlier stage cannot copy yesterday's event state as today's
+	closure" is therefore structural: this stage never reads the bit and never writes one, and
+	ARCH-SYS-006 sets it from the new day's weather one call later.
 	"""
 	_fishing.reset_harvested_today()
 	var recovered: FishingScript.OpResult = _fishing.recover_daily(

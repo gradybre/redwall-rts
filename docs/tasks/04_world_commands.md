@@ -214,6 +214,21 @@ workbench shelter (58,54) 3×3, all rotation 0.
   needs/health, XP (including reserved index 3 zero), relationship pairs, priorities,
   beds and assignments; catalogs supply values. Quantities use milli-U and all
   STARTER sources are accounted. Verify 24 tools TOTAL: 12 equipped, 12 stored.
+
+**Composed 2026-09-11 ([decision 0064](../decisions/0064-world-generation-creates-the-cohort.md)),
+and NOT closed.** `SettlementSystem.create_generated_settlement()` now runs REQ-SET-009's
+generation and §5.1's cohort as ONE all-or-nothing operation, and `main.gd` boots through it, so
+generating a world produces a world with **twelve residents in it** instead of an empty one.
+Species mix, Warden Rowan, needs 7500, health 100, skill levels 2 / Rowan KEEP 3, the reserved
+index-3 zero, priorities, schedules and job agents are all satisfied and asserted. **Four parts of
+GDD:235 are NOT:** (1) the relationship edges at affinity 20 — **there is no relationship store
+anywhere in the repository** and 08.3 owns it, so none was invented; (2) the hall, beds, bench,
+seats, hearth, pantry, well, stockpiles and workbench — no Building/Furniture/Room store, which is
+the bullet below; (3) the 24 tools and durability 1000 — `gear.gd` exists but has no container
+owner and is not composed; (4) **"IDs 1–12" is not satisfied and cannot be** while §4.2's single
+id space is consumed by 1713 world entities first — the cohort receives 1714–1725. That
+contradiction is arithmetic, not an implementation choice, and decision 0064 sets out both
+readings that would close it and which document each one breaks. **It needs a ruling.**
 - [ ] Pull forward only the starter data slice of buildings/furniture/containers,
   bed references and gear from task 06, with a single shared implementation. Full
   construction, dynamic room detection, heat/service operations remain task 06.

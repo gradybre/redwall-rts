@@ -48,20 +48,32 @@ extends RefCounted
 ##     unlimited piles, fictional beds, duplicated tools or unregistered inventory owners". NO
 ##     Building, Furniture or Container store exists in `scripts/core/`. FULL INITIALIZATION IS
 ##     THEREFORE BLOCKED and this module generates terrain, resource nodes and ecology only.
-##   * CORRECTED 2026-09-11 (READY_07 §7.1). The claim below was WRONG and is kept as a dated
-##     correction rather than deleted. It said the building footprints are "authored NOWHERE as
-##     tile coordinates". They are: GDD §5.9 states "place the hall at (58,59), stockpiles at
+##   * CORRECTED 2026-09-11 (READY_07 §7.1), TWICE, and both corrections are kept dated rather
+##     than deleted.
+##     (1) The original claim said the building footprints are "authored NOWHERE as tile
+##     coordinates". That was WRONG. GDD §5.9 states "place the hall at (58,59), stockpiles at
 ##     (50,60),(50,65),(70,60),(70,65), well at (64,54), and workbench at (58,54), all rotation 0.
-##     Clear these footprints before resource placement." With §5.9's footprint sizes that is
-##     hall 12x10, four stockpiles 4x4, well 2x2, workbench shelter 3x3.
-##     THE CONSEQUENCE IS NOT YET IMPLEMENTED: this module still clears only the loam rectangle,
-##     so `is_cleared()` is incomplete and the node count it produces is an OBSOLETE FIXTURE.
-##     Clearing the authored footprints and their one-tile apron legitimately changes that count
-##     and its hashes; the planner is explicit that the obsolete count must not be protected by
-##     leaving trees inside the well, workbench or apron. Shared aprons may overlap as cleared
-##     ground; building footprints may not.
+##     Clear these footprints before resource placement." With §5.9's building-table extents that
+##     is hall 12x10, four open stockpiles 4x4, well 2x2, workbench shelter 3x3.
+##     (2) The first correction then said "THE CONSEQUENCE IS NOT YET IMPLEMENTED". It IS now:
+##     `is_cleared_tile()` clears all seven footprints and §5.1's one-tile apron alongside the
+##     loam rectangle, and `_stage_tree_plan()` consults the staged mask, so no tree centre and no
+##     grove node can land on cleared ground. Decision 0058 records the recalculated census.
+##     THE 1695-NODE FIXTURE IS RETIRED as a fixture: the count is now derived from the geometry
+##     (see `test_generated_node_count_is_centres_plus_grove_less_replaced_plus_ore`) and it
+##     recomputes to the SAME 1695 by arithmetic, not by protection. The apron's only intersection
+##     with a forest mask is the odd column x=49, which carries no even/even tree centre, and the
+##     five grove tiles it does take at (49,59..63) are replaced one-for-one inside §5.1's
+##     replacement window. Nothing was left standing inside the well, workbench or apron to hold
+##     the total up; the COMPOSITION changed and the total happens not to.
+##     Shared aprons may overlap as cleared ground; building footprints may not, which
+##     `_assert_footprints_dont_overlap()` guards and the suite asserts against the authored
+##     coordinates. None of GDD §5.9's seven footprints overlaps another.
 ##     §5.1's own sentence is the other half: "Clear initial building footprints, a one-tile
 ##     apron, and the loam rectangle x=58..65,z=46..53 before placing resource nodes".
+##     STILL NOT BUILT HERE: clearing ground is GEOMETRY. No Building, Furniture or Room store is
+##     created by this module -- READY_07 §7.2 step 2 owns those -- so nothing here knows that the
+##     hall footprint will one day hold a hall.
 ##   * NO FarmPlot, OrchardPlot OR Hive IS CREATED. §5.1's initial conditions list buildings,
 ##     inventory and residents; they list no farm plot, orchard block or apiary, and §5.6/§5.7 reach
 ##     both through player designation (orchards additionally behind milestone M3). `farming.gd` and
@@ -117,8 +129,9 @@ extends RefCounted
 ##      skipping duplicate centers and all cleared aprons; replace any skipped center at the lowest
 ##      unused land tile inside x=36..49,z=50..67 until exactly 100 guaranteed nodes exist." A
 ##      skipped tile already carries a center node, so counting it toward the 100 would make
-##      "replace any skipped center" do nothing. 25 of the 100 grove tiles are centers, so 75 land
-##      in the grove and 25 relocate.
+##      "replace any skipped center" do nothing. 25 of the 100 grove tiles are centers and, since
+##      the 2026-09-11 footprint clearing, 5 more at (49,59..63) fall in a stockpile apron -- so 70
+##      land in the grove and 30 relocate. The grove is still exactly 100.
 ##   4. THE BASINS SPLIT NORTH = z < 62, SOUTH = z >= 62. §5.1 says "each is split at z=62 into
 ##      north/south migration partners" and the macro map's "N is decreasing Z" fixes which side is
 ##      north. The alternative -- an even 43/43 split at z<=62 / z>=63 -- is the rounder-looking one
@@ -233,6 +246,81 @@ const CLEARED_LOAM_FIRST_X: int = 58
 const CLEARED_LOAM_LAST_X: int = 65
 const CLEARED_LOAM_FIRST_Z: int = 46
 const CLEARED_LOAM_LAST_Z: int = 53
+
+# --- the authored starter building footprints (GDD §5.9) ---------------------------------------
+## §5.9, verbatim: "On the 128x128 exterior tile grid, place the hall at (58,59), stockpiles at
+## (50,60),(50,65),(70,60),(70,65), well at (64,54), and workbench at (58,54), all rotation 0.
+## Clear these footprints before resource placement. Hall interior origin is exterior origin+(1,1)."
+## The SIZES are transcribed from §5.9's own building table, not from that sentence: "Refuge/
+## community hall |12x10", "Open stockpile |4x4", "Well |2x2", "Workbench shelter |3x3".
+##
+## THE FIRST NUMBER IS THE X EXTENT, and that is proved by §5.9 rather than assumed: the hall's
+## "Interior 10x8" with "interior origin is exterior origin+(1,1)" only closes as 12-2=10 across
+## and 10-2=8 down, and §5.9's interior ASCII block is ten columns by eight rows.
+##
+## "All rotation 0" is why no rotation is stored: every authored footprint is axis aligned with its
+## table extents, so a rotation column would have exactly one value. Rotation belongs to the
+## building store READY_07 §7.2 step 2 creates, and NO Building, Furniture or Room store is created
+## here -- this module clears GROUND, which is geometry.
+const STARTER_FOOTPRINT_COUNT: int = 7
+
+const HALL_ORIGIN_X: int = 58
+const HALL_ORIGIN_Z: int = 59
+const HALL_SIZE_X: int = 12
+const HALL_SIZE_Z: int = 10
+## §5.9: "Hall interior origin is exterior origin+(1,1)." Recorded because §5.9 states it; the
+## interior itself is not modelled here (no Room store -- READY_07 §7.2 step 2 owns it).
+const HALL_INTERIOR_OFFSET: int = 1
+
+const STOCKPILE_A_ORIGIN_X: int = 50
+const STOCKPILE_A_ORIGIN_Z: int = 60
+const STOCKPILE_B_ORIGIN_X: int = 50
+const STOCKPILE_B_ORIGIN_Z: int = 65
+const STOCKPILE_C_ORIGIN_X: int = 70
+const STOCKPILE_C_ORIGIN_Z: int = 60
+const STOCKPILE_D_ORIGIN_X: int = 70
+const STOCKPILE_D_ORIGIN_Z: int = 65
+const STOCKPILE_SIZE_X: int = 4
+const STOCKPILE_SIZE_Z: int = 4
+
+const WELL_ORIGIN_X: int = 64
+const WELL_ORIGIN_Z: int = 54
+const WELL_SIZE_X: int = 2
+const WELL_SIZE_Z: int = 2
+
+const WORKBENCH_ORIGIN_X: int = 58
+const WORKBENCH_ORIGIN_Z: int = 54
+const WORKBENCH_SIZE_X: int = 3
+const WORKBENCH_SIZE_Z: int = 3
+
+## The roster, in the order §5.9's sentence names them. The index is a position in this roster and
+## nothing else: it is not an entity id, and it outlives no world.
+const STARTER_FOOTPRINT_KEYS: Array[StringName] = [
+	&"refuge_hall", &"open_stockpile_a", &"open_stockpile_b", &"open_stockpile_c",
+	&"open_stockpile_d", &"well", &"workbench_shelter",
+]
+const STARTER_FOOTPRINT_ORIGIN_X: Array[int] = [
+	HALL_ORIGIN_X, STOCKPILE_A_ORIGIN_X, STOCKPILE_B_ORIGIN_X, STOCKPILE_C_ORIGIN_X,
+	STOCKPILE_D_ORIGIN_X, WELL_ORIGIN_X, WORKBENCH_ORIGIN_X,
+]
+const STARTER_FOOTPRINT_ORIGIN_Z: Array[int] = [
+	HALL_ORIGIN_Z, STOCKPILE_A_ORIGIN_Z, STOCKPILE_B_ORIGIN_Z, STOCKPILE_C_ORIGIN_Z,
+	STOCKPILE_D_ORIGIN_Z, WELL_ORIGIN_Z, WORKBENCH_ORIGIN_Z,
+]
+const STARTER_FOOTPRINT_SIZE_X: Array[int] = [
+	HALL_SIZE_X, STOCKPILE_SIZE_X, STOCKPILE_SIZE_X, STOCKPILE_SIZE_X,
+	STOCKPILE_SIZE_X, WELL_SIZE_X, WORKBENCH_SIZE_X,
+]
+const STARTER_FOOTPRINT_SIZE_Z: Array[int] = [
+	HALL_SIZE_Z, STOCKPILE_SIZE_Z, STOCKPILE_SIZE_Z, STOCKPILE_SIZE_Z,
+	STOCKPILE_SIZE_Z, WELL_SIZE_Z, WORKBENCH_SIZE_Z,
+]
+
+## §5.1: "Clear initial building footprints, a one-tile apron, and the loam rectangle
+## x=58..65,z=46..53 before placing resource nodes." ONE tile, stated, not chosen.
+const FOOTPRINT_APRON_TILES: int = 1
+## Margin 0 is the footprint itself; the two are the only margins this module ever clears.
+const FOOTPRINT_NO_APRON: int = 0
 
 # --- ecology basins (GDD §5.1 and decision 0026's "four regions, not two") ----------------------
 ## §5.1: "Forest ecology basins are west x=8..49,z=20..105 and east x=82..119,z=20..105 excluding
@@ -554,6 +642,7 @@ func _init(p_directory: EntityDirectory, p_nodes: ResourceNodesScript,
 	_commands = p_commands
 	_allocate_columns()
 	_assert_authored_constants()
+	_stage_masks()
 
 
 func _allocate_columns() -> void:
@@ -613,6 +702,26 @@ func _assert_authored_constants() -> void:
 		"1200 U of wood must be a whole number of 12 U tree nodes")
 	assert(BASIN_COUNT == FOREST_BASIN_COUNT + FISH_BASIN_COUNT,
 		"the basin roster is four forest partitions plus decision 0037's three fish habitats")
+	assert(HALL_SIZE_X - 2 * HALL_INTERIOR_OFFSET == 10 and HALL_SIZE_Z - 2 * HALL_INTERIOR_OFFSET == 8,
+		"GDD 5.9's hall interior 10x8 must close against its 12x10 footprint at origin+(1,1)")
+	_assert_footprints_dont_overlap()
+
+
+func _assert_footprints_dont_overlap() -> void:
+	"""Drift guard on READY_07 §7.1: "building footprints may not" overlap, and all fit the grid.
+
+	Authored constants cannot vary at runtime, so a failure here is a transcription error in this
+	file, not a world that could be refused. 21 distinct pairs, checked once per generator.
+	"""
+	for first: int in STARTER_FOOTPRINT_COUNT:
+		assert(STARTER_FOOTPRINT_ORIGIN_X[first] >= 0
+				and STARTER_FOOTPRINT_ORIGIN_X[first] + STARTER_FOOTPRINT_SIZE_X[first] <= MAP_TILES_X
+				and STARTER_FOOTPRINT_ORIGIN_Z[first] >= 0
+				and STARTER_FOOTPRINT_ORIGIN_Z[first] + STARTER_FOOTPRINT_SIZE_Z[first] <= MAP_TILES_Z,
+			"authored footprint %d leaves the 128x128 exterior grid" % first)
+		for second: int in range(first + 1, STARTER_FOOTPRINT_COUNT):
+			assert(not starter_footprints_overlap(first, second),
+				"authored footprints %d and %d overlap; GDD 5.9 places none on another" % [first, second])
 
 
 func _reset_published() -> void:
@@ -788,15 +897,85 @@ static func soil_of(x: int, z: int) -> int:
 
 
 static func is_cleared_tile(x: int, z: int) -> bool:
-	"""GDD §5.1's cleared loam rectangle x=58..65,z=46..53, cleared before resource placement.
+	"""All three things GDD §5.1 clears before resource placement, as one predicate.
 
-	The initial BUILDING footprints and their one-tile apron belong in this predicate and are not
-	in it. CORRECTED 2026-09-11: the earlier reason given here -- that §5.1 gives no footprint
-	coordinates -- was wrong. GDD §5.9 authors them exactly; see the header. They remain uncleared
-	because the clearing is unimplemented, not because the coordinates are unknown.
+	§5.1: "Clear initial building footprints, a one-tile apron, and the loam rectangle
+	x=58..65,z=46..53 before placing resource nodes." CORRECTED 2026-09-11 (READY_07 §7.1): an
+	earlier revision cleared only the loam rectangle and recorded the footprints as unimplemented.
+	They are implemented here from §5.9's authored coordinates and table extents.
+
+	The three parts may overlap freely -- the workbench apron reaches z=53 inside the loam
+	rectangle, and neighbouring aprons share tiles -- because clearing is idempotent: a tile is
+	cleared or it is not. READY_07 §7.1: "Shared aprons may overlap as cleared ground; building
+	footprints may not", and the footprint half of that is asserted in `_assert_footprints_dont_overlap()`.
 	"""
+	return is_cleared_loam_tile(x, z) or is_starter_footprint_tile(x, z) \
+		or is_starter_apron_tile(x, z)
+
+
+static func is_cleared_loam_tile(x: int, z: int) -> bool:
+	"""GDD §5.1's authored loam rectangle x=58..65,z=46..53, cleared before resource placement."""
 	return x >= CLEARED_LOAM_FIRST_X and x <= CLEARED_LOAM_LAST_X \
 		and z >= CLEARED_LOAM_FIRST_Z and z <= CLEARED_LOAM_LAST_Z
+
+
+static func is_starter_footprint_tile(x: int, z: int) -> bool:
+	"""True when (x,z) lies under one of §5.9's seven authored starter building footprints."""
+	for index: int in STARTER_FOOTPRINT_COUNT:
+		if footprint_covers_tile(index, x, z, FOOTPRINT_NO_APRON):
+			return true
+	return false
+
+
+static func is_starter_apron_tile(x: int, z: int) -> bool:
+	"""True when (x,z) is in §5.1's one-tile apron of some footprint and under no footprint.
+
+	The apron is the RING outside its footprint, so `is_starter_footprint_tile()` and this one
+	partition the cleared building ground and never double-count a tile. A tile shared by two
+	aprons answers true once, which is READY_07 §7.1's permitted overlap.
+	"""
+	if is_starter_footprint_tile(x, z):
+		return false
+	for index: int in STARTER_FOOTPRINT_COUNT:
+		if footprint_covers_tile(index, x, z, FOOTPRINT_APRON_TILES):
+			return true
+	return false
+
+
+static func footprint_covers_tile(index: int, x: int, z: int, margin: int) -> bool:
+	"""True when (x,z) lies inside starter footprint `index` grown by `margin` tiles on every side.
+
+	`margin` 0 asks about the footprint, `FOOTPRINT_APRON_TILES` about the footprint plus §5.1's
+	apron. An `index` outside the roster names no footprint, so no tile lies inside it; that is an
+	empty set, not a failure signal, and the roster is a compile-time constant that cannot vary.
+	"""
+	if index < 0 or index >= STARTER_FOOTPRINT_COUNT:
+		return false
+	var origin_x: int = STARTER_FOOTPRINT_ORIGIN_X[index]
+	var origin_z: int = STARTER_FOOTPRINT_ORIGIN_Z[index]
+	return x >= origin_x - margin and x <= origin_x + STARTER_FOOTPRINT_SIZE_X[index] - 1 + margin \
+		and z >= origin_z - margin and z <= origin_z + STARTER_FOOTPRINT_SIZE_Z[index] - 1 + margin
+
+
+static func starter_footprints_overlap(first: int, second: int) -> bool:
+	"""True when authored footprints `first` and `second` share at least one tile.
+
+	READY_07 §7.1: "building footprints may not" overlap. Two ranges overlap exactly when each
+	starts at or before the other one ends, on both axes at once. A footprint trivially overlaps
+	itself, so callers compare distinct roster positions.
+	"""
+	if first < 0 or first >= STARTER_FOOTPRINT_COUNT:
+		return false
+	if second < 0 or second >= STARTER_FOOTPRINT_COUNT:
+		return false
+	var first_x: int = STARTER_FOOTPRINT_ORIGIN_X[first]
+	var second_x: int = STARTER_FOOTPRINT_ORIGIN_X[second]
+	var first_z: int = STARTER_FOOTPRINT_ORIGIN_Z[first]
+	var second_z: int = STARTER_FOOTPRINT_ORIGIN_Z[second]
+	return first_x <= second_x + STARTER_FOOTPRINT_SIZE_X[second] - 1 \
+		and second_x <= first_x + STARTER_FOOTPRINT_SIZE_X[first] - 1 \
+		and first_z <= second_z + STARTER_FOOTPRINT_SIZE_Z[second] - 1 \
+		and second_z <= first_z + STARTER_FOOTPRINT_SIZE_Z[first] - 1
 
 
 # --- ecology basin membership -------------------------------------------------------------------
@@ -1328,8 +1507,10 @@ func _stage_masks() -> void:
 
 	Terrain first because soil and basin membership both read it: soil exists only on land, and
 	§5.1's forest basins are rectangles "excluding water".
+
+	The cleared column written here is what `_stage_tree_plan()` then CONSULTS, which is how §5.1's
+	"before placing resource nodes" is executed as an order rather than restated as a coincidence.
 	"""
-	_staged_used.fill(0)
 	for z: int in MAP_TILES_Z:
 		for x: int in MAP_TILES_X:
 			var tile: int = z * MAP_TILES_X + x
@@ -1347,8 +1528,11 @@ func _stage_tree_plan() -> void:
 	"""Plan every tree node: §5.1's capped centres first, then the guaranteed grove on top of them.
 
 	Order is §5.1's own: the grove skips "duplicate centers", so the centres must exist first for a
-	grove tile to be a duplicate of anything.
+	grove tile to be a duplicate of anything. `_stage_masks()` must have run first -- every tile
+	test below reads the STAGED CLEARED COLUMN, so running this stage before the clearing plants
+	trees on ground §5.1 clears.
 	"""
+	_staged_used.fill(0)
 	_staged_centre_count = collect_tree_centres_into(TREE_CENTER_CAP, _staged_centres)
 	for index: int in _staged_centre_count:
 		_staged_used[_staged_centres[index]] = 1
@@ -1390,13 +1574,42 @@ func collect_tree_centres_into(cap: int, out: PackedInt32Array) -> int:
 	return written
 
 
-static func _is_tree_centre(x: int, z: int) -> bool:
-	"""True when §5.1 puts a mature tree node on this tile before the grove is added."""
+static func is_centre_candidate(x: int, z: int, cleared: bool) -> bool:
+	"""§5.1's tree-centre rule: even stride, inside a forest mask, and spared by the clearing.
+
+	`cleared` is an ARGUMENT rather than a recomputation so that the clearing STAGE decides it --
+	§5.1's "before placing resource nodes" as an executed order. Pure, so the rule is testable on
+	its own; on the authored map the `cleared` branch is never taken, because the only cleared
+	column inside a forest mask is the odd x=49 and a centre needs even x.
+	"""
 	if x % TREE_CENTER_STRIDE != 0 or z % TREE_CENTER_STRIDE != 0:
 		return false
-	if is_cleared_tile(x, z):
+	if cleared:
 		return false
 	return forest_basin_of(x, z) != NO_BASIN
+
+
+func _is_tree_centre(x: int, z: int) -> bool:
+	"""§5.1's centre rule applied to one tile, with the STAGED clearing mask supplying `cleared`.
+
+	KNOWN SURVIVING MUTANT, recorded rather than hidden (decision 0060): replacing the mask read
+	below with a literal `false` leaves the whole suite green, because on the AUTHORED map no
+	cleared tile is ever an even/even forest tile. That is not an untested line, it is a proved
+	one: `test_the_clearing_takes_no_tree_centre_because_its_forest_overlap_is_odd` asserts over
+	all 16384 tiles that the buildings clear exactly eleven forest tiles and all of them sit in the
+	odd column x=49. The read stays because it is the correct rule for any footprint that is ever
+	moved into a forest mask, and `is_centre_candidate()` is tested against both values directly.
+	"""
+	return is_centre_candidate(x, z, _staged_cleared[z * MAP_TILES_X + x] == 1)
+
+
+func _is_plantable_tile(tile: int) -> bool:
+	"""True when no centre or earlier grove node holds `tile` and §5.1's clearing spared it.
+
+	The single gate BOTH grove passes use, so §5.1's "skipping duplicate centers and all cleared
+	aprons" is stated once and cannot drift between the two.
+	"""
+	return _staged_used[tile] == 0 and _staged_cleared[tile] == 0
 
 
 func _collect_grove_tiles_into(out: PackedInt32Array) -> int:
@@ -1412,7 +1625,7 @@ func _collect_grove_tiles_into(out: PackedInt32Array) -> int:
 	for z: int in range(GROVE_FIRST_Z, GROVE_LAST_Z + 1):
 		for x: int in range(GROVE_FIRST_X, GROVE_LAST_X + 1):
 			var tile: int = z * MAP_TILES_X + x
-			if _staged_used[tile] == 1 or is_cleared_tile(x, z):
+			if not _is_plantable_tile(tile):
 				continue
 			if written >= out.size():
 				return written
@@ -1436,7 +1649,7 @@ func _append_grove_replacements(out: PackedInt32Array, from: int) -> int:
 			if written >= GROVE_NODE_COUNT or written >= out.size():
 				return written
 			var tile: int = z * MAP_TILES_X + x
-			if _staged_used[tile] == 1 or is_cleared_tile(x, z):
+			if not _is_plantable_tile(tile):
 				continue
 			if terrain_of(x, z) != TERRAIN_LAND:
 				continue

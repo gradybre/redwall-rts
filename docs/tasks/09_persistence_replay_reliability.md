@@ -8,12 +8,22 @@ rules; this card does not replace the binary schema.
 
 ## Dependencies and work
 
-- [ ] 09.1 Maintain a future-affecting-state registry as every store arrives:
+- [x] 09.1 Maintain a future-affecting-state registry as every store arrives:
   columns/widths, null/unused representation, allocator generations/retirement,
   child indexes, RNG, pending commands/scheduler events, clocks/leases/claims,
   route/cache/search state, cargo/WIP, memories, scenarios and family state.
   Fix pending scheduler serialization with 04.1; expanded movement version and
   migration/rejection matrix with MOVE-G02. Do not silently repurpose v1 bytes.
+  *Done 2026-09-11 (decision 0062):* `docs/persistence_state_registry.md` covers
+  all 36 modules under `godot/scripts/core/` -- 275 rows over 541 declared packed
+  columns -- and `docs/validation/state_registry_coverage.py`, run by
+  `tools/run_tests.sh`, fails the build when a store lands without a row or a
+  width/count stops matching the GDScript. **Still open inside 09.1:** three
+  UNRESOLVED rows (the command result ledger's eight columns, and
+  `inventory._c_reachable`); pending scheduler serialization remains unwired
+  pending 04.1's caller, which is 09.2's `SCHQ0001` writer; and the expanded
+  movement version plus migration/rejection matrix stays with MOVE-G02, so the
+  reserved zero columns are recorded do-not-repurpose rather than versioned.
 - [ ] 09.2 Implement canonical little-endian sections and complete validation,
   hashes, bounded reads and overflow checks. Preserve rule/catalog/map/lookup/
   engine identity. Reject incompatible v1 hunting state under SET-AMEND-001;

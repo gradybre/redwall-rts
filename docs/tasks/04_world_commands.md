@@ -171,8 +171,21 @@ reachability half is BLOCKED on task 05's topology**, as this checklist requires
 **Still outstanding within 04.3:** the resident/building/container/gear fixture
 below (no Building, Furniture or **Room** store exists — full initialization is
 BLOCKED, and nothing was substituted), the save round trip (task 09 owns the
-codec), the starter building footprints and their one-tile apron, and composition
-into `settlement_system.gd`, which belongs to the integration lead.
+codec), and composition into `settlement_system.gd`, which belongs to the
+integration lead.
+
+**Starter footprint clearing closed 2026-09-11 (READY_07 §7.1,
+[decision 0060](../decisions/0060-starter-footprints-are-cleared-ground-not-buildings.md)).**
+`world_init.gd` now clears GDD §5.9's seven authored footprints — hall 12×10 at
+(58,59), four 4×4 stockpiles, the 2×2 well, the 3×3 workbench shelter — and
+§5.1's one-tile apron, before placing any resource node. **376 cleared tiles**
+(197 footprint + 122 apron ring + 57 loam rectangle). No authored footprint
+overlaps another; shared aprons do overlap and that is legal. The node census was
+**recalculated from the geometry rather than protected** and comes back to 1695:
+no cleared tile is an even/even forest tile, and the five grove tiles the apron
+takes at (49,59..63) relocate inside §5.1's replacement window, so the grove is
+still exactly 100 (70 in the rectangle, 30 relocated). **Still ground only** —
+no Building, Furniture or Room store is created; those remain §7.2 step 2.
 
 **Catalog binding closed 2026-09-11 (READY_07 §2,
 [decision 0052](../decisions/0052-resource-ids-are-compiled-item-definition-keys.md)).** The

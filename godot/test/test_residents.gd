@@ -561,3 +561,136 @@ func test_despawned_residents_leave_the_demand() -> void:
 	assert_equal(_residents.daily_demand_np().value, 15600, "one small plus one large")
 	assert_true(_residents.despawn(first.ref).ok, "the mouse leaves")
 	assert_equal(_residents.daily_demand_np().value, 9600, "only the badger remains")
+# --- GDD §4.2 Equipment mirror (decision 0061) -------------------------------------------------
+#
+# Four of the ledgered Equipment row's five I32 columns live here; `clothing_tier` stays in
+# `needs.gd`, which already applies tier 1 at spawn. The tool columns MIRROR the authoritative
+# GearInstance row in `gear.gd`, which is the only legitimate writer -- `test_gear.gd` owns the
+# cross-store behaviour. What is pinned here is the store's own contract.
+
+
+func _spawn_one() -> int:
+	"""Spawn one mouse and return its typed row."""
+	var spawned: Residents.OpResult = _residents.spawn(&"mouse")
+	assert_true(spawned.ok, "spawning a resident must succeed: %s" % spawned.error)
+	return spawned.value
+
+
+func test_the_equipment_mirror_occupies_its_ledgered_columns_and_no_more() -> void:
+	"""systems_architecture.md §3 bills Equipment as 4 bytes x 5 columns x 512 = 10240.
+
+	Four of those columns are allocated here: 8192 bytes. The fifth, `clothing_tier`, is
+	`needs.gd`'s existing column, and billing it a second time is exactly what READY_07 §7.2
+	step 2 forbids -- so the ledger total does not move for this increment.
+	"""
+	assert_equal(_residents.equipment_payload_bytes(), 8192,
+		"four I32 columns at 512 rows are 8192 bytes")
+	assert_equal(Residents.EQUIPMENT_MIRROR_BYTES, 8192, "and the published constant agrees")
+	assert_equal(Residents.EQUIPMENT_MIRROR_COLUMNS, 4, "over four columns")
+	assert_equal(4 * 5 * Residents.RESIDENT_CAPACITY, 10240,
+		"against a ledgered five-column row of 10240 bytes, the fifth being clothing_tier")
+	assert_equal(NeedsScript.CLOTHING_TIER_MIN, 1,
+		"which needs.gd already applies as §5.9's tier-1 spawn equipment")
+
+
+func test_a_spawned_resident_carries_no_tool_and_no_satchel() -> void:
+	"""The §4.2 defaults: an empty mirror, not a plausible-looking zero."""
+	var slot: int = _spawn_one()
+	assert_false(_residents.has_equipped_tool(slot), "no tool is equipped at spawn")
+	assert_equal(_residents.satchel_of(slot), Residents.NULL_REF, "and no satchel is bound")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_false(_residents.equipped_tool_item_id_into(slot, out),
+		"reading the item id refuses rather than returning a plausible number")
+	assert_equal(out.error, String(Residents.REFUSE_NO_EQUIPPED_TOOL), "with an explicit reason")
+	assert_false(_residents.equipped_tool_durability_into(slot, out),
+		"and so does reading the durability")
+	assert_equal(out.value, 0, "a refusal carries no usable value")
+
+
+func test_the_mirror_records_an_equipped_tool_and_gives_it_back() -> void:
+	"""The write and the two readers agree, and the readers refuse for an absent row."""
+	var slot: int = _spawn_one()
+	assert_true(_residents.set_equipped_tool(slot, 8, 1000).ok, "the mirror takes a tool")
+	assert_true(_residents.has_equipped_tool(slot), "which it then reports")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_residents.equipped_tool_item_id_into(slot, out), "the item id reads back")
+	assert_equal(out.value, 8, "exactly as written")
+	assert_true(_residents.equipped_tool_durability_into(slot, out), "and so does the durability")
+	assert_equal(out.value, 1000, "exactly as written")
+	assert_false(_residents.equipped_tool_item_id_into(Residents.RESIDENT_CAPACITY - 1, out),
+		"an unspawned row refuses")
+	assert_equal(out.error, String(Residents.REFUSE_NOT_PRESENT), "naming the absent row")
+
+
+func test_the_mirror_refuses_a_second_tool_for_one_resident() -> void:
+	"""§4.2 gives a resident exactly one `tool_item_id`, so this is a refusal, not a replacement."""
+	var slot: int = _spawn_one()
+	assert_true(_residents.set_equipped_tool(slot, 8, 1000).ok, "the first tool goes on")
+	var second: Residents.OpResult = _residents.set_equipped_tool(slot, 8, 400)
+	assert_false(second.ok, "the second refuses")
+	assert_equal(second.error, Residents.REFUSE_TOOL_ALREADY_EQUIPPED, "named explicitly")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_residents.equipped_tool_durability_into(slot, out), "and the first is intact")
+	assert_equal(out.value, 1000, "at the durability it was written with")
+
+
+func test_refreshing_or_clearing_a_mirror_that_holds_no_tool_refuses() -> void:
+	"""Neither writer may invent an equipped tool out of an empty row."""
+	var slot: int = _spawn_one()
+	var refreshed: Residents.OpResult = _residents.set_equipped_tool_durability(slot, 500)
+	assert_false(refreshed.ok, "there is no durability to refresh")
+	assert_equal(refreshed.error, Residents.REFUSE_NO_EQUIPPED_TOOL, "named explicitly")
+	var cleared: Residents.OpResult = _residents.clear_equipped_tool(slot)
+	assert_false(cleared.ok, "and nothing to clear")
+	assert_equal(cleared.error, Residents.REFUSE_NO_EQUIPPED_TOOL, "named explicitly")
+	assert_false(_residents.has_equipped_tool(slot), "the row is still empty")
+
+
+func test_the_mirror_refuses_a_negative_item_id_or_durability() -> void:
+	"""An out-of-range write is refused rather than truncated into a plausible column value."""
+	var slot: int = _spawn_one()
+	assert_equal(_residents.set_equipped_tool(slot, -1, 1000).error,
+		Residents.REFUSE_INVALID_ITEM_ID, "a negative item id is not a tool")
+	assert_equal(_residents.set_equipped_tool(slot, 8, -1).error,
+		Residents.REFUSE_INVALID_DURABILITY, "and negative durability is not durability")
+	assert_false(_residents.has_equipped_tool(slot), "neither refusal wrote anything")
+
+
+func test_despawning_a_resident_empties_its_equipment_mirror() -> void:
+	"""A reused row must never inherit the previous resident's tool."""
+	var slot: int = _spawn_one()
+	var ref: Vector2i = _residents.ref_of(slot)
+	assert_true(_residents.set_equipped_tool(slot, 8, 1000).ok, "the resident carries a tool")
+	assert_true(_residents.set_satchel(slot, Vector2i(3, 1)).ok, "and a satchel")
+	assert_true(_residents.despawn(ref).ok, "the resident leaves")
+	assert_false(_residents.has_equipped_tool(slot), "the mirror is emptied on despawn")
+	var next: int = _spawn_one()
+	assert_equal(next, slot, "the row is reused")
+	assert_false(_residents.has_equipped_tool(next), "and the new resident inherits no tool")
+	assert_equal(_residents.satchel_of(next), Residents.NULL_REF, "nor a satchel")
+
+
+func test_a_satchel_reference_is_stored_and_cleared_but_never_guessed() -> void:
+	"""The container itself belongs to inventory.gd; only the §4.2 reference lives here."""
+	var slot: int = _spawn_one()
+	assert_true(_residents.set_satchel(slot, Vector2i(5, 2)).ok, "a valid reference is taken")
+	assert_equal(_residents.satchel_of(slot), Vector2i(5, 2), "and read back exactly")
+	assert_true(_residents.set_satchel(slot, Residents.NULL_REF).ok, "the null ref clears it")
+	assert_equal(_residents.satchel_of(slot), Residents.NULL_REF, "leaving no satchel")
+	var bad: Residents.OpResult = _residents.set_satchel(slot, Vector2i(5, 0))
+	assert_false(bad.ok, "a slot with a null generation is not a usable reference")
+	assert_equal(bad.error, Residents.REFUSE_INVALID_CONTAINER, "named explicitly")
+
+
+func test_the_equipment_image_changes_with_the_mirror_and_only_with_it() -> void:
+	"""The byte image the equip rollback checks is sensitive to every column it covers."""
+	var slot: int = _spawn_one()
+	var empty: PackedByteArray = _residents.equipment_state_bytes()
+	assert_true(_residents.set_equipped_tool(slot, 8, 1000).ok, "equip in the mirror")
+	assert_true(_residents.equipment_state_bytes() != empty, "the image moved")
+	assert_true(_residents.clear_equipped_tool(slot).ok, "clear it again")
+	assert_equal(_residents.equipment_state_bytes(), empty, "and the image came back exactly")
+	assert_true(_residents.set_skill_xp(slot, 0, 5000).ok, "an unrelated column changes")
+	assert_equal(_residents.equipment_state_bytes(), empty, "without moving the equipment image")
+
+

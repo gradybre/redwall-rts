@@ -37,6 +37,32 @@ extends RefCounted
 ##    carrying capacity (BAL-SAFE-016). An over-capacity operation returns CAPACITY_EXCEEDED;
 ##    no quantity is ever silently clamped to fit.
 ##
+## 4. A NULL CONTAINER IS AN EQUIPPED RECORD, AND NOTHING ELSE (decision 0061; ruling
+##    `2026-09-09_ready06_open_item_answers.md` §4; READY_07 §7.2 step 5). GDD §4.2 gives a lot a
+##    `container: EntityRef`, and ARCH-STATE-001 keeps the SAME indivisible quantity-1000 lot and
+##    its GearInstance alive while equipped. So an equipped lot's container is the null ref
+##    `(-1, 0)` -- and that is the ONLY thing a null container is ever allowed to mean.
+##
+##    THE DOUBLE COUNT IS UNREPRESENTABLE, NOT MERELY TESTED. `_l_container_slot[slot]` is one
+##    field with one value. A lot is either threaded into exactly one container's intrusive list,
+##    where it charges that container's used mass and counts as loose stock, or it carries
+##    NULL_SLOT, is in no list at all, and counts as equipped. Container mass is only ever
+##    credited through link/unlink, and `total_loose_milli()` is `total_live_milli()` minus
+##    `total_equipped_milli()` by construction, so no arrangement of these columns can make one
+##    lot contribute to both loose stock and a container -- or to equipped mass and storage.
+##    `audit()` re-derives every container's mass from its list, which an equipped lot is not in.
+##
+##    AND THE NULL CONTAINER MUST BE PROVED, NOT ASSUMED. This module has no idea what gear is,
+##    so it does not decide: it demands a proof from a bound EQUIPMENT AUTHORITY -- `gear.gd` --
+##    whose `is_equipped_record(lot_ref)` answers true only for a live GearInstance flagged
+##    equipped whose recorded owner is a live resident. `detach_lot_to_equipment()` refuses
+##    unless the authority attests; `attach_equipped_lot()` refuses unless it STOPS attesting,
+##    which is what makes "equipped and also shelved" unreachable from either door; and
+##    `audit()` re-checks the biconditional for every live lot, so an orphaned null-container lot
+##    -- an owner who died, an authority unbound -- is a refusal and not a silent hole. Nothing
+##    here was weakened to admit a null container: create_lot() still requires a live container,
+##    and split/merge/move/transfer/sink/reserve all refuse an equipped lot outright.
+##
 ## ARCH-MEM-001: every column is a packed array allocated once in _init(). No GDScript Array is
 ## allocated per row; a container's lots are an intrusive doubly linked list threaded through
 ## two packed lot columns, not a per-container child array.
@@ -188,6 +214,22 @@ const REFUSE_AUDIT_RESERVED: StringName = &"AUDIT_RESERVED_EXCEEDS_QUANTITY"
 const REFUSE_AUDIT_CONSERVATION: StringName = &"AUDIT_CONSERVATION_BROKEN"
 const REFUSE_AUDIT_LOT_COUNT: StringName = &"AUDIT_LOT_COUNT_MISMATCH"
 const REFUSE_AUDIT_CAPACITY: StringName = &"AUDIT_CAPACITY_EXCEEDED"
+const REFUSE_LOT_EQUIPPED: StringName = &"LOT_EQUIPPED"
+const REFUSE_LOT_NOT_EQUIPPED: StringName = &"LOT_NOT_EQUIPPED"
+const REFUSE_LOT_HAS_RESERVATION: StringName = &"LOT_HAS_RESERVATION"
+const REFUSE_NO_EQUIPMENT_AUTHORITY: StringName = &"NO_EQUIPMENT_AUTHORITY"
+const REFUSE_INVALID_EQUIPMENT_AUTHORITY: StringName = &"INVALID_EQUIPMENT_AUTHORITY"
+const REFUSE_NOT_AN_EQUIPPED_RECORD: StringName = &"NOT_AN_EQUIPPED_RECORD"
+const REFUSE_STILL_AN_EQUIPPED_RECORD: StringName = &"STILL_AN_EQUIPPED_RECORD"
+const REFUSE_EQUIPPED_LOTS_LIVE: StringName = &"EQUIPPED_LOTS_LIVE"
+const REFUSE_INSUFFICIENT_RESERVED_MASS: StringName = &"INSUFFICIENT_RESERVED_MASS"
+const REFUSE_ATTESTATION_REENTRY: StringName = &"ATTESTATION_REENTRY"
+const REFUSE_AUDIT_ORPHAN_LOT: StringName = &"AUDIT_ORPHAN_LOT"
+const REFUSE_AUDIT_EQUIPPED_COUNT: StringName = &"AUDIT_EQUIPPED_COUNT_MISMATCH"
+
+## The single method name an equipment authority must publish. Duck typed on purpose: `gear.gd`
+## preloads this module, so this module must not preload `gear.gd` back.
+const EQUIPMENT_ATTESTATION_METHOD: StringName = &"is_equipped_record"
 
 
 class OpResult:
@@ -291,8 +333,19 @@ var _tx_saved_c_free_count: int = 0
 var _tx_saved_l_free_count: int = 0
 var _tx_saved_c_live_count: int = 0
 var _tx_saved_l_live_count: int = 0
+var _tx_saved_equipped_count: int = 0
 
 var _plan: TransferPlan = TransferPlan.new()
+
+## The store that can prove a null-container lot is an equipped record with a live owner. Not
+## simulation state and not journaled: it is a wiring reference, like `residents.gd`'s directory.
+var _equipment_authority: Object = null
+## Live lots whose container is the null ref. Derived from the columns, maintained like the live
+## counts and restored the same way on rollback; `audit()` re-derives it.
+var _equipped_lot_count: int = 0
+## True only while the authority's attestation is running. `_guard()` refuses every mutator while
+## it is set, so an authority that tries to re-enter this module cannot half-apply an operation.
+var _attesting: bool = false
 
 # Task 2.7 scratch. Not simulation state: rollback and state_bytes() both ignore these.
 ## Checked-arithmetic scratch shared by every internal helper. A helper that produces one
@@ -399,6 +452,7 @@ func clear() -> void:
 	_tx_open = false
 	_tx_poisoned = false
 	_tx_error = REFUSE_NONE
+	_equipped_lot_count = 0
 
 
 func _clear_container_rows() -> void:
@@ -599,6 +653,7 @@ func _open_transaction() -> void:
 	_tx_saved_l_free_count = _l_free_count
 	_tx_saved_c_live_count = _c_live_count
 	_tx_saved_l_live_count = _l_live_count
+	_tx_saved_equipped_count = _equipped_lot_count
 
 
 func _enter() -> bool:
@@ -643,7 +698,13 @@ func _succeed(ref: Vector2i, value: int) -> StringName:
 
 
 func _guard() -> StringName:
-	"""Refuse before touching state when the transaction is poisoned or the journal is full."""
+	"""Refuse before touching state: attestation re-entry, a poisoned transaction, a full journal.
+
+	The attestation check comes first because it is the only one that can be true while the
+	caller is not this module at all -- an authority re-entering from inside `_attests()`.
+	"""
+	if _attesting:
+		return REFUSE_ATTESTATION_REENTRY
 	if _tx_poisoned:
 		return REFUSE_TRANSACTION_POISONED
 	if _j_count + MAX_JOURNAL_PER_OP > JOURNAL_CAPACITY:
@@ -679,6 +740,7 @@ func _rollback() -> void:
 	_l_free_count = _tx_saved_l_free_count
 	_c_live_count = _tx_saved_c_live_count
 	_l_live_count = _tx_saved_l_live_count
+	_equipped_lot_count = _tx_saved_equipped_count
 	_j_count = 0
 
 
@@ -1168,9 +1230,15 @@ func _remove_quantity(lot_ref: Vector2i, quantity_milli: int, from_reserved: boo
 
 
 func _check_removal(lot_ref: Vector2i, quantity_milli: int, from_reserved: bool) -> StringName:
-	"""Precondition check for consuming quantity. REFUSE_NONE when the removal is legal."""
+	"""Precondition check for consuming quantity. REFUSE_NONE when the removal is legal.
+
+	An equipped lot refuses: it is held by a resident and charged to no container, so consuming
+	it here would sink quantity while its GearInstance still recorded it. Unequip it first.
+	"""
 	if not is_lot_valid(lot_ref):
 		return REFUSE_INVALID_LOT
+	if _l_container_slot[lot_ref.x] == NULL_SLOT:
+		return REFUSE_LOT_EQUIPPED
 	if quantity_milli <= 0:
 		return REFUSE_INVALID_QUANTITY
 	var slot: int = lot_ref.x
@@ -1264,7 +1332,13 @@ func _split_lot_checked(lot_ref: Vector2i, quantity_milli: int) -> StringName:
 
 
 func _check_split(lot_ref: Vector2i, quantity_milli: int) -> StringName:
-	"""Precondition check for an in-place split. REFUSE_NONE when the split is legal."""
+	"""Precondition check for an in-place split. REFUSE_NONE when the split is legal.
+
+	An equipped lot refuses outright: ARCH-STATE-001 makes a gear lot indivisible, and there is
+	no container for a sibling to land in.
+	"""
+	if is_lot_equipped(lot_ref):
+		return REFUSE_LOT_EQUIPPED
 	if not is_lot_valid(lot_ref):
 		return REFUSE_INVALID_LOT
 	if _l_free_count == 0:
@@ -1355,6 +1429,10 @@ func _check_merge(dest_ref: Vector2i, source_ref: Vector2i) -> StringName:
 		return REFUSE_SAME_LOT
 	var dest: int = dest_ref.x
 	var source: int = source_ref.x
+	# "Never clone it, merge it": two equipped lots both carry NULL_SLOT and would otherwise read
+	# as sharing a container, so this is checked before the same-container comparison.
+	if _l_container_slot[dest] == NULL_SLOT or _l_container_slot[source] == NULL_SLOT:
+		return REFUSE_LOT_EQUIPPED
 	if _l_container_slot[dest] != _l_container_slot[source]:
 		return REFUSE_DIFFERENT_CONTAINER
 	if not _attributes_match(dest, source):
@@ -1468,6 +1546,8 @@ func _move_lot_checked(lot_ref: Vector2i, dest_ref: Vector2i) -> StringName:
 		return REFUSE_INVALID_CONTAINER
 	var slot: int = lot_ref.x
 	var source_container: int = _l_container_slot[slot]
+	if source_container == NULL_SLOT:
+		return REFUSE_LOT_EQUIPPED
 	if source_container == dest_ref.x:
 		return REFUSE_SAME_CONTAINER
 	if not _accepts_item(dest_ref.x, _l_item_id[slot]):
@@ -1574,6 +1654,8 @@ func _check_transfer(lot_ref: Vector2i, dest_ref: Vector2i, quantity_milli: int)
 	if not is_container_valid(dest_ref):
 		return REFUSE_INVALID_CONTAINER
 	var slot: int = lot_ref.x
+	if _l_container_slot[slot] == NULL_SLOT:
+		return REFUSE_LOT_EQUIPPED
 	if _l_container_slot[slot] == dest_ref.x:
 		return REFUSE_SAME_CONTAINER
 	if quantity_milli <= 0 or quantity_milli > _l_quantity_milli[slot] - _l_reserved_milli[slot]:
@@ -1717,6 +1799,8 @@ func _change_reservation(lot_ref: Vector2i, delta_milli: int) -> StringName:
 		return guard
 	if not is_lot_valid(lot_ref):
 		return REFUSE_INVALID_LOT
+	if _l_container_slot[lot_ref.x] == NULL_SLOT:
+		return REFUSE_LOT_EQUIPPED
 	if delta_milli == 0:
 		return REFUSE_INVALID_QUANTITY
 	var slot: int = lot_ref.x
@@ -1729,6 +1813,245 @@ func _change_reservation(lot_ref: Vector2i, delta_milli: int) -> StringName:
 	_journal_lot(slot)
 	_l_reserved_milli[slot] = next
 	return _succeed(lot_ref, next)
+
+
+# --- Equipped lots (ruling §4; READY_07 §7.2 step 5; decision 0061) ---------------------------
+
+func set_equipment_authority(authority: Object) -> OpResult:
+	"""Bind -- or with null, unbind -- the store that can prove a lot is an equipped record.
+
+	Refused while a transaction is open; refused for an object that does not publish the
+	attestation method; and refused for an unbind while equipped lots are live, because
+	unbinding then would strand exactly the orphan null-container lots this mechanism exists to
+	make impossible. The binding is wiring, not simulation state: it is not journaled, not part
+	of state_bytes(), and survives clear() the way a collaborator reference does.
+	"""
+	if _tx_open:
+		return _refuse(REFUSE_TRANSACTION_OPEN)
+	if authority != null and not authority.has_method(EQUIPMENT_ATTESTATION_METHOD):
+		return _refuse(REFUSE_INVALID_EQUIPMENT_AUTHORITY)
+	if authority == null and _equipped_lot_count > 0:
+		return _refuse(REFUSE_EQUIPPED_LOTS_LIVE)
+	_equipment_authority = authority
+	return _ok(NULL_REF, _equipped_lot_count)
+
+
+func has_equipment_authority() -> bool:
+	"""True when an equipment authority is bound and a lot may therefore be proved equipped."""
+	return _equipment_authority != null
+
+
+func _attests(lot_ref: Vector2i) -> bool:
+	"""Ask the bound authority to prove this lot is an equipped record with a live owner.
+
+	The ONE place this module calls out to another object. `_attesting` is raised across the
+	call so `_guard()` refuses every mutator while it runs: an authority that re-entered and
+	mutated would otherwise land inside an operation this module is still validating. No `_math`
+	or `_plan` value may be held across this call, and nothing on a tick path calls it -- equip,
+	unequip and audit() only.
+	"""
+	if _equipment_authority == null:
+		return false
+	_attesting = true
+	var attested: bool = bool(_equipment_authority.call(EQUIPMENT_ATTESTATION_METHOD, lot_ref))
+	_attesting = false
+	return attested
+
+
+func is_lot_equipped(lot_ref: Vector2i) -> bool:
+	"""True when this live lot is held as equipment and therefore sits in no container.
+
+	The single field `container_slot` decides this, and it is the same field that decides which
+	container list the lot is threaded into -- which is why a lot cannot be both.
+	"""
+	return is_lot_valid(lot_ref) and _l_container_slot[lot_ref.x] == NULL_SLOT
+
+
+func equipped_lot_count() -> int:
+	"""Number of live lots currently held as equipment rather than in a container."""
+	return _equipped_lot_count
+
+
+func preflight_detach_to_equipment(lot_ref: Vector2i) -> OpResult:
+	"""Answer "could this lot be equipped?" without writing a byte. `.value` is the grams freed.
+
+	The allocate-before-consume half: `gear.equip()` asks this before it writes the owner, the
+	equipped flag or the resident's Equipment mirror, so a refusal costs nothing. It therefore
+	runs BEFORE the record could possibly attest, and does not demand the proof -- which is
+	exactly why `detach_lot_to_equipment()` demands it again for itself.
+	"""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return _refuse(guard)
+	var code: StringName = _check_detach(lot_ref, false)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _ok(lot_ref, lot_debit_g(lot_ref))
+
+
+func detach_lot_to_equipment(lot_ref: Vector2i) -> OpResult:
+	"""Take a proved equipped lot out of its container, keeping the very same lot row alive.
+
+	`.value` is the mass the container gives back. The lot is not cloned, not split, not merged
+	and not re-aged: exactly one column changes meaning -- its container becomes the null ref --
+	and the quantity, quality, age, provenance, recipe and generation are untouched, which is
+	what "preserve one item identity and durability" requires of this side.
+	"""
+	var owned: bool = _enter()
+	return _leave(owned, _detach_checked(lot_ref))
+
+
+func _detach_checked(lot_ref: Vector2i) -> StringName:
+	"""Validate completely, then unlink the lot and give its mass back to the container."""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return guard
+	var code: StringName = _check_detach(lot_ref, true)
+	if code != REFUSE_NONE:
+		return code
+	var slot: int = lot_ref.x
+	var container_slot: int = _l_container_slot[slot]
+	if not IntMath.inventory_capacity_debit_g_into(_l_quantity_milli[slot],
+			_item_mass_g[_l_item_id[slot]], _math):
+		return REFUSE_OVERFLOW
+	var debit_g: int = _math.value
+	_journal_lot(slot)
+	_journal_container(container_slot)
+	_unlink_lot(slot)
+	_credit_container(container_slot, -debit_g)
+	_l_container_slot[slot] = NULL_SLOT
+	_l_container_generation[slot] = NULL_GENERATION
+	_equipped_lot_count += 1
+	return _succeed(lot_ref, debit_g)
+
+
+func _check_detach(lot_ref: Vector2i, require_attestation: bool) -> StringName:
+	"""Every precondition for nulling a container. REFUSE_NONE only when it is PROVED equipped.
+
+	The attestation is last and is the one that matters: without a bound authority, or for a lot
+	the authority does not recognise as an equipped record with a live owner, this refuses. That
+	is the whole difference between this amendment and permission for orphan lots.
+
+	`require_attestation` is false only for the preflight, which by construction runs before
+	`gear.gd` has written the equipped flag and so cannot see the proof yet. Every path that
+	actually writes passes true; a bound authority is required either way.
+	"""
+	if _equipment_authority == null:
+		return REFUSE_NO_EQUIPMENT_AUTHORITY
+	if not is_lot_valid(lot_ref):
+		return REFUSE_INVALID_LOT
+	if _l_container_slot[lot_ref.x] == NULL_SLOT:
+		return REFUSE_LOT_EQUIPPED
+	if _l_reserved_milli[lot_ref.x] != 0:
+		return REFUSE_LOT_HAS_RESERVATION
+	if require_attestation and not _attests(lot_ref):
+		return REFUSE_NOT_AN_EQUIPPED_RECORD
+	return REFUSE_NONE
+
+
+func preflight_attach_equipped_lot(lot_ref: Vector2i, dest_ref: Vector2i,
+		from_reserved_mass: bool) -> OpResult:
+	"""Answer "could this equipped lot be shelved here?" without writing a byte.
+
+	`.value` is the grams the destination would take. `gear.unequip()` asks this before it
+	clears the equipped flag, so a destination that cannot hold the lot costs nothing.
+	"""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return _refuse(guard)
+	var code: StringName = _check_attach(lot_ref, dest_ref, from_reserved_mass, true)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _ok(lot_ref, lot_debit_g(lot_ref))
+
+
+func attach_equipped_lot(lot_ref: Vector2i, dest_ref: Vector2i,
+		from_reserved_mass: bool) -> OpResult:
+	"""Put THE SAME equipped lot back into a valid destination container. `.value` is its mass.
+
+	`from_reserved_mass` spends grams the destination already reserved for this lot, which is
+	what the ruling's "valid reserved destination" buys: used and reserved move by the same
+	amount in one step, so a reserved unequip cannot lose the space it was promised between the
+	reservation and its arrival. With false, the destination is checked against its free mass.
+	Durability, age, quantity and the lot's generation are not touched by either path.
+	"""
+	var owned: bool = _enter()
+	return _leave(owned, _attach_checked(lot_ref, dest_ref, from_reserved_mass))
+
+
+func _attach_checked(lot_ref: Vector2i, dest_ref: Vector2i,
+		from_reserved_mass: bool) -> StringName:
+	"""Validate completely, then relink the lot and charge the destination."""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return guard
+	var code: StringName = _check_attach(lot_ref, dest_ref, from_reserved_mass, false)
+	if code != REFUSE_NONE:
+		return code
+	var slot: int = lot_ref.x
+	if not IntMath.inventory_capacity_debit_g_into(_l_quantity_milli[slot],
+			_item_mass_g[_l_item_id[slot]], _math):
+		return REFUSE_OVERFLOW
+	var debit_g: int = _math.value
+	_apply_attach(slot, dest_ref, debit_g, from_reserved_mass)
+	return _succeed(lot_ref, debit_g)
+
+
+func _check_attach(lot_ref: Vector2i, dest_ref: Vector2i, from_reserved_mass: bool,
+		attesting_allowed: bool) -> StringName:
+	"""Every precondition for restoring an equipped lot to a container.
+
+	`attesting_allowed` is true only for the preflight, which runs BEFORE `gear.gd` clears the
+	equipped flag and so must still see the record attest. The real operation demands the
+	opposite: a lot the authority still calls equipped may not be shelved, because that is
+	precisely the state in which it would charge a container AND count as equipped.
+	"""
+	if _equipment_authority == null:
+		return REFUSE_NO_EQUIPMENT_AUTHORITY
+	if not is_lot_valid(lot_ref):
+		return REFUSE_INVALID_LOT
+	if _l_container_slot[lot_ref.x] != NULL_SLOT:
+		return REFUSE_LOT_NOT_EQUIPPED
+	if not is_container_valid(dest_ref):
+		return REFUSE_INVALID_CONTAINER
+	if not _accepts_item(dest_ref.x, _l_item_id[lot_ref.x]):
+		return REFUSE_ITEM_FILTERED
+	if _attests(lot_ref) and not attesting_allowed:
+		return REFUSE_STILL_AN_EQUIPPED_RECORD
+	return _check_attach_mass(lot_ref, dest_ref, from_reserved_mass)
+
+
+func _check_attach_mass(lot_ref: Vector2i, dest_ref: Vector2i,
+		from_reserved_mass: bool) -> StringName:
+	"""Check the destination can take the lot, by reserved grams or by free capacity.
+
+	Leaves nothing usable in `_math`: the caller recomputes the debit after this returns, because
+	`_check_fits()` overwrites the scratch with its own running sum.
+	"""
+	var slot: int = lot_ref.x
+	if not IntMath.inventory_capacity_debit_g_into(_l_quantity_milli[slot],
+			_item_mass_g[_l_item_id[slot]], _math):
+		return REFUSE_OVERFLOW
+	var debit_g: int = _math.value
+	if from_reserved_mass:
+		if _c_reserved_mass_g[dest_ref.x] < debit_g:
+			return REFUSE_INSUFFICIENT_RESERVED_MASS
+		return REFUSE_NONE
+	return _check_fits(dest_ref.x, debit_g)
+
+
+func _apply_attach(slot: int, dest_ref: Vector2i, debit_g: int,
+		from_reserved_mass: bool) -> void:
+	"""Write the attach: spend reserved grams when asked, relink the lot, charge the used mass."""
+	_journal_lot(slot)
+	_journal_container(dest_ref.x)
+	if from_reserved_mass:
+		_c_reserved_mass_g[dest_ref.x] -= debit_g
+	_l_container_slot[slot] = dest_ref.x
+	_l_container_generation[slot] = dest_ref.y
+	_link_lot(slot, dest_ref.x)
+	_credit_container(dest_ref.x, debit_g)
+	_equipped_lot_count -= 1
 
 
 # --- Queries ----------------------------------------------------------------------------------
@@ -1912,6 +2235,31 @@ func total_live_milli(item_id: int) -> int:
 	return total
 
 
+func total_equipped_milli(item_id: int) -> int:
+	"""Quantity of an item currently held as equipment, charged to no container at all.
+
+	DIAGNOSTIC, like total_live_milli(): a bounded walk of the lot column, not a tick query.
+	"""
+	var total: int = 0
+	for slot: int in range(_l_slot_high_water):
+		if _l_live[slot] != 1 or _l_item_id[slot] != item_id:
+			continue
+		if _l_container_slot[slot] == NULL_SLOT:
+			total += _l_quantity_milli[slot]
+	return total
+
+
+func total_loose_milli(item_id: int) -> int:
+	"""Loose stock: the quantity of an item sitting in containers and available to be claimed.
+
+	DERIVED BY SUBTRACTION ON PURPOSE. `loose + equipped == live` then holds by construction
+	rather than by two walks agreeing, so no arrangement of the columns can count one lot as
+	both loose stock and equipment. That double count is the defect ruling §4 names, and this is
+	what makes it unrepresentable instead of merely tested.
+	"""
+	return total_live_milli(item_id) - total_equipped_milli(item_id)
+
+
 # --- Audit ------------------------------------------------------------------------------------
 
 func audit() -> OpResult:
@@ -1939,12 +2287,40 @@ func audit() -> OpResult:
 
 
 func _audit_lots() -> StringName:
-	"""Verify the per-lot reservation bound across every live lot."""
+	"""Verify the reservation bound and the container/equipped placement of every live lot."""
+	var equipped: int = 0
 	for slot: int in range(_l_slot_high_water):
 		if _l_live[slot] != 1:
 			continue
 		if _l_reserved_milli[slot] > _l_quantity_milli[slot] or _l_reserved_milli[slot] < 0:
 			return REFUSE_AUDIT_RESERVED
+		var placement: StringName = _audit_lot_placement(slot)
+		if placement != REFUSE_NONE:
+			return placement
+		if _l_container_slot[slot] == NULL_SLOT:
+			equipped += 1
+	if equipped != _equipped_lot_count:
+		return REFUSE_AUDIT_EQUIPPED_COUNT
+	return REFUSE_NONE
+
+
+func _audit_lot_placement(slot: int) -> StringName:
+	"""Re-derive the biconditional: a lot has no container IF AND ONLY IF it is proved equipped.
+
+	Both directions are checked, and the second is the double-count guard: a lot that the
+	authority still calls equipped while it sits in a container would charge that container's
+	mass and be equipment at the same time. Costs one attestation per live lot, which is why
+	audit() is documented as a diagnostic and never runs on a tick. With no authority bound
+	`_attests()` is false for every lot, so a detached lot fails the biconditional there rather
+	than needing a second unbound-store branch.
+	"""
+	var detached: bool = _l_container_slot[slot] == NULL_SLOT
+	if detached and (_l_next[slot] != NULL_SLOT or _l_prev[slot] != NULL_SLOT):
+		return REFUSE_AUDIT_ORPHAN_LOT
+	if detached and _l_reserved_milli[slot] != 0:
+		return REFUSE_AUDIT_ORPHAN_LOT
+	if _attests(_lot_ref_of(slot)) != detached:
+		return REFUSE_AUDIT_ORPHAN_LOT
 	return REFUSE_NONE
 
 
@@ -2039,7 +2415,8 @@ func state_bytes() -> PackedByteArray:
 	out.append_array(var_to_bytes(_item_mass_g))
 	out.append_array(var_to_bytes(_item_category))
 	out.append_array(var_to_bytes(_item_registered))
-	out.append_array(var_to_bytes(PackedInt64Array([_c_free_count, _l_free_count, _c_live_count, _l_live_count])))
+	out.append_array(var_to_bytes(PackedInt64Array([_c_free_count, _l_free_count, _c_live_count,
+		_l_live_count, _equipped_lot_count])))
 	return out
 
 

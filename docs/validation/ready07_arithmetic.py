@@ -14,18 +14,23 @@ for l in s[:a].splitlines():
 for l in s[a:b].splitlines():
  c=[x.strip() for x in l.strip('|').split('|')]
  if l.startswith('|') and len(c)==6 and c[3].isdigit():allocations.append(int(c[3]))
-# Advanced 2026-09-11 for decision 0051's hive-service slice: five new field rows
-# totalling 35840 bytes, and the same amount in one ARCH-MEM-009 step. The planner's
-# own instruction is to review changed expectations rather than treat the inspected
-# snapshot's counts as permanent limits. Row identity and the five metric identities
-# below are unchanged; only these two pinned baselines advance.
+# Field rows: 135 at decision 0050, +5 for decision 0051's hive-service slice (35840 B).
 assert len(fields)==140 and sum(fields)==25028946
-assert len(allocations)==23 and sum(allocations)==60292646
+# Decision 0050's reconciliation, reproduced from its own two constants. It is NOT re-applied to
+# the live payload: doing that a second time would double count 437632 bytes already in the rows.
+DECISION_0050_CARRIED_BEFORE=59819174
+DECISION_0050_ROW_SUM=60256806
+assert DECISION_0050_ROW_SUM-DECISION_0050_CARRIED_BEFORE==131072+306304+256
+# Decision 0051, hive service: five field rows on a third owner class.
+DECISION_0051_ADDED=35840
+# Decision 0053, movement ground slice: TransformBinding 350208 + PathRequestContact 163840 +
+# ResidentRouteCursor 6144. Advanced deliberately; raise these with the next allocation, never relax.
+DECISION_0053_ADDED=350208+163840+6144
+assert DECISION_0053_ADDED==520192
+assert len(allocations)==23 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert live==68681254 and candidate==54077062 and live+candidate==122758316
-# Carried total advanced by decision 0051's +35840 (59819174 -> 59855014). Both halves
-# move together, so the 437632 gap is reproduced a third time rather than absorbed.
-assert payload-59855014==131072+306304+256
+assert payload==60812838
+assert live==69201446 and candidate==54597254 and live+candidate==123798700
 for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below decimal 100 MB',100000000-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',100000000-live-candidate)]:
  assert f'| {label} | {value} |' in s,label
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']
@@ -36,7 +41,7 @@ ticks={f'{season}:{day}':((season*12+day-1)*18000-4500) for season,day in [(1,3)
 assert list(ticks.values())==[247500,301500,337500,355500,427500,463500,517500]
 assert struct.calcsize('<qIIiiiI')==32 and struct.calcsize('<iiIIqII')==32
 assert 256*32+32==8224
-installed=['docs/systems_architecture.md', 'docs/decisions/0016-needs-tick-consumes-most-of-the-budget.md', 'docs/decisions/0048-world-generation-anchors-and-what-it-refuses-to-invent.md', 'docs/planning/README.md', 'docs/STATUS.md', 'docs/decisions/0050-ready07-source-audit-and-ledger-reconciliation.md', 'docs/planning/ready07_scheduler_contract.md', 'docs/rulings/2026-09-11_ready07_open_item_answers.md', 'docs/rulings/2026-09-11_ready07_executor_brief.md', 'docs/rulings/2026-09-11_ready07_memory_audit.md'];links=0;errors=[]
+installed=['docs/systems_architecture.md', 'docs/decisions/0016-needs-tick-consumes-most-of-the-budget.md', 'docs/decisions/0048-world-generation-anchors-and-what-it-refuses-to-invent.md', 'docs/planning/README.md', 'docs/STATUS.md', 'docs/decisions/0050-ready07-source-audit-and-ledger-reconciliation.md', 'docs/planning/ready07_scheduler_contract.md', 'docs/rulings/2026-09-11_ready07_open_item_answers.md', 'docs/rulings/2026-09-11_ready07_executor_brief.md', 'docs/rulings/2026-09-11_ready07_memory_audit.md', 'docs/decisions/0053-movement-ground-slice-identity-and-storage.md', 'docs/planning/movement_ground_slice_entry.md'];links=0;errors=[]
 for name in installed:
  f=r/name
  for target in re.findall(r'\[[^\]]+\]\(([^)]+)\)',f.read_text()):

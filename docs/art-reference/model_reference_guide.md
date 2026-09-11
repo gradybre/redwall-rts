@@ -9,6 +9,14 @@ and for drawing/tracing/adaptation. Written descriptions supplement the image;
 they are not the only permitted input. Preserve source IDs/regions and the separate
 spending approval. Unknown attribution remains recorded, not a new use blocker.
 
+## Approved world-art target — DEC-038
+
+Open the [approved mouse/mole courtyard example](visuals/grounded_expressive_rts_example_v1.png)
+alongside the supplied sources selected below. Follow [visual alignment](visual_direction_alignment.md)
+for grounded, expressive anatomy, composed color and credible materials. This
+approval anchors style; exact geometry, rigging and engine performance need their
+own production checks.
+
 ## 1. The direction these images support
 
 Use **expressive animal bodies, practical layered clothing and materially convincing woodland spaces**. Preserve the warm domestic illustrations as strongly as the military portraits. A keeper, cook or fisher must have as much visual specificity as a champion. IMG-03/04/18 supply ordinary life; IMG-12/26 supply mouse action; IMG-08/09/10 supply movement requirements; IMG-25 supplies comparative species silhouettes.

@@ -4,6 +4,12 @@ Document `SET-ART-PACKAGE-001`, revision 1.1, 2026-09-06. Source folder: `ImageR
 
 **Completed:** all 28 PNGs opened and inspected individually; 28 detailed reviews; 62 named viewing windows; direct-reference assignments for bodies, clothes, tools, poses and environments; movement design analysis; current-spec conflict register. IMG-02 and IMG-28 depict the same specialist slide, giving 27 distinct slide compositions. Repeated illustrations within other slides are cross-referenced without multiplying evidence.
 
+Read [whole-game visual alignment](visual_direction_alignment.md) first for Brendan’s latest reference roles and the distinction between UI illustration and world rendering (DEC-037/038).
+
+**Approved visual target:** [mouse keeper and mole worker courtyard](visuals/grounded_expressive_rts_example_v1.png). Brendan approved this look on 2026-09-11; use it alongside the original supplied references.
+
+[Consolidated Claude handoff](claude_visual_handoff.md) brings together the reference-use corrections, UI refinement decisions and approved world-art target.
+
 ## Read this package in this order
 
 | Document | Purpose |

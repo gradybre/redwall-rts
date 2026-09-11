@@ -1,0 +1,30 @@
+{
+  "date": "2026-09-11",
+  "status": "USER_APPROVED_VISUAL_DIRECTION_CONCEPT",
+  "tool": "built-in image_gen",
+  "model": "not exposed by tool",
+  "seed": null,
+  "credit_cost": "not reported by built-in tool; no Meshy or Blender generation bridge used",
+  "source": "/Users/brendan/.codex/generated_images/01a07628-8cb5-77c3-9b53-cadc80eb6526/exec-653aaca5-2b8d-46d1-8c24-d3594aa57383.png",
+  "output": "visuals/grounded_expressive_rts_example_v1.png",
+  "reference_ids": [
+    "IMG-04",
+    "IMG-08",
+    "IMG-25"
+  ],
+  "reference_authorization": "DEC-036",
+  "prompt": "grounded_expressive_rts_example_v1.prompt.txt",
+  "limits": [
+    "Generated 2D concept, not an actual mesh or Godot screenshot.",
+    "Close-view fur and texture detail exceed the intended normal-view simplification; rendering performance is not established.",
+    "Right view approximates RTS framing but is not a calibrated camera test.",
+    "Incidental generated chicken is not approved fauna or gameplay content.",
+    "Exact relative species size, clothing specifications and dwelling geometry remain production authoring details; the visual direction is user-approved."
+  ],
+  "approval": {
+    "decision": "DEC-038",
+    "date": "2026-09-11",
+    "user_response": "Yes - this is what I'm looking for",
+    "scope": "Grounded expressive world-art direction; not production assets or engine qualification"
+  }
+}

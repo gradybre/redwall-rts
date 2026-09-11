@@ -85,6 +85,17 @@ tested.
   own delta, every reserve column equal to payload + 8388608, final payload **60821078** and
   reserve column **69209686**. Decision 0050's 437632 is asserted at its own trail step and was
   not reapplied.
+* **Six registry rows, classified under decision 0063's separated model.** Task 09.1's gate
+  requires a `docs/persistence_state_registry.md` row for every packed column in
+  `godot/scripts/core`. `residents.gd`'s four Equipment columns are **category 1**: the tool pair
+  is a mirror of the authoritative `GearInstance` row and *is* reconstructible, but it is written
+  and cross-checked for the same reason `_skill_level` and `inventory.gd`'s `_c_used_mass_g` are,
+  and it is hashed because GDD §5.7's tool gate reads it; the satchel pair is derivable from
+  nothing and is recorded as an **inventory container domain** reference so a codec does not
+  validate it against the directory. `gear.gd`'s two seed-lot columns are **category 3** — a
+  construction-time rollback record for one in-flight `seed_starter_tools()`, read by nothing
+  once the call returns, unobservable to a save because ARCH-SAVE-003 saves only at a completed
+  tick boundary — and are recorded as an **inventory lot domain** reference.
 * **A bounded container lot walk.** `_audit_container_row()` refuses `AUDIT_LOT_LIST_CYCLE`
   past `_l_capacity` steps instead of looping forever on a corrupted `_l_next`. This is the one
   place in the module that could hang rather than refuse, and mutation testing found it the hard
@@ -131,10 +142,12 @@ failed equip leaves lot, instance, container mass and mirror byte-identical; and
 seeding contract with tier-1 clothing as spawn equipment rather than invented `outfit_tier2`
 items.
 
-Suite: **2406 tests, 84318 assertions, 0 failures**. Measured baselines, both run here rather
-than quoted: this branch's base `360969d` gave 2265 tests / 81004 assertions / 0 failures, and
-`origin/master` at `f40b8b1` gives **2348 tests / 83675 assertions / 0 failures**. 58 new tests
-and 643 new assertions. `python3 -B docs/validation/ready07_arithmetic.py` PASS.
+Suite: **2423 tests, 93272 assertions, 0 failures**. Measured baselines, each run here rather
+than quoted: this branch's base `360969d` gave 2265 / 81004 / 0; `origin/master` at `f40b8b1`
+gave 2348 / 83675 / 0; and `origin/master` at **`e5216ad`**, which this branch is now merged up
+to, gives **2365 tests / 92629 assertions / 0 failures**. 58 new tests and 643 new assertions at
+every one of those baselines. `python3 docs/validation/ready07_arithmetic.py` PASS;
+`python3 docs/validation/state_registry_coverage.py` PASS.
 
 **Mutation-tested: 49 mutations, one per suite run**, each restored and SHA-256 byte-compared
 against a pristine copy. 48 killed on a real expected-versus-got mismatch; the 49th

@@ -23,10 +23,10 @@ const CatalogScript := preload("res://scripts/core/catalog.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
 const WorldInit := preload("res://scripts/core/world_init.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
-
-const TREE_ITEM: int = 1
-const STONE_ITEM: int = 2
-const IRON_ITEM: int = 3
+const InventoryScript := preload("res://scripts/core/inventory.gd")
+const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
+const ResourceCatalogBinding := preload("res://scripts/core/resource_catalog_binding.gd")
+const CatalogIdsScript := preload("res://scripts/core/catalog_ids.gd")
 
 class ShortGroveWorld extends WorldInit:
 	"""A generator whose grove planner always falls one node short of §5.1's hundred."""
@@ -46,6 +46,12 @@ var _rng: RngScript = null
 var _world: WorldInit = null
 var _clock: SimClockScript = null
 var _queue: CommandsScript = null
+var _inventory: InventoryScript = null
+var _items: ItemDefinitionsScript = null
+var _binding: ResourceCatalogBinding = null
+var _tree_item: int = ResourceCatalogBinding.ABSENT_ITEM_ID
+var _stone_item: int = ResourceCatalogBinding.ABSENT_ITEM_ID
+var _iron_item: int = ResourceCatalogBinding.ABSENT_ITEM_ID
 
 
 func before_each() -> void:
@@ -62,6 +68,28 @@ func before_each() -> void:
 	_fishing = FishingScript.new(_directory, _forage, _jobs)
 	_rng = RngScript.new()
 	_world = WorldInit.new(_directory, _nodes, _forage, _fishing, _rng, null, null, _jobs)
+	_open_binding()
+
+
+func _open_binding() -> void:
+	"""Open READY_07 §2's catalog boundary, so every request in this suite is bound BY KEY.
+
+	The three scalar ids below are read back out of the boundary rather than written here: a test
+	that hardcoded 59, 52 and 19 would keep passing after the catalog renumbered them.
+	"""
+	_inventory = InventoryScript.new()
+	_items = ItemDefinitionsScript.new()
+	if not _items.load_default(_inventory).ok:
+		fail("the shipped item catalog must load")
+		return
+	var opened: ResourceCatalogBinding.OpenResult = ResourceCatalogBinding.open(_items)
+	if not opened.ok:
+		fail("the catalog binding must open (error: %s)" % opened.error)
+		return
+	_binding = opened.boundary as ResourceCatalogBinding
+	_tree_item = _binding.compiled_item_id_of(ResourceCatalogBinding.TREE_ITEM_KEY).id
+	_stone_item = _binding.compiled_item_id_of(ResourceCatalogBinding.STONE_ITEM_KEY).id
+	_iron_item = _binding.compiled_item_id_of(ResourceCatalogBinding.IRON_ITEM_KEY).id
 
 
 func after_each() -> void:
@@ -75,17 +103,23 @@ func after_each() -> void:
 	_residents = null
 	_queue = null
 	_clock = null
+	_binding = null
+	_items = null
+	_inventory = null
 
 
 func _request() -> WorldInit.Request:
-	"""A valid estuary request with distinct, storable catalog ids."""
-	var request: WorldInit.Request = WorldInit.Request.new()
-	request.tree_resource_id = TREE_ITEM
-	request.stone_resource_id = STONE_ITEM
-	request.iron_resource_id = IRON_ITEM
-	request.forage_item_ids = PackedInt32Array([10, 11, 12, 13, 14])
-	request.fish_species_item_ids = PackedInt32Array([20, 21, 22, 23, 24, 25, 26, 27, 28])
-	return request
+	"""A valid estuary request whose seventeen item ids were resolved by key, never invented.
+
+	READY_07 §2 changed this fixture: it used to carry 1, 2, 3 and 10..28, which are storable
+	int32s and not catalog ids. `make_request()` is the checked construction boundary, so every
+	test below now runs against the ids the shipped catalog actually compiles.
+	"""
+	var built: WorldInit.RequestResult = WorldInit.make_request(_binding)
+	if not built.ok:
+		fail("the bound request must build (error: %s)" % built.error)
+		return WorldInit.Request.new()
+	return built.request
 
 
 func _generate() -> WorldInit.GenerateResult:
@@ -615,7 +649,7 @@ func test_every_tree_node_holds_12_wood_u_and_regrows_in_48_days() -> void:
 	var trees: int = 0
 	for index: int in _nodes.count():
 		var slot: int = _nodes.live_slot_at(index).value
-		if _nodes.resource_id_of(slot).value != TREE_ITEM:
+		if _nodes.resource_id_of(slot).value != _tree_item:
 			continue
 		trees += 1
 		assert_equal(_nodes.quantity_milli_of(slot).value, 12000, "12 U in milli")
@@ -633,11 +667,11 @@ func test_the_two_deposits_are_decision_0029s_sixteen_nodes_each() -> void:
 	for dz: int in 4:
 		for dx: int in 4:
 			var stone_slot: int = _nodes.slot_at_tile(WorldInit.tile_index_of(44 + dx, 70 + dz)).value
-			assert_equal(_nodes.resource_id_of(stone_slot).value, STONE_ITEM, "a stone node")
+			assert_equal(_nodes.resource_id_of(stone_slot).value, _stone_item, "a stone node")
 			assert_equal(_nodes.quantity_milli_of(stone_slot).value, 75000, "75 U per stone node")
 			stone_total += _nodes.quantity_milli_of(stone_slot).value
 			var iron_slot: int = _nodes.slot_at_tile(WorldInit.tile_index_of(32 + dx, 60 + dz)).value
-			assert_equal(_nodes.resource_id_of(iron_slot).value, IRON_ITEM, "an iron node")
+			assert_equal(_nodes.resource_id_of(iron_slot).value, _iron_item, "an iron node")
 			assert_equal(_nodes.quantity_milli_of(iron_slot).value, 18750, "18.75 U per iron node")
 			iron_total += _nodes.quantity_milli_of(iron_slot).value
 	assert_equal(stone_total, 1200000, "§5.1's 1200 U stone total")
@@ -649,11 +683,11 @@ func test_ore_nodes_do_not_regrow_and_replaced_trees_are_gone() -> void:
 	_generate()
 	var stone_slot: int = _nodes.slot_at_tile(WorldInit.tile_index_of(44, 70)).value
 	assert_equal(_nodes.regrow_days_of(stone_slot).value, 0, "stone never regrows")
-	assert_equal(_nodes.resource_id_of(stone_slot).value, STONE_ITEM,
+	assert_equal(_nodes.resource_id_of(stone_slot).value, _stone_item,
 		"the tree centre at (44,70) was replaced by ore")
 	var iron_slot: int = _nodes.slot_at_tile(WorldInit.tile_index_of(32, 60)).value
 	assert_equal(_nodes.regrow_days_of(iron_slot).value, 0, "iron never regrows")
-	assert_equal(_nodes.resource_id_of(iron_slot).value, IRON_ITEM,
+	assert_equal(_nodes.resource_id_of(iron_slot).value, _iron_item,
 		"the tree centre at (32,60) was replaced by ore")
 
 
@@ -663,7 +697,7 @@ func test_no_renewable_bedrock_node_is_invented_at_48_70() -> void:
 	var tile: int = WorldInit.tile_index_of(48, 70)
 	assert_true(_nodes.has_node_at_tile(tile),
 		"(48,70) is an even/even forest tile, so it carries an ordinary tree centre")
-	assert_equal(_nodes.resource_id_of(_nodes.slot_at_tile(tile).value).value, TREE_ITEM,
+	assert_equal(_nodes.resource_id_of(_nodes.slot_at_tile(tile).value).value, _tree_item,
 		"a tree, not an invented renewable bedrock node with a fabricated quantity")
 	assert_equal(_nodes.quantity_milli_of(_nodes.slot_at_tile(tile).value).value, 12000,
 		"holding §5.1's ordinary 12 wood U")
@@ -708,6 +742,59 @@ func test_fish_stocks_start_at_80_percent() -> void:
 			var capacity: int = _fishing.stock_capacity_milli_of(row).value
 			assert_equal(_fishing.population_milli_of(row).value, capacity * 8 / 10,
 				"stock row %d starts at 80%%" % row)
+
+
+func test_every_fish_stock_carries_its_own_species_item_id() -> void:
+	"""READY_07 §2: each stock's item id must be the id of the species THAT STOCK HOLDS.
+
+	The stock's §5.4 species row comes from `fishing.gd`'s own HABITAT_SPECIES_ROWS binding, and
+	the expected id is that row's key compiled through the catalog. Before the binding landed the
+	request array was passed straight into a habitat-major argument, which gave the coast the
+	river's three ids and the river the coast's; the lake coincides under both orders, so a test
+	that checked only one habitat would have passed straight over it.
+	"""
+	_generate()
+	for index: int in _fishing.habitat_count():
+		var slot: int = _fishing.live_habitat_slot_at(index).value
+		var habitat_type: int = _fishing.habitat_type_of(slot).value
+		for species_index: int in FishingScript.SPECIES_PER_HABITAT:
+			var row: int = slot * FishingScript.SPECIES_PER_HABITAT + species_index
+			var species: int = FishingScript.HABITAT_SPECIES_ROWS[
+				habitat_type * FishingScript.SPECIES_PER_HABITAT + species_index]
+			var key: StringName = FishingScript.SPECIES_KEYS[species]
+			assert_equal(_fishing.species_id_of(row).value, _items.compiled_id(key),
+				"stock row %d holds '%s'" % [row, key])
+
+
+func test_the_coast_and_river_stocks_are_not_each_others_species() -> void:
+	"""The exact misassignment the habitat-major re-addressing exists to prevent."""
+	_generate()
+	var coast: int = _fishing.habitat_ref_for_basin(
+		_world.basin_ref_of(WorldInit.BASIN_FISH_COAST)).value
+	var river: int = _fishing.habitat_ref_for_basin(
+		_world.basin_ref_of(WorldInit.BASIN_FISH_RIVER)).value
+	var coast_row: int = coast * FishingScript.SPECIES_PER_HABITAT
+	var river_row: int = river * FishingScript.SPECIES_PER_HABITAT
+	assert_equal(_fishing.species_id_of(coast_row).value, _items.compiled_id(&"herring"),
+		"the coast's first stock is herring, not trout")
+	assert_equal(_fishing.species_id_of(river_row).value, _items.compiled_id(&"trout"),
+		"the river's first stock is trout, not herring")
+	assert_false(_fishing.species_id_of(coast_row).value
+		== _fishing.species_id_of(river_row).value, "and the two are different items")
+
+
+func test_every_forage_patch_carries_its_own_kind_item_id() -> void:
+	"""The five patch rows are addressed by patch kind, which IS `PATCH_KEYS` order."""
+	_generate()
+	for zone_index: int in _forage.zone_count():
+		var slot: int = _forage.live_zone_slot_at(zone_index).value
+		if _forage.zone_type_of(slot).value != ForageScript.ZONE_TYPE_FORAGE:
+			continue
+		for kind: int in ForageScript.PATCHES_PER_ZONE:
+			var row: int = slot * ForageScript.PATCHES_PER_ZONE + kind
+			var key: StringName = ForageScript.PATCH_KEYS[kind]
+			assert_equal(_forage.patch_item_id_of(row).value, _items.compiled_id(key),
+				"patch row %d holds '%s'" % [row, key])
 
 
 func test_each_habitat_is_bound_to_its_own_fish_basin() -> void:
@@ -1038,6 +1125,126 @@ func test_an_invalid_item_id_refuses_before_anything_is_cleared() -> void:
 	assert_equal(refused.error, "WORLD_INVALID_ITEM_ID", "with the exact code")
 	assert_equal(_nodes.count(), node_count, "not one node was destroyed")
 	assert_equal(_world_fingerprint(), before, "the world is byte-identical")
+
+
+func test_an_unbound_request_refuses_before_anything_is_cleared() -> void:
+	"""READY_07 §2: a request whose ids were never resolved against the catalog cannot be proved."""
+	_generate()
+	var before: String = _world_fingerprint()
+	var node_count: int = _nodes.count()
+	var unbound: WorldInit.Request = _request()
+	unbound.binding = null
+	var refused: WorldInit.GenerateResult = _world.generate(unbound)
+	assert_false(refused.ok, "an unbound request refuses")
+	assert_equal(refused.error, "WORLD_UNBOUND_ITEM_CATALOG", "with the exact code")
+	assert_equal(_nodes.count(), node_count, "not one node was destroyed")
+	assert_equal(_world_fingerprint(), before, "and the world is byte-identical")
+
+
+func test_a_valid_but_wrong_item_id_refuses_and_leaves_every_store_byte_identical() -> void:
+	"""tree -> stone: both ids are real catalog ids, so only a key check can catch it.
+
+	This is the case the old "non-negative int32" guard let straight through, and it is proved
+	against the STORES, not just the return code: allocate-before-consume means the refusal is
+	decided before a row is cleared.
+	"""
+	_generate()
+	var before: String = _world_fingerprint()
+	var node_count: int = _nodes.count()
+	var zone_count: int = _forage.zone_count()
+	var habitat_count: int = _fishing.habitat_count()
+	var wrong: WorldInit.Request = _request()
+	wrong.tree_resource_id = wrong.stone_resource_id
+	var refused: WorldInit.GenerateResult = _world.generate(wrong)
+	assert_false(refused.ok, "the wrong key refuses")
+	assert_equal(refused.error, "ITEM_BINDING_ID_NOT_BOUND", "with the binding's own code")
+	assert_equal(_nodes.count(), node_count, "not one resource node changed")
+	assert_equal(_forage.zone_count(), zone_count, "not one harvest zone changed")
+	assert_equal(_fishing.habitat_count(), habitat_count, "not one fish habitat changed")
+	assert_equal(_world_fingerprint(), before, "and the world is byte-identical")
+
+
+func test_a_sorted_forage_array_refuses_and_leaves_every_store_byte_identical() -> void:
+	"""Sorting the patch ids by compiled id would misassign every quota; it never reaches a store."""
+	_generate()
+	var before: String = _world_fingerprint()
+	var node_count: int = _nodes.count()
+	var sorted_request: WorldInit.Request = _request()
+	var sorted_ids: PackedInt32Array = sorted_request.forage_item_ids.duplicate()
+	sorted_ids.sort()
+	assert_false(sorted_ids == sorted_request.forage_item_ids, "sorting really reorders them")
+	sorted_request.forage_item_ids = sorted_ids
+	var refused: WorldInit.GenerateResult = _world.generate(sorted_request)
+	assert_false(refused.ok, "the sorted patch ids refuse")
+	assert_equal(refused.error, "ITEM_BINDING_ID_NOT_BOUND", "with the binding's own code")
+	assert_equal(_nodes.count(), node_count, "not one node was destroyed")
+	assert_equal(_world_fingerprint(), before, "and the world is byte-identical")
+
+
+func test_a_bound_request_carries_the_seventeen_compiled_ids_the_catalog_reports() -> void:
+	"""The checked construction boundary: every field is resolved by key, none is chosen here."""
+	var built: WorldInit.RequestResult = WorldInit.make_request(_binding)
+	assert_true(built.ok, "the request builds (error: %s)" % built.error)
+	var request: WorldInit.Request = built.request
+	assert_equal(request.scenario_version, WorldInit.SCENARIO_ESTUARY_V1, "the estuary scenario")
+	assert_equal(request.tree_resource_id, _items.compiled_id(&"wood"), "wood")
+	assert_equal(request.stone_resource_id, _items.compiled_id(&"stone"), "stone")
+	assert_equal(request.iron_resource_id, _items.compiled_id(&"iron"), "iron")
+	assert_equal(request.forage_item_ids.size(), 5, "five patch rows")
+	assert_equal(request.fish_species_item_ids.size(), 9, "nine species rows")
+	for index: int in ForageScript.PATCH_KEYS.size():
+		assert_equal(request.forage_item_ids[index],
+			_items.compiled_id(ForageScript.PATCH_KEYS[index]), "patch row %d" % index)
+	for index: int in FishingScript.SPECIES_KEYS.size():
+		assert_equal(request.fish_species_item_ids[index],
+			_items.compiled_id(FishingScript.SPECIES_KEYS[index]), "species row %d" % index)
+
+
+func test_a_caller_that_knows_only_the_catalog_can_build_the_request() -> void:
+	"""`bound_request()` names no item key and no numeric id, and generates a real world."""
+	var built: WorldInit.RequestResult = WorldInit.bound_request(_items)
+	assert_true(built.ok, "the request binds from the registry alone (error: %s)" % built.error)
+	assert_equal(built.request.world_seed, WorldInit.TUTORIAL_WORLD_SEED, "§5.1's tutorial seed")
+	assert_true(_world.generate(built.request).ok, "and the world generates from it")
+	assert_true(_world.is_published(), "publishing a real estuary")
+
+
+func test_a_stale_catalog_artifact_refuses_the_request_and_generates_nothing() -> void:
+	"""`bound_request()` opens the boundary, so a stale artifact stops it before a Request exists.
+
+	The fixture moves one recorded id, which is exactly the "the committed catalog no longer
+	describes this build" case. Nothing is generated and no store is touched.
+	"""
+	var text: String = FileAccess.get_file_as_string(CatalogIdsScript.ARTIFACT_PATH)
+	var entry: String = '"wood":%d' % _items.compiled_id(&"wood")
+	assert_true(text.contains(entry), "the artifact records wood's id")
+	var path: String = "user://world_init_stale_artifact.json"
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	assert_not_null(file, "the fixture file opens for writing")
+	file.store_string(text.replace(entry, '"wood":%d' % (_items.compiled_id(&"wood") - 1)))
+	file.close()
+	var built: WorldInit.RequestResult = WorldInit.bound_request(
+		_items, WorldInit.TUTORIAL_WORLD_SEED, path)
+	assert_false(built.ok, "the stale catalog refuses")
+	assert_equal(built.error, "ITEM_BINDING_CATALOG_ARTIFACT", "with the binding's artifact code")
+	assert_null(built.request, "and no request is produced")
+	assert_false(_world.is_published(), "so no world was ever generated")
+
+
+func test_bound_request_refuses_an_unloaded_registry() -> void:
+	"""The other half of the open path: no catalog means no request, and no default ids."""
+	var built: WorldInit.RequestResult = WorldInit.bound_request(ItemDefinitionsScript.new())
+	assert_false(built.ok, "an unloaded registry refuses")
+	assert_equal(built.error, "ITEM_BINDING_REGISTRY_NOT_LOADED", "with the binding's own code")
+	assert_null(built.request, "and no request is produced")
+
+
+func test_building_a_request_without_a_binding_refuses() -> void:
+	"""There is no default binding and no fallback id to fall back on."""
+	var built: WorldInit.RequestResult = WorldInit.make_request(null)
+	assert_false(built.ok, "no boundary means no request")
+	assert_equal(built.error, "WORLD_UNBOUND_ITEM_CATALOG", "with the exact code")
+	assert_null(built.request, "and no half-bound request is produced")
 
 
 func test_a_wrong_sized_item_set_refuses() -> void:

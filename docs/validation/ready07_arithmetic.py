@@ -14,20 +14,23 @@ for l in s[:a].splitlines():
 for l in s[a:b].splitlines():
  c=[x.strip() for x in l.strip('|').split('|')]
  if l.startswith('|') and len(c)==6 and c[3].isdigit():allocations.append(int(c[3]))
-assert len(fields)==135 and sum(fields)==24993106
+# Field rows: 135 at decision 0050, +5 for decision 0051's hive-service slice (35840 B).
+assert len(fields)==140 and sum(fields)==25028946
 # Decision 0050's reconciliation, reproduced from its own two constants. It is NOT re-applied to
 # the live payload: doing that a second time would double count 437632 bytes already in the rows.
 DECISION_0050_CARRIED_BEFORE=59819174
 DECISION_0050_ROW_SUM=60256806
 assert DECISION_0050_ROW_SUM-DECISION_0050_CARRIED_BEFORE==131072+306304+256
+# Decision 0051, hive service: five field rows on a third owner class.
+DECISION_0051_ADDED=35840
 # Decision 0053, movement ground slice: TransformBinding 350208 + PathRequestContact 163840 +
 # ResidentRouteCursor 6144. Advanced deliberately; raise these with the next allocation, never relax.
 DECISION_0053_ADDED=350208+163840+6144
 assert DECISION_0053_ADDED==520192
-assert len(allocations)==23 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0053_ADDED
+assert len(allocations)==23 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==60776998
-assert live==69165606 and candidate==54561414 and live+candidate==123727020
+assert payload==60812838
+assert live==69201446 and candidate==54597254 and live+candidate==123798700
 for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below decimal 100 MB',100000000-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',100000000-live-candidate)]:
  assert f'| {label} | {value} |' in s,label
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']

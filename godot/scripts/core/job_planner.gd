@@ -1,14 +1,15 @@
 extends RefCounted
 ## ARCH-SYS-009 JobPlanner: the store that turns a service condition into a Job row, plus
-## R06-JOB-007's daily FARM tending producer, R06-JOB-004's sowing first-plant producer and
-## R06-JOB-001/002's repeat forage harvest producer.
+## R06-JOB-007's daily FARM tending producer, R06-JOB-004's sowing first-plant producer,
+## R06-JOB-001/002's repeat forage harvest producer and R06-JOB-006's daily 20-WU hive KEEP
+## service producer.
 ##
 ## THIS IS THE FIRST THING IN THIS PROJECT THAT CREATES A JOB. `settlement_system.gd`'s header
 ## has said "NOTHING CREATES JOBS" since the loop was wired; that sentence is corrected there,
 ## precisely, by this file.
 ##
 ## ---------------------------------------------------------------------------------------
-## THE FIVE CONTRACTS IMPLEMENTED HERE, verbatim from
+## THE SIX CONTRACTS IMPLEMENTED HERE, verbatim from
 ## `docs/rulings/2026-09-09_ready06_open_item_answers.md` §1:
 ##
 ##   R06-JOB-004  "When the player confirms the current crop for an EMPTY plot/field, JobPlanner
@@ -38,6 +39,12 @@ extends RefCounted
 ##                 space or access becomes available, JobPlanner shall create eligible FORAGE work
 ##                 against explicitly quantified claims. It shall not reserve the same available
 ##                 quantity twice or bypass the resident's priorities, schedule or danger consent."
+##
+##   R06-JOB-006  "When an operational, non-abandoned hive enters a spring/summer/autumn service
+##                 day without that day's completed or pending service, JobPlanner shall create
+##                 one 20-WU KEEP service job. A hive becoming operational during the day uses the
+##                 same rule. Winter shall create feed-delivery demand as required, but no
+##                 tending-labor job."
 ##
 ## ARCH-SYS-009 fixes the cadence: "On dirty service conditions; idle selectors every 30 ticks
 ## staggered by ID."
@@ -150,14 +157,40 @@ extends RefCounted
 ##     and it is NEVER settled as an unserved daily service; its third identity term is the FIELD
 ##     CYCLE, and it lives until it is published, completed, cancelled or its plot is destroyed.
 ##
-## `DAILY_SERVICE_OPERATION_COUNT` IS STILL ONE and now means what its name says: how many of the
-## operations reopen daily. `is_daily_service_operation()` is the predicate, the daily operations
-## occupy the low ordinals, and `_init()` asserts OPERATION_FARM_SOW is not among them. The three
-## places where "daily" is structural -- `_settle_preceding_day()`, `preceding_day_is_settled()`
-## and `record_service_completed()` -- all consult that predicate rather than a hard-coded 0.
-## R06-JOB-006's 20-WU hive KEEP service and REQ-SET-079/080's orchard care still have NO STORE
-## (see DEFERRED below) and are therefore still not budgeted: adding one later is a change to
-## OPERATION_COUNT and to nothing else.
+## `is_daily_service_operation()` IS THE PREDICATE AND IT IS NOW AN EXPLICIT TABLE, NOT A RANGE.
+## It answered `operation < DAILY_SERVICE_OPERATION_COUNT` while every daily operation happened to
+## hold a low ordinal. R06-JOB-006's hive service is a DAILY service belonging to a THIRD owner
+## class, and it cannot take a low ordinal without either renumbering `OPERATION_FARM_SOW` -- a
+## stored identity term -- or widening the 4096-row FarmPlot table by an operation no farm plot
+## owns. So `DAILY_SERVICE_OPERATIONS` names the answer per ordinal, `DAILY_SERVICE_OPERATION_COUNT`
+## is asserted to equal the number of TRUE entries rather than defining them, and the ordinals stay
+## where the stored rows already put them. The four places where "daily" is structural --
+## `_settle_preceding_day()`, `preceding_day_is_settled()`, `record_service_completed()` and
+## `_settle_preceding_hive_day()` -- all consult the predicate, never a hard-coded ordinal.
+##
+## THE OPERATION DOMAIN NAMES EVERY R06-JOB OPERATION THIS BUILD CAN ANSWER FOR, ACROSS ALL OWNER
+## CLASSES, AND ONLY TWO OF THEM ADDRESS `service_row()`:
+##
+##   | ordinal | operation                 | owner class  | daily | table                        |
+##   |---------|---------------------------|--------------|-------|------------------------------|
+##   | 0       | OPERATION_FARM_TEND       | FarmPlot     | YES   | `service_row()`, 4096 owners |
+##   | 1       | OPERATION_FARM_SOW        | FarmPlot     | no    | `service_row()`, 4096 owners |
+##   | 2       | OPERATION_FORAGE_HARVEST  | HarvestZone  | no    | `demand_row()`, 128 owners   |
+##   | 3       | OPERATION_FIELD_ROTATION  | FieldPolicy  | no    | NONE -- `field_policy.gd`    |
+##   | 4       | OPERATION_HIVE_KEEP       | Hive         | YES   | `hive_service_row()`, 1024   |
+##
+## ORDINAL 3 OWNS NO ROW HERE AND THAT IS THE POINT. R06-JOB-005's advance creates no Job at all --
+## `field_policy.gd` moves a cursor and records a requested crop -- so there is nothing for a
+## pending-service row to hold and none is allocated. It is named because the ruling splits the
+## two identities in one sentence and because "rotation is not a daily service" is a property a
+## later edit could break silently; `_init()` asserts the answer, a test asserts it, and
+## `service_row()` refuses the ordinal so no row can ever be addressed by it.
+##
+## REQ-SET-079/080's ORCHARD DAILY CARE IS STILL NOT BUDGETED. §5.6's 20 WU/day orchard care has
+## an owning store (`orchard_hive.gd`'s OrchardPlot half) but R06-JOB-007 routes it through the
+## "same one-service-period/one-harvest-year pattern", and the harvest half of that sentence needs
+## the annual harvest window and an output binding that do not exist. Adding it later is a change
+## to `OPERATION_DOMAIN_COUNT`, one more table and one more budget row.
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE FIELD CYCLE IS A PER-OWNER ORDINAL THIS MODULE ALLOCATES, AND `FieldPolicy` DOES NOT
@@ -323,8 +356,9 @@ extends RefCounted
 ##     a crop; it creates no Job and this module does not consume its request, because U2 delivers
 ##     no player command to either. Nothing here rotates a forage kind either; the §5.5 order is
 ##     fixed, not a policy. Nothing here advances a cursor, substitutes a crop or reseeds after a
-##     completed cycle.
-##   * R06-JOB-006 hive service        -- `Hive` does not exist (task 03 increment 8).
+##     completed cycle. What this module DOES own for it is one ordinal --
+##     `OPERATION_FIELD_ROTATION` -- so that "rotation is not a daily service" is a CHECKED
+##     answer here rather than a sentence in a comment: see the operation-domain block below.
 ##   * REQ-SET-073 ripe harvest and REQ-SET-085 withered clearing keep their existing route; this
 ##     module does not reroute them and creates neither.
 ##
@@ -431,36 +465,129 @@ extends RefCounted
 ## `sowing_refusal_of_reason()` maps it back to the same StringName the refusal carried, so the
 ## retained reason and the returned one cannot drift.
 
+## ---------------------------------------------------------------------------------------
+## R06-JOB-006 HAS A THIRD OWNER CLASS AND THEREFORE A THIRD TABLE. The pending-service table is
+## owner-major over 4096 FarmPlot rows; a Hive is one of 1024 (`entity_directory.gd`'s KIND_HIVE
+## capacity, which `orchard_hive.gd` states as HIVE_CAPACITY). THE CAPACITY DOES NOT ACCOMMODATE
+## THEM AND THAT WAS CHECKED RATHER THAN ASSUMED: 1024 <= 4096, but the rows are not spare -- row
+## `r` of the service table is FARM PLOT `r`, and a hive landing there would inherit that plot's
+## owner reference, its service day and its completion history. Sharing an owner-major table
+## across owner classes is only legal when the owner class is the same. So hive service gets its
+## own slice, `_hive_*`, ONE ROW PER HIVE, because it has exactly ONE operation:
+##
+##     hive_service_row(hive typed row h) = h
+##
+## and the budget is stated rather than implied: six I32 columns (24576 B), one I64 column
+## (8192 B) and three B8 columns (3072 B) over 1024 rows -- 35840 bytes, decision 0051's ledger
+## row. THERE IS NO `_hive_serviced_day` COLUMN and that is deliberate: `orchard_hive.gd` already
+## owns `Hive.serviced_day` and `record_hive_service()` writes it, so a second copy here would be
+## a local mirror of another store's authoritative column and "once per day" would have two
+## answers. `is_service_due()` is that store's own predicate and it is what this producer gates on.
+##
+## R06-JOB-006'S GATES, EACH WITH ITS OWNER:
+##   * OPERATIONAL -- EVALUATED as `orchard_hive.is_hive_present()`. §4.2's Hive row has no
+##     separate "operational" column and §5.6 names none; a colonised hive row IS the operational
+##     one, and `create_hive()` is the only thing that writes one. NO SECOND FLAG IS INVENTED.
+##   * NON-ABANDONED -- EVALUATED as `orchard_hive.is_hive_abandoned()`, which is §5.6's own
+##     "a hive at 0 strength is abandoned". Recolonisation is `recolonize_hive()`'s and is not
+##     duplicated here.
+##   * SPRING/SUMMER/AUTUMN -- EVALUATED through `orchard_hive.season_of_day()`, the same decode
+##     `_init()` there proves equal to `sim_clock.gd`'s. §5.6's season table is NOT copied.
+##   * WITHOUT THAT DAY'S COMPLETED OR PENDING SERVICE -- the COMPLETED half is
+##     `orchard_hive.is_service_due()` over `Hive.serviced_day`; the PENDING half is this slice's
+##     own STATUS_PENDING row, which is the identity `(owner EntityRef, HIVE_KEEP, service day)`
+##     the ruling names and which the Job store carries no discriminator for.
+##   * WINTER FEED DELIVERY -- STATE ONLY. "Winter shall create feed-delivery demand as required,
+##     but no tending-labor job." The demand is recorded in `_hive_feed_demand_milli` from
+##     `orchard_hive.feed_deficit_milli_into()` -- the owning store's arithmetic, non-allocating --
+##     and NO DELIVERY JOB IS CREATED. WHAT IS MISSING IS NOT THE CONTAINER STORE:
+##     `inventory.gd` already owns InventoryContainer rows, `create_container()`, reserved/used
+##     mass, item filters and a reachability flag, and honey is already an authored item. What is
+##     missing is (1) anything that gives a HIVE a destination container -- `create_container()`
+##     takes an owner EntityRef and no Building/Furniture/Room ownership layer exists to bind one
+##     to an apiary -- and (2) a hauling producer and the movement layer to run it, so no source
+##     lot can be selected and no route answered. A HAUL job published against those two absences
+##     would be fabricating exactly the bindings decisions 0039 and 0040 refuse to fabricate.
+##     `hive_feed_demand_milli_of()` is the reader a hauling producer consumes when one is built.
+##
+## A HIVE THAT BECOMES OPERATIONAL DURING THE DAY USES THE SAME RULE, AND THE RULE ALREADY ANSWERS
+## IT. `orchard_hive.create_hive(..., day)` records that day as `serviced_day`, so `is_service_due`
+## is false on the colonisation day and TRUE from the next service day on. NO RETROACTIVE SERVICE
+## IS POSSIBLE for any owner: a service row carries ONE absolute day, `_settle_preceding_hive_day()`
+## retires anything older before the new day opens, and nothing anywhere iterates the days between
+## a hive's creation and today. A hive colonised on day 5 and first reconciled on day 9 receives
+## ONE service, for day 9.
+##
+## THE 20 WU IS READ FROM THE OWNING STORE, NOT TRANSCRIBED. `HIVE_SERVICE_WORK_MILLI_WU` is
+## `orchard_hive.gd`'s own constant, and `_init()` asserts it is 20000 milli-WU so a change there
+## cannot silently re-price the job. The kind is §4.3's KEEP, read from `jobs.gd`, which reads
+## `catalog.gd` (decision 0018).
+##
+## THE HIVE SERVICE JOB DECLARES NO INPUT, AND THAT IS AN ANSWER RATHER THAN A GAP. §5.6 prices
+## the spring/summer/autumn service as labour alone -- "service is 20 WU/day" -- and the only
+## material §5.6 names for a hive is WINTER FEED, in the season that creates no job at all. So the
+## published Job carries `GATE_NOT_REQUIRED`, exactly as a tending service on a plot that needs no
+## water does. Writing GATE_UNAVAILABLE would declare a requirement §5.6 does not state.
+##
+## ---------------------------------------------------------------------------------------
+## R06-JOB-005 IS COMPLETE IN `scripts/core/field_policy.gd` AND ITS TRIGGER CANNOT FIRE END TO
+## END IN THIS BUILD. Checked, not assumed:
+##   * `field_policy._advance_rotation()` moves the cursor once per COMPLETED cycle, reads the one
+##     entry at the cursor, substitutes nothing, and returns immediately when `auto_rotation` is 0.
+##   * A cycle completes only from `_maybe_close_cycle()`, only when every enrolled plot has
+##     resolved, and only `record_plot_resolved()` with OUTCOME_HARVESTED or OUTCOME_CLEARED
+##     increments the resolved count.
+##   * BOTH OUTCOMES ARE JOB COMPLETIONS. REQ-SET-073's ripe harvest and REQ-SET-085's withered
+##     clearing are work; a crop reaching RIPE is not a harvest and a crop WITHERING is not a
+##     clearing. Nothing in this build completes either job, because selection and movement do not
+##     exist -- no path writes JOB_STATE_WORK and this module is forbidden to.
+## So the ONLY way a rotation advances today is an explicit `record_plot_resolved()` call from a
+## caller, which is what its tests do and what ARCH-SYS-006 will do when the movement layer lands.
+## NOTHING HERE PRETENDS A CROP CAN RESOLVE ITSELF.
+
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const ForageScript := preload("res://scripts/core/forage.gd")
 const JobsScript := preload("res://scripts/core/jobs.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 
 # --- the operations, per the pending-service and sowing identities ------------------------------
 
-## R06-JOB-007's 1-WU FARM tending of a GROWING plot: the one DAILY service operation whose owner
-## store exists. See DEFERRED in the header for the daily operations that have no store yet.
+## R06-JOB-007's 1-WU FARM tending of a GROWING plot: a DAILY service of the FarmPlot owner class.
 const OPERATION_FARM_TEND: int = 0
-## How many operations reopen every midnight. ONE: only tending is a daily service. The daily
-## operations occupy the low ordinals, so `operation < DAILY_SERVICE_OPERATION_COUNT` is the test.
-const DAILY_SERVICE_OPERATION_COUNT: int = 1
 ## R06-JOB-004's sowing cycle. NOT a daily service: it carries a field cycle instead of a service
 ## day, it does not reopen at midnight, and midnight never settles it as unserved.
 const OPERATION_FARM_SOW: int = 1
 ## The operation stride of `service_row()`, which addresses the FARM PLOT table alone. TWO, and
 ## only two: R06-JOB-001/002's forage demand has a DIFFERENT OWNER CLASS (HarvestZone, 128 rows)
-## and so cannot share an owner-major table sized for 4096 farm plots. See the header.
+## and R06-JOB-006's hive service a third (Hive, 1024 rows), so neither can share an owner-major
+## table sized for 4096 farm plots. See the header's operation-domain table.
 const OPERATION_COUNT: int = 2
 ## R06-JOB-001/002's repeat forage harvest demand. It is an operation of the same domain but of
 ## the HarvestZone owner class, so it has its own table and is NOT addressable by `service_row()`.
 ## `_init()` asserts `is_daily_service_operation()` rejects it: midnight must never reopen or
 ## settle repeat demand.
 const OPERATION_FORAGE_HARVEST: int = 2
-## Operations this build implements across every owner class. Two live in the FarmPlot table and
-## one in the HarvestZone demand table.
-const OPERATION_DOMAIN_COUNT: int = 3
+## R06-JOB-005's rotation advance, whose owner class is FieldPolicy. It is named here so that
+## "rotation is not a daily service" is a CHECKED answer, and it addresses NO table in this file:
+## `scripts/core/field_policy.gd` implements the whole contract and creates no Job. See the header.
+const OPERATION_FIELD_ROTATION: int = 3
+## R06-JOB-006's 20-WU KEEP hive service: a DAILY service of the Hive owner class, with its own
+## 1024-row slice. It reopens every midnight and midnight settles it unserved, exactly as
+## OPERATION_FARM_TEND does over farm plots.
+const OPERATION_HIVE_KEEP: int = 4
+## Operations this build can answer for, across every owner class: two in the FarmPlot table, one
+## in the HarvestZone demand table, one in the Hive service slice and one that owns no table here.
+const OPERATION_DOMAIN_COUNT: int = 5
+## Which ordinals reopen every midnight and are settled unserved by it, indexed by operation. An
+## EXPLICIT TABLE rather than a range, because the daily operations no longer occupy contiguous
+## low ordinals and renumbering a stored identity term to make them would be worse. See the header.
+const DAILY_SERVICE_OPERATIONS: Array[bool] = [true, false, false, false, true]
+## How many operations reopen every midnight. `_init()` asserts this equals the number of TRUE
+## entries above, so the count reports the table rather than defining it.
+const DAILY_SERVICE_OPERATION_COUNT: int = 2
 
 # --- capacities --------------------------------------------------------------------------------
 
@@ -476,6 +603,9 @@ const ZONE_OWNER_CAPACITY: int = ForageScript.HARVEST_ZONE_CAPACITY
 const PATCH_KIND_COUNT: int = ForageScript.PATCHES_PER_ZONE
 ## Rows in the forage demand table: one per (designation, kind) pair. 128 x 5 = 640.
 const DEMAND_ROW_COUNT: int = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT
+## R06-JOB-006's owner class: GDD §4.2's 1024 Hive rows, read from orchard_hive.gd, which reads
+## the same number out of `entity_directory.gd`'s KIND_HIVE arena.
+const HIVE_OWNER_CAPACITY: int = OrchardHiveScript.HIVE_CAPACITY
 
 # --- pending-service status --------------------------------------------------------------------
 
@@ -552,6 +682,33 @@ const UNSKILLED_FORAGE_LEVEL: int = 0
 ## floor. No store owns an intensive forage policy -- `FishHabitat.intensive_harvest` is the
 ## fishing one -- so this producer never claims below the sustainable floor.
 const INTENSIVE_HARVEST: bool = false
+## §4.3 JobKind of R06-JOB-006's hive service. Read from jobs.gd, which reads catalog.gd.
+const HIVE_SERVICE_JOB_KIND: int = JobsScript.JOB_KIND_KEEP
+## §5.6's "service is 20 WU/day", in milli-WU, read from the OWNING store rather than transcribed.
+## `_init()` asserts it is 20000, so a change there cannot silently re-price this job.
+const HIVE_SERVICE_WORK_MILLI_WU: int = OrchardHiveScript.HIVE_SERVICE_WORK_MILLI_WU
+## §5.6 states no minimum KEEP experience for a hive service, so none is invented (decision 0022:
+## 0 is "no minimum experience", not "level zero required").
+const HIVE_SERVICE_REQUIRED_SKILL: int = 0
+## §4.3's Season ordinal R06-JOB-006 excludes, read from the store that owns the day decode.
+const SEASON_WINTER: int = OrchardHiveScript.SEASON_WINTER
+
+# --- R06-JOB-006 service blockers, the `_hive_blocker` byte column --------------------------------
+
+## No gate has refused this hive's service today.
+const HIVE_BLOCKER_NONE: int = 0
+## The owner row holds no live Hive. "Operational" has no separate §4.2 column; a colonised row is
+## the operational one, and no second flag is invented.
+const HIVE_BLOCKER_NOT_PRESENT: int = 1
+## §5.6: "a hive at 0 strength is abandoned". An abandoned hive is past service, not owing one.
+const HIVE_BLOCKER_ABANDONED: int = 2
+## Winter. "Winter shall create feed-delivery demand as required, but no tending-labor job", so
+## this is the blocker a winter row retains WHILE `_hive_feed_demand_milli` carries the demand.
+const HIVE_BLOCKER_WINTER: int = 3
+## `Hive.serviced_day` already names today: the day's service is COMPLETE. The owning store holds
+## that column; this module keeps no second copy of it.
+const HIVE_BLOCKER_ALREADY_SERVICED: int = 4
+const HIVE_BLOCKER_COUNT: int = 5
 
 # --- R06-JOB-001/002 demand blockers, the `_demand_blocker` byte column ---------------------------
 
@@ -650,6 +807,15 @@ const REFUSE_DEMAND_NOT_ENABLED: StringName = &"FORAGE_DEMAND_NOT_ENABLED"
 const REFUSE_DEMAND_PENDING: StringName = &"FORAGE_DEMAND_ALREADY_PENDING"
 const REFUSE_DEMAND_SETTLED: StringName = &"FORAGE_DEMAND_SETTLED"
 
+# --- R06-JOB-006 refusal codes --------------------------------------------------------------------
+
+const REFUSE_INVALID_HIVE_SLOT: StringName = &"INVALID_HIVE_SLOT"
+const REFUSE_INVALID_HIVE_BLOCKER: StringName = &"INVALID_HIVE_BLOCKER"
+const REFUSE_HIVE_NOT_PRESENT: StringName = &"HIVE_NOT_PRESENT"
+const REFUSE_HIVE_ABANDONED: StringName = &"HIVE_ABANDONED"
+const REFUSE_HIVE_WINTER: StringName = &"HIVE_WINTER_NO_TENDING_LABOR"
+const REFUSE_HIVE_DAY_UNSETTLED: StringName = &"PRECEDING_HIVE_DAY_UNSETTLED"
+
 ## `_gate_reason` ordinal -> the refusal code the same gate returns. ONE mapping, so the byte kept
 ## on the row and the StringName handed to the caller cannot disagree. Indexed by REASON_*.
 const REASON_REFUSALS: Array[StringName] = [
@@ -665,6 +831,14 @@ const DEMAND_BLOCKER_REFUSALS: Array[StringName] = [
 	REFUSE_ZONE_DISABLED, REFUSE_ZONE_PROTECTED, REFUSE_NOT_A_DESIGNATION,
 	REFUSE_BASIN_NOT_PRESENT, REFUSE_PATCH_NOT_PRESENT, REFUSE_PATCH_DORMANT,
 	REFUSE_NOTHING_HARVESTABLE, REFUSE_FORAGE_SOURCE_REFUSED,
+]
+
+## `_hive_blocker` ordinal -> the refusal code the same gate returns, for the same reason the two
+## tables above exist: the byte retained on the row and the StringName handed back cannot drift.
+## Indexed by HIVE_BLOCKER_*.
+const HIVE_BLOCKER_REFUSALS: Array[StringName] = [
+	REFUSE_NONE, REFUSE_HIVE_NOT_PRESENT, REFUSE_HIVE_ABANDONED, REFUSE_HIVE_WINTER,
+	REFUSE_SERVICE_ALREADY_COMPLETE,
 ]
 
 
@@ -692,6 +866,7 @@ class OpResult:
 var _farming: FarmingScript = null
 var _jobs: JobsScript = null
 var _forage: ForageScript = null
+var _hives: OrchardHiveScript = null
 var _directory: EntityDirectory = null
 
 # --- pending-service columns (ARCH-MEM-001: packed, allocated once) -----------------------------
@@ -743,6 +918,27 @@ var _demand_job_generation: PackedInt32Array = PackedInt32Array()
 ## and closes entirely once collection finishes.
 var _demand_quantified_milli: PackedInt64Array = PackedInt64Array()
 
+# --- R06-JOB-006's hive service columns (its own owner class, one operation, 1024 rows) ----------
+
+## The Hive EntityRef this service row was opened against, both halves. A Hive row is reused after
+## a destroy, so a row that recorded only the index would be inherited by the next colonisation.
+var _hive_owner_slot: PackedInt32Array = PackedInt32Array()
+var _hive_owner_generation: PackedInt32Array = PackedInt32Array()
+## The ABSOLUTE service day this row belongs to: the third term of the pending-service identity.
+var _hive_service_day: PackedInt32Array = PackedInt32Array()
+## The Job holding this hive's outstanding 20-WU KEEP service.
+var _hive_job_slot: PackedInt32Array = PackedInt32Array()
+var _hive_job_generation: PackedInt32Array = PackedInt32Array()
+## §5.6's winter feed still owed on the reconciled day, in milli-units: R06-JOB-006's
+## "feed-delivery demand as required", recorded as STATE. NO DELIVERY JOB IS CREATED -- see the
+## header. Derived from `orchard_hive.feed_deficit_milli_into()`, never recomputed here.
+var _hive_feed_demand_milli: PackedInt64Array = PackedInt64Array()
+## FREE, PENDING or UNMET, the same status domain the other two tables use. There is no REQUESTED:
+## a hive service is condition-driven and needs no player confirmation.
+var _hive_status: PackedByteArray = PackedByteArray()
+## The gate that last refused, so a hive producing no service keeps its explicit reason.
+var _hive_blocker: PackedByteArray = PackedByteArray()
+
 # --- the dirty set: a fixed stack plus a membership bit, indexed by owner slot ------------------
 
 var _dirty_rows: PackedInt32Array = PackedInt32Array()
@@ -754,6 +950,12 @@ var _dirty_count: int = 0
 var _dirty_zone_rows: PackedInt32Array = PackedInt32Array()
 var _is_zone_dirty: PackedByteArray = PackedByteArray()
 var _dirty_zone_count: int = 0
+
+# --- the hive dirty set: the same structure over the Hive owner class ---------------------------
+
+var _dirty_hive_rows: PackedInt32Array = PackedInt32Array()
+var _is_hive_dirty: PackedByteArray = PackedByteArray()
+var _dirty_hive_count: int = 0
 
 # --- observable counters -----------------------------------------------------------------------
 
@@ -780,6 +982,12 @@ var _forage_created_count: int = 0
 var _forage_completed_count: int = 0
 var _forage_cancelled_count: int = 0
 var _forage_claimed_milli: int = 0
+var _hive_pending_count: int = 0
+var _hive_unmet_count: int = 0
+var _hive_created_count: int = 0
+var _hive_completed_count: int = 0
+var _hive_cancelled_count: int = 0
+var _hive_settled_unserved_count: int = 0
 
 # --- scratch (not simulation state) ------------------------------------------------------------
 
@@ -790,19 +998,20 @@ var _calendar: SimClock.Calendar = SimClock.Calendar.new()
 
 
 func _init(p_farming: FarmingScript = null, p_jobs: JobsScript = null,
-		p_forage: ForageScript = null) -> void:
-	"""Bind the farm, job and forage stores, assert every borrowed capacity, and allocate once.
+		p_forage: ForageScript = null, p_hives: OrchardHiveScript = null) -> void:
+	"""Bind the farm, job, forage and hive stores, assert every borrowed capacity, allocate once.
 
 	Passing existing stores shares them; passing nothing builds a consistent private set in
-	which the farm plots, the harvest zones and the jobs are allocated from ONE directory, because
-	a service or demand row holds an EntityRef to each and two directories could hand out the same
-	reference twice. The forage store must additionally share the SAME Job store, because decision
-	0030 indexes a forage claim by its owning Job's typed row.
+	which the farm plots, the harvest zones, the hives and the jobs are allocated from ONE
+	directory, because a service or demand row holds an EntityRef to each and two directories
+	could hand out the same reference twice. The forage store must additionally share the SAME Job
+	store, because decision 0030 indexes a forage claim by its owning Job's typed row.
 	"""
 	_jobs = p_jobs if p_jobs != null else JobsScript.new()
 	_directory = _jobs.directory()
 	_farming = p_farming if p_farming != null else FarmingScript.new(_directory)
 	_forage = p_forage if p_forage != null else ForageScript.new(_directory, _jobs)
+	_hives = p_hives if p_hives != null else OrchardHiveScript.new(_directory)
 	_assert_shared_contracts()
 	_allocate_columns()
 	clear()
@@ -822,6 +1031,43 @@ func _assert_shared_contracts() -> void:
 		"R06-JOB-007's tending service is one WU, which is 1000 milli-WU")
 	_assert_sowing_contracts()
 	_assert_forage_contracts()
+	_assert_hive_contracts()
+	_assert_operation_domain()
+
+
+func _assert_operation_domain() -> void:
+	"""Prove the daily-service table covers the domain and reports rather than defines the count."""
+	assert(DAILY_SERVICE_OPERATIONS.size() == OPERATION_DOMAIN_COUNT,
+		"every operation in the domain must state whether it reopens at midnight")
+	var daily: int = 0
+	for operation: int in OPERATION_DOMAIN_COUNT:
+		if DAILY_SERVICE_OPERATIONS[operation]:
+			daily += 1
+	assert(daily == DAILY_SERVICE_OPERATION_COUNT,
+		"the daily count must equal the number of TRUE entries, not define them")
+	assert(is_daily_service_operation(OPERATION_FARM_TEND), "tending reopens every midnight")
+	assert(is_daily_service_operation(OPERATION_HIVE_KEEP), "hive service reopens every midnight")
+	assert(not is_daily_service_operation(OPERATION_FIELD_ROTATION),
+		"R06-JOB-005's rotation advance is event-driven on cycle completion, not a daily service")
+	assert(not is_operation(OPERATION_FIELD_ROTATION),
+		"the rotation ordinal must address no row in this file's pending-service table")
+
+
+func _assert_hive_contracts() -> void:
+	"""Prove R06-JOB-006's borrowed capacity, work total, kind and that it IS a daily service."""
+	assert(_hives.directory() == _directory,
+		"the hives and the jobs must be allocated from one entity directory")
+	assert(HIVE_OWNER_CAPACITY == _directory.capacity_of_kind(EntityDirectory.KIND_HIVE),
+		"the hive owner class must match the directory's KIND_HIVE capacity")
+	assert(HIVE_SERVICE_WORK_MILLI_WU == 20000,
+		"R06-JOB-006's service is twenty WU, which is 20000 milli-WU")
+	assert(HIVE_SERVICE_JOB_KIND == JobsScript.JOB_KIND_KEEP, "a hive service is a KEEP job")
+	assert(OPERATION_HIVE_KEEP >= OPERATION_COUNT,
+		"the hive operation has its own owner class and must not address the FarmPlot table")
+	assert(HIVE_BLOCKER_REFUSALS.size() == HIVE_BLOCKER_COUNT,
+		"every hive blocker must map to exactly one refusal code")
+	assert(SEASON_WINTER == OrchardHiveScript.SEASON_WINTER,
+		"the excluded season is the owning store's own Season ordinal")
 
 
 func _assert_forage_contracts() -> void:
@@ -838,8 +1084,6 @@ func _assert_forage_contracts() -> void:
 		"repeat forage demand must not sit among the operations midnight reopens and settles")
 	assert(OPERATION_FORAGE_HARVEST >= OPERATION_COUNT,
 		"the forage operation has its own owner class and must not address the FarmPlot table")
-	assert(OPERATION_DOMAIN_COUNT == OPERATION_COUNT + 1,
-		"three operations exist across the two owner classes")
 	assert(FORAGE_JOB_KIND == JobsScript.JOB_KIND_FORAGE, "a harvest is a FORAGE job")
 	assert(DEMAND_BLOCKER_REFUSALS.size() == BLOCKER_COUNT,
 		"every demand blocker must map to exactly one refusal code")
@@ -847,7 +1091,7 @@ func _assert_forage_contracts() -> void:
 
 func _assert_sowing_contracts() -> void:
 	"""Prove R06-JOB-004's borrowed constants and that sowing is not a daily service operation."""
-	assert(OPERATION_FARM_SOW >= DAILY_SERVICE_OPERATION_COUNT,
+	assert(not is_daily_service_operation(OPERATION_FARM_SOW),
 		"sowing must not sit among the operations midnight reopens and settles")
 	assert(OPERATION_FARM_SOW < OPERATION_COUNT,
 		"every implemented operation must have a row in the table")
@@ -870,6 +1114,17 @@ func _allocate_columns() -> void:
 		column.resize(OWNER_CAPACITY)
 	_is_dirty.resize(OWNER_CAPACITY)
 	_allocate_demand_columns()
+	_allocate_hive_columns()
+
+
+func _allocate_hive_columns() -> void:
+	"""Size R06-JOB-006's 1024-row slice and its dirty set exactly once. Never called again."""
+	for column: PackedInt32Array in [_hive_owner_slot, _hive_owner_generation, _hive_service_day,
+			_hive_job_slot, _hive_job_generation, _dirty_hive_rows]:
+		column.resize(HIVE_OWNER_CAPACITY)
+	for column: PackedByteArray in [_hive_status, _hive_blocker, _is_hive_dirty]:
+		column.resize(HIVE_OWNER_CAPACITY)
+	_hive_feed_demand_milli.resize(HIVE_OWNER_CAPACITY)
 
 
 func _allocate_demand_columns() -> void:
@@ -908,7 +1163,25 @@ func clear() -> void:
 	_unmet_count = 0
 	_requested_count = 0
 	_clear_demand_columns()
+	_clear_hive_columns()
 	_reset_counters()
+
+
+func _clear_hive_columns() -> void:
+	"""Return every hive service row and the hive dirty set to empty without reallocating."""
+	_hive_owner_slot.fill(EntityDirectory.NULL_SLOT)
+	_hive_owner_generation.fill(EntityDirectory.NULL_GENERATION)
+	_hive_service_day.fill(NO_DAY)
+	_hive_job_slot.fill(EntityDirectory.NULL_SLOT)
+	_hive_job_generation.fill(EntityDirectory.NULL_GENERATION)
+	_hive_feed_demand_milli.fill(0)
+	_hive_status.fill(STATUS_FREE)
+	_hive_blocker.fill(HIVE_BLOCKER_NONE)
+	_dirty_hive_rows.fill(0)
+	_is_hive_dirty.fill(0)
+	_dirty_hive_count = 0
+	_hive_pending_count = 0
+	_hive_unmet_count = 0
 
 
 func _clear_demand_columns() -> void:
@@ -948,6 +1221,10 @@ func _reset_counters() -> void:
 	_forage_completed_count = 0
 	_forage_cancelled_count = 0
 	_forage_claimed_milli = 0
+	_hive_created_count = 0
+	_hive_completed_count = 0
+	_hive_cancelled_count = 0
+	_hive_settled_unserved_count = 0
 
 
 # --- results -----------------------------------------------------------------------------------
@@ -1014,9 +1291,13 @@ func is_daily_service_operation(operation: int) -> bool:
 	"""True when this operation reopens every midnight and midnight settles it unserved.
 
 	The ruling separates the two identities, so this predicate is what keeps R06-JOB-004's sowing
-	cycle out of R06-JOB-007's daily machinery. The daily operations occupy the low ordinals.
+	cycle and R06-JOB-005's rotation advance out of the daily machinery that R06-JOB-007's tending
+	and R06-JOB-006's hive service share. An EXPLICIT TABLE per ordinal, not a range: the daily
+	operations belong to different owner classes and no longer occupy contiguous low ordinals.
 	"""
-	return operation >= 0 and operation < DAILY_SERVICE_OPERATION_COUNT
+	if operation < 0 or operation >= OPERATION_DOMAIN_COUNT:
+		return false
+	return DAILY_SERVICE_OPERATIONS[operation]
 
 
 func service_row(owner_slot: int, operation: int) -> IntMath.IntResult:
@@ -1269,7 +1550,19 @@ func mark_capacity_released() -> int:
 		if _is_dirty[owner_slot] == 0:
 			marked += 1
 		mark_plot_dirty(owner_slot)
-	return marked + _mark_unmet_zones_dirty()
+	return marked + _mark_unmet_zones_dirty() + _mark_unmet_hives_dirty()
+
+
+func _mark_unmet_hives_dirty() -> int:
+	"""Re-mark every hive holding retained unmet service demand. Returns the count."""
+	var marked: int = 0
+	for hive_slot: int in HIVE_OWNER_CAPACITY:
+		if _hive_status[hive_slot] != STATUS_UNMET:
+			continue
+		if _is_hive_dirty[hive_slot] == 0:
+			marked += 1
+		mark_hive_dirty(hive_slot)
+	return marked
 
 
 func _mark_unmet_zones_dirty() -> int:
@@ -1354,14 +1647,18 @@ func _settle_existing(row: int, owner_slot: int, day: int) -> StringName:
 	"""Classify whatever the service row already holds, retiring it unless it is still pending.
 
 	Returns REFUSE_SERVICE_PENDING -- the idempotence guard -- only when a live Job already covers
-	`(owner, operation, day)`. A record for another day, another owner generation, a vanished Job
+	`(owner, operation, day)`. A record for another day, another owner EntityRef, a vanished Job
 	or a CANCELLED one is retired here so the day's demand can be reconsidered exactly once. ALL
 	THREE PARTS OF THE IDENTITY ARE CHECKED: dropping the day comparison would let yesterday's
-	pending record silently absorb today's demand whenever a midnight boundary was missed.
+	pending record silently absorb today's demand whenever a midnight boundary was missed, and
+	BOTH HALVES OF THE OWNER REFERENCE ARE COMPARED -- the generation lives on the DIRECTORY SLOT
+	and a reused typed row can be republished under a different slot carrying the SAME generation
+	number, so comparing the generation alone would let the row's next occupant inherit a record.
 	"""
 	if _status[row] == STATUS_FREE:
 		return REFUSE_NONE
-	if _owner_generation[row] != _farming.ref_of(owner_slot).y or _service_day[row] != day:
+	if Vector2i(_owner_slot[row], _owner_generation[row]) != _farming.ref_of(owner_slot) \
+			or _service_day[row] != day:
 		_retire_unserved(row)
 		return REFUSE_NONE
 	if _status[row] == STATUS_UNMET:
@@ -1673,6 +1970,12 @@ func run_tick_into(tick: int, out: IntMath.IntResult) -> bool:
 	total += out.value
 	if not run_zone_sweep_into(tick, out):
 		return false
+	total += out.value
+	if not reconcile_dirty_hives_into(tick, HIVE_OWNER_CAPACITY, out):
+		return false
+	total += out.value
+	if not run_hive_sweep_into(tick, out):
+		return false
 	return out.succeed(total + out.value)
 
 
@@ -1695,11 +1998,14 @@ func run_day_boundary(tick: int) -> OpResult:
 	if tick < 0:
 		return _refuse(REFUSE_INVALID_TICK)
 	var day: int = absolute_day_of_tick(tick)
-	var settled: int = _settle_preceding_day(day)
+	var settled: int = _settle_preceding_day(day) + _settle_preceding_hive_day(day)
 	if not preceding_day_is_settled(day):
 		return _refuse(REFUSE_DAY_UNSETTLED)
+	if not preceding_hive_day_is_settled(day):
+		return _refuse(REFUSE_HIVE_DAY_UNSETTLED)
 	mark_all_owners_dirty()
 	mark_all_zones_dirty()
+	mark_all_hives_dirty()
 	return _succeed(settled, EntityDirectory.NULL_REF)
 
 
@@ -1763,8 +2069,28 @@ func revalidate_after_load() -> IntMath.IntResult:
 			continue
 		_retire_row(row)
 		dropped += 1
+	dropped += _revalidate_hive_rows()
 	_dropped_on_load_count += dropped
 	return _read(REFUSE_NONE, dropped)
+
+
+func _revalidate_hive_rows() -> int:
+	"""Drop hive service rows whose Job no longer resolves. Returns the drops.
+
+	The same repair, over the third owner class. `Hive.serviced_day` is untouched, because it is
+	`orchard_hive.gd`'s completion history and it is what keeps "once per day" true across a load
+	even when every pending row has gone.
+	"""
+	var dropped: int = 0
+	for hive_slot: int in HIVE_OWNER_CAPACITY:
+		if _hive_status[hive_slot] != STATUS_PENDING:
+			continue
+		if _directory.is_valid_of_kind(Vector2i(_hive_job_slot[hive_slot],
+				_hive_job_generation[hive_slot]), EntityDirectory.KIND_JOB):
+			continue
+		_retire_hive_row(hive_slot)
+		dropped += 1
+	return dropped
 
 
 # --- R06-JOB-004: the sowing first-plant producer -------------------------------------------------
@@ -1883,11 +2209,13 @@ func _settle_existing_sowing(row: int, owner_slot: int) -> StringName:
 	"""Classify whatever the sowing row holds. REFUSE_NONE means "evaluate the gates now".
 
 	A request whose owner has gone -- destroyed, or its row reused by a different plot -- is
-	abandoned here rather than inherited: BOTH HALVES OF THE OWNER EntityRef ARE CHECKED, so a
-	redrawn plot starts with no confirmed crop and must be confirmed again.
+	abandoned here rather than inherited: BOTH HALVES OF THE OWNER EntityRef ARE COMPARED, so a
+	redrawn plot starts with no confirmed crop and must be confirmed again. The SLOT half matters
+	as much as the generation: the generation lives on the DIRECTORY SLOT, and a reused typed row
+	can be republished under a different slot that carries the same generation number.
 	"""
 	if not _farming.is_present(owner_slot) \
-			or _owner_generation[row] != _farming.ref_of(owner_slot).y:
+			or Vector2i(_owner_slot[row], _owner_generation[row]) != _farming.ref_of(owner_slot):
 		_abandon_sowing(row)
 		return REFUSE_NO_SOWING_REQUEST
 	if _status[row] != STATUS_PENDING:
@@ -3048,3 +3376,575 @@ func forage_claimed_milli() -> int:
 	The counter the no-consume tests watch: a refused gate never moves it.
 	"""
 	return _forage_claimed_milli
+
+
+# --- R06-JOB-006: the daily hive service producer ------------------------------------------------
+
+func hives() -> OrchardHiveScript:
+	"""The Hive store R06-JOB-006's daily 20-WU KEEP service is produced against."""
+	return _hives
+
+
+func is_hive_owner_slot(hive_slot: int) -> bool:
+	"""True when the argument addresses a Hive typed row, present or not."""
+	return hive_slot >= 0 and hive_slot < HIVE_OWNER_CAPACITY
+
+
+func hive_service_row(hive_slot: int) -> IntMath.IntResult:
+	"""The hive service row of one hive, or an explicit refusal.
+
+	The identity is `(owner EntityRef, OPERATION_HIVE_KEEP, absolute service day)` and the hive
+	class has exactly ONE operation, so the row index IS the hive's typed row. It is published as
+	a function rather than assumed, so a caller reads the mapping from the module that owns it.
+	"""
+	if not is_hive_owner_slot(hive_slot):
+		return _read(REFUSE_INVALID_HIVE_SLOT, 0)
+	return _read(REFUSE_NONE, hive_slot)
+
+
+# --- the hive dirty set (R06-JOB-008 over the third owner class) ---------------------------------
+
+func hive_dirty_count() -> int:
+	"""Hives currently awaiting reconciliation. Bounded by HIVE_OWNER_CAPACITY by construction."""
+	return _dirty_hive_count
+
+
+func is_hive_dirty(hive_slot: int) -> bool:
+	"""True when this hive is already in the hive dirty set."""
+	return is_hive_owner_slot(hive_slot) and _is_hive_dirty[hive_slot] == 1
+
+
+func mark_hive_dirty(hive_slot: int) -> OpResult:
+	"""Mark one hive's service demand for reconciliation. Idempotent: a repeat adds no entry.
+
+	Accepts an addressable slot whether or not a hive is present, because retiring the record of
+	a destroyed hive is itself a reconciliation. Refuses only an out-of-range slot.
+	"""
+	if not is_hive_owner_slot(hive_slot):
+		return _refuse(REFUSE_INVALID_HIVE_SLOT)
+	if _is_hive_dirty[hive_slot] == 1:
+		return _succeed(_dirty_hive_count, EntityDirectory.NULL_REF)
+	_is_hive_dirty[hive_slot] = 1
+	_dirty_hive_rows[_dirty_hive_count] = hive_slot
+	_dirty_hive_count += 1
+	return _succeed(_dirty_hive_count, EntityDirectory.NULL_REF)
+
+
+func mark_all_hives_dirty() -> int:
+	"""Mark every live hive, and every hive still carrying a record, dirty. Returns the count."""
+	var marked: int = 0
+	for hive_slot: int in HIVE_OWNER_CAPACITY:
+		if _hives.is_hive_present(hive_slot) or _hive_carries_a_record(hive_slot):
+			if _is_hive_dirty[hive_slot] == 0:
+				marked += 1
+			mark_hive_dirty(hive_slot)
+	return marked
+
+
+func _hive_carries_a_record(hive_slot: int) -> bool:
+	"""True when this hive row still holds a service row or an outstanding winter feed demand.
+
+	Reading only the status would let a feed demand on a destroyed hive survive every sweep with
+	nothing left to clear it, and an outstanding Job on a destroyed hive stay alive unrecorded.
+	"""
+	return _hive_status[hive_slot] != STATUS_FREE or _hive_feed_demand_milli[hive_slot] != 0
+
+
+func _pop_dirty_hive() -> int:
+	"""Remove and return the most recently marked hive, clearing its membership bit."""
+	_dirty_hive_count -= 1
+	var hive_slot: int = _dirty_hive_rows[_dirty_hive_count]
+	_is_hive_dirty[hive_slot] = 0
+	return hive_slot
+
+
+# --- R06-JOB-006: reconciliation and publication --------------------------------------------------
+
+func reconcile_dirty_hives(tick: int, budget: int) -> IntMath.IntResult:
+	"""Reconcile up to `budget` dirty hives, returning the number of services created."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	reconcile_dirty_hives_into(tick, budget, out)
+	return out
+
+
+func reconcile_dirty_hives_into(tick: int, budget: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating reconcile_dirty_hives(). The remainder stays in the bounded hive dirty set."""
+	if tick < 0:
+		return out.refuse(String(REFUSE_INVALID_TICK))
+	if budget < 0:
+		return out.refuse(String(REFUSE_INVALID_BUDGET))
+	var created: int = 0
+	var spent: int = 0
+	while spent < budget and _dirty_hive_count > 0:
+		if _reconcile_hive(_pop_dirty_hive(), tick) == REFUSE_NONE:
+			created += 1
+		spent += 1
+	return out.succeed(created)
+
+
+func run_hive_sweep(tick: int) -> IntMath.IntResult:
+	"""Reconcile this tick's staggered 1/30 slice of the hives, returning services created."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	run_hive_sweep_into(tick, out)
+	return out
+
+
+func run_hive_sweep_into(tick: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating run_hive_sweep(): ARCH-SYS-009's idle cadence over the Hive owner class.
+
+	Walks a fixed slice of the 1024 hive rows and reconciles only those that are live or already
+	carry a record, so a settlement with no apiary costs a bounded integer walk and nothing else.
+	"""
+	if tick < 0:
+		return out.refuse(String(REFUSE_INVALID_TICK))
+	var created: int = 0
+	var hive_slot: int = tick % STAGGER_MODULUS
+	while hive_slot < HIVE_OWNER_CAPACITY:
+		if _hives.is_hive_present(hive_slot) or _hive_carries_a_record(hive_slot):
+			if _reconcile_hive(hive_slot, tick) == REFUSE_NONE:
+				created += 1
+		hive_slot += STAGGER_MODULUS
+	return out.succeed(created)
+
+
+func reconcile_hive(hive_slot: int, tick: int) -> OpResult:
+	"""Reconcile one hive's service demand at `tick`. Succeeds ONLY when a service was created.
+
+	Every other outcome is an explicit refusal naming the rule that declined: SERVICE_PENDING and
+	SERVICE_ALREADY_COMPLETE are R06-JOB-008's idempotence guards, HIVE_WINTER_NO_TENDING_LABOR is
+	the contract's own winter exclusion, HIVE_ABANDONED and HIVE_NOT_PRESENT are its operational
+	condition, and a directory refusal passed through is capacity exhaustion with demand retained.
+	"""
+	if not is_hive_owner_slot(hive_slot):
+		return _refuse(REFUSE_INVALID_HIVE_SLOT)
+	if tick < 0:
+		return _refuse(REFUSE_INVALID_TICK)
+	var code: StringName = _reconcile_hive(hive_slot, tick)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _succeed(hive_slot, hive_service_job_of(hive_slot))
+
+
+func _reconcile_hive(hive_slot: int, tick: int) -> StringName:
+	"""R06-JOB-006's producer over one hive. Allocates only what the header names.
+
+	Order is fixed: settle whatever the row already holds, then apply every gate, and only then
+	create. NOTHING IS CONSUMED BEFORE EVERY GATE HAS PASSED -- a refusal writes the row's blocker
+	byte and its winter feed demand and moves no counter (decision 0024).
+	"""
+	var day: int = absolute_day_of_tick(tick)
+	var settled: StringName = _settle_existing_hive(hive_slot, day)
+	if settled != REFUSE_NONE:
+		return settled
+	var blocker: int = _hive_service_blocker(hive_slot, day)
+	_hive_blocker[hive_slot] = blocker
+	if blocker != HIVE_BLOCKER_NONE:
+		return HIVE_BLOCKER_REFUSALS[blocker]
+	return _create_hive_service(hive_slot, day, tick)
+
+
+func _settle_existing_hive(hive_slot: int, day: int) -> StringName:
+	"""Classify whatever the hive service row holds. REFUSE_NONE means "evaluate the gates now".
+
+	ALL THREE PARTS OF THE IDENTITY ARE CHECKED. A record for another day, or for another
+	occupant of the hive row, is an UNSERVED outcome and is settled exactly as midnight settles
+	one; dropping the day comparison would let yesterday's pending record silently absorb today's
+	demand whenever a midnight boundary was missed. BOTH HALVES OF THE OWNER REFERENCE ARE
+	COMPARED, because the generation lives on the DIRECTORY SLOT: a reused typed row can be
+	republished under a DIFFERENT slot carrying the SAME generation number, so a generation-only
+	comparison would hand the row's next occupant the previous hive's service.
+	"""
+	if _hive_status[hive_slot] == STATUS_FREE:
+		return REFUSE_NONE
+	if Vector2i(_hive_owner_slot[hive_slot], _hive_owner_generation[hive_slot]) \
+			!= _hives.hive_ref_of(hive_slot) or _hive_service_day[hive_slot] != day:
+		_retire_hive_unserved(hive_slot)
+		return REFUSE_NONE
+	if _hive_status[hive_slot] == STATUS_UNMET:
+		_retire_hive_row(hive_slot)
+		return REFUSE_NONE
+	return _settle_pending_hive_job(hive_slot, day)
+
+
+func _retire_hive_unserved(hive_slot: int) -> void:
+	"""Retire a record that no longer belongs to today's hive and day, cancelling its Job."""
+	if _hive_status[hive_slot] == STATUS_PENDING:
+		_cancel_job(Vector2i(_hive_job_slot[hive_slot], _hive_job_generation[hive_slot]))
+	_hive_settled_unserved_count += 1
+	_retire_hive_row(hive_slot)
+
+
+func _settle_pending_hive_job(hive_slot: int, day: int) -> StringName:
+	"""Read the pending service Job's state and retire the row unless the service is still live."""
+	var job_ref: Vector2i = Vector2i(_hive_job_slot[hive_slot], _hive_job_generation[hive_slot])
+	if not _directory.is_valid_of_kind(job_ref, EntityDirectory.KIND_JOB):
+		_retire_hive_row(hive_slot)
+		return REFUSE_NONE
+	var state: IntMath.IntResult = _jobs.state_of(_directory.get_typed_row(job_ref))
+	if not state.ok:
+		_retire_hive_row(hive_slot)
+		return REFUSE_NONE
+	if state.value == JobsScript.JOB_STATE_COMPLETE:
+		_record_hive_completion(hive_slot, day, job_ref)
+		return REFUSE_NONE
+	if state.value == JobsScript.JOB_STATE_CANCELLED:
+		_hive_cancelled_count += 1
+		_retire_hive_row(hive_slot)
+		return REFUSE_NONE
+	return REFUSE_SERVICE_PENDING
+
+
+func _record_hive_completion(hive_slot: int, day: int, job_ref: Vector2i) -> void:
+	"""Write the completion into the OWNING store's history and release the Job row.
+
+	`orchard_hive.gd` owns `Hive.serviced_day` and this module keeps NO second copy, so "once per
+	day" is decided by the same column §5.6's own daily step reads. An ABANDONED hive refuses the
+	record there and the refusal is deliberately not overridden: a hive at 0 strength is past
+	service, and `_hive_service_blocker()` refuses it on the next reconcile for that same reason.
+	"""
+	_hives.record_hive_service(_hives.hive_ref_of(hive_slot), day)
+	_hive_completed_count += 1
+	_retire_hive_row(hive_slot)
+	_destroy_job(job_ref)
+
+
+func _hive_service_blocker(hive_slot: int, day: int) -> int:
+	"""R06-JOB-006's gates over one hive on one day. HIVE_BLOCKER_NONE means all of them pass.
+
+	Every gate is the OWNING store's own predicate, so §5.6's season table, its abandonment line
+	and its serviced-day column are read, never copied. The winter feed demand is refreshed for
+	every present hive BEFORE the season gate, because a winter day owes feed precisely when it
+	owes no tending labour.
+	"""
+	if not _hives.is_hive_present(hive_slot):
+		_hive_feed_demand_milli[hive_slot] = 0
+		return HIVE_BLOCKER_NOT_PRESENT
+	_refresh_hive_feed_demand(hive_slot, day)
+	if _hives.is_hive_abandoned(hive_slot):
+		return HIVE_BLOCKER_ABANDONED
+	if OrchardHiveScript.season_of_day(day) == SEASON_WINTER:
+		return HIVE_BLOCKER_WINTER
+	if not _hives.is_service_due(hive_slot, day):
+		return HIVE_BLOCKER_ALREADY_SERVICED
+	return HIVE_BLOCKER_NONE
+
+
+func _refresh_hive_feed_demand(hive_slot: int, day: int) -> void:
+	"""Record R06-JOB-006's winter feed-delivery demand as STATE, from the owning store's own sum.
+
+	NO DELIVERY JOB IS CREATED, and the reason is NOT a missing container store: `inventory.gd`
+	owns containers, lots and reservations already. What is missing is an owner binding that would
+	give a hive a destination container, and a hauling producer with a movement layer to run it.
+	`hive_feed_demand_milli_of()` is the reader that producer consumes when one is built. Outside
+	winter the owning store answers 0.
+	"""
+	if not _hives.feed_deficit_milli_into(hive_slot, day, _math):
+		_hive_feed_demand_milli[hive_slot] = 0
+		return
+	_hive_feed_demand_milli[hive_slot] = _math.value
+
+
+func hive_service_gate_for(hive_slot: int, day: int) -> IntMath.IntResult:
+	"""The blocker that would refuse servicing this hive on `day`; HIVE_BLOCKER_NONE if none would.
+
+	A pure question WITH NO SIDE EFFECT ON THE JOB STORE: it publishes nothing and creates nothing,
+	so a UI panel asking "why is this hive producing no service work?" and the producer that acts
+	on the answer read ONE implementation. It does refresh the row's retained winter feed demand,
+	which is the same derived quantity the reconcile would have written.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	hive_service_gate_for_into(hive_slot, day, out)
+	return out
+
+
+func hive_service_gate_for_into(hive_slot: int, day: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating hive_service_gate_for(). A blocker is an ANSWER here, not a refusal."""
+	if not is_hive_owner_slot(hive_slot):
+		return out.refuse(String(REFUSE_INVALID_HIVE_SLOT))
+	if day < 1:
+		return out.refuse(String(REFUSE_INVALID_DAY))
+	return out.succeed(_hive_service_blocker(hive_slot, day))
+
+
+func _create_hive_service(hive_slot: int, day: int, tick: int) -> StringName:
+	"""Create R06-JOB-006's ONE 20-WU KEEP Job and record it. Consumes nothing on refusal.
+
+	Capacity exhaustion retains the demand as STATUS_UNMET carrying the hive and the service day,
+	and reports the directory's own refusal code as the blocker -- one row per hive in an array
+	allocated once, so a thousand refusals still hold one row.
+	"""
+	var created: JobsScript.OpResult = _jobs.create_job(HIVE_SERVICE_JOB_KIND,
+		ORDINARY_JOB_PRIORITY, HIVE_SERVICE_REQUIRED_SKILL, HIVE_SERVICE_WORK_MILLI_WU, tick)
+	if not created.ok:
+		_retain_unmet_hive_demand(hive_slot, day, created.error)
+		return created.error
+	if not _bind_hive_service_job(created.value, hive_slot):
+		_jobs.destroy_job(created.value)
+		return REFUSE_JOB_BINDING_FAILED
+	_write_pending_hive_row(hive_slot, day, created.ref)
+	return REFUSE_NONE
+
+
+func _bind_hive_service_job(job_slot: int, hive_slot: int) -> bool:
+	"""Point the new Job at its hive and declare its inputs. True when both writes took.
+
+	The hive is the work's SOURCE. `destination` stays null: a service delivers nothing, and no
+	reachability oracle exists to answer eligibility step 7 anyway. THE GATE IS NOT_REQUIRED AND
+	THAT IS AN ANSWER: §5.6 prices this service as labour alone, and the only material it names for
+	a hive is winter feed, in the season that creates no job. Declaring an unanswerable input here
+	would assert a requirement the specification does not state.
+	"""
+	var source: JobsScript.OpResult = _jobs.set_source(job_slot, _hives.hive_ref_of(hive_slot))
+	if not source.ok:
+		return false
+	return _jobs.set_inputs_gate(job_slot, JobsScript.GATE_NOT_REQUIRED).ok
+
+
+func _write_pending_hive_row(hive_slot: int, day: int, job_ref: Vector2i) -> void:
+	"""Commit the pending-service identity once its Job exists. The last step, never the first."""
+	var owner_ref: Vector2i = _hives.hive_ref_of(hive_slot)
+	_hive_owner_slot[hive_slot] = owner_ref.x
+	_hive_owner_generation[hive_slot] = owner_ref.y
+	_hive_service_day[hive_slot] = day
+	_hive_job_slot[hive_slot] = job_ref.x
+	_hive_job_generation[hive_slot] = job_ref.y
+	_hive_status[hive_slot] = STATUS_PENDING
+	_hive_pending_count += 1
+	_hive_created_count += 1
+
+
+func _retain_unmet_hive_demand(hive_slot: int, day: int, code: StringName) -> void:
+	"""R06-JOB-008: keep the unmet hive demand in its own fixed row and report the blocker."""
+	var owner_ref: Vector2i = _hives.hive_ref_of(hive_slot)
+	_hive_owner_slot[hive_slot] = owner_ref.x
+	_hive_owner_generation[hive_slot] = owner_ref.y
+	_hive_service_day[hive_slot] = day
+	_hive_job_slot[hive_slot] = EntityDirectory.NULL_SLOT
+	_hive_job_generation[hive_slot] = EntityDirectory.NULL_GENERATION
+	_hive_status[hive_slot] = STATUS_UNMET
+	_hive_unmet_count += 1
+	_blocker_count += 1
+	_last_blocker = code
+
+
+func _retire_hive_row(hive_slot: int) -> void:
+	"""Return one hive service row to STATUS_FREE, keeping the durable history elsewhere.
+
+	`Hive.serviced_day` is NOT touched: it lives in `orchard_hive.gd` and is the completion history
+	the ruling forbids discarding. The retained winter feed demand is not touched either -- it is
+	the row's derived REASON-like state, rewritten by every reconcile of a present hive and zeroed
+	when the hive is gone, exactly as the demand table's blocker byte survives a retirement.
+	"""
+	if _hive_status[hive_slot] == STATUS_PENDING:
+		_hive_pending_count -= 1
+	elif _hive_status[hive_slot] == STATUS_UNMET:
+		_hive_unmet_count -= 1
+	_hive_status[hive_slot] = STATUS_FREE
+	_hive_owner_slot[hive_slot] = EntityDirectory.NULL_SLOT
+	_hive_owner_generation[hive_slot] = EntityDirectory.NULL_GENERATION
+	_hive_service_day[hive_slot] = NO_DAY
+	_hive_job_slot[hive_slot] = EntityDirectory.NULL_SLOT
+	_hive_job_generation[hive_slot] = EntityDirectory.NULL_GENERATION
+
+
+# --- R06-JOB-006: the daily boundary and explicit outcomes ---------------------------------------
+
+func _settle_preceding_hive_day(day: int) -> int:
+	"""Retire every hive service row older than `day`, cancelling any Job that never completed.
+
+	NO RETROACTIVE SERVICE: a hive that becomes operational mid-day is reconciled against today,
+	and yesterday's unfinished service does not survive into it. Nothing here iterates the days
+	between a hive's colonisation and today, so no earlier day can ever acquire a service.
+	"""
+	if _hive_pending_count == 0 and _hive_unmet_count == 0:
+		return 0
+	var settled: int = 0
+	for hive_slot: int in HIVE_OWNER_CAPACITY:
+		if _hive_status[hive_slot] == STATUS_FREE or _hive_service_day[hive_slot] >= day:
+			continue
+		_retire_hive_unserved(hive_slot)
+		settled += 1
+	return settled
+
+
+func preceding_hive_day_is_settled(day: int) -> bool:
+	"""True when no hive service row still carries a service day earlier than `day`.
+
+	`run_day_boundary()` consults this BETWEEN settling and opening, so the ruling's ordering is a
+	checked precondition of opening demand rather than a comment about statement order.
+	"""
+	for hive_slot: int in HIVE_OWNER_CAPACITY:
+		if _hive_status[hive_slot] != STATUS_FREE and _hive_service_day[hive_slot] < day:
+			return false
+	return true
+
+
+func record_hive_service_completed(hive_slot: int, day: int) -> OpResult:
+	"""Record that this hive's service for `day` completed, from outside this module's own Job.
+
+	The seam a caller uses when a service is performed by a path that is not a planner Job. The
+	completion is written to `orchard_hive.gd`, which owns it, and ITS refusal is passed straight
+	back: an abandoned hive cannot be serviced and this module does not overrule that.
+	"""
+	if not is_hive_owner_slot(hive_slot):
+		return _refuse(REFUSE_INVALID_HIVE_SLOT)
+	if day < 1:
+		return _refuse(REFUSE_INVALID_DAY)
+	if not _hives.is_hive_present(hive_slot):
+		return _refuse(REFUSE_HIVE_NOT_PRESENT)
+	var recorded: OrchardHiveScript.OpResult = _hives.record_hive_service(
+		_hives.hive_ref_of(hive_slot), day)
+	if not recorded.ok:
+		return _refuse(recorded.error)
+	if _hive_status[hive_slot] == STATUS_PENDING:
+		_destroy_job(Vector2i(_hive_job_slot[hive_slot], _hive_job_generation[hive_slot]))
+	_hive_completed_count += 1
+	_retire_hive_row(hive_slot)
+	return _succeed(day, _hives.hive_ref_of(hive_slot))
+
+
+func retire_hive_service(hive_slot: int) -> OpResult:
+	"""Drop this hive's pending record, cancelling its Job. For a caller destroying the hive.
+
+	Completion history is kept in `orchard_hive.gd`: retiring a record is not the same as saying
+	the service was performed. The retained winter feed demand is cleared, because a hive that is
+	being torn down owes no delivery.
+	"""
+	if not is_hive_owner_slot(hive_slot):
+		return _refuse(REFUSE_INVALID_HIVE_SLOT)
+	if not _hive_carries_a_record(hive_slot):
+		return _refuse(REFUSE_NO_SERVICE)
+	if _hive_status[hive_slot] == STATUS_PENDING:
+		_cancel_job(Vector2i(_hive_job_slot[hive_slot], _hive_job_generation[hive_slot]))
+	_retire_hive_row(hive_slot)
+	_hive_feed_demand_milli[hive_slot] = 0
+	return _succeed(hive_slot, EntityDirectory.NULL_REF)
+
+
+# --- R06-JOB-006 readers --------------------------------------------------------------------------
+
+func hive_service_status_of(hive_slot: int) -> IntMath.IntResult:
+	"""STATUS_FREE, STATUS_PENDING or STATUS_UNMET for one hive's service row."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	hive_service_status_into(hive_slot, out)
+	return out
+
+
+func hive_service_status_into(hive_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating hive_service_status_of(), for the reconcile and sweep paths (decision 0015)."""
+	if not is_hive_owner_slot(hive_slot):
+		return out.refuse(String(REFUSE_INVALID_HIVE_SLOT))
+	return out.succeed(_hive_status[hive_slot])
+
+
+func hive_service_day_of(hive_slot: int) -> IntMath.IntResult:
+	"""The absolute day a pending or retained hive service belongs to; refuses on a free row."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	hive_service_day_into(hive_slot, out)
+	return out
+
+
+func hive_service_day_into(hive_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating hive_service_day_of(). Refuses rather than answering 0 for a free row."""
+	if not hive_service_status_into(hive_slot, out):
+		return false
+	if out.value == STATUS_FREE:
+		return out.refuse(String(REFUSE_NO_SERVICE))
+	return out.succeed(_hive_service_day[hive_slot])
+
+
+func hive_service_job_of(hive_slot: int) -> Vector2i:
+	"""The Job this hive service is bound to, or the null reference when there is none."""
+	if not is_hive_owner_slot(hive_slot) or _hive_status[hive_slot] != STATUS_PENDING:
+		return EntityDirectory.NULL_REF
+	return Vector2i(_hive_job_slot[hive_slot], _hive_job_generation[hive_slot])
+
+
+func hive_service_owner_of(hive_slot: int) -> Vector2i:
+	"""The Hive EntityRef the service row recorded, or the null reference when free."""
+	if not is_hive_owner_slot(hive_slot) or _hive_status[hive_slot] == STATUS_FREE:
+		return EntityDirectory.NULL_REF
+	return Vector2i(_hive_owner_slot[hive_slot], _hive_owner_generation[hive_slot])
+
+
+func hive_service_row_is_clear(hive_slot: int) -> bool:
+	"""True when a FREE hive row holds no residue of the service it used to carry.
+
+	The same row-hygiene predicate the other two tables publish. The BLOCKER BYTE and the WINTER
+	FEED DEMAND are deliberately not part of it: both are the row's retained REASON-like state,
+	written by the gate sweep onto a free row, so a hive producing no service can still say why
+	and a winter hive can still say what it is owed.
+	"""
+	if not is_hive_owner_slot(hive_slot):
+		return false
+	return _hive_status[hive_slot] == STATUS_FREE \
+		and _hive_owner_slot[hive_slot] == EntityDirectory.NULL_SLOT \
+		and _hive_owner_generation[hive_slot] == EntityDirectory.NULL_GENERATION \
+		and _hive_service_day[hive_slot] == NO_DAY \
+		and _hive_job_slot[hive_slot] == EntityDirectory.NULL_SLOT \
+		and _hive_job_generation[hive_slot] == EntityDirectory.NULL_GENERATION
+
+
+func hive_feed_demand_milli_of(hive_slot: int) -> IntMath.IntResult:
+	"""R06-JOB-006's winter feed-delivery demand for this hive, in milli-units. 0 is an answer."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	hive_feed_demand_milli_into(hive_slot, out)
+	return out
+
+
+func hive_feed_demand_milli_into(hive_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating hive_feed_demand_milli_of(). No delivery job exists; see the header."""
+	if not is_hive_owner_slot(hive_slot):
+		return out.refuse(String(REFUSE_INVALID_HIVE_SLOT))
+	return out.succeed(_hive_feed_demand_milli[hive_slot])
+
+
+func hive_service_blocker_of(hive_slot: int) -> IntMath.IntResult:
+	"""The gate that last refused this hive's service: the retained explicit reason."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	hive_service_blocker_into(hive_slot, out)
+	return out
+
+
+func hive_service_blocker_into(hive_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating hive_service_blocker_of(). HIVE_BLOCKER_NONE is an answer, not a refusal."""
+	if not is_hive_owner_slot(hive_slot):
+		return out.refuse(String(REFUSE_INVALID_HIVE_SLOT))
+	return out.succeed(_hive_blocker[hive_slot])
+
+
+func hive_refusal_of_blocker(blocker: int) -> StringName:
+	"""The refusal code a stored hive blocker names, so the row and the return value agree."""
+	if blocker < 0 or blocker >= HIVE_BLOCKER_COUNT:
+		return REFUSE_INVALID_HIVE_BLOCKER
+	return HIVE_BLOCKER_REFUSALS[blocker]
+
+
+func pending_hive_service_count() -> int:
+	"""Hive service rows currently holding a live Job."""
+	return _hive_pending_count
+
+
+func unmet_hive_demand_count() -> int:
+	"""Hive service rows holding retained demand a capacity refusal could not meet."""
+	return _hive_unmet_count
+
+
+func hive_created_count() -> int:
+	"""Total 20-WU hive services published since the last clear()."""
+	return _hive_created_count
+
+
+func hive_completed_count() -> int:
+	"""Total hive services recorded as completed since the last clear()."""
+	return _hive_completed_count
+
+
+func hive_cancelled_count() -> int:
+	"""Total hive services whose Job was observed CANCELLED rather than complete."""
+	return _hive_cancelled_count
+
+
+func hive_settled_unserved_count() -> int:
+	"""Total hive services midnight retired without completion: the preceding day's outcome."""
+	return _hive_settled_unserved_count

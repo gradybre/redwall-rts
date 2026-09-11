@@ -35,6 +35,8 @@ const COMMAND_KIND_UPGRADE: int = 23
 const ACTIVITY_SLEEP: int = 2
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
+const WorldItemsScript := preload("res://scripts/core/item_definitions.gd")
+const WorldInventoryScript := preload("res://scripts/core/inventory.gd")
 const ForageScript := preload("res://scripts/core/forage.gd")
 const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
 const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
@@ -1072,13 +1074,20 @@ func test_a_reset_settlement_keeps_no_pending_command() -> void:
 
 # --- task 04.4: the intent-to-job handoff, over a generated world -------------------------------
 
+func _loaded_items() -> WorldItemsScript:
+	"""Load the shipped item catalog, so the generator's request resolves real compiled ids."""
+	var items: WorldItemsScript = WorldItemsScript.new()
+	assert_true(items.load_default(WorldInventoryScript.new()).ok, "the item catalog loads")
+	return items
+
+
 func _generated() -> WorldInitScript:
 	"""Generate REQ-SET-009's world over THIS settlement's own stores, then spawn the cohort.
 
 	The generator is reached through the accessors `world_init.gd` publishes for exactly this
 	("`ecology()` is the accessor a world generator or a test uses to reach the stores"), because
-	this node composes no generator: the scenario Request's item ids have no authored source and
-	the New Settlement control that would supply them is not built.
+	this node composes no generator: READY_07 §2 settled the Request's item ids, but §7 still owns
+	the bootstrap composition that would call the generator from the settlement itself.
 
 	GENERATION RUNS FIRST AND THE COHORT SECOND, deliberately: `world_init.publish()` clears the
 	entity directory, so residents spawned before it would be stranded by their own world.
@@ -1087,13 +1096,9 @@ func _generated() -> WorldInitScript:
 		_settlement.ecology().resource_nodes(), _settlement.ecology().forage(),
 		_settlement.ecology().fishing(), _settlement.rng(), _settlement.farming(),
 		_settlement.ecology().orchard_hive(), _settlement.jobs(), _settlement.commands())
-	var request: WorldInitScript.Request = WorldInitScript.Request.new()
-	request.tree_resource_id = 1
-	request.stone_resource_id = 2
-	request.iron_resource_id = 3
-	request.forage_item_ids = PackedInt32Array([10, 11, 12, 13, 14])
-	request.fish_species_item_ids = PackedInt32Array([20, 21, 22, 23, 24, 25, 26, 27, 28])
-	var result: WorldInitScript.GenerateResult = world.generate(request)
+	var built: WorldInitScript.RequestResult = WorldInitScript.bound_request(_loaded_items())
+	assert_true(built.ok, "the request binds by key (error: %s)" % built.error)
+	var result: WorldInitScript.GenerateResult = world.generate(built.request)
 	assert_true(result.ok, "the world generates (error: %s)" % result.error)
 	assert_true(_settlement.create_initial_settlement(), "and the cohort spawns into it")
 	return world

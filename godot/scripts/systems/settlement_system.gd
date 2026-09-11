@@ -175,7 +175,7 @@ extends Node
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE JOB QUEUE IS EMPTY IN AN *UNGENERATED, UNCOMMANDED* SETTLEMENT, AND THAT IS NOW THE WHOLE
-## OF THE CLAIM. `job_planner.gd` (ARCH-SYS-009, decisions 0039/0040/0041) IS COMPOSED HERE and
+## OF THE CLAIM. `job_planner.gd` (ARCH-SYS-009, decisions 0039/0040/0041/0051) IS COMPOSED HERE and
 ## runs every tick. What it creates, exactly:
 ##
 ##   WHAT NOW CREATES WORK IN THE RUNNING GAME:
@@ -185,13 +185,20 @@ extends Node
 ##       the whole intent-to-job path task 04.4 exists to close, and it is now one call chain.
 ##     * R06-JOB-007's daily 1-WU FARM tending service for each GROWING FarmPlot.
 ##     * R06-JOB-004's sowing first-plant, once something confirms a planting.
+##     * R06-JOB-006's daily 20-WU KEEP hive service, for each operational, non-abandoned Hive on
+##       a spring/summer/autumn service day (decision 0051). It needs NO player command: it is
+##       condition-driven, so a colonised apiary produces work on the very next planner tick. The
+##       planner is given ARCH-SYS-005's OWN hive store, asserted above, so the rows it services
+##       are the rows `ecology.gd` advances. WINTER CREATES NO TENDING-LABOR JOB; it records a
+##       feed-delivery demand as state, and no delivery job exists for it.
 ##   WHAT STILL CREATES NONE: REQ-SET-073 ripe harvest and REQ-SET-085 withered clearing (both
 ##     keep their own route and are NOT rerouted through the planner); fishing cycles
 ##     (R06-JOB-003, no Expedition store); rotation advance (R06-JOB-005, `field_policy.gd`
-##     requests a crop and creates no Job, and nothing delivers that request); hive service
-##     (R06-JOB-006 -- the Hive STORE exists and ARCH-SYS-005 advances it, but no producer creates
-##     its 20-WU service job); and every production order, recipe, construction, care request and
-##     hauling policy, none of which has a store.
+##     requests a crop and creates no Job, nothing delivers that request, and NOTHING COMPLETES
+##     THE HARVEST OR CLEARING JOBS THAT WOULD CLOSE A CYCLE -- decision 0051 §5); the hive's
+##     winter FEED DELIVERY (no hive-owned destination container and no hauling producer; the
+##     container store itself exists); and every production order, recipe, construction, care
+##     request and hauling policy, none of which has a store.
 ##
 ## SO A FRESH SETTLEMENT'S QUEUE IS STILL 0, FOR A DIFFERENT REASON THAN BEFORE: not because
 ## nothing is wired, but because §5.1's world generation has not run and no player command has
@@ -474,7 +481,8 @@ func _init() -> void:
 	_ecology = EcologyScript.new(_directory, _jobs)
 	_rng = RngScript.new()
 	_crop_weather = CropWeatherScript.new(_ecology, _rng)
-	_planner = JobPlannerScript.new(_crop_weather.farming(), _jobs, _ecology.forage())
+	_planner = JobPlannerScript.new(_crop_weather.farming(), _jobs, _ecology.forage(),
+		_ecology.orchard_hive())
 	_presentation = PresentationExtractScript.new(_residents, _jobs, _dispatch,
 		_ecology.forage(), _planner, _crop_weather.weather())
 	_bind_ecology_to_commands()
@@ -530,6 +538,8 @@ func _assert_shared_contracts() -> void:
 		"ARCH-SYS-009 must plan over ARCH-SYS-005's own HarvestZone store, not a second one")
 	assert(_planner.jobs() == _jobs,
 		"ARCH-SYS-009 must publish into the Job store ARCH-SYS-010 selects from")
+	assert(_planner.hives() == _ecology.orchard_hive(),
+		"R06-JOB-006's producer must service the hives ARCH-SYS-005 advances, not a private set")
 	assert(_planner.farming() == _crop_weather.farming(),
 		"ARCH-SYS-009 must service the FarmPlot rows ARCH-SYS-006 integrates")
 	assert(TICK_STAGE_KEYS.size() == TICK_STAGE_COUNT,

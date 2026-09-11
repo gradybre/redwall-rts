@@ -43,10 +43,14 @@ extends RefCounted
 ## stumps remain and no building occupies the tile".
 ##
 ## GAPS -- named, not invented (AGENTS.md: "do not invent a constant"):
-##   * `resource_id`'s DOMAIN IS UNSTATED. GDD §4.2 types it `int32` and never says whether it
-##     is a compiled `ItemDefinition` id (§5.9's extraction recipes yield wood/stone/iron items,
-##     which suggests it) or a separate resource catalog. This store therefore validates the
-##     range only and refuses a negative id; no compiled id is ever negative.
+##   * `resource_id`'s DOMAIN IS SETTLED, AND IT IS NOT THIS STORE'S TO CHECK. GDD §4.2 types it
+##     `int32` and does not say which catalog; READY_07 §2 (2026-09-11) rules that it identifies
+##     the EXTRACTED OUTPUT'S compiled `ItemDefinition` id -- the wood, stone or iron item §5.9's
+##     extraction recipes yield. `scripts/core/resource_catalog_binding.gd` resolves those three
+##     keys and is the only producer of the ids world generation passes in; decision 0052 records
+##     the interpretation. This store still validates the RANGE only and refuses a negative id,
+##     because an int32 column cannot prove a catalog: proving it needs the loaded registry and
+##     the verified `catalog_ids.json`, which the binding boundary holds and this store does not.
 ##   * `regrow_days == 0` IS READ AS "NEVER REGROWS". The specification gives a regrow period for
 ##     trees (§5.9, 48 days) and none for stone or iron, while stating surface stone deposits
 ##     "can exhaust". The field must express a non-renewable node somehow, and treating a zero
@@ -84,8 +88,8 @@ extends RefCounted
 ##     regrow period or a footprint, and "renewable" fixes no number. Inventing one is exactly
 ##     the constant AGENTS.md forbids, so it stays unimplemented and its tile is left empty.
 ##   * WHICH OCCUPANT MAY BE REPLACED IS A CALLER'S DECLARATION, NOT A GUESS. INTERPRETATION:
-##     §5.1 says "Ore footprints replace tree nodes", but `resource_id`'s domain is unstated
-##     (above), so this store cannot tell a tree row from any other row. `place_deposit()`
+##     §5.1 says "Ore footprints replace tree nodes", but `resource_id` is not this store's to
+##     resolve (above), so this store cannot tell a tree row from any other row. `place_deposit()`
 ##     therefore takes the replaceable id as an ARGUMENT: an occupied footprint tile whose node
 ##     carries that id is destroyed and rebuilt as ore, and one carrying any other id refuses the
 ##     whole deposit. Reading it as "replace whatever stands there" would let a deposit silently
@@ -103,8 +107,9 @@ extends RefCounted
 ##   * `regrow_days` IS A PARAMETER, NOT A COMPILED-IN 0. §5.9 gives trees 48 days and states no
 ##     period for stone or iron, while §5.1's separate "renewable bedrock access" shows an ore
 ##     node CAN be renewable. The caller states the period; this store does not decide it.
-##   * `resource_id` IS ALSO THE CALLER'S. Its domain is unstated (above), so no ore item id is
-##     compiled in; the deposit validates the id's range exactly as `create_at_tile()` does.
+##   * `resource_id` IS STILL THE CALLER'S TO SUPPLY. Its domain is settled (above) but resolved
+##     at the binding boundary, so no ore item id is compiled in here; the deposit validates the
+##     id's range exactly as `create_at_tile()` does.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")

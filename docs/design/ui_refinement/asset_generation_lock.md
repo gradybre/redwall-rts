@@ -10,6 +10,10 @@ The structured [asset lock](asset_generation_lock.json) supplies the same sixtee
 rows, twelve pigment swatches and numeric rendering conventions for prompts.
 These are newly authored art parameters, not inherited GDD constants or user quotes.
 
+**Scope:** this lock governs UI illustrations. Its pigments, contours and lighting
+are not a global world-rendering specification. See [DEC-037 alignment](../../art-reference/visual_direction_alignment.md)
+for the whole-game reference synthesis and the approved world-finish example (DEC-038).
+
 ## 1. Reference permission: direct use is allowed
 
 Brendan explicitly states that the images he supplied may guide direct builds in

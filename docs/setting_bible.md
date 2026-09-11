@@ -842,6 +842,13 @@ Required coverage includes all three methods. Delivering one method first during
 
 ### 14.7 Adopted art direction — storybook expression and grounded construction
 
+**Concrete visual target approved by Brendan, DEC-038 (2026-09-11):**
+[mouse keeper / mole worker courtyard](art-reference/visuals/grounded_expressive_rts_example_v1.png).
+Use this image with the original references for character, material and environment
+appearance; [visual alignment](art-reference/visual_direction_alignment.md) records
+the scope of approval and production follow-through.
+
+
 Concrete reference follow-through: [SET-ART-MODEL-001](art-reference/model_reference_guide.md) assigns the reviewed images to species bodies, garments, props and traversal poses. Open those originals during modeling; retain observed features and label original construction of hidden surfaces. This supplements the responsibilities below without changing the art direction or numeric asset limits.
 
 `LORE-U17`, `USER_CONFIRMED`, DEC-018 / SRC-U09: combine options 1 and 3. The guiding direction is **expressive woodland inhabitants in a materially believable world**. The domain allocation below is `[NEW art direction under the adopted blend]`; no percentage such as “70% realism” is specified because it would not tell an asset author what to build.

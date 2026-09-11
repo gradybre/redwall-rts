@@ -112,3 +112,12 @@ for image-to-image and reference-guided builds (DEC-036 in `docs/setting_decisio
 Do not reduce supplied references to observe-and-describe-only because creator
 metadata is unknown. Record provenance; source mechanics and paid generation
 authorization remain separate. UI art follows `docs/design/ui_refinement/asset_generation_lock.md`.
+
+For all visual work, also read `docs/art-reference/visual_direction_alignment.md`
+(DEC-037): combine literary context, complementary supplied images and modern RTS
+visual principles. UI illustration locks do not define the whole 3D world style.
+
+Brendan approved the grounded, expressive world-art example under DEC-038.
+Open `docs/art-reference/visuals/grounded_expressive_rts_example_v1.png` with
+relevant supplied references when authoring visual assets; the broad world look
+is settled, while production geometry and performance still require verification.

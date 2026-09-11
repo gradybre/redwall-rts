@@ -896,6 +896,48 @@ individual assets. Paid generation remains a separate itemized approval under
 by this reference clarification. [ART-LOCK-001](design/ui_refinement/asset_generation_lock.md)
 records Astra-authored production details; final aesthetic approval remains pending.
 
+### DEC-037 — Whole-game reference synthesis and modern RTS presentation
+
+2026-09-11 · State: `USER_CONFIRMED` for goals and reference roles.
+
+Brendan clarifies that Redwall material provides theme, feel, style and atmosphere;
+supplied pictures provide complementary concept and construction references.
+IMG-25 supplies animal outlines to combine with the other individual character
+images, not an exclusive model template. All of this should become high-quality,
+modern RTS visuals informed by Company of Heroes 1–3, Age of Empires, Northgard,
+Total War and other suitable comparisons. Apply the approach to every visual
+need, including environments, items and units. Older games are useful references
+without their dated graphics being a target.
+
+This extends the application of DEC-018/019/036; it does not settle a new renderer,
+world shader, species-size ratio or asset budget. UI illustration parameters do
+not automatically govern 3D world rendering. Refinement questions about finish,
+camera emphasis and world/UI treatment were initially unanswered; DEC-038 below
+subsequently approves the concrete world-finish example. See
+[whole-game visual alignment](art-reference/visual_direction_alignment.md) for
+executor instructions, reference synthesis and the proposed next review artifact.
+
+### DEC-038 — Approved grounded, expressive 3D visual target
+
+2026-09-11 · State: `USER_CONFIRMED` for visual direction.
+
+Brendan answered “Yes - this is what I'm looking for” after viewing
+[the mouse keeper / mole worker courtyard example](art-reference/visuals/grounded_expressive_rts_example_v1.png).
+That image is the approved concrete visual reference for the DEC-018/037 blend:
+expressive species-specific anatomy, composed woodland color, convincing cloth,
+leather, iron, timber and stone, and an inhabited world that reads from an RTS
+camera. Use its close view for character/material intent and its elevated view
+for scene composition and the intended relationship between units and environment.
+
+The world-finish question recorded in DEC-037 is now answered by this example.
+Future briefs must open this image alongside relevant supplied source images and
+literary context. Preserve its visual character when simplifying detail for runtime.
+The image is a generated concept, not a production mesh, measured Godot render,
+new species-size specification or approval of incidental gameplay content.
+No new paid-generation budget is authorized. Existing UI illustration treatment
+remains separately scoped; this image contains no UI and does not approve unseen
+UI assets. See [visual alignment](art-reference/visual_direction_alignment.md).
+
 ## 9. Progress ledger
 
 | Date | Work completed | Still open |

@@ -159,6 +159,8 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 const JobsScript := preload("res://scripts/core/jobs.gd")
 const CommandsScript := preload("res://scripts/core/commands.gd")
+const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
+const ResourceCatalogBinding := preload("res://scripts/core/resource_catalog_binding.gd")
 
 # --- the exterior grid (GDD §5.1: "Exterior tile index is `z*128+x`") ---------------------------
 
@@ -359,6 +361,9 @@ const REFUSE_SEED_NOT_INT32: StringName = &"WORLD_SEED_NOT_INT32"
 const REFUSE_SEED_ADVANCE_OVERFLOW: StringName = &"WORLD_SEED_ADVANCE_OVERFLOW"
 const REFUSE_ITEM_SET_SIZE: StringName = &"WORLD_ITEM_SET_SIZE"
 const REFUSE_INVALID_ITEM_ID: StringName = &"WORLD_INVALID_ITEM_ID"
+## READY_07 §2: a request whose item ids were never resolved against the compiled catalog. The
+## binding boundary's own codes (ITEM_BINDING_*) are propagated unchanged when one IS supplied.
+const REFUSE_UNBOUND_ITEM_CATALOG: StringName = &"WORLD_UNBOUND_ITEM_CATALOG"
 const REFUSE_MISSING_STORE: StringName = &"WORLD_MISSING_STORE"
 const REFUSE_SHARED_DIRECTORY: StringName = &"WORLD_STORE_DIRECTORY_MISMATCH"
 const REFUSE_FOREIGN_LIVE_ROWS: StringName = &"WORLD_FOREIGN_LIVE_ROWS"
@@ -400,17 +405,44 @@ class Request:
 	"""Task 04.3's "explicit versioned initialization input": everything generation cannot derive.
 
 	`scenario_version` is checked against SCENARIO_ESTUARY_V1 before anything else, so no other
-	scenario can inherit the estuary's values by fallback. The item ids are the caller's because
-	`ResourceNode.resource_id`'s domain is unstated in §4.2 -- `resource_nodes.gd` records that gap
-	-- and because compiled ItemDefinition ids come from the catalog at load time, not from here.
+	scenario can inherit the estuary's values by fallback.
+
+	THE SEVENTEEN ITEM IDS ARE NO LONGER "THE CALLER'S". READY_07 §2 ruled that
+	`ResourceNode.resource_id`, `ForagePatch.item_id` and each fish stock's item-id field all name
+	compiled `ItemDefinition` ids, so the five fields below are three scalars plus arrays of five
+	and nine -- seventeen bindings, resolved by key in `resource_catalog_binding.gd` and nowhere
+	else. `binding` is the boundary that resolved them; `_refuse_request()` re-proves every
+	position against it, so an id that merely LOOKS storable, a sorted array, two exchanged arrays
+	or a foreign catalog's id refuses before a store is touched. `make_request()` and
+	`bound_request()` below build a correct one; nothing in this module invents an id.
 	"""
 	var scenario_version: int = SCENARIO_ESTUARY_V1
 	var world_seed: int = TUTORIAL_WORLD_SEED
-	var tree_resource_id: int = -1
-	var stone_resource_id: int = -1
-	var iron_resource_id: int = -1
+	var binding: ResourceCatalogBinding = null
+	var tree_resource_id: int = ResourceCatalogBinding.ABSENT_ITEM_ID
+	var stone_resource_id: int = ResourceCatalogBinding.ABSENT_ITEM_ID
+	var iron_resource_id: int = ResourceCatalogBinding.ABSENT_ITEM_ID
 	var forage_item_ids: PackedInt32Array = PackedInt32Array()
 	var fish_species_item_ids: PackedInt32Array = PackedInt32Array()
+
+
+class RequestResult:
+	"""Outcome of the checked request construction. `.ok` MUST be inspected first.
+
+	A refusal carries the binding boundary's own StringName code and a null `request`: there is no
+	half-bound `Request`, no fallback id and no substituted free resource to mistake for one.
+	"""
+	var ok: bool
+	var error: StringName
+	var detail: String
+	var request: Request
+
+	func _init(p_ok: bool, p_error: StringName, p_detail: String, p_request: Request) -> void:
+		"""Store the outcome fields for one request-construction attempt."""
+		ok = p_ok
+		error = p_error
+		detail = p_detail
+		request = p_request
 
 
 class Measurements:
@@ -483,6 +515,9 @@ var _staged_centres: PackedInt32Array = PackedInt32Array()
 var _staged_centre_count: int = 0
 var _staged_grove: PackedInt32Array = PackedInt32Array()
 var _staged_grove_count: int = 0
+## The nine fish item ids re-addressed from §5.4 SPECIES ROW order into `fishing.gd`'s habitat-
+## major argument order. Allocated once in `_init()`; see `_habitat_major_fish_item_ids()`.
+var _staged_fish_item_ids: PackedInt32Array = PackedInt32Array()
 
 # --- FaunaStockReserved: canonical empty allocation, no mutator (REQ-SET-059) -------------------
 
@@ -538,6 +573,7 @@ func _allocate_columns() -> void:
 	_staged_danger.resize(BASIN_COUNT)
 	_staged_centres.resize(TREE_CENTER_CAP)
 	_staged_grove.resize(GROVE_NODE_COUNT)
+	_staged_fish_item_ids.resize(FISH_SPECIES_COUNT)
 	_allocate_fauna_columns()
 	_reset_published()
 
@@ -1043,6 +1079,52 @@ func map_payload_bytes() -> int:
 	return tile_columns + basin_columns + plan_columns
 
 
+# --- checked request construction (READY_07 §2) -------------------------------------------------
+
+static func make_request(binding: ResourceCatalogBinding,
+		world_seed: int = TUTORIAL_WORLD_SEED) -> RequestResult:
+	"""Build a fully bound estuary request from an opened binding boundary, or refuse.
+
+	This is the construction half of READY_07 §2's boundary: the seventeen ids are resolved BY KEY
+	and copied straight into the request, so the forage and fish arrays are in `PATCH_KEYS` and
+	`SPECIES_KEYS` row order by construction and no caller ever chooses an id.
+	"""
+	if binding == null:
+		return RequestResult.new(false, REFUSE_UNBOUND_ITEM_CATALOG,
+			"no catalog binding boundary was supplied", null)
+	if not IntMath.fits_int32(world_seed):
+		return RequestResult.new(false, REFUSE_SEED_NOT_INT32,
+			"seed %d is not an int32" % world_seed, null)
+	var bound: ResourceCatalogBinding.BindResult = binding.resolve()
+	if not bound.ok:
+		return RequestResult.new(false, bound.error, bound.detail, null)
+	var request: Request = Request.new()
+	request.scenario_version = SCENARIO_ESTUARY_V1
+	request.world_seed = world_seed
+	request.binding = binding
+	request.tree_resource_id = bound.binding.tree_resource_id
+	request.stone_resource_id = bound.binding.stone_resource_id
+	request.iron_resource_id = bound.binding.iron_resource_id
+	request.forage_item_ids = bound.binding.forage_item_ids.duplicate()
+	request.fish_species_item_ids = bound.binding.fish_species_item_ids.duplicate()
+	return RequestResult.new(true, REFUSE_NONE, "", request)
+
+
+static func bound_request(items: ItemDefinitionsScript,
+		world_seed: int = TUTORIAL_WORLD_SEED,
+		artifact_path: String = ResourceCatalogBinding.DEFAULT_ARTIFACT_PATH) -> RequestResult:
+	"""Open the binding boundary against a loaded item registry and build the request, or refuse.
+
+	The entry point for a caller that knows only the catalog: it names no item key and no numeric
+	id. Verifying the committed artifact is part of opening, so a stale catalog refuses here.
+	"""
+	var opened: ResourceCatalogBinding.OpenResult = ResourceCatalogBinding.open(
+		items, artifact_path)
+	if not opened.ok:
+		return RequestResult.new(false, opened.error, opened.detail, null)
+	return make_request(opened.boundary as ResourceCatalogBinding, world_seed)
+
+
 # --- generation: the seed-attempt loop (GDD §5.1) -----------------------------------------------
 
 func generate(request: Request) -> GenerateResult:
@@ -1121,7 +1203,12 @@ func _prepare(request: Request, world_seed: int) -> StringName:
 
 
 func _refuse_request(request: Request, world_seed: int) -> StringName:
-	"""The code blocking this scenario request, or REFUSE_NONE when every field is storable."""
+	"""The code blocking this scenario request, or REFUSE_NONE when all seventeen ids are bound.
+
+	The shape checks come first so a wrong-length or negative-id request reports what it actually
+	is, then `_refuse_binding()` proves every position against the compiled catalog. Both run
+	before any store is read for capacity, let alone written.
+	"""
 	if request.scenario_version != SCENARIO_ESTUARY_V1:
 		return REFUSE_UNKNOWN_SCENARIO
 	if not IntMath.fits_int32(world_seed):
@@ -1140,12 +1227,35 @@ func _refuse_request(request: Request, world_seed: int) -> StringName:
 	for item_id: int in request.fish_species_item_ids:
 		if not _item_id_is_storable(item_id):
 			return REFUSE_INVALID_ITEM_ID
-	return REFUSE_NONE
+	return _refuse_binding(request)
 
 
 func _item_id_is_storable(item_id: int) -> bool:
-	"""True for a non-negative int32 catalog id. No compiled id is ever negative."""
+	"""True for a non-negative int32 id: the shape a column can hold, NOT proof of a right id.
+
+	READY_07 §2 named this exact weakness -- "accepts an arbitrary valid-looking integer, so it
+	cannot prove correct catalogs". It is kept as the cheap shape precondition that gives a
+	malformed id its own code; `_refuse_binding()` is what proves the id is the right one.
+	"""
 	return item_id >= 0 and IntMath.fits_int32(item_id)
+
+
+func _refuse_binding(request: Request) -> StringName:
+	"""Prove all seventeen ids are the compiled ids their required keys carry, in consumer order.
+
+	READY_07 §2's checked binding boundary. A request with no boundary cannot be proved at all and
+	refuses rather than being trusted; otherwise the boundary's own StringName code is propagated
+	unchanged, so the caller sees which of missing key, retired key, wrong key, exchanged arrays,
+	wrong length or stale artifact stopped it.
+	"""
+	if request.binding == null:
+		return REFUSE_UNBOUND_ITEM_CATALOG
+	var proved: ResourceCatalogBinding.BindResult = request.binding.verify_ids(
+		request.tree_resource_id, request.stone_resource_id, request.iron_resource_id,
+		request.forage_item_ids, request.fish_species_item_ids)
+	if not proved.ok:
+		return proved.error
+	return REFUSE_NONE
 
 
 func _refuse_collaborators() -> StringName:
@@ -1578,9 +1688,31 @@ func _publish_fish_basins(request: Request) -> void:
 		assert(created.ok, "prepare proved a HarvestZone row and a directory slot are free")
 		_record_basin_ref(basin_index, created.ref)
 	var estuary: FishingScript.OpResult = _fishing.generate_initial_estuary(
-		request.fish_species_item_ids)
+		_habitat_major_fish_item_ids(request))
 	assert(estuary.ok, "prepare proved three habitat rows and nine species ids")
 	_bind_habitats()
+
+
+func _habitat_major_fish_item_ids(request: Request) -> PackedInt32Array:
+	"""Re-address the request's nine item ids from §5.4 SPECIES ROW order into habitat-major order.
+
+	TWO DIFFERENT INDEXES, AND THEY DISAGREE. READY_07 §2 fixes `fish_species_item_ids` in
+	`Fishing.SPECIES_KEYS` order -- trout, dace, salmon, perch, carp, whitefish, herring, mackerel,
+	mussel -- which is §5.4's RIVER, LAKE, COAST table order. `generate_initial_estuary()` takes
+	its argument addressed `habitat_type * 3 + species_index` under the COMPILED HabitatType
+	ordinals COAST=0, LAKE=1, RIVER=2, and writes `species_ids[species_index]` into the stock whose
+	§5.4 row is `HABITAT_SPECIES_ROWS[habitat_type * 3 + species_index]`.
+
+	Passing the request array straight through therefore gave the coast the river's three item ids
+	and the river the coast's -- silently, because the lake's middle triple coincides under both
+	orders and every fixture used opaque integers. The permutation below is read from `fishing.gd`'s
+	OWN explicit binding table, so neither order is retyped here and neither module's contract
+	moves. Decision 0052 records the defect and why the adapter belongs on this side.
+	"""
+	for position: int in FISH_SPECIES_COUNT:
+		_staged_fish_item_ids[position] = request.fish_species_item_ids[
+			FishingScript.HABITAT_SPECIES_ROWS[position]]
+	return _staged_fish_item_ids
 
 
 func _bind_habitats() -> void:

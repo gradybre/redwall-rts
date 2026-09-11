@@ -124,12 +124,20 @@ extends RefCounted
 ##     ordinals, and settles nothing either way. `type` is persisted state: the old ordinals are
 ##     NOT interchangeable with these, so any retained snapshot is translated through
 ##     Catalog.convert_legacy_id() (HabitatType map [2,1,0]) or refused.
-##   * `species_id`'s DOMAIN IS UNSTATED. §4.2 types it int32 and never says which catalog. The
-##     nine fish are not in item_definitions.gd, and §5.5 names them only as "edible aquatic
-##     species ... explicitly sapient=false in the food-stock catalog", a catalog that does not
-##     exist. This store validates the range only and refuses a negative id, the same treatment
-##     `resource_id` has in resource_nodes.gd. SPECIES_KEYS holds §5.4's nine keys so a caller
-##     can compile them once the owning catalog is settled.
+##   * `species_id`'s DOMAIN IS SETTLED: THE COMPILED `ItemDefinition` ID. §4.2 types it int32 and
+##     never says which catalog; READY_07 §2 (2026-09-11) rules that each fish stock's item-id
+##     field uses the same domain as `ResourceNode.resource_id`. All nine keys ARE in
+##     item_definitions.gd, and `scripts/core/resource_catalog_binding.gd` resolves SPECIES_KEYS
+##     against it; decision 0052 records the interpretation. This store still validates the range
+##     only and refuses a negative id, the same treatment `resource_id` has in resource_nodes.gd:
+##     an int32 column cannot prove a catalog.
+##     THE ID AND THE ROW REMAIN DIFFERENT INDEXES, AND SO DOES THE ARGUMENT ORDER. A compiled
+##     item id must never subscript SPECIES_CAPACITY_U, SPECIES_HABITAT_TYPE or any other nine-row
+##     table here. Note especially that `create_habitat()` and `generate_initial_estuary()` take
+##     their `species_ids` addressed `habitat_type * 3 + species_index` under the COMPILED
+##     HabitatType ordinals, which is NOT SPECIES_KEYS order: a caller holding a SPECIES_KEYS-
+##     ordered array re-addresses it through HABITAT_SPECIES_ROWS first. `world_init.gd` does
+##     exactly that, and decision 0052 records the defect found when it did not.
 ##   * `pollution` HAS NO STATED EFFECT. It appears in §4.2's field list and nowhere else in the
 ##     document set -- no formula, no requirement, no range. It is stored and returned; no
 ##     reader or harvest path consults it. Inventing an effect would be inventing a contract.
@@ -348,10 +356,12 @@ const SPECIES_HABITAT_TYPE: Array[int] = [
 	HABITAT_COAST, HABITAT_COAST, HABITAT_COAST,
 ]
 
-## §5.4's "Species" column. §5.5 confirms the same nine: "Edible aquatic species are exactly
-## carp, dace, herring, mackerel, mussel, perch, salmon, trout and whitefish". Ids are compiled
-## elsewhere (see the header on the unstated domain); these keys exist so a caller can resolve
-## them once that catalog is settled.
+## §5.4's "Species" column, in §5.4's own RIVER/LAKE/COAST row order. §5.5 confirms the nine:
+## "Edible aquatic species are exactly carp, dace, herring, mackerel, mussel, perch, salmon, trout
+## and whitefish". Ids are compiled elsewhere: `resource_catalog_binding.gd` resolves THIS array
+## against the ItemDefinition catalog and must preserve its order, because every per-species table
+## below is subscripted by these row numbers. This is NOT the habitat-major order
+## `create_habitat()` takes -- see the header.
 const SPECIES_KEYS: Array[StringName] = [
 	&"trout", &"dace", &"salmon",
 	&"perch", &"carp", &"whitefish",

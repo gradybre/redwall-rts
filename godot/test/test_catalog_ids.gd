@@ -19,20 +19,25 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 
 ## Moved 2026-09-10 by decision 0042, which added ARCH-CMD-003's CommandKind domain: 2588 bytes /
 ## 21 domains / 182 rows / 73d34d26af1f690261957ef27c0e5a14a5462d5d57b2f55a84b69e5fa900a3bd before
-## it. That is an INTENTIONAL CATALOG/SCHEMA CHANGE, not a parity result -- every save written
+## it. Moved again 2026-09-11 by decision 0056, which added the four starter-colony domains
+## BuildingDefinition (30 rows), FurnitureDefinition (9), RoomType (8) and BuildingState (6):
+## 3064 bytes / 22 domains / 206 rows /
+## 00e3ffd5c98b5f5da050cc13be91895b85744eb3b3f3cfb5e50dde85a598cbf1 before it. Both are an
+## INTENTIONAL CATALOG/SCHEMA CHANGE, not a parity result -- every save written
 ## against the old digest refuses until an explicit migration exists, which is the alarm working.
-const COMMITTED_BYTE_LENGTH: int = 3064
+const COMMITTED_BYTE_LENGTH: int = 3869
 const COMMITTED_SHA256: String = \
-	"00e3ffd5c98b5f5da050cc13be91895b85744eb3b3f3cfb5e50dde85a598cbf1"
-const COMMITTED_DOMAIN_COUNT: int = 22
-const COMMITTED_ROW_COUNT: int = 206
+	"ead6a8ac6c67bb4b0d9b320a2414cc477f252b5f9cdf8bb3e1e0b8cc593eecf4"
+const COMMITTED_DOMAIN_COUNT: int = 26
+const COMMITTED_ROW_COUNT: int = 259
 
 ## Every domain the artifact carries, in the ascending ASCII order it is written in.
 const COMMITTED_DOMAINS: Array[String] = [
-	"Activity", "CommandKind", "CropDefinition", "CropFamily", "CropState", "EventDefinition",
-	"ForageQuotaMode", "HabitatType", "ItemCategory", "ItemDefinition", "ItemEffect", "JobKind",
-	"JobState", "OrderMode", "Quality", "ScheduleTemplate", "Season", "Severity", "Soil",
-	"SpeciesDefinition", "Speed", "ZoneType",
+	"Activity", "BuildingDefinition", "BuildingState", "CommandKind", "CropDefinition",
+	"CropFamily", "CropState", "EventDefinition", "ForageQuotaMode", "FurnitureDefinition",
+	"HabitatType", "ItemCategory", "ItemDefinition", "ItemEffect", "JobKind",
+	"JobState", "OrderMode", "Quality", "RoomType", "ScheduleTemplate", "Season", "Severity",
+	"Soil", "SpeciesDefinition", "Speed", "ZoneType",
 ]
 
 ## The exact canonical encoding of a two-domain toy map, written out by hand: sorted at both
@@ -186,7 +191,7 @@ func test_generated_artifact_matches_the_committed_file_byte_for_byte() -> void:
 
 
 func test_committed_length_digest_domains_and_row_count_are_pinned() -> void:
-	"""The artifact is 3064 bytes, 22 domains, 206 entries, and hashes to the recorded SHA-256."""
+	"""The artifact is 3869 bytes, 26 domains, 259 entries, and hashes to the recorded SHA-256."""
 	var artifact: CatalogIds.Artifact = _artifact()
 	assert_equal(artifact.bytes.size(), COMMITTED_BYTE_LENGTH, "artifact byte length")
 	assert_equal(artifact.digest_hex(), COMMITTED_SHA256, "artifact SHA-256")
@@ -202,7 +207,7 @@ func test_committed_length_digest_domains_and_row_count_are_pinned() -> void:
 
 
 func test_registered_domains_is_exactly_the_committed_domain_list() -> void:
-	"""The build registry and the committed artifact name the same 22 domains, and no others."""
+	"""The build registry and the committed artifact name the same 26 domains, and no others."""
 	var registered: Array[String] = CatalogIds.registered_domains()
 	assert_equal(registered.size(), COMMITTED_DOMAIN_COUNT, "registered domain count")
 	var sorted_names: Array[String] = registered.duplicate()
@@ -325,8 +330,11 @@ func test_reserved_entries_survive_unchanged() -> void:
 
 
 func test_every_protected_enum_is_carried_verbatim() -> void:
-	"""All eleven GDD §4.3 enums appear with catalog.gd's explicit values, gaps included."""
-	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 11, "eleven protected enums")
+	"""All thirteen GDD §4.3 enums appear with catalog.gd's explicit values, gaps included.
+
+	Eleven until decision 0056 added RoomType and BuildingState, which §4.3 numbers individually
+	and which are therefore protected rather than compiled from their own keys."""
+	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 13, "thirteen protected enums")
 	for name: String in CatalogScript.PROTECTED_ENUM_DOMAINS:
 		_assert_map_equals(_domain(name), CatalogScript.fixed_enum(name), name)
 
@@ -810,7 +818,7 @@ func test_row_count_of_counts_every_entry_across_every_domain() -> void:
 	assert_equal(CatalogIds.row_count_of({"A": {"a": 0, "b": 1}, "B": {"c": 0}}), 3,
 		"three entries across two domains")
 	assert_equal(CatalogIds.row_count_of(_artifact().domains), COMMITTED_ROW_COUNT,
-		"the artifact's 206 entries")
+		"the artifact's 259 entries")
 
 
 func test_verify_file_refuses_a_missing_artifact_without_writing_one() -> void:
@@ -826,3 +834,121 @@ func test_verify_file_refuses_a_missing_artifact_without_writing_one() -> void:
 func _validate(domains: Dictionary) -> CatalogIds.Refusal:
 	"""Run the shared domain validator over a hand-built map."""
 	return CatalogIds.validate_domains(domains)
+
+
+# --- decision 0056's four starter-colony domains -------------------------------------------------
+
+## The digest this change moved AWAY from, kept so "it changed" is asserted rather than assumed.
+const PREVIOUS_SHA256: String = \
+	"00e3ffd5c98b5f5da050cc13be91895b85744eb3b3f3cfb5e50dde85a598cbf1"
+const PREVIOUS_BYTE_LENGTH: int = 3064
+const PREVIOUS_DOMAIN_COUNT: int = 22
+const PREVIOUS_ROW_COUNT: int = 206
+
+## Row counts of the four domains decision 0056 added: the owning catalog's 30 buildings and 9
+## furniture rows, and GDD §4.3's 8 room types and 6 building states.
+const STARTER_DOMAIN_ROWS: Dictionary = {
+	"BuildingDefinition": 30, "FurnitureDefinition": 9, "RoomType": 8, "BuildingState": 6,
+}
+
+
+func test_the_artifact_carries_all_four_starter_domains_complete() -> void:
+	"""Partial publication is the failure READY_07 §7.2 step 1 names; the row counts are pinned.
+
+	A BuildingDefinition domain of seven runtime-only ordinals would pass every other test in
+	this file -- the bytes would be canonical and the digest self-consistent -- and renumber
+	every building the day an eighth landed. This is the assertion that would not pass."""
+	var domains: Dictionary = _artifact().domains
+	for name: String in STARTER_DOMAIN_ROWS:
+		assert_true(domains.has(name), "the artifact must carry '%s'" % name)
+		if not domains.has(name):
+			continue
+		assert_equal((domains[name] as Dictionary).size(), int(STARTER_DOMAIN_ROWS[name]),
+			"'%s' row count" % name)
+	assert_equal(PREVIOUS_ROW_COUNT + 30 + 9 + 8 + 6, COMMITTED_ROW_COUNT,
+		"the 53 new rows are exactly the difference from the previous artifact")
+	assert_equal(PREVIOUS_DOMAIN_COUNT + 4, COMMITTED_DOMAIN_COUNT, "four new domains, no more")
+
+
+func test_the_starter_domain_ids_in_the_artifact_are_the_owning_catalog_order() -> void:
+	"""The committed bytes, not the module: a first, a last and a middle key of each domain."""
+	var buildings: Dictionary = _domain("BuildingDefinition")
+	assert_equal(int(buildings["apiary"]), 0, "apiary sorts first of thirty")
+	assert_equal(int(buildings["hall"]), 12, "hall, the starter refuge, is 12")
+	assert_equal(int(buildings["workshop"]), 29, "workshop sorts last of thirty")
+	var furniture: Dictionary = _domain("FurnitureDefinition")
+	assert_equal(int(furniture["bed"]), 0, "bed sorts first of nine")
+	assert_equal(int(furniture["kitchen_bench"]), 5, "kitchen_bench is 5")
+	assert_equal(int(furniture["shelf"]), 8, "shelf sorts last of nine")
+	assert_equal(int(_domain("RoomType")["DORMITORY"]), 0, "§4.3 numbers DORMITORY 0")
+	assert_equal(int(_domain("RoomType")["CORRIDOR"]), 7, "§4.3 numbers CORRIDOR 7")
+	assert_equal(int(_domain("BuildingState")["BLUEPRINT"]), 0, "§4.3 numbers BLUEPRINT 0")
+	assert_equal(int(_domain("BuildingState")["DEMOLISHING"]), 5, "§4.3 numbers DEMOLISHING 5")
+
+
+func test_the_digest_moved_exactly_once_for_this_change() -> void:
+	"""The artifact exists so the hash moves when the ID mapping does -- and only then.
+
+	The pre-0056 digest is pinned above. The current one must differ from it (the four domains
+	really were added) and must equal the single committed value that the file on disk, a fresh
+	build and the save-header digest all agree on (it moved once, not once per reader)."""
+	var artifact: CatalogIds.Artifact = _artifact()
+	assert_false(artifact.digest_hex() == PREVIOUS_SHA256,
+		"adding four ID-carrying domains must move the digest")
+	assert_false(artifact.bytes.size() == PREVIOUS_BYTE_LENGTH, "and the byte length with it")
+	assert_equal(artifact.digest_hex(), COMMITTED_SHA256, "and it moved to exactly this value")
+	var rebuilt: CatalogIds.BuildResult = CatalogIds.build()
+	assert_true(rebuilt.ok, "a second build must succeed (%s)" % rebuilt.error)
+	if rebuilt.ok:
+		assert_equal(rebuilt.artifact.digest_hex(), COMMITTED_SHA256, "the rebuild agrees")
+	var on_disk: CatalogIds.VerifyResult = CatalogIds.verify_file()
+	assert_true(on_disk.ok, "the committed file agrees (%s: %s)" % [on_disk.error, on_disk.detail])
+	assert_false(on_disk.proves_rules_unchanged,
+		"a catalog match still proves nothing about the numerical ruleset")
+
+
+func test_building_it_twice_produces_byte_identical_output() -> void:
+	"""The generator is a pure function of the registries: a second run rewrites nothing.
+
+	`tools/generate_catalog_ids.sh` relies on this to report `action=unchanged`. Two independent
+	builds are compared byte for byte, then re-encoded from the second build's own domain map."""
+	var first: CatalogIds.BuildResult = CatalogIds.build()
+	var second: CatalogIds.BuildResult = CatalogIds.build()
+	assert_true(first.ok and second.ok, "both builds must succeed")
+	if not (first.ok and second.ok):
+		return
+	assert_equal(second.artifact.bytes, first.artifact.bytes, "byte-identical on the second run")
+	assert_equal(second.artifact.digest, first.artifact.digest, "and the same raw digest bytes")
+	assert_equal(second.artifact.row_count, first.artifact.row_count, "and the same row count")
+	assert_equal(CatalogIds.encode_canonical(second.artifact.domains), first.artifact.bytes,
+		"re-encoding the second build's own map reproduces the same bytes")
+
+
+func test_a_partial_building_domain_fails_verification() -> void:
+	"""Mutation of the domain itself, not of a byte: drop 23 of the 30 buildings.
+
+	This is the "seven runtime-only ordinals" shape exactly -- the starter colony's keys only --
+	and it must be refused against the committed artifact rather than quietly accepted."""
+	var starter_only: Dictionary = {}
+	var buildings: Dictionary = _domain("BuildingDefinition")
+	for key: String in ["hall", "open_stockpile", "well", "workbench"]:
+		starter_only[key] = buildings[key]
+	var partial: Dictionary = _artifact().domains.duplicate(true)
+	partial["BuildingDefinition"] = starter_only
+	var refusal: CatalogIds.Refusal = CatalogIds.compare_domains(partial, _artifact().domains)
+	assert_false(refusal.is_ok(), "a four-key BuildingDefinition must not compare equal")
+	assert_equal(refusal.code, CatalogIds.REFUSE_KEY_MISMATCH, "it is a missing-key refusal")
+	var bytes: PackedByteArray = CatalogIds.encode_canonical(partial)
+	_assert_refuses(bytes, CatalogIds.REFUSE_KEY_MISMATCH, "a starter-only building domain")
+
+
+func test_a_renumbered_building_id_fails_verification() -> void:
+	"""One id moved by one -- what inserting a thirty-first building ahead of it would do."""
+	var renumbered: Dictionary = _artifact().domains.duplicate(true)
+	var buildings: Dictionary = renumbered["BuildingDefinition"]
+	buildings["workshop"] = 30
+	var bytes: PackedByteArray = CatalogIds.encode_canonical(renumbered)
+	_assert_refuses(bytes, CatalogIds.REFUSE_ID_MISMATCH, "workshop renumbered 29 -> 30")
+	var refusal: CatalogIds.Refusal = CatalogIds.compare_domains(renumbered, _artifact().domains)
+	assert_false(refusal.is_ok(), "compare_domains must see the moved id")
+	assert_true(refusal.detail.contains("workshop"), "and name the key that moved")

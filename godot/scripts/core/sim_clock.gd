@@ -28,12 +28,22 @@ extends RefCounted
 ## live. Reasons compose as a bitmask, so closing a menu cannot resume a pause
 ## another reason still holds.
 ##
-## BLOCKER U2 (docs/tasks/02_settlement_foundation.md): queued speed/pause
-## scheduler events are NOT implemented. ARCH-CMD-002 asks for them, but
-## ARCH-CMD-003's 24 command kinds contain no speed or pause kind, ARCH-SAVE-002
-## §12 persists PENDING_COMMANDS only, and no ordering tiebreak exists. Only
-## immediate state is implemented; see the U2 markers on set_speed()/set_pause()
-## for where a queue would attach.
+## BLOCKER U2 (docs/tasks/02_settlement_foundation.md) IS CLOSED IN PROCESS, AND
+## THE PART OF IT THAT IS NOT IS NAMED. Queued speed/pause scheduler events now
+## exist: `scripts/core/scheduler_events.gd` implements R07-SCHED-001's separate
+## 256-record queue, its own unsigned 64-bit sequence, and the boundary pump that
+## `advance()`'s `before_tick` hook calls before each fixed-tick decision and on
+## paused frames (decision 0054). The ordering tiebreak that was missing is that
+## sequence; the ARCH-CMD-003 catalog is deliberately still 24 economic kinds,
+## because the scheduler queue has its own two-value kind domain.
+##
+## STILL OPEN, and it is persistence only: THERE IS NO SAVE MODULE in this
+## repository, so ARCH-SAVE-002 §12's scheduler subsection is implemented as an
+## encoder, a decoder and its validation, and is UNWIRED. A paused queue cannot
+## yet survive a process restart. Task 09 owns the codec.
+##
+## set_speed() and set_pause() remain the IMMEDIATE setters and are what the
+## queue's pump calls; they are no longer the only way in.
 ##
 ## BLOCKER U3 (spec contradiction, resolved conservatively). ARCH-CLOCK-001:
 ## "Preserve remaining debt; never discard completed or owed ticks to hide
@@ -176,7 +186,9 @@ func set_speed(value: int) -> bool:
 	requestable: pause is authoritative through the reason mask, so a caller asking for 0
 	must name a reason via set_pause(). Speed changes never clear a pause reason.
 
-	BLOCKER U2: a queued next-tick speed command would attach here; not implemented.
+	This is the IMMEDIATE setter. `scheduler_events.gd`'s boundary pump calls it when it applies
+	an admitted SET_REQUESTED_SPEED, so a queued speed change lands here too (blocker U2 closed
+	in process, decision 0054); persistence of a pending queue is still blocked on task 09.
 	"""
 	if not SELECTABLE_SPEEDS.has(value):
 		_last_error = "speed %d is not one of 1, 2, 4" % value
@@ -192,7 +204,9 @@ func set_pause(reason: int, enabled: bool) -> bool:
 	discards sub-tick presentation debt ONLY when zero whole ticks are owed, which
 	ARCH-CLOCK-002 permits by name; that discard is counted (blocker U3).
 
-	BLOCKER U2: a queued next-tick pause command would attach here; not implemented.
+	This is the IMMEDIATE setter. `scheduler_events.gd`'s boundary pump calls it when it applies
+	an admitted SET_PAUSE_REASON, so a queued pause lands here too (blocker U2 closed in process,
+	decision 0054); persistence of a pending queue is still blocked on task 09.
 	"""
 	if not ALL_PAUSE_REASONS.has(reason):
 		_last_error = "pause reason %d is not a single known reason" % reason
@@ -243,13 +257,20 @@ func pause_reason_names() -> Array[String]:
 
 # --- scheduler -----------------------------------------------------------------------------------
 
-func advance(elapsed_microseconds: int, step: Callable = Callable(), day_boundary: Callable = Callable()) -> int:
+func advance(elapsed_microseconds: int, step: Callable = Callable(), day_boundary: Callable = Callable(),
+		before_tick: Callable = Callable(), on_overload: Callable = Callable()) -> int:
 	"""Fold one host frame of elapsed time into debt and drain whole ticks. Returns ticks run.
 
 	`step` runs once per completed tick; `day_boundary` runs once per crossing of the offset
 	calendar into 00:00, receiving that day's Calendar (REQ-SET-007 ordering is the callee's).
 	Paused host time contributes no debt. A negative or overflowing input is refused with
 	last_error() set and no state change, rather than wrapping.
+
+	`before_tick` is ARCH-CMD-002's scheduler barrier: R07-SCHED-001 runs it BEFORE each decision
+	about whether another tick may start, so a pause admitted during tick 3 stops tick 4.
+	`on_overload` replaces the immediate ladder step with the caller's own handling, which
+	`scheduler_events.gd` uses to carry the rung through that same barrier. BOTH DEFAULT TO
+	INVALID, and with them invalid this function behaves exactly as it did before they existed.
 	"""
 	_last_error = ""
 	var speed: int = effective_speed()
@@ -257,10 +278,18 @@ func advance(elapsed_microseconds: int, step: Callable = Callable(), day_boundar
 		return 0
 	if not _accumulate_debt(elapsed_microseconds, speed):
 		return 0
-	var count: int = _drain_ticks(step, day_boundary)
+	var count: int = _drain_ticks(step, day_boundary, before_tick)
 	if _pause_mask == 0 and _is_overloaded(speed):
-		apply_overload()
+		_dispatch_overload(on_overload)
 	return count
+
+
+func _dispatch_overload(on_overload: Callable) -> void:
+	"""Take one ladder step, or hand the decision to a scheduler queue that will carry it."""
+	if on_overload.is_valid():
+		on_overload.call()
+		return
+	apply_overload()
 
 
 func apply_overload() -> void:
@@ -268,20 +297,54 @@ func apply_overload() -> void:
 
 	Debt is retained untouched in every branch: the ladder slows or stops the clock, it never
 	skips owed ticks (ARCH-CLOCK-001, blocker U3). No automatic speed increase ever occurs.
+	State is applied before the diagnostic is recorded, so a signal handler reading
+	requested_speed() or is_paused() sees the rung that has already landed.
+	"""
+	var target: int = overload_ladder_target()
+	apply_overload_target(target)
+	note_overload_step(target)
+
+
+func overload_ladder_target() -> int:
+	"""The next REQ-SET-008 rung from the current requested speed, without applying it.
+
+	SPEED_PAUSED is the answer at 1x and means "hold CRITICAL with a diagnostic", which is the
+	only rung that is not a speed. A scheduler that queues the rung asks this first.
+	"""
+	if _requested_speed == SPEED_QUADRUPLE:
+		return SPEED_DOUBLE
+	if _requested_speed == SPEED_DOUBLE:
+		return SPEED_NORMAL
+	return SPEED_PAUSED
+
+
+func apply_overload_target(target: int) -> void:
+	"""Apply one already-chosen rung's authoritative state change and nothing else.
+
+	Debt is untouched here as in every other ladder path. Called directly by apply_overload(); a
+	scheduler queue instead reaches this state through an ordinary drained speed or pause event.
+	"""
+	if target == SPEED_PAUSED:
+		_pause_mask |= CRITICAL
+		return
+	_requested_speed = target
+
+
+func note_overload_step(target: int) -> void:
+	"""Record one ladder step's counters and emit its UI signal. Changes no authoritative state.
+
+	Split out so a scheduler that defers the rung to its next barrier still keeps fallback_count(),
+	diagnostic_pause_count() and last_diagnostic() -- the evidence task 02 recorded under blocker
+	U3 -- rather than silently retiring them.
 	"""
 	_fallback_count += 1
-	if _requested_speed == SPEED_QUADRUPLE:
-		_requested_speed = SPEED_DOUBLE
-	elif _requested_speed == SPEED_DOUBLE:
-		_requested_speed = SPEED_NORMAL
-	else:
-		_pause_mask |= CRITICAL
+	if target == SPEED_PAUSED:
 		_diagnostic_pause_count += 1
 		_last_diagnostic = "Simulation overloaded at 1x: %d whole tick(s) owed; paused rather than skipping." % owed_ticks()
 		clock_diagnostic_pause.emit(_last_diagnostic)
 		return
-	_last_diagnostic = "Simulation overloaded: speed reduced to %dx; %d whole tick(s) owed." % [_requested_speed, owed_ticks()]
-	clock_overload_warning.emit(_requested_speed)
+	_last_diagnostic = "Simulation overloaded: speed reduced to %dx; %d whole tick(s) owed." % [target, owed_ticks()]
+	clock_overload_warning.emit(target)
 
 
 func acknowledge_without_catchup() -> int:
@@ -317,14 +380,22 @@ func _accumulate_debt(elapsed_microseconds: int, speed: int) -> bool:
 	return true
 
 
-func _drain_ticks(step: Callable, day_boundary: Callable) -> int:
+func _drain_ticks(step: Callable, day_boundary: Callable, before_tick: Callable) -> int:
 	"""Run at most MAX_TICKS_PER_FRAME whole ticks, stopping the moment a pause reason appears.
 
-	The mask is re-tested every iteration so a pause raised inside `step` takes effect before
-	another tick starts (ARCH-CMD-002). Undrained debt stays owed.
+	`before_tick` runs BEFORE each decision, including the first, which is where ARCH-CMD-002's
+	scheduler events drain; the mask is then re-tested, so a pause that arrived either inside
+	`step` or through that barrier takes effect before another tick starts. Undrained debt stays
+	owed.
 	"""
 	var count: int = 0
-	while _debt >= TICK_COST and count < MAX_TICKS_PER_FRAME and _pause_mask == 0:
+	var running: bool = true
+	while running:
+		if before_tick.is_valid():
+			before_tick.call()
+		running = _debt >= TICK_COST and count < MAX_TICKS_PER_FRAME and _pause_mask == 0
+		if not running:
+			continue
 		_debt -= TICK_COST
 		if step.is_valid():
 			step.call()

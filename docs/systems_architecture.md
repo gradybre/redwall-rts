@@ -227,26 +227,33 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | Timing samples | 6900 | 8 | 55200 | diagnostic counted conservatively | NEW 23 stages, i64 timing samples |
 | World generation map masks and tree plan | 159968 | 1 | 159968 | mutable | [decision 0048] REQ-SET-009's authored estuary in `godot/scripts/core/world_init.gd`: NINE 16384-byte exterior-tile byte columns -- published and staged terrain, soil, ecology basin and clearing, plus the staging occupancy mask -- FOUR 7-entry i32 basin columns (published and staged §5.5 danger, basin HarvestZone slot and generation), the 3000-entry tree-centre plan and the 100-entry guaranteed-grove plan. Staged and published columns are two allocations made once; publishing SWAPS them, so a refused generation cannot have touched the live map and no `resize()` runs outside `_init()`. §5.1's basin geometry lives here rather than as ~6267 `HarvestZone` tile links, which would consume 9252 of §4.2's 16384 total zone links before the player designates anything. `FaunaStockReserved`'s 15360 bytes are NOT added here: §2.2 already carries that row and this module is the allocation it describes |
 | Command dispatch source-intent ledger | 128 | 16 | 2048 | mutable | [decision 0049] Task 04.4's "Record source intent/job identity so repeated evaluation cannot duplicate a job": four i32 per `forage.gd` HarvestZone row -- ARCH-CMD-001's `(player_id, sequence_high, sequence_low)` plus the produced zone's generation. Indexed BY the zone row it describes rather than by a window over command history, so it is bounded by §4.2's own 128 designations and cannot forget an intent whose designation is still alive. `command_dispatch.gd` writes it on a committed DESIGNATE_ZONE and reads it in that kind's preflight |
+| Scheduler event queue and control header | 1 | 8224 | 8224 | mutable | [decision 0054] R07-SCHED-001's ARCH-CMD-002 speed/pause queue in `godot/scripts/core/scheduler_events.gd`: 256 records of 32 bytes (one i64 `boundary_tick` plus six i32 -- `sequence_low`, `sequence_high`, `kind`, `reason`, `value`, `reserved`) = 8192, plus the 32-byte queue control header (`head`, `count`, `next_sequence_low/high`, `last_drained_boundary` i64, `last_applied_sequence_low/high`). Counted as one 8224-byte allocation rather than 257 x 32 because the control header is not a record. SEPARATE from the "Command queue" row above: economic commands keep their own 4096 x 64 records, their own arena and their own sequence space, and ARCH-CMD-003's 24 kind ids are not renumbered. The tail derives from head and count, so there is NO order-index row here of the kind decision 0042 needed for the economic ring |
 | ARCH-SYS-023 presentation snapshot | 1 | 244 | 244 | presentation counted conservatively | [decision 0049] `godot/scripts/core/presentation_extract.gd`: TWO i64 frames of 14 committed fields (224 bytes) plus one availability byte per field and one visibility byte per layer (20 bytes). Two frames because a render interpolates between the last two COMMITTED ticks. Separate from the "UI numeric snapshots" row above, which budgets per-resident summaries this stage does not produce. The per-stage microsecond and measurement columns `settlement_system.gd` keeps (3 x 7 i64 = 168 bytes) sit inside the "Timing samples" diagnostic row and add nothing here |
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 60256806 | Mechanical sum of printed allocation rows; decision 0050 reconciliation |
+| Planned allocated payload | 60265030 | Mechanical sum of printed allocation rows; decision 0050 reconciliation |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 68645414 | Payload + reserve |
-| Headroom below decimal 100 MB | 31354586 | 100000000 − live total |
-| Additional candidate mutable state | 54041222 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 122686636 | Live total + candidate mutable state |
-| Transactional headroom | -22686636 | 100000000 − transactional peak |
+| One live world plus reserve | 68653638 | Payload + reserve |
+| Headroom below decimal 100 MB | 31346362 | 100000000 − live total |
+| Additional candidate mutable state | 54049446 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 122703084 | Live total + candidate mutable state |
+| Transactional headroom | -22703084 | 100000000 − transactional peak |
 
-**ARCH-MEM-010 (reconciled 2026-09-11, decision 0050).** Current planned payload is
-**60256806**, the sum of the 23 printed allocation rows; fixed registry payload is
-**24993106**, the sum of the 135 printed field rows. The historical trail omitted
-**437632=131072+306304+256** already present in those rows. The added reconciliation
-step corrects the carried basis only; no second allocation is added. Current
-one-world plus reserve is **68645414**, headroom **31354586**; the rejected two-world
-peak is **122686636**, over by **22686636**. Both mutable worlds contain the correction,
-so that peak rises by 875264. No new scheduler/Weather proposals are included.
+**ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; scheduler queue added 2026-09-11,
+decision 0054).** Current planned payload is **60265030**, the sum of the 24 printed
+allocation rows; fixed registry payload is **24993106**, the sum of the 135 printed
+field rows. The historical trail omitted **437632=131072+306304+256** already present
+in those rows; that reconciliation is decision 0050's and is **reproduced, not
+reapplied** -- `60265030 − 8224 − 59819174 = 437632` still holds exactly, so adding
+R07-SCHED-001's queue did not absorb or disturb it. The added reconciliation step
+corrects the carried basis only; no second allocation is added for it. Current
+one-world plus reserve is **68653638**, headroom **31346362**; the rejected two-world
+peak is **122703084**, over by **22703084**. Both mutable worlds contain the
+correction, so that peak rises by 875264 for decision 0050 and by a further 16448 for
+the scheduler queue, which is 2 x 8224 because the queue is mutable state present in
+BOTH worlds. **The scheduler queue is no longer a proposal**; no Weather proposal is
+included.
 This remains a baseline/incomplete planning ledger, not measured RAM or full
 MOVE-G02 closure. See [the arithmetic audit](rulings/2026-09-11_ready07_memory_audit.md).
 
@@ -294,10 +301,11 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
 | World generation map masks and tree plan | decision 0048 | +159968 | 59816882 | 68205490 |
 | Command dispatch source-intent ledger and ARCH-SYS-023 presentation snapshot | decision 0049 | +2292 | 59819174 | 68207782 |
 | Historical fixed-field omission reconciled, no new allocation | decision 0050 | +437632 | 60256806 | 68645414 |
+| Scheduler event queue and control header | decision 0054 | +8224 | 60265030 | 68653638 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
-**ARCH-MEM-006.** The current calculated two-world peak is 122686636 bytes, exceeding the gate by 22686636 bytes (decision 0050; prior calculations remain in the historical trail). Therefore the selected release architecture SHALL use a transactional **disk-backed rollback checkpoint**, not two resident mutable worlds: validate the entire incoming file and construct it in a separate inactive on-disk checkpoint, retain the old world's validated checkpoint, then reuse the old world's mutable allocations to decode the already validated incoming snapshot. On decode/I/O failure restore the validated old checkpoint before exposing any world. This avoids the second 54041222-byte mutable world and adds loading I/O. The original world remains logically unchanged on failure; UI remains in LOAD pause until rollback completes. If rollback itself encounters an I/O fault, keep both files and expose the load error without exposing a partially decoded world. `[NEW selected design; DERIVED ledger; GDD REQ-SET-161]`
+**ARCH-MEM-006.** The current calculated two-world peak is 122703084 bytes, exceeding the gate by 22703084 bytes (decision 0054; decision 0050 and the earlier calculations remain in the historical trail). Therefore the selected release architecture SHALL use a transactional **disk-backed rollback checkpoint**, not two resident mutable worlds: validate the entire incoming file and construct it in a separate inactive on-disk checkpoint, retain the old world's validated checkpoint, then reuse the old world's mutable allocations to decode the already validated incoming snapshot. On decode/I/O failure restore the validated old checkpoint before exposing any world. This avoids the second 54049446-byte mutable world and adds loading I/O. The original world remains logically unchanged on failure; UI remains in LOAD pause until rollback completes. If rollback itself encounters an I/O fault, keep both files and expose the load error without exposing a partially decoded world. `[NEW selected design; DERIVED ledger; GDD REQ-SET-161]`
 
 **ARCH-MEM-007.** The allocator reserve is a budget to measure, not a claim that Godot headers occupy exactly that amount. Count all live packed capacities and engine-owned copies separately. A measured reserve overrun fails qualification. The main planned payload contributors are directory bookkeeping, fixed field stores, A* scratch, and route cells; active resident fields are a small fraction. Avoid copying packed arrays into temporary local Variants during hot updates. `[NEW instrumentation; crowd §4.2, §7]`
 
@@ -540,6 +548,24 @@ Unscaled host clock -> scheduler debt -> fixed tick k
 **ARCH-CMD-001.** Settlement command records use the field layout in §8 and sort by `(execute_tick,player_id,sequence_high_unsigned,sequence_low_unsigned)`. This preserves the crowd's player/64-bit-sequence ordering within a tick. Player ID is 0 in release 1 `[NEW]`. Assign each submitted command `execute_tick=completed_tick+1`; paused edits receive the same next tick, increasing sequence. Their ghosts/pending rows are presentation only. Save pending commands when paused without consuming them. `[GDD REQ-SET-005, REQ-SET-159; crowd §6.2, §6.4; UI §3, §5]`
 
 **ARCH-CMD-002.** Queue speed/pause scheduler events separately from economic commands. Pause takes effect before another tick starts. UI pause reasons are PLAYER, MENU, CRITICAL, VICTORY, LOAD and combine as a bitmask `[UI §3]`; requested speed persists separately from the effective paused state. Selection/name-editor previews, modal cancellation, camera, and roof state consume no authoritative RNG. A confirmed name change is an ordinary next-tick command; a name preview is not. `[GDD §5.1, §5.3; UI §5]`
+
+*Implementation note 2026-09-11 (R07-SCHED-001, decision 0054).* ARCH-CMD-002's separate
+speed/pause queue is implemented in `godot/scripts/core/scheduler_events.gd`: 256 records at a
+32-byte stride (`boundary_tick` i64 @0, `sequence_low` u32 @8, `sequence_high` u32 @12, `kind`
+i32 @16, `reason` i32 @20, `value` i32 @24, `reserved` u32 @28 which must be zero), a 32-byte
+queue control header, 8224 bytes total in §2.3. Kinds are `SET_REQUESTED_SPEED=0` and
+`SET_PAUSE_REASON=1` -- **this is the queue's own two-value domain and is NOT compiled into
+`catalog.gd`**, so ARCH-CMD-003's 24 economic ids keep their numbering. Sequences are this
+world's own 64-bit space, compared unsigned high word then low, starting at (0,1); the roll past
+all-ones lands on the (0,0) exhausted sentinel, which refuses every further admission rather than
+reusing 1. Normal admissions stop at 250, leaving six slots for five unmatched safety holds and
+one overload downgrade. The pump drains the admitted prefix for the current completed boundary,
+in sequence order, before each fixed-tick decision AND on paused host frames --
+`sim_clock.advance()` gained a `before_tick` hook for exactly that, so a pause admitted during
+tick 3 of an eight-tick catch-up frame stops tick 4. `last_drained_boundary` is diagnostic and
+never suppresses a second drain at the same boundary. **Persistence remains blocked**: the
+`SCHQ0001` subsection below is implemented as encode/decode plus validation and is unwired,
+because no save module exists (task 09).
 
 **ARCH-CLOCK-001.** Use integer host-clock debt units `[NEW]`: accumulate `elapsed_microseconds*30*effective_speed`; one tick costs 1000000 debt units. Host timing is a scheduler input, never a gameplay-rate input. At most 8 ticks/frame are scheduled `[NEW work ceiling]`. Preserve remaining debt; never discard completed or owed ticks to hide sustained overload. After this loop, measure real-equivalent backlog as the exact fraction `debt/(30*effective_speed*1000000)` seconds. Compare without division: overload iff `4*debt > 30*effective_speed*1000000`, matching strictly greater than 1/4 real second `[GDD REQ-SET-008]`.
 
@@ -792,7 +818,7 @@ Keep a test migration ledger `old_test_name,new_test_name,retained_semantic,reti
 | ARCH-CONFLICT-008 | CLAUDE.md older design guidance versus Document Authority/GDD | Earlier logarithmic scaling, broader population language, and generic flow-field advice do not define this capped settlement. | Follow its Document Authority precedence and the settlement GDD; keep battle guidance in battle scope. |
 | ARCH-CONFLICT-009 | READY_04 deliverables 1 and 6; REQ-SET-163 | Packed payload arithmetic can be bounded, but engine headers, allocator reserve, long route storage pressure, and real Windows stage timings are not certified by this document. | Budget these explicitly and report unqualified performance. Do not claim ≤100 MB or deadline support from payload arithmetic alone. |
 | ARCH-CONFLICT-010 | Prototype implementation versus GDD REQ-SET-002–008, REQ-SET-162 | Current stockpiles/clock use noninteger authority, speed 3, Engine.time_scale, dropped debt, and Resource components. | Rewrite core modules under §11; the old 52-test suite tests a different model. |
-| ARCH-CONFLICT-011 | READY_04 memory budget and transactional loading | Fully resident old plus candidate worlds require 122686636 bytes including reserve, exceeding 100000000 by 22686636 (decision 0050 current reconciliation). Reconciled 2026-09-07 for decisions 0019 and 0021 and ARCH-STATE-005 (119493108 / 19493108); 2026-09-09 for READY_06 §7, decisions 0037/0039/0040/0041 and ARCH-STATE-007 (120075772 / 20075772 at the gear allocator); 2026-09-10 for decision 0042's command queue order index (120815100 / 20815100) and decision 0043's command dispatch result ledger (120782332 / 20782332 before both); was 117599532 / 17599532 before all of those. | Select disk-backed validation/rollback with one reusable world allocation under ARCH-MEM-006 and ARCH-SAVE-004. Its planned resident payload plus reserve is 68645414 bytes; actual allocator/I/O peaks still require measurement. The current baseline arithmetic is 31354586 bytes below the gate, but §3.1 lists budget items not yet counted at all, and ARCH-MEM-010 now reconciles the 437632-byte historical omission; expanded movement remains uncounted. |
+| ARCH-CONFLICT-011 | READY_04 memory budget and transactional loading | Fully resident old plus candidate worlds require 122703084 bytes including reserve, exceeding 100000000 by 22703084 (decision 0054 current reconciliation; 122686636 / 22686636 under decision 0050, before R07-SCHED-001's 8224-byte queue existed in both worlds). Reconciled 2026-09-07 for decisions 0019 and 0021 and ARCH-STATE-005 (119493108 / 19493108); 2026-09-09 for READY_06 §7, decisions 0037/0039/0040/0041 and ARCH-STATE-007 (120075772 / 20075772 at the gear allocator); 2026-09-10 for decision 0042's command queue order index (120815100 / 20815100) and decision 0043's command dispatch result ledger (120782332 / 20782332 before both); was 117599532 / 17599532 before all of those. | Select disk-backed validation/rollback with one reusable world allocation under ARCH-MEM-006 and ARCH-SAVE-004. Its planned resident payload plus reserve is 68653638 bytes; actual allocator/I/O peaks still require measurement. The current baseline arithmetic is 31346362 bytes below the gate, but §3.1 lists budget items not yet counted at all, and ARCH-MEM-010 now reconciles the 437632-byte historical omission; expanded movement remains uncounted. |
 
 ## 13. Verification record
 
@@ -830,8 +856,11 @@ Audit ARCH-JOB travel leases and unreachable timeouts against crossing queues: w
 ## READY_07 current reconciliation — 2026-09-11
 
 Decision 0050 supersedes the operative carried basis in the dated reconciliation
-above. Printed fields=24993106, printed allocation payload=60256806, one-world
-plus reserve=68645414, headroom=31354586, rejected two-world peak=122686636,
-overage=22686636. No field allocation was added by correcting this arithmetic.
-Known §3.1 omissions and MOVE-G02 expansion remain outstanding. The scheduler
-and Weather proposals in READY_07 are not counted or ratified by this correction.
+above, and decision 0054 then adds R07-SCHED-001's implemented queue on top of it.
+Printed fields=24993106, printed allocation payload=60265030 over 24 rows, one-world
+plus reserve=68653638, headroom=31346362, rejected two-world peak=122703084,
+overage=22703084. No field allocation was added by correcting the arithmetic; the
+only new allocation is the scheduler queue's 8224 bytes, added ONCE to the reconciled
+basis as the contract instructs. Known §3.1 omissions and MOVE-G02 expansion remain
+outstanding. **The scheduler proposal is now implemented and counted**; the Weather
+proposal in READY_07 is still neither.

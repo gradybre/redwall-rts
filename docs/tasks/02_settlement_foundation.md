@@ -27,7 +27,7 @@ are recorded here and are NOT promoted into approved constants.**
 | ID | Blocker | Affects | Disposition |
 |---|---|---|---|
 | U1 | `catalog_ids.json` is named only in GDD §4.2 and BAL-CAT-001; the architecture document never specifies its document shape, canonical byte serialization, hash relationship to save-header offset 72, location, or whether it is built or shipped | Task 2.2 persistence | Compile and validate in memory; **do not** emit the file or claim hash verification |
-| U2 | Speed/pause scheduler events have no command kind (ARCH-CMD-003 has 24 kinds, none for speed/pause), no ordering tiebreak, no save section (ARCH-SAVE-002 §12 is `PENDING_COMMANDS` only) | Task 2.4 queued pause determinism | Implement immediate speed/pause state; **defer** queued scheduler events |
+| U2 | Speed/pause scheduler events have no command kind (ARCH-CMD-003 has 24 kinds, none for speed/pause), no ordering tiebreak, no save section (ARCH-SAVE-002 §12 is `PENDING_COMMANDS` only) | Task 2.4 queued pause determinism | Implement immediate speed/pause state; **defer** queued scheduler events. **Resolved 2026-09-11 in process** by R07-SCHED-001 / decision 0054: a separate queue with its own kind domain and its own unsigned sequence as the tiebreak, so ARCH-CMD-003's 24 ids stay stable. The save section is implemented and unwired; persistence stays blocked on task 09 |
 | U3 | ARCH-CLOCK-001 "never discard completed or owed ticks" vs ARCH-CLOCK-002 "may clear scheduler debt"; GDD REQ-SET-008 says pause rather than skip | Task 2.4 debt rule | Follow the **conservative** rule: never discard implicitly. Explicit acknowledgement is counted, not silent |
 | U4 | Reservation indexing unspecified: 32768 reservation rows against 8192 job rows is exactly 4×, implying owner-major `job*4+i`, which neither document states and which would cap a recipe at 4 input lots | Task 2.5 reservations | **Resolved by decision 0019 / task 2.11**: global lowest-free-index allocation, variable-length claim lists |
 | U5 | No allocator storage budgeted for non-directory child stores (Reservation, GearInstance, BatchState, LotEffect, NoticeCondition, ChildSliceIndex) | Tasks 2.3, 2.5 and the memory ledger | **PARTLY CLOSED 2026-09-09.** Reservation has decision 0019's global pool; GearInstance has decision 0038's lowest-free pool. **`BatchState`, `LotEffect`, `NoticeCondition` and `ChildSliceIndex` still have no allocator budget** — do not tick U5 as a whole |
@@ -88,6 +88,16 @@ must be re-derived before movement work, and this task does not do so.
   2x/4x ticks per unit time; debt retained not discarded; overload steps 4→2→1
   and pauses at 1x rather than skipping
 - **Blocked by U2** (queued scheduler events), **U3** (documented, conservative rule taken)
+  - **U2 unblocked 2026-09-11** by `scripts/core/scheduler_events.gd`
+    ([decision 0054](../decisions/0054-the-scheduler-event-queue-drains-before-every-tick.md)),
+    implementing task 04.1's completed amendment R07-SCHED-001. The ordering
+    tiebreak that was missing is this queue's own unsigned 64-bit sequence; the
+    save section exists as an implemented, validated, UNWIRED `SCHQ0001` codec, so
+    **persistence remains blocked on task 09's save module.** ARCH-CMD-003 still
+    has exactly 24 kinds and none is a speed or pause kind, which is deliberate.
+  - **U3 is NOT unblocked.** The conservative rule stands; decision 0054 records
+    the explicit reconciliation of ARCH-CLOCK-002's recovery exception against GDD
+    REQ-SET-008. `acknowledge_without_catchup()` and its tests are unchanged.
 
 ### 2.5 — Inventory lots and transactions
 - **Owns** `godot/scripts/core/inventory.gd`, `godot/test/test_inventory.gd`

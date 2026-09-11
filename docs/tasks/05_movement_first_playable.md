@@ -46,6 +46,9 @@ Two dependency outcomes are distinct. **05.1a: reviewed ground/shared-interface 
 
 Acceptance: 05.1a identifies exactly which work may proceed; every other mandatory mode has an adopted policy row or named blocker. No guessed depth, species capability, excavation price or air budget. **Closes:** only reviewed slice decisions initially; full G01 requires all binding outputs, and full G02 follows it. **Does not close:** any full gate through slice review alone.
 
+- [x] **05.1a — recorded and implemented, 2026-09-11.** Entry artifact: [movement ground slice entry](../planning/movement_ground_slice_entry.md); engineering record: [decision 0053](../decisions/0053-movement-ground-slice-identity-and-storage.md). Delivers `spatial_world.gd`, `navigation.gd`, `transforms.gd` and `movement.gd` with their suites, against READY_07 §1.2's acceptance list. Ledger advanced by 520192 bytes for three enumerated new rows. **Closes no gate.** Save round trip is BLOCKED on the canonical serializer; the ARCH-PATH-003 macro-anchor detour is measured and raised, not silently worked around; no profile, clearance, facing or turn-cost value was invented.
+- [ ] **05.1b — not started.** Waits on the MOVE-G01 parameter pack (READY_07 §1.3).
+
 ### 05.2 — Shared space, transforms and initial contacts
 
 Ground/shared-interface work depends on **05.1a**, not completion of every G01 profile, plus the matching world handoff. Implement generation-validated locations/connections with domain, level and integer XYZ; connect resident positions, job contacts, beds, rooms, containers, resource work points and picking to those identities. Initialize previous=current. Same-X/Z multi-level synthetic fixtures establish identity isolation, not production extent. Ground navigation uses existing 0.5 m cells; expanded allocations/activation wait for 05.1b.

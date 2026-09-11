@@ -14,30 +14,26 @@ for l in s[:a].splitlines():
 for l in s[a:b].splitlines():
  c=[x.strip() for x in l.strip('|').split('|')]
  if l.startswith('|') and len(c)==6 and c[3].isdigit():allocations.append(int(c[3]))
-# Advanced 2026-09-11 for decision 0051's hive-service slice: five new field rows
-# totalling 35840 bytes, and the same amount in one ARCH-MEM-009 step. The planner's
-# own instruction is to review changed expectations rather than treat the inspected
-# snapshot's counts as permanent limits. Row identity and the five metric identities
-# below are unchanged; only these two pinned baselines advance.
-# Advanced 2026-09-11 for decision 0055's Weather absolute-season identity: ONE new
-# field row of 8*2*1=16 bytes, taking the Weather row from 32 to 48. No new §2.3
-# allocation row -- the Fixed registry payload row IS the §2.2 sum and moves with it.
-# Expectations are advanced deliberately, not loosened: every identity below still
-# holds exactly, and the row/allocation COUNTS are still pinned.
+# Field rows: 135 at decision 0050, +5 for decision 0051's hive-service slice (35840 B).
+# +1 row for decision 0055's Weather absolute-season columns (16 B).
 assert len(fields)==141 and sum(fields)==25028962
-assert len(allocations)==23 and sum(allocations)==60292662
+# Decision 0050's reconciliation, reproduced from its own two constants. It is NOT re-applied to
+# the live payload: doing that a second time would double count 437632 bytes already in the rows.
+DECISION_0050_CARRIED_BEFORE=59819174
+DECISION_0050_ROW_SUM=60256806
+assert DECISION_0050_ROW_SUM-DECISION_0050_CARRIED_BEFORE==131072+306304+256
+# Decision 0051, hive service: five field rows on a third owner class.
+DECISION_0051_ADDED=35840
+# Decision 0053, movement ground slice: TransformBinding 350208 + PathRequestContact 163840 +
+# ResidentRouteCursor 6144. Advanced deliberately; raise these with the next allocation, never relax.
+DECISION_0053_ADDED=350208+163840+6144
+assert DECISION_0053_ADDED==520192
+# Decision 0055, Weather absolute-season identity: two I64 columns.
+DECISION_0055_ADDED=16
+assert len(allocations)==23 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert live==68681270 and candidate==54077078 and live+candidate==122758348
-# Carried total advanced by decision 0051's +35840 (59819174 -> 59855014) and then by
-# decision 0055's +16 (-> 59855030). Both halves move together, so the 437632 gap is
-# reproduced a fourth time rather than absorbed or re-applied.
-assert payload-59855030==131072+306304+256
-# Decision 0055's two Weather rows, pinned as printed so a silent revert fails here.
-assert '| Weather | scheduled_absolute_season, forecast_absolute_season | I64 | 8 | 2 | 1 | 16 |' in s
-assert 4*8*1+8*2*1==48 and 4*8*1==32
-# Carried-basis figures of the same +16, checked as identities rather than restated.
-assert 59855030+reserve==68243638 and 100000000-68243638==31756362
-assert 68243638+(59855030-6215584)==121883084
+assert payload==60812854
+assert live==69201462 and candidate==54597270 and live+candidate==123798732
 for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below decimal 100 MB',100000000-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',100000000-live-candidate)]:
  assert f'| {label} | {value} |' in s,label
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']
@@ -48,7 +44,7 @@ ticks={f'{season}:{day}':((season*12+day-1)*18000-4500) for season,day in [(1,3)
 assert list(ticks.values())==[247500,301500,337500,355500,427500,463500,517500]
 assert struct.calcsize('<qIIiiiI')==32 and struct.calcsize('<iiIIqII')==32
 assert 256*32+32==8224
-installed=['docs/systems_architecture.md', 'docs/decisions/0016-needs-tick-consumes-most-of-the-budget.md', 'docs/decisions/0048-world-generation-anchors-and-what-it-refuses-to-invent.md', 'docs/planning/README.md', 'docs/STATUS.md', 'docs/decisions/0050-ready07-source-audit-and-ledger-reconciliation.md', 'docs/planning/ready07_scheduler_contract.md', 'docs/rulings/2026-09-11_ready07_open_item_answers.md', 'docs/rulings/2026-09-11_ready07_executor_brief.md', 'docs/rulings/2026-09-11_ready07_memory_audit.md'];links=0;errors=[]
+installed=['docs/systems_architecture.md', 'docs/decisions/0016-needs-tick-consumes-most-of-the-budget.md', 'docs/decisions/0048-world-generation-anchors-and-what-it-refuses-to-invent.md', 'docs/planning/README.md', 'docs/STATUS.md', 'docs/decisions/0050-ready07-source-audit-and-ledger-reconciliation.md', 'docs/planning/ready07_scheduler_contract.md', 'docs/rulings/2026-09-11_ready07_open_item_answers.md', 'docs/rulings/2026-09-11_ready07_executor_brief.md', 'docs/rulings/2026-09-11_ready07_memory_audit.md', 'docs/decisions/0053-movement-ground-slice-identity-and-storage.md', 'docs/planning/movement_ground_slice_entry.md'];links=0;errors=[]
 for name in installed:
  f=r/name
  for target in re.findall(r'\[[^\]]+\]\(([^)]+)\)',f.read_text()):

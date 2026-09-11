@@ -84,8 +84,16 @@ The missing links for the player-driven loop:
   "BLOCKER U2 … not implemented" comments remain accurate.
 - **ARCH-SYS-009 JobPlanner** — **nothing creates jobs.** READY_06 item 1 answers
   this with eight EARS contracts; none are built yet.
-- **ARCH-SYS-011/012 Navigation and Movement** — no pathfinder, no Transform
-  store. A job cannot progress past `RESERVED`.
+- **ARCH-SYS-011/012 Navigation and Movement** — **partly built, 2026-09-11.** Task
+  05.1a's ground slice landed `spatial_world.gd`, `navigation.gd`, `transforms.gd`
+  and `movement.gd`: the ARCH-PATH-001–005 surface graph, generation-safe ground
+  contacts, integer Transform storage with previous state, and remainder-retaining
+  30 Hz motion, with their suites. **A job still cannot progress past `RESERVED`**:
+  `RESERVED → TRAVEL → WORK` is deliberately unwired, pending starter profiles,
+  real services and work-unit context (READY_07 §1.2). See the
+  [entry artifact](planning/movement_ground_slice_entry.md) and
+  [decision 0053](decisions/0053-movement-ground-slice-identity-and-storage.md)
+  for what it does and does not claim; no MOVE gate is closed.
 
 **Separate reproducibility/persistence gap:** ARCH-SYS-022 CheckpointHash has no
 save stream. This blocks full save/replay evidence, but is not a prerequisite to

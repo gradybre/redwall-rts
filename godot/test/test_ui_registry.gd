@@ -8,6 +8,7 @@ extends "res://test/framework/test_case.gd"
 ## every size kind.
 
 const UiRegistry := preload("res://scripts/ui/ui_registry.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 
 ## §4's element count and id range, stated independently.
 const EXPECTED_ELEMENT_COUNT: int = 103
@@ -204,3 +205,229 @@ func test_interactivity_follows_the_profile_rather_than_the_element_name() -> vo
 	assert_true(_registry.is_interactive(75), "the search FIELD is interactive")
 	assert_false(_registry.is_interactive(1), "the resource cluster PANEL is not itself a control")
 	assert_false(_registry.is_interactive(24), "the selection ring OVERLAY is not a control")
+
+
+# --- §4's activation column: what a row opens ------------------------------------------------------
+#
+# UXV-004 and UXV-005. §4.1 gives UI-SET-031 "ALWAYS; opens roster rows 069" and §4.3 gives
+# UI-SET-087 "F6/accessible mode". Those are two different controls opening two different things,
+# and the rows are quoted here independently of `ui_registry.gd` so a swapped table disagrees
+# with this file rather than with itself.
+
+## Opener, opened element, surface -- transcribed from §4 by hand for this suite.
+const QUOTED_OPENINGS: Array = [
+	[31, 69, UiRegistry.SURFACE_WORKSPACE],   # "ALWAYS; opens roster rows 069"
+	[27, 52, UiRegistry.SURFACE_WORKSPACE],   # "ALWAYS; opens 052"
+	[29, 70, UiRegistry.SURFACE_WORKSPACE],   # "ALWAYS; opens 070"
+	[30, 60, UiRegistry.SURFACE_WORKSPACE],   # "ALWAYS; opens 060"
+	[19, 78, UiRegistry.SURFACE_MODAL],       # "ALWAYS; opens 078 menu variant; adds MENU"
+	[98, 82, UiRegistry.SURFACE_MODAL],       # "resident pin opens 082"
+	[28, 59, UiRegistry.SURFACE_WORLD_TOOL],  # "ALWAYS; opens 059"
+	[22, 96, UiRegistry.SURFACE_QUICK_MENU],  # "ALWAYS; opens layers in 096"
+	[8, 9, UiRegistry.SURFACE_EXPANSION],     # "ALWAYS; toggle 009"
+	[102, 12, UiRegistry.SURFACE_EXPANSION],  # "ALWAYS, even when no alerts; activates 012"
+]
+
+
+func test_the_residents_command_opens_the_roster_and_not_the_world_access_list() -> void:
+	"""§4.1: UI-SET-031 is "ALWAYS; opens roster rows 069". 087 is a different control."""
+	assert_equal(_registry.opens_element(31).value, 69,
+		"the Residents command opens the resident roster")
+	assert_true(_registry.opens_element(31).value != 87,
+		"and never the world access list")
+	assert_equal(_registry.opens_surface(31).value, UiRegistry.SURFACE_WORKSPACE,
+		"the roster is a workspace, per UI-SET-069's WORKSPACE gate")
+
+
+func test_no_element_opens_the_world_access_list_because_f6_does() -> void:
+	"""§4.3 gates UI-SET-087 on "F6/accessible mode" -- a key, not a command button."""
+	for opener: int in range(FIRST_ID, LAST_ID + 1):
+		var opened: IntMath.IntResult = _registry.opens_element(opener)
+		if not opened.ok:
+			continue
+		assert_true(opened.value != UiRegistry.ACCESS_MODE_ID,
+			"UI-SET-%03d must not open the world access list" % opener)
+	assert_false(_registry.opens_element(87).ok, "and 087 itself opens nothing further")
+
+
+func test_every_quoted_opening_matches_the_specification() -> void:
+	"""Each §4 activation phrase names the element it opens and the surface class it is."""
+	for row: Array in QUOTED_OPENINGS:
+		assert_equal(_registry.opens_element(row[0]).value, row[1],
+			"UI-SET-%03d opens UI-SET-%03d" % [row[0], row[1]])
+		assert_equal(_registry.opens_surface(row[0]).value, row[2],
+			"UI-SET-%03d opens a %s" % [row[0], UiRegistry.SURFACE_KEYS[row[2]]])
+
+
+func test_a_row_that_opens_nothing_refuses_rather_than_answering_zero() -> void:
+	"""§4 has no element zero, so "opens nothing" cannot be reported as "opens element 0"."""
+	assert_false(_registry.opens_element(2).ok, "a counter opens no numbered element")
+	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_OPENS_NOTHING, "with OPENS_NOTHING")
+	assert_false(_registry.opens_surface(104).ok, "and an id past the end is unknown")
+	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_UNKNOWN_ID, "with UNKNOWN_ID")
+
+
+# --- UXV-005: the two explicit UI-SET-051 variants -------------------------------------------------
+
+func test_the_centre_frame_has_exactly_the_two_variants_section_four_names() -> void:
+	"""§4.2 gates UI-SET-051 "WORKSPACE or MODAL"; a caller must name which one it wants."""
+	assert_equal(_registry.frame_variant_for(31).value, UiRegistry.FRAME_VARIANT_WORKSPACE,
+		"the Residents command asks for the workspace variant")
+	assert_equal(_registry.frame_variant_for(19).value, UiRegistry.FRAME_VARIANT_MODAL,
+		"the menu button asks for the modal variant")
+	assert_true(_registry.opens_centre_frame(27), "the build command opens the centre frame")
+
+
+func test_a_tool_or_expansion_opener_is_refused_a_centre_frame() -> void:
+	"""A zone brush is a bottom-centre tool strip; giving it a centre frame invents a surface."""
+	assert_false(_registry.frame_variant_for(28).ok, "the zone command opens no centre frame")
+	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_NO_CENTRE_FRAME, "with NO_CENTRE_FRAME")
+	assert_false(_registry.opens_centre_frame(8), "nor does the resource expander")
+	assert_false(_registry.opens_centre_frame(22), "nor the minimap layer button")
+
+
+func test_no_selection_gated_row_opens_a_centre_workspace() -> void:
+	"""Ordinary selection may open a MODAL -- UI-SET-082 is one -- but never a workspace."""
+	var selection_openers: int = 0
+	for opener: int in range(FIRST_ID, LAST_ID + 1):
+		if _registry.gate_of(opener).value != UiRegistry.GATE_SELECTED:
+			continue
+		var surface: IntMath.IntResult = _registry.opens_surface(opener)
+		if not surface.ok:
+			continue
+		selection_openers += 1
+		assert_true(surface.value != UiRegistry.SURFACE_WORKSPACE,
+			"UI-SET-%03d is SELECTED and must not open a centre workspace" % opener)
+	assert_true(selection_openers > 0, "at least one SELECTED row does open something")
+	assert_equal(_registry.frame_variant_for(98).value, UiRegistry.FRAME_VARIANT_MODAL,
+		"the resident pin opens UI-SET-082, which §4.3 gives the MODAL profile")
+
+
+# --- UXV-032: long content wraps or scrolls, and never shrinks --------------------------------------
+
+func test_the_overflow_policies_are_only_grow_and_scroll() -> void:
+	"""§1.3 rules out the alternatives by name, so no third policy value exists to select."""
+	assert_equal(UiRegistry.OVERFLOW_COUNT, 2, "there are two policies and no truncating third")
+	for id: int in range(FIRST_ID, LAST_ID + 1):
+		var policy: IntMath.IntResult = _registry.overflow_policy_of(id)
+		assert_true(policy.ok and policy.value >= 0 and policy.value < UiRegistry.OVERFLOW_COUNT,
+			"UI-SET-%03d states a legal overflow policy" % id)
+
+
+func test_panels_and_modals_scroll_while_rows_and_readouts_grow() -> void:
+	"""§1.3: "Large text: Scroll panels vertically"; "Long labels: ... expand row height"."""
+	assert_equal(_registry.overflow_policy_of(51).value, UiRegistry.OVERFLOW_SCROLL,
+		"the workspace/modal frame scrolls")
+	assert_equal(_registry.overflow_policy_of(9).value, UiRegistry.OVERFLOW_SCROLL,
+		"the resource ledger panel scrolls")
+	assert_equal(_registry.overflow_policy_of(69).value, UiRegistry.OVERFLOW_GROW,
+		"a resident row grows instead")
+	assert_equal(_registry.overflow_policy_of(2).value, UiRegistry.OVERFLOW_GROW,
+		"and so does a readout counter")
+
+
+## §2.1: "Body 16/400/TEXT, line height 1.35" -- 16 x 1.35 rounded up, stated independently.
+const BODY_LINE_HEIGHT: int = 22
+
+
+func test_a_thirty_two_character_name_grows_its_row_without_reaching_the_maximum() -> void:
+	"""§4.3 caps a resident name at 32 characters, and UI-SET-037 is the title that prints it.
+
+	§1.3: "Long labels: Wrap to 2 lines within fixed-height cells only if font>=16; otherwise
+	expand row height; never truncate". So the second line must make the row taller and must
+	still fit inside §4's own maximum, which is what "without clipping" means here.
+	"""
+	var one_line: int = _registry.grown_height_of(37, 1, BODY_LINE_HEIGHT).value
+	var two_lines: int = _registry.grown_height_of(37, 2, BODY_LINE_HEIGHT).value
+	assert_true(two_lines > one_line, "wrapping a 32-character name makes the title taller")
+	_size.reset()
+	assert_true(_registry.size_into(37, _size), "the detail title has a fixed range")
+	assert_true(two_lines < _size.max_height,
+		"and the grown title is inside §4's own maximum, so nothing is clipped")
+	assert_true(one_line >= _size.min_height, "a single line never shrinks below the minimum")
+	assert_true(BODY_LINE_HEIGHT >= UiRegistry.WRAP_MINIMUM_FONT_PX,
+		"§1.3 only allows the wrap at all because the body font is at least 16")
+
+
+func test_growing_refuses_a_font_below_the_fourteen_pixel_floor() -> void:
+	"""§2.1: "Minimum rendered font size 14 logical pixels"; §1.3 has no shrink fallback."""
+	assert_false(_registry.grown_height_of(69, 2, UiRegistry.MINIMUM_FONT_PX - 1).ok,
+		"a 13 px line height is refused rather than used to make the text fit")
+	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_NEGATIVE_TEXT, "with NEGATIVE_TEXT")
+	assert_true(_registry.grown_height_of(69, 2, UiRegistry.MINIMUM_FONT_PX).ok,
+		"the floor itself is accepted")
+	assert_false(_registry.grown_height_of(69, 0, 22).ok, "and zero lines is not a measurement")
+
+
+func test_a_scrolling_container_refuses_to_grow_a_row() -> void:
+	"""A panel scrolls its body; growing it instead would push its footer off the bottom."""
+	assert_false(_registry.grown_height_of(51, 8, 22).ok, "the modal frame does not grow")
+	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_DOES_NOT_GROW, "with DOES_NOT_GROW")
+
+
+func test_a_modal_body_leaves_the_sixty_pixel_confirmation_footer_uncovered() -> void:
+	"""§2.2: "Modal body height scrolls independently of its 60 px confirmation footer"."""
+	_size.reset()
+	assert_true(_registry.size_into(103, _size), "UI-SET-103 has a fixed range")
+	var body: int = _registry.body_height_of(103).value
+	assert_equal(body, _size.max_height - UiRegistry.CONFIRMATION_FOOTER_PX,
+		"the scrolling body stops 60 px above the bottom")
+	assert_true(body + UiRegistry.CONFIRMATION_FOOTER_PX <= _size.max_height,
+		"so the Confirm and Cancel row is never covered by content")
+	assert_false(_registry.body_height_of(69).ok, "a resident row has no confirmation footer")
+	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_NOT_A_MODAL, "with NOT_A_MODAL")
+
+
+# --- UXV-032: a long refusal and larger text scroll, and never shrink or clip -----------------------
+
+## §2.1's body line height at the three §1.2 user scales: 16 x 1.35 at 100%, 125% and 150%.
+const LINE_HEIGHT_AT_SCALE: Array[int] = [22, 27, 33]
+## A refusal long enough to overflow UI-SET-085's own maximum at body size.
+const LONG_REFUSAL_LINES: int = 30
+
+
+func test_a_long_refusal_scrolls_its_panel_rather_than_being_clipped() -> void:
+	"""§1.3: "Localization overflow: Content grows/scrolls; no auto shorten ... critical condition"."""
+	_size.reset()
+	assert_true(_registry.size_into(85, _size), "the error panel has a fixed range")
+	var tall: int = LONG_REFUSAL_LINES * LINE_HEIGHT_AT_SCALE[0]
+	assert_true(tall > _size.max_height, "a 30-line refusal is taller than UI-SET-085's maximum")
+	assert_true(_registry.overflow_needs_scroll(85, LONG_REFUSAL_LINES, LINE_HEIGHT_AT_SCALE[0]),
+		"so the panel scrolls")
+	assert_false(_registry.overflow_needs_scroll(85, 4, LINE_HEIGHT_AT_SCALE[0]),
+		"a short refusal needs no scroll at all")
+
+
+func test_larger_text_scrolls_instead_of_shrinking_the_font() -> void:
+	"""§1.3: "Large text: Scroll panels vertically ...; no reduced font size fallback"."""
+	for index: int in LINE_HEIGHT_AT_SCALE.size():
+		var line_height: int = LINE_HEIGHT_AT_SCALE[index]
+		assert_true(line_height >= UiRegistry.MINIMUM_FONT_PX,
+			"scale %d keeps the 14 px floor" % index)
+		assert_true(_registry.grown_height_of(37, 2, line_height).ok,
+			"a two-line title is measurable at scale %d" % index)
+	assert_false(_registry.overflow_needs_scroll(37, 2, LINE_HEIGHT_AT_SCALE[0]),
+		"at 100% the wrapped 32-character name fits UI-SET-037")
+	assert_true(_registry.overflow_needs_scroll(37, 2, LINE_HEIGHT_AT_SCALE[2]),
+		"at 150% it no longer fits, so the owner scrolls rather than reducing the font")
+
+
+func test_the_grown_height_never_falls_below_the_row_minimum_at_any_scale() -> void:
+	"""Clamping downwards would be a shrink by another name."""
+	for id: int in [2, 37, 69, 85]:
+		_size.reset()
+		assert_true(_registry.size_into(id, _size), "UI-SET-%03d has a fixed range" % id)
+		for line_height: int in LINE_HEIGHT_AT_SCALE:
+			var grown: int = _registry.grown_height_of(id, 1, line_height).value
+			assert_true(grown >= _size.min_height,
+				"UI-SET-%03d stays at or above its minimum at %d px" % [id, line_height])
+
+
+func test_scroll_is_refused_for_a_measurement_the_specification_forbids() -> void:
+	"""A sub-14 px line height is not a smaller answer; it is not an answer."""
+	assert_false(_registry.overflow_needs_scroll(85, 4, UiRegistry.MINIMUM_FONT_PX - 1),
+		"a 13 px line is refused")
+	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_NEGATIVE_TEXT, "with NEGATIVE_TEXT")
+	assert_false(_registry.overflow_needs_scroll(23, 4, LINE_HEIGHT_AT_SCALE[0]),
+		"and a row §4 sizes at runtime has no maximum to overflow")
+	assert_equal(_registry.last_refusal(), UiRegistry.REFUSE_SIZE_NOT_FIXED, "with SIZE_NOT_FIXED")

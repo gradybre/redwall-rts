@@ -62,6 +62,11 @@ const REFUSE_UNKNOWN_LAYER: StringName = &"UI_UNKNOWN_HIT_LAYER"
 const REFUSE_NEGATIVE_SIZE: StringName = &"UI_NEGATIVE_REGION_SIZE"
 const REFUSE_NO_REGION: StringName = &"UI_NO_REGION_AT_POINT"
 const REFUSE_INVALID_INDEX: StringName = &"UI_INVALID_REGION_INDEX"
+const REFUSE_ELEMENT_ABSENT: StringName = &"UI_ELEMENT_HAS_NO_CONTROL"
+
+## No SCRIM is up. §3 gives the scrim to layer 80 and above; layer 0 is the world, which cannot
+## be a scrim, so this is not an in-band value.
+const NO_SCRIM: int = -1
 
 # --- packed region columns ----------------------------------------------------------------------
 
@@ -75,6 +80,8 @@ var _height: PackedFloat32Array = PackedFloat32Array()
 
 var _count: int = 0
 var _last_refusal: StringName = REFUSE_NONE
+## The layer of the open SCRIM, or NO_SCRIM. §3 layer 80: "SCRIM blocks background".
+var _scrim_layer: int = NO_SCRIM
 
 
 func _init() -> void:
@@ -90,8 +97,9 @@ func _init() -> void:
 
 
 func reset() -> void:
-	"""Drop every registered region without freeing a column. Allocates nothing."""
+	"""Drop every registered region and lower any scrim, without freeing a column."""
 	_count = 0
+	_scrim_layer = NO_SCRIM
 	_last_refusal = REFUSE_NONE
 
 
@@ -140,6 +148,8 @@ func _consuming_region_at(point: Vector2) -> int:
 	for index: int in _count:
 		if _consumes[index] == 0:
 			continue
+		if _layer[index] < _scrim_layer:
+			continue
 		if not _contains(index, point):
 			continue
 		if best == -1 or _layer[index] >= _layer[best]:
@@ -153,8 +163,49 @@ func consumes_point(point: Vector2) -> bool:
 
 
 func world_receives(point: Vector2) -> bool:
-	"""§1.2's click-through question: does this point reach the 3D world?"""
+	"""§1.2's click-through question: does this point reach the 3D world?
+
+	False everywhere while a SCRIM is up. §3 gives layer 80 "SCRIM blocks background" and
+	REQ-UX-003 forbids background selection or construction changes while a modal is open, so a
+	click on bare world next to an open dialog is a click on the scrim, not an order.
+	"""
+	if _scrim_layer != NO_SCRIM:
+		return false
 	return _consuming_region_at(point) == -1
+
+
+func raise_scrim(layer: int) -> bool:
+	"""Put §3's SCRIM up at one layer. Every region below it stops receiving points."""
+	if not is_layer(layer):
+		return _refuse(REFUSE_UNKNOWN_LAYER)
+	_scrim_layer = layer
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func lower_scrim() -> void:
+	"""Take the SCRIM down. The background becomes clickable again in the same layer order."""
+	_scrim_layer = NO_SCRIM
+
+
+func scrim_is_up() -> bool:
+	"""True while a modal SCRIM is blocking the background."""
+	return _scrim_layer != NO_SCRIM
+
+
+func add_visible_region(element_id: int, rect: Rect2, layer: int, consumes: bool,
+		creates_control: bool) -> bool:
+	"""Register a region only for an element that has a Control, refusing when it has none.
+
+	The refusal is the point. §4's Gate is evaluated before availability, and an element whose
+	gate is unsatisfied has no Control at all -- so it must not be able to acquire an input
+	rectangle by a caller that forgot, any more than it could acquire a tab stop. A hidden panel
+	that still eats world clicks is the exact failure §1.2 calls "actual visible input
+	rectangles" to prevent.
+	"""
+	if not creates_control:
+		return _refuse(REFUSE_ELEMENT_ABSENT)
+	return add_region(element_id, rect, layer, consumes)
 
 
 func element_at(point: Vector2) -> IntMath.IntResult:

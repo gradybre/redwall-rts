@@ -4,18 +4,38 @@ extends RefCounted
 ## Task 04.4, bullet 2, closes with a rule this file exists to keep: "The generic rendered shell
 ## cannot claim unbuilt panels work." A registry of 103 elements makes that easy to violate --
 ## drawing a plausible empty panel for a store that does not exist reads, to a player and to a
-## reviewer, exactly like a working one. So every element is in one of two states here and there
-## is no third:
+## reviewer, exactly like a working one.
 ##
-##   WIRED        the shell builds it, it reads or writes real state, and its suite proves it.
-##   UNAVAILABLE  the shell builds it DISABLED, with §2.2's "Unavailable" wording plus the name
-##                of the missing owner, and no control inside it can be activated.
+## `REASON_OF` below is that claim: WIRED means this shell drives the element from real state,
+## and anything else names the exact store, codec or contract it is waiting on.
 ##
-## §2.2 already specifies that rendering: "disabled MUTED text with 'Unavailable' reason" for
-## PANEL, "disabled PANEL/MUTED+lock icon" for BUTTON, "disabled MUTED+'Unavailable'" for
-## READOUT. An unavailable element is therefore still VISIBLE and still in the catalog -- §4's
-## gate rules say "A locked M-gated control remains visible in its catalog with the GDD milestone
-## condition" -- it is simply never mistakable for a working one.
+## ---------------------------------------------------------------------------------------
+## THE CLAIM IS ONE AXIS OF FOUR STATES, NOT THE WHOLE ANSWER. Collapsing a §4 row to "hidden
+## or greyed" loses three distinctions the specification makes, so `state_of()` returns one of:
+##
+##   ABSENT       §4's Gate is not satisfied. NO Control is created: no focus stop, no
+##                accessibility node and no input rectangle. This is the state a hidden panel
+##                has, and it is decided BEFORE the claim below is ever consulted.
+##   LOCKED       an M-gated row whose milestone is not reached. §4: "A locked M-gated control
+##                remains visible in its catalog with the GDD milestone condition; it is hidden
+##                from quick commands until unlocked" -- so this state is view-dependent, and
+##                REQ-SET-166 requires the underlying rule be inspectable rather than concealed.
+##   UNAVAILABLE  visible, not operable, and carrying §2.2's "Unavailable" wording plus the
+##                named missing owner. §2.2 gives the rendering: "disabled MUTED text with
+##                'Unavailable' reason" for PANEL, "disabled PANEL/MUTED+lock icon" for BUTTON.
+##   AVAILABLE    visible and driven by real state.
+##
+## ---------------------------------------------------------------------------------------
+## VISIBILITY IS EVALUATED BEFORE AVAILABILITY, AND THAT ORDER IS THE CONTRACT. Asking "is this
+## store missing?" first and hiding the control afterwards produces the same pixels and a
+## different program: the Control was built, took a tab stop, announced itself to a screen
+## reader and registered an input rectangle before anything hid it. `state_of()` therefore tests
+## §4's Gate first and returns ABSENT without reading `REASON_OF` at all.
+##
+## ---------------------------------------------------------------------------------------
+## AN ALWAYS-GATED ROW IS NEVER ABSENT. §4 gives those rows no condition to fail, so an unbuilt
+## one stays discoverable as UNAVAILABLE with a COMPACT reason a focused row can print, rather
+## than disappearing or opening a full-size page about its own absence.
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE REASONS NAME OWNERS, NOT MOODS. "Not implemented" is not a reason a player or the next
@@ -73,6 +93,31 @@ const REASON_KEYS: Array[StringName] = [
 
 ## §2.2's disabled wording. Every unavailable element's accessible description starts with it.
 const UNAVAILABLE_WORD: String = "Unavailable"
+
+## The longest compact reason §1.3 will let an always-visible row print without growing past two
+## wrapped lines. A reason longer than this belongs in the inspection panel, not on the row.
+const COMPACT_REASON_LIMIT: int = 40
+
+## One short phrase per reason, for the focus announcement and the row itself. §2.2 requires a
+## locked control to "explain unlock requirements WITHOUT REQUIRING HOVER" and §4 forbids a
+## full-size unavailable page, so the row prints THIS and the long sentence stays in inspection.
+const COMPACT_TEXTS: Array[String] = [
+	"",
+	"needs the Building store (task 06)",
+	"needs the movement store (task 05)",
+	"needs the save codec (task 09)",
+	"needs the ManualTask store",
+	"no system supplies heating demand",
+	"needs the recipe order store",
+	"needs settings persistence",
+	"needs milestone state",
+	"needs the immigration queue",
+	"needs tutorial state",
+	"needs the forecast model",
+	"panel not built this milestone",
+	"no camera is bound",
+	"needs the notice history store",
+]
 
 const REASON_TEXTS: Array[String] = [
 	"",
@@ -201,10 +246,137 @@ const REASON_OF: Array[int] = [
 	REASON_WIRED,                     # 103 New settlement
 ]
 
+# --- the four states ------------------------------------------------------------------------------
+
+## §4's Gate is not satisfied. No Control, no focus stop, no accessibility node, no input rect.
+const STATE_ABSENT: int = 0
+## Visible in its catalog, not operable, showing the GDD milestone condition it is waiting for.
+const STATE_LOCKED: int = 1
+## Visible, not operable, showing §2.2's "Unavailable" wording and the named missing owner.
+const STATE_UNAVAILABLE: int = 2
+## Visible and driven by real state.
+const STATE_AVAILABLE: int = 3
+const STATE_COUNT: int = 4
+
+const STATE_KEYS: Array[StringName] = [&"ABSENT", &"LOCKED", &"UNAVAILABLE", &"AVAILABLE"]
+
+# --- the two views §4 distinguishes -----------------------------------------------------------------
+
+## §4: "A locked M-gated control remains visible in its CATALOG with the GDD milestone condition".
+const VIEW_CATALOG: int = 0
+## §4: "...it is hidden from QUICK COMMANDS until unlocked."
+const VIEW_QUICK_COMMANDS: int = 1
+const VIEW_COUNT: int = 2
+
+# --- tri-state facts the shell supplies -------------------------------------------------------------
+
+## The owning store does not exist, so the gate's real state cannot be read. NOT a false.
+const FACT_UNKNOWN: int = 0
+const FACT_MET: int = 1
+const FACT_NOT_MET: int = 2
+
+## `Gates.milestone` when no milestone or Hearth Charter progression state exists yet.
+const MILESTONE_UNKNOWN: int = -1
+const MILESTONE_M0: int = 0
+const MILESTONE_M1: int = 1
+const MILESTONE_M2: int = 2
+const MILESTONE_M3: int = 3
+
+## The GDD's own condition for each M gate, quoted from its milestone table. A locked control
+## prints the condition it is waiting on, which is what REQ-SET-166 and UX-T11 ask for.
+const MILESTONE_CONDITIONS: Array[String] = [
+	"",
+	"M1 Settled Hearth: day 4 or later, at least 12 residents, 200 portions prepared",
+	"M2 Abundance: population 48 or more, survive the first winter, master 3 recipes",
+	"M3 Deep Roots: population 80 or more, year 2 or later, food-days 8 or more",
+]
+
+# --- what this milestone actually creates a Control for -----------------------------------------------
+#
+# §4 defines 103 elements. Expanding all of them into disabled on-screen panels would be a
+# different and worse lie than omitting them: a screen of scaffolding no owner has designed. So
+# this milestone RENDERS the sixty ids below -- task 04.4's own surfaces plus the child templates
+# those surfaces require -- and every other row exists only as a specification entry.
+
+const RENDERED_IDS: Array[int] = [
+	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+	21, 22, 23, 26, 27, 28, 29, 30, 31, 32, 33, 36, 37, 38, 39, 40, 51, 59, 62, 66,
+	67, 69, 73, 74, 75, 82, 85, 86, 87, 89, 90, 92, 93, 94, 96, 98, 100, 101, 102, 103,
+]
+
+# --- the value axis, which is NOT the availability axis -------------------------------------------
+#
+# A counter reading "0" and a counter reading "--" are different claims, and four situations get
+# collapsed into one if nobody names them. Only TRUE_ZERO has a figure to print; the other three
+# refuse, each with its own code, so a caller cannot turn "nothing is selected" into a zero.
+
+## The store exists, was read, and the answer really is zero.
+const VALUE_TRUE_ZERO: int = 0
+## Nothing is selected, so there is no subject to report a figure about.
+const VALUE_NO_SELECTION: int = 1
+## The store exists but no world has populated it yet.
+const VALUE_UNINITIALIZED: int = 2
+## No owning store exists at all; the feature is not built.
+const VALUE_UNSUPPORTED: int = 3
+const VALUE_COUNT: int = 4
+
+const VALUE_KEYS: Array[StringName] = [
+	&"UI_VALUE_TRUE_ZERO", &"UI_VALUE_NO_SELECTION",
+	&"UI_VALUE_UNINITIALIZED", &"UI_VALUE_UNSUPPORTED",
+]
+
 const REFUSE_NONE: StringName = &""
 const REFUSE_UNKNOWN_ID: StringName = &"UI_UNKNOWN_ELEMENT_ID"
 const REFUSE_UNKNOWN_REASON: StringName = &"UI_UNKNOWN_UNAVAILABLE_REASON"
 const REFUSE_ELEMENT_IS_WIRED: StringName = &"UI_ELEMENT_IS_WIRED"
+const REFUSE_UNKNOWN_VIEW: StringName = &"UI_UNKNOWN_VIEW"
+const REFUSE_UNKNOWN_VALUE_KIND: StringName = &"UI_UNKNOWN_VALUE_KIND"
+const REFUSE_VALUE_IS_A_FIGURE: StringName = &"UI_VALUE_IS_A_REAL_FIGURE"
+const REFUSE_NOT_LOCKED: StringName = &"UI_ELEMENT_IS_NOT_MILESTONE_LOCKED"
+const REFUSE_NOT_RENDERED: StringName = &"UI_ELEMENT_NOT_RENDERED_THIS_MILESTONE"
+
+
+class Gates:
+	"""The runtime facts §4's Gate column is evaluated against. Sized once, never per frame."""
+
+	## Which of §4's two views is being built: the catalog, or the quick command strip.
+	var view: int = VIEW_CATALOG
+	## SELECTED gates: is anything selected at all?
+	var has_selection: bool = false
+	## WORLD_TOOL gates: is a placement, zone or room stroke in progress?
+	var world_tool_active: bool = false
+	## TUTORIAL gates: is tutorial disclosure running?
+	var tutorial_active: bool = false
+	## The highest milestone reached, or MILESTONE_UNKNOWN when no progression state exists.
+	var milestone: int = MILESTONE_UNKNOWN
+	## 1 for each element whose owning workspace or modal surface is currently open.
+	var surface_open: PackedByteArray = PackedByteArray()
+	## FACT_UNKNOWN / FACT_MET / FACT_NOT_MET per CONDITION-gated element.
+	var condition: PackedByteArray = PackedByteArray()
+
+	func _init() -> void:
+		"""Size both columns to §4's registry once. Nothing after this resizes one."""
+		surface_open.resize(UiRegistry.ELEMENT_COUNT)
+		condition.resize(UiRegistry.ELEMENT_COUNT)
+
+	func reset() -> void:
+		"""Close every surface and forget every condition without freeing a column."""
+		surface_open.fill(0)
+		condition.fill(FACT_UNKNOWN)
+		has_selection = false
+		world_tool_active = false
+		tutorial_active = false
+
+	func set_surface_open(id: int, open: bool) -> void:
+		"""Mark one element's owning workspace or modal surface open or closed."""
+		if UiRegistry.is_element(id):
+			surface_open[id - UiRegistry.FIRST_ID] = 1 if open else 0
+
+	func set_condition(id: int, fact: int) -> void:
+		"""Record a CONDITION gate's tri-state fact for one element."""
+		if UiRegistry.is_element(id) and fact >= FACT_UNKNOWN and fact <= FACT_NOT_MET:
+			condition[id - UiRegistry.FIRST_ID] = fact
+
 
 var _last_refusal: StringName = REFUSE_NONE
 
@@ -222,6 +394,25 @@ func _assert_contracts() -> void:
 		"every reason must have both a stable key and a player-readable sentence")
 	for reason: int in REASON_OF:
 		assert(reason >= 0 and reason < REASON_COUNT, "an element claims an undefined reason")
+	_assert_state_contracts()
+
+
+func _assert_state_contracts() -> void:
+	"""The four states, the compact phrases and the render set, checked before anything reads one."""
+	assert(STATE_KEYS.size() == STATE_COUNT and VALUE_KEYS.size() == VALUE_COUNT,
+		"every state and value kind must be named")
+	assert(COMPACT_TEXTS.size() == REASON_COUNT,
+		"every reason must have a compact phrase as well as a full sentence")
+	assert(MILESTONE_CONDITIONS.size() == MILESTONE_M3 + 1,
+		"every M gate must carry the GDD condition it is waiting on")
+	for index: int in range(1, REASON_COUNT):
+		assert(COMPACT_TEXTS[index].length() <= COMPACT_REASON_LIMIT,
+			"a compact reason must fit a focused row rather than opening a page")
+		assert(not COMPACT_TEXTS[index].is_empty(), "a compact reason must name something")
+	for id: int in RENDERED_IDS:
+		assert(UiRegistry.is_element(id), "the render set names an element §4 does not define")
+	assert(RENDERED_IDS.size() < UiRegistry.ELEMENT_COUNT,
+		"the registry must never be expanded wholesale into rendered panels")
 
 
 static func is_reason(reason: int) -> bool:
@@ -309,6 +500,189 @@ func count_with_reason(reason: int) -> IntMath.IntResult:
 			total += 1
 	_last_refusal = REFUSE_NONE
 	return IntMath.IntResult.new(true, total)
+
+
+# --- visibility first, availability second ----------------------------------------------------------
+
+func is_visible(id: int, gates: Gates) -> bool:
+	"""Is §4's Gate satisfied? Asked BEFORE anything looks at whether the element works.
+
+	This function never reads `REASON_OF`. That is the whole ordering contract: a gate that is
+	not satisfied means no Control exists, so there is nothing for an availability reason to
+	describe, and nothing to take a tab stop, announce itself or claim an input rectangle.
+	"""
+	if not UiRegistry.is_element(id):
+		_refuse(REFUSE_UNKNOWN_ID)
+		return false
+	_last_refusal = REFUSE_NONE
+	return _gate_satisfied(id, UiRegistry.GATES[id - UiRegistry.FIRST_ID], gates)
+
+
+func _gate_satisfied(id: int, gate: int, gates: Gates) -> bool:
+	"""One §4 Gate value against the runtime facts. Pure; reads no availability claim."""
+	match gate:
+		UiRegistry.GATE_ALWAYS:
+			return true
+		UiRegistry.GATE_SELECTED:
+			return gates.has_selection
+		UiRegistry.GATE_WORLD_TOOL:
+			return gates.world_tool_active
+		UiRegistry.GATE_TUTORIAL:
+			return gates.tutorial_active
+		UiRegistry.GATE_WORKSPACE, UiRegistry.GATE_MODAL:
+			return gates.surface_open[id - UiRegistry.FIRST_ID] == 1
+		UiRegistry.GATE_M1, UiRegistry.GATE_M2, UiRegistry.GATE_M3:
+			return _milestone_visible(gate, gates)
+		_:
+			return gates.condition[id - UiRegistry.FIRST_ID] != FACT_NOT_MET
+
+
+func _milestone_visible(gate: int, gates: Gates) -> bool:
+	"""§4: a locked M-gated control stays in its catalog and leaves the quick commands."""
+	if gates.view == VIEW_CATALOG:
+		return true
+	return _milestone_reached(gate, gates)
+
+
+func _milestone_reached(gate: int, gates: Gates) -> bool:
+	"""Has the milestone behind an M gate been reached? Unknown progression is never 'yes'."""
+	if gates.milestone == MILESTONE_UNKNOWN:
+		return false
+	return gates.milestone >= gate - UiRegistry.GATE_M1 + MILESTONE_M1
+
+
+func state_of(id: int, gates: Gates) -> IntMath.IntResult:
+	"""The element's single state under these gates: ABSENT, LOCKED, UNAVAILABLE or AVAILABLE.
+
+	The order is fixed and load-bearing. Visibility is decided first and short-circuits; only a
+	visible element is asked about its milestone, and only an unlocked visible element is asked
+	whether this shell drives it.
+	"""
+	if not UiRegistry.is_element(id):
+		_refuse(REFUSE_UNKNOWN_ID)
+		return IntMath.IntResult.new(false, 0)
+	if not is_visible(id, gates):
+		_last_refusal = REFUSE_NONE
+		return IntMath.IntResult.new(true, STATE_ABSENT)
+	if _is_milestone_locked(id, gates):
+		_last_refusal = REFUSE_NONE
+		return IntMath.IntResult.new(true, STATE_LOCKED)
+	var reason: IntMath.IntResult = reason_of(id)
+	if not reason.ok:
+		return reason
+	if reason.value != REASON_WIRED:
+		_last_refusal = REFUSE_NONE
+		return IntMath.IntResult.new(true, STATE_UNAVAILABLE)
+	_last_refusal = REFUSE_NONE
+	return IntMath.IntResult.new(true, STATE_AVAILABLE)
+
+
+func _is_milestone_locked(id: int, gates: Gates) -> bool:
+	"""True for an M-gated element whose milestone has not been reached or is not known."""
+	var gate: int = UiRegistry.GATES[id - UiRegistry.FIRST_ID]
+	if gate != UiRegistry.GATE_M1 and gate != UiRegistry.GATE_M2 and gate != UiRegistry.GATE_M3:
+		return false
+	return not _milestone_reached(gate, gates)
+
+
+func creates_control(id: int, gates: Gates) -> bool:
+	"""Whether the shell builds a Control for this element at all under these gates.
+
+	False for ABSENT and false for anything outside this milestone's render set. A control that
+	is not created has no focus stop, no accessibility node and no input rectangle, which is the
+	property this predicate exists to make checkable in one call.
+	"""
+	if not renders(id):
+		return false
+	var state: IntMath.IntResult = state_of(id, gates)
+	return state.ok and state.value != STATE_ABSENT
+
+
+func can_activate(id: int, gates: Gates) -> bool:
+	"""Whether Enter or a click may do anything. Only a visible, unlocked, wired element."""
+	var state: IntMath.IntResult = state_of(id, gates)
+	return state.ok and state.value == STATE_AVAILABLE
+
+
+func locked_condition_of(id: int, gates: Gates) -> String:
+	"""The GDD milestone condition a locked control prints, or "" after a NOT_LOCKED refusal."""
+	if not UiRegistry.is_element(id):
+		_refuse(REFUSE_UNKNOWN_ID)
+		return ""
+	if not _is_milestone_locked(id, gates):
+		_refuse(REFUSE_NOT_LOCKED)
+		return ""
+	_last_refusal = REFUSE_NONE
+	var gate: int = UiRegistry.GATES[id - UiRegistry.FIRST_ID]
+	return MILESTONE_CONDITIONS[gate - UiRegistry.GATE_M1 + MILESTONE_M1]
+
+
+# --- what this milestone renders ------------------------------------------------------------------
+
+func renders(id: int) -> bool:
+	"""True when this milestone creates a Control for the element at all."""
+	if not UiRegistry.is_element(id):
+		_refuse(REFUSE_UNKNOWN_ID)
+		return false
+	_last_refusal = REFUSE_NONE
+	return RENDERED_IDS.has(id)
+
+
+func rendered_count() -> int:
+	"""How many of §4's 103 elements this milestone builds a Control for."""
+	return RENDERED_IDS.size()
+
+
+func compact_reason_of(id: int) -> String:
+	"""The short phrase an always-visible unbuilt row prints on focus or inspection.
+
+	REFUSES for a wired element, exactly as `unavailable_label()` does, and for an element this
+	milestone never renders -- there is no row to print on, so a phrase for one would describe
+	something nobody can focus.
+	"""
+	if not renders(id):
+		_refuse(REFUSE_NOT_RENDERED)
+		return ""
+	var reason: IntMath.IntResult = reason_of(id)
+	if not reason.ok:
+		return ""
+	if reason.value == REASON_WIRED:
+		_refuse(REFUSE_ELEMENT_IS_WIRED)
+		return ""
+	_last_refusal = REFUSE_NONE
+	return COMPACT_TEXTS[reason.value]
+
+
+# --- the value axis -------------------------------------------------------------------------------
+
+static func is_value_kind(kind: int) -> bool:
+	"""True for one of the four situations a counter can be in."""
+	return kind >= 0 and kind < VALUE_COUNT
+
+
+func value_has_figure(kind: int) -> bool:
+	"""Only VALUE_TRUE_ZERO has a figure to print. The other three have a reason instead."""
+	if not is_value_kind(kind):
+		_refuse(REFUSE_UNKNOWN_VALUE_KIND)
+		return false
+	_last_refusal = REFUSE_NONE
+	return kind == VALUE_TRUE_ZERO
+
+
+func value_reason_key_of(kind: int) -> StringName:
+	"""The distinct code for a counter with no figure, refusing for a genuine zero.
+
+	Refusing for TRUE_ZERO is the point: a real zero must be printed as a number, and a caller
+	that asks this function for one is about to erase the difference.
+	"""
+	if not is_value_kind(kind):
+		_refuse(REFUSE_UNKNOWN_VALUE_KIND)
+		return &""
+	if kind == VALUE_TRUE_ZERO:
+		_refuse(REFUSE_VALUE_IS_A_FIGURE)
+		return &""
+	_last_refusal = REFUSE_NONE
+	return VALUE_KEYS[kind]
 
 
 func last_refusal() -> StringName:

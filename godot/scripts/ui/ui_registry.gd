@@ -309,11 +309,107 @@ const MAX_H: Array[int] = [
 	600, 44, 480, 72, 44, 88, 88, 44, 32, 720,
 ]
 
+# --- §4's activation column: what activating a row OPENS -----------------------------------------
+#
+# §4's last column says, row by row, what a control opens. Transcribing it is what stops an
+# ordinary selection from opening a centre workspace: §4.2 gates UI-SET-051 "WORKSPACE or MODAL",
+# two named variants, and a row that opens neither must never be given one. Only rows whose
+# activation column names a NUMERIC UI-SET id are in `OPENS` -- "opens housing" without an id is
+# left out rather than guessed at, because a guess here would be a surface nobody specified.
+
+## The row opens nothing new; it reads, edits or acts in place.
+const SURFACE_NONE: int = 0
+## §3 layer 30: "Entity detail/ledger/calendar/history", one expansion per zone.
+const SURFACE_EXPANSION: int = 1
+## §3 layer 40: "Build/recipe/roster/job/feast workspace", the UI-SET-051 WORKSPACE variant.
+const SURFACE_WORKSPACE: int = 2
+## §3 layer 50: the context quick menu.
+const SURFACE_QUICK_MENU: int = 3
+## §3 layer 80: "Confirmation/error/modal menu", the UI-SET-051 MODAL variant or a standalone.
+const SURFACE_MODAL: int = 4
+## §3 layer 10: a world tool strip or ghost. Explicitly NOT a centre frame.
+const SURFACE_WORLD_TOOL: int = 5
+const SURFACE_COUNT: int = 6
+
+const SURFACE_KEYS: Array[StringName] = [
+	&"NONE", &"EXPANSION", &"WORKSPACE", &"QUICK_MENU", &"MODAL", &"WORLD_TOOL",
+]
+
+## UI-SET-051, the one centre frame. §4.2 names it "Workspace/modal frame".
+const FRAME_ID: int = 51
+## The two variants §4.2's gate column gives UI-SET-051. FRAME_VARIANT_NONE is not a third
+## variant: it is the answer "this element opens no centre frame at all", which most rows are.
+const FRAME_VARIANT_NONE: int = 0
+const FRAME_VARIANT_WORKSPACE: int = 1
+const FRAME_VARIANT_MODAL: int = 2
+
+## UI-SET-087 World access list. §4.3 gates it "F6/accessible mode" -- a key and an accessibility
+## setting, NOT an element. `OPENS` therefore contains no row that opens it, which
+## `_assert_contracts()` proves, and no command button can reach it.
+const ACCESS_MODE_ID: int = 87
+## UI-SET-069 Resident row. §4.1 gives UI-SET-031 "ALWAYS; opens roster rows 069": the roster is
+## what the Residents command opens.
+const ROSTER_ID: int = 69
+
+## Opener id -> [opened element id, surface kind]. Each entry quotes its §4 phrase.
+const OPENS: Dictionary = {
+	8: [9, SURFACE_EXPANSION],         # 008 "ALWAYS; toggle 009"
+	18: [71, SURFACE_EXPANSION],       # 018 "opens 071 forecast"
+	19: [78, SURFACE_MODAL],           # 019 "ALWAYS; opens 078 menu variant; adds MENU"
+	22: [96, SURFACE_QUICK_MENU],      # 022 "ALWAYS; opens layers in 096"
+	27: [52, SURFACE_WORKSPACE],       # 027 "ALWAYS; opens 052"
+	28: [59, SURFACE_WORLD_TOOL],      # 028 "ALWAYS; opens 059"
+	29: [70, SURFACE_WORKSPACE],       # 029 "ALWAYS; opens 070"
+	30: [60, SURFACE_WORKSPACE],       # 030 "ALWAYS; opens 060"
+	31: [69, SURFACE_WORKSPACE],       # 031 "ALWAYS; opens roster rows 069"
+	32: [63, SURFACE_WORKSPACE],       # 032 "M1; opens 063"
+	33: [51, SURFACE_WORKSPACE],       # 033 "ALWAYS; opens progress in 051/071"
+	34: [51, SURFACE_MODAL],           # 034 "opens confirmation, never immediate destruction"
+	53: [54, SURFACE_WORLD_TOOL],      # 053 "activate placement 054"
+	98: [82, SURFACE_MODAL],           # 098 "resident pin opens 082"
+	101: [18, SURFACE_EXPANSION],      # 101 "activates 018; T shortcut"
+	102: [12, SURFACE_EXPANSION],      # 102 "activates 012; N shortcut"
+}
+
+# --- §1.3 and §2.2's overflow rules --------------------------------------------------------------
+#
+# There are exactly two policies and NEITHER of them truncates. §1.3 forbids the alternatives by
+# name: "never truncate warnings/costs", "no reduced font size fallback", "no auto shorten
+# quantity or critical condition". A CLIP or ELLIPSIS or SHRINK value does not exist in this
+# enum, so no caller can select one.
+
+## §1.3 "Long labels": "Wrap to 2 lines within fixed-height cells only if font>=16; otherwise
+## expand row height; never truncate warnings/costs".
+const OVERFLOW_GROW: int = 0
+## §1.3 "Large text": "Scroll panels vertically; fixed bottom confirmation row". §4's preamble:
+## a container bound "override[s] a maximum only by reducing available height and adding
+## internal vertical scroll; they never reduce font size or hitboxes".
+const OVERFLOW_SCROLL: int = 1
+const OVERFLOW_COUNT: int = 2
+
+const OVERFLOW_KEYS: Array[StringName] = [&"GROW", &"SCROLL"]
+
+## §2.1: "Minimum rendered font size 14 logical pixels".
+const MINIMUM_FONT_PX: int = 14
+## §2.1: "critical message body 16 minimum".
+const CRITICAL_BODY_FONT_PX: int = 16
+## §1.3: "Wrap to 2 lines within fixed-height cells only if font>=16".
+const WRAP_MINIMUM_FONT_PX: int = 16
+## §1.3's stated wrap limit inside a fixed-height cell, before the row must grow instead.
+const WRAP_MAXIMUM_LINES: int = 2
+## §2.2: "Modal body height scrolls independently of its 60 px confirmation footer".
+const CONFIRMATION_FOOTER_PX: int = 60
+
 # --- refusals -----------------------------------------------------------------------------------
 
 const REFUSE_NONE: StringName = &""
 const REFUSE_UNKNOWN_ID: StringName = &"UI_UNKNOWN_ELEMENT_ID"
 const REFUSE_SIZE_NOT_FIXED: StringName = &"UI_SIZE_IS_NOT_A_FIXED_RECTANGLE"
+const REFUSE_OPENS_NOTHING: StringName = &"UI_ELEMENT_OPENS_NO_SURFACE"
+const REFUSE_NO_CENTRE_FRAME: StringName = &"UI_ELEMENT_OPENS_NO_CENTRE_FRAME"
+const REFUSE_NOT_A_MODAL: StringName = &"UI_ELEMENT_IS_NOT_A_MODAL"
+const REFUSE_DOES_NOT_GROW: StringName = &"UI_ELEMENT_SCROLLS_RATHER_THAN_GROWING"
+const REFUSE_NEGATIVE_TEXT: StringName = &"UI_NEGATIVE_TEXT_MEASUREMENT"
 
 
 class Size:
@@ -355,6 +451,25 @@ func _assert_contracts() -> void:
 		"every zone and profile constant must be named")
 	assert(GATE_KEYS.size() == GATE_COUNT and SIZE_KIND_KEYS.size() == SIZE_KIND_COUNT,
 		"every gate and size kind must be named")
+	assert(SURFACE_KEYS.size() == SURFACE_COUNT and OVERFLOW_KEYS.size() == OVERFLOW_COUNT,
+		"every surface kind and overflow policy must be named")
+	_assert_opens_contracts()
+
+
+func _assert_opens_contracts() -> void:
+	"""§4's activation column, checked for the three ways a transcription of it can go wrong."""
+	for opener: int in OPENS:
+		var row: Array = OPENS[opener]
+		assert(is_element(opener) and is_element(row[0]),
+			"an activation row names an element §4 does not define")
+		assert(row[1] > SURFACE_NONE and row[1] < SURFACE_COUNT,
+			"an activation row names a surface kind that does not exist")
+		assert(row[0] != ACCESS_MODE_ID,
+			"§4.3 gates UI-SET-087 on F6/accessible mode, so no element may open it")
+		assert(not (GATES[opener - FIRST_ID] == GATE_SELECTED and row[1] == SURFACE_WORKSPACE),
+			"an ordinary selection must never open a centre workspace")
+	assert(OPENS[31][0] == ROSTER_ID,
+		"§4.1: UI-SET-031 is 'ALWAYS; opens roster rows 069'")
 
 
 static func is_element(id: int) -> bool:
@@ -448,6 +563,141 @@ func is_interactive(id: int) -> bool:
 	var profile: int = PROFILES[_row_of(id)]
 	return profile == PROFILE_BUTTON or profile == PROFILE_TOGGLE \
 		or profile == PROFILE_ROW or profile == PROFILE_FIELD
+
+
+func opens_element(id: int) -> IntMath.IntResult:
+	"""The §4 element this row's activation opens, or an OPENS_NOTHING refusal.
+
+	REFUSES rather than returning 0: §4 has no element zero, and "this button opens nothing"
+	is a different answer from "this button opens element zero". UI-SET-031 answers 69, the
+	roster; nothing answers 87, because §4.3 gates the world access list on F6/accessible mode.
+	"""
+	if not is_element(id):
+		_refuse(REFUSE_UNKNOWN_ID)
+		return IntMath.IntResult.new(false, 0)
+	if not OPENS.has(id):
+		_refuse(REFUSE_OPENS_NOTHING)
+		return IntMath.IntResult.new(false, 0)
+	_last_refusal = REFUSE_NONE
+	return IntMath.IntResult.new(true, OPENS[id][0])
+
+
+func opens_surface(id: int) -> IntMath.IntResult:
+	"""Which §3 surface class this row's activation opens: expansion, workspace, modal, tool."""
+	if not is_element(id):
+		_refuse(REFUSE_UNKNOWN_ID)
+		return IntMath.IntResult.new(false, 0)
+	if not OPENS.has(id):
+		_refuse(REFUSE_OPENS_NOTHING)
+		return IntMath.IntResult.new(false, 0)
+	_last_refusal = REFUSE_NONE
+	return IntMath.IntResult.new(true, OPENS[id][1])
+
+
+func frame_variant_for(id: int) -> IntMath.IntResult:
+	"""Which UI-SET-051 variant this opener asks for: WORKSPACE or MODAL.
+
+	REFUSES for every row that opens no centre frame, which is most of them. That refusal is
+	the whole point: a caller that cannot name a variant has no business building a centre
+	frame, so ordinary selection can never produce empty centre scaffolding.
+	"""
+	var surface: IntMath.IntResult = opens_surface(id)
+	if not surface.ok:
+		return surface
+	if surface.value == SURFACE_WORKSPACE:
+		_last_refusal = REFUSE_NONE
+		return IntMath.IntResult.new(true, FRAME_VARIANT_WORKSPACE)
+	if surface.value == SURFACE_MODAL:
+		_last_refusal = REFUSE_NONE
+		return IntMath.IntResult.new(true, FRAME_VARIANT_MODAL)
+	_refuse(REFUSE_NO_CENTRE_FRAME)
+	return IntMath.IntResult.new(false, 0)
+
+
+func opens_centre_frame(id: int) -> bool:
+	"""True when activating this row opens the UI-SET-051 centre frame in either variant."""
+	return frame_variant_for(id).ok
+
+
+func overflow_policy_of(id: int) -> IntMath.IntResult:
+	"""§1.3's behaviour when this row's content is longer than its rectangle.
+
+	Containers scroll and content rows grow. There is no third answer, because §1.3 rules the
+	alternatives out by name: no truncation of warnings or costs, no reduced font size fallback
+	and no auto-shortened quantity.
+	"""
+	var profile: IntMath.IntResult = profile_of(id)
+	if not profile.ok:
+		return profile
+	var scrolls: bool = profile.value == PROFILE_PANEL or profile.value == PROFILE_MODAL
+	_last_refusal = REFUSE_NONE
+	return IntMath.IntResult.new(true, OVERFLOW_SCROLL if scrolls else OVERFLOW_GROW)
+
+
+func body_height_of(id: int) -> IntMath.IntResult:
+	"""A MODAL row's scrolling body height: its maximum less §2.2's 60 px confirmation footer.
+
+	REFUSES for every non-MODAL row. §2.2 gives the fixed footer to modals only, and subtracting
+	60 px from a counter would invent a scrolling region that row does not have.
+	"""
+	var profile: IntMath.IntResult = profile_of(id)
+	if not profile.ok:
+		return profile
+	if profile.value != PROFILE_MODAL:
+		_refuse(REFUSE_NOT_A_MODAL)
+		return IntMath.IntResult.new(false, 0)
+	if SIZE_KINDS[_row_of(id)] != SIZE_FIXED:
+		_refuse(REFUSE_SIZE_NOT_FIXED)
+		return IntMath.IntResult.new(false, 0)
+	_last_refusal = REFUSE_NONE
+	return IntMath.IntResult.new(true, MAX_H[_row_of(id)] - CONFIRMATION_FOOTER_PX)
+
+
+func grown_height_of(id: int, lines: int, line_height_px: int) -> IntMath.IntResult:
+	"""§1.3's grown height for a row whose label wrapped to `lines`, clamped to §4's range.
+
+	Takes a MEASURED line count and line height from the caller rather than guessing glyph
+	widths here. REFUSES for a scrolling container, which grows no rows, and for a font below
+	§2.1's 14 px floor -- shrinking the text is the one escape §1.3 forbids outright.
+	"""
+	var policy: IntMath.IntResult = overflow_policy_of(id)
+	if not policy.ok:
+		return policy
+	if policy.value != OVERFLOW_GROW:
+		_refuse(REFUSE_DOES_NOT_GROW)
+		return IntMath.IntResult.new(false, 0)
+	if lines < 1 or line_height_px < MINIMUM_FONT_PX:
+		_refuse(REFUSE_NEGATIVE_TEXT)
+		return IntMath.IntResult.new(false, 0)
+	var row: int = _row_of(id)
+	if SIZE_KINDS[row] != SIZE_FIXED:
+		_refuse(REFUSE_SIZE_NOT_FIXED)
+		return IntMath.IntResult.new(false, 0)
+	var wanted: int = lines * line_height_px
+	_last_refusal = REFUSE_NONE
+	return IntMath.IntResult.new(true, clampi(wanted, MIN_H[row], MAX_H[row]))
+
+
+func overflow_needs_scroll(id: int, lines: int, line_height_px: int) -> bool:
+	"""True when measured content exceeds §4's maximum and the owner must scroll it instead.
+
+	§4's preamble gives the ONLY legal response to that: a container bound "override[s] a maximum
+	only by reducing available height and ADDING INTERNAL VERTICAL SCROLL; they never reduce font
+	size or hitboxes". So the answer is scroll or not-scroll, and there is no answer meaning clip,
+	ellipsize or shrink -- this module has no value that could express one.
+	"""
+	if not is_element(id):
+		_refuse(REFUSE_UNKNOWN_ID)
+		return false
+	if lines < 1 or line_height_px < MINIMUM_FONT_PX:
+		_refuse(REFUSE_NEGATIVE_TEXT)
+		return false
+	var row: int = _row_of(id)
+	if SIZE_KINDS[row] != SIZE_FIXED:
+		_refuse(REFUSE_SIZE_NOT_FIXED)
+		return false
+	_last_refusal = REFUSE_NONE
+	return lines * line_height_px > MAX_H[row]
 
 
 func last_refusal() -> StringName:

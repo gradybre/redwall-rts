@@ -15,7 +15,8 @@ for l in s[a:b].splitlines():
  c=[x.strip() for x in l.strip('|').split('|')]
  if l.startswith('|') and len(c)==6 and c[3].isdigit():allocations.append(int(c[3]))
 # Field rows: 135 at decision 0050, +5 for decision 0051's hive-service slice (35840 B).
-assert len(fields)==140 and sum(fields)==25028946
+# +1 row for decision 0055's Weather absolute-season columns (16 B).
+assert len(fields)==141 and sum(fields)==25028962
 # Decision 0050's reconciliation, reproduced from its own two constants. It is NOT re-applied to
 # the live payload: doing that a second time would double count 437632 bytes already in the rows.
 DECISION_0050_CARRIED_BEFORE=59819174
@@ -27,10 +28,12 @@ DECISION_0051_ADDED=35840
 # ResidentRouteCursor 6144. Advanced deliberately; raise these with the next allocation, never relax.
 DECISION_0053_ADDED=350208+163840+6144
 assert DECISION_0053_ADDED==520192
-assert len(allocations)==23 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED
+# Decision 0055, Weather absolute-season identity: two I64 columns.
+DECISION_0055_ADDED=16
+assert len(allocations)==23 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==60812838
-assert live==69201446 and candidate==54597254 and live+candidate==123798700
+assert payload==60812854
+assert live==69201462 and candidate==54597270 and live+candidate==123798732
 for label,value in [('Planned allocated payload',payload),('One live world plus reserve',live),('Headroom below decimal 100 MB',100000000-live),('Additional candidate mutable state',candidate),('Transactional peak plus same reserve',live+candidate),('Transactional headroom',100000000-live-candidate)]:
  assert f'| {label} | {value} |' in s,label
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']

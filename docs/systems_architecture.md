@@ -156,6 +156,11 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | ForageDemand | quantified_milli | I64 | 8 | 1 | 640 | 5120 | [decision 0041; R06-JOB-002 "explicitly quantified claims"] The milli-units this demand reserved when it published, kept because the claim row holds only what is left of it and closes when collection finishes |
 | ForageDemand.dirty | dirty_zone | I32 | 4 | 1 | 128 | 512 | [decision 0041] R06-JOB-008's dirty stack over the second owner class, one entry per designation; derived and rebuildable |
 | ForageDemand.dirty | is_zone_dirty | B8 | 1 | 1 | 128 | 128 | [decision 0041] Membership bit; what makes repeated dirty marking idempotent and the set bounded |
+| HiveService | owner_slot, owner_generation, service_day, job_slot, job_generation | I32 | 4 | 5 | 1024 | 20480 | [decision 0051; ruling 2026-09-09 §1 R06-JOB-006] ARCH-SYS-009's pending-service identity over the THIRD owner class: `(Hive EntityRef, OPERATION_HIVE_KEEP, absolute service day)`, at `row = hive_typed_row` because the hive class has exactly ONE operation. It does NOT share the 8192-row PendingService table: row `r` there is FARM PLOT `r`, so a hive landing on it would inherit that plot's owner, day and history. THERE IS NO `serviced_day` COLUMN -- `orchard_hive.gd` owns `Hive.serviced_day` and a second copy would give "once per day" two answers |
+| HiveService | feed_demand_milli | I64 | 8 | 1 | 1024 | 8192 | [decision 0051; R06-JOB-006 "Winter shall create feed-delivery demand as required"] §5.6's winter feed still owed on the reconciled day, in milli-units, derived from `orchard_hive.feed_deficit_milli_into()`. STATE ONLY: no delivery job exists. NOT for want of a container store -- `inventory.gd` already owns InventoryContainer rows, `create_container()`, reserved/used mass, filters and reachability. What is missing is an owner binding that would give a HIVE a destination container (no Building/Furniture/Room ownership layer exists) and a hauling producer with a movement layer to run it |
+| HiveService | status, blocker | B8 | 1 | 2 | 1024 | 2048 | [decision 0051] FREE/PENDING/UNMET -- there is no REQUESTED, because a hive service is condition-driven and needs no player confirmation -- and the gate that last refused, so a hive producing no service keeps its explicit reason |
+| HiveService.dirty | dirty_hive | I32 | 4 | 1 | 1024 | 4096 | [decision 0051] R06-JOB-008's dirty stack over the third owner class, one entry per hive; derived and rebuildable |
+| HiveService.dirty | is_hive_dirty | B8 | 1 | 1 | 1024 | 1024 | [decision 0051] Membership bit; what makes repeated dirty marking idempotent and the set bounded. Slice total **35840 bytes** |
 | OrchardPlot | species_id, age_days, health, chill_days | I32 | 4 | 4 | 1024 | 16384 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | OrchardPlot | tended_today, harvested_year | B8 | 1 | 2 | 1024 | 2048 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Hive | building_slot, building_generation, strength, serviced_day | I32 | 4 | 4 | 1024 | 16384 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -197,7 +202,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | WorldPolicy | auto_immigration, raw_emergency_food, variety_first | B8 | 1 | 3 | 1 | 3 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | GeneratorState | requested_seed, effective_seed, attempt, architecture, settlement_name | I32 | 4 | 5 | 1 | 20 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 
-Fixed-field payload sum = **24555474 bytes** (24514514 before decision 0045 added the 40960-byte FieldPolicy cycle and enrolment ledger, 24501202 before decision 0041 added the 13312-byte JobPlanner forage-demand ledger, 24288210 before decision 0040 added the 212992-byte JobPlanner sowing-request ledger, 24161234 before decision 0039 added the 126976-byte JobPlanner pending-service ledger, 24148434 before decision 0037 added the 12800-byte `FishingEffortClaim` slice, and 24146898 before decision 0021 added the 1536-byte `Schedule.latch` group, which took the Schedule packed payload from 16384 to 12288+4096+1536=**17920** bytes). The table includes selected_P for allocation but excludes it from canonical hashing. All zero-capacity TransferManifest fields remain declared in the schema and codec; enabling the adapter requires a versioned capacity/budget revision. The chronicle total is unbounded on disk; the row is only its two resident pages. `[DERIVED]`
+Fixed-field payload sum = **24591314 bytes** (24555474 before decision 0051 added the 35840-byte JobPlanner hive-service ledger, 24514514 before decision 0045 added the 40960-byte FieldPolicy cycle and enrolment ledger, 24501202 before decision 0041 added the 13312-byte JobPlanner forage-demand ledger, 24288210 before decision 0040 added the 212992-byte JobPlanner sowing-request ledger, 24161234 before decision 0039 added the 126976-byte JobPlanner pending-service ledger, 24148434 before decision 0037 added the 12800-byte `FishingEffortClaim` slice, and 24146898 before decision 0021 added the 1536-byte `Schedule.latch` group, which took the Schedule packed payload from 16384 to 12288+4096+1536=**17920** bytes). The table includes selected_P for allocation but excludes it from canonical hashing. All zero-capacity TransferManifest fields remain declared in the schema and codec; enabling the adapter requires a versioned capacity/budget revision. The chronicle total is unbounded on disk; the row is only its two resident pages. `[DERIVED]`
 
 ### 2.3 Complete allocation ledger
 
@@ -231,13 +236,13 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 59819174 | Carried total (see the reconciliation note below) |
+| Planned allocated payload | 59855014 | Carried total (see the reconciliation note below) |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 68207782 | Payload + reserve |
-| Headroom below decimal 100 MB | 31792218 | 100000000 − live total |
-| Additional candidate mutable state | 53603590 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 121811372 | Live total + candidate mutable state |
-| Transactional headroom | -21811372 | 100000000 − transactional peak |
+| One live world plus reserve | 68243622 | Payload + reserve |
+| Headroom below decimal 100 MB | 31756378 | 100000000 − live total |
+| Additional candidate mutable state | 53639430 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 121883052 | Live total + candidate mutable state |
+| Transactional headroom | -21883052 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (carried total versus row sum).** The "Planned allocated payload" figure above is the
 CARRIED total of the ARCH-MEM-009 trail, not an arithmetic sum of the rows in the table above it.
@@ -250,7 +255,12 @@ arithmetic had drifted apart. The gap is and remains 437632; only the row sum mo
 below depends on it. **Re-checked 2026-09-10 while adding decision 0049:** the rows as printed sum
 to 60256806 and the carried total is 59819174, and 60256806 - 59819174 is 437632 again -- both
 halves moved by the same +2292, so the gap is still exactly the three unledgered items named
-next and has not absorbed anything new. The difference is exactly `306304 + 131072 + 256`: decisions 0026/0030's
+next and has not absorbed anything new. **Re-checked 2026-09-11 while adding decision 0051:** the
+rows as printed now sum to 60292646 and the carried total is 59855014, and 60292646 - 59855014 is
+437632 a third time -- both halves moved by the same +35840, which is the whole of the
+hive-service slice. THE GAP IS REPRODUCED, NOT MOVED: decision 0051 adds five §2.2 field rows and
+one ARCH-MEM-009 step of the same size, so it can neither shrink the discrepancy nor hide inside
+it. The difference is exactly `306304 + 131072 + 256`: decisions 0026/0030's
 FishHabitat/HarvestZone growth, R05-QUOTA-024's separately declared 131072-byte claim-ordering cache,
 and decision 0027's ratified 256 bytes. All three are named inside the "Fixed registry payload" row's
 own derivation and are therefore inside its 24952146 figure, but none of them has a line in the
@@ -260,7 +270,7 @@ total, and silently re-basing them would change stated conclusions without a gov
 changes on either basis is the same: the one-world gate still holds with tens of megabytes to spare,
 and the two-world design is still rejected. Reconciling the two bases is its own ledger task.
 
-**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 59819174 in fifteen recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021, 0037, 0038, 0039, 0040, 0041, 0042, 0043, 0044, 0045, 0048, 0049; READY_06 §7]`. **Re-checked row by row 2026-09-10 while adding decision 0048, and again while adding decision 0049:** all fifteen rows were re-added individually on the second check, not spot-checked -- every running total is the row above it plus its own delta, and the reserve column is the payload plus 8388608 at every step. No row is missing between the baseline and the current total.
+**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 59855014 in sixteen recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021, 0037, 0038, 0039, 0040, 0041, 0042, 0043, 0044, 0045, 0048, 0049, 0051; READY_06 §7]`. **Re-checked row by row 2026-09-10 while adding decision 0048, and again while adding decision 0049.** **Re-added row by row again 2026-09-11 while adding decision 0051:** all sixteen rows were re-added individually, one at a time and not spot-checked -- every running total is the row above it plus its own delta, and the reserve column is the payload plus 8388608 at every step. No row is missing between the baseline and the current total, and the +35840 step below is the only one added.
 
 | Step | Governing record | Delta bytes | Running payload | Running payload + 8388608 reserve |
 |---|---|---:|---:|---:|
@@ -280,6 +290,7 @@ and the two-world design is still rejected. Reconciling the two bases is its own
 | Command dispatch result ledger, store codes and payload scratch | decision 0043 | +245764 | 59656914 | 68045522 |
 | World generation map masks and tree plan | decision 0048 | +159968 | 59816882 | 68205490 |
 | Command dispatch source-intent ledger and ARCH-SYS-023 presentation snapshot | decision 0049 | +2292 | 59819174 | 68207782 |
+| JobPlanner hive-service ledger | decision 0051 | +35840 | 59855014 | 68243622 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
@@ -778,7 +789,7 @@ Keep a test migration ledger `old_test_name,new_test_name,retained_semantic,reti
 | ARCH-CONFLICT-008 | CLAUDE.md older design guidance versus Document Authority/GDD | Earlier logarithmic scaling, broader population language, and generic flow-field advice do not define this capped settlement. | Follow its Document Authority precedence and the settlement GDD; keep battle guidance in battle scope. |
 | ARCH-CONFLICT-009 | READY_04 deliverables 1 and 6; REQ-SET-163 | Packed payload arithmetic can be bounded, but engine headers, allocator reserve, long route storage pressure, and real Windows stage timings are not certified by this document. | Budget these explicitly and report unqualified performance. Do not claim ≤100 MB or deadline support from payload arithmetic alone. |
 | ARCH-CONFLICT-010 | Prototype implementation versus GDD REQ-SET-002–008, REQ-SET-162 | Current stockpiles/clock use noninteger authority, speed 3, Engine.time_scale, dropped debt, and Resource components. | Rewrite core modules under §11; the old 52-test suite tests a different model. |
-| ARCH-CONFLICT-011 | READY_04 memory budget and transactional loading | Fully resident old plus candidate worlds require 121486852 bytes including reserve, exceeding 100000000 by 21486852. Reconciled 2026-09-07 for decisions 0019 and 0021 and ARCH-STATE-005 (119493108 / 19493108); 2026-09-09 for READY_06 §7, decisions 0037/0039/0040/0041 and ARCH-STATE-007 (120075772 / 20075772 at the gear allocator); 2026-09-10 for decision 0042's command queue order index (120815100 / 20815100) and decision 0043's command dispatch result ledger (120782332 / 20782332 before both); was 117599532 / 17599532 before all of those. | Select disk-backed validation/rollback with one reusable world allocation under ARCH-MEM-006 and ARCH-SAVE-004. Its planned resident payload plus reserve is 68045522 bytes; actual allocator/I/O peaks still require measurement. The one-world gate still holds with 31954478 bytes spare, but §3.1 lists budget items not yet counted at all, and ARCH-MEM-010 records a 437632-byte gap between the carried total and the row sum. |
+| ARCH-CONFLICT-011 | READY_04 memory budget and transactional loading | Fully resident old plus candidate worlds require 121486852 bytes including reserve, exceeding 100000000 by 21486852. Reconciled 2026-09-07 for decisions 0019 and 0021 and ARCH-STATE-005 (119493108 / 19493108); 2026-09-09 for READY_06 §7, decisions 0037/0039/0040/0041 and ARCH-STATE-007 (120075772 / 20075772 at the gear allocator); 2026-09-10 for decision 0042's command queue order index (120815100 / 20815100) and decision 0043's command dispatch result ledger (120782332 / 20782332 before both); was 117599532 / 17599532 before all of those. Reconciled 2026-09-11 for decisions 0044/0045/0048/0049/0051, which this row had never picked up: the transactional peak is now **121883052 / 21883052** and the one-world payload plus reserve **68243622**, leaving **31756378** spare. The two conclusions the row draws are unchanged on either basis; the earlier dated figures are left standing as the record of when each reconciliation happened. | Select disk-backed validation/rollback with one reusable world allocation under ARCH-MEM-006 and ARCH-SAVE-004. Its planned resident payload plus reserve is 68045522 bytes; actual allocator/I/O peaks still require measurement. The one-world gate still holds with 31954478 bytes spare, but §3.1 lists budget items not yet counted at all, and ARCH-MEM-010 records a 437632-byte gap between the carried total and the row sum. |
 
 ## 13. Verification record
 
@@ -798,6 +809,16 @@ annotated rather than rewritten: it is a dated record of when each reconciliatio
 editing its numbers in place would destroy that. The 159-product identity check itself was NOT
 re-run here; decision 0049 adds two §2.3 allocations and no §2.2 field row, exactly as decisions
 0042/0043 did.
+
+**Advanced 2026-09-11 while adding decision 0051.** The hive-service ledger adds FIVE §2.2 field
+rows, and each was checked individually against `element_width*column_count*allocated_length =
+payload_bytes` rather than by its total: `4*5*1024=20480`, `8*1*1024=8192`, `1*2*1024=2048`,
+`4*1*1024=4096`, `1*1*1024=1024`, summing to **35840**. The product count therefore moves from
+159 to **164**. The CURRENT figures, with every ARCH-MEM-009 row re-added individually for the
+third time, are: carried ledger total **59855014**, selected one-world design **68243622** planned
+bytes, **31756378** below the decimal 100 MB gate, rejected two-world design **121883052** bytes.
+Both conclusions are unchanged: the one-world gate holds and the two-world design is rejected.
+ARCH-MEM-010's gap is **437632** on the new basis as well, reproduced above rather than moved.
 
 The required unfinished-text scan returned no matches; the balance document's forbidden-population and disallowed-formula scans returned no matches. Each document contains exactly one required conflict heading. Markdown tables/fences passed structural checks. The unchanged legacy prototype passed 52 tests and 106 assertions with exit 0; no new settlement implementation or Windows performance/parity run is claimed. Arithmetic probes and schema inspection do not resolve the documented survival, path-latency, or qualification gaps.
 

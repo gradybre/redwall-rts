@@ -25,6 +25,7 @@ const PrioritiesScript := preload("res://scripts/core/priorities.gd")
 const ScheduleScript := preload("res://scripts/core/schedule.gd")
 const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
 const ForageScript := preload("res://scripts/core/forage.gd")
+const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 
 ## GDD §5.1's offset calendar, transcribed: tick 0 is 06:00 of day 1 and the FIRST MIDNIGHT is
 ## tick 13500. Day N therefore begins at 13500 + (N-2)*18000 for N >= 2.
@@ -109,12 +110,24 @@ const DANGEROUS_BAND: int = 2
 ## first tick is the midnight that starts it.
 const SUMMER_MIDNIGHT_TICK: int = 211500
 
+# --- R06-JOB-006 constants, transcribed from the documents, never read out of the module -----------
+
+## §4.3 JobKind KEEP, from the same ASCII numbering the FARM and FORAGE constants above use:
+## HAUL 0, BUILD 1, FISH 2, RESERVED_3 3, FORAGE 4, FARM 5, COOK 6, PRESERVE 7, CRAFT 8, TEND 9,
+## KEEP 10, HEAL 11.
+const KIND_KEEP: int = 10
+## §5.6: "service is 20 WU/day", in milli-WU.
+const HIVE_SERVICE_MILLI_WU: int = 20000
+## §5.6: "Winter ... consumes honey 0.5 U/day", in milli-units.
+const WINTER_FEED_MILLI: int = 500
+
 var _residents: ResidentsScript = null
 var _priorities: PrioritiesScript = null
 var _schedule: ScheduleScript = null
 var _jobs: JobsScript = null
 var _farming: FarmingScript = null
 var _forage: ForageScript = null
+var _hives: OrchardHiveScript = null
 var _planner: JobPlannerScript = null
 
 
@@ -130,12 +143,14 @@ func before_each() -> void:
 	_jobs = JobsScript.new(_residents, _priorities, _schedule)
 	_farming = FarmingScript.new(_jobs.directory())
 	_forage = ForageScript.new(_jobs.directory(), _jobs)
-	_planner = JobPlannerScript.new(_farming, _jobs, _forage)
+	_hives = OrchardHiveScript.new(_jobs.directory())
+	_planner = JobPlannerScript.new(_farming, _jobs, _forage, _hives)
 
 
 func after_each() -> void:
 	"""Drop every store so no test inherits another's rows."""
 	_planner = null
+	_hives = null
 	_forage = null
 	_farming = null
 	_jobs = null
@@ -327,14 +342,18 @@ func test_the_service_row_is_the_owner_major_index_of_the_ruling() -> void:
 	"""`service_row = owner*OPERATION_COUNT + operation`, the ruling's owner-major child index.
 
 	UPDATED for R06-JOB-004 (decision 0040): the operation domain is two, because the sowing
-	cycle now has a row beside the daily tending service. The stride is OPERATION_COUNT;
-	DAILY_SERVICE_OPERATION_COUNT is still one and now counts only the operations midnight
-	reopens. The 4096 owners are farming.gd's FarmPlot capacity and are unchanged.
+	cycle now has a row beside the daily tending service. The stride is OPERATION_COUNT; the 4096
+	owners are farming.gd's FarmPlot capacity and are unchanged.
+
+	UPDATED AGAIN for R06-JOB-006 (decision 0051): DAILY_SERVICE_OPERATION_COUNT IS NOW TWO, and
+	the second daily operation is the hive service, which belongs to a DIFFERENT OWNER CLASS and
+	deliberately DOES NOT widen this table. That is the property this test now pins: the FarmPlot
+	stride stayed at 2 and SERVICE_ROW_COUNT stayed at 8192 while a daily operation was added.
 	"""
 	assert_equal(JobPlannerScript.OPERATION_COUNT, 2,
-		"tending and sowing are the two operations with an owner store in this build")
-	assert_equal(JobPlannerScript.DAILY_SERVICE_OPERATION_COUNT, 1,
-		"only the FARM tending operation reopens every midnight")
+		"tending and sowing are the two operations addressing the FarmPlot table")
+	assert_equal(JobPlannerScript.DAILY_SERVICE_OPERATION_COUNT, 2,
+		"FARM tending and the hive service are the two operations midnight reopens")
 	assert_equal(_planner.service_row(0, TEND_OPERATION).value, 0, "the first owner's tend row")
 	assert_equal(_planner.service_row(0, SOW_OPERATION).value, 1, "its sowing row sits beside it")
 	assert_equal(_planner.service_row(4095, TEND_OPERATION).value, 8190, "the last owner's tend row")
@@ -1938,8 +1957,8 @@ func test_the_forage_operation_is_not_a_daily_service_operation() -> void:
 	assert_true(_planner.is_daily_service_operation(TEND_OPERATION), "tending still is")
 	assert_false(_planner.is_operation(JobPlannerScript.OPERATION_FORAGE_HARVEST),
 		"and it does not address the FarmPlot pending-service table at all")
-	assert_equal(JobPlannerScript.OPERATION_DOMAIN_COUNT, 3,
-		"three operations across the two owner classes")
+	assert_equal(JobPlannerScript.OPERATION_DOMAIN_COUNT, 5,
+		"five operations across the four owner classes R06-JOB names")
 
 
 func test_the_day_boundary_marks_designations_for_the_new_days_allowance() -> void:
@@ -2368,3 +2387,616 @@ func test_two_designations_address_their_own_demand_rows() -> void:
 	assert_equal(_jobs.job_count(), 2, "two separate jobs")
 	assert_true(_planner.forage_demand_job_of(a, PATCH_ROOTS)
 		!= _planner.forage_demand_job_of(b, PATCH_BERRIES), "held by two separate rows")
+
+
+# --- R06-JOB-006: the daily hive service producer -------------------------------------------------
+
+func _hive(tile_x: int = 10, tile_z: int = 10, day: int = 1) -> int:
+	"""Colonise one hive on a 1x1 apiary footprint and return its typed row.
+
+	`Hive.building` is an EntityRef to a Building and NO BUILDING STORE EXISTS, so the owning
+	directory row is allocated directly, exactly as `test_orchard_hive.gd` does.
+	"""
+	var building: Vector2i = _jobs.directory().create(EntityDirectory.KIND_BUILDING)
+	var created: OrchardHiveScript.OpResult = _hives.create_hive(
+		building, tile_x, tile_z, tile_x, tile_z, day)
+	assert_true(created.ok, "the fixture hive colonises (error: %s)" % created.error)
+	return created.value
+
+
+func _hive_job_slot(hive_slot: int) -> int:
+	"""The typed Job row of this hive's pending service, asserting one exists."""
+	var ref: Vector2i = _planner.hive_service_job_of(hive_slot)
+	assert_true(ref != EntityDirectory.NULL_REF, "the hive has a pending service job")
+	return _jobs.directory().get_typed_row(ref)
+
+
+func test_an_operational_hive_receives_one_twenty_wu_keep_service_for_its_day() -> void:
+	"""R06-JOB-006: one 20-WU KEEP job, on a spring service day with no completed/pending service."""
+	var hive: int = _hive()
+	var result: JobPlannerScript.OpResult = _planner.reconcile_hive(hive, _day_start_tick(2))
+	assert_true(result.ok, "the service is created (error: %s)" % result.error)
+	assert_equal(_jobs.job_count(), 1, "exactly one job exists")
+	assert_equal(_planner.hive_created_count(), 1, "the planner counts one creation")
+	var job: int = _hive_job_slot(hive)
+	assert_equal(_jobs.kind_of(job).value, KIND_KEEP, "§4.3's KEEP kind")
+	assert_equal(_jobs.remaining_mwu_of(job).value, HIVE_SERVICE_MILLI_WU, "§5.6's 20 WU")
+	assert_equal(_jobs.priority_of(job).value, ORDINARY_PRIORITY, "the ruling's priority 3")
+
+
+func test_the_hive_service_job_names_its_hive_as_the_work_source() -> void:
+	"""The hive is the SOURCE; nothing is delivered, so the destination stays null."""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "the service is created")
+	var job: int = _hive_job_slot(hive)
+	assert_equal(_jobs.source_of(job), _hives.hive_ref_of(hive), "the source is the hive itself")
+	assert_equal(_jobs.destination_of(job), EntityDirectory.NULL_REF, "and nothing is delivered")
+	assert_equal(_jobs.inputs_gate_of(job).value, GATE_NOT_REQUIRED,
+		"§5.6 prices the service as labour alone, so no input is declared")
+
+
+func test_exactly_one_service_is_created_per_hive_per_eligible_day() -> void:
+	"""The idempotence guard: N reconciliations and N dirty marks create ONE service."""
+	var hive: int = _hive()
+	var tick: int = _day_start_tick(2)
+	assert_true(_planner.reconcile_hive(hive, tick).ok, "the first reconcile creates it")
+	for _repeat: int in 25:
+		_planner.mark_hive_dirty(hive)
+		_planner.run_tick(tick)
+		assert_equal(_planner.reconcile_hive(hive, tick).error,
+			JobPlannerScript.REFUSE_SERVICE_PENDING, "every later attempt refuses as pending")
+	assert_equal(_planner.hive_created_count(), 1, "one service, whatever the caller did")
+	assert_equal(_jobs.job_count(), 1, "and one job row")
+	assert_equal(_planner.pending_hive_service_count(), 1, "held by one pending row")
+
+
+func test_a_completed_hive_service_blocks_a_second_one_the_same_day() -> void:
+	"""The COMPLETED half of "without that day's completed or pending service"."""
+	var hive: int = _hive()
+	var tick: int = _day_start_tick(2)
+	assert_true(_planner.reconcile_hive(hive, tick).ok, "day 2's service is created")
+	assert_true(_jobs.set_state(_hive_job_slot(hive), STATE_COMPLETE).ok, "the work completes")
+	assert_equal(_planner.reconcile_hive(hive, tick).error,
+		JobPlannerScript.REFUSE_SERVICE_ALREADY_COMPLETE, "the same day refuses as complete")
+	assert_equal(_planner.hive_completed_count(), 1, "the completion is recorded once")
+	assert_equal(_hives.hive_serviced_day_of(hive).value, 2,
+		"and the OWNING store's serviced_day names absolute day 2")
+	assert_equal(_jobs.job_count(), 0, "the finished service's row is released")
+
+
+func test_the_service_reopens_on_the_next_service_day() -> void:
+	"""Once per day means once per day, not once ever."""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "day 2 is serviced")
+	assert_true(_jobs.set_state(_hive_job_slot(hive), STATE_COMPLETE).ok, "and completes")
+	assert_true(_planner.run_day_boundary(_day_start_tick(3)).ok, "midnight runs")
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(3)).ok, "day 3 is serviced")
+	assert_equal(_planner.hive_created_count(), 2, "two days, two services")
+	assert_equal(_planner.hive_service_day_of(hive).value, 3, "the second names day 3")
+
+
+# --- R06-JOB-006: the season gate ------------------------------------------------------------------
+
+func test_winter_creates_no_tending_labor_job() -> void:
+	"""R06-JOB-006: "Winter shall create feed-delivery demand ... but no tending-labor job"."""
+	var hive: int = _hive()
+	var refused: JobPlannerScript.OpResult = _planner.reconcile_hive(hive, _day_start_tick(38))
+	assert_false(refused.ok, "no service is created in winter")
+	assert_equal(refused.error, JobPlannerScript.REFUSE_HIVE_WINTER, "and winter says so")
+	assert_equal(_jobs.job_count(), 0, "no job row was allocated at all")
+	assert_equal(_planner.hive_created_count(), 0, "and nothing was counted")
+	assert_equal(_planner.hive_service_blocker_of(hive).value,
+		JobPlannerScript.HIVE_BLOCKER_WINTER, "the row retains winter as its explicit reason")
+
+
+func test_every_non_winter_day_of_the_year_creates_a_service_and_every_winter_day_none() -> void:
+	"""Spring, summer and autumn are service days; winter is not. The WHOLE first year is walked.
+
+	The season boundaries are §5.1's twelve-day seasons, computed here from the GDD rather than
+	read out of the module: absolute days 1-12 spring, 13-24 summer, 25-36 autumn, 37-48 winter.
+	"""
+	var hive: int = _hive()
+	var serviced: int = 0
+	for day: int in range(2, 49):
+		_hives.restore_hive_state(_hives.hive_ref_of(hive), 8000, 0, 0, 0, 1)
+		_planner.retire_hive_service(hive)
+		var created: bool = _planner.reconcile_hive(hive, _day_start_tick(day)).ok
+		assert_equal(created, day < 37, "day %d creates work only outside winter" % day)
+		if created:
+			serviced += 1
+			assert_true(_jobs.destroy_job(_hive_job_slot(hive)).ok, "release the job row")
+			_planner.retire_hive_service(hive)
+	assert_equal(serviced, 35, "days 2-36 are the thirty-five non-winter service days")
+
+
+func test_winter_records_the_feed_delivery_demand_as_state_and_no_delivery_job() -> void:
+	"""The feed half of the contract: demand as required, recorded, with NO job of any kind."""
+	var hive: int = _hive()
+	assert_false(_planner.reconcile_hive(hive, _day_start_tick(38)).ok, "winter creates no job")
+	assert_equal(_planner.hive_feed_demand_milli_of(hive).value, WINTER_FEED_MILLI,
+		"§5.6's honey 0.5 U/day is owed in full by a hive holding no feed")
+	assert_equal(_jobs.job_count(), 0, "and NO delivery job exists: nothing owns hauling")
+	assert_true(_hives.add_hive_feed(_hives.hive_ref_of(hive), WINTER_FEED_MILLI).ok, "feed it")
+	assert_false(_planner.reconcile_hive(hive, _day_start_tick(38)).ok, "still no winter job")
+	assert_equal(_planner.hive_feed_demand_milli_of(hive).value, 0,
+		"a stocked hive owes nothing, so the demand falls to zero")
+
+
+func test_a_spring_day_records_no_feed_demand() -> void:
+	"""§5.6 requires feed only in winter, so a spring reconcile leaves the demand at zero."""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "spring creates a service")
+	assert_equal(_planner.hive_feed_demand_milli_of(hive).value, 0, "and owes no feed")
+
+
+# --- R06-JOB-006: the operational condition ---------------------------------------------------------
+
+func test_an_abandoned_hive_creates_no_service() -> void:
+	"""§5.6: "a hive at 0 strength is abandoned", and the contract says non-abandoned."""
+	var hive: int = _hive()
+	assert_true(_hives.restore_hive_state(_hives.hive_ref_of(hive), 0, 0, 0, 0, 1).ok,
+		"the hive is driven to zero strength")
+	var refused: JobPlannerScript.OpResult = _planner.reconcile_hive(hive, _day_start_tick(2))
+	assert_false(refused.ok, "an abandoned hive owes no service")
+	assert_equal(refused.error, JobPlannerScript.REFUSE_HIVE_ABANDONED, "and says which rule")
+	assert_equal(_jobs.job_count(), 0, "nothing was created")
+
+
+func test_an_empty_hive_row_creates_no_service() -> void:
+	"""A row holding no colonised hive is not operational; "operational" has no second flag."""
+	var refused: JobPlannerScript.OpResult = _planner.reconcile_hive(7, _day_start_tick(2))
+	assert_false(refused.ok, "an empty row creates nothing")
+	assert_equal(refused.error, JobPlannerScript.REFUSE_HIVE_NOT_PRESENT, "and says so")
+
+
+func test_a_hive_becoming_operational_mid_day_receives_no_retroactive_service() -> void:
+	"""The lifecycle paragraph: no retroactive service for days before the hive existed.
+
+	The hive is colonised on day 5 and first reconciled on day 9. It gets ONE service, for day 9;
+	days 5, 6, 7 and 8 acquire nothing, now or ever.
+	"""
+	var hive: int = _hive(11, 11, 5)
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(9)).ok, "day 9's service is created")
+	assert_equal(_planner.hive_created_count(), 1, "ONE service, not five")
+	assert_equal(_jobs.job_count(), 1, "and one job row")
+	assert_equal(_planner.hive_service_day_of(hive).value, 9, "it belongs to today, day 9")
+	assert_equal(_planner.hive_settled_unserved_count(), 0, "no earlier day was ever opened")
+
+
+func test_the_colonisation_day_itself_is_already_recorded_as_serviced() -> void:
+	""""A hive becoming operational during the day uses the SAME RULE" -- and the rule answers.
+
+	`orchard_hive.create_hive()` records the colonisation day as `serviced_day`, so that day
+	already HAS its completed service and the same "without that day's completed service" test
+	refuses it. The next service day creates one.
+	"""
+	var hive: int = _hive(12, 12, 5)
+	assert_equal(_hives.hive_serviced_day_of(hive).value, 5, "colonisation records day 5")
+	assert_equal(_planner.reconcile_hive(hive, _day_start_tick(5)).error,
+		JobPlannerScript.REFUSE_SERVICE_ALREADY_COMPLETE, "so day 5 needs no service")
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(6)).ok, "and day 6 does")
+	assert_equal(_planner.hive_created_count(), 1, "exactly one service across both days")
+
+
+func test_midnight_settles_an_unserved_hive_service_and_cancels_its_job() -> void:
+	"""Midnight settles the preceding day's outcome BEFORE opening the new day's demand."""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "day 2's service is created")
+	assert_true(_planner.run_day_boundary(_day_start_tick(3)).ok, "midnight runs")
+	assert_equal(_planner.hive_settled_unserved_count(), 1, "day 2's service is settled unserved")
+	assert_equal(_jobs.job_count(), 0, "its job was cancelled and its row released")
+	assert_true(_planner.hive_service_row_is_clear(hive), "and the row keeps no residue")
+	assert_true(_planner.is_hive_dirty(hive), "the new day's demand is marked for reconciliation")
+
+
+func test_the_day_boundary_refuses_to_open_over_an_unsettled_hive_day() -> void:
+	"""The ordering is a CHECKED precondition, not a comment about statement order."""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "day 2's service exists")
+	assert_false(_planner.preceding_hive_day_is_settled(3), "day 2's row is still outstanding")
+	assert_true(_planner.run_day_boundary(_day_start_tick(3)).ok, "the boundary settles it first")
+	assert_true(_planner.preceding_hive_day_is_settled(3), "and only then reports settled")
+
+
+# --- R06-JOB-006: capacity, load and hygiene --------------------------------------------------------
+
+func test_capacity_exhaustion_retains_hive_demand_and_reports_a_blocker() -> void:
+	"""R06-JOB-008 over the third owner class: retain, report, retry -- never queue."""
+	var hive: int = _hive()
+	assert_equal(_fill_the_job_arena(), 8192, "the arena holds GDD §4.2's 8192 jobs")
+	for _repeat: int in 50:
+		assert_false(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "refused")
+	assert_equal(_planner.unmet_hive_demand_count(), 1, "fifty refusals retain ONE row")
+	assert_equal(_planner.hive_service_day_of(hive).value, 2, "which remembers its day")
+	assert_true(_jobs.destroy_job(0).ok, "one job row is released")
+	assert_equal(_planner.mark_capacity_released(), 1, "the retained demand is re-marked dirty")
+	assert_equal(_planner.run_tick(_day_start_tick(2)).value, 1, "and the retry creates it")
+	assert_equal(_planner.unmet_hive_demand_count(), 0, "no hive demand remains unmet")
+
+
+func test_a_load_drops_a_hive_row_whose_job_no_longer_resolves() -> void:
+	"""The repair the ruling permits over an index into live jobs; history is not reconstructed."""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "the service is created")
+	assert_true(_jobs.destroy_job(_hive_job_slot(hive)).ok, "its job vanishes beneath it")
+	assert_equal(_planner.revalidate_after_load().value, 1, "the dangling row is dropped")
+	assert_true(_planner.hive_service_row_is_clear(hive), "and leaves no residue")
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "the day can be served again")
+
+
+func test_a_hive_service_records_both_halves_of_its_owners_entity_ref() -> void:
+	"""A Hive row is reused after a destroy, so a row keeping only the index would be inherited."""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "the service is created")
+	assert_equal(_planner.hive_service_owner_of(hive), _hives.hive_ref_of(hive),
+		"the row names the hive by slot AND generation")
+	var first_ref: Vector2i = _hives.hive_ref_of(hive)
+	var first_job: Vector2i = _planner.hive_service_job_of(hive)
+	assert_true(_hives.destroy_hive(first_ref).ok, "the hive is destroyed")
+	var replacement: int = _hive(13, 13, 1)
+	assert_equal(replacement, hive, "the directory reuses the freed typed row")
+	assert_true(_hives.hive_ref_of(hive) != first_ref, "under a NEW EntityRef")
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok,
+		"the new hive opens its OWN service rather than inheriting the old row's pending one")
+	assert_equal(_planner.hive_settled_unserved_count(), 1,
+		"and the previous occupant's service was settled unserved, not inherited")
+	assert_true(_planner.hive_service_job_of(hive) != first_job, "a different Job carries it")
+	assert_equal(_planner.hive_service_owner_of(hive), _hives.hive_ref_of(hive),
+		"and the row now names the new occupant")
+
+
+func test_a_reused_hive_row_with_a_matching_generation_is_still_not_inherited() -> void:
+	"""The generation lives on the DIRECTORY SLOT, so two occupants of one typed row can share it.
+
+	Comparing only the generation half would let this second hive inherit the first one's pending
+	service. Both halves are compared, so the stale record is settled unserved instead. This is
+	the exact case the generation-only comparison passed, and it is why the comparison changed.
+	"""
+	var hive: int = _hive()
+	var first_ref: Vector2i = _hives.hive_ref_of(hive)
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "day 2's service exists")
+	assert_true(_hives.destroy_hive(first_ref).ok, "the hive is destroyed")
+	var replacement: int = _hive(14, 14, 1)
+	assert_equal(replacement, hive, "the same typed row is reused")
+	assert_equal(_hives.hive_ref_of(hive).y, first_ref.y,
+		"and its GENERATION happens to equal the previous occupant's, on a different slot")
+	assert_true(_hives.hive_ref_of(hive).x != first_ref.x, "only the slot half distinguishes them")
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok,
+		"so the new hive must get its own service, not the stale pending one")
+	assert_equal(_planner.hive_settled_unserved_count(), 1, "the stale record was settled")
+
+
+func test_retiring_a_hive_service_cancels_its_job_and_clears_its_feed_demand() -> void:
+	"""The entry point a caller destroying a hive uses; completion history stays in its store."""
+	var hive: int = _hive()
+	assert_false(_planner.reconcile_hive(hive, _day_start_tick(38)).ok, "winter records demand")
+	assert_equal(_planner.hive_feed_demand_milli_of(hive).value, WINTER_FEED_MILLI, "as required")
+	assert_true(_planner.retire_hive_service(hive).ok, "the record retires")
+	assert_equal(_planner.hive_feed_demand_milli_of(hive).value, 0, "the demand is withdrawn")
+	assert_equal(_planner.retire_hive_service(hive).error, JobPlannerScript.REFUSE_NO_SERVICE,
+		"and a second retirement has nothing to retire")
+
+
+func test_record_hive_service_completed_is_the_seam_for_work_done_elsewhere() -> void:
+	"""The completion is written to the store that OWNS `Hive.serviced_day`, and its refusal holds."""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "a service is pending")
+	assert_true(_planner.record_hive_service_completed(hive, 2).ok, "an outside tend is recorded")
+	assert_equal(_hives.hive_serviced_day_of(hive).value, 2, "in the owning store's own column")
+	assert_equal(_jobs.job_count(), 0, "and the pending job's row is released")
+	assert_equal(_planner.reconcile_hive(hive, _day_start_tick(2)).error,
+		JobPlannerScript.REFUSE_SERVICE_ALREADY_COMPLETE, "the day is closed")
+	assert_true(_hives.restore_hive_state(_hives.hive_ref_of(hive), 0, 0, 0, 0, 2).ok, "abandon")
+	assert_false(_planner.record_hive_service_completed(hive, 3).ok,
+		"an abandoned hive refuses in its owning store and this module does not overrule it")
+
+
+func test_a_worker_replacement_preserves_the_same_hive_job_and_its_work() -> void:
+	"""The ruling: worker changes preserve the same Job/WIP."""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "the service is created")
+	var job: int = _hive_job_slot(hive)
+	var worker: int = _worker()
+	assert_true(_jobs.assign_worker(worker, job).ok, "a worker takes the service")
+	assert_true(_jobs.release_worker(worker).ok, "and is replaced")
+	assert_equal(_planner.reconcile_hive(hive, _day_start_tick(2)).error,
+		JobPlannerScript.REFUSE_SERVICE_PENDING, "the same service is still pending")
+	assert_equal(_hive_job_slot(hive), job, "the SAME job row")
+	assert_equal(_jobs.remaining_mwu_of(job).value, HIVE_SERVICE_MILLI_WU, "with its work intact")
+
+
+# --- R06-JOB-006: the dirty set, the sweep and the tick ---------------------------------------------
+
+func test_repeated_dirty_marks_on_one_hive_add_one_entry() -> void:
+	"""R06-JOB-008's idempotence at the marking step: the set is bounded by construction."""
+	var hive: int = _hive()
+	for _repeat: int in 40:
+		assert_true(_planner.mark_hive_dirty(hive).ok, "the mark takes")
+	assert_equal(_planner.hive_dirty_count(), 1, "forty events, one entry")
+	assert_true(_planner.is_hive_dirty(hive), "and the membership bit is set")
+	assert_false(_planner.mark_hive_dirty(JobPlannerScript.HIVE_OWNER_CAPACITY).ok,
+		"a slot past the hive capacity refuses")
+
+
+func test_run_tick_creates_the_hive_service_through_the_drain() -> void:
+	"""The composed tick reconciles all three owner classes and sums what each created."""
+	var hive: int = _hive()
+	assert_true(_planner.mark_hive_dirty(hive).ok, "an event marks the hive")
+	assert_equal(_planner.run_tick(_day_start_tick(2)).value, 1, "the tick creates one service")
+	assert_equal(_planner.pending_hive_service_count(), 1, "held by one pending row")
+	assert_false(_planner.is_hive_dirty(hive), "and the dirty entry was drained")
+
+
+func test_the_idle_sweep_reaches_a_hive_within_one_stagger_period() -> void:
+	"""ARCH-SYS-009's idle cadence over the Hive class: a 1/30 slice per tick."""
+	var hive: int = _hive()
+	var created: int = 0
+	var first: int = _day_start_tick(2)
+	for tick: int in range(first, first + JobPlannerScript.STAGGER_MODULUS):
+		created += _planner.run_hive_sweep(tick).value
+	assert_equal(created, 1, "one sweep period reaches the hive exactly once")
+	assert_equal(_planner.pending_hive_service_count(), 1, "and creates its one service")
+
+
+# --- R06-JOB-006: the operation domain and the gate composition -------------------------------------
+
+func test_the_hive_operation_is_a_daily_service_and_rotation_is_not() -> void:
+	"""The two answers R06-JOB-006 and R06-JOB-005 require of the same predicate.
+
+	The hive service reopens every midnight, exactly as FARM tending does. R06-JOB-005's rotation
+	advance is EVENT-DRIVEN ON CYCLE COMPLETION, like sowing, and must never be reopened or
+	settled by midnight.
+	"""
+	assert_true(_planner.is_daily_service_operation(JobPlannerScript.OPERATION_HIVE_KEEP),
+		"R06-JOB-006's hive service IS a daily service")
+	assert_false(_planner.is_daily_service_operation(JobPlannerScript.OPERATION_FIELD_ROTATION),
+		"R06-JOB-005's rotation advance is NOT a daily service")
+	assert_true(_planner.is_daily_service_operation(TEND_OPERATION), "tending still is")
+	assert_false(_planner.is_daily_service_operation(SOW_OPERATION), "sowing still is not")
+	assert_false(_planner.is_operation(JobPlannerScript.OPERATION_FIELD_ROTATION),
+		"and rotation addresses no row in this file's pending-service table")
+	assert_false(_planner.is_operation(JobPlannerScript.OPERATION_HIVE_KEEP),
+		"nor does the hive service, which has its own slice")
+
+
+func test_no_operation_outside_the_domain_reports_as_a_daily_service() -> void:
+	"""The predicate is a table over the domain; anything outside it answers false, not an error."""
+	assert_false(_planner.is_daily_service_operation(-1), "a negative ordinal is not daily")
+	assert_false(_planner.is_daily_service_operation(
+		JobPlannerScript.OPERATION_DOMAIN_COUNT), "nor is one past the domain")
+
+
+func test_the_hive_gate_composition_agrees_with_the_owning_stores_predicate() -> void:
+	"""`is_service_due()` is `orchard_hive.gd`'s; this producer's gates must not drift from it.
+
+	Every gate that refuses must correspond to a hive the OWNING store also says is not due, and
+	a clean gate must correspond to one it says IS due. Four conditions are walked.
+	"""
+	var hive: int = _hive()
+	assert_true(_hives.is_service_due(hive, 2), "a fresh hive is due on day 2")
+	assert_equal(_planner.hive_service_gate_for(hive, 2).value,
+		JobPlannerScript.HIVE_BLOCKER_NONE, "and the producer's gates agree")
+	assert_false(_hives.is_service_due(hive, 38), "winter is never due")
+	assert_equal(_planner.hive_service_gate_for(hive, 38).value,
+		JobPlannerScript.HIVE_BLOCKER_WINTER, "and the producer names winter")
+	assert_true(_hives.record_hive_service(_hives.hive_ref_of(hive), 2).ok, "serviced on day 2")
+	assert_false(_hives.is_service_due(hive, 2), "so day 2 is no longer due")
+	assert_equal(_planner.hive_service_gate_for(hive, 2).value,
+		JobPlannerScript.HIVE_BLOCKER_ALREADY_SERVICED, "and the producer names the completion")
+
+
+func test_the_hive_gate_question_creates_nothing() -> void:
+	"""A pure question: it publishes no Job, marks nothing dirty and opens no service row."""
+	var hive: int = _hive()
+	for _repeat: int in 10:
+		assert_equal(_planner.hive_service_gate_for(hive, 2).value,
+			JobPlannerScript.HIVE_BLOCKER_NONE, "the gate answers clean")
+	assert_equal(_jobs.job_count(), 0, "and created nothing")
+	assert_equal(_planner.hive_created_count(), 0, "and counted nothing")
+	assert_equal(_planner.hive_service_status_of(hive).value, JobPlannerScript.STATUS_FREE,
+		"leaving the row free")
+
+
+func test_every_hive_blocker_maps_to_exactly_one_refusal_code() -> void:
+	"""The retained byte and the returned StringName read one table, so they cannot drift."""
+	assert_equal(JobPlannerScript.HIVE_BLOCKER_COUNT, 5, "five hive blockers")
+	for blocker: int in JobPlannerScript.HIVE_BLOCKER_COUNT:
+		assert_true(_planner.hive_refusal_of_blocker(blocker) !=
+			JobPlannerScript.REFUSE_INVALID_HIVE_BLOCKER, "blocker %d maps" % blocker)
+	assert_equal(_planner.hive_refusal_of_blocker(JobPlannerScript.HIVE_BLOCKER_COUNT),
+		JobPlannerScript.REFUSE_INVALID_HIVE_BLOCKER, "an out-of-range blocker refuses")
+	assert_equal(_planner.hive_refusal_of_blocker(-1),
+		JobPlannerScript.REFUSE_INVALID_HIVE_BLOCKER, "and so does a negative one")
+
+
+func test_the_hive_into_readers_agree_with_their_allocating_forms() -> void:
+	"""Decision 0015: the reconcile path's `_into` readers must answer what the allocating ones do."""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "a service exists")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_planner.hive_service_status_into(hive, out), "the status reads")
+	assert_equal(out.value, _planner.hive_service_status_of(hive).value, "and agrees")
+	assert_true(_planner.hive_service_day_into(hive, out), "the day reads")
+	assert_equal(out.value, _planner.hive_service_day_of(hive).value, "and agrees")
+	assert_true(_planner.hive_feed_demand_milli_into(hive, out), "the feed demand reads")
+	assert_equal(out.value, _planner.hive_feed_demand_milli_of(hive).value, "and agrees")
+	assert_true(_planner.hive_service_blocker_into(hive, out), "the blocker reads")
+	assert_equal(out.value, _planner.hive_service_blocker_of(hive).value, "and agrees")
+	assert_true(_planner.hive_service_gate_for_into(hive, 2, out), "the gate question reads")
+	assert_equal(out.value, _planner.hive_service_gate_for(hive, 2).value, "and agrees")
+
+
+func test_every_hive_reader_refuses_an_unaddressable_slot() -> void:
+	"""No reader returns a sentinel for absence: each refuses with the same named code."""
+	var past: int = JobPlannerScript.HIVE_OWNER_CAPACITY
+	assert_false(_planner.hive_service_row(past).ok, "the row mapping refuses")
+	assert_false(_planner.hive_service_status_of(past).ok, "the status refuses")
+	assert_false(_planner.hive_service_day_of(past).ok, "the day refuses")
+	assert_false(_planner.hive_feed_demand_milli_of(past).ok, "the feed demand refuses")
+	assert_false(_planner.hive_service_blocker_of(past).ok, "the blocker refuses")
+	assert_false(_planner.hive_service_gate_for(past, 2).ok, "the gate question refuses")
+	assert_false(_planner.reconcile_hive(past, 0).ok, "and so does the producer")
+	assert_equal(_planner.hive_service_job_of(past), EntityDirectory.NULL_REF,
+		"the job reader answers the null reference rather than a plausible slot")
+	assert_false(_planner.hive_service_row_is_clear(past), "and the hygiene predicate is false")
+
+
+func test_a_free_hive_row_refuses_its_service_day_rather_than_answering_zero() -> void:
+	"""Day 0 names no day; it is an absence, and an absence is refused, not returned."""
+	var hive: int = _hive()
+	assert_false(_planner.hive_service_day_of(hive).ok, "a free row has no service day")
+	assert_equal(_planner.hive_service_day_of(hive).error,
+		String(JobPlannerScript.REFUSE_NO_SERVICE), "and names the absence")
+
+
+func test_the_hive_service_row_is_the_hives_own_typed_row() -> void:
+	"""One operation per hive, so the row index IS the typed row; 1024 of them."""
+	assert_equal(JobPlannerScript.HIVE_OWNER_CAPACITY, 1024, "GDD §4.2's 1024 Hive rows")
+	assert_equal(_planner.hive_service_row(0).value, 0, "the first hive's row")
+	assert_equal(_planner.hive_service_row(1023).value, 1023, "and the last one's")
+	assert_false(_planner.hive_service_row(1024).ok, "a row past the arena refuses")
+
+
+func test_the_planner_services_the_hives_of_the_store_it_was_given() -> void:
+	"""The producer must not hold a private hive set; the collaborator is published and shared."""
+	assert_true(_planner.hives() == _hives, "the planner services the store it was constructed with")
+	assert_true(_planner.hives().directory() == _jobs.directory(),
+		"and that store allocates from the one shared entity directory")
+
+
+# --- the owner reference is compared in FULL, not by its generation alone (decision 0051) ---------
+
+func test_a_reused_plot_row_does_not_inherit_the_previous_plots_tending_service() -> void:
+	"""BOTH HALVES of the owner EntityRef are compared, and the SLOT half is what decides here.
+
+	§4.1's generation lives on the DIRECTORY SLOT, not on the typed row. A destroyed plot's typed
+	row is reused while a FRESH directory slot is allocated for it, and a fresh slot's first
+	generation is 1 -- the same number the previous occupant's slot carried. Comparing only the
+	generation therefore reported "the same owner" for a completely different plot, which would
+	hand the new plot the old one's pending service and its Job.
+	"""
+	var plot: int = _growing_plot(700)
+	var first_ref: Vector2i = _farming.ref_of(plot)
+	assert_true(_planner.reconcile_plot(plot, DAY_ONE_TICK).ok, "the first plot is serviced")
+	assert_true(_farming.destroy(first_ref).ok, "the plot is destroyed")
+	assert_true(_jobs.directory().create(EntityDirectory.KIND_BUILDING) != EntityDirectory.NULL_REF,
+		"an unrelated allocation takes the freed directory slot, as any other store's would")
+	var replacement: int = _growing_plot(701)
+	assert_equal(replacement, plot, "the same typed row is reused")
+	assert_equal(_farming.ref_of(plot).y, first_ref.y,
+		"and its GENERATION equals the previous occupant's, on a different slot")
+	assert_true(_farming.ref_of(plot).x != first_ref.x, "only the slot half distinguishes them")
+	assert_true(_planner.reconcile_plot(plot, DAY_ONE_TICK).ok,
+		"so the new plot gets its OWN service, not the stale pending one")
+	assert_equal(_planner.settled_unserved_count(), 1, "and the stale record was settled unserved")
+	assert_equal(_planner.service_owner_of(plot, TEND_OPERATION), _farming.ref_of(plot),
+		"the row now names the new occupant in full")
+
+
+func test_a_reused_plot_row_does_not_inherit_the_previous_plots_sowing_request() -> void:
+	"""The same full-reference comparison on R06-JOB-004's sowing row.
+
+	A redrawn plot must start with NO confirmed crop. A generation-only comparison would let the
+	new plot inherit the previous one's confirmed cycle and sow a crop nobody chose for it.
+	"""
+	var plot: int = _empty_plot(702)
+	var first_ref: Vector2i = _farming.ref_of(plot)
+	assert_true(_planner.confirm_first_planting(plot, GRAIN).ok, "the first plot is confirmed")
+	assert_true(_farming.destroy(first_ref).ok, "the plot is destroyed")
+	assert_true(_jobs.directory().create(EntityDirectory.KIND_BUILDING) != EntityDirectory.NULL_REF,
+		"an unrelated allocation takes the freed directory slot, as any other store's would")
+	var replacement: int = _empty_plot(703)
+	assert_equal(replacement, plot, "the same typed row is reused")
+	assert_equal(_farming.ref_of(plot).y, first_ref.y, "with the same generation number")
+	assert_true(_farming.ref_of(plot).x != first_ref.x, "on a different directory slot")
+	assert_equal(_planner.reconcile_sowing(plot, DAY_ONE_TICK).error,
+		JobPlannerScript.REFUSE_NO_SOWING_REQUEST,
+		"the new plot carries no confirmed crop and must be confirmed again")
+	assert_equal(_planner.sowing_cancelled_count(), 1, "the stale request was abandoned")
+
+
+# --- gaps a surviving mutant exposed (decision 0051) ----------------------------------------------
+
+func test_the_day_boundary_does_not_retire_a_service_belonging_to_the_day_it_opens() -> void:
+	"""Settlement retires rows STRICTLY BEFORE today, so today's live service survives a boundary.
+
+	FOUND BY MUTATION: relaxing `_service_day >= day` to `> day` in the hive settlement sweep
+	passed the whole suite. It would cancel a service already created for the day being opened --
+	a boundary called twice, or called after the day's first reconcile, would destroy the Job and
+	its work in progress, which the ruling's "worker changes preserve the same Job/WIP" forbids.
+	"""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "day 2's service is created")
+	var job: Vector2i = _planner.hive_service_job_of(hive)
+	assert_true(_planner.run_day_boundary(_day_start_tick(2)).ok, "the boundary for day 2 runs")
+	assert_equal(_planner.hive_settled_unserved_count(), 0, "today's own service is NOT settled")
+	assert_equal(_planner.pending_hive_service_count(), 1, "it is still pending")
+	assert_equal(_planner.hive_service_job_of(hive), job, "on the SAME job row")
+	assert_equal(_jobs.remaining_mwu_of(_hive_job_slot(hive)).value, HIVE_SERVICE_MILLI_WU,
+		"with its work in progress intact")
+	assert_equal(_planner.hive_created_count(), 1, "and no second service was created")
+
+
+func test_a_missed_midnight_does_not_let_yesterdays_hive_row_absorb_todays_demand() -> void:
+	"""The service day is the THIRD identity term, and it is compared on every reconcile.
+
+	FOUND BY MUTATION: dropping the `_hive_service_day != day` term from the hive settle path
+	passed the whole suite. Without it, a day-2 row left standing because no boundary ran would
+	answer SERVICE_ALREADY_PENDING on day 3 and day 3 would silently go unserviced -- for as many
+	days as the boundary stayed missed.
+	"""
+	var hive: int = _hive()
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "day 2's service is created")
+	assert_equal(_planner.hive_service_day_of(hive).value, 2, "and belongs to day 2")
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(3)).ok,
+		"day 3 gets its OWN service even though no midnight boundary ran")
+	assert_equal(_planner.hive_service_day_of(hive).value, 3, "the row now names day 3")
+	assert_equal(_planner.hive_settled_unserved_count(), 1, "day 2's row was settled unserved")
+	assert_equal(_planner.hive_created_count(), 2, "two days, two services")
+	assert_equal(_jobs.job_count(), 1, "and day 2's job was cancelled, not left orphaned")
+
+
+func test_a_hive_row_holding_a_service_is_not_reported_as_clear() -> void:
+	"""The hygiene predicate must be able to say NO; a `return true` would be worse than none.
+
+	FOUND BY MUTATION: short-circuiting `hive_service_row_is_clear()` to true passed the whole
+	suite, because every test that called it called it on a row that really was clear. It is
+	checked here in all four states a row can hold.
+	"""
+	var hive: int = _hive()
+	assert_true(_planner.hive_service_row_is_clear(hive), "a fresh row is clear")
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok, "a service is created")
+	assert_false(_planner.hive_service_row_is_clear(hive), "a PENDING row is not clear")
+	assert_true(_jobs.set_state(_hive_job_slot(hive), STATE_CANCELLED).ok, "the job is cancelled")
+	assert_true(_planner.reconcile_hive(hive, _day_start_tick(2)).ok,
+		"the cancelled row settles and the still-eligible day gets a fresh service")
+	assert_equal(_planner.hive_cancelled_count(), 1, "the cancellation was recorded")
+	assert_false(_planner.hive_service_row_is_clear(hive), "the replacement row is not clear")
+	assert_true(_planner.retire_hive_service(hive).ok, "the record is retired")
+	assert_true(_planner.hive_service_row_is_clear(hive), "and the row is clear again")
+	_fill_the_job_arena()
+	assert_false(_planner.reconcile_hive(hive, _day_start_tick(3)).ok, "capacity refuses")
+	assert_equal(_planner.unmet_hive_demand_count(), 1, "leaving retained demand")
+	assert_false(_planner.hive_service_row_is_clear(hive), "an UNMET row is not clear either")
+
+
+func test_the_hive_sweep_reaches_every_slot_of_its_stagger_exactly_once_per_period() -> void:
+	"""ARCH-SYS-009's 1/30 slice must PARTITION the rows, not sample a subset of them.
+
+	FOUND BY MUTATION: widening the sweep's stride from STAGGER_MODULUS to three times it passed
+	the whole suite, because every sweep test used a single hive on row 0 -- which any stride
+	still reaches. Rows beyond the first stagger period are what distinguish the strides, so this
+	walks thirty-six of them and requires each to be serviced exactly once in one period.
+	"""
+	var hives: int = JobPlannerScript.STAGGER_MODULUS + 6
+	for index: int in hives:
+		assert_equal(_hive(20 + index % 50, 40 + index / 50, 1), index, "hive %d lands in order" % index)
+	var created: int = 0
+	var first: int = _day_start_tick(2)
+	for tick: int in range(first, first + JobPlannerScript.STAGGER_MODULUS):
+		created += _planner.run_hive_sweep(tick).value
+	assert_equal(created, hives, "every hive is reached within one thirty-tick period")
+	assert_equal(_planner.pending_hive_service_count(), hives, "each holding one service")
+	for index: int in hives:
+		assert_true(_planner.hive_service_job_of(index) != EntityDirectory.NULL_REF,
+			"hive %d, beyond the first stagger period, was serviced too" % index)

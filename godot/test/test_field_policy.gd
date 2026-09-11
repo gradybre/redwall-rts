@@ -39,6 +39,16 @@ const ZONE_FORAGE: int = 2
 const LOAM: int = 0
 ## BAL-CROP-001: 250 milli-U of seed per tile, for every crop in §5.6's table.
 const SEED_MILLI_PER_TILE: int = 250
+## §5.6's grain duration in growth hours, and §5.1's 750 ticks per game hour.
+const GRAIN_GROWTH_HOURS: int = 192
+const TICKS_PER_HOUR: int = 750
+## An in-band growing temperature in tenths of a degree, well inside every §5.6 crop's range.
+const IDEAL_TEMPERATURE_TENTHS: int = 120
+## REQ-SET-075: a RIPE crop stands five days -- 120 hours -- before it withers.
+const RIPE_WITHER_HOURS: int = 120
+## §4.3 CropState, transcribed: EMPTY 0, SOWN 1, GROWING 2, RIPE 3, WITHERED 4.
+const CROP_STATE_RIPE: int = 3
+const CROP_STATE_WITHERED: int = 4
 ## jobs.gd's §4.2 gate values: 0 not required, 1 satisfied, 3 declared but unanswerable.
 const GATE_NOT_REQUIRED: int = 0
 const GATE_SATISFIED: int = 1
@@ -1283,3 +1293,89 @@ class WindowlessFarming extends FarmingScript:
 	func is_plant_window(_crop_id: int, _season: int, _season_day: int) -> bool:
 		"""Admit no day of the year, so every legal-window search comes back empty."""
 		return false
+
+
+# --- R06-JOB-005: what actually closes a cycle in this build (decision 0051) ----------------------
+
+func _grow_to_ripe(plot_slot: int) -> void:
+	"""Plant grain in its spring window and advance §5.6's full 192 growth hours to RIPE.
+
+	The hours and the temperature are the GDD's, not the module's: §5.6 gives grain a 192-hour
+	duration and `advance_growth_hour()` takes tenths of a degree.
+	"""
+	assert_true(_farming.plant(plot_slot, GRAIN, 1, 0, 1).ok, "grain plants in its spring window")
+	assert_true(_farming.begin_growing(plot_slot).ok, "the sowing work finishes")
+	for hour: int in GRAIN_GROWTH_HOURS:
+		_farming.advance_growth_hour(plot_slot, IDEAL_TEMPERATURE_TENTHS, hour * TICKS_PER_HOUR)
+	assert_equal(_farming.state_of(plot_slot).value, CROP_STATE_RIPE,
+		"the crop reaches RIPE after its stated duration")
+
+
+func test_a_crop_reaching_ripe_does_not_resolve_its_own_cycle() -> void:
+	"""R06-JOB-005's trigger CANNOT FIRE FROM CROP STATE. RIPE is not a harvest (decision 0051).
+
+	`record_plot_resolved()` takes only OUTCOME_HARVESTED and OUTCOME_CLEARED, and both are JOB
+	completions -- REQ-SET-073's ripe harvest and REQ-SET-085's withered clearing. A crop ripening
+	on its own is neither, so the cycle stays OPEN, nothing resolves and the cursor does not move.
+	"""
+	_enable_auto()
+	var plots: Array[int] = _open_with_plots([400])
+	_grow_to_ripe(plots[0])
+	assert_equal(_cycle_state(), CYCLE_OPEN, "the cycle is still open on a ripe crop")
+	assert_equal(_policy.resolved_count_of(_field).value, 0, "a ripe crop resolved nothing")
+	assert_equal(_cursor(), 0, "and the rotation cursor has not moved")
+	assert_equal(_request_state(), REQUEST_NONE, "no crop has been requested")
+
+
+func test_a_crop_withering_and_being_cleared_does_not_resolve_its_own_cycle() -> void:
+	"""WITHERED is not a clearing either: `farming.clear_withered()` writes no field-policy row.
+
+	This is the OTHER half of decision 0051's finding. Even after the owning crop store has
+	actually cleared the tile, the field cycle is untouched, because no store joins a FarmPlot to
+	a FieldPolicy cycle -- ARCH-SYS-006's increment-10 join is what would, and it does not exist.
+	"""
+	_enable_auto()
+	var plots: Array[int] = _open_with_plots([401])
+	_grow_to_ripe(plots[0])
+	var expiry_tick: int = (GRAIN_GROWTH_HOURS - 1 + RIPE_WITHER_HOURS) * TICKS_PER_HOUR
+	assert_true(_farming.apply_ripe_expiry(plots[0], expiry_tick).ok, "the ripe crop expires")
+	assert_equal(_farming.state_of(plots[0]).value, CROP_STATE_WITHERED, "REQ-SET-085's state")
+	assert_true(_farming.clear_withered(plots[0]).ok, "the crop store clears the withered tile")
+	assert_equal(_cycle_state(), CYCLE_OPEN, "the cycle is STILL open after a real clearing")
+	assert_equal(_policy.resolved_count_of(_field).value, 0, "nothing resolved")
+	assert_equal(_cursor(), 0, "and the cursor has not moved")
+
+
+func test_the_explicit_resolution_path_is_the_only_one_that_advances() -> void:
+	"""The same plot, resolved through `record_plot_resolved()`, DOES advance -- exactly once.
+
+	The producer is complete; what is missing is a caller. This pins both halves in one test so a
+	future join cannot be mistaken for a regression: crop state advances nothing, and the explicit
+	path advances one step and requests the next configured crop.
+	"""
+	_enable_auto()
+	var plots: Array[int] = _open_with_plots([402])
+	_grow_to_ripe(plots[0])
+	assert_equal(_cursor(), 0, "crop state alone has moved nothing")
+	var resolved: FieldPolicyScript.OpResult = _policy.record_plot_resolved(
+		_zone, plots[0], OUTCOME_HARVESTED, _spring_day(1))
+	assert_true(resolved.ok, "the explicit resolution takes (error: %s)" % resolved.error)
+	assert_equal(_cycle_state(), CYCLE_CLOSED, "the cycle closes on the last participant")
+	assert_equal(_close_reason(), CLOSE_COMPLETED, "as a completion")
+	assert_equal(_cursor(), 1, "the cursor advanced exactly one step")
+	assert_equal(_requested_crop(), BEANS, "and requested the SECOND configured entry")
+
+
+func test_record_plot_resolved_still_refuses_every_outcome_that_is_not_a_job_completion() -> void:
+	"""Decision 0051's dependency check, pinned: only the two job completions resolve a cycle.
+
+	UNRESOLVED and WITHDRAWN are refused here, so no caller can widen the trigger by passing a
+	crop-state ordinal that happens to be in range.
+	"""
+	var plots: Array[int] = _open_with_plots([403])
+	for outcome: int in [OUTCOME_UNRESOLVED, OUTCOME_WITHDRAWN]:
+		var refused: FieldPolicyScript.OpResult = _policy.record_plot_resolved(
+			_zone, plots[0], outcome, _spring_day(1))
+		assert_false(refused.ok, "outcome %d is not a resolution" % outcome)
+		assert_equal(refused.error, FieldPolicyScript.REFUSE_INVALID_OUTCOME, "and says so")
+	assert_equal(_policy.resolved_count_of(_field).value, 0, "nothing was counted")

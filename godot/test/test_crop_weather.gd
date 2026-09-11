@@ -34,6 +34,7 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 const WeatherScript := preload("res://scripts/core/weather.gd")
 const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
+const FishingScript := preload("res://scripts/core/fishing.gd")
 const IntMathScript := preload("res://scripts/core/int_math.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
 
@@ -950,13 +951,484 @@ func test_a_day_with_no_plots_and_no_orchards_honestly_does_nothing() -> void:
 	assert_equal(day.plots_blighted, 0, "and nothing was blighted")
 
 
-func test_a_refused_day_carries_no_counts_from_the_steps_that_already_ran() -> void:
-	"""An unchecked result must not surface a half-day: a refusal clears every field."""
+func test_a_preflight_refusal_advances_nothing_at_all_and_can_be_retried() -> void:
+	"""Ruling §4.1: a scheduling refusal is a failure with a diagnostic, not a half-run day.
+
+	BEHAVIOUR CHANGED DELIBERATELY (decision 0055). This test previously asserted that an
+	unseeded summer draw still CONSUMED day 13 -- the latch was raised before the steps, so a
+	refusal half way left the earlier steps committed and the day unrepeatable. The ruling forbids
+	exactly that: "Preflight required season identity, RNG and catalog inputs before a boundary
+	can partially advance", and "a scheduling refusal is a failure requiring a diagnostic, not
+	permission to clear some state and publish an apparently completed tick." So the RNG is now
+	proved BEFORE anything commits: the day is untouched, `last_day_run()` still reports 12, the
+	moisture the eleven spring days accumulated is unchanged, and seeding the world lets the very
+	same day 13 run to completion.
+	"""
 	var slot: int = _plot(PLOT_TILE_X, PLOT_TILE_Z)
 	_run_days(2, 12)
-	assert_true(_moisture(slot) > 0, "eleven spring days have moved the plot's moisture")
+	var moisture_before: int = _moisture(slot)
+	assert_true(moisture_before > 0, "eleven spring days have moved the plot's moisture")
 	var refused: CropWeatherScript.DayResult = _run_day(13)
 	assert_false(refused.ok, "the unseeded summer draw refuses")
+	assert_equal(refused.error, RngScript.REFUSE_NOT_SEEDED, "carrying the stream's own reason")
 	assert_equal(refused.plots_moistened, 0, "and no count survives on the refused result")
 	assert_equal(refused.absolute_day, 0, "not even the day it refused for")
-	assert_equal(_crop.last_day_run(), 13, "which `last_day_run()` reports instead")
+	assert_equal(_crop.last_day_run(), 12, "day 13 was not consumed by a preflight refusal")
+	assert_equal(_moisture(slot), moisture_before, "and no step moved the plot's moisture")
+	_seed(20260911)
+	var retried: CropWeatherScript.DayResult = _run_day(13)
+	assert_true(retried.ok, "the very same day runs once the stream is seeded (%s)" % retried.error)
+	assert_equal(retried.absolute_day, 13, "for the day that was refused")
+	assert_equal(_crop.last_day_run(), 13, "and only now is it consumed")
+
+
+# --- ruling 2026-09-11 §4.1/§4.3: season identity, the mussel closure and the exact fixtures ------
+#
+# EVERY TICK BELOW IS THE RULING'S OWN, TYPED IN AS A LITERAL and then checked against
+# `(D-1)*18000-4500` computed independently by `_midnight_of()`. If the two ever disagree the
+# fixture fails rather than quietly testing some other midnight.
+
+## Ruling §4.3's required exact checks, transcribed: summer day 3/6/8/9 and autumn day 1/3/6.
+const TICK_SUMMER_DAY_3: int = 247500
+const TICK_SUMMER_DAY_6: int = 301500
+const TICK_SUMMER_DAY_8: int = 337500
+const TICK_SUMMER_DAY_9: int = 355500
+const TICK_AUTUMN_DAY_1: int = 427500
+const TICK_AUTUMN_DAY_3: int = 463500
+const TICK_AUTUMN_DAY_6: int = 517500
+
+## The absolute days those ticks open, so each fixture states both halves of its own identity.
+const DAY_SUMMER_1: int = 13
+const DAY_SUMMER_3: int = 15
+const DAY_SUMMER_6: int = 18
+const DAY_SUMMER_8: int = 20
+const DAY_SUMMER_9: int = 21
+const DAY_AUTUMN_1: int = 25
+const DAY_AUTUMN_3: int = 27
+const DAY_AUTUMN_6: int = 30
+
+## Ruling §4.2's absolute season index for year 1, `floor((absolute_day-1)/12)`.
+const ABS_SPRING: int = 0
+const ABS_SUMMER: int = 1
+const ABS_AUTUMN: int = 2
+
+## `catalog.gd`'s compiled HabitatType ids, ascending ASCII: coast, lake, river.
+const HABITAT_COAST: int = 0
+## §5.4 lists herring/mackerel/mussel under Coast, so the mussel is species index 2 there.
+const SPECIES_INDEX_MUSSEL: int = 2
+## Three opaque ItemDefinition ids for the fixture's coast habitat; §5.4's tables are not keyed
+## on them, and every closure assertion below names the stock by its row.
+const COAST_ITEM_IDS: Array[int] = [30, 31, 32]
+
+## §5.10's baselines, transcribed: summer 22°C and autumn 10°C, in tenths.
+const SUMMER_BASELINE_TENTHS: int = 220
+const AUTUMN_BASELINE_TENTHS: int = 100
+
+
+func _mussel_row() -> int:
+	"""Create one §5.4 coast habitat and return the FishStock row of its mussel bed."""
+	var made: FishingScript.OpResult = _ecology.fishing().create_habitat(
+		HABITAT_COAST, EntityDirectoryScript.NULL_REF,
+		PackedInt32Array(COAST_ITEM_IDS), 0, 0, 0)
+	assert_true(made.ok, "the fixture coast habitat must be created (%s)" % made.error)
+	var row: IntMathScript.IntResult = _ecology.fishing().stock_row_of(
+		made.ref, SPECIES_INDEX_MUSSEL)
+	assert_true(row.ok, "and must carry a mussel stock (%s)" % row.error)
+	return row.value
+
+
+func _arm_event(absolute_season: int, event: int) -> void:
+	"""Advance the WEATHER stream until its NEXT draw selects `event` in that season.
+
+	Ruling §4.3: "Use injected valid event fixtures for these checks, not a claim that the
+	production seed necessarily selects blight." The injection goes through the module's own
+	published roll-to-row map, so only an event §5.10 admits in that season can ever be armed,
+	and every caller additionally asserts which event the boundary actually scheduled.
+	"""
+	var season: int = absolute_season % 4
+	var weather: WeatherScript = _crop.weather()
+	for attempt: int in 4096:
+		var state: int = _rng.state_of(RngScript.STREAM_WEATHER).value
+		var peek: int = RngScript.next_u32_from(state).value \
+			% weather.weight_sum_of(season).value
+		if weather.event_for_roll(season, peek).value == event:
+			return
+		_rng.draw(RngScript.STREAM_WEATHER)
+	fail("no draw within 4096 attempts selects event %d in season %d" % [event, season])
+
+
+func _closed(row: int) -> bool:
+	"""The §4.2 `closed` EVENT bit of one stock, which ruling §4.1 gives ARCH-SYS-006 to write."""
+	return _ecology.fishing().is_event_closed(row)
+
+
+func _open_summer_with_blight(row: int) -> void:
+	"""Seed, run spring, and open summer with an injected blight on days 6-8. `row` is asserted."""
+	_seed(SEED_SUMMER_BLIGHT)
+	_run_days(2, DAY_SUMMER_1 - 1)
+	_arm_event(ABS_SUMMER, EVENT_BLIGHT)
+	var summer: CropWeatherScript.DayResult = _run_day(DAY_SUMMER_1)
+	assert_true(summer.ok, "summer day 1 commits (%s)" % summer.error)
+	assert_equal(summer.event_scheduled, EVENT_BLIGHT, "with the injected blight scheduled")
+	assert_equal(summer.weather_draws, 1, "on exactly one WEATHER draw")
+	assert_false(_closed(row), "and the closure does not begin before the event does")
+
+
+func test_the_ruling_fixture_ticks_are_the_offset_calendars_own_midnights() -> void:
+	"""Ruling §4.3: "a midnight at absolute day D is `tick=(D-1)*18000-4500`"."""
+	assert_equal(_midnight_of(DAY_SUMMER_3), TICK_SUMMER_DAY_3, "summer day 3 is tick 247500")
+	assert_equal(_midnight_of(DAY_SUMMER_6), TICK_SUMMER_DAY_6, "summer day 6 is tick 301500")
+	assert_equal(_midnight_of(DAY_SUMMER_8), TICK_SUMMER_DAY_8, "summer day 8 is tick 337500")
+	assert_equal(_midnight_of(DAY_SUMMER_9), TICK_SUMMER_DAY_9, "summer day 9 is tick 355500")
+	assert_equal(_midnight_of(DAY_AUTUMN_1), TICK_AUTUMN_DAY_1, "autumn day 1 is tick 427500")
+	assert_equal(_midnight_of(DAY_AUTUMN_3), TICK_AUTUMN_DAY_3, "autumn day 3 is tick 463500")
+	assert_equal(_midnight_of(DAY_AUTUMN_6), TICK_AUTUMN_DAY_6, "autumn day 6 is tick 517500")
+
+
+func test_summer_day_six_tick_301500_closes_the_mussel_harvest() -> void:
+	"""Ruling §4.3: "summer day 6 tick 301500 closes mussels before planning"."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, DAY_SUMMER_6 - 1)
+	assert_false(_closed(row), "days 2-5 of the summer are still open")
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_SUMMER_DAY_6, 0)
+	assert_true(day.ok, "the boundary at tick 301500 commits (%s)" % day.error)
+	assert_equal(day.boundary_tick, TICK_SUMMER_DAY_6, "it is exactly tick 301500")
+	assert_equal(day.absolute_day, DAY_SUMMER_6, "opening absolute day 18")
+	assert_equal(day.season, SUMMER, "which is summer")
+	assert_equal(day.season_day, 6, "on its sixth local day")
+	assert_equal(day.absolute_season, ABS_SUMMER, "absolute season 1")
+	assert_true(day.mussel_event_closed, "and the ruled predicate is true")
+	assert_equal(day.mussel_stocks_written, 1, "one present mussel stock was written")
+	assert_true(_closed(row), "so the stock's event bit is closed WHEN THE BOUNDARY RETURNS")
+	assert_true(_ecology.fishing().is_harvest_closed(row, SUMMER, 6), "and no harvest is allowed")
+
+
+func test_summer_day_eight_tick_337500_remains_closed() -> void:
+	"""Ruling §4.3: "summer day 8 tick 337500 remains closed"."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, DAY_SUMMER_8 - 1)
+	assert_true(_closed(row), "day 7 inside the window is already closed")
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_SUMMER_DAY_8, 0)
+	assert_true(day.ok, "the boundary at tick 337500 commits (%s)" % day.error)
+	assert_equal(day.absolute_day, DAY_SUMMER_8, "opening absolute day 20")
+	assert_equal(day.season_day, 8, "summer's eighth day, the last of the three")
+	assert_true(day.mussel_event_closed, "the closure still stands")
+	assert_true(_closed(row), "on the last day of the half-open window")
+
+
+func test_summer_day_nine_tick_355500_reopens_the_mussel_harvest() -> void:
+	"""Ruling §4.3: "day 9 tick 355500 reopens", the day after the half-open window ends."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, DAY_SUMMER_9 - 1)
+	assert_true(_closed(row), "day 8 closed the bed")
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_SUMMER_DAY_9, 0)
+	assert_true(day.ok, "the boundary at tick 355500 commits (%s)" % day.error)
+	assert_equal(day.absolute_day, DAY_SUMMER_9, "opening absolute day 21")
+	assert_equal(day.season_day, 9, "summer's ninth day")
+	assert_false(day.mussel_event_closed, "the ruled predicate is false the day after expiry")
+	assert_equal(day.mussel_stocks_written, 1, "and the bit is WRITTEN false, not merely skipped")
+	assert_false(_closed(row), "so the bed reopens without anyone reopening it by hand")
+	assert_false(_ecology.fishing().is_harvest_closed(row, SUMMER, 9), "and harvest is allowed")
+
+
+func test_summer_day_three_tick_247500_discloses_the_forecast() -> void:
+	"""Ruling §4.3: "Summer day 3 forecast is tick 247500"."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, DAY_SUMMER_3 - 1)
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_SUMMER_DAY_3, 0)
+	assert_true(day.ok, "the boundary at tick 247500 commits (%s)" % day.error)
+	assert_equal(day.absolute_day, DAY_SUMMER_3, "opening absolute day 15")
+	assert_equal(day.season_day, 3, "three days before §5.10's day-6 start")
+	assert_equal(day.forecast_event, EVENT_BLIGHT, "the coming blight is disclosed")
+	assert_equal(day.forecast_absolute_season, ABS_SUMMER, "carrying absolute season 1")
+	assert_equal(_crop.weather().forecast_start_day(), 6, "with its start day")
+	assert_false(day.mussel_event_closed, "a DISCLOSED event closes nothing yet")
+	assert_false(_closed(row), "the bed is open three days before the blight arrives")
+
+
+func test_autumn_day_six_tick_517500_permits_mussels_during_a_blight() -> void:
+	"""Ruling §4.3: "Autumn day 6 tick 517500 permits mussels during blight"."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, DAY_AUTUMN_1 - 1)
+	_arm_event(ABS_AUTUMN, EVENT_BLIGHT)
+	var autumn: CropWeatherScript.DayResult = _run_day(DAY_AUTUMN_1)
+	assert_equal(autumn.event_scheduled, EVENT_BLIGHT, "autumn's own blight is injected")
+	_run_days(DAY_AUTUMN_1 + 1, DAY_AUTUMN_6 - 1)
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_AUTUMN_DAY_6, 0)
+	assert_true(day.ok, "the boundary at tick 517500 commits (%s)" % day.error)
+	assert_equal(day.absolute_day, DAY_AUTUMN_6, "opening absolute day 30")
+	assert_equal(day.absolute_season, ABS_AUTUMN, "absolute season 2")
+	assert_true(_crop.weather().is_blight_active(ABS_AUTUMN, 6),
+		"the autumn blight IS active and damages crops")
+	assert_false(day.mussel_event_closed, "yet §5.10 closes the mussel harvest in SUMMER only")
+	assert_false(_closed(row), "so the bed stays open through an autumn blight")
+
+
+func test_autumn_day_three_tick_463500_carries_absolute_season_two() -> void:
+	"""Ruling §4.3: "autumn day 3 forecast at 463500 carries absolute season 2"."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, DAY_AUTUMN_1 - 1)
+	_arm_event(ABS_AUTUMN, EVENT_BLIGHT)
+	assert_equal(_run_day(DAY_AUTUMN_1).event_scheduled, EVENT_BLIGHT, "autumn blight injected")
+	_run_days(DAY_AUTUMN_1 + 1, DAY_AUTUMN_3 - 1)
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_AUTUMN_DAY_3, 0)
+	assert_true(day.ok, "the boundary at tick 463500 commits (%s)" % day.error)
+	assert_equal(day.absolute_day, DAY_AUTUMN_3, "opening absolute day 27")
+	assert_equal(day.forecast_event, EVENT_BLIGHT, "autumn's blight is disclosed")
+	assert_equal(day.forecast_absolute_season, 2, "carrying absolute season 2, as ruled")
+	assert_equal(_crop.weather().forecast_absolute_season(), 2, "and the column agrees")
+	assert_false(_closed(row), "and an autumn disclosure closes no mussel bed")
+
+
+func test_tick_427500_does_not_reuse_the_summer_schedule() -> void:
+	"""Ruling §4.3: "At tick 427500 entering autumn day 1, do not reuse the summer schedule"."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, DAY_AUTUMN_1 - 1)
+	assert_equal(_crop.last_scheduled_season(), ABS_SUMMER, "summer holds the latch")
+	_arm_event(ABS_AUTUMN, EVENT_BLIGHT)
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_AUTUMN_DAY_1, 0)
+	assert_true(day.ok, "the boundary at tick 427500 commits (%s)" % day.error)
+	assert_equal(day.absolute_day, DAY_AUTUMN_1, "opening absolute day 25")
+	assert_equal(day.absolute_season, ABS_AUTUMN, "absolute season 2")
+	assert_equal(day.completed_absolute_season, ABS_SUMMER,
+		"while the ELAPSED calendar the completed day settles under is still summer, absolute 1")
+	assert_equal(day.completed_day, DAY_AUTUMN_1 - 1, "which is absolute day 24")
+	assert_equal(day.event_ended, EVENT_NONE,
+		"summer's blight had already expired inside summer, so nothing is carried across")
+	assert_false(_crop.weather().is_event_active(ABS_SUMMER, 6),
+		"and the summer window is dead even for the day it used to cover")
+	assert_equal(day.weather_draws, 1, "and autumn takes its OWN single draw")
+	assert_equal(day.event_scheduled, EVENT_BLIGHT, "for its own injected event")
+	assert_equal(_crop.last_scheduled_season(), ABS_AUTUMN, "the latch has moved to autumn")
+	assert_true(_crop.weather().is_season_scheduled(ABS_AUTUMN), "and names autumn alone")
+	assert_false(_crop.weather().is_season_scheduled(ABS_SUMMER), "summer is behind it")
+
+
+func test_the_hour_before_tick_427500_still_uses_summer_climate() -> void:
+	"""Ruling §4.3: "the preceding hour still uses summer climate" at the autumn crossing."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, DAY_AUTUMN_1 - 1)
+	assert_equal(_crop.weather().temperature_tenths(), SUMMER_BASELINE_TENTHS,
+		"the row holds summer's 22°C after summer's last midnight")
+	var hour: CropWeatherScript.HourResult = _crop.run_hour(TICK_AUTUMN_DAY_1)
+	assert_true(hour.ok, "the midnight tick is an hour crossing too (%s)" % hour.error)
+	assert_equal(hour.tick, TICK_AUTUMN_DAY_1, "and it is tick 427500")
+	assert_equal(hour.temperature_tenths, SUMMER_BASELINE_TENTHS,
+		"the ELAPSED hour integrates at summer's climate, because the day leg has not run")
+	_arm_event(ABS_AUTUMN, EVENT_BLIGHT)
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_AUTUMN_DAY_1, 0)
+	assert_true(day.ok, "then the daily leg runs (%s)" % day.error)
+	assert_equal(day.elapsed_hour_tick, TICK_AUTUMN_DAY_1,
+		"which reports the hour already consumed, proving the order was not reversed")
+	assert_equal(_crop.weather().temperature_tenths(), AUTUMN_BASELINE_TENTHS,
+		"and only now does the row hold autumn's 10°C")
+
+
+func test_the_completed_days_blight_settles_before_the_new_days_closure() -> void:
+	"""Ruling §4.1's order: completed-day crop effects, THEN the new day's weather and closure."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, 17)
+	var slot: int = _growing(PLOT_TILE_X, PLOT_TILE_Z, CROP_CABBAGE, 17, SUMMER, 5)
+	_run_days(DAY_SUMMER_6, DAY_SUMMER_8)
+	var damaged: int = _health(slot)
+	assert_true(damaged < FarmingScript.HEALTH_MAX, "blighted days have damaged the plot")
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_SUMMER_DAY_9, 0)
+	assert_true(day.ok, "summer day 9 commits (%s)" % day.error)
+	assert_true(day.blight_active,
+		"the COMPLETED day 8 was still inside the window, so its damage settles")
+	assert_equal(day.plots_blighted, 1, "one plot took the completed day's damage")
+	assert_true(_health(slot) < damaged, "and its health fell again")
+	assert_false(day.mussel_event_closed,
+		"while the NEW day 9 is outside the window and reopens the bed in the same boundary")
+	assert_false(_closed(row), "the two legs read different days and do not contradict")
+
+
+func test_the_closure_reads_the_schedule_the_same_boundary_just_made() -> void:
+	"""Ruling §4.1's order: schedule/disclose the new day's weather ONCE, THEN set the bit.
+
+	The two steps are separated by driving the stage to a NON-CONSECUTIVE boundary. The day latch
+	only requires the day to advance, so spring can be run to its end and the very next boundary
+	taken at summer day 6 -- the first summer midnight this stage sees, which therefore BOTH
+	schedules the season's event and falls inside that event's window. If the closure step ran
+	before the schedule step it would still be looking at spring's ideal spell, which belongs to
+	another absolute season and closes nothing, and the bed would stay open.
+	"""
+	var row: int = _mussel_row()
+	_seed(SEED_SUMMER_BLIGHT)
+	_run_days(2, 12)
+	assert_equal(_crop.last_scheduled_season(), ABS_SPRING, "spring alone has been scheduled")
+	assert_false(_closed(row), "and the bed is open")
+	_arm_event(ABS_SUMMER, EVENT_BLIGHT)
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_SUMMER_DAY_6, 0)
+	assert_true(day.ok, "the jump straight to summer day 6 commits (%s)" % day.error)
+	assert_equal(day.absolute_day, DAY_SUMMER_6, "opening absolute day 18")
+	assert_equal(day.event_scheduled, EVENT_BLIGHT, "this boundary scheduled the blight")
+	assert_equal(day.weather_draws, 1, "on its own single draw")
+	assert_true(day.mussel_event_closed,
+		"and the closure read THAT schedule, not the spring event the row held on entry")
+	assert_true(_closed(row), "so the bed is closed by the same boundary that scheduled it")
+
+
+func test_a_duplicate_boundary_call_changes_no_closure() -> void:
+	"""Ruling §4.3: "Repeat across ... duplicate-boundary calls"."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, DAY_SUMMER_6)
+	assert_true(_closed(row), "summer day 6 closed the bed")
+	var replay: CropWeatherScript.DayResult = _crop.run_day(TICK_SUMMER_DAY_6, 0)
+	assert_false(replay.ok, "the same midnight refuses a second time")
+	assert_equal(replay.error, CropWeatherScript.REFUSE_DAY_ALREADY_RUN, "as an already-run day")
+	assert_equal(replay.mussel_stocks_written, 0, "a refusal carries no count")
+	assert_true(_closed(row), "and the bed is neither reopened nor written twice")
+	assert_equal(_crop.last_day_run(), DAY_SUMMER_6, "the day stays consumed")
+
+
+func test_hours_without_a_boundary_never_move_the_closure() -> void:
+	"""Ruling §4.3: "Repeat across ... pause". A paused clock raises no midnight, and the bit
+	must not drift across the hours that do elapse."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, DAY_SUMMER_6)
+	assert_true(_closed(row), "the bed is closed on summer day 6")
+	for step: int in range(1, 13):
+		var hour: CropWeatherScript.HourResult = _crop.run_hour(
+			TICK_SUMMER_DAY_6 + step * TICKS_PER_HOUR)
+		assert_true(hour.ok, "hour %d of the day runs (%s)" % [step, hour.error])
+	assert_true(_closed(row), "twelve hours later the bed is still exactly as the boundary left it")
+	assert_equal(_crop.last_day_run(), DAY_SUMMER_6, "and no new day was opened")
+
+
+func test_the_closure_repeats_in_the_following_year() -> void:
+	"""Ruling §4.3: "Repeat across years". Year 2's summer is a DIFFERENT absolute season."""
+	var row: int = _mussel_row()
+	_open_summer_with_blight(row)
+	_run_days(DAY_SUMMER_1 + 1, 48)
+	assert_false(_closed(row), "the bed is open at the end of year 1")
+	assert_equal(_crop.last_scheduled_season(), 3, "winter of year 1 holds the latch")
+	_run_days(49, 60)
+	assert_equal(_crop.last_scheduled_season(), 4, "year 2's spring is absolute season 4")
+	_arm_event(5, EVENT_BLIGHT)
+	var summer: CropWeatherScript.DayResult = _run_day(61)
+	assert_equal(summer.absolute_season, 5, "year 2's summer is absolute season 5")
+	assert_equal(summer.event_scheduled, EVENT_BLIGHT, "with an injected blight")
+	_run_days(62, 65)
+	var day: CropWeatherScript.DayResult = _crop.run_day(1165500, 0)
+	assert_true(day.ok, "year 2's summer day 6 commits (%s)" % day.error)
+	assert_equal(day.absolute_day, 66, "which is absolute day 66")
+	assert_equal(day.boundary_tick, _midnight_of(66), "at `(66-1)*18000-4500`")
+	assert_true(day.mussel_event_closed, "and closes the bed a second year running")
+	assert_true(_closed(row), "which the repeating 0-3 ordinal alone could not have scheduled")
+
+
+func test_the_scheduled_once_latch_has_exactly_one_owner() -> void:
+	"""Ruling §4.2: the CropWeather latch is REPLACED by the Weather column, in one migration."""
+	_seed(SEED_SUMMER_BLIGHT)
+	assert_equal(_crop.last_scheduled_season(), CropWeatherScript.NO_SEASON_SCHEDULED,
+		"a fresh stage has scheduled no season")
+	assert_equal(CropWeatherScript.NO_SEASON_SCHEDULED, WeatherScript.ABSOLUTE_SEASON_NONE,
+		"and its empty value IS the store's, not a second opinion about what empty means")
+	for day: int in range(2, 40):
+		var result: CropWeatherScript.DayResult = _run_day(day)
+		assert_true(result.ok, "day %d commits (%s)" % [day, result.error])
+		assert_equal(_crop.last_scheduled_season(), _crop.weather().scheduled_absolute_season(),
+			"on day %d the stage reports exactly the Weather column" % day)
+	_crop.clear()
+	assert_equal(_crop.last_scheduled_season(), CropWeatherScript.NO_SEASON_SCHEDULED,
+		"and clear() drops the one latch there is")
+
+
+func test_the_two_stores_derive_the_same_absolute_season() -> void:
+	"""`weather.gd` and `farming.gd` both compute `floor((day-1)/12)`; four years of agreement."""
+	for day: int in range(1, 193):
+		var weather_view: IntMathScript.IntResult = _crop.weather().absolute_season_of_day(day)
+		var farm_view: IntMathScript.IntResult = _crop.farming().absolute_season_of_day(day)
+		assert_true(weather_view.ok and farm_view.ok, "day %d has a season in both" % day)
+		assert_equal(weather_view.value, farm_view.value,
+			"the two stores agree on absolute day %d" % day)
+	assert_equal(_crop.weather().absolute_season_of_day(192).value, 15,
+		"four years is sixteen absolute seasons, numbered 0-15")
+
+
+func test_the_mussel_closure_is_written_for_no_other_species() -> void:
+	"""Ruling §4.1 reserves the event bit for one cause, and this stage writes one species."""
+	var mussel: int = _mussel_row()
+	var herring: IntMathScript.IntResult = _ecology.fishing().stock_row_of(
+		_ecology.fishing().stock_habitat_ref_of(mussel), 0)
+	assert_true(herring.ok, "the same habitat carries a herring stock (%s)" % herring.error)
+	_open_summer_with_blight(mussel)
+	_run_days(DAY_SUMMER_1 + 1, DAY_SUMMER_6)
+	assert_true(_closed(mussel), "the mussel bed closes")
+	assert_false(_closed(herring.value), "and the herring stock beside it does not")
+	assert_true(_ecology.fishing().population_milli_of(herring.value).ok,
+		"the herring stock is still present and readable")
+	assert_false(_ecology.fishing().is_harvest_closed(herring.value, SUMMER, 6),
+		"and its harvest is still permitted")
+
+
+func test_a_world_with_no_mussel_bed_writes_nothing_and_is_not_an_error() -> void:
+	"""Zero present mussel stocks is an answer, not a refusal."""
+	_seed(SEED_SUMMER_BLIGHT)
+	_run_days(2, DAY_SUMMER_1 - 1)
+	_arm_event(ABS_SUMMER, EVENT_BLIGHT)
+	assert_equal(_run_day(DAY_SUMMER_1).event_scheduled, EVENT_BLIGHT, "blight is injected")
+	_run_days(DAY_SUMMER_1 + 1, DAY_SUMMER_6 - 1)
+	var day: CropWeatherScript.DayResult = _crop.run_day(TICK_SUMMER_DAY_6, 0)
+	assert_true(day.ok, "the boundary still commits (%s)" % day.error)
+	assert_true(day.mussel_event_closed, "the ruled predicate is still true")
+	assert_equal(day.mussel_stocks_written, 0, "but no stock existed to write it to")
+
+
+func test_a_season_identity_that_the_clock_contradicts_refuses_the_boundary() -> void:
+	"""Ruling §4.1's preflight: season identity is proved before anything may advance.
+
+	`preflight_refusal_for()` takes the season as an ARGUMENT, so the comparison
+	`absolute_season % 4 == season` can actually be made to fail here -- inside `run_day_into()`
+	both sides come from one decoded tick and can never disagree with each other.
+	"""
+	_seed(SEED_SUMMER_BLIGHT)
+	_run_days(2, 12)
+	var before: int = _crop.last_day_run()
+	assert_equal(_crop.preflight_refusal_for(DAY_SUMMER_6, SUMMER),
+		CropWeatherScript.REFUSE_NONE, "absolute day 18 really is a summer day and preflights")
+	for wrong: int in [SPRING, AUTUMN, WINTER]:
+		assert_equal(_crop.preflight_refusal_for(DAY_SUMMER_6, wrong),
+			CropWeatherScript.REFUSE_SEASON_IDENTITY_MISMATCH,
+			"season %d contradicts absolute day 18's own identity and is refused" % wrong)
+	assert_equal(_crop.preflight_refusal_for(0, SPRING),
+		WeatherScript.REFUSE_INVALID_SEASON_DAY, "day 0 precedes the calendar entirely")
+	assert_equal(_crop.last_day_run(), before, "and no preflight consumed a day")
+	var not_a_boundary: CropWeatherScript.DayResult = _crop.run_day(TICK_SUMMER_DAY_6 + 1, 0)
+	assert_false(not_a_boundary.ok, "a tick that is not a midnight refuses")
+	assert_equal(not_a_boundary.error, CropWeatherScript.REFUSE_NOT_DAY_BOUNDARY, "as such")
+	assert_equal(_crop.last_day_run(), before, "and consumed no day either")
+
+
+func test_no_stated_event_ever_covers_the_last_day_of_its_season() -> void:
+	"""Why the completed-day blight leg can be reasoned about across a season crossing.
+
+	A crossing always settles season day 12, and §5.10 gives no event a window that reaches it:
+	the latest start is early frost's day 10 with a two-day duration, ending on day 11. That is
+	what makes "did the elapsed leg read the elapsed season?" unobservable for BLIGHT specifically,
+	and the invariant is asserted here so a later table change fails a test instead of silently
+	making the elapsed/new distinction load-bearing with nothing watching it. The distinction
+	itself is still checked: `DayResult.completed_absolute_season` is derived from `completed_day`
+	and asserted to differ from `absolute_season` at tick 427500.
+	"""
+	var weather: WeatherScript = _crop.weather()
+	for event: int in WeatherScript.EVENT_COUNT:
+		var start: int = weather.start_day_of(event).value
+		var duration: int = weather.duration_days_of(event).value
+		assert_true(start + duration - 1 < WeatherScript.DAYS_PER_SEASON,
+			"§5.10 row %d ends on day %d, before a season's twelfth" % [event,
+			start + duration - 1])
+		assert_false(weather.is_season_day(start + duration - 1) and start + duration - 1 == 12,
+			"row %d must not reach the day a season crossing settles" % event)

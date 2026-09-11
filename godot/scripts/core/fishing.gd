@@ -95,11 +95,15 @@ extends RefCounted
 ##     retention, and the rare-quality roll, need the `Expedition` allocator and per-cycle
 ##     FISHING draws. §4.2's Expedition row exists and its store does not.
 ##   * WEATHER-GATED ACCESS. REQ-SET-051 (winter ice, ice-kit crews, ice-access station) and
-##     REQ-SET-052 (storm departures), plus mussel's "Summer blight event closes harvest", are
-##     all weather-event conditions. CORRECTED 2026-09-09: weather is no longer blocked -- the
-##     roll-to-row mapping was ruled (decision 0028) and weather.gd exists. This module still
-##     evaluates no weather condition and no closure below is a blight closure, because JOINING
-##     the two stores is ARCH-SYS-006's job (increment 10), not this store's.
+##     REQ-SET-052 (storm departures) are weather-event conditions this module still evaluates
+##     nothing for. Mussel's "Summer blight event closes harvest" IS NO LONGER ONE OF THEM:
+##     ruling 2026-09-11 §4.1 gives the weather-to-fishery join and the `FishStock.closed` event
+##     bit to ARCH-SYS-006 (`crop_weather.gd`), which calls apply_mussel_event_closure_into()
+##     below once per midnight. This store still evaluates NO weather condition itself -- it owns
+##     no Weather row and reads none -- and no §5.4 CALENDAR closure below is a blight closure.
+##     THE TWO CONTRADICTORY COMMENTS THIS FILE USED TO CARRY ARE BOTH AMENDED: this one, which
+##     named increment 10 correctly, and set_closed()'s, which said "ARCH-SYS-005 owns any daily
+##     orchestration that would write the bit" and was the wrong half of the contradiction.
 ##   * JOBS AND LOTS. REQ-SET-045's "create corresponding fish lots" and any FISH job creation
 ##     belong to later increments; §5.5's fishing has no stated job-creation trigger at all
 ##     (docs/tasks/03_ecology_crops_weather.md).
@@ -124,12 +128,20 @@ extends RefCounted
 ##     ordinals, and settles nothing either way. `type` is persisted state: the old ordinals are
 ##     NOT interchangeable with these, so any retained snapshot is translated through
 ##     Catalog.convert_legacy_id() (HabitatType map [2,1,0]) or refused.
-##   * `species_id`'s DOMAIN IS UNSTATED. §4.2 types it int32 and never says which catalog. The
-##     nine fish are not in item_definitions.gd, and §5.5 names them only as "edible aquatic
-##     species ... explicitly sapient=false in the food-stock catalog", a catalog that does not
-##     exist. This store validates the range only and refuses a negative id, the same treatment
-##     `resource_id` has in resource_nodes.gd. SPECIES_KEYS holds §5.4's nine keys so a caller
-##     can compile them once the owning catalog is settled.
+##   * `species_id`'s DOMAIN IS SETTLED: THE COMPILED `ItemDefinition` ID. §4.2 types it int32 and
+##     never says which catalog; READY_07 §2 (2026-09-11) rules that each fish stock's item-id
+##     field uses the same domain as `ResourceNode.resource_id`. All nine keys ARE in
+##     item_definitions.gd, and `scripts/core/resource_catalog_binding.gd` resolves SPECIES_KEYS
+##     against it; decision 0052 records the interpretation. This store still validates the range
+##     only and refuses a negative id, the same treatment `resource_id` has in resource_nodes.gd:
+##     an int32 column cannot prove a catalog.
+##     THE ID AND THE ROW REMAIN DIFFERENT INDEXES, AND SO DOES THE ARGUMENT ORDER. A compiled
+##     item id must never subscript SPECIES_CAPACITY_U, SPECIES_HABITAT_TYPE or any other nine-row
+##     table here. Note especially that `create_habitat()` and `generate_initial_estuary()` take
+##     their `species_ids` addressed `habitat_type * 3 + species_index` under the COMPILED
+##     HabitatType ordinals, which is NOT SPECIES_KEYS order: a caller holding a SPECIES_KEYS-
+##     ordered array re-addresses it through HABITAT_SPECIES_ROWS first. `world_init.gd` does
+##     exactly that, and decision 0052 records the defect found when it did not.
 ##   * `pollution` HAS NO STATED EFFECT. It appears in §4.2's field list and nowhere else in the
 ##     document set -- no formula, no requirement, no range. It is stored and returned; no
 ##     reader or harvest path consults it. Inventing an effect would be inventing a contract.
@@ -348,10 +360,12 @@ const SPECIES_HABITAT_TYPE: Array[int] = [
 	HABITAT_COAST, HABITAT_COAST, HABITAT_COAST,
 ]
 
-## §5.4's "Species" column. §5.5 confirms the same nine: "Edible aquatic species are exactly
-## carp, dace, herring, mackerel, mussel, perch, salmon, trout and whitefish". Ids are compiled
-## elsewhere (see the header on the unstated domain); these keys exist so a caller can resolve
-## them once that catalog is settled.
+## §5.4's "Species" column, in §5.4's own RIVER/LAKE/COAST row order. §5.5 confirms the nine:
+## "Edible aquatic species are exactly carp, dace, herring, mackerel, mussel, perch, salmon, trout
+## and whitefish". Ids are compiled elsewhere: `resource_catalog_binding.gd` resolves THIS array
+## against the ItemDefinition catalog and must preserve its order, because every per-species table
+## below is subscripted by these row numbers. This is NOT the habitat-major order
+## `create_habitat()` takes -- see the header.
 const SPECIES_KEYS: Array[StringName] = [
 	&"trout", &"dace", &"salmon",
 	&"perch", &"carp", &"whitefish",
@@ -1998,19 +2012,88 @@ func is_closed_flag(row: int) -> bool:
 	return is_stock_present(row) and _stock_closed[row] == 1
 
 
+func is_event_closed(row: int) -> bool:
+	"""Ruling §4.1's `event_closed`: the stored §4.2 bit, which has exactly ONE cause.
+
+	That cause is §5.10's summer blight, written by ARCH-SYS-006 alone. The ruling reserves the
+	bit for it: "No other subsystem may reuse the event bit for another cause. A future additional
+	closure cause needs a typed reason mask", and adding that mask now is explicitly unnecessary,
+	so this store carries no reason column and this reader needs no argument to disambiguate.
+	"""
+	return is_closed_flag(row)
+
+
+func is_calendar_closed(row: int, season: int, season_day: int) -> bool:
+	"""Ruling §4.1's `calendar_closed`: §5.4's stated spawning/closure windows, and nothing else.
+
+	The other half of `harvest_closed = calendar_closed || event_closed`, published separately so
+	the union in is_harvest_closed() is a derivation over two named predicates rather than an
+	opaque test a caller has to take apart again.
+	"""
+	if not is_stock_present(row) or not is_season(season) or not is_season_day(season_day):
+		return false
+	return _is_closure_window(_species_of_row(row), season, season_day)
+
+
 func set_closed(ref: Vector2i, species_index: int, closed: bool) -> OpResult:
-	"""Write §4.2's stored `closed` bit for one stock. Returns 1 when closed, 0 when open.
+	"""Write §4.2's stored `closed` event bit for one stock. Returns 1 when closed, 0 when open.
 
 	§4.2 stores `closed`, so it is a column and not merely a derived predicate -- an event-driven
 	closure (mussel's summer blight) has nowhere else to live. NOTHING here syncs this bit with
-	§5.4's calendar windows: is_harvest_closed() reports the union of the two, and ARCH-SYS-005
-	owns any daily orchestration that would write the bit.
+	§5.4's calendar windows: is_harvest_closed() reports the union of the two.
+	AMENDED 2026-09-11 (ruling §4.1, decision 0055). This docstring used to say "ARCH-SYS-005 owns
+	any daily orchestration that would write the bit", contradicting this file's own header. The
+	ruling settles it the other way: **ARCH-SYS-006 owns the weather-to-fishery join and writes
+	this bit**, through apply_mussel_event_closure_into() below. ARCH-SYS-005 writes it NEVER --
+	not even by copying yesterday's event state forward -- and this per-stock form stays for the
+	commands, fixtures and future stated causes that name one stock explicitly.
 	"""
 	if not stock_row_into(ref, species_index, _math):
 		return _refuse(StringName(_math.error))
 	var row: int = _math.value
 	_stock_closed[row] = 1 if closed else 0
 	return _succeed(_stock_closed[row], ref)
+
+
+func apply_mussel_event_closure(closed: bool) -> IntMath.IntResult:
+	"""ARCH-SYS-006's daily mussel closure. See apply_mussel_event_closure_into()."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	apply_mussel_event_closure_into(closed, out)
+	return out
+
+
+func apply_mussel_event_closure_into(closed: bool, out: IntMath.IntResult) -> bool:
+	"""Set EVERY present mussel stock's §4.2 `closed` event bit, and report how many were written.
+
+	Ruling §4.1's one writer, called once per midnight by ARCH-SYS-006 after the new day's weather
+	and before job planning. It writes UNCONDITIONALLY, open as well as closed, because "set it
+	false otherwise, including autumn blight and the day after expiry" is as much a write as the
+	closure is -- a sweep that only ever closed would leave a stock shut for the rest of the year.
+	NO SPECIES BUT MUSSEL IS TOUCHED, and no calendar window is consulted: §5.4's windows are the
+	separate `calendar_closed` half of is_harvest_closed(). Allocation-free; a world with no
+	mussel habitat writes nothing and reports 0, which is an answer and not a refusal.
+	"""
+	var value: int = 1 if closed else 0
+	var written: int = 0
+	for row: int in FISH_STOCK_CAPACITY:
+		if not is_stock_present(row):
+			continue
+		if _species_of_row(row) != SPECIES_MUSSEL:
+			continue
+		_stock_closed[row] = value
+		written += 1
+	return out.succeed(written)
+
+
+func catalog_is_verified() -> bool:
+	"""True when catalog.gd still compiles §4.3's HabitatType ids this store's tables assume.
+
+	ARCH-SYS-006's boundary preflight (ruling §4.1) calls this BEFORE any day step commits, so a
+	catalog that no longer generates the ids HABITAT_SPECIES_ROWS is subscripted by refuses the
+	whole boundary instead of closing whichever species that row now names. One OpResult per call,
+	which is once per simulated day and never on the tick path.
+	"""
+	return Catalog.verify_compiled_enum(HABITAT_TYPE_DOMAIN).ok
 
 
 # --- §5.4 seasonal availability and closure windows -----------------------------------------------
@@ -2101,7 +2184,12 @@ func is_harvest_run(species: int, season: int, season_day: int) -> bool:
 func is_harvest_closed(row: int, season: int, season_day: int) -> bool:
 	"""True when §5.4 permits no harvest job for this stock: the stored bit OR a closure window.
 
-	§5.4: ""closed" means no harvest job, not zero population" -- the stock still recovers.
+	Ruling §4.1's derived predicate, in its own words: `harvest_closed = calendar_closed ||
+	event_closed`. The two causes stay SEPARATE columns of thought -- is_event_closed() and
+	is_calendar_closed() publish each half -- so a calendar spawning closure never appears to be
+	weather and the weather bit is never widened to cover one.
+	§5.4: ""closed" means no harvest job, not zero population" -- the stock still recovers, which
+	is ARCH-SYS-005's daily leg and reads none of this.
 	"""
 	if not is_stock_present(row) or not is_season(season) or not is_season_day(season_day):
 		return true

@@ -83,7 +83,8 @@ Implemented 2026-09-11 by `scripts/core/scheduler_events.gd`
 against the completed amendment
 [R07-SCHED-001](../planning/ready07_scheduler_contract.md): 32-byte record, 256
 records, 32-byte control header, **8224 bytes** added once to ARCH-MEM-010's
-reconciled basis (60256806 → 60265030). ARCH-CMD-003's 24 economic kinds are
+basis (60256806 → 60265030 on this work's base; 60812854 → **60821078** once
+merged on top of decisions 0051, 0053 and 0055). ARCH-CMD-003's 24 economic kinds are
 unchanged and `catalog_ids.json` is byte-identical. `sim_clock.advance()` gained
 an optional `before_tick` barrier and an optional `on_overload` hook; with
 neither supplied it behaves exactly as before. Every acceptance clause above is a
@@ -173,6 +174,19 @@ BLOCKED, and nothing was substituted), the save round trip (task 09 owns the
 codec), the starter building footprints and their one-tile apron, and composition
 into `settlement_system.gd`, which belongs to the integration lead.
 
+**Catalog binding closed 2026-09-11 (READY_07 §2,
+[decision 0052](../decisions/0052-resource-ids-are-compiled-item-definition-keys.md)).** The
+`Request`'s item ids DO now have an authored source: `scripts/core/resource_catalog_binding.gd`
+resolves all **seventeen** — `wood`/`stone`/`iron`, the five `PATCH_KEYS` and the nine
+`SPECIES_KEYS` — by key against the compiled `ItemDefinition` catalog, verifying
+`catalog_ids.json` before it reads one, and `WorldInit.bound_request(items)` builds the whole
+request from a loaded registry alone. `_item_id_is_storable()` is demoted to a shape check; a
+missing, retired, wrong, wrongly ordered, wrongly counted or stale-artifact binding refuses with
+its own code and leaves every store byte-identical. **This does not compose the generator into
+`settlement_system.gd`** — that remains the integration lead's, with the starter fixture. It also
+exposed and fixed a real defect: `fishing.gd`'s habitat-major `species_ids` argument order is not
+`SPECIES_KEYS` order, so the coast had been receiving the river's three item ids and vice versa.
+
 **Two claims here were wrong and are corrected 2026-09-11 (READY_07 §7.1),
 preserved rather than deleted.** (1) "No Container store exists" — `inventory.gd`
 already owns packed `InventoryContainer` rows with capacity and generation
@@ -238,9 +252,9 @@ qualification is claimed**. The header now states the CareHealth ordering debt i
 ARCH-SYS-009 runs one place ahead of ARCH-SYS-008's fused resolve/select pass.
 **Still outstanding within 04.4:** bullets 1 and 2 — the entire UI shell — are NOT built and
 nothing here claims an unbuilt panel works; `world_init.gd` is NOT composed into
-`settlement_system.gd` (its scenario Request's item ids have no authored source and the New
-Settlement control that would supply them is bullet 1's), so the acceptance runs through the
-accessors that file publishes for a generator; Mac screenshots and the command/state trace are
+`settlement_system.gd` (the New Settlement control that would compose it is bullet 1's; its
+Request's item ids DO have an authored source as of 2026-09-11 — see 04.3's catalog-binding note),
+so the acceptance runs through the accessors that file publishes for a generator; Mac screenshots and the command/state trace are
 not captured; and the save round trip is blocked on task 09's codec.
 
 Acceptance: launch the real main scene, make a next-tick zone/policy edit while

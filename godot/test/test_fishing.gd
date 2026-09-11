@@ -2210,3 +2210,121 @@ func test_designation_binding_needs_the_harvest_zone_store() -> void:
 		"but the designation resolution refuses rather than guessing")
 	assert_equal(_fishing.habitat_ref_for_basin(EntityDirectory.NULL_REF).error,
 		Fishing.REFUSE_INVALID_ZONE_REF, "and the null reference names no basin")
+
+
+# --- ruling 2026-09-11 §4.1: the event closure has ONE writer and ONE cause (decision 0055) -------
+#
+# §5.4 lists trout/dace/salmon under River and herring/mackerel/mussel under Coast, so within a
+# habitat the species INDEX is 0/1/2 in that printed order. Transcribed rather than derived.
+
+## River species indices: §5.4's printed trout, dace, salmon.
+const INDEX_TROUT: int = 0
+## Coast species indices: §5.4's printed herring, mackerel, mussel.
+const INDEX_HERRING: int = 0
+const INDEX_MACKEREL: int = 1
+
+
+func _lake_habitat() -> Vector2i:
+	"""Create the standard lake habitat and hand back its reference."""
+	var created: Fishing.OpResult = _fishing.create_habitat(LAKE, EntityDirectory.NULL_REF,
+		_lake_ids(), 0, 0, 0)
+	assert_true(created.ok, "the standard lake habitat must be creatable")
+	return created.ref
+
+
+func test_the_mussel_event_closure_writes_every_present_mussel_stock() -> void:
+	"""Ruling §4.1: ARCH-SYS-006 sets "each present mussel stock's event bit"."""
+	var first: Vector2i = _coast()
+	var second: Fishing.OpResult = _fishing.create_habitat(COAST, EntityDirectory.NULL_REF,
+		_coast_ids(), 0, 0, 0)
+	assert_true(second.ok, "a second coast habitat must be creatable")
+	var mussel_a: int = _row(first, MUSSEL_INDEX)
+	var mussel_b: int = _row(second.ref, MUSSEL_INDEX)
+	assert_false(_fishing.is_event_closed(mussel_a), "both beds start open")
+	assert_false(_fishing.is_event_closed(mussel_b), "including the second")
+	var written: IntMath.IntResult = _fishing.apply_mussel_event_closure(true)
+	assert_true(written.ok, "the sweep answers rather than refusing")
+	assert_equal(written.value, 2, "two present mussel stocks were written")
+	assert_true(_fishing.is_event_closed(mussel_a), "the first bed is closed")
+	assert_true(_fishing.is_event_closed(mussel_b), "and so is the second")
+
+
+func test_the_mussel_closure_reopens_when_it_is_written_false() -> void:
+	"""Ruling §4.1: "Set it false otherwise" is a WRITE, not a step that is skipped."""
+	var coast: Vector2i = _coast()
+	var mussel: int = _row(coast, MUSSEL_INDEX)
+	assert_equal(_fishing.apply_mussel_event_closure(true).value, 1, "one bed closes")
+	assert_true(_fishing.is_event_closed(mussel), "and is closed")
+	var reopened: IntMath.IntResult = _fishing.apply_mussel_event_closure(false)
+	assert_true(reopened.ok, "the reopening sweep succeeds")
+	assert_equal(reopened.value, 1, "writing the same one stock")
+	assert_false(_fishing.is_event_closed(mussel), "which is open again")
+	assert_false(_fishing.is_harvest_closed(mussel, SUMMER, 9), "and harvestable")
+
+
+func test_the_mussel_closure_touches_no_other_species() -> void:
+	"""Ruling §4.1 reserves the bit for one cause on one species; the sweep must stay narrow."""
+	var coast: Vector2i = _coast()
+	var river: Vector2i = _river()
+	var lake: Vector2i = _lake_habitat()
+	var untouched: Array[int] = [
+		_row(coast, INDEX_HERRING), _row(coast, INDEX_MACKEREL),
+		_row(river, 0), _row(river, 1), _row(river, 2),
+		_row(lake, 0), _row(lake, 1), _row(lake, 2),
+	]
+	assert_equal(_fishing.apply_mussel_event_closure(true).value, 1,
+		"only one mussel stock exists across three habitats, and only it is written")
+	assert_true(_fishing.is_event_closed(_row(coast, MUSSEL_INDEX)), "the mussel bed is closed")
+	for row: int in untouched:
+		assert_false(_fishing.is_event_closed(row),
+			"stock row %d is not a mussel bed and is untouched" % row)
+
+
+func test_a_world_with_no_mussel_stock_writes_none_and_refuses_nothing() -> void:
+	"""Zero present mussel stocks is an answer, not a refusal."""
+	_river()
+	_lake_habitat()
+	var written: IntMath.IntResult = _fishing.apply_mussel_event_closure(true)
+	assert_true(written.ok, "the sweep succeeds on a world with no coast")
+	assert_equal(written.value, 0, "having written no stock")
+	var empty: Fishing = Fishing.new()
+	assert_equal(empty.apply_mussel_event_closure(true).value, 0,
+		"and an empty store answers 0 as well")
+
+
+func test_harvest_closed_is_the_union_of_the_calendar_and_the_event() -> void:
+	"""Ruling §4.1: `harvest_closed = calendar_closed || event_closed`, as two named halves."""
+	var river: Vector2i = _river()
+	var trout: int = _row(river, INDEX_TROUT)
+	assert_true(_fishing.is_calendar_closed(trout, SPRING, 5),
+		"§5.4's trout spawning closure covers spring day 5")
+	assert_false(_fishing.is_event_closed(trout), "which is a CALENDAR cause, not the event bit")
+	assert_true(_fishing.is_harvest_closed(trout, SPRING, 5), "so the union is closed")
+	assert_false(_fishing.is_calendar_closed(trout, SPRING, 8), "day 8 is outside the window")
+	assert_false(_fishing.is_harvest_closed(trout, SPRING, 8), "and the union reopens")
+	var coast: Vector2i = _coast()
+	var mussel: int = _row(coast, MUSSEL_INDEX)
+	_fishing.apply_mussel_event_closure(true)
+	assert_true(_fishing.is_event_closed(mussel), "the mussel bed's EVENT bit is set")
+	assert_false(_fishing.is_calendar_closed(mussel, SUMMER, 6),
+		"§5.4 states no calendar window for mussels at all")
+	assert_true(_fishing.is_harvest_closed(mussel, SUMMER, 6), "yet the union is closed")
+
+
+func test_an_event_closed_mussel_bed_still_recovers() -> void:
+	"""§5.4: ""closed" means no harvest job, not zero population" -- on the EVENT cause too."""
+	var coast: Vector2i = _coast()
+	var mussel: int = _row(coast, MUSSEL_INDEX)
+	_drain_to(coast, MUSSEL_INDEX, MUSSEL_DEPLETION_BOUNDARY, SUMMER, 6)
+	_fishing.apply_mussel_event_closure(true)
+	assert_true(_fishing.is_event_closed(mussel), "the bed is closed by the event")
+	var before: int = _population(mussel)
+	assert_true(_fishing.recover_daily(SUMMER, 6).ok, "the daily recovery still runs")
+	assert_true(_population(mussel) > before, "and the closed stock's population still grows")
+	assert_true(_fishing.is_event_closed(mussel), "recovery does not clear the closure")
+
+
+func test_the_habitat_catalog_is_verifiable_for_the_boundary_preflight() -> void:
+	"""Ruling §4.1's preflight reads this before a boundary may commit anything."""
+	assert_true(_fishing.catalog_is_verified(),
+		"the compiled HabitatType ids are what HABITAT_SPECIES_ROWS is subscripted by")

@@ -7,10 +7,12 @@ extends RefCounted
 ## set always compiles to the same IDs regardless of the order the keys were declared or
 ## discovered in. Dictionary insertion order never leaks into an ID.
 ##
-## The handful of gameplay enums that GDD §4.3 gives explicit numeric values (Speed, Activity,
-## JobKind, JobState, ZoneType, Season, Soil, CropState, OrderMode, Quality, Severity) are fixed
-## data here, never run through the compiler: they must never be renumbered, including the
-## intentionally reserved gaps (JobKind.RESERVED_3, ZoneType.RESERVED_1).
+## The gameplay enums that GDD §4.3 gives explicit numeric values (Speed, Activity, JobKind,
+## JobState, ZoneType, Season, Soil, CropState, OrderMode, Quality, Severity, RoomType,
+## BuildingState) are fixed data here, never run through the compiler: they must never be
+## renumbered, including the intentionally reserved gaps (JobKind.RESERVED_3, ZoneType.RESERVED_1).
+## §4.3 numbers five more that this module does not yet carry -- WorldMode, ResidentStatus, Role,
+## InjuryKind, FeastState -- so adding one is an intentional artifact/digest change, not a fix.
 ##
 ## Decision 0018 fixes the rule: every enum §4.3 numbers explicitly lives in
 ## PROTECTED_ENUM_DOMAINS, because the protected table is the thing that REFUSES a recompile. A
@@ -26,11 +28,16 @@ extends RefCounted
 ## table's printed order instead; the ruling in docs/rulings/2026-09-09_ready06_open_item_answers.md
 ## §2 settles it. ARCH-CMD-003's CommandKind is the fourth, and the only one that was compiled
 ## from its owning specification the day it was implemented rather than corrected afterwards.
+## BuildingDefinition and FurnitureDefinition are the fifth and sixth, added under decision 0056
+## from gameplay_balance.md §4.1/§4.3 -- the owning full catalog -- COMPLETE rather than partial,
+## because a domain published with only the starter colony's seven buildings renumbers every
+## building the moment an eighth is implemented. RoomType and BuildingState arrived in the same
+## change and went the other way, into PROTECTED_ENUM_DOMAINS: §4.3 numbers both individually.
 ## They are declared here so the numbering lives in ONE place, and
 ## verify_compiled_enum() proves each table is exactly what compile_domain() produces from its own
 ## keys -- these are transcriptions of a generated result, never hand-chosen ordinals. They stay
 ## OUT of PROTECTED_ENUM_DOMAINS on purpose: protection means "§4.3 stated this number, never
-## regenerate it", and §4.3 states none of these four.
+## regenerate it", and §4.3 states none of these six.
 ##
 ## A compile_catalog() batch is all-or-nothing: if any domain in the batch fails validation, no
 ## domain's IDs are produced, matching GDD §4.2's "a registry validation failure aborts loading
@@ -77,17 +84,44 @@ const CROP_STATE: Dictionary = {
 const ORDER_MODE: Dictionary = {"ONCE": 0, "REPEAT": 1, "MAINTAIN_STOCK": 2}
 const QUALITY: Dictionary = {"POOR": 0, "PLAIN": 1, "GOOD": 2, "EXCELLENT": 3}
 const SEVERITY: Dictionary = {"INFO": 0, "ADVISORY": 1, "WARNING": 2, "CRITICAL": 3}
+## §4.3: "RoomType | DORMITORY=0, PRIVATE_ROOM=1, KITCHEN=2, DINING=3, COMMON=4, INFIRMARY=5,
+## PANTRY=6, CORRIDOR=7". `Room.type` in §4.2 is persisted, and these numbers are NOT the
+## ascending ASCII order of their own keys (that would be COMMON=0, CORRIDOR=1, DINING=2,
+## DORMITORY=3, INFIRMARY=4, KITCHEN=5, PANTRY=6, PRIVATE_ROOM=7), so §4.2's closing paragraph
+## does not reach them: §4.3 lists them individually and they are protected, per decision 0018.
+const ROOM_TYPE: Dictionary = {
+	"DORMITORY": 0, "PRIVATE_ROOM": 1, "KITCHEN": 2, "DINING": 3,
+	"COMMON": 4, "INFIRMARY": 5, "PANTRY": 6, "CORRIDOR": 7,
+}
+## §4.3: "BuildingState | BLUEPRINT=0, BUILDING=1, ACTIVE=2, PAUSED=3, DAMAGED=4, DEMOLISHING=5".
+## `Building.state` in §4.2, likewise persisted and likewise not in its own keys' ASCII order.
+const BUILDING_STATE: Dictionary = {
+	"BLUEPRINT": 0, "BUILDING": 1, "ACTIVE": 2, "PAUSED": 3, "DAMAGED": 4, "DEMOLISHING": 5,
+}
 
 const PROTECTED_ENUM_DOMAINS: Array[String] = [
 	"Speed", "Activity", "JobKind", "JobState", "ZoneType", "Season", "Soil", "CropState",
-	"OrderMode", "Quality", "Severity",
+	"OrderMode", "Quality", "Severity", "RoomType", "BuildingState",
 ]
+
+## Domain name -> its §4.3 table, so that adding a protected enum is one entry rather than one
+## more `match` arm in a function that would then exceed the 30-line limit. The two lists are
+## checked against each other by the suite: a name here that is absent from
+## PROTECTED_ENUM_DOMAINS would be recompilable, which is the drift decision 0018 prevents.
+const FIXED_ENUM_TABLES: Dictionary = {
+	"Speed": SPEED, "Activity": ACTIVITY, "JobKind": JOB_KIND, "JobState": JOB_STATE,
+	"ZoneType": ZONE_TYPE, "Season": SEASON, "Soil": SOIL, "CropState": CROP_STATE,
+	"OrderMode": ORDER_MODE, "Quality": QUALITY, "Severity": SEVERITY, "RoomType": ROOM_TYPE,
+	"BuildingState": BUILDING_STATE,
+}
 
 # --- compiled enum domains (GDD §4.2 closing paragraph, BAL-CAT-001/002) -------------------------
 
+const BUILDING_DEFINITION_DOMAIN: String = "BuildingDefinition"
 const COMMAND_KIND_DOMAIN: String = "CommandKind"
 const CROP_FAMILY_DOMAIN: String = "CropFamily"
 const EVENT_DEFINITION_DOMAIN: String = "EventDefinition"
+const FURNITURE_DEFINITION_DOMAIN: String = "FurnitureDefinition"
 const HABITAT_TYPE_DOMAIN: String = "HabitatType"
 
 ## GDD §4.2: "empty catalog IDs are -1". Absence, never a refusal channel and never a key.
@@ -129,8 +163,49 @@ const EVENT_DEFINITION: Dictionary = {
 ## River/Lake/Coast table order on every value.
 const HABITAT_TYPE: Dictionary = {"COAST": 0, "LAKE": 1, "RIVER": 2}
 
+## `Building.type_id`'s domain: ALL THIRTY of the owning catalog's BuildingDefinition rows
+## (gameplay_balance.md §4.1, whose normalized keys join GDD §5.9's thirty printed building rows
+## and are the stable identifiers BAL-CAT-006/007 build definitions from). The complete domain is
+## published here rather than the seven keys the starter colony happens to place, because a
+## partial domain renumbers every building the moment an eighth is implemented -- and these ids
+## are persisted in `Building.type_id`.
+##
+## The keys are identifiers, never display names: §5.9 prints "Refuge/community hall",
+## "Workbench shelter" and "Preserver/smokehouse" while the owning rows key them `hall`,
+## `workbench` and `preserver`. Ordering is the ASCII rule's output over those keys, proven by
+## verify_compiled_enum(), and has nothing to do with either printed order.
+##
+## This domain carries IDENTITY ONLY. Footprints, materials, work, slots, managed_interior,
+## room_tiles, unlock, base_store_g, passive_slots and max_builders live in the owning catalog's
+## §4.1/§4.2 rows and belong to the packed Building store that reads them; none of them is
+## transcribed here, so there is no second copy of a value to drift.
+const BUILDING_DEFINITION: Dictionary = {
+	"apiary": 0, "boathouse": 1, "brewery": 2,
+	"cellar": 3, "composter": 4, "covered_store": 5,
+	"dirt_path": 6, "dryer": 7, "fence": 8,
+	"fisher_shelter": 9, "forester_lodge": 10, "gate": 11,
+	"hall": 12, "infirmary": 13, "kitchen": 14,
+	"lookout": 15, "memorial_garden": 16, "mill": 17,
+	"nursery": 18, "open_stockpile": 19, "paved_path": 20,
+	"preserver": 21, "quarry_shed": 22, "residence": 23,
+	"saltpan": 24, "stone_wall": 25, "weir": 26,
+	"well": 27, "workbench": 28, "workshop": 29,
+}
+
+## `Furniture.type_id`'s domain: all NINE of the owning catalog's FurnitureDefinition rows
+## (gameplay_balance.md §4.3, joining GDD §5.9's nine printed furniture rows). BAL-CAT-007: "a
+## building ID denotes its exterior structure. Furniture definitions occupy a separate domain" --
+## so this is its own domain and a furniture id is never a building id. Identity only, on the
+## same terms as BUILDING_DEFINITION above.
+const FURNITURE_DEFINITION: Dictionary = {
+	"bed": 0, "decoration": 1, "hearth": 2,
+	"interior_door": 3, "interior_partition": 4, "kitchen_bench": 5,
+	"patient_bed": 6, "seat": 7, "shelf": 8,
+}
+
 const COMPILED_ENUM_DOMAINS: Array[String] = [
-	COMMAND_KIND_DOMAIN, CROP_FAMILY_DOMAIN, EVENT_DEFINITION_DOMAIN, HABITAT_TYPE_DOMAIN,
+	BUILDING_DEFINITION_DOMAIN, COMMAND_KIND_DOMAIN, CROP_FAMILY_DOMAIN,
+	EVENT_DEFINITION_DOMAIN, FURNITURE_DEFINITION_DOMAIN, HABITAT_TYPE_DOMAIN,
 ]
 
 # --- legacy ordinal conversion (ruling §2: translate or refuse, never reinterpret) ---------------
@@ -199,31 +274,9 @@ static func fixed_enum(domain_name: String) -> Dictionary:
 
 	Returns an empty Dictionary for any name that is not one of the protected enums.
 	"""
-	match domain_name:
-		"Speed":
-			return SPEED
-		"Activity":
-			return ACTIVITY
-		"JobKind":
-			return JOB_KIND
-		"JobState":
-			return JOB_STATE
-		"ZoneType":
-			return ZONE_TYPE
-		"Season":
-			return SEASON
-		"Soil":
-			return SOIL
-		"CropState":
-			return CROP_STATE
-		"OrderMode":
-			return ORDER_MODE
-		"Quality":
-			return QUALITY
-		"Severity":
-			return SEVERITY
-		_:
-			return {}
+	if not FIXED_ENUM_TABLES.has(domain_name):
+		return {}
+	return FIXED_ENUM_TABLES[domain_name]
 
 
 static func compiled_enum(domain_name: String) -> Dictionary:
@@ -233,12 +286,16 @@ static func compiled_enum(domain_name: String) -> Dictionary:
 	fixed_enum()'s treatment of a name it does not own.
 	"""
 	match domain_name:
+		BUILDING_DEFINITION_DOMAIN:
+			return BUILDING_DEFINITION
 		COMMAND_KIND_DOMAIN:
 			return COMMAND_KIND
 		CROP_FAMILY_DOMAIN:
 			return CROP_FAMILY
 		EVENT_DEFINITION_DOMAIN:
 			return EVENT_DEFINITION
+		FURNITURE_DEFINITION_DOMAIN:
+			return FURNITURE_DEFINITION
 		HABITAT_TYPE_DOMAIN:
 			return HABITAT_TYPE
 		_:

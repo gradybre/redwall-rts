@@ -164,12 +164,17 @@ generic UI toggle from clearing CRITICAL or LOAD.
   say precisely that.
 - Blocker U3 is **not** closed. The conservative reading stands, now with the
   reconciliation above written down.
-- ARCH-MEM-010's basis moves from 60256806 to **60265030** — decision 0050's
-  437632 reconciliation is **reproduced, not reapplied**:
-  `60265030 − 8224 − 59819174 = 437632` still holds exactly. One-world plus
-  reserve becomes 68653638, headroom 31346362, and the rejected two-world peak
-  122703084, which rises by `2 × 8224` because the queue is mutable state in
-  both worlds.
+- ARCH-MEM-010 gains **8224** bytes, added once. On this record's own base
+  (decision 0050's reconciled 60256806) that made the basis 60265030, and
+  decision 0050's 437632 reconciliation is **reproduced, not reapplied**:
+  `60265030 − 8224 − 59819174 = 437632` held exactly there. **On merge into
+  `master` at 2026-09-11** the same 8224 lands on top of decisions 0051
+  (+35840), 0053 (+520192) and 0055 (+16), so the current figures are payload
+  **60821078**, one world plus reserve **69209686**, headroom **30790314**, and
+  a rejected two-world peak of **123815180** — which rises by `2 × 8224` over
+  the 0055 basis because the queue is mutable state in both worlds. The 437632
+  identity is now checked at its own trail step (`60256806 − 59819174`) rather
+  than against the moving payload.
 - `sim_clock.advance()` has two new **optional** Callables. Existing callers are
   unaffected; a future caller that wants the barrier must pass it.
 - `docs/validation/ready07_arithmetic.py` now reads `QUEUE_CAPACITY`,

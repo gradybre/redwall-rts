@@ -287,6 +287,148 @@ func test_the_committed_designation_links_every_tile_the_payload_named() -> void
 		"including the last index of the 128x128 exterior grid")
 
 
+# --- task 04.4: one source intent, at most one designation --------------------------------------
+
+func test_a_committed_designation_records_the_command_that_created_it() -> void:
+	"""04.4: "Record source intent/job identity". The zone knows which player command made it."""
+	assert_equal(_dispatch.source_intent_count(), 0, "a fresh dispatcher owns no intent")
+	assert_true(_designate(_basin(), 0, PackedInt32Array([5])), "the designation commits")
+	var zone: int = _designated_zone_slot()
+	assert_equal(_dispatch.source_intent_count(), 1, "exactly one intent owns a live designation")
+	assert_true(_dispatch.has_source_intent(zone), "and it is this designation's")
+	var intent: CommandDispatchScript.IntentRow = CommandDispatchScript.IntentRow.new()
+	assert_true(_dispatch.source_intent_into(zone, intent), "the identity is readable")
+	assert_equal(intent.zone_slot, zone, "naming the zone row it produced")
+	assert_equal(intent.player_id, 0, "ARCH-CMD-001's release-1 player")
+	assert_equal(intent.sequence_low, 0, "and the first session sequence")
+	assert_equal(intent.zone_generation, _forage.zone_ref_of(zone).y,
+		"with the produced zone's generation, so a reused row cannot inherit the intent")
+
+
+func test_a_world_generated_basin_carries_no_source_intent() -> void:
+	"""R05-BASIN-002: generation binds no player intent, so the ledger must not claim one."""
+	var basin: Vector2i = _basin()
+	var basin_slot: int = _forage.zone_slot_of(basin).value
+	assert_false(_dispatch.has_source_intent(basin_slot), "the basin is nobody's command")
+	assert_equal(_dispatch.source_intent_count(), 0, "and it is not counted as an intent")
+
+
+func test_a_replayed_command_envelope_produces_no_second_designation() -> void:
+	"""The defect this guard exists for, reproduced exactly and then refused.
+
+	`commands.gd` refuses a duplicate key only while the record is QUEUED, and refuses an
+	execute_tick already completed. Neither catches the SAME envelope re-admitted at a LATER tick,
+	which before this guard committed a second designation over the same basin.
+	"""
+	var basin: Vector2i = _basin()
+	assert_true(_designate(basin, 0, PackedInt32Array([5])), "the first designation commits")
+	assert_equal(_forage.zone_count(), 2, "the basin plus one designation")
+	assert_true(_replay_designation(basin, COMMIT_TICK + 4), "the replay is admitted")
+	assert_true(_dispatch.commit_tick_into(COMMIT_TICK + 4, _report), "the later stage runs")
+	assert_equal(_report.committed, 0, "and the replayed intent commits nothing")
+	assert_equal(_last_code(), CommandDispatchScript.RESULT_DUPLICATE_INTENT,
+		"refusing COMMAND_DUPLICATE_INTENT by name")
+	assert_equal(_forage.zone_count(), 2, "no second designation was created")
+	assert_equal(_dispatch.source_intent_count(), 1, "and still exactly one source intent")
+
+
+func test_a_replayed_command_envelope_produces_no_second_standing_demand() -> void:
+	"""The consequence that matters: one intent cannot end up owning two ARCH-SYS-009 demands.
+
+	The job count alone would NOT have caught the original defect -- the shared quota happened to
+	starve the second demand of stock -- so this asserts the planner's own enabled-demand count,
+	which is what a freed quota would have turned into a second job.
+	"""
+	var basin: Vector2i = _basin()
+	assert_true(_designate(basin, 0, PackedInt32Array([5])), "the first designation commits")
+	assert_true(_planner.run_tick(COMMIT_TICK).ok, "the planner publishes its harvest")
+	assert_equal(_planner.forage_demand_enabled_count(), 1, "one standing demand")
+	assert_true(_replay_designation(basin, COMMIT_TICK + 4), "the replay is admitted")
+	assert_true(_dispatch.commit_tick_into(COMMIT_TICK + 4, _report), "the later stage runs")
+	assert_true(_planner.run_tick(COMMIT_TICK + 5).ok, "and the planner runs again")
+	assert_equal(_planner.forage_demand_enabled_count(), 1, "still ONE standing demand")
+	assert_equal(_jobs.job_count(), 1, "and one job, not two")
+	assert_equal(_dispatch.duplicate_intent_count(), 1, "one duplicate intent was refused")
+
+
+func test_a_different_sequence_over_the_same_basin_is_a_second_genuine_intent() -> void:
+	"""Content is NOT the identity: `forage.gd` supports §5.1's overlapping designations.
+
+	Two commands the player really issued twice differ in sequence, and both must land. Refusing
+	the second would contradict the owning store rather than protect it.
+	"""
+	var basin: Vector2i = _basin()
+	assert_true(_designate(basin, 0, PackedInt32Array([5])), "the first designation commits")
+	assert_true(_submit(KIND_DESIGNATE_ZONE, basin, ZONE_FORAGE, 0, _tile_payload(
+		PackedInt32Array([5]))), "an identical-content command is admitted under a new sequence")
+	assert_true(_dispatch.commit_tick_into(COMMIT_TICK + 1, _report), "the next stage runs")
+	assert_equal(_report.committed, 1, "and it commits")
+	assert_equal(_forage.zone_count(), 3, "two overlapping designations over one basin")
+	assert_equal(_dispatch.source_intent_count(), 2, "each with its own recorded source intent")
+
+
+func test_destroying_a_designation_frees_its_source_intent() -> void:
+	"""An intent whose designation is gone duplicates nothing, so the same envelope may run again.
+
+	The ledger is bounded BY the zone rows it describes, so it cannot be a window that forgets a
+	live designation -- and it must not hold a dead one against a replay either.
+	"""
+	var basin: Vector2i = _basin()
+	assert_true(_designate(basin, 0, PackedInt32Array([5])), "the designation commits")
+	var zone: int = _designated_zone_slot()
+	assert_true(_forage.destroy_zone(_forage.zone_ref_of(zone)).ok, "the player removes it")
+	assert_equal(_dispatch.source_intent_count(), 0, "the intent owns nothing now")
+	assert_false(_dispatch.has_source_intent(zone),
+		"and the emptied row claims no intent, though its recorded identity is still written")
+	var stale: CommandDispatchScript.IntentRow = CommandDispatchScript.IntentRow.new()
+	assert_false(_dispatch.source_intent_into(zone, stale), "reading it refuses")
+	assert_equal(_dispatch.last_refusal(), &"NO_SOURCE_INTENT", "naming the absent intent")
+	assert_true(_planner.reconcile_forage_zone(zone, COMMIT_TICK + 1).ok,
+		"and ARCH-SYS-009 releases the abandoned demand, as its own tick does")
+	assert_true(_replay_designation(basin, COMMIT_TICK + 4), "the same envelope is admitted")
+	assert_true(_dispatch.commit_tick_into(COMMIT_TICK + 4, _report), "the later stage runs")
+	assert_equal(_report.committed, 1, "and it commits, because there is nothing to duplicate")
+	assert_equal(_dispatch.source_intent_count(), 1, "one live intent again")
+
+
+func test_clearing_the_dispatcher_drops_every_recorded_intent() -> void:
+	"""`clear()` is what a world reset runs; a stale intent must not survive into a new world."""
+	assert_true(_designate(_basin(), 0, PackedInt32Array([5])), "the designation commits")
+	assert_equal(_dispatch.source_intent_count(), 1, "one intent is recorded")
+	_dispatch.clear()
+	assert_equal(_dispatch.source_intent_count(), 0, "and none survives the clear")
+	assert_equal(_dispatch.duplicate_intent_count(), 0, "nor does the refusal counter")
+
+
+func test_the_duplicate_intent_result_code_is_in_the_sorted_domain() -> void:
+	"""The result id is the stored one, so the new code must sit in its ASCII-sorted position."""
+	assert_equal(CommandDispatchScript.RESULT_CODES[CommandDispatchScript.RESULT_DUPLICATE_INTENT],
+		&"COMMAND_DUPLICATE_INTENT", "the id indexes its own code")
+	assert_equal(_dispatch.result_code_id(&"COMMAND_DUPLICATE_INTENT"),
+		CommandDispatchScript.RESULT_DUPLICATE_INTENT, "and the lookup inverts it")
+
+
+func _replay_designation(basin: Vector2i, execute_tick: int) -> bool:
+	"""Re-admit the FIRST command's exact envelope at a later tick, as a replay stream would.
+
+	`admit_stamped_into()` is the entry point that reads the envelope instead of stamping it, so
+	this is the same `(player_id, sequence_high, sequence_low)` the committed command carried.
+	"""
+	var replay: CommandsScript.Command = CommandsScript.Command.new()
+	replay.reset()
+	replay.kind = KIND_DESIGNATE_ZONE
+	replay.target_slot = basin.x
+	replay.target_generation = basin.y
+	replay.arg0 = ZONE_FORAGE
+	replay.arg1 = 0
+	replay.payload = _tile_payload(PackedInt32Array([5]))
+	replay.player_id = 0
+	replay.execute_tick = execute_tick
+	replay.sequence_high = 0
+	replay.sequence_low = 0
+	return _queue.admit_stamped_into(replay, _submit_result)
+
+
 func _designated_zone_slot() -> int:
 	"""The HarvestZone row of the designation this suite's DESIGNATE_ZONE created."""
 	assert_equal(_forage.zone_count(), 2, "the basin and exactly one designation exist")
@@ -1217,3 +1359,55 @@ func test_the_store_code_of_a_refusing_store_reaches_the_result_row() -> void:
 	assert_equal(_row.code(), &"COMMAND_STORE_REFUSED", "under the store-refusal code")
 	assert_equal(_row.store_code, JobPlannerScript.REFUSE_NOT_A_DESIGNATION,
 		"and it carries the planner's own verbatim refusal")
+
+
+func test_a_lower_low_sequence_word_is_a_different_intent_not_a_duplicate() -> void:
+	"""The identity is an EQUALITY on all three words, never an ordering on any of them.
+
+	Added after mutation testing: comparing the low word with `<` instead of `!=` passed the whole
+	suite, because every existing case had the later command carrying the HIGHER sequence. The
+	load path does not: `restore_sequence()` resumes the cursor at a checkpoint, and a replay
+	stream then re-admits pending records whose sequences are BELOW it. Those are different
+	intents and must commit.
+	"""
+	assert_true(_queue.restore_sequence(0, 5), "the session resumes at sequence 5")
+	var basin: Vector2i = _basin()
+	assert_true(_designate(basin, 0, PackedInt32Array([5])), "the first designation commits")
+	assert_equal(_dispatch.source_intent_count(), 1, "recording the intent at sequence 5")
+	assert_true(_admit_stamped(basin, 0, 2, COMMIT_TICK + 4),
+		"a record carrying the LOWER sequence 2 is admitted")
+	assert_true(_dispatch.commit_tick_into(COMMIT_TICK + 4, _report), "the later stage runs")
+	assert_equal(_last_code(), CommandDispatchScript.RESULT_COMMITTED,
+		"and it commits: a different sequence is a different intent")
+	assert_equal(_dispatch.source_intent_count(), 2, "two intents, two designations")
+
+
+func test_a_lower_high_sequence_word_is_a_different_intent_not_a_duplicate() -> void:
+	"""The same for the HIGH word, with the low words equal so the low check cannot mask it."""
+	assert_true(_queue.restore_sequence(1, 0), "the session resumes at high word 1")
+	var basin: Vector2i = _basin()
+	assert_true(_designate(basin, 0, PackedInt32Array([5])), "the first designation commits")
+	assert_equal(_dispatch.source_intent_count(), 1, "recording the intent at (1, 0)")
+	assert_true(_admit_stamped(basin, 0, 0, COMMIT_TICK + 4),
+		"a record carrying (0, 0) -- the same low word, a lower high word -- is admitted")
+	assert_true(_dispatch.commit_tick_into(COMMIT_TICK + 4, _report), "the later stage runs")
+	assert_equal(_last_code(), CommandDispatchScript.RESULT_COMMITTED,
+		"and it commits: the high word is compared for equality, not order")
+	assert_equal(_dispatch.source_intent_count(), 2, "two intents, two designations")
+
+
+func _admit_stamped(basin: Vector2i, high: int, low: int, execute_tick: int) -> bool:
+	"""Admit one DESIGNATE_ZONE carrying its own envelope, as a replay or load stream supplies it."""
+	var stamped: CommandsScript.Command = CommandsScript.Command.new()
+	stamped.reset()
+	stamped.kind = KIND_DESIGNATE_ZONE
+	stamped.target_slot = basin.x
+	stamped.target_generation = basin.y
+	stamped.arg0 = ZONE_FORAGE
+	stamped.arg1 = 0
+	stamped.payload = _tile_payload(PackedInt32Array([5]))
+	stamped.player_id = 0
+	stamped.execute_tick = execute_tick
+	stamped.sequence_high = high
+	stamped.sequence_low = low
+	return _queue.admit_stamped_into(stamped, _submit_result)

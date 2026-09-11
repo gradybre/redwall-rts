@@ -226,26 +226,31 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | UI numeric snapshots | 512 | 256 | 131072 | presentation counted conservatively | NEW two 128-byte resident summaries |
 | Timing samples | 6900 | 8 | 55200 | diagnostic counted conservatively | NEW 23 stages, i64 timing samples |
 | World generation map masks and tree plan | 159968 | 1 | 159968 | mutable | [decision 0048] REQ-SET-009's authored estuary in `godot/scripts/core/world_init.gd`: NINE 16384-byte exterior-tile byte columns -- published and staged terrain, soil, ecology basin and clearing, plus the staging occupancy mask -- FOUR 7-entry i32 basin columns (published and staged §5.5 danger, basin HarvestZone slot and generation), the 3000-entry tree-centre plan and the 100-entry guaranteed-grove plan. Staged and published columns are two allocations made once; publishing SWAPS them, so a refused generation cannot have touched the live map and no `resize()` runs outside `_init()`. §5.1's basin geometry lives here rather than as ~6267 `HarvestZone` tile links, which would consume 9252 of §4.2's 16384 total zone links before the player designates anything. `FaunaStockReserved`'s 15360 bytes are NOT added here: §2.2 already carries that row and this module is the allocation it describes |
+| Command dispatch source-intent ledger | 128 | 16 | 2048 | mutable | [decision 0049] Task 04.4's "Record source intent/job identity so repeated evaluation cannot duplicate a job": four i32 per `forage.gd` HarvestZone row -- ARCH-CMD-001's `(player_id, sequence_high, sequence_low)` plus the produced zone's generation. Indexed BY the zone row it describes rather than by a window over command history, so it is bounded by §4.2's own 128 designations and cannot forget an intent whose designation is still alive. `command_dispatch.gd` writes it on a committed DESIGNATE_ZONE and reads it in that kind's preflight |
+| ARCH-SYS-023 presentation snapshot | 1 | 244 | 244 | presentation counted conservatively | [decision 0049] `godot/scripts/core/presentation_extract.gd`: TWO i64 frames of 14 committed fields (224 bytes) plus one availability byte per field and one visibility byte per layer (20 bytes). Two frames because a render interpolates between the last two COMMITTED ticks. Separate from the "UI numeric snapshots" row above, which budgets per-resident summaries this stage does not produce. The per-stage microsecond and measurement columns `settlement_system.gd` keeps (3 x 7 i64 = 168 bytes) sit inside the "Timing samples" diagnostic row and add nothing here |
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 59816882 | Carried total (see the reconciliation note below) |
+| Planned allocated payload | 59819174 | Carried total (see the reconciliation note below) |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 68205490 | Payload + reserve |
-| Headroom below decimal 100 MB | 31794510 | 100000000 − live total |
-| Additional candidate mutable state | 53601298 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 121806788 | Live total + candidate mutable state |
-| Transactional headroom | -21806788 | 100000000 − transactional peak |
+| One live world plus reserve | 68207782 | Payload + reserve |
+| Headroom below decimal 100 MB | 31792218 | 100000000 − live total |
+| Additional candidate mutable state | 53603590 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 121811372 | Live total + candidate mutable state |
+| Transactional headroom | -21811372 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (carried total versus row sum).** The "Planned allocated payload" figure above is the
 CARRIED total of the ARCH-MEM-009 trail, not an arithmetic sum of the rows in the table above it.
-Re-adding those rows as printed gives **60254514**, which is **437632** higher `[NEW; found 2026-09-10
-while adding decision 0043]`. **Corrected 2026-09-10 while adding decision 0048:** this row-sum figure
+Re-adding those rows as printed gives **60256806**, which is **437632** higher `[NEW; found 2026-09-10
+while adding decision 0043; re-added 2026-09-10 while adding decision 0049]`. **Corrected 2026-09-10 while adding decision 0048:** this row-sum figure
 read 60004434, which was decision 0043's own sum and was never advanced when decisions 0044 (+49152),
 0045 (+40960) and 0048 (+159968) raised both the carried total and the printed rows. 60004434 minus the
 then-carried 59656914 is 347520, not the 437632 this paragraph states, so the two halves of its own
 arithmetic had drifted apart. The gap is and remains 437632; only the row sum moved, and no conclusion
-below depends on it. The difference is exactly `306304 + 131072 + 256`: decisions 0026/0030's
+below depends on it. **Re-checked 2026-09-10 while adding decision 0049:** the rows as printed sum
+to 60256806 and the carried total is 59819174, and 60256806 - 59819174 is 437632 again -- both
+halves moved by the same +2292, so the gap is still exactly the three unledgered items named
+next and has not absorbed anything new. The difference is exactly `306304 + 131072 + 256`: decisions 0026/0030's
 FishHabitat/HarvestZone growth, R05-QUOTA-024's separately declared 131072-byte claim-ordering cache,
 and decision 0027's ratified 256 bytes. All three are named inside the "Fixed registry payload" row's
 own derivation and are therefore inside its 24952146 figure, but none of them has a line in the
@@ -255,7 +260,7 @@ total, and silently re-basing them would change stated conclusions without a gov
 changes on either basis is the same: the one-world gate still holds with tens of megabytes to spare,
 and the two-world design is still rejected. Reconciling the two bases is its own ledger task.
 
-**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 59816882 in fourteen recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021, 0037, 0038, 0039, 0040, 0041, 0042, 0043, 0044, 0045, 0048; READY_06 §7]`. **Re-checked row by row 2026-09-10 while adding decision 0048:** every running total is the row above it plus its own delta, and the reserve column is the payload plus 8388608 at every step.
+**ARCH-MEM-009 (reconciliation trail).** The ledger sum moved from 57713254 to 59819174 in fifteen recorded steps, each verifiable on its own `[NEW; decisions 0019, 0021, 0037, 0038, 0039, 0040, 0041, 0042, 0043, 0044, 0045, 0048, 0049; READY_06 §7]`. **Re-checked row by row 2026-09-10 while adding decision 0048, and again while adding decision 0049:** all fifteen rows were re-added individually on the second check, not spot-checked -- every running total is the row above it plus its own delta, and the reserve column is the payload plus 8388608 at every step. No row is missing between the baseline and the current total.
 
 | Step | Governing record | Delta bytes | Running payload | Running payload + 8388608 reserve |
 |---|---|---:|---:|---:|
@@ -274,6 +279,7 @@ and the two-world design is still rejected. Reconciling the two bases is its own
 | FieldPolicy cycle and enrolment ledger | decision 0045 | +40960 | 59411150 | 67799758 |
 | Command dispatch result ledger, store codes and payload scratch | decision 0043 | +245764 | 59656914 | 68045522 |
 | World generation map masks and tree plan | decision 0048 | +159968 | 59816882 | 68205490 |
+| Command dispatch source-intent ledger and ARCH-SYS-023 presentation snapshot | decision 0049 | +2292 | 59819174 | 68207782 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
@@ -779,6 +785,19 @@ Keep a test migration ledger `old_test_name,new_test_name,retained_semantic,reti
 Observed during document generation: all 140 memory-field group products satisfied `element_width*column_count*allocated_length=payload_bytes`; the complete allocation ledger summed to 57713254 bytes before the 8388608-byte reserve, the selected one-world design totalled 66101862 planned bytes with 33898138 below the decimal 100 MB gate, and the rejected two-world design totalled 117599532 bytes.
 
 Reconciled 2026-09-07 against decisions 0019 and 0021 and the implemented `godot/scripts/core/jobs.gd` columns (ARCH-STATE-005), then 2026-09-09 against the READY_06 §7 ruling adding `TileHistory.family_streak`, decision 0037's `FishingEffortClaim` and ARCH-STATE-007's gear allocator (`godot/scripts/core/gear.gd`), and decisions 0039/0040/0041's JobPlanner pending-service, sowing and forage-demand ledgers (`godot/scripts/core/job_planner.gd`), then 2026-09-10 against decision 0042's command queue order index and decision 0043's command dispatch result ledger, store-code array and payload scratch (`godot/scripts/core/commands.gd` and `godot/scripts/core/command_dispatch.gd`, §2.3 allocations that add no §2.2 field row): all **159** memory-field group products satisfy that identity, the widened TileHistory I32 group included (7*4*16384=458752); the carried ledger total is now **59656914** bytes before the same 8388608-byte reserve. The selected one-world design totals **68045522** planned bytes, **31954478** below the decimal 100 MB gate, so that gate still holds on payload arithmetic. The rejected two-world design totals **121486852** bytes and is rejected by a larger margin than before. §3.1 records what remains uncounted and ARCH-MEM-010 records the 437632-byte gap between this carried total and the printed row sum; the gate conclusion is therefore provisional on both, not final. These are allocation arithmetic, not measured Godot process memory.
+
+**Corrected 2026-09-10 while adding decision 0049.** The three bolded figures in the paragraph
+above stopped at decision 0043 and were never advanced when decisions 0044 (+49152), 0045
+(+40960) and 0048 (+159968) raised the ledger, so they understate it by 250080 bytes. The
+CURRENT figures, with decision 0049's +2292 folded in and every ARCH-MEM-009 row re-added
+individually, are: carried ledger total **59819174**, selected one-world design **68207782**
+planned bytes, **31792218** below the decimal 100 MB gate, rejected two-world design
+**121811372** bytes. The two conclusions the paragraph draws are unchanged on either basis --
+the one-world gate holds and the two-world design is rejected -- which is why the paragraph is
+annotated rather than rewritten: it is a dated record of when each reconciliation happened, and
+editing its numbers in place would destroy that. The 159-product identity check itself was NOT
+re-run here; decision 0049 adds two §2.3 allocations and no §2.2 field row, exactly as decisions
+0042/0043 did.
 
 The required unfinished-text scan returned no matches; the balance document's forbidden-population and disallowed-formula scans returned no matches. Each document contains exactly one required conflict heading. Markdown tables/fences passed structural checks. The unchanged legacy prototype passed 52 tests and 106 assertions with exit 0; no new settlement implementation or Windows performance/parity run is claimed. Arithmetic probes and schema inspection do not resolve the documented survival, path-latency, or qualification gaps.
 

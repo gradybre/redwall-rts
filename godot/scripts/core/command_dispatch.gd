@@ -93,6 +93,38 @@ extends RefCounted
 ## and `test_command_dispatch.gd` asserts the state by value rather than trusting this paragraph.
 ##
 ## ---------------------------------------------------------------------------------------
+## ONE SOURCE INTENT PRODUCES AT MOST ONE DESIGNATION (task 04.4: "Record source intent/job
+## identity so repeated evaluation cannot duplicate a job"). `job_planner.gd` already makes
+## REPEATED EVALUATION idempotent -- `(designation EntityRef, patch kind)` is its demand identity
+## and a repeat `enable_forage_demand()` refuses -- but that is the PRODUCER's guard, and it is
+## per designation. It cannot see that TWO designations came from ONE player command.
+##
+## THEY CAN, AND IT WAS MEASURED BEFORE IT WAS FIXED. `commands.gd` refuses a duplicate
+## `(execute_tick, player_id, sequence)` key only while the record is still QUEUED, and refuses a
+## replayed `execute_tick` that has already completed. Neither catches the same envelope
+## re-admitted through `admit_stamped_into()` at a LATER tick: on 2026-09-10 that committed a
+## SECOND designation over the same basin and left `forage.zone_count()` at 9 and
+## `job_planner.forage_demand_enabled_count()` at 2 for ONE player intent. No second Job appeared
+## in that run only because the first harvest's claim still held the shared quota, which is the
+## accounting saving the identity rather than the identity holding.
+##
+## SO THE INTENT IS RECORDED ON WHAT IT PRODUCED. `_intent_*` is one row per HarvestZone row
+## carrying ARCH-CMD-001's own `(player_id, sequence_high, sequence_low)` plus the produced zone's
+## GENERATION. `_live_zone_of_intent()` is checked in DESIGNATE_ZONE's preflight, before anything
+## is created, and a repeat refuses COMMAND_DUPLICATE_INTENT. Three things this deliberately does
+## NOT do:
+##   * IT DOES NOT DEDUPLICATE BY CONTENT. Two commands with different sequences over the same
+##     basin and the same tiles are two genuine intents: `forage.gd` states that "§5.1's
+##     overlapping designations are the case the per-tile list exists for", so refusing them would
+##     contradict the owning store.
+##   * IT IS NOT A WINDOW OVER HISTORY. The ledger is indexed BY the zone row it describes, so it
+##     is bounded by `forage.gd`'s own 128 designations and can never forget an intent whose
+##     designation is still alive. An intent whose designation was destroyed is no longer a
+##     duplicate, because there is no second job for it to duplicate.
+##   * IT DOES NOT PERSIST. There is no save module; task 09 owns the codec. Across a process the
+##     guard is untested and unclaimed, exactly as the result ledger is.
+##
+## ---------------------------------------------------------------------------------------
 ## PENDING AND RESULT PROJECTIONS ARE COPIES, NOT HANDLES. Task 04.2: "immutable presentation
 ## projections show pending entries and cancellation state. No UI callback edits resident, ecology,
 ## jobs or inventory stores directly." `pending_into()` and `result_into()` fill a record the
@@ -198,6 +230,7 @@ const RESULT_CODES: Array[StringName] = [
 	&"COMMAND_BASIN_CHAIN",
 	&"COMMAND_BASIN_TYPE",
 	&"COMMAND_COMMITTED",
+	&"COMMAND_DUPLICATE_INTENT",
 	&"COMMAND_JOB_NOT_CANCELLABLE",
 	&"COMMAND_PAYLOAD_SCHEMA",
 	&"COMMAND_PAYLOAD_UNREADABLE",
@@ -221,21 +254,22 @@ const RESULT_ARGUMENT_RANGE: int = 3
 const RESULT_BASIN_CHAIN: int = 4
 const RESULT_BASIN_TYPE: int = 5
 const RESULT_COMMITTED: int = 6
-const RESULT_JOB_NOT_CANCELLABLE: int = 7
-const RESULT_PAYLOAD_SCHEMA: int = 8
-const RESULT_PAYLOAD_UNREADABLE: int = 9
-const RESULT_POLICY_NOT_VALID_HERE: int = 10
-const RESULT_STORE_NOT_BOUND: int = 11
-const RESULT_STORE_REFUSED: int = 12
-const RESULT_TARGET_KIND: int = 13
-const RESULT_TARGET_REQUIRED: int = 14
-const RESULT_TARGET_STALE: int = 15
-const RESULT_UNSUPPORTED_FEATURE: int = 16
-const RESULT_ZONE_CAPACITY: int = 17
-const RESULT_ZONE_LINK_CAPACITY: int = 18
-const RESULT_ZONE_TILE_RANGE: int = 19
-const RESULT_ZONE_TILE_UNSORTED: int = 20
-const RESULT_COUNT: int = 21
+const RESULT_DUPLICATE_INTENT: int = 7
+const RESULT_JOB_NOT_CANCELLABLE: int = 8
+const RESULT_PAYLOAD_SCHEMA: int = 9
+const RESULT_PAYLOAD_UNREADABLE: int = 10
+const RESULT_POLICY_NOT_VALID_HERE: int = 11
+const RESULT_STORE_NOT_BOUND: int = 12
+const RESULT_STORE_REFUSED: int = 13
+const RESULT_TARGET_KIND: int = 14
+const RESULT_TARGET_REQUIRED: int = 15
+const RESULT_TARGET_STALE: int = 16
+const RESULT_UNSUPPORTED_FEATURE: int = 17
+const RESULT_ZONE_CAPACITY: int = 18
+const RESULT_ZONE_LINK_CAPACITY: int = 19
+const RESULT_ZONE_TILE_RANGE: int = 20
+const RESULT_ZONE_TILE_UNSORTED: int = 21
+const RESULT_COUNT: int = 22
 
 # --- this module's own refusals (stage level, not per command) ----------------------------------
 
@@ -244,6 +278,7 @@ const REFUSE_INVALID_TICK: StringName = &"INVALID_TICK"
 const REFUSE_NO_QUEUE: StringName = &"NO_COMMAND_QUEUE"
 const REFUSE_SHARED_DIRECTORY: StringName = &"STORES_DO_NOT_SHARE_A_DIRECTORY"
 const REFUSE_INVALID_RESULT_ID: StringName = &"INVALID_RESULT_ID"
+const REFUSE_NO_SOURCE_INTENT: StringName = &"NO_SOURCE_INTENT"
 
 # --- payload schemas, each derived from its owning store's own published bound ------------------
 
@@ -290,6 +325,15 @@ const PAYLOAD_SCRATCH_BYTES: int = GROUP_COUNT_BYTES + TILE_ROW_BYTES * ZONE_TIL
 
 ## One result row per queued command, so a tick that drains a full queue loses no result.
 const RESULT_CAPACITY: int = CommandsScript.QUEUE_CAPACITY
+
+## Task 04.4's SOURCE INTENT LEDGER: one row per HarvestZone row, because the only entity a
+## player command can CREATE today is a designation and `forage.gd` holds exactly this many.
+## The ledger is bounded by the thing it describes rather than by a window over history, which
+## is why it can never silently forget an intent whose designation is still alive.
+const INTENT_CAPACITY: int = ForageScript.HARVEST_ZONE_CAPACITY
+
+## No command produced this zone row. A world-generated basin carries this forever.
+const NO_INTENT_PLAYER: int = -1
 
 
 class TickReport:
@@ -360,6 +404,20 @@ class PendingRow:
 	var is_supported: bool = false
 
 
+class IntentRow:
+	"""The player command that produced one designation, as presentation sees it: a copy.
+
+	ARCH-CMD-001's `(player_id, sequence_high, sequence_low)` is the identity of one player
+	command, and `zone_slot`/`zone_generation` are the designation it created. A UI uses this to
+	say WHICH order made a zone; it cannot edit anything, because it is the caller's own record.
+	"""
+	var zone_slot: int = -1
+	var zone_generation: int = 0
+	var player_id: int = 0
+	var sequence_high: int = 0
+	var sequence_low: int = 0
+
+
 # --- collaborating stores. A null store is UNBOUND, and its kinds refuse rather than no-op ------
 
 var _queue: CommandsScript = null
@@ -384,6 +442,19 @@ var _result_target_generation: PackedInt32Array = PackedInt32Array()
 ## The originating store's own code, held as an interned StringName. Assigning one is a reference
 ## copy, not an allocation, which is why a String column is not used here.
 var _result_store_code: Array[StringName] = []
+
+# --- the source-intent ledger: one player command identity per created zone row -----------------
+
+## Task 04.4: "Record source intent/job identity so repeated evaluation cannot duplicate a job."
+## `(player_id, sequence_high, sequence_low)` is ARCH-CMD-001's own identity for one player
+## command, and `_intent_zone_generation` is the generation of the designation that command
+## produced -- both halves, so a zone row the directory has since handed to another entity cannot
+## be mistaken for the same designation.
+var _intent_player_id: PackedInt32Array = PackedInt32Array()
+var _intent_sequence_high: PackedInt32Array = PackedInt32Array()
+var _intent_sequence_low: PackedInt32Array = PackedInt32Array()
+var _intent_zone_generation: PackedInt32Array = PackedInt32Array()
+var _duplicate_intent_count: int = 0
 
 var _result_write: int = 0
 var _result_count: int = 0
@@ -460,6 +531,9 @@ func _allocate_columns() -> void:
 			_result_code, _result_value, _result_target_slot, _result_target_generation]:
 		column.resize(RESULT_CAPACITY)
 	_result_store_code.resize(RESULT_CAPACITY)
+	for column: PackedInt32Array in [_intent_player_id, _intent_sequence_high,
+			_intent_sequence_low, _intent_zone_generation]:
+		column.resize(INTENT_CAPACITY)
 	_payload.resize(PAYLOAD_SCRATCH_BYTES)
 
 
@@ -472,6 +546,11 @@ func clear() -> void:
 	_result_target_slot.fill(EntityDirectory.NULL_SLOT)
 	_result_target_generation.fill(EntityDirectory.NULL_GENERATION)
 	_result_store_code.fill(REFUSE_NONE)
+	_intent_player_id.fill(NO_INTENT_PLAYER)
+	for column: PackedInt32Array in [_intent_sequence_high, _intent_sequence_low,
+			_intent_zone_generation]:
+		column.fill(0)
+	_duplicate_intent_count = 0
 	_payload.fill(0)
 	_result_write = 0
 	_result_count = 0
@@ -976,12 +1055,16 @@ func _commit_designate_zone(command: CommandsScript.Command) -> int:
 	var unbound: int = _designate_preflight(command)
 	if unbound != RESULT_COMMITTED:
 		return unbound
+	var tiles: int = _math.value
 	var created: ForageScript.OpResult = _forage.create_zone(ForageScript.ZONE_TYPE_FORAGE,
 		command.arg1, 0, false, true)
 	if not created.ok:
 		_store_code = created.error
 		return RESULT_STORE_REFUSED
-	return _bind_designation(created.ref, _forage.zone_ref_of(_target_row), _math.value)
+	var bound: int = _bind_designation(created.ref, _forage.zone_ref_of(_target_row), tiles)
+	if bound == RESULT_COMMITTED:
+		_record_source_intent(command, created.ref)
+	return bound
 
 
 func _designate_preflight(command: CommandsScript.Command) -> int:
@@ -1003,6 +1086,9 @@ func _designate_preflight(command: CommandsScript.Command) -> int:
 	var basin: int = _basin_refusal(_target_row)
 	if basin != RESULT_COMMITTED:
 		return basin
+	if _live_zone_of_intent(command) != EntityDirectory.NULL_SLOT:
+		_duplicate_intent_count += 1
+		return RESULT_DUPLICATE_INTENT
 	var shaped: int = _group_row_count(command, TILE_ROW_BYTES, ZONE_TILE_MAX_ROWS)
 	if shaped != RESULT_COMMITTED:
 		return shaped
@@ -1088,6 +1174,85 @@ func _rollback_designation(zone_ref: Vector2i, code: StringName) -> int:
 	_forage.destroy_zone(zone_ref)
 	_store_code = code
 	return RESULT_STORE_REFUSED
+
+
+# --- the source-intent ledger (task 04.4: one player intent, at most one designation) ----------
+
+func _live_zone_of_intent(command: CommandsScript.Command) -> int:
+	"""The zone row this exact player command already produced, or NULL_SLOT if none is alive.
+
+	ARCH-CMD-001 identifies one player command by `(player_id, sequence_high, sequence_low)`, and
+	that is the whole key here: two commands with DIFFERENT sequences over the same basin and the
+	same tiles are two genuine intents, because `forage.gd` states that "§5.1's overlapping
+	designations are the case the per-tile list exists for". What may not happen twice is ONE
+	intent producing two designations, which a replayed or redelivered envelope does today.
+
+	The generation is compared as well as the row: a destroyed designation whose row the directory
+	has handed to another entity is NOT this intent's designation, and re-running the intent then
+	creates a genuinely new one.
+	"""
+	for slot: int in INTENT_CAPACITY:
+		if _intent_player_id[slot] != command.player_id:
+			continue
+		if _intent_sequence_high[slot] != command.sequence_high:
+			continue
+		if _intent_sequence_low[slot] != command.sequence_low:
+			continue
+		if _forage.zone_ref_of(slot).y != _intent_zone_generation[slot]:
+			continue
+		return slot
+	return EntityDirectory.NULL_SLOT
+
+
+func _record_source_intent(command: CommandsScript.Command, zone_ref: Vector2i) -> void:
+	"""Stamp the command identity that produced one designation onto that designation's row."""
+	var slot: int = _directory.get_typed_row(zone_ref)
+	_intent_player_id[slot] = command.player_id
+	_intent_sequence_high[slot] = command.sequence_high
+	_intent_sequence_low[slot] = command.sequence_low
+	_intent_zone_generation[slot] = zone_ref.y
+
+
+func source_intent_count() -> int:
+	"""Player intents that still own a live designation. The acceptance measure of "one intent"."""
+	var live: int = 0
+	for slot: int in INTENT_CAPACITY:
+		if _intent_player_id[slot] == NO_INTENT_PLAYER:
+			continue
+		if _forage != null and _forage.zone_ref_of(slot).y == _intent_zone_generation[slot]:
+			live += 1
+	return live
+
+
+func has_source_intent(zone_slot: int) -> bool:
+	"""True when a player command produced the designation currently in this zone row."""
+	if zone_slot < 0 or zone_slot >= INTENT_CAPACITY or _forage == null:
+		return false
+	if _intent_player_id[zone_slot] == NO_INTENT_PLAYER:
+		return false
+	return _forage.zone_ref_of(zone_slot).y == _intent_zone_generation[zone_slot]
+
+
+func source_intent_into(zone_slot: int, out: IntentRow) -> bool:
+	"""Copy one designation's originating command identity into a record the CALLER owns.
+
+	A copy, never a handle: this is what a UI shows when it names which order created a zone, and
+	it carries no reference to the ledger.
+	"""
+	if not has_source_intent(zone_slot):
+		_last_refusal = REFUSE_NO_SOURCE_INTENT
+		return false
+	out.zone_slot = zone_slot
+	out.zone_generation = _intent_zone_generation[zone_slot]
+	out.player_id = _intent_player_id[zone_slot]
+	out.sequence_high = _intent_sequence_high[zone_slot]
+	out.sequence_low = _intent_sequence_low[zone_slot]
+	return true
+
+
+func duplicate_intent_count() -> int:
+	"""Commands refused because their source intent had already produced a live designation."""
+	return _duplicate_intent_count
 
 
 # --- presentation projections: copies, never handles ---------------------------------------------

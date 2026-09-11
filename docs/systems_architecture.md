@@ -683,6 +683,17 @@ hash_pair(a,b):
 
 Names and candidate species use deterministic hashes/cycles, not these stochastic streams `[GDD §5.3, §5.11]`. Rendering phase uses a separate stateless hash `[crowd §3.2]`. RNG draw state is included in saves and hashes.
 
+**ARCH-NAME-001 (RWL-NAME-1, 2026-09-11).** GDD §5.3's name hash means exactly
+ARCH-RNG-001 `hash_pair(persistent_id, world_seed)`, in that argument order, using
+the pure `rng.gd::hash_pair` implementation. Use its unsigned U32 result without
+RNG zero substitution; given index is `h mod 32`, surname index is `(h >> 5) mod 32`
+in the GDD's printed catalogs. No stochastic stream advances. Persist the final
+assigned string/notable state and never regenerate on load/promotion/transfer;
+scenario-authored names and player aliases retain their owning rules. Identifier
+and ordered catalogs are naming compatibility inputs. Pinned vectors and limits:
+[READY_07 addendum I2](rulings/2026-09-11_ready07_save_ui_addendum.md). This supplies
+the previously missing function binding, not a change to the index formula.
+
 ### 8.1 Command and save byte formats
 
 **ARCH-SAVE-001.** All saved integers use explicit little-endian encoding and two's-complement bit representation; strings use length-prefixed UTF-8 without object serialization. No engine Resource serializer, Dictionary order, RID, NodePath, or machine-native memory dump is the canonical format. The layout below is `[NEW]`, keeping `[crowd §6.4]` byte-order/hash conventions.
@@ -732,9 +743,23 @@ Command stride is 64 bytes `[DERIVED sum]`. Variable payloads contain full selec
 
 Each section descriptor is 64 bytes: `section_id:u32, schema_version:u32, offset:u64, byte_length:u64, row_count:u64, crc32:u32, flags:u32, reserved_zero:24 bytes` `[NEW]`. CRC is CRC-32/ISO-HDLC: polynomial reversed 3988292384, initial register 4294967295, reflected bytes, final XOR 4294967295; check vector ASCII `123456789` gives 3421780262 `[NEW codec choice]`. SHA-256 protects the complete canonical body; CRC localizes corruption. Header numeric/hash fields other than the stored body digest receive their own hash through the canonical state domain described next, so a changed completed tick is detected by state verification, not CRC alone.
 
-**ARCH-SAVE-002.** Section IDs are assigned in this exact order `[NEW]`: 1 WORLD, 2 CATALOG_IDS, 3 ENTITY_DIRECTORY, 4 COMPONENT_COLUMNS, 5 CHILD_ARENAS, 6 AUXILIARY_STATE, 7 INVENTORIES_AND_LEASE_INDEXES, 8 JOB_INDEXES, 9 NAVIGATION, 10 RNG, 11 EVENT_SCHEDULE, 12 PENDING_COMMANDS, 13 CHRONICLE, 14 NAME_POOL, 15 STATE_DIGEST. In each typed store serialize occupied bitset, all generations including free/retired slots, then columns in §2 field order by ascending slot. Encode zero for unused field payload while preserving generations and allocator-retirement state. Child arrays use owner ascending then child index; explicit variable lengths precede data. Save allocator heaps or rebuild them deterministically from occupancy and retired masks; active lists are rebuilt ascending.
+**ARCH-SAVE-002.** Section IDs are assigned in this exact order `[NEW]`: 1 WORLD, 2 CATALOG_IDS, 3 ENTITY_DIRECTORY, 4 COMPONENT_COLUMNS, 5 CHILD_ARENAS, 6 AUXILIARY_STATE, 7 INVENTORIES_AND_LEASE_INDEXES, 8 JOB_INDEXES, 9 NAVIGATION, 10 RNG, 11 EVENT_SCHEDULE, 12 PENDING_COMMANDS, 13 CHRONICLE, 14 NAME_POOL, 15 STATE_DIGEST. For each store serialize its occupancy and explicitly persisted fields in schema order by ascending slot. Where that store owns generations, preserve all of them including free/retired slots; directory mirrors validate against their owner. Inventory container, inventory lot and navigation route generations remain distinct from directory generations. Index-addressed gear/reservation rows preserve slots and holes without invented generations or compaction (decision 0063). Encode zero for unused field payload while preserving generations and allocator-retirement state. Child arrays use owner ascending then child index; explicit variable lengths precede data. Save allocator heaps or rebuild them deterministically from occupancy and retired masks; active lists are rebuilt ascending.
 
-**ARCH-HASH-001.** Canonical state hash is SHA-256 over domain string `RWL-STATE-1`, rules/catalog/map/lookup hashes, exact engine build string, completed tick, all authoritative occupied/generation and typed fields in schema order, variable children, all auxiliary future-affecting state, pending commands in execution order, RNG states/draw counts, navigation progress/cache eviction state, and the Chronicle count plus rolling digest. The Chronicle rolling digest is `SHA256(previous_digest || encoded_record)` starting with 32 zero bytes `[NEW streaming history representation]`; a save validates the full stream against it. Include current/previous authoritative Transform fields, not first-frame presentation overrides. Exclude selected flags, camera, UI panels, skin/LOD/batch slots, host scheduler debt, allocator addresses, timing metrics, and derived spatial/active indexes. `[GDD §4.2, REQ-SET-159–160; crowd §6.4]`
+**ARCH-SAVE-007 (2026-09-11, classification ruling).** Completed command-dispatch
+outcomes/ring cursors are transient presentation output: omit them from section 6
+and canonical state. Source-intent deduplication remains persisted/hashed section 6
+state. `InventoryContainer.reachable` is persisted/hashed in section 7; no current
+rebuild owner exists. Section 1 also persists host debt and the six recorded clock
+counters as nonnegative I64 host-continuation/evidence metadata. These fields are
+excluded from ARCH-HASH-001 but included in section CRC and body SHA-256. Reset
+host timestamps at load; restore owed debt unchanged. Persistence, canonical
+hash inclusion and cross-speed gameplay projections are distinct dimensions;
+[the G1–G3 ruling](rulings/2026-09-11_ready07_save_ui_addendum.md) owns their exact
+membership and acceptance. This assigns section ownership; task 09.2 still owns
+its explicit field byte offsets/schema. A memory allocation row alone does not
+make a field persisted or canonical; apply the explicit owning contracts.
+
+**ARCH-HASH-001.** Canonical state hash is SHA-256 over domain string `RWL-STATE-1`, rules/catalog/map/lookup hashes, exact engine build string, completed tick, all authoritative occupied/generation and typed fields in schema order, variable children, all auxiliary future-affecting state, pending commands in execution order, RNG states/draw counts, navigation progress/cache eviction state, and the Chronicle count plus rolling digest. The Chronicle rolling digest is `SHA256(previous_digest || encoded_record)` starting with 32 zero bytes `[NEW streaming history representation]`; a save validates the full stream against it. Include current/previous authoritative Transform fields, not first-frame presentation overrides. Exclude selected flags, camera, UI panels, skin/LOD/batch slots, completed command-outcome rings/cursors, host scheduler debt and historical clock counters, allocator addresses, timing metrics, and derived spatial/active indexes. `[GDD §4.2, REQ-SET-159–160; crowd §6.4]`
 
 **ARCH-HASH-002.** Hash every tick in verification mode and every 300 ticks in ordinary replay recording `[crowd §6.4]`. End-of-tick hashing may exceed normal timing budgets in verification mode; report that mode separately instead of hiding its cost. On mismatch dump section digest, first different field/slot/child index, RNG draw counters, pending path progress, and last 30 commands `[crowd §6.4]`. Comparing only a final digest is insufficient for the parity gate.
 

@@ -2,6 +2,11 @@
 
 Date: 2026-09-11 · Status: **Accepted** (executor; task 09.1)
 
+**Classification/gap resolution:** [decision 0063](0063-save-classification-naming-and-responsive-ui.md)
+supersedes the unresolved G1/G2 answers and the allocation-implies-persistence rule
+below, and clarifies persisted host metadata versus hash membership. This original
+audit and its test counts are retained as historical evidence.
+
 ## What was built
 
 [`docs/persistence_state_registry.md`](../persistence_state_registry.md) — one

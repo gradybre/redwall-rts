@@ -13,6 +13,14 @@ expression. `tools/run_tests.sh` runs it, so a new store that lands without a ro
 fails the build rather than being forgotten. What that script cannot check is
 recorded in [decision 0062](decisions/0062-the-future-affecting-state-registry.md).
 
+## G1–G3 resolution — 2026-09-11
+
+[Decision 0063](decisions/0063-save-classification-naming-and-responsive-ui.md)
+resolves the command-result and reachability rows and makes required persisted
+host metadata explicit. Read [the addendum](rulings/2026-09-11_ready07_save_ui_addendum.md)
+for digest membership, distinct reference namespaces and remaining integration tests.
+The original gap report in decision 0062 remains historical, not current instruction.
+
 ## What the columns mean
 
 **Store file** is the `###` heading. **Members** are the exact `var` names, so
@@ -27,7 +35,10 @@ where a loader gets it wrong. **Cat** is the classification below.
 
 ## The three categories
 
-1. **Future-affecting; must be saved.** Omitting it makes a reloaded world
+1. **Required persisted state.** Includes future-affecting simulation state and
+   explicitly required host-continuation/evidence metadata (ARCH-SAVE-007).
+   Canonical hash membership is separately governed by ARCH-HASH-001 and row notes.
+   Omitting future-affecting state makes a reloaded world
    diverge from an uninterrupted one. Packed authoritative columns, allocator
    generations and retirement, RNG state and draw counts, pending commands and
    scheduler events, clocks, leases and claims, child arena indexes, cargo and
@@ -36,11 +47,9 @@ where a loader gets it wrong. **Cat** is the classification below.
    category 1. Writing it creates two sources of truth that can disagree.
    ARCH-SAVE-002 already mandates the rebuild for active lists, and permits it
    for allocator heaps; ARCH-HASH-001 excludes "derived spatial/active indexes".
-3. **Presentation, diagnostic, or compile-time constant; correctly absent.**
-   Cannot cause divergence. A few category 3 rows are still *written* for
-   fidelity — the host scheduler debt and the clock's overload counters are the
-   examples, and each says so in its Notes. Written-for-fidelity is not a licence
-   to hash: ARCH-HASH-001's exclusion list still governs.
+3. **Transient presentation, diagnostic, or compile-time state; not saved.**
+   Explicitly required historical clock metadata belongs to category 1 with a
+   hash exclusion, not a prose exception to this category (decision 0063).
 
 **UNRESOLVED** is used where the answer is a contract question, never a guess.
 Each UNRESOLVED row states its question in Notes; the checker requires that.
@@ -50,11 +59,12 @@ judgement about reconstructibility rather than about a document.
 
 ## Two rules this registry applies, and where they come from
 
-**A column that §2's memory ledger names as a stored field is category 1 even
-when it is also derivable.** The loader cross-checks it against its source rather
-than choosing one. `WorldTileMaps.zone_link_head` and `.resource_slot`
-(`systems_architecture.md:397`) are the clearest cases: both are inverses of a
-column in the owning store, and both are ledgered as stored.
+**Owning persistence/field contracts decide classification, not allocation alone.**
+Decision 0063 corrects the original rule recorded in decision 0062: memory
+accounting includes transient output and derived indexes too. Explicitly persisted
+fields remain stored/cross-checked as required; this correction does not silently
+reclassify other existing rows. GDD InventoryContainer.reachable is explicitly
+modeled state and has no reconstruction owner today.
 
 **Section assignment is this registry's reading, not a quotation.**
 ARCH-SAVE-002 fixes fifteen section IDs and their order but does not enumerate
@@ -127,11 +137,11 @@ Neither needs new state.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Command result ledger, envelope | `_result_execute_tick` | 8 | `RESULT_CAPACITY` = 4096 | Rows outside `[0, _result_count)` from `_result_write` are stale prior rows, not zeroed | UNRESOLVED | §6 AUXILIARY_STATE | Nothing outside this module reads a result row: the only callers of `result_into()`/`last_result_into()` anywhere in `godot/` are tests. `docs/planning/ready07_scheduler_contract.md:135-136` nevertheless says "Command result/source-intent ledgers keep their own canonical auxiliary-state owners". Does §6 carry the ring and `_result_write`, or is the result half UI-only output that ARCH-HASH-001 must exclude? |
-| Command result ledger, fields | `_result_sequence_low`, `_result_sequence_high`, `_result_kind`, `_result_code`, `_result_value`, `_result_target_slot`, `_result_target_generation` | 4 | `RESULT_CAPACITY` = 4096 | Same ring rule as the row above | UNRESOLVED | §6 AUXILIARY_STATE | Same question: does §6 carry these seven columns, or are they UI-only output? `_result_store_code` is an `Array[StringName]`, not a packed column, and shares the answer. |
+| Command result ledger, envelope | `_result_execute_tick` | 8 | `RESULT_CAPACITY` = 4096 | Rows outside `[0, _result_count)` from `_result_write` are stale prior rows, not zeroed | 3 | -- | Decision 0063 / ARCH-SAVE-007: completed outcomes are transient; omit from save and canonical hash. Empty result ring/cursors on load; do not erase restored source-intent identity. `_result_store_code` shares this classification. |
+| Command result ledger, fields | `_result_sequence_low`, `_result_sequence_high`, `_result_kind`, `_result_code`, `_result_value`, `_result_target_slot`, `_result_target_generation` | 4 | `RESULT_CAPACITY` = 4096 | Same ring rule as the row above | 3 | -- | Decision 0063 / ARCH-SAVE-007: completed outcomes are transient; omit from save and canonical hash. Empty result ring/cursors on load; do not erase restored source-intent identity. `_result_store_code` shares this classification. |
 | Source-intent ledger | `_intent_player_id`, `_intent_sequence_high`, `_intent_sequence_low`, `_intent_zone_generation` | 4 | `INTENT_CAPACITY` = 128 | `_intent_player_id == -1` (`NO_INTENT_PLAYER`) means no command produced this zone row | 1 | §6 AUXILIARY_STATE | Task 04.4's duplicate suppression: one row per `HarvestZone` row carrying `(player_id, sequence_high, sequence_low)` plus the designation's generation. Dropping it lets a replayed or re-evaluated command create a second designation, so it is future-affecting in the strictest sense. |
 | Payload decode scratch | `_payload` | 1 | `PAYLOAD_SCRATCH_BYTES` = 65540 | Contents past the decoded length are stale bytes | 3 | -- | One reused buffer sized to the largest per-kind payload; written and consumed inside one dispatch. |
-| Dispatch counters and scratch | -- | -- | -- | -- | 3 | -- | `_result_write`, `_result_count`, `_results_recorded`, `_committed_count`, `_refused_count`, `_duplicate_intent_count`, `_drained`, `_calendar`, `_math`, `_target_row`, `_store_code`, `_last_refusal`. `_result_write`/`_result_count` become category 1 if the result ledger's UNRESOLVED rows resolve to "saved". |
+| Dispatch counters and scratch | -- | -- | -- | -- | 3 | -- | `_result_write`, `_result_count`, `_results_recorded`, `_committed_count`, `_refused_count`, `_duplicate_intent_count`, `_drained`, `_calendar`, `_math`, `_target_row`, `_store_code`, `_last_refusal`. `_result_write`/`_result_count` remain transient under decision 0063; reset only result state on load, not the persisted source-intent ledger. |
 
 ### `godot/scripts/core/commands.gd`
 
@@ -271,7 +281,7 @@ Neither needs new state.
 | Container identity and policy | `_c_owner_slot`, `_c_owner_generation`, `_c_policy`, `_c_generation`, `_c_lot_count`, `_c_first_lot` | 4 | `_c_capacity` <= 101376 | `_c_owner_slot == -1` with generation 0 is the null ref; `_c_first_lot == -1` means no lots | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | `_c_generation` IS THIS MODULE'S OWN GENERATION SPACE, not the directory's. The header (lines 69-72) records that ARCH-ID-001 gives both containers and lots a directory kind but that "this module allocates its own slots". A container `EntityRef` therefore validates against `_c_generation`, and §7 must carry it in full for the same reason §3 carries the directory's -- two independent generation spaces that 09.2 must not merge. |
 | Container mass and filters | `_c_max_mass_g`, `_c_filters`, `_c_reserved_mass_g`, `_c_used_mass_g` | 8 | `_c_capacity` <= 101376 | 0 | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | ARCH-SAVE-005 validates that charged mass plus reserved mass does not exceed capacity. `_c_used_mass_g` and `_c_reserved_mass_g` are also recomputable from the lot chain; they are written and cross-checked, not chosen between. |
 | Container occupancy | `_c_live` | 1 | `_c_capacity` <= 101376 | 0 = free row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | Occupied bitset. |
-| Container reachability | `_c_reachable` | 1 | `_c_capacity` <= 101376 | 0 = unreachable, and also the value every row starts at | UNRESOLVED | §7 INVENTORIES_AND_LEASE_INDEXES | Set only by `set_reachable()` from outside; no module in this repository computes it. With no topology or room system to recompute it on load, does §7 write this byte, or does the loader require a reachability pass that does not exist? Writing it now creates a second source of truth the moment that pass lands. |
+| Container reachability | `_c_reachable` | 1 | `_c_capacity` <= 101376 | 0 = unreachable, and also the value every row starts at | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | GDD §4.2 / decision 0063: explicit container state, no current deterministic rebuild owner. Save/hash live 0/1 exactly; canonical zero for unused payload. Future topology derivation requires an explicit owning-contract/schema amendment, not a default. |
 | Lot identity and chain | `_l_item_id`, `_l_quality`, `_l_provenance`, `_l_recipe_id`, `_l_container_slot`, `_l_container_generation`, `_l_generation`, `_l_next`, `_l_prev` | 4 | `_l_capacity` <= 16384 | `_l_next`/`_l_prev` hold `-1` at the ends of a container's chain | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | `_l_generation` is the second local generation space described above. The doubly linked chain order is observable to merge and withdrawal order, so it is written as a chain rather than re-derived from `_l_container_slot` ascending. |
 | Lot quantities and age | `_l_quantity_milli`, `_l_reserved_milli`, `_l_age_milli_hours`, `_l_age_remainder` | 8 | `_l_capacity` <= 16384 | 0 | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | `quantity_milli` int64 per AGENTS.md. `_l_age_remainder` is the sub-hour spoilage remainder task 09's acceptance list calls out by name; a negative or truncated age inverts every downstream spoilage result, so ARCH-SAVE-005's `quantity>=0` and `0<=reserved<=quantity` checks apply here and refusal is the only legal response. |
 | Lot occupancy | `_l_live` | 1 | `_l_capacity` <= 16384 | 0 = free row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | Occupied bitset. |
@@ -502,7 +512,7 @@ Neither needs new state.
 | Scheduler event boundary tick | `_boundary_tick` | 8 | `QUEUE_CAPACITY` = 256 | Rows outside `[0, _count)` from `_head` are stale; the contract serializes no unused row | 1 | §12 PENDING_COMMANDS | R07-SCHED-001's queue. ready07's save contract puts it in section 12 as the `SCHQ0001` extension AFTER the economic records, not in §11 EVENT_SCHEDULE -- §11 is for timed game events, of which none is implemented. BLOCKED: `encode_extension_into()`/`restore_extension()` implement the subsection in full with validation and are UNWIRED. What they need is a caller -- 09.2's §12 writer must emit tag `SCHQ0001`, schema_version 1, payload length 32+32*count, the canonical head=0 control header, then count records in queue order -- not more state here. |
 | Scheduler event record fields | `_sequence_low`, `_sequence_high`, `_kind`, `_reason`, `_value`, `_reserved` | 4 | `QUEUE_CAPACITY` = 256 | `_reserved` is zero padding and ARCH-SAVE-005 rejects it nonzero | 1 | §12 PENDING_COMMANDS | The sequence halves hold u32 BITS in i32 columns, so a sequence past 0x80000000 stores NEGATIVE and `compare_sequence()` masks before comparing; a codec that sign-extends reverses two events. `(0, 0)` is the EXHAUSTED sentinel, never a valid event. |
 | Queue control header | -- | -- | -- | `_last_drained_boundary == -1` (`NO_PRIOR_DRAIN`) before the first drain | 1 | §12 PENDING_COMMANDS | `_head`, `_count`, `_next_sequence_low`, `_next_sequence_high`, `_last_applied_sequence_low`, `_last_applied_sequence_high` and `_last_drained_boundary` are the contract's 32-byte control block. `_head` restores canonically to 0. Validation on load: last_applied precedes every pending sequence, next sequence exceeds every admitted one, and the pending boundary equals the saved completed tick.  |
-| Scheduler diagnostics and wiring | -- | -- | -- | -- | 3 | -- | `_executing`, `_overload_issued_this_frame`, `_admitted_count`, `_coalesced_count`, `_refused_count`, `_applied_count`, `_pump_count`, `_last_refusal`, the three scratch records and the four `Callable` hooks. The callables are host wiring and ARCH-HASH-001 excludes host scheduler state. |
+| Scheduler diagnostics and wiring | -- | -- | -- | -- | 3 | -- | `_executing`, `_overload_issued_this_frame`, `_admitted_count`, `_coalesced_count`, `_refused_count`, `_applied_count`, `_pump_count`, `_last_refusal`, the three scratch records and the four `Callable` hooks. The callables are host wiring. ARCH-HASH-001 excludes debt/timing/diagnostics, not all scheduler state; requested speed, pause and pending scheduler records remain canonical (decision 0063). |
 
 ### `godot/scripts/core/sim_clock.gd`
 
@@ -510,8 +520,9 @@ Neither needs new state.
 |---|---|---:|---|---|:-:|---|---|
 | Completed tick | -- | -- | -- | -- | 1 | §1 WORLD | `_completed_tick` is `World.tick` in §2's ledger and the save header's completed tick at offset 32. ARCH-SAVE-003 saves only a completed boundary, so this is the tick the whole file is stamped with, and the calendar is ALWAYS derived from it as `(tick + 4500) mod 18000` -- never stored separately, never `tick % 18000 == 0`. |
 | Requested speed and pause mask | -- | -- | -- | `_pause_mask == 0` means not paused; `PLAYER` is its initial value | 1 | §1 WORLD | `WorldRuntime.requested_speed` and `WorldRuntime.pause_reasons` in §2's ledger (systems_architecture.md:405), and `docs/planning/ready07_scheduler_contract.md:116-117` says to keep them with WorldRuntime. ARCH-HASH-001's exclusion list does not name them. They change no tick's CONTENT -- speed runs identical ticks faster -- but a CRITICAL or VICTORY pause is a simulation-caused state that a reload must not clear. |
-| Host scheduler debt | -- | -- | -- | -- | 3 | -- | `_debt`. ARCH-HASH-001 excludes "host scheduler debt" by name, and ARCH-CLOCK-001 calls host timing "a scheduler input, never a gameplay-rate input": omitting it cannot change a tick. `docs/planning/ready07_scheduler_contract.md:116-117` nevertheless asks to keep debt with WorldRuntime. That is compatible -- write it for pacing fidelity, exclude it from the digest -- and is NOT a licence to hash it. |
-| Clock diagnostic counters | -- | -- | -- | -- | 3 | -- | `_fallback_count`, `_diagnostic_pause_count`, `_acknowledged_catchup_resets`, `_acknowledged_ticks_discarded`, `_subtick_debt_discards`, `_day_boundaries_crossed`, `_last_diagnostic`, `_last_error`, `_math`. ready07 says "Preserve recorded historical clock counters", which is fidelity, not determinism: these are REQ-SET-008 overload evidence and must never gate a gameplay decision. |
+| Host scheduler debt | -- | -- | -- | Nonnegative I64 | 1 | §1 WORLD | `_debt` is required persisted host-continuation metadata (ARCH-SAVE-007), **excluded from ARCH-HASH-001** but protected by body digest/CRC. Restore exactly, reset host sample origin, never charge load time or discard owed ticks. |
+| Historical clock counters | -- | -- | -- | Nonnegative I64 | 1 | §1 WORLD | `_fallback_count`, `_diagnostic_pause_count`, `_acknowledged_catchup_resets`, `_acknowledged_ticks_discarded`, `_subtick_debt_discards`, `_day_boundaries_crossed`: persist all six under ARCH-SAVE-007, exclude from ARCH-HASH-001. No new discard authorization. |
+| Clock transient diagnostics and scratch | -- | -- | -- | -- | 3 | -- | `_last_diagnostic`, `_last_error`, `_math` and signal/wiring handles reset or rebind. Raw host timestamps and time spent loading are not saved debt. |
 
 ### `godot/scripts/core/spatial_world.gd`
 

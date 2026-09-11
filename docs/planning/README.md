@@ -5,6 +5,13 @@ Prepared 2026-09-09 from `/Users/brendan/Developer/redwall-rts`, base revision
 new gameplay constants, adopted movement closures or independent game-test result.
 The executor continues task 03. These documents supply its next dependency queue.
 
+## Save/UI addendum — 2026-09-11
+
+Before task 09.2 or responsive UI wiring, read
+[the G1–G3 / I2 rulings](../rulings/2026-09-11_ready07_save_ui_addendum.md).
+They resolve result/reachability persistence, distinguish host debt from canonical
+hashes, pin name hashing and confirm UI §1.2 over prototype stretching.
+
 ## First-playable UI direction — 2026-09-11
 
 For task 04.4, read [the visual implementation brief](ui_visual_direction.md)

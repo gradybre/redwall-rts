@@ -14,6 +14,12 @@ not a user-approved change to simulation rules. Parent [READY_07 answers](../rul
 Owners: ARCH-CMD-002, ARCH-CLOCK-001/002, GDD REQ-SET-002–008, UI pause reasons,
 architecture §8. Preserve economic CommandKind IDs and their 64-byte records.
 
+**Save/hash clarification, 2026-09-11:** [G3 in the addendum](../rulings/2026-09-11_ready07_save_ui_addendum.md)
+requires debt and six historical clock counters in section1, but excludes them
+from ARCH-HASH-001. Saved bytes remain integrity-protected. Requested speed,
+logical pause and pending scheduler intent stay canonical; cross-speed gameplay
+projections and identical-host continuation are separately labeled evidence.
+
 ## Record and bounded storage
 
 One scheduler event has this 32-byte little-endian wire layout. Store fields as
@@ -132,8 +138,9 @@ X=48+32*S and section length=24+64*E+P+X=72+64*E+P+32*S. Require E≤4096,
 P≤1048576, S≤256 and exact length agreement with the section directory. Economic
 sequence fields preserve commands.gd's existing allocator semantics, not the new
 scheduler's initial1/sentinel policy. Rebuild ring/order indexes deterministically;
-do not compact payload storage in a way that changes future admission. Command
-result/source-intent ledgers keep their own canonical auxiliary-state owners.
+do not compact payload storage in a way that changes future admission. Source-intent deduplication is canonical section6 auxiliary state. Completed
+command-result rings/cursors are transient and omitted from saves and canonical
+hashes (ARCH-SAVE-007; decision 0063).
 
 Validate all lengths,
 count≤256, sequence bounds, reason ownership/rules, zero padding and pending

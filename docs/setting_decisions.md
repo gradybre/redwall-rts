@@ -966,3 +966,39 @@ Rounds 1–10 establish product range, first-release coverage, admission, diet, 
 Revision 0.19 records DEC-035 and the separate design-focused pass. SET-MOVE-001 and all owning-document integration notes are adopted direction with explicit engineering gates, not a claim of runtime completion.
 
 Revision 0.20 adds the systematic supplied-book content library. Source coverage is complete for available normalized blocks; missing source material and all existing engineering/creative decisions retain their stated limits. No DEC-nnn policy is newly closed.
+
+### DEC-039 — Approved creature proportions for all five species
+
+2026-09-12 · State: `USER_CONFIRMED` for anatomical heights and their relative scale.
+
+Brendan reviewed decision 0002's required comparison — the five species as measured
+blockout proxies against the same doorway, rendered at
+`godot/assets/lookdev/captures/elevation_front.png` — and asked for one change before
+approving: **the squirrel was to be taller than the mouse.** The two had been identical
+at 1024 u, the only pair in the set with no separation.
+
+| Species | Height (u, 1/1024 m) | mm | vs mouse | Provenance |
+| --- | ---: | ---: | ---: | --- |
+| mouse | 1024 | 1000 | 1.00× | crowd §9.1's sourced 1.0 m gameplay anchor |
+| mole | 922 | 900 | 0.90× | authored, approved here |
+| squirrel | **1178** | **1150** | **1.15×** | authored, raised for this approval |
+| otter | 1526 | 1490 | 1.49× | authored, approved here |
+| badger | 2611 | 2550 | 2.55× | authored, approved here |
+
+1.15× was chosen rather than something larger because the whole set is compressed — the
+badger is only 2.55× the mouse — so a taller squirrel would crowd the otter at 1.49× and
+lose the distinction between a lithe silhouette and a genuinely bigger animal. The
+squirrel's tail is already 950‰ of its height, the longest in the set against the mouse's
+820 and the badger's 250, and its ears set its crown; the extra height compounds a
+silhouette that was already the leggiest rather than fighting it.
+
+**This unblocks bulk creature authoring — A2 mole, A3 squirrel, A4 otter.** It is approval
+of anatomical scale only. It is NOT paid-generation authorization, which
+[the asset generation lock](design/ui_refinement/asset_generation_lock.md) governs
+separately, and it is NOT approval of the landmark ratios: where the eye, hip and shoulder
+sit *within* a body remains `PROPOSED_FOR_REVIEW`, because that is a different question
+from the scale *between* species and was not what this review judged.
+
+The proxies carry no fur, face or costume by design — texture would have obscured the
+scale relationships this review exists to settle. DEC-018/037/038 continue to govern
+finish.

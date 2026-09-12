@@ -348,8 +348,8 @@
     }
   ],
   "result": "PASS",
-  "checked_at_utc": "2026-09-12T01:42:58.487352+00:00",
-  "source_brief_sha256": "4e8138103bb709dac9e71445b69c76f35fb63ce05f18decf4ef43fca76cd7edf",
+  "checked_at_utc": "2026-09-12T02:43:13.977754+00:00",
+  "source_brief_sha256": "a7b8940e711ead7fa44c1b415aeb30a5383310abab368e31f7543744938ee073",
   "asset_json_sha256": "f6254a649ab95ac0350986ea5ec66d414ca89f4e056e6ec28d9060ae9e537803",
   "not_tested": [
     "Godot runtime changes (none authored in this turn)",

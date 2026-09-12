@@ -1,0 +1,633 @@
+{
+	"camera": [
+		{
+			"fov_degrees": 55.0,
+			"orbit_metres": 8.0,
+			"ortho_size_metres": 0.0,
+			"pitch_degrees": 48.0,
+			"pixels": [
+				1920,
+				1080
+			],
+			"projection": "perspective",
+			"target_station": "doorway",
+			"view": "rts_orbit_008m_pitch48_yaw225",
+			"yaw_degrees": 225.0
+		},
+		{
+			"fov_degrees": 55.0,
+			"orbit_metres": 40.0,
+			"ortho_size_metres": 0.0,
+			"pitch_degrees": 48.0,
+			"pixels": [
+				1920,
+				1080
+			],
+			"projection": "perspective",
+			"target_station": "whole_sheet",
+			"view": "rts_orbit_040m_pitch48_yaw045",
+			"yaw_degrees": 45.0
+		},
+		{
+			"fov_degrees": 55.0,
+			"orbit_metres": 120.0,
+			"ortho_size_metres": 0.0,
+			"pitch_degrees": 48.0,
+			"pixels": [
+				1920,
+				1080
+			],
+			"projection": "perspective",
+			"target_station": "whole_sheet",
+			"view": "rts_orbit_120m_pitch48_yaw045",
+			"yaw_degrees": 45.0
+		},
+		{
+			"fov_degrees": 55.0,
+			"orbit_metres": 8.0,
+			"ortho_size_metres": 0.0,
+			"pitch_degrees": 35.0,
+			"pixels": [
+				1920,
+				1080
+			],
+			"projection": "perspective",
+			"target_station": "work_surface",
+			"view": "rts_orbit_008m_pitch35_yaw225_work_contact",
+			"yaw_degrees": 225.0
+		},
+		{
+			"fov_degrees": 55.0,
+			"orbit_metres": 40.0,
+			"ortho_size_metres": 0.0,
+			"pitch_degrees": 65.0,
+			"pixels": [
+				1920,
+				1080
+			],
+			"projection": "perspective",
+			"target_station": "whole_sheet",
+			"view": "rts_orbit_040m_pitch65_yaw045",
+			"yaw_degrees": 45.0
+		},
+		{
+			"fov_degrees": 0.0,
+			"orbit_metres": 0.0,
+			"ortho_size_metres": 5.6,
+			"pitch_degrees": 0.0,
+			"pixels": [
+				3200,
+				800
+			],
+			"projection": "orthogonal",
+			"target_station": "doorway",
+			"view": "elevation_front",
+			"yaw_degrees": 0.0
+		}
+	],
+	"capture_refusals": [],
+	"captures": [
+		{
+			"orbit_metres": 8.0,
+			"path": "res://assets/lookdev/captures/rts_orbit_008m_pitch48_yaw225.png",
+			"pixels": [
+				1920,
+				1080
+			],
+			"sha256": "1e4a332a470baa758c771b0752ac51d5496249e4b2bbadcf3a2d79f252c6f6d2",
+			"view": "rts_orbit_008m_pitch48_yaw225"
+		},
+		{
+			"orbit_metres": 40.0,
+			"path": "res://assets/lookdev/captures/rts_orbit_040m_pitch48_yaw045.png",
+			"pixels": [
+				1920,
+				1080
+			],
+			"sha256": "fd413bd5e9f206c9100836875b5459ca307d134ae2c8dbfb9ea1fd8137af2ff0",
+			"view": "rts_orbit_040m_pitch48_yaw045"
+		},
+		{
+			"orbit_metres": 120.0,
+			"path": "res://assets/lookdev/captures/rts_orbit_120m_pitch48_yaw045.png",
+			"pixels": [
+				1920,
+				1080
+			],
+			"sha256": "1d09afcab6e64b58a1a773c4b805125a93217a3e02c2da42417253b138b80b61",
+			"view": "rts_orbit_120m_pitch48_yaw045"
+		},
+		{
+			"orbit_metres": 8.0,
+			"path": "res://assets/lookdev/captures/rts_orbit_008m_pitch35_yaw225_work_contact.png",
+			"pixels": [
+				1920,
+				1080
+			],
+			"sha256": "0c4c750c4b5eef18f25a9dccbceb47d6b174dda26fed7edbc2a8cf5c6841d970",
+			"view": "rts_orbit_008m_pitch35_yaw225_work_contact"
+		},
+		{
+			"orbit_metres": 40.0,
+			"path": "res://assets/lookdev/captures/rts_orbit_040m_pitch65_yaw045.png",
+			"pixels": [
+				1920,
+				1080
+			],
+			"sha256": "9df669860cb64cab2331833ee3c6f80492ba8070447b4f43c60d43975d54ed1e",
+			"view": "rts_orbit_040m_pitch65_yaw045"
+		},
+		{
+			"orbit_metres": 0.0,
+			"path": "res://assets/lookdev/captures/elevation_front.png",
+			"pixels": [
+				3200,
+				800
+			],
+			"sha256": "6c258439f1234ad52825a7569b727011a9008dd1cd0ffa0042d387c7f5ecfbc6",
+			"view": "elevation_front"
+		}
+	],
+	"origin": "Hand-authored blockout volumes built by this script. No asset generation was called and no credit was spent.",
+	"owner": "SET-ART-LOOKDEV-001 §3 and decision 0082; ruling ART-GAP-R01/R02",
+	"props": [
+		{
+			"key": "doorway",
+			"opening_mm": [
+				1500,
+				3000
+			],
+			"panel_mm": [
+				2500,
+				3500,
+				400
+			],
+			"source": "GAP-03 common-access opening 1536 x 3072 u",
+			"status": "AUTHORING_BRIEF_NOT_A_CLEARANCE_QUALIFICATION"
+		},
+		{
+			"footprint_mm": [
+				2000,
+				2000
+			],
+			"key": "table",
+			"source": "GDD §5.9 furniture 1x1 tile; GAP-03 640 u top height candidate",
+			"status": "EXPLICIT_CANDIDATE_NOT_A_UNIVERSAL_WORK_CONTACT_POLICY",
+			"top_height_mm": 625
+		},
+		{
+			"footprint_mm": [
+				2000,
+				800
+			],
+			"key": "work_surface",
+			"source": "GAP-03 640 u top height candidate",
+			"status": "EXPLICIT_CANDIDATE_NOT_A_UNIVERSAL_WORK_CONTACT_POLICY",
+			"top_height_mm": 625
+		},
+		{
+			"footprint_mm": [
+				6000,
+				6000
+			],
+			"key": "building_workbench_reference",
+			"max_local_y_mm": 3500,
+			"source": "GAP-03 workbench envelope 3584 u; GDD §5.9 footprint 3x3 tiles",
+			"status": "ENVELOPE_REFERENCE_NOT_A_PRODUCTION_MODEL"
+		}
+	],
+	"purpose": "Decision 0002's required side-by-side review. Stature comparison only; anatomy approval needs the per-species construction sheets.",
+	"references": [
+		{
+			"file": "docs/art-reference/visuals/grounded_expressive_rts_example_v1.png",
+			"id": "DEC-038",
+			"region": "both panels, full",
+			"used_for": "mouse and mole mass, material intent"
+		},
+		{
+			"file": "ImageReference/Screenshot 2026-09-06 at 2.26.38 PM.png",
+			"id": "IMG-25",
+			"region": "[413,247,1304,565) of 1366x1026",
+			"used_for": "silhouette rank only; its bands are squad model counts, not heights"
+		},
+		{
+			"file": "ImageReference/Screenshot 2026-09-06 at 2.21.25 PM.png",
+			"id": "IMG-08",
+			"region": "[12,415,744,1066)",
+			"used_for": "mole compact mass and snout"
+		},
+		{
+			"file": "ImageReference/Screenshot 2026-09-06 at 2.20.59 PM.png",
+			"id": "IMG-07",
+			"region": "[775,4,1408,976)",
+			"used_for": "squirrel tail root and ear tufts"
+		},
+		{
+			"file": "ImageReference/Screenshot 2026-09-06 at 2.24.20 PM.png",
+			"id": "IMG-18",
+			"region": "[771,157,1284,932)",
+			"used_for": "otter torso length and tail taper"
+		},
+		{
+			"file": "ImageReference/Screenshot 2026-09-06 at 2.23.01 PM.png",
+			"id": "IMG-12",
+			"region": "[1019,383,1432,956)",
+			"used_for": "mouse ear rise and muzzle projection"
+		}
+	],
+	"scene": "res://assets/lookdev/proportion_comparison.tscn",
+	"schema": "redwall.lookdev.proportion_comparison/1",
+	"species": [
+		{
+			"candidate_height_mm": 1000,
+			"candidate_height_u": 1024,
+			"height_status": "ANCHOR_SOURCED_PROPORTION_APPROVED",
+			"key": "mouse",
+			"landmark_status": "PROPOSED_FOR_REVIEW",
+			"landmarks_permille": {
+				"crown": 1000,
+				"ear_defines_crown": true,
+				"eye": 830,
+				"hip": 460,
+				"muzzle_projection": 130,
+				"neck": 760,
+				"shoulder": 720,
+				"skull_top": 870,
+				"tail_length": 820,
+				"torso_depth": 230,
+				"torso_width": 290
+			},
+			"poses": {
+				"carrying": {
+					"declared_crown_mm": 1000,
+					"measured_max_mm": [
+						217,
+						1000,
+						965
+					],
+					"measured_min_mm": [
+						-217,
+						0,
+						-510
+					],
+					"station": "work_surface"
+				},
+				"crouching": {
+					"declared_crown_mm": 793,
+					"measured_max_mm": [
+						217,
+						793,
+						965
+					],
+					"measured_min_mm": [
+						-217,
+						0,
+						-222
+					],
+					"station": "table"
+				},
+				"standing": {
+					"declared_crown_mm": 1000,
+					"measured_max_mm": [
+						217,
+						1000,
+						965
+					],
+					"measured_min_mm": [
+						-217,
+						0,
+						-222
+					],
+					"station": "doorway"
+				},
+				"walking": {
+					"declared_crown_mm": 1000,
+					"measured_max_mm": [
+						217,
+						1000,
+						965
+					],
+					"measured_min_mm": [
+						-217,
+						0,
+						-222
+					],
+					"station": "open_ground"
+				}
+			}
+		},
+		{
+			"candidate_height_mm": 900,
+			"candidate_height_u": 922,
+			"height_status": "PROPORTION_APPROVED_DEC_039",
+			"key": "mole",
+			"landmark_status": "PROPOSED_FOR_REVIEW",
+			"landmarks_permille": {
+				"crown": 1000,
+				"ear_defines_crown": false,
+				"eye": 880,
+				"hip": 450,
+				"muzzle_projection": 220,
+				"neck": 860,
+				"shoulder": 830,
+				"skull_top": 1000,
+				"tail_length": 120,
+				"torso_depth": 340,
+				"torso_width": 400
+			},
+			"poses": {
+				"carrying": {
+					"declared_crown_mm": 900,
+					"measured_max_mm": [
+						270,
+						900,
+						288
+					],
+					"measured_min_mm": [
+						-270,
+						0,
+						-558
+					],
+					"station": "work_surface"
+				},
+				"crouching": {
+					"declared_crown_mm": 717,
+					"measured_max_mm": [
+						270,
+						717,
+						288
+					],
+					"measured_min_mm": [
+						-270,
+						0,
+						-320
+					],
+					"station": "table"
+				},
+				"standing": {
+					"declared_crown_mm": 900,
+					"measured_max_mm": [
+						270,
+						900,
+						288
+					],
+					"measured_min_mm": [
+						-270,
+						0,
+						-320
+					],
+					"station": "doorway"
+				},
+				"walking": {
+					"declared_crown_mm": 900,
+					"measured_max_mm": [
+						270,
+						900,
+						288
+					],
+					"measured_min_mm": [
+						-270,
+						0,
+						-320
+					],
+					"station": "open_ground"
+				}
+			}
+		},
+		{
+			"candidate_height_mm": 1150,
+			"candidate_height_u": 1178,
+			"height_status": "PROPORTION_APPROVED_DEC_039",
+			"key": "squirrel",
+			"landmark_status": "PROPOSED_FOR_REVIEW",
+			"landmarks_permille": {
+				"crown": 1000,
+				"ear_defines_crown": true,
+				"eye": 840,
+				"hip": 460,
+				"muzzle_projection": 110,
+				"neck": 770,
+				"shoulder": 730,
+				"skull_top": 880,
+				"tail_length": 950,
+				"torso_depth": 240,
+				"torso_width": 290
+			},
+			"poses": {
+				"carrying": {
+					"declared_crown_mm": 1150,
+					"measured_max_mm": [
+						249,
+						1150,
+						1258
+					],
+					"measured_min_mm": [
+						-249,
+						0,
+						-598
+					],
+					"station": "work_surface"
+				},
+				"crouching": {
+					"declared_crown_mm": 911,
+					"measured_max_mm": [
+						249,
+						911,
+						1258
+					],
+					"measured_min_mm": [
+						-249,
+						0,
+						-236
+					],
+					"station": "table"
+				},
+				"standing": {
+					"declared_crown_mm": 1150,
+					"measured_max_mm": [
+						249,
+						1150,
+						1258
+					],
+					"measured_min_mm": [
+						-249,
+						0,
+						-236
+					],
+					"station": "doorway"
+				},
+				"walking": {
+					"declared_crown_mm": 1150,
+					"measured_max_mm": [
+						249,
+						1150,
+						1258
+					],
+					"measured_min_mm": [
+						-249,
+						0,
+						-236
+					],
+					"station": "open_ground"
+				}
+			}
+		},
+		{
+			"candidate_height_mm": 1490,
+			"candidate_height_u": 1526,
+			"height_status": "PROPORTION_APPROVED_DEC_039",
+			"key": "otter",
+			"landmark_status": "PROPOSED_FOR_REVIEW",
+			"landmarks_permille": {
+				"crown": 1000,
+				"ear_defines_crown": false,
+				"eye": 930,
+				"hip": 470,
+				"muzzle_projection": 120,
+				"neck": 850,
+				"shoulder": 820,
+				"skull_top": 1000,
+				"tail_length": 620,
+				"torso_depth": 260,
+				"torso_width": 300
+			},
+			"poses": {
+				"carrying": {
+					"declared_crown_mm": 1490,
+					"measured_max_mm": [
+						334,
+						1490,
+						1146
+					],
+					"measured_min_mm": [
+						-334,
+						0,
+						-804
+					],
+					"station": "work_surface"
+				},
+				"crouching": {
+					"declared_crown_mm": 1175,
+					"measured_max_mm": [
+						334,
+						1175,
+						1146
+					],
+					"measured_min_mm": [
+						-334,
+						0,
+						-332
+					],
+					"station": "table"
+				},
+				"standing": {
+					"declared_crown_mm": 1490,
+					"measured_max_mm": [
+						334,
+						1490,
+						1146
+					],
+					"measured_min_mm": [
+						-334,
+						0,
+						-332
+					],
+					"station": "doorway"
+				},
+				"walking": {
+					"declared_crown_mm": 1490,
+					"measured_max_mm": [
+						334,
+						1490,
+						1146
+					],
+					"measured_min_mm": [
+						-334,
+						0,
+						-332
+					],
+					"station": "open_ground"
+				}
+			}
+		},
+		{
+			"candidate_height_mm": 2550,
+			"candidate_height_u": 2611,
+			"height_status": "PROPORTION_APPROVED_DEC_039",
+			"key": "badger",
+			"landmark_status": "PROPOSED_FOR_REVIEW",
+			"landmarks_permille": {
+				"crown": 1000,
+				"ear_defines_crown": false,
+				"eye": 920,
+				"hip": 470,
+				"muzzle_projection": 150,
+				"neck": 830,
+				"shoulder": 800,
+				"skull_top": 1000,
+				"tail_length": 250,
+				"torso_depth": 300,
+				"torso_width": 360
+			},
+			"poses": {
+				"carrying": {
+					"declared_crown_mm": 2550,
+					"measured_max_mm": [
+						688,
+						2550,
+						1096
+					],
+					"measured_min_mm": [
+						-688,
+						0,
+						-1479
+					],
+					"station": "work_surface"
+				},
+				"crouching": {
+					"declared_crown_mm": 2010,
+					"measured_max_mm": [
+						688,
+						2010,
+						1096
+					],
+					"measured_min_mm": [
+						-688,
+						0,
+						-688
+					],
+					"station": "table"
+				},
+				"standing": {
+					"declared_crown_mm": 2550,
+					"measured_max_mm": [
+						688,
+						2550,
+						1096
+					],
+					"measured_min_mm": [
+						-688,
+						0,
+						-688
+					],
+					"station": "doorway"
+				},
+				"walking": {
+					"declared_crown_mm": 2550,
+					"measured_max_mm": [
+						688,
+						2550,
+						1096
+					],
+					"measured_min_mm": [
+						-688,
+						0,
+						-688
+					],
+					"station": "open_ground"
+				}
+			}
+		}
+	],
+	"status": "PROPORTION_APPROVED_DEC_039"
+}

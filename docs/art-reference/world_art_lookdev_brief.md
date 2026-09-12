@@ -1,7 +1,27 @@
 # World-art look-development brief
 
-Document `SET-ART-LOOKDEV-001`, revision 1.0, 2026-09-11.
+Document `SET-ART-LOOKDEV-001`, revision 1.1, 2026-09-11.
 Status: **preparation only — no asset is authored, generated or paid for by this document.**
+
+> **Revision 1.1 — the 2026-09-11 ruling is bound into this brief.**
+> [The asset/save/movement ruling](../rulings/2026-09-11_asset_save_movement_blockers.md) and
+> [asset dimensions and budgets](../planning/asset_dimensions_and_budgets.md) (ART-GAP-R01–05)
+> supply the numbers revision 1.0 refused to invent. **Six of the nine blocked entries now
+> have authoring answers. Three creature entries — A2 mole, A3 squirrel, A4 otter — have
+> concrete comparison briefs. **DEC-039 approved their proportions on 2026-09-12**, so they are
+> production-ready, and neither are the other six in the sense of qualification: an
+> authoring contract is not exported evidence or a measured frame time.**
+>
+> The numbers are bound for the engine in
+> [`godot/assets/lookdev/lookdev_dimensions.gd`](../../godot/assets/lookdev/lookdev_dimensions.gd),
+> the GAP-06 hierarchy check in
+> [`asset_import_validator.gd`](../../godot/assets/lookdev/asset_import_validator.gd), and the
+> review scene decision 0002 requires in
+> [`proportion_comparison.gd`](../../godot/assets/lookdev/proportion_comparison.gd) with its
+> captures under `godot/assets/lookdev/captures/`. Recorded as
+> [decision 0082](../decisions/0082-lookdev-dimensions-are-bound-and-the-comparison-scene-is-built.md).
+> **Every creature height below remains a comparison candidate until Brendan approves the
+> comparison scene. Bulk creature generation does not start before that.**
 
 This is the brief that [the consolidated handoff](claude_visual_handoff.md) §6 asks for:
 "a concrete look-development brief using the approved image plus named original
@@ -19,7 +39,20 @@ gaps before generating families."
 
 Four families, **18 asset entries**: 5 residents (including the paired hand tool
 required by the bake validation), 3 dwelling/workspace, 4 ground/vegetation,
-6 practical props. **Six of the eighteen are blocked**; §8 says which and why.
+6 practical props.
+
+Revision 1.0's introduction said "six of the eighteen are blocked" while its own §8 and §10
+marked **nine**: A2, A3, A4, B1, B2, B3, C3, D3 and D5. The ruling names that discrepancy
+explicitly; nine is the number, and the introductory six was wrong. As of revision 1.1:
+
+| | Entries | Position after the ruling |
+|---|---|---|
+| Authoring-ready | A1, A5, B1, B2, B3, C1, C2, C3, C4, D1, D2, D3, D4, D5, D6 | Every dimension, budget, cutaway, material and naming contract these need now exists |
+| Proportions approved | A2 mole, A3 squirrel, A4 otter | Heights and the measurement convention exist and **DEC-039 approved them on 2026-09-12** against decision 0002's rendered comparison; squirrel was raised to 1178 u in that review. Paid generation is still governed separately by the asset generation lock |
+
+**Authoring-ready is not production-qualified.** Exported meshes, rendered evidence, the
+camera obstacle sweep, GPU measurement and the Windows minimum-hardware pass all remain
+open, and GAP-10 is untouched by this ruling.
 
 ### What DEC-038 approved, and what it did not
 
@@ -135,7 +168,8 @@ project conventions that **deliberately differ** from the usual Godot/glTF defau
 | Prototype mouse height | **1.0 m gameplay scale — "fantasy relative scale, not biological meters"** | crowd §9.1 |
 | Rig | ≤64 bones **including sockets**; `socket_main`, `socket_off`, `socket_head` count against the budget | crowd §9.1, §9.2 step 2 |
 | Naming (creatures) | `species_mouse_body_a_lod1`, `rig_mouse_v1`, `clip_attack_a`, `socket_main` | crowd §9.1 |
-| Naming (buildings, props, vegetation) | **No convention exists** — see GAP-08 | searched crowd §9, GDD, systems architecture |
+| Naming (buildings, props, vegetation) | `building_<BuildingDefinition_key>_<variant>_lod<n>`, `furniture_<FurnitureDefinition_key>_<variant>_lod<n>`, `prop_<semantic_key>_<variant>_lod<n>`, `flora_<semantic_key>_<state>_lod<n>`, `crop_<CropDefinition_key>_<state>_lod<n>`, `terrain_<soil_key>_<variant>`. ASCII; `n` = 0/1/2 static tiers; variants begin a, b, c | GAP-08, ruling ART-GAP-R04 |
+| Naming: what a name may NOT do | An art semantic key is **not** a new gameplay catalog entry, and a live catalog key is **never** renamed to suit a filename. Manifests declare any real catalog binding separately | GAP-08 |
 
 **Facing cannot be automated.** glTF conventionally treats +Z as model front; this
 project uses −Z forward. Apply the conversion once, validate against a "face north"
@@ -152,6 +186,20 @@ material slots and does not preserve a multi-part hierarchy. Anything that must 
 in separately addressable parts (§4's roof and walls) cannot be normalised by it
 unmodified. Recorded here because the skill's one-command step reads as if it is
 sufficient for every asset; it is sufficient for a single-object creature.
+
+GAP-06 settles the consequence: **multi-part buildings bypass the join step**, and the
+hierarchy-preserving import validator it asks for is
+[`godot/assets/lookdev/asset_import_validator.gd`](../../godot/assets/lookdev/asset_import_validator.gd).
+It refuses a managed building that arrives as one joined mesh — naming the tool that did
+it — requires GAP-06's ten addressable parts, checks each wall part against the inherited
+1 m cut line, and checks measured bounds against GAP-03's envelope and GAP-04's ceilings.
+It reports and never repairs. **Creature-normalisation scripts are not universal asset
+processors**, and nothing in this brief runs a building through one.
+
+It also carries a **named blocker rather than an invention**: GAP-06 requires "opening/cap
+geometry" as an addressable part but does not name it, so the validator accepts extra parts
+and records each as a note. Close the cap-naming contract before a reviewer reads those
+notes as approval.
 
 ### 2.2 The camera, and what it means for every acceptance render
 
@@ -175,14 +223,46 @@ For a **1.0 m** resident across the legal zoom range:
 | 40 m (default) | **≈ 26 px** | L2 (24–70) |
 | 120 m (furthest legal zoom) | **≈ 8.6 px** | L3 (8–24) |
 
-**A 1.0 m resident never reaches the L0 threshold of ≥180 px anywhere in the legal
-settlement camera range.** Crossing 180 px at the 8 m minimum would require an
+**A 1.0 m resident never reaches the crowd document's L0 threshold of ≥180 px anywhere in
+the legal settlement camera range.** Crossing 180 px at the 8 m minimum would require an
 animated bounding-sphere extent of ≥ 1.39 m — roughly 39% beyond standing height,
 which a tail-and-pose envelope might reach and a neutral standing body will not.
-This is a calculation from two sourced contracts, not a measurement, and it produces
+This is a calculation from two sourced contracts, not a measurement, and it produced
 GAP-05. It also fixes the acceptance render set: **8 m / 40 m / 120 m at 1920×1080**,
 which is where Brendan will actually see these assets, in addition to the crowd
 document's abstract 180/70/24/8 px sheet.
+
+**GAP-05 is now settled by a settlement-specific override.** The settlement L0 admission
+threshold is **nominal 64 render-target pixels** with pool cap **24**, retaining the
+existing creature L0 geometry and rig ceiling. Battle is untouched at 180 px and cap 48.
+The exact contract, bound in `lookdev_dimensions.gd` as integer tenths of a pixel so it
+cannot drift by rounding:
+
+| Field | Settlement | Battle |
+|---|---:|---:|
+| Initial admission | ≥ 64.0 px | ≥ 180 px |
+| Promote at | ≥ 70.4 px | — |
+| Demote below | 57.6 px | — |
+| Residence before a transition | 0.20 s | 0.20 s |
+| Pool cap | 24 | 48 |
+
+Admission uses the **actual projected animated AABB maximum extent** — not UI logical
+pixels, not monitor pixels, not a standing-height estimate. Ties rank by projected extent
+descending, then camera-space depth ascending, then persistent ID ascending. Near-plane
+crossing may request the highest representation immediately but **never bypasses the cap**.
+Eligible overflow uses L1; non-eligible residents use the ordinary L1/L2/L3 thresholds.
+Selection and naming grant nothing: **focusing one resident does not force a tiny character
+into L0.** Transition all attachments atomically, return actors to the pool on loss of
+eligibility, and reconstruct the current presentation pose without touching simulation.
+
+The consequence for the ~26 px default orbit is **not** a bug: a settlement pool with zero
+skeletal actors at the shipped 40 m default is correct. The 8–120 m range already supports
+close inspection, so nothing moves the camera, changes model scale or lowers the threshold
+to default-zoom size to manufacture an admission. Authoring an L0 at the 12,000-triangle
+ceiling is therefore worth doing, because the 8 m end of the legal range reaches it.
+
+**This closes the admission definition. It does not close performance or exported-rig
+acceptance**, and no runtime implementation of it is claimed by this document.
 
 ### 2.3 What has actually been built so far
 
@@ -192,6 +272,121 @@ holds the raw `test_mouse_warrior.glb` it came from — a 5-credit Meshy test co
 in `a54041f` to prove the pipeline end to end. It validates the **axis, scale and pivot**
 path only. Nothing in the repository has validated the rig, the clip bake, the palette,
 the LOD chain or a texture atlas. Do not describe the crowd bake as proven.
+
+Added in revision 1.1: `godot/assets/lookdev/proportion_comparison.tscn` and its six
+captures under `godot/assets/lookdev/captures/`. Those are **hand-authored blockout volumes
+built by a committed script**, not exported assets, not generated art and not approved
+anatomy. They exist so the review in §2.4 can happen.
+
+### 2.4 Species heights, the measurement convention, and the review that gates them
+
+ART-GAP-R01/R02 supply anatomical-height **comparison candidates**. The ruling states in
+terms that these are "not bulk-production approval".
+
+| Species | Candidate, units (1/1024 m) | Integer millimetres (derived) | Status |
+|---|---:|---:|---|
+| mouse | 1024 | 1000 | Inherited crowd §9.1 anchor; measurement convention newly specified. **Still a comparison input** — what is judged is the relation between all five |
+| mole | 922 | 900 | **Comparison candidate — not bulk-production approval** |
+| squirrel | 1024 | 1000 | **Comparison candidate — not bulk-production approval** |
+| otter | 1526 | 1490 | **Comparison candidate — not bulk-production approval.** Retains the prior 1.49 m candidate at integer precision; that is not an elevation into an approved tier |
+| badger | 2611 | 2550 | **Comparison candidate — not bulk-production approval.** Same, for the prior 2.55 m |
+
+Heights are authored in **integer millimetres**; float is import and presentation only. The
+authoritative unit remains 1/1024 m, and the millimetre column is derived by half-up
+rounding. Where they disagree the unit column wins — see §8's GAP-03 note for the one
+building row where they do.
+
+**The measurement convention** (new, and the reason a squirrel's tail cannot shrink its
+torso): neutral standing, bare adult body, supporting soles on Y = 0, height to the highest
+anatomical head or ear point in the neutral pose. **Exclude** raised tail, equipment,
+headwear and animation extremes. Record crown, eye and shoulder heights, and record
+separately the full animated AABB, the carried and stowed equipment bounds, and the
+locomotion envelope. Non-standing species need their own length, wingspan and contact
+conventions before production; none is written here.
+
+`prep_unit.py` scales the **joined whole-mesh AABB including attachments** and is therefore
+insufficient to verify this convention. Separate the reference body or use validated
+landmark metadata, apply the same transform to every attachment, and validate the full
+animated bounds. Do not run a squirrel through whole-tail-height scaling, and do not
+silently modify an existing source asset. Axes stay −Z forward, +Y up, foot-origin.
+
+**These candidate heights set no navigation clearance, service reach, step height or
+movement capability.** MOVE-G01 owns those independently.
+
+#### The prescribed comparison scene — built, and awaiting Brendan's eye
+
+Decision 0002 requires mouse / hare-or-otter / badger beside the **same** door, table and
+workbench, standing, walking, carrying and crouching, close and at the RTS camera, before
+bulk proportions are approved. Mole and squirrel are included because the ruling gives them
+new candidates. Giant residents remain excluded.
+
+That scene now exists as `godot/assets/lookdev/proportion_comparison.tscn`, rebuildable with:
+
+```bash
+# scene + manifest only; works headless
+godot --headless --path godot --script assets/lookdev/build_proportion_comparison.gd
+# the review captures as well; needs a real rendering device
+godot --path godot --script assets/lookdev/build_proportion_comparison.gd
+```
+
+Layout: five bays, one species each, reading mouse → badger left to right in the front
+elevation. Each bay repeats a **dimensionally identical** prop set, because "the same door"
+on a comparison sheet means the same dimensions beside every subject, not one shared
+instance the far species cannot reach. Four stations, one per pose:
+
+| Station | Pose | Prop, authored from the ruling |
+|---|---|---|
+| doorway | standing | 1536 × 3072 u opening (1500 × 3000 mm exactly) in a 3584 u panel |
+| open ground | walking | none — stride and silhouette only |
+| work surface | carrying | 2000 × 800 mm top at the 640 u (625 mm) candidate |
+| table | crouching | 2000 × 2000 mm seat place, top at the same 640 u candidate |
+
+A full-size `workbench` building at its 6 m footprint and 3584 u envelope stands behind the
+sheet, and a 500 mm-banded scale rule stands beside it, so the elevation is read off rather
+than believed. Captures: **8 m / 40 m / 120 m at pitch 48°**, plus pitch 35° close at the
+work surface, pitch 65° at 40 m, and a 3200 × 800 orthographic front elevation. All at the
+sourced camera contract — 55° vertical FOV, the legal 8–120 m orbit.
+
+Yaw is captured at both **45°** (the shipped initial orbit) and **225°**. Residents face −Z,
+so the shipped yaw shows their backs; orbit yaw is unrestricted, so 225° is an equally legal
+camera and is where a face is visible. The pair doubles as the facing check, which §2.1 says
+no script can make.
+
+#### What the captures already show, before anyone rules on them
+
+Three observations that follow from the ruling's own numbers and need no landmark
+assumption. They are offered as **questions for the review**, not as findings:
+
+1. **The 640 u work surface does not serve all five species.** 625 mm is 62.5% of a mouse's
+   standing height and **24.5% of a badger's**. In the pitch-35° work-contact capture the
+   surface reads as chest height for a mouse and roughly knee height for a badger. The
+   ruling already anticipates this — 640 u is "an explicit candidate, not a universal
+   work-contact policy for every species", and "adjustable or role-specific furnishings
+   remain possible under later approved sheets". The comparison makes the size of the
+   problem visible rather than arguable.
+2. **The badger has 450 mm of headroom in a 3072 u doorway.** 2550 mm under a 3000 mm
+   opening. That passes as a model brief. It is **not** a clearance qualification: the
+   movement profile must qualify the real opening against a real animated body with gear,
+   and this brief makes no claim about it.
+3. **Mouse and squirrel share a candidate height**, so nothing in this sheet distinguishes
+   them by stature. Their whole difference is tail, ear tufts and cheek mass — which is
+   precisely what a blockout cannot judge, and what A3's construction sheet must.
+
+One further note, kept honest. IMG-25's lineup ranks mole slightly below mouse and squirrel
+at or above it, which is **directionally consistent** with 922 / 1024 / 1024. Its otter and
+badger read taller relative to the mouse than the candidates imply. That observation is
+**not** offered as a measurement: the lineup carries horizontal guide rules across the whole
+frame, the figures are line art with no orthographic depth, and
+[screenshot_review IMG-25](screenshot_review.md#img-25) says plainly "do not measure pixels
+here and call the result canonical metres". It is recorded because the review should look at
+the otter and badger relations with that discrepancy in mind.
+
+**What this scene can and cannot settle.** It answers the **stature** half of decision 0002:
+whether 922 reads right beside 1024, whether 2611 sits correctly under a 3072 u opening,
+whether a 640 u surface serves a mole and a badger equally. It does **not** answer the
+**anatomy** half — its bodies are boxes. That needs the per-species construction sheets in
+§3's steps 1.1–1.2, which are separate deliverables. Approving the scene approves the
+proportions, not the modelling.
 
 ## 3. Family A — representative residents (5 entries)
 
@@ -300,11 +495,13 @@ own manifest as exceeding the intended runtime simplification.
 
 **Geometry constraints.**
 
-- Height **1.00 m — DERIVED, NOT SOURCED.** This comes from IMG-25's "Small" category,
-  and [screenshot_review IMG-25](screenshot_review.md#img-25) states plainly that those
-  bands are "squad model counts, not colony populations, hitboxes or height multipliers".
-  See GAP-01. Author at 1.00 m as an explicitly labelled **candidate**, and accept that
-  a later ruling may force a re-export.
+- Height **922 u = 900 mm — COMPARISON CANDIDATE, NOT PRODUCTION APPROVAL** (ART-GAP-R01,
+  §2.4). Revision 1.0 carried a derived 1.00 m from IMG-25's "Small" category, which
+  [screenshot_review IMG-25](screenshot_review.md#img-25) rejects as a height source —
+  those bands are "squad model counts, not colony populations, hitboxes or height
+  multipliers". The ruling replaces that derivation with an authored candidate: **the mole
+  is shorter than the mouse, not equal to it.** Author to 922 u, labelled a candidate, and
+  accept that the §2.4 review may still move it.
 - Digging hands are wider than the mouse's; check them against the L2/L3 ceilings early,
   because claws are where triangles disappear first and where silhouette lives.
 - All shared constraints as A1. Naming `species_mole_body_a_lod0..3`, `rig_mole_v1`.
@@ -345,7 +542,11 @@ own manifest as exceeding the intended runtime simplification.
 
 **Geometry constraints.**
 
-- Height **1.00 m — DERIVED, NOT SOURCED** (GAP-01), same status as A2.
+- Height **1024 u = 1000 mm — COMPARISON CANDIDATE, NOT PRODUCTION APPROVAL**
+  (ART-GAP-R01, §2.4). The squirrel's candidate equals the mouse anchor, so **height is not
+  what distinguishes it**: tail, ear tufts and cheek mass carry the whole silhouette
+  difference. The measurement convention excludes the raised tail from height, which is the
+  specific clause written for this species.
 - The tail must not consume the LOD budget. At L3's 350 triangles including gear, the
   tail and the body compete directly; decide the split at blockout, not at simplification.
 - All shared constraints as A1. `species_squirrel_body_a_lod0..3`, `rig_squirrel_v1`.
@@ -359,7 +560,7 @@ own manifest as exceeding the intended runtime simplification.
 
 ---
 
-### A4 — otter · `species_otter_body_a` — **BLOCKED, see GAP-02**
+### A4 — otter · `species_otter_body_a` — **proportions approved, DEC-039**
 
 **Source features.**
 
@@ -380,24 +581,26 @@ own manifest as exceeding the intended runtime simplification.
   underwater tint on the ordinary otter body.
 - IMG-18's strings of fish are a prop, not costume.
 
-**Geometry constraints — this is where it stops.**
+**Geometry constraints.**
 
-- **No otter height is sourced anywhere.** The asset-pipeline skill offers Medium =
-  1.49 m and marks it **"derived, unconfirmed"** in its own table, with the note "Only
-  Small is sourced... ratios chosen for readability, confirmed by nothing."
-- Worse, the repository contains a **second, different** four-class ratio set.
-  [Crowd §5 movement](../crowd_rendering_architecture.md) gives small/medium/
-  large/giant collision radii of **184/246/461/922 units** (0.18/0.24/0.45/0.90 m),
-  whose ratios are **1 : 1.337 : 2.505 : 5.011**. The skill's derived heights imply
-  **1 : 1.49 : 2.55**. Neither document claims its numbers are heights, and they
-  disagree. Picking either one silently would be inventing a species-size specification
-  that DEC-038 explicitly declined to give.
-- **Do not generate A4 until GAP-02 is closed.** Reference sheets and blockout drawings
-  for the otter are unblocked and should proceed in parallel — they cost nothing and
-  the shape work is independent of the final height.
+- Height **1526 u = 1490 mm — COMPARISON CANDIDATE, NOT PRODUCTION APPROVAL**
+  (ART-GAP-R02, §2.4). This retains revision 1.0's unconfirmed 1.49 m figure at integer
+  precision. **It is not an elevation of that figure into an approved tier**, and the
+  ruling says so.
+- The contradiction revision 1.0 found is **resolved by separating the domains, not by
+  picking a winner**. [Crowd §5](../crowd_rendering_architecture.md)'s small/medium/large/
+  giant radii of **184/246/461/922 units** are horizontal battle locomotion and separation
+  inputs. They are **not heights**, dividing them by 184 cannot specify animal stature, and
+  **no species may be normalised by multiplying mouse height by its radius ratio**. The
+  asset-pipeline skill's 1 : 1.49 : 2.55 and the radii's 1 : 1.337 : 2.505 were never two
+  answers to one question.
+- Reference sheets, blockout drawings and the §2.4 comparison bay are unblocked and done.
+  **DEC-039 approved the otter's proportions on 2026-09-12.** A re-export
+  after a late ruling is the expensive path the skill warns about.
 
-**Acceptance views.** As A1 once unblocked, plus an otter-beside-mouse render at 40 m
-for whatever ratio is ruled, and a wet/dry material pair under the same light.
+**Acceptance views.** As A1 once the proportions are approved, plus the otter-beside-mouse
+relation already captured in §2.4's comparison sheet, and a wet/dry material pair under the
+same light.
 
 ---
 
@@ -426,7 +629,9 @@ must have a hand pose **or** a stowed location (model guide §3); both are autho
   mole, one-handed at rest.
 - Counts **inside** the resident LOD ceiling — crowd §2.7's limits are "including gear".
   Proposed ≤600 triangles at L0 falling to ≤40 at L3 so the body keeps its headroom.
-  *This split is PROPOSED and not ratified; the 12,000/3,500/1,200/350 totals are sourced.*
+  *This split remains PROPOSED and is not ratified; the 12,000/3,500/1,200/350 totals are
+  sourced from crowd §2.7. GAP-04's non-creature families do not apply to a tool carried in
+  a socket, because crowd §2.7's creature limits are already "including gear".*
 - Binds to `socket_main`. Tool tip deformation tolerance is **5 mm** at baked frames and
   **20 mm** at L1 half-frames (crowd §9.2 step 7) — twice the body tolerance and the
   thing most likely to fail first.
@@ -471,20 +676,37 @@ capacities, so the kit is presentation, and a kit variant set is three models, n
 - Footprint exactly 6 m × 6 m; it must occupy 3×3 tiles with no overhang into the
   neighbouring tile, because REQ-SET-122 validates placement on in-bounds non-overlapping
   tiles with slope ≤8° and height spread ≤0.5 m.
-- **Height: no value is sourced.** See GAP-03. Author it as a recorded candidate and
-  flag it; the camera's obstacle sweep (`ui_ux_controls.md` §6 — 0.5 m sphere, orbit
-  shortened to hit distance − 0.5 m) makes building height a camera-behaviour input,
-  not a purely aesthetic one.
+- **Maximum local Y: 3584 u = 3500 mm** (GAP-03), above the placed ground datum, covering
+  shell, roof, fixed chimney and signs. Local Y = 0 is the placed base; rotation affects
+  X/Z only. Shared enclosed-building values also apply: **3072 u minimum clear internal
+  height** and a **1536 × 3072 u** common-access door opening, with the header fitting
+  inside the envelope. Those are model-brief dimensions and **not proof that any body or
+  gear profile passes the opening** — the movement profile qualifies real clearances.
+  The camera's obstacle sweep (`ui_ux_controls.md` §6 — 0.5 m sphere, orbit shortened to
+  hit distance − 0.5 m) is view-only: it reads verified proxies and terrain, and decides
+  no navigation or simulation collision.
 - Ground plane at **y = 0.5 m**: [GDD §5.1](../game_gdd.md) fixes navigable land at
   `y=512` units and water surface at `y=0`, and states "water-bank interpolation affects
   visuals only". The shipping estuary preset is essentially flat.
 - Triangulated, transforms applied, −Z forward, pivot at the **footprint centre on the
   ground plane** (the crowd "feet" rule generalises to ground-projected body centre for
   non-bipeds).
-- Triangle target: **PROPOSED 2,500 at L0, not ratified** — no non-creature geometry
-  budget exists anywhere (GAP-04).
+- **Building assembly ceilings (GAP-04, ratified): 32,000 / 10,000 / 2,500 triangles at
+  near / mid / far, at most 4 distinct shared materials, at most 16 draw surfaces at near
+  and mid and 4 at far, texture edge ≤ 2048.** Counted after triangulation, including
+  attached decorative mesh parts. Separately instanced furniture and props are charged
+  separately once and cannot vanish from whole-scene accounting. Near/mid/far are static
+  geometry tiers, not creature animation L0–L3.
+- Every delivered asset must declare **measured** local min/max bounds, its structural
+  camera-obstacle proxy pieces and its pivots. The table bounds the asset; the proxy
+  describes the structure. Static roof and wall proxies enclose their opaque surfaces,
+  retain real openings and rotate with the building. Do not treat a whole footprint as
+  solid where no geometry exists, do not fall back to mesh height 0, and do not derive
+  camera obstacles from resident navigation radii.
+- Blueprint, unfinished and complete stages expose their corresponding proxy geometry.
 - **Cannot be normalised by `prep_unit.py` as written** if it keeps separate roof/frame
-  objects, because the script joins everything into one mesh.
+  objects, because the script joins everything into one mesh. Run
+  `asset_import_validator.gd` instead (§2.1).
 
 **Acceptance views.**
 
@@ -517,8 +739,9 @@ The warm glow is a **light and a shallow false interior**, not a room — the ca
 black box, and modelling a real interior would imply room mechanics the building does
 not have.
 
-**Geometry constraints.** As B1, at 12 m × 12 m. Height unsourced (GAP-03).
-Triangle target **PROPOSED 6,000 at L0, not ratified** (GAP-04).
+**Geometry constraints.** As B1, at 12 m × 12 m. **Maximum local Y 5120 u = 5000 mm**
+(GAP-03), and the same building-assembly ceilings as B1 (GAP-04): 32,000 / 10,000 / 2,500
+triangles, 4 materials, 16/16/4 draw surfaces, 2048 texture edge.
 The lit doorway must not read as an enterable room; residents do not path inside a
 black box.
 
@@ -526,25 +749,45 @@ black box.
 without a bloom haze (the approved image's own prompt rules out bloom haze and a warm
 colour cast), and a render confirming no resident-sized opening implies access.
 
-### B3 — residence · footprint 10×8 tiles = **20 m × 16 m** — **BLOCKED, see GAP-06**
+### B3 — residence · footprint 10×8 tiles = **20 m × 16 m** — **cutaway ownership now specified**
 
 Catalog row, [GDD §5.9](../game_gdd.md): wood 60, stone 24, cloth 8, 1200 WU,
 **managed interior 8×6, 12-bed layout capacity**, furniture bought separately.
 
-Blocked because the interior is a *behaviour* with no *geometry ownership*.
-[`ui_ux_controls.md` §6](../ui_ux_controls.md) specifies the runtime behaviour precisely
-— roof AUTO / HIDE_SELECTED / SHOW_ALL, **"walls on the camera-facing side of a selected
-interior hide down to 1 m height"**, 120 ms alpha-dither fade, collision unchanged. That
-requires the mesh to ship roof, per-side walls and interior as **separately addressable,
-separately fadeable submeshes with a horizontal 1 m cut line**, and nothing states who
-owns that split, how the cut is authored, or what the wall height is above the cut.
-[Bible §14.5](../setting_bible.md) lists exactly this as outstanding under its Blender
-handoff row: "Separate earth-cover, entrance, room and cutaway ownership; validate
-selected exterior/interior views against the final construction contract." Generating a
-single-mesh dwelling now guarantees re-authoring it.
+Revision 1.0 blocked this entry because the interior was a *behaviour* with no *geometry
+ownership*. [`ui_ux_controls.md` §6](../ui_ux_controls.md) specified the runtime behaviour
+precisely — roof AUTO / HIDE_SELECTED / SHOW_ALL, **"walls on the camera-facing side of a
+selected interior hide down to 1 m height"**, 120 ms alpha-dither fade, collision unchanged
+— and nothing stated who owned the split.
+
+**GAP-06 now states it.** A managed building ships these separately addressable parts:
+
+| Part | Extent |
+|---|---|
+| `roof` | whole roof |
+| `wall_n_upper`, `wall_e_upper`, `wall_s_upper`, `wall_w_upper` | above the inherited 1 m (1024 u) cut |
+| `wall_n_lower`, `wall_e_lower`, `wall_s_lower`, `wall_w_lower` | below that cut |
+| `floor` | interior floor |
+| opening and cap geometry | **the part naming for these is NOT settled — see §2.1's named blocker** |
+
+Closed roof and upper-wall variants and their selected cutaway variants share the **same
+base transform and the same actual bounds**. Render caps at the cut, so a hidden upper wall
+does not reveal a hollow shell. Use the UI's existing fade, visibility and collision or
+navigation rules; a cutaway changes none of them, and it changes no authoritative room
+occupancy or access either. A far representation must **still honour cutaway visibility**
+grouping — do not fuse far into an unhideable shell. Include visible cut caps and opening
+geometry inside both the triangle and the surface limits.
+
+**Geometry constraints.** **Maximum local Y 6144 u = 6000 mm** (GAP-03), building-assembly
+ceilings as B1 (GAP-04). The multi-part hierarchy **bypasses `prep_unit.py`'s join** and is
+checked by `asset_import_validator.gd`.
 
 Reference sheets, floor-plan studies against the sourced 10×8 starter interior layout
-in [GDD §5.9](../game_gdd.md) and material studies are unblocked and should proceed.
+in [GDD §5.9](../game_gdd.md) and material studies proceed as before.
+[Bible §14.5](../setting_bible.md)'s Blender handoff row still stands for the parts this
+contract does not cover: **earth-cover and entrance ownership, and validation of selected
+exterior/interior views against the final construction contract, remain open**, and no
+engine evidence for any of this exists yet.
 
 ## 5. Family C — ground and vegetation (4 entries)
 
@@ -574,8 +817,17 @@ invented, and the last of those is an engineering decision this brief does not o
   slope ≤8° / height spread ≤0.5 m placement result (REQ-SET-122).
 - Tile period must be a whole divisor of the 2 m gameplay tile so that a soil boundary
   lands on a tile edge; soil is a per-tile quantity.
-- 2048² albedo/normal/ORM per soil type is **PROPOSED by analogy** with the species
-  atlas rule; no texture budget exists for terrain (GAP-04).
+- **Ratified (GAP-04 C1):** shared LOAM / CLAY / SAND albedo, normal and ORM textures,
+  source period **4 m at 1024 pixels = 256 texels/m**, with a repeatable world-space phase
+  from the world origin. Blend masks follow actual terrain data and **imply no fertility
+  change**. A flat 2 m tile is two triangles; a 16×16 exterior-tile chunk starts at **512
+  surface triangles**. Shore-height transition geometry is counted **separately** and
+  checked against the actual generator. No tessellation or displacement changes collision
+  or navigation, and **no new terrain tessellation algorithm is prescribed** — terrain is
+  measured independently in the full scene.
+- Texel density targets: **structures 128 texels/m, furniture and props 256 texels/m**,
+  ±25% within a family unless a documented focal detail uses a separately budgeted region.
+  These are authoring targets, not display-pixel promises.
 
 **Acceptance views.**
 
@@ -610,17 +862,27 @@ does not assume.
 
 **Geometry constraints.**
 
-- Opaque trunk, alpha-scissor leaves, **at most two overlapping leaf layers along the
-  principal view.** That rule exists in [crowd §2](../crowd_rendering_architecture.md)
-  — but it is stated for the **battle fixture**, not for the settlement. It is adopted
-  here as the most defensible available rule and flagged as such (GAP-07).
+- **Ratified (GAP-07):** opaque trunks and alpha-scissor foliage are **explicitly adopted
+  for settlement art**, with at most two overlapping leaf-card layers along the principal
+  **48°** gameplay view in the single-tree fixture. Check **35° and 65°** and the 100-tree
+  grove for real overlap and overdraw: **two layers per tree is not a scene-wide
+  guarantee.** No full alpha-blended foliage fallback, and no blended strand-fur or
+  leaf-card escalation to hide a weak silhouette. Share geometry and material batches.
+  Alpha-cutout foliage must be **measured** for overdraw.
 - One tree per **2 m tile**, centres on every second tile. Canopy overhang across a tile
   boundary is a visual choice that must not imply the neighbouring tile is occupied.
-- Triangle target **PROPOSED**: mature 1,800 / 600 / 200 across three distance tiers;
-  stump 120; sapling 200. **Not ratified** (GAP-04).
-- The guaranteed grove is 100 trees in a 10×10-tile block. If these are individual
-  meshes, that is the first place a settlement draw-call budget will be needed, and no
-  such budget exists.
+- **Tree / large vegetation ceilings (GAP-04, ratified): 6,000 / 2,000 / 500 triangles at
+  near / mid / far, at most 2 draw surfaces, texture edge ≤ 2048.** A stump and a sapling
+  are the same family and are charged against the same ceiling; the revision 1.0 proposals
+  of 1,800 / 600 / 200, stump 120 and sapling 200 all sit comfortably inside it and remain
+  authoring intentions rather than limits.
+- Static admission, initially: **near at projected maximum AABB extent ≥ 180 render px,
+  mid at ≥ 48, far below**, with 10% hysteresis and 0.20 s residence — far→mid at 52.8 px,
+  mid→far below 43.2 px, mid→near at 198 px, near→mid below 162 px. **Do not force every
+  instance to near because the asset has a near mesh.**
+- The guaranteed grove is 100 trees in a 10×10-tile block, and it stays the first place a
+  settlement draw-call count must be **measured**. The per-asset ceilings above are not a
+  frame-time pass.
 
 **Acceptance views.**
 
@@ -662,9 +924,15 @@ WITHERED looks like that is not simply "brown" are all invented.
 - **Instanced, not one node per tile.** 4096 active farm tiles are permitted
   ([GDD §4.2 FarmPlot](../game_gdd.md)); a per-tile `Node3D` would be an architecture
   violation.
-- Triangle target **PROPOSED 80–300 per tile module depending on state**; not ratified
-  (GAP-04). At 4096 tiles even 300 triangles is 1.2 M — this budget genuinely needs a
-  ruling before authoring, not after.
+- **Ratified (GAP-04 C3): per 2 m crop tile, near 256 / mid 96 / far 16 triangles, one
+  material surface, a shared crop and state texture set at a 2048 atlas maximum.** At all
+  4096 permitted farm tiles the worst case is **1,048,576 triangles all-near, 393,216
+  all-mid, 65,536 all-far.** Those are counts, not measured GPU times, and GPU
+  qualification is open.
+- Bind EMPTY / SOWN / GROWING / RIPE / WITHERED and the five crops to **real state**.
+  Neighbouring geometry may batch but must not remove tile or state identity. Reduce
+  density or LOD when needed; **never exceed the ceiling by instancing a full plant budget
+  once per stalk.**
 - EMPTY and WITHERED must be distinguishable from each other and from plain LOAM.
 
 **Acceptance views.**
@@ -695,8 +963,9 @@ path edges, a planted border rather than scattered filler.
 - Must not occlude a resident at 40 m. A 1.0 m resident is ~26 px there; a 0.4 m fern is
   ~10 px and can hide a third of them.
 - `MultiMeshInstance3D` scatter, never individual nodes.
-- Triangle target **PROPOSED**: fern clump 150, grass tuft 24, herb patch 90. Not
-  ratified (GAP-04).
+- **Ground cover cluster ceilings (GAP-04, ratified): 600 / 180 / 40 triangles at near /
+  mid / far, one draw surface, texture edge ≤ 1024.** Revision 1.0's fern 150, grass 24 and
+  herb 90 sit inside that and remain authoring intentions.
 
 **Acceptance views.**
 
@@ -723,8 +992,10 @@ a basket of roots is `roots`, a basket of berries is `berries`, and these are ca
 items with real quantities — the mesh must not imply a quantity.
 
 **Geometry constraints.** Scaled to a 1.0 m resident's forearm, carried at `socket_main`
-or `socket_off`. Carried props count inside the resident's LOD ceiling. **PROPOSED**
-400 triangles at L0 (GAP-04). Triangulated, −Z forward.
+or `socket_off`. **Carried props count inside the resident's LOD ceiling**, which is the
+binding limit here; when the basket appears as a static scene prop instead it is charged
+against GAP-04's **tool / resource / small prop** family: 1,200 / 400 / 100 triangles at
+near / mid / far, one draw surface, texture edge ≤ 1024. Triangulated, −Z forward.
 
 **Acceptance views.** Turnaround; in-hand at 8/40/120 m; empty and full; at 24 px to
 confirm the basket silhouette survives; carried in the walk clip without arm penetration.
@@ -743,23 +1014,32 @@ free of it, but the two should not read as unrelated objects.
 **Authored completion.** Log count per unit, stacking pattern, how the stack grows and
 shrinks with stored quantity, and the split faces.
 
-**Geometry constraints.** Occupies part of a 2 m tile. **PROPOSED** 600 triangles at L0
-(GAP-04). Must have at least three fill levels if it is to represent a changing quantity;
-whether it does is a presentation decision this brief flags rather than assumes.
+**Geometry constraints.** Occupies part of a 2 m tile. **Small-prop ceilings (GAP-04):
+1,200 / 400 / 100 triangles, one draw surface, texture edge ≤ 1024**, or a tile inside a
+shared 2048 atlas rather than its own texture. If it represents a changing quantity it uses
+the same fill vocabulary as D3 — empty, then ≤ 1/3, ≤ 2/3, > 2/3 of the **actual** container
+capacity — rather than an invented number of levels.
 
 **Acceptance views.** Turnaround; three fill levels at 40 m; against the B1 shelter wall
 as in the approved image; at 120 m to confirm it does not vanish into the wall value.
 
-### D3 — open-stockpile ground pile
+### D3 — open-stockpile container fill · **revision 1.0's reading of this entry was wrong**
 
 **Sourced and mechanically bound.** Open stockpile is 4×4 tiles = **8 m × 8 m**, wood 4,
 60 WU, **400000 g open storage** ([GDD §5.9](../game_gdd.md)). The starting settlement
-has four of them, at (50,60), (50,65), (70,60), (70,65). Also from §5.9: "Ground piles
-hold at most 400000 g each and **create adjacent passable tiles in N,E,S,W breadth-first
-order when a pile is full**."
+has four of them, at (50,60), (50,65), (70,60), (70,65).
 
-So this prop has a specified *behaviour*: it fills, then spills to the next tile in a
-fixed order. The art must show that, or the player cannot see storage pressure.
+> **Correction required before modelling (ruling ART-GAP-R04, D3).** An 8 × 8 m open
+> stockpile with its 400000 g main container **is not sixteen independent 400000 g ground
+> piles.** Revision 1.0 read §5.9's "Ground piles hold at most 400000 g each and create
+> adjacent passable tiles in N,E,S,W breadth-first order when a pile is full" as a property
+> of the stockpile building. It is not. That sentence belongs to **ground-pile placement** —
+> the temporary visible piles REQ-SET-110 allows when storage capacity is insufficient — and
+> it is **not automatic per-tile stockpile capacity expansion**. Modelling sixteen spilling
+> per-tile piles inside one building would have shown the player a storage capacity that
+> does not exist.
+>
+> **Bind visuals to each actual container. Invent no lots.**
 
 **Source features.** Approved image, right panel: barrels, sacks and stacked goods
 arranged as a worked yard rather than a heap. IMG-05 `barrel` and `wagon` regions for
@@ -768,15 +1048,27 @@ container forms.
 **Authored completion.** Pile shape per item category, the sack/crate/barrel vocabulary,
 and the fill-level stages. `ItemCategory` has eleven values (`FEAST, GEAR, LIQUID,
 MATERIAL, PREPARED, PRESERVED, RAW_FISH, RAW_FOOD, SAPLING, SEED, WASTE`); how many
-distinct pile looks that needs is an authored decision, not a given.
+distinct pile looks that needs is an authored decision, not a given. Use **stable dominant
+item-category styling**; exact quantities stay in the UI, and the mesh never states one.
 
-**Geometry constraints.** Per-tile module, instanced. Must respect the 2 m tile and the
-N,E,S,W spill order. **PROPOSED** 300 triangles per tile module (GAP-04). Must not block
-the walk tiles the spill rule creates — the pile is on the tile, residents path around it.
+**Geometry constraints (GAP-04 D3, ratified).**
 
-**Acceptance views.** One tile at three fill levels; a full 4×4 stockpile at 40 m; the
-spill case — one full tile plus its N neighbour starting — at 40 m; at 120 m to confirm a
-full stockpile is distinguishable from an empty one at max zoom.
+- **Per-container pile assembly ceiling: 1,200 / 400 / 100 triangles at near / mid / far,
+  one material.** If an 8 × 8 m container is dressed with sixteen decorative submodules,
+  **their SUM stays inside that ceiling** — a container is one container.
+- Fill variants: **empty = empty**, then non-empty variants at occupied mass **≤ 1/3,
+  ≤ 2/3 and > 2/3 of the container's ACTUAL capacity**. Four visual states, bound to the
+  real container, not to a tile count.
+- **Quality, age and reservation do not duplicate visible quantity.** A reserved or aging
+  stack is not a fuller stack.
+- Ground piles — the separate, temporary REQ-SET-110 objects — keep the N,E,S,W spill
+  behaviour and must not block the walk tiles that rule creates. They are their own visual,
+  charged against the small-prop family, and are not this entry.
+
+**Acceptance views.** One container at all four fill states; a full 4×4 stockpile at 40 m;
+a **ground pile** spill case — one full pile plus its N neighbour starting — at 40 m, framed
+so it is visibly a different object from the stockpile building; at 120 m to confirm a full
+container is distinguishable from an empty one at max zoom.
 
 ### D4 — seat / table place
 
@@ -796,8 +1088,12 @@ four differs from a run of two, and whether a bench or individual stools. All in
 the GDD says merge, not how.
 
 **Geometry constraints.** 1×1 tile = 2 m × 2 m per diner. Modular so runs merge without
-a seam. **PROPOSED** 250 triangles per module (GAP-04). Must leave the adjacent walk tile
-clear — GDD §5.9: "every seat has an adjacent walk tile above or below".
+a seam. **Furniture-instance ceilings (GAP-04): 2,000 / 700 / 180 triangles at near / mid /
+far, at most 2 draw surfaces, texture edge ≤ 1024** — charged **per instance**, so a run of
+four costs four instances and cannot disappear from whole-scene accounting. Must leave the
+adjacent walk tile clear — GDD §5.9: "every seat has an adjacent walk tile above or below".
+A table top is a work surface: the §2.4 comparison uses **640 u = 625 mm** as an explicit
+candidate top height, **not** a universal work-contact policy for every species.
 
 **Acceptance views.** A single place; a run of four; the starter hall's exact `TTTT`
 arrangement at 40 m with the roof hidden; the merge seam at 8 m; with four residents
@@ -819,10 +1115,13 @@ hood, the fire itself as a VFX element, and the **unlit state**. The unlit state
 the audio direction in bible §15 states "unlit hearths do not sound like fires"; the same
 discipline applies to the visual — an unfueled hearth must not glow.
 
-**Geometry constraints.** 4 m × 2 m, occupying two tiles. **PROPOSED** 500 triangles
-(GAP-04). Lit/unlit must be a material and light state on one mesh, not two meshes.
-Interior fixture, so it is seen through the B3 cutaway — and B3 is blocked, which means
-the hearth can be modelled but cannot be reviewed in situ yet.
+**Geometry constraints.** 4 m × 2 m, occupying two tiles. **Furniture-instance ceilings
+(GAP-04): 2,000 / 700 / 180 triangles, at most 2 draw surfaces, texture edge ≤ 1024.**
+Lit/unlit must be a material and light state on one mesh, not two meshes. Interior fixture,
+so it is seen through the B3 cutaway — and **B3's cutaway ownership now has an authoring
+contract (GAP-06)**, so the hearth can be reviewed in situ as soon as a residence with the
+named parts exists. **Contact and runtime validation remain open**; an authoring contract is
+not a rendered interior.
 
 **Acceptance views.** Turnaround; lit and unlit at 8 m and 40 m; through a doorway at
 40 m as the approved image frames it; with the fire VFX off, confirming the mesh reads
@@ -844,11 +1143,12 @@ light level, a safety radius, a fuel cost or a night-work bonus, because none ex
 invented. IMG-08's articulated lantern rig is **explicitly excluded** — it is concept
 mining equipment, and the approved image's prompt rejects an "industrial lantern rig".
 
-**Geometry constraints.** Scaled to a 1.0 m resident's reach. **PROPOSED** 350 triangles
-(GAP-04). Mounted on a B1/B2 wall; its pivot is the bracket root, not the ground, which
-is the one place in this brief where the feet-at-origin rule does not apply — record that
-deviation in the asset manifest rather than letting `prep_unit.py`'s `min_z == 0` check
-silently force it to the floor.
+**Geometry constraints.** Scaled to a 1.0 m resident's reach. **Small-prop ceilings
+(GAP-04): 1,200 / 400 / 100 triangles, one draw surface, texture edge ≤ 1024.** Mounted on
+a B1/B2 wall; its pivot is the bracket root, not the ground, which is the one place in this
+brief where the feet-at-origin rule does not apply — record that deviation in the asset
+manifest rather than letting `prep_unit.py`'s `min_z == 0` check silently force it to the
+floor.
 
 **Acceptance views.** Turnaround; mounted on B2 at 8 m and 40 m; lit at dusk without
 bloom; at 24 px, where it should read as a small warm point and nothing more.
@@ -862,10 +1162,54 @@ families, which §9.2 does not cover.
 
 ### Phase 0 — settle before touching a tool
 
-Close **GAP-01** and **GAP-04** at minimum. Phase 0 costs nothing and prevents the
-re-export that the asset-pipeline skill warns about: *"Settle the remaining tiers by eye
-with two side by side before bulk generation; re-running every asset later is the
-expensive alternative."*
+**Done for the non-creature families.** GAP-03, GAP-04 and GAP-06 through GAP-09 now carry
+authoring contracts, and §2.4 binds the species candidates and the measurement convention.
+
+**Not done for the creatures.** The one remaining Phase 0 item is the §2.4 comparison
+review itself: Brendan looks at the captures and rules on the five proportions. That review
+costs nothing and prevents exactly the re-export the asset-pipeline skill warns about:
+*"Settle the remaining tiers by eye with two side by side before bulk generation; re-running
+every asset later is the expensive alternative."* **No bulk creature work starts before it.**
+
+### Phase 0b — the material authoring baseline (GAP-09, ratified)
+
+Standard **metallic/roughness PBR** is the material authoring baseline, opaque except for
+declared foliage and cutaway effects. A shared **ORM** texture stores occlusion in R,
+roughness in G, metallic in B. Normal and ORM are **linear data**; albedo follows its import
+colour-space convention. Non-metal cloth, wood, stone and fur are metallic 0; clean exposed
+metal regions are 1; grime and rust stay non-metal.
+
+| Material | Starting roughness |
+|---|---:|
+| linen | 0.9 |
+| dry timber | 0.8 |
+| stone | 0.85 |
+| leather | 0.65 |
+| forged iron | 0.5 |
+
+These are **look-development starting values, not physical measurements**, and authored
+spatial variation remains allowed provided it matches the approved look. The crowd
+deformation shader samples the same PBR inputs: **no replacement toon or fur lighting
+pipeline is implicitly approved**, and renderer, anti-aliasing and GI defaults are not
+altered to flatter a beauty render. Background:
+[Godot material documentation](https://docs.godotengine.org/en/stable/tutorials/3d/standard_material_3d.html),
+consulted 2026-09-11 — which supports the material options, not this project's budgets.
+
+A small asset may take a tile in a shared 2048 atlas instead of its own 1024 texture; a
+shared atlas edge is ≤ 2048. Authoring sources may be larger, but **imported runtime
+textures obey these ceilings**. Use shared timber, stone, cloth and metal materials with
+per-instance variation: **no material or full texture set per resident, plank or bed.**
+
+Aggregate environment allocations: **≤ 128 MiB of loaded non-creature meshes across all
+LODs, ≤ 256 MiB of loaded non-creature material textures including mips and every loaded
+variant.** These are **sub-budgets inside** the existing 2.5 GiB loaded-graphics ceiling and
+4 GiB process target, charged alongside the unchanged creature and crowd allocations — not
+additions to them, and not simulation memory. The 100 MB simulation requirement is separate.
+Charge a shared resource once, and copies or staging separately where resident. For
+planning: one 2048² albedo + normal + ORM set at RGBA8 with a complete mip chain is just
+under 64 MiB, so **four such sets exhaust the texture allowance**. Compression may lower
+measured allocation but is **not assumed as free headroom**. Larger atlases or extra unique
+sets need an explicit budget revision with evidence.
 
 ### Phase 1 — the validation pair (A1 + A5)
 
@@ -897,11 +1241,11 @@ before a rig is reused, and states that similar-looking species are not proof. I
 mole needs its own rig, that is a finding, not a failure.
 Gate: **mole and mouse distinguishable by silhouette at 40 m.**
 
-### Phase 3 — A3 squirrel; A4 otter only if GAP-02 is closed
+### Phase 3 — A3 squirrel; A4 otter once the §2.4 proportions are approved
 
 Squirrel repeats the sequence, with the tail-bounds check at 1.12 as the likely failure
-point. Otter does not start. Its reference sheets and blockout drawings proceed in
-parallel throughout — they are height-independent.
+point. The otter's reference sheets, blockout drawings and comparison bay are done; its
+**bulk production waits on the §2.4 review**, not on a missing number.
 
 ### Phase 4 — ground and vegetation (C1, C2, C4)
 
@@ -911,13 +1255,14 @@ Validate the **100-tree guaranteed grove** at 40 m and 120 m before authoring a 
 tree species. Checks at each step: tile period divides 2 m; no visible repeat at 120 m;
 flat at y = 0.5 m; instanced not per-node; decorative plants not confusable with forage.
 
-### Phase 5 — dwelling and workspace (B1, then B2)
+### Phase 5 — dwelling and workspace (B1, then B2, then B3)
 
-Only after GAP-03 is closed. B1 first: it is the smallest, has no interior, and already
+GAP-03 is closed, so this phase is unblocked. B1 first: it is the smallest, has no interior, and already
 exists in the starting settlement. Checks: 3×3 tiles exactly; placement passes
 REQ-SET-122 with slope ≤8° and height spread ≤0.5 m; the camera obstacle sweep at 8 m
 does not shove the orbit; a 1.0 m resident at the work slot looks right at 40 m.
-Then B2. B3 stays blocked.
+Then B2, then B3 — whose cutaway ownership GAP-06 now specifies, and whose ten named parts
+must survive import through `asset_import_validator.gd` rather than `prep_unit.py`.
 
 ### Phase 6 — props (D1–D6) and C3 crop states
 
@@ -953,6 +1298,22 @@ residents are not yet renderable, say so; do not stage a fake populated colony.
 
 Each entry names where it was searched, not merely that it is missing.
 
+**Revision 1.1 status at a glance.** The search records below are kept as written, because
+they are the evidence that the gap was real. What follows each is the ruling's answer.
+
+| Gap | Status after the 2026-09-11 ruling |
+|---|---|
+| GAP-01 | **CLOSED by DEC-039, 2026-09-12.** Heights approved against decision 0002's rendered comparison; squirrel raised 1024 u to 1178 u in that review. Landmark ratios remain PROPOSED_FOR_REVIEW, a separate axis |
+| GAP-02 | Domain confusion resolved — radii are not heights. **Heights closed by DEC-039, 2026-09-12.** Battle horizontal radii remain a separate measurement and no production ratio is inferred from them |
+| GAP-03 | All 30 exterior maximum-Y envelopes supplied, with proxy and cutaway export rules. **Engine validation open** |
+| GAP-04 | Geometry, surface and texture ceilings for every non-creature family, plus whole-scene sub-budgets. **Hardware measurement open** |
+| GAP-05 | Settlement L0 admission fully specified. **Runtime implementation and performance open** |
+| GAP-06 | Cutaway part hierarchy specified; import validator delivered. **Cap/opening part naming still unnamed** |
+| GAP-07 | Settlement foliage rule explicitly adopted, not merely borrowed. **Overdraw measurement open** |
+| GAP-08 | Naming convention ratified across all six non-creature kinds |
+| GAP-09 | Metallic/roughness PBR baseline and starting values adopted |
+| GAP-10 | **Untouched. Windows / minimum-hardware qualification remains unavailable** |
+
 ### GAP-01 — Only the mouse's height is sourced · blocks A2, A3 as confirmed values
 
 [Crowd §9.1](../crowd_rendering_architecture.md) states the prototype mouse at
@@ -974,6 +1335,12 @@ terms. **Only the mouse is stated.**
 is the skill's own advice — two blockouts side by side at 40 m, judged by eye, before
 bulk work.
 
+> **Resolved for authoring, revision 1.1.** ART-GAP-R01 supplies mole **922 u** and
+> squirrel **1024 u** as comparison candidates, keeps the mouse anchor at 1024 u, and adds
+> the measurement convention in §2.4. **Bulk-production proportion acceptance is still
+> OPEN**: the §2.4 comparison scene is built and captured, and Brendan has not yet ruled on
+> it. It is not accurate to say this ruling alone frees every blocked creature entry.
+
 ### GAP-02 — The Medium tier height is unconfirmed and contradicted · blocks A4
 
 The skill's table gives Medium **1.49 m** and marks it "**derived, unconfirmed**", adding
@@ -992,6 +1359,13 @@ occurrence of "Medium"/"Large"/"Giant" in `docs/`.
 
 **To settle:** Brendan rules the otter's height. Either adopt the radius ratio 1.337
 (→ 1.34 m), adopt 1.49, or set a number by eye. **Do not pick one silently.**
+
+> **Resolved for authoring, revision 1.1.** ART-GAP-R02 settles the question by separating
+> the domains rather than choosing between the two ratio sets: **battle horizontal radii are
+> not height ratios**, and no species is normalised by multiplying mouse height by a radius
+> ratio. Otter **1526 u** and badger **2611 u** retain the prior comparison scale at integer
+> precision and are explicitly **not** elevated into approved tier values. **Proportion
+> approval is OPEN**, as for GAP-01.
 
 ### GAP-03 — No building height exists · blocks B1, B2 from production; gates B3
 
@@ -1012,6 +1386,24 @@ against geometry, so building height changes camera behaviour.
 N × mouse height". Look-development studies may proceed with a **labelled candidate**;
 production models may not.
 
+> **Resolved for authoring, revision 1.1.** ART-GAP-R03 supplies a maximum local Y for
+> **all 30** BuildingDefinition keys, bound in `lookdev_dimensions.gd` and checked against
+> the live catalog by `test_lookdev_dimensions.gd`, so a building added without an envelope
+> fails the suite. They supplement and never resize the GDD's 2 m footprint tiles.
+>
+> Three things these envelopes explicitly do **not** do. They do not set **underground depth**
+> — the cellar's 2048 u is its aboveground entrance, and excavated volume stays MOVE-G01/G02
+> work. They do not describe **submerged geometry** — the weir's above-base envelope decides
+> no water depth. And assigning a positive height authorizes **no belowground geometry at
+> all**. Open stockpile's 2560 u is the maximum **filled visual stack**, not an opaque empty
+> 8 × 8 × 2.5 m cube; paths are shallow surfaces.
+>
+> **One arithmetic note that contradicts the millimetre authoring column.** `dirt_path` at
+> **64 u is 62.5 mm** and cannot be expressed as an integer millimetre. The 1/1024 m column
+> stays authoritative and the millimetre column records 63 as a derived, rounded value.
+> `test_dirt_path_is_the_only_envelope_millimetres_cannot_express` asserts that by name, so
+> nobody later "fixes" 63 into the authority.
+
 ### GAP-04 — No geometry or texture budget exists for anything that is not a creature · affects B, C and D entirely
 
 [Crowd §2.7](../crowd_rendering_architecture.md) gives 12,000/3,500/1,200/350 for
@@ -1021,15 +1413,28 @@ ceiling, no texel density, no draw-call budget, no material count. `systems_arch
 contains no geometry budget at all (grep for triangle, polycount, MultiMesh and foliage
 returns nothing). GDD §5.11's budgets are frame time, simulation CPU and memory, not geometry.
 
-Every non-creature triangle figure in §4–§6 of this brief is marked **PROPOSED — NOT
-RATIFIED** for exactly this reason. They are stated so the brief is usable, not because
-they are settled. The C3 case is the sharp one: 4096 permitted farm tiles × 300 triangles
-is 1.2 M triangles from crops alone.
+In revision 1.0 every non-creature triangle figure in §4–§6 was marked **PROPOSED — NOT
+RATIFIED** for exactly this reason. The C3 case was the sharp one: 4096 permitted farm
+tiles × 300 triangles is 1.2 M triangles from crops alone. Revision 1.1 replaced those
+proposals with the ratified ceilings; C3's ratified near tier of 256 triangles per tile
+gives 1,048,576 at all 4096 tiles, so the sharp case did not get less sharp — it got a
+number and an explicit instruction to reduce density or LOD rather than exceed it.
 
 **To settle:** an engineering budget pass producing per-category ceilings, derived from
 the qualification floor (GTX 1660 Super 6 GB at 1920×1080) rather than by analogy. That
 is measured work, not an art decision — bible REQ-LORE-020 is explicit that an art-style
 decision is not authorization to change a technical contract.
+
+> **Resolved for authoring, revision 1.1.** ART-GAP-R04 supplies per-family ceilings
+> (§4–§6 above), the static near/mid/far admission policy with its hysteresis, crop and
+> terrain accounting, the per-container pile budget, and the aggregate 128 MiB mesh /
+> 256 MiB texture environment sub-budgets in Phase 0b.
+>
+> **These are explicit design decisions, not measurements**, and the gap this section
+> identified is only half closed. Report **rendered** triangles, draw surfaces, shadow-pass
+> multiplication and alpha overdraw in the actual 256-resident scene: **per-asset compliance
+> is not a frame-time pass.** Mac evidence establishes nothing on the specified minimum
+> Windows GPU, which is GAP-10 and is untouched.
 
 ### GAP-05 — L0 is unreachable at the settlement camera, and the 24-actor pool has no admission rule
 
@@ -1051,6 +1456,18 @@ future camera change would need it — but the cost is recorded here rather than
 later. **To settle:** state the settlement's L0 admission rule, or state that the
 settlement's close-actor pool uses L1 geometry.
 
+> **Resolved, revision 1.1.** ART-GAP-R05 overrides crowd §2.7 for the settlement only:
+> **nominal 64 render px, pool cap 24**, retaining the existing creature L0 geometry and rig
+> ceiling. The full contract, with hysteresis, tie-break, overflow and pause behaviour, is
+> in §2.2. Battle is unchanged at 180 px and cap 48.
+>
+> The 12,000-triangle L0 is therefore reachable: it is selected near the 8 m end of the
+> legal orbit, and **correctly selected for nobody at the 40 m default**, where the
+> analytical estimate is about 26 px. A pool holding zero skeletal actors at default zoom is
+> the contract working. **This closes the admission definition, not performance and not
+> exported-rig acceptance**, and verification still requires real captures at real render
+> resolution including Retina scaling.
+
 ### GAP-06 — Cutaway geometry ownership is unspecified · blocks B3
 
 [`ui_ux_controls.md` §6](../ui_ux_controls.md) specifies the cutaway *behaviour*
@@ -1068,6 +1485,18 @@ normalisation tool would destroy the split even if it were specified.
 **To settle:** a geometry-ownership spec for managed interiors, and either a `--no-join`
 path in `prep_unit.py` or an explicit statement that multi-part assets bypass it.
 
+> **Resolved for authoring, revision 1.1.** GAP-06 supplies the part hierarchy (B3's table
+> above), states that **multi-part buildings bypass `prep_unit.py`'s join step**, and asks
+> for a hierarchy-preserving import validator — delivered as
+> [`asset_import_validator.gd`](../../godot/assets/lookdev/asset_import_validator.gd).
+> Creature-normalisation scripts are not universal asset processors.
+>
+> **One piece is still unnamed and is deliberately not invented here.** GAP-06 requires
+> "opening/cap geometry" as an addressable part but gives it no name, and GAP-08's part
+> clause says only that parts use the hierarchy names above. The validator therefore
+> requires the ten named parts, **accepts** further parts and records each as a note.
+> Someone must name the cap and opening parts before those notes can mean anything.
+
 ### GAP-07 — Settlement vegetation has no rendering rule of its own
 
 The only foliage rule in the repository is in
@@ -1082,6 +1511,13 @@ C2 entry does, but it is an **adoption, not a citation**.
 vegetation. The only hit outside the crowd document is a passing mention of reading
 counters over foliage in `ui_ux_controls.md` §2.
 
+> **Resolved, revision 1.1.** GAP-07 **explicitly adopts** opaque trunks and alpha-scissor
+> foliage for settlement art, so C2's rule is now a citation rather than an adoption by
+> analogy. At most two overlapping leaf-card layers along the principal **48°** gameplay
+> view **in the single-tree fixture** — and that is a fixture limit, not a scene-wide
+> guarantee. Check 35° and 65° and the 100-tree grove for real overlap and overdraw. No full
+> alpha-blended fallback; share geometry and material batches.
+
 ### GAP-08 — No naming convention for non-creature assets
 
 Crowd §9.1 gives `species_mouse_body_a_lod1`, `rig_mouse_v1`, `clip_attack_a`,
@@ -1089,12 +1525,15 @@ Crowd §9.1 gives `species_mouse_body_a_lod1`, `rig_mouse_v1`, `clip_attack_a`,
 terrain materials. The skill's directory layout (`godot/assets/units/`,
 `godot/assets/buildings/`) implies structure but names no file convention.
 
-This brief deliberately **does not invent one**. A pattern extending the existing scheme
-— `building_<id>_<variant>_lod<n>`, `prop_<id>_<variant>`, `flora_<id>_<state>`, keyed to
-the `BuildingDefinition` / `FurnitureDefinition` / `ItemDefinition` / `CropDefinition` IDs
-already compiled in `godot/data/catalog_ids.json` — is offered as a **proposal requiring
-ratification**, not applied. Until it is ratified, asset filenames in this brief are
-descriptive labels, not committed names.
+Revision 1.0 deliberately **did not invent one** and offered a pattern as a proposal.
+
+> **Resolved, revision 1.1.** GAP-08 ratifies almost exactly that proposal; §2.1 carries the
+> six patterns. `n` is 0/1/2 for the static near/mid/far tiers, variants begin a, b, c, and
+> names are ASCII. **An art semantic key is not a new gameplay catalog entry**, manifests
+> declare any real catalog binding separately, and **a live catalog key is never renamed to
+> accommodate a filename.** `asset_import_validator.gd` checks names against the live
+> catalog, so renaming a `BuildingDefinition` key without renaming its assets fails the
+> suite. Asset filenames in this brief are now committed names.
 
 ### GAP-09 — No world shader or material model is decided
 
@@ -1106,8 +1545,18 @@ term is open. That decision changes what the textures in every family above have
 
 **Consequence:** the material studies in §3–§6 are authored against *observable material
 behaviour* (matte linen, worn leather edges, subdued iron highlights, matte stone mass),
-not against shader parameters. That is the correct level to work at while GAP-09 is open,
-and it is why no roughness or metallic values appear anywhere in this brief.
+not against shader parameters.
+
+> **Resolved for authoring, revision 1.1.** GAP-09 adopts standard metallic/roughness PBR
+> with a shared ORM packing and five starting roughness values; the contract is in
+> Phase 0b, and the values are bound as integer permille in `lookdev_dimensions.gd` so the
+> table cannot drift by rounding. They are **look-development starting values, not physical
+> measurements.** The crowd deformation shader samples the same PBR inputs, so **no
+> replacement toon or fur lighting pipeline is implicitly approved**, and renderer, AA and
+> GI defaults are not altered to flatter a render.
+>
+> Revision 1.0's claim that "no roughness or metallic values appear anywhere in this brief"
+> was true of revision 1.0 and is no longer true; the values live in Phase 0b.
 
 ### GAP-10 — Windows / minimum-hardware qualification is unavailable
 
@@ -1145,11 +1594,19 @@ fetches cost nothing.
 
 ### Step 2 — specifications that must be extracted first
 
-These raise output quality more than budget does, and every one of them is currently
-open: GAP-01 and GAP-02 (heights — a generator must be told a target height),
-GAP-04 (polycount — `target_polycount` is a required generation parameter),
-GAP-08 (naming), GAP-09 (material model). **Generating before these are answered means
-the generator invents them.** The reference derivation boundary is already settled:
+These raise output quality more than budget does. Revision 1.0 listed four as open;
+**revision 1.1 can now supply all four**:
+
+| Parameter | Value available as of revision 1.1 |
+|---|---|
+| Target height (GAP-01/02) | The §2.4 candidates — **but they are candidates, and generating to an unapproved height is exactly the re-export this brief exists to avoid** |
+| `target_polycount` (GAP-04) | Creature L0 12,000 including gear; the non-creature families in §4–§6 |
+| Naming (GAP-08) | §2.1's six ratified patterns |
+| Material model (GAP-09) | Phase 0b's metallic/roughness baseline |
+
+**The blocking condition has therefore moved, not disappeared.** It is no longer "the
+generator would invent these numbers"; it is "**the proportions have not been approved**",
+which is §2.4's review and Brendan's alone. The reference derivation boundary is settled:
 DEC-036 authorizes direct use of supplied material, so no further permission question exists.
 
 ### Step 3 — the itemised request, for Brendan's decision
@@ -1177,8 +1634,15 @@ untextured, unrigged and as a single unnamed `output_unwrapped` object.
 The 60-credit tier produces the Phase 1 and Phase 2 pair as production inputs.
 The 100-credit ceiling adds one re-roll.
 
-**Items 3–5 are contingent on GAP-01 being closed**, because `target_polycount` and the
-normalisation height are generation-time parameters, not post-hoc fixes.
+**Items 3–5 are contingent on the §2.4 proportion review passing**, because the
+normalisation height is a generation-time parameter and not a post-hoc fix. `target_polycount`
+is no longer a blocker; the approved height is.
+
+**Nothing in revision 1.1 was generated or paid for.** The §2.4 comparison scene is
+hand-authored blockout geometry built by a committed script, which is why it could be
+produced unattended at all. If a reviewer decides the comparison needs generated art rather
+than blockouts — a judgement this document cannot make for him — the itemised request above
+is the one to approve, and it must be approved by Brendan in session.
 
 **If declined:** nothing stops. Every asset in this brief is reachable by hand modelling
 in Blender; the consequence is schedule, not capability. What stays OPEN is the specific
@@ -1194,17 +1658,38 @@ at the real contract. And having paid for a mesh does not make it good — the v
 verdict is Brendan's, recorded separately from any test result, and a miss keeps the
 check OPEN.
 
-## 10. Status summary
+## 10. Status summary — revision 1.1
 
-| Family | Entries | Ready to start | Blocked |
+| Family | Entries | Authoring-ready | Comparison brief only |
 |---|---:|---|---|
-| A — residents | 5 | A1 mouse, A5 tool | A2, A3 (GAP-01, as confirmed heights); A4 otter (GAP-02) |
-| B — dwelling/workspace | 3 | none for production | B1, B2 (GAP-03); B3 (GAP-03 + GAP-06) |
-| C — ground/vegetation | 4 | C1, C2, C4 | C3 (GAP-04 — 4096 tiles makes the budget load-bearing) |
-| D — props | 6 | D1, D2, D4, D6 | D3 (GAP-04 at stockpile scale), D5 (reviewable only through B3's cutaway) |
+| A — residents | 5 | A1 mouse, A5 tool | **A2 mole, A3 squirrel, A4 otter** — candidates and a measurement convention exist; proportion approval does not |
+| B — dwelling/workspace | 3 | B1, B2 (GAP-03 envelopes, GAP-04 ceilings), B3 (GAP-06 cutaway hierarchy) | none |
+| C — ground/vegetation | 4 | C1, C2, C3, C4 | none |
+| D — props | 6 | D1, D2, D3, D4, D5, D6 | none |
 
-Blockers ranked by what each unblocks: **GAP-01** (one ruling unblocks two species),
-**GAP-04** (one budget pass unblocks three families), **GAP-03** (one convention unblocks
-the dwelling family), **GAP-02** (one ruling unblocks the otter).
+**Fifteen of eighteen are authoring-ready. Three are not.** Six of the nine entries
+revision 1.0 blocked now have authoring answers; the three creature entries have concrete
+comparison briefs and still need proportion approval. **Do not call all nine
+production-ready** — the ruling says so in terms, and "authoring-ready" is a statement about
+contracts, not about exported meshes or measured frames.
 
-Recorded as [decision 0079](../decisions/0079-world-art-lookdev-blocks-families-rather-than-inventing-dimensions.md).
+### What still gates work, in the order it bites
+
+1. **The §2.4 proportion review.** Brendan looks at
+   `godot/assets/lookdev/captures/` and rules on the five candidate heights. Until then no
+   bulk creature generation starts, and A2/A3/A4 stay where they are.
+2. **Facing, by eye.** No script can see it. Every creature acceptance set carries the
+   check, and §2.4's yaw 45°/225° pair is the first instance of it.
+3. **GAP-06's unnamed cap and opening parts.** Named as a blocker rather than invented.
+4. **GAP-10 — Windows / minimum-hardware qualification.** Untouched by the ruling. Every
+   budget here is an acceptance target, never a measurement, and Mac evidence establishes
+   nothing about the specified minimum GPU.
+5. **Engine evidence generally.** Exported meshes, the camera obstacle sweep, rendered
+   triangle and overdraw counts in the real 256-resident scene, and the L0 admission
+   implementation are all outstanding. **A specification decision is not completed runtime
+   work**, and nothing in revision 1.1 claims otherwise.
+
+Recorded as [decision 0079](../decisions/0079-world-art-lookdev-blocks-families-rather-than-inventing-dimensions.md)
+for revision 1.0, and
+[decision 0082](../decisions/0082-lookdev-dimensions-are-bound-and-the-comparison-scene-is-built.md)
+for revision 1.1.

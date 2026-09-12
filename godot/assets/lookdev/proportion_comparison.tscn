@@ -1,0 +1,2389 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orv6r"]
+albedo_color = Color(0.38, 0.37, 0.34, 1)
+roughness = 0.85
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_xaowg"]
+size = Vector2(30, 30)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sp85q"]
+albedo_color = Color(0.62, 0.6, 0.56, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_topma"]
+size = Vector3(0.2, 3.25, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8w46d"]
+size = Vector3(0.2, 3.25, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_01yra"]
+size = Vector3(0.2, 3.25, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nod8p"]
+size = Vector3(0.2, 3.25, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ekbk5"]
+size = Vector3(6.8, 0.25, 6.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_o8dam"]
+size = Vector3(2, 0.06, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s31n7"]
+albedo_color = Color(0.16, 0.16, 0.15, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_ok1ja"]
+size = Vector3(0.12, 0.5, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_t0icn"]
+size = Vector3(0.12, 0.5, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_v0w4g"]
+size = Vector3(0.12, 0.5, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fjsby"]
+size = Vector3(0.12, 0.5, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kvf6k"]
+size = Vector3(0.04, 3.5, 0.04)
+
+[sub_resource type="BoxMesh" id="BoxMesh_khphw"]
+size = Vector3(0.5, 3.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5h8ss"]
+size = Vector3(0.5, 3.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_a76po"]
+size = Vector3(1.5, 0.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1idw8"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_31lte"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_g2vsb"]
+size = Vector3(0.29, 0.26, 0.23)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lpinc"]
+size = Vector3(0.072, 0.26, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gcgjj"]
+size = Vector3(0.072, 0.26, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_2361a"]
+size = Vector3(0.116, 0.04, 0.116)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6safi"]
+size = Vector3(0.232, 0.11, 0.184)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wfufl"]
+size = Vector3(0.116, 0.116, 0.13)
+
+[sub_resource type="BoxMesh" id="BoxMesh_w28gf"]
+size = Vector3(0.104, 0.13, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_a0j3l"]
+size = Vector3(0.104, 0.13, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rao62"]
+size = Vector3(0.072, 0.072, 0.82)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cmgns"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hcr35"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_y3kn7"]
+size = Vector3(0.29, 0.26, 0.23)
+
+[sub_resource type="BoxMesh" id="BoxMesh_60dgf"]
+size = Vector3(0.072, 0.26, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_2lece"]
+size = Vector3(0.072, 0.26, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_k4o77"]
+size = Vector3(0.116, 0.04, 0.116)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1m1o7"]
+size = Vector3(0.232, 0.11, 0.184)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3ef4f"]
+size = Vector3(0.116, 0.116, 0.13)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xc4ot"]
+size = Vector3(0.104, 0.13, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_21huc"]
+size = Vector3(0.104, 0.13, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_awkdy"]
+size = Vector3(0.072, 0.072, 0.82)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7xwjq"]
+size = Vector3(2, 0.06, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pho6m"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_l2row"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mmepn"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_j4ed1"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kxxeo"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7gu2n"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_i8gej"]
+size = Vector3(0.29, 0.26, 0.23)
+
+[sub_resource type="BoxMesh" id="BoxMesh_idl0a"]
+size = Vector3(0.072, 0.26, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_oow3w"]
+size = Vector3(0.072, 0.26, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ffjsd"]
+size = Vector3(0.116, 0.04, 0.116)
+
+[sub_resource type="BoxMesh" id="BoxMesh_n27fl"]
+size = Vector3(0.232, 0.11, 0.184)
+
+[sub_resource type="BoxMesh" id="BoxMesh_iethj"]
+size = Vector3(0.116, 0.116, 0.13)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dyv4i"]
+size = Vector3(0.104, 0.13, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_iwrk4"]
+size = Vector3(0.104, 0.13, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ixyxg"]
+size = Vector3(0.072, 0.072, 0.82)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pr374"]
+size = Vector3(0.28, 0.21, 0.28)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dvi7o"]
+size = Vector3(2, 0.06, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pi43v"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8gtuv"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_a5jfe"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xv4sd"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ei3tr"]
+size = Vector3(0.096, 0.253, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_iacg3"]
+size = Vector3(0.096, 0.253, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fonoo"]
+size = Vector3(0.29, 0.26, 0.23)
+
+[sub_resource type="BoxMesh" id="BoxMesh_l5juo"]
+size = Vector3(0.072, 0.26, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_s3w2m"]
+size = Vector3(0.072, 0.26, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_s82j1"]
+size = Vector3(0.116, 0.04, 0.116)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hpeaw"]
+size = Vector3(0.232, 0.11, 0.184)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b6wvc"]
+size = Vector3(0.116, 0.116, 0.13)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b8iic"]
+size = Vector3(0.104, 0.13, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_triv3"]
+size = Vector3(0.104, 0.13, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uf1kx"]
+size = Vector3(0.072, 0.072, 0.82)
+
+[sub_resource type="BoxMesh" id="BoxMesh_aet80"]
+size = Vector3(0.5, 3.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ueida"]
+size = Vector3(0.5, 3.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sqcc0"]
+size = Vector3(1.5, 0.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8o2hw"]
+size = Vector3(0.12, 0.405, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_g45d0"]
+size = Vector3(0.12, 0.405, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bcftf"]
+size = Vector3(0.36, 0.342, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4q025"]
+size = Vector3(0.09, 0.342, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_v2rqr"]
+size = Vector3(0.09, 0.342, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0qpis"]
+size = Vector3(0.144, 0.027, 0.144)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5di2q"]
+size = Vector3(0.288, 0.126, 0.244)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mitob"]
+size = Vector3(0.144, 0.144, 0.198)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vio65"]
+size = Vector3(0.09, 0.09, 0.108)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wxhdh"]
+size = Vector3(0.12, 0.405, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uxkc0"]
+size = Vector3(0.12, 0.405, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b1gko"]
+size = Vector3(0.36, 0.342, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nxwi1"]
+size = Vector3(0.09, 0.342, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5bhc7"]
+size = Vector3(0.09, 0.342, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ccgu6"]
+size = Vector3(0.144, 0.027, 0.144)
+
+[sub_resource type="BoxMesh" id="BoxMesh_aotad"]
+size = Vector3(0.288, 0.126, 0.244)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4575p"]
+size = Vector3(0.144, 0.144, 0.198)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ivo6j"]
+size = Vector3(0.09, 0.09, 0.108)
+
+[sub_resource type="BoxMesh" id="BoxMesh_p0ngq"]
+size = Vector3(2, 0.06, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kv48i"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5ivea"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0ackn"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_v3uil"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1dqbk"]
+size = Vector3(0.12, 0.405, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nmagq"]
+size = Vector3(0.12, 0.405, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_c0j4o"]
+size = Vector3(0.36, 0.342, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cc1nt"]
+size = Vector3(0.09, 0.342, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_eko5y"]
+size = Vector3(0.09, 0.342, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ysp0r"]
+size = Vector3(0.144, 0.027, 0.144)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kcvoi"]
+size = Vector3(0.288, 0.126, 0.244)
+
+[sub_resource type="BoxMesh" id="BoxMesh_iedlk"]
+size = Vector3(0.144, 0.144, 0.198)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hmmgs"]
+size = Vector3(0.09, 0.09, 0.108)
+
+[sub_resource type="BoxMesh" id="BoxMesh_k4iij"]
+size = Vector3(0.252, 0.189, 0.252)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lo7gl"]
+size = Vector3(2, 0.06, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4m1iv"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uo6o6"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_x7q5q"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hx88h"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6fefj"]
+size = Vector3(0.12, 0.222, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dycbt"]
+size = Vector3(0.12, 0.222, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yli8h"]
+size = Vector3(0.36, 0.342, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nqpr8"]
+size = Vector3(0.09, 0.342, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_svsnl"]
+size = Vector3(0.09, 0.342, 0.09)
+
+[sub_resource type="BoxMesh" id="BoxMesh_m6a38"]
+size = Vector3(0.144, 0.027, 0.144)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vsknm"]
+size = Vector3(0.288, 0.126, 0.244)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lbwyq"]
+size = Vector3(0.144, 0.144, 0.198)
+
+[sub_resource type="BoxMesh" id="BoxMesh_q07oy"]
+size = Vector3(0.09, 0.09, 0.108)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6um4r"]
+size = Vector3(0.5, 3.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mfw5v"]
+size = Vector3(0.5, 3.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jjds8"]
+size = Vector3(1.5, 0.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_td71n"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kujqk"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hsoj4"]
+size = Vector3(0.29, 0.27, 0.24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qd1ix"]
+size = Vector3(0.072, 0.27, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_38cl6"]
+size = Vector3(0.072, 0.27, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0wtqw"]
+size = Vector3(0.116, 0.04, 0.116)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dikw7"]
+size = Vector3(0.232, 0.11, 0.192)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hxtuf"]
+size = Vector3(0.116, 0.116, 0.11)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ur01f"]
+size = Vector3(0.104, 0.12, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xvphg"]
+size = Vector3(0.104, 0.12, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4dmfs"]
+size = Vector3(0.072, 0.072, 0.95)
+
+[sub_resource type="BoxMesh" id="BoxMesh_k7um6"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lw1d8"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5oi06"]
+size = Vector3(0.29, 0.27, 0.24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cqxcx"]
+size = Vector3(0.072, 0.27, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jd60y"]
+size = Vector3(0.072, 0.27, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4rgwx"]
+size = Vector3(0.116, 0.04, 0.116)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pnlsd"]
+size = Vector3(0.232, 0.11, 0.192)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ahsyl"]
+size = Vector3(0.116, 0.116, 0.11)
+
+[sub_resource type="BoxMesh" id="BoxMesh_h5rbs"]
+size = Vector3(0.104, 0.12, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_w1orf"]
+size = Vector3(0.104, 0.12, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qssmx"]
+size = Vector3(0.072, 0.072, 0.95)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3xubt"]
+size = Vector3(2, 0.06, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pgj1n"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0w4u4"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ap3e6"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_usy7t"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5dbmi"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jlike"]
+size = Vector3(0.096, 0.46, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ypft0"]
+size = Vector3(0.29, 0.27, 0.24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1ntx5"]
+size = Vector3(0.072, 0.27, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fmfkm"]
+size = Vector3(0.072, 0.27, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uh0jd"]
+size = Vector3(0.116, 0.04, 0.116)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uyvv1"]
+size = Vector3(0.232, 0.11, 0.192)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1nfo5"]
+size = Vector3(0.116, 0.116, 0.11)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qagas"]
+size = Vector3(0.104, 0.12, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qd84d"]
+size = Vector3(0.104, 0.12, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qauec"]
+size = Vector3(0.072, 0.072, 0.95)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sej3d"]
+size = Vector3(0.28, 0.21, 0.28)
+
+[sub_resource type="BoxMesh" id="BoxMesh_nlipk"]
+size = Vector3(2, 0.06, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6ujme"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6xclt"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xsk5u"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_85w12"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kkrc3"]
+size = Vector3(0.096, 0.253, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3lig6"]
+size = Vector3(0.096, 0.253, 0.096)
+
+[sub_resource type="BoxMesh" id="BoxMesh_krnqj"]
+size = Vector3(0.29, 0.27, 0.24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6y4r6"]
+size = Vector3(0.072, 0.27, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b54p1"]
+size = Vector3(0.072, 0.27, 0.072)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gmswr"]
+size = Vector3(0.116, 0.04, 0.116)
+
+[sub_resource type="BoxMesh" id="BoxMesh_l8m6u"]
+size = Vector3(0.232, 0.11, 0.192)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7dgfy"]
+size = Vector3(0.116, 0.116, 0.11)
+
+[sub_resource type="BoxMesh" id="BoxMesh_h6ts7"]
+size = Vector3(0.104, 0.12, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1mpr0"]
+size = Vector3(0.104, 0.12, 0.038)
+
+[sub_resource type="BoxMesh" id="BoxMesh_o5tus"]
+size = Vector3(0.072, 0.072, 0.95)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rw15a"]
+size = Vector3(0.5, 3.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rtl22"]
+size = Vector3(0.5, 3.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jdlq1"]
+size = Vector3(1.5, 0.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_m08g3"]
+size = Vector3(0.149, 0.7, 0.149)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vkm61"]
+size = Vector3(0.149, 0.7, 0.149)
+
+[sub_resource type="BoxMesh" id="BoxMesh_715w7"]
+size = Vector3(0.447, 0.521, 0.387)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jwbns"]
+size = Vector3(0.111, 0.521, 0.111)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b35ma"]
+size = Vector3(0.111, 0.521, 0.111)
+
+[sub_resource type="BoxMesh" id="BoxMesh_h127i"]
+size = Vector3(0.178, 0.045, 0.178)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ssnhk"]
+size = Vector3(0.357, 0.224, 0.309)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uwwb5"]
+size = Vector3(0.178, 0.178, 0.178)
+
+[sub_resource type="BoxMesh" id="BoxMesh_w7ag5"]
+size = Vector3(0.111, 0.111, 0.923)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pvpss"]
+size = Vector3(0.149, 0.7, 0.149)
+
+[sub_resource type="BoxMesh" id="BoxMesh_eu6h2"]
+size = Vector3(0.149, 0.7, 0.149)
+
+[sub_resource type="BoxMesh" id="BoxMesh_p3iys"]
+size = Vector3(0.447, 0.521, 0.387)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ty1ag"]
+size = Vector3(0.111, 0.521, 0.111)
+
+[sub_resource type="BoxMesh" id="BoxMesh_akv8w"]
+size = Vector3(0.111, 0.521, 0.111)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6sse2"]
+size = Vector3(0.178, 0.045, 0.178)
+
+[sub_resource type="BoxMesh" id="BoxMesh_o11co"]
+size = Vector3(0.357, 0.224, 0.309)
+
+[sub_resource type="BoxMesh" id="BoxMesh_psxrf"]
+size = Vector3(0.178, 0.178, 0.178)
+
+[sub_resource type="BoxMesh" id="BoxMesh_q5nap"]
+size = Vector3(0.111, 0.111, 0.923)
+
+[sub_resource type="BoxMesh" id="BoxMesh_u1nrs"]
+size = Vector3(2, 0.06, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_t0p7p"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_txobp"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4n2o2"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_aycof"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_lyne8"]
+size = Vector3(0.149, 0.7, 0.149)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4g41v"]
+size = Vector3(0.149, 0.7, 0.149)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ke286"]
+size = Vector3(0.447, 0.521, 0.387)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cgdpg"]
+size = Vector3(0.111, 0.521, 0.111)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fm83q"]
+size = Vector3(0.111, 0.521, 0.111)
+
+[sub_resource type="BoxMesh" id="BoxMesh_506l4"]
+size = Vector3(0.178, 0.045, 0.178)
+
+[sub_resource type="BoxMesh" id="BoxMesh_fa24a"]
+size = Vector3(0.357, 0.224, 0.309)
+
+[sub_resource type="BoxMesh" id="BoxMesh_36qrc"]
+size = Vector3(0.178, 0.178, 0.178)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wgeqe"]
+size = Vector3(0.111, 0.111, 0.923)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5vh0h"]
+size = Vector3(0.417, 0.312, 0.417)
+
+[sub_resource type="BoxMesh" id="BoxMesh_43fwo"]
+size = Vector3(2, 0.06, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pka3y"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hvudd"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_t76o1"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_et0rh"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mhglr"]
+size = Vector3(0.149, 0.385, 0.149)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7begk"]
+size = Vector3(0.149, 0.385, 0.149)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tvmk0"]
+size = Vector3(0.447, 0.521, 0.387)
+
+[sub_resource type="BoxMesh" id="BoxMesh_x678a"]
+size = Vector3(0.111, 0.521, 0.111)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tr34g"]
+size = Vector3(0.111, 0.521, 0.111)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uhomt"]
+size = Vector3(0.178, 0.045, 0.178)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7hmtd"]
+size = Vector3(0.357, 0.224, 0.309)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yrxdv"]
+size = Vector3(0.178, 0.178, 0.178)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kf23a"]
+size = Vector3(0.111, 0.111, 0.923)
+
+[sub_resource type="BoxMesh" id="BoxMesh_khchv"]
+size = Vector3(0.5, 3.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_00h0k"]
+size = Vector3(0.5, 3.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vykp2"]
+size = Vector3(1.5, 0.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_xla5e"]
+size = Vector3(0.306, 1.198, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3oqpu"]
+size = Vector3(0.306, 1.198, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_atdrj"]
+size = Vector3(0.918, 0.842, 0.765)
+
+[sub_resource type="BoxMesh" id="BoxMesh_j8sba"]
+size = Vector3(0.229, 0.842, 0.229)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rsb4t"]
+size = Vector3(0.229, 0.842, 0.229)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mj51v"]
+size = Vector3(0.367, 0.076, 0.367)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3o8wr"]
+size = Vector3(0.734, 0.434, 0.612)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1i407"]
+size = Vector3(0.367, 0.367, 0.382)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qu7u8"]
+size = Vector3(0.229, 0.229, 0.637)
+
+[sub_resource type="BoxMesh" id="BoxMesh_h7una"]
+size = Vector3(0.306, 1.198, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cix6c"]
+size = Vector3(0.306, 1.198, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frkd8"]
+size = Vector3(0.918, 0.842, 0.765)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ghqam"]
+size = Vector3(0.229, 0.842, 0.229)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qnsbc"]
+size = Vector3(0.229, 0.842, 0.229)
+
+[sub_resource type="BoxMesh" id="BoxMesh_n7hro"]
+size = Vector3(0.367, 0.076, 0.367)
+
+[sub_resource type="BoxMesh" id="BoxMesh_f2okd"]
+size = Vector3(0.734, 0.434, 0.612)
+
+[sub_resource type="BoxMesh" id="BoxMesh_knrsk"]
+size = Vector3(0.367, 0.367, 0.382)
+
+[sub_resource type="BoxMesh" id="BoxMesh_r6fb2"]
+size = Vector3(0.229, 0.229, 0.637)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1g0tn"]
+size = Vector3(2, 0.06, 0.8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_knw7d"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_orgbs"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_1m048"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_h5c2x"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_c1ffs"]
+size = Vector3(0.306, 1.198, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_meg8c"]
+size = Vector3(0.306, 1.198, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_odli1"]
+size = Vector3(0.918, 0.842, 0.765)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jkspi"]
+size = Vector3(0.229, 0.842, 0.229)
+
+[sub_resource type="BoxMesh" id="BoxMesh_s8g7c"]
+size = Vector3(0.229, 0.842, 0.229)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4kkgn"]
+size = Vector3(0.367, 0.076, 0.367)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jpjxa"]
+size = Vector3(0.734, 0.434, 0.612)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4ouvy"]
+size = Vector3(0.367, 0.367, 0.382)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vsn5v"]
+size = Vector3(0.229, 0.229, 0.637)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7x1ed"]
+size = Vector3(0.714, 0.535, 0.714)
+
+[sub_resource type="BoxMesh" id="BoxMesh_w3b8e"]
+size = Vector3(2, 0.06, 2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_t7xq8"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_57wj2"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_vd0dc"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_n7iu0"]
+size = Vector3(0.1, 0.565, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7qd8o"]
+size = Vector3(0.306, 0.658, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_na3j6"]
+size = Vector3(0.306, 0.658, 0.306)
+
+[sub_resource type="BoxMesh" id="BoxMesh_h1qwv"]
+size = Vector3(0.918, 0.842, 0.765)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gj3cp"]
+size = Vector3(0.229, 0.842, 0.229)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0moe2"]
+size = Vector3(0.229, 0.842, 0.229)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7jru1"]
+size = Vector3(0.367, 0.076, 0.367)
+
+[sub_resource type="BoxMesh" id="BoxMesh_uppvo"]
+size = Vector3(0.734, 0.434, 0.612)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qgmpx"]
+size = Vector3(0.367, 0.367, 0.382)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3l5tp"]
+size = Vector3(0.229, 0.229, 0.637)
+
+[node name="ProportionComparison" type="Node3D" unique_id=1129592722]
+
+[node name="ground" type="MeshInstance3D" parent="." unique_id=1471730390]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)
+material_override = SubResource("StandardMaterial3D_orv6r")
+mesh = SubResource("PlaneMesh_xaowg")
+
+[node name="building_workbench_reference" type="Node3D" parent="." unique_id=422399624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 14)
+
+[node name="post_0" type="MeshInstance3D" parent="building_workbench_reference" unique_id=2126204149]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9, 1.625, 2.9)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_topma")
+
+[node name="post_1" type="MeshInstance3D" parent="building_workbench_reference" unique_id=1646453406]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9, 1.625, 2.9)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_8w46d")
+
+[node name="post_2" type="MeshInstance3D" parent="building_workbench_reference" unique_id=1959049868]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9, 1.625, -2.9)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_01yra")
+
+[node name="post_3" type="MeshInstance3D" parent="building_workbench_reference" unique_id=21260737]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9, 1.625, -2.9)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_nod8p")
+
+[node name="roof" type="MeshInstance3D" parent="building_workbench_reference" unique_id=667574561]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.375, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ekbk5")
+
+[node name="work_surface_top" type="MeshInstance3D" parent="building_workbench_reference" unique_id=118524966]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, -2)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_o8dam")
+
+[node name="scale_rule" type="Node3D" parent="." unique_id=1770771945]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 0)
+
+[node name="band_0000" type="MeshInstance3D" parent="scale_rule" unique_id=684318358]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+material_override = SubResource("StandardMaterial3D_s31n7")
+mesh = SubResource("BoxMesh_ok1ja")
+
+[node name="band_1000" type="MeshInstance3D" parent="scale_rule" unique_id=939085686]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+material_override = SubResource("StandardMaterial3D_s31n7")
+mesh = SubResource("BoxMesh_t0icn")
+
+[node name="band_2000" type="MeshInstance3D" parent="scale_rule" unique_id=1132101374]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+material_override = SubResource("StandardMaterial3D_s31n7")
+mesh = SubResource("BoxMesh_v0w4g")
+
+[node name="band_3000" type="MeshInstance3D" parent="scale_rule" unique_id=1816065566]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, 0)
+material_override = SubResource("StandardMaterial3D_s31n7")
+mesh = SubResource("BoxMesh_fjsby")
+
+[node name="spine" type="MeshInstance3D" parent="scale_rule" unique_id=1205614753]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_kvf6k")
+
+[node name="mouse_standing" type="Node3D" parent="." unique_id=335663152]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 0)
+
+[node name="doorway" type="Node3D" parent="mouse_standing" unique_id=1163038450]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.2)
+
+[node name="jamb_w" type="MeshInstance3D" parent="mouse_standing/doorway" unique_id=904517211]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_khphw")
+
+[node name="jamb_e" type="MeshInstance3D" parent="mouse_standing/doorway" unique_id=2128171985]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_5h8ss")
+
+[node name="header" type="MeshInstance3D" parent="mouse_standing/doorway" unique_id=1694094992]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_a76po")
+
+[node name="blockout_mouse" type="Node3D" parent="mouse_standing" unique_id=495766236]
+
+[node name="leg_0" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=1572436737]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.072, 0.23, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_1idw8")
+
+[node name="leg_1" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=1111638232]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072, 0.23, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_31lte")
+
+[node name="torso" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=1339868965]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.59, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_g2vsb")
+
+[node name="arm_0" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=450070854]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.181, 0.59, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_lpinc")
+
+[node name="arm_1" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=594549749]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.181, 0.59, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_gcgjj")
+
+[node name="neck" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=1346922572]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.74, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_2361a")
+
+[node name="skull" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=2004497042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.815, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_6safi")
+
+[node name="muzzle" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=478143030]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.772, -0.157)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_wfufl")
+
+[node name="ear_0" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=1787387379]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.116, 0.935, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_w28gf")
+
+[node name="ear_1" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=1165366220]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.116, 0.935, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_a0j3l")
+
+[node name="tail" type="MeshInstance3D" parent="mouse_standing/blockout_mouse" unique_id=125244080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.388, 0.555)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_rao62")
+
+[node name="mouse_walking" type="Node3D" parent="." unique_id=746344148]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 3)
+
+[node name="blockout_mouse" type="Node3D" parent="mouse_walking" unique_id=591576500]
+
+[node name="leg_0" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=1771699631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.072, 0.23, -0.09)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_cmgns")
+
+[node name="leg_1" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=137606779]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072, 0.23, 0.09)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_hcr35")
+
+[node name="torso" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=264036885]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.59, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_y3kn7")
+
+[node name="arm_0" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=715005744]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.181, 0.59, 0.06)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_60dgf")
+
+[node name="arm_1" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=763779617]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.181, 0.59, -0.06)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_2lece")
+
+[node name="neck" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=1308996689]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.74, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_k4o77")
+
+[node name="skull" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=605522927]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.815, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_1m1o7")
+
+[node name="muzzle" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=1684129826]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.772, -0.157)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_3ef4f")
+
+[node name="ear_0" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=656426881]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.116, 0.935, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_xc4ot")
+
+[node name="ear_1" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=810466425]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.116, 0.935, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_21huc")
+
+[node name="tail" type="MeshInstance3D" parent="mouse_walking/blockout_mouse" unique_id=2010277175]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.388, 0.555)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_awkdy")
+
+[node name="mouse_carrying" type="Node3D" parent="." unique_id=1255098926]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 6)
+
+[node name="work_surface" type="Node3D" parent="mouse_carrying" unique_id=442354382]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="top" type="MeshInstance3D" parent="mouse_carrying/work_surface" unique_id=1513549305]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_7xwjq")
+
+[node name="leg_0" type="MeshInstance3D" parent="mouse_carrying/work_surface" unique_id=1073507028]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, 0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_pho6m")
+
+[node name="leg_1" type="MeshInstance3D" parent="mouse_carrying/work_surface" unique_id=320265576]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, 0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_l2row")
+
+[node name="leg_2" type="MeshInstance3D" parent="mouse_carrying/work_surface" unique_id=355169742]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, -0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_mmepn")
+
+[node name="leg_3" type="MeshInstance3D" parent="mouse_carrying/work_surface" unique_id=1586952362]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, -0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_j4ed1")
+
+[node name="blockout_mouse" type="Node3D" parent="mouse_carrying" unique_id=1121756940]
+
+[node name="leg_0" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=88830497]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.072, 0.23, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_kxxeo")
+
+[node name="leg_1" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=293201734]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072, 0.23, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_7gu2n")
+
+[node name="torso" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=1407653063]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.59, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_i8gej")
+
+[node name="arm_0" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=1420808049]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.181, 0.59, -0.23)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_idl0a")
+
+[node name="arm_1" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=56048247]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.181, 0.59, -0.23)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_oow3w")
+
+[node name="neck" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=1814112347]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.74, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ffjsd")
+
+[node name="skull" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=936024592]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.815, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_n27fl")
+
+[node name="muzzle" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=1902358737]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.772, -0.157)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_iethj")
+
+[node name="ear_0" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=17724568]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.116, 0.935, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_dyv4i")
+
+[node name="ear_1" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=1535476968]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.116, 0.935, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_iwrk4")
+
+[node name="tail" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=495082278]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.388, 0.555)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ixyxg")
+
+[node name="carried_load" type="MeshInstance3D" parent="mouse_carrying/blockout_mouse" unique_id=458462447]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.553, -0.37)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_pr374")
+
+[node name="mouse_crouching" type="Node3D" parent="." unique_id=592473743]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 9)
+
+[node name="table" type="Node3D" parent="mouse_crouching" unique_id=1995388032]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="top" type="MeshInstance3D" parent="mouse_crouching/table" unique_id=526085608]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_dvi7o")
+
+[node name="leg_0" type="MeshInstance3D" parent="mouse_crouching/table" unique_id=1543559227]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, 0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_pi43v")
+
+[node name="leg_1" type="MeshInstance3D" parent="mouse_crouching/table" unique_id=228897544]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, 0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_8gtuv")
+
+[node name="leg_2" type="MeshInstance3D" parent="mouse_crouching/table" unique_id=1567263057]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, -0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_a5jfe")
+
+[node name="leg_3" type="MeshInstance3D" parent="mouse_crouching/table" unique_id=155144043]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, -0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_xv4sd")
+
+[node name="blockout_mouse" type="Node3D" parent="mouse_crouching" unique_id=1809986991]
+
+[node name="leg_0" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=726791348]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.072, 0.126, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ei3tr")
+
+[node name="leg_1" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=849202791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072, 0.126, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_iacg3")
+
+[node name="torso" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=716839418]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.383, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_fonoo")
+
+[node name="arm_0" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=1392190464]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.181, 0.383, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_l5juo")
+
+[node name="arm_1" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=82178912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.181, 0.383, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_s3w2m")
+
+[node name="neck" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=31205514]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.533, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_s82j1")
+
+[node name="skull" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=1252902761]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.608, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_hpeaw")
+
+[node name="muzzle" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=493756245]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.565, -0.157)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_b6wvc")
+
+[node name="ear_0" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=595441733]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.116, 0.728, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_b8iic")
+
+[node name="ear_1" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=833365513]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.116, 0.728, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_triv3")
+
+[node name="tail" type="MeshInstance3D" parent="mouse_crouching/blockout_mouse" unique_id=850115283]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.181, 0.555)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_uf1kx")
+
+[node name="mole_standing" type="Node3D" parent="." unique_id=1777683694]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0, 0)
+
+[node name="doorway" type="Node3D" parent="mole_standing" unique_id=788065069]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.2)
+
+[node name="jamb_w" type="MeshInstance3D" parent="mole_standing/doorway" unique_id=1859510415]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_aet80")
+
+[node name="jamb_e" type="MeshInstance3D" parent="mole_standing/doorway" unique_id=1869577074]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ueida")
+
+[node name="header" type="MeshInstance3D" parent="mole_standing/doorway" unique_id=2112088818]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_sqcc0")
+
+[node name="blockout_mole" type="Node3D" parent="mole_standing" unique_id=1153886449]
+
+[node name="leg_0" type="MeshInstance3D" parent="mole_standing/blockout_mole" unique_id=1726796466]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.202, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_8o2hw")
+
+[node name="leg_1" type="MeshInstance3D" parent="mole_standing/blockout_mole" unique_id=591435163]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0.202, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_g45d0")
+
+[node name="torso" type="MeshInstance3D" parent="mole_standing/blockout_mole" unique_id=1751529518]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.576, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_bcftf")
+
+[node name="arm_0" type="MeshInstance3D" parent="mole_standing/blockout_mole" unique_id=887743997]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.225, 0.576, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_4q025")
+
+[node name="arm_1" type="MeshInstance3D" parent="mole_standing/blockout_mole" unique_id=2085704006]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.225, 0.576, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_v2rqr")
+
+[node name="neck" type="MeshInstance3D" parent="mole_standing/blockout_mole" unique_id=1889169098]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.76, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_0qpis")
+
+[node name="skull" type="MeshInstance3D" parent="mole_standing/blockout_mole" unique_id=164843413]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.837, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_5di2q")
+
+[node name="muzzle" type="MeshInstance3D" parent="mole_standing/blockout_mole" unique_id=21552532]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, -0.221)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_mitob")
+
+[node name="tail" type="MeshInstance3D" parent="mole_standing/blockout_mole" unique_id=1797469680]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.315, 0.234)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_vio65")
+
+[node name="mole_walking" type="Node3D" parent="." unique_id=930628217]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0, 3)
+
+[node name="blockout_mole" type="Node3D" parent="mole_walking" unique_id=125846613]
+
+[node name="leg_0" type="MeshInstance3D" parent="mole_walking/blockout_mole" unique_id=1063869734]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.202, -0.081)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_wxhdh")
+
+[node name="leg_1" type="MeshInstance3D" parent="mole_walking/blockout_mole" unique_id=1735783122]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0.202, 0.081)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_uxkc0")
+
+[node name="torso" type="MeshInstance3D" parent="mole_walking/blockout_mole" unique_id=311359416]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.576, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_b1gko")
+
+[node name="arm_0" type="MeshInstance3D" parent="mole_walking/blockout_mole" unique_id=711514014]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.225, 0.576, 0.054)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_nxwi1")
+
+[node name="arm_1" type="MeshInstance3D" parent="mole_walking/blockout_mole" unique_id=1568933176]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.225, 0.576, -0.054)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_5bhc7")
+
+[node name="neck" type="MeshInstance3D" parent="mole_walking/blockout_mole" unique_id=584579764]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.76, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ccgu6")
+
+[node name="skull" type="MeshInstance3D" parent="mole_walking/blockout_mole" unique_id=2099049657]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.837, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_aotad")
+
+[node name="muzzle" type="MeshInstance3D" parent="mole_walking/blockout_mole" unique_id=1046835061]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, -0.221)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_4575p")
+
+[node name="tail" type="MeshInstance3D" parent="mole_walking/blockout_mole" unique_id=751168300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.315, 0.234)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ivo6j")
+
+[node name="mole_carrying" type="Node3D" parent="." unique_id=170517859]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0, 6)
+
+[node name="work_surface" type="Node3D" parent="mole_carrying" unique_id=1723391601]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="top" type="MeshInstance3D" parent="mole_carrying/work_surface" unique_id=660631568]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_p0ngq")
+
+[node name="leg_0" type="MeshInstance3D" parent="mole_carrying/work_surface" unique_id=117895075]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, 0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_kv48i")
+
+[node name="leg_1" type="MeshInstance3D" parent="mole_carrying/work_surface" unique_id=66334256]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, 0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_5ivea")
+
+[node name="leg_2" type="MeshInstance3D" parent="mole_carrying/work_surface" unique_id=854520360]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, -0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_0ackn")
+
+[node name="leg_3" type="MeshInstance3D" parent="mole_carrying/work_surface" unique_id=694473383]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, -0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_v3uil")
+
+[node name="blockout_mole" type="Node3D" parent="mole_carrying" unique_id=389873062]
+
+[node name="leg_0" type="MeshInstance3D" parent="mole_carrying/blockout_mole" unique_id=886294783]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.202, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_1dqbk")
+
+[node name="leg_1" type="MeshInstance3D" parent="mole_carrying/blockout_mole" unique_id=1371949305]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0.202, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_nmagq")
+
+[node name="torso" type="MeshInstance3D" parent="mole_carrying/blockout_mole" unique_id=1396249055]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.576, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_c0j4o")
+
+[node name="arm_0" type="MeshInstance3D" parent="mole_carrying/blockout_mole" unique_id=791589191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.225, 0.576, -0.306)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_cc1nt")
+
+[node name="arm_1" type="MeshInstance3D" parent="mole_carrying/blockout_mole" unique_id=903033995]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.225, 0.576, -0.306)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_eko5y")
+
+[node name="neck" type="MeshInstance3D" parent="mole_carrying/blockout_mole" unique_id=1639108656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.76, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ysp0r")
+
+[node name="skull" type="MeshInstance3D" parent="mole_carrying/blockout_mole" unique_id=1829980316]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.837, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_kcvoi")
+
+[node name="muzzle" type="MeshInstance3D" parent="mole_carrying/blockout_mole" unique_id=780451269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, -0.221)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_iedlk")
+
+[node name="tail" type="MeshInstance3D" parent="mole_carrying/blockout_mole" unique_id=155392807]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.315, 0.234)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_hmmgs")
+
+[node name="carried_load" type="MeshInstance3D" parent="mole_carrying/blockout_mole" unique_id=1976645131]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.489, -0.432)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_k4iij")
+
+[node name="mole_crouching" type="Node3D" parent="." unique_id=758945162]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0, 9)
+
+[node name="table" type="Node3D" parent="mole_crouching" unique_id=1210935560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="top" type="MeshInstance3D" parent="mole_crouching/table" unique_id=2018294333]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_lo7gl")
+
+[node name="leg_0" type="MeshInstance3D" parent="mole_crouching/table" unique_id=1996462066]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, 0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_4m1iv")
+
+[node name="leg_1" type="MeshInstance3D" parent="mole_crouching/table" unique_id=2004114974]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, 0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_uo6o6")
+
+[node name="leg_2" type="MeshInstance3D" parent="mole_crouching/table" unique_id=842681706]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, -0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_x7q5q")
+
+[node name="leg_3" type="MeshInstance3D" parent="mole_crouching/table" unique_id=1608851659]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, -0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_hx88h")
+
+[node name="blockout_mole" type="Node3D" parent="mole_crouching" unique_id=829692147]
+
+[node name="leg_0" type="MeshInstance3D" parent="mole_crouching/blockout_mole" unique_id=1410688717]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.111, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_6fefj")
+
+[node name="leg_1" type="MeshInstance3D" parent="mole_crouching/blockout_mole" unique_id=662835032]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0.111, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_dycbt")
+
+[node name="torso" type="MeshInstance3D" parent="mole_crouching/blockout_mole" unique_id=1686563475]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.393, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_yli8h")
+
+[node name="arm_0" type="MeshInstance3D" parent="mole_crouching/blockout_mole" unique_id=1358170509]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.225, 0.393, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_nqpr8")
+
+[node name="arm_1" type="MeshInstance3D" parent="mole_crouching/blockout_mole" unique_id=1523651282]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.225, 0.393, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_svsnl")
+
+[node name="neck" type="MeshInstance3D" parent="mole_crouching/blockout_mole" unique_id=1466428093]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.577, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_m6a38")
+
+[node name="skull" type="MeshInstance3D" parent="mole_crouching/blockout_mole" unique_id=2082138113]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.654, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_vsknm")
+
+[node name="muzzle" type="MeshInstance3D" parent="mole_crouching/blockout_mole" unique_id=1931824653]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.537, -0.221)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_lbwyq")
+
+[node name="tail" type="MeshInstance3D" parent="mole_crouching/blockout_mole" unique_id=1963185811]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.132, 0.234)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_q07oy")
+
+[node name="squirrel_standing" type="Node3D" parent="." unique_id=12412701]
+
+[node name="doorway" type="Node3D" parent="squirrel_standing" unique_id=594466981]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.2)
+
+[node name="jamb_w" type="MeshInstance3D" parent="squirrel_standing/doorway" unique_id=1018319637]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_6um4r")
+
+[node name="jamb_e" type="MeshInstance3D" parent="squirrel_standing/doorway" unique_id=714977250]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_mfw5v")
+
+[node name="header" type="MeshInstance3D" parent="squirrel_standing/doorway" unique_id=1018874358]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_jjds8")
+
+[node name="blockout_squirrel" type="Node3D" parent="squirrel_standing" unique_id=2081857276]
+
+[node name="leg_0" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=692760072]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.072, 0.23, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_td71n")
+
+[node name="leg_1" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=1270984740]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072, 0.23, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_kujqk")
+
+[node name="torso" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=299904208]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_hsoj4")
+
+[node name="arm_0" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=845528480]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.181, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_qd1ix")
+
+[node name="arm_1" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=830202706]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.181, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_38cl6")
+
+[node name="neck" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=1538810722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_0wtqw")
+
+[node name="skull" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=411807326]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.825, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_dikw7")
+
+[node name="muzzle" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=196323843]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.782, -0.151)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_hxtuf")
+
+[node name="ear_0" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=1763445312]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.116, 0.94, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ur01f")
+
+[node name="ear_1" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=1684209440]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.116, 0.94, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_xvphg")
+
+[node name="tail" type="MeshInstance3D" parent="squirrel_standing/blockout_squirrel" unique_id=208532325]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.388, 0.62)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_4dmfs")
+
+[node name="squirrel_walking" type="Node3D" parent="." unique_id=1525871520]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+
+[node name="blockout_squirrel" type="Node3D" parent="squirrel_walking" unique_id=1601120710]
+
+[node name="leg_0" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=1038139356]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.072, 0.23, -0.09)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_k7um6")
+
+[node name="leg_1" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=1072586640]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072, 0.23, 0.09)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_lw1d8")
+
+[node name="torso" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=557208601]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_5oi06")
+
+[node name="arm_0" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=2001523328]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.181, 0.595, 0.06)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_cqxcx")
+
+[node name="arm_1" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=926788511]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.181, 0.595, -0.06)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_jd60y")
+
+[node name="neck" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=751908980]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_4rgwx")
+
+[node name="skull" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=1696096161]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.825, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_pnlsd")
+
+[node name="muzzle" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=2000812894]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.782, -0.151)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ahsyl")
+
+[node name="ear_0" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=1516154979]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.116, 0.94, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_h5rbs")
+
+[node name="ear_1" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=1625140521]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.116, 0.94, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_w1orf")
+
+[node name="tail" type="MeshInstance3D" parent="squirrel_walking/blockout_squirrel" unique_id=1968881262]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.388, 0.62)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_qssmx")
+
+[node name="squirrel_carrying" type="Node3D" parent="." unique_id=217018522]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)
+
+[node name="work_surface" type="Node3D" parent="squirrel_carrying" unique_id=42204208]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="top" type="MeshInstance3D" parent="squirrel_carrying/work_surface" unique_id=166100444]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_3xubt")
+
+[node name="leg_0" type="MeshInstance3D" parent="squirrel_carrying/work_surface" unique_id=1596395849]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, 0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_pgj1n")
+
+[node name="leg_1" type="MeshInstance3D" parent="squirrel_carrying/work_surface" unique_id=317144924]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, 0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_0w4u4")
+
+[node name="leg_2" type="MeshInstance3D" parent="squirrel_carrying/work_surface" unique_id=394005356]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, -0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ap3e6")
+
+[node name="leg_3" type="MeshInstance3D" parent="squirrel_carrying/work_surface" unique_id=1323117400]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, -0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_usy7t")
+
+[node name="blockout_squirrel" type="Node3D" parent="squirrel_carrying" unique_id=800693976]
+
+[node name="leg_0" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=221734862]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.072, 0.23, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_5dbmi")
+
+[node name="leg_1" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=1925712792]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072, 0.23, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_jlike")
+
+[node name="torso" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=482749171]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ypft0")
+
+[node name="arm_0" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=414623740]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.181, 0.595, -0.24)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_1ntx5")
+
+[node name="arm_1" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=1012281256]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.181, 0.595, -0.24)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_fmfkm")
+
+[node name="neck" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=129184718]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_uh0jd")
+
+[node name="skull" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=2012179378]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.825, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_uyvv1")
+
+[node name="muzzle" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=294619511]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.782, -0.151)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_1nfo5")
+
+[node name="ear_0" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=1466898236]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.116, 0.94, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_qagas")
+
+[node name="ear_1" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=1456365418]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.116, 0.94, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_qd84d")
+
+[node name="tail" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=1770738024]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.388, 0.62)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_qauec")
+
+[node name="carried_load" type="MeshInstance3D" parent="squirrel_carrying/blockout_squirrel" unique_id=2079906655]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.553, -0.38)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_sej3d")
+
+[node name="squirrel_crouching" type="Node3D" parent="." unique_id=1020373473]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9)
+
+[node name="table" type="Node3D" parent="squirrel_crouching" unique_id=525686425]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="top" type="MeshInstance3D" parent="squirrel_crouching/table" unique_id=795008966]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_nlipk")
+
+[node name="leg_0" type="MeshInstance3D" parent="squirrel_crouching/table" unique_id=973963985]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, 0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_6ujme")
+
+[node name="leg_1" type="MeshInstance3D" parent="squirrel_crouching/table" unique_id=1018798071]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, 0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_6xclt")
+
+[node name="leg_2" type="MeshInstance3D" parent="squirrel_crouching/table" unique_id=1909127759]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, -0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_xsk5u")
+
+[node name="leg_3" type="MeshInstance3D" parent="squirrel_crouching/table" unique_id=739043472]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, -0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_85w12")
+
+[node name="blockout_squirrel" type="Node3D" parent="squirrel_crouching" unique_id=1782761034]
+
+[node name="leg_0" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=1833923043]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.072, 0.126, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_kkrc3")
+
+[node name="leg_1" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=1856869901]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.072, 0.126, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_3lig6")
+
+[node name="torso" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=891935503]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.388, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_krnqj")
+
+[node name="arm_0" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=691155878]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.181, 0.388, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_6y4r6")
+
+[node name="arm_1" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=522540575]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.181, 0.388, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_b54p1")
+
+[node name="neck" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=1940205710]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.543, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_gmswr")
+
+[node name="skull" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=1844558408]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.618, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_l8m6u")
+
+[node name="muzzle" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=688325552]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.575, -0.151)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_7dgfy")
+
+[node name="ear_0" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=1812141942]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.116, 0.733, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_h6ts7")
+
+[node name="ear_1" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=483074621]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.116, 0.733, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_1mpr0")
+
+[node name="tail" type="MeshInstance3D" parent="squirrel_crouching/blockout_squirrel" unique_id=1750790326]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.181, 0.62)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_o5tus")
+
+[node name="otter_standing" type="Node3D" parent="." unique_id=1526598115]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, 0)
+
+[node name="doorway" type="Node3D" parent="otter_standing" unique_id=983914911]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.2)
+
+[node name="jamb_w" type="MeshInstance3D" parent="otter_standing/doorway" unique_id=734701974]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_rw15a")
+
+[node name="jamb_e" type="MeshInstance3D" parent="otter_standing/doorway" unique_id=1515820076]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_rtl22")
+
+[node name="header" type="MeshInstance3D" parent="otter_standing/doorway" unique_id=2014914592]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_jdlq1")
+
+[node name="blockout_otter" type="Node3D" parent="otter_standing" unique_id=806397981]
+
+[node name="leg_0" type="MeshInstance3D" parent="otter_standing/blockout_otter" unique_id=1563559906]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.111, 0.35, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_m08g3")
+
+[node name="leg_1" type="MeshInstance3D" parent="otter_standing/blockout_otter" unique_id=613607534]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.111, 0.35, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_vkm61")
+
+[node name="torso" type="MeshInstance3D" parent="otter_standing/blockout_otter" unique_id=1811214055]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_715w7")
+
+[node name="arm_0" type="MeshInstance3D" parent="otter_standing/blockout_otter" unique_id=737442993]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.278, 0.96, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_jwbns")
+
+[node name="arm_1" type="MeshInstance3D" parent="otter_standing/blockout_otter" unique_id=1072854622]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.278, 0.96, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_b35ma")
+
+[node name="neck" type="MeshInstance3D" parent="otter_standing/blockout_otter" unique_id=1909641886]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.243, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_h127i")
+
+[node name="skull" type="MeshInstance3D" parent="otter_standing/blockout_otter" unique_id=717787633]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.378, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ssnhk")
+
+[node name="muzzle" type="MeshInstance3D" parent="otter_standing/blockout_otter" unique_id=1448924819]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.296, -0.243)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_uwwb5")
+
+[node name="tail" type="MeshInstance3D" parent="otter_standing/blockout_otter" unique_id=1742768404]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.589, 0.684)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_w7ag5")
+
+[node name="otter_walking" type="Node3D" parent="." unique_id=224652402]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, 3)
+
+[node name="blockout_otter" type="Node3D" parent="otter_walking" unique_id=1360387629]
+
+[node name="leg_0" type="MeshInstance3D" parent="otter_walking/blockout_otter" unique_id=504185051]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.111, 0.35, -0.134)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_pvpss")
+
+[node name="leg_1" type="MeshInstance3D" parent="otter_walking/blockout_otter" unique_id=1468746545]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.111, 0.35, 0.134)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_eu6h2")
+
+[node name="torso" type="MeshInstance3D" parent="otter_walking/blockout_otter" unique_id=1292796093]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_p3iys")
+
+[node name="arm_0" type="MeshInstance3D" parent="otter_walking/blockout_otter" unique_id=675757213]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.278, 0.96, 0.089)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ty1ag")
+
+[node name="arm_1" type="MeshInstance3D" parent="otter_walking/blockout_otter" unique_id=769504471]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.278, 0.96, -0.089)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_akv8w")
+
+[node name="neck" type="MeshInstance3D" parent="otter_walking/blockout_otter" unique_id=1363525958]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.243, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_6sse2")
+
+[node name="skull" type="MeshInstance3D" parent="otter_walking/blockout_otter" unique_id=1564576985]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.378, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_o11co")
+
+[node name="muzzle" type="MeshInstance3D" parent="otter_walking/blockout_otter" unique_id=1635477036]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.296, -0.243)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_psxrf")
+
+[node name="tail" type="MeshInstance3D" parent="otter_walking/blockout_otter" unique_id=1978413594]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.589, 0.684)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_q5nap")
+
+[node name="otter_carrying" type="Node3D" parent="." unique_id=725854878]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, 6)
+
+[node name="work_surface" type="Node3D" parent="otter_carrying" unique_id=662190008]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="top" type="MeshInstance3D" parent="otter_carrying/work_surface" unique_id=680997731]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_u1nrs")
+
+[node name="leg_0" type="MeshInstance3D" parent="otter_carrying/work_surface" unique_id=490194104]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, 0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_t0p7p")
+
+[node name="leg_1" type="MeshInstance3D" parent="otter_carrying/work_surface" unique_id=784443510]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, 0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_txobp")
+
+[node name="leg_2" type="MeshInstance3D" parent="otter_carrying/work_surface" unique_id=1850515410]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, -0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_4n2o2")
+
+[node name="leg_3" type="MeshInstance3D" parent="otter_carrying/work_surface" unique_id=1186473429]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, -0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_aycof")
+
+[node name="blockout_otter" type="Node3D" parent="otter_carrying" unique_id=68825034]
+
+[node name="leg_0" type="MeshInstance3D" parent="otter_carrying/blockout_otter" unique_id=51173575]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.111, 0.35, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_lyne8")
+
+[node name="leg_1" type="MeshInstance3D" parent="otter_carrying/blockout_otter" unique_id=1958218570]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.111, 0.35, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_4g41v")
+
+[node name="torso" type="MeshInstance3D" parent="otter_carrying/blockout_otter" unique_id=1126961265]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ke286")
+
+[node name="arm_0" type="MeshInstance3D" parent="otter_carrying/blockout_otter" unique_id=370720762]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.278, 0.96, -0.387)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_cgdpg")
+
+[node name="arm_1" type="MeshInstance3D" parent="otter_carrying/blockout_otter" unique_id=1682079397]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.278, 0.96, -0.387)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_fm83q")
+
+[node name="neck" type="MeshInstance3D" parent="otter_carrying/blockout_otter" unique_id=301558626]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.243, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_506l4")
+
+[node name="skull" type="MeshInstance3D" parent="otter_carrying/blockout_otter" unique_id=1674111455]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.378, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_fa24a")
+
+[node name="muzzle" type="MeshInstance3D" parent="otter_carrying/blockout_otter" unique_id=1944054682]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.296, -0.243)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_36qrc")
+
+[node name="tail" type="MeshInstance3D" parent="otter_carrying/blockout_otter" unique_id=1184730475]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.589, 0.684)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_wgeqe")
+
+[node name="carried_load" type="MeshInstance3D" parent="otter_carrying/blockout_otter" unique_id=94650994]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.839, -0.595)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_5vh0h")
+
+[node name="otter_crouching" type="Node3D" parent="." unique_id=1776759548]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, 9)
+
+[node name="table" type="Node3D" parent="otter_crouching" unique_id=57288689]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="top" type="MeshInstance3D" parent="otter_crouching/table" unique_id=1283478750]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_43fwo")
+
+[node name="leg_0" type="MeshInstance3D" parent="otter_crouching/table" unique_id=2022143478]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, 0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_pka3y")
+
+[node name="leg_1" type="MeshInstance3D" parent="otter_crouching/table" unique_id=1501983555]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, 0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_hvudd")
+
+[node name="leg_2" type="MeshInstance3D" parent="otter_crouching/table" unique_id=974880888]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, -0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_t76o1")
+
+[node name="leg_3" type="MeshInstance3D" parent="otter_crouching/table" unique_id=611335750]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, -0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_et0rh")
+
+[node name="blockout_otter" type="Node3D" parent="otter_crouching" unique_id=1158094122]
+
+[node name="leg_0" type="MeshInstance3D" parent="otter_crouching/blockout_otter" unique_id=267375332]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.111, 0.192, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_mhglr")
+
+[node name="leg_1" type="MeshInstance3D" parent="otter_crouching/blockout_otter" unique_id=1785193602]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.111, 0.192, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_7begk")
+
+[node name="torso" type="MeshInstance3D" parent="otter_crouching/blockout_otter" unique_id=479383504]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.645, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_tvmk0")
+
+[node name="arm_0" type="MeshInstance3D" parent="otter_crouching/blockout_otter" unique_id=1283916703]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.278, 0.645, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_x678a")
+
+[node name="arm_1" type="MeshInstance3D" parent="otter_crouching/blockout_otter" unique_id=871924373]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.278, 0.645, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_tr34g")
+
+[node name="neck" type="MeshInstance3D" parent="otter_crouching/blockout_otter" unique_id=225523490]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.928, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_uhomt")
+
+[node name="skull" type="MeshInstance3D" parent="otter_crouching/blockout_otter" unique_id=942370526]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.063, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_7hmtd")
+
+[node name="muzzle" type="MeshInstance3D" parent="otter_crouching/blockout_otter" unique_id=1137105635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.981, -0.243)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_yrxdv")
+
+[node name="tail" type="MeshInstance3D" parent="otter_crouching/blockout_otter" unique_id=838561142]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.274, 0.684)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_kf23a")
+
+[node name="badger_standing" type="Node3D" parent="." unique_id=158601838]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 0)
+
+[node name="doorway" type="Node3D" parent="badger_standing" unique_id=19206272]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.2)
+
+[node name="jamb_w" type="MeshInstance3D" parent="badger_standing/doorway" unique_id=1267740786]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_khchv")
+
+[node name="jamb_e" type="MeshInstance3D" parent="badger_standing/doorway" unique_id=404354500]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1.75, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_00h0k")
+
+[node name="header" type="MeshInstance3D" parent="badger_standing/doorway" unique_id=1187518169]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_vykp2")
+
+[node name="blockout_badger" type="Node3D" parent="badger_standing" unique_id=1677415269]
+
+[node name="leg_0" type="MeshInstance3D" parent="badger_standing/blockout_badger" unique_id=1805591685]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.229, 0.599, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_xla5e")
+
+[node name="leg_1" type="MeshInstance3D" parent="badger_standing/blockout_badger" unique_id=334270545]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.229, 0.599, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_3oqpu")
+
+[node name="torso" type="MeshInstance3D" parent="badger_standing/blockout_badger" unique_id=1135159301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.619, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_atdrj")
+
+[node name="arm_0" type="MeshInstance3D" parent="badger_standing/blockout_badger" unique_id=1421630882]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.573, 1.619, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_j8sba")
+
+[node name="arm_1" type="MeshInstance3D" parent="badger_standing/blockout_badger" unique_id=1908022453]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.573, 1.619, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_rsb4t")
+
+[node name="neck" type="MeshInstance3D" parent="badger_standing/blockout_badger" unique_id=1338466996]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.078, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_mj51v")
+
+[node name="skull" type="MeshInstance3D" parent="badger_standing/blockout_badger" unique_id=1083214847]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.333, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_3o8wr")
+
+[node name="muzzle" type="MeshInstance3D" parent="badger_standing/blockout_badger" unique_id=2009898741]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.163, -0.497)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_1i407")
+
+[node name="tail" type="MeshInstance3D" parent="badger_standing/blockout_badger" unique_id=70535976]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.969, 0.777)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_qu7u8")
+
+[node name="badger_walking" type="Node3D" parent="." unique_id=1280737929]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 3)
+
+[node name="blockout_badger" type="Node3D" parent="badger_walking" unique_id=870900032]
+
+[node name="leg_0" type="MeshInstance3D" parent="badger_walking/blockout_badger" unique_id=336289472]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.229, 0.599, -0.229)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_h7una")
+
+[node name="leg_1" type="MeshInstance3D" parent="badger_walking/blockout_badger" unique_id=1190479662]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.229, 0.599, 0.229)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_cix6c")
+
+[node name="torso" type="MeshInstance3D" parent="badger_walking/blockout_badger" unique_id=1904143438]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.619, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_frkd8")
+
+[node name="arm_0" type="MeshInstance3D" parent="badger_walking/blockout_badger" unique_id=1001340347]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.573, 1.619, 0.153)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_ghqam")
+
+[node name="arm_1" type="MeshInstance3D" parent="badger_walking/blockout_badger" unique_id=1205210867]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.573, 1.619, -0.153)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_qnsbc")
+
+[node name="neck" type="MeshInstance3D" parent="badger_walking/blockout_badger" unique_id=683053044]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.078, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_n7hro")
+
+[node name="skull" type="MeshInstance3D" parent="badger_walking/blockout_badger" unique_id=1425081785]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.333, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_f2okd")
+
+[node name="muzzle" type="MeshInstance3D" parent="badger_walking/blockout_badger" unique_id=602952446]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.163, -0.497)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_knrsk")
+
+[node name="tail" type="MeshInstance3D" parent="badger_walking/blockout_badger" unique_id=517351554]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.969, 0.777)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_r6fb2")
+
+[node name="badger_carrying" type="Node3D" parent="." unique_id=1785235464]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 6)
+
+[node name="work_surface" type="Node3D" parent="badger_carrying" unique_id=1912077271]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="top" type="MeshInstance3D" parent="badger_carrying/work_surface" unique_id=141496586]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_1g0tn")
+
+[node name="leg_0" type="MeshInstance3D" parent="badger_carrying/work_surface" unique_id=490413655]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, 0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_knw7d")
+
+[node name="leg_1" type="MeshInstance3D" parent="badger_carrying/work_surface" unique_id=1254231840]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, 0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_orgbs")
+
+[node name="leg_2" type="MeshInstance3D" parent="badger_carrying/work_surface" unique_id=169168868]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, -0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_1m048")
+
+[node name="leg_3" type="MeshInstance3D" parent="badger_carrying/work_surface" unique_id=1839715202]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, -0.25)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_h5c2x")
+
+[node name="blockout_badger" type="Node3D" parent="badger_carrying" unique_id=1923483380]
+
+[node name="leg_0" type="MeshInstance3D" parent="badger_carrying/blockout_badger" unique_id=1457394942]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.229, 0.599, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_c1ffs")
+
+[node name="leg_1" type="MeshInstance3D" parent="badger_carrying/blockout_badger" unique_id=1705136850]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.229, 0.599, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_meg8c")
+
+[node name="torso" type="MeshInstance3D" parent="badger_carrying/blockout_badger" unique_id=711635291]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.619, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_odli1")
+
+[node name="arm_0" type="MeshInstance3D" parent="badger_carrying/blockout_badger" unique_id=2065438635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.573, 1.619, -0.765)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_jkspi")
+
+[node name="arm_1" type="MeshInstance3D" parent="badger_carrying/blockout_badger" unique_id=245068241]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.573, 1.619, -0.765)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_s8g7c")
+
+[node name="neck" type="MeshInstance3D" parent="badger_carrying/blockout_badger" unique_id=938387958]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.078, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_4kkgn")
+
+[node name="skull" type="MeshInstance3D" parent="badger_carrying/blockout_badger" unique_id=1531135364]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.333, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_jpjxa")
+
+[node name="muzzle" type="MeshInstance3D" parent="badger_carrying/blockout_badger" unique_id=553350648]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.163, -0.497)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_4ouvy")
+
+[node name="tail" type="MeshInstance3D" parent="badger_carrying/blockout_badger" unique_id=257932319]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.969, 0.777)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_vsn5v")
+
+[node name="carried_load" type="MeshInstance3D" parent="badger_carrying/blockout_badger" unique_id=142558238]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.436, -1.122)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_7x1ed")
+
+[node name="badger_crouching" type="Node3D" parent="." unique_id=533400225]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 9)
+
+[node name="table" type="Node3D" parent="badger_crouching" unique_id=1055151707]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="top" type="MeshInstance3D" parent="badger_crouching/table" unique_id=759144221]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.595, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_w3b8e")
+
+[node name="leg_0" type="MeshInstance3D" parent="badger_crouching/table" unique_id=1381476953]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, 0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_t7xq8")
+
+[node name="leg_1" type="MeshInstance3D" parent="badger_crouching/table" unique_id=75106392]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, 0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_57wj2")
+
+[node name="leg_2" type="MeshInstance3D" parent="badger_crouching/table" unique_id=1078170113]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 0.282, -0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_vd0dc")
+
+[node name="leg_3" type="MeshInstance3D" parent="badger_crouching/table" unique_id=1174033663]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 0.282, -0.85)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_n7iu0")
+
+[node name="blockout_badger" type="Node3D" parent="badger_crouching" unique_id=918751220]
+
+[node name="leg_0" type="MeshInstance3D" parent="badger_crouching/blockout_badger" unique_id=187909664]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.229, 0.329, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_7qd8o")
+
+[node name="leg_1" type="MeshInstance3D" parent="badger_crouching/blockout_badger" unique_id=1855367685]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.229, 0.329, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_na3j6")
+
+[node name="torso" type="MeshInstance3D" parent="badger_crouching/blockout_badger" unique_id=1865854571]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.079, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_h1qwv")
+
+[node name="arm_0" type="MeshInstance3D" parent="badger_crouching/blockout_badger" unique_id=1984409714]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.573, 1.079, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_gj3cp")
+
+[node name="arm_1" type="MeshInstance3D" parent="badger_crouching/blockout_badger" unique_id=969110181]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.573, 1.079, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_0moe2")
+
+[node name="neck" type="MeshInstance3D" parent="badger_crouching/blockout_badger" unique_id=1579351851]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.538, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_7jru1")
+
+[node name="skull" type="MeshInstance3D" parent="badger_crouching/blockout_badger" unique_id=1032025639]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.793, 0)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_uppvo")
+
+[node name="muzzle" type="MeshInstance3D" parent="badger_crouching/blockout_badger" unique_id=1129678899]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.623, -0.497)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_qgmpx")
+
+[node name="tail" type="MeshInstance3D" parent="badger_crouching/blockout_badger" unique_id=56349977]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.429, 0.777)
+material_override = SubResource("StandardMaterial3D_sp85q")
+mesh = SubResource("BoxMesh_3l5tp")

@@ -86,3 +86,13 @@ candidates and measurement rules, but bulk-production proportions still await
 decision0002's user-required review. GAP-10/Windows qualification and MOVE gates
 remain open. Do not keep those authoring tasks blocked solely by the earlier
 absence of these definitions, or mistake their adoption for performance evidence.
+
+## Executed as brief revision 1.1 — 2026-09-11, decision 0082
+
+[Decision 0082](0082-lookdev-dimensions-are-bound-and-the-comparison-scene-is-built.md)
+binds those definitions into `godot/assets/lookdev/` and rewrites the brief as revision 1.1.
+**Fifteen of the eighteen entries are authoring-ready; A2 mole, A3 squirrel and A4 otter are
+not** — they have comparison briefs and await the proportion approval this record's GAP-01
+and GAP-02 asked for. The comparison scene that makes that approval possible is built and
+captured. Revision 1.0's introductory claim of "six blocked" is superseded by the nine its
+own §8 and §10 listed, and the D3 stockpile reading recorded above is corrected there.

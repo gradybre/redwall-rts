@@ -1,0 +1,26 @@
+{
+  "package": "SET-MOVE-ECON-001",
+  "result": "PASS",
+  "tests_run": 21,
+  "failures": 0,
+  "errors": 0,
+  "missing_links": [],
+  "documentation_whitespace_pass": true,
+  "values_sha256": "190bbc679edcd745c1bcaaa778d7dd948960fa05556a9fcc1d25a03ad6d5bac9",
+  "specification_sha256": "c7739c622607f771e7de773df35cc03b8bb4b39da8810c16963fc84f00875d2b",
+  "checker_sha256": "454aefc9d1ea8bf71dbcc6ac7ab8053cdd362af06ce79e152d0f4aad9355f1d4",
+  "scope": "Independent arithmetic and small account oracles, not runtime implementation or qualification",
+  "authoring_history": [
+    "Initial run: 19 passed, one source-anchor assertion failed because it searched for 2 WU instead of the source wording 2000 milli-WU. Corrected the assertion; no arithmetic or balance value changed."
+  ],
+  "not_verified": [
+    "Godot implementation",
+    "actual profile/body clearance",
+    "full MOVE-G01\u201305",
+    "binary save parity",
+    "UI captures",
+    "simulation performance",
+    "survival balance"
+  ],
+  "failure_details": []
+}

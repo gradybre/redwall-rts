@@ -1,4 +1,4 @@
-# 0064 — World generation creates the §5.1 cohort, and that costs "IDs 1–12"
+# 0071 — World generation creates the §5.1 cohort, and that costs "IDs 1–12"
 
 Date: 2026-09-11 · Status: **Accepted** for the composition; **Open** for the
 persistent-ID contradiction, which is the specification owner's ruling to make.

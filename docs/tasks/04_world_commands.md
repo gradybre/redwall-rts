@@ -215,7 +215,7 @@ workbench shelter (58,54) 3×3, all rotation 0.
   beds and assignments; catalogs supply values. Quantities use milli-U and all
   STARTER sources are accounted. Verify 24 tools TOTAL: 12 equipped, 12 stored.
 
-**Composed 2026-09-11 ([decision 0064](../decisions/0064-world-generation-creates-the-cohort.md)),
+**Composed 2026-09-11 ([decision 0071](../decisions/0071-world-generation-creates-the-cohort.md)),
 and NOT closed.** `SettlementSystem.create_generated_settlement()` now runs REQ-SET-009's
 generation and §5.1's cohort as ONE all-or-nothing operation, and `main.gd` boots through it, so
 generating a world produces a world with **twelve residents in it** instead of an empty one.

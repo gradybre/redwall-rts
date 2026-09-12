@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-12",
+  "status": "SPECIFICATION_FIXTURES_NOT_RUNTIME_EVIDENCE",
+  "profiles": {
+    "NARROW": {
+      "panel": 320,
+      "inset": 20,
+      "medallion": 48,
+      "gap": 8,
+      "close": 44,
+      "heading": 172
+    },
+    "STANDARD": {
+      "panel": 336,
+      "inset": 20,
+      "medallion": 64,
+      "gap": 8,
+      "close": 44,
+      "heading": 172
+    },
+    "WIDE": {
+      "panel": 384,
+      "inset": 20,
+      "medallion": 64,
+      "gap": 8,
+      "close": 44,
+      "heading": 220
+    }
+  },
+  "rates_milli_per_hour": {
+    "rest_awake": -375000,
+    "rest_bed": 1200000,
+    "rest_floor": 750000,
+    "comfort_none": -100000,
+    "comfort_heated": 200000,
+    "comfort_mild": 0,
+    "social_unpaired": -100000,
+    "social_paired": 1100000,
+    "purpose_none": -75000,
+    "purpose_labor": 245000,
+    "purpose_mentoring": 325000
+  },
+  "rate_semantics": "signed_net_continuous_before_value_clamp",
+  "display_pph_denominator": 100000
+}

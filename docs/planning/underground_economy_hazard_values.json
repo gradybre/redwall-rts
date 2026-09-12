@@ -1,0 +1,184 @@
+{
+  "package": "SET-MOVE-ECON-001",
+  "revision": 1,
+  "date": "2026-09-12",
+  "status": "NEW_AUTHOR_ADOPTED_FOR_IMPLEMENTATION",
+  "runtime_activation": "DEPENDENCY_GATED_NOT_CLAIMED",
+  "policy_owner": "DEC-040",
+  "full_move_g01_closed": false,
+  "depth": {
+    "status": "CANDIDATE_NOT_ADOPTED",
+    "levels": 4,
+    "spacing_u": 4096
+  },
+  "units": {
+    "u_per_m": 1024,
+    "ticks_per_second_1x": 30,
+    "ticks_per_game_hour": 750,
+    "milli_per_u": 1000,
+    "milli_per_wu": 1000
+  },
+  "earth": {
+    "key": "excavated_earth",
+    "category": "MATERIAL",
+    "mass_g_per_u": 1000,
+    "nutrition_per_u": 0,
+    "shelf_hours": 0,
+    "quality": "PLAIN",
+    "raw_edible": false,
+    "seed": false,
+    "effect": "NONE",
+    "effect_value": 0,
+    "output_provenance_keys": {
+      "virgin": "EXCAVATION",
+      "backfill": "BACKFILL_RECLAIM",
+      "tip": "SPOIL_RECLAIM"
+    },
+    "output_recipe_id": -1,
+    "output_age_milli_hours": 0,
+    "output_age_remainder": 0
+  },
+  "excavation": {
+    "quantum_side_u": 1024,
+    "brace_work_mwu": 2000,
+    "brace_inputs_milli": {
+      "wood": 250,
+      "stone": 250
+    },
+    "cut_work_mwu": 4000,
+    "cut_earth_milli": 2000,
+    "finish_work_mwu": 3000,
+    "remove_support_work_mwu": 1250,
+    "remove_support_outputs_milli": {
+      "wood": 125,
+      "stone": 125
+    },
+    "backfill_work_mwu": 3000,
+    "backfill_earth_milli": 2000,
+    "max_project_builders": 4,
+    "max_quantum_workers": 1,
+    "started_phase_refund_num": 800,
+    "started_phase_refund_den": 1000,
+    "random_hazard_rolls": 0
+  },
+  "tip": {
+    "tile_side_u": 2048,
+    "capacity_g": 400000,
+    "prepare_work_mwu": 4000,
+    "compact_mwu_per_milli_u_num": 1,
+    "compact_mwu_per_milli_u_den": 4,
+    "reclaim_mwu_per_milli_u_num": 1,
+    "reclaim_mwu_per_milli_u_den": 2,
+    "close_empty_work_mwu": 4000,
+    "reclaim_provenance_key": "SPOIL_RECLAIM",
+    "irreversible_discard_allowed": false
+  },
+  "dangerous_entry": {
+    "min_health": 70,
+    "min_rest": 4000,
+    "hunger_must_exceed": 3500,
+    "untreated_injury_allowed": false,
+    "consent_required": true
+  },
+  "air": {
+    "budget_key": "air_standard_v1",
+    "full": 1200,
+    "per_submerged_tick": 1,
+    "per_breathable_tick_recovery": 4,
+    "contingency_ticks": 300,
+    "low_warning_at_or_below": 450,
+    "planned_underwater_wait_ticks": 0,
+    "airless_health_drain_per_game_hour": 125,
+    "airless_injury_kind": "EXPOSURE",
+    "airless_injury_severity": 2,
+    "airless_immediate_health_loss": 0,
+    "interval_rule": "START_OCCUPANCY_AND_START_AIR"
+  },
+  "recovery": {
+    "return_rest_at_or_below": 1500,
+    "distress_rest_at_or_below": 500,
+    "exhaustion_at_rest": 0,
+    "exhaustion_rearm_rest": 4000,
+    "exhaustion_kind": "EXHAUSTION",
+    "exhaustion_severity": 1,
+    "exhaustion_immediate_health_loss": 0
+  },
+  "fall": {
+    "triggers": [
+      "INCAPACITY",
+      "REST_ZERO"
+    ],
+    "damage_per_meter": 8,
+    "max_damage": 40,
+    "severity_one_max_drop_u": 2048,
+    "duration_speed_u_per_second": 4096,
+    "minimum_ticks": 1,
+    "injury_kind": "FALL"
+  },
+  "assistance": {
+    "arc_module_u": 4096,
+    "work_mwu_per_module": 40000,
+    "inputs_milli_per_module": {
+      "wood": 1000,
+      "rope": 2000,
+      "cloth": 1000
+    },
+    "traveler_capacity": 1,
+    "passive_durability_drain": 0
+  },
+  "rescue": {
+    "pickup_work_mwu": 8000,
+    "setdown_work_mwu": 4000,
+    "carry_speed_num": 1,
+    "carry_speed_den": 2,
+    "patients_per_rescuer": 1,
+    "new_autopause_triggers": []
+  },
+  "inherited_anchors": {
+    "work_mwu_per_tick_at_factor_1000": 80,
+    "tool_wu_per_durability": 10,
+    "haul_load_work_mwu": 2000,
+    "haul_unload_work_mwu": 2000,
+    "carry_g": [
+      12000,
+      16000,
+      24000
+    ],
+    "speed_u_per_s": [
+      3277,
+      4096,
+      3072
+    ],
+    "ground_pile_capacity_g": 400000,
+    "injury_hourly_drain": {
+      "1": 1,
+      "2": 4
+    },
+    "care_work_mwu": 60000,
+    "self_care_work_mwu": 120000,
+    "care_inputs_milli": {
+      "herb": 1000,
+      "cloth": 500
+    },
+    "care_health_restore": 10,
+    "injury_kind": {
+      "NONE": 0,
+      "CUT": 1,
+      "BITE": 2,
+      "FALL": 3,
+      "EXPOSURE": 4,
+      "EXHAUSTION": 5
+    }
+  },
+  "required_bindings": [
+    "G01 measured profile envelopes and actual modes/speeds",
+    "G01/G02 final finite geometry and dry support/work contacts",
+    "G02 packed stores and all transaction scratch/peak memory",
+    "G02 versioned catalog/save integration",
+    "task06 construction/topology/inventory composition",
+    "task08 aggregate injury/care/rescue and PC04 stages",
+    "G03 actual UI control geometry and interaction",
+    "G04 measured attachments and recovery clips",
+    "G05 runtime/replay/performance evidence"
+  ]
+}

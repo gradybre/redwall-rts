@@ -1,6 +1,6 @@
 {
   "result": "PASS",
-  "checked_at_utc": "2026-09-12T15:36:11.199472+00:00",
+  "checked_at_utc": "2026-09-12T22:09:23.553307+00:00",
   "scope": "Documentation/source, reference arithmetic, registry coverage. No Godot runtime or visual acceptance.",
   "checks": [
     {
@@ -312,7 +312,7 @@
     {
       "name": "Current registry coverage",
       "passed": true,
-      "detail": "state_registry_coverage: PASS -- 42 modules, 312 rows, 629 packed columns checked"
+      "detail": "state_registry_coverage: PASS -- 46 modules, 318 rows, 630 packed columns checked"
     },
     {
       "name": "Documentation whitespace",

@@ -1600,3 +1600,125 @@ func test_audit_refuses_a_cyclic_lot_list_instead_of_walking_it_forever() -> voi
 	var audited: InventoryScript.OpResult = _inv.audit()
 	assert_false(audited.ok, "a cycle is refused rather than walked forever")
 	assert_equal(audited.error, InventoryScript.REFUSE_AUDIT_LOT_CYCLE, "named explicitly")
+# --- ARCH-SYS-004's two mutators (GDD §5.8 REQ-SET-107–108) -------------------------------------
+
+func test_one_aged_hour_is_the_floor_of_the_two_factors_over_a_thousand() -> void:
+	"""§5.8: "Effective age per hour=floor(store_factor*temperature_factor/1000)"."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var aged: InventoryScript.OpResult = _inv.advance_lot_age_hour(lot, 350, 500)
+	assert_true(aged.ok, "a cellar hour in winter is a legal step")
+	assert_equal(aged.value, 175, "floor(350*500/1000) milli-hours")
+	assert_equal(_inv.lot_age_milli_hours(lot), 175, "written onto the row")
+	assert_equal(_inv.lot_age_remainder(lot), 0, "with no fraction outstanding")
+
+
+func test_a_negative_aging_factor_refuses_instead_of_ageing_backwards() -> void:
+	"""§5.8's tables hold no negative factor, and a negative one would un-age stored food."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 4000, 0, TEST_PROVENANCE, 0, 5000, 0)
+	var refused: InventoryScript.OpResult = _inv.advance_lot_age_hour(lot, -1, 1000)
+	assert_false(refused.ok, "a negative store factor refuses")
+	assert_equal(refused.error, InventoryScript.REFUSE_INVALID_AGE_FACTOR, "and is named")
+	assert_false(_inv.advance_lot_age_hour(lot, 1000, -1).ok, "so does a negative temperature")
+	assert_equal(_inv.lot_age_milli_hours(lot), 5000, "and the stored age is untouched")
+
+
+func test_an_aged_hour_rolls_back_with_the_transaction_that_refused() -> void:
+	"""Aging is journaled like everything else here: a poisoned sequence restores both columns."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 4000, 0, TEST_PROVENANCE, 0, 2000, 0)
+	var before: PackedByteArray = _inv.state_bytes()
+	assert_true(_inv.begin().ok, "a transaction opens")
+	assert_true(_inv.advance_lot_age_hour(lot, 1500, 1500).ok, "one hour is applied")
+	assert_false(_inv.sink_lot_quantity(lot, 99999).ok, "then a step refuses and poisons it")
+	assert_false(_inv.commit().ok, "so the commit reports the refusal")
+	assert_equal(_inv.lot_age_milli_hours(lot), 2000, "the age rolled back")
+	assert_equal(_inv.state_bytes(), before, "and the whole store is byte identical")
+
+
+func test_a_transformed_lot_keeps_its_row_and_moves_both_conservation_ledgers() -> void:
+	"""§5.8's conversion is in place, and both halves are declared rather than silently relabelled."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 2000)
+	var generation: int = lot.y
+	assert_true(_inv.transform_lot_item(lot, ITEM_GRAIN, 4000).ok, "the conversion commits")
+	assert_equal(_inv.lot_item_id(lot), ITEM_GRAIN, "the same row now holds the new item")
+	assert_equal(lot.y, generation, "at the same generation, so every held ref still resolves")
+	assert_equal(_inv.lot_quantity_milli(lot), 4000, "at the caller's quantity")
+	assert_equal(_inv.total_sunk_milli(ITEM_MEAL), 2000, "the old item is sunk in full")
+	assert_equal(_inv.total_sourced_milli(ITEM_GRAIN), 4000, "the new one is sourced in full")
+	assert_true(_inv.audit().ok, "so `live + sunk == sourced` still closes on both")
+
+
+func test_an_equal_mass_transformation_moves_the_containers_charged_mass_by_nothing() -> void:
+	"""2000 milli-U at 500 g and 4000 milli-U at 250 g are the same grams and the same debit."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 2000)
+	var before_g: int = _inv.container_used_mass_g(box)
+	assert_equal(before_g, 1000, "2000 milli-U of 500 g meals is 1000 g")
+	assert_true(_inv.transform_lot_item(lot, ITEM_GRAIN, 4000).ok, "the conversion commits")
+	assert_equal(_inv.container_used_mass_g(box), before_g, "and charges the same grams")
+
+
+func test_a_transformation_resets_the_age_so_the_new_item_starts_its_own_shelf_life() -> void:
+	"""Spoiled_food "lasts 240h" from the moment it becomes spoiled_food, not from before it."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 2000, 0, TEST_PROVENANCE, 0, 36000, 250)
+	assert_equal(_inv.lot_age_milli_hours(lot), 36000, "the meal is well past its shelf life")
+	assert_true(_inv.transform_lot_item(lot, ITEM_GRAIN, 4000).ok, "the conversion commits")
+	assert_equal(_inv.lot_age_milli_hours(lot), 0, "and the row starts again at zero")
+	assert_equal(_inv.lot_age_remainder(lot), 0, "remainder included")
+
+
+func test_a_transformation_refuses_a_reserved_lot_rather_than_carrying_the_claim() -> void:
+	"""REQ-SET-108 INVALIDATES the claims; carrying one across an item change would not."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 2000)
+	assert_true(_inv.reserve_lot(lot, 500).ok, "a job claims part of it")
+	var refused: InventoryScript.OpResult = _inv.transform_lot_item(lot, ITEM_GRAIN, 4000)
+	assert_false(refused.ok, "the conversion refuses while the claim stands")
+	assert_equal(refused.error, InventoryScript.REFUSE_LOT_HAS_RESERVATION, "and is named")
+	assert_equal(_inv.lot_item_id(lot), ITEM_MEAL, "the lot is untouched")
+	assert_true(_inv.release_all_reservations(lot).ok, "releasing the claim first")
+	assert_true(_inv.transform_lot_item(lot, ITEM_GRAIN, 4000).ok, "then lets it through")
+
+
+func test_a_transformation_refuses_an_unknown_item_the_same_item_and_an_empty_quantity() -> void:
+	"""Every precondition refuses explicitly; none of them clamps into a plausible success."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 2000)
+	assert_equal(_inv.transform_lot_item(lot, 200, 4000).error,
+		InventoryScript.REFUSE_UNKNOWN_ITEM, "an unregistered item id refuses")
+	assert_equal(_inv.transform_lot_item(lot, ITEM_MEAL, 4000).error,
+		InventoryScript.REFUSE_SAME_ITEM, "a conversion into the same item is not a conversion")
+	assert_equal(_inv.transform_lot_item(lot, ITEM_GRAIN, 0).error,
+		InventoryScript.REFUSE_INVALID_QUANTITY, "and an empty result refuses")
+	assert_equal(_inv.lot_item_id(lot), ITEM_MEAL, "after all three the row is unchanged")
+	assert_equal(_inv.lot_quantity_milli(lot), 2000, "at its original quantity")
+
+
+func test_a_transformation_that_would_overflow_the_container_refuses_and_changes_nothing() -> void:
+	"""BAL-SAFE-002 is charged on the conversion too; nothing is clamped to fit."""
+	var box: Vector2i = _container(1000)
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	assert_equal(_inv.container_used_mass_g(box), 1000, "the container is exactly full")
+	var refused: InventoryScript.OpResult = _inv.transform_lot_item(lot, ITEM_WOOD, 4000)
+	assert_false(refused.ok, "20000 g of wood does not fit a 1000 g store")
+	assert_equal(refused.error, InventoryScript.REFUSE_CAPACITY_EXCEEDED, "and says so")
+	assert_equal(_inv.lot_item_id(lot), ITEM_GRAIN, "the lot is still grain")
+	assert_equal(_inv.container_used_mass_g(box), 1000, "at the mass it already charged")
+
+
+func test_neither_mutator_will_touch_an_equipped_lot() -> void:
+	"""An equipped lot is in no store: §5.8 gives it no factor and no container to charge."""
+	var authority: StubAuthority = StubAuthority.new()
+	var box: Vector2i = _container()
+	var lot: Vector2i = _equip_fixture(authority, box)
+	var aged: InventoryScript.OpResult = _inv.advance_lot_age_hour(lot, 1000, 1000)
+	assert_false(aged.ok, "aging an equipped lot refuses")
+	assert_equal(aged.error, InventoryScript.REFUSE_LOT_EQUIPPED, "and is named")
+	var changed: InventoryScript.OpResult = _inv.transform_lot_item(lot, ITEM_GRAIN, 1000)
+	assert_false(changed.ok, "and so does converting one")
+	assert_equal(changed.error, InventoryScript.REFUSE_LOT_EQUIPPED, "with the same reason")
+	assert_equal(_inv.lot_item_id(lot), ITEM_TOOL, "the equipped lot is untouched")

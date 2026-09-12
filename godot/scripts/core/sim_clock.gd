@@ -28,36 +28,32 @@ extends RefCounted
 ## live. Reasons compose as a bitmask, so closing a menu cannot resume a pause
 ## another reason still holds.
 ##
-## BLOCKER U2 (docs/tasks/02_settlement_foundation.md) IS CLOSED IN PROCESS, AND
-## THE PART OF IT THAT IS NOT IS NAMED. Queued speed/pause scheduler events now
-## exist: `scripts/core/scheduler_events.gd` implements R07-SCHED-001's separate
-## 256-record queue, its own unsigned 64-bit sequence, and the boundary pump that
-## `advance()`'s `before_tick` hook calls before each fixed-tick decision and on
-## paused frames WHEN A CALLER SUPPLIES IT -- and no production caller does; see
-## open item 1 below (decision 0054). The ordering tiebreak that was missing is that
-## sequence; the ARCH-CMD-003 catalog is deliberately still 24 economic kinds,
-## because the scheduler queue has its own two-value kind domain.
+## BLOCKER U2 (docs/tasks/02_settlement_foundation.md) IS CLOSED IN PROCESS AND
+## NOW WIRED; THE PART OF IT THAT IS STILL OPEN IS NAMED. Queued speed/pause
+## scheduler events exist: `scripts/core/scheduler_events.gd` implements
+## R07-SCHED-001's separate 256-record queue, its own unsigned 64-bit sequence,
+## and the boundary pump that `advance()`'s `before_tick` hook calls before each
+## fixed-tick decision and on paused frames. The ordering tiebreak that was
+## missing is that sequence; the ARCH-CMD-003 catalog is deliberately still 24
+## economic kinds, because the scheduler queue has its own two-value kind domain.
 ##
-## TWO THINGS ARE STILL OPEN, NOT ONE.
+## THE PRODUCTION CALLER NOW EXISTS (decision 0084). `scripts/systems/game_manager.gd`
+## drives host frames through `scheduler_events.advance_frame()`, which supplies
+## BOTH `before_tick` and `on_overload`, and its pause and speed controls submit
+## queue events instead of calling `set_pause()`/`set_speed()` themselves. So the
+## boundary barrier, the unsigned-sequence tiebreak, the 250/256 reserve and
+## decision 0054's queued overload rung all happen in the running game.
+## `acknowledge_without_catchup()` below is the one control that still reaches this
+## clock directly, deliberately and unchanged: the queue's two kinds cannot express
+## "clear the retained debt", and decision 0054 keeps that path byte-identical.
 ##
-##   1. THE QUEUE HAS NO PRODUCTION CALLER. `scheduler_events.gd` is preloaded
-##      by nothing but its own test file; the three other mentions of it in this
-##      repository -- `commands.gd`, `command_dispatch.gd` and
-##      `settlement_system.gd` -- are prose. The shipping driver is
-##      `scripts/systems/game_manager.gd`, whose `advance_host_time()` calls
-##      `advance(elapsed, step, day_boundary)` passing NEITHER `before_tick` NOR
-##      `on_overload`, and whose pause and speed controls call `set_pause()` and
-##      `set_speed()` directly. So in the running game the boundary barrier, the
-##      unsigned-sequence tiebreak, the 250/256 reserve and decision 0054's
-##      queued-overload behaviour DO NOT HAPPEN. They are implemented, tested and
-##      unreached. Decision 0054's open list carries what wiring them needs.
-##   2. PERSISTENCE. THERE IS NO SAVE MODULE in this repository, so
-##      ARCH-SAVE-002 §12's scheduler subsection is implemented as an encoder, a
-##      decoder and its validation, and is UNWIRED. A paused queue cannot yet
-##      survive a process restart. Task 09 owns the codec.
+## ONE THING IS STILL OPEN: PERSISTENCE. THERE IS NO SAVE MODULE in this
+## repository, so ARCH-SAVE-002 §12's scheduler subsection is implemented as an
+## encoder, a decoder and its validation, and is UNWIRED. A paused queue cannot
+## yet survive a process restart. Task 09 owns the codec.
 ##
 ## set_speed() and set_pause() remain the IMMEDIATE setters and are what the
-## queue's pump calls; they are no longer the only way in.
+## queue's pump calls; they are no longer the way a player control gets in.
 ##
 ## BLOCKER U3 (spec contradiction, resolved conservatively). ARCH-CLOCK-001:
 ## "Preserve remaining debt; never discard completed or owed ticks to hide
@@ -284,8 +280,9 @@ func advance(elapsed_microseconds: int, step: Callable = Callable(), day_boundar
 	about whether another tick may start, so a pause admitted during tick 3 stops tick 4.
 	`on_overload` replaces the immediate ladder step with the caller's own handling, which
 	`scheduler_events.gd` uses to carry the rung through that same barrier. BOTH DEFAULT TO
-	INVALID, and with them invalid this function behaves exactly as it did before they existed --
-	which is what every production caller gets today, because `game_manager.gd` passes neither.
+	INVALID, and with them invalid this function behaves exactly as it did before they existed.
+	`game_manager.gd` now reaches this through `scheduler_events.advance_frame()` and supplies
+	both; the bare no-hook path stays supported and is pinned by its own test.
 	"""
 	_last_error = ""
 	var speed: int = effective_speed()

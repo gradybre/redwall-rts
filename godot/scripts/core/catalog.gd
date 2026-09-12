@@ -11,6 +11,9 @@ extends RefCounted
 ## JobState, ZoneType, Season, Soil, CropState, OrderMode, Quality, Severity, RoomType,
 ## BuildingState) are fixed data here, never run through the compiler: they must never be
 ## renumbered, including the intentionally reserved gaps (JobKind.RESERVED_3, ZoneType.RESERVED_1).
+## Milestone joined them on 2026-09-11 (decision 0074): §4.3 does not print it, but BAL-CAT-002
+## numbers M0..M4 individually, which is the same "individually listed" test §4.2's closing
+## paragraph applies -- so it is protected data, not compiler output.
 ## §4.3 numbers five more that this module does not yet carry -- WorldMode, ResidentStatus, Role,
 ## InjuryKind, FeastState -- so adding one is an intentional artifact/digest change, not a fix.
 ##
@@ -33,6 +36,9 @@ extends RefCounted
 ## because a domain published with only the starter colony's seven buildings renumbers every
 ## building the moment an eighth is implemented. RoomType and BuildingState arrived in the same
 ## change and went the other way, into PROTECTED_ENUM_DOMAINS: §4.3 numbers both individually.
+## Station is the seventh compiled domain, added under decision 0074 from BAL-CAT-011's eleven
+## service keys. It is a SEPARATE domain from BuildingDefinition even though eight keys are
+## spelled the same, and the ids differ; see STATION below.
 ## They are declared here so the numbering lives in ONE place, and
 ## verify_compiled_enum() proves each table is exactly what compile_domain() produces from its own
 ## keys -- these are transcriptions of a generated result, never hand-chosen ordinals. They stay
@@ -99,9 +105,31 @@ const BUILDING_STATE: Dictionary = {
 	"BLUEPRINT": 0, "BUILDING": 1, "ACTIVE": 2, "PAUSED": 3, "DAMAGED": 4, "DEMOLISHING": 5,
 }
 
+## The unlock domain of `BuildingDefinition.unlock`, `RecipeDefinition.unlock` and
+## `Progress.milestone`, published under R-BUILD-DOM-001 (decision 0074).
+##
+## PROTECTED, NOT COMPILED, and that distinction decides the numbers. GDD §4.2's closing
+## paragraph generates only the values "not individually listed"; BAL-CAT-002 lists these
+## individually -- "Unlock values are M0=0, M1=1, M2=2, M3=3, M4=4" (gameplay_balance.md:43) --
+## so §4.2's ASCII rule does not reach them. Here the two happen to agree, because "M0".."M4"
+## sort into the same order; that coincidence is exactly why the domain must be PROTECTED
+## anyway. A protected table REFUSES recompilation, so a later key ("M10", or a renamed
+## "HEARTH_CHARTER") cannot silently renumber a persisted ordinal by re-sorting.
+##
+## The keys are the milestone identifiers GDD §5.11 prints in its own condition table
+## ("M0 Refuge", "M1 Settled Hearth", ... "M4 Hearth Charter", game_gdd.md:781-786). §5.9's
+## building table prints `Start` in the unlock column; R-BUILD-DOM-001 rules that "`Start` is a
+## source-table label mapping to M0, not a sixth catalog key", so it is NOT a key here and is
+## normalized at source import only -- `milestones.gd`'s `id_of_source_label()` is the one place
+## that translates it.
+##
+## Bit m of `World.milestone_mask` / `Progress.unlocked_mask` means milestone m was AWARDED.
+## `milestones.gd` owns that binding and the unlock gate; this table owns only the five ordinals.
+const MILESTONE: Dictionary = {"M0": 0, "M1": 1, "M2": 2, "M3": 3, "M4": 4}
+
 const PROTECTED_ENUM_DOMAINS: Array[String] = [
 	"Speed", "Activity", "JobKind", "JobState", "ZoneType", "Season", "Soil", "CropState",
-	"OrderMode", "Quality", "Severity", "RoomType", "BuildingState",
+	"OrderMode", "Quality", "Severity", "RoomType", "BuildingState", "Milestone",
 ]
 
 ## Domain name -> its §4.3 table, so that adding a protected enum is one entry rather than one
@@ -112,7 +140,7 @@ const FIXED_ENUM_TABLES: Dictionary = {
 	"Speed": SPEED, "Activity": ACTIVITY, "JobKind": JOB_KIND, "JobState": JOB_STATE,
 	"ZoneType": ZONE_TYPE, "Season": SEASON, "Soil": SOIL, "CropState": CROP_STATE,
 	"OrderMode": ORDER_MODE, "Quality": QUALITY, "Severity": SEVERITY, "RoomType": ROOM_TYPE,
-	"BuildingState": BUILDING_STATE,
+	"BuildingState": BUILDING_STATE, "Milestone": MILESTONE,
 }
 
 # --- compiled enum domains (GDD §4.2 closing paragraph, BAL-CAT-001/002) -------------------------
@@ -123,6 +151,10 @@ const CROP_FAMILY_DOMAIN: String = "CropFamily"
 const EVENT_DEFINITION_DOMAIN: String = "EventDefinition"
 const FURNITURE_DEFINITION_DOMAIN: String = "FurnitureDefinition"
 const HABITAT_TYPE_DOMAIN: String = "HabitatType"
+const STATION_DOMAIN: String = "Station"
+
+## The protected Milestone domain's own name, used wherever a caller asks for it by string.
+const MILESTONE_DOMAIN: String = "Milestone"
 
 ## GDD §4.2: "empty catalog IDs are -1". Absence, never a refusal channel and never a key.
 const EMPTY_CATALOG_ID: int = -1
@@ -203,9 +235,33 @@ const FURNITURE_DEFINITION: Dictionary = {
 	"patient_bed": 6, "seat": 7, "shelf": 8,
 }
 
+## `RecipeDefinition.station`'s domain: all ELEVEN service keys BAL-CAT-011 authors
+## (gameplay_balance.md:60), published under R-BUILD-DOM-002 (decision 0074).
+##
+## THIS IS NOT `BuildingDefinition`. BAL-CAT-011 says in terms that `station` "indexes a
+## **service domain**, not the BuildingDefinition index", and eight of these keys are spelled
+## identically to building keys while carrying different ids: `kitchen` is service 3 and
+## building 14, `well` is service 8 and building 27, `workshop` is service 10 and building 29.
+## A range check cannot catch a wrong-domain integer here, because every station id is also a
+## valid building id; only importing by the field's named domain can. `building_definitions.gd`
+## holds the explicit building -> station provider mapping, so the two are joined in one place.
+##
+## `kitchen_bench` is a FurnitureDefinition, not a twelfth station key: BAL-CAT-011 gives the
+## kitchen service two providers -- "one exterior kitchen's 2 cooking slots or each valid
+## interior kitchen_bench's 1 slot" -- and both satisfy service id 3 through different refs.
+##
+## Ordering is the ASCII rule's own output over these keys, proven by verify_compiled_enum().
+const STATION: Dictionary = {
+	"brewery": 0, "composter": 1, "dryer": 2,
+	"kitchen": 3, "mill": 4, "nursery": 5,
+	"preserver": 6, "saltpan": 7, "well": 8,
+	"workbench": 9, "workshop": 10,
+}
+
 const COMPILED_ENUM_DOMAINS: Array[String] = [
 	BUILDING_DEFINITION_DOMAIN, COMMAND_KIND_DOMAIN, CROP_FAMILY_DOMAIN,
 	EVENT_DEFINITION_DOMAIN, FURNITURE_DEFINITION_DOMAIN, HABITAT_TYPE_DOMAIN,
+	STATION_DOMAIN,
 ]
 
 # --- legacy ordinal conversion (ruling §2: translate or refuse, never reinterpret) ---------------
@@ -298,6 +354,8 @@ static func compiled_enum(domain_name: String) -> Dictionary:
 			return FURNITURE_DEFINITION
 		HABITAT_TYPE_DOMAIN:
 			return HABITAT_TYPE
+		STATION_DOMAIN:
+			return STATION
 		_:
 			return {}
 

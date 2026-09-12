@@ -41,6 +41,7 @@ const WorldInventoryScript := preload("res://scripts/core/inventory.gd")
 const ForageScript := preload("res://scripts/core/forage.gd")
 const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
 const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
+const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const ResourceNodesScript := preload("res://scripts/core/resource_nodes.gd")
 const FishingScript := preload("res://scripts/core/fishing.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
@@ -96,9 +97,13 @@ const GENERATED_FISH_HABITATS: int = 3
 ## so the two deposits destroy eight nodes that were CREATED first -- and §4.2 never reuses a
 ## persistent id, so those eight consume one each and never appear in the live census above.
 const REPLACED_TREE_NODES: int = 8
-## Every generated entity takes one id out of §4.2's single persistent id space before the cohort.
+## Every generated entity takes one id out of §4.2's single persistent id space -- AFTER the cohort
+## since R-INIT-ID-001, which is what makes the world's first id 13 rather than the cohort's 1714.
 const WORLD_PERSISTENT_IDS: int = (GENERATED_RESOURCE_NODES + REPLACED_TREE_NODES
 	+ GENERATED_BASINS + GENERATED_FISH_HABITATS)
+## The generated world's LIVE directory rows: the replaced tree nodes are not among them.
+const WORLD_LIVE_ROWS: int = (GENERATED_RESOURCE_NODES + GENERATED_BASINS
+	+ GENERATED_FISH_HABITATS)
 
 ## GDD §5.1: "A fixed-seed tutorial uses seed 20260905." The only seed the section authors, and
 ## the only one a boot with no New Settlement form can legitimately use.
@@ -142,6 +147,42 @@ class RefusingCohortSettlement extends SettlementSystemScript:
 	func create_initial_settlement() -> bool:
 		"""Refuse rather than spawn, recording the reason exactly as the real path would."""
 		return _refuse(REFUSAL)
+
+
+class BlockedCohortPreflightSettlement extends SettlementSystemScript:
+	"""A settlement whose cohort preflight always refuses, with the world plan already staged.
+
+	The real preflight checks the species catalog, the row capacities, the schedule template and
+	the opening day's weather, none of which a caller can break from outside once the shipped
+	catalogs compile. Overriding it is how the CALL SITE's obligation gets tested: a refusal there
+	must stop the transaction before the reset, not after it.
+	"""
+
+	const REFUSAL: StringName = &"TEST_COHORT_PREFLIGHT_REFUSED"
+
+	func _refuse_cohort_preflight() -> StringName:
+		"""Refuse the cohort before the transaction opens, exactly as a real failure would."""
+		return REFUSAL
+
+
+class SeedObservingSettlement extends SettlementSystemScript:
+	"""A settlement that records what the world looked like AT the moment the cohort was created.
+
+	R-INIT-ID-001 step 2 requires the RNG streams seeded "before consumers use them", and step 3
+	puts the cohort before terrain publication. Both are statements about an instant inside one
+	call, so they can only be observed from inside it.
+	"""
+
+	var seeded_when_cohort_created: bool = false
+	var nodes_when_cohort_created: int = -1
+	var published_when_cohort_created: bool = true
+
+	func create_initial_settlement() -> bool:
+		"""Record the seed, census and publication state, then spawn the real §5.1 cohort."""
+		seeded_when_cohort_created = rng().is_seeded()
+		nodes_when_cohort_created = ecology().resource_nodes().count()
+		published_when_cohort_created = world().is_published()
+		return super()
 
 
 var _settlement: SettlementSystemScript = null
@@ -504,26 +545,125 @@ func test_an_out_of_range_day_boundary_is_refused() -> void:
 	assert_false(_settlement.is_winter(), "no season was applied")
 
 
+# --- ARCH-SYS-004 StockAge (decision 0085) -------------------------------------------------------
+
+## GDD §5.8's covered-store factor and spring temperature factor, transcribed, and the
+## milli-hours one game hour costs at their product: floor(1000 * 1000 / 1000).
+const COVERED_STORE_FACTOR: int = 1000
+const SPRING_TEMPERATURE_FACTOR: int = 1000
+const COVERED_SPRING_MILLI_HOURS: int = 1000
+## §4.2's owner EntityRef is not what this suite is testing; any live-looking pair will do,
+## because `inventory.gd` stores the owner and does not resolve it.
+const STORE_OWNER: Vector2i = Vector2i(3, 1)
+const STORE_MASS_G: int = 1000000
+
+
+func _declared_store_with_grain(settlement: SettlementSystemScript) -> Vector2i:
+	"""Put one 4 U grain lot into a declared covered store inside the settlement's OWN inventory."""
+	var inventory: WorldInventoryScript = settlement.inventory()
+	var made: WorldInventoryScript.OpResult = inventory.create_container(
+		STORE_OWNER, STORE_MASS_G, WorldInventoryScript.FILTERS_ACCEPT_ALL, 0, true)
+	settlement.stock_age().declare_storage_class(
+		made.ref, StockAgeScript.STORAGE_COVERED_STORE, false)
+	var grain: int = settlement.item_definitions().compiled_id(&"grain")
+	return inventory.create_lot(made.ref, grain, 4000, 0, 0, 0, 0, 0).ref
+
+
+func test_the_settlement_registers_its_item_catalog_into_its_own_inventory() -> void:
+	"""ARCH-SYS-004 needs shelf lives, so the §4.3 catalog is composed with the lot store."""
+	assert_true(_settlement.item_definitions().is_loaded(), "the catalog loaded")
+	assert_equal(_settlement.item_definitions().item_count(), 60,
+		"all sixty v2 catalog items are compiled")
+	var grain: int = _settlement.item_definitions().compiled_id(&"grain")
+	assert_true(_settlement.inventory().is_item_registered(grain),
+		"and each one is registered into the inventory ARCH-SYS-004 ages")
+	assert_true(_settlement.stock_age().inventory() == _settlement.inventory(),
+		"the aging stage ages THIS settlement's lots, not a detached fixture")
+
+
+func test_stock_age_runs_on_the_hour_crossing_and_not_on_any_other_tick() -> void:
+	"""ARCH-SYS-004's §5 row is "hour crossing", so 23 ticks in 24 must change no age."""
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	for tick: int in range(748, 750):
+		assert_true(_settlement.run_tick(tick), "tick %d commits" % tick)
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), 0,
+		"no age accrued on the two ticks before the crossing")
+	assert_true(_settlement.run_tick(750), "the crossing tick commits")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and exactly one §5.8 hour landed at `(750+4500) mod 750 == 0`")
+	assert_true(_settlement.run_tick(751), "the tick after the crossing commits")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and added nothing")
+	assert_equal(_settlement.refused_stock_hour_count(), 0, "with no refused hour")
+
+
+func test_the_midnight_leg_logs_aging_without_running_a_second_age_pass() -> void:
+	"""ARCH-TICK-002: "never perform a second age pass because the same tick is hourly and daily"."""
+	_populated()
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_true(_settlement.run_tick(SimClockScript.FIRST_MIDNIGHT_TICK),
+		"the midnight tick runs through the tick path first, as the clock drives it")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"one hour of age from the crossing")
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "then the day boundary runs")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and the daily leg added no second hour")
+	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_STOCK_AGE,
+		"while still logging aging as REQ-SET-007's first leg")
+
+
+func test_a_day_boundary_with_no_tick_path_behind_it_runs_the_aging_leg_itself() -> void:
+	"""The leg is executed rather than logged on trust when nothing else has consumed the tick."""
+	_populated()
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_equal(_settlement.stock_age().last_hour_tick(), StockAgeScript.NO_HOUR_RUN,
+		"no hourly pass has run")
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary runs")
+	assert_equal(_settlement.stock_age().last_hour_tick(), SimClockScript.FIRST_MIDNIGHT_TICK,
+		"and the aging leg consumed the midnight crossing itself")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"charging exactly one §5.8 hour")
+
+
+func test_reset_empties_the_stock_layer_and_restores_its_catalog() -> void:
+	"""A reset settlement is one settlement's stock, with the item registry still usable."""
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_true(_settlement.run_tick(750), "an hour crossing ages it")
+	_settlement.reset()
+	assert_false(_settlement.inventory().is_lot_valid(lot), "the lot is gone")
+	assert_equal(_settlement.inventory().live_container_count(), 0, "and so is its container")
+	assert_equal(_settlement.stock_age().declared_container_count(), 0,
+		"every storage declaration went with them")
+	assert_equal(_settlement.stock_age().last_hour_tick(), StockAgeScript.NO_HOUR_RUN,
+		"and the hourly latch is dropped")
+	var grain: int = _settlement.item_definitions().compiled_id(&"grain")
+	assert_true(_settlement.inventory().is_item_registered(grain),
+		"the catalog is re-registered, because inventory.clear() drops the item registry too")
+
+
 # --- REQ-SET-007 leg order and ARCH-SYS-005 Ecology (task 03 increment 9) ------------------------
 
-func test_the_boundary_runs_the_handover_then_ecology_then_crops_and_no_other_leg() -> void:
-	"""REQ-SET-007's five legs are ordered, and only the three with an owner here may appear.
+func test_the_boundary_runs_aging_then_the_handover_then_ecology_then_crops() -> void:
+	"""REQ-SET-007's five legs are ordered, and only the four with an owner here may appear.
 
-	CHANGED BY TASK 03 INCREMENT 10: this assertion previously ended at two legs, because
-	ARCH-SYS-006 had no owner. Crops/weather is REQ-SET-007's THIRD step and must appear AFTER
-	"update ecology", never before it and never instead of it.
+	CHANGED BY DECISION 0085: this assertion previously began at the season handover, because
+	ARCH-SYS-004 had no owner. Stock aging is REQ-SET-007's FIRST step and ARCH-TICK-003 places
+	the handover "exactly between aging and ecology", so aging must appear BEFORE the handover
+	-- aging uses the elapsed interval's season, and the handover is what changes it.
 	"""
 	_populated()
 	assert_true(_settlement.run_day_boundary(37, SEASON_WINTER), "the winter boundary runs")
-	assert_equal(_settlement.daily_leg_count(), 3, "exactly three legs executed")
-	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_SEASON_HANDOVER,
-		"ARCH-TICK-003's handover first, between aging and ecology")
-	assert_equal(_settlement.daily_leg_at(1).value, SettlementSystemScript.LEG_ECOLOGY,
+	assert_equal(_settlement.daily_leg_count(), 4, "exactly four legs executed")
+	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_STOCK_AGE,
+		"ARCH-SYS-004 StockAge first, REQ-SET-007's own first step")
+	assert_equal(_settlement.daily_leg_at(1).value, SettlementSystemScript.LEG_SEASON_HANDOVER,
+		"then ARCH-TICK-003's handover, between aging and ecology")
+	assert_equal(_settlement.daily_leg_at(2).value, SettlementSystemScript.LEG_ECOLOGY,
 		"then ARCH-SYS-005 Ecology")
-	assert_equal(_settlement.daily_leg_at(2).value, SettlementSystemScript.LEG_CROP_WEATHER,
+	assert_equal(_settlement.daily_leg_at(3).value, SettlementSystemScript.LEG_CROP_WEATHER,
 		"then ARCH-SYS-006 CropWeather, REQ-SET-007's third step")
-	assert_false(_settlement.daily_leg_at(3).ok, "and nothing after it")
-	assert_equal(String(_settlement.daily_leg_at(3).error), "INVALID_INDEX",
+	assert_false(_settlement.daily_leg_at(4).ok, "and nothing after it")
+	assert_equal(String(_settlement.daily_leg_at(4).error), "INVALID_INDEX",
 		"the reader refuses rather than answering a leg that did not run")
 
 
@@ -569,8 +709,10 @@ func test_a_replayed_day_boundary_is_refused_rather_than_applied_twice() -> void
 	assert_true(_settlement.run_day_boundary(37, SEASON_WINTER), "the first run commits")
 	assert_false(_settlement.run_day_boundary(37, SEASON_WINTER), "the second is refused")
 	assert_equal(_settlement.last_refusal(), &"ECOLOGY_DAY_ALREADY_RUN", "with the replay code")
-	assert_equal(_settlement.daily_leg_count(), 1,
-		"the season handover ran and the ecology leg did not")
+	assert_equal(_settlement.daily_leg_count(), 2,
+		"aging and the season handover ran and the ecology leg did not")
+	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_STOCK_AGE,
+		"and the replayed boundary logged aging without running a second age pass")
 
 
 func test_reset_drops_the_ecology_stores_and_the_leg_log() -> void:
@@ -702,8 +844,8 @@ func test_an_unseeded_settlement_refuses_its_second_seasons_weather_draw() -> vo
 			"spring day %d commits" % day)
 	assert_false(_settlement.run_day_boundary(13, SEASON_SUMMER), "summer day 1 refuses")
 	assert_equal(_settlement.last_refusal(), &"RNG_NOT_SEEDED", "with the stream's own code")
-	assert_equal(_settlement.daily_leg_count(), 2,
-		"the handover and ecology legs ran; the crops/weather leg did not")
+	assert_equal(_settlement.daily_leg_count(), 3,
+		"aging, the handover and ecology ran; the crops/weather leg did not")
 
 
 func test_a_hive_eligibility_crossing_reaches_the_farm_side_of_the_boundary() -> void:
@@ -1128,26 +1270,17 @@ func _loaded_items() -> WorldItemsScript:
 
 
 func _generated() -> WorldInitScript:
-	"""Generate REQ-SET-009's world over THIS settlement's own stores, then spawn the cohort.
+	"""Run the settlement's OWN §5.1 initialization and hand back the generator it published with.
 
-	The generator is reached through the accessors `world_init.gd` publishes for exactly this
-	("`ecology()` is the accessor a world generator or a test uses to reach the stores"), because
-	this node composes no generator: READY_07 §2 settled the Request's item ids, but §7 still owns
-	the bootstrap composition that would call the generator from the settlement itself.
-
-	GENERATION RUNS FIRST AND THE COHORT SECOND, deliberately: `world_init.publish()` clears the
-	entity directory, so residents spawned before it would be stranded by their own world.
+	It used to compose a second `WorldInit` over these stores and drive `generate()` directly,
+	because this node composed no generator. It composes one now, and R-INIT-ID-001 made the
+	difference observable: the settlement's transaction allocates the cohort FIRST, on persistent
+	ids 1-12, while the standalone `generate()` wrapper resets the directory and would put the
+	world in front of the residents again. The tests below want the real initialization.
 	"""
-	var world: WorldInitScript = WorldInitScript.new(_settlement.directory(),
-		_settlement.ecology().resource_nodes(), _settlement.ecology().forage(),
-		_settlement.ecology().fishing(), _settlement.rng(), _settlement.farming(),
-		_settlement.ecology().orchard_hive(), _settlement.jobs(), _settlement.commands())
-	var built: WorldInitScript.RequestResult = WorldInitScript.bound_request(_loaded_items())
-	assert_true(built.ok, "the request binds by key (error: %s)" % built.error)
-	var result: WorldInitScript.GenerateResult = world.generate(built.request)
-	assert_true(result.ok, "the world generates (error: %s)" % result.error)
-	assert_true(_settlement.create_initial_settlement(), "and the cohort spawns into it")
-	return world
+	assert_true(_settlement.create_generated_settlement(_loaded_items()),
+		"the settlement initializes (refusal: %s)" % _settlement.last_refusal())
+	return _settlement.world()
 
 
 func _designation_payload(tiles: PackedInt32Array) -> PackedByteArray:
@@ -1392,14 +1525,14 @@ func test_the_planner_is_composed_over_this_settlements_own_stores() -> void:
 func test_the_measured_stage_list_matches_what_actually_runs() -> void:
 	"""The header's stage list is a count of dispatched call sites; this asserts the tick half."""
 	_populated()
-	assert_equal(_settlement.tick_stage_count(), 7, "seven stages are dispatched per tick")
+	assert_equal(_settlement.tick_stage_count(), 8, "eight stages are dispatched per tick")
 	for stage: int in _settlement.tick_stage_count():
 		assert_true(String(_settlement.tick_stage_name(stage)).begins_with("ARCH-SYS-"),
 			"stage %d names the ARCH-SYS system it dispatches" % stage)
 	assert_equal(_settlement.tick_stage_name(_settlement.tick_stage_count()), &"",
 		"and one past the last names nothing")
 	assert_false(_settlement.tick_stage_usec_at(-1).ok, "a negative stage index refuses")
-	assert_false(_settlement.tick_stage_usec_at(7).ok, "and so does one past the last")
+	assert_false(_settlement.tick_stage_usec_at(8).ok, "and so does one past the last")
 
 
 func test_every_stage_is_measured_on_every_tick() -> void:
@@ -1459,8 +1592,8 @@ func test_the_planner_day_boundary_is_not_a_req_set_007_leg() -> void:
 	_populated()
 	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary runs")
 	assert_equal(_settlement.refused_planner_day_count(), 0, "the planner's midnight ran")
-	assert_equal(_settlement.daily_leg_count(), 3,
-		"and the log still holds exactly the three REQ-SET-007 legs this system owns")
+	assert_equal(_settlement.daily_leg_count(), 4,
+		"and the log still holds exactly the four REQ-SET-007 legs this system owns")
 
 
 func test_every_stage_closes_its_window_exactly_once_per_tick() -> void:
@@ -1548,6 +1681,53 @@ func test_a_command_due_at_tick_one_is_not_committed_by_tick_zero() -> void:
 func _generate() -> bool:
 	"""Run REQ-SET-009 over this test's settlement with §5.1's own fixed tutorial seed."""
 	return _settlement.create_generated_settlement(_loaded_items())
+
+
+func _live_persistent_id_at(directory: EntityDirectoryScript, slot: int) -> int:
+	"""The persistent id of the live row in `slot`, or 0 when the slot holds none.
+
+	0 is not a sentinel for failure: `ARCH-ID-002` starts persistent ids at 1 and `clear()` fills
+	the column with 0, so 0 IS "no live row" in the directory's own encoding.
+	"""
+	var ref: Vector2i = directory.ref_of_slot(slot)
+	if ref == EntityDirectoryScript.NULL_REF:
+		return 0
+	return directory.get_persistent_id(ref)
+
+
+func _replaced_tree_node_count() -> int:
+	"""Tree nodes §5.1's ore footprints created and then destroyed, derived from this run.
+
+	Planned trees plus decision 0029's two sixteen-node deposits, less the nodes actually
+	standing. Nothing is transcribed: the plan counts come off the generator that just ran.
+	"""
+	var world: WorldInitScript = _settlement.world()
+	var planned: int = world.planned_tree_centre_count() + world.planned_grove_count()
+	var ore: int = 2 * ResourceNodesScript.DEPOSIT_NODE_COUNT
+	return planned + ore - _settlement.ecology().resource_nodes().count()
+
+
+func _consumed_persistent_ids() -> int:
+	"""Every id this settlement has issued: one per live row, plus one per row destroyed since."""
+	return _settlement.directory().total_live_count() + _replaced_tree_node_count()
+
+
+func _cohort_persistent_ids() -> PackedInt32Array:
+	"""The twelve starting residents' persistent ids, in resident-row order."""
+	var ids: PackedInt32Array = PackedInt32Array()
+	ids.resize(COHORT_SIZE)
+	for slot: int in COHORT_SIZE:
+		ids[slot] = _settlement.residents().persistent_id_of(slot).value
+	return ids
+
+
+func _terrain_image() -> PackedByteArray:
+	"""Every published terrain byte, as one comparable image of the generated map."""
+	var image: PackedByteArray = PackedByteArray()
+	image.resize(WorldInitScript.TILE_COUNT)
+	for tile: int in WorldInitScript.TILE_COUNT:
+		image[tile] = _settlement.world().terrain_at(tile).value
+	return image
 
 
 func test_generating_a_settlement_produces_the_world_and_the_cohort_together() -> void:
@@ -1711,29 +1891,155 @@ func test_generating_resets_the_hives_it_was_composed_over() -> void:
 		"and REQ-SET-009 emptied ARCH-SYS-005's OWN hive store")
 
 
-func test_the_generated_cohorts_persistent_ids_are_not_gdd_5_1s_one_to_twelve() -> void:
-	"""THE CONTRADICTION, PINNED RATHER THAN HIDDEN (decision 0064).
+func test_the_generated_cohort_holds_gdd_5_1s_persistent_ids_one_to_twelve() -> void:
+	"""§5.1: "12 adults ...; IDs 1-12; ID 1 named Warden Rowan" -- as GLOBAL persistent ids.
 
-	§5.1 says the starting residents are "IDs 1-12" and §4.2 says persistent ids are "unique
-	across kinds" -- one id space. §5.1's own world content is created FIRST, because publishing
-	clears the directory and would strand a cohort spawned before it, so the world takes ids
-	1-1713 and the cohort takes 1714-1725. This test asserts what the code ACTUALLY does. It is
-	not an endorsement: it exists so that a future ruling either changes this assertion
-	deliberately or is caught leaving it wrong.
+	THIS REPLACES `test_the_generated_cohorts_persistent_ids_are_not_gdd_5_1s_one_to_twelve`,
+	which asserted that the cohort received 1714-1725 because the world was created first. That
+	test was honest about the code and the code was WRONG -- not merely inconvenient: §5.1 states
+	the starting ids and §4.2 states one id space across kinds, so a cohort that does not hold
+	1-12 fails an authored requirement, and §5.3's `hash(persistent_id, world_seed)` names hangs
+	off the same value. Ruling R-INIT-ID-001 settled that the reset which forced that order is a
+	reset BEFORE new-world allocation, not one inside terrain publication, so the divergence had
+	no owning-spec basis at all. The old assertion is not weakened here, it is reversed, and
+	decision 0075 records the arithmetic it retires.
 	"""
 	assert_true(_generate(), "the settlement generates")
 	var residents: ResidentsScript = _settlement.residents()
-	var first: IntMath.IntResult = residents.persistent_id_of(0)
-	assert_true(first.ok, "the first starter has a persistent id")
-	assert_equal(first.value, WORLD_PERSISTENT_IDS + 1,
-		"which follows every generated world entity, and is NOT §5.1's 1")
+	var warden: IntMath.IntResult = residents.persistent_id_of(ResidentsScript.WARDEN_INDEX)
+	assert_true(warden.ok, "Warden Rowan has a persistent id")
+	assert_equal(warden.value, 1, "and it is §5.1's ID 1")
+	assert_equal(residents.name_key_of(ResidentsScript.WARDEN_INDEX), ResidentsScript.WARDEN_NAME,
+		"the resident holding id 1 is the one §5.1 names")
 	for slot: int in COHORT_SIZE:
-		assert_equal(residents.persistent_id_of(slot).value, WORLD_PERSISTENT_IDS + 1 + slot,
-			"the twelve are consecutive in resident-row order")
+		var id: IntMath.IntResult = residents.persistent_id_of(slot)
+		assert_true(id.ok, "cohort row %d has a persistent id" % slot)
+		assert_equal(id.value, slot + 1, "row %d holds id %d" % [slot, slot + 1])
+
+
+func test_the_world_entities_continue_the_same_counter_from_thirteen() -> void:
+	"""R-INIT-ID-001 step 4: "next ID 13 before any subsequent entity allocation".
+
+	Derived, not pinned: every live directory row that is NOT a resident is a world entity, and
+	the lowest id among them must be COHORT_SIZE + 1 -- one id space, continuing, with nothing
+	reserved and nothing renumbered.
+	"""
+	assert_true(_generate(), "the settlement generates")
+	var directory: EntityDirectoryScript = _settlement.directory()
+	var lowest_world_id: int = 0
+	var world_rows: int = 0
+	for slot: int in EntityDirectoryScript.DIRECTORY_CAPACITY:
+		var ref: Vector2i = directory.ref_of_slot(slot)
+		if ref == EntityDirectoryScript.NULL_REF \
+				or directory.get_kind(ref) == EntityDirectoryScript.KIND_RESIDENT:
+			continue
+		var id: int = directory.get_persistent_id(ref)
+		world_rows += 1
+		if lowest_world_id == 0 or id < lowest_world_id:
+			lowest_world_id = id
+	assert_equal(world_rows, WORLD_LIVE_ROWS, "every generated world row is counted")
+	assert_equal(lowest_world_id, COHORT_SIZE + 1,
+		"the first world entity follows the twelfth resident")
+
+
+func test_every_live_persistent_id_is_unique_across_kinds() -> void:
+	"""§4.2 EntityIdentity: "IDs unique across kinds" -- audited over the whole directory.
+
+	Residents and world entities now share one run of the counter, so this is the check that the
+	new order did not hand a tree node an id the cohort already holds.
+	"""
+	assert_true(_generate(), "the settlement generates")
+	var directory: EntityDirectoryScript = _settlement.directory()
+	var seen: Dictionary = {}
+	var highest: int = 0
+	for slot: int in EntityDirectoryScript.DIRECTORY_CAPACITY:
+		var id: int = _live_persistent_id_at(directory, slot)
+		if id == 0:
+			continue
+		assert_false(seen.has(id), "persistent id %d is held once" % id)
+		seen[id] = slot
+		if id > highest:
+			highest = id
+	assert_equal(seen.size(), directory.total_live_count(), "one id per live row, and no more")
+	assert_true(highest >= seen.size(), "ids never run below the number of rows holding them")
+
+
+func test_no_destroyed_persistent_id_is_reissued() -> void:
+	"""§4.2: ids are "assigned monotonically and never reused", including across the transaction.
+
+	Two destructions are audited: §5.1's eight replaced tree nodes, which are created and then
+	destroyed DURING publication, and a resident destroyed afterwards. Neither id may come back.
+	"""
+	assert_true(_generate(), "the settlement generates")
+	var directory: EntityDirectoryScript = _settlement.directory()
+	assert_equal(_replaced_tree_node_count(), REPLACED_TREE_NODES,
+		"§5.1's ore footprints replaced their tree nodes, consuming ids that never come back")
+	var consumed: int = _consumed_persistent_ids()
+	var residents: ResidentsScript = _settlement.residents()
+	var rowan_id: int = residents.persistent_id_of(ResidentsScript.WARDEN_INDEX).value
+	assert_true(residents.despawn(residents.ref_of(ResidentsScript.WARDEN_INDEX)).ok,
+		"a resident is removed")
+	var replacement: Vector2i = directory.create(EntityDirectoryScript.KIND_RESIDENT)
+	assert_true(replacement != EntityDirectoryScript.NULL_REF, "and another is created")
+	var replacement_id: int = directory.get_persistent_id(replacement)
+	assert_false(replacement_id == rowan_id, "the freed id %d is not reissued" % rowan_id)
+	assert_equal(replacement_id, consumed + 1,
+		"it continues past every id this world has ever issued")
+	assert_true(directory.destroy(replacement), "the probe row is released")
+
+
+func test_the_next_persistent_id_is_derived_from_every_allocation_event() -> void:
+	"""R-INIT-ID-001: derive counter progression "from ALL allocation events", never pin a total.
+
+	The next id is one more than the number of ids this initialization consumed, and that number
+	is COUNTED from the run: every live directory row, plus the tree nodes created and then
+	destroyed by §5.1's ore footprints. Nothing here hard-codes 1726 -- the ruling's illustrative
+	total -- so composing more entities later moves this test's expectation with the code.
+	"""
+	assert_true(_generate(), "the settlement generates")
+	var directory: EntityDirectoryScript = _settlement.directory()
+	var consumed: int = _consumed_persistent_ids()
+	assert_equal(consumed, directory.total_live_count() + _replaced_tree_node_count(),
+		"every allocation event is either a live row or a destroyed one")
+	var probe: Vector2i = directory.create(EntityDirectoryScript.KIND_BUILDING)
+	assert_true(probe != EntityDirectoryScript.NULL_REF, "one more entity is allocated")
+	assert_equal(directory.get_persistent_id(probe), consumed + 1,
+		"the counter continues from every allocation this initialization made")
+	assert_true(directory.destroy(probe), "the probe row is released")
+	# The ruling asks for the next id as evidence and forbids pinning it. Printing the derived
+	# value reports it without turning today's composition into tomorrow's expectation.
+	print("[R-INIT-ID-001] ids consumed by initialization: %d; next id: %d" % [
+		consumed, consumed + 1])
+
+
+func test_the_same_seed_initializes_identically_under_the_new_order() -> void:
+	"""R-INIT-ID-001's determinism evidence: repeat the whole transaction and compare everything.
+
+	Same seed, twice, through reset: the twelve identities, the world census, the accepted seed
+	and the terrain image must all match. This is the check that moving the cohort in front of
+	generation did not make initialization order-dependent on leftover state.
+	"""
+	assert_true(_generate(), "the first initialization runs")
+	var first_ids: PackedInt32Array = _cohort_persistent_ids()
+	var first_terrain: PackedByteArray = _terrain_image()
+	var first_nodes: int = _settlement.ecology().resource_nodes().count()
+	var first_consumed: int = _consumed_persistent_ids()
+	_settlement.reset()
+	assert_true(_generate(), "and the second runs over the same seed")
+	assert_equal(_cohort_persistent_ids(), first_ids, "the same twelve identities")
+	assert_equal(_terrain_image(), first_terrain, "the same terrain image")
+	assert_equal(_settlement.ecology().resource_nodes().count(), first_nodes,
+		"the same resource node census")
+	assert_equal(_consumed_persistent_ids(), first_consumed, "and the same ids consumed")
+	assert_equal(_settlement.world().published_seed().value, TUTORIAL_WORLD_SEED,
+		"on §5.1's own seed both times")
 
 
 func test_generation_refuses_a_settlement_that_already_holds_residents() -> void:
-	"""Publishing clears the directory, so an occupied settlement must refuse BEFORE it does."""
+	"""The transaction resets the whole settlement, so an occupied one must refuse BEFORE it does.
+
+	This is also what makes R-INIT-ID-001's "a refused initialization retains the previous valid
+	world" reachable: a world with residents in it never enters the transaction at all."""
 	assert_true(_settlement.create_initial_settlement(), "a cohort exists first")
 	assert_false(_generate(), "generating over it is refused")
 	assert_equal(_settlement.last_refusal(), ResidentsScript.REFUSE_SETTLEMENT_NOT_EMPTY,
@@ -1744,7 +2050,12 @@ func test_generation_refuses_a_settlement_that_already_holds_residents() -> void
 
 
 func test_an_unloaded_item_catalog_refuses_and_leaves_the_settlement_empty() -> void:
-	"""Decision 0059: a refusal leaves every store byte-identical, not a half-initialized world."""
+	"""Decision 0059: a refusal leaves every store byte-identical, not a half-initialized world.
+
+	R-INIT-ID-001 step 5's "an empty start returns to empty", and the failure BEFORE composition:
+	the catalog cannot bind, so the transaction is never entered and nothing was staged into a
+	store to undo.
+	"""
 	assert_false(_settlement.create_generated_settlement(WorldItemsScript.new()),
 		"an unloaded registry cannot bind the seventeen resource ids")
 	assert_equal(_settlement.last_refusal(), &"ITEM_BINDING_REGISTRY_NOT_LOADED",
@@ -1752,25 +2063,113 @@ func test_an_unloaded_item_catalog_refuses_and_leaves_the_settlement_empty() -> 
 	assert_false(_settlement.world().is_published(), "no world")
 	assert_equal(_settlement.ecology().resource_nodes().count(), 0, "no resource node")
 	assert_equal(_settlement.population(), 0, "and no half-spawned cohort")
+	assert_equal(_settlement.directory().total_live_count(), 0, "and no directory row")
+
+
+func test_a_refusal_before_the_transaction_retains_the_previous_valid_world() -> void:
+	"""R-INIT-ID-001 step 5: "A refused initialization retains the previous valid world."
+
+	The only world that can be standing when this operation is called again is one with residents
+	in it, and residents are what the preflight refuses on -- so the retention is proved rather
+	than hoped for: the terrain image, the census and all twelve identities must be unchanged
+	afterwards, including the ids the ruling is about.
+	"""
+	assert_true(_generate(), "a valid world stands first")
+	var terrain: PackedByteArray = _terrain_image()
+	var ids: PackedInt32Array = _cohort_persistent_ids()
+	var nodes: int = _settlement.ecology().resource_nodes().count()
+	var consumed: int = _consumed_persistent_ids()
+	assert_false(_generate(), "a second initialization over it is refused")
+	assert_equal(_settlement.last_refusal(), ResidentsScript.REFUSE_SETTLEMENT_NOT_EMPTY,
+		"on the occupied-settlement rule")
+	assert_equal(_terrain_image(), terrain, "the standing world's terrain is unchanged")
+	assert_equal(_cohort_persistent_ids(), ids, "its twelve identities are unchanged")
+	assert_equal(_settlement.ecology().resource_nodes().count(), nodes, "its census is unchanged")
+	assert_equal(_consumed_persistent_ids(), consumed, "and no id was consumed by the attempt")
+	assert_false(_settlement.world().has_prepared_plan(), "with no plan left staged over it")
 
 
 func test_a_cohort_that_refuses_leaves_no_half_settlement_standing() -> void:
-	"""Decision 0059 at world scale: a failure after generation empties everything, not some.
+	"""Decision 0059 at world scale: a failure INSIDE the transaction publishes nothing at all.
 
-	Without the rollback this is the worst outcome available -- a fully generated world, a seeded
-	RNG and nobody in it, reported to the caller as a failure. That is precisely the "world with
-	nobody in it" this operation exists to prevent.
+	R-INIT-ID-001 step 5's "without partial publication", from the one direction a caller can
+	provoke. Under the new order the cohort is allocated BEFORE the world, so this failure lands
+	between the single reset and publication: the directory must end with no rows of any kind and
+	the map must never have been published, rather than a world standing with nobody in it.
 	"""
 	var settlement: RefusingCohortSettlement = RefusingCohortSettlement.new()
 	assert_false(settlement.create_generated_settlement(_loaded_items()),
 		"the operation refuses as a whole")
 	assert_equal(settlement.last_refusal(), RefusingCohortSettlement.REFUSAL,
 		"and reports the cohort's own reason, not a generic one")
-	assert_false(settlement.world().is_published(), "the generated world was taken back")
-	assert_equal(settlement.ecology().resource_nodes().count(), 0, "with its resource nodes")
-	assert_equal(settlement.ecology().forage().zone_count(), 0, "and its basins")
-	assert_false(settlement.rng().is_seeded(), "and its seed")
+	assert_false(settlement.world().is_published(), "no world was published")
+	assert_equal(settlement.ecology().resource_nodes().count(), 0, "no resource node")
+	assert_equal(settlement.ecology().forage().zone_count(), 0, "and no basin")
+	assert_equal(settlement.ecology().fishing().habitat_count(), 0, "and no habitat")
+	assert_false(settlement.rng().is_seeded(), "the transaction's seeding was taken back")
 	assert_equal(settlement.population(), 0, "leaving nothing standing")
+	assert_equal(settlement.directory().total_live_count(), 0, "and no directory row of any kind")
+	assert_false(settlement.world().has_prepared_plan(),
+		"the staged plan is dropped, so nothing can publish it later")
+	settlement.free()
+
+
+func test_a_refused_cohort_preflight_never_enters_the_transaction() -> void:
+	"""Ruling step 1: the cohort is preflighted with everything else, BEFORE the single reset.
+
+	A cohort problem discovered after the reset would already have emptied the settlement; found
+	in the preflight it costs nothing at all. The staged world plan must be dropped too, or the
+	refusal would leave a world waiting to be published by the next caller.
+	"""
+	var settlement: BlockedCohortPreflightSettlement = BlockedCohortPreflightSettlement.new()
+	assert_false(settlement.create_generated_settlement(_loaded_items()),
+		"the operation refuses as a whole")
+	assert_equal(settlement.last_refusal(), BlockedCohortPreflightSettlement.REFUSAL,
+		"reporting the cohort preflight's own code")
+	assert_false(settlement.world().is_published(), "no world was published")
+	assert_false(settlement.world().has_prepared_plan(), "and no plan is left staged")
+	assert_false(settlement.rng().is_seeded(), "the streams were never seeded")
+	assert_equal(settlement.population(), 0, "and nobody was spawned")
+	settlement.free()
+
+
+func test_the_cohort_is_allocated_seeded_and_before_the_world_is_published() -> void:
+	"""Ruling steps 2 and 3, observed from INSIDE the transaction rather than inferred after it.
+
+	The streams must already be seeded when the cohort is created -- `crop_weather.prime_day()`
+	runs there -- and no world entity may exist yet, because the twelve residents are what takes
+	ids 1-12. Both are invisible from outside: afterwards the world is published either way.
+	"""
+	var settlement: SeedObservingSettlement = SeedObservingSettlement.new()
+	assert_true(settlement.create_generated_settlement(_loaded_items()),
+		"the settlement initializes (refusal: %s)" % settlement.last_refusal())
+	assert_true(settlement.seeded_when_cohort_created,
+		"the RNG streams were seeded before the cohort consumed anything")
+	assert_equal(settlement.nodes_when_cohort_created, 0,
+		"and not one world entity had been allocated yet")
+	assert_false(settlement.published_when_cohort_created,
+		"the world was published after the cohort, not before it")
+	assert_equal(settlement.residents().persistent_id_of(
+		ResidentsScript.WARDEN_INDEX).value, 1, "which is how Warden Rowan holds id 1")
+	assert_equal(settlement.ecology().resource_nodes().count(), GENERATED_RESOURCE_NODES,
+		"and the world still arrived in full")
+	settlement.free()
+
+
+func test_an_abandoned_transaction_does_not_leave_a_plan_that_can_publish_later() -> void:
+	"""A held plan outliving a refusal is a world nobody asked for, arriving after the fact.
+
+	`publish_prepared()` is a public step now, so the plan's lifetime is part of the contract:
+	once a transaction is abandoned the generator must refuse to publish rather than create
+	§5.1's 1705 rows into an empty settlement on the next call from anywhere.
+	"""
+	var settlement: RefusingCohortSettlement = RefusingCohortSettlement.new()
+	assert_false(settlement.create_generated_settlement(_loaded_items()), "the cohort refuses")
+	var published: WorldInitScript.GenerateResult = settlement.world().publish_prepared()
+	assert_false(published.ok, "a later publish finds no plan")
+	assert_equal(published.error, WorldInitScript.REFUSE_NO_PREPARED_PLAN,
+		"and says exactly that")
+	assert_equal(settlement.ecology().resource_nodes().count(), 0, "nothing was created")
 	settlement.free()
 
 
@@ -1801,3 +2200,22 @@ func test_resetting_a_generated_settlement_discards_the_world_with_the_cohort() 
 	assert_equal(_settlement.population(), 0, "and its population")
 	assert_true(_generate(), "and the settlement generates again from empty")
 	assert_equal(_settlement.population(), COHORT_SIZE, "with a second full cohort")
+
+
+func test_a_new_world_restarts_the_id_space_at_rowan() -> void:
+	"""R-INIT-ID-001's new-world reset behaviour: every new world begins its id space again.
+
+	The ruling forbids skipping a reset across new worlds, and a second world that continued the
+	first world's counter would give its Warden id 1726 instead of 1. The reset therefore happens
+	once per transaction, BEFORE allocation -- which is exactly what the ruling relocated.
+	"""
+	assert_true(_generate(), "the first world is generated")
+	assert_equal(_cohort_persistent_ids()[ResidentsScript.WARDEN_INDEX], 1, "with Rowan on id 1")
+	var first_consumed: int = _consumed_persistent_ids()
+	assert_true(first_consumed > COHORT_SIZE, "and a world beyond the cohort")
+	_settlement.reset()
+	assert_true(_generate(), "a second world is generated over the emptied settlement")
+	assert_equal(_cohort_persistent_ids()[ResidentsScript.WARDEN_INDEX], 1,
+		"whose Warden is id 1 again, not %d" % (first_consumed + 1))
+	assert_equal(_cohort_persistent_ids()[COHORT_SIZE - 1], COHORT_SIZE,
+		"and whose twelfth resident is id 12")

@@ -1,0 +1,654 @@
+extends "res://test/framework/test_case.gd"
+## Coverage for the built HUD: what it actually renders, where, and what it refuses to claim.
+##
+## The other UI suites check tables. This one builds the real Control tree and reads it back:
+## the accessible name on each control, its disabled state, its rectangle at two layout
+## profiles, and the click-through table derived from its own mouse filters.
+##
+## Three properties matter most, and each has a test whose failure would be a real defect on
+## screen rather than a table disagreement:
+##
+##   * a decorative region does not consume a world click, read from the built tree;
+##   * a counter with no owning store REFUSES a value and keeps its named reason, so no zero
+##     can be printed where a bed count would go;
+##   * every element §8.2 names as a focus stop is actually built, so the keyboard order is not
+##     a list of ids pointing at nothing.
+##
+## The shell is built OFF-TREE, exactly as `hud.gd` builds it when the headless runner
+## instantiates the scene: `build()` is public for that reason.
+
+const UiShell := preload("res://scripts/ui/ui_shell.gd")
+const UiRegistry := preload("res://scripts/ui/ui_registry.gd")
+const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const UiAvailability := preload("res://scripts/ui/ui_availability.gd")
+const UiFocusOrder := preload("res://scripts/ui/ui_focus_order.gd")
+const UiTheme := preload("res://scripts/ui/ui_theme.gd")
+const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
+const CommandsScript := preload("res://scripts/core/commands.gd")
+const ForageScript := preload("res://scripts/core/forage.gd")
+const JobsScript := preload("res://scripts/core/jobs.gd")
+const ResidentsScript := preload("res://scripts/core/residents.gd")
+const SimClockScript := preload("res://scripts/core/sim_clock.gd")
+const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
+
+## §1.2's published 1280x720 spans for the two zones asserted here.
+const RESOURCE_SPAN: Array[float] = [16.0, 376.0, 16.0, 104.0]
+const TIME_SPAN: Array[float] = [960.0, 1264.0, 16.0, 104.0]
+
+## §2.2's disabled wording, stated independently.
+const UNAVAILABLE_WORD: String = "Unavailable"
+
+## Elements the shell builds even though their owning store does not exist, so that a player who
+## looks for fuel, beds or the build catalog is told WHICH owner is missing rather than finding
+## nothing there. Every one of them is disabled and carries its reason.
+const RENDERED_UNAVAILABLE: Array[int] = [3, 7, 12, 27, 29, 30, 32, 33, 75, 82, 87, 89, 90, 98]
+
+var _shell: UiShell = null
+
+
+func before_each() -> void:
+	"""Build the real shell off-tree and lay it out for the standard 1280x720 composition."""
+	_shell = UiShell.new()
+	_shell.build()
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+
+
+func after_each() -> void:
+	"""Free the whole built tree so no Control leaks into the next test."""
+	if _shell != null:
+		_shell.free()
+		_shell = null
+
+
+func _bound_settlement() -> Dictionary:
+	"""Build a real queue, store set and basin, and bind the shell to that queue only.
+
+	The shell is given the COMMAND QUEUE and nothing else, which is why a test can check that a
+	button press moved the queue and left the stores alone.
+	"""
+	var residents: ResidentsScript = ResidentsScript.new()
+	var jobs: JobsScript = JobsScript.new(residents)
+	var forage: ForageScript = ForageScript.new(jobs.directory(), jobs)
+	var queue: CommandsScript = CommandsScript.new(SimClockScript.new(), jobs.directory())
+	_shell.bind_bridge(UiCommandBridge.new(queue))
+	var made: ForageScript.OpResult = forage.create_zone(ForageScript.ZONE_TYPE_FORAGE,
+		0, 0, false, true)
+	assert_true(made.ok, "the basin is created (error: %s)" % made.error)
+	assert_true(forage.create_patch_set(made.ref, PackedInt32Array([10, 11, 12, 13, 14])).ok,
+		"the basin receives §5.5's five patches")
+	return {"queue": queue, "forage": forage, "jobs": jobs, "basin": made.ref,
+		"residents": residents}
+
+
+# --- what is built ---------------------------------------------------------------------------------
+
+func test_every_element_the_shell_claims_to_drive_is_actually_built() -> void:
+	"""A wired claim with no control behind it would be the exact lie 04.4 forbids."""
+	var availability: UiAvailability = _shell.availability()
+	var missing: PackedInt32Array = PackedInt32Array()
+	for id: int in range(UiRegistry.FIRST_ID, UiRegistry.LAST_ID + 1):
+		if availability.is_wired(id) and not _shell.renders(id):
+			missing.append(id)
+	assert_equal(missing.size(), 0, "every wired element is built, missing: %s" % missing)
+	assert_equal(_shell.rendered_count(), availability.wired_count() + RENDERED_UNAVAILABLE.size(),
+		"and the only extra controls are the seven rendered unavailable on purpose")
+
+
+func test_every_built_control_carries_its_ui_set_id_in_its_accessible_name() -> void:
+	"""REQ-UX-010: a focused control must expose a name matching its visible function."""
+	var registry: UiRegistry = _shell.registry()
+	for id: int in range(UiRegistry.FIRST_ID, UiRegistry.LAST_ID + 1):
+		if not _shell.renders(id):
+			continue
+		var control: Control = _shell.control_for(id)
+		assert_true(control.accessibility_name.contains(String(registry.element_key(id))),
+			"UI-SET-%03d names itself: '%s'" % [id, control.accessibility_name])
+		assert_true(control.accessibility_name.contains(String(registry.name_of(id))),
+			"UI-SET-%03d carries its §4 name" % id)
+
+
+func test_the_unavailable_elements_that_are_drawn_can_never_be_operated() -> void:
+	"""Rendering an excused element is only honest if it cannot be activated.
+
+	A Button says so with `disabled`; a Panel or Label says so by having no focus mode at all,
+	so Enter can never reach it. Both are checked, because the shell draws both kinds.
+	"""
+	for id: int in RENDERED_UNAVAILABLE:
+		assert_true(_shell.renders(id), "UI-SET-%03d is drawn" % id)
+		assert_false(_shell.availability().is_wired(id), "UI-SET-%03d is not wired" % id)
+		_assert_inoperable(id)
+
+
+func _assert_inoperable(id: int) -> void:
+	"""One unavailable element cannot be pressed and says why."""
+	var control: Control = _shell.control_for(id)
+	var button: Button = control as Button
+	if button != null:
+		assert_true(button.disabled, "UI-SET-%03d cannot be pressed" % id)
+	else:
+		assert_equal(control.focus_mode, Control.FOCUS_NONE,
+			"UI-SET-%03d cannot take focus, so Enter cannot activate it" % id)
+	assert_true(control.accessibility_description.begins_with(UNAVAILABLE_WORD),
+		"UI-SET-%03d explains itself: '%s'" % [id, control.accessibility_description])
+
+
+func test_an_unknown_element_is_refused_rather_than_returning_a_control() -> void:
+	"""Asking for an element this shell does not render must refuse, not hand back a neighbour."""
+	assert_null(_shell.control_for(70), "the job matrix is not built")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_UNKNOWN_ELEMENT, "with UNKNOWN_ELEMENT")
+	assert_false(_shell.renders(70), "and the shell says it does not render it")
+
+
+# --- the honesty rule ---------------------------------------------------------------------------
+
+func test_an_unavailable_counter_refuses_a_value_and_keeps_its_reason() -> void:
+	"""The bed counter has no Building store; a "0" there would read as a measured absence."""
+	var beds: Button = _shell.control_for(UiShell.ID_BEDS) as Button
+	var before: String = beds.text
+	assert_false(_shell.set_counter_display(UiShell.ID_BEDS, "0"), "the value is refused")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NOT_WIRED, "because it is not wired")
+	assert_equal(beds.text, before, "and the cell text did not change")
+	assert_true(beds.accessibility_description.begins_with(UNAVAILABLE_WORD),
+		"the reason is still what a screen reader is given: '%s'" % beds.accessibility_description)
+
+
+func test_unavailable_controls_are_disabled_and_explain_themselves() -> void:
+	"""§2.2: disabled state plus its reason, on every element with no owning store."""
+	var availability: UiAvailability = _shell.availability()
+	for id: int in [UiShell.ID_FUEL, UiShell.ID_BEDS, UiShell.ID_BUILD, UiShell.ID_JOBS]:
+		var control: Control = _shell.control_for(id)
+		assert_false(availability.is_wired(id), "UI-SET-%03d is not wired" % id)
+		assert_true((control as Button).disabled, "UI-SET-%03d is disabled" % id)
+		assert_true(control.accessibility_description.contains(UNAVAILABLE_WORD),
+			"UI-SET-%03d says it is unavailable" % id)
+
+
+func test_wired_controls_are_enabled_and_describe_their_function() -> void:
+	"""The other half: an element this shell drives must be operable, not decoratively disabled."""
+	for id: int in [UiShell.ID_PAUSE, UiShell.ID_SPEED_2, UiShell.ID_ZONE, UiShell.ID_EXPAND]:
+		var button: Button = _shell.control_for(id) as Button
+		assert_false(button.disabled, "UI-SET-%03d is operable" % id)
+		assert_false(button.accessibility_description.begins_with(UNAVAILABLE_WORD),
+			"UI-SET-%03d does not claim to be unavailable" % id)
+
+
+# --- geometry from the registry ------------------------------------------------------------------
+
+func test_the_zones_land_on_section_one_twos_published_rectangles() -> void:
+	"""The built controls, not the layout table, must sit where §1.2 says at 1280x720."""
+	var resources: Control = _shell.control_for(UiShell.ID_RESOURCE_CLUSTER)
+	assert_almost_equal(resources.position.x, RESOURCE_SPAN[0], "resource cluster left edge")
+	assert_almost_equal(resources.position.x + resources.size.x, RESOURCE_SPAN[1], "right edge")
+	assert_almost_equal(resources.position.y, RESOURCE_SPAN[2], "top edge")
+	var time: Control = _shell.control_for(UiShell.ID_TIME_CLUSTER)
+	assert_almost_equal(time.position.x, TIME_SPAN[0], "time cluster left edge")
+	assert_almost_equal(time.position.x + time.size.x, TIME_SPAN[1], "right edge")
+
+
+func test_the_narrow_profile_shows_two_counter_cells_and_hides_the_rest() -> void:
+	"""§1.3's narrow resource area holds food-days and population only."""
+	assert_true(_shell.layout_for(1280, 720), "the standard layout shows six cells")
+	assert_true((_shell.control_for(UiShell.ID_STONE) as Control).visible, "stone is shown wide")
+	_shell.apply_user_scale(UiLayout.USER_SCALE_150)
+	assert_true(_shell.layout_for(1280, 720), "the narrow layout computes")
+	assert_equal(_shell.geometry().profile, UiLayout.PROFILE_NARROW, "1280 at 150 percent is narrow")
+	assert_true((_shell.control_for(UiShell.ID_FOOD) as Control).visible, "food-days is kept")
+	assert_false((_shell.control_for(UiShell.ID_STONE) as Control).visible, "stone is dropped")
+
+
+func test_an_unsupported_user_scale_is_refused_by_the_shell_too() -> void:
+	"""§1.2 defines three user scales; the shell does not invent a fourth composition."""
+	assert_false(_shell.apply_user_scale(110), "110 percent refuses")
+	assert_equal(_shell.last_refusal(), UiLayout.REFUSE_USER_SCALE, "with UNSUPPORTED_USER_SCALE")
+
+
+func test_every_built_control_meets_its_registry_minimum_size() -> void:
+	"""A control smaller than §4's minimum would be a hit target the specification forbids."""
+	var registry: UiRegistry = _shell.registry()
+	var size: UiRegistry.Size = UiRegistry.Size.new()
+	for id: int in range(UiRegistry.FIRST_ID, UiRegistry.LAST_ID + 1):
+		if not _shell.renders(id) or not registry.size_into(id, size):
+			continue
+		var control: Control = _shell.control_for(id)
+		assert_true(control.custom_minimum_size.x >= float(size.min_width) - 0.01,
+			"UI-SET-%03d is at least its minimum width" % id)
+		assert_true(control.custom_minimum_size.y >= float(size.min_height) - 0.01,
+			"UI-SET-%03d is at least its minimum height" % id)
+
+
+# --- §1.2's click-through rule, read from the built tree ------------------------------------------
+
+func test_the_centre_of_the_world_is_not_consumed_by_the_hud() -> void:
+	"""UX-T04 against the real tree: the world surface overlay must not block the centre."""
+	assert_true(_shell.hit_test().world_receives(Vector2(640.0, 300.0)),
+		"the centre of the viewport reaches the world")
+	assert_true(_shell.hit_test().world_receives(Vector2(500.0, 400.0)), "and so does its left")
+	assert_true(_shell.hit_test().world_receives(Vector2(700.0, 200.0)), "and its upper right")
+
+
+func test_the_world_surface_overlay_is_registered_as_non_consuming() -> void:
+	"""§4: UI-SET-023 is "not a fullscreen UI hit block", so its filter must be IGNORE."""
+	var surface: Control = _shell.control_for(UiShell.ID_WORLD_SURFACE)
+	assert_equal(surface.mouse_filter, Control.MOUSE_FILTER_IGNORE, "the overlay ignores the mouse")
+	var elsewhere: Vector2 = Vector2(640.0, 300.0)
+	assert_false(_shell.hit_test().element_at(elsewhere).ok,
+		"and no element owns a point in the middle of the world")
+
+
+func test_a_real_control_does_consume_its_own_rectangle() -> void:
+	"""The other half of the rule: the time cluster must take the clicks aimed at it."""
+	var time: Control = _shell.control_for(UiShell.ID_TIME_CLUSTER)
+	var inside: Vector2 = time.position + Vector2(4.0, 4.0)
+	assert_false(_shell.hit_test().world_receives(inside), "a click on the cluster is not a world click")
+	assert_true(_shell.hit_test().consumes_point(inside), "it is consumed by the HUD")
+
+
+func test_an_empty_alert_stack_does_not_block_the_world() -> void:
+	"""§4: "empty does not block world". A hidden stack must leave no hit rectangle behind."""
+	_shell.set_alert_display("")
+	var stack: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+	var centre: Vector2 = stack.position + stack.size * 0.5
+	assert_false(stack.visible, "the stack is hidden with no alert")
+	assert_true(_shell.hit_test().world_receives(centre), "and the world gets that point")
+	_shell.set_alert_display("Out of ration!")
+	assert_true(stack.visible, "an alert shows the stack")
+	assert_false(_shell.hit_test().world_receives(centre), "which then takes its own point")
+
+
+func test_the_pause_label_has_no_hit_rectangle_when_the_world_is_running() -> void:
+	"""§4: UI-SET-086 is "not clickable; no empty hit rect"."""
+	_shell.set_pause_display(false, "")
+	var label: Control = _shell.control_for(UiShell.ID_PAUSE_LABEL)
+	assert_false(label.visible, "the label is hidden while the world runs")
+	assert_equal(label.mouse_filter, Control.MOUSE_FILTER_IGNORE, "and never consumes input")
+
+
+func test_hidden_expansions_are_not_in_the_hit_table_until_they_open() -> void:
+	"""A closed ledger must not take clicks from the world that is drawn behind it."""
+	var ledger: Control = _shell.control_for(UiShell.ID_LEDGER)
+	var point: Vector2 = ledger.position + Vector2(4.0, 4.0)
+	assert_false(ledger.visible, "the ledger starts closed")
+	assert_true(_shell.hit_test().world_receives(point), "so that point is the world's")
+
+
+# --- values are rendered verbatim ---------------------------------------------------------------
+
+func test_the_status_line_and_ledger_are_printed_byte_for_byte() -> void:
+	"""The shell renders; it does not reformat. A rounded figure here would be a fabrication."""
+	_shell.set_status_line("Paused  x4  Y1 spring 1")
+	assert_equal(_shell.status_label().text, "Paused  x4  Y1 spring 1", "the status line is exact")
+	_shell.set_ledger_display("Food-days 5.48   Beds --")
+	assert_equal(_shell.ledger_label().text, "Food-days 5.48   Beds --", "the ledger line is exact")
+	_shell.set_counter_display(UiShell.ID_FOOD, "5.48")
+	assert_true((_shell.control_for(UiShell.ID_FOOD) as Button).text.contains("5.48"),
+		"and the counter cell shows the supplied string")
+
+
+func test_the_speed_toggles_show_which_speed_is_requested() -> void:
+	"""UI-SET-015/016/017: selected state follows the requested speed, and only one is selected."""
+	_shell.set_speed_selected(2)
+	assert_false((_shell.control_for(UiShell.ID_SPEED_1) as Button).button_pressed, "1x is not selected")
+	assert_true((_shell.control_for(UiShell.ID_SPEED_2) as Button).button_pressed, "2x is selected")
+	assert_false((_shell.control_for(UiShell.ID_SPEED_4) as Button).button_pressed, "4x is not")
+	_shell.set_speed_selected(4)
+	assert_true((_shell.control_for(UiShell.ID_SPEED_4) as Button).button_pressed, "4x is selected")
+	assert_false((_shell.control_for(UiShell.ID_SPEED_2) as Button).button_pressed, "2x is released")
+
+
+func test_the_pause_label_names_the_held_reasons() -> void:
+	"""UI-SET-086's value binding is "Paused: "+ordered_pause_reasons, not a bare word."""
+	_shell.set_pause_display(true, "PLAYER")
+	var label: Label = _shell.control_for(UiShell.ID_PAUSE_LABEL) as Label
+	assert_true(label.visible, "the label is shown while paused")
+	assert_equal(label.text, "Paused: PLAYER", "and names the reason")
+	assert_true((_shell.control_for(UiShell.ID_PAUSE) as Button).button_pressed,
+		"UI-SET-014 shows selected while effectively paused")
+
+
+func test_the_refusal_display_carries_the_exact_text_it_was_given() -> void:
+	"""UI-SET-085: "Error code+plain reason+recovery action", not a generic apology."""
+	_shell.set_refusal_display("Paint at least one tile before designating. (UI_ZONE_STROKE_IS_EMPTY)")
+	var panel: Control = _shell.control_for(UiShell.ID_ERROR_PANEL)
+	assert_true(panel.visible, "the error panel opens for a refusal")
+	assert_true(panel.accessibility_description.contains("UI_ZONE_STROKE_IS_EMPTY"),
+		"the exact code reaches the accessible description")
+	_shell.set_refusal_display("")
+	assert_false(panel.visible, "and it closes when there is nothing to report")
+
+
+func test_the_minimap_says_when_no_world_has_been_generated() -> void:
+	"""A generated world is the only thing the map can show; its absence is stated, not drawn."""
+	_shell.set_minimap_display("No world generated yet. Use New settlement.")
+	var line: Label = _shell.control_for(UiShell.ID_MINIMAP_VIEW).get_node("Line") as Label
+	assert_true(line.text.contains("No world generated"), "the map says what it does not have")
+	assert_equal(line.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"and the text itself takes no click")
+
+
+# --- §8.2's focus order points at real controls ---------------------------------------------------
+
+func test_every_focus_stop_names_an_element_this_shell_built() -> void:
+	"""A keyboard order listing ids with no control is an order that goes nowhere."""
+	var order: UiFocusOrder = _shell.focus_order()
+	var stops: PackedInt32Array = PackedInt32Array()
+	stops.resize(order.sequence_length(true))
+	var written: int = order.sequence_into(true, stops)
+	assert_true(written > 0, "the order has stops")
+	for index: int in written:
+		assert_true(_shell.renders(stops[index]),
+			"focus stop UI-SET-%03d is built" % stops[index])
+
+
+func test_interactive_controls_can_take_keyboard_focus() -> void:
+	"""§2.2: every interactive element has a focus outline, which requires a focus mode."""
+	for id: int in [UiShell.ID_PAUSE, UiShell.ID_ZONE, UiShell.ID_EXPAND, UiShell.ID_MENU]:
+		var control: Control = _shell.control_for(id)
+		assert_equal(control.focus_mode, Control.FOCUS_ALL, "UI-SET-%03d is focusable" % id)
+
+
+func test_the_detail_panel_opens_and_changes_the_command_interval() -> void:
+	"""§1.2's command strip shortens when the detail panel is open; both must be reachable."""
+	var closed_width: float = _shell.geometry().commands.size.x
+	_shell.set_detail_open(true)
+	assert_true(_shell.layout_for(1280, 720), "the open-detail layout computes")
+	assert_true((_shell.control_for(UiShell.ID_DETAIL) as Control).visible, "the panel is open")
+	assert_true(_shell.geometry().detail_open, "the geometry knows it")
+	assert_true(_shell.geometry().commands.size.x <= closed_width,
+		"and the command interval did not grow")
+
+
+# --- pressing a button issues a command, and never writes a store --------------------------------
+
+func test_pressing_confirm_designates_a_zone_through_the_command_queue() -> void:
+	"""The whole of 04.4's acceptance, driven through the real button: a command, not a write."""
+	var fixture: Dictionary = _bound_settlement()
+	var basin: Vector2i = fixture["basin"]
+	assert_true(_shell.select_basin(basin, 0), "the zone tool is pointed at a basin")
+	assert_true(_shell.paint_tile(5), "a tile is painted")
+	assert_true(_shell.paint_tile(6), "and another")
+	var zones_before: int = (fixture["forage"] as ForageScript).zone_count()
+	(_shell.control_for(UiShell.ID_CONFIRM) as Button).emit_signal(&"pressed")
+	assert_equal((fixture["queue"] as CommandsScript).pending_count(), 1, "one command is queued")
+	assert_equal((fixture["forage"] as ForageScript).zone_count(), zones_before,
+		"and not one store row changed")
+	assert_equal(_shell.stroke_size(), 0, "the committed stroke is cleared")
+
+
+func test_pressing_confirm_with_nothing_selected_refuses_visibly() -> void:
+	"""A button that quietly does nothing is indistinguishable from a broken one."""
+	_bound_settlement()
+	(_shell.control_for(UiShell.ID_CONFIRM) as Button).emit_signal(&"pressed")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NO_TARGET, "the action refuses")
+	var panel: Control = _shell.control_for(UiShell.ID_ERROR_PANEL)
+	assert_true(panel.visible, "and says so in the accessible refusal display")
+	assert_true(panel.accessibility_description.contains("UI_SHELL_NOTHING_SELECTED"),
+		"with the exact code: '%s'" % panel.accessibility_description)
+
+
+func test_cancelling_a_stroke_changes_no_queue_or_store_state() -> void:
+	"""REQ-UX-012: cancelling a preview removes only uncommitted preview state."""
+	var fixture: Dictionary = _bound_settlement()
+	assert_true(_shell.select_basin(fixture["basin"], 0), "a basin is selected")
+	assert_true(_shell.paint_tile(9), "a tile is painted")
+	(_shell.control_for(UiShell.ID_CANCEL) as Button).emit_signal(&"pressed")
+	assert_equal(_shell.stroke_size(), 0, "the stroke is gone")
+	assert_equal((fixture["queue"] as CommandsScript).pending_count(), 0, "no command was queued")
+	assert_equal((fixture["forage"] as ForageScript).zone_count(), 1, "and the basin is untouched")
+
+
+func test_the_policy_toggle_issues_a_set_policy_command() -> void:
+	"""UI-SET-100 reaches `forage.gd` only through ARCH-CMD-001, like every other edit."""
+	var fixture: Dictionary = _bound_settlement()
+	_shell.select_zone(fixture["basin"], true)
+	(_shell.control_for(UiShell.ID_WORK_POLICY) as Button).emit_signal(&"pressed")
+	assert_equal((fixture["queue"] as CommandsScript).pending_count(), 1, "one command is queued")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NONE, "the action was accepted")
+
+
+func test_cancelling_a_job_issues_a_cancel_job_command() -> void:
+	"""UI-SET-096's cancel action, which 04.4's acceptance ends on."""
+	var fixture: Dictionary = _bound_settlement()
+	_shell.select_job(fixture["basin"])
+	assert_true(_shell.cancel_selected_job(), "the cancellation is accepted")
+	assert_equal((fixture["queue"] as CommandsScript).pending_count(), 1, "as one queued command")
+	_shell.select_job(Vector2i(-1, 0))
+	assert_false(_shell.cancel_selected_job(), "cancelling nothing refuses")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NO_TARGET, "with NOTHING_SELECTED")
+
+
+func test_a_stroke_must_be_ascending_and_inside_the_map() -> void:
+	"""§8.1's payload shape is enforced while painting, not discovered at Confirm."""
+	assert_true(_shell.paint_tile(10), "a tile is painted")
+	assert_false(_shell.paint_tile(10), "the same tile again refuses")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_TILE_NOT_ASCENDING, "as not ascending")
+	assert_false(_shell.paint_tile(9), "an earlier tile refuses too")
+	assert_false(_shell.paint_tile(ForageScript.TILE_COUNT), "a tile past the grid refuses")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_TILE_RANGE, "as out of range")
+
+
+func test_an_unbound_shell_refuses_an_action_rather_than_appearing_to_work() -> void:
+	"""With no command bridge there is nowhere for an action to go, and it must say so."""
+	(_shell.control_for(UiShell.ID_CONFIRM) as Button).emit_signal(&"pressed")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NO_BRIDGE, "the action refuses")
+	assert_true((_shell.control_for(UiShell.ID_ERROR_PANEL) as Control).visible,
+		"and the refusal is on screen")
+
+
+# --- picking a tile on the map ---------------------------------------------------------------
+
+func _click_map(local_position: Vector2) -> void:
+	"""Send one left-button press into UI-SET-021 at a position inside the map rectangle."""
+	var event: InputEventMouseButton = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = true
+	event.position = local_position
+	_shell.control_for(UiShell.ID_MINIMAP_VIEW).emit_signal(&"gui_input", event)
+
+
+func test_clicking_the_map_picks_the_tile_under_the_pointer() -> void:
+	"""UI-SET-021 is the one pointer selection this milestone has, and it needs no camera."""
+	var view: Control = _shell.control_for(UiShell.ID_MINIMAP_VIEW)
+	assert_true(view.size.x > 0.0, "the map has a rectangle to pick inside")
+	_click_map(Vector2(0.0, 0.0))
+	assert_equal(_shell.picked_tile(), 0, "the north-west corner is tile 0")
+	_click_map(view.size * 0.5)
+	var middle: int = 64 * UiShell.MAP_TILES_X + 64
+	assert_equal(_shell.picked_tile(), middle, "the centre of the map is tile (64,64)")
+
+
+func test_a_click_outside_the_map_picks_nothing_and_says_so() -> void:
+	"""A pick that resolves to no tile must refuse rather than silently choosing tile 0."""
+	var view: Control = _shell.control_for(UiShell.ID_MINIMAP_VIEW)
+	_click_map(Vector2(-4.0, 4.0))
+	assert_equal(_shell.picked_tile(), UiShell.NO_TILE, "nothing was picked")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_TILE_RANGE, "and the pick refused")
+	_click_map(view.size + Vector2(8.0, 8.0))
+	assert_equal(_shell.picked_tile(), UiShell.NO_TILE, "past the far corner picks nothing either")
+
+
+func test_a_right_click_on_the_map_does_not_pick_a_tile() -> void:
+	"""§5.1's right-click table never selects; a right button here must do nothing at all."""
+	var event: InputEventMouseButton = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_RIGHT
+	event.pressed = true
+	event.position = Vector2(4.0, 4.0)
+	_shell.control_for(UiShell.ID_MINIMAP_VIEW).emit_signal(&"gui_input", event)
+	assert_equal(_shell.picked_tile(), UiShell.NO_TILE, "no tile was picked")
+
+
+# --- the brush stepper -----------------------------------------------------------------------
+
+func test_the_brush_stepper_cycles_the_documented_widths() -> void:
+	"""§5: "1/2/4/8-tile brush widths", cycled by UI-SET-062."""
+	assert_equal(_shell.brush_size(), 1, "the brush starts at one tile")
+	var stepper: Button = _shell.control_for(UiShell.ID_STEPPER) as Button
+	stepper.emit_signal(&"pressed")
+	assert_equal(_shell.brush_size(), 2, "then two")
+	stepper.emit_signal(&"pressed")
+	assert_equal(_shell.brush_size(), 4, "then four")
+	stepper.emit_signal(&"pressed")
+	assert_equal(_shell.brush_size(), 8, "then eight")
+	stepper.emit_signal(&"pressed")
+	assert_equal(_shell.brush_size(), 1, "and wraps back to one")
+
+
+func test_a_brush_stroke_paints_a_block_of_ascending_tiles() -> void:
+	"""The stroke stays a legal §8.1 payload however wide the brush is."""
+	var stepper: Button = _shell.control_for(UiShell.ID_STEPPER) as Button
+	stepper.emit_signal(&"pressed")
+	assert_true(_shell.paint_brush_at(0), "a 2x2 block paints")
+	assert_equal(_shell.stroke_size(), 4, "four tiles are in the stroke")
+	_shell.clear_stroke()
+	assert_false(_shell.paint_brush_at(UiShell.MAP_TILES_X - 1),
+		"a block that would leave the map refuses")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_TILE_RANGE, "as out of range")
+	assert_equal(_shell.stroke_size(), 0, "and paints nothing at all")
+
+
+# --- hiding a layer changes no truth -----------------------------------------------------------
+
+func test_hiding_the_ecology_layer_changes_no_committed_value() -> void:
+	"""04.4: "hiding layers does not change truth"."""
+	var residents: ResidentsScript = ResidentsScript.new()
+	var jobs: JobsScript = JobsScript.new(residents)
+	var presentation: PresentationExtractScript = PresentationExtractScript.new(residents, jobs)
+	_shell.bind_presentation(presentation)
+	assert_true(presentation.capture(1), "a snapshot is captured")
+	var population_before: int = presentation.value_of(
+		PresentationExtractScript.FIELD_POPULATION).value
+	assert_true(_shell.ecology_layer_visible(), "the ecology layer starts visible")
+	(_shell.control_for(UiShell.ID_MAP_LAYERS) as Button).emit_signal(&"pressed")
+	assert_false(_shell.ecology_layer_visible(), "the layer is hidden")
+	assert_equal(presentation.value_of(PresentationExtractScript.FIELD_POPULATION).value,
+		population_before, "and the population field is byte-identical")
+
+
+func test_the_layer_toggle_refuses_when_no_snapshot_is_bound() -> void:
+	"""With no ARCH-SYS-023 snapshot there is no layer to hide, and the shell must say so."""
+	(_shell.control_for(UiShell.ID_MAP_LAYERS) as Button).emit_signal(&"pressed")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NO_LAYERS, "the toggle refuses")
+	assert_true((_shell.control_for(UiShell.ID_ERROR_PANEL) as Control).visible,
+		"and the refusal is on screen")
+
+
+# --- keyboard focus shows the description and the outline ---------------------------------------
+
+func test_focusing_a_control_shows_its_description_and_the_gold_outline() -> void:
+	"""§2.2: tooltips appear at 0 ms on keyboard focus, and the outline follows the focus."""
+	var zone: Button = _shell.control_for(UiShell.ID_ZONE) as Button
+	zone.emit_signal(&"focus_entered")
+	assert_equal(_shell.focused_element(), UiShell.ID_ZONE, "the shell knows what is focused")
+	var tooltip: Control = _shell.control_for(UiShell.ID_TOOLTIP)
+	assert_true(tooltip.visible, "the description is shown immediately")
+	assert_equal(_shell.tooltip_label().text, zone.tooltip_text,
+		"and it is that control's own description")
+	var outline: Control = _shell.control_for(UiShell.ID_FOCUS_OUTLINE)
+	assert_true(outline.visible, "the focus outline is shown")
+	assert_true(outline.size.x > zone.size.x, "and it surrounds the control it follows")
+
+
+func test_focusing_an_unavailable_control_shows_the_missing_owner() -> void:
+	"""§2.2: "Locked controls explain unlock requirements without requiring hover"."""
+	var build: Button = _shell.control_for(UiShell.ID_BUILD) as Button
+	build.emit_signal(&"focus_entered")
+	var reason: String = _shell.tooltip_label().text
+	assert_true(reason.begins_with(UNAVAILABLE_WORD), "the reason is shown on focus")
+	assert_true(reason.contains("Building"), "and it names the missing store")
+
+
+# --- decorative regions, read from the built tree, never take a world click ----------------------
+
+func test_the_world_surface_covers_the_viewport_without_consuming_it() -> void:
+	"""§4: UI-SET-023 is the full remaining viewport AND "not a fullscreen UI hit block"."""
+	var surface: Control = _shell.control_for(UiShell.ID_WORLD_SURFACE)
+	assert_almost_equal(surface.size.x, _shell.geometry().logical_width,
+		"the overlay spans the logical viewport")
+	assert_almost_equal(surface.size.y, _shell.geometry().logical_height, "in both directions")
+	assert_true(_shell.hit_test().world_receives(surface.size * 0.5),
+		"and a click in the middle of it still reaches the world")
+
+
+func test_a_visible_decorative_label_does_not_take_the_point_under_it() -> void:
+	"""§4: UI-SET-086 is "not clickable; no empty hit rect", even while it is on screen.
+
+	This is the assertion that fails if the shell ever registers its regions as consuming
+	wholesale instead of reading each control's own mouse filter.
+	"""
+	_shell.set_pause_display(true, "PLAYER")
+	assert_true(_shell.layout_for(1280, 720), "the layout recomputes with the label shown")
+	var label: Control = _shell.control_for(UiShell.ID_PAUSE_LABEL)
+	assert_true(label.visible, "the pause label is on screen")
+	assert_true(label.size.x > 0.0, "with a real rectangle")
+	var inside: Vector2 = label.position + label.size * 0.5
+	assert_true(_shell.hit_test().world_receives(inside),
+		"and the world still gets the point under it")
+	assert_false(_shell.hit_test().element_at(inside).ok, "no element claims that point")
+
+
+func test_the_ornament_and_the_focus_outline_are_outside_the_hit_table() -> void:
+	"""Decoration ignores the mouse, cannot take focus and carries no accessible name."""
+	var outline: Control = _shell.control_for(UiShell.ID_FOCUS_OUTLINE)
+	assert_equal(outline.mouse_filter, Control.MOUSE_FILTER_IGNORE, "the outline ignores input")
+	var detail: Control = _shell.control_for(UiShell.ID_DETAIL)
+	var sprig: TextureRect = detail.get_node("Ornament") as TextureRect
+	assert_not_null(sprig, "the detail panel carries the sprig ornament")
+	assert_equal(sprig.mouse_filter, Control.MOUSE_FILTER_IGNORE, "which ignores input")
+	assert_equal(sprig.focus_mode, Control.FOCUS_NONE, "can never take focus")
+	assert_equal(sprig.accessibility_name, "", "and is excluded from the accessibility tree")
+
+
+# --- integration: the routing, the page container and the focus wiring actually run --------------
+
+func test_residents_opens_the_roster_and_never_the_unbuilt_world_access_panel() -> void:
+	"""UXV-004. §4.1:182 gives UI-SET-031 as "ALWAYS; opens roster rows 069".
+
+	This shell used to open UI-SET-087 here -- the one element `ui_availability.gd` marks
+	PANEL_NOT_BUILT -- so the Residents button opened a panel that does not exist. The
+	destination is read from the registry, so a literal cannot drift away from §4.1 again.
+	"""
+	assert_true(_shell.open_workspace_page(UiRegistry.OPENS[UiShell.ID_RESIDENTS][0]),
+		"the registry's destination for 031 is a page this shell builds")
+	assert_equal(_shell.workspace_page(), UiRegistry.ROSTER_ID,
+		"which is the roster, UI-SET-069")
+	assert_true(UiRegistry.ROSTER_ID != UiShell.ID_WORLD_LIST,
+		"and the roster is not the world-access list F6 owns")
+
+
+func test_opening_another_page_hides_the_whole_roster_not_just_its_first_row() -> void:
+	"""UI-SET-069's element id is the first ROW's control, so the page needs its own container.
+
+	Without one the page loop toggles row 0 and leaves rows 1-11 standing underneath whichever
+	page is open. The roster is populated first because `_set_roster_visible(0)` hides every row
+	at build time -- asserting on an empty roster would pass whether or not the container works.
+	"""
+	_shell.set_roster(PackedStringArray(["Warden Rowan mouse", "Unnamed mole"]), 2)
+	assert_true(_shell.open_workspace_page(UiRegistry.ROSTER_ID), "open the roster")
+	var row_zero: Control = _shell.control_for(UiShell.ID_RESIDENT_ROW)
+	var holder: Control = row_zero.get_parent() as Control
+	assert_true(holder != null, "the roster rows live inside a container of their own")
+	assert_true(holder.visible, "which is shown while the roster is the open page")
+	assert_true(row_zero.visible, "and a populated row is shown inside it")
+	assert_true(_shell.open_workspace_page(UiShell.ID_NEW_SETTLEMENT), "switch pages")
+	assert_false(holder.visible,
+		"the whole roster leaves with the page, so no row survives underneath the new one")
+
+
+func test_the_focus_order_is_written_onto_the_real_controls() -> void:
+	"""UXV-033 names "focus-list data without runtime wiring" as insufficient, and it WAS the state.
+
+	`bind_controls()` and `wire_hud()` had no call site anywhere in the repository, so the
+	computed order was a data structure Godot never read. `focus_next` is one of the properties
+	Godot's own Tab navigation follows, so a written one is the difference between an order that
+	exists and an order a player can feel. Counting them is what makes an unwired shell fail:
+	a shell that never calls the router leaves every one of these empty.
+	"""
+	var wired: int = 0
+	for id: int in UiRegistry.FIRST_ID + UiRegistry.ELEMENT_COUNT:
+		if id < UiRegistry.FIRST_ID:
+			continue
+		var control: Control = _shell.control_for(id)
+		if control != null and not control.focus_next.is_empty():
+			wired += 1
+	assert_true(wired > 0,
+		"at least one built control carries a focus_next path after layout; zero means nothing "
+		+ "called bind_controls()/wire_hud() and the order is data only")

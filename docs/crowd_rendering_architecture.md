@@ -1383,3 +1383,13 @@ The existing 16-clip/609-frame palette remains a baseline; close MOVE-G04 with a
 The existing 30 Hz bake, in-place root convention, 64-bone/sockets limit, triangle/atlas limits and 1.0 m mouse anchor remain constraints. If an authored traversal requires a change, revise the owner with arithmetic before export. Keep held cargo, tails, wet/dry presentation and supported limbs coherent at close view, while distant LOD retains the correct domain and movement family. Fixed-tick simulation owns movement; IK or animation completion cannot decide arrival.
 
 Use `art-reference/model_reference_guide.md` for IMG assignments and `redwall-design/location_atlas.md` for textual environment context. A completed illustration review is not a completed species clearance sheet. Settlement close actors retain their separate budget; this amendment does not grant the battle budget to settlement scenes. Requalify bounds/culling, overlap between floors, cutaway/picking and saves during movement. Windows remains deferred pending hardware access; the 5090 is not a substitute for qualification-floor evidence.
+
+## Settlement specialization — 2026-09-11
+
+[ART-GAP-R01–05](planning/asset_dimensions_and_budgets.md) explicitly specializes
+§2.7 for settlement: nominal64px L0, pool cap24,10% hysteresis and0.20s residence;
+see that contract for admission/eviction ordering and near-plane behavior.
+Battle180px/cap48 and the remaining crowd tiers/budgets remain unchanged.
+The same package supplies non-creature authoring budgets within the existing
+whole-scene graphics ceiling. §5 radii are horizontal locomotion/separation
+inputs, never anatomical height ratios. No new performance result is claimed.

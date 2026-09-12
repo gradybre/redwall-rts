@@ -28,6 +28,15 @@ explicitly for additive regrowth/other behavior changes.
   meals, interruption/refund rules, restoration/memories and starvation/health
   integration. Stock aging, spoilage and transformations run once in their
   architecture phase, including shared hour/midnight ticks.
+  - **The aging/spoilage half of 07.3 is done** — ARCH-SYS-004 StockAge is
+    `godot/scripts/core/stock_age.gd`, driven hourly from `settlement_system.gd`
+    and logged as REQ-SET-007's first daily leg before the season handover
+    ([decision 0085](../decisions/0085-stock-aging-runs-hourly-and-declares-its-store.md)).
+    The item remains open for eating/drinking/cooking service, carried meals,
+    interruption/refund and starvation integration. Three things aging still owes
+    are named in that record: the seed → compost ratio is unstated and refused,
+    a container's store kind has no building-layer owner and must be declared,
+    and REQ-SET-108's replanning has no recipe or meal store to notify.
 - [ ] 07.4 Complete sustainable forestry, crop rotations, orchards/hives, fishing
   gear/effort and preservation chains through physical work and storage. Initial
   basin stocks never multiply with player zones. Integrate SET_FIELD_ROTATION

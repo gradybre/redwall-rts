@@ -1,0 +1,122 @@
+{
+  "heights_candidate_u": {
+    "mouse": 1024,
+    "mole": 922,
+    "squirrel": 1024,
+    "otter": 1526,
+    "badger": 2611
+  },
+  "buildings_top_u": {
+    "apiary": 2048,
+    "boathouse": 5120,
+    "brewery": 5120,
+    "cellar": 2048,
+    "composter": 1280,
+    "covered_store": 5120,
+    "dirt_path": 64,
+    "dryer": 3072,
+    "fence": 1536,
+    "fisher_shelter": 3584,
+    "forester_lodge": 4608,
+    "gate": 3584,
+    "hall": 7168,
+    "infirmary": 5632,
+    "kitchen": 5120,
+    "lookout": 8192,
+    "memorial_garden": 2048,
+    "mill": 7168,
+    "nursery": 3072,
+    "open_stockpile": 2560,
+    "paved_path": 128,
+    "preserver": 5120,
+    "quarry_shed": 4096,
+    "residence": 6144,
+    "saltpan": 512,
+    "stone_wall": 2560,
+    "weir": 1536,
+    "well": 3072,
+    "workbench": 3584,
+    "workshop": 5120
+  },
+  "budgets": [
+    {
+      "family": "Building assembly",
+      "near_tri": 32000,
+      "mid_tri": 10000,
+      "far_tri": 2500,
+      "surfaces": 16,
+      "max_texture_edge": 2048
+    },
+    {
+      "family": "Furniture instance",
+      "near_tri": 2000,
+      "mid_tri": 700,
+      "far_tri": 180,
+      "surfaces": 2,
+      "max_texture_edge": 1024
+    },
+    {
+      "family": "Tool / resource / small prop",
+      "near_tri": 1200,
+      "mid_tri": 400,
+      "far_tri": 100,
+      "surfaces": 1,
+      "max_texture_edge": 1024
+    },
+    {
+      "family": "Tree / large vegetation",
+      "near_tri": 6000,
+      "mid_tri": 2000,
+      "far_tri": 500,
+      "surfaces": 2,
+      "max_texture_edge": 2048
+    },
+    {
+      "family": "Ground cover cluster",
+      "near_tri": 600,
+      "mid_tri": 180,
+      "far_tri": 40,
+      "surfaces": 1,
+      "max_texture_edge": 1024
+    }
+  ],
+  "status": "ENGINEERING_AUTHORING_RULES_WITH_PROPORTION_REVIEW_PENDING",
+  "date": "2026-09-11",
+  "noncreature_mesh_bytes": 134217728,
+  "noncreature_texture_bytes": 268435456,
+  "settlement_l0": {
+    "nominal_px": 64,
+    "promote_px": 70.4,
+    "demote_below_px": 57.6,
+    "cap": 24,
+    "residence_seconds": 0.2
+  },
+  "crop_module_triangles": {
+    "near": 256,
+    "mid": 96,
+    "far": 16
+  },
+  "terrain_texels_per_meter": 256,
+  "structure_texels_per_meter": 128,
+  "props_texels_per_meter": 256,
+  "source_lookdev_brief": {
+    "path": "docs/art-reference/world_art_lookdev_brief.md",
+    "sha256": "4e8138103bb709dac9e71445b69c76f35fb63ce05f18decf4ef43fca76cd7edf"
+  },
+  "building_material_count": 4,
+  "building_surfaces_by_lod": {
+    "near": 16,
+    "mid": 16,
+    "far": 4
+  },
+  "static_lod": {
+    "initial_near_px": 180,
+    "initial_mid_px": 48,
+    "promote_near_px": 198,
+    "demote_near_below_px": 162,
+    "promote_mid_px": 52.8,
+    "demote_mid_below_px": 43.2,
+    "residence_seconds": 0.2,
+    "status": "NEW_STATIC_POLICY"
+  }
+}

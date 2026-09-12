@@ -179,3 +179,12 @@ Validation: IMG IDs must resolve; accepted features must be visible in a named r
 8. Reject source mismatches that were not recorded as intentional adaptations. Keep a side-by-side review image in the future asset report, pointing back to the original source PNG.
 
 Remaining work is concrete: no turnarounds, meshes, rigs, textures, clips, contact fixtures or renders were produced in this task. This document tells the model-building agent which original images and features to use; it does not report those production steps as completed.
+
+## Asset gap decisions — 2026-09-11
+
+Read [ART-GAP-R01–05](../planning/asset_dimensions_and_budgets.md) before authoring:
+anatomical comparison heights, all30 exterior envelopes, non-creature/crop/terrain
+budgets, cutaway parts, material/texture-density rules and settlement L0 admission.
+New budgets are design targets. Non-mouse proportions still need the prescribed
+comparison review; neither these dimensions nor the approved style closes movement
+or hardware qualification. Supplied-reference direct-use authorization is unchanged.

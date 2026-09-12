@@ -63,6 +63,21 @@ extends RefCounted
 ##    here was weakened to admit a null container: create_lot() still requires a live container,
 ##    and split/merge/move/transfer/sink/reserve all refuse an equipped lot outright.
 ##
+## 5. AGE IS WRITTEN HERE AND DECIDED ELSEWHERE (ARCH-SYS-004; GDD §5.8 REQ-SET-107–108).
+##    `advance_lot_age_hour_into()` folds one game hour of effective storage age into the two
+##    age columns, and `transform_lot_item_into()` performs §5.8's spoilage conversion on the
+##    SAME row. Neither knows what a store factor, a season or a shelf life is: `stock_age.gd`
+##    supplies the two already-chosen factors and the already-resolved outcome item, because an
+##    inventory that decided them would be holding a copy of the food rules.
+##
+##    AN EQUIPPED LOT IS NOT AGED, AND BOTH MUTATORS REFUSE ONE WITH `LOT_EQUIPPED`. §5.8
+##    defines age as EFFECTIVE STORAGE age through a store factor, and it names every non-store
+##    case it covers -- prepared food left on tables takes the open-pile factor, and §5.9's
+##    ground piles take 1500 -- without naming equipment. A lot held as equipment is therefore
+##    in no store and HAS no factor, so aging it would be inventing one. That the GDD does not
+##    decide this is a NAMED GAP, not a choice made here; `test_stock_age.gd` pins why it is
+##    currently unobservable, and `stock_age.gd`'s header states the gap in full.
+##
 ## ARCH-MEM-001: every column is a packed array allocated once in _init(). No GDScript Array is
 ## allocated per row; a container's lots are an intrusive doubly linked list threaded through
 ## two packed lot columns, not a per-container child array.
@@ -112,6 +127,13 @@ const ITEM_CAPACITY: int = 256
 
 ## Milli-units per catalog unit (BAL-NUM-001).
 const MILLI_PER_UNIT: int = 1000
+
+## GDD §5.8's aging divisor: "Effective age per hour=floor(store_factor*temperature_factor/1000),
+## retaining tick fractions". It is 1000 because BOTH factors are per-mille of the base 1000
+## milli-hours an hour costs at store factor 1000 in an unmodified season -- it is NOT
+## `MILLI_PER_UNIT`, which happens to share the number while meaning milli-units per catalog
+## unit. Aliasing the two would make a later change to either silently change the other.
+const AGE_FACTOR_DENOMINATOR: int = 1000
 
 ## Category bits available in the 64-bit `filters` mask (ARCH-STATE-004).
 const CATEGORY_COUNT: int = 64
@@ -227,6 +249,12 @@ const REFUSE_ATTESTATION_REENTRY: StringName = &"ATTESTATION_REENTRY"
 const REFUSE_AUDIT_ORPHAN_LOT: StringName = &"AUDIT_ORPHAN_LOT"
 const REFUSE_AUDIT_EQUIPPED_COUNT: StringName = &"AUDIT_EQUIPPED_COUNT_MISMATCH"
 const REFUSE_AUDIT_LOT_CYCLE: StringName = &"AUDIT_LOT_LIST_CYCLE"
+## ARCH-SYS-004 StockAge additions. An aging factor is a GDD §5.8 table value and is never
+## negative; an age that can no longer be rounded up to a whole hour refuses rather than being
+## stored, because `_age_hours_ceil_into()` would then refuse for every later merge instead.
+const REFUSE_INVALID_AGE_FACTOR: StringName = &"INVALID_AGE_FACTOR"
+const REFUSE_AGE_LIMIT_REACHED: StringName = &"AGE_LIMIT_REACHED"
+const REFUSE_SAME_ITEM: StringName = &"SAME_ITEM"
 
 ## The single method name an equipment authority must publish. Duck typed on purpose: `gear.gd`
 ## preloads this module, so this module must not preload `gear.gd` back.
@@ -689,6 +717,31 @@ func _leave(owned: bool, code: StringName) -> OpResult:
 	if failed:
 		return OpResult.new(false, code, NULL_REF, 0)
 	return OpResult.new(true, REFUSE_NONE, _out_ref, _out_value)
+
+
+func _leave_into(owned: bool, code: StringName, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `_leave()`: close the transaction and write the outcome into `out`.
+
+	ARCH-SYS-004 touches every stored lot every game hour, so its two mutators cannot each
+	allocate an OpResult per lot. This is the same close as `_leave()` -- same poisoning, same
+	rollback, same "a refusal carries no value" rule -- writing into a caller-owned IntResult
+	instead of a fresh object. `out.value` carries the produced integer and `out.ref` has no
+	analogue: an aging caller already holds the lot ref it passed in.
+	"""
+	var failed: bool = code != REFUSE_NONE
+	if failed:
+		_tx_poisoned = true
+		if _tx_error == REFUSE_NONE:
+			_tx_error = code
+	if owned:
+		if failed:
+			_rollback()
+		else:
+			_j_count = 0
+		_close_transaction()
+	if failed:
+		return out.refuse(String(code))
+	return out.succeed(_out_value)
 
 
 func _succeed(ref: Vector2i, value: int) -> StringName:
@@ -1814,6 +1867,221 @@ func _change_reservation(lot_ref: Vector2i, delta_milli: int) -> StringName:
 	_journal_lot(slot)
 	_l_reserved_milli[slot] = next
 	return _succeed(lot_ref, next)
+
+
+# --- ARCH-SYS-004 StockAge: effective storage age and the expiry transformation ---------------
+#
+# GDD §5.8 owns both rules and this module owns neither of their INPUTS. The store factor, the
+# seasonal temperature factor and an item's shelf life all live outside an inventory, so nothing
+# here decides when a lot ages or what it becomes: `stock_age.gd` (ARCH-SYS-004) supplies the
+# already-chosen factors and the already-resolved outcome item, and these two mutators write
+# them under the same all-or-nothing, journaled, generation-validated rules as every other
+# operation on this store.
+
+func advance_lot_age_hour(lot_ref: Vector2i, store_factor: int,
+		temperature_factor: int) -> OpResult:
+	"""One game hour of GDD §5.8 effective storage age. See advance_lot_age_hour_into().
+
+	This form allocates the one OpResult every public operation here allocates; the `_into` form
+	below is the one ARCH-SYS-004's hourly sweep uses.
+	"""
+	var owned: bool = _enter()
+	var code: StringName = _advance_age_checked(lot_ref, store_factor, temperature_factor)
+	return _leave(owned, code)
+
+
+func advance_lot_age_hour_into(lot_ref: Vector2i, store_factor: int, temperature_factor: int,
+		out: IntMath.IntResult) -> bool:
+	"""Non-allocating advance_lot_age_hour(): the lot's new total age lands in `out.value`.
+
+	GDD §5.8: "Effective age per hour=floor(store_factor*temperature_factor/1000), retaining
+	tick fractions". The fraction is RETAINED in `age_remainder` rather than floored away, using
+	the same fold `farming.gd` uses for REQ-SET-072 growth: the whole numerator joins the carried
+	remainder, the whole milli-hours it releases are added to the age, and `total % 1000` is kept
+	for the next hour. Both factors come from §5.8's four store classes and four seasons, whose
+	products are all multiples of 1000, so the retained remainder is 0 under the shipped tables
+	and the carry exists for a factor that is not.
+
+	Changing stores never resets age (§5.8), which is true here by omission: nothing in
+	`move_lot()`, `transfer()`, `split_lot()` or the equip/unequip pair touches either column.
+	"""
+	var owned: bool = _enter()
+	var code: StringName = _advance_age_checked(lot_ref, store_factor, temperature_factor)
+	return _leave_into(owned, code, out)
+
+
+func _advance_age_checked(lot_ref: Vector2i, store_factor: int,
+		temperature_factor: int) -> StringName:
+	"""Validate completely, then fold one hour of effective age into the lot's two age columns."""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return guard
+	if not is_lot_valid(lot_ref):
+		return REFUSE_INVALID_LOT
+	if store_factor < 0 or temperature_factor < 0:
+		return REFUSE_INVALID_AGE_FACTOR
+	var slot: int = lot_ref.x
+	if _l_container_slot[slot] == NULL_SLOT:
+		return REFUSE_LOT_EQUIPPED
+	var released: StringName = _hour_age_numerator(slot, store_factor, temperature_factor)
+	if released != REFUSE_NONE:
+		return released
+	var total: int = _math.value
+	if not IntMath.checked_add_into(_l_age_milli_hours[slot],
+			total / AGE_FACTOR_DENOMINATOR, _math):
+		return REFUSE_OVERFLOW
+	var aged: int = _math.value
+	if aged > MAX_AGE_MILLI_HOURS:
+		return REFUSE_AGE_LIMIT_REACHED
+	_journal_lot(slot)
+	_l_age_milli_hours[slot] = aged
+	_l_age_remainder[slot] = total % AGE_FACTOR_DENOMINATOR
+	return _succeed(lot_ref, aged)
+
+
+func _hour_age_numerator(slot: int, store_factor: int, temperature_factor: int) -> StringName:
+	"""This hour's numerator plus the lot's carried remainder, left in `_math.value`.
+
+	Kept separate so the caller stays inside the thirty-line rule and so the overflow refusal
+	names the multiplication rather than the addition that follows it.
+	"""
+	if not IntMath.checked_mul_into(store_factor, temperature_factor, _math):
+		return REFUSE_OVERFLOW
+	if not IntMath.checked_add_into(_l_age_remainder[slot], _math.value, _math):
+		return REFUSE_OVERFLOW
+	return REFUSE_NONE
+
+
+func transform_lot_item(lot_ref: Vector2i, new_item_id: int,
+		new_quantity_milli: int) -> OpResult:
+	"""Turn THE SAME lot row into a different item: GDD §5.8's spoilage conversion, in place.
+
+	"When age reaches shelf_hours x 1000, food becomes spoiled_food at identical mass" is a
+	TRANSFORMATION, not a placement, so the destination container's category filter is NOT
+	consulted: food rots where it stands, and a pantry whose filter admits no WASTE cannot veto
+	that. `create_lot()` still enforces the filter for everything that is actually placed.
+
+	The caller supplies `new_quantity_milli` because the mass identity depends on both items'
+	catalog masses and on which conversion §5.8 names; deciding it here would make this store
+	hold an opinion about food. The row's quality, provenance and recipe are CARRIED, because
+	§5.8 names no replacement for them and this module may not invent a catalog member.
+
+	Age and its remainder ARE reset, and only here: spoiled_food "lasts 240h" from the moment it
+	becomes spoiled_food, so a carried age would expire it in the same hour it was created.
+
+	Conservation is kept as two declared ledger movements, not as a silent relabel: the old
+	item is SUNK for its whole quantity and the new item SOURCED for its whole quantity, so
+	`audit()`'s per-item `live + sunk == sourced` identity still closes on both.
+	"""
+	var owned: bool = _enter()
+	var code: StringName = _transform_checked(lot_ref, new_item_id, new_quantity_milli)
+	return _leave(owned, code)
+
+
+func transform_lot_item_into(lot_ref: Vector2i, new_item_id: int, new_quantity_milli: int,
+		out: IntMath.IntResult) -> bool:
+	"""Non-allocating transform_lot_item(): the new quantity lands in `out.value`."""
+	var owned: bool = _enter()
+	var code: StringName = _transform_checked(lot_ref, new_item_id, new_quantity_milli)
+	return _leave_into(owned, code, out)
+
+
+func _transform_checked(lot_ref: Vector2i, new_item_id: int,
+		new_quantity_milli: int) -> StringName:
+	"""Validate completely, cost the mass change, then rewrite the row and both ledgers."""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return guard
+	var check: StringName = _check_transform(lot_ref, new_item_id, new_quantity_milli)
+	if check != REFUSE_NONE:
+		return check
+	var slot: int = lot_ref.x
+	var costed: StringName = _transform_delta_g(slot, new_item_id, new_quantity_milli)
+	if costed != REFUSE_NONE:
+		return costed
+	var delta_g: int = _math.value
+	var fits: StringName = _check_fits(_l_container_slot[slot], delta_g)
+	if fits != REFUSE_NONE:
+		return fits
+	var ledger: StringName = _transform_ledger(slot, new_item_id, new_quantity_milli)
+	if ledger != REFUSE_NONE:
+		return ledger
+	_apply_transform(slot, new_item_id, new_quantity_milli, delta_g)
+	return _succeed(lot_ref, new_quantity_milli)
+
+
+func _check_transform(lot_ref: Vector2i, new_item_id: int,
+		new_quantity_milli: int) -> StringName:
+	"""Every precondition for rewriting a lot's item. REFUSE_NONE when the rewrite is legal.
+
+	A RESERVED lot refuses: a claim is held against a quantity of a particular item, and
+	REQ-SET-108 requires those claims to be INVALIDATED before the conversion, not carried
+	across it. `release_all_reservations()` is the caller's step, inside the same transaction.
+	"""
+	if not is_lot_valid(lot_ref):
+		return REFUSE_INVALID_LOT
+	if _l_container_slot[lot_ref.x] == NULL_SLOT:
+		return REFUSE_LOT_EQUIPPED
+	if _l_reserved_milli[lot_ref.x] != 0:
+		return REFUSE_LOT_HAS_RESERVATION
+	if new_item_id < 0 or new_item_id >= ITEM_CAPACITY or _item_registered[new_item_id] == 0:
+		return REFUSE_UNKNOWN_ITEM
+	if new_item_id == _l_item_id[lot_ref.x]:
+		return REFUSE_SAME_ITEM
+	if new_quantity_milli <= 0:
+		return REFUSE_INVALID_QUANTITY
+	return REFUSE_NONE
+
+
+func _transform_delta_g(slot: int, new_item_id: int, new_quantity_milli: int) -> StringName:
+	"""Signed used-mass change when the row becomes a different item at a different quantity.
+
+	Both debits take BAL-NUM-001's per-lot ceiling, so an equal-mass conversion between two
+	items whose grams divide exactly moves the container's charged mass by zero. On REFUSE_NONE
+	the delta is in `_math.value`; copy it before the next call.
+	"""
+	if not IntMath.inventory_capacity_debit_g_into(_l_quantity_milli[slot],
+			_item_mass_g[_l_item_id[slot]], _math):
+		return REFUSE_OVERFLOW
+	var before: int = _math.value
+	if not IntMath.inventory_capacity_debit_g_into(new_quantity_milli,
+			_item_mass_g[new_item_id], _math):
+		return REFUSE_OVERFLOW
+	_math.succeed(_math.value - before)
+	return REFUSE_NONE
+
+
+func _transform_ledger(slot: int, new_item_id: int, new_quantity_milli: int) -> StringName:
+	"""Journal and write both halves of the declared conversion into the conservation ledgers.
+
+	Checked before either write, so a ledger that cannot represent the movement refuses with
+	nothing applied rather than sinking one item and failing to source the other.
+	"""
+	var old_item: int = _l_item_id[slot]
+	if not IntMath.checked_add_into(_sunk_milli[old_item], _l_quantity_milli[slot], _math):
+		return REFUSE_OVERFLOW
+	var sunk: int = _math.value
+	if not IntMath.checked_add_into(_sourced_milli[new_item_id], new_quantity_milli, _math):
+		return REFUSE_OVERFLOW
+	var sourced: int = _math.value
+	_journal_scalar(_J_SUNK, old_item, _sunk_milli[old_item])
+	_sunk_milli[old_item] = sunk
+	_journal_scalar(_J_SOURCED, new_item_id, _sourced_milli[new_item_id])
+	_sourced_milli[new_item_id] = sourced
+	return REFUSE_NONE
+
+
+func _apply_transform(slot: int, new_item_id: int, new_quantity_milli: int,
+		delta_g: int) -> void:
+	"""Write the conversion: new item, new quantity, a fresh age, and the container's mass."""
+	var container_slot: int = _l_container_slot[slot]
+	_journal_lot(slot)
+	_journal_container(container_slot)
+	_l_item_id[slot] = new_item_id
+	_l_quantity_milli[slot] = new_quantity_milli
+	_l_age_milli_hours[slot] = 0
+	_l_age_remainder[slot] = 0
+	_credit_container(container_slot, delta_g)
 
 
 # --- Equipped lots (ruling §4; READY_07 §7.2 step 5; decision 0061) ---------------------------

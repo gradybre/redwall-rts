@@ -1,0 +1,61 @@
+{
+  "document": "R-BUILD-DOM-001-004",
+  "date": "2026-09-11",
+  "status": "SPECIFICATION_FIXTURES_NOT_RUNTIME_CATALOG",
+  "protected_domains": {
+    "Milestone": {
+      "M0": 0,
+      "M1": 1,
+      "M2": 2,
+      "M3": 3,
+      "M4": 4
+    }
+  },
+  "compiled_domains": {
+    "Station": {
+      "brewery": 0,
+      "composter": 1,
+      "dryer": 2,
+      "kitchen": 3,
+      "mill": 4,
+      "nursery": 5,
+      "preserver": 6,
+      "saltpan": 7,
+      "well": 8,
+      "workbench": 9,
+      "workshop": 10
+    }
+  },
+  "existing_furniture_ids": {
+    "bed": 0,
+    "decoration": 1,
+    "hearth": 2,
+    "interior_door": 3,
+    "interior_partition": 4,
+    "kitchen_bench": 5,
+    "patient_bed": 6,
+    "seat": 7,
+    "shelf": 8
+  },
+  "furniture_bits": {
+    "bed": 1,
+    "decoration": 2,
+    "hearth": 4,
+    "interior_door": 8,
+    "interior_partition": 16,
+    "kitchen_bench": 32,
+    "patient_bed": 64,
+    "seat": 128,
+    "shelf": 256
+  },
+  "furniture_allowed_mask": 511,
+  "milestone_allowed_mask": 31,
+  "initial_milestone_mask": 1,
+  "vectors": {
+    "bed_hearth_shelf": 261,
+    "kitchen_bench_hearth_shelf": 292,
+    "all_furniture": 511,
+    "M0_M3": 9,
+    "starter_pantry_grams": 200000
+  }
+}

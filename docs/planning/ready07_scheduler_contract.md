@@ -116,10 +116,10 @@ report that truthfully rather than fake catch-up.
 
 ## Save and replay contract
 
-Propose save container version2 for this pending-state extension, retaining
-`settlement_rules_v2`; no production v1 codec exists to claim has migrated.
-Versioning is a storage-format change, not adoption of a new gameplay formula.
-Do not silently reuse the version1 binary layout. Keep world requested speed,
+SAVE-R09-001 supersedes the earlier proposal of outer container version2: keep
+outer format1, use section12 schema2 with nested SCHQ0001 schema1, retaining
+`settlement_rules_v2`. See [the codec ruling](../rulings/2026-09-11_save_codec_contract.md).
+No production v1 codec is claimed migrated; section12 version1 is not silently reused. Keep world requested speed,
 pause mask and debt/counters with WorldRuntime; section12 holds pending economic
 records followed by a scheduler extension:
 
@@ -128,7 +128,7 @@ records followed by a scheduler extension:
 - the 32-byte queue control header above, canonical head=0;
 - count 32-byte scheduler records in queue order (no unused rows serialized).
 
-For container version2, section12 begins with an exact 24-byte prefix, six U32
+For section schema2 inside container format1, section12 begins with an exact 24-byte prefix, six U32
 fields in this order: section_schema=2, economic_count E, economic_payload_used P,
 scheduler_extension_bytes X, economic_next_sequence_low, economic_next_sequence_high.
 Follow it with E 64-byte economic records in canonical command order, then exactly
@@ -147,7 +147,7 @@ count≤256, sequence bounds, reason ownership/rules, zero padding and pending
 boundary==saved completed tick before world mutation. Restore records from row0,
 all unused records zeroed. last_applied precedes every pending sequence; next
 sequence is greater than every admitted sequence unless exhausted. Preserve
-recorded historical clock counters. A v1 file without this extension may be
+recorded historical clock counters. A section12-schema1 file without this extension may be
 accepted only through a reviewed explicit migration proving no pending scheduler
 intent; otherwise reject with the actual format reason. No fabricated parity.
 

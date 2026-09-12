@@ -18,16 +18,18 @@ extends Node
 ##
 ## ---------------------------------------------------------------------------------------
 ## STAGE ORDER IS `systems_architecture.md` §5's TABLE, NOT CONVENIENCE. Of the 23 systems in
-## that table, NINE are dispatched here (ARCH-SYS-008 only in part). ARCH-SYS-017 is deliberately
-## NOT counted among the nine: it is not a separate call, and three earlier revisions of this
+## that table, TEN are dispatched here (ARCH-SYS-008 only in part). ARCH-SYS-017 is deliberately
+## NOT counted among the ten: it is not a separate call, and three earlier revisions of this
 ## header disagreed about whether to include it -- one said THREE while listing four, another said
 ## FIVE and SIX for the same milestone under different conventions, and the third ended "That is
 ## the sixth" after excluding 017 from a list of six, which named nothing at all. The count below
-## is of DISPATCHED CALL SITES, and the list IS the count. `tick_stage_count()` publishes the SEVEN
+## is of DISPATCHED CALL SITES, and the list IS the count. `tick_stage_count()` publishes the EIGHT
 ## of them that are on the per-tick path, so the list and the code cannot drift apart silently:
 ##
 ##   ARCH-SYS-002 CommandCommit      -> `command_dispatch.commit_tick_into()` every tick, FIRST
 ##   ARCH-SYS-003 IntervalIntegrator -> `needs.tick_all()`         every tick, after commit
+##   ARCH-SYS-004 StockAge           -> `stock_age.run_hour_into()` EVERY HOUR CROSSING, on the
+##                                     tick path, and REQ-SET-007's FIRST daily leg at midnight
 ##   ARCH-SYS-005 Ecology            -> `ecology.run_day_into()`   MIDNIGHT ONLY, never per tick
 ##   ARCH-SYS-006 CropWeather        -> `crop_weather.run_hour_into()` EVERY HOUR CROSSING, on
 ##                                     the tick path, AND `run_day_into()` at MIDNIGHT after 005
@@ -100,9 +102,13 @@ extends Node
 ## EVERY OTHER STAGE IS ABSENT BECAUSE ITS OWNING STORE DOES NOT EXIST, and none of them is
 ## faked here:
 ##   ARCH-SYS-001 TransformSnapshot   no Transform store; no position, no movement.
-##   ARCH-SYS-004 StockAge            `economy_system.gd` states it: nothing advances lot age,
-##                                    because the store and temperature factors belong to
-##                                    systems this milestone does not build.
+##   ARCH-SYS-004 StockAge            RUNS NOW -- see the dispatched list above and decision
+##                                    0085. It is not in this absent list any more. What is
+##                                    still missing is WHICH STORE a container is: GDD §5.8's
+##                                    four store factors belong to §5.9 buildings and furniture,
+##                                    and no Building store exists, so `stock_age.gd` holds an
+##                                    explicit declaration the building layer will write and
+##                                    counts every undeclared container every hour.
 ##   ARCH-SYS-006 CropWeather         RUNS NOW -- see the dispatched list above and decision
 ##                                    0047. It is not in this absent list any more.
 ##   ARCH-SYS-007 ImmigrationDeparture no candidate store; `needs.gd` leaves `departure_days`
@@ -135,7 +141,14 @@ extends Node
 ## runs exactly ONE of those five legs plus the season handover between the first two. What it
 ## does, in the requirement's order:
 ##
-##   age stocks              NOT RUN. ARCH-SYS-004 has no owner; `economy_system.gd` says so.
+##   age stocks              RUN, and this is what decision 0085 added: `scripts/core/stock_age.gd`
+##                           (ARCH-SYS-004) folds GDD §5.8's effective storage age into every lot
+##                           in every DECLARED container, and expires the lots whose shelf life
+##                           is over. Its cadence is the HOUR crossing, not the day, so at
+##                           midnight this leg has usually already run on the tick path and the
+##                           boundary records it rather than aging a second time (ARCH-TICK-002).
+##                           It reads the ELAPSED interval's season, which is the first half of
+##                           ARCH-TICK-003 and the reason it must precede the handover below.
 ##   [season handover]       RUN. ARCH-TICK-003 places it exactly between aging and ecology
 ##                           ("aging uses the season in the elapsed interval; ecology uses the
 ##                           new calendar day's season"), and REQ-SET-143's x1.20 winter hunger
@@ -206,9 +219,11 @@ extends Node
 ##     request and hauling policy, none of which has a store.
 ##
 ## AN *UNGENERATED* SETTLEMENT'S QUEUE IS STILL 0, AND `world_init.gd` IS NOW COMPOSED HERE.
-## `create_generated_settlement()` (decision 0064) runs REQ-SET-009 and then §5.1's cohort as one
-## operation, so the running game has trees, ore, four forage basins, the estuary, a seeded RNG
-## AND twelve residents. The two blockers that kept the generator out of this node are both gone:
+## `create_generated_settlement()` (decision 0071, reordered by R-INIT-ID-001 / decision 0075) runs
+## §5.1's cohort and REQ-SET-009's world as one transaction -- the twelve residents first, on
+## persistent ids 1-12, and the world from 13 -- so the running game has trees, ore, four forage
+## basins, the estuary, a seeded RNG AND twelve residents whose ids are the GDD's own.
+## The two blockers that kept the generator out of this node are both gone:
 ## decision 0052 gave its seventeen item ids an authored source (resolved by key from the compiled
 ## catalog, so this node still invents none of them), and this node is now the caller. A queue of
 ## 0 after generation means no player command has arrived, which is the honest remaining reason.
@@ -260,6 +275,16 @@ extends Node
 ## does not: it runs a full simulated year of weather. No seed is defaulted or invented here.
 ##
 ## ---------------------------------------------------------------------------------------
+## THE STOCK LAYER IS OWNED, DRIVEN AND EMPTY, in the same three senses as the crop layer.
+## `inventory.gd` is composed here with the §4.3 catalog registered into it, `stock_age.gd`
+## (ARCH-SYS-004) is composed over it, and `run_tick()` drives its hourly leg at every hour
+## crossing. IT HOLDS NO LOTS, because nothing in this node creates one: §5.1's starter stock is
+## placed by `economy_system.gd`, which owns a SEPARATE `inventory.gd` instance of its own, and
+## `world_init.gd` creates no lot in this one. THAT DUPLICATION IS REAL AND IS REPORTED RATHER
+## THAN PAPERED OVER: two inventories are two authorities, and merging them means editing
+## `economy_system.gd` and `world_init.gd`, neither of which this work owns. Until they are one
+## store, `stock_age()` ages this settlement's lots and the autoload's food does not age.
+##
 ## THE RESERVATION POOL IS OWNED AND EMPTY. `reservations.gd` exists to hold job input claims
 ## (REQ-SET-030's all-or-nothing reservation), and there are no jobs. It is composed and cleared
 ## with the rest of the settlement so it is one settlement's state rather than a detached object,
@@ -279,6 +304,10 @@ extends Node
 ##     form of it. THIS IS THE ONE THAT WOULD MATTER, and today it costs nothing because there
 ##     are no jobs; when a job source lands, `jobs.gd` needs a non-allocating live-index reader.
 ##     Reported, not worked around, and not fixed by editing a file this task does not own.
+##   * `stock_age.run_hour_into()` ZERO on 23 ticks in 24, for the same reason as the crop hour
+##     below, and zero on the 24th unless a lot ACTUALLY EXPIRES -- the sweep walks packed
+##     columns and writes through `inventory.gd`'s `_into` forms into instance scratch. An
+##     expiring lot costs four OpResults inside `inventory.gd`, once in that lot's life.
 ##   * `crop_weather.run_hour_into()` ZERO on 23 ticks in 24, because `is_hour_boundary()` is a
 ##     modulo and returns before anything else runs. On the 24th it allocates nothing either,
 ##     unless a plot actually takes frost or actually withers; `crop_weather.gd`'s own header
@@ -316,11 +345,16 @@ const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
 const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
 const CropWeatherScript := preload("res://scripts/core/crop_weather.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
+## Reached for `season_of_day()` alone: ARCH-SYS-005 owns the §5.6 calendar and the cohort
+## preflight asks it which season the opening day is in rather than deriving a second answer.
+const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 const WeatherScript := preload("res://scripts/core/weather.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
+const InventoryScript := preload("res://scripts/core/inventory.gd")
+const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
 
@@ -346,18 +380,20 @@ const DAILY_LEG_CAPACITY: int = 6
 ## are for 256 residents on a stated machine, and nothing here qualifies against them.
 const TICK_STAGE_COMMAND_COMMIT: int = 0
 const TICK_STAGE_INTERVAL: int = 1
-const TICK_STAGE_CROP_HOUR: int = 2
-const TICK_STAGE_JOB_PLANNER: int = 3
-const TICK_STAGE_SELECTION: int = 4
-const TICK_STAGE_WORK: int = 5
-const TICK_STAGE_PRESENTATION: int = 6
-const TICK_STAGE_COUNT: int = 7
+const TICK_STAGE_STOCK_AGE: int = 2
+const TICK_STAGE_CROP_HOUR: int = 3
+const TICK_STAGE_JOB_PLANNER: int = 4
+const TICK_STAGE_SELECTION: int = 5
+const TICK_STAGE_WORK: int = 6
+const TICK_STAGE_PRESENTATION: int = 7
+const TICK_STAGE_COUNT: int = 8
 
 ## The ARCH-SYS id each measured stage is, so a reader cannot mistake the selection stage's
 ## fused pair for one system. ARCH-SYS-008 appears as a PART: only activity resolution runs.
 const TICK_STAGE_KEYS: Array[StringName] = [
 	&"ARCH-SYS-002 CommandCommit",
 	&"ARCH-SYS-003 IntervalIntegrator (ARCH-SYS-017 CareHealth inside it)",
+	&"ARCH-SYS-004 StockAge hourly",
 	&"ARCH-SYS-006 CropWeather hourly",
 	&"ARCH-SYS-009 JobPlanner",
 	&"ARCH-SYS-008 NeedIntent (activity resolution only) + ARCH-SYS-010 JobSelector",
@@ -407,6 +443,9 @@ var _crop_weather: CropWeatherScript = null
 var _planner: JobPlannerScript = null
 var _presentation: PresentationExtractScript = null
 var _world: WorldInitScript = null
+var _inventory: InventoryScript = null
+var _item_definitions: ItemDefinitionsScript = null
+var _stock_age: StockAgeScript = null
 
 # --- the live-resident index ------------------------------------------------------------------
 
@@ -428,6 +467,7 @@ var _command_report: CommandDispatchScript.TickReport = CommandDispatchScript.Ti
 var _ecology_day: EcologyScript.DayResult = EcologyScript.DayResult.new()
 var _crop_day: CropWeatherScript.DayResult = CropWeatherScript.DayResult.new()
 var _crop_hour: CropWeatherScript.HourResult = CropWeatherScript.HourResult.new()
+var _stock_hour: StockAgeScript.HourResult = StockAgeScript.HourResult.new()
 var _planner_result: IntMath.IntResult = IntMath.IntResult.new()
 var _planner_day: JobPlannerScript.OpResult = null
 ## The 00:00 tick of the day boundary being run, located and PROVED once per boundary.
@@ -453,6 +493,7 @@ var _stage_measured: PackedInt64Array = PackedInt64Array()
 var _ticks_run: int = 0
 var _refused_tick_count: int = 0
 var _refused_crop_hour_count: int = 0
+var _refused_stock_hour_count: int = 0
 var _refused_extract_count: int = 0
 var _refused_planner_day_count: int = 0
 var _planner_day_count: int = 0
@@ -493,6 +534,7 @@ func _init() -> void:
 	_world = WorldInitScript.new(_directory, _ecology.resource_nodes(), _ecology.forage(),
 		_ecology.fishing(), _rng, _crop_weather.farming(), _ecology.orchard_hive(), _jobs,
 		_commands)
+	_compose_stock_layer()
 	_bind_ecology_to_commands()
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
@@ -502,6 +544,21 @@ func _init() -> void:
 	_stage_usec_total.resize(TICK_STAGE_COUNT)
 	_stage_measured.resize(TICK_STAGE_COUNT)
 	_assert_shared_contracts()
+
+
+func _compose_stock_layer() -> void:
+	"""Build the InventoryLot store, load its item catalog, and give ARCH-SYS-004 both.
+
+	The catalog is loaded INTO this settlement's own inventory because `register_item()` is what
+	gives a lot row a mass and a category; ARCH-SYS-004 then reads the same catalog for GDD
+	§5.8's shelf lives. A catalog that fails to load leaves the stage refusing
+	ITEM_CATALOG_NOT_BOUND by its own rule, which is visible in `stock_hour()`, rather than
+	leaving this node to invent a shelf life.
+	"""
+	_inventory = InventoryScript.new()
+	_item_definitions = ItemDefinitionsScript.new()
+	_item_definitions.load_default(_inventory)
+	_stock_age = StockAgeScript.new(_inventory, _item_definitions)
 
 
 func _bind_ecology_to_commands() -> void:
@@ -576,56 +633,107 @@ func _ready() -> void:
 
 func create_generated_settlement(items: ItemDefinitionsScript,
 		world_seed: int = WorldInitScript.TUTORIAL_WORLD_SEED) -> bool:
-	"""REQ-SET-009 end to end: generate §5.1's world, then spawn §5.1's cohort into it.
+	"""REQ-SET-009 end to end: §5.1's cohort takes ids 1-12, then §5.1's world follows from 13.
 
 	THE GAP THIS CLOSES. `world_init.gd` built the world and `create_initial_settlement()` built
 	the population, and NOTHING CALLED BOTH -- so generating produced an empty world and booting
 	produced a cohort with nowhere to stand. §5.1 states one initialization contract, not two, and
 	this is the single operation that satisfies it.
 
-	ORDER IS FORCED, NOT PREFERRED. `world_init.publish()` calls `EntityDirectory.clear()` (task
-	04.3: "explicitly reset RNG, generation/free-slot state ... before exposing an active world"),
-	so a cohort spawned first would be stranded by its own world. Generation therefore runs first
-	and the cohort second.
+	THE ORDER IS THE RULING'S (R-INIT-ID-001, decision 0075), AND IT IS THE REVERSE OF DECISION
+	0071's. That decision recorded that `world_init._publish()` cleared the directory, forcing the
+	world to be created first and leaving the cohort on ids 1714-1725 instead of §5.1's "IDs 1-12".
+	The specification owner ruled that the clear is a reset BEFORE new-world allocation, not a
+	second reset inside terrain publication. So this operation is now one transaction:
 
-	AND THAT ORDER COSTS §5.1's "IDs 1-12", WHICH THIS OPERATION DOES NOT SATISFY. The directory
-	issues ONE persistent id space across kinds (§4.2 EntityIdentity: "One per runtime entity; IDs
-	unique across kinds"), the counter restarts at 1 with the clear above, and §5.1's own world
-	content consumes it first: 1695 published ResourceNode rows, the 8 tree nodes §5.1's ore
-	footprints replace (created, then destroyed, and §4.2 never reuses an id), 7 HarvestZone basins
-	and 3 FishHabitat rows = 1713 ids, so the cohort receives 1714-1725. The two readings that
-	would fix it -- spawn the residents first and DO NOT reset the id counter, or read "IDs 1-12"
-	as resident ordinals rather than persistent ids -- contradict task 04.3's explicit reset and
-	§4.2's one id space respectively. NO ID IS FORCED AND NO CONSTANT IS INVENTED: decision 0064
-	records the arithmetic, `test_settlement_system.gd` pins the actual ids so the gap cannot
-	close silently, and the ruling is the specification owner's.
+	  1. PREFLIGHT, changing nothing: the settlement must be empty, the seventeen resource ids must
+	     bind, the world plan must stage and validate, and the cohort's own catalog, capacities and
+	     opening-day weather must check out. Every refusal below is decided here.
+	  2. ENTER THE TRANSACTION: `reset()` once -- stores, directory, allocators, command, job and
+	     child state -- then seed the nine RNG streams, before any consumer draws.
+	  3. ALLOCATE THE TWELVE RESIDENTS FIRST, in §5.1's cohort order, through the ordinary
+	     directory allocator. They receive persistent ids 1-12 and Warden Rowan receives 1.
+	  4. PUBLISH THE WORLD from the SAME continuing counter, so the first world entity is 13.
+	     `publish_prepared()` clears and reseeds nothing.
 
-	ALLOCATE BEFORE CONSUME (decision 0059). The emptiness check and the catalog binding both
-	refuse before anything is touched, and a refused generation leaves every store byte-identical
-	by `world_init.gd`'s own contract. Only the cohort can fail after the world exists, and then
-	`reset()` takes the whole settlement back to empty -- a refusal never leaves half a settlement.
+	ALLOCATE BEFORE CONSUME (decision 0059). A populated settlement refuses at step 1 and is
+	byte-identical afterwards, which is how "a refused initialization retains the previous valid
+	world" is honoured: the only world this can overwrite is one with nobody in it. See
+	`_abandon_transaction()` for what an in-transaction failure can and cannot restore.
 	"""
 	if _residents.population() != 0:
 		return _refuse(ResidentsScript.REFUSE_SETTLEMENT_NOT_EMPTY)
 	var built: WorldInitScript.RequestResult = WorldInitScript.bound_request(items, world_seed)
 	if not built.ok:
 		return _refuse(built.error)
-	var generated: WorldInitScript.GenerateResult = _world.generate(built.request)
-	if not generated.ok:
-		return _refuse(generated.error)
-	return _populate_generated_world()
+	var planned: WorldInitScript.GenerateResult = _world.preflight(built.request)
+	if not planned.ok:
+		return _refuse(planned.error)
+	var cohort: StringName = _refuse_cohort_preflight()
+	if cohort != REFUSE_NONE:
+		_world.discard_prepared_plan()
+		return _refuse(cohort)
+	return _run_initialization_transaction()
 
 
-func _populate_generated_world() -> bool:
-	"""Spawn §5.1's cohort into the freshly published world, or empty the settlement again.
+func _refuse_cohort_preflight() -> StringName:
+	"""The code blocking §5.1's cohort, or REFUSE_NONE -- read from live state, writing nothing.
 
-	Split out because `create_generated_settlement()` would otherwise exceed the 30-line limit,
-	and because this is the one step that can fail with a world already standing: the reset below
-	is what makes the whole operation all-or-nothing rather than leaving a populated-nowhere map.
+	Ruling step 1 requires the cohort's capacity, catalog bindings and resources preflighted before
+	the transaction opens, so that step 3 cannot fail after the reset has already emptied a world.
+	Every check below reads state the reset does not change: compiled catalogs, fixed capacities,
+	and the opening day's weather preconditions (§5.10's forced first spring, which draws nothing).
 	"""
-	if create_initial_settlement():
-		return true
-	var code: StringName = _last_refusal
+	if _residents.catalog_error() != "":
+		return ResidentsScript.REFUSE_SPECIES_CATALOG
+	for species: StringName in ResidentsScript.INITIAL_SPECIES:
+		if not _residents.has_species(species):
+			return ResidentsScript.REFUSE_UNKNOWN_SPECIES
+	if ResidentsScript.INITIAL_POPULATION > ResidentsScript.RESIDENT_CAPACITY \
+			or ResidentsScript.INITIAL_POPULATION > EntityDirectoryScript.RESIDENT_LIVING_CAP \
+			or ResidentsScript.INITIAL_POPULATION > _directory.capacity_of_kind(
+				EntityDirectoryScript.KIND_RESIDENT):
+		return EntityDirectoryScript.REFUSAL_LIVING_CAP
+	var template: IntMath.IntResult = _schedule.default_template_id()
+	if not template.ok:
+		return StringName(template.error)
+	return _crop_weather.preflight_refusal_for(OPENING_CALENDAR_DAY,
+		OrchardHiveScript.season_of_day(OPENING_CALENDAR_DAY))
+
+
+func _run_initialization_transaction() -> bool:
+	"""Ruling steps 2-5: reset once, seed, allocate the cohort, then publish the world with it.
+
+	The cohort is allocated BEFORE the world so that §5.1's twelve residents take persistent ids
+	1-12 out of §4.2's one id space; publication continues the same counter rather than restarting
+	it. Any failure inside the transaction abandons the whole thing through
+	`_abandon_transaction()`; nothing is published by halves.
+	"""
+	reset()
+	var seeded: StringName = _world.seed_prepared_streams()
+	if seeded != REFUSE_NONE:
+		return _abandon_transaction(seeded)
+	if not create_initial_settlement():
+		return _abandon_transaction(_last_refusal)
+	var published: WorldInitScript.GenerateResult = _world.publish_prepared()
+	if not published.ok:
+		return _abandon_transaction(published.error)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _abandon_transaction(code: StringName) -> bool:
+	"""Return the settlement to EMPTY, drop the staged plan, and report `code`.
+
+	WHAT THIS RESTORES AND WHAT IT CANNOT. A settlement that held residents refused in the
+	preflight and never reached the transaction, so no populated world can be lost here. A world
+	with NO residents in it -- the only other thing the transaction can overwrite -- is not
+	restored: rebuilding it would mean re-running generation, and a regenerated world is a
+	different set of persistent ids rather than the same world back. The ruling's "reset-to-empty
+	alone is insufficient when a valid world preceded it" is therefore satisfied by the preflight
+	rather than by a rollback, and this limitation is named in decision 0075 rather than hidden.
+	"""
+	_world.discard_prepared_plan()
 	reset()
 	return _refuse(code)
 
@@ -640,6 +748,12 @@ func create_initial_settlement() -> bool:
 	There is deliberately NO second emptiness check here. `residents.spawn_initial_settlement()`
 	already refuses a non-empty store, to protect §5.1's "IDs 1-12", and a copy of that rule here
 	would be a second place for it to be stated and to drift. Its refusal is passed through.
+
+	§5.1's "IDs 1-12" IS NOW LITERAL ON BOTH PATHS (R-INIT-ID-001). Called on a freshly reset
+	settlement -- which is what `_run_initialization_transaction()` does, before the world is
+	published -- the twelve spawns take the first twelve persistent ids out of §4.2's one id space,
+	in cohort order, so Warden Rowan is id 1. Called on its own, as the cohort-only path the suite
+	uses, it does the same thing over an empty directory.
 	"""
 	var spawned: ResidentsScript.OpResult = _residents.spawn_initial_settlement()
 	if not spawned.ok:
@@ -728,10 +842,24 @@ func _clear_stores() -> void:
 	_dispatch.clear()
 	_ecology.clear()
 	_crop_weather.clear()
+	_clear_stock_layer()
 	_planner.clear()
 	_presentation.clear()
 	_world.clear()
 	_rng.clear()
+
+
+func _clear_stock_layer() -> void:
+	"""Empty the lot store and every storage declaration, then re-register the item catalog.
+
+	`inventory.clear()` drops the item registry as well as the rows -- it is the catalog-time
+	half of the same store -- so a settlement reset without this reload would leave every lot
+	operation refusing UNKNOWN_ITEM. Both generation spaces step forward inside `clear()`, so a
+	lot or container ref taken before a reset still cannot validate after it.
+	"""
+	_inventory.clear()
+	_item_definitions.load_default(_inventory)
+	_stock_age.clear()
 
 
 func _clear_counters() -> void:
@@ -739,6 +867,7 @@ func _clear_counters() -> void:
 	_ticks_run = 0
 	_refused_tick_count = 0
 	_refused_crop_hour_count = 0
+	_refused_stock_hour_count = 0
 	_refused_extract_count = 0
 	_refused_planner_day_count = 0
 	_planner_day_count = 0
@@ -787,6 +916,7 @@ func _run_stages(tick_index: int) -> bool:
 	if not _integrate_interval():
 		_extract_presentation(tick_index)
 		return false
+	_age_stocks(tick_index)
 	_integrate_crops(tick_index)
 	_plan_jobs(tick_index)
 	_select_jobs(tick_index)
@@ -891,6 +1021,34 @@ func _integrate_interval() -> bool:
 	_refused_tick_count += 1
 	_report_first_refusal(swept.error)
 	return _refuse(swept.error)
+
+
+func _age_stocks(tick_index: int) -> void:
+	"""ARCH-SYS-004 StockAge, the HOURLY cadence its §5 row states, in the table's own position.
+
+	FOURTH, after ARCH-SYS-003 and before ARCH-SYS-006, which is exactly where §5's table puts
+	it. Running it here is also what makes REQ-SET-007's FIRST daily leg land before
+	ARCH-TICK-003's season handover: at a midnight tick the clock calls `run_tick()` for that
+	tick and only then `run_day_boundary()`, so the aging pass has already consumed the midnight
+	crossing by the time the handover runs.
+
+	The predicate is the only per-tick cost: 23 ticks in 24 are not an hour crossing and this
+	returns immediately. A refusal is COUNTED rather than fatal, for the same reason as the crop
+	hour -- the needs sweep for this tick has already committed.
+	"""
+	_stage_timer.start()
+	_age_stock_hour(tick_index)
+	_close_stage(TICK_STAGE_STOCK_AGE)
+
+
+func _age_stock_hour(tick_index: int) -> void:
+	"""The hourly aging pass itself, so the measurement above stays one statement wide."""
+	if not StockAgeScript.is_hour_boundary(tick_index):
+		return
+	if _stock_age.run_hour_into(tick_index, _stock_hour):
+		return
+	_refused_stock_hour_count += 1
+	_last_refusal = _stock_hour.error
 
 
 func _integrate_crops(tick_index: int) -> void:
@@ -1020,6 +1178,8 @@ func run_day_boundary(absolute_day: int, season: int) -> bool:
 		return _refuse(REFUSE_INVALID_SEASON)
 	if not _locate_boundary_tick(absolute_day, season):
 		return false
+	if not _age_stocks_leg():
+		return false
 	if not _apply_season_handover(season):
 		return false
 	if not _update_ecology():
@@ -1047,6 +1207,28 @@ func _locate_boundary_tick(absolute_day: int, season: int) -> bool:
 	SimClockScript.calendar_at_into(_boundary_tick, _calendar)
 	if _calendar.absolute_day != absolute_day or _calendar.season != season:
 		return _refuse(REFUSE_CALENDAR_MISMATCH)
+	return true
+
+
+func _age_stocks_leg() -> bool:
+	"""ARCH-SYS-004 StockAge: REQ-SET-007's FIRST leg, BEFORE ARCH-TICK-003's season handover.
+
+	ARCH-TICK-002 forbids "a second age pass just because the same tick is both hourly and
+	daily", and a midnight tick IS an hour crossing, so this does not age a second time: when
+	`run_tick()` has already consumed this exact tick the leg is recorded and nothing else
+	happens. It runs the pass itself only when nothing else has -- a boundary driven directly,
+	with no tick path behind it -- so the leg is genuinely executed in either case rather than
+	logged on trust.
+
+	The pass reads the ELAPSED interval's season from the calendar itself, which is the other
+	half of ARCH-TICK-003: aging must not see the new day's season, and `_apply_season_handover()`
+	below is the very next statement.
+	"""
+	if _stock_age.last_hour_tick() != _boundary_tick:
+		if not _stock_age.run_hour_into(_boundary_tick, _stock_hour):
+			_refused_stock_hour_count += 1
+			return _refuse(_stock_hour.error)
+	_record_daily_leg(LEG_STOCK_AGE)
 	return true
 
 
@@ -1247,6 +1429,31 @@ func crop_hour() -> CropWeatherScript.HourResult:
 func refused_crop_hour_count() -> int:
 	"""Hour crossings whose crop integration refused, so a skipped hour is never silent."""
 	return _refused_crop_hour_count
+
+
+func stock_age() -> StockAgeScript:
+	"""ARCH-SYS-004's aging stage. A building layer declares its storage classes here."""
+	return _stock_age
+
+
+func inventory() -> InventoryScript:
+	"""The settlement's own InventoryLot/InventoryContainer store, the one ARCH-SYS-004 ages."""
+	return _inventory
+
+
+func item_definitions() -> ItemDefinitionsScript:
+	"""The §4.3 item catalog registered into this settlement's inventory."""
+	return _item_definitions
+
+
+func stock_hour() -> StockAgeScript.HourResult:
+	"""The most recent hourly aging pass. Inspect `.ok` before any field."""
+	return _stock_hour
+
+
+func refused_stock_hour_count() -> int:
+	"""Hour crossings whose aging pass refused, so a skipped hour is never silent."""
+	return _refused_stock_hour_count
 
 
 func refused_extract_count() -> int:

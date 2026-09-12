@@ -1,0 +1,362 @@
+{
+  "scope": "Documentation, source-registry coverage and independent arithmetic/byte-framing checks only. No runtime tests or performance qualification.",
+  "checks": [
+    {
+      "name": "All BuildingDefinition keys have one height envelope",
+      "passed": true,
+      "detail": {
+        "count": 30
+      }
+    },
+    {
+      "name": "Height row apiary",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row boathouse",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row brewery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row cellar",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row composter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row covered_store",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row dirt_path",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row dryer",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row fence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row fisher_shelter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row forester_lodge",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row gate",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row hall",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row infirmary",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row kitchen",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row lookout",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row memorial_garden",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row mill",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row nursery",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row open_stockpile",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row paved_path",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row preserver",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row quarry_shed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row residence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row saltpan",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row stone_wall",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row weir",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row well",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row workbench",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Height row workshop",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Species candidate mouse",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Species candidate mole",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Species candidate squirrel",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Species candidate otter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Species candidate badger",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Budget row Building assembly",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Budget row Furniture instance",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Budget row Tool / resource / small prop",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Budget row Tree / large vegetation",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Budget row Ground cover cluster",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Crop4096 tile arithmetic",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "2048 three-map RGBA8 full mip accounting",
+      "passed": true,
+      "detail": {
+        "one_set_bytes": 67108860,
+        "four_sets_bytes": 268435440
+      }
+    },
+    {
+      "name": "L0 hysteresis",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Save descriptor table end",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Section11 capacity framing",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Chronicle page accounting",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UTF8 framing ''",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UTF8 framing 'Oak'",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UTF8 framing 'M\u00f3le'",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Malformed UTF8 c0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Malformed UTF8 c080",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Malformed UTF8 eda080",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "State domain is11 bytes without terminator",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Static hysteresis boundaries",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Multipart building budget",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Durable source brief path",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Relative link docs/planning/asset_dimensions_and_budgets.md -> ../art-reference/world_art_lookdev_brief.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Relative link docs/rulings/2026-09-11_save_codec_contract.md -> ../planning/save_identity_test_vectors.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Relative link docs/rulings/2026-09-11_asset_save_movement_blockers.md -> ../planning/asset_dimensions_and_budgets.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Relative link docs/rulings/2026-09-11_asset_save_movement_blockers.md -> ../planning/asset_dimensions_and_budgets.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Relative link docs/rulings/2026-09-11_asset_save_movement_blockers.md -> 2026-09-11_save_codec_contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Relative link docs/rulings/2026-09-11_asset_save_movement_blockers.md -> 2026-09-11_focus_and_rollback_state.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Relative link docs/rulings/2026-09-11_asset_save_movement_blockers.md -> 2026-09-11_movement_gate_followthrough.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Relative link docs/rulings/2026-09-11_asset_save_movement_blockers.md -> ../art-reference/world_art_lookdev_brief.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Relative link docs/decisions/0080-asset-save-and-focus-engineering-contracts.md -> ../rulings/2026-09-11_asset_save_movement_blockers.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "State registry coverage",
+      "passed": true,
+      "detail": "state_registry_coverage: PASS -- 36 modules, 280 rows, 548 packed columns checked"
+    },
+    {
+      "name": "Documentation diff whitespace",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "result": "PASS",
+  "checked_at_utc": "2026-09-12T01:42:58.487352+00:00",
+  "source_brief_sha256": "4e8138103bb709dac9e71445b69c76f35fb63ce05f18decf4ef43fca76cd7edf",
+  "asset_json_sha256": "f6254a649ab95ac0350986ea5ec66d414ca89f4e056e6ec28d9060ae9e537803",
+  "not_tested": [
+    "Godot runtime changes (none authored in this turn)",
+    "Production codec interoperability and continuation",
+    "Rendered comparison/proportion approval",
+    "Asset exports",
+    "Expanded MOVE gates",
+    "Windows/minimum-hardware performance"
+  ]
+}

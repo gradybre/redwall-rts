@@ -91,6 +91,19 @@ neither supplied it behaves exactly as before. Every acceptance clause above is 
 named test in `test/test_scheduler_events.gd`, together with the contract's own
 list. **`acknowledge_without_catchup()` is byte-unchanged and so are its tests.**
 
+**Wired into the running game 2026-09-11** by
+[decision 0084](../decisions/0084-the-running-game-drives-the-scheduler-event-queue.md).
+`scripts/systems/game_manager.gd` folds each host frame through
+`scheduler_events.advance_frame()` — supplying both the `before_tick` barrier and
+the `on_overload` hook — and every player speed and pause control submits a queue
+event. So the acceptance clauses above about a pause taking effect before another
+tick starts, and about 4→2→1→diagnostic retaining debt, are now exercised through
+the production driver and not only through a fixture. `scheduler_events.gd` is
+byte-unchanged by that work and `sim_clock.gd` changed in comments only.
+**This does not touch the blocked item below**: there is still no save module, so
+save/reload of a paused queue stays blocked and is still reported blocked.
+
+
 **Still outstanding within 04.1: SAVE/RELOAD OF A PAUSED QUEUE IS BLOCKED**, and
 is reported blocked rather than passing. The `SCHQ0001` subsection is implemented
 as encode, decode and validation and is unwired, because no save module exists;
@@ -220,15 +233,18 @@ and NOT closed.** `SettlementSystem.create_generated_settlement()` now runs REQ-
 generation and §5.1's cohort as ONE all-or-nothing operation, and `main.gd` boots through it, so
 generating a world produces a world with **twelve residents in it** instead of an empty one.
 Species mix, Warden Rowan, needs 7500, health 100, skill levels 2 / Rowan KEEP 3, the reserved
-index-3 zero, priorities, schedules and job agents are all satisfied and asserted. **Four parts of
-GDD:235 are NOT:** (1) the relationship edges at affinity 20 — **there is no relationship store
-anywhere in the repository** and 08.3 owns it, so none was invented; (2) the hall, beds, bench,
-seats, hearth, pantry, well, stockpiles and workbench — no Building/Furniture/Room store, which is
-the bullet below; (3) the 24 tools and durability 1000 — `gear.gd` exists but has no container
-owner and is not composed; (4) **"IDs 1–12" is not satisfied and cannot be** while §4.2's single
-id space is consumed by 1713 world entities first — the cohort receives 1714–1725. That
-contradiction is arithmetic, not an implementation choice, and decision 0064 sets out both
-readings that would close it and which document each one breaks. **It needs a ruling.**
+index-3 zero, priorities, schedules and job agents are all satisfied and asserted. **"IDs 1–12" IS
+NOW SATISFIED**: [R-INIT-ID-001](../rulings/2026-09-11_initial_ids_and_narrow_alerts.md) ruled that
+the reset which forced the world in front of the cohort is a reset *before* new-world allocation,
+not one inside terrain publication, so initialization became one transaction — preflight, single
+reset, **twelve residents on global persistent ids 1–12 with Warden Rowan on 1**, then the world
+from 13 out of the same counter ([decision 0075](../decisions/0075-the-cohort-is-allocated-before-the-world.md)).
+The earlier statement that the cohort receives 1714–1725 and "needs a ruling" is historical.
+**Three parts of GDD:235 are still NOT satisfied:** (1) the relationship edges at affinity 20 —
+**there is no relationship store anywhere in the repository** and 08.3 owns it, so none was
+invented; (2) the hall, beds, bench, seats, hearth, pantry, well, stockpiles and workbench — no
+Building/Furniture/Room store, which is the bullet below; (3) the 24 tools and durability 1000 —
+`gear.gd` exists but has no container owner and is not composed.
 - [ ] Pull forward only the starter data slice of buildings/furniture/containers,
   bed references and gear from task 06, with a single shared implementation. Full
   construction, dynamic room detection, heat/service operations remain task 06.
@@ -257,7 +273,7 @@ structural visual and user-review status.
 - [ ] Wire New Settlement, initially paused world, time/calendar controls,
   camera/selection, resource summary, resident detail, zone tool, pending preview,
   cancellation and accessible refusal display to real state.
-- [ ] Apply UI registry profiles, narrow/wide geometry, actual input rectangles,
+- [x] Apply UI registry profiles, narrow/wide geometry, actual input rectangles,
   keyboard focus and Mac trackpad alternatives. Decorative UI must not consume
   world clicks. The generic rendered shell cannot claim unbuilt panels work.
 - [x] Connect accepted zone/policy commands to task 03's adopted standing-demand producer
@@ -268,6 +284,26 @@ structural visual and user-review status.
 - [x] Add/retain per-stage measurements and same-command replay input capture.
   List unimplemented stages honestly, including current CareHealth ordering debt;
   do not perpetuate stale comments saying three/five stages proves completeness.
+
+Bullets 1 and 2 implemented 2026-09-11 by `scripts/ui/` and `scripts/systems/ui_manager.gd`
+([decision 0057](../decisions/0057-the-ui-shell-renders-the-registry-and-refuses-to-imply-more.md)),
+following [the visual direction](../planning/ui_visual_direction.md). **42 of UI §4's 103
+elements are driven by real state; the other 61 are drawn DISABLED with the name of the owner
+they wait for** -- that split is a table in `ui_availability.gd` and both halves are tested.
+The world opens PAUSED with the PLAYER reason and an empty command queue; New Settlement runs
+`world_init.gd` against the running settlement's own stores (1695 nodes, 7 basins, 9 stocks,
+seed 20260905); a minimap tile pick resolves a real basin; a painted stroke commits as a
+DESIGNATE_ZONE COMMAND that sits pending while paused; cancellation, SET_POLICY and
+NAME_RESIDENT travel the same queue; refusals reach UI-SET-085 with a severity icon, plain
+words and the exact code. §2.1's palette, the four vendored Noto Sans weights and an original
+24x24 icon set are applied through one generated Theme at the UI root.
+**Still outstanding within these two bullets:** Mac TRACKPAD alternatives are unbound (§5's
+pointer gestures still have no input router); the NARROW composition cannot be reached at
+runtime because `project.godot`'s `stretch/mode="canvas_items"` gives the HUD a 1920x1080
+canvas in any window (decision 0057 §7 -- the integration lead owns that file); screen-reader
+qualification is NOT executed; and 3840x2160 was deferred when the OS granted 3456x1986.
+Screenshots, the state trace, the exact commands and the pass/fail/blocked table are in
+[docs/validation/evidence/ui-first-playable/](../validation/evidence/ui-first-playable/README.md).
 
 Bullets 3–5 implemented 2026-09-10
 ([decision 0049](../decisions/0049-source-intent-is-recorded-on-what-it-produced.md)).
@@ -318,3 +354,32 @@ through real stores and its open schema dependencies are resolved. Remaining
 command kinds, full movement, survival, save parity and release performance are
 explicitly outstanding. Continue to [task 05](05_movement_first_playable.md);
 use [first-playable acceptance](../planning/first_playable_acceptance.md).
+
+## 2026-09-11 identity ruling — implementation remains open
+
+[R-INIT-ID-001](../rulings/2026-09-11_initial_ids_and_narrow_alerts.md) resolves
+the historical 1714–1725 divergence above: reset the composed transaction once
+before allocation, allocate the cohort first as global IDs 1–12, then allocate
+world entities without clearing that cohort. The previous “needs a ruling”
+statement is historical. Replace its diagnostic test deliberately; retain the
+derived world census and add the ruling’s uniqueness/failure/determinism evidence.
+
+## 2026-09-11 building-domain ruling — definitions resolved
+
+Read [R-BUILD-DOM-001–004](../rulings/2026-09-11_building_room_domains.md)
+and its adjacent JSON specification fixtures. Decision 0056's unlock domain,
+Station domain, furniture-mask assignment and fifth-shelf interpretation are
+resolved. Publish Milestone/Station through the existing registry, then implement
+packed stores and dependency-ready starter composition; do not reopen these as
+undefined fields or declare absent service/topology owners complete. Run the
+ruling's exact mapping, mask, ownership, capacity and failure tests.
+
+## F6 and asset integration follow-up — 2026-09-11
+
+[UI-FOCUS-R01](../rulings/2026-09-11_focus_and_rollback_state.md) corrects F6's
+shortcut/panel confusion. UI owner wires open_world_list, removes hidden087
+from HUD focus and replaces the obsolete test expectation, including edit/modal
+input guards and focus restoration. Document changes do not certify runtime.
+[ART-GAP-R03/05](../planning/asset_dimensions_and_budgets.md) supplies camera
+obstacle authoring envelopes and settlement L0 admission; verify actual exported
+bounds/cutaway behavior at real camera profiles before claiming visual acceptance.

@@ -214,7 +214,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
 | Fixed registry payload | 25028962 | 1 | 25028962 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037; +126976 decision 0039; +212992 decision 0040; +13312 decision 0041; +40960 decision 0045 FieldPolicy); +35840 decision 0051 hive-service slice; +16 decision 0055 Weather absolute-season identity) |
-| Auxiliary payload | 17234780 | 1 | 17234780 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053) |
+| Auxiliary payload | 20144096 | 1 | 20144096 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
 | Route cell arena | 1048576 | 4 | 4194304 | mutable | ARCH-PATH-005 cells |
@@ -240,13 +240,13 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 60823126 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
+| Planned allocated payload | 63732442 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 69211734 | Payload + reserve |
-| Headroom below decimal 100 MB | 30788266 | 100000000 − live total |
-| Additional candidate mutable state | 54607542 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 123819276 | Live total + candidate mutable state |
-| Transactional headroom | -23819276 | 100000000 − transactional peak |
+| One live world plus reserve | 72121050 | Payload + reserve |
+| Headroom below decimal 100 MB | 27878950 | 100000000 − live total |
+| Additional candidate mutable state | 57516858 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 129637908 | Live total + candidate mutable state |
+| Transactional headroom | -29637908 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11 by decisions 0055,
 0054 and 0066).** Current planned payload is
@@ -316,6 +316,9 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
 | Weather absolute-season identity (two I64 columns) | decision 0055 | +16 | 60812854 | 69201462 |
 | Scheduler event queue and control header | decision 0054 | +8224 | 60821078 | 69209686 |
 | ResidentRouteCursor owner-persistent-id column | decision 0066 | +2048 | 60823126 | 69211734 |
+| Packed Building, Room and Furniture index tables | decision 0080 | +1885220 | 62708346 | 71096954 |
+| Travel admission and starter ground profiles | decision 0083 | +10336 | 62718682 | 71107290 |
+| StockAge container declarations and sweep order | decision 0085 | +1013760 | 63732442 | 72121050 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
@@ -349,6 +352,20 @@ Tick halves reconstruct a signed nonnegative int64 with range checks. Settlement
 
 
 **ARCH-MEM-005.** Arena offsets/counts, owner-to-child indexes, occupancy masks, free heaps, stable ID lookup, dirty bits, and the supplementary columns in §3 are allocation overhead outside original field payload. The budget table includes them explicitly. Packed arrays are allocated once to these capacity lengths; page caches and stream buffers are bounded. Never call `resize()` in an ordinary resident update. Oversized incoming content is rejected before allocating a replacement world. `[NEW allocation policy; GDD §5.11]`
+
+## Building/room domain clarification — 2026-09-11
+
+[R-BUILD-DOM-001–004](rulings/2026-09-11_building_room_domains.md) binds existing fields without adding
+packed columns: protected Milestone M0–M4 for both definition.unlock fields and
+Progress.milestone; a separate 11-key compiled Station domain for recipe.station;
+and Room.furniture_mask bit i for FurnitureDefinition i, known mask 511.
+World.milestone_mask and Progress.unlocked_mask share the actual-earned-bit
+meaning, initialized to 1 and updated atomically by Progression; highest ordinal
+is presentation, not a substitute gate. Preserve both existing field widths.
+Room masks remain persisted/hashed; validate staged membership against saved
+masks before publish. Catalog additions require artifact regeneration and an
+intentional digest change; no runtime artifact or allocation has been changed
+by this documentation. The ruling supplies exact mappings and acceptance.
 
 ## 3. Additional state required by the fixed behavioral rules
 
@@ -414,7 +431,16 @@ The GDD registry does not encode every deadline, ownership mapping, or remainder
 | PathRequestContact | start_owner_slot, start_owner_generation, goal_owner_slot, goal_owner_generation, requester_persistent_id | I32 | 4 | 5 | 8192 | 163840 | [NEW decision 0053] ARCH-MEM-008's sixteen PathRequest columns carry no generation-safe contact owner; READY_07 §1.2 requires one at both endpoints |
 | ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 | [NEW decision 0053, fourth column decision 0066] Which route a travelling body follows and how far along it is; ARCH-MEM-008's ResidentMotion names neither. `owner_persistent_id` stamps WHOSE route it is, so a reused resident row cannot inherit a dead resident's route -- the same guard `transforms.gd` carries as `_bound_persistent_id`, and for the same reason a generation will not do |
 
-Auxiliary payload sum = **17234780 bytes** `[DERIVED]`. That is 16712540 before the movement ground slice added decision 0053's three identity/cursor rows (+350208 TransformBinding, +163840 PathRequestContact, +6144 ResidentRouteCursor, +520192 in total): 16712540+520192=17232732. Decision 0066 then added ResidentRouteCursor's fourth column (+2048): 17232732+2048=17234780. The 16712540 figure is 15439604 before this reconciliation, plus 786436 of reservation-pool indexing (decision 0019), 158816 of Job/JobAgent runtime columns (ARCH-STATE-005), 65536 for `TileHistory.family_streak` (READY_06 §7, taking that I32 group from six columns/393216 bytes to seven/458752), 212996 of GearInstance allocator and exclusive-claim columns (ARCH-STATE-007) and 49152 for `HivePollinationLinks`' orchard recipients (ruling 2026-09-09 §3, ARCH-STATE-008, taking that table from 24576 rows/196608 bytes to 30720/245760): 15439604+786436+158816+65536+212996+49152=16712540. Arena links and exact owner counts must validate before activation; unused child descriptors are zero. These are explicit schema extensions, not permission to omit the original fields. Snapshotting original plus auxiliary columns is mandatory for replay.
+| BuildingIndex | present | B8 | 1 | 1 | 1024 | 1024 | [decision 0080] Which Building rows are live; §5.9 authors 30 definitions and ARCH-MEM-002 caps placed buildings at 1024 |
+| BuildingIndex | ref_slot, ref_generation, room_head, room_count | I32 | 4 | 4 | 1024 | 16384 | [decision 0080] The directory reference a Building row validates against, and the head of its intrusive room list |
+| RoomIndex | present | B8 | 1 | 1 | 16384 | 16384 | [decision 0080] Which Room rows are live |
+| RoomIndex | ref_slot, ref_generation, building_next, building_prev, furniture_head, furniture_count | I32 | 4 | 6 | 16384 | 393216 | [decision 0080] A room's directory reference, its doubly-linked place in its building's list, and the head of its furniture list |
+| FurnitureIndex | present | B8 | 1 | 1 | 81920 | 81920 | [decision 0080] Which Furniture rows are live |
+| FurnitureIndex | ref_slot, ref_generation, room_next, room_prev | I32 | 4 | 4 | 81920 | 1310720 | [decision 0080] A furniture row's directory reference and its doubly-linked place in its room's list |
+| WorldTileMaps | furniture_slot | I32 | 4 | 1 | 16384 | 65536 | [decision 0080] A FIFTH column on the existing WorldTileMaps row above. §5.9's "furniture cannot overlap" needs a per-tile occupant and the existing four columns carry building and room only |
+| FurnitureKindCount | kind_count | I32 | 4 | 1 | 9 | 36 | [decision 0080] One maintained live count per FurnitureDefinition key, so the Beds counter is a read rather than a scan of 81920 rows |
+
+Auxiliary payload sum = **20144096 bytes** `[DERIVED]`. Decision 0080 added the packed Building, Room and Furniture index tables plus the per-tile furniture occupant (+1885220): 17234780+1885220=19120000. That is 16712540 before the movement ground slice added decision 0053's three identity/cursor rows (+350208 TransformBinding, +163840 PathRequestContact, +6144 ResidentRouteCursor, +520192 in total): 16712540+520192=17232732. Decision 0066 then added ResidentRouteCursor's fourth column (+2048): 17232732+2048=17234780. The 16712540 figure is 15439604 before this reconciliation, plus 786436 of reservation-pool indexing (decision 0019), 158816 of Job/JobAgent runtime columns (ARCH-STATE-005), 65536 for `TileHistory.family_streak` (READY_06 §7, taking that I32 group from six columns/393216 bytes to seven/458752), 212996 of GearInstance allocator and exclusive-claim columns (ARCH-STATE-007) and 49152 for `HivePollinationLinks`' orchard recipients (ruling 2026-09-09 §3, ARCH-STATE-008, taking that table from 24576 rows/196608 bytes to 30720/245760): 15439604+786436+158816+65536+212996+49152=16712540. Arena links and exact owner counts must validate before activation; unused child descriptors are zero. These are explicit schema extensions, not permission to omit the original fields. Snapshotting original plus auxiliary columns is mandatory for replay.
 
 
 **ARCH-STATE-001.** Model item instances with `GearInstance` rather than assigning durability to the immutable ItemDefinition. A gear lot is indivisible: `quantity_milli=1000`; one gear instance points at that lot. Stacking partially used tools is forbidden. Equipped tools/outfits transfer to the resident's Equipment fields and retain their source instance record outside satchel mass. Unequipping reverses that transfer without resetting durability. `tool_item_id` still uses the original catalog ID; its metadata records basic versus iron manufacture. `[GDD §4.2, §5.7, §5.9; NEW instance representation]` The allocator, ownership bookkeeping and claim columns this component needs are ARCH-STATE-007 below; the row shape here is unchanged by it.
@@ -480,6 +506,11 @@ These are known allocations that no line of §2.2, §3 or §2.3 counts. They are
 ## 4. Entity allocation, lifetime, and safe references
 
 **ARCH-ID-001.** Every referenceable runtime entity receives one slot in a global directory; its `kind` and `typed_row` locate the appropriate typed store `[NEW directory]`. Resident rows remain separately bounded at 512 `[GDD §4.1]`. Child records such as Reservation, MoodMemory, Skills, and NoticeCondition are owner-indexed rows, not extra entity objects. A Job or InventoryLot is referenceable and does receive a directory entry. Use fixed kind numeric IDs from sorted ASCII kind keys, preserving GDD's explicitly numbered enums in their own domains. Persistent IDs are globally unique positive int32 values, assigned monotonically and never reused `[GDD §4.1–4.2]`.
+
+**R-INIT-ID-001 clarification (2026-09-11):** composed new-world initialization
+resets before allocation, assigns the starting cohort global IDs 1–12 first, and
+then continues the same counter for world entities. A later terrain publication
+must not clear the directory. See [lifecycle/transaction requirements](rulings/2026-09-11_initial_ids_and_narrow_alerts.md).
 
 **ARCH-ID-002.** Both directory and typed-row allocators use preallocated indexed min-heaps of free indices. Pop the lowest free slot, initialize all columns and children explicitly, then publish `active=1` at lifecycle commit. Initial generation is 1 `[NEW]`; increment on reuse, not on destroy, matching `[crowd §4.1]`. Generation 2147483647 may be used once; after its destruction retire the slot permanently rather than wrapping. Persistent ID exhaustion at 2147483647 refuses further creation and offers saving/continuation of the existing world; it never wraps or resets on load. `[NEW overflow disposition]`
 
@@ -927,3 +958,24 @@ new §3 rows, 35840 is decision 0051's hive service, 16 is decision 0055's absol
 season, and 8224 is the scheduler queue -- real allocations, each counted once. Known
 §3.1 omissions and MOVE-G02 expansion remain outstanding. **The scheduler proposal is
 now implemented and counted**; the Weather proposal in READY_07 is still neither.
+
+## 2026-09-11 binding save and settlement-art decisions
+
+**ARCH-SAVE-008.** [SAVE-R09-001–005](rulings/2026-09-11_save_codec_contract.md)
+now owns outer/section versions, u32 string prefixes, exact identity artifact
+framing/producers, the gapless15-section layout and sections11/13/15 ownership.
+These extend §8.1–8.2; section12 is schema2 within outer format1, with no implicit
+migration. Section11 owns the already-budgeted WorldRuntime.next_event_sequence;
+no duplicate scalar or extra8-byte allocation is added. Map provenance metadata
+and identity artifacts require measured ledger updates by their implementation
+owners. Section13 detail_key is a compiled ChronicleDetail i32 catalog ID.
+The production codec, missing producers and expanded MOVE-G02 schema remain work.
+STATE-COHORT-R01 removes rollback scratch from persistence; host debt/counter
+persistence and digest exclusions under ARCH-SAVE-007 are unchanged.
+
+**ARCH-ART-001.** Settlement visual authoring uses
+[ART-GAP-R01–05](planning/asset_dimensions_and_budgets.md): exact building-height
+ceilings, non-creature budgets and a64px nominal L0 admission threshold with cap24.
+This specializes ARCH-GODOT-001 and crowd battle thresholds for settlement only.
+Visual measurements never set authoritative movement clearance. All new budgets
+are targets pending measurement, not minimum-hardware qualification.

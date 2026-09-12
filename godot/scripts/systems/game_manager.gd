@@ -20,6 +20,24 @@ extends Node
 ##
 ## Runs with PROCESS_MODE_ALWAYS so host frames keep arriving no matter what else pauses.
 ##
+## SCHEDULER-EVENT BINDING (R07-SCHED-001, decision 0084). Every speed and pause control on this
+## node now travels through `scripts/core/scheduler_events.gd` instead of calling the clock's
+## immediate setters, and `advance_host_time()` runs `advance_frame()` rather than `advance()`, so
+## the running game gets the opening pump, the per-tick barrier, the unsigned-sequence tiebreak,
+## the 250/256 reserve and decision 0054's queued overload rung. Decision 0054's open item 1 named
+## this node as the thing that bypassed all of it.
+##
+## A CONTROL SUBMITTED BETWEEN FRAMES IS DRAINED IN THE SAME CALL. The contract stamps such an
+## event with the CURRENT completed tick and says input between frames "belongs to the next safe
+## boundary"; between ticks that boundary is the current one, so `_drain_boundary()` performs the
+## very drain the next frame's opening pump would perform, and decision 0054 point 5 states that a
+## second drain at one boundary is normal rather than a bug. That keeps `pause_game()` observable
+## immediately -- `ui_manager.apply_opening_pause()` would otherwise report an inspection pause
+## that is not yet held. An event submitted from INSIDE tick k is still left pending by the same
+## call, and no guard is written for it: the queue stamps such a record k while `completed_tick()`
+## still reads k-1, so the drain provably cannot reach it and the clock's per-tick barrier applies
+## it after k commits.
+##
 ## SIMULATION BINDING (ARCH-MIG-006 step 6). The clock takes a per-tick callback and a
 ## day-boundary callback. `bind_simulation()` is how `settlement_system.gd` becomes the thing they
 ## call, and it is a DIRECT CALL, not a signal: the four signals on this node all end at a HUD
@@ -30,6 +48,7 @@ extends Node
 ## which is exactly what a test instance wants.
 
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
+const SchedulerEventsScript := preload("res://scripts/core/scheduler_events.gd")
 
 enum GameState { BOOT, PLAYING, PAUSED }
 
@@ -39,6 +58,8 @@ const REFUSE_NONE: StringName = &""
 const REFUSE_INVALID_STEP: StringName = &"INVALID_SIMULATION_STEP"
 const REFUSE_INVALID_DAY_BOUNDARY: StringName = &"INVALID_SIMULATION_DAY_BOUNDARY"
 const REFUSE_ALREADY_BOUND: StringName = &"SIMULATION_ALREADY_BOUND"
+const REFUSE_NOT_STARTED: StringName = &"GAME_NOT_STARTED"
+const REFUSE_SCHEDULER_REBIND: StringName = &"SCHEDULER_REBIND_REFUSED"
 
 ## UI-only notifications. Game logic calls the accessors below directly instead.
 signal state_changed(new_state: int)
@@ -58,12 +79,17 @@ var _calendar: SimClockScript.Calendar = SimClockScript.Calendar.new(0)
 var _simulation_step: Callable = Callable()
 var _simulation_day_boundary: Callable = Callable()
 var _last_refusal: StringName = REFUSE_NONE
+## R07-SCHED-001's speed/pause queue, bound to whichever clock `start_game()` last built.
+var _events: SchedulerEventsScript = null
+## Reused so no control path allocates a result record (decision 0015).
+var _submit_result: SchedulerEventsScript.SubmitResult = SchedulerEventsScript.SubmitResult.new()
 
 
 func _init() -> void:
-	"""Bind the per-frame callables and clock signals before the node ever enters a tree."""
+	"""Bind the per-frame callables, the scheduler queue and clock signals before entering a tree."""
 	_step_callable = _on_clock_step
 	_day_boundary_callable = _on_clock_day_boundary
+	_events = SchedulerEventsScript.new(_clock)
 	_connect_clock_signals()
 
 
@@ -88,10 +114,17 @@ func _process(_delta: float) -> void:
 
 
 func advance_host_time(elapsed_microseconds: int) -> int:
-	"""Fold one host frame into the clock and re-derive game state. Returns ticks run."""
+	"""Fold one host frame through the scheduler barrier into the clock. Returns ticks run.
+
+	`advance_frame()` and not `advance()`: it opens the host frame (restoring the overload
+	producer's single downgrade), pumps the queue once BEFORE any tick decision -- which is the
+	pump a fully paused frame still performs -- and then hands the clock the per-tick barrier and
+	the overload hook. Decision 0054's open item 1 was precisely that this line passed neither.
+	"""
 	if not _started:
 		return 0
-	var count: int = _clock.advance(elapsed_microseconds, _step_callable, _day_boundary_callable)
+	var count: int = _events.advance_frame(elapsed_microseconds, _step_callable,
+		_day_boundary_callable)
 	_sync_state()
 	return count
 
@@ -127,7 +160,11 @@ func has_simulation() -> bool:
 
 
 func last_refusal() -> StringName:
-	"""Reason the most recent refused binding was refused; empty after a successful one."""
+	"""Reason the most recent refused call was refused; empty after a successful one.
+
+	Carries both this node's own codes and, unchanged, the scheduler queue's admission refusals,
+	which nothing in production read before decision 0084 wired the queue in.
+	"""
 	return _last_refusal
 
 
@@ -149,50 +186,82 @@ func _on_clock_step() -> void:
 	_simulation_step.call(_clock.completed_tick() + 1)
 
 
-func start_game() -> void:
-	"""Leave BOOT and begin play at 1x from tick 0, discarding any previous run's clock."""
+func start_game() -> bool:
+	"""Leave BOOT and begin play at 1x from tick 0, discarding any previous run's clock and queue.
+
+	THE ORDER OF THE FIRST THREE LINES IS LOAD-BEARING (decision 0054 open item 2). `clear()`
+	FIRST, because `rebind_clock()` refuses a non-empty queue -- records stamped against the old
+	clock's tick numbering cannot be re-based onto a clock that restarts at tick 0. Then the new
+	clock, then the rebind, which must precede the first submission and the first frame.
+	`clear()` is world initialization, not a drain: the previous run's pending events are
+	discarded with it, which is correct because the world they addressed is gone.
+	"""
+	_events.clear()
 	_clock = SimClockScript.new()
 	_connect_clock_signals()
+	if not _events.rebind_clock(_clock):
+		return _refuse(REFUSE_SCHEDULER_REBIND)
+	if not _queue_player_resume():
+		return false
 	_started = true
 	_last_host_usec = Time.get_ticks_usec()
-	_clock.set_pause(SimClockScript.PLAYER, false)
 	_sync_state()
 	speed_changed.emit(get_speed())
+	return true
 
 
-func pause_game() -> void:
-	"""Hold the PLAYER pause reason. Other held reasons are untouched."""
+func pause_game() -> bool:
+	"""Hold the PLAYER pause reason through the scheduler queue. Other held reasons are untouched.
+
+	Returns false, with `last_refusal()` naming the queue's own code, when the submission is
+	refused -- a full queue is visible and retryable rather than a silently dropped pause.
+	"""
 	if not _started:
-		return
-	_clock.set_pause(SimClockScript.PLAYER, true)
+		return _refuse(REFUSE_NOT_STARTED)
+	if not _queue_pause(SchedulerEventsScript.PRODUCER_PLAYER, SimClockScript.PLAYER,
+			SchedulerEventsScript.VALUE_HOLD):
+		return false
 	_sync_state()
+	return true
 
 
-func resume_game() -> void:
-	"""Release the PLAYER pause reason. The game stays paused if another reason still holds."""
+func resume_game() -> bool:
+	"""Release the PLAYER pause reason and nothing else, through the scheduler queue.
+
+	`submit_player_resume_into()` is the contract's "ordinary Resume clears PLAYER only" path and
+	can express nothing else, so this cannot lift a MENU, LOAD or overload CRITICAL hold.
+	"""
 	if not _started:
-		return
-	_clock.set_pause(SimClockScript.PLAYER, false)
+		return _refuse(REFUSE_NOT_STARTED)
+	if not _queue_player_resume():
+		return false
 	_last_host_usec = Time.get_ticks_usec()
 	_sync_state()
+	return true
 
 
-func toggle_pause() -> void:
-	"""Flip the PLAYER pause reason only. No effect during boot."""
+func toggle_pause() -> bool:
+	"""Flip the PLAYER pause reason only. Refused during boot, and refused if the queue refuses."""
 	if not _started:
-		return
+		return _refuse(REFUSE_NOT_STARTED)
 	if _clock.has_pause_reason(SimClockScript.PLAYER):
-		resume_game()
-	else:
-		pause_game()
+		return resume_game()
+	return pause_game()
 
 
 func acknowledge_overload() -> int:
 	"""Player recovery from a REQ-SET-008 diagnostic pause. Returns owed ticks explicitly dropped.
 
 	This is the only path that drops owed ticks, it is never automatic, and the clock counts
-	every call (blocker U3, conservative rule).
+	every call (blocker U3, conservative rule). It deliberately does NOT travel through the queue:
+	the queue's two kinds cannot express "clear the retained debt", and decision 0054 keeps
+	`acknowledge_without_catchup()` byte-unchanged.
+
+	The queue is drained FIRST so a ladder rung still pending from the frame that raised the
+	diagnostic lands before the acknowledgement, instead of re-applying CRITICAL one pump later
+	and paging the player back into the pause they just cleared.
 	"""
+	_drain_boundary()
 	var dropped: int = _clock.acknowledge_without_catchup()
 	_last_host_usec = Time.get_ticks_usec()
 	_sync_state()
@@ -200,11 +269,53 @@ func acknowledge_overload() -> int:
 
 
 func set_speed(value: int) -> bool:
-	"""Request 1x, 2x or 4x. Returns false and changes nothing for any other value."""
-	if not _clock.set_speed(value):
-		return false
+	"""Request 1x, 2x or 4x through the scheduler queue. Returns false and changes nothing else.
+
+	Every rejection the clock used to make itself is now the queue's admission refusal, named in
+	`last_refusal()`: 3x and 0 refuse as SCHEDULER_SPEED_NOT_SELECTABLE and leave the queue
+	byte-identical (allocate before consume, decision 0059).
+	"""
+	if not _events.submit_speed_into(value, _submit_result):
+		return _refuse(_submit_result.error)
+	_drain_boundary()
+	_last_refusal = REFUSE_NONE
 	speed_changed.emit(get_speed())
 	return true
+
+
+func _queue_pause(producer: int, reason: int, value: int) -> bool:
+	"""Submit one pause hold or clear through the queue and drain the current boundary."""
+	if not _events.submit_pause_into(producer, reason, value, _submit_result):
+		return _refuse(_submit_result.error)
+	_drain_boundary()
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _queue_player_resume() -> bool:
+	"""Submit the ordinary Resume -- PLAYER cleared, every other reason left standing."""
+	if not _events.submit_player_resume_into(_submit_result):
+		return _refuse(_submit_result.error)
+	_drain_boundary()
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _drain_boundary() -> void:
+	"""Apply the queue's admitted prefix for the CURRENT completed boundary, right now.
+
+	THE SINGLE PLACE THIS NODE'S SAME-BOUNDARY DRAIN POLICY IS WRITTEN. Between ticks the current
+	completed tick is the next safe boundary the contract sends between-frame input to, so this is
+	the very drain the next frame's opening pump would perform; decision 0054 point 5 makes a
+	second drain at one boundary normal rather than a bug.
+
+	NO GUARD IS NEEDED FOR A SUBMISSION MADE FROM INSIDE TICK k, and none is written, because the
+	queue already enforces it: such a record is stamped k while `completed_tick()` still reads
+	k-1, and `pump_into()` drains only `boundary_tick <= completed_tick`. So this call is provably
+	a no-op on the record just submitted, which is then applied by the clock's per-tick barrier
+	after k commits -- never midway through k.
+	"""
+	_events.pump()
 
 
 func cycle_speed() -> int:
@@ -276,6 +387,15 @@ func clock() -> SimClockScript:
 	command queue re-reads it every tick for exactly that reason.
 	"""
 	return _clock
+
+
+func scheduler_events() -> SchedulerEventsScript:
+	"""The R07-SCHED-001 queue every speed and pause control on this node travels through.
+
+	`start_game()` REBINDS this instance to the clock it builds rather than replacing it, so a
+	cached reference stays valid across a restart -- unlike `clock()`.
+	"""
+	return _events
 
 
 func _connect_clock_signals() -> void:

@@ -124,3 +124,11 @@ it cannot be rediscovered as a bug, and it is raised for ARCH-PATH-003's owner.
   octile heuristic.
 - **FP-01–12.** A headless routing fixture is not first-playable acceptance and
   is not described as one anywhere in this work.
+
+## Astra response — 2026-09-12
+
+[PATH-R02 and MOVE-DEP-R01–05](../rulings/2026-09-12_movement_dependency_rulings.md)
+supply the exact-start detour fix and explicitly assign the five omitted
+profile/life-stage/rig/graph/contact dependencies. Original observations above
+remain historical measurements, not a current absence-of-ruling claim. Runtime
+changes and full movement qualification remain separate work.

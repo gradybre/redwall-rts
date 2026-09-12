@@ -95,6 +95,15 @@ must be re-derived before movement work, and this task does not do so.
     save section exists as an implemented, validated, UNWIRED `SCHQ0001` codec, so
     **persistence remains blocked on task 09's save module.** ARCH-CMD-003 still
     has exactly 24 kinds and none is a speed or pause kind, which is deliberate.
+  - **The queue reached the running game 2026-09-11** under
+    [decision 0084](../decisions/0084-the-running-game-drives-the-scheduler-event-queue.md).
+    `game_manager.gd` now folds each host frame through
+    `scheduler_events.advance_frame()`, which supplies both the `before_tick`
+    barrier and the `on_overload` hook, and every speed and pause control submits
+    a queue event instead of calling `set_pause()`/`set_speed()` itself. Decision
+    0054 had recorded, correctly, that none of that happened in play.
+    `scheduler_events.gd` is byte-unchanged by that work; `sim_clock.gd` changed
+    in comments only. **Persistence is still blocked on task 09**, unchanged.
   - **U3 is NOT unblocked.** The conservative rule stands; decision 0054 records
     the explicit reconciliation of ARCH-CLOCK-002's recovery exception against GDD
     REQ-SET-008. `acknowledge_without_catchup()` and its tests are unchanged.

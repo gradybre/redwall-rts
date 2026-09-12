@@ -18,16 +18,18 @@ extends Node
 ##
 ## ---------------------------------------------------------------------------------------
 ## STAGE ORDER IS `systems_architecture.md` §5's TABLE, NOT CONVENIENCE. Of the 23 systems in
-## that table, NINE are dispatched here (ARCH-SYS-008 only in part). ARCH-SYS-017 is deliberately
-## NOT counted among the nine: it is not a separate call, and three earlier revisions of this
+## that table, TEN are dispatched here (ARCH-SYS-008 only in part). ARCH-SYS-017 is deliberately
+## NOT counted among the ten: it is not a separate call, and three earlier revisions of this
 ## header disagreed about whether to include it -- one said THREE while listing four, another said
 ## FIVE and SIX for the same milestone under different conventions, and the third ended "That is
 ## the sixth" after excluding 017 from a list of six, which named nothing at all. The count below
-## is of DISPATCHED CALL SITES, and the list IS the count. `tick_stage_count()` publishes the SEVEN
+## is of DISPATCHED CALL SITES, and the list IS the count. `tick_stage_count()` publishes the EIGHT
 ## of them that are on the per-tick path, so the list and the code cannot drift apart silently:
 ##
 ##   ARCH-SYS-002 CommandCommit      -> `command_dispatch.commit_tick_into()` every tick, FIRST
 ##   ARCH-SYS-003 IntervalIntegrator -> `needs.tick_all()`         every tick, after commit
+##   ARCH-SYS-004 StockAge           -> `stock_age.run_hour_into()` EVERY HOUR CROSSING, on the
+##                                     tick path, and REQ-SET-007's FIRST daily leg at midnight
 ##   ARCH-SYS-005 Ecology            -> `ecology.run_day_into()`   MIDNIGHT ONLY, never per tick
 ##   ARCH-SYS-006 CropWeather        -> `crop_weather.run_hour_into()` EVERY HOUR CROSSING, on
 ##                                     the tick path, AND `run_day_into()` at MIDNIGHT after 005
@@ -100,9 +102,13 @@ extends Node
 ## EVERY OTHER STAGE IS ABSENT BECAUSE ITS OWNING STORE DOES NOT EXIST, and none of them is
 ## faked here:
 ##   ARCH-SYS-001 TransformSnapshot   no Transform store; no position, no movement.
-##   ARCH-SYS-004 StockAge            `economy_system.gd` states it: nothing advances lot age,
-##                                    because the store and temperature factors belong to
-##                                    systems this milestone does not build.
+##   ARCH-SYS-004 StockAge            RUNS NOW -- see the dispatched list above and decision
+##                                    0085. It is not in this absent list any more. What is
+##                                    still missing is WHICH STORE a container is: GDD §5.8's
+##                                    four store factors belong to §5.9 buildings and furniture,
+##                                    and no Building store exists, so `stock_age.gd` holds an
+##                                    explicit declaration the building layer will write and
+##                                    counts every undeclared container every hour.
 ##   ARCH-SYS-006 CropWeather         RUNS NOW -- see the dispatched list above and decision
 ##                                    0047. It is not in this absent list any more.
 ##   ARCH-SYS-007 ImmigrationDeparture no candidate store; `needs.gd` leaves `departure_days`
@@ -135,7 +141,14 @@ extends Node
 ## runs exactly ONE of those five legs plus the season handover between the first two. What it
 ## does, in the requirement's order:
 ##
-##   age stocks              NOT RUN. ARCH-SYS-004 has no owner; `economy_system.gd` says so.
+##   age stocks              RUN, and this is what decision 0085 added: `scripts/core/stock_age.gd`
+##                           (ARCH-SYS-004) folds GDD §5.8's effective storage age into every lot
+##                           in every DECLARED container, and expires the lots whose shelf life
+##                           is over. Its cadence is the HOUR crossing, not the day, so at
+##                           midnight this leg has usually already run on the tick path and the
+##                           boundary records it rather than aging a second time (ARCH-TICK-002).
+##                           It reads the ELAPSED interval's season, which is the first half of
+##                           ARCH-TICK-003 and the reason it must precede the handover below.
 ##   [season handover]       RUN. ARCH-TICK-003 places it exactly between aging and ecology
 ##                           ("aging uses the season in the elapsed interval; ecology uses the
 ##                           new calendar day's season"), and REQ-SET-143's x1.20 winter hunger
@@ -262,6 +275,16 @@ extends Node
 ## does not: it runs a full simulated year of weather. No seed is defaulted or invented here.
 ##
 ## ---------------------------------------------------------------------------------------
+## THE STOCK LAYER IS OWNED, DRIVEN AND EMPTY, in the same three senses as the crop layer.
+## `inventory.gd` is composed here with the §4.3 catalog registered into it, `stock_age.gd`
+## (ARCH-SYS-004) is composed over it, and `run_tick()` drives its hourly leg at every hour
+## crossing. IT HOLDS NO LOTS, because nothing in this node creates one: §5.1's starter stock is
+## placed by `economy_system.gd`, which owns a SEPARATE `inventory.gd` instance of its own, and
+## `world_init.gd` creates no lot in this one. THAT DUPLICATION IS REAL AND IS REPORTED RATHER
+## THAN PAPERED OVER: two inventories are two authorities, and merging them means editing
+## `economy_system.gd` and `world_init.gd`, neither of which this work owns. Until they are one
+## store, `stock_age()` ages this settlement's lots and the autoload's food does not age.
+##
 ## THE RESERVATION POOL IS OWNED AND EMPTY. `reservations.gd` exists to hold job input claims
 ## (REQ-SET-030's all-or-nothing reservation), and there are no jobs. It is composed and cleared
 ## with the rest of the settlement so it is one settlement's state rather than a detached object,
@@ -281,6 +304,10 @@ extends Node
 ##     form of it. THIS IS THE ONE THAT WOULD MATTER, and today it costs nothing because there
 ##     are no jobs; when a job source lands, `jobs.gd` needs a non-allocating live-index reader.
 ##     Reported, not worked around, and not fixed by editing a file this task does not own.
+##   * `stock_age.run_hour_into()` ZERO on 23 ticks in 24, for the same reason as the crop hour
+##     below, and zero on the 24th unless a lot ACTUALLY EXPIRES -- the sweep walks packed
+##     columns and writes through `inventory.gd`'s `_into` forms into instance scratch. An
+##     expiring lot costs four OpResults inside `inventory.gd`, once in that lot's life.
 ##   * `crop_weather.run_hour_into()` ZERO on 23 ticks in 24, because `is_hour_boundary()` is a
 ##     modulo and returns before anything else runs. On the 24th it allocates nothing either,
 ##     unless a plot actually takes frost or actually withers; `crop_weather.gd`'s own header
@@ -326,6 +353,8 @@ const RngScript := preload("res://scripts/core/rng.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
+const InventoryScript := preload("res://scripts/core/inventory.gd")
+const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
 
@@ -351,18 +380,20 @@ const DAILY_LEG_CAPACITY: int = 6
 ## are for 256 residents on a stated machine, and nothing here qualifies against them.
 const TICK_STAGE_COMMAND_COMMIT: int = 0
 const TICK_STAGE_INTERVAL: int = 1
-const TICK_STAGE_CROP_HOUR: int = 2
-const TICK_STAGE_JOB_PLANNER: int = 3
-const TICK_STAGE_SELECTION: int = 4
-const TICK_STAGE_WORK: int = 5
-const TICK_STAGE_PRESENTATION: int = 6
-const TICK_STAGE_COUNT: int = 7
+const TICK_STAGE_STOCK_AGE: int = 2
+const TICK_STAGE_CROP_HOUR: int = 3
+const TICK_STAGE_JOB_PLANNER: int = 4
+const TICK_STAGE_SELECTION: int = 5
+const TICK_STAGE_WORK: int = 6
+const TICK_STAGE_PRESENTATION: int = 7
+const TICK_STAGE_COUNT: int = 8
 
 ## The ARCH-SYS id each measured stage is, so a reader cannot mistake the selection stage's
 ## fused pair for one system. ARCH-SYS-008 appears as a PART: only activity resolution runs.
 const TICK_STAGE_KEYS: Array[StringName] = [
 	&"ARCH-SYS-002 CommandCommit",
 	&"ARCH-SYS-003 IntervalIntegrator (ARCH-SYS-017 CareHealth inside it)",
+	&"ARCH-SYS-004 StockAge hourly",
 	&"ARCH-SYS-006 CropWeather hourly",
 	&"ARCH-SYS-009 JobPlanner",
 	&"ARCH-SYS-008 NeedIntent (activity resolution only) + ARCH-SYS-010 JobSelector",
@@ -412,6 +443,9 @@ var _crop_weather: CropWeatherScript = null
 var _planner: JobPlannerScript = null
 var _presentation: PresentationExtractScript = null
 var _world: WorldInitScript = null
+var _inventory: InventoryScript = null
+var _item_definitions: ItemDefinitionsScript = null
+var _stock_age: StockAgeScript = null
 
 # --- the live-resident index ------------------------------------------------------------------
 
@@ -433,6 +467,7 @@ var _command_report: CommandDispatchScript.TickReport = CommandDispatchScript.Ti
 var _ecology_day: EcologyScript.DayResult = EcologyScript.DayResult.new()
 var _crop_day: CropWeatherScript.DayResult = CropWeatherScript.DayResult.new()
 var _crop_hour: CropWeatherScript.HourResult = CropWeatherScript.HourResult.new()
+var _stock_hour: StockAgeScript.HourResult = StockAgeScript.HourResult.new()
 var _planner_result: IntMath.IntResult = IntMath.IntResult.new()
 var _planner_day: JobPlannerScript.OpResult = null
 ## The 00:00 tick of the day boundary being run, located and PROVED once per boundary.
@@ -458,6 +493,7 @@ var _stage_measured: PackedInt64Array = PackedInt64Array()
 var _ticks_run: int = 0
 var _refused_tick_count: int = 0
 var _refused_crop_hour_count: int = 0
+var _refused_stock_hour_count: int = 0
 var _refused_extract_count: int = 0
 var _refused_planner_day_count: int = 0
 var _planner_day_count: int = 0
@@ -498,6 +534,7 @@ func _init() -> void:
 	_world = WorldInitScript.new(_directory, _ecology.resource_nodes(), _ecology.forage(),
 		_ecology.fishing(), _rng, _crop_weather.farming(), _ecology.orchard_hive(), _jobs,
 		_commands)
+	_compose_stock_layer()
 	_bind_ecology_to_commands()
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
@@ -507,6 +544,21 @@ func _init() -> void:
 	_stage_usec_total.resize(TICK_STAGE_COUNT)
 	_stage_measured.resize(TICK_STAGE_COUNT)
 	_assert_shared_contracts()
+
+
+func _compose_stock_layer() -> void:
+	"""Build the InventoryLot store, load its item catalog, and give ARCH-SYS-004 both.
+
+	The catalog is loaded INTO this settlement's own inventory because `register_item()` is what
+	gives a lot row a mass and a category; ARCH-SYS-004 then reads the same catalog for GDD
+	§5.8's shelf lives. A catalog that fails to load leaves the stage refusing
+	ITEM_CATALOG_NOT_BOUND by its own rule, which is visible in `stock_hour()`, rather than
+	leaving this node to invent a shelf life.
+	"""
+	_inventory = InventoryScript.new()
+	_item_definitions = ItemDefinitionsScript.new()
+	_item_definitions.load_default(_inventory)
+	_stock_age = StockAgeScript.new(_inventory, _item_definitions)
 
 
 func _bind_ecology_to_commands() -> void:
@@ -790,10 +842,24 @@ func _clear_stores() -> void:
 	_dispatch.clear()
 	_ecology.clear()
 	_crop_weather.clear()
+	_clear_stock_layer()
 	_planner.clear()
 	_presentation.clear()
 	_world.clear()
 	_rng.clear()
+
+
+func _clear_stock_layer() -> void:
+	"""Empty the lot store and every storage declaration, then re-register the item catalog.
+
+	`inventory.clear()` drops the item registry as well as the rows -- it is the catalog-time
+	half of the same store -- so a settlement reset without this reload would leave every lot
+	operation refusing UNKNOWN_ITEM. Both generation spaces step forward inside `clear()`, so a
+	lot or container ref taken before a reset still cannot validate after it.
+	"""
+	_inventory.clear()
+	_item_definitions.load_default(_inventory)
+	_stock_age.clear()
 
 
 func _clear_counters() -> void:
@@ -801,6 +867,7 @@ func _clear_counters() -> void:
 	_ticks_run = 0
 	_refused_tick_count = 0
 	_refused_crop_hour_count = 0
+	_refused_stock_hour_count = 0
 	_refused_extract_count = 0
 	_refused_planner_day_count = 0
 	_planner_day_count = 0
@@ -849,6 +916,7 @@ func _run_stages(tick_index: int) -> bool:
 	if not _integrate_interval():
 		_extract_presentation(tick_index)
 		return false
+	_age_stocks(tick_index)
 	_integrate_crops(tick_index)
 	_plan_jobs(tick_index)
 	_select_jobs(tick_index)
@@ -953,6 +1021,34 @@ func _integrate_interval() -> bool:
 	_refused_tick_count += 1
 	_report_first_refusal(swept.error)
 	return _refuse(swept.error)
+
+
+func _age_stocks(tick_index: int) -> void:
+	"""ARCH-SYS-004 StockAge, the HOURLY cadence its §5 row states, in the table's own position.
+
+	FOURTH, after ARCH-SYS-003 and before ARCH-SYS-006, which is exactly where §5's table puts
+	it. Running it here is also what makes REQ-SET-007's FIRST daily leg land before
+	ARCH-TICK-003's season handover: at a midnight tick the clock calls `run_tick()` for that
+	tick and only then `run_day_boundary()`, so the aging pass has already consumed the midnight
+	crossing by the time the handover runs.
+
+	The predicate is the only per-tick cost: 23 ticks in 24 are not an hour crossing and this
+	returns immediately. A refusal is COUNTED rather than fatal, for the same reason as the crop
+	hour -- the needs sweep for this tick has already committed.
+	"""
+	_stage_timer.start()
+	_age_stock_hour(tick_index)
+	_close_stage(TICK_STAGE_STOCK_AGE)
+
+
+func _age_stock_hour(tick_index: int) -> void:
+	"""The hourly aging pass itself, so the measurement above stays one statement wide."""
+	if not StockAgeScript.is_hour_boundary(tick_index):
+		return
+	if _stock_age.run_hour_into(tick_index, _stock_hour):
+		return
+	_refused_stock_hour_count += 1
+	_last_refusal = _stock_hour.error
 
 
 func _integrate_crops(tick_index: int) -> void:
@@ -1082,6 +1178,8 @@ func run_day_boundary(absolute_day: int, season: int) -> bool:
 		return _refuse(REFUSE_INVALID_SEASON)
 	if not _locate_boundary_tick(absolute_day, season):
 		return false
+	if not _age_stocks_leg():
+		return false
 	if not _apply_season_handover(season):
 		return false
 	if not _update_ecology():
@@ -1109,6 +1207,28 @@ func _locate_boundary_tick(absolute_day: int, season: int) -> bool:
 	SimClockScript.calendar_at_into(_boundary_tick, _calendar)
 	if _calendar.absolute_day != absolute_day or _calendar.season != season:
 		return _refuse(REFUSE_CALENDAR_MISMATCH)
+	return true
+
+
+func _age_stocks_leg() -> bool:
+	"""ARCH-SYS-004 StockAge: REQ-SET-007's FIRST leg, BEFORE ARCH-TICK-003's season handover.
+
+	ARCH-TICK-002 forbids "a second age pass just because the same tick is both hourly and
+	daily", and a midnight tick IS an hour crossing, so this does not age a second time: when
+	`run_tick()` has already consumed this exact tick the leg is recorded and nothing else
+	happens. It runs the pass itself only when nothing else has -- a boundary driven directly,
+	with no tick path behind it -- so the leg is genuinely executed in either case rather than
+	logged on trust.
+
+	The pass reads the ELAPSED interval's season from the calendar itself, which is the other
+	half of ARCH-TICK-003: aging must not see the new day's season, and `_apply_season_handover()`
+	below is the very next statement.
+	"""
+	if _stock_age.last_hour_tick() != _boundary_tick:
+		if not _stock_age.run_hour_into(_boundary_tick, _stock_hour):
+			_refused_stock_hour_count += 1
+			return _refuse(_stock_hour.error)
+	_record_daily_leg(LEG_STOCK_AGE)
 	return true
 
 
@@ -1309,6 +1429,31 @@ func crop_hour() -> CropWeatherScript.HourResult:
 func refused_crop_hour_count() -> int:
 	"""Hour crossings whose crop integration refused, so a skipped hour is never silent."""
 	return _refused_crop_hour_count
+
+
+func stock_age() -> StockAgeScript:
+	"""ARCH-SYS-004's aging stage. A building layer declares its storage classes here."""
+	return _stock_age
+
+
+func inventory() -> InventoryScript:
+	"""The settlement's own InventoryLot/InventoryContainer store, the one ARCH-SYS-004 ages."""
+	return _inventory
+
+
+func item_definitions() -> ItemDefinitionsScript:
+	"""The §4.3 item catalog registered into this settlement's inventory."""
+	return _item_definitions
+
+
+func stock_hour() -> StockAgeScript.HourResult:
+	"""The most recent hourly aging pass. Inspect `.ok` before any field."""
+	return _stock_hour
+
+
+func refused_stock_hour_count() -> int:
+	"""Hour crossings whose aging pass refused, so a skipped hour is never silent."""
+	return _refused_stock_hour_count
 
 
 func refused_extract_count() -> int:

@@ -89,7 +89,7 @@ coverage. No hand-selected subset may be called the release rules identity.
 
 **Lookup:** build `lookup_identity.bin`: bytes `RWL-LOOKUP-1\0`, u32 table count,
 then unique ASCII-key-sorted records `key:string, element_type:u8, count:u32,
-values_in_declared_order`. Types 0–4 have the same encoding above; no string-valued
+values_in_declared_order`. Each key is nonempty ASCII, maximum256 bytes. Types 0–4 have the same encoding above; no string-valued
 integer tables. Every authoritative multi-value integer lookup registers here
 (including arithmetic/geometry tables); declare multidimensional shape in the
 rules artifact and flatten row-major. Scalars belong in rules, tables here;
@@ -211,8 +211,9 @@ The input to SHA-256 is exactly, with no padding:
 5. record_count:u32 LE followed by exactly that many typed field records.
 
 Each field record is `section_id:u32, owner_key:string, field_key:string,
-type:u8, value_count:u64, values`. Keys are unique nonempty ASCII, max256 bytes
-per key. Types0–5 use the rules-manifest encodings above; each type5 value has
+type:u8, value_count:u64, values`. The tuple
+`(section_id,owner_key,field_key)` is unique; owner_key intentionally repeats
+across its fields. Both keys are nonempty ASCII, max256 bytes each. Types0–5 use the rules-manifest encodings above; each type5 value has
 its own u32 UTF-8 byte length. There is no record terminator/padding. Records
 appear by section1–14, then ASCII owner_key, then the DECLARED field ordinal in
 that owner's versioned canonical schema (not alphabetically by display label).
@@ -220,7 +221,8 @@ The canonical registry supplies the finite record_count and ordered declarations
 missing/duplicate/unregistered fields or an order mismatch fail verification.
 
 Packed slot columns emit full schema capacity in ascending slot order, with
-unused payload normalized to zero, while preserving every generation/retirement
+unused payload set to its DECLARED canonical unused value (including-1
+reference slots), while preserving every generation/retirement
 and future-affecting allocator value. An occupancy column is emitted before
 other columns for sparse stores. Do not sort active residents by names or compact
 holes. Dense event/command sequences emit their exact used rows in execution
@@ -268,3 +270,11 @@ expanded schema, transactional recovery and Windows parity remain unverified.
 independent encoder fixtures, not production compatibility digests. Reproduce
 document/registry/arithmetic checks from the repository root with
 `python3 docs/validation/validate_blocker_package.py`. This is not a codec test run.
+
+## Follow-up — 2026-09-12
+
+[RESTORE-R01 / SAVE-LAYOUT-R01](2026-09-12_clock_restore_and_layout_followup.md)
+now provides the missing restore assignment and explicit column-major section
+framing, including canonical unused values and fixed-record exceptions. Future
+LifeStage/contact/route semantic changes require affected owner/section version
+updates; the initial vector above is not permission to reuse pre-change schemas.

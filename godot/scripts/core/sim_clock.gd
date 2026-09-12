@@ -28,36 +28,37 @@ extends RefCounted
 ## live. Reasons compose as a bitmask, so closing a menu cannot resume a pause
 ## another reason still holds.
 ##
-## BLOCKER U2 (docs/tasks/02_settlement_foundation.md) IS CLOSED IN PROCESS, AND
-## THE PART OF IT THAT IS NOT IS NAMED. Queued speed/pause scheduler events now
-## exist: `scripts/core/scheduler_events.gd` implements R07-SCHED-001's separate
-## 256-record queue, its own unsigned 64-bit sequence, and the boundary pump that
-## `advance()`'s `before_tick` hook calls before each fixed-tick decision and on
-## paused frames WHEN A CALLER SUPPLIES IT -- and no production caller does; see
-## open item 1 below (decision 0054). The ordering tiebreak that was missing is that
-## sequence; the ARCH-CMD-003 catalog is deliberately still 24 economic kinds,
-## because the scheduler queue has its own two-value kind domain.
+## BLOCKER U2 (docs/tasks/02_settlement_foundation.md) IS CLOSED IN PROCESS AND
+## NOW WIRED; THE PART OF IT THAT IS STILL OPEN IS NAMED. Queued speed/pause
+## scheduler events exist: `scripts/core/scheduler_events.gd` implements
+## R07-SCHED-001's separate 256-record queue, its own unsigned 64-bit sequence,
+## and the boundary pump that `advance()`'s `before_tick` hook calls before each
+## fixed-tick decision and on paused frames. The ordering tiebreak that was
+## missing is that sequence; the ARCH-CMD-003 catalog is deliberately still 24
+## economic kinds, because the scheduler queue has its own two-value kind domain.
 ##
-## TWO THINGS ARE STILL OPEN, NOT ONE.
+## THE PRODUCTION CALLER NOW EXISTS (decision 0084). `scripts/systems/game_manager.gd`
+## drives host frames through `scheduler_events.advance_frame()`, which supplies
+## BOTH `before_tick` and `on_overload`, and its pause and speed controls submit
+## queue events instead of calling `set_pause()`/`set_speed()` themselves. So the
+## boundary barrier, the unsigned-sequence tiebreak, the 250/256 reserve and
+## decision 0054's queued overload rung all happen in the running game.
+## `acknowledge_without_catchup()` below is the one control that still reaches this
+## clock directly, deliberately and unchanged: the queue's two kinds cannot express
+## "clear the retained debt", and decision 0054 keeps that path byte-identical.
 ##
-##   1. THE QUEUE HAS NO PRODUCTION CALLER. `scheduler_events.gd` is preloaded
-##      by nothing but its own test file; the three other mentions of it in this
-##      repository -- `commands.gd`, `command_dispatch.gd` and
-##      `settlement_system.gd` -- are prose. The shipping driver is
-##      `scripts/systems/game_manager.gd`, whose `advance_host_time()` calls
-##      `advance(elapsed, step, day_boundary)` passing NEITHER `before_tick` NOR
-##      `on_overload`, and whose pause and speed controls call `set_pause()` and
-##      `set_speed()` directly. So in the running game the boundary barrier, the
-##      unsigned-sequence tiebreak, the 250/256 reserve and decision 0054's
-##      queued-overload behaviour DO NOT HAPPEN. They are implemented, tested and
-##      unreached. Decision 0054's open list carries what wiring them needs.
-##   2. PERSISTENCE. THERE IS NO SAVE MODULE in this repository, so
-##      ARCH-SAVE-002 §12's scheduler subsection is implemented as an encoder, a
-##      decoder and its validation, and is UNWIRED. A paused queue cannot yet
-##      survive a process restart. Task 09 owns the codec.
+## PERSISTENCE: THE CLOCK'S HALF NOW EXISTS AND THE WIRING DOES NOT. RESTORE-R01
+## (docs/rulings/2026-09-12_clock_restore_and_layout_followup.md, decision 0089)
+## adds `restore_runtime()` below -- the single validated assignment boundary that
+## installs a saved completed tick, debt, speed, mask and the six counters without
+## calling a setter, running a tick or replaying anything. ARCH-SAVE-002 §12's
+## scheduler subsection remains an encoder, a decoder and its validation, and is
+## still UNWIRED: a paused queue cannot yet survive a process restart, because the
+## load coordinator that would hold the barrier and call this does not exist.
+## Task 09 owns that coordinator and `game_manager.gd`'s host-sample-origin reset.
 ##
 ## set_speed() and set_pause() remain the IMMEDIATE setters and are what the
-## queue's pump calls; they are no longer the only way in.
+## queue's pump calls; they are no longer the way a player control gets in.
 ##
 ## BLOCKER U3 (spec contradiction, resolved conservatively). ARCH-CLOCK-001:
 ## "Preserve remaining debt; never discard completed or owed ticks to hide
@@ -126,6 +127,25 @@ const DEBT_PER_REAL_SECOND: int = TICKS_PER_SECOND * TICK_COST
 ## exactly "strictly more than 1/4 real second of backlog".
 const OVERLOAD_NUMERATOR: int = 4
 
+## Restore bounds (RESTORE-R01). Both are READ OFF the arithmetic this file already performs;
+## neither is a new calendar or scheduler design.
+##
+## A restored tick must survive `(tick + CALENDAR_OFFSET_TICKS)`, which `Calendar.set_tick()`
+## computes unchecked, so the ceiling is exactly that addition's headroom.
+const RESTORE_COMPLETED_TICK_MAX: int = IntMathScript.INT64_MAX - CALENDAR_OFFSET_TICKS
+## Every pause bit this clock knows. A mask carrying any other bit is refused, never masked down.
+const KNOWN_PAUSE_BITS: int = PLAYER | MENU | CRITICAL | VICTORY | LOAD
+
+## Refusal codes for `restore_refusal()`. `REFUSE_NONE` is the accepted case, so a caller tests
+## `is_ok()` rather than comparing against a magic value.
+const REFUSE_NONE: StringName = &""
+const REFUSE_RESTORE_NEGATIVE_TICK: StringName = &"CLOCK_RESTORE_NEGATIVE_TICK"
+const REFUSE_RESTORE_TICK_UNREPRESENTABLE: StringName = &"CLOCK_RESTORE_TICK_UNREPRESENTABLE"
+const REFUSE_RESTORE_SPEED: StringName = &"CLOCK_RESTORE_SPEED"
+const REFUSE_RESTORE_PAUSE_MASK: StringName = &"CLOCK_RESTORE_PAUSE_MASK"
+const REFUSE_RESTORE_NEGATIVE_DEBT: StringName = &"CLOCK_RESTORE_NEGATIVE_DEBT"
+const REFUSE_RESTORE_NEGATIVE_COUNTER: StringName = &"CLOCK_RESTORE_NEGATIVE_COUNTER"
+
 ## UI-only notifications (game logic uses the return values and counters instead).
 signal clock_overload_warning(reduced_to_speed: int)
 signal clock_diagnostic_pause(diagnostic: String)
@@ -148,6 +168,28 @@ var _last_error: String = ""
 ## Single reused arithmetic scratch for the per-frame scheduler path (task 2.7). Every read of
 ## `.value` is copied into a local immediately, so no two live values ever share it.
 var _math: IntMathScript.IntResult = IntMathScript.IntResult.new()
+
+
+class RestoreRefusal:
+	"""One restore validation outcome: a StringName code and its detail. `REFUSE_NONE` accepts.
+
+	RESTORE-R01: the validator is pure, so its answer is an object rather than a mutation of
+	`_last_error`. A REFUSED restore must leave even the transient diagnostic strings untouched,
+	and a save owner reports this reason through its own result instead of reading it back off
+	the clock. Deliberately NOT `save_header.gd`'s `Refusal`: this clock is below the codec and
+	must not depend on it, so the save side maps this code into its own vocabulary.
+	"""
+	var code: StringName
+	var detail: String
+
+	func _init(p_code: StringName, p_detail: String) -> void:
+		"""Store the refusal code and the detail behind it."""
+		code = p_code
+		detail = p_detail
+
+	func is_ok() -> bool:
+		"""True when this outcome carries no refusal."""
+		return code == REFUSE_NONE
 
 
 class Calendar:
@@ -284,8 +326,9 @@ func advance(elapsed_microseconds: int, step: Callable = Callable(), day_boundar
 	about whether another tick may start, so a pause admitted during tick 3 stops tick 4.
 	`on_overload` replaces the immediate ladder step with the caller's own handling, which
 	`scheduler_events.gd` uses to carry the rung through that same barrier. BOTH DEFAULT TO
-	INVALID, and with them invalid this function behaves exactly as it did before they existed --
-	which is what every production caller gets today, because `game_manager.gd` passes neither.
+	INVALID, and with them invalid this function behaves exactly as it did before they existed.
+	`game_manager.gd` now reaches this through `scheduler_events.advance_frame()` and supplies
+	both; the bare no-hook path stays supported and is pinned by its own test.
 	"""
 	_last_error = ""
 	var speed: int = effective_speed()
@@ -439,6 +482,162 @@ func _is_overloaded(speed: int) -> bool:
 	if not IntMathScript.checked_mul_into(OVERLOAD_NUMERATOR, _debt, _math):
 		return true
 	return _math.value > DEBT_PER_REAL_SECOND * speed
+
+
+# --- restore (RESTORE-R01) -----------------------------------------------------------------------
+#
+# THE ONE ASSIGNMENT BOUNDARY. `restore_runtime()` is the ONLY public operation that writes the
+# ten runtime fields from outside, and it is not a command: it calls no setter, runs no tick,
+# pumps no queue and replays nothing. The 2026-09-12 follow-up ruling names the alternative it
+# forbids exactly -- `set_pause(PLAYER, true)` ZEROES a sub-tick debt and counts the discard, so
+# restoring a saved PLAYER pause through the ordinary setter would subtract debt during restore
+# and corrupt `_subtick_debt_discards`. That is why this exists instead.
+#
+# THE CALLER HOLDS THE BARRIER. This function never opens or closes one. It must be called with
+# the load/restore guard held and from outside any advance/step/day-boundary callback; nothing
+# here can check that, and nothing here makes it safe to call mid-frame.
+#
+# NOT A SECOND DISCARD PATH. Blocker U3's conservative reading stands: `acknowledge_without_
+# catchup()` remains the only counted path that drops owed ticks. Restore neither drops nor
+# invents them -- it installs the exact debt the save recorded, remainder included.
+#
+# COLD PATH. Restore happens at a load boundary, never per frame, so the `RestoreRefusal` object
+# is allocated freely. The per-frame `advance()` path above still allocates nothing.
+#
+# NO BYTE ORDER IS IMPLIED HERE. These are ten typed GDScript integers; packed file widths follow
+# the declared section 1 schema, not the width of an argument. SAVE-LAYOUT-R01 -- the packed-store
+# byte-order ruling -- is still an empty heading in the 2026-09-12 follow-up ("appended after
+# independent codec review"), so nothing in this file assumes one, and nothing here may be cited
+# as having settled one.
+
+func restore_runtime(completed_tick: int, debt: int, requested_speed: int, pause_mask: int,
+		fallback_count: int, diagnostic_pause_count: int, acknowledged_catchup_resets: int,
+		acknowledged_ticks_discarded: int, subtick_debt_discards: int,
+		day_boundaries_crossed: int) -> bool:
+	"""Install a saved clock runtime verbatim. False, with NOTHING changed, if any argument fails.
+
+	EVERY argument is validated before the FIRST assignment (decision 0059, allocate before
+	consume), so a refusal leaves all ten fields, both transient diagnostic strings and every
+	callback exactly as they were. Call `restore_refusal()` for the reason; this returns only
+	the verdict, because a refused call must not even write `_last_error`.
+
+	On success the ten fields are assigned verbatim -- no scaling, zeroing, clamping or
+	recomputation, and no cross-counter relationship is imposed -- and only the transient
+	`_last_diagnostic`/`_last_error` strings are then cleared. No signal, day notification,
+	callback, tick, debt adjustment or counter increment occurs. The header's completed tick and
+	section 1's must already agree; that comparison belongs to the save owner, which has both.
+	"""
+	if not restore_refusal(completed_tick, debt, requested_speed, pause_mask, fallback_count,
+			diagnostic_pause_count, acknowledged_catchup_resets, acknowledged_ticks_discarded,
+			subtick_debt_discards, day_boundaries_crossed).is_ok():
+		return false
+	_completed_tick = completed_tick
+	_debt = debt
+	_requested_speed = requested_speed
+	_pause_mask = pause_mask
+	_assign_restored_counters(fallback_count, diagnostic_pause_count, acknowledged_catchup_resets,
+		acknowledged_ticks_discarded, subtick_debt_discards, day_boundaries_crossed)
+	_last_diagnostic = ""
+	_last_error = ""
+	return true
+
+
+func _assign_restored_counters(fallback_count: int, diagnostic_pause_count: int,
+		acknowledged_catchup_resets: int, acknowledged_ticks_discarded: int,
+		subtick_debt_discards: int, day_boundaries_crossed: int) -> void:
+	"""Assign G3's six recorded counters verbatim. Only reached after the whole record validates."""
+	_fallback_count = fallback_count
+	_diagnostic_pause_count = diagnostic_pause_count
+	_acknowledged_catchup_resets = acknowledged_catchup_resets
+	_acknowledged_ticks_discarded = acknowledged_ticks_discarded
+	_subtick_debt_discards = subtick_debt_discards
+	_day_boundaries_crossed = day_boundaries_crossed
+
+
+static func restore_refusal(completed_tick: int, debt: int, requested_speed: int, pause_mask: int,
+		fallback_count: int, diagnostic_pause_count: int, acknowledged_catchup_resets: int,
+		acknowledged_ticks_discarded: int, subtick_debt_discards: int,
+		day_boundaries_crossed: int) -> RestoreRefusal:
+	"""Every rule `restore_runtime()` enforces, as a pure check that mutates no clock.
+
+	Static and side-effect free so a save codec can run the identical validation on a decoded
+	record BEFORE it has a clock to install it into, and so a refusal reason exists without a
+	half-published world. The argument order matches `restore_runtime()` exactly.
+	"""
+	var tick: RestoreRefusal = _restore_tick_refusal(completed_tick)
+	if not tick.is_ok():
+		return tick
+	var control: RestoreRefusal = _restore_control_refusal(requested_speed, pause_mask)
+	if not control.is_ok():
+		return control
+	return _restore_host_metadata_refusal(debt, fallback_count, diagnostic_pause_count,
+		acknowledged_catchup_resets, acknowledged_ticks_discarded, subtick_debt_discards,
+		day_boundaries_crossed)
+
+
+static func _restore_tick_refusal(completed_tick: int) -> RestoreRefusal:
+	"""Tick 0 is legal; a negative tick and one whose calendar offset would overflow are not."""
+	if completed_tick < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_TICK,
+			"completed tick %d is negative" % completed_tick)
+	if completed_tick > RESTORE_COMPLETED_TICK_MAX:
+		return RestoreRefusal.new(REFUSE_RESTORE_TICK_UNREPRESENTABLE,
+			"completed tick %d overflows the `tick + %d` offset calendar"
+				% [completed_tick, CALENDAR_OFFSET_TICKS])
+	return RestoreRefusal.new(REFUSE_NONE, "")
+
+
+static func _restore_control_refusal(requested_speed: int, pause_mask: int) -> RestoreRefusal:
+	"""Requested speed is 1, 2 or 4 -- never 3, never 0 -- and the mask holds only known bits.
+
+	SPEED_PAUSED is derived from the mask by `effective_speed()` and is never a stored requested
+	speed, so 0 is refused here exactly as `set_speed()` refuses it.
+	"""
+	if not SELECTABLE_SPEEDS.has(requested_speed):
+		return RestoreRefusal.new(REFUSE_RESTORE_SPEED,
+			"requested speed %d is not one of 1, 2, 4" % requested_speed)
+	if pause_mask < 0 or (pause_mask & ~KNOWN_PAUSE_BITS) != 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_PAUSE_MASK,
+			"pause mask %d carries a bit outside the known %d" % [pause_mask, KNOWN_PAUSE_BITS])
+	return RestoreRefusal.new(REFUSE_NONE, "")
+
+
+static func _restore_host_metadata_refusal(debt: int, fallback_count: int,
+		diagnostic_pause_count: int, acknowledged_catchup_resets: int,
+		acknowledged_ticks_discarded: int, subtick_debt_discards: int,
+		day_boundaries_crossed: int) -> RestoreRefusal:
+	"""Debt and each of G3's six counters lie in `0..INT64_MAX`, checked one field at a time.
+
+	The upper end of that domain is the GDScript int itself, which IS int64, so the rule a value
+	can actually violate is the lower one. Debt is NOT capped here at the codec's tighter
+	`INT64_MAX/4`: a restorable value is not permission to overflow, and `_is_overloaded()`
+	already refuses its own multiplication rather than wrapping.
+	"""
+	if debt < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_DEBT, "debt %d is negative" % debt)
+	var first: RestoreRefusal = _first_negative_counter("_fallback_count", fallback_count,
+		"_diagnostic_pause_count", diagnostic_pause_count,
+		"_acknowledged_catchup_resets", acknowledged_catchup_resets)
+	if not first.is_ok():
+		return first
+	return _first_negative_counter("_acknowledged_ticks_discarded", acknowledged_ticks_discarded,
+		"_subtick_debt_discards", subtick_debt_discards,
+		"_day_boundaries_crossed", day_boundaries_crossed)
+
+
+static func _first_negative_counter(first_name: String, first_value: int, second_name: String,
+		second_value: int, third_name: String, third_value: int) -> RestoreRefusal:
+	"""Name the first of three counters that is negative, in argument order, or accept."""
+	if first_value < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_COUNTER,
+			"%s is %d, which is negative" % [first_name, first_value])
+	if second_value < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_COUNTER,
+			"%s is %d, which is negative" % [second_name, second_value])
+	if third_value < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_COUNTER,
+			"%s is %d, which is negative" % [third_name, third_value])
+	return RestoreRefusal.new(REFUSE_NONE, "")
 
 
 # --- observable scheduler state ------------------------------------------------------------------

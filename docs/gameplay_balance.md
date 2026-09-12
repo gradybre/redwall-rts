@@ -561,3 +561,11 @@ Close MOVE-G01 before activating production traversal. Required complete catalog
 Travel, waiting and work must account for disjoint authoritative time; a swimmer or climber may not receive duplicate work progress. Water-reached fishing shares existing basin stock and the nine-species edible whitelist; underground stores use real capacity and service paths. Re-run the labor/survival scenarios after changed travel costs; prior controls do not establish extended-layout feasibility.
 
 The [food catalog](redwall-design/content_catalog.md) lists source dishes and explicit policy conflicts. Greensap cheese and plant sausages are supported creative candidates, not active recipes. Current `root_stew`, `woodland_pie` and `mead` retain their existing formulas and names. No numeric economy value is changed by this research pass.
+
+## Expired seed yield — 2026-09-12
+
+[STOCK-SEED-R01](rulings/2026-09-12_alerts_and_seed_expiry.md) fills §5.8's missing
+automatic seed-expiry quantity: checked floor(q_milli*seed_mass/compost_mass),
+currently floor(q_milli/10). Seed100g/U and compost1000g/U are inherited; the
+conversion ratio and per-lot decay remainder are newly specified. No composter
+recipe, shelf life, storage-age factor or sowing refund changes.

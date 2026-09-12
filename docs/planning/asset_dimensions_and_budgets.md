@@ -134,18 +134,30 @@ charged separately once; they cannot disappear from the whole-scene accounting.
 
 | Asset family | Near triangles | Mid | Far | Max surfaces | Max individual texture edge |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Building assembly | 32000 | 10000 | 2500 | 4 | 2048 |
+| Building assembly | 32000 | 10000 | 2500 | 16 | 2048 |
 | Furniture instance | 2000 | 700 | 180 | 2 | 1024 |
 | Tool / resource / small prop | 1200 | 400 | 100 | 1 | 1024 |
 | Tree / large vegetation | 6000 | 2000 | 500 | 2 | 2048 |
 | Ground cover cluster | 600 | 180 | 40 | 1 | 1024 |
 
-Admit near at projected maximum AABB extent ≥180 render-target pixels, mid at
-≥48, far below; use existing 10% hysteresis and 0.20 s residence. Large structures
+NEW static-asset admission policy: initially near at projected maximum AABB
+extent ≥180 render-target pixels, mid at ≥48, far below. Reuse the creature
+algorithm with10% hysteresis and0.20s residence: far→mid at52.8px, mid→far
+below43.2px; mid→near at198px, near→mid below162px. These static thresholds and
+their application to buildings/props are new, not inherited crowd requirements. Large structures
 may naturally remain near at normal zoom. Do not force all instances to near
 because the asset has a near mesh. Exact vertex/material/draw cost still needs
 measurement. No new terrain tessellation algorithm is prescribed by this table;
 terrain remains independently measured in the full scene.
+
+Buildings use at most4 distinct shared materials. To preserve the required
+independent roof/wall/cap parts, the assembly allows at most16 draw surfaces at
+near/mid and4 at far; the table reports the largest of those caps. Material count
+is not draw-surface count: repeated material slots on different parts still cost
+draw surfaces. Include visible cut caps/opening geometry within both triangle
+and surface limits. A far representation must still honor selected cutaway
+visibility (roof/upper/lower-cap grouping); do not fuse it into an unhideable shell.
+This explicitly reconciles multipart cutaways with rendering budgets.
 
 A small asset may use a tile within a shared 2048 atlas rather than its own
 1024 texture. Shared atlas edge≤2048. Authoring source can be larger; imported
@@ -155,8 +167,10 @@ resident, plank or bed. Normal/ORM are linear data, albedo follows its import
 color-space convention. Alpha-cutout foliage must be measured for overdraw;
 no blended strand-fur/leaf-card escalation to hide weak silhouettes.
 
-NEW aggregate non-creature allocations: ≤128 MiB resident meshes across all loaded
-LODs, ≤256 MiB resident material textures INCLUDING mips and all loaded variants.
+NEW aggregate non-creature allocations: ≤128 MiB loaded non-creature meshes
+across all LODs, ≤256 MiB loaded non-creature material textures INCLUDING mips
+and all loaded variants. These separate environment sub-budgets are charged
+ALONGSIDE the existing creature/crowd allocations within the2.5GiB total ceiling.
 Charge shared resources once, copies/staging separately where resident. For
 conservative planning, one 2048² albedo+normal+ORM set at RGBA8 with a complete mip
 chain consumes just under 64 MiB; four such sets exhaust the texture allowance.
@@ -290,4 +304,4 @@ First bind these model-brief metadata and asset ceilings, prepare the single
 proportion comparison, and implement camera proxies/skeletal admission against
 existing runtime interfaces. No paid generation or bulk creature proportion
 approval is implied. Preserve the approved grounded visual style and supplied
-reference permission. The executor brief was located in `.claude/worktrees/agent-a3310a509829570cd/docs/art-reference/world_art_lookdev_brief.md` (SET-ART-LOOKDEV-001). Its explicit blocked rows total nine: A2/A3/A4, B1/B2/B3, C3, D3/D5, despite its introductory claim of six. Use the entry mapping above; distinguish authoring readiness from production qualification.
+reference permission. The executor brief is now [docs/art-reference/world_art_lookdev_brief.md](../art-reference/world_art_lookdev_brief.md) (SET-ART-LOOKDEV-001); its originating temporary worktree has been removed. Its explicit blocked rows total nine: A2/A3/A4, B1/B2/B3, C3, D3/D5, despite its introductory claim of six. Use the entry mapping above; distinguish authoring readiness from production qualification.

@@ -24,6 +24,7 @@ extends "res://test/framework/test_case.gd"
 const UIManagerScript := preload("res://scripts/systems/ui_manager.gd")
 const HudScript := preload("res://scripts/ui/hud.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const UiCommandBridgeScript := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSessionScript := preload("res://scripts/ui/ui_world_session.gd")
@@ -547,3 +548,33 @@ func test_a_depletion_names_the_item_as_its_source_so_two_items_stay_two_notices
 		"two items are two conditions and the repeat groups onto the first")
 	assert_true(_retained_messages(_hud.shell().notices()).has("Out of grain!"),
 		"and each item is named in its own message")
+
+
+func test_the_create_button_gives_the_cohort_persistent_ids_one_to_twelve() -> void:
+	"""R-INIT-ID-001 through UI-SET-103's Create, not only through boot.
+
+	THE DEFECT THIS PINS. `create_world()` used `_session.create_into()`, which runs
+	`world_init.generate()` -- the standalone wrapper whose `_publish()` calls `_reset_stores()`,
+	clearing the directory and the persistent-id counter, and then publishes 1713 world entities
+	before any resident exists. So pressing Create gave Warden Rowan id 1714 while booting gave
+	her 1: the same seed and the same authored scenario producing two different identities, which
+	§5.3's `hash(persistent_id, world_seed)` naming and any future state digest hang off.
+
+	`world_init.gd` states the contract the old path violated -- the reset wrapper is kept "for
+	isolated controls" and the composed initializer must not use it, "which is exactly how ids
+	1-12 were lost". `create_world()` is a composed initializer.
+
+	The old tests asserted node counts and `living_count() == 12` and never asserted an id, which
+	is why the divergence was invisible to the suite. This asserts the id.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(_ui.create_world(), "Create succeeds")
+	var residents: ResidentsScript = SettlementSystem.residents()
+	var warden: IntMath.IntResult = residents.persistent_id_of(ResidentsScript.WARDEN_INDEX)
+	assert_true(warden.ok, "the Warden has a persistent id")
+	assert_equal(warden.value, 1, "and it is 1, exactly as booting gives her")
+	for index: int in ResidentsScript.INITIAL_POPULATION:
+		var id: IntMath.IntResult = residents.persistent_id_of(index)
+		assert_true(id.ok, "cohort row %d has an id" % index)
+		assert_equal(id.value, index + 1, "cohort row %d is persistent id %d" % [index, index + 1])
+	SettlementSystem.reset()

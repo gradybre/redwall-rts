@@ -1,5 +1,7 @@
 # Claude handoff — asset, save and movement blockers
 
+**Latest Astra follow-up (2026-09-12):** [six executor answers](2026-09-12_executor_followup.md). Read before the older status below.
+
 2026-09-11. This is the current entry point for the ranked Astra questions.
 Read AGENTS/CLAUDE and the live STATUS/diff first; preserve concurrent executor
 work. This package changes specifications and planning, not runtime code.
@@ -35,7 +37,7 @@ also receive explicit authoring contracts. Windows qualification remains deferre
 The reviewed source brief is now also available at
 [world art lookdev brief](../art-reference/world_art_lookdev_brief.md) and its
 historical decision0079; resolve its old BLOCKED notes through this ruling.
-The JSON records the originating executor-worktree path and review SHA; source
+The JSON records the durable source path and review SHA; source
 notes such as its erroneous initial six-blocker count are historical, not an
 instruction to overwrite the executor's work.
 

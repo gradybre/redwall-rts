@@ -94,6 +94,9 @@ const SPEC_DEFAULT_TUTORIAL: bool = true
 const SUPPORTED_TUTORIAL: bool = false
 
 const REFUSE_NONE: StringName = &""
+## The cohort refused after the world was prepared. The settlement owns the specific
+## reason; this names the stage so the report is not silent about which half failed.
+const REFUSE_COHORT: StringName = &"SETTLEMENT_COHORT_REFUSED"
 const REFUSE_NAME_LENGTH: StringName = &"UI_SETTLEMENT_NAME_LENGTH"
 const REFUSE_NAME_CONTROL_CHARACTER: StringName = &"UI_SETTLEMENT_NAME_CONTROL_CHARACTER"
 const REFUSE_SEED_RANGE: StringName = &"UI_SEED_OUT_OF_RANGE"
@@ -296,6 +299,62 @@ func create_into(directory: EntityDirectoryScript, nodes: ResourceNodesScript,
 	_world = WorldInitScript.new(directory, nodes, forage, fishing, rng, farming, orchards,
 		jobs, commands)
 	return _generate_into(out)
+
+
+func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNodesScript,
+		forage: ForageScript, fishing: FishingScript, rng: RngScript,
+		farming: FarmingScript, orchards: OrchardHiveScript, jobs: JobsScript,
+		commands: CommandsScript, out: Report, reset: Callable, cohort: Callable) -> bool:
+	"""Generate §5.1's world with its cohort allocated FIRST, so residents take ids 1-12.
+
+	R-INIT-ID-001 orders initialization preflight -> single reset -> seed -> cohort -> publish,
+	and `world_init.gd` says in terms that the composed initializer must not use `generate()`:
+	"the reset in the middle clears the directory, which would destroy a cohort allocated
+	first, which is exactly how ids 1-12 were lost". `create_into()` uses `generate()`, so the
+	Create button gave the cohort 1714-1725 while booting gave it 1-12 -- the same seed and the
+	same authored scenario producing two different identities, which §5.3's
+	`hash(persistent_id, world_seed)` naming hangs off.
+
+	This session still owns the published map, the attempt report and the generator's own
+	refusal codes. Delegating the whole operation to `SettlementSystem` was tried and reverted
+	because it lost all three; the caller supplies its reset and cohort as Callables instead.
+	"""
+	out.reset()
+	if not can_create():
+		return _report_refusal(out, form_refusal(), inline_reason(form_refusal()))
+	if directory == null or nodes == null or forage == null or fishing == null or rng == null:
+		return _report_refusal(out, REFUSE_NO_STORES, inline_reason(REFUSE_NO_STORES))
+	if not _open_catalog():
+		return _report_refusal(out, REFUSE_CATALOG, inline_reason(REFUSE_CATALOG))
+	_world = WorldInitScript.new(directory, nodes, forage, fishing, rng, farming, orchards,
+		jobs, commands)
+	var request: WorldInitScript.RequestResult = WorldInitScript.bound_request(_items, _seed)
+	if not request.ok:
+		return _report_refusal(out, request.error, request.detail)
+	var planned: WorldInitScript.GenerateResult = _world.preflight(request.request)
+	out.attempts = planned.attempts
+	if not planned.ok:
+		return _report_refusal(out, planned.error, "generation refused during preflight")
+	reset.call()
+	var seeded: StringName = _world.seed_prepared_streams()
+	if seeded != REFUSE_NONE:
+		_world.discard_prepared_plan()
+		return _report_refusal(out, seeded, "the prepared world could not seed its streams")
+	if not cohort.call():
+		_world.discard_prepared_plan()
+		return _report_refusal(out, REFUSE_COHORT,
+			"the world was prepared but its cohort could not be allocated")
+	var published: WorldInitScript.GenerateResult = _world.publish_prepared()
+	if not published.ok:
+		return _report_refusal(out, published.error, "publication refused after the cohort")
+	out.ok = true
+	out.accepted_seed = published.accepted_seed
+	out.resource_nodes = published.resource_nodes_created
+	out.basins = published.basins_created
+	out.fish_stocks = published.fish_stocks_created
+	_generated_count += 1
+	_last_refusal = REFUSE_NONE
+	return true
 
 
 func _generate_into(out: Report) -> bool:

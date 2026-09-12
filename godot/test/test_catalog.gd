@@ -210,10 +210,12 @@ func test_every_protected_domain_has_a_fixed_enum_table() -> void:
 	publishing nothing, leaving that enum with no numbers at all.
 
 	The count rose from eight to eleven when Soil, CropState and OrderMode joined the table,
-	and from eleven to thirteen when RoomType and BuildingState did (decision 0018: every enum
-	§4.3 numbers explicitly belongs here). The number is asserted so a domain added without a
+	from eleven to thirteen when RoomType and BuildingState did (decision 0018: every enum
+	§4.3 numbers explicitly belongs here), and to fourteen when Milestone did under decision
+	0080 -- BAL-CAT-002 numbers M0..M4 individually, which is the same "individually listed"
+	test. The number is asserted so a domain added without a
 	fixed_enum table, or a table added without its domain name, fails."""
-	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 13, "thirteen protected enum domains")
+	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 14, "fourteen protected enum domains")
 	for domain_name: String in CatalogScript.PROTECTED_ENUM_DOMAINS:
 		assert_false(CatalogScript.fixed_enum(domain_name).is_empty(),
 			"protected domain %s must publish a fixed enum table" % domain_name)
@@ -433,18 +435,18 @@ func test_verify_compiled_enum_accepts_the_compiled_domains_and_refuses_others()
 
 
 func test_the_compiled_domains_are_registered_and_never_protected() -> void:
-	"""Decision 0018 protects what §4.3 NUMBERS; these six it does not number, so they compile."""
+	"""Decision 0018 protects what §4.3 NUMBERS; these seven it does not number, so they compile."""
 	for domain_name: String in ["BuildingDefinition", "CommandKind", "CropFamily",
-			"EventDefinition", "FurnitureDefinition", "HabitatType"]:
+			"EventDefinition", "FurnitureDefinition", "HabitatType", "Station"]:
 		assert_true(CatalogScript.COMPILED_ENUM_DOMAINS.has(domain_name),
 			"%s must be a registered compiled domain" % domain_name)
 		assert_false(CatalogScript.PROTECTED_ENUM_DOMAINS.has(domain_name),
 			"%s must NOT be protected: §4.3 states none of its numbers" % domain_name)
 		assert_true(CatalogScript.fixed_enum(domain_name).is_empty(),
 			"%s owns no fixed §4.3 table" % domain_name)
-	assert_equal(CatalogScript.COMPILED_ENUM_DOMAINS.size(), 6,
-		"six compiled domains today: BuildingDefinition and FurnitureDefinition joined them "
-		+ "under decision 0056, after CommandKind under decision 0042")
+	assert_equal(CatalogScript.COMPILED_ENUM_DOMAINS.size(), 7,
+		"seven compiled domains today: Station joined them under decision 0080, after "
+		+ "BuildingDefinition and FurnitureDefinition under 0056 and CommandKind under 0042")
 
 
 func test_compiled_id_of_resolves_every_key_and_refuses_the_unknown() -> void:

@@ -115,3 +115,8 @@ independent corruption and continuation evidence; do not label empty fixtures
 complete systems. STATE-COHORT-R01 excludes `_cohort_slots` rollback scratch.
 The earlier09.1 note about three unresolved rows is historical: decision0063
 resolved result/reachability classification; scheduler writer wiring remains work.
+
+## Astra follow-up — 2026-09-12
+
+RESTORE-R01 atomic clock restoration and SAVE-LAYOUT-R01 explicit column-major framing precede end-to-end09.3 acceptance. Independent file/checkpoint work may continue.
+Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.

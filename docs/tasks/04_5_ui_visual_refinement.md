@@ -131,3 +131,8 @@ Apply [R-UI-ALERT-001](../rulings/2026-09-11_initial_ids_and_narrow_alerts.md)
 to UXV-018/032 and A08/A11: a compact authored summary in the existing 48px zone
 opens the full selected history entry. Verify exact message retention, measured
 fit, mouse/keyboard access, focus return and multi-card non-overlap.
+
+## Astra follow-up — 2026-09-12
+
+ALERT-R02 specifies adaptive STANDARD/WIDE full text versus always-compact NARROW, real selected-notice details and required native visual captures.
+Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.

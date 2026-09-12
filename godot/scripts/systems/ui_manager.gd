@@ -131,7 +131,7 @@ func _on_shell_action(element_id: int) -> void:
 func create_world() -> bool:
 	"""UI-SET-103's Create: discard the current settlement and create §5.1's world AND cohort.
 
-	THE WORLD AND THEN ITS COHORT, in that order. This generated the world and no residents,
+	THE COHORT AND THEN ITS WORLD, in that order (R-INIT-ID-001). This generated the world and no residents,
 	so pressing Create emptied the settlement it had just made and the HUD read
 	"Residents 0" against a fully generated map. Decision 0071 fixed boot; the UI kept the
 	poorer path.
@@ -149,18 +149,15 @@ func create_world() -> bool:
 	"""
 	if SettlementSystem == null:
 		return _refuse(REFUSE_NO_SETTLEMENT)
-	SettlementSystem.reset()
 	var report: UiWorldSession.Report = _session.last_report()
-	var ok: bool = _session.create_into(SettlementSystem.directory(),
+	var ok: bool = _session.create_with_cohort_into(SettlementSystem.directory(),
 		SettlementSystem.ecology().resource_nodes(), SettlementSystem.ecology().forage(),
 		SettlementSystem.ecology().fishing(), SettlementSystem.rng(),
 		SettlementSystem.crop_weather().farming(), SettlementSystem.ecology().orchard_hive(),
-		SettlementSystem.jobs(), SettlementSystem.commands(), report)
-	if ok and not SettlementSystem.create_initial_settlement():
-		ok = false
-		report.ok = false
+		SettlementSystem.jobs(), SettlementSystem.commands(), report,
+		SettlementSystem.reset, SettlementSystem.create_initial_settlement)
+	if not ok and report.error == UiWorldSession.REFUSE_COHORT:
 		report.error = SettlementSystem.last_refusal()
-		report.detail = "The world was generated but its cohort could not be spawned."
 	_report_generation(ok, report)
 	if ok and EconomySystem != null:
 		EconomySystem.bind_residents(SettlementSystem.residents())

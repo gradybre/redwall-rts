@@ -185,8 +185,8 @@ extends RefCounted
 ##     AT ONCE. Ruling §5: "Two single-slot calls without rollback are not a safe two-slot
 ##     admission API." reserve_effort_slots() therefore takes a count, checks every condition
 ##     before it writes anything, and publishes the claim and the occupancy change together --
-##     the allocate-before-consume hazard decision 0024 named. There is no single-slot entry
-##     point to compose unsafely.
+##     decision 0059's allocate-before-consume rule. There is no single-slot entry point to
+##     compose unsafely.
 ##   * THE CLAIM SLICE. `FishingEffortClaim` is a fixed slice indexed by EXPEDITION TYPED ROW
 ##     (512 rows, entity_directory.gd's KIND_EXPEDITION capacity): `active:B8`,
 ##     `expedition_generation:I32`, `habitat_slot/generation:I32x2`, `job_slot/generation:I32x2`,
@@ -603,7 +603,7 @@ var _math_b: IntMath.IntResult = IntMath.IntResult.new()
 var _math_c: IntMath.IntResult = IntMath.IntResult.new()
 ## Per-habitat occupancy recomputed from the live claims. SCRATCH, 128 bytes, counted apart from
 ## the 12800-byte claim payload: it exists so the load path can total every claim BEFORE it
-## overwrites the authoritative column (decision 0024's allocate-before-consume).
+## overwrites the authoritative column (decision 0059's allocate-before-consume).
 var _effort_total_scratch: PackedInt32Array = PackedInt32Array()
 ## Resolved rows carried from a refusal check to the commit that immediately follows it. Nothing
 ## between the two calls can re-enter this store.

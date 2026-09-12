@@ -1359,7 +1359,7 @@ func plant(slot: int, crop_id: int, day: int, season: int, season_day: int) -> O
 	READY_06 §6.1: queued, reserved and travelling sowing leave the plot EMPTY, and only at
 	productive start is the exact seed committed and the sowing WIP created, atomically, with the
 	state becoming SOWN. Every gate below is evaluated BEFORE any column moves, so a refused
-	planting commits no seed at all (decision 0024). A plot that is already SOWN refuses with
+	planting commits no seed at all (decision 0059). A plot that is already SOWN refuses with
 	REFUSE_NOT_EMPTY, which is what stops a replacement worker committing seed a second time.
 
 	Validates the two gates that are per-plot facts: §5.6's "incompatible soil rejects planting"
@@ -1768,7 +1768,7 @@ func harvest(slot: int, day: int, tick: int, pollination_factor: int) -> OpResul
 	"""REQ-SET-074: harvest a RIPE plot, apply its fertility change ONCE, and return the yield.
 
 	The yield is computed in full -- and can refuse -- BEFORE anything is written, so a refusal
-	leaves the plot exactly as it was (decision 0024). No lot is created: `inventory.gd` owns the
+	leaves the plot exactly as it was (decision 0059). No lot is created: `inventory.gd` owns the
 	produce. The plot returns to EMPTY with its rotation history advanced on both the plot and
 	its tile.
 	"""
@@ -2111,7 +2111,7 @@ func apply_compost(slot: int, day: int) -> OpResult:
 
 	READY_06 §6.3's application completion, in one step: the 2000 milli-U the caller must consume,
 	the capped fertility gain, the tile's absolute application season and §4.2's current-season
-	mirror all move together, and every refusal happens before any of them (decision 0024). The
+	mirror all move together, and every refusal happens before any of them (decision 0059). The
 	eligibility gate is TileHistory.compost_season, so destroying and recreating a plot cannot buy
 	a second application in the same season (ARCH-STATE-003). The compost itself is not consumed
 	here; the quantity is returned and `inventory.gd` owns the lot. The 8-WU service is

@@ -96,7 +96,7 @@ extends RefCounted
 ##     delete a node §5.1 never authorised it to touch.
 ##   * THE REPLACEMENT IS AN EXPLICIT `destroy()`, matching the invariant above. The tree's
 ##     directory row is released, so no live row is stranded with no tile and no owner.
-##   * ALLOCATE BEFORE CONSUME -- the hazard decision 0024 named. The sixteen directory rows are
+##   * ALLOCATE BEFORE CONSUME -- decision 0059's rule. The sixteen directory rows are
 ##     reserved FIRST; only then are the replaced nodes destroyed and the ore rows published. A
 ##     refusal at any point rolls the reservation back and leaves the store exactly as it was:
 ##     there is no half-built deposit and no felled tree with nothing standing in its place. The
@@ -654,7 +654,7 @@ func _refuse_footprint_occupancy(replaceable_resource_id: int) -> StringName:
 
 
 func _reserve_deposit_rows() -> StringName:
-	"""Reserve sixteen directory rows BEFORE any replaced node is consumed (decision 0024).
+	"""Reserve sixteen directory rows BEFORE any replaced node is consumed (decision 0059).
 
 	A refusal part-way hands every row already taken straight back, so the store and the
 	directory are left exactly as they were found. No store row is written here.

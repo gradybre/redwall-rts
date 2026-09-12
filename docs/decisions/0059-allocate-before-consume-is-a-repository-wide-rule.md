@@ -71,16 +71,21 @@ specific subjects that modules correctly point at:
 
 ## Scope of this change
 
-**This record only.** The comment sweep is deliberately a separate change:
-`gear.gd`, `fishing.gd`, `world_init.gd` and `job_planner.gd` are owned by
-in-flight branches right now, and rewriting comments underneath a running agent
-is how merge conflicts and lost work happen. The sweep lands when the tree is
-quiet, and it will reclassify each citation against the table above rather than
-replacing the number everywhere.
+**This record only.** The comment sweep was deliberately a separate change:
+`gear.gd`, `fishing.gd`, `world_init.gd` and `job_planner.gd` were owned by
+in-flight branches when this record was written, and rewriting comments
+underneath a running agent is how merge conflicts and lost work happen. The
+sweep was to land when the tree was quiet, reclassifying each citation against
+the table above rather than replacing the number everywhere.
 
-Until then the citations remain as they are. They point at a real hazard in a
-record that does not generalise it — which is the state this document describes,
-so nothing is now undocumented.
+**The sweep has since landed** (branch `docs/allocate-before-consume-sweep`).
+Twenty-three citations across ten files were repointed to this record;
+twenty-six were left at 0024 because §1, §2, §4 or the named hazard is genuinely
+their subject. One remains outstanding: `world_init.gd:13`
+(*"ALLOCATE BEFORE CONSUME, AT WORLD SCALE (decision 0024)"*) is a general-rule
+citation that belongs here, but that file was under concurrent ownership during
+the sweep and was left byte-untouched. It is the only known unrepointed
+general-rule citation.
 
 ## What this does not do
 

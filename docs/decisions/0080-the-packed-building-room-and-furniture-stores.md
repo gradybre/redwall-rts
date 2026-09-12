@@ -110,6 +110,13 @@ the same building, and no further.
   contract (06.2); `work_mwu` *is* carried because it is one integer. `inventory.gd` owns
   containers and R-BUILD-DOM-004 forbids a parallel container store, so this store publishes the
   Building row a container can be owned *by* and states the capacity it should have.
+- **Save parity for `Room.furniture_mask` is open.** `master` merged `save_codec.gd` and
+  `save_header.gd` on 2026-09-11, but those are ARCH-SAVE-001's encoding primitives and the
+  header, not a section encoder: nothing writes or reads a component column yet.
+  `verify_room_masks()` is the comparison R-BUILD-DOM-003 asks a loader to run, and its
+  mismatch branch is deliberately unreachable through this store's own API — the mask is
+  written only by the same recomputation the check runs — so only a decoder that writes
+  masks straight from a file can produce a disagreement. That decoder is 09.2's.
 - **`RecipeDefinition.unlock` and `.station` are not validated against real recipes**, because no
   recipe module exists. The ruling's "all 36 currently tabulated recipes name a real station" is
   therefore still a source-table claim, not a runtime one.

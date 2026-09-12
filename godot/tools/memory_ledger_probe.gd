@@ -102,6 +102,9 @@ const COMPOSED_SCRIPTS: Array[String] = [
 	"res://scripts/core/rng.gd", "res://scripts/core/crop_weather.gd",
 	"res://scripts/core/farming.gd", "res://scripts/core/weather.gd",
 	"res://scripts/core/job_planner.gd", "res://scripts/core/presentation_extract.gd",
+	# Added 2026-09-11 (decision 0064): `settlement_system.gd` now composes REQ-SET-009's
+	# generator, so its published AND staged map buffers are resident in the shipped process.
+	"res://scripts/core/world_init.gd",
 ]
 
 

@@ -481,6 +481,11 @@ These are known allocations that no line of §2.2, §3 or §2.3 counts. They are
 
 **ARCH-ID-001.** Every referenceable runtime entity receives one slot in a global directory; its `kind` and `typed_row` locate the appropriate typed store `[NEW directory]`. Resident rows remain separately bounded at 512 `[GDD §4.1]`. Child records such as Reservation, MoodMemory, Skills, and NoticeCondition are owner-indexed rows, not extra entity objects. A Job or InventoryLot is referenceable and does receive a directory entry. Use fixed kind numeric IDs from sorted ASCII kind keys, preserving GDD's explicitly numbered enums in their own domains. Persistent IDs are globally unique positive int32 values, assigned monotonically and never reused `[GDD §4.1–4.2]`.
 
+**R-INIT-ID-001 clarification (2026-09-11):** composed new-world initialization
+resets before allocation, assigns the starting cohort global IDs 1–12 first, and
+then continues the same counter for world entities. A later terrain publication
+must not clear the directory. See [lifecycle/transaction requirements](rulings/2026-09-11_initial_ids_and_narrow_alerts.md).
+
 **ARCH-ID-002.** Both directory and typed-row allocators use preallocated indexed min-heaps of free indices. Pop the lowest free slot, initialize all columns and children explicitly, then publish `active=1` at lifecycle commit. Initial generation is 1 `[NEW]`; increment on reuse, not on destroy, matching `[crowd §4.1]`. Generation 2147483647 may be used once; after its destruction retire the slot permanently rather than wrapping. Persistent ID exhaustion at 2147483647 refuses further creation and offers saving/continuation of the existing world; it never wraps or resets on load. `[NEW overflow disposition]`
 
 **ARCH-ID-003.** All command, job, reservation, target, ownership, UI lookup, event, and save-load access SHALL validate this predicate before reading target columns:

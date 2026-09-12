@@ -91,6 +91,16 @@ func _spawn_at(species: StringName, cell: int) -> Vector2i:
 	return resident
 
 
+func _spawn_stage_at(species: StringName, stage: int, cell: int) -> Vector2i:
+	"""Spawn one resident at an explicit MOVE-DEP-R02 stage and place it; returns its reference."""
+	var spawned: Variant = _residents.spawn_with_stage(species, stage)
+	assert_true(spawned.ok, "the %s resident spawns (error was %s)" % [
+		ResidentsScript.LIFE_STAGE_KEYS[stage], spawned.error])
+	var resident: Vector2i = spawned.ref
+	_place_on(resident, cell, "the resident is placed on the cell centre")
+	return resident
+
+
 func _place_on(resident: Vector2i, cell: int, message: String) -> void:
 	"""Place a resident on a cell centre at the surface layer, asserting the placement took."""
 	assert_true(
@@ -729,19 +739,164 @@ func test_travel_refuses_an_unprofiled_mode_and_a_mode_outside_the_enum() -> voi
 	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_MODE_RANGE, "by its own name")
 
 
-func test_travel_refuses_a_life_stage_that_is_not_the_profiled_adult() -> void:
-	"""`residents.gd` has no life-stage column; adult is the only profiled stage."""
-	assert_equal(MovementScript.LIFE_STAGE_COUNT, 1, "one profiled life stage")
-	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+# --- MOVE-DEP-R02: the resident's STORED stage decides, not the caller's copy --------------------
+#
+# The old test here asserted only that `admission.life_stage != ADULT` refuses, which a caller that
+# asserted ADULT for a child passed. It is REPLACED, not removed: every case it covered is still
+# covered below, by `test_a_caller_that_asserts_the_wrong_stage_for_an_adult_disagrees`, and the
+# refusal it expected moved because the behaviour it tested was the defect. Decision 0101.
+
+func test_the_profiled_adult_value_is_the_resident_stores_own_encoding() -> void:
+	"""One encoding, aliased -- not 0 written twice, which a renumber in the store would split."""
+	assert_equal(
+		MovementScript.LIFE_STAGE_ADULT, ResidentsScript.LIFE_STAGE_ADULT,
+		"movement's profiled adult IS the resident store's ADULT")
+	assert_equal(ResidentsScript.LIFE_STAGE_COUNT, 3, "and the store's domain is the full three")
+
+
+func test_every_starter_profile_covers_the_adult_stage_and_says_so_in_its_key() -> void:
+	"""MOVE-DEP-R02's `_profile_life_stage`, all ADULT, one entry per published profile."""
+	assert_equal(
+		MovementScript.PROFILE_LIFE_STAGE.size(), MovementScript.PROFILE_COUNT,
+		"one stage binding per profile")
+	for profile: int in MovementScript.PROFILE_COUNT:
+		assert_true(_movement.profile_life_stage_into(profile, _result), "its stage reads")
+		assert_equal(
+			_result.value, ResidentsScript.LIFE_STAGE_ADULT,
+			"%s covers ADULT" % MovementScript.PROFILE_KEYS[profile])
+		assert_true(
+			String(MovementScript.PROFILE_KEYS[profile]).contains(
+				String(ResidentsScript.LIFE_STAGE_KEYS[_result.value]).to_lower()),
+			"and its key spells the stage it binds")
+	assert_false(
+		_movement.profile_life_stage_into(MovementScript.PROFILE_COUNT, _result),
+		"an unpublished id refuses rather than answering ADULT")
+	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_PROFILE_ID, "by its own name")
+
+
+func test_a_caller_cannot_assert_adult_for_a_resident_stored_as_a_child() -> void:
+	"""THE DEFECT MOVE-DEP-R02 NAMES: "a caller value cannot override" the stored stage.
+
+	Before this fix the admission believed the caller, so a child travelled under adult profile
+	coefficients whenever the caller said ADULT -- which is what every existing caller says.
+	"""
+	var child: Vector2i = _spawn_stage_at(
+		&"mouse", ResidentsScript.LIFE_STAGE_CHILD, _cell(ANCHOR_X, ANCHOR_Z))
+	assert_equal(
+		_residents.life_stage_of_ref(child).value, ResidentsScript.LIFE_STAGE_CHILD,
+		"the store really holds CHILD")
 	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
 	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
 	var admission: MovementScript.Admission = _admission(
 		&"mouse", MovementScript.MODE_GROUND_WALK, 0)
-	admission.life_stage = MovementScript.LIFE_STAGE_ADULT + 1
+	assert_equal(admission.life_stage, MovementScript.LIFE_STAGE_ADULT, "the caller asserts ADULT")
 	assert_false(
-		_movement.begin_travel(mouse, request, admission, _contact_at(goal, DESTINATION_REVISION)),
-		"an unprofiled life stage refuses")
+		_movement.begin_travel(child, request, admission, _contact_at(goal, DESTINATION_REVISION)),
+		"and is not believed")
+	assert_equal(
+		_movement.last_refusal(), MovementScript.REFUSE_LIFE_STAGE_MISMATCH, "refusal is named")
+	assert_equal(_movement.motion_phase(child), MovementScript.MOTION_IDLE, "it stays idle")
+	assert_equal(_movement.travelling_count(), 0, "and nothing is mid-route")
+
+
+func test_an_honestly_declared_child_refuses_as_unprofiled_not_as_a_mismatch() -> void:
+	"""A caller that tells the truth about a child meets a MISSING PROFILE, a different problem.
+
+	Two bugs, two codes: this one belongs to PC-04, which owns dependent needs, care, schedule and
+	hazard rules. Collapsing it into the mismatch code would send its reporter to the wrong owner.
+	"""
+	var child: Vector2i = _spawn_stage_at(
+		&"mouse", ResidentsScript.LIFE_STAGE_CHILD, _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	var admission: MovementScript.Admission = _admission(
+		&"mouse", MovementScript.MODE_GROUND_WALK, 0)
+	admission.life_stage = ResidentsScript.LIFE_STAGE_CHILD
+	assert_false(
+		_movement.begin_travel(child, request, admission, _contact_at(goal, DESTINATION_REVISION)),
+		"a truthfully declared child still refuses")
 	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_LIFE_STAGE, "refusal is named")
+	assert_equal(_movement.motion_phase(child), MovementScript.MOTION_IDLE, "it stays idle")
+
+
+func test_an_elder_is_refused_on_the_same_channel_as_a_child() -> void:
+	"""ELDER is a stored stage too, and no starter profile covers it either."""
+	var elder: Vector2i = _spawn_stage_at(
+		&"otter", ResidentsScript.LIFE_STAGE_ELDER, _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	var admission: MovementScript.Admission = _admission(
+		&"otter", MovementScript.MODE_GROUND_WALK, 0)
+	admission.life_stage = ResidentsScript.LIFE_STAGE_ELDER
+	assert_false(
+		_movement.begin_travel(elder, request, admission, _contact_at(goal, DESTINATION_REVISION)),
+		"an elder refuses")
+	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_LIFE_STAGE, "refusal is named")
+	assert_equal(_movement.travelling_count(), 0, "and it is not mid-route")
+
+
+func test_a_caller_that_asserts_the_wrong_stage_for_an_adult_disagrees() -> void:
+	"""The old assertion's case, kept: a non-adult caller value on an adult row still refuses.
+
+	It refuses as a MISMATCH now rather than as an unprofiled stage, because the resident really is
+	an adult and the only thing wrong is what the caller said about it.
+	"""
+	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	for asserted: int in [ResidentsScript.LIFE_STAGE_CHILD, ResidentsScript.LIFE_STAGE_ELDER]:
+		var admission: MovementScript.Admission = _admission(
+			&"mouse", MovementScript.MODE_GROUND_WALK, 0)
+		admission.life_stage = asserted
+		assert_false(
+			_movement.begin_travel(
+				mouse, request, admission, _contact_at(goal, DESTINATION_REVISION)),
+			"asserting %s for an adult refuses" % ResidentsScript.LIFE_STAGE_KEYS[asserted])
+		assert_equal(
+			_movement.last_refusal(), MovementScript.REFUSE_LIFE_STAGE_MISMATCH, "refusal is named")
+
+
+func test_a_stage_outside_the_domain_refuses_on_its_own_channel() -> void:
+	"""COUNT is a bound and a cleared `Admission` holds -1; neither is clamped to ADULT."""
+	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	for asserted: int in [-1, ResidentsScript.LIFE_STAGE_COUNT, 256]:
+		var admission: MovementScript.Admission = _admission(
+			&"mouse", MovementScript.MODE_GROUND_WALK, 0)
+		admission.life_stage = asserted
+		assert_false(
+			_movement.begin_travel(
+				mouse, request, admission, _contact_at(goal, DESTINATION_REVISION)),
+			"stage %d is not in the domain" % asserted)
+		assert_equal(
+			_movement.last_refusal(), MovementScript.REFUSE_LIFE_STAGE_RANGE, "refusal is named")
+	assert_equal(_movement.motion_phase(mouse), MovementScript.MOTION_IDLE, "it stays idle")
+
+
+func test_a_reference_the_store_will_not_answer_for_refuses_rather_than_defaulting() -> void:
+	"""An unreadable stage REFUSES. `IntResult.refuse()` zeroes its value, and zero is ADULT.
+
+	A directory reference of the right kind whose resident row was never written is exactly that
+	case: valid to `_motion_row()`, absent to `residents.gd`. Reading `.value` without checking
+	`.ok` would admit it as an adult -- the sentinel-shaped bug this codebase has been bitten by.
+	"""
+	var orphan: Vector2i = _directory.create(EntityDirectoryScript.KIND_RESIDENT)
+	assert_true(
+		_directory.is_valid_of_kind(orphan, EntityDirectoryScript.KIND_RESIDENT),
+		"the directory validates the reference")
+	assert_false(_residents.life_stage_of_ref(orphan).ok, "but the store holds no row for it")
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	_place_on(orphan, _cell(ANCHOR_X, ANCHOR_Z), "it is placed on the route start")
+	assert_false(
+		_movement.begin_travel(
+			orphan, request, _admission(&"mouse", MovementScript.MODE_GROUND_WALK, 0),
+			_contact_at(goal, DESTINATION_REVISION)),
+		"admission refuses it")
+	assert_equal(
+		_movement.last_refusal(), MovementScript.REFUSE_LIFE_STAGE_UNREADABLE, "refusal is named")
+	assert_equal(_movement.travelling_count(), 0, "and nothing is mid-route")
 
 
 # --- the committed load boundary, GDD 5.2 carry capacities ----------------------------------------

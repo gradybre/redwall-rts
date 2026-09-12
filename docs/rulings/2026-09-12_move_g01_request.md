@@ -181,8 +181,12 @@ severity 1/2, and REQ-SET-173 owns treatment.
 Absence of settlement **combat** does not imply absence of health **loss** — the
 request conflated the two. What remains owed is the aggregate Injury
 kind/severity/care store, hazard integration, and the new hazard rules themselves.
-Fishing's bite/cut/exposure descriptions are not a compiled `InjuryKind` domain
-that movement may silently extend.
+**Superseded the same day:** the review's closing line, that fishing's
+bite/cut/exposure descriptions "are not a complete compiled `InjuryKind` domain",
+was corrected by Astra's own follow-up audit. **The GDD defines the domain** at
+`game_gdd.md:215` — `NONE=0, CUT=1, BITE=2, FALL=3, EXPOSURE=4, EXHAUSTION=5` —
+and `catalog.gd` already names `InjuryKind` among its compiled domains. Reuse that
+domain; what is missing is its runtime integration, not its definition.
 
 ## C3 — Construction rules exist. Underground needs extensions, not a second system.
 

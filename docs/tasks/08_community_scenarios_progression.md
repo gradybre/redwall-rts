@@ -79,3 +79,34 @@ from arithmetic or three point samples.
 
 MOVE-DEP-R02 supplies the fixed authoritative life-stage column/domain. PC-04 still owns dependent needs/care/work profiles; do not enable children/elders with adult defaults.
 Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.
+
+### Life-stage identity status — 2026-09-12
+
+Implemented in `godot/scripts/core/residents.gd` under
+[decision 0095](../decisions/0095-the-resident-stage-column-and-the-logical-rig-binding.md):
+
+- [x] `Resident.life_stage:B8[512]`, ADULT 0 / CHILD 1 / ELDER 2, COUNT 3 as a bound only
+- [x] Explicit validated stage on the generic spawn; refusal, never a clamp, for an
+      out-of-domain value (including 256, which truncates to ADULT in a byte column)
+- [x] Explicit initialization on free-slot reuse; canonical unused 0 on retirement
+- [x] Generation-checked reader that rejects a stale reference rather than answering
+      from whichever resident later took the slot
+- [x] The twelve starters pass ADULT at the starter site
+- [x] The sixteen MOVE-DEP-R03 logical rig identities, compiled in ASCII order and bound
+      through each species' own key; CHILD/ELDER variants refuse instead of inheriting
+      the adult rig, and that refusal does not deny a spawn
+
+Still open and **not** claimed by that work:
+
+- [ ] PC-04's dependent needs, care, schedule, work and hazard rules. Nothing derives a
+      child or elder coefficient from an adult one, and no non-adult may run through
+      adult coefficients at runtime.
+- [ ] `_profile_life_stage:B8[4]` in the starter profile catalog, and movement admission
+      reading the resident's actual stage rather than an `Admission.life_stage` caller
+      value. Both are `godot/scripts/core/movement.gd`, a different owner.
+- [ ] Save section §4 persistence and hashing of the stage column with its owner/schema
+      increment, plus the migration provenance rule for schemas that predate it. No save
+      module exists yet.
+- [ ] The +512-byte memory-ledger row in `docs/systems_architecture.md` §2.2 and the
+      `_life_stage` row in `docs/persistence_state_registry.md`.
+      `docs/validation/state_registry_coverage.py` fails `C3` until they land.

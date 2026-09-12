@@ -71,6 +71,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | Resident | species_id, name_key, home_slot, home_generation, bed_slot, bed_generation, role, status | I32 | 4 | 8 | 512 | 16384 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Resident | arrival_tick | I64 | 8 | 1 | 512 | 4096 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Resident | named, selected_P | B8 | 1 | 2 | 512 | 1024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
+| Resident | life_stage | B8 | 1 | 1 | 512 | 512 | [MOVE-DEP-R02; GDD §4.2 amendment 2026-09-12; decision 0095] Fixed bounded domain ADULT 0, CHILD 1, ELDER 2; COUNT 3 is a bound and is never stored |
 | Needs | hunger, rest, comfort, social, purpose, health, cold_hours, starving_hours, departure_days | I32 | 4 | 9 | 512 | 18432 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | NeedRemainders | hunger, rest, comfort, social, purpose | I64 | 8 | 5 | 512 | 20480 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Skills.xp | xp[owner*12+skill] | I64 | 8 | 1 | 6144 | 49152 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -213,7 +214,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
-| Fixed registry payload | 25028962 | 1 | 25028962 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037; +126976 decision 0039; +212992 decision 0040; +13312 decision 0041; +40960 decision 0045 FieldPolicy); +35840 decision 0051 hive-service slice; +16 decision 0055 Weather absolute-season identity) |
+| Fixed registry payload | 25029474 | 1 | 25029474 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037; +126976 decision 0039; +212992 decision 0040; +13312 decision 0041; +40960 decision 0045 FieldPolicy); +35840 decision 0051 hive-service slice; +16 decision 0055 Weather absolute-season identity; +512 decision 0095 Resident life stage) |
 | Auxiliary payload | 20144096 | 1 | 20144096 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
@@ -241,13 +242,13 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 63732522 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
+| Planned allocated payload | 63733034 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 72121130 | Payload + reserve |
-| Headroom below decimal 100 MB | 27878870 | 100000000 − live total |
-| Additional candidate mutable state | 57516938 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 129638068 | Live total + candidate mutable state |
-| Transactional headroom | -29638068 | 100000000 − transactional peak |
+| One live world plus reserve | 72121642 | Payload + reserve |
+| Headroom below decimal 100 MB | 27878358 | 100000000 − live total |
+| Additional candidate mutable state | 57517450 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 129639092 | Live total + candidate mutable state |
+| Transactional headroom | -29639092 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11 by decisions 0055,
 0054 and 0066).** Current planned payload is
@@ -321,6 +322,7 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
 | Travel admission and starter ground profiles | decision 0083 | +10336 | 62718682 | 71107290 |
 | StockAge container declarations and sweep order | decision 0085 | +1013760 | 63732442 | 72121050 |
 | GameManager load rollback checkpoint | decision 0092 | +80 | 63732522 | 72121130 |
+| Resident life stage column | decision 0095 | +512 | 63733034 | 72121642 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 

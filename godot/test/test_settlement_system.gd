@@ -582,8 +582,8 @@ func _declared_store_with_grain(settlement: SettlementSystemScript) -> Vector2i:
 func test_the_settlement_registers_its_item_catalog_into_its_own_inventory() -> void:
 	"""ARCH-SYS-004 needs shelf lives, so the §4.3 catalog is composed with the lot store."""
 	assert_true(_settlement.item_definitions().is_loaded(), "the catalog loaded")
-	assert_equal(_settlement.item_definitions().item_count(), 60,
-		"all sixty v2 catalog items are compiled")
+	assert_equal(_settlement.item_definitions().item_count(), 61,
+		"all sixty-one v2 catalog items are compiled")
 	var grain: int = _settlement.item_definitions().compiled_id(&"grain")
 	assert_true(_settlement.inventory().is_item_registered(grain),
 		"and each one is registered into the inventory ARCH-SYS-004 ages")

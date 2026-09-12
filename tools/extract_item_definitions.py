@@ -43,7 +43,7 @@ EXPECTED_HEADER: list[str] = [
     "id", "category", "mass_g", "nutrition_per_u", "shelf_hours",
     "raw_edible", "seed", "effect", "effect_value", "Provenance",
 ]
-EXPECTED_ROW_COUNT: int = 60
+EXPECTED_ROW_COUNT: int = 61
 
 # SET-AMEND-001 §3 (docs/setting_rules_amendment.md): retired item keys. REQ-ADM-003 requires
 # these be rejected outright, never substituted or carried into the compiled catalog.

@@ -25,20 +25,28 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 ## 00e3ffd5c98b5f5da050cc13be91895b85744eb3b3f3cfb5e50dde85a598cbf1 before it. Moved a third time
 ## 2026-09-11 by decision 0080, which published the protected Milestone domain (5 rows) and the
 ## compiled Station service domain (11): 3869 bytes / 26 domains / 259 rows /
-## ead6a8ac6c67bb4b0d9b320a2414cc477f252b5f9cdf8bb3e1e0b8cc593eecf4 before it. All three are an
-## INTENTIONAL CATALOG/SCHEMA CHANGE, not a parity result -- every save written
+## ead6a8ac6c67bb4b0d9b320a2414cc477f252b5f9cdf8bb3e1e0b8cc593eecf4 before it. Moved a fourth time
+## 2026-09-12 by decision 0108, which published the protected InjuryKind domain (6 rows) that
+## SET-MOVE-ECON-001 HAZ-001 requires be REUSED rather than duplicated: 4062 bytes / 28 domains /
+## 275 rows / 3407b52e4db6fb19874d8ea3a3d636e46575def0048b513558f7a5d3894c3e90 before it. All four
+## are an INTENTIONAL CATALOG/SCHEMA CHANGE, not a parity result -- every save written
 ## against the old digest refuses until an explicit migration exists, which is the alarm working.
-const COMMITTED_BYTE_LENGTH: int = 4062
+const COMMITTED_BYTE_LENGTH: int = 4161
 const COMMITTED_SHA256: String = \
-	"3407b52e4db6fb19874d8ea3a3d636e46575def0048b513558f7a5d3894c3e90"
-const COMMITTED_DOMAIN_COUNT: int = 28
-const COMMITTED_ROW_COUNT: int = 275
+	"d5bf21b45b31a2d90d7d0f6b9367450787eb506fd5ae27b6f6f54c08f23cfd67"
+const COMMITTED_DOMAIN_COUNT: int = 29
+const COMMITTED_ROW_COUNT: int = 282
+
+## ECON-002's `excavated_earth`, the one ItemDefinition row added in the same increment as
+## InjuryKind. Named separately from `INJURY_KIND_ROWS` so the row-count accounting states which
+## change contributed what, rather than presenting one total that any future edit could absorb.
+const ECON_002_ITEM_ROWS: int = 1
 
 ## Every domain the artifact carries, in the ascending ASCII order it is written in.
 const COMMITTED_DOMAINS: Array[String] = [
 	"Activity", "BuildingDefinition", "BuildingState", "CommandKind", "CropDefinition",
 	"CropFamily", "CropState", "EventDefinition", "ForageQuotaMode", "FurnitureDefinition",
-	"HabitatType", "ItemCategory", "ItemDefinition", "ItemEffect", "JobKind",
+	"HabitatType", "InjuryKind", "ItemCategory", "ItemDefinition", "ItemEffect", "JobKind",
 	"JobState", "Milestone", "OrderMode", "Quality", "RoomType", "ScheduleTemplate", "Season",
 	"Severity", "Soil", "SpeciesDefinition", "Speed", "Station", "ZoneType",
 ]
@@ -333,13 +341,13 @@ func test_reserved_entries_survive_unchanged() -> void:
 
 
 func test_every_protected_enum_is_carried_verbatim() -> void:
-	"""All fourteen protected enums appear with catalog.gd's explicit values, gaps included.
+	"""All fifteen protected enums appear with catalog.gd's explicit values, gaps included.
 
 	Eleven until decision 0056 added RoomType and BuildingState, which §4.3 numbers individually
 	and which are therefore protected rather than compiled from their own keys. Fourteen since
 	decision 0080 added Milestone: §4.3 does not print it, but BAL-CAT-002 numbers M0..M4
 	individually, which is the same "individually listed" test §4.2's closing paragraph sets."""
-	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 14, "fourteen protected enums")
+	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 15, "fifteen protected enums")
 	for name: String in CatalogScript.PROTECTED_ENUM_DOMAINS:
 		_assert_map_equals(_domain(name), CatalogScript.fixed_enum(name), name)
 
@@ -981,11 +989,11 @@ func test_the_artifact_carries_milestone_and_station_complete() -> void:
 	assert_true(domains.has("Station"), "the artifact must carry Station")
 	assert_equal((domains["Milestone"] as Dictionary).size(), MILESTONE_ROWS, "Milestone rows")
 	assert_equal((domains["Station"] as Dictionary).size(), STATION_ROWS, "Station rows")
-	assert_equal(PRE_DOMAIN_ROW_COUNT + MILESTONE_ROWS + STATION_ROWS, COMMITTED_ROW_COUNT,
+	assert_equal(PRE_DOMAIN_ROW_COUNT + MILESTONE_ROWS + STATION_ROWS, PRE_INJURY_ROW_COUNT,
 		"the sixteen new rows are exactly the difference from the previous artifact")
-	assert_equal(PRE_DOMAIN_DOMAIN_COUNT + 2, COMMITTED_DOMAIN_COUNT, "two new domains, no more")
-	assert_true(PRE_DOMAIN_BYTE_LENGTH != COMMITTED_BYTE_LENGTH, "the byte length moved")
-	assert_true(PRE_DOMAIN_SHA256 != COMMITTED_SHA256, "the digest moved, deliberately")
+	assert_equal(PRE_DOMAIN_DOMAIN_COUNT + 2, PRE_INJURY_DOMAIN_COUNT, "two new domains, no more")
+	assert_true(PRE_DOMAIN_BYTE_LENGTH != PRE_INJURY_BYTE_LENGTH, "the byte length moved")
+	assert_true(PRE_DOMAIN_SHA256 != PRE_INJURY_SHA256, "the digest moved, deliberately")
 
 
 func test_the_committed_milestone_and_station_ids_are_the_ruled_values() -> void:
@@ -1013,3 +1021,85 @@ func test_station_ids_are_not_building_ids_in_the_committed_bytes() -> void:
 	assert_equal(shared, STATION_ROWS, "all eleven station keys are also building keys")
 	assert_equal(int(station["brewery"]), 0, "brewery is service 0")
 	assert_equal(int(buildings["brewery"]), 2, "and building 2")
+
+
+# --- decision 0108's InjuryKind domain (SET-MOVE-ECON-001 HAZ-001) --------------------------------
+
+## The artifact this change moved AWAY from, pinned so "it changed" is asserted, never assumed.
+const PRE_INJURY_SHA256: String = \
+	"3407b52e4db6fb19874d8ea3a3d636e46575def0048b513558f7a5d3894c3e90"
+const PRE_INJURY_BYTE_LENGTH: int = 4062
+const PRE_INJURY_DOMAIN_COUNT: int = 28
+const PRE_INJURY_ROW_COUNT: int = 275
+
+## GDD §4.3's six InjuryKind members, transcribed from game_gdd.md:215, never read back out of
+## the module under test.
+const EXPECTED_INJURY_KIND: Dictionary = {
+	"NONE": 0, "CUT": 1, "BITE": 2, "FALL": 3, "EXPOSURE": 4, "EXHAUSTION": 5,
+}
+const INJURY_KIND_ROWS: int = 6
+## Only CUT=1 lands in the same place under §4.3 and under ascending ASCII.
+const INJURY_KIND_ASCII_DISAGREEMENTS: int = 5
+
+
+func test_the_artifact_carries_injury_kind_whole() -> void:
+	"""HAZ-001's six kinds reach the committed bytes as one domain, and only those six."""
+	var domains: Dictionary = _artifact().domains
+	assert_true(domains.has("InjuryKind"), "the artifact must carry InjuryKind")
+	var kinds: Dictionary = _domain("InjuryKind")
+	assert_equal(kinds.size(), INJURY_KIND_ROWS, "exactly six injury kinds")
+	for key: String in EXPECTED_INJURY_KIND.keys():
+		assert_true(kinds.has(key), "the bytes must carry '%s'" % key)
+		assert_equal(int(kinds[key]), int(EXPECTED_INJURY_KIND[key]),
+			"§4.3 numbers '%s' exactly once" % key)
+
+
+func test_injury_kind_moved_the_digest_by_exactly_its_own_rows() -> void:
+	"""One new domain of six rows plus ECON-002's one new item -- nothing else moved.
+
+	THIS TEST GAINED A TERM. It read `PRE_INJURY_ROW_COUNT + INJURY_KIND_ROWS` when InjuryKind was
+	the only change in flight. `excavated_earth` landed in the same increment -- it is a row in
+	ItemDefinition, the balance table's single authored source -- so the accounting is now two named
+	terms rather than one. Naming them separately is the point: a future change that moves the row
+	count without saying which domain it came from fails here instead of being absorbed.
+	"""
+	assert_equal(PRE_INJURY_ROW_COUNT + INJURY_KIND_ROWS + ECON_002_ITEM_ROWS, COMMITTED_ROW_COUNT,
+		"InjuryKind's six rows plus ECON-002's one item are exactly the difference")
+	assert_equal(PRE_INJURY_DOMAIN_COUNT + 1, COMMITTED_DOMAIN_COUNT, "one new domain, no more")
+	assert_true(PRE_INJURY_BYTE_LENGTH != COMMITTED_BYTE_LENGTH, "the byte length moved")
+	assert_true(PRE_INJURY_SHA256 != COMMITTED_SHA256, "the digest moved, deliberately")
+	assert_equal(_artifact().digest_hex(), COMMITTED_SHA256, "and it moved to exactly this value")
+
+
+func test_a_renumbered_injury_kind_fails_verification() -> void:
+	"""Renumbering a save-carried Injury.kind must refuse, not be absorbed as a new numbering."""
+	var renumbered: Dictionary = _artifact().domains.duplicate(true)
+	var kinds: Dictionary = renumbered["InjuryKind"]
+	kinds["EXPOSURE"] = 5
+	kinds["EXHAUSTION"] = 4
+	var bytes: PackedByteArray = CatalogIds.encode_canonical(renumbered)
+	_assert_refuses(bytes, CatalogIds.REFUSE_ID_MISMATCH, "EXPOSURE and EXHAUSTION swapped")
+	var refusal: CatalogIds.Refusal = CatalogIds.compare_domains(renumbered, _artifact().domains)
+	assert_false(refusal.is_ok(), "compare_domains must see the swap")
+	assert_true(refusal.detail.contains("EXHAUSTION") or refusal.detail.contains("EXPOSURE"),
+		"and name a key that moved")
+
+
+func test_the_committed_injury_kind_is_not_its_own_ascii_order() -> void:
+	"""Proof the artifact carries §4.3's protected numbers, not the sorted-key regeneration.
+
+	Ascending ASCII over these six keys would give BITE=0, CUT=1, EXHAUSTION=2, EXPOSURE=3,
+	FALL=4, NONE=5. Five of the six disagree with §4.3 and CUT=1 coincides, so a build that
+	silently compiled the domain instead of protecting it would still look half-right -- and is
+	caught here rather than in a save file."""
+	var kinds: Dictionary = _domain("InjuryKind")
+	var sorted_keys: Array = kinds.keys()
+	sorted_keys.sort()
+	var disagreements: int = 0
+	for index: int in sorted_keys.size():
+		if int(kinds[String(sorted_keys[index])]) != index:
+			disagreements += 1
+	assert_equal(disagreements, INJURY_KIND_ASCII_DISAGREEMENTS,
+		"five of six §4.3 numbers differ from the ASCII regeneration")
+	assert_equal(int(kinds["NONE"]), 0, "§4.3 puts NONE first; ASCII order would put it last")
+	assert_equal(int(kinds["BITE"]), 2, "§4.3 puts BITE at 2; ASCII order would put it at 0")

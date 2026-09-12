@@ -156,7 +156,7 @@ Neither needs new state.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Compiled enum domains | -- | -- | -- | -- | 3 | -- | Holds no `var` at all: eight protected enum tables and `ITEM_DEFINITION_MAX_KEYS` compiled from lexicographically sorted ASCII keys (GDD §4.2 closing paragraph). Nothing here changes at runtime, so nothing here is saved. The catalog's identity reaches the file as the header's catalog hash at offset 72, produced by `catalog_ids.gd`. |
+| Compiled enum domains | -- | -- | -- | -- | 3 | -- | Holds no `var` at all: fifteen protected enum tables and `ITEM_DEFINITION_MAX_KEYS` compiled from lexicographically sorted ASCII keys (GDD §4.2 closing paragraph). Nothing here changes at runtime, so nothing here is saved. The catalog's identity reaches the file as the header's catalog hash at offset 72, produced by `catalog_ids.gd`. |
 
 ### `godot/scripts/core/catalog_ids.gd`
 

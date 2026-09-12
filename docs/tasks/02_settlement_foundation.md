@@ -65,6 +65,33 @@ must be re-derived before movement work, and this task does not do so.
   enums never renumbered; oversized catalog rejected at compile time
 - **Blocked by U1**: no `catalog_ids.json` emission or hash verification
 
+**2.2a — `InjuryKind` published, 2026-09-12** ([decision 0108](../decisions/0108-injurykind-is-published-and-spoil-waits-for-its-authored-row.md)).
+SET-MOVE-ECON-001 HAZ-001 requires the **existing** GDD §4.3 domain be reused, so
+`catalog.gd` now carries `NONE=0, CUT=1, BITE=2, FALL=3, EXPOSURE=4, EXHAUSTION=5`
+(`game_gdd.md:215`) in `PROTECTED_ENUM_DOMAINS` — five of those six disagree with
+the ascending-ASCII regeneration, which is exactly why it is protected rather than
+compiled. `catalog_ids.json` moved 4062 -> 4140 bytes, 28 -> 29 domains,
+275 -> 281 rows, digest `3407b52e...c3e90` -> `4fdd24b8...b1e8a`: an intentional
+catalog/schema change. The aggregate Injury store, severities, drains and care work
+are **not** here and remain task 08's.
+
+- [ ] **`excavated_earth` ItemDefinition — blocked, not started.** ECON-002 authors
+  the row completely (MATERIAL, 1000 g/U, nutrition 0, shelf_hours 0, raw_edible
+  false, seed false, NONE/0) and forbids aliasing `stone` or `compost`. It needs a
+  `docs/gameplay_balance.md` §3.1 row and `EXPECTED_ROW_COUNT` 60 -> 61 in
+  `tools/extract_item_definitions.py`; §3.1 is the catalog's single authored source
+  and the suite runs that real extractor against that real document, so the key
+  cannot be hand-inserted into the JSON or into `catalog.gd`.
+- [ ] **`InventoryLot.provenance` domain — blocked, not started.** GDD §4.2 types it
+  `enum` and §4.3 does not number it, so it compiles from sorted ASCII keys; but no
+  specification declares the domain's name or its complete member list. ECON-002
+  supplies `EXCAVATION`, `BACKFILL_RECLAIM` and `SPOIL_RECLAIM`; §5.11 mentions
+  `STARTER` and §5.7 a coastal-brine kind. Publishing a partial set under an
+  invented name would bake a wrong save-carried numbering into the header digest.
+  Needs one ruling: the domain name plus the complete member list.
+
+Neither blocker closes or advances any MOVE gate, and task 05.1b remains not started.
+
 ### 2.3 — Entity directory, refs, resident slots
 - **Owns** `godot/scripts/core/entity_directory.gd`, `godot/test/test_entity_directory.gd`
 - **Spec** ARCH-MEM-001/005, ARCH-ID-002, GDD §4.1

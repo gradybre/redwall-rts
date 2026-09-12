@@ -111,7 +111,13 @@ for label,value in [('Planned allocated payload',payload),('One live world plus 
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']
 bindings={'resource': ['wood','stone','iron'],'forage':['berries','nuts','mushrooms','herb','roots'],'fish':['trout','dace','salmon','perch','carp','whitefish','herring','mackerel','mussel']}
 actual={k:[catalog[n] for n in names] for k,names in bindings.items()}
-assert actual=={'resource':[59,52,19],'forage':[1,35,32,15,39],'fish':[55,8,41,37,5,58,16,20,33]}
+# ECON-002's `excavated_earth` sorts between `dried_fruit` and `flax` and takes id 11, so EVERY
+# item at id >= 11 shifted up by exactly one. berries(1), carp(5) and dace(8) are below it and did
+# not move, which is the check that the shift is the ASCII sort and not a reshuffle. Previous pins,
+# kept so the move is legible: resource [59,52,19] forage [1,35,32,15,39] fish [55,8,41,37,5,58,16,20,33].
+# This is why ARCH-CAT-004 resolves items BY KEY at the binding boundary: a save carrying compiled
+# ids as numbers would have been invalidated by adding one catalog row in the middle of the alphabet.
+assert actual=={'resource':[60,53,20],'forage':[1,36,33,16,40],'fish':[56,8,42,38,5,59,17,21,34]}
 ticks={f'{season}:{day}':((season*12+day-1)*18000-4500) for season,day in [(1,3),(1,6),(1,8),(1,9),(2,1),(2,3),(2,6)]}
 assert list(ticks.values())==[247500,301500,337500,355500,427500,463500,517500]
 assert struct.calcsize('<qIIiiiI')==32 and struct.calcsize('<iiIIqII')==32

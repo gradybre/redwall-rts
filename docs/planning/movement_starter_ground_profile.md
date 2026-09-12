@@ -274,3 +274,8 @@ the ARCH-PATH-003 owner.
 - It reports **no measured performance**, on any hardware. Battle crowd limits are not settlement
   measurements.
 - It establishes **no save parity**. The round trip waits for the canonical serializer.
+
+## Astra follow-up — 2026-09-12
+
+The five omissions below are explicitly answered/assigned by MOVE-DEP-R01–05. PATH-R02 supplies the missing threshold-free macro-detour fix. Earlier source findings remain historical; actual implementation is still required.
+Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.

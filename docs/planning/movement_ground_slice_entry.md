@@ -165,3 +165,8 @@ committed state rather than a handful of fields.
 - It reports no measured performance. The 0.25-real-second route-ready target and REQ-SET-163
   belong to MOVE-G05 with real hardware evidence.
 - It does not replace multilevel scope with one floor.
+
+## Astra follow-up — 2026-09-12
+
+PATH-R02 supersedes the absence of a macro-detour solution: exact-start A* on misses, no arbitrary short-trip threshold. MOVE-DEP-R01–05 supplies explicit owner/schema dependencies.
+Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.

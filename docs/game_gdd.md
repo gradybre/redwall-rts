@@ -24,7 +24,12 @@ Ruleset `settlement_rules_v2` adopts DEC-005/006. [setting_rules_amendment.md](s
 
 ## 1. Feature Overview
 
-**Creature autonomy.** Every resident has persistent identity, five needs, health, skills, preferences, relationships, and an explicit schedule. Anonymous presentation does not mean disposable simulation. The player sets priorities and policies; residents find eligible work, eat, sleep, socialize, seek treatment, and react to sustained hardship. Growth comes through immigration; childbirth, child care, reproduction, and age-related death are outside release 1.
+**Creature autonomy.** Every resident has persistent identity, five needs, health, skills, preferences, relationships, and an explicit schedule. Anonymous presentation does not mean disposable simulation. The player sets priorities and policies; residents find eligible work, eat, sleep, socialize, seek treatment, and react to sustained hardship. Growth comes through immigration. DEC-032 supersedes the historical exclusion
+of child care: fixed CHILD/ADULT/ELDER residents, shared care and active elder roles
+are required release scope. Births, reproduction, aging and age-related death
+remain outside release1. PC-04 still owns exact dependent-resident coefficients.
+[MOVE-DEP-R02](rulings/2026-09-12_movement_dependency_rulings.md) supplies the
+authoritative stage encoding/storage, not those missing behavior formulas.
 
 **Fishing.** River, lake, and coastal habitats have separate species stocks, seasonal catches, spawning closures, fishing capacity, and hazards. Nets, traps, weirs, and boats trade labor, access, efficiency, and risk. A temporarily abundant salmon run can fund preservation and a feast, while excessive extraction damages later seasons.
 
@@ -938,3 +943,18 @@ not a Godot StringName intern value. [SAVE-R09-005](rulings/2026-09-11_save_code
 preserves the24-byte record, assigns its task08.5 producer and requires the
 actual event/detail domain before release. SET-AMEND-001's rules-v2 compatibility
 is independent of the save container's format1/schema-version vector.
+
+## 2026-09-12 exact missing bindings
+
+Section4.2 Resident gains life_stage:B8 under DEC-032 (ADULT0,CHILD1,ELDER2).
+Section4.3 SpeciesDefinition.rig_id uses the16 logical keys in
+[MOVE-DEP-R03](rulings/2026-09-12_movement_dependency_rulings.md) and its
+[manifest](planning/species_rig_identity.json). They do not assert asset completion
+or permit presentation availability to decide simulation admission.
+
+Section5.8 expired seed→compost now means
+`floor(seed_quantity_milli * seed_mass_g_per_U / compost_mass_g_per_U)`, checked
+integer arithmetic with one final floor; current masses give floor(q/10).
+[STOCK-SEED-R01](rulings/2026-09-12_alerts_and_seed_expiry.md) owns trigger, rounding
+loss, zero-output retirement, atomic ledgers/reservations and acceptance. This
+new yield does not change composter recipes or other food-spoilage contracts.

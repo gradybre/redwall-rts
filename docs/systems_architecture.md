@@ -654,7 +654,15 @@ COMPLETE/CANCELLED -> emit one event -> deferred retirement
 
 **ARCH-PATH-002.** **Flat baseline algorithm only.** SET-MOVE-001 §4 requires a Dijkstra reference and a proven admissible heuristic before using nonlocal/domain connections; the cache and readiness rules below also need profile/domain revisions. A* uses N,E,S,W,NE,SE,SW,NW expansion order, edge costs 10 orthogonal/14 diagonal, no diagonal crossing when either adjacent orthogonal cell is blocked for clearance. Heuristic=`10*(dx+dz)-6*min(dx,dz)` for nonnegative cell differences. Indexed min-heap compares `(f,cell_id)`; on equal g retain the predecessor with lower cell ID `[NEW equal-g rule]`. Each cell has at most one heap entry, with decrease-key. Every removed/finalized search cell counts toward the global 2048 expansions/tick; blocked/duplicate neighbors are not expansions. Queue requests by job persistent ID, then request generation. `[GDD §5.11; NEW heuristic and heap implementation]`
 
-**ARCH-PATH-003.** Macro cells contain 16×16 navigation cells `[NEW]`. The primary cache key is `(start_macro,goal_cell,clearance_class,map_revision)` `[GDD §5.11]`. Because two starts in the same macro can lie on opposite sides of a wall, this key identifies a **bucket**, not proof that any local start can reach its route. A bucket stores a canonical macro anchor and its full route to the exact goal. Choose the lowest passable cell in the macro as anchor; run a local A* from the actual start to that anchor constrained to the macro, with the same clearance/corner rules. If disconnected, run a full exact-start A* and store it as a bucket variant keyed additionally by start_cell. Never reuse a route across disconnected local components. `[NEW entry-segment design]`
+**ARCH-PATH-003 (amended 2026-09-12, PATH-R02).** Macro cells remain16×16 and
+`(start_macro,goal_cell,clearance_class,map_revision)` remains the primary bucket.
+Route reuse must additionally match exact start via existing variant_start;
+an anchor descriptor is reusable only when actual start equals that anchor.
+Every other miss runs full exact-start A*, preserving ARCH-PATH-002's ground
+algorithm, shared2048 expansion quota and ARCH-PATH-005 storage/refusal limits.
+Do not build new local-prefix-plus-anchor routes. [PATH-R02](rulings/2026-09-12_movement_dependency_rulings.md)
+owns exact cases, semantic versioning and Dijkstra/latency acceptance. Decision0053
+retains the historical160-vs48 detour; the required new fixture cost is48.
 
 **ARCH-PATH-004.** Goal is an exact cell, so the final segment terminates at that cell; a quantized within-cell interaction point uses a checked integer supercover segment and does not trigger another global route. Paths are unsmoothed cell chains for authority; visual root interpolation is separate. Local-entry, exact-route, and invalidation searches all share the 2048-expansion quota. An incomplete search cannot expose a traversable prefix. A resident with no prior valid path waits; an existing path may continue only while all traversed cells still satisfy the current revision. `[GDD §5.11; crowd §5.1, §6.1; NEW local segment rules]`
 
@@ -775,7 +783,10 @@ Command stride is 64 bytes `[DERIVED sum]`. Variable payloads contain full selec
 
 Each section descriptor is 64 bytes: `section_id:u32, schema_version:u32, offset:u64, byte_length:u64, row_count:u64, crc32:u32, flags:u32, reserved_zero:24 bytes` `[NEW]`. CRC is CRC-32/ISO-HDLC: polynomial reversed 3988292384, initial register 4294967295, reflected bytes, final XOR 4294967295; check vector ASCII `123456789` gives 3421780262 `[NEW codec choice]`. SHA-256 protects the complete canonical body; CRC localizes corruption. Header numeric/hash fields other than the stored body digest receive their own hash through the canonical state domain described next, so a changed completed tick is detected by state verification, not CRC alone.
 
-**ARCH-SAVE-002.** Section IDs are assigned in this exact order `[NEW]`: 1 WORLD, 2 CATALOG_IDS, 3 ENTITY_DIRECTORY, 4 COMPONENT_COLUMNS, 5 CHILD_ARENAS, 6 AUXILIARY_STATE, 7 INVENTORIES_AND_LEASE_INDEXES, 8 JOB_INDEXES, 9 NAVIGATION, 10 RNG, 11 EVENT_SCHEDULE, 12 PENDING_COMMANDS, 13 CHRONICLE, 14 NAME_POOL, 15 STATE_DIGEST. For each store serialize its occupancy and explicitly persisted fields in schema order by ascending slot. Where that store owns generations, preserve all of them including free/retired slots; directory mirrors validate against their owner. Inventory container, inventory lot and navigation route generations remain distinct from directory generations. Index-addressed gear/reservation rows preserve slots and holes without invented generations or compaction (decision 0063). Encode zero for unused field payload while preserving generations and allocator-retirement state. Child arrays use owner ascending then child index; explicit variable lengths precede data. Save allocator heaps or rebuild them deterministically from occupancy and retired masks; active lists are rebuilt ascending.
+**ARCH-SAVE-002.** Section IDs are assigned in this exact order `[NEW]`: 1 WORLD, 2 CATALOG_IDS, 3 ENTITY_DIRECTORY, 4 COMPONENT_COLUMNS, 5 CHILD_ARENAS, 6 AUXILIARY_STATE, 7 INVENTORIES_AND_LEASE_INDEXES, 8 JOB_INDEXES, 9 NAVIGATION, 10 RNG, 11 EVENT_SCHEDULE, 12 PENDING_COMMANDS, 13 CHRONICLE, 14 NAME_POOL, 15 STATE_DIGEST. For each store serialize its occupancy and explicitly persisted fields COLUMN-MAJOR: declared field order outside,
+ascending physical slot inside, using [SAVE-LAYOUT-R01](rulings/2026-09-12_clock_restore_and_layout_followup.md)
+for sections3/4/5/10 framing and explicit fixed-record exceptions. Where that store owns generations, preserve all of them including free/retired slots; directory mirrors validate against their owner. Inventory container, inventory lot and navigation route generations remain distinct from directory generations. Index-addressed gear/reservation rows preserve slots and holes without invented generations or compaction (decision 0063). Encode each field's DECLARED canonical unused value (including-1 null slots),
+not blanket zeroes; preserve generations and allocator-retirement state. Child arrays use owner ascending then child index; explicit variable lengths precede data. Save allocator heaps or rebuild them deterministically from occupancy and retired masks; active lists are rebuilt ascending.
 
 **ARCH-SAVE-007 (2026-09-11, classification ruling).** Completed command-dispatch
 outcomes/ring cursors are transient presentation output: omit them from section 6
@@ -979,3 +990,21 @@ ceilings, non-creature budgets and a64px nominal L0 admission threshold with cap
 This specializes ARCH-GODOT-001 and crowd battle thresholds for settlement only.
 Visual measurements never set authoritative movement clearance. All new budgets
 are targets pending measurement, not minimum-hardware qualification.
+
+## 2026-09-12 restore, layout and movement identity bindings
+
+[RESTORE-R01 / SAVE-LAYOUT-R01](rulings/2026-09-12_clock_restore_and_layout_followup.md)
+own one atomic ten-scalar clock restore, no operational setter replay, guarded
+publication/rollback, explicit column-major bytes and fixed-record exceptions.
+These supplement ARCH-SAVE-003/004/008 and ARCH-HASH-001; canonical unused values
+follow owner schemas, including nonzero sentinels. Header/section validation and
+actual production continuation remain implementation work.
+
+[MOVE-DEP-R01–05](rulings/2026-09-12_movement_dependency_rulings.md) names the asset,
+resident, rig, graph and contact owners. Required NEW packed payload deltas are
+512bytes Resident.life_stage,4bytes starter-profile life_stage,6144bytes captured
+destination ref/contact key:6660bytes total before separately counted transient
+records or immutable catalog contents. Add them to measured ledger/registry only
+with implementation, once; they do not erase earlier uncounted obligations.
+Affected owner/section versions and identities change before accepting saves.
+These contracts do not close full MOVE-G01/G02/G04 or task08 dependent simulation.

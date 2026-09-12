@@ -41,6 +41,7 @@ const WorldInventoryScript := preload("res://scripts/core/inventory.gd")
 const ForageScript := preload("res://scripts/core/forage.gd")
 const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
 const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
+const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const ResourceNodesScript := preload("res://scripts/core/resource_nodes.gd")
 const FishingScript := preload("res://scripts/core/fishing.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
@@ -544,26 +545,125 @@ func test_an_out_of_range_day_boundary_is_refused() -> void:
 	assert_false(_settlement.is_winter(), "no season was applied")
 
 
+# --- ARCH-SYS-004 StockAge (decision 0085) -------------------------------------------------------
+
+## GDD §5.8's covered-store factor and spring temperature factor, transcribed, and the
+## milli-hours one game hour costs at their product: floor(1000 * 1000 / 1000).
+const COVERED_STORE_FACTOR: int = 1000
+const SPRING_TEMPERATURE_FACTOR: int = 1000
+const COVERED_SPRING_MILLI_HOURS: int = 1000
+## §4.2's owner EntityRef is not what this suite is testing; any live-looking pair will do,
+## because `inventory.gd` stores the owner and does not resolve it.
+const STORE_OWNER: Vector2i = Vector2i(3, 1)
+const STORE_MASS_G: int = 1000000
+
+
+func _declared_store_with_grain(settlement: SettlementSystemScript) -> Vector2i:
+	"""Put one 4 U grain lot into a declared covered store inside the settlement's OWN inventory."""
+	var inventory: WorldInventoryScript = settlement.inventory()
+	var made: WorldInventoryScript.OpResult = inventory.create_container(
+		STORE_OWNER, STORE_MASS_G, WorldInventoryScript.FILTERS_ACCEPT_ALL, 0, true)
+	settlement.stock_age().declare_storage_class(
+		made.ref, StockAgeScript.STORAGE_COVERED_STORE, false)
+	var grain: int = settlement.item_definitions().compiled_id(&"grain")
+	return inventory.create_lot(made.ref, grain, 4000, 0, 0, 0, 0, 0).ref
+
+
+func test_the_settlement_registers_its_item_catalog_into_its_own_inventory() -> void:
+	"""ARCH-SYS-004 needs shelf lives, so the §4.3 catalog is composed with the lot store."""
+	assert_true(_settlement.item_definitions().is_loaded(), "the catalog loaded")
+	assert_equal(_settlement.item_definitions().item_count(), 60,
+		"all sixty v2 catalog items are compiled")
+	var grain: int = _settlement.item_definitions().compiled_id(&"grain")
+	assert_true(_settlement.inventory().is_item_registered(grain),
+		"and each one is registered into the inventory ARCH-SYS-004 ages")
+	assert_true(_settlement.stock_age().inventory() == _settlement.inventory(),
+		"the aging stage ages THIS settlement's lots, not a detached fixture")
+
+
+func test_stock_age_runs_on_the_hour_crossing_and_not_on_any_other_tick() -> void:
+	"""ARCH-SYS-004's §5 row is "hour crossing", so 23 ticks in 24 must change no age."""
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	for tick: int in range(748, 750):
+		assert_true(_settlement.run_tick(tick), "tick %d commits" % tick)
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), 0,
+		"no age accrued on the two ticks before the crossing")
+	assert_true(_settlement.run_tick(750), "the crossing tick commits")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and exactly one §5.8 hour landed at `(750+4500) mod 750 == 0`")
+	assert_true(_settlement.run_tick(751), "the tick after the crossing commits")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and added nothing")
+	assert_equal(_settlement.refused_stock_hour_count(), 0, "with no refused hour")
+
+
+func test_the_midnight_leg_logs_aging_without_running_a_second_age_pass() -> void:
+	"""ARCH-TICK-002: "never perform a second age pass because the same tick is hourly and daily"."""
+	_populated()
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_true(_settlement.run_tick(SimClockScript.FIRST_MIDNIGHT_TICK),
+		"the midnight tick runs through the tick path first, as the clock drives it")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"one hour of age from the crossing")
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "then the day boundary runs")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and the daily leg added no second hour")
+	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_STOCK_AGE,
+		"while still logging aging as REQ-SET-007's first leg")
+
+
+func test_a_day_boundary_with_no_tick_path_behind_it_runs_the_aging_leg_itself() -> void:
+	"""The leg is executed rather than logged on trust when nothing else has consumed the tick."""
+	_populated()
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_equal(_settlement.stock_age().last_hour_tick(), StockAgeScript.NO_HOUR_RUN,
+		"no hourly pass has run")
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary runs")
+	assert_equal(_settlement.stock_age().last_hour_tick(), SimClockScript.FIRST_MIDNIGHT_TICK,
+		"and the aging leg consumed the midnight crossing itself")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"charging exactly one §5.8 hour")
+
+
+func test_reset_empties_the_stock_layer_and_restores_its_catalog() -> void:
+	"""A reset settlement is one settlement's stock, with the item registry still usable."""
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_true(_settlement.run_tick(750), "an hour crossing ages it")
+	_settlement.reset()
+	assert_false(_settlement.inventory().is_lot_valid(lot), "the lot is gone")
+	assert_equal(_settlement.inventory().live_container_count(), 0, "and so is its container")
+	assert_equal(_settlement.stock_age().declared_container_count(), 0,
+		"every storage declaration went with them")
+	assert_equal(_settlement.stock_age().last_hour_tick(), StockAgeScript.NO_HOUR_RUN,
+		"and the hourly latch is dropped")
+	var grain: int = _settlement.item_definitions().compiled_id(&"grain")
+	assert_true(_settlement.inventory().is_item_registered(grain),
+		"the catalog is re-registered, because inventory.clear() drops the item registry too")
+
+
 # --- REQ-SET-007 leg order and ARCH-SYS-005 Ecology (task 03 increment 9) ------------------------
 
-func test_the_boundary_runs_the_handover_then_ecology_then_crops_and_no_other_leg() -> void:
-	"""REQ-SET-007's five legs are ordered, and only the three with an owner here may appear.
+func test_the_boundary_runs_aging_then_the_handover_then_ecology_then_crops() -> void:
+	"""REQ-SET-007's five legs are ordered, and only the four with an owner here may appear.
 
-	CHANGED BY TASK 03 INCREMENT 10: this assertion previously ended at two legs, because
-	ARCH-SYS-006 had no owner. Crops/weather is REQ-SET-007's THIRD step and must appear AFTER
-	"update ecology", never before it and never instead of it.
+	CHANGED BY DECISION 0085: this assertion previously began at the season handover, because
+	ARCH-SYS-004 had no owner. Stock aging is REQ-SET-007's FIRST step and ARCH-TICK-003 places
+	the handover "exactly between aging and ecology", so aging must appear BEFORE the handover
+	-- aging uses the elapsed interval's season, and the handover is what changes it.
 	"""
 	_populated()
 	assert_true(_settlement.run_day_boundary(37, SEASON_WINTER), "the winter boundary runs")
-	assert_equal(_settlement.daily_leg_count(), 3, "exactly three legs executed")
-	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_SEASON_HANDOVER,
-		"ARCH-TICK-003's handover first, between aging and ecology")
-	assert_equal(_settlement.daily_leg_at(1).value, SettlementSystemScript.LEG_ECOLOGY,
+	assert_equal(_settlement.daily_leg_count(), 4, "exactly four legs executed")
+	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_STOCK_AGE,
+		"ARCH-SYS-004 StockAge first, REQ-SET-007's own first step")
+	assert_equal(_settlement.daily_leg_at(1).value, SettlementSystemScript.LEG_SEASON_HANDOVER,
+		"then ARCH-TICK-003's handover, between aging and ecology")
+	assert_equal(_settlement.daily_leg_at(2).value, SettlementSystemScript.LEG_ECOLOGY,
 		"then ARCH-SYS-005 Ecology")
-	assert_equal(_settlement.daily_leg_at(2).value, SettlementSystemScript.LEG_CROP_WEATHER,
+	assert_equal(_settlement.daily_leg_at(3).value, SettlementSystemScript.LEG_CROP_WEATHER,
 		"then ARCH-SYS-006 CropWeather, REQ-SET-007's third step")
-	assert_false(_settlement.daily_leg_at(3).ok, "and nothing after it")
-	assert_equal(String(_settlement.daily_leg_at(3).error), "INVALID_INDEX",
+	assert_false(_settlement.daily_leg_at(4).ok, "and nothing after it")
+	assert_equal(String(_settlement.daily_leg_at(4).error), "INVALID_INDEX",
 		"the reader refuses rather than answering a leg that did not run")
 
 
@@ -609,8 +709,10 @@ func test_a_replayed_day_boundary_is_refused_rather_than_applied_twice() -> void
 	assert_true(_settlement.run_day_boundary(37, SEASON_WINTER), "the first run commits")
 	assert_false(_settlement.run_day_boundary(37, SEASON_WINTER), "the second is refused")
 	assert_equal(_settlement.last_refusal(), &"ECOLOGY_DAY_ALREADY_RUN", "with the replay code")
-	assert_equal(_settlement.daily_leg_count(), 1,
-		"the season handover ran and the ecology leg did not")
+	assert_equal(_settlement.daily_leg_count(), 2,
+		"aging and the season handover ran and the ecology leg did not")
+	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_STOCK_AGE,
+		"and the replayed boundary logged aging without running a second age pass")
 
 
 func test_reset_drops_the_ecology_stores_and_the_leg_log() -> void:
@@ -742,8 +844,8 @@ func test_an_unseeded_settlement_refuses_its_second_seasons_weather_draw() -> vo
 			"spring day %d commits" % day)
 	assert_false(_settlement.run_day_boundary(13, SEASON_SUMMER), "summer day 1 refuses")
 	assert_equal(_settlement.last_refusal(), &"RNG_NOT_SEEDED", "with the stream's own code")
-	assert_equal(_settlement.daily_leg_count(), 2,
-		"the handover and ecology legs ran; the crops/weather leg did not")
+	assert_equal(_settlement.daily_leg_count(), 3,
+		"aging, the handover and ecology ran; the crops/weather leg did not")
 
 
 func test_a_hive_eligibility_crossing_reaches_the_farm_side_of_the_boundary() -> void:
@@ -1423,14 +1525,14 @@ func test_the_planner_is_composed_over_this_settlements_own_stores() -> void:
 func test_the_measured_stage_list_matches_what_actually_runs() -> void:
 	"""The header's stage list is a count of dispatched call sites; this asserts the tick half."""
 	_populated()
-	assert_equal(_settlement.tick_stage_count(), 7, "seven stages are dispatched per tick")
+	assert_equal(_settlement.tick_stage_count(), 8, "eight stages are dispatched per tick")
 	for stage: int in _settlement.tick_stage_count():
 		assert_true(String(_settlement.tick_stage_name(stage)).begins_with("ARCH-SYS-"),
 			"stage %d names the ARCH-SYS system it dispatches" % stage)
 	assert_equal(_settlement.tick_stage_name(_settlement.tick_stage_count()), &"",
 		"and one past the last names nothing")
 	assert_false(_settlement.tick_stage_usec_at(-1).ok, "a negative stage index refuses")
-	assert_false(_settlement.tick_stage_usec_at(7).ok, "and so does one past the last")
+	assert_false(_settlement.tick_stage_usec_at(8).ok, "and so does one past the last")
 
 
 func test_every_stage_is_measured_on_every_tick() -> void:
@@ -1490,8 +1592,8 @@ func test_the_planner_day_boundary_is_not_a_req_set_007_leg() -> void:
 	_populated()
 	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary runs")
 	assert_equal(_settlement.refused_planner_day_count(), 0, "the planner's midnight ran")
-	assert_equal(_settlement.daily_leg_count(), 3,
-		"and the log still holds exactly the three REQ-SET-007 legs this system owns")
+	assert_equal(_settlement.daily_leg_count(), 4,
+		"and the log still holds exactly the four REQ-SET-007 legs this system owns")
 
 
 func test_every_stage_closes_its_window_exactly_once_per_tick() -> void:

@@ -31,11 +31,16 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 ## 275 rows / 3407b52e4db6fb19874d8ea3a3d636e46575def0048b513558f7a5d3894c3e90 before it. All four
 ## are an INTENTIONAL CATALOG/SCHEMA CHANGE, not a parity result -- every save written
 ## against the old digest refuses until an explicit migration exists, which is the alarm working.
-const COMMITTED_BYTE_LENGTH: int = 4140
+const COMMITTED_BYTE_LENGTH: int = 4161
 const COMMITTED_SHA256: String = \
-	"4fdd24b8b49182798b844221efda12a0e211db5dd6d7e6582307b8a86dab1e8a"
+	"d5bf21b45b31a2d90d7d0f6b9367450787eb506fd5ae27b6f6f54c08f23cfd67"
 const COMMITTED_DOMAIN_COUNT: int = 29
-const COMMITTED_ROW_COUNT: int = 281
+const COMMITTED_ROW_COUNT: int = 282
+
+## ECON-002's `excavated_earth`, the one ItemDefinition row added in the same increment as
+## InjuryKind. Named separately from `INJURY_KIND_ROWS` so the row-count accounting states which
+## change contributed what, rather than presenting one total that any future edit could absorb.
+const ECON_002_ITEM_ROWS: int = 1
 
 ## Every domain the artifact carries, in the ascending ASCII order it is written in.
 const COMMITTED_DOMAINS: Array[String] = [
@@ -1050,9 +1055,16 @@ func test_the_artifact_carries_injury_kind_whole() -> void:
 
 
 func test_injury_kind_moved_the_digest_by_exactly_its_own_rows() -> void:
-	"""One new domain of six rows -- no other domain may have moved in the same change."""
-	assert_equal(PRE_INJURY_ROW_COUNT + INJURY_KIND_ROWS, COMMITTED_ROW_COUNT,
-		"the six new rows are exactly the difference from the previous artifact")
+	"""One new domain of six rows plus ECON-002's one new item -- nothing else moved.
+
+	THIS TEST GAINED A TERM. It read `PRE_INJURY_ROW_COUNT + INJURY_KIND_ROWS` when InjuryKind was
+	the only change in flight. `excavated_earth` landed in the same increment -- it is a row in
+	ItemDefinition, the balance table's single authored source -- so the accounting is now two named
+	terms rather than one. Naming them separately is the point: a future change that moves the row
+	count without saying which domain it came from fails here instead of being absorbed.
+	"""
+	assert_equal(PRE_INJURY_ROW_COUNT + INJURY_KIND_ROWS + ECON_002_ITEM_ROWS, COMMITTED_ROW_COUNT,
+		"InjuryKind's six rows plus ECON-002's one item are exactly the difference")
 	assert_equal(PRE_INJURY_DOMAIN_COUNT + 1, COMMITTED_DOMAIN_COUNT, "one new domain, no more")
 	assert_true(PRE_INJURY_BYTE_LENGTH != COMMITTED_BYTE_LENGTH, "the byte length moved")
 	assert_true(PRE_INJURY_SHA256 != COMMITTED_SHA256, "the digest moved, deliberately")

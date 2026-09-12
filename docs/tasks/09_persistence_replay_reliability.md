@@ -147,7 +147,7 @@ Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) 
 `godot/test/test_save_section_name_pool.gd` implement ARCH-SAVE-002 section 14,
 the registry's single `residents.gd::_name_key` member. Reasoning and the four
 named blockers are in
-[decision 0098](../decisions/0098-the-first-variable-length-save-section-frames-its-own-row-count.md).
+[decision 0099](../decisions/0099-the-first-variable-length-save-section-frames-its-own-row-count.md).
 
 - [x] §14 NAME_POOL payload codec: `capture_into` / `encode_record` /
       `encode_store` / `decode_into` / `apply` / `canonical_bytes_of`, following

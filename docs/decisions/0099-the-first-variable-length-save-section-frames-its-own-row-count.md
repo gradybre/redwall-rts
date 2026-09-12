@@ -1,4 +1,4 @@
-# 0098 — The first variable-length save section frames its own row count
+# 0099 — The first variable-length save section frames its own row count
 
 Date: 2026-09-12 · Status: **Accepted**
 

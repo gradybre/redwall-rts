@@ -192,3 +192,10 @@ this handoff itself grants no new push/merge or paid-generation permission.
 Begin by reporting the current implementation state, the concrete next slice,
 file ownership and any specific remaining blocker, then proceed with authorized,
 dependency-ready work. Do not stop after restating this handoff.
+
+## Latest blocker handoff — 2026-09-11
+
+Read [the asset/save/movement ruling index](../rulings/2026-09-11_asset_save_movement_blockers.md)
+before dispatching the next increment. It supplies authoring and codec contracts,
+corrects focus/rollback classifications, and preserves the separate open
+proportion-review and full MOVE-G01 gates. It does not mark runtime work complete.

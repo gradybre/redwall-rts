@@ -503,19 +503,26 @@ func test_all_five_need_rows_reach_the_card_for_a_real_resident() -> void:
 	SettlementSystem.reset()
 
 
-func test_the_four_rows_with_no_published_rate_say_so_on_screen() -> void:
-	"""§5: "If rate isn't published, say Rate unavailable" -- and never a fabricated 0.00."""
+func test_all_five_need_rows_carry_a_published_rate_on_screen() -> void:
+	"""NEED-RATE-R01: "remove Rate unavailable for successful reads after implementation".
+
+	THIS TEST WAS INVERTED. It previously asserted that rows 1-4 read `Rate unavailable`, which
+	was true while `needs.gd` published one effective rate of five. The ruling closed that
+	interface gap, `ui_resident_snapshot.gd` binds all five at one validated boundary, and the
+	ruling says in terms not to mark UXV-020 passed "while any otherwise supported row still
+	lacks its published rate". So the assertion is the other way round now.
+	"""
 	_ui.register_hud(_hud)
 	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
 	assert_true(_ui.refresh_roster(), "the roster fills")
 	var shell: UiShellScript = _hud.shell()
 	shell.roster_row(0).emit_signal(&"pressed")
-	assert_true(shell.need_row_text(0).contains("pp/h"),
-		"Fullness carries its published rate: '%s'" % shell.need_row_text(0))
-	for index: int in [1, 2, 3, 4]:
+	for index: int in [0, 1, 2, 3, 4]:
 		var text: String = shell.need_row_text(index)
-		assert_true(text.contains("Rate unavailable"), "row %d says so: '%s'" % [index, text])
-		assert_false(text.contains("0.00"), "row %d prints no invented zero" % index)
+		assert_true(text.contains("pp/h"), "row %d carries a rate: '%s'" % [index, text])
+		assert_false(text.contains("Rate unavailable"),
+			"row %d no longer says the rate is unpublished" % index)
+		assert_false(text.contains("-0.00"), "row %d never prints a signed zero" % index)
 	SettlementSystem.reset()
 
 

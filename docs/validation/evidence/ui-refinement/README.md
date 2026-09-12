@@ -235,3 +235,112 @@ no assertion here makes. No screen-reader qualification — the roundel is
 decorative and the panel's description carries "not a portrait of this resident",
 both asserted, neither run through assistive technology. No Windows or
 minimum-hardware claim, and no high-DPI capture.
+
+
+---
+
+# UI-IDENTITY-R01 identity-row captures — 2026-09-12
+
+Captured from the **native macOS game** on branch `feat/ui-identity-r01`, based on
+`origin/master` at `6269f2b`. Implements
+[the 2026-09-12 ruling](../../../rulings/2026-09-12_resident_header_and_need_rates.md);
+recorded in [ADR 0098](../../../decisions/0098-the-resident-identity-row-and-its-five-bound-rates.md).
+
+| | |
+|---|---|
+| Suite at capture | `3464 test(s), 124035 assertion(s), 0 failure(s)` |
+| Launch | `godot --path godot --script capture_identity_scratch.gd --resolution <W>x<H> -- <absolute-out.png> <scale> <name>` |
+| `<scale>` | `100`, `125` or `150` — the §1.2 user scale, applied through the shell's own `apply_user_scale()` |
+| `<name>` | `short`, `name32`, `unbroken` or `combining` |
+| Scene | the project's own `run/main_scene`, `res://scenes/main.tscn` |
+| Harness | `capture_identity_scratch.gd`, a scratch file **deleted before commit**; the command is recorded here because the command is the part that matters |
+
+The harness fakes nothing. It names a real resident through `residents.set_name()`,
+calls `UIManager.refresh_roster()` and emits `pressed` on a real roster row; every
+figure on screen came from `residents.gd`, `needs.gd` and `jobs.gd` through
+`ui_resident_snapshot.gd` and `ui_resident_card.gd`. The four names are:
+
+| Key | Name | Why |
+|---|---|---|
+| `short` | `Mira` | the ordinary case |
+| `name32` | `Bramblewhisker Thistledown Abbot` | the ruling's explicit 32-character case |
+| `unbroken` | `Bramblewhiskerthistledownabbotofredwall` | one 39-character word, wider than any column |
+| `combining` | `Maïriń Silverbrush` | combining diaeresis and combining acute |
+
+The three traps recorded in the sections above are all still true: the harness
+counts frames and quits either way, `save_png` is given an **absolute** path, and
+`UIManager`/`SettlementSystem` are reached with `get_node_or_null()` at runtime
+because autoload identifiers do not resolve at compile time under `--script`.
+
+| File | Window / scale | Profile | Name | Shows |
+|---|---|---|---|---|
+| `18_identity_wide_1920x1080_100_short.png` | 1920×1080 / 100% | WIDE | short | **All five rates bound**: −2.50 / −3.75 / −1.00 / −1.00 / −0.75 pp/h. 64 px medallion beside the name, 220 px name column, Close top-right, Center view in the fixed footer |
+| `19_identity_wide_1920x1080_100_name32.png` | 1920×1080 / 100% | WIDE | name32 | The 32-character name wrapped on whole words in the 220 px column |
+| `20_identity_wide_1920x1080_100_unbroken.png` | 1920×1080 / 100% | WIDE | unbroken | The 39-character word broken on grapheme boundaries, inside its own column |
+| `21_identity_wide_1920x1080_100_combining.png` | 1920×1080 / 100% | WIDE | combining | `Maïriń` with both combining marks intact |
+| `22_identity_standard_1280x720_100_short.png` | 1280×720 / 100% | STANDARD | short | 64 px medallion, 172 px name column |
+| `23_identity_standard_1280x720_100_name32.png` | 1280×720 / 100% | STANDARD | name32 | Header grown, body shortened, footer unmoved |
+| `24_identity_standard_1280x720_100_unbroken.png` | 1280×720 / 100% | STANDARD | unbroken | Grapheme break at the narrower column |
+| `25_identity_standard_1920x1080_125_name32.png` | 1920×1080 / 125% | STANDARD | name32 | The second user scale |
+| `26_identity_standard_1920x1080_150_name32.png` | 1920×1080 / 150% | STANDARD | name32 | The third |
+| `27_identity_narrow_1280x720_125_name32.png` | 1280×720 / 125% | NARROW | name32 | 48 px medallion, 172 px column, three-line name |
+| `28_identity_narrow_1280x720_150_short.png` | 1280×720 / 150% | NARROW | short | **The ruling's explicitly required 1280×720@150%** |
+| `29_identity_narrow_1280x720_150_name32.png` | 1280×720 / 150% | NARROW | name32 | The tightest composition with the longest supported name |
+| `30_identity_narrow_1280x720_150_unbroken.png` | 1280×720 / 150% | NARROW | unbroken | The defect below, fixed |
+| `31_identity_narrow_1280x720_150_combining.png` | 1280×720 / 150% | NARROW | combining | Combining marks at the tightest composition |
+
+## A defect these captures found, and the assertions did not
+
+**A long unbroken name drew three lines inside a two-line heading box**, over the
+species line and over the Overview tab. The whole suite was green when it happened.
+
+`_wrapped_height()` measured with `Font.get_multiline_string_size()`'s DEFAULT break
+flags, `BREAK_MANDATORY | BREAK_WORD_BOUND`, which never splits a word. The Label is
+set to `AUTOWRAP_WORD_SMART`, which does split one, on a grapheme cluster boundary.
+The measurement and the drawing disagreed by exactly one line, and no headless
+assertion compared them. This is the ruling's own point — "Arithmetic fit is not a
+screenshot pass" — landing on the person who wrote the arithmetic.
+
+Fixed by deriving the flags from the Label's own `autowrap_mode`, and pinned by
+`test_no_name_draws_outside_its_own_heading_rectangle`, which measures the text with
+the flags the Label will use and asserts the allocated rectangle holds it and
+touches neither the species line nor the tabs. Reverting the one-line fix kills that
+test and nothing else.
+
+## What these captures close
+
+1. **Four rows no longer read `Rate unavailable`.** Capture 18 shows all five need
+   rows carrying a published per-simulated-hour rate. `needs.gd`'s four signed net
+   readers landed with NEED-RATE-R01, and `ui_resident_snapshot.gd` copies all five
+   at one validated `EntityRef`/generation boundary.
+2. **The medallion is beside the name at every profile.** Defect 2 of the previous
+   section — "the roundel leads the card above the name" — is gone, and there is no
+   branch left that could put it back.
+3. **The header grows and the footer does not move.** Compare `28` with `29`: the
+   three-line name pushes the body down and shortens it; Center view stays where it
+   is, and Close stays at the top right.
+
+## What is visible here and NOT fixed
+
+1. **Center view is disabled.** It is built, labelled and carries
+   `ui_availability.gd`'s own REASON_NO_WORLD_CAMERA. No camera binding is invented.
+2. **Age is still stated as unavailable** in the supporting note. `residents.gd`
+   gained a life-stage column under MOVE-DEP-R02, but nothing publishes a verified
+   stage into this heading and the ruling forbids inventing one.
+3. **A need row can be cut at the body's scroll edge** (visible in `31`, where Rest
+   is half-drawn at the bottom of the viewport). That is a ScrollContainer boundary,
+   not truncation: the row is whole and scrolling reaches it.
+4. **Counter cells still clip** at STANDARD and NARROW — ADR 0076's separate UXV-032
+   defect, untouched here.
+5. **`No world generated` in the minimap**, and the top-left counters reading `--`
+   at NARROW: both pre-existing and recorded in the sections above.
+
+## What these images still do not establish
+
+No visual approval; ART-UI-12 is Brendan's and is recorded separately. **Facing a
+human eye is still required**, specifically for the relationship between the
+medallion's weight and the name beside it at 48 px, and for whether a three-line
+name at NARROW leaves a usable body. No screen-reader qualification: the heading
+semantics, the decorative medallion and the Capped explanation are set and asserted,
+and no assistive technology was run. No Windows or minimum-hardware claim, and no
+high-DPI capture.

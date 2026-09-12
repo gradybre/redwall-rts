@@ -1,0 +1,330 @@
+{
+  "result": "PASS",
+  "checked_at_utc": "2026-09-12T15:36:11.199472+00:00",
+  "scope": "Documentation/source, reference arithmetic, registry coverage. No Godot runtime or visual acceptance.",
+  "checks": [
+    {
+      "name": "Exact heading width NARROW",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Old minimum cannot fit NARROW",
+      "passed": true,
+      "detail": {
+        "over_by": 108
+      }
+    },
+    {
+      "name": "Exact heading width STANDARD",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Old minimum cannot fit STANDARD",
+      "passed": true,
+      "detail": {
+        "over_by": 108
+      }
+    },
+    {
+      "name": "Exact heading width WIDE",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Old minimum cannot fit WIDE",
+      "passed": true,
+      "detail": {
+        "over_by": 60
+      }
+    },
+    {
+      "name": "MILLI_PER_POINT convention",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture rest_awake",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry rest_awake 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry rest_awake 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry rest_awake -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture rest_bed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry rest_bed 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry rest_bed 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry rest_bed -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture rest_floor",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry rest_floor 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry rest_floor 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry rest_floor -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture comfort_none",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry comfort_none 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry comfort_none 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry comfort_none -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture comfort_heated",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry comfort_heated 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry comfort_heated 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry comfort_heated -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture comfort_mild",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry comfort_mild 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry comfort_mild 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry comfort_mild -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture social_unpaired",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry social_unpaired 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry social_unpaired 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry social_unpaired -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture social_paired",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry social_paired 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry social_paired 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry social_paired -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture purpose_none",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry purpose_none 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry purpose_none 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry purpose_none -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture purpose_labor",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry purpose_labor 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry purpose_labor 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry purpose_labor -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Published rate fixture purpose_mentoring",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry purpose_mentoring 0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry purpose_mentoring 345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Independent constant-rate carry purpose_mentoring -345678",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Display rounding 250000",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Display rounding 245000",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Display rounding 250500",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Display rounding -250500",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Display rounding 499",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Display rounding -499",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Display rounding 500",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Display rounding -500",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Requirement CSV records capped continuous-rate semantics",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Current registry coverage",
+      "passed": true,
+      "detail": "state_registry_coverage: PASS -- 42 modules, 312 rows, 629 packed columns checked"
+    },
+    {
+      "name": "Documentation whitespace",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "not_verified": [
+    "New public rate-reader implementation",
+    "Snapshot wiring and identity guards",
+    "Actual font wrap/geometry/render captures",
+    "UI rate/cap display",
+    "Per-frame or hot-path performance"
+  ]
+}

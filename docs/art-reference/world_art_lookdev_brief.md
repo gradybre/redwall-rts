@@ -8,7 +8,7 @@ Status: **preparation only — no asset is authored, generated or paid for by th
 > [asset dimensions and budgets](../planning/asset_dimensions_and_budgets.md) (ART-GAP-R01–05)
 > supply the numbers revision 1.0 refused to invent. **Six of the nine blocked entries now
 > have authoring answers. Three creature entries — A2 mole, A3 squirrel, A4 otter — have
-> concrete comparison briefs and still need proportion approval. They are not
+> concrete comparison briefs. **DEC-039 approved their proportions on 2026-09-12**, so they are
 > production-ready, and neither are the other six in the sense of qualification: an
 > authoring contract is not exported evidence or a measured frame time.**
 >
@@ -48,7 +48,7 @@ explicitly; nine is the number, and the introductory six was wrong. As of revisi
 | | Entries | Position after the ruling |
 |---|---|---|
 | Authoring-ready | A1, A5, B1, B2, B3, C1, C2, C3, C4, D1, D2, D3, D4, D5, D6 | Every dimension, budget, cutaway, material and naming contract these need now exists |
-| Comparison brief only | A2 mole, A3 squirrel, A4 otter | Exact candidate heights and a measurement convention exist; **bulk-production proportion approval is open** and decision 0002's review has not happened |
+| Proportions approved | A2 mole, A3 squirrel, A4 otter | Heights and the measurement convention exist and **DEC-039 approved them on 2026-09-12** against decision 0002's rendered comparison; squirrel was raised to 1178 u in that review. Paid generation is still governed separately by the asset generation lock |
 
 **Authoring-ready is not production-qualified.** Exported meshes, rendered evidence, the
 camera obstacle sweep, GPU measurement and the Windows minimum-hardware pass all remain
@@ -560,7 +560,7 @@ own manifest as exceeding the intended runtime simplification.
 
 ---
 
-### A4 — otter · `species_otter_body_a` — **comparison candidate supplied; proportion approval still open**
+### A4 — otter · `species_otter_body_a` — **proportions approved, DEC-039**
 
 **Source features.**
 
@@ -595,7 +595,7 @@ own manifest as exceeding the intended runtime simplification.
   asset-pipeline skill's 1 : 1.49 : 2.55 and the radii's 1 : 1.337 : 2.505 were never two
   answers to one question.
 - Reference sheets, blockout drawings and the §2.4 comparison bay are unblocked and done.
-  **Bulk otter production still waits on the proportion approval**, because a re-export
+  **DEC-039 approved the otter's proportions on 2026-09-12.** A re-export
   after a late ruling is the expensive path the skill warns about.
 
 **Acceptance views.** As A1 once the proportions are approved, plus the otter-beside-mouse
@@ -1303,8 +1303,8 @@ they are the evidence that the gap was real. What follows each is the ruling's a
 
 | Gap | Status after the 2026-09-11 ruling |
 |---|---|
-| GAP-01 | Candidates supplied and a measurement convention specified. **Bulk-production proportion approval OPEN** |
-| GAP-02 | Domain confusion resolved — radii are not heights. Candidate supplied. **Proportion approval OPEN** |
+| GAP-01 | **CLOSED by DEC-039, 2026-09-12.** Heights approved against decision 0002's rendered comparison; squirrel raised 1024 u to 1178 u in that review. Landmark ratios remain PROPOSED_FOR_REVIEW, a separate axis |
+| GAP-02 | Domain confusion resolved — radii are not heights. **Heights closed by DEC-039, 2026-09-12.** Battle horizontal radii remain a separate measurement and no production ratio is inferred from them |
 | GAP-03 | All 30 exterior maximum-Y envelopes supplied, with proxy and cutaway export rules. **Engine validation open** |
 | GAP-04 | Geometry, surface and texture ceilings for every non-creature family, plus whole-scene sub-budgets. **Hardware measurement open** |
 | GAP-05 | Settlement L0 admission fully specified. **Runtime implementation and performance open** |

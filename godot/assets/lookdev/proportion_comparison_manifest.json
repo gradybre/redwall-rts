@@ -94,7 +94,7 @@
 				1920,
 				1080
 			],
-			"sha256": "23dd2a040d9ca3278be3f1d6e7cd0f71c8db316a8830902a73d45652b3791030",
+			"sha256": "1e4a332a470baa758c771b0752ac51d5496249e4b2bbadcf3a2d79f252c6f6d2",
 			"view": "rts_orbit_008m_pitch48_yaw225"
 		},
 		{
@@ -104,7 +104,7 @@
 				1920,
 				1080
 			],
-			"sha256": "44f8dd20d0e2d1520ea5b99318cb86f39cf67a4182496ba889cffe4900595242",
+			"sha256": "fd413bd5e9f206c9100836875b5459ca307d134ae2c8dbfb9ea1fd8137af2ff0",
 			"view": "rts_orbit_040m_pitch48_yaw045"
 		},
 		{
@@ -114,7 +114,7 @@
 				1920,
 				1080
 			],
-			"sha256": "686e429eb15b89d4119dfc0cbb6a36e4b4d435899ee2c85d5d389f9074d34dc8",
+			"sha256": "1d09afcab6e64b58a1a773c4b805125a93217a3e02c2da42417253b138b80b61",
 			"view": "rts_orbit_120m_pitch48_yaw045"
 		},
 		{
@@ -124,7 +124,7 @@
 				1920,
 				1080
 			],
-			"sha256": "852b8af2819e8d4282b117ddfb43c5decebc61052c5a6c25bc636d4b1cd17f97",
+			"sha256": "0c4c750c4b5eef18f25a9dccbceb47d6b174dda26fed7edbc2a8cf5c6841d970",
 			"view": "rts_orbit_008m_pitch35_yaw225_work_contact"
 		},
 		{
@@ -134,7 +134,7 @@
 				1920,
 				1080
 			],
-			"sha256": "4486d514f913fbe15836a1fd1bbe41fe6d9a176777e23cc52788b391471b36ea",
+			"sha256": "9df669860cb64cab2331833ee3c6f80492ba8070447b4f43c60d43975d54ed1e",
 			"view": "rts_orbit_040m_pitch65_yaw045"
 		},
 		{
@@ -144,7 +144,7 @@
 				3200,
 				800
 			],
-			"sha256": "ea494130dfc4737ecaca67f34a79a7205acbdac1c85c041362c62ba8d384578e",
+			"sha256": "6c258439f1234ad52825a7569b727011a9008dd1cd0ffa0042d387c7f5ecfbc6",
 			"view": "elevation_front"
 		}
 	],
@@ -241,7 +241,7 @@
 		{
 			"candidate_height_mm": 1000,
 			"candidate_height_u": 1024,
-			"height_status": "ANCHOR_SOURCED_COMPARISON_INPUT",
+			"height_status": "ANCHOR_SOURCED_PROPORTION_APPROVED",
 			"key": "mouse",
 			"landmark_status": "PROPOSED_FOR_REVIEW",
 			"landmarks_permille": {
@@ -319,7 +319,7 @@
 		{
 			"candidate_height_mm": 900,
 			"candidate_height_u": 922,
-			"height_status": "COMPARISON_CANDIDATE",
+			"height_status": "PROPORTION_APPROVED_DEC_039",
 			"key": "mole",
 			"landmark_status": "PROPOSED_FOR_REVIEW",
 			"landmarks_permille": {
@@ -395,9 +395,9 @@
 			}
 		},
 		{
-			"candidate_height_mm": 1000,
-			"candidate_height_u": 1024,
-			"height_status": "COMPARISON_CANDIDATE",
+			"candidate_height_mm": 1150,
+			"candidate_height_u": 1178,
+			"height_status": "PROPORTION_APPROVED_DEC_039",
 			"key": "squirrel",
 			"landmark_status": "PROPOSED_FOR_REVIEW",
 			"landmarks_permille": {
@@ -415,58 +415,58 @@
 			},
 			"poses": {
 				"carrying": {
-					"declared_crown_mm": 1000,
+					"declared_crown_mm": 1150,
 					"measured_max_mm": [
-						217,
-						1000,
-						1095
+						249,
+						1150,
+						1258
 					],
 					"measured_min_mm": [
-						-217,
+						-249,
 						0,
-						-520
+						-598
 					],
 					"station": "work_surface"
 				},
 				"crouching": {
-					"declared_crown_mm": 793,
+					"declared_crown_mm": 911,
 					"measured_max_mm": [
-						217,
-						793,
-						1095
+						249,
+						911,
+						1258
 					],
 					"measured_min_mm": [
-						-217,
+						-249,
 						0,
-						-206
+						-236
 					],
 					"station": "table"
 				},
 				"standing": {
-					"declared_crown_mm": 1000,
+					"declared_crown_mm": 1150,
 					"measured_max_mm": [
-						217,
-						1000,
-						1095
+						249,
+						1150,
+						1258
 					],
 					"measured_min_mm": [
-						-217,
+						-249,
 						0,
-						-206
+						-236
 					],
 					"station": "doorway"
 				},
 				"walking": {
-					"declared_crown_mm": 1000,
+					"declared_crown_mm": 1150,
 					"measured_max_mm": [
-						217,
-						1000,
-						1095
+						249,
+						1150,
+						1258
 					],
 					"measured_min_mm": [
-						-217,
+						-249,
 						0,
-						-206
+						-236
 					],
 					"station": "open_ground"
 				}
@@ -475,7 +475,7 @@
 		{
 			"candidate_height_mm": 1490,
 			"candidate_height_u": 1526,
-			"height_status": "COMPARISON_CANDIDATE",
+			"height_status": "PROPORTION_APPROVED_DEC_039",
 			"key": "otter",
 			"landmark_status": "PROPOSED_FOR_REVIEW",
 			"landmarks_permille": {
@@ -553,7 +553,7 @@
 		{
 			"candidate_height_mm": 2550,
 			"candidate_height_u": 2611,
-			"height_status": "COMPARISON_CANDIDATE",
+			"height_status": "PROPORTION_APPROVED_DEC_039",
 			"key": "badger",
 			"landmark_status": "PROPOSED_FOR_REVIEW",
 			"landmarks_permille": {
@@ -629,5 +629,5 @@
 			}
 		}
 	],
-	"status": "COMPARISON_CANDIDATE_NOT_PRODUCTION_APPROVAL"
+	"status": "PROPORTION_APPROVED_DEC_039"
 }

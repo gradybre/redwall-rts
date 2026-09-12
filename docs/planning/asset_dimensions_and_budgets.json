@@ -2,7 +2,7 @@
   "heights_candidate_u": {
     "mouse": 1024,
     "mole": 922,
-    "squirrel": 1024,
+    "squirrel": 1178,
     "otter": 1526,
     "badger": 2611
   },
@@ -80,7 +80,7 @@
       "max_texture_edge": 1024
     }
   ],
-  "status": "ENGINEERING_AUTHORING_RULES_WITH_PROPORTION_REVIEW_PENDING",
+  "status": "ENGINEERING_AUTHORING_RULES_WITH_PROPORTIONS_APPROVED_DEC_039",
   "date": "2026-09-11",
   "noncreature_mesh_bytes": 134217728,
   "noncreature_texture_bytes": 268435456,

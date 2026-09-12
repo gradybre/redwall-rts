@@ -37,7 +37,7 @@ extends RefCounted
 const Dimensions := preload("res://assets/lookdev/lookdev_dimensions.gd")
 
 const LANDMARK_STATUS: StringName = &"PROPOSED_FOR_REVIEW"
-const HEIGHT_STATUS: StringName = &"COMPARISON_CANDIDATE_NOT_PRODUCTION_APPROVAL"
+const HEIGHT_STATUS: StringName = &"PROPORTION_APPROVED_DEC_039"
 
 # --- poses ---------------------------------------------------------------------------------
 

@@ -125,12 +125,21 @@ func test_the_landmark_columns_are_ordered_and_complete() -> void:
 			"%s shoulder above hip" % key)
 
 
-func test_the_landmarks_are_labelled_as_review_inputs_and_not_contract_values() -> void:
-	"""The ruling supplies the convention, not the landmark values. Nothing may read as settled."""
+func test_the_landmarks_are_still_review_inputs_although_the_heights_are_approved() -> void:
+	"""The two axes moved apart on 2026-09-12 and this is what keeps them apart.
+
+	THIS TEST WAS CHANGED. It previously asserted that the heights were NOT production approval,
+	which was true until DEC-039 approved the relative proportions of all five species against the
+	rendered elevation. What DEC-039 did NOT rule on is where the eye, hip and shoulder sit WITHIN
+	a body -- so `LANDMARK_STATUS` is unchanged, and asserting both here is what stops a later
+	reader treating one approval as the other.
+	"""
 	assert_equal(String(Comparison.LANDMARK_STATUS), "PROPOSED_FOR_REVIEW",
-		"landmarks are proposed")
-	assert_true(String(Comparison.HEIGHT_STATUS).contains("NOT_PRODUCTION_APPROVAL"),
-		"heights are not production approval")
+		"landmarks are still only proposed")
+	assert_false(String(Comparison.HEIGHT_STATUS).contains("NOT_PRODUCTION_APPROVAL"),
+		"heights are no longer labelled as un-approved")
+	assert_true(String(Comparison.HEIGHT_STATUS).contains("APPROVED"),
+		"and say so positively rather than by the absence of a denial")
 
 
 func test_the_doorway_carries_the_rulings_opening_to_the_millimetre() -> void:

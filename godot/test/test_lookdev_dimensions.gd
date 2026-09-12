@@ -86,7 +86,7 @@ func test_every_species_candidate_is_present_and_looked_up_by_key() -> void:
 	"""The five species the ruling names, and no silent extra."""
 	assert_equal(Dimensions.species_count(), 5, "five comparison candidates")
 	var expected: Dictionary = {
-		&"mouse": 1024, &"mole": 922, &"squirrel": 1024, &"otter": 1526, &"badger": 2611,
+		&"mouse": 1024, &"mole": 922, &"squirrel": 1178, &"otter": 1526, &"badger": 2611,
 	}
 	var found := IntMath.IntResult.new()
 	for key: StringName in expected:
@@ -95,14 +95,29 @@ func test_every_species_candidate_is_present_and_looked_up_by_key() -> void:
 		assert_equal(found.value, expected[key], "%s candidate height in units" % key)
 
 
-func test_every_species_row_is_labelled_as_a_comparison_input() -> void:
-	"""No row may read as production approval; the ruling says bulk proportions are open."""
+func test_every_species_row_names_its_approval_and_the_anchor_keeps_its_provenance() -> void:
+	"""Each row says where its number came from, and DEC-039 is why they now say APPROVED.
+
+	THIS TEST WAS INVERTED, and the old assertion is worth recording. It required every status to
+	contain "COMPARISON", because bulk proportions were open and nothing could read as production
+	approval. DEC-039 closed that on 2026-09-12 against decision 0002's rendered elevation, so the
+	old assertion now pins the defect rather than the contract.
+
+	What is NOT approved stays visible: the mouse keeps ANCHOR_SOURCED because its 1.0 m came from
+	crowd §9.1 rather than from this review, and `proportion_comparison.LANDMARK_STATUS` is still
+	PROPOSED_FOR_REVIEW -- DEC-039 ruled on scale BETWEEN species, not on where the eye, hip and
+	shoulder sit within one body.
+	"""
 	assert_equal(Dimensions.SPECIES_STATUS.size(), Dimensions.species_count(),
 		"one status per species")
 	for row: int in Dimensions.species_count():
 		var status: String = String(Dimensions.SPECIES_STATUS[row])
-		assert_true(status.contains("COMPARISON"),
-			"%s status names it a comparison input, not approval" % Dimensions.SPECIES_KEY[row])
+		assert_true(status.contains("APPROVED"),
+			"%s names its approval" % Dimensions.SPECIES_KEY[row])
+		assert_false(status.contains("CANDIDATE"),
+			"%s no longer reads as an unapproved candidate" % Dimensions.SPECIES_KEY[row])
+	assert_true(String(Dimensions.SPECIES_STATUS[0]).contains("ANCHOR_SOURCED"),
+		"the mouse still records that its height is sourced, not authored for this review")
 
 
 func test_an_unknown_species_refuses_instead_of_reporting_a_height() -> void:

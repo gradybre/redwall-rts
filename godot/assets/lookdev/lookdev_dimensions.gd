@@ -50,20 +50,22 @@ const SPECIES_KEY: Array[StringName] = [
 ]
 
 ## Anatomical comparison heights in 1/1024 m. COMPARISON CANDIDATES -- see the file header.
-const SPECIES_HEIGHT_U: Array[int] = [1024, 922, 1024, 1526, 2611]
+const SPECIES_HEIGHT_U: Array[int] = [1024, 922, 1178, 1526, 2611]
 
 ## The same heights in the integer millimetre authoring column. DERIVED from `_U`.
-const SPECIES_HEIGHT_MM: Array[int] = [1000, 900, 1000, 1490, 2550]
+const SPECIES_HEIGHT_MM: Array[int] = [1000, 900, 1150, 1490, 2550]
 
-## `mouse` inherits crowd §9.1's sourced 1.0 m gameplay anchor; the other four are the
-## ruling's authored comparison candidates. Neither status is production approval, because
-## the relative proportions of all five are what decision 0002's review judges.
+## `mouse` inherits crowd §9.1's sourced 1.0 m gameplay anchor. DEC-039 approved the relative
+## proportions of all five on 2026-09-12 against the rendered elevation, which is what decision
+## 0002 gates -- so these are now production heights, not candidates. The LANDMARK ratios are a
+## separate axis and remain `PROPOSED_FOR_REVIEW`: DEC-039 ruled on scale between species, not on
+## eye line, hip or shoulder placement within a body.
 const SPECIES_STATUS: Array[StringName] = [
-	&"ANCHOR_SOURCED_COMPARISON_INPUT",
-	&"COMPARISON_CANDIDATE",
-	&"COMPARISON_CANDIDATE",
-	&"COMPARISON_CANDIDATE",
-	&"COMPARISON_CANDIDATE",
+	&"ANCHOR_SOURCED_PROPORTION_APPROVED",
+	&"PROPORTION_APPROVED_DEC_039",
+	&"PROPORTION_APPROVED_DEC_039",
+	&"PROPORTION_APPROVED_DEC_039",
+	&"PROPORTION_APPROVED_DEC_039",
 ]
 
 # --- GAP-03 building exterior vertical envelopes ------------------------------------------

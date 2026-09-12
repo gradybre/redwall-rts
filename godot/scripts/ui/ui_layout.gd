@@ -154,6 +154,12 @@ const HISTORY_TRIGGER_SIZE: float = 32.0
 const ALERT_CARDS_WIDE: int = 2
 const ALERT_CARDS_NARROW: int = 1
 
+## R-UI-ALERT-001's compact card interior. The severity icon is the shell's authored 24x24 grid,
+## the gap between it and the text is §1.2's 8 px grid, and the text is inset by the same 12 px
+## panel padding as every other panel body. `alert_summary_width()` is what a summary line must
+## fit inside, and it is the number `test_ui_notices.gd` measures every authored title against.
+const ALERT_SEVERITY_ICON: float = 24.0
+
 # --- refusals -----------------------------------------------------------------------------------
 
 const REFUSE_NONE: StringName = &""
@@ -408,34 +414,74 @@ func alert_card(profile: int, alert_width: float, index: int) -> Rect2:
 		alert_width - ALERT_CARD_MARGIN, ALERT_CARD_HEIGHT)
 
 
-func alert_card_sized(profile: int, alert_width: float, index: int,
-		measured_content_height: float) -> Rect2:
-	"""One alert card grown to the height its own wrapped text needs.
+static func alert_summary_width(profile: int, alert_width: float) -> float:
+	"""How wide an R-UI-ALERT-001 compact summary line may be, inside its own card.
 
-	Same shape as §4.1's detail rule -- `min(max(measured, floor), ceiling)` -- reused rather
-	than a new policy invented for this card. The floor is the existing ALERT_CARD_HEIGHT, so
-	the §1.2 composition is byte-identical whenever the text already fits; the ceiling is the
-	alerts zone itself, so a long message can never draw past the zone it lives in.
-
-	WHY THIS EXISTS. UXV-032 forbids clipping critical content, so the message wraps, and a
-	fixed 44 px card then drew wrapped lines over its neighbours. The shell cannot fix that:
-	`_place_local()` re-sets the rect from this layout on every pass.
-
-	WHAT IT CANNOT FIX, MEASURED. `ALERT_H` is [48, 96, 96], so at NARROW the whole alerts
-	ZONE is 48 px -- one 44 px card plus its padding. The ceiling therefore equals the floor
-	and the card cannot grow there at all, by construction rather than by defect. STANDARD
-	and WIDE have 96 px and do grow. A three-line message at NARROW needs a §1.2 decision,
-	not a larger number here: §7 already says narrow shows "one highest-severity active
-	alert plus count; history contains all", which reads as shortening the displayed text
-	rather than enlarging the zone. That is the planner's call and is raised, not taken.
+	The card is `alert_width - ALERT_CARD_MARGIN`, which already accounts for §1.2's 36 px
+	history rail. Inside it sit the 12 px panel padding, the 24 px severity icon, the 8 px grid
+	gap, the text, and the closing 12 px padding. At NARROW and STANDARD, where §1.2's alert
+	width is 360, that is 264 logical pixels, and it does not change with the user scale because
+	the whole composition is in logical pixels. A caller that cannot fit an authored title in
+	this width must write a shorter title; nothing in this file will shorten one for it.
 	"""
-	var base: Rect2 = alert_card(profile, alert_width, index)
-	if _last_refusal != REFUSE_NONE:
-		return base
+	if not is_profile(profile):
+		return 0.0
+	return alert_width - ALERT_CARD_MARGIN - 2.0 * PANEL_PADDING - ALERT_SEVERITY_ICON - GRID
+
+
+class Stack:
+	"""Where the alert cards actually go, and which of them had to fall back to a summary."""
+
+	## One rectangle per card §7 allows on the widest profile. Reused; never reallocated.
+	var rects: Array[Rect2] = [Rect2(), Rect2()]
+	## 1 where the card could not show its measured content and must draw its compact summary.
+	var summarised: PackedByteArray = PackedByteArray([0, 0])
+	## How many cards fit. §7's limit is a MAXIMUM, so this may be fewer, including zero.
+	var visible_count: int = 0
+
+	func reset() -> void:
+		"""Return the stack to empty so a refused computation leaves no stale rectangle."""
+		for index: int in rects.size():
+			rects[index] = Rect2()
+			summarised[index] = 0
+		visible_count = 0
+
+
+func alert_stack_into(profile: int, alert_width: float, measured: PackedFloat32Array,
+		out: Stack) -> bool:
+	"""Lay the alert cards down their zone at the heights their own content needs.
+
+	R-UI-ALERT-001: "Never grow each card against the full stack ceiling independently while
+	retaining fixed row origins" -- that is what produced overlapping cards, because every card
+	measured itself against the whole 96 px zone and then drew from a fixed row y. Here the
+	cursor advances by the height actually granted, so two cards cannot overlap whatever they
+	measure. "Their visible-card limit is a maximum, not a requirement to overlap: if measured
+	full cards do not fit together, show fewer" -- a card with less than ALERT_CARD_HEIGHT of
+	room left is not placed at all.
+
+	A card whose measured content exceeds the room remaining is SUMMARISED rather than clipped
+	or grown: it keeps the 44 px row and draws the authored compact line instead. At NARROW the
+	zone is 48 px, so the room is always exactly one card and the summary is always the
+	presentation -- which is the ruling's construction, not a fallback that happens to trigger.
+	"""
+	out.reset()
+	if not is_profile(profile):
+		return _refuse(REFUSE_INVALID_PROFILE)
 	var ceiling: float = float(ALERT_H[profile]) - 2.0 * ALERT_PADDING
-	var grown: float = minf(maxf(measured_content_height, ALERT_CARD_HEIGHT), ceiling)
+	var cursor: float = ALERT_PADDING
+	var wanted: int = mini(measured.size(), alert_card_count(profile))
+	for index: int in wanted:
+		var remaining: float = ceiling + ALERT_PADDING - cursor
+		if remaining < ALERT_CARD_HEIGHT:
+			break
+		var fits: bool = measured[index] <= remaining and profile != PROFILE_NARROW
+		var height: float = maxf(measured[index], ALERT_CARD_HEIGHT) if fits else ALERT_CARD_HEIGHT
+		out.rects[index] = Rect2(ALERT_PADDING, cursor, alert_width - ALERT_CARD_MARGIN, height)
+		out.summarised[index] = 0 if fits else 1
+		out.visible_count += 1
+		cursor += height + ALERT_CARD_GAP
 	_last_refusal = REFUSE_NONE
-	return Rect2(base.position, Vector2(base.size.x, grown))
+	return true
 
 
 static func alert_card_count(profile: int) -> int:

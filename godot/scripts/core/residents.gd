@@ -40,13 +40,47 @@ extends RefCounted
 ## on divergence. Writing `set_equipped_tool()` from anywhere else produces a state that audit
 ## rejects -- which is the point: a mirror that can silently disagree is the same defect class as
 ## counting one lot twice.
-##   * `SpeciesDefinition.rig_id` is required by §4.3 but its value is given for no species
-##     anywhere in the specification, so no rig column exists here.
 ##   * §5.1 lists the starting cohort as "12 adults (6 mice, 2 moles, 2 otters, 2 squirrels);
 ##     IDs 1-12" without stating which ID gets which species. INITIAL_SPECIES below takes the
 ##     sentence's own order. The §7.1 starter fixture depends only on the 10-small/2-medium
 ##     split, which every ordering produces, so the food-days arithmetic does not rest on this
 ##     reading -- but a later spec revision could reorder the individuals.
+##
+## LIFE STAGE (MOVE-DEP-R02; GDD §4.2 as amended 2026-09-12; DEC-032). `_life_stage` is a B8
+## column at length 512 carrying the FIXED, BOUNDED domain ADULT 0, CHILD 1, ELDER 2. COUNT 3 is
+## a bound and is never stored. It is assigned once at creation and there is deliberately NO
+## setter: release 1 introduces no birth, no aging timer, no adulthood transition and no
+## age-based death, so a post-creation stage write would be a rule this repository does not have.
+## `spawn_with_stage()` is the generic entry and requires an explicit validated stage;
+## `spawn()` is the ADULT-only convenience that passes `LIFE_STAGE_ADULT` by name, which is what
+## preserves `movement.gd`'s current "adult 0 is the only profiled stage". Free rows hold 0 and
+## are distinguished by `_present`/the directory generation, never by their stage byte.
+##
+## WHAT LIFE STAGE DOES NOT DO. It does not enable dependent simulation. PC-04 owns child/elder
+## needs, care, schedule, work and hazard rules and none of them exist, so nothing here derives a
+## child or elder coefficient from an adult one. `movement.gd` still refuses any stage but ADULT
+## because `_profile_life_stage` (MOVE-DEP-R02's +4-byte starter-catalog column) is that module's
+## to add; this store answers what a resident's stage IS, and the profile owner answers whether
+## that stage may travel. Storing CHILD is therefore legal and travelling as one is not.
+##
+## RIG IDENTITY (MOVE-DEP-R03; `docs/planning/species_rig_identity.json`). §4.3's
+## `SpeciesDefinition.rig_id` now has its sixteen values. They are LOGICAL BASE/ADULT identities:
+## naming `rig_mouse_v1` asserts no skeleton, clip, palette or export exists. The keys compile
+## through `catalog.gd` as their own RigDefinition domain in ascending ASCII order, exactly like
+## the species keys, and each species binds to one by its own key. There is no per-resident rig
+## column; a rig is a property of the species row.
+##   * Child and elder render variants need explicit `(species, life_stage)` bindings. None is
+##     authored anywhere, so `rig_binding()` REFUSES them rather than handing back the adult rig.
+##   * That refusal is a presentation/export gap and NOT an admission gate. A CHILD mouse spawns
+##     and is legal simulation state with no rig binding at all; the 2026-09-12 executor
+##     follow-up is explicit that "a missing rig is a presentation/export gap, not authority to
+##     deny legal simulation". `spawn_with_stage()` never consults the rig tables.
+##
+## STILL MISSING, reported not invented: MOVE-DEP-R02 requires the stage column to be persisted
+## and hashed in save section §4 with an owner/schema increment, and no save module exists in
+## this repository (see `docs/persistence_state_registry.md`'s "Blocked" section). There is
+## consequently no restore writer here: inventing one would be inventing the migration provenance
+## rule the ruling requires ("do not infer an arbitrary loaded resident is adult").
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -72,6 +106,48 @@ const SPECIES_MEDIUM_KEYS: Array[StringName] = [
 const SPECIES_LARGE_KEYS: Array[StringName] = [&"badger", &"fox", &"wildcat", &"wolverine"]
 
 const SPECIES_COUNT: int = 16
+
+# --- life stage, MOVE-DEP-R02 / GDD §4.2 (2026-09-12) ---------------------------------------
+
+## The whole stage domain. Fixed and bounded, never an open enum: MOVE-DEP-R02 states the
+## encoding is stable and that COUNT "is a bound, never a stored stage".
+const LIFE_STAGE_ADULT: int = 0
+const LIFE_STAGE_CHILD: int = 1
+const LIFE_STAGE_ELDER: int = 2
+const LIFE_STAGE_COUNT: int = 3
+
+## Display/report names, indexed by the stage value. NOT a compiled catalog domain: §4.3 numbers
+## this enum explicitly, so it is protected data and must never be renumbered from key order.
+const LIFE_STAGE_KEYS: Array[StringName] = [&"ADULT", &"CHILD", &"ELDER"]
+
+# --- logical rig identity, MOVE-DEP-R03 -----------------------------------------------------
+
+const RIG_DOMAIN: String = "RigDefinition"
+
+## MOVE-DEP-R03's table verbatim, one logical base/adult rig key per §4.3 species key. These are
+## identities, not assets: none of the sixteen is claimed to have a skeleton or a clip.
+const SPECIES_RIG_KEY: Dictionary = {
+	&"badger": &"rig_badger_v1",
+	&"ferret": &"rig_ferret_v1",
+	&"fox": &"rig_fox_v1",
+	&"hare": &"rig_hare_v1",
+	&"hedgehog": &"rig_hedgehog_v1",
+	&"kestrel": &"rig_kestrel_v1",
+	&"mole": &"rig_mole_v1",
+	&"mouse": &"rig_mouse_v1",
+	&"otter": &"rig_otter_v1",
+	&"rat": &"rig_rat_v1",
+	&"shrew": &"rig_shrew_v1",
+	&"sparrow": &"rig_sparrow_v1",
+	&"squirrel": &"rig_squirrel_v1",
+	&"weasel": &"rig_weasel_v1",
+	&"wildcat": &"rig_wildcat_v1",
+	&"wolverine": &"rig_wolverine_v1",
+}
+
+## One rig per species in release 1. A shared rig would make this smaller, and MOVE-DEP-R03
+## forbids assuming one: "equal bone names alone do not establish compatible bindings".
+const RIG_COUNT: int = 16
 
 ## Size classes, matching needs.gd so one resident has one size everywhere.
 const SIZE_SMALL: int = NeedsScript.SIZE_SMALL
@@ -162,6 +238,18 @@ const REFUSE_TOOL_ALREADY_EQUIPPED: StringName = &"TOOL_ALREADY_EQUIPPED"
 const REFUSE_INVALID_ITEM_ID: StringName = &"INVALID_ITEM_ID"
 const REFUSE_INVALID_DURABILITY: StringName = &"INVALID_DURABILITY"
 const REFUSE_INVALID_CONTAINER: StringName = &"INVALID_CONTAINER"
+## MOVE-DEP-R02: a stage outside 0..2. Refused, never clamped to ADULT.
+const REFUSE_INVALID_LIFE_STAGE: StringName = &"INVALID_LIFE_STAGE"
+## A `(slot, generation)` pair the DIRECTORY no longer validates, or one of the wrong kind.
+const REFUSE_STALE_REF: StringName = &"STALE_RESIDENT_REF"
+## A malformed reference: a non-null pair whose slot is negative or whose generation is <= 0.
+const REFUSE_INVALID_REF: StringName = &"INVALID_REF"
+## MOVE-DEP-R03: no `(species, life_stage)` rig variant is authored for a non-adult stage.
+const REFUSE_RIG_STAGE_UNBOUND: StringName = &"RIG_STAGE_VARIANT_UNBOUND"
+## The RigDefinition domain failed to compile, so no rig identity can be answered at all.
+const REFUSE_RIG_CATALOG: StringName = &"RIG_CATALOG_INVALID"
+## The key is not one of the sixteen compiled rig identities.
+const REFUSE_UNKNOWN_RIG: StringName = &"UNKNOWN_RIG"
 
 ## GDD §4.2 `Equipment`: four of its five I32 columns at length 512 (`clothing_tier` stays in
 ## `needs.gd`; see the header). Re-derived by `equipment_payload_bytes()`.
@@ -204,12 +292,28 @@ var _species_key: PackedStringArray = PackedStringArray()
 var _species_size: PackedByteArray = PackedByteArray()
 var _catalog_error: String = ""
 
+# --- compiled rig catalog (MOVE-DEP-R03) ------------------------------------------------------
+
+## Rig key -> compiled ascending-ASCII RigDefinition id, and the id -> key reverse table.
+##
+## DELIBERATELY NOT PACKED COLUMNS, and deliberately not a species_id -> rig_id column either.
+## MOVE-DEP-R03 says "bind each SpeciesDefinition through its actual species key" and "no
+## per-resident mutable rig column is needed": the whole binding is `SPECIES_RIG_KEY` plus this
+## compiled id map, sixteen immutable catalog entries in the same class as `_species_ids`. A
+## packed `species_id -> rig_id` column would be a third copy of a fact the constant table
+## already states, and a renumbering of either domain could then leave it stale.
+var _rig_ids: Dictionary = {}
+var _rig_key_table: Array[StringName] = []
+var _rig_catalog_error: String = ""
+
 # --- Resident columns (ARCH-MEM-001: packed, allocated once, indexed by typed row) -----------
 
 var _present: PackedByteArray = PackedByteArray()
 var _species: PackedInt32Array = PackedInt32Array()
 var _size_class: PackedByteArray = PackedByteArray()
 var _named: PackedByteArray = PackedByteArray()
+## MOVE-DEP-R02 `Resident.life_stage:B8[512]`. Assigned at creation, never mutated afterwards.
+var _life_stage: PackedByteArray = PackedByteArray()
 var _name_key: PackedStringArray = PackedStringArray()
 var _arrival_tick: PackedInt64Array = PackedInt64Array()
 var _role: PackedByteArray = PackedByteArray()
@@ -262,7 +366,12 @@ func _init(p_directory: EntityDirectory = null, p_needs: NeedsScript = null) -> 
 	_owns_collaborators = p_directory == null and p_needs == null
 	_directory = p_directory if p_directory != null else EntityDirectory.new()
 	_needs = p_needs if p_needs != null else NeedsScript.new()
+	assert(LIFE_STAGE_KEYS.size() == LIFE_STAGE_COUNT,
+		"the life-stage name table must cover exactly the bounded stage domain")
+	assert(SPECIES_RIG_KEY.size() == SPECIES_COUNT,
+		"MOVE-DEP-R03 binds one rig key to each of the 16 species")
 	_compile_species()
+	_compile_rigs()
 	_allocate_columns()
 	clear()
 
@@ -286,6 +395,38 @@ func _compile_species() -> void:
 		_species_size[species_id] = _declared_size_of(key)
 
 
+func _compile_rigs() -> void:
+	"""Compile MOVE-DEP-R03's sixteen logical rig keys and bind each species to its own.
+
+	Catalog-time, like `_compile_species()`: the reverse table is sized here once and never
+	again. Refuses to compile at all if the species catalog failed, because a rig identity that
+	no species can be resolved against is not a binding.
+
+	The keys are fed to the compiler in DESCENDING declaration order on purpose. `rig_<species>`
+	sorts the same way `<species>` does, so handing them over in declaration order would make
+	"ids come from catalog.gd's ASCII sort" and "ids come from the order of the constant table"
+	indistinguishable -- a mutation that replaced the sort with an enumeration survived exactly
+	that coincidence. Reversed, only the sort can produce the published ids.
+	"""
+	_rig_key_table.resize(RIG_COUNT)
+	_rig_key_table.fill(NO_NAME_KEY)
+	if _catalog_error != "":
+		_rig_catalog_error = "species catalog unavailable"
+		return
+	var species_keys: Array = SPECIES_RIG_KEY.keys()
+	species_keys.reverse()
+	var keys: Array[StringName] = []
+	for species_key_value: StringName in species_keys:
+		keys.append(SPECIES_RIG_KEY[species_key_value] as StringName)
+	var compiled: Catalog.DomainResult = Catalog.compile_domain(RIG_DOMAIN, keys)
+	if not compiled.ok or compiled.ids.size() != RIG_COUNT:
+		_rig_catalog_error = compiled.error if not compiled.ok else "rig catalog size mismatch"
+		return
+	_rig_ids = compiled.ids
+	for key: StringName in keys:
+		_rig_key_table[int(_rig_ids[key])] = key
+
+
 func _declared_size_of(key: StringName) -> int:
 	"""Size class of one species key, straight from the §4.3 six/six/four split."""
 	if SPECIES_SMALL_KEYS.has(key):
@@ -301,6 +442,7 @@ func _allocate_columns() -> void:
 	_species.resize(RESIDENT_CAPACITY)
 	_size_class.resize(RESIDENT_CAPACITY)
 	_named.resize(RESIDENT_CAPACITY)
+	_life_stage.resize(RESIDENT_CAPACITY)
 	_name_key.resize(RESIDENT_CAPACITY)
 	_arrival_tick.resize(RESIDENT_CAPACITY)
 	_role.resize(RESIDENT_CAPACITY)
@@ -327,14 +469,37 @@ func clear() -> void:
 	Only a store that built its own directory and needs clears them; a shared pair belongs to
 	its owner and is left alone.
 	"""
+	_clear_identity_columns()
+	_clear_reference_columns()
+	_skill_xp.fill(0)
+	_skill_level.fill(0)
+	_live_slots.fill(EntityDirectory.NULL_SLOT)
+	_live_count = 0
+	_cohort_slots.fill(EntityDirectory.NULL_SLOT)
+	if _owns_collaborators:
+		_directory.clear()
+		_needs.clear()
+
+
+func _clear_identity_columns() -> void:
+	"""Reset the per-row identity and classification columns to their empty values.
+
+	`_life_stage` goes to ADULT because MOVE-DEP-R02 makes 0 the canonical unused value; an
+	empty row is still distinguished by `_present`, never by this byte.
+	"""
 	_present.fill(0)
 	_species.fill(0)
 	_size_class.fill(SIZE_SMALL)
 	_named.fill(0)
+	_life_stage.fill(LIFE_STAGE_ADULT)
 	_name_key.fill(String(NO_NAME_KEY))
 	_arrival_tick.fill(0)
 	_role.fill(ROLE_RESIDENT)
 	_selected.fill(0)
+
+
+func _clear_reference_columns() -> void:
+	"""Reset every stored EntityRef pair and the Equipment mirror to null/empty."""
 	_home_slot.fill(EntityDirectory.NULL_SLOT)
 	_home_generation.fill(EntityDirectory.NULL_GENERATION)
 	_bed_slot.fill(EntityDirectory.NULL_SLOT)
@@ -345,14 +510,6 @@ func clear() -> void:
 	_equip_tool_durability.fill(0)
 	_equip_satchel_slot.fill(EntityDirectory.NULL_SLOT)
 	_equip_satchel_generation.fill(EntityDirectory.NULL_GENERATION)
-	_skill_xp.fill(0)
-	_skill_level.fill(0)
-	_live_slots.fill(EntityDirectory.NULL_SLOT)
-	_live_count = 0
-	_cohort_slots.fill(EntityDirectory.NULL_SLOT)
-	if _owns_collaborators:
-		_directory.clear()
-		_needs.clear()
 
 
 # --- collaborators and catalog readers -------------------------------------------------------
@@ -457,16 +614,32 @@ func season_multiplier() -> int:
 # --- lifecycle ---------------------------------------------------------------------------------
 
 func spawn(species_key_value: StringName) -> OpResult:
-	"""Allocate one resident: a directory slot, a needs row, and this store's Resident columns.
+	"""Allocate one ADULT resident. The stage is passed by name, not defaulted silently.
 
-	Refuses without allocating anything when the species is unknown or the catalog failed to
-	compile. A directory refusal (living cap, capacity, persistent-id exhaustion) is passed
+	This is the only spawn path GDD-era callers use and it preserves `movement.gd`'s current
+	"adult 0". Anything that wants a CHILD or ELDER must say so through `spawn_with_stage()`,
+	so no non-adult can ever appear from a call that did not name a stage.
+	"""
+	return spawn_with_stage(species_key_value, LIFE_STAGE_ADULT)
+
+
+func spawn_with_stage(species_key_value: StringName, life_stage: int) -> OpResult:
+	"""Allocate one resident at an explicit, validated MOVE-DEP-R02 life stage.
+
+	Refuses without allocating anything when the species is unknown, the catalog failed to
+	compile, or the stage is outside 0..2 -- an out-of-domain stage is refused, never clamped
+	to ADULT. A directory refusal (living cap, capacity, persistent-id exhaustion) is passed
 	through with its own ARCH-ID-004 code, and no needs row is attached.
+
+	No rig table is consulted: MOVE-DEP-R03 makes a missing rig a presentation/export gap, so a
+	CHILD spawns whether or not any `(species, life_stage)` render binding exists.
 	"""
 	if _catalog_error != "":
 		return _refuse(REFUSE_SPECIES_CATALOG)
 	if not _species_ids.has(species_key_value):
 		return _refuse(REFUSE_UNKNOWN_SPECIES)
+	if not is_life_stage(life_stage):
+		return _refuse(REFUSE_INVALID_LIFE_STAGE)
 	var species_id_value: int = int(_species_ids[species_key_value])
 	var size_class: int = _species_size[species_id_value]
 	var ref: Vector2i = _directory.create(EntityDirectory.KIND_RESIDENT)
@@ -477,15 +650,21 @@ func spawn(species_key_value: StringName) -> OpResult:
 	if not attached.ok:
 		_directory.destroy(ref)
 		return _refuse(attached.error)
-	_write_spawn_row(slot, ref, species_id_value, size_class)
+	_write_spawn_row(slot, ref, species_id_value, size_class, life_stage)
 	return _succeed(slot, ref)
 
 
-func _write_spawn_row(slot: int, ref: Vector2i, species_id_value: int, size_class: int) -> void:
-	"""Write every Resident and Skills column of one freshly spawned row to its §4.2 default."""
+func _write_spawn_row(slot: int, ref: Vector2i, species_id_value: int, size_class: int,
+		life_stage: int) -> void:
+	"""Write every Resident and Skills column of one freshly spawned row to its §4.2 default.
+
+	`life_stage` is written here rather than left at whatever the previous tenant of a reused
+	slot held: MOVE-DEP-R02 requires free-slot reuse to initialize the stage explicitly.
+	"""
 	_present[slot] = 1
 	_species[slot] = species_id_value
 	_size_class[slot] = size_class
+	_life_stage[slot] = life_stage
 	_named[slot] = 0
 	_name_key[slot] = String(NO_NAME_KEY)
 	_arrival_tick[slot] = 0
@@ -543,6 +722,7 @@ func despawn(ref: Vector2i) -> OpResult:
 		_needs.despawn(slot)
 	_present[slot] = 0
 	_named[slot] = 0
+	_life_stage[slot] = LIFE_STAGE_ADULT
 	_name_key[slot] = String(NO_NAME_KEY)
 	_role[slot] = ROLE_RESIDENT
 	_selected[slot] = 0
@@ -568,7 +748,7 @@ func spawn_initial_settlement() -> OpResult:
 	if _live_count != 0 or _directory.live_count(EntityDirectory.KIND_RESIDENT) != 0:
 		return _refuse(REFUSE_SETTLEMENT_NOT_EMPTY)
 	for index: int in INITIAL_POPULATION:
-		var spawned: OpResult = spawn(INITIAL_SPECIES[index])
+		var spawned: OpResult = spawn_with_stage(INITIAL_SPECIES[index], LIFE_STAGE_ADULT)
 		if not spawned.ok:
 			_rollback_cohort(index)
 			return _refuse(spawned.error)
@@ -659,6 +839,192 @@ func size_class_of(slot: int) -> IntMath.IntResult:
 	if not is_present(slot):
 		return _read_refusal(REFUSE_NOT_PRESENT)
 	return _read_value(_size_class[slot])
+
+
+# --- life stage, MOVE-DEP-R02 -----------------------------------------------------------------
+
+func is_life_stage(life_stage: int) -> bool:
+	"""True for exactly ADULT, CHILD and ELDER. COUNT is a bound and is never a stage."""
+	return life_stage >= LIFE_STAGE_ADULT and life_stage < LIFE_STAGE_COUNT
+
+
+func life_stage_key(life_stage: int) -> StringName:
+	"""Report name of a stage value, or the empty name when the value is outside the domain.
+
+	A reporting helper for messages and fixtures. Nothing in the simulation branches on it; the
+	stage VALUE is the authority and `is_life_stage()` is what decides validity.
+	"""
+	if not is_life_stage(life_stage):
+		return NO_NAME_KEY
+	return LIFE_STAGE_KEYS[life_stage]
+
+
+func life_stage_of(slot: int) -> IntMath.IntResult:
+	"""The row's assigned life stage, or an explicit refusal when the row holds no resident.
+
+	Slot-addressed, so it carries no generation check. A caller holding an `EntityRef` -- which
+	is every caller that could be holding a stale one -- must use `life_stage_of_ref()`.
+	"""
+	if not is_present(slot):
+		return _read_refusal(REFUSE_NOT_PRESENT)
+	return _read_value(_life_stage[slot])
+
+
+func life_stage_of_ref(ref: Vector2i) -> IntMath.IntResult:
+	"""Generation-checked `life_stage_of()`: refuses a stale or wrong-kind reference.
+
+	MOVE-DEP-R02 requires generation-checked readers to reject stale refs rather than answer
+	from whatever resident later took the slot. The generation namespace here is the DIRECTORY's
+	(`entity_directory.gd`'s `_generation` on the directory slot), not `inventory.gd`'s
+	container/lot spaces and not `navigation.gd`'s descriptor space.
+	"""
+	var resolved: IntMath.IntResult = slot_of_ref(ref)
+	if not resolved.ok:
+		return resolved
+	return _read_value(_life_stage[resolved.value])
+
+
+func life_stage_column_image() -> PackedByteArray:
+	"""Exact copy of the whole life-stage column, including free rows.
+
+	NOT a production call: it allocates, in the same way `equipment_state_bytes()` does. It
+	exists so the canonical-unused-zero rule can be checked directly -- MOVE-DEP-R02 requires a
+	free row to hold 0, and a retired ELDER that left a 2 behind would be a nonzero byte in a
+	future section-4 hash that nothing else in this store can observe.
+	"""
+	return _life_stage.duplicate()
+
+
+func life_stage_payload_bytes() -> int:
+	"""Bytes the life-stage column actually occupies, re-derived from the column itself.
+
+	Evidence for MOVE-DEP-R02's "+512 resident bytes" rather than a transcribed constant: change
+	the column length and this number moves with it.
+	"""
+	return _life_stage.size()
+
+
+# --- generation-safe reference resolution (MOVE-DEP-R05's identity half that lives here) ------
+
+func slot_of_ref(ref: Vector2i) -> IntMath.IntResult:
+	"""Resolve a resident `EntityRef` to its typed row, refusing a stale or wrong-kind pair.
+
+	The directory validates `(slot, generation)`; this additionally requires the typed row to be
+	occupied here, so a directory slot whose resident row was released cannot be read. Refusal
+	is on its own channel: no caller can mistake a resolved row 0 for a failure.
+	"""
+	if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_RESIDENT):
+		return _read_refusal(REFUSE_STALE_REF)
+	var slot: int = _directory.get_typed_row(ref)
+	if not is_present(slot):
+		return _read_refusal(REFUSE_NOT_PRESENT)
+	return _read_value(slot)
+
+
+func is_well_formed_ref(ref: Vector2i) -> bool:
+	"""True for the null ref `(-1, 0)` or any pair whose slot is >= 0 and generation > 0.
+
+	Shape only. It cannot say which generation namespace a non-resident reference belongs to,
+	because this store holds no building, furniture or inventory reference to check it against.
+	"""
+	if ref == NULL_REF:
+		return true
+	return ref.x >= 0 and ref.y > 0
+
+
+func home_is_live(slot: int) -> bool:
+	"""True when the row's home reference still validates against the directory right now.
+
+	MOVE-DEP-R05: a destination's identity is generation-safe or it is not a destination. A
+	retired owner's slot may already hold a different entity, so a consumer must ask this and
+	not merely test the stored pair against `(-1, 0)`.
+	"""
+	return _is_live_directory_ref(home_of(slot))
+
+
+func bed_is_live(slot: int) -> bool:
+	"""True when the row's bed reference still validates against the directory right now."""
+	return _is_live_directory_ref(bed_of(slot))
+
+
+func _is_live_directory_ref(ref: Vector2i) -> bool:
+	"""True when a non-null pair is a currently valid directory reference of any kind."""
+	if ref == NULL_REF:
+		return false
+	return _directory.is_valid(ref)
+
+
+# --- logical rig identity, MOVE-DEP-R03 -------------------------------------------------------
+
+func rig_catalog_error() -> String:
+	"""Why the RigDefinition domain failed to compile, or empty when it is usable."""
+	return _rig_catalog_error
+
+
+func rig_count() -> int:
+	"""Number of compiled logical rig identities: one per release-1 species."""
+	return RIG_COUNT
+
+
+func has_rig(rig_key_value: StringName) -> bool:
+	"""True when the key is one of the sixteen compiled logical rig identities."""
+	return _rig_ids.has(rig_key_value)
+
+
+func rig_id(rig_key_value: StringName) -> IntMath.IntResult:
+	"""Compiled ascending-ASCII id of a logical rig key, or an explicit refusal."""
+	if _rig_catalog_error != "":
+		return _read_refusal(REFUSE_RIG_CATALOG)
+	if not _rig_ids.has(rig_key_value):
+		return _read_refusal(REFUSE_UNKNOWN_RIG)
+	return _read_value(int(_rig_ids[rig_key_value]))
+
+
+func rig_key_of(rig_id_value: int) -> StringName:
+	"""Logical rig key of a compiled id, or the empty name when the id is out of range."""
+	if _rig_catalog_error != "" or rig_id_value < 0 or rig_id_value >= RIG_COUNT:
+		return NO_NAME_KEY
+	return _rig_key_table[rig_id_value]
+
+
+func rig_binding(species_key_value: StringName, life_stage: int) -> OpResult:
+	"""Compiled rig id bound to one `(species, life_stage)` pair, or an explicit refusal.
+
+	ADULT resolves through MOVE-DEP-R03's sixteen logical base identities. CHILD and ELDER
+	refuse with `RIG_STAGE_VARIANT_UNBOUND`: the ruling requires an explicit `(species,
+	life_stage)` binding for a stage variant and forbids silently inheriting the adult rig, and
+	no such binding is authored anywhere in this repository.
+
+	A refusal is a PRESENTATION gap. It does not make the resident illegal and nothing in the
+	spawn or movement-admission path calls this.
+	"""
+	if _rig_catalog_error != "":
+		return _refuse(REFUSE_RIG_CATALOG)
+	if not _species_ids.has(species_key_value):
+		return _refuse(REFUSE_UNKNOWN_SPECIES)
+	if not is_life_stage(life_stage):
+		return _refuse(REFUSE_INVALID_LIFE_STAGE)
+	if life_stage != LIFE_STAGE_ADULT:
+		return _refuse(REFUSE_RIG_STAGE_UNBOUND)
+	var rig: StringName = SPECIES_RIG_KEY[species_key_value] as StringName
+	return _succeed(int(_rig_ids[rig]), NULL_REF)
+
+
+func has_rig_binding(species_key_value: StringName, life_stage: int) -> bool:
+	"""True when a `(species, life_stage)` pair has an authored logical rig identity."""
+	return rig_binding(species_key_value, life_stage).ok
+
+
+func rig_binding_by_species_id(species_id_value: int, life_stage: int) -> OpResult:
+	"""`rig_binding()` for a caller holding a compiled species id rather than its key.
+
+	Resolves the id back to its own key first, so the binding is still made through the species
+	key MOVE-DEP-R03 names and an id from a different domain cannot index into this one.
+	"""
+	var key: StringName = species_key(species_id_value)
+	if key == NO_NAME_KEY:
+		return _refuse(REFUSE_UNKNOWN_SPECIES)
+	return rig_binding(key, life_stage)
 
 
 func role_of(slot: int) -> IntMath.IntResult:
@@ -797,18 +1163,32 @@ func set_arrival_tick(slot: int, tick: int) -> OpResult:
 
 
 func set_home(slot: int, home_ref: Vector2i) -> OpResult:
-	"""Point a resident at a home. Nothing allocates buildings yet, so callers pass NULL_REF."""
+	"""Point a resident at a home, or clear it with the null ref `(-1, 0)`.
+
+	Refuses a malformed pair rather than storing it: MOVE-DEP-R05 makes the owner reference half
+	of a destination's identity, and a stored `(5, 0)` would be a reference that can never be
+	validated and never be recognised as null. The DOMAIN is not checked here -- this store holds
+	no building reference to check it against -- only the shape.
+	"""
 	if not is_present(slot):
 		return _refuse(REFUSE_NOT_PRESENT)
+	if not is_well_formed_ref(home_ref):
+		return _refuse(REFUSE_INVALID_REF)
 	_home_slot[slot] = home_ref.x
 	_home_generation[slot] = home_ref.y
 	return _succeed(slot, ref_of(slot))
 
 
 func set_bed(slot: int, bed_ref: Vector2i) -> OpResult:
-	"""Point a resident at a bed. Nothing allocates furniture yet, so callers pass NULL_REF."""
+	"""Point a resident at a bed, or clear it with the null ref `(-1, 0)`.
+
+	Refuses a malformed pair for the same reason `set_home()` does. `bed_is_live()` is what a
+	consumer asks before treating the stored pair as a live destination.
+	"""
 	if not is_present(slot):
 		return _refuse(REFUSE_NOT_PRESENT)
+	if not is_well_formed_ref(bed_ref):
+		return _refuse(REFUSE_INVALID_REF)
 	_bed_slot[slot] = bed_ref.x
 	_bed_generation[slot] = bed_ref.y
 	return _succeed(slot, ref_of(slot))

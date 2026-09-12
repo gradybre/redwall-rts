@@ -35,18 +35,21 @@ const USER_SCALES: Array[int] = [100, 125, 150]
 
 var _layout: UiLayout = null
 var _geometry: UiLayout.Geometry = null
+var _stack: UiLayout.Stack = null
 
 
 func before_each() -> void:
-	"""Build the layout and one reusable geometry record."""
+	"""Build the layout, one reusable geometry record and one reusable alert stack."""
 	_layout = UiLayout.new()
 	_geometry = UiLayout.Geometry.new()
+	_stack = UiLayout.Stack.new()
 
 
 func after_each() -> void:
-	"""Drop both so nothing crosses a test boundary."""
+	"""Drop all three so nothing crosses a test boundary."""
 	_layout = null
 	_geometry = null
+	_stack = null
 
 
 # --- helpers ------------------------------------------------------------------------------------
@@ -241,6 +244,106 @@ func test_the_alert_stack_fits_two_cards_and_keeps_its_history_rail() -> void:
 	var trigger: Rect2 = UiLayout.history_trigger_rect(420.0)
 	assert_almost_equal(trigger.size.x, 32.0, "the history trigger is 32 wide")
 	assert_true(trigger.position.x >= 420.0 - 36.0, "and sits in the right 36 px rail")
+
+
+func test_the_narrow_alert_zone_holds_exactly_one_card_at_y_seventy_six() -> void:
+	"""R-UI-ALERT-001: "retain the NARROW alerts zone at y=76 and height=48 ... one 44-high card".
+
+	The ruling forbids growing the zone over another HUD zone, so this asserts the numbers it
+	names rather than only that a card fits. A change that quietly enlarged NARROW to fix the
+	overflow would fail here before it reached a screenshot.
+	"""
+	assert_true(_layout.compute_into(1280, 720, 150, false, _geometry), "the narrow layout computes")
+	assert_equal(_geometry.profile, UiLayout.PROFILE_NARROW, "1280 at 150% is NARROW")
+	assert_almost_equal(_geometry.alerts.position.y, 76.0, "the zone stays at y=76")
+	assert_almost_equal(_geometry.alerts.size.y, 48.0, "and 48 logical pixels high")
+	var measured: PackedFloat32Array = PackedFloat32Array([200.0])
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_NARROW, _geometry.alerts.size.x,
+		measured, _stack), "the stack computes")
+	assert_equal(_stack.visible_count, 1, "one card is placed")
+	assert_almost_equal(_stack.rects[0].size.y, 44.0, "44 high however tall its content measures")
+	assert_almost_equal(_stack.rects[0].position.y + _stack.rects[0].size.y, 46.0,
+		"and it ends inside the 48 px zone")
+	assert_equal(_stack.summarised[0], 1, "so it must draw the authored summary")
+
+
+func test_a_narrow_card_summarises_even_when_its_content_would_fit() -> void:
+	"""The ruling makes the NARROW card the summary presentation, not a length-dependent one.
+
+	A card that showed the message verbatim whenever it happened to be short would announce
+	different things for the same condition depending on the sentence, which is exactly the
+	unpredictability the authored table exists to remove.
+	"""
+	var measured: PackedFloat32Array = PackedFloat32Array([20.0])
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_NARROW, 360.0, measured, _stack),
+		"a short card computes")
+	assert_equal(_stack.summarised[0], 1, "and still draws the authored summary")
+
+
+func test_two_long_standard_cards_cannot_overlap() -> void:
+	"""R-UI-ALERT-001's acceptance case: two long wide/standard cards cannot overlap.
+
+	Both cards measure taller than the whole zone. The old rule grew each independently against
+	the stack ceiling while keeping fixed row origins, which is precisely how they came to draw
+	over one another; here the cursor advances by the height actually granted.
+	"""
+	var measured: PackedFloat32Array = PackedFloat32Array([400.0, 400.0])
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_STANDARD, 360.0, measured, _stack),
+		"the stack computes")
+	for index: int in _stack.visible_count:
+		var card: Rect2 = _stack.rects[index]
+		assert_true(card.position.y >= UiLayout.ALERT_PADDING, "card %d starts inside the zone" % index)
+		assert_true(card.position.y + card.size.y <= 96.0 - UiLayout.ALERT_PADDING,
+			"card %d ends inside the 96 px zone" % index)
+	if _stack.visible_count == 2:
+		assert_true(_stack.rects[0].position.y + _stack.rects[0].size.y
+			<= _stack.rects[1].position.y, "the first card ends before the second begins")
+	assert_true(_stack.visible_count >= 1, "at least one card is shown")
+
+
+func test_a_card_that_fills_the_zone_leaves_no_room_for_a_second_one() -> void:
+	""""Their visible-card limit is a maximum, not a requirement to overlap ... show fewer"."""
+	var measured: PackedFloat32Array = PackedFloat32Array([92.0, 44.0])
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured, _stack),
+		"the stack computes")
+	assert_equal(_stack.visible_count, 1, "the second card is not placed at all")
+	assert_almost_equal(_stack.rects[0].size.y, 92.0, "the first card takes the whole interior")
+	assert_equal(_stack.summarised[0], 0, "and shows its full content")
+
+
+func test_two_short_cards_keep_the_existing_wide_composition() -> void:
+	"""Wide and standard "retain their existing layouts when content fits"."""
+	var measured: PackedFloat32Array = PackedFloat32Array([44.0, 44.0])
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured, _stack),
+		"the stack computes")
+	assert_equal(_stack.visible_count, 2, "both cards are shown")
+	assert_almost_equal(_stack.rects[1].position.y + _stack.rects[1].size.y, 94.0,
+		"and the pair still ends at §1.2's 94")
+	assert_equal(_stack.summarised[1], 0, "neither has to summarise")
+
+
+func test_the_summary_interior_accounts_for_the_icon_the_gaps_and_the_rail() -> void:
+	"""The ruling requires the compact line measured "with its real icon/gaps/rail accounted for".
+
+	360 alert width, less §1.2's 40 px card margin (which holds the 36 px history rail), less
+	two 12 px paddings, less the 24 px severity icon and its 8 px grid gap, is 264.
+	"""
+	assert_almost_equal(UiLayout.alert_summary_width(UiLayout.PROFILE_NARROW, 360.0), 264.0,
+		"the narrow card gives a summary 264 logical pixels")
+	assert_almost_equal(UiLayout.alert_summary_width(UiLayout.PROFILE_WIDE, 420.0), 324.0,
+		"and the wide card 324")
+	var card: Rect2 = _layout.alert_card(UiLayout.PROFILE_NARROW, 360.0, 0)
+	assert_true(UiLayout.alert_summary_width(UiLayout.PROFILE_NARROW, 360.0) < card.size.x,
+		"the text interior is narrower than the card that holds it")
+
+
+func test_the_alert_stack_refuses_a_profile_it_has_no_zone_for() -> void:
+	"""No rectangle is invented for a profile §1.2 does not define."""
+	var measured: PackedFloat32Array = PackedFloat32Array([44.0])
+	assert_false(_layout.alert_stack_into(UiLayout.PROFILE_COUNT, 360.0, measured, _stack),
+		"an unknown profile is refused")
+	assert_equal(_layout.last_refusal(), UiLayout.REFUSE_INVALID_PROFILE, "by name")
+	assert_equal(_stack.visible_count, 0, "and no card is placed")
 
 
 func test_the_modal_frame_is_centred_and_capped() -> void:

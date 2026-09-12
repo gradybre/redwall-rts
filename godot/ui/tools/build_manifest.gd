@@ -9,8 +9,30 @@ extends SceneTree
 ## Run: `godot --headless --path godot --script ui/tools/build_manifest.gd`
 
 const ART: GDScript = preload("res://ui/ui_art.gd")
+const GEOMETRY: GDScript = preload("res://ui/ui_frame_geometry.gd")
 
 const OUTPUT: String = "res://ui/ui_art_manifest.json"
+
+## What the frame numbers mean, written into the manifest because both were misread once and
+## a bare pair of integers cannot say which axis it belongs to. `ui_frame_geometry.gd` is the
+## executable version of this text; ADR 0077 is the reasoning.
+const PLACEMENT: Dictionary = {
+	"owner": "res://ui/ui_frame_geometry.gd",
+	"builder": "res://ui/ui_frame_builder.gd",
+	"decision": "docs/decisions/0077-container-frame-placement-contract.md",
+	"stretch_margin_means": "Thickness measured ACROSS the strip: the height of the top and "
+		+ "bottom strips, the width of the left and right strips. Not a square extent, and "
+		+ "not a distance between the panel edge and the strip -- every strip is flush with "
+		+ "the panel edge.",
+	"corner_extent_means": "The exact draw size of that corner, equal to its source document. "
+		+ "Not an outer bound with bleed and not a nine-patch margin. Corners never scale.",
+	"assembly_rule": "Corners own the corners. Each strip then runs between the two corner "
+		+ "extents that bracket it, so no strip is drawn underneath a corner motif, and is "
+		+ "scaled along its run only.",
+	"minimum_panel_size_means": "The smallest panel this silhouette can dress: both corner "
+		+ "pairs plus one pixel of edge run. A smaller panel is refused by name, never "
+		+ "clamped.",
+}
 
 
 func _init() -> void:
@@ -29,6 +51,7 @@ func _init() -> void:
 		"origin": "Original hand-authored SVG for this repository. No paid generation.",
 		"licence": "Same as the repository.",
 		"decorative_pigments": ART.DECORATIVE_PIGMENTS,
+		"frame_placement": PLACEMENT,
 		"frames": _frames(),
 		"assets": assets,
 	}
@@ -57,13 +80,14 @@ func _measure(index: int) -> Dictionary:
 
 
 func _frames() -> Array:
-	"""The stretch margins and non-stretching corner extents of the five silhouettes."""
+	"""The stretch margins, corner extents and smallest dressable panel of each silhouette."""
 	var rows: Array = []
 	for frame: int in ART.frame_count():
 		var corners: Array = []
 		for corner: int in 4:
 			var size: Vector2i = ART.frame_corner_size(frame, corner)
 			corners.append([size.x, size.y])
+		var minimum: Vector2 = GEOMETRY.minimum_size_of(frame)
 		rows.append({
 			"id": String(ART.FRAME_KEYS[frame]),
 			"stretch_margins_trbl": [
@@ -71,6 +95,7 @@ func _frames() -> Array:
 				ART.frame_edge_inset(frame, 2), ART.frame_edge_inset(frame, 3),
 			],
 			"corner_extents_tl_tr_bl_br": corners,
+			"minimum_panel_size": [int(minimum.x), int(minimum.y)],
 		})
 	return rows
 

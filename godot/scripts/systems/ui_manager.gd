@@ -29,6 +29,7 @@ const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSession := preload("res://scripts/ui/ui_world_session.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
+const UiNotices := preload("res://scripts/ui/ui_notices.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
@@ -51,6 +52,26 @@ const ROSTER_ID: int = 31
 const POPULATION_ID: int = 6
 ## GDD §4.3's FORAGING skill index, the one this milestone's detail row reports.
 const FORAGING_SKILL: int = 0
+
+## The source every notice about world generation names, so the expanded view can say WHERE the
+## condition came from. These are the names of the modules that actually raise them.
+const GENERATION_SOURCE: String = "UI-SET-103 New settlement"
+const STOCK_SOURCE: String = "Settlement stores"
+const CLOCK_SOURCE: String = "Simulation clock"
+const ROSTER_SOURCE: String = "UI-SET-069 Resident roster"
+const COMMAND_SOURCE: String = "Command queue"
+## The recovery §4 gives UI-SET-085's "recovery action" column for the conditions whose owner
+## publishes one. A condition with no published recovery gets none; `ui_notices.gd` states the
+## absence rather than inventing an instruction.
+const GENERATION_RECOVERY: String = "Use New settlement again to generate a world."
+const CLOCK_RECOVERY: String = "Lower the game speed, or let the simulation catch up."
+
+## The validation codes these conditions group on under §7's repeat rule. Each names the
+## condition, not the message, so a changed sentence does not split one condition into two rows.
+const STOCK_EMPTY_CODE: String = "ECONOMY_STOCK_EMPTY"
+const CLOCK_OVERLOAD_CODE: String = "CLOCK_OVERLOADED"
+const NO_WORLD_CODE: String = "UI_NO_WORLD_GENERATED"
+const ROSTER_STALE_CODE: String = "UI_ROSTER_ROW_IS_STALE"
 
 var _hud: HudScript = null
 var _time_source: GameManagerScript = null
@@ -150,17 +171,39 @@ func create_world() -> bool:
 
 
 func _report_generation(ok: bool, report: UiWorldSession.Report) -> void:
-	"""Put the generator's own counts, or its own refusal code, in front of the player."""
+	"""Put the generator's own counts, or its own refusal code, in front of the player.
+
+	R-UI-ALERT-001 names this condition in terms: severity `Error`, compact title "Generation
+	failed", "the exact detailed reason, validation code and recovery stay in the notice
+	record". The sentence below is the generator's own and is passed through unaltered; the
+	code is the generator's own `report.error`. Nothing here shortens either.
+	"""
 	if not _has_hud():
 		return
 	var shell: UiShell = _hud.shell()
 	if ok:
-		shell.report_action_result(true, "Settlement generated: %d resource nodes, %d basins, %d fish stocks, seed %d."
-			% [report.resource_nodes, report.basins, report.fish_stocks, report.accepted_seed])
+		shell.raise_notice(UiNotices.CATEGORY_SETTLEMENT_CREATED,
+			"Settlement generated: %d resource nodes, %d basins, %d fish stocks, seed %d."
+			% [report.resource_nodes, report.basins, report.fish_stocks, report.accepted_seed],
+			GENERATION_SOURCE, "", "")
+		shell.set_refusal_display("")
 	else:
-		shell.report_action_result(false,
-			"Generation refused (%s): %s The settlement is now empty." % [report.error, report.detail])
+		_report_generation_failure(shell, report)
 	_refresh_hud()
+
+
+func _report_generation_failure(shell: UiShell, report: UiWorldSession.Report) -> void:
+	"""Raise the generation refusal as an Error notice AND fill UI-SET-085's error panel.
+
+	Both, not one: §4 gives UI-SET-085 "Error code+plain reason+recovery action" for a fault,
+	and the ruling gives the alert card an authored summary that discloses the same record. The
+	message is written once and used by both, so the two displays cannot drift apart.
+	"""
+	var message: String = "Generation refused (%s): %s The settlement is now empty." \
+		% [report.error, report.detail]
+	shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, message, GENERATION_SOURCE,
+		String(report.error), GENERATION_RECOVERY)
+	shell.set_refusal_display(message)
 
 
 func refresh_roster() -> bool:
@@ -209,8 +252,10 @@ func _on_resident_row_picked(row_index: int) -> void:
 	var residents: ResidentsScript = SettlementSystem.residents()
 	var needs: NeedsScript = SettlementSystem.needs()
 	if not residents.is_alive(slot):
-		_hud.shell().report_action_result(false,
-			"That resident is no longer living; the roster row is stale.")
+		_hud.shell().raise_notice(UiNotices.CATEGORY_ROSTER_STALE,
+			"That resident is no longer living; the roster row is stale.",
+			"%s row %d" % [ROSTER_SOURCE, row_index], ROSTER_STALE_CODE,
+			"Open the roster again to rebuild its rows.")
 		return
 	_show_resident_detail(residents, needs, slot)
 
@@ -235,7 +280,9 @@ func _on_tile_picked(tile_index: int) -> void:
 		return
 	var shell: UiShell = _hud.shell()
 	if not _session.has_world():
-		shell.report_action_result(false, "No world has been generated yet, so no tile can be inspected.")
+		shell.raise_notice(UiNotices.CATEGORY_NO_WORLD,
+			"No world has been generated yet, so no tile can be inspected.",
+			GENERATION_SOURCE, NO_WORLD_CODE, GENERATION_RECOVERY)
 		return
 	_select_tile(shell, tile_index)
 
@@ -276,9 +323,18 @@ func push_alert(text: String) -> void:
 
 
 func push_refusal(code: StringName) -> void:
-	"""Show an exact refusal code and its plain reading in UI-SET-085's accessible display."""
-	if _has_hud():
-		_hud.show_refusal(_bridge.refusal_sentence(code))
+	"""Show an exact refusal code and its plain reading, and retain it as an Error notice.
+
+	The error panel is UI-SET-085's job and is unchanged. The notice is what makes the refusal
+	RETRIEVABLE afterwards: UI-SET-085 is cleared by the next accepted action, and a player who
+	looked away should still be able to read why the last one was refused.
+	"""
+	if not _has_hud():
+		return
+	var sentence: String = _bridge.refusal_sentence(code)
+	_hud.show_refusal(sentence)
+	_hud.shell().raise_notice(UiNotices.CATEGORY_ACTION_REFUSED, sentence, COMMAND_SOURCE,
+		String(code), "")
 
 
 func _time() -> GameManagerScript:
@@ -409,8 +465,15 @@ func _on_stocks_changed() -> void:
 
 
 func _on_stock_depleted(item_key: StringName) -> void:
-	"""Raise an alert when the last unit of an item leaves the stores."""
-	push_alert("Out of %s!" % item_key)
+	"""Raise an alert when the last unit of an item leaves the stores.
+
+	The item is named in the message and carried as the notice's SOURCE, so §7's repeat rule
+	groups two depletions of the same item onto one card and two different items onto two.
+	"""
+	if not _has_hud():
+		return
+	_hud.shell().raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of %s!" % item_key,
+		"%s (%s)" % [STOCK_SOURCE, item_key], STOCK_EMPTY_CODE, "")
 
 
 func _on_state_changed(new_state: int) -> void:
@@ -436,8 +499,16 @@ func _on_day_advanced(_absolute_day: int) -> void:
 
 
 func _on_clock_diagnostic(message: String) -> void:
-	"""Surface a scheduler overload warning or diagnostic pause in the alert zone."""
-	push_alert(message)
+	"""Surface a scheduler overload warning or diagnostic pause, with the clock's own wording.
+
+	`sim_clock.gd` writes the sentence, including the owed tick count, and it reaches the notice
+	record byte for byte; the card shows the authored "Clock overloaded" summary instead when
+	the composition has no room for the sentence.
+	"""
+	if not _has_hud():
+		return
+	_hud.shell().raise_notice(UiNotices.CATEGORY_CLOCK_OVERLOAD, message, CLOCK_SOURCE,
+		CLOCK_OVERLOAD_CODE, CLOCK_RECOVERY)
 
 
 func last_refusal() -> StringName:

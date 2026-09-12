@@ -152,7 +152,7 @@ const REASON_OF: Array[int] = [
 	REASON_WIRED,                     # 009 Resource ledger
 	REASON_WIRED,                     # 010 Alert stack
 	REASON_WIRED,                     # 011 Alert card
-	REASON_NO_NOTICE_STORE,           # 012 Notice history
+	REASON_WIRED,                     # 012 Notice history
 	REASON_WIRED,                     # 013 Time cluster
 	REASON_WIRED,                     # 014 Pause button
 	REASON_WIRED,                     # 015 Speed 1

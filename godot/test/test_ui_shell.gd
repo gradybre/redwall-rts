@@ -30,6 +30,8 @@ const JobsScript := preload("res://scripts/core/jobs.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
+const UiNotices := preload("res://scripts/ui/ui_notices.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 
 ## §1.2's published 1280x720 spans for the two zones asserted here.
 const RESOURCE_SPAN: Array[float] = [16.0, 376.0, 16.0, 104.0]
@@ -38,10 +40,18 @@ const TIME_SPAN: Array[float] = [960.0, 1264.0, 16.0, 104.0]
 ## §2.2's disabled wording, stated independently.
 const UNAVAILABLE_WORD: String = "Unavailable"
 
+## R-UI-ALERT-001's reported condition, from the 2026-09-11 native capture: the sentence that
+## wrapped to three lines inside a 44 px card and drew over the pause line at NARROW.
+const THREE_LINE_REFUSAL: String = "Generation refused (WORLD_OCCUPIED): the settlement already has living residents, so the authored world was not published. The settlement is now empty."
+## The acceptance case's long source name and validation code.
+const LONG_SOURCE: String = "UI-SET-103 New settlement, Mossflower Woods north basin, generation attempt 4 of 4"
+const LONG_CODE: String = "WORLD_INIT_REFUSED_OCCUPIED_SETTLEMENT_WITH_LIVING_RESIDENTS_PRESENT"
+const RECOVERY: String = "Use New settlement again to generate a world."
+
 ## Elements the shell builds even though their owning store does not exist, so that a player who
 ## looks for fuel, beds or the build catalog is told WHICH owner is missing rather than finding
 ## nothing there. Every one of them is disabled and carries its reason.
-const RENDERED_UNAVAILABLE: Array[int] = [3, 7, 12, 27, 29, 30, 32, 33, 75, 82, 87, 89, 90, 98]
+const RENDERED_UNAVAILABLE: Array[int] = [3, 7, 27, 29, 30, 32, 33, 75, 82, 87, 89, 90, 98]
 
 var _shell: UiShell = null
 
@@ -652,3 +662,463 @@ func test_the_focus_order_is_written_onto_the_real_controls() -> void:
 	assert_true(wired > 0,
 		"at least one built control carries a focus_next path after layout; zero means nothing "
 		+ "called bind_controls()/wire_hud() and the order is data only")
+
+
+# --- R-UI-ALERT-001: the compact summary, and the full disclosure behind it ----------------------
+
+func test_the_narrow_card_shows_the_authored_summary_and_retains_the_whole_message() -> void:
+	"""The ruling's core exchange: a compact authored line, with nothing discarded behind it.
+
+	The message used here is the exact three-line generation refusal from the 2026-09-11 native
+	capture -- the one that wrapped over the pause line. It must not appear on the NARROW card,
+	and it must still be retrievable byte for byte.
+	"""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	_narrow()
+	assert_equal(_shell.alert_label().text, "Error: Generation failed",
+		"the card draws the authored summary")
+	assert_true(_shell.card_is_summarised(), "and reports that it is summarising")
+	var notice: UiNotices.Notice = UiNotices.Notice.new()
+	assert_true(_shell.card_notice_into(notice), "the card's notice expands")
+	assert_equal(notice.message, THREE_LINE_REFUSAL, "with the whole message intact")
+	assert_equal(notice.code, LONG_CODE, "and the whole validation code")
+
+
+func test_the_narrow_card_keeps_the_rectangle_the_ruling_fixes() -> void:
+	"""The zone stays 48 high at y=76 and the card stays 44 high, whatever the message is."""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	_narrow()
+	var stack: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+	var card: Control = _shell.control_for(UiShell.ID_ALERT_CARD)
+	assert_almost_equal(stack.position.y, 76.0, "the zone is still at y=76")
+	assert_almost_equal(stack.size.y, 48.0, "and still 48 high")
+	assert_almost_equal(card.size.y, 44.0, "the card is still 44 high")
+	assert_true(card.position.y + card.size.y <= stack.size.y,
+		"and it ends inside the zone rather than over the pause line")
+
+
+func test_the_narrow_summary_is_one_measured_line_inside_the_card() -> void:
+	"""The ruling: "render the title/severity in one measured line" at NOTICE 16 px typography.
+
+	Measured against the font the Label will actually draw with, not against a character count.
+	"""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_CLOCK_OVERLOAD,
+		"Simulation overloaded at 1x: 3 whole tick(s) owed; paused rather than skipping.",
+		"Simulation clock", "CLOCK_OVERLOADED", RECOVERY), "the diagnostic is raised")
+	_narrow()
+	var label: Label = _shell.alert_label()
+	var font: Font = label.get_theme_font(&"font")
+	var interior: float = UiLayout.alert_summary_width(_shell.geometry().profile,
+		_shell.geometry().alerts.size.x)
+	var width: float = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0,
+		label.get_theme_font_size(&"font_size")).x
+	assert_equal(label.get_theme_font_size(&"font_size"), UiTheme.FONT_CRITICAL_MINIMUM,
+		"the card draws at the NOTICE 16 px size; nothing shrank the font")
+	assert_true(width <= interior,
+		"'%s' is %.1f px and must fit the %.1f px interior" % [label.text, width, interior])
+
+
+func test_the_card_never_ellipsizes_or_crops_what_it_draws() -> void:
+	"""Do not "ellipsize, substring, crop or silently discard". The Label wraps; it never clips."""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	var label: Label = _shell.alert_label()
+	assert_false(label.clip_text, "the card's text is not clipped")
+	assert_equal(label.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING,
+		"and nothing trims it with an ellipsis")
+	assert_false(label.text.ends_with("..."), "the drawn line is not an abbreviation")
+
+
+func test_the_standard_card_still_shows_the_whole_message_when_it_fits() -> void:
+	"""Wide and standard "retain their existing layouts when content fits"."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"stores", "STOCK_EMPTY", ""), "the depletion is raised")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	assert_equal(_shell.geometry().profile, UiLayout.PROFILE_STANDARD, "1280 at 100% is STANDARD")
+	assert_equal(_shell.alert_label().text, "Out of ration!", "the message is shown in full")
+	assert_false(_shell.card_is_summarised(), "with no summary needed")
+
+
+func test_the_card_carries_its_severity_icon_and_word() -> void:
+	"""§7: "severity word+icon". The icon follows the notice; the word is inside the summary."""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	_narrow()
+	var icon: TextureRect = _shell.alert_icon()
+	assert_true(icon.texture != null, "the card has a severity icon")
+	assert_true(_shell.alert_label().text.begins_with("Error"), "and the severity word beside it")
+	assert_equal(icon.mouse_filter, Control.MOUSE_FILTER_IGNORE, "the icon takes no click")
+	assert_equal(icon.accessibility_name, "",
+		"and stays out of the accessibility tree, which the description already covers")
+
+
+# --- the accessible description is a full access path, not a tooltip -----------------------------
+
+func test_the_accessible_description_carries_severity_and_the_whole_message() -> void:
+	"""A tooltip alone is not a full-message access path; the description must carry it."""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	var card: Control = _shell.control_for(UiShell.ID_ALERT_CARD)
+	assert_true(card.accessibility_name.contains("Error"), "the name states the severity")
+	assert_true(card.accessibility_description.contains(THREE_LINE_REFUSAL),
+		"the description carries the FULL original message")
+	assert_true(card.accessibility_description.contains("Open alert details"),
+		"and names the action that discloses the rest")
+
+
+# --- mouse AND keyboard reach the full content ----------------------------------------------------
+
+func test_enter_on_the_card_opens_the_expanded_view_with_that_notice_selected() -> void:
+	"""Keyboard access is half the ruling's guarantee, and Enter is the project's `ui_accept`."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	assert_true(_shell.notice_details_open(), "Enter opened UI-SET-012")
+	assert_true(_shell.selected_notice().ok, "with a notice selected")
+	assert_true(_expanded_text().contains(THREE_LINE_REFUSAL), "and its full message expanded")
+
+
+func test_space_on_the_card_opens_the_expanded_view() -> void:
+	"""The ruling names Enter/Space. UI §5 puts pause on Space "with world focus", not HUD focus."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_SPACE))
+	assert_true(_shell.notice_details_open(), "Space opened UI-SET-012")
+	assert_true(_expanded_text().contains(LONG_CODE), "with the validation code disclosed")
+
+
+func test_a_left_click_on_the_card_opens_the_expanded_view() -> void:
+	"""Pointer activation is the other half of "mouse AND keyboard access"."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_click_event(MOUSE_BUTTON_LEFT))
+	assert_true(_shell.notice_details_open(), "a left click opened UI-SET-012")
+	assert_true(_expanded_text().contains(RECOVERY), "with the recovery action disclosed")
+
+
+func test_an_unrelated_key_and_a_right_click_do_not_open_the_expanded_view() -> void:
+	"""The activation is Enter, Space and the left button, and nothing else."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_A))
+	assert_false(_shell.notice_details_open(), "a letter key does not open it")
+	_shell.activate_alert_card(_click_event(MOUSE_BUTTON_RIGHT))
+	assert_false(_shell.notice_details_open(), "and neither does a right click")
+
+
+func test_the_expanded_view_wraps_and_scrolls_its_content() -> void:
+	"""Full content stays available "with wrapping and vertical scrolling"."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	assert_true(_shell.history_scroll() != null, "the expanded view has a scrolling body")
+	assert_equal(_shell.history_scroll().horizontal_scroll_mode,
+		ScrollContainer.SCROLL_MODE_DISABLED, "which scrolls vertically, not sideways")
+	var row: Label = _shell.history_rows()[0]
+	assert_false(row.clip_text, "its rows are not clipped")
+	assert_equal(row.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART, "they wrap instead")
+
+
+func test_closing_the_expanded_view_returns_focus_to_the_card_that_opened_it() -> void:
+	"""§2.2: "focus returns to the opening control if still present"."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	assert_true(_shell.close_notice_details(), "the expanded view closes")
+	assert_false(_shell.notice_details_open(), "and is hidden")
+	var focused: IntMath.IntResult = _shell.focus_order().focused_element()
+	assert_true(focused.ok, "something holds focus afterwards")
+	assert_equal(focused.value, UiShell.ID_ALERT_CARD, "and it is the card that opened it")
+
+
+func test_the_expanded_view_is_reachable_from_the_card_by_tab() -> void:
+	"""An expanded view a keyboard cannot step into and out of is not keyboard-reachable."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	var panel: Control = _shell.control_for(UiShell.ID_HISTORY)
+	assert_equal(panel.focus_mode, Control.FOCUS_ALL, "the expanded view can hold focus")
+	assert_false(panel.focus_next.is_empty(), "and carries a forward tab path while open")
+	assert_true(_shell.focus_order().focus_step(true), "Tab steps forward out of it")
+	var focused: IntMath.IntResult = _shell.focus_order().focused_element()
+	assert_equal(focused.value, UiShell.ID_HISTORY_TRIGGER,
+		"onto the history trigger, which closes it")
+
+
+func test_the_history_trigger_closes_the_expanded_view_and_acknowledges_nothing() -> void:
+	"""The reachable close control. "Neither acknowledges nor resolves a condition automatically"."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	var before: int = _shell.notices().active_count()
+	(_shell.control_for(UiShell.ID_HISTORY_TRIGGER) as Button).pressed.emit()
+	assert_false(_shell.notice_details_open(), "the trigger closed the expanded view")
+	assert_equal(_shell.notices().active_count(), before, "and resolved nothing")
+	assert_equal(_shell.notices().count(), 1, "the notice is still retained")
+
+
+func test_the_history_trigger_opens_the_whole_history_with_nothing_selected() -> void:
+	"""§4: the trigger "activates 012" -- the whole history, not one notice's disclosure."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "a notice exists")
+	(_shell.control_for(UiShell.ID_HISTORY_TRIGGER) as Button).pressed.emit()
+	assert_true(_shell.notice_details_open(), "the history opens")
+	assert_false(_shell.selected_notice().ok, "with no notice selected")
+	assert_true(_expanded_text().contains(THREE_LINE_REFUSAL), "though every message is listed")
+
+
+func test_opening_the_details_does_not_pause_the_world_or_resolve_the_condition() -> void:
+	"""The ruling's acceptance case: "no unexpected pause or acknowledgment"."""
+	_raise_and_focus_card()
+	var paused_before: bool = GameManager.is_paused()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	assert_equal(GameManager.is_paused(), paused_before, "the clock is untouched")
+	assert_equal(_shell.notices().active_count(), 1, "the condition is still active")
+	assert_true(_shell.control_for(UiShell.ID_ALERT_CARD).visible, "and its card is still shown")
+
+
+func test_twenty_notices_are_retained_and_reachable_from_the_expanded_view() -> void:
+	"""The acceptance case for retention, read back off the built rows rather than the store."""
+	for index: int in 20:
+		assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY,
+			"Out of item %d!" % index, "item %d" % index, "STOCK_%d" % index, ""),
+			"notice %d is raised" % index)
+	assert_equal(_shell.notices().count(), 20, "all twenty are retained")
+	(_shell.control_for(UiShell.ID_HISTORY_TRIGGER) as Button).pressed.emit()
+	var shown: int = 0
+	for row: Label in _shell.history_rows():
+		if row.visible:
+			shown += 1
+	assert_equal(shown, 20, "and all twenty are printed into the expanded view")
+	assert_true(_expanded_text().contains("Out of item 19!"), "including the last one")
+
+
+func test_a_repeated_condition_groups_rather_than_filling_the_history() -> void:
+	"""§7's grouping policy, driven through the shell's own entry point."""
+	for index: int in 5:
+		assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+			"ration", "STOCK_EMPTY", ""), "repeat %d is accepted" % index)
+	assert_equal(_shell.notices().count(), 1, "five repeats are one condition")
+
+
+# --- the empty state, and announcements ------------------------------------------------------------
+
+func test_an_empty_alert_zone_shows_the_history_trigger_and_nothing_else() -> void:
+	"""The acceptance case: "empty state showing only History".
+
+	Read from the HIT TABLE, not from `Control.visible`. `visible` is a control's own local flag
+	and stays true under a hidden parent, so a trigger parented to the hidden alert stack would
+	pass a `visible` assertion while being invisible on screen -- a mutation that did exactly
+	that survived this test in its first form. `_register_hit_regions()` walks the real parent
+	chain, so a control nobody can see registers no rectangle here.
+	"""
+	_shell.set_alert_display("")
+	var stack: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+	var trigger: Control = _shell.control_for(UiShell.ID_HISTORY_TRIGGER)
+	assert_false(stack.visible, "the stack is hidden")
+	assert_false(_shell.control_for(UiShell.ID_ALERT_CARD).visible, "so is the card")
+	assert_true(_shell.hit_test().consumes_point(trigger.position + trigger.size * 0.5),
+		"but §4's ALWAYS trigger still takes its own 32x32, so it is on screen")
+	assert_true(_shell.hit_test().world_receives(stack.position + stack.size * 0.5),
+		"and the rest of the empty zone belongs to the world")
+
+
+func test_hiding_the_card_retains_the_notice_and_resolves_nothing() -> void:
+	"""`hud.gd`'s hold expiry hides the card. It must not silently acknowledge the condition."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"ration", "STOCK_EMPTY", ""), "the depletion is raised")
+	_shell.set_alert_display("")
+	assert_false(_shell.control_for(UiShell.ID_ALERT_CARD).visible, "the card is hidden")
+	assert_equal(_shell.notices().count(), 1, "the notice is retained")
+	assert_equal(_shell.notices().active_count(), 1, "and the condition is still active")
+
+
+func test_a_repeated_state_update_announces_once_and_never_steals_focus() -> void:
+	""""State updates must not steal focus or generate repeated announcements without a real
+	notice change"."""
+	var before: int = _shell.notice_announcements()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"ration", "STOCK_EMPTY", ""), "the depletion is raised")
+	assert_equal(_shell.notice_announcements(), before + 1, "a new notice announces once")
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"ration", "STOCK_EMPTY", ""), "the same condition repeats")
+	assert_equal(_shell.notice_announcements(), before + 1, "and does not announce again")
+	assert_false(_shell.control_for(UiShell.ID_ALERT_CARD).has_focus(),
+		"and the card never took focus for itself")
+
+
+func test_opening_the_details_with_no_notice_is_refused_by_name() -> void:
+	"""An expanded view with nothing in it would claim to be showing something."""
+	assert_false(_shell.open_notice_details(), "there is no notice to disclose")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NO_NOTICE, "and the refusal is named")
+	assert_false(_shell.notice_details_open(), "so nothing opened")
+
+
+func test_an_unknown_notice_category_is_refused_rather_than_defaulted() -> void:
+	"""A category with no authored summary cannot be shown, so it is not accepted."""
+	assert_false(_shell.raise_notice(UiNotices.CATEGORY_COUNT, "text", "", "", ""),
+		"an out-of-range category is refused")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NOTICE_CATEGORY, "by name")
+	assert_equal(_shell.notices().count(), 0, "and nothing is recorded")
+
+
+func test_a_notice_the_record_refuses_is_refused_by_the_shell_too() -> void:
+	"""A shell that swallowed the store's refusal would report a disclosure it never recorded.
+
+	An empty message is the case the record refuses by name. The shell must pass that refusal
+	up rather than return true and leave the card showing whatever was on it before.
+	"""
+	assert_false(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "", "", "", ""),
+		"a notice with no message is refused")
+	assert_equal(_shell.last_refusal(), UiNotices.REFUSE_EMPTY_MESSAGE,
+		"with the record's own code, not a shell code invented over it")
+	assert_equal(_shell.notices().count(), 0, "and nothing is retained")
+	assert_false(_shell.control_for(UiShell.ID_ALERT_CARD).visible, "and no card is shown")
+
+
+func test_the_error_panel_grows_to_its_refusal_and_scrolls_past_its_maximum() -> void:
+	"""The exception is for COMPACT HUD notices only. UI-SET-085 still obeys wrap/scroll.
+
+	A fixed 160 px panel drew the generation refusal through its own bottom edge and over the
+	command strip -- visible in the native capture that prompted this. §4 gives 085 a
+	160..480 band, so the panel grows inside it and the body scrolls beyond it.
+	"""
+	var short_height: float = _refusal_panel_height("Short refusal.")
+	assert_almost_equal(short_height, 160.0, "a short refusal keeps §4's minimum height")
+	var long_height: float = _refusal_panel_height(_repeated_refusal(6))
+	assert_true(long_height > short_height,
+		"a longer refusal gets a taller panel, got %.1f against %.1f" % [long_height, short_height])
+	var huge_height: float = _refusal_panel_height(_repeated_refusal(40))
+	assert_almost_equal(huge_height, 480.0, "and the growth stops at §4's maximum height")
+	assert_true(huge_height > long_height, "which is above the height the shorter one needed")
+	var body: ScrollContainer = _shell.control_for(UiShell.ID_ERROR_PANEL).get_node("Body") \
+		as ScrollContainer
+	assert_true(body != null, "the error body is a scrolling container")
+	var panel: Control = _shell.control_for(UiShell.ID_ERROR_PANEL)
+	assert_true(body.size.y > 0.0 and body.size.y <= panel.size.y,
+		"sized inside the panel that holds it")
+	assert_true(body.position.x + body.size.x <= panel.size.x,
+		"and inside its width, beside the severity icon")
+	var line: Label = body.get_node("Line") as Label
+	assert_false(line.clip_text, "its text is not clipped")
+	assert_equal(line.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART, "it wraps instead")
+
+
+func _repeated_refusal(times: int) -> String:
+	"""A refusal long enough to need more than one panel height, built from the reported one."""
+	var parts: PackedStringArray = PackedStringArray()
+	for index: int in times:
+		parts.append(THREE_LINE_REFUSAL)
+	return " ".join(parts)
+
+
+func _refusal_panel_height(text: String) -> float:
+	"""Show one refusal at the standard composition and report UI-SET-085's resulting height."""
+	_shell.set_refusal_display(text)
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	return _shell.control_for(UiShell.ID_ERROR_PANEL).size.y
+
+
+func test_the_expanded_view_replaces_the_error_panel_and_gives_it_back_on_close() -> void:
+	"""§3 allows one expansion per zone, and both live in the top-centre column.
+
+	The refusal must not be LOST by that: it is a retained Error notice, the expanded view shows
+	its code and reason, the condition stays active, and UI-SET-085 returns when the view closes.
+	"""
+	_narrow()
+	_shell.set_refusal_display(THREE_LINE_REFUSAL)
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	assert_true(_shell.control_for(UiShell.ID_ERROR_PANEL).visible, "the error panel is open")
+	assert_true(_shell.open_notice_details(), "the expanded view opens")
+	assert_false(_shell.control_for(UiShell.ID_ERROR_PANEL).visible,
+		"and takes the column from the error panel")
+	assert_true(_expanded_text().contains(LONG_CODE), "while showing the same validation code")
+	assert_equal(_shell.notices().active_count(), 1, "the condition is still active")
+	assert_true(_shell.close_notice_details(), "the expanded view closes")
+	assert_true(_shell.control_for(UiShell.ID_ERROR_PANEL).visible,
+		"and the error panel comes back")
+
+
+func test_the_open_expanded_view_is_drawn_above_the_permanent_hud() -> void:
+	"""§3 puts an expansion above the permanent HUD, and the hit table already agreed.
+
+	The DRAW order did not: the minimap frame and the command strip are built after UI-SET-012
+	and painted over it in the native capture. Child order is what Godot draws by, so the test
+	is on child order -- and the overlays §3 puts above everything stay above it.
+	"""
+	_raise_and_focus_card()
+	assert_true(_shell.open_notice_details(), "the expanded view opens")
+	var history: Control = _shell.control_for(UiShell.ID_HISTORY)
+	for id: int in [UiShell.ID_MINIMAP_FRAME, UiShell.ID_COMMAND_STRIP, UiShell.ID_RESOURCE_CLUSTER]:
+		assert_true(history.get_index() > _shell.control_for(id).get_index(),
+			"UI-SET-012 is drawn after UI-SET-%03d" % id)
+	for id: int in [UiShell.ID_TOOLTIP, UiShell.ID_FOCUS_OUTLINE]:
+		assert_true(_shell.control_for(id).get_index() > history.get_index(),
+			"but §3's UI-SET-%03d overlay stays above it" % id)
+
+
+func test_no_open_expansion_is_drawn_outside_the_viewport_at_narrow() -> void:
+	"""UXV-032: content a player cannot see is not shown content.
+
+	At NARROW the logical viewport is 853x480. A taller UI-SET-085 pushed UI-SET-012 off the
+	bottom and a 720-wide panel ran off the right edge; both were visible in the native capture.
+	Every open top-centre expansion must now lie inside the viewport.
+	"""
+	_narrow()
+	_shell.set_refusal_display(_repeated_refusal(6))
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	assert_true(_shell.open_notice_details(), "the expanded view opens")
+	_narrow()
+	for id: int in [UiShell.ID_ERROR_PANEL, UiShell.ID_HISTORY, UiShell.ID_ALERT_STACK]:
+		var panel: Control = _shell.control_for(id)
+		if not panel.visible:
+			continue
+		assert_true(panel.position.x >= 0.0 and panel.position.y >= 0.0,
+			"UI-SET-%03d starts inside the viewport at (%.1f, %.1f)"
+			% [id, panel.position.x, panel.position.y])
+		assert_true(panel.position.x + panel.size.x <= _shell.geometry().logical_width,
+			"UI-SET-%03d ends inside its width" % id)
+		assert_true(panel.position.y + panel.size.y <= _shell.geometry().logical_height,
+			"UI-SET-%03d ends inside its height" % id)
+
+
+# --- helpers for the notice tests -------------------------------------------------------------------
+
+func _narrow() -> void:
+	"""Lay the shell out at 1280x720 with 150 percent user scale, which is the NARROW profile."""
+	assert_true(_shell.apply_user_scale(150), "150 percent is a supported user scale")
+	assert_true(_shell.layout_for(1280, 720), "the narrow layout computes")
+
+
+func _raise_and_focus_card() -> void:
+	"""Raise the reported generation refusal and put keyboard focus on its card."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	assert_true(_shell.focus_order().focus_element(UiShell.ID_ALERT_CARD), "the card takes focus")
+
+
+func _key_event(keycode: Key) -> InputEventKey:
+	"""One pressed key event, as the engine would deliver it to the focused card."""
+	var event: InputEventKey = InputEventKey.new()
+	event.keycode = keycode
+	event.pressed = true
+	return event
+
+
+func _click_event(button: MouseButton) -> InputEventMouseButton:
+	"""One pressed mouse button event inside the card."""
+	var event: InputEventMouseButton = InputEventMouseButton.new()
+	event.button_index = button
+	event.pressed = true
+	return event
+
+
+func _expanded_text() -> String:
+	"""Everything the expanded view is currently printing, header and rows together."""
+	var parts: PackedStringArray = PackedStringArray([_shell.history_header().text])
+	for row: Label in _shell.history_rows():
+		if row.visible:
+			parts.append(row.text)
+	return "\n".join(parts)

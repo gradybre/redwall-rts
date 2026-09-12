@@ -38,6 +38,7 @@ const UiArt := preload("res://ui/ui_art.gd")
 const UiFocusOrder := preload("res://scripts/ui/ui_focus_order.gd")
 const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSession := preload("res://scripts/ui/ui_world_session.gd")
+const UiNotices := preload("res://scripts/ui/ui_notices.gd")
 
 ## The one Theme the whole UI root uses, built from `ui_theme.gd`'s tokens.
 const THEME_PATH: String = "res://ui/theme/woodland_theme.tres"
@@ -100,6 +101,7 @@ const ICON_OF_ELEMENT: Dictionary = {
 	29: "build", 30: "provisions", 31: "residents", 62: "brush", 66: "brush", 67: "cancel",
 	93: "cancel", 101: "calendar", 102: "ledger",
 }
+const IntMath := preload("res://scripts/core/int_math.gd")
 const ForageScript := preload("res://scripts/core/forage.gd")
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
@@ -219,6 +221,13 @@ const WORKSPACE_PAGES: Array[int] = [ID_NEW_SETTLEMENT, ID_WORLD_LIST, ID_NAME_E
 ## Room the Create action has inside UI-SET-103, which is at least 480 wide by §4.
 const CREATE_BUTTON_ROOM: float = 480.0
 const WARNING_ICON: String = "res://ui/icons/warning.svg"
+## R-UI-ALERT-001's expanded view. UI-SET-012 retains §7's 500, and this is how many rows this
+## shell BUILDS for it: §1.3's virtualized list is not built here, exactly as the 256-resident
+## roster's is not, so the panel states how many of the retained notices it is showing rather
+## than pretending the pool is the history.
+const HISTORY_ROWS: int = 20
+## Room the expanded view leaves below its header line for the scrolling body.
+const HISTORY_HEADER_HEIGHT: float = 28.0
 
 ## Displayed for a counter nobody has supplied a value for. Shared with `hud.gd`.
 const UNPOPULATED: String = "--"
@@ -233,6 +242,8 @@ const REFUSE_TILE_RANGE: StringName = &"UI_SHELL_TILE_OUT_OF_RANGE"
 const REFUSE_TILE_NOT_ASCENDING: StringName = &"UI_SHELL_TILE_NOT_ASCENDING"
 const REFUSE_STROKE_FULL: StringName = &"UI_SHELL_STROKE_FULL"
 const REFUSE_NO_LAYERS: StringName = &"UI_SHELL_NO_PRESENTATION_SNAPSHOT"
+const REFUSE_NO_NOTICE: StringName = &"UI_SHELL_NO_ACTIVE_NOTICE"
+const REFUSE_NOTICE_CATEGORY: StringName = &"UI_SHELL_UNKNOWN_NOTICE_CATEGORY"
 
 ## §5.5's danger bands, which a designation carries from the basin it is painted over.
 const DANGER_MIN: int = 0
@@ -258,6 +269,26 @@ var _gates: UiAvailability.Gates = null
 ## Scratch for `outgoing_into()`; sized once so a workspace switch allocates nothing.
 var _outgoing: PackedInt32Array = PackedInt32Array()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
+## R-UI-ALERT-001's notice record: the whole condition behind every card this shell draws.
+var _notices: UiNotices = UiNotices.new()
+## Scratch for the notice currently on the card, and for the row being written into the
+## expanded view. Both are reused so repainting the history allocates nothing per row.
+var _card_notice: UiNotices.Notice = UiNotices.Notice.new()
+var _row_notice: UiNotices.Notice = UiNotices.Notice.new()
+var _history_order: PackedInt32Array = PackedInt32Array()
+## The measured content height of each alert card, and where the layout put them.
+var _measured_cards: PackedFloat32Array = PackedFloat32Array()
+var _alert_stack: UiLayout.Stack = UiLayout.Stack.new()
+## Which retained notice the card is showing, and its id -- the id is what an announcement is
+## keyed on, so a repaint with no real change announces nothing.
+var _card_index: int = -1
+var _card_notice_id: int = 0
+var _announcements: int = 0
+## True while the player has hidden the card without resolving anything (hud.gd's hold expiry).
+var _card_hidden: bool = true
+## Which notice the expanded view has selected, and which control opened it.
+var _details_index: int = -1
+var _details_opener: int = ID_HISTORY_TRIGGER
 
 ## Built controls by §4 id. One entry per element this shell renders.
 var _controls: Dictionary = {}
@@ -279,10 +310,18 @@ var _ledger_line: Label = null
 var _alert_message: Label = null
 var _history_line: Label = null
 var _error_line: Label = null
+var _error_scroll: ScrollContainer = null
+## Whether UI-SET-085 was on screen when UI-SET-012 took the top-centre column from it.
+var _error_was_visible: bool = false
 var _calendar_line: Label = null
 var _workspace_line: Label = null
 var _minimap_line: Label = null
 var _tooltip_line: Label = null
+var _alert_icon: TextureRect = null
+var _history_header: Label = null
+var _history_rows: Array[Label] = []
+var _history_scroll: ScrollContainer = null
+var _history_body: VBoxContainer = null
 var _picked_tile: int = NO_TILE
 var _create_button: Button = null
 var _brush_size: int = 1
@@ -317,6 +356,8 @@ func _init() -> void:
 	_gates = UiAvailability.Gates.new()
 	_outgoing.resize(UiRegistry.ELEMENT_COUNT)
 	_stroke.resize(ForageScript.ZONE_LINK_CAPACITY)
+	_history_order.resize(UiNotices.HISTORY_CAP)
+	_measured_cards.resize(UiLayout.ALERT_CARDS_WIDE)
 
 
 func _ready() -> void:
@@ -420,7 +461,7 @@ func _icon_texture_for(id: int) -> Texture2D:
 	return load("%s%s.svg" % [ICON_DIRECTORY, ICON_OF_ELEMENT[id]]) as Texture2D
 
 
-func _add_severity_icon(owner_control: Control, icon_path: String) -> void:
+func _add_severity_icon(owner_control: Control, icon_path: String) -> TextureRect:
 	"""§7: every notice carries "severity word+icon". Colour alone never states a failure.
 
 	The icon is decorative in the accessibility tree because the panel's own description already
@@ -436,6 +477,7 @@ func _add_severity_icon(owner_control: Control, icon_path: String) -> void:
 	icon.position = Vector2(PANEL_PADDING, PANEL_PADDING)
 	icon.size = Vector2(SEVERITY_ICON_SIZE, SEVERITY_ICON_SIZE)
 	owner_control.add_child(icon)
+	return icon
 
 
 func _decorate(owner_control: Control) -> void:
@@ -648,23 +690,117 @@ func _build_resources() -> void:
 func _build_alerts() -> void:
 	"""UI-SET-010's stack, its card, the history trigger in its rail and the history panel."""
 	var stack: Panel = _zone_panel(ID_ALERT_STACK, "Active settlement alerts")
-	var card: Panel = _new_panel(ID_ALERT_CARD, "")
-	stack.add_child(card)
-	_alert_message = _new_text(card, &"Message", "")
-	var trigger: Button = _new_button(ID_HISTORY_TRIGGER, "N")
-	trigger.pressed.connect(_on_history_pressed)
-	stack.add_child(trigger)
-	var history: Panel = _zone_panel(ID_HISTORY, "Notification history, 0 entries")
-	history.visible = false
-	_history_line = _new_text(history, &"Line", "")
-	var error: Panel = _zone_panel(ID_ERROR_PANEL, "")
-	error.visible = false
-	_add_severity_icon(error, WARNING_ICON)
-	_error_line = _new_text(error, &"Line", "")
-	_error_line.offset_left = PANEL_PADDING + SEVERITY_ICON_SIZE + ROW_GAP
+	stack.visible = false
+	stack.add_child(_build_alert_card())
+	_build_history_trigger()
+	_build_history()
+	_build_error_panel()
 	var pause_label: Label = _new_label(ID_PAUSE_LABEL, "")
 	_zones[ID_PAUSE_LABEL] = pause_label
 	add_child(pause_label)
+
+
+func _build_alert_card() -> Panel:
+	"""UI-SET-011's card: a severity icon, one text line, and an activation that discloses all.
+
+	R-UI-ALERT-001 requires "pointer activation or Enter/Space on the card" to open the full
+	notice. That makes the card a FOCUS STOP, which §8.2 already lists it as -- id 011 sits in
+	`HUD_ORDER` between the resource expander and the history trigger -- so it takes FOCUS_ALL
+	and handles its own `gui_input` rather than being a decorative panel that a keyboard cannot
+	reach. UI §5 puts pause on Space "with world focus"; a focused HUD card is not world focus,
+	so consuming Space here does not contradict the input map.
+	"""
+	var card: Panel = _new_panel(ID_ALERT_CARD, "")
+	card.visible = false
+	card.focus_mode = Control.FOCUS_ALL
+	card.focus_entered.connect(_on_control_focused.bind(ID_ALERT_CARD))
+	card.gui_input.connect(_on_alert_card_input)
+	_alert_icon = _add_severity_icon(card, WARNING_ICON)
+	_alert_message = _new_text(card, &"Message", "")
+	_alert_message.offset_left = PANEL_PADDING + SEVERITY_ICON_SIZE + ROW_GAP
+	return card
+
+
+func _build_error_panel() -> void:
+	"""UI-SET-085's error panel, whose body scrolls so a long refusal is never cut off.
+
+	The ruling's exception is for COMPACT HUD notices only: "Full notice/error/history content
+	and all costs still obey wrap/scroll, no clipping, no ellipsis and no font reduction." A
+	fixed 160 px panel drew the generation refusal straight through its own bottom edge and over
+	the command strip, which is the same defect the alert card had and is fixed the same way --
+	the panel grows inside §4's own 160..480 band and scrolls beyond it.
+	"""
+	var error: Panel = _zone_panel(ID_ERROR_PANEL, "")
+	error.visible = false
+	_add_severity_icon(error, WARNING_ICON)
+	_error_scroll = ScrollContainer.new()
+	_error_scroll.name = "Body"
+	_error_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	_error_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	error.add_child(_error_scroll)
+	_error_line = Label.new()
+	_error_line.name = "Line"
+	_error_line.clip_text = false
+	_error_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_error_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_error_line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_error_line.add_theme_color_override(&"font_color", UiTheme.color_of(UiTheme.TOKEN_TEXT))
+	_error_scroll.add_child(_error_line)
+
+
+func _build_history_trigger() -> void:
+	"""UI-SET-102, which §4 gives as "ALWAYS, even when no alerts".
+
+	It is a child of the SHELL rather than of UI-SET-010, because §4 also says an empty alert
+	stack "does not block world": the stack panel is hidden when no card is active, and a child
+	of a hidden Control cannot be shown. Parenting the trigger to the shell is what lets the
+	empty state show the history trigger and nothing else -- which the ruling lists as an
+	acceptance case -- without a panel background sitting over the world behind it.
+	"""
+	var trigger: Button = _new_button(ID_HISTORY_TRIGGER, "N")
+	trigger.pressed.connect(_on_history_pressed)
+	add_child(trigger)
+
+
+func _build_history() -> void:
+	"""UI-SET-012's expanded view: a header, a scrolling body, and its wrapping notice rows.
+
+	The rows WRAP and the body SCROLLS, which is what the ruling requires of the full content;
+	nothing here clips or shortens a message. The pool is bounded at HISTORY_ROWS and the header
+	says how many of the retained notices are being shown, because §1.3's virtualized list for
+	the full 500 is not built and a silent cap would read as "that is all there is".
+	"""
+	var history: Panel = _zone_panel(ID_HISTORY, "Notification history, 0 entries")
+	history.visible = false
+	history.focus_mode = Control.FOCUS_ALL
+	_history_line = _new_text(history, &"Line", "")
+	_history_header = _history_line
+	_history_scroll = ScrollContainer.new()
+	_history_scroll.name = "Body"
+	_history_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	_history_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	history.add_child(_history_scroll)
+	_history_body = VBoxContainer.new()
+	_history_body.name = "Rows"
+	_history_body.add_theme_constant_override(&"separation", int(ROW_GAP))
+	_history_scroll.add_child(_history_body)
+	for index: int in HISTORY_ROWS:
+		_history_rows.append(_new_history_row(index))
+
+
+func _new_history_row(index: int) -> Label:
+	"""One wrapping row of the expanded view. Rows are text, so none takes a click or focus."""
+	var row: Label = Label.new()
+	row.name = "Notice%d" % index
+	row.clip_text = false
+	row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.focus_mode = Control.FOCUS_NONE
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_color_override(&"font_color", UiTheme.color_of(UiTheme.TOKEN_TEXT))
+	row.visible = false
+	_history_body.add_child(row)
+	return row
 
 
 func _build_time() -> void:
@@ -1013,9 +1149,10 @@ func _place_zones() -> void:
 		_preferred_size(ID_PAUSE_LABEL, _geometry.alerts.size.x)))
 	var below_pause: Vector2 = below_alerts \
 		+ Vector2(0.0, _minimum_size(ID_PAUSE_LABEL).y + ROW_GAP)
-	_place(ID_ERROR_PANEL, Rect2(below_pause, _minimum_size(ID_ERROR_PANEL)))
-	_place(ID_HISTORY, Rect2(below_pause
-		+ Vector2(0.0, _minimum_size(ID_ERROR_PANEL).y + ROW_GAP), _minimum_size(ID_HISTORY)))
+	var error_rect: Rect2 = _fit_in_viewport(Rect2(below_pause, _error_panel_size()))
+	_place(ID_ERROR_PANEL, error_rect)
+	_place(ID_HISTORY, _fit_in_viewport(Rect2(error_rect.position
+		+ Vector2(0.0, error_rect.size.y + ROW_GAP), _minimum_size(ID_HISTORY))))
 	_place(ID_TIME_CLUSTER, _geometry.time)
 	_place(ID_CALENDAR, Rect2(_geometry.time.position
 		+ Vector2(0.0, _geometry.time.size.y + ROW_GAP), _minimum_size(ID_CALENDAR)))
@@ -1044,9 +1181,11 @@ func _place_interiors() -> void:
 		_place_local(ID_EXPAND, UiLayout.narrow_expand_rect())
 	for index: int in TIME_IDS.size():
 		_set_rect(_controls[TIME_IDS[index]], _layout.time_control(_geometry.profile, index))
-	_place_local(ID_ALERT_CARD, _layout.alert_card_sized(_geometry.profile,
-		_geometry.alerts.size.x, 0, _wrapped_alert_height()))
-	_place_local(ID_HISTORY_TRIGGER, UiLayout.history_trigger_rect(_geometry.alerts.size.x))
+	_place_alert_cards()
+	var rail: Rect2 = UiLayout.history_trigger_rect(_geometry.alerts.size.x)
+	_place_local(ID_HISTORY_TRIGGER, Rect2(_geometry.alerts.position + rail.position, rail.size))
+	_place_history_interior()
+	_place_error_interior()
 	_place_local(ID_MINIMAP_VIEW, UiLayout.minimap_content_rect(_geometry.profile))
 	_wrap_children(ID_COMMAND_STRIP, COMMAND_IDS, _geometry.commands.size)
 	_flow_children(ID_DETAIL, [ID_DETAIL_TITLE, ID_DETAIL_TABS, ID_NEED_ROW, ID_SKILL_ROW,
@@ -1060,6 +1199,87 @@ func _place_interiors() -> void:
 	var map_rect: Rect2 = UiLayout.minimap_content_rect(_geometry.profile)
 	_place_local(ID_MINIMAP_VIEW, map_rect)
 	_flow_children(ID_CALENDAR, [ID_PITCH])
+
+
+func _fit_in_viewport(rect: Rect2) -> Rect2:
+	"""Move and, if it must, shrink one expansion panel so none of it lies outside the viewport.
+
+	UXV-032 forbids content the player cannot see, and §1.2's safe inset is 16 logical pixels.
+	The top-centre expansions are stacked below the alerts zone, so a taller UI-SET-085 pushed
+	UI-SET-012 off the bottom at NARROW and a 720-wide panel ran off the right -- both visible in
+	the native capture that prompted this. Each panel keeps its own scrolling body, so shrinking
+	the frame moves content into the scroll rather than cutting it off.
+
+	RAISED, NOT DECIDED: at NARROW (Lh 480) the pause line, UI-SET-085 and UI-SET-012 cannot all
+	be stacked below a 48 px alerts zone at their §4 minimum sizes. §1.2 fixes no stacking order
+	for two open expansions of one zone, so this clamps each into view and does not invent a
+	precedence between them. That composition question belongs to the §1.2 owner.
+	"""
+	var limit_x: float = _geometry.logical_width - UiLayout.SAFE_INSET
+	var limit_y: float = _geometry.logical_height - UiLayout.SAFE_INSET
+	var width: float = minf(rect.size.x, _geometry.logical_width - 2.0 * UiLayout.SAFE_INSET)
+	var height: float = minf(rect.size.y, _geometry.logical_height - 2.0 * UiLayout.SAFE_INSET)
+	var origin: Vector2 = Vector2(minf(rect.position.x, limit_x - width),
+		minf(rect.position.y, limit_y - height))
+	return Rect2(origin.max(Vector2(UiLayout.SAFE_INSET, UiLayout.SAFE_INSET)),
+		Vector2(width, height))
+
+
+func _error_panel_size() -> Vector2:
+	"""UI-SET-085's rectangle: §4's minimum, grown to its wrapped text, capped at §4's maximum.
+
+	The same `min(max(measured, floor), ceiling)` shape §4.1 uses for the detail panel. Above the
+	ceiling the body scrolls; it is never clipped and never abbreviated.
+	"""
+	var size: UiRegistry.Size = UiRegistry.Size.new()
+	if not _registry.size_into(ID_ERROR_PANEL, size):
+		return Vector2.ZERO
+	var available: float = _geometry.logical_width - 2.0 * UiLayout.SAFE_INSET
+	var width: float = maxf(float(size.min_width), minf(float(size.max_width), available))
+	var measured: float = _wrapped_height(_error_line, width - _error_body_inset()
+		- PANEL_PADDING) + 2.0 * PANEL_PADDING
+	return Vector2(width, minf(maxf(measured, float(size.min_height)), float(size.max_height)))
+
+
+func _error_body_inset() -> float:
+	"""Where UI-SET-085's text begins: its padding, its severity icon and the gap after it."""
+	return PANEL_PADDING + SEVERITY_ICON_SIZE + ROW_GAP
+
+
+func _place_error_interior() -> void:
+	"""Put UI-SET-085's scrolling body beside its severity icon, inside the panel."""
+	var panel: Control = _zones[ID_ERROR_PANEL]
+	var inset: float = _error_body_inset()
+	_set_rect(_error_scroll, Rect2(inset, PANEL_PADDING,
+		maxf(panel.size.x - inset - PANEL_PADDING, 0.0),
+		maxf(panel.size.y - 2.0 * PANEL_PADDING, 0.0)))
+	_error_line.custom_minimum_size = Vector2(_error_scroll.size.x, 0.0)
+
+
+func _wrapped_height(label: Label, interior: float) -> float:
+	"""How tall one label's text is once wrapped into a given width, measured from the font."""
+	if label == null or label.text.is_empty() or interior <= 0.0:
+		return 0.0
+	var font: Font = label.get_theme_font(&"font")
+	if font == null:
+		return 0.0
+	return font.get_multiline_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, interior,
+		label.get_theme_font_size(&"font_size")).y
+
+
+func _place_history_interior() -> void:
+	"""Give UI-SET-012 its header line and the scrolling body below it.
+
+	The body takes everything the panel has left. A ScrollContainer with a wrapping column
+	inside it is what makes "wrapping and vertical scrolling" true of the expanded view rather
+	than asserted of it: the rows are as tall as their text needs and the body scrolls.
+	"""
+	var panel: Control = _zones[ID_HISTORY]
+	_history_header.offset_bottom = -(panel.size.y - PANEL_PADDING - HISTORY_HEADER_HEIGHT)
+	var top: float = PANEL_PADDING + HISTORY_HEADER_HEIGHT + ROW_GAP
+	_set_rect(_history_scroll, Rect2(PANEL_PADDING, top,
+		panel.size.x - 2.0 * PANEL_PADDING, panel.size.y - top - PANEL_PADDING))
+	_history_body.custom_minimum_size = Vector2(_history_scroll.size.x, 0.0)
 
 
 func _wrap_children(owner_id: int, children: Array, owner_size: Vector2) -> void:
@@ -1124,23 +1344,61 @@ func _place(id: int, rect: Rect2) -> void:
 	_set_rect(_zones[id] as Control, rect)
 
 
-func _wrapped_alert_height() -> float:
-	"""How tall the alert message is once wrapped into the card's own interior width.
+func _place_alert_cards() -> void:
+	"""Lay the alert cards out at their measured heights, then print what each one may show.
+
+	The layout decides whether a card has room for its full message; this reads that answer back
+	and writes either the whole message or the authored compact summary into the card. The two
+	cannot disagree, because the text is chosen AFTER the rectangle that has to hold it.
+	"""
+	_measured_cards[0] = _measured_full_height()
+	for index: int in range(1, _measured_cards.size()):
+		_measured_cards[index] = 0.0
+	if not _layout.alert_stack_into(_geometry.profile, _geometry.alerts.size.x,
+			_measured_cards, _alert_stack):
+		return
+	if _alert_stack.visible_count <= 0:
+		return
+	_place_local(ID_ALERT_CARD, _alert_stack.rects[0])
+	_print_card_text(_alert_stack.summarised[0] == 1)
+
+
+func _print_card_text(summarised: bool) -> void:
+	"""Write the card's visible line: the authored summary, or the whole original message.
+
+	Neither branch shortens anything. The summary is an authored title from `ui_notices.gd`; the
+	full branch is the message byte for byte. The accessible description carries the WHOLE
+	message either way, which is the ruling's access guarantee.
+
+	`_refresh_card()` has already written the full message, so a shell that has never been laid
+	out -- no window, zero size -- still shows the notice rather than an empty card. This is the
+	call that REPLACES it with the authored summary once a rectangle exists to judge against.
+	"""
+	if _card_index < 0:
+		_alert_message.text = ""
+		return
+	_alert_message.text = _card_notice.summary if summarised else _card_notice.message
+
+
+func _measured_full_height() -> float:
+	"""How tall the card's FULL message would be, wrapped into the card's own interior width.
 
 	Measured from the font rather than read off the Label, because an autowrap Label reports a
 	SINGLE LINE from `get_minimum_size()` until its width is constrained -- and its width comes
-	from the card this number is sizing. Measuring the text directly breaks that circle."""
-	var interior: float = _geometry.alerts.size.x - UiLayout.ALERT_CARD_MARGIN \
-		- 2.0 * PANEL_PADDING
-	if _alert_message == null or _alert_message.text.is_empty() or interior <= 0.0:
+	from the card this number is sizing. Measuring the text directly breaks that circle. The
+	interior subtracts the severity icon and its gap, which is what the text actually gets."""
+	var interior: float = UiLayout.alert_summary_width(_geometry.profile,
+		_geometry.alerts.size.x)
+	if _card_index < 0 or _card_notice.message.is_empty() or interior <= 0.0:
 		return 0.0
 	var font: Font = _alert_message.get_theme_font(&"font")
 	if font == null:
 		return 0.0
-	var font_size: int = _alert_message.get_theme_font_size(&"font_size")
-	var wrapped: Vector2 = font.get_multiline_string_size(_alert_message.text,
-		HORIZONTAL_ALIGNMENT_LEFT, interior, font_size)
-	return wrapped.y + 2.0 * PANEL_PADDING
+	## The NOTICE's own message, not the Label's text: once `_print_card_text()` has written the
+	## authored summary the Label no longer holds the thing being measured, and measuring the
+	## summary would let the card oscillate between the two presentations on successive passes.
+	return font.get_multiline_string_size(_card_notice.message, HORIZONTAL_ALIGNMENT_LEFT,
+		interior, _alert_message.get_theme_font_size(&"font_size")).y + 2.0 * PANEL_PADDING
 
 
 func _place_local(id: int, rect: Rect2) -> void:
@@ -1291,19 +1549,106 @@ func set_pause_display(paused: bool, reasons: String) -> void:
 
 
 func set_alert_display(text: String) -> void:
-	"""UI-SET-011's card. An empty stack is hidden, so it "does not block world" (§4.1).
+	"""UI-SET-011's card, from a caller that has not named the condition it is reporting.
 
-	The message WRAPS rather than clipping (UXV-032), so the card is content-sized through
-	`ui_layout.alert_card_sized()`. A fixed-height card drew three wrapped lines over the
-	pause line at NARROW, and overlap is worse than the clipping it replaced."""
+	`hud.gd` owns this entry point and hides the card by passing an empty string when its hold
+	expires; that HIDES the card and resolves nothing, so the notice stays in the history and
+	the condition stays active. A non-empty string is recorded as an uncategorised settlement
+	notice -- truthful, because that is all the caller said -- while every condition this
+	interface actually knows about goes through `raise_notice()` with its real category.
+	"""
+	if text.is_empty():
+		_card_hidden = true
+		_refresh_card()
+		return
+	raise_notice(UiNotices.CATEGORY_SETTLEMENT_NOTICE, text, "", "", "")
+
+
+func raise_notice(category: int, message: String, source: String, code: String,
+		recovery: String) -> bool:
+	"""Record one condition in full and show its card. The whole content stays reachable.
+
+	R-UI-ALERT-001: the compact card is an authored summary and "the exact detailed reason,
+	validation code and recovery stay in the notice record". Both halves are written here, in
+	one call, so a caller cannot supply a summary without the detail behind it.
+	"""
+	if not UiNotices.is_category(category):
+		return _refuse(REFUSE_NOTICE_CATEGORY)
+	if not _notices.push(category, message, source, code, recovery, _notice_tick()):
+		return _refuse(_notices.last_refusal())
+	_card_hidden = false
+	_refresh_card()
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _notice_tick() -> int:
+	"""The tick a notice is first seen at, for §7's "earliest tick" ordering.
+
+	`GameManager` owns the clock. Off-tree -- the headless suite builds this shell without an
+	autoload scene -- there is no clock to read, and 0 is the honest answer for "before the
+	world started" rather than a wall-clock reading that would reorder cards between runs.
+	"""
+	if not is_inside_tree():
+		return 0
+	return GameManager.get_completed_tick()
+
+
+func _refresh_card() -> void:
+	"""Repaint UI-SET-011 from the highest-severity active notice, or hide it when none is.
+
+	"State updates must not steal focus or generate repeated announcements without a real notice
+	change": nothing here grabs focus, and the accessible description is rewritten only when the
+	notice ID on the card actually changes, which `notice_announcements()` counts.
+	"""
+	_apply_trigger_semantics()
+	var top: IntMath.IntResult = _notices.top_active()
+	if not top.ok or _card_hidden:
+		_card_index = -1
+		_show_alert_card(false)
+		return
+	_card_index = top.value
+	_notices.notice_into(_card_index, _notices.active_count() - 1, _card_notice)
+	if _card_notice.id != _card_notice_id:
+		_card_notice_id = _card_notice.id
+		_announcements += 1
+	_apply_card_semantics()
+	_alert_message.text = _card_notice.message
+	_show_alert_card(true)
+
+
+func _apply_trigger_semantics() -> void:
+	"""UI-SET-102's value binding: "Notification history; "+unread_count+" unread"."""
+	var trigger: Button = _controls[ID_HISTORY_TRIGGER] as Button
+	var text: String = "Notification history; %d unread" % _notices.active_count()
+	trigger.accessibility_description = text
+	trigger.tooltip_text = text
+
+
+func _apply_card_semantics() -> void:
+	"""Give the card its severity icon, its colour and its full accessible description.
+
+	The description carries the WHOLE original message and names the `Open alert details`
+	action, so a player with hover tooltips disabled still has a complete access path -- the
+	ruling says in terms that a tooltip alone is not one.
+	"""
 	var card: Panel = _controls[ID_ALERT_CARD] as Panel
-	card.accessibility_description = text
-	card.tooltip_text = text
-	card.visible = not text.is_empty()
-	_alert_message.text = text
+	var accessible: String = _notices.accessible_text(_card_notice)
+	card.accessibility_name = "%s %s. %s" % [_registry.element_key(ID_ALERT_CARD),
+		_registry.name_of(ID_ALERT_CARD), _card_notice.severity_word]
+	card.accessibility_description = accessible
+	card.tooltip_text = accessible
+	_alert_icon.texture = load(_card_notice.icon_path) as Texture2D
+	_alert_icon.modulate = UiTheme.color_of(_card_notice.color_token)
+
+
+func _show_alert_card(shown: bool) -> void:
+	"""Show or hide UI-SET-011 and its stack, and rebuild the click-through table for it."""
+	(_controls[ID_ALERT_CARD] as Control).visible = shown
+	(_controls[ID_ALERT_STACK] as Control).visible = shown
+	if not shown:
+		_alert_message.text = ""
 	_apply_geometry()
-	var stack: Panel = _controls[ID_ALERT_STACK] as Panel
-	stack.visible = not text.is_empty()
 	_register_hit_regions()
 
 
@@ -1314,6 +1659,7 @@ func set_refusal_display(text: String) -> void:
 	panel.tooltip_text = text
 	panel.visible = not text.is_empty()
 	_error_line.text = text
+	_apply_geometry()
 	_register_hit_regions()
 
 
@@ -1368,9 +1714,214 @@ func _on_expand_pressed() -> void:
 
 
 func _on_history_pressed() -> void:
-	"""UI-SET-102: open the notification history."""
-	_toggle_zone(ID_HISTORY)
+	"""UI-SET-102: open the WHOLE history, or close whatever the trigger opened.
+
+	§4: "activates 012; N shortcut". It selects no notice and -- the ruling is explicit --
+	"neither acknowledges nor resolves a condition automatically", so nothing here calls
+	`resolve()` and the active card is exactly the same afterwards.
+	"""
+	if (_zones[ID_HISTORY] as Control).visible:
+		close_notice_details()
+	else:
+		open_notice_history()
 	shell_action.emit(ID_HISTORY_TRIGGER)
+
+
+func _on_alert_card_input(event: InputEvent) -> void:
+	"""R-UI-ALERT-001: pointer activation or Enter/Space on the card discloses the whole notice.
+
+	UI §5 assigns Space to `time_pause` "with world focus"; a focused HUD card is not world
+	focus, so this consumes Space and `main.gd`'s `_unhandled_input` never sees it. Enter is the
+	project's own `ui_accept`, which is declared Enter-only for exactly that reason.
+	"""
+	if not _is_activation(event):
+		return
+	_consume(event)
+	if _details_index >= 0 and _details_index == _card_index:
+		close_notice_details()
+		return
+	open_notice_details()
+
+
+func _consume(event: InputEvent) -> void:
+	"""Take one event out of the chain so no other handler acts on the same key or click.
+
+	Off-tree -- the headless suite builds this shell without a Window -- there is no Viewport to
+	tell, so the Control's own `accept_event()` is used instead of one that would fail there.
+	"""
+	if is_inside_tree():
+		get_viewport().set_input_as_handled()
+		return
+	(_controls[ID_ALERT_CARD] as Control).accept_event()
+
+
+func _is_activation(event: InputEvent) -> bool:
+	"""True for a left click, Enter, or Space on the focused card. Nothing else activates it."""
+	var button_event: InputEventMouseButton = event as InputEventMouseButton
+	if button_event != null:
+		return button_event.pressed and button_event.button_index == MOUSE_BUTTON_LEFT
+	var key_event: InputEventKey = event as InputEventKey
+	if key_event == null or not key_event.pressed or key_event.echo:
+		return false
+	return key_event.keycode == KEY_ENTER or key_event.keycode == KEY_KP_ENTER \
+		or key_event.keycode == KEY_SPACE
+
+
+func open_notice_details() -> bool:
+	"""Open UI-SET-012 with the card's own notice selected and its full details expanded.
+
+	Refuses when no notice is on the card, rather than opening an empty panel that claims to be
+	showing something. Focus moves INTO the expanded view so a screen reader announces the
+	disclosure; `close_notice_details()` puts it back on the card that opened it.
+	"""
+	if _card_index < 0:
+		return _refuse(REFUSE_NO_NOTICE)
+	return _open_history_with(_card_index, ID_ALERT_CARD)
+
+
+func open_notice_history() -> bool:
+	"""Open UI-SET-012 on the whole history with no notice selected, as the N shortcut does."""
+	return _open_history_with(-1, ID_HISTORY_TRIGGER)
+
+
+func _open_history_with(selected: int, opener: int) -> bool:
+	"""Show UI-SET-012, fill it, and take focus. Resolves and acknowledges nothing."""
+	_details_index = selected
+	_details_opener = opener
+	_suspend_error_panel(true)
+	var panel: Control = _zones[ID_HISTORY]
+	panel.visible = true
+	_raise_above_hud(panel)
+	_refresh_history()
+	_apply_geometry()
+	_register_hit_regions()
+	_wire_details_focus(true)
+	_focus.focus_element(ID_HISTORY)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func close_notice_details() -> bool:
+	"""Close UI-SET-012 and return focus to the control that opened it.
+
+	§2.2: "On close, focus returns to the opening control if still present". The opener is the
+	alert card when the card disclosed itself and the history trigger when the trigger opened
+	the whole history, and both are permanent HUD stops, so neither branch leaves focus on a
+	control that has just been hidden.
+	"""
+	var panel: Control = _zones[ID_HISTORY]
+	panel.visible = false
+	_suspend_error_panel(false)
+	_wire_details_focus(false)
+	_details_index = -1
+	_register_hit_regions()
+	var returned: bool = _focus.focus_element(_details_opener)
+	_details_opener = ID_HISTORY_TRIGGER
+	if not returned:
+		return _refuse(_focus.last_refusal())
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _raise_above_hud(panel: Control) -> void:
+	"""Draw an open expansion above the permanent HUD, and keep §3's overlays above it.
+
+	`ui_hit_test.gd` already puts LAYER_EXPANSION above LAYER_PERMANENT_HUD, so a click on the
+	open history goes to the history. The DRAW order did not agree: the minimap frame and the
+	command strip are built after it and were painted straight over the expanded view in the
+	native capture. Child order is what Godot draws by, so the node is moved rather than given
+	a `z_index` that the hit table knows nothing about. The tooltip, the focus outline and the
+	quick menu are re-raised afterwards, because §3 puts all three above every surface.
+	"""
+	move_child(panel, -1)
+	for id: int in [ID_QUICK_MENU, ID_TOOLTIP, ID_FOCUS_OUTLINE]:
+		if _controls.has(id):
+			move_child(_controls[id] as Control, -1)
+
+
+func _suspend_error_panel(suspended: bool) -> void:
+	"""Stand UI-SET-085 down while UI-SET-012 is open, and put it back when it closes.
+
+	§3 allows ONE expansion per zone, and both live in the top-centre column. At NARROW the
+	logical viewport is 480 tall: the pause line, a five-line UI-SET-085 and UI-SET-012's 280 px
+	minimum cannot all be stacked below the alerts zone, and the native capture showed the
+	history buried behind the error panel and the command strip.
+
+	Nothing is lost and nothing is acknowledged. The refusal is a retained Error notice, so the
+	expanded view that replaces the panel contains the same code, reason and recovery plus the
+	rest of the history; the condition stays active and its card stays on screen. RAISED, NOT
+	DECIDED: §1.2 fixes no precedence between two open top-centre surfaces, and this takes the
+	narrowest reading that keeps the thing the player just asked for readable.
+	"""
+	var panel: Control = _zones[ID_ERROR_PANEL]
+	if suspended:
+		_error_was_visible = panel.visible
+		panel.visible = false
+		return
+	panel.visible = _error_was_visible and not _error_line.text.is_empty()
+
+
+func _wire_details_focus(open: bool) -> void:
+	"""Put UI-SET-012 into the tab path between its opener and the history trigger, or take it out.
+
+	`ui_focus_order.gd`'s §8.2 table does not list 012 -- it is a CONDITION panel, not a
+	permanent stop -- so its `focus_next`/`focus_previous` are written here while it is open and
+	cleared when it closes. Without this the expanded view is reachable by pointer only, which
+	is exactly the access gap the ruling forbids.
+	"""
+	var panel: Control = _zones[ID_HISTORY]
+	if not open:
+		panel.focus_next = NodePath()
+		panel.focus_previous = NodePath()
+		return
+	var trigger: Control = _controls[ID_HISTORY_TRIGGER]
+	panel.focus_next = panel.get_path_to(trigger)
+	panel.focus_previous = panel.get_path_to(_controls[_details_opener] as Control)
+
+
+func _refresh_history() -> void:
+	"""Fill UI-SET-012: every retained notice in §7's order, the selected one expanded.
+
+	Nothing is shortened. A row wraps and the body scrolls, which is how the whole message,
+	source, code and recovery stay readable however long they are.
+	"""
+	var written: int = _notices.order_into(_history_order)
+	var shown: int = mini(written, HISTORY_ROWS)
+	for row: int in HISTORY_ROWS:
+		var label: Label = _history_rows[row]
+		label.visible = row < shown
+		if row < shown:
+			label.text = _history_row_text(_history_order[row])
+	_history_header.text = _history_header_text(written, shown)
+	var panel: Control = _zones[ID_HISTORY]
+	panel.accessibility_name = "012 Notice history, %d entries" % written
+	panel.accessibility_description = _history_announcement(written)
+
+
+func _history_row_text(index: int) -> String:
+	"""One history row: the selected notice expanded in full, any other as one summary line."""
+	if not _notices.notice_into(index, 0, _row_notice):
+		return ""
+	if index == _details_index:
+		return _notices.detail_text(_row_notice)
+	return "%s %s" % [_row_notice.summary, _row_notice.message]
+
+
+func _history_header_text(retained: int, shown: int) -> String:
+	"""UI-SET-012's own line: how many notices are retained, and how many are on screen."""
+	if shown >= retained:
+		return "Notification history: %d retained, %d active." % [retained,
+			_notices.active_count()]
+	return "Notification history: %d retained, showing the newest %d; %d active." % [retained,
+		shown, _notices.active_count()]
+
+
+func _history_announcement(retained: int) -> String:
+	"""What a screen reader is given when the expanded view opens: the selected notice in full."""
+	if _details_index < 0:
+		return "%s %d notices retained." % [_history_header.text, retained]
+	_notices.notice_into(_details_index, 0, _row_notice)
+	return _notices.detail_text(_row_notice)
 
 
 func _on_calendar_pressed() -> void:
@@ -1759,8 +2310,81 @@ func ledger_label() -> Label:
 
 
 func alert_label() -> Label:
-	"""UI-SET-011's message text."""
+	"""UI-SET-011's message text: the authored summary, or the whole message when it fits."""
 	return _alert_message
+
+
+func alert_icon() -> TextureRect:
+	"""UI-SET-011's severity icon, which §7 requires beside the severity word."""
+	return _alert_icon
+
+
+func notices() -> UiNotices:
+	"""The retained notice record every card is drawn from."""
+	return _notices
+
+
+func card_notice_into(out: UiNotices.Notice) -> bool:
+	"""Expand the notice currently on the card. Refuses when no card is showing one."""
+	if _card_index < 0:
+		return _refuse(REFUSE_NO_NOTICE)
+	if not _notices.notice_into(_card_index, _notices.active_count() - 1, out):
+		return _refuse(_notices.last_refusal())
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func card_is_summarised() -> bool:
+	"""True when the visible card is drawing its authored summary instead of the full message."""
+	return _alert_stack.visible_count > 0 and _alert_stack.summarised[0] == 1
+
+
+func alert_stack() -> UiLayout.Stack:
+	"""Where the layout put the alert cards, and which of them had to summarise."""
+	return _alert_stack
+
+
+func notice_details_open() -> bool:
+	"""True while UI-SET-012 is showing."""
+	return (_zones[ID_HISTORY] as Control).visible
+
+
+func selected_notice() -> IntMath.IntResult:
+	"""Which notice the expanded view has selected, or a refusal when none is."""
+	if _details_index < 0:
+		_refuse(REFUSE_NO_NOTICE)
+		return IntMath.IntResult.new(false, 0)
+	_last_refusal = REFUSE_NONE
+	return IntMath.IntResult.new(true, _details_index)
+
+
+func history_rows() -> Array[Label]:
+	"""UI-SET-012's built rows, for reading back what the expanded view actually printed."""
+	return _history_rows
+
+
+func history_header() -> Label:
+	"""UI-SET-012's own line: how many notices are retained, shown and active."""
+	return _history_header
+
+
+func history_scroll() -> ScrollContainer:
+	"""The expanded view's scrolling body, which is what makes long content reachable."""
+	return _history_scroll
+
+
+func notice_announcements() -> int:
+	"""How many times the card has changed to a DIFFERENT notice.
+
+	A repaint that reports the same condition does not raise this, which is the property behind
+	"State updates must not ... generate repeated announcements without a real notice change".
+	"""
+	return _announcements
+
+
+func activate_alert_card(event: InputEvent) -> void:
+	"""Drive the card's own activation path from a synthetic event, for the input suite."""
+	_on_alert_card_input(event)
 
 
 func status_label() -> Button:

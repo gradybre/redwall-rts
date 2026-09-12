@@ -541,3 +541,12 @@ Close MOVE-G03 by extending this document's component registry and existing resp
 | Accessibility | Domain and route state indicated by text/icon as well as color; keyboard focus and screen-reader labels included |
 
 Canonical state labels for binding are `Planning route`, `Waiting for access`, `Digging`, `Using tunnel`, `Climbing`, `Swimming`, `Diving`, `Returning to air`, `Blocked: no exit`, and `Blocked: load does not fit`. Show each only when the corresponding committed state/reason exists. A closed visual cutaway cannot change discovery or simulation visibility. The existing 1280×720 through 3840×2160 layout range and plain operational wording remain required.
+
+## Alert text by profile — 2026-09-12
+
+[ALERT-R02](rulings/2026-09-12_alerts_and_seed_expiry.md) clarifies R-UI-ALERT-001:
+NARROW always uses authored compact summary; STANDARD/WIDE prefer full messages
+inside the existing96px zone and adaptively pack up to two cards with summary
+fallback. Full source text remains available through accessible selected-notice
+details. Do not treat a compact producer string as the original full message,
+or let growing cards overlap. Existing history-rail geometry remains binding.

@@ -76,7 +76,7 @@ remains required separately from these authored ceilings.
 
 ## 2026-09-11 — 06.1's first increment landed
 
-[Decision 0080](../decisions/0080-the-packed-building-room-and-furniture-stores.md) publishes the Milestone and Station domains and lands the packed **Building, Room and Furniture** stores with R-BUILD-DOM-003's presence mask, the earned-bit unlock gate, the §4.1–4.3 catalog facts and the Station provider binding. 06.1 stays **unchecked**: its **Construction** store, its **service and storage indexes**, and the PLACE_BLUEPRINT/PLACE_FURNITURE/DESIGNATE_ROOM/UPGRADE/DEMOLISH/SET_DOOR_OPEN command integration are not done, and neither is composition into `settlement_system.gd`. Read 0080's "What is deliberately NOT implemented" before extending any of it.
+[Decision 0080](../decisions/0088-the-packed-building-room-and-furniture-stores.md) publishes the Milestone and Station domains and lands the packed **Building, Room and Furniture** stores with R-BUILD-DOM-003's presence mask, the earned-bit unlock gate, the §4.1–4.3 catalog facts and the Station provider binding. 06.1 stays **unchecked**: its **Construction** store, its **service and storage indexes**, and the PLACE_BLUEPRINT/PLACE_FURNITURE/DESIGNATE_ROOM/UPGRADE/DEMOLISH/SET_DOOR_OPEN command integration are not done, and neither is composition into `settlement_system.gd`. Read 0080's "What is deliberately NOT implemented" before extending any of it.
 
 ## 2026-09-12 — the store is composed into the settlement
 
@@ -97,3 +97,8 @@ blockers: no owner for the starter build, no store for §5.11's starting unlock 
 owning module), no room-validity declaration, no defined edge-furniture
 representation for §5.9's x4/x5 partition and its row-4 door, and no composed
 `gear.gd` or building-owned container creation.
+
+## Astra follow-up — 2026-09-12
+
+MOVE-DEP-R05 requires actual bounded service contacts with stable contact key, destination owner reference and revision, not merely a caller-supplied positive number.
+Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.

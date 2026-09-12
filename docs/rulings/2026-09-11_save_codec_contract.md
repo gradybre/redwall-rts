@@ -221,7 +221,8 @@ The canonical registry supplies the finite record_count and ordered declarations
 missing/duplicate/unregistered fields or an order mismatch fail verification.
 
 Packed slot columns emit full schema capacity in ascending slot order, with
-unused payload normalized to zero, while preserving every generation/retirement
+unused payload set to its DECLARED canonical unused value (including-1
+reference slots), while preserving every generation/retirement
 and future-affecting allocator value. An occupancy column is emitted before
 other columns for sparse stores. Do not sort active residents by names or compact
 holes. Dense event/command sequences emit their exact used rows in execution
@@ -269,3 +270,11 @@ expanded schema, transactional recovery and Windows parity remain unverified.
 independent encoder fixtures, not production compatibility digests. Reproduce
 document/registry/arithmetic checks from the repository root with
 `python3 docs/validation/validate_blocker_package.py`. This is not a codec test run.
+
+## Follow-up — 2026-09-12
+
+[RESTORE-R01 / SAVE-LAYOUT-R01](2026-09-12_clock_restore_and_layout_followup.md)
+now provides the missing restore assignment and explicit column-major section
+framing, including canonical unused values and fixed-record exceptions. Future
+LifeStage/contact/route semantic changes require affected owner/section version
+updates; the initial vector above is not permission to reuse pre-change schemas.

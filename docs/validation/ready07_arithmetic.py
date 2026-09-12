@@ -58,10 +58,16 @@ assert DECISION_0080_ADDED==1885220
 # four columns. Counting it twice is the exact double-count this trail has suffered before.
 DECISION_0083_ADDED=(5*4*512)+(6*4*4)
 assert DECISION_0083_ADDED==10336
-assert len(allocations)==24 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED
+# Decision 0085, StockAge's container declarations and its sweep order. Four columns over
+# inventory's CONTAINER_CAPACITY. `_declared_slots` is NOT a rebuilt index: withdrawal
+# swap-removes, so its order is not recoverable, and it is the sweep order that decides which
+# freed lot slot the next create_lot() receives.
+DECISION_0085_ADDED=(1+1+4+4)*101376
+assert DECISION_0085_ADDED==1013760
+assert len(allocations)==24 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==62718682
-assert live==71107290 and candidate==56503098 and live+candidate==127610388
+assert payload==63732442
+assert live==72121050 and candidate==57516858 and live+candidate==129637908
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

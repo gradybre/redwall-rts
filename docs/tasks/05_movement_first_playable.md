@@ -103,3 +103,8 @@ Read [the asset/save/movement ruling index](../rulings/2026-09-11_asset_save_mov
 before dispatching the next increment. It supplies authoring and codec contracts,
 corrects focus/rollback classifications, and preserves the separate open
 proportion-review and full MOVE-G01 gates. It does not mark runtime work complete.
+
+## Astra follow-up — 2026-09-12
+
+PATH-R02 replaces mandatory anchor composition with exact-start A*; MOVE-DEP-R01–05 explicitly bind the five missing owners. Full05.1b and movement gates remain open.
+Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.

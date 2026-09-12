@@ -70,6 +70,25 @@ extends RefCounted
 ##   * THE OVERLOAD LADDER'S ARITHMETIC STAYS IN `sim_clock.gd`. This module only carries the
 ##     decided rung through the barrier; `overload_ladder_target()` still chooses it.
 ##
+## ---------------------------------------------------------------------------------------
+## THE LOAD BARRIER IS THE CLOCK'S, NOT A SECOND ONE (RESTORE-R01, decision 0098). This queue owns
+## no barrier state and allocates none: `is_load_barrier_held()` below asks `_clock`, so the queue
+## and the clock it applies events to can never disagree about whether a load is open. While it is
+## held, EVERY admission, the pump, `clear()`, `rebind_clock()`, `begin_host_frame()` and
+## `advance_frame()` refuse and change no queue state -- not one column, not the head, not the
+## count, not the sequence, and not the refusal diagnostics either.
+##
+## `rebind_clock()` is barred for a second reason beyond the ruling naming it: this queue reads the
+## barrier THROUGH its clock, so a rebind under a held barrier would be an escape from the barrier
+## as well as a re-basing of stamped events.
+##
+## THE LOADER'S OWN INSTALL OPERATIONS PASS THROUGH, exactly as the clock's `restore_runtime()`
+## does: `restore_extension()` and `restore_sequence()` are the section 12 install path, and the
+## barrier is raised FOR them. `restore_extension()` therefore resets the columns through the
+## private `_reset_to_initial_state()` rather than the public `clear()` it used to call, so that
+## barring the public command cannot break the privileged path that shares its body.
+##
+## ---------------------------------------------------------------------------------------
 ## ALLOCATE BEFORE CONSUME. Every admission validates capacity, sequence room and the whole
 ## envelope BEFORE one column is written, so a refusal leaves the queue byte-identical -- same
 ## rows, same head, same count, same next sequence.
@@ -214,6 +233,10 @@ const REFUSE_SECTION_COUNT: StringName = &"SCHEDULER_SECTION_COUNT"
 const REFUSE_SECTION_HEAD: StringName = &"SCHEDULER_SECTION_HEAD"
 const REFUSE_SECTION_CONTROL: StringName = &"SCHEDULER_SECTION_CONTROL"
 const REFUSE_SECTION_APPLIED_ORDER: StringName = &"SCHEDULER_SECTION_APPLIED_ORDER"
+## RESTORE-R01's shared barrier. Reported through the caller's `SubmitResult` only: a barred call
+## deliberately leaves `last_refusal()` and `refused_count()` alone, because the barrier is not a
+## property of the request and the queue must stay byte-identical across one.
+const REFUSE_LOAD_BARRIER: StringName = &"SCHEDULER_LOAD_BARRIER"
 
 
 class Event:
@@ -360,7 +383,7 @@ func _init(p_clock: SimClock = null) -> void:
 	_pump_callable = Callable(self, "_pump_hook")
 	_step_callable = Callable(self, "_step_hook")
 	_overload_callable = Callable(self, "_overload_hook")
-	clear()
+	_reset_to_initial_state()
 
 
 func _assert_contracts() -> void:
@@ -386,12 +409,25 @@ func _allocate_columns() -> void:
 		column.resize(QUEUE_CAPACITY)
 
 
-func clear() -> void:
+func clear() -> bool:
 	"""Return the queue and its sequence to the contract's stated initial state.
 
 	This is world initialization, not a drain: it discards pending events and resets the sequence,
 	so nothing that survives a save may call it.
+
+	BARRED UNDER THE LOAD BARRIER, changing nothing: discarding a restored queue mid-load is the
+	exact loss the barrier exists to prevent. Returns false then, and true when it ran, so the
+	refusal is explicit rather than a silent no-op. `restore_extension()` reaches the same reset
+	through `_reset_to_initial_state()`, which is the privileged install path.
 	"""
+	if _command_barred():
+		return false
+	_reset_to_initial_state()
+	return true
+
+
+func _reset_to_initial_state() -> void:
+	"""The reset itself, with no barrier check: `clear()` and the section 12 install share it."""
 	_boundary_tick.fill(0)
 	for column: PackedInt32Array in [_sequence_low, _sequence_high, _kind, _reason, _value,
 			_reserved]:
@@ -527,6 +563,36 @@ func _admission_refusal(event: Event, reserve_eligible: bool) -> StringName:
 	return event_refusal(event)
 
 
+# --- the shared load barrier -------------------------------------------------------------------------
+
+func is_load_barrier_held() -> bool:
+	"""True while a load holds THE CLOCK'S barrier. This queue keeps no barrier state of its own."""
+	return _clock.is_load_barrier_held()
+
+
+func _command_barred() -> bool:
+	"""True when the barrier bars an OPERATIONAL queue command. Every guarded entry calls this.
+
+	That surface is every `submit_*`/`admit_*` admission, `pump_into`, `clear`, `rebind_clock`,
+	`begin_host_frame` and `advance_frame`. `restore_extension()` and `restore_sequence()` are
+	deliberately NOT on it -- they are the loader's own install operations, and the barrier is
+	raised for them rather than against them.
+	"""
+	return _clock.is_load_barrier_held()
+
+
+func _refuse_barred(out: SubmitResult) -> bool:
+	"""Report a barred admission in the caller's result while leaving this queue untouched.
+
+	`out` is caller-owned memory, so filling it is output, not mutation: leaving a reused result
+	carrying a previous success would let a careless caller read `ok` and believe its event was
+	admitted. The queue's own `_refused_count`/`_last_refusal` are deliberately NOT touched, which
+	is what makes "the barrier changed nothing" a comparison a test can make exactly.
+	"""
+	out.fill(false, REFUSE_LOAD_BARRIER, false, false)
+	return false
+
+
 # --- admission ------------------------------------------------------------------------------------------
 
 func submit_speed_into(value: int, out: SubmitResult) -> bool:
@@ -535,7 +601,12 @@ func submit_speed_into(value: int, out: SubmitResult) -> bool:
 	Normal traffic, so it refuses at 250 queued events rather than eating the control reserve.
 	A repeat of the speed already requested is still admitted and still takes a new sequence: the
 	contract coalesces only an INTERNAL producer's duplicate pause hold, never a user repeat.
+
+	Barred under the load barrier: a speed the player asked for during a load is a command against
+	a world still being installed, and the restored queue gains no record of it.
 	"""
+	if _command_barred():
+		return _refuse_barred(out)
 	_scratch.reset()
 	_scratch.kind = KIND_SET_REQUESTED_SPEED
 	_scratch.reason = SPEED_REASON_NONE
@@ -549,7 +620,12 @@ func submit_pause_into(producer: int, reason: int, value: int, out: SubmitResult
 	Normal traffic. Ownership is the contract's "Each producer is allowed only its own pause
 	reason": a generic UI toggle cannot clear CRITICAL or LOAD, because it cannot name itself
 	their owner. The producer constants ARE the reason bits, so no id space is invented.
+
+	Barred under the load barrier, BEFORE the ownership check, so a barred call cannot be recorded
+	as an ownership refusal either. `submit_player_resume_into()` is barred through this.
 	"""
+	if _command_barred():
+		return _refuse_barred(out)
 	if producer != reason:
 		return _refuse(out, REFUSE_PRODUCER_NOT_OWNER)
 	_scratch.reset()
@@ -575,7 +651,12 @@ func submit_safety_hold_into(reason: int, out: SubmitResult) -> bool:
 	hold after a pending clear is not incorrectly dropped." A coalesced hold returns ok with
 	`admitted` false and CONSUMES NO SEQUENCE. Reserve-eligible, so a safety pause is never the
 	admission the 250-record normal cap refuses.
+
+	Barred under the load barrier before the coalescing scan, so a barred hold neither joins the
+	queue nor counts as coalesced against a queue the load is still installing.
 	"""
+	if _command_barred():
+		return _refuse_barred(out)
 	var refusal: StringName = _pause_refusal(reason, VALUE_HOLD)
 	if refusal != REFUSE_NONE:
 		return _refuse(out, refusal)
@@ -612,7 +693,12 @@ func submit_overload_downgrade_into(target_speed: int, out: SubmitResult) -> boo
 	the CRITICAL diagnostic hold. Reserve-eligible and AT MOST ONE PER HOST FRAME -- the contract
 	requires the next frame to pump before another can be produced, which `begin_host_frame()`
 	enforces by clearing the flag.
+
+	Barred under the load barrier: no frame advances during a load, so no overload can have
+	happened, and this frame's single issue is left unspent.
 	"""
+	if _command_barred():
+		return _refuse_barred(out)
 	if _overload_issued_this_frame:
 		return _refuse(out, REFUSE_OVERLOAD_ALREADY_ISSUED)
 	if target_speed == SimClock.SPEED_PAUSED:
@@ -656,7 +742,13 @@ func admit_stamped_into(event: Event, out: SubmitResult) -> bool:
 	Contract: "Imported replay records with non-increasing sequence, past/future barrier or
 	invalid fields refuse." The session counter is NOT advanced -- a loader restores it with
 	`restore_sequence()`. The (0,0) sentinel is never a valid event and refuses here too.
+
+	Barred under the load barrier: this is admission, which the ruling bars by name. The section 12
+	load path does NOT come through here -- `restore_extension()` installs a saved queue wholesale,
+	and it is the operation the barrier is raised for.
 	"""
+	if _command_barred():
+		return _refuse_barred(out)
 	var refusal: StringName = _stamped_envelope_refusal(event)
 	if refusal == REFUSE_NONE:
 		refusal = _admission_refusal(event, false)
@@ -762,7 +854,15 @@ func pump_into(out: PumpReport) -> int:
 	Runs between fixed ticks AND on paused host frames, which is what lets an unpause arrive
 	without waiting for the tick the pause prevents. No simulation tick runs between two events of
 	one prefix. Returns the number applied.
+
+	BARRED UNDER THE LOAD BARRIER, which is RESTORE-R01's "checked before scheduler pumping" at the
+	queue itself rather than only in a coordinator. Nothing is drained, applied or counted; `out`
+	is reset to zero applied so a reused report cannot be read as this pump's result. The 0 is
+	true, and `is_load_barrier_held()` separates it from a pump that had nothing due.
 	"""
+	if _command_barred():
+		out.reset(_clock.completed_tick())
+		return 0
 	var boundary: int = _clock.completed_tick()
 	out.reset(boundary)
 	while _count > 0 and _boundary_tick[_head] <= boundary:
@@ -822,8 +922,19 @@ func _overload_hook() -> void:
 	_clock.note_overload_step(target)
 
 
-func begin_host_frame() -> void:
-	"""Open one host frame: the overload producer regains its single downgrade for this frame."""
+func begin_host_frame() -> bool:
+	"""Open one host frame: the overload producer regains its single downgrade for this frame.
+
+	Barred under the load barrier, where there is no host frame to open. Returns whether it ran.
+	"""
+	if _command_barred():
+		return false
+	_open_host_frame()
+	return true
+
+
+func _open_host_frame() -> void:
+	"""Restore this frame's single overload issue, with no barrier check. Shared with the guard."""
 	_overload_issued_this_frame = false
 
 
@@ -834,8 +945,15 @@ func advance_frame(elapsed_microseconds: int, step: Callable = Callable(),
 	The opening pump is what runs on a PAUSED frame, where `sim_clock.advance()` returns 0 before
 	considering any tick. Inside the frame the same pump runs again before each tick decision, so
 	a pause admitted during tick 3 of an eight-tick catch-up stops tick 4.
+
+	BARRED UNDER THE LOAD BARRIER before the frame is opened, so a load that spans many host frames
+	pumps nothing and folds no elapsed time into the clock. `sim_clock.advance()` refuses the same
+	frame on its own account; both guards are deliberate, because either entry point can be reached
+	directly through the raw objects a coordinator hands out.
 	"""
-	begin_host_frame()
+	if _command_barred():
+		return 0
+	_open_host_frame()
 	pump_into(_pump_scratch)
 	_hosted_step = step
 	var ran: int = _clock.advance(elapsed_microseconds, _step_callable, day_boundary,
@@ -1062,6 +1180,10 @@ func restore_extension(bytes: PackedByteArray, byte_offset: int, saved_completed
 	Restores records from row 0 with every unused row zeroed, so two loads of the same bytes
 	produce byte-identical columns. `clear()` runs only after validation has passed, which is what
 	makes a rejected file leave the live queue untouched.
+
+	PASSES THROUGH THE LOAD BARRIER. This is the section 12 install the barrier is raised for, so it
+	is not guarded; it resets through `_reset_to_initial_state()` rather than the public `clear()`,
+	which IS guarded, so that the command and the install cannot be confused for one another.
 	"""
 	var refusal: StringName = extension_refusal(bytes, byte_offset, saved_completed_tick)
 	if refusal != REFUSE_NONE:
@@ -1069,7 +1191,7 @@ func restore_extension(bytes: PackedByteArray, byte_offset: int, saved_completed
 		return false
 	var control: int = byte_offset + EXTENSION_HEADER_BYTES
 	var count: int = bytes.decode_s32(control + OFFSET_CONTROL_COUNT)
-	clear()
+	_reset_to_initial_state()
 	for index: int in count:
 		decode_event_into(bytes, byte_offset + EXTENSION_FIXED_BYTES + index * RECORD_BYTES,
 			_decode_scratch)
@@ -1148,6 +1270,8 @@ func restore_sequence(high: int, low: int) -> bool:
 	Restoring under a non-empty queue could mint a number already in it, so it refuses instead.
 	(0,0) is accepted here and only here: a world whose sequence was exhausted before the save
 	must come back exhausted rather than silently restarting at 1.
+
+	PASSES THROUGH THE LOAD BARRIER, as the loader hook it is.
 	"""
 	if high < 0 or high > U32_MAX or low < 0 or low > U32_MAX:
 		_last_refusal = REFUSE_SEQUENCE_RANGE
@@ -1166,7 +1290,13 @@ func rebind_clock(p_clock: SimClock) -> bool:
 
 	Pending events were stamped against the OLD clock's tick numbering, so re-basing them would
 	silently move when a pause or a speed change takes effect.
+
+	BARRED UNDER THE LOAD BARRIER, and doubly so: the ruling names rebind, and this queue reads the
+	barrier THROUGH `_clock`, so a rebind under a held barrier would be an escape from the barrier
+	itself. A load installs into the clock it already has; it never swaps one in.
 	"""
+	if _command_barred():
+		return false
 	if p_clock == null:
 		_last_refusal = REFUSE_NO_CLOCK
 		return false

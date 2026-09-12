@@ -33,10 +33,23 @@ explicitly for additive regrowth/other behavior changes.
     and logged as REQ-SET-007's first daily leg before the season handover
     ([decision 0085](../decisions/0085-stock-aging-runs-hourly-and-declares-its-store.md)).
     The item remains open for eating/drinking/cooking service, carried meals,
-    interruption/refund and starvation integration. Three things aging still owes
-    are named in that record: the seed → compost ratio is unstated and refused,
-    a container's store kind has no building-layer owner and must be declared,
-    and REQ-SET-108's replanning has no recipe or meal store to notify.
+    interruption/refund and starvation integration. Two of the three things aging
+    owed in that record are still owed: a container's store kind has no
+    building-layer owner and must be declared, and REQ-SET-108's replanning has no
+    recipe or meal store to notify.
+  - **The seed → compost quantity is settled and implemented** (2026-09-12).
+    [STOCK-SEED-R01](../rulings/2026-09-12_alerts_and_seed_expiry.md) supplies
+    `floor_div(checked_mul(q_milli, seed_mass_g), compost_mass_g)`, per lot, with
+    the remainder booked as decay loss and a zero yield retiring the lot;
+    `stock_age.gd` implements it and
+    [decision 0090](../decisions/0090-expired-seed-converts-to-compost-by-floored-nominal-mass.md)
+    records the judgements. **Two parts of that ruling are NOT done and are not
+    this module's to do:** the seed-consumer eligibility guard exists as
+    `StockAge.refuses_seed_consumption()` but **nothing calls it** — enforcement
+    is `inventory.gd`'s under the ruling's own ownership split — and the blocking
+    critical-pause plus exactly-once retry belong to `settlement_system.gd`.
+    Continuation through the real hourly caller, save/reload and the starter
+    economy remains open exactly as decision 0085 left it.
 - [ ] 07.4 Complete sustainable forestry, crop rotations, orchards/hives, fishing
   gear/effort and preservation chains through physical work and storage. Initial
   basin stocks never multiply with player zones. Integrate SET_FIELD_ROTATION

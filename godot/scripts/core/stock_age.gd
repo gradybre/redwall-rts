@@ -47,6 +47,16 @@ extends RefCounted
 ##     IMPLEMENTED; THE NOTICE IS NOT, and is counted in `notices_owed` instead of being
 ##     invented: ARCH-SYS-021 ForecastNotice owns the Notice/NoticeCondition rows and no
 ##     Notice store exists in this repository.
+##   * STOCK-SEED-R01's expired seed -> compost conversion. IMPLEMENTED, per lot, as
+##     `floor_div(checked_mul(seed_quantity_milli, seed_mass_g), compost_mass_g)` with EXACTLY
+##     ONE final floor. The divisor is DERIVED from the two catalog masses and appears nowhere
+##     as a literal: with today's five 100 g/U seeds and 1000 g/U compost that is
+##     `floor(q/10)`, and a catalog edit moves it without editing this file. The sub-output-unit
+##     remainder is DECAY LOSS: the ENTIRE seed quantity is sunk and only the floored compost
+##     quantity sourced, so the per-item ledgers carry the loss instead of it vanishing. A lot
+##     whose output floors to zero RETIRES -- the seed is sunk and no zero-quantity compost lot
+##     is created. No cross-lot remainder carry and no remainder store exist, which is what
+##     makes `sum(floor(q_i*sm/cm)) <= floor(sum(q_i)*sm/cm)` hold: splitting cannot gain.
 ##   * REQ-SET-108's "invalidate its food reservations". IMPLEMENTED to the extent that
 ##     reservations exist: `inventory.gd` implements GDD §4.2's per-lot `reserved_milli` and
 ##     this stage releases all of it inside the same transaction as the conversion. The
@@ -68,19 +78,28 @@ extends RefCounted
 ##   2. WHETHER A ROOM IS HEATED. "Heated interiors use 1000 in winter" needs the RoomHeat
 ##      result, which has no store. `declare_storage_class()` takes the flag from its caller and
 ##      defaults it to false; this module never decides it.
-##   3. THE SEED -> COMPOST QUANTITY. §5.8 says "Seed shelf life is 1440h and spoilage becomes
-##      compost material" and states NO quantity, and REQ-SET-108's "equal mass" is written
-##      about spoiled_food specifically. Equal mass cannot simply be assumed for compost: the
-##      §5.7 compost recipe turns 4000 milli-U of spoiled_food (1000 g) into 2000 milli-U of
-##      compost (2000 g), so the settled compost conversion in this game DOUBLES mass. An
-##      expired seed lot is therefore REFUSED with `SEED_COMPOST_RATIO_UNSPECIFIED`, left byte
-##      identical, and counted in `unconvertible_seed_lots`. NO RATIO IS INVENTED.
-##   4. "TRIGGER RECIPE/MEAL REPLANNING" (REQ-SET-108). There is no recipe store, no order
+##   3. STOCK-SEED-R01'S SEED-CONSUMER ELIGIBILITY GUARD. The ruling requires every
+##      seed-consuming path -- new reservation, withdrawal, transfer into production, seed
+##      selection and the sowing/work commit, including reservations taken before the lot aged
+##      out -- to REJECT a lot whose persisted age has reached its catalog shelf threshold, and
+##      it gives ENFORCEMENT to Inventory ("Inventory owns enforcement for quantity admission").
+##      `inventory.gd` is not this module's file. What is supplied here is the predicate itself,
+##      `refuses_seed_consumption()`, derived from persisted age and the item definition with no
+##      new per-lot flag, fail-closed so a lot it cannot evaluate is never admitted. NOTHING
+##      CALLS IT YET, and no seed consumer in this repository is guarded: that is a named,
+##      unclosed handoff to the Inventory owner, not a solved problem.
+##   4. STOCK-SEED-R01'S BLOCKING INTEGRITY PAUSE. "Arithmetic, ledger or schema failure is a
+##      blocking integrity fault through the existing critical-pause path", with an
+##      exactly-once revalidated retry of the SAME expiry transaction. The critical-pause path
+##      belongs to ARCH-SYS-001/SettlementSystem, which calls this stage; a refused lot is
+##      counted in `refused_lots` and named in `last_lot_refusal` with the store left byte
+##      identical, and this module invents neither a pause nor a retry ledger.
+##   5. "TRIGGER RECIPE/MEAL REPLANNING" (REQ-SET-108). There is no recipe store, no order
 ##      store and no meal plan to replan; ARCH-SYS-014 BatchCompletion and ARCH-SYS-009's
 ##      production side do not exist. Each conversion increments `replans_owed` so the future
 ##      owner has the count, and nothing here pretends to notify anybody.
-##   5. "INVALID LEASES" in the §5 Writes column. ARCH-JOB-004's travel leases have no store.
-##   6. MERGING THE PRODUCED WASTE. Two lots that both become spoiled_food in the same
+##   6. "INVALID LEASES" in the §5 Writes column. ARCH-JOB-004's travel leases have no store.
+##   7. MERGING THE PRODUCED WASTE. Two lots that both become spoiled_food in the same
 ##      container are NOT merged here. §5.8's merge rule requires identical quality, recipe and
 ##      provenance, which the conversion CARRIES from each source, so they are frequently not
 ##      mergeable at all; REQ-SET-120 makes merging a response to reaching the lot cap, and
@@ -130,9 +149,9 @@ const REFUSE_INVALID_CONTAINER: StringName = &"INVALID_CONTAINER"
 const REFUSE_INVALID_STORAGE_CLASS: StringName = &"INVALID_STORAGE_CLASS"
 const REFUSE_NOT_DECLARED: StringName = &"CONTAINER_NOT_DECLARED"
 const REFUSE_TRANSACTION_OPEN: StringName = &"INVENTORY_TRANSACTION_OPEN"
-## GDD §5.8 states no seed -> compost quantity and §5.7's compost recipe does not conserve mass,
-## so an expired seed lot refuses rather than being converted at an invented ratio.
-const REFUSE_SEED_RATIO_UNSPECIFIED: StringName = &"SEED_COMPOST_RATIO_UNSPECIFIED"
+## STOCK-SEED-R01's conversion needs positive validated catalog masses and a product that fits
+## int64. Neither holding is a reason to write a plausible compost quantity.
+const REFUSE_SEED_YIELD_UNREPRESENTABLE: StringName = &"SEED_COMPOST_YIELD_UNREPRESENTABLE"
 ## REQ-SET-108's "equal mass" is only representable when the two catalog masses divide exactly.
 const REFUSE_MASS_NOT_CONVERTIBLE: StringName = &"SPOILAGE_MASS_NOT_CONVERTIBLE"
 
@@ -168,6 +187,10 @@ const MILLI_HOURS_PER_HOUR: int = 1000
 ## Catalog keys this stage must resolve to run §5.8's conversions. They are KEYS, never compiled
 ## ids: BAL-CAT-001 compiles ids from sorted ASCII keys, so no number may be written here.
 const SPOILED_FOOD_KEY: StringName = &"spoiled_food"
+## STOCK-SEED-R01's expiry output. The 10:1 ratio today's catalog produces is DERIVED from this
+## item's mass and the seed's, never written down: a catalog edit must move the yield, not be
+## silently overridden by a constant here.
+const COMPOST_KEY: StringName = &"compost"
 
 ## One declaration row per `inventory.gd` container slot, so a lookup is an index and never a
 ## search. Sized from the inventory's own capacity constant, so the two cannot drift.
@@ -199,7 +222,17 @@ class HourResult:
 	var reservations_invalidated_milli: int
 	var waste_removed_lots: int
 	var waste_removed_milli: int
-	var unconvertible_seed_lots: int
+	## STOCK-SEED-R01. `seed_lots_converted` is also counted in `lots_expired`, because a
+	## converted seed row IS an expired lot that became another item; a retired zero-yield seed
+	## is not, because no row survived the hour to have become anything.
+	var seed_lots_converted: int
+	var seed_lots_retired: int
+	var seed_sunk_milli: int
+	var compost_sourced_milli: int
+	## The floored-away remainder, in MILLI-GRAMS of nominal seed mass, reported so the decay
+	## loss is a measured number rather than a silent one. It is a per-hour report, never a
+	## store: STOCK-SEED-R01 forbids an authoritative mass-remainder field.
+	var seed_decay_loss_milli_g: int
 	var refused_lots: int
 	## REQ-SET-108's replanning and §5.8's removal notice, both owed to owners that do not exist.
 	var replans_owed: int
@@ -225,7 +258,11 @@ class HourResult:
 		reservations_invalidated_milli = 0
 		waste_removed_lots = 0
 		waste_removed_milli = 0
-		unconvertible_seed_lots = 0
+		seed_lots_converted = 0
+		seed_lots_retired = 0
+		seed_sunk_milli = 0
+		compost_sourced_milli = 0
+		seed_decay_loss_milli_g = 0
 		refused_lots = 0
 		replans_owed = 0
 		notices_owed = 0
@@ -268,6 +305,7 @@ var _calendar: SimClock.Calendar = SimClock.Calendar.new(0)
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _last_refusal: StringName = REFUSE_NONE
 var _spoiled_food_id: int = -1
+var _compost_id: int = -1
 ## The two §5.8 factors in force for the container currently being swept. Fixed once per
 ## container by `_resolve_hour_factors()` and read by every lot in its chain.
 var _store_factor: int = 0
@@ -309,6 +347,7 @@ func clear() -> void:
 	_last_hour_tick = NO_HOUR_RUN
 	_last_refusal = REFUSE_NONE
 	_spoiled_food_id = -1
+	_compost_id = -1
 
 
 func bind_stores(p_inventory: InventoryScript, p_definitions: ItemDefinitionsScript) -> bool:
@@ -328,6 +367,7 @@ func bind_stores(p_inventory: InventoryScript, p_definitions: ItemDefinitionsScr
 	_inventory = p_inventory
 	_definitions = p_definitions
 	_spoiled_food_id = -1
+	_compost_id = -1
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -511,9 +551,9 @@ func run_hour_into(tick: int, out: HourResult) -> bool:
 func _preflight() -> StringName:
 	"""Every input this pass needs, checked before the hour latch is consumed.
 
-	The spoiled_food id is resolved BY KEY from the compiled catalog and cached for the run: a
-	catalog with no such item cannot honour §5.8's conversion at all, and refusing here is
-	better than discovering it per lot after half the store has aged.
+	The spoiled_food and compost ids are resolved BY KEY from the compiled catalog and cached for
+	the run: a catalog with no such item cannot honour §5.8's or STOCK-SEED-R01's conversion at
+	all, and refusing here is better than discovering it per lot after half the store has aged.
 	"""
 	if _inventory == null:
 		return REFUSE_NO_INVENTORY
@@ -523,7 +563,9 @@ func _preflight() -> StringName:
 		return REFUSE_NO_ITEM_CATALOG
 	if _spoiled_food_id < 0:
 		_spoiled_food_id = _definitions.compiled_id(SPOILED_FOOD_KEY)
-	if _spoiled_food_id < 0:
+	if _compost_id < 0:
+		_compost_id = _definitions.compiled_id(COMPOST_KEY)
+	if _spoiled_food_id < 0 or _compost_id < 0:
 		return REFUSE_NO_ITEM_CATALOG
 	return REFUSE_NONE
 
@@ -593,28 +635,41 @@ func _age_one_lot(lot_ref: Vector2i, out: HourResult) -> void:
 		return
 	var aged: int = _math.value
 	out.lots_aged += 1
-	var shelf_hours: int = _definitions.shelf_hours(_inventory.lot_item_id(lot_ref))
-	if shelf_hours <= 0:
+	var threshold: int = _shelf_threshold_milli_hours(_inventory.lot_item_id(lot_ref))
+	if threshold <= 0:
 		return
-	if aged < shelf_hours * MILLI_HOURS_PER_HOUR:
+	if aged < threshold:
 		return
 	_expire_one_lot(lot_ref, out)
+
+
+func _shelf_threshold_milli_hours(item_id: int) -> int:
+	"""Milli-hours of age at which §5.8 says this item is over: `shelf_hours * 1000`, or 0.
+
+	Zero means "unlimited shelf" (§5.8's `shelf_hours = 0`) and is the ONE value that must never
+	be compared against as a threshold; both callers test it before comparing. Shared so the
+	hourly expiry boundary and STOCK-SEED-R01's consumer guard cannot come to disagree about
+	which tick a lot crossed.
+	"""
+	var shelf_hours: int = _definitions.shelf_hours(item_id)
+	if shelf_hours <= 0:
+		return 0
+	return shelf_hours * MILLI_HOURS_PER_HOUR
 
 
 func _expire_one_lot(lot_ref: Vector2i, out: HourResult) -> void:
 	"""Route an expired lot to the outcome GDD §5.8 gives its item class.
 
-	Three outcomes and no fourth: spoiled_food is REMOVED as waste; a seed REFUSES because the
-	compost quantity is unstated (module header, gap 3); everything else becomes spoiled_food at
-	identical mass.
+	Three outcomes and no fourth: spoiled_food is REMOVED as waste; a seed becomes compost under
+	STOCK-SEED-R01's floored nominal-mass yield; everything else becomes spoiled_food at
+	identical mass. The seed test precedes the general one because a seed is not food waste.
 	"""
 	var item_id: int = _inventory.lot_item_id(lot_ref)
 	if item_id == _spoiled_food_id:
 		_remove_expired_waste(lot_ref, out)
 		return
 	if _definitions.is_seed(item_id):
-		out.unconvertible_seed_lots += 1
-		out.last_lot_refusal = REFUSE_SEED_RATIO_UNSPECIFIED
+		_convert_expired_seed(lot_ref, item_id, out)
 		return
 	_convert_to_spoiled_food(lot_ref, item_id, out)
 
@@ -670,6 +725,124 @@ func _convert_to_spoiled_food(lot_ref: Vector2i, item_id: int, out: HourResult) 
 	out.replans_owed += 1
 
 
+func _convert_expired_seed(lot_ref: Vector2i, item_id: int, out: HourResult) -> void:
+	"""STOCK-SEED-R01: one expired seed lot becomes compost by exact floored nominal mass.
+
+	PER LOT, and nothing about the containing stack: the yield is computed from THIS row's
+	quantity, so `sum(floor(q_i*sm/cm)) <= floor(sum(q_i)*sm/cm)` and splitting a lot can never
+	manufacture compost. The two masses are read from the inventory's registered catalog, so no
+	ratio is written here for a future catalog edit to invalidate.
+	"""
+	var quantity: int = _inventory.lot_quantity_milli(lot_ref)
+	var seed_mass_g: int = _inventory.item_mass_g(item_id)
+	var compost_mass_g: int = _inventory.item_mass_g(_compost_id)
+	if not expiry_compost_quantity_into(quantity, seed_mass_g, compost_mass_g, _math):
+		out.refused_lots += 1
+		out.last_lot_refusal = REFUSE_SEED_YIELD_UNREPRESENTABLE
+		return
+	var compost_milli: int = _math.value
+	if not expiry_decay_loss_milli_g_into(quantity, seed_mass_g, compost_mass_g, _math):
+		out.refused_lots += 1
+		out.last_lot_refusal = REFUSE_SEED_YIELD_UNREPRESENTABLE
+		return
+	var decay_loss_milli_g: int = _math.value
+	if compost_milli == 0:
+		_retire_zero_yield_seed(lot_ref, quantity, decay_loss_milli_g, out)
+		return
+	_transform_seed_to_compost(lot_ref, quantity, compost_milli, decay_loss_milli_g, out)
+
+
+func _transform_seed_to_compost(lot_ref: Vector2i, quantity_milli: int, compost_milli: int,
+		decay_loss_milli_g: int, out: HourResult) -> void:
+	"""Commit a positive seed -> compost conversion as ONE atomic inventory transaction.
+
+	The whole seed quantity is SUNK and only `compost_milli` SOURCED by `transform_lot_item()`,
+	which is exactly how the floored remainder is booked as decay loss instead of disappearing:
+	`audit()`'s per-item `live + sunk == sourced` still closes on both items. Age is reset by
+	that call, because fresh compost has not been sitting anywhere for 1440 hours.
+	"""
+	var reserved: int = _inventory.lot_reserved_milli(lot_ref)
+	if not _begin_lot_transaction():
+		out.refused_lots += 1
+		out.last_lot_refusal = _last_refusal
+		return
+	_inventory.release_all_reservations(lot_ref)
+	_inventory.transform_lot_item(lot_ref, _compost_id, compost_milli)
+	var committed: InventoryScript.OpResult = _inventory.commit()
+	if not committed.ok:
+		out.refused_lots += 1
+		out.last_lot_refusal = committed.error
+		return
+	out.lots_expired += 1
+	out.seed_lots_converted += 1
+	out.seed_sunk_milli += quantity_milli
+	out.compost_sourced_milli += compost_milli
+	out.seed_decay_loss_milli_g += decay_loss_milli_g
+	out.reservations_invalidated_milli += reserved
+	out.replans_owed += 1
+
+
+func _retire_zero_yield_seed(lot_ref: Vector2i, quantity_milli: int, decay_loss_milli_g: int,
+		out: HourResult) -> void:
+	"""STOCK-SEED-R01: "When output is zero, ... sink retire the seed lot".
+
+	No zero-quantity compost lot is created, and the row does NOT linger at zero holding a slot
+	against REQ-SET-120's 16384-lot cap: `sink_lot_quantity()` for the whole quantity retires it.
+	The entire seed quantity is still booked as a sink, so the decay loss is ledgered rather
+	than deleted.
+	"""
+	var reserved: int = _inventory.lot_reserved_milli(lot_ref)
+	if not _begin_lot_transaction():
+		out.refused_lots += 1
+		out.last_lot_refusal = _last_refusal
+		return
+	_inventory.release_all_reservations(lot_ref)
+	_inventory.sink_lot_quantity(lot_ref, quantity_milli)
+	var committed: InventoryScript.OpResult = _inventory.commit()
+	if not committed.ok:
+		out.refused_lots += 1
+		out.last_lot_refusal = committed.error
+		return
+	out.seed_lots_retired += 1
+	out.seed_sunk_milli += quantity_milli
+	out.seed_decay_loss_milli_g += decay_loss_milli_g
+	out.reservations_invalidated_milli += reserved
+	out.replans_owed += 1
+
+
+static func expiry_compost_quantity_into(seed_quantity_milli: int, seed_mass_g: int,
+		compost_mass_g: int, out: IntMath.IntResult) -> bool:
+	"""STOCK-SEED-R01's yield: `floor_div(checked_mul(q_milli, seed_mass_g), compost_mass_g)`.
+
+	EXACTLY ONE FINAL FLOOR, over the full milli-gram product, which is what makes the split
+	inequality hold; dividing the masses first and multiplying after would round twice. The
+	product is in MILLI-GRAMS (milli-units times grams per unit) and the quotient back in
+	milli-units of compost. Non-positive masses or quantity, and an int64 overflow, REFUSE:
+	there is no compost quantity to answer and a saturated one would silently create matter.
+	"""
+	if seed_quantity_milli <= 0 or seed_mass_g <= 0 or compost_mass_g <= 0:
+		return out.refuse(String(REFUSE_SEED_YIELD_UNREPRESENTABLE))
+	if not IntMath.checked_mul_into(seed_quantity_milli, seed_mass_g, out):
+		return false
+	var total_milli_g: int = out.value
+	return IntMath.floor_div_into(total_milli_g, compost_mass_g, out)
+
+
+static func expiry_decay_loss_milli_g_into(seed_quantity_milli: int, seed_mass_g: int,
+		compost_mass_g: int, out: IntMath.IntResult) -> bool:
+	"""Milli-grams of nominal seed mass STOCK-SEED-R01's single floor discards as decay loss.
+
+	`(q_milli * seed_mass_g) mod compost_mass_g`, so 19 milli-U of a 100 g/U seed yields 1
+	milli-U of 1000 g/U compost and reports 900 milli-grams -- the ruling's "0.9g decay loss".
+	Reported, never stored: no remainder is carried to another lot or another hour.
+	"""
+	if seed_quantity_milli <= 0 or seed_mass_g <= 0 or compost_mass_g <= 0:
+		return out.refuse(String(REFUSE_SEED_YIELD_UNREPRESENTABLE))
+	if not IntMath.checked_mul_into(seed_quantity_milli, seed_mass_g, out):
+		return false
+	return out.succeed(out.value % compost_mass_g)
+
+
 static func equal_mass_quantity_into(quantity_milli: int, source_mass_g: int,
 		target_mass_g: int, out: IntMath.IntResult) -> bool:
 	"""Milli-units of the target item carrying EXACTLY `quantity_milli` of the source's mass.
@@ -701,6 +874,35 @@ func _begin_lot_transaction() -> bool:
 
 
 # --- readers ---------------------------------------------------------------------------------------
+
+func refuses_seed_consumption(lot_ref: Vector2i) -> bool:
+	"""STOCK-SEED-R01's seed-consumer eligibility predicate. True means: do NOT use this lot.
+
+	Every seed-consuming path -- new reservation, withdrawal, transfer into production, seed
+	selection, the sowing/work commit and any reservation taken before the lot aged out -- must
+	reject a seed whose persisted age has reached its catalog shelf threshold. Derived from age
+	and the item definition, so it adds no per-lot flag and cannot disagree with a save.
+
+	FAIL-CLOSED: an unbound store, an unloaded catalog or an invalid lot all answer TRUE,
+	because a guard that cannot evaluate a lot must never be the reason one is admitted. A valid
+	NON-seed lot answers false; this predicate has no opinion about food.
+
+	ENFORCEMENT IS NOT HERE (module header, gap 3): STOCK-SEED-R01 gives quantity admission to
+	`inventory.gd`, and nothing calls this yet. Release, cancellation and this stage's own
+	transform/sink stay permitted precisely because the guard lives at the consumer.
+	"""
+	if _inventory == null or _definitions == null or not _definitions.is_loaded():
+		return true
+	if not _inventory.is_lot_valid(lot_ref):
+		return true
+	var item_id: int = _inventory.lot_item_id(lot_ref)
+	if not _definitions.is_seed(item_id):
+		return false
+	var threshold: int = _shelf_threshold_milli_hours(item_id)
+	if threshold <= 0:
+		return false
+	return _inventory.lot_age_milli_hours(lot_ref) >= threshold
+
 
 func last_hour_tick() -> int:
 	"""Tick of the most recent hourly pass, or NO_HOUR_RUN before the first one."""

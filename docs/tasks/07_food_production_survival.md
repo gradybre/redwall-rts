@@ -53,7 +53,7 @@ explicitly for additive regrowth/other behavior changes.
   - **The critical pause and the exactly-once revalidated retry are implemented
     for the HOUR-LEVEL fault class** (2026-09-12), in
     `godot/scripts/systems/settlement_system.gd` under
-    [decision 0098](../decisions/0098-the-stock-integrity-pause-retries-once-and-then-halts.md).
+    [decision 0100](../decisions/0100-the-stock-integrity-pause-retries-once-and-then-halts.md).
     `stock_age.gd`'s three preflight refusals raise `SimClock.CRITICAL` through
     `scheduler_events.gd`'s internal-producer safety hold — the pause path that
     already existed, not a new one — arm exactly one retry keyed to the faulted

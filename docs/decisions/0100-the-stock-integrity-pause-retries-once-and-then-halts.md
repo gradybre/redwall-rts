@@ -1,4 +1,4 @@
-# 0098 — The stock integrity pause retries once, revalidated, and then halts
+# 0100 — The stock integrity pause retries once, revalidated, and then halts
 
 Date: 2026-09-12 · Status: **Accepted**
 

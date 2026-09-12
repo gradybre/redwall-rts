@@ -20,32 +20,33 @@ extends RefCounted
 ##    `accessible_text()`, which is §5's "Hunger/fullness in accessible detail".
 ##
 ## ---------------------------------------------------------------------------------------
-## RATES, AND THE FOUR THAT ARE NOT PUBLISHED. §5 requires "current per-simulated-hour change"
-## and says, in terms, "If rate isn't published, say Rate unavailable".
+## ALL FIVE RATES NOW BIND, AND NOT ONE OF THEM IS COMPUTED HERE. §5 requires "current
+## per-simulated-hour change" and says, in terms, "If rate isn't published, say Rate
+## unavailable". For a long time four rows said exactly that: `needs.gd` computed all five
+## effective rates in the PRIVATE `_fill_need_rates()` and published only
+## `hunger_rate_milli_per_hour(size_class)`, and substituting the baseline decay for the other
+## four would have been "the baseline formula as a universal answer" -- a resident asleep in a
+## bed shown losing rest.
 ##
-## `needs.gd` computes all five effective rates in `_fill_need_rates()`, which is PRIVATE, and
-## publishes exactly one of them: `hunger_rate_milli_per_hour(size_class)`, with the size and
-## season multipliers already folded in. That single reader is enough for Fullness, because
-## hunger's effective rate depends on nothing else -- `_fill_need_rates()` writes
-## `-_hunger_rate_milli[_size_class[slot]]` and no other term.
+## NEED-RATE-R01 closed that interface gap. `needs.gd` now publishes four signed net readers,
+## `ui_resident_snapshot.gd` validates the selected reference and copies all five at one
+## boundary, and `ui_need_rate.gd` formats them. This file OWNS NO RATE ARITHMETIC: the ruling
+## forbids the UI recreating those formulas or reading private columns, so `fill_needs()` is a
+## transfer and nothing else. `RATE_UNAVAILABLE` survives for a genuinely failed binding only.
 ##
-## The other four cannot be derived from the public interface at all. Rest depends on
-## `_activity`, comfort on `_comfort_environment`, social on `_social_paired` and purpose on
-## `_purpose_source`; every one of those four columns has a SETTER and no reader. Substituting
-## the baseline decay would be "the baseline formula as a universal answer", which §5 forbids
-## by name -- a resident asleep in a bed would be shown losing rest. So those four rows say
-## RATE_UNAVAILABLE, and the missing readers are an unfulfilled binding requirement reported
-## against `scripts/core/needs.gd`, which this task does not own and does not touch.
+## The signs are asymmetric and that asymmetry is the store's. The four new readers are already
+## signed net rates and must not be negated again; `hunger_rate_milli_per_hour()` deliberately
+## keeps its established POSITIVE decay magnitude, and the snapshot forms `R = -magnitude` once.
 ##
 ## ---------------------------------------------------------------------------------------
-## WHAT ELSE IS GENUINELY ABSENT, stated rather than filled in with a plausible zero:
+## WHAT IS STILL GENUINELY ABSENT, stated rather than filled in with a plausible zero:
 ##   * AGE. `residents.gd` stores species, size, role, name, arrival tick, home, bed, skills
 ##     and equipment. There is no age column and no birth tick, so UXV-019's "age" is
 ##     unavailable; `arrival_tick_of()` is an arrival, not an age, and is not relabelled as one.
-##   * CENTER VIEW. §4.1 asks for a 44-high Center view in a 64 px footer. Its semantics belong
-##     to UI-SET-037 ("click center-camera") and `ui_availability.gd` records REASON_NO_WORLD_
-##     CAMERA: "the interface binds no camera". Building the action would require inventing
-##     both a registry row and a camera binding, so it is NOT built and is reported.
+##   * CENTER VIEW'S CAMERA. UI-IDENTITY-R01 requires the 44-high action in the 64 px footer to
+##     stay visible, and `ui_shell.gd` builds and labels it. It is DISABLED, carrying
+##     `ui_availability.gd`'s REASON_NO_WORLD_CAMERA -- "the interface binds no camera". The
+##     action exists; the camera binding is still reported rather than invented.
 ##
 ## No allocation happens per row read: the five Row objects are built once in `_init()`.
 
@@ -54,6 +55,9 @@ const NeedsScript := preload("res://scripts/core/needs.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const JobsScript := preload("res://scripts/core/jobs.gd")
 const UiArt := preload("res://ui/ui_art.gd")
+const UiNeedRate := preload("res://scripts/ui/ui_need_rate.gd")
+const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
+const UiResidentSnapshot := preload("res://scripts/ui/ui_resident_snapshot.gd")
 
 # --- the five need rows -------------------------------------------------------------------
 
@@ -131,10 +135,8 @@ class Row:
 
 var _rows: Array[Row] = []
 var _last_refusal: StringName = REFUSE_NONE
-## Reused readers, so filling the five rows allocates nothing.
-var _need: IntMath.IntResult = IntMath.IntResult.new()
-## The standing refusal handed back for the four needs whose rate `needs.gd` does not publish.
-var _no_rate: IntMath.IntResult = IntMath.IntResult.new()
+## The one validated boundary every filled row comes from. Built once; `capture()` reuses it.
+var _snapshot: UiResidentSnapshot = UiResidentSnapshot.new()
 
 
 func _init() -> void:
@@ -196,12 +198,17 @@ static func has_emblem(species_key: StringName) -> bool:
 
 
 static func emblem_pixels_for_width(detail_width: float) -> int:
-	"""48 for the narrow and standard detail columns, 64 for the wide one.
+	"""UI-IDENTITY-R01's medallion column: 48 at NARROW, 64 at STANDARD and WIDE.
 
-	Both are ART-LOCK-001's production sizes. §1.2's detail widths are 320/336/384, so the wide
-	column is the only one with room for the 64 px roundel beside a 20 px heading.
+	Both are ART-LOCK-001's production sizes. This CHANGED with the 2026-09-12 ruling. The old
+	rule gave 64 only to the 384 px wide column, because the roundel then had to share the row
+	with a heading whose §4 minimum was 280 px. The ruling overrides that minimum for this
+	template -- "allocate exactly the remaining 172/172/220px" -- and publishes the medallion
+	column directly: 48/64/64. `ui_resident_header.gd` holds the same table keyed on the profile
+	and derives it from the row equation; this width-keyed form is what the manager already
+	calls, and §1.2's detail widths 320/336/384 map one-to-one onto those profiles.
 	"""
-	return EMBLEM_SIZES[1] if detail_width >= 384.0 else EMBLEM_SIZES[0]
+	return EMBLEM_SIZES[1] if detail_width >= 336.0 else EMBLEM_SIZES[0]
 
 
 static func emblem_path(species_key: StringName, pixels: int) -> String:
@@ -306,55 +313,47 @@ static func skill_text(residents: ResidentsScript, slot: int, skill: int) -> Str
 # --- the five rows ------------------------------------------------------------------------
 
 func fill_needs(residents: ResidentsScript, needs: NeedsScript, slot: int) -> bool:
-	"""Write all five UI-SET-039 rows for one resident. Refuses by name; fills nothing on refusal.
+	"""Write all five UI-SET-039 rows for the resident in one store row. Refuses by name.
 
-	Every row is filled from the store in one pass. A need outside 0-10000 is a store invariant
-	violation and refuses the WHOLE card rather than printing four good rows and one wrong one.
+	A slot alone is not an identity. This resolves the row's own `(slot, generation)` reference
+	and hands THAT to `fill_needs_for()`, so even the slot-keyed call goes through the
+	directory's full ARCH-ID-003 check rather than trusting an index a caller carried in.
 	"""
 	if residents == null or needs == null:
 		return _refuse(REFUSE_NO_STORES)
-	if not needs.is_alive(slot) or not residents.is_alive(slot):
+	if not residents.is_alive(slot):
 		return _refuse(REFUSE_NOT_A_RESIDENT)
+	return fill_needs_for(residents.directory(), residents, needs, residents.ref_of(slot))
+
+
+func fill_needs_for(directory: EntityDirectoryScript, residents: ResidentsScript,
+		needs: NeedsScript, ref: Vector2i) -> bool:
+	"""NEED-RATE-R01's boundary: validate the selected reference, then copy five rows from it.
+
+	This is the entry point the ruling describes -- "The snapshot owner FIRST validates the
+	selected EntityRef/generation through the directory and resolves its RESIDENT typed row,
+	THEN copies values and rates at one completed-state boundary." Every row comes from that one
+	capture, so five rows cannot describe two residents.
+
+	No rate is computed here. `ui_resident_snapshot.gd` reads `needs.gd`'s five public readers
+	and `ui_need_rate.gd` formats what they said; this copies the finished row across.
+	"""
+	if not _snapshot.capture(directory, residents, needs, ref):
+		return _refuse(_snapshot.last_refusal())
 	for need: int in NeedsScript.NEED_COUNT:
-		if not needs.need_into(slot, need, _need) or not is_basis_points(_need.value):
-			return _refuse(REFUSE_NEED_OUT_OF_RANGE)
-	for need: int in NeedsScript.NEED_COUNT:
-		needs.need_into(slot, need, _need)
-		_write_row(_rows[need], need, _need.value, _rate_milli_of(needs, slot, need))
+		_copy_row(_rows[need], _snapshot.row(need))
 	_last_refusal = REFUSE_NONE
 	return true
 
 
-func _write_row(row: Row, need: int, basis_points: int, rate_milli: IntMath.IntResult) -> void:
-	"""Fill one row from an already-validated need value and its rate, published or not."""
-	row.label = NEED_LABELS[need]
-	row.basis_points = basis_points
-	row.value_text = percent_text(basis_points)
-	row.has_rate = rate_milli.ok
-	row.rate_text = rate_text(rate_milli.value) if rate_milli.ok else RATE_UNAVAILABLE
-	var detail: String = row.rate_text if rate_milli.ok else RATE_UNAVAILABLE_REASON
-	row.accessible = "%s, field %s, %s, %s" \
-		% [row.label, NEED_FIELDS[need], row.value_text, detail]
-
-
-func _rate_milli_of(needs: NeedsScript, slot: int, need: int) -> IntMath.IntResult:
-	"""The effective signed rate in milli-need-points per game hour, where one is published.
-
-	Only hunger's is. `needs.gd` applies it as `-_hunger_rate_milli[size_class]`, so the sign is
-	restored here rather than being guessed; the magnitude already carries the size and winter
-	multipliers. The other four refuse, and `_write_row()` prints RATE_UNAVAILABLE for them.
-	"""
-	if need != NeedsScript.NEED_HUNGER:
-		_no_rate.refuse(String(RATE_UNAVAILABLE))
-		return _no_rate
-	var size_class: IntMath.IntResult = needs.size_class_of(slot)
-	if not size_class.ok:
-		return size_class
-	var rate: IntMath.IntResult = needs.hunger_rate_milli_per_hour(size_class.value)
-	if not rate.ok:
-		return rate
-	rate.value = -rate.value
-	return rate
+func _copy_row(row: Row, captured: UiResidentSnapshot.NeedRow) -> void:
+	"""Copy one captured row into the card's own row. Nothing is recomputed in the transfer."""
+	row.label = captured.label
+	row.basis_points = captured.basis_points
+	row.value_text = captured.value_text
+	row.has_rate = captured.has_rate
+	row.rate_text = captured.rate_text
+	row.accessible = captured.accessible
 
 
 func row(index: int) -> Row:

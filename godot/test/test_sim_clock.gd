@@ -899,3 +899,189 @@ func test_a_restored_clock_continues_identically_to_an_uninterrupted_one() -> vo
 	assert_equal(restored.completed_tick(), _clock.completed_tick(), "same completed tick")
 	assert_equal(restored.debt(), _clock.debt(), "same retained debt")
 	assert_equal(restored.pause_mask(), _clock.pause_mask(), "same pause mask")
+
+
+# --- the load barrier (RESTORE-R01, decision 0098) ------------------------------------------------
+#
+# RESTORE-R01: "Share the coordinator guard with clock/queue objects while mutable raw access
+# exists; a GameManager-only check is insufficient." These tests hold the barrier on the RAW clock
+# -- exactly the object `game_manager.clock()` hands out -- and attempt every command on it. The
+# hazards are three, and each has its own test: a command that lands anyway, a command that refuses
+# but scribbles a diagnostic on the way out, and a barrier that leaks into the pause mask, which
+# would put a transient overlay into the state a load is restoring.
+
+
+func _hold_barrier() -> SimClockScript.LoadBarrier:
+	"""Raise the barrier on `_clock` and return its token, asserting the grant was accepted."""
+	var grant: SimClockScript.LoadBarrierGrant = _clock.acquire_load_barrier()
+	assert_true(grant.is_ok(), "the barrier is granted")
+	assert_true(_clock.is_load_barrier_held(), "and the clock reports it held")
+	return grant.token
+
+
+func test_the_barrier_grants_one_token_at_a_time_and_only_it_lowers_the_barrier() -> void:
+	"""A capability, not a flag: the clock exposes no lowering call, and a second grant refuses."""
+	var token: SimClockScript.LoadBarrier = _hold_barrier()
+	var second: SimClockScript.LoadBarrierGrant = _clock.acquire_load_barrier()
+	assert_false(second.is_ok(), "a second concurrent load is refused")
+	assert_equal(second.code, SimClockScript.REFUSE_BARRIER_HELD, "by its own code")
+	assert_equal(second.token, null, "and is handed no token to lower the first one with")
+	assert_true(_clock.is_load_barrier_held(), "the refused grant left the barrier standing")
+	assert_true(token.release(), "the holder lowers it")
+	assert_false(_clock.is_load_barrier_held(), "and the clock is open again")
+	assert_false(token.release(), "a second release of the same token changes nothing")
+	assert_true(_clock.acquire_load_barrier().is_ok(), "a later load may raise it again")
+
+
+func test_a_stale_token_cannot_lower_the_barrier_a_later_load_holds() -> void:
+	"""The bit lives in the token, so yesterday's token has no authority over today's load."""
+	var first: SimClockScript.LoadBarrier = _hold_barrier()
+	assert_true(first.release(), "the first load releases its own barrier")
+	var second: SimClockScript.LoadBarrier = _hold_barrier()
+	assert_false(first.release(), "the spent token cannot lower the second load's barrier")
+	assert_true(_clock.is_load_barrier_held(), "which is still held")
+	assert_equal(_clock.set_speed(SimClockScript.SPEED_DOUBLE), false,
+		"so commands are still barred")
+	assert_true(second.release(), "only the current holder lowers it")
+
+
+func test_set_speed_is_barred_under_the_barrier_and_writes_nothing() -> void:
+	"""A speed asked for mid-load is a command against a world still being installed."""
+	_put_the_clock_in_a_used_state()
+	var before: String = _snapshot(_clock)
+	var token: SimClockScript.LoadBarrier = _hold_barrier()
+	assert_false(_clock.set_speed(SimClockScript.SPEED_DOUBLE), "2x is barred")
+	assert_false(_clock.set_speed(3), "and so is a value it would have refused anyway")
+	assert_equal(_snapshot(_clock), before, "nothing changed, not even last_error()")
+	assert_true(token.release(), "release")
+	assert_true(_clock.set_speed(SimClockScript.SPEED_DOUBLE), "and the same command now lands")
+	assert_equal(_clock.requested_speed(), SimClockScript.SPEED_DOUBLE, "on the requested speed")
+
+
+func test_set_pause_is_barred_and_cannot_zero_the_sub_tick_debt_being_restored() -> void:
+	"""The corruption RESTORE-R01 names: a PLAYER hold zeroes sub-tick debt and counts a discard."""
+	assert_true(_restore_plain(700, 999999, SimClockScript.SPEED_NORMAL, 0), "restore a sub-tick debt")
+	var before: String = _snapshot(_clock)
+	var token: SimClockScript.LoadBarrier = _hold_barrier()
+	assert_false(_clock.set_pause(SimClockScript.PLAYER, true), "the player hold is barred")
+	assert_false(_clock.set_pause(SimClockScript.MENU, true), "and so is every other reason")
+	assert_false(_clock.set_pause(SimClockScript.PLAYER, false), "clearing one is barred too")
+	assert_equal(_clock.debt(), 999999, "the restored sub-tick debt survives")
+	assert_equal(_clock.subtick_debt_discards(), 0, "no discard is counted")
+	assert_equal(_snapshot(_clock), before, "and the clock is byte-identical")
+	assert_true(token.release(), "release")
+	assert_true(_clock.set_pause(SimClockScript.PLAYER, true), "the same hold now lands")
+	assert_equal(_clock.debt(), 0, "zeroing that debt, which is why it had to be barred")
+
+
+func test_advance_is_barred_so_a_load_frame_folds_no_elapsed_time_into_the_clock() -> void:
+	"""A load spans many host frames; one of them must not accrue debt against a rewritten tick."""
+	assert_true(_restore_plain(13499, 0, SimClockScript.SPEED_QUADRUPLE, 0), "restore near midnight")
+	_watch_every_clock_signal()
+	var before: String = _snapshot(_clock)
+	var token: SimClockScript.LoadBarrier = _hold_barrier()
+	for _index: int in 20:
+		assert_equal(_clock.advance(OVERLOAD_FRAME_USEC, _count_step, _record_boundary), 0,
+			"a barred frame runs no tick")
+	assert_equal(_step_calls, 0, "no step callback ran")
+	assert_equal(_snapshot(_clock), before, "no debt, no tick and no cleared error")
+	_assert_no_clock_signal_fired("a barred frame")
+	assert_true(token.release(), "release")
+	assert_true(_clock.advance(FRAME_USEC, _count_step, _record_boundary) > 0,
+		"the first frame after the barrier runs ticks")
+	assert_equal(_boundary_ticks.size(), 1, "delivering exactly one day boundary")
+	assert_equal(_boundary_ticks[0], SimClockScript.FIRST_MIDNIGHT_TICK,
+		"the first midnight at tick 13500, crossed once by the normal clock and never replayed")
+
+
+func test_acknowledge_without_catchup_is_barred_and_drops_no_owed_tick() -> void:
+	"""The one counted discard path stays shut during a load, retaining the debt the save carried."""
+	assert_true(_restore_plain(90, 5 * 1000000, SimClockScript.SPEED_NORMAL,
+		SimClockScript.CRITICAL), "restore two owed ticks under a CRITICAL hold")
+	var before: String = _snapshot(_clock)
+	var token: SimClockScript.LoadBarrier = _hold_barrier()
+	assert_equal(_clock.acknowledge_without_catchup(), 0, "it drops nothing")
+	assert_equal(_clock.debt(), 5 * 1000000, "the owed debt is retained in full")
+	assert_true(_clock.has_pause_reason(SimClockScript.CRITICAL), "the CRITICAL hold stands")
+	assert_equal(_clock.acknowledged_catchup_resets(), 0, "no acknowledgement is recorded")
+	assert_equal(_snapshot(_clock), before, "and the clock is byte-identical")
+	assert_true(token.release(), "release")
+	assert_equal(_clock.acknowledge_without_catchup(), 5, "the same call now drops the five")
+
+
+func test_every_overload_ladder_entry_point_is_barred_and_emits_no_signal() -> void:
+	"""`apply_overload_target()` writes two restored fields and is public, so it is guarded too."""
+	assert_true(_restore_plain(10, 0, SimClockScript.SPEED_QUADRUPLE, 0), "restore at 4x")
+	_watch_every_clock_signal()
+	var before: String = _snapshot(_clock)
+	var token: SimClockScript.LoadBarrier = _hold_barrier()
+	assert_false(_clock.apply_overload(), "the whole ladder step is barred")
+	assert_false(_clock.apply_overload_target(SimClockScript.SPEED_PAUSED),
+		"the state half is barred on its own account")
+	assert_false(_clock.note_overload_step(SimClockScript.SPEED_PAUSED),
+		"and so is the counter and signal half")
+	assert_equal(_snapshot(_clock), before, "no rung landed and no counter moved")
+	_assert_no_clock_signal_fired("a barred ladder step")
+	assert_true(token.release(), "release")
+	assert_true(_clock.apply_overload(), "the same step now lands")
+	assert_equal(_clock.requested_speed(), SimClockScript.SPEED_DOUBLE, "stepping 4x down to 2x")
+	assert_equal(_restore_overload_signals, 1, "with exactly one signal, after the barrier")
+
+
+func test_restore_runtime_passes_through_the_barrier_it_serves() -> void:
+	"""The one privileged writer: blocking it would block the load with the load's own guard."""
+	_put_the_clock_in_a_used_state()
+	var token: SimClockScript.LoadBarrier = _hold_barrier()
+	assert_true(_restore_with_counters(7200, 2500001, SimClockScript.SPEED_DOUBLE,
+		SimClockScript.MENU | SimClockScript.CRITICAL, RESTORE_COUNTERS),
+		"restore is accepted while the barrier is held")
+	assert_equal(_clock.completed_tick(), 7200, "the saved tick is installed")
+	assert_equal(_clock.debt(), 2500001, "with its exact debt")
+	assert_equal(_clock.pause_mask(), SimClockScript.MENU | SimClockScript.CRITICAL,
+		"and its exact mask")
+	assert_equal(_clock.day_boundaries_crossed(), RESTORE_COUNTERS[5], "and its exact counters")
+	assert_true(_clock.is_load_barrier_held(),
+		"and restoring neither opened nor closed the barrier")
+	assert_true(token.release(), "which its holder still owns")
+
+
+func test_the_pure_validator_and_every_reader_stay_open_under_the_barrier() -> void:
+	"""The barrier bars commands, not reads: a HUD polling a loading clock must not break."""
+	assert_true(_restore_plain(13500, 12345, SimClockScript.SPEED_DOUBLE, SimClockScript.MENU),
+		"restore at the first midnight")
+	var token: SimClockScript.LoadBarrier = _hold_barrier()
+	assert_equal(_clock.completed_tick(), 13500, "completed_tick() reads")
+	assert_equal(_clock.effective_speed(), SimClockScript.SPEED_PAUSED, "effective_speed() reads")
+	assert_equal(_clock.owed_ticks(), 0, "owed_ticks() reads")
+	var moment: SimClockScript.Calendar = _clock.calendar()
+	assert_equal(moment.clock_text(), "00:00", "and the calendar still decodes the offset midnight")
+	assert_equal(moment.absolute_day, 2, "on day 2, which tick 13500 begins")
+	assert_true(SimClockScript.restore_refusal(7, 0, 1, 0, 0, 0, 0, 0, 0, 0).is_ok(),
+		"and the pure validator is unaffected by any barrier")
+	assert_true(token.release(), "release")
+
+
+func test_the_barrier_never_touches_the_pause_mask() -> void:
+	"""Being paused and being mid-load are different states; conflating them is a visible bug."""
+	assert_true(_restore_plain(500, 0, SimClockScript.SPEED_NORMAL, 0), "restore an UNPAUSED world")
+	var token: SimClockScript.LoadBarrier = _hold_barrier()
+	assert_equal(_clock.pause_mask(), 0, "raising the barrier set no pause bit")
+	assert_false(_clock.is_paused(), "so the world is not reported paused")
+	assert_equal(_clock.effective_speed(), SimClockScript.SPEED_NORMAL, "nor slowed to 0")
+	assert_false(_clock.has_pause_reason(SimClockScript.LOAD), "and LOAD in particular is clear")
+	assert_equal(_clock.pause_reason_names().size(), 0, "the HUD sees no held reason")
+	assert_true(token.release(), "release")
+	assert_equal(_clock.pause_mask(), 0, "and lowering it set none either")
+
+
+func test_lowering_the_barrier_never_clears_a_saved_load_bit() -> void:
+	"""The saved LOAD hold is state; this load finishing is not a reason to release it."""
+	assert_true(_restore_plain(64, 0, SimClockScript.SPEED_NORMAL,
+		SimClockScript.LOAD | SimClockScript.PLAYER), "restore a world saved holding LOAD")
+	var token: SimClockScript.LoadBarrier = _hold_barrier()
+	assert_true(_clock.has_pause_reason(SimClockScript.LOAD), "the SAVED LOAD hold is present")
+	assert_true(token.release(), "the transient barrier drops")
+	assert_equal(_clock.pause_mask(), SimClockScript.LOAD | SimClockScript.PLAYER,
+		"leaving both saved holds exactly as the file carried them")
+	assert_false(_clock.is_load_barrier_held(),
+		"while the transient barrier is down, which the mask never described")

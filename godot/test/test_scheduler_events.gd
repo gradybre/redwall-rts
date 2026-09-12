@@ -1232,3 +1232,197 @@ func test_a_second_queue_on_the_same_clock_sees_the_same_boundary() -> void:
 	assert_true(_queue.submit_player_resume_into(_result), "resume through the first")
 	_queue.pump_into(_report)
 	assert_false(other.clock().is_paused(), "and the second sees the same clock resume")
+
+
+# --- the shared load barrier (RESTORE-R01, decision 0098) ---------------------------------------------
+#
+# The ruling is explicit that a coordinator-only check is insufficient "while mutable raw access
+# exists". `game_manager.scheduler_events()` hands out THIS object, so these tests hold the barrier
+# on the raw clock and attack the raw queue with every mutator it has. The barrier is the CLOCK'S:
+# this queue owns no barrier state, which is why `rebind_clock()` has to be barred as well -- a
+# rebind under a held barrier would be an escape from it.
+
+
+func _hold_barrier() -> SimClock.LoadBarrier:
+	"""Raise the barrier on the clock this queue is bound to, and return its token."""
+	var grant: SimClock.LoadBarrierGrant = _clock.acquire_load_barrier()
+	assert_true(grant.is_ok(), "the barrier is granted")
+	assert_true(_queue.is_load_barrier_held(), "and the QUEUE sees it, through its clock")
+	return grant.token
+
+
+func _queue_snapshot() -> String:
+	"""Every observable field of the queue as one string, for the byte-identical comparison.
+
+	It deliberately includes the refusal diagnostics: a barred command must not even be counted as
+	a refusal, because the barrier is a property of the moment rather than of the request.
+	"""
+	return "%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%s" % [_queue.pending_count(), _queue.head_position(),
+		_queue.next_sequence_high(), _queue.next_sequence_low(),
+		_queue.last_applied_sequence_high(), _queue.last_applied_sequence_low(),
+		_queue.last_drained_boundary(), _queue.admitted_count(), _queue.coalesced_count(),
+		_queue.refused_count(), _queue.applied_count(), _queue.last_refusal()]
+
+
+func test_the_queue_reads_the_clocks_barrier_and_holds_none_of_its_own() -> void:
+	"""One barrier per world: a second queue on the same clock is barred by the same token."""
+	assert_false(_queue.is_load_barrier_held(), "no barrier stands to begin with")
+	var token: SimClock.LoadBarrier = _hold_barrier()
+	var other: Scheduler = Scheduler.new(_clock)
+	assert_equal(other.next_sequence_low(), 1, "a queue built under the barrier still initializes")
+	assert_true(other.is_load_barrier_held(), "a second queue on that clock is barred too")
+	assert_false(other.submit_speed_into(2, _result), "and refuses the same admission")
+	assert_true(token.release(), "release")
+	assert_false(_queue.is_load_barrier_held(), "both queues see the barrier drop")
+	assert_false(other.is_load_barrier_held(), "because neither of them owns it")
+
+
+func test_every_admission_is_barred_and_leaves_the_queue_byte_identical() -> void:
+	"""Speed, pause, resume, safety hold, overload rung and stamped replay: all six refuse."""
+	assert_true(_queue.submit_speed_into(4, _result), "one admitted event before the load")
+	var before: String = _queue_snapshot()
+	var token: SimClock.LoadBarrier = _hold_barrier()
+	assert_false(_queue.submit_speed_into(2, _result), "speed is barred")
+	assert_equal(_result.error, Scheduler.REFUSE_LOAD_BARRIER, "and says so in the result")
+	assert_false(_queue.submit_pause_into(Scheduler.PRODUCER_MENU, SimClock.MENU,
+		Scheduler.VALUE_HOLD, _result), "a pause hold is barred")
+	assert_false(_queue.submit_player_resume_into(_result), "the player resume is barred")
+	assert_false(_queue.submit_safety_hold_into(SimClock.CRITICAL, _result),
+		"an internal safety hold is barred")
+	assert_false(_queue.submit_overload_downgrade_into(SimClock.SPEED_DOUBLE, _result),
+		"an overload rung is barred")
+	_event.reset()
+	_event.kind = Scheduler.KIND_SET_REQUESTED_SPEED
+	_event.value = 1
+	_event.boundary_tick = _queue.current_boundary()
+	_event.sequence_low = 90
+	assert_false(_queue.admit_stamped_into(_event, _result), "a stamped replay record is barred")
+	assert_equal(_queue_snapshot(), before, "and the queue is byte-identical after all six")
+	assert_true(token.release(), "release")
+	assert_true(_queue.submit_speed_into(2, _result), "the same admission now lands")
+
+
+func test_a_barred_admission_is_not_counted_as_a_queue_refusal() -> void:
+	"""It is not the request that was wrong, so `refused_count()` and `last_refusal()` stand."""
+	assert_false(_queue.submit_pause_into(Scheduler.PRODUCER_MENU, SimClock.PLAYER,
+		Scheduler.VALUE_HOLD, _result), "an ordinary ownership refusal first")
+	assert_equal(_queue.last_refusal(), Scheduler.REFUSE_PRODUCER_NOT_OWNER, "recorded as such")
+	var refusals: int = _queue.refused_count()
+	var token: SimClock.LoadBarrier = _hold_barrier()
+	assert_false(_queue.submit_speed_into(2, _result), "the barred admission refuses")
+	assert_equal(_result.error, Scheduler.REFUSE_LOAD_BARRIER,
+		"telling the caller through its own result")
+	assert_false(_result.ok, "which cannot be mistaken for the success it carried before")
+	assert_equal(_queue.refused_count(), refusals, "the queue counted no refusal")
+	assert_equal(_queue.last_refusal(), Scheduler.REFUSE_PRODUCER_NOT_OWNER,
+		"and the standing reason is still the real one")
+	assert_true(token.release(), "release")
+
+
+func test_pumping_is_barred_so_a_restored_queue_applies_nothing_mid_load() -> void:
+	"""RESTORE-R01's guard before scheduler pumping, at the queue rather than in a coordinator."""
+	assert_true(_queue.submit_player_resume_into(_result), "queue a resume")
+	var pumps: int = _queue.pump_count()
+	var token: SimClock.LoadBarrier = _hold_barrier()
+	for _index: int in 5:
+		assert_equal(_queue.pump_into(_report), 0, "a load frame pumps nothing")
+	assert_equal(_report.applied, 0, "and the report says so rather than carrying a stale count")
+	assert_equal(_queue.pending_count(), 1, "the pending resume is still pending")
+	assert_equal(_queue.pump_count(), pumps, "no pump was even counted")
+	assert_true(_clock.is_paused(), "and the clock is still holding its PLAYER pause")
+	assert_true(token.release(), "release")
+	assert_equal(_queue.pump(), 1, "the pending record applies once, after the guard releases")
+	assert_false(_clock.is_paused(), "resuming the clock then and not before")
+
+
+func test_clear_is_barred_so_a_load_cannot_discard_the_queue_it_is_restoring() -> void:
+	"""`clear()` is world initialization; running it mid-load would lose the restored records."""
+	assert_true(_queue.submit_speed_into(4, _result), "one pending event")
+	var before: String = _queue_snapshot()
+	var token: SimClock.LoadBarrier = _hold_barrier()
+	assert_false(_queue.clear(), "clear is barred")
+	assert_equal(_queue.pending_count(), 1, "so the pending event survives the load")
+	assert_equal(_queue_snapshot(), before, "with the whole queue byte-identical")
+	assert_true(token.release(), "release")
+	assert_true(_queue.clear(), "clear runs once the barrier is down")
+	assert_equal(_queue.pending_count(), 0, "discarding the event then, and not before")
+
+
+func test_rebinding_is_barred_on_an_EMPTY_queue_that_would_otherwise_rebind_freely() -> void:
+	"""The barrier is read THROUGH `_clock`, so a rebind would be an escape from it.
+
+	The queue is deliberately empty: `rebind_clock()` already refuses a non-empty one, so a test
+	that left an event queued would pass against no barrier check at all.
+	"""
+	assert_equal(_queue.pending_count(), 0, "an empty queue, which would rebind freely")
+	var replacement: SimClock = SimClock.new()
+	var token: SimClock.LoadBarrier = _hold_barrier()
+	assert_false(_queue.rebind_clock(replacement), "rebinding to an unbarred clock is barred")
+	assert_equal(_queue.clock(), _clock, "so the queue still reads the barred clock")
+	assert_true(_queue.is_load_barrier_held(), "and the barrier cannot be escaped that way")
+	assert_equal(_queue.last_refusal(), Scheduler.REFUSE_NONE,
+		"the barred call recorded no queue refusal of its own")
+	assert_true(token.release(), "release")
+	assert_true(_queue.rebind_clock(replacement), "the same rebind lands once the barrier is down")
+
+
+func test_frame_entry_points_are_barred_at_the_queue_as_well_as_at_the_clock() -> void:
+	"""Either can be reached directly through the raw objects, so both refuse."""
+	assert_true(_queue.submit_player_resume_into(_result), "resume queued")
+	_queue.pump_into(_report)
+	var tick: int = _clock.completed_tick()
+	assert_true(_queue.submit_overload_downgrade_into(SimClock.SPEED_DOUBLE, _result),
+		"spend this frame's single overload issue before the load")
+	assert_true(_queue.overload_issued_this_frame(), "which is now spent")
+	var token: SimClock.LoadBarrier = _hold_barrier()
+	for _index: int in 10:
+		assert_equal(_queue.advance_frame(100000, _count_step), 0, "a barred frame runs no tick")
+	assert_equal(_clock.completed_tick(), tick, "the completed tick never moved")
+	assert_equal(_clock.debt(), 0, "and no elapsed time became debt")
+	assert_equal(_steps_run, 0, "no step callback ran")
+	assert_true(_queue.overload_issued_this_frame(),
+		"and no barred frame was OPENED either, so the spent issue stays spent")
+	assert_false(_queue.begin_host_frame(), "opening one directly is barred too")
+	assert_true(_queue.overload_issued_this_frame(), "leaving it spent as well")
+	assert_true(token.release(), "release")
+	assert_true(_queue.advance_frame(100000, _count_step) > 0, "the next real frame runs ticks")
+
+
+func test_the_loaders_own_install_operations_pass_through_the_barrier() -> void:
+	"""`restore_extension()` and `restore_sequence()` are what the barrier is raised FOR."""
+	assert_true(_queue.submit_speed_into(4, _result), "build a queue worth saving")
+	assert_true(_queue.submit_safety_hold_into(SimClock.MENU, _result), "with two records")
+	var bytes: PackedByteArray = _encoded_extension(_queue)
+	var loaded: Scheduler = Scheduler.new(_clock)
+	var token: SimClock.LoadBarrier = _hold_barrier()
+	assert_true(loaded.restore_extension(bytes, 0, 0), "the section 12 install writes through")
+	assert_equal(loaded.pending_count(), 2, "installing both saved records")
+	assert_equal(loaded.head_position(), 0, "from row 0")
+	assert_true(loaded.is_load_barrier_held(), "and the barrier still stands over it")
+	assert_equal(loaded.pump_into(_report), 0, "which still bars the pump of what it installed")
+	var empty: Scheduler = Scheduler.new(_clock)
+	assert_true(empty.restore_sequence(0, 4096), "the loader's sequence hook writes through too")
+	assert_equal(empty.next_sequence_low(), 4096, "installing the saved next sequence")
+	assert_true(token.release(), "release")
+
+
+func test_a_restored_paused_queue_applies_once_in_order_after_the_guard_releases() -> void:
+	"""The ruling's acceptance case: many load frames pump nothing, then the prefix applies once."""
+	assert_true(_queue.submit_safety_hold_into(SimClock.MENU, _result), "a MENU hold is saved")
+	assert_true(_queue.submit_player_resume_into(_result), "and a player resume behind it")
+	var bytes: PackedByteArray = _encoded_extension(_queue)
+	var loaded: Scheduler = Scheduler.new(SimClock.new())
+	var grant: SimClock.LoadBarrierGrant = loaded.clock().acquire_load_barrier()
+	assert_true(grant.is_ok(), "the loaded world's own barrier is granted")
+	var token: SimClock.LoadBarrier = grant.token
+	assert_true(loaded.restore_extension(bytes, 0, 0), "the saved queue is installed under the guard")
+	for _index: int in 6:
+		assert_equal(loaded.advance_frame(50000), 0, "each load frame pumps and ticks nothing")
+	assert_equal(loaded.pending_count(), 2, "both pending records are still pending")
+	assert_true(loaded.clock().has_pause_reason(SimClock.PLAYER),
+		"and the restored PLAYER hold has not been resumed implicitly")
+	assert_true(token.release(), "release the guard")
+	assert_equal(loaded.pump_into(_report), 2, "both records apply at the next boundary")
+	assert_equal(_report.pause_events, 2, "both of them pause events, in order")
+	assert_true(loaded.clock().has_pause_reason(SimClock.MENU), "the MENU hold landed")
+	assert_false(loaded.clock().has_pause_reason(SimClock.PLAYER), "and the resume after it")

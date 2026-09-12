@@ -239,16 +239,18 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | Scheduler event queue and control header | 1 | 8224 | 8224 | mutable | [decision 0054] R07-SCHED-001's ARCH-CMD-002 speed/pause queue in `godot/scripts/core/scheduler_events.gd`: 256 records of 32 bytes (one i64 `boundary_tick` plus six i32 -- `sequence_low`, `sequence_high`, `kind`, `reason`, `value`, `reserved`) = 8192, plus the 32-byte queue control header (`head`, `count`, `next_sequence_low/high`, `last_drained_boundary` i64, `last_applied_sequence_low/high`). Counted as one 8224-byte allocation rather than 257 x 32 because the control header is not a record. SEPARATE from the "Command queue" row above: economic commands keep their own 4096 x 64 records, their own arena and their own sequence space, and ARCH-CMD-003's 24 kind ids are not renumbered. The tail derives from head and count, so there is NO order-index row here of the kind decision 0042 needed for the economic ring |
 | ARCH-SYS-023 presentation snapshot | 1 | 244 | 244 | presentation counted conservatively | [decision 0049] `godot/scripts/core/presentation_extract.gd`: TWO i64 frames of 14 committed fields (224 bytes) plus one availability byte per field and one visibility byte per layer (20 bytes). Two frames because a render interpolates between the last two COMMITTED ticks. Separate from the "UI numeric snapshots" row above, which budgets per-resident summaries this stage does not produce. The per-stage microsecond and measurement columns `settlement_system.gd` keeps (3 x 7 i64 = 168 bytes) sit inside the "Timing samples" diagnostic row and add nothing here |
 | Load rollback checkpoint | 1 | 80 | 80 | mutable | [decision 0092] RESTORE-R01's pre-load checkpoint in `godot/scripts/systems/game_manager.gd`: `_checkpoint: PackedInt64Array`, `CHECKPOINT_FIELDS` = 10 elements x 8 bytes, allocated once in `_init()` and overwritten in place so a rollback allocates nothing at its worst moment. Holds the clock's ten runtime scalars in `restore_runtime()` argument order. It is NOT a second WorldRuntime store, which RESTORE-R01 forbids: it duplicates no clock, is never serialized, and is reinstalled through the same validated `restore_runtime()` boundary rather than by writing clock fields directly. `state_registry_coverage.py` scans `godot/scripts/core` only and so cannot see this column -- a checker-scope gap, not an exemption |
+| Load barrier token reference | 1 | 8 | 8 | mutable | [decision 0104] `_load_barrier: LoadBarrier` in `godot/scripts/core/sim_clock.gd`: one object reference, null while no load is open. Transient -- never serialized, never in the canonical digest, and never a pause bit; RESTORE-R01's barrier is deliberately NOT the pause mask |
+| Load barrier token | 1 | 1 | 1 | mutable | [decision 0104] One `LoadBarrier` RefCounted holding a single bool, allocated by `acquire_load_barrier()` at a load boundary and released with it. Cold path: one per load, never per frame or per tick. Counted at its maximum of one, since a second concurrent grant refuses and mints no token. `scheduler_events.gd` adds no field and its 8224-byte row is unchanged |
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 63733034 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
+| Planned allocated payload | 63733043 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 72121642 | Payload + reserve |
-| Headroom below decimal 100 MB | 27878358 | 100000000 − live total |
-| Additional candidate mutable state | 57517450 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 129639092 | Live total + candidate mutable state |
-| Transactional headroom | -29639092 | 100000000 − transactional peak |
+| One live world plus reserve | 72121651 | Payload + reserve |
+| Headroom below decimal 100 MB | 27878349 | 100000000 − live total |
+| Additional candidate mutable state | 57517459 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 129639110 | Live total + candidate mutable state |
+| Transactional headroom | -29639110 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11 by decisions 0055,
 0054 and 0066).** Current planned payload is
@@ -323,6 +325,7 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
 | StockAge container declarations and sweep order | decision 0085 | +1013760 | 63732442 | 72121050 |
 | GameManager load rollback checkpoint | decision 0092 | +80 | 63732522 | 72121130 |
 | Resident life stage column | decision 0095 | +512 | 63733034 | 72121642 |
+| Clock load barrier token and its reference | decision 0104 | +9 | 63733043 | 72121651 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 

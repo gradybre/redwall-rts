@@ -80,13 +80,13 @@ func _load_json_dict(virtual_path: String) -> Dictionary:
 # --- generator guards (tools/extract_item_definitions.py) -----------------------------------
 
 func test_generator_accepts_the_real_balance_document() -> void:
-	"""Sanity baseline: the unmodified real document produces exactly 60 records, exit 0."""
+	"""Sanity baseline: the unmodified real document produces exactly 61 records, exit 0."""
 	var source_path: String = _write_user_file("good.md", _real_doc_text)
 	var output_path: String = "user://fixture_%d_good.json" % _fixture_counter
 	var exit_code: int = _run_generator(source_path, output_path)
 	assert_equal(exit_code, 0, "generator must accept the real balance document")
 	var payload: Dictionary = _load_json_dict(output_path)
-	assert_equal(int(payload["count"]), 60, "real document yields exactly 60 records")
+	assert_equal(int(payload["count"]), 61, "real document yields exactly 61 records")
 
 
 func test_generator_rejects_wrong_row_count() -> void:
@@ -127,14 +127,14 @@ func test_generator_rejects_non_integer_numeric_field() -> void:
 
 # --- loading the real generated catalog ------------------------------------------------------
 
-func test_default_catalog_loads_exactly_60_items() -> void:
-	"""The real godot/data/item_definitions.json loads all-or-nothing to exactly 60 items."""
+func test_default_catalog_loads_exactly_61_items() -> void:
+	"""The real godot/data/item_definitions.json loads all-or-nothing to exactly 61 items."""
 	var inv: InventoryScript = InventoryScript.new(4, 4)
 	var defs: ItemDefinitionsScript = ItemDefinitionsScript.new()
 	var result: ItemDefinitionsScript.LoadResult = defs.load_default(inv)
 	assert_true(result.ok, "default catalog must load (error: %s)" % result.error)
-	assert_equal(result.item_count, 60, "exactly 60 items load")
-	assert_equal(defs.item_count(), 60, "loader reports 60 items after load")
+	assert_equal(result.item_count, 61, "exactly 61 items load")
+	assert_equal(defs.item_count(), 61, "loader reports 61 items after load")
 	assert_true(defs.is_loaded(), "loader marks itself loaded after success")
 
 

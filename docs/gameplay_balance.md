@@ -84,6 +84,7 @@ The generated tables below use the conventions in §2. All inherited quantities 
 | dace | RAW_FISH | 250 | 1400 | 48 | 0 | 0 | RECOVERY | 1 | [GDD §5.7; NEW category/key normalization] |
 | dried_fish | PRESERVED | 250 | 1800 | 720 | 1 | 0 | FROM_INPUT | 0 | [GDD §5.7; NEW category/key normalization] |
 | dried_fruit | PRESERVED | 250 | 1400 | 720 | 1 | 0 | FROM_INPUT | 0 | [GDD §5.7; NEW category/key normalization] |
+| excavated_earth | MATERIAL | 1000 | 0 | 0 | 0 | 0 | NONE | 0 | [SET-MOVE-ECON-001 ECON-002; NEW_AUTHOR_ADOPTED under DEC-040] |
 | flax | MATERIAL | 250 | 0 | 0 | 0 | 0 | NONE | 0 | [GDD §5.7; NEW category/key normalization] |
 | flour | RAW_FOOD | 250 | 1200 | 240 | 0 | 0 | SATIETY | -50 | [GDD §5.7; NEW category/key normalization] |
 | fruit | RAW_FOOD | 250 | 900 | 144 | 1 | 0 | CHEER | 200 | [GDD §5.7; NEW category/key normalization] |

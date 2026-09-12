@@ -113,7 +113,7 @@ func _seed_starting_inventory() -> void:
 func test_catalog_is_loaded_into_open_stores() -> void:
 	"""All 60 authoritative items register, and both GDD §5.9 stores open."""
 	assert_equal(_economy.catalog_error(), "", "the catalog loaded")
-	assert_equal(_economy.item_count(), 60, "all 60 catalog rows are registered")
+	assert_equal(_economy.item_count(), 61, "all 61 catalog rows are registered")
 	assert_true(_economy.inventory().is_container_valid(_economy.pantry()), "the pantry is open")
 	assert_true(_economy.inventory().is_container_valid(_economy.material_store()), "the store is open")
 
@@ -332,7 +332,7 @@ func test_reset_returns_to_empty_stores() -> void:
 	assert_equal(_economy.inventory().live_lot_count(), 0, "every lot was cleared")
 	assert_equal(_economy.stock_milli(&"wood"), 0, "wood is empty")
 	assert_equal(_economy.ready_nutrition_points(), 0, "the derived summary was cleared too")
-	assert_equal(_economy.item_count(), 60, "the catalog is registered again")
+	assert_equal(_economy.item_count(), 61, "the catalog is registered again")
 	assert_false(_economy.has_residents(), "the stale residents binding was dropped")
 	assert_false(_economy.daily_demand_np().ok, "the divisor is refused, not stale")
 	assert_equal(_economy.daily_demand_np().error, String(EconomySystemScript.REFUSE_NO_RESIDENT_STORE),

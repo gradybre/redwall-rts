@@ -2415,9 +2415,16 @@ func test_the_building_store_adds_no_stage_to_the_tick() -> void:
 
 	ARCH-SYS-016 RoomHeat is the one stage that would read this store, and it still has no
 	connected-heat model, so nothing here is dispatched per tick.
+
+	The eight are command commit, interval, stock age, crop hour, job planner, selection, work
+	and presentation — none of which is a building stage. This literal was 7 when the store
+	first composed; decision 0085's hourly stock aging added the eighth, so a future bump is
+	only legitimate when it can be named here the same way.
 	"""
-	assert_equal(_settlement.tick_stage_count(), 7,
-		"the tick still dispatches exactly the seven stages it did")
+	assert_equal(_settlement.tick_stage_count(), 8,
+		"the tick still dispatches exactly the eight stages it did without the store")
+	assert_equal(_settlement.tick_stage_count(), SettlementSystemScript.TICK_STAGE_PRESENTATION + 1,
+		"and presentation is still the last of them")
 	_populated()
 	_settlement.run_tick(0)
 	assert_equal(_settlement.buildings().live_building_count(), 0,

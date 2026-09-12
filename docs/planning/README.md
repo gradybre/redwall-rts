@@ -136,3 +136,9 @@ Read [the asset/save/movement ruling index](../rulings/2026-09-11_asset_save_mov
 before dispatching the next increment. It supplies authoring and codec contracts,
 corrects focus/rollback classifications, and preserves the separate open
 proportion-review and full MOVE-G01 gates. It does not mark runtime work complete.
+
+**Movement request review (2026-09-12):** [corrected G01 dependencies and confirmed spoil/hazard direction](../rulings/2026-09-12_move_g01_review.md). DEC-040 settles those two preferences; depth remains a candidate. No gate closure or numerical production-value adoption.
+
+## Excavation/spoil and hazard implementation package
+
+Read [the Claude handoff](underground_economy_hazard_handoff.md), [owning amendment](../underground_economy_hazard_amendment.md) and [values](underground_economy_hazard_values.json). DEC-040 preferences and scoped numerical parameters are now authored; geometry/profiles, G02 and other full gates remain open. This supersedes the older quantity/cost/hazard authoring gaps only.

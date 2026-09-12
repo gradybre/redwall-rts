@@ -1028,3 +1028,6 @@ selector semantics for selected-resident snapshots while retaining one-pass tick
 integration. No new authoritative cache or packed state is introduced. It does
 not change GDD §5.2 formulas, remainder arithmetic or pause behavior.
 Read [the exact ruling](rulings/2026-09-12_resident_header_and_need_rates.md).
+## SET-MOVE-ECON-001 integration boundary
+
+[The numerical amendment](underground_economy_hazard_amendment.md) supplies economic quanta, phase/refund/source semantics and hazard recovery values; it does not allocate new runtime arrays or set a save version. G02 must ledger physical quantum state, material/source claims, work-ready commit retries, tip embedded stock, support/closure readiness, contributor wear settlement, air/recovery/incident state, declared fall progress, rescued-body relationships, protected landing occupancy and care state, including all scratch/load peaks. Compose work/XP/tool acceptance atomically and integrate health rates in one owner. Do not multiply old surface memory by a floor count and claim full capacity; version actual schema/catalog changes before runtime activation.

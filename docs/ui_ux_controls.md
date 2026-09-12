@@ -559,3 +559,7 @@ with172/172/220px flexible name columns and measured uncapped heading height.
 Need hourly values are signed current continuous model rates before value clamping,
 with explicit Capped status at outward bounds and unchanged rates while paused.
 This does not permit guessed baseline rates or fake environmental context.
+
+## SET-MOVE-ECON-001 hazard presentation binding
+
+For the deterministic movement hazards in [HAZ-005](underground_economy_hazard_amendment.md#haz-005--interruption-matrix-ui-and-save-obligations), UI-SET-049 displays actual entry conditions, air/return budgets or fall consequences instead of an invented chance-per10000 value. Existing fishing/forage probabilities keep their probability wording. Spoil previews show volume, work, materials, output mass/capacity and real blocked reasons; compacted tip earth is not ready inventory. Existing first-incapacity auto-pause/settings remain unchanged. G03 still supplies exact additional control registration/geometry and actual visual acceptance.

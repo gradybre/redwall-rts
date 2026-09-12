@@ -215,7 +215,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
 | Fixed registry payload | 25029474 | 1 | 25029474 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037; +126976 decision 0039; +212992 decision 0040; +13312 decision 0041; +40960 decision 0045 FieldPolicy); +35840 decision 0051 hive-service slice; +16 decision 0055 Weather absolute-season identity; +512 decision 0095 Resident life stage) |
-| Auxiliary payload | 20144096 | 1 | 20144096 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053) |
+| Auxiliary payload | 20165600 | 1 | 20165600 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
 | Route cell arena | 1048576 | 4 | 4194304 | mutable | ARCH-PATH-005 cells |
@@ -244,13 +244,13 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 63733043 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
+| Planned allocated payload | 63754547 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 72121651 | Payload + reserve |
-| Headroom below decimal 100 MB | 27878349 | 100000000 − live total |
-| Additional candidate mutable state | 57517459 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 129639110 | Live total + candidate mutable state |
-| Transactional headroom | -29639110 | 100000000 − transactional peak |
+| One live world plus reserve | 72143155 | Payload + reserve |
+| Headroom below decimal 100 MB | 27856845 | 100000000 − live total |
+| Additional candidate mutable state | 57538963 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 129682118 | Live total + candidate mutable state |
+| Transactional headroom | -29682118 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11 by decisions 0055,
 0054 and 0066).** Current planned payload is
@@ -326,6 +326,7 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
 | GameManager load rollback checkpoint | decision 0092 | +80 | 63732522 | 72121130 |
 | Resident life stage column | decision 0095 | +512 | 63733034 | 72121642 |
 | Clock load barrier token and its reference | decision 0104 | +9 | 63733043 | 72121651 |
+| Aggregate injury store and the airless input | decision 0109 | +21504 | 63754547 | 72143155 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
@@ -510,6 +511,10 @@ These are known allocations that no line of §2.2, §3 or §2.3 counts. They are
 | StarterGroundProfile revisions | _profile_revision | I32 | 4 | 1 | 4 | 16 | [decision 0083] Not derivable from the five columns above, which is why it is its own row; `0` means nothing is published at that id |
 | StockAge storage declarations | _c_storage_class, _c_heated_interior | B8 | 1 | 2 | 101376 | 202752 | [decision 0085] GDD §5.8's store factor and the heated-interior exception over `CONTAINER_CAPACITY`; drop them and every stored lot stops aging |
 | StockAge declaration generation and slot list | _c_declared_generation, _declared_slots | I32 | 4 | 2 | 101376 | 811008 | [decision 0085] The generation is `inventory.gd`'s CONTAINER space, NOT the entity directory's; without it a recycled container slot inherits the previous occupant's storage class |
+| Injury row bytes and latches | _present, _kind, _airless_episode, _exhaustion_latch, _care_context_blocked | B8 | 1 | 5 | 512 | 2560 | [decision 0109] HAZ-002/003's aggregate injury store, one row per RESIDENT typed row |
+| Injury severity and rescuer reference | _severity, _rescuer_slot, _rescuer_generation | I32 | 4 | 3 | 512 | 6144 | [decision 0109] GDD §4.2's Injury.severity and Injury.rescuer; the rescuer is a DIRECTORY EntityRef |
+| Injury clocks, care work and incident ordinal | _untreated_ticks, _care_progress_mwu, _last_incident_ordinal | I64 | 8 | 3 | 512 | 12288 | [decision 0109] untreated_hours is the floor of _untreated_ticks over 750; the ordinal is HAZ-004's one-shot dedup latch |
+| Needs airless input | _airless | B8 | 1 | 1 | 512 | 512 | [decision 0109] HAZ-002's per-resident airless input to needs.gd's one health rate |
 | U5's remaining child stores | U5; ruling 2026-09-09 §4 | **Partially closed.** Reservation was budgeted by decision 0019 and GearInstance by ARCH-STATE-007 above. `BatchState`, `LotEffect`, `NoticeCondition` and `ChildSliceIndex` still have **no allocator storage budgeted**, so U5 is not closed as a whole. |
 | Path/lease bookkeeping fields | REQ-SET-032/033; ARCH-JOB-004 | Allocated but never written: `path_id`, `path_cursor`, `lease_expiry`, `blocked_tick`, `manual_until`. The **memory is counted** in §2.2's JobAgent rows; the point is that the behavior these back is unimplemented, so no further allocation should be assumed absent. |
 | Other implemented core stores | — | `residents.gd`, `needs.gd`, `priorities.gd`, `inventory.gd`, `orchard_hive.gd` and `entity_directory.gd` each allocate presence, liveness, free-list, environment-input and journal columns beyond their §2.2 rows, in the same way `jobs.gd` did before this pass. Only the jobs module was reconciled here. Each of the others needs the same column-by-column pass against §2.2/§3 before any measured-memory qualification is attempted; their deltas are **not** in the 59370190 total. |

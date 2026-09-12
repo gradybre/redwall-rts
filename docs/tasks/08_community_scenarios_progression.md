@@ -132,7 +132,7 @@ Still open and **not** claimed by that work:
 ### Aggregate Injury and care status — 2026-09-12
 
 Implemented in `godot/scripts/core/injury.gd` with the `needs.gd` rate integration,
-under [decision 0108](../decisions/0108-the-aggregate-injury-store-and-one-health-rate.md).
+under [decision 0109](../decisions/0109-the-aggregate-injury-store-and-one-health-rate.md).
 This covers [SET-MOVE-ECON-001](../underground_economy_hazard_amendment.md)
 HAZ-001/002/004 and the HAZ-003 clauses that are aggregate-Injury state.
 
@@ -170,7 +170,7 @@ Still open and **not** claimed by that work:
 - [ ] `docs/persistence_state_registry.md` rows for `injury.gd` (three) and for
       `needs.gd`'s new `_airless` byte, plus the `docs/systems_architecture.md` §3.1
       ledger lines totalling 21504 bytes. `state_registry_coverage.py` fails until
-      they land; the exact rows and arithmetic are in decision 0108.
+      they land; the exact rows and arithmetic are in decision 0109.
 - [ ] Migrating `InjuryKind` into `catalog.gd`'s `PROTECTED_ENUM_DOMAINS`, which is an
       intentional compiled-artifact/digest change owned by the catalog owner.
 - [ ] Save section persistence and hashing of these columns. No save module exists yet.

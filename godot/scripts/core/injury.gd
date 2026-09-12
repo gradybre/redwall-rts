@@ -34,16 +34,21 @@ extends RefCounted
 ## WHERE `InjuryKind` LIVES, AND WHY IT IS DECLARED HERE.
 ##
 ## Decision 0018's rule is that a module needing one of §4.3's explicitly numbered enums reads
-## it from `catalog.gd` so there is exactly one copy. `catalog.gd` does NOT carry `InjuryKind`:
-## its header names `InjuryKind` among the five §4.3 enums it "does not yet carry" and states
-## that adding one "is an intentional artifact/digest change, not a fix". That change belongs
-## to the catalog owner, and making it here would silently move the compiled-catalog digest.
+## it from `catalog.gd` so there is exactly one copy. When this store was written `catalog.gd`
+## did NOT carry `InjuryKind` and the migration was reported as a blocker rather than worked
+## around, because adding a protected domain moves the compiled-catalog digest and belongs to
+## the catalog owner.
 ##
-## BLOCKER (reported, not worked around): `InjuryKind` must migrate into `catalog.gd`'s
-## PROTECTED_ENUM_DOMAINS, after which `KIND_*` below become `Catalog.INJURY_KIND[...]` reads.
-## Until then these six constants transcribe GDD §4.3 line 215 verbatim, in its order, and
-## `test_injury.gd` asserts each numeric value so a renumbering fails a test rather than
-## quietly re-labelling every saved injury.
+## THAT BLOCKER IS CLOSED. EH-01 published `InjuryKind` into `PROTECTED_ENUM_DOMAINS`
+## (decision 0108), so the six constants below now DERIVE from
+## `Catalog.INJURY_KIND` instead of transcribing GDD §4.3 line 215 a second time. Two copies of
+## a save-carried enum is exactly the drift decision 0018 exists to prevent, and the two lanes
+## could not see each other while both were in flight.
+##
+## `test_injury.gd` still asserts each numeric value literally. That is deliberate: deriving
+## them removes the chance of divergence, and the literal assertions are what make a
+## renumbering of the SOURCE fail a test here rather than quietly re-labelling every saved
+## injury in a world that already exists.
 ##
 ## `severity` is a plain int32 1..2 from the §4.2 Injury row and from REQ-SET-172. It is NOT
 ## `Catalog.SEVERITY`, which is the alert domain INFO/ADVISORY/WARNING/CRITICAL.
@@ -99,6 +104,7 @@ extends RefCounted
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const Needs := preload("res://scripts/core/needs.gd")
+const CatalogScript := preload("res://scripts/core/catalog.gd")
 
 # --- capacity -------------------------------------------------------------------------------
 
@@ -108,12 +114,12 @@ const RESIDENT_CAPACITY: int = 512
 
 # --- InjuryKind (GDD §4.3 line 215; HAZ-001 restates it) ------------------------------------
 
-const KIND_NONE: int = 0
-const KIND_CUT: int = 1
-const KIND_BITE: int = 2
-const KIND_FALL: int = 3
-const KIND_EXPOSURE: int = 4
-const KIND_EXHAUSTION: int = 5
+const KIND_NONE: int = CatalogScript.INJURY_KIND["NONE"]
+const KIND_CUT: int = CatalogScript.INJURY_KIND["CUT"]
+const KIND_BITE: int = CatalogScript.INJURY_KIND["BITE"]
+const KIND_FALL: int = CatalogScript.INJURY_KIND["FALL"]
+const KIND_EXPOSURE: int = CatalogScript.INJURY_KIND["EXPOSURE"]
+const KIND_EXHAUSTION: int = CatalogScript.INJURY_KIND["EXHAUSTION"]
 const KIND_COUNT: int = 6
 
 # --- severity (GDD §4.2 Injury.severity, REQ-SET-172) ---------------------------------------

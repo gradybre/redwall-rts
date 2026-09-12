@@ -42,7 +42,7 @@ explicitly for additive regrowth/other behavior changes.
     `floor_div(checked_mul(q_milli, seed_mass_g), compost_mass_g)`, per lot, with
     the remainder booked as decay loss and a zero yield retiring the lot;
     `stock_age.gd` implements it and
-    [decision 0090](../decisions/0090-expired-seed-converts-to-compost-by-floored-nominal-mass.md)
+    [decision 0093](../decisions/0093-expired-seed-converts-to-compost-by-floored-nominal-mass.md)
     records the judgements. **Two parts of that ruling are NOT done and are not
     this module's to do:** the seed-consumer eligibility guard exists as
     `StockAge.refuses_seed_consumption()` but **nothing calls it** — enforcement

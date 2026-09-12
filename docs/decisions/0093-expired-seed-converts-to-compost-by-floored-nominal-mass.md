@@ -1,4 +1,4 @@
-# 0090 — Expired seed converts to compost by floored nominal mass, per lot
+# 0093 — Expired seed converts to compost by floored nominal mass, per lot
 
 Date: 2026-09-12 · Status: **Accepted**
 

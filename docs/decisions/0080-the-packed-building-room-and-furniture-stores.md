@@ -124,11 +124,30 @@ the same building, and no further.
 ## Consequences for the memory ledger
 
 `systems_architecture.md` §2.2 already ledgers the Building (9 I32 × 1024), Room (8 I32 + 1 B8 ×
-16384) and Furniture (8 I32 × 81920) payloads, and §3 already ledgers `WorldTileMaps` and
-`RoomTileLinks`. Those rows are reproduced exactly and are **not** re-added. The allocator and
-index columns this implementation needs are new and are reported for hand reconciliation, not
-edited in: they total **1 819 648 bytes**, in the rows listed in the handoff note accompanying
-this change. `docs/validation/ready07_arithmetic.py` is untouched and still passes.
+16384) and Furniture (8 I32 × 81920) payloads, and §3 already ledgers `WorldTileMaps.building_slot`
+/ `.room_slot` and `RoomTileLinks.tile_id`. Those rows are reproduced exactly and are **not**
+re-added. The allocator, index and tile columns this implementation needs are new and are
+**reported for hand reconciliation, not edited in** — `systems_architecture.md` and
+`docs/validation/ready07_arithmetic.py` are untouched, and the latter still passes at 141 field
+rows / 24 allocation rows.
+
+New §3 rows required, totalling **1 885 220 bytes**:
+
+| Table | Columns | Type | Width | Cols | Length | Bytes |
+|---|---|---|---:|---:|---:|---:|
+| BuildingIndex | `present` | B8 | 1 | 1 | 1024 | 1024 |
+| BuildingIndex | `ref_slot, ref_generation, room_head, room_count` | I32 | 4 | 4 | 1024 | 16384 |
+| RoomIndex | `present` | B8 | 1 | 1 | 16384 | 16384 |
+| RoomIndex | `ref_slot, ref_generation, building_next, building_prev, furniture_head, furniture_count` | I32 | 4 | 6 | 16384 | 393216 |
+| FurnitureIndex | `present` | B8 | 1 | 1 | 81920 | 81920 |
+| FurnitureIndex | `ref_slot, ref_generation, room_next, room_prev` | I32 | 4 | 4 | 81920 | 1310720 |
+| WorldTileMaps | `furniture_slot` (a FIFTH column on the existing four-column row) | I32 | 4 | 1 | 16384 | 65536 |
+| FurnitureKindCount | `kind_count` | I32 | 4 | 1 | 9 | 36 |
+
+The §4.1–4.3 fact columns in `building_definitions.gd` are immutable catalog data, 1752 bytes in
+total (30 × 8 I32 + 30 × 2 I64 + 30 × 2 B8 + 9 × 5 I32 + 9 × 1 I64), and fall inside §2.3's
+existing 2097152-byte read-only catalog/lookup budget on decision 0056's precedent, so they move
+no ledger row.
 
 ## Evidence
 

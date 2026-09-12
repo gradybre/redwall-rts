@@ -74,3 +74,8 @@ after numerical amendments and runtime acceptance. A roster document alone does
 not implement dependents or scenarios. Feed all new state into task 09 parity
 and all scenarios into task 10 qualification; do not claim three-year survival
 from arithmetic or three point samples.
+
+## Astra follow-up — 2026-09-12
+
+MOVE-DEP-R02 supplies the fixed authoritative life-stage column/domain. PC-04 still owns dependent needs/care/work profiles; do not enable children/elders with adult defaults.
+Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.

@@ -1,0 +1,28 @@
+{
+  "status": "ADOPTED_LOGICAL_IDENTIFIERS_ONLY_NO_RIG_ASSET_ACCEPTANCE",
+  "ruling": "MOVE-DEP-R03",
+  "date": "2026-09-12",
+  "species_rig_id": {
+    "badger": "rig_badger_v1",
+    "ferret": "rig_ferret_v1",
+    "fox": "rig_fox_v1",
+    "hare": "rig_hare_v1",
+    "hedgehog": "rig_hedgehog_v1",
+    "kestrel": "rig_kestrel_v1",
+    "mole": "rig_mole_v1",
+    "mouse": "rig_mouse_v1",
+    "otter": "rig_otter_v1",
+    "rat": "rig_rat_v1",
+    "shrew": "rig_shrew_v1",
+    "sparrow": "rig_sparrow_v1",
+    "squirrel": "rig_squirrel_v1",
+    "weasel": "rig_weasel_v1",
+    "wildcat": "rig_wildcat_v1",
+    "wolverine": "rig_wolverine_v1"
+  },
+  "life_stage": {
+    "ADULT": 0,
+    "CHILD": 1,
+    "ELDER": 2
+  }
+}

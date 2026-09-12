@@ -1,5 +1,7 @@
 # Next settlement planning package
 
+**Latest Astra follow-up (2026-09-12):** [six executor answers](../rulings/2026-09-12_executor_followup.md). Read before the older status below.
+
 **Immediate UI refinement:** [Claude starts here](../design/ui_refinement/README.md)
 for SET-UX-VIS-002,42 requirements, four visual targets,23 acceptance cases and
 [task04.5](../tasks/04_5_ui_visual_refinement.md). This is a design handoff, not a

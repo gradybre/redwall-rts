@@ -59,13 +59,23 @@ Normal PLAYER-pause behavior is unchanged by this ruling; restoration bypasses
 that behavior. Subsequent arithmetic must continue to refuse overflow rather than
 wrap or clamp; restoring a representable value is not permission to overflow
 it on the next normal operation. Calendar terminal-boundary fixtures must exercise
-the guard before any next tick can cross the representable limit.
+a checked next_tick and `next_tick+CALENDAR_OFFSET_TICKS` before ANY debt
+subtraction, simulation step, completed-tick/counter increment or day callback.
+Overflow refuses before those effects and retains owed debt. A caller must not
+reach the old unchecked increment after already simulating a tick.
 
 ## LOAD integration — preserve the restored state until publication
 
 The save/GameManager integration owner adds an out-of-band load-in-progress guard
 (or an equivalent existing coordinator barrier) checked BEFORE both host advance
-and scheduler pumping, including direct test/service entry points. UI may display
+and scheduler pumping, including direct test/service entry points. The same
+barrier must also guard EVERY operational clock/queue mutator: pause/resume/speed
+admission, direct setters, acknowledgement-without-catchup, start_game, clear,
+rebind and direct advance/pump. Share the coordinator guard with clock/queue
+objects while mutable raw access exists; a GameManager-only check is insufficient.
+Only the explicitly owned restore/install operations may write under that barrier.
+Ordinary UI/service calls refuse LOADING without altering saved state or queues.
+UI may display
 LOAD, but this transient guard is not a new queued scheduler operation and is
 not OR-ed into the serialized/canonical logical pause mask. If adding a scalar,
 record its transient allocation; do not charge a second clock or second world.
@@ -83,7 +93,9 @@ record its transient allocation; do not charge a second clock or second world.
    that API clears the queue, replaces the clock and queues a player resume.
 4. Rebuild derived views and recompute the canonical digest from the exact logical
    saved state. No transient LOAD overlay enters that digest. Publish only after
-   all verification passes; UI may receive one normal post-publication refresh,
+   all verification passes. Publication explicitly sets `_started=true` and
+   derives PLAYING/PAUSED from the restored logical mask while the guard still
+   holds, including a successful load from BOOT. UI may receive one post-publication refresh,
    never retroactive tick/day/overload events.
 5. At release of the external guard, reset GameManager's host sample origin to
    the current monotonic time. Loading elapsed time adds no debt. Preserve every
@@ -92,7 +104,9 @@ record its transient allocation; do not charge a second clock or second world.
    commands remain pending until the next normal scheduler boundary.
 6. On failure after array reuse, restore the verified rollback checkpoint through
    the SAME assignment API and queue restoration, still guarded. Reset host origin
-   when recovering too. If rollback fails, retain the existing explicit unrecoverable
+   when recovering too. Restore the previous coordinator `_started/_state` on
+   rollback; failed initial load stays BOOT with no partial world. If rollback
+   fails after live-array reuse, retain the existing explicit unrecoverable
    LOAD state and files; do not release a partial world.
 
 ## RESTORE-R01 acceptance and ownership
@@ -115,6 +129,9 @@ writers of those shared files. Independent reviewer checks API/restore call site
 - Compare uninterrupted versus restored snapshots under identical subsequent
   elapsed-microsecond/event inputs, including nonzero retained debt and speed
   changes. Compare saved debt/counters separately from the canonical hash.
+- Load successfully from BOOT without start_game, preserving saved pause/debt and
+  queue. Attempt every public mutator and raw-object route during the barrier;
+  none changes clock/queue state. Reject next-tick overflow before a step callback.
 - Inject section12/final-digest failure after clock installation: verified rollback
   restores original clock/queue, loading time is excluded, and no event was emitted.
 
@@ -124,4 +141,107 @@ can proceed now. A documented API is not itself a passing09.3 result.
 
 ## SAVE-LAYOUT-R01
 
-The packed-store byte-order ruling is appended after independent codec review.
+**Packed stores use column-major bytes.** Field schema order is the outer loop;
+ascending physical slot is the inner loop. SoA does not mathematically force a
+wire order; this ruling explicitly chooses it. Never infer record-major packing
+from the phrase "ascending slot". Fixed record formats listed below remain
+intentional exceptions, not contradictions.
+
+### New explicit block framing for sections3/4/5
+
+```
+section = store_count:u32, store blocks in registered order
+store = owner_key:utf8-u32, owner_schema_version:u32,
+        primary_count:u64, payload_byte_length:u64, payload
+ordinary column payload = for each schema field:
+                         element_count:u64, tightly packed LE values
+```
+
+owner_key is unique within its section, nonempty ASCII, max256 bytes. Registry
+order is section ID then ASCII owner key; fields retain their declared ordinal.
+No field name/type is repeated inside payload; the supported owner schema fixes
+both. The registry bounds store_count and every capacity/stride; validate count,
+checked multiplication, remaining bytes, exact block consumption and section EOF
+before allocating or writing a store. Decode validation is independent of restore.
+
+For section3 there is exactly one entity_directory block, primary_count equal to
+the compiled directory capacity (352418 in the reviewed baseline). Column order:
+`_active:u8`, `_generation:i32`, `_retired:u8`, `_persistent_id:i32`, `_kind:i32`,
+`_typed_row:i32`. Every column covers full capacity. Descriptor row_count is that
+capacity, never the count of living residents.
+
+For section4 each registered component owner gets a block. primary_count is its
+full physical capacity. Occupancy first where the store owns it, then its OWN
+generation/retirement columns, then remaining fields in frozen schema order.
+Reference generation fields are ordinary references checked against their actual
+owner, not invented local generations. Fixed-stride arrays have
+`element_count=primary_count*stride`, with slot-major/within-slot-index flattening
+inside that SINGLE field column. Section4 descriptor row_count is the checked sum
+of block primary_count values, not unique world entities.
+
+For section5 the same block wrapper applies; the owner schema chooses ONE form:
+
+- Variable-child payload: `owner_count:u64` (equals primary_count), exactly
+  `owner_count` child_count:u32 values, `total_child_count:u64`, then each declared
+  child field as `element_count:u64 + column values`. Sum child_count equals total;
+  fields flatten ascending owner slot then child index, and each field's element
+  count equals total times its declared stride. No count-first-per-child AoS loop.
+- Fixed-stride child payload: ordinary column payload over full owner_count×stride,
+  including declared unused values. primary_count is owner_count.
+- Slot/linked-arena payload: ordinary columns at full physical arena capacity,
+  including occupancy/link/order columns and holes. primary_count is arena capacity.
+  Intrusive building/room/furniture/job chains use this form; do not compact them
+  into a different logical child ordering or duplicate links with different authority.
+
+Section5 descriptor row_count is the checked sum of block primary_count values.
+An owner may not switch forms without a versioned schema change. Empty-variable
+children still have their required framing, not a zero-byte section.
+
+### Canonical unused values — correction to the old zero-fill sentence
+
+Inactive fields encode their DECLARED canonical unused values. Use zero only
+where the owner declares zero. For example, directory inactive kind/typed_row
+and null reference slots retain -1; null reference generations remain0.
+Preserve all generations and retirement state, including free slots. Do not
+silently normalize an invalid used-row value into a valid null. Apply the same
+unused-value rule to SAVE-R09's canonical hash walker, otherwise valid saves and
+hashes would disagree. Frozen owner schemas must enumerate these values.
+
+### RNG and fixed-format exceptions
+
+Section10 is exactly `stream_count:u32=9`, then all9 state:i32 bit patterns in
+stream-ID order, then all9 draw_count:i64 values:112 bytes, row_count9. There is
+no generic store wrapper for this compact schema. Recover unsigned state bits
+before restore_stream and validate the retired HUNTING stream. Seed remains
+section1 state; do not recreate draws to reach the saved state.
+
+Retain the existing explicit formats: section1's44-byte provenance prefix;
+section2's u32-sized opaque JSON artifact; section11's i64 sequence allocator
+plus32-byte records; section12's schema2 prefix,64-byte economic records,payload
+and record-major SCHQ0001 extension; section13's24-byte Chronicle records;
+section15's32-byte digest. Their record layouts override the packed-store default.
+The remainder of section1 and sections6/7/8/9/14 still require registered owner
+schemas and exact bounded framing before production serialization. This ruling
+does not pretend those complete byte maps exist.
+
+### Version and acceptance
+
+Adopt the above as the initial section3/4/5/10 schema1 framing, retaining outer
+format1, section12 schema2 and nested SCHQ0001 schema1. No body codec for3/4/5/10
+was found in the reviewed main tree; inspect current executor worktrees before
+integration and never silently reinterpret already emitted incompatible fixtures.
+New LifeStage state is a separate semantic schema change: when it lands after the
+published baseline registry, increment affected owner/section4 versions and rules
+identity as SAVE-R09 requires. Catalog JSON content changes update catalog identity
+without changing section2's opaque-artifact framing version.
+
+The header owner must replace current tests permitting gaps/unknown section
+versions with the already ruled strict versions, ordered gapless descriptors,
+flags0 and reserved-zero validation. Those changes conform to format1.
+
+Pin bytes with unequal-width, non-symmetric columns. For A:i32=[1,258] and
+B:i64=[3,4], VALUES ONLY (excluding framing) must equal
+`010000000201000003000000000000000400000000000000`.
+Also test free/retired generations, -1 sentinels, fixed strides, uneven variable
+child counts, linked holes, malformed counts, exact EOF and every fixed-record
+exception. Production save/next-tick parity remains separate evidence.

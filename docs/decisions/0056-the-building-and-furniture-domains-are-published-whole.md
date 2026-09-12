@@ -122,4 +122,4 @@ Catalog artifact regeneration, stores and service integration remain executor
 work; this addendum does not report them complete. Item 5's other enum coverage
 remains separate.
 
-Implemented 2026-09-11 by [decision 0080](0080-the-packed-building-room-and-furniture-stores.md): Milestone and Station are published, `catalog_ids.json` moved to 4062 bytes / 28 domains / 275 rows / `3407b52e…c3e90`, and the packed Building/Room/Furniture stores exist. Item 5's five remaining §4.3 enums are still absent and are still a separate intentional digest move.
+Implemented 2026-09-11 by [decision 0088](0088-the-packed-building-room-and-furniture-stores.md): Milestone and Station are published, `catalog_ids.json` moved to 4062 bytes / 28 domains / 275 rows / `3407b52e…c3e90`, and the packed Building/Room/Furniture stores exist. Item 5's five remaining §4.3 enums are still absent and are still a separate intentional digest move.

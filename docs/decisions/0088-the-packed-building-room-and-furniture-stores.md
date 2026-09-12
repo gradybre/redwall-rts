@@ -1,4 +1,4 @@
-# 0080 — The packed Building, Room and Furniture stores, and the two new catalog domains
+# 0088 — The packed Building, Room and Furniture stores, and the two new catalog domains
 Date: 2026-09-11 · Status: Accepted
 
 ## Decision

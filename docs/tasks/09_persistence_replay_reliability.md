@@ -42,6 +42,22 @@ rules; this card does not replace the binary schema.
   map, lookup and engine hashes at offsets 40/104/136/168 have no producer in
   this repository (decision 0034); and §11 EVENT_SCHEDULE, §13 CHRONICLE and §15
   STATE_DIGEST still have no owning module. `SCHQ0001` remains unwired.
+  *Two sections added 2026-09-11 (decision 0081):*
+  `godot/scripts/core/save_section_rng.gd` writes §10 RNG as a fixed 108-byte
+  payload -- nine i32 stored xorshift32 states at offset 0, nine i64 draw counts
+  at offset 36 -- validating the zero state xorshift32 forbids, negative draw
+  counts and SET-AMEND-001 §3's HUNTING tombstone, and applying all nine streams
+  or none. `godot/scripts/core/save_section_world_runtime.gd` writes §1 WORLD's
+  leading 80-byte WorldRuntime block and realises the READY_07 G3 split: all
+  thirteen fields are saved, and only the five ARCH-HASH-001 ones enter the
+  canonical contribution, so host debt and the six clock counters are CRC- and
+  SHA-protected without joining the state digest. **Still open inside 09.2:**
+  thirteen sections remain unwritten, `SCHQ0001` is still unwired, and §1 is
+  composed from per-owner blocks whose order and contiguity nothing settles.
+  **BLOCKER W1:** `sim_clock.gd` has no writer for the completed tick, the debt
+  or the six counters, and `set_pause(PLAYER, true)` discards sub-tick debt, so
+  the WorldRuntime block can be captured and verified but NOT published. It needs
+  a side-effect-free `restore_runtime(...)` from that module's owner.
 - [ ] 09.3 Implement transactional disk-backed rollback load, validated inactive
   checkpoint, autosave rotation and interrupted-I/O recovery. Recompute expanded
   peak memory; the baseline single-floor ledger is insufficient. No second full

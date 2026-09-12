@@ -73,13 +73,20 @@ At 1280×720 default scale: resources x16..376; alerts x460..820; time x960..126
 
 Resource/time/minimap frames override profile padding to 8 px; the narrow time row uses 4 px. Standard/wide resources use three columns and two 36-high rows, top y8/y44, horizontal gap 8, counter width `min(144,(R-32)/3)`. Expand-resources control is hidden there because all six counters open the ledger. Standard/wide time has two 36-high rows at y8/y44; row 1 holds Pause and three speed buttons, row 2 date and menu, with 8 px gaps. Alert stack padding is 2; two 44-high cards plus a 4 px gap fit 96. Each card width is `A-40`; its right 36 px rail contains the 32×32 history trigger. Narrow uses one card in 48 px. The history trigger remains visible on its own even with no active card.
 
+**R-UI-ALERT-001 refinement (2026-09-11):** the NARROW 48px zone contains
+a measured, authored severity/cause summary, not a truncated full message. Card
+activation opens the selected full notice in history, with wrap/scroll, recovery
+and keyboard access. Preserve full accessible descriptions and focus return.
+[The alert ruling](rulings/2026-09-11_initial_ids_and_narrow_alerts.md) owns this
+explicit exception and its acceptance cases; the existing geometry is retained.
+
 ### 1.3 Responsive content rules
 
 | Situation | Behavior |
 |---|---|
 | Narrow resource area |Food-days and population occupy two 104×36 rows at local (8,8) and (8,44); expand button 32×44 at (136,22) opens the complete ledger |
 | Narrow time area |One 36-high row: Pause 44 wide, three speed buttons 36 each, calendar 36, menu 36; gaps 4, padding 4, y6. Total width 252 fits the 256-wide cluster. Calendar icon exposes the full date on focus/activation |
-| Narrow alerts |One highest-severity active alert plus count; history contains all |
+| Narrow alerts |One highest-severity authored summary plus count; activation opens its full expanded history entry under R-UI-ALERT-001 |
 | Narrow detail |Explicit drawer toggle; world remains active outside drawer; commands resize before drawer opens |
 | Narrow minimap |144×144 map content; 8 px padding; 32 px header; total 160×192. Standard and wide keep the same padding/header with 192×192 and 240×240 maps |
 | Long labels |Wrap to 2 lines within fixed-height cells only if font≥16; otherwise expand row height; never truncate warnings/costs |
@@ -163,7 +170,7 @@ Pause-reason set contains PLAYER, MENU, CRITICAL, VICTORY, LOAD. Effective pause
 
 ## 4. Exhaustive UI Element Registry
 
-Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Container bounds from Section 1 override a maximum only by reducing available height and adding internal vertical scroll; they never reduce font size or hitboxes. `Gate` values: ALWAYS, SELECTED, WORLD_TOOL, WORKSPACE, MODAL, TUTORIAL, M1, M2, M3, CONDITION. A locked M-gated control remains visible in its catalog with the GDD milestone condition; it is hidden from quick commands until unlocked.
+Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Container bounds from Section 1 override a maximum only by reducing available height and adding internal vertical scroll; they never reduce font size or hitboxes. `Gate` values: ALWAYS, SELECTED, WORLD_TOOL, WORKSPACE, MODAL, TUTORIAL, M1, M2, M3, CONDITION. A locked M-gated control remains visible in its catalog with the GDD milestone condition; it is hidden from quick commands until unlocked. R-BUILD-DOM-001 binds gate Mm to the corresponding actual-earned bit from Progress.unlocked_mask; unknown Progress stays unavailable, and a higher display ordinal does not grant missing bits.
 
 ### 4.1 Persistent HUD and selection
 
@@ -179,7 +186,7 @@ Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Contain
 | UI-SET-008 Expand resources |TL, cluster bottom/right |32×32→44×44 |BUTTON |“Open all resources” |ALWAYS; toggle 009 |
 | UI-SET-009 Resource ledger |TL, below cluster |320×240→640×640 |PANEL |“Resource ledger” |CONDITION 008; groups ready food, potential food, fuel, materials, seeds; close 093 |
 | UI-SET-010 Alert stack |TC, top center |280×48→420×96 |PANEL |“Active settlement alerts” |CONDITION active alerts; empty does not block world |
-| UI-SET-011 Alert card |TC, stack row |280×44→420×88 |NOTICE |Severity+message+source+resolution action |CONDITION; click focuses source/detail; acknowledge via history |
+| UI-SET-011 Alert card |TC, stack row |280×44→420×88 |NOTICE |Severity+message+source+resolution action; compact summary has full accessible description |CONDITION; full card focuses source/detail; compact summary opens its expanded history entry; acknowledge via history |
 | UI-SET-012 Notice history |TC, below alerts |400×280→720×640 |PANEL |“Notification history, ”+filtered_count+“ entries” |CONDITION UI-SET-102 activation; filter 075, rows 011 |
 | UI-SET-013 Time cluster |TR, right/top |256×48→320×88 |PANEL |“Time and season” |ALWAYS |
 | UI-SET-014 Pause button |TR, time row |44×36→56×44 |TOGGLE |“Pause simulation”/“Resume at ”+requested_speed |ALWAYS; selected when effective paused; reason in description |
@@ -459,7 +466,7 @@ Use Godot Control accessibility names/descriptions and ordered focus navigation.
 
 The F6 world list has categories Residents, Buildings, Zones, Resources, and Tiles. Search and distance/category filters are keyboard operable. Enter on an entity selects and centers it; C opens legal context actions. Tiles category offers X/Z integer fields 0–127 and“Use this tile” action. During placement, arrow keys move the ghost one tile, Shift+arrow four tiles; R rotates; Enter validates/commits. During zone room painting, Space marks first corner, arrows move endpoint, Enter commits rectangle; this tool owns Space, so Ctrl+Space remains global pause. Nonrectangular zones can be extended with additional rectangles.
 
-Logical focus order: F6 world access shortcut→resources left-to-right/top-to-bottom→alerts→time controls→minimap controls→commands→detail title/tabs/content. Within modal/workspace: title announcement→search/filter→content→Cancel→Confirm. Focus never moves automatically when stock numbers update. When an inspected entity dies, departs, or is transferred, focus moves to a concise chronicle entry with status and Back, not to a random new entity reusing the slot.
+Logical HUD focus order: resources left-to-right/top-to-bottom (first element002)→alerts→time controls→minimap controls→commands→detail title/tabs/content. F6 is an out-of-band shortcut opening World access workspace087, not a Tab stop; the closed workspace is excluded from focus/accessibility/hit traversal. Opening/closing focus and input ownership follow [UI-FOCUS-R01](rulings/2026-09-11_focus_and_rollback_state.md). Within modal/workspace: title announcement→search/filter→content→Cancel→Confirm. Focus never moves automatically when stock numbers update. When an inspected entity dies, departs, or is transferred, focus moves to a concise chronicle entry with status and Back, not to a random new entity reusing the slot.
 
 No job matrix requires drag-only editing: arrow keys select cell,0–4 set priority, Enter cycles, Shift+arrows extend selection, typed priority applies to selected cells. Schedules use arrow keys,0 Sleep/1 Anything/2 Work/3 Social, and Apply. Sliders provide equivalent number entry. Recipe order reordering has Move Up/Move Down actions in 096. Minimap navigation has world list/Home/group alternatives. Hover explanations also appear on keyboard focus and in the detail panel.
 

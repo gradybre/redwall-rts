@@ -124,3 +124,10 @@ checks pass with no P0/P1; genuine integration/accessibility blockers stay open.
 Report user visual approval separately. Do not mark all of04.4/04.5 complete if
 required live bindings or feedback remain unresolved. A theme resource alone,
 synthetic screenshot, isolated snapshot test or pretty menu is insufficient.
+
+## 2026-09-11 NARROW alert ruling — implementation remains open
+
+Apply [R-UI-ALERT-001](../rulings/2026-09-11_initial_ids_and_narrow_alerts.md)
+to UXV-018/032 and A08/A11: a compact authored summary in the existing 48px zone
+opens the full selected history entry. Verify exact message retention, measured
+fit, mouse/keyboard access, focus return and multi-card non-overlap.

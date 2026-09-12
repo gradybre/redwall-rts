@@ -603,7 +603,7 @@ func test_binding_the_ecology_stores_is_what_stops_the_unbound_refusal() -> void
 # --- atomicity: a later refusal leaves no half-changed policy -------------------------------------
 
 func test_one_illegal_priority_leaves_every_priority_and_both_toggles_unchanged() -> void:
-	"""Decision 0024's allocate-before-consume at the dispatch layer, asserted field by field."""
+	"""Decision 0059's allocate-before-consume at the dispatch layer, asserted field by field."""
 	var resident: Vector2i = _resident()
 	var slot: int = _jobs.directory().get_typed_row(resident)
 	assert_true(_priorities.set_dangerous_work(slot, false).ok, "consent starts withheld")

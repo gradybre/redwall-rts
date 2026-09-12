@@ -362,6 +362,11 @@ rectangle before placing resources. This legitimately changes the incomplete
 obsolete count by putting trees inside the well/workbench/apron. Shared aprons
 may overlap as cleared ground; building footprints may not.
 
+**2026-09-11 follow-through:** [R-BUILD-DOM-001–004](2026-09-11_building_room_domains.md)
+now fixes protected Milestone, compiled Station, furniture-mask bits and adopts
+the fifth-shelf interpretation above. Domain publication is required before
+store integration; those definitions are no longer unanswered.
+
 ### 7.2 Concrete starter implementation order
 
 1. Compile missing BuildingDefinition/FurnitureDefinition/room domains from the

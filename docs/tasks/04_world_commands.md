@@ -214,6 +214,24 @@ workbench shelter (58,54) 3×3, all rotation 0.
   needs/health, XP (including reserved index 3 zero), relationship pairs, priorities,
   beds and assignments; catalogs supply values. Quantities use milli-U and all
   STARTER sources are accounted. Verify 24 tools TOTAL: 12 equipped, 12 stored.
+
+**Composed 2026-09-11 ([decision 0071](../decisions/0071-world-generation-creates-the-cohort.md)),
+and NOT closed.** `SettlementSystem.create_generated_settlement()` now runs REQ-SET-009's
+generation and §5.1's cohort as ONE all-or-nothing operation, and `main.gd` boots through it, so
+generating a world produces a world with **twelve residents in it** instead of an empty one.
+Species mix, Warden Rowan, needs 7500, health 100, skill levels 2 / Rowan KEEP 3, the reserved
+index-3 zero, priorities, schedules and job agents are all satisfied and asserted. **"IDs 1–12" IS
+NOW SATISFIED**: [R-INIT-ID-001](../rulings/2026-09-11_initial_ids_and_narrow_alerts.md) ruled that
+the reset which forced the world in front of the cohort is a reset *before* new-world allocation,
+not one inside terrain publication, so initialization became one transaction — preflight, single
+reset, **twelve residents on global persistent ids 1–12 with Warden Rowan on 1**, then the world
+from 13 out of the same counter ([decision 0075](../decisions/0075-the-cohort-is-allocated-before-the-world.md)).
+The earlier statement that the cohort receives 1714–1725 and "needs a ruling" is historical.
+**Three parts of GDD:235 are still NOT satisfied:** (1) the relationship edges at affinity 20 —
+**there is no relationship store anywhere in the repository** and 08.3 owns it, so none was
+invented; (2) the hall, beds, bench, seats, hearth, pantry, well, stockpiles and workbench — no
+Building/Furniture/Room store, which is the bullet below; (3) the 24 tools and durability 1000 —
+`gear.gd` exists but has no container owner and is not composed.
 - [ ] Pull forward only the starter data slice of buildings/furniture/containers,
   bed references and gear from task 06, with a single shared implementation. Full
   construction, dynamic room detection, heat/service operations remain task 06.
@@ -323,3 +341,32 @@ through real stores and its open schema dependencies are resolved. Remaining
 command kinds, full movement, survival, save parity and release performance are
 explicitly outstanding. Continue to [task 05](05_movement_first_playable.md);
 use [first-playable acceptance](../planning/first_playable_acceptance.md).
+
+## 2026-09-11 identity ruling — implementation remains open
+
+[R-INIT-ID-001](../rulings/2026-09-11_initial_ids_and_narrow_alerts.md) resolves
+the historical 1714–1725 divergence above: reset the composed transaction once
+before allocation, allocate the cohort first as global IDs 1–12, then allocate
+world entities without clearing that cohort. The previous “needs a ruling”
+statement is historical. Replace its diagnostic test deliberately; retain the
+derived world census and add the ruling’s uniqueness/failure/determinism evidence.
+
+## 2026-09-11 building-domain ruling — definitions resolved
+
+Read [R-BUILD-DOM-001–004](../rulings/2026-09-11_building_room_domains.md)
+and its adjacent JSON specification fixtures. Decision 0056's unlock domain,
+Station domain, furniture-mask assignment and fifth-shelf interpretation are
+resolved. Publish Milestone/Station through the existing registry, then implement
+packed stores and dependency-ready starter composition; do not reopen these as
+undefined fields or declare absent service/topology owners complete. Run the
+ruling's exact mapping, mask, ownership, capacity and failure tests.
+
+## F6 and asset integration follow-up — 2026-09-11
+
+[UI-FOCUS-R01](../rulings/2026-09-11_focus_and_rollback_state.md) corrects F6's
+shortcut/panel confusion. UI owner wires open_world_list, removes hidden087
+from HUD focus and replaces the obsolete test expectation, including edit/modal
+input guards and focus restoration. Document changes do not certify runtime.
+[ART-GAP-R03/05](../planning/asset_dimensions_and_budgets.md) supplies camera
+obstacle authoring envelopes and settlement L0 admission; verify actual exported
+bounds/cutaway behavior at real camera profiles before claiming visual acceptance.

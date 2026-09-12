@@ -266,7 +266,7 @@ Neither needs new state.
 | Gear occupancy and equip flag | `_equipped`, `_occupied` | 1 | `_row_capacity` <= 16384 | `_occupied == 0` is a free row; `_equipped == 0` is stowed | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | Occupied bitset plus the equip state a reload must preserve. |
 | Gear job claims | `_claim_job_slot`, `_claim_job_generation` | 4 | `_row_capacity` <= 16384 | `_claim_job_slot == -1` with generation 0 means unclaimed | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | A live tool claim by a job: task 09.1's "claims". The generation is the DIRECTORY's, for the claiming job. |
 | Gear free heap | `_free_heap` | 4 | `_row_capacity` <= 16384 | Only `[0, _free_count)` is live | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | A min-heap like `entity_directory.gd`'s, so ARCH-SAVE-002's rebuild permission applies: allocation order depends on the free set, not the permutation. |
-| Starter-seed rollback buffer | `_seed_lot_slot`, `_seed_lot_generation` | 4 | `STARTER_TOOL_TOTAL` = 24 | Only `[0, _seed_count)` is meaningful, and `_seed_count` is 0 outside a seeding call | 3 | -- | CONSTRUCTION-TIME RECORD, NOT AUTHORITATIVE STATE. That is an explicit call, made by the author of the column (decision 0061), not a default. It holds the lot references that one in-flight `seed_starter_tools()` has created so far, so `_rollback_seed()` can undo exactly those and nothing else; nothing reads it once the call returns, and it records no fact that is not already in the gear rows above and `inventory.gd`'s lot rows. `seed_starter_tools()` is a single synchronous call and ARCH-SAVE-003 saves only at a completed tick boundary, so no save can observe a half-seeded state. Domain, per the 2026-09-11 addendum: the pair is an INVENTORY LOT reference (`_l_generation`), not a container ref and not a directory ref, so anything that ever does validate it must validate it there. NOTE FOR 09.2: `residents.gd`'s `_cohort_slots` is the same shape -- a rollback buffer written only by an in-flight `spawn_initial_settlement()` and read only by `_rollback_cohort()` -- but is classified 1. The two readings should be reconciled; I have not changed another store's row to match mine. |
+| Starter-seed rollback buffer | `_seed_lot_slot`, `_seed_lot_generation` | 4 | `STARTER_TOOL_TOTAL` = 24 | Only `[0, _seed_count)` is meaningful, and `_seed_count` is 0 outside a seeding call | 3 | -- | CONSTRUCTION-TIME RECORD, NOT AUTHORITATIVE STATE. That is an explicit call, made by the author of the column (decision 0061), not a default. It holds the lot references that one in-flight `seed_starter_tools()` has created so far, so `_rollback_seed()` can undo exactly those and nothing else; nothing reads it once the call returns, and it records no fact that is not already in the gear rows above and `inventory.gd`'s lot rows. `seed_starter_tools()` is a single synchronous call and ARCH-SAVE-003 saves only at a completed tick boundary, so no save can observe a half-seeded state. Domain, per the 2026-09-11 addendum: the pair is an INVENTORY LOT reference (`_l_generation`), not a container ref and not a directory ref, so anything that ever does validate it must validate it there. RESOLVED by STATE-COHORT-R01 (2026-09-11): residents.gd's analogous `_cohort_slots` rollback buffer is category 3 too; the earlier category-1 founder-history interpretation is superseded. |
 | Gear scalars | -- | -- | -- | `_id_* == -1` means the item key was not resolved | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | `_row_capacity` is a construction argument, `_free_count` and `_active_count` are recomputed from `_occupied`, the five `_id_*` fields are re-resolved from the verified catalog, and `_restoring` is a transient guard that must be false at any save boundary. |
 
 ### `godot/scripts/core/int_math.gd`
@@ -463,7 +463,7 @@ Neither needs new state.
 | Resident skills (i64) | `_skill_xp` | 8 | `RESIDENT_CAPACITY * SKILL_COUNT` = 6144 | 0 XP at level 0 | 1 | §4 COMPONENT_COLUMNS | Owner-major at `slot * 12 + skill`. `_skill_level` is derived from `_skill_xp` by the level table, but task 09's acceptance list names "item/XP" explicitly and both are ledgered §2 fields, so both are written and cross-checked. |
 | Resident skills (i32) | `_skill_level` | 4 | `RESIDENT_CAPACITY * SKILL_COUNT` = 6144 | 0 XP at level 0 | 1 | §4 COMPONENT_COLUMNS | See the first row of this group. |
 | Resident active list | `_live_slots` | 4 | `RESIDENT_CAPACITY` = 512 | Only `[0, _live_count)` is meaningful | 2 | §4 COMPONENT_COLUMNS | Rebuilt ascending. |
-| Founding cohort | `_cohort_slots` | 4 | `INITIAL_POPULATION` = 12 | Twelve entries, the world's starting population | 1 | §1 WORLD | The founding cohort's slot list; it names which rows the scenario created and outlives their deaths. |
+| Cohort rollback scratch | `_cohort_slots` | 4 | `INITIAL_POPULATION` = 12 | Only the current synchronous spawn/rollback call owns meaningful entries | 3 | -- | STATE-COHORT-R01: written by spawn_initial_settlement and read only by _rollback_cohort. Successful-call residue has no future meaning; bare reusable slots cannot record founder identity after death. No save/digest membership; save cannot observe an in-flight call. See rulings/2026-09-11_focus_and_rollback_state.md. |
 | Resident catalog and counters | -- | -- | -- | -- | 2 | §2 CATALOG_IDS | `_species_ids` and `_catalog_error` are rebuilt by reloading the catalog; `_live_count` is recomputed with the active list. |
 | Resident scratch | -- | -- | -- | -- | 3 | -- | `_math` and the `_owns_collaborators` construction flag. |
 
@@ -496,6 +496,18 @@ Neither needs new state.
 | Per-stream xorshift32 state | `_state` | 4 | `STREAM_COUNT` = 9 | 0 is the UNSEEDED value and is exactly what xorshift32 forbids, so it can never be a live state | 1 | §10 RNG | THE CURRENT STATE, NOT THE SEED. Nine streams in crowd §6.1's SIGNED int32 storage form: a state at or above 2147483648 is stored negative. `stored_state_of()` returns that signed form and `restore_stream()` accepts the UNSIGNED u32 and refuses a negative, so §10 must write `stored_state_of()` and the loader must convert back before restoring. Re-deriving a stream from `_world_seed` on load would restart it at draw 0 and diverge on the very next roll -- silently, because the values are still plausible. |
 | Per-stream draw counts | `_draw_count` | 8 | `STREAM_COUNT` = 9 | 0 draws is the seeded state | 1 | §10 RNG | ARCH-RNG-002: "Store state plus int64 draw count", and ARCH-HASH-001 hashes "RNG states/draw counts". They are also the localiser ARCH-HASH-002 dumps on a mismatch, so a divergence names a stream and a draw index rather than "the RNG". |
 | RNG seed and seeded flag | -- | -- | -- | `_seeded == false` with `_world_seed == 0` is the unseeded store | 1 | §1 WORLD | `_world_seed` is `World.seed` in §2's ledger. §10 cannot be decoded without it: `restore_stream()` requires a seeded store because the retired HUNTING stream's canonical value is defined against the seed, and SET-AMEND-001 §3 requires a noncanonical tombstone to FAIL validation. ARCH-SAVE-002's section order already puts WORLD (1) before RNG (10), so the load order works; 09.2 must not reorder them. |
+
+### `godot/scripts/core/save_codec.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Encoding primitives | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` at all: ARCH-SAVE-001's little-endian integer, two's-complement and length-prefixed-UTF-8 primitives, all static, plus a `Reader` and a `Writer` whose buffers are per-call scratch owned by the caller that constructed them. It is the codec the sections are written THROUGH; it owns no world state, so there is nothing here to save. ARCH-SAVE-007's line that "a memory allocation row alone does not make a field persisted or canonical" is the same point from the other direction. |
+
+### `godot/scripts/core/save_header.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Fixed header and section table | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` beyond the lazily built 256-entry CRC-32/ISO-HDLC lookup table, which is a compile-time constant derived from the reversed polynomial `systems_architecture.md:745` states. Everything else is static: the 256-byte header codec, the 64-byte descriptor codec, the body SHA-256 and the section-table validator. The header's own bytes are file structure, not simulation state; the catalog hash it carries at offset 72 is `catalog_ids.gd`'s digest, not a second one. |
 
 ### `godot/scripts/core/schedule.gd`
 
@@ -581,3 +593,14 @@ Neither needs new state.
 | World publication state | -- | -- | -- | `_published == false` means no map has been generated | 1 | §1 WORLD | `_published` and `_published_seed`. The seed must agree with `rng.gd`'s `_world_seed` and with `World.seed` in §2's ledger; ARCH-SAVE-004's map-compatibility check is what makes that agreement enforceable. |
 | World-generation scratch | -- | -- | -- | -- | 3 | -- | `_staged_centre_count`, `_staged_grove_count`, `_math`, `_measured` and `_foreign_kind`, all live only inside a generation pass. |
 
+
+## 2026-09-11 follow-on ownership rulings
+
+[SAVE-R09-001–005](rulings/2026-09-11_save_codec_contract.md) assigns proposed
+owners for sections11/13/15, the section1 provenance prefix and version policy.
+Those modules/fields are not asserted implemented by this registry. Their owners
+must add rows and exact byte counts alongside implementation, including the
+existing8-byte WorldRuntime event allocator moved to EventSchedule ownership,
+without duplicate allocation/serialization. Existing generation spaces remain distinct.
+STATE-COHORT-R01 corrects `_cohort_slots` above; the previous founder-history
+interpretation is retained as superseded evidence in the dated ruling.

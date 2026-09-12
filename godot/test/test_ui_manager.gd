@@ -386,13 +386,23 @@ func test_the_create_action_generates_the_authored_world_into_the_live_stores() 
 	SettlementSystem.reset()
 
 
-func test_a_generated_world_has_no_residents_and_the_counter_says_so() -> void:
-	"""A generated world has terrain, trees, ore and fish and NOBODY LIVING IN IT (task 06)."""
+func test_a_generated_world_is_populated_and_beds_stay_unpopulated() -> void:
+	"""REPLACES test_a_generated_world_has_no_residents_and_the_counter_says_so.
+
+	That test asserted `living_count() == 0` after Create -- it PINNED THE DEFECT. Decision 0071
+	made generation and the cohort one operation at boot, and UI-SET-103's Create kept the
+	poorer path, so pressing it emptied the settlement it had just generated. The old assertion
+	is retired because the behaviour it described was wrong, not because it became inconvenient.
+
+	Beds are still UNPOPULATED, and that half is unchanged: no Building, Furniture or Room store
+	exists, so a bed count would be a fabricated zero. Residents and Beds are a §1.1 pair and
+	only one of them has an owner."""
 	_ui.register_hud(_hud)
 	assert_true(_ui.create_world(), "Create succeeds")
-	assert_equal(SettlementSystem.residents().living_count(), 0, "nobody lives there yet")
+	assert_equal(SettlementSystem.residents().living_count(), 12,
+		"and §5.1's twelve residents live in the world it generated")
 	assert_true(_rendered_counters().contains("Beds %s" % UNPOPULATED),
-		"and beds are still unpopulated, not drawn as zero")
+		"while beds stay unpopulated, not drawn as a zero nothing measured")
 	SettlementSystem.reset()
 
 

@@ -47,3 +47,11 @@ and clearance measurements — not one universal standing height.
 
 **No bulk generation until the applicable proportions are approved.**
 Decision 0020 puts scale on the critical path for movement assets (gate G04).
+
+## Comparison authoring update — 2026-09-11
+
+[ART-GAP-R01/02](../planning/asset_dimensions_and_budgets.md) supplies anatomical
+measurement rules and explicit mole/squirrel/otter/badger comparison candidates.
+It preserves the user-required review before bulk production. The earlier
+whole-joined-mesh prep_unit.py normalization needs body-landmark validation:
+raised tails and attachments must not determine anatomical height.

@@ -10,20 +10,25 @@ extends RefCounted
 ## player DESIGNATE_ZONE targeting one of the four forest basins designates real forest.
 ##
 ## ---------------------------------------------------------------------------------------
-## ALLOCATE BEFORE CONSUME, AT WORLD SCALE (decision 0024). Task 04.3: "Failed initialization
-## retains the previous valid world and reports the exact failed assertion."
+## ALLOCATE BEFORE CONSUME, AT WORLD SCALE (decision 0059, which states the repository-wide rule;
+## decision 0024 names the same hazard at one earlier call site without generalising it). Task
+## 04.3: "Failed initialization retains the previous valid world and reports the exact failed
+## assertion." Ruling R-INIT-ID-001 leans on the same rule and sharpens it: "reset-to-empty alone
+## is insufficient when a valid world preceded it."
 ##
 ## Every refusal this module can produce is decided in `_prepare()` or `_validate()`, and BOTH run
 ## entirely inside this object: the terrain plan is written into STAGED columns, the collaborating
-## stores are only read. `_publish()` is reached only once the request, the collaborator set, the
-## directory's free rows, every store capacity and all of §5.1's generator guarantees have been
-## proved, and it is the first statement that mutates anything outside this object. A refused
-## generation therefore leaves every store byte-identical because NOTHING WROTE TO THEM, not
-## because a rollback undid the writes.
+## stores are only read. That pair IS `preflight()`, which is why a caller can preflight a whole
+## world, reset, allocate a cohort and only then publish -- nothing outside this object has been
+## written at the point the decision to proceed is taken. `publish_prepared()` is reached only once
+## the request, the collaborator set, the directory's free rows, every store capacity, all of
+## §5.1's generator guarantees AND the caller's own reset have been proved, and it is the first
+## statement that mutates anything outside this object. A refused generation therefore leaves every
+## store byte-identical because NOTHING WROTE TO THEM, not because a rollback undid the writes.
 ##
-## `_publish()` still inspects every OpResult it gets back and asserts on a refusal. That assert is
-## a drift guard on the preflight above it, not an error path: a store refusing there means the
-## preflight is wrong, and the world at that point is already cleared.
+## `publish_prepared()` still inspects every OpResult it gets back and asserts on a refusal. That
+## assert is a drift guard on the preflight above it, not an error path: a store refusing there
+## means the preflight is wrong.
 ##
 ## THE PUBLISHED MAP IS DOUBLE-BUFFERED for the same reason. `_staged_*` and the published columns
 ## are two allocations made once in `_init()`; publishing SWAPS the references. A failed
@@ -48,6 +53,22 @@ extends RefCounted
 ##     unlimited piles, fictional beds, duplicated tools or unregistered inventory owners". NO
 ##     Building, Furniture or Container store exists in `scripts/core/`. FULL INITIALIZATION IS
 ##     THEREFORE BLOCKED and this module generates terrain, resource nodes and ecology only.
+##     UPDATED 2026-09-11 (decision 0071): THE COHORT HALF IS NO LONGER MISSING FROM THE GAME, only
+##     from THIS module. `settlement_system.gd`'s `create_generated_settlement()` composes
+##     REQ-SET-009 with `residents.gd`'s §5.1 cohort as one all-or-nothing operation, so generating
+##     a world produces a world with somebody in it. Buildings, beds and containers remain absent.
+##     CORRECTED 2026-09-11 (ruling R-INIT-ID-001, decision 0075): THE ORDER IS NO LONGER FORCED BY
+##     THIS MODULE, AND THE COHORT NOW HOLDS §5.1's LITERAL "IDs 1-12". Decision 0071 recorded that
+##     `_publish()`'s `EntityDirectory.clear()` forced the world to be created first, which spent
+##     ids 1-1713 and left the cohort on 1714-1725. The specification owner ruled that that reset is
+##     a reset BEFORE new-world allocation, not a second reset inside terrain publication, and that
+##     `clear()`'s location here was "implementation structure, not an owning-spec constraint".
+##     Generation is therefore THREE public steps -- `preflight()`, `seed_prepared_streams()` and
+##     `publish_prepared()` -- and the composed initializer resets ONCE itself, allocates the twelve
+##     residents as ids 1-12, and only then publishes, which clears nothing and continues the SAME
+##     counter from 13. `generate()` remains the standalone reset wrapper the ruling preserves "for
+##     isolated controls": it is those three steps with `_reset_stores()` between the first and the
+##     second, and `test_world_init.gd` still drives the generator through it.
 ##   * CORRECTED 2026-09-11 (READY_07 §7.1), TWICE, and both corrections are kept dated rather
 ##     than deleted.
 ##     (1) The original claim said the building footprints are "authored NOWHERE as tile
@@ -461,6 +482,14 @@ const REFUSE_CAPACITY_FISH_HABITAT: StringName = &"CAPACITY_FISH_HABITAT"
 const REFUSE_CAPACITY_DIRECTORY: StringName = &"CAPACITY_DIRECTORY"
 const REFUSE_GROVE_INCOMPLETE: StringName = &"WORLD_GROVE_INCOMPLETE"
 const REFUSE_NOT_PUBLISHED: StringName = &"WORLD_NOT_PUBLISHED"
+## R-INIT-ID-001's staged boundary: `publish_prepared()` reached with no accepted plan behind it.
+const REFUSE_NO_PREPARED_PLAN: StringName = &"WORLD_NO_PREPARED_PLAN"
+## `publish_prepared()` clears nothing, so it PROVES the caller's single reset happened instead of
+## trusting it: a store still holding yesterday's rows refuses rather than publishing on top.
+const REFUSE_WORLD_NOT_RESET: StringName = &"WORLD_NOT_RESET_FOR_PUBLICATION"
+## The prepared seed was never applied to the RNG, so a world would publish over streams belonging
+## to a different seed -- or to no seed at all.
+const REFUSE_SEED_NOT_APPLIED: StringName = &"WORLD_SEED_NOT_APPLIED"
 const REFUSE_INVALID_TILE: StringName = &"INVALID_TILE"
 const REFUSE_NO_SOIL_ON_WATER: StringName = &"WORLD_NO_SOIL_ON_WATER"
 
@@ -557,6 +586,11 @@ class GenerateResult:
 	`.ok` MUST be inspected before any other field. A refusal carries the failing code and leaves
 	every collaborating store byte-identical, because a refusal is decided before any of them is
 	written. `attempts` counts §5.1's seed attempts, at most MAX_SEED_ATTEMPTS.
+
+	`preflight()` returns one of these too, and there the three creation counts are 0: a preflighted
+	plan has accepted a seed and created NOTHING. They are filled by `publish_prepared()`, which is
+	the call that creates the rows -- so a caller reading counts off a preflight result is reading
+	the truth, not a promise.
 	"""
 	var ok: bool = false
 	var error: StringName = REFUSE_NONE
@@ -624,6 +658,16 @@ var _fauna_birth_remainder: PackedInt64Array = PackedInt64Array()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _measured: Measurements = Measurements.new()
 var _foreign_kind: int = EntityDirectory.KIND_ANY
+
+# The plan `preflight()` accepted and `publish_prepared()` will create, held between the two so the
+# composed initializer can reset and allocate its cohort in between (R-INIT-ID-001 steps 1-4). This
+# is STAGING, not simulation state: the staged map columns it addresses are already allocated, it
+# survives `clear()` deliberately -- the composed reset runs while a plan is held -- and it is
+# dropped by `publish_prepared()` and `discard_prepared_plan()`. No save schema field is added.
+var _prepared: bool = false
+var _prepared_seed: int = 0
+var _prepared_attempts: int = 0
+var _prepared_request: Request = null
 
 
 func _init(p_directory: EntityDirectory, p_nodes: ResourceNodesScript,
@@ -1093,6 +1137,36 @@ static func basin_danger_band(basin_index: int) -> int:
 
 # --- published-world readers --------------------------------------------------------------------
 
+func directory() -> EntityDirectory:
+	"""The allocator this generator clears and publishes every world entity out of.
+
+	Published so a composing system can PROVE, at composition time, that the generator shares its
+	one directory rather than discovering a second allocator when `WORLD_STORE_DIRECTORY_MISMATCH`
+	refuses a generation. It hands back the same object the constructor was given; it creates none.
+	"""
+	return _directory
+
+
+func clear() -> void:
+	"""Discard the published map so this generator reports no world, reallocating nothing.
+
+	The COMPANION to `_reset_stores()`, and deliberately NOT the same thing. `_reset_stores()`
+	empties the collaborating stores, which this does not touch: a caller that has just emptied
+	them itself -- `settlement_system.gd`'s `reset()` -- would otherwise be left holding a
+	generator still answering `is_published()` true over terrain whose resource nodes, basins and
+	habitats no longer exist. That inconsistency is exactly the half-settlement decision 0059
+	forbids, so the settlement's reset calls this and the two halves stay in step.
+
+	It deliberately does NOT drop a plan held by `preflight()`. R-INIT-ID-001's composed order is
+	preflight, reset, cohort, publish, and the settlement's reset is that middle step -- dropping
+	the plan here would make the ruled order impossible. `discard_prepared_plan()` is the explicit
+	way to abandon one.
+
+	No column is resized; `_reset_published()` refills the published buffers in place.
+	"""
+	_reset_published()
+
+
 func is_published() -> bool:
 	"""True once a generation has published a world, and false before the first one succeeds."""
 	return _published
@@ -1307,21 +1381,49 @@ static func bound_request(items: ItemDefinitionsScript,
 # --- generation: the seed-attempt loop (GDD §5.1) -----------------------------------------------
 
 func generate(request: Request) -> GenerateResult:
-	"""Generate and publish one world, retrying with seed+1 for at most 16 attempts.
+	"""Generate one world into stores THIS call resets: the standalone, isolated-control wrapper.
 
 	§5.1: "Invalid seeds are rejected and regenerated with seed+1" and "A failed topology assertion
 	rejects generation after at most 16 seed attempts and returns the explicit failed assertion".
 	The authored geometry is seed-independent, so a repeated topology failure is an implementation
 	error rather than bad luck -- every attempt then returns the same assertion, which is what the
 	caller sees. A refusal leaves the previous published world and every store untouched.
+
+	R-INIT-ID-001 keeps this reset wrapper "for isolated controls": it is `preflight()`,
+	`_reset_stores()`, `seed_prepared_streams()`, `publish_prepared()`, in that order. THE COMPOSED
+	INITIALIZER MUST NOT USE IT -- the reset in the middle clears the directory, which would destroy
+	a cohort allocated first, which is exactly how ids 1-12 were lost. `settlement_system.gd`
+	therefore calls the three steps itself with its own single reset in front of them.
 	"""
+	var plan: GenerateResult = preflight(request)
+	if not plan.ok:
+		return plan
+	_reset_stores()
+	var seeded: StringName = seed_prepared_streams()
+	assert(seeded == REFUSE_NONE, "preflight proved the seed is an int32 and the RNG is composed")
+	return publish_prepared()
+
+
+func preflight(request: Request) -> GenerateResult:
+	"""Stage and validate one world plan, changing NOTHING outside this object (ruling step 1).
+
+	R-INIT-ID-001 step 1: preflight the plan and the collaborators "without changing the prior valid
+	world". §5.1's seed-attempt loop lives here because every refusal it can produce is decided by
+	`_prepare()` or `_validate()`, and both write only this object's staging buffers -- so a refused
+	preflight has not touched a store, a directory slot or the published map.
+
+	An accepted plan is HELD until `publish_prepared()` creates it or `discard_prepared_plan()`
+	drops it. Holding it across the caller's reset is the point: that is the window in which the
+	twelve residents take ids 1-12.
+	"""
+	discard_prepared_plan()
 	var result: GenerateResult = GenerateResult.new()
 	var attempt_seed: int = request.world_seed
 	for attempt: int in MAX_SEED_ATTEMPTS:
 		result.attempts = attempt + 1
-		var code: StringName = _try_seed(request, attempt_seed)
+		var code: StringName = _prepare_and_validate(request, attempt_seed)
 		if code == REFUSE_NONE:
-			return _succeed_generation(result, attempt_seed)
+			return _hold_prepared_plan(result, request, attempt_seed)
 		result.error = code
 		if attempt + 1 == MAX_SEED_ATTEMPTS:
 			return result
@@ -1332,19 +1434,133 @@ func generate(request: Request) -> GenerateResult:
 	return result
 
 
-func _try_seed(request: Request, world_seed: int) -> StringName:
-	"""Prepare and validate one candidate seed, publishing it when every assertion holds.
+func _prepare_and_validate(request: Request, world_seed: int) -> StringName:
+	"""Stage one candidate seed's plan and check §5.1's guarantees over it, or return the failure.
 
-	Nothing outside this object is written until `_publish()`, so a refusal from either stage is
-	the failed assertion AND the guarantee that the previous world is byte-identical.
+	Nothing outside this object is written by either stage, so the returned code is the failed
+	assertion AND the guarantee that the previous world is byte-identical.
 	"""
 	var code: StringName = _prepare(request, world_seed)
 	if code != REFUSE_NONE:
 		return code
-	code = _validate()
+	return _validate()
+
+
+func _hold_prepared_plan(result: GenerateResult, request: Request,
+		world_seed: int) -> GenerateResult:
+	"""Record the accepted plan for `publish_prepared()` and report the accepted seed."""
+	_prepared = true
+	_prepared_seed = world_seed
+	_prepared_attempts = result.attempts
+	_prepared_request = request
+	result.ok = true
+	result.error = REFUSE_NONE
+	result.accepted_seed = world_seed
+	return result
+
+
+func has_prepared_plan() -> bool:
+	"""True while an accepted plan is held and neither published nor discarded."""
+	return _prepared
+
+
+func discard_prepared_plan() -> void:
+	"""Drop any held plan, so a later `publish_prepared()` refuses instead of creating a stale world.
+
+	The composed initializer calls this on every path that abandons a transaction. Without it an
+	accepted plan would outlive the reset that followed a refusal, and a subsequent publish would
+	create the world of a request nobody asked for any more.
+	"""
+	_prepared = false
+	_prepared_seed = 0
+	_prepared_attempts = 0
+	_prepared_request = null
+
+
+func seed_prepared_streams() -> StringName:
+	"""Seed the nine RNG streams from the held plan (ruling step 2), or return the refusal code.
+
+	§5.1 owns `World.seed` and `settlement_system.gd` composes `rng.gd` unseeded, so this is what
+	makes a generated world reach its season handover with nine live streams. The composed
+	initializer calls it immediately after its single reset and BEFORE the cohort, because the
+	ruling requires the streams seeded "before consumers use them" -- `crop_weather.prime_day()`,
+	run while attaching the cohort, is one such consumer.
+
+	No sentinel signals failure: REFUSE_NONE means seeded, anything else names what stopped it.
+	"""
+	if not _prepared:
+		return REFUSE_NO_PREPARED_PLAN
+	if _rng == null:
+		return REFUSE_MISSING_STORE
+	var seeded: Rng.OpResult = _rng.seed_world(_prepared_seed)
+	if not seeded.ok:
+		return seeded.error
+	return REFUSE_NONE
+
+
+func publish_prepared() -> GenerateResult:
+	"""Create the held plan's world entities into an already reset, already seeded world (step 4).
+
+	R-INIT-ID-001: "Terrain publication must not clear or reseed the resident-bearing world." This
+	call therefore clears NO store and NO directory and seeds NO stream, so the twelve resident
+	identities allocated before it keep ids 1-12 and every world entity continues the same counter
+	from 13. The caller owns the single reset; `_refuse_publication()` PROVES that reset happened
+	rather than trusting it.
+
+	The held plan is dropped before the rows are created, so a second call refuses rather than
+	publishing the same world twice.
+	"""
+	var result: GenerateResult = GenerateResult.new()
+	result.attempts = _prepared_attempts
+	var code: StringName = _refuse_publication()
 	if code != REFUSE_NONE:
-		return code
-	_publish(request, world_seed)
+		result.attempts = 0
+		result.error = code
+		return result
+	var request: Request = _prepared_request
+	var world_seed: int = _prepared_seed
+	discard_prepared_plan()
+	_publish_prepared_world(request, world_seed)
+	return _succeed_generation(result, world_seed)
+
+
+func _refuse_publication() -> StringName:
+	"""The code blocking publication of a held plan, or REFUSE_NONE when it may proceed."""
+	if not _prepared:
+		return REFUSE_NO_PREPARED_PLAN
+	if _directory == null or _nodes == null or _forage == null or _fishing == null \
+			or _rng == null:
+		return REFUSE_MISSING_STORE
+	var unreset: StringName = _refuse_unreset_collaborators()
+	if unreset != REFUSE_NONE:
+		return unreset
+	if not _rng.is_seeded():
+		return REFUSE_SEED_NOT_APPLIED
+	var applied: IntMath.IntResult = _rng.world_seed_value()
+	if not applied.ok or applied.value != _prepared_seed:
+		return REFUSE_SEED_NOT_APPLIED
+	return REFUSE_NONE
+
+
+func _refuse_unreset_collaborators() -> StringName:
+	"""WORLD_NOT_RESET_FOR_PUBLICATION while any store this generator fills still holds a row.
+
+	§5.1 authors no starting FarmPlot, orchard, hive, job or queued command, and the world's own
+	nodes, basins and habitats are created here exactly once. A row standing in any of them means
+	the caller's reset did not happen, and publishing on top of it would double the world instead
+	of replacing it.
+	"""
+	if _published or _nodes.count() != 0 or _forage.zone_count() != 0 \
+			or _fishing.habitat_count() != 0:
+		return REFUSE_WORLD_NOT_RESET
+	if _farming != null and _farming.count() != 0:
+		return REFUSE_WORLD_NOT_RESET
+	if _orchards != null and (_orchards.hive_count() != 0 or _orchards.orchard_count() != 0):
+		return REFUSE_WORLD_NOT_RESET
+	if _jobs != null and _jobs.job_count() != 0:
+		return REFUSE_WORLD_NOT_RESET
+	if _commands != null and _commands.pending_count() != 0:
+		return REFUSE_WORLD_NOT_RESET
 	return REFUSE_NONE
 
 
@@ -1440,9 +1656,15 @@ func _refuse_binding(request: Request) -> StringName:
 func _refuse_collaborators() -> StringName:
 	"""Prove the store set is complete, shares one directory, and owns every live row in it.
 
-	Publishing clears the DIRECTORY, so a row owned by a store this generator was not given would
-	be silently orphaned. Refusing here is the difference between an explicit
-	WORLD_FOREIGN_LIVE_ROWS and a settlement whose residents lose their identities.
+	A reset clears the DIRECTORY, so a row owned by a store this generator was not given would be
+	silently orphaned by it. Refusing here is the difference between an explicit
+	WORLD_FOREIGN_LIVE_ROWS and a settlement whose entities lose their identities.
+
+	R-INIT-ID-001 moved this check EARLIER rather than weakening it: it runs in `preflight()`, which
+	the composed initializer calls before it resets and before the cohort exists, so a foreign row
+	still refuses before anything is cleared. It deliberately does not run again at publication,
+	where the twelve residents ARE live rows of a kind this generator does not own -- that is the
+	ruled order, not an orphan.
 	"""
 	_foreign_kind = EntityDirectory.KIND_ANY
 	if _directory == null or _nodes == null or _forage == null or _fishing == null \
@@ -1800,17 +2022,17 @@ func _deposit_distance_sq(origin_x: int, origin_z: int) -> int:
 
 # --- stage 3: publish ---------------------------------------------------------------------------
 
-func _publish(request: Request, world_seed: int) -> void:
-	"""Reset every store, seed the RNG, swap in the staged map and create the world's rows.
+func _publish_prepared_world(request: Request, world_seed: int) -> void:
+	"""Swap in the staged map and create the world's rows. Resets nothing, seeds nothing.
 
-	Task 04.3: "Explicitly reset RNG, generation/free-slot state, child arenas, job and command
-	state before exposing an active world." Reached only after `_prepare()` and `_validate()` have
-	proved every refusal away, so each OpResult below is asserted rather than handled: a refusal
-	here means the preflight is wrong, and there is nothing left to roll back to.
+	Reached only after `_prepare()`, `_validate()` and `_refuse_publication()` have proved every
+	refusal away, so each OpResult below is asserted rather than handled: a refusal here means the
+	preflight is wrong.
+
+	R-INIT-ID-001 step 4 is the absence in this function: it does not call `_reset_stores()`, so a
+	cohort allocated before it survives publication with §5.1's ids 1-12 and the world entities
+	continue the same counter. `generate()` supplies that reset itself for isolated controls.
 	"""
-	_reset_stores()
-	var seeded: Rng.OpResult = _rng.seed_world(world_seed)
-	assert(seeded.ok, "prepare proved the seed is an int32")
 	_swap_staged_map()
 	_published = true
 	_published_seed = world_seed
@@ -1826,6 +2048,11 @@ func _reset_stores() -> void:
 	Stores first: each releases its own directory rows, so clearing the directory afterwards resets
 	the free heaps and the persistent-ID counter with nothing stranded. `EntityDirectory.clear()`
 	deliberately does NOT reset generations (ARCH-ID-002); that is its contract, not an omission.
+
+	THIS IS THE STANDALONE WRAPPER'S RESET, and R-INIT-ID-001 confines it there: it is the reset
+	BEFORE new-world allocation, not a second reset inside terrain publication. A composed
+	initializer performs the equivalent reset over its own wider store set and never reaches here,
+	because `generate()` is the only caller.
 	"""
 	_nodes.clear()
 	_forage.clear()

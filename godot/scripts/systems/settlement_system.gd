@@ -120,7 +120,8 @@ extends Node
 ##                                    computes mood from the five needs alone.
 ##   ARCH-SYS-019 Lifecycle           no create/destroy/arrival/departure intents exist to
 ##                                    commit; the only lifecycle event in the game is the §5.1
-##                                    cohort creation below, which is not a per-tick intent.
+##                                    world-and-cohort creation below, which is not a per-tick
+##                                    intent.
 ##   ARCH-SYS-020 Progression         no Progress store and no completed recipes or feasts.
 ##   ARCH-SYS-021 ForecastNotice      `economy_system.gd` recomputes its summary synchronously on
 ##                                    every committed change; its hourly half has nothing to
@@ -204,13 +205,15 @@ extends Node
 ##     container store itself exists); and every production order, recipe, construction, care
 ##     request and hauling policy, none of which has a store.
 ##
-## SO A FRESH SETTLEMENT'S QUEUE IS STILL 0, FOR A DIFFERENT REASON THAN BEFORE: not because
-## nothing is wired, but because §5.1's world generation has not run and no player command has
-## arrived. `world_init.gd` (decision 0048) is the generator, and IT IS NOT COMPOSED HERE -- its
-## scenario `Request` needs tree/stone/iron/forage/fish ITEM IDS that no document assigns, and the
-## New Settlement control that would supply them is task 04.4's UI half, which is not built. A
-## test or a future UI reaches the stores through `ecology()`, `farming()` and `rng()` and
-## generates over them; this node invents neither the ids nor the caller.
+## AN *UNGENERATED* SETTLEMENT'S QUEUE IS STILL 0, AND `world_init.gd` IS NOW COMPOSED HERE.
+## `create_generated_settlement()` (decision 0071, reordered by R-INIT-ID-001 / decision 0075) runs
+## §5.1's cohort and REQ-SET-009's world as one transaction -- the twelve residents first, on
+## persistent ids 1-12, and the world from 13 -- so the running game has trees, ore, four forage
+## basins, the estuary, a seeded RNG AND twelve residents whose ids are the GDD's own.
+## The two blockers that kept the generator out of this node are both gone:
+## decision 0052 gave its seventeen item ids an authored source (resolved by key from the compiled
+## catalog, so this node still invents none of them), and this node is now the caller. A queue of
+## 0 after generation means no player command has arrived, which is the honest remaining reason.
 ##
 ## NOTHING HERE WRITES JOB_STATE_WORK. A planner-published job is QUEUED; ARCH-SYS-010 may bind a
 ## worker and make it RESERVED; RESERVED -> TRAVEL -> WORK is ARCH-SYS-011/012's and does not
@@ -231,35 +234,32 @@ extends Node
 ##     ticks whatever is genuinely in JOB_STATE_WORK and nothing else.
 ##
 ## ---------------------------------------------------------------------------------------
-## THE ECOLOGY IS OWNED, DRIVEN AND EMPTY, AND THOSE ARE THREE DIFFERENT FACTS. `ecology.gd`
-## composes the four ecology stores over THIS settlement's directory, and `run_day_boundary()`
-## drives it at every real midnight -- the stage is wired, not declared. A FRESH SETTLEMENT
-## NONETHELESS HAS NOTHING TO ADVANCE: GDD §5.1's world generation places the tree cover, the
-## deposits, the harvest basins and the estuary, and THIS NODE DOES NOT CALL A GENERATOR, so
-## `count()`, `zone_count()`, `habitat_count()` and `hive_count()` are all 0 and the stage
-## honestly does nothing. `world_init.gd` EXISTS (decision 0048) and is not composed here for the
-## reason given above -- its scenario Request's item ids have no authored source and its caller,
-## the New Settlement control, is not built. Placing a node or a basin here to make the day look
-## busy would measure a fiction, in exactly the way a fabricated job would. `ecology()` is the
-## accessor a world generator or a test uses to reach the stores, and ARCH-SYS-006 and
-## ARCH-SYS-009 borrow the same object rather than a copy.
+## THE ECOLOGY IS OWNED, DRIVEN AND -- ONCE GENERATED -- FULL. `ecology.gd` composes the four
+## ecology stores over THIS settlement's directory, and `run_day_boundary()` drives it at every
+## real midnight. Until `create_generated_settlement()` runs, `count()`, `zone_count()`,
+## `habitat_count()` and `hive_count()` are all 0 and the stage honestly does nothing; after it
+## runs they hold §5.1's tree cover, both ore deposits, the four forage basins and the estuary's
+## three habitats, and the midnight leg advances real stock. Nothing is placed here to make the
+## day look busy: every row comes from `world_init.gd`, which owns the geometry and the counts.
+## `ecology()` is the accessor the generator and the tests reach the stores through, and
+## ARCH-SYS-006 and ARCH-SYS-009 borrow the same object rather than a copy.
 ##
 ## THE CROP LAYER IS OWNED, DRIVEN AND EMPTY IN THE SAME THREE SENSES. `crop_weather.gd` composes
 ## the FarmPlot store and the single Weather row over this settlement's directory, `run_tick()`
 ## drives its hourly leg at every hour crossing and `run_day_boundary()` drives its daily leg at
 ## every real midnight. THE WEATHER IS REAL FROM DAY 1 -- `create_initial_settlement()` opens the
 ## opening day's baseline, which the offset calendar's first midnight (day 2) would otherwise
-## leave 18 hours late -- and THE FIELDS ARE EMPTY, because REQ-SET-009's world generation places
-## the starter fields and no generator is called here. `farming().count()` is 0, so the hourly leg
-## honestly integrates nothing. `crop_weather()`, `farming()` and `weather()` are the accessors a
-## world generator or a test reaches them through.
+## leave 18 hours late -- and THE FIELDS STAY EMPTY EVEN AFTER GENERATION, because §5.1 lists no
+## starter FarmPlot and `world_init.gd` therefore creates none: a plot arrives with a player FARM
+## designation. `farming().count()` is 0, so the hourly leg honestly integrates nothing.
+## `crop_weather()`, `farming()` and `weather()` are the accessors the generator and tests use.
 ##
-## THE WORLD SEED IS THE ONE THING THIS SETTLEMENT GENUINELY LACKS. `rng()` is composed here and
-## is UNSEEDED, because REQ-SET-009's world generation owns `World.seed` and no store holds one.
-## §5.10's forced first spring consumes zero draws, so a fresh settlement's whole first season
-## runs; the first midnight of its SECOND season refuses with the stream's own `RNG_NOT_SEEDED`
-## rather than defaulting to a seed this node invented. That refusal is a named blocker, and it
-## is the only thing standing between this loop and a full simulated year of weather.
+## THE WORLD SEED IS NO LONGER MISSING. `rng()` is composed here UNSEEDED and stays that way in a
+## settlement nobody generated; `create_generated_settlement()` seeds it, because `world_init.gd`
+## owns REQ-SET-009's `World.seed` and seeds all nine streams as part of publishing. §5.10's
+## forced first spring consumes zero draws, so even an ungenerated settlement's first season runs
+## and only its SECOND season's first midnight refuses `RNG_NOT_SEEDED`. A GENERATED settlement
+## does not: it runs a full simulated year of weather. No seed is defaulted or invented here.
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE RESERVATION POOL IS OWNED AND EMPTY. `reservations.gd` exists to hold job input claims
@@ -318,9 +318,14 @@ const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
 const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
 const CropWeatherScript := preload("res://scripts/core/crop_weather.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
+## Reached for `season_of_day()` alone: ARCH-SYS-005 owns the §5.6 calendar and the cohort
+## preflight asks it which season the opening day is in rather than deriving a second answer.
+const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 const WeatherScript := preload("res://scripts/core/weather.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
+const WorldInitScript := preload("res://scripts/core/world_init.gd")
+const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
 
@@ -406,6 +411,7 @@ var _rng: RngScript = null
 var _crop_weather: CropWeatherScript = null
 var _planner: JobPlannerScript = null
 var _presentation: PresentationExtractScript = null
+var _world: WorldInitScript = null
 
 # --- the live-resident index ------------------------------------------------------------------
 
@@ -489,6 +495,9 @@ func _init() -> void:
 		_ecology.orchard_hive())
 	_presentation = PresentationExtractScript.new(_residents, _jobs, _dispatch,
 		_ecology.forage(), _planner, _crop_weather.weather())
+	_world = WorldInitScript.new(_directory, _ecology.resource_nodes(), _ecology.forage(),
+		_ecology.fishing(), _rng, _crop_weather.farming(), _ecology.orchard_hive(), _jobs,
+		_commands)
 	_bind_ecology_to_commands()
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
@@ -546,6 +555,8 @@ func _assert_shared_contracts() -> void:
 		"R06-JOB-006's producer must service the hives ARCH-SYS-005 advances, not a private set")
 	assert(_planner.farming() == _crop_weather.farming(),
 		"ARCH-SYS-009 must service the FarmPlot rows ARCH-SYS-006 integrates")
+	assert(_world.directory() == _directory,
+		"REQ-SET-009's generator must allocate out of this settlement's one directory")
 	assert(TICK_STAGE_KEYS.size() == TICK_STAGE_COUNT,
 		"every measured tick stage must name the ARCH-SYS system it dispatches")
 	assert(_stage_usec.size() == TICK_STAGE_COUNT and _stage_usec_total.size() == TICK_STAGE_COUNT,
@@ -568,6 +579,113 @@ func _ready() -> void:
 
 # --- lifecycle ---------------------------------------------------------------------------------
 
+func create_generated_settlement(items: ItemDefinitionsScript,
+		world_seed: int = WorldInitScript.TUTORIAL_WORLD_SEED) -> bool:
+	"""REQ-SET-009 end to end: §5.1's cohort takes ids 1-12, then §5.1's world follows from 13.
+
+	THE GAP THIS CLOSES. `world_init.gd` built the world and `create_initial_settlement()` built
+	the population, and NOTHING CALLED BOTH -- so generating produced an empty world and booting
+	produced a cohort with nowhere to stand. §5.1 states one initialization contract, not two, and
+	this is the single operation that satisfies it.
+
+	THE ORDER IS THE RULING'S (R-INIT-ID-001, decision 0075), AND IT IS THE REVERSE OF DECISION
+	0071's. That decision recorded that `world_init._publish()` cleared the directory, forcing the
+	world to be created first and leaving the cohort on ids 1714-1725 instead of §5.1's "IDs 1-12".
+	The specification owner ruled that the clear is a reset BEFORE new-world allocation, not a
+	second reset inside terrain publication. So this operation is now one transaction:
+
+	  1. PREFLIGHT, changing nothing: the settlement must be empty, the seventeen resource ids must
+	     bind, the world plan must stage and validate, and the cohort's own catalog, capacities and
+	     opening-day weather must check out. Every refusal below is decided here.
+	  2. ENTER THE TRANSACTION: `reset()` once -- stores, directory, allocators, command, job and
+	     child state -- then seed the nine RNG streams, before any consumer draws.
+	  3. ALLOCATE THE TWELVE RESIDENTS FIRST, in §5.1's cohort order, through the ordinary
+	     directory allocator. They receive persistent ids 1-12 and Warden Rowan receives 1.
+	  4. PUBLISH THE WORLD from the SAME continuing counter, so the first world entity is 13.
+	     `publish_prepared()` clears and reseeds nothing.
+
+	ALLOCATE BEFORE CONSUME (decision 0059). A populated settlement refuses at step 1 and is
+	byte-identical afterwards, which is how "a refused initialization retains the previous valid
+	world" is honoured: the only world this can overwrite is one with nobody in it. See
+	`_abandon_transaction()` for what an in-transaction failure can and cannot restore.
+	"""
+	if _residents.population() != 0:
+		return _refuse(ResidentsScript.REFUSE_SETTLEMENT_NOT_EMPTY)
+	var built: WorldInitScript.RequestResult = WorldInitScript.bound_request(items, world_seed)
+	if not built.ok:
+		return _refuse(built.error)
+	var planned: WorldInitScript.GenerateResult = _world.preflight(built.request)
+	if not planned.ok:
+		return _refuse(planned.error)
+	var cohort: StringName = _refuse_cohort_preflight()
+	if cohort != REFUSE_NONE:
+		_world.discard_prepared_plan()
+		return _refuse(cohort)
+	return _run_initialization_transaction()
+
+
+func _refuse_cohort_preflight() -> StringName:
+	"""The code blocking §5.1's cohort, or REFUSE_NONE -- read from live state, writing nothing.
+
+	Ruling step 1 requires the cohort's capacity, catalog bindings and resources preflighted before
+	the transaction opens, so that step 3 cannot fail after the reset has already emptied a world.
+	Every check below reads state the reset does not change: compiled catalogs, fixed capacities,
+	and the opening day's weather preconditions (§5.10's forced first spring, which draws nothing).
+	"""
+	if _residents.catalog_error() != "":
+		return ResidentsScript.REFUSE_SPECIES_CATALOG
+	for species: StringName in ResidentsScript.INITIAL_SPECIES:
+		if not _residents.has_species(species):
+			return ResidentsScript.REFUSE_UNKNOWN_SPECIES
+	if ResidentsScript.INITIAL_POPULATION > ResidentsScript.RESIDENT_CAPACITY \
+			or ResidentsScript.INITIAL_POPULATION > EntityDirectoryScript.RESIDENT_LIVING_CAP \
+			or ResidentsScript.INITIAL_POPULATION > _directory.capacity_of_kind(
+				EntityDirectoryScript.KIND_RESIDENT):
+		return EntityDirectoryScript.REFUSAL_LIVING_CAP
+	var template: IntMath.IntResult = _schedule.default_template_id()
+	if not template.ok:
+		return StringName(template.error)
+	return _crop_weather.preflight_refusal_for(OPENING_CALENDAR_DAY,
+		OrchardHiveScript.season_of_day(OPENING_CALENDAR_DAY))
+
+
+func _run_initialization_transaction() -> bool:
+	"""Ruling steps 2-5: reset once, seed, allocate the cohort, then publish the world with it.
+
+	The cohort is allocated BEFORE the world so that §5.1's twelve residents take persistent ids
+	1-12 out of §4.2's one id space; publication continues the same counter rather than restarting
+	it. Any failure inside the transaction abandons the whole thing through
+	`_abandon_transaction()`; nothing is published by halves.
+	"""
+	reset()
+	var seeded: StringName = _world.seed_prepared_streams()
+	if seeded != REFUSE_NONE:
+		return _abandon_transaction(seeded)
+	if not create_initial_settlement():
+		return _abandon_transaction(_last_refusal)
+	var published: WorldInitScript.GenerateResult = _world.publish_prepared()
+	if not published.ok:
+		return _abandon_transaction(published.error)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _abandon_transaction(code: StringName) -> bool:
+	"""Return the settlement to EMPTY, drop the staged plan, and report `code`.
+
+	WHAT THIS RESTORES AND WHAT IT CANNOT. A settlement that held residents refused in the
+	preflight and never reached the transaction, so no populated world can be lost here. A world
+	with NO residents in it -- the only other thing the transaction can overwrite -- is not
+	restored: rebuilding it would mean re-running generation, and a regenerated world is a
+	different set of persistent ids rather than the same world back. The ruling's "reset-to-empty
+	alone is insufficient when a valid world preceded it" is therefore satisfied by the preflight
+	rather than by a rollback, and this limitation is named in decision 0075 rather than hidden.
+	"""
+	_world.discard_prepared_plan()
+	reset()
+	return _refuse(code)
+
+
 func create_initial_settlement() -> bool:
 	"""Spawn the GDD §5.1 starting cohort and attach every per-resident settlement row.
 
@@ -578,6 +696,12 @@ func create_initial_settlement() -> bool:
 	There is deliberately NO second emptiness check here. `residents.spawn_initial_settlement()`
 	already refuses a non-empty store, to protect §5.1's "IDs 1-12", and a copy of that rule here
 	would be a second place for it to be stated and to drift. Its refusal is passed through.
+
+	§5.1's "IDs 1-12" IS NOW LITERAL ON BOTH PATHS (R-INIT-ID-001). Called on a freshly reset
+	settlement -- which is what `_run_initialization_transaction()` does, before the world is
+	published -- the twelve spawns take the first twelve persistent ids out of §4.2's one id space,
+	in cohort order, so Warden Rowan is id 1. Called on its own, as the cohort-only path the suite
+	uses, it does the same thing over an empty directory.
 	"""
 	var spawned: ResidentsScript.OpResult = _residents.spawn_initial_settlement()
 	if not spawned.ok:
@@ -668,6 +792,7 @@ func _clear_stores() -> void:
 	_crop_weather.clear()
 	_planner.clear()
 	_presentation.clear()
+	_world.clear()
 	_rng.clear()
 
 
@@ -1347,6 +1472,16 @@ func commands_committed_last_tick() -> int:
 func commands_refused_last_tick() -> int:
 	"""Player commands the most recent CommandCommit stage refused, with a documented result id."""
 	return _commands_refused_last_tick
+
+
+func world() -> WorldInitScript:
+	"""REQ-SET-009's generator, composed over this settlement's own stores.
+
+	`is_published()` on it answers whether a world has been generated, and its tile readers answer
+	what is under a tile. It is a reader here: `create_generated_settlement()` is the only thing
+	in this node that calls `generate()`.
+	"""
+	return _world
 
 
 func reservations() -> ReservationsScript:

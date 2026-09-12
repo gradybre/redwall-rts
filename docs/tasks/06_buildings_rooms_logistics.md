@@ -54,3 +54,22 @@ an agreed allowlist, QA owns independent acceptance. One writer per file.
 Completion establishes usable supplied spaces and equipment in the implemented
 scenario, not complete seasonal food, families, all scenarios or release parity.
 Next dependency: task 07 production and task 08 care/community integration.
+
+## 2026-09-11 building-domain ruling — definitions resolved
+
+Read [R-BUILD-DOM-001–004](../rulings/2026-09-11_building_room_domains.md)
+and its adjacent JSON specification fixtures. Decision 0056's unlock domain,
+Station domain, furniture-mask assignment and fifth-shelf interpretation are
+resolved. Publish Milestone/Station through the existing registry, then implement
+packed stores and dependency-ready starter composition; do not reopen these as
+undefined fields or declare absent service/topology owners complete. Run the
+ruling's exact mapping, mask, ownership, capacity and failure tests.
+
+## Art authoring contract — 2026-09-11
+
+Use [ART-GAP-R03/04](../planning/asset_dimensions_and_budgets.md) for all30
+exterior-height envelopes, non-creature budgets, explicit cutaway parts and
+stockpile fill truthfulness. They add no storage capacity, room service or
+underground depth. One8×8m stockpile remains one400000g container; do not multiply
+capacity by its sixteen footprint tiles. Runtime/export/performance evidence
+remains required separately from these authored ceilings.

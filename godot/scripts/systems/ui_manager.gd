@@ -150,7 +150,18 @@ func _on_shell_action(element_id: int) -> void:
 
 
 func create_world() -> bool:
-	"""UI-SET-103's Create: discard the current settlement and generate §5.1's authored world.
+	"""UI-SET-103's Create: discard the current settlement and create §5.1's world AND cohort.
+
+	THE WORLD AND THEN ITS COHORT, in that order. This generated the world and no residents,
+	so pressing Create emptied the settlement it had just made and the HUD read
+	"Residents 0" against a fully generated map. Decision 0071 fixed boot; the UI kept the
+	poorer path.
+
+	The session still generates, because it owns the published map, the attempt report and
+	the generator's own refusal codes -- calling `create_generated_settlement()` instead
+	bypassed all three and broke two tests that had every right to fail. The cohort is
+	spawned after it, and a cohort refusal fails the WHOLE action rather than leaving a
+	generated map with nobody on it.
 
 	The reset is the PLAYER'S OWN DISCARD and happens first, because `world_init.gd` refuses to
 	publish over live rows it does not own -- a settlement's residents are exactly that. One
@@ -166,7 +177,15 @@ func create_world() -> bool:
 		SettlementSystem.ecology().fishing(), SettlementSystem.rng(),
 		SettlementSystem.crop_weather().farming(), SettlementSystem.ecology().orchard_hive(),
 		SettlementSystem.jobs(), SettlementSystem.commands(), report)
+	if ok and not SettlementSystem.create_initial_settlement():
+		ok = false
+		report.ok = false
+		report.error = SettlementSystem.last_refusal()
+		report.detail = "The world was generated but its cohort could not be spawned."
 	_report_generation(ok, report)
+	if ok and EconomySystem != null:
+		EconomySystem.bind_residents(SettlementSystem.residents())
+		refresh_roster()
 	return ok
 
 
@@ -182,9 +201,13 @@ func _report_generation(ok: bool, report: UiWorldSession.Report) -> void:
 		return
 	var shell: UiShell = _hud.shell()
 	if ok:
+		## MERGE, 2026-09-11: the sentence is R-INIT-ID-001's, which added the cohort count;
+		## the routing is R-UI-ALERT-001's, which gives the notice its authored category. The
+		## sentence itself is passed through unaltered, exactly as it was before.
 		shell.raise_notice(UiNotices.CATEGORY_SETTLEMENT_CREATED,
-			"Settlement generated: %d resource nodes, %d basins, %d fish stocks, seed %d."
-			% [report.resource_nodes, report.basins, report.fish_stocks, report.accepted_seed],
+			"Settlement generated: %d resource nodes, %d basins, %d fish stocks, %d residents, seed %d."
+			% [report.resource_nodes, report.basins, report.fish_stocks,
+				SettlementSystem.population(), report.accepted_seed],
 			GENERATION_SOURCE, "", "")
 		shell.set_refusal_display("")
 	else:

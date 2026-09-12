@@ -50,6 +50,25 @@ explicitly for additive regrowth/other behavior changes.
     critical-pause plus exactly-once retry belong to `settlement_system.gd`.
     Continuation through the real hourly caller, save/reload and the starter
     economy remains open exactly as decision 0085 left it.
+  - **The critical pause and the exactly-once revalidated retry are implemented
+    for the HOUR-LEVEL fault class** (2026-09-12), in
+    `godot/scripts/systems/settlement_system.gd` under
+    [decision 0100](../decisions/0100-the-stock-integrity-pause-retries-once-and-then-halts.md).
+    `stock_age.gd`'s three preflight refusals raise `SimClock.CRITICAL` through
+    `scheduler_events.gd`'s internal-producer safety hold — the pause path that
+    already existed, not a new one — arm exactly one retry keyed to the faulted
+    expiry transaction, re-derive that hour in full rather than replaying a
+    captured verdict, clear the pause on recovery, and halt every later tick with
+    `STOCK_AGE_INTEGRITY_HALT` when the retry also fails. No tick stage was added.
+    **Four parts remain open and are NOT claimed done:** a per-lot refusal gets the
+    pause but **no retry**, because `stock_age.gd` names no lot ref and publishes no
+    per-lot expiry entry point (it needs `last_refused_lot()` and
+    `retry_refused_lot_into()`, which is that file's owner's work); CRITICAL is a
+    bit shared with REQ-SET-008's overload ladder and `sim_clock.gd` has no
+    sub-reason space, so either producer can clear the other's hold; the fault
+    ledger is **not persisted**, so the ruling's save-continuation acceptance item
+    is unmet; and no UI-SET-085 stop modal or notice is wired to it, leaving
+    `push_error` the only player-facing signal.
 - [ ] 07.4 Complete sustainable forestry, crop rotations, orchards/hives, fishing
   gear/effort and preservation chains through physical work and storage. Initial
   basin stocks never multiply with player zones. Integrate SET_FIELD_ROTATION

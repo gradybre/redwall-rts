@@ -60,6 +60,11 @@ extends RefCounted
 ## Running total still owed to `systems_architecture.md` §2.3 and `ready07_arithmetic.py` by their
 ## owner: 2048 + 10240 + 96 = **12384** bytes. Both files are byte-unchanged by this work.
 ##
+## MOVE-DEP-R02's `_profile_life_stage:B8[4]` would take that StarterGroundProfile row from 6 x 4 x
+## 4 = 96 to 6 x 4 x 4 + 1 x 1 x 4 = **100** bytes, and the running total to **12388**. It is NOT
+## allocated here: see the blocker at the end of this header. No byte is claimed for a column that
+## does not exist, in either direction.
+##
 ## ---------------------------------------------------------------------------------------
 ## THE CURSOR NAMES ITS OWNER, NOT MERELY ITS ROW.
 ##
@@ -96,14 +101,40 @@ extends RefCounted
 ##     determine them either. `profile_clearance_class_into()` therefore REFUSES rather than
 ##     returning a number, and travel admission does not silently choose one. A caller-supplied
 ##     synthetic clearance on a reference route is still fine and is still not a species policy.
-##   * NO LIFE STAGE BUT ADULT. `residents.gd` has no life-stage column at all; the cohort is
-##     twelve adults. `LIFE_STAGE_ADULT` is the only profiled stage and any other refuses.
+##   * NO LIFE STAGE BUT ADULT. `PROFILE_LIFE_STAGE` binds one stage per profile and all four are
+##     ADULT, because GDD 5.1's cohort is twelve adults. A resident whose STORED stage is CHILD or
+##     ELDER refuses: PC-04 owns the dependent needs, care, schedule and hazard rules that a
+##     non-adult journey would have to be admitted under, and none of them exist yet.
 ##   * NO MODE BUT GROUND AND FORD WALKING. Swimming, diving, climbing/canopy and tunnel travel
 ##     stay in first-release scope under SET-MOVE-001 1 and are enumerated below so they cannot be
 ##     lost by omission -- they are UNPROFILED IN THIS INCREMENT and refuse explicitly. That is an
 ##     incremental capability boundary, not a narrowing of the adopted scope.
 ##   * NO EQUIPMENT ELIGIBILITY RULE. The committed load is checked against GDD 5.2's carry
 ##     capacity, which is specified. Which tool or gear blocks which passage is not, anywhere.
+##
+## ---------------------------------------------------------------------------------------
+## THE RESIDENT'S OWN STAGE DECIDES, AND THE CALLER'S COPY IS ONLY EVIDENCE.
+##
+## MOVE-DEP-R02: "Movement admission reads the resident's actual stage and matches the profile; an
+## `Admission.life_stage` caller value cannot override it." Until decision 0095 landed
+## `residents.gd`'s `_life_stage` column there was nothing to read, so admission compared the
+## caller's own assertion against ADULT -- which means a caller could assert ADULT for a CHILD and
+## be believed. That is now closed: `_refuse_life_stage()` reads `life_stage_of_ref()` and the
+## caller's value is checked AGAINST it rather than instead of it.
+##
+## The disagreement is its own refusal, `REFUSE_LIFE_STAGE_MISMATCH`, and not folded into
+## `REFUSE_LIFE_STAGE`. A caller that passes CHILD for a CHILD is correct code meeting a profile
+## gap -- send it to PC-04. A caller that passes ADULT for a CHILD has a defect in the caller --
+## send it to its own author. One code for both would name the wrong owner half the time, and it is
+## the half that is a security-shaped bug rather than a missing feature. Decision 0101.
+##
+## THE STORAGE SHAPE IS STILL BLOCKED, AND IS NAMED RATHER THAN GUESSED: MOVE-DEP-R02 asks for
+## `_profile_life_stage:B8[4]` as a packed column. A packed column in `godot/scripts/core` requires
+## a row in `docs/persistence_state_registry.md` -- `state_registry_coverage.py` C3 fails the build
+## without one -- and that file is owned elsewhere. `PROFILE_LIFE_STAGE` below is the same
+## per-profile binding as an immutable const table, which the ruling's own "catalog/profile metadata
+## is immutable binding, not another mutable life-stage authority" permits. Swapping it for the
+## packed column is mechanical once the registry row exists; the exact rows are in decision 0101.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -165,10 +196,23 @@ const PROFILE_COUNT: int = 4
 ## an older revision can be made to invalidate.
 const PROFILE_FIRST_REVISION: int = 1
 
-## `residents.gd` carries no life-stage column, and GDD 5.1's cohort is twelve adults. This is the
-## only profiled stage; juveniles and elders are unprofiled, not absent from the release.
-const LIFE_STAGE_ADULT: int = 0
-const LIFE_STAGE_COUNT: int = 1
+## GDD 5.1's cohort is twelve adults. ALIASED from `residents.gd` rather than written as 0 a second
+## time: MOVE-DEP-R02 fixes the encoding in the resident store, and two literals for one encoding is
+## how a renumber there silently admits a child here.
+const LIFE_STAGE_ADULT: int = ResidentsScript.LIFE_STAGE_ADULT
+
+## MOVE-DEP-R02's `_profile_life_stage`, one entry per `PROFILE_KEYS` row, in the same order. All
+## four are ADULT and each profile key spells `adult` for the same reason. Juveniles and elders are
+## UNPROFILED, which is not the same as absent from the release: PC-04 owns their rules.
+##
+## BLOCKED as a packed B8[4] column -- see the header. This const table is the binding itself, not a
+## cached copy of one, so it cannot drift from a column that does not exist yet.
+const PROFILE_LIFE_STAGE: Array[int] = [
+	ResidentsScript.LIFE_STAGE_ADULT,
+	ResidentsScript.LIFE_STAGE_ADULT,
+	ResidentsScript.LIFE_STAGE_ADULT,
+	ResidentsScript.LIFE_STAGE_ADULT,
+]
 
 # --- traversal modes, SET-MOVE-001 1 -------------------------------------------------------------
 #
@@ -204,7 +248,18 @@ const REFUSE_PROFILE_REVISION: StringName = &"PROFILE_REVISION_STALE"
 const REFUSE_PROFILE_CLEARANCE: StringName = &"PROFILE_CLEARANCE_UNSPECIFIED"
 const REFUSE_MODE_RANGE: StringName = &"MODE_NOT_IN_ENUM"
 const REFUSE_MODE_UNPROFILED: StringName = &"MODE_NOT_PROFILED"
+## The resident's STORED stage has no starter profile. The caller did nothing wrong; PC-04 owns the
+## rules a child or elder journey would need, so this refusal points at a missing feature.
 const REFUSE_LIFE_STAGE: StringName = &"LIFE_STAGE_NOT_PROFILED"
+## The caller's asserted stage is outside `residents.gd`'s 0..2 domain -- COUNT is a bound, and a
+## cleared `Admission` still holds -1. Never clamped to ADULT, as `spawn_with_stage()` is not.
+const REFUSE_LIFE_STAGE_RANGE: StringName = &"LIFE_STAGE_NOT_IN_ENUM"
+## The caller's asserted stage is a valid stage but NOT this resident's. A defect in the caller, and
+## deliberately distinguishable from a legitimately unprofiled resident; see the header.
+const REFUSE_LIFE_STAGE_MISMATCH: StringName = &"LIFE_STAGE_DISAGREES_WITH_RESIDENT"
+## The store would not answer the stage at all: a stale, wrong-kind or unoccupied resident row. The
+## caller's copy is NOT used as a fallback -- an unreadable authority refuses, it does not default.
+const REFUSE_LIFE_STAGE_UNREADABLE: StringName = &"RESIDENT_LIFE_STAGE_UNREADABLE"
 const REFUSE_LOAD_NEGATIVE: StringName = &"COMMITTED_LOAD_NEGATIVE"
 const REFUSE_LOAD_CAPACITY: StringName = &"LOAD_EXCEEDS_CARRY_CAPACITY"
 const REFUSE_CONTACT_UNBOUND: StringName = &"CONTACT_NOT_BOUND"
@@ -471,6 +526,15 @@ func profile_species_id_into(profile_id: int, out: IntMath.IntResult) -> bool:
 	return _profile_field_into(_profile_species_id, profile_id, out)
 
 
+func profile_life_stage_into(profile_id: int, out: IntMath.IntResult) -> bool:
+	"""The one life stage a published profile covers, or an explicit refusal for an unknown id."""
+	if not is_profile(profile_id):
+		_last_refusal = REFUSE_PROFILE_ID
+		return out.refuse(REFUSE_PROFILE_ID)
+	_last_refusal = REFUSE_NONE
+	return out.succeed(PROFILE_LIFE_STAGE[profile_id])
+
+
 func _profile_field_into(
 	column: PackedInt32Array, profile_id: int, out: IntMath.IntResult
 ) -> bool:
@@ -573,8 +637,9 @@ func _refuse_profile_terms(resident: Vector2i, admission: Admission) -> StringNa
 	"""The profile, life stage, mode and committed-load half of admission."""
 	if not is_profile(admission.profile_id):
 		return REFUSE_PROFILE_ID
-	if admission.life_stage != LIFE_STAGE_ADULT:
-		return REFUSE_LIFE_STAGE
+	var stage_refusal: StringName = _refuse_life_stage(resident, admission)
+	if stage_refusal != REFUSE_NONE:
+		return stage_refusal
 	if admission.mode < 0 or admission.mode >= MODE_COUNT:
 		return REFUSE_MODE_RANGE
 	if not profile_permits_mode(admission.profile_id, admission.mode):
@@ -586,6 +651,34 @@ func _refuse_profile_terms(resident: Vector2i, admission: Admission) -> StringNa
 		return REFUSE_LOAD_NEGATIVE
 	if admission.committed_load_g > _profile_carry_g[admission.profile_id]:
 		return REFUSE_LOAD_CAPACITY
+	return REFUSE_NONE
+
+
+func _refuse_life_stage(resident: Vector2i, admission: Admission) -> StringName:
+	"""The STORED stage decides; `admission.life_stage` is checked against it, never instead of it.
+
+	MOVE-DEP-R02: an `Admission.life_stage` caller value cannot override the resident's actual
+	stage. `life_stage_of_ref()` is the generation-checked reader, in the DIRECTORY's generation
+	namespace, so a stale or wrong-kind reference refuses here rather than answering from whichever
+	resident later took the slot.
+
+	Four outcomes, in the order a reader should think about them: the authority is unreadable; the
+	caller's value is not a stage at all; the caller's value disagrees with the resident; the
+	resident's own stage is not the one this profile covers. Only the last is a missing feature.
+
+	The read allocates one `IntResult`, as `_refuse_profile_terms()`'s own `species_of()` call does:
+	`residents.gd` owns those readers and publishes no `_into` form. `begin_travel()` is an
+	admission event, not part of `advance_tick()`'s per-row loop, so this is not a hot path.
+	"""
+	var stored: IntMath.IntResult = _residents.life_stage_of_ref(resident)
+	if not stored.ok:
+		return REFUSE_LIFE_STAGE_UNREADABLE
+	if not _residents.is_life_stage(admission.life_stage):
+		return REFUSE_LIFE_STAGE_RANGE
+	if admission.life_stage != stored.value:
+		return REFUSE_LIFE_STAGE_MISMATCH
+	if stored.value != PROFILE_LIFE_STAGE[admission.profile_id]:
+		return REFUSE_LIFE_STAGE
 	return REFUSE_NONE
 
 

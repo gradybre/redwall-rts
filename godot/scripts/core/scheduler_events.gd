@@ -71,7 +71,7 @@ extends RefCounted
 ##     decided rung through the barrier; `overload_ladder_target()` still chooses it.
 ##
 ## ---------------------------------------------------------------------------------------
-## THE LOAD BARRIER IS THE CLOCK'S, NOT A SECOND ONE (RESTORE-R01, decision 0098). This queue owns
+## THE LOAD BARRIER IS THE CLOCK'S, NOT A SECOND ONE (RESTORE-R01, decision 0104). This queue owns
 ## no barrier state and allocates none: `is_load_barrier_held()` below asks `_clock`, so the queue
 ## and the clock it applies events to can never disagree about whether a load is open. While it is
 ## held, EVERY admission, the pump, `clear()`, `rebind_clock()`, `begin_host_frame()` and

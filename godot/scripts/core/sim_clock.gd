@@ -57,7 +57,7 @@ extends RefCounted
 ## load coordinator that would hold the barrier and call this does not exist.
 ## Task 09 owns that coordinator and `game_manager.gd`'s host-sample-origin reset.
 ##
-## LOAD BARRIER (RESTORE-R01, decision 0098). `acquire_load_barrier()` hands the caller a
+## LOAD BARRIER (RESTORE-R01, decision 0104). `acquire_load_barrier()` hands the caller a
 ## `LoadBarrier` token and BARS THIS CLOCK'S OPERATIONAL COMMAND SURFACE -- set_speed, set_pause,
 ## advance, acknowledge_without_catchup and the three overload-ladder entry points -- until that
 ## token is released. The ruling is explicit that a coordinator-only check is insufficient "while

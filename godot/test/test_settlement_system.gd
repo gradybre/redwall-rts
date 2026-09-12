@@ -199,13 +199,21 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	"""Free the nodes this test built."""
+	"""Free the nodes this test built, and hand the SHARED pause queue back the way it was found.
+
+	STOCK-SEED-R01's critical pause is submitted into `GameManager`'s ONE R07-SCHED-001 queue --
+	the production path, because a test double would prove nothing about it -- and that autoload
+	outlives this suite. A CRITICAL hold left standing would be this suite editing the state
+	every later suite runs against, so it is dropped here.
+	"""
 	if _settlement != null:
 		_settlement.free()
 		_settlement = null
 	if _game != null:
 		_game.free()
 		_game = null
+	GameManager.scheduler_events().clear()
+	GameManager.clock().set_pause(SimClockScript.CRITICAL, false)
 
 
 func _populated() -> SettlementSystemScript:
@@ -2429,3 +2437,305 @@ func test_the_building_store_adds_no_stage_to_the_tick() -> void:
 	_settlement.run_tick(0)
 	assert_equal(_settlement.buildings().live_building_count(), 0,
 		"and a tick places nothing of its own")
+
+
+# --- STOCK-SEED-R01: the critical pause and the exactly-once revalidated retry -----------------
+#
+# ARCH-SYS-004 refuses and stops, with every collaborating store byte identical; routing that
+# refusal to the EXISTING critical-pause path and retrying the same expiry transaction once is
+# this system's half, and this is its coverage.
+#
+# THE CADENCE IS NOT GUESSED AT. 750 ticks to the hour, `(tick + 4500) mod 750 == 0`, first
+# midnight 13500. Every crossing used below is a multiple of 750 for that reason, and NEVER
+# `tick % 18000`, which is 06:00.
+
+## Inventory's own ceiling on a lot's stored age. A lot created AT it overflows on the very next
+## §5.8 hour, which is the one arithmetic integrity failure the shipped catalog can still reach:
+## every food mass divides spoiled_food's 250 g/U exactly and every seed's 100 g/U product is
+## nowhere near an int64, so neither conversion refusal is inducible through the public API.
+const MAX_AGE_MILLI_HOURS: int = 9223372036854774808
+
+
+func _faulting_hour_setup() -> Vector2i:
+	"""A declared store with one grain lot, and a stray open inventory transaction over it.
+
+	The stray transaction is what makes `stock_age.gd`'s `_preflight()` refuse
+	INVENTORY_TRANSACTION_OPEN: the hour latch is NOT consumed and nothing is swept, so the whole
+	hour stays owed. That is exactly the shape of failure the ruling's retry is for.
+	"""
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	_settlement.inventory().begin()
+	return lot
+
+
+func _pumped_critical_hold() -> bool:
+	"""Whether the submitted hold has actually reached the shared clock's CRITICAL bit."""
+	GameManager.scheduler_events().pump()
+	return GameManager.clock().has_pause_reason(SimClockScript.CRITICAL)
+
+
+func test_a_ledger_failure_in_the_hourly_sweep_raises_the_existing_critical_pause() -> void:
+	"""STOCK-SEED-R01: the fault is blocking, through the pause mask that already exists.
+
+	NOT a new pause concept: the bit asserted is `sim_clock.gd`'s CRITICAL, submitted through
+	`scheduler_events.gd`'s internal-producer safety hold, and it is checked on the real clock
+	after a real pump rather than on a counter this system keeps.
+	"""
+	_faulting_hour_setup()
+	var before: PackedByteArray = _settlement.inventory().state_bytes()
+	assert_true(_settlement.run_tick(750), "the tick itself still commits; the stage is not fatal")
+	assert_equal(_settlement.stock_integrity_fault(), &"INVENTORY_TRANSACTION_OPEN",
+		"the fault carries stock_age.gd's own refusal code")
+	assert_equal(_settlement.stock_integrity_fault_tick().value, 750,
+		"and names the hour crossing that refused")
+	assert_equal(_settlement.stock_integrity_fault_count(), 1, "one fault was raised")
+	assert_true(_settlement.is_critical_pause_held(), "this system holds CRITICAL")
+	assert_equal(_settlement.stock_pause_refusal(), &"", "and the submission was not refused")
+	assert_true(_pumped_critical_hold(), "the hold reached the real clock's pause mask")
+	assert_equal(_settlement.inventory().state_bytes(), before,
+		"and the refused hour left the lot store byte identical (decision 0059)")
+
+
+func test_the_faulted_hour_is_retried_exactly_once_and_recovers_the_same_hour() -> void:
+	"""The retry re-derives the FAULTED tick, not the tick it happens to run on.
+
+	Tick 750 is the crossing that refused. The pause stops the clock, so the first tick that can
+	carry the retry is 751 -- which is NOT an hour crossing -- and the hour that must land is
+	still 750's, at 750's elapsed-interval season. A retry that ran `run_hour_into(751)` would
+	refuse NOT_AN_HOUR_BOUNDARY and age nothing at all.
+	"""
+	var lot: Vector2i = _faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the crossing tick commits with the hour refused")
+	assert_true(_settlement.is_stock_retry_pending(), "one retry is owed")
+	assert_equal(_settlement.stock_retry_count(), 0, "and none has been attempted yet")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(751), "the next tick carries the retry")
+	assert_equal(_settlement.stock_retry_count(), 1, "exactly one retry was attempted")
+	assert_equal(_settlement.stock_retry_recovered_count(), 1, "and it recovered the hour")
+	assert_equal(_settlement.stock_hour().tick, 750,
+		"the hour that landed is the FAULTED one, re-derived at its own tick index")
+	assert_equal(_settlement.stock_age().last_hour_tick(), 750,
+		"so ARCH-SYS-004's latch consumed 750, not 751")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and exactly one §5.8 hour of age landed -- the retry adds no second hour")
+
+
+func test_a_recovered_retry_clears_the_pause_and_the_fault_together() -> void:
+	"""Never clear the pause while the failure stands, and always clear it once it does not."""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour refuses")
+	assert_true(_settlement.is_critical_pause_held(), "the pause is held while the fault stands")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(751), "the retry runs and recovers")
+	assert_equal(_settlement.stock_integrity_fault(), &"", "the fault is closed")
+	assert_false(_settlement.is_stock_retry_pending(), "its retry entitlement is spent")
+	assert_false(_settlement.is_critical_pause_held(), "and this system no longer holds CRITICAL")
+	assert_false(_pumped_critical_hold(), "the clock's CRITICAL bit is released too")
+	assert_false(_settlement.is_stock_integrity_halted(), "with nothing halted")
+
+
+func test_a_retry_that_also_fails_halts_the_simulation_and_is_never_retried_again() -> void:
+	"""Design answer 4: a skipped hour is a correctness hole, so no later tick may run.
+
+	The stray transaction is deliberately NOT cleared, so the retry re-derives the same inputs
+	and refuses identically. That is the point of revalidating rather than replaying: the second
+	refusal is real evidence the fault is unresolved, not a cached verdict.
+	"""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour refuses")
+	assert_true(_settlement.run_tick(751),
+		"the tick that DISCOVERS the halt still commits, exactly as the faulting tick did")
+	assert_equal(_settlement.stock_hour().error, &"INVENTORY_TRANSACTION_OPEN",
+		"the retry re-derived the same inputs and refused identically")
+	assert_true(_settlement.is_stock_integrity_halted(), "and the fault is now unrecoverable")
+	assert_equal(_settlement.stock_retry_count(), 1, "exactly one retry was ever attempted")
+	var ticks: int = _settlement.ticks_run()
+	assert_false(_settlement.run_tick(752), "every LATER tick refuses")
+	assert_equal(_settlement.last_refusal(), &"STOCK_AGE_INTEGRITY_HALT", "naming the halt")
+	assert_equal(_settlement.stock_retry_count(), 1, "and no second retry is ever made")
+	assert_equal(_settlement.ticks_run(), ticks, "a halted tick is not counted as run")
+
+
+func test_a_halted_tick_runs_no_stage_and_re_asserts_the_shared_critical_bit() -> void:
+	"""Continuing with a skipped hour is the hole; and CRITICAL is a bit somebody else can clear.
+
+	`acknowledge_without_catchup()` clears the WHOLE CRITICAL bit for REQ-SET-008's overload
+	ladder, which shares it. This system cannot stop that from `settlement_system.gd`, so it
+	re-submits the hold on every refused tick: a wrongly cleared integrity pause costs one
+	refused tick instead of resuming an unsafe world.
+	"""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour refuses")
+	assert_true(_settlement.run_tick(751), "the retry fails and halts")
+	assert_true(_pumped_critical_hold(), "CRITICAL is held, and the queue is now drained")
+	var measured: int = _settlement.tick_stage_measured_count(
+		SettlementSystemScript.TICK_STAGE_PRESENTATION).value
+	GameManager.clock().acknowledge_without_catchup()
+	assert_false(GameManager.clock().has_pause_reason(SimClockScript.CRITICAL),
+		"an unrelated overload acknowledgement cleared the shared bit")
+	assert_false(_settlement.run_tick(752), "the halted tick still refuses")
+	assert_equal(_settlement.tick_stage_measured_count(
+			SettlementSystemScript.TICK_STAGE_PRESENTATION).value, measured,
+		"and dispatched no stage at all")
+	assert_true(_pumped_critical_hold(), "while re-asserting CRITICAL on the clock")
+
+
+func test_only_a_reset_leaves_a_halted_settlement() -> void:
+	"""The one exit is `reset()`. No "clear the fault" call exists, deliberately."""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour refuses")
+	assert_true(_settlement.run_tick(751), "the retry fails and halts")
+	_settlement.inventory().abort()
+	_settlement.reset()
+	assert_false(_settlement.is_stock_integrity_halted(), "the reset settlement is not halted")
+	assert_equal(_settlement.stock_integrity_fault(), &"", "and carries no fault")
+	assert_equal(_settlement.stock_retry_count(), 0, "with the retry ledger emptied")
+	assert_false(_settlement.is_critical_pause_held(), "and the CRITICAL hold released")
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_true(_settlement.run_tick(750), "a fresh hour crossing commits again")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and ages the new settlement's stock normally")
+
+
+func test_a_later_hours_fault_earns_its_own_single_retry() -> void:
+	"""Design answer 2: the entitlement is keyed to the transaction, not to a sweep or a run.
+
+	A counter that reset every sweep would hand the SAME unrecovered fault a fresh retry every
+	hour; a flag that never cleared would leave a settlement that recovered perfectly unable to
+	ever fault again. Hour 750 faults and recovers; hour 1500 is a DIFFERENT expiry transaction
+	and gets its own one retry.
+	"""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "hour 750 faults")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(751), "and recovers on its one retry")
+	_settlement.inventory().begin()
+	assert_true(_settlement.run_tick(1500), "hour 1500 faults in its turn")
+	assert_equal(_settlement.stock_integrity_fault_count(), 2, "a second, separate fault")
+	assert_equal(_settlement.stock_integrity_fault_tick().value, 1500, "at its own hour")
+	assert_true(_settlement.is_stock_retry_pending(), "with its own retry owed")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(1501), "which recovers it")
+	assert_equal(_settlement.stock_retry_count(), 2, "two faults, two retries, never three")
+	assert_equal(_settlement.stock_retry_recovered_count(), 2, "both recovered")
+
+
+func test_a_cadence_refusal_is_not_an_integrity_fault_and_pauses_nothing() -> void:
+	"""HOUR_ALREADY_RUN means the hour was never owed; pausing for it would fabricate a fault.
+
+	ARCH-TICK-002's idempotence latch refuses a replayed crossing. That refusal changes no state
+	and is not arithmetic, ledger or schema failure, so it stays counted and non-fatal.
+	"""
+	_declared_store_with_grain(_settlement)
+	assert_true(_settlement.run_tick(750), "the crossing runs")
+	assert_true(_settlement.run_tick(750), "and is replayed")
+	assert_equal(_settlement.refused_stock_hour_count(), 1, "the replay refused")
+	assert_equal(_settlement.stock_hour().error, &"STOCK_AGE_HOUR_ALREADY_RUN",
+		"naming ARCH-TICK-002's latch on the stage's own channel")
+	assert_equal(_settlement.stock_integrity_fault(), &"", "but raised no integrity fault")
+	assert_equal(_settlement.stock_integrity_fault_count(), 0, "and counted none")
+	assert_false(_settlement.is_critical_pause_held(), "nothing was paused")
+	assert_false(_settlement.is_stock_integrity_halted(), "and nothing halted")
+	assert_false(_settlement.stock_integrity_fault_tick().ok,
+		"asking which hour faulted REFUSES rather than answering tick 0")
+
+
+func _store_with_one_overflowing_lot() -> Vector2i:
+	"""One declared store holding a single grain lot already at inventory's age ceiling."""
+	var inventory: WorldInventoryScript = _settlement.inventory()
+	var made: WorldInventoryScript.OpResult = inventory.create_container(
+		STORE_OWNER, STORE_MASS_G, WorldInventoryScript.FILTERS_ACCEPT_ALL, 0, true)
+	_settlement.stock_age().declare_storage_class(
+		made.ref, StockAgeScript.STORAGE_COVERED_STORE, false)
+	var grain: int = _settlement.item_definitions().compiled_id(&"grain")
+	return inventory.create_lot(made.ref, grain, 4000, 0, 0, 0, MAX_AGE_MILLI_HOURS, 0).ref
+
+
+func test_a_per_lot_arithmetic_failure_pauses_and_halts_without_a_retry() -> void:
+	"""Every `refused_lots` path in stock_age.gd is arithmetic or ledger failure, so all pause.
+
+	AND NONE OF THEM IS RETRIED, because `stock_age.gd` names no lot ref and publishes no
+	per-lot expiry entry point, so there is no transaction to revalidate. That is a named
+	blocker in the decision record, not a judgement that this failure deserves less; what this
+	file can honour -- the blocking pause and the byte-identical store -- it honours.
+	"""
+	var lot: Vector2i = _store_with_one_overflowing_lot()
+	var before: PackedByteArray = _settlement.inventory().state_bytes()
+	assert_true(_settlement.run_tick(750), "the crossing tick still commits")
+	assert_equal(_settlement.refused_stock_hour_count(), 0, "the HOUR itself ran")
+	assert_equal(_settlement.stock_hour().refused_lots, 1, "and refused exactly one lot")
+	assert_equal(_settlement.stock_integrity_fault(), &"OVERFLOW",
+		"whose checked-arithmetic refusal is the fault this system raises")
+	assert_true(_settlement.is_critical_pause_held(), "the pause is held")
+	assert_true(_pumped_critical_hold(), "and reached the real clock")
+	assert_true(_settlement.is_stock_integrity_halted(), "with no retry available, it halts")
+	assert_false(_settlement.is_stock_retry_pending(), "no retry is owed")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), MAX_AGE_MILLI_HOURS,
+		"the refused lot took no age")
+	assert_equal(_settlement.inventory().state_bytes(), before,
+		"and the whole lot store is byte identical")
+	assert_false(_settlement.run_tick(751), "every later tick refuses")
+	assert_equal(_settlement.stock_retry_count(), 0, "and no retry was ever attempted")
+
+
+func test_the_daily_aging_leg_raises_and_retries_the_same_fault_as_the_tick_path() -> void:
+	"""REQ-SET-007's first leg is the same pass, so it cannot have a quieter failure mode.
+
+	This drives the boundary with NO tick path behind it, which is the case where the leg runs
+	the hour itself. The crossing is the offset calendar's first midnight, 13500.
+	"""
+	_populated()
+	var lot: Vector2i = _faulting_hour_setup()
+	assert_false(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary's first leg fails")
+	assert_equal(_settlement.last_refusal(), &"INVENTORY_TRANSACTION_OPEN", "naming the refusal")
+	assert_equal(_settlement.stock_integrity_fault_tick().value,
+		SimClockScript.FIRST_MIDNIGHT_TICK, "the fault names midnight, not tick 0")
+	assert_true(_settlement.is_critical_pause_held(), "and the critical pause is held")
+	assert_equal(_settlement.daily_leg_count(), 0, "no leg was recorded as executed")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(SimClockScript.FIRST_MIDNIGHT_TICK + 1),
+		"the next tick carries the one retry")
+	assert_equal(_settlement.stock_age().last_hour_tick(), SimClockScript.FIRST_MIDNIGHT_TICK,
+		"which consumed midnight itself")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"charging exactly one §5.8 hour")
+
+
+func test_a_halted_settlement_refuses_the_daily_boundary_before_aging_anything() -> void:
+	"""A boundary must not walk past an unrecovered integrity fault into ecology and crops."""
+	_populated()
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour faults")
+	assert_true(_settlement.run_tick(751), "and its retry fails, halting the settlement")
+	assert_false(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary refuses")
+	assert_equal(_settlement.last_refusal(), &"STOCK_AGE_INTEGRITY_HALT", "naming the halt")
+	assert_equal(_settlement.daily_leg_count(), 0, "having executed no leg")
+	assert_equal(_settlement.last_ecology_day(), 0, "and never reached ARCH-SYS-005")
+
+
+func test_the_retry_runs_inside_the_existing_stock_age_stage_and_adds_no_ninth() -> void:
+	"""The tick stage count stays 8: the retry is dispatched in TICK_STAGE_STOCK_AGE's window."""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour faults")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(751), "and the retry recovers it")
+	assert_equal(_settlement.tick_stage_count(), 8, "still exactly eight dispatched stages")
+	assert_equal(_settlement.tick_stage_measured_count(
+			SettlementSystemScript.TICK_STAGE_STOCK_AGE).value, _settlement.ticks_run(),
+		"and the stock-age window was opened once per tick, retry included")
+
+
+func test_the_integrity_refusal_class_is_read_from_stock_ages_own_constants() -> void:
+	"""The three preflight codes pause; the three cadence codes do not, and none is invented."""
+	assert_true(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_NO_INVENTORY), "an unbound lot store is a ledger failure")
+	assert_true(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_NO_ITEM_CATALOG), "an unusable catalog is a schema failure")
+	assert_true(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_TRANSACTION_OPEN), "a stray open transaction is a ledger failure")
+	assert_false(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_HOUR_ALREADY_RUN), "a replayed hour changed nothing")
+	assert_false(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_NOT_HOUR_BOUNDARY), "a non-crossing tick owed no hour")
+	assert_false(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_INVALID_TICK), "and a negative tick is a caller error")

@@ -1,4 +1,4 @@
-# 0098 — The load barrier is a token the clock holds, and the queue reads the clock's
+# 0104 — The load barrier is a token the clock holds, and the queue reads the clock's
 
 Date: 2026-09-12 · Status: **Accepted**
 

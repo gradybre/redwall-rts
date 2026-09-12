@@ -362,3 +362,122 @@ func test_legality_override_updates_walkability_and_the_walkable_count() -> void
 	assert_equal(world.walkable_cell_count(), before - 1, "the count fell by exactly one")
 	assert_true(world.override_static_legality(cell, true), "open it again")
 	assert_equal(world.walkable_cell_count(), before, "and the count returned")
+
+
+# --- the work/service contact schema, 2026-09-11 movement ruling item 4 ---------------------------
+
+func test_a_contact_separates_its_work_point_from_the_cell_a_body_stands_on() -> void:
+	"""A workbench occupies a cell navigation need not make walkable; the approach is separate."""
+	var contact: SpatialWorldScript.Contact = SpatialWorldScript.Contact.new()
+	assert_false(contact.is_bound(), "a fresh contact names nothing")
+	var owner: Vector2i = Vector2i(41, 7)
+	var work: int = _cell(100, 100)
+	var approach: int = _cell(101, 100)
+	assert_true(
+		_world.bind_ground_contact(contact, work, approach, owner, 9),
+		"binding succeeds (refusal was %s)" % _world.last_refusal())
+	assert_equal(contact.work.cell, work, "the work point is recorded")
+	assert_equal(contact.approach.cell, approach, "and the approach cell separately")
+	assert_equal(contact.destination_revision, 9, "the owner's destination revision is recorded")
+	assert_equal(contact.owner_ref(), owner, "both halves of the owner are recorded")
+	assert_true(contact.is_bound(), "the contact now names a destination")
+
+
+func test_a_contact_with_no_destination_revision_is_not_a_valid_target() -> void:
+	"""Revision 0 is "this named no destination state at all" -- an empty store, not a target."""
+	var contact: SpatialWorldScript.Contact = SpatialWorldScript.Contact.new()
+	assert_false(
+		_world.bind_ground_contact(contact, _cell(100, 100), _cell(100, 100), Vector2i(1, 1), 0),
+		"revision 0 refuses")
+	assert_equal(
+		_world.last_refusal(), SpatialWorldScript.REFUSE_CONTACT_REVISION, "refusal is named")
+	assert_false(contact.is_bound(), "and nothing was written")
+	assert_equal(SpatialWorldScript.FIRST_DESTINATION_REVISION, 1, "the first legal revision is 1")
+
+
+func test_a_contact_refuses_an_approach_cell_a_body_cannot_stand_on() -> void:
+	"""The river blocks everywhere but the ford; a contact reached from water is not a contact."""
+	var contact: SpatialWorldScript.Contact = SpatialWorldScript.Contact.new()
+	var in_river: int = _cell(308, 400)
+	assert_false(_world.is_walkable_cell(in_river), "that cell really is blocked river")
+	assert_false(
+		_world.bind_ground_contact(contact, _cell(320, 400), in_river, Vector2i(1, 1), 1),
+		"an unwalkable approach refuses")
+	assert_equal(
+		_world.last_refusal(), SpatialWorldScript.REFUSE_CONTACT_APPROACH, "refusal is named")
+	assert_false(contact.is_bound(), "and nothing was written")
+
+
+func test_a_contact_accepts_an_unwalkable_work_point_reached_from_a_walkable_approach() -> void:
+	"""Building interiors and water work points are not required to be navigable ground."""
+	var contact: SpatialWorldScript.Contact = SpatialWorldScript.Contact.new()
+	var in_river: int = _cell(308, 400)
+	var bank: int = _cell(296, 400)
+	assert_true(_world.is_walkable_cell(bank), "the bank is walkable")
+	assert_true(
+		_world.bind_ground_contact(contact, in_river, bank, Vector2i(1, 1), 1),
+		"the contact binds (refusal was %s)" % _world.last_refusal())
+	assert_equal(contact.work.cell, in_river, "the work point is the unwalkable cell")
+	assert_equal(contact.approach.cell, bank, "and the body stands on the bank")
+
+
+func test_a_contact_refuses_off_grid_cells_and_a_null_owner() -> void:
+	"""Both endpoints must exist, and a destination with no generation-safe owner is not one."""
+	var contact: SpatialWorldScript.Contact = SpatialWorldScript.Contact.new()
+	assert_false(
+		_world.bind_ground_contact(
+			contact, SpatialWorldScript.CELL_COUNT, _cell(100, 100), Vector2i(1, 1), 1),
+		"an off-grid work cell refuses")
+	assert_equal(_world.last_refusal(), SpatialWorldScript.REFUSE_INVALID_CELL, "refusal is named")
+	assert_false(
+		_world.bind_ground_contact(contact, _cell(100, 100), _cell(100, 100), Vector2i(-1, 0), 1),
+		"the null reference is refused as a contact owner")
+	assert_equal(_world.last_refusal(), SpatialWorldScript.REFUSE_NULL_OWNER, "refusal is named")
+	assert_false(contact.is_bound(), "and nothing was written")
+
+
+func test_no_adjacency_rule_is_imposed_between_a_work_point_and_its_approach() -> void:
+	"""The supported footprint/contact envelope is the contact owner's value and is not invented.
+
+	This asserts an ABSENCE on purpose. A distant approach binding successfully is not a claim that
+	distant approaches are correct; it records that this module chooses no maximum, so nobody later
+	reads a silently-enforced adjacency as an adopted envelope.
+	"""
+	var contact: SpatialWorldScript.Contact = SpatialWorldScript.Contact.new()
+	assert_true(
+		_world.bind_ground_contact(contact, _cell(100, 100), _cell(140, 140), Vector2i(1, 1), 1),
+		"a far approach binds, because no envelope has been authored to refuse it")
+	assert_true(contact.is_bound(), "the record is bound")
+
+
+func test_a_contact_minted_before_an_edit_is_no_longer_current() -> void:
+	"""Both endpoints carry the map revision, so a topology edit invalidates the whole contact."""
+	var world: SpatialWorldScript = _private_world()
+	var contact: SpatialWorldScript.Contact = SpatialWorldScript.Contact.new()
+	assert_true(
+		world.bind_ground_contact(contact, _cell(100, 100), _cell(101, 100), Vector2i(1, 1), 1),
+		"the contact binds")
+	assert_true(world.contact_is_current(contact), "it is current at the revision it was minted at")
+	assert_true(world.override_static_legality(_cell(200, 200), false), "the world is edited")
+	assert_false(world.contact_is_current(contact), "and the contact is no longer current")
+	assert_true(contact.is_bound(), "though it still names its places, for its owner to re-approve")
+
+
+func test_an_unbound_contact_is_never_current() -> void:
+	"""`contact_is_current()` answers false for a record that names nothing, without reading cells."""
+	assert_false(
+		_world.contact_is_current(SpatialWorldScript.Contact.new()),
+		"a fresh contact is not current")
+
+
+func test_clearing_a_contact_releases_both_endpoints_and_its_revision() -> void:
+	"""A reused caller-owned record must not carry a previous destination into the next bind."""
+	var contact: SpatialWorldScript.Contact = SpatialWorldScript.Contact.new()
+	assert_true(
+		_world.bind_ground_contact(contact, _cell(100, 100), _cell(101, 100), Vector2i(1, 1), 5),
+		"the contact binds")
+	contact.clear()
+	assert_false(contact.work.is_bound(), "the work endpoint is released")
+	assert_false(contact.approach.is_bound(), "the approach endpoint is released")
+	assert_equal(contact.destination_revision, 0, "and so is the destination revision")
+	assert_false(contact.is_bound(), "the contact names nothing")

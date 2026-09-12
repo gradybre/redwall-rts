@@ -25,7 +25,27 @@ for l in s[a:b].splitlines():
 # Field rows: 135 at decision 0050, +5 for decision 0051's hive-service slice (35840 B).
 # +1 row for decision 0055's Weather absolute-season columns (16 B). Decision 0054's scheduler
 # queue is an allocation row only: a control block, not per-entity columns, so no field row moves.
-assert len(fields)==141 and sum(fields)==25028962
+# +1 row for decision 0095's Resident life_stage column (512 B, B8 x RESIDENT_CAPACITY).
+assert len(fields)==142 and sum(fields)==25029474
+# §3's printed rows must sum to the "Auxiliary payload" allocation row.
+#
+# THE HOLE THIS CLOSES. `fields` above slices on the '## 2.3' boundary, so it covers §2.2 ONLY --
+# §3 is invisible to it, and "Auxiliary payload" is a single §2.3 row maintained by hand. Three
+# decisions in a row (0080, 0083, 0085) advanced that total without printing their §3 rows, and
+# nothing caught it: every identity still balanced, because the hand-written total was on both
+# sides of every check. 0080 was found by an agent grepping for a column name; 0083 and 0085 were
+# found only when their combined 1024096 bytes turned up as the difference between this sum and
+# that row. Tying the two together is what makes a total impossible to advance without its rows.
+i3=s.index('\n## 3'); j3=s.index('\n## 4', i3)
+section3=[]
+for line in s[i3:j3].splitlines():
+ if not line.startswith('|'): continue
+ cells=[x.strip() for x in line.strip('|').split('|')]
+ if len(cells)>=7 and all(re.fullmatch(r'\d+',cells[k]) for k in range(3,7)):
+  assert int(cells[3])*int(cells[4])*int(cells[5])==int(cells[6]),cells[:7]
+  section3.append(int(cells[6]))
+auxiliary=int(re.search(r'\| Auxiliary payload \| (\d+) \|',s).group(1))
+assert sum(section3)==auxiliary, (sum(section3), auxiliary, len(section3))
 # Decision 0050's reconciliation, reproduced from its own two constants. It is NOT re-applied to
 # the live payload: doing that a second time would double count 437632 bytes already in the rows.
 DECISION_0050_CARRIED_BEFORE=59819174
@@ -47,10 +67,42 @@ DECISION_0054_ADDED=SCHEDULER_TOTAL
 # payload allocation, not as a new allocation row -- the row count stays 24.
 DECISION_0066_ADDED=512*4
 assert DECISION_0066_ADDED==2048
-assert len(allocations)==24 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED
+# Decision 0080, the packed Building/Room/Furniture index tables plus the per-tile furniture
+# occupant. Eight §3 rows; they roll into the Auxiliary payload allocation, so the row count
+# stays 24. Written as the products rather than one literal so a capacity change is visible.
+DECISION_0080_ADDED=(1*1*1024)+(4*4*1024)+(1*1*16384)+(4*6*16384) \
+	+(1*1*81920)+(4*4*81920)+(4*1*16384)+(4*1*9)
+assert DECISION_0080_ADDED==1885220
+# Decision 0083, travel admission and the starter ground profile catalog. The route cursor's
+# owner column is NOT here: decision 0066 already added it and the ledger already carries it at
+# four columns. Counting it twice is the exact double-count this trail has suffered before.
+DECISION_0083_ADDED=(5*4*512)+(6*4*4)
+assert DECISION_0083_ADDED==10336
+# Decision 0085, StockAge's container declarations and its sweep order. Four columns over
+# inventory's CONTAINER_CAPACITY. `_declared_slots` is NOT a rebuilt index: withdrawal
+# swap-removes, so its order is not recoverable, and it is the sweep order that decides which
+# freed lot slot the next create_lot() receives.
+DECISION_0085_ADDED=(1+1+4+4)*101376
+assert DECISION_0085_ADDED==1013760
+# decision 0092: game_manager.gd's pre-load rollback checkpoint, _checkpoint: PackedInt64Array,
+# CHECKPOINT_FIELDS(10) * 8 bytes. Allocated once in _init() and overwritten in place; it holds
+# the clock's ten runtime scalars in restore_runtime() argument order and is never serialized.
+DECISION_0092_ADDED=10*8
+assert DECISION_0092_ADDED==80
+# decision 0095: residents.gd's _life_stage, a B8 column over RESIDENT_CAPACITY. It is a §2.2
+# field row, so it enters the payload through the "Fixed registry payload" allocation row rather
+# than as an allocation row of its own -- the allocation count does not move for it.
+DECISION_0095_ADDED=1*512
+assert DECISION_0095_ADDED==512
+# decision 0104: sim_clock.gd's load barrier -- one 8-byte object reference plus the 1-byte
+# RefCounted token it points at. Counted at its maximum of one token, since a second concurrent
+# acquire refuses and mints none. scheduler_events.gd adds no field.
+DECISION_0104_ADDED=8+1
+assert DECISION_0104_ADDED==9
+assert len(allocations)==27 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==60823126
-assert live==69211734 and candidate==54607542 and live+candidate==123819276
+assert payload==63733043
+assert live==72121651 and candidate==57517459 and live+candidate==129639110
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

@@ -18,16 +18,18 @@ extends Node
 ##
 ## ---------------------------------------------------------------------------------------
 ## STAGE ORDER IS `systems_architecture.md` §5's TABLE, NOT CONVENIENCE. Of the 23 systems in
-## that table, NINE are dispatched here (ARCH-SYS-008 only in part). ARCH-SYS-017 is deliberately
-## NOT counted among the nine: it is not a separate call, and three earlier revisions of this
+## that table, TEN are dispatched here (ARCH-SYS-008 only in part). ARCH-SYS-017 is deliberately
+## NOT counted among the ten: it is not a separate call, and three earlier revisions of this
 ## header disagreed about whether to include it -- one said THREE while listing four, another said
 ## FIVE and SIX for the same milestone under different conventions, and the third ended "That is
 ## the sixth" after excluding 017 from a list of six, which named nothing at all. The count below
-## is of DISPATCHED CALL SITES, and the list IS the count. `tick_stage_count()` publishes the SEVEN
+## is of DISPATCHED CALL SITES, and the list IS the count. `tick_stage_count()` publishes the EIGHT
 ## of them that are on the per-tick path, so the list and the code cannot drift apart silently:
 ##
 ##   ARCH-SYS-002 CommandCommit      -> `command_dispatch.commit_tick_into()` every tick, FIRST
 ##   ARCH-SYS-003 IntervalIntegrator -> `needs.tick_all()`         every tick, after commit
+##   ARCH-SYS-004 StockAge           -> `stock_age.run_hour_into()` EVERY HOUR CROSSING, on the
+##                                     tick path, and REQ-SET-007's FIRST daily leg at midnight
 ##   ARCH-SYS-005 Ecology            -> `ecology.run_day_into()`   MIDNIGHT ONLY, never per tick
 ##   ARCH-SYS-006 CropWeather        -> `crop_weather.run_hour_into()` EVERY HOUR CROSSING, on
 ##                                     the tick path, AND `run_day_into()` at MIDNIGHT after 005
@@ -54,8 +56,9 @@ extends Node
 ##     rather than at the table's position 17. The table's own stated constraint -- "before
 ##     lifecycle and progression" -- still holds, because neither ARCH-SYS-019 nor ARCH-SYS-020
 ##     exists. WHAT IS ACTUALLY LOST is everything between the two positions: cold exposure cannot
-##     see THIS tick's ARCH-SYS-016 RoomHeat result (no Room store), and injury care cannot see
-##     THIS tick's ARCH-SYS-013 care work (no care request store). Both inputs are absent today,
+##     see THIS tick's ARCH-SYS-016 RoomHeat result (the Room store now exists, but nothing
+##     integrates heat into it), and injury care cannot see THIS tick's ARCH-SYS-013 care work
+##     (no care request store). Both inputs are absent today,
 ##     so the debt is currently unobservable -- and it becomes a real one-tick lag the moment
 ##     either store lands. Repaying it means a separate CareHealth call, which is a change to
 ##     `needs.gd`, a file this task does not own.
@@ -100,9 +103,13 @@ extends Node
 ## EVERY OTHER STAGE IS ABSENT BECAUSE ITS OWNING STORE DOES NOT EXIST, and none of them is
 ## faked here:
 ##   ARCH-SYS-001 TransformSnapshot   no Transform store; no position, no movement.
-##   ARCH-SYS-004 StockAge            `economy_system.gd` states it: nothing advances lot age,
-##                                    because the store and temperature factors belong to
-##                                    systems this milestone does not build.
+##   ARCH-SYS-004 StockAge            RUNS NOW -- see the dispatched list above and decision
+##                                    0085. It is not in this absent list any more. What is
+##                                    still missing is WHICH STORE a container is: GDD §5.8's
+##                                    four store factors belong to §5.9 buildings and furniture,
+##                                    and no Building store exists, so `stock_age.gd` holds an
+##                                    explicit declaration the building layer will write and
+##                                    counts every undeclared container every hour.
 ##   ARCH-SYS-006 CropWeather         RUNS NOW -- see the dispatched list above and decision
 ##                                    0047. It is not in this absent list any more.
 ##   ARCH-SYS-007 ImmigrationDeparture no candidate store; `needs.gd` leaves `departure_days`
@@ -113,8 +120,20 @@ extends Node
 ##   ARCH-SYS-012 Movement            no Transform store and no path to follow.
 ##   ARCH-SYS-014 BatchCompletion     no BatchState, no recipe store, no passive-wait flag.
 ##   ARCH-SYS-015 LogisticsCommit     no completion or transfer plans to commit.
-##   ARCH-SYS-016 RoomHeat            no Building or Room store; this is also exactly why
-##                                    `economy_system.gd` leaves fuel-days unpopulated.
+##   ARCH-SYS-016 RoomHeat            THE BUILDING, ROOM AND FURNITURE STORE IS NOW COMPOSED --
+##                                    `buildings()` -- so "no store" is no longer the reason and
+##                                    is not repeated here. What is still missing is §5.9's
+##                                    CONNECTED HEAT SERVICE: a fueled hearth heats every valid
+##                                    room "connected by open boundaries or interior doors within
+##                                    that building, up to 120 total interior tiles per hearth"
+##                                    (BAL-RATIO-010), allocated by hearth id then room id. That
+##                                    is room-to-room connectivity and an impermeable-partition
+##                                    model, and `buildings.gd`'s header says in terms that
+##                                    connectivity, enclosure and "heated" are NOT derived there.
+##                                    So the store answers how many hearths and how many interior
+##                                    tiles exist, and nothing answers which tiles a given hearth
+##                                    reaches. `economy_system.gd`'s fuel-days therefore stays
+##                                    unpopulated, with a narrower stated reason than before.
 ##   ARCH-SYS-018 SocialMood          MoodMemory storage is blocked by U6 (no owner-major index
 ##                                    formula), so the memory total stays 0 and `needs.gd`
 ##                                    computes mood from the five needs alone.
@@ -135,7 +154,14 @@ extends Node
 ## runs exactly ONE of those five legs plus the season handover between the first two. What it
 ## does, in the requirement's order:
 ##
-##   age stocks              NOT RUN. ARCH-SYS-004 has no owner; `economy_system.gd` says so.
+##   age stocks              RUN, and this is what decision 0085 added: `scripts/core/stock_age.gd`
+##                           (ARCH-SYS-004) folds GDD §5.8's effective storage age into every lot
+##                           in every DECLARED container, and expires the lots whose shelf life
+##                           is over. Its cadence is the HOUR crossing, not the day, so at
+##                           midnight this leg has usually already run on the tick path and the
+##                           boundary records it rather than aging a second time (ARCH-TICK-002).
+##                           It reads the ELAPSED interval's season, which is the first half of
+##                           ARCH-TICK-003 and the reason it must precede the handover below.
 ##   [season handover]       RUN. ARCH-TICK-003 places it exactly between aging and ecology
 ##                           ("aging uses the season in the elapsed interval; ecology uses the
 ##                           new calendar day's season"), and REQ-SET-143's x1.20 winter hunger
@@ -254,6 +280,37 @@ extends Node
 ## designation. `farming().count()` is 0, so the hourly leg honestly integrates nothing.
 ## `crop_weather()`, `farming()` and `weather()` are the accessors the generator and tests use.
 ##
+## ---------------------------------------------------------------------------------------
+## THE BUILDING, ROOM AND FURNITURE STORE IS NOW CONSTRUCTED, AND IT IS EMPTY. `buildings.gd`
+## (decision 0080) landed complete and NOTHING CALLED `Buildings.new()`; its author named the
+## exact line and left it, because this file was another agent's. `_init()` now makes that call
+## with THIS settlement's directory, which is the whole of the change and the whole of what it
+## buys. Precisely what a shared directory buys, and nothing more:
+##   * `Furniture.user` can name a resident. `set_furniture_user()` validates the reference
+##     through `directory()`, so a bed's occupant is a row `residents()` actually owns; with two
+##     directories it could only ever have been a foreign reference this store must refuse.
+##   * `world_init.gd`'s world entities and a placed building draw slots from ONE allocator, so
+##     R-INIT-ID-001's persistent-id sequence stays one sequence.
+##   * `reset()` releases the building rows' directory slots. `clear()` destroys only the rows
+##     this store holds and leaves a SHARED directory alone (its
+##     `test_a_shared_directory_is_not_cleared_by_this_store` pins that), which is why placing
+##     the call in `_clear_stores()` alongside the ecology's is safe and leaks no slot.
+##
+## WHAT THE COMPOSITION DOES NOT DO, stated because decision 0080's consequences are easy to
+## over-read. THERE IS NO STARTER SETTLEMENT. `live_building_count()`, `live_room_count()` and
+## `live_furniture_count()` are 0 after `create_generated_settlement()` as well as before it:
+## `world_init.gd` generates terrain, resource nodes, forage basins and the estuary, and §5.1's
+## hall, beds, hearth, pantry, well, stockpiles and workbench are NOT among them. So
+## `live_furniture_of_kind(bed)` answers 0 truthfully rather than answering §5.1's twelve, and a
+## HUD bed counter reading it would display a real 0 for a settlement with no beds in it. NOTHING
+## HERE PLACES A BUILDING TO MAKE THAT NUMBER LOOK RIGHT. The §7.2 starter build is a separate
+## piece of work with its own unresolved inputs, itemised in decision 0087.
+##
+## NO STAGE IS ADDED TO THE TICK. The store is structural state edited by placement and
+## demolition, not integrated per tick, and ARCH-SYS-016 RoomHeat -- the one §5 stage that would
+## read it -- still has no connected-heat model (see the absent-stage list above). `run_tick()`
+## and `run_day_boundary()` are byte-for-byte the same dispatch they were.
+##
 ## THE WORLD SEED IS NO LONGER MISSING. `rng()` is composed here UNSEEDED and stays that way in a
 ## settlement nobody generated; `create_generated_settlement()` seeds it, because `world_init.gd`
 ## owns REQ-SET-009's `World.seed` and seeds all nine streams as part of publishing. §5.10's
@@ -262,6 +319,16 @@ extends Node
 ## does not: it runs a full simulated year of weather. No seed is defaulted or invented here.
 ##
 ## ---------------------------------------------------------------------------------------
+## THE STOCK LAYER IS OWNED, DRIVEN AND EMPTY, in the same three senses as the crop layer.
+## `inventory.gd` is composed here with the §4.3 catalog registered into it, `stock_age.gd`
+## (ARCH-SYS-004) is composed over it, and `run_tick()` drives its hourly leg at every hour
+## crossing. IT HOLDS NO LOTS, because nothing in this node creates one: §5.1's starter stock is
+## placed by `economy_system.gd`, which owns a SEPARATE `inventory.gd` instance of its own, and
+## `world_init.gd` creates no lot in this one. THAT DUPLICATION IS REAL AND IS REPORTED RATHER
+## THAN PAPERED OVER: two inventories are two authorities, and merging them means editing
+## `economy_system.gd` and `world_init.gd`, neither of which this work owns. Until they are one
+## store, `stock_age()` ages this settlement's lots and the autoload's food does not age.
+##
 ## THE RESERVATION POOL IS OWNED AND EMPTY. `reservations.gd` exists to hold job input claims
 ## (REQ-SET-030's all-or-nothing reservation), and there are no jobs. It is composed and cleared
 ## with the rest of the settlement so it is one settlement's state rather than a detached object,
@@ -281,6 +348,10 @@ extends Node
 ##     form of it. THIS IS THE ONE THAT WOULD MATTER, and today it costs nothing because there
 ##     are no jobs; when a job source lands, `jobs.gd` needs a non-allocating live-index reader.
 ##     Reported, not worked around, and not fixed by editing a file this task does not own.
+##   * `stock_age.run_hour_into()` ZERO on 23 ticks in 24, for the same reason as the crop hour
+##     below, and zero on the 24th unless a lot ACTUALLY EXPIRES -- the sweep walks packed
+##     columns and writes through `inventory.gd`'s `_into` forms into instance scratch. An
+##     expiring lot costs four OpResults inside `inventory.gd`, once in that lot's life.
 ##   * `crop_weather.run_hour_into()` ZERO on 23 ticks in 24, because `is_hour_boundary()` is a
 ##     modulo and returns before anything else runs. On the 24th it allocates nothing either,
 ##     unless a plot actually takes frost or actually withers; `crop_weather.gd`'s own header
@@ -298,6 +369,64 @@ extends Node
 ## that file's header -- lands once per SIMULATED DAY, which at 1x is once per 18000 ticks.
 ## `crop_weather.gd`'s DAILY leg lands there too. Its HOURLY leg is the only thing this milestone
 ## adds to the per-tick path, and on a non-crossing tick that is one addition and one modulo.
+##
+## ---------------------------------------------------------------------------------------
+## STOCK-SEED-R01'S CRITICAL PAUSE AND ITS ONE REVALIDATED RETRY LIVE HERE, AND THIS IS THE
+## GAP `stock_age.gd`'S HEADER GAP 4 NAMED. That module counts and names a refusal with every
+## collaborating store left byte identical and invents neither a pause nor a retry ledger,
+## because ARCH-SYS-001 makes this file's dispatcher the owner. What this file now does:
+##
+##   * THE PAUSE IS THE EXISTING ONE. `sim_clock.gd` has held a CRITICAL bit in its reason mask
+##     since task 02, `scheduler_events.gd` owns its producers, and REQ-SET-008's overload
+##     ladder already raises it. NO SECOND PAUSE CONCEPT IS CREATED. The hold is submitted with
+##     `submit_safety_hold_into(SimClock.CRITICAL)` -- the queue's own INTERNAL-producer path:
+##     reserve-eligible, so ordinary traffic cannot crowd it out, and coalescing, so a repeat
+##     consumes no sequence. Submitted from inside tick k it is stamped k while the clock still
+##     reads k-1, so the barrier applies it AFTER k commits. This node never pumps the queue.
+##   * WHICH FAILURES REACH IT. The ruling's "arithmetic, ledger or schema failure" is exactly
+##     two sets: `stock_age.gd`'s three preflight refusals (INVENTORY_NOT_BOUND,
+##     ITEM_CATALOG_NOT_BOUND, INVENTORY_TRANSACTION_OPEN), and any hour with
+##     `refused_lots > 0` -- every path that increments that count is a checked-arithmetic
+##     refusal, an inventory `begin()` refusal or a poisoned `commit()`. INVALID_TICK,
+##     NOT_AN_HOUR_BOUNDARY and HOUR_ALREADY_RUN are NOT integrity faults: they mean the hour
+##     was never owed and changed nothing, and they stay counted and non-fatal as before.
+##   * THE RETRY IS EXACTLY ONCE BECAUSE THE ENTITLEMENT IS KEYED TO THE TRANSACTION AND SPENT
+##     BEFORE THE ATTEMPT. Not a per-sweep counter (which would grant a fresh retry every hour
+##     to the same unrecovered fault) and not a latch that never clears (which would turn one
+##     bad hour into a permanently degraded system). A fault at a LATER hour is a different
+##     expiry transaction and earns its own single retry; the faulted hour never gets a second.
+##   * THE RETRY IS REVALIDATED, NOT REPLAYED. Nothing about the failed attempt is captured.
+##     `run_hour_into()` is called again on the FAULTED tick and re-runs the preflight,
+##     re-resolves the catalog ids by key, re-decodes both calendars and re-reads every declared
+##     container and lot from live state. A fault still present refuses again, which is what
+##     stops the retry being a busy-loop against the same bad snapshot.
+##   * WHEN THE RETRY ALSO FAILS the simulation HALTS: every LATER `run_tick()` refuses
+##     STOCK_AGE_INTEGRITY_HALT, runs no stage, and re-asserts the hold. The tick that declares
+##     the halt still commits, because ARCH-SYS-003's sweep for it has already committed and the
+##     queued hold lands at the barrier after the tick regardless. Continuing past that would
+##     silently skip an hour of §5.8 aging. The only exit is `reset()`; there is deliberately no
+##     "clear the fault" call, because that is the escape hatch that lets the skipped hour
+##     through after all.
+##
+## THE TWO THINGS THIS COULD NOT DO, both named rather than faked:
+##   1. A PER-LOT FAULT GETS THE PAUSE BUT NO RETRY. `stock_age.gd` reports `refused_lots` and
+##      `last_lot_refusal` and NAMES NO LOT REF, and publishes no per-lot expiry entry point, so
+##      there is no handle to revalidate and re-commit. Re-running the hour is forbidden by the
+##      ruling itself ("does not rerun completed hourly work") and by StockAge's own hour latch.
+##      Re-deriving the conversion here would duplicate the transformation ARCH-SYS-004 owns.
+##      So such a fault raises the pause and halts at once. Closing it needs two additions to
+##      `stock_age.gd`, which is another owner's file: a `last_refused_lot()` reader and a
+##      `retry_refused_lot_into(lot_ref, out)` that re-derives quantity, item, masses and age
+##      and re-runs that one expiry transaction without touching the hour latch.
+##   2. CRITICAL IS A SHARED BIT. REQ-SET-008's overload ladder produces it too and
+##      `sim_clock.gd` offers no sub-reason space or hold count, so `acknowledge_without_catchup()`
+##      clears an integrity hold and this file's clear can lift an overload hold. What is done
+##      about it here is the only thing that can be: `_refuse_while_halted()` re-submits the hold
+##      on every refused tick, so a wrongly cleared integrity pause costs one refused tick rather
+##      than resuming an unsafe world.
+##
+## NO TICK STAGE IS ADDED. The retry runs inside TICK_STAGE_STOCK_AGE's existing measurement
+## window, so `tick_stage_count()` is still 8 and its test needs no bump.
 ##
 ## REFUSAL, NOT SENTINELS. Every operation returns a bool with the reason in `last_refusal()`, or
 ## an `IntMath.IntResult` whose `.ok` must be inspected. `mean_tick_usec()` REFUSES before the
@@ -324,8 +453,13 @@ const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 const WeatherScript := preload("res://scripts/core/weather.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
+const SchedulerEventsScript := preload("res://scripts/core/scheduler_events.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
+const BuildingsScript := preload("res://scripts/core/buildings.gd")
+const BuildingDefinitionsScript := preload("res://scripts/core/building_definitions.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
+const InventoryScript := preload("res://scripts/core/inventory.gd")
+const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
 
@@ -351,18 +485,20 @@ const DAILY_LEG_CAPACITY: int = 6
 ## are for 256 residents on a stated machine, and nothing here qualifies against them.
 const TICK_STAGE_COMMAND_COMMIT: int = 0
 const TICK_STAGE_INTERVAL: int = 1
-const TICK_STAGE_CROP_HOUR: int = 2
-const TICK_STAGE_JOB_PLANNER: int = 3
-const TICK_STAGE_SELECTION: int = 4
-const TICK_STAGE_WORK: int = 5
-const TICK_STAGE_PRESENTATION: int = 6
-const TICK_STAGE_COUNT: int = 7
+const TICK_STAGE_STOCK_AGE: int = 2
+const TICK_STAGE_CROP_HOUR: int = 3
+const TICK_STAGE_JOB_PLANNER: int = 4
+const TICK_STAGE_SELECTION: int = 5
+const TICK_STAGE_WORK: int = 6
+const TICK_STAGE_PRESENTATION: int = 7
+const TICK_STAGE_COUNT: int = 8
 
 ## The ARCH-SYS id each measured stage is, so a reader cannot mistake the selection stage's
 ## fused pair for one system. ARCH-SYS-008 appears as a PART: only activity resolution runs.
 const TICK_STAGE_KEYS: Array[StringName] = [
 	&"ARCH-SYS-002 CommandCommit",
 	&"ARCH-SYS-003 IntervalIntegrator (ARCH-SYS-017 CareHealth inside it)",
+	&"ARCH-SYS-004 StockAge hourly",
 	&"ARCH-SYS-006 CropWeather hourly",
 	&"ARCH-SYS-009 JobPlanner",
 	&"ARCH-SYS-008 NeedIntent (activity resolution only) + ARCH-SYS-010 JobSelector",
@@ -393,6 +529,12 @@ const REFUSE_CALENDAR_MISMATCH: StringName = &"DAY_BOUNDARY_CALENDAR_MISMATCH"
 const REFUSE_INVALID_INDEX: StringName = &"INVALID_INDEX"
 const REFUSE_ECOLOGY_BIND: StringName = &"COMMAND_ECOLOGY_BIND_REFUSED"
 const REFUSE_PLANNER_DAY: StringName = &"JOB_PLANNER_DAY_REFUSED"
+## STOCK-SEED-R01. `STOCK_AGE_INTEGRITY_HALT` is what every tick refuses with once an arithmetic,
+## ledger or schema failure in the hourly sweep has survived its one revalidated retry; it is a
+## refusal, never a sentinel value, and nothing downstream reads a number out of it.
+const REFUSE_STOCK_INTEGRITY_HALT: StringName = &"STOCK_AGE_INTEGRITY_HALT"
+## Asked which hour faulted when none has. A refusal, because tick 0 is a real tick.
+const REFUSE_STOCK_NO_FAULT: StringName = &"NO_STOCK_INTEGRITY_FAULT"
 
 # --- the settlement's stores (composed once in _init, never reallocated) ----------------------
 
@@ -412,6 +554,10 @@ var _crop_weather: CropWeatherScript = null
 var _planner: JobPlannerScript = null
 var _presentation: PresentationExtractScript = null
 var _world: WorldInitScript = null
+var _buildings: BuildingsScript = null
+var _inventory: InventoryScript = null
+var _item_definitions: ItemDefinitionsScript = null
+var _stock_age: StockAgeScript = null
 
 # --- the live-resident index ------------------------------------------------------------------
 
@@ -433,6 +579,7 @@ var _command_report: CommandDispatchScript.TickReport = CommandDispatchScript.Ti
 var _ecology_day: EcologyScript.DayResult = EcologyScript.DayResult.new()
 var _crop_day: CropWeatherScript.DayResult = CropWeatherScript.DayResult.new()
 var _crop_hour: CropWeatherScript.HourResult = CropWeatherScript.HourResult.new()
+var _stock_hour: StockAgeScript.HourResult = StockAgeScript.HourResult.new()
 var _planner_result: IntMath.IntResult = IntMath.IntResult.new()
 var _planner_day: JobPlannerScript.OpResult = null
 ## The 00:00 tick of the day boundary being run, located and PROVED once per boundary.
@@ -458,6 +605,7 @@ var _stage_measured: PackedInt64Array = PackedInt64Array()
 var _ticks_run: int = 0
 var _refused_tick_count: int = 0
 var _refused_crop_hour_count: int = 0
+var _refused_stock_hour_count: int = 0
 var _refused_extract_count: int = 0
 var _refused_planner_day_count: int = 0
 var _planner_day_count: int = 0
@@ -470,6 +618,38 @@ var _commands_committed_last_tick: int = 0
 var _commands_refused_last_tick: int = 0
 var _last_refusal: StringName = REFUSE_NONE
 var _reported_refusal: bool = false
+
+# --- STOCK-SEED-R01's integrity-fault ledger ---------------------------------------------------
+#
+# NINE SCALARS, NOT A PACKED COLUMN AND NOT A PER-ENTITY STORE. At most ONE stock integrity fault
+# is open at a time, because the first one stops the simulation before a second hour can run, so
+# there is nothing to index by. Nothing here is serialized: a save taken while the world is halted
+# is a save of an unsafe world, and the save owner has no section for this (reported, not built).
+#
+# THE LIFETIMES, which are the whole of the exactly-once claim:
+#   `_stock_fault_code`   REFUSE_NONE means no open fault. Set once at the raise; cleared ONLY by
+#                         a retry that succeeded, or by `reset()`.
+#   `_stock_fault_tick`   the HOUR CROSSING tick the fault belongs to, which is the tick the retry
+#                         re-derives. Read only while a fault is open; `stock_fault_tick()`
+#                         REFUSES rather than answering it when none is.
+#   `_stock_retry_pending` the single retry entitlement. Armed at the raise for the hour-level
+#                         class only, and CONSUMED BEFORE the attempt, so no repeat dispatch can
+#                         spend it twice. It is keyed to the faulted transaction, not to a sweep
+#                         or to a run: a later hour's fault is a DIFFERENT transaction and earns
+#                         its own single retry, while the faulted hour never gets a second.
+#   `_stock_fault_halted` set when no retry is left to make. Cleared only by `reset()`.
+#   `_stock_pause_held`   this system has an unmatched CRITICAL hold outstanding.
+var _stock_fault_code: StringName = REFUSE_NONE
+var _stock_fault_tick: int = 0
+var _stock_retry_pending: bool = false
+var _stock_fault_halted: bool = false
+var _stock_pause_held: bool = false
+var _stock_fault_count: int = 0
+var _stock_retry_count: int = 0
+var _stock_retry_recovered_count: int = 0
+var _stock_pause_refusal: StringName = REFUSE_NONE
+## Reused so raising or clearing the pause allocates nothing, even at the worst moment.
+var _submit_result: SchedulerEventsScript.SubmitResult = SchedulerEventsScript.SubmitResult.new()
 
 
 func _init() -> void:
@@ -498,6 +678,8 @@ func _init() -> void:
 	_world = WorldInitScript.new(_directory, _ecology.resource_nodes(), _ecology.forage(),
 		_ecology.fishing(), _rng, _crop_weather.farming(), _ecology.orchard_hive(), _jobs,
 		_commands)
+	_buildings = BuildingsScript.new(_directory)
+	_compose_stock_layer()
 	_bind_ecology_to_commands()
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
@@ -507,6 +689,21 @@ func _init() -> void:
 	_stage_usec_total.resize(TICK_STAGE_COUNT)
 	_stage_measured.resize(TICK_STAGE_COUNT)
 	_assert_shared_contracts()
+
+
+func _compose_stock_layer() -> void:
+	"""Build the InventoryLot store, load its item catalog, and give ARCH-SYS-004 both.
+
+	The catalog is loaded INTO this settlement's own inventory because `register_item()` is what
+	gives a lot row a mass and a category; ARCH-SYS-004 then reads the same catalog for GDD
+	§5.8's shelf lives. A catalog that fails to load leaves the stage refusing
+	ITEM_CATALOG_NOT_BOUND by its own rule, which is visible in `stock_hour()`, rather than
+	leaving this node to invent a shelf life.
+	"""
+	_inventory = InventoryScript.new()
+	_item_definitions = ItemDefinitionsScript.new()
+	_item_definitions.load_default(_inventory)
+	_stock_age = StockAgeScript.new(_inventory, _item_definitions)
 
 
 func _bind_ecology_to_commands() -> void:
@@ -557,6 +754,11 @@ func _assert_shared_contracts() -> void:
 		"ARCH-SYS-009 must service the FarmPlot rows ARCH-SYS-006 integrates")
 	assert(_world.directory() == _directory,
 		"REQ-SET-009's generator must allocate out of this settlement's one directory")
+	assert(_buildings.directory() == _directory,
+		"the Building/Room/Furniture store must share this settlement's one directory")
+	assert(BuildingsScript.MAP_TILES_X == WorldInitScript.MAP_TILES_X
+			and BuildingsScript.MAP_TILES_Z == WorldInitScript.MAP_TILES_Z,
+		"the building tile maps and REQ-SET-009's ground map must index the same §5.1 grid")
 	assert(TICK_STAGE_KEYS.size() == TICK_STAGE_COUNT,
 		"every measured tick stage must name the ARCH-SYS system it dispatches")
 	assert(_stage_usec.size() == TICK_STAGE_COUNT and _stage_usec_total.size() == TICK_STAGE_COUNT,
@@ -771,6 +973,7 @@ func reset() -> void:
 	system built the residents store with neither collaborator supplied and it therefore owns both.
 	"""
 	_clear_stores()
+	_release_critical_pause()
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
 	_live_count = 0
 	_daily_leg_count = 0
@@ -790,10 +993,25 @@ func _clear_stores() -> void:
 	_dispatch.clear()
 	_ecology.clear()
 	_crop_weather.clear()
+	_clear_stock_layer()
 	_planner.clear()
 	_presentation.clear()
 	_world.clear()
+	_buildings.clear()
 	_rng.clear()
+
+
+func _clear_stock_layer() -> void:
+	"""Empty the lot store and every storage declaration, then re-register the item catalog.
+
+	`inventory.clear()` drops the item registry as well as the rows -- it is the catalog-time
+	half of the same store -- so a settlement reset without this reload would leave every lot
+	operation refusing UNKNOWN_ITEM. Both generation spaces step forward inside `clear()`, so a
+	lot or container ref taken before a reset still cannot validate after it.
+	"""
+	_inventory.clear()
+	_item_definitions.load_default(_inventory)
+	_stock_age.clear()
 
 
 func _clear_counters() -> void:
@@ -801,6 +1019,7 @@ func _clear_counters() -> void:
 	_ticks_run = 0
 	_refused_tick_count = 0
 	_refused_crop_hour_count = 0
+	_refused_stock_hour_count = 0
 	_refused_extract_count = 0
 	_refused_planner_day_count = 0
 	_planner_day_count = 0
@@ -816,6 +1035,26 @@ func _clear_counters() -> void:
 	_commands_refused_last_tick = 0
 	_last_refusal = REFUSE_NONE
 	_reported_refusal = false
+	_clear_stock_integrity_fault()
+
+
+func _clear_stock_integrity_fault() -> void:
+	"""Drop STOCK-SEED-R01's fault ledger. Reached ONLY from `_clear_counters()`, i.e. `reset()`.
+
+	This is the one and only exit from a halted simulation, and it is private for that reason:
+	`reset()` empties every store, so the world the skipped hour would have corrupted no longer
+	exists. A public "clear the fault" would let the faulted hour be skipped in a world that
+	still contains the stock it failed to age, which is the correctness hole the halt closes.
+	The CRITICAL hold is released by `reset()` BEFORE this runs, so the flag and the clock agree.
+	"""
+	_stock_fault_code = REFUSE_NONE
+	_stock_fault_tick = 0
+	_stock_retry_pending = false
+	_stock_fault_halted = false
+	_stock_fault_count = 0
+	_stock_retry_count = 0
+	_stock_retry_recovered_count = 0
+	_stock_pause_refusal = REFUSE_NONE
 
 
 # --- the tick ----------------------------------------------------------------------------------
@@ -829,10 +1068,28 @@ func run_tick(tick_index: int) -> bool:
 	"""
 	if tick_index < 0:
 		return _refuse(REFUSE_INVALID_TICK)
+	if _stock_fault_halted:
+		return _refuse_while_halted()
 	_tick_timer.start()
 	var ok: bool = _run_stages(tick_index)
 	_record_tick_cost(_tick_timer.stop())
 	return ok
+
+
+func _refuse_while_halted() -> bool:
+	"""Run no stage while STOCK-SEED-R01's integrity fault stands, and re-assert its pause.
+
+	NOT a fabricated successful tick and not a skipped hour: the faulted hour is still owed, and
+	running the remaining stages would advance needs, jobs and work over stock that never aged.
+	The hold is re-submitted on every refused tick because CRITICAL is a SHARED bit -- the
+	REQ-SET-008 overload ladder produces it too, and `acknowledge_without_catchup()` clears the
+	whole bit -- so an unrelated acknowledgement costs one refused tick here instead of resuming
+	an unsafe world. `submit_safety_hold_into()` coalesces an already-pending hold, so the repeat
+	consumes no sequence and cannot fill the queue.
+	"""
+	_refused_tick_count += 1
+	_hold_critical_pause()
+	return _refuse(REFUSE_STOCK_INTEGRITY_HALT)
 
 
 func _run_stages(tick_index: int) -> bool:
@@ -849,6 +1106,7 @@ func _run_stages(tick_index: int) -> bool:
 	if not _integrate_interval():
 		_extract_presentation(tick_index)
 		return false
+	_age_stocks(tick_index)
 	_integrate_crops(tick_index)
 	_plan_jobs(tick_index)
 	_select_jobs(tick_index)
@@ -953,6 +1211,204 @@ func _integrate_interval() -> bool:
 	_refused_tick_count += 1
 	_report_first_refusal(swept.error)
 	return _refuse(swept.error)
+
+
+func _age_stocks(tick_index: int) -> void:
+	"""ARCH-SYS-004 StockAge, the HOURLY cadence its §5 row states, in the table's own position.
+
+	FOURTH, after ARCH-SYS-003 and before ARCH-SYS-006, which is exactly where §5's table puts
+	it. Running it here is also what makes REQ-SET-007's FIRST daily leg land before
+	ARCH-TICK-003's season handover: at a midnight tick the clock calls `run_tick()` for that
+	tick and only then `run_day_boundary()`, so the aging pass has already consumed the midnight
+	crossing by the time the handover runs.
+
+	The predicate is the only per-tick cost: 23 ticks in 24 are not an hour crossing and this
+	returns immediately. A refusal is COUNTED rather than fatal, for the same reason as the crop
+	hour -- the needs sweep for this tick has already committed.
+	"""
+	_stage_timer.start()
+	_age_stock_hour(tick_index)
+	_close_stage(TICK_STAGE_STOCK_AGE)
+
+
+func _age_stock_hour(tick_index: int) -> void:
+	"""The hourly aging pass, STOCK-SEED-R01's one revalidated retry, and its integrity fault.
+
+	THE RETRY IS ATTEMPTED FIRST, AND AGAINST THE FAULTED TICK, NOT THIS ONE. A hold raised at
+	the end of tick k stops the clock, so the first tick that reaches here after recovery is
+	k+1 -- which is not an hour crossing -- while the hour still owed is k's. Running the retry
+	before the predicate is what lets the correct hour be re-derived at the correct tick index,
+	with the correct elapsed-interval season, no matter which tick carries it.
+	"""
+	if _stock_retry_pending and not _retry_stock_hour():
+		return
+	if not StockAgeScript.is_hour_boundary(tick_index):
+		return
+	if not _stock_age.run_hour_into(tick_index, _stock_hour):
+		_note_stock_hour_refusal(tick_index)
+		return
+	_note_stock_hour_result(tick_index)
+
+
+func _retry_stock_hour() -> bool:
+	"""STOCK-SEED-R01's ONE revalidated retry of the SAME expiry transaction. True on recovery.
+
+	EXACTLY ONCE, AND THE ENTITLEMENT IS SPENT BEFORE THE ATTEMPT, so a repeated dispatch or a
+	re-entrant frame cannot spend it twice. It is keyed to the faulted TRANSACTION, not to a
+	sweep counter: a fault at a later hour earns its own single retry, this one never gets two.
+
+	REVALIDATED, NOT REPLAYED: nothing of the failed attempt is captured and re-applied.
+	`run_hour_into()` re-runs `_preflight()`, re-resolves both catalog ids by key, re-decodes
+	both calendars and re-reads every declared container and lot, so a fault still present
+	refuses AGAIN rather than being papered over.
+
+	IT ADDS NO AGE AND DUPLICATES NO SINK OR SOURCE: the hour-level class refuses inside
+	`_preflight()`, before StockAge consumes its hour latch and before any container is swept.
+	"""
+	_stock_retry_pending = false
+	_stock_retry_count += 1
+	if not _stock_age.run_hour_into(_stock_fault_tick, _stock_hour):
+		_refused_stock_hour_count += 1
+		_last_refusal = _stock_hour.error
+		_halt_stock_integrity()
+		return false
+	if _stock_hour.refused_lots > 0:
+		_last_refusal = _stock_hour.last_lot_refusal
+		_halt_stock_integrity()
+		return false
+	_stock_retry_recovered_count += 1
+	_stock_fault_code = REFUSE_NONE
+	_release_critical_pause()
+	return true
+
+
+func _note_stock_hour_refusal(tick: int) -> void:
+	"""Count an hour that never ran, and raise the fault when it was a ledger or schema failure."""
+	_refused_stock_hour_count += 1
+	_last_refusal = _stock_hour.error
+	if is_stock_integrity_refusal(_stock_hour.error):
+		_raise_stock_integrity_fault(tick, _stock_hour.error, true)
+
+
+func _note_stock_hour_result(tick: int) -> void:
+	"""Classify a completed pass: a per-lot refusal is STOCK-SEED-R01's integrity fault too.
+
+	Every path in `stock_age.gd` that increments `refused_lots` is a checked-arithmetic refusal,
+	an inventory `begin()` refusal or a poisoned `commit()` -- exactly the ruling's "arithmetic,
+	ledger or schema" set -- so the COUNT is the classification and no code list is invented
+	here. Decision 0059 leaves the collaborating stores byte identical at each of them.
+	"""
+	if _stock_hour.refused_lots > 0:
+		_raise_stock_integrity_fault(tick, _stock_hour.last_lot_refusal, false)
+
+
+func _raise_stock_integrity_fault(tick: int, code: StringName, retryable: bool) -> void:
+	"""Route one arithmetic, ledger or schema failure to the EXISTING critical-pause path.
+
+	`retryable` is not re-derived from the code: the caller knows which boundary refused. An
+	hour-level refusal happens inside `_preflight()`, before StockAge consumes its hour latch,
+	so a whole untouched hour is owed and can be re-derived. A PER-LOT refusal has no retryable
+	handle in this repository -- `stock_age.gd` reports `refused_lots` and `last_lot_refusal`
+	and names no lot ref, and offers no per-lot expiry entry point -- so it halts at once. That
+	is a named blocker in the accompanying decision record, not a judgement that a per-lot
+	arithmetic failure deserves less than the ruling's retry.
+
+	The first fault wins: a second raise while one is open would re-arm a retry the ruling
+	allows exactly once.
+	"""
+	if _stock_fault_code != REFUSE_NONE:
+		return
+	_stock_fault_code = code
+	_stock_fault_tick = tick
+	_stock_fault_count += 1
+	_hold_critical_pause()
+	if retryable:
+		_stock_retry_pending = true
+		return
+	_halt_stock_integrity()
+
+
+func _halt_stock_integrity() -> void:
+	"""Make the open fault unrecoverable in process: no further tick may run.
+
+	STOCK-SEED-R01: "An unsafe partial world uses the existing recovery path, not a fabricated
+	successful tick." Continuing would silently skip an hour of §5.8 aging, and there is no
+	second retry to make, so every LATER `run_tick()` refuses with the pause still held.
+
+	THE TICK THAT DECLARES THE HALT STILL COMMITS, exactly as the tick that raised the fault
+	does: this stage is fourth, ARCH-SYS-003's needs sweep for this tick has already committed,
+	and the queued hold takes effect at the barrier after the tick anyway. Discarding a
+	committed sweep to make the refusal land one tick earlier would trade a real half-tick for
+	a cosmetic one.
+
+	THE ONLY EXIT IS `reset()` -- a new or loaded settlement. No "clear the fault" call is
+	offered, deliberately: that would be the sentinel-shaped escape hatch that lets the skipped
+	hour through after all, which is the exact hole this refusal exists to close.
+	"""
+	if _stock_fault_halted:
+		return
+	_stock_fault_halted = true
+	_hold_critical_pause()
+	push_error(("SettlementSystem: stock integrity fault '%s' at hour tick %d is unrecovered "
+		+ "(retries attempted: %d); the simulation is halted until the settlement is reset.")
+		% [_stock_fault_code, _stock_fault_tick, _stock_retry_count])
+
+
+func _hold_critical_pause() -> void:
+	"""Submit CRITICAL through R07-SCHED-001's queue: the one pause path this repository has.
+
+	NOT A SECOND PAUSE CONCEPT AND NOT A DIRECT `set_pause()`. `sim_clock.gd` owns the reason
+	mask and `scheduler_events.gd` owns its producers; a safety hold is reserve-eligible, so a
+	queue full of ordinary traffic cannot swallow it, and an identical pending hold coalesces
+	rather than consuming a sequence. Submitted from inside tick k the record is stamped k while
+	the clock still reads k-1, so the barrier applies it AFTER k commits -- never midway through
+	a tick, which is exactly why this does not pump the queue itself.
+	A submission this system could not make is recorded in `stock_pause_refusal()`, never
+	swallowed: believing a pause is held when it is not is worse than the fault.
+	"""
+	if not GameManager.scheduler_events().submit_safety_hold_into(
+			SimClockScript.CRITICAL, _submit_result):
+		_stock_pause_refusal = _submit_result.error
+		return
+	_stock_pause_refusal = REFUSE_NONE
+	_stock_pause_held = true
+
+
+func _release_critical_pause() -> void:
+	"""Clear the CRITICAL hold this system placed, and only once its fault is verifiably gone.
+
+	Reached from exactly one place -- a retry that re-derived the whole hour and committed it --
+	because STOCK-SEED-R01 forbids clearing the pause while the failure stands.
+
+	THE BIT IS SHARED AND THAT HAZARD IS REPORTED, NOT PATCHED FROM HERE. REQ-SET-008's overload
+	ladder also produces CRITICAL and `sim_clock.gd` offers no sub-reason space or hold count, so
+	this clear can lift an overload hold and `acknowledge_without_catchup()` can lift this one.
+	A sub-reason space belongs to `sim_clock.gd`/`scheduler_events.gd`; what this file can do, and
+	does, is re-assert the hold on every refused tick in `_refuse_while_halted()`.
+	"""
+	if not _stock_pause_held:
+		return
+	if not GameManager.scheduler_events().submit_pause_into(SimClockScript.CRITICAL,
+			SimClockScript.CRITICAL, SchedulerEventsScript.VALUE_CLEAR, _submit_result):
+		_stock_pause_refusal = _submit_result.error
+		return
+	_stock_pause_refusal = REFUSE_NONE
+	_stock_pause_held = false
+
+
+static func is_stock_integrity_refusal(code: StringName) -> bool:
+	"""True when an HOUR-LEVEL StockAge refusal is STOCK-SEED-R01's ledger or schema fault class.
+
+	The three are read from `stock_age.gd`'s own constants rather than written as strings here,
+	and they are exactly the three `_preflight()` produces: an unbound lot store, a catalog that
+	cannot answer §5.8's shelf lives or resolve spoiled_food and compost, and an inventory
+	transaction somebody else left open. INVALID_TICK, NOT_AN_HOUR_BOUNDARY and
+	HOUR_ALREADY_RUN are deliberately NOT here: they mean the hour was never owed, they change
+	nothing, and pausing the game for a cadence refusal would be a fabricated integrity fault.
+	"""
+	return code == StockAgeScript.REFUSE_NO_INVENTORY \
+		or code == StockAgeScript.REFUSE_NO_ITEM_CATALOG \
+		or code == StockAgeScript.REFUSE_TRANSACTION_OPEN
 
 
 func _integrate_crops(tick_index: int) -> void:
@@ -1082,6 +1538,8 @@ func run_day_boundary(absolute_day: int, season: int) -> bool:
 		return _refuse(REFUSE_INVALID_SEASON)
 	if not _locate_boundary_tick(absolute_day, season):
 		return false
+	if not _age_stocks_leg():
+		return false
 	if not _apply_season_handover(season):
 		return false
 	if not _update_ecology():
@@ -1109,6 +1567,36 @@ func _locate_boundary_tick(absolute_day: int, season: int) -> bool:
 	SimClockScript.calendar_at_into(_boundary_tick, _calendar)
 	if _calendar.absolute_day != absolute_day or _calendar.season != season:
 		return _refuse(REFUSE_CALENDAR_MISMATCH)
+	return true
+
+
+func _age_stocks_leg() -> bool:
+	"""ARCH-SYS-004 StockAge: REQ-SET-007's FIRST leg, BEFORE ARCH-TICK-003's season handover.
+
+	ARCH-TICK-002 forbids "a second age pass just because the same tick is both hourly and
+	daily", and a midnight tick IS an hour crossing, so this does not age a second time: when
+	`run_tick()` has already consumed this exact tick the leg is recorded and nothing else
+	happens. It runs the pass itself only when nothing else has -- a boundary driven directly,
+	with no tick path behind it -- so the leg is genuinely executed in either case rather than
+	logged on trust.
+
+	The pass reads the ELAPSED interval's season from the calendar itself, which is the other
+	half of ARCH-TICK-003: aging must not see the new day's season, and `_apply_season_handover()`
+	below is the very next statement.
+
+	STOCK-SEED-R01 reaches this leg by the same two helpers the tick path uses, so a boundary
+	driven with no tick path behind it raises the same integrity fault and the same one retry
+	rather than a quieter refusal. A boundary run while the fault is already unrecoverable
+	refuses before aging anything.
+	"""
+	if _stock_fault_halted:
+		return _refuse(REFUSE_STOCK_INTEGRITY_HALT)
+	if _stock_age.last_hour_tick() != _boundary_tick:
+		if not _stock_age.run_hour_into(_boundary_tick, _stock_hour):
+			_note_stock_hour_refusal(_boundary_tick)
+			return _refuse(_stock_hour.error)
+		_note_stock_hour_result(_boundary_tick)
+	_record_daily_leg(LEG_STOCK_AGE)
 	return true
 
 
@@ -1311,6 +1799,89 @@ func refused_crop_hour_count() -> int:
 	return _refused_crop_hour_count
 
 
+func stock_age() -> StockAgeScript:
+	"""ARCH-SYS-004's aging stage. A building layer declares its storage classes here."""
+	return _stock_age
+
+
+func inventory() -> InventoryScript:
+	"""The settlement's own InventoryLot/InventoryContainer store, the one ARCH-SYS-004 ages."""
+	return _inventory
+
+
+func item_definitions() -> ItemDefinitionsScript:
+	"""The §4.3 item catalog registered into this settlement's inventory."""
+	return _item_definitions
+
+
+func stock_hour() -> StockAgeScript.HourResult:
+	"""The most recent hourly aging pass. Inspect `.ok` before any field."""
+	return _stock_hour
+
+
+func refused_stock_hour_count() -> int:
+	"""Hour crossings whose aging pass refused, so a skipped hour is never silent."""
+	return _refused_stock_hour_count
+
+
+func stock_integrity_fault() -> StringName:
+	"""The open STOCK-SEED-R01 fault's refusal code, or REFUSE_NONE while none is open.
+
+	REFUSE_NONE is the ABSENCE of a fault, not a fault whose reason is unknown: every raise
+	carries the owning module's own code, so this never answers an invented string.
+	"""
+	return _stock_fault_code
+
+
+func stock_integrity_fault_tick() -> IntMath.IntResult:
+	"""The hour crossing the open fault belongs to. REFUSES when no fault is open.
+
+	It refuses rather than answering 0 or -1, because tick 0 is a real tick and a sentinel here
+	would be read as "the fault is at the start of the game".
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if _stock_fault_code == REFUSE_NONE:
+		out.refuse(String(REFUSE_STOCK_NO_FAULT))
+		return out
+	out.succeed(_stock_fault_tick)
+	return out
+
+
+func is_stock_integrity_halted() -> bool:
+	"""True while a stock integrity fault has outlived its one retry and every tick refuses."""
+	return _stock_fault_halted
+
+
+func is_stock_retry_pending() -> bool:
+	"""True while the faulted hour's ONE revalidated retry is still owed and unspent."""
+	return _stock_retry_pending
+
+
+func stock_integrity_fault_count() -> int:
+	"""Stock integrity faults raised since the last reset()."""
+	return _stock_fault_count
+
+
+func stock_retry_count() -> int:
+	"""Retries ATTEMPTED since the last reset(). Never exceeds the faults raised."""
+	return _stock_retry_count
+
+
+func stock_retry_recovered_count() -> int:
+	"""Retries that re-derived the faulted hour and committed it, clearing the pause."""
+	return _stock_retry_recovered_count
+
+
+func is_critical_pause_held() -> bool:
+	"""True while this system holds an unmatched CRITICAL hold on the shared pause mask."""
+	return _stock_pause_held
+
+
+func stock_pause_refusal() -> StringName:
+	"""Why the most recent CRITICAL hold or clear could not be submitted, or REFUSE_NONE."""
+	return _stock_pause_refusal
+
+
 func refused_extract_count() -> int:
 	"""Ticks whose ARCH-SYS-023 snapshot refused, so a missed frame is never silent."""
 	return _refused_extract_count
@@ -1487,6 +2058,27 @@ func world() -> WorldInitScript:
 func reservations() -> ReservationsScript:
 	"""The global reservation pool. Empty: no job exists to claim an input (header)."""
 	return _reservations
+
+
+func buildings() -> BuildingsScript:
+	"""GDD §4.2's Building, Room and Furniture rows, over THIS settlement's one directory.
+
+	Empty until something places a structure: `world_init.gd` generates terrain and ecology and
+	§5.1 lists no starter building among them, so a generated settlement still has 0 buildings.
+	What the composition buys is that a placement now allocates out of the same allocator every
+	other settlement reference lives in, so a `Furniture.user` can name a resident this store's
+	`residents()` owns and the mask, the tile maps and the directory cannot disagree.
+	"""
+	return _buildings
+
+
+func building_definitions() -> BuildingDefinitionsScript:
+	"""The immutable §4.1/§4.2/§4.3 facts the building store validates against.
+
+	Borrowed from the store rather than composed a second time, so `base_store_g_of()` and the
+	unlock ordinals a caller reads are the ones `place_building()` itself enforced.
+	"""
+	return _buildings.definitions()
 
 
 func _report_first_refusal(code: StringName) -> void:

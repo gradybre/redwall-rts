@@ -1,5 +1,7 @@
 # MOVE-G01 and task05.1b — exact continuation boundary
 
+**Latest Astra follow-up (2026-09-12):** [six executor answers](2026-09-12_executor_followup.md). Read before the older status below.
+
 2026-09-11. Full05.1b remains the connected-movement engineering contract.
 No gate is closed by this asset/save package. The existing05.1a ground/shared
 interface is an independent starting point, not evidence of expanded geometry.

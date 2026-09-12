@@ -42,10 +42,46 @@ rules; this card does not replace the binary schema.
   map, lookup and engine hashes at offsets 40/104/136/168 have no producer in
   this repository (decision 0034); and §11 EVENT_SCHEDULE, §13 CHRONICLE and §15
   STATE_DIGEST still have no owning module. `SCHQ0001` remains unwired.
+  *Two sections added 2026-09-11 (decision 0081):*
+  `godot/scripts/core/save_section_rng.gd` writes §10 RNG as a fixed 108-byte
+  payload -- nine i32 stored xorshift32 states at offset 0, nine i64 draw counts
+  at offset 36 -- validating the zero state xorshift32 forbids, negative draw
+  counts and SET-AMEND-001 §3's HUNTING tombstone, and applying all nine streams
+  or none. `godot/scripts/core/save_section_world_runtime.gd` writes §1 WORLD's
+  leading 80-byte WorldRuntime block and realises the READY_07 G3 split: all
+  thirteen fields are saved, and only the five ARCH-HASH-001 ones enter the
+  canonical contribution, so host debt and the six clock counters are CRC- and
+  SHA-protected without joining the state digest. **Still open inside 09.2:**
+  thirteen sections remain unwritten, `SCHQ0001` is still unwired, and §1 is
+  composed from per-owner blocks whose order and contiguity nothing settles.
+  **BLOCKER W1:** `sim_clock.gd` has no writer for the completed tick, the debt
+  or the six counters, and `set_pause(PLAYER, true)` discards sub-tick debt, so
+  the WorldRuntime block can be captured and verified but NOT published. It needs
+  a side-effect-free `restore_runtime(...)` from that module's owner.
 - [ ] 09.3 Implement transactional disk-backed rollback load, validated inactive
   checkpoint, autosave rotation and interrupted-I/O recovery. Recompute expanded
   peak memory; the baseline single-floor ledger is insufficient. No second full
   mutable world beyond the budget or partially visible decoded world.
+  *Partly done 2026-09-12 (decision 0092):* RESTORE-R01's LOAD integration is
+  wired in `godot/scripts/systems/game_manager.gd`. `begin_load()` raises the
+  shared guard, checked before host advance (`_process` and the direct
+  `advance_host_time()` entry point) and before scheduler pumping
+  (`_drain_boundary()`); every operational control refuses under it with
+  `LOAD_IN_PROGRESS` and mutates neither clock nor queue.
+  `restore_clock_runtime()` is the one production call site of
+  `sim_clock.gd::restore_runtime()` and reaches it through no setter, event or
+  tick. `publish_restored_world()` sets `_started` and derives PLAYING/PAUSED
+  from the RESTORED mask, so a load from BOOT needs no `start_game()`;
+  `end_load()` and `rollback_load()` both reset the monotonic host origin, so
+  load time owes no debt. Rollback reinstalls a pre-load checkpoint of the
+  clock's ten scalars through the SAME API and restores the previous
+  `_started`/`_state`. **Still open, and neither inferred nor stubbed:** the
+  shared guard does not reach the raw objects handed out by `clock()` and
+  `scheduler_events()` — that needs an edit inside `scripts/core/sim_clock.gd`
+  and `scripts/core/scheduler_events.gd`, which belong to the clock owner; and
+  the rollback checkpoint is **in memory only**, because no §1 WORLD section
+  writer exists in the main tree to back it with disk. Autosave rotation,
+  interrupted-I/O recovery and the expanded memory recomputation are untouched.
 - [ ] 09.4 Implement replay sequence and every-300-tick checkpoints plus an
   every-tick verification mode. Canonical future state must include navigation
   admission/readiness, frozen traversals, queue ages, pending edits and interval
@@ -99,3 +135,132 @@ independent corruption and continuation evidence; do not label empty fixtures
 complete systems. STATE-COHORT-R01 excludes `_cohort_slots` rollback scratch.
 The earlier09.1 note about three unresolved rows is historical: decision0063
 resolved result/reachability classification; scheduler writer wiring remains work.
+
+## Astra follow-up — 2026-09-12
+
+RESTORE-R01 atomic clock restoration and SAVE-LAYOUT-R01 explicit column-major framing precede end-to-end09.3 acceptance. Independent file/checkpoint work may continue.
+Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.
+
+## §14 NAME_POOL landed — 2026-09-12
+
+`godot/scripts/core/save_section_name_pool.gd` and
+`godot/test/test_save_section_name_pool.gd` implement ARCH-SAVE-002 section 14,
+the registry's single `residents.gd::_name_key` member. Reasoning and the four
+named blockers are in
+[decision 0099](../decisions/0099-the-first-variable-length-save-section-frames-its-own-row-count.md).
+
+- [x] §14 NAME_POOL payload codec: `capture_into` / `encode_record` /
+      `encode_store` / `decode_into` / `apply` / `canonical_bytes_of`, following
+      `save_section_rng.gd`'s shape with a public `extent_refusal()`.
+- [x] **The format's first variable-length framing**, which sections 3, 4, 5, 7,
+      8 and 13 inherit: explicit `row_count:u32` checked against the compiled
+      capacity, then 512 rows of `utf8_byte_count:u32 LE` + exactly that many
+      UTF-8 bytes, no terminator, alignment or padding (SAVE-R09-002).
+- [x] `decode_into()` takes the descriptor **length** as well as the offset and
+      bounds every row against the section end, not the buffer end — the layout
+      is gapless (SAVE-R09-004), so a buffer-bounded read would consume section
+      15's bytes as a name. Exact consumption required; trailing bytes refuse.
+- [x] SAVE-R09-002's pinned fixtures reproduced against this encoder: empty
+      `00000000`, `Oak` = `030000004f616b`, `Móle` = `050000004dc3b36c65`, and
+      `01000000c0` / `02000000c080` both refused as malformed UTF-8.
+- [x] Name validation: 128 encoded bytes, 2–32 Unicode scalar values, and no
+      Unicode category Cc character (U+0000–U+001F, U+007F–U+009F), each with its
+      own refusal code. The 131072-byte arena limit enforced independently.
+- [x] Empty is a present anonymous row, never an absent one (GDD REQ-SET-040–042).
+      A nonempty name on an absent slot refuses; an empty one does not.
+- [x] `apply()` is allocate-before-consume (decision 0059) with rollback, asserted
+      against a store image built from `residents.gd`'s own public readers.
+- [x] `canonical_bytes_of()` emits the 512 values **without** the row-count
+      prefix, because SAVE-R09's canonical field record supplies `value_count`
+      itself. Section 14 is category 1 **and** inside ARCH-HASH-001.
+
+Still open, and not claimed by this work:
+
+- [ ] **BLOCKER N1** — section 14 has no registered owner-block framing.
+      SAVE-LAYOUT-R01 scopes the `owner_key / owner_schema_version /
+      primary_count / payload_byte_length` wrapper to sections 3/4/5 and says
+      6/7/8/9/14 still need registered owner schemas. No wrapper, owner_key
+      spelling or schema version is invented here; adding one later increments
+      the section version.
+- [ ] **BLOCKER N2** — SAVE-R09-002's "a live resident cannot load an empty name"
+      versus GDD REQ-SET-041's anonymous residents. Implemented as the `_named`
+      consistency rule; needs the ruling author's confirmation.
+- [ ] **BLOCKER N3** — `residents.gd::set_name()` enforces none of
+      ARCH-SAVE-005's name rules, so a live store can hold a name this codec
+      must refuse to write. `residents.gd` was read-only for this task.
+- [ ] **BLOCKER N4** — section 14 must be applied after section 4, because
+      `set_name()` rewrites `_named`. No load orchestrator exists to hold that
+      order.
+- [ ] Registry and architecture rows for the codec's transient `Record` column,
+      and the §2.2 `name_key` I32-versus-`PackedStringArray` divergence, are
+      reported to the integration owner; neither file was on this task's
+      allowlist.
+
+## 09.2 §3 ENTITY_DIRECTORY implementation — 2026-09-12
+
+`godot/scripts/core/save_section_directory.gd` and
+`godot/test/test_save_section_directory.gd` land section 3 under SAVE-LAYOUT-R01's
+block framing. Reasoning and the two open blockers are in
+[decision 0103](../decisions/0103-section-3-writes-six-columns-and-rebuilds-the-rest.md).
+
+- [x] §3 block framing: `store_count:u32`=1, `owner_key` "entity_directory",
+      `owner_schema_version:u32`=1, `primary_count:u64`=352418,
+      `payload_byte_length:u64`=6343572. Section is a fixed 6343616 bytes;
+      descriptor `row_count` is the capacity, never the living-resident count.
+- [x] Column-major payload in the ruled order `_active:u8`, `_generation:i32`,
+      `_retired:u8`, `_persistent_id:i32`, `_kind:i32`, `_typed_row:i32`, each at
+      full capacity, each preceded by its own `element_count:u64`.
+- [x] Category-2 members written nowhere and rebuilt instead: `_typed_owner_slot`
+      and the counters by `rebuild_into()`, the two min-heaps by the directory's own
+      ascending refill. Only their live prefix is meaningful.
+- [x] ARCH-SAVE-003 streaming: `ChunkCursor` emits at most 65536 bytes per chunk,
+      field-aligned; CRC is folded by the caller through `crc32_update()`.
+- [x] Validate-then-commit decode, proved against a full-length-but-invalid section,
+      not only against truncation.
+- [x] Canonical unused values preserved: free `_kind` and `_typed_row` stay `-1`,
+      never normalised to 0; never-used generation stays 0.
+- [x] Eleven mutants killed, one per Godot invocation, production file byte-compared
+      by `shasum -a 256` after each restore.
+- [ ] **BLOCKER D1** — `entity_directory.gd` needs `copy_columns_into()` /
+      `restore_columns()`. Until then §3 cannot capture a live directory (free-slot
+      generations are unreadable) and has no `apply()`. `capture_into()` refuses
+      explicitly and names the API.
+- [ ] **BLOCKER D2** — `_next_persistent_id` is registered to §1 WORLD and no owner
+      writes it. A reloaded world reissues persistent IDs and fails ARCH-SAVE-004's
+      unique-id validation. §3 must not write it; that would duplicate one
+      future-affecting value across two sections.
+- [ ] **Registry row owed** — `docs/persistence_state_registry.md` needs one
+      category-3 row for the new module. `state_registry_coverage.py` reports exactly
+      one `C1` failure until it lands. The row was drafted, verified to turn the
+      check green, then reverted because that file is outside this work's allowlist.
+- [ ] SAVE-R09's canonical `field_key` registry is still unfrozen, so §3 emits
+      canonical **values only**; the record prefix stays section 15's.
+
+## Clock/queue load barrier — 2026-09-12
+
+RESTORE-R01's "a GameManager-only check is insufficient while mutable raw access
+exists" is now implemented inside the two objects `game_manager.clock()` and
+`game_manager.scheduler_events()` hand out. See
+[decision 0104](../decisions/0104-the-load-barrier-is-a-token-the-clock-holds.md).
+
+- `SimClock.acquire_load_barrier()` returns a held token; the raised/lowered bit
+  lives in that token, and the clock exposes no call that lowers it. A second
+  concurrent grant refuses. `SchedulerEvents` reads the same barrier through its
+  bound clock and owns no barrier state, so there is one barrier per world.
+- Barred while held, each changing nothing at all: `set_speed`, `set_pause`,
+  `advance`, `acknowledge_without_catchup`, `apply_overload`,
+  `apply_overload_target`, `note_overload_step`, every `submit_*`,
+  `admit_stamped_into`, `pump_into`/`pump`, `clear`, `rebind_clock`,
+  `begin_host_frame` and `advance_frame`.
+- Passing through, because the barrier is raised *for* them: `restore_runtime`,
+  `restore_extension`, `restore_sequence`.
+- The barrier is never a pause bit, is never serialized, and lowering it never
+  clears a saved `LOAD` hold.
+
+**Still open, and not claimed here.** `game_manager.gd` does not yet acquire or
+release this token, so the running game raises only its own `_loading` flag and
+the raw-access hole remains open in production until that file's owner adds the
+three lines decision 0104 §"What is still owed" names. 09.3 acceptance remains
+open on its own terms: this is one named half of RESTORE-R01, and the
+disk-backed checkpoint, file rotation and I/O fault injection belong to another
+owner. No save parity, full-colony, movement-gate or Windows evidence is implied.

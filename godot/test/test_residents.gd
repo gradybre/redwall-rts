@@ -703,3 +703,402 @@ func test_the_equipment_image_changes_with_the_mirror_and_only_with_it() -> void
 	assert_equal(_residents.equipment_state_bytes(), empty, "without moving the equipment image")
 
 
+
+
+# --- MOVE-DEP-R02 life stage --------------------------------------------------------------------
+#
+# Every value below is restated from `docs/rulings/2026-09-12_movement_dependency_rulings.md` and
+# `docs/planning/species_rig_identity.json`, never read back out of the module under test.
+
+## MOVE-DEP-R02: "Stable `LifeStage` encoding: ADULT 0, CHILD 1, ELDER 2; COUNT 3 is a bound,
+## never a stored stage."
+const EXPECTED_ADULT: int = 0
+const EXPECTED_CHILD: int = 1
+const EXPECTED_ELDER: int = 2
+const EXPECTED_STAGE_COUNT: int = 3
+
+
+func test_the_life_stage_domain_is_exactly_the_three_ruled_values() -> void:
+	"""MOVE-DEP-R02's encoding, transcribed from the ruling rather than read from the module."""
+	assert_equal(Residents.LIFE_STAGE_ADULT, EXPECTED_ADULT, "ADULT is 0")
+	assert_equal(Residents.LIFE_STAGE_CHILD, EXPECTED_CHILD, "CHILD is 1")
+	assert_equal(Residents.LIFE_STAGE_ELDER, EXPECTED_ELDER, "ELDER is 2")
+	assert_equal(Residents.LIFE_STAGE_COUNT, EXPECTED_STAGE_COUNT, "COUNT is the bound 3")
+	assert_equal(Residents.LIFE_STAGE_KEYS.size(), EXPECTED_STAGE_COUNT, "three names, no more")
+	assert_equal(_residents.life_stage_key(EXPECTED_ADULT), &"ADULT", "stage 0 names ADULT")
+	assert_equal(_residents.life_stage_key(EXPECTED_CHILD), &"CHILD", "stage 1 names CHILD")
+	assert_equal(_residents.life_stage_key(EXPECTED_ELDER), &"ELDER", "stage 2 names ELDER")
+
+
+func test_the_bound_is_not_itself_a_stage() -> void:
+	"""COUNT is a bound: it is not storable and it has no name."""
+	assert_true(_residents.is_life_stage(EXPECTED_ADULT), "ADULT is a stage")
+	assert_true(_residents.is_life_stage(EXPECTED_CHILD), "CHILD is a stage")
+	assert_true(_residents.is_life_stage(EXPECTED_ELDER), "ELDER is a stage")
+	assert_false(_residents.is_life_stage(EXPECTED_STAGE_COUNT), "COUNT is never a stage")
+	assert_false(_residents.is_life_stage(-1), "no negative stage exists")
+	assert_equal(_residents.life_stage_key(EXPECTED_STAGE_COUNT), &"",
+		"the bound has no report name")
+	assert_equal(_residents.life_stage_key(-1), &"", "nor does a negative value")
+
+
+func test_a_plain_spawn_is_adult_and_names_the_stage_it_uses() -> void:
+	"""`spawn()` preserves movement.gd's adult 0; nothing is left to an implicit default."""
+	var spawned: Residents.OpResult = _residents.spawn(&"mouse")
+	assert_true(spawned.ok, "a mouse spawns")
+	var stage: IntMath.IntResult = _residents.life_stage_of(spawned.value)
+	assert_true(stage.ok, "the row carries a stage")
+	assert_equal(stage.value, EXPECTED_ADULT, "and it is ADULT")
+
+
+func test_every_ruled_stage_is_storable_and_reads_back_exactly() -> void:
+	"""MOVE-DEP-R02 permits isolated fixtures to exercise all three values."""
+	var stages: Array[int] = [EXPECTED_ADULT, EXPECTED_CHILD, EXPECTED_ELDER]
+	for stage: int in stages:
+		var spawned: Residents.OpResult = _residents.spawn_with_stage(&"mouse", stage)
+		assert_true(spawned.ok, "stage %d spawns: %s" % [stage, spawned.error])
+		assert_equal(_residents.life_stage_of(spawned.value).value, stage,
+			"stage %d reads back unchanged" % stage)
+	assert_equal(_residents.population(), 3, "three rows exist")
+
+
+func test_an_out_of_domain_stage_refuses_and_allocates_nothing() -> void:
+	"""Refused, never clamped: a clamp would write ADULT and lose the caller's error."""
+	var rejected: Array[int] = [-1, EXPECTED_STAGE_COUNT, 4, 255]
+	for stage: int in rejected:
+		var spawned: Residents.OpResult = _residents.spawn_with_stage(&"mouse", stage)
+		assert_false(spawned.ok, "stage %d is refused" % stage)
+		assert_equal(spawned.error, Residents.REFUSE_INVALID_LIFE_STAGE, "the refusal names it")
+		assert_equal(spawned.value, 0, "a refusal carries no usable value")
+	assert_equal(_residents.population(), 0, "no directory slot was consumed")
+	assert_equal(_residents.directory().live_count(EntityDirectory.KIND_RESIDENT), 0,
+		"and the directory allocated nothing either")
+
+
+func test_a_stage_that_would_truncate_into_a_byte_is_refused() -> void:
+	"""256 is 0 modulo a PackedByteArray element: an unchecked store would read back as ADULT.
+
+	Same defect class as the int32/int64 sign trap below -- a value that is wrong but lands on a
+	plausible-looking stage is worse than one that lands on an obviously broken one.
+	"""
+	var spawned: Residents.OpResult = _residents.spawn_with_stage(&"mouse", 256)
+	assert_false(spawned.ok, "256 is not ADULT")
+	assert_equal(spawned.error, Residents.REFUSE_INVALID_LIFE_STAGE, "it is refused by name")
+	assert_equal(_residents.population(), 0, "and nothing was written")
+
+
+func test_the_int32_sign_trap_does_not_smuggle_a_stage_through() -> void:
+	"""GDScript ints are 64-bit, so 0x80000000 is POSITIVE and a naive `stage < 0` misses it.
+
+	Its int32 reading is -2147483648. Both spellings must refuse, and so must the unsigned
+	all-ones pattern, which is -1 read as int32.
+	"""
+	var traps: Array[int] = [0x80000000, -2147483648, 0xFFFFFFFF, 0x100000000]
+	for stage: int in traps:
+		var spawned: Residents.OpResult = _residents.spawn_with_stage(&"mouse", stage)
+		assert_false(spawned.ok, "0x%X is refused" % stage)
+		assert_equal(spawned.error, Residents.REFUSE_INVALID_LIFE_STAGE, "by name")
+	assert_true(0x80000000 > 0, "the trap itself: this literal is positive in GDScript")
+	assert_equal(_residents.population(), 0, "no trap value reached a column")
+
+
+func test_the_twelve_starters_are_all_adults() -> void:
+	"""GDD §5.1 "12 adults"; MOVE-DEP-R02 "the twelve starters pass ADULT"."""
+	assert_true(_residents.spawn_initial_settlement().ok, "the cohort spawns")
+	assert_equal(_residents.population(), 12, "twelve rows")
+	for index: int in 12:
+		var stage: IntMath.IntResult = _residents.life_stage_of(index)
+		assert_true(stage.ok, "starter row %d exists" % index)
+		assert_equal(stage.value, EXPECTED_ADULT, "starter row %d is ADULT" % index)
+
+
+func test_a_reused_slot_initializes_its_stage_explicitly() -> void:
+	"""MOVE-DEP-R02: "free-slot reuse explicitly initializes stage"."""
+	var elder: Residents.OpResult = _residents.spawn_with_stage(&"mouse", EXPECTED_ELDER)
+	assert_equal(_residents.life_stage_of(elder.value).value, EXPECTED_ELDER, "an elder first")
+	assert_true(_residents.despawn(elder.ref).ok, "the elder retires")
+	var reused: Residents.OpResult = _residents.spawn(&"mouse")
+	assert_equal(reused.value, elder.value, "the same typed row is handed out again")
+	assert_equal(_residents.life_stage_of(reused.value).value, EXPECTED_ADULT,
+		"and the new adult is not wearing the previous tenant's stage")
+
+
+func test_a_retired_row_holds_the_canonical_unused_zero() -> void:
+	"""MOVE-DEP-R02: "Unused rows use 0 and remain distinguished by occupancy/generation"."""
+	var child: Residents.OpResult = _residents.spawn_with_stage(&"mouse", EXPECTED_CHILD)
+	assert_true(_residents.despawn(child.ref).ok, "the child retires")
+	var stage: IntMath.IntResult = _residents.life_stage_of(child.value)
+	assert_false(stage.ok, "a free row has no stage to read")
+	assert_equal(stage.error, String(Residents.REFUSE_NOT_PRESENT),
+		"occupancy is what distinguishes it, not the byte")
+	assert_false(_residents.is_present(child.value), "and the row is free")
+
+
+func test_a_dead_resident_keeps_the_stage_it_was_given() -> void:
+	"""MOVE-DEP-R02: live AND dead occupied rows retain their stage until retirement."""
+	var elder: Residents.OpResult = _residents.spawn_with_stage(&"otter", EXPECTED_ELDER)
+	var needs_store: NeedsScript = _residents.needs()
+	assert_true(needs_store.apply_health_event(elder.value, -NeedsScript.HEALTH_MAX).ok,
+		"the elder's health reaches 0")
+	assert_false(_residents.is_alive(elder.value), "and is no longer living")
+	assert_true(_residents.is_present(elder.value), "but the row is still occupied")
+	assert_equal(_residents.life_stage_of(elder.value).value, EXPECTED_ELDER,
+		"a dead elder is still an elder")
+
+
+func test_a_stale_reference_is_refused_rather_than_answered() -> void:
+	"""MOVE-DEP-R02: "Generation-checked readers reject stale refs"."""
+	var first: Residents.OpResult = _residents.spawn_with_stage(&"mouse", EXPECTED_CHILD)
+	var stale: Vector2i = first.ref
+	assert_true(_residents.despawn(stale).ok, "the child retires")
+	var second: Residents.OpResult = _residents.spawn_with_stage(&"mouse", EXPECTED_ELDER)
+	assert_equal(second.value, first.value, "the slot is reused")
+	assert_true(second.ref != stale, "with a fresh generation")
+	var by_stale: IntMath.IntResult = _residents.life_stage_of_ref(stale)
+	assert_false(by_stale.ok, "the old reference is refused")
+	assert_equal(by_stale.error, String(Residents.REFUSE_STALE_REF), "as a stale ref")
+	assert_equal(by_stale.value, 0, "carrying no usable stage")
+	assert_equal(_residents.life_stage_of_ref(second.ref).value, EXPECTED_ELDER,
+		"while the live reference answers the elder")
+
+
+func test_the_null_reference_is_not_a_resident() -> void:
+	"""Null `(-1, 0)` must refuse like any other unusable reference."""
+	var by_null: IntMath.IntResult = _residents.life_stage_of_ref(Residents.NULL_REF)
+	assert_false(by_null.ok, "the null reference reads no stage")
+	assert_equal(by_null.error, String(Residents.REFUSE_STALE_REF), "it is not valid of kind")
+
+
+func test_a_reference_of_another_kind_is_refused() -> void:
+	"""A directory ref with a matching slot number but a different kind is not a resident."""
+	var building: Vector2i = _residents.directory().create(EntityDirectory.KIND_BUILDING)
+	assert_true(building != Residents.NULL_REF, "a building slot was allocated")
+	var read: IntMath.IntResult = _residents.life_stage_of_ref(building)
+	assert_false(read.ok, "a building is not a resident")
+	assert_equal(read.error, String(Residents.REFUSE_STALE_REF), "and is refused by kind")
+
+
+func test_the_life_stage_column_costs_the_ruled_512_bytes() -> void:
+	"""MOVE-DEP-R02 bills `Resident.life_stage:B8[512]` at exactly 512 new bytes."""
+	assert_equal(_residents.life_stage_payload_bytes(), 512, "one byte per resident row")
+	assert_equal(Residents.RESIDENT_CAPACITY, 512, "over the 512 typed rows")
+
+
+func test_there_is_no_way_to_change_a_stage_after_creation() -> void:
+	"""Release 1 has no birth, aging timer or adulthood transition, so it has no stage setter.
+
+	DEC-032 via MOVE-DEP-R02. A setter would be the API surface for a rule that does not exist.
+	"""
+	assert_false(_residents.has_method("set_life_stage"), "no stage setter exists")
+	assert_false(_residents.has_method("age_resident"), "and nothing ages a resident")
+
+
+# --- MOVE-DEP-R03 logical rig identity ----------------------------------------------------------
+
+## The manifest table, transcribed from `docs/planning/species_rig_identity.json`. Keyed by the
+## §4.3 species key exactly as the ruling prints it.
+const EXPECTED_RIG_OF: Dictionary = {
+	&"badger": &"rig_badger_v1", &"ferret": &"rig_ferret_v1", &"fox": &"rig_fox_v1",
+	&"hare": &"rig_hare_v1", &"hedgehog": &"rig_hedgehog_v1", &"kestrel": &"rig_kestrel_v1",
+	&"mole": &"rig_mole_v1", &"mouse": &"rig_mouse_v1", &"otter": &"rig_otter_v1",
+	&"rat": &"rig_rat_v1", &"shrew": &"rig_shrew_v1", &"sparrow": &"rig_sparrow_v1",
+	&"squirrel": &"rig_squirrel_v1", &"weasel": &"rig_weasel_v1", &"wildcat": &"rig_wildcat_v1",
+	&"wolverine": &"rig_wolverine_v1",
+}
+
+
+func test_all_sixteen_species_bind_the_ruled_rig_key() -> void:
+	"""MOVE-DEP-R03's table, species by species, against the transcribed manifest."""
+	assert_equal(_residents.rig_catalog_error(), "", "the rig domain compiled")
+	assert_equal(_residents.rig_count(), 16, "sixteen logical rig identities")
+	assert_equal(EXPECTED_RIG_OF.size(), 16, "and the fixture covers all sixteen")
+	for species: StringName in SPECIES_ASCENDING:
+		var bound: Residents.OpResult = _residents.rig_binding(species, EXPECTED_ADULT)
+		assert_true(bound.ok, "%s binds a rig: %s" % [species, bound.error])
+		assert_equal(_residents.rig_key_of(bound.value), EXPECTED_RIG_OF[species] as StringName,
+			"%s binds its own rig key" % species)
+
+
+func test_rig_ids_are_ascending_ascii_over_the_rig_keys() -> void:
+	"""MOVE-DEP-R03: "Compile a RigDefinition key domain in ASCII order"."""
+	var keys: Array[String] = []
+	for species: StringName in EXPECTED_RIG_OF:
+		keys.append(String(EXPECTED_RIG_OF[species] as StringName))
+	keys.sort()
+	for index: int in keys.size():
+		var key: StringName = StringName(keys[index])
+		assert_true(_residents.has_rig(key), "%s is a compiled rig identity" % key)
+		assert_equal(_residents.rig_id(key).value, index, "%s compiles to id %d" % [key, index])
+		assert_equal(_residents.rig_key_of(index), key, "id %d reads back as %s" % [index, key])
+	assert_equal(keys[0], "rig_badger_v1", "badger sorts first among the rig keys")
+	assert_equal(keys[15], "rig_wolverine_v1", "and wolverine sorts last")
+
+
+func test_no_species_shares_another_species_rig() -> void:
+	"""MOVE-DEP-R03 refuses aliasing: sixteen species, sixteen distinct identities."""
+	var seen: Dictionary = {}
+	for species: StringName in SPECIES_ASCENDING:
+		var bound: Residents.OpResult = _residents.rig_binding(species, EXPECTED_ADULT)
+		assert_false(seen.has(bound.value), "%s does not reuse another species' rig" % species)
+		seen[bound.value] = species
+	assert_equal(seen.size(), 16, "sixteen distinct rig ids")
+
+
+func test_an_unknown_rig_key_refuses_rather_than_resolving() -> void:
+	"""Neither a made-up key nor an out-of-range id may produce a plausible identity."""
+	assert_false(_residents.has_rig(&"rig_dragon_v1"), "no dragon rig exists")
+	var refused: IntMath.IntResult = _residents.rig_id(&"rig_dragon_v1")
+	assert_false(refused.ok, "an unknown rig key is refused")
+	assert_equal(refused.error, String(Residents.REFUSE_UNKNOWN_RIG), "by name")
+	assert_equal(refused.value, 0, "carrying no usable id")
+	assert_equal(_residents.rig_key_of(16), &"", "id 16 is past the domain")
+	assert_equal(_residents.rig_key_of(-1), &"", "and -1 is not an id")
+
+
+func test_child_and_elder_rig_variants_refuse_instead_of_inheriting_the_adult_rig() -> void:
+	"""MOVE-DEP-R03: a stage override "cannot silently inherit adult proportions".
+
+	No `(species, life_stage)` variant is authored anywhere in this repository, so the binding
+	is refused and the adult rig is NOT handed back in its place.
+	"""
+	for stage: int in [EXPECTED_CHILD, EXPECTED_ELDER]:
+		var bound: Residents.OpResult = _residents.rig_binding(&"mouse", stage)
+		assert_false(bound.ok, "stage %d has no authored mouse rig variant" % stage)
+		assert_equal(bound.error, Residents.REFUSE_RIG_STAGE_UNBOUND, "and says exactly why")
+		assert_equal(bound.value, 0, "a refusal never carries the adult rig id")
+		assert_false(_residents.has_rig_binding(&"mouse", stage), "and reports no binding")
+	assert_true(_residents.has_rig_binding(&"mouse", EXPECTED_ADULT), "the adult rig is bound")
+
+
+func test_a_missing_rig_does_not_deny_a_legal_resident() -> void:
+	"""The executor follow-up: "a missing rig is a presentation/export gap, not authority to
+	deny legal simulation"."""
+	assert_false(_residents.has_rig_binding(&"otter", EXPECTED_CHILD), "no child otter rig")
+	var spawned: Residents.OpResult = _residents.spawn_with_stage(&"otter", EXPECTED_CHILD)
+	assert_true(spawned.ok, "the child otter spawns anyway: %s" % spawned.error)
+	assert_equal(_residents.life_stage_of(spawned.value).value, EXPECTED_CHILD,
+		"and is authoritative state")
+	assert_equal(_residents.living_count(), 1, "counted among the living")
+	assert_true(_residents.daily_demand_np().ok, "and it feeds into the §5.8 denominator")
+
+
+func test_rig_binding_refuses_an_unknown_species_and_an_invalid_stage_separately() -> void:
+	"""Two different causes must not collapse into one code."""
+	var unknown: Residents.OpResult = _residents.rig_binding(&"dragon", EXPECTED_ADULT)
+	assert_false(unknown.ok, "dragon has no rig")
+	assert_equal(unknown.error, Residents.REFUSE_UNKNOWN_SPECIES, "because it is not a species")
+	var bad_stage: Residents.OpResult = _residents.rig_binding(&"mouse", EXPECTED_STAGE_COUNT)
+	assert_false(bad_stage.ok, "COUNT is not a stage")
+	assert_equal(bad_stage.error, Residents.REFUSE_INVALID_LIFE_STAGE, "and says so")
+
+
+func test_binding_by_species_id_agrees_with_binding_by_key() -> void:
+	"""The id form resolves back through the species key, so the two cannot diverge."""
+	for index: int in SPECIES_ASCENDING.size():
+		var species: StringName = SPECIES_ASCENDING[index]
+		var by_key: Residents.OpResult = _residents.rig_binding(species, EXPECTED_ADULT)
+		var by_id: Residents.OpResult = _residents.rig_binding_by_species_id(index, EXPECTED_ADULT)
+		assert_true(by_id.ok, "species id %d binds a rig" % index)
+		assert_equal(by_id.value, by_key.value, "%s agrees through both forms" % species)
+	var past: Residents.OpResult = _residents.rig_binding_by_species_id(16, EXPECTED_ADULT)
+	assert_false(past.ok, "species id 16 is past the catalog")
+	assert_equal(past.error, Residents.REFUSE_UNKNOWN_SPECIES, "and is refused by name")
+
+
+func test_no_per_resident_rig_column_exists() -> void:
+	"""MOVE-DEP-R03: "No per-resident mutable rig column is needed"; a rig is a species fact."""
+	assert_false(_residents.has_method("set_rig"), "nothing binds a rig to an individual")
+	assert_false(_residents.has_method("rig_of"), "and no row-addressed rig reader exists")
+
+
+# --- MOVE-DEP-R05 generation-safe identity, the part this store owns -----------------------------
+
+func test_a_reference_resolves_to_its_row_only_while_it_is_valid() -> void:
+	"""The directory generation is what makes a resident reference safe to consume."""
+	var spawned: Residents.OpResult = _residents.spawn(&"mouse")
+	var resolved: IntMath.IntResult = _residents.slot_of_ref(spawned.ref)
+	assert_true(resolved.ok, "a live reference resolves")
+	assert_equal(resolved.value, spawned.value, "to its own typed row")
+	assert_true(_residents.despawn(spawned.ref).ok, "the resident retires")
+	var after: IntMath.IntResult = _residents.slot_of_ref(spawned.ref)
+	assert_false(after.ok, "the reference no longer resolves")
+	assert_equal(after.error, String(Residents.REFUSE_STALE_REF), "and names the reason")
+
+
+func test_row_zero_is_never_mistaken_for_a_refusal() -> void:
+	"""A resolved slot 0 and a refusal must be distinguishable; this is the sentinel rule."""
+	var spawned: Residents.OpResult = _residents.spawn(&"mouse")
+	assert_equal(spawned.value, 0, "the first resident takes typed row 0")
+	var resolved: IntMath.IntResult = _residents.slot_of_ref(spawned.ref)
+	assert_true(resolved.ok, "and row 0 resolves successfully")
+	assert_equal(resolved.value, 0, "with the value 0 on the success channel")
+	assert_equal(_residents.slot_of_ref(Residents.NULL_REF).value, 0,
+		"a refusal also carries 0, which is why `ok` is the channel that decides")
+	assert_false(_residents.slot_of_ref(Residents.NULL_REF).ok, "and it is false here")
+
+
+func test_a_malformed_home_or_bed_reference_is_refused_not_stored() -> void:
+	"""MOVE-DEP-R05 makes the owner ref half of a destination's identity; `(5, 0)` is neither
+	null nor validatable, so storing it would create an unrecognisable destination."""
+	var slot: int = _residents.spawn(&"mouse").value
+	var malformed: Array[Vector2i] = [Vector2i(5, 0), Vector2i(-1, 3), Vector2i(-2, 1)]
+	for bad: Vector2i in malformed:
+		var home: Residents.OpResult = _residents.set_home(slot, bad)
+		assert_false(home.ok, "home %s is refused" % bad)
+		assert_equal(home.error, Residents.REFUSE_INVALID_REF, "by name")
+		var bed: Residents.OpResult = _residents.set_bed(slot, bad)
+		assert_false(bed.ok, "bed %s is refused" % bad)
+		assert_equal(bed.error, Residents.REFUSE_INVALID_REF, "by name")
+	assert_equal(_residents.home_of(slot), Residents.NULL_REF, "home stayed null")
+	assert_equal(_residents.bed_of(slot), Residents.NULL_REF, "and so did bed")
+
+
+func test_the_null_reference_still_clears_a_home_or_bed() -> void:
+	"""Clearing is a legal operation and must not be caught by the malformed-ref check."""
+	var slot: int = _residents.spawn(&"mouse").value
+	assert_true(_residents.set_home(slot, Residents.NULL_REF).ok, "null home is accepted")
+	assert_true(_residents.set_bed(slot, Residents.NULL_REF).ok, "null bed is accepted")
+	assert_false(_residents.home_is_live(slot), "a null home is not a live destination")
+	assert_false(_residents.bed_is_live(slot), "nor is a null bed")
+
+
+func test_a_stored_destination_stops_being_live_when_its_owner_retires() -> void:
+	"""MOVE-DEP-R05: owner retirement invalidates the generation-checked identity."""
+	var slot: int = _residents.spawn(&"mouse").value
+	var directory: EntityDirectory = _residents.directory()
+	var furniture: Vector2i = directory.create(EntityDirectory.KIND_FURNITURE)
+	assert_true(furniture != Residents.NULL_REF, "a bed owner was allocated")
+	assert_true(_residents.set_bed(slot, furniture).ok, "the bed reference is stored")
+	assert_true(_residents.bed_is_live(slot), "and validates while its owner lives")
+	assert_true(directory.destroy(furniture), "the furniture is removed")
+	assert_false(_residents.bed_is_live(slot), "the stored reference is no longer live")
+	assert_equal(_residents.bed_of(slot), furniture,
+		"though the pair itself is unchanged: liveness is asked, never inferred from the bytes")
+
+
+func test_a_replacement_owner_does_not_inherit_the_stored_reference() -> void:
+	"""A new owner in the same slot is a new identity, not permission to reuse the old one."""
+	var slot: int = _residents.spawn(&"mouse").value
+	var directory: EntityDirectory = _residents.directory()
+	var first: Vector2i = directory.create(EntityDirectory.KIND_FURNITURE)
+	assert_true(_residents.set_bed(slot, first).ok, "the first bed is stored")
+	assert_true(directory.destroy(first), "it is demolished")
+	var replacement: Vector2i = directory.create(EntityDirectory.KIND_FURNITURE)
+	assert_equal(replacement.x, first.x, "the replacement takes the same slot")
+	assert_true(replacement.y != first.y, "with a different generation")
+	assert_false(_residents.bed_is_live(slot),
+		"so the resident's stored bed does not silently become the replacement")
+
+
+func test_a_retired_row_leaves_a_canonical_zero_byte_behind() -> void:
+	"""MOVE-DEP-R02: unused rows hold 0. A retired elder that left a 2 would be a nonzero byte
+	in a future section-4 hash that no occupancy-checked reader could ever see."""
+	var elder: Residents.OpResult = _residents.spawn_with_stage(&"badger", EXPECTED_ELDER)
+	var image_live: PackedByteArray = _residents.life_stage_column_image()
+	assert_equal(image_live.size(), 512, "the image covers every typed row")
+	assert_equal(image_live[elder.value], EXPECTED_ELDER, "the live row holds ELDER")
+	assert_true(_residents.despawn(elder.ref).ok, "the elder retires")
+	var image_free: PackedByteArray = _residents.life_stage_column_image()
+	assert_equal(image_free[elder.value], EXPECTED_ADULT, "and the free row is back to 0")
+	for index: int in image_free.size():
+		assert_equal(image_free[index], 0, "row %d is canonical zero" % index)

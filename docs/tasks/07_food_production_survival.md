@@ -28,6 +28,57 @@ explicitly for additive regrowth/other behavior changes.
   meals, interruption/refund rules, restoration/memories and starvation/health
   integration. Stock aging, spoilage and transformations run once in their
   architecture phase, including shared hour/midnight ticks.
+  - **The aging/spoilage half of 07.3 is done** — ARCH-SYS-004 StockAge is
+    `godot/scripts/core/stock_age.gd`, driven hourly from `settlement_system.gd`
+    and logged as REQ-SET-007's first daily leg before the season handover
+    ([decision 0085](../decisions/0085-stock-aging-runs-hourly-and-declares-its-store.md)).
+    The item remains open for eating/drinking/cooking service, carried meals,
+    interruption/refund and starvation integration. Two of the three things aging
+    owed in that record are still owed: a container's store kind has no
+    building-layer owner and must be declared, and REQ-SET-108's replanning has no
+    recipe or meal store to notify.
+  - **The seed → compost quantity is settled and implemented** (2026-09-12).
+    [STOCK-SEED-R01](../rulings/2026-09-12_alerts_and_seed_expiry.md) supplies
+    `floor_div(checked_mul(q_milli, seed_mass_g), compost_mass_g)`, per lot, with
+    the remainder booked as decay loss and a zero yield retiring the lot;
+    `stock_age.gd` implements it and
+    [decision 0093](../decisions/0093-expired-seed-converts-to-compost-by-floored-nominal-mass.md)
+    records the judgements.
+  - **The seed-consumer eligibility guard is enforced** (2026-09-12).
+    `inventory.gd` now calls `StockAge.refuses_seed_consumption()` on all seven
+    admission paths — new reservation, unreserved withdrawal, the commit of an
+    existing claim, transfer, whole-lot move, split and in-place transform —
+    re-asking on every call, so a claim taken while a seed was fresh is refused at
+    commit once the lot has aged out. The declared expiry keeps its own
+    transform/sink through a single-use cleanup declaration made by
+    `release_all_reservations()` inside one explicit transaction;
+    [decision 0102](../decisions/0102-inventory-enforces-the-seed-guard-and-declares-its-own-cleanup.md)
+    records why that is the shape. **STILL OPEN, and named there:** nothing in the
+    running settlement calls `inventory.set_seed_expiry_authority(stock_age)`, so
+    enforcement is live in the test suite and nowhere else — that one wiring line
+    belongs to `settlement_system.gd`. The blocking critical-pause plus
+    exactly-once retry also belong to `settlement_system.gd` and are not built.
+    Continuation through the real hourly caller, save/reload and the starter
+    economy remains open exactly as decision 0085 left it.
+  - **The critical pause and the exactly-once revalidated retry are implemented
+    for the HOUR-LEVEL fault class** (2026-09-12), in
+    `godot/scripts/systems/settlement_system.gd` under
+    [decision 0100](../decisions/0100-the-stock-integrity-pause-retries-once-and-then-halts.md).
+    `stock_age.gd`'s three preflight refusals raise `SimClock.CRITICAL` through
+    `scheduler_events.gd`'s internal-producer safety hold — the pause path that
+    already existed, not a new one — arm exactly one retry keyed to the faulted
+    expiry transaction, re-derive that hour in full rather than replaying a
+    captured verdict, clear the pause on recovery, and halt every later tick with
+    `STOCK_AGE_INTEGRITY_HALT` when the retry also fails. No tick stage was added.
+    **Four parts remain open and are NOT claimed done:** a per-lot refusal gets the
+    pause but **no retry**, because `stock_age.gd` names no lot ref and publishes no
+    per-lot expiry entry point (it needs `last_refused_lot()` and
+    `retry_refused_lot_into()`, which is that file's owner's work); CRITICAL is a
+    bit shared with REQ-SET-008's overload ladder and `sim_clock.gd` has no
+    sub-reason space, so either producer can clear the other's hold; the fault
+    ledger is **not persisted**, so the ruling's save-continuation acceptance item
+    is unmet; and no UI-SET-085 stop modal or notice is wired to it, leaving
+    `push_error` the only player-facing signal.
 - [ ] 07.4 Complete sustainable forestry, crop rotations, orchards/hives, fishing
   gear/effort and preservation chains through physical work and storage. Initial
   basin stocks never multiply with player zones. Integrate SET_FIELD_ROTATION

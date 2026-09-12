@@ -1,5 +1,7 @@
 # Claude handoff — asset, save and movement blockers
 
+**Latest Astra follow-up (2026-09-12):** [six executor answers](2026-09-12_executor_followup.md). Read before the older status below.
+
 2026-09-11. This is the current entry point for the ranked Astra questions.
 Read AGENTS/CLAUDE and the live STATUS/diff first; preserve concurrent executor
 work. This package changes specifications and planning, not runtime code.

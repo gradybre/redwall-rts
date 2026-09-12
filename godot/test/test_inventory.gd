@@ -15,6 +15,20 @@ const InventoryScript := preload("res://scripts/core/inventory.gd")
 ## Preloaded for the drift guard only: ARCH-STATE-004's 256 item keys are written down in
 ## both modules and nothing but that test keeps the two copies agreeing.
 const CatalogScript := preload("res://scripts/core/catalog.gd")
+## STOCK-SEED-R01 end-to-end only. Most of the seed-guard suite drives a stand-in authority,
+## because enforcement here must not depend on what a seed is; these three run the real
+## predicate, the real catalog and the real hourly pass over it.
+const StockAgeScript := preload("res://scripts/core/stock_age.gd")
+const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
+const SimClockScript := preload("res://scripts/core/sim_clock.gd")
+
+## `docs/gameplay_balance.md`'s item table, transcribed: seed_grain is 100 g/U with a 1440-hour
+## shelf life, and GDD §5.8 expires a lot at `shelf_hours * 1000` milli-hours.
+const SEED_SHELF_MILLI: int = 1440 * 1000
+## Day 3, hour 9 under ARCH-TICK-002's offset calendar -- an ordinary hour crossing in spring.
+## `(d-1)*18000 + h*750 - 4500`, the inverse of `(tick + 4500) mod 18000`.
+const EXPIRY_HOUR_TICK: int = 2 * SimClockScript.TICKS_PER_DAY \
+	+ 9 * SimClockScript.TICKS_PER_HOUR - SimClockScript.CALENDAR_OFFSET_TICKS
 
 const ITEM_GRAIN: int = 0
 const ITEM_MEAL: int = 1
@@ -1600,3 +1614,508 @@ func test_audit_refuses_a_cyclic_lot_list_instead_of_walking_it_forever() -> voi
 	var audited: InventoryScript.OpResult = _inv.audit()
 	assert_false(audited.ok, "a cycle is refused rather than walked forever")
 	assert_equal(audited.error, InventoryScript.REFUSE_AUDIT_LOT_CYCLE, "named explicitly")
+# --- ARCH-SYS-004's two mutators (GDD §5.8 REQ-SET-107–108) -------------------------------------
+
+func test_one_aged_hour_is_the_floor_of_the_two_factors_over_a_thousand() -> void:
+	"""§5.8: "Effective age per hour=floor(store_factor*temperature_factor/1000)"."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var aged: InventoryScript.OpResult = _inv.advance_lot_age_hour(lot, 350, 500)
+	assert_true(aged.ok, "a cellar hour in winter is a legal step")
+	assert_equal(aged.value, 175, "floor(350*500/1000) milli-hours")
+	assert_equal(_inv.lot_age_milli_hours(lot), 175, "written onto the row")
+	assert_equal(_inv.lot_age_remainder(lot), 0, "with no fraction outstanding")
+
+
+func test_a_negative_aging_factor_refuses_instead_of_ageing_backwards() -> void:
+	"""§5.8's tables hold no negative factor, and a negative one would un-age stored food."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 4000, 0, TEST_PROVENANCE, 0, 5000, 0)
+	var refused: InventoryScript.OpResult = _inv.advance_lot_age_hour(lot, -1, 1000)
+	assert_false(refused.ok, "a negative store factor refuses")
+	assert_equal(refused.error, InventoryScript.REFUSE_INVALID_AGE_FACTOR, "and is named")
+	assert_false(_inv.advance_lot_age_hour(lot, 1000, -1).ok, "so does a negative temperature")
+	assert_equal(_inv.lot_age_milli_hours(lot), 5000, "and the stored age is untouched")
+
+
+func test_an_aged_hour_rolls_back_with_the_transaction_that_refused() -> void:
+	"""Aging is journaled like everything else here: a poisoned sequence restores both columns."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 4000, 0, TEST_PROVENANCE, 0, 2000, 0)
+	var before: PackedByteArray = _inv.state_bytes()
+	assert_true(_inv.begin().ok, "a transaction opens")
+	assert_true(_inv.advance_lot_age_hour(lot, 1500, 1500).ok, "one hour is applied")
+	assert_false(_inv.sink_lot_quantity(lot, 99999).ok, "then a step refuses and poisons it")
+	assert_false(_inv.commit().ok, "so the commit reports the refusal")
+	assert_equal(_inv.lot_age_milli_hours(lot), 2000, "the age rolled back")
+	assert_equal(_inv.state_bytes(), before, "and the whole store is byte identical")
+
+
+func test_a_transformed_lot_keeps_its_row_and_moves_both_conservation_ledgers() -> void:
+	"""§5.8's conversion is in place, and both halves are declared rather than silently relabelled."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 2000)
+	var generation: int = lot.y
+	assert_true(_inv.transform_lot_item(lot, ITEM_GRAIN, 4000).ok, "the conversion commits")
+	assert_equal(_inv.lot_item_id(lot), ITEM_GRAIN, "the same row now holds the new item")
+	assert_equal(lot.y, generation, "at the same generation, so every held ref still resolves")
+	assert_equal(_inv.lot_quantity_milli(lot), 4000, "at the caller's quantity")
+	assert_equal(_inv.total_sunk_milli(ITEM_MEAL), 2000, "the old item is sunk in full")
+	assert_equal(_inv.total_sourced_milli(ITEM_GRAIN), 4000, "the new one is sourced in full")
+	assert_true(_inv.audit().ok, "so `live + sunk == sourced` still closes on both")
+
+
+func test_an_equal_mass_transformation_moves_the_containers_charged_mass_by_nothing() -> void:
+	"""2000 milli-U at 500 g and 4000 milli-U at 250 g are the same grams and the same debit."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 2000)
+	var before_g: int = _inv.container_used_mass_g(box)
+	assert_equal(before_g, 1000, "2000 milli-U of 500 g meals is 1000 g")
+	assert_true(_inv.transform_lot_item(lot, ITEM_GRAIN, 4000).ok, "the conversion commits")
+	assert_equal(_inv.container_used_mass_g(box), before_g, "and charges the same grams")
+
+
+func test_a_transformation_resets_the_age_so_the_new_item_starts_its_own_shelf_life() -> void:
+	"""Spoiled_food "lasts 240h" from the moment it becomes spoiled_food, not from before it."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 2000, 0, TEST_PROVENANCE, 0, 36000, 250)
+	assert_equal(_inv.lot_age_milli_hours(lot), 36000, "the meal is well past its shelf life")
+	assert_true(_inv.transform_lot_item(lot, ITEM_GRAIN, 4000).ok, "the conversion commits")
+	assert_equal(_inv.lot_age_milli_hours(lot), 0, "and the row starts again at zero")
+	assert_equal(_inv.lot_age_remainder(lot), 0, "remainder included")
+
+
+func test_a_transformation_refuses_a_reserved_lot_rather_than_carrying_the_claim() -> void:
+	"""REQ-SET-108 INVALIDATES the claims; carrying one across an item change would not."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 2000)
+	assert_true(_inv.reserve_lot(lot, 500).ok, "a job claims part of it")
+	var refused: InventoryScript.OpResult = _inv.transform_lot_item(lot, ITEM_GRAIN, 4000)
+	assert_false(refused.ok, "the conversion refuses while the claim stands")
+	assert_equal(refused.error, InventoryScript.REFUSE_LOT_HAS_RESERVATION, "and is named")
+	assert_equal(_inv.lot_item_id(lot), ITEM_MEAL, "the lot is untouched")
+	assert_true(_inv.release_all_reservations(lot).ok, "releasing the claim first")
+	assert_true(_inv.transform_lot_item(lot, ITEM_GRAIN, 4000).ok, "then lets it through")
+
+
+func test_a_transformation_refuses_an_unknown_item_the_same_item_and_an_empty_quantity() -> void:
+	"""Every precondition refuses explicitly; none of them clamps into a plausible success."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 2000)
+	assert_equal(_inv.transform_lot_item(lot, 200, 4000).error,
+		InventoryScript.REFUSE_UNKNOWN_ITEM, "an unregistered item id refuses")
+	assert_equal(_inv.transform_lot_item(lot, ITEM_MEAL, 4000).error,
+		InventoryScript.REFUSE_SAME_ITEM, "a conversion into the same item is not a conversion")
+	assert_equal(_inv.transform_lot_item(lot, ITEM_GRAIN, 0).error,
+		InventoryScript.REFUSE_INVALID_QUANTITY, "and an empty result refuses")
+	assert_equal(_inv.lot_item_id(lot), ITEM_MEAL, "after all three the row is unchanged")
+	assert_equal(_inv.lot_quantity_milli(lot), 2000, "at its original quantity")
+
+
+func test_a_transformation_that_would_overflow_the_container_refuses_and_changes_nothing() -> void:
+	"""BAL-SAFE-002 is charged on the conversion too; nothing is clamped to fit."""
+	var box: Vector2i = _container(1000)
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	assert_equal(_inv.container_used_mass_g(box), 1000, "the container is exactly full")
+	var refused: InventoryScript.OpResult = _inv.transform_lot_item(lot, ITEM_WOOD, 4000)
+	assert_false(refused.ok, "20000 g of wood does not fit a 1000 g store")
+	assert_equal(refused.error, InventoryScript.REFUSE_CAPACITY_EXCEEDED, "and says so")
+	assert_equal(_inv.lot_item_id(lot), ITEM_GRAIN, "the lot is still grain")
+	assert_equal(_inv.container_used_mass_g(box), 1000, "at the mass it already charged")
+
+
+func test_neither_mutator_will_touch_an_equipped_lot() -> void:
+	"""An equipped lot is in no store: §5.8 gives it no factor and no container to charge."""
+	var authority: StubAuthority = StubAuthority.new()
+	var box: Vector2i = _container()
+	var lot: Vector2i = _equip_fixture(authority, box)
+	var aged: InventoryScript.OpResult = _inv.advance_lot_age_hour(lot, 1000, 1000)
+	assert_false(aged.ok, "aging an equipped lot refuses")
+	assert_equal(aged.error, InventoryScript.REFUSE_LOT_EQUIPPED, "and is named")
+	var changed: InventoryScript.OpResult = _inv.transform_lot_item(lot, ITEM_GRAIN, 1000)
+	assert_false(changed.ok, "and so does converting one")
+	assert_equal(changed.error, InventoryScript.REFUSE_LOT_EQUIPPED, "with the same reason")
+	assert_equal(_inv.lot_item_id(lot), ITEM_TOOL, "the equipped lot is untouched")
+
+
+# --- STOCK-SEED-R01: the seed-consumer eligibility guard ---------------------------------------
+#
+# The ruling splits one rule in two: `stock_age.gd` owns the PREDICATE and this module owns
+# ENFORCEMENT for quantity admission. These tests are about enforcement, so most of them bind a
+# stand-in authority and control its answer directly -- `inventory.gd` cannot tell a seed from a
+# stone and must not learn to. Two tests at the end drive the REAL `stock_age.gd` predicate over
+# the real catalog, because a contract tested only against a stub is a contract with itself.
+
+func test_a_seed_expiry_authority_must_publish_the_predicate_it_is_bound_for() -> void:
+	"""A guard bound to an object that cannot answer would be enforcement in name only."""
+	var useless: RefCounted = RefCounted.new()
+	var refused: InventoryScript.OpResult = _inv.set_seed_expiry_authority(useless)
+	assert_false(refused.ok, "an object without the predicate cannot be the authority")
+	assert_equal(refused.error, InventoryScript.REFUSE_INVALID_SEED_EXPIRY_AUTHORITY, "named")
+	assert_false(_inv.has_seed_expiry_authority(), "and nothing was bound")
+	var guard: SeedAuthority = SeedAuthority.new()
+	assert_true(_inv.begin().ok, "with a transaction open")
+	assert_equal(_inv.set_seed_expiry_authority(guard).error,
+		InventoryScript.REFUSE_TRANSACTION_OPEN, "the wiring may not be swapped mid-sequence")
+	_inv.abort()
+	assert_true(_inv.set_seed_expiry_authority(guard).ok, "and binds once nothing is open")
+	assert_true(_inv.has_seed_expiry_authority(), "the guard is live")
+	_inv.clear()
+	assert_true(_inv.has_seed_expiry_authority(), "wiring survives clear(), like the gear one")
+	assert_true(_inv.set_seed_expiry_authority(null).ok, "and unbinds explicitly")
+	assert_false(_inv.has_seed_expiry_authority(), "leaving nothing enforced")
+
+
+func test_an_expired_seed_lot_cannot_be_reserved() -> void:
+	"""STOCK-SEED-R01's "new reservation" path. A claim on unusable seed is never granted."""
+	var box: Vector2i = _container()
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	guard.expire(seed)
+	var before: PackedByteArray = _inv.state_bytes()
+	var refused: InventoryScript.OpResult = _inv.reserve_lot(seed, 1000)
+	assert_false(refused.ok, "the reservation refuses")
+	assert_equal(refused.error, InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and is named")
+	assert_equal(_inv.lot_reserved_milli(seed), 0, "nothing was claimed")
+	assert_equal(_inv.state_bytes(), before, "and the store is byte identical")
+
+
+func test_an_expired_seed_lot_cannot_be_withdrawn() -> void:
+	"""STOCK-SEED-R01's "withdrawal" path: a helping taken straight off the lot."""
+	var box: Vector2i = _container()
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	guard.expire(seed)
+	var before: PackedByteArray = _inv.state_bytes()
+	var refused: InventoryScript.OpResult = _inv.sink_lot_quantity(seed, 1000)
+	assert_false(refused.ok, "the withdrawal refuses")
+	assert_equal(refused.error, InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and is named")
+	assert_equal(_inv.lot_quantity_milli(seed), 4000, "the lot is untouched")
+	assert_equal(_inv.total_sunk_milli(ITEM_GRAIN), 0, "and nothing was booked as consumed")
+	assert_equal(_inv.state_bytes(), before, "byte identical")
+
+
+func test_an_expired_seed_claim_is_revalidated_at_the_commit() -> void:
+	"""THE point of the ruling's "including existing reservations. Revalidate at commit."
+
+	The claim is taken while the lot is fresh, which is legal and stays granted. The lot then
+	crosses its shelf threshold, and the commit that would have sown it refuses -- the earlier
+	"yes" buys nothing, because no verdict is stored anywhere to be replayed.
+	"""
+	var box: Vector2i = _container()
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	assert_true(_inv.reserve_lot(seed, 2000).ok, "a sowing job claims fresh seed")
+	guard.expire(seed)
+	var before: PackedByteArray = _inv.state_bytes()
+	var refused: InventoryScript.OpResult = _inv.consume_reserved(seed, 2000)
+	assert_false(refused.ok, "the work commit refuses the seed that aged out under it")
+	assert_equal(refused.error, InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and is named")
+	assert_equal(_inv.lot_quantity_milli(seed), 4000, "no seed was consumed")
+	assert_equal(_inv.lot_reserved_milli(seed), 2000, "and the stale claim still stands")
+	assert_equal(_inv.state_bytes(), before, "byte identical")
+	assert_true(_inv.release_reservation(seed, 2000).ok, "cancelling it is still allowed")
+
+
+func test_an_expired_seed_lot_cannot_be_transferred_into_production() -> void:
+	"""STOCK-SEED-R01's "transfer into production". This store cannot tell a workshop input
+	container from a larder, so expired seed is admitted to neither."""
+	var box: Vector2i = _container()
+	var workshop: Vector2i = _container(BIG_MASS, OWNER_B)
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	guard.expire(seed)
+	var before: PackedByteArray = _inv.state_bytes()
+	var refused: InventoryScript.OpResult = _inv.transfer(seed, workshop, 1000)
+	assert_false(refused.ok, "the transfer refuses")
+	assert_equal(refused.error, InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and is named")
+	assert_equal(_inv.container_lot_count(workshop), 0, "nothing arrived")
+	assert_equal(_inv.state_bytes(), before, "byte identical")
+
+
+func test_an_expired_seed_lot_cannot_be_moved_into_another_container() -> void:
+	"""The whole-lot form of the same admission: a move carries its claims with it."""
+	var box: Vector2i = _container()
+	var workshop: Vector2i = _container(BIG_MASS, OWNER_B)
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	guard.expire(seed)
+	var before: PackedByteArray = _inv.state_bytes()
+	var refused: InventoryScript.OpResult = _inv.move_lot(seed, workshop)
+	assert_false(refused.ok, "the move refuses")
+	assert_equal(refused.error, InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and is named")
+	assert_equal(_inv.lot_container(seed), box, "the lot never left")
+	assert_equal(_inv.state_bytes(), before, "byte identical")
+
+
+func test_an_expired_seed_lot_cannot_be_split_for_seed_selection() -> void:
+	"""STOCK-SEED-R01's "seed selection": separating the portion about to be sown."""
+	var box: Vector2i = _container()
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	guard.expire(seed)
+	var before: PackedByteArray = _inv.state_bytes()
+	var refused: InventoryScript.OpResult = _inv.split_lot(seed, 1000)
+	assert_false(refused.ok, "the split refuses")
+	assert_equal(refused.error, InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and is named")
+	assert_equal(_inv.container_lot_count(box), 1, "no sibling lot was allocated")
+	assert_equal(_inv.state_bytes(), before, "byte identical")
+
+
+func test_an_expired_seed_lot_cannot_be_transformed_for_a_consumer() -> void:
+	"""A workshop turning seed into something asked for uses the same call the expiry does.
+
+	Undeclared, it is production and refuses; the declared expiry conversion is tested below.
+	"""
+	var box: Vector2i = _container()
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	guard.expire(seed)
+	var before: PackedByteArray = _inv.state_bytes()
+	var refused: InventoryScript.OpResult = _inv.transform_lot_item(seed, ITEM_MEAL, 2000)
+	assert_false(refused.ok, "the transformation refuses")
+	assert_equal(refused.error, InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and is named")
+	assert_equal(_inv.lot_item_id(seed), ITEM_GRAIN, "the row is still seed")
+	assert_equal(_inv.state_bytes(), before, "byte identical")
+
+
+func test_a_usable_seed_is_admitted_to_every_one_of_those_paths() -> void:
+	"""The control the refusal tests need: a bound guard that answers false blocks NOTHING.
+
+	Without this, a guard that refused every lot in the world would pass all seven refusals.
+	"""
+	var box: Vector2i = _container()
+	var workshop: Vector2i = _container(BIG_MASS, OWNER_B)
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 8000)
+	_bind_seed_guard()
+	assert_true(_inv.reserve_lot(seed, 1000).ok, "a fresh seed may be claimed")
+	assert_true(_inv.consume_reserved(seed, 1000).ok, "and the claim may be committed")
+	assert_true(_inv.sink_lot_quantity(seed, 1000).ok, "and withdrawn from directly")
+	assert_true(_inv.transfer(seed, workshop, 1000).ok, "and sent into production")
+	assert_true(_inv.split_lot(seed, 1000).ok, "and separated for selection")
+	assert_true(_inv.move_lot(seed, workshop).ok, "and moved whole")
+	assert_true(_inv.transform_lot_item(seed, ITEM_MEAL, 1000).ok, "and transformed")
+	assert_equal(_inv.lot_item_id(seed), ITEM_MEAL, "which is what the row now holds")
+
+
+func test_every_admission_asks_the_authority_again() -> void:
+	"""No verdict is cached, which is what makes commit-time revalidation structural."""
+	var box: Vector2i = _container()
+	var workshop: Vector2i = _container(BIG_MASS, OWNER_B)
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 8000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	assert_equal(guard.queries, 0, "binding asks nothing")
+	assert_true(_inv.reserve_lot(seed, 1000).ok, "reserve")
+	assert_equal(guard.queries, 1, "one admission, one question")
+	assert_true(_inv.consume_reserved(seed, 1000).ok, "commit")
+	assert_equal(guard.queries, 2, "the commit asks again rather than trusting the claim")
+	assert_true(_inv.transfer(seed, workshop, 1000).ok, "transfer")
+	assert_equal(guard.queries, 3, "and so does every later path")
+	assert_true(_inv.release_all_reservations(seed).ok, "a release is not an admission")
+	assert_equal(guard.queries, 3, "so it asks nothing")
+
+
+func test_release_and_cancellation_are_never_refused_for_an_expired_seed() -> void:
+	"""The ruling: "Release/cancellation ... remain permitted, so the guard cannot prevent its
+	own cleanup". A claim on a lot that expires under it must still be cancellable."""
+	var box: Vector2i = _container()
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	assert_true(_inv.reserve_lot(seed, 3000).ok, "claimed while fresh")
+	guard.expire(seed)
+	assert_true(_inv.release_reservation(seed, 1000).ok, "a partial release is permitted")
+	assert_equal(_inv.lot_reserved_milli(seed), 2000, "and applied exactly")
+	assert_true(_inv.release_all_reservations(seed).ok, "and so is the full invalidation")
+	assert_equal(_inv.lot_reserved_milli(seed), 0, "which leaves no claim standing")
+
+
+func test_the_declared_expiry_may_retire_and_transform_what_no_consumer_may_touch() -> void:
+	"""STOCK-SEED-R01's permitted "declared expiry transform/sink", in its exact shape.
+
+	`release_all_reservations()` inside one explicit transaction declares the lot, and the
+	single step that follows may take the WHOLE row -- retiring it, or converting it in place.
+	This is the sequence `stock_age.gd` already performs; nothing was changed there for it.
+	"""
+	var box: Vector2i = _container()
+	var retired: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var converted: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	assert_true(_inv.reserve_lot(retired, 1000).ok, "a job holds the first lot")
+	guard.expire(retired)
+	guard.expire(converted)
+	assert_true(_inv.begin().ok, "the expiry stage opens its transaction")
+	assert_true(_inv.release_all_reservations(retired).ok, "invalidating the claims")
+	assert_true(_inv.sink_lot_quantity(retired, 4000).ok, "retires the whole row")
+	assert_true(_inv.release_all_reservations(converted).ok, "and for the second lot")
+	assert_true(_inv.transform_lot_item(converted, ITEM_MEAL, 2000).ok, "converts it in place")
+	assert_true(_inv.commit().ok, "the transaction commits")
+	assert_false(_inv.is_lot_valid(retired), "the retired row is gone")
+	assert_equal(_inv.total_sunk_milli(ITEM_GRAIN), 8000, "both quantities are ledgered as sunk")
+	assert_equal(_inv.lot_item_id(converted), ITEM_MEAL, "and the conversion landed")
+
+
+func test_a_cleanup_declaration_licenses_exactly_one_following_step() -> void:
+	"""It names a lot, is spent by the next step whatever that step is, and exempts no helping."""
+	var box: Vector2i = _container()
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var other: Vector2i = _lot(box, ITEM_MEAL, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	guard.expire(seed)
+	assert_true(_inv.begin().ok, "a transaction opens")
+	assert_true(_inv.release_all_reservations(seed).ok, "the lot is declared")
+	assert_true(_inv.reserve_lot(other, 500).ok, "an unrelated step spends the declaration")
+	assert_equal(_inv.sink_lot_quantity(seed, 4000).error,
+		InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "so the disposal is no longer licensed")
+	_inv.abort()
+	assert_true(_inv.begin().ok, "a second transaction")
+	assert_true(_inv.release_all_reservations(other).ok, "declares a DIFFERENT lot")
+	assert_equal(_inv.sink_lot_quantity(seed, 4000).error,
+		InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "which licenses nothing for the seed")
+	_inv.abort()
+	assert_true(_inv.begin().ok, "a third transaction")
+	assert_true(_inv.release_all_reservations(seed).ok, "declares the seed")
+	assert_equal(_inv.sink_lot_quantity(seed, 3999).error,
+		InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "but a partial sink is a helping")
+	_inv.abort()
+	assert_equal(_inv.lot_quantity_milli(seed), 4000, "and the seed survived all three")
+
+
+func test_a_cleanup_declaration_never_crosses_a_transaction() -> void:
+	"""Decision 0059 wants the release and the disposal atomic, so two implicit transactions
+	are not a declared expiry -- they are a cancellation followed by a consumer."""
+	var box: Vector2i = _container()
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	guard.expire(seed)
+	assert_true(_inv.release_all_reservations(seed).ok, "released in its own transaction")
+	var refused: InventoryScript.OpResult = _inv.sink_lot_quantity(seed, 4000)
+	assert_false(refused.ok, "the next transaction carries no licence")
+	assert_equal(refused.error, InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and says so")
+	assert_true(_inv.release_all_reservations(seed).ok, "nor does one released just before")
+	assert_true(_inv.begin().ok, "an explicit transaction opened afterwards")
+	assert_equal(_inv.sink_lot_quantity(seed, 4000).error,
+		InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "inherits nothing from before it")
+	_inv.abort()
+	assert_equal(_inv.lot_quantity_milli(seed), 4000, "the lot is intact")
+
+
+func test_a_spent_declaration_does_not_come_back_in_the_next_transaction() -> void:
+	"""A declared expiry converts a lot once. The SAME row, still refused, is not licensed
+	again by the declaration the previous transaction already spent."""
+	var box: Vector2i = _container()
+	var seed: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var guard: SeedAuthority = _bind_seed_guard()
+	guard.expire(seed)
+	assert_true(_inv.begin().ok, "the expiry stage opens its transaction")
+	assert_true(_inv.release_all_reservations(seed).ok, "declares the lot")
+	assert_true(_inv.transform_lot_item(seed, ITEM_MEAL, 2000).ok, "and converts it")
+	assert_true(_inv.commit().ok, "the transaction commits")
+	var refused: InventoryScript.OpResult = _inv.transform_lot_item(seed, ITEM_WOOD, 1000)
+	assert_false(refused.ok, "a second conversion of that row carries no licence")
+	assert_equal(refused.error, InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and is named")
+	assert_equal(_inv.lot_item_id(seed), ITEM_MEAL, "so the row stands as the expiry left it")
+
+
+func test_an_authority_that_cannot_evaluate_a_lot_refuses_it() -> void:
+	"""FAIL-CLOSED, passed through unsoftened. An UNBOUND `stock_age.gd` answers true for every
+	lot -- no inventory, no catalog, nothing to read -- and this store treats that as the
+	refusal it is rather than deciding the silence means the seed is fine."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var unbound: StockAgeScript = StockAgeScript.new()
+	assert_true(unbound.refuses_seed_consumption(lot), "the real predicate refuses blind")
+	assert_true(_inv.set_seed_expiry_authority(unbound).ok, "and it is bound as the authority")
+	var refused: InventoryScript.OpResult = _inv.reserve_lot(lot, 1000)
+	assert_false(refused.ok, "so nothing is admitted while the guard cannot see")
+	assert_equal(refused.error, InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "named")
+	assert_equal(_inv.sink_lot_quantity(lot, 1000).error,
+		InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "on every path, not just the first")
+
+
+func test_the_real_expiry_stage_converts_the_seed_its_own_predicate_refuses() -> void:
+	"""End to end over the REAL catalog: the guard blocks consumers and not the expiry pass.
+
+	`stock_age.gd` is bound as its own authority, which is the wiring STOCK-SEED-R01 describes:
+	one module derives the verdict, this one enforces it, and the hourly pass still converts
+	the lot to compost by STOCK-SEED-R01's floored nominal mass.
+	"""
+	var defs: ItemDefinitionsScript = ItemDefinitionsScript.new()
+	var inv: InventoryScript = InventoryScript.new(8, 64)
+	defs.load_default(inv)
+	var age: StockAgeScript = StockAgeScript.new(inv, defs)
+	var store: Vector2i = _declared_cellar(inv, age)
+	var seed: Vector2i = _catalog_lot(inv, defs, store, &"seed_grain", 10000, SEED_SHELF_MILLI)
+	assert_true(inv.set_seed_expiry_authority(age).ok, "the stage guards its own store")
+	assert_equal(inv.reserve_lot(seed, 1000).error,
+		InventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "a sower is refused the expired seed")
+	var out: StockAgeScript.HourResult = age.run_hour(EXPIRY_HOUR_TICK)
+	assert_true(out.ok, "and the hourly pass still runs")
+	assert_equal(out.seed_lots_converted, 1, "converting the lot the guard refused")
+	assert_equal(inv.lot_item_id(seed), defs.compiled_id(&"compost"), "into compost")
+	assert_true(inv.reserve_lot(seed, 1000).ok, "which no seed rule refuses")
+
+
+func test_the_real_expiry_stage_retires_a_zero_yield_seed_through_the_guard() -> void:
+	"""The other branch of decision 0093: a yield that floors to zero SINKS the whole row.
+
+	That path is `sink_lot_quantity()` -- the same call a consumer's withdrawal uses -- so it
+	is the one the cleanup declaration exists for. With the guard bound it must still retire.
+	"""
+	var defs: ItemDefinitionsScript = ItemDefinitionsScript.new()
+	var inv: InventoryScript = InventoryScript.new(8, 64)
+	defs.load_default(inv)
+	var age: StockAgeScript = StockAgeScript.new(inv, defs)
+	var store: Vector2i = _declared_cellar(inv, age)
+	var seed: Vector2i = _catalog_lot(inv, defs, store, &"seed_grain", 9, SEED_SHELF_MILLI)
+	assert_true(inv.set_seed_expiry_authority(age).ok, "the stage guards its own store")
+	var out: StockAgeScript.HourResult = age.run_hour(EXPIRY_HOUR_TICK)
+	assert_true(out.ok, "the hourly pass runs")
+	assert_equal(out.seed_lots_retired, 1, "9 milli-U of 100 g/U seed yields no compost at all")
+	assert_false(inv.is_lot_valid(seed), "so the row is retired rather than left at zero")
+	assert_equal(inv.total_sunk_milli(defs.compiled_id(&"seed_grain")), 9,
+		"with the whole quantity ledgered as decay loss")
+
+
+func _bind_seed_guard() -> SeedAuthority:
+	"""Bind a stand-in seed-expiry authority to the suite's inventory and return it."""
+	var guard: SeedAuthority = SeedAuthority.new()
+	assert_true(_inv.set_seed_expiry_authority(guard).ok, "the guard binds")
+	return guard
+
+
+func _declared_cellar(inv: InventoryScript, age: StockAgeScript) -> Vector2i:
+	"""Create a container in `inv` and declare it a GDD §5.8 cellar to the aging stage."""
+	var made: InventoryScript.OpResult = inv.create_container(
+		OWNER_A, BIG_MASS, InventoryScript.FILTERS_ACCEPT_ALL, TEST_POLICY, true)
+	age.declare_storage_class(made.ref, StockAgeScript.STORAGE_CELLAR, false)
+	return made.ref
+
+
+func _catalog_lot(inv: InventoryScript, defs: ItemDefinitionsScript, container: Vector2i,
+		key: StringName, quantity_milli: int, age_milli_hours: int) -> Vector2i:
+	"""Create one lot of a REAL catalog item at a chosen starting age."""
+	var made: InventoryScript.OpResult = inv.create_lot(container, defs.compiled_id(key),
+		quantity_milli, 0, TEST_PROVENANCE, 0, age_milli_hours, 0)
+	return made.ref
+
+
+class SeedAuthority extends RefCounted:
+	"""A stand-in seed-expiry authority: it refuses exactly the lots it was told have expired.
+
+	`stock_age.gd` is the real one, and its `refuses_seed_consumption()` derives the answer from
+	persisted age and the item catalog. This exists so `inventory.gd`'s half of the contract --
+	WHICH paths ask, and what they do with the answer -- can be tested without the aging stage
+	deciding when the answer changes. `queries` counts the questions, which is how the "no
+	verdict is cached" claim is checked rather than asserted.
+	"""
+	var expired: Dictionary = {}
+	var queries: int = 0
+
+	func expire(lot_ref: Vector2i) -> void:
+		"""Start refusing one lot, as crossing its catalog shelf threshold would."""
+		expired[lot_ref] = true
+
+	func refuses_seed_consumption(lot_ref: Vector2i) -> bool:
+		"""The predicate `inventory.gd` calls on every seed-consuming admission."""
+		queries += 1
+		return expired.has(lot_ref)

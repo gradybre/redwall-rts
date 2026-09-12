@@ -73,3 +73,32 @@ stockpile fill truthfulness. They add no storage capacity, room service or
 underground depth. One8×8m stockpile remains one400000g container; do not multiply
 capacity by its sixteen footprint tiles. Runtime/export/performance evidence
 remains required separately from these authored ceilings.
+
+## 2026-09-11 — 06.1's first increment landed
+
+[Decision 0080](../decisions/0088-the-packed-building-room-and-furniture-stores.md) publishes the Milestone and Station domains and lands the packed **Building, Room and Furniture** stores with R-BUILD-DOM-003's presence mask, the earned-bit unlock gate, the §4.1–4.3 catalog facts and the Station provider binding. 06.1 stays **unchecked**: its **Construction** store, its **service and storage indexes**, and the PLACE_BLUEPRINT/PLACE_FURNITURE/DESIGNATE_ROOM/UPGRADE/DEMOLISH/SET_DOOR_OPEN command integration are not done, and neither is composition into `settlement_system.gd`. Read 0080's "What is deliberately NOT implemented" before extending any of it.
+
+## 2026-09-12 — the store is composed into the settlement
+
+[Decision 0087](../decisions/0087-the-building-store-is-composed-and-the-two-inventory-split-is-not-on-master.md)
+makes the call 0080 named and did not make: `settlement_system.gd` constructs
+`Buildings.new(_directory)` over the settlement's one directory, clears it with the
+other stores, and publishes `buildings()` / `building_definitions()`. A placed bed
+now takes a real resident as its `user`, `live_furniture_of_kind(bed)` is a live
+readable counter for UI §1.1's `Beds`, and `base_store_g_of()` states the 400000 g a
+stockpile-owned container should carry — which is asserted to equal, four times over,
+`economy_system.gd`'s §5.9 material-store mass.
+
+**06.1 still stays unchecked, and the §7.2 starter settlement is NOT built.** A
+generated settlement holds 0 buildings, 0 rooms and 0 furniture, which a test now
+pins so composition is never mistaken for construction. 0087 itemises the five
+blockers: no owner for the starter build, no store for §5.11's starting unlock mask
+(the value 1 is authored; `World.milestone_mask`/`Progress.unlocked_mask` have no
+owning module), no room-validity declaration, no defined edge-furniture
+representation for §5.9's x4/x5 partition and its row-4 door, and no composed
+`gear.gd` or building-owned container creation.
+
+## Astra follow-up — 2026-09-12
+
+MOVE-DEP-R05 requires actual bounded service contacts with stable contact key, destination owner reference and revision, not merely a caller-supplied positive number.
+Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.

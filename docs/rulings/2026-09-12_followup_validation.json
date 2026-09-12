@@ -1,0 +1,289 @@
+{
+  "result": "PASS",
+  "checked_at_utc": "2026-09-12T13:22:50.714856+00:00",
+  "scope": "Specification source checks, independent arithmetic/byte fixtures and registry coverage. No production code executed.",
+  "checks": [
+    {
+      "name": "Complete logical rig species coverage",
+      "passed": true,
+      "detail": 16
+    },
+    {
+      "name": "Rig naming badger",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming ferret",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming fox",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming hare",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming hedgehog",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming kestrel",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming mole",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming mouse",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming otter",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming rat",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming shrew",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming sparrow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming squirrel",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming weasel",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming wildcat",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Rig naming wolverine",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "LifeStage domain",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Existing adult ordinal preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Packed additions arithmetic",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Column-major literal byte vector",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Distinct from row-major",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "RNG section byte count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Reported detour and exact optimum",
+      "passed": true,
+      "detail": {
+        "old_anchor_composition": 160,
+        "exact": 48
+      }
+    },
+    {
+      "name": "Seed expiry vector 1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Seed expiry vector 9",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Seed expiry vector 10",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Seed expiry vector 19",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Seed expiry vector 1000",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Seed expiry vector 10000",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Seed nominal no-gain",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Split lots cannot increase output",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Alert inherited usable height",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Alert packing [44, 44]",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Alert packing [44, 60]",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Alert packing [60, 44]",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Alert packing [93, 44]",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Alert packing [92, 44]",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_clock_restore_and_layout_followup.md -> 2026-09-11_save_codec_contract.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_clock_restore_and_layout_followup.md -> 2026-09-11_ready07_save_ui_addendum.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_movement_dependency_rulings.md -> 2026-09-11_movement_gate_followthrough.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_alerts_and_seed_expiry.md -> 2026-09-11_initial_ids_and_narrow_alerts.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_executor_followup.md -> 2026-09-12_clock_restore_and_layout_followup.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_executor_followup.md -> 2026-09-12_clock_restore_and_layout_followup.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_executor_followup.md -> 2026-09-12_movement_dependency_rulings.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_executor_followup.md -> 2026-09-12_movement_dependency_rulings.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_executor_followup.md -> ../planning/species_rig_identity.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_executor_followup.md -> 2026-09-12_alerts_and_seed_expiry.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Local link docs/rulings/2026-09-12_executor_followup.md -> 2026-09-12_alerts_and_seed_expiry.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Live state registry coverage",
+      "passed": true,
+      "detail": "state_registry_coverage: PASS -- 42 modules, 312 rows, 629 packed columns checked"
+    },
+    {
+      "name": "Documentation whitespace",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "source_document_sha256": {
+    "docs/rulings/2026-09-12_clock_restore_and_layout_followup.md": "231f36bfc07369d50cbe3ed55a6278f010698163473711a599d8c088962544b8",
+    "docs/rulings/2026-09-12_movement_dependency_rulings.md": "998bc606b4627a3ae32ddc4891d44a5dffc15d528a99b9a75e80d5ab9a9b421e",
+    "docs/rulings/2026-09-12_alerts_and_seed_expiry.md": "8ad73def032d7a73cd32753bd270bfa3bf43fcbd2d6a1d551e7ab84221c94113",
+    "docs/rulings/2026-09-12_executor_followup.md": "0d6019da03d8f23b30957ad749c3485f3032b35a3ec7af0d8043b8ced1b65a6b"
+  },
+  "not_verified": [
+    "Clock restore implementation",
+    "Production codec continuation/rollback",
+    "Godot navigation change or path readiness latency",
+    "Rendered alert behavior/screenshots",
+    "Live seed expiry integration",
+    "Rig generation/proportion acceptance",
+    "Full MOVE gates and PC-04",
+    "Windows/minimum-hardware qualification"
+  ],
+  "authoring_history": [
+    {
+      "date": "2026-09-12",
+      "check": "Column-major literal byte vector",
+      "initial_result": "FAIL",
+      "correction": "Removed one extraneous trailing zero byte from the documented24-byte fixture; final check passes against independent little-endian encoding."
+    }
+  ]
+}

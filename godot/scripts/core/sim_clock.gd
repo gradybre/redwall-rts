@@ -28,36 +28,64 @@ extends RefCounted
 ## live. Reasons compose as a bitmask, so closing a menu cannot resume a pause
 ## another reason still holds.
 ##
-## BLOCKER U2 (docs/tasks/02_settlement_foundation.md) IS CLOSED IN PROCESS, AND
-## THE PART OF IT THAT IS NOT IS NAMED. Queued speed/pause scheduler events now
-## exist: `scripts/core/scheduler_events.gd` implements R07-SCHED-001's separate
-## 256-record queue, its own unsigned 64-bit sequence, and the boundary pump that
-## `advance()`'s `before_tick` hook calls before each fixed-tick decision and on
-## paused frames WHEN A CALLER SUPPLIES IT -- and no production caller does; see
-## open item 1 below (decision 0054). The ordering tiebreak that was missing is that
-## sequence; the ARCH-CMD-003 catalog is deliberately still 24 economic kinds,
-## because the scheduler queue has its own two-value kind domain.
+## BLOCKER U2 (docs/tasks/02_settlement_foundation.md) IS CLOSED IN PROCESS AND
+## NOW WIRED; THE PART OF IT THAT IS STILL OPEN IS NAMED. Queued speed/pause
+## scheduler events exist: `scripts/core/scheduler_events.gd` implements
+## R07-SCHED-001's separate 256-record queue, its own unsigned 64-bit sequence,
+## and the boundary pump that `advance()`'s `before_tick` hook calls before each
+## fixed-tick decision and on paused frames. The ordering tiebreak that was
+## missing is that sequence; the ARCH-CMD-003 catalog is deliberately still 24
+## economic kinds, because the scheduler queue has its own two-value kind domain.
 ##
-## TWO THINGS ARE STILL OPEN, NOT ONE.
+## THE PRODUCTION CALLER NOW EXISTS (decision 0084). `scripts/systems/game_manager.gd`
+## drives host frames through `scheduler_events.advance_frame()`, which supplies
+## BOTH `before_tick` and `on_overload`, and its pause and speed controls submit
+## queue events instead of calling `set_pause()`/`set_speed()` themselves. So the
+## boundary barrier, the unsigned-sequence tiebreak, the 250/256 reserve and
+## decision 0054's queued overload rung all happen in the running game.
+## `acknowledge_without_catchup()` below is the one control that still reaches this
+## clock directly, deliberately and unchanged: the queue's two kinds cannot express
+## "clear the retained debt", and decision 0054 keeps that path byte-identical.
 ##
-##   1. THE QUEUE HAS NO PRODUCTION CALLER. `scheduler_events.gd` is preloaded
-##      by nothing but its own test file; the three other mentions of it in this
-##      repository -- `commands.gd`, `command_dispatch.gd` and
-##      `settlement_system.gd` -- are prose. The shipping driver is
-##      `scripts/systems/game_manager.gd`, whose `advance_host_time()` calls
-##      `advance(elapsed, step, day_boundary)` passing NEITHER `before_tick` NOR
-##      `on_overload`, and whose pause and speed controls call `set_pause()` and
-##      `set_speed()` directly. So in the running game the boundary barrier, the
-##      unsigned-sequence tiebreak, the 250/256 reserve and decision 0054's
-##      queued-overload behaviour DO NOT HAPPEN. They are implemented, tested and
-##      unreached. Decision 0054's open list carries what wiring them needs.
-##   2. PERSISTENCE. THERE IS NO SAVE MODULE in this repository, so
-##      ARCH-SAVE-002 §12's scheduler subsection is implemented as an encoder, a
-##      decoder and its validation, and is UNWIRED. A paused queue cannot yet
-##      survive a process restart. Task 09 owns the codec.
+## PERSISTENCE: THE CLOCK'S HALF NOW EXISTS AND THE WIRING DOES NOT. RESTORE-R01
+## (docs/rulings/2026-09-12_clock_restore_and_layout_followup.md, decision 0089)
+## adds `restore_runtime()` below -- the single validated assignment boundary that
+## installs a saved completed tick, debt, speed, mask and the six counters without
+## calling a setter, running a tick or replaying anything. ARCH-SAVE-002 §12's
+## scheduler subsection remains an encoder, a decoder and its validation, and is
+## still UNWIRED: a paused queue cannot yet survive a process restart, because the
+## load coordinator that would hold the barrier and call this does not exist.
+## Task 09 owns that coordinator and `game_manager.gd`'s host-sample-origin reset.
+##
+## LOAD BARRIER (RESTORE-R01, decision 0104). `acquire_load_barrier()` hands the caller a
+## `LoadBarrier` token and BARS THIS CLOCK'S OPERATIONAL COMMAND SURFACE -- set_speed, set_pause,
+## advance, acknowledge_without_catchup and the three overload-ladder entry points -- until that
+## token is released. The ruling is explicit that a coordinator-only check is insufficient "while
+## mutable raw access exists": `game_manager.clock()` hands out THIS object, so the guard has to
+## live here. The raised/lowered bit lives INSIDE the token and not in a public flag; this clock
+## only holds a reference to it and exposes no lowering call, so a caller that never received the
+## token has no documented route down. `scheduler_events.gd` reads the same barrier through its
+## bound clock rather than carrying a second one, so there is exactly one barrier per world and a
+## queue can never disagree with its clock about whether a load is open. Nothing below
+## `game_manager.gd` has to depend on `game_manager.gd` to be guarded.
+##
+## THE BARRIER IS NOT A PAUSE REASON. It is never written into `_pause_mask`, never serialized and
+## never OR-ed into a restored mask. Being paused and being mid-load are different states.
+##
+## RESTORE IS NOT A COMMAND, so `restore_runtime()` is NOT on the barred surface: it is the one
+## operation the barrier exists to protect, and barring it would block the load with the load's own
+## guard. RESTORE-R01 says so in terms ("Restore is not such a command"), and the structure says it
+## too -- the guard is `_command_barred()`, and only command entry points call it.
+##
+## A BARRED CALL CHANGES NOTHING AT ALL: not the ten runtime fields, not `_last_error`, not
+## `_last_diagnostic`. That is deliberately stricter than this file's ordinary validation refusals,
+## which do record a reason. The barrier is not a property of the request -- the same request is
+## legal a moment later -- and RESTORE-R01 wants byte-identical state across a refused call.
+## Callers separate "barred" from "refused" with `is_load_barrier_held()`, never by reading a
+## reason string this clock did not write.
 ##
 ## set_speed() and set_pause() remain the IMMEDIATE setters and are what the
-## queue's pump calls; they are no longer the only way in.
+## queue's pump calls; they are no longer the way a player control gets in.
 ##
 ## BLOCKER U3 (spec contradiction, resolved conservatively). ARCH-CLOCK-001:
 ## "Preserve remaining debt; never discard completed or owed ticks to hide
@@ -126,6 +154,28 @@ const DEBT_PER_REAL_SECOND: int = TICKS_PER_SECOND * TICK_COST
 ## exactly "strictly more than 1/4 real second of backlog".
 const OVERLOAD_NUMERATOR: int = 4
 
+## Restore bounds (RESTORE-R01). Both are READ OFF the arithmetic this file already performs;
+## neither is a new calendar or scheduler design.
+##
+## A restored tick must survive `(tick + CALENDAR_OFFSET_TICKS)`, which `Calendar.set_tick()`
+## computes unchecked, so the ceiling is exactly that addition's headroom.
+const RESTORE_COMPLETED_TICK_MAX: int = IntMathScript.INT64_MAX - CALENDAR_OFFSET_TICKS
+## Every pause bit this clock knows. A mask carrying any other bit is refused, never masked down.
+const KNOWN_PAUSE_BITS: int = PLAYER | MENU | CRITICAL | VICTORY | LOAD
+
+## Refusal codes for `restore_refusal()`. `REFUSE_NONE` is the accepted case, so a caller tests
+## `is_ok()` rather than comparing against a magic value.
+const REFUSE_NONE: StringName = &""
+const REFUSE_RESTORE_NEGATIVE_TICK: StringName = &"CLOCK_RESTORE_NEGATIVE_TICK"
+const REFUSE_RESTORE_TICK_UNREPRESENTABLE: StringName = &"CLOCK_RESTORE_TICK_UNREPRESENTABLE"
+const REFUSE_RESTORE_SPEED: StringName = &"CLOCK_RESTORE_SPEED"
+const REFUSE_RESTORE_PAUSE_MASK: StringName = &"CLOCK_RESTORE_PAUSE_MASK"
+const REFUSE_RESTORE_NEGATIVE_DEBT: StringName = &"CLOCK_RESTORE_NEGATIVE_DEBT"
+const REFUSE_RESTORE_NEGATIVE_COUNTER: StringName = &"CLOCK_RESTORE_NEGATIVE_COUNTER"
+## Refusal code for `acquire_load_barrier()`. Barred COMMANDS carry no code at all: they report
+## false, change nothing, and the caller asks `is_load_barrier_held()` why.
+const REFUSE_BARRIER_HELD: StringName = &"CLOCK_LOAD_BARRIER_ALREADY_HELD"
+
 ## UI-only notifications (game logic uses the return values and counters instead).
 signal clock_overload_warning(reduced_to_speed: int)
 signal clock_diagnostic_pause(diagnostic: String)
@@ -148,6 +198,76 @@ var _last_error: String = ""
 ## Single reused arithmetic scratch for the per-frame scheduler path (task 2.7). Every read of
 ## `.value` is copied into a local immediately, so no two live values ever share it.
 var _math: IntMathScript.IntResult = IntMathScript.IntResult.new()
+
+
+class RestoreRefusal:
+	"""One restore validation outcome: a StringName code and its detail. `REFUSE_NONE` accepts.
+
+	RESTORE-R01: the validator is pure, so its answer is an object rather than a mutation of
+	`_last_error`. A REFUSED restore must leave even the transient diagnostic strings untouched,
+	and a save owner reports this reason through its own result instead of reading it back off
+	the clock. Deliberately NOT `save_header.gd`'s `Refusal`: this clock is below the codec and
+	must not depend on it, so the save side maps this code into its own vocabulary.
+	"""
+	var code: StringName
+	var detail: String
+
+	func _init(p_code: StringName, p_detail: String) -> void:
+		"""Store the refusal code and the detail behind it."""
+		code = p_code
+		detail = p_detail
+
+	func is_ok() -> bool:
+		"""True when this outcome carries no refusal."""
+		return code == REFUSE_NONE
+
+
+class LoadBarrier:
+	"""The RAISED load barrier itself, handed to whoever raised it. Releasing it is lowering it.
+
+	RESTORE-R01 wants one barrier shared with the raw clock and queue, and a hook any caller can
+	clear is not a barrier. So the raised/lowered bit lives HERE rather than as a settable flag on
+	the clock: `sim_clock.gd` holds a reference to this object and reads it, and exposes no call
+	that lowers it. Whoever holds this token is the single declared writer of that bit.
+
+	Dropping the token without releasing it leaves the barrier UP. That is the deliberate failure
+	direction: a stuck load refuses every command loudly, where a self-lowering barrier would let
+	a tick run over a half-installed world silently.
+	"""
+	var _held: bool = true
+
+	func is_held() -> bool:
+		"""True while this grant is still raising the barrier."""
+		return _held
+
+	func release() -> bool:
+		"""Lower the barrier this grant raised. False, changing nothing, if already released."""
+		if not _held:
+			return false
+		_held = false
+		return true
+
+
+class LoadBarrierGrant:
+	"""One `acquire_load_barrier()` outcome: a token when it accepts, an explicit code when not.
+
+	`token` is meaningful only when `is_ok()`. The refusal is a code and a reason rather than a
+	null return standing in for failure, because a caller that tests the object it was handed
+	cannot mistake "already held" for "here is your barrier".
+	"""
+	var code: StringName
+	var detail: String
+	var token: LoadBarrier
+
+	func _init(p_code: StringName, p_detail: String, p_token: LoadBarrier) -> void:
+		"""Store the outcome code, its detail, and the token when one was granted."""
+		code = p_code
+		detail = p_detail
+		token = p_token
+
+	func is_ok() -> bool:
+		"""True when this outcome carries a granted barrier."""
+		return code == REFUSE_NONE
 
 
 class Calendar:
@@ -191,6 +311,51 @@ class Calendar:
 		return "%02d:%02d" % [hour, minute]
 
 
+# --- load barrier (RESTORE-R01) -------------------------------------------------------------------
+#
+# ONE BARRIER PER WORLD, AND THE TOKEN HOLDS ITS BIT. There is no `lower_load_barrier()` here, so
+# the only route down is the token the loader was handed. `scheduler_events.gd` asks ITS bound
+# clock, which is how the queue shares this exact barrier instead of adding a second one that
+# could disagree with it. Nothing here knows what a GameManager is.
+
+var _load_barrier: LoadBarrier = null
+
+
+func acquire_load_barrier() -> LoadBarrierGrant:
+	"""Raise the load barrier and return the token that alone can lower it again.
+
+	Refused, with nothing changed, while a barrier is already held: two concurrent loads would each
+	believe they owned the world, and the first release would open the clock under the second. The
+	caller tests `is_ok()`; the token is meaningful only then.
+	"""
+	if is_load_barrier_held():
+		return LoadBarrierGrant.new(REFUSE_BARRIER_HELD,
+			"a load barrier is already held by another caller", null)
+	_load_barrier = LoadBarrier.new()
+	return LoadBarrierGrant.new(REFUSE_NONE, "", _load_barrier)
+
+
+func is_load_barrier_held() -> bool:
+	"""True while a load holds this clock's barrier.
+
+	The HUD may show LOAD from this; the pause mask never carries it, and neither does any saved
+	state. It is also how a caller tells a barred command from an ordinary refusal, since a barred
+	command writes no reason anywhere.
+	"""
+	return _load_barrier != null and _load_barrier.is_held()
+
+
+func _command_barred() -> bool:
+	"""True when the barrier bars an OPERATIONAL COMMAND. The whole guarded surface calls this.
+
+	That surface is `set_speed`, `set_pause`, `advance`, `acknowledge_without_catchup`,
+	`apply_overload`, `apply_overload_target` and `note_overload_step`. `restore_runtime()` is
+	deliberately NOT on it: restore is not a command (RESTORE-R01), it is the operation the barrier
+	protects, so it passes through a held barrier rather than being blocked by it.
+	"""
+	return is_load_barrier_held()
+
+
 # --- speed and pause state -----------------------------------------------------------------------
 
 func set_speed(value: int) -> bool:
@@ -203,7 +368,12 @@ func set_speed(value: int) -> bool:
 	This is the IMMEDIATE setter. `scheduler_events.gd`'s boundary pump calls it when it applies
 	an admitted SET_REQUESTED_SPEED, so a queued speed change lands here too (blocker U2 closed
 	in process, decision 0054); persistence of a pending queue is still blocked on task 09.
+
+	BARRED UNDER THE LOAD BARRIER, writing nothing at all -- not even `_last_error`. A speed the
+	player asked for during a load is a command against a world that is still being installed.
 	"""
+	if _command_barred():
+		return false
 	if not SELECTABLE_SPEEDS.has(value):
 		_last_error = "speed %d is not one of 1, 2, 4" % value
 		return false
@@ -221,7 +391,13 @@ func set_pause(reason: int, enabled: bool) -> bool:
 	This is the IMMEDIATE setter. `scheduler_events.gd`'s boundary pump calls it when it applies
 	an admitted SET_PAUSE_REASON, so a queued pause lands here too (blocker U2 closed in process,
 	decision 0054); persistence of a pending queue is still blocked on task 09.
+
+	BARRED UNDER THE LOAD BARRIER, writing nothing at all. This is the path RESTORE-R01 names as
+	the corruption to prevent: a PLAYER hold arriving mid-load would zero the sub-tick debt the
+	load is in the middle of restoring, and count a discard that never happened.
 	"""
+	if _command_barred():
+		return false
 	if not ALL_PAUSE_REASONS.has(reason):
 		_last_error = "pause reason %d is not a single known reason" % reason
 		return false
@@ -284,9 +460,17 @@ func advance(elapsed_microseconds: int, step: Callable = Callable(), day_boundar
 	about whether another tick may start, so a pause admitted during tick 3 stops tick 4.
 	`on_overload` replaces the immediate ladder step with the caller's own handling, which
 	`scheduler_events.gd` uses to carry the rung through that same barrier. BOTH DEFAULT TO
-	INVALID, and with them invalid this function behaves exactly as it did before they existed --
-	which is what every production caller gets today, because `game_manager.gd` passes neither.
+	INVALID, and with them invalid this function behaves exactly as it did before they existed.
+	`game_manager.gd` now reaches this through `scheduler_events.advance_frame()` and supplies
+	both; the bare no-hook path stays supported and is pinned by its own test.
+
+	BARRED UNDER THE LOAD BARRIER, before the error string is cleared and before one microsecond
+	becomes debt. A load spans many host frames; folding their elapsed time into a clock whose tick
+	has just been rewritten would drift the restored tick before the world was ever published. The
+	0 it returns is true -- no tick ran -- and `is_load_barrier_held()` says why.
 	"""
+	if _command_barred():
+		return 0
 	_last_error = ""
 	var speed: int = effective_speed()
 	if speed == SPEED_PAUSED:
@@ -307,17 +491,23 @@ func _dispatch_overload(on_overload: Callable) -> void:
 	apply_overload()
 
 
-func apply_overload() -> void:
+func apply_overload() -> bool:
 	"""Step the REQ-SET-008 ladder once: 4x to 2x, 2x to 1x, then a diagnostic pause at 1x.
 
 	Debt is retained untouched in every branch: the ladder slows or stops the clock, it never
 	skips owed ticks (ARCH-CLOCK-001, blocker U3). No automatic speed increase ever occurs.
 	State is applied before the diagnostic is recorded, so a signal handler reading
 	requested_speed() or is_paused() sees the rung that has already landed.
+
+	Returns false, having changed nothing, when the load barrier bars it. It returns a verdict at
+	all only so that refusal is explicit; the ladder itself has no other failure.
 	"""
+	if _command_barred():
+		return false
 	var target: int = overload_ladder_target()
 	apply_overload_target(target)
 	note_overload_step(target)
+	return true
 
 
 func overload_ladder_target() -> int:
@@ -333,33 +523,45 @@ func overload_ladder_target() -> int:
 	return SPEED_PAUSED
 
 
-func apply_overload_target(target: int) -> void:
+func apply_overload_target(target: int) -> bool:
 	"""Apply one already-chosen rung's authoritative state change and nothing else.
 
 	Debt is untouched here as in every other ladder path. Called directly by apply_overload(); a
 	scheduler queue instead reaches this state through an ordinary drained speed or pause event.
+
+	Guarded in its own right, not only through apply_overload(): this writes `_pause_mask` and
+	`_requested_speed`, two of the ten fields a load is installing, and it is public.
 	"""
+	if _command_barred():
+		return false
 	if target == SPEED_PAUSED:
 		_pause_mask |= CRITICAL
-		return
+		return true
 	_requested_speed = target
+	return true
 
 
-func note_overload_step(target: int) -> void:
+func note_overload_step(target: int) -> bool:
 	"""Record one ladder step's counters and emit its UI signal. Changes no authoritative state.
 
 	Split out so a scheduler that defers the rung to its next barrier still keeps fallback_count(),
 	diagnostic_pause_count() and last_diagnostic() -- the evidence task 02 recorded under blocker
 	U3 -- rather than silently retiring them.
+
+	Guarded too: `_fallback_count` and `_diagnostic_pause_count` are restored fields, and the
+	ruling forbids any signal during a load. Returns false having emitted and counted nothing.
 	"""
+	if _command_barred():
+		return false
 	_fallback_count += 1
 	if target == SPEED_PAUSED:
 		_diagnostic_pause_count += 1
 		_last_diagnostic = "Simulation overloaded at 1x: %d whole tick(s) owed; paused rather than skipping." % owed_ticks()
 		clock_diagnostic_pause.emit(_last_diagnostic)
-		return
+		return true
 	_last_diagnostic = "Simulation overloaded: speed reduced to %dx; %d whole tick(s) owed." % [target, owed_ticks()]
 	clock_overload_warning.emit(target)
+	return true
 
 
 func acknowledge_without_catchup() -> int:
@@ -369,7 +571,13 @@ func acknowledge_without_catchup() -> int:
 	never called implicitly, and every call is recorded in acknowledged_catchup_resets() with
 	the dropped total in acknowledged_ticks_discarded() (ARCH-CLOCK-002 "record this scheduler
 	event"). Completed state never rewinds or advances: _completed_tick is untouched.
+
+	BARRED UNDER THE LOAD BARRIER: during a load no ticks were genuinely owed and none were
+	dropped, so the 0 returned is the truth rather than a failure sentinel. A caller separating it
+	from a real zero-tick acknowledgement asks `is_load_barrier_held()`.
 	"""
+	if _command_barred():
+		return 0
 	var discarded: int = _debt / TICK_COST
 	_debt = 0
 	_acknowledged_catchup_resets += 1
@@ -439,6 +647,171 @@ func _is_overloaded(speed: int) -> bool:
 	if not IntMathScript.checked_mul_into(OVERLOAD_NUMERATOR, _debt, _math):
 		return true
 	return _math.value > DEBT_PER_REAL_SECOND * speed
+
+
+# --- restore (RESTORE-R01) -----------------------------------------------------------------------
+#
+# THE ONE ASSIGNMENT BOUNDARY. `restore_runtime()` is the ONLY public operation that writes the
+# ten runtime fields from outside, and it is not a command: it calls no setter, runs no tick,
+# pumps no queue and replays nothing. The 2026-09-12 follow-up ruling names the alternative it
+# forbids exactly -- `set_pause(PLAYER, true)` ZEROES a sub-tick debt and counts the discard, so
+# restoring a saved PLAYER pause through the ordinary setter would subtract debt during restore
+# and corrupt `_subtick_debt_discards`. That is why this exists instead.
+#
+# THE CALLER HOLDS THE BARRIER, AND RESTORE PASSES THROUGH IT. `acquire_load_barrier()` above is
+# that barrier, and this function neither raises nor lowers it. It is also the ONE writer that a
+# held barrier does not bar: restore is not a command (RESTORE-R01), it is the operation the
+# barrier exists to protect, so guarding it would block the load with the load's own guard. The
+# separation is structural rather than a special case inside the guard -- `_command_barred()` is
+# called by command entry points only, and this is not one. Restore still must be called from
+# outside any advance/step/day-boundary callback; nothing here can check that, and nothing here
+# makes it safe to call mid-frame.
+#
+# NOT A SECOND DISCARD PATH. Blocker U3's conservative reading stands: `acknowledge_without_
+# catchup()` remains the only counted path that drops owed ticks. Restore neither drops nor
+# invents them -- it installs the exact debt the save recorded, remainder included.
+#
+# COLD PATH. Restore happens at a load boundary, never per frame, so the `RestoreRefusal` object
+# is allocated freely. The per-frame `advance()` path above still allocates nothing.
+#
+# NO BYTE ORDER IS IMPLIED HERE. These are ten typed GDScript integers; packed file widths follow
+# the declared section 1 schema, not the width of an argument. SAVE-LAYOUT-R01 -- the packed-store
+# byte-order ruling -- is still an empty heading in the 2026-09-12 follow-up ("appended after
+# independent codec review"), so nothing in this file assumes one, and nothing here may be cited
+# as having settled one.
+
+func restore_runtime(completed_tick: int, debt: int, requested_speed: int, pause_mask: int,
+		fallback_count: int, diagnostic_pause_count: int, acknowledged_catchup_resets: int,
+		acknowledged_ticks_discarded: int, subtick_debt_discards: int,
+		day_boundaries_crossed: int) -> bool:
+	"""Install a saved clock runtime verbatim. False, with NOTHING changed, if any argument fails.
+
+	EVERY argument is validated before the FIRST assignment (decision 0059, allocate before
+	consume), so a refusal leaves all ten fields, both transient diagnostic strings and every
+	callback exactly as they were. Call `restore_refusal()` for the reason; this returns only
+	the verdict, because a refused call must not even write `_last_error`.
+
+	On success the ten fields are assigned verbatim -- no scaling, zeroing, clamping or
+	recomputation, and no cross-counter relationship is imposed -- and only the transient
+	`_last_diagnostic`/`_last_error` strings are then cleared. No signal, day notification,
+	callback, tick, debt adjustment or counter increment occurs. The header's completed tick and
+	section 1's must already agree; that comparison belongs to the save owner, which has both.
+
+	NOT BARRED BY THE LOAD BARRIER, whether one is held or not. Every operational command on this
+	clock refuses while a barrier is up; this one writes through it, because it is the write the
+	barrier was raised for.
+	"""
+	if not restore_refusal(completed_tick, debt, requested_speed, pause_mask, fallback_count,
+			diagnostic_pause_count, acknowledged_catchup_resets, acknowledged_ticks_discarded,
+			subtick_debt_discards, day_boundaries_crossed).is_ok():
+		return false
+	_completed_tick = completed_tick
+	_debt = debt
+	_requested_speed = requested_speed
+	_pause_mask = pause_mask
+	_assign_restored_counters(fallback_count, diagnostic_pause_count, acknowledged_catchup_resets,
+		acknowledged_ticks_discarded, subtick_debt_discards, day_boundaries_crossed)
+	_last_diagnostic = ""
+	_last_error = ""
+	return true
+
+
+func _assign_restored_counters(fallback_count: int, diagnostic_pause_count: int,
+		acknowledged_catchup_resets: int, acknowledged_ticks_discarded: int,
+		subtick_debt_discards: int, day_boundaries_crossed: int) -> void:
+	"""Assign G3's six recorded counters verbatim. Only reached after the whole record validates."""
+	_fallback_count = fallback_count
+	_diagnostic_pause_count = diagnostic_pause_count
+	_acknowledged_catchup_resets = acknowledged_catchup_resets
+	_acknowledged_ticks_discarded = acknowledged_ticks_discarded
+	_subtick_debt_discards = subtick_debt_discards
+	_day_boundaries_crossed = day_boundaries_crossed
+
+
+static func restore_refusal(completed_tick: int, debt: int, requested_speed: int, pause_mask: int,
+		fallback_count: int, diagnostic_pause_count: int, acknowledged_catchup_resets: int,
+		acknowledged_ticks_discarded: int, subtick_debt_discards: int,
+		day_boundaries_crossed: int) -> RestoreRefusal:
+	"""Every rule `restore_runtime()` enforces, as a pure check that mutates no clock.
+
+	Static and side-effect free so a save codec can run the identical validation on a decoded
+	record BEFORE it has a clock to install it into, and so a refusal reason exists without a
+	half-published world. The argument order matches `restore_runtime()` exactly.
+	"""
+	var tick: RestoreRefusal = _restore_tick_refusal(completed_tick)
+	if not tick.is_ok():
+		return tick
+	var control: RestoreRefusal = _restore_control_refusal(requested_speed, pause_mask)
+	if not control.is_ok():
+		return control
+	return _restore_host_metadata_refusal(debt, fallback_count, diagnostic_pause_count,
+		acknowledged_catchup_resets, acknowledged_ticks_discarded, subtick_debt_discards,
+		day_boundaries_crossed)
+
+
+static func _restore_tick_refusal(completed_tick: int) -> RestoreRefusal:
+	"""Tick 0 is legal; a negative tick and one whose calendar offset would overflow are not."""
+	if completed_tick < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_TICK,
+			"completed tick %d is negative" % completed_tick)
+	if completed_tick > RESTORE_COMPLETED_TICK_MAX:
+		return RestoreRefusal.new(REFUSE_RESTORE_TICK_UNREPRESENTABLE,
+			"completed tick %d overflows the `tick + %d` offset calendar"
+				% [completed_tick, CALENDAR_OFFSET_TICKS])
+	return RestoreRefusal.new(REFUSE_NONE, "")
+
+
+static func _restore_control_refusal(requested_speed: int, pause_mask: int) -> RestoreRefusal:
+	"""Requested speed is 1, 2 or 4 -- never 3, never 0 -- and the mask holds only known bits.
+
+	SPEED_PAUSED is derived from the mask by `effective_speed()` and is never a stored requested
+	speed, so 0 is refused here exactly as `set_speed()` refuses it.
+	"""
+	if not SELECTABLE_SPEEDS.has(requested_speed):
+		return RestoreRefusal.new(REFUSE_RESTORE_SPEED,
+			"requested speed %d is not one of 1, 2, 4" % requested_speed)
+	if pause_mask < 0 or (pause_mask & ~KNOWN_PAUSE_BITS) != 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_PAUSE_MASK,
+			"pause mask %d carries a bit outside the known %d" % [pause_mask, KNOWN_PAUSE_BITS])
+	return RestoreRefusal.new(REFUSE_NONE, "")
+
+
+static func _restore_host_metadata_refusal(debt: int, fallback_count: int,
+		diagnostic_pause_count: int, acknowledged_catchup_resets: int,
+		acknowledged_ticks_discarded: int, subtick_debt_discards: int,
+		day_boundaries_crossed: int) -> RestoreRefusal:
+	"""Debt and each of G3's six counters lie in `0..INT64_MAX`, checked one field at a time.
+
+	The upper end of that domain is the GDScript int itself, which IS int64, so the rule a value
+	can actually violate is the lower one. Debt is NOT capped here at the codec's tighter
+	`INT64_MAX/4`: a restorable value is not permission to overflow, and `_is_overloaded()`
+	already refuses its own multiplication rather than wrapping.
+	"""
+	if debt < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_DEBT, "debt %d is negative" % debt)
+	var first: RestoreRefusal = _first_negative_counter("_fallback_count", fallback_count,
+		"_diagnostic_pause_count", diagnostic_pause_count,
+		"_acknowledged_catchup_resets", acknowledged_catchup_resets)
+	if not first.is_ok():
+		return first
+	return _first_negative_counter("_acknowledged_ticks_discarded", acknowledged_ticks_discarded,
+		"_subtick_debt_discards", subtick_debt_discards,
+		"_day_boundaries_crossed", day_boundaries_crossed)
+
+
+static func _first_negative_counter(first_name: String, first_value: int, second_name: String,
+		second_value: int, third_name: String, third_value: int) -> RestoreRefusal:
+	"""Name the first of three counters that is negative, in argument order, or accept."""
+	if first_value < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_COUNTER,
+			"%s is %d, which is negative" % [first_name, first_value])
+	if second_value < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_COUNTER,
+			"%s is %d, which is negative" % [second_name, second_value])
+	if third_value < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_COUNTER,
+			"%s is %d, which is negative" % [third_name, third_value])
+	return RestoreRefusal.new(REFUSE_NONE, "")
 
 
 # --- observable scheduler state ------------------------------------------------------------------

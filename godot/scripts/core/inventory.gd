@@ -63,6 +63,39 @@ extends RefCounted
 ##    here was weakened to admit a null container: create_lot() still requires a live container,
 ##    and split/merge/move/transfer/sink/reserve all refuse an equipped lot outright.
 ##
+## 5. AGE IS WRITTEN HERE AND DECIDED ELSEWHERE (ARCH-SYS-004; GDD §5.8 REQ-SET-107–108).
+##    `advance_lot_age_hour_into()` folds one game hour of effective storage age into the two
+##    age columns, and `transform_lot_item_into()` performs §5.8's spoilage conversion on the
+##    SAME row. Neither knows what a store factor, a season or a shelf life is: `stock_age.gd`
+##    supplies the two already-chosen factors and the already-resolved outcome item, because an
+##    inventory that decided them would be holding a copy of the food rules.
+##
+##    AN EQUIPPED LOT IS NOT AGED, AND BOTH MUTATORS REFUSE ONE WITH `LOT_EQUIPPED`. §5.8
+##    defines age as EFFECTIVE STORAGE age through a store factor, and it names every non-store
+##    case it covers -- prepared food left on tables takes the open-pile factor, and §5.9's
+##    ground piles take 1500 -- without naming equipment. A lot held as equipment is therefore
+##    in no store and HAS no factor, so aging it would be inventing one. That the GDD does not
+##    decide this is a NAMED GAP, not a choice made here; `test_stock_age.gd` pins why it is
+##    currently unobservable, and `stock_age.gd`'s header states the gap in full.
+##
+## 6. AN OVER-SHELF-LIFE SEED IS ADMITTED TO NO CONSUMER (STOCK-SEED-R01; decisions 0093, 0059).
+##    The ruling splits one rule across two modules: `stock_age.gd` owns the PREDICATE
+##    `refuses_seed_consumption(lot_ref)`, derived from persisted age and the item definition,
+##    and this module owns ENFORCEMENT for quantity admission. Six admission paths ask it --
+##    a new reservation, an unreserved withdrawal, the commit of an existing claim, a transfer,
+##    a whole-lot move and a split -- plus the in-place transform, and each asks AGAIN every
+##    time, so no verdict from an earlier tick can be replayed at commit.
+##
+##    NO SHELF LIFE IS COMPUTED HERE. This store knows an item's mass and category; it does not
+##    know what a seed is, what a shelf hour is, or how the two compare. A second copy of that
+##    comparison could disagree with the first, so the guard delegates and never duplicates.
+##
+##    ITS OWN CLEANUP STAYS POSSIBLE. Release/cancellation and the declared expiry
+##    transform/sink remain permitted through one narrow, single-use CLEANUP DECLARATION set by
+##    `release_all_reservations()` inside an open explicit transaction -- the ruling's own
+##    invalidation step, which every declared-expiry sequence starts with. See the guard's
+##    section comment for why that is the only shape that tells disposal from consumption.
+##
 ## ARCH-MEM-001: every column is a packed array allocated once in _init(). No GDScript Array is
 ## allocated per row; a container's lots are an intrusive doubly linked list threaded through
 ## two packed lot columns, not a per-container child array.
@@ -87,10 +120,13 @@ extends RefCounted
 ## is the H4 rule -- never encode a refusal INSIDE the value channel -- and it still holds.
 ##
 ## ALIASING. `_math`, `_plan`, `_out_ref` and `_out_value` are single reused instances/fields.
-## This module invokes no caller-supplied callback and no signal anywhere, so no public
-## operation can re-enter while one of them holds a live value, and a caller can never hold two
-## of these at once because the only object that escapes is the freshly built OpResult. Within
-## the module the rule is: copy `_math.value` into a local before the next call.
+## This module emits no signal anywhere and calls out to a collaborator in exactly two places --
+## the equipment attestation and STOCK-SEED-R01's seed-expiry query -- and NEITHER is made while
+## one of those holds a live value: both are asked before anything is costed. `_attesting` is
+## raised across both, so `_guard()` refuses any mutator an authority re-enters with, and a
+## caller can never hold two of these at once because the only object that escapes is the
+## freshly built OpResult. Within the module the rule is: copy `_math.value` into a local
+## before the next call.
 ##
 ## Container refs use the GDD §4.1 `(slot, generation)` pair carried as Vector2i with the null
 ## ref `(-1, 0)`, matching entity_directory.gd, but this module allocates its own slots. Wiring
@@ -112,6 +148,13 @@ const ITEM_CAPACITY: int = 256
 
 ## Milli-units per catalog unit (BAL-NUM-001).
 const MILLI_PER_UNIT: int = 1000
+
+## GDD §5.8's aging divisor: "Effective age per hour=floor(store_factor*temperature_factor/1000),
+## retaining tick fractions". It is 1000 because BOTH factors are per-mille of the base 1000
+## milli-hours an hour costs at store factor 1000 in an unmodified season -- it is NOT
+## `MILLI_PER_UNIT`, which happens to share the number while meaning milli-units per catalog
+## unit. Aliasing the two would make a later change to either silently change the other.
+const AGE_FACTOR_DENOMINATOR: int = 1000
 
 ## Category bits available in the 64-bit `filters` mask (ARCH-STATE-004).
 const CATEGORY_COUNT: int = 64
@@ -227,10 +270,28 @@ const REFUSE_ATTESTATION_REENTRY: StringName = &"ATTESTATION_REENTRY"
 const REFUSE_AUDIT_ORPHAN_LOT: StringName = &"AUDIT_ORPHAN_LOT"
 const REFUSE_AUDIT_EQUIPPED_COUNT: StringName = &"AUDIT_EQUIPPED_COUNT_MISMATCH"
 const REFUSE_AUDIT_LOT_CYCLE: StringName = &"AUDIT_LOT_LIST_CYCLE"
+## ARCH-SYS-004 StockAge additions. An aging factor is a GDD §5.8 table value and is never
+## negative; an age that can no longer be rounded up to a whole hour refuses rather than being
+## stored, because `_age_hours_ceil_into()` would then refuse for every later merge instead.
+const REFUSE_INVALID_AGE_FACTOR: StringName = &"INVALID_AGE_FACTOR"
+const REFUSE_AGE_LIMIT_REACHED: StringName = &"AGE_LIMIT_REACHED"
+const REFUSE_SAME_ITEM: StringName = &"SAME_ITEM"
 
 ## The single method name an equipment authority must publish. Duck typed on purpose: `gear.gd`
 ## preloads this module, so this module must not preload `gear.gd` back.
 const EQUIPMENT_ATTESTATION_METHOD: StringName = &"is_equipped_record"
+
+## STOCK-SEED-R01 refusals. A seed lot whose persisted age has reached its catalog shelf
+## threshold may not be reserved, withdrawn, committed, transferred, moved, split or
+## transformed into anything a consumer asked for. The threshold itself is NOT computed here:
+## `stock_age.gd` owns that arithmetic and this module owns admission.
+const REFUSE_SEED_PAST_SHELF_LIFE: StringName = &"SEED_PAST_SHELF_LIFE"
+const REFUSE_INVALID_SEED_EXPIRY_AUTHORITY: StringName = &"INVALID_SEED_EXPIRY_AUTHORITY"
+
+## The single method name a seed-expiry authority must publish, duck typed for the same reason
+## as EQUIPMENT_ATTESTATION_METHOD: `stock_age.gd` preloads this module, so this module cannot
+## preload `stock_age.gd` back and cannot name its type.
+const SEED_EXPIRY_ATTESTATION_METHOD: StringName = &"refuses_seed_consumption"
 
 
 class OpResult:
@@ -344,9 +405,23 @@ var _equipment_authority: Object = null
 ## Live lots whose container is the null ref. Derived from the columns, maintained like the live
 ## counts and restored the same way on rollback; `audit()` re-derives it.
 var _equipped_lot_count: int = 0
-## True only while the authority's attestation is running. `_guard()` refuses every mutator while
-## it is set, so an authority that tries to re-enter this module cannot half-apply an operation.
+## True only while an authority call is running -- the equipment attestation or STOCK-SEED-R01's
+## seed-expiry query. `_guard()` refuses every mutator while it is set, so an authority that
+## tries to re-enter this module cannot half-apply an operation.
 var _attesting: bool = false
+
+## STOCK-SEED-R01's seed-consumer eligibility authority: the object publishing
+## `refuses_seed_consumption(lot_ref) -> bool`. `stock_age.gd` is the real one. Wiring, not
+## simulation state: not journaled, absent from state_bytes(), and it survives clear().
+var _seed_expiry_authority: Object = null
+## Cleanup declaration, in the INVENTORY LOT generation namespace (never the container one).
+## `release_all_reservations()` sets `_tx_cleanup_lot`; the next operation inside the SAME
+## explicit transaction picks it up in `_op_cleanup_lot` and clears the pending one, so a
+## declaration is good for exactly one following step and never crosses a transaction. This is
+## how the ruling's permitted "declared expiry transform/sink" is told apart from a consumer
+## helping itself. Transaction scratch: not journaled, not in state_bytes().
+var _tx_cleanup_lot: Vector2i = NULL_REF
+var _op_cleanup_lot: Vector2i = NULL_REF
 
 # Task 2.7 scratch. Not simulation state: rollback and state_bytes() both ignore these.
 ## Checked-arithmetic scratch shared by every internal helper. A helper that produces one
@@ -453,6 +528,8 @@ func clear() -> void:
 	_tx_open = false
 	_tx_poisoned = false
 	_tx_error = REFUSE_NONE
+	_tx_cleanup_lot = NULL_REF
+	_op_cleanup_lot = NULL_REF
 	_equipped_lot_count = 0
 
 
@@ -642,13 +719,21 @@ func _close_transaction() -> void:
 	_tx_open = false
 	_tx_poisoned = false
 	_tx_error = REFUSE_NONE
+	_tx_cleanup_lot = NULL_REF
 
 
 func _open_transaction() -> void:
-	"""Reset the journal and record the allocator scalars a rollback must restore."""
+	"""Reset the journal and record the allocator scalars a rollback must restore.
+
+	`_op_cleanup_lot` is cleared HERE and not in `_close_transaction()`: it is the declaration
+	the operation now starting may use, and a transaction that opens fresh has none. Clearing
+	it is what stops a cleanup declared before this transaction from licensing a disposal
+	inside it.
+	"""
 	_tx_open = true
 	_tx_poisoned = false
 	_tx_error = REFUSE_NONE
+	_op_cleanup_lot = NULL_REF
 	_j_count = 0
 	_tx_saved_c_free_count = _c_free_count
 	_tx_saved_l_free_count = _l_free_count
@@ -661,8 +746,16 @@ func _enter() -> bool:
 	"""Open an implicit single-operation transaction unless one is already open.
 
 	Returns true when this operation owns the transaction and must close it in _leave().
+
+	This is also where a pending cleanup declaration becomes THIS operation's: it is taken and
+	cleared in one step, so `release_all_reservations()` licenses exactly the step that follows
+	it and nothing further. An operation that opens its own transaction starts with none, which
+	is what stops a release and a disposal in two separate implicit transactions from adding up
+	to the atomic cleanup decision 0059 requires.
 	"""
 	if _tx_open:
+		_op_cleanup_lot = _tx_cleanup_lot
+		_tx_cleanup_lot = NULL_REF
 		return false
 	_open_transaction()
 	return true
@@ -689,6 +782,31 @@ func _leave(owned: bool, code: StringName) -> OpResult:
 	if failed:
 		return OpResult.new(false, code, NULL_REF, 0)
 	return OpResult.new(true, REFUSE_NONE, _out_ref, _out_value)
+
+
+func _leave_into(owned: bool, code: StringName, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `_leave()`: close the transaction and write the outcome into `out`.
+
+	ARCH-SYS-004 touches every stored lot every game hour, so its two mutators cannot each
+	allocate an OpResult per lot. This is the same close as `_leave()` -- same poisoning, same
+	rollback, same "a refusal carries no value" rule -- writing into a caller-owned IntResult
+	instead of a fresh object. `out.value` carries the produced integer and `out.ref` has no
+	analogue: an aging caller already holds the lot ref it passed in.
+	"""
+	var failed: bool = code != REFUSE_NONE
+	if failed:
+		_tx_poisoned = true
+		if _tx_error == REFUSE_NONE:
+			_tx_error = code
+	if owned:
+		if failed:
+			_rollback()
+		else:
+			_j_count = 0
+		_close_transaction()
+	if failed:
+		return out.refuse(String(code))
+	return out.succeed(_out_value)
 
 
 func _succeed(ref: Vector2i, value: int) -> StringName:
@@ -1215,6 +1333,9 @@ func _remove_quantity(lot_ref: Vector2i, quantity_milli: int, from_reserved: boo
 	var check: StringName = _check_removal(lot_ref, quantity_milli, from_reserved)
 	if check != REFUSE_NONE:
 		return check
+	var seed: StringName = _seed_removal_refusal(lot_ref, quantity_milli, from_reserved)
+	if seed != REFUSE_NONE:
+		return seed
 	var slot: int = lot_ref.x
 	var item_id: int = _l_item_id[slot]
 	if not IntMath.checked_add_into(_sunk_milli[item_id], quantity_milli, _math):
@@ -1349,7 +1470,9 @@ func _check_split(lot_ref: Vector2i, quantity_milli: int) -> StringName:
 		return REFUSE_INVALID_QUANTITY
 	if quantity_milli > _l_quantity_milli[slot] - _l_reserved_milli[slot]:
 		return REFUSE_INSUFFICIENT_UNRESERVED
-	return REFUSE_NONE
+	# STOCK-SEED-R01's "seed selection": separating a portion of a lot is how a sower picks the
+	# seed it is about to use, and an over-shelf-life lot may not be picked from.
+	return _seed_consumption_refusal(lot_ref)
 
 
 func _split_delta_g(slot: int, quantity_milli: int) -> StringName:
@@ -1541,6 +1664,26 @@ func _move_lot_checked(lot_ref: Vector2i, dest_ref: Vector2i) -> StringName:
 	var guard: StringName = _guard()
 	if guard != REFUSE_NONE:
 		return guard
+	var check: StringName = _check_move(lot_ref, dest_ref)
+	if check != REFUSE_NONE:
+		return check
+	var slot: int = lot_ref.x
+	if not IntMath.inventory_capacity_debit_g_into(_l_quantity_milli[slot], _item_mass_g[_l_item_id[slot]], _math):
+		return REFUSE_OVERFLOW
+	var debit: int = _math.value
+	var fits: StringName = _check_fits(dest_ref.x, debit)
+	if fits != REFUSE_NONE:
+		return fits
+	_apply_move(slot, _l_container_slot[slot], dest_ref, debit)
+	return _succeed(lot_ref, _l_quantity_milli[slot])
+
+
+func _check_move(lot_ref: Vector2i, dest_ref: Vector2i) -> StringName:
+	"""Precondition check for a whole-lot move. REFUSE_NONE when the move is legal.
+
+	The seed guard is asked LAST of these and still before anything is costed, so a structural
+	refusal keeps its own name and no `_math` value is live across the authority call.
+	"""
 	if not is_lot_valid(lot_ref):
 		return REFUSE_INVALID_LOT
 	if not is_container_valid(dest_ref):
@@ -1553,14 +1696,7 @@ func _move_lot_checked(lot_ref: Vector2i, dest_ref: Vector2i) -> StringName:
 		return REFUSE_SAME_CONTAINER
 	if not _accepts_item(dest_ref.x, _l_item_id[slot]):
 		return REFUSE_ITEM_FILTERED
-	if not IntMath.inventory_capacity_debit_g_into(_l_quantity_milli[slot], _item_mass_g[_l_item_id[slot]], _math):
-		return REFUSE_OVERFLOW
-	var debit: int = _math.value
-	var fits: StringName = _check_fits(dest_ref.x, debit)
-	if fits != REFUSE_NONE:
-		return fits
-	_apply_move(slot, source_container, dest_ref, debit)
-	return _succeed(lot_ref, _l_quantity_milli[slot])
+	return _seed_consumption_refusal(lot_ref)
 
 
 func _apply_move(slot: int, source_container: int, dest_ref: Vector2i, debit_g: int) -> void:
@@ -1663,7 +1799,10 @@ func _check_transfer(lot_ref: Vector2i, dest_ref: Vector2i, quantity_milli: int)
 		return REFUSE_INSUFFICIENT_UNRESERVED
 	if not _accepts_item(dest_ref.x, _l_item_id[slot]):
 		return REFUSE_ITEM_FILTERED
-	return REFUSE_NONE
+	# STOCK-SEED-R01's "transfer into production". This store cannot tell a workshop's input
+	# container from a larder, so an expired seed moves into NEITHER; the declared expiry
+	# converts it where it stands and needs no transfer.
+	return _seed_consumption_refusal(lot_ref)
 
 
 func _transfer_dest_delta_g(slot: int, target_slot: int, quantity_milli: int) -> StringName:
@@ -1776,14 +1915,28 @@ func release_reservation(lot_ref: Vector2i, quantity_milli: int) -> OpResult:
 
 
 func release_all_reservations(lot_ref: Vector2i) -> OpResult:
-	"""Cancel every claim on a lot, as a lease expiry or job invalidation would."""
+	"""Cancel every claim on a lot, as a lease expiry or job invalidation would.
+
+	STOCK-SEED-R01: this also DECLARES the lot's cleanup for the next step of an open explicit
+	transaction, which is what lets the declared expiry retire or transform an over-shelf-life
+	seed the guard below refuses to every consumer. The declaration is recorded even when the
+	lot held no claim -- the ruling's invalidation is unconditional, and a seed that expired
+	with nobody holding a claim must still be disposable. The declaration is made BEFORE
+	`_leave()` on purpose: a release that owns its own implicit transaction has that close
+	discard it, so only a release inside an explicit transaction can license the step after it.
+	A disposal in a LATER transaction would not be the atomic release-and-dispose that decision
+	0059 and the ruling both require.
+	"""
 	var owned: bool = _enter()
 	if not is_lot_valid(lot_ref):
 		return _leave(owned, REFUSE_INVALID_LOT)
 	var reserved: int = _l_reserved_milli[lot_ref.x]
-	if reserved == 0:
-		return _leave(owned, _succeed(lot_ref, 0))
-	return _leave(owned, _change_reservation(lot_ref, -reserved))
+	var code: StringName = _succeed(lot_ref, 0)
+	if reserved != 0:
+		code = _change_reservation(lot_ref, -reserved)
+	if code == REFUSE_NONE:
+		_tx_cleanup_lot = lot_ref
+	return _leave(owned, code)
 
 
 func _change_reservation(lot_ref: Vector2i, delta_milli: int) -> StringName:
@@ -1810,10 +1963,350 @@ func _change_reservation(lot_ref: Vector2i, delta_milli: int) -> StringName:
 		return REFUSE_RESERVED_EXCEEDS_QUANTITY
 	if delta_milli < -held:
 		return REFUSE_INSUFFICIENT_RESERVED
+	if delta_milli > 0:
+		var seed: StringName = _seed_consumption_refusal(lot_ref)
+		if seed != REFUSE_NONE:
+			return seed
 	var next: int = held + delta_milli
 	_journal_lot(slot)
 	_l_reserved_milli[slot] = next
 	return _succeed(lot_ref, next)
+
+
+# --- STOCK-SEED-R01: the seed-consumer eligibility guard --------------------------------------
+#
+# The ruling gives ENFORCEMENT for quantity admission to this module and the PREDICATE to
+# ARCH-SYS-004: "every seed-consuming eligibility path (new reservation, withdrawal, transfer
+# into production, seed selection and sowing/work commit, including existing reservations) MUST
+# reject a seed lot whose existing age has reached its catalog shelf threshold. Revalidate at
+# commit."
+#
+# NO SHELF-LIFE ARITHMETIC LIVES HERE, AND NO SEED FLAG EITHER. This store knows an item's mass
+# and category and nothing else; shelf hours and the §4.3 `seed` flag belong to the item
+# catalog, and the age comparison belongs to `stock_age.gd`'s `refuses_seed_consumption()`. A
+# second copy of that comparison in this file could disagree with the first, so there is one.
+#
+# REVALIDATION AT COMMIT IS STRUCTURAL, NOT REMEMBERED. No verdict is cached anywhere: every
+# guarded call asks the authority again, against the age persisted in `_l_age_milli_hours` at
+# that instant. A reservation taken while the lot was fresh therefore carries no permission with
+# it -- `consume_reserved()` re-asks, and refuses a lot that aged out in between. There is no
+# code path on which an earlier "yes" can be replayed, because there is nowhere to store one.
+#
+# WHY THE CLEANUP DECLARATION EXISTS. The same ruling says "Release/cancellation and declared
+# expiry transform/sink operations remain permitted, so the guard cannot prevent its own
+# cleanup". Cleanup and consumption reach this store through the SAME two methods, so the guard
+# must be able to tell them apart. `release_all_reservations()` is the ruling's own invalidation
+# step and every declared-expiry sequence begins with it, so it declares the lot; the single
+# following step in that same explicit transaction may retire the whole row or transform it.
+# Nothing partial is ever exempt: a sink that leaves quantity behind is a consumer taking a
+# helping, whoever asked for it.
+#
+# FAIL-CLOSED, AND NOT SOFTENED HERE. An authority that cannot evaluate a lot -- unbound store,
+# unloaded catalog, invalid ref -- answers true, and this module treats that answer as a
+# refusal exactly like any other. It does not second-guess it, and it never converts "cannot
+# tell" into an admission.
+#
+# WITH NO AUTHORITY BOUND, NOTHING IS REFUSED, and that is a wiring gap rather than a policy:
+# this store cannot identify a seed on its own, so an unbound guard has no lots to refuse
+# rather than every lot. `has_seed_expiry_authority()` reports it. The binding call belongs to
+# whoever constructs both collaborators -- ARCH-SYS-001 / `settlement_system.gd` -- and is NOT
+# made in this file, which constructs nothing.
+
+func set_seed_expiry_authority(authority: Object) -> OpResult:
+	"""Bind -- or with null, unbind -- STOCK-SEED-R01's seed-consumer eligibility predicate.
+
+	Refused while a transaction is open, and refused for an object that does not publish
+	`refuses_seed_consumption(lot_ref) -> bool`: a guard that is bound but cannot be called
+	would be enforcement in name only. The binding is wiring, not simulation state: it is not
+	journaled, not part of state_bytes(), and survives clear().
+	"""
+	if _tx_open:
+		return _refuse(REFUSE_TRANSACTION_OPEN)
+	if authority != null and not authority.has_method(SEED_EXPIRY_ATTESTATION_METHOD):
+		return _refuse(REFUSE_INVALID_SEED_EXPIRY_AUTHORITY)
+	_seed_expiry_authority = authority
+	return _ok(NULL_REF, 0)
+
+
+func has_seed_expiry_authority() -> bool:
+	"""True when a seed-expiry authority is bound and seed consumption is therefore enforced."""
+	return _seed_expiry_authority != null
+
+
+func _seed_consumption_refusal(lot_ref: Vector2i) -> StringName:
+	"""REFUSE_SEED_PAST_SHELF_LIFE when the bound authority rejects this lot, else REFUSE_NONE.
+
+	The one place this module asks about seed age. `_attesting` is raised across the call so
+	`_guard()` refuses every mutator an authority might re-enter with, and no `_math` or `_plan`
+	value may be held across it -- which is why every caller asks before it costs anything.
+	"""
+	if _seed_expiry_authority == null:
+		return REFUSE_NONE
+	_attesting = true
+	var refuses: bool = bool(_seed_expiry_authority.call(SEED_EXPIRY_ATTESTATION_METHOD, lot_ref))
+	_attesting = false
+	if refuses:
+		return REFUSE_SEED_PAST_SHELF_LIFE
+	return REFUSE_NONE
+
+
+func _is_declared_cleanup(lot_ref: Vector2i) -> bool:
+	"""True when the previous step of this transaction declared THIS lot's cleanup.
+
+	The comparison includes the generation, and it is the INVENTORY LOT generation
+	(`_l_generation`) -- never the container generation, which indexes a different store and
+	whose value for the same slot number is unrelated.
+	"""
+	return lot_ref != NULL_REF and _op_cleanup_lot == lot_ref
+
+
+func _seed_removal_refusal(lot_ref: Vector2i, quantity_milli: int,
+		from_reserved: bool) -> StringName:
+	"""Seed guard for the two removal paths: the sowing/work commit, and a plain withdrawal.
+
+	`from_reserved` is the COMMIT of an existing claim, and it is revalidated with no exemption
+	at all: a claim taken while the seed was fresh buys nothing once the lot has aged out. The
+	unreserved path is a withdrawal, exempt only as the declared expiry retirement -- the
+	previous step released every claim on this same lot inside this transaction and the sink
+	takes the row's ENTIRE remaining quantity, which destroys it instead of feeding anyone.
+	"""
+	if from_reserved:
+		return _seed_consumption_refusal(lot_ref)
+	var slot: int = lot_ref.x
+	if _is_declared_cleanup(lot_ref) and quantity_milli == _l_quantity_milli[slot] \
+			and _l_reserved_milli[slot] == 0:
+		return REFUSE_NONE
+	return _seed_consumption_refusal(lot_ref)
+
+
+func _seed_transform_refusal(lot_ref: Vector2i) -> StringName:
+	"""Seed guard for an in-place item change: the declared expiry conversion, or production.
+
+	`stock_age.gd` turns an expired seed lot into compost through the same method a workshop
+	would use to turn seed into something a resident wanted, so the declaration is the whole
+	difference. `_check_transform()` has already refused any lot still carrying a claim.
+	"""
+	if _is_declared_cleanup(lot_ref):
+		return REFUSE_NONE
+	return _seed_consumption_refusal(lot_ref)
+
+
+# --- ARCH-SYS-004 StockAge: effective storage age and the expiry transformation ---------------
+#
+# GDD §5.8 owns both rules and this module owns neither of their INPUTS. The store factor, the
+# seasonal temperature factor and an item's shelf life all live outside an inventory, so nothing
+# here decides when a lot ages or what it becomes: `stock_age.gd` (ARCH-SYS-004) supplies the
+# already-chosen factors and the already-resolved outcome item, and these two mutators write
+# them under the same all-or-nothing, journaled, generation-validated rules as every other
+# operation on this store.
+
+func advance_lot_age_hour(lot_ref: Vector2i, store_factor: int,
+		temperature_factor: int) -> OpResult:
+	"""One game hour of GDD §5.8 effective storage age. See advance_lot_age_hour_into().
+
+	This form allocates the one OpResult every public operation here allocates; the `_into` form
+	below is the one ARCH-SYS-004's hourly sweep uses.
+	"""
+	var owned: bool = _enter()
+	var code: StringName = _advance_age_checked(lot_ref, store_factor, temperature_factor)
+	return _leave(owned, code)
+
+
+func advance_lot_age_hour_into(lot_ref: Vector2i, store_factor: int, temperature_factor: int,
+		out: IntMath.IntResult) -> bool:
+	"""Non-allocating advance_lot_age_hour(): the lot's new total age lands in `out.value`.
+
+	GDD §5.8: "Effective age per hour=floor(store_factor*temperature_factor/1000), retaining
+	tick fractions". The fraction is RETAINED in `age_remainder` rather than floored away, using
+	the same fold `farming.gd` uses for REQ-SET-072 growth: the whole numerator joins the carried
+	remainder, the whole milli-hours it releases are added to the age, and `total % 1000` is kept
+	for the next hour. Both factors come from §5.8's four store classes and four seasons, whose
+	products are all multiples of 1000, so the retained remainder is 0 under the shipped tables
+	and the carry exists for a factor that is not.
+
+	Changing stores never resets age (§5.8), which is true here by omission: nothing in
+	`move_lot()`, `transfer()`, `split_lot()` or the equip/unequip pair touches either column.
+	"""
+	var owned: bool = _enter()
+	var code: StringName = _advance_age_checked(lot_ref, store_factor, temperature_factor)
+	return _leave_into(owned, code, out)
+
+
+func _advance_age_checked(lot_ref: Vector2i, store_factor: int,
+		temperature_factor: int) -> StringName:
+	"""Validate completely, then fold one hour of effective age into the lot's two age columns."""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return guard
+	if not is_lot_valid(lot_ref):
+		return REFUSE_INVALID_LOT
+	if store_factor < 0 or temperature_factor < 0:
+		return REFUSE_INVALID_AGE_FACTOR
+	var slot: int = lot_ref.x
+	if _l_container_slot[slot] == NULL_SLOT:
+		return REFUSE_LOT_EQUIPPED
+	var released: StringName = _hour_age_numerator(slot, store_factor, temperature_factor)
+	if released != REFUSE_NONE:
+		return released
+	var total: int = _math.value
+	if not IntMath.checked_add_into(_l_age_milli_hours[slot],
+			total / AGE_FACTOR_DENOMINATOR, _math):
+		return REFUSE_OVERFLOW
+	var aged: int = _math.value
+	if aged > MAX_AGE_MILLI_HOURS:
+		return REFUSE_AGE_LIMIT_REACHED
+	_journal_lot(slot)
+	_l_age_milli_hours[slot] = aged
+	_l_age_remainder[slot] = total % AGE_FACTOR_DENOMINATOR
+	return _succeed(lot_ref, aged)
+
+
+func _hour_age_numerator(slot: int, store_factor: int, temperature_factor: int) -> StringName:
+	"""This hour's numerator plus the lot's carried remainder, left in `_math.value`.
+
+	Kept separate so the caller stays inside the thirty-line rule and so the overflow refusal
+	names the multiplication rather than the addition that follows it.
+	"""
+	if not IntMath.checked_mul_into(store_factor, temperature_factor, _math):
+		return REFUSE_OVERFLOW
+	if not IntMath.checked_add_into(_l_age_remainder[slot], _math.value, _math):
+		return REFUSE_OVERFLOW
+	return REFUSE_NONE
+
+
+func transform_lot_item(lot_ref: Vector2i, new_item_id: int,
+		new_quantity_milli: int) -> OpResult:
+	"""Turn THE SAME lot row into a different item: GDD §5.8's spoilage conversion, in place.
+
+	"When age reaches shelf_hours x 1000, food becomes spoiled_food at identical mass" is a
+	TRANSFORMATION, not a placement, so the destination container's category filter is NOT
+	consulted: food rots where it stands, and a pantry whose filter admits no WASTE cannot veto
+	that. `create_lot()` still enforces the filter for everything that is actually placed.
+
+	The caller supplies `new_quantity_milli` because the mass identity depends on both items'
+	catalog masses and on which conversion §5.8 names; deciding it here would make this store
+	hold an opinion about food. The row's quality, provenance and recipe are CARRIED, because
+	§5.8 names no replacement for them and this module may not invent a catalog member.
+
+	Age and its remainder ARE reset, and only here: spoiled_food "lasts 240h" from the moment it
+	becomes spoiled_food, so a carried age would expire it in the same hour it was created.
+
+	Conservation is kept as two declared ledger movements, not as a silent relabel: the old
+	item is SUNK for its whole quantity and the new item SOURCED for its whole quantity, so
+	`audit()`'s per-item `live + sunk == sourced` identity still closes on both.
+	"""
+	var owned: bool = _enter()
+	var code: StringName = _transform_checked(lot_ref, new_item_id, new_quantity_milli)
+	return _leave(owned, code)
+
+
+func transform_lot_item_into(lot_ref: Vector2i, new_item_id: int, new_quantity_milli: int,
+		out: IntMath.IntResult) -> bool:
+	"""Non-allocating transform_lot_item(): the new quantity lands in `out.value`."""
+	var owned: bool = _enter()
+	var code: StringName = _transform_checked(lot_ref, new_item_id, new_quantity_milli)
+	return _leave_into(owned, code, out)
+
+
+func _transform_checked(lot_ref: Vector2i, new_item_id: int,
+		new_quantity_milli: int) -> StringName:
+	"""Validate completely, cost the mass change, then rewrite the row and both ledgers."""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return guard
+	var check: StringName = _check_transform(lot_ref, new_item_id, new_quantity_milli)
+	if check != REFUSE_NONE:
+		return check
+	var seed: StringName = _seed_transform_refusal(lot_ref)
+	if seed != REFUSE_NONE:
+		return seed
+	var slot: int = lot_ref.x
+	var costed: StringName = _transform_delta_g(slot, new_item_id, new_quantity_milli)
+	if costed != REFUSE_NONE:
+		return costed
+	var delta_g: int = _math.value
+	var fits: StringName = _check_fits(_l_container_slot[slot], delta_g)
+	if fits != REFUSE_NONE:
+		return fits
+	var ledger: StringName = _transform_ledger(slot, new_item_id, new_quantity_milli)
+	if ledger != REFUSE_NONE:
+		return ledger
+	_apply_transform(slot, new_item_id, new_quantity_milli, delta_g)
+	return _succeed(lot_ref, new_quantity_milli)
+
+
+func _check_transform(lot_ref: Vector2i, new_item_id: int,
+		new_quantity_milli: int) -> StringName:
+	"""Every precondition for rewriting a lot's item. REFUSE_NONE when the rewrite is legal.
+
+	A RESERVED lot refuses: a claim is held against a quantity of a particular item, and
+	REQ-SET-108 requires those claims to be INVALIDATED before the conversion, not carried
+	across it. `release_all_reservations()` is the caller's step, inside the same transaction.
+	"""
+	if not is_lot_valid(lot_ref):
+		return REFUSE_INVALID_LOT
+	if _l_container_slot[lot_ref.x] == NULL_SLOT:
+		return REFUSE_LOT_EQUIPPED
+	if _l_reserved_milli[lot_ref.x] != 0:
+		return REFUSE_LOT_HAS_RESERVATION
+	if new_item_id < 0 or new_item_id >= ITEM_CAPACITY or _item_registered[new_item_id] == 0:
+		return REFUSE_UNKNOWN_ITEM
+	if new_item_id == _l_item_id[lot_ref.x]:
+		return REFUSE_SAME_ITEM
+	if new_quantity_milli <= 0:
+		return REFUSE_INVALID_QUANTITY
+	return REFUSE_NONE
+
+
+func _transform_delta_g(slot: int, new_item_id: int, new_quantity_milli: int) -> StringName:
+	"""Signed used-mass change when the row becomes a different item at a different quantity.
+
+	Both debits take BAL-NUM-001's per-lot ceiling, so an equal-mass conversion between two
+	items whose grams divide exactly moves the container's charged mass by zero. On REFUSE_NONE
+	the delta is in `_math.value`; copy it before the next call.
+	"""
+	if not IntMath.inventory_capacity_debit_g_into(_l_quantity_milli[slot],
+			_item_mass_g[_l_item_id[slot]], _math):
+		return REFUSE_OVERFLOW
+	var before: int = _math.value
+	if not IntMath.inventory_capacity_debit_g_into(new_quantity_milli,
+			_item_mass_g[new_item_id], _math):
+		return REFUSE_OVERFLOW
+	_math.succeed(_math.value - before)
+	return REFUSE_NONE
+
+
+func _transform_ledger(slot: int, new_item_id: int, new_quantity_milli: int) -> StringName:
+	"""Journal and write both halves of the declared conversion into the conservation ledgers.
+
+	Checked before either write, so a ledger that cannot represent the movement refuses with
+	nothing applied rather than sinking one item and failing to source the other.
+	"""
+	var old_item: int = _l_item_id[slot]
+	if not IntMath.checked_add_into(_sunk_milli[old_item], _l_quantity_milli[slot], _math):
+		return REFUSE_OVERFLOW
+	var sunk: int = _math.value
+	if not IntMath.checked_add_into(_sourced_milli[new_item_id], new_quantity_milli, _math):
+		return REFUSE_OVERFLOW
+	var sourced: int = _math.value
+	_journal_scalar(_J_SUNK, old_item, _sunk_milli[old_item])
+	_sunk_milli[old_item] = sunk
+	_journal_scalar(_J_SOURCED, new_item_id, _sourced_milli[new_item_id])
+	_sourced_milli[new_item_id] = sourced
+	return REFUSE_NONE
+
+
+func _apply_transform(slot: int, new_item_id: int, new_quantity_milli: int,
+		delta_g: int) -> void:
+	"""Write the conversion: new item, new quantity, a fresh age, and the container's mass."""
+	var container_slot: int = _l_container_slot[slot]
+	_journal_lot(slot)
+	_journal_container(container_slot)
+	_l_item_id[slot] = new_item_id
+	_l_quantity_milli[slot] = new_quantity_milli
+	_l_age_milli_hours[slot] = 0
+	_l_age_remainder[slot] = 0
+	_credit_container(container_slot, delta_g)
 
 
 # --- Equipped lots (ruling §4; READY_07 §7.2 step 5; decision 0061) ---------------------------

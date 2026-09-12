@@ -41,11 +41,14 @@ const WorldInventoryScript := preload("res://scripts/core/inventory.gd")
 const ForageScript := preload("res://scripts/core/forage.gd")
 const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
 const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
+const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const ResourceNodesScript := preload("res://scripts/core/resource_nodes.gd")
 const FishingScript := preload("res://scripts/core/fishing.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
 const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
+const BuildingsScript := preload("res://scripts/core/buildings.gd")
+const CatalogScript := preload("res://scripts/core/catalog.gd")
 
 ## GDD §5.1: the starting settlement is twelve residents.
 const COHORT_SIZE: int = 12
@@ -196,13 +199,21 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	"""Free the nodes this test built."""
+	"""Free the nodes this test built, and hand the SHARED pause queue back the way it was found.
+
+	STOCK-SEED-R01's critical pause is submitted into `GameManager`'s ONE R07-SCHED-001 queue --
+	the production path, because a test double would prove nothing about it -- and that autoload
+	outlives this suite. A CRITICAL hold left standing would be this suite editing the state
+	every later suite runs against, so it is dropped here.
+	"""
 	if _settlement != null:
 		_settlement.free()
 		_settlement = null
 	if _game != null:
 		_game.free()
 		_game = null
+	GameManager.scheduler_events().clear()
+	GameManager.clock().set_pause(SimClockScript.CRITICAL, false)
 
 
 func _populated() -> SettlementSystemScript:
@@ -544,26 +555,125 @@ func test_an_out_of_range_day_boundary_is_refused() -> void:
 	assert_false(_settlement.is_winter(), "no season was applied")
 
 
+# --- ARCH-SYS-004 StockAge (decision 0085) -------------------------------------------------------
+
+## GDD §5.8's covered-store factor and spring temperature factor, transcribed, and the
+## milli-hours one game hour costs at their product: floor(1000 * 1000 / 1000).
+const COVERED_STORE_FACTOR: int = 1000
+const SPRING_TEMPERATURE_FACTOR: int = 1000
+const COVERED_SPRING_MILLI_HOURS: int = 1000
+## §4.2's owner EntityRef is not what this suite is testing; any live-looking pair will do,
+## because `inventory.gd` stores the owner and does not resolve it.
+const STORE_OWNER: Vector2i = Vector2i(3, 1)
+const STORE_MASS_G: int = 1000000
+
+
+func _declared_store_with_grain(settlement: SettlementSystemScript) -> Vector2i:
+	"""Put one 4 U grain lot into a declared covered store inside the settlement's OWN inventory."""
+	var inventory: WorldInventoryScript = settlement.inventory()
+	var made: WorldInventoryScript.OpResult = inventory.create_container(
+		STORE_OWNER, STORE_MASS_G, WorldInventoryScript.FILTERS_ACCEPT_ALL, 0, true)
+	settlement.stock_age().declare_storage_class(
+		made.ref, StockAgeScript.STORAGE_COVERED_STORE, false)
+	var grain: int = settlement.item_definitions().compiled_id(&"grain")
+	return inventory.create_lot(made.ref, grain, 4000, 0, 0, 0, 0, 0).ref
+
+
+func test_the_settlement_registers_its_item_catalog_into_its_own_inventory() -> void:
+	"""ARCH-SYS-004 needs shelf lives, so the §4.3 catalog is composed with the lot store."""
+	assert_true(_settlement.item_definitions().is_loaded(), "the catalog loaded")
+	assert_equal(_settlement.item_definitions().item_count(), 60,
+		"all sixty v2 catalog items are compiled")
+	var grain: int = _settlement.item_definitions().compiled_id(&"grain")
+	assert_true(_settlement.inventory().is_item_registered(grain),
+		"and each one is registered into the inventory ARCH-SYS-004 ages")
+	assert_true(_settlement.stock_age().inventory() == _settlement.inventory(),
+		"the aging stage ages THIS settlement's lots, not a detached fixture")
+
+
+func test_stock_age_runs_on_the_hour_crossing_and_not_on_any_other_tick() -> void:
+	"""ARCH-SYS-004's §5 row is "hour crossing", so 23 ticks in 24 must change no age."""
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	for tick: int in range(748, 750):
+		assert_true(_settlement.run_tick(tick), "tick %d commits" % tick)
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), 0,
+		"no age accrued on the two ticks before the crossing")
+	assert_true(_settlement.run_tick(750), "the crossing tick commits")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and exactly one §5.8 hour landed at `(750+4500) mod 750 == 0`")
+	assert_true(_settlement.run_tick(751), "the tick after the crossing commits")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and added nothing")
+	assert_equal(_settlement.refused_stock_hour_count(), 0, "with no refused hour")
+
+
+func test_the_midnight_leg_logs_aging_without_running_a_second_age_pass() -> void:
+	"""ARCH-TICK-002: "never perform a second age pass because the same tick is hourly and daily"."""
+	_populated()
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_true(_settlement.run_tick(SimClockScript.FIRST_MIDNIGHT_TICK),
+		"the midnight tick runs through the tick path first, as the clock drives it")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"one hour of age from the crossing")
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "then the day boundary runs")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and the daily leg added no second hour")
+	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_STOCK_AGE,
+		"while still logging aging as REQ-SET-007's first leg")
+
+
+func test_a_day_boundary_with_no_tick_path_behind_it_runs_the_aging_leg_itself() -> void:
+	"""The leg is executed rather than logged on trust when nothing else has consumed the tick."""
+	_populated()
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_equal(_settlement.stock_age().last_hour_tick(), StockAgeScript.NO_HOUR_RUN,
+		"no hourly pass has run")
+	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary runs")
+	assert_equal(_settlement.stock_age().last_hour_tick(), SimClockScript.FIRST_MIDNIGHT_TICK,
+		"and the aging leg consumed the midnight crossing itself")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"charging exactly one §5.8 hour")
+
+
+func test_reset_empties_the_stock_layer_and_restores_its_catalog() -> void:
+	"""A reset settlement is one settlement's stock, with the item registry still usable."""
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_true(_settlement.run_tick(750), "an hour crossing ages it")
+	_settlement.reset()
+	assert_false(_settlement.inventory().is_lot_valid(lot), "the lot is gone")
+	assert_equal(_settlement.inventory().live_container_count(), 0, "and so is its container")
+	assert_equal(_settlement.stock_age().declared_container_count(), 0,
+		"every storage declaration went with them")
+	assert_equal(_settlement.stock_age().last_hour_tick(), StockAgeScript.NO_HOUR_RUN,
+		"and the hourly latch is dropped")
+	var grain: int = _settlement.item_definitions().compiled_id(&"grain")
+	assert_true(_settlement.inventory().is_item_registered(grain),
+		"the catalog is re-registered, because inventory.clear() drops the item registry too")
+
+
 # --- REQ-SET-007 leg order and ARCH-SYS-005 Ecology (task 03 increment 9) ------------------------
 
-func test_the_boundary_runs_the_handover_then_ecology_then_crops_and_no_other_leg() -> void:
-	"""REQ-SET-007's five legs are ordered, and only the three with an owner here may appear.
+func test_the_boundary_runs_aging_then_the_handover_then_ecology_then_crops() -> void:
+	"""REQ-SET-007's five legs are ordered, and only the four with an owner here may appear.
 
-	CHANGED BY TASK 03 INCREMENT 10: this assertion previously ended at two legs, because
-	ARCH-SYS-006 had no owner. Crops/weather is REQ-SET-007's THIRD step and must appear AFTER
-	"update ecology", never before it and never instead of it.
+	CHANGED BY DECISION 0085: this assertion previously began at the season handover, because
+	ARCH-SYS-004 had no owner. Stock aging is REQ-SET-007's FIRST step and ARCH-TICK-003 places
+	the handover "exactly between aging and ecology", so aging must appear BEFORE the handover
+	-- aging uses the elapsed interval's season, and the handover is what changes it.
 	"""
 	_populated()
 	assert_true(_settlement.run_day_boundary(37, SEASON_WINTER), "the winter boundary runs")
-	assert_equal(_settlement.daily_leg_count(), 3, "exactly three legs executed")
-	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_SEASON_HANDOVER,
-		"ARCH-TICK-003's handover first, between aging and ecology")
-	assert_equal(_settlement.daily_leg_at(1).value, SettlementSystemScript.LEG_ECOLOGY,
+	assert_equal(_settlement.daily_leg_count(), 4, "exactly four legs executed")
+	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_STOCK_AGE,
+		"ARCH-SYS-004 StockAge first, REQ-SET-007's own first step")
+	assert_equal(_settlement.daily_leg_at(1).value, SettlementSystemScript.LEG_SEASON_HANDOVER,
+		"then ARCH-TICK-003's handover, between aging and ecology")
+	assert_equal(_settlement.daily_leg_at(2).value, SettlementSystemScript.LEG_ECOLOGY,
 		"then ARCH-SYS-005 Ecology")
-	assert_equal(_settlement.daily_leg_at(2).value, SettlementSystemScript.LEG_CROP_WEATHER,
+	assert_equal(_settlement.daily_leg_at(3).value, SettlementSystemScript.LEG_CROP_WEATHER,
 		"then ARCH-SYS-006 CropWeather, REQ-SET-007's third step")
-	assert_false(_settlement.daily_leg_at(3).ok, "and nothing after it")
-	assert_equal(String(_settlement.daily_leg_at(3).error), "INVALID_INDEX",
+	assert_false(_settlement.daily_leg_at(4).ok, "and nothing after it")
+	assert_equal(String(_settlement.daily_leg_at(4).error), "INVALID_INDEX",
 		"the reader refuses rather than answering a leg that did not run")
 
 
@@ -609,8 +719,10 @@ func test_a_replayed_day_boundary_is_refused_rather_than_applied_twice() -> void
 	assert_true(_settlement.run_day_boundary(37, SEASON_WINTER), "the first run commits")
 	assert_false(_settlement.run_day_boundary(37, SEASON_WINTER), "the second is refused")
 	assert_equal(_settlement.last_refusal(), &"ECOLOGY_DAY_ALREADY_RUN", "with the replay code")
-	assert_equal(_settlement.daily_leg_count(), 1,
-		"the season handover ran and the ecology leg did not")
+	assert_equal(_settlement.daily_leg_count(), 2,
+		"aging and the season handover ran and the ecology leg did not")
+	assert_equal(_settlement.daily_leg_at(0).value, SettlementSystemScript.LEG_STOCK_AGE,
+		"and the replayed boundary logged aging without running a second age pass")
 
 
 func test_reset_drops_the_ecology_stores_and_the_leg_log() -> void:
@@ -742,8 +854,8 @@ func test_an_unseeded_settlement_refuses_its_second_seasons_weather_draw() -> vo
 			"spring day %d commits" % day)
 	assert_false(_settlement.run_day_boundary(13, SEASON_SUMMER), "summer day 1 refuses")
 	assert_equal(_settlement.last_refusal(), &"RNG_NOT_SEEDED", "with the stream's own code")
-	assert_equal(_settlement.daily_leg_count(), 2,
-		"the handover and ecology legs ran; the crops/weather leg did not")
+	assert_equal(_settlement.daily_leg_count(), 3,
+		"aging, the handover and ecology ran; the crops/weather leg did not")
 
 
 func test_a_hive_eligibility_crossing_reaches_the_farm_side_of_the_boundary() -> void:
@@ -1423,14 +1535,14 @@ func test_the_planner_is_composed_over_this_settlements_own_stores() -> void:
 func test_the_measured_stage_list_matches_what_actually_runs() -> void:
 	"""The header's stage list is a count of dispatched call sites; this asserts the tick half."""
 	_populated()
-	assert_equal(_settlement.tick_stage_count(), 7, "seven stages are dispatched per tick")
+	assert_equal(_settlement.tick_stage_count(), 8, "eight stages are dispatched per tick")
 	for stage: int in _settlement.tick_stage_count():
 		assert_true(String(_settlement.tick_stage_name(stage)).begins_with("ARCH-SYS-"),
 			"stage %d names the ARCH-SYS system it dispatches" % stage)
 	assert_equal(_settlement.tick_stage_name(_settlement.tick_stage_count()), &"",
 		"and one past the last names nothing")
 	assert_false(_settlement.tick_stage_usec_at(-1).ok, "a negative stage index refuses")
-	assert_false(_settlement.tick_stage_usec_at(7).ok, "and so does one past the last")
+	assert_false(_settlement.tick_stage_usec_at(8).ok, "and so does one past the last")
 
 
 func test_every_stage_is_measured_on_every_tick() -> void:
@@ -1490,8 +1602,8 @@ func test_the_planner_day_boundary_is_not_a_req_set_007_leg() -> void:
 	_populated()
 	assert_true(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary runs")
 	assert_equal(_settlement.refused_planner_day_count(), 0, "the planner's midnight ran")
-	assert_equal(_settlement.daily_leg_count(), 3,
-		"and the log still holds exactly the three REQ-SET-007 legs this system owns")
+	assert_equal(_settlement.daily_leg_count(), 4,
+		"and the log still holds exactly the four REQ-SET-007 legs this system owns")
 
 
 func test_every_stage_closes_its_window_exactly_once_per_tick() -> void:
@@ -2117,3 +2229,513 @@ func test_a_new_world_restarts_the_id_space_at_rowan() -> void:
 		"whose Warden is id 1 again, not %d" % (first_consumed + 1))
 	assert_equal(_cohort_persistent_ids()[COHORT_SIZE - 1], COHORT_SIZE,
 		"and whose twelfth resident is id 12")
+
+
+# --- the Building/Room/Furniture store, composed (decision 0087) --------------------------------
+#
+# `buildings.gd` (decision 0080) landed complete and nothing constructed it. These tests cover
+# exactly what constructing it over THIS settlement's directory buys, and -- just as deliberately
+# -- what it does not: there is no §7.2 starter settlement, and the counts stay honestly 0.
+
+## A hall origin well clear of the map centre, where `world_init.gd` puts its generated content,
+## so a placement in a GENERATED settlement is not competing with terrain features for tiles.
+const HALL_ORIGIN_X: int = 20
+const HALL_ORIGIN_Z: int = 20
+
+## Three tiles per bed is §5.9's dormitory rule; twelve tiles therefore hold at most four beds.
+const DORMITORY_TILES_X: int = 4
+const DORMITORY_TILES_Z: int = 3
+
+
+func _tile(x: int, z: int) -> int:
+	"""§5.1's exterior grid index, `z * 128 + x`, restated here rather than read from the store."""
+	return z * BuildingsScript.MAP_TILES_X + x
+
+
+func _m0_mask() -> int:
+	"""The unlocked-milestone mask holding M0 alone, which is what §5.11 grants at start."""
+	return 1 << int(CatalogScript.MILESTONE["M0"])
+
+
+func _place_hall() -> Vector2i:
+	"""Place §5.9's refuge hall at this suite's fixed origin and hand back its reference."""
+	var placed: BuildingsScript.OpResult = _settlement.buildings().place_building(
+		int(CatalogScript.BUILDING_DEFINITION["hall"]), _tile(HALL_ORIGIN_X, HALL_ORIGIN_Z), 0,
+		_m0_mask())
+	assert_true(placed.ok, "the hall must place (refusal: %s)" % placed.error)
+	return placed.ref
+
+
+func _designate_dormitory(hall: Vector2i) -> Vector2i:
+	"""Designate a 4x3 dormitory inside the hall's one-tile-inset interior."""
+	var tiles: PackedInt32Array = PackedInt32Array()
+	for offset_z: int in DORMITORY_TILES_Z:
+		for offset_x: int in DORMITORY_TILES_X:
+			tiles.append(_tile(HALL_ORIGIN_X + 1 + offset_x, HALL_ORIGIN_Z + 1 + offset_z))
+	var room: BuildingsScript.OpResult = _settlement.buildings().designate_room(
+		hall, int(CatalogScript.ROOM_TYPE["DORMITORY"]), tiles)
+	assert_true(room.ok, "the dormitory must designate (refusal: %s)" % room.error)
+	return room.ref
+
+
+func _place_bed(room: Vector2i, index: int) -> Vector2i:
+	"""Place one bed on the `index`th tile of this suite's dormitory footprint."""
+	var tile: int = _tile(HALL_ORIGIN_X + 1 + index % DORMITORY_TILES_X,
+		HALL_ORIGIN_Z + 1 + index / DORMITORY_TILES_X)
+	var bed: BuildingsScript.OpResult = _settlement.buildings().place_furniture(
+		room, int(CatalogScript.FURNITURE_DEFINITION["bed"]), tile, 0)
+	assert_true(bed.ok, "bed %d must place (refusal: %s)" % [index, bed.error])
+	return bed.ref
+
+
+func test_the_building_store_is_composed_over_this_settlements_one_directory() -> void:
+	"""The call decision 0080 named and did not make: `Buildings.new(_directory)`.
+
+	Sharing the directory is the whole substance of the composition. A store built with its own
+	allocator would validate every `Furniture.user` against a directory no resident lives in.
+	"""
+	assert_true(_settlement.buildings() != null, "the settlement composes a Building store")
+	assert_true(_settlement.buildings().directory() == _settlement.directory(),
+		"over the same directory every other settlement reference is allocated from")
+	assert_true(_settlement.building_definitions() == _settlement.buildings().definitions(),
+		"and it publishes the store's OWN §4.1-4.3 facts, not a second copy of them")
+
+
+func test_an_empty_settlement_holds_no_building_room_or_furniture() -> void:
+	"""Composition allocates columns; it places nothing. All three counts open at 0."""
+	assert_equal(_settlement.buildings().live_building_count(), 0, "no building")
+	assert_equal(_settlement.buildings().live_room_count(), 0, "no room")
+	assert_equal(_settlement.buildings().live_furniture_count(), 0, "no furniture")
+	assert_equal(_settlement.buildings().live_furniture_of_kind(
+		int(CatalogScript.FURNITURE_DEFINITION["bed"])), 0, "and no bed for a HUD to count")
+
+
+func test_a_placed_building_allocates_a_row_in_the_settlements_directory() -> void:
+	"""The placement's reference is a live KIND_BUILDING row of the settlement's own allocator."""
+	var before: int = _settlement.directory().live_count(EntityDirectoryScript.KIND_BUILDING)
+	var hall: Vector2i = _place_hall()
+	assert_equal(_settlement.directory().live_count(EntityDirectoryScript.KIND_BUILDING),
+		before + 1, "the building row is allocated in the settlement's directory")
+	assert_true(_settlement.directory().is_valid_of_kind(hall,
+		EntityDirectoryScript.KIND_BUILDING), "and the reference validates there as a BUILDING")
+	assert_true(_settlement.buildings().is_live_building(hall), "as well as in the store")
+
+
+func test_the_bed_counter_reads_live_furniture_rows_and_falls_when_one_is_removed() -> void:
+	"""UI §1.1's `Beds` counter source. Its value is rows, not a mask bit and not a cached total.
+
+	Removing one of three beds must leave two. `buildings.gd` recomputes the room mask from the
+	room's own chain rather than clearing bits incrementally, and this is the counter half of the
+	same property: a per-kind total that tracks removals as well as placements.
+	"""
+	var bed_id: int = int(CatalogScript.FURNITURE_DEFINITION["bed"])
+	var room: Vector2i = _designate_dormitory(_place_hall())
+	var first: Vector2i = _place_bed(room, 0)
+	_place_bed(room, 1)
+	_place_bed(room, 2)
+	assert_equal(_settlement.buildings().live_furniture_of_kind(bed_id), 3, "three beds")
+	assert_true(_settlement.buildings().remove_furniture(first).ok, "one bed is removed")
+	assert_equal(_settlement.buildings().live_furniture_of_kind(bed_id), 2,
+		"and the counter falls to two rather than staying at three")
+
+
+func test_a_bed_takes_a_resident_of_this_settlement_as_its_user() -> void:
+	"""REQ-SET-009 bed assignment, the half the shared directory makes possible.
+
+	`set_furniture_user()` validates the reference as a live KIND_RESIDENT row. With a private
+	directory this call could only ever have refused, because no resident would exist in it.
+	"""
+	_settlement.create_initial_settlement()
+	var resident: Vector2i = _settlement.residents().ref_of(0)
+	assert_true(_settlement.directory().is_valid_of_kind(resident,
+		EntityDirectoryScript.KIND_RESIDENT), "the cohort's first resident is a live row")
+	var bed: Vector2i = _place_bed(_designate_dormitory(_place_hall()), 0)
+	var used: BuildingsScript.OpResult = _settlement.buildings().set_furniture_user(bed, resident)
+	assert_true(used.ok, "the bed takes that resident as its user (refusal: %s)" % used.error)
+	assert_equal(_settlement.buildings().user_ref_of_furniture(bed), resident,
+		"and reads back the very reference `residents()` published")
+
+
+func test_a_bed_refuses_a_directory_row_that_is_not_a_resident() -> void:
+	"""The shared directory is a validator, not just a common pool: kind is still checked."""
+	var stray: Vector2i = _settlement.directory().create(
+		EntityDirectoryScript.KIND_HARVEST_ZONE)
+	assert_true(stray != EntityDirectoryScript.NULL_REF, "a live row of another kind exists")
+	var bed: Vector2i = _place_bed(_designate_dormitory(_place_hall()), 0)
+	var used: BuildingsScript.OpResult = _settlement.buildings().set_furniture_user(bed, stray)
+	assert_false(used.ok, "a harvest zone cannot sleep in a bed")
+	assert_equal(used.error, BuildingsScript.REFUSE_STALE_USER_REF, "with the store's own reason")
+	assert_equal(_settlement.buildings().user_ref_of_furniture(bed),
+		EntityDirectoryScript.NULL_REF, "and the bed is left unoccupied")
+
+
+func test_resetting_the_settlement_empties_the_building_store_and_its_directory_rows() -> void:
+	"""`reset()` must leave no building row and no directory slot allocated to one.
+
+	A store composed into `_init()` but forgotten in `_clear_stores()` would survive a reset and
+	hand the next generation a hall nobody placed -- and strand its directory slots as well.
+	"""
+	var room: Vector2i = _designate_dormitory(_place_hall())
+	_place_bed(room, 0)
+	assert_equal(_settlement.buildings().live_furniture_count(), 1, "one bed stands")
+	_settlement.reset()
+	assert_equal(_settlement.buildings().live_building_count(), 0, "no building survives")
+	assert_equal(_settlement.buildings().live_room_count(), 0, "no room survives")
+	assert_equal(_settlement.buildings().live_furniture_count(), 0, "no furniture survives")
+	assert_equal(_settlement.directory().total_live_count(), 0,
+		"and the directory holds no row of any kind at all")
+
+
+func test_a_generated_settlement_still_places_no_building_and_counts_no_bed() -> void:
+	"""THE HONEST NEGATIVE. §5.1's hall, twelve beds, hearth and pantry are NOT generated.
+
+	`world_init.gd` publishes terrain, resource nodes, forage basins and the estuary; §5.1's
+	built fixture is not among them and this change does not add it. A `Beds` counter wired to
+	`live_furniture_of_kind()` today therefore shows a TRUE 0, and the §7.2 starter build remains
+	outstanding work. Pinned so no later reader mistakes composition for construction.
+	"""
+	assert_true(_generate(), "the settlement generates")
+	assert_equal(_settlement.population(), COHORT_SIZE, "with its twelve residents")
+	assert_true(_settlement.world().is_published(), "and a published world")
+	assert_equal(_settlement.buildings().live_building_count(), 0, "and NO starter hall")
+	assert_equal(_settlement.buildings().live_furniture_of_kind(
+		int(CatalogScript.FURNITURE_DEFINITION["bed"])), 0, "and NO starter beds")
+
+
+func test_a_building_placed_after_generation_takes_the_next_persistent_id() -> void:
+	"""R-INIT-ID-001 is undisturbed: the cohort keeps 1-12 and a building queues behind the world.
+
+	This is what one shared directory means for the id space. A second allocator would have
+	restarted the count and handed the hall a persistent id the Warden already holds.
+	"""
+	assert_true(_generate(), "the settlement generates")
+	var ids: PackedInt32Array = _cohort_persistent_ids()
+	assert_equal(ids[ResidentsScript.WARDEN_INDEX], 1, "the Warden is still id 1")
+	var hall: Vector2i = _place_hall()
+	var hall_id: int = _settlement.directory().get_persistent_id(hall)
+	assert_true(hall_id > COHORT_SIZE,
+		"the hall's persistent id %d is beyond the cohort's twelve" % hall_id)
+	assert_equal(_cohort_persistent_ids(), ids, "and no resident id moved")
+
+
+func test_the_building_store_adds_no_stage_to_the_tick() -> void:
+	"""Composition is structural state, not a §5 stage. The dispatch order is unchanged.
+
+	ARCH-SYS-016 RoomHeat is the one stage that would read this store, and it still has no
+	connected-heat model, so nothing here is dispatched per tick.
+
+	The eight are command commit, interval, stock age, crop hour, job planner, selection, work
+	and presentation — none of which is a building stage. This literal was 7 when the store
+	first composed; decision 0085's hourly stock aging added the eighth, so a future bump is
+	only legitimate when it can be named here the same way.
+	"""
+	assert_equal(_settlement.tick_stage_count(), 8,
+		"the tick still dispatches exactly the eight stages it did without the store")
+	assert_equal(_settlement.tick_stage_count(), SettlementSystemScript.TICK_STAGE_PRESENTATION + 1,
+		"and presentation is still the last of them")
+	_populated()
+	_settlement.run_tick(0)
+	assert_equal(_settlement.buildings().live_building_count(), 0,
+		"and a tick places nothing of its own")
+
+
+# --- STOCK-SEED-R01: the critical pause and the exactly-once revalidated retry -----------------
+#
+# ARCH-SYS-004 refuses and stops, with every collaborating store byte identical; routing that
+# refusal to the EXISTING critical-pause path and retrying the same expiry transaction once is
+# this system's half, and this is its coverage.
+#
+# THE CADENCE IS NOT GUESSED AT. 750 ticks to the hour, `(tick + 4500) mod 750 == 0`, first
+# midnight 13500. Every crossing used below is a multiple of 750 for that reason, and NEVER
+# `tick % 18000`, which is 06:00.
+
+## Inventory's own ceiling on a lot's stored age. A lot created AT it overflows on the very next
+## §5.8 hour, which is the one arithmetic integrity failure the shipped catalog can still reach:
+## every food mass divides spoiled_food's 250 g/U exactly and every seed's 100 g/U product is
+## nowhere near an int64, so neither conversion refusal is inducible through the public API.
+const MAX_AGE_MILLI_HOURS: int = 9223372036854774808
+
+
+func _faulting_hour_setup() -> Vector2i:
+	"""A declared store with one grain lot, and a stray open inventory transaction over it.
+
+	The stray transaction is what makes `stock_age.gd`'s `_preflight()` refuse
+	INVENTORY_TRANSACTION_OPEN: the hour latch is NOT consumed and nothing is swept, so the whole
+	hour stays owed. That is exactly the shape of failure the ruling's retry is for.
+	"""
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	_settlement.inventory().begin()
+	return lot
+
+
+func _pumped_critical_hold() -> bool:
+	"""Whether the submitted hold has actually reached the shared clock's CRITICAL bit."""
+	GameManager.scheduler_events().pump()
+	return GameManager.clock().has_pause_reason(SimClockScript.CRITICAL)
+
+
+func test_a_ledger_failure_in_the_hourly_sweep_raises_the_existing_critical_pause() -> void:
+	"""STOCK-SEED-R01: the fault is blocking, through the pause mask that already exists.
+
+	NOT a new pause concept: the bit asserted is `sim_clock.gd`'s CRITICAL, submitted through
+	`scheduler_events.gd`'s internal-producer safety hold, and it is checked on the real clock
+	after a real pump rather than on a counter this system keeps.
+	"""
+	_faulting_hour_setup()
+	var before: PackedByteArray = _settlement.inventory().state_bytes()
+	assert_true(_settlement.run_tick(750), "the tick itself still commits; the stage is not fatal")
+	assert_equal(_settlement.stock_integrity_fault(), &"INVENTORY_TRANSACTION_OPEN",
+		"the fault carries stock_age.gd's own refusal code")
+	assert_equal(_settlement.stock_integrity_fault_tick().value, 750,
+		"and names the hour crossing that refused")
+	assert_equal(_settlement.stock_integrity_fault_count(), 1, "one fault was raised")
+	assert_true(_settlement.is_critical_pause_held(), "this system holds CRITICAL")
+	assert_equal(_settlement.stock_pause_refusal(), &"", "and the submission was not refused")
+	assert_true(_pumped_critical_hold(), "the hold reached the real clock's pause mask")
+	assert_equal(_settlement.inventory().state_bytes(), before,
+		"and the refused hour left the lot store byte identical (decision 0059)")
+
+
+func test_the_faulted_hour_is_retried_exactly_once_and_recovers_the_same_hour() -> void:
+	"""The retry re-derives the FAULTED tick, not the tick it happens to run on.
+
+	Tick 750 is the crossing that refused. The pause stops the clock, so the first tick that can
+	carry the retry is 751 -- which is NOT an hour crossing -- and the hour that must land is
+	still 750's, at 750's elapsed-interval season. A retry that ran `run_hour_into(751)` would
+	refuse NOT_AN_HOUR_BOUNDARY and age nothing at all.
+	"""
+	var lot: Vector2i = _faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the crossing tick commits with the hour refused")
+	assert_true(_settlement.is_stock_retry_pending(), "one retry is owed")
+	assert_equal(_settlement.stock_retry_count(), 0, "and none has been attempted yet")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(751), "the next tick carries the retry")
+	assert_equal(_settlement.stock_retry_count(), 1, "exactly one retry was attempted")
+	assert_equal(_settlement.stock_retry_recovered_count(), 1, "and it recovered the hour")
+	assert_equal(_settlement.stock_hour().tick, 750,
+		"the hour that landed is the FAULTED one, re-derived at its own tick index")
+	assert_equal(_settlement.stock_age().last_hour_tick(), 750,
+		"so ARCH-SYS-004's latch consumed 750, not 751")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and exactly one §5.8 hour of age landed -- the retry adds no second hour")
+
+
+func test_a_recovered_retry_clears_the_pause_and_the_fault_together() -> void:
+	"""Never clear the pause while the failure stands, and always clear it once it does not."""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour refuses")
+	assert_true(_settlement.is_critical_pause_held(), "the pause is held while the fault stands")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(751), "the retry runs and recovers")
+	assert_equal(_settlement.stock_integrity_fault(), &"", "the fault is closed")
+	assert_false(_settlement.is_stock_retry_pending(), "its retry entitlement is spent")
+	assert_false(_settlement.is_critical_pause_held(), "and this system no longer holds CRITICAL")
+	assert_false(_pumped_critical_hold(), "the clock's CRITICAL bit is released too")
+	assert_false(_settlement.is_stock_integrity_halted(), "with nothing halted")
+
+
+func test_a_retry_that_also_fails_halts_the_simulation_and_is_never_retried_again() -> void:
+	"""Design answer 4: a skipped hour is a correctness hole, so no later tick may run.
+
+	The stray transaction is deliberately NOT cleared, so the retry re-derives the same inputs
+	and refuses identically. That is the point of revalidating rather than replaying: the second
+	refusal is real evidence the fault is unresolved, not a cached verdict.
+	"""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour refuses")
+	assert_true(_settlement.run_tick(751),
+		"the tick that DISCOVERS the halt still commits, exactly as the faulting tick did")
+	assert_equal(_settlement.stock_hour().error, &"INVENTORY_TRANSACTION_OPEN",
+		"the retry re-derived the same inputs and refused identically")
+	assert_true(_settlement.is_stock_integrity_halted(), "and the fault is now unrecoverable")
+	assert_equal(_settlement.stock_retry_count(), 1, "exactly one retry was ever attempted")
+	var ticks: int = _settlement.ticks_run()
+	assert_false(_settlement.run_tick(752), "every LATER tick refuses")
+	assert_equal(_settlement.last_refusal(), &"STOCK_AGE_INTEGRITY_HALT", "naming the halt")
+	assert_equal(_settlement.stock_retry_count(), 1, "and no second retry is ever made")
+	assert_equal(_settlement.ticks_run(), ticks, "a halted tick is not counted as run")
+
+
+func test_a_halted_tick_runs_no_stage_and_re_asserts_the_shared_critical_bit() -> void:
+	"""Continuing with a skipped hour is the hole; and CRITICAL is a bit somebody else can clear.
+
+	`acknowledge_without_catchup()` clears the WHOLE CRITICAL bit for REQ-SET-008's overload
+	ladder, which shares it. This system cannot stop that from `settlement_system.gd`, so it
+	re-submits the hold on every refused tick: a wrongly cleared integrity pause costs one
+	refused tick instead of resuming an unsafe world.
+	"""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour refuses")
+	assert_true(_settlement.run_tick(751), "the retry fails and halts")
+	assert_true(_pumped_critical_hold(), "CRITICAL is held, and the queue is now drained")
+	var measured: int = _settlement.tick_stage_measured_count(
+		SettlementSystemScript.TICK_STAGE_PRESENTATION).value
+	GameManager.clock().acknowledge_without_catchup()
+	assert_false(GameManager.clock().has_pause_reason(SimClockScript.CRITICAL),
+		"an unrelated overload acknowledgement cleared the shared bit")
+	assert_false(_settlement.run_tick(752), "the halted tick still refuses")
+	assert_equal(_settlement.tick_stage_measured_count(
+			SettlementSystemScript.TICK_STAGE_PRESENTATION).value, measured,
+		"and dispatched no stage at all")
+	assert_true(_pumped_critical_hold(), "while re-asserting CRITICAL on the clock")
+
+
+func test_only_a_reset_leaves_a_halted_settlement() -> void:
+	"""The one exit is `reset()`. No "clear the fault" call exists, deliberately."""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour refuses")
+	assert_true(_settlement.run_tick(751), "the retry fails and halts")
+	_settlement.inventory().abort()
+	_settlement.reset()
+	assert_false(_settlement.is_stock_integrity_halted(), "the reset settlement is not halted")
+	assert_equal(_settlement.stock_integrity_fault(), &"", "and carries no fault")
+	assert_equal(_settlement.stock_retry_count(), 0, "with the retry ledger emptied")
+	assert_false(_settlement.is_critical_pause_held(), "and the CRITICAL hold released")
+	var lot: Vector2i = _declared_store_with_grain(_settlement)
+	assert_true(_settlement.run_tick(750), "a fresh hour crossing commits again")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"and ages the new settlement's stock normally")
+
+
+func test_a_later_hours_fault_earns_its_own_single_retry() -> void:
+	"""Design answer 2: the entitlement is keyed to the transaction, not to a sweep or a run.
+
+	A counter that reset every sweep would hand the SAME unrecovered fault a fresh retry every
+	hour; a flag that never cleared would leave a settlement that recovered perfectly unable to
+	ever fault again. Hour 750 faults and recovers; hour 1500 is a DIFFERENT expiry transaction
+	and gets its own one retry.
+	"""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "hour 750 faults")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(751), "and recovers on its one retry")
+	_settlement.inventory().begin()
+	assert_true(_settlement.run_tick(1500), "hour 1500 faults in its turn")
+	assert_equal(_settlement.stock_integrity_fault_count(), 2, "a second, separate fault")
+	assert_equal(_settlement.stock_integrity_fault_tick().value, 1500, "at its own hour")
+	assert_true(_settlement.is_stock_retry_pending(), "with its own retry owed")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(1501), "which recovers it")
+	assert_equal(_settlement.stock_retry_count(), 2, "two faults, two retries, never three")
+	assert_equal(_settlement.stock_retry_recovered_count(), 2, "both recovered")
+
+
+func test_a_cadence_refusal_is_not_an_integrity_fault_and_pauses_nothing() -> void:
+	"""HOUR_ALREADY_RUN means the hour was never owed; pausing for it would fabricate a fault.
+
+	ARCH-TICK-002's idempotence latch refuses a replayed crossing. That refusal changes no state
+	and is not arithmetic, ledger or schema failure, so it stays counted and non-fatal.
+	"""
+	_declared_store_with_grain(_settlement)
+	assert_true(_settlement.run_tick(750), "the crossing runs")
+	assert_true(_settlement.run_tick(750), "and is replayed")
+	assert_equal(_settlement.refused_stock_hour_count(), 1, "the replay refused")
+	assert_equal(_settlement.stock_hour().error, &"STOCK_AGE_HOUR_ALREADY_RUN",
+		"naming ARCH-TICK-002's latch on the stage's own channel")
+	assert_equal(_settlement.stock_integrity_fault(), &"", "but raised no integrity fault")
+	assert_equal(_settlement.stock_integrity_fault_count(), 0, "and counted none")
+	assert_false(_settlement.is_critical_pause_held(), "nothing was paused")
+	assert_false(_settlement.is_stock_integrity_halted(), "and nothing halted")
+	assert_false(_settlement.stock_integrity_fault_tick().ok,
+		"asking which hour faulted REFUSES rather than answering tick 0")
+
+
+func _store_with_one_overflowing_lot() -> Vector2i:
+	"""One declared store holding a single grain lot already at inventory's age ceiling."""
+	var inventory: WorldInventoryScript = _settlement.inventory()
+	var made: WorldInventoryScript.OpResult = inventory.create_container(
+		STORE_OWNER, STORE_MASS_G, WorldInventoryScript.FILTERS_ACCEPT_ALL, 0, true)
+	_settlement.stock_age().declare_storage_class(
+		made.ref, StockAgeScript.STORAGE_COVERED_STORE, false)
+	var grain: int = _settlement.item_definitions().compiled_id(&"grain")
+	return inventory.create_lot(made.ref, grain, 4000, 0, 0, 0, MAX_AGE_MILLI_HOURS, 0).ref
+
+
+func test_a_per_lot_arithmetic_failure_pauses_and_halts_without_a_retry() -> void:
+	"""Every `refused_lots` path in stock_age.gd is arithmetic or ledger failure, so all pause.
+
+	AND NONE OF THEM IS RETRIED, because `stock_age.gd` names no lot ref and publishes no
+	per-lot expiry entry point, so there is no transaction to revalidate. That is a named
+	blocker in the decision record, not a judgement that this failure deserves less; what this
+	file can honour -- the blocking pause and the byte-identical store -- it honours.
+	"""
+	var lot: Vector2i = _store_with_one_overflowing_lot()
+	var before: PackedByteArray = _settlement.inventory().state_bytes()
+	assert_true(_settlement.run_tick(750), "the crossing tick still commits")
+	assert_equal(_settlement.refused_stock_hour_count(), 0, "the HOUR itself ran")
+	assert_equal(_settlement.stock_hour().refused_lots, 1, "and refused exactly one lot")
+	assert_equal(_settlement.stock_integrity_fault(), &"OVERFLOW",
+		"whose checked-arithmetic refusal is the fault this system raises")
+	assert_true(_settlement.is_critical_pause_held(), "the pause is held")
+	assert_true(_pumped_critical_hold(), "and reached the real clock")
+	assert_true(_settlement.is_stock_integrity_halted(), "with no retry available, it halts")
+	assert_false(_settlement.is_stock_retry_pending(), "no retry is owed")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), MAX_AGE_MILLI_HOURS,
+		"the refused lot took no age")
+	assert_equal(_settlement.inventory().state_bytes(), before,
+		"and the whole lot store is byte identical")
+	assert_false(_settlement.run_tick(751), "every later tick refuses")
+	assert_equal(_settlement.stock_retry_count(), 0, "and no retry was ever attempted")
+
+
+func test_the_daily_aging_leg_raises_and_retries_the_same_fault_as_the_tick_path() -> void:
+	"""REQ-SET-007's first leg is the same pass, so it cannot have a quieter failure mode.
+
+	This drives the boundary with NO tick path behind it, which is the case where the leg runs
+	the hour itself. The crossing is the offset calendar's first midnight, 13500.
+	"""
+	_populated()
+	var lot: Vector2i = _faulting_hour_setup()
+	assert_false(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary's first leg fails")
+	assert_equal(_settlement.last_refusal(), &"INVENTORY_TRANSACTION_OPEN", "naming the refusal")
+	assert_equal(_settlement.stock_integrity_fault_tick().value,
+		SimClockScript.FIRST_MIDNIGHT_TICK, "the fault names midnight, not tick 0")
+	assert_true(_settlement.is_critical_pause_held(), "and the critical pause is held")
+	assert_equal(_settlement.daily_leg_count(), 0, "no leg was recorded as executed")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(SimClockScript.FIRST_MIDNIGHT_TICK + 1),
+		"the next tick carries the one retry")
+	assert_equal(_settlement.stock_age().last_hour_tick(), SimClockScript.FIRST_MIDNIGHT_TICK,
+		"which consumed midnight itself")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(lot), COVERED_SPRING_MILLI_HOURS,
+		"charging exactly one §5.8 hour")
+
+
+func test_a_halted_settlement_refuses_the_daily_boundary_before_aging_anything() -> void:
+	"""A boundary must not walk past an unrecovered integrity fault into ecology and crops."""
+	_populated()
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour faults")
+	assert_true(_settlement.run_tick(751), "and its retry fails, halting the settlement")
+	assert_false(_settlement.run_day_boundary(2, SEASON_SPRING), "the boundary refuses")
+	assert_equal(_settlement.last_refusal(), &"STOCK_AGE_INTEGRITY_HALT", "naming the halt")
+	assert_equal(_settlement.daily_leg_count(), 0, "having executed no leg")
+	assert_equal(_settlement.last_ecology_day(), 0, "and never reached ARCH-SYS-005")
+
+
+func test_the_retry_runs_inside_the_existing_stock_age_stage_and_adds_no_ninth() -> void:
+	"""The tick stage count stays 8: the retry is dispatched in TICK_STAGE_STOCK_AGE's window."""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "the hour faults")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(751), "and the retry recovers it")
+	assert_equal(_settlement.tick_stage_count(), 8, "still exactly eight dispatched stages")
+	assert_equal(_settlement.tick_stage_measured_count(
+			SettlementSystemScript.TICK_STAGE_STOCK_AGE).value, _settlement.ticks_run(),
+		"and the stock-age window was opened once per tick, retry included")
+
+
+func test_the_integrity_refusal_class_is_read_from_stock_ages_own_constants() -> void:
+	"""The three preflight codes pause; the three cadence codes do not, and none is invented."""
+	assert_true(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_NO_INVENTORY), "an unbound lot store is a ledger failure")
+	assert_true(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_NO_ITEM_CATALOG), "an unusable catalog is a schema failure")
+	assert_true(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_TRANSACTION_OPEN), "a stray open transaction is a ledger failure")
+	assert_false(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_HOUR_ALREADY_RUN), "a replayed hour changed nothing")
+	assert_false(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_NOT_HOUR_BOUNDARY), "a non-crossing tick owed no hour")
+	assert_false(SettlementSystemScript.is_stock_integrity_refusal(
+		StockAgeScript.REFUSE_INVALID_TICK), "and a negative tick is a caller error")

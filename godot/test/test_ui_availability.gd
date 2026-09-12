@@ -57,7 +57,6 @@ const MUST_BE_UNAVAILABLE: Array = [
 	[87, UiAvailability.REASON_PANEL_NOT_BUILT],
 	[89, UiAvailability.REASON_NO_WORLD_CAMERA],
 	[90, UiAvailability.REASON_NO_WORLD_CAMERA],
-	[12, UiAvailability.REASON_NO_NOTICE_STORE],
 ]
 
 ## §2.2's disabled wording, stated independently of the module under test.

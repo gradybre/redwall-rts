@@ -30,6 +30,11 @@ const JobsScript := preload("res://scripts/core/jobs.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
+const UiNotices := preload("res://scripts/ui/ui_notices.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
+const UiFrameBuilder := preload("res://ui/ui_frame_builder.gd")
+const UiFrameGeometry := preload("res://ui/ui_frame_geometry.gd")
+const UiResidentCard := preload("res://scripts/ui/ui_resident_card.gd")
 
 ## §1.2's published 1280x720 spans for the two zones asserted here.
 const RESOURCE_SPAN: Array[float] = [16.0, 376.0, 16.0, 104.0]
@@ -38,10 +43,18 @@ const TIME_SPAN: Array[float] = [960.0, 1264.0, 16.0, 104.0]
 ## §2.2's disabled wording, stated independently.
 const UNAVAILABLE_WORD: String = "Unavailable"
 
+## R-UI-ALERT-001's reported condition, from the 2026-09-11 native capture: the sentence that
+## wrapped to three lines inside a 44 px card and drew over the pause line at NARROW.
+const THREE_LINE_REFUSAL: String = "Generation refused (WORLD_OCCUPIED): the settlement already has living residents, so the authored world was not published. The settlement is now empty."
+## The acceptance case's long source name and validation code.
+const LONG_SOURCE: String = "UI-SET-103 New settlement, Mossflower Woods north basin, generation attempt 4 of 4"
+const LONG_CODE: String = "WORLD_INIT_REFUSED_OCCUPIED_SETTLEMENT_WITH_LIVING_RESIDENTS_PRESENT"
+const RECOVERY: String = "Use New settlement again to generate a world."
+
 ## Elements the shell builds even though their owning store does not exist, so that a player who
 ## looks for fuel, beds or the build catalog is told WHICH owner is missing rather than finding
 ## nothing there. Every one of them is disabled and carries its reason.
-const RENDERED_UNAVAILABLE: Array[int] = [3, 7, 12, 27, 29, 30, 32, 33, 75, 82, 87, 89, 90, 98]
+const RENDERED_UNAVAILABLE: Array[int] = [3, 7, 27, 29, 30, 32, 33, 75, 82, 87, 89, 90, 98]
 
 var _shell: UiShell = null
 
@@ -203,10 +216,19 @@ func test_an_unsupported_user_scale_is_refused_by_the_shell_too() -> void:
 
 
 func test_every_built_control_meets_its_registry_minimum_size() -> void:
-	"""A control smaller than §4's minimum would be a hit target the specification forbids."""
+	"""A control smaller than §4's minimum would be a hit target the specification forbids.
+
+	UI-SET-037 is the ONE exception, and it is an explicit override rather than a slip.
+	UI-IDENTITY-R01: "In this resident template its intrinsic minimum width is 0; allocate
+	exactly the remaining 172/172/220px. Do not set Label/container custom_minimum_size.x=280."
+	`test_the_name_column_carries_no_280_px_minimum()` asserts that override directly, so the
+	zero is checked rather than merely skipped here.
+	"""
 	var registry: UiRegistry = _shell.registry()
 	var size: UiRegistry.Size = UiRegistry.Size.new()
 	for id: int in range(UiRegistry.FIRST_ID, UiRegistry.LAST_ID + 1):
+		if id == UiShell.ID_DETAIL_TITLE:
+			continue
 		if not _shell.renders(id) or not registry.size_into(id, size):
 			continue
 		var control: Control = _shell.control_for(id)
@@ -214,6 +236,25 @@ func test_every_built_control_meets_its_registry_minimum_size() -> void:
 			"UI-SET-%03d is at least its minimum width" % id)
 		assert_true(control.custom_minimum_size.y >= float(size.min_height) - 0.01,
 			"UI-SET-%03d is at least its minimum height" % id)
+
+
+func test_the_name_column_carries_no_280_px_minimum() -> void:
+	"""UI-IDENTITY-R01 overrides UI-SET-037's §4 minimum for the resident template only.
+
+	A 280 px floor on this Label is the exact defect the ruling names: a Control clamps its own
+	size up to `custom_minimum_size`, so a 172 px allocation would widen straight back to 280
+	and draw the name through Close. `_place_identity_text()` allocates the rectangle instead.
+	"""
+	var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+	assert_almost_equal(title.custom_minimum_size.x, 0.0,
+		"the name heading carries no minimum width in this template")
+	assert_almost_equal(title.custom_minimum_size.y, 0.0,
+		"and no minimum height, so the old 64 px title cap cannot come back")
+	var registry: UiRegistry = _shell.registry()
+	var size: UiRegistry.Size = UiRegistry.Size.new()
+	assert_true(registry.size_into(UiShell.ID_DETAIL_TITLE, size),
+		"§4 still publishes UI-SET-037's own row")
+	assert_equal(size.min_width, 280, "which still reads 280 for its other full-width uses")
 
 
 # --- §1.2's click-through rule, read from the built tree ------------------------------------------
@@ -652,3 +693,1031 @@ func test_the_focus_order_is_written_onto_the_real_controls() -> void:
 	assert_true(wired > 0,
 		"at least one built control carries a focus_next path after layout; zero means nothing "
 		+ "called bind_controls()/wire_hud() and the order is data only")
+
+
+# --- R-UI-ALERT-001: the compact summary, and the full disclosure behind it ----------------------
+
+func test_the_narrow_card_shows_the_authored_summary_and_retains_the_whole_message() -> void:
+	"""The ruling's core exchange: a compact authored line, with nothing discarded behind it.
+
+	The message used here is the exact three-line generation refusal from the 2026-09-11 native
+	capture -- the one that wrapped over the pause line. It must not appear on the NARROW card,
+	and it must still be retrievable byte for byte.
+	"""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	_narrow()
+	assert_equal(_shell.alert_label().text, "Error: Generation failed",
+		"the card draws the authored summary")
+	assert_true(_shell.card_is_summarised(), "and reports that it is summarising")
+	var notice: UiNotices.Notice = UiNotices.Notice.new()
+	assert_true(_shell.card_notice_into(notice), "the card's notice expands")
+	assert_equal(notice.message, THREE_LINE_REFUSAL, "with the whole message intact")
+	assert_equal(notice.code, LONG_CODE, "and the whole validation code")
+
+
+func test_the_narrow_card_keeps_the_rectangle_the_ruling_fixes() -> void:
+	"""The zone stays 48 high at y=76 and the card stays 44 high, whatever the message is."""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	_narrow()
+	var stack: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+	var card: Control = _shell.control_for(UiShell.ID_ALERT_CARD)
+	assert_almost_equal(stack.position.y, 76.0, "the zone is still at y=76")
+	assert_almost_equal(stack.size.y, 48.0, "and still 48 high")
+	assert_almost_equal(card.size.y, 44.0, "the card is still 44 high")
+	assert_true(card.position.y + card.size.y <= stack.size.y,
+		"and it ends inside the zone rather than over the pause line")
+
+
+func test_the_narrow_summary_is_one_measured_line_inside_the_card() -> void:
+	"""The ruling: "render the title/severity in one measured line" at NOTICE 16 px typography.
+
+	Measured against the font the Label will actually draw with, not against a character count.
+	"""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_CLOCK_OVERLOAD,
+		"Simulation overloaded at 1x: 3 whole tick(s) owed; paused rather than skipping.",
+		"Simulation clock", "CLOCK_OVERLOADED", RECOVERY), "the diagnostic is raised")
+	_narrow()
+	var label: Label = _shell.alert_label()
+	var font: Font = label.get_theme_font(&"font")
+	var interior: float = UiLayout.alert_summary_width(_shell.geometry().profile,
+		_shell.geometry().alerts.size.x)
+	var width: float = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0,
+		label.get_theme_font_size(&"font_size")).x
+	assert_equal(label.get_theme_font_size(&"font_size"), UiTheme.FONT_CRITICAL_MINIMUM,
+		"the card draws at the NOTICE 16 px size; nothing shrank the font")
+	assert_true(width <= interior,
+		"'%s' is %.1f px and must fit the %.1f px interior" % [label.text, width, interior])
+
+
+func test_the_card_never_ellipsizes_or_crops_what_it_draws() -> void:
+	"""Do not "ellipsize, substring, crop or silently discard". The Label wraps; it never clips."""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	var label: Label = _shell.alert_label()
+	assert_false(label.clip_text, "the card's text is not clipped")
+	assert_equal(label.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING,
+		"and nothing trims it with an ellipsis")
+	assert_false(label.text.ends_with("..."), "the drawn line is not an abbreviation")
+
+
+func test_the_standard_card_still_shows_the_whole_message_when_it_fits() -> void:
+	"""Wide and standard "retain their existing layouts when content fits"."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"stores", "STOCK_EMPTY", ""), "the depletion is raised")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	assert_equal(_shell.geometry().profile, UiLayout.PROFILE_STANDARD, "1280 at 100% is STANDARD")
+	assert_equal(_shell.alert_label().text, "Out of ration!", "the message is shown in full")
+	assert_false(_shell.card_is_summarised(), "with no summary needed")
+
+
+func test_the_card_carries_its_severity_icon_and_word() -> void:
+	"""§7: "severity word+icon". The icon follows the notice; the word is inside the summary."""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	_narrow()
+	var icon: TextureRect = _shell.alert_icon()
+	assert_true(icon.texture != null, "the card has a severity icon")
+	assert_true(_shell.alert_label().text.begins_with("Error"), "and the severity word beside it")
+	assert_equal(icon.mouse_filter, Control.MOUSE_FILTER_IGNORE, "the icon takes no click")
+	assert_equal(icon.accessibility_name, "",
+		"and stays out of the accessibility tree, which the description already covers")
+
+
+# --- the accessible description is a full access path, not a tooltip -----------------------------
+
+func test_the_accessible_description_carries_severity_and_the_whole_message() -> void:
+	"""A tooltip alone is not a full-message access path; the description must carry it."""
+	_narrow()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	var card: Control = _shell.control_for(UiShell.ID_ALERT_CARD)
+	assert_true(card.accessibility_name.contains("Error"), "the name states the severity")
+	assert_true(card.accessibility_description.contains(THREE_LINE_REFUSAL),
+		"the description carries the FULL original message")
+	assert_true(card.accessibility_description.contains("Open alert details"),
+		"and names the action that discloses the rest")
+
+
+# --- mouse AND keyboard reach the full content ----------------------------------------------------
+
+func test_enter_on_the_card_opens_the_expanded_view_with_that_notice_selected() -> void:
+	"""Keyboard access is half the ruling's guarantee, and Enter is the project's `ui_accept`."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	assert_true(_shell.notice_details_open(), "Enter opened UI-SET-012")
+	assert_true(_shell.selected_notice().ok, "with a notice selected")
+	assert_true(_expanded_text().contains(THREE_LINE_REFUSAL), "and its full message expanded")
+
+
+func test_space_on_the_card_opens_the_expanded_view() -> void:
+	"""The ruling names Enter/Space. UI §5 puts pause on Space "with world focus", not HUD focus."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_SPACE))
+	assert_true(_shell.notice_details_open(), "Space opened UI-SET-012")
+	assert_true(_expanded_text().contains(LONG_CODE), "with the validation code disclosed")
+
+
+func test_a_left_click_on_the_card_opens_the_expanded_view() -> void:
+	"""Pointer activation is the other half of "mouse AND keyboard access"."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_click_event(MOUSE_BUTTON_LEFT))
+	assert_true(_shell.notice_details_open(), "a left click opened UI-SET-012")
+	assert_true(_expanded_text().contains(RECOVERY), "with the recovery action disclosed")
+
+
+func test_an_unrelated_key_and_a_right_click_do_not_open_the_expanded_view() -> void:
+	"""The activation is Enter, Space and the left button, and nothing else."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_A))
+	assert_false(_shell.notice_details_open(), "a letter key does not open it")
+	_shell.activate_alert_card(_click_event(MOUSE_BUTTON_RIGHT))
+	assert_false(_shell.notice_details_open(), "and neither does a right click")
+
+
+func test_the_expanded_view_wraps_and_scrolls_its_content() -> void:
+	"""Full content stays available "with wrapping and vertical scrolling"."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	assert_true(_shell.history_scroll() != null, "the expanded view has a scrolling body")
+	assert_equal(_shell.history_scroll().horizontal_scroll_mode,
+		ScrollContainer.SCROLL_MODE_DISABLED, "which scrolls vertically, not sideways")
+	var row: Label = _shell.history_rows()[0]
+	assert_false(row.clip_text, "its rows are not clipped")
+	assert_equal(row.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART, "they wrap instead")
+
+
+func test_closing_the_expanded_view_returns_focus_to_the_card_that_opened_it() -> void:
+	"""§2.2: "focus returns to the opening control if still present"."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	assert_true(_shell.close_notice_details(), "the expanded view closes")
+	assert_false(_shell.notice_details_open(), "and is hidden")
+	var focused: IntMath.IntResult = _shell.focus_order().focused_element()
+	assert_true(focused.ok, "something holds focus afterwards")
+	assert_equal(focused.value, UiShell.ID_ALERT_CARD, "and it is the card that opened it")
+
+
+func test_the_expanded_view_is_reachable_from_the_card_by_tab() -> void:
+	"""An expanded view a keyboard cannot step into and out of is not keyboard-reachable."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	var panel: Control = _shell.control_for(UiShell.ID_HISTORY)
+	assert_equal(panel.focus_mode, Control.FOCUS_ALL, "the expanded view can hold focus")
+	assert_false(panel.focus_next.is_empty(), "and carries a forward tab path while open")
+	assert_true(_shell.focus_order().focus_step(true), "Tab steps forward out of it")
+	var focused: IntMath.IntResult = _shell.focus_order().focused_element()
+	assert_equal(focused.value, UiShell.ID_HISTORY_TRIGGER,
+		"onto the history trigger, which closes it")
+
+
+func test_the_history_trigger_closes_the_expanded_view_and_acknowledges_nothing() -> void:
+	"""The reachable close control. "Neither acknowledges nor resolves a condition automatically"."""
+	_raise_and_focus_card()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	var before: int = _shell.notices().active_count()
+	(_shell.control_for(UiShell.ID_HISTORY_TRIGGER) as Button).pressed.emit()
+	assert_false(_shell.notice_details_open(), "the trigger closed the expanded view")
+	assert_equal(_shell.notices().active_count(), before, "and resolved nothing")
+	assert_equal(_shell.notices().count(), 1, "the notice is still retained")
+
+
+func test_the_history_trigger_opens_the_whole_history_with_nothing_selected() -> void:
+	"""§4: the trigger "activates 012" -- the whole history, not one notice's disclosure."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "a notice exists")
+	(_shell.control_for(UiShell.ID_HISTORY_TRIGGER) as Button).pressed.emit()
+	assert_true(_shell.notice_details_open(), "the history opens")
+	assert_false(_shell.selected_notice().ok, "with no notice selected")
+	assert_true(_expanded_text().contains(THREE_LINE_REFUSAL), "though every message is listed")
+
+
+func test_opening_the_details_does_not_pause_the_world_or_resolve_the_condition() -> void:
+	"""The ruling's acceptance case: "no unexpected pause or acknowledgment"."""
+	_raise_and_focus_card()
+	var paused_before: bool = GameManager.is_paused()
+	_shell.activate_alert_card(_key_event(KEY_ENTER))
+	assert_equal(GameManager.is_paused(), paused_before, "the clock is untouched")
+	assert_equal(_shell.notices().active_count(), 1, "the condition is still active")
+	assert_true(_shell.control_for(UiShell.ID_ALERT_CARD).visible, "and its card is still shown")
+
+
+func test_twenty_notices_are_retained_and_reachable_from_the_expanded_view() -> void:
+	"""The acceptance case for retention, read back off the built rows rather than the store."""
+	for index: int in 20:
+		assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY,
+			"Out of item %d!" % index, "item %d" % index, "STOCK_%d" % index, ""),
+			"notice %d is raised" % index)
+	assert_equal(_shell.notices().count(), 20, "all twenty are retained")
+	(_shell.control_for(UiShell.ID_HISTORY_TRIGGER) as Button).pressed.emit()
+	var shown: int = 0
+	for row: Label in _shell.history_rows():
+		if row.visible:
+			shown += 1
+	assert_equal(shown, 20, "and all twenty are printed into the expanded view")
+	assert_true(_expanded_text().contains("Out of item 19!"), "including the last one")
+
+
+func test_a_repeated_condition_groups_rather_than_filling_the_history() -> void:
+	"""§7's grouping policy, driven through the shell's own entry point."""
+	for index: int in 5:
+		assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+			"ration", "STOCK_EMPTY", ""), "repeat %d is accepted" % index)
+	assert_equal(_shell.notices().count(), 1, "five repeats are one condition")
+
+
+# --- the empty state, and announcements ------------------------------------------------------------
+
+func test_an_empty_alert_zone_shows_the_history_trigger_and_nothing_else() -> void:
+	"""The acceptance case: "empty state showing only History".
+
+	Read from the HIT TABLE, not from `Control.visible`. `visible` is a control's own local flag
+	and stays true under a hidden parent, so a trigger parented to the hidden alert stack would
+	pass a `visible` assertion while being invisible on screen -- a mutation that did exactly
+	that survived this test in its first form. `_register_hit_regions()` walks the real parent
+	chain, so a control nobody can see registers no rectangle here.
+	"""
+	_shell.set_alert_display("")
+	var stack: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+	var trigger: Control = _shell.control_for(UiShell.ID_HISTORY_TRIGGER)
+	assert_false(stack.visible, "the stack is hidden")
+	assert_false(_shell.control_for(UiShell.ID_ALERT_CARD).visible, "so is the card")
+	assert_true(_shell.hit_test().consumes_point(trigger.position + trigger.size * 0.5),
+		"but §4's ALWAYS trigger still takes its own 32x32, so it is on screen")
+	assert_true(_shell.hit_test().world_receives(stack.position + stack.size * 0.5),
+		"and the rest of the empty zone belongs to the world")
+
+
+func test_hiding_the_card_retains_the_notice_and_resolves_nothing() -> void:
+	"""`hud.gd`'s hold expiry hides the card. It must not silently acknowledge the condition."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"ration", "STOCK_EMPTY", ""), "the depletion is raised")
+	_shell.set_alert_display("")
+	assert_false(_shell.control_for(UiShell.ID_ALERT_CARD).visible, "the card is hidden")
+	assert_equal(_shell.notices().count(), 1, "the notice is retained")
+	assert_equal(_shell.notices().active_count(), 1, "and the condition is still active")
+
+
+func test_a_repeated_state_update_announces_once_and_never_steals_focus() -> void:
+	""""State updates must not steal focus or generate repeated announcements without a real
+	notice change"."""
+	var before: int = _shell.notice_announcements()
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"ration", "STOCK_EMPTY", ""), "the depletion is raised")
+	assert_equal(_shell.notice_announcements(), before + 1, "a new notice announces once")
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"ration", "STOCK_EMPTY", ""), "the same condition repeats")
+	assert_equal(_shell.notice_announcements(), before + 1, "and does not announce again")
+	assert_false(_shell.control_for(UiShell.ID_ALERT_CARD).has_focus(),
+		"and the card never took focus for itself")
+
+
+func test_opening_the_details_with_no_notice_is_refused_by_name() -> void:
+	"""An expanded view with nothing in it would claim to be showing something."""
+	assert_false(_shell.open_notice_details(), "there is no notice to disclose")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NO_NOTICE, "and the refusal is named")
+	assert_false(_shell.notice_details_open(), "so nothing opened")
+
+
+func test_an_unknown_notice_category_is_refused_rather_than_defaulted() -> void:
+	"""A category with no authored summary cannot be shown, so it is not accepted."""
+	assert_false(_shell.raise_notice(UiNotices.CATEGORY_COUNT, "text", "", "", ""),
+		"an out-of-range category is refused")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NOTICE_CATEGORY, "by name")
+	assert_equal(_shell.notices().count(), 0, "and nothing is recorded")
+
+
+func test_a_notice_the_record_refuses_is_refused_by_the_shell_too() -> void:
+	"""A shell that swallowed the store's refusal would report a disclosure it never recorded.
+
+	An empty message is the case the record refuses by name. The shell must pass that refusal
+	up rather than return true and leave the card showing whatever was on it before.
+	"""
+	assert_false(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "", "", "", ""),
+		"a notice with no message is refused")
+	assert_equal(_shell.last_refusal(), UiNotices.REFUSE_EMPTY_MESSAGE,
+		"with the record's own code, not a shell code invented over it")
+	assert_equal(_shell.notices().count(), 0, "and nothing is retained")
+	assert_false(_shell.control_for(UiShell.ID_ALERT_CARD).visible, "and no card is shown")
+
+
+func test_the_error_panel_grows_to_its_refusal_and_scrolls_past_its_maximum() -> void:
+	"""The exception is for COMPACT HUD notices only. UI-SET-085 still obeys wrap/scroll.
+
+	A fixed 160 px panel drew the generation refusal through its own bottom edge and over the
+	command strip -- visible in the native capture that prompted this. §4 gives 085 a
+	160..480 band, so the panel grows inside it and the body scrolls beyond it.
+	"""
+	var short_height: float = _refusal_panel_height("Short refusal.")
+	assert_almost_equal(short_height, 160.0, "a short refusal keeps §4's minimum height")
+	var long_height: float = _refusal_panel_height(_repeated_refusal(6))
+	assert_true(long_height > short_height,
+		"a longer refusal gets a taller panel, got %.1f against %.1f" % [long_height, short_height])
+	var huge_height: float = _refusal_panel_height(_repeated_refusal(40))
+	assert_almost_equal(huge_height, 480.0, "and the growth stops at §4's maximum height")
+	assert_true(huge_height > long_height, "which is above the height the shorter one needed")
+	var body: ScrollContainer = _shell.control_for(UiShell.ID_ERROR_PANEL).get_node("Body") \
+		as ScrollContainer
+	assert_true(body != null, "the error body is a scrolling container")
+	var panel: Control = _shell.control_for(UiShell.ID_ERROR_PANEL)
+	assert_true(body.size.y > 0.0 and body.size.y <= panel.size.y,
+		"sized inside the panel that holds it")
+	assert_true(body.position.x + body.size.x <= panel.size.x,
+		"and inside its width, beside the severity icon")
+	var line: Label = body.get_node("Line") as Label
+	assert_false(line.clip_text, "its text is not clipped")
+	assert_equal(line.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART, "it wraps instead")
+
+
+func _repeated_refusal(times: int) -> String:
+	"""A refusal long enough to need more than one panel height, built from the reported one."""
+	var parts: PackedStringArray = PackedStringArray()
+	for index: int in times:
+		parts.append(THREE_LINE_REFUSAL)
+	return " ".join(parts)
+
+
+func _refusal_panel_height(text: String) -> float:
+	"""Show one refusal at the standard composition and report UI-SET-085's resulting height."""
+	_shell.set_refusal_display(text)
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	return _shell.control_for(UiShell.ID_ERROR_PANEL).size.y
+
+
+func test_the_expanded_view_replaces_the_error_panel_and_gives_it_back_on_close() -> void:
+	"""§3 allows one expansion per zone, and both live in the top-centre column.
+
+	The refusal must not be LOST by that: it is a retained Error notice, the expanded view shows
+	its code and reason, the condition stays active, and UI-SET-085 returns when the view closes.
+	"""
+	_narrow()
+	_shell.set_refusal_display(THREE_LINE_REFUSAL)
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	assert_true(_shell.control_for(UiShell.ID_ERROR_PANEL).visible, "the error panel is open")
+	assert_true(_shell.open_notice_details(), "the expanded view opens")
+	assert_false(_shell.control_for(UiShell.ID_ERROR_PANEL).visible,
+		"and takes the column from the error panel")
+	assert_true(_expanded_text().contains(LONG_CODE), "while showing the same validation code")
+	assert_equal(_shell.notices().active_count(), 1, "the condition is still active")
+	assert_true(_shell.close_notice_details(), "the expanded view closes")
+	assert_true(_shell.control_for(UiShell.ID_ERROR_PANEL).visible,
+		"and the error panel comes back")
+
+
+func test_the_open_expanded_view_is_drawn_above_the_permanent_hud() -> void:
+	"""§3 puts an expansion above the permanent HUD, and the hit table already agreed.
+
+	The DRAW order did not: the minimap frame and the command strip are built after UI-SET-012
+	and painted over it in the native capture. Child order is what Godot draws by, so the test
+	is on child order -- and the overlays §3 puts above everything stay above it.
+	"""
+	_raise_and_focus_card()
+	assert_true(_shell.open_notice_details(), "the expanded view opens")
+	var history: Control = _shell.control_for(UiShell.ID_HISTORY)
+	for id: int in [UiShell.ID_MINIMAP_FRAME, UiShell.ID_COMMAND_STRIP, UiShell.ID_RESOURCE_CLUSTER]:
+		assert_true(history.get_index() > _shell.control_for(id).get_index(),
+			"UI-SET-012 is drawn after UI-SET-%03d" % id)
+	for id: int in [UiShell.ID_TOOLTIP, UiShell.ID_FOCUS_OUTLINE]:
+		assert_true(_shell.control_for(id).get_index() > history.get_index(),
+			"but §3's UI-SET-%03d overlay stays above it" % id)
+
+
+func test_no_open_expansion_is_drawn_outside_the_viewport_at_narrow() -> void:
+	"""UXV-032: content a player cannot see is not shown content.
+
+	At NARROW the logical viewport is 853x480. A taller UI-SET-085 pushed UI-SET-012 off the
+	bottom and a 720-wide panel ran off the right edge; both were visible in the native capture.
+	Every open top-centre expansion must now lie inside the viewport.
+	"""
+	_narrow()
+	_shell.set_refusal_display(_repeated_refusal(6))
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	assert_true(_shell.open_notice_details(), "the expanded view opens")
+	_narrow()
+	for id: int in [UiShell.ID_ERROR_PANEL, UiShell.ID_HISTORY, UiShell.ID_ALERT_STACK]:
+		var panel: Control = _shell.control_for(id)
+		if not panel.visible:
+			continue
+		assert_true(panel.position.x >= 0.0 and panel.position.y >= 0.0,
+			"UI-SET-%03d starts inside the viewport at (%.1f, %.1f)"
+			% [id, panel.position.x, panel.position.y])
+		assert_true(panel.position.x + panel.size.x <= _shell.geometry().logical_width,
+			"UI-SET-%03d ends inside its width" % id)
+		assert_true(panel.position.y + panel.size.y <= _shell.geometry().logical_height,
+			"UI-SET-%03d ends inside its height" % id)
+
+
+# --- helpers for the notice tests -------------------------------------------------------------------
+
+func _narrow() -> void:
+	"""Lay the shell out at 1280x720 with 150 percent user scale, which is the NARROW profile."""
+	assert_true(_shell.apply_user_scale(150), "150 percent is a supported user scale")
+	assert_true(_shell.layout_for(1280, 720), "the narrow layout computes")
+
+
+func _raise_and_focus_card() -> void:
+	"""Raise the reported generation refusal and put keyboard focus on its card."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	assert_true(_shell.focus_order().focus_element(UiShell.ID_ALERT_CARD), "the card takes focus")
+
+
+func _key_event(keycode: Key) -> InputEventKey:
+	"""One pressed key event, as the engine would deliver it to the focused card."""
+	var event: InputEventKey = InputEventKey.new()
+	event.keycode = keycode
+	event.pressed = true
+	return event
+
+
+func _click_event(button: MouseButton) -> InputEventMouseButton:
+	"""One pressed mouse button event inside the card."""
+	var event: InputEventMouseButton = InputEventMouseButton.new()
+	event.button_index = button
+	event.pressed = true
+	return event
+
+
+func _expanded_text() -> String:
+	"""Everything the expanded view is currently printing, header and rows together."""
+	var parts: PackedStringArray = PackedStringArray([_shell.history_header().text])
+	for row: Label in _shell.history_rows():
+		if row.visible:
+			parts.append(row.text)
+	return "\n".join(parts)
+
+
+# --- ART-UI-01/02: the crafted panel edges are actually applied ---------------------------------
+
+func test_every_framed_container_wears_its_own_silhouette() -> void:
+	"""ART-UI-01/02: five containers, five distinct frames, all BUILT rather than declared.
+
+	`ui_frame_builder.gd` was tested by 23 geometry assertions and called by nothing, so the
+	frames existed on disk and never on screen. This asserts the holder exists under each
+	panel with all eight pieces, which is the property that was false.
+	"""
+	assert_equal(UiShell.FRAME_OF_ZONE.size(), UiFrameGeometry.frame_count(),
+		"every declared silhouette has an owning panel")
+	for id: int in UiShell.FRAME_OF_ZONE:
+		var panel: Control = _shell.control_for(id)
+		assert_true(UiFrameBuilder.has_frame(panel), "UI-SET-%03d carries a frame" % id)
+		var holder: Node = panel.get_node(NodePath(UiFrameBuilder.HOLDER_NAME))
+		assert_equal(holder.get_child_count(), UiFrameGeometry.PIECE_COUNT,
+			"UI-SET-%03d has all eight pieces" % id)
+
+
+func test_each_panel_wears_the_silhouette_the_table_assigns_it() -> void:
+	"""Five containers sharing one rounded outline is the defect ART-UI-01 names."""
+	var assigned: Array[int] = []
+	for id: int in UiShell.FRAME_OF_ZONE:
+		assigned.append(UiShell.FRAME_OF_ZONE[id])
+	assigned.sort()
+	assert_equal(assigned, [0, 1, 2, 3, 4], "the five frames are assigned once each")
+	var journal: Control = _shell.control_for(UiShell.ID_DETAIL)
+	var corner: Control = journal.get_node(NodePath("%s/CornerTL"
+		% UiFrameBuilder.HOLDER_NAME)) as Control
+	assert_equal(corner.size, Vector2(12.0, 16.0),
+		"the journal's spine cap is its own 12x16, not an averaged corner")
+
+
+func test_every_frame_piece_lies_inside_its_own_panel() -> void:
+	"""ART-UI-07: the first two attempts put the right and bottom corners OUTSIDE the panel."""
+	for id: int in UiShell.FRAME_OF_ZONE:
+		var panel: Control = _shell.control_for(id)
+		var holder: Node = panel.get_node(NodePath(UiFrameBuilder.HOLDER_NAME))
+		for index: int in holder.get_child_count():
+			var piece: Control = holder.get_child(index) as Control
+			assert_true(piece.position.x >= -0.01 and piece.position.y >= -0.01,
+				"UI-SET-%03d %s starts inside the panel at %v" % [id, piece.name, piece.position])
+			assert_true(piece.position.x + piece.size.x <= panel.size.x + 0.01
+				and piece.position.y + piece.size.y <= panel.size.y + 0.01,
+				"UI-SET-%03d %s ends inside %v" % [id, piece.name, panel.size])
+
+
+func test_frame_art_never_takes_a_click_a_focus_stop_or_an_announcement() -> void:
+	"""ART-UI-07/08: ornament may never steal input or be announced as a control."""
+	for id: int in UiShell.FRAME_OF_ZONE:
+		var holder: Control = _shell.control_for(id).get_node(
+			NodePath(UiFrameBuilder.HOLDER_NAME)) as Control
+		assert_equal(holder.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+			"UI-SET-%03d's frame ignores the mouse" % id)
+		assert_equal(holder.focus_mode, Control.FOCUS_NONE, "and takes no focus")
+		assert_equal(holder.accessibility_name, "", "and is not announced")
+
+
+func test_frame_art_is_drawn_beneath_the_panels_own_controls() -> void:
+	"""A 22 px dock corner over a control at the 12 px inset would violate ART-UI-07."""
+	for id: int in UiShell.FRAME_OF_ZONE:
+		var panel: Control = _shell.control_for(id)
+		var holder: Node = panel.get_node(NodePath(UiFrameBuilder.HOLDER_NAME))
+		assert_equal(holder.get_index(), 0,
+			"UI-SET-%03d draws its frame first, under everything else" % id)
+
+
+func test_relaying_out_moves_the_frame_with_its_panel() -> void:
+	"""`Control.resized` never fires off-tree, so the shell must refresh the frames itself."""
+	assert_true(_shell.layout_for(1920, 1080), "the wide layout computes")
+	for id: int in UiShell.FRAME_OF_ZONE:
+		var panel: Control = _shell.control_for(id)
+		var corner: Control = panel.get_node(NodePath("%s/CornerBR"
+			% UiFrameBuilder.HOLDER_NAME)) as Control
+		assert_almost_equal(corner.position.x + corner.size.x, panel.size.x,
+			"UI-SET-%03d's bottom-right corner tracks the new width" % id)
+		assert_almost_equal(corner.position.y + corner.size.y, panel.size.y,
+			"and its new height")
+
+
+# --- UXV-020: five need rows, a percent, a track and a rate --------------------------------------
+
+func test_the_detail_panel_builds_five_independent_need_rows() -> void:
+	"""UXV-020: "Render five independent need rows". One combined string is not five rows."""
+	assert_not_null(_shell.need_row(0), "the first UI-SET-039 instance is built")
+	assert_not_null(_shell.need_row(4), "and so is the fifth")
+	assert_null(_shell.need_row(5), "and there is no sixth")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_UNKNOWN_ELEMENT,
+		"which refuses by name rather than returning a spare row")
+
+
+func test_a_need_row_is_the_amendments_52_pixel_height() -> void:
+	"""§4.1: "52 px need rows when displaying hourly rates", inside §4's own 44..56 band."""
+	var size: UiRegistry.Size = UiRegistry.Size.new()
+	assert_true(_shell.registry().size_into(UiShell.ID_NEED_ROW, size), "§4 sizes the row")
+	assert_equal(_shell.need_row(0).custom_minimum_size.y, 52.0, "the row is 52 px tall")
+	assert_true(52.0 >= float(size.min_height) and 52.0 <= float(size.max_height),
+		"which is inside §4's %d..%d band" % [size.min_height, size.max_height])
+
+
+func test_the_track_fill_is_the_rows_own_value_and_nothing_else() -> void:
+	"""UXV-020's 8 px track must be the same number as the printed percent, not a second one."""
+	assert_true(_shell.set_need_row(0, "Fullness", "75%", "-2.50 pp/h", 7500, "detail"),
+		"a row at 7500 basis points is accepted")
+	var full: float = _shell.need_track_fill(0).size.x
+	assert_true(_shell.set_need_row(0, "Fullness", "100%", "-2.50 pp/h", 10000, "detail"),
+		"and the same row at the ceiling")
+	var whole: float = _shell.need_track_fill(0).size.x
+	assert_almost_equal(full / whole, 0.75, "the 7500 track is exactly three quarters")
+	assert_true(_shell.set_need_row(0, "Fullness", "0%", "-2.50 pp/h", 0, "detail"),
+		"and at the floor")
+	assert_equal(_shell.need_track_fill(0).size.x, 0.0, "an empty need draws no fill")
+
+
+func test_the_track_is_eight_pixels_and_sits_inside_its_row() -> void:
+	"""UXV-020 fixes the track at 8 px; it must not overflow the 52 px row."""
+	assert_true(_shell.set_need_row(0, "Rest", "50%", "Rate unavailable", 5000, "detail"),
+		"the row is filled")
+	var edge: ColorRect = _shell.need_row(0).get_node("TrackEdge") as ColorRect
+	assert_equal(edge.size.y, 8.0, "the track is 8 px tall")
+	assert_almost_equal(edge.position.y + edge.size.y, 52.0, "and ends at the row's own bottom")
+
+
+func test_a_need_value_outside_the_scale_refuses_rather_than_overdrawing() -> void:
+	"""A bar longer than its own track would be a drawn lie about a clamped store."""
+	assert_false(_shell.set_need_row(0, "Fullness", "101%", "-2.50 pp/h", 10001, "detail"),
+		"a value above the scale refuses")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NEED_OUT_OF_RANGE, "by name")
+	assert_false(_shell.set_need_row(0, "Fullness", "-1%", "-2.50 pp/h", -1, "detail"),
+		"and so does one below it")
+
+
+func test_selecting_something_without_needs_empties_the_need_rows() -> void:
+	"""A tile must never be shown under the previous resident's percentages."""
+	assert_true(_shell.set_need_row(0, "Fullness", "75%", "-2.50 pp/h", 7500, "detail"),
+		"a resident row is drawn")
+	assert_equal(_shell.need_rows_shown(), 1, "and is visible")
+	_shell.set_detail_display("Tile 4,9 - forest", "Basin: Mossflower", "Danger band 1")
+	assert_equal(_shell.need_rows_shown(), 0, "selecting a tile hides every need row")
+	assert_equal(_shell.need_row_text(0).strip_edges(), "", "and leaves none of its text")
+
+
+func test_the_need_row_track_never_takes_input_or_an_announcement() -> void:
+	"""The track duplicates the percent beside it, so it is decoration in both trees."""
+	for part: String in ["TrackEdge", "TrackWell", "TrackFill", "Name", "Value", "Rate"]:
+		var control: Control = _shell.need_row(0).get_node(NodePath(part)) as Control
+		assert_equal(control.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+			"%s ignores the mouse" % part)
+		assert_equal(control.accessibility_name, "", "and is not announced separately")
+
+
+# --- ART-UI-06/09: the species medallion ---------------------------------------------------------
+
+func test_the_species_medallion_loads_and_is_shown_beside_the_name() -> void:
+	"""ART-UI-06: four illustrated medallions existed in the repository and nothing loaded one."""
+	var path: String = UiResidentCard.emblem_path(&"mouse", _shell.detail_emblem_pixels())
+	assert_true(_shell.set_detail_emblem(path, "Generic mouse species emblem"),
+		"the mouse medallion is applied from %s" % path)
+	assert_not_null(_shell.detail_emblem().texture, "a real texture is loaded")
+	assert_true(_shell.detail_emblem().visible, "and it is shown")
+
+
+func test_the_medallion_leads_the_card_and_never_draws_over_the_name() -> void:
+	"""ART-UI-09: identity first, and the roundel must not overlap the name it identifies."""
+	assert_true(_shell.set_detail_emblem(
+		UiResidentCard.emblem_path(&"otter", _shell.detail_emblem_pixels()), "otter"),
+		"the otter medallion is applied")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var emblem: Control = _shell.detail_emblem()
+	var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+	assert_false(Rect2(emblem.position, emblem.size).intersects(
+		Rect2(title.position, title.size)), "the roundel and the heading do not overlap")
+	assert_true(emblem.position.y <= title.position.y + 0.01,
+		"and the roundel leads the card rather than following the name")
+	assert_almost_equal(emblem.size.x, float(_shell.detail_emblem_pixels()),
+		"and is drawn at a production size")
+
+
+func test_the_medallion_is_a_production_size_at_every_reachable_profile() -> void:
+	"""ART-LOCK-001: "Actual production sizes are 48/64px"; 24 px is a diagnostic only.
+
+	The three profiles are reached the way the native evidence reaches them: two window sizes
+	and the 150% user scale, because §1.2's own floor refuses a viewport below 1280x720.
+	"""
+	for scale: int in [UiLayout.USER_SCALE_100, UiLayout.USER_SCALE_150]:
+		assert_true(_shell.apply_user_scale(scale), "the %d%% scale applies" % scale)
+		for width: int in [1920, 1280]:
+			assert_true(_shell.layout_for(width, 720), "the %d layout computes" % width)
+			assert_true([48, 64].has(_shell.detail_emblem_pixels()),
+				"%d at %d%% draws the roundel at %d px"
+				% [width, scale, _shell.detail_emblem_pixels()])
+	assert_true(_shell.apply_user_scale(UiLayout.USER_SCALE_100), "the scale is restored")
+
+
+func test_a_species_with_no_medallion_leaves_the_roundel_hidden() -> void:
+	"""The lock forbids reusing the mouse emblem, so an absent one shows nothing at all."""
+	assert_false(_shell.set_detail_emblem("", "no emblem"), "an empty source refuses")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NO_EMBLEM, "by name")
+	assert_false(_shell.detail_emblem().visible, "and the roundel stays hidden")
+	assert_null(_shell.detail_emblem().texture, "carrying no borrowed texture")
+
+
+func test_the_medallion_is_decorative_in_the_accessibility_tree() -> void:
+	"""ART-UI-07/08: the species is already in the identity line; announcing it twice is noise."""
+	assert_true(_shell.set_detail_emblem(
+		UiResidentCard.emblem_path(&"mole", 48), "Generic mole species emblem"),
+		"the mole medallion is applied")
+	assert_equal(_shell.detail_emblem().accessibility_name, "", "the roundel is not a control")
+	assert_true(_shell.control_for(UiShell.ID_DETAIL).accessibility_description.contains(
+		"Generic mole"), "and the panel says what the mark is")
+
+
+# --- 4.1's scrolling journal body -----------------------------------------------------------------
+
+func test_the_journal_body_scrolls_so_five_need_rows_are_reachable() -> void:
+	"""§4.1: "Long content scrolls inside the panel, not past the window"."""
+	assert_not_null(_shell.detail_scroll(), "UI-SET-036 has a scrolling body")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var panel: Control = _shell.control_for(UiShell.ID_DETAIL)
+	var body: Control = _shell.detail_scroll()
+	assert_true(body.position.y + body.size.y <= panel.size.y + 0.01,
+		"the body ends inside the panel")
+	assert_true(body.size.y > 0.0, "and has room to scroll in")
+
+
+func test_the_heading_and_the_close_control_never_scroll_away() -> void:
+	"""§4.1: "Keep the header/close ... visible; the content body scrolls"."""
+	var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+	var close: Control = _shell.control_for(UiShell.ID_CLOSE)
+	assert_equal(title.get_parent(), _shell.control_for(UiShell.ID_DETAIL),
+		"the heading is a direct child of the panel, not of the scroll")
+	assert_equal(close.get_parent(), _shell.control_for(UiShell.ID_DETAIL),
+		"and so is the close control")
+
+
+func test_a_long_name_grows_the_header_instead_of_overlaying_close() -> void:
+	"""§4.1: "Header grows to wrap long names; never reduce name size or overlay Close"."""
+	var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+	var close: Control = _shell.control_for(UiShell.ID_CLOSE)
+	_shell.set_detail_display("Rowan", "mouse", "")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var short_height: float = title.size.y
+	var short_font: int = title.get_theme_font_size(&"font_size")
+	_shell.set_detail_display(
+		"Sister Amabel of the Eastern Orchard and the Long Rampart Watch", "mouse", "")
+	assert_true(_shell.layout_for(1280, 720), "the layout recomputes around the long name")
+	assert_true(title.size.y > short_height, "the header grew to hold the wrapped name")
+	assert_equal(title.get_theme_font_size(&"font_size"), short_font,
+		"and the name was not shrunk to make it fit")
+	assert_false(Rect2(title.position, title.size).intersects(
+		Rect2(close.position, close.size)), "and it never overlays Close")
+
+
+func test_the_detail_ornament_never_sits_over_the_medallion_or_the_body() -> void:
+	"""ART-UI-07: "decoration shall not overlap text/controls"."""
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var sprig: Control = _shell.control_for(UiShell.ID_DETAIL).get_node("Ornament") as Control
+	var body: Control = _shell.detail_scroll()
+	assert_true(sprig.position.y >= body.position.y + body.size.y - 0.01,
+		"the sprig sits below the scrolling body, not across it")
+	assert_true(sprig.position.y > _shell.detail_emblem().position.y
+		+ _shell.detail_emblem().size.y, "and nowhere near the medallion")
+
+
+func test_the_zone_harvesting_policy_never_stands_on_a_resident() -> void:
+	"""UXV-023: "zone harvesting policies never appear on a resident merely because a template
+	exists". The journal carried `Harvesting enabled` under every resident's needs, where the
+	action could only ever refuse with UI_SHELL_NOTHING_SELECTED."""
+	var policy: Control = _shell.control_for(UiShell.ID_WORK_POLICY)
+	assert_false(policy.visible, "nothing is selected, so no policy is offered")
+	var bound: Dictionary = _bound_settlement()
+	_shell.select_zone(bound["basin"], true)
+	assert_true(policy.visible, "selecting a real zone offers its policy")
+	_shell.set_detail_display("Rowan", "mouse - Warden - Active", "")
+	assert_false(policy.visible, "and selecting a resident takes it away again")
+
+
+# --- UI-IDENTITY-R01: the resident identity row ---------------------------------------------------
+
+## The three profiles, reached the way the native evidence reaches them: §1.2's floor refuses a
+## viewport below 1280x720, so NARROW is only reachable through the 150% user scale.
+const IDENTITY_CASES: Array[Array] = [
+	[1920, 1080, 100, UiLayout.PROFILE_WIDE, 384.0, 64.0, 220.0],
+	[1280, 720, 100, UiLayout.PROFILE_STANDARD, 336.0, 64.0, 172.0],
+	[1280, 720, 150, UiLayout.PROFILE_NARROW, 320.0, 48.0, 172.0],
+]
+## UI-IDENTITY-R01's acceptance names a 32-character name explicitly.
+const NAME_32: String = "Bramblewhisker Thistledown Abbot"
+## A single unbroken word far wider than any name column, for the grapheme-safe break.
+const NAME_UNBROKEN: String = "Bramblewhiskerthistledownabbotofredwall"
+## A combining sequence: base letters plus combining diaeresis and combining acute.
+const NAME_COMBINING: String = "Maïriń Silverbrush"
+
+
+func _show_name(case: Array, display_name: String) -> void:
+	"""Put a name on the card and lay the shell out again.
+
+	`set_detail_display()` calls `_apply_geometry()`, which returns early off-tree -- the shell
+	has no canvas size until it is inside a tree, and the whole suite builds it outside one. So
+	a test that changes the text must ask for the layout explicitly, exactly as `hud.gd`'s own
+	resize path would.
+	"""
+	_shell.set_detail_display(display_name, "mouse - Resident - Active", "")
+	assert_true(_shell.layout_for(case[0] as int, case[1] as int),
+		"the layout recomputes for '%s'" % display_name)
+
+
+func _lay_out_identity(case: Array) -> void:
+	"""Apply one profile case's user scale and window, and assert both actually took."""
+	assert_true(_shell.apply_user_scale(case[2] as int), "the %d%% scale applies" % case[2])
+	assert_true(_shell.layout_for(case[0] as int, case[1] as int),
+		"the %dx%d layout computes" % [case[0], case[1]])
+	assert_equal(_shell.geometry().profile, case[3] as int,
+		"%dx%d at %d%% is the expected profile" % [case[0], case[1], case[2]])
+
+
+func test_the_medallion_sits_beside_the_name_at_every_profile() -> void:
+	"""UI-IDENTITY-R01: "the medallion stays BESIDE the name in all three supported profiles".
+
+	The stacked arrangement this replaces is explicitly not adopted, and there is no fallback
+	to it. "Beside" is asserted as both halves: the medallion is to the LEFT of the name column,
+	and the two share vertical space rather than the name starting below the roundel.
+	"""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		var emblem: Control = _shell.detail_emblem()
+		var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+		assert_true(emblem.position.x + emblem.size.x <= title.position.x + 0.01,
+			"profile %d: the medallion ends before the name column begins" % case[3])
+		assert_true(title.position.y < emblem.position.y + emblem.size.y - 0.01,
+			"profile %d: the name starts BESIDE the medallion, not below it" % case[3])
+		assert_almost_equal(title.position.y, emblem.position.y,
+			"profile %d: and both sit at the identity block's top" % case[3])
+
+
+func test_the_identity_row_is_the_published_column_table() -> void:
+	"""20 inset | medallion | 8 gap | name column | 8 gap | 44 Close | 20 inset, exactly."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		var panel: Control = _shell.control_for(UiShell.ID_DETAIL)
+		var emblem: Control = _shell.detail_emblem()
+		var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+		var close: Control = _shell.control_for(UiShell.ID_CLOSE)
+		assert_almost_equal(panel.size.x, case[4] as float, "profile %d's panel" % case[3])
+		assert_almost_equal(emblem.size.x, case[5] as float, "profile %d's medallion" % case[3])
+		assert_almost_equal(title.size.x, case[6] as float, "profile %d's name column" % case[3])
+		assert_almost_equal(emblem.position.x, 20.0, "profile %d's left inset" % case[3])
+		assert_almost_equal(title.position.x - emblem.position.x - emblem.size.x, 8.0,
+			"profile %d: one 8 px gap after the medallion" % case[3])
+		assert_almost_equal(close.position.x - title.position.x - title.size.x, 8.0,
+			"profile %d: one 8 px gap before Close" % case[3])
+		assert_almost_equal(panel.size.x - close.position.x - close.size.x, 20.0,
+			"profile %d's right inset" % case[3])
+
+
+func test_the_name_column_is_never_the_old_280_px_width() -> void:
+	"""172/172/220, not 280. A 280 px column is the composition the ruling refuses."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+		assert_true(title.size.x < 280.0,
+			"profile %d's name column is %f, not the old minimum" % [case[3], title.size.x])
+		assert_almost_equal(title.custom_minimum_size.x, 0.0,
+			"profile %d: and it carries no minimum to be clamped back up to" % case[3])
+
+
+func test_close_keeps_its_44_px_target_at_the_rows_top_right() -> void:
+	"""§2.2's target survives the new composition, and stays clear of the name column."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		var close: Control = _shell.control_for(UiShell.ID_CLOSE)
+		var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+		assert_almost_equal(close.size.x, 44.0, "profile %d: Close is 44 wide" % case[3])
+		assert_almost_equal(close.size.y, 44.0, "and 44 high")
+		assert_almost_equal(close.position.y, 20.0, "and shares the block's top")
+		assert_false(Rect2(close.position, close.size).intersects(
+			Rect2(title.position, title.size)),
+			"profile %d: and the name never draws through it" % case[3])
+
+
+func test_the_medallion_is_decoration_in_both_trees() -> void:
+	"""UI-IDENTITY-R01: "Decoration has no hit/focus/accessibility target"."""
+	var emblem: Control = _shell.detail_emblem()
+	assert_equal(emblem.mouse_filter, Control.MOUSE_FILTER_IGNORE, "the roundel ignores clicks")
+	assert_equal(emblem.focus_mode, Control.FOCUS_NONE, "and can never take focus")
+	assert_equal(emblem.accessibility_name, "", "and is not announced as an element")
+
+
+func test_a_long_name_grows_the_header_and_shrinks_the_body_not_the_footer() -> void:
+	"""Measure the identity block, grow the header, RECOMPUTE the body. The footer never moves.
+
+	Growing the header without recomputing the body is what lets a three-line name draw over
+	health and the need rows, which the ruling forbids by name.
+	"""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		_show_name(case, "Mira")
+		var short_body: Rect2 = Rect2(_shell.detail_body().position, _shell.detail_body().size)
+		var footer: Rect2 = Rect2(_shell.detail_center_view().position,
+			_shell.detail_center_view().size)
+		_show_name(case, NAME_32)
+		var long_body: Rect2 = Rect2(_shell.detail_body().position, _shell.detail_body().size)
+		assert_true(long_body.position.y > short_body.position.y,
+			"profile %d: the 32-character name pushes the body down" % case[3])
+		assert_almost_equal(short_body.size.y - long_body.size.y,
+			long_body.position.y - short_body.position.y,
+			"profile %d: and the body loses exactly what the header gained" % case[3])
+		assert_true(long_body.size.y < short_body.size.y,
+			"profile %d: so the body is shorter, not merely moved" % case[3])
+		assert_equal(Rect2(_shell.detail_center_view().position,
+			_shell.detail_center_view().size), footer,
+			"profile %d: while the footer action does not move" % case[3])
+
+
+func test_no_name_pushes_the_body_or_the_footer_out_of_the_panel() -> void:
+	"""The body may become short; it may not become negative, and nothing may leave the panel."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		for name: String in [NAME_32, NAME_UNBROKEN, NAME_COMBINING, "Mira"]:
+			_show_name(case, name)
+			var panel: Control = _shell.control_for(UiShell.ID_DETAIL)
+			var body: Control = _shell.detail_body()
+			var action: Control = _shell.detail_center_view()
+			assert_true(body.size.y >= 0.0,
+				"profile %d, '%s': the body is never negative" % [case[3], name])
+			assert_true(body.position.y + body.size.y <= action.position.y + 0.01,
+				"profile %d, '%s': the body ends above the footer action" % [case[3], name])
+			assert_true(action.position.y + action.size.y <= panel.size.y + 0.01,
+				"profile %d, '%s': and the footer stays inside the panel" % [case[3], name])
+
+
+func test_a_long_unbroken_name_never_widens_its_own_column() -> void:
+	"""A word wider than the column must wrap on a grapheme boundary, not expand the parent."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		_show_name(case, NAME_UNBROKEN)
+		var title: Label = _shell.control_for(UiShell.ID_DETAIL_TITLE) as Label
+		var close: Control = _shell.control_for(UiShell.ID_CLOSE)
+		assert_almost_equal(title.size.x, case[6] as float,
+			"profile %d: the column keeps its allocated width" % case[3])
+		assert_true(title.position.x + title.size.x <= close.position.x + 0.01,
+			"profile %d: and never reaches Close" % case[3])
+		assert_equal(title.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART,
+			"wrapping whole words with a grapheme-safe break for a word too long")
+		assert_false(title.clip_text, "and never clipping")
+
+
+func test_the_name_is_never_ellipsized_or_shrunk() -> void:
+	"""The ruling: "Never ellipsize, reduce font size, split a combining sequence"."""
+	_lay_out_identity(IDENTITY_CASES[2])
+	_show_name(IDENTITY_CASES[2], NAME_32)
+	var title: Label = _shell.control_for(UiShell.ID_DETAIL_TITLE) as Label
+	assert_equal(title.text, NAME_32, "the full persisted name is kept, character for character")
+	assert_equal(title.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING,
+		"with no ellipsis behaviour")
+	assert_equal(title.get_theme_font_size(&"font_size"), UiTheme.FONT_PANEL_TITLE,
+		"at Noto Serif 20, unreduced")
+
+
+func test_a_combining_sequence_survives_the_heading_intact() -> void:
+	"""A break on a grapheme cluster boundary must not split a base letter from its mark."""
+	_lay_out_identity(IDENTITY_CASES[2])
+	_show_name(IDENTITY_CASES[2], NAME_COMBINING)
+	var title: Label = _shell.control_for(UiShell.ID_DETAIL_TITLE) as Label
+	assert_equal(title.text, NAME_COMBINING, "the combining marks are still in the string")
+	assert_true(title.text.contains("̈"), "the combining diaeresis specifically")
+	assert_true(title.text.contains("́"), "and the combining acute")
+
+
+func test_the_species_line_sits_beneath_the_name_in_the_same_column() -> void:
+	"""Actual species and verified status go under the name, in the column, not beside it."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		_show_name(case, "Mira")
+		var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+		var identity: Control = _shell.detail_identity_label()
+		assert_almost_equal(identity.position.x, title.position.x,
+			"profile %d: the species line shares the name's column origin" % case[3])
+		assert_almost_equal(identity.size.x, title.size.x, "and its width")
+		assert_true(identity.position.y >= title.position.y + title.size.y - 0.01,
+			"profile %d: and sits beneath the name" % case[3])
+
+
+func test_the_action_footer_is_64_px_with_a_44_px_center_view() -> void:
+	"""§4.1's footer survives: "Keep the header/close and a 64 px center-action footer visible"."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		var panel: Control = _shell.control_for(UiShell.ID_DETAIL)
+		var action: Control = _shell.detail_center_view()
+		assert_almost_equal(action.size.y, 44.0, "profile %d: Center view is 44 high" % case[3])
+		assert_almost_equal(action.position.y, panel.size.y - 64.0 + 10.0,
+			"profile %d: centred in the 64 px footer band" % case[3])
+		assert_almost_equal(action.position.x, 20.0, "inside the inherited left inset")
+		assert_true(action.visible, "and it is visible")
+
+
+func test_center_view_is_a_labelled_action_that_names_its_missing_camera() -> void:
+	"""It is "its own labeled action, not a click on the title" -- and it is honestly disabled."""
+	var action: Button = _shell.detail_center_view()
+	assert_equal(action.text, "Center view", "the action carries its own label")
+	assert_true(action.disabled, "and is disabled, because no camera is bound")
+	var reason: String = UiAvailability.REASON_TEXTS[UiAvailability.REASON_NO_WORLD_CAMERA]
+	assert_equal(action.accessibility_description, reason,
+		"stating the actual reason rather than a silent no-op")
+	var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+	assert_equal(title.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"and the heading itself takes no click")
+
+
+func test_only_the_body_scrolls() -> void:
+	"""Header, Close and footer are outside the ScrollContainer; the content column is inside."""
+	var body: ScrollContainer = _shell.detail_body()
+	for control: Control in [_shell.control_for(UiShell.ID_DETAIL_TITLE),
+			_shell.control_for(UiShell.ID_CLOSE), _shell.detail_emblem(),
+			_shell.detail_center_view(), _shell.detail_identity_label()]:
+		assert_false(body.is_ancestor_of(control),
+			"%s is pinned outside the scrolling body" % control.name)
+	assert_true(body.is_ancestor_of(_shell.need_row(0)),
+		"while the need rows scroll with the content")
+
+
+func test_no_name_draws_outside_its_own_heading_rectangle() -> void:
+	"""The regression a headless assertion missed and a render caught.
+
+	A 39-character single word wrapped to THREE lines inside a two-line heading rectangle and
+	drew over the species line and the Overview tab. Nothing failed, because
+	`_wrapped_height()` measured with `get_multiline_string_size()`'s default break flags --
+	`BREAK_MANDATORY | BREAK_WORD_BOUND`, which never splits a word -- while the Label was set
+	to `AUTOWRAP_WORD_SMART`, which does. The measurement and the drawing disagreed by a line.
+
+	So this measures the heading the way the Label will actually break it, and then asserts the
+	allocated rectangle is at least that tall AND that it touches neither of the two controls
+	it overflowed onto.
+	"""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		for name: String in [NAME_UNBROKEN, NAME_32, NAME_COMBINING, "Mira"]:
+			_show_name(case, name)
+			var title: Label = _shell.control_for(UiShell.ID_DETAIL_TITLE) as Label
+			assert_true(title.size.y >= _drawn_height(title) - 0.01,
+				"profile %d, '%s': the heading box holds every line it draws (%f < %f)"
+					% [case[3], name, title.size.y, _drawn_height(title)])
+			assert_false(Rect2(title.position, title.size).intersects(
+				Rect2(_shell.detail_identity_label().position,
+					_shell.detail_identity_label().size)),
+				"profile %d, '%s': and never draws over the species line" % [case[3], name])
+			var tabs: Control = _shell.control_for(UiShell.ID_DETAIL_TABS)
+			assert_false(Rect2(title.position, title.size).intersects(
+				Rect2(tabs.position, tabs.size)),
+				"profile %d, '%s': nor over the tabs beneath it" % [case[3], name])
+
+
+func _drawn_height(label: Label) -> float:
+	"""How tall the label's text really is, measured with the break flags its mode will use.
+
+	Stated independently of `ui_shell.gd`'s own helper on purpose: a test that called the
+	production measurement would agree with it whatever it did, including agreeing with the
+	defect above.
+	"""
+	var flags: int = TextServer.BREAK_MANDATORY | TextServer.BREAK_TRIM_EDGE_SPACES \
+		| TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND
+	assert_equal(label.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART,
+		"those are WORD_SMART's flags, so the mode must be WORD_SMART")
+	return label.get_theme_font(&"font").get_multiline_string_size(label.text,
+		HORIZONTAL_ALIGNMENT_LEFT, label.size.x,
+		label.get_theme_font_size(&"font_size"), -1, flags).y

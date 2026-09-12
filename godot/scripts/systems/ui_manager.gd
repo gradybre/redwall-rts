@@ -29,10 +29,12 @@ const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSession := preload("res://scripts/ui/ui_world_session.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
+const UiNotices := preload("res://scripts/ui/ui_notices.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const NeedsScript := preload("res://scripts/core/needs.gd")
+const UiResidentCard := preload("res://scripts/ui/ui_resident_card.gd")
 
 
 ## GameManager's PLAYING state, restated so the paused-start rule does not depend on an import
@@ -52,6 +54,26 @@ const POPULATION_ID: int = 6
 ## GDD §4.3's FORAGING skill index, the one this milestone's detail row reports.
 const FORAGING_SKILL: int = 0
 
+## The source every notice about world generation names, so the expanded view can say WHERE the
+## condition came from. These are the names of the modules that actually raise them.
+const GENERATION_SOURCE: String = "UI-SET-103 New settlement"
+const STOCK_SOURCE: String = "Settlement stores"
+const CLOCK_SOURCE: String = "Simulation clock"
+const ROSTER_SOURCE: String = "UI-SET-069 Resident roster"
+const COMMAND_SOURCE: String = "Command queue"
+## The recovery §4 gives UI-SET-085's "recovery action" column for the conditions whose owner
+## publishes one. A condition with no published recovery gets none; `ui_notices.gd` states the
+## absence rather than inventing an instruction.
+const GENERATION_RECOVERY: String = "Use New settlement again to generate a world."
+const CLOCK_RECOVERY: String = "Lower the game speed, or let the simulation catch up."
+
+## The validation codes these conditions group on under §7's repeat rule. Each names the
+## condition, not the message, so a changed sentence does not split one condition into two rows.
+const STOCK_EMPTY_CODE: String = "ECONOMY_STOCK_EMPTY"
+const CLOCK_OVERLOAD_CODE: String = "CLOCK_OVERLOADED"
+const NO_WORLD_CODE: String = "UI_NO_WORLD_GENERATED"
+const ROSTER_STALE_CODE: String = "UI_ROSTER_ROW_IS_STALE"
+
 var _hud: HudScript = null
 var _time_source: GameManagerScript = null
 var _bridge: UiCommandBridge = UiCommandBridge.new()
@@ -62,6 +84,8 @@ var _opening_pause_applied: bool = false
 var _last_refusal: StringName = REFUSE_NONE
 ## Which resident slot each roster row currently IS. REQ-UX-013: identity, not a render index.
 var _roster_slots: PackedInt32Array = PackedInt32Array()
+## UI-SET-036's composer. Built once: its five need rows are reused on every selection.
+var _card: UiResidentCard = UiResidentCard.new()
 
 
 func _ready() -> void:
@@ -131,7 +155,7 @@ func _on_shell_action(element_id: int) -> void:
 func create_world() -> bool:
 	"""UI-SET-103's Create: discard the current settlement and create §5.1's world AND cohort.
 
-	THE WORLD AND THEN ITS COHORT, in that order. This generated the world and no residents,
+	THE COHORT AND THEN ITS WORLD, in that order (R-INIT-ID-001). This generated the world and no residents,
 	so pressing Create emptied the settlement it had just made and the HUD read
 	"Residents 0" against a fully generated map. Decision 0071 fixed boot; the UI kept the
 	poorer path.
@@ -149,18 +173,15 @@ func create_world() -> bool:
 	"""
 	if SettlementSystem == null:
 		return _refuse(REFUSE_NO_SETTLEMENT)
-	SettlementSystem.reset()
 	var report: UiWorldSession.Report = _session.last_report()
-	var ok: bool = _session.create_into(SettlementSystem.directory(),
+	var ok: bool = _session.create_with_cohort_into(SettlementSystem.directory(),
 		SettlementSystem.ecology().resource_nodes(), SettlementSystem.ecology().forage(),
 		SettlementSystem.ecology().fishing(), SettlementSystem.rng(),
 		SettlementSystem.crop_weather().farming(), SettlementSystem.ecology().orchard_hive(),
-		SettlementSystem.jobs(), SettlementSystem.commands(), report)
-	if ok and not SettlementSystem.create_initial_settlement():
-		ok = false
-		report.ok = false
+		SettlementSystem.jobs(), SettlementSystem.commands(), report,
+		SettlementSystem.reset, SettlementSystem.create_initial_settlement)
+	if not ok and report.error == UiWorldSession.REFUSE_COHORT:
 		report.error = SettlementSystem.last_refusal()
-		report.detail = "The world was generated but its cohort could not be spawned."
 	_report_generation(ok, report)
 	if ok and EconomySystem != null:
 		EconomySystem.bind_residents(SettlementSystem.residents())
@@ -169,19 +190,43 @@ func create_world() -> bool:
 
 
 func _report_generation(ok: bool, report: UiWorldSession.Report) -> void:
-	"""Put the generator's own counts, or its own refusal code, in front of the player."""
+	"""Put the generator's own counts, or its own refusal code, in front of the player.
+
+	R-UI-ALERT-001 names this condition in terms: severity `Error`, compact title "Generation
+	failed", "the exact detailed reason, validation code and recovery stay in the notice
+	record". The sentence below is the generator's own and is passed through unaltered; the
+	code is the generator's own `report.error`. Nothing here shortens either.
+	"""
 	if not _has_hud():
 		return
 	var shell: UiShell = _hud.shell()
 	if ok:
-		shell.report_action_result(true,
+		## MERGE, 2026-09-11: the sentence is R-INIT-ID-001's, which added the cohort count;
+		## the routing is R-UI-ALERT-001's, which gives the notice its authored category. The
+		## sentence itself is passed through unaltered, exactly as it was before.
+		shell.raise_notice(UiNotices.CATEGORY_SETTLEMENT_CREATED,
 			"Settlement generated: %d resource nodes, %d basins, %d fish stocks, %d residents, seed %d."
 			% [report.resource_nodes, report.basins, report.fish_stocks,
-				SettlementSystem.population(), report.accepted_seed])
+				SettlementSystem.population(), report.accepted_seed],
+			GENERATION_SOURCE, "", "")
+		shell.set_refusal_display("")
 	else:
-		shell.report_action_result(false,
-			"Generation refused (%s): %s The settlement is now empty." % [report.error, report.detail])
+		_report_generation_failure(shell, report)
 	_refresh_hud()
+
+
+func _report_generation_failure(shell: UiShell, report: UiWorldSession.Report) -> void:
+	"""Raise the generation refusal as an Error notice AND fill UI-SET-085's error panel.
+
+	Both, not one: §4 gives UI-SET-085 "Error code+plain reason+recovery action" for a fault,
+	and the ruling gives the alert card an authored summary that discloses the same record. The
+	message is written once and used by both, so the two displays cannot drift apart.
+	"""
+	var message: String = "Generation refused (%s): %s The settlement is now empty." \
+		% [report.error, report.detail]
+	shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, message, GENERATION_SOURCE,
+		String(report.error), GENERATION_RECOVERY)
+	shell.set_refusal_display(message)
 
 
 func refresh_roster() -> bool:
@@ -211,15 +256,18 @@ func refresh_roster() -> bool:
 
 
 func _roster_label(residents: ResidentsScript, needs: NeedsScript, slot: int) -> String:
-	"""One row's visible text: the facts a store actually publishes for that resident."""
-	var name_text: String = String(residents.name_key_of(slot)) if residents.is_named(slot) \
-		else "Unnamed"
-	var species: IntMath.IntResult = residents.species_of(slot)
-	var health: IntMath.IntResult = needs.health_of(slot)
-	var species_key: StringName = residents.species_key(species.value) if species.ok else &""
-	return "%s  %s  health %d" % [name_text,
-		String(species_key) if species_key != &"" else "unknown species",
-		health.value if health.ok else 0]
+	"""One row's visible text: the facts a store actually publishes for that resident.
+
+	UXV-024's "identity line and secondary status": the name leads, then species and health.
+
+	Health is formatted by `ui_resident_card.gd` and NOT by a second copy of the same rule here.
+	That matters for one reason: the card's version distinguishes a refused read from a real
+	zero, and a duplicate of it in this file would be an unreachable branch nothing could test
+	-- `refresh_roster()` only calls this for a slot it has already found alive.
+	"""
+	return "%s  %s  %s" % [UiResidentCard.heading_text(residents, slot),
+		UiResidentCard.species_text(residents, slot),
+		UiResidentCard.health_text(needs, slot)]
 
 
 func _on_resident_row_picked(row_index: int) -> void:
@@ -230,24 +278,73 @@ func _on_resident_row_picked(row_index: int) -> void:
 	var residents: ResidentsScript = SettlementSystem.residents()
 	var needs: NeedsScript = SettlementSystem.needs()
 	if not residents.is_alive(slot):
-		_hud.shell().report_action_result(false,
-			"That resident is no longer living; the roster row is stale.")
+		_hud.shell().raise_notice(UiNotices.CATEGORY_ROSTER_STALE,
+			"That resident is no longer living; the roster row is stale.",
+			"%s row %d" % [ROSTER_SOURCE, row_index], ROSTER_STALE_CODE,
+			"Open the roster again to rebuild its rows.")
 		return
 	_show_resident_detail(residents, needs, slot)
 
 
 func _show_resident_detail(residents: ResidentsScript, needs: NeedsScript, slot: int) -> void:
-	"""Fill the detail panel with that resident's real identity, need and skill rows."""
+	"""Fill UI-SET-036 in UXV-019's order: identity, health, five needs, activity and skills.
+
+	THE OLD LINE WAS `Hunger 7500 of 10000`, and it broke two requirements at once. UXV-020
+	forbids exposing a basis-point figure as the player-facing value, and UXV-021 fixes the
+	visible label as `Fullness` -- the store's hunger column is SATISFACTION, so a high number
+	is a well-fed resident. `ui_resident_card.gd` does every conversion; nothing is derived here.
+	"""
 	var shell: UiShell = _hud.shell()
-	var hunger: IntMath.IntResult = needs.need_of(slot, NeedsScript.NEED_HUNGER)
-	var rest: IntMath.IntResult = needs.need_of(slot, NeedsScript.NEED_REST)
-	var level: IntMath.IntResult = residents.skill_level_of(slot, FORAGING_SKILL)
-	shell.set_detail_display(_roster_label(residents, needs, slot),
-		"Hunger %d of %d; Rest %d of %d" % [hunger.value, NeedsScript.NEED_MAX,
-			rest.value, NeedsScript.NEED_MAX],
-		"Foraging level %d" % level.value if level.ok else "Foraging level unavailable")
+	shell.set_detail_display(UiResidentCard.heading_text(residents, slot),
+		UiResidentCard.identity_text(residents, needs, slot),
+		UiResidentCard.skill_text(residents, slot, FORAGING_SKILL))
+	shell.set_detail_health(UiResidentCard.health_text(needs, slot))
+	shell.set_detail_activity(UiResidentCard.activity_text(needs,
+		SettlementSystem.jobs(), slot))
+	_fill_need_rows(shell, residents, needs, slot)
+	_fill_species_emblem(shell, residents, slot)
 	shell.select_resident(residents.ref_of(slot), "")
 	shell.set_detail_open(true)
+
+
+func _fill_need_rows(shell: UiShell, residents: ResidentsScript, needs: NeedsScript,
+		slot: int) -> bool:
+	"""UXV-020's five rows: exact percent, 8 px track and per-simulated-hour change each.
+
+	A refusal from the card leaves the rows EMPTY and raises the refusal, rather than printing
+	four rows and one plausible fifth. `needs.gd` publishes an effective rate for hunger only,
+	so the other four rows carry the card's explicit "Rate unavailable" -- see its header.
+	"""
+	if not _card.fill_needs(residents, needs, slot):
+		shell.raise_notice(UiNotices.CATEGORY_ROSTER_STALE,
+			"That resident's needs could not be read (%s)." % _card.last_refusal(),
+			ROSTER_SOURCE, String(_card.last_refusal()),
+			"Open the roster again to rebuild its rows.")
+		return _refuse(REFUSE_NO_SETTLEMENT)
+	for index: int in _card.row_count():
+		var row: UiResidentCard.Row = _card.row(index)
+		shell.set_need_row(index, row.label, row.value_text, row.rate_text, row.basis_points,
+			row.accessible)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _fill_species_emblem(shell: UiShell, residents: ResidentsScript, slot: int) -> void:
+	"""ART-UI-06: the generic species medallion beside the name, and the note saying what it is.
+
+	ART-LOCK-001 delivers four medallions -- mouse, mole, otter, squirrel. A resident of any
+	other species gets NO emblem and the readable species text alone; borrowing the mouse
+	roundel for everyone is the failure the lock names. The note is written either way, because
+	UXV-019 requires the mark to be identified as generic whenever one is shown, and the age
+	statement is true of every resident.
+	"""
+	var species: String = UiResidentCard.species_text(residents, slot)
+	var key: StringName = StringName(species)
+	var path: String = UiResidentCard.emblem_path(key, shell.detail_emblem_pixels())
+	if not path.is_empty():
+		shell.set_detail_emblem(path, UiResidentCard.emblem_description(key))
+	shell.set_detail_note("%s  %s" % [UiResidentCard.EMBLEM_NOTE,
+		UiResidentCard.AGE_UNAVAILABLE])
 
 
 func _on_tile_picked(tile_index: int) -> void:
@@ -256,7 +353,9 @@ func _on_tile_picked(tile_index: int) -> void:
 		return
 	var shell: UiShell = _hud.shell()
 	if not _session.has_world():
-		shell.report_action_result(false, "No world has been generated yet, so no tile can be inspected.")
+		shell.raise_notice(UiNotices.CATEGORY_NO_WORLD,
+			"No world has been generated yet, so no tile can be inspected.",
+			GENERATION_SOURCE, NO_WORLD_CODE, GENERATION_RECOVERY)
 		return
 	_select_tile(shell, tile_index)
 
@@ -297,9 +396,18 @@ func push_alert(text: String) -> void:
 
 
 func push_refusal(code: StringName) -> void:
-	"""Show an exact refusal code and its plain reading in UI-SET-085's accessible display."""
-	if _has_hud():
-		_hud.show_refusal(_bridge.refusal_sentence(code))
+	"""Show an exact refusal code and its plain reading, and retain it as an Error notice.
+
+	The error panel is UI-SET-085's job and is unchanged. The notice is what makes the refusal
+	RETRIEVABLE afterwards: UI-SET-085 is cleared by the next accepted action, and a player who
+	looked away should still be able to read why the last one was refused.
+	"""
+	if not _has_hud():
+		return
+	var sentence: String = _bridge.refusal_sentence(code)
+	_hud.show_refusal(sentence)
+	_hud.shell().raise_notice(UiNotices.CATEGORY_ACTION_REFUSED, sentence, COMMAND_SOURCE,
+		String(code), "")
 
 
 func _time() -> GameManagerScript:
@@ -430,8 +538,15 @@ func _on_stocks_changed() -> void:
 
 
 func _on_stock_depleted(item_key: StringName) -> void:
-	"""Raise an alert when the last unit of an item leaves the stores."""
-	push_alert("Out of %s!" % item_key)
+	"""Raise an alert when the last unit of an item leaves the stores.
+
+	The item is named in the message and carried as the notice's SOURCE, so §7's repeat rule
+	groups two depletions of the same item onto one card and two different items onto two.
+	"""
+	if not _has_hud():
+		return
+	_hud.shell().raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of %s!" % item_key,
+		"%s (%s)" % [STOCK_SOURCE, item_key], STOCK_EMPTY_CODE, "")
 
 
 func _on_state_changed(new_state: int) -> void:
@@ -457,8 +572,16 @@ func _on_day_advanced(_absolute_day: int) -> void:
 
 
 func _on_clock_diagnostic(message: String) -> void:
-	"""Surface a scheduler overload warning or diagnostic pause in the alert zone."""
-	push_alert(message)
+	"""Surface a scheduler overload warning or diagnostic pause, with the clock's own wording.
+
+	`sim_clock.gd` writes the sentence, including the owed tick count, and it reaches the notice
+	record byte for byte; the card shows the authored "Clock overloaded" summary instead when
+	the composition has no room for the sentence.
+	"""
+	if not _has_hud():
+		return
+	_hud.shell().raise_notice(UiNotices.CATEGORY_CLOCK_OVERLOAD, message, CLOCK_SOURCE,
+		CLOCK_OVERLOAD_CODE, CLOCK_RECOVERY)
 
 
 func last_refusal() -> StringName:

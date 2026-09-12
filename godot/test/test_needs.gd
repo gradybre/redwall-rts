@@ -1111,3 +1111,409 @@ func test_the_integrator_refuses_a_broken_precondition_instead_of_integrating_it
 	assert_equal(_needs._integrate_step(9223372036854775807, 0, 750000,
 		NeedsScript.NEED_DENOMINATOR, 0, 9223372036854775807), NeedsScript.REFUSE_OVERFLOW,
 		"an int64 value that cannot absorb its whole units refuses rather than wrapping")
+
+
+# --- NEED-RATE-R01: the four published net need-rate readers ---------------------------------
+#
+# These tests exist in two halves and BOTH halves are load-bearing.
+#
+# The first half pins each of the seventeen inherited rate rows to its literal number from the
+# ruling's table. Written alone that proves very little: a reader and its expectation can share
+# one wrong expression and agree with each other forever. The ruling says so outright -- "do not
+# compare only two functions sharing the same mistaken expression."
+#
+# The second half is what makes the first half mean something. For each row it runs 750 ACTUAL
+# ticks of the real integrator from an interior value with a known nonzero starting remainder,
+# and requires the published rate R to predict both the released whole units and the retained
+# signed remainder exactly:
+#
+#     delta     = trunc((initial_remainder + 750*R) / 750000)
+#     remainder = (initial_remainder + 750*R) - 750000*delta
+#
+# A sign error, a doubled negation or a baseline subtracted twice survives the table and dies
+# here, because the integrator is not reading the same expression the reader is.
+
+## Every signed row of the ruling's fixture table: reader name, the context to install, and R.
+const RATE_FIXTURES: Array[Dictionary] = [
+	{&"need": 1, &"activity": 1, &"rate": 1200000, &"label": "rest sleeping in bed"},
+	{&"need": 1, &"activity": 2, &"rate": 750000, &"label": "rest sleeping on the floor"},
+	{&"need": 1, &"activity": 0, &"rate": -375000, &"label": "rest awake"},
+	{&"need": 2, &"comfort": 1, &"rate": 200000, &"label": "comfort in a valid heated room"},
+	{&"need": 2, &"comfort": 2, &"rate": 0, &"label": "comfort in mild outdoors"},
+	{&"need": 2, &"comfort": 0, &"rate": -100000, &"label": "comfort with no restoration"},
+	{&"need": 3, &"paired": true, &"rate": 1100000, &"label": "social paired"},
+	{&"need": 3, &"paired": false, &"rate": -100000, &"label": "social unpaired"},
+	{&"need": 4, &"purpose": 1, &"rate": 245000, &"label": "purpose from useful labor"},
+	{&"need": 4, &"purpose": 2, &"rate": 325000, &"label": "purpose from mentoring"},
+	{&"need": 4, &"purpose": 0, &"rate": -75000, &"label": "purpose with no restoration"},
+]
+
+## The six hunger rows: size class, winter flag and the POSITIVE decay magnitude the existing
+## `hunger_rate_milli_per_hour()` publishes. The signed rate the integrator uses is -magnitude.
+const HUNGER_FIXTURES: Array[Dictionary] = [
+	{&"size": 0, &"winter": false, &"magnitude": 250000, &"label": "hunger small, nonwinter"},
+	{&"size": 1, &"winter": false, &"magnitude": 300000, &"label": "hunger medium, nonwinter"},
+	{&"size": 2, &"winter": false, &"magnitude": 400000, &"label": "hunger large, nonwinter"},
+	{&"size": 0, &"winter": true, &"magnitude": 300000, &"label": "hunger small, winter"},
+	{&"size": 1, &"winter": true, &"magnitude": 360000, &"label": "hunger medium, winter"},
+	{&"size": 2, &"winter": true, &"magnitude": 480000, &"label": "hunger large, winter"},
+]
+
+## One tick in the DEFAULT context before the fixture context is installed. Without it the
+## rest-on-the-floor row is untestable for carry: +750000/hour is exactly the 750000 denominator,
+## so from a zero remainder it releases a whole point every tick and never retains anything.
+## Priming from the awake rate gives even that row a nonzero signed remainder to carry.
+const RATE_PRIME_TICKS: int = 1
+## Ticks run in the fixture's own context before the measured hour. Together with the priming
+## tick this leaves every one of the seventeen rows a nonzero retained remainder; each value is
+## worked out in the ruling's own arithmetic, not discovered by running the code.
+const RATE_WARMUP_TICKS: int = 100
+
+
+func _trunc_div(numerator: int, denominator: int) -> int:
+	"""Integer division truncated toward zero, written out rather than assumed of `/`."""
+	var quotient: int = absi(numerator) / denominator
+	return -quotient if numerator < 0 else quotient
+
+
+func _rate_into(need: int, slot: int, out: IntMath.IntResult) -> bool:
+	"""Dispatch to the published reader that owns `need`, so one test body covers all four."""
+	match need:
+		NeedsScript.NEED_REST:
+			return _needs.rest_rate_milli_per_hour_into(slot, out)
+		NeedsScript.NEED_COMFORT:
+			return _needs.comfort_rate_milli_per_hour_into(slot, out)
+		NeedsScript.NEED_SOCIAL:
+			return _needs.social_rate_milli_per_hour_into(slot, out)
+		NeedsScript.NEED_PURPOSE:
+			return _needs.purpose_rate_milli_per_hour_into(slot, out)
+	fail("no published reader owns need %d" % need)
+	return false
+
+
+func _rate(need: int, slot: int = 0) -> int:
+	"""Read one published net rate, asserting the read succeeded and returning its value."""
+	var out := IntMath.IntResult.new()
+	assert_true(_rate_into(need, slot, out), "rate reader for need %d succeeds" % need)
+	assert_true(out.ok, "rate reader for need %d reports ok" % need)
+	return out.value
+
+
+func _install_context(fixture: Dictionary, slot: int = 0) -> void:
+	"""Install one fixture's activity / comfort environment / pairing / purpose source."""
+	if fixture.has(&"activity"):
+		assert_true(_needs.set_activity(slot, int(fixture[&"activity"])).ok, "activity set")
+	if fixture.has(&"comfort"):
+		assert_true(_needs.set_comfort_environment(slot, int(fixture[&"comfort"])).ok,
+			"comfort environment set")
+	if fixture.has(&"paired"):
+		assert_true(_needs.set_social_paired(slot, bool(fixture[&"paired"])).ok, "pairing set")
+	if fixture.has(&"purpose"):
+		assert_true(_needs.set_purpose_source(slot, int(fixture[&"purpose"])).ok, "purpose set")
+
+
+func test_every_published_rate_row_matches_its_inherited_fixture() -> void:
+	"""Pin all eleven signed rows of the ruling's table to their literal milli/hour numbers."""
+	for fixture: Dictionary in RATE_FIXTURES:
+		_needs = NeedsScript.new()
+		_spawn()
+		_install_context(fixture)
+		assert_equal(_rate(int(fixture[&"need"])), int(fixture[&"rate"]),
+			"%s is %d milli/hour" % [fixture[&"label"], fixture[&"rate"]])
+
+
+func test_every_hunger_fixture_row_matches_its_positive_decay_magnitude() -> void:
+	"""The six size/season hunger rows. This reader keeps its POSITIVE magnitude contract."""
+	for fixture: Dictionary in HUNGER_FIXTURES:
+		_needs = NeedsScript.new()
+		_spawn(0, int(fixture[&"size"]))
+		assert_true(_needs.set_winter(bool(fixture[&"winter"])).ok, "season set")
+		var result := _needs.hunger_rate_milli_per_hour(int(fixture[&"size"]))
+		assert_true(result.ok, "hunger_rate_milli_per_hour succeeds")
+		assert_equal(result.value, int(fixture[&"magnitude"]),
+			"%s is +%d milli/hour" % [fixture[&"label"], fixture[&"magnitude"]])
+		assert_true(result.value > 0, "%s stays a positive magnitude" % fixture[&"label"])
+
+
+func _assert_hour_matches_rate(slot: int, need: int, rate: int, label: String) -> void:
+	"""Run 750 real ticks and require `rate` to predict the delta AND the retained remainder."""
+	var value_before: int = _need(slot, need)
+	var remainder_before: int = _remainder(slot, need)
+	_tick(slot, HOUR)
+	var total: int = remainder_before + HOUR * rate
+	var whole: int = _trunc_div(total, NeedsScript.NEED_DENOMINATOR)
+	assert_equal(_need(slot, need) - value_before, whole,
+		"%s releases trunc((r0 + 750R)/750000) = %d over an hour" % [label, whole])
+	assert_equal(_remainder(slot, need), total - whole * NeedsScript.NEED_DENOMINATOR,
+		"%s retains the exact signed remainder" % label)
+
+
+func test_every_published_rate_predicts_750_real_ticks_from_a_nonzero_remainder() -> void:
+	"""The check that makes the fixture table mean something: the integrator must agree.
+
+	Each row starts from an interior value of 5000, warms up until it carries a nonzero signed
+	remainder, and is then required to move by exactly what its published rate says over one
+	simulated hour. A reader that shares a wrong expression with its expectation dies here.
+	"""
+	for fixture: Dictionary in RATE_FIXTURES:
+		_needs = NeedsScript.new()
+		_spawn()
+		var need: int = int(fixture[&"need"])
+		var rate: int = int(fixture[&"rate"])
+		_set_need(0, need, 5000)
+		_tick(0, RATE_PRIME_TICKS)
+		_install_context(fixture)
+		_tick(0, RATE_WARMUP_TICKS)
+		assert_true(_remainder(0, need) != 0,
+			"%s carries a nonzero remainder into the hour" % fixture[&"label"])
+		assert_equal(_rate(need), rate, "%s still reads its rate" % fixture[&"label"])
+		_assert_hour_matches_rate(0, need, rate, String(fixture[&"label"]))
+
+
+func test_every_hunger_fixture_predicts_750_real_ticks_as_a_negative_rate() -> void:
+	"""Hunger's published magnitude, negated exactly once, must predict the real integration."""
+	for fixture: Dictionary in HUNGER_FIXTURES:
+		_needs = NeedsScript.new()
+		_spawn(0, int(fixture[&"size"]))
+		assert_true(_needs.set_winter(bool(fixture[&"winter"])).ok, "season set")
+		var result := _needs.hunger_rate_milli_per_hour(int(fixture[&"size"]))
+		assert_true(result.ok, "hunger_rate_milli_per_hour succeeds")
+		_set_need(0, NeedsScript.NEED_HUNGER, 5000)
+		_tick(0, RATE_PRIME_TICKS + RATE_WARMUP_TICKS)
+		assert_true(_remainder(0, NeedsScript.NEED_HUNGER) != 0, "a nonzero remainder is carried")
+		_assert_hour_matches_rate(0, NeedsScript.NEED_HUNGER, -result.value,
+			String(fixture[&"label"]))
+
+
+func test_a_zero_comfort_rate_retains_its_remainder_across_a_whole_hour() -> void:
+	"""Mild outdoors is a real 0: an hour of it moves nothing and discards no carried remainder."""
+	_spawn()
+	_set_need(0, NeedsScript.NEED_COMFORT, 5000)
+	_tick(0, 1)
+	var carried: int = _remainder(0, NeedsScript.NEED_COMFORT)
+	assert_equal(carried, -NeedsScript.COMFORT_DECAY_MILLI_PER_HOUR, "one awake tick carries -100000")
+	assert_true(_needs.set_comfort_environment(0, NeedsScript.COMFORT_ENV_MILD_OUTDOORS).ok,
+		"mild outdoors set")
+	assert_equal(_rate(NeedsScript.NEED_COMFORT), 0, "mild outdoors is a net zero rate")
+	_assert_hour_matches_rate(0, NeedsScript.NEED_COMFORT, 0, "comfort mild outdoors")
+	assert_equal(_remainder(0, NeedsScript.NEED_COMFORT), carried,
+		"a zero rate neither releases nor discards the retained remainder")
+
+
+func test_a_direction_change_carries_the_signed_remainder_into_the_new_rate() -> void:
+	"""Waking rates are negative and sleeping rates positive; the carried remainder changes sign."""
+	_spawn()
+	_set_need(0, NeedsScript.NEED_REST, 5000)
+	_tick(0, 1)
+	assert_equal(_remainder(0, NeedsScript.NEED_REST), -375000, "an awake tick carries -375000")
+	assert_true(_needs.set_activity(0, NeedsScript.ACTIVITY_SLEEP_BED).ok, "sent to bed")
+	assert_equal(_rate(NeedsScript.NEED_REST), 1200000, "the bed rate is read immediately")
+	_assert_hour_matches_rate(0, NeedsScript.NEED_REST, 1200000, "rest bed after an awake tick")
+	assert_true(_needs.set_activity(0, NeedsScript.ACTIVITY_AWAKE).ok, "woken again")
+	assert_equal(_rate(NeedsScript.NEED_REST), -375000, "the awake rate returns immediately")
+	_assert_hour_matches_rate(0, NeedsScript.NEED_REST, -375000, "rest awake after a bed hour")
+
+
+func test_every_context_change_is_visible_on_the_next_read_with_no_cached_lag() -> void:
+	"""No cache, no dirty flag: each setter changes the published rate on the very next call."""
+	_spawn()
+	assert_equal(_rate(NeedsScript.NEED_REST), -375000, "awake")
+	assert_true(_needs.set_activity(0, NeedsScript.ACTIVITY_SLEEP_FLOOR).ok, "to the floor")
+	assert_equal(_rate(NeedsScript.NEED_REST), 750000, "floor, with no intervening tick")
+	assert_true(_needs.set_comfort_environment(0, NeedsScript.COMFORT_ENV_HEATED_ROOM).ok, "heated")
+	assert_equal(_rate(NeedsScript.NEED_COMFORT), 200000, "heated room, with no intervening tick")
+	assert_true(_needs.set_social_paired(0, true).ok, "paired")
+	assert_equal(_rate(NeedsScript.NEED_SOCIAL), 1100000, "paired, with no intervening tick")
+	assert_true(_needs.set_purpose_source(0, NeedsScript.PURPOSE_SOURCE_MENTORING).ok, "mentoring")
+	assert_equal(_rate(NeedsScript.NEED_PURPOSE), 325000, "mentoring, with no intervening tick")
+	assert_true(_needs.set_purpose_source(0, NeedsScript.PURPOSE_SOURCE_LABOR).ok, "labor")
+	assert_equal(_rate(NeedsScript.NEED_PURPOSE), 245000, "labor, with no intervening tick")
+
+
+func test_a_rate_reader_refuses_an_invalid_free_or_dead_row_with_a_cleared_value() -> void:
+	"""Refusal travels on `.ok` with the real reason and a zeroed value; 0 is not an answer."""
+	_spawn(3)
+	assert_true(_needs.apply_health_event(3, -NeedsScript.INITIAL_HEALTH).ok, "resident dies")
+	_spawn(4)
+	assert_true(_needs.despawn(4).ok, "slot 4 released")
+	var cases: Array[Array] = [
+		[-1, NeedsScript.REFUSE_INVALID_SLOT], [NeedsScript.RESIDENT_CAPACITY,
+		NeedsScript.REFUSE_INVALID_SLOT], [5, NeedsScript.REFUSE_NOT_PRESENT],
+		[4, NeedsScript.REFUSE_NOT_PRESENT], [3, NeedsScript.REFUSE_RESIDENT_DEAD],
+	]
+	for need: int in [NeedsScript.NEED_REST, NeedsScript.NEED_COMFORT, NeedsScript.NEED_SOCIAL,
+			NeedsScript.NEED_PURPOSE]:
+		for case: Array in cases:
+			var out := IntMath.IntResult.new()
+			out.succeed(999999)
+			assert_false(_rate_into(need, int(case[0]), out),
+				"need %d at slot %d refuses" % [need, case[0]])
+			assert_false(out.ok, "the refusal is on the ok channel")
+			assert_equal(out.value, 0, "the refused value is cleared, not left at 999999")
+			assert_equal(out.error, String(case[1]), "the actual refusal reason is named")
+
+
+func test_a_reused_slot_publishes_the_new_residents_rates_not_the_previous_ones() -> void:
+	"""Slot reuse must not leak the retired resident's context into the replacement's rates."""
+	_spawn(7, NeedsScript.SIZE_LARGE)
+	assert_true(_needs.set_activity(7, NeedsScript.ACTIVITY_SLEEP_BED).ok, "in bed")
+	assert_true(_needs.set_comfort_environment(7, NeedsScript.COMFORT_ENV_HEATED_ROOM).ok, "heated")
+	assert_true(_needs.set_social_paired(7, true).ok, "paired")
+	assert_true(_needs.set_purpose_source(7, NeedsScript.PURPOSE_SOURCE_MENTORING).ok, "mentoring")
+	assert_equal(_rate(NeedsScript.NEED_REST, 7), 1200000, "the first resident sleeps in a bed")
+	assert_true(_needs.despawn(7).ok, "slot 7 released")
+	var stale := IntMath.IntResult.new()
+	assert_false(_needs.rest_rate_milli_per_hour_into(7, stale), "a released slot has no rate")
+	assert_equal(stale.error, String(NeedsScript.REFUSE_NOT_PRESENT), "the reason is NOT_PRESENT")
+	_spawn(7, NeedsScript.SIZE_SMALL)
+	assert_equal(_rate(NeedsScript.NEED_REST, 7), -375000, "the replacement is awake")
+	assert_equal(_rate(NeedsScript.NEED_COMFORT, 7), -100000, "the replacement has no heating")
+	assert_equal(_rate(NeedsScript.NEED_SOCIAL, 7), -100000, "the replacement is unpaired")
+	assert_equal(_rate(NeedsScript.NEED_PURPOSE, 7), -75000, "the replacement has no purpose source")
+
+
+func _observable_state(slot: int) -> PackedInt64Array:
+	"""Every value this module publishes for one resident, plus the store-wide counters."""
+	var snapshot := PackedInt64Array()
+	for need: int in NeedsScript.NEED_COUNT:
+		snapshot.append(_need(slot, need))
+		snapshot.append(_remainder(slot, need))
+	snapshot.append(_health(slot))
+	snapshot.append(_needs.health_remainder_of(slot).value)
+	snapshot.append(_needs.cold_milli_hours_of(slot).value)
+	snapshot.append(_needs.cold_hours_of(slot).value)
+	snapshot.append(_needs.starving_hours_of(slot).value)
+	snapshot.append(_needs.departure_days_of(slot).value)
+	snapshot.append(_needs.status_of(slot).value)
+	snapshot.append(_needs.size_class_of(slot).value)
+	snapshot.append(_needs.present_count())
+	snapshot.append(_needs.living_count())
+	snapshot.append(_needs.death_count())
+	snapshot.append(1 if _needs.is_winter() else 0)
+	snapshot.append(1 if _needs.is_hard_freeze() else 0)
+	for size_class: int in NeedsScript.SIZE_COUNT:
+		snapshot.append(_needs.hunger_rate_milli_per_hour(size_class).value)
+	return snapshot
+
+
+func test_repeated_rate_reads_leave_every_observable_state_value_unchanged() -> void:
+	"""Asking for a rate applies no event: 400 reads mid-run change nothing that is published."""
+	_spawn(0, NeedsScript.SIZE_MEDIUM)
+	assert_true(_needs.set_activity(0, NeedsScript.ACTIVITY_SLEEP_BED).ok, "in bed")
+	assert_true(_needs.set_purpose_source(0, NeedsScript.PURPOSE_SOURCE_LABOR).ok, "labor")
+	_tick(0, 400)
+	var before: PackedInt64Array = _observable_state(0)
+	var out := IntMath.IntResult.new()
+	for _repeat: int in 100:
+		for need: int in [NeedsScript.NEED_REST, NeedsScript.NEED_COMFORT,
+				NeedsScript.NEED_SOCIAL, NeedsScript.NEED_PURPOSE]:
+			assert_true(_rate_into(need, 0, out), "the read succeeds")
+	assert_equal(_observable_state(0), before, "400 rate reads changed no published value")
+
+
+func test_rate_reads_do_not_perturb_the_simulation_a_twin_store_runs_without_them() -> void:
+	"""The strongest no-side-effect check available: two identical stores, one read constantly.
+
+	Private columns cannot be snapshotted from a test, so divergence is detected the way it
+	would actually hurt -- by running both stores forward and comparing every published value.
+	A reader that wrote a remainder, flipped an activity flag or applied an event would show up
+	here even though `_activity` and `_rate_scratch` are invisible from outside.
+	"""
+	var quiet: NeedsScript = NeedsScript.new()
+	assert_true(quiet.spawn(0, NeedsScript.SIZE_LARGE).ok, "twin spawns")
+	assert_true(quiet.set_activity(0, NeedsScript.ACTIVITY_SLEEP_FLOOR).ok, "twin on the floor")
+	assert_true(quiet.set_social_paired(0, true).ok, "twin paired")
+	_spawn(0, NeedsScript.SIZE_LARGE)
+	assert_true(_needs.set_activity(0, NeedsScript.ACTIVITY_SLEEP_FLOOR).ok, "on the floor")
+	assert_true(_needs.set_social_paired(0, true).ok, "paired")
+	var out := IntMath.IntResult.new()
+	for _tick_index: int in 900:
+		for need: int in [NeedsScript.NEED_REST, NeedsScript.NEED_COMFORT,
+				NeedsScript.NEED_SOCIAL, NeedsScript.NEED_PURPOSE]:
+			assert_true(_rate_into(need, 0, out), "the interleaved read succeeds")
+		assert_true(_needs.tick(0).ok, "the observed store ticks")
+		assert_true(quiet.tick(0).ok, "the twin ticks")
+	var observed: PackedInt64Array = _observable_state(0)
+	_needs = quiet
+	assert_equal(observed, _observable_state(0), "900 interleaved reads produced no divergence")
+
+
+func test_a_capped_need_still_publishes_its_outward_rate_and_moves_on_an_inward_one() -> void:
+	"""UXV-020: at a bound keep R and mark Capped. The reader never reports 0 for a capped row."""
+	_spawn()
+	_set_need(0, NeedsScript.NEED_COMFORT, NeedsScript.NEED_MIN)
+	assert_equal(_rate(NeedsScript.NEED_COMFORT), -100000, "an emptied need still publishes -1.00")
+	_tick(0, HOUR)
+	assert_equal(_need(0, NeedsScript.NEED_COMFORT), NeedsScript.NEED_MIN, "it stays at the floor")
+	assert_equal(_remainder(0, NeedsScript.NEED_COMFORT), 0, "outward remainder is discarded")
+	assert_equal(_rate(NeedsScript.NEED_COMFORT), -100000, "and the published rate is unchanged")
+	assert_true(_needs.set_comfort_environment(0, NeedsScript.COMFORT_ENV_HEATED_ROOM).ok, "heated")
+	assert_equal(_rate(NeedsScript.NEED_COMFORT), 200000, "the inward rate publishes immediately")
+	_assert_hour_matches_rate(0, NeedsScript.NEED_COMFORT, 200000, "comfort recovering off the floor")
+
+
+func test_a_full_need_still_publishes_its_outward_rate_and_moves_on_an_inward_one() -> void:
+	"""The same rule at the 10000 ceiling, where the outward direction is the positive one."""
+	_spawn()
+	assert_true(_needs.set_social_paired(0, true).ok, "paired")
+	_set_need(0, NeedsScript.NEED_SOCIAL, NeedsScript.NEED_MAX)
+	assert_equal(_rate(NeedsScript.NEED_SOCIAL), 1100000, "a full need still publishes +11.00")
+	_tick(0, HOUR)
+	assert_equal(_need(0, NeedsScript.NEED_SOCIAL), NeedsScript.NEED_MAX, "it stays at the ceiling")
+	assert_equal(_remainder(0, NeedsScript.NEED_SOCIAL), 0, "outward remainder is discarded")
+	assert_equal(_rate(NeedsScript.NEED_SOCIAL), 1100000, "and the published rate is unchanged")
+	assert_true(_needs.set_social_paired(0, false).ok, "unpaired")
+	assert_equal(_rate(NeedsScript.NEED_SOCIAL), -100000, "the inward rate publishes immediately")
+	_assert_hour_matches_rate(0, NeedsScript.NEED_SOCIAL, -100000, "social decaying off the ceiling")
+
+
+func test_published_rates_are_per_simulated_hour_and_ignore_tick_cadence() -> void:
+	"""REQ-SET-003: pause and 0/1/2/4 run different numbers of ticks, never a different rate.
+
+	The store has no speed input by design, so speed is exactly "how many ticks were run". A
+	paused frame runs none. At equal model conditions every one of those must publish the same
+	per-simulated-hour number.
+	"""
+	_spawn(0, NeedsScript.SIZE_MEDIUM)
+	assert_true(_needs.set_activity(0, NeedsScript.ACTIVITY_SLEEP_BED).ok, "in bed")
+	assert_true(_needs.set_purpose_source(0, NeedsScript.PURPOSE_SOURCE_LABOR).ok, "labor")
+	for ticks_this_frame: int in [0, 0, 1, 2, 4]:
+		_tick(0, ticks_this_frame)
+		assert_equal(_rate(NeedsScript.NEED_REST), 1200000, "rest is unscaled by tick cadence")
+		assert_equal(_rate(NeedsScript.NEED_COMFORT), -100000, "comfort is unscaled")
+		assert_equal(_rate(NeedsScript.NEED_SOCIAL), -100000, "social is unscaled")
+		assert_equal(_rate(NeedsScript.NEED_PURPOSE), 245000, "purpose is unscaled")
+
+
+func test_each_reader_publishes_only_its_own_need_column() -> void:
+	"""Four distinct contexts at once, so a reader wired to the wrong scratch entry is caught."""
+	_spawn()
+	assert_true(_needs.set_activity(0, NeedsScript.ACTIVITY_SLEEP_FLOOR).ok, "on the floor")
+	assert_true(_needs.set_comfort_environment(0, NeedsScript.COMFORT_ENV_HEATED_ROOM).ok, "heated")
+	assert_true(_needs.set_social_paired(0, true).ok, "paired")
+	assert_true(_needs.set_purpose_source(0, NeedsScript.PURPOSE_SOURCE_MENTORING).ok, "mentoring")
+	var out := IntMath.IntResult.new()
+	assert_true(_needs.rest_rate_milli_per_hour_into(0, out), "rest reads")
+	assert_equal(out.value, 750000, "rest reports the floor rate")
+	assert_true(_needs.comfort_rate_milli_per_hour_into(0, out), "comfort reads")
+	assert_equal(out.value, 200000, "comfort reports the heated-room rate")
+	assert_true(_needs.social_rate_milli_per_hour_into(0, out), "social reads")
+	assert_equal(out.value, 1100000, "social reports the paired rate")
+	assert_true(_needs.purpose_rate_milli_per_hour_into(0, out), "purpose reads")
+	assert_equal(out.value, 325000, "purpose reports the mentoring rate")
+
+
+func test_a_successful_zero_is_distinguishable_from_a_refusal_carrying_zero() -> void:
+	"""Finding H4 in one assertion pair: both carry 0, and only `.ok` tells them apart."""
+	_spawn()
+	assert_true(_needs.set_comfort_environment(0, NeedsScript.COMFORT_ENV_MILD_OUTDOORS).ok, "mild")
+	var valid := IntMath.IntResult.new()
+	assert_true(_needs.comfort_rate_milli_per_hour_into(0, valid), "a balanced resident succeeds")
+	assert_true(valid.ok, "ok is true")
+	assert_equal(valid.value, 0, "and the value is a legitimate 0")
+	assert_equal(valid.error, "", "with no refusal reason")
+	var refused := IntMath.IntResult.new()
+	assert_false(_needs.comfort_rate_milli_per_hour_into(99, refused), "an empty slot refuses")
+	assert_false(refused.ok, "ok is false")
+	assert_equal(refused.value, 0, "the value is also 0")
+	assert_true(refused.error != "", "but a refusal reason is present")

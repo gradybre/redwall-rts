@@ -65,3 +65,56 @@ jobs:
 
       - name: Run the suite
         run: ./tools/run_tests.sh
+
+      - name: UI refinement contract
+        # This one hashes PNGs and asserts their magic bytes. *.png is LFS, so
+        # it runs in this job, whose checkout already sets lfs: true, rather
+        # than in `contracts`. Putting it there passed locally and failed on
+        # the runner, where the files are pointer text: adding lfs: true to a
+        # second checkout would pay LFS bandwidth twice per pull request.
+        run: python3 docs/validation/ui_refinement_contract.py
+
+      - name: Check the copied hash kernel against the engine
+        # ready07_addendum_checks is pure arithmetic without --godot; the flag
+        # is what makes it compile the copied production kernel and compare
+        # digests, which is the half that needs a binary. It runs here rather
+        # than in `contracts` so it does not pay for a second Godot download.
+        run: python3 docs/validation/ready07_addendum_checks.py --godot
+
+  contracts:
+    name: Specification contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    # These validators existed and passed long before anything ran them
+    # automatically: they were invoked by hand, which means they were invoked
+    # when someone remembered. The memory ledger in particular has been wrong
+    # on master more than once between hand runs. Nothing here needs the
+    # engine and none of it touches Git LFS, so it fails in under a minute
+    # instead of behind a 30-minute job and needs no LFS checkout.
+    #
+    # Deliberately excluded: validate_blocker_package.py and
+    # validate_executor_followup.py, which are report GENERATORS. They always
+    # exit 0 and they rewrite tracked JSON, so running them in CI would prove
+    # nothing and dirty the tree. arithmetic/qualify/run_headless/setting_contract/
+    # winter all require an --output path and are likewise generators.
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Decision numbers are unique and match their headings
+        run: python3 docs/validation/decision_numbers.py
+
+      - name: Memory ledger arithmetic
+        run: python3 docs/validation/ready07_arithmetic.py
+
+      - name: State registry covers every packed column
+        run: python3 docs/validation/state_registry_coverage.py
+
+      - name: Validator self-tests
+        run: |
+          set -euo pipefail
+          python3 docs/validation/test_headless_runner.py
+          python3 docs/validation/test_qualify.py
+          python3 docs/validation/test_winter.py

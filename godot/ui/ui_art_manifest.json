@@ -1555,6 +1555,15 @@
 		"I11 #D99743 Ember",
 		"I12 #8A8D84 Flint"
 	],
+	"frame_placement": {
+		"assembly_rule": "Corners own the corners. Each strip then runs between the two corner extents that bracket it, so no strip is drawn underneath a corner motif, and is scaled along its run only.",
+		"builder": "res://ui/ui_frame_builder.gd",
+		"corner_extent_means": "The exact draw size of that corner, equal to its source document. Not an outer bound with bleed and not a nine-patch margin. Corners never scale.",
+		"decision": "docs/decisions/0077-container-frame-placement-contract.md",
+		"minimum_panel_size_means": "The smallest panel this silhouette can dress: both corner pairs plus one pixel of edge run. A smaller panel is refused by name, never clamped.",
+		"owner": "res://ui/ui_frame_geometry.gd",
+		"stretch_margin_means": "Thickness measured ACROSS the strip: the height of the top and bottom strips, the width of the left and right strips. Not a square extent, and not a distance between the panel edge and the strip -- every strip is flush with the panel edge."
+	},
 	"frames": [
 		{
 			"corner_extents_tl_tr_bl_br": [
@@ -1576,6 +1585,10 @@
 				]
 			],
 			"id": "resource_tray",
+			"minimum_panel_size": [
+				37,
+				37
+			],
 			"stretch_margins_trbl": [
 				8,
 				8,
@@ -1603,6 +1616,10 @@
 				]
 			],
 			"id": "time_group",
+			"minimum_panel_size": [
+				33,
+				33
+			],
 			"stretch_margins_trbl": [
 				5,
 				5,
@@ -1630,6 +1647,10 @@
 				]
 			],
 			"id": "map_folio",
+			"minimum_panel_size": [
+				37,
+				37
+			],
 			"stretch_margins_trbl": [
 				6,
 				6,
@@ -1657,6 +1678,10 @@
 				]
 			],
 			"id": "journal",
+			"minimum_panel_size": [
+				27,
+				33
+			],
 			"stretch_margins_trbl": [
 				5,
 				5,
@@ -1684,6 +1709,10 @@
 				]
 			],
 			"id": "command_dock",
+			"minimum_panel_size": [
+				45,
+				45
+			],
 			"stretch_margins_trbl": [
 				7,
 				7,

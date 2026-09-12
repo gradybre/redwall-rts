@@ -24,10 +24,13 @@ extends "res://test/framework/test_case.gd"
 const UIManagerScript := preload("res://scripts/systems/ui_manager.gd")
 const HudScript := preload("res://scripts/ui/hud.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
+const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const UiCommandBridgeScript := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSessionScript := preload("res://scripts/ui/ui_world_session.gd")
 const UiShellScript := preload("res://scripts/ui/ui_shell.gd")
+const UiNoticesScript := preload("res://scripts/ui/ui_notices.gd")
 
 const HUD_SCENE_PATH: String = "res://scenes/ui/hud.tscn"
 
@@ -65,9 +68,12 @@ const ERROR_PANEL_ID: int = 85
 const GENERATED_RESOURCE_NODES: int = 1695
 const ARCHITECTURE_HOLT: int = 1
 
-## UI-SET-037's detail title and UI-SET-039's need row.
+## UI-SET-036's panel, UI-SET-037's detail title and UI-SET-039's need row.
+const DETAIL_ID: int = 36
 const DETAIL_TITLE_ID: int = 37
 const NEED_ROW_ID: int = 39
+## GDD §4.2 fixes five need columns, and UXV-020 requires five rows for them.
+const NEED_ROW_COUNT: int = 5
 
 var _ui: UIManagerScript = null
 var _hud: HudScript = null
@@ -248,13 +254,39 @@ func test_a_freed_hud_is_never_written_to() -> void:
 
 
 func test_depletion_and_diagnostics_reach_the_alert_zone() -> void:
-	"""Both alert sources name their subject rather than showing a generic message."""
+	"""Both alert sources name their subject rather than showing a generic message.
+
+	CHANGED BY R-UI-ALERT-001. The alert zone used to be a single label that the next message
+	overwrote, so this asserted that each message in turn was the one painted. It is now a
+	retained notice record under §7's ordering -- "severity descending, then earliest tick" --
+	so the earlier of two equal-severity conditions keeps the card and the later one is retained
+	beside it rather than destroying it. The property this test exists for is unchanged and is
+	asserted harder: each source's own sentence survives BYTE FOR BYTE, and neither is replaced
+	by a generic line. `test_ui_shell.gd` covers which of the two the card shows.
+	"""
 	_ui.register_hud(_hud)
 	_ui._on_stock_depleted(&"ration")
 	assert_equal(_rendered_alert(), "Out of ration!", "the depleted item is named")
 	_ui._on_clock_diagnostic("Scheduler overloaded; speed reduced to 2x.")
-	assert_equal(_rendered_alert(), "Scheduler overloaded; speed reduced to 2x.",
-		"the diagnostic is surfaced verbatim")
+	var notices: UiNoticesScript = _hud.shell().notices()
+	assert_equal(notices.count(), 2, "both conditions are retained, not overwritten")
+	assert_true(_retained_messages(notices).has("Out of ration!"),
+		"the depleted item is still named in full")
+	assert_true(_retained_messages(notices).has("Scheduler overloaded; speed reduced to 2x."),
+		"and the diagnostic is retained verbatim")
+
+
+func _retained_messages(notices: UiNoticesScript) -> PackedStringArray:
+	"""Every retained notice's ORIGINAL message, in §7's display order."""
+	var order: PackedInt32Array = PackedInt32Array()
+	order.resize(notices.capacity())
+	var written: int = notices.order_into(order)
+	var out: PackedStringArray = PackedStringArray()
+	var notice: UiNoticesScript.Notice = UiNoticesScript.Notice.new()
+	for index: int in written:
+		if notices.notice_into(order[index], 0, notice):
+			out.append(notice.message)
+	return out
 
 
 # --- UI-SET-103's paused opening ----------------------------------------------------------------
@@ -412,23 +444,128 @@ func test_the_roster_lists_the_living_residents_from_the_store() -> void:
 	assert_true(_ui.refresh_roster(), "the roster fills")
 	var shell: UiShellScript = _hud.shell()
 	assert_equal(shell.roster_shown(), STARTER_COHORT, "all twelve rows are shown")
-	assert_true(shell.roster_row(0).text.contains("health"),
+	## UPDATED: the row now formats health through `ui_resident_card.gd`, the same function the
+	## journal uses, so its wording is "Health 100 / 100" rather than a second lowercase copy
+	## of the same rule. The property asserted is unchanged -- the row carries a real health
+	## figure from the store -- and it is now checked against the store's own value.
+	var health: int = SettlementSystem.needs().health_of(0).value
+	assert_true(shell.roster_row(0).text.contains("Health %d / 100" % health),
 		"a row carries the facts the stores publish: '%s'" % shell.roster_row(0).text)
 	SettlementSystem.reset()
 
 
 func test_choosing_a_roster_row_opens_that_residents_real_detail() -> void:
-	"""REQ-UX-013: the row resolves to a resident identity, not to a render index."""
+	"""REQ-UX-013: the row resolves to a resident identity, not to a render index.
+
+	UPDATED for UXV-019/020/021, and both changes are behaviour this suite previously pinned
+	the WRONG way round. §4.1: "A name is a heading, not a dense concatenation of
+	name/species/health in one line", so the title is no longer the roster row's whole text and
+	the species moved to its own line. And the need row printed `Hunger 7500 of 10000`, which
+	UXV-020 names as the exact failure -- "never expose 7500 as the player-facing 75% value" --
+	while UXV-021 fixes the visible label as `Fullness`. The old assertions REQUIRED both
+	defects, so they are replaced rather than relaxed: the row must now carry the percent and
+	must not carry the basis points.
+	"""
 	_ui.register_hud(_hud)
 	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
 	assert_true(_ui.refresh_roster(), "the roster fills")
 	var shell: UiShellScript = _hud.shell()
 	shell.roster_row(2).emit_signal(&"pressed")
 	var title: Label = shell.control_for(DETAIL_TITLE_ID) as Label
-	assert_equal(title.text, shell.roster_row(2).text, "the detail names that same resident")
-	var needs_row: Label = shell.control_for(NEED_ROW_ID) as Label
-	assert_true(needs_row.text.contains("Hunger"), "its need row is real: '%s'" % needs_row.text)
-	assert_true(needs_row.text.contains("10000"), "against §4.3's 0-10000 scale")
+	assert_true(shell.roster_row(2).text.begins_with(title.text),
+		"the heading is that same resident's name: '%s'" % title.text)
+	assert_true(shell.detail_identity_label().text.contains("mouse"),
+		"the species is its own line: '%s'" % shell.detail_identity_label().text)
+	var fullness: String = shell.need_row_text(0)
+	assert_true(fullness.contains("Fullness"), "UXV-021's visible label: '%s'" % fullness)
+	assert_false(fullness.contains("Hunger"), "and never the raw field name")
+	assert_true(fullness.contains("75%"), "UXV-020's exact percent of 7500 basis points")
+	assert_false(fullness.contains("7500"), "and never the basis points themselves")
+	assert_false(fullness.contains("10000"), "nor the scale they are measured against")
+	SettlementSystem.reset()
+
+
+func test_all_five_need_rows_reach_the_card_for_a_real_resident() -> void:
+	"""UXV-020 requires five rows on screen, not five rows composed and one routed."""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(0).emit_signal(&"pressed")
+	assert_equal(shell.need_rows_shown(), NEED_ROW_COUNT, "all five rows are filled and shown")
+	var labels: PackedStringArray = PackedStringArray()
+	for index: int in NEED_ROW_COUNT:
+		labels.append(shell.need_row_text(index))
+	assert_true(labels[1].contains("Rest"), "row 2 is Rest: '%s'" % labels[1])
+	assert_true(labels[2].contains("Comfort"), "row 3 is Comfort: '%s'" % labels[2])
+	assert_true(labels[3].contains("Social"), "row 4 is Social: '%s'" % labels[3])
+	assert_true(labels[4].contains("Purpose"), "row 5 is Purpose: '%s'" % labels[4])
+	SettlementSystem.reset()
+
+
+func test_all_five_need_rows_carry_a_published_rate_on_screen() -> void:
+	"""NEED-RATE-R01: "remove Rate unavailable for successful reads after implementation".
+
+	THIS TEST WAS INVERTED. It previously asserted that rows 1-4 read `Rate unavailable`, which
+	was true while `needs.gd` published one effective rate of five. The ruling closed that
+	interface gap, `ui_resident_snapshot.gd` binds all five at one validated boundary, and the
+	ruling says in terms not to mark UXV-020 passed "while any otherwise supported row still
+	lacks its published rate". So the assertion is the other way round now.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(0).emit_signal(&"pressed")
+	for index: int in [0, 1, 2, 3, 4]:
+		var text: String = shell.need_row_text(index)
+		assert_true(text.contains("pp/h"), "row %d carries a rate: '%s'" % [index, text])
+		assert_false(text.contains("Rate unavailable"),
+			"row %d no longer says the rate is unpublished" % index)
+		assert_false(text.contains("-0.00"), "row %d never prints a signed zero" % index)
+	SettlementSystem.reset()
+
+
+func test_a_real_residents_species_medallion_is_loaded_and_identified_as_generic() -> void:
+	"""ART-UI-06/UXV-019: the roundel is loaded from the store's species and named as generic."""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(0).emit_signal(&"pressed")
+	assert_true(shell.detail_emblem().visible, "the medallion is shown")
+	assert_not_null(shell.detail_emblem().texture, "with a real texture behind it")
+	assert_true(shell.control_for(DETAIL_ID).accessibility_description.contains("not a portrait"),
+		"and the panel says it is not a portrait")
+	assert_true(shell.detail_note_label().text.contains("generic mark"),
+		"as does the visible note: '%s'" % shell.detail_note_label().text)
+	SettlementSystem.reset()
+
+
+func test_the_card_states_that_age_is_unavailable_rather_than_inventing_one() -> void:
+	"""UXV-019 asks for age; `residents.gd` has no age or birth column, so the card says so."""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(0).emit_signal(&"pressed")
+	assert_true(shell.detail_note_label().text.contains("Age unavailable"),
+		"the absence is stated: '%s'" % shell.detail_note_label().text)
+	SettlementSystem.reset()
+
+
+func test_health_and_activity_reach_their_own_lines_from_the_stores() -> void:
+	"""UXV-019/022: health is its own row and activity uses the published status."""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(0).emit_signal(&"pressed")
+	assert_equal(shell.detail_health_label().text, "Health 100 / 100",
+		"health is on the GDD's own 0-100 scale")
+	assert_true(shell.detail_activity_label().text.contains("Active"),
+		"and the activity line is the published status: '%s'"
+		% shell.detail_activity_label().text)
 	SettlementSystem.reset()
 
 
@@ -460,3 +597,124 @@ func test_an_absent_residents_store_is_unpopulated_and_an_empty_one_is_zero() ->
 	_ui._on_stocks_changed()
 	assert_true(_rendered_counters().contains("Residents 0"),
 		"a measured zero is shown as 0, got '%s'" % _rendered_counters())
+
+
+# --- R-UI-ALERT-001: every routed condition names itself ------------------------------------------
+
+func test_a_refused_generation_becomes_an_error_notice_with_the_ruling_s_title() -> void:
+	"""R-UI-ALERT-001 names this condition: severity `Error`, title `Generation failed`.
+
+	The refusal is raised through the real router, not by calling the shell directly, so a change
+	that routed the failure to the error panel alone -- leaving the alert card showing the last
+	SUCCESS -- would fail here. The generator's own code and detail must survive into the record.
+	"""
+	_ui.register_hud(_hud)
+	var report: UiWorldSessionScript.Report = UiWorldSessionScript.Report.new()
+	report.error = &"WORLD_OCCUPIED"
+	report.detail = "the settlement already has living residents."
+	_ui._report_generation(false, report)
+	var notice: UiNoticesScript.Notice = UiNoticesScript.Notice.new()
+	assert_true(_hud.shell().card_notice_into(notice), "a notice reached the card")
+	assert_equal(notice.severity_word, "Error", "with the ruling's severity")
+	assert_equal(notice.title, "Generation failed", "and the ruling's compact title")
+	assert_true(notice.message.contains("WORLD_OCCUPIED"), "the generator's own code is in the message")
+	assert_true(notice.message.contains(report.detail), "and its own detail")
+	assert_equal(notice.code, "WORLD_OCCUPIED", "the validation code is recorded as the code")
+	assert_true(notice.recovery.length() > 0, "and a recovery action is published")
+
+
+func test_the_refusal_still_fills_the_error_panel_as_well_as_the_card() -> void:
+	"""§4 keeps UI-SET-085's "Error code+plain reason+recovery action" for a fault."""
+	_ui.register_hud(_hud)
+	var report: UiWorldSessionScript.Report = UiWorldSessionScript.Report.new()
+	report.error = &"WORLD_OCCUPIED"
+	report.detail = "the settlement already has living residents."
+	_ui._report_generation(false, report)
+	var panel: Control = _hud.shell().control_for(ERROR_PANEL_ID)
+	assert_true(panel.visible, "the error panel opens for the fault")
+	assert_true(panel.accessibility_description.contains("WORLD_OCCUPIED"),
+		"and carries the exact code, as it did before the ruling")
+
+
+func test_a_command_refusal_is_retained_as_a_retrievable_error_notice() -> void:
+	"""UI-SET-085 is cleared by the next accepted action; the notice is what outlives it."""
+	_ui.register_hud(_hud)
+	_ui.push_refusal(&"COMMAND_JOB_NOT_CANCELLABLE")
+	var notice: UiNoticesScript.Notice = UiNoticesScript.Notice.new()
+	assert_true(_hud.shell().card_notice_into(notice), "the refusal reached the card")
+	assert_equal(notice.title, "Action refused", "with its own authored title")
+	assert_equal(notice.code, "COMMAND_JOB_NOT_CANCELLABLE", "and the exact refusal code")
+	assert_true(notice.message.length() > 0, "and the bridge's plain sentence")
+
+
+func test_a_depletion_names_the_item_as_its_source_so_two_items_stay_two_notices() -> void:
+	"""§7 groups on code AND source; the item is the source, so ration and grain do not merge."""
+	_ui.register_hud(_hud)
+	_ui._on_stock_depleted(&"ration")
+	_ui._on_stock_depleted(&"grain")
+	_ui._on_stock_depleted(&"ration")
+	assert_equal(_hud.shell().notices().count(), 2,
+		"two items are two conditions and the repeat groups onto the first")
+	assert_true(_retained_messages(_hud.shell().notices()).has("Out of grain!"),
+		"and each item is named in its own message")
+func test_create_still_succeeds_in_a_running_game() -> void:
+	"""UI-SET-103's Create, pressed with a settlement already on the screen. The ordinary case.
+
+	THE DEFECT THIS PINS, and it is the cohort fix's own regression. The fix above made
+	`settlement_system.gd` allocate KIND_RESIDENT directory rows, which nothing did before it.
+	`world_init._refuse_collaborators()` refuses any live kind the generator does not own, and it
+	runs inside `preflight()`, BEFORE the caller's reset -- deliberately, so a refusal cannot
+	orphan anything. Those two facts together made every Create after a real boot refuse
+	WORLD_FOREIGN_LIVE_ROWS, because twelve resident rows were sitting in the directory.
+
+	The suite could not see it. Every existing test pressed Create on a fresh settlement, where
+	the directory is empty and the gate has nothing to refuse. It took a native screen capture of
+	a booted game to find, which is the point: `_ui.create_world()` alone is not the scenario.
+
+	The generator was NOT given ownership of residents to fix this. It still never touches or
+	clears a resident row. The caller declares that its own reset clears them --
+	see `ui_world_session._caller_cleared_kinds`.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_generated_settlement(EconomySystem.definitions()),
+		"a settlement boots first, exactly as main.gd boots one")
+	var directory: EntityDirectoryScript = SettlementSystem.directory()
+	assert_true(directory.live_count(EntityDirectoryScript.KIND_RESIDENT) > 0,
+		"and the boot leaves live resident rows in the directory, which is what used to refuse")
+	assert_true(_ui.create_world(), "Create still succeeds with a settlement already running")
+	var residents: ResidentsScript = SettlementSystem.residents()
+	for index: int in ResidentsScript.INITIAL_POPULATION:
+		var id: IntMath.IntResult = residents.persistent_id_of(index)
+		assert_equal(id.value, index + 1,
+			"and the cohort still takes id %d, so the fix did not cost R-INIT-ID-001" % [index + 1])
+	SettlementSystem.reset()
+
+
+func test_the_create_button_gives_the_cohort_persistent_ids_one_to_twelve() -> void:
+	"""R-INIT-ID-001 through UI-SET-103's Create, not only through boot.
+
+	THE DEFECT THIS PINS. `create_world()` used `_session.create_into()`, which runs
+	`world_init.generate()` -- the standalone wrapper whose `_publish()` calls `_reset_stores()`,
+	clearing the directory and the persistent-id counter, and then publishes 1713 world entities
+	before any resident exists. So pressing Create gave Warden Rowan id 1714 while booting gave
+	her 1: the same seed and the same authored scenario producing two different identities, which
+	§5.3's `hash(persistent_id, world_seed)` naming and any future state digest hang off.
+
+	`world_init.gd` states the contract the old path violated -- the reset wrapper is kept "for
+	isolated controls" and the composed initializer must not use it, "which is exactly how ids
+	1-12 were lost". `create_world()` is a composed initializer.
+
+	The old tests asserted node counts and `living_count() == 12` and never asserted an id, which
+	is why the divergence was invisible to the suite. This asserts the id.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(_ui.create_world(), "Create succeeds")
+	var residents: ResidentsScript = SettlementSystem.residents()
+	var warden: IntMath.IntResult = residents.persistent_id_of(ResidentsScript.WARDEN_INDEX)
+	assert_true(warden.ok, "the Warden has a persistent id")
+	assert_equal(warden.value, 1, "and it is 1, exactly as booting gives her")
+	for index: int in ResidentsScript.INITIAL_POPULATION:
+		var id: IntMath.IntResult = residents.persistent_id_of(index)
+		assert_true(id.ok, "cohort row %d has an id" % index)
+		assert_equal(id.value, index + 1, "cohort row %d is persistent id %d" % [index, index + 1])
+	SettlementSystem.reset()

@@ -212,7 +212,7 @@ Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Contain
 | UI-SET-034 Demolish command |BC, selection cell |44×44→120×44 |BUTTON |“Demolish ”+building_name+“; review evacuation and refund” |SELECTED building; opens confirmation, never immediate destruction |
 | UI-SET-035 Upgrade command |BC, selection cell |44×44→120×44 |BUTTON |“Upgrade or repair ”+building_name |SELECTED eligible building; locked reason if missing materials |
 | UI-SET-036 Context detail |BR, right/bottom, grows up |320×240→384×936 |PANEL |“Details: ”+entity_or_zone_name |SELECTED; closed by 093; drawer in narrow |
-| UI-SET-037 Detail title |BR, top inside 036 |280×32→352×64 |READOUT |Full entity name/status |SELECTED; title 20/600 override; click center-camera |
+| UI-SET-037 Detail title |BR, top inside 036 |Resident header: flexible remaining width, measured height (UI-IDENTITY-R01); other uses 280×32→352×64 |READOUT |Full entity name/status |SELECTED; title20/600 semantic heading; Center view is separate037/center under SET-UX-VIS-002 |
 | UI-SET-038 Detail tabs |BR, below title |280×36→352×72 |TOGGLE |Tab name+“ tab ”+index+“ of ”+count |SELECTED; wrap 2 rows; selected panel one at a time |
 
 ### 4.2 Data editors and production workspaces
@@ -541,3 +541,21 @@ Close MOVE-G03 by extending this document's component registry and existing resp
 | Accessibility | Domain and route state indicated by text/icon as well as color; keyboard focus and screen-reader labels included |
 
 Canonical state labels for binding are `Planning route`, `Waiting for access`, `Digging`, `Using tunnel`, `Climbing`, `Swimming`, `Diving`, `Returning to air`, `Blocked: no exit`, and `Blocked: load does not fit`. Show each only when the corresponding committed state/reason exists. A closed visual cutaway cannot change discovery or simulation visibility. The existing 1280×720 through 3840×2160 layout range and plain operational wording remain required.
+
+## Alert text by profile — 2026-09-12
+
+[ALERT-R02](rulings/2026-09-12_alerts_and_seed_expiry.md) clarifies R-UI-ALERT-001:
+NARROW always uses authored compact summary; STANDARD/WIDE prefer full messages
+inside the existing96px zone and adaptively pack up to two cards with summary
+fallback. Full source text remains available through accessible selected-notice
+details. Do not treat a compact producer string as the original full message,
+or let growing cards overlap. Existing history-rail geometry remains binding.
+
+## Resident header and hourly-rate clarification — 2026-09-12
+
+[UI-IDENTITY-R01 / NEED-RATE-R01](rulings/2026-09-12_resident_header_and_need_rates.md)
+overrides the resident037 standalone minimum: side-by-side medallion/name/Close
+with172/172/220px flexible name columns and measured uncapped heading height.
+Need hourly values are signed current continuous model rates before value clamping,
+with explicit Capped status at outward bounds and unchanged rates while paused.
+This does not permit guessed baseline rates or fake environmental context.

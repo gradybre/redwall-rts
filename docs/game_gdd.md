@@ -232,6 +232,13 @@ Species catalog release 1: mouse, shrew, mole, rat, squirrel, sparrow, otter, ha
 
 At 1×: day 10 minutes, season 120 minutes, year 8 hours. At 2×: day 5 minutes, season 60 minutes, year 4 hours. At 4×: day 2.5 minutes, season 30 minutes, year 2 hours. Pause adds arbitrary wall time. Tick 0 corresponds to 06:00 on the first day; calendar time uses `(tick+4500) mod18000`, with the first midnight at tick 13500. Daily events use crossings of this offset calendar, not `tick mod18000==0`.
 
+**Initialization identity clarification (2026-09-11, R-INIT-ID-001):** IDs 1–12
+are global persistent IDs, with Rowan=1. The composed new-world transaction resets
+once before allocation, allocates the cohort identities first, then allocates world
+entities using the same continuing sequence. Terrain publication must not reset
+those identities. Preserve prior-valid-world failure behavior and publish atomically;
+see [the lifecycle and acceptance ruling](rulings/2026-09-11_initial_ids_and_narrow_alerts.md).
+
 Initial conditions:12 adults (6 mice,2 moles,2 otters,2 squirrels); IDs 1–12; ID 1 named Warden Rowan; all five needs 7500, health 100, active job skills level 2 except Rowan KEEP 3; reserved skill index 3 has XP/level 0; no injuries; relationship edges(1,2),(3,4),(5,6),(7,8),(9,10),(11,12) affinity 20. Start with one completed refuge hall containing 12 beds, one kitchen bench, twelve seat places, one hearth, and one pantry; one well, four open stockpiles, and one outdoor workbench.
 
 Initial inventory U: wood 180, stone 100, iron 20, rope 20, tool 24, cloth 24, water 60, grain 80, roots 80, berries 40, nuts 40, dried_fish 60, ration 60, seed_grain 32, seed_roots 32, seed_beans 16, seed_cabbage 16, seed_flax 16, herb 12, compost 32. Initial tool durability 1000, clothing tier 1. The starter hall and resource placement fit a 32 m radius of map center.

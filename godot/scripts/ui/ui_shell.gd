@@ -1044,7 +1044,8 @@ func _place_interiors() -> void:
 		_place_local(ID_EXPAND, UiLayout.narrow_expand_rect())
 	for index: int in TIME_IDS.size():
 		_set_rect(_controls[TIME_IDS[index]], _layout.time_control(_geometry.profile, index))
-	_place_local(ID_ALERT_CARD, _layout.alert_card(_geometry.profile, _geometry.alerts.size.x, 0))
+	_place_local(ID_ALERT_CARD, _layout.alert_card_sized(_geometry.profile,
+		_geometry.alerts.size.x, 0, _wrapped_alert_height()))
 	_place_local(ID_HISTORY_TRIGGER, UiLayout.history_trigger_rect(_geometry.alerts.size.x))
 	_place_local(ID_MINIMAP_VIEW, UiLayout.minimap_content_rect(_geometry.profile))
 	_wrap_children(ID_COMMAND_STRIP, COMMAND_IDS, _geometry.commands.size)
@@ -1121,6 +1122,25 @@ func _place(id: int, rect: Rect2) -> void:
 	if not _zones.has(id):
 		return
 	_set_rect(_zones[id] as Control, rect)
+
+
+func _wrapped_alert_height() -> float:
+	"""How tall the alert message is once wrapped into the card's own interior width.
+
+	Measured from the font rather than read off the Label, because an autowrap Label reports a
+	SINGLE LINE from `get_minimum_size()` until its width is constrained -- and its width comes
+	from the card this number is sizing. Measuring the text directly breaks that circle."""
+	var interior: float = _geometry.alerts.size.x - UiLayout.ALERT_CARD_MARGIN \
+		- 2.0 * PANEL_PADDING
+	if _alert_message == null or _alert_message.text.is_empty() or interior <= 0.0:
+		return 0.0
+	var font: Font = _alert_message.get_theme_font(&"font")
+	if font == null:
+		return 0.0
+	var font_size: int = _alert_message.get_theme_font_size(&"font_size")
+	var wrapped: Vector2 = font.get_multiline_string_size(_alert_message.text,
+		HORIZONTAL_ALIGNMENT_LEFT, interior, font_size)
+	return wrapped.y + 2.0 * PANEL_PADDING
 
 
 func _place_local(id: int, rect: Rect2) -> void:
@@ -1273,18 +1293,15 @@ func set_pause_display(paused: bool, reasons: String) -> void:
 func set_alert_display(text: String) -> void:
 	"""UI-SET-011's card. An empty stack is hidden, so it "does not block world" (§4.1).
 
-	KNOWN DEFECT, NARROW ONLY, NOT THIS FILE'S TO FIX. The message now wraps rather than
-	clipping (UXV-032), and at NARROW a long generation sentence wraps to three lines and
-	draws outside a card whose height `ui_layout.alert_card()` fixes -- over the pause
-	line. Growing the card here does nothing: `_place_local()` re-sets its rect from the
-	layout on every pass. The card must become content-sized in `ui_layout.gd`, which the
-	component owner holds. Evidence: docs/validation/evidence/ui-refinement/screenshots/
-	06_narrow_1280x720_150.png."""
+	The message WRAPS rather than clipping (UXV-032), so the card is content-sized through
+	`ui_layout.alert_card_sized()`. A fixed-height card drew three wrapped lines over the
+	pause line at NARROW, and overlap is worse than the clipping it replaced."""
 	var card: Panel = _controls[ID_ALERT_CARD] as Panel
 	card.accessibility_description = text
 	card.tooltip_text = text
 	card.visible = not text.is_empty()
 	_alert_message.text = text
+	_apply_geometry()
 	var stack: Panel = _controls[ID_ALERT_STACK] as Panel
 	stack.visible = not text.is_empty()
 	_register_hit_regions()

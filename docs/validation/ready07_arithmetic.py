@@ -27,6 +27,25 @@ for l in s[a:b].splitlines():
 # queue is an allocation row only: a control block, not per-entity columns, so no field row moves.
 # +1 row for decision 0095's Resident life_stage column (512 B, B8 x RESIDENT_CAPACITY).
 assert len(fields)==142 and sum(fields)==25029474
+# §3's printed rows must sum to the "Auxiliary payload" allocation row.
+#
+# THE HOLE THIS CLOSES. `fields` above slices on the '## 2.3' boundary, so it covers §2.2 ONLY --
+# §3 is invisible to it, and "Auxiliary payload" is a single §2.3 row maintained by hand. Three
+# decisions in a row (0080, 0083, 0085) advanced that total without printing their §3 rows, and
+# nothing caught it: every identity still balanced, because the hand-written total was on both
+# sides of every check. 0080 was found by an agent grepping for a column name; 0083 and 0085 were
+# found only when their combined 1024096 bytes turned up as the difference between this sum and
+# that row. Tying the two together is what makes a total impossible to advance without its rows.
+i3=s.index('\n## 3'); j3=s.index('\n## 4', i3)
+section3=[]
+for line in s[i3:j3].splitlines():
+ if not line.startswith('|'): continue
+ cells=[x.strip() for x in line.strip('|').split('|')]
+ if len(cells)>=7 and all(re.fullmatch(r'\d+',cells[k]) for k in range(3,7)):
+  assert int(cells[3])*int(cells[4])*int(cells[5])==int(cells[6]),cells[:7]
+  section3.append(int(cells[6]))
+auxiliary=int(re.search(r'\| Auxiliary payload \| (\d+) \|',s).group(1))
+assert sum(section3)==auxiliary, (sum(section3), auxiliary, len(section3))
 # Decision 0050's reconciliation, reproduced from its own two constants. It is NOT re-applied to
 # the live payload: doing that a second time would double count 437632 bytes already in the rows.
 DECISION_0050_CARRIED_BEFORE=59819174

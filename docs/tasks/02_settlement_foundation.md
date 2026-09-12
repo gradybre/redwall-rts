@@ -563,3 +563,56 @@ described a benchmark fixture, not the game. This entry wires them in.
   eligibility implements 6 of 7 steps (no pathfinder), and `assign_worker()`
   leaves a job at `JOB_STATE_RESERVED` because `RESERVED -> TRAVEL -> WORK` is
   movement's responsibility and movement does not exist yet.
+
+
+### NEED-RATE-R01 — four published net need-rate readers on `needs.gd` (done, 2026-09-12)
+
+- [x] Add `rest_rate_milli_per_hour_into()`, `comfort_rate_milli_per_hour_into()`,
+  `social_rate_milli_per_hour_into()` and `purpose_rate_milli_per_hour_into()` on the
+  existing caller-owned `IntMath.IntResult` contract. Each validates the row with the
+  existing `_check_live_slot()`, runs `_fill_need_rates(slot)` and copies one named
+  `_rate_scratch` entry by value. No formula is duplicated, no packed column, schema
+  version or simulation-memory allocation is added, and the array itself is never
+  handed out.
+- [x] Leave `hunger_rate_milli_per_hour()` and every one of its callers untouched: it
+  keeps its established POSITIVE decay magnitude and the display adapter forms
+  `R = -magnitude` itself.
+- [x] Leave `_fill_need_rates()` as the simulation's single one-pass path. `_tick_resident()`
+  makes exactly the same calls it made before, and no per-resident rate cache or dirty
+  flag exists.
+- [x] Pin all seventeen inherited fixture rows independently (rest awake -375000, bed
+  +1200000, floor +750000; comfort none -100000, heated +200000, mild 0; social unpaired
+  -100000, paired +1100000; purpose none -75000, labor +245000, mentoring +325000; and
+  the six hunger size/season magnitudes).
+- [x] Separately compare every row against 750 **actual** integrator ticks from an interior
+  value of 5000 carrying a nonzero signed remainder, asserting both
+  `trunc((r0 + 750R)/750000)` and the retained signed remainder. Direction changes and the
+  0/10000 outward-and-inward cases included.
+- [x] Test valid zero versus a refusal carrying zero, invalid/free/dead rows, slot reuse,
+  immediate context change with no cached lag, tick-cadence independence, and that repeated
+  reads change nothing — including against a twin store run without them.
+- [x] Mutation-test: eleven single-line mutations, **one per Godot invocation**, each
+  restored and `shasum -a 256` byte-compared against a pristine copy before the next.
+  All eleven killed.
+- [x] Re-measure; suite at 3219 tests / 116,847 assertions / 0 failures (previous entry
+  3203 / 110,315 / 0 on `origin/master` e206a08).
+- **Owners:** UXV-020, GDD §5.2, BAL-NUM-001, ARCH-MEM-001, finding H4; ADR 0095.
+  Depends on the existing needs integrator and its rate selectors.
+- **Evidence:** `docs/decisions/0095-published-need-rates-copy-the-selector-not-the-formula.md`.
+  The mutation that matters is `M2`: dropping the `-` from
+  `_rate_scratch[NEED_HUNGER] = -_hunger_rate_milli[...]` leaves the fixture **table** green,
+  because the table pins the positive magnitude the mutation does not touch. It is killed only
+  by the 750-tick comparison against the real integrator. That is the ruling's "do not compare
+  only two functions sharing the same mistaken expression" made concrete, and it is why both
+  halves of the test are kept. The other ten — negating the returned rate, reporting a refusal
+  as a success, dropping the `_fill_need_rates()` refill so a stale scratch entry is returned,
+  reading a dead row, wiring a reader to the wrong scratch entry (two forms), subtracting a
+  baseline twice, breaking the mild-outdoors net zero, never subtracting the social baseline,
+  and a reader that writes a retained remainder — were each killed too.
+- **Does not establish:** any of the environment producers these rates are conditioned on.
+  Beds, heated rooms, pairing and job-sourced purpose still have no owner, so a live
+  settlement reads the unfurnished-world defaults and the readers certify nothing about
+  those systems. Does not establish the UI half of NEED-RATE-R01: the selected-resident
+  snapshot, the `pp/h` formatter, the Capped disclosure and UXV-020 visual acceptance are
+  the UI owner's, and UXV-020 is not passed by this entry. No display arithmetic, rounding
+  rule or resident-header geometry is implemented here.

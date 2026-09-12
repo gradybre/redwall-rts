@@ -5,12 +5,18 @@ extends "res://test/framework/test_case.gd"
 ## disconnected cache starts; stale start/goal references; route storage full; quota exhaustion;
 ## and the separation of a queued path from a proven-unreachable one.
 ##
-## WHY SO MANY STARTS SIT ON A MACRO CORNER. ARCH-PATH-003 routes every request through its start
-## macro's anchor -- the lowest passable cell of the macro -- so a start that is NOT the anchor gets
-## an entry segment prepended and its composed route is deliberately not the shortest path. Tests
-## that check SEARCH results therefore start on a macro corner, where the anchor is the start and
-## the composed route is the pure A* answer. `test_the_macro_anchor_detour_is_measured_not_hidden`
-## covers the other case on purpose rather than by accident.
+## WHY SO MANY STARTS SIT ON A MACRO CORNER, AND WHY THAT NO LONGER MATTERS. ARCH-PATH-003 used to
+## route every request through its start macro's anchor -- the lowest passable cell of the macro,
+## which is its top-left corner -- so a start that was NOT the anchor got an entry segment
+## prepended and its published route was deliberately not the shortest path. Tests that check
+## SEARCH results were therefore written from macro corners, where the anchor IS the start and the
+## composed route was the pure A* answer.
+##
+## PATH-R02 removed that construction: every route now begins at the exact start it was requested
+## from. The corner starts are kept because they also exercise PATH-R02 3 -- the case where the
+## exact start coincides with the canonical anchor and the ordinary `variant_start=-1` descriptor
+## is itself an exact-start route -- and the off-corner cases below now assert the optimum instead
+## of the detour.
 
 const SpatialWorldScript := preload("res://scripts/core/spatial_world.gd")
 const NavigationScript := preload("res://scripts/core/navigation.gd")
@@ -36,6 +42,16 @@ const LONG_GOAL_Z: int = 300
 ## expansions, nine ticks of quota, which is what keeps a search observable while it runs.
 const FAR_BANK_X: int = 440
 const FAR_BANK_Z: int = 400
+
+## ARCH-PATH-007: "The 1/4-real-second p95 target at 1x allows at most 7 complete 30 Hz tick
+## intervals under a conservative one-tick enqueue phase, hence 7*2048=14336 expansions before a
+## request misses the deadline". Both numbers are read from that paragraph, not chosen here.
+const READINESS_DEADLINE_TICKS: int = 7
+const TICKS_PER_SECOND: int = 30
+
+## ARCH-PATH-008's first benchmark fixture is "256 distinct short routes". 256 is also the living
+## population cap, so one uncached job route per resident is the whole colony asking at once.
+const READINESS_BATCH: int = 256
 
 static var _shared_world: SpatialWorldScript = null
 
@@ -490,40 +506,227 @@ func test_submission_refuses_an_uncontracted_domain() -> void:
 
 # --- ARCH-PATH-003's macro bucket ----------------------------------------------------------------
 
-func test_a_macro_bucket_is_reused_by_a_second_start_in_the_same_macro() -> void:
-	"""The point of the cache: one stored anchor route serves every start in its macro."""
+func test_a_second_start_in_the_same_macro_gets_its_own_exact_start_route() -> void:
+	"""PATH-R02 2: sharing a macro is not a reason to reuse another start's route.
+
+	SUPERSEDES `test_a_macro_bucket_is_reused_by_a_second_start_in_the_same_macro`, which asserted
+	the opposite -- that the second start paid only for a macro-local entry segment onto the first
+	start's stored bucket. That reuse is the detour PATH-R02 removes, so the acceptance is
+	inverted: the second start searches for itself, and what must be preserved is that its answer
+	is optimal and that the first start's route is still in the cache, untouched.
+	"""
 	var first: int = _submit(_cell(ANCHOR_X, ANCHOR_Z), _cell(ANCHOR_X + 30, ANCHOR_Z), 1)
 	assert_true(_run(first, 16) >= 1, "the first request settles")
+	var first_route: int = _navigation.request_route_id(first)
 	var descriptors: int = _navigation.descriptor_in_use_count()
-	var spent: int = _navigation.total_expansions()
 	var second: int = _submit(_cell(ANCHOR_X + 3, ANCHOR_Z + 3), _cell(ANCHOR_X + 30, ANCHOR_Z), 1)
 	assert_true(_run(second, 16) >= 1, "the second request settles")
 	assert_true(_navigation.is_ready(second), "and it is ready")
 	assert_true(
-		_navigation.total_expansions() - spent < 64,
-		"the second start only paid for a macro-local entry segment, not a second full search")
+		_navigation.request_route_id(second) != first_route,
+		"on a route of its own, not the first start's")
+	assert_equal(
+		_route(second)[0], _cell(ANCHOR_X + 3, ANCHOR_Z + 3), "which begins at its actual start")
 	assert_true(
-		_navigation.descriptor_in_use_count() > descriptors,
-		"it stored its own joined route while reusing the bucket's cells")
+		_navigation.reference_cost_into(
+			_cell(ANCHOR_X + 3, ANCHOR_Z + 3), _cell(ANCHOR_X + 30, ANCHOR_Z), 1, _result),
+		"the Dijkstra reference runs for that exact pair")
+	assert_equal(_cost(second), _result.value, "and the published cost is the optimum, not a detour")
+	assert_true(
+		_navigation.descriptor_in_use_count() > descriptors, "both routes are cached separately")
+	assert_true(_navigation.is_ready(first), "and the first request still holds its own route")
 
 
-func test_the_macro_anchor_detour_is_measured_not_hidden() -> void:
-	"""ARCH-PATH-003 routes every start through its macro anchor. That costs something; measure it.
+func test_the_retired_anchor_detour_fixture_now_costs_the_exact_optimum() -> void:
+	"""PATH-R02's named fixture: cell (100,100) to (104,102) must cost 48, not 160.
 
-	FINDING, NOT A DEFECT IN THIS CODE: the adopted cache design makes a start that is not its
-	macro's anchor walk to the anchor first. For the short trip below that is 160 against an
-	optimal 48. The contract says what it says and this slice implements it exactly; whether the
-	entry segment should instead join the bucket at its nearest point, or an exact-start search
-	should be used below some distance, is an ARCH-PATH-003 question and NOT a threshold this
-	slice may invent.
+	HISTORICAL EVIDENCE, PRESERVED DELIBERATELY. This method replaces
+	`test_the_macro_anchor_detour_is_measured_not_hidden`, which asserted `_cost(request) == 160`
+	and `_route(request)[4] == _cell(96, 96)`. Those were not wrong when written: implemented
+	literally, ARCH-PATH-003 walked this start to its macro anchor at (96,96) first, and decision
+	0053 measured the composed result at 160 against a true optimum of 48 -- a 3.33x overcharge on
+	a four-step trip, bounded by the 16-cell macro and therefore worst on exactly the short job
+	hops a settlement makes most.
+
+	That acceptance is now OBSOLETE rather than merely relaxed, because PATH-R02 replaced the
+	construction that produced it. It is not deleted quietly: the old numbers are recorded here so
+	that a future reader who finds 160 in decision 0053 can see which test pinned it, what it
+	proved and what superseded it. The replacement acceptance is the exact optimum plus Dijkstra
+	agreement, which is strictly stronger -- 160 would fail it, and so would any other value.
 	"""
 	var request: int = _submit(_cell(100, 100), _cell(104, 102), 1)
 	assert_equal(_run(request, 16), 1, "the request settles")
-	assert_equal(_cost(request), 160, "the composed route costs 160")
+	assert_equal(_cost(request), 48, "two diagonals at 14 plus two orthogonals at 10")
 	assert_true(
 		_navigation.reference_cost_into(_cell(100, 100), _cell(104, 102), 1, _result), "reference")
-	assert_equal(_result.value, 48, "against a true optimum of 48")
-	assert_equal(_route(request)[4], _cell(96, 96), "because the route passes through the anchor")
+	assert_equal(_result.value, 48, "and the independent Dijkstra agrees exactly")
+	var route: PackedInt32Array = _route(request)
+	assert_equal(route[0], _cell(100, 100), "the route begins at the actual start")
+	assert_equal(route[route.size() - 1], _cell(104, 102), "and ends at the goal")
+	assert_equal(route.size(), 5, "five cells: one start and four steps")
+	assert_false(
+		route.has(_cell(96, 96)), "and it never visits the macro anchor the old route detoured to")
+
+
+func test_a_start_that_is_its_own_macro_anchor_reuses_the_anchor_descriptor() -> void:
+	"""PATH-R02 3: a `variant_start=-1` route IS an exact-start route when the start is the anchor.
+
+	It is the one case where the old bucket key survives, and it survives on merit rather than by
+	exception: the stored route literally begins at the requested cell, so reusing it publishes the
+	same cells an exact-start search would have found.
+	"""
+	var corner: int = _cell(ANCHOR_X, ANCHOR_Z)
+	var goal: int = _cell(ANCHOR_X + 12, ANCHOR_Z + 6)
+	var first: int = _submit(corner, goal, 1)
+	assert_true(_run(first, 16) >= 1, "the first request settles")
+	var route: int = _navigation.request_route_id(first)
+	assert_equal(
+		_navigation.route_variant_start(route), -1,
+		"an anchor start publishes the ordinary descriptor, not a start-keyed variant")
+	var spent: int = _navigation.total_expansions()
+	var second: int = _submit(corner, goal, 1)
+	assert_equal(_run(second, 16), 1, "the second request settles at once")
+	assert_equal(
+		_navigation.request_route_id(second), route, "reusing the very same stored route")
+	assert_equal(
+		_navigation.total_expansions(), spent, "without spending a single further expansion")
+	assert_equal(_route(second)[0], corner, "and it begins where it was asked to begin")
+
+
+func test_an_exact_start_variant_is_reused_only_by_that_same_start() -> void:
+	"""PATH-R02 2: the cache probe matches on the ACTUAL start, not on the macro it belongs to.
+
+	Two starts three cells apart inside one macro, heading to one goal. The first builds a variant;
+	the second must not be handed it. Reusing it is precisely the (100,100) detour, generalised.
+	"""
+	var goal: int = _cell(ANCHOR_X + 24, ANCHOR_Z + 4)
+	var here: int = _cell(ANCHOR_X + 5, ANCHOR_Z + 5)
+	var there: int = _cell(ANCHOR_X + 8, ANCHOR_Z + 2)
+	var first: int = _submit(here, goal, 1)
+	assert_true(_run(first, 16) >= 1, "the first request settles")
+	var variant: int = _navigation.request_route_id(first)
+	assert_equal(_navigation.route_variant_start(variant), here, "keyed by its exact start")
+	var spent: int = _navigation.total_expansions()
+	var repeat: int = _submit(here, goal, 1)
+	assert_equal(_run(repeat, 16), 1, "the same start settles at once")
+	assert_equal(_navigation.request_route_id(repeat), variant, "on the cached variant")
+	assert_equal(_navigation.total_expansions(), spent, "for no expansions at all")
+	var other: int = _submit(there, goal, 1)
+	assert_true(_run(other, 16) >= 1, "the neighbouring start settles too")
+	assert_true(
+		_navigation.request_route_id(other) != variant,
+		"but NOT by borrowing the first start's route")
+	assert_true(
+		_navigation.total_expansions() > spent, "it paid for its own search, as PATH-R02 requires")
+	assert_equal(_route(other)[0], there, "and its route begins at its own start")
+
+
+func test_a_goal_back_past_the_anchor_is_never_retraced() -> void:
+	"""Decision 0053's second symptom: a goal behind the start used to be reached by going forward.
+
+	Start (110,110) and goal (98,98) share macro (6,6), whose anchor is its corner (96,96). Under
+	anchor composition the published route ran (110,110) -> (96,96) -> (98,98): it walked PAST the
+	goal to the anchor and then back over cells it had already visited, for 224 against an optimum
+	of 168. An exact-start search cannot produce that shape at all.
+	"""
+	var start: int = _cell(110, 110)
+	var goal: int = _cell(98, 98)
+	var request: int = _submit(start, goal, 1)
+	assert_true(_run(request, 16) >= 1, "the request settles")
+	assert_true(_navigation.reference_cost_into(start, goal, 1, _result), "the reference runs")
+	assert_equal(_result.value, 168, "twelve diagonal steps")
+	assert_equal(_cost(request), 168, "and the published route costs exactly that")
+	var route: PackedInt32Array = _route(request)
+	assert_false(route.has(_cell(96, 96)), "it does not visit the anchor beyond the goal")
+	var seen: Dictionary = {}
+	for cell: int in route:
+		assert_false(seen.has(cell), "and it never visits any cell twice")
+		seen[cell] = true
+
+
+func test_no_request_enters_the_retired_searching_local_phase() -> void:
+	"""PATH-R02: "Stop admitting new requests through SEARCHING_LOCAL". Watch a search that used to.
+
+	The start is three cells off its macro corner with a goal across the river, so under anchor
+	composition its first serviced tick was spent on the macro-local entry segment. Every tick of
+	this request is now inspected, and SEARCHING_LOCAL must appear in none of them.
+	"""
+	var request: int = _submit(
+		_cell(ANCHOR_X + 3, ANCHOR_Z + 3), _cell(FAR_BANK_X, FAR_BANK_Z), 1)
+	var observed: Dictionary = {}
+	var tick: int = 0
+	while _navigation.is_pending(request) and tick < 64:
+		tick += 1
+		_navigation.service(tick)
+		observed[_navigation.request_phase_name(request)] = true
+	assert_true(_navigation.is_ready(request), "the request finishes")
+	assert_true(tick > 1, "after more than one tick, so mid-search phases were actually sampled")
+	assert_false(
+		observed.has(&"SEARCHING_LOCAL"), "and it never passed through the retired local phase")
+	assert_true(observed.has(&"SEARCHING_VARIANT"), "it ran the exact-start search instead")
+	assert_equal(
+		_route(request)[0], _cell(ANCHOR_X + 3, ANCHOR_Z + 3), "beginning at the exact start")
+
+
+func test_every_start_in_one_macro_agrees_with_dijkstra() -> void:
+	"""PATH-R02's "test multiple starts in one macro": all sixteen must be exactly optimal.
+
+	Sixteen starts on the leading diagonal of macro (12,18) to one shared goal outside it. Under
+	anchor composition fifteen of the sixteen would have been overcharged by their walk to the
+	corner; each is now compared against the independent `h=0` reference for its own pair.
+	"""
+	var goal: int = _cell(ANCHOR_X + 40, ANCHOR_Z + 9)
+	for step: int in SpatialWorldScript.MACRO_CELLS:
+		var start: int = _cell(ANCHOR_X + step, ANCHOR_Z + step)
+		var request: int = _submit(start, goal, 1)
+		assert_true(_run(request, 16) >= 1, "the request settles")
+		var published: int = _cost(request)
+		assert_true(_navigation.reference_cost_into(start, goal, 1, _result), "the reference runs")
+		assert_equal(published, _result.value, "A* matches Dijkstra for this exact start")
+		assert_equal(_route(request)[0], start, "and the route begins at it")
+
+
+func test_route_semantics_version_two_refuses_anchor_composition_state() -> void:
+	"""PATH-R02: retire the old state through an explicit version, never a silent reinterpretation.
+
+	A version 1 descriptor table has the same sixteen columns of the same widths as a version 2
+	one, so shape proves nothing. The gate is a number, and it refuses by name.
+	"""
+	assert_equal(NavigationScript.ROUTE_SEMANTICS_VERSION, 2, "PATH-R02 is version 2")
+	assert_equal(
+		NavigationScript.ROUTE_SEMANTICS_VERSION_ANCHOR_COMPOSITION, 1,
+		"anchor composition was version 1")
+	assert_equal(NavigationScript.route_semantics_version(), 2, "and the module publishes it")
+	assert_equal(
+		NavigationScript.refuse_route_semantics(2), NavigationScript.REFUSE_NONE,
+		"its own version continues")
+	assert_equal(
+		NavigationScript.refuse_route_semantics(1), NavigationScript.REFUSE_ROUTE_SEMANTICS,
+		"a version 1 payload is refused, not migrated")
+	assert_equal(
+		NavigationScript.refuse_route_semantics(3), NavigationScript.REFUSE_ROUTE_SEMANTICS,
+		"and so is a version this module has never published")
+
+
+func test_the_expansion_quota_is_unchanged_by_path_r02() -> void:
+	"""PATH-R02 holds the quota fixed, and ARCH-PATH-007's deadline arithmetic depends on it.
+
+	"All finalized expansions share the existing 2048/tick quota; do not add a 'small query'
+	budget." ARCH-PATH-007 derives the readiness deadline from that number: at most seven complete
+	30 Hz intervals inside 0.25 real seconds, hence 7*2048 = 14336 expansions. Raising the quota to
+	absorb exact-start search would silently rewrite that derivation.
+	"""
+	assert_equal(
+		NavigationScript.EXPANSION_QUOTA_PER_TICK, 2048, "still 2048 finalized expansions a tick")
+	assert_equal(
+		NavigationScript.EXPANSION_QUOTA_PER_TICK * READINESS_DEADLINE_TICKS, 14336,
+		"which is ARCH-PATH-007's 14336-expansion deadline budget")
+	var request: int = _submit(
+		_cell(LONG_START_X, LONG_START_Z), _cell(LONG_GOAL_X, LONG_GOAL_Z), 1)
+	assert_equal(
+		_navigation.service(1), NavigationScript.EXPANSION_QUOTA_PER_TICK,
+		"and one busy tick spends exactly the quota, never more")
+	assert_true(_navigation.is_pending(request), "leaving the long search still running")
 
 
 func test_a_disconnected_macro_start_gets_its_own_exact_start_variant() -> void:
@@ -695,6 +898,170 @@ func test_reading_a_route_index_out_of_range_refuses() -> void:
 	assert_equal(
 		_navigation.last_refusal(), NavigationScript.REFUSE_INVALID_INDEX, "refusal is named")
 	assert_false(_navigation.route_cell_into(request, -1, _result), "a negative index refuses")
+
+
+# --- PATH-R02 readiness remeasurement, REQ-SET-163 and ARCH-PATH-007/008 -------------------------
+
+func _p95_nearest_rank(values: PackedInt32Array) -> int:
+	"""ARCH-PATH-007's nearest-rank p95: the `ceil_div(95*N,100)`-th smallest value, 1-based."""
+	var sorted_values: PackedInt32Array = values.duplicate()
+	sorted_values.sort()
+	var rank: int = (95 * sorted_values.size() + 99) / 100
+	return sorted_values[rank - 1]
+
+
+func _short_route_batch() -> Array[int]:
+	"""Submit ARCH-PATH-008's 256 distinct short routes, none of them starting on a macro anchor.
+
+	One request per macro of the all-land block, offset five cells in from the corner so every one
+	of them takes PATH-R02's exact-start search rather than the anchor-descriptor path. Eight
+	cells east and four south is a nine-cell route, the length of an ordinary job hop.
+	"""
+	var requests: Array[int] = []
+	for index: int in READINESS_BATCH:
+		var column: int = index % LAND_MACRO_COLUMNS
+		var macro_row: int = FIRST_LAND_MACRO_ROW + index / LAND_MACRO_COLUMNS
+		var start_x: int = column * SpatialWorldScript.MACRO_CELLS + 5
+		var start_z: int = macro_row * SpatialWorldScript.MACRO_CELLS + 5
+		requests.append(
+			_submit(_cell(start_x, start_z), _cell(start_x + 8, start_z + 4), 1))
+	return requests
+
+
+func _ticks_to_ready(requests: Array[int], max_ticks: int) -> PackedInt32Array:
+	"""Service until every request settles, returning the tick each one became ready on."""
+	var settled: PackedInt32Array = PackedInt32Array()
+	settled.resize(requests.size())
+	settled.fill(-1)
+	var outstanding: int = requests.size()
+	var tick: int = 0
+	while outstanding > 0 and tick < max_ticks:
+		tick += 1
+		_navigation.service(tick)
+		for index: int in requests.size():
+			if settled[index] < 0 and not _navigation.is_pending(requests[index]):
+				settled[index] = tick
+				outstanding -= 1
+	return settled
+
+
+func test_job_route_readiness_p95_after_exact_start_search() -> void:
+	"""REQ-SET-163's "job route ready at 1x p95 < 0.25 real seconds", REMEASURED under PATH-R02.
+
+	PATH-R02 requires this because cross-start cache reuse decreases: 256 residents in 256
+	different macros used to pay one full anchor search each anyway, but a second body in an
+	already-searched macro used to pay almost nothing and now pays for its own search. The whole
+	colony asking at once is the fixture ARCH-PATH-008 names, and the number below is measured,
+	not asserted from the budget. THIS IS NOT AN ARCH-PATH-008 PASS CLAIM: that gate also needs the
+	256-expansion burst and the labyrinth, on the qualification hardware.
+	"""
+	var requests: Array[int] = _short_route_batch()
+	var settled: PackedInt32Array = _ticks_to_ready(requests, 256)
+	for index: int in requests.size():
+		assert_true(_navigation.is_ready(requests[index]), "every route in the batch is ready")
+	var p95_ticks: int = _p95_nearest_rank(settled)
+	print("[PATH-R02 readiness] %d short routes, p95 %d ticks, worst %d ticks, %d expansions"
+		% [requests.size(), p95_ticks, _p95_nearest_rank(settled), _navigation.total_expansions()])
+	assert_equal(p95_ticks, 3, "measured: p95 3 ticks, 0.100 real seconds at 30 ticks a second")
+	assert_equal(
+		_navigation.total_expansions(), 6400, "measured: 6400 expansions, 25 for each route")
+	assert_equal(
+		_navigation.storage_blocked_count(), 0,
+		"and no route was refused storage, because one request now needs one descriptor")
+	assert_true(p95_ticks >= 1, "a tick is the floor: nothing is ready before it is serviced")
+	assert_true(
+		p95_ticks <= READINESS_DEADLINE_TICKS,
+		"p95 %d ticks is inside ARCH-PATH-007's 7-tick (0.2333 s) allowance" % p95_ticks)
+	assert_true(
+		p95_ticks * 1000 < 250 * TICKS_PER_SECOND,
+		"and inside REQ-SET-163's 0.25 real seconds at 30 ticks a second")
+
+
+func test_a_repeated_job_route_is_ready_on_its_first_serviced_tick() -> void:
+	"""ARCH-PATH-008's "cached routes" fixture: the exact-start cache still removes the search.
+
+	PATH-R02 narrows what may be reused; it does not weaken reuse by the same start. A body sent
+	back to a destination it already has a route to is ready on tick one for zero expansions.
+	"""
+	var requests: Array[int] = _short_route_batch()
+	_ticks_to_ready(requests, 256)
+	var spent: int = _navigation.total_expansions()
+	for request: int in requests:
+		assert_true(_navigation.release_request(request), "release the first batch")
+	var repeats: Array[int] = _short_route_batch()
+	var settled: PackedInt32Array = _ticks_to_ready(repeats, 16)
+	assert_equal(
+		_navigation.total_expansions(), spent, "the repeat batch ran no search at all")
+	assert_equal(_p95_nearest_rank(settled), 1, "and its p95 readiness is one tick")
+
+
+func test_the_measured_price_of_losing_cross_start_reuse() -> void:
+	"""PATH-R02: "Cross-start cache reuse decreases... report latency regressions openly."
+
+	This is the regression, isolated and pinned rather than left to be rediscovered -- the same
+	role `test_the_macro_anchor_detour_is_measured_not_hidden` played for the detour it replaced.
+	Sixty-four bodies standing in one macro and sent to one distant goal used to cost one full
+	anchor search plus sixty-three tiny entry segments. They now cost sixty-four full searches.
+
+	MEASURED, both algorithms, same fixture, same map, deterministic tick counts:
+
+	    anchor composition (v1):  p95  1 tick,     1232 expansions, 127 descriptors
+	    exact-start       (v2):  p95 24 ticks,   50064 expansions,  64 descriptors
+
+	24 ticks is 0.800 real seconds at 30 ticks a second, which BREACHES REQ-SET-163's 0.25 s and
+	ARCH-PATH-007's seven-tick allowance. It is disclosed here as ARCH-PATH-008's "failure scenes
+	disclosed" rather than hidden, and PATH-R02 forbids the obvious patch: the quota stays at 2048
+	and no small-query budget is added. What the fixture buys is correctness -- every one of the
+	sixty-four routes is now the exact optimum for its own start, which none but the anchor's was
+	before, and descriptor pressure halves.
+
+	If a later change makes this fixture faster, this test fails. That is intended: replace the
+	number with the new measurement and say what changed, exactly as PATH-R02 did to the 160.
+	"""
+	var goal: int = _cell(ANCHOR_X + 60, ANCHOR_Z + 40)
+	var requests: Array[int] = []
+	for index: int in 64:
+		requests.append(_submit(_cell(ANCHOR_X + index % 8, ANCHOR_Z + index / 8), goal, 1))
+	var settled: PackedInt32Array = _ticks_to_ready(requests, 256)
+	var p95_ticks: int = _p95_nearest_rank(settled)
+	print("[PATH-R02 reuse loss] 64 starts in one macro, p95 %d ticks, %d expansions"
+		% [p95_ticks, _navigation.total_expansions()])
+	assert_equal(p95_ticks, 24, "measured at 24 ticks, against 1 under anchor composition")
+	assert_true(
+		p95_ticks > READINESS_DEADLINE_TICKS,
+		"which is openly outside ARCH-PATH-007's deadline, not quietly inside it")
+	assert_equal(_navigation.total_expansions(), 50064, "for 50064 expansions, against 1232")
+	assert_equal(
+		_navigation.descriptor_in_use_count(), 64, "one descriptor each, against 127 before")
+	for index: int in [0, 17, 63]:
+		var start: int = _cell(ANCHOR_X + (index as int) % 8, ANCHOR_Z + (index as int) / 8)
+		assert_true(_navigation.reference_cost_into(start, goal, 1, _result), "the reference runs")
+		assert_equal(
+			_cost(requests[index as int]), _result.value,
+			"and what the expansions bought is an exactly optimal route for that start")
+
+
+func test_the_batch_replays_identically_on_a_second_navigator() -> void:
+	"""Determinism across the whole exact-start batch, which a save replay has to reproduce.
+
+	No section 9 writer exists yet, so this is the strongest replay claim available: two navigators
+	given the same submissions in the same order must publish byte-identical routes and spend the
+	same expansions on the same ticks. A route that varied run to run could not be serialized
+	meaningfully in the first place.
+	"""
+	var first: Array[int] = _short_route_batch()
+	var first_ticks: PackedInt32Array = _ticks_to_ready(first, 256)
+	var first_routes: Array[PackedInt32Array] = []
+	for request: int in first:
+		first_routes.append(_route(request))
+	var spent: int = _navigation.total_expansions()
+	_bind(_shared_world)
+	var second: Array[int] = _short_route_batch()
+	var second_ticks: PackedInt32Array = _ticks_to_ready(second, 256)
+	assert_equal(second_ticks, first_ticks, "the same requests are ready on the same ticks")
+	assert_equal(_navigation.total_expansions(), spent, "for the same total expansions")
+	for index: int in second.size():
+		assert_equal(_route(second[index]), first_routes[index], "and on identical cells")
 
 
 # --- the Dijkstra correctness reference -----------------------------------------------------------

@@ -56,8 +56,9 @@ extends Node
 ##     rather than at the table's position 17. The table's own stated constraint -- "before
 ##     lifecycle and progression" -- still holds, because neither ARCH-SYS-019 nor ARCH-SYS-020
 ##     exists. WHAT IS ACTUALLY LOST is everything between the two positions: cold exposure cannot
-##     see THIS tick's ARCH-SYS-016 RoomHeat result (no Room store), and injury care cannot see
-##     THIS tick's ARCH-SYS-013 care work (no care request store). Both inputs are absent today,
+##     see THIS tick's ARCH-SYS-016 RoomHeat result (the Room store now exists, but nothing
+##     integrates heat into it), and injury care cannot see THIS tick's ARCH-SYS-013 care work
+##     (no care request store). Both inputs are absent today,
 ##     so the debt is currently unobservable -- and it becomes a real one-tick lag the moment
 ##     either store lands. Repaying it means a separate CareHealth call, which is a change to
 ##     `needs.gd`, a file this task does not own.
@@ -119,8 +120,20 @@ extends Node
 ##   ARCH-SYS-012 Movement            no Transform store and no path to follow.
 ##   ARCH-SYS-014 BatchCompletion     no BatchState, no recipe store, no passive-wait flag.
 ##   ARCH-SYS-015 LogisticsCommit     no completion or transfer plans to commit.
-##   ARCH-SYS-016 RoomHeat            no Building or Room store; this is also exactly why
-##                                    `economy_system.gd` leaves fuel-days unpopulated.
+##   ARCH-SYS-016 RoomHeat            THE BUILDING, ROOM AND FURNITURE STORE IS NOW COMPOSED --
+##                                    `buildings()` -- so "no store" is no longer the reason and
+##                                    is not repeated here. What is still missing is §5.9's
+##                                    CONNECTED HEAT SERVICE: a fueled hearth heats every valid
+##                                    room "connected by open boundaries or interior doors within
+##                                    that building, up to 120 total interior tiles per hearth"
+##                                    (BAL-RATIO-010), allocated by hearth id then room id. That
+##                                    is room-to-room connectivity and an impermeable-partition
+##                                    model, and `buildings.gd`'s header says in terms that
+##                                    connectivity, enclosure and "heated" are NOT derived there.
+##                                    So the store answers how many hearths and how many interior
+##                                    tiles exist, and nothing answers which tiles a given hearth
+##                                    reaches. `economy_system.gd`'s fuel-days therefore stays
+##                                    unpopulated, with a narrower stated reason than before.
 ##   ARCH-SYS-018 SocialMood          MoodMemory storage is blocked by U6 (no owner-major index
 ##                                    formula), so the memory total stays 0 and `needs.gd`
 ##                                    computes mood from the five needs alone.
@@ -267,6 +280,37 @@ extends Node
 ## designation. `farming().count()` is 0, so the hourly leg honestly integrates nothing.
 ## `crop_weather()`, `farming()` and `weather()` are the accessors the generator and tests use.
 ##
+## ---------------------------------------------------------------------------------------
+## THE BUILDING, ROOM AND FURNITURE STORE IS NOW CONSTRUCTED, AND IT IS EMPTY. `buildings.gd`
+## (decision 0080) landed complete and NOTHING CALLED `Buildings.new()`; its author named the
+## exact line and left it, because this file was another agent's. `_init()` now makes that call
+## with THIS settlement's directory, which is the whole of the change and the whole of what it
+## buys. Precisely what a shared directory buys, and nothing more:
+##   * `Furniture.user` can name a resident. `set_furniture_user()` validates the reference
+##     through `directory()`, so a bed's occupant is a row `residents()` actually owns; with two
+##     directories it could only ever have been a foreign reference this store must refuse.
+##   * `world_init.gd`'s world entities and a placed building draw slots from ONE allocator, so
+##     R-INIT-ID-001's persistent-id sequence stays one sequence.
+##   * `reset()` releases the building rows' directory slots. `clear()` destroys only the rows
+##     this store holds and leaves a SHARED directory alone (its
+##     `test_a_shared_directory_is_not_cleared_by_this_store` pins that), which is why placing
+##     the call in `_clear_stores()` alongside the ecology's is safe and leaks no slot.
+##
+## WHAT THE COMPOSITION DOES NOT DO, stated because decision 0080's consequences are easy to
+## over-read. THERE IS NO STARTER SETTLEMENT. `live_building_count()`, `live_room_count()` and
+## `live_furniture_count()` are 0 after `create_generated_settlement()` as well as before it:
+## `world_init.gd` generates terrain, resource nodes, forage basins and the estuary, and §5.1's
+## hall, beds, hearth, pantry, well, stockpiles and workbench are NOT among them. So
+## `live_furniture_of_kind(bed)` answers 0 truthfully rather than answering §5.1's twelve, and a
+## HUD bed counter reading it would display a real 0 for a settlement with no beds in it. NOTHING
+## HERE PLACES A BUILDING TO MAKE THAT NUMBER LOOK RIGHT. The §7.2 starter build is a separate
+## piece of work with its own unresolved inputs, itemised in decision 0087.
+##
+## NO STAGE IS ADDED TO THE TICK. The store is structural state edited by placement and
+## demolition, not integrated per tick, and ARCH-SYS-016 RoomHeat -- the one §5 stage that would
+## read it -- still has no connected-heat model (see the absent-stage list above). `run_tick()`
+## and `run_day_boundary()` are byte-for-byte the same dispatch they were.
+##
 ## THE WORLD SEED IS NO LONGER MISSING. `rng()` is composed here UNSEEDED and stays that way in a
 ## settlement nobody generated; `create_generated_settlement()` seeds it, because `world_init.gd`
 ## owns REQ-SET-009's `World.seed` and seeds all nine streams as part of publishing. §5.10's
@@ -352,6 +396,8 @@ const WeatherScript := preload("res://scripts/core/weather.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
+const BuildingsScript := preload("res://scripts/core/buildings.gd")
+const BuildingDefinitionsScript := preload("res://scripts/core/building_definitions.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const StockAgeScript := preload("res://scripts/core/stock_age.gd")
@@ -443,6 +489,7 @@ var _crop_weather: CropWeatherScript = null
 var _planner: JobPlannerScript = null
 var _presentation: PresentationExtractScript = null
 var _world: WorldInitScript = null
+var _buildings: BuildingsScript = null
 var _inventory: InventoryScript = null
 var _item_definitions: ItemDefinitionsScript = null
 var _stock_age: StockAgeScript = null
@@ -534,6 +581,7 @@ func _init() -> void:
 	_world = WorldInitScript.new(_directory, _ecology.resource_nodes(), _ecology.forage(),
 		_ecology.fishing(), _rng, _crop_weather.farming(), _ecology.orchard_hive(), _jobs,
 		_commands)
+	_buildings = BuildingsScript.new(_directory)
 	_compose_stock_layer()
 	_bind_ecology_to_commands()
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
@@ -609,6 +657,11 @@ func _assert_shared_contracts() -> void:
 		"ARCH-SYS-009 must service the FarmPlot rows ARCH-SYS-006 integrates")
 	assert(_world.directory() == _directory,
 		"REQ-SET-009's generator must allocate out of this settlement's one directory")
+	assert(_buildings.directory() == _directory,
+		"the Building/Room/Furniture store must share this settlement's one directory")
+	assert(BuildingsScript.MAP_TILES_X == WorldInitScript.MAP_TILES_X
+			and BuildingsScript.MAP_TILES_Z == WorldInitScript.MAP_TILES_Z,
+		"the building tile maps and REQ-SET-009's ground map must index the same §5.1 grid")
 	assert(TICK_STAGE_KEYS.size() == TICK_STAGE_COUNT,
 		"every measured tick stage must name the ARCH-SYS system it dispatches")
 	assert(_stage_usec.size() == TICK_STAGE_COUNT and _stage_usec_total.size() == TICK_STAGE_COUNT,
@@ -846,6 +899,7 @@ func _clear_stores() -> void:
 	_planner.clear()
 	_presentation.clear()
 	_world.clear()
+	_buildings.clear()
 	_rng.clear()
 
 
@@ -1632,6 +1686,27 @@ func world() -> WorldInitScript:
 func reservations() -> ReservationsScript:
 	"""The global reservation pool. Empty: no job exists to claim an input (header)."""
 	return _reservations
+
+
+func buildings() -> BuildingsScript:
+	"""GDD §4.2's Building, Room and Furniture rows, over THIS settlement's one directory.
+
+	Empty until something places a structure: `world_init.gd` generates terrain and ecology and
+	§5.1 lists no starter building among them, so a generated settlement still has 0 buildings.
+	What the composition buys is that a placement now allocates out of the same allocator every
+	other settlement reference lives in, so a `Furniture.user` can name a resident this store's
+	`residents()` owns and the mask, the tile maps and the directory cannot disagree.
+	"""
+	return _buildings
+
+
+func building_definitions() -> BuildingDefinitionsScript:
+	"""The immutable §4.1/§4.2/§4.3 facts the building store validates against.
+
+	Borrowed from the store rather than composed a second time, so `base_store_g_of()` and the
+	unlock ordinals a caller reads are the ones `place_building()` itself enforced.
+	"""
+	return _buildings.definitions()
 
 
 func _report_first_refusal(code: StringName) -> void:

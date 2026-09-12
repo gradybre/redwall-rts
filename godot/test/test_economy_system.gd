@@ -31,6 +31,13 @@ const EconomySystemScript := preload("res://scripts/systems/economy_system.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const BuildingDefinitionsScript := preload("res://scripts/core/building_definitions.gd")
+const CatalogScript := preload("res://scripts/core/catalog.gd")
+
+## GDD §5.1's built fixture: "four open stockpiles", and §5.9's "Four pantry shelves". Restated
+## here from the specification rather than read out of `building_definitions.gd`.
+const STARTER_OPEN_STOCKPILES: int = 4
+const STARTER_PANTRY_SHELVES: int = 4
 
 const SUMMARY_BUDGET_USEC: int = 2000
 const MILLI: int = 1000
@@ -483,3 +490,38 @@ func test_food_days_computation_stays_within_budget() -> void:
 	_economy.bind_residents(_residents)
 	assert_true(_economy.food_days_centi().ok, "food-days is computable at the living cap")
 	assert_less_than(_economy.get_last_food_days_usec(), SUMMARY_BUDGET_USEC, "under 2ms at 256 residents")
+
+
+# --- the §5.9 container masses now have a store that states them (decision 0087) ----------------
+
+func test_the_material_store_mass_is_four_open_stockpiles_own_capacity() -> void:
+	"""§5.9's "Four stockpiles provide 1600000g" is 4 x BAL-CAT-006's `base_store_g` of 400000.
+
+	These two containers were opened against a sentence copied out of §5.9, because no module
+	published a building's declared capacity. `building_definitions.gd` does now, and
+	`settlement_system.gd` composes the store that owns it, so the constant can be checked
+	against the very number `place_building()` would attach to a placed stockpile.
+
+	THE CONSTANT IS NOT REPLACED BY THE LOOKUP. Nothing places a stockpile yet -- §7.2's starter
+	build does not exist -- so deriving the mass from zero placed buildings would open a
+	zero-gram store. The agreement is asserted instead, which is what catches a later drift.
+	"""
+	var definitions: BuildingDefinitionsScript = BuildingDefinitionsScript.new()
+	var stockpile: int = int(CatalogScript.BUILDING_DEFINITION["open_stockpile"])
+	assert_equal(definitions.base_store_g_of(stockpile) * STARTER_OPEN_STOCKPILES,
+		EconomySystemScript.MATERIAL_STORE_MAX_MASS_G,
+		"four open stockpiles supply exactly the material store's mass")
+
+
+func test_the_pantry_mass_is_four_shelves_own_pantry_capacity() -> void:
+	"""§5.9's "Four pantry shelves supply 200000g storage" is 4 x BAL-CAT-006's 50000 g shelf.
+
+	The fifth, kitchen-owned starter shelf is deliberately NOT counted: R-BUILD-DOM-004 keeps it
+	out of the pantry service and `buildings.pantry_capacity_g_of_room()` refuses a non-pantry
+	room rather than folding it in. Four is the number §5.9 states and four is what this asserts.
+	"""
+	var definitions: BuildingDefinitionsScript = BuildingDefinitionsScript.new()
+	var shelf: int = int(CatalogScript.FURNITURE_DEFINITION["shelf"])
+	assert_equal(definitions.shelf_capacity_g_of(shelf) * STARTER_PANTRY_SHELVES,
+		EconomySystemScript.PANTRY_MAX_MASS_G,
+		"four pantry shelves supply exactly the pantry's mass")

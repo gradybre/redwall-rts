@@ -136,3 +136,10 @@ fit, mouse/keyboard access, focus return and multi-card non-overlap.
 
 ALERT-R02 specifies adaptive STANDARD/WIDE full text versus always-compact NARROW, real selected-notice details and required native visual captures.
 Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.
+
+## Resident UI contract follow-up — 2026-09-12
+
+UI-IDENTITY-R01 removes the impossible280px resident-name minimum and supplies
+exact header columns. NEED-RATE-R01 assigns four public needs readers and their
+snapshot/formatting contracts. Do not mark UXV-020 complete from guessed rates.
+Read [the exact ruling](../rulings/2026-09-12_resident_header_and_need_rates.md).

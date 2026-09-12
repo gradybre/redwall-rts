@@ -120,3 +120,10 @@ provide concrete journeys for the existing cases above. Report actual statuses a
 evidence; their initial NOT_RUN values are not failures or passes. They introduce
 no new gameplay scope. Proposed text-scaling work in RUI-P01 remains a separate
 owner amendment; current package checks do not establish XAG101 conformance.
+
+## Resident UI contract follow-up — 2026-09-12
+
+A12 additionally requires UI-IDENTITY-R01 heading geometry and NEED-RATE-R01
+all-five current rate bindings, caps, pause and stale-identity cases; arithmetic
+checks and screenshot acceptance remain distinct.
+Read [the exact ruling](../../rulings/2026-09-12_resident_header_and_need_rates.md).

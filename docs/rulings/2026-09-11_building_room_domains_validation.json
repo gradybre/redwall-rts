@@ -1,0 +1,16 @@
+{
+  "status": "PASS_SPECIFICATION_CHECKS",
+  "date": "2026-09-11",
+  "recipe_station_rows_checked": 36,
+  "building_unlock_rows_checked": 30,
+  "station_keys": 11,
+  "furniture_ids_checked_against_committed_artifact": 9,
+  "mask_vectors": "PASS",
+  "sparse_milestone_gate": "PASS",
+  "pantry_arithmetic": "PASS",
+  "artifact_sha256_unchanged_by_ruling": "ead6a8ac6c67bb4b0d9b320a2414cc477f252b5f9cdf8bb3e1e0b8cc593eecf4",
+  "Milestone_runtime_domain_present": false,
+  "Station_runtime_domain_present": false,
+  "runtime_tests_run": false,
+  "limitations": "Checks validate source mappings/arithmetic, not production store behavior, service readiness or save parity."
+}

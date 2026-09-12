@@ -257,7 +257,7 @@ structural visual and user-review status.
 - [ ] Wire New Settlement, initially paused world, time/calendar controls,
   camera/selection, resource summary, resident detail, zone tool, pending preview,
   cancellation and accessible refusal display to real state.
-- [ ] Apply UI registry profiles, narrow/wide geometry, actual input rectangles,
+- [x] Apply UI registry profiles, narrow/wide geometry, actual input rectangles,
   keyboard focus and Mac trackpad alternatives. Decorative UI must not consume
   world clicks. The generic rendered shell cannot claim unbuilt panels work.
 - [x] Connect accepted zone/policy commands to task 03's adopted standing-demand producer
@@ -268,6 +268,26 @@ structural visual and user-review status.
 - [x] Add/retain per-stage measurements and same-command replay input capture.
   List unimplemented stages honestly, including current CareHealth ordering debt;
   do not perpetuate stale comments saying three/five stages proves completeness.
+
+Bullets 1 and 2 implemented 2026-09-11 by `scripts/ui/` and `scripts/systems/ui_manager.gd`
+([decision 0057](../decisions/0057-the-ui-shell-renders-the-registry-and-refuses-to-imply-more.md)),
+following [the visual direction](../planning/ui_visual_direction.md). **42 of UI §4's 103
+elements are driven by real state; the other 61 are drawn DISABLED with the name of the owner
+they wait for** -- that split is a table in `ui_availability.gd` and both halves are tested.
+The world opens PAUSED with the PLAYER reason and an empty command queue; New Settlement runs
+`world_init.gd` against the running settlement's own stores (1695 nodes, 7 basins, 9 stocks,
+seed 20260905); a minimap tile pick resolves a real basin; a painted stroke commits as a
+DESIGNATE_ZONE COMMAND that sits pending while paused; cancellation, SET_POLICY and
+NAME_RESIDENT travel the same queue; refusals reach UI-SET-085 with a severity icon, plain
+words and the exact code. §2.1's palette, the four vendored Noto Sans weights and an original
+24x24 icon set are applied through one generated Theme at the UI root.
+**Still outstanding within these two bullets:** Mac TRACKPAD alternatives are unbound (§5's
+pointer gestures still have no input router); the NARROW composition cannot be reached at
+runtime because `project.godot`'s `stretch/mode="canvas_items"` gives the HUD a 1920x1080
+canvas in any window (decision 0057 §7 -- the integration lead owns that file); screen-reader
+qualification is NOT executed; and 3840x2160 was deferred when the OS granted 3456x1986.
+Screenshots, the state trace, the exact commands and the pass/fail/blocked table are in
+[docs/validation/evidence/ui-first-playable/](../validation/evidence/ui-first-playable/README.md).
 
 Bullets 3–5 implemented 2026-09-10
 ([decision 0049](../decisions/0049-source-intent-is-recorded-on-what-it-produced.md)).
@@ -318,3 +338,22 @@ through real stores and its open schema dependencies are resolved. Remaining
 command kinds, full movement, survival, save parity and release performance are
 explicitly outstanding. Continue to [task 05](05_movement_first_playable.md);
 use [first-playable acceptance](../planning/first_playable_acceptance.md).
+
+## 2026-09-11 identity ruling — implementation remains open
+
+[R-INIT-ID-001](../rulings/2026-09-11_initial_ids_and_narrow_alerts.md) resolves
+the historical 1714–1725 divergence above: reset the composed transaction once
+before allocation, allocate the cohort first as global IDs 1–12, then allocate
+world entities without clearing that cohort. The previous “needs a ruling”
+statement is historical. Replace its diagnostic test deliberately; retain the
+derived world census and add the ruling’s uniqueness/failure/determinism evidence.
+
+## 2026-09-11 building-domain ruling — definitions resolved
+
+Read [R-BUILD-DOM-001–004](../rulings/2026-09-11_building_room_domains.md)
+and its adjacent JSON specification fixtures. Decision 0056's unlock domain,
+Station domain, furniture-mask assignment and fifth-shelf interpretation are
+resolved. Publish Milestone/Station through the existing registry, then implement
+packed stores and dependency-ready starter composition; do not reopen these as
+undefined fields or declare absent service/topology owners complete. Run the
+ruling's exact mapping, mask, ownership, capacity and failure tests.

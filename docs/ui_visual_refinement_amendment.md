@@ -34,6 +34,12 @@ colors, font identity and structural layouts are required. Revision2 §2.4 raise
 the art-finish bar: the original flat references are structural evidence, not
 finished visual art. Subsequent changes remain recorded through design review.
 
+**2026-09-11 alert addendum, R-UI-ALERT-001:** UXV-018/032 permit a
+separately authored compact HUD severity/cause summary with guaranteed full notice
+disclosure in history. This is not ellipsis or clipping of the full message.
+Keep the NARROW 48px zone and apply [the exact interaction and evidence ruling](rulings/2026-09-11_initial_ids_and_narrow_alerts.md).
+Full messages, costs and other critical content retain their wrap/scroll rules.
+
 ## 2. Art direction and theme recipes
 
 **A living community, presented through a keeper's field journal.** The world

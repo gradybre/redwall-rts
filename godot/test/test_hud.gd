@@ -23,9 +23,6 @@ const HudScript := preload("res://scripts/ui/hud.gd")
 const EconomySystemScript := preload("res://scripts/systems/economy_system.gd")
 
 const HUD_SCENE_PATH: String = "res://scenes/ui/hud.tscn"
-const RESOURCE_LABEL_PATH: String = "Root/ResourceZone/ResourceLabel"
-const ALERT_LABEL_PATH: String = "Root/AlertZone/AlertLabel"
-const STATUS_LABEL_PATH: String = "Root/StatusZone/StatusLabel"
 
 ## UI §1.1 counter order and the separator between counters, restated here rather than read back
 ## out of hud.gd, so a reordered or re-joined line cannot rewrite this suite's expectation.
@@ -62,18 +59,23 @@ func after_each() -> void:
 # --- helpers ----------------------------------------------------------------------------------
 
 func _rendered_counters() -> String:
-	"""The exact text currently painted into the top-left resource label."""
-	return (_hud.get_node(RESOURCE_LABEL_PATH) as Label).text
+	"""The exact text currently painted into UI-SET-009's resource ledger line.
+
+	The §4 shell replaced the placeholder top-left panel this suite used to read. The line is
+	the same one, built by the same `_render_counters()` and joined by the same separator, so
+	every assertion below is unchanged; only the node it is painted into moved.
+	"""
+	return _hud.shell().ledger_label().text
 
 
 func _rendered_alert() -> String:
-	"""The exact text currently painted into the top-centre alert label."""
-	return (_hud.get_node(ALERT_LABEL_PATH) as Label).text
+	"""The exact text currently painted into UI-SET-011's alert card."""
+	return _hud.shell().alert_label().text
 
 
 func _rendered_status() -> String:
-	"""The exact text currently painted into the top-right status label."""
-	return (_hud.get_node(STATUS_LABEL_PATH) as Label).text
+	"""The exact text currently painted into UI-SET-101's date trigger."""
+	return _hud.shell().status_label().text
 
 
 func _expected_counters(supplied: Dictionary) -> String:

@@ -116,6 +116,29 @@ extends RefCounted
 ## `jobs.gd`, because the Expedition and cycle columns that would drive one do not exist.
 ##
 ## ---------------------------------------------------------------------------------------
+## SETTLEMENT DURING A JOB, NOT ONLY AT ITS END (SET-MOVE-ECON-001 ECON-002). That amendment
+## states plainly that "the current Gear API settles a claimed job rather than every phase
+## contributor", and that accepted WU and the contributing resident's tool wear must "commit
+## together exactly once". A multi-phase excavation project is worked tick by tick by up to four
+## builders, each on their own tool, and none of them is finished when the first durability point
+## falls due -- so a wear call that also RELEASES the claim cannot express it.
+##
+## Three functions therefore exist where one did, and the difference between them is the claim:
+##   * `preflight_general_wear_into()` -- asks whether the debit could happen and writes NOTHING,
+##     so `work.gd` can validate before it advances any other store (decision 0059);
+##   * `accrue_general_wear_into()` -- debits and KEEPS the claim, for a job still in progress;
+##   * `apply_general_wear_into()` -- debits and RELEASES the claim, exactly as before.
+## All three share `_general_wear()`, so the validation order, the refusal codes and the debit
+## arithmetic are one implementation and the accruing form cannot drift from the applying one.
+## Only the boolean release differs.
+##
+## THE REMAINDER STILL DOES NOT LIVE HERE. `accrue_general_wear_into()` takes the resident's carry
+## in and hands the new one back exactly as the applying form does; `work.gd` owns the column and
+## carries it across phases, job replacement and cancellation, which is what §5.7's "preserve
+## remainder across tasks" requires and what ECON-002 restates as "no resetting the remainder at
+## quantum, project or worker handoff boundaries".
+##
+## ---------------------------------------------------------------------------------------
 ## SAVE AND LOAD. `occupied` and the authoritative fields are the saved state; the free heap is
 ## derived and is rebuilt ASCENDING by `finish_restore()`, so a loaded world allocates the same
 ## rows in the same order as the world that saved it. `state_bytes()` is the deterministic image,
@@ -424,6 +447,12 @@ var _row_capacity: int = 0
 var _active_count: int = 0
 ## True between `begin_restore()` and `finish_restore()`, while the free heap is not yet derived.
 var _restoring: bool = false
+
+## Arithmetic scratch for the wear debit, allocated once. `accrue_general_wear_into()` is called
+## from a productive-tick settlement, so the `IntResult` the checked add needs cannot be built per
+## call. It is written and read entirely inside `_debit_general_wear()` and never escapes, so it
+## can alias nothing a caller owns.
+var _wear_math: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func _init(p_row_capacity: int = ROW_CAPACITY) -> void:
@@ -1364,12 +1393,63 @@ func complete_cycle(lot_ref: Vector2i, job_ref: Vector2i) -> Inventory.OpResult:
 
 func apply_general_wear_into(lot_ref: Vector2i, job_ref: Vector2i, completed_mwu: int,
 		remainder_before: int, out: WearOutcome) -> bool:
-	"""Apply §5.7 generic wear once and release the claim; write the outcome into `out`.
+	"""Apply §5.7 generic wear once and RELEASE the claim; write the outcome into `out`.
 
 	"1 equipped tool durability per completed 10 WU; preserve remainder across tasks". The
 	remainder lives in `ResidentRuntime.wear_remainder`, already budgeted at length 512, so it is
 	passed in and handed back rather than duplicated in a column this store has no budget for.
 	`completed_mwu` is milli-WU of finished work. A repeated call finds no claim and refuses.
+
+	This is the END-OF-JOB form. A job still in progress settles through
+	`accrue_general_wear_into()`, which performs the identical debit and keeps the claim.
+	"""
+	return _general_wear(lot_ref, job_ref, completed_mwu, remainder_before, true, out)
+
+
+func accrue_general_wear_into(lot_ref: Vector2i, job_ref: Vector2i, completed_mwu: int,
+		remainder_before: int, out: WearOutcome) -> bool:
+	"""Apply §5.7 generic wear for work done so far and KEEP the claim (ECON-002 settlement).
+
+	The debit, the refusal codes and the validation order are `apply_general_wear_into()`'s, to the
+	line: both delegate to `_general_wear()` and differ only in whether the claim survives. An
+	excavation phase worked by four builders over hundreds of ticks charges each builder's own
+	accepted milli-WU to their own tool through here, tick after tick, and the claim that froze the
+	contract stays frozen until the job that took it releases it.
+
+	A caller must NOT follow an accrual with a second accrual of the same work: `completed_mwu` is
+	the work being settled now, and the carry it returns in `remainder_after` is what the caller
+	stores. Passing the same milli-WU twice debits the tool twice, which is why `work.gd` clears
+	its carry with the returned remainder in the same statement that reads the outcome.
+	"""
+	return _general_wear(lot_ref, job_ref, completed_mwu, remainder_before, false, out)
+
+
+func preflight_general_wear_into(lot_ref: Vector2i, job_ref: Vector2i,
+		out: IntMath.IntResult) -> bool:
+	"""Answer "could this Job charge §5.7 wear to this tool now?" without writing a byte.
+
+	Decision 0059's allocate-before-consume in its wear form. A tick that settles a contributor's
+	accepted work must learn that the claim still stands BEFORE it advances the job's outstanding
+	work or anybody's XP, because a refusal discovered afterwards would leave one owner advanced
+	and the other not. `out.value` is the row's current durability, which is 0 exactly when §5.7's
+	"broken tools block tool-required work" applies. Nothing here mutates, so a refusal leaves this
+	store byte-identical -- `state_bytes()` before and after a refused preflight compare equal.
+	"""
+	var row: int = _resolve_claimed_row(lot_ref, job_ref)
+	if row == NULL_ROW:
+		return out.refuse(String(_claim_refusal(lot_ref, job_ref)))
+	if _wear_model_of_row(row) != WEAR_MODEL_GENERAL:
+		return out.refuse(String(REFUSE_WRONG_WEAR_MODEL))
+	return out.succeed(_durability[row])
+
+
+func _general_wear(lot_ref: Vector2i, job_ref: Vector2i, completed_mwu: int,
+		remainder_before: int, release_claim: bool, out: WearOutcome) -> bool:
+	"""Validate a §5.7 general-wear demand whole, then debit it, releasing the claim or not.
+
+	THE ONE validation order for both public wear forms: the claim, then the wear model, then the
+	work, then the incoming remainder. Every refusal happens before `_debit_general_wear()` is
+	reached, so a refused demand writes nothing at all.
 	"""
 	var row: int = _resolve_claimed_row(lot_ref, job_ref)
 	if row == NULL_ROW:
@@ -1380,27 +1460,27 @@ func apply_general_wear_into(lot_ref: Vector2i, job_ref: Vector2i, completed_mwu
 		return out.refuse(REFUSE_INVALID_WORK)
 	if remainder_before < 0 or remainder_before >= GENERAL_WEAR_MWU_PER_POINT:
 		return out.refuse(REFUSE_INVALID_REMAINDER)
-	return _debit_general_wear(row, completed_mwu, remainder_before, out)
+	return _debit_general_wear(row, completed_mwu, remainder_before, release_claim, out)
 
 
 func _debit_general_wear(row: int, completed_mwu: int, remainder_before: int,
-		out: WearOutcome) -> bool:
-	"""Debit the whole points `completed_mwu` earned, floor at 0, and release the claim.
+		release_claim: bool, out: WearOutcome) -> bool:
+	"""Debit the whole points `completed_mwu` earned, floor at 0, and release the claim if asked.
 
 	Demanding more points than remain debits the tool to exactly 0 and reports `broke`: §5.7
 	fixes the rate and says broken tools block tool-required work, and refusing would leave
 	finished work having cost nothing. The remainder still carries forward.
 	"""
-	var math: IntMath.IntResult = IntMath.IntResult.new()
-	if not IntMath.checked_add_into(remainder_before, completed_mwu, math):
+	if not IntMath.checked_add_into(remainder_before, completed_mwu, _wear_math):
 		return out.refuse(REFUSE_INVALID_WORK)
-	var total: int = math.value
+	var total: int = _wear_math.value
 	var demanded: int = total / GENERAL_WEAR_MWU_PER_POINT
 	var remainder_after: int = total % GENERAL_WEAR_MWU_PER_POINT
 	var spent: int = mini(demanded, _durability[row])
 	_set_durability(row, _durability[row] - spent)
 	var after: int = _durability[row]
-	_release_claim(row)
+	if release_claim:
+		_release_claim(row)
 	return out.succeed(spent, after, remainder_after, demanded > spent)
 
 

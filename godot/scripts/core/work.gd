@@ -97,6 +97,58 @@ extends RefCounted
 ## cancellation invokes refunds, and no refund path exists in this file at all.
 ##
 ## ---------------------------------------------------------------------------------------
+## TOOL SETTLEMENT PER CONTRIBUTOR (SET-MOVE-ECON-001 ECON-002, adopted under DEC-040).
+##
+## That amendment names the gap outright: "the current Gear API settles a claimed job rather than
+## every phase contributor", and requires that "accepted WU, XP and the contributing resident's
+## equipped-tool wear/remainder commit together exactly once". It adds, for excavation but as a
+## general rule: "Inherited tool wear accumulates 1 durability per 10 completed WU across all
+## eligible tasks; no resetting the remainder at quantum, project or worker handoff boundaries.
+## Each resident owns their own productive contribution/tool remainder."
+##
+## THE INDEX IS THE ATTRIBUTION. `_settle_wear()` walks the same frozen contributor scratch that
+## `_award_all_xp()` walks, and charges `_party_share[index]` -- that contributor's OWN accepted
+## milli-WU, not the party's total -- to the tool bound to `_party_resident[index]`. A party of
+## four builders therefore wears four tools by four different amounts on the same tick. Charging
+## the accepted total to the coordinator's tool, or charging only the last worker, is not a
+## rounding error here; it is a different worker's tool being debited, which is why the tests
+## assert each tool separately rather than asserting the sum.
+##
+## THE CARRY IS THE RESIDENT'S, NOT THE JOB'S. `_wear_remainder` is one int32 per resident. It is
+## never cleared by a job ending, by a claim being released, by a phase boundary or by
+## cancellation -- only `clear()` resets it, and only a settled whole point consumes it. That is
+## exactly §5.7's "preserve remainder across tasks" and ECON-002's restatement of it. Releasing a
+## claim and taking a new one on the next phase therefore resumes mid-point.
+##
+## WHY THE BINDING IS A COLUMN HERE AND NOT A LOOKUP. `gear.gd` is keyed on the tool's
+## `InventoryLot` reference and resolves its row by a bounded ascending scan; it says so, and says
+## gear operations "happen at cycle start, cycle completion, repair and manufacture -- never
+## inside a per-tick loop". A settlement that asked the gear store to resolve a row for every
+## contributor on every tick would put that scan in the hottest loop in the simulation. So the
+## binding is taken ONCE, by `claim_tool_for_work()`, and the per-tick gate reads only packed
+## columns of this store: is there a binding, is it broken, does it still belong to this job.
+## `gear.gd` is asked anything at all only on the ticks a whole durability point actually falls
+## due, which at the §5.2 ceiling of 144 milli-WU a tick is at most once every 70 ticks per
+## worker.
+##
+## VALIDATE, THEN CONSUME (decision 0059). `_preflight_wear()` runs BEFORE
+## `consume_remaining_mwu_into()` and writes nothing anywhere; `_settle_wear()` runs after the XP
+## credit. A tool whose claim has gone therefore refuses the whole tick with the job's outstanding
+## work, every XP column and the gear store byte-identical, instead of consuming the work and then
+## discovering the tool cannot be charged. `_distribute_leftover()` moved ahead of the consume for
+## this reason: the shares must be FINAL before wear is preflighted against them, and it mutates
+## nothing but this store's own per-tick scratch.
+##
+## WHAT IS NOT ENFORCED HERE, AND WHY -- named, not papered over. A Job row carries §5.3's tool
+## gate (`jobs.tool_gate_of()`), which is what says whether a job requires a tool at all. This
+## file does NOT read it on the productive tick, because that reader allocates an `IntResult` per
+## call and `jobs.gd` publishes no `_into` form of it; adding one is that module's owner's change,
+## not this one's. The consequence is exact and is the caller's obligation until then: a
+## tool-required job whose worker holds NO binding produces work and wears nothing. What IS
+## enforced is everything about a binding that exists -- it must belong to this job, its tool must
+## be this resident's own equipped tool, and a tool worn to 0 stops that contributor.
+##
+## ---------------------------------------------------------------------------------------
 ## WHAT COUNTS AS A PRODUCTIVE TICK. §5.2: "travel/eating/social/sleep do not produce job
 ## output." A contribution is computed only when ALL of these hold, and each is read from its
 ## own column at the moment of the tick:
@@ -176,6 +228,8 @@ const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const NeedsScript := preload("res://scripts/core/needs.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const JobsScript := preload("res://scripts/core/jobs.gd")
+const GearScript := preload("res://scripts/core/gear.gd")
+const InventoryScript := preload("res://scripts/core/inventory.gd")
 
 # --- capacities -----------------------------------------------------------------------------
 
@@ -207,6 +261,25 @@ const MAX_POTENTIAL_MWU: int = BASE_MWU_PER_TICK * WORK_FACTOR_MAX / WORK_FACTOR
 const JOB_STATE_WORK: int = JobsScript.JOB_STATE_WORK
 const JOB_STATE_COMPLETE: int = JobsScript.JOB_STATE_COMPLETE
 const NULL_REF: Vector2i = EntityDirectory.NULL_REF
+const NULL_SLOT: int = EntityDirectory.NULL_SLOT
+
+# --- SET-MOVE-ECON-001 tool settlement and tip-work constants ----------------------------------
+
+## GDD §5.7's "1 equipped tool durability per completed 10 WU", in milli-WU, BORROWED FROM
+## `gear.gd` rather than restated. That store owns the rate and performs the division; this value
+## exists here only so a tick can tell whether a whole point has fallen due before it asks.
+const WEAR_MWU_PER_DURABILITY_POINT: int = GearScript.GENERAL_WEAR_MWU_PER_POINT
+
+## SET-MOVE-ECON-001 ECON-002's variable-q rows, as the rationals the values JSON supplies:
+## `tip.compact_mwu_per_milli_u_num/den` = 1/4 and `tip.reclaim_mwu_per_milli_u_num/den` = 1/2.
+## "For the variable-q rows, q is an integer milli-U, and the result of each formula is integer
+## milli-WU" -- ceil(q/4) to compact, ceil(q/2) to reclaim. The rounding is UP, which is what makes
+## the amendment's "splitting orders can increase rounding work, never lower it" true; flooring
+## would let a player split an order and pay less.
+const TIP_COMPACT_MWU_NUMERATOR: int = 1
+const TIP_COMPACT_MWU_DENOMINATOR: int = 4
+const TIP_RECLAIM_MWU_NUMERATOR: int = 1
+const TIP_RECLAIM_MWU_DENOMINATOR: int = 2
 
 # --- refusal codes ---------------------------------------------------------------------------
 
@@ -229,6 +302,17 @@ const REFUSE_SKILLS_UNAVAILABLE: StringName = &"SKILLS_ROW_UNAVAILABLE"
 const REFUSE_FACTOR_UNAVAILABLE: StringName = &"WORK_FACTOR_UNAVAILABLE"
 const REFUSE_XP_WRITE_FAILED: StringName = &"SKILL_XP_WRITE_REFUSED"
 const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
+const REFUSE_GEAR_UNAVAILABLE: StringName = &"GEAR_STORE_UNAVAILABLE"
+const REFUSE_GEAR_BOUND_ALREADY: StringName = &"GEAR_STORE_ALREADY_BOUND"
+const REFUSE_NO_ACTIVE_JOB: StringName = &"RESIDENT_HAS_NO_ACTIVE_JOB"
+const REFUSE_TOOL_ALREADY_CLAIMED: StringName = &"TOOL_ALREADY_CLAIMED_FOR_WORK"
+const REFUSE_TOOL_NOT_CLAIMED: StringName = &"TOOL_NOT_CLAIMED_FOR_WORK"
+const REFUSE_TOOL_NOT_EQUIPPED: StringName = &"TOOL_NOT_EQUIPPED"
+const REFUSE_TOOL_NOT_OWNED: StringName = &"TOOL_NOT_OWNED_BY_THIS_RESIDENT"
+const REFUSE_TOOL_BROKEN: StringName = &"TOOL_BROKEN"
+const REFUSE_TOOL_CLAIM_STALE: StringName = &"TOOL_CLAIM_BELONGS_TO_ANOTHER_JOB"
+const REFUSE_TOOL_SETTLEMENT: StringName = &"TOOL_SETTLEMENT_REFUSED"
+const REFUSE_INVALID_QUANTITY: StringName = &"INVALID_QUANTITY_MILLI"
 
 
 class TickResult:
@@ -291,6 +375,30 @@ var _xp_remainder: PackedInt32Array = PackedInt32Array()
 ## the same convention `jobs.gd` uses for its four eligibility gates, NOT a second source of
 ## truth for memories -- there is no first one yet.
 var _memory_total: PackedInt32Array = PackedInt32Array()
+## GDD §5.7's sub-point tool-wear carry, in milli-WU, one per resident. Always
+## 0..WEAR_MWU_PER_DURABILITY_POINT-1. This is `ResidentRuntime.wear_remainder` from
+## `systems_architecture.md` §3, which is marked [NEW] there and which NO store implements: no
+## ResidentRuntime module exists and `residents.gd` has no such column. It is homed here because
+## this file is the one that knows a contributor's accepted milli-WU, and because `gear.gd`
+## explicitly refuses to allocate a second copy of it. IF a ResidentRuntime store is later built,
+## this column MOVES there rather than being duplicated.
+var _wear_remainder: PackedInt32Array = PackedInt32Array()
+## The `InventoryLot` reference of the tool a resident has bound for work settlement, or NULL_REF.
+## A LOT reference with its own generation, NOT a gear-row index: `gear.gd` refuses to let a raw
+## row index escape, because a row has no generation and would silently re-point when reused.
+var _tool_lot_slot: PackedInt32Array = PackedInt32Array()
+var _tool_lot_generation: PackedInt32Array = PackedInt32Array()
+## The Job reference that holds the gear claim behind that binding. Stored rather than re-read
+## from `jobs.job_of()`, because a worker moved to another job must NOT settle under the new job's
+## reference: the claim in `gear.gd` is keyed on the job that took it, and releasing it needs the
+## same key back. This is a JOB EntityRef with a generation, checked as a whole pair.
+var _tool_job_slot: PackedInt32Array = PackedInt32Array()
+var _tool_job_generation: PackedInt32Array = PackedInt32Array()
+## 1 once a bound tool has been worn to durability 0. §5.7: "Broken tools block tool-required
+## work". Cached as a byte so the per-tick gate costs no gear-store lookup; it is sound because
+## `gear.gd` refuses every repair, re-owning, unequip and destroy WHILE THE CLAIM STANDS, so a
+## claimed tool's durability can move only through this file's own settlement.
+var _tool_broken: PackedByteArray = PackedByteArray()
 
 # --- per-tick scratch (not simulation state) ---------------------------------------------------
 
@@ -316,6 +424,16 @@ var _party_identity_count: int = 0
 var _pending_leftover: int = 0
 var _factor_out: int = 0
 var _math: IntMath.IntResult = IntMath.IntResult.new()
+## The gear store this module settles tool wear against, or null. Optional by design: a world with
+## no gear store ticks exactly as it did before this integration, and every binding operation
+## refuses GEAR_STORE_UNAVAILABLE rather than silently doing nothing.
+var _gear: GearScript = null
+## Reused outcome for the wear debit, so a settlement tick allocates nothing. Consumed immediately
+## inside `_charge_tool()` and never handed to a caller.
+var _wear_outcome: GearScript.WearOutcome = GearScript.WearOutcome.new()
+## Live tool bindings. Derived from `_tool_lot_slot`, kept as a counter so `bind_gear()` can refuse
+## to swap the store out from under one.
+var _bound_tool_count: int = 0
 
 
 func _init(p_jobs: JobsScript = null) -> void:
@@ -341,6 +459,12 @@ func _allocate_columns() -> void:
 	_potential_remainder.resize(RESIDENT_CAPACITY)
 	_memory_total.resize(RESIDENT_CAPACITY)
 	_xp_remainder.resize(RESIDENT_CAPACITY * SKILL_COUNT)
+	_wear_remainder.resize(RESIDENT_CAPACITY)
+	_tool_lot_slot.resize(RESIDENT_CAPACITY)
+	_tool_lot_generation.resize(RESIDENT_CAPACITY)
+	_tool_job_slot.resize(RESIDENT_CAPACITY)
+	_tool_job_generation.resize(RESIDENT_CAPACITY)
+	_tool_broken.resize(RESIDENT_CAPACITY)
 	for column: PackedInt32Array in [_party_job, _party_resident, _party_skill,
 			_party_persistent_id, _party_potential]:
 		column.resize(PARTY_CAPACITY)
@@ -353,6 +477,13 @@ func clear() -> void:
 	_potential_remainder.fill(0)
 	_xp_remainder.fill(0)
 	_memory_total.fill(0)
+	_wear_remainder.fill(0)
+	_tool_lot_slot.fill(NULL_SLOT)
+	_tool_lot_generation.fill(EntityDirectory.NULL_GENERATION)
+	_tool_job_slot.fill(NULL_SLOT)
+	_tool_job_generation.fill(EntityDirectory.NULL_GENERATION)
+	_tool_broken.fill(0)
+	_bound_tool_count = 0
 	_party_job.fill(0)
 	_party_resident.fill(0)
 	_party_skill.fill(0)
@@ -421,6 +552,161 @@ func residents() -> ResidentsScript:
 func needs() -> NeedsScript:
 	"""The needs store that owns mood, health and the §5.2 work factor."""
 	return _needs
+
+
+func gear() -> GearScript:
+	"""The gear store tool wear settles against, or null while none is bound."""
+	return _gear
+
+
+func bind_gear(store: GearScript) -> OpResult:
+	"""Wire the GearInstance store this module settles §5.7 tool wear against. `.value` is 1.
+
+	Refused while any tool binding is live: the bindings in this store name lot references that
+	`gear.gd` resolves and claims, so swapping the store under one would leave a claim standing in
+	a store nobody settles against and a binding pointing at a row that is not there. Release every
+	claim first. A null store is refused rather than accepted as "unbind", because unbinding while
+	claims exist is exactly the state this refusal prevents.
+	"""
+	if store == null:
+		return _refuse(REFUSE_GEAR_UNAVAILABLE)
+	if _bound_tool_count > 0:
+		return _refuse(REFUSE_GEAR_BOUND_ALREADY)
+	_gear = store
+	return _succeed(1)
+
+
+# --- SET-MOVE-ECON-001 ECON-002 tool bindings --------------------------------------------------
+
+func claim_tool_for_work(resident_slot: int, lot_ref: Vector2i) -> OpResult:
+	"""Bind this resident's own equipped tool to their current Job for wear settlement.
+
+	`.value` is the durability `gear.claim_for_job()` checked the claim against. THIS IS THE
+	ATTRIBUTION GATE: the tool must be equipped and its recorded owner must resolve to
+	`resident_slot` itself, so one resident cannot be made to wear another's tool, and a settlement
+	can never debit a tool its worker does not hold. The §5.7 carry is NOT touched -- a re-claim
+	after a phase or a job change resumes mid-point, per ECON-002.
+	"""
+	var code: StringName = _check_tool_binding_target(resident_slot, lot_ref)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var job_ref: Vector2i = _jobs.job_of(resident_slot)
+	var claimed: InventoryScript.OpResult = _gear.claim_for_job(lot_ref, job_ref)
+	if not claimed.ok:
+		return _refuse(claimed.error)
+	_tool_lot_slot[resident_slot] = lot_ref.x
+	_tool_lot_generation[resident_slot] = lot_ref.y
+	_tool_job_slot[resident_slot] = job_ref.x
+	_tool_job_generation[resident_slot] = job_ref.y
+	_tool_broken[resident_slot] = 0
+	_bound_tool_count += 1
+	return _succeed(claimed.value)
+
+
+func _check_tool_binding_target(resident_slot: int, lot_ref: Vector2i) -> StringName:
+	"""Every precondition for a tool binding, checked before `gear.gd` is asked for the claim.
+
+	Ownership is resolved through the directory, not taken on trust from the caller: a gear record
+	names an owner EntityRef, and only the row that reference resolves to may bind it.
+	"""
+	var code: StringName = _check_resident_slot(resident_slot)
+	if code != REFUSE_NONE:
+		return code
+	if _gear == null:
+		return REFUSE_GEAR_UNAVAILABLE
+	if _tool_lot_slot[resident_slot] != NULL_SLOT:
+		return REFUSE_TOOL_ALREADY_CLAIMED
+	if _jobs.job_of(resident_slot) == NULL_REF:
+		return REFUSE_NO_ACTIVE_JOB
+	if not _gear.has_gear(lot_ref):
+		return GearScript.REFUSE_NO_SUCH_GEAR
+	if not _gear.is_equipped(lot_ref):
+		return REFUSE_TOOL_NOT_EQUIPPED
+	if _directory.get_typed_row(_gear.owner_of(lot_ref)) != resident_slot:
+		return REFUSE_TOOL_NOT_OWNED
+	return REFUSE_NONE
+
+
+func release_tool_claim(resident_slot: int) -> OpResult:
+	"""Release this resident's tool binding and the gear claim behind it. `.value` is 1.
+
+	The §5.7 carry SURVIVES: ECON-002 forbids "resetting the remainder at quantum, project or
+	worker handoff boundaries", so cancellation, job replacement and phase changes all come through
+	here and none of them clears `_wear_remainder`. A refusal from `gear.gd` leaves BOTH stores
+	untouched, including this store's binding -- a half-released claim would leave a tool reserved
+	in one store and free in the other.
+	"""
+	var code: StringName = _check_resident_slot(resident_slot)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	if _tool_lot_slot[resident_slot] == NULL_SLOT:
+		return _refuse(REFUSE_TOOL_NOT_CLAIMED)
+	if _gear == null:
+		return _refuse(REFUSE_GEAR_UNAVAILABLE)
+	var released: InventoryScript.OpResult = _gear.cancel_claim(
+		_tool_lot_ref(resident_slot), _tool_job_ref(resident_slot))
+	if not released.ok:
+		return _refuse(released.error)
+	_clear_tool_binding(resident_slot)
+	return _succeed(1)
+
+
+func _clear_tool_binding(resident_slot: int) -> void:
+	"""Drop one resident's tool binding. THE CARRY IS DELIBERATELY NOT TOUCHED (ECON-002)."""
+	_tool_lot_slot[resident_slot] = NULL_SLOT
+	_tool_lot_generation[resident_slot] = EntityDirectory.NULL_GENERATION
+	_tool_job_slot[resident_slot] = NULL_SLOT
+	_tool_job_generation[resident_slot] = EntityDirectory.NULL_GENERATION
+	_tool_broken[resident_slot] = 0
+	_bound_tool_count -= 1
+
+
+func _tool_lot_ref(resident_slot: int) -> Vector2i:
+	"""The bound tool's InventoryLot reference. Vector2i is a value type, so this allocates none."""
+	return Vector2i(_tool_lot_slot[resident_slot], _tool_lot_generation[resident_slot])
+
+
+func _tool_job_ref(resident_slot: int) -> Vector2i:
+	"""The Job reference that holds the gear claim behind this resident's binding."""
+	return Vector2i(_tool_job_slot[resident_slot], _tool_job_generation[resident_slot])
+
+
+func tool_lot_of(resident_slot: int) -> Vector2i:
+	"""The InventoryLot reference of this resident's bound tool, or NULL_REF when unbound."""
+	if _check_resident_slot(resident_slot) != REFUSE_NONE:
+		return NULL_REF
+	if _tool_lot_slot[resident_slot] == NULL_SLOT:
+		return NULL_REF
+	return _tool_lot_ref(resident_slot)
+
+
+func tool_job_of(resident_slot: int) -> Vector2i:
+	"""The Job reference holding this resident's gear claim, or NULL_REF when unbound."""
+	if _check_resident_slot(resident_slot) != REFUSE_NONE:
+		return NULL_REF
+	if _tool_job_slot[resident_slot] == NULL_SLOT:
+		return NULL_REF
+	return _tool_job_ref(resident_slot)
+
+
+func tool_is_broken(resident_slot: int) -> bool:
+	"""True when this resident's bound tool has been worn to 0 and blocks further work."""
+	if _check_resident_slot(resident_slot) != REFUSE_NONE:
+		return false
+	return _tool_broken[resident_slot] == 1
+
+
+func bound_tool_count() -> int:
+	"""How many residents currently hold a tool binding."""
+	return _bound_tool_count
+
+
+func wear_remainder_of(resident_slot: int) -> IntMath.IntResult:
+	"""§5.7's sub-point tool-wear carry for one resident, in milli-WU."""
+	var code: StringName = _check_resident_slot(resident_slot)
+	if code != REFUSE_NONE:
+		return _read(code, 0)
+	return _read(REFUSE_NONE, _wear_remainder[resident_slot])
 
 
 # --- address checks --------------------------------------------------------------------------------
@@ -665,13 +951,28 @@ func _collect_contributors(coordinator_slot: int) -> StringName:
 	var walking: bool = true
 	while walking:
 		var code: StringName = _offer_contributor(member)
-		if code != REFUSE_NONE and code != REFUSE_JOB_NOT_WORKING \
-				and code != REFUSE_JOB_HAS_NO_WORKER:
+		if code != REFUSE_NONE and not _member_may_be_skipped(code):
 			return code
 		walking = _jobs.next_member_into(member, _math)
 		if walking:
 			member = _math.value
 	return REFUSE_NONE
+
+
+func _member_may_be_skipped(code: StringName) -> bool:
+	"""True for a refusal that means "this member is not producing", not "this tick is broken".
+
+	A departure must not stop the crew (decision 0017), and neither must one builder's tool: §5.7's
+	broken tool blocks THAT worker's tool-required work, and a claim left behind on another job
+	belongs to that worker's binding, not to the party's shared progress. Every other code is a
+	genuine failure and stops the tick, which is why this is a closed list and not a catch-all.
+
+	A SOLO tick does not consult this list at all: `tick_solo_into()` returns whatever
+	`_offer_contributor()` gave it, so a single worker's broken tool surfaces as TOOL_BROKEN rather
+	than as the generic "no contributing worker".
+	"""
+	return code == REFUSE_JOB_NOT_WORKING or code == REFUSE_JOB_HAS_NO_WORKER \
+		or code == REFUSE_TOOL_BROKEN or code == REFUSE_TOOL_CLAIM_STALE
 
 
 func _begin_contributors() -> void:
@@ -689,9 +990,15 @@ func _begin_contributors() -> void:
 func _offer_contributor(job_slot: int) -> StringName:
 	"""Compute one Job's potential for this tick and append it to the party scratch.
 
-	Refuses REFUSE_JOB_NOT_WORKING or REFUSE_JOB_HAS_NO_WORKER for a row that simply is not
-	producing; `_collect_contributors()` treats those two as "skip", and every other code as a
-	genuine failure that must stop the tick instead of quietly shrinking the crew.
+	Refuses one of `_member_may_be_skipped()`'s codes for a row that simply is not producing;
+	`_collect_contributors()` treats those as "skip", and every other code as a genuine failure
+	that must stop the tick instead of quietly shrinking the crew.
+
+	THE TOOL GATE RUNS BEFORE `_append_contributor()`, deliberately. That function calls
+	`_produce_potential()`, which SPENDS the resident's §5.2 carry whether or not the work is later
+	accepted. A worker turned away for a broken tool has not worked, so their carry must still be
+	where the tick found it -- and a refused solo tick must therefore leave this store's own bytes
+	unchanged as well as every collaborator's.
 	"""
 	if not _jobs.state_into(job_slot, _math) or _math.value != JOB_STATE_WORK:
 		return REFUSE_JOB_NOT_WORKING
@@ -703,9 +1010,36 @@ func _offer_contributor(job_slot: int) -> StringName:
 		return REFUSE_JOB_HAS_NO_WORKER
 	if not _jobs.resident_may_work_into(resident_slot, _math):
 		return REFUSE_JOB_NOT_WORKING
+	var tool_code: StringName = _tool_gate(job_slot, resident_slot)
+	if tool_code != REFUSE_NONE:
+		return tool_code
 	if not _jobs.kind_into(job_slot, _math):
 		return StringName(_math.error)
 	return _append_contributor(job_slot, resident_slot, _math.value)
+
+
+func _tool_gate(job_slot: int, resident_slot: int) -> StringName:
+	"""REFUSE_NONE when this resident's tool binding, if any, may take this tick's work.
+
+	Three packed reads and no gear-store lookup, because this runs once per contributor per tick.
+	A resident with NO binding passes: whether the job required a tool is `jobs.gd`'s tool gate,
+	which this file cannot read per tick without allocating (see the header).
+
+	The job comparison is the FULL `(slot, generation)` pair. A worker moved to a different job
+	still holds a claim keyed on the old one, and settling that work under the old claim would bill
+	a job that no longer exists -- ECON-002's "job/worker replacement must not rebill old WU or
+	bill only the last worker". The new job must take its own claim, and the §5.7 carry survives
+	the handover because `release_tool_claim()` never touches it.
+	"""
+	if _tool_lot_slot[resident_slot] == NULL_SLOT:
+		return REFUSE_NONE
+	if _tool_broken[resident_slot] == 1:
+		return REFUSE_TOOL_BROKEN
+	var job_ref: Vector2i = _jobs.ref_of(job_slot)
+	if _tool_job_slot[resident_slot] != job_ref.x \
+			or _tool_job_generation[resident_slot] != job_ref.y:
+		return REFUSE_TOOL_CLAIM_STALE
+	return REFUSE_NONE
 
 
 func _append_contributor(job_slot: int, resident_slot: int, skill: int) -> StringName:
@@ -741,6 +1075,15 @@ func _commit_into(progress_slot: int, out: TickResult) -> bool:
 	The whole of 0017's per-tick rule lives in these few lines: acceptance is capped by the
 	activity's own outstanding work, subtracted from the ONE row that holds it, allocated to the
 	workers, and turned into XP from the accepted amounts alone. Every exit writes `out` in full.
+
+	THE ORDER IS THE CONTRACT (ECON-002/003, decision 0059). Everything that can refuse runs before
+	`consume_remaining_mwu_into()`: the proportional split, the identity read it may need, and the
+	tool preflight. `_distribute_leftover()` moved ahead of the consume so that the shares the
+	preflight checks are the FINAL ones -- it writes only this store's per-tick scratch, so moving
+	it changes no outcome, and a wear preflight against pre-leftover shares could miss a point that
+	the extra milli-WU tips over. Only then are the job's work, the XP columns and the tools
+	advanced, in that order, none of which can refuse for a reason the preflight did not already
+	catch.
 	"""
 	if not _jobs.remaining_mwu_into(progress_slot, _math):
 		return _refuse_into(out, StringName(_math.error))
@@ -752,11 +1095,17 @@ func _commit_into(progress_slot: int, out: TickResult) -> bool:
 	var code: StringName = _allocate_shares(accepted, potential_total)
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
+	_distribute_leftover(_pending_leftover)
+	code = _preflight_wear()
+	if code != REFUSE_NONE:
+		return _refuse_into(out, code)
 	if not _jobs.consume_remaining_mwu_into(progress_slot, accepted, _math):
 		return _refuse_into(out, StringName(_math.error))
 	var left: int = _math.value
-	_distribute_leftover(_pending_leftover)
 	code = _award_all_xp()
+	if code != REFUSE_NONE:
+		return _refuse_into(out, code)
+	code = _settle_wear()
 	if code != REFUSE_NONE:
 		return _refuse_into(out, code)
 	return _finish_into(progress_slot, accepted, left, out)
@@ -850,6 +1199,71 @@ func _beats(candidate: int, incumbent: int) -> bool:
 	return _party_persistent_id[candidate] < _party_persistent_id[incumbent]
 
 
+# --- ECON-002 tool settlement ------------------------------------------------------------------
+
+func _preflight_wear() -> StringName:
+	"""Check every tool this tick will actually debit, WITHOUT writing a byte anywhere.
+
+	Only a contributor whose carry crosses a whole durability point this tick is checked, because
+	only that contributor's tool will be touched: an ordinary tick asks `gear.gd` nothing at all
+	and this loop is three packed reads per worker. A refusal here reaches `_commit_into()` before
+	the job's outstanding work is consumed, so the whole tick refuses with every collaborating
+	store byte-identical, which is decision 0059's rule applied to wear.
+	"""
+	if _gear == null:
+		return REFUSE_NONE
+	for index: int in _party_count:
+		var resident_slot: int = _party_resident[index]
+		if _tool_lot_slot[resident_slot] == NULL_SLOT:
+			continue
+		if _wear_remainder[resident_slot] + _party_share[index] < WEAR_MWU_PER_DURABILITY_POINT:
+			continue
+		if not _gear.preflight_general_wear_into(_tool_lot_ref(resident_slot),
+				_tool_job_ref(resident_slot), _math):
+			return REFUSE_TOOL_SETTLEMENT
+	return REFUSE_NONE
+
+
+func _settle_wear() -> StringName:
+	"""Charge each contributor's OWN accepted milli-WU to their OWN bound tool (ECON-002).
+
+	`index` is the attribution and there is no other: share `index` was produced by resident
+	`index` and is charged to the tool resident `index` bound. Charging the party's accepted total,
+	or charging every share to one worker's tool, would balance perfectly in the aggregate and be
+	wrong for every individual -- which is why the tests read each tool separately.
+	"""
+	for index: int in _party_count:
+		var resident_slot: int = _party_resident[index]
+		if _tool_lot_slot[resident_slot] == NULL_SLOT:
+			continue
+		var code: StringName = _charge_tool(resident_slot, _party_share[index])
+		if code != REFUSE_NONE:
+			return code
+	return REFUSE_NONE
+
+
+func _charge_tool(resident_slot: int, accepted_mwu: int) -> StringName:
+	"""Carry `accepted_mwu` into this resident's §5.7 wear remainder, debiting whole points.
+
+	Below a whole point nothing is asked of `gear.gd`: the carry IS the state §5.7 calls "preserve
+	remainder across tasks", and it survives phases, job replacement and cancellation because
+	nothing in this file clears it. At or above a point the whole carry is handed to
+	`accrue_general_wear_into()` with an incoming remainder of 0 -- that store owns the division
+	and hands back what is left -- and the claim survives, because the job is not finished.
+	"""
+	var carried: int = _wear_remainder[resident_slot] + accepted_mwu
+	if carried < WEAR_MWU_PER_DURABILITY_POINT:
+		_wear_remainder[resident_slot] = carried
+		return REFUSE_NONE
+	if not _gear.accrue_general_wear_into(_tool_lot_ref(resident_slot),
+			_tool_job_ref(resident_slot), carried, 0, _wear_outcome):
+		return REFUSE_TOOL_SETTLEMENT
+	_wear_remainder[resident_slot] = _wear_outcome.remainder_after
+	if _wear_outcome.durability_after == 0:
+		_tool_broken[resident_slot] = 1
+	return REFUSE_NONE
+
+
 func _award_all_xp() -> StringName:
 	"""Credit every contributor's accepted milli-WU toward §5.3 XP in their own job skill."""
 	for index: int in _party_count:
@@ -904,3 +1318,85 @@ func _finish_into(progress_slot: int, accepted: int, left: int, out: TickResult)
 			return _refuse_into(out, REFUSE_JOB_NOT_WORKING)
 		out.completed = true
 	return true
+
+
+# --- ECON-002 variable-quantity tip work --------------------------------------------------------
+
+func tip_compact_work_mwu_into(quantity_milli: int, out: IntMath.IntResult) -> bool:
+	"""SET-MOVE-ECON-001 ECON-002: compacting q milli-U of earth into a tip costs ceil(q/4) milli-WU.
+
+	"Compact earth into a tip | excavated_earth q | ceil(q/4) | Embed q milli-U in tip | KEEP,
+	general tool; q>0". The amendment's own worked example is the check: 2000 milli-U costs 500
+	milli-WU. `EH-02` owns the transaction that spends this; this file owns the price.
+	"""
+	return _tip_work_into(quantity_milli, TIP_COMPACT_MWU_NUMERATOR, TIP_COMPACT_MWU_DENOMINATOR,
+		out)
+
+
+func tip_reclaim_work_mwu_into(quantity_milli: int, out: IntMath.IntResult) -> bool:
+	"""ECON-002: reclaiming q milli-U of embedded tip earth costs ceil(q/2) milli-WU.
+
+	"Reclaim embedded tip earth | Lock embedded q; debit at commit | ceil(q/2) | q excavated_earth
+	in reserved inventory | BUILD, tool; q>0". 2000 milli-U costs 1000 milli-WU, as the amendment
+	states directly beneath the table.
+	"""
+	return _tip_work_into(quantity_milli, TIP_RECLAIM_MWU_NUMERATOR, TIP_RECLAIM_MWU_DENOMINATOR,
+		out)
+
+
+func _tip_work_into(quantity_milli: int, numerator: int, denominator: int,
+		out: IntMath.IntResult) -> bool:
+	"""Price one variable-q tip operation in milli-WU, ROUNDING UP, refusing q <= 0.
+
+	THE DIRECTION IS LOAD-BEARING, not a tidy-up. ECON-002 says "splitting orders can increase
+	rounding work, never lower it", and that is a property of ceiling division alone: with
+	ceil(), ceil(a/d)+ceil(b/d) >= ceil((a+b)/d) for every split, so a player who splits an order
+	pays at least as much. With floor() the inequality reverses and splitting an order into
+	single-milli pieces would make the work FREE. An off-by-one here is a balance exploit, which
+	is why q=5 -- 2 milli-WU to compact, not 1 -- is asserted directly.
+
+	q <= 0 is REFUSED, never answered with 0: ECON-002 prices these rows only for q>0, and a
+	silent 0 would let a caller read "no work needed" out of a question that was never valid.
+	"""
+	if quantity_milli <= 0:
+		return out.refuse("ECON-002 prices a tip operation only for a positive milli-U quantity")
+	if not IntMath.checked_mul_into(quantity_milli, numerator, out):
+		return false
+	var scaled: int = out.value
+	return IntMath.ceil_div_into(scaled, denominator, out)
+
+
+# --- deterministic image -------------------------------------------------------------------------
+
+func state_bytes() -> PackedByteArray:
+	"""A deterministic image of every authoritative carry and binding this store owns.
+
+	For equality comparison, not for saving: no header, no version and no field widths are
+	specified for this store, exactly as in `gear.gd`. Its purpose is decision 0059's assertion
+	that a refused operation leaves the store byte-identical, which no field-by-field inspection
+	can establish as convincingly -- a reader can forget a column, and this cannot.
+
+	This ALLOCATES, deliberately and only here. It is a diagnostic and test path and is never
+	called from a tick; the per-tick paths above touch nothing but the packed columns in place.
+	"""
+	var image: PackedByteArray = PackedByteArray()
+	image.append_array(_potential_remainder.to_byte_array())
+	image.append_array(_memory_total.to_byte_array())
+	image.append_array(_xp_remainder.to_byte_array())
+	image.append_array(_wear_remainder.to_byte_array())
+	image.append_array(_tool_lot_slot.to_byte_array())
+	image.append_array(_tool_lot_generation.to_byte_array())
+	image.append_array(_tool_job_slot.to_byte_array())
+	image.append_array(_tool_job_generation.to_byte_array())
+	image.append_array(_tool_broken)
+	return image
+
+
+func settlement_payload_bytes() -> int:
+	"""Bytes the ECON-002 settlement columns occupy, re-derived from what was actually allocated.
+
+	Five int32 columns and one byte column at RESIDENT_CAPACITY. Re-derived rather than restated so
+	a layout change cannot leave a stale number in the memory ledger behind it.
+	"""
+	var int32_columns: int = 5
+	return int32_columns * _wear_remainder.size() * 4 + _tool_broken.size()

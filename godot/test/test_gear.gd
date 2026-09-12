@@ -1390,3 +1390,128 @@ func test_equipping_a_worn_tool_carries_its_wear_with_it() -> void:
 	assert_equal(_mirror_durability(owner), 630, "and the mirror took the worn value")
 	assert_true(_store.unequip(lot_ref, _container, false).ok, "unequip")
 	assert_equal(_durability(lot_ref), 630, "still 630 on the way home too")
+
+
+# --- SET-MOVE-ECON-001 ECON-002: settlement during a job -----------------------------------------
+
+func test_accrued_wear_keeps_the_claim_and_applied_wear_releases_it() -> void:
+	"""ECON-002's whole reason for a second wear form: an excavation phase is not over.
+
+	`apply_general_wear_into()` is the end-of-job settlement and gives the gear back. A project
+	worked tick after tick by the same builder must keep its claim, or the second tick would find
+	no claim, refuse, and the work would cost nothing. The two are asserted against each other so
+	neither can quietly become the other.
+	"""
+	var tool: Vector2i = _gear(&"tool")
+	assert_true(_store.claim_for_job(tool, JOB_A).ok, "the builder claims the tool")
+	assert_true(_store.accrue_general_wear_into(tool, JOB_A, 100000, 0, _wear), "accrue 10 points")
+	assert_equal(_wear.durability_spent, 10, "100000 milli-WU is 10 durability")
+	assert_true(_store.is_claimed(tool), "and the claim SURVIVES an accrual")
+	assert_true(_store.accrue_general_wear_into(tool, JOB_A, 100000, 0, _wear), "accrue again")
+	assert_equal(_durability(tool), 980, "so the second accrual lands too: 1000 - 10 - 10")
+	assert_true(_store.apply_general_wear_into(tool, JOB_A, 100000, 0, _wear), "then settle")
+	assert_false(_store.is_claimed(tool), "which DOES release the claim")
+	assert_false(_store.accrue_general_wear_into(tool, JOB_A, 100000, 0, _wear),
+		"a released claim accrues nothing more")
+	assert_equal(_wear.error, GearScript.REFUSE_GEAR_NOT_CLAIMED, "with the claim code")
+	assert_equal(_durability(tool), 970, "and the durability is untouched by the refusal")
+
+
+func test_accrual_carries_the_remainder_exactly_as_the_applied_form_does() -> void:
+	"""One implementation, two release rules: the arithmetic must be identical, not merely similar.
+
+	The same demand is run twice -- once accrued, once applied -- from the same starting remainder,
+	and every field of the outcome is compared. A divisor, a floor or a remainder that differed
+	between the two would be invisible to any test that only exercised one of them.
+	"""
+	var accrued_tool: Vector2i = _gear(&"tool")
+	var applied_tool: Vector2i = _gear(&"tool")
+	assert_true(_store.claim_for_job(accrued_tool, JOB_A).ok, "claim the accrual tool")
+	assert_true(_store.accrue_general_wear_into(accrued_tool, JOB_A, 34567, 4321, _wear),
+		"accrue 34567 milli-WU onto a carry of 4321")
+	var spent: int = _wear.durability_spent
+	var remainder: int = _wear.remainder_after
+	assert_equal(spent, 3, "(4321 + 34567) / 10000 is 3 whole points")
+	assert_equal(remainder, 8888, "and 8888 milli-WU carry forward")
+	assert_true(_store.claim_for_job(applied_tool, JOB_B).ok, "claim the applied tool")
+	assert_true(_store.apply_general_wear_into(applied_tool, JOB_B, 34567, 4321, _wear),
+		"apply the same demand")
+	assert_equal(_wear.durability_spent, spent, "the applied form spends the same points")
+	assert_equal(_wear.remainder_after, remainder, "and carries the same remainder")
+	assert_equal(_durability(accrued_tool), _durability(applied_tool), "both tools agree")
+
+
+func test_preflight_general_wear_reports_durability_and_writes_nothing() -> void:
+	"""Decision 0059 in its wear form: the question must cost the store nothing to answer.
+
+	The image is compared byte for byte around the call rather than field by field, because a
+	reader can forget a column and a byte comparison cannot.
+	"""
+	var tool: Vector2i = _gear(&"tool")
+	assert_true(_store.claim_for_job(tool, JOB_A).ok, "claim the tool")
+	assert_true(_store.accrue_general_wear_into(tool, JOB_A, 250000, 0, _wear), "wear 25 points")
+	var before: PackedByteArray = _store.state_bytes()
+	assert_true(_store.preflight_general_wear_into(tool, JOB_A, _out), "the preflight answers")
+	assert_equal(_out.value, 975, "with the CURRENT durability, 1000 - 25")
+	assert_equal(_store.state_bytes(), before, "and the store is byte-identical afterwards")
+	assert_true(_store.preflight_general_wear_into(tool, JOB_A, _out), "asking twice is free")
+	assert_equal(_store.state_bytes(), before, "and still changes nothing")
+
+
+func test_preflight_general_wear_refuses_a_wrong_job_and_a_wrong_wear_model() -> void:
+	"""A preflight that said yes to another Job's claim would authorise the wrong debit."""
+	var tool: Vector2i = _gear(&"tool")
+	assert_false(_store.preflight_general_wear_into(tool, JOB_A, _out),
+		"an unclaimed tool has no settlement to preflight")
+	assert_equal(_out.error, String(GearScript.REFUSE_GEAR_NOT_CLAIMED), "with the claim code")
+	assert_true(_store.claim_for_job(tool, JOB_A).ok, "claim it for A")
+	assert_false(_store.preflight_general_wear_into(tool, JOB_B, _out), "B is not the claimant")
+	assert_equal(_out.error, String(GearScript.REFUSE_GEAR_CLAIM_MISMATCH), "and says so")
+	assert_false(_store.preflight_general_wear_into(tool, JOB_A_STALE, _out),
+		"a stale generation on the right slot is not the claimant either")
+	var net: Vector2i = _gear(&"net")
+	assert_true(_store.claim_for_job(net, JOB_B).ok, "claim a net for B")
+	assert_false(_store.preflight_general_wear_into(net, JOB_B, _out),
+		"a net wears per cycle, not per 10 WU")
+	assert_equal(_out.error, String(GearScript.REFUSE_WRONG_WEAR_MODEL), "with the model code")
+
+
+func test_accrual_refuses_a_fishing_model_and_an_out_of_range_remainder() -> void:
+	"""The accruing form inherits every guard the applying form has; none may be skipped."""
+	var net: Vector2i = _gear(&"net")
+	assert_true(_store.claim_for_job(net, JOB_A).ok, "claim the net")
+	assert_false(_store.accrue_general_wear_into(net, JOB_A, 100000, 0, _wear),
+		"a net has no general wear model")
+	assert_equal(_wear.error, GearScript.REFUSE_WRONG_WEAR_MODEL, "with the model code")
+	assert_equal(_durability(net), 1000, "and nothing is debited")
+	var tool: Vector2i = _gear(&"tool")
+	assert_true(_store.claim_for_job(tool, JOB_B).ok, "claim the tool")
+	assert_false(_store.accrue_general_wear_into(tool, JOB_B, 1000, -1, _wear),
+		"a negative incoming remainder is refused")
+	assert_equal(_wear.error, GearScript.REFUSE_INVALID_REMAINDER, "with the remainder code")
+	assert_false(_store.accrue_general_wear_into(tool, JOB_B, 1000,
+		GearScript.GENERAL_WEAR_MWU_PER_POINT, _wear),
+		"and so is a remainder that is already a whole point")
+	assert_false(_store.accrue_general_wear_into(tool, JOB_B, -1, 0, _wear),
+		"negative work is refused")
+	assert_equal(_durability(tool), 1000, "after three refusals the tool is untouched")
+	assert_true(_store.is_claimed(tool), "and still claimed, because nothing was settled")
+
+
+func test_accrual_can_break_a_tool_without_giving_the_claim_back() -> void:
+	"""A tool worn to 0 mid-job is broken, but the job still holds it until it lets go.
+
+	§5.7 makes 0 the broken state; ECON-002 requires the settlement to stop new tool-required work
+	rather than to silently release gear the job has not finished with.
+	"""
+	var tool: Vector2i = _gear(&"tool")
+	assert_true(_store.claim_for_job(tool, JOB_A).ok, "claim the tool")
+	assert_true(_store.accrue_general_wear_into(tool, JOB_A, 9990000, 0, _wear), "wear 999")
+	assert_equal(_durability(tool), 1, "one point left")
+	assert_false(_wear.broke, "which is not broken yet")
+	assert_true(_store.accrue_general_wear_into(tool, JOB_A, 100000, 0, _wear), "demand 10 more")
+	assert_equal(_wear.durability_spent, 1, "only the one point that existed is spent")
+	assert_equal(_wear.durability_after, 0, "leaving the tool at exactly 0")
+	assert_true(_wear.broke, "and reporting the shortfall rather than a clean debit")
+	assert_true(_store.is_claimed(tool), "the claim is still the job's to release")
+	assert_true(_store.cancel_claim(tool, JOB_A).ok, "and cancelling it works normally")

@@ -32,6 +32,9 @@ const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const PresentationExtractScript := preload("res://scripts/core/presentation_extract.gd")
 const UiNotices := preload("res://scripts/ui/ui_notices.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const UiFrameBuilder := preload("res://ui/ui_frame_builder.gd")
+const UiFrameGeometry := preload("res://ui/ui_frame_geometry.gd")
+const UiResidentCard := preload("res://scripts/ui/ui_resident_card.gd")
 
 ## §1.2's published 1280x720 spans for the two zones asserted here.
 const RESOURCE_SPAN: Array[float] = [16.0, 376.0, 16.0, 104.0]
@@ -1122,3 +1125,280 @@ func _expanded_text() -> String:
 		if row.visible:
 			parts.append(row.text)
 	return "\n".join(parts)
+
+
+# --- ART-UI-01/02: the crafted panel edges are actually applied ---------------------------------
+
+func test_every_framed_container_wears_its_own_silhouette() -> void:
+	"""ART-UI-01/02: five containers, five distinct frames, all BUILT rather than declared.
+
+	`ui_frame_builder.gd` was tested by 23 geometry assertions and called by nothing, so the
+	frames existed on disk and never on screen. This asserts the holder exists under each
+	panel with all eight pieces, which is the property that was false.
+	"""
+	assert_equal(UiShell.FRAME_OF_ZONE.size(), UiFrameGeometry.frame_count(),
+		"every declared silhouette has an owning panel")
+	for id: int in UiShell.FRAME_OF_ZONE:
+		var panel: Control = _shell.control_for(id)
+		assert_true(UiFrameBuilder.has_frame(panel), "UI-SET-%03d carries a frame" % id)
+		var holder: Node = panel.get_node(NodePath(UiFrameBuilder.HOLDER_NAME))
+		assert_equal(holder.get_child_count(), UiFrameGeometry.PIECE_COUNT,
+			"UI-SET-%03d has all eight pieces" % id)
+
+
+func test_each_panel_wears_the_silhouette_the_table_assigns_it() -> void:
+	"""Five containers sharing one rounded outline is the defect ART-UI-01 names."""
+	var assigned: Array[int] = []
+	for id: int in UiShell.FRAME_OF_ZONE:
+		assigned.append(UiShell.FRAME_OF_ZONE[id])
+	assigned.sort()
+	assert_equal(assigned, [0, 1, 2, 3, 4], "the five frames are assigned once each")
+	var journal: Control = _shell.control_for(UiShell.ID_DETAIL)
+	var corner: Control = journal.get_node(NodePath("%s/CornerTL"
+		% UiFrameBuilder.HOLDER_NAME)) as Control
+	assert_equal(corner.size, Vector2(12.0, 16.0),
+		"the journal's spine cap is its own 12x16, not an averaged corner")
+
+
+func test_every_frame_piece_lies_inside_its_own_panel() -> void:
+	"""ART-UI-07: the first two attempts put the right and bottom corners OUTSIDE the panel."""
+	for id: int in UiShell.FRAME_OF_ZONE:
+		var panel: Control = _shell.control_for(id)
+		var holder: Node = panel.get_node(NodePath(UiFrameBuilder.HOLDER_NAME))
+		for index: int in holder.get_child_count():
+			var piece: Control = holder.get_child(index) as Control
+			assert_true(piece.position.x >= -0.01 and piece.position.y >= -0.01,
+				"UI-SET-%03d %s starts inside the panel at %v" % [id, piece.name, piece.position])
+			assert_true(piece.position.x + piece.size.x <= panel.size.x + 0.01
+				and piece.position.y + piece.size.y <= panel.size.y + 0.01,
+				"UI-SET-%03d %s ends inside %v" % [id, piece.name, panel.size])
+
+
+func test_frame_art_never_takes_a_click_a_focus_stop_or_an_announcement() -> void:
+	"""ART-UI-07/08: ornament may never steal input or be announced as a control."""
+	for id: int in UiShell.FRAME_OF_ZONE:
+		var holder: Control = _shell.control_for(id).get_node(
+			NodePath(UiFrameBuilder.HOLDER_NAME)) as Control
+		assert_equal(holder.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+			"UI-SET-%03d's frame ignores the mouse" % id)
+		assert_equal(holder.focus_mode, Control.FOCUS_NONE, "and takes no focus")
+		assert_equal(holder.accessibility_name, "", "and is not announced")
+
+
+func test_frame_art_is_drawn_beneath_the_panels_own_controls() -> void:
+	"""A 22 px dock corner over a control at the 12 px inset would violate ART-UI-07."""
+	for id: int in UiShell.FRAME_OF_ZONE:
+		var panel: Control = _shell.control_for(id)
+		var holder: Node = panel.get_node(NodePath(UiFrameBuilder.HOLDER_NAME))
+		assert_equal(holder.get_index(), 0,
+			"UI-SET-%03d draws its frame first, under everything else" % id)
+
+
+func test_relaying_out_moves_the_frame_with_its_panel() -> void:
+	"""`Control.resized` never fires off-tree, so the shell must refresh the frames itself."""
+	assert_true(_shell.layout_for(1920, 1080), "the wide layout computes")
+	for id: int in UiShell.FRAME_OF_ZONE:
+		var panel: Control = _shell.control_for(id)
+		var corner: Control = panel.get_node(NodePath("%s/CornerBR"
+			% UiFrameBuilder.HOLDER_NAME)) as Control
+		assert_almost_equal(corner.position.x + corner.size.x, panel.size.x,
+			"UI-SET-%03d's bottom-right corner tracks the new width" % id)
+		assert_almost_equal(corner.position.y + corner.size.y, panel.size.y,
+			"and its new height")
+
+
+# --- UXV-020: five need rows, a percent, a track and a rate --------------------------------------
+
+func test_the_detail_panel_builds_five_independent_need_rows() -> void:
+	"""UXV-020: "Render five independent need rows". One combined string is not five rows."""
+	assert_not_null(_shell.need_row(0), "the first UI-SET-039 instance is built")
+	assert_not_null(_shell.need_row(4), "and so is the fifth")
+	assert_null(_shell.need_row(5), "and there is no sixth")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_UNKNOWN_ELEMENT,
+		"which refuses by name rather than returning a spare row")
+
+
+func test_a_need_row_is_the_amendments_52_pixel_height() -> void:
+	"""§4.1: "52 px need rows when displaying hourly rates", inside §4's own 44..56 band."""
+	var size: UiRegistry.Size = UiRegistry.Size.new()
+	assert_true(_shell.registry().size_into(UiShell.ID_NEED_ROW, size), "§4 sizes the row")
+	assert_equal(_shell.need_row(0).custom_minimum_size.y, 52.0, "the row is 52 px tall")
+	assert_true(52.0 >= float(size.min_height) and 52.0 <= float(size.max_height),
+		"which is inside §4's %d..%d band" % [size.min_height, size.max_height])
+
+
+func test_the_track_fill_is_the_rows_own_value_and_nothing_else() -> void:
+	"""UXV-020's 8 px track must be the same number as the printed percent, not a second one."""
+	assert_true(_shell.set_need_row(0, "Fullness", "75%", "-2.50 pp/h", 7500, "detail"),
+		"a row at 7500 basis points is accepted")
+	var full: float = _shell.need_track_fill(0).size.x
+	assert_true(_shell.set_need_row(0, "Fullness", "100%", "-2.50 pp/h", 10000, "detail"),
+		"and the same row at the ceiling")
+	var whole: float = _shell.need_track_fill(0).size.x
+	assert_almost_equal(full / whole, 0.75, "the 7500 track is exactly three quarters")
+	assert_true(_shell.set_need_row(0, "Fullness", "0%", "-2.50 pp/h", 0, "detail"),
+		"and at the floor")
+	assert_equal(_shell.need_track_fill(0).size.x, 0.0, "an empty need draws no fill")
+
+
+func test_the_track_is_eight_pixels_and_sits_inside_its_row() -> void:
+	"""UXV-020 fixes the track at 8 px; it must not overflow the 52 px row."""
+	assert_true(_shell.set_need_row(0, "Rest", "50%", "Rate unavailable", 5000, "detail"),
+		"the row is filled")
+	var edge: ColorRect = _shell.need_row(0).get_node("TrackEdge") as ColorRect
+	assert_equal(edge.size.y, 8.0, "the track is 8 px tall")
+	assert_almost_equal(edge.position.y + edge.size.y, 52.0, "and ends at the row's own bottom")
+
+
+func test_a_need_value_outside_the_scale_refuses_rather_than_overdrawing() -> void:
+	"""A bar longer than its own track would be a drawn lie about a clamped store."""
+	assert_false(_shell.set_need_row(0, "Fullness", "101%", "-2.50 pp/h", 10001, "detail"),
+		"a value above the scale refuses")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NEED_OUT_OF_RANGE, "by name")
+	assert_false(_shell.set_need_row(0, "Fullness", "-1%", "-2.50 pp/h", -1, "detail"),
+		"and so does one below it")
+
+
+func test_selecting_something_without_needs_empties_the_need_rows() -> void:
+	"""A tile must never be shown under the previous resident's percentages."""
+	assert_true(_shell.set_need_row(0, "Fullness", "75%", "-2.50 pp/h", 7500, "detail"),
+		"a resident row is drawn")
+	assert_equal(_shell.need_rows_shown(), 1, "and is visible")
+	_shell.set_detail_display("Tile 4,9 - forest", "Basin: Mossflower", "Danger band 1")
+	assert_equal(_shell.need_rows_shown(), 0, "selecting a tile hides every need row")
+	assert_equal(_shell.need_row_text(0).strip_edges(), "", "and leaves none of its text")
+
+
+func test_the_need_row_track_never_takes_input_or_an_announcement() -> void:
+	"""The track duplicates the percent beside it, so it is decoration in both trees."""
+	for part: String in ["TrackEdge", "TrackWell", "TrackFill", "Name", "Value", "Rate"]:
+		var control: Control = _shell.need_row(0).get_node(NodePath(part)) as Control
+		assert_equal(control.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+			"%s ignores the mouse" % part)
+		assert_equal(control.accessibility_name, "", "and is not announced separately")
+
+
+# --- ART-UI-06/09: the species medallion ---------------------------------------------------------
+
+func test_the_species_medallion_loads_and_is_shown_beside_the_name() -> void:
+	"""ART-UI-06: four illustrated medallions existed in the repository and nothing loaded one."""
+	var path: String = UiResidentCard.emblem_path(&"mouse", _shell.detail_emblem_pixels())
+	assert_true(_shell.set_detail_emblem(path, "Generic mouse species emblem"),
+		"the mouse medallion is applied from %s" % path)
+	assert_not_null(_shell.detail_emblem().texture, "a real texture is loaded")
+	assert_true(_shell.detail_emblem().visible, "and it is shown")
+
+
+func test_the_medallion_leads_the_card_and_never_draws_over_the_name() -> void:
+	"""ART-UI-09: identity first, and the roundel must not overlap the name it identifies."""
+	assert_true(_shell.set_detail_emblem(
+		UiResidentCard.emblem_path(&"otter", _shell.detail_emblem_pixels()), "otter"),
+		"the otter medallion is applied")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var emblem: Control = _shell.detail_emblem()
+	var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+	assert_false(Rect2(emblem.position, emblem.size).intersects(
+		Rect2(title.position, title.size)), "the roundel and the heading do not overlap")
+	assert_true(emblem.position.y <= title.position.y + 0.01,
+		"and the roundel leads the card rather than following the name")
+	assert_almost_equal(emblem.size.x, float(_shell.detail_emblem_pixels()),
+		"and is drawn at a production size")
+
+
+func test_the_medallion_is_a_production_size_at_every_reachable_profile() -> void:
+	"""ART-LOCK-001: "Actual production sizes are 48/64px"; 24 px is a diagnostic only.
+
+	The three profiles are reached the way the native evidence reaches them: two window sizes
+	and the 150% user scale, because §1.2's own floor refuses a viewport below 1280x720.
+	"""
+	for scale: int in [UiLayout.USER_SCALE_100, UiLayout.USER_SCALE_150]:
+		assert_true(_shell.apply_user_scale(scale), "the %d%% scale applies" % scale)
+		for width: int in [1920, 1280]:
+			assert_true(_shell.layout_for(width, 720), "the %d layout computes" % width)
+			assert_true([48, 64].has(_shell.detail_emblem_pixels()),
+				"%d at %d%% draws the roundel at %d px"
+				% [width, scale, _shell.detail_emblem_pixels()])
+	assert_true(_shell.apply_user_scale(UiLayout.USER_SCALE_100), "the scale is restored")
+
+
+func test_a_species_with_no_medallion_leaves_the_roundel_hidden() -> void:
+	"""The lock forbids reusing the mouse emblem, so an absent one shows nothing at all."""
+	assert_false(_shell.set_detail_emblem("", "no emblem"), "an empty source refuses")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_NO_EMBLEM, "by name")
+	assert_false(_shell.detail_emblem().visible, "and the roundel stays hidden")
+	assert_null(_shell.detail_emblem().texture, "carrying no borrowed texture")
+
+
+func test_the_medallion_is_decorative_in_the_accessibility_tree() -> void:
+	"""ART-UI-07/08: the species is already in the identity line; announcing it twice is noise."""
+	assert_true(_shell.set_detail_emblem(
+		UiResidentCard.emblem_path(&"mole", 48), "Generic mole species emblem"),
+		"the mole medallion is applied")
+	assert_equal(_shell.detail_emblem().accessibility_name, "", "the roundel is not a control")
+	assert_true(_shell.control_for(UiShell.ID_DETAIL).accessibility_description.contains(
+		"Generic mole"), "and the panel says what the mark is")
+
+
+# --- 4.1's scrolling journal body -----------------------------------------------------------------
+
+func test_the_journal_body_scrolls_so_five_need_rows_are_reachable() -> void:
+	"""§4.1: "Long content scrolls inside the panel, not past the window"."""
+	assert_not_null(_shell.detail_scroll(), "UI-SET-036 has a scrolling body")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var panel: Control = _shell.control_for(UiShell.ID_DETAIL)
+	var body: Control = _shell.detail_scroll()
+	assert_true(body.position.y + body.size.y <= panel.size.y + 0.01,
+		"the body ends inside the panel")
+	assert_true(body.size.y > 0.0, "and has room to scroll in")
+
+
+func test_the_heading_and_the_close_control_never_scroll_away() -> void:
+	"""§4.1: "Keep the header/close ... visible; the content body scrolls"."""
+	var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+	var close: Control = _shell.control_for(UiShell.ID_CLOSE)
+	assert_equal(title.get_parent(), _shell.control_for(UiShell.ID_DETAIL),
+		"the heading is a direct child of the panel, not of the scroll")
+	assert_equal(close.get_parent(), _shell.control_for(UiShell.ID_DETAIL),
+		"and so is the close control")
+
+
+func test_a_long_name_grows_the_header_instead_of_overlaying_close() -> void:
+	"""§4.1: "Header grows to wrap long names; never reduce name size or overlay Close"."""
+	var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+	var close: Control = _shell.control_for(UiShell.ID_CLOSE)
+	_shell.set_detail_display("Rowan", "mouse", "")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var short_height: float = title.size.y
+	var short_font: int = title.get_theme_font_size(&"font_size")
+	_shell.set_detail_display(
+		"Sister Amabel of the Eastern Orchard and the Long Rampart Watch", "mouse", "")
+	assert_true(_shell.layout_for(1280, 720), "the layout recomputes around the long name")
+	assert_true(title.size.y > short_height, "the header grew to hold the wrapped name")
+	assert_equal(title.get_theme_font_size(&"font_size"), short_font,
+		"and the name was not shrunk to make it fit")
+	assert_false(Rect2(title.position, title.size).intersects(
+		Rect2(close.position, close.size)), "and it never overlays Close")
+
+
+func test_the_detail_ornament_never_sits_over_the_medallion_or_the_body() -> void:
+	"""ART-UI-07: "decoration shall not overlap text/controls"."""
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var sprig: Control = _shell.control_for(UiShell.ID_DETAIL).get_node("Ornament") as Control
+	var body: Control = _shell.detail_scroll()
+	assert_true(sprig.position.y >= body.position.y + body.size.y - 0.01,
+		"the sprig sits below the scrolling body, not across it")
+	assert_true(sprig.position.y > _shell.detail_emblem().position.y
+		+ _shell.detail_emblem().size.y, "and nowhere near the medallion")
+
+
+func test_the_zone_harvesting_policy_never_stands_on_a_resident() -> void:
+	"""UXV-023: "zone harvesting policies never appear on a resident merely because a template
+	exists". The journal carried `Harvesting enabled` under every resident's needs, where the
+	action could only ever refuse with UI_SHELL_NOTHING_SELECTED."""
+	var policy: Control = _shell.control_for(UiShell.ID_WORK_POLICY)
+	assert_false(policy.visible, "nothing is selected, so no policy is offered")
+	var bound: Dictionary = _bound_settlement()
+	_shell.select_zone(bound["basin"], true)
+	assert_true(policy.visible, "selecting a real zone offers its policy")
+	_shell.set_detail_display("Rowan", "mouse - Warden - Active", "")
+	assert_false(policy.visible, "and selecting a resident takes it away again")

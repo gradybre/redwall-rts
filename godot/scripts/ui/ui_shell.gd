@@ -35,6 +35,8 @@ const UiTheme := preload("res://scripts/ui/ui_theme.gd")
 const UiAvailability := preload("res://scripts/ui/ui_availability.gd")
 const UiHitTest := preload("res://scripts/ui/ui_hit_test.gd")
 const UiArt := preload("res://ui/ui_art.gd")
+const UiFrameBuilder := preload("res://ui/ui_frame_builder.gd")
+const UiResidentCard := preload("res://scripts/ui/ui_resident_card.gd")
 const UiFocusOrder := preload("res://scripts/ui/ui_focus_order.gd")
 const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSession := preload("res://scripts/ui/ui_world_session.gd")
@@ -58,21 +60,6 @@ const PAINTED_DIRECTORY: String = "res://ui/painted/"
 ## ART-UI-04: NARROW keeps the simpler 16 px symbolic variants rather than shrinking painted
 ## detail until it becomes noise.
 const SYMBOLIC_DIRECTORY: String = "res://ui/symbolic16/"
-## ART-UI-01/02: each framed container wears its OWN crafted edge, so the five do not share one
-## rounded outline. `ui_art.gd` owns the declared insets and per-corner extents; the renderer
-## keeps the flat opaque fill underneath, which is what keeps text surfaces legible.
-const FRAME_DIRECTORY: String = "res://ui/frames/"
-const FRAME_OF_ZONE: Dictionary = {
-	1: 0, 13: 1, 20: 2, 36: 3, 26: 4,
-}
-## Corner order matches `ui_art.gd`: top-left, top-right, bottom-left, bottom-right.
-const CORNER_SUFFIX: Array[String] = ["tl", "tr", "bl", "br"]
-const CORNER_PRESET: Array[int] = [Control.PRESET_TOP_LEFT, Control.PRESET_TOP_RIGHT,
-	Control.PRESET_BOTTOM_LEFT, Control.PRESET_BOTTOM_RIGHT]
-## Edge order matches `ui_art.gd`'s inset order: top, right, bottom, left.
-const EDGE_SUFFIX: Array[String] = ["top", "right", "bottom", "left"]
-const EDGE_PRESET: Array[int] = [Control.PRESET_TOP_WIDE, Control.PRESET_RIGHT_WIDE,
-	Control.PRESET_BOTTOM_WIDE, Control.PRESET_LEFT_WIDE]
 ## Painted subject per §4 element, overriding the line icon where the lock authors one.
 ## Food reuses the ready-food bowl and People reuses the population group, identically --
 ## ART-LOCK-001 gives sixteen logical rows over fourteen distinct designs.
@@ -169,6 +156,19 @@ const ID_DATE: int = 101
 const ID_HISTORY_TRIGGER: int = 102
 const ID_NEW_SETTLEMENT: int = 103
 
+## ART-UI-01/02: each framed container wears its OWN crafted edge, so the five do not share one
+## rounded outline. `ui_frame_builder.gd` owns placement and `ui_art.gd` owns the declared
+## insets and per-corner extents; the flat opaque fill stays underneath, which is what keeps
+## text surfaces legible. This table is the only thing this file decides about frames: WHICH
+## zone panel wears WHICH silhouette. Declared after the ids so both halves read as one row.
+const FRAME_OF_ZONE: Dictionary = {
+	ID_RESOURCE_CLUSTER: UiFrameBuilder.FRAME_RESOURCE_TRAY,
+	ID_TIME_CLUSTER: UiFrameBuilder.FRAME_TIME_GROUP,
+	ID_MINIMAP_FRAME: UiFrameBuilder.FRAME_MAP_FOLIO,
+	ID_DETAIL: UiFrameBuilder.FRAME_JOURNAL,
+	ID_COMMAND_STRIP: UiFrameBuilder.FRAME_COMMAND_DOCK,
+}
+
 ## The six counter cells §1.2's grid holds, in its stated left-to-right, top-to-bottom order.
 const COUNTER_IDS: Array[int] = [ID_FOOD, ID_FUEL, ID_WOOD, ID_STONE, ID_POPULATION, ID_BEDS]
 ## The words §1.1's zone map uses for those six counters: "Food Fuel Wood / Stone Residents
@@ -232,6 +232,40 @@ const HISTORY_HEADER_HEIGHT: float = 28.0
 ## Displayed for a counter nobody has supplied a value for. Shared with `hud.gd`.
 const UNPOPULATED: String = "--"
 
+## UI-SET-039 instances this shell builds: GDD §4.2 fixes exactly five need columns, and
+## UXV-020 requires "five independent need rows". Restated here rather than imported, so a
+## changed store cannot silently reduce the card to four rows.
+const NEED_ROW_COUNT: int = 5
+## §4.1: "52 px need rows when displaying hourly rates". Inside UI-SET-039's 44..56 band.
+const NEED_ROW_HEIGHT: float = 52.0
+## UXV-020's track thickness, and the 1 px edge that keeps its empty part visible on PANEL.
+const NEED_TRACK_HEIGHT: float = 8.0
+const NEED_TRACK_EDGE: float = 1.0
+## Where the three lines of a need row sit inside its 52 px: label/percent, rate, then track.
+const NEED_VALUE_TOP: float = 0.0
+const NEED_VALUE_HEIGHT: float = 20.0
+const NEED_RATE_TOP: float = 22.0
+const NEED_RATE_HEIGHT: float = 18.0
+## §4.1: "the reference's 20 px side insets, 16 px section separation".
+const DETAIL_INSET: float = 20.0
+const DETAIL_SECTION_GAP: float = 16.0
+## Gap between the medallion and the name heading beside it.
+const EMBLEM_GAP: float = 12.0
+## UXV-020's scale, restated so the track fraction does not depend on a core import.
+const NEED_BASIS_POINTS_MAX: int = 10000
+## UI-SET-094's own §4 minimum width, reserved on the right of every need row so the vertical
+## scroll bar never lands on a percent. The gutter is present at EVERY profile, so the row does
+## not re-flow the moment the body becomes long enough to scroll.
+##
+## RAISED, NOT DECIDED: UI-SET-039's §4 minimum width is 280 and the NARROW detail column's
+## scrolling interior is 320 - 2*20 - 16 = 264. The two cannot both hold at 320. The row keeps
+## its §4 minimum and lays its contents inside the usable width; the composition question
+## belongs to §1.2/§4.1's owner and is reported rather than resolved by shrinking the contract.
+const NEED_ROW_GUTTER: float = 16.0
+## The bottom margin UI-SET-036 reserves for its sprig, so ornament never sits over a row.
+const DETAIL_ORNAMENT_SIZE: float = 24.0
+const DETAIL_ORNAMENT_BAND: float = DETAIL_ORNAMENT_SIZE + ROW_GAP
+
 const REFUSE_NONE: StringName = &""
 const REFUSE_NOT_BUILT: StringName = &"UI_SHELL_NOT_BUILT"
 const REFUSE_UNKNOWN_ELEMENT: StringName = &"UI_SHELL_UNKNOWN_ELEMENT"
@@ -244,6 +278,8 @@ const REFUSE_STROKE_FULL: StringName = &"UI_SHELL_STROKE_FULL"
 const REFUSE_NO_LAYERS: StringName = &"UI_SHELL_NO_PRESENTATION_SNAPSHOT"
 const REFUSE_NO_NOTICE: StringName = &"UI_SHELL_NO_ACTIVE_NOTICE"
 const REFUSE_NOTICE_CATEGORY: StringName = &"UI_SHELL_UNKNOWN_NOTICE_CATEGORY"
+const REFUSE_NEED_OUT_OF_RANGE: StringName = &"UI_SHELL_NEED_OUT_OF_RANGE"
+const REFUSE_NO_EMBLEM: StringName = &"UI_SHELL_NO_SPECIES_EMBLEM"
 
 ## §5.5's danger bands, which a designation carries from the basin it is painted over.
 const DANGER_MIN: int = 0
@@ -322,6 +358,31 @@ var _history_header: Label = null
 var _history_rows: Array[Label] = []
 var _history_scroll: ScrollContainer = null
 var _history_body: VBoxContainer = null
+## UI-SET-036's own parts. The header is pinned and the body scrolls; see `_build_detail()`.
+var _detail_emblem: TextureRect = null
+## UI-SET-036's own sprig. It is MOVED out of the title margin, where it would sit under the
+## medallion, into the bottom margin that `_place_detail_interior()` reserves for it.
+var _detail_ornament: TextureRect = null
+var _detail_identity: Label = null
+var _detail_health: Label = null
+var _detail_activity: Label = null
+var _detail_note: Label = null
+var _detail_scroll: ScrollContainer = null
+var _detail_column: VBoxContainer = null
+## The five UI-SET-039 instances and their parts, in `NeedsScript.NEED_*` order.
+var _need_rows: Array[Control] = []
+var _need_names: Array[Label] = []
+var _need_values: Array[Label] = []
+var _need_rates: Array[Label] = []
+var _need_track_edges: Array[ColorRect] = []
+var _need_track_wells: Array[ColorRect] = []
+var _need_track_fills: Array[ColorRect] = []
+## Each row's current 0-10000 value, so a relayout re-draws the track without a caller.
+var _need_basis_points: PackedInt32Array = PackedInt32Array()
+## How wide the medallion is drawn at the current profile, in logical pixels. It starts at
+## ART-LOCK-001's smaller production size rather than at zero, because the emblem is chosen
+## before the first layout in a suite that never enters a tree, and 0 is not a delivered size.
+var _detail_emblem_pixels: int = 48
 var _picked_tile: int = NO_TILE
 var _create_button: Button = null
 var _brush_size: int = 1
@@ -385,6 +446,7 @@ func build() -> bool:
 	_build_detail()
 	_build_workspace()
 	_build_overlays()
+	_apply_frames()
 	_built = true
 	_last_refusal = REFUSE_NONE
 	return true
@@ -480,8 +542,8 @@ func _add_severity_icon(owner_control: Control, icon_path: String) -> TextureRec
 	return icon
 
 
-func _decorate(owner_control: Control) -> void:
-	"""Add §-restrained sprig ornament to a panel title margin.
+func _decorate(owner_control: Control) -> TextureRect:
+	"""Add §-restrained sprig ornament to a panel title margin. Returns it, so an owner can move it.
 
 	Decorative only: it ignores the mouse, can never take focus, and is excluded from the
 	accessibility tree, which is what the visual direction requires of every ornament.
@@ -495,6 +557,7 @@ func _decorate(owner_control: Control) -> void:
 	sprig.position = Vector2(PANEL_PADDING, PANEL_PADDING)
 	sprig.modulate = Color(1.0, 1.0, 1.0, ORNAMENT_ALPHA)
 	owner_control.add_child(sprig)
+	return sprig
 
 
 func _new_label(id: int, text: String) -> Label:
@@ -591,55 +654,44 @@ func _preferred_size(id: int, available_width: float) -> Vector2:
 
 
 
-func _apply_frame_art(panel: Panel, frame: int) -> void:
-	"""Dress one container in its own edge and corner art. NOT WIRED -- see ADR 0074.
+func _apply_frames() -> void:
+	"""ART-UI-01/02: give the five framed containers their own crafted edges, once.
 
-	THIS IS NOT CALLED. Two placement attempts put the corners outside their panels and left the
-	edge strips invisible; the captures are in the evidence directory. The pieces load and draw,
-	so the fault is the placement contract, not the paths: `ui_art_manifest.json` declares each
-	asset's actual bounds and stretch margins, and the author of that manifest owns what they mean.
-	Kept here, uncalled, so the next attempt starts from the shape rather than from nothing.
+	`ui_frame_builder.gd` is the placement owner and this is its only call site. The two
+	attempts that came before it are DELETED rather than kept uncalled: both used
+	`set_anchors_and_offsets_preset(..., PRESET_MODE_MINSIZE)`, which sizes from
+	`get_minimum_size()` and not `get_combined_minimum_size()`, so `custom_minimum_size` was
+	invisible to it, every offset was written as 0 and each piece inflated outward from a zero
+	rect through `grow_horizontal`/`grow_vertical`. That is what put the right and bottom
+	corners outside their panels. The builder places every piece explicitly instead.
 
-	Four corners at their declared extents and four edges stretched along their own axis --
-	not one texture scaled, which would distort a binding seam and a page edge alike. The
-	journal is why the corner extent is per corner: its spine cap is 12x16 and its fore-edge
-	corner 14x14, and one averaged number would misplace both.
+	`apply()` returns false having built NOTHING when the panel is smaller than its own two
+	corner pairs; that refusal is reported and the panel simply wears no frame, because a
+	clamped frame would stack its corners on one another and still claim to be applied.
 
-	Every piece is decorative under ART-UI-07: mouse filter IGNORE, no focus, and no
-	accessibility name, so ornament can never take a click or a tab stop from a control.
+	The holder is moved to child index 0 so the relief draws UNDER the panel's own controls:
+	the command dock's corners are 22 px and its content inset is 12, and ART-UI-07 forbids
+	ornament over a control. `ART.FRAME.JOURNAL.RING` and `ART.FRAME.JOURNAL.STRAP` have no
+	declared anchor in `ui_art.gd`, so the builder places neither and neither is invented here.
 	"""
-	var key: String = String(UiArt.FRAME_KEYS[frame])
-	var holder: Control = Control.new()
-	holder.name = "FrameArt"
-	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	holder.focus_mode = Control.FOCUS_NONE
-	panel.add_child(holder)
-	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for corner: int in 4:
-		var extent: Vector2i = UiArt.frame_corner_size(frame, corner)
-		_add_frame_piece(holder, "%s%s/%s_corner_%s.svg" % [FRAME_DIRECTORY, key, key,
-			CORNER_SUFFIX[corner]], CORNER_PRESET[corner], Vector2(extent))
-	for side: int in 4:
-		var inset: int = UiArt.frame_edge_inset(frame, side)
-		_add_frame_piece(holder, "%s%s/%s_edge_%s.svg" % [FRAME_DIRECTORY, key, key,
-			EDGE_SUFFIX[side]], EDGE_PRESET[side], Vector2(float(inset), float(inset)))
+	for id: int in FRAME_OF_ZONE:
+		var panel: Control = _zones[id] as Control
+		if not UiFrameBuilder.apply(panel, FRAME_OF_ZONE[id]):
+			continue
+		panel.move_child(panel.get_node(NodePath(UiFrameBuilder.HOLDER_NAME)), 0)
 
 
-func _add_frame_piece(holder: Control, path: String, preset: int, extent: Vector2) -> void:
-	"""One corner or edge of a frame, anchored to the side it belongs to."""
-	var texture: Texture2D = load(path) as Texture2D
-	if texture == null:
-		return
-	var piece: NinePatchRect = NinePatchRect.new()
-	piece.texture = texture
-	piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	piece.focus_mode = Control.FOCUS_NONE
-	piece.custom_minimum_size = extent
-	holder.add_child(piece)
-	## Anchors AND offsets, in MINSIZE mode. Setting anchors alone and then assigning `size`
-	## leaves the offsets at zero, which put every corner outside its own panel -- visible in
-	## the first capture as brackets floating past the tray and the folio.
-	piece.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE)
+func _refresh_frames() -> void:
+	"""Re-place every applied frame against its panel's new rectangle.
+
+	`Control.set_size()` only emits `resized` while the control is inside a tree, so the
+	builder's own `resized` follow never fires off-tree -- and the headless suite and every
+	`--script` run are off-tree. `refresh()` is the builder's explicit door for exactly that,
+	and calling it in a live tree is harmless because it writes the same rectangles the signal
+	would have. A panel with no applied frame refuses and is skipped.
+	"""
+	for id: int in FRAME_OF_ZONE:
+		UiFrameBuilder.refresh(_zones[id] as Control)
 
 
 func _zone_panel(id: int, text: String) -> Panel:
@@ -866,23 +918,162 @@ func _build_commands() -> void:
 
 
 func _build_detail() -> void:
-	"""UI-SET-036's detail panel: title, tabs, need and skill rows, policy toggle and close."""
+	"""UI-SET-036's resident journal, in UXV-019's order, with a scrolling body.
+
+	§4.1 fixes the hierarchy: (1) full name, species, close control and generic emblem;
+	(2) health; (3) five needs; (4) current activity and skills. The header and the close stay
+	pinned and the body below them SCROLLS, because five 52 px need rows plus health, activity
+	and skills do not fit the 336 px narrow column and §4.1 says "long content scrolls inside
+	the panel, not past the window".
+
+	UXV-023's fifth item, Center view, is NOT built. Its semantics belong to UI-SET-037's
+	"click center-camera" and `ui_availability.gd` records REASON_NO_WORLD_CAMERA, "the
+	interface binds no camera". A 44-high Center view action would need a registry row and a
+	camera binding invented here; both are reported instead.
+	"""
 	var detail: Panel = _zone_panel(ID_DETAIL, "Details")
 	detail.visible = false
-	_decorate(detail)
-	detail.add_child(_new_label(ID_DETAIL_TITLE, "Nothing selected"))
+	_detail_ornament = _decorate(detail)
+	_detail_ornament.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_detail_ornament.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_build_detail_header(detail)
+	_build_detail_body(detail)
+
+
+func _build_detail_header(detail: Panel) -> void:
+	"""The pinned identity block: emblem, name heading, species line, tabs and close."""
+	_detail_emblem = TextureRect.new()
+	_detail_emblem.name = "SpeciesEmblem"
+	_detail_emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_detail_emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_detail_emblem.visible = false
+	_make_decoration(_detail_emblem)
+	detail.add_child(_detail_emblem)
+	var title: Label = _new_label(ID_DETAIL_TITLE, "Nothing selected")
+	title.add_theme_font_size_override(&"font_size", UiTheme.FONT_PANEL_TITLE)
+	detail.add_child(title)
+	_detail_identity = _new_secondary(detail, &"Identity", "")
 	detail.add_child(_new_button(ID_DETAIL_TABS, "Overview"))
-	detail.add_child(_new_label(ID_NEED_ROW, ""))
-	detail.add_child(_new_label(ID_SKILL_ROW, ""))
-	var policy: Button = _new_button(ID_WORK_POLICY, "Harvesting enabled")
-	policy.pressed.connect(_on_work_policy_pressed)
-	detail.add_child(policy)
-	var pin: Button = _new_button(ID_PIN, "Name")
-	pin.pressed.connect(_on_pin_pressed)
-	detail.add_child(pin)
 	var close: Button = _new_button(ID_CLOSE, "x")
 	close.pressed.connect(_on_close_pressed)
 	detail.add_child(close)
+
+
+func _build_detail_body(detail: Panel) -> void:
+	"""The scrolling body: health, the five need rows, activity, skills and the actions."""
+	_detail_scroll = ScrollContainer.new()
+	_detail_scroll.name = "Body"
+	_detail_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	detail.add_child(_detail_scroll)
+	_detail_column = VBoxContainer.new()
+	_detail_column.name = "Content"
+	_detail_column.add_theme_constant_override(&"separation", int(ROW_GAP))
+	_detail_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_detail_scroll.add_child(_detail_column)
+	_detail_health = _new_secondary(_detail_column, &"Health", "")
+	_detail_health.add_theme_font_size_override(&"font_size", UiTheme.FONT_BODY)
+	_detail_health.add_theme_color_override(&"font_color",
+		UiTheme.color_of(UiTheme.TOKEN_TEXT))
+	_build_need_rows(_detail_column)
+	_detail_activity = _new_secondary(_detail_column, &"Activity", "")
+	_detail_column.add_child(_new_label(ID_SKILL_ROW, ""))
+	var policy: Button = _new_button(ID_WORK_POLICY, "Harvesting enabled")
+	policy.pressed.connect(_on_work_policy_pressed)
+	policy.visible = false
+	_detail_column.add_child(policy)
+	var pin: Button = _new_button(ID_PIN, "Name")
+	pin.pressed.connect(_on_pin_pressed)
+	_detail_column.add_child(pin)
+	_detail_note = _new_secondary(_detail_column, &"EmblemNote", "")
+
+
+func _build_need_rows(column: VBoxContainer) -> void:
+	"""Five UI-SET-039 instances, one per GDD §4.2 need. Row 0 is the registry's own control.
+
+	§4 allows repeated rows as "instances of a definition with stable runtime IDs", which is
+	what UI-SET-069's roster pool already is. Only instance 0 goes into `_controls`, so the
+	focus order, the hit table and the availability claim still see exactly one UI-SET-039.
+	"""
+	for index: int in NEED_ROW_COUNT:
+		var row: Control = Control.new()
+		row.name = "%s/%d" % [_registry.element_key(ID_NEED_ROW), index]
+		row.custom_minimum_size = Vector2(_minimum_size(ID_NEED_ROW).x, NEED_ROW_HEIGHT)
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.focus_mode = Control.FOCUS_NONE
+		## Hidden until a resident fills it: an empty 52 px row with a full track would read
+		## as a need at 0% rather than as nothing selected.
+		row.visible = false
+		row.accessibility_name = "%s %s %d" % [_registry.element_key(ID_NEED_ROW),
+			_registry.name_of(ID_NEED_ROW), index + 1]
+		column.add_child(row)
+		_need_rows.append(row)
+		_build_need_row_parts(row, index)
+	_controls[ID_NEED_ROW] = _need_rows[0]
+	_apply_semantics(_need_rows[0], ID_NEED_ROW, "")
+
+
+func _build_need_row_parts(row: Control, index: int) -> void:
+	"""One need row's label, exact percent, per-hour rate and 8 px track.
+
+	The track is three rectangles, not one: a MUTED edge so the empty part of the track is
+	visible against the PANEL fill at 3:1, an INK well inside it, and the GOLD fill on top.
+	A single dark bar would have been 1.2:1 against the panel and effectively invisible.
+	"""
+	_need_names.append(_new_row_text(row, &"Name", UiTheme.FONT_BODY, UiTheme.TOKEN_TEXT))
+	var value: Label = _new_row_text(row, &"Value", UiTheme.FONT_BODY, UiTheme.TOKEN_TEXT)
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_need_values.append(value)
+	_need_rates.append(_new_row_text(row, &"Rate", UiTheme.FONT_SECONDARY, UiTheme.TOKEN_MUTED))
+	_need_track_edges.append(_new_track_rect(row, &"TrackEdge", UiTheme.TOKEN_MUTED))
+	_need_track_wells.append(_new_track_rect(row, &"TrackWell", UiTheme.TOKEN_INK))
+	_need_track_fills.append(_new_track_rect(row, &"TrackFill", UiTheme.TOKEN_GOLD))
+	_need_basis_points.append(0)
+
+
+func _new_row_text(row: Control, text_name: StringName, font_size: int, token: int) -> Label:
+	"""One text cell inside a need row: drawn, never focusable, never hit-tested."""
+	var label: Label = Label.new()
+	label.name = text_name
+	label.clip_text = false
+	label.add_theme_font_size_override(&"font_size", font_size)
+	label.add_theme_color_override(&"font_color", UiTheme.color_of(token))
+	_make_decoration(label)
+	row.add_child(label)
+	return label
+
+
+func _new_track_rect(row: Control, rect_name: StringName, token: int) -> ColorRect:
+	"""One layer of a need row's 8 px track. Decorative: the percent beside it carries the value."""
+	var rect: ColorRect = ColorRect.new()
+	rect.name = rect_name
+	rect.color = UiTheme.color_of(token)
+	_make_decoration(rect)
+	row.add_child(rect)
+	return rect
+
+
+func _new_secondary(owner_control: Control, text_name: StringName, text: String) -> Label:
+	"""A wrapping secondary line inside an element: MUTED at 14 px, which is 8.2:1 on PANEL."""
+	var label: Label = Label.new()
+	label.name = text_name
+	label.text = text
+	label.clip_text = false
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.add_theme_font_size_override(&"font_size", UiTheme.FONT_SECONDARY)
+	label.add_theme_color_override(&"font_color", UiTheme.color_of(UiTheme.TOKEN_MUTED))
+	_make_decoration(label)
+	owner_control.add_child(label)
+	return label
+
+
+func _make_decoration(control: Control) -> void:
+	"""ART-UI-07/08: no click, no focus and no accessibility node, for drawn ornament and text."""
+	control.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	control.focus_mode = Control.FOCUS_NONE
+	control.accessibility_name = ""
 
 
 func _build_workspace() -> void:
@@ -1163,6 +1354,7 @@ func _place_zones() -> void:
 		- Vector2(0.0, brush_size.y + ROW_GAP), brush_size))
 	_place(ID_DETAIL, _geometry.detail)
 	_place(ID_WORKSPACE, _geometry.modal)
+	_refresh_frames()
 	_place_interiors()
 
 
@@ -1188,8 +1380,7 @@ func _place_interiors() -> void:
 	_place_error_interior()
 	_place_local(ID_MINIMAP_VIEW, UiLayout.minimap_content_rect(_geometry.profile))
 	_wrap_children(ID_COMMAND_STRIP, COMMAND_IDS, _geometry.commands.size)
-	_flow_children(ID_DETAIL, [ID_DETAIL_TITLE, ID_DETAIL_TABS, ID_NEED_ROW, ID_SKILL_ROW,
-		ID_WORK_POLICY, ID_PIN, ID_CLOSE])
+	_place_detail_interior()
 	_flow_workspace()
 	_wrap_children(ID_ZONE_BRUSH, [ID_STEPPER, ID_CONFIRM, ID_CANCEL],
 		(_controls[ID_ZONE_BRUSH] as Control).size)
@@ -1265,6 +1456,109 @@ func _wrapped_height(label: Label, interior: float) -> float:
 		return 0.0
 	return font.get_multiline_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, interior,
 		label.get_theme_font_size(&"font_size")).y
+
+
+func _place_detail_interior() -> void:
+	"""§4.1's resident journal geometry: a pinned header and a scrolling body under it.
+
+	20 px side insets and 16 px section separation, both taken from §4.1. The close control and
+	the header never scroll; everything from health downward does, which is what makes five
+	52 px need rows reachable in the 336 px narrow column without clipping one of them.
+	"""
+	var panel: Control = _zones[ID_DETAIL] as Control
+	var close: Vector2 = _preferred_size(ID_CLOSE, panel.size.x)
+	_set_rect(_controls[ID_CLOSE] as Control, Rect2(panel.size.x - DETAIL_INSET - close.x,
+		DETAIL_INSET, close.x, close.y))
+	var interior: float = panel.size.x - 2.0 * DETAIL_INSET
+	var tabs_top: float = _place_detail_header(panel, close.x) + DETAIL_SECTION_GAP
+	var tabs: Vector2 = _preferred_size(ID_DETAIL_TABS, interior)
+	_set_rect(_controls[ID_DETAIL_TABS] as Control,
+		Rect2(DETAIL_INSET, tabs_top, minf(tabs.x, interior), tabs.y))
+	var body_top: float = tabs_top + tabs.y + DETAIL_SECTION_GAP
+	var body_bottom: float = panel.size.y - DETAIL_INSET - DETAIL_ORNAMENT_BAND
+	_set_rect(_detail_scroll, Rect2(DETAIL_INSET, body_top, interior,
+		maxf(0.0, body_bottom - body_top)))
+	_set_rect(_detail_ornament, Rect2(DETAIL_INSET,
+		panel.size.y - DETAIL_INSET - DETAIL_ORNAMENT_SIZE,
+		DETAIL_ORNAMENT_SIZE, DETAIL_ORNAMENT_SIZE))
+	_detail_column.custom_minimum_size = Vector2(interior, 0.0)
+	_place_need_row_interiors(interior)
+
+
+func _place_detail_header(panel: Control, close_width: float) -> float:
+	"""Emblem, name heading and species line. Returns the y at which the header block ends.
+
+	§4.1: "Header grows to wrap long names; never reduce name size or overlay Close." The
+	heading is therefore measured at its own 20 px size and the block grows downward.
+
+	RAISED, NOT DECIDED -- and it is why the heading is usually BELOW the medallion rather
+	than beside it. §4 gives UI-SET-037 a 280 px minimum width. §4.1 adds 20 px side insets, a
+	top-right Close and a generic emblem. In the narrow detail column those cannot all hold:
+	320 - 40 insets - 48 emblem - 12 gap - 32 close - 8 gap leaves 180 for a control whose §4
+	minimum is 280, and even the 384 wide column leaves 244. A Control clamps its own size up
+	to `custom_minimum_size`, so placing the heading beside the emblem at 180 would silently
+	widen it back to 280 and draw it straight through Close. `_heading_fits_beside()` therefore
+	asks whether the row can hold the §4 minimum and drops the heading to its own full-width
+	line when it cannot. The composition conflict belongs to §4/§4.1's owner and is reported.
+	"""
+	_detail_emblem_pixels = UiResidentCard.emblem_pixels_for_width(panel.size.x)
+	var emblem: float = float(_detail_emblem_pixels)
+	_set_rect(_detail_emblem, Rect2(DETAIL_INSET, DETAIL_INSET, emblem, emblem))
+	var interior: float = panel.size.x - 2.0 * DETAIL_INSET
+	var beside: float = interior - emblem - EMBLEM_GAP - close_width - ROW_GAP
+	if beside >= _minimum_size(ID_DETAIL_TITLE).x:
+		return _place_heading(DETAIL_INSET + emblem + EMBLEM_GAP, DETAIL_INSET, beside, emblem)
+	var below: float = DETAIL_INSET + maxf(emblem, close_width) + ROW_GAP
+	return _place_heading(DETAIL_INSET, below, interior, 0.0)
+
+
+func _place_heading(left: float, top: float, width: float, beside_height: float) -> float:
+	"""Put the name heading and the identity line in one column. Returns the header's bottom."""
+	var title: Label = _controls[ID_DETAIL_TITLE] as Label
+	var title_height: float = maxf(_wrapped_height(title, width),
+		_minimum_size(ID_DETAIL_TITLE).y)
+	_set_rect(title, Rect2(left, top, width, title_height))
+	var identity_height: float = maxf(_wrapped_height(_detail_identity, width),
+		UiTheme.FONT_SECONDARY)
+	_set_rect(_detail_identity, Rect2(left, top + title_height, width, identity_height))
+	return maxf(DETAIL_INSET + beside_height, top + title_height + identity_height)
+
+
+func _place_need_row_interiors(column_width: float) -> void:
+	"""Lay each need row's label, exact percent, per-hour rate and track for this column width."""
+	var width: float = maxf(0.0, _need_row_width(column_width) - NEED_ROW_GUTTER)
+	var label_width: float = width * 0.5
+	for index: int in _need_rows.size():
+		_set_rect(_need_names[index],
+			Rect2(0.0, NEED_VALUE_TOP, label_width, NEED_VALUE_HEIGHT))
+		_set_rect(_need_values[index], Rect2(label_width, NEED_VALUE_TOP,
+			maxf(0.0, width - label_width), NEED_VALUE_HEIGHT))
+		_set_rect(_need_rates[index], Rect2(0.0, NEED_RATE_TOP, width, NEED_RATE_HEIGHT))
+		_place_need_track(index, width)
+
+
+func _need_row_width(column_width: float) -> float:
+	"""How wide a need row actually is: the column, or UI-SET-039's §4 minimum if that is wider."""
+	return maxf(column_width, _minimum_size(ID_NEED_ROW).x)
+
+
+func _place_need_track(index: int, width: float) -> void:
+	"""UXV-020's 8 px track: a MUTED edge, an INK well inside it and the GOLD fill on top.
+
+	The fill length is the row's own 0-10000 value scaled into the well, so the bar and the
+	printed percent are the SAME number -- there is no second source for the track.
+	"""
+	var top: float = NEED_ROW_HEIGHT - NEED_TRACK_HEIGHT
+	var well_top: float = top + NEED_TRACK_EDGE
+	var well_height: float = NEED_TRACK_HEIGHT - 2.0 * NEED_TRACK_EDGE
+	var inner: float = maxf(0.0, width - 2.0 * NEED_TRACK_EDGE)
+	_set_rect(_need_track_edges[index], Rect2(0.0, top, width, NEED_TRACK_HEIGHT))
+	_set_rect(_need_track_wells[index],
+		Rect2(NEED_TRACK_EDGE, well_top, inner, well_height))
+	var filled: float = inner * float(_need_basis_points[index]) \
+		/ float(NEED_BASIS_POINTS_MAX)
+	_set_rect(_need_track_fills[index],
+		Rect2(NEED_TRACK_EDGE, well_top, filled, well_height))
 
 
 func _place_history_interior() -> void:
@@ -1663,11 +1957,169 @@ func set_refusal_display(text: String) -> void:
 	_register_hit_regions()
 
 
-func set_detail_display(title: String, need_text: String, skill_text: String) -> void:
-	"""UI-SET-037/039/040: the selected entity's title and its need and skill rows."""
+func set_detail_display(title: String, secondary: String, supporting: String) -> void:
+	"""UI-SET-037's heading, its secondary line and one supporting line, for ANY selection.
+
+	§4.1: "A name is a heading, not a dense concatenation of name/species/health in one line."
+	So the title is the heading alone and the species/role/status line is separate.
+
+	This RESETS the resident-only block -- emblem, health, the five need rows, the activity
+	line and the emblem note -- because a tile has none of them and a previous resident's
+	percentages standing under a tile's title would be a false reading of the tile.
+	"""
 	(_controls[ID_DETAIL_TITLE] as Label).text = title
-	(_controls[ID_NEED_ROW] as Label).text = need_text
-	(_controls[ID_SKILL_ROW] as Label).text = skill_text
+	_detail_identity.text = secondary
+	(_controls[ID_SKILL_ROW] as Label).text = supporting
+	clear_resident_detail()
+	_apply_geometry()
+
+
+func clear_resident_detail() -> void:
+	"""Empty every row that only a resident fills, and hide the medallion with them."""
+	_detail_emblem.texture = null
+	_detail_emblem.visible = false
+	_detail_health.text = ""
+	_detail_activity.text = ""
+	_detail_note.text = ""
+	## UXV-023: the harvesting policy belongs to a zone, and a new selection is not one until
+	## `select_zone()` says so. Hiding it here means a resident can never inherit the last
+	## zone's toggle.
+	(_controls[ID_WORK_POLICY] as Control).visible = false
+	_selected_zone = EntityDirectoryScript.NULL_REF
+	for index: int in _need_rows.size():
+		_need_names[index].text = ""
+		_need_values[index].text = ""
+		_need_rates[index].text = ""
+		_need_basis_points[index] = 0
+		_need_rows[index].visible = false
+
+
+func set_detail_health(text: String) -> void:
+	"""UXV-019's second item: health, on its own line, in the store's own 0-100 units."""
+	_detail_health.text = text
+
+
+func set_detail_activity(text: String) -> void:
+	"""UXV-022's current activity, composed by its owner and printed here verbatim."""
+	_detail_activity.text = text
+
+
+func set_detail_note(text: String) -> void:
+	"""The supporting line under the card: what the emblem is, and what is unavailable."""
+	_detail_note.text = text
+
+
+func set_need_row(index: int, label: String, value_text: String, rate_text: String,
+		basis_points: int, accessible: String) -> bool:
+	"""Print one UI-SET-039 row and set its track. Refuses an index or value out of range.
+
+	The shell derives NOTHING here: `ui_resident_card.gd` converts basis points to the visible
+	percent, and this writes that string and scales the track by the same integer. A value
+	outside 0-10000 refuses rather than drawing a bar longer than its own track.
+	"""
+	if index < 0 or index >= _need_rows.size():
+		return _refuse(REFUSE_UNKNOWN_ELEMENT)
+	if basis_points < 0 or basis_points > NEED_BASIS_POINTS_MAX:
+		return _refuse(REFUSE_NEED_OUT_OF_RANGE)
+	_need_names[index].text = label
+	_need_values[index].text = value_text
+	_need_rates[index].text = rate_text
+	_need_basis_points[index] = basis_points
+	_need_rows[index].visible = true
+	_need_rows[index].accessibility_description = accessible
+	_place_need_track(index, maxf(0.0,
+		_need_row_width(_detail_column.custom_minimum_size.x) - NEED_ROW_GUTTER))
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func set_detail_emblem(source_path: String, description: String) -> bool:
+	"""ART-UI-06: put the generic species medallion beside the name, at 48 or 64 px.
+
+	Refuses an empty path and an unreadable source, leaving the medallion HIDDEN: the twelve
+	species ART-LOCK-001 delivers no roundel for must show readable text and never borrow the
+	mouse emblem. The roundel is decorative in the accessibility tree because `description`
+	reaches the reader through the panel, which is where "generic species emblem, not a
+	portrait" belongs -- announcing it twice is what §2.2 warns against.
+	"""
+	if source_path.is_empty():
+		return _refuse(REFUSE_NO_EMBLEM)
+	var texture: Texture2D = load(source_path) as Texture2D
+	if texture == null:
+		return _refuse(REFUSE_NO_EMBLEM)
+	_detail_emblem.texture = texture
+	_detail_emblem.visible = true
+	(_zones[ID_DETAIL] as Panel).accessibility_description = description
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func detail_emblem() -> TextureRect:
+	"""UI-SET-036's species medallion, for reading back what was actually applied."""
+	return _detail_emblem
+
+
+func detail_emblem_pixels() -> int:
+	"""The production size the medallion is currently drawn at: ART-LOCK-001's 48 or 64."""
+	return _detail_emblem_pixels
+
+
+func need_row(index: int) -> Control:
+	"""One built UI-SET-039 instance, or null for an index outside the five."""
+	if index < 0 or index >= _need_rows.size():
+		_refuse(REFUSE_UNKNOWN_ELEMENT)
+		return null
+	_last_refusal = REFUSE_NONE
+	return _need_rows[index]
+
+
+func need_row_text(index: int) -> String:
+	"""One need row as the player reads it: label, exact percent and per-hour change."""
+	if index < 0 or index >= _need_rows.size():
+		_refuse(REFUSE_UNKNOWN_ELEMENT)
+		return ""
+	_last_refusal = REFUSE_NONE
+	return "%s %s %s" % [_need_names[index].text, _need_values[index].text,
+		_need_rates[index].text]
+
+
+func need_rows_shown() -> int:
+	"""How many of the five need rows are currently filled and visible."""
+	var shown: int = 0
+	for row: Control in _need_rows:
+		if row.visible:
+			shown += 1
+	return shown
+
+
+func need_track_fill(index: int) -> ColorRect:
+	"""One need row's filled track rectangle, whose width IS its 0-10000 value scaled."""
+	return _need_track_fills[index]
+
+
+func detail_health_label() -> Label:
+	"""UI-SET-036's health line."""
+	return _detail_health
+
+
+func detail_identity_label() -> Label:
+	"""UI-SET-036's species, role and status line, under the name heading."""
+	return _detail_identity
+
+
+func detail_activity_label() -> Label:
+	"""UI-SET-036's current-activity line."""
+	return _detail_activity
+
+
+func detail_note_label() -> Label:
+	"""UI-SET-036's supporting line: what the emblem is and what is unavailable."""
+	return _detail_note
+
+
+func detail_scroll() -> ScrollContainer:
+	"""UI-SET-036's scrolling body, which is what keeps five need rows reachable at NARROW."""
+	return _detail_scroll
 
 
 func set_detail_open(open: bool) -> void:
@@ -2107,9 +2559,17 @@ func stroke_size() -> int:
 
 
 func select_zone(zone: Vector2i, enabled: bool) -> void:
-	"""Select a designated zone, carrying the enabled flag its policy toggle will invert."""
+	"""Select a designated zone, carrying the enabled flag its policy toggle will invert.
+
+	This is also the ONLY thing that shows UI-SET-100. UXV-023: "zone harvesting policies never
+	appear on a resident merely because a template exists", and the journal used to carry a
+	`Harvesting enabled` toggle under every resident's needs -- an action that could only ever
+	refuse with UI_SHELL_NOTHING_SELECTED, because a resident is not a zone.
+	"""
 	_selected_zone = zone
 	_selected_zone_enabled = enabled
+	(_controls[ID_WORK_POLICY] as Control).visible = zone != EntityDirectoryScript.NULL_REF
+	_register_hit_regions()
 
 
 func select_job(job: Vector2i) -> void:

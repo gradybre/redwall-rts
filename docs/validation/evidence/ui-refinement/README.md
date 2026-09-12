@@ -132,3 +132,106 @@ card's description, but no assistive technology was run. **Facing a human eye is
 still required.** Counter cells clip at NARROW and STANDARD — `Food 5.` for 5.48,
 `Wood 18` for 180 U — which is a separate UXV-032 defect recorded in ADR 0076 and
 explicitly NOT covered by R-UI-ALERT-001's exception.
+
+
+---
+
+# Resident journal captures — 2026-09-12
+
+Captured from the **native macOS game** on branch `feat/ui-medallions-and-needs`
+(ADR 0086: UXV-020/021, ART-UI-06/09, ART-UI-01/02).
+
+| | |
+|---|---|
+| Suite at capture | `ok: 3200 tests, 109578 assertions, 0 failures.` (after merging `origin/master`) |
+| Launch | `godot --path godot --script capture_ui_scratch.gd --resolution <W>x<H> -- <absolute-out.png> <scale>` |
+| Scene | the project's own `run/main_scene`, `res://scenes/main.tscn` |
+| Harness | `capture_ui_scratch.gd`, a scratch file **deleted before commit**; the command is recorded here because it is the part that matters |
+
+The harness fakes nothing and drives no store. It calls `UIManager.refresh_roster()`
+and emits `pressed` on a real roster row; every figure on screen came from
+`residents.gd`, `needs.gd` and `jobs.gd` through `ui_resident_card.gd`. The world
+and the §5.1 cohort are `main.gd`'s own boot, through
+`SettlementSystem.create_generated_settlement()`.
+
+**UI-SET-103's Create is deliberately NOT pressed in these runs**, because it now
+refuses — see the reported regression below.
+
+The three traps in the sections above are all still true. The harness counts
+frames and quits either way, `save_png` is given an absolute path, and `UIManager`
+is reached through `root.get_node_or_null("UIManager")` at runtime.
+
+| File | Window / scale | Profile | Shows |
+|---|---|---|---|
+| `15_journal_medallion_wide_1920x1080.png` | 1920×1080 / 100% | WIDE | The 64 px mouse medallion, the name heading, `mouse - Resident - Active`, health, five need rows and the foraging skill row, with all five container frames applied. UI-SET-100's zone harvesting policy is absent, per UXV-023 |
+| `16_journal_medallion_standard_1280x720.png` | 1280×720 / 100% | STANDARD | The same card at 48 px with the body scrolling; the scroll bar is visible beside the need rows |
+| `17_journal_medallion_narrow_1280x720_150.png` | 1280×720 / 150% | NARROW | The journal silhouette's 12 px spine and 14 px fore-edge corners at the tightest composition, with the body scrolled to the first need row |
+
+## What these captures close
+
+1. **ART-UI-09 can be judged for the first time.** Defect 3 of the first list —
+   "the starter cohort is on an unpushed branch ... no resident detail exists to
+   capture" — is gone. The card carries a real name, species, status, health,
+   five needs and a real skill row.
+2. **Defect 2 of the first list is fixed.** `godot/ui/frames/` is applied.
+   `_apply_frame_art()` and `_add_frame_piece()` are deleted from `ui_shell.gd`;
+   `ui_frame_builder.gd` places every piece explicitly and the shell refreshes
+   it on relayout, because `Control.resized` never fires off-tree.
+3. **The needs line is no longer `Hunger 7500 of 10000`.** Row 0 reads
+   `Fullness 75% -2.50 pp/h` for a small resident and `-3.00 pp/h` for a medium
+   one, which is GDD §5.2's 250 milli-points/hour under the size multiplier.
+
+## Two regressions found BY these captures, reported and NOT fixed here
+
+Both arrived with `origin/master` and both are outside ADR 0086's three items.
+
+1. **UI-SET-103's Create refuses in the running game.**
+   `UIManager.create_world()` returns false with
+   `WORLD_FOREIGN_LIVE_ROWS / generation refused during preflight`.
+   `ui_world_session.create_with_cohort_into()` follows R-INIT-ID-001's order
+   `preflight -> reset -> seed -> cohort -> publish`, so the preflight runs
+   *before* the reset and sees boot's own twelve residents as live rows the plan
+   does not own. Pressing Create after boot therefore always refuses. The panel
+   additionally states "The settlement is now empty", which is not true on this
+   path: the residents survive. This belongs to R-INIT-ID-001's ordering owner.
+2. **The top-left counters read `--` after boot even though the stores hold
+   values.** `main.gd` registers the HUD, seeds the stores (each deposit emits
+   `stocks_changed`, so Wood and Stone paint correctly), and only THEN generates
+   the world and binds the residents store. Nothing refreshes the counters after
+   that bind, so `Food-days` and `Residents` keep the marker they were correctly
+   given while no residents store existed. `EconomySystem.food_days_text()`
+   returns `5.48` and `has_residents()` returns true at the moment of capture.
+   Earlier evidence hid this because the harness pressed Create, whose
+   `_refresh_hud()` repainted them.
+
+## What is visible in these images and NOT fixed here
+
+1. **Four of the five rates read `Rate unavailable`.** `needs.gd` publishes an
+   effective rate for hunger only; rest, comfort, social and purpose depend on
+   four columns that have a setter and no reader. UXV-020's per-hour change is
+   therefore satisfied for one row of five, and the missing readers are an
+   unfulfilled binding requirement against `scripts/core/needs.gd`.
+2. **The roundel leads the card above the name, not beside it.** §4's 280 px
+   minimum for UI-SET-037 does not fit beside a 48/64 px medallion in any detail
+   column §1.2 defines. ADR 0086 records the arithmetic.
+3. **Age is stated as unavailable.** There is no age or birth column in
+   `residents.gd`.
+4. **Counter cells still clip** — `Wood 18` for 180 U at STANDARD, and
+   `Resident` for Residents. That is ADR 0076's separate UXV-032 defect and is
+   untouched here.
+5. **The command dock drops to four actions at NARROW** while the journal is
+   open, so Residents is not reachable from the dock there. Pre-existing.
+6. **`No world generated` in the minimap.** UI-SET-021 reads the UI session's own
+   published map, and boot publishes through `SettlementSystem` instead. With
+   Create refusing (regression 1), the session never learns about boot's world.
+
+## What these images still do not establish
+
+No visual approval; ART-UI-12 is Brendan's and is recorded separately. **Facing
+a human eye is still required, and specifically for the medallions:** the
+species-reading test, the three-quarter turn toward screen-left and the
+relationship between the roundel's weight and the data beside it are judgements
+no assertion here makes. No screen-reader qualification — the roundel is
+decorative and the panel's description carries "not a portrait of this resident",
+both asserted, neither run through assistive technology. No Windows or
+minimum-hardware claim, and no high-DPI capture.

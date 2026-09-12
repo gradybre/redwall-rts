@@ -34,6 +34,7 @@ const WorldInitScript := preload("res://scripts/core/world_init.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const NeedsScript := preload("res://scripts/core/needs.gd")
+const UiResidentCard := preload("res://scripts/ui/ui_resident_card.gd")
 
 
 ## GameManager's PLAYING state, restated so the paused-start rule does not depend on an import
@@ -83,6 +84,8 @@ var _opening_pause_applied: bool = false
 var _last_refusal: StringName = REFUSE_NONE
 ## Which resident slot each roster row currently IS. REQ-UX-013: identity, not a render index.
 var _roster_slots: PackedInt32Array = PackedInt32Array()
+## UI-SET-036's composer. Built once: its five need rows are reused on every selection.
+var _card: UiResidentCard = UiResidentCard.new()
 
 
 func _ready() -> void:
@@ -253,15 +256,18 @@ func refresh_roster() -> bool:
 
 
 func _roster_label(residents: ResidentsScript, needs: NeedsScript, slot: int) -> String:
-	"""One row's visible text: the facts a store actually publishes for that resident."""
-	var name_text: String = String(residents.name_key_of(slot)) if residents.is_named(slot) \
-		else "Unnamed"
-	var species: IntMath.IntResult = residents.species_of(slot)
-	var health: IntMath.IntResult = needs.health_of(slot)
-	var species_key: StringName = residents.species_key(species.value) if species.ok else &""
-	return "%s  %s  health %d" % [name_text,
-		String(species_key) if species_key != &"" else "unknown species",
-		health.value if health.ok else 0]
+	"""One row's visible text: the facts a store actually publishes for that resident.
+
+	UXV-024's "identity line and secondary status": the name leads, then species and health.
+
+	Health is formatted by `ui_resident_card.gd` and NOT by a second copy of the same rule here.
+	That matters for one reason: the card's version distinguishes a refused read from a real
+	zero, and a duplicate of it in this file would be an unreachable branch nothing could test
+	-- `refresh_roster()` only calls this for a slot it has already found alive.
+	"""
+	return "%s  %s  %s" % [UiResidentCard.heading_text(residents, slot),
+		UiResidentCard.species_text(residents, slot),
+		UiResidentCard.health_text(needs, slot)]
 
 
 func _on_resident_row_picked(row_index: int) -> void:
@@ -281,17 +287,64 @@ func _on_resident_row_picked(row_index: int) -> void:
 
 
 func _show_resident_detail(residents: ResidentsScript, needs: NeedsScript, slot: int) -> void:
-	"""Fill the detail panel with that resident's real identity, need and skill rows."""
+	"""Fill UI-SET-036 in UXV-019's order: identity, health, five needs, activity and skills.
+
+	THE OLD LINE WAS `Hunger 7500 of 10000`, and it broke two requirements at once. UXV-020
+	forbids exposing a basis-point figure as the player-facing value, and UXV-021 fixes the
+	visible label as `Fullness` -- the store's hunger column is SATISFACTION, so a high number
+	is a well-fed resident. `ui_resident_card.gd` does every conversion; nothing is derived here.
+	"""
 	var shell: UiShell = _hud.shell()
-	var hunger: IntMath.IntResult = needs.need_of(slot, NeedsScript.NEED_HUNGER)
-	var rest: IntMath.IntResult = needs.need_of(slot, NeedsScript.NEED_REST)
-	var level: IntMath.IntResult = residents.skill_level_of(slot, FORAGING_SKILL)
-	shell.set_detail_display(_roster_label(residents, needs, slot),
-		"Hunger %d of %d; Rest %d of %d" % [hunger.value, NeedsScript.NEED_MAX,
-			rest.value, NeedsScript.NEED_MAX],
-		"Foraging level %d" % level.value if level.ok else "Foraging level unavailable")
+	shell.set_detail_display(UiResidentCard.heading_text(residents, slot),
+		UiResidentCard.identity_text(residents, needs, slot),
+		UiResidentCard.skill_text(residents, slot, FORAGING_SKILL))
+	shell.set_detail_health(UiResidentCard.health_text(needs, slot))
+	shell.set_detail_activity(UiResidentCard.activity_text(needs,
+		SettlementSystem.jobs(), slot))
+	_fill_need_rows(shell, residents, needs, slot)
+	_fill_species_emblem(shell, residents, slot)
 	shell.select_resident(residents.ref_of(slot), "")
 	shell.set_detail_open(true)
+
+
+func _fill_need_rows(shell: UiShell, residents: ResidentsScript, needs: NeedsScript,
+		slot: int) -> bool:
+	"""UXV-020's five rows: exact percent, 8 px track and per-simulated-hour change each.
+
+	A refusal from the card leaves the rows EMPTY and raises the refusal, rather than printing
+	four rows and one plausible fifth. `needs.gd` publishes an effective rate for hunger only,
+	so the other four rows carry the card's explicit "Rate unavailable" -- see its header.
+	"""
+	if not _card.fill_needs(residents, needs, slot):
+		shell.raise_notice(UiNotices.CATEGORY_ROSTER_STALE,
+			"That resident's needs could not be read (%s)." % _card.last_refusal(),
+			ROSTER_SOURCE, String(_card.last_refusal()),
+			"Open the roster again to rebuild its rows.")
+		return _refuse(REFUSE_NO_SETTLEMENT)
+	for index: int in _card.row_count():
+		var row: UiResidentCard.Row = _card.row(index)
+		shell.set_need_row(index, row.label, row.value_text, row.rate_text, row.basis_points,
+			row.accessible)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _fill_species_emblem(shell: UiShell, residents: ResidentsScript, slot: int) -> void:
+	"""ART-UI-06: the generic species medallion beside the name, and the note saying what it is.
+
+	ART-LOCK-001 delivers four medallions -- mouse, mole, otter, squirrel. A resident of any
+	other species gets NO emblem and the readable species text alone; borrowing the mouse
+	roundel for everyone is the failure the lock names. The note is written either way, because
+	UXV-019 requires the mark to be identified as generic whenever one is shown, and the age
+	statement is true of every resident.
+	"""
+	var species: String = UiResidentCard.species_text(residents, slot)
+	var key: StringName = StringName(species)
+	var path: String = UiResidentCard.emblem_path(key, shell.detail_emblem_pixels())
+	if not path.is_empty():
+		shell.set_detail_emblem(path, UiResidentCard.emblem_description(key))
+	shell.set_detail_note("%s  %s" % [UiResidentCard.EMBLEM_NOTE,
+		UiResidentCard.AGE_UNAVAILABLE])
 
 
 func _on_tile_picked(tile_index: int) -> void:

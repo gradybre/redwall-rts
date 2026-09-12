@@ -67,9 +67,12 @@ const ERROR_PANEL_ID: int = 85
 const GENERATED_RESOURCE_NODES: int = 1695
 const ARCHITECTURE_HOLT: int = 1
 
-## UI-SET-037's detail title and UI-SET-039's need row.
+## UI-SET-036's panel, UI-SET-037's detail title and UI-SET-039's need row.
+const DETAIL_ID: int = 36
 const DETAIL_TITLE_ID: int = 37
 const NEED_ROW_ID: int = 39
+## GDD §4.2 fixes five need columns, and UXV-020 requires five rows for them.
+const NEED_ROW_COUNT: int = 5
 
 var _ui: UIManagerScript = null
 var _hud: HudScript = null
@@ -440,23 +443,121 @@ func test_the_roster_lists_the_living_residents_from_the_store() -> void:
 	assert_true(_ui.refresh_roster(), "the roster fills")
 	var shell: UiShellScript = _hud.shell()
 	assert_equal(shell.roster_shown(), STARTER_COHORT, "all twelve rows are shown")
-	assert_true(shell.roster_row(0).text.contains("health"),
+	## UPDATED: the row now formats health through `ui_resident_card.gd`, the same function the
+	## journal uses, so its wording is "Health 100 / 100" rather than a second lowercase copy
+	## of the same rule. The property asserted is unchanged -- the row carries a real health
+	## figure from the store -- and it is now checked against the store's own value.
+	var health: int = SettlementSystem.needs().health_of(0).value
+	assert_true(shell.roster_row(0).text.contains("Health %d / 100" % health),
 		"a row carries the facts the stores publish: '%s'" % shell.roster_row(0).text)
 	SettlementSystem.reset()
 
 
 func test_choosing_a_roster_row_opens_that_residents_real_detail() -> void:
-	"""REQ-UX-013: the row resolves to a resident identity, not to a render index."""
+	"""REQ-UX-013: the row resolves to a resident identity, not to a render index.
+
+	UPDATED for UXV-019/020/021, and both changes are behaviour this suite previously pinned
+	the WRONG way round. §4.1: "A name is a heading, not a dense concatenation of
+	name/species/health in one line", so the title is no longer the roster row's whole text and
+	the species moved to its own line. And the need row printed `Hunger 7500 of 10000`, which
+	UXV-020 names as the exact failure -- "never expose 7500 as the player-facing 75% value" --
+	while UXV-021 fixes the visible label as `Fullness`. The old assertions REQUIRED both
+	defects, so they are replaced rather than relaxed: the row must now carry the percent and
+	must not carry the basis points.
+	"""
 	_ui.register_hud(_hud)
 	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
 	assert_true(_ui.refresh_roster(), "the roster fills")
 	var shell: UiShellScript = _hud.shell()
 	shell.roster_row(2).emit_signal(&"pressed")
 	var title: Label = shell.control_for(DETAIL_TITLE_ID) as Label
-	assert_equal(title.text, shell.roster_row(2).text, "the detail names that same resident")
-	var needs_row: Label = shell.control_for(NEED_ROW_ID) as Label
-	assert_true(needs_row.text.contains("Hunger"), "its need row is real: '%s'" % needs_row.text)
-	assert_true(needs_row.text.contains("10000"), "against §4.3's 0-10000 scale")
+	assert_true(shell.roster_row(2).text.begins_with(title.text),
+		"the heading is that same resident's name: '%s'" % title.text)
+	assert_true(shell.detail_identity_label().text.contains("mouse"),
+		"the species is its own line: '%s'" % shell.detail_identity_label().text)
+	var fullness: String = shell.need_row_text(0)
+	assert_true(fullness.contains("Fullness"), "UXV-021's visible label: '%s'" % fullness)
+	assert_false(fullness.contains("Hunger"), "and never the raw field name")
+	assert_true(fullness.contains("75%"), "UXV-020's exact percent of 7500 basis points")
+	assert_false(fullness.contains("7500"), "and never the basis points themselves")
+	assert_false(fullness.contains("10000"), "nor the scale they are measured against")
+	SettlementSystem.reset()
+
+
+func test_all_five_need_rows_reach_the_card_for_a_real_resident() -> void:
+	"""UXV-020 requires five rows on screen, not five rows composed and one routed."""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(0).emit_signal(&"pressed")
+	assert_equal(shell.need_rows_shown(), NEED_ROW_COUNT, "all five rows are filled and shown")
+	var labels: PackedStringArray = PackedStringArray()
+	for index: int in NEED_ROW_COUNT:
+		labels.append(shell.need_row_text(index))
+	assert_true(labels[1].contains("Rest"), "row 2 is Rest: '%s'" % labels[1])
+	assert_true(labels[2].contains("Comfort"), "row 3 is Comfort: '%s'" % labels[2])
+	assert_true(labels[3].contains("Social"), "row 4 is Social: '%s'" % labels[3])
+	assert_true(labels[4].contains("Purpose"), "row 5 is Purpose: '%s'" % labels[4])
+	SettlementSystem.reset()
+
+
+func test_the_four_rows_with_no_published_rate_say_so_on_screen() -> void:
+	"""§5: "If rate isn't published, say Rate unavailable" -- and never a fabricated 0.00."""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(0).emit_signal(&"pressed")
+	assert_true(shell.need_row_text(0).contains("pp/h"),
+		"Fullness carries its published rate: '%s'" % shell.need_row_text(0))
+	for index: int in [1, 2, 3, 4]:
+		var text: String = shell.need_row_text(index)
+		assert_true(text.contains("Rate unavailable"), "row %d says so: '%s'" % [index, text])
+		assert_false(text.contains("0.00"), "row %d prints no invented zero" % index)
+	SettlementSystem.reset()
+
+
+func test_a_real_residents_species_medallion_is_loaded_and_identified_as_generic() -> void:
+	"""ART-UI-06/UXV-019: the roundel is loaded from the store's species and named as generic."""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(0).emit_signal(&"pressed")
+	assert_true(shell.detail_emblem().visible, "the medallion is shown")
+	assert_not_null(shell.detail_emblem().texture, "with a real texture behind it")
+	assert_true(shell.control_for(DETAIL_ID).accessibility_description.contains("not a portrait"),
+		"and the panel says it is not a portrait")
+	assert_true(shell.detail_note_label().text.contains("generic mark"),
+		"as does the visible note: '%s'" % shell.detail_note_label().text)
+	SettlementSystem.reset()
+
+
+func test_the_card_states_that_age_is_unavailable_rather_than_inventing_one() -> void:
+	"""UXV-019 asks for age; `residents.gd` has no age or birth column, so the card says so."""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(0).emit_signal(&"pressed")
+	assert_true(shell.detail_note_label().text.contains("Age unavailable"),
+		"the absence is stated: '%s'" % shell.detail_note_label().text)
+	SettlementSystem.reset()
+
+
+func test_health_and_activity_reach_their_own_lines_from_the_stores() -> void:
+	"""UXV-019/022: health is its own row and activity uses the published status."""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(0).emit_signal(&"pressed")
+	assert_equal(shell.detail_health_label().text, "Health 100 / 100",
+		"health is on the GDD's own 0-100 scale")
+	assert_true(shell.detail_activity_label().text.contains("Active"),
+		"and the activity line is the published status: '%s'"
+		% shell.detail_activity_label().text)
 	SettlementSystem.reset()
 
 

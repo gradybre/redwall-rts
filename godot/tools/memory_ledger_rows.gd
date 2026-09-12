@@ -42,7 +42,7 @@ func _aggregate_rows() -> Array[Dictionary]:
 	return [
 		{"name": "Fixed registry payload", "declared": 25028962, "aggregate": true,
 			"owner": UNATTRIBUTED, "columns": []},
-		{"name": "Auxiliary payload", "declared": 17232732, "aggregate": true,
+		{"name": "Auxiliary payload", "declared": 17234780, "aggregate": true,
 			"owner": UNATTRIBUTED, "columns": []},
 	]
 
@@ -153,7 +153,7 @@ func _named_file_rows() -> Array[Dictionary]:
 
 
 func declared_total() -> int:
-	"""Sum of every row's declared bytes; must reproduce §2.3's printed 60821078."""
+	"""Sum of every row's declared bytes; must reproduce §2.3's printed 60823126."""
 	var total: int = 0
 	for row: Dictionary in rows():
 		total += int(row["declared"])

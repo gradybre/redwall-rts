@@ -1,0 +1,25 @@
+{
+  "main_revision": "7c600bd",
+  "ui_worktree_revision": "95ee560",
+  "ui_worktree_branch": "feat/ui-shell",
+  "observed_screenshots": [
+    "02_resident_detail_1920x1080.png (preceding review)",
+    "05_new_settlement_1920x1080.png (this turn)"
+  ],
+  "independent_audit": "Read-only UI source audit: wrong roster surface, gates, meters/formatting, workspace/modal split, unwired focus, fixed-canvas/narrow behavior. No engine tests run by auditor.",
+  "design_new_values": [
+    "Paper tokens and state profiles",
+    "Serif headings",
+    "Paper dark focus ring",
+    "Content-sized detail and command strip",
+    "Workspace/modal variants and availability presentation"
+  ],
+  "unchanged": [
+    "Gameplay formulas",
+    "Authoritative state",
+    "Save format",
+    "Movement gates",
+    "Population limits",
+    "Command ownership"
+  ]
+}

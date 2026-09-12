@@ -1,0 +1,33 @@
+{
+  "date": "2026-09-11",
+  "kind": "AI_GENERATED_ART_DIRECTION_CANDIDATE",
+  "generation_mode": "built-in image_gen tool; no external API or Meshy call",
+  "image": "visuals/05_woodland_art_concept.png",
+  "sha256": "f96489d007103df95147508eec14742ae7ed849e009f3312bbdfb853aea9eda1",
+  "actual_dimensions": [
+    1672,
+    941
+  ],
+  "requested_dimensions": [
+    1920,
+    1080
+  ],
+  "prompt": "woodland_art_prompt.txt",
+  "references": [
+    {
+      "path": "visuals/01_hud_resident_wide.png",
+      "role": "Existing structural reference, flat styling not the finish target"
+    },
+    {
+      "path": "../../../ImageReference/Screenshot 2026-09-06 at 2.19.57\u202fPM.png",
+      "role": "IMG-04 domestic material and anatomy reference; not gameplay authority"
+    }
+  ],
+  "user_visual_approval": "PENDING",
+  "runtime_asset": false,
+  "runtime_UI_validation": "NOT_RUN",
+  "planner_visual_review": "Inspected output; richer material/icon/identity treatment. Deviations documented in visual_art_direction.md.",
+  "production_limit": "Do not use the full HUD composite as a runtime overlay or crop text-bearing panels. DEC-036 authorizes supplied images as direct generation/build references; purpose-made asset sheets may be segmented. Concept measurements, map and omissions remain non-authoritative.",
+  "prompt_history_note": "Original prompt retained verbatim as executed, not current reference-use policy. DEC-036 and ART-LOCK-001 supersede its restrictive reference wording for future work.",
+  "current_asset_lock": "asset_generation_lock.md"
+}

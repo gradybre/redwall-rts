@@ -1,5 +1,11 @@
 # First-playable UI visual direction
 
+**Refined by SET-UX-VIS-002, 2026-09-11:** [the stringent UI amendment](../ui_visual_refinement_amendment.md)
+and [implementation package](../design/ui_refinement/README.md) now own the
+explicit visual target. Their paper surfaces, serif headings, focus/geometry
+variations supersede conflicting guidance below. A flat theme alone no longer
+satisfies visual completion. This earlier brief remains historical direction.
+
 2026-09-11 · Task 04.4 implementation brief. **Design guidance, not implemented
 UI or a visual acceptance result.** Brendan requested a high-quality interface
 that fits the game. Deliver an authored, styled first-playable shell using the

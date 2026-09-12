@@ -43,11 +43,21 @@ explicitly for additive regrowth/other behavior changes.
     the remainder booked as decay loss and a zero yield retiring the lot;
     `stock_age.gd` implements it and
     [decision 0093](../decisions/0093-expired-seed-converts-to-compost-by-floored-nominal-mass.md)
-    records the judgements. **Two parts of that ruling are NOT done and are not
-    this module's to do:** the seed-consumer eligibility guard exists as
-    `StockAge.refuses_seed_consumption()` but **nothing calls it** — enforcement
-    is `inventory.gd`'s under the ruling's own ownership split — and the blocking
-    critical-pause plus exactly-once retry belong to `settlement_system.gd`.
+    records the judgements.
+  - **The seed-consumer eligibility guard is enforced** (2026-09-12).
+    `inventory.gd` now calls `StockAge.refuses_seed_consumption()` on all seven
+    admission paths — new reservation, unreserved withdrawal, the commit of an
+    existing claim, transfer, whole-lot move, split and in-place transform —
+    re-asking on every call, so a claim taken while a seed was fresh is refused at
+    commit once the lot has aged out. The declared expiry keeps its own
+    transform/sink through a single-use cleanup declaration made by
+    `release_all_reservations()` inside one explicit transaction;
+    [decision 0102](../decisions/0102-inventory-enforces-the-seed-guard-and-declares-its-own-cleanup.md)
+    records why that is the shape. **STILL OPEN, and named there:** nothing in the
+    running settlement calls `inventory.set_seed_expiry_authority(stock_age)`, so
+    enforcement is live in the test suite and nowhere else — that one wiring line
+    belongs to `settlement_system.gd`. The blocking critical-pause plus
+    exactly-once retry also belong to `settlement_system.gd` and are not built.
     Continuation through the real hourly caller, save/reload and the starter
     economy remains open exactly as decision 0085 left it.
   - **The critical pause and the exactly-once revalidated retry are implemented

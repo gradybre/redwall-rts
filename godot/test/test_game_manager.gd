@@ -17,6 +17,7 @@ extends "res://test/framework/test_case.gd"
 
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
+const SchedulerEventsScript := preload("res://scripts/core/scheduler_events.gd")
 
 ## 40000 us is 1/25 of a real second. 25 such frames are exactly one real second, and at every
 ## selectable speed a frame stays under the clock's 8-tick drain cap, so no frame is clipped.
@@ -24,6 +25,13 @@ const FRAME_USEC: int = 40000
 const FRAMES_PER_REAL_SECOND: int = 25
 ## 100000 us at 2x is exactly 6 ticks with no remainder: the cheapest way to reach a boundary.
 const SIX_TICK_FRAME_USEC: int = 100000
+## 300000 us at 1x is 9 whole ticks owed against the clock's 8-tick drain cap, so one such frame
+## is guaranteed to consider a ninth tick and cannot end merely because it ran out of debt.
+const NINE_TICK_FRAME_USEC: int = 300000
+## One real second at 1x is 30 ticks owed against the same cap: 8 run, 22 stay owed, and
+## 4 * 22000000 > 30000000 is strictly more than the quarter-second REQ-SET-008 backlog.
+const OVERLOAD_FRAME_USEC: int = 1000000
+const OVERLOAD_TICKS_LEFT_OWED: int = 22
 
 var _game: GameManagerScript = null
 var _states: Array[int] = []
@@ -35,6 +43,12 @@ var _sim_ticks: Array[int] = []
 var _sim_days: Array[int] = []
 var _sim_seasons: Array[int] = []
 var _order: Array[String] = []
+## Reused by the scheduler-queue tests so no test path allocates a result per submission.
+var _submit: SchedulerEventsScript.SubmitResult = SchedulerEventsScript.SubmitResult.new()
+## Tick index at which `_on_sim_tick_that_holds_critical` submits its hold; 0 disables it.
+var _hold_on_tick: int = 0
+## Tick index at which `_on_sim_tick_that_pauses` calls `pause_game()`; 0 disables it.
+var _pause_on_tick: int = 0
 
 
 func before_each() -> void:
@@ -48,6 +62,8 @@ func before_each() -> void:
 	_sim_days = []
 	_sim_seasons = []
 	_order = []
+	_hold_on_tick = 0
+	_pause_on_tick = 0
 	_game.state_changed.connect(_on_state_changed)
 	_game.speed_changed.connect(_on_speed_changed)
 	_game.day_advanced.connect(_on_day_advanced)
@@ -315,6 +331,217 @@ func test_the_day_boundary_runs_the_simulation_before_the_ui_signal() -> void:
 	assert_equal(_sim_days, [2] as Array[int], "the simulation saw absolute day 2")
 	assert_equal(_sim_seasons, [0] as Array[int], "and the new day's season, spring")
 	assert_equal(_order, ["simulation", "signal"] as Array[String], "simulation first, UI second")
+
+
+# --- R07-SCHED-001: the scheduler-event queue in the running game (decision 0084) ---------------
+
+func test_the_queue_is_bound_to_the_clock_the_manager_reports() -> void:
+	"""The queue applies drained events to the clock this node hands out, never a second one."""
+	_game.start_game()
+	assert_not_null(_game.scheduler_events(), "the manager owns a scheduler-event queue")
+	assert_true(_game.scheduler_events().clock() == _game.clock(), "one clock, not two")
+
+
+func test_restarting_clears_the_queue_before_rebinding_it_to_the_new_clock() -> void:
+	"""Decision 0054 open item 2: `clear()` must precede `rebind_clock()`, which refuses otherwise.
+
+	A raw submission leaves the queue holding a record stamped against the OLD clock's numbering.
+	`rebind_clock()` refuses a non-empty queue by design, so a restart that rebound first would be
+	refused and would leave the queue pointing at a dead clock.
+	"""
+	_game.start_game()
+	assert_true(_game.scheduler_events().submit_speed_into(SimClockScript.SPEED_DOUBLE, _submit),
+		"the raw submission is admitted")
+	assert_equal(_game.scheduler_events().pending_count(), 1, "the queue holds it undrained")
+	assert_true(_game.start_game(), "the restart is not refused by that pending record")
+	assert_equal(_game.scheduler_events().pending_count(), 0, "the restart cleared the queue")
+	assert_true(_game.scheduler_events().clock() == _game.clock(), "and rebound to the new clock")
+	assert_equal(_game.get_speed(), SimClockScript.SPEED_NORMAL, "the stale event reached nothing")
+
+
+func test_a_restart_resets_the_queue_sequence_and_spends_one_on_the_opening_resume() -> void:
+	"""Each restart begins at sequence 1 and consumes it releasing the fresh clock's PLAYER pause."""
+	_game.start_game()
+	_run_frames(FRAMES_PER_REAL_SECOND, FRAME_USEC)
+	_game.pause_game()
+	_game.start_game()
+	assert_equal(_game.scheduler_events().next_sequence_low(), 2, "sequence 1 was spent, next is 2")
+	assert_equal(_game.scheduler_events().next_sequence_high(), 0, "the high word is still zero")
+	assert_equal(_game.scheduler_events().last_applied_sequence_low(), 1, "and it was applied")
+	assert_false(_game.is_paused(), "the opening resume released the new clock's PLAYER pause")
+
+
+func test_every_speed_and_pause_control_consumes_exactly_one_sequence() -> void:
+	"""Four controls, four admissions, four applications, and an empty queue between frames."""
+	_game.start_game()
+	_game.pause_game()
+	_game.resume_game()
+	_game.set_speed(SimClockScript.SPEED_QUADRUPLE)
+	var events: SchedulerEventsScript = _game.scheduler_events()
+	assert_equal(events.admitted_count(), 4, "the opening resume, pause, resume and speed change")
+	assert_equal(events.applied_count(), 4, "every one of them was drained and applied")
+	assert_equal(events.next_sequence_low(), 5, "four sequences were spent from 1")
+	assert_equal(events.pending_count(), 0, "nothing is left queued between frames")
+	assert_equal(_game.get_speed(), SimClockScript.SPEED_QUADRUPLE, "the speed event landed")
+
+
+func test_a_refused_speed_leaves_the_queue_byte_identical_and_names_its_code() -> void:
+	"""Allocate before consume: 3x is refused by the queue, spends no sequence and pauses nothing."""
+	_game.start_game()
+	var events: SchedulerEventsScript = _game.scheduler_events()
+	var admitted_before: int = events.admitted_count()
+	var sequence_before: int = events.next_sequence_low()
+	assert_false(_game.set_speed(3), "3x is refused")
+	assert_equal(_game.last_refusal(), &"SCHEDULER_SPEED_NOT_SELECTABLE", "by the queue's own code")
+	assert_equal(events.admitted_count(), admitted_before, "no record was written")
+	assert_equal(events.next_sequence_low(), sequence_before, "and no sequence was consumed")
+	assert_equal(events.pending_count(), 0, "the queue is still empty")
+
+
+func test_speed_zero_is_refused_by_the_queue_rather_than_pausing_through_it() -> void:
+	"""SPEED_PAUSED is not a selectable speed, so it cannot reach the clock as a speed event."""
+	_game.start_game()
+	assert_false(_game.set_speed(SimClockScript.SPEED_PAUSED), "speed 0 is refused")
+	assert_equal(_game.last_refusal(), &"SCHEDULER_SPEED_NOT_SELECTABLE", "the queue named it")
+	assert_false(_game.is_paused(), "and nothing paused")
+
+
+func test_controls_refuse_before_start_game_by_name() -> void:
+	"""Pause controls are inert during BOOT and say so instead of queueing against a dead clock."""
+	assert_false(_game.pause_game(), "pause refuses during boot")
+	assert_equal(_game.last_refusal(), &"GAME_NOT_STARTED", "the refusal is named")
+	assert_false(_game.resume_game(), "resume refuses during boot")
+	assert_false(_game.toggle_pause(), "toggle refuses during boot")
+	assert_equal(_game.scheduler_events().pending_count(), 0, "nothing was queued")
+
+
+func test_a_player_resume_through_the_queue_clears_player_only() -> void:
+	"""The queue's ordinary-Resume path cannot express clearing MENU, so a menu pause survives."""
+	_game.start_game()
+	_game.pause_game()
+	assert_true(_game.scheduler_events().submit_pause_into(SchedulerEventsScript.PRODUCER_MENU,
+		SimClockScript.MENU, SchedulerEventsScript.VALUE_HOLD, _submit), "a menu hold is admitted")
+	_game.advance_host_time(FRAME_USEC)
+	_game.resume_game()
+	assert_true(_game.is_paused(), "the game is still paused")
+	assert_equal(_game.get_pause_reason_names(), ["MENU"] as Array[String], "MENU alone still holds")
+
+
+func test_an_event_submitted_inside_a_tick_is_applied_by_the_barrier_before_the_next_tick() -> void:
+	"""ARCH-CMD-002's barrier: a hold produced during tick 2 stops tick 3 of the SAME frame.
+
+	This is what `advance_frame()` buys and a bare `advance()` cannot: the record is stamped
+	boundary 2 while `completed_tick()` still reads 1, so no drain between frames can apply it,
+	and only the per-tick `before_tick` pump reaches it before the frame considers tick 3.
+	"""
+	_hold_on_tick = 2
+	_game.bind_simulation(_on_sim_tick_that_holds_critical, _on_sim_day_boundary)
+	_game.start_game()
+	var ran: int = _game.advance_host_time(NINE_TICK_FRAME_USEC)
+	assert_equal(ran, 2, "the frame stopped at tick 2 instead of draining its eight-tick cap")
+	assert_equal(_sim_ticks, [1, 2] as Array[int], "and the simulation saw exactly those two")
+	assert_true(_game.is_paused(), "the hold produced inside tick 2 took effect")
+	assert_equal(_game.get_pause_reason_names(), ["CRITICAL"] as Array[String], "as CRITICAL")
+	assert_equal(_game.clock().owed_ticks(), 7, "the seven undrained ticks stay owed, not skipped")
+
+
+func test_pausing_from_inside_a_tick_stops_the_frame_without_pausing_midway_through_it() -> void:
+	"""The production control path re-entered from a simulation step: tick 2 still completes."""
+	_pause_on_tick = 2
+	_game.bind_simulation(_on_sim_tick_that_pauses, _on_sim_day_boundary)
+	_game.start_game()
+	var ran: int = _game.advance_host_time(NINE_TICK_FRAME_USEC)
+	assert_equal(ran, 2, "tick 2 committed and tick 3 never started")
+	assert_equal(_game.get_completed_tick(), 2, "the committed count agrees")
+	assert_equal(_game.get_state(), GameManagerScript.GameState.PAUSED, "the state followed")
+
+
+func test_the_overload_rung_is_queued_and_not_applied_inside_the_overloaded_frame() -> void:
+	"""Decision 0054's behaviour change, now reached in play: the ladder crosses the barrier.
+
+	At 1x the rung is the CRITICAL diagnostic hold. It is admitted during the overloaded frame and
+	is NOT applied inside it; the next frame's opening pump applies it before any tick of that
+	frame, so no tick ever runs at the superseded rung either way.
+	"""
+	_game.start_game()
+	var ran: int = _game.advance_host_time(OVERLOAD_FRAME_USEC)
+	assert_equal(ran, SimClockScript.MAX_TICKS_PER_FRAME, "the frame drained its eight-tick cap")
+	assert_equal(_game.scheduler_events().pending_count(), 1, "the rung is queued, not applied")
+	assert_false(_game.is_paused(), "so the overloaded frame itself did not pause the clock")
+	assert_equal(_game.clock().diagnostic_pause_count(), 1, "the clock still counted the rung")
+	assert_equal(_diagnostics.size(), 1, "and still published it once")
+
+
+func test_the_queued_overload_rung_lands_before_the_next_frame_runs_a_tick() -> void:
+	"""The opening pump is what a fully paused frame still performs; here it is what pauses it."""
+	_game.start_game()
+	_game.advance_host_time(OVERLOAD_FRAME_USEC)
+	var ran: int = _game.advance_host_time(FRAME_USEC)
+	assert_equal(ran, 0, "no tick of the next frame ran")
+	assert_equal(_game.scheduler_events().pending_count(), 0, "the opening pump drained the rung")
+	assert_equal(_game.get_state(), GameManagerScript.GameState.PAUSED, "CRITICAL now holds")
+	assert_equal(_game.clock().owed_ticks(), OVERLOAD_TICKS_LEFT_OWED,
+		"and every owed tick is retained: the ladder slows and stops, it never skips")
+
+
+func test_only_one_overload_rung_is_produced_per_host_frame() -> void:
+	"""The contract's at-most-one downgrade per frame; `begin_host_frame()` restores the budget."""
+	_game.start_game()
+	_game.set_speed(SimClockScript.SPEED_QUADRUPLE)
+	_game.advance_host_time(OVERLOAD_FRAME_USEC)
+	assert_equal(_game.scheduler_events().pending_count(), 1, "one rung was queued, not several")
+	assert_equal(_game.clock().fallback_count(), 1, "and the clock recorded exactly one step")
+
+
+func test_acknowledging_overload_drains_the_pending_rung_before_clearing_it() -> void:
+	"""Otherwise the rung the player just acknowledged would re-pause them one pump later."""
+	_game.start_game()
+	_game.advance_host_time(OVERLOAD_FRAME_USEC)
+	var dropped: int = _game.acknowledge_overload()
+	assert_equal(dropped, OVERLOAD_TICKS_LEFT_OWED, "the owed ticks were dropped explicitly")
+	assert_equal(_game.scheduler_events().pending_count(), 0, "no rung is left queued")
+	assert_false(_game.is_paused(), "the player is out of the diagnostic pause")
+	_game.advance_host_time(FRAME_USEC)
+	assert_false(_game.is_paused(), "and the next frame does not put them back into it")
+
+
+func test_acknowledging_overload_is_still_the_only_counted_path_that_drops_owed_ticks() -> void:
+	"""Blocker U3's conservative rule survives the wiring: nothing else discards a whole tick."""
+	_game.start_game()
+	_game.advance_host_time(OVERLOAD_FRAME_USEC)
+	_game.advance_host_time(FRAME_USEC)
+	assert_equal(_game.clock().acknowledged_catchup_resets(), 0, "no implicit acknowledgement")
+	_game.acknowledge_overload()
+	assert_equal(_game.clock().acknowledged_catchup_resets(), 1, "the explicit one is counted")
+	assert_equal(_game.clock().acknowledged_ticks_discarded(), OVERLOAD_TICKS_LEFT_OWED,
+		"with the exact number of ticks it dropped")
+
+
+func test_a_paused_frame_still_pumps_so_a_queued_resume_never_waits_on_a_tick() -> void:
+	"""Point 5/6 of decision 0054: the drain at a repeated boundary is how an unpause arrives."""
+	_game.start_game()
+	_game.pause_game()
+	var pumps_before: int = _game.scheduler_events().pump_count()
+	_run_frames(3, FRAME_USEC)
+	assert_true(_game.scheduler_events().pump_count() > pumps_before,
+		"paused host frames still drained the queue")
+	assert_equal(_game.get_completed_tick(), 0, "while running no simulation tick at all")
+
+
+func _on_sim_tick_that_holds_critical(tick_index: int) -> void:
+	"""Stand-in simulation that submits an internal safety hold from inside `_hold_on_tick`."""
+	_sim_ticks.append(tick_index)
+	if tick_index != _hold_on_tick:
+		return
+	_game.scheduler_events().submit_safety_hold_into(SimClockScript.CRITICAL, _submit)
+
+
+func _on_sim_tick_that_pauses(tick_index: int) -> void:
+	"""Stand-in simulation that calls the production pause control from inside `_pause_on_tick`."""
+	_sim_ticks.append(tick_index)
+	if tick_index != _pause_on_tick:
+		return
+	_game.pause_game()
 
 
 func _on_sim_tick(tick_index: int) -> void:

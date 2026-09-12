@@ -91,6 +91,19 @@ neither supplied it behaves exactly as before. Every acceptance clause above is 
 named test in `test/test_scheduler_events.gd`, together with the contract's own
 list. **`acknowledge_without_catchup()` is byte-unchanged and so are its tests.**
 
+**Wired into the running game 2026-09-11** by
+[decision 0084](../decisions/0084-the-running-game-drives-the-scheduler-event-queue.md).
+`scripts/systems/game_manager.gd` folds each host frame through
+`scheduler_events.advance_frame()` — supplying both the `before_tick` barrier and
+the `on_overload` hook — and every player speed and pause control submits a queue
+event. So the acceptance clauses above about a pause taking effect before another
+tick starts, and about 4→2→1→diagnostic retaining debt, are now exercised through
+the production driver and not only through a fixture. `scheduler_events.gd` is
+byte-unchanged by that work and `sim_clock.gd` changed in comments only.
+**This does not touch the blocked item below**: there is still no save module, so
+save/reload of a paused queue stays blocked and is still reported blocked.
+
+
 **Still outstanding within 04.1: SAVE/RELOAD OF A PAUSED QUEUE IS BLOCKED**, and
 is reported blocked rather than passing. The `SCHQ0001` subsection is implemented
 as encode, decode and validation and is unwired, because no save module exists;

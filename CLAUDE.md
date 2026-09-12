@@ -248,3 +248,11 @@ For features that need frontier-level reasoning (complex combat systems,
 deep economic modeling), prompt templates in `chatgpt-prompts/` can be
 pasted into ChatGPT Pro (GPT-6 Astra). Save outputs to `docs/`.
 This is optional — Claude Code handles planning for most features.
+
+## Supplied-reference authorization
+
+Brendan authorizes direct use of supplied images/material, including IMG-25,
+for image-to-image and reference-guided builds (DEC-036 in `docs/setting_decisions.md`).
+Do not reduce supplied references to observe-and-describe-only because creator
+metadata is unknown. Record provenance; source mechanics and paid generation
+authorization remain separate. UI art follows `docs/design/ui_refinement/asset_generation_lock.md`.

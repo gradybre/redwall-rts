@@ -160,3 +160,11 @@ assets/source/          Raw Meshy output, unprocessed originals
 godot/assets/units/     Normalised, Godot-ready creature GLBs
 godot/assets/buildings/ Normalised structure GLBs
 ```
+
+## Supplied-reference authorization
+
+Brendan authorizes direct use of supplied images/material, including IMG-25,
+for image-to-image and reference-guided builds (DEC-036 in `docs/setting_decisions.md`).
+Do not reduce supplied references to observe-and-describe-only because creator
+metadata is unknown. Record provenance; source mechanics and paid generation
+authorization remain separate. UI art follows `docs/design/ui_refinement/asset_generation_lock.md`.

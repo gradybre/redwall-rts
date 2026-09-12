@@ -873,6 +873,71 @@ The [systematic content library](redwall-content-library/README.md), CONTENT-LIB
 
 Brendan requested a systematic book-by-book library for all previously named content areas and explicitly allowed AI guesses for missing recipe ingredients, then authorized parallel work. The package preserves canon lists separately from inferred ingredients and methods, exposes source-only discourse versus production candidates, and keeps all numerical recipe values inactive. This is authorization for research and labeled content completion, not a new gameplay policy or an answer to outstanding interview questions. [Decision 0014](decisions/0014-systematic-content-library-keeps-source-and-game-separate.md) records the handoff.
 
+### DEC-036 — Supplied visual references may guide direct builds
+
+2026-09-11 · State: `USER_CONFIRMED` for reference use.
+
+Brendan explicitly corrected the claim that IMG-25 was limited to observation:
+“We are allowed to use those images I gave you to guide direct builds in our world.”
+His supplied images and material may be used directly as reference inputs for
+image-to-image, image-to-3D, drawing/tracing/adaptation and modeling/texturing for
+this project. This includes IMG-25 and other `ImageReference/` files, not merely
+written observations of them. Record input files/regions and transformations;
+keep unknown creator/edition/license fields unknown without making them an
+invented observe-only restriction. This records project authorization, not a new
+claim of copyright ownership, a CC license or verified source attribution.
+
+The authorization applies to supplied material; it is not an instruction to copy
+every external RTS screenshot collected as research. Source gameplay claims do
+not supersede the GDD. Do not put slide UI/text or a full HUD screenshot into the
+runtime as finished assets. Purpose-made asset sheets may be cut into clean
+individual assets. Paid generation remains a separate itemized approval under
+[the paid-asset process](design/paid_asset_process.md); no quoted spend is approved
+by this reference clarification. [ART-LOCK-001](design/ui_refinement/asset_generation_lock.md)
+records Astra-authored production details; final aesthetic approval remains pending.
+
+### DEC-037 — Whole-game reference synthesis and modern RTS presentation
+
+2026-09-11 · State: `USER_CONFIRMED` for goals and reference roles.
+
+Brendan clarifies that Redwall material provides theme, feel, style and atmosphere;
+supplied pictures provide complementary concept and construction references.
+IMG-25 supplies animal outlines to combine with the other individual character
+images, not an exclusive model template. All of this should become high-quality,
+modern RTS visuals informed by Company of Heroes 1–3, Age of Empires, Northgard,
+Total War and other suitable comparisons. Apply the approach to every visual
+need, including environments, items and units. Older games are useful references
+without their dated graphics being a target.
+
+This extends the application of DEC-018/019/036; it does not settle a new renderer,
+world shader, species-size ratio or asset budget. UI illustration parameters do
+not automatically govern 3D world rendering. Refinement questions about finish,
+camera emphasis and world/UI treatment were initially unanswered; DEC-038 below
+subsequently approves the concrete world-finish example. See
+[whole-game visual alignment](art-reference/visual_direction_alignment.md) for
+executor instructions, reference synthesis and the proposed next review artifact.
+
+### DEC-038 — Approved grounded, expressive 3D visual target
+
+2026-09-11 · State: `USER_CONFIRMED` for visual direction.
+
+Brendan answered “Yes - this is what I'm looking for” after viewing
+[the mouse keeper / mole worker courtyard example](art-reference/visuals/grounded_expressive_rts_example_v1.png).
+That image is the approved concrete visual reference for the DEC-018/037 blend:
+expressive species-specific anatomy, composed woodland color, convincing cloth,
+leather, iron, timber and stone, and an inhabited world that reads from an RTS
+camera. Use its close view for character/material intent and its elevated view
+for scene composition and the intended relationship between units and environment.
+
+The world-finish question recorded in DEC-037 is now answered by this example.
+Future briefs must open this image alongside relevant supplied source images and
+literary context. Preserve its visual character when simplifying detail for runtime.
+The image is a generated concept, not a production mesh, measured Godot render,
+new species-size specification or approval of incidental gameplay content.
+No new paid-generation budget is authorized. Existing UI illustration treatment
+remains separately scoped; this image contains no UI and does not approve unseen
+UI assets. See [visual alignment](art-reference/visual_direction_alignment.md).
+
 ## 9. Progress ledger
 
 | Date | Work completed | Still open |

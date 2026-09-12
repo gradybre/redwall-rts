@@ -965,7 +965,7 @@ func test_a_plot_that_stopped_being_empty_refuses_with_its_own_code() -> void:
 
 
 func test_a_failed_gate_consumes_nothing() -> void:
-	"""R06-JOB-004: a failed gate does not consume seed. Decision 0024's allocate-before-consume."""
+	"""R06-JOB-004: a failed gate does not consume seed. Decision 0059's allocate-before-consume."""
 	var plot: int = _confirmed_plot(201, SAND, GRAIN)
 	var cycle_before: int = _planner.allocated_field_cycle_of(plot).value
 	for _repeat: int in 20:
@@ -2169,7 +2169,7 @@ func test_released_capacity_retries_the_retained_forage_demand() -> void:
 	assert_equal(_planner.pending_forage_demand_count(), 1, "exactly one harvest is pending")
 
 
-# --- decision 0024: a refusal consumes nothing -------------------------------------------------
+# --- decision 0059: a refusal consumes nothing -------------------------------------------------
 
 func _quota_and_stock_fingerprint(basin: Vector2i, designation: Vector2i) -> PackedInt64Array:
 	"""Every quantity a refused reconciliation must leave byte-identical, in one comparable row."""
@@ -2187,7 +2187,7 @@ func _quota_and_stock_fingerprint(basin: Vector2i, designation: Vector2i) -> Pac
 
 
 func test_a_refused_gate_leaves_quota_and_stock_byte_identical() -> void:
-	"""Decision 0024's allocate-before-consume: a failed gate consumes nothing."""
+	"""Decision 0059's allocate-before-consume: a failed gate consumes nothing."""
 	var basin: Vector2i = _forage_basin()
 	var designation: Vector2i = _forage_designation(basin)
 	assert_true(_planner.enable_forage_demand(designation).ok, "the demand enables")

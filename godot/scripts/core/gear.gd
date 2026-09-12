@@ -46,7 +46,7 @@ extends RefCounted
 ## kept anyway, because the invariant is "a row is never half-written and never half-blanked",
 ## not "whichever of the two happens to run last is correct".
 ##
-## ALLOCATE BEFORE CONSUME (the hazard decision 0024 named). `preflight_create()` answers
+## ALLOCATE BEFORE CONSUME (decision 0059's repository-wide rule). `preflight_create()` answers
 ## "could this gear object exist?" -- pool capacity, item eligibility and manufacture validity --
 ## WITHOUT touching anything, so a manufacture transaction asks before it consumes wood and iron
 ## or creates a loose output lot. `create_gear()` re-checks everything itself, because state can
@@ -630,8 +630,8 @@ func preflight_create(definitions: ItemDefinitions, compiled_item_id: int,
 	"""Answer "could this gear object exist?" without touching a single byte of state.
 
 	A manufacture transaction calls this BEFORE it consumes materials or creates a loose output
-	lot, so a full pool refuses while nothing has been spent -- the allocate-before-consume
-	hazard decision 0024 named. `.value` is the free-row count at the moment of the check.
+	lot, so a full pool refuses while nothing has been spent -- decision 0059's
+	allocate-before-consume rule. `.value` is the free-row count at the moment of the check.
 	"""
 	if definitions == null:
 		return _refuse(REFUSE_NO_DEFINITIONS)

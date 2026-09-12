@@ -279,15 +279,28 @@ func test_the_manifest_records_the_camera_contract_and_its_captures() -> void:
 			String(capture["sha256"]), "%s matches its recorded digest" % capture["view"])
 
 
-func test_the_manifest_states_that_nothing_here_is_approved_or_generated() -> void:
-	"""The scene is a review input. A manifest that read as approval would be the whole risk."""
+func test_the_manifest_records_the_proportion_approval_and_still_denies_generation() -> void:
+	"""The two claims are independent, and separating them is the whole point of this test.
+
+	THIS TEST WAS CHANGED. It asserted that the manifest denied approval outright, which was
+	correct while the scene was only a review input: a manifest reading as approval would have
+	been the entire risk. DEC-039 approved the proportions on 2026-09-12, so that assertion now
+	pins the defect.
+
+	What has NOT changed is the paid-generation denial. Approving anatomical scale is not
+	authorization to spend credits -- the asset generation lock governs that on its own axis --
+	so the origin must still say no credit was spent, and this test would fail if an approval
+	ever quietly carried a generation claim with it.
+	"""
 	var document: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string(MANIFEST_PATH)) as Dictionary
-	assert_true(String(document["status"]).contains("NOT_PRODUCTION_APPROVAL"),
-		"the status denies approval")
+	assert_true(String(document["status"]).contains("APPROVED"),
+		"the status records the approval")
+	assert_false(String(document["status"]).contains("NOT_PRODUCTION_APPROVAL"),
+		"and no longer denies it")
 	assert_true(String(document["origin"]).contains("no credit was spent")
 		or String(document["origin"]).contains("no credit was spent."),
-		"the origin denies paid generation")
+		"the origin still denies paid generation, which DEC-039 did not grant")
 	assert_true(document["references"] is Array and (document["references"] as Array).size() > 0,
 		"provenance for the supplied references is recorded")
 

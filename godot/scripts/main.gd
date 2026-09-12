@@ -51,8 +51,8 @@ func _ready() -> void:
 	if _hud == null:
 		push_error("main.tscn has no HUD at UI/HUD; the interface will not update.")
 	UIManager.register_hud(_hud)
-	_spawn_initial_cohort()
 	_seed_stores()
+	_generate_initial_world()
 	GameManager.start_game()
 	UIManager.push_alert("Mossflower stirs.")
 	print("[Main] boot complete: %s  food-days %s  ready %d NP  fuel-days %s" % [
@@ -63,18 +63,30 @@ func _ready() -> void:
 	])
 
 
-func _spawn_initial_cohort() -> void:
-	"""Ask SettlementSystem for the GDD §5.1 cohort and bind it as the food-days divisor.
+func _generate_initial_world() -> void:
+	"""Run REQ-SET-009 whole: generate §5.1's world WITH its cohort, then bind the food divisor.
 
-	The population belongs to SettlementSystem, which ticks it; this scene only points
-	EconomySystem at it. Without a living cohort the food-days denominator is undefined, so
-	EconomySystem refuses the figure rather than displaying an unbounded reserve.
+	ONE CALL, NOT TWO. Booting used to spawn the cohort alone, so the running game had twelve
+	residents and no world -- no trees, no basins, no estuary, and an unseeded RNG. §5.1 states a
+	single initialization contract and `SettlementSystem.create_generated_settlement()` is the
+	single operation that satisfies it; a partial one is refused whole and leaves an empty
+	settlement rather than a world with nobody in it or a cohort with nowhere to stand.
 
-	A refused spawn unbinds explicitly. Leaving an earlier run's cohort bound after a scene
-	reload would divide this run's stores by the previous run's population, which is a wrong
-	number on screen rather than an absent one.
+	THE SEED IS §5.1's OWN, NOT ONE CHOSEN HERE. §5.1 authors exactly one: "A fixed-seed tutorial
+	uses seed 20260905", which is `WorldInit.TUTORIAL_WORLD_SEED` and the default below. A player
+	seed would come from the New Settlement form, which UI §4 specifies and which does not exist;
+	no substitute default is invented for it.
+
+	The item catalog comes from EconomySystem, which has already loaded and validated it in
+	`reset()` above. The generator binds its seventeen resource ids by key against that same
+	registry, so the world's trees, forage and fish are the compiled catalog's items and not a
+	second opinion about them.
+
+	A refused generation unbinds the food-days divisor explicitly. Leaving an earlier run's cohort
+	bound after a scene reload would divide this run's stores by the previous run's population,
+	which is a wrong number on screen rather than an absent one.
 	"""
-	if not SettlementSystem.create_initial_settlement():
+	if not SettlementSystem.create_generated_settlement(EconomySystem.definitions()):
 		EconomySystem.bind_residents(null)
 		push_error("Initial settlement could not be created: %s" % SettlementSystem.last_refusal())
 		return

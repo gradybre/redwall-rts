@@ -1861,3 +1861,40 @@ func _tile_payload(tiles: PackedInt32Array) -> PackedByteArray:
 	for index: int in tiles.size():
 		bytes.encode_s32(4 + index * 4, tiles[index])
 	return bytes
+
+
+# --- the composition surface a settlement bootstrap needs (decision 0064) -----------------------
+
+func test_the_generator_publishes_the_directory_it_was_composed_over() -> void:
+	"""A composing system proves it shares one allocator instead of waiting for a refusal."""
+	assert_true(_world.directory() == _directory, "the generator hands back its own directory")
+	assert_true(_world.directory() == _residents.directory(),
+		"which is the same directory every settlement store validates against")
+
+
+func test_clear_discards_the_published_map_without_touching_the_stores() -> void:
+	"""`clear()` is the map half of a settlement reset; emptying the stores is the caller's."""
+	assert_true(_generate().ok, "a world is published")
+	assert_true(_world.is_published(), "and reports so")
+	var nodes_before: int = _nodes.count()
+	_world.clear()
+	assert_false(_world.is_published(), "clear() discards the published map")
+	assert_equal(_nodes.count(), nodes_before,
+		"and deliberately does NOT clear the stores, which the caller owns")
+	assert_false(_world.published_seed().ok, "the accepted seed is gone with the map")
+	assert_false(_world.terrain_at(WorldInit.tile_index_of(64, 64)).ok,
+		"and every tile reader refuses again, exactly as before the first generation")
+
+
+func test_a_cleared_generator_generates_the_same_world_again() -> void:
+	"""Clearing must leave the generator usable, not merely quiet."""
+	assert_true(_generate().ok, "the first world publishes")
+	var first_seed: int = _world.published_seed().value
+	_world.clear()
+	_nodes.clear()
+	_forage.clear()
+	_fishing.clear()
+	_directory.clear()
+	assert_true(_generate().ok, "and the same generator publishes a second world")
+	assert_equal(_world.published_seed().value, first_seed, "on the same accepted seed")
+	assert_equal(_nodes.count(), 1695, "with the same node census")

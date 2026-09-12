@@ -34,6 +34,7 @@ const COMMAND_KIND_UPGRADE: int = 23
 ## GDD §4.3's Activity numbering, transcribed.
 const ACTIVITY_SLEEP: int = 2
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
+const ResidentsScript := preload("res://scripts/core/residents.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
 const WorldItemsScript := preload("res://scripts/core/item_definitions.gd")
 const WorldInventoryScript := preload("res://scripts/core/inventory.gd")
@@ -86,6 +87,36 @@ const MAX_POTENTIAL_MWU: int = 144
 const XP_PER_WU: int = 10
 const MILLI_WU_PER_WU: int = 1000
 
+## GDD §5.1's world content, restated from `test_world_init.gd`'s own derived census: 1695
+## ResourceNode rows, 7 HarvestZone basins and 3 FishHabitat rows.
+const GENERATED_RESOURCE_NODES: int = 1695
+const GENERATED_BASINS: int = 7
+const GENERATED_FISH_HABITATS: int = 3
+## §5.1: "Ore footprints replace tree nodes". Each 4x4 deposit covers exactly four tree centres,
+## so the two deposits destroy eight nodes that were CREATED first -- and §4.2 never reuses a
+## persistent id, so those eight consume one each and never appear in the live census above.
+const REPLACED_TREE_NODES: int = 8
+## Every generated entity takes one id out of §4.2's single persistent id space before the cohort.
+const WORLD_PERSISTENT_IDS: int = (GENERATED_RESOURCE_NODES + REPLACED_TREE_NODES
+	+ GENERATED_BASINS + GENERATED_FISH_HABITATS)
+
+## GDD §5.1: "A fixed-seed tutorial uses seed 20260905." The only seed the section authors, and
+## the only one a boot with no New Settlement form can legitimately use.
+const TUTORIAL_WORLD_SEED: int = 20260905
+## §5.1: "starting at year 1/spring/day 1/06:00". Day 1 is the earliest day a store accepts.
+const OPENING_DAY: int = 1
+
+## GDD §5.1's cohort composition, in the sentence's own order: "6 mice, 2 moles, 2 otters,
+## 2 squirrels".
+const COHORT_SPECIES_KEYS: Array[StringName] = [&"mouse", &"mole", &"otter", &"squirrel"]
+const COHORT_SPECIES_COUNTS: Array[int] = [6, 2, 2, 2]
+## "active job skills level 2 except Rowan KEEP 3".
+const INITIAL_SKILL_LEVEL: int = 2
+const WARDEN_KEEP_LEVEL: int = 3
+## "Warden KEEP XP=45000; other active initial skills XP=20000; reserved index 3 XP=0."
+const INITIAL_SKILL_XP: int = 20000
+const WARDEN_KEEP_XP: int = 45000
+
 ## A work total no bounded test run can exhaust, so a job never completes mid-assertion.
 const LARGE_JOB_MWU: int = 1000000
 
@@ -97,6 +128,21 @@ const MEASURED_TICKS: int = 300
 ## Windows floor; this is twelve residents in a debug editor binary, so the number this test
 ## PRINTS is the useful output and the assertion only catches a collapse.
 const TICK_CEILING_USEC: int = 2000
+
+class RefusingCohortSettlement extends SettlementSystemScript:
+	"""A settlement whose §5.1 cohort creation always refuses, over a world that generated fine.
+
+	The only way to reach `create_generated_settlement()`'s rollback from outside: the real cohort
+	refuses on a full store or a failed component attach, neither of which a caller can arrange
+	once the emptiness precondition has passed.
+	"""
+
+	const REFUSAL: StringName = &"TEST_COHORT_REFUSED"
+
+	func create_initial_settlement() -> bool:
+		"""Refuse rather than spawn, recording the reason exactly as the real path would."""
+		return _refuse(REFUSAL)
+
 
 var _settlement: SettlementSystemScript = null
 var _game: GameManagerScript = null
@@ -1490,3 +1536,268 @@ func test_a_command_due_at_tick_one_is_not_committed_by_tick_zero() -> void:
 	assert_true(settlement.run_tick(1), "its own due tick runs")
 	assert_equal(settlement.commands_committed_last_tick(), 1, "and commits it")
 	assert_equal(settlement.commands().pending_count(), 0, "leaving the queue empty")
+
+
+# --- REQ-SET-009 whole: generating a world that has somebody in it (decision 0064) --------------
+#
+# The gap these cover: `world_init.gd` built the world, `create_initial_settlement()` built the
+# population, and NOTHING CALLED BOTH -- so a generated world had nobody in it and a booted game
+# had twelve residents standing on no terrain. `create_generated_settlement()` is the single
+# §5.1 operation, and every test below asserts against the GDD sentence rather than the code.
+
+func _generate() -> bool:
+	"""Run REQ-SET-009 over this test's settlement with §5.1's own fixed tutorial seed."""
+	return _settlement.create_generated_settlement(_loaded_items())
+
+
+func test_generating_a_settlement_produces_the_world_and_the_cohort_together() -> void:
+	"""The whole point: after ONE call there is both a world and a population in it."""
+	assert_true(_generate(), "REQ-SET-009 runs (refusal: %s)" % _settlement.last_refusal())
+	assert_true(_settlement.world().is_published(), "a world is published")
+	assert_equal(_settlement.ecology().resource_nodes().count(), GENERATED_RESOURCE_NODES,
+		"§5.1's resource nodes stand")
+	assert_equal(_settlement.ecology().forage().zone_count(), GENERATED_BASINS,
+		"and its seven ecology basins")
+	assert_equal(_settlement.ecology().fishing().habitat_count(), GENERATED_FISH_HABITATS,
+		"and the estuary's three habitats")
+	assert_equal(_settlement.population(), COHORT_SIZE, "and TWELVE RESIDENTS, not zero")
+	assert_equal(_settlement.living_count(), COHORT_SIZE, "all of them alive")
+
+
+func test_an_ungenerated_settlement_has_neither_world_nor_population() -> void:
+	"""The before state, pinned: nothing is published and nobody exists until the call is made."""
+	assert_false(_settlement.world().is_published(), "no world before generation")
+	assert_equal(_settlement.ecology().resource_nodes().count(), 0, "no resource node")
+	assert_equal(_settlement.population(), 0, "and no resident")
+
+
+func test_the_generated_cohort_is_gdd_5_1s_species_mix() -> void:
+	"""§5.1: "12 adults (6 mice, 2 moles, 2 otters, 2 squirrels)"."""
+	assert_true(_generate(), "the settlement generates")
+	var residents: ResidentsScript = _settlement.residents()
+	for entry: int in COHORT_SPECIES_KEYS.size():
+		var species: IntMath.IntResult = residents.species_id(COHORT_SPECIES_KEYS[entry])
+		assert_true(species.ok, "species '%s' is in the catalog" % COHORT_SPECIES_KEYS[entry])
+		var counted: int = 0
+		for slot: int in ResidentsScript.RESIDENT_CAPACITY:
+			if residents.is_present(slot) and residents.species_of(slot).value == species.value:
+				counted += 1
+		assert_equal(counted, COHORT_SPECIES_COUNTS[entry],
+			"%d %s" % [COHORT_SPECIES_COUNTS[entry], COHORT_SPECIES_KEYS[entry]])
+
+
+func test_the_generated_cohort_starts_at_gdd_5_1s_needs_and_health() -> void:
+	"""§5.1: "all five needs 7500, health 100"."""
+	assert_true(_generate(), "the settlement generates")
+	for slot: int in COHORT_SIZE:
+		assert_true(_settlement.residents().is_present(slot), "row %d holds a resident" % slot)
+		assert_equal(_settlement.needs().health_of(slot).value, HEALTH_MAX,
+			"resident %d starts at health 100" % slot)
+		for need: int in NeedsScript.NEED_COUNT:
+			assert_equal(_settlement.needs().need_of(slot, need).value, INITIAL_NEED,
+				"resident %d need %d starts at 7500" % [slot, need])
+
+
+func test_the_generated_cohort_carries_gdd_5_1s_skills_and_the_reserved_zero() -> void:
+	"""§5.1: "active job skills level 2 except Rowan KEEP 3"; reserved index 3 has XP/level 0."""
+	assert_true(_generate(), "the settlement generates")
+	var residents: ResidentsScript = _settlement.residents()
+	for slot: int in COHORT_SIZE:
+		for skill: int in ResidentsScript.SKILL_COUNT:
+			var expected_xp: int = INITIAL_SKILL_XP
+			var expected_level: int = INITIAL_SKILL_LEVEL
+			if skill == ResidentsScript.SKILL_RESERVED_INDEX:
+				expected_xp = 0
+				expected_level = 0
+			elif slot == ResidentsScript.WARDEN_INDEX and skill == ResidentsScript.SKILL_KEEP:
+				expected_xp = WARDEN_KEEP_XP
+				expected_level = WARDEN_KEEP_LEVEL
+			assert_equal(residents.skill_xp_of(slot, skill).value, expected_xp,
+				"resident %d skill %d XP" % [slot, skill])
+			assert_equal(residents.skill_level_of(slot, skill).value, expected_level,
+				"resident %d skill %d level" % [slot, skill])
+
+
+func test_only_the_warden_is_named_in_the_generated_cohort() -> void:
+	"""§5.1 names ID 1 only; §5.3 makes every other name a TRIGGER, so eleven unnamed is correct."""
+	assert_true(_generate(), "the settlement generates")
+	var residents: ResidentsScript = _settlement.residents()
+	assert_true(residents.is_named(ResidentsScript.WARDEN_INDEX), "ID 1 is named")
+	assert_equal(residents.name_key_of(ResidentsScript.WARDEN_INDEX),
+		ResidentsScript.WARDEN_NAME, "Warden Rowan")
+	assert_equal(residents.role_of(ResidentsScript.WARDEN_INDEX).value,
+		ResidentsScript.ROLE_WARDEN, "and holds the Warden role")
+	var named: int = 0
+	for slot: int in COHORT_SIZE:
+		if residents.is_named(slot):
+			named += 1
+	assert_equal(named, 1, "§5.3's naming triggers leave the other eleven unnamed")
+
+
+func test_every_generated_resident_is_attached_and_ticks() -> void:
+	"""A cohort without Priorities, Schedule and JobAgent rows would tick some residents only."""
+	assert_true(_generate(), "the settlement generates")
+	for slot: int in COHORT_SIZE:
+		assert_true(_settlement.priorities().is_present(slot), "row %d has priorities" % slot)
+		assert_true(_settlement.schedule().is_present(slot), "row %d has a schedule" % slot)
+		assert_true(_settlement.jobs().is_agent_present(slot), "row %d has a job agent" % slot)
+	assert_true(_settlement.run_tick(0), "and the whole settlement ticks")
+
+
+func test_generation_seeds_the_rng_the_settlement_could_not_seed_itself() -> void:
+	"""§5.10's second season refuses RNG_NOT_SEEDED without this; §5.1 owns `World.seed`."""
+	assert_false(_settlement.rng().is_seeded(), "an ungenerated settlement has no seed")
+	assert_true(_generate(), "the settlement generates")
+	assert_true(_settlement.rng().is_seeded(), "and REQ-SET-009 seeded all nine streams")
+	assert_equal(_settlement.world().published_seed().value, TUTORIAL_WORLD_SEED,
+		"on §5.1's own fixed tutorial seed, the only one it authors")
+
+
+func test_generating_resets_the_job_and_command_state_it_was_composed_over() -> void:
+	"""Task 04.3: reset "job and command state before exposing an active world" -- in the LOOP.
+
+	`test_world_init.gd` proves the generator resets the job store and queue it was HANDED. This
+	proves the settlement handed it its own: composing the generator over a private Job store or a
+	private command queue would leave the running game's stale work standing beside a new world.
+	"""
+	var created: JobsScript.OpResult = _settlement.jobs().create_job(
+		JobsScript.JOB_KIND_HAUL, 1, 0, LARGE_JOB_MWU, 0)
+	assert_true(created.ok, "a stray job exists before generation")
+	var command: CommandsScript.Command = CommandsScript.Command.new()
+	command.reset()
+	command.kind = COMMAND_KIND_SET_POLICY
+	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+	assert_true(_settlement.commands().submit_into(command, result),
+		"and an untargeted player edit is queued beside it")
+	assert_equal(_settlement.commands().pending_count(), 1, "the queue holds it")
+	assert_true(_generate(), "the settlement generates (refusal: %s)" % _settlement.last_refusal())
+	assert_equal(_settlement.jobs().job_count(), 0, "which resets THIS settlement's job store")
+	assert_equal(_settlement.commands().pending_count(), 0, "and THIS settlement's queue")
+	assert_equal(_settlement.directory().live_count(EntityDirectoryScript.KIND_JOB), 0,
+		"with the job's directory rows released")
+
+
+func test_generating_resets_the_farm_plots_it_was_composed_over() -> void:
+	"""§5.1 lists no starter FarmPlot, so generation must EMPTY the store it was given.
+
+	The store has to be THIS settlement's: a generator composed over a private FarmPlot store
+	would leave ARCH-SYS-006 integrating yesterday's fields under a brand new world.
+	"""
+	var plot: FarmingScript.OpResult = _settlement.farming().create_plot_at_tile(
+		WorldInitScript.tile_index_of(60, 60), WorldInitScript.SOIL_LOAM, OPENING_DAY)
+	assert_true(plot.ok, "a field exists before generation (refusal: %s)" % plot.error)
+	assert_equal(_settlement.farming().count(), 1, "the FarmPlot store holds it")
+	assert_true(_generate(), "the settlement generates (refusal: %s)" % _settlement.last_refusal())
+	assert_equal(_settlement.farming().count(), 0,
+		"and REQ-SET-009 emptied it: §5.1 authors no starting field")
+
+
+func test_generating_resets_the_hives_it_was_composed_over() -> void:
+	"""§5.1 authors no starting apiary either, and R06-JOB-006 services the hives it finds.
+
+	THE BUILDING ROW IS CREATED AND IMMEDIATELY DESTROYED, deliberately. `create_hive()` validates
+	a live `KIND_BUILDING` reference and never dereferences it, and there is no Building store; a
+	surviving building row would also be a live row of a kind the generator does not own, which it
+	would rightly refuse. Destroying it leaves exactly what this test needs: a live Hive.
+	"""
+	var building: Vector2i = _settlement.directory().create(EntityDirectoryScript.KIND_BUILDING)
+	var hive: OrchardHiveScript.OpResult = _settlement.ecology().orchard_hive().create_hive(
+		building, 40, 40, 43, 43, OPENING_DAY)
+	assert_true(hive.ok, "an apiary exists before generation (refusal: %s)" % hive.error)
+	assert_true(_settlement.directory().destroy(building), "its building row is released")
+	assert_equal(_settlement.ecology().orchard_hive().hive_count(), 1, "the hive store holds it")
+	assert_true(_generate(), "the settlement generates (refusal: %s)" % _settlement.last_refusal())
+	assert_equal(_settlement.ecology().orchard_hive().hive_count(), 0,
+		"and REQ-SET-009 emptied ARCH-SYS-005's OWN hive store")
+
+
+func test_the_generated_cohorts_persistent_ids_are_not_gdd_5_1s_one_to_twelve() -> void:
+	"""THE CONTRADICTION, PINNED RATHER THAN HIDDEN (decision 0064).
+
+	§5.1 says the starting residents are "IDs 1-12" and §4.2 says persistent ids are "unique
+	across kinds" -- one id space. §5.1's own world content is created FIRST, because publishing
+	clears the directory and would strand a cohort spawned before it, so the world takes ids
+	1-1713 and the cohort takes 1714-1725. This test asserts what the code ACTUALLY does. It is
+	not an endorsement: it exists so that a future ruling either changes this assertion
+	deliberately or is caught leaving it wrong.
+	"""
+	assert_true(_generate(), "the settlement generates")
+	var residents: ResidentsScript = _settlement.residents()
+	var first: IntMath.IntResult = residents.persistent_id_of(0)
+	assert_true(first.ok, "the first starter has a persistent id")
+	assert_equal(first.value, WORLD_PERSISTENT_IDS + 1,
+		"which follows every generated world entity, and is NOT §5.1's 1")
+	for slot: int in COHORT_SIZE:
+		assert_equal(residents.persistent_id_of(slot).value, WORLD_PERSISTENT_IDS + 1 + slot,
+			"the twelve are consecutive in resident-row order")
+
+
+func test_generation_refuses_a_settlement_that_already_holds_residents() -> void:
+	"""Publishing clears the directory, so an occupied settlement must refuse BEFORE it does."""
+	assert_true(_settlement.create_initial_settlement(), "a cohort exists first")
+	assert_false(_generate(), "generating over it is refused")
+	assert_equal(_settlement.last_refusal(), ResidentsScript.REFUSE_SETTLEMENT_NOT_EMPTY,
+		"and says which rule stopped it")
+	assert_equal(_settlement.population(), COHORT_SIZE, "the standing cohort is untouched")
+	assert_false(_settlement.world().is_published(), "and no world was published over it")
+	assert_equal(_settlement.ecology().resource_nodes().count(), 0, "nothing was created")
+
+
+func test_an_unloaded_item_catalog_refuses_and_leaves_the_settlement_empty() -> void:
+	"""Decision 0059: a refusal leaves every store byte-identical, not a half-initialized world."""
+	assert_false(_settlement.create_generated_settlement(WorldItemsScript.new()),
+		"an unloaded registry cannot bind the seventeen resource ids")
+	assert_equal(_settlement.last_refusal(), &"ITEM_BINDING_REGISTRY_NOT_LOADED",
+		"and the binding boundary's own code is passed through")
+	assert_false(_settlement.world().is_published(), "no world")
+	assert_equal(_settlement.ecology().resource_nodes().count(), 0, "no resource node")
+	assert_equal(_settlement.population(), 0, "and no half-spawned cohort")
+
+
+func test_a_cohort_that_refuses_leaves_no_half_settlement_standing() -> void:
+	"""Decision 0059 at world scale: a failure after generation empties everything, not some.
+
+	Without the rollback this is the worst outcome available -- a fully generated world, a seeded
+	RNG and nobody in it, reported to the caller as a failure. That is precisely the "world with
+	nobody in it" this operation exists to prevent.
+	"""
+	var settlement: RefusingCohortSettlement = RefusingCohortSettlement.new()
+	assert_false(settlement.create_generated_settlement(_loaded_items()),
+		"the operation refuses as a whole")
+	assert_equal(settlement.last_refusal(), RefusingCohortSettlement.REFUSAL,
+		"and reports the cohort's own reason, not a generic one")
+	assert_false(settlement.world().is_published(), "the generated world was taken back")
+	assert_equal(settlement.ecology().resource_nodes().count(), 0, "with its resource nodes")
+	assert_equal(settlement.ecology().forage().zone_count(), 0, "and its basins")
+	assert_false(settlement.rng().is_seeded(), "and its seed")
+	assert_equal(settlement.population(), 0, "leaving nothing standing")
+	settlement.free()
+
+
+func test_a_refused_generation_reports_it_and_spawns_no_cohort() -> void:
+	"""A world that refused must not get a population anyway -- that is the gap in reverse.
+
+	`world_init.gd` refuses WORLD_FOREIGN_LIVE_ROWS rather than orphaning a row it does not own,
+	and this proves the bootstrap PROPAGATES that instead of pressing on to spawn twelve residents
+	into an ungenerated world.
+	"""
+	var stray: Vector2i = _settlement.directory().create(EntityDirectoryScript.KIND_BUILDING)
+	assert_true(stray != EntityDirectoryScript.NULL_REF, "a row of a kind no store here owns")
+	assert_false(_generate(), "generation refuses")
+	assert_equal(_settlement.last_refusal(), &"WORLD_FOREIGN_LIVE_ROWS",
+		"with the generator's own reason, passed through unchanged")
+	assert_false(_settlement.world().is_published(), "no world was published")
+	assert_equal(_settlement.population(), 0, "and NO cohort was spawned into one that is not there")
+	assert_true(_settlement.directory().is_valid(stray), "the foreign row is byte-identical")
+
+
+func test_resetting_a_generated_settlement_discards_the_world_with_the_cohort() -> void:
+	"""A generator still reporting a published map over emptied stores is a half settlement."""
+	assert_true(_generate(), "the settlement generates")
+	_settlement.reset()
+	assert_false(_settlement.world().is_published(), "the map is discarded")
+	assert_equal(_settlement.ecology().resource_nodes().count(), 0, "with its resource nodes")
+	assert_equal(_settlement.ecology().forage().zone_count(), 0, "and its basins")
+	assert_equal(_settlement.population(), 0, "and its population")
+	assert_true(_generate(), "and the settlement generates again from empty")
+	assert_equal(_settlement.population(), COHORT_SIZE, "with a second full cohort")

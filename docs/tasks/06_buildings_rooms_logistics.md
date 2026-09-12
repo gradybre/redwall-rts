@@ -106,3 +106,32 @@ Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) 
 ## EH construction/logistics contracts
 
 [ECON-001–006 and EH-02/03](../planning/underground_economy_hazard_handoff.md) supply exact earth/work/refund/closure/tip rules and transaction retry/tool settlement obligations. Reuse the current building and inventory owners; do not overwrite concurrent implementations. Geometry and G02 representation remain required for production cuts.
+
+## 2026-09-12 — ECON-002 per-contributor tool settlement (EH-03 slice of 06.4)
+
+[Decision 0110](../decisions/0110-tool-wear-settles-per-contributor-inside-the-job.md)
+lands the "gear wear" half of 06.4's clause under
+[SET-MOVE-ECON-001](../underground_economy_hazard_amendment.md) ECON-002.
+`gear.gd` gains a preflighting and a non-releasing wear form beside the existing
+end-of-job one; `work.gd` gains a per-resident tool binding, the §5.7 wear carry and
+a settlement that charges each accepted contributor's own milli-WU to their own tool
+on the tick the point falls due. It also prices ECON-002's two variable-q tip rows,
+`ceil(q/4)` to compact and `ceil(q/2)` to reclaim, refusing `q <= 0`.
+
+**06.4 stays unchecked and nothing else in it moved.** Hauling, output/source
+reservations, storage filters/minimums/mass limits, carry/ground-pile recovery,
+equipment swaps and the task-04 dispatcher integration are untouched by this change.
+06.5 is untouched. **No MOVE gate is closed and task 05.1b is not complete**: the
+excavation site's phase domain, its work-ready/commit-pending retry condition, its
+spoil-output capacity reservation and the `excavated_earth` catalog key all belong
+to other owners and do not exist yet.
+
+Two things are owed by owners other than this change, and 06.4 cannot be checked
+until they land:
+
+- Registry/architecture rows for the six new `work.gd` columns (10752 B at 512
+  residents). `state_registry_coverage.py` fails until they exist.
+- A non-allocating `jobs.tool_gate_into()`. Without it the productive tick cannot
+  read §5.3's tool gate, so a tool-required job whose worker holds **no** binding
+  produces work and wears nothing. The behaviour is pinned by a test rather than
+  left to be discovered.

@@ -1153,3 +1153,539 @@ func test_the_allocating_wrappers_hand_back_a_fresh_result_each_call() -> void:
 	assert_equal(shared.remaining_mwu, 99840, "reporting the first job")
 	assert_true(_work.tick_solo_into(second_job, shared), "and then another")
 	assert_equal(shared.remaining_mwu, 340, "overwriting it, which is why it is caller-owned")
+
+
+# --- SET-MOVE-ECON-001 ECON-002: per-contributor tool settlement ---------------------------------
+#
+# THE AGGREGATE IS NOT THE TEST. Every case below reads EACH tool and EACH resident's carry
+# separately, because an implementation that charged the party's whole accepted total to one
+# worker's tool, or charged every share to the first contributor, produces exactly the right
+# TOTAL durability spend. Only per-owner assertions can tell the two apart, and the amendment's
+# requirement is per owner: "tool wear belongs to the contributor who did the work".
+
+const GearScript := preload("res://scripts/core/gear.gd")
+const InventoryScript := preload("res://scripts/core/inventory.gd")
+const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
+
+## Container owner and mass for the tool store; nothing here tests inventory capacity.
+const TOOL_CONTAINER_OWNER: Vector2i = Vector2i(7, 1)
+const TOOL_CONTAINER_MASS_G: int = 9000000
+const TOOL_PROVENANCE: int = 3
+## A Job reference used only to pre-wear a tool through `gear.gd` directly, before `work.gd` ever
+## sees it. Deliberately far from any slot `jobs.gd` allocates in these fixtures.
+const FOREIGN_JOB: Vector2i = Vector2i(4000, 1)
+## 125 base-rate ticks are exactly 10000 milli-WU, which is exactly one durability point.
+const TICKS_PER_POINT_AT_BASE_RATE: int = 125
+
+var _inventory: InventoryScript = null
+var _defs: ItemDefinitionsScript = null
+var _gear_store: GearScript = null
+var _tool_container: Vector2i = Vector2i(-1, 0)
+
+
+func _use_gear() -> void:
+	"""Attach a real inventory, the real item catalog and a gear store to the work store."""
+	_inventory = InventoryScript.new(8, 256)
+	_defs = ItemDefinitionsScript.new()
+	var loaded: ItemDefinitionsScript.LoadResult = _defs.load_default(_inventory)
+	assert_true(loaded.ok, "the real item catalog must load: %s" % loaded.error)
+	_gear_store = GearScript.new(64)
+	var bound: InventoryScript.OpResult = _gear_store.bind_equipment(_inventory,
+		_residents.directory(), _residents)
+	assert_true(bound.ok, "the gear store binds its equipment collaborators: %s" % bound.error)
+	_tool_container = _inventory.create_container(TOOL_CONTAINER_OWNER, TOOL_CONTAINER_MASS_G,
+		InventoryScript.FILTERS_ACCEPT_ALL, 0, true).ref
+	assert_true(_work.bind_gear(_gear_store).ok, "work.gd binds the gear store")
+
+
+func _make_tool() -> Vector2i:
+	"""Create one indivisible basic tool lot and its gear instance; return the lot reference."""
+	var lot: InventoryScript.OpResult = _inventory.create_lot(_tool_container,
+		_defs.compiled_id(&"tool"), GearScript.GEAR_LOT_QUANTITY_MILLI, 0, TOOL_PROVENANCE, 0, 0, 0)
+	assert_true(lot.ok, "the tool lot creates: %s" % lot.error)
+	var made: InventoryScript.OpResult = _gear_store.create_gear(_inventory, _defs, lot.ref,
+		GearScript.MANUFACTURE_BASIC)
+	assert_true(made.ok, "the gear instance creates: %s" % made.error)
+	return lot.ref
+
+
+func _equipped_tool(resident_slot: int) -> Vector2i:
+	"""Create a tool and equip it to this resident, so it is their OWN tool and nobody else's."""
+	var lot_ref: Vector2i = _make_tool()
+	var fitted: InventoryScript.OpResult = _gear_store.equip(lot_ref,
+		_residents.ref_of(resident_slot))
+	assert_true(fitted.ok, "the tool equips to its resident: %s" % fitted.error)
+	return lot_ref
+
+
+func _claimed_tool(resident_slot: int) -> Vector2i:
+	"""Equip a tool to this resident and bind it to their current Job for wear settlement."""
+	var lot_ref: Vector2i = _equipped_tool(resident_slot)
+	var claimed: WorkScript.OpResult = _work.claim_tool_for_work(resident_slot, lot_ref)
+	assert_true(claimed.ok, "the tool claims for work: %s" % claimed.error)
+	return lot_ref
+
+
+func _durability(lot_ref: Vector2i) -> int:
+	"""Current durability of a gear instance, asserting the read itself succeeded."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_gear_store.durability_into(lot_ref, out), "durability must be readable")
+	return out.value
+
+
+func _carry(resident_slot: int) -> int:
+	"""This resident's §5.7 sub-point tool-wear carry, in milli-WU."""
+	var out: IntMath.IntResult = _work.wear_remainder_of(resident_slot)
+	assert_true(out.ok, "the wear carry must be readable (error: %s)" % out.error)
+	return out.value
+
+
+func _tick_solo_times(job_slot: int, count: int) -> void:
+	"""Take `count` productive solo ticks, asserting every one of them succeeded."""
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	for _index: int in count:
+		assert_true(_work.tick_solo_into(job_slot, out), "every tick works: %s" % out.error)
+
+
+func _tick_party_times(coordinator_slot: int, count: int) -> void:
+	"""Take `count` productive party ticks, asserting every one of them succeeded."""
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	for _index: int in count:
+		assert_true(_work.tick_party_into(coordinator_slot, out),
+			"every party tick works: %s" % out.error)
+
+
+func test_tool_wear_is_charged_to_the_contributor_who_earned_it() -> void:
+	"""ECON-002: "Each resident owns their own productive contribution/tool remainder".
+
+	Two builders on one coordinator work at DELIBERATELY different rates: 80 milli-WU a tick and
+	40.8 a tick. Over 125 ticks the fast one earns exactly 10000 milli-WU -- one whole durability
+	point -- and the slow one earns exactly 5100, which is not a point at all. So the correct
+	outcome is asymmetric: one tool at 999 with an empty carry, one tool still at 1000 carrying
+	5100. Charging both shares to one contributor gives that contributor a 15100 carry and one
+	point, and leaves the other worker's tool untouched, which fails four assertions here.
+	"""
+	_use_gear()
+	var fast: int = _base_rate_worker()
+	var slow: int = _fractional_rate_worker()
+	var coordinator: int = _coordinator_job(1000000)
+	var _fast_member: int = _member_job(coordinator, fast)
+	var _slow_member: int = _member_job(coordinator, slow)
+	var fast_tool: Vector2i = _claimed_tool(fast)
+	var slow_tool: Vector2i = _claimed_tool(slow)
+	_tick_party_times(coordinator, TICKS_PER_POINT_AT_BASE_RATE)
+	assert_equal(_carry(fast), 0, "125 x 80 is exactly 10000 milli-WU, so nothing is carried")
+	assert_equal(_durability(fast_tool), 999, "and the fast builder's OWN tool lost one point")
+	assert_equal(_carry(slow), 5100, "125 x 40.8 is 5100 milli-WU, still short of a point")
+	assert_equal(_durability(slow_tool), 1000, "so the slow builder's OWN tool is untouched")
+
+
+func test_a_party_wears_every_tool_once_and_never_one_tool_three_times() -> void:
+	"""ECON-002's multi-contributor case: three builders, three tools, one point each.
+
+	The totals are identical under three wrong implementations -- charge the party total to the
+	first tool, settle only the first contributor, settle only the last -- so every tool is read
+	on its own. Three equal workers make the case deliberately symmetric: if the three shares are
+	not landing on three different tools, exactly one tool moves instead of three.
+	"""
+	_use_gear()
+	var first: int = _base_rate_worker()
+	var second: int = _base_rate_worker()
+	var third: int = _base_rate_worker()
+	var coordinator: int = _coordinator_job(1000000)
+	for worker: int in [first, second, third]:
+		var _member: int = _member_job(coordinator, worker)
+	var first_tool: Vector2i = _claimed_tool(first)
+	var second_tool: Vector2i = _claimed_tool(second)
+	var third_tool: Vector2i = _claimed_tool(third)
+	_tick_party_times(coordinator, TICKS_PER_POINT_AT_BASE_RATE)
+	assert_equal(_durability(first_tool), 999, "the first builder's tool lost exactly one point")
+	assert_equal(_durability(second_tool), 999, "and so did the second builder's")
+	assert_equal(_durability(third_tool), 999, "and so did the third builder's")
+	assert_equal(_carry(first), 0, "each carry is spent, not one carrying all three shares")
+	assert_equal(_carry(second), 0, "the second worker's carry too")
+	assert_equal(_carry(third), 0, "and the third's")
+
+
+func test_the_first_durability_point_falls_at_exactly_ten_completed_wu() -> void:
+	"""§5.7: "1 equipped tool durability per completed 10 WU". The tick before and the tick after.
+
+	124 ticks are 9920 milli-WU and must cost NOTHING; the 125th reaches 10000 and must cost
+	exactly one point. A threshold off by one in either direction fails one of these two halves.
+	"""
+	_use_gear()
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 1000000)
+	var tool: Vector2i = _claimed_tool(worker)
+	_tick_solo_times(job, TICKS_PER_POINT_AT_BASE_RATE - 1)
+	assert_equal(_carry(worker), 9920, "124 ticks carry 9920 milli-WU")
+	assert_equal(_durability(tool), 1000, "which is not a whole point, so nothing is debited")
+	_tick_solo_times(job, 1)
+	assert_equal(_carry(worker), 0, "the 125th tick completes the point exactly")
+	assert_equal(_durability(tool), 999, "and one durability is spent, not two and not none")
+	_tick_solo_times(job, 1)
+	assert_equal(_carry(worker), 80, "and the next tick starts the following point from 80")
+	assert_equal(_durability(tool), 999, "without spending a second point early")
+
+
+func test_one_job_keeps_settling_point_after_point_without_retaking_the_tool() -> void:
+	"""ECON-002 settles DURING a job, so the second durability point must land like the first.
+
+	A single excavation phase runs for hundreds of ticks. If the settlement handed the gear back
+	each time it charged a point -- which is what the end-of-job wear form does -- the tool would
+	lose its first point and then never lose another, because the claim behind it would be gone.
+	375 base-rate ticks are exactly three points, and all three are asserted, along with the claim
+	still standing at the end.
+	"""
+	_use_gear()
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 1000000)
+	var tool: Vector2i = _claimed_tool(worker)
+	_tick_solo_times(job, TICKS_PER_POINT_AT_BASE_RATE)
+	assert_equal(_durability(tool), 999, "the first point falls at 125 ticks")
+	_tick_solo_times(job, TICKS_PER_POINT_AT_BASE_RATE)
+	assert_equal(_durability(tool), 998, "the second at 250, with no new claim taken")
+	_tick_solo_times(job, TICKS_PER_POINT_AT_BASE_RATE)
+	assert_equal(_durability(tool), 997, "and the third at 375")
+	assert_equal(_carry(worker), 0, "with the carry landing back on zero each time")
+	assert_true(_gear_store.is_claimed(tool), "and the job still holds the tool it is using")
+	assert_equal(_work.tool_lot_of(worker), tool, "with the binding intact")
+
+
+func test_the_wear_carry_survives_releasing_the_claim_and_changing_job() -> void:
+	"""ECON-002: "no resetting the remainder at quantum, project or worker handoff boundaries".
+
+	60 ticks on one job carry 4800 milli-WU. The claim is released, the worker moves to a second
+	job and claims the SAME tool again, and 65 more ticks add 5200 -- reaching 10000 exactly. A
+	carry reset anywhere in that handover would leave the tool at 1000 after the 65th tick and
+	need another 60 ticks to reach a point, so the assertion is the point landing on schedule.
+	"""
+	_use_gear()
+	var worker: int = _base_rate_worker()
+	var first_job: int = _worked_job(worker, 1000000)
+	var tool: Vector2i = _claimed_tool(worker)
+	_tick_solo_times(first_job, 60)
+	assert_equal(_carry(worker), 4800, "60 ticks carry 4800 milli-WU")
+	assert_true(_work.release_tool_claim(worker).ok, "the claim releases at the phase boundary")
+	assert_equal(_carry(worker), 4800, "and the carry is NOT cleared by the release")
+	assert_true(_jobs.release_worker(worker).ok, "the worker leaves the first job")
+	var second_job: int = _worked_job(worker, 1000000)
+	assert_true(_work.claim_tool_for_work(worker, tool).ok, "and claims the same tool again")
+	_tick_solo_times(second_job, 64)
+	assert_equal(_carry(worker), 9920, "the second job resumes mid-point, at 4800 + 5120")
+	assert_equal(_durability(tool), 1000, "still short of a whole point")
+	_tick_solo_times(second_job, 1)
+	assert_equal(_durability(tool), 999, "and the point falls on the tick the carry says it does")
+	assert_equal(_carry(worker), 0, "with nothing left over")
+
+
+func test_a_tool_claim_left_on_another_job_refuses_the_tick_and_moves_nothing() -> void:
+	"""ECON-002: "job/worker replacement must not rebill old WU or bill only the last worker".
+
+	The claim is keyed on the Job that took it. A worker moved to a second job still carrying the
+	first job's binding must not settle the new job's work against the old claim, so the tick
+	refuses -- and because the tool gate runs before any potential is produced, the refusal leaves
+	all four stores byte-identical. That is asserted as an image comparison, not field by field.
+	"""
+	_use_gear()
+	var worker: int = _base_rate_worker()
+	var first_job: int = _worked_job(worker, 1000000)
+	var _tool: Vector2i = _claimed_tool(worker)
+	assert_true(_jobs.release_worker(worker).ok, "the worker leaves without releasing the claim")
+	var second_job: int = _worked_job(worker, 1000000)
+	var work_before: PackedByteArray = _work.state_bytes()
+	var gear_before: PackedByteArray = _gear_store.state_bytes()
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_false(_work.tick_solo_into(second_job, out), "the tick refuses")
+	assert_equal(out.error, WorkScript.REFUSE_TOOL_CLAIM_STALE, "naming the stale claim")
+	assert_equal(out.accepted_mwu, 0, "and carrying no accepted work")
+	assert_equal(_jobs.remaining_mwu_of(second_job).value, 1000000, "the job took no work")
+	assert_equal(_xp(worker), 0, "no XP was credited")
+	assert_equal(_work.state_bytes(), work_before, "the work store is byte-identical")
+	assert_equal(_gear_store.state_bytes(), gear_before, "and so is the gear store")
+
+
+func test_a_broken_tool_stops_the_contributor_rather_than_working_for_free() -> void:
+	"""§5.7: "Broken tools block tool-required work", which ECON-002 restates as stopping new work.
+
+	The tool is pre-worn to exactly 1 point through `gear.gd` itself, so the break happens during
+	settlement rather than being set up by hand. The tick that spends the last point succeeds; the
+	NEXT tick must refuse, and the job's outstanding work must not move.
+	"""
+	_use_gear()
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 1000000)
+	var tool: Vector2i = _equipped_tool(worker)
+	var outcome: GearScript.WearOutcome = GearScript.WearOutcome.new()
+	assert_true(_gear_store.claim_for_job(tool, FOREIGN_JOB).ok, "pre-wear claim")
+	assert_true(_gear_store.apply_general_wear_into(tool, FOREIGN_JOB, 9990000, 0, outcome),
+		"pre-wear the tool down to its last point")
+	assert_equal(_durability(tool), 1, "the tool starts this test on one durability")
+	assert_true(_work.claim_tool_for_work(worker, tool).ok, "which is still enough to claim")
+	_tick_solo_times(job, TICKS_PER_POINT_AT_BASE_RATE)
+	assert_equal(_durability(tool), 0, "the 125th tick spends the last point")
+	assert_true(_work.tool_is_broken(worker), "and the tool is recorded broken")
+	var remaining: int = _jobs.remaining_mwu_of(job).value
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_false(_work.tick_solo_into(job, out), "the next tick refuses")
+	assert_equal(out.error, WorkScript.REFUSE_TOOL_BROKEN, "naming the broken tool")
+	assert_equal(_jobs.remaining_mwu_of(job).value, remaining, "and the job takes no more work")
+
+
+func test_a_broken_tool_stops_one_builder_without_stopping_the_crew() -> void:
+	"""Decision 0017's "a departure must not stop the crew", applied to a tool that has worn out.
+
+	The broken builder contributes nothing and the other keeps going at their own rate, which is
+	why the coordinator's work falls by 80 a tick after the break rather than by 160 or by 0.
+	"""
+	_use_gear()
+	var broken_worker: int = _base_rate_worker()
+	var sound_worker: int = _base_rate_worker()
+	var coordinator: int = _coordinator_job(1000000)
+	var _broken_member: int = _member_job(coordinator, broken_worker)
+	var _sound_member: int = _member_job(coordinator, sound_worker)
+	var broken_tool: Vector2i = _equipped_tool(broken_worker)
+	var outcome: GearScript.WearOutcome = GearScript.WearOutcome.new()
+	assert_true(_gear_store.claim_for_job(broken_tool, FOREIGN_JOB).ok, "pre-wear claim")
+	assert_true(_gear_store.apply_general_wear_into(broken_tool, FOREIGN_JOB, 9990000, 0, outcome),
+		"pre-wear one builder's tool to its last point")
+	assert_true(_work.claim_tool_for_work(broken_worker, broken_tool).ok, "both builders claim")
+	var sound_tool: Vector2i = _claimed_tool(sound_worker)
+	_tick_party_times(coordinator, TICKS_PER_POINT_AT_BASE_RATE)
+	assert_equal(_durability(broken_tool), 0, "the worn tool reaches 0")
+	var remaining: int = _jobs.remaining_mwu_of(coordinator).value
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_true(_work.tick_party_into(coordinator, out), "the party keeps working")
+	assert_equal(out.contributor_count, 1, "with one contributor, not two")
+	assert_equal(out.accepted_mwu, 80, "at one worker's rate")
+	assert_equal(_jobs.remaining_mwu_of(coordinator).value, remaining - 80, "and the work follows")
+	assert_equal(_durability(sound_tool), 999, "the sound tool is unaffected by the other break")
+
+
+func test_a_settlement_that_cannot_be_charged_refuses_before_consuming_the_work() -> void:
+	"""Decision 0059, allocate before consume, at the exact tick a durability point falls due.
+
+	The gear claim is cancelled BEHIND `work.gd`'s back -- a caller holding the Job reference can
+	do that -- and the very next tick is the one whose carry crosses 10000. The preflight must
+	catch it while the coordinator's work, every XP column and the gear store are still untouched.
+	If the check ran after the consume instead, the job's remaining work would have fallen by 80
+	on a tick reported as a refusal, which is precisely what this asserts against.
+	"""
+	_use_gear()
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 1000000)
+	var tool: Vector2i = _claimed_tool(worker)
+	_tick_solo_times(job, TICKS_PER_POINT_AT_BASE_RATE - 1)
+	assert_equal(_carry(worker), 9920, "the next tick is the one that owes a durability point")
+	assert_true(_gear_store.cancel_claim(tool, _work.tool_job_of(worker)).ok,
+		"something else releases the gear claim")
+	var remaining: int = _jobs.remaining_mwu_of(job).value
+	var xp_before: int = _xp(worker)
+	var gear_before: PackedByteArray = _gear_store.state_bytes()
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_false(_work.tick_solo_into(job, out), "the tick refuses")
+	assert_equal(out.error, WorkScript.REFUSE_TOOL_SETTLEMENT, "naming the settlement")
+	assert_equal(_jobs.remaining_mwu_of(job).value, remaining, "the job's work is NOT consumed")
+	assert_equal(_xp(worker), xp_before, "no XP is credited")
+	assert_equal(_gear_store.state_bytes(), gear_before, "and the gear store is byte-identical")
+	assert_equal(_carry(worker), 9920, "the carry is left where the refusal found it")
+
+
+func test_a_completed_job_spends_no_further_work_xp_or_durability_on_retry() -> void:
+	"""ECON-003: "Retry spends no further WU, XP, inputs or durability".
+
+	A site whose output transaction failed retries its COMMIT, never another productive tick. The
+	guarantee this file owes is that a further tick against the completed job is refused outright,
+	so a caller that does force one cannot buy a second durability debit with it.
+	"""
+	_use_gear()
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 80)
+	var tool: Vector2i = _claimed_tool(worker)
+	var out: WorkScript.TickResult = WorkScript.TickResult.new(false, WorkScript.REFUSE_NONE)
+	assert_true(_work.tick_solo_into(job, out), "one tick finishes an 80 milli-WU job")
+	assert_true(out.completed, "and completes it")
+	var work_before: PackedByteArray = _work.state_bytes()
+	var gear_before: PackedByteArray = _gear_store.state_bytes()
+	var xp_before: int = _xp(worker)
+	for _retry: int in 20:
+		assert_false(_work.tick_solo_into(job, out), "every retry refuses")
+	assert_equal(out.error, WorkScript.REFUSE_JOB_NOT_WORKING, "because the job is complete")
+	assert_equal(_work.state_bytes(), work_before, "the carries are untouched by 20 retries")
+	assert_equal(_gear_store.state_bytes(), gear_before, "so is every durability")
+	assert_equal(_xp(worker), xp_before, "and so is the XP")
+	assert_equal(_durability(tool), 1000, "the tool never paid for the retries")
+
+
+func test_a_worker_with_no_tool_binding_is_charged_no_wear_at_all() -> void:
+	"""A binding is an explicit act. Without one, nothing is claimed and nothing is worn.
+
+	This is the honest limit of what this file enforces: whether a job REQUIRES a tool is
+	`jobs.gd`'s tool gate, which the productive tick cannot read without allocating. The behaviour
+	is pinned here so it is a documented contract rather than an accident.
+	"""
+	_use_gear()
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 1000000)
+	var tool: Vector2i = _equipped_tool(worker)
+	_tick_solo_times(job, 200)
+	assert_equal(_carry(worker), 0, "an unbound worker accrues no tool carry")
+	assert_equal(_durability(tool), 1000, "and their equipped tool is untouched")
+	assert_equal(_work.bound_tool_count(), 0, "because no binding was ever taken")
+	assert_equal(_jobs.remaining_mwu_of(job).value, 1000000 - 16000, "the work still happened")
+
+
+func test_a_tool_can_only_be_claimed_by_the_resident_who_owns_and_wears_it() -> void:
+	"""The attribution gate. A settlement can only ever debit a tool its own worker holds."""
+	_use_gear()
+	var owner: int = _base_rate_worker()
+	var stranger: int = _base_rate_worker()
+	var _owner_job: int = _worked_job(owner, 1000000)
+	var _stranger_job: int = _worked_job(stranger, 1000000)
+	var tool: Vector2i = _equipped_tool(owner)
+	var stolen: WorkScript.OpResult = _work.claim_tool_for_work(stranger, tool)
+	assert_false(stolen.ok, "another resident cannot claim this tool")
+	assert_equal(stolen.error, WorkScript.REFUSE_TOOL_NOT_OWNED, "because they do not own it")
+	var stored: Vector2i = _make_tool()
+	var unworn: WorkScript.OpResult = _work.claim_tool_for_work(stranger, stored)
+	assert_false(unworn.ok, "a tool sitting in a store is not an EQUIPPED tool")
+	assert_equal(unworn.error, WorkScript.REFUSE_TOOL_NOT_EQUIPPED, "and says which")
+	var missing: WorkScript.OpResult = _work.claim_tool_for_work(stranger, Vector2i(999, 1))
+	assert_equal(missing.error, GearScript.REFUSE_NO_SUCH_GEAR, "an unknown lot has no gear")
+	assert_true(_work.claim_tool_for_work(owner, tool).ok, "the owner may claim it")
+	var twice: WorkScript.OpResult = _work.claim_tool_for_work(owner, tool)
+	assert_false(twice.ok, "and may not claim a second time")
+	assert_equal(twice.error, WorkScript.REFUSE_TOOL_ALREADY_CLAIMED, "with the binding code")
+
+
+func test_a_tool_claim_needs_a_live_job_a_bound_store_and_a_real_resident() -> void:
+	"""Every refusal is explicit and carries no value; none of them is a quiet zero."""
+	var idle: int = _base_rate_worker()
+	var unbound: WorkScript.OpResult = _work.claim_tool_for_work(idle, Vector2i(0, 1))
+	assert_false(unbound.ok, "with no gear store there is nothing to claim against")
+	assert_equal(unbound.error, WorkScript.REFUSE_GEAR_UNAVAILABLE, "and it says so")
+	assert_equal(unbound.value, 0, "carrying no value")
+	_use_gear()
+	var tool: Vector2i = _equipped_tool(idle)
+	var jobless: WorkScript.OpResult = _work.claim_tool_for_work(idle, tool)
+	assert_false(jobless.ok, "an idle resident has no Job for the claim to be keyed on")
+	assert_equal(jobless.error, WorkScript.REFUSE_NO_ACTIVE_JOB, "which is named, not guessed")
+	var out_of_range: WorkScript.OpResult = _work.claim_tool_for_work(-1, tool)
+	assert_equal(out_of_range.error, WorkScript.REFUSE_INVALID_RESIDENT_SLOT, "slot -1 refuses")
+	var released: WorkScript.OpResult = _work.release_tool_claim(idle)
+	assert_false(released.ok, "releasing a claim nobody took refuses")
+	assert_equal(released.error, WorkScript.REFUSE_TOOL_NOT_CLAIMED, "with its own code")
+
+
+func test_releasing_a_claim_returns_the_gear_and_refuses_a_second_release() -> void:
+	"""Cancellation boundary: the gear goes back exactly once, and the carry stays behind."""
+	_use_gear()
+	var worker: int = _base_rate_worker()
+	var job: int = _worked_job(worker, 1000000)
+	var tool: Vector2i = _claimed_tool(worker)
+	_tick_solo_times(job, 10)
+	assert_equal(_carry(worker), 800, "10 ticks carry 800 milli-WU")
+	assert_true(_gear_store.is_claimed(tool), "the gear is claimed while the work runs")
+	assert_equal(_work.bound_tool_count(), 1, "and the binding is counted")
+	assert_true(_work.release_tool_claim(worker).ok, "cancelling the job releases it")
+	assert_false(_gear_store.is_claimed(tool), "so the gear is free again")
+	assert_equal(_work.bound_tool_count(), 0, "and the binding is gone")
+	assert_equal(_carry(worker), 800, "but the carry is NOT: cancellation does not reset it")
+	assert_equal(_work.tool_lot_of(worker), EntityDirectory.NULL_REF, "no lot is bound")
+	assert_equal(_work.tool_job_of(worker), EntityDirectory.NULL_REF, "and no job is either")
+	var again: WorkScript.OpResult = _work.release_tool_claim(worker)
+	assert_false(again.ok, "a second release refuses rather than double-freeing the gear")
+	assert_equal(again.error, WorkScript.REFUSE_TOOL_NOT_CLAIMED, "with the explicit code")
+
+
+func test_binding_a_gear_store_refuses_null_and_refuses_a_swap_under_a_live_claim() -> void:
+	"""A claim lives in one store. Swapping the store beneath it would strand the reservation."""
+	var null_bind: WorkScript.OpResult = _work.bind_gear(null)
+	assert_false(null_bind.ok, "a null gear store is refused, not accepted as an unbind")
+	assert_equal(null_bind.error, WorkScript.REFUSE_GEAR_UNAVAILABLE, "with its own code")
+	_use_gear()
+	assert_not_null(_work.gear(), "the store is published once bound")
+	var worker: int = _base_rate_worker()
+	var _job: int = _worked_job(worker, 1000000)
+	var _tool: Vector2i = _claimed_tool(worker)
+	var swapped: WorkScript.OpResult = _work.bind_gear(GearScript.new(8))
+	assert_false(swapped.ok, "a swap under a live binding refuses")
+	assert_equal(swapped.error, WorkScript.REFUSE_GEAR_BOUND_ALREADY, "naming the live binding")
+	assert_true(_work.release_tool_claim(worker).ok, "release the binding")
+	assert_true(_work.bind_gear(GearScript.new(8)).ok, "and the swap is then allowed")
+
+
+func test_the_settlement_columns_are_one_row_per_resident_and_sized_once() -> void:
+	"""ARCH-MEM-001: five int32 columns and one byte column at the resident capacity."""
+	var expected: int = 5 * WorkScript.RESIDENT_CAPACITY * 4 + WorkScript.RESIDENT_CAPACITY
+	assert_equal(_work.settlement_payload_bytes(), expected, "10752 bytes at 512 residents")
+	assert_equal(expected, 10752, "which is the number the memory ledger must carry")
+	assert_equal(_work.wear_remainder_of(WorkScript.RESIDENT_CAPACITY).ok, false,
+		"one past the last row refuses")
+	assert_equal(_work.tool_lot_of(WorkScript.RESIDENT_CAPACITY), EntityDirectory.NULL_REF,
+		"and so does the binding reader")
+
+
+# --- ECON-002 variable-quantity tip work ---------------------------------------------------------
+
+func test_tip_work_rounds_up_and_matches_the_amendment_worked_examples() -> void:
+	"""ECON-002: compacting costs ceil(q/4) milli-WU and reclaiming costs ceil(q/2).
+
+	The amendment states two worked examples outright -- "2000 milli-U costs 500 milli-WU to
+	compact or 1000 milli-WU to reclaim" -- and those are asserted first. The cases that pin the
+	DIRECTION are the ones where the division does not come out even: q=5 costs 2 to compact, not
+	1, and 3 to reclaim, not 2. Truncating instead of rounding up passes every even case and fails
+	every one of those.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_work.tip_compact_work_mwu_into(2000, out), "compacting 2000 milli-U is priced")
+	assert_equal(out.value, 500, "at 500 milli-WU, the amendment's own example")
+	assert_true(_work.tip_reclaim_work_mwu_into(2000, out), "reclaiming 2000 milli-U is priced")
+	assert_equal(out.value, 1000, "at 1000 milli-WU, the amendment's own example")
+	assert_true(_work.tip_compact_work_mwu_into(8000, out), "8000 compacts")
+	assert_equal(out.value, 2000, "for 2000 milli-WU")
+	assert_true(_work.tip_reclaim_work_mwu_into(8000, out), "8000 reclaims")
+	assert_equal(out.value, 4000, "for 4000 milli-WU")
+	for quantity: int in [1, 2, 3, 4, 5, 6, 7, 9, 4001]:
+		assert_true(_work.tip_compact_work_mwu_into(quantity, out), "every q>0 is priced")
+		assert_equal(out.value, (quantity + 3) / 4, "ceil(q/4) exactly, for q=%d" % quantity)
+		assert_true(_work.tip_reclaim_work_mwu_into(quantity, out), "and reclaim too")
+		assert_equal(out.value, (quantity + 1) / 2, "ceil(q/2) exactly, for q=%d" % quantity)
+
+
+func test_splitting_a_tip_order_can_only_ever_cost_more_work() -> void:
+	"""ECON-002: "Splitting orders can increase rounding work, never lower it".
+
+	That sentence is a property of ceiling division, not a comment: with ceil(), every split of q
+	costs at least ceil(q/d), and with floor() an order split into single milli-units would cost
+	nothing at all. Every split of every q up to 60 is checked for both denominators, and the
+	single-unit split -- the cheapest one an exploit would reach for -- is checked explicitly.
+	"""
+	var whole: IntMath.IntResult = IntMath.IntResult.new()
+	var first: IntMath.IntResult = IntMath.IntResult.new()
+	var second: IntMath.IntResult = IntMath.IntResult.new()
+	var violations: int = 0
+	for quantity: int in range(2, 61):
+		assert_true(_work.tip_compact_work_mwu_into(quantity, whole), "the whole order is priced")
+		for cut: int in range(1, quantity):
+			assert_true(_work.tip_compact_work_mwu_into(cut, first), "the first part is priced")
+			assert_true(_work.tip_compact_work_mwu_into(quantity - cut, second), "and the second")
+			if first.value + second.value < whole.value:
+				violations += 1
+	assert_equal(violations, 0, "no split of any q up to 60 costs less than the whole order")
+	assert_true(_work.tip_compact_work_mwu_into(40, whole), "40 milli-U compacts for 10 milli-WU")
+	assert_equal(whole.value, 10, "whereas splitting it into 40 single units costs 40")
+	assert_true(_work.tip_compact_work_mwu_into(1, first), "because one milli-U still costs work")
+	assert_equal(first.value, 1, "a whole milli-WU of it, which is what makes splitting worse")
+
+
+func test_tip_work_refuses_a_nonpositive_quantity_instead_of_answering_zero() -> void:
+	"""ECON-002 prices these rows for q>0 only. A 0 answer would read as "no work needed"."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_false(_work.tip_compact_work_mwu_into(0, out), "q=0 is refused, not priced at 0")
+	assert_false(out.ok, "and the result says so")
+	assert_false(_work.tip_reclaim_work_mwu_into(0, out), "reclaiming nothing is refused too")
+	assert_false(_work.tip_compact_work_mwu_into(-1, out), "a negative quantity is refused")
+	assert_false(_work.tip_reclaim_work_mwu_into(-2000, out), "in both operations")
+	assert_true(_work.tip_compact_work_mwu_into(1, out), "and the smallest legal order is priced")
+	assert_equal(out.value, 1, "at one milli-WU")

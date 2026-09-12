@@ -215,7 +215,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
 | Fixed registry payload | 25029474 | 1 | 25029474 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037; +126976 decision 0039; +212992 decision 0040; +13312 decision 0041; +40960 decision 0045 FieldPolicy); +35840 decision 0051 hive-service slice; +16 decision 0055 Weather absolute-season identity; +512 decision 0095 Resident life stage) |
-| Auxiliary payload | 20165600 | 1 | 20165600 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053) |
+| Auxiliary payload | 20172256 | 1 | 20172256 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
 | Route cell arena | 1048576 | 4 | 4194304 | mutable | ARCH-PATH-005 cells |
@@ -244,13 +244,13 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 63754547 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
+| Planned allocated payload | 63761203 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 72143155 | Payload + reserve |
-| Headroom below decimal 100 MB | 27856845 | 100000000 − live total |
-| Additional candidate mutable state | 57538963 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 129682118 | Live total + candidate mutable state |
-| Transactional headroom | -29682118 | 100000000 − transactional peak |
+| One live world plus reserve | 72149811 | Payload + reserve |
+| Headroom below decimal 100 MB | 27850189 | 100000000 − live total |
+| Additional candidate mutable state | 57545619 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 129695430 | Live total + candidate mutable state |
+| Transactional headroom | -29695430 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11 by decisions 0055,
 0054 and 0066).** Current planned payload is
@@ -327,6 +327,7 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
 | Resident life stage column | decision 0095 | +512 | 63733034 | 72121642 |
 | Clock load barrier token and its reference | decision 0104 | +9 | 63733043 | 72121651 |
 | Aggregate injury store and the airless input | decision 0109 | +21504 | 63754547 | 72143155 |
+| ProductiveWork tool settlement, less wear_remainder's old I64 budget | decision 0110 | +6656 | 63761203 | 72149811 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
@@ -385,7 +386,9 @@ The GDD registry does not encode every deadline, ownership mapping, or remainder
 | DirectoryIndex | retired, dirty | B8 | 1 | 2 | 352418 | 704836 | [NEW] Allocator/reverse ownership; §4 |
 | ChildSliceIndex | offset, count | I32 | 4 | 2 | 16384 | 131072 | [NEW] Shared slice descriptors for zone/room/feast child arrays; lengths validated |
 | ResidentRuntime | job_scan_cursor, rank_revision, meal_phase, activity_phase, last_health_band, bed_ref_slot, bed_ref_generation | I32 | 4 | 7 | 512 | 14336 | [NEW] Need/job continuation; GDD §5.2–5.3 |
-| ResidentRuntime | last_progress_tick, lease_progress_mwu, wear_remainder, meal_until, next_selector_tick, activity_until | I64 | 8 | 6 | 512 | 24576 | [NEW] Need/job continuation; GDD §5.2–5.3 |
+| ProductiveWork settlement | _wear_remainder, _tool_lot_slot, _tool_lot_generation, _tool_job_slot, _tool_job_generation | I32 | 4 | 5 | 512 | 10240 | [decision 0110] ECON-002's per-contributor tool settlement in `work.gd`. `wear_remainder` LEFT the ResidentRuntime I64 group above in the same change: that store does not exist, this one does, and budgeting one field in two places at two widths is how a ledger drifts. It moves back if a ResidentRuntime store is ever built; it is never duplicated |
+| ProductiveWork settlement | _tool_broken | B8 | 1 | 1 | 512 | 512 | [decision 0110] §5.7's broken-tool gate as an O(1) per-tick read, sound because `gear.gd` refuses every repair, re-owning, unequip and destroy while the claim stands |
+| ResidentRuntime | last_progress_tick, lease_progress_mwu, meal_until, next_selector_tick, activity_until | I64 | 8 | 5 | 512 | 20480 | [NEW] Need/job continuation; GDD §5.2–5.3 |
 | TileHistory | fertility, last_family, family_streak, last_legume_day, compost_season, active_plot_row, orchard_row | I32 | 4 | 7 | 16384 | 458752 | [NEW; +65536 READY_06 §7] Erasing designations cannot erase soil history, INCLUDING the consecutive same-family harvest count |
 | TileHistory | ripe_tick, growth_remainder | I64 | 8 | 2 | 16384 | 262144 | [NEW] Erasing designations cannot erase soil history |
 | TileHistory | tended_today | B8 | 1 | 1 | 16384 | 16384 | [NEW] Erasing designations cannot erase soil history |

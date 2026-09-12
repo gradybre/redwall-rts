@@ -103,10 +103,16 @@ assert DECISION_0104_ADDED==9
 # needs.gd's one _airless input byte. 2560 + 6144 + 12288 + 512.
 DECISION_0109_ADDED=(5*1*512)+(3*4*512)+(3*8*512)+(1*1*512)
 assert DECISION_0109_ADDED==21504
-assert len(allocations)==27 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED
+# decision 0110: work.gd's per-contributor tool settlement, 5 I32 + 1 B8 over RESIDENT_CAPACITY
+# (10240 + 512), MINUS the 4096 that ResidentRuntime's I64 group budgeted for wear_remainder.
+# That store does not exist and this one does; one field budgeted twice at two widths is how a
+# ledger drifts, so the field moved rather than being counted again.
+DECISION_0110_ADDED=(5*4*512)+(1*1*512)-(8*1*512)
+assert DECISION_0110_ADDED==6656
+assert len(allocations)==27 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==63754547
-assert live==72143155 and candidate==57538963 and live+candidate==129682118
+assert payload==63761203
+assert live==72149811 and candidate==57545619 and live+candidate==129695430
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

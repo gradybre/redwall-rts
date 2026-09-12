@@ -48,6 +48,13 @@ extends RefCounted
 ##     unlimited piles, fictional beds, duplicated tools or unregistered inventory owners". NO
 ##     Building, Furniture or Container store exists in `scripts/core/`. FULL INITIALIZATION IS
 ##     THEREFORE BLOCKED and this module generates terrain, resource nodes and ecology only.
+##     UPDATED 2026-09-11 (decision 0064): THE COHORT HALF IS NO LONGER MISSING FROM THE GAME, only
+##     from THIS module. `settlement_system.gd`'s `create_generated_settlement()` calls `generate()`
+##     and then `residents.gd`'s §5.1 cohort as one all-or-nothing operation, so generating a world
+##     now produces a world with somebody in it. The ORDER IS FORCED BY THIS MODULE: `_publish()`
+##     clears the directory, so residents must be spawned AFTER it -- and that costs §5.1's
+##     "IDs 1-12", because §4.2's one id space is consumed by 1713 world entities first. Decision
+##     0064 records the arithmetic. The buildings, beds and containers remain genuinely absent.
 ##   * CORRECTED 2026-09-11 (READY_07 §7.1), TWICE, and both corrections are kept dated rather
 ##     than deleted.
 ##     (1) The original claim said the building footprints are "authored NOWHERE as tile
@@ -1092,6 +1099,31 @@ static func basin_danger_band(basin_index: int) -> int:
 
 
 # --- published-world readers --------------------------------------------------------------------
+
+func directory() -> EntityDirectory:
+	"""The allocator this generator clears and publishes every world entity out of.
+
+	Published so a composing system can PROVE, at composition time, that the generator shares its
+	one directory rather than discovering a second allocator when `WORLD_STORE_DIRECTORY_MISMATCH`
+	refuses a generation. It hands back the same object the constructor was given; it creates none.
+	"""
+	return _directory
+
+
+func clear() -> void:
+	"""Discard the published map so this generator reports no world, reallocating nothing.
+
+	The COMPANION to `_reset_stores()`, and deliberately NOT the same thing. `_reset_stores()`
+	empties the collaborating stores, which this does not touch: a caller that has just emptied
+	them itself -- `settlement_system.gd`'s `reset()` -- would otherwise be left holding a
+	generator still answering `is_published()` true over terrain whose resource nodes, basins and
+	habitats no longer exist. That inconsistency is exactly the half-settlement decision 0059
+	forbids, so the settlement's reset calls this and the two halves stay in step.
+
+	No column is resized; `_reset_published()` refills the published buffers in place.
+	"""
+	_reset_published()
+
 
 func is_published() -> bool:
 	"""True once a generation has published a world, and false before the first one succeeds."""

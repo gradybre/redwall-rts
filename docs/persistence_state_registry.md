@@ -307,6 +307,15 @@ Neither needs new state.
 |---|---|---:|---|---|:-:|---|---|
 | Checked integer arithmetic | -- | -- | -- | -- | 3 | -- | Pure functions and one `IntResult` value class; no module-level `var` and no state. Listed so the registry covers every file under `godot/scripts/core/` and a future state field here cannot slip in unclassified. |
 
+### `godot/scripts/core/injury.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Injury row bytes and latches | `_present`, `_kind`, `_airless_episode`, `_exhaustion_latch`, `_care_context_blocked` | 1 | `RESIDENT_CAPACITY` = 512 | `_present == 0` is a free row; `_kind == 0` (`KIND_NONE`) means no aggregate injury | 1 | §4 COMPONENT_COLUMNS | Decision 0109. `_kind` is GDD §4.3's `InjuryKind`, derived from `catalog.gd`'s protected domain rather than transcribed. HAZ-002/003's latches are future-affecting: losing `_airless_episode` creates a SECOND EXPOSURE incident on reload for one the world already resolved. |
+| Injury severity and rescuer reference | `_severity`, `_rescuer_slot`, `_rescuer_generation` | 4 | `RESIDENT_CAPACITY` = 512 | `_severity == 0` when uninjured; `_rescuer_slot == -1` with generation 0 is the null ref | 1 | §4 COMPONENT_COLUMNS | GDD §4.2's `Injury.severity` and `Injury.rescuer`. The rescuer is an EntityRef in the **directory's** slot/generation space, not a row index in this store -- one of the four distinct generation namespaces. |
+| Injury clocks, care work and incident ordinal | `_untreated_ticks`, `_care_progress_mwu`, `_last_incident_ordinal` | 8 | `RESIDENT_CAPACITY` = 512 | 0 | 1 | §4 COMPONENT_COLUMNS | `untreated_hours` is the floor of `_untreated_ticks` over 750, following `_starving_ticks`. `_last_incident_ordinal` is HAZ-004's one-shot dedup latch: dropping it lets a replayed hazard charge twice. |
+| Injury counters and scratch | -- | -- | -- | -- | 3 | -- | `_present_count`, `_injured_count`, `_last_refused_slot`, `_out_value`, `_math`. |
+
 ### `godot/scripts/core/inventory.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
@@ -428,7 +437,7 @@ Neither needs new state.
 | Cold exposure | `_cold_milli_hours`, `_cold_remainder` | 8 | `RESIDENT_CAPACITY` = 512 | 0 | 1 | §4 COMPONENT_COLUMNS | Accumulated exposure in milli-hours; the winter tests depend on it exactly. |
 | Starvation clock | `_starving_ticks` | 8 | `RESIDENT_CAPACITY` = 512 | 0 = not starving | 1 | §4 COMPONENT_COLUMNS | An absolute tick count driving REQ-SET's starvation death; ARCH-SAVE-006 names "a dying resident" as a coverage case. |
 | Departure countdown | `_departure_days` | 4 | `RESIDENT_CAPACITY` = 512 | 0 = not counting down | 1 | §4 COMPONENT_COLUMNS | Days remaining before a resident leaves. |
-| Resident state bytes | `_status`, `_present`, `_size_class`, `_activity`, `_comfort_environment`, `_social_paired`, `_purpose_source`, `_cold_environment`, `_clothing_tier`, `_infirmary`, `_injury_state` | 1 | `RESIDENT_CAPACITY` = 512 | `_present == 0` is a free row; the rest are byte enums whose 0 is a real value | 1 | §4 COMPONENT_COLUMNS | `_injury_state` is the GDD's Injury model (kind/severity/care), which is settlement healing and NOT a combat damage model. ARCH-SAVE-005 bounds each byte against its `*_COUNT`. |
+| Resident state bytes | `_status`, `_present`, `_size_class`, `_activity`, `_comfort_environment`, `_social_paired`, `_purpose_source`, `_cold_environment`, `_clothing_tier`, `_infirmary`, `_injury_state`, `_airless` | 1 | `RESIDENT_CAPACITY` = 512 | `_present == 0` is a free row; the rest are byte enums whose 0 is a real value | 1 | §4 COMPONENT_COLUMNS | `_injury_state` is the GDD's Injury model (kind/severity/care), which is settlement healing and NOT a combat damage model. ARCH-SAVE-005 bounds each byte against its `*_COUNT`. |
 | Hunger rate table | `_hunger_rate_milli` | 8 | `SIZE_COUNT` = 3 | One entry per size class | 2 | §4 COMPONENT_COLUMNS | Three constants derived from the balance table at construction, not runtime state. |
 | Needs tick scratch | `_rate_scratch` | 8 | `NEED_COUNT` = 5 | Refilled per resident | 3 | -- | Five entries, one per need, reused by the tick. |
 | Needs live counters | -- | -- | -- | -- | 2 | §4 COMPONENT_COLUMNS | `_present_count` and `_living_count`, recomputed from `_present` and `_status`. ARCH-SAVE-005 caps living residents at 256, which is checked against the recomputed value, not a stored one. |

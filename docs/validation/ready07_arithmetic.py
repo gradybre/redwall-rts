@@ -47,10 +47,16 @@ DECISION_0054_ADDED=SCHEDULER_TOTAL
 # payload allocation, not as a new allocation row -- the row count stays 24.
 DECISION_0066_ADDED=512*4
 assert DECISION_0066_ADDED==2048
-assert len(allocations)==24 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED
+# Decision 0080, the packed Building/Room/Furniture index tables plus the per-tile furniture
+# occupant. Eight §3 rows; they roll into the Auxiliary payload allocation, so the row count
+# stays 24. Written as the products rather than one literal so a capacity change is visible.
+DECISION_0080_ADDED=(1*1*1024)+(4*4*1024)+(1*1*16384)+(4*6*16384) \
+	+(1*1*81920)+(4*4*81920)+(4*1*16384)+(4*1*9)
+assert DECISION_0080_ADDED==1885220
+assert len(allocations)==24 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==60823126
-assert live==69211734 and candidate==54607542 and live+candidate==123819276
+assert payload==62708346
+assert live==71096954 and candidate==56492762 and live+candidate==127589716
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

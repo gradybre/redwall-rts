@@ -44,7 +44,7 @@
       "near_tri": 32000,
       "mid_tri": 10000,
       "far_tri": 2500,
-      "surfaces": 4,
+      "surfaces": 16,
       "max_texture_edge": 2048
     },
     {
@@ -100,7 +100,23 @@
   "structure_texels_per_meter": 128,
   "props_texels_per_meter": 256,
   "source_lookdev_brief": {
-    "path": ".claude/worktrees/agent-a3310a509829570cd/docs/art-reference/world_art_lookdev_brief.md",
+    "path": "docs/art-reference/world_art_lookdev_brief.md",
     "sha256": "4e8138103bb709dac9e71445b69c76f35fb63ce05f18decf4ef43fca76cd7edf"
+  },
+  "building_material_count": 4,
+  "building_surfaces_by_lod": {
+    "near": 16,
+    "mid": 16,
+    "far": 4
+  },
+  "static_lod": {
+    "initial_near_px": 180,
+    "initial_mid_px": 48,
+    "promote_near_px": 198,
+    "demote_near_below_px": 162,
+    "promote_mid_px": 52.8,
+    "demote_mid_below_px": 43.2,
+    "residence_seconds": 0.2,
+    "status": "NEW_STATIC_POLICY"
   }
 }

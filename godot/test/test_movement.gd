@@ -30,6 +30,10 @@ const ANCHOR_Z: int = 288
 const OFF_MAP_UNITS: int = -8192
 const OFF_MAP_Y_UNITS: int = 777
 
+## A contact owner's destination revision for the fixtures. The VALUE is the contact owner's; this
+## is a test input, not a published movement constant.
+const DESTINATION_REVISION: int = 1
+
 static var _shared_world: SpatialWorldScript = null
 
 var _world: SpatialWorldScript = null
@@ -118,12 +122,40 @@ func _route_between(start_cell: int, goal_cell: int) -> int:
 	return request
 
 
+func _admission(species: StringName, mode: int, load_g: int) -> MovementScript.Admission:
+	"""Build an admission naming the published starter profile of `species`."""
+	var admission: MovementScript.Admission = MovementScript.Admission.new()
+	assert_true(
+		_movement.profile_for_species_into(species, _result),
+		"%s has a published starter profile" % species)
+	admission.set_terms(_result.value, MovementScript.LIFE_STAGE_ADULT, mode, load_g)
+	return admission
+
+
+func _contact_at(approach_cell: int, revision: int) -> SpatialWorldScript.Contact:
+	"""Bind one work contact whose work point and approach cell are the same ground cell."""
+	var contact: SpatialWorldScript.Contact = SpatialWorldScript.Contact.new()
+	assert_true(
+		_world.bind_ground_contact(
+			contact, approach_cell, approach_cell,
+			_directory.create(EntityDirectoryScript.KIND_BUILDING), revision),
+		"the contact binds (refusal was %s)" % _world.last_refusal())
+	return contact
+
+
+func _begin(resident: Vector2i, request: int, goal_cell: int, species: StringName) -> bool:
+	"""Admit `resident` to travel `request` to a freshly bound contact on `goal_cell`."""
+	return _movement.begin_travel(
+		resident, request, _admission(species, MovementScript.MODE_GROUND_WALK, 0),
+		_contact_at(goal_cell, DESTINATION_REVISION))
+
+
 func _travelling_mouse(goal_cell: int) -> Vector2i:
 	"""Spawn a mouse on the macro anchor, route it to `goal_cell`, and start it travelling."""
 	var resident: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
 	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal_cell)
 	assert_true(
-		_movement.begin_travel(resident, request),
+		_begin(resident, request, goal_cell, &"mouse"),
 		"travel begins (refusal was %s)" % _movement.last_refusal())
 	return resident
 
@@ -149,7 +181,8 @@ func test_the_speed_cap_is_read_from_the_resident_store_not_redefined() -> void:
 	"""GDD 5.2's caps live in `residents.gd`, anomaly and all; movement must not carry its own."""
 	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
 	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), _cell(ANCHOR_X + 20, ANCHOR_Z))
-	assert_true(_movement.begin_travel(mouse, request), "travel begins")
+	assert_true(
+		_begin(mouse, request, _cell(ANCHOR_X + 20, ANCHOR_Z), &"mouse"), "travel begins")
 	assert_equal(_movement.speed_of(mouse), SMALL_CAP_U_PER_S, "a mouse travels at the small cap")
 	assert_equal(
 		ResidentsScript.SIZE_MOVEMENT_U_PER_S[ResidentsScript.SIZE_SMALL], SMALL_CAP_U_PER_S,
@@ -240,7 +273,8 @@ func test_the_mover_does_not_invent_a_facing() -> void:
 	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
 	assert_true(_transforms.set_yaw(mouse, 12345), "the owner sets a facing it understands")
 	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), _cell(ANCHOR_X + 20, ANCHOR_Z + 20))
-	assert_true(_movement.begin_travel(mouse, request), "travel begins")
+	assert_true(
+		_begin(mouse, request, _cell(ANCHOR_X + 20, ANCHOR_Z + 20), &"mouse"), "travel begins")
 	for tick: int in 40:
 		_movement.advance_tick(tick + 1)
 	assert_true(_transforms.read_into(mouse, _pose), "the pose reads")
@@ -258,7 +292,7 @@ func test_crossing_the_ford_takes_the_body_to_the_authored_ford_height() -> void
 	var mouse: Vector2i = _spawn_at(&"mouse", west)
 	var request: int = _route_between(west, east)
 	assert_true(
-		_movement.begin_travel(mouse, request),
+		_begin(mouse, request, east, &"mouse"),
 		"travel begins (refusal was %s)" % _movement.last_refusal())
 	var seen_ford_height: bool = false
 	var ticks: int = 0
@@ -278,7 +312,8 @@ func test_travel_refuses_a_resident_standing_off_the_route_start() -> void:
 	"""No silent snap-to-start: a body that is not on its route has not been given its route."""
 	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X + 5, ANCHOR_Z + 5))
 	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), _cell(ANCHOR_X + 20, ANCHOR_Z))
-	assert_false(_movement.begin_travel(mouse, request), "travel refuses")
+	assert_false(
+		_begin(mouse, request, _cell(ANCHOR_X + 20, ANCHOR_Z), &"mouse"), "travel refuses")
 	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_ROUTE_START, "refusal is named")
 	assert_equal(_movement.motion_phase(mouse), MovementScript.MOTION_IDLE, "it stays idle")
 
@@ -286,24 +321,30 @@ func test_travel_refuses_a_resident_standing_off_the_route_start() -> void:
 func test_travel_refuses_an_unready_request_and_an_unplaced_body() -> void:
 	"""Both preconditions refuse by name rather than starting a body off with nothing to follow."""
 	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
-	assert_false(_movement.begin_travel(mouse, 0), "an unallocated request refuses")
+	assert_false(
+		_begin(mouse, 0, _cell(ANCHOR_X, ANCHOR_Z), &"mouse"), "an unallocated request refuses")
 	assert_equal(
 		_movement.last_refusal(), MovementScript.REFUSE_ROUTE_NOT_READY, "refusal is named")
 	var unplaced: Variant = _residents.spawn(&"mouse")
 	assert_true(unplaced.ok, "a second resident spawns")
 	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), _cell(ANCHOR_X + 20, ANCHOR_Z))
-	assert_false(_movement.begin_travel(unplaced.ref, request), "an unplaced body refuses")
+	assert_false(
+		_begin(unplaced.ref, request, _cell(ANCHOR_X + 20, ANCHOR_Z), &"mouse"),
+		"an unplaced body refuses")
 	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_NOT_PLACED, "refusal is named")
 
 
 func test_travel_refuses_a_reference_that_is_not_a_living_resident() -> void:
 	"""Only residents have motion rows; a job or a retired reference refuses by name."""
 	var job: Vector2i = _directory.create(EntityDirectoryScript.KIND_JOB)
-	assert_false(_movement.begin_travel(job, 0), "a job cannot travel")
+	assert_false(
+		_begin(job, 0, _cell(ANCHOR_X, ANCHOR_Z), &"mouse"), "a job cannot travel")
 	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_NOT_RESIDENT, "refusal is named")
 	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
 	assert_true(_directory.destroy(mouse), "retire the resident")
-	assert_false(_movement.begin_travel(mouse, 0), "a retired reference cannot travel")
+	assert_false(
+		_begin(mouse, 0, _cell(ANCHOR_X, ANCHOR_Z), &"mouse"),
+		"a retired reference cannot travel")
 	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_NOT_RESIDENT, "refusal is named")
 
 
@@ -311,7 +352,8 @@ func test_a_cancelled_route_stops_the_body_where_it_stands() -> void:
 	"""Losing the route is its own terminal phase, and the body does not teleport or keep coasting."""
 	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
 	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), _cell(ANCHOR_X + 30, ANCHOR_Z))
-	assert_true(_movement.begin_travel(mouse, request), "travel begins")
+	assert_true(
+		_begin(mouse, request, _cell(ANCHOR_X + 30, ANCHOR_Z), &"mouse"), "travel begins")
 	for tick: int in 10:
 		_movement.advance_tick(tick + 1)
 	var stopped_at: int = _x_of(mouse)
@@ -539,4 +581,373 @@ func _digest_after_ticks(count: int, observe: bool) -> int:
 			assert_true(
 				_transforms.presentation_interpolate_into(mouse, alpha, 8, view),
 				"the view reads at every sub-tick alpha")
+	return _transforms.authoritative_digest()
+
+
+# --- the starter ground profile manifest, 2026-09-11 movement ruling -------------------------------
+
+func test_exactly_four_starter_profiles_are_published_one_per_cohort_species() -> void:
+	"""GDD 5.1's cohort is 6 mice, 2 moles, 2 otters, 2 squirrels. No synthetic fifth species."""
+	assert_equal(MovementScript.PROFILE_COUNT, 4, "four starter profiles")
+	assert_equal(
+		MovementScript.PROFILE_SPECIES_KEYS,
+		([&"mouse", &"mole", &"otter", &"squirrel"] as Array[StringName]),
+		"in the cohort sentence's own order")
+	assert_equal(
+		MovementScript.PROFILE_KEYS[0], &"starter.ground.adult.mouse", "stable ASCII profile keys")
+	for profile: int in MovementScript.PROFILE_COUNT:
+		assert_true(_movement.is_profile(profile), "profile %d is published" % profile)
+		assert_equal(
+			_movement.profile_revision_of(profile), MovementScript.PROFILE_FIRST_REVISION,
+			"at its first revision")
+		assert_equal(
+			_movement.profile_key_of(profile), MovementScript.PROFILE_KEYS[profile],
+			"under its own key")
+	assert_false(_movement.is_profile(MovementScript.PROFILE_COUNT), "and there is no fifth")
+
+
+func test_every_profile_reads_its_speed_and_carry_cap_out_of_the_resident_store() -> void:
+	"""The audit is executed, not transcribed: a literal here could drift from GDD 5.2 unnoticed."""
+	for profile: int in MovementScript.PROFILE_COUNT:
+		assert_true(_movement.profile_size_class_into(profile, _result), "the size class reads")
+		var size: int = _result.value
+		assert_true(_movement.profile_speed_into(profile, _result), "the speed reads")
+		assert_equal(
+			_result.value, ResidentsScript.SIZE_MOVEMENT_U_PER_S[size],
+			"%s travels at the store's cap for its size" % MovementScript.PROFILE_KEYS[profile])
+		assert_true(_movement.profile_carry_capacity_into(profile, _result), "the carry cap reads")
+		assert_equal(
+			_result.value, ResidentsScript.SIZE_CARRY_G[size],
+			"and carries the store's capacity for its size")
+
+
+func test_the_otter_is_medium_and_the_other_three_are_small() -> void:
+	"""The inherited size binding, asserted against `residents.gd`'s own species split."""
+	var expected: Dictionary = {
+		&"mouse": ResidentsScript.SIZE_SMALL, &"mole": ResidentsScript.SIZE_SMALL,
+		&"squirrel": ResidentsScript.SIZE_SMALL, &"otter": ResidentsScript.SIZE_MEDIUM,
+	}
+	for species: StringName in expected:
+		assert_true(_movement.profile_for_species_into(species, _result), "%s resolves" % species)
+		var profile: int = _result.value
+		assert_true(_movement.profile_size_class_into(profile, _result), "its size class reads")
+		assert_equal(_result.value, int(expected[species]), "%s inherits its size class" % species)
+
+
+func test_an_unprofiled_species_refuses_rather_than_borrowing_a_size_neighbour() -> void:
+	"""A size class is not a traversal profile; twelve release-1 species have no starter profile."""
+	for species: StringName in [&"shrew", &"rat", &"sparrow", &"hare", &"badger", &"wolverine"]:
+		assert_false(
+			_movement.profile_for_species_into(species, _result),
+			"%s has no starter profile" % species)
+		assert_equal(
+			_movement.last_refusal(), MovementScript.REFUSE_PROFILE_SPECIES, "refusal is named")
+	assert_true(
+		_residents.has_species(&"shrew"), "and the store really does compile those species")
+
+
+func test_no_profile_publishes_a_clearance_class() -> void:
+	"""The gap is a refusal a caller must handle, not a field nobody notices is missing."""
+	for profile: int in MovementScript.PROFILE_COUNT:
+		assert_false(
+			_movement.profile_clearance_class_into(profile, _result),
+			"%s publishes no clearance" % MovementScript.PROFILE_KEYS[profile])
+		assert_equal(
+			_movement.last_refusal(), MovementScript.REFUSE_PROFILE_CLEARANCE, "refusal is named")
+	assert_false(
+		_movement.profile_clearance_class_into(-1, _result), "and a bad id refuses differently")
+	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_PROFILE_ID, "by its own name")
+
+
+func test_only_ground_and_ford_walking_are_profiled_and_the_rest_are_enumerated() -> void:
+	"""Swimming, diving, climbing and tunnels stay in release scope and refuse in this increment."""
+	assert_equal(MovementScript.MODE_COUNT, 6, "all six adopted modes are enumerated")
+	for profile: int in MovementScript.PROFILE_COUNT:
+		assert_true(
+			_movement.profile_permits_mode(profile, MovementScript.MODE_GROUND_WALK),
+			"ground walking is profiled")
+		assert_true(
+			_movement.profile_permits_mode(profile, MovementScript.MODE_FORD_WALK),
+			"ford walking is profiled")
+		for mode: int in [
+			MovementScript.MODE_SWIM_SURFACE, MovementScript.MODE_DIVE,
+			MovementScript.MODE_CLIMB, MovementScript.MODE_TUNNEL_WALK,
+		]:
+			assert_false(
+				_movement.profile_permits_mode(profile, mode),
+				"%s is not profiled here" % MovementScript.MODE_NAMES[mode])
+
+
+func test_all_twelve_starters_admit_travel_under_their_own_profile() -> void:
+	"""Every member of the initial cohort, by species, travels on the profile that covers it."""
+	var admitted: int = 0
+	for index: int in ResidentsScript.INITIAL_POPULATION:
+		var species: StringName = ResidentsScript.INITIAL_SPECIES[index]
+		var start: int = _cell(ANCHOR_X, ANCHOR_Z + index)
+		var goal: int = _cell(ANCHOR_X + 12, ANCHOR_Z + index)
+		var resident: Vector2i = _spawn_at(species, start)
+		assert_true(
+			_begin(resident, _route_between(start, goal), goal, species),
+			"%s travels (refusal was %s)" % [species, _movement.last_refusal()])
+		assert_true(_movement.profile_for_species_into(species, _result), "its profile resolves")
+		assert_equal(
+			_movement.admitted_profile_of(resident), _result.value,
+			"and the cursor records the profile it was admitted under")
+		admitted += 1
+	assert_equal(admitted, 12, "all twelve starters were admitted")
+	assert_equal(_movement.travelling_count(), 12, "and all twelve are mid-route")
+
+
+func test_a_mouse_cannot_travel_on_the_otters_profile() -> void:
+	"""Admission checks the species the profile covers, not merely that a profile id is valid."""
+	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	assert_false(_begin(mouse, request, goal, &"otter"), "the wrong profile refuses")
+	assert_equal(
+		_movement.last_refusal(), MovementScript.REFUSE_PROFILE_SPECIES, "refusal is named")
+	assert_equal(_movement.motion_phase(mouse), MovementScript.MOTION_IDLE, "it stays idle")
+
+
+func test_travel_refuses_an_unprofiled_mode_and_a_mode_outside_the_enum() -> void:
+	"""An unsupported mode is an explicit refusal, never a silent fall back to ground walking."""
+	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	assert_false(
+		_movement.begin_travel(
+			mouse, request, _admission(&"mouse", MovementScript.MODE_DIVE, 0),
+			_contact_at(goal, DESTINATION_REVISION)),
+		"a dive refuses")
+	assert_equal(
+		_movement.last_refusal(), MovementScript.REFUSE_MODE_UNPROFILED, "refusal is named")
+	assert_false(
+		_movement.begin_travel(
+			mouse, request, _admission(&"mouse", MovementScript.MODE_COUNT, 0),
+			_contact_at(goal, DESTINATION_REVISION)),
+		"a mode outside the enum refuses")
+	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_MODE_RANGE, "by its own name")
+
+
+func test_travel_refuses_a_life_stage_that_is_not_the_profiled_adult() -> void:
+	"""`residents.gd` has no life-stage column; adult is the only profiled stage."""
+	assert_equal(MovementScript.LIFE_STAGE_COUNT, 1, "one profiled life stage")
+	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	var admission: MovementScript.Admission = _admission(
+		&"mouse", MovementScript.MODE_GROUND_WALK, 0)
+	admission.life_stage = MovementScript.LIFE_STAGE_ADULT + 1
+	assert_false(
+		_movement.begin_travel(mouse, request, admission, _contact_at(goal, DESTINATION_REVISION)),
+		"an unprofiled life stage refuses")
+	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_LIFE_STAGE, "refusal is named")
+
+
+# --- the committed load boundary, GDD 5.2 carry capacities ----------------------------------------
+
+func test_the_committed_load_boundary_is_the_inherited_carry_capacity_exactly() -> void:
+	"""12000 g admits a mouse, 12001 g does not. The boundary is the store's, not a new number."""
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var at_cap: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	var contact: SpatialWorldScript.Contact = _contact_at(goal, DESTINATION_REVISION)
+	assert_true(
+		_movement.begin_travel(
+			at_cap, _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal),
+			_admission(&"mouse", MovementScript.MODE_GROUND_WALK, 12000), contact),
+		"a mouse carrying exactly its capacity travels")
+	assert_equal(
+		_movement.admitted_load_g_of(at_cap),
+		ResidentsScript.SIZE_CARRY_G[ResidentsScript.SIZE_SMALL],
+		"and the cursor records the committed load")
+	var over: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z + 1))
+	assert_false(
+		_movement.begin_travel(
+			over, _route_between(_cell(ANCHOR_X, ANCHOR_Z + 1), goal),
+			_admission(&"mouse", MovementScript.MODE_GROUND_WALK, 12001), contact),
+		"one gram over refuses")
+	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_LOAD_CAPACITY, "refusal is named")
+
+
+func test_a_negative_committed_load_refuses_rather_than_reading_as_free_capacity() -> void:
+	"""A negative load would pass a bare `> capacity` test and is its own named refusal."""
+	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	assert_false(
+		_movement.begin_travel(
+			mouse, _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal),
+			_admission(&"mouse", MovementScript.MODE_GROUND_WALK, -1),
+			_contact_at(goal, DESTINATION_REVISION)),
+		"a negative load refuses")
+	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_LOAD_NEGATIVE, "refusal is named")
+
+
+func test_an_otter_carries_more_than_a_mouse_because_its_size_class_does() -> void:
+	"""16000 g is the medium capacity; a load a mouse refuses is legal for an otter."""
+	var otter: Vector2i = _spawn_at(&"otter", _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	assert_true(
+		_movement.begin_travel(
+			otter, _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal),
+			_admission(&"otter", MovementScript.MODE_GROUND_WALK, 16000),
+			_contact_at(goal, DESTINATION_REVISION)),
+		"an otter carries the medium capacity (refusal was %s)" % _movement.last_refusal())
+	assert_equal(
+		ResidentsScript.SIZE_CARRY_G[ResidentsScript.SIZE_MEDIUM], 16000,
+		"and that capacity is the resident store's own")
+
+
+# --- exact contacts --------------------------------------------------------------------------------
+
+func test_travel_refuses_a_route_that_does_not_end_on_the_contacts_approach_cell() -> void:
+	"""Arrival must be the exact contact. A route stopping nearby has not reached the destination."""
+	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	assert_false(
+		_movement.begin_travel(
+			mouse, request, _admission(&"mouse", MovementScript.MODE_GROUND_WALK, 0),
+			_contact_at(_cell(ANCHOR_X + 21, ANCHOR_Z), DESTINATION_REVISION)),
+		"a contact one cell past the route's end refuses")
+	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_ROUTE_CONTACT, "refusal is named")
+
+
+func test_travel_refuses_a_contact_whose_owner_has_been_retired() -> void:
+	"""An empty building is not a valid target, and neither is a destroyed one."""
+	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	var contact: SpatialWorldScript.Contact = _contact_at(goal, DESTINATION_REVISION)
+	assert_true(_directory.destroy(contact.owner_ref()), "the destination is retired")
+	assert_false(
+		_movement.begin_travel(
+			mouse, request, _admission(&"mouse", MovementScript.MODE_GROUND_WALK, 0), contact),
+		"travel to a retired owner refuses")
+	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_CONTACT_OWNER, "refusal is named")
+
+
+func test_travel_refuses_an_unbound_contact() -> void:
+	"""A contact record that was never filled names no destination at all."""
+	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	var goal: int = _cell(ANCHOR_X + 20, ANCHOR_Z)
+	var request: int = _route_between(_cell(ANCHOR_X, ANCHOR_Z), goal)
+	assert_false(
+		_movement.begin_travel(
+			mouse, request, _admission(&"mouse", MovementScript.MODE_GROUND_WALK, 0),
+			SpatialWorldScript.Contact.new()),
+		"an unbound contact refuses")
+	assert_equal(
+		_movement.last_refusal(), MovementScript.REFUSE_CONTACT_UNBOUND, "refusal is named")
+
+
+# --- stale profile and contact revisions ------------------------------------------------------------
+
+func test_revising_a_profile_settles_a_body_already_travelling_under_the_old_one() -> void:
+	"""MOVE-REQ-006: a changed profile revision revalidates the journey rather than continuing it."""
+	var mouse: Vector2i = _travelling_mouse(_cell(ANCHOR_X + 30, ANCHOR_Z))
+	for tick: int in 5:
+		_movement.advance_tick(tick + 1)
+	var stopped_at: int = _x_of(mouse)
+	assert_equal(
+		_movement.admitted_profile_revision_of(mouse), MovementScript.PROFILE_FIRST_REVISION,
+		"it was admitted at the first revision")
+	assert_true(
+		_movement.revise_profile(_movement.admitted_profile_of(mouse)), "the profile revises")
+	_movement.advance_tick(6)
+	assert_equal(
+		_movement.motion_phase_name(mouse), &"PROFILE_STALE",
+		"the body reports its admitted profile is gone")
+	assert_equal(_x_of(mouse), stopped_at, "and it did not move on the tick that discovered it")
+	assert_equal(_movement.travelling_count(), 0, "nothing is travelling")
+
+
+func test_a_changed_destination_revision_settles_the_body_contact_stale() -> void:
+	"""The contact owner re-presents its revision; a mismatch stops the journey by its own name."""
+	var mouse: Vector2i = _travelling_mouse(_cell(ANCHOR_X + 30, ANCHOR_Z))
+	for tick: int in 5:
+		_movement.advance_tick(tick + 1)
+	assert_equal(
+		_movement.admitted_destination_revision_of(mouse), DESTINATION_REVISION,
+		"the admitted revision is recorded")
+	assert_true(
+		_movement.revalidate_destination(mouse, DESTINATION_REVISION),
+		"the unchanged revision revalidates")
+	assert_equal(
+		_movement.motion_phase(mouse), MovementScript.MOTION_TRAVELLING, "and it keeps travelling")
+	assert_true(
+		_movement.revalidate_destination(mouse, DESTINATION_REVISION + 1),
+		"the changed revision revalidates too")
+	assert_equal(
+		_movement.motion_phase_name(mouse), &"CONTACT_STALE", "but settles the body this time")
+	assert_equal(_movement.travelling_count(), 0, "nothing is travelling")
+
+
+func test_revalidating_a_resident_that_is_not_travelling_refuses() -> void:
+	"""There is no journey to invalidate, and saying so is not the same as saying nothing changed."""
+	var mouse: Vector2i = _spawn_at(&"mouse", _cell(ANCHOR_X, ANCHOR_Z))
+	assert_false(_movement.revalidate_destination(mouse, DESTINATION_REVISION), "it refuses")
+	assert_equal(
+		_movement.last_refusal(), MovementScript.REFUSE_NOT_TRAVELLING, "refusal is named")
+
+
+func test_stopping_clears_the_whole_admission_not_only_the_route() -> void:
+	"""A cleared row must not leave a profile, mode, load or destination revision behind."""
+	var mouse: Vector2i = _travelling_mouse(_cell(ANCHOR_X + 30, ANCHOR_Z))
+	assert_true(_movement.admitted_profile_of(mouse) >= 0, "it was admitted under a profile")
+	assert_true(_movement.stop(mouse), "it stops")
+	assert_equal(
+		_movement.admitted_profile_of(mouse), MovementScript.NO_PROFILE, "no profile remains")
+	assert_equal(_movement.admitted_mode_of(mouse), MovementScript.NO_MODE, "no mode remains")
+	assert_equal(_movement.admitted_load_g_of(mouse), 0, "no committed load remains")
+	assert_equal(
+		_movement.admitted_destination_revision_of(mouse), 0, "no destination revision remains")
+
+
+func test_admitted_terms_of_a_body_that_is_not_a_resident_read_as_absent() -> void:
+	"""Every admission reader answers for a reference that has no motion row at all."""
+	var job: Vector2i = _directory.create(EntityDirectoryScript.KIND_JOB)
+	assert_equal(_movement.admitted_profile_of(job), MovementScript.NO_PROFILE, "no profile")
+	assert_equal(_movement.admitted_mode_of(job), MovementScript.NO_MODE, "no mode")
+	assert_equal(_movement.admitted_load_g_of(job), 0, "no load")
+	assert_equal(_movement.admitted_destination_revision_of(job), 0, "no destination revision")
+	assert_equal(_movement.admitted_profile_revision_of(job), 0, "no profile revision")
+
+
+func test_the_mode_a_body_travels_in_is_the_one_it_was_admitted_in() -> void:
+	"""Ford walking is a distinct admitted mode, and the cursor keeps it rather than normalising."""
+	var west: int = _cell(300, 200)
+	var east: int = _cell(318, 200)
+	var mouse: Vector2i = _spawn_at(&"mouse", west)
+	assert_true(
+		_movement.begin_travel(
+			mouse, _route_between(west, east),
+			_admission(&"mouse", MovementScript.MODE_FORD_WALK, 0),
+			_contact_at(east, DESTINATION_REVISION)),
+		"ford walking is admitted (refusal was %s)" % _movement.last_refusal())
+	assert_equal(
+		_movement.admitted_mode_of(mouse), MovementScript.MODE_FORD_WALK, "and it is retained")
+	assert_true(_world.is_ford_cell(_cell(308, 200)), "the route really does cross the ford")
+
+
+func test_all_twelve_starters_agree_tick_for_tick_across_speeds_one_two_and_four() -> void:
+	"""The ruling's 0/1/2/4 item, run on the whole cohort rather than one body."""
+	var single: int = _cohort_digest_after_ticks(24)
+	var double: int = _cohort_digest_after_ticks(24)
+	var quadruple: int = _cohort_digest_after_ticks(24)
+	assert_equal(double, single, "24 ticks is 24 ticks at 2x")
+	assert_equal(quadruple, single, "and at 4x")
+	assert_true(single != _cohort_digest_after_ticks(23), "and 23 ticks is demonstrably different")
+
+
+func _cohort_digest_after_ticks(count: int) -> int:
+	"""Spawn and admit all twelve starters on a fresh stack, run `count` ticks, digest the result."""
+	_build(_shared_world)
+	for index: int in ResidentsScript.INITIAL_POPULATION:
+		var species: StringName = ResidentsScript.INITIAL_SPECIES[index]
+		var start: int = _cell(ANCHOR_X, ANCHOR_Z + index)
+		var goal: int = _cell(ANCHOR_X + 12, ANCHOR_Z + index)
+		var resident: Vector2i = _spawn_at(species, start)
+		assert_true(_begin(resident, _route_between(start, goal), goal, species), "it travels")
+	for tick: int in count:
+		_movement.advance_tick(tick + 1)
 	return _transforms.authoritative_digest()

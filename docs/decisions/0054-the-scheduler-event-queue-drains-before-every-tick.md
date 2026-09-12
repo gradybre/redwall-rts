@@ -172,7 +172,13 @@ Two things, not one. `sim_clock.gd`'s header said the only open item was
 persistence; an adversarial review found that false and it has been corrected
 there and here.
 
-### 1. No production caller drains the queue
+**Item 1 was closed later the same day by
+[decision 0084](0084-the-running-game-drives-the-scheduler-event-queue.md).
+Item 2 is the work 0084 had to get right, and it did. Both sections are kept
+below as written, with what closed marked on each, because the reasoning in them
+is what a future reader needs — not merely the verdict.**
+
+### 1. No production caller drains the queue — **CLOSED by decision 0084**
 
 `scheduler_events.gd` is `preload`ed by exactly one file in this repository,
 `godot/test/test_scheduler_events.gd`. The other three mentions of it —
@@ -197,7 +203,24 @@ pins, and that is precisely what production gets today.
 game — the overload ladder moves from in-frame to next-frame — and belongs to
 whoever owns `game_manager.gd`, not to a documentation correction.
 
-### 2. What wiring it will have to get right
+**What actually closed it.** `advance_host_time()` now calls
+`scheduler_events.advance_frame()`, which supplies both hooks, and every speed
+and pause control submits a queue event. The behaviour change named above landed
+as described and is pinned by two named tests. `scheduler_events.gd` is
+**byte-unchanged** by that work and `sim_clock.gd` changed in comments only.
+The cheaper sub-item — "nothing yet in production reads
+`event_refusal()`/`last_refusal()`" — closed too: `GameManager.last_refusal()`
+now carries the queue's codes unchanged, so a refused admission is named rather
+than silent. A **UI surface** for that refusal is still not built; that is UI's,
+not the scheduler's.
+
+**What did NOT close with it.** Blocker U3 is untouched and
+`acknowledge_without_catchup()` is still byte-identical — and, because the
+queue's two kinds cannot express "clear the retained debt", it is still the one
+control that reaches the clock directly. Decision 0084 names that as a deliberate
+non-change rather than closing it.
+
+### 2. What wiring it will have to get right — **satisfied by decision 0084**
 
 `start_game()` (`:154`) constructs a **fresh** `SimClockScript.new()` on every
 start, discarding the previous run's clock. A queue built against the old clock
@@ -216,6 +239,16 @@ refusal runs the new clock against a queue pointed at a dead one.
 Also open, and cheaper: nothing yet in production reads
 `event_refusal()`/`last_refusal()` from the queue, so a refused admission today
 would have no UI path.
+
+**How it was got right.** `start_game()` is now `clear()` → fresh clock →
+`rebind_clock()`, in that order, and returns `bool` so a refused rebind refuses
+the start instead of being swallowed. Because `clear()` guarantees an empty
+queue, the refusal is unreachable in production, so the order is only observably
+load-bearing against a fixture that leaves a record pending on purpose —
+`test_restarting_clears_the_queue_before_rebinding_it_to_the_new_clock` is that
+fixture, and three separate order mutations (rebind before clear, no clear at
+all, rebind to the old clock) are killed by it and its neighbours.
+
 - Blocker U3 is **not** closed. The conservative reading stands, now with the
   reconciliation above written down.
 - ARCH-MEM-010 gains **8224** bytes, added once. On this record's own base

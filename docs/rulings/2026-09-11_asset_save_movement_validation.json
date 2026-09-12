@@ -272,6 +272,31 @@
       "detail": null
     },
     {
+      "name": "State domain is11 bytes without terminator",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Static hysteresis boundaries",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Multipart building budget",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Durable source brief path",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "Relative link docs/planning/asset_dimensions_and_budgets.md -> ../art-reference/world_art_lookdev_brief.md",
+      "passed": true,
+      "detail": null
+    },
+    {
       "name": "Relative link docs/rulings/2026-09-11_save_codec_contract.md -> ../planning/save_identity_test_vectors.json",
       "passed": true,
       "detail": null
@@ -323,9 +348,9 @@
     }
   ],
   "result": "PASS",
-  "checked_at_utc": "2026-09-12T01:40:34.580904+00:00",
+  "checked_at_utc": "2026-09-12T01:42:58.487352+00:00",
   "source_brief_sha256": "4e8138103bb709dac9e71445b69c76f35fb63ce05f18decf4ef43fca76cd7edf",
-  "asset_json_sha256": "7b9251987aa9e81ddc1a91dc9bf83ed536dc82b7b316ad76d60082b6c3e605cc",
+  "asset_json_sha256": "f6254a649ab95ac0350986ea5ec66d414ca89f4e056e6ec28d9060ae9e537803",
   "not_tested": [
     "Godot runtime changes (none authored in this turn)",
     "Production codec interoperability and continuation",

@@ -657,9 +657,12 @@ var _fauna_birth_remainder: PackedInt64Array = PackedInt64Array()
 
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _measured: Measurements = Measurements.new()
-## One byte per directory kind: 1 when the CALLER's reset clears that kind, 0 otherwise.
-## KIND_COUNT bytes, allocated once in `_init`, never resized. See `declare_externally_cleared()`.
-var _externally_cleared: PackedByteArray = PackedByteArray()
+## Bit `kind` is set when the CALLER's reset clears that kind. See `declare_externally_cleared()`.
+##
+## A scalar mask rather than a PackedByteArray: KIND_COUNT is 18, comfortably inside an int, so
+## this needs no allocation, no §2.3 ledger row and no registry column of its own -- it is
+## generation scratch exactly like `_foreign_kind` beside it, and is counted with it.
+var _externally_cleared_mask: int = 0
 var _foreign_kind: int = EntityDirectory.KIND_ANY
 
 # The plan `preflight()` accepted and `publish_prepared()` will create, held between the two so the
@@ -687,8 +690,7 @@ func _init(p_directory: EntityDirectory, p_nodes: ResourceNodesScript,
 	_orchards = p_orchards
 	_jobs = p_jobs
 	_commands = p_commands
-	_externally_cleared.resize(EntityDirectory.KIND_COUNT)
-	_externally_cleared.fill(0)
+	_externally_cleared_mask = 0
 	_allocate_columns()
 	_assert_authored_constants()
 	_stage_masks()
@@ -1704,15 +1706,15 @@ func declare_externally_cleared(kinds: PackedInt32Array) -> void:
 	that passes `reset` as a Callable is the only object that knows what that Callable clears, so
 	it is the only object that may say so.
 	"""
-	_externally_cleared.fill(0)
+	_externally_cleared_mask = 0
 	for kind: int in kinds:
 		if kind >= 0 and kind < EntityDirectory.KIND_COUNT:
-			_externally_cleared[kind] = 1
+			_externally_cleared_mask |= 1 << kind
 
 
 func _owns_kind(kind: int) -> bool:
 	"""True when a store this generator was given owns every live row of `kind` and will clear it."""
-	if _externally_cleared[kind] == 1:
+	if (_externally_cleared_mask >> kind) & 1 == 1:
 		return true
 	match kind:
 		EntityDirectory.KIND_RESOURCE_NODE, EntityDirectory.KIND_HARVEST_ZONE, \

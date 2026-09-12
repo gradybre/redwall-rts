@@ -35,9 +35,12 @@ in alongside. They were never orphan risks.
 ## Decision
 
 The caller declares which directory kinds its reset clears.
-`world_init.declare_externally_cleared(kinds)` sets one byte per kind in a
-`PackedByteArray` sized `KIND_COUNT`, allocated once in `_init`, and
-`_owns_kind()` consults it first. `ui_world_session.gd` declares exactly
+`world_init.declare_externally_cleared(kinds)` sets one bit per kind in a
+scalar mask, and `_owns_kind()` consults it first. A `PackedByteArray` of
+`KIND_COUNT` was written first and replaced: `KIND_COUNT` is 18, comfortably
+inside an int, and the array form cost an §2.3 allocation row and a registry
+column — `state_registry_coverage` failed on it — to store eighteen bits. The
+mask is generation scratch exactly like `_foreign_kind` beside it. `ui_world_session.gd` declares exactly
 `KIND_RESIDENT`, beside the `reset` Callable it already passes.
 
 Three things this deliberately is not:
@@ -66,13 +69,24 @@ generator that never declared anything at all.
 
 - Declaring every kind instead of the named ones — survived until a test
   declared one kind and asserted a *different* one still refuses.
-- Sizing the mask one byte short — survived until a test declared `KIND_WORLD`,
-  the last kind, which is the only index that falls off the end.
+- Sizing the mask one short — survived until a test declared `KIND_WORLD`, the
+  last kind, which is the only index that falls off the end. (Written against
+  the array form; the test outlived it and still pins the boundary.)
 - Dropping the `fill(0)` so declarations accumulate — survived until a test
   declared a kind and then withdrew it.
 
 The lesson is the same in all three: adding a permission path adds a surface
 that no existing test covers by construction, because those tests predate it.
+
+One mutation is left alive as genuinely equivalent, and it is the same change
+that motivated the encoding: relaxing the bound to `kind <= KIND_COUNT`. Against
+the `PackedByteArray` form it wrote one past the end and a test killed it.
+Against the mask it sets an unread bit — `_owns_kind()` is only ever asked about
+kinds `0..KIND_COUNT - 1` — so nothing observable differs. The guard still earns
+its place by stopping a large `kind` from shifting past the int, which is not
+equivalent; only the off-by-one at exactly `KIND_COUNT` is. The boundary test
+that killed the array version is kept: it pins that declaring the last kind
+works, which is a property of the mask too.
 
 `create_into()`, the non-cohort path, declares nothing and is unchanged; it
 runs `generate()`, whose own reset handles its own stores.

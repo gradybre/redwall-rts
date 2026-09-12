@@ -171,3 +171,11 @@ Running total owed to those two files' owner: **12384** bytes.
 - **No destination-revision producer exists.** Nothing calls `revalidate_destination()` per tick,
   because no building, room or service store publishes a revision. That is the contact owner's
   piece of the ruling's item 4.
+
+## Astra response — 2026-09-12
+
+[PATH-R02 and MOVE-DEP-R01–05](../rulings/2026-09-12_movement_dependency_rulings.md)
+supply the exact-start detour fix and explicitly assign the five omitted
+profile/life-stage/rig/graph/contact dependencies. Original observations above
+remain historical measurements, not a current absence-of-ruling claim. Runtime
+changes and full movement qualification remain separate work.

@@ -188,3 +188,8 @@ budgets, cutaway parts, material/texture-density rules and settlement L0 admissi
 New budgets are design targets. Non-mouse proportions still need the prescribed
 comparison review; neither these dimensions nor the approved style closes movement
 or hardware qualification. Supplied-reference direct-use authorization is unchanged.
+
+## Astra follow-up — 2026-09-12
+
+MOVE-DEP-R01/03 specify horizontal-envelope ownership and all16 logical rig IDs. Missing art does not decide simulation eligibility; actual rigs and proportional review still need evidence.
+Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.

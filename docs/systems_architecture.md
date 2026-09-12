@@ -1012,3 +1012,11 @@ records or immutable catalog contents. Add them to measured ledger/registry only
 with implementation, once; they do not erase earlier uncounted obligations.
 Affected owner/section versions and identities change before accepting saves.
 These contracts do not close full MOVE-G01/G02/G04 or task08 dependent simulation.
+
+## Resident UI contract follow-up — 2026-09-12
+
+NEED-RATE-R01 adds four public non-allocating rate readers, reusing existing
+selector semantics for selected-resident snapshots while retaining one-pass tick
+integration. No new authoritative cache or packed state is introduced. It does
+not change GDD §5.2 formulas, remainder arithmetic or pause behavior.
+Read [the exact ruling](rulings/2026-09-12_resident_header_and_need_rates.md).

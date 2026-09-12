@@ -234,7 +234,10 @@ that subsequent state, not auto-opening behavior.
 Resident hierarchy: (1) full name, species/age, close control and generic emblem;
 (2) health; (3) five needs; (4) current activity and skills; (5) Center view.
 Use the reference's 20 px side insets, 16 px section separation, and 52 px need
-rows when displaying hourly rates. Header grows to wrap long names; never reduce
+rows when displaying hourly rates. [UI-IDENTITY-R01](rulings/2026-09-12_resident_header_and_need_rates.md)
+owns the side-by-side48/64/64px medallion,172/172/220px flexible name column,
+two8px gaps and44px Close; the resident037 instance has no280px name minimum
+or64px height cap. Header grows to wrap long names; never reduce
 name size or overlay Close. Keep the header/close and a 64 px center-action footer
 visible; the content body scrolls. Center view is 44 high. A name is a heading,
 not a dense concatenation of name/species/health in one line. If additional tabs
@@ -286,6 +289,10 @@ message and actual recovery, not a fake resident.
   e.g.100 / 100. Fullness is satisfaction, not severity; do not fill 25% for7500.
 - Per-hour change means per **simulated** hour. Show signed percentage points/hour
   to two decimals; display-only rounding is nearest with ties away from zero.
+  [NEED-RATE-R01](rulings/2026-09-12_resident_header_and_need_rates.md) defines the
+  continuous current-context rate BEFORE need-value clamping: preserve its signed
+  value with Capped at an outward bound. Pause/speed do not scale this rate; it
+  is not an hour-ahead forecast or a discrete meal effect.
   −250 need points/hour→−2.50 pp/h. Use the actual effective model context, not
   the baseline formula as a universal answer. If rate isn't published, say Rate
   unavailable; the missing rate remains an unfulfilled binding requirement.
@@ -335,7 +342,7 @@ form. Acceptance IDs refer to [the test/review matrix](design/ui_refinement/acce
 | UXV-017 | Show actual effective pause reasons in player wording, requested speed separately and current date. Use actual pause/menu/calendar glyphs, not unsupported Unicode stand-ins. | UI-SET-013–019/086/101 | A10 |
 | UXV-018 | With no active alert, show only History; no empty alert card or invented flavor notice. Real alerts use icon, severity, actual cause and available recovery. | UI-SET-010–012/085/102 | A11 |
 | UXV-019 | The journal shall lead with the full persisted display name and actual species/age/status. A generic species emblem is identified as such and never implies a unique portrait or invented biography. | UI-SET-036–038 | A12 |
-| UXV-020 | Render five independent need rows with a label, exact percent, 8 px track and current per-simulated-hour change; never expose 7500 as the player-facing 75% value. | UI-SET-039 | A12 |
+| UXV-020 | Render five independent need rows with a label, exact percent, 8 px track and current per-simulated-hour continuous rate with explicit Capped status at outward bounds; never expose 7500 as the player-facing 75% value. | UI-SET-039 | A12 |
 | UXV-021 | Use Fullness as the visible hunger label, with Hunger/fullness in accessible detail; a larger value means more satisfied. Do not invert or invent mood/risk thresholds. | GDD §5.2/UXV §5 | A12 |
 | UXV-022 | Skills include level and current/next-threshold XP; job/role/mood/health use actual fields. Missing values are explicitly unavailable rather than fabricated. | UI-SET-040/069 | A12 |
 | UXV-023 | Center view keeps the existing center-camera semantics; pin/rename is resident-specific; zone harvesting policies never appear on a resident merely because a template exists. | UI-SET-037/082/093/098/100 | A12 |

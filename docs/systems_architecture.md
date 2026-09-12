@@ -946,3 +946,24 @@ new §3 rows, 35840 is decision 0051's hive service, 16 is decision 0055's absol
 season, and 8224 is the scheduler queue -- real allocations, each counted once. Known
 §3.1 omissions and MOVE-G02 expansion remain outstanding. **The scheduler proposal is
 now implemented and counted**; the Weather proposal in READY_07 is still neither.
+
+## 2026-09-11 binding save and settlement-art decisions
+
+**ARCH-SAVE-008.** [SAVE-R09-001–005](rulings/2026-09-11_save_codec_contract.md)
+now owns outer/section versions, u32 string prefixes, exact identity artifact
+framing/producers, the gapless15-section layout and sections11/13/15 ownership.
+These extend §8.1–8.2; section12 is schema2 within outer format1, with no implicit
+migration. Section11 owns the already-budgeted WorldRuntime.next_event_sequence;
+no duplicate scalar or extra8-byte allocation is added. Map provenance metadata
+and identity artifacts require measured ledger updates by their implementation
+owners. Section13 detail_key is a compiled ChronicleDetail i32 catalog ID.
+The production codec, missing producers and expanded MOVE-G02 schema remain work.
+STATE-COHORT-R01 removes rollback scratch from persistence; host debt/counter
+persistence and digest exclusions under ARCH-SAVE-007 are unchanged.
+
+**ARCH-ART-001.** Settlement visual authoring uses
+[ART-GAP-R01–05](planning/asset_dimensions_and_budgets.md): exact building-height
+ceilings, non-creature budgets and a64px nominal L0 admission threshold with cap24.
+This specializes ARCH-GODOT-001 and crowd battle thresholds for settlement only.
+Visual measurements never set authoritative movement clearance. All new budgets
+are targets pending measurement, not minimum-hardware qualification.

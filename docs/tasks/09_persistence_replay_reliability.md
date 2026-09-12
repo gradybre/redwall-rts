@@ -28,6 +28,20 @@ rules; this card does not replace the binary schema.
   hashes, bounded reads and overflow checks. Preserve rule/catalog/map/lookup/
   engine identity. Reject incompatible v1 hunting state under SET-AMEND-001;
   expanded schemas need an explicit version policy before writing release saves.
+  *Partly done 2026-09-11 (decision 0065):* the version-independent layer is in.
+  `godot/scripts/core/save_codec.gd` implements ARCH-SAVE-001's little-endian
+  integers, two's-complement reinterpretation, strict length-prefixed UTF-8, and
+  bounded reads that refuse a truncated buffer or a hostile length prefix before
+  allocating. `godot/scripts/core/save_header.gd` implements ARCH-SAVE-002's
+  256-byte header, its 64-byte descriptors, CRC-32/ISO-HDLC, the offset-224 body
+  digest and ARCH-SAVE-004's structural section-table validation; the offset-72
+  catalog hash is `catalog_ids.gd`'s digest, not a second one. **Still open:** no
+  section BODY is written or parsed, so the per-store codec registry the READY_07
+  addendum authorises is not built; the per-section `schema_version` is carried
+  and deliberately not validated, because that is the blocked policy; the rules,
+  map, lookup and engine hashes at offsets 40/104/136/168 have no producer in
+  this repository (decision 0034); and §11 EVENT_SCHEDULE, §13 CHRONICLE and §15
+  STATE_DIGEST still have no owning module. `SCHQ0001` remains unwired.
 - [ ] 09.3 Implement transactional disk-backed rollback load, validated inactive
   checkpoint, autosave rotation and interrupted-I/O recovery. Recompute expanded
   peak memory; the baseline single-floor ledger is insufficient. No second full
@@ -72,3 +86,16 @@ Completion establishes persistence/replay for all implemented authoritative
 systems in the covered scenarios. Qualification still needs complete 03–08
 scope and actual task-10 hardware/renderer/accessibility evidence. Windows
 cross-platform execution remains deferred, explicitly unverified.
+
+## 09.2 contract handoff — 2026-09-11
+
+Read [SAVE-R09-001–005](../rulings/2026-09-11_save_codec_contract.md) before codec
+work. It resolves the five requested storage decisions; task09.2 is still open.
+Implement the version vector, u32 UTF-8 strings, canonical identity artifacts,
+map provenance binding, gapless sections and assigned11/13/15 payloads. Update
+registry/memory as owners land; missing event/Chronicle content and expanded
+MOVE-G02 schemas still block their complete release saves. Follow the ruling's
+independent corruption and continuation evidence; do not label empty fixtures
+complete systems. STATE-COHORT-R01 excludes `_cohort_slots` rollback scratch.
+The earlier09.1 note about three unresolved rows is historical: decision0063
+resolved result/reachability classification; scheduler writer wiring remains work.

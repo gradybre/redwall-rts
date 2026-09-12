@@ -922,3 +922,19 @@ Document checks passed for requirement ID continuity, Markdown table/fence struc
 MOVE-REQ-001–020 are normative adopted behavior. Extend §5.1 terrain, §5.3 jobs, §5.6 fishing access, §5.9 rooms/construction and §5.11 routing/saves together. A usable home, storage or workstation must have real same-domain/transition access; X/Z proximity is insufficient. Finished tunnels persist, loads and profiles constrain passage, dive plans require valid air endpoints, and canopy work requires supported return routes. Exact production parameters and hazards remain MOVE-G01, not implementer discretion.
 
 The [new design-reading package](redwall-design/README.md) is creative evidence. It adds no active recipe, caste, faction bonus or scenario initialization.
+
+## 2026-09-11 asset and persistence engineering bindings
+
+Sections5.9/5.11 use [ART-GAP-R01–05](planning/asset_dimensions_and_budgets.md)
+for complete exterior-height ceilings, non-creature asset budgets and settlement
+close-actor admission (64px nominal, cap24). Existing footprints, capacities and
+rules do not change. Species heights beyond the1m mouse remain comparison
+candidates pending decision0002's user review; horizontal movement radii never
+supply stature. These authoring dimensions do not close MOVE-G01–05.
+
+Section4.2 ChronicleRecord.detail_key retains its semantic string key; packed
+and saved representation is a compiled stable i32 ChronicleDetail catalog ID,
+not a Godot StringName intern value. [SAVE-R09-005](rulings/2026-09-11_save_codec_contract.md)
+preserves the24-byte record, assigns its task08.5 producer and requires the
+actual event/detail domain before release. SET-AMEND-001's rules-v2 compatibility
+is independent of the save container's format1/schema-version vector.

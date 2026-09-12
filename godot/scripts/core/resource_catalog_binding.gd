@@ -65,8 +65,10 @@ extends RefCounted
 ## sentinel that looks like an answer, and nothing here writes to any store. Allocate before
 ## consume is what makes a refused binding cost nothing: `world_init.gd` validates the request
 ## inside `_prepare()`, before a row is cleared or written, so a refused binding leaves every
-## collaborating store byte-identical. (Decision 0052 records that the "decision 0024" citation
-## twenty-five comments use for that rule points at an unrelated record.)
+## collaborating store byte-identical. Decision 0059 states that rule repository-wide.
+## (Decision 0052 called the older "decision 0024" citation a pointer at an unrelated
+## record. Decision 0059 corrects that as too strong: 0024 DOES name this hazard, at one call
+## site about one refactor -- it simply never generalises it to any other store.)
 ##
 ## GAP -- NAMED, NOT INVENTED. There is no save module in this repository, so the round trip
 ## "generate a world, save it, reload it, prove the bound ids survive" cannot be exercised.

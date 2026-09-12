@@ -170,7 +170,7 @@ Pause-reason set contains PLAYER, MENU, CRITICAL, VICTORY, LOAD. Effective pause
 
 ## 4. Exhaustive UI Element Registry
 
-Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Container bounds from Section 1 override a maximum only by reducing available height and adding internal vertical scroll; they never reduce font size or hitboxes. `Gate` values: ALWAYS, SELECTED, WORLD_TOOL, WORKSPACE, MODAL, TUTORIAL, M1, M2, M3, CONDITION. A locked M-gated control remains visible in its catalog with the GDD milestone condition; it is hidden from quick commands until unlocked.
+Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Container bounds from Section 1 override a maximum only by reducing available height and adding internal vertical scroll; they never reduce font size or hitboxes. `Gate` values: ALWAYS, SELECTED, WORLD_TOOL, WORKSPACE, MODAL, TUTORIAL, M1, M2, M3, CONDITION. A locked M-gated control remains visible in its catalog with the GDD milestone condition; it is hidden from quick commands until unlocked. R-BUILD-DOM-001 binds gate Mm to the corresponding actual-earned bit from Progress.unlocked_mask; unknown Progress stays unavailable, and a higher display ordinal does not grant missing bits.
 
 ### 4.1 Persistent HUD and selection
 

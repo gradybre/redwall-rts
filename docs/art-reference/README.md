@@ -93,3 +93,12 @@ The source's presentation provenance remains unknown. References to Total War, W
 The review covers every supplied screenshot. It does not cover unseen carousel pages, complete original paintings, source artist identification, full anatomical turnarounds or any actual Blender/Godot execution. Complete novel reading limits from the previous research remain unchanged. The six-pearl correction is a separately recorded supplementary excerpt check.
 
 The next concrete engineering deliverables close MOVE-G01–05: species construction sheets and shared underground/topology rules, then exact surface swimming, climbing and diving contracts. Directional acceptance is complete under DEC-035. The current documents preserve every supported application and the decisions required to make those deliverables executable.
+
+## Asset gap decisions — 2026-09-11
+
+Read [ART-GAP-R01–05](../planning/asset_dimensions_and_budgets.md) before authoring:
+anatomical comparison heights, all30 exterior envelopes, non-creature/crop/terrain
+budgets, cutaway parts, material/texture-density rules and settlement L0 admission.
+New budgets are design targets. Non-mouse proportions still need the prescribed
+comparison review; neither these dimensions nor the approved style closes movement
+or hardware qualification. Supplied-reference direct-use authorization is unchanged.

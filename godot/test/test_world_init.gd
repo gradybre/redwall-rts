@@ -1657,8 +1657,12 @@ func test_a_wrong_sized_item_set_refuses() -> void:
 
 
 func test_a_foreign_live_row_refuses_rather_than_being_orphaned() -> void:
-	"""Publishing clears the DIRECTORY, so a row owned by a store this generator was not given
-	would lose its identity. It refuses instead, naming the kind."""
+	"""`generate()`'s reset clears the DIRECTORY, so a row owned by a store this generator was not
+	given would lose its identity. It refuses instead, naming the kind.
+
+	The composed initializer is the reason this is a refusal rather than a licence: R-INIT-ID-001
+	has it allocate twelve residents before publication, and publication must not be able to take
+	them away. The check runs in `preflight()`, before the reset it protects."""
 	var stray: Vector2i = _directory.create(EntityDirectory.KIND_RESIDENT)
 	assert_true(_directory.is_valid(stray), "a resident row exists")
 	var refused: WorldInit.GenerateResult = _world.generate(_request())
@@ -1898,3 +1902,157 @@ func test_a_cleared_generator_generates_the_same_world_again() -> void:
 	assert_true(_generate().ok, "and the same generator publishes a second world")
 	assert_equal(_world.published_seed().value, first_seed, "on the same accepted seed")
 	assert_equal(_nodes.count(), 1695, "with the same node census")
+
+
+# --- R-INIT-ID-001: preflight / seed / publish as three steps -----------------------------------
+#
+# The ruling relocated the reset that used to live inside publication: it is a reset BEFORE
+# new-world allocation, not a second one after a cohort has been allocated. `generate()` keeps it
+# as the standalone isolated-control wrapper, and the three public steps below are what a composed
+# initializer drives so that GDD §5.1's twelve residents can hold persistent ids 1-12.
+
+func test_preflight_accepts_a_plan_without_creating_anything() -> void:
+	"""Ruling step 1: preflight "without changing the prior valid world"."""
+	var planned: WorldInit.GenerateResult = _world.preflight(_request())
+	assert_true(planned.ok, "the plan is accepted (error: %s)" % planned.error)
+	assert_equal(planned.accepted_seed, WorldInit.TUTORIAL_WORLD_SEED, "on §5.1's own seed")
+	assert_true(_world.has_prepared_plan(), "and is held for publication")
+	assert_equal(planned.resource_nodes_created, 0, "no node was created by preflighting")
+	assert_equal(planned.basins_created, 0, "no basin either")
+	assert_equal(_nodes.count(), 0, "the node store is untouched")
+	assert_equal(_directory.total_live_count(), 0, "no directory row was allocated")
+	assert_false(_world.is_published(), "and nothing is published")
+	assert_false(_rng.is_seeded(), "preflight does not seed either")
+
+
+func test_a_refused_preflight_holds_no_plan() -> void:
+	"""A refusal leaves nothing staged, or a later publish creates a world nobody asked for."""
+	var bad: WorldInit.Request = _request()
+	bad.scenario_version = 99
+	var planned: WorldInit.GenerateResult = _world.preflight(bad)
+	assert_false(planned.ok, "an unknown scenario refuses")
+	assert_equal(planned.error, WorldInit.REFUSE_UNKNOWN_SCENARIO, "with its own code")
+	assert_false(_world.has_prepared_plan(), "and no plan is held")
+	var published: WorldInit.GenerateResult = _world.publish_prepared()
+	assert_false(published.ok, "so publication refuses")
+	assert_equal(published.error, WorldInit.REFUSE_NO_PREPARED_PLAN, "naming the missing plan")
+
+
+func test_the_three_steps_publish_the_same_world_the_wrapper_does() -> void:
+	"""Preflight, seed, publish must produce exactly what `generate()` produces.
+
+	The composed path uses the three steps; the isolated controls use the wrapper. A difference
+	between them would mean the settlement's world is not the world this suite tests.
+	"""
+	assert_true(_generate().ok, "the wrapper publishes first")
+	var wrapper: String = _content_fingerprint()
+	_world.clear()
+	_nodes.clear()
+	_forage.clear()
+	_fishing.clear()
+	_jobs.clear()
+	_rng.clear()
+	_directory.clear()
+	assert_true(_world.preflight(_request()).ok, "the plan is staged")
+	assert_equal(_world.seed_prepared_streams(), WorldInit.REFUSE_NONE, "the streams are seeded")
+	var published: WorldInit.GenerateResult = _world.publish_prepared()
+	assert_true(published.ok, "and the plan publishes (error: %s)" % published.error)
+	assert_equal(_content_fingerprint(), wrapper, "the same world, to the byte")
+	assert_equal(published.resource_nodes_created, _nodes.count(), "reporting its real census")
+
+
+func test_publication_keeps_directory_rows_it_did_not_create() -> void:
+	"""The whole ruling in one test: rows allocated BEFORE publication survive it.
+
+	A row of the resident kind stands in for the twelve the composed initializer allocates first.
+	Under the old `_publish()` it was destroyed by the directory clear inside publication; it must
+	now keep its reference, its persistent id, and its place at the FRONT of the id space.
+	"""
+	assert_true(_world.preflight(_request()).ok, "a plan is staged first")
+	assert_equal(_world.seed_prepared_streams(), WorldInit.REFUSE_NONE, "and the streams seeded")
+	var first: Vector2i = _directory.create(EntityDirectory.KIND_RESIDENT)
+	assert_equal(_directory.get_persistent_id(first), 1, "the pre-publication row takes id 1")
+	assert_true(_world.publish_prepared().ok, "the world publishes over it")
+	assert_true(_directory.is_valid(first), "and the row is still live")
+	assert_equal(_directory.get_persistent_id(first), 1, "still holding id 1")
+	assert_equal(_directory.live_count(EntityDirectory.KIND_RESIDENT), 1, "still the only one")
+	var lowest_world_id: int = 0
+	for index: int in _nodes.count():
+		var id: int = _directory.get_persistent_id(
+			_nodes.ref_of(_nodes.live_slot_at(index).value))
+		if lowest_world_id == 0 or id < lowest_world_id:
+			lowest_world_id = id
+	assert_true(lowest_world_id > 1, "and every world entity follows it in the same id space")
+
+
+func test_publication_refuses_a_world_the_caller_never_reset() -> void:
+	"""`publish_prepared()` clears nothing, so it proves the caller's single reset happened."""
+	assert_true(_generate().ok, "a world already stands")
+	assert_true(_world.preflight(_request()).ok, "and a second plan is staged")
+	assert_equal(_world.seed_prepared_streams(), WorldInit.REFUSE_NONE, "and seeded")
+	var before: String = _content_fingerprint()
+	var nodes_before: int = _nodes.count()
+	var published: WorldInit.GenerateResult = _world.publish_prepared()
+	assert_false(published.ok, "publishing on top of it refuses")
+	assert_equal(published.error, WorldInit.REFUSE_WORLD_NOT_RESET, "with the exact reason")
+	assert_equal(_nodes.count(), nodes_before, "not one node was added")
+	assert_equal(_content_fingerprint(), before, "and the standing world is unchanged")
+
+
+func test_publication_refuses_streams_that_carry_another_seed() -> void:
+	"""A world published over a different seed's streams would be deterministic in name only."""
+	assert_true(_world.preflight(_request()).ok, "a plan is staged")
+	var other: RngScript.OpResult = _rng.seed_world(WorldInit.TUTORIAL_WORLD_SEED + 1)
+	assert_true(other.ok, "the streams are seeded from somewhere else")
+	var published: WorldInit.GenerateResult = _world.publish_prepared()
+	assert_false(published.ok, "publication refuses")
+	assert_equal(published.error, WorldInit.REFUSE_SEED_NOT_APPLIED, "naming the mismatch")
+	assert_equal(_nodes.count(), 0, "and creates nothing")
+
+
+func test_publication_refuses_unseeded_streams() -> void:
+	"""§5.10's second season would refuse RNG_NOT_SEEDED over a world nobody seeded."""
+	assert_true(_world.preflight(_request()).ok, "a plan is staged")
+	assert_false(_rng.is_seeded(), "and the streams are not seeded")
+	var published: WorldInit.GenerateResult = _world.publish_prepared()
+	assert_false(published.ok, "publication refuses")
+	assert_equal(published.error, WorldInit.REFUSE_SEED_NOT_APPLIED, "naming the missing seed")
+
+
+func test_seeding_refuses_without_a_prepared_plan() -> void:
+	"""The seed belongs to an accepted plan; there is no default seed to fall back on."""
+	assert_equal(_world.seed_prepared_streams(), WorldInit.REFUSE_NO_PREPARED_PLAN,
+		"no plan, no seed")
+	assert_false(_rng.is_seeded(), "and the streams stay unseeded")
+
+
+func test_a_published_plan_cannot_be_published_twice() -> void:
+	"""Publishing consumes the plan, so a repeated call cannot double the world."""
+	assert_true(_world.preflight(_request()).ok, "a plan is staged")
+	assert_equal(_world.seed_prepared_streams(), WorldInit.REFUSE_NONE, "and seeded")
+	assert_true(_world.publish_prepared().ok, "it publishes once")
+	assert_false(_world.has_prepared_plan(), "and is consumed")
+	var again: WorldInit.GenerateResult = _world.publish_prepared()
+	assert_false(again.ok, "a second publication refuses")
+	assert_equal(again.error, WorldInit.REFUSE_NO_PREPARED_PLAN, "with no plan left to publish")
+	assert_equal(_nodes.count(), 1695, "and the census did not double")
+
+
+func test_discarding_a_plan_makes_publication_refuse() -> void:
+	"""The abandon path a composed initializer takes when its transaction fails."""
+	assert_true(_world.preflight(_request()).ok, "a plan is staged")
+	_world.discard_prepared_plan()
+	assert_false(_world.has_prepared_plan(), "and dropped")
+	var published: WorldInit.GenerateResult = _world.publish_prepared()
+	assert_false(published.ok, "publication refuses")
+	assert_equal(published.error, WorldInit.REFUSE_NO_PREPARED_PLAN, "naming the dropped plan")
+
+
+func test_a_foreign_live_row_still_refuses_at_preflight() -> void:
+	"""The orphan guard moved earlier, not away: the wrapper's reset still cannot strand a row."""
+	var stray: Vector2i = _directory.create(EntityDirectory.KIND_BUILDING)
+	assert_true(stray != EntityDirectory.NULL_REF, "a row of an unowned kind exists")
+	var planned: WorldInit.GenerateResult = _world.preflight(_request())
+	assert_false(planned.ok, "preflight refuses")
+	assert_equal(planned.error, WorldInit.REFUSE_FOREIGN_LIVE_ROWS, "with the orphan guard's code")
+	assert_true(_directory.is_valid(stray), "and the foreign row is untouched")

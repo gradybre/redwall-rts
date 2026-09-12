@@ -22,7 +22,7 @@ extends RefCounted
 ## stable integer id, published by `result_code()` and `result_code_id()`.
 ##
 ## ---------------------------------------------------------------------------------------
-## WHOLE COMMANDS SUCCEED OR REFUSE ATOMICALLY (decision 0024, allocate before consume). Every arm
+## WHOLE COMMANDS SUCCEED OR REFUSE ATOMICALLY (decision 0059, allocate before consume). Every arm
 ## that writes more than once PREFLIGHTS EVERY WRITE BEFORE THE FIRST ONE:
 ##   * SET_ACTIVITY_SCHEDULE validates all 24 hour bytes, then writes 24 hours. A day with one
 ##     illegal hour changes NO hour.
@@ -1071,7 +1071,7 @@ func _commit_designate_zone(command: CommandsScript.Command) -> int:
 func _designate_preflight(command: CommandsScript.Command) -> int:
 	"""Every gate DESIGNATE_ZONE can check before it creates anything. Leaves the tile count in `_math`.
 
-	Allocate before consume (decision 0024): directory capacity, link capacity, the basin's type
+	Allocate before consume (decision 0059): directory capacity, link capacity, the basin's type
 	and its own binding are all proved here, so the create/bind/link/enable sequence that follows
 	has nothing left that can legitimately refuse.
 	"""

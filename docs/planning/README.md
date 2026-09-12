@@ -125,3 +125,10 @@ requirements and ten retirement dispositions against the allocation CSV, exact
 source-line pointers, unique owners and local document links. Its report is
 [validation_report.json](validation_report.json). This is static planning
 validation; it does not execute Godot or certify the mapped requirements.
+
+## Latest blocker handoff — 2026-09-11
+
+Read [the asset/save/movement ruling index](../rulings/2026-09-11_asset_save_movement_blockers.md)
+before dispatching the next increment. It supplies authoring and codec contracts,
+corrects focus/rollback classifications, and preserves the separate open
+proportion-review and full MOVE-G01 gates. It does not mark runtime work complete.

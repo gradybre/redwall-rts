@@ -242,7 +242,7 @@ extends RefCounted
 ##     an open gate. No sowing can proceed on an unchecked connectivity claim anyway, because the
 ##     same Job is already ineligible on its UNAVAILABLE inputs gate.
 ##
-## A FAILED GATE CONSUMES NOTHING, and that is decision 0024's allocate-before-consume. The gate
+## A FAILED GATE CONSUMES NOTHING, and that is decision 0059's allocate-before-consume. The gate
 ## sweep runs BEFORE `create_job()` and before anything is written except the row's own reason
 ## byte, so a refused sowing leaves the plot EMPTY, leaves `_seed_committed_milli` where it was,
 ## and moves no counter. Seed is committed at PRODUCTIVE START and nowhere else -- see below.
@@ -1628,7 +1628,7 @@ func _reconcile_tend(owner_slot: int, tick: int) -> StringName:
 
 	Order is fixed: settle whatever the row already holds, then apply the completion guard, then
 	the growing condition, and only then create. Nothing is written before every gate has passed,
-	so a refused reconciliation consumes nothing (decision 0024's allocate-before-consume).
+	so a refused reconciliation consumes nothing (decision 0059's allocate-before-consume).
 	"""
 	var day: int = absolute_day_of_tick(tick)
 	var row: int = _row_of(owner_slot, OPERATION_FARM_TEND)
@@ -2189,7 +2189,7 @@ func _reconcile_sow(owner_slot: int, tick: int) -> StringName:
 
 	Order is fixed: settle whatever the row holds, then apply every evaluable REQ-SET-070 gate,
 	and only then create. NOTHING IS CONSUMED BEFORE EVERY GATE HAS PASSED -- a refusal writes the
-	row's reason byte and moves no counter, no crop and no seed (decision 0024).
+	row's reason byte and moves no counter, no crop and no seed (decision 0059).
 	"""
 	var row: int = _row_of(owner_slot, OPERATION_FARM_SOW)
 	if _status[row] == STATUS_FREE:
@@ -2898,7 +2898,7 @@ func _reconcile_forage(zone_slot: int, kind: int, tick: int, season: int) -> Str
 
 	Order is fixed: settle whatever the row holds, then apply every gate, and only then create.
 	NOTHING IS CONSUMED BEFORE EVERY GATE HAS PASSED -- a refusal writes the row's blocker byte and
-	moves no quota, no stock and no counter (decision 0024).
+	moves no quota, no stock and no counter (decision 0059).
 	"""
 	var row: int = _demand_row_of(zone_slot, kind)
 	var settled: StringName = _settle_existing_demand(row, zone_slot)
@@ -3530,7 +3530,7 @@ func _reconcile_hive(hive_slot: int, tick: int) -> StringName:
 
 	Order is fixed: settle whatever the row already holds, then apply every gate, and only then
 	create. NOTHING IS CONSUMED BEFORE EVERY GATE HAS PASSED -- a refusal writes the row's blocker
-	byte and its winter feed demand and moves no counter (decision 0024).
+	byte and its winter feed demand and moves no counter (decision 0059).
 	"""
 	var day: int = absolute_day_of_tick(tick)
 	var settled: StringName = _settle_existing_hive(hive_slot, day)

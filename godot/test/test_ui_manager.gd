@@ -28,6 +28,7 @@ const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const UiCommandBridgeScript := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSessionScript := preload("res://scripts/ui/ui_world_session.gd")
 const UiShellScript := preload("res://scripts/ui/ui_shell.gd")
+const UiNoticesScript := preload("res://scripts/ui/ui_notices.gd")
 
 const HUD_SCENE_PATH: String = "res://scenes/ui/hud.tscn"
 
@@ -248,13 +249,39 @@ func test_a_freed_hud_is_never_written_to() -> void:
 
 
 func test_depletion_and_diagnostics_reach_the_alert_zone() -> void:
-	"""Both alert sources name their subject rather than showing a generic message."""
+	"""Both alert sources name their subject rather than showing a generic message.
+
+	CHANGED BY R-UI-ALERT-001. The alert zone used to be a single label that the next message
+	overwrote, so this asserted that each message in turn was the one painted. It is now a
+	retained notice record under §7's ordering -- "severity descending, then earliest tick" --
+	so the earlier of two equal-severity conditions keeps the card and the later one is retained
+	beside it rather than destroying it. The property this test exists for is unchanged and is
+	asserted harder: each source's own sentence survives BYTE FOR BYTE, and neither is replaced
+	by a generic line. `test_ui_shell.gd` covers which of the two the card shows.
+	"""
 	_ui.register_hud(_hud)
 	_ui._on_stock_depleted(&"ration")
 	assert_equal(_rendered_alert(), "Out of ration!", "the depleted item is named")
 	_ui._on_clock_diagnostic("Scheduler overloaded; speed reduced to 2x.")
-	assert_equal(_rendered_alert(), "Scheduler overloaded; speed reduced to 2x.",
-		"the diagnostic is surfaced verbatim")
+	var notices: UiNoticesScript = _hud.shell().notices()
+	assert_equal(notices.count(), 2, "both conditions are retained, not overwritten")
+	assert_true(_retained_messages(notices).has("Out of ration!"),
+		"the depleted item is still named in full")
+	assert_true(_retained_messages(notices).has("Scheduler overloaded; speed reduced to 2x."),
+		"and the diagnostic is retained verbatim")
+
+
+func _retained_messages(notices: UiNoticesScript) -> PackedStringArray:
+	"""Every retained notice's ORIGINAL message, in §7's display order."""
+	var order: PackedInt32Array = PackedInt32Array()
+	order.resize(notices.capacity())
+	var written: int = notices.order_into(order)
+	var out: PackedStringArray = PackedStringArray()
+	var notice: UiNoticesScript.Notice = UiNoticesScript.Notice.new()
+	for index: int in written:
+		if notices.notice_into(order[index], 0, notice):
+			out.append(notice.message)
+	return out
 
 
 # --- UI-SET-103's paused opening ----------------------------------------------------------------
@@ -460,3 +487,63 @@ func test_an_absent_residents_store_is_unpopulated_and_an_empty_one_is_zero() ->
 	_ui._on_stocks_changed()
 	assert_true(_rendered_counters().contains("Residents 0"),
 		"a measured zero is shown as 0, got '%s'" % _rendered_counters())
+
+
+# --- R-UI-ALERT-001: every routed condition names itself ------------------------------------------
+
+func test_a_refused_generation_becomes_an_error_notice_with_the_ruling_s_title() -> void:
+	"""R-UI-ALERT-001 names this condition: severity `Error`, title `Generation failed`.
+
+	The refusal is raised through the real router, not by calling the shell directly, so a change
+	that routed the failure to the error panel alone -- leaving the alert card showing the last
+	SUCCESS -- would fail here. The generator's own code and detail must survive into the record.
+	"""
+	_ui.register_hud(_hud)
+	var report: UiWorldSessionScript.Report = UiWorldSessionScript.Report.new()
+	report.error = &"WORLD_OCCUPIED"
+	report.detail = "the settlement already has living residents."
+	_ui._report_generation(false, report)
+	var notice: UiNoticesScript.Notice = UiNoticesScript.Notice.new()
+	assert_true(_hud.shell().card_notice_into(notice), "a notice reached the card")
+	assert_equal(notice.severity_word, "Error", "with the ruling's severity")
+	assert_equal(notice.title, "Generation failed", "and the ruling's compact title")
+	assert_true(notice.message.contains("WORLD_OCCUPIED"), "the generator's own code is in the message")
+	assert_true(notice.message.contains(report.detail), "and its own detail")
+	assert_equal(notice.code, "WORLD_OCCUPIED", "the validation code is recorded as the code")
+	assert_true(notice.recovery.length() > 0, "and a recovery action is published")
+
+
+func test_the_refusal_still_fills_the_error_panel_as_well_as_the_card() -> void:
+	"""§4 keeps UI-SET-085's "Error code+plain reason+recovery action" for a fault."""
+	_ui.register_hud(_hud)
+	var report: UiWorldSessionScript.Report = UiWorldSessionScript.Report.new()
+	report.error = &"WORLD_OCCUPIED"
+	report.detail = "the settlement already has living residents."
+	_ui._report_generation(false, report)
+	var panel: Control = _hud.shell().control_for(ERROR_PANEL_ID)
+	assert_true(panel.visible, "the error panel opens for the fault")
+	assert_true(panel.accessibility_description.contains("WORLD_OCCUPIED"),
+		"and carries the exact code, as it did before the ruling")
+
+
+func test_a_command_refusal_is_retained_as_a_retrievable_error_notice() -> void:
+	"""UI-SET-085 is cleared by the next accepted action; the notice is what outlives it."""
+	_ui.register_hud(_hud)
+	_ui.push_refusal(&"COMMAND_JOB_NOT_CANCELLABLE")
+	var notice: UiNoticesScript.Notice = UiNoticesScript.Notice.new()
+	assert_true(_hud.shell().card_notice_into(notice), "the refusal reached the card")
+	assert_equal(notice.title, "Action refused", "with its own authored title")
+	assert_equal(notice.code, "COMMAND_JOB_NOT_CANCELLABLE", "and the exact refusal code")
+	assert_true(notice.message.length() > 0, "and the bridge's plain sentence")
+
+
+func test_a_depletion_names_the_item_as_its_source_so_two_items_stay_two_notices() -> void:
+	"""§7 groups on code AND source; the item is the source, so ration and grain do not merge."""
+	_ui.register_hud(_hud)
+	_ui._on_stock_depleted(&"ration")
+	_ui._on_stock_depleted(&"grain")
+	_ui._on_stock_depleted(&"ration")
+	assert_equal(_hud.shell().notices().count(), 2,
+		"two items are two conditions and the repeat groups onto the first")
+	assert_true(_retained_messages(_hud.shell().notices()).has("Out of grain!"),
+		"and each item is named in its own message")

@@ -350,6 +350,20 @@ Tick halves reconstruct a signed nonnegative int64 with range checks. Settlement
 
 **ARCH-MEM-005.** Arena offsets/counts, owner-to-child indexes, occupancy masks, free heaps, stable ID lookup, dirty bits, and the supplementary columns in §3 are allocation overhead outside original field payload. The budget table includes them explicitly. Packed arrays are allocated once to these capacity lengths; page caches and stream buffers are bounded. Never call `resize()` in an ordinary resident update. Oversized incoming content is rejected before allocating a replacement world. `[NEW allocation policy; GDD §5.11]`
 
+## Building/room domain clarification — 2026-09-11
+
+[R-BUILD-DOM-001–004](rulings/2026-09-11_building_room_domains.md) binds existing fields without adding
+packed columns: protected Milestone M0–M4 for both definition.unlock fields and
+Progress.milestone; a separate 11-key compiled Station domain for recipe.station;
+and Room.furniture_mask bit i for FurnitureDefinition i, known mask 511.
+World.milestone_mask and Progress.unlocked_mask share the actual-earned-bit
+meaning, initialized to 1 and updated atomically by Progression; highest ordinal
+is presentation, not a substitute gate. Preserve both existing field widths.
+Room masks remain persisted/hashed; validate staged membership against saved
+masks before publish. Catalog additions require artifact regeneration and an
+intentional digest change; no runtime artifact or allocation has been changed
+by this documentation. The ruling supplies exact mappings and acceptance.
+
 ## 3. Additional state required by the fixed behavioral rules
 
 The GDD registry does not encode every deadline, ownership mapping, or remainder its requirements need. These **additional saved tables** are `[NEW]`; original components remain byte-for-byte typed as specified. A code generator SHALL generate both sets from distinct schema declarations and include both in ruleset hashing. The missing-schema conflict is explicit in Conflicts Found.
@@ -932,3 +946,24 @@ new §3 rows, 35840 is decision 0051's hive service, 16 is decision 0055's absol
 season, and 8224 is the scheduler queue -- real allocations, each counted once. Known
 §3.1 omissions and MOVE-G02 expansion remain outstanding. **The scheduler proposal is
 now implemented and counted**; the Weather proposal in READY_07 is still neither.
+
+## 2026-09-11 binding save and settlement-art decisions
+
+**ARCH-SAVE-008.** [SAVE-R09-001–005](rulings/2026-09-11_save_codec_contract.md)
+now owns outer/section versions, u32 string prefixes, exact identity artifact
+framing/producers, the gapless15-section layout and sections11/13/15 ownership.
+These extend §8.1–8.2; section12 is schema2 within outer format1, with no implicit
+migration. Section11 owns the already-budgeted WorldRuntime.next_event_sequence;
+no duplicate scalar or extra8-byte allocation is added. Map provenance metadata
+and identity artifacts require measured ledger updates by their implementation
+owners. Section13 detail_key is a compiled ChronicleDetail i32 catalog ID.
+The production codec, missing producers and expanded MOVE-G02 schema remain work.
+STATE-COHORT-R01 removes rollback scratch from persistence; host debt/counter
+persistence and digest exclusions under ARCH-SAVE-007 are unchanged.
+
+**ARCH-ART-001.** Settlement visual authoring uses
+[ART-GAP-R01–05](planning/asset_dimensions_and_budgets.md): exact building-height
+ceilings, non-creature budgets and a64px nominal L0 admission threshold with cap24.
+This specializes ARCH-GODOT-001 and crowd battle thresholds for settlement only.
+Visual measurements never set authoritative movement clearance. All new budgets
+are targets pending measurement, not minimum-hardware qualification.

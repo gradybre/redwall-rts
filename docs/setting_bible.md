@@ -1062,3 +1062,12 @@ The [systematic content library](redwall-content-library/README.md), CONTENT-LIB
 Use the [authoring contract](redwall-content-library/authoring_handoff.md), [shared pantry](redwall-content-library/shared/pantry.md), [continuity reconciliation](redwall-content-library/shared/continuity.md), [location/movement atlas](redwall-content-library/shared/locations_and_movement.md) and [theme/material direction](redwall-content-library/shared/theme_and_material_direction.md). Character and faction appearances retain eras and source uncertainty; shared titles are not automatically shared individuals. All records remain research candidates, with recipe quantities, yields, work and unlocks requiring the owning balance specification.
 
 Outcast block 3549 explicitly resolves Sunflash’s later name as Sunstripe. Outcast blocks 434–437 support one particular plant-derived greensap milk and cheese preparation; other books’ unspecified milk/cream/cheese origins remain unspecified. Source conflicts over first mountain lord, sapience, geography, visions and moral judgments are preserved rather than silently harmonized. Current admission, diet, content boundaries and DEC-035 movement direction retain their authority. The broader interim boundary guard in §12.5 still applies.
+
+## Asset gap decisions — 2026-09-11
+
+Read [ART-GAP-R01–05](planning/asset_dimensions_and_budgets.md) before authoring:
+anatomical comparison heights, all30 exterior envelopes, non-creature/crop/terrain
+budgets, cutaway parts, material/texture-density rules and settlement L0 admission.
+New budgets are design targets. Non-mouse proportions still need the prescribed
+comparison review; neither these dimensions nor the approved style closes movement
+or hardware qualification. Supplied-reference direct-use authorization is unchanged.

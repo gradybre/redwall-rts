@@ -1,4 +1,14 @@
-# 0089 — The clock's one validated restore boundary, and SAVE-LAYOUT-R01 is still an empty heading
+# 0090 — The clock's one validated restore boundary, and SAVE-LAYOUT-R01 was an empty heading
+
+> **Renumbered and corrected, 2026-09-12.** Filed as 0089, which collided with
+> [0089 restore/layout/movement follow-up](0089-restore-layout-and-movement-followup.md)
+> — Astra and the executor allocate numbers independently. The later of the two moved.
+>
+> The title's second claim was true of this record's base and is **no longer true of master**:
+> Astra appended SAVE-LAYOUT-R01's content after this was written. It now rules column-major
+> byte order for packed stores explicitly. The observation is kept as written because it is why
+> the clock stopped at a validated record rather than guessing a byte order; it is not a
+> standing description of the ruling.
 
 Date: 2026-09-12 · Status: **Accepted**
 

@@ -569,3 +569,13 @@ automatic seed-expiry quantity: checked floor(q_milli*seed_mass/compost_mass),
 currently floor(q_milli/10). Seed100g/U and compost1000g/U are inherited; the
 conversion ratio and per-lot decay remainder are newly specified. No composter
 recipe, shelf life, storage-age factor or sowing refund changes.
+
+## DEC-040 — spoil and hazard authoring inputs
+
+The two player-policy choices are confirmed: real haulable/reusable spoil with its own catalog key and mass, and warned/preventable hazards with rescue using existing injury/care. Next author exact spoil mass/yield, excavation and hauling work, legal placement/capacity, reuse/disposal/refund accounting, plus hazard triggers, air/return/recovery, injury and rescue parameters. Neither existing stone/compost values nor fishing penalties may be substituted as defaults. The four-level/4m geometry remains unratified and requires G02 representation/peak-memory review. This confirmation supplies no new production numbers and closes no MOVE gate.
+
+See [DEC-040](setting_decisions.md#dec-040--excavation-spoil-and-preventable-movement-hazards).
+
+## SET-MOVE-ECON-001 — active authoring targets
+
+Use [the owning numerical amendment](underground_economy_hazard_amendment.md) and [values manifest](planning/underground_economy_hazard_values.json) for exact DEC-040 parameters; do not substitute older draft prices. The manifest is not automatically active production content. Validate [the arithmetic/account oracle](validation/validate_underground_economy_hazards.py), then collect actual labor/haul/survival evidence after implementation. All GDD-inherited anchors remain separate from new authoring choices.

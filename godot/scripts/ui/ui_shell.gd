@@ -34,6 +34,7 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const UiTheme := preload("res://scripts/ui/ui_theme.gd")
 const UiAvailability := preload("res://scripts/ui/ui_availability.gd")
 const UiHitTest := preload("res://scripts/ui/ui_hit_test.gd")
+const UiArt := preload("res://ui/ui_art.gd")
 const UiFocusOrder := preload("res://scripts/ui/ui_focus_order.gd")
 const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSession := preload("res://scripts/ui/ui_world_session.gd")
@@ -49,6 +50,42 @@ const PROFILE_VARIATION: Array[StringName] = [
 ## control the LOCK icon instead of its own, which is why an unavailable element never shows a
 ## functional glyph it cannot perform.
 const ICON_DIRECTORY: String = "res://ui/icons/"
+## ART-UI-03/04: the painted object family, used at wide/standard sizes. ART-UI-05 keeps the
+## small functional glyphs -- lock, cancel, pause, menu, calendar -- as the optical SVGs in
+## ICON_DIRECTORY, because painted artwork must never obscure a required state marker.
+const PAINTED_DIRECTORY: String = "res://ui/painted/"
+## ART-UI-04: NARROW keeps the simpler 16 px symbolic variants rather than shrinking painted
+## detail until it becomes noise.
+const SYMBOLIC_DIRECTORY: String = "res://ui/symbolic16/"
+## ART-UI-01/02: each framed container wears its OWN crafted edge, so the five do not share one
+## rounded outline. `ui_art.gd` owns the declared insets and per-corner extents; the renderer
+## keeps the flat opaque fill underneath, which is what keeps text surfaces legible.
+const FRAME_DIRECTORY: String = "res://ui/frames/"
+const FRAME_OF_ZONE: Dictionary = {
+	1: 0, 13: 1, 20: 2, 36: 3, 26: 4,
+}
+## Corner order matches `ui_art.gd`: top-left, top-right, bottom-left, bottom-right.
+const CORNER_SUFFIX: Array[String] = ["tl", "tr", "bl", "br"]
+const CORNER_PRESET: Array[int] = [Control.PRESET_TOP_LEFT, Control.PRESET_TOP_RIGHT,
+	Control.PRESET_BOTTOM_LEFT, Control.PRESET_BOTTOM_RIGHT]
+## Edge order matches `ui_art.gd`'s inset order: top, right, bottom, left.
+const EDGE_SUFFIX: Array[String] = ["top", "right", "bottom", "left"]
+const EDGE_PRESET: Array[int] = [Control.PRESET_TOP_WIDE, Control.PRESET_RIGHT_WIDE,
+	Control.PRESET_BOTTOM_WIDE, Control.PRESET_LEFT_WIDE]
+## Painted subject per §4 element, overriding the line icon where the lock authors one.
+## Food reuses the ready-food bowl and People reuses the population group, identically --
+## ART-LOCK-001 gives sixteen logical rows over fourteen distinct designs.
+const PAINTED_OF_ELEMENT: Dictionary = {
+	2: "res_food_ready", 3: "res_fuel", 4: "res_wood", 5: "res_stone",
+	6: "res_population", 7: "res_beds",
+	27: "cmd_build", 28: "cmd_zone", 29: "cmd_build", 30: "res_food_ready",
+	31: "res_population", 62: "cmd_zone", 66: "cmd_zone",
+}
+## The 16 px symbolic variant per painted subject, for NARROW.
+const SYMBOLIC_OF_PAINTED: Dictionary = {
+	"cmd_build": "build", "cmd_zone": "zone", "cmd_work": "work", "cmd_goals": "goals",
+	"res_food_ready": "food", "res_population": "people",
+}
 const LOCK_ICON: String = "res://ui/icons/lock.svg"
 const ORNAMENT_SPRIG: String = "res://ui/ornaments/sprig.svg"
 ## Icon subject per §4 element. Only elements with a recognisable subject take one, and
@@ -361,11 +398,26 @@ func _style_button(button: Button, id: int) -> void:
 	if not _availability.is_wired(id):
 		button.icon = load(LOCK_ICON) as Texture2D
 		return
-	if not ICON_OF_ELEMENT.has(id):
+	if not ICON_OF_ELEMENT.has(id) and not PAINTED_OF_ELEMENT.has(id):
 		return
-	button.icon = load("%s%s.svg" % [ICON_DIRECTORY, ICON_OF_ELEMENT[id]]) as Texture2D
+	button.icon = _icon_texture_for(id)
 	if ICON_ONLY_ELEMENTS.has(id):
 		button.text = ""
+
+
+func _icon_texture_for(id: int) -> Texture2D:
+	"""The icon an element wears: painted where the lock authors one, symbolic when NARROW.
+
+	ART-UI-04 asks for the simpler 16 px variant at narrow sizes "rather than shrinking
+	intricate painted detail until it becomes noise", so the profile picks the file rather
+	than the renderer scaling one asset down. An element with no painted subject keeps its
+	optical line glyph, which is ART-UI-05's rule for functional state markers."""
+	if PAINTED_OF_ELEMENT.has(id):
+		var subject: String = PAINTED_OF_ELEMENT[id]
+		if _geometry.profile == UiLayout.PROFILE_NARROW and SYMBOLIC_OF_PAINTED.has(subject):
+			return load("%s%s.svg" % [SYMBOLIC_DIRECTORY, SYMBOLIC_OF_PAINTED[subject]])
+		return load("%s%s.svg" % [PAINTED_DIRECTORY, subject]) as Texture2D
+	return load("%s%s.svg" % [ICON_DIRECTORY, ICON_OF_ELEMENT[id]]) as Texture2D
 
 
 func _add_severity_icon(owner_control: Control, icon_path: String) -> void:
@@ -410,7 +462,11 @@ func _new_label(id: int, text: String) -> Label:
 	label.text = text
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.custom_minimum_size = _minimum_size(id)
-	label.clip_text = true
+	## UXV-032: content wraps rather than being cut. Clipping a status line is exactly the
+	## "ellipsis on critical content" the requirement forbids, and it was visible at NARROW --
+	## "128 x 128 tiles, s|" with the seed cut off mid-word.
+	label.clip_text = false
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.theme_type_variation = _label_variation(id)
 	_apply_semantics(label, id, text)
 	_controls[id] = label
@@ -422,7 +478,10 @@ func _new_text(owner_control: Control, text_name: StringName, text: String) -> L
 	var label: Label = Label.new()
 	label.name = text_name
 	label.text = text
-	label.clip_text = true
+	## UXV-032: wrap, never clip. The alert card cut "Settlement generated: 1695 resource no|"
+	## at NARROW; a player cannot act on a sentence whose end is missing.
+	label.clip_text = false
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	label.offset_left = PANEL_PADDING
@@ -488,6 +547,57 @@ func _preferred_size(id: int, available_width: float) -> Vector2:
 
 
 
+
+
+func _apply_frame_art(panel: Panel, frame: int) -> void:
+	"""Dress one container in its own edge and corner art. NOT WIRED -- see ADR 0074.
+
+	THIS IS NOT CALLED. Two placement attempts put the corners outside their panels and left the
+	edge strips invisible; the captures are in the evidence directory. The pieces load and draw,
+	so the fault is the placement contract, not the paths: `ui_art_manifest.json` declares each
+	asset's actual bounds and stretch margins, and the author of that manifest owns what they mean.
+	Kept here, uncalled, so the next attempt starts from the shape rather than from nothing.
+
+	Four corners at their declared extents and four edges stretched along their own axis --
+	not one texture scaled, which would distort a binding seam and a page edge alike. The
+	journal is why the corner extent is per corner: its spine cap is 12x16 and its fore-edge
+	corner 14x14, and one averaged number would misplace both.
+
+	Every piece is decorative under ART-UI-07: mouse filter IGNORE, no focus, and no
+	accessibility name, so ornament can never take a click or a tab stop from a control.
+	"""
+	var key: String = String(UiArt.FRAME_KEYS[frame])
+	var holder: Control = Control.new()
+	holder.name = "FrameArt"
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.focus_mode = Control.FOCUS_NONE
+	panel.add_child(holder)
+	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for corner: int in 4:
+		var extent: Vector2i = UiArt.frame_corner_size(frame, corner)
+		_add_frame_piece(holder, "%s%s/%s_corner_%s.svg" % [FRAME_DIRECTORY, key, key,
+			CORNER_SUFFIX[corner]], CORNER_PRESET[corner], Vector2(extent))
+	for side: int in 4:
+		var inset: int = UiArt.frame_edge_inset(frame, side)
+		_add_frame_piece(holder, "%s%s/%s_edge_%s.svg" % [FRAME_DIRECTORY, key, key,
+			EDGE_SUFFIX[side]], EDGE_PRESET[side], Vector2(float(inset), float(inset)))
+
+
+func _add_frame_piece(holder: Control, path: String, preset: int, extent: Vector2) -> void:
+	"""One corner or edge of a frame, anchored to the side it belongs to."""
+	var texture: Texture2D = load(path) as Texture2D
+	if texture == null:
+		return
+	var piece: NinePatchRect = NinePatchRect.new()
+	piece.texture = texture
+	piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	piece.focus_mode = Control.FOCUS_NONE
+	piece.custom_minimum_size = extent
+	holder.add_child(piece)
+	## Anchors AND offsets, in MINSIZE mode. Setting anchors alone and then assigning `size`
+	## leaves the offsets at zero, which put every corner outside its own panel -- visible in
+	## the first capture as brackets floating past the tray and the folio.
+	piece.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE)
 
 
 func _zone_panel(id: int, text: String) -> Panel:
@@ -850,10 +960,24 @@ func layout_for(width: int, height: int) -> bool:
 	if not _layout.compute_into(width, height, _user_scale, _detail_open, _geometry):
 		return _refuse(_layout.last_refusal())
 	_place_zones()
+	_apply_scale_transform()
 	_register_hit_regions()
 	_wire_focus()
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+func _apply_scale_transform() -> void:
+	"""Draw the logical layout at the user's scale. UI 1.2's second half.
+
+	The geometry is computed against W/S by H/S, so at 150% a 1280x720 window lays out as
+	853x480 -- correct, and invisible without this. The engine's own base stretching is
+	DISABLED in project.godot precisely so this transform is the only one: Astra's ruling is
+	"do not apply both engine base stretching and the spec's scale". Scaling the shell rather
+	than the window keeps the 3D render at its own resolution, which is the rest of that rule.
+	"""
+	var factor: float = float(_user_scale) / 100.0
+	scale = Vector2(factor, factor)
 
 
 func _apply_geometry() -> void:
@@ -1147,7 +1271,15 @@ func set_pause_display(paused: bool, reasons: String) -> void:
 
 
 func set_alert_display(text: String) -> void:
-	"""UI-SET-011's card. An empty stack is hidden, so it "does not block world" (§4.1)."""
+	"""UI-SET-011's card. An empty stack is hidden, so it "does not block world" (§4.1).
+
+	KNOWN DEFECT, NARROW ONLY, NOT THIS FILE'S TO FIX. The message now wraps rather than
+	clipping (UXV-032), and at NARROW a long generation sentence wraps to three lines and
+	draws outside a card whose height `ui_layout.alert_card()` fixes -- over the pause
+	line. Growing the card here does nothing: `_place_local()` re-sets its rect from the
+	layout on every pass. The card must become content-sized in `ui_layout.gd`, which the
+	component owner holds. Evidence: docs/validation/evidence/ui-refinement/screenshots/
+	06_narrow_1280x720_150.png."""
 	var card: Panel = _controls[ID_ALERT_CARD] as Panel
 	card.accessibility_description = text
 	card.tooltip_text = text

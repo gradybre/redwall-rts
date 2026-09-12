@@ -64,3 +64,12 @@ resolved. Publish Milestone/Station through the existing registry, then implemen
 packed stores and dependency-ready starter composition; do not reopen these as
 undefined fields or declare absent service/topology owners complete. Run the
 ruling's exact mapping, mask, ownership, capacity and failure tests.
+
+## Art authoring contract — 2026-09-11
+
+Use [ART-GAP-R03/04](../planning/asset_dimensions_and_budgets.md) for all30
+exterior-height envelopes, non-creature budgets, explicit cutaway parts and
+stockpile fill truthfulness. They add no storage capacity, room service or
+underground depth. One8×8m stockpile remains one400000g container; do not multiply
+capacity by its sixteen footprint tiles. Runtime/export/performance evidence
+remains required separately from these authored ceilings.

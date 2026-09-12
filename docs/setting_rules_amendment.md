@@ -157,3 +157,10 @@ Memory strategy `[NEW]`: retain the existing FaunaStock field allocation as a re
 | Runtime lifecycle, not yet executed | Accept/refuse once, expire next midnight, save/reload pending and resolved rows, reserve/bed/cap refusals, deterministic skill selection and origin labels |
 
 Reference checks cannot certify those unimplemented runtime transactions or full three-year survival. Keep the recorded distinction between specification validation, isolated Godot kernels, complete settlement integration, all-scenario coverage and Windows qualification.
+
+## Save-number clarification — 2026-09-11
+
+References here to rejected v1 hunting saves and compatible v2 saves identify
+ruleset/catalog generations. They do not require outer save format_version2.
+[SAVE-R09-001](rulings/2026-09-11_save_codec_contract.md) keeps outer format1,
+versions each section explicitly and preserves all hunting-state refusals.

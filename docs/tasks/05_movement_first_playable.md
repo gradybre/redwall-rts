@@ -96,3 +96,10 @@ Acceptance: MOVE-TEST-03/06/08; missing clip rejected; prior/current pose timing
 Depends on all preceding increments. Compare every tick, including 3001–18000 after saving at 3000, and forks at midnight, queue admission, partial search, active crossings, death and topology commit. Run F01–F14 plus MOVE-TEST-01–10, capacity/refusal and cache/deadlock fixtures. Record source/build/catalog hashes, exact inputs, commands, hardware, per-tick digests and first divergence.
 
 Measure 256 living residents at 1×/4×, route-ready latency, all packed capacities, snapshot copies, transient/load peaks, UI and rendering. Keep verification hashing cost separate. Mac evidence continues; unavailable Windows/5090 evidence stays deferred and does not replace qualification-floor measurements. **Closes:** G05 only with complete reproducible required evidence. A partial report lists each open gate, missing artifact and owner; it never renames the ground checkpoint “movement complete.”
+
+## Latest blocker handoff — 2026-09-11
+
+Read [the asset/save/movement ruling index](../rulings/2026-09-11_asset_save_movement_blockers.md)
+before dispatching the next increment. It supplies authoring and codec contracts,
+corrects focus/rollback classifications, and preserves the separate open
+proportion-review and full MOVE-G01 gates. It does not mark runtime work complete.

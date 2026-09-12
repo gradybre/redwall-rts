@@ -46,6 +46,8 @@ const FishingScript := preload("res://scripts/core/fishing.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
 const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
+const BuildingsScript := preload("res://scripts/core/buildings.gd")
+const CatalogScript := preload("res://scripts/core/catalog.gd")
 
 ## GDD §5.1: the starting settlement is twelve residents.
 const COHORT_SIZE: int = 12
@@ -2117,3 +2119,204 @@ func test_a_new_world_restarts_the_id_space_at_rowan() -> void:
 		"whose Warden is id 1 again, not %d" % (first_consumed + 1))
 	assert_equal(_cohort_persistent_ids()[COHORT_SIZE - 1], COHORT_SIZE,
 		"and whose twelfth resident is id 12")
+
+
+# --- the Building/Room/Furniture store, composed (decision 0087) --------------------------------
+#
+# `buildings.gd` (decision 0080) landed complete and nothing constructed it. These tests cover
+# exactly what constructing it over THIS settlement's directory buys, and -- just as deliberately
+# -- what it does not: there is no §7.2 starter settlement, and the counts stay honestly 0.
+
+## A hall origin well clear of the map centre, where `world_init.gd` puts its generated content,
+## so a placement in a GENERATED settlement is not competing with terrain features for tiles.
+const HALL_ORIGIN_X: int = 20
+const HALL_ORIGIN_Z: int = 20
+
+## Three tiles per bed is §5.9's dormitory rule; twelve tiles therefore hold at most four beds.
+const DORMITORY_TILES_X: int = 4
+const DORMITORY_TILES_Z: int = 3
+
+
+func _tile(x: int, z: int) -> int:
+	"""§5.1's exterior grid index, `z * 128 + x`, restated here rather than read from the store."""
+	return z * BuildingsScript.MAP_TILES_X + x
+
+
+func _m0_mask() -> int:
+	"""The unlocked-milestone mask holding M0 alone, which is what §5.11 grants at start."""
+	return 1 << int(CatalogScript.MILESTONE["M0"])
+
+
+func _place_hall() -> Vector2i:
+	"""Place §5.9's refuge hall at this suite's fixed origin and hand back its reference."""
+	var placed: BuildingsScript.OpResult = _settlement.buildings().place_building(
+		int(CatalogScript.BUILDING_DEFINITION["hall"]), _tile(HALL_ORIGIN_X, HALL_ORIGIN_Z), 0,
+		_m0_mask())
+	assert_true(placed.ok, "the hall must place (refusal: %s)" % placed.error)
+	return placed.ref
+
+
+func _designate_dormitory(hall: Vector2i) -> Vector2i:
+	"""Designate a 4x3 dormitory inside the hall's one-tile-inset interior."""
+	var tiles: PackedInt32Array = PackedInt32Array()
+	for offset_z: int in DORMITORY_TILES_Z:
+		for offset_x: int in DORMITORY_TILES_X:
+			tiles.append(_tile(HALL_ORIGIN_X + 1 + offset_x, HALL_ORIGIN_Z + 1 + offset_z))
+	var room: BuildingsScript.OpResult = _settlement.buildings().designate_room(
+		hall, int(CatalogScript.ROOM_TYPE["DORMITORY"]), tiles)
+	assert_true(room.ok, "the dormitory must designate (refusal: %s)" % room.error)
+	return room.ref
+
+
+func _place_bed(room: Vector2i, index: int) -> Vector2i:
+	"""Place one bed on the `index`th tile of this suite's dormitory footprint."""
+	var tile: int = _tile(HALL_ORIGIN_X + 1 + index % DORMITORY_TILES_X,
+		HALL_ORIGIN_Z + 1 + index / DORMITORY_TILES_X)
+	var bed: BuildingsScript.OpResult = _settlement.buildings().place_furniture(
+		room, int(CatalogScript.FURNITURE_DEFINITION["bed"]), tile, 0)
+	assert_true(bed.ok, "bed %d must place (refusal: %s)" % [index, bed.error])
+	return bed.ref
+
+
+func test_the_building_store_is_composed_over_this_settlements_one_directory() -> void:
+	"""The call decision 0080 named and did not make: `Buildings.new(_directory)`.
+
+	Sharing the directory is the whole substance of the composition. A store built with its own
+	allocator would validate every `Furniture.user` against a directory no resident lives in.
+	"""
+	assert_true(_settlement.buildings() != null, "the settlement composes a Building store")
+	assert_true(_settlement.buildings().directory() == _settlement.directory(),
+		"over the same directory every other settlement reference is allocated from")
+	assert_true(_settlement.building_definitions() == _settlement.buildings().definitions(),
+		"and it publishes the store's OWN §4.1-4.3 facts, not a second copy of them")
+
+
+func test_an_empty_settlement_holds_no_building_room_or_furniture() -> void:
+	"""Composition allocates columns; it places nothing. All three counts open at 0."""
+	assert_equal(_settlement.buildings().live_building_count(), 0, "no building")
+	assert_equal(_settlement.buildings().live_room_count(), 0, "no room")
+	assert_equal(_settlement.buildings().live_furniture_count(), 0, "no furniture")
+	assert_equal(_settlement.buildings().live_furniture_of_kind(
+		int(CatalogScript.FURNITURE_DEFINITION["bed"])), 0, "and no bed for a HUD to count")
+
+
+func test_a_placed_building_allocates_a_row_in_the_settlements_directory() -> void:
+	"""The placement's reference is a live KIND_BUILDING row of the settlement's own allocator."""
+	var before: int = _settlement.directory().live_count(EntityDirectoryScript.KIND_BUILDING)
+	var hall: Vector2i = _place_hall()
+	assert_equal(_settlement.directory().live_count(EntityDirectoryScript.KIND_BUILDING),
+		before + 1, "the building row is allocated in the settlement's directory")
+	assert_true(_settlement.directory().is_valid_of_kind(hall,
+		EntityDirectoryScript.KIND_BUILDING), "and the reference validates there as a BUILDING")
+	assert_true(_settlement.buildings().is_live_building(hall), "as well as in the store")
+
+
+func test_the_bed_counter_reads_live_furniture_rows_and_falls_when_one_is_removed() -> void:
+	"""UI §1.1's `Beds` counter source. Its value is rows, not a mask bit and not a cached total.
+
+	Removing one of three beds must leave two. `buildings.gd` recomputes the room mask from the
+	room's own chain rather than clearing bits incrementally, and this is the counter half of the
+	same property: a per-kind total that tracks removals as well as placements.
+	"""
+	var bed_id: int = int(CatalogScript.FURNITURE_DEFINITION["bed"])
+	var room: Vector2i = _designate_dormitory(_place_hall())
+	var first: Vector2i = _place_bed(room, 0)
+	_place_bed(room, 1)
+	_place_bed(room, 2)
+	assert_equal(_settlement.buildings().live_furniture_of_kind(bed_id), 3, "three beds")
+	assert_true(_settlement.buildings().remove_furniture(first).ok, "one bed is removed")
+	assert_equal(_settlement.buildings().live_furniture_of_kind(bed_id), 2,
+		"and the counter falls to two rather than staying at three")
+
+
+func test_a_bed_takes_a_resident_of_this_settlement_as_its_user() -> void:
+	"""REQ-SET-009 bed assignment, the half the shared directory makes possible.
+
+	`set_furniture_user()` validates the reference as a live KIND_RESIDENT row. With a private
+	directory this call could only ever have refused, because no resident would exist in it.
+	"""
+	_settlement.create_initial_settlement()
+	var resident: Vector2i = _settlement.residents().ref_of(0)
+	assert_true(_settlement.directory().is_valid_of_kind(resident,
+		EntityDirectoryScript.KIND_RESIDENT), "the cohort's first resident is a live row")
+	var bed: Vector2i = _place_bed(_designate_dormitory(_place_hall()), 0)
+	var used: BuildingsScript.OpResult = _settlement.buildings().set_furniture_user(bed, resident)
+	assert_true(used.ok, "the bed takes that resident as its user (refusal: %s)" % used.error)
+	assert_equal(_settlement.buildings().user_ref_of_furniture(bed), resident,
+		"and reads back the very reference `residents()` published")
+
+
+func test_a_bed_refuses_a_directory_row_that_is_not_a_resident() -> void:
+	"""The shared directory is a validator, not just a common pool: kind is still checked."""
+	var stray: Vector2i = _settlement.directory().create(
+		EntityDirectoryScript.KIND_HARVEST_ZONE)
+	assert_true(stray != EntityDirectoryScript.NULL_REF, "a live row of another kind exists")
+	var bed: Vector2i = _place_bed(_designate_dormitory(_place_hall()), 0)
+	var used: BuildingsScript.OpResult = _settlement.buildings().set_furniture_user(bed, stray)
+	assert_false(used.ok, "a harvest zone cannot sleep in a bed")
+	assert_equal(used.error, BuildingsScript.REFUSE_STALE_USER_REF, "with the store's own reason")
+	assert_equal(_settlement.buildings().user_ref_of_furniture(bed),
+		EntityDirectoryScript.NULL_REF, "and the bed is left unoccupied")
+
+
+func test_resetting_the_settlement_empties_the_building_store_and_its_directory_rows() -> void:
+	"""`reset()` must leave no building row and no directory slot allocated to one.
+
+	A store composed into `_init()` but forgotten in `_clear_stores()` would survive a reset and
+	hand the next generation a hall nobody placed -- and strand its directory slots as well.
+	"""
+	var room: Vector2i = _designate_dormitory(_place_hall())
+	_place_bed(room, 0)
+	assert_equal(_settlement.buildings().live_furniture_count(), 1, "one bed stands")
+	_settlement.reset()
+	assert_equal(_settlement.buildings().live_building_count(), 0, "no building survives")
+	assert_equal(_settlement.buildings().live_room_count(), 0, "no room survives")
+	assert_equal(_settlement.buildings().live_furniture_count(), 0, "no furniture survives")
+	assert_equal(_settlement.directory().total_live_count(), 0,
+		"and the directory holds no row of any kind at all")
+
+
+func test_a_generated_settlement_still_places_no_building_and_counts_no_bed() -> void:
+	"""THE HONEST NEGATIVE. §5.1's hall, twelve beds, hearth and pantry are NOT generated.
+
+	`world_init.gd` publishes terrain, resource nodes, forage basins and the estuary; §5.1's
+	built fixture is not among them and this change does not add it. A `Beds` counter wired to
+	`live_furniture_of_kind()` today therefore shows a TRUE 0, and the §7.2 starter build remains
+	outstanding work. Pinned so no later reader mistakes composition for construction.
+	"""
+	assert_true(_generate(), "the settlement generates")
+	assert_equal(_settlement.population(), COHORT_SIZE, "with its twelve residents")
+	assert_true(_settlement.world().is_published(), "and a published world")
+	assert_equal(_settlement.buildings().live_building_count(), 0, "and NO starter hall")
+	assert_equal(_settlement.buildings().live_furniture_of_kind(
+		int(CatalogScript.FURNITURE_DEFINITION["bed"])), 0, "and NO starter beds")
+
+
+func test_a_building_placed_after_generation_takes_the_next_persistent_id() -> void:
+	"""R-INIT-ID-001 is undisturbed: the cohort keeps 1-12 and a building queues behind the world.
+
+	This is what one shared directory means for the id space. A second allocator would have
+	restarted the count and handed the hall a persistent id the Warden already holds.
+	"""
+	assert_true(_generate(), "the settlement generates")
+	var ids: PackedInt32Array = _cohort_persistent_ids()
+	assert_equal(ids[ResidentsScript.WARDEN_INDEX], 1, "the Warden is still id 1")
+	var hall: Vector2i = _place_hall()
+	var hall_id: int = _settlement.directory().get_persistent_id(hall)
+	assert_true(hall_id > COHORT_SIZE,
+		"the hall's persistent id %d is beyond the cohort's twelve" % hall_id)
+	assert_equal(_cohort_persistent_ids(), ids, "and no resident id moved")
+
+
+func test_the_building_store_adds_no_stage_to_the_tick() -> void:
+	"""Composition is structural state, not a §5 stage. The dispatch order is unchanged.
+
+	ARCH-SYS-016 RoomHeat is the one stage that would read this store, and it still has no
+	connected-heat model, so nothing here is dispatched per tick.
+	"""
+	assert_equal(_settlement.tick_stage_count(), 7,
+		"the tick still dispatches exactly the seven stages it did")
+	_populated()
+	_settlement.run_tick(0)
+	assert_equal(_settlement.buildings().live_building_count(), 0,
+		"and a tick places nothing of its own")

@@ -141,12 +141,67 @@ resolved result/reachability classification; scheduler writer wiring remains wor
 RESTORE-R01 atomic clock restoration and SAVE-LAYOUT-R01 explicit column-major framing precede end-to-end09.3 acceptance. Independent file/checkpoint work may continue.
 Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.
 
+## §14 NAME_POOL landed — 2026-09-12
+
+`godot/scripts/core/save_section_name_pool.gd` and
+`godot/test/test_save_section_name_pool.gd` implement ARCH-SAVE-002 section 14,
+the registry's single `residents.gd::_name_key` member. Reasoning and the four
+named blockers are in
+[decision 0099](../decisions/0099-the-first-variable-length-save-section-frames-its-own-row-count.md).
+
+- [x] §14 NAME_POOL payload codec: `capture_into` / `encode_record` /
+      `encode_store` / `decode_into` / `apply` / `canonical_bytes_of`, following
+      `save_section_rng.gd`'s shape with a public `extent_refusal()`.
+- [x] **The format's first variable-length framing**, which sections 3, 4, 5, 7,
+      8 and 13 inherit: explicit `row_count:u32` checked against the compiled
+      capacity, then 512 rows of `utf8_byte_count:u32 LE` + exactly that many
+      UTF-8 bytes, no terminator, alignment or padding (SAVE-R09-002).
+- [x] `decode_into()` takes the descriptor **length** as well as the offset and
+      bounds every row against the section end, not the buffer end — the layout
+      is gapless (SAVE-R09-004), so a buffer-bounded read would consume section
+      15's bytes as a name. Exact consumption required; trailing bytes refuse.
+- [x] SAVE-R09-002's pinned fixtures reproduced against this encoder: empty
+      `00000000`, `Oak` = `030000004f616b`, `Móle` = `050000004dc3b36c65`, and
+      `01000000c0` / `02000000c080` both refused as malformed UTF-8.
+- [x] Name validation: 128 encoded bytes, 2–32 Unicode scalar values, and no
+      Unicode category Cc character (U+0000–U+001F, U+007F–U+009F), each with its
+      own refusal code. The 131072-byte arena limit enforced independently.
+- [x] Empty is a present anonymous row, never an absent one (GDD REQ-SET-040–042).
+      A nonempty name on an absent slot refuses; an empty one does not.
+- [x] `apply()` is allocate-before-consume (decision 0059) with rollback, asserted
+      against a store image built from `residents.gd`'s own public readers.
+- [x] `canonical_bytes_of()` emits the 512 values **without** the row-count
+      prefix, because SAVE-R09's canonical field record supplies `value_count`
+      itself. Section 14 is category 1 **and** inside ARCH-HASH-001.
+
+Still open, and not claimed by this work:
+
+- [ ] **BLOCKER N1** — section 14 has no registered owner-block framing.
+      SAVE-LAYOUT-R01 scopes the `owner_key / owner_schema_version /
+      primary_count / payload_byte_length` wrapper to sections 3/4/5 and says
+      6/7/8/9/14 still need registered owner schemas. No wrapper, owner_key
+      spelling or schema version is invented here; adding one later increments
+      the section version.
+- [ ] **BLOCKER N2** — SAVE-R09-002's "a live resident cannot load an empty name"
+      versus GDD REQ-SET-041's anonymous residents. Implemented as the `_named`
+      consistency rule; needs the ruling author's confirmation.
+- [ ] **BLOCKER N3** — `residents.gd::set_name()` enforces none of
+      ARCH-SAVE-005's name rules, so a live store can hold a name this codec
+      must refuse to write. `residents.gd` was read-only for this task.
+- [ ] **BLOCKER N4** — section 14 must be applied after section 4, because
+      `set_name()` rewrites `_named`. No load orchestrator exists to hold that
+      order.
+- [ ] Registry and architecture rows for the codec's transient `Record` column,
+      and the §2.2 `name_key` I32-versus-`PackedStringArray` divergence, are
+      reported to the integration owner; neither file was on this task's
+      allowlist.
+
 ## 09.2 §3 ENTITY_DIRECTORY implementation — 2026-09-12
 
 `godot/scripts/core/save_section_directory.gd` and
 `godot/test/test_save_section_directory.gd` land section 3 under SAVE-LAYOUT-R01's
 block framing. Reasoning and the two open blockers are in
-[decision 0098](../decisions/0098-section-3-writes-six-columns-and-rebuilds-the-rest.md).
+[decision 0103](../decisions/0103-section-3-writes-six-columns-and-rebuilds-the-rest.md).
 
 - [x] §3 block framing: `store_count:u32`=1, `owner_key` "entity_directory",
       `owner_schema_version:u32`=1, `primary_count:u64`=352418,

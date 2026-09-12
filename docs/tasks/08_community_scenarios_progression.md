@@ -125,6 +125,10 @@ Still open and **not** claimed by that work:
       **100** once `_profile_life_stage` lands (6 x 4 x 4 + 1 x 1 x 4). `movement.gd`'s
       running owed total is 12384 bytes now and 12388 then.
 
+## EH injury and rescue contracts
+
+[HAZ-001–006 and EH-04/05](../planning/underground_economy_hazard_handoff.md) bind the existing InjuryKind domain to exact air/exhaustion/fall/rescue rules and one health-rate owner. PC-04 remains responsible for dependent-resident coefficients/profiles; this package grants no child hazardous work or adult fallback.
+
 ### Aggregate Injury and care status — 2026-09-12
 
 Implemented in `godot/scripts/core/injury.gd` with the `needs.gd` rate integration,

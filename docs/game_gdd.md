@@ -958,3 +958,13 @@ integer arithmetic with one final floor; current masses give floor(q/10).
 [STOCK-SEED-R01](rulings/2026-09-12_alerts_and_seed_expiry.md) owns trigger, rounding
 loss, zero-output retirement, atomic ledgers/reservations and acceptance. This
 new yield does not change composter recipes or other food-spoilage contracts.
+
+## Connected-movement policy confirmation — DEC-040
+
+Excavation shall generate real haulable, reusable spoil with a distinct catalog identity and declared mass, not an alias of stone or compost. Movement/excavation hazards shall be warned and preventable, with rescue using existing settlement injury/care rather than surprise death rolls. This is confirmed direction, not an item/recipe/hazard parameter table. Four underground levels at 4m spacing remain a candidate; G02 must derive representation and memory before adoption. Complete the G01 numerical contracts before activating the dependent production mechanics.
+
+See [DEC-040](setting_decisions.md#dec-040--excavation-spoil-and-preventable-movement-hazards).
+
+## SET-MOVE-ECON-001 — numerical excavation and hazard amendment
+
+Adopt [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) as the owning numerical supplement under DEC-040. ECON-001–006 define volume-priced excavation, real spoil, tip/reuse accounts, coupled closure and the explicit modular-phase exception to REQ-SET-126; ordinary surface-building refunds retain their rules. HAZ-001–006 define air/exhaustion/fall/rescue values and shared health ordering using the existing InjuryKind domain. These scoped parameters are author-adopted for implementation, replacing their earlier pending-authoring status. Four levels at4m spacing remain a candidate; all unsupplied G01 inputs and G02–G05 remain open.

@@ -124,23 +124,20 @@ extends RefCounted
 ## ARCH-AUTH-002. There is no float in this file and there must never be one;
 ## `test_save_section_directory.gd` greps this source to enforce that.
 ##
-## ## BLOCKER D1 -- THERE IS NO WAY TO READ, OR TO PUBLISH, THE FULL COLUMNS OF A LIVE DIRECTORY
+## ## BLOCKER D1 -- CLOSED 2026-09-12 BY `entity_directory.gd`'S BULK COLUMN API (decision 0105)
 ##
-## `entity_directory.gd` is owned by another agent and is byte-untouched here. Its public surface
-## is `ref_of_slot()`, `get_kind()`, `get_typed_row()`, `get_persistent_id()`, `is_slot_retired()`
-## and the counters -- every one of which answers only for a LIVE slot. There is no reader for the
-## generation of an INACTIVE slot, and that is precisely the value the registry says must survive
-## verbatim: "a load that wrote generations only for live slots, or that reset them, would hand
-## the next `create()` a `(slot, generation)` pair that an `EntityRef` taken before the save still
-## holds". There is no writer for any column at all, and no reachable variant of
-## `_rebuild_free_heaps()` that excludes live slots.
+## It was real: the directory's other readers -- `ref_of_slot()`, `get_kind()`, `get_typed_row()`,
+## `get_persistent_id()`, `is_slot_retired()` and the counters -- answer only for a LIVE slot, so
+## the generation of an INACTIVE slot was unreachable, and that is precisely the value the
+## registry says must survive verbatim: "a load that wrote generations only for live slots, or
+## that reset them, would hand the next `create()` a `(slot, generation)` pair that an
+## `EntityRef` taken before the save still holds". There was no writer for any column at all.
 ##
-## No module in this repository reads another module's underscore-prefixed columns, and this one
-## will not be the first: reaching into `store._generation` would put the heap invariants in two
-## files. `save_section_world_runtime.gd` hit the same wall against `sim_clock.gd` (its BLOCKER
-## W1), refused to half-publish, and Astra then ruled the missing API into existence as
-## RESTORE-R01's `restore_runtime()`. This module takes the same position. What section 3 needs
-## from the directory owner is two bulk, by-reference column operations:
+## This module did not reach into `store._generation`: no module in this repository reads
+## another's underscore-prefixed columns, and doing it here would have put the heap invariants in
+## two files. `save_section_world_runtime.gd` hit the same wall against `sim_clock.gd` (its
+## BLOCKER W1), refused to half-publish, and Astra ruled the missing API into existence as
+## RESTORE-R01's `restore_runtime()`. The directory owner has now added the same shape:
 ##
 ##     func copy_columns_into(out_active: PackedByteArray, out_generation: PackedInt32Array,
 ##         out_retired: PackedByteArray, out_persistent_id: PackedInt32Array,
@@ -149,14 +146,21 @@ extends RefCounted
 ##         retired: PackedByteArray, persistent_id: PackedInt32Array,
 ##         kind: PackedInt32Array, typed_row: PackedInt32Array) -> bool
 ##
-## `restore_columns()` must, after assigning the six, rebuild `_typed_owner_slot`, both heaps and
-## all five counters from them, excluding live slots from `_free_heap` and filling every window
-## ASCENDING -- ascending fill is what makes the rebuild canonical, because it is what makes the
-## next `create()` return the lowest free slot. Until those exist, `capture_columns_into()` is the
-## capture step and takes the columns from whoever can supply them, `capture_into()` refuses
-## explicitly rather than capturing five of six columns, and there is no `apply()`.
-## `agrees_with_directory()` verifies a decoded Record against a live store as far as the public
-## readers allow, which is every live slot and every counter.
+## `capture_into()` and `apply()` are those two calls wrapped in this module's validation, and
+## they are the whole round trip: `capture_into` -> `encode_record` -> bytes -> `decode_into` ->
+## `apply`. `restore_columns()` rebuilds `_typed_owner_slot`, both heaps and every counter,
+## excludes live and retired slots from the free heap, and fills both windows ASCENDING, which is
+## what makes the next `create()` return the lowest free slot exactly as the saved world's would.
+## `capture_columns_into()` remains the column-level capture for a caller that already holds six
+## columns. `agrees_with_directory()` verifies a decoded Record against a live store as far as the
+## public readers allow, which is every live slot and every counter.
+##
+## THE TWO VALIDATORS ARE DELIBERATELY SEPARATE AND RUN BOTH WAYS. This module validates the wire
+## format, ARCH-SAVE-004's unique persistent IDs and every §3 rule; `restore_columns()` validates
+## the directory's own invariants again before it writes anything. The dependency only points one
+## way (this file preloads the directory, never the reverse), so the directory cannot delegate to
+## this validator. A divergence between the two surfaces as REFUSE_STORE_REFUSED_COLUMNS rather
+## than as a half-written directory.
 ##
 ## ## BLOCKER D2 -- `_next_persistent_id` IS REGISTERED TO §1 WORLD AND NOBODY WRITES IT
 ##
@@ -294,14 +298,16 @@ const REFUSE_CURSOR_EXHAUSTED: StringName = &"SAVE_DIR_CURSOR_EXHAUSTED"
 const REFUSE_ENCODE_FAILED: StringName = &"SAVE_DIR_ENCODE_FAILED"
 const REFUSE_STORE_NO_COLUMN_READER: StringName = &"SAVE_DIR_STORE_NO_COLUMN_READER"
 const REFUSE_STORE_MISMATCH: StringName = &"SAVE_DIR_STORE_MISMATCH"
+const REFUSE_STORE_REFUSED_COLUMNS: StringName = &"SAVE_DIR_STORE_REFUSED_COLUMNS"
 
 
 class Record:
 	"""One decoded section 3: the six category-1 columns, each at full directory capacity.
 
-	Allocated once in `_init` and never resized again. There is no heap column and no counter
-	column here, and that absence is the design: see the module header on why persisting the
-	min-heaps would make two identical worlds produce different bytes.
+	Allocated once in `_init`. `copy_columns_into()` refills the six by reference and leaves each
+	one at the same DIRECTORY_CAPACITY length; nothing ever grows one. There is no heap column and
+	no counter column here, and that absence is the design: see the module header on why
+	persisting the min-heaps would make two identical worlds produce different bytes.
 	"""
 	var active: PackedByteArray = PackedByteArray()
 	var generation: PackedInt32Array = PackedInt32Array()
@@ -354,9 +360,10 @@ class Derived:
 
 	`typed_owner_slot` is `_typed_owner_slot` exactly: the inverse of `_typed_row`, indexed by
 	`_kind_base[kind] + row`. The four counters mirror `_live_count`, `_free_count` and the two
-	per-kind counters. The two min-heaps are deliberately absent: rebuilding them is
-	`entity_directory.gd`'s own `_rebuild_free_heaps()`, and reimplementing it here would put the
-	heap invariants in two files (BLOCKER D1).
+	per-kind counters. The two min-heaps are deliberately absent: rebuilding them belongs to
+	`entity_directory.gd`'s own `restore_columns()`, and reimplementing it here would put the heap
+	invariants in two files. This class is what `rebuild_into()` validates THROUGH; `apply()` is
+	what actually rebuilds a store.
 	"""
 	var typed_owner_slot: PackedInt32Array = PackedInt32Array()
 	var kind_live_count: PackedInt32Array = PackedInt32Array()
@@ -633,9 +640,10 @@ static func capture_columns_into(active: PackedByteArray, generation: PackedInt3
 		typed_row: PackedInt32Array, out: Record) -> SaveHeader.Refusal:
 	"""Validate six supplied directory columns and copy them into a caller-owned Record.
 
-	This is the capture step. It takes columns rather than a store because BLOCKER D1 says
-	`entity_directory.gd` publishes no bulk column reader yet; the day it does, the wrapper is two
-	lines. `out` is untouched unless every shape, domain and cross-column rule passes.
+	The column-level capture, for a caller that already holds six columns rather than a store --
+	a fixture, a test, a migration. `capture_into()` is the same step against a live directory and
+	is what a save should call. `out` is untouched unless every shape, domain and cross-column
+	rule passes.
 	"""
 	var staged: Record = Record.new()
 	staged.active = active.duplicate()
@@ -652,19 +660,51 @@ static func capture_columns_into(active: PackedByteArray, generation: PackedInt3
 
 
 static func capture_into(store: EntityDirectoryScript, out: Record) -> SaveHeader.Refusal:
-	"""Refuse to capture a live directory, because its generation column is not readable.
+	"""Capture a live directory's six persisted columns into `out`, validating before it lands.
 
-	BLOCKER D1 in full. `store` answers `ref_of_slot()` only for a LIVE slot, so the generation of
-	every free and retired slot -- the column the registry says must survive verbatim -- is
-	unreachable through the public surface. Capturing the other five and leaving that one at zero
-	would hand the next `create()` a `(slot, generation)` pair that a pre-save `EntityRef` still
-	holds. `out` is deliberately untouched: this refuses rather than half-capturing.
+	`copy_columns_into()` is the only reader that answers for an INACTIVE slot, which is why this
+	function needed it to exist: the free and retired generations are what the registry requires
+	to survive verbatim. The columns land in a LOCAL Record, every §3 rule runs against that
+	local, and `out` is written only if all of them pass -- so a store that somehow holds an
+	invalid column set leaves the caller's Record byte-identical instead of half-captured.
 	"""
-	return SaveHeader.Refusal.new(REFUSE_STORE_NO_COLUMN_READER,
-		("entity_directory.gd exposes no reader for the generation of an inactive slot, so the "
-			+ "%d live of %d slots are capturable and the free-slot generations are not; "
-			+ "it needs copy_columns_into(...) (BLOCKER D1). Use capture_columns_into().")
-			% [store.total_live_count(), PRIMARY_COUNT])
+	var staged: Record = Record.new()
+	if not store.copy_columns_into(staged.active, staged.generation, staged.retired,
+			staged.persistent_id, staged.kind, staged.typed_row):
+		return SaveHeader.Refusal.new(REFUSE_STORE_NO_COLUMN_READER,
+			"the directory refused to publish its columns: %s" % store.last_column_refusal())
+	var invalid: SaveHeader.Refusal = record_refusal(staged)
+	if not invalid.is_ok():
+		return invalid
+	out.copy_from(staged)
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+# --- apply -----------------------------------------------------------------------------------------
+
+static func apply(record: Record, store: EntityDirectoryScript) -> SaveHeader.Refusal:
+	"""Publish a validated Record into a live directory, replacing every column and every index.
+
+	The load half of ARCH-SAVE-002 §3. The Record is validated here first, and `restore_columns()`
+	validates the directory's own invariants again before it writes anything, so a refusal from
+	either side leaves the store byte-identical (decision 0059) -- which matters more here than
+	anywhere else, because every `EntityRef` in every other section resolves through this store.
+
+	The category-2 members are NOT published: `_typed_owner_slot`, both min-heaps and every
+	counter are rebuilt by the directory from the six columns. Neither is `_next_persistent_id`,
+	which the registry assigns to §1 WORLD (BLOCKER D2 below): a world loaded today therefore
+	carries its slots and generations faithfully and still reissues persistent IDs from 1.
+	"""
+	var invalid: SaveHeader.Refusal = record_refusal(record)
+	if not invalid.is_ok():
+		return invalid
+	if not store.restore_columns(record.active, record.generation, record.retired,
+			record.persistent_id, record.kind, record.typed_row):
+		return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED_COLUMNS,
+			("the directory refused a column set this section accepted: %s. The two validators "
+				+ "have diverged; neither the store nor the record was written.")
+				% store.last_column_refusal())
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
 
 
 # --- encode ---------------------------------------------------------------------------------------
@@ -1077,9 +1117,10 @@ static func agrees_with_directory(record: Record,
 	"""Verify a decoded Record against a live directory, as far as the public readers allow.
 
 	Every live slot's reference, kind, typed row and persistent ID is compared, and all five
-	counters. What CANNOT be compared is the generation of an inactive slot, for the same
-	BLOCKER D1 reason capture cannot read it; the counter comparison closes most of that gap,
-	because a store with an extra retirement or an extra live row fails it.
+	counters. It stays scoped to the PUBLIC readers on purpose, so it remains a genuinely
+	independent cross-check: a test that captured the store's columns and compared them with the
+	record would be comparing `copy_columns_into()` against itself. The inactive generations it
+	cannot see are covered instead by a capture/apply/re-encode round trip.
 	"""
 	var derived: Derived = Derived.new()
 	var invalid: SaveHeader.Refusal = rebuild_into(record, derived)

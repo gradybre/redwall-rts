@@ -84,6 +84,7 @@ The generated tables below use the conventions in §2. All inherited quantities 
 | dace | RAW_FISH | 250 | 1400 | 48 | 0 | 0 | RECOVERY | 1 | [GDD §5.7; NEW category/key normalization] |
 | dried_fish | PRESERVED | 250 | 1800 | 720 | 1 | 0 | FROM_INPUT | 0 | [GDD §5.7; NEW category/key normalization] |
 | dried_fruit | PRESERVED | 250 | 1400 | 720 | 1 | 0 | FROM_INPUT | 0 | [GDD §5.7; NEW category/key normalization] |
+| excavated_earth | MATERIAL | 1000 | 0 | 0 | 0 | 0 | NONE | 0 | [SET-MOVE-ECON-001 ECON-002; NEW_AUTHOR_ADOPTED under DEC-040] |
 | flax | MATERIAL | 250 | 0 | 0 | 0 | 0 | NONE | 0 | [GDD §5.7; NEW category/key normalization] |
 | flour | RAW_FOOD | 250 | 1200 | 240 | 0 | 0 | SATIETY | -50 | [GDD §5.7; NEW category/key normalization] |
 | fruit | RAW_FOOD | 250 | 900 | 144 | 1 | 0 | CHEER | 200 | [GDD §5.7; NEW category/key normalization] |
@@ -569,3 +570,13 @@ automatic seed-expiry quantity: checked floor(q_milli*seed_mass/compost_mass),
 currently floor(q_milli/10). Seed100g/U and compost1000g/U are inherited; the
 conversion ratio and per-lot decay remainder are newly specified. No composter
 recipe, shelf life, storage-age factor or sowing refund changes.
+
+## DEC-040 — spoil and hazard authoring inputs
+
+The two player-policy choices are confirmed: real haulable/reusable spoil with its own catalog key and mass, and warned/preventable hazards with rescue using existing injury/care. Next author exact spoil mass/yield, excavation and hauling work, legal placement/capacity, reuse/disposal/refund accounting, plus hazard triggers, air/return/recovery, injury and rescue parameters. Neither existing stone/compost values nor fishing penalties may be substituted as defaults. The four-level/4m geometry remains unratified and requires G02 representation/peak-memory review. This confirmation supplies no new production numbers and closes no MOVE gate.
+
+See [DEC-040](setting_decisions.md#dec-040--excavation-spoil-and-preventable-movement-hazards).
+
+## SET-MOVE-ECON-001 — active authoring targets
+
+Use [the owning numerical amendment](underground_economy_hazard_amendment.md) and [values manifest](planning/underground_economy_hazard_values.json) for exact DEC-040 parameters; do not substitute older draft prices. The manifest is not automatically active production content. Validate [the arithmetic/account oracle](validation/validate_underground_economy_hazards.py), then collect actual labor/haul/survival evidence after implementation. All GDD-inherited anchors remain separate from new authoring choices.

@@ -102,3 +102,7 @@ representation for §5.9's x4/x5 partition and its row-4 door, and no composed
 
 MOVE-DEP-R05 requires actual bounded service contacts with stable contact key, destination owner reference and revision, not merely a caller-supplied positive number.
 Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.
+
+## EH construction/logistics contracts
+
+[ECON-001–006 and EH-02/03](../planning/underground_economy_hazard_handoff.md) supply exact earth/work/refund/closure/tip rules and transaction retry/tool settlement obligations. Reuse the current building and inventory owners; do not overwrite concurrent implementations. Geometry and G02 representation remain required for production cuts.

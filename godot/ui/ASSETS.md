@@ -267,7 +267,35 @@ The journal is the one asymmetric case, and it is asymmetric on purpose: the bou
 the same reason, which is why the registry stores four corners rather than one size.
 
 `ART.FRAME.JOURNAL.RING` (10x14) and `ART.FRAME.JOURNAL.STRAP` (14x40) are non-stretching
-binding hardware, placed at intervals rather than scaled.
+binding hardware, placed at intervals rather than scaled. **They are not part of the
+eight-piece assembly below and have no declared anchor**, so the builder does not place them.
+
+### How a frame is assembled — `ui/ui_frame_geometry.gd`
+
+The table above says what the pieces are. It does not say where they go, and two attempts to
+guess put the corners outside their panels. [Decision
+0077](../../docs/decisions/0077-container-frame-placement-contract.md) settles it and
+`ui/ui_frame_geometry.gd` is the executable copy:
+
+* a **stretch margin** is a thickness measured **across** the strip — the height of the top
+  and bottom strips, the width of the left and right ones. It is not a square extent, and not
+  a gap between the panel edge and the strip: every strip is flush with the panel boundary;
+* a **corner extent** is the exact draw size of that corner, equal to its source document. No
+  bleed, no nine-patch margin, never scaled;
+* **corners own the corners, and each strip runs between the two that bracket it**, so no
+  strip is drawn underneath a corner motif;
+* a panel smaller than both corner pairs plus one pixel of run is **refused by name**, not
+  clamped, and a frame already applied to a panel that shrinks that far is hidden.
+
+Applying a frame is one call, and the caller owns no geometry:
+
+```gdscript
+const UiFrameBuilder := preload("res://ui/ui_frame_builder.gd")
+UiFrameBuilder.apply(panel, UiFrameBuilder.FRAME_RESOURCE_TRAY)
+```
+
+Every piece is decorative under ART-UI-07/08: `MOUSE_FILTER_IGNORE`, `FOCUS_NONE` and an
+empty accessibility name, on the holder and on all eight pieces.
 
 ## Tools and review artefacts
 
@@ -277,6 +305,8 @@ binding hardware, placed at intervals rather than scaled.
 | `ui/tools/export_art_pngs.gd` | Rasterises every asset at every declared optical size into `ui/review/exports/` |
 | `ui/tools/build_specimen.gd` | Assembles the five silhouettes from their own edge and corner art on a neutral background |
 | `ui/tools/build_contact_sheets.py` | Composes the labelled review sheets from those exports. Needs Pillow |
+| `ui/tools/render_frame_panels.gd` | Composes each silhouette onto a flat panel at three sizes, **through `ui_frame_geometry.gd`**, into `ui/review/exports/` |
+| `ui/tools/build_frame_sheet.py` | Labels and assembles those panels into `ui/review/sheets/art_frame_geometry.png`. Needs Pillow. Computes no geometry |
 
 ```bash
 godot --headless --path godot --editor --quit            # import first, always
@@ -284,12 +314,17 @@ godot --headless --path godot --script ui/tools/build_manifest.gd
 godot --headless --path godot --script ui/tools/export_art_pngs.gd
 godot --headless --path godot --script ui/tools/build_specimen.gd
 python3 godot/ui/tools/build_contact_sheets.py
+godot --headless --path godot --script ui/tools/render_frame_panels.gd
+python3 godot/ui/tools/build_frame_sheet.py
 ```
 
 `godot/ui/review/` carries a `.gdignore`, so Godot does not import the review renders as
-game resources. The four contact sheets in `ui/review/sheets/` show every icon at its
+game resources. The five contact sheets in `ui/review/sheets/` show every icon at its
 **actual delivered pixel size**, with magnified studies drawn nearest-neighbour and labelled
 as such, so nothing on a sheet looks better than the asset does in the game.
+`art_frame_geometry.png` is the placement sheet: all five silhouettes applied to real panels
+at 132x76, 300x120 and 760x96, composed through the same `ui_frame_geometry.gd` the runtime
+builder uses, so it is evidence about the contract rather than about the sheet script.
 
 **No review render is a runtime asset.** Nothing under `ui/review/` is loaded by the game,
 and the AI concept image at `docs/design/ui_refinement/visuals/05_woodland_art_concept.png`

@@ -1672,6 +1672,97 @@ func test_a_foreign_live_row_refuses_rather_than_being_orphaned() -> void:
 	assert_true(_directory.is_valid(stray), "and the resident row survives untouched")
 
 
+func test_declaring_one_cleared_kind_does_not_excuse_the_others() -> void:
+	"""`declare_externally_cleared()` is a per-kind statement, not an amnesty.
+
+	THE MUTATION THIS KILLS. Filling the whole mask instead of only the declared kinds left the
+	suite green, because every existing foreign-row test builds a generator that never calls
+	`declare_externally_cleared()` at all -- so a bug inside it could not be reached. The gate's
+	whole purpose is that an unclaimed live row refuses, and until this test nothing proved the
+	new door did not open it for everything.
+
+	KIND_RESIDENT is declared here exactly as `ui_world_session.gd` declares it. A FEAST row is
+	not, and no store this generator was given owns one, so it must still refuse and still name
+	its kind.
+	"""
+	_world.declare_externally_cleared(PackedInt32Array([EntityDirectory.KIND_RESIDENT]))
+	var resident: Vector2i = _directory.create(EntityDirectory.KIND_RESIDENT)
+	assert_true(_directory.is_valid(resident), "a declared resident row exists")
+	assert_true(_world.generate(_request()).ok,
+		"and the declared kind alone no longer refuses, which is the fix")
+	var feast: Vector2i = _directory.create(EntityDirectory.KIND_FEAST)
+	assert_true(_directory.is_valid(feast), "an undeclared feast row exists")
+	var refused: WorldInit.GenerateResult = _world.generate(_request())
+	assert_false(refused.ok, "generation refuses again")
+	assert_equal(refused.error, "WORLD_FOREIGN_LIVE_ROWS", "with the same code as before")
+	assert_equal(_world.foreign_kind(), EntityDirectory.KIND_FEAST, "naming the undeclared kind")
+	assert_true(_directory.is_valid(feast), "and the feast row survives untouched")
+
+
+func test_an_out_of_range_declared_kind_is_ignored_rather_than_trusted() -> void:
+	"""The declaration is caller-supplied input, so its bound is a real gate, not decoration.
+
+	THE MUTATION THIS KILLS. Relaxing the bound to `kind <= KIND_COUNT` left the suite green,
+	because every test declared only valid kinds -- the guard could never be reached to be wrong.
+	At KIND_COUNT it writes one past a PackedByteArray sized exactly KIND_COUNT.
+
+	An out-of-range entry is dropped silently rather than refused: this is a statement about what
+	the caller's reset clears, and a kind that does not exist clears nothing, so there is nothing
+	to disagree with. What must not happen is that it is trusted.
+	"""
+	_world.declare_externally_cleared(PackedInt32Array([EntityDirectory.KIND_COUNT,
+		-1, EntityDirectory.KIND_RESIDENT]))
+	var resident: Vector2i = _directory.create(EntityDirectory.KIND_RESIDENT)
+	assert_true(_directory.is_valid(resident), "the one valid declared kind still took effect")
+	assert_true(_world.generate(_request()).ok, "so the resident row does not refuse")
+	var feast: Vector2i = _directory.create(EntityDirectory.KIND_FEAST)
+	assert_true(_directory.is_valid(feast), "an undeclared row exists")
+	assert_equal(_world.generate(_request()).error, "WORLD_FOREIGN_LIVE_ROWS",
+		"and the out-of-range entries bought nothing")
+
+
+func test_the_declaration_reaches_the_last_directory_kind() -> void:
+	"""The mask spans the whole kind domain, KIND_WORLD at KIND_COUNT - 1 included.
+
+	THE MUTATION THIS KILLS. Sizing the mask `KIND_COUNT - 1` left the suite green, because the
+	highest kind no test ever declared is the only index that falls off the end -- and
+	`_refuse_collaborators()` skips a kind with no live rows before it ever asks about ownership,
+	so the short mask was unreachable rather than correct.
+
+	KIND_WORLD is the last enumerated kind, so declaring it is the boundary case by construction:
+	if the mask is one byte short this reads past it.
+	"""
+	_world.declare_externally_cleared(PackedInt32Array([EntityDirectory.KIND_WORLD]))
+	var world_row: Vector2i = _directory.create(EntityDirectory.KIND_WORLD)
+	assert_true(_directory.is_valid(world_row), "a live row of the last kind exists")
+	assert_true(_world.generate(_request()).ok,
+		"and declaring the last kind is honoured like any other")
+
+
+func test_a_second_declaration_replaces_the_first_rather_than_adding_to_it() -> void:
+	"""Declaring is a full statement of what the caller's reset clears, not an accumulating list.
+
+	THE MUTATION THIS KILLS. Dropping the `fill(0)` left the suite green, because every test
+	declared exactly once -- so a mask that only ever grew looked identical to one that replaced.
+
+	It matters because the generator outlives one call. A session that declares KIND_RESIDENT for
+	a composed create and later declares nothing for a plain one would silently keep the earlier
+	permission, and the row the second caller does NOT clear would be orphaned by the reset --
+	exactly the failure `_refuse_collaborators()` exists to prevent.
+	"""
+	_world.declare_externally_cleared(PackedInt32Array([EntityDirectory.KIND_RESIDENT]))
+	_directory.create(EntityDirectory.KIND_RESIDENT)
+	assert_true(_world.generate(_request()).ok, "the declared kind passes")
+	# That generate's own reset cleared the directory, so the second call needs its own row.
+	var resident: Vector2i = _directory.create(EntityDirectory.KIND_RESIDENT)
+	_world.declare_externally_cleared(PackedInt32Array())
+	var refused: WorldInit.GenerateResult = _world.generate(_request())
+	assert_false(refused.ok, "and withdrawing the declaration refuses again")
+	assert_equal(refused.error, "WORLD_FOREIGN_LIVE_ROWS", "with the same code")
+	assert_equal(_world.foreign_kind(), EntityDirectory.KIND_RESIDENT, "naming the kind")
+	assert_true(_directory.is_valid(resident), "and the row survives untouched")
+
+
 func test_a_store_on_another_directory_refuses() -> void:
 	"""Every reference crossing a store boundary is validated in one directory, so they must agree."""
 	var other: EntityDirectory = EntityDirectory.new()

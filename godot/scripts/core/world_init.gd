@@ -657,6 +657,12 @@ var _fauna_birth_remainder: PackedInt64Array = PackedInt64Array()
 
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _measured: Measurements = Measurements.new()
+## Bit `kind` is set when the CALLER's reset clears that kind. See `declare_externally_cleared()`.
+##
+## A scalar mask rather than a PackedByteArray: KIND_COUNT is 18, comfortably inside an int, so
+## this needs no allocation, no §2.3 ledger row and no registry column of its own -- it is
+## generation scratch exactly like `_foreign_kind` beside it, and is counted with it.
+var _externally_cleared_mask: int = 0
 var _foreign_kind: int = EntityDirectory.KIND_ANY
 
 # The plan `preflight()` accepted and `publish_prepared()` will create, held between the two so the
@@ -684,6 +690,7 @@ func _init(p_directory: EntityDirectory, p_nodes: ResourceNodesScript,
 	_orchards = p_orchards
 	_jobs = p_jobs
 	_commands = p_commands
+	_externally_cleared_mask = 0
 	_allocate_columns()
 	_assert_authored_constants()
 	_stage_masks()
@@ -1681,8 +1688,34 @@ func _refuse_collaborators() -> StringName:
 	return REFUSE_NONE
 
 
+func declare_externally_cleared(kinds: PackedInt32Array) -> void:
+	"""Name the directory kinds the CALLER's reset clears, which this generator does not own.
+
+	`_refuse_collaborators()` exists to stop a reset orphaning a row owned by a store this
+	generator was never given. That test is "will anything clear it", and until the cohort work
+	the two were the same question, because every live kind was either the generator's or nobody's.
+
+	The cohort-first order broke that equivalence. `settlement_system.gd` began allocating
+	KIND_RESIDENT directory rows, so after a real boot the directory holds twelve rows this
+	generator does not own -- and its own caller's `reset` is about to clear them. Refusing them
+	made Create fail in the running game with WORLD_FOREIGN_LIVE_ROWS, which is the opposite of
+	the ruling's intent: the rows are not orphan risks, they are the caller's to clear.
+
+	Declaring them is deliberately narrower than owning them. This generator still does not touch
+	a resident row, still never clears one, and a kind nobody declares still refuses. The caller
+	that passes `reset` as a Callable is the only object that knows what that Callable clears, so
+	it is the only object that may say so.
+	"""
+	_externally_cleared_mask = 0
+	for kind: int in kinds:
+		if kind >= 0 and kind < EntityDirectory.KIND_COUNT:
+			_externally_cleared_mask |= 1 << kind
+
+
 func _owns_kind(kind: int) -> bool:
 	"""True when a store this generator was given owns every live row of `kind` and will clear it."""
+	if (_externally_cleared_mask >> kind) & 1 == 1:
+		return true
 	match kind:
 		EntityDirectory.KIND_RESOURCE_NODE, EntityDirectory.KIND_HARVEST_ZONE, \
 		EntityDirectory.KIND_FISH_HABITAT:

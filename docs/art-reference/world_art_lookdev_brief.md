@@ -352,6 +352,35 @@ so the shipped yaw shows their backs; orbit yaw is unrestricted, so 225° is an 
 camera and is where a face is visible. The pair doubles as the facing check, which §2.1 says
 no script can make.
 
+#### What the captures already show, before anyone rules on them
+
+Three observations that follow from the ruling's own numbers and need no landmark
+assumption. They are offered as **questions for the review**, not as findings:
+
+1. **The 640 u work surface does not serve all five species.** 625 mm is 62.5% of a mouse's
+   standing height and **24.5% of a badger's**. In the pitch-35° work-contact capture the
+   surface reads as chest height for a mouse and roughly knee height for a badger. The
+   ruling already anticipates this — 640 u is "an explicit candidate, not a universal
+   work-contact policy for every species", and "adjustable or role-specific furnishings
+   remain possible under later approved sheets". The comparison makes the size of the
+   problem visible rather than arguable.
+2. **The badger has 450 mm of headroom in a 3072 u doorway.** 2550 mm under a 3000 mm
+   opening. That passes as a model brief. It is **not** a clearance qualification: the
+   movement profile must qualify the real opening against a real animated body with gear,
+   and this brief makes no claim about it.
+3. **Mouse and squirrel share a candidate height**, so nothing in this sheet distinguishes
+   them by stature. Their whole difference is tail, ear tufts and cheek mass — which is
+   precisely what a blockout cannot judge, and what A3's construction sheet must.
+
+One further note, kept honest. IMG-25's lineup ranks mole slightly below mouse and squirrel
+at or above it, which is **directionally consistent** with 922 / 1024 / 1024. Its otter and
+badger read taller relative to the mouse than the candidates imply. That observation is
+**not** offered as a measurement: the lineup carries horizontal guide rules across the whole
+frame, the figures are line art with no orthographic depth, and
+[screenshot_review IMG-25](screenshot_review.md#img-25) says plainly "do not measure pixels
+here and call the result canonical metres". It is recorded because the review should look at
+the otter and badger relations with that discrepancy in mind.
+
 **What this scene can and cannot settle.** It answers the **stature** half of decision 0002:
 whether 922 reads right beside 1024, whether 2611 sits correctly under a 3072 u opening,
 whether a 640 u surface serves a mole and a badger equally. It does **not** answer the

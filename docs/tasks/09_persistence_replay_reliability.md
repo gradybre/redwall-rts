@@ -62,6 +62,26 @@ rules; this card does not replace the binary schema.
   checkpoint, autosave rotation and interrupted-I/O recovery. Recompute expanded
   peak memory; the baseline single-floor ledger is insufficient. No second full
   mutable world beyond the budget or partially visible decoded world.
+  *Partly done 2026-09-12 (decision 0092):* RESTORE-R01's LOAD integration is
+  wired in `godot/scripts/systems/game_manager.gd`. `begin_load()` raises the
+  shared guard, checked before host advance (`_process` and the direct
+  `advance_host_time()` entry point) and before scheduler pumping
+  (`_drain_boundary()`); every operational control refuses under it with
+  `LOAD_IN_PROGRESS` and mutates neither clock nor queue.
+  `restore_clock_runtime()` is the one production call site of
+  `sim_clock.gd::restore_runtime()` and reaches it through no setter, event or
+  tick. `publish_restored_world()` sets `_started` and derives PLAYING/PAUSED
+  from the RESTORED mask, so a load from BOOT needs no `start_game()`;
+  `end_load()` and `rollback_load()` both reset the monotonic host origin, so
+  load time owes no debt. Rollback reinstalls a pre-load checkpoint of the
+  clock's ten scalars through the SAME API and restores the previous
+  `_started`/`_state`. **Still open, and neither inferred nor stubbed:** the
+  shared guard does not reach the raw objects handed out by `clock()` and
+  `scheduler_events()` — that needs an edit inside `scripts/core/sim_clock.gd`
+  and `scripts/core/scheduler_events.gd`, which belong to the clock owner; and
+  the rollback checkpoint is **in memory only**, because no §1 WORLD section
+  writer exists in the main tree to back it with disk. Autosave rotation,
+  interrupted-I/O recovery and the expanded memory recomputation are untouched.
 - [ ] 09.4 Implement replay sequence and every-300-tick checkpoints plus an
   every-tick verification mode. Canonical future state must include navigation
   admission/readiness, frozen traversals, queue ages, pending edits and interval

@@ -1,6 +1,6 @@
 {
   "result": "PASS",
-  "checked_at_utc": "2026-09-12T13:22:37.966622+00:00",
+  "checked_at_utc": "2026-09-12T13:22:50.714856+00:00",
   "scope": "Specification source checks, independent arithmetic/byte fixtures and registry coverage. No production code executed.",
   "checks": [
     {

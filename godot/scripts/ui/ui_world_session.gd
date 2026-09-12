@@ -97,6 +97,17 @@ const REFUSE_NONE: StringName = &""
 ## The cohort refused after the world was prepared. The settlement owns the specific
 ## reason; this names the stage so the report is not silent about which half failed.
 const REFUSE_COHORT: StringName = &"SETTLEMENT_COHORT_REFUSED"
+
+## Directory kinds the `reset` Callable clears that `world_init.gd` does not own itself.
+##
+## Only KIND_RESIDENT. `settlement_system.gd`'s reset clears the resident store, and since the
+## cohort-first change those residents hold directory rows -- so after a real boot the generator's
+## preflight saw twelve rows it did not own and refused WORLD_FOREIGN_LIVE_ROWS, making Create
+## fail in the running game. The generator cannot know what an opaque Callable clears; this
+## session passed the Callable, so this session is what declares it.
+## Not a `const`: GDScript does not accept a PackedInt32Array literal built from a preloaded
+## script's constant as a constant expression. Allocated once with the session, never resized.
+var _caller_cleared_kinds: PackedInt32Array = PackedInt32Array([EntityDirectoryScript.KIND_RESIDENT])
 const REFUSE_NAME_LENGTH: StringName = &"UI_SETTLEMENT_NAME_LENGTH"
 const REFUSE_NAME_CONTROL_CHARACTER: StringName = &"UI_SETTLEMENT_NAME_CONTROL_CHARACTER"
 const REFUSE_SEED_RANGE: StringName = &"UI_SEED_OUT_OF_RANGE"
@@ -328,6 +339,7 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
 		return _report_refusal(out, REFUSE_CATALOG, inline_reason(REFUSE_CATALOG))
 	_world = WorldInitScript.new(directory, nodes, forage, fishing, rng, farming, orchards,
 		jobs, commands)
+	_world.declare_externally_cleared(_caller_cleared_kinds)
 	var request: WorldInitScript.RequestResult = WorldInitScript.bound_request(_items, _seed)
 	if not request.ok:
 		return _report_refusal(out, request.error, request.detail)

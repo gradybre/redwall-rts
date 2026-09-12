@@ -24,6 +24,7 @@ extends "res://test/framework/test_case.gd"
 const UIManagerScript := preload("res://scripts/systems/ui_manager.gd")
 const HudScript := preload("res://scripts/ui/hud.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
+const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const UiCommandBridgeScript := preload("res://scripts/ui/ui_command_bridge.gd")
@@ -461,6 +462,39 @@ func test_an_absent_residents_store_is_unpopulated_and_an_empty_one_is_zero() ->
 	_ui._on_stocks_changed()
 	assert_true(_rendered_counters().contains("Residents 0"),
 		"a measured zero is shown as 0, got '%s'" % _rendered_counters())
+
+
+func test_create_still_succeeds_in_a_running_game() -> void:
+	"""UI-SET-103's Create, pressed with a settlement already on the screen. The ordinary case.
+
+	THE DEFECT THIS PINS, and it is the cohort fix's own regression. The fix above made
+	`settlement_system.gd` allocate KIND_RESIDENT directory rows, which nothing did before it.
+	`world_init._refuse_collaborators()` refuses any live kind the generator does not own, and it
+	runs inside `preflight()`, BEFORE the caller's reset -- deliberately, so a refusal cannot
+	orphan anything. Those two facts together made every Create after a real boot refuse
+	WORLD_FOREIGN_LIVE_ROWS, because twelve resident rows were sitting in the directory.
+
+	The suite could not see it. Every existing test pressed Create on a fresh settlement, where
+	the directory is empty and the gate has nothing to refuse. It took a native screen capture of
+	a booted game to find, which is the point: `_ui.create_world()` alone is not the scenario.
+
+	The generator was NOT given ownership of residents to fix this. It still never touches or
+	clears a resident row. The caller declares that its own reset clears them --
+	see `ui_world_session._caller_cleared_kinds`.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_generated_settlement(EconomySystem.definitions()),
+		"a settlement boots first, exactly as main.gd boots one")
+	var directory: EntityDirectoryScript = SettlementSystem.directory()
+	assert_true(directory.live_count(EntityDirectoryScript.KIND_RESIDENT) > 0,
+		"and the boot leaves live resident rows in the directory, which is what used to refuse")
+	assert_true(_ui.create_world(), "Create still succeeds with a settlement already running")
+	var residents: ResidentsScript = SettlementSystem.residents()
+	for index: int in ResidentsScript.INITIAL_POPULATION:
+		var id: IntMath.IntResult = residents.persistent_id_of(index)
+		assert_equal(id.value, index + 1,
+			"and the cohort still takes id %d, so the fix did not cost R-INIT-ID-001" % [index + 1])
+	SettlementSystem.reset()
 
 
 func test_the_create_button_gives_the_cohort_persistent_ids_one_to_twelve() -> void:

@@ -111,10 +111,12 @@ completed tick is caught by state verification rather than by this CRC/SHA pair.
 
 ## Verification
 
-`./tools/run_tests.sh`: **2448 tests, 93265 assertions, 0 failures** (baseline
-measured before this work: 2365 tests, 92629 assertions, 0 failures).
-`docs/validation/state_registry_coverage.py`: PASS, 38 modules, 278 rows, 541
-packed columns. `docs/validation/ready07_addendum_checks.py --godot`: PASS.
+`./tools/run_tests.sh` at this work's merge base: **2448 tests, 93265
+assertions, 0 failures**, against a measured baseline of 2365 tests, 92629
+assertions, 0 failures. After merging `origin/master` (which brought decisions
+0061, 0066 and 0067 with their own suites): **2526 tests, 94070 assertions, 0
+failures**. `docs/validation/state_registry_coverage.py`: PASS, 38 modules, 282
+rows, 548 packed columns after the merge (278/541 before it). `docs/validation/ready07_addendum_checks.py --godot`: PASS.
 `docs/validation/ready07_arithmetic.py`: PASS.
 
 A 67-mutation sweep ran one mutation per Godot invocation, restored each file

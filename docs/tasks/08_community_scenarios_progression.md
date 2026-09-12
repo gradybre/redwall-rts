@@ -124,3 +124,49 @@ Still open and **not** claimed by that work:
 - [ ] The `StarterGroundProfile` §2.3 ledger row decision 0083 owes, at 96 bytes today and
       **100** once `_profile_life_stage` lands (6 x 4 x 4 + 1 x 1 x 4). `movement.gd`'s
       running owed total is 12384 bytes now and 12388 then.
+
+### Aggregate Injury and care status — 2026-09-12
+
+Implemented in `godot/scripts/core/injury.gd` with the `needs.gd` rate integration,
+under [decision 0108](../decisions/0108-the-aggregate-injury-store-and-one-health-rate.md).
+This covers [SET-MOVE-ECON-001](../underground_economy_hazard_amendment.md)
+HAZ-001/002/004 and the HAZ-003 clauses that are aggregate-Injury state.
+
+- [x] GDD §4.2's `Injury` row as packed columns: kind, severity, untreated ticks,
+      `care_progress_mwu` and a generation-checked `rescuer` EntityRef
+- [x] GDD §4.3's `InjuryKind` reused unchanged (`NONE=0 … EXHAUSTION=5`); no parallel
+      domain, no renumbering, and each value asserted literally by `test_injury.gd`
+- [x] REQ-SET-172's untreated drain as a term of the single `needs.gd` health rate —
+      1/hour at severity 1, 4/hour at severity 2, one shared denominator-750 remainder
+- [x] HAZ-002's −125/hour airless drain in the same rate; the amendment's own fixtures
+      (6 / 495 / 582 intervals from health 100 give 99 / 15 / 0) hold in GDScript
+- [x] Aggregate merge: worse severity replaces, an equal-severity tie keeps the lower
+      `InjuryKind` ID, and neither untreated elapsed time nor paid care work is erased
+- [x] One-shot incidents deduplicated by a strictly increasing per-resident ordinal
+- [x] REQ-SET-173 treatment (60 WU, +10 health capped 100) and REQ-SET-174
+      self-treatment (120 WU); the requirement is a checked argument, never invented
+- [x] No resurrection: the heal is attempted before the injury is cleared, so a dead
+      resident's fully paid treatment refuses and the clear is never reached
+- [x] HAZ-002 one EXPOSURE incident per continuous airless episode, and HAZ-003's
+      EXHAUSTION incident with its rest-4000 re-arm gate
+- [x] HAZ-003 fall arithmetic: damage `min(40, ceil(D*8/1024))`, severity by the 2048u
+      boundary, recovery duration `max(1, ceil(D*30/4096))` published for the mover
+- [x] REQ-SET-171 rescue relationship, one patient per rescuer, and GDD §5.2's rule
+      that a rescue does not clear an injury until treatment completes
+
+Still open and **not** claimed by that work:
+
+- [ ] The scheduler phase that calls `injury.tick_all()` beside `needs.tick_all()`.
+      G02/task 08 owns the phase order; the store installs itself nowhere.
+- [ ] The herb 1000 + cloth 500 milli-U treatment debit and the HEAL/HAUL work
+      accrual. Those are `inventory.gd` and `work.gd`; only the prices are published.
+- [ ] The rescue route, carrying speed, combined envelope, landing choice and the
+      movement contexts that set `care_context_blocked`. `movement.gd` / EH-05.
+- [ ] PC-04 dependent care. No life-stage term appears in the store and none is derived.
+- [ ] `docs/persistence_state_registry.md` rows for `injury.gd` (three) and for
+      `needs.gd`'s new `_airless` byte, plus the `docs/systems_architecture.md` §3.1
+      ledger lines totalling 21504 bytes. `state_registry_coverage.py` fails until
+      they land; the exact rows and arithmetic are in decision 0108.
+- [ ] Migrating `InjuryKind` into `catalog.gd`'s `PROTECTED_ENUM_DOMAINS`, which is an
+      intentional compiled-artifact/digest change owned by the catalog owner.
+- [ ] Save section persistence and hashing of these columns. No save module exists yet.

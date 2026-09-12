@@ -569,13 +569,20 @@ func test_health_recovers_at_two_per_hour_and_four_in_an_infirmary() -> void:
 
 
 func test_health_recovery_is_gated_on_needs_and_untreated_serious_injury() -> void:
-	"""REQ-SET-017's three conditions each block recovery on their own."""
+	"""REQ-SET-017's three conditions each block recovery on their own.
+
+	UPDATED WITH REQ-SET-172. The first hour used to read 50, because the untreated drain was
+	not implemented and the injury flag was purely a recovery gate. It now reads 46: recovery
+	is still blocked -- an hour of recovery would have given 52 -- and the severity 2 drain of
+	4/hour runs on top of that. The property under test is unchanged; the arithmetic is not.
+	"""
 	_spawn()
 	assert_true(_needs.apply_health_event(0, -50).ok, "wounded")
 	assert_true(_needs.set_injury_state(0, NeedsScript.INJURY_UNTREATED_SERIOUS).ok, "untreated")
 	_tick(0, HOUR)
-	assert_equal(_health(0), 50, "an untreated serious injury blocks recovery")
+	assert_equal(_health(0), 46, "recovery is blocked and REQ-SET-172 removes 4 instead")
 	assert_true(_needs.set_injury_state(0, NeedsScript.INJURY_NONE).ok, "treated")
+	assert_true(_needs.apply_health_event(0, 4).ok, "restore the wound to 50 for the next gate")
 	_set_need(0, NeedsScript.NEED_HUNGER, 3999)
 	_tick(0, HOUR)
 	assert_equal(_health(0), 50, "hunger below 4000 blocks recovery")
@@ -652,10 +659,13 @@ func test_shelter_clears_exposure_at_two_thousand_per_hour_down_to_zero() -> voi
 func test_exposure_damages_health_only_after_four_hours_and_stops_on_shelter() -> void:
 	"""REQ-SET-018's 3 health/hour after 4 exposure hours; REQ-SET-019 stops it immediately.
 
-	The injury flag holds off REQ-SET-017 recovery so the cold drain is the only rate running.
+	Hunger below REQ-SET-017's floor of 4000 holds off recovery so the cold drain is the only
+	rate running. This test used the untreated-injury flag for that until REQ-SET-172's 4/hour
+	drain was implemented; the hunger gate isolates the cold arithmetic without adding a second
+	drain, and 3999 is far enough above the starving value of 0 to add nothing of its own.
 	"""
 	_spawn()
-	assert_true(_needs.set_injury_state(0, NeedsScript.INJURY_UNTREATED_SERIOUS).ok, "no recovery")
+	_set_need(0, NeedsScript.NEED_HUNGER, 3999)
 	assert_true(_needs.set_cold_environment(0, NeedsScript.COLD_ENV_EXPOSED).ok, "exposed")
 	_tick(0, HOUR * 4)
 	assert_equal(_needs.cold_hours_of(0).value, 4, "four exposure hours banked")
@@ -668,9 +678,12 @@ func test_exposure_damages_health_only_after_four_hours_and_stops_on_shelter() -
 
 
 func test_proper_clothing_also_stops_exposure_damage() -> void:
-	"""REQ-SET-018 runs "until sheltered or properly clothed": tier 2 at -5 C ends the drain."""
+	"""REQ-SET-018 runs "until sheltered or properly clothed": tier 2 at -5 C ends the drain.
+
+	Recovery is held off by hunger, for the reason the previous test records.
+	"""
 	_spawn()
-	assert_true(_needs.set_injury_state(0, NeedsScript.INJURY_UNTREATED_SERIOUS).ok, "no recovery")
+	_set_need(0, NeedsScript.NEED_HUNGER, 3999)
 	assert_true(_needs.set_cold_environment(0, NeedsScript.COLD_ENV_EXPOSED).ok, "exposed")
 	_tick(0, HOUR * 5)
 	assert_equal(_health(0), 97, "the drain has started")
@@ -1517,3 +1530,163 @@ func test_a_successful_zero_is_distinguishable_from_a_refusal_carrying_zero() ->
 	assert_false(refused.ok, "ok is false")
 	assert_equal(refused.value, 0, "the value is also 0")
 	assert_true(refused.error != "", "but a refusal reason is present")
+
+
+# --- REQ-SET-172 and HAZ-002: the two health-rate terms the Injury owner drives -------------
+#
+# These belong in THIS suite, not the injury suite, because what they pin is that both new
+# drains are TERMS OF THE ONE INTEGRATOR. A second health clock somewhere else would satisfy
+# "4 health per hour" on a stopwatch and still fail every one of these, because they check the
+# exact tick the whole point is released on and the remainder carried across a rate change.
+
+func _tick_all(count: int) -> void:
+	"""Run `count` ticks through the whole-settlement sweep, which skips dead rows.
+
+	`_tick()` fails on a refused tick, which is correct everywhere else; these fixtures end at
+	health 0 on purpose, so the sweep is used instead and the dead row is simply skipped.
+	"""
+	for _index: int in count:
+		if not _needs.tick_all().ok:
+			fail("tick_all() refused")
+			return
+
+
+func _isolate_health_rate(slot: int) -> void:
+	"""Put one resident where starvation, cold and REQ-SET-017 recovery all contribute 0.
+
+	Hunger 3000 is below the recovery floor of 4000 and above the starving value of 0; rest
+	3000 is likewise; the default cold environment is neutral, so `cold_milli_hours` never
+	reaches the four-hour damage threshold. Whatever health does after this is the injury and
+	airless terms and nothing else -- which is the only way to assert their exact values.
+	"""
+	_set_need(slot, NeedsScript.NEED_HUNGER, 3000)
+	_set_need(slot, NeedsScript.NEED_REST, 3000)
+
+
+func test_the_untreated_injury_drain_is_the_authored_one_and_four_per_hour() -> void:
+	"""REQ-SET-172: severity 1 removes 1 health/hour, severity 2 removes 4/hour."""
+	assert_equal(NeedsScript.HEALTH_UNTREATED_INJURY_DRAIN_PER_HOUR[NeedsScript.INJURY_NONE], 0,
+		"an uninjured resident has no untreated drain")
+	assert_equal(NeedsScript.HEALTH_UNTREATED_INJURY_DRAIN_PER_HOUR[NeedsScript.INJURY_ACTIVE], 1,
+		"severity 1 is 1 health/hour")
+	assert_equal(
+		NeedsScript.HEALTH_UNTREATED_INJURY_DRAIN_PER_HOUR[NeedsScript.INJURY_UNTREATED_SERIOUS],
+		4, "severity 2 is 4 health/hour, and the two rates are different numbers")
+	_spawn(0)
+	_spawn(1)
+	_isolate_health_rate(0)
+	_isolate_health_rate(1)
+	assert_true(_needs.set_injury_state(0, NeedsScript.INJURY_ACTIVE).ok, "severity 1")
+	assert_true(_needs.set_injury_state(1, NeedsScript.INJURY_UNTREATED_SERIOUS).ok, "severity 2")
+	_tick(0, HOUR)
+	_tick(1, HOUR)
+	assert_equal(_health(0), 99, "severity 1 costs exactly 1 health over 750 ticks")
+	assert_equal(_health(1), 96, "severity 2 costs exactly 4 over the same 750 ticks")
+
+
+func test_the_untreated_drain_is_released_per_hour_and_not_per_tick() -> void:
+	"""749 ticks of a severity 2 injury release 3 whole points; the 750th releases the 4th.
+
+	This is the fixture that fails if the hourly rate is ever applied as a per-tick delta: a
+	per-tick implementation would have removed 4 health on the FIRST tick and 2996 by here.
+	"""
+	_spawn(0)
+	_isolate_health_rate(0)
+	assert_true(_needs.set_injury_state(0, NeedsScript.INJURY_UNTREATED_SERIOUS).ok, "severity 2")
+	_tick(0, 1)
+	assert_equal(_health(0), 100, "one tick releases nothing")
+	_tick(0, 186)
+	assert_equal(_health(0), 100, "and 187 ticks are still short of the first whole point")
+	_tick(0, 1)
+	assert_equal(_health(0), 99, "the 188th tick releases it: 188*4 = 752 >= 750")
+	_tick(0, HOUR - 188)
+	assert_equal(_health(0), 96, "and a full hour releases exactly four")
+
+
+func test_airless_and_untreated_severity_two_total_one_hundred_and_twenty_nine() -> void:
+	"""HAZ-002's own fixture: from health 100, 6/495/582 airless intervals give 99/15/0."""
+	assert_equal(NeedsScript.HEALTH_AIRLESS_DRAIN_PER_HOUR, 125, "the authored airless drain")
+	_spawn(0)
+	assert_true(_needs.set_injury_state(0, NeedsScript.INJURY_UNTREATED_SERIOUS).ok, "severity 2")
+	assert_true(_needs.set_airless(0, true).ok, "and out of air")
+	_tick(0, 6)
+	assert_equal(_health(0), 99, "6 intervals leave 99")
+	_tick(0, 489)
+	assert_equal(_health(0), 15, "495 leave 15, which is incapacitated")
+	assert_equal(_needs.status_of(0).value, NeedsScript.STATUS_INCAPACITATED, "and reads so")
+	_tick(0, 87)
+	assert_equal(_health(0), 0, "582 reach 0")
+	assert_equal(_needs.status_of(0).value, NeedsScript.STATUS_DEAD, "and the resident is dead")
+	assert_equal(_needs.death_count(), 1, "recorded exactly once")
+
+
+func test_the_same_rate_from_health_fifteen_reaches_zero_in_eighty_eight_intervals() -> void:
+	"""HAZ-002: "At health 15, 88 intervals at 129/hour reach 0"."""
+	_spawn(0)
+	assert_true(_needs.apply_health_event(0, -85).ok, "health is brought to 15")
+	assert_equal(_health(0), 15, "at 15")
+	assert_true(_needs.set_injury_state(0, NeedsScript.INJURY_UNTREATED_SERIOUS).ok, "severity 2")
+	assert_true(_needs.set_airless(0, true).ok, "and out of air")
+	_tick(0, 87)
+	assert_true(_health(0) > 0, "87 intervals are not yet lethal")
+	_tick_all(1)
+	assert_equal(_health(0), 0, "the 88th reaches 0")
+
+
+func test_the_health_remainder_carries_across_a_change_of_rate() -> void:
+	"""One accumulator, not two: the 400 sub-points owed at -4/hour are still owed at -129.
+
+	HAZ-002 requires the airless drain to be combined "retaining the existing signed
+	denominator-750 remainder". A separate rounded clock would restart from 0 here and this
+	fixture would read 100 where it reads 99.
+	"""
+	_spawn(0)
+	assert_true(_needs.set_injury_state(0, NeedsScript.INJURY_UNTREATED_SERIOUS).ok, "severity 2")
+	_tick(0, 100)
+	assert_equal(_health(0), 100, "100 ticks at -4/hour owe 400 sub-points and release none")
+	assert_true(_needs.set_airless(0, true).ok, "air runs out")
+	_tick(0, 2)
+	assert_equal(_health(0), 100, "-400-129-129 = -658 is still short of 750")
+	_tick(0, 1)
+	assert_equal(_health(0), 99, "and the third airless tick crosses it at -787")
+
+
+func test_the_airless_input_defaults_to_false_and_round_trips() -> void:
+	"""The air/movement owner sets it; an unspawned row refuses instead of reporting a default."""
+	_spawn(0)
+	assert_equal(_needs.airless_of(0).value, 0, "a spawned resident is breathing")
+	assert_true(_needs.set_airless(0, true).ok, "the owner declares it airless")
+	assert_equal(_needs.airless_of(0).value, 1, "which reads back")
+	assert_true(_needs.set_airless(0, false).ok, "and clears")
+	assert_equal(_needs.airless_of(0).value, 0, "which reads back too")
+	assert_false(_needs.set_airless(99, true).ok, "an unspawned row refuses")
+	assert_false(_needs.airless_of(99).ok, "and so does the reader")
+	assert_false(_needs.injury_state_of(99).ok, "as does the injury-state reader")
+
+
+func test_an_airless_resident_who_is_fed_and_rested_still_loses_health() -> void:
+	"""HAZ-002's drain is not cancelled by REQ-SET-017 recovery: -125 + 2 is still -123/hour.
+
+	A well-fed, rested, uninjured resident is exactly the case where the recovery term is live,
+	so this is the fixture that catches an implementation which let recovery win or skipped the
+	airless term whenever any positive term applied.
+	"""
+	_spawn(0)
+	assert_true(_needs.apply_health_event(0, -10).ok, "health 90, so recovery is eligible")
+	assert_true(_needs.set_airless(0, true).ok, "and out of air with no injury at all")
+	_tick(0, 300)
+	assert_equal(_health(0), 41, "300 intervals at -123/hour release 49 whole points")
+
+
+func test_a_dead_resident_refuses_every_later_health_event() -> void:
+	"""REQ-SET-016 and HAZ-004: death is committed once and cannot be undone by a later heal."""
+	_spawn(0)
+	assert_true(_needs.apply_health_event(0, -100).ok, "health reaches 0")
+	assert_equal(_needs.death_count(), 1, "one death")
+	assert_equal(_needs.living_count(), 0, "and nobody living")
+	var heal: NeedsScript.OpResult = _needs.apply_health_event(0, 10)
+	assert_false(heal.ok, "REQ-SET-173's restore refuses")
+	assert_equal(heal.error, NeedsScript.REFUSE_RESIDENT_DEAD, "because the resident is dead")
+	assert_equal(_health(0), 0, "health is unchanged")
+	assert_false(_needs.tick(0).ok, "and the row no longer ticks")
+	assert_equal(_needs.death_count(), 1, "so the death is still counted exactly once")

@@ -37,6 +37,7 @@ const UiHitTest := preload("res://scripts/ui/ui_hit_test.gd")
 const UiArt := preload("res://ui/ui_art.gd")
 const UiFrameBuilder := preload("res://ui/ui_frame_builder.gd")
 const UiResidentCard := preload("res://scripts/ui/ui_resident_card.gd")
+const UiResidentHeader := preload("res://scripts/ui/ui_resident_header.gd")
 const UiFocusOrder := preload("res://scripts/ui/ui_focus_order.gd")
 const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSession := preload("res://scripts/ui/ui_world_session.gd")
@@ -246,25 +247,28 @@ const NEED_VALUE_TOP: float = 0.0
 const NEED_VALUE_HEIGHT: float = 20.0
 const NEED_RATE_TOP: float = 22.0
 const NEED_RATE_HEIGHT: float = 18.0
-## §4.1: "the reference's 20 px side insets, 16 px section separation".
-const DETAIL_INSET: float = 20.0
-const DETAIL_SECTION_GAP: float = 16.0
-## Gap between the medallion and the name heading beside it.
-const EMBLEM_GAP: float = 12.0
+## §4.1: "the reference's 20 px side insets, 16 px section separation". Both are inherited by
+## UI-IDENTITY-R01 unchanged; `ui_resident_header.gd` holds the identity row's copy of the
+## inset so its arithmetic can be checked without a shell.
+const DETAIL_SECTION_GAP: float = UiResidentHeader.SECTION_GAP
+## UI-IDENTITY-R01's identity row is `20 inset | medallion | 8 gap | name column | 8 gap |
+## 44 Close | 20 inset`, and every one of those numbers lives in `ui_resident_header.gd` so
+## the arithmetic is testable without a shell. The 12 px medallion gap the stacked composition
+## used is gone with the composition it belonged to.
 ## UXV-020's scale, restated so the track fraction does not depend on a core import.
 const NEED_BASIS_POINTS_MAX: int = 10000
 ## UI-SET-094's own §4 minimum width, reserved on the right of every need row so the vertical
 ## scroll bar never lands on a percent. The gutter is present at EVERY profile, so the row does
 ## not re-flow the moment the body becomes long enough to scroll.
 ##
-## RAISED, NOT DECIDED: UI-SET-039's §4 minimum width is 280 and the NARROW detail column's
-## scrolling interior is 320 - 2*20 - 16 = 264. The two cannot both hold at 320. The row keeps
-## its §4 minimum and lays its contents inside the usable width; the composition question
-## belongs to §1.2/§4.1's owner and is reported rather than resolved by shrinking the contract.
+## STILL RAISED, AND NOT RESOLVED BY UI-IDENTITY-R01: UI-SET-039's §4 minimum width is 280 and
+## the NARROW detail column's scrolling interior is 320 - 2*20 - 16 = 264. The ruling overrides
+## the 280 px minimum for UI-SET-037 in this template ONLY, and says in terms that this "is not
+## a global shrink of all titles or NEED ROWS". So the need row keeps its §4 minimum and lays
+## its contents inside the usable width; the remaining 16 px belongs to §1.2/§4.1's owner.
 const NEED_ROW_GUTTER: float = 16.0
-## The bottom margin UI-SET-036 reserves for its sprig, so ornament never sits over a row.
+## The sprig in §4.1's fixed action footer, beside Center view rather than over a need row.
 const DETAIL_ORNAMENT_SIZE: float = 24.0
-const DETAIL_ORNAMENT_BAND: float = DETAIL_ORNAMENT_SIZE + ROW_GAP
 
 const REFUSE_NONE: StringName = &""
 const REFUSE_NOT_BUILT: StringName = &"UI_SHELL_NOT_BUILT"
@@ -361,8 +365,15 @@ var _history_body: VBoxContainer = null
 ## UI-SET-036's own parts. The header is pinned and the body scrolls; see `_build_detail()`.
 var _detail_emblem: TextureRect = null
 ## UI-SET-036's own sprig. It is MOVED out of the title margin, where it would sit under the
-## medallion, into the bottom margin that `_place_detail_interior()` reserves for it.
+## medallion, into the fixed action footer that `_place_detail_interior()` reserves.
 var _detail_ornament: TextureRect = null
+## §4.1's fifth item, Center view, in the 64 px footer at 44 high. It is BUILT and LABELLED and
+## it is DISABLED, carrying `ui_availability.gd`'s own REASON_NO_WORLD_CAMERA sentence: "the
+## interface binds no camera; the prototype scene's fixed camera is not §6's contract". No
+## camera binding is invented to make it press, and UI-IDENTITY-R01's "Center view remains its
+## separately labeled action, not a click on the title" is why it is a control and not a
+## gesture on UI-SET-037.
+var _detail_center_view: Button = null
 var _detail_identity: Label = null
 var _detail_health: Label = null
 var _detail_activity: Label = null
@@ -926,22 +937,33 @@ func _build_detail() -> void:
 	and skills do not fit the 336 px narrow column and §4.1 says "long content scrolls inside
 	the panel, not past the window".
 
-	UXV-023's fifth item, Center view, is NOT built. Its semantics belong to UI-SET-037's
-	"click center-camera" and `ui_availability.gd` records REASON_NO_WORLD_CAMERA, "the
-	interface binds no camera". A 44-high Center view action would need a registry row and a
-	camera binding invented here; both are reported instead.
+	UI-IDENTITY-R01 gives this panel a DEDICATED header/body/footer rather than the generic
+	vertical flow: a fixed identity header that grows with the name, a scrolling body, and
+	§4.1's fixed 64 px action footer. Only the body scrolls.
 	"""
 	var detail: Panel = _zone_panel(ID_DETAIL, "Details")
 	detail.visible = false
-	_detail_ornament = _decorate(detail)
-	_detail_ornament.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_detail_ornament.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_build_detail_header(detail)
 	_build_detail_body(detail)
+	_build_detail_footer(detail)
 
 
 func _build_detail_header(detail: Panel) -> void:
-	"""The pinned identity block: emblem, name heading, species line, tabs and close."""
+	"""The pinned identity block: medallion, name heading, species line, tabs and close.
+
+	THE ONE LINE THAT MATTERS IS `title.custom_minimum_size = Vector2.ZERO`. UI-SET-037's §4
+	row is `280x32 -> 352x64`, and `_new_label()` writes that 280 as the Label's minimum. A
+	Control clamps its own size UP to `custom_minimum_size`, so allocating the ruling's 172 px
+	name column to a Label with a 280 px floor would silently widen it back to 280 and draw the
+	name straight through Close -- which is exactly why the old composition stacked the
+	medallion above the name instead. UI-IDENTITY-R01 overrides the minimum for THIS instance:
+	"in this resident template its intrinsic minimum width is 0; allocate exactly the remaining
+	172/172/220px". Other full-width UI-SET-037 uses keep their own layout.
+
+	The zeroed HEIGHT minimum is the same ruling: "never ... cap the title at the old 64px
+	maximum height. Use the actual font's measured line height." `_place_identity_text()`
+	measures instead.
+	"""
 	_detail_emblem = TextureRect.new()
 	_detail_emblem.name = "SpeciesEmblem"
 	_detail_emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -951,12 +973,46 @@ func _build_detail_header(detail: Panel) -> void:
 	detail.add_child(_detail_emblem)
 	var title: Label = _new_label(ID_DETAIL_TITLE, "Nothing selected")
 	title.add_theme_font_size_override(&"font_size", UiTheme.FONT_PANEL_TITLE)
+	title.custom_minimum_size = Vector2.ZERO
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail.add_child(title)
 	_detail_identity = _new_secondary(detail, &"Identity", "")
 	detail.add_child(_new_button(ID_DETAIL_TABS, "Overview"))
 	var close: Button = _new_button(ID_CLOSE, "x")
 	close.pressed.connect(_on_close_pressed)
 	detail.add_child(close)
+
+
+func _build_detail_footer(detail: Panel) -> void:
+	"""§4.1's fixed 64 px action footer: Center view at 44 high, and the panel's own sprig.
+
+	Center view is BUILT and NAMED here and it is DISABLED. `ui_availability.gd` records
+	REASON_NO_WORLD_CAMERA for every camera action in this shell, and §2.2 requires a locked
+	control to "explain unlock requirements without requiring hover", so the reason is its
+	accessible description rather than a tooltip alone. Inventing a camera binding to make it
+	press is the thing that is refused -- not the labelled action, which UI-IDENTITY-R01
+	requires to stay "its own labeled action" and out of the name column.
+
+	It carries no §4 registry id, because §4's catalog of 103 elements has no row for it. That
+	keeps it out of `_controls`, out of the focus chain `ui_focus_order.gd` wires, and out of
+	the hit table -- the same treatment the four extra UI-SET-039 instances already get.
+	"""
+	_detail_center_view = Button.new()
+	_detail_center_view.name = "CenterView"
+	_detail_center_view.text = "Center view"
+	_detail_center_view.clip_text = true
+	_detail_center_view.disabled = true
+	_detail_center_view.focus_mode = Control.FOCUS_NONE
+	_detail_center_view.mouse_filter = Control.MOUSE_FILTER_STOP
+	_detail_center_view.icon = load(LOCK_ICON) as Texture2D
+	_detail_center_view.accessibility_name = "Center view"
+	var reason: String = _availability.reason_text(UiAvailability.REASON_NO_WORLD_CAMERA)
+	_detail_center_view.accessibility_description = reason
+	_detail_center_view.tooltip_text = reason
+	detail.add_child(_detail_center_view)
+	_detail_ornament = _decorate(detail)
+	_detail_ornament.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_detail_ornament.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 
 func _build_detail_body(detail: Panel) -> void:
@@ -1448,80 +1504,134 @@ func _place_error_interior() -> void:
 
 
 func _wrapped_height(label: Label, interior: float) -> float:
-	"""How tall one label's text is once wrapped into a given width, measured from the font."""
+	"""How tall one label's text is once wrapped into a given width, measured from the font.
+
+	THE BREAK FLAGS ARE NOT OPTIONAL. `get_multiline_string_size()` defaults to
+	`BREAK_MANDATORY | BREAK_WORD_BOUND`, which never splits a word. A Label set to
+	`AUTOWRAP_WORD_SMART` DOES split one, on a grapheme cluster boundary, when it is too long
+	for the line. Measuring with the default flags therefore under-counts the lines of exactly
+	the case UI-IDENTITY-R01 names -- "a long unbroken name" -- and the render showed it: a
+	39-character single word wrapped to three lines inside a two-line rectangle and drew over
+	the species line and the tabs beneath it. The measurement now asks for the same breaking
+	the Label will actually perform.
+	"""
 	if label == null or label.text.is_empty() or interior <= 0.0:
 		return 0.0
 	var font: Font = label.get_theme_font(&"font")
 	if font == null:
 		return 0.0
 	return font.get_multiline_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, interior,
-		label.get_theme_font_size(&"font_size")).y
+		label.get_theme_font_size(&"font_size"), -1, _break_flags(label)).y
+
+
+func _break_flags(label: Label) -> int:
+	"""The TextServer line-break flags a Label's own autowrap mode uses when it draws.
+
+	Mirrors `Label::_shape()`: word wrapping adds `BREAK_WORD_BOUND`, the SMART and ARBITRARY
+	modes add `BREAK_GRAPHEME_BOUND` so an overlong word can break inside itself, and edge
+	spaces are trimmed. `BREAK_GRAPHEME_BOUND` is also what keeps a combining sequence whole:
+	the break lands between clusters, never between a base letter and its mark.
+	"""
+	var flags: int = TextServer.BREAK_MANDATORY | TextServer.BREAK_TRIM_EDGE_SPACES
+	if label.autowrap_mode == TextServer.AUTOWRAP_WORD \
+			or label.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART:
+		flags |= TextServer.BREAK_WORD_BOUND
+	if label.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART \
+			or label.autowrap_mode == TextServer.AUTOWRAP_ARBITRARY:
+		flags |= TextServer.BREAK_GRAPHEME_BOUND
+	return flags
 
 
 func _place_detail_interior() -> void:
-	"""§4.1's resident journal geometry: a pinned header and a scrolling body under it.
+	"""UI-IDENTITY-R01's dedicated resident header, body and footer.
 
-	20 px side insets and 16 px section separation, both taken from §4.1. The close control and
-	the header never scroll; everything from health downward does, which is what makes five
-	52 px need rows reachable in the 336 px narrow column without clipping one of them.
+	Three bands, in this order and no other. The IDENTITY HEADER is fixed and grows downward
+	with the name. The BODY scrolls and takes what is left. The FOOTER is §4.1's fixed 64 px
+	action strip and never moves, so Close stays at the top right and Center view stays
+	reachable however long the name or the need list becomes.
+
+	The ruling's measurement order is the part that is easy to get wrong: measure the identity
+	height as the MAXIMUM of medallion, complete name-plus-secondary text block and Close,
+	THEN grow the header, THEN recompute the body. Growing the header without recomputing the
+	body is what lets a three-line name draw over health and the need rows.
 	"""
 	var panel: Control = _zones[ID_DETAIL] as Control
-	var close: Vector2 = _preferred_size(ID_CLOSE, panel.size.x)
-	_set_rect(_controls[ID_CLOSE] as Control, Rect2(panel.size.x - DETAIL_INSET - close.x,
-		DETAIL_INSET, close.x, close.y))
-	var interior: float = panel.size.x - 2.0 * DETAIL_INSET
-	var tabs_top: float = _place_detail_header(panel, close.x) + DETAIL_SECTION_GAP
+	var profile: int = _geometry.profile
+	var interior: float = panel.size.x - 2.0 * UiResidentHeader.INSET
+	var tabs_top: float = _place_detail_header(panel, profile) + DETAIL_SECTION_GAP
 	var tabs: Vector2 = _preferred_size(ID_DETAIL_TABS, interior)
 	_set_rect(_controls[ID_DETAIL_TABS] as Control,
-		Rect2(DETAIL_INSET, tabs_top, minf(tabs.x, interior), tabs.y))
+		Rect2(UiResidentHeader.INSET, tabs_top, minf(tabs.x, interior), tabs.y))
 	var body_top: float = tabs_top + tabs.y + DETAIL_SECTION_GAP
-	var body_bottom: float = panel.size.y - DETAIL_INSET - DETAIL_ORNAMENT_BAND
-	_set_rect(_detail_scroll, Rect2(DETAIL_INSET, body_top, interior,
-		maxf(0.0, body_bottom - body_top)))
-	_set_rect(_detail_ornament, Rect2(DETAIL_INSET,
-		panel.size.y - DETAIL_INSET - DETAIL_ORNAMENT_SIZE,
-		DETAIL_ORNAMENT_SIZE, DETAIL_ORNAMENT_SIZE))
+	_set_rect(_detail_scroll, Rect2(UiResidentHeader.INSET, body_top, interior,
+		UiResidentHeader.body_height(panel.size.y, body_top)))
+	_place_detail_footer(panel)
 	_detail_column.custom_minimum_size = Vector2(interior, 0.0)
 	_place_need_row_interiors(interior)
 
 
-func _place_detail_header(panel: Control, close_width: float) -> float:
-	"""Emblem, name heading and species line. Returns the y at which the header block ends.
+func _place_detail_footer(panel: Control) -> void:
+	"""§4.1's fixed 64 px footer: Center view at 44 high, with the sprig at its right edge."""
+	var action: Rect2 = UiResidentHeader.footer_action_rect(panel.size.x, panel.size.y)
+	var ornament: float = DETAIL_ORNAMENT_SIZE
+	_set_rect(_detail_center_view, Rect2(action.position,
+		Vector2(maxf(0.0, action.size.x - ornament - ROW_GAP), action.size.y)))
+	_set_rect(_detail_ornament, Rect2(panel.size.x - UiResidentHeader.INSET - ornament,
+		action.position.y + (action.size.y - ornament) / 2.0, ornament, ornament))
 
-	§4.1: "Header grows to wrap long names; never reduce name size or overlay Close." The
-	heading is therefore measured at its own 20 px size and the block grows downward.
 
-	RAISED, NOT DECIDED -- and it is why the heading is usually BELOW the medallion rather
-	than beside it. §4 gives UI-SET-037 a 280 px minimum width. §4.1 adds 20 px side insets, a
-	top-right Close and a generic emblem. In the narrow detail column those cannot all hold:
-	320 - 40 insets - 48 emblem - 12 gap - 32 close - 8 gap leaves 180 for a control whose §4
-	minimum is 280, and even the 384 wide column leaves 244. A Control clamps its own size up
-	to `custom_minimum_size`, so placing the heading beside the emblem at 180 would silently
-	widen it back to 280 and draw it straight through Close. `_heading_fits_beside()` therefore
-	asks whether the row can hold the §4 minimum and drops the heading to its own full-width
-	line when it cannot. The composition conflict belongs to §4/§4.1's owner and is reported.
+func _place_detail_header(panel: Control, profile: int) -> float:
+	"""The identity row: medallion, name column, Close. Returns the y the header block ends at.
+
+	`20 inset | medallion | 8 gap | name/species column | 8 gap | 44 Close | 20 inset`, with the
+	medallion BESIDE the name at all three profiles. The stacked arrangement this replaces is
+	not a fallback and is not reachable: there is no branch here that moves the heading below
+	the medallion, because UI-IDENTITY-R01 adopts "no stacked fallback ... for the current
+	profiles".
+
+	Close is placed from the panel's own right edge and the medallion and Close both sit at the
+	block's TOP, which is what keeps a grown name column from dragging either of them down.
 	"""
-	_detail_emblem_pixels = UiResidentCard.emblem_pixels_for_width(panel.size.x)
-	var emblem: float = float(_detail_emblem_pixels)
-	_set_rect(_detail_emblem, Rect2(DETAIL_INSET, DETAIL_INSET, emblem, emblem))
-	var interior: float = panel.size.x - 2.0 * DETAIL_INSET
-	var beside: float = interior - emblem - EMBLEM_GAP - close_width - ROW_GAP
-	if beside >= _minimum_size(ID_DETAIL_TITLE).x:
-		return _place_heading(DETAIL_INSET + emblem + EMBLEM_GAP, DETAIL_INSET, beside, emblem)
-	var below: float = DETAIL_INSET + maxf(emblem, close_width) + ROW_GAP
-	return _place_heading(DETAIL_INSET, below, interior, 0.0)
+	_detail_emblem_pixels = UiResidentHeader.medallion_pixels(profile)
+	_set_rect(_detail_emblem, UiResidentHeader.medallion_rect(profile))
+	_set_rect(_controls[ID_CLOSE] as Control,
+		UiResidentHeader.close_rect(profile, panel.size.x))
+	var text_height: float = _place_identity_text(profile)
+	return UiResidentHeader.INSET + UiResidentHeader.identity_height(profile, text_height)
 
 
-func _place_heading(left: float, top: float, width: float, beside_height: float) -> float:
-	"""Put the name heading and the identity line in one column. Returns the header's bottom."""
+func _place_identity_text(profile: int) -> float:
+	"""Name heading and the species/status line beneath it, in ONE column. Returns its height.
+
+	Both labels get exactly the ruling's allocated column -- 172/172/220 -- and neither carries
+	a minimum width that could widen it. The heading is measured at its own Noto Serif 20/600
+	size with `AUTOWRAP_WORD_SMART`, which wraps on whole words and falls back to a GRAPHEME
+	CLUSTER boundary for a word too long for the column. That is what satisfies "wrapping whole
+	words with a grapheme-safe break for long unbroken names" without ever ellipsizing,
+	reducing the font size or splitting a combining sequence.
+	"""
+	var left: float = UiResidentHeader.name_column_left(profile)
+	var width: float = UiResidentHeader.name_column_width(profile)
 	var title: Label = _controls[ID_DETAIL_TITLE] as Label
-	var title_height: float = maxf(_wrapped_height(title, width),
-		_minimum_size(ID_DETAIL_TITLE).y)
-	_set_rect(title, Rect2(left, top, width, title_height))
-	var identity_height: float = maxf(_wrapped_height(_detail_identity, width),
-		UiTheme.FONT_SECONDARY)
-	_set_rect(_detail_identity, Rect2(left, top + title_height, width, identity_height))
-	return maxf(DETAIL_INSET + beside_height, top + title_height + identity_height)
+	var title_height: float = maxf(_wrapped_height(title, width), _line_height(title))
+	_set_rect(title, Rect2(left, UiResidentHeader.INSET, width, title_height))
+	var secondary: float = _wrapped_height(_detail_identity, width)
+	var gap: float = UiResidentHeader.TEXT_LINE_GAP if secondary > 0.0 else 0.0
+	_set_rect(_detail_identity,
+		Rect2(left, UiResidentHeader.INSET + title_height + gap, width, secondary))
+	return UiResidentHeader.text_block_height(title_height, secondary)
+
+
+func _line_height(label: Label) -> float:
+	"""One measured line of a label's own font, so an empty heading still reserves its line.
+
+	The ruling lifts UI-SET-037's old 64 px height cap and says to "use the actual font's
+	measured line height". This asks the font; it does not restate 20, 24 or 32.
+	"""
+	var font: Font = label.get_theme_font(&"font")
+	if font == null:
+		return 0.0
+	return font.get_height(label.get_theme_font_size(&"font_size"))
 
 
 func _place_need_row_interiors(column_width: float) -> void:
@@ -2062,6 +2172,16 @@ func detail_emblem() -> TextureRect:
 func detail_emblem_pixels() -> int:
 	"""The production size the medallion is currently drawn at: ART-LOCK-001's 48 or 64."""
 	return _detail_emblem_pixels
+
+
+func detail_center_view() -> Button:
+	"""§4.1's Center view action in the fixed footer, for reading back where it was placed."""
+	return _detail_center_view
+
+
+func detail_body() -> ScrollContainer:
+	"""UI-SET-036's scrolling body. The header above it and the footer below it do not move."""
+	return _detail_scroll
 
 
 func need_row(index: int) -> Control:

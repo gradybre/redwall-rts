@@ -550,6 +550,13 @@ Neither needs new state.
 |---|---|---:|---|---|:-:|---|---|
 | Fixed header and section table | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` beyond the lazily built 256-entry CRC-32/ISO-HDLC lookup table, which is a compile-time constant derived from the reversed polynomial `systems_architecture.md:745` states. Everything else is static: the 256-byte header codec, the 64-byte descriptor codec, the body SHA-256 and the section-table validator. The header's own bytes are file structure, not simulation state; the catalog hash it carries at offset 72 is `catalog_ids.gd`'s digest, not a second one. |
 
+### `godot/scripts/core/save_section_name_pool.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 14 NAME_POOL codec | -- | -- | -- | -- | 3 | -- | Holds no module-level `var`: every function is static and the only mutable objects are a caller-owned `Record` and a per-call `Writer`. It WRITES §14 -- `row_count:u32` = 512, then 512 rows of `utf8_byte_count:u32 LE` plus exactly that many UTF-8 bytes -- but owns none of that state itself, exactly as ARCH-SAVE-007 says a memory allocation row alone does not make a field persisted. The classified row for what it carries is `residents.gd`'s "Resident name" (`_name_key`) above. THE FORMAT'S FIRST VARIABLE-LENGTH SECTION: length is no longer the validation, so the row count is written explicitly and `decode_into()` takes the descriptor length and bounds every row against the section end rather than the buffer end, the layout being gapless. `canonical_bytes_of()` emits the 512 values WITHOUT the row-count prefix, because SAVE-R09's canonical field record supplies `value_count` itself. See [decision 0099](decisions/0099-the-first-variable-length-save-section-frames-its-own-row-count.md). |
+| Section 14 decode/capture scratch | -- | var | `ROW_COUNT` = 512 | The empty string, `_name_key`'s declared canonical unused value | 3 | -- | `Record.names`, a 512-row `PackedStringArray` inside the codec's inner `Record` class -- not a module-level `var` -- mirroring `residents.gd::_name_key` for the duration of one save or one load; the authoritative column stays in `residents.gd`. Transient under decision 0063's accounting, which counts it without persisting it. Fixed framing arithmetic: all-empty payload `4 + 512*4` = 2052 bytes; starter settlement 2064; maximum `2052 + 512*128` = 67588, under SAVE-R09-002's independently enforced 131072-byte arena limit. |
+
 ### `godot/scripts/core/save_section_rng.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

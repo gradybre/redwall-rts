@@ -216,10 +216,19 @@ func test_an_unsupported_user_scale_is_refused_by_the_shell_too() -> void:
 
 
 func test_every_built_control_meets_its_registry_minimum_size() -> void:
-	"""A control smaller than §4's minimum would be a hit target the specification forbids."""
+	"""A control smaller than §4's minimum would be a hit target the specification forbids.
+
+	UI-SET-037 is the ONE exception, and it is an explicit override rather than a slip.
+	UI-IDENTITY-R01: "In this resident template its intrinsic minimum width is 0; allocate
+	exactly the remaining 172/172/220px. Do not set Label/container custom_minimum_size.x=280."
+	`test_the_name_column_carries_no_280_px_minimum()` asserts that override directly, so the
+	zero is checked rather than merely skipped here.
+	"""
 	var registry: UiRegistry = _shell.registry()
 	var size: UiRegistry.Size = UiRegistry.Size.new()
 	for id: int in range(UiRegistry.FIRST_ID, UiRegistry.LAST_ID + 1):
+		if id == UiShell.ID_DETAIL_TITLE:
+			continue
 		if not _shell.renders(id) or not registry.size_into(id, size):
 			continue
 		var control: Control = _shell.control_for(id)
@@ -227,6 +236,25 @@ func test_every_built_control_meets_its_registry_minimum_size() -> void:
 			"UI-SET-%03d is at least its minimum width" % id)
 		assert_true(control.custom_minimum_size.y >= float(size.min_height) - 0.01,
 			"UI-SET-%03d is at least its minimum height" % id)
+
+
+func test_the_name_column_carries_no_280_px_minimum() -> void:
+	"""UI-IDENTITY-R01 overrides UI-SET-037's §4 minimum for the resident template only.
+
+	A 280 px floor on this Label is the exact defect the ruling names: a Control clamps its own
+	size up to `custom_minimum_size`, so a 172 px allocation would widen straight back to 280
+	and draw the name through Close. `_place_identity_text()` allocates the rectangle instead.
+	"""
+	var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+	assert_almost_equal(title.custom_minimum_size.x, 0.0,
+		"the name heading carries no minimum width in this template")
+	assert_almost_equal(title.custom_minimum_size.y, 0.0,
+		"and no minimum height, so the old 64 px title cap cannot come back")
+	var registry: UiRegistry = _shell.registry()
+	var size: UiRegistry.Size = UiRegistry.Size.new()
+	assert_true(registry.size_into(UiShell.ID_DETAIL_TITLE, size),
+		"§4 still publishes UI-SET-037's own row")
+	assert_equal(size.min_width, 280, "which still reads 280 for its other full-width uses")
 
 
 # --- §1.2's click-through rule, read from the built tree ------------------------------------------
@@ -1402,3 +1430,294 @@ func test_the_zone_harvesting_policy_never_stands_on_a_resident() -> void:
 	assert_true(policy.visible, "selecting a real zone offers its policy")
 	_shell.set_detail_display("Rowan", "mouse - Warden - Active", "")
 	assert_false(policy.visible, "and selecting a resident takes it away again")
+
+
+# --- UI-IDENTITY-R01: the resident identity row ---------------------------------------------------
+
+## The three profiles, reached the way the native evidence reaches them: §1.2's floor refuses a
+## viewport below 1280x720, so NARROW is only reachable through the 150% user scale.
+const IDENTITY_CASES: Array[Array] = [
+	[1920, 1080, 100, UiLayout.PROFILE_WIDE, 384.0, 64.0, 220.0],
+	[1280, 720, 100, UiLayout.PROFILE_STANDARD, 336.0, 64.0, 172.0],
+	[1280, 720, 150, UiLayout.PROFILE_NARROW, 320.0, 48.0, 172.0],
+]
+## UI-IDENTITY-R01's acceptance names a 32-character name explicitly.
+const NAME_32: String = "Bramblewhisker Thistledown Abbot"
+## A single unbroken word far wider than any name column, for the grapheme-safe break.
+const NAME_UNBROKEN: String = "Bramblewhiskerthistledownabbotofredwall"
+## A combining sequence: base letters plus combining diaeresis and combining acute.
+const NAME_COMBINING: String = "Maïriń Silverbrush"
+
+
+func _show_name(case: Array, display_name: String) -> void:
+	"""Put a name on the card and lay the shell out again.
+
+	`set_detail_display()` calls `_apply_geometry()`, which returns early off-tree -- the shell
+	has no canvas size until it is inside a tree, and the whole suite builds it outside one. So
+	a test that changes the text must ask for the layout explicitly, exactly as `hud.gd`'s own
+	resize path would.
+	"""
+	_shell.set_detail_display(display_name, "mouse - Resident - Active", "")
+	assert_true(_shell.layout_for(case[0] as int, case[1] as int),
+		"the layout recomputes for '%s'" % display_name)
+
+
+func _lay_out_identity(case: Array) -> void:
+	"""Apply one profile case's user scale and window, and assert both actually took."""
+	assert_true(_shell.apply_user_scale(case[2] as int), "the %d%% scale applies" % case[2])
+	assert_true(_shell.layout_for(case[0] as int, case[1] as int),
+		"the %dx%d layout computes" % [case[0], case[1]])
+	assert_equal(_shell.geometry().profile, case[3] as int,
+		"%dx%d at %d%% is the expected profile" % [case[0], case[1], case[2]])
+
+
+func test_the_medallion_sits_beside_the_name_at_every_profile() -> void:
+	"""UI-IDENTITY-R01: "the medallion stays BESIDE the name in all three supported profiles".
+
+	The stacked arrangement this replaces is explicitly not adopted, and there is no fallback
+	to it. "Beside" is asserted as both halves: the medallion is to the LEFT of the name column,
+	and the two share vertical space rather than the name starting below the roundel.
+	"""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		var emblem: Control = _shell.detail_emblem()
+		var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+		assert_true(emblem.position.x + emblem.size.x <= title.position.x + 0.01,
+			"profile %d: the medallion ends before the name column begins" % case[3])
+		assert_true(title.position.y < emblem.position.y + emblem.size.y - 0.01,
+			"profile %d: the name starts BESIDE the medallion, not below it" % case[3])
+		assert_almost_equal(title.position.y, emblem.position.y,
+			"profile %d: and both sit at the identity block's top" % case[3])
+
+
+func test_the_identity_row_is_the_published_column_table() -> void:
+	"""20 inset | medallion | 8 gap | name column | 8 gap | 44 Close | 20 inset, exactly."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		var panel: Control = _shell.control_for(UiShell.ID_DETAIL)
+		var emblem: Control = _shell.detail_emblem()
+		var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+		var close: Control = _shell.control_for(UiShell.ID_CLOSE)
+		assert_almost_equal(panel.size.x, case[4] as float, "profile %d's panel" % case[3])
+		assert_almost_equal(emblem.size.x, case[5] as float, "profile %d's medallion" % case[3])
+		assert_almost_equal(title.size.x, case[6] as float, "profile %d's name column" % case[3])
+		assert_almost_equal(emblem.position.x, 20.0, "profile %d's left inset" % case[3])
+		assert_almost_equal(title.position.x - emblem.position.x - emblem.size.x, 8.0,
+			"profile %d: one 8 px gap after the medallion" % case[3])
+		assert_almost_equal(close.position.x - title.position.x - title.size.x, 8.0,
+			"profile %d: one 8 px gap before Close" % case[3])
+		assert_almost_equal(panel.size.x - close.position.x - close.size.x, 20.0,
+			"profile %d's right inset" % case[3])
+
+
+func test_the_name_column_is_never_the_old_280_px_width() -> void:
+	"""172/172/220, not 280. A 280 px column is the composition the ruling refuses."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+		assert_true(title.size.x < 280.0,
+			"profile %d's name column is %f, not the old minimum" % [case[3], title.size.x])
+		assert_almost_equal(title.custom_minimum_size.x, 0.0,
+			"profile %d: and it carries no minimum to be clamped back up to" % case[3])
+
+
+func test_close_keeps_its_44_px_target_at_the_rows_top_right() -> void:
+	"""§2.2's target survives the new composition, and stays clear of the name column."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		var close: Control = _shell.control_for(UiShell.ID_CLOSE)
+		var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+		assert_almost_equal(close.size.x, 44.0, "profile %d: Close is 44 wide" % case[3])
+		assert_almost_equal(close.size.y, 44.0, "and 44 high")
+		assert_almost_equal(close.position.y, 20.0, "and shares the block's top")
+		assert_false(Rect2(close.position, close.size).intersects(
+			Rect2(title.position, title.size)),
+			"profile %d: and the name never draws through it" % case[3])
+
+
+func test_the_medallion_is_decoration_in_both_trees() -> void:
+	"""UI-IDENTITY-R01: "Decoration has no hit/focus/accessibility target"."""
+	var emblem: Control = _shell.detail_emblem()
+	assert_equal(emblem.mouse_filter, Control.MOUSE_FILTER_IGNORE, "the roundel ignores clicks")
+	assert_equal(emblem.focus_mode, Control.FOCUS_NONE, "and can never take focus")
+	assert_equal(emblem.accessibility_name, "", "and is not announced as an element")
+
+
+func test_a_long_name_grows_the_header_and_shrinks_the_body_not_the_footer() -> void:
+	"""Measure the identity block, grow the header, RECOMPUTE the body. The footer never moves.
+
+	Growing the header without recomputing the body is what lets a three-line name draw over
+	health and the need rows, which the ruling forbids by name.
+	"""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		_show_name(case, "Mira")
+		var short_body: Rect2 = Rect2(_shell.detail_body().position, _shell.detail_body().size)
+		var footer: Rect2 = Rect2(_shell.detail_center_view().position,
+			_shell.detail_center_view().size)
+		_show_name(case, NAME_32)
+		var long_body: Rect2 = Rect2(_shell.detail_body().position, _shell.detail_body().size)
+		assert_true(long_body.position.y > short_body.position.y,
+			"profile %d: the 32-character name pushes the body down" % case[3])
+		assert_almost_equal(short_body.size.y - long_body.size.y,
+			long_body.position.y - short_body.position.y,
+			"profile %d: and the body loses exactly what the header gained" % case[3])
+		assert_true(long_body.size.y < short_body.size.y,
+			"profile %d: so the body is shorter, not merely moved" % case[3])
+		assert_equal(Rect2(_shell.detail_center_view().position,
+			_shell.detail_center_view().size), footer,
+			"profile %d: while the footer action does not move" % case[3])
+
+
+func test_no_name_pushes_the_body_or_the_footer_out_of_the_panel() -> void:
+	"""The body may become short; it may not become negative, and nothing may leave the panel."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		for name: String in [NAME_32, NAME_UNBROKEN, NAME_COMBINING, "Mira"]:
+			_show_name(case, name)
+			var panel: Control = _shell.control_for(UiShell.ID_DETAIL)
+			var body: Control = _shell.detail_body()
+			var action: Control = _shell.detail_center_view()
+			assert_true(body.size.y >= 0.0,
+				"profile %d, '%s': the body is never negative" % [case[3], name])
+			assert_true(body.position.y + body.size.y <= action.position.y + 0.01,
+				"profile %d, '%s': the body ends above the footer action" % [case[3], name])
+			assert_true(action.position.y + action.size.y <= panel.size.y + 0.01,
+				"profile %d, '%s': and the footer stays inside the panel" % [case[3], name])
+
+
+func test_a_long_unbroken_name_never_widens_its_own_column() -> void:
+	"""A word wider than the column must wrap on a grapheme boundary, not expand the parent."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		_show_name(case, NAME_UNBROKEN)
+		var title: Label = _shell.control_for(UiShell.ID_DETAIL_TITLE) as Label
+		var close: Control = _shell.control_for(UiShell.ID_CLOSE)
+		assert_almost_equal(title.size.x, case[6] as float,
+			"profile %d: the column keeps its allocated width" % case[3])
+		assert_true(title.position.x + title.size.x <= close.position.x + 0.01,
+			"profile %d: and never reaches Close" % case[3])
+		assert_equal(title.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART,
+			"wrapping whole words with a grapheme-safe break for a word too long")
+		assert_false(title.clip_text, "and never clipping")
+
+
+func test_the_name_is_never_ellipsized_or_shrunk() -> void:
+	"""The ruling: "Never ellipsize, reduce font size, split a combining sequence"."""
+	_lay_out_identity(IDENTITY_CASES[2])
+	_show_name(IDENTITY_CASES[2], NAME_32)
+	var title: Label = _shell.control_for(UiShell.ID_DETAIL_TITLE) as Label
+	assert_equal(title.text, NAME_32, "the full persisted name is kept, character for character")
+	assert_equal(title.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING,
+		"with no ellipsis behaviour")
+	assert_equal(title.get_theme_font_size(&"font_size"), UiTheme.FONT_PANEL_TITLE,
+		"at Noto Serif 20, unreduced")
+
+
+func test_a_combining_sequence_survives_the_heading_intact() -> void:
+	"""A break on a grapheme cluster boundary must not split a base letter from its mark."""
+	_lay_out_identity(IDENTITY_CASES[2])
+	_show_name(IDENTITY_CASES[2], NAME_COMBINING)
+	var title: Label = _shell.control_for(UiShell.ID_DETAIL_TITLE) as Label
+	assert_equal(title.text, NAME_COMBINING, "the combining marks are still in the string")
+	assert_true(title.text.contains("̈"), "the combining diaeresis specifically")
+	assert_true(title.text.contains("́"), "and the combining acute")
+
+
+func test_the_species_line_sits_beneath_the_name_in_the_same_column() -> void:
+	"""Actual species and verified status go under the name, in the column, not beside it."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		_show_name(case, "Mira")
+		var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+		var identity: Control = _shell.detail_identity_label()
+		assert_almost_equal(identity.position.x, title.position.x,
+			"profile %d: the species line shares the name's column origin" % case[3])
+		assert_almost_equal(identity.size.x, title.size.x, "and its width")
+		assert_true(identity.position.y >= title.position.y + title.size.y - 0.01,
+			"profile %d: and sits beneath the name" % case[3])
+
+
+func test_the_action_footer_is_64_px_with_a_44_px_center_view() -> void:
+	"""§4.1's footer survives: "Keep the header/close and a 64 px center-action footer visible"."""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		var panel: Control = _shell.control_for(UiShell.ID_DETAIL)
+		var action: Control = _shell.detail_center_view()
+		assert_almost_equal(action.size.y, 44.0, "profile %d: Center view is 44 high" % case[3])
+		assert_almost_equal(action.position.y, panel.size.y - 64.0 + 10.0,
+			"profile %d: centred in the 64 px footer band" % case[3])
+		assert_almost_equal(action.position.x, 20.0, "inside the inherited left inset")
+		assert_true(action.visible, "and it is visible")
+
+
+func test_center_view_is_a_labelled_action_that_names_its_missing_camera() -> void:
+	"""It is "its own labeled action, not a click on the title" -- and it is honestly disabled."""
+	var action: Button = _shell.detail_center_view()
+	assert_equal(action.text, "Center view", "the action carries its own label")
+	assert_true(action.disabled, "and is disabled, because no camera is bound")
+	var reason: String = UiAvailability.REASON_TEXTS[UiAvailability.REASON_NO_WORLD_CAMERA]
+	assert_equal(action.accessibility_description, reason,
+		"stating the actual reason rather than a silent no-op")
+	var title: Control = _shell.control_for(UiShell.ID_DETAIL_TITLE)
+	assert_equal(title.mouse_filter, Control.MOUSE_FILTER_IGNORE,
+		"and the heading itself takes no click")
+
+
+func test_only_the_body_scrolls() -> void:
+	"""Header, Close and footer are outside the ScrollContainer; the content column is inside."""
+	var body: ScrollContainer = _shell.detail_body()
+	for control: Control in [_shell.control_for(UiShell.ID_DETAIL_TITLE),
+			_shell.control_for(UiShell.ID_CLOSE), _shell.detail_emblem(),
+			_shell.detail_center_view(), _shell.detail_identity_label()]:
+		assert_false(body.is_ancestor_of(control),
+			"%s is pinned outside the scrolling body" % control.name)
+	assert_true(body.is_ancestor_of(_shell.need_row(0)),
+		"while the need rows scroll with the content")
+
+
+func test_no_name_draws_outside_its_own_heading_rectangle() -> void:
+	"""The regression a headless assertion missed and a render caught.
+
+	A 39-character single word wrapped to THREE lines inside a two-line heading rectangle and
+	drew over the species line and the Overview tab. Nothing failed, because
+	`_wrapped_height()` measured with `get_multiline_string_size()`'s default break flags --
+	`BREAK_MANDATORY | BREAK_WORD_BOUND`, which never splits a word -- while the Label was set
+	to `AUTOWRAP_WORD_SMART`, which does. The measurement and the drawing disagreed by a line.
+
+	So this measures the heading the way the Label will actually break it, and then asserts the
+	allocated rectangle is at least that tall AND that it touches neither of the two controls
+	it overflowed onto.
+	"""
+	for case: Array in IDENTITY_CASES:
+		_lay_out_identity(case)
+		for name: String in [NAME_UNBROKEN, NAME_32, NAME_COMBINING, "Mira"]:
+			_show_name(case, name)
+			var title: Label = _shell.control_for(UiShell.ID_DETAIL_TITLE) as Label
+			assert_true(title.size.y >= _drawn_height(title) - 0.01,
+				"profile %d, '%s': the heading box holds every line it draws (%f < %f)"
+					% [case[3], name, title.size.y, _drawn_height(title)])
+			assert_false(Rect2(title.position, title.size).intersects(
+				Rect2(_shell.detail_identity_label().position,
+					_shell.detail_identity_label().size)),
+				"profile %d, '%s': and never draws over the species line" % [case[3], name])
+			var tabs: Control = _shell.control_for(UiShell.ID_DETAIL_TABS)
+			assert_false(Rect2(title.position, title.size).intersects(
+				Rect2(tabs.position, tabs.size)),
+				"profile %d, '%s': nor over the tabs beneath it" % [case[3], name])
+
+
+func _drawn_height(label: Label) -> float:
+	"""How tall the label's text really is, measured with the break flags its mode will use.
+
+	Stated independently of `ui_shell.gd`'s own helper on purpose: a test that called the
+	production measurement would agree with it whatever it did, including agreeing with the
+	defect above.
+	"""
+	var flags: int = TextServer.BREAK_MANDATORY | TextServer.BREAK_TRIM_EDGE_SPACES \
+		| TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND
+	assert_equal(label.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART,
+		"those are WORD_SMART's flags, so the mode must be WORD_SMART")
+	return label.get_theme_font(&"font").get_multiline_string_size(label.text,
+		HORIZONTAL_ALIGNMENT_LEFT, label.size.x,
+		label.get_theme_font_size(&"font_size"), -1, flags).y

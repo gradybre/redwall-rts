@@ -34,6 +34,21 @@ const WINTER: int = 3
 ## REQ-SET-006: "one season as 12 days".
 const DAYS_PER_SEASON: int = 12
 
+## Ruling 2026-09-11 §4.2's ABSOLUTE season index, `floor((absolute_day-1)/12)`: not §4.3's
+## repeating 0-3 ordinal. Year 1's four seasons happen to be 0-3, which is exactly why they are
+## named separately here -- a fixture that used SPRING where an absolute season is wanted would
+## pass for one year and silently mean "spring of year 1" forever after. ABS_SPRING_Y2 is 4, the
+## first index at which the two spellings visibly disagree, and it is used to prove they do.
+const ABS_SPRING: int = 0
+const ABS_SUMMER: int = 1
+const ABS_AUTUMN: int = 2
+const ABS_WINTER: int = 3
+const ABS_SPRING_Y2: int = 4
+const ABS_SUMMER_Y2: int = 5
+const ABS_AUTUMN_Y2: int = 6
+## The empty value of both I64 identity columns. Not a season, so every operation refuses it.
+const ABS_NONE: int = -1
+
 ## The compiled EventDefinition ids: the ascending ASCII order of §5.10's seven keys.
 const BLIGHT: int = 0
 const CALM: int = 1
@@ -169,9 +184,9 @@ func test_a_new_store_has_no_event_and_no_forecast() -> void:
 
 func test_clear_returns_a_used_row_to_empty() -> void:
 	"""clear() restores the empty row without reallocating the packed column."""
-	_weather.schedule_first_spring_event()
-	_weather.disclose_forecast(6)
-	_weather.refresh_daily(SPRING, 6)
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	_weather.disclose_forecast(ABS_SPRING, 6)
+	_weather.refresh_daily(ABS_SPRING, 6)
 	_weather.clear()
 	assert_equal(_weather.event_of(), NONE, "the schedule is cleared")
 	assert_equal(_weather.forecast_event(), NONE, "the forecast is cleared")
@@ -401,7 +416,7 @@ func test_the_forced_first_spring_consumes_no_draw() -> void:
 	"""§5.10's onboarding event: ideal spell on day 6, and ARCH-RNG-002's "zero draws"."""
 	var rng: Rng = _new_rng()
 	var state_before: int = rng.stored_state_of(Rng.STREAM_WEATHER).value
-	var result: Weather.OpResult = _weather.schedule_first_spring_event()
+	var result: Weather.OpResult = _weather.schedule_first_spring_event(ABS_SPRING)
 	assert_true(result.ok, "the forced event is scheduled")
 	assert_equal(result.value, IDEAL, "§5.10 forces the ideal spell")
 	assert_equal(_weather.event_of(), IDEAL, "the row records the ideal spell")
@@ -416,10 +431,10 @@ func test_an_ordinary_season_consumes_exactly_one_draw() -> void:
 	"""ARCH-RNG-002: "One weighted event-selection roll per new season"."""
 	var rng: Rng = _new_rng()
 	assert_equal(rng.draw_count_of(Rng.STREAM_WEATHER).value, 0, "a fresh stream has no draws")
-	var result: Weather.OpResult = _weather.schedule_season_event(SUMMER, rng)
+	var result: Weather.OpResult = _weather.schedule_season_event(ABS_SUMMER, rng)
 	assert_true(result.ok, "a summer event is scheduled")
 	assert_equal(rng.draw_count_of(Rng.STREAM_WEATHER).value, 1, "exactly one draw is consumed")
-	_weather.schedule_season_event(AUTUMN, rng)
+	_weather.schedule_season_event(ABS_AUTUMN, rng)
 	assert_equal(rng.draw_count_of(Rng.STREAM_WEATHER).value, 2, "one more draw for one more season")
 	assert_true(_weather.is_eligible(result.value, SUMMER), "the selected row is summer-eligible")
 
@@ -469,7 +484,7 @@ func test_the_module_uses_the_weather_stream() -> void:
 	"""ARCH-RNG-002 assigns weather its own isolated stream; the id comes from rng.gd."""
 	assert_equal(Weather.STREAM_WEATHER, Rng.STREAM_WEATHER, "the WEATHER stream id is rng.gd's")
 	var rng: Rng = _new_rng()
-	_weather.schedule_season_event(SPRING, rng)
+	_weather.schedule_season_event(ABS_SPRING, rng)
 	assert_equal(rng.draw_count_of(Rng.STREAM_WEATHER).value, 1, "the draw landed on WEATHER")
 
 
@@ -477,10 +492,10 @@ func test_a_refused_schedule_consumes_no_draw() -> void:
 	"""A refusal advances nothing, so a rejected call cannot desynchronise a replay."""
 	var rng: Rng = _new_rng()
 	var state_before: int = rng.stored_state_of(Rng.STREAM_WEATHER).value
-	var bad_season: Weather.OpResult = _weather.schedule_season_event(4, rng)
-	assert_false(bad_season.ok, "season 4 is refused")
+	var bad_season: Weather.OpResult = _weather.schedule_season_event(ABS_NONE, rng)
+	assert_false(bad_season.ok, "the empty absolute season -1 is refused")
 	assert_equal(rng.draw_count_of(Rng.STREAM_WEATHER).value, 0, "no draw was consumed")
-	var no_rng: Weather.OpResult = _weather.schedule_season_event(SPRING, null)
+	var no_rng: Weather.OpResult = _weather.schedule_season_event(ABS_SPRING, null)
 	assert_false(no_rng.ok, "a null Rng is refused rather than crashed on")
 	assert_equal(no_rng.error, Weather.REFUSE_NO_RNG, "with a reason on its own channel")
 	assert_equal(_weather.event_of(), NONE, "and no event was written")
@@ -490,7 +505,7 @@ func test_a_refused_schedule_consumes_no_draw() -> void:
 func test_an_unseeded_rng_is_refused_without_writing_the_row() -> void:
 	"""The stream's own refusal travels out intact and leaves the row empty."""
 	var rng: Rng = Rng.new()
-	var result: Weather.OpResult = _weather.schedule_season_event(SPRING, rng)
+	var result: Weather.OpResult = _weather.schedule_season_event(ABS_SPRING, rng)
 	assert_false(result.ok, "an unseeded store cannot draw")
 	assert_equal(result.error, Rng.REFUSE_NOT_SEEDED, "rng.gd's own refusal code is preserved")
 	assert_equal(_weather.event_of(), NONE, "the row is untouched by a refused draw")
@@ -520,56 +535,63 @@ func test_is_forced_first_spring_names_year_one_spring_only() -> void:
 
 # --- REQ-SET-142's forecast -----------------------------------------------------------------------
 
-func _schedule_event(season: int, event: int, rng: Rng) -> bool:
+func _schedule_event(absolute_season: int, event: int, rng: Rng) -> bool:
 	"""Advance the WEATHER stream until its next draw would select `event`, then schedule it.
 
+	INJECTS A VALID EVENT FIXTURE, as ruling §4.3 requires: "Use injected valid event fixtures for
+	these checks, not a claim that the production seed necessarily selects blight." Every event it
+	can reach is one §5.10 admits in that season -- the roll is mapped through the module's own
+	published `event_for_roll()` and no row is written by hand.
 	Uses only the public API -- rng.gd's state_of() plus its static next_u32_from() -- so a test
 	can reach an event the seed does not immediately produce without any back door into the row.
 	The extra draws are irrelevant here: no test using this helper asserts a draw count.
 	"""
+	var season: int = absolute_season % 4
 	for attempt: int in 4096:
 		var state: int = rng.state_of(Rng.STREAM_WEATHER).value
 		var peek: int = Rng.next_u32_from(state).value % WEIGHT_SUMS[season]
 		if _weather.event_for_roll(season, peek).value == event:
-			return _weather.schedule_season_event(season, rng).ok
+			return _weather.schedule_season_event(absolute_season, rng).ok
 		rng.draw(Rng.STREAM_WEATHER)
 	return false
 
 
 func test_the_forecast_is_not_due_before_three_days_out() -> void:
 	"""REQ-SET-142 discloses on day 3 for a day-6 event, and refuses earlier with a reason."""
-	_weather.schedule_first_spring_event()
+	_weather.schedule_first_spring_event(ABS_SPRING)
 	for day: int in range(1, 3):
-		var early: Weather.OpResult = _weather.disclose_forecast(day)
+		var early: Weather.OpResult = _weather.disclose_forecast(ABS_SPRING, day)
 		assert_false(early.ok, "day %d is too early to disclose" % day)
 		assert_equal(early.error, Weather.REFUSE_FORECAST_NOT_DUE, "with the stated reason")
-		assert_false(_weather.is_forecast_due(day), "is_forecast_due agrees on day %d" % day)
+		assert_false(_weather.is_forecast_due(ABS_SPRING, day), "is_forecast_due agrees on day %d" % day)
 		assert_false(_weather.is_forecast_disclosed(), "nothing is disclosed yet")
-	assert_true(_weather.is_forecast_due(3), "day 3 is exactly three days before day 6")
-	assert_true(_weather.disclose_forecast(3).ok, "and the disclosure succeeds")
+	assert_true(_weather.is_forecast_due(ABS_SPRING, 3), "day 3 is exactly three days before day 6")
+	assert_true(_weather.disclose_forecast(ABS_SPRING, 3).ok, "and the disclosure succeeds")
 
 
 func test_the_disclosed_forecast_holds_event_start_and_duration() -> void:
 	"""REQ-SET-142's start and duration are retained; the affected systems derive from the event."""
-	_weather.schedule_first_spring_event()
-	_weather.disclose_forecast(3)
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	_weather.disclose_forecast(ABS_SPRING, 3)
 	assert_true(_weather.is_forecast_disclosed(), "the forecast is disclosed")
 	assert_equal(_weather.forecast_event(), IDEAL, "forecast[0] names the coming event")
 	assert_equal(_weather.forecast_start_day(), 6, "forecast[1] is §5.10's start day")
 	assert_equal(_weather.forecast_duration_days(), 3, "forecast[2] is §5.10's duration")
-	var mask: IntMath.IntResult = _weather.forecast_affected_systems_mask()
+	assert_equal(_weather.forecast_absolute_season(), ABS_SPRING,
+		"and the disclosure carries the absolute season it belongs to")
+	var mask: IntMath.IntResult = _weather.forecast_effect_mask()
 	assert_true(mask.ok, "the affected systems derive from the disclosed event")
-	assert_equal(mask.value, _weather.affected_systems_mask_of(IDEAL).value,
-		"and match the event's own effects column")
+	assert_equal(mask.value, _weather.effect_mask_for(IDEAL, SPRING).value,
+		"and match the event's own effects column, read in its own season")
 
 
 func test_disclosure_is_idempotent_and_consumes_no_draw() -> void:
 	"""BAL-SAFE-017: "opening forecasts ... SHALL consume no event roll"."""
 	var rng: Rng = _new_rng()
-	_weather.schedule_season_event(SPRING, rng)
+	_weather.schedule_season_event(ABS_SPRING, rng)
 	var count_after_schedule: int = rng.draw_count_of(Rng.STREAM_WEATHER).value
 	for day: int in range(3, 13):
-		_weather.disclose_forecast(day)
+		_weather.disclose_forecast(ABS_SPRING, day)
 	assert_equal(rng.draw_count_of(Rng.STREAM_WEATHER).value, count_after_schedule,
 		"ten disclosures consumed no further draw")
 	assert_equal(_weather.forecast_event(), _weather.event_of(), "and disclosed the same event")
@@ -579,71 +601,77 @@ func test_disclosure_is_idempotent_and_consumes_no_draw() -> void:
 func test_early_frost_is_disclosed_on_day_seven() -> void:
 	"""§5.10's one exception: early frost starts on day 10, so its forecast falls due on day 7."""
 	var rng: Rng = _new_rng()
-	assert_true(_schedule_event(AUTUMN, EARLY_FROST, rng), "early frost is reachable in autumn")
+	assert_true(_schedule_event(ABS_AUTUMN, EARLY_FROST, rng), "early frost is reachable in autumn")
 	assert_equal(_weather.event_of(), EARLY_FROST, "the row records early frost")
 	assert_equal(_weather.start_day(), 10, "which starts on day 10")
 	assert_equal(_weather.duration_days(), 2, "for two days")
-	assert_false(_weather.disclose_forecast(6).ok, "day 6 is too early for a day-10 event")
-	assert_true(_weather.disclose_forecast(7).ok, "day 7 is three days before day 10")
+	assert_false(_weather.disclose_forecast(ABS_AUTUMN, 6).ok, "day 6 is too early for a day-10 event")
+	assert_true(_weather.disclose_forecast(ABS_AUTUMN, 7).ok, "day 7 is three days before day 10")
 	assert_equal(_weather.forecast_start_day(), 10, "and discloses the stated start day")
 
 
 func test_disclosure_without_a_scheduled_event_is_refused() -> void:
 	"""There is nothing to disclose before a season's event is selected."""
-	var result: Weather.OpResult = _weather.disclose_forecast(3)
+	var result: Weather.OpResult = _weather.disclose_forecast(ABS_SPRING, 3)
 	assert_false(result.ok, "an empty row discloses nothing")
 	assert_equal(result.error, Weather.REFUSE_NO_EVENT_SCHEDULED, "with the stated reason")
-	assert_false(_weather.is_forecast_due(3), "and no disclosure is due")
-	assert_false(_weather.disclose_forecast(0).ok, "day 0 is not a season day")
-	assert_false(_weather.disclose_forecast(13).ok, "nor is day 13 of a twelve-day season")
+	assert_false(_weather.is_forecast_due(ABS_SPRING, 3), "and no disclosure is due")
+	assert_false(_weather.disclose_forecast(ABS_SPRING, 0).ok, "day 0 is not a season day")
+	assert_false(_weather.disclose_forecast(ABS_SPRING, 13).ok, "nor is day 13 of a twelve-day season")
 
 
 func test_scheduling_a_new_event_clears_the_previous_forecast() -> void:
 	"""REQ-SET-142 retains the forecast OF THE SCHEDULED EVENT, not of a superseded one."""
-	_weather.schedule_first_spring_event()
-	_weather.disclose_forecast(3)
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	_weather.disclose_forecast(ABS_SPRING, 3)
 	var rng: Rng = _new_rng()
-	_weather.schedule_season_event(SUMMER, rng)
+	_weather.schedule_season_event(ABS_SUMMER, rng)
 	assert_false(_weather.is_forecast_disclosed(), "the stale forecast is cleared")
 	assert_equal(_weather.forecast_event(), NONE, "forecast[0] is empty again")
 	assert_equal(_weather.forecast_start_day(), 0, "forecast[1] is empty again")
 	assert_equal(_weather.forecast_duration_days(), 0, "forecast[2] is empty again")
+	assert_equal(_weather.forecast_absolute_season(), ABS_NONE,
+		"and its absolute-season identity is emptied to -1 with it, not left at spring's 0")
+	assert_false(_weather.is_absolute_season(_weather.forecast_absolute_season()),
+		"so the cleared identity names no season at all")
+	var undisclosed: IntMath.IntResult = _weather.forecast_effect_mask()
+	assert_false(undisclosed.ok, "and no effect mask can be read from a cleared forecast")
 
 
 # --- the event window -----------------------------------------------------------------------------
 
 func test_the_event_window_covers_start_through_start_plus_duration_minus_one() -> void:
 	"""BAL-PROBE-001: "the first spring ideal spell is days 6-8"."""
-	_weather.schedule_first_spring_event()
+	_weather.schedule_first_spring_event(ABS_SPRING)
 	assert_equal(_weather.last_day(), 8, "a three-day event from day 6 ends on day 8")
-	assert_false(_weather.is_event_active(5), "day 5 is before the window")
-	assert_true(_weather.is_event_active(6), "day 6 opens the window")
-	assert_true(_weather.is_event_active(7), "day 7 is inside it")
-	assert_true(_weather.is_event_active(8), "day 8 closes it")
-	assert_false(_weather.is_event_active(9), "day 9 is after the window")
-	assert_equal(_weather.active_event_on(5), NONE, "no event modifies day 5")
-	assert_equal(_weather.active_event_on(6), IDEAL, "the ideal spell modifies day 6")
-	assert_equal(_weather.active_event_on(9), NONE, "nor day 9")
+	assert_false(_weather.is_event_active(ABS_SPRING, 5), "day 5 is before the window")
+	assert_true(_weather.is_event_active(ABS_SPRING, 6), "day 6 opens the window")
+	assert_true(_weather.is_event_active(ABS_SPRING, 7), "day 7 is inside it")
+	assert_true(_weather.is_event_active(ABS_SPRING, 8), "day 8 closes it")
+	assert_false(_weather.is_event_active(ABS_SPRING, 9), "day 9 is after the window")
+	assert_equal(_weather.active_event_on(ABS_SPRING, 5), NONE, "no event modifies day 5")
+	assert_equal(_weather.active_event_on(ABS_SPRING, 6), IDEAL, "the ideal spell modifies day 6")
+	assert_equal(_weather.active_event_on(ABS_SPRING, 9), NONE, "nor day 9")
 
 
 func test_early_frost_occupies_days_ten_and_eleven() -> void:
 	"""§5.10's day-10 start with a two-day duration ends on day 11, inside the season."""
 	var rng: Rng = _new_rng()
-	assert_true(_schedule_event(AUTUMN, EARLY_FROST, rng), "early frost is reachable")
-	assert_false(_weather.is_event_active(9), "day 9 is before early frost")
-	assert_true(_weather.is_event_active(10), "day 10 opens it")
-	assert_true(_weather.is_event_active(11), "day 11 closes it")
-	assert_false(_weather.is_event_active(12), "day 12 is clear again")
+	assert_true(_schedule_event(ABS_AUTUMN, EARLY_FROST, rng), "early frost is reachable")
+	assert_false(_weather.is_event_active(ABS_AUTUMN, 9), "day 9 is before early frost")
+	assert_true(_weather.is_event_active(ABS_AUTUMN, 10), "day 10 opens it")
+	assert_true(_weather.is_event_active(ABS_AUTUMN, 11), "day 11 closes it")
+	assert_false(_weather.is_event_active(ABS_AUTUMN, 12), "day 12 is clear again")
 	assert_equal(_weather.last_day(), 11, "and it ends inside the twelve-day season")
 
 
 func test_an_out_of_range_day_is_never_active() -> void:
 	"""A day outside 1..12 names no day of this season at all."""
-	_weather.schedule_first_spring_event()
-	assert_false(_weather.is_event_active(0), "day 0 does not exist")
-	assert_false(_weather.is_event_active(DAYS_PER_SEASON + 1), "nor day 13")
-	assert_equal(_weather.active_event_on(0), NONE, "and neither carries an event")
-	assert_equal(_weather.active_event_on(-5), NONE, "including a negative day")
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	assert_false(_weather.is_event_active(ABS_SPRING, 0), "day 0 does not exist")
+	assert_false(_weather.is_event_active(ABS_SPRING, DAYS_PER_SEASON + 1), "nor day 13")
+	assert_equal(_weather.active_event_on(ABS_SPRING, 0), NONE, "and neither carries an event")
+	assert_equal(_weather.active_event_on(ABS_SPRING, -5), NONE, "including a negative day")
 
 
 # --- §5.10's season baseline table -------------------------------------------------------------
@@ -831,8 +859,10 @@ func test_the_stated_access_flags_belong_to_one_row_each() -> void:
 			"only heavy rain/storm disables boats (row %d)" % event)
 		assert_equal(_weather.lake_ice_access_only(event), event == HARD_FREEZE,
 			"only hard freeze restricts the lake to ice access (row %d)" % event)
-		assert_equal(_weather.closes_mussel_harvest(event), event == BLIGHT,
-			"only blight closes the mussel harvest (row %d)" % event)
+		assert_equal(_weather.closes_mussel_harvest(event, SUMMER), event == BLIGHT,
+			"only blight closes the SUMMER mussel harvest (row %d)" % event)
+		assert_false(_weather.closes_mussel_harvest(event, AUTUMN),
+			"no row closes the mussel harvest in autumn (row %d)" % event)
 		assert_equal(_weather.needs_orchard_water(event), event == DROUGHT,
 			"only drought needs orchard water (row %d)" % event)
 	assert_false(_weather.disables_boats(NONE), "no event disables nothing")
@@ -856,20 +886,24 @@ func test_affected_system_masks_name_each_rows_stated_effects() -> void:
 func test_blight_is_reported_active_only_inside_its_window() -> void:
 	"""The reader fishing.gd's summer mussel closure needs; no fish store is touched here."""
 	var rng: Rng = _new_rng()
-	assert_true(_schedule_event(SUMMER, BLIGHT, rng), "blight is reachable in summer")
-	assert_false(_weather.is_blight_active(SUMMER, 5), "day 5 precedes the day-6 start")
-	assert_true(_weather.is_blight_active(SUMMER, 6), "day 6 opens the three-day blight")
-	assert_true(_weather.is_blight_active(SUMMER, 8), "day 8 closes it")
-	assert_false(_weather.is_blight_active(SUMMER, 9), "day 9 is clear")
-	assert_false(_weather.is_blight_active(WINTER, 6), "blight is not winter-eligible")
-	assert_false(_weather.is_blight_active(SUMMER, 0), "day 0 is no day of the season")
+	assert_true(_schedule_event(ABS_SUMMER, BLIGHT, rng), "blight is reachable in summer")
+	assert_false(_weather.is_blight_active(ABS_SUMMER, 5), "day 5 precedes the day-6 start")
+	assert_true(_weather.is_blight_active(ABS_SUMMER, 6), "day 6 opens the three-day blight")
+	assert_true(_weather.is_blight_active(ABS_SUMMER, 8), "day 8 closes it")
+	assert_false(_weather.is_blight_active(ABS_SUMMER, 9), "day 9 is clear")
+	assert_false(_weather.is_blight_active(ABS_WINTER, 6),
+		"the winter that follows is a different absolute season and carries no blight")
+	assert_false(_weather.is_blight_active(ABS_SUMMER_Y2, 6),
+		"and so is the NEXT year's summer, which the old 0-3 ordinal could not tell apart")
+	assert_false(_weather.is_blight_active(ABS_SUMMER, 0), "day 0 is no day of the season")
+	assert_false(_weather.is_blight_active(ABS_NONE, 6), "the empty identity names no season")
 
 
 func test_a_non_blight_event_never_reports_blight() -> void:
 	"""The forced ideal spell must not answer the mussel closure's question affirmatively."""
-	_weather.schedule_first_spring_event()
+	_weather.schedule_first_spring_event(ABS_SPRING)
 	for day: int in range(1, DAYS_PER_SEASON + 1):
-		assert_false(_weather.is_blight_active(SPRING, day),
+		assert_false(_weather.is_blight_active(ABS_SPRING, day),
 			"an ideal spell is not a blight on day %d" % day)
 
 
@@ -904,14 +938,13 @@ func test_the_net_daily_moisture_change_evaporates_before_rain() -> void:
 
 func test_the_published_moisture_probe_is_reproduced_day_by_day() -> void:
 	"""BAL-PROBE-001's executed grain/moisture column for absolute days 1-17, transcribed above."""
-	_weather.schedule_first_spring_event()
+	_weather.schedule_first_spring_event(ABS_SPRING)
 	var moisture: int = PROBE_MOISTURE[0]
 	for day: int in range(2, PROBE_MOISTURE.size() + 1):
 		var calendar: SimClock.Calendar = SimClock.calendar_at(
 			(day - 1) * SimClock.TICKS_PER_DAY + SimClock.CALENDAR_OFFSET_TICKS)
-		var event: int = NONE
-		if calendar.season == SPRING:
-			event = _weather.active_event_on(calendar.season_day)
+		var event: int = _weather.active_event_on((day - 1) / DAYS_PER_SEASON,
+			calendar.season_day)
 		var result: IntMath.IntResult = _weather.moisture_after_day(
 			moisture, calendar.season, event)
 		assert_true(result.ok, "day %d has a moisture result" % day)
@@ -951,64 +984,69 @@ func test_a_moisture_outside_the_stated_range_is_refused() -> void:
 
 func test_the_daily_row_records_the_baseline_outside_the_event_window() -> void:
 	"""§4.2: "daily baseline independently" -- an unaffected day carries the season's own numbers."""
-	_weather.schedule_first_spring_event()
-	assert_true(_weather.refresh_daily(SPRING, 5).ok, "day 5 refreshes")
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	assert_true(_weather.refresh_daily(ABS_SPRING, 5).ok, "day 5 refreshes")
 	assert_equal(_weather.temperature_tenths(), 120, "spring's 12°C stands on day 5")
 	assert_equal(_weather.rain(), 1200, "and spring's +1200 rain")
-	assert_true(_weather.refresh_daily(SPRING, 9).ok, "day 9 refreshes")
+	assert_true(_weather.refresh_daily(ABS_SPRING, 9).ok, "day 9 refreshes")
 	assert_equal(_weather.temperature_tenths(), 120, "and the baseline returns after the event")
 	assert_equal(_weather.rain(), 1200, "with the baseline rain")
 
 
 func test_the_daily_row_records_the_event_inside_its_window() -> void:
 	"""Each day of the forced ideal spell carries 18°C and spring's rain plus 600."""
-	_weather.schedule_first_spring_event()
+	_weather.schedule_first_spring_event(ABS_SPRING)
 	for day: int in range(6, 9):
-		assert_true(_weather.refresh_daily(SPRING, day).ok, "day %d refreshes" % day)
+		assert_true(_weather.refresh_daily(ABS_SPRING, day).ok, "day %d refreshes" % day)
 		assert_equal(_weather.temperature_tenths(), 180, "day %d is 18°C" % day)
 		assert_equal(_weather.rain(), 1800, "day %d rains 1200+600" % day)
 
 
 func test_refresh_daily_refuses_an_impossible_day_or_season() -> void:
 	"""A refusal writes no column, so a bad call cannot leave a wrong baseline behind."""
-	_weather.schedule_first_spring_event()
-	_weather.refresh_daily(SPRING, 6)
-	assert_false(_weather.refresh_daily(SPRING, 0).ok, "day 0 is refused")
-	assert_false(_weather.refresh_daily(SPRING, DAYS_PER_SEASON + 1).ok, "day 13 is refused")
-	assert_false(_weather.refresh_daily(4, 6).ok, "season 4 is refused")
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	_weather.refresh_daily(ABS_SPRING, 6)
+	assert_false(_weather.refresh_daily(ABS_SPRING, 0).ok, "day 0 is refused")
+	assert_false(_weather.refresh_daily(ABS_SPRING, DAYS_PER_SEASON + 1).ok, "day 13 is refused")
+	assert_false(_weather.refresh_daily(ABS_NONE, 6).ok, "the empty absolute season -1 is refused")
 	assert_equal(_weather.temperature_tenths(), 180, "the last good value is untouched")
 	assert_equal(_weather.rain(), 1800, "for both columns")
 
 
-func test_refresh_daily_refuses_a_stored_row_the_season_does_not_admit() -> void:
-	"""The partial season guard of the module header, exercised in both directions.
+func test_refresh_daily_never_applies_another_seasons_event() -> void:
+	"""Ruling §4.2 CLOSED the partial season guard this test used to assert the limits of.
 
-	§4.2 gives Weather no column naming the season its `start_day` belongs to, so a caller that
-	supplies the wrong season is caught only when §5.10 does not admit the stored row there. A
-	row eligible in Any season is NOT caught, and that limit is asserted here rather than papered
-	over -- it is why ARCH-SYS-006 owns supplying the season.
+	BEHAVIOUR CHANGED DELIBERATELY (decision 0055). Before the I64 identity columns, a wrong
+	season was caught only when §5.10 did not admit the stored row there -- so a summer-only
+	drought asked about autumn REFUSED `EVENT_NOT_ELIGIBLE`, while an Any-season ideal spell
+	scheduled for spring was silently APPLIED to a summer day. That second case was the hole.
+	Now the row names the absolute season it was scheduled for, so BOTH cases resolve the same
+	way: the event is simply not active on a day of any other season, and the day carries its own
+	season's plain baseline. Neither case refuses, because neither is an error.
 	"""
 	var rng: Rng = _new_rng()
-	assert_true(_schedule_event(SUMMER, DROUGHT, rng), "drought is reachable in summer")
-	assert_true(_weather.refresh_daily(SUMMER, 6).ok, "its own season refreshes")
+	assert_true(_schedule_event(ABS_SUMMER, DROUGHT, rng), "drought is reachable in summer")
+	assert_true(_weather.refresh_daily(ABS_SUMMER, 6).ok, "its own season refreshes")
 	assert_equal(_weather.temperature_tenths(), 300, "with drought's 30°C")
-	var wrong: Weather.OpResult = _weather.refresh_daily(AUTUMN, 6)
-	assert_false(wrong.ok, "an autumn day cannot carry a summer-only drought")
-	assert_equal(wrong.error, Weather.REFUSE_EVENT_NOT_ELIGIBLE, "with the stated reason")
-	assert_equal(_weather.temperature_tenths(), 300, "and the refusal wrote no column")
+	assert_true(_weather.refresh_daily(ABS_AUTUMN, 6).ok, "an autumn day refreshes too")
+	assert_equal(_weather.temperature_tenths(), 100,
+		"but carries autumn's own 10°C baseline, not a summer-only drought's 30°C")
+	assert_equal(_weather.active_event_on(ABS_AUTUMN, 6), NONE, "no event is active there")
 	_weather.clear()
-	_weather.schedule_first_spring_event()
-	assert_true(_weather.refresh_daily(SUMMER, 6).ok,
-		"an Any-season row is NOT caught by the guard: §5.10 admits the ideal spell everywhere")
-	assert_equal(_weather.temperature_tenths(), 180, "so it reports summer's ideal spell 18°C")
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	assert_true(_weather.refresh_daily(ABS_SUMMER, 6).ok, "the ANY-season hole is closed too")
+	assert_equal(_weather.temperature_tenths(), 220,
+		"summer day 6 is summer's 22°C, not spring's ideal spell 18°C")
+	assert_true(_weather.refresh_daily(ABS_SPRING, 6).ok, "its own spring day still refreshes")
+	assert_equal(_weather.temperature_tenths(), 180, "and there it IS the ideal spell's 18°C")
 
 
 func test_ending_an_event_removes_its_modifiers_and_keeps_the_forecast() -> void:
 	"""REQ-SET-145: remove the temporary modifiers; the disclosed forecast is retained."""
-	_weather.schedule_first_spring_event()
-	_weather.disclose_forecast(3)
-	_weather.refresh_daily(SPRING, 7)
-	var result: Weather.OpResult = _weather.end_event(SPRING)
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	_weather.disclose_forecast(ABS_SPRING, 3)
+	_weather.refresh_daily(ABS_SPRING, 7)
+	var result: Weather.OpResult = _weather.end_event(ABS_SPRING)
 	assert_true(result.ok, "the event ends")
 	assert_equal(result.value, IDEAL, "and reports which event was removed")
 	assert_equal(_weather.event_of(), NONE, "no event remains scheduled")
@@ -1024,24 +1062,24 @@ func test_ending_an_event_removes_its_modifiers_and_keeps_the_forecast() -> void
 func test_ending_an_event_twice_is_refused_and_consumes_no_draw() -> void:
 	"""There is nothing left to remove, and removal never touches the stream."""
 	var rng: Rng = _new_rng()
-	_weather.schedule_season_event(WINTER, rng)
+	_weather.schedule_season_event(ABS_WINTER, rng)
 	var count: int = rng.draw_count_of(Rng.STREAM_WEATHER).value
-	assert_true(_weather.end_event(WINTER).ok, "the first removal succeeds")
-	var second: Weather.OpResult = _weather.end_event(WINTER)
+	assert_true(_weather.end_event(ABS_WINTER).ok, "the first removal succeeds")
+	var second: Weather.OpResult = _weather.end_event(ABS_WINTER)
 	assert_false(second.ok, "the second is refused")
 	assert_equal(second.error, Weather.REFUSE_NO_EVENT_SCHEDULED, "with the stated reason")
 	assert_equal(rng.draw_count_of(Rng.STREAM_WEATHER).value, count, "and consumed no draw")
-	assert_false(_weather.end_event(4).ok, "an impossible season is refused too")
+	assert_false(_weather.end_event(ABS_NONE).ok, "the empty absolute season is refused too")
 
 
 func test_an_ended_event_leaves_the_window_readers_empty() -> void:
 	"""After removal no day carries a modifier, which is what "remove its temporary modifiers"
 	means for every reader that consults the window."""
-	_weather.schedule_first_spring_event()
-	_weather.end_event(SPRING)
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	_weather.end_event(ABS_SPRING)
 	for day: int in range(1, DAYS_PER_SEASON + 1):
-		assert_false(_weather.is_event_active(day), "day %d carries no event" % day)
-		assert_equal(_weather.active_event_on(day), NONE, "day %d has no modifier" % day)
+		assert_false(_weather.is_event_active(ABS_SPRING, day), "day %d carries no event" % day)
+		assert_equal(_weather.active_event_on(ABS_SPRING, day), NONE, "day %d has no modifier" % day)
 
 
 func test_season_days_run_from_one_to_twelve() -> void:
@@ -1095,3 +1133,304 @@ func test_an_ordinary_midnight_is_not_a_season_boundary() -> void:
 	assert_false(_weather.is_season_boundary_tick(
 		36 * SimClock.TICKS_PER_DAY + SimClock.FIRST_MIDNIGHT_TICK),
 		"absolute day 38 is winter's second day")
+
+
+# --- ruling 2026-09-11 §4.2: the two I64 identity columns (decision 0055) -------------------------
+
+func test_the_amended_row_is_eight_i32_columns_plus_two_i64_columns() -> void:
+	"""Ruling §4.2: "+16 payload bytes, taking Weather from 32 to 48"."""
+	assert_equal(Weather.ROW_COLUMN_COUNT, ROW_COLUMNS, "§4.2's eight I32 columns are unchanged")
+	assert_equal(Weather.ROW64_COLUMN_COUNT, 2, "and exactly two I64 columns are added")
+	assert_equal(ROW_COLUMNS * 4 + Weather.ROW64_COLUMN_COUNT * 8, 48,
+		"8 I32 at 4 bytes plus 2 I64 at 8 bytes is 48, which is 32 + the ruled 16")
+	assert_equal(Weather.COL64_SCHEDULED_ABSOLUTE_SEASON, 0, "scheduled identity is column 0")
+	assert_equal(Weather.COL64_FORECAST_ABSOLUTE_SEASON, 1, "forecast identity is column 1")
+	assert_equal(Weather.ABSOLUTE_SEASON_NONE, ABS_NONE, "both are empty at -1")
+	assert_equal(Weather.SCHEMA_VERSION, 2, "this payload is version 2")
+
+
+func test_a_cleared_row_has_no_temporal_identity_at_all() -> void:
+	"""Ruling §4.3: "zero-filled weather is not valid opening weather" -- including the latch."""
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	_weather.disclose_forecast(ABS_SPRING, 3)
+	assert_equal(_weather.scheduled_absolute_season(), ABS_SPRING, "the latch is written")
+	assert_equal(_weather.forecast_absolute_season(), ABS_SPRING, "and so is the forecast's")
+	_weather.clear()
+	assert_equal(_weather.scheduled_absolute_season(), ABS_NONE, "clear() empties the latch")
+	assert_equal(_weather.forecast_absolute_season(), ABS_NONE, "and the forecast identity")
+	assert_false(_weather.is_season_scheduled(ABS_SPRING),
+		"so spring of year 1 is NOT considered already scheduled, which 0 would have implied")
+
+
+func test_the_absolute_season_is_the_floor_of_day_minus_one_over_twelve() -> void:
+	"""Ruling §4.2: `absolute_season = floor((absolute_day-1)/12)`, transcribed day by day."""
+	var days: Array[int] = [1, 12, 13, 24, 25, 36, 37, 48, 49, 60]
+	var expected: Array[int] = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]
+	for index: int in days.size():
+		var got: IntMath.IntResult = _weather.absolute_season_of_day(days[index])
+		assert_true(got.ok, "absolute day %d has a season" % days[index])
+		assert_equal(got.value, expected[index],
+			"absolute day %d falls in absolute season %d" % [days[index], expected[index]])
+	assert_false(_weather.absolute_season_of_day(0).ok, "day 0 precedes the calendar")
+	assert_false(_weather.absolute_season_of_day(-1).ok, "and so does day -1")
+
+
+func test_the_matching_season_ordinal_is_the_absolute_season_modulo_four() -> void:
+	"""Ruling §4.2: "a matching current season is `absolute_season % 4`"."""
+	assert_equal(Weather.season_of_absolute_season(ABS_SPRING), SPRING, "0 is spring")
+	assert_equal(Weather.season_of_absolute_season(ABS_SUMMER), SUMMER, "1 is summer")
+	assert_equal(Weather.season_of_absolute_season(ABS_AUTUMN), AUTUMN, "2 is autumn")
+	assert_equal(Weather.season_of_absolute_season(ABS_WINTER), WINTER, "3 is winter")
+	assert_equal(Weather.season_of_absolute_season(ABS_SPRING_Y2), SPRING, "4 is spring again")
+	assert_equal(Weather.season_of_absolute_season(ABS_AUTUMN_Y2), AUTUMN, "6 is autumn again")
+	assert_true(_weather.is_absolute_season(ABS_SPRING), "0 is a real absolute season")
+	assert_false(_weather.is_absolute_season(ABS_NONE), "-1 is the empty value, not a season")
+
+
+func test_a_scheduled_event_is_not_active_in_another_absolute_season() -> void:
+	"""Ruling §4.2: "The scheduled event is not automatically active"."""
+	var rng: Rng = _new_rng()
+	assert_true(_schedule_event(ABS_SUMMER, BLIGHT, rng), "blight is reachable in summer")
+	assert_true(_weather.is_event_active(ABS_SUMMER, 6), "day 6 of THAT summer is covered")
+	assert_false(_weather.is_event_active(ABS_AUTUMN, 6), "the following autumn is not")
+	assert_false(_weather.is_event_active(ABS_SUMMER_Y2, 6), "nor next year's summer")
+	assert_equal(_weather.active_event_on(ABS_SUMMER_Y2, 6), NONE,
+		"which the repeating 0-3 ordinal could never have distinguished")
+	assert_true(_weather.is_season_scheduled(ABS_SUMMER), "the latch names that one summer")
+	assert_false(_weather.is_season_scheduled(ABS_SUMMER_Y2), "and no other")
+
+
+func test_the_event_window_is_half_open_at_start_plus_duration() -> void:
+	"""Ruling §4.2: activity requires "the half-open day interval `[start,start+duration)`"."""
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	assert_equal(_weather.start_day(), 6, "the fixture starts on day 6")
+	assert_equal(_weather.duration_days(), 3, "and runs three days")
+	for day: int in range(1, DAYS_PER_SEASON + 1):
+		var inside: bool = day >= 6 and day < 6 + 3
+		assert_equal(_weather.is_event_active(ABS_SPRING, day), inside,
+			"day %d is %s the half-open window" % [day, "inside" if inside else "outside"])
+	assert_true(_weather.is_event_active(ABS_SPRING, 8), "start+duration-1 is the last day in")
+	assert_false(_weather.is_event_active(ABS_SPRING, 9), "start+duration itself is out")
+
+
+func test_the_scheduled_once_latch_refuses_a_second_draw_for_one_season() -> void:
+	"""§5.10's "exactly one major event occurs per season", enforced, not merely asked for."""
+	var rng: Rng = _new_rng()
+	assert_true(_weather.schedule_season_event(ABS_SUMMER, rng).ok, "summer is scheduled once")
+	var first_event: int = _weather.event_of()
+	var draws: int = rng.draw_count_of(Rng.STREAM_WEATHER).value
+	var again: Weather.OpResult = _weather.schedule_season_event(ABS_SUMMER, rng)
+	assert_false(again.ok, "a second call for the same absolute season is refused")
+	assert_equal(again.error, Weather.REFUSE_SEASON_ALREADY_SCHEDULED, "with the stated reason")
+	assert_equal(rng.draw_count_of(Rng.STREAM_WEATHER).value, draws,
+		"and consumes no draw, so a replay cannot desynchronise")
+	assert_equal(_weather.event_of(), first_event, "the stored event is untouched")
+	assert_true(_weather.schedule_season_event(ABS_AUTUMN, rng).ok, "the NEXT season still draws")
+	assert_equal(rng.draw_count_of(Rng.STREAM_WEATHER).value, draws + 1, "taking exactly one")
+
+
+func test_the_latch_survives_expiry_and_moves_only_on_a_new_schedule() -> void:
+	"""Ruling §4.2: "Keep scheduled_absolute_season through expiry as the scheduled-once latch"."""
+	var rng: Rng = _new_rng()
+	assert_true(_weather.schedule_season_event(ABS_SUMMER, rng).ok, "summer is scheduled")
+	assert_true(_weather.end_event(ABS_SUMMER).ok, "and its window expires")
+	assert_false(_weather.is_event_scheduled(), "no event is scheduled any more")
+	assert_equal(_weather.scheduled_absolute_season(), ABS_SUMMER, "but the latch still stands")
+	var replay: Weather.OpResult = _weather.schedule_season_event(ABS_SUMMER, rng)
+	assert_false(replay.ok, "so the expired season cannot be drawn a second time")
+	assert_true(_weather.schedule_season_event(ABS_AUTUMN, rng).ok, "autumn schedules")
+	assert_equal(_weather.scheduled_absolute_season(), ABS_AUTUMN,
+		"and only a SUCCESSFUL schedule moves the latch")
+
+
+func test_a_disclosed_forecast_keeps_its_absolute_season_after_expiry() -> void:
+	"""Ruling §4.2: "A disclosed forecast retains its absolute-season identity after expiry"."""
+	var rng: Rng = _new_rng()
+	assert_true(_schedule_event(ABS_AUTUMN, EARLY_FROST, rng), "early frost is reachable")
+	assert_true(_weather.disclose_forecast(ABS_AUTUMN, 7).ok, "day 7 discloses the day-10 event")
+	assert_equal(_weather.forecast_absolute_season(), ABS_AUTUMN, "with autumn's own identity")
+	assert_true(_weather.end_event(ABS_AUTUMN).ok, "the event then expires")
+	assert_equal(_weather.forecast_event(), EARLY_FROST, "the calendar keeps the forecast")
+	assert_equal(_weather.forecast_start_day(), 10, "with its start day")
+	assert_equal(_weather.forecast_absolute_season(), ABS_AUTUMN,
+		"and with the year it happened in, not merely 'some autumn'")
+
+
+func test_disclosure_refuses_a_season_the_row_was_not_scheduled_for() -> void:
+	"""A forecast belongs to the season whose event it describes, and to no other."""
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	var wrong: Weather.OpResult = _weather.disclose_forecast(ABS_SUMMER, 3)
+	assert_false(wrong.ok, "summer cannot disclose spring's scheduled event")
+	assert_equal(wrong.error, Weather.REFUSE_SEASON_IDENTITY_MISMATCH, "with the stated reason")
+	assert_false(_weather.is_forecast_disclosed(), "and nothing was written")
+	assert_false(_weather.is_forecast_due(ABS_SUMMER, 3), "nor is one due there")
+	assert_true(_weather.is_forecast_due(ABS_SPRING, 3), "it is due in its own season")
+	assert_false(_weather.disclose_forecast(ABS_NONE, 3).ok, "the empty identity is refused")
+
+
+func test_the_forced_first_spring_refuses_any_other_absolute_season() -> void:
+	"""`floor((absolute_day-1)/12)` is 0 for exactly year 1's spring, so nothing else is forced."""
+	var late: Weather.OpResult = _weather.schedule_first_spring_event(ABS_SPRING_Y2)
+	assert_false(late.ok, "year 2's spring is not the onboarding season")
+	assert_equal(late.error, Weather.REFUSE_NOT_FIRST_ABSOLUTE_SEASON, "with the stated reason")
+	assert_false(_weather.is_event_scheduled(), "and no event was written")
+	assert_false(_weather.schedule_first_spring_event(ABS_NONE).ok, "nor is -1 the first spring")
+	assert_true(_weather.schedule_first_spring_event(ABS_SPRING).ok, "absolute season 0 is")
+	var twice: Weather.OpResult = _weather.schedule_first_spring_event(ABS_SPRING)
+	assert_false(twice.ok, "and even it is forced only once")
+	assert_equal(twice.error, Weather.REFUSE_SEASON_ALREADY_SCHEDULED, "by the same latch")
+
+
+# --- ruling 2026-09-11 §4.2: the versioned effect mask --------------------------------------------
+
+func test_the_twelve_effect_bits_are_the_ruled_positions_zero_to_eleven() -> void:
+	"""Ruling §4.2 fixes the ORDER as well as the twelve names; transcribed here independently."""
+	var ruled: Array[int] = [
+		Weather.AFFECTS_TEMPERATURE, Weather.AFFECTS_RAIN, Weather.AFFECTS_MOISTURE,
+		Weather.AFFECTS_CROP_GROWTH, Weather.AFFECTS_CROP_DAMAGE, Weather.AFFECTS_OUTDOOR_WORK,
+		Weather.AFFECTS_BOATS, Weather.AFFECTS_EXPOSURE, Weather.AFFECTS_LAKE_ICE,
+		Weather.AFFECTS_MUSSEL_HARVEST, Weather.AFFECTS_ORCHARD_WATER, Weather.AFFECTS_FROST,
+	]
+	assert_equal(Weather.EFFECT_MASK_BIT_COUNT, 12, "the mask has twelve positions")
+	assert_equal(ruled.size(), Weather.EFFECT_MASK_BIT_COUNT, "and twelve names to fill them")
+	for position: int in ruled.size():
+		assert_equal(ruled[position], 1 << position,
+			"ruled effect bit %d is 1 << %d" % [position, position])
+	assert_equal(Weather.EFFECT_MASK_VERSION, 1, "the mask is versioned, not anonymous")
+
+
+func test_the_effect_mask_strips_mussel_harvest_for_non_summer_blight() -> void:
+	"""Ruling §4.2: "Strip MUSSEL_HARVEST for non-summer blight"."""
+	var summer: int = _weather.effect_mask_for(BLIGHT, SUMMER).value
+	var autumn: int = _weather.effect_mask_for(BLIGHT, AUTUMN).value
+	assert_true((summer & Weather.AFFECTS_MUSSEL_HARVEST) != 0, "summer blight closes mussels")
+	assert_true((autumn & Weather.AFFECTS_MUSSEL_HARVEST) == 0, "autumn blight does not")
+	assert_true((autumn & Weather.AFFECTS_CROP_DAMAGE) != 0,
+		"but autumn blight still damages crops, so the strip removes ONE bit and no more")
+	assert_equal(autumn, summer & ~Weather.AFFECTS_MUSSEL_HARVEST,
+		"exactly the mussel bit separates the two seasons' masks")
+	assert_equal(_weather.affected_systems_mask_of(BLIGHT).value, summer,
+		"the raw table row is the summer reading")
+	assert_false(_weather.effect_mask_for(BLIGHT, 4).ok, "a fifth season has no mask")
+	assert_equal(_weather.effect_mask_for(NONE, SUMMER).value, 0, "and no event affects nothing")
+
+
+func test_a_temperature_or_rain_event_is_never_reported_as_crops_only() -> void:
+	"""Ruling §4.2: "a coarse mask must not falsely report 'crops only'"."""
+	var crop_bits: int = Weather.AFFECTS_CROP_GROWTH | Weather.AFFECTS_CROP_DAMAGE
+	var weather_bits: int = Weather.AFFECTS_TEMPERATURE | Weather.AFFECTS_RAIN
+	var rows: Array[int] = [DROUGHT, HEAVY_RAIN, HARD_FREEZE, EARLY_FROST, IDEAL]
+	var seasons: Array[int] = [SUMMER, SPRING, WINTER, AUTUMN, SPRING]
+	for index: int in rows.size():
+		var mask: int = _weather.effect_mask_for(rows[index], seasons[index]).value
+		assert_true((mask & weather_bits) != 0,
+			"row %d states a temperature or rain change" % rows[index])
+		assert_true((mask & ~crop_bits) != 0,
+			"so row %d reaches beyond crops -- orchards, storage aging, heating" % rows[index])
+	assert_equal(_weather.effect_mask_for(CALM, SPRING).value, 0,
+		"calm days alone states no modifier at all")
+
+
+func test_calm_days_has_no_modifiers_and_still_gets_its_forecast() -> void:
+	"""Ruling §4.2: "Calm days has no modifiers but still gets its required forecast"."""
+	var rng: Rng = _new_rng()
+	assert_true(_schedule_event(ABS_SPRING, CALM, rng), "calm days is reachable in spring")
+	assert_equal(_weather.event_of(), CALM, "the row records calm days")
+	assert_true(_weather.is_forecast_due(ABS_SPRING, 3), "its forecast still falls due on day 3")
+	assert_true(_weather.disclose_forecast(ABS_SPRING, 3).ok, "and is disclosed")
+	assert_equal(_weather.forecast_event(), CALM, "naming calm days")
+	assert_equal(_weather.forecast_start_day(), 6, "with §5.10's start day")
+	assert_equal(_weather.forecast_duration_days(), 2, "and its two-day duration")
+	assert_equal(_weather.forecast_absolute_season(), ABS_SPRING, "and its season identity")
+	var mask: IntMath.IntResult = _weather.forecast_effect_mask()
+	assert_true(mask.ok, "the disclosed mask is answered, not refused")
+	assert_equal(mask.value, 0, "and is empty, because calm days states no modifier")
+
+
+func test_closes_mussel_harvest_on_is_summer_blight_and_nothing_else() -> void:
+	"""Ruling §4.1's predicate: `new_season == SUMMER && active_new_day_event == BLIGHT`."""
+	var rng: Rng = _new_rng()
+	assert_true(_schedule_event(ABS_SUMMER, BLIGHT, rng), "blight is reachable in summer")
+	assert_true(_weather.closes_mussel_harvest_on(ABS_SUMMER, 6), "summer day 6 closes")
+	assert_true(_weather.closes_mussel_harvest_on(ABS_SUMMER, 8), "and so does day 8")
+	assert_false(_weather.closes_mussel_harvest_on(ABS_SUMMER, 9),
+		"day 9 is the day after expiry and reopens")
+	assert_false(_weather.closes_mussel_harvest_on(ABS_SUMMER, 5), "day 5 precedes the window")
+	assert_false(_weather.closes_mussel_harvest_on(ABS_AUTUMN, 6), "another season never closes")
+	_weather.clear()
+	assert_true(_schedule_event(ABS_AUTUMN, BLIGHT, rng), "blight is reachable in autumn too")
+	assert_true(_weather.is_blight_active(ABS_AUTUMN, 6), "and that autumn blight IS active")
+	assert_false(_weather.closes_mussel_harvest_on(ABS_AUTUMN, 6),
+		"yet it permits the mussel harvest, because §5.10 closes it in SUMMER only")
+
+
+func test_a_non_blight_event_never_closes_the_mussel_harvest() -> void:
+	"""The forced ideal spell must not answer the closure question affirmatively."""
+	_weather.schedule_first_spring_event(ABS_SPRING)
+	for day: int in range(1, DAYS_PER_SEASON + 1):
+		assert_false(_weather.closes_mussel_harvest_on(ABS_SPRING, day),
+			"an ideal spell closes no mussel bed on day %d" % day)
+
+
+# --- ruling 2026-09-11 §4.2: the codec's ambiguity rule -------------------------------------------
+
+func test_an_old_snapshot_without_season_identity_is_refused() -> void:
+	"""Ruling §4.2: "Reject an ambiguous old snapshot if the absolute season cannot be proven"."""
+	var rng: Rng = _new_rng()
+	assert_true(_schedule_event(ABS_WINTER, HARD_FREEZE, rng), "hard freeze is winter-only")
+	var legacy: Weather.OpResult = _weather.adopt_snapshot_identity(
+		Weather.SCHEMA_VERSION_NO_SEASON_IDENTITY, ABS_WINTER, ABS_NONE)
+	assert_false(legacy.ok, "a version 1 payload is refused")
+	assert_equal(legacy.error, Weather.REFUSE_AMBIGUOUS_SNAPSHOT_SEASON, "as ambiguous")
+	assert_equal(_weather.scheduled_absolute_season(), ABS_WINTER, "and nothing was overwritten")
+	var future: Weather.OpResult = _weather.adopt_snapshot_identity(99, ABS_WINTER, ABS_NONE)
+	assert_false(future.ok, "an unknown version is refused too")
+	assert_equal(future.error, Weather.REFUSE_UNKNOWN_SCHEMA_VERSION, "under its own code")
+
+
+func test_a_snapshot_season_that_its_event_contradicts_is_refused() -> void:
+	"""Never accept an identity §5.10's own eligibility column rules out."""
+	var rng: Rng = _new_rng()
+	assert_true(_schedule_event(ABS_WINTER, HARD_FREEZE, rng), "hard freeze is winter-only")
+	var wrong: Weather.OpResult = _weather.adopt_snapshot_identity(
+		Weather.SCHEMA_VERSION, ABS_SUMMER, ABS_NONE)
+	assert_false(wrong.ok, "a hard freeze cannot have been scheduled for a summer")
+	assert_equal(wrong.error, Weather.REFUSE_EVENT_NOT_ELIGIBLE, "with the stated reason")
+	var missing: Weather.OpResult = _weather.adopt_snapshot_identity(
+		Weather.SCHEMA_VERSION, ABS_NONE, ABS_NONE)
+	assert_false(missing.ok, "a scheduled event with an empty identity is ambiguous")
+	assert_equal(missing.error, Weather.REFUSE_AMBIGUOUS_SNAPSHOT_SEASON, "and is refused")
+	assert_equal(_weather.scheduled_absolute_season(), ABS_WINTER, "nothing was overwritten")
+
+
+func test_adopting_a_consistent_snapshot_identity_writes_both_columns() -> void:
+	"""The success path: a version 2 payload whose identity its stored events admit."""
+	var rng: Rng = _new_rng()
+	assert_true(_schedule_event(ABS_WINTER, HARD_FREEZE, rng), "hard freeze is winter-only")
+	assert_true(_weather.disclose_forecast(ABS_WINTER, 3).ok, "its forecast is disclosed")
+	var adopted: Weather.OpResult = _weather.adopt_snapshot_identity(
+		Weather.SCHEMA_VERSION, ABS_WINTER + 4, ABS_WINTER + 4)
+	assert_true(adopted.ok, "a later year's winter is a consistent identity")
+	assert_equal(adopted.value, ABS_WINTER + 4, "and is reported back")
+	assert_equal(_weather.scheduled_absolute_season(), ABS_WINTER + 4, "the latch is rewritten")
+	assert_equal(_weather.forecast_absolute_season(), ABS_WINTER + 4, "and so is the forecast")
+	assert_true(_weather.is_event_active(ABS_WINTER + 4, 6), "the window follows the identity")
+	assert_false(_weather.is_event_active(ABS_WINTER, 6), "and leaves the old year behind")
+
+
+func test_an_event_eligible_in_several_seasons_is_named_as_such() -> void:
+	"""Ruling §4.2: "never infer it solely from an event eligible in multiple seasons"."""
+	assert_true(_weather.is_multi_season_event(IDEAL), "ideal spell is eligible in all four")
+	assert_true(_weather.is_multi_season_event(CALM), "and so is calm days")
+	assert_true(_weather.is_multi_season_event(BLIGHT), "blight is summer and autumn")
+	assert_true(_weather.is_multi_season_event(HEAVY_RAIN), "heavy rain is spring and autumn")
+	assert_false(_weather.is_multi_season_event(DROUGHT), "drought is summer-only")
+	assert_false(_weather.is_multi_season_event(HARD_FREEZE), "hard freeze is winter-only")
+	assert_false(_weather.is_multi_season_event(EARLY_FROST), "early frost is autumn-only")
+	assert_false(_weather.is_multi_season_event(NONE), "and EVENT_NONE is no row at all")
+
+
+func test_the_event_catalog_is_verifiable_for_the_boundary_preflight() -> void:
+	"""Ruling §4.1's preflight reads this before a boundary may commit anything."""
+	assert_true(_weather.catalog_is_verified(),
+		"the compiled EventDefinition ids are what every §5.10 table is subscripted by")

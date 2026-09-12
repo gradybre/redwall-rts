@@ -209,10 +209,11 @@ func test_every_protected_domain_has_a_fixed_enum_table() -> void:
 	"""A name in PROTECTED_ENUM_DOMAINS with no fixed_enum entry would refuse compilation while
 	publishing nothing, leaving that enum with no numbers at all.
 
-	The count rose from eight to eleven when Soil, CropState and OrderMode joined the table
-	(decision 0018: every enum §4.3 numbers explicitly belongs here). The number is asserted so
-	a domain added without a fixed_enum table, or a table added without its domain name, fails."""
-	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 11, "eleven protected enum domains")
+	The count rose from eight to eleven when Soil, CropState and OrderMode joined the table,
+	and from eleven to thirteen when RoomType and BuildingState did (decision 0018: every enum
+	§4.3 numbers explicitly belongs here). The number is asserted so a domain added without a
+	fixed_enum table, or a table added without its domain name, fails."""
+	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 13, "thirteen protected enum domains")
 	for domain_name: String in CatalogScript.PROTECTED_ENUM_DOMAINS:
 		assert_false(CatalogScript.fixed_enum(domain_name).is_empty(),
 			"protected domain %s must publish a fixed enum table" % domain_name)
@@ -418,7 +419,8 @@ func test_every_compiled_domain_regenerates_its_own_table_from_its_keys() -> voi
 
 func test_verify_compiled_enum_accepts_the_compiled_domains_and_refuses_others() -> void:
 	"""verify_compiled_enum() is what every owning module's `_init()` calls; it must pass here."""
-	for domain_name: String in ["CommandKind", "CropFamily", "EventDefinition", "HabitatType"]:
+	for domain_name: String in ["BuildingDefinition", "CommandKind", "CropFamily",
+			"EventDefinition", "FurnitureDefinition", "HabitatType"]:
 		var result: CatalogScript.DomainResult = CatalogScript.verify_compiled_enum(domain_name)
 		assert_true(result.ok, "%s must verify (error: %s)" % [domain_name, result.error])
 		assert_equal(result.ids.size(), CatalogScript.compiled_enum(domain_name).size(),
@@ -431,16 +433,18 @@ func test_verify_compiled_enum_accepts_the_compiled_domains_and_refuses_others()
 
 
 func test_the_compiled_domains_are_registered_and_never_protected() -> void:
-	"""Decision 0018 protects what §4.3 NUMBERS; these four it does not number, so they compile."""
-	for domain_name: String in ["CommandKind", "CropFamily", "EventDefinition", "HabitatType"]:
+	"""Decision 0018 protects what §4.3 NUMBERS; these six it does not number, so they compile."""
+	for domain_name: String in ["BuildingDefinition", "CommandKind", "CropFamily",
+			"EventDefinition", "FurnitureDefinition", "HabitatType"]:
 		assert_true(CatalogScript.COMPILED_ENUM_DOMAINS.has(domain_name),
 			"%s must be a registered compiled domain" % domain_name)
 		assert_false(CatalogScript.PROTECTED_ENUM_DOMAINS.has(domain_name),
 			"%s must NOT be protected: §4.3 states none of its numbers" % domain_name)
 		assert_true(CatalogScript.fixed_enum(domain_name).is_empty(),
 			"%s owns no fixed §4.3 table" % domain_name)
-	assert_equal(CatalogScript.COMPILED_ENUM_DOMAINS.size(), 4,
-		"four compiled domains today: CommandKind joined them under decision 0042")
+	assert_equal(CatalogScript.COMPILED_ENUM_DOMAINS.size(), 6,
+		"six compiled domains today: BuildingDefinition and FurnitureDefinition joined them "
+		+ "under decision 0056, after CommandKind under decision 0042")
 
 
 func test_compiled_id_of_resolves_every_key_and_refuses_the_unknown() -> void:
@@ -532,3 +536,218 @@ func test_absence_converts_to_absence_in_every_compiled_domain() -> void:
 			"%s: absence converts to absence" % domain_name)
 		assert_equal(empty.key, &"", "%s: absence names no key" % domain_name)
 	assert_equal(CatalogScript.EMPTY_CATALOG_ID, -1, "§4.2's empty catalog id is -1")
+
+
+# --- the starter-colony domains (decision 0056, READY_07 §7.2 step 1) -----------------------------
+
+## Transcribed from the OWNING FULL CATALOG -- gameplay_balance.md §4.1's thirty BuildingDefinition
+## rows -- and sorted here by hand into ascending ASCII order, never read back out of the module
+## under test. §5.9 prints thirty building rows and BAL §2 states "30 buildings" outright, so a
+## table of any other size is not that catalog.
+const EXPECTED_BUILDING_DEFINITION: Dictionary = {
+	"apiary": 0, "boathouse": 1, "brewery": 2, "cellar": 3, "composter": 4,
+	"covered_store": 5, "dirt_path": 6, "dryer": 7, "fence": 8, "fisher_shelter": 9,
+	"forester_lodge": 10, "gate": 11, "hall": 12, "infirmary": 13, "kitchen": 14,
+	"lookout": 15, "memorial_garden": 16, "mill": 17, "nursery": 18, "open_stockpile": 19,
+	"paved_path": 20, "preserver": 21, "quarry_shed": 22, "residence": 23, "saltpan": 24,
+	"stone_wall": 25, "weir": 26, "well": 27, "workbench": 28, "workshop": 29,
+}
+## gameplay_balance.md §4.3's nine FurnitureDefinition rows, same treatment.
+const EXPECTED_FURNITURE_DEFINITION: Dictionary = {
+	"bed": 0, "decoration": 1, "hearth": 2, "interior_door": 3, "interior_partition": 4,
+	"kitchen_bench": 5, "patient_bed": 6, "seat": 7, "shelf": 8,
+}
+## GDD §4.3's own two tables, character for character.
+const EXPECTED_ROOM_TYPE: Dictionary = {
+	"DORMITORY": 0, "PRIVATE_ROOM": 1, "KITCHEN": 2, "DINING": 3,
+	"COMMON": 4, "INFIRMARY": 5, "PANTRY": 6, "CORRIDOR": 7,
+}
+const EXPECTED_BUILDING_STATE: Dictionary = {
+	"BLUEPRINT": 0, "BUILDING": 1, "ACTIVE": 2, "PAUSED": 3, "DAMAGED": 4, "DEMOLISHING": 5,
+}
+## READY_07 §7.1's starter table, by the key each of its display names belongs to.
+const STARTER_BUILDING_KEYS: Array[String] = ["hall", "open_stockpile", "well", "workbench"]
+
+
+func test_building_definition_is_the_complete_thirty_row_catalog() -> void:
+	"""The whole published table, against the owning catalog's thirty rows.
+
+	READY_07 §7.2 step 1 names the failure outright: publishing the starter colony's handful of
+	ordinals "later renumber[s] all buildings". Thirty is therefore the assertion, not four."""
+	assert_equal(CatalogScript.BUILDING_DEFINITION, EXPECTED_BUILDING_DEFINITION,
+		"the whole BuildingDefinition table")
+	assert_equal(CatalogScript.BUILDING_DEFINITION.size(), 30, "thirty building rows")
+	assert_equal(CatalogScript.compiled_enum("BuildingDefinition"), EXPECTED_BUILDING_DEFINITION,
+		"compiled_enum returns the BuildingDefinition table")
+
+
+func test_furniture_definition_is_the_complete_nine_row_catalog() -> void:
+	"""All nine furniture rows, likewise complete rather than the starter subset."""
+	assert_equal(CatalogScript.FURNITURE_DEFINITION, EXPECTED_FURNITURE_DEFINITION,
+		"the whole FurnitureDefinition table")
+	assert_equal(CatalogScript.FURNITURE_DEFINITION.size(), 9, "nine furniture rows")
+	assert_equal(CatalogScript.compiled_enum("FurnitureDefinition"), EXPECTED_FURNITURE_DEFINITION,
+		"compiled_enum returns the FurnitureDefinition table")
+
+
+func test_the_starter_buildings_and_furniture_are_inside_the_complete_domains() -> void:
+	"""§7.1's four starter structures and the starter interior's five furniture kinds resolve.
+
+	They are ordinary members of the full domain: `hall` is 12 of 30 because twelve keys sort
+	before it, not because it is the first thing the colony places."""
+	for key: String in STARTER_BUILDING_KEYS:
+		var found: CatalogScript.EnumLookup = CatalogScript.compiled_id_of(
+			"BuildingDefinition", StringName(key))
+		assert_true(found.ok, "starter building '%s' must be a BuildingDefinition key" % key)
+		assert_equal(found.id, EXPECTED_BUILDING_DEFINITION[key], "starter building '%s' id" % key)
+	for furniture_key: String in ["bed", "kitchen_bench", "hearth", "shelf", "seat"]:
+		var furniture: CatalogScript.EnumLookup = CatalogScript.compiled_id_of(
+			"FurnitureDefinition", StringName(furniture_key))
+		assert_true(furniture.ok, "starter furniture '%s' must be a key" % furniture_key)
+		assert_equal(furniture.id, EXPECTED_FURNITURE_DEFINITION[furniture_key],
+			"furniture '%s' id" % furniture_key)
+
+
+func test_display_names_are_not_keys_in_either_new_domain() -> void:
+	"""READY_07 §7.2: "display names are not ordering keys".
+
+	§5.9 prints "Refuge/community hall", "Workbench shelter", "Open stockpile",
+	"Preserver/smokehouse", "Seat/table place" and "Fence segment"; the owning §4.1/§4.3 rows key
+	them hall, workbench, open_stockpile, preserver, seat and fence. Keying on the printed name
+	would put `refuge_hall` between `quarry_shed` and `residence` and renumber six buildings."""
+	for absent: String in ["refuge_hall", "community_hall", "workbench_shelter", "Refuge hall",
+			"open stockpile", "smokehouse", "fence_segment", "stone_wall_segment"]:
+		assert_false(CatalogScript.BUILDING_DEFINITION.has(absent),
+			"'%s' is a display name, not a BuildingDefinition key" % absent)
+		assert_false(CatalogScript.compiled_id_of("BuildingDefinition", StringName(absent)).ok,
+			"'%s' must be refused, not resolved" % absent)
+	for missing: String in ["seat_table_place", "table", "partition", "door", "Bed"]:
+		assert_false(CatalogScript.FURNITURE_DEFINITION.has(missing),
+			"'%s' is not a FurnitureDefinition key" % missing)
+
+
+func test_building_and_furniture_are_two_domains_that_never_share_an_id() -> void:
+	"""BAL-CAT-007: "furniture definitions occupy a separate domain".
+
+	`kitchen` is building 14 and `kitchen_bench` is furniture 5; neither key resolves in the
+	other's domain, so a furniture id can never be read as a building id by accident."""
+	assert_equal(CatalogScript.compiled_id_of("BuildingDefinition", &"kitchen").id, 14,
+		"the exterior kitchen building")
+	assert_equal(CatalogScript.compiled_id_of("FurnitureDefinition", &"kitchen_bench").id, 5,
+		"the interior kitchen bench")
+	assert_false(CatalogScript.compiled_id_of("BuildingDefinition", &"kitchen_bench").ok,
+		"a furniture key is not a building key")
+	assert_false(CatalogScript.compiled_id_of("FurnitureDefinition", &"kitchen").ok,
+		"a building key is not a furniture key")
+	assert_false(CatalogScript.compiled_id_of("FurnitureDefinition", &"well").ok,
+		"nor is the well, which §5.9 lists as a building")
+
+
+func test_unknown_keys_and_ids_in_the_new_domains_are_refused_without_a_sentinel() -> void:
+	"""A refusal carries no usable key or id: there is nothing to mistake for an answer."""
+	var unknown: CatalogScript.EnumLookup = CatalogScript.compiled_id_of(
+		"BuildingDefinition", &"tavern")
+	assert_false(unknown.ok, "there is no tavern in the catalog")
+	assert_equal(unknown.id, 0, "a refusal publishes no id")
+	assert_equal(unknown.key, &"", "a refusal publishes no key")
+	assert_true(unknown.error.contains("tavern"), "and names what was rejected")
+	assert_false(CatalogScript.compiled_key_of("BuildingDefinition", 30).ok,
+		"thirty keys occupy 0..29; there is no id 30")
+	assert_false(CatalogScript.compiled_key_of("BuildingDefinition", -1).ok,
+		"-1 is absence, and absence names no building")
+	assert_false(CatalogScript.compiled_key_of("FurnitureDefinition", 9).ok, "no ninth id")
+	assert_equal(CatalogScript.compiled_key_of("FurnitureDefinition", 8).key, &"shelf",
+		"furniture 8 is the shelf")
+
+
+func test_the_new_compiled_domains_regenerate_from_shuffled_keys() -> void:
+	"""The acceptance property: input order cannot reach an id. Reversed, and rotated four ways."""
+	_assert_compiles_to("BuildingDefinition", EXPECTED_BUILDING_DEFINITION)
+	_assert_compiles_to("FurnitureDefinition", EXPECTED_FURNITURE_DEFINITION)
+	for domain_name: String in ["BuildingDefinition", "FurnitureDefinition"]:
+		_assert_rotations_agree(domain_name)
+
+
+func _assert_rotations_agree(domain_name: String) -> void:
+	"""Compile one domain's keys from four rotated starting points and assert one mapping."""
+	var keys: Array[StringName] = CatalogScript.compiled_enum_keys(domain_name)
+	var expected: CatalogScript.DomainResult = CatalogScript.compile_domain(domain_name, keys)
+	for rotation: int in [1, 7, 13, 29]:
+		var shift: int = rotation % maxi(1, keys.size())
+		var rotated: Array[StringName] = []
+		rotated.append_array(keys.slice(shift))
+		rotated.append_array(keys.slice(0, shift))
+		assert_equal(rotated.size(), keys.size(), "%s rotation keeps every key" % domain_name)
+		var built: CatalogScript.DomainResult = CatalogScript.compile_domain(domain_name, rotated)
+		assert_true(built.ok, "%s rotation %d compiles" % [domain_name, rotation])
+		assert_equal(built.ids, expected.ids,
+			"%s rotation %d gives identical ids" % [domain_name, rotation])
+
+
+func test_room_type_and_building_state_match_gdd_4_3_exactly() -> void:
+	"""§4.3 numbers both tables individually, so they are fixed data and never regenerated."""
+	assert_equal(CatalogScript.ROOM_TYPE, EXPECTED_ROOM_TYPE, "the whole RoomType table")
+	assert_equal(CatalogScript.BUILDING_STATE, EXPECTED_BUILDING_STATE,
+		"the whole BuildingState table")
+	assert_equal(CatalogScript.fixed_enum("RoomType"), EXPECTED_ROOM_TYPE,
+		"fixed_enum returns the RoomType table")
+	assert_equal(CatalogScript.fixed_enum("BuildingState"), EXPECTED_BUILDING_STATE,
+		"fixed_enum returns the BuildingState table")
+	assert_true(CatalogScript.PROTECTED_ENUM_DOMAINS.has("RoomType"), "RoomType is protected")
+	assert_true(CatalogScript.PROTECTED_ENUM_DOMAINS.has("BuildingState"),
+		"BuildingState is protected")
+
+
+func test_room_type_and_building_state_are_not_their_own_ascii_order() -> void:
+	"""Exactly why they must be protected rather than compiled.
+
+	Sorted-key regeneration would number RoomType COMMON=0, CORRIDOR=1, DINING=2, DORMITORY=3,
+	INFIRMARY=4, KITCHEN=5, PANTRY=6, PRIVATE_ROOM=7 and BuildingState ACTIVE=0, BLUEPRINT=1,
+	BUILDING=2, DAMAGED=3, DEMOLISHING=4, PAUSED=5 -- neither of which is what §4.3 states, and
+	both of which would silently repoint every persisted Room.type and Building.state."""
+	var room_keys: Array[StringName] = [&"DORMITORY", &"PRIVATE_ROOM", &"KITCHEN", &"DINING",
+		&"COMMON", &"INFIRMARY", &"PANTRY", &"CORRIDOR"]
+	var ascii_room: Dictionary = CatalogScript.compile_domain("Nonesuch", room_keys).ids
+	assert_equal(ascii_room[&"COMMON"], 0, "ASCII order would start RoomType at COMMON")
+	assert_false(ascii_room[&"DORMITORY"] == int(CatalogScript.ROOM_TYPE["DORMITORY"]),
+		"so the two orders genuinely disagree")
+	var refused_room: CatalogScript.DomainResult = CatalogScript.compile_domain(
+		"RoomType", room_keys)
+	assert_false(refused_room.ok, "compiling RoomType must refuse")
+	assert_true(refused_room.ids.is_empty(), "a refused compile produces no IDs")
+	var state_keys: Array[StringName] = [&"BLUEPRINT", &"BUILDING", &"ACTIVE", &"PAUSED",
+		&"DAMAGED", &"DEMOLISHING"]
+	var refused_state: CatalogScript.DomainResult = CatalogScript.compile_domain(
+		"BuildingState", state_keys)
+	assert_false(refused_state.ok, "compiling BuildingState must refuse")
+	assert_true(refused_state.ids.is_empty(), "a refused compile produces no IDs")
+
+
+func test_the_fixed_enum_table_index_and_the_protected_list_name_the_same_domains() -> void:
+	"""A table with no protected name is recompilable; a protected name with no table publishes
+	no numbers at all. Both halves are asserted, in both directions."""
+	assert_equal(CatalogScript.FIXED_ENUM_TABLES.size(),
+		CatalogScript.PROTECTED_ENUM_DOMAINS.size(), "one fixed table per protected domain")
+	for table_name: Variant in CatalogScript.FIXED_ENUM_TABLES.keys():
+		assert_true(CatalogScript.PROTECTED_ENUM_DOMAINS.has(String(table_name)),
+			"'%s' has a fixed table and must be protected" % table_name)
+	for domain_name: String in CatalogScript.PROTECTED_ENUM_DOMAINS:
+		assert_true(CatalogScript.FIXED_ENUM_TABLES.has(domain_name),
+			"protected '%s' must have a fixed table" % domain_name)
+		assert_equal(CatalogScript.fixed_enum(domain_name),
+			CatalogScript.FIXED_ENUM_TABLES[domain_name],
+			"fixed_enum('%s') returns that table" % domain_name)
+
+
+func test_the_new_domains_were_never_numbered_any_other_way() -> void:
+	"""No pre-decision-0056 ordinals exist for these, so a legacy ordinal is refused by name
+	rather than silently reinterpreted as an id in the new numbering."""
+	for domain_name: String in ["BuildingDefinition", "FurnitureDefinition"]:
+		assert_true(CatalogScript.legacy_ids_of(domain_name).is_empty(),
+			"%s has no legacy conversion map" % domain_name)
+		var converted: CatalogScript.EnumLookup = CatalogScript.convert_legacy_id(domain_name, 0)
+		assert_false(converted.ok, "%s legacy ordinal 0 must refuse" % domain_name)
+		assert_true(converted.error.contains("never numbered any other way"),
+			"%s says why, rather than reporting an unknown domain" % domain_name)
+	assert_false(CatalogScript.convert_legacy_id("RoomType", 0).ok,
+		"RoomType is protected, not a compiled domain at all")

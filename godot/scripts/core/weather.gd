@@ -97,9 +97,10 @@ extends RefCounted
 ##     per-day readers, and NO plot state is written here; moisture_after_day_into() likewise
 ##     answers a question about a caller-supplied moisture and stores nothing.
 ##   * MUSSEL'S SUMMER BLIGHT CLOSURE. fishing.gd records "summer mussel harvest closes" as a
-##     weather-dependent condition it will not evaluate. is_blight_active() is the reader that
-##     answers it; this module does NOT reach into fishing.gd, because joining the two stores is
-##     ARCH-SYS-006's job (increment 10).
+##     weather-dependent condition it will not evaluate. closes_mussel_harvest_on() is the reader
+##     that answers it; this module does NOT reach into fishing.gd, because ruling 2026-09-11
+##     §4.1 gives the weather-to-fishery join and the `FishStock.closed` event bit to
+##     ARCH-SYS-006, which is `crop_weather.gd`.
 ##   * BOAT DISABLING AND LAKE-ICE ACCESS. REQ-SET-051/052 need the gear and expedition stores,
 ##     still blocked by U5. disables_boats() and lake_ice_access_only() report the event table's
 ##     own flags; no departure is prevented here because no departure exists to prevent.
@@ -136,32 +137,38 @@ extends RefCounted
 ##     quantity, so every number has a name and none depends on a slot index nobody defined.
 ##     `season_mask` follows BAL-CROP-001's stated `1<<enum` convention for `allowed_soils`,
 ##     which is an ANALOGY to a different field and is labelled as one.
-##   * WHAT `forecast: int32[3]` HOLDS IS NOT STATED. REQ-SET-142 requires disclosing "its start,
-##     duration, and affected systems" and §4.2 gives exactly three int32 slots, so the obvious
-##     pairing is (start, duration, affected-systems mask). THAT READING IS REJECTED and this is
-##     an INTERPRETATION: no "affected systems" domain is enumerated anywhere in the document
-##     set, so that third slot could only hold a mask this module invented. The slots here are
-##     (event, start_day, duration_days), because (a) the affected systems ARE a function of the
-##     event -- affected_systems_mask_of() derives them from the effects column, so nothing is
-##     lost -- and (b) `event` is documented as the world's ONE active event, leaving the
-##     forecast as the only place a disclosed schedule can be retained after the event ends,
-##     which is what "retain that forecast in the calendar" requires. The derived mask is NEVER
-##     STORED, so if the taxonomy is later ruled on, no save carries a guess. NEEDS A RULING --
-##     the slot meanings are persisted.
-##   * THE SEASON IS NOT IN THE ROW. §4.2's `start_day` is §5.10's season-local day 6 (or 10),
-##     and the row has no column naming the season it was scheduled for, so the row alone does
-##     not identify a point in time. No column is added: every operation and reader here takes
-##     the season as an argument, and any that could be misled refuses when the stored event is
-##     not eligible in the season it was handed (REFUSE_EVENT_NOT_ELIGIBLE). THAT GUARD IS
-##     PARTIAL by construction -- ideal spell and calm days are eligible in all four seasons and
-##     heavy rain in two, so it cannot catch every mismatch. The alternative -- storing an
-##     absolute day index instead of §5.10's stated 6 -- transforms a stated value and is not
-##     taken. ARCH-SYS-006 owns supplying the right season. NEEDS A RULING.
-##   * "ONE EVENT PER SEASON" IS THE CALLER'S DISCIPLINE. §5.10: "Exactly one major event occurs
-##     per season". Without a season column this store cannot tell a new season from a repeat
-##     call, so schedule_season_event() does not refuse a second call and a second call takes a
-##     second draw. rng.gd's header already states the division of labour: "ordering, eligibility
-##     and discard rules are enforced by the systems that own those events". ARCH-SYS-006 owns it.
+##   * WHAT `forecast: int32[3]` HOLDS WAS NOT STATED, AND IS NOW RULED. REQ-SET-142 requires
+##     disclosing "its start, duration, and affected systems" and §4.2 gives exactly three int32
+##     slots, so the obvious pairing is (start, duration, affected-systems mask). THAT READING IS
+##     REJECTED, and ruling 2026-09-11 §4.2 adopted the rejection: "keep the eight existing
+##     Weather I32 fields, including the current interpretation of `forecast[3]` as
+##     `(event_id,start_season_day,duration_days)`". The affected systems ARE a function of the
+##     event -- effect_mask_for() derives them from the effects column, so nothing is lost -- and
+##     `event` is documented as the world's ONE active event, leaving the forecast as the only
+##     place a disclosed schedule can be retained after the event ends. The derived mask is NEVER
+##     STORED, so no save carries a guess about a taxonomy.
+##   * THE SEASON WAS NOT IN THE ROW, AND NOW IS (ruling 2026-09-11 §4.2, decision 0055).
+##     §4.2's `start_day` is §5.10's season-local day 6 (or 10), and the eight I32 columns name no
+##     season, so that row alone did not identify a point in time -- the gap this header used to
+##     record as NEEDS A RULING. The ruled amendment adds TWO I64 columns and nothing else:
+##     `scheduled_absolute_season` and `forecast_absolute_season`, both empty at -1, where
+##     `absolute_season = floor((absolute_day-1)/12)` and the matching §4.3 Season ordinal is
+##     `absolute_season % 4`. That is +16 payload bytes, taking Weather from 32 to 48.
+##     EVERY ROW OPERATION NOW TAKES THE ABSOLUTE SEASON, not a repeating 0-3 ordinal, so a
+##     caller cannot hand one leg summer and another autumn on a season crossing and be believed:
+##     the ordinal is DERIVED here by season_of_absolute_season() and never supplied twice.
+##     A SCHEDULED EVENT IS NOT AUTOMATICALLY ACTIVE: activity requires the stored
+##     `scheduled_absolute_season` to equal the absolute season asked about AND the half-open day
+##     interval `[start, start+duration)`. The old partial REFUSE_EVENT_NOT_ELIGIBLE guard
+##     survives only on the pure table readers, where a season ordinal really is the whole input.
+##   * "ONE EVENT PER SEASON" IS NOW THIS STORE'S LATCH, NOT THE CALLER'S DISCIPLINE. §5.10:
+##     "Exactly one major event occurs per season". `scheduled_absolute_season` IS the
+##     scheduled-once latch ARCH-SYS-006 previously kept privately in `crop_weather.gd`; ruling
+##     §4.2 requires ONE owner ("no independent extra latch allocation is implied"), so that
+##     field was migrated here and `crop_weather.last_scheduled_season()` now reads this column.
+##     schedule_season_event() REFUSES a second call for a season it has already scheduled, and
+##     refuses BEFORE touching the stream, so the refusal consumes no draw. The latch is kept
+##     through event expiry and changes only on a successfully scheduled next season.
 ##   * INTERPRETATION -- THE BARE TEMPERATURE FORM IS ABSOLUTE. §5.10's effects column writes
 ##     heavy rain as "Temperature-3°C from baseline" and early frost as "Temperature-3°C", with
 ##     ideal spell "Temperature 18°C", drought "Temperature 30°C" and hard freeze
@@ -230,6 +237,31 @@ const COL_FORECAST_2: int = 7
 const ROW_COLUMN_COUNT: int = 8
 ## §4.2: "One active major event/world".
 const ROW_COUNT: int = 1
+
+# --- ruling 2026-09-11 §4.2's two I64 columns: the row's temporal identity (decision 0055) -------
+
+## The absolute season whose §5.10 event the I32 row currently holds. ALSO the scheduled-once
+## latch: it survives event expiry and moves only on a successfully scheduled next season.
+const COL64_SCHEDULED_ABSOLUTE_SEASON: int = 0
+## The absolute season the disclosed `forecast[3]` tuple belongs to. Retained after expiry, so a
+## calendar entry REQ-SET-142 kept can still be placed in a year rather than merely in a season.
+const COL64_FORECAST_ABSOLUTE_SEASON: int = 1
+const ROW64_COLUMN_COUNT: int = 2
+## "both empty at -1", following §4.2's own "empty catalog IDs are -1" convention. This is a
+## STATE, never a refusal channel: every operation that can fail carries an OpResult code.
+const ABSOLUTE_SEASON_NONE: int = -1
+## `absolute_season = floor((absolute_day-1)/12)`, so year 1's spring is 0 and nothing is lower.
+const FIRST_ABSOLUTE_SEASON: int = 0
+## GDD §5.1 counts calendar days from 1, which is what the floor division above subtracts.
+const MIN_CALENDAR_DAY: int = 1
+
+## Payload version of the §4.2 Weather row as this module writes it: eight I32 plus two I64.
+const SCHEMA_VERSION: int = 2
+## The pre-ruling payload: the same eight I32 columns and NO temporal identity at all.
+const SCHEMA_VERSION_NO_SEASON_IDENTITY: int = 1
+## Version of the twelve-bit `AFFECTS_*` effect mask below. Bumped when a bit's meaning moves.
+const EFFECT_MASK_VERSION: int = 1
+const EFFECT_MASK_BIT_COUNT: int = 12
 
 # --- §5.10 event table: catalog.gd's compiled EventDefinition ids, see the header -------------------
 
@@ -365,8 +397,15 @@ const EVENT_OUTDOOR_WORK_PER_1000: Array[int] = [1000, 1000, 1000, 1000, 1000, 8
 ## accumulates nothing here.
 const EVENT_EXPOSURE_PER_1000: Array[int] = [1000, 1000, 1000, 1000, 2000, 1000, 1000]
 
-## REQ-SET-142's "affected systems", one bit per stated phrase of §5.10's effects column. DERIVED
-## from the event and never stored, so no save carries this taxonomy (see the header).
+## REQ-SET-142's "affected systems" as ruling 2026-09-11 §4.2's VERSIONED EFFECT MASK: one bit
+## per stated phrase of §5.10's effects column, in the ruled bit order 0-11 -- temperature, rain,
+## moisture, crop growth, crop damage, outdoor work, boats, exposure, lake ice, mussel harvest,
+## orchard water, frost. It is NOT a "system enum": it is DERIVED from the event id, the season
+## and the typed tables above by effect_mask_for(), and is never a second independently writable
+## truth. Nothing stores it, so no save carries this taxonomy (see the header).
+## A COARSE READING IS WRONG. AFFECTS_TEMPERATURE and AFFECTS_RAIN reach orchards, storage aging
+## and heating/exposure as well as crops, so no consumer may collapse a mask carrying them into
+## "crops only"; the bits are published individually for exactly that reason.
 const AFFECTS_TEMPERATURE: int = 1 << 0
 const AFFECTS_RAIN: int = 1 << 1
 const AFFECTS_MOISTURE: int = 1 << 2
@@ -426,6 +465,12 @@ const REFUSE_FORECAST_NOT_DUE: StringName = &"FORECAST_NOT_DUE"
 const REFUSE_NO_RNG: StringName = &"NO_RNG"
 const REFUSE_SELECTION_FAILED: StringName = &"SELECTION_FAILED"
 const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
+const REFUSE_INVALID_ABSOLUTE_SEASON: StringName = &"INVALID_ABSOLUTE_SEASON"
+const REFUSE_SEASON_IDENTITY_MISMATCH: StringName = &"SEASON_IDENTITY_MISMATCH"
+const REFUSE_SEASON_ALREADY_SCHEDULED: StringName = &"SEASON_ALREADY_SCHEDULED"
+const REFUSE_NOT_FIRST_ABSOLUTE_SEASON: StringName = &"NOT_FIRST_ABSOLUTE_SEASON"
+const REFUSE_UNKNOWN_SCHEMA_VERSION: StringName = &"UNKNOWN_WEATHER_SCHEMA_VERSION"
+const REFUSE_AMBIGUOUS_SNAPSHOT_SEASON: StringName = &"AMBIGUOUS_SNAPSHOT_SEASON"
 
 
 class OpResult:
@@ -449,6 +494,9 @@ class OpResult:
 
 ## §4.2's single Weather row, eight int32 columns indexed by the COL_* constants.
 var _row: PackedInt32Array = PackedInt32Array()
+## Ruling §4.2's two int64 columns, indexed by the COL64_* constants: the row's temporal identity
+## and the scheduled-once latch. Allocated once beside `_row` and never resized.
+var _row64: PackedInt64Array = PackedInt64Array()
 
 # --- scratch (not simulation state) --------------------------------------------------------------------
 
@@ -477,10 +525,31 @@ func _init() -> void:
 	assert(EVENT_OUTDOOR_WORK_PER_1000.size() == EVENT_COUNT, "one work factor per §5.10 row")
 	assert(EVENT_EXPOSURE_PER_1000.size() == EVENT_COUNT, "one exposure factor per §5.10 row")
 	assert(EVENT_AFFECTED_SYSTEMS.size() == EVENT_COUNT, "one affected-system mask per §5.10 row")
+	_assert_effect_mask_bits()
 	_assert_event_ids()
 	_assert_season_tables()
 	_allocate_columns()
 	clear()
+
+
+func _assert_effect_mask_bits() -> void:
+	"""Assert ruling §4.2's twelve effect bits are the twelve consecutive positions 0-11.
+
+	The ruling fixes the ORDER as well as the count, so a later edit that inserts a bit in the
+	middle -- silently renumbering every position above it -- fails here rather than in a save.
+	"""
+	var bits: Array[int] = [
+		AFFECTS_TEMPERATURE, AFFECTS_RAIN, AFFECTS_MOISTURE, AFFECTS_CROP_GROWTH,
+		AFFECTS_CROP_DAMAGE, AFFECTS_OUTDOOR_WORK, AFFECTS_BOATS, AFFECTS_EXPOSURE,
+		AFFECTS_LAKE_ICE, AFFECTS_MUSSEL_HARVEST, AFFECTS_ORCHARD_WATER, AFFECTS_FROST,
+	]
+	assert(bits.size() == EFFECT_MASK_BIT_COUNT, "ruling §4.2 names exactly twelve effect bits")
+	for position: int in EFFECT_MASK_BIT_COUNT:
+		assert(bits[position] == 1 << position, "effect bit order 0-11 is ruled, not incidental")
+	for event: int in EVENT_COUNT:
+		assert(EVENT_AFFECTED_SYSTEMS[event] >= 0
+				and EVENT_AFFECTED_SYSTEMS[event] < (1 << EFFECT_MASK_BIT_COUNT),
+			"no §5.10 row may set a bit outside the twelve ruled positions")
 
 
 func _assert_event_ids() -> void:
@@ -510,6 +579,8 @@ func _assert_season_tables() -> void:
 	assert(SEASON_DAYLIGHT_END_HOUR.size() == SEASON_COUNT, "one daylight end per season")
 	assert(SEASON_TEMPERATURE_TENTHS.size() == SEASON_COUNT, "one baseline temperature per season")
 	assert(SEASON_RAIN.size() == SEASON_COUNT, "one baseline rain per season")
+	assert(DAYS_PER_SEASON * SEASON_COUNT == SimClock.DAYS_PER_YEAR,
+		"absolute_season % 4 is the §4.3 ordinal only if a year is exactly four 12-day seasons")
 	for event: int in EVENT_COUNT:
 		assert(EVENT_START_DAY[event] - FORECAST_DAYS >= FIRST_SEASON_DAY,
 			"a forecast three days before the start must fall inside the same season")
@@ -518,15 +589,24 @@ func _assert_season_tables() -> void:
 
 
 func _allocate_columns() -> void:
-	"""The only place that sizes the packed row (ARCH-MEM-005: allocate once)."""
+	"""The only place that sizes the packed rows (ARCH-MEM-005: allocate once)."""
 	_row.resize(ROW_COLUMN_COUNT)
+	_row64.resize(ROW64_COLUMN_COUNT)
 
 
 func clear() -> void:
-	"""Return the row to its empty state without reallocating it: no event, no forecast."""
+	"""Return both rows to their empty state without reallocating them.
+
+	No event, no forecast, and NO TEMPORAL IDENTITY: both I64 columns go to ABSOLUTE_SEASON_NONE
+	rather than 0, because 0 is year 1's spring and a cleared store has not scheduled it. That
+	distinction is what makes a freshly cleared store schedule its first season instead of
+	believing spring is already done -- ruling §4.3's "zero-filled weather is not valid opening
+	weather", enforced on the latch as well as on the baseline.
+	"""
 	_row.fill(0)
 	_row[COL_EVENT] = EVENT_NONE
 	_row[COL_FORECAST_0] = EVENT_NONE
+	_row64.fill(ABSOLUTE_SEASON_NONE)
 
 
 # --- §4.3 / §5.10 argument validation ------------------------------------------------------------
@@ -543,6 +623,44 @@ func is_season_day(season_day: int) -> bool:
 	`SimClock.Calendar.season_day` reports; nothing here reads a clock, so the caller passes it.
 	"""
 	return season_day >= FIRST_SEASON_DAY and season_day <= DAYS_PER_SEASON
+
+
+func is_absolute_season(absolute_season: int) -> bool:
+	"""True when `absolute_season` names a real season of the world's history, 0 upward.
+
+	Year 1's spring is 0 and nothing precedes it, so ABSOLUTE_SEASON_NONE (-1) is deliberately
+	NOT one of these: it is the empty state of the two I64 columns, not a season.
+	"""
+	return absolute_season >= FIRST_ABSOLUTE_SEASON
+
+
+static func season_of_absolute_season(absolute_season: int) -> int:
+	"""Ruling §4.2's "a matching current season is `absolute_season % 4`": the §4.3 Season ordinal.
+
+	THE ONLY PLACE THIS MODULE TURNS AN ABSOLUTE SEASON INTO AN ORDINAL. Every row operation
+	derives the ordinal here instead of accepting a second argument that could disagree with the
+	first, which is what ruling §4.3's "never pass one season argument to every leg on a season
+	crossing" costs a caller that gets it wrong. Callers validate the absolute season first.
+	"""
+	return absolute_season % SEASON_COUNT
+
+
+func absolute_season_of_day(absolute_day: int) -> IntMath.IntResult:
+	"""Ruling §4.2's `floor((absolute_day-1)/12)`. See absolute_season_of_day_into()."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	absolute_season_of_day_into(absolute_day, out)
+	return out
+
+
+func absolute_season_of_day_into(absolute_day: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating absolute_season_of_day(): the absolute season index of a calendar day.
+
+	Day 1 of year 1 gives 0. A day before the calendar's first is refused rather than floored
+	into a negative season, which would name a season that never happened.
+	"""
+	if absolute_day < MIN_CALENDAR_DAY:
+		return out.refuse(String(REFUSE_INVALID_SEASON_DAY))
+	return IntMath.floor_div_into(absolute_day - MIN_CALENDAR_DAY, DAYS_PER_SEASON, out)
 
 
 func is_event(event: int) -> bool:
@@ -624,13 +742,68 @@ func forecast_day_of(event: int) -> IntMath.IntResult:
 
 
 func affected_systems_mask_of(event: int) -> IntMath.IntResult:
-	"""REQ-SET-142's "affected systems", derived from §5.10's effects column (see the header)."""
+	"""§5.10's effects column for one event, BEFORE any season-conditional bit is stripped.
+
+	The raw typed table row. effect_mask_for() is the ruled, season-aware mask a consumer should
+	read; this form exists because the table itself is an independently checkable fact.
+	"""
 	var out: IntMath.IntResult = IntMath.IntResult.new()
 	if not is_event(event):
 		out.refuse(String(REFUSE_INVALID_EVENT))
 		return out
 	out.succeed(EVENT_AFFECTED_SYSTEMS[event])
 	return out
+
+
+func effect_mask_for(event: int, season: int) -> IntMath.IntResult:
+	"""Ruling §4.2's versioned effect mask. See effect_mask_for_into() for the contract."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	effect_mask_for_into(event, season, out)
+	return out
+
+
+func effect_mask_for_into(event: int, season: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating effect_mask_for(): the twelve `AFFECTS_*` bits for an event IN A SEASON.
+
+	Ruling §4.2: "Strip MUSSEL_HARVEST for non-summer blight." §5.10 states the closure as
+	"summer mussel harvest closes", so blight's mussel bit is a SUMMER effect and autumn blight
+	-- which §5.10's eligibility column permits -- damages crops without closing a fishery.
+	EVENT_NONE reports an empty mask: no event, no modifiers. The mask is derived here every time
+	and stored nowhere, so it cannot become a second writable truth.
+	"""
+	if event == EVENT_NONE:
+		return out.succeed(0)
+	if not is_event(event):
+		return out.refuse(String(REFUSE_INVALID_EVENT))
+	if not is_season(season):
+		return out.refuse(String(REFUSE_INVALID_SEASON))
+	return out.succeed(_effect_mask_for(event, season))
+
+
+static func _effect_mask_for(event: int, season: int) -> int:
+	"""The ruled effect mask for validated arguments: the table row, less non-summer blight's
+	mussel bit."""
+	var mask: int = EVENT_AFFECTED_SYSTEMS[event]
+	if event == EVENT_BLIGHT and season != SEASON_SUMMER:
+		mask &= ~AFFECTS_MUSSEL_HARVEST
+	return mask
+
+
+func is_multi_season_event(event: int) -> bool:
+	"""True when §5.10's eligibility column admits this event in more than one season.
+
+	Ruling §4.2 forbids inferring a snapshot's absolute season "solely from an event eligible in
+	multiple seasons"; this is the predicate that names those rows. Ideal spell and calm days are
+	eligible everywhere, heavy rain and blight in two seasons each.
+	"""
+	if not is_event(event):
+		return false
+	var mask: int = EVENT_SEASON_MASK[event]
+	var seasons: int = 0
+	for season: int in SEASON_COUNT:
+		if (mask & (1 << season)) != 0:
+			seasons += 1
+	return seasons > 1
 
 
 func weight_sum_of(season: int) -> IntMath.IntResult:
@@ -1004,14 +1177,16 @@ func lake_ice_access_only(event: int) -> bool:
 	return is_event(event) and (EVENT_AFFECTED_SYSTEMS[event] & AFFECTS_LAKE_ICE) != 0
 
 
-func closes_mussel_harvest(event: int) -> bool:
-	"""§5.10's "summer mussel harvest closes", stated for blight alone.
+func closes_mussel_harvest(event: int, season: int) -> bool:
+	"""§5.10's "SUMMER mussel harvest closes", stated for blight alone and stripped elsewhere.
 
 	fishing.gd records this as the one weather-dependent closure it will not evaluate. This is the
-	reader that answers it; joining the two stores is ARCH-SYS-006's work, not this module's, so
-	nothing here reaches into fishing.gd.
+	table-level reader; closes_mussel_harvest_on() is the one ARCH-SYS-006 writes the bit from.
+	Nothing here reaches into fishing.gd: ruling §4.1 gives that join to ARCH-SYS-006.
 	"""
-	return is_event(event) and (EVENT_AFFECTED_SYSTEMS[event] & AFFECTS_MUSSEL_HARVEST) != 0
+	if not is_event(event) or not is_season(season):
+		return false
+	return (_effect_mask_for(event, season) & AFFECTS_MUSSEL_HARVEST) != 0
 
 
 func needs_orchard_water(event: int) -> bool:
@@ -1138,38 +1313,53 @@ func is_forced_first_spring(year: int, season: int) -> bool:
 
 # --- the §4.2 row: schedule, forecast, daily baseline ------------------------------------------------
 
-func schedule_first_spring_event() -> OpResult:
+func schedule_first_spring_event(absolute_season: int) -> OpResult:
 	"""§5.10's forced onboarding event: ideal spell, spring, start day 6, and ZERO WEATHER draws.
 
 	This function takes no Rng at all, so the zero-draw rule of ARCH-RNG-002's "forced onboarding
 	event consumes zero draws" is structural rather than a convention a later edit could break.
 	The onset and effects are the table's own: nothing about ideal spell is special-cased for the
 	first spring, which is what "with the same visible rules" requires.
+	`absolute_season` MUST be FIRST_ABSOLUTE_SEASON: `floor((absolute_day-1)/12)` is 0 for exactly
+	the twelve days of year 1's spring, so a forced first spring at any other index is a caller
+	that lost the season crossing, and it is REFUSED rather than quietly written under a 0.
 	"""
-	_write_schedule(EVENT_IDEAL_SPELL)
+	if absolute_season != FIRST_ABSOLUTE_SEASON:
+		return _refuse(REFUSE_NOT_FIRST_ABSOLUTE_SEASON)
+	if is_season_scheduled(absolute_season):
+		return _refuse(REFUSE_SEASON_ALREADY_SCHEDULED)
+	_write_schedule(EVENT_IDEAL_SPELL, absolute_season)
 	return _succeed(EVENT_IDEAL_SPELL)
 
 
-func schedule_season_event(season: int, rng: Rng) -> OpResult:
+func schedule_season_event(absolute_season: int, rng: Rng) -> OpResult:
 	"""§5.10's per-season draw: consume exactly one WEATHER roll and store the selected row.
 
-	The season index ORDERS the eligible rows; it never reseeds the stream. A refusal -- a bad
-	season, a null Rng, or any refusal from the stream itself -- consumes no draw and writes no
-	column, so the row and the stream cannot disagree about what happened. "Exactly one major
-	event occurs per season" is the caller's discipline; see the header.
+	The season ordinal is DERIVED from `absolute_season`; it orders the eligible rows and never
+	reseeds the stream. A refusal -- a bad index, a season already scheduled, a null Rng, or any
+	refusal from the stream itself -- consumes no draw and writes no column, so the row and the
+	stream cannot disagree about what happened. The already-scheduled check comes FIRST, which is
+	what makes §5.10's "exactly one major event occurs per season" an enforced latch here rather
+	than a discipline this store asks its caller to remember (ruling §4.2).
 	"""
-	if not draw_event_into(season, rng, _math):
+	if not is_absolute_season(absolute_season):
+		return _refuse(REFUSE_INVALID_ABSOLUTE_SEASON)
+	if is_season_scheduled(absolute_season):
+		return _refuse(REFUSE_SEASON_ALREADY_SCHEDULED)
+	if not draw_event_into(season_of_absolute_season(absolute_season), rng, _math):
 		return _refuse(_math.error as StringName)
 	var event: int = _math.value
-	_write_schedule(event)
+	_write_schedule(event, absolute_season)
 	return _succeed(event)
 
 
-func _write_schedule(event: int) -> void:
+func _write_schedule(event: int, absolute_season: int) -> void:
 	"""Store one selected event with §5.10's start day and duration, and clear its old forecast.
 
 	The forecast slots are emptied rather than carried over: REQ-SET-142 retains the forecast OF
-	THE SCHEDULED EVENT, and a new schedule has not been disclosed yet.
+	THE SCHEDULED EVENT, and a new schedule has not been disclosed yet -- so its absolute-season
+	identity is emptied with it. `scheduled_absolute_season` moves HERE and nowhere else, which is
+	what makes it the scheduled-once latch: expiry does not touch it.
 	"""
 	_row[COL_EVENT] = event
 	_row[COL_START_DAY] = EVENT_START_DAY[event]
@@ -1177,48 +1367,65 @@ func _write_schedule(event: int) -> void:
 	_row[COL_FORECAST_0] = EVENT_NONE
 	_row[COL_FORECAST_1] = 0
 	_row[COL_FORECAST_2] = 0
+	_row64[COL64_SCHEDULED_ABSOLUTE_SEASON] = absolute_season
+	_row64[COL64_FORECAST_ABSOLUTE_SEASON] = ABSOLUTE_SEASON_NONE
 
 
-func disclose_forecast(season_day: int) -> OpResult:
+func disclose_forecast(absolute_season: int, season_day: int) -> OpResult:
 	"""REQ-SET-142's disclosure: retain the scheduled event, start and duration from day start-3.
 
 	Consumes no draw (BAL-SAFE-017: "opening forecasts ... SHALL consume no event roll") and is
 	idempotent, so a caller that discloses on every day from the due day onward writes the same
-	three values every time. The affected systems REQ-SET-142 also requires are derived from the
-	disclosed event by affected_systems_mask_of(); see the header on why they are not stored.
+	four values every time. The affected systems REQ-SET-142 also requires are derived from the
+	disclosed event by forecast_effect_mask(); see the header on why they are not stored.
+	A season that is not the SCHEDULED one is refused: disclosing summer's event as autumn's
+	would publish a calendar entry three months from where it happens.
 	"""
+	if not is_absolute_season(absolute_season):
+		return _refuse(REFUSE_INVALID_ABSOLUTE_SEASON)
 	if not is_season_day(season_day):
 		return _refuse(REFUSE_INVALID_SEASON_DAY)
 	if not is_event_scheduled():
 		return _refuse(REFUSE_NO_EVENT_SCHEDULED)
+	if not is_season_scheduled(absolute_season):
+		return _refuse(REFUSE_SEASON_IDENTITY_MISMATCH)
 	if season_day < _row[COL_START_DAY] - FORECAST_DAYS:
 		return _refuse(REFUSE_FORECAST_NOT_DUE)
 	_row[COL_FORECAST_0] = _row[COL_EVENT]
 	_row[COL_FORECAST_1] = _row[COL_START_DAY]
 	_row[COL_FORECAST_2] = _row[COL_DURATION_DAYS]
+	_row64[COL64_FORECAST_ABSOLUTE_SEASON] = absolute_season
 	return _succeed(_row[COL_FORECAST_0])
 
 
-func is_forecast_due(season_day: int) -> bool:
-	"""True from the day REQ-SET-142's disclosure falls due, three days before the event starts."""
-	if not is_season_day(season_day) or not is_event_scheduled():
+func is_forecast_due(absolute_season: int, season_day: int) -> bool:
+	"""True from the day REQ-SET-142's disclosure falls due, three days before the event starts.
+
+	False for any season other than the scheduled one, for the same reason disclose_forecast()
+	refuses it: a forecast belongs to the season whose event it describes.
+	"""
+	if not is_absolute_season(absolute_season) or not is_season_day(season_day):
+		return false
+	if not is_event_scheduled() or not is_season_scheduled(absolute_season):
 		return false
 	return season_day >= _row[COL_START_DAY] - FORECAST_DAYS
 
 
-func refresh_daily(season: int, season_day: int) -> OpResult:
+func refresh_daily(absolute_season: int, season_day: int) -> OpResult:
 	"""Write §4.2's daily `temperature_tenths` and `rain` for one day, per "daily baseline
 	independently".
 
-	The day's active event supplies the modifiers; outside its window the row records the plain
-	season baseline. Consumes no draw. ARCH-SYS-006 (increment 10) owns calling this at midnight;
-	nothing here advances a day.
+	The day's active event supplies the modifiers; outside its window -- INCLUDING a day in a
+	season the scheduled event does not belong to -- the row records the plain season baseline.
+	The §4.3 ordinal is derived from `absolute_season`, so the baseline table and the active-event
+	test cannot be read for two different seasons. Consumes no draw; nothing here advances a day.
 	"""
-	if not is_season(season):
-		return _refuse(REFUSE_INVALID_SEASON)
+	if not is_absolute_season(absolute_season):
+		return _refuse(REFUSE_INVALID_ABSOLUTE_SEASON)
 	if not is_season_day(season_day):
 		return _refuse(REFUSE_INVALID_SEASON_DAY)
-	var event: int = _active_event_on(season_day)
+	var season: int = season_of_absolute_season(absolute_season)
+	var event: int = _active_event_on(absolute_season, season_day)
 	if not temperature_tenths_for_into(season, event, _math):
 		return _refuse(_math.error as StringName)
 	var temperature: int = _math.value
@@ -1229,18 +1436,22 @@ func refresh_daily(season: int, season_day: int) -> OpResult:
 	return _succeed(temperature)
 
 
-func end_event(season: int) -> OpResult:
+func end_event(absolute_season: int) -> OpResult:
 	"""REQ-SET-145: remove the event's temporary modifiers and nothing else.
 
-	The schedule is cleared and the stored daily baseline returns to the season's own temperature
-	and rain. Crop health, consumed stocks and injuries are NOT restored -- structurally, not by
-	convention: this store holds none of them and reaches into no store that does. The disclosed
-	forecast is retained, because REQ-SET-142 requires the calendar to keep it.
+	The schedule is cleared and the stored daily baseline returns to the named season's own
+	temperature and rain. Crop health, consumed stocks and injuries are NOT restored --
+	structurally, not by convention: this store holds none of them and reaches into no store that
+	does. The disclosed forecast is retained WITH its absolute-season identity, because
+	REQ-SET-142 requires the calendar to keep it and ruling §4.2 requires it to stay placeable in
+	a year. `scheduled_absolute_season` is also retained: it is the scheduled-once latch, and
+	clearing it here would let the season that just expired be drawn for a second time.
 	"""
-	if not is_season(season):
-		return _refuse(REFUSE_INVALID_SEASON)
+	if not is_absolute_season(absolute_season):
+		return _refuse(REFUSE_INVALID_ABSOLUTE_SEASON)
 	if not is_event_scheduled():
 		return _refuse(REFUSE_NO_EVENT_SCHEDULED)
+	var season: int = season_of_absolute_season(absolute_season)
 	var removed: int = _row[COL_EVENT]
 	_row[COL_EVENT] = EVENT_NONE
 	_row[COL_START_DAY] = 0
@@ -1248,6 +1459,59 @@ func end_event(season: int) -> OpResult:
 	_row[COL_TEMPERATURE_TENTHS] = SEASON_TEMPERATURE_TENTHS[season]
 	_row[COL_RAIN] = SEASON_RAIN[season]
 	return _succeed(removed)
+
+
+func adopt_snapshot_identity(version: int, scheduled_absolute_season: int,
+		forecast_absolute_season: int) -> OpResult:
+	"""Ruling §4.2's codec rule: accept a snapshot's temporal identity, or REFUSE the snapshot.
+
+	The codec itself does not exist (ARCH-SYS-022 has no save stream), so this is the rule alone,
+	written where the columns live rather than left for a future save module to guess at.
+	A SCHEMA_VERSION_NO_SEASON_IDENTITY payload is refused UNCONDITIONALLY. Its eight I32 columns
+	carry no year at all, so even an event eligible in exactly one season fixes only the 0-3
+	ordinal -- "never infer it solely from an event eligible in multiple seasons" is the weaker
+	half of a rule this store can satisfy completely by proving nothing is provable.
+	"""
+	if version != SCHEMA_VERSION:
+		if version == SCHEMA_VERSION_NO_SEASON_IDENTITY:
+			return _refuse(REFUSE_AMBIGUOUS_SNAPSHOT_SEASON)
+		return _refuse(REFUSE_UNKNOWN_SCHEMA_VERSION)
+	if not _is_storable_identity(scheduled_absolute_season):
+		return _refuse(REFUSE_INVALID_ABSOLUTE_SEASON)
+	if not _is_storable_identity(forecast_absolute_season):
+		return _refuse(REFUSE_INVALID_ABSOLUTE_SEASON)
+	if is_event_scheduled() and scheduled_absolute_season == ABSOLUTE_SEASON_NONE:
+		return _refuse(REFUSE_AMBIGUOUS_SNAPSHOT_SEASON)
+	if is_forecast_disclosed() and forecast_absolute_season == ABSOLUTE_SEASON_NONE:
+		return _refuse(REFUSE_AMBIGUOUS_SNAPSHOT_SEASON)
+	if not _snapshot_seasons_admit_their_events(scheduled_absolute_season,
+			forecast_absolute_season):
+		return _refuse(REFUSE_EVENT_NOT_ELIGIBLE)
+	_row64[COL64_SCHEDULED_ABSOLUTE_SEASON] = scheduled_absolute_season
+	_row64[COL64_FORECAST_ABSOLUTE_SEASON] = forecast_absolute_season
+	return _succeed(scheduled_absolute_season)
+
+
+func _is_storable_identity(absolute_season: int) -> bool:
+	"""True when a value may be written to an I64 identity column: a real season, or empty."""
+	return absolute_season == ABSOLUTE_SEASON_NONE or is_absolute_season(absolute_season)
+
+
+func _snapshot_seasons_admit_their_events(scheduled: int, forecast: int) -> bool:
+	"""True when each stored event is eligible in the season the snapshot claims for it.
+
+	A cross-check, not an inference: the identity is read from the payload and this only proves
+	§5.10's eligibility column does not contradict it. A snapshot claiming hard freeze in a summer
+	is refused; a snapshot claiming calm days anywhere passes, which is exactly why the identity
+	must be STORED rather than derived.
+	"""
+	if is_event_scheduled() and not _is_eligible(_row[COL_EVENT],
+			season_of_absolute_season(scheduled)):
+		return false
+	if is_forecast_disclosed() and not _is_eligible(_row[COL_FORECAST_0],
+			season_of_absolute_season(forecast)):
+		return false
+	return true
 
 
 # --- §4.2 row readers ---------------------------------------------------------------------------
@@ -1311,46 +1575,124 @@ func forecast_duration_days() -> int:
 
 
 func is_forecast_disclosed() -> bool:
-	"""True once disclose_forecast() has written REQ-SET-142's three retained values."""
+	"""True once disclose_forecast() has written REQ-SET-142's retained values."""
 	return _row[COL_FORECAST_0] != EVENT_NONE
 
 
-func forecast_affected_systems_mask() -> IntMath.IntResult:
-	"""REQ-SET-142's third disclosure -- the affected systems -- derived from the disclosed event."""
-	return affected_systems_mask_of(_row[COL_FORECAST_0])
+func scheduled_absolute_season() -> int:
+	"""The I64 `scheduled_absolute_season` column: which season's event the row holds.
 
-
-func is_event_active(season_day: int) -> bool:
-	"""True while the scheduled event's window covers this season day: `[start, start+duration)`.
-
-	An out-of-range day reports false, because it names no day of this season at all.
+	ABSOLUTE_SEASON_NONE while no season has ever been scheduled. Retained through expiry, so
+	this doubles as §5.10's scheduled-once latch (see the header).
 	"""
-	if not is_season_day(season_day) or not is_event_scheduled():
+	return _row64[COL64_SCHEDULED_ABSOLUTE_SEASON]
+
+
+func forecast_absolute_season() -> int:
+	"""The I64 `forecast_absolute_season` column: which season the disclosed forecast belongs to.
+
+	Retained after the event expires, so a calendar entry REQ-SET-142 keeps can still be placed
+	in a year and not merely in one of four repeating seasons.
+	"""
+	return _row64[COL64_FORECAST_ABSOLUTE_SEASON]
+
+
+func is_season_scheduled(absolute_season: int) -> bool:
+	"""True when this exact absolute season's §5.10 event has already been scheduled.
+
+	The scheduled-once test. A repeating 0-3 ordinal cannot answer it -- summer of year 1 and
+	summer of year 2 would look identical -- which is the whole reason the I64 column exists.
+	"""
+	return _row64[COL64_SCHEDULED_ABSOLUTE_SEASON] == absolute_season
+
+
+func forecast_effect_mask() -> IntMath.IntResult:
+	"""REQ-SET-142's third disclosure: the disclosed event's ruled effect mask, in ITS season.
+
+	Read at the forecast's own stored absolute season, so an autumn blight forecast does not
+	report a mussel closure it will never cause. Refuses while nothing is disclosed.
+	"""
+	if not is_forecast_disclosed():
+		var out: IntMath.IntResult = IntMath.IntResult.new()
+		out.refuse(String(REFUSE_NO_EVENT_SCHEDULED))
+		return out
+	var identity: int = _row64[COL64_FORECAST_ABSOLUTE_SEASON]
+	if not is_absolute_season(identity):
+		var missing: IntMath.IntResult = IntMath.IntResult.new()
+		missing.refuse(String(REFUSE_INVALID_ABSOLUTE_SEASON))
+		return missing
+	return effect_mask_for(_row[COL_FORECAST_0], season_of_absolute_season(identity))
+
+
+func is_event_active(absolute_season: int, season_day: int) -> bool:
+	"""True while the scheduled event's window covers this day OF THIS ABSOLUTE SEASON.
+
+	Ruling §4.2: "The scheduled event is not automatically active: activity requires matching
+	absolute season and the half-open day interval `[start,start+duration)`." Both halves are
+	here, and the interval is written as `< start + duration` rather than `<= last_day()` so the
+	half-open reading is the literal code. An out-of-range day or a season the row was not
+	scheduled for reports false -- neither names a day this event covers.
+	"""
+	if not is_absolute_season(absolute_season) or not is_season_day(season_day):
 		return false
-	return season_day >= _row[COL_START_DAY] and season_day <= last_day()
+	if not is_event_scheduled() or not is_season_scheduled(absolute_season):
+		return false
+	return season_day >= _row[COL_START_DAY] \
+			and season_day < _row[COL_START_DAY] + _row[COL_DURATION_DAYS]
 
 
-func active_event_on(season_day: int) -> int:
-	"""The event modifying this season day, or EVENT_NONE outside the scheduled window."""
-	return _active_event_on(season_day)
+func active_event_on(absolute_season: int, season_day: int) -> int:
+	"""The event modifying this day, or EVENT_NONE outside the scheduled window or season."""
+	return _active_event_on(absolute_season, season_day)
 
 
-func _active_event_on(season_day: int) -> int:
+func _active_event_on(absolute_season: int, season_day: int) -> int:
 	"""The active event for a day, without re-validating what is_event_active() already checks."""
-	return _row[COL_EVENT] if is_event_active(season_day) else EVENT_NONE
+	return _row[COL_EVENT] if is_event_active(absolute_season, season_day) else EVENT_NONE
 
 
-func is_blight_active(season: int, season_day: int) -> bool:
-	"""True while §5.10's blight covers this day of this season.
+func is_blight_active(absolute_season: int, season_day: int) -> bool:
+	"""True while §5.10's blight covers this day of this absolute season.
 
-	This is the reader fishing.gd's "summer mussel harvest closes" needs and deliberately does not
-	evaluate for itself. It answers about weather only; whether a mussel stock closes is
-	ARCH-SYS-006's join, and no fish store is touched here.
+	It answers about weather only, and in BOTH seasons §5.10 makes blight eligible: an autumn
+	blight is active and damages crops. Whether a mussel stock closes is a narrower question --
+	closes_mussel_harvest_on() -- and writing that bit is ARCH-SYS-006's join, so no fish store is
+	touched here.
 	"""
-	if not is_season(season) or not is_season_day(season_day):
+	if not is_absolute_season(absolute_season) or not is_season_day(season_day):
 		return false
-	var event: int = _active_event_on(season_day)
-	return event == EVENT_BLIGHT and _is_eligible(EVENT_BLIGHT, season)
+	var event: int = _active_event_on(absolute_season, season_day)
+	return event == EVENT_BLIGHT \
+			and _is_eligible(EVENT_BLIGHT, season_of_absolute_season(absolute_season))
+
+
+func closes_mussel_harvest_on(absolute_season: int, season_day: int) -> bool:
+	"""Ruling §4.1's predicate: `new_season == SUMMER && active_new_day_event == BLIGHT`.
+
+	THE ONE EXPRESSION ARCH-SYS-006 WRITES `FishStock.closed` FROM. It reads the ruled effect mask
+	of the day's ACTIVE event at the day's own absolute season, so autumn blight -- whose mask has
+	AFFECTS_MUSSEL_HARVEST stripped -- reports false, and so does the day after expiry, whose
+	active event is EVENT_NONE. No other cause may be folded in here: ruling §4.1 reserves the
+	event bit for this one, and a second cause needs a typed reason mask that is not added now.
+	"""
+	if not is_absolute_season(absolute_season) or not is_season_day(season_day):
+		return false
+	var event: int = _active_event_on(absolute_season, season_day)
+	if event == EVENT_NONE:
+		return false
+	var season: int = season_of_absolute_season(absolute_season)
+	return (_effect_mask_for(event, season) & AFFECTS_MUSSEL_HARVEST) != 0
+
+
+func catalog_is_verified() -> bool:
+	"""True when catalog.gd still compiles §4.3's EventDefinition ids this module's tables assume.
+
+	ARCH-SYS-006's boundary preflight (ruling §4.1) calls this BEFORE any day step commits, so a
+	catalog that no longer generates the ids every EVENT_* table is subscripted by refuses the
+	whole boundary instead of scheduling an event under someone else's number. One OpResult per
+	call, which is once per simulated day and never on the tick path.
+	"""
+	return Catalog.verify_compiled_enum(EVENT_DEFINITION_DOMAIN).ok
 
 
 # --- result helpers ------------------------------------------------------------------------------

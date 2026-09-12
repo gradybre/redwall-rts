@@ -1,0 +1,43 @@
+id,topic,owner,acceptance,requirement
+UXV-001,Scope,UI registry/04.4,A01,Render only the task-04.4 surfaces and their required child templates; the 103-entry registry shall never be expanded wholesale into disabled onscreen panels.
+UXV-002,Visibility,UI gates/REQ-UX-001,A02,"Evaluate visibility before availability. Hidden gates create no Control, focus stop, accessibility node or input rectangle."
+UXV-003,Availability,UXV §3,A02,"Distinguish READY, GAMEPLAY_LOCKED, DEVELOPMENT_UNAVAILABLE and DATA_UNAVAILABLE using the precise rules and copy table in this amendment."
+UXV-004,Ownership,UI-SET-031/069/087,A03,Residents shall open the resident roster; F6/access mode alone opens World access. Workspace switching shall remove all outgoing child surfaces and stale focus targets.
+UXV-005,Workspace,UI-SET-051,A03,Use the explicit WORKSPACE and MODAL variants; ordinary selection shall never open a center workspace or opaque empty scaffolding.
+UXV-006,Theme,UI §2 + UXV §2,A04,Use a single theme with explicit FOREST and JOURNAL variations and only declared tokens; no per-screen palette or fallback Godot controls.
+UXV-007,Type,UI §2 + UXV §2,A04,"Vendor the specified Noto fonts with licenses; use Serif only for 20/28 px titles, Sans for values, controls and body; never shrink below each role minimum."
+UXV-008,Contrast,UXV §2,A04,Every actual text/background state shall reach 4.5:1 and functional icon/border/focus contrast 3:1; disabled text is not opacity-dimmed.
+UXV-009,Focus,UI §2/3,A05,"Draw one current keyboard focus outline in addition to selection: GOLD on FOREST, INK on JOURNAL. Remove stale outlines immediately on focus exit or hiding."
+UXV-010,State styles,UI §2/UXV §2,A04,"Implement default, hover, pressed, disabled, selected, focused, selected-focused and disabled-selected; selected state includes a check and correct accessibility state."
+UXV-011,Ornament,DEC-018/019,A06,"Use original botanical rules, a restrained binding edge and species emblems as specified; decoration shall not overlap text/controls or receive input/accessibility focus."
+UXV-012,Icons,DEC-019/UI §2,A06,"Deliver the scoped icon/emblem manifest, optical sizes and license/source hashes. No emoji, missing-glyph squares or unrelated stock icon styles are accepted."
+UXV-013,HUD geometry,UI §1.2/UXV §4,A07,Compute S once from the actual physical viewport and lay out in W/S by H/S. Keep the six HUD zones and amended content-sized detail/command rectangles.
+UXV-014,Narrow behavior,UI-SET-036/096,A08,"Narrow detail starts closed on selection, opens only through its drawer action, and leaves commands at least 240 logical pixels wide; overflow stays reachable through 096."
+UXV-015,Input mapping,UI §1/3/5,A05,"Scale fonts, geometry and actual hit rectangles together; outside visible controls, pointer/trackpad/world selection remains usable at each profile and DPI."
+UXV-016,Resource hierarchy,UI-SET-001–009,A09,"Each resource counter shall pair a concise label, exact formatted value and explicit unit. Ready food and potential food stay distinct; undefined is not zero."
+UXV-017,Pause/time,UI-SET-013–019/086/101,A10,"Show actual effective pause reasons in player wording, requested speed separately and current date. Use actual pause/menu/calendar glyphs, not unsupported Unicode stand-ins."
+UXV-018,Alerts,UI-SET-010–012/085/102,A11,"With no active alert, show only History; no empty alert card or invented flavor notice. Real alerts use icon, severity, actual cause and available recovery."
+UXV-019,Resident identity,UI-SET-036–038,A12,The journal shall lead with the full persisted display name and actual species/age/status. A generic species emblem is identified as such and never implies a unique portrait or invented biography.
+UXV-020,Needs,UI-SET-039,A12,"Render five independent need rows with a label, exact percent, 8 px track and current per-simulated-hour change; never expose 7500 as the player-facing 75% value."
+UXV-021,Need meaning,GDD §5.2/UXV §5,A12,"Use Fullness as the visible hunger label, with Hunger/fullness in accessible detail; a larger value means more satisfied. Do not invert or invent mood/risk thresholds."
+UXV-022,Skills/status,UI-SET-040/069,A12,Skills include level and current/next-threshold XP; job/role/mood/health use actual fields. Missing values are explicitly unavailable rather than fabricated.
+UXV-023,Resident actions,UI-SET-037/082/093/098/100,A12,Center view keeps the existing center-camera semantics; pin/rename is resident-specific; zone harvesting policies never appear on a resident merely because a template exists.
+UXV-024,Roster,UI-SET-069/075,A03,"Roster rows are left-aligned with an identity line and secondary status, use one separator rather than full boxes around each datum, and remain virtualized with stable selection."
+UXV-025,New Settlement,UI-SET-103,A13,"Provide every authored field, label, default and validation rule. One Create button in a large empty frame does not satisfy New Settlement."
+UXV-026,Form flow,UI-SET-066/067/103,A14,"Keep Confirm/Cancel visible, preserve valid input after failure, show validation beside the field and failure at the form, and render actual generation state without simulated progress."
+UXV-027,Zone feedback,UI-SET-028/054/059,A15,"Distinguish draft, queued while paused, committed, refused and canceled state by text and shape as well as color; bind it to actual command/result identities."
+UXV-028,Refusal copy,UI-SET-085,A11,Use action-specific plain reason and actual recovery; keep exact codes in logs/accessibility detail or an inspectable technical detail. Do not blame an engine class/store in the main message.
+UXV-029,Truthfulness,ARCH-GODOT-003/UI contract,A16,"Presentation reads committed snapshots. Economic changes use economic commands, speed/pause use scheduler events, and camera/focus/selection remain local view behavior."
+UXV-030,Availability footprint,UI gates/UXV §3,A02,"An always-visible unbuilt entry shall provide a compact reason on focus/inspection, never an automatically opened full-size unavailable page. Gameplay unlocks remain discoverable in the correct catalog."
+UXV-031,Empty states,UXV §5,A09,"Differentiate no selection, no rows, not initialized, development-unavailable and actual zero. Empty content occupies one purposeful message, not a stretched substitute panel."
+UXV-032,Typography overflow,UI §1.3,A08,"A 32-character name, long refusal and larger text shall wrap/scroll without clipping, ellipsis on critical content, reduced font size or a covered footer."
+UXV-033,Keyboard,UI §3/5/UX-T07,A05,"Wire actual focus neighbors, opening focus, dismissal priority, modal trap and return focus. Focus-list data without runtime wiring is insufficient."
+UXV-034,Accessibility,UI §2/8,A17,All controls expose correct role/name/state/value/reason; disabled explanations are keyboard reachable through an inspectable wrapper; decoration is semantically silent.
+UXV-035,Motion,UI §2,A18,"Use only the inherited short transitions on unscaled UI time; no value-driven layout animation, bounce or urgent flashing. Reduced motion makes all transitions immediate."
+UXV-036,Specimen boundary,FP-01/FP-12,A19,"Mark synthetic specimens visibly and in metadata. A specimen can validate component presentation, never a complete initializer, live resident binding or native-world screenshot."
+UXV-037,Visual evidence,UXV acceptance,A20,"Capture the required native screen matrix with actual physical/logical dimensions, scale, fixture, revision and per-case status; image filenames or requested window sizes do not prove actual dimensions."
+UXV-038,Measured fit,UXV acceptance,A07,"Instrument transformed control rectangles, text bounds and hit rectangles: zero unintended overlaps/clipping, zero unreachable overflow actions, and required minimum targets."
+UXV-039,Performance,ARCH-UI-001/REQ-SET-163,A21,Retain bounded dirty updates and virtualization; do not recreate theme/fonts/controls per frame or introduce authoritative scans to fill presentation. Report actual UI timings separately from visual checks.
+UXV-040,Design review,UXV acceptance,A22,Complete the structural reference-fidelity checklist and record Brendan's aesthetic verdict separately. Theme compilation and headless success alone never count as visual approval.
+UXV-041,Versioning,AGENTS/UXV §1,A23,Record all intentional profile/geometry changes in this amendment and implementation decisions; preserve old captures and migrate incorrect UI tests with reasons.
+UXV-042,Transfer,Repository workflow,A23,"Deliver owned files, test/evidence links, implemented/blocked requirements and an exact resumable handoff; no private chat is the only source of design intent."

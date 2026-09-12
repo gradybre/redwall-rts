@@ -28,3 +28,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Claude Code agent worktrees (each agent gets its own .godot import cache)
+.claude/worktrees/

@@ -408,6 +408,36 @@ func alert_card(profile: int, alert_width: float, index: int) -> Rect2:
 		alert_width - ALERT_CARD_MARGIN, ALERT_CARD_HEIGHT)
 
 
+func alert_card_sized(profile: int, alert_width: float, index: int,
+		measured_content_height: float) -> Rect2:
+	"""One alert card grown to the height its own wrapped text needs.
+
+	Same shape as §4.1's detail rule -- `min(max(measured, floor), ceiling)` -- reused rather
+	than a new policy invented for this card. The floor is the existing ALERT_CARD_HEIGHT, so
+	the §1.2 composition is byte-identical whenever the text already fits; the ceiling is the
+	alerts zone itself, so a long message can never draw past the zone it lives in.
+
+	WHY THIS EXISTS. UXV-032 forbids clipping critical content, so the message wraps, and a
+	fixed 44 px card then drew wrapped lines over its neighbours. The shell cannot fix that:
+	`_place_local()` re-sets the rect from this layout on every pass.
+
+	WHAT IT CANNOT FIX, MEASURED. `ALERT_H` is [48, 96, 96], so at NARROW the whole alerts
+	ZONE is 48 px -- one 44 px card plus its padding. The ceiling therefore equals the floor
+	and the card cannot grow there at all, by construction rather than by defect. STANDARD
+	and WIDE have 96 px and do grow. A three-line message at NARROW needs a §1.2 decision,
+	not a larger number here: §7 already says narrow shows "one highest-severity active
+	alert plus count; history contains all", which reads as shortening the displayed text
+	rather than enlarging the zone. That is the planner's call and is raised, not taken.
+	"""
+	var base: Rect2 = alert_card(profile, alert_width, index)
+	if _last_refusal != REFUSE_NONE:
+		return base
+	var ceiling: float = float(ALERT_H[profile]) - 2.0 * ALERT_PADDING
+	var grown: float = minf(maxf(measured_content_height, ALERT_CARD_HEIGHT), ceiling)
+	_last_refusal = REFUSE_NONE
+	return Rect2(base.position, Vector2(base.size.x, grown))
+
+
 static func alert_card_count(profile: int) -> int:
 	"""§7's visible card budget: two on standard and wide, one on narrow."""
 	if profile == PROFILE_NARROW:

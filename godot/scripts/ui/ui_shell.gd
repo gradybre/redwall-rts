@@ -34,6 +34,7 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const UiTheme := preload("res://scripts/ui/ui_theme.gd")
 const UiAvailability := preload("res://scripts/ui/ui_availability.gd")
 const UiHitTest := preload("res://scripts/ui/ui_hit_test.gd")
+const UiArt := preload("res://ui/ui_art.gd")
 const UiFocusOrder := preload("res://scripts/ui/ui_focus_order.gd")
 const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSession := preload("res://scripts/ui/ui_world_session.gd")
@@ -49,6 +50,42 @@ const PROFILE_VARIATION: Array[StringName] = [
 ## control the LOCK icon instead of its own, which is why an unavailable element never shows a
 ## functional glyph it cannot perform.
 const ICON_DIRECTORY: String = "res://ui/icons/"
+## ART-UI-03/04: the painted object family, used at wide/standard sizes. ART-UI-05 keeps the
+## small functional glyphs -- lock, cancel, pause, menu, calendar -- as the optical SVGs in
+## ICON_DIRECTORY, because painted artwork must never obscure a required state marker.
+const PAINTED_DIRECTORY: String = "res://ui/painted/"
+## ART-UI-04: NARROW keeps the simpler 16 px symbolic variants rather than shrinking painted
+## detail until it becomes noise.
+const SYMBOLIC_DIRECTORY: String = "res://ui/symbolic16/"
+## ART-UI-01/02: each framed container wears its OWN crafted edge, so the five do not share one
+## rounded outline. `ui_art.gd` owns the declared insets and per-corner extents; the renderer
+## keeps the flat opaque fill underneath, which is what keeps text surfaces legible.
+const FRAME_DIRECTORY: String = "res://ui/frames/"
+const FRAME_OF_ZONE: Dictionary = {
+	1: 0, 13: 1, 20: 2, 36: 3, 26: 4,
+}
+## Corner order matches `ui_art.gd`: top-left, top-right, bottom-left, bottom-right.
+const CORNER_SUFFIX: Array[String] = ["tl", "tr", "bl", "br"]
+const CORNER_PRESET: Array[int] = [Control.PRESET_TOP_LEFT, Control.PRESET_TOP_RIGHT,
+	Control.PRESET_BOTTOM_LEFT, Control.PRESET_BOTTOM_RIGHT]
+## Edge order matches `ui_art.gd`'s inset order: top, right, bottom, left.
+const EDGE_SUFFIX: Array[String] = ["top", "right", "bottom", "left"]
+const EDGE_PRESET: Array[int] = [Control.PRESET_TOP_WIDE, Control.PRESET_RIGHT_WIDE,
+	Control.PRESET_BOTTOM_WIDE, Control.PRESET_LEFT_WIDE]
+## Painted subject per §4 element, overriding the line icon where the lock authors one.
+## Food reuses the ready-food bowl and People reuses the population group, identically --
+## ART-LOCK-001 gives sixteen logical rows over fourteen distinct designs.
+const PAINTED_OF_ELEMENT: Dictionary = {
+	2: "res_food_ready", 3: "res_fuel", 4: "res_wood", 5: "res_stone",
+	6: "res_population", 7: "res_beds",
+	27: "cmd_build", 28: "cmd_zone", 29: "cmd_build", 30: "res_food_ready",
+	31: "res_population", 62: "cmd_zone", 66: "cmd_zone",
+}
+## The 16 px symbolic variant per painted subject, for NARROW.
+const SYMBOLIC_OF_PAINTED: Dictionary = {
+	"cmd_build": "build", "cmd_zone": "zone", "cmd_work": "work", "cmd_goals": "goals",
+	"res_food_ready": "food", "res_population": "people",
+}
 const LOCK_ICON: String = "res://ui/icons/lock.svg"
 const ORNAMENT_SPRIG: String = "res://ui/ornaments/sprig.svg"
 ## Icon subject per §4 element. Only elements with a recognisable subject take one, and
@@ -174,7 +211,11 @@ const ROSTER_POOL: int = 12
 ## UI-SET-059's maximum height, which its three controls need to sit inside it.
 const ZONE_BRUSH_HEIGHT: float = 160.0
 ## The three workspace pages this shell builds. §3 allows one open at a time.
-const WORKSPACE_PAGES: Array[int] = [ID_NEW_SETTLEMENT, ID_WORLD_LIST, ID_NAME_EDITOR]
+## §4.1 gives UI-SET-031 as "ALWAYS; opens roster rows 069", so the roster is a PAGE of the
+## workspace frame like the other three, not a column built unconditionally beside them.
+## UI-SET-087 stays out of this list: F6 is its only route, which `ui_registry.gd` asserts.
+const WORKSPACE_PAGES: Array[int] = [ID_NEW_SETTLEMENT, ID_WORLD_LIST, ID_NAME_EDITOR,
+	UiRegistry.ROSTER_ID]
 ## Room the Create action has inside UI-SET-103, which is at least 480 wide by §4.
 const CREATE_BUTTON_ROOM: float = 480.0
 const WARNING_ICON: String = "res://ui/icons/warning.svg"
@@ -211,6 +252,11 @@ var _theme: UiTheme = UiTheme.new()
 var _availability: UiAvailability = UiAvailability.new()
 var _hits: UiHitTest = UiHitTest.new()
 var _focus: UiFocusOrder = null
+## The runtime facts §4's Gate column is evaluated against. Owned here because the shell is
+## what knows them: selection, an in-progress stroke, and which surface is open.
+var _gates: UiAvailability.Gates = null
+## Scratch for `outgoing_into()`; sized once so a workspace switch allocates nothing.
+var _outgoing: PackedInt32Array = PackedInt32Array()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 
 ## Built controls by §4 id. One entry per element this shell renders.
@@ -246,6 +292,10 @@ var _roster_shown: int = 0
 var _workspace_page: int = ID_NEW_SETTLEMENT
 var _workspace_scroll: ScrollContainer = null
 var _workspace_column: VBoxContainer = null
+## The roster's own container. UI-SET-069's id is the first ROW's control, so the page needs a
+## holder of its own: without one the page loop would toggle row 0 and leave rows 1-11 standing
+## on every other page.
+var _roster_panel: VBoxContainer = null
 
 ## The current selection and tool stroke. None of this is authoritative state: it is what the
 ## player has pointed at, and it becomes a command only when Confirm is pressed.
@@ -264,6 +314,8 @@ var _stroke_count: int = 0
 func _init() -> void:
 	"""Compose the specification tables this shell reads, and size the stroke buffer once."""
 	_focus = UiFocusOrder.new(_availability)
+	_gates = UiAvailability.Gates.new()
+	_outgoing.resize(UiRegistry.ELEMENT_COUNT)
 	_stroke.resize(ForageScript.ZONE_LINK_CAPACITY)
 
 
@@ -346,11 +398,26 @@ func _style_button(button: Button, id: int) -> void:
 	if not _availability.is_wired(id):
 		button.icon = load(LOCK_ICON) as Texture2D
 		return
-	if not ICON_OF_ELEMENT.has(id):
+	if not ICON_OF_ELEMENT.has(id) and not PAINTED_OF_ELEMENT.has(id):
 		return
-	button.icon = load("%s%s.svg" % [ICON_DIRECTORY, ICON_OF_ELEMENT[id]]) as Texture2D
+	button.icon = _icon_texture_for(id)
 	if ICON_ONLY_ELEMENTS.has(id):
 		button.text = ""
+
+
+func _icon_texture_for(id: int) -> Texture2D:
+	"""The icon an element wears: painted where the lock authors one, symbolic when NARROW.
+
+	ART-UI-04 asks for the simpler 16 px variant at narrow sizes "rather than shrinking
+	intricate painted detail until it becomes noise", so the profile picks the file rather
+	than the renderer scaling one asset down. An element with no painted subject keeps its
+	optical line glyph, which is ART-UI-05's rule for functional state markers."""
+	if PAINTED_OF_ELEMENT.has(id):
+		var subject: String = PAINTED_OF_ELEMENT[id]
+		if _geometry.profile == UiLayout.PROFILE_NARROW and SYMBOLIC_OF_PAINTED.has(subject):
+			return load("%s%s.svg" % [SYMBOLIC_DIRECTORY, SYMBOLIC_OF_PAINTED[subject]])
+		return load("%s%s.svg" % [PAINTED_DIRECTORY, subject]) as Texture2D
+	return load("%s%s.svg" % [ICON_DIRECTORY, ICON_OF_ELEMENT[id]]) as Texture2D
 
 
 func _add_severity_icon(owner_control: Control, icon_path: String) -> void:
@@ -395,7 +462,11 @@ func _new_label(id: int, text: String) -> Label:
 	label.text = text
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.custom_minimum_size = _minimum_size(id)
-	label.clip_text = true
+	## UXV-032: content wraps rather than being cut. Clipping a status line is exactly the
+	## "ellipsis on critical content" the requirement forbids, and it was visible at NARROW --
+	## "128 x 128 tiles, s|" with the seed cut off mid-word.
+	label.clip_text = false
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.theme_type_variation = _label_variation(id)
 	_apply_semantics(label, id, text)
 	_controls[id] = label
@@ -407,7 +478,10 @@ func _new_text(owner_control: Control, text_name: StringName, text: String) -> L
 	var label: Label = Label.new()
 	label.name = text_name
 	label.text = text
-	label.clip_text = true
+	## UXV-032: wrap, never clip. The alert card cut "Settlement generated: 1695 resource no|"
+	## at NARROW; a player cannot act on a sentence whose end is missing.
+	label.clip_text = false
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	label.offset_left = PANEL_PADDING
@@ -473,6 +547,57 @@ func _preferred_size(id: int, available_width: float) -> Vector2:
 
 
 
+
+
+func _apply_frame_art(panel: Panel, frame: int) -> void:
+	"""Dress one container in its own edge and corner art. NOT WIRED -- see ADR 0074.
+
+	THIS IS NOT CALLED. Two placement attempts put the corners outside their panels and left the
+	edge strips invisible; the captures are in the evidence directory. The pieces load and draw,
+	so the fault is the placement contract, not the paths: `ui_art_manifest.json` declares each
+	asset's actual bounds and stretch margins, and the author of that manifest owns what they mean.
+	Kept here, uncalled, so the next attempt starts from the shape rather than from nothing.
+
+	Four corners at their declared extents and four edges stretched along their own axis --
+	not one texture scaled, which would distort a binding seam and a page edge alike. The
+	journal is why the corner extent is per corner: its spine cap is 12x16 and its fore-edge
+	corner 14x14, and one averaged number would misplace both.
+
+	Every piece is decorative under ART-UI-07: mouse filter IGNORE, no focus, and no
+	accessibility name, so ornament can never take a click or a tab stop from a control.
+	"""
+	var key: String = String(UiArt.FRAME_KEYS[frame])
+	var holder: Control = Control.new()
+	holder.name = "FrameArt"
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.focus_mode = Control.FOCUS_NONE
+	panel.add_child(holder)
+	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for corner: int in 4:
+		var extent: Vector2i = UiArt.frame_corner_size(frame, corner)
+		_add_frame_piece(holder, "%s%s/%s_corner_%s.svg" % [FRAME_DIRECTORY, key, key,
+			CORNER_SUFFIX[corner]], CORNER_PRESET[corner], Vector2(extent))
+	for side: int in 4:
+		var inset: int = UiArt.frame_edge_inset(frame, side)
+		_add_frame_piece(holder, "%s%s/%s_edge_%s.svg" % [FRAME_DIRECTORY, key, key,
+			EDGE_SUFFIX[side]], EDGE_PRESET[side], Vector2(float(inset), float(inset)))
+
+
+func _add_frame_piece(holder: Control, path: String, preset: int, extent: Vector2) -> void:
+	"""One corner or edge of a frame, anchored to the side it belongs to."""
+	var texture: Texture2D = load(path) as Texture2D
+	if texture == null:
+		return
+	var piece: NinePatchRect = NinePatchRect.new()
+	piece.texture = texture
+	piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	piece.focus_mode = Control.FOCUS_NONE
+	piece.custom_minimum_size = extent
+	holder.add_child(piece)
+	## Anchors AND offsets, in MINSIZE mode. Setting anchors alone and then assigning `size`
+	## leaves the offsets at zero, which put every corner outside its own panel -- visible in
+	## the first capture as brackets floating past the tray and the folio.
+	piece.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE)
 
 
 func _zone_panel(id: int, text: String) -> Panel:
@@ -678,6 +803,28 @@ func _build_create_action(new_world: Panel) -> void:
 	new_world.add_child(_create_button)
 
 
+func _show_open_page() -> void:
+	"""Show exactly the open workspace page and hide the others.
+
+	§3: "Only one primary management workspace open". Called from `open_workspace_page()` as
+	well as from the layout pass, because which page is open is not a geometry question --
+	`_apply_geometry()` refuses when the canvas has no size, and page visibility must not
+	depend on whether a layout happened to succeed."""
+	for id: int in WORKSPACE_PAGES:
+		_page_control_of(id).visible = id == _workspace_page
+
+
+func _page_control_of(page_id: int) -> Control:
+	"""The Control that IS one workspace page.
+
+	UI-SET-069 is the exception: its element id belongs to a roster ROW, not to a container,
+	so the page is `_roster_panel` and toggling `_controls[69]` would show one row and leave
+	the other eleven visible underneath every other page."""
+	if page_id == UiRegistry.ROSTER_ID:
+		return _roster_panel
+	return _controls[page_id] as Control
+
+
 func _build_roster(column: VBoxContainer) -> void:
 	"""UI-SET-069's rows: one real resident each, up to the pool this shell builds.
 
@@ -685,9 +832,15 @@ func _build_roster(column: VBoxContainer) -> void:
 	ROSTER_POOL rows and the panel says so when more residents exist than it can show, rather
 	than silently listing a prefix as though it were everybody.
 	"""
+	_roster_panel = VBoxContainer.new()
+	_roster_panel.name = "%s/Rows" % _registry.element_key(ID_RESIDENT_ROW)
+	_roster_panel.add_theme_constant_override(&"separation", int(ROW_GAP))
+	_roster_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_roster_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(_roster_panel)
 	var first: Button = _new_button(ID_RESIDENT_ROW, "")
 	first.pressed.connect(_on_resident_row_pressed.bind(0))
-	column.add_child(first)
+	_roster_panel.add_child(first)
 	_roster_rows.append(first)
 	for index: int in range(1, ROSTER_POOL):
 		var row: Button = Button.new()
@@ -699,7 +852,7 @@ func _build_roster(column: VBoxContainer) -> void:
 		row.accessibility_name = "%s resident row %d" % [_registry.element_key(ID_RESIDENT_ROW),
 			index + 1]
 		row.pressed.connect(_on_resident_row_pressed.bind(index))
-		column.add_child(row)
+		_roster_panel.add_child(row)
 		_roster_rows.append(row)
 	_set_roster_visible(0)
 
@@ -807,9 +960,24 @@ func layout_for(width: int, height: int) -> bool:
 	if not _layout.compute_into(width, height, _user_scale, _detail_open, _geometry):
 		return _refuse(_layout.last_refusal())
 	_place_zones()
+	_apply_scale_transform()
 	_register_hit_regions()
+	_wire_focus()
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+func _apply_scale_transform() -> void:
+	"""Draw the logical layout at the user's scale. UI 1.2's second half.
+
+	The geometry is computed against W/S by H/S, so at 150% a 1280x720 window lays out as
+	853x480 -- correct, and invisible without this. The engine's own base stretching is
+	DISABLED in project.godot precisely so this transform is the only one: Astra's ruling is
+	"do not apply both engine base stretching and the spec's scale". Scaling the shell rather
+	than the window keeps the 3D render at its own resolution, which is the rest of that rule.
+	"""
+	var factor: float = float(_user_scale) / 100.0
+	scale = Vector2(factor, factor)
 
 
 func _apply_geometry() -> void:
@@ -876,7 +1044,8 @@ func _place_interiors() -> void:
 		_place_local(ID_EXPAND, UiLayout.narrow_expand_rect())
 	for index: int in TIME_IDS.size():
 		_set_rect(_controls[TIME_IDS[index]], _layout.time_control(_geometry.profile, index))
-	_place_local(ID_ALERT_CARD, _layout.alert_card(_geometry.profile, _geometry.alerts.size.x, 0))
+	_place_local(ID_ALERT_CARD, _layout.alert_card_sized(_geometry.profile,
+		_geometry.alerts.size.x, 0, _wrapped_alert_height()))
 	_place_local(ID_HISTORY_TRIGGER, UiLayout.history_trigger_rect(_geometry.alerts.size.x))
 	_place_local(ID_MINIMAP_VIEW, UiLayout.minimap_content_rect(_geometry.profile))
 	_wrap_children(ID_COMMAND_STRIP, COMMAND_IDS, _geometry.commands.size)
@@ -929,8 +1098,7 @@ func _flow_workspace() -> void:
 	_workspace_column.custom_minimum_size = Vector2(_workspace_scroll.size.x, 0.0)
 	_set_rect(_controls[ID_BACK], Rect2(PANEL_PADDING,
 		frame.size.y - footer.y - PANEL_PADDING, footer.x, footer.y))
-	for id: int in WORKSPACE_PAGES:
-		(_controls[id] as Control).visible = id == _workspace_page
+	_show_open_page()
 
 
 func _flow_children(owner_id: int, children: Array) -> void:
@@ -956,6 +1124,25 @@ func _place(id: int, rect: Rect2) -> void:
 	_set_rect(_zones[id] as Control, rect)
 
 
+func _wrapped_alert_height() -> float:
+	"""How tall the alert message is once wrapped into the card's own interior width.
+
+	Measured from the font rather than read off the Label, because an autowrap Label reports a
+	SINGLE LINE from `get_minimum_size()` until its width is constrained -- and its width comes
+	from the card this number is sizing. Measuring the text directly breaks that circle."""
+	var interior: float = _geometry.alerts.size.x - UiLayout.ALERT_CARD_MARGIN \
+		- 2.0 * PANEL_PADDING
+	if _alert_message == null or _alert_message.text.is_empty() or interior <= 0.0:
+		return 0.0
+	var font: Font = _alert_message.get_theme_font(&"font")
+	if font == null:
+		return 0.0
+	var font_size: int = _alert_message.get_theme_font_size(&"font_size")
+	var wrapped: Vector2 = font.get_multiline_string_size(_alert_message.text,
+		HORIZONTAL_ALIGNMENT_LEFT, interior, font_size)
+	return wrapped.y + 2.0 * PANEL_PADDING
+
+
 func _place_local(id: int, rect: Rect2) -> void:
 	"""Position a child inside its own parent's local coordinates."""
 	if not _controls.has(id):
@@ -967,6 +1154,20 @@ func _set_rect(control: Control, rect: Rect2) -> void:
 	"""Apply one rectangle to a control without disturbing its anchors."""
 	control.position = rect.position
 	control.size = rect.size
+
+
+func _wire_focus() -> int:
+	"""Write the computed focus order onto the real Controls. Returns the stops wired.
+
+	UXV-033 names "focus-list data without runtime wiring" as insufficient, and that was
+	exactly the state: `ui_focus_order.gd` computed a correct order, was unit-tested, and
+	NOTHING CALLED IT -- `bind_controls()` and `wire_hud()` had no call site anywhere in the
+	repository. `focus_next`, `focus_previous` and the four `focus_neighbor_*` properties are
+	what Godot's own Tab and arrow navigation read, so until they are written the order is a
+	data structure and not a behaviour. Called from `_apply_geometry()` because the visible
+	set changes with the profile, so the order must be recomputed when the layout changes."""
+	_focus.bind_controls(_controls)
+	return _focus.wire_hud(_gates)
 
 
 func _register_hit_regions() -> void:
@@ -981,7 +1182,12 @@ func _register_hit_regions() -> void:
 		if not control.visible or not _is_visible_chain(control):
 			continue
 		var consumes: bool = control.mouse_filter != Control.MOUSE_FILTER_IGNORE
-		_hits.add_region(id, _shell_rect_of(control), _layer_of(id), consumes)
+		_hits.add_visible_region(id, _shell_rect_of(control), _layer_of(id), consumes,
+			_availability.creates_control(id, _gates))
+	if _workspace_page == ID_NAME_EDITOR:
+		_hits.raise_scrim(UiHitTest.LAYER_MODAL)
+	else:
+		_hits.lower_scrim()
 
 
 func _shell_rect_of(control: Control) -> Rect2:
@@ -1085,12 +1291,17 @@ func set_pause_display(paused: bool, reasons: String) -> void:
 
 
 func set_alert_display(text: String) -> void:
-	"""UI-SET-011's card. An empty stack is hidden, so it "does not block world" (§4.1)."""
+	"""UI-SET-011's card. An empty stack is hidden, so it "does not block world" (§4.1).
+
+	The message WRAPS rather than clipping (UXV-032), so the card is content-sized through
+	`ui_layout.alert_card_sized()`. A fixed-height card drew three wrapped lines over the
+	pause line at NARROW, and overlap is worse than the clipping it replaced."""
 	var card: Panel = _controls[ID_ALERT_CARD] as Panel
 	card.accessibility_description = text
 	card.tooltip_text = text
 	card.visible = not text.is_empty()
 	_alert_message.text = text
+	_apply_geometry()
 	var stack: Panel = _controls[ID_ALERT_STACK] as Panel
 	stack.visible = not text.is_empty()
 	_register_hit_regions()
@@ -1257,21 +1468,47 @@ func _on_zone_tool_pressed() -> void:
 
 
 func _on_residents_pressed() -> void:
-	"""UI-SET-031: open the roster inside the workspace frame."""
-	open_workspace_page(ID_WORLD_LIST)
+	"""UI-SET-031: open the ROSTER, which §4.1 line 182 gives as "ALWAYS; opens roster rows 069".
+
+	This used to open UI-SET-087, the world-access list -- the one element `ui_availability.gd`
+	marks PANEL_NOT_BUILT, so the button opened a panel that does not exist. §4.3 gates 087 on
+	F6/accessible mode, and `ui_registry.gd` now asserts no element opens it, so F6 is its only
+	route. The destination comes from the registry rather than a literal, so the two cannot
+	disagree again."""
+	open_workspace_page(UiRegistry.OPENS[ID_RESIDENTS][0])
 	shell_action.emit(ID_RESIDENTS)
 
 
-func open_workspace_page(page_id: int) -> bool:
-	"""Show one workspace page and open the frame. Refuses a page this shell does not build."""
+func open_workspace_page(page_id: int, opener_id: int = ID_RESIDENTS) -> bool:
+	"""Show one workspace page, taking its opening focus and retiring the outgoing one.
+
+	§3 allows only one primary management workspace open, so opening a second REPLACES the
+	first. The router decides what that means for focus; this function's job is to act on the
+	answer -- hide the members it retires and re-register the hit table, so a control that is
+	no longer shown cannot keep an input rectangle."""
 	if not WORKSPACE_PAGES.has(page_id):
 		return _refuse(REFUSE_UNKNOWN_ELEMENT)
+	var members: PackedInt32Array = PackedInt32Array([page_id])
+	if not _focus.open_surface(page_id, members, members.size(), opener_id):
+		return _refuse(REFUSE_UNKNOWN_ELEMENT)
+	_retire_outgoing_members()
 	_workspace_page = page_id
+	_gates.set_surface_open(page_id, true)
 	(_zones[ID_WORKSPACE] as Control).visible = true
+	_show_open_page()
 	_apply_geometry()
-	_register_hit_regions()
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+func _retire_outgoing_members() -> void:
+	"""Hide every member of the surface the last switch retired, so none keeps a hit region."""
+	var count: int = _focus.outgoing_into(_outgoing)
+	for index: int in count:
+		var id: int = _outgoing[index]
+		if _controls.has(id):
+			(_controls[id] as Control).visible = false
+		_gates.set_surface_open(id, false)
 
 
 func workspace_page() -> int:
@@ -1484,7 +1721,14 @@ func report_action_result(accepted: bool, message: String) -> void:
 
 
 func _on_back_pressed() -> void:
-	"""UI-SET-092: close the workspace frame without deciding anything."""
+	"""UI-SET-092: close the workspace frame, returning focus where §2.2 sends it.
+
+	§2.2: focus returns to the opening control if still present, otherwise the zone's first
+	control. The router owns both branches; closing without it left focus standing on a
+	control that had just been hidden."""
+	_focus.close_surface(_gates)
+	_retire_outgoing_members()
+	_gates.set_surface_open(_workspace_page, false)
 	_toggle_zone(ID_WORKSPACE)
 	shell_action.emit(ID_BACK)
 

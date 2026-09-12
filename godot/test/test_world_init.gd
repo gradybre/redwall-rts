@@ -341,25 +341,389 @@ func test_water_tiles_have_no_soil_and_refuse_explicitly() -> void:
 
 
 func test_cleared_loam_rectangle_boundaries() -> void:
-	"""GDD §5.1: "the loam rectangle x=58..65,z=46..53" is cleared before resource placement."""
-	assert_true(WorldInit.is_cleared_tile(58, 46), "the low corner is cleared")
-	assert_true(WorldInit.is_cleared_tile(65, 53), "the high corner is cleared")
-	assert_false(WorldInit.is_cleared_tile(57, 50), "one column west is not")
-	assert_false(WorldInit.is_cleared_tile(66, 50), "one column east is not")
-	assert_false(WorldInit.is_cleared_tile(60, 45), "one row north is not")
-	assert_false(WorldInit.is_cleared_tile(60, 54), "one row south is not")
+	"""GDD §5.1: "the loam rectangle x=58..65,z=46..53" is cleared before resource placement.
+
+	UPDATED 2026-09-11 (READY_07 §7.1): the last two assertions used to ask `is_cleared_tile()`
+	whether one row north/south of the rectangle is cleared. `is_cleared_tile()` now answers for
+	all three of §5.1's cleared parts, and (60,54) is the workbench shelter's own footprint, so the
+	RECTANGLE's boundary is asked of `is_cleared_loam_tile()` and the change of answer at (60,54)
+	is asserted rather than dropped.
+	"""
+	assert_true(WorldInit.is_cleared_loam_tile(58, 46), "the low corner is cleared")
+	assert_true(WorldInit.is_cleared_loam_tile(65, 53), "the high corner is cleared")
+	assert_false(WorldInit.is_cleared_loam_tile(57, 50), "one column west is not")
+	assert_false(WorldInit.is_cleared_loam_tile(66, 50), "one column east is not")
+	assert_false(WorldInit.is_cleared_loam_tile(60, 45), "one row north is not")
+	assert_false(WorldInit.is_cleared_loam_tile(60, 54), "one row south is not")
+	assert_false(WorldInit.is_cleared_tile(60, 45), "and nothing else clears the row north")
+	assert_true(WorldInit.is_cleared_tile(60, 54),
+		"but the row south is GDD 5.9's workbench shelter at (58,54), so it IS cleared")
 
 
 func test_cleared_rectangle_is_published_and_is_64_loam_tiles() -> void:
-	"""The cleared rectangle is 8x8 and every tile of it is LOAM, so clearing frees farmland."""
+	"""The cleared rectangle is 8x8 and every tile of it is LOAM, so clearing frees farmland.
+
+	UPDATED 2026-09-11: the census over EVERY published cleared tile moved to
+	`test_the_published_cleared_census_is_376_tiles`, because §5.1's footprints and apron are now
+	cleared too. This test keeps the rectangle's own 64 and additionally proves each is published.
+	"""
 	_generate()
 	var cleared: int = 0
 	for tile: int in WorldInit.TILE_COUNT:
-		if _world.is_cleared_at(tile):
-			cleared += 1
-			assert_equal(_world.soil_at(tile).value, WorldInit.SOIL_LOAM,
-				"cleared tile %d is loam" % tile)
+		if not WorldInit.is_cleared_loam_tile(WorldInit.tile_x_of(tile), WorldInit.tile_z_of(tile)):
+			continue
+		cleared += 1
+		assert_true(_world.is_cleared_at(tile), "rectangle tile %d is published cleared" % tile)
+		assert_equal(_world.soil_at(tile).value, WorldInit.SOIL_LOAM,
+			"cleared tile %d is loam" % tile)
 	assert_equal(cleared, 64, "the cleared rectangle is 64 tiles")
+
+
+# --- GDD §5.9's starter building footprints and §5.1's one-tile apron ---------------------------
+## READY_07 §7.1: "Clear all building footprints and the GDD one-tile apron plus the authored loam
+## rectangle before placing resources ... Shared aprons may overlap as cleared ground; building
+## footprints may not."
+
+func _authored_footprints() -> Array[Vector4i]:
+	"""Re-transcribe §5.9's seven starter footprints here, independently of production constants.
+
+	§5.9 places them: "the hall at (58,59), stockpiles at (50,60),(50,65),(70,60),(70,65), well at
+	(64,54), and workbench at (58,54)". §5.9's building table gives the extents: hall 12x10, open
+	stockpile 4x4, well 2x2, workbench shelter 3x3. Each entry is (origin_x, origin_z, size_x,
+	size_z).
+	"""
+	var authored: Array[Vector4i] = [
+		Vector4i(58, 59, 12, 10),
+		Vector4i(50, 60, 4, 4),
+		Vector4i(50, 65, 4, 4),
+		Vector4i(70, 60, 4, 4),
+		Vector4i(70, 65, 4, 4),
+		Vector4i(64, 54, 2, 2),
+		Vector4i(58, 54, 3, 3),
+	]
+	return authored
+
+
+func test_the_seven_starter_footprints_are_transcribed_from_5_9() -> void:
+	"""Production's roster must equal the independent transcription, position by position."""
+	var authored: Array[Vector4i] = _authored_footprints()
+	assert_equal(WorldInit.STARTER_FOOTPRINT_COUNT, 7, "§5.9 names seven starter buildings")
+	assert_equal(authored.size(), WorldInit.STARTER_FOOTPRINT_COUNT, "the transcription has seven")
+	assert_equal(WorldInit.STARTER_FOOTPRINT_KEYS.size(), 7, "one key per footprint")
+	for index: int in authored.size():
+		var rect: Vector4i = authored[index]
+		assert_equal(WorldInit.STARTER_FOOTPRINT_ORIGIN_X[index], rect.x,
+			"footprint %d origin x" % index)
+		assert_equal(WorldInit.STARTER_FOOTPRINT_ORIGIN_Z[index], rect.y,
+			"footprint %d origin z" % index)
+		assert_equal(WorldInit.STARTER_FOOTPRINT_SIZE_X[index], rect.z, "footprint %d size x" % index)
+		assert_equal(WorldInit.STARTER_FOOTPRINT_SIZE_Z[index], rect.w, "footprint %d size z" % index)
+	assert_equal(WorldInit.FOOTPRINT_APRON_TILES, 1, "§5.1 authors a ONE-tile apron")
+
+
+func test_the_hall_footprint_closes_against_its_authored_interior() -> void:
+	"""§5.9: hall footprint 12x10, "Interior 10x8", "interior origin is exterior origin+(1,1)"."""
+	assert_equal(WorldInit.HALL_INTERIOR_OFFSET, 1, "§5.9's +(1,1)")
+	assert_equal(WorldInit.HALL_SIZE_X - 2 * WorldInit.HALL_INTERIOR_OFFSET, 10,
+		"12 across less a tile each side is §5.9's interior width")
+	assert_equal(WorldInit.HALL_SIZE_Z - 2 * WorldInit.HALL_INTERIOR_OFFSET, 8,
+		"10 down less a tile each side is §5.9's interior depth")
+	assert_equal(WorldInit.HALL_ORIGIN_X + WorldInit.HALL_INTERIOR_OFFSET, 59,
+		"so the interior origin x is 59")
+	assert_equal(WorldInit.HALL_ORIGIN_Z + WorldInit.HALL_INTERIOR_OFFSET, 60,
+		"exterior origin+(1,1) on the z axis")
+
+
+func test_each_authored_footprint_is_cleared_at_its_exact_tiles() -> void:
+	"""Every tile of every §5.9 footprint is cleared, and the predicate's extent is exact."""
+	var authored: Array[Vector4i] = _authored_footprints()
+	var covered: int = 0
+	for index: int in authored.size():
+		var rect: Vector4i = authored[index]
+		for z: int in range(rect.y, rect.y + rect.w):
+			for x: int in range(rect.x, rect.x + rect.z):
+				covered += 1
+				assert_true(WorldInit.is_starter_footprint_tile(x, z),
+					"(%d,%d) is under footprint %d" % [x, z, index])
+				assert_true(WorldInit.is_cleared_tile(x, z), "(%d,%d) is cleared" % [x, z])
+				assert_false(WorldInit.is_starter_apron_tile(x, z),
+					"(%d,%d) is footprint, so it is not apron" % [x, z])
+		_assert_footprint_stops_at_its_extent(index, rect)
+	assert_equal(covered, 12 * 10 + 4 * 4 * 4 + 2 * 2 + 3 * 3, "197 authored footprint tiles")
+	assert_equal(covered, 197, "which is 120 hall + 64 stockpiles + 4 well + 9 workbench")
+
+
+func _assert_footprint_stops_at_its_extent(index: int, rect: Vector4i) -> void:
+	"""One footprint covers origin..origin+size-1 on both axes and not one tile more."""
+	assert_false(WorldInit.footprint_covers_tile(index, rect.x - 1, rect.y, 0),
+		"footprint %d starts at its origin column" % index)
+	assert_false(WorldInit.footprint_covers_tile(index, rect.x + rect.z, rect.y, 0),
+		"footprint %d ends at origin_x+size_x-1" % index)
+	assert_false(WorldInit.footprint_covers_tile(index, rect.x, rect.y - 1, 0),
+		"footprint %d starts at its origin row" % index)
+	assert_false(WorldInit.footprint_covers_tile(index, rect.x, rect.y + rect.w, 0),
+		"footprint %d ends at origin_z+size_z-1" % index)
+	assert_true(WorldInit.footprint_covers_tile(index, rect.x + rect.z - 1, rect.y + rect.w - 1, 0),
+		"and its far corner is inside it")
+
+
+func test_the_one_tile_apron_is_cleared_around_each_footprint() -> void:
+	"""§5.1's "one-tile apron": the ring one tile out is cleared; two tiles out is not, by itself."""
+	var authored: Array[Vector4i] = _authored_footprints()
+	for index: int in authored.size():
+		var rect: Vector4i = authored[index]
+		for z: int in range(rect.y - 1, rect.y + rect.w + 1):
+			for x: int in range(rect.x - 1, rect.x + rect.z + 1):
+				assert_true(WorldInit.is_cleared_tile(x, z),
+					"apron tile (%d,%d) of footprint %d is cleared" % [x, z, index])
+				assert_true(WorldInit.footprint_covers_tile(index, x, z, 1),
+					"(%d,%d) is inside footprint %d grown by one" % [x, z, index])
+		assert_false(WorldInit.footprint_covers_tile(index, rect.x - 2, rect.y, 1),
+			"footprint %d's apron is one tile wide, not two, to the west" % index)
+		assert_false(WorldInit.footprint_covers_tile(index, rect.x + rect.z + 1, rect.y, 1),
+			"nor two to the east of footprint %d" % index)
+		assert_false(WorldInit.footprint_covers_tile(index, rect.x, rect.y - 2, 1),
+			"nor two to the north of footprint %d" % index)
+		assert_false(WorldInit.footprint_covers_tile(index, rect.x, rect.y + rect.w + 1, 1),
+			"nor two to the south of footprint %d" % index)
+
+
+func test_two_tiles_out_from_every_footprint_is_untouched_ground() -> void:
+	"""The apron does not bleed: a tile two out from the whole roster is cleared by nothing."""
+	assert_false(WorldInit.is_cleared_tile(48, 61), "two west of the (50,60) stockpile")
+	assert_false(WorldInit.is_cleared_tile(75, 62), "two east of the (70,60) stockpile")
+	assert_false(WorldInit.is_cleared_tile(56, 61), "two west of the hall")
+	assert_false(WorldInit.is_cleared_tile(62, 71), "two south of the hall")
+	assert_true(WorldInit.is_cleared_tile(49, 61), "while ONE west of the stockpile is apron")
+	assert_true(WorldInit.is_cleared_tile(74, 62), "and one east of the (70,60) stockpile is too")
+
+
+func test_authored_building_footprints_never_overlap() -> void:
+	"""READY_07 §7.1: "building footprints may not" overlap. All 21 distinct pairs are disjoint."""
+	var authored: Array[Vector4i] = _authored_footprints()
+	var pairs: int = 0
+	for first: int in authored.size():
+		for second: int in range(first + 1, authored.size()):
+			pairs += 1
+			assert_false(WorldInit.starter_footprints_overlap(first, second),
+				"§5.9 footprints %d and %d are disjoint" % [first, second])
+	assert_equal(pairs, 21, "seven footprints make 21 distinct pairs")
+	assert_true(WorldInit.starter_footprints_overlap(0, 0),
+		"the predicate does detect an overlap: every footprint overlaps itself")
+	assert_equal(_tiles_under_two_footprints(), 0, "and no grid tile lies under two footprints")
+
+
+func _tiles_under_two_footprints() -> int:
+	"""How many exterior tiles lie under more than one authored footprint. READY_07 §7.1: none."""
+	var shared: int = 0
+	for z: int in WorldInit.MAP_TILES_Z:
+		for x: int in WorldInit.MAP_TILES_X:
+			var under: int = 0
+			for index: int in WorldInit.STARTER_FOOTPRINT_COUNT:
+				if WorldInit.footprint_covers_tile(index, x, z, 0):
+					under += 1
+			if under > 1:
+				shared += 1
+	return shared
+
+
+func test_shared_aprons_are_permitted_to_overlap() -> void:
+	"""READY_07 §7.1: "Shared aprons may overlap as cleared ground". They do, and it is legal."""
+	var shared: int = 0
+	for z: int in WorldInit.MAP_TILES_Z:
+		for x: int in WorldInit.MAP_TILES_X:
+			if not WorldInit.is_starter_apron_tile(x, z):
+				continue
+			var aprons: int = 0
+			for index: int in WorldInit.STARTER_FOOTPRINT_COUNT:
+				if WorldInit.footprint_covers_tile(index, x, z, 1):
+					aprons += 1
+			if aprons > 1:
+				shared += 1
+	assert_equal(shared, 14, "fourteen apron tiles belong to two footprints at once")
+	assert_true(WorldInit.is_starter_apron_tile(49, 64),
+		"(49,64) is the apron of both stockpiles at x=50")
+	assert_true(WorldInit.footprint_covers_tile(1, 49, 64, 1), "shared with the (50,60) stockpile")
+	assert_true(WorldInit.footprint_covers_tile(2, 49, 64, 1), "and the (50,65) stockpile")
+	_generate()
+	assert_true(_world.is_cleared_at(WorldInit.tile_index_of(49, 64)),
+		"and the overlap is cleared exactly once: the mask is a boolean, not a count")
+
+
+func test_a_footprint_may_lie_inside_another_footprints_apron() -> void:
+	"""An apron over a NEIGHBOUR'S footprint is cleared ground, not a forbidden overlap."""
+	assert_true(WorldInit.is_starter_footprint_tile(70, 60), "(70,60) is a stockpile footprint")
+	assert_true(WorldInit.footprint_covers_tile(0, 70, 60, 1), "and sits in the hall's apron")
+	assert_false(WorldInit.starter_footprints_overlap(0, 3),
+		"yet the hall and that stockpile share no tile")
+	assert_false(WorldInit.is_starter_apron_tile(70, 60),
+		"a footprint tile is never reported as apron, so the two sets never double-count")
+
+
+func test_footprint_covers_tile_answers_the_empty_set_outside_the_roster() -> void:
+	"""An index naming no footprint contains no tile. That is emptiness, not a failure sentinel."""
+	assert_false(WorldInit.footprint_covers_tile(-1, 58, 59, 0), "index -1 names no footprint")
+	assert_false(WorldInit.footprint_covers_tile(7, 58, 59, 0), "nor does one past the roster")
+	assert_false(WorldInit.starter_footprints_overlap(-1, 0), "nor can it overlap one")
+	assert_false(WorldInit.starter_footprints_overlap(0, 7), "in either position")
+	assert_true(WorldInit.footprint_covers_tile(0, 58, 59, 0), "while a real index answers")
+
+
+func test_the_published_cleared_census_is_376_tiles() -> void:
+	"""376 = 197 footprint tiles + 122 apron-ring tiles + 57 loam-rectangle tiles no apron takes.
+
+	The three parts are counted separately here, so no single production predicate can move the
+	total on its own. All 376 are LOAM, which is why §5.1 clears them for a settlement at all.
+	"""
+	_generate()
+	var footprint_tiles: int = 0
+	var apron_tiles: int = 0
+	var loam_only: int = 0
+	var cleared: int = 0
+	for tile: int in WorldInit.TILE_COUNT:
+		if not _world.is_cleared_at(tile):
+			continue
+		var x: int = WorldInit.tile_x_of(tile)
+		var z: int = WorldInit.tile_z_of(tile)
+		cleared += 1
+		assert_equal(_world.soil_at(tile).value, WorldInit.SOIL_LOAM, "cleared tile %d is loam" % tile)
+		if WorldInit.is_starter_footprint_tile(x, z):
+			footprint_tiles += 1
+		elif WorldInit.is_starter_apron_tile(x, z):
+			apron_tiles += 1
+		else:
+			loam_only += 1
+	assert_equal(footprint_tiles, 197, "§5.9's seven footprints")
+	assert_equal(apron_tiles, 122, "§5.1's one-tile apron ring around them")
+	assert_equal(loam_only, 64 - 7, "the loam rectangle less the 7 tiles two aprons already reach")
+	assert_equal(cleared, 197 + 122 + 57, "the published cleared census")
+	assert_equal(cleared, 376, "which is 376 tiles")
+
+
+func test_the_clearing_takes_no_tree_centre_because_its_forest_overlap_is_odd() -> void:
+	"""Why the recalculated census still reads 1695: no even/even centre is cleared.
+
+	§5.1's west forest mask ends at x=49 and the nearest footprint starts at x=50, so the ONLY
+	cleared column inside a forest mask is x=49 -- odd, and a tree centre needs even x and even z.
+	Asserted over the whole grid rather than argued.
+	"""
+	var cleared_in_forest: int = 0
+	var cleared_centres: int = 0
+	for z: int in WorldInit.MAP_TILES_Z:
+		for x: int in WorldInit.MAP_TILES_X:
+			if WorldInit.forest_basin_of(x, z) == WorldInit.NO_BASIN:
+				continue
+			if not WorldInit.is_starter_footprint_tile(x, z) \
+					and not WorldInit.is_starter_apron_tile(x, z):
+				continue
+			cleared_in_forest += 1
+			assert_equal(x, 49, "the only forest column the buildings clear is x=49")
+			if x % 2 == 0 and z % 2 == 0:
+				cleared_centres += 1
+	assert_equal(cleared_in_forest, 11, "x=49, z=59..69 -- eleven forest tiles")
+	assert_equal(cleared_centres, 0, "and not one of them is a tree centre")
+
+
+func test_a_cleared_tile_is_never_a_tree_centre() -> void:
+	"""§5.1's centre rule refuses a cleared tile even when stride and forest mask both accept it.
+
+	The authored map never reaches this branch -- its only cleared forest column is the odd x=49 --
+	so the rule is exercised directly rather than left to a geometry that cannot express it.
+	"""
+	assert_true(WorldInit.is_centre_candidate(8, 20, false),
+		"(8,20) is even/even inside the west forest mask, so it is a centre")
+	assert_false(WorldInit.is_centre_candidate(8, 20, true),
+		"and the same tile is NOT a centre once the clearing stage has marked it")
+	assert_true(WorldInit.is_centre_candidate(118, 104, false), "the east mask's high even corner")
+	assert_false(WorldInit.is_centre_candidate(118, 104, true), "cleared, it is refused too")
+	assert_false(WorldInit.is_centre_candidate(9, 20, false), "odd x is never a centre")
+	assert_false(WorldInit.is_centre_candidate(8, 21, false), "nor is odd z")
+	assert_false(WorldInit.is_centre_candidate(64, 64, false), "nor an even tile outside a mask")
+
+
+func test_the_grove_plants_only_on_unused_uncleared_ground() -> void:
+	"""§5.1: the grove skips "duplicate centers and all cleared aprons" -- one gate, both passes.
+
+	Proved through the published world: every planted grove tile is uncleared and distinct, and
+	every cleared tile of the grove rectangle carries no node at all.
+	"""
+	_generate()
+	var seen: Dictionary = {}
+	for index: int in _world.planned_grove_count():
+		var tile: int = _world.planned_grove_at(index).value
+		assert_false(_world.is_cleared_at(tile), "grove node %d is on uncleared ground" % index)
+		assert_false(seen.has(tile), "grove tile %d is planted once, so no tile is used twice" % tile)
+		seen[tile] = true
+	var cleared_in_rectangle: int = 0
+	for z: int in range(54, 64):
+		for x: int in range(40, 50):
+			var tile: int = WorldInit.tile_index_of(x, z)
+			if not _world.is_cleared_at(tile):
+				continue
+			cleared_in_rectangle += 1
+			assert_false(_nodes.has_node_at_tile(tile), "cleared grove tile (%d,%d) is bare" % [x, z])
+	assert_equal(cleared_in_rectangle, 5, "five grove tiles are cleared apron")
+
+
+func test_the_guaranteed_grove_is_still_exactly_100_after_the_apron_clears_five_tiles() -> void:
+	"""§5.1: "until exactly 100 guaranteed nodes exist", after the clearing forces five moves."""
+	_generate()
+	assert_equal(_world.planned_grove_count(), 100, "the grove is still exactly 100 nodes")
+	for z: int in range(59, 64):
+		var tile: int = WorldInit.tile_index_of(49, z)
+		assert_true(_world.is_cleared_at(tile), "(49,%d) is cleared stockpile apron" % z)
+		assert_false(_nodes.has_node_at_tile(tile), "so no grove node stands on it")
+	var relocated: int = 0
+	for index: int in _world.planned_grove_count():
+		var tile: int = _world.planned_grove_at(index).value
+		var x: int = WorldInit.tile_x_of(tile)
+		var z: int = WorldInit.tile_z_of(tile)
+		if x < 40 or x > 49 or z < 54 or z > 63:
+			relocated += 1
+	assert_equal(relocated, 30, "25 duplicate centres plus the 5 apron tiles are relocated")
+
+
+func test_no_resource_node_stands_inside_a_footprint_or_its_apron() -> void:
+	"""READY_07 §7.1: no tree, stone or iron node may sit on cleared building ground."""
+	_generate()
+	var inspected: int = 0
+	for index: int in _nodes.count():
+		var slot: int = _nodes.live_slot_at(index).value
+		var tile: int = _nodes.tile_of(slot).value
+		var x: int = WorldInit.tile_x_of(tile)
+		var z: int = WorldInit.tile_z_of(tile)
+		inspected += 1
+		assert_false(WorldInit.is_starter_footprint_tile(x, z),
+			"node at (%d,%d) stands in a building footprint" % [x, z])
+		assert_false(WorldInit.is_starter_apron_tile(x, z),
+			"node at (%d,%d) stands in a one-tile apron" % [x, z])
+		assert_false(_world.is_cleared_at(tile), "node at (%d,%d) stands on cleared ground" % [x, z])
+	assert_equal(inspected, 1695, "every published node was inspected")
+
+
+func test_the_well_and_workbench_ground_holds_no_node() -> void:
+	"""The two smallest footprints are the ones an obsolete count would be tempted to protect."""
+	_generate()
+	for z: int in range(53, 57):
+		for x: int in range(63, 67):
+			assert_false(_nodes.has_node_at_tile(WorldInit.tile_index_of(x, z)),
+				"the well at (64,54) and its apron are clear at (%d,%d)" % [x, z])
+	for z: int in range(53, 58):
+		for x: int in range(57, 62):
+			assert_false(_nodes.has_node_at_tile(WorldInit.tile_index_of(x, z)),
+				"the workbench at (58,54) and its apron are clear at (%d,%d)" % [x, z])
+
+
+func test_clearing_happens_before_placement_across_a_regeneration() -> void:
+	"""§5.1: clear "before placing resource nodes" -- an order, re-proved on the second world."""
+	_generate()
+	assert_true(_world.generate(_request()).ok, "the world regenerates")
+	assert_equal(_nodes.count(), 1695, "with the same census")
+	for index: int in _nodes.count():
+		var slot: int = _nodes.live_slot_at(index).value
+		var tile: int = _nodes.tile_of(slot).value
+		assert_false(_world.is_cleared_at(tile),
+			"the regenerated world still places no node on cleared tile %d" % tile)
 
 
 # --- ecology basins -----------------------------------------------------------------------------
@@ -592,7 +956,19 @@ func test_the_guaranteed_grove_is_exactly_100_nodes() -> void:
 
 
 func test_grove_skips_duplicate_centres_and_relocates_them() -> void:
-	"""25 of the grove's 100 tiles already carry a centre, so 75 land in the grove and 25 relocate."""
+	"""25 grove tiles carry a centre and 5 more fall in an apron, so 70 stay and 30 relocate.
+
+	UPDATED 2026-09-11 (READY_07 §7.1): 75/25 before the footprint clearing. §5.1 already said the
+	grove skips "all cleared aprons"; the stockpile at (50,60) puts its one-tile apron over
+	(49,59..63), five grove tiles, and none of them is an even/even centre. Derived below from the
+	geometry, not read back from production.
+	"""
+	var apron_tiles_in_grove: int = 0
+	for z: int in range(54, 64):
+		if WorldInit.is_starter_apron_tile(49, z):
+			apron_tiles_in_grove += 1
+	assert_equal(apron_tiles_in_grove, 5, "the stockpile apron reaches five grove tiles at x=49")
+	assert_equal(5 * 5 + apron_tiles_in_grove, 30, "25 centres plus 5 apron tiles are skipped")
 	_generate()
 	var written: int = _world.planned_grove_count()
 	var inside: int = 0
@@ -604,40 +980,62 @@ func test_grove_skips_duplicate_centres_and_relocates_them() -> void:
 			inside += 1
 			assert_false(x % 2 == 0 and z % 2 == 0,
 				"an in-grove node never doubles a centre at (%d,%d)" % [x, z])
-	assert_equal(inside, 75, "75 of the 100 land inside the grove rectangle")
-	assert_equal(written - inside, 25, "and 25 replace the skipped centres")
+	assert_equal(inside, 70, "70 of the 100 land inside the grove rectangle")
+	assert_equal(written - inside, 30, "and 30 replace the skipped tiles")
 
 
 func test_grove_replacements_are_the_lowest_unused_tiles_of_the_window() -> void:
 	"""GDD §5.1: "replace any skipped center at the lowest unused land tile inside x=36..49,z=50..67".
 
-	The expected 25 are derived here from the window and the centre rule, not read from production:
-	the seven odd columns of z=50, all fourteen of z=51, then four of z=52.
+	UPDATED 2026-09-11 (READY_07 §7.1): 25 replacements before the footprint clearing, 30 after.
+	The expected 30 are derived here from the window, the centre rule and the clearing, not read
+	from production: the seven odd columns of z=50, all fourteen of z=51, the seven odd columns of
+	z=52, then the first two of z=53. The apron's cleared column x=49 does not reach z<=53, so it
+	removes no candidate from the rows the scan actually reaches.
 	"""
 	var expected: PackedInt32Array = PackedInt32Array()
 	for z: int in range(50, 68):
 		for x: int in range(36, 50):
-			if expected.size() >= 25:
+			if expected.size() >= 30:
 				break
 			if x % 2 == 0 and z % 2 == 0:
 				continue
+			if WorldInit.is_cleared_tile(x, z):
+				continue
 			expected.append(z * 128 + x)
+	assert_equal(expected.size(), 30, "the derivation yields thirty replacement tiles")
 	_generate()
 	var produced: PackedInt32Array = PackedInt32Array()
-	for index: int in range(_world.planned_grove_count() - 25, _world.planned_grove_count()):
+	for index: int in range(_world.planned_grove_count() - 30, _world.planned_grove_count()):
 		produced.append(_world.planned_grove_at(index).value)
 	assert_equal(produced, expected,
-		"the 25 replacements are the lowest unused window tiles, in ascending order")
+		"the 30 replacements are the lowest unused window tiles, in ascending order")
 	assert_equal(expected[0], WorldInit.tile_index_of(37, 50), "the first replacement")
-	assert_equal(expected[24], WorldInit.tile_index_of(43, 52), "the last replacement")
+	assert_equal(expected[24], WorldInit.tile_index_of(43, 52),
+		"the first 25 are unchanged: the clearing lengthens the tail, it does not reorder it")
+	assert_equal(expected[27], WorldInit.tile_index_of(49, 52), "z=52's odd columns run out here")
+	assert_equal(expected[29], WorldInit.tile_index_of(37, 53), "the last replacement")
 
 
 # --- resource nodes -----------------------------------------------------------------------------
 
 func test_generated_node_count_is_centres_plus_grove_less_replaced_plus_ore() -> void:
-	"""1571 centres + 100 grove - 8 centres under the ore footprints + 32 ore nodes."""
+	"""1571 centres + 100 grove - 8 centres under the ore footprints + 32 ore nodes.
+
+	RECALCULATED 2026-09-11 (READY_07 §7.1), which retires the previous 1695 as a FIXTURE: the
+	number below is now re-derived from the geometry on every run by `_qualifying_centres()` and
+	§5.1's grove rule, with the footprint clearing applied. It recomputes to the same 1695, and the
+	reason is asserted rather than assumed -- the clearing takes no even/even tree centre, because
+	the only cleared column inside a forest mask is the odd x=49 (see
+	`test_the_clearing_takes_no_tree_centre_because_its_forest_overlap_is_odd`), and the five grove
+	tiles it does take are replaced one for one inside §5.1's window. Nothing was left standing in
+	the well, the workbench or an apron to hold the total up.
+	"""
+	var centres: int = _qualifying_centres().size()
+	assert_equal(centres, 1571, "the re-derived centre count")
 	var result: WorldInit.GenerateResult = _generate()
-	assert_equal(result.resource_nodes_created, 1571 + 100 - 8 + 32, "the node census")
+	assert_equal(result.resource_nodes_created, centres + 100 - 8 + 32, "the node census")
+	assert_equal(centres + 100 - 8 + 32, 1695, "which evaluates to 1695 after the clearing")
 	assert_equal(_nodes.count(), 1695, "and the store agrees")
 	assert_true(_nodes.count() <= ResourceNodesScript.RESOURCE_NODE_CAPACITY,
 		"the world fits §4.2's 4096 rows")

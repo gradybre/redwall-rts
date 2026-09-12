@@ -2,6 +2,13 @@
 
 # Redwall RTS — Settlement UI, UX & Controls
 
+**Visual refinement amendment, 2026-09-11:** [SET-UX-VIS-002](ui_visual_refinement_amendment.md)
+is part of this UI contract. It supersedes only its explicit typography, surface,
+focus-on-paper, toolbar/detail sizing, workspace variants and availability
+presentation rules. Revision2 also incorporates explicit art-finish and icon
+variant/size changes; the generated concept is not a geometry override. All other registry gates, gameplay/input/accessibility
+contracts remain unchanged. Runtime implementation and visual approval are pending.
+
 **Adopted movement amendment:** [SET-MOVE-001](movement_direction_amendment.md) implements DEC-035 at the direction/specification level. Its requirements supersede ground-only and one-floor claims as the complete settlement design. `settlement_rules_v2` remains the incomplete implementation baseline; MOVE-G01–05 identify exact engineering closure still required.
 
 | Field | Value |

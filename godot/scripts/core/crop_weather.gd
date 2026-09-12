@@ -41,6 +41,16 @@ extends RefCounted
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE DAY'S ORDER, AND WHY EACH STEP SITS WHERE IT DOES.
+##   0. THE PRECEDING INTERVAL'S ELAPSED HOURS are already integrated when the daily leg runs.
+##      A midnight tick IS an hour crossing, `settlement_system.gd` calls `run_hour_into()` from
+##      `run_tick()` and this leg from the clock's day-boundary callback, which fires AFTER that
+##      tick completes -- so the 00:00 hour of the crossing has been grown at the OLD day's
+##      climate before any step below touches the row. Ruling §4.3's "the preceding hour still
+##      uses summer climate" at the autumn-day-1 crossing IS that ordering. It is REPORTED rather
+##      than assumed: `DayResult.elapsed_hour_tick` publishes the hour this stage had consumed
+##      when the boundary opened, so a wiring that ran the legs the other way round is a failing
+##      assertion and not a comment. No refusal is added, because the standalone daily fixture and
+##      `prime_day()` legitimately open a day no hour has been simulated for.
 ##   1. COMPLETED-DAY BLIGHT (REQ-SET-087). 400 health/day, 200 while tended. It settles the day
 ##      that ENDED, with that day's tending flags still standing and the completed day's event
 ##      window -- exactly as `ecology.gd` settles a hive's COMPLETED day (decision 0046 §2).
@@ -53,13 +63,35 @@ extends RefCounted
 ##   3. NEW-DAY WEATHER (§5.10, REQ-SET-141/142/145). End an event whose window has passed,
 ##      schedule this season's event if it has not been scheduled, disclose a due forecast, then
 ##      write the day's baseline temperature and rain.
-##   4. NEW-DAY MOISTURE (§5.10, REQ-SET-086). ARCH-TICK-003 names it "new-day ... moisture", so
+##   4. THE MUSSEL EVENT CLOSURE (ruling 2026-09-11 §4.1). Every PRESENT mussel stock's
+##      `FishStock.closed` event bit is set to `new_season == SUMMER && active_new_day_event ==
+##      BLIGHT` and to FALSE otherwise -- including autumn blight and the day after expiry. It
+##      runs immediately after step 3 because it reads the new day's weather, and well before
+##      `settlement_system.gd` reaches `_run_planner_day()`, which is ruling §4.1's "before later
+##      job planning". See the ownership note below.
+##   5. NEW-DAY MOISTURE (§5.10, REQ-SET-086). ARCH-TICK-003 names it "new-day ... moisture", so
 ##      it uses the weather step 3 just wrote.
-##   5. SERVICE RESET. `clear_tended_today()` over the whole TileHistory ledger, AFTER step 1 has
+##   6. SERVICE RESET. `clear_tended_today()` over the whole TileHistory ledger, AFTER step 1 has
 ##      spent the completed day's flags. ARCH-TICK-003's "service reset".
-##   6. THE FARM SIDE OF THE POLLINATION REFRESH (decision 0044). See below.
-## Steps 1 and 2 are the completed day; steps 3-5 are the day that began. Step 6 is neither -- it
+##   7. THE FARM SIDE OF THE POLLINATION REFRESH (decision 0044). See below.
+## Steps 1 and 2 are the completed day; steps 3-6 are the day that began. Step 7 is neither -- it
 ## is the continuation of a change ARCH-SYS-005 committed one call earlier.
+##
+## ---------------------------------------------------------------------------------------
+## NOTHING PARTIALLY ADVANCES: THE BOUNDARY IS PREFLIGHTED (ruling §4.1). Season identity, the
+## WEATHER stream and the two catalogs this boundary reads are checked BEFORE the day latch is
+## consumed and before any step commits. A scheduling refusal is a failure carrying a diagnostic
+## -- `DayResult.error` and `last_refusal()` -- and is explicitly NOT permission to clear some
+## state and publish an apparently completed tick: `run_day_into()` returns false with a cleared
+## result and the day is not marked run, so the caller sees a refusal rather than a quiet day.
+##   * SEASON IDENTITY. `absolute_season = floor((absolute_day-1)/12)` must decode, and
+##     `absolute_season % 4` must equal the season the clock decoded for the same tick. A
+##     disagreement refuses SEASON_IDENTITY_MISMATCH rather than running one leg per opinion.
+##   * RNG. Only when this boundary would actually draw -- a season not yet scheduled that is not
+##     the forced first spring -- the stream must be bound AND seeded. The forced first spring
+##     still opens on an unseeded world, because it takes no Rng at all.
+##   * CATALOGS. `weather.catalog_is_verified()` and `fishing.catalog_is_verified()` prove
+##     §4.3's EventDefinition and HabitatType ids are still what the compiled tables assume.
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE PIECE INCREMENT 9 LEFT HERE: THE FarmPlot SIDE OF DECISION 0044's REFRESH.
@@ -87,13 +119,19 @@ extends RefCounted
 ## than recomputing. Neither is called to fix anything here.
 ##
 ## ---------------------------------------------------------------------------------------
-## THE WEATHER DRAW: ONE PER SEASON, ZERO FOR THE FORCED FIRST SPRING, AND A LATCH TO PROVE IT.
+## THE WEATHER DRAW: ONE PER SEASON, ZERO FOR THE FORCED FIRST SPRING, AND ONE LATCH TO PROVE IT.
 ## ARCH-RNG-002 gives WEATHER "one weighted event-selection roll per new season after the forced
-## first spring", and `weather.gd` states in its own header that "exactly one major event occurs
-## per season" is THE CALLER'S DISCIPLINE, because §4.2's row carries no season column. This is
-## that caller. `_last_scheduled_season` holds the ABSOLUTE season index `(day-1)/12` -- read from
-## `farming.gd`'s own `absolute_season_of_day_into()`, not re-derived -- and a season already
-## scheduled schedules nothing and draws nothing, however many midnights it sees.
+## first spring". THE LATCH MOVED (ruling §4.2, decision 0055). This file used to keep a private
+## `_last_scheduled_season`, because §4.2's row carried no season column; the ruled amendment adds
+## `Weather.scheduled_absolute_season` as an I64 column and requires ONE owner -- "the existing
+## CropWeather latch must agree with it on load, or be replaced by this single owner in one
+## migration. No independent extra latch allocation is implied." THE SECOND OPTION WAS TAKEN: the
+## private field is GONE, `last_scheduled_season()` reads the Weather column, and `weather.gd`
+## itself refuses a second schedule for a season it has already scheduled, before touching the
+## stream. There is therefore no pair of latches that can disagree, on load or otherwise.
+## The absolute season is still computed by `farming.gd`'s `absolute_season_of_day_into()` at the
+## boundary; `weather.gd` publishes the identical `floor((absolute_day-1)/12)` for its own column,
+## and `test_weather.gd` asserts the two agree across four years rather than assuming it.
 ##
 ## SPRING DAY 1 HAS NO MIDNIGHT, so the season is scheduled at the FIRST BOUNDARY THE SEASON SEES
 ## rather than on its day 1. The offset calendar opens at 06:00 of day 1 and its first crossing is
@@ -118,14 +156,19 @@ extends RefCounted
 ##   * DROUGHT'S "water 2 U/day" ORCHARD CARE IS NOT CHARGED. `weather.needs_orchard_water()`
 ##     reports the condition and `apply_orchard_day()` takes no water argument; the cost is an
 ##     `inventory.gd` lot and a care job, and neither store is joined here.
-##   * MUSSEL'S SUMMER BLIGHT CLOSURE IS NOT WRITTEN, AND THE DOCUMENTS DISAGREE ABOUT WHOSE IT
-##     IS. `fishing.gd` says in one comment that joining weather to the fishery is "ARCH-SYS-006's
-##     job (increment 10)" and in another, on `set_closed()`, that "ARCH-SYS-005 owns any daily
-##     orchestration that would write the bit". ARCH-SYS-006's §5 Writes column lists "Crop
-##     progress/health/ripe state, moisture, weather forecast, service counters" and no fish
-##     closure at all. NEEDS A RULING; no bit is written either way, because writing a fishery
-##     column from the crop stage on the strength of the weaker of two contradictory comments
-##     would be inventing an ownership rule.
+##   * MUSSEL'S SUMMER BLIGHT CLOSURE IS NOW WRITTEN HERE, AND THE CONTRADICTION IS RESOLVED.
+##     `fishing.gd` said in one comment that joining weather to the fishery is "ARCH-SYS-006's job
+##     (increment 10)" and in another, on `set_closed()`, that "ARCH-SYS-005 owns any daily
+##     orchestration that would write the bit". Ruling 2026-09-11 §4.1 settles it: "ARCH-SYS-006
+##     owns the weather-to-fishery join and writes the existing `FishStock.closed` event bit."
+##     BOTH comments were amended and ARCH-SYS-006's §5 Reads/Writes row now names the column.
+##     SYS-005 keeps fish stock and quota recovery on the NEW day's season, closed stocks
+##     included, and copies no event state: `ecology.gd` writes no `closed` bit at all, which
+##     `test_ecology.gd` asserts against a stock it closed beforehand.
+##     THE EVENT BIT HAS EXACTLY ONE CAUSE. §5.4's calendar closures stay a separate derived
+##     predicate -- `is_harvest_closed()` is `calendar_closed || event_closed` -- and nothing else
+##     may reuse the bit. A second cause would need a typed reason mask, and ruling §4.1 says
+##     adding that mask now is unnecessary, so none is added and none is implied.
 ##   * NO JOB IS CREATED OR ADVANCED. `job_planner.gd` is not called from here, no Job row is
 ##     written, and JOB_STATE_WORK is NEVER set. REQ-SET-073's priority-2 harvest job and
 ##     REQ-SET-085's 10-WU clearing job are state transitions here and producers elsewhere: this
@@ -175,6 +218,7 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 const WeatherScript := preload("res://scripts/core/weather.gd")
 const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 const ResourceNodesScript := preload("res://scripts/core/resource_nodes.gd")
+const FishingScript := preload("res://scripts/core/fishing.gd")
 
 const REFUSE_NONE: StringName = &""
 const REFUSE_INVALID_TICK: StringName = &"INVALID_TICK"
@@ -187,13 +231,22 @@ const REFUSE_INVALID_CROSSINGS: StringName = &"INVALID_ELIGIBILITY_CROSSINGS"
 const REFUSE_NO_RNG: StringName = &"WEATHER_STREAM_NOT_BOUND"
 const REFUSE_NOT_PRESENT: StringName = &"FARM_PLOT_NOT_PRESENT"
 const REFUSE_INVALID_TILE: StringName = &"INVALID_TILE"
+## Ruling §4.1's preflight refusals. Each names a required input this boundary could not prove,
+## and each is raised BEFORE the day latch is consumed and before any step commits.
+const REFUSE_SEASON_IDENTITY_MISMATCH: StringName = &"SEASON_IDENTITY_MISMATCH"
+## `rng.gd`'s OWN code, not a local restatement: a preflight that refuses an unseeded stream must
+## report exactly what the stream itself would have reported had the draw been attempted.
+const REFUSE_RNG_NOT_SEEDED: StringName = Rng.REFUSE_NOT_SEEDED
+const REFUSE_EVENT_CATALOG_UNVERIFIED: StringName = &"EVENT_CATALOG_UNVERIFIED"
+const REFUSE_FISH_CATALOG_UNVERIFIED: StringName = &"FISH_CATALOG_UNVERIFIED"
 
 ## Day numbering starts at 1, so 0 names no day and is what the latch holds before the first one.
 const NO_DAY_RUN: int = 0
 ## Tick 0 is 06:00 of day 1 and no hour crossing, so -1 names no tick the hourly leg could run at.
 const NO_HOUR_RUN: int = -1
-## `(day - 1) / 12` is never negative for a real day, so -1 names no season yet scheduled.
-const NO_SEASON_SCHEDULED: int = -1
+## "No season yet scheduled", read from `weather.gd`'s own empty value rather than restated here,
+## so this file cannot hold a second opinion about what an unscheduled latch looks like.
+const NO_SEASON_SCHEDULED: int = WeatherScript.ABSOLUTE_SEASON_NONE
 ## GDD §5.1 counts calendar days from 1; day 1 has no completed day before it.
 const MIN_CALENDAR_DAY: int = 1
 
@@ -251,10 +304,15 @@ class DayResult:
 	var error: StringName
 	var boundary_tick: int
 	var absolute_day: int
+	var absolute_season: int
+	var completed_absolute_season: int
 	var season: int
 	var season_day: int
 	var completed_day: int
+	var elapsed_hour_tick: int
 	var blight_active: bool
+	var mussel_event_closed: bool
+	var mussel_stocks_written: int
 	var plots_blighted: int
 	var plots_withered: int
 	var orchards_advanced: int
@@ -262,6 +320,7 @@ class DayResult:
 	var event_scheduled: int
 	var weather_draws: int
 	var forecast_event: int
+	var forecast_absolute_season: int
 	var temperature_tenths: int
 	var rain: int
 	var moisture_delta: int
@@ -279,10 +338,15 @@ class DayResult:
 		error = REFUSE_NONE
 		boundary_tick = 0
 		absolute_day = 0
+		absolute_season = WeatherScript.ABSOLUTE_SEASON_NONE
+		completed_absolute_season = WeatherScript.ABSOLUTE_SEASON_NONE
 		season = 0
 		season_day = 0
 		completed_day = 0
+		elapsed_hour_tick = NO_HOUR_RUN
 		blight_active = false
+		mussel_event_closed = false
+		mussel_stocks_written = 0
 		plots_blighted = 0
 		plots_withered = 0
 		orchards_advanced = 0
@@ -290,6 +354,7 @@ class DayResult:
 		event_scheduled = WeatherScript.EVENT_NONE
 		weather_draws = 0
 		forecast_event = WeatherScript.EVENT_NONE
+		forecast_absolute_season = WeatherScript.ABSOLUTE_SEASON_NONE
 		temperature_tenths = 0
 		rain = 0
 		moisture_delta = 0
@@ -312,13 +377,18 @@ var _farming: FarmingScript = null
 var _weather: WeatherScript = null
 var _orchard_hive: OrchardHiveScript = null
 var _nodes: ResourceNodesScript = null
+var _fishing: FishingScript = null
 var _rng: Rng = null
 
 # --- the idempotence latches ------------------------------------------------------------------
+#
+# THERE IS NO `_last_scheduled_season` HERE ANY MORE. Ruling §4.2 made
+# `Weather.scheduled_absolute_season` the single owner of §5.10's scheduled-once latch, and
+# decision 0055 migrated this file onto it rather than keeping a second copy that could disagree
+# on load. `last_scheduled_season()` reads that column.
 
 var _last_day: int = NO_DAY_RUN
 var _last_hour_tick: int = NO_HOUR_RUN
-var _last_scheduled_season: int = NO_SEASON_SCHEDULED
 
 # --- scratch (not simulation state) -----------------------------------------------------------
 
@@ -341,6 +411,7 @@ func _init(p_ecology: EcologyScript = null, p_rng: Rng = null) -> void:
 	_directory = _ecology.directory()
 	_orchard_hive = _ecology.orchard_hive()
 	_nodes = _ecology.resource_nodes()
+	_fishing = _ecology.fishing()
 	_farming = FarmingScript.new(_directory)
 	_weather = WeatherScript.new()
 	_rng = p_rng
@@ -360,6 +431,10 @@ func _assert_shared_contracts() -> void:
 		"the plot sweep must cover exactly the directory's FarmPlot rows")
 	assert(_farming.directory() == _directory,
 		"the crop store must validate references through the ecology's one directory")
+	assert(_fishing == _ecology.fishing(),
+		"ruling §4.1's closure must be written into ARCH-SYS-005's own fishery, not a copy")
+	assert(WeatherScript.DAYS_PER_SEASON == SimClock.DAYS_PER_SEASON,
+		"the absolute-season identity and the clock must agree on a season's length")
 
 
 func clear() -> void:
@@ -373,7 +448,6 @@ func clear() -> void:
 	_weather.clear()
 	_last_day = NO_DAY_RUN
 	_last_hour_tick = NO_HOUR_RUN
-	_last_scheduled_season = NO_SEASON_SCHEDULED
 	_last_refusal = REFUSE_NONE
 
 
@@ -512,6 +586,8 @@ func run_day_into(boundary_tick: int, hive_eligibility_crossings: int, out: DayR
 	SimClock.calendar_at_into(boundary_tick, _calendar)
 	if _calendar.absolute_day <= _last_day:
 		return out.refuse(REFUSE_DAY_ALREADY_RUN)
+	if not _preflight_day(_calendar.absolute_day, _calendar.season, out):
+		return false
 	_last_day = _calendar.absolute_day
 	_write_day_header(boundary_tick, out)
 	if not _run_steps(hive_eligibility_crossings, out):
@@ -520,21 +596,91 @@ func run_day_into(boundary_tick: int, hive_eligibility_crossings: int, out: DayR
 	return true
 
 
+func preflight_refusal_for(absolute_day: int, season: int) -> StringName:
+	"""Ruling §4.1's preflight as a PURE READER: the code this boundary would refuse with, or empty.
+
+	Runs exactly the checks `run_day_into()` runs before it consumes the day, and writes nothing
+	at all -- no latch, no store, no column. It is the entry point a caller uses to ask "would this
+	boundary advance?" without advancing it, and it is what makes the season-identity check
+	reachable from a test: `run_day_into()` derives both sides of that comparison from one tick and
+	so can never disagree with itself, while this form takes the season as an argument.
+	The DayResult it fills is local, because a reader must not disturb the stage's own scratch.
+	"""
+	var probe: DayResult = DayResult.new()
+	if _preflight_day(absolute_day, season, probe):
+		return REFUSE_NONE
+	return probe.error
+
+
+func _preflight_day(absolute_day: int, season: int, out: DayResult) -> bool:
+	"""Ruling §4.1: prove season identity, RNG and catalogs BEFORE the boundary can advance at all.
+
+	Writes `out.absolute_season` on success and nothing at all on refusal, and is called before
+	the day latch is consumed -- so a refused boundary leaves the day unrun and every store
+	untouched, instead of clearing some state and publishing an apparently completed tick.
+	"""
+	if not _weather.absolute_season_of_day_into(absolute_day, _read):
+		return out.refuse(StringName(_read.error))
+	var absolute_season: int = _read.value
+	if WeatherScript.season_of_absolute_season(absolute_season) != season:
+		return out.refuse(REFUSE_SEASON_IDENTITY_MISMATCH)
+	if not _weather.catalog_is_verified():
+		return out.refuse(REFUSE_EVENT_CATALOG_UNVERIFIED)
+	if not _fishing.catalog_is_verified():
+		return out.refuse(REFUSE_FISH_CATALOG_UNVERIFIED)
+	if not _preflight_weather_stream(absolute_day, absolute_season, season, out):
+		return false
+	out.absolute_season = absolute_season
+	return true
+
+
+func _preflight_weather_stream(absolute_day: int, absolute_season: int, season: int,
+		out: DayResult) -> bool:
+	"""Require a bound, seeded WEATHER stream only on a boundary that would actually draw.
+
+	A season already scheduled draws nothing, and §5.10's forced first spring takes no Rng at all,
+	so neither needs a stream: an unseeded world still opens with its onboarding ideal spell. Any
+	other new season without a seeded stream refuses HERE, before the completed day's blight and
+	orchard steps commit, rather than half way through the boundary.
+	"""
+	if _weather.is_season_scheduled(absolute_season):
+		return true
+	if _weather.is_forced_first_spring(OrchardHiveScript.year_of_day(absolute_day), season):
+		return true
+	if _rng == null:
+		return out.refuse(REFUSE_NO_RNG)
+	if not _rng.is_seeded():
+		return out.refuse(REFUSE_RNG_NOT_SEEDED)
+	return true
+
+
 func _write_day_header(boundary_tick: int, out: DayResult) -> void:
-	"""Copy the decoded calendar instant of this boundary onto the result before any step runs."""
+	"""Copy the decoded calendar instant of this boundary onto the result before any step runs.
+
+	`absolute_season` is already on the result from the preflight and is NOT rewritten here.
+	`completed_absolute_season` is ruling §4.3's ELAPSED calendar, derived from `completed_day`
+	and not from the day now opening, so the two visibly differ on a season crossing.
+	`elapsed_hour_tick` records the hour this stage had already integrated when the boundary
+	opened, which is the preceding interval's -- see step 0 of the header.
+	"""
 	out.boundary_tick = boundary_tick
 	out.absolute_day = _calendar.absolute_day
 	out.season = _calendar.season
 	out.season_day = _calendar.season_day
 	out.completed_day = _calendar.absolute_day - 1
+	out.elapsed_hour_tick = _last_hour_tick
+	if _weather.absolute_season_of_day_into(out.completed_day, _read):
+		out.completed_absolute_season = _read.value
 
 
 func _run_steps(hive_eligibility_crossings: int, out: DayResult) -> bool:
-	"""The six daily steps in the order the header sets out. See there for why each sits where it does."""
+	"""The seven daily steps in the order the header sets out. See there for why each sits where it does."""
 	_apply_completed_day_blight(out)
 	if not _advance_orchards(out):
 		return false
 	if not _advance_weather_day(out):
+		return false
+	if not _apply_mussel_event_closure(out):
 		return false
 	if not _apply_daily_moisture(out):
 		return false
@@ -542,18 +688,36 @@ func _run_steps(hive_eligibility_crossings: int, out: DayResult) -> bool:
 	return _refresh_farm_links_after_hive_changes(hive_eligibility_crossings, out)
 
 
+func _apply_mussel_event_closure(out: DayResult) -> bool:
+	"""Ruling §4.1's ONE writer of `FishStock.closed`: the new day's summer-blight mussel closure.
+
+	The bit is `new_season == SUMMER && active_new_day_event == BLIGHT` and FALSE otherwise --
+	including autumn blight, whose ruled effect mask has AFFECTS_MUSSEL_HARVEST stripped, and the
+	day after expiry, whose active event is EVENT_NONE. It is written UNCONDITIONALLY every day,
+	not only when closing, so a stock cannot stay shut because nobody reopened it.
+	It runs after the new day's weather and long before `settlement_system.gd` plans jobs.
+	"""
+	out.mussel_event_closed = _weather.closes_mussel_harvest_on(
+		out.absolute_season, out.season_day)
+	if not _fishing.apply_mussel_event_closure_into(out.mussel_event_closed, _read):
+		return out.refuse(StringName(_read.error))
+	out.mussel_stocks_written = _read.value
+	return true
+
+
 func _apply_completed_day_blight(out: DayResult) -> void:
 	"""REQ-SET-087 for the day that ENDED, with that day's tending flags still standing.
 
 	400 health/day, 200 while tended, and only while §5.10's blight window covers the completed
-	day of the completed day's season. "Stop damage when the event ends" needs nothing: outside
-	the window `is_blight_active()` is false and the call is simply not made.
+	day of the COMPLETED DAY'S OWN ABSOLUTE SEASON -- ruling §4.3's elapsed calendar, derived from
+	`completed_day` and never from the new day's season, so a season crossing does not settle
+	summer's blight as an autumn one. "Stop damage when the event ends" needs nothing: outside the
+	window `is_blight_active()` is false and the call is simply not made.
 	"""
 	if out.completed_day < MIN_CALENDAR_DAY:
 		return
-	var season: int = OrchardHiveScript.season_of_day(out.completed_day)
 	var season_day: int = OrchardHiveScript.season_day_of_day(out.completed_day)
-	if not _weather.is_blight_active(season, season_day):
+	if not _weather.is_blight_active(out.completed_absolute_season, season_day):
 		return
 	out.blight_active = true
 	for slot: int in FarmingScript.FARM_PLOT_CAPACITY:
@@ -602,7 +766,8 @@ func _advance_weather_day(out: DayResult) -> bool:
 		return false
 	if not _disclose_due_forecast(out):
 		return false
-	var refreshed: WeatherScript.OpResult = _weather.refresh_daily(out.season, out.season_day)
+	var refreshed: WeatherScript.OpResult = _weather.refresh_daily(
+		out.absolute_season, out.season_day)
 	if not refreshed.ok:
 		return out.refuse(refreshed.error)
 	out.temperature_tenths = _weather.temperature_tenths()
@@ -614,14 +779,18 @@ func _end_expired_event(out: DayResult) -> bool:
 	"""REQ-SET-145: drop the scheduled event's modifiers on the first day after its window closes.
 
 	"Without restoring crop health, consumed stocks, or injuries already incurred" is structural
-	in `weather.gd`: that store holds none of them. The disclosed forecast is retained, because
-	REQ-SET-142 requires the calendar to keep it.
+	in `weather.gd`: that store holds none of them. The disclosed forecast is retained WITH its
+	absolute-season identity, because REQ-SET-142 requires the calendar to keep it, and so is the
+	scheduled-once latch. A SEASON CROSSING EXPIRES THE EVENT TOO: an event scheduled for another
+	absolute season covers no day of this one, whatever its season-local start day was, so the
+	row's modifiers are dropped before this season's own event is drawn.
 	"""
 	if not _weather.is_event_scheduled():
 		return true
-	if out.season_day <= _weather.last_day():
+	if _weather.is_season_scheduled(out.absolute_season) \
+			and out.season_day <= _weather.last_day():
 		return true
-	var ended: WeatherScript.OpResult = _weather.end_event(out.season)
+	var ended: WeatherScript.OpResult = _weather.end_event(out.absolute_season)
 	if not ended.ok:
 		return out.refuse(ended.error)
 	out.event_ended = ended.value
@@ -631,40 +800,38 @@ func _end_expired_event(out: DayResult) -> bool:
 func _schedule_season_event(out: DayResult) -> bool:
 	"""§5.10's one event per season: the forced first spring draws ZERO, every other draws ONE.
 
-	The latch is the ABSOLUTE season index, so a season already scheduled schedules nothing again
-	however many midnights it sees -- which is what makes "exactly one major event occurs per
-	season" true for a caller `weather.gd` says cannot enforce it for itself.
+	The latch is `Weather.scheduled_absolute_season`, so a season already scheduled schedules
+	nothing again however many midnights it sees. The absolute season is the one the PREFLIGHT
+	established and is not recomputed here: `farming.gd` derives the same
+	`floor((absolute_day-1)/12)` for its own tables, and a duplicate comparison at this point is a
+	branch no test can ever enter, so the agreement of the two derivations is asserted directly by
+	`test_the_two_stores_derive_the_same_absolute_season` across four years instead.
 	"""
-	if not _farming.absolute_season_of_day_into(out.absolute_day, _read):
-		return out.refuse(StringName(_read.error))
-	var absolute_season: int = _read.value
-	if absolute_season == _last_scheduled_season:
+	if _weather.is_season_scheduled(out.absolute_season):
 		return true
 	if _weather.is_forced_first_spring(
 			OrchardHiveScript.year_of_day(out.absolute_day), out.season):
-		return _apply_forced_first_spring(absolute_season, out)
+		return _apply_forced_first_spring(out)
 	if _rng == null:
 		return out.refuse(REFUSE_NO_RNG)
-	var drawn: WeatherScript.OpResult = _weather.schedule_season_event(out.season, _rng)
+	var drawn: WeatherScript.OpResult = _weather.schedule_season_event(out.absolute_season, _rng)
 	if not drawn.ok:
 		return out.refuse(drawn.error)
-	_last_scheduled_season = absolute_season
 	out.event_scheduled = drawn.value
 	out.weather_draws = 1
 	return true
 
 
-func _apply_forced_first_spring(absolute_season: int, out: DayResult) -> bool:
+func _apply_forced_first_spring(out: DayResult) -> bool:
 	"""§5.10's onboarding event: forced ideal spell on day 6, and ZERO WEATHER draws.
 
 	`schedule_first_spring_event()` takes no Rng at all, so the zero-draw rule is structural
 	rather than a convention this function could break -- an unseeded settlement still gets its
-	first spring.
+	first spring. It refuses any absolute season but 0, which is exactly year 1's spring.
 	"""
-	var forced: WeatherScript.OpResult = _weather.schedule_first_spring_event()
+	var forced: WeatherScript.OpResult = _weather.schedule_first_spring_event(out.absolute_season)
 	if not forced.ok:
 		return out.refuse(forced.error)
-	_last_scheduled_season = absolute_season
 	out.event_scheduled = forced.value
 	out.weather_draws = 0
 	return true
@@ -674,15 +841,18 @@ func _disclose_due_forecast(out: DayResult) -> bool:
 	"""REQ-SET-142: disclose the scheduled event three days before it starts, consuming no draw.
 
 	Idempotent in the store, so a caller that discloses on every day from the due day onward
-	writes the same three values every time; BAL-SAFE-017's "opening forecasts ... SHALL consume
-	no event roll" holds because `disclose_forecast()` takes no Rng.
+	writes the same values every time; BAL-SAFE-017's "opening forecasts ... SHALL consume no event
+	roll" holds because `disclose_forecast()` takes no Rng. The disclosure carries the day's
+	absolute season, so the retained calendar entry can be placed in a year after the event ends.
 	"""
-	if not _weather.is_forecast_due(out.season_day):
+	if not _weather.is_forecast_due(out.absolute_season, out.season_day):
 		return true
-	var disclosed: WeatherScript.OpResult = _weather.disclose_forecast(out.season_day)
+	var disclosed: WeatherScript.OpResult = _weather.disclose_forecast(
+		out.absolute_season, out.season_day)
 	if not disclosed.ok:
 		return out.refuse(disclosed.error)
 	out.forecast_event = _weather.forecast_event()
+	out.forecast_absolute_season = _weather.forecast_absolute_season()
 	return true
 
 
@@ -694,7 +864,7 @@ func _apply_daily_moisture(out: DayResult) -> bool:
 	spring heavy rain keeps 10000 under this order and would lose 600 under the other, because
 	rain applied first would be clamped away before the evaporation was taken off it.
 	"""
-	var event: int = _weather.active_event_on(out.season_day)
+	var event: int = _weather.active_event_on(out.absolute_season, out.season_day)
 	if not _weather.moisture_delta_for_into(out.season, event, _read):
 		return out.refuse(StringName(_read.error))
 	out.moisture_delta = _read.value
@@ -743,6 +913,10 @@ func prime_day(absolute_day: int) -> bool:
 	for the opening 18 hours. This writes that day's season baseline, schedules its season's event
 	and discloses a due forecast, using exactly the same three steps the daily leg uses, and marks
 	the day consumed so the boundary of the SAME day cannot run them twice.
+
+	Ruling §4.3: "First-day priming supplies spring's actual baseline at tick 0; zero-filled
+	weather is not valid opening weather." The same preflight the daily leg uses runs first, so a
+	world whose season identity or catalogs do not check out refuses to open at all.
 	"""
 	if absolute_day < MIN_CALENDAR_DAY:
 		return _refuse(REFUSE_INVALID_DAY)
@@ -752,6 +926,8 @@ func prime_day(absolute_day: int) -> bool:
 	out.absolute_day = absolute_day
 	out.season = OrchardHiveScript.season_of_day(absolute_day)
 	out.season_day = OrchardHiveScript.season_day_of_day(absolute_day)
+	if not _preflight_day(absolute_day, out.season, out):
+		return _refuse(out.error)
 	if not _advance_weather_day(out):
 		return _refuse(out.error)
 	_last_day = absolute_day
@@ -911,8 +1087,22 @@ func last_hour_tick() -> int:
 
 
 func last_scheduled_season() -> int:
-	"""Absolute season index `(day-1)/12` whose §5.10 event is already scheduled; -1 before any."""
-	return _last_scheduled_season
+	"""Absolute season index `(day-1)/12` whose §5.10 event is already scheduled; -1 before any.
+
+	READS `Weather.scheduled_absolute_season` AND HOLDS NOTHING. Ruling §4.2 made that column the
+	single owner of the scheduled-once latch and forbids an independent second copy, so this is a
+	delegation and cannot drift from the store it describes (decision 0055).
+	"""
+	return _weather.scheduled_absolute_season()
+
+
+func fishing() -> FishingScript:
+	"""The §5.4 fishery whose `FishStock.closed` event bit ruling §4.1 gives this stage to write.
+
+	Borrowed from the ecology, exactly as `orchard_hive()` is: ARCH-SYS-005 still owns stock and
+	quota recovery, and this stage writes the event closure column and nothing else in it.
+	"""
+	return _fishing
 
 
 func last_refusal() -> StringName:

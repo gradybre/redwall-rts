@@ -1,10 +1,24 @@
-# READY_07 scheduler-event contract proposal
+# READY_07 scheduler-event contract — R07-SCHED-001
 
-2026-09-11 · **PROPOSED engineering amendment R07-SCHED-001.** This is the complete
-candidate requested by task04.1, not an already shipped format or a user-approved
-change to simulation rules. Parent [READY_07 answers](../rulings/2026-09-11_ready07_open_item_answers.md).
+2026-09-11 · **ADOPTED and IMPLEMENTED engineering amendment R07-SCHED-001.**
+Statuses, kept separate as the closing section requires: **proposed** here on
+2026-09-11; **adopted** the same day by [READY_07 §3](../rulings/2026-09-11_ready07_open_item_answers.md);
+**implemented** in `godot/scripts/core/scheduler_events.gd` under
+[decision 0054](../decisions/0054-the-scheduler-event-queue-drains-before-every-tick.md);
+**verified** for everything in the acceptance list below by
+`godot/test/test_scheduler_events.gd`, EXCEPT the production pending-save and
+replay acceptance, which stays **BLOCKED** because no save module exists. The
+8224 bytes are now in ARCH-MEM-010's reconciled ledger, once. The text below is
+unchanged from the proposal; it remains a specification of simulation format,
+not a user-approved change to simulation rules. Parent [READY_07 answers](../rulings/2026-09-11_ready07_open_item_answers.md).
 Owners: ARCH-CMD-002, ARCH-CLOCK-001/002, GDD REQ-SET-002–008, UI pause reasons,
 architecture §8. Preserve economic CommandKind IDs and their 64-byte records.
+
+**Save/hash clarification, 2026-09-11:** [G3 in the addendum](../rulings/2026-09-11_ready07_save_ui_addendum.md)
+requires debt and six historical clock counters in section1, but excludes them
+from ARCH-HASH-001. Saved bytes remain integrity-protected. Requested speed,
+logical pause and pending scheduler intent stay canonical; cross-speed gameplay
+projections and identical-host continuation are separately labeled evidence.
 
 ## Record and bounded storage
 
@@ -124,8 +138,9 @@ X=48+32*S and section length=24+64*E+P+X=72+64*E+P+32*S. Require E≤4096,
 P≤1048576, S≤256 and exact length agreement with the section directory. Economic
 sequence fields preserve commands.gd's existing allocator semantics, not the new
 scheduler's initial1/sentinel policy. Rebuild ring/order indexes deterministically;
-do not compact payload storage in a way that changes future admission. Command
-result/source-intent ledgers keep their own canonical auxiliary-state owners.
+do not compact payload storage in a way that changes future admission. Source-intent deduplication is canonical section6 auxiliary state. Completed
+command-result rings/cursors are transient and omitted from saves and canonical
+hashes (ARCH-SAVE-007; decision 0063).
 
 Validate all lengths,
 count≤256, sequence bounds, reason ownership/rules, zero padding and pending

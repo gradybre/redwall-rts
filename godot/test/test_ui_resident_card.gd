@@ -197,17 +197,45 @@ func test_the_winter_multiplier_reaches_the_rate_the_player_reads() -> void:
 		"250 x 1.20 is 300 points/hour, which is 3.00 percentage points")
 
 
-func test_the_four_unpublished_rates_say_so_rather_than_printing_zero() -> void:
-	"""§5: "If rate isn't published, say Rate unavailable". A fabricated 0.00 would be worse."""
+func test_all_five_rows_now_carry_a_published_rate() -> void:
+	"""NEED-RATE-R01 closed the interface gap this test used to record.
+
+	IT WAS THE OPPOSITE ASSERTION. While `needs.gd` published only hunger's effective rate,
+	rows 1-4 correctly read `Rate unavailable`, because §5 forbids substituting the baseline
+	decay as a universal answer. The four signed net readers now exist and the card copies them
+	through `ui_resident_snapshot.gd`, so the unavailable state is reserved for a genuinely
+	failed binding and must not be the answer for a living resident.
+
+	Each expected number is the ruling's own published fixture, written here as a literal, and
+	each condition is set through the store's OWN setter.
+	"""
 	var slot: int = _spawn(&"mouse")
+	assert_true(_needs.set_activity(slot, NeedsScript.ACTIVITY_SLEEP_BED).ok, "it sleeps in a bed")
+	assert_true(_needs.set_comfort_environment(slot,
+		NeedsScript.COMFORT_ENV_HEATED_ROOM).ok, "in a heated room")
+	assert_true(_needs.set_social_paired(slot, true).ok, "paired")
+	assert_true(_needs.set_purpose_source(slot, NeedsScript.PURPOSE_SOURCE_LABOR).ok,
+		"with useful labor")
 	assert_true(_card.fill_needs(_residents, _needs, slot), "the five rows fill")
-	for need: int in [NeedsScript.NEED_REST, NeedsScript.NEED_COMFORT,
-			NeedsScript.NEED_SOCIAL, NeedsScript.NEED_PURPOSE]:
+	var expected: Array[String] = ["-2.50 pp/h", "+12.00 pp/h", "+2.00 pp/h",
+		"+11.00 pp/h", "+2.45 pp/h"]
+	for need: int in NeedsScript.NEED_COUNT:
 		var row: UiResidentCard.Row = _card.row(need)
-		assert_false(row.has_rate, "%s publishes no effective rate" % row.label)
-		assert_equal(row.rate_text, UiResidentCard.RATE_UNAVAILABLE,
-			"%s says so in §5's own words" % row.label)
-		assert_false(row.rate_text.contains("0.00"), "%s prints no zero" % row.label)
+		assert_true(row.has_rate, "%s carries a published rate" % row.label)
+		assert_equal(row.rate_text, expected[need], "%s reads its fixture" % row.label)
+		assert_false(row.rate_text.contains("-0.00"), "%s never prints a signed zero" % row.label)
+
+
+func test_the_unavailable_state_is_kept_for_a_genuinely_failed_binding() -> void:
+	"""The words survive; only the reason for saying them changed. A dead row has no live rate."""
+	assert_equal(UiResidentCard.RATE_UNAVAILABLE, "Rate unavailable",
+		"§5's exact wording is still published")
+	var slot: int = _spawn(&"mouse")
+	var ref: Vector2i = _residents.ref_of(slot)
+	assert_true(_card.fill_needs(_residents, _needs, slot), "a living resident fills")
+	assert_true(_residents.despawn(ref).ok, "and is then despawned")
+	assert_false(_card.fill_needs_for(_residents.directory(), _residents, _needs, ref),
+		"the stale reference refuses the whole card rather than one row")
 
 
 func test_the_fullness_row_does_have_a_published_rate() -> void:
@@ -371,9 +399,15 @@ func test_the_24_px_diagnostic_size_is_not_offered_as_a_portrait_size() -> void:
 
 
 func test_the_production_size_follows_the_detail_column_width() -> void:
-	"""§1.2's detail widths are 320/336/384; only the wide column takes the 64 px roundel."""
+	"""UI-IDENTITY-R01's medallion column, keyed on §1.2's detail widths 320/336/384: 48/64/64.
+
+	This CHANGED. The old rule gave 64 to the wide column alone, because the roundel then had
+	to share its row with a heading whose §4 minimum was 280 px. The ruling overrides that
+	minimum for this template and publishes the medallion column directly.
+	"""
 	assert_equal(UiResidentCard.emblem_pixels_for_width(320.0), 48, "narrow takes 48")
-	assert_equal(UiResidentCard.emblem_pixels_for_width(336.0), 48, "standard takes 48")
+	assert_equal(UiResidentCard.emblem_pixels_for_width(336.0), 64,
+		"standard takes 64 under UI-IDENTITY-R01, which changed this from 48")
 	assert_equal(UiResidentCard.emblem_pixels_for_width(384.0), 64, "wide takes 64")
 
 

@@ -1,7 +1,12 @@
 # 0071 — World generation creates the §5.1 cohort, and that costs "IDs 1–12"
 
-Date: 2026-09-11 · Status: **Accepted** for the composition; **Open** for the
-persistent-ID contradiction, which is the specification owner's ruling to make.
+Date: 2026-09-11 · Status: **Accepted** for the composition. The persistent-ID
+contradiction it left open is **settled by ruling R-INIT-ID-001 and superseded by
+[decision 0075](0075-the-cohort-is-allocated-before-the-world.md)**: the cohort is
+allocated first and holds IDs 1–12, and the world follows from 13. Everything below
+about the forced order and the 1714–1725 arithmetic is the historical record of what
+the code did, kept because it is the reasoning the ruling overturned — not a
+description of the code today.
 
 ## The gap
 
@@ -93,6 +98,13 @@ Exactly two readings would close it, and each contradicts a different document:
 actually is, in `test_the_generated_cohorts_persistent_ids_are_not_gdd_5_1s_one_to_twelve`,
 which derives 1714 from the census above rather than hard-coding it, so a future
 ruling either changes that assertion deliberately or is caught leaving it wrong.
+
+> **2026-09-11, R-INIT-ID-001:** the ruling arrived and that assertion was changed
+> deliberately, exactly as intended. `test_the_generated_cohorts_persistent_ids_are_not_gdd_5_1s_one_to_twelve`
+> was replaced by `test_the_generated_cohort_holds_gdd_5_1s_persistent_ids_one_to_twelve`,
+> which asserts ids 1–12 with Rowan on 1; the counter's progression is now derived
+> from all allocation events rather than pinned. See
+> [decision 0075](0075-the-cohort-is-allocated-before-the-world.md).
 Nothing observable depends on the value today: `jobs.gd`'s stagger is
 `persistent_id % 30` and twelve consecutive ids still produce twelve distinct
 offsets.

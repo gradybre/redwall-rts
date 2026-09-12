@@ -360,6 +360,36 @@ func test_columns_are_allocated_once_and_never_resized() -> void:
 		assert_equal(length, expected, "%s kept its allocated length" % name)
 
 
+func test_ref_of_slot_rebuilds_a_live_reference_and_refuses_a_dead_one() -> void:
+	"""`ref_of_slot()` is the reverse of `is_valid()`: slot in, the GDD §4.1 pair out.
+
+	R-INIT-ID-001 requires a "complete uniqueness and reference audit" over initialization, and an
+	audit has slots rather than references. NULL_REF for an inactive slot is §4.1's own null
+	reference, not a failure sentinel -- an empty slot names no entity.
+	"""
+	var ref: Vector2i = _directory.create(EntityDirectoryScript.KIND_RESIDENT)
+	assert_equal(_directory.ref_of_slot(ref.x), ref, "the live slot rebuilds its own reference")
+	assert_true(_directory.is_valid(_directory.ref_of_slot(ref.x)), "and it validates")
+	assert_equal(_directory.get_persistent_id(_directory.ref_of_slot(ref.x)),
+		_directory.get_persistent_id(ref), "carrying the same persistent id")
+	assert_true(_directory.destroy(ref), "the row is released")
+	assert_equal(_directory.ref_of_slot(ref.x), EntityDirectoryScript.NULL_REF,
+		"a freed slot names no entity")
+	assert_equal(_directory.ref_of_slot(-1), EntityDirectoryScript.NULL_REF, "nor does slot -1")
+	assert_equal(_directory.ref_of_slot(EntityDirectoryScript.DIRECTORY_CAPACITY),
+		EntityDirectoryScript.NULL_REF, "nor one past the last slot")
+
+
+func test_ref_of_slot_tracks_the_generation_across_reuse() -> void:
+	"""A reused slot must rebuild the NEW generation, or an audit would read the dead row."""
+	var first: Vector2i = _directory.create(EntityDirectoryScript.KIND_RESIDENT)
+	assert_true(_directory.destroy(first), "the first row is released")
+	var second: Vector2i = _directory.create(EntityDirectoryScript.KIND_RESIDENT)
+	assert_equal(second.x, first.x, "the slot is handed back")
+	assert_equal(_directory.ref_of_slot(second.x), second, "and rebuilds the live generation")
+	assert_false(_directory.ref_of_slot(second.x) == first, "never the destroyed one")
+
+
 func test_clear_resets_the_directory() -> void:
 	"""clear() drops every row, refills both heaps, and restarts the persistent id counter."""
 	var ref: Vector2i = _directory.create(EntityDirectoryScript.KIND_RESIDENT)

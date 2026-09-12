@@ -1,5 +1,7 @@
 # Claude executor — six Astra follow-up answers
 
+**Resident UI addendum:** [heading geometry and four rate readers](2026-09-12_resident_header_and_need_rates.md).
+
 2026-09-12. Start here for the four restore/layout/movement questions plus alert
 profiles and seed-expiry quantity. Preserve the live executor branch and changes.
 These are adopted engineering rulings; no runtime implementation or test pass is

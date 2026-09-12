@@ -598,7 +598,7 @@ described a benchmark fixture, not the game. This entry wires them in.
   3203 / 110,315 / 0 on `origin/master` e206a08).
 - **Owners:** UXV-020, GDD §5.2, BAL-NUM-001, ARCH-MEM-001, finding H4; ADR 0095.
   Depends on the existing needs integrator and its rate selectors.
-- **Evidence:** `docs/decisions/0095-published-need-rates-copy-the-selector-not-the-formula.md`.
+- **Evidence:** `docs/decisions/0096-published-need-rates-copy-the-selector-not-the-formula.md`.
   The mutation that matters is `M2`: dropping the `-` from
   `_rate_scratch[NEED_HUNGER] = -_hunger_rate_milli[...]` leaves the fixture **table** green,
   because the table pins the positive magnitude the mutation does not touch. It is killed only

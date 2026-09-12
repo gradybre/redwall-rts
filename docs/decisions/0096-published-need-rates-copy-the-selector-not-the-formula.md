@@ -1,4 +1,4 @@
-# 0095 — Published need rates copy the selector's answer, not its formula
+# 0096 — Published need rates copy the selector's answer, not its formula
 
 Date: 2026-09-12 · Status: **Accepted**
 
@@ -68,8 +68,13 @@ the test are kept.
 `docs/rulings/2026-09-12_resident_header_and_need_rates.md` § NEED-RATE-R01, whose rate
 fixtures are inherited from GDD §5.2 and the existing selectors rather than new balance.
 
-That ruling file is **not on `origin/master`** at the time of writing — it exists only in
-the rulings worktree — and neither is the record that adopts it as a whole. This record
-deliberately covers only the implementation choice inside `needs.gd`, which is what this
-branch changes; the adoption record and the resident-header half arrive separately and
-must not be assumed present by a reader of this branch alone.
+That ruling file was **not yet on `origin/master`** when this was written — it existed
+only in a worktree — so this record was careful not to let a reader assume the citation
+resolved. It has since landed, so the link is live; the caution is kept because it is why
+the record is scoped the way it is. This record deliberately covers only the implementation
+choice inside `needs.gd`, which is what this branch changes; the resident-header half of the
+ruling is a separate lane and is not implemented here.
+
+This record was filed as 0095 and renumbered to 0096: 0095 was free on the base this branch
+was cut from, and the resident life-stage column took it before this landed. The
+`decision_numbers.py` gate is what makes that a caught collision rather than a silent one.

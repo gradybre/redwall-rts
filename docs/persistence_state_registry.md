@@ -509,6 +509,18 @@ Neither needs new state.
 |---|---|---:|---|---|:-:|---|---|
 | Fixed header and section table | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` beyond the lazily built 256-entry CRC-32/ISO-HDLC lookup table, which is a compile-time constant derived from the reversed polynomial `systems_architecture.md:745` states. Everything else is static: the 256-byte header codec, the 64-byte descriptor codec, the body SHA-256 and the section-table validator. The header's own bytes are file structure, not simulation state; the catalog hash it carries at offset 72 is `catalog_ids.gd`'s digest, not a second one. |
 
+### `godot/scripts/core/save_section_rng.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 10 RNG codec | -- | -- | -- | -- | 3 | -- | Holds no module-level `var`: every function is static and the only mutable objects are a caller-owned `Record` and a per-call `Writer`. It WRITES §10 -- nine `rng.gd` states at offset 0 as i32 and nine draw counts at offset 36 as i64, a fixed 108-byte payload -- but owns none of that state itself, exactly as ARCH-SAVE-007 says a memory allocation row alone does not make a field persisted. The classified rows for what it carries are `rng.gd`'s three above. |
+
+### `godot/scripts/core/save_section_world_runtime.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 1 WorldRuntime codec | -- | -- | -- | -- | 3 | -- | Holds no module-level `var`; all static. It writes the leading 80-byte WorldRuntime block of §1 -- completed tick, world seed, seeded flag, requested speed, pause mask, then host debt and the six clock counters -- whose classified rows are `sim_clock.gd`'s four and `rng.gd`'s "RNG seed and seeded flag" below and above. Its two encoders realise the READY_07 G3 split: `encode_block()` writes all thirteen fields and `canonical_bytes_of()` writes only the five ARCH-HASH-001 ones, so debt and the counters are saved and CRC/SHA-protected without entering the canonical digest. It does NOT publish into `sim_clock.gd`, which has no writer for the tick, the debt or the counters. |
+
 ### `godot/scripts/core/schedule.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

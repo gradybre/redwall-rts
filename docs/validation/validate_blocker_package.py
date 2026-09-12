@@ -39,6 +39,11 @@ fixtures={
  'lookup_one_i32_table':b'RWL-LOOKUP-1\0'+u32(1)+s('fixture.values')+b'\x02'+u32(3)+struct.pack('<iii',-1,0,1024),
  'map_procedural_fixture':b'RWL-MAP-1\0'+struct.pack('<IiI',1,20260905,1)+bytes(32),
  'engine_reported_build_fixture':b'4.7.2.stable.official.ed1daf0bf001b61586d9930840f2f1394092c079\n'}
+fixtures['state_empty_registry_framing_only']=(b'RWL-STATE-1'+bytes(128)+s(fixtures['engine_reported_build_fixture'].decode('utf-8'))+struct.pack('<qI',0,0))
+check('State domain is11 bytes without terminator',len(b'RWL-STATE-1')==11)
+check('Static hysteresis boundaries',a['static_lod']['promote_near_px']==198 and a['static_lod']['demote_near_below_px']==162 and math.isclose(48*1.1,a['static_lod']['promote_mid_px']) and math.isclose(48*.9,a['static_lod']['demote_mid_below_px']))
+check('Multipart building budget',a['building_material_count']==4 and a['building_surfaces_by_lod']=={'near':16,'mid':16,'far':4})
+check('Durable source brief path',(R/a['source_lookdev_brief']['path']).is_file())
 v={'status':'SYNTHETIC_CODEC_TEST_VECTORS_NOT_PRODUCTION_DIGESTS','encoding':'SAVE-R09-003','vectors':{k:{'hex':v.hex(),'byte_length':len(v),'sha256':hashlib.sha256(v).hexdigest()} for k,v in fixtures.items()}}
 (R/'docs/planning/save_identity_test_vectors.json').write_text(json.dumps(v,indent=2)+'\n')
 newdocs=['docs/planning/asset_dimensions_and_budgets.md','docs/rulings/2026-09-11_save_codec_contract.md','docs/rulings/2026-09-11_focus_and_rollback_state.md','docs/rulings/2026-09-11_movement_gate_followthrough.md','docs/rulings/2026-09-11_asset_save_movement_blockers.md','docs/decisions/0080-asset-save-and-focus-engineering-contracts.md']

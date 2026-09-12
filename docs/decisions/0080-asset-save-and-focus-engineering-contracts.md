@@ -14,6 +14,8 @@ produce incompatible assets and saves. Full MOVE-G01 is larger than ground trave
 
 Adopt the engineering choices in the [ruling index](../rulings/2026-09-11_asset_save_movement_blockers.md)
 and its linked asset, save, focus/rollback and movement-boundary contracts.
+This explicitly supersedes decision0079's absence-of-definition finding for
+GAP-03/04/05 and adjacent06–09, while preserving its historical evidence.
 The GDD/architecture/UI and lower-priority owner documents are updated to bind
 those choices. Retain decision0002's direct user requirement for proportion
 review before bulk generation and all MOVE-G01–05 evidence gates.

@@ -1,7 +1,33 @@
 extends RefCounted
 ## ARCH-PATH-002/003/004/005 ground routing: deterministic A* on the baseline surface graph, its
-## bounded macro route cache, and the request states that keep "still queued" apart from "proven
+## bounded route cache, and the request states that keep "still queued" apart from "proven
 ## unreachable".
+##
+## ---------------------------------------------------------------------------------------
+## PATH-R02: EXACT-START A*, AND WHAT IT REPLACED.
+##
+## ARCH-PATH-003 as written stores one route per `(start_macro, goal_cell, clearance, revision)`
+## bucket, keyed by the macro's canonical ANCHOR, and gives a start that is not the anchor a
+## macro-local entry segment to reach it. Implemented literally that routes EVERY start through
+## its anchor. Decision 0053 measured the consequence on the authored map: cell (100,100) to
+## (104,102) composed to cost 160 against a true optimum of 48, and a start whose goal lies back
+## past the anchor retraced its own cells. Bounded by the 16-cell macro, so negligible on a long
+## journey and dominant on a short one -- which is most job trips.
+##
+## PATH-R02 supersedes that construction for new requests. A cached route is reused only when its
+## own start is the requester's actual start; a request whose start already IS the anchor also
+## matches the ordinary `variant_start=-1` descriptor, because that route genuinely begins there.
+## Every other miss runs unconstrained exact-start to exact-goal A* and publishes the whole route
+## with `variant_start=start_cell`. There is NO distance threshold and NO nearest-point splice:
+## the ruling rejected both, because a geometrically nearest join is not necessarily the cheapest
+## one. `PHASE_SEARCHING_LOCAL` is consequently unreachable and the prefix-plus-bucket
+## concatenation is gone; `_r_start_cell` is now always `_r_exact_start`, since no stage rewrites
+## the origin to an anchor any more.
+##
+## The cost is cache hit rate: two residents in one macro walking to one destination now search
+## twice instead of sharing a bucket. The quota stays at 2048 expansions a tick regardless --
+## PATH-R02 forbids both raising it and adding a separate small-query budget -- so the honest
+## report is a remeasured readiness distribution, which `test_navigation.gd` pins.
 ##
 ## ---------------------------------------------------------------------------------------
 ## SCOPE, AND THE HEURISTIC'S EXACT VALIDITY.
@@ -70,6 +96,11 @@ const HEURISTIC_DIAGONAL_DISCOUNT: int = 6
 
 ## "Every removed/finalized search cell counts toward the global 2048 expansions/tick".
 const EXPANSION_QUOTA_PER_TICK: int = 2048
+
+## PATH-R02 holds the quota fixed: "All finalized expansions share the existing 2048/tick quota;
+## do not add a 'small query' budget." Exact-start search spends MORE of it than anchor composition
+## did, and the correct response to that is a measured readiness report, not a larger number here.
+
 const ROUTE_DESCRIPTOR_CAPACITY: int = 256
 const ROUTE_CELL_CAPACITY: int = 1048576
 const PATH_REQUEST_CAPACITY: int = 8192
@@ -81,6 +112,12 @@ const SERVICE_ITERATION_GUARD: int = EXPANSION_QUOTA_PER_TICK + PATH_REQUEST_CAP
 
 const PHASE_FREE: int = 0
 const PHASE_QUEUED: int = 1
+
+## RETIRED BY PATH-R02 AND DELIBERATELY NOT RENUMBERED. This was ARCH-PATH-003's macro-local
+## start->anchor entry segment. No request enters it any more -- `_start_first_stage()` admits
+## only SEARCHING_FULL and SEARCHING_VARIANT -- but the value keeps its slot so that a persisted
+## `_r_phase` byte written before this change still decodes to what it meant, instead of silently
+## re-reading as SEARCHING_FULL. `ROUTE_SEMANTICS_VERSION` is what refuses such a payload.
 const PHASE_SEARCHING_LOCAL: int = 2
 const PHASE_SEARCHING_FULL: int = 3
 const PHASE_SEARCHING_VARIANT: int = 4
@@ -120,6 +157,23 @@ const REFUSE_REFERENCE_UNREACHABLE: StringName = &"REFERENCE_UNREACHABLE"
 const REFUSE_INVALID_CELL: StringName = &"INVALID_CELL"
 const REFUSE_PATH_CYCLE: StringName = &"INTERNAL_PATH_CYCLE"
 const REFUSE_REVISION_STALE: StringName = &"MAP_REVISION_STALE"
+const REFUSE_ROUTE_SEMANTICS: StringName = &"ROUTE_SEMANTICS_VERSION_INCOMPATIBLE"
+
+# --- route semantics version, PATH-R02's continuation gate ---------------------------------------
+
+## Version 1 was ARCH-PATH-003's compulsory composition: a stored route was keyed by the macro
+## ANCHOR, a non-anchor start held a separate entry prefix, and the published route was the
+## concatenation of the two. Version 2 is PATH-R02: every published route begins at the exact
+## start it was requested from, SEARCHING_LOCAL is unreachable, and no prefix hold exists.
+##
+## The two are not interchangeable and array shape does not distinguish them -- a version 1
+## descriptor table has the same sixteen columns of the same width. So a section 9 NAVIGATION
+## restore must compare this number and REFUSE, not flush the cache and not reinterpret an
+## in-flight request. `refuse_route_semantics()` is that comparison. There is no section 9 writer
+## yet (decision 0053 records ARCH-PATH-006 save/load as BLOCKED), which is exactly why the gate
+## is published here now rather than invented by whoever writes it.
+const ROUTE_SEMANTICS_VERSION: int = 2
+const ROUTE_SEMANTICS_VERSION_ANCHOR_COMPOSITION: int = 1
 
 # --- internal search bookkeeping ----------------------------------------------------------------
 
@@ -391,6 +445,8 @@ func _fill_request(
 	"""Write one validated submission into its record row and its contact row."""
 	_r_job_slot[row] = requester.x
 	_r_job_generation[row] = requester.y
+	# Equal to `_r_exact_start` by construction since PATH-R02 removed the anchor rewrite. Both
+	# columns are kept because ARCH-MEM-008 names them and a section 9 writer must persist both.
 	_r_start_cell[row] = start.cell
 	_r_exact_start[row] = start.cell
 	_r_goal_cell[row] = goal.cell
@@ -602,7 +658,12 @@ func request_expansions(row: int) -> int:
 
 
 func request_anchor(row: int) -> int:
-	"""The macro anchor (or exact start, for a variant) this request searched from."""
+	"""The cell this request searched from, which under PATH-R02 is always its exact start.
+
+	Kept because ARCH-MEM-008 names the column and a section 9 writer must persist it. It is no
+	longer ever a macro anchor that differs from the start; when the two coincide the request
+	publishes the `variant_start=-1` descriptor, and when they do not the anchor is not consulted.
+	"""
 	if not is_request_row(row):
 		return NO_ROW
 	return _r_anchor[row]
@@ -696,7 +757,15 @@ static func _stale_phase_of(refusal: StringName) -> int:
 
 
 func _start_first_stage(row: int, tick: int) -> void:
-	"""Decide which of ARCH-PATH-003's three entry routes this request takes, and start it."""
+	"""PATH-R02 admission: an exact-start cache hit, the zero-travel case, or exact-start A*.
+
+	ARCH-PATH-003's compulsory macro-local start->anchor entry segment is gone. A stored route is
+	reused ONLY when its own start is this request's actual start (PATH-R02 2), with the single
+	equivalence PATH-R02 3 states: a request whose start already IS the canonical macro anchor is
+	served by, and publishes, the ordinary `variant_start=-1` anchor descriptor, because that
+	descriptor's route genuinely begins at this exact start. Every other miss runs an
+	unconstrained exact-start to exact-goal search (PATH-R02 4).
+	"""
 	var start: int = _r_exact_start[row]
 	var goal: int = _r_goal_cell[row]
 	var clearance: int = _r_clearance[row]
@@ -704,42 +773,38 @@ func _start_first_stage(row: int, tick: int) -> void:
 			or not _world.cell_passes_clearance(goal, clearance):
 		_settle_request(row, PHASE_UNREACHABLE)
 		return
-	var macro_id: int = _r_start_macro[row]
-	var cached: int = _find_descriptor(macro_id, goal, clearance, start)
+	var start_is_anchor: bool = start == _world.lowest_passable_cell_in_macro(
+		_r_start_macro[row], clearance)
+	_r_anchor[row] = start
+	var cached: int = _find_exact_start_route(row, start, goal, clearance, start_is_anchor)
 	if cached != NO_ROUTE:
-		_r_anchor[row] = _d_anchor[cached]
 		_attach_route(row, cached, tick)
 		return
 	if start == goal:
-		_r_anchor[row] = start
 		_complete_direct(row, tick, start)
 		return
-	var anchor: int = _world.lowest_passable_cell_in_macro(macro_id, clearance)
-	if anchor == NO_ROW or anchor == start:
-		_r_anchor[row] = start if anchor == NO_ROW else anchor
-		_begin_full_or_variant(row, tick, anchor == NO_ROW)
-		return
-	_r_anchor[row] = anchor
-	_begin_search(row, PHASE_SEARCHING_LOCAL, start, anchor, macro_id)
+	_begin_search(
+		row, PHASE_SEARCHING_FULL if start_is_anchor else PHASE_SEARCHING_VARIANT,
+		start, goal, NO_ROW)
 
 
-func _begin_full_or_variant(row: int, tick: int, is_variant: bool) -> void:
-	"""Start the unconstrained stage: the macro-anchor bucket search, or an exact-start variant."""
-	if is_variant:
-		_begin_search(row, PHASE_SEARCHING_VARIANT, _r_exact_start[row], _r_goal_cell[row], NO_ROW)
-		return
-	_begin_full_stage(row, tick)
+func _find_exact_start_route(
+	row: int, start: int, goal: int, clearance: int, start_is_anchor: bool
+) -> int:
+	"""PATH-R02 2 and 3's cache probe: this start's own variant, or the anchor route it equals.
 
-
-func _begin_full_stage(row: int, tick: int) -> void:
-	"""Reuse the macro bucket if one exists at this revision, otherwise search anchor to goal."""
-	var bucket: int = _find_descriptor(
-		_r_start_macro[row], _r_goal_cell[row], _r_clearance[row], NO_VARIANT)
-	if bucket != NO_ROUTE:
-		_complete_with_bucket(row, bucket, tick)
-		return
-	_r_start_cell[row] = _r_anchor[row]
-	_begin_search(row, PHASE_SEARCHING_FULL, _r_anchor[row], _r_goal_cell[row], NO_ROW)
+	It NEVER returns a descriptor built for a different start merely because the two share a macro.
+	That reuse is exactly the detour decision 0053 measured at 160 against an optimum of 48, and
+	removing it is the whole of PATH-R02. `_find_descriptor()` already pins goal, clearance and
+	map revision, so this probe adds only the start-identity rule.
+	"""
+	var macro_id: int = _r_start_macro[row]
+	var exact: int = _find_descriptor(macro_id, goal, clearance, start)
+	if exact != NO_ROUTE:
+		return exact
+	if not start_is_anchor:
+		return NO_ROUTE
+	return _find_descriptor(macro_id, goal, clearance, NO_VARIANT)
 
 
 func _advance_active(tick: int) -> void:
@@ -748,42 +813,19 @@ func _advance_active(tick: int) -> void:
 	var result: int = _step_search(row)
 	if result == STEP_RUNNING:
 		return
-	var phase: int = _r_phase[row]
-	if phase == PHASE_SEARCHING_LOCAL:
-		_finish_local(row, result, tick)
-	elif phase == PHASE_SEARCHING_FULL:
+	if _r_phase[row] == PHASE_SEARCHING_FULL:
 		_finish_full(row, result, tick)
 	else:
 		_finish_variant(row, result, tick)
 
 
-func _finish_local(row: int, result: int, tick: int) -> void:
-	"""ARCH-PATH-003's entry segment settled: store the prefix, or fall back to an exact-start A*.
-
-	A local failure means the start and the macro anchor are in DIFFERENT connected components, so
-	the anchor's bucket route must never be reused for this start -- the exact-start variant is the
-	only correct answer, and it is what a disconnected macro start gets.
-	"""
-	if result == STEP_EXHAUSTED:
-		_r_anchor[row] = _r_exact_start[row]
-		_begin_search(row, PHASE_SEARCHING_VARIANT, _r_exact_start[row], _r_goal_cell[row], NO_ROW)
-		return
-	var prefix: int = _store_route(
-		_r_exact_start[row], _r_anchor[row], _r_start_macro[row], _r_anchor[row],
-		_r_clearance[row], _r_exact_start[row], _r_exact_start[row], tick)
-	if prefix == NO_ROUTE:
-		_settle_request(row, PHASE_BLOCKED_ROUTE_STORAGE)
-		_storage_blocked_count += 1
-		return
-	_hold_route(prefix, tick)
-	_r_route_id[row] = prefix
-	_r_route_generation[row] = _d_generation[prefix]
-	_abandon_active_search()
-	_begin_full_stage(row, tick)
-
-
 func _finish_full(row: int, result: int, tick: int) -> void:
-	"""The macro-anchor bucket search settled: publish the bucket, or prove the goal unreachable."""
+	"""The anchor-start search settled: publish the `variant_start=-1` route, or prove it unreachable.
+
+	Under PATH-R02 this stage runs only when the request's exact start IS the canonical macro
+	anchor, so the published route begins at the caller's real start. It keeps the `-1` key so a
+	later request starting on the same anchor finds it, per PATH-R02 3.
+	"""
 	if result == STEP_EXHAUSTED:
 		_settle_request(row, PHASE_UNREACHABLE)
 		return
@@ -795,7 +837,7 @@ func _finish_full(row: int, result: int, tick: int) -> void:
 		_storage_blocked_count += 1
 		return
 	_abandon_active_search()
-	_complete_with_bucket(row, bucket, tick)
+	_attach_route(row, bucket, tick)
 
 
 func _finish_variant(row: int, result: int, tick: int) -> void:
@@ -823,25 +865,6 @@ func _complete_direct(row: int, tick: int, cell: int) -> void:
 		_storage_blocked_count += 1
 		return
 	_attach_route(row, route, tick)
-
-
-func _complete_with_bucket(row: int, bucket: int, tick: int) -> void:
-	"""Join the stored entry prefix to the macro bucket, or reference the bucket directly."""
-	if _r_route_id[row] == NO_ROUTE:
-		_attach_route(row, bucket, tick)
-		return
-	var prefix: int = _r_route_id[row]
-	_hold_route(bucket, tick)
-	var joined: int = _store_concatenation(row, prefix, bucket, tick)
-	_release_route(bucket, _d_generation[bucket])
-	_release_route(prefix, _r_route_generation[row])
-	_r_route_id[row] = NO_ROUTE
-	_r_route_generation[row] = 0
-	if joined == NO_ROUTE:
-		_settle_request(row, PHASE_BLOCKED_ROUTE_STORAGE)
-		_storage_blocked_count += 1
-		return
-	_attach_route(row, joined, tick)
 
 
 func _attach_route(row: int, route: int, tick: int) -> void:
@@ -1085,45 +1108,6 @@ func _store_route(
 	_d_refcount[descriptor] = 0
 	_link_variant(descriptor)
 	return descriptor
-
-
-func _store_concatenation(row: int, prefix: int, bucket: int, tick: int) -> int:
-	"""Join a stored entry prefix and a macro bucket into one start-keyed route, or NO_ROUTE."""
-	var total: int = _d_count[prefix] + _d_count[bucket] - 1
-	var descriptor: int = _acquire_descriptor(tick)
-	if descriptor == NO_ROUTE:
-		_last_refusal = REFUSE_DESCRIPTOR_CAPACITY
-		return NO_ROUTE
-	_describe(
-		descriptor, _r_start_macro[row], _r_goal_cell[row], _r_clearance[row],
-		_r_exact_start[row], _r_anchor[row], tick)
-	var offset: int = _acquire_arena(total)
-	if offset == NO_ROW:
-		_free_descriptor(descriptor)
-		_last_refusal = REFUSE_ARENA_CAPACITY
-		return NO_ROUTE
-	_d_offset[descriptor] = offset
-	_d_count[descriptor] = total
-	_copy_join(offset, prefix, bucket)
-	_d_refcount[descriptor] = 0
-	_link_variant(descriptor)
-	return descriptor
-
-
-func _copy_join(offset: int, prefix: int, bucket: int) -> void:
-	"""Copy prefix cells then the bucket's cells after its first, which the prefix already ends on.
-
-	Offsets are read HERE rather than by the caller: acquiring arena space may have compacted the
-	arena and moved both source blocks.
-	"""
-	var prefix_offset: int = _d_offset[prefix]
-	var prefix_count: int = _d_count[prefix]
-	for index: int in prefix_count:
-		_arena[offset + index] = _arena[prefix_offset + index]
-	var bucket_offset: int = _d_offset[bucket]
-	var write: int = offset + prefix_count - 1
-	for index: int in range(1, _d_count[bucket]):
-		_arena[write + index] = _arena[bucket_offset + index]
 
 
 func _path_length(origin: int, goal: int) -> int:
@@ -1477,6 +1461,24 @@ func expansions_remaining_this_tick() -> int:
 func storage_blocked_count() -> int:
 	"""How many completed searches ARCH-PATH-005's bounded cache had nowhere to store."""
 	return _storage_blocked_count
+
+
+static func route_semantics_version() -> int:
+	"""The published route-semantics version of this module: 2 since PATH-R02."""
+	return ROUTE_SEMANTICS_VERSION
+
+
+static func refuse_route_semantics(version: int) -> StringName:
+	"""The refusal a section 9 restore owes a payload it cannot continue, or REFUSE_NONE.
+
+	Anything that is not this module's current version is refused, including the version 1
+	anchor-composition state PATH-R02 retires. There is no migration: a version 1 route stored a
+	macro anchor's path for a start that may not be on it, and re-keying it would republish the
+	same detour under a new name.
+	"""
+	if version == ROUTE_SEMANTICS_VERSION:
+		return REFUSE_NONE
+	return REFUSE_ROUTE_SEMANTICS
 
 
 func served_revision() -> int:

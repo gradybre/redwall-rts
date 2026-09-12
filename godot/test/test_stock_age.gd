@@ -403,26 +403,6 @@ func test_spoiled_food_is_removed_as_waste_after_two_hundred_and_forty_hours() -
 	assert_true(_inv.audit().ok, "conservation closes with the quantity counted as sunk")
 
 
-func test_an_expired_seed_lot_refuses_because_the_compost_quantity_is_unstated() -> void:
-	"""Gap 3: §5.8 gives seeds a 1440 h shelf life and NO seed -> compost quantity.
-
-	§5.7's compost recipe turns 4000 milli-U of spoiled_food (1000 g) into 2000 milli-U of
-	compost (2000 g), so the settled compost conversion doubles mass and equal-mass cannot
-	simply be assumed. The lot is left exactly as it stood rather than converted at a guess.
-	"""
-	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
-	var start: int = SEED_SHELF_HOURS * MILLI_HOURS_PER_HOUR - CELLAR_FACTOR
-	var lot: Vector2i = _lot(store, &"seed_grain", 10000, start)
-	var out: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
-	assert_true(out.ok, "the pass still runs -- one undecidable lot is not a failed hour")
-	assert_equal(out.unconvertible_seed_lots, 1, "the seed lot is counted")
-	assert_equal(out.last_lot_refusal, &"SEED_COMPOST_RATIO_UNSPECIFIED", "and named")
-	assert_equal(_inv.lot_item_id(lot), _item(&"seed_grain"), "the seed is still seed")
-	assert_equal(_inv.lot_quantity_milli(lot), 10000, "at its whole quantity")
-	assert_equal(_inv.lot_item_id(lot) == _item(&"compost"), false,
-		"and nothing became compost at an invented ratio")
-
-
 func test_an_inexact_equal_mass_conversion_refuses_instead_of_rounding() -> void:
 	"""§5.8 asks for IDENTICAL mass, and two masses that do not divide have no such quantity.
 
@@ -616,3 +596,334 @@ func test_clear_drops_every_declaration_and_the_hourly_latch() -> void:
 	assert_equal(_age.storage_class_of(store), StockAgeScript.STORAGE_UNDECLARED,
 		"including the one for a container that is still alive")
 	assert_equal(_age.last_hour_tick(), StockAgeScript.NO_HOUR_RUN, "and the latch is dropped")
+
+
+# --- STOCK-SEED-R01: expired seed converts to compost by exact floored nominal mass -------------
+#
+# Every number below is RESTATED FROM THE RULING (docs/rulings/2026-09-12_alerts_and_seed_expiry.md)
+# or from `docs/gameplay_balance.md`'s item table, never read back out of `stock_age.gd`.
+
+## The ruling's worked boundary table: expired seed milli-U -> compost milli-U, decay milli-grams.
+const SEED_EXPIRY_TABLE: Array[Array] = [
+	[1, 0, 100], [9, 0, 900], [10, 1, 0], [19, 1, 900], [1000, 100, 0], [10000, 1000, 0],
+]
+
+## The five seed items the ruling enumerates, and the two catalog masses it quotes.
+const SEED_KEYS: Array[StringName] = [
+	&"seed_beans", &"seed_cabbage", &"seed_flax", &"seed_grain", &"seed_roots",
+]
+const SEED_MASS_G: int = 100
+const COMPOST_MASS_G: int = 1000
+## "All five current seed items use 100 g/U and compost 1000 g/U, so this is floor(q/10)."
+const EXPECTED_DIVISOR: int = 10
+
+
+func _expired_seed_start_age(store_factor: int) -> int:
+	"""Starting age that reaches a seed's 1440 h shelf threshold on the NEXT hour exactly."""
+	return SEED_SHELF_HOURS * MILLI_HOURS_PER_HOUR - store_factor
+
+
+func test_the_catalog_masses_still_make_the_expiry_divisor_exactly_ten() -> void:
+	"""The tripwire for STOCK-SEED-R01's "currently floor(q_milli/10)".
+
+	The module DERIVES its divisor from the two catalog masses and writes no 10 anywhere, which
+	is the point: this test pins what that derivation currently evaluates to, so a catalog edit
+	to a seed mass or to compost's mass FAILS here instead of silently re-pricing every expiry.
+	"""
+	for key: StringName in SEED_KEYS:
+		var id: int = _item(key)
+		assert_true(id >= 0, "%s is a catalog item" % key)
+		assert_true(_defs.is_seed(id), "%s carries the seed flag the ruling triggers on" % key)
+		assert_equal(_inv.item_mass_g(id), SEED_MASS_G, "%s is 100 g/U" % key)
+		assert_equal(_defs.shelf_hours(id), SEED_SHELF_HOURS, "%s has a 1440 h shelf life" % key)
+	assert_equal(_inv.item_mass_g(_item(&"compost")), COMPOST_MASS_G, "compost is 1000 g/U")
+	assert_equal(COMPOST_MASS_G % SEED_MASS_G, 0, "the two masses divide, so a divisor exists")
+	assert_equal(COMPOST_MASS_G / SEED_MASS_G, EXPECTED_DIVISOR,
+		"the derived divisor is currently 10; changing a catalog mass must fail here")
+
+
+func test_the_rulings_expiry_boundary_table_holds_row_by_row() -> void:
+	"""floor_div(checked_mul(q, seed_mass), compost_mass), with EXACTLY one final floor.
+
+	Dividing the masses first would agree on every row that is a multiple of ten and disagree on
+	1, 9 and 19, which is why the ruling tabulates those three.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	for row: Array in SEED_EXPIRY_TABLE:
+		var seed_milli: int = row[0]
+		assert_true(StockAgeScript.expiry_compost_quantity_into(
+			seed_milli, SEED_MASS_G, COMPOST_MASS_G, out), "%d milli-U converts" % seed_milli)
+		assert_equal(out.value, row[1], "%d milli-U of seed yields %d of compost" % [row[0], row[1]])
+		assert_true(StockAgeScript.expiry_decay_loss_milli_g_into(
+			seed_milli, SEED_MASS_G, COMPOST_MASS_G, out), "%d milli-U has a loss" % seed_milli)
+		assert_equal(out.value, row[2],
+			"%d milli-U discards %d milli-grams as decay" % [row[0], row[2]])
+
+
+func test_the_nominal_mass_invariant_holds_on_every_tabulated_row() -> void:
+	"""STOCK-SEED-R01: "Required nominal invariant: compost_milli*compost_mass <= seed_milli*seed_mass"."""
+	for row: Array in SEED_EXPIRY_TABLE:
+		assert_true(row[1] * COMPOST_MASS_G <= row[0] * SEED_MASS_G,
+			"%d milli-U of compost never carries more mass than %d of seed" % [row[1], row[0]])
+		assert_equal(row[1] * COMPOST_MASS_G + row[2], row[0] * SEED_MASS_G,
+			"and output mass plus decay loss accounts for the input exactly")
+
+
+func test_a_zero_or_negative_mass_refuses_instead_of_answering_a_quantity() -> void:
+	""""Positive validated catalog masses" -- an absent one has no yield, not a yield of zero."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_false(StockAgeScript.expiry_compost_quantity_into(1000, 0, COMPOST_MASS_G, out),
+		"an unregistered seed mass refuses")
+	assert_equal(out.error, "SEED_COMPOST_YIELD_UNREPRESENTABLE", "and names why")
+	assert_equal(out.value, 0, "with the value channel zeroed rather than guessed")
+	assert_false(StockAgeScript.expiry_compost_quantity_into(1000, SEED_MASS_G, 0, out),
+		"an unregistered compost mass refuses")
+	assert_false(StockAgeScript.expiry_compost_quantity_into(0, SEED_MASS_G, COMPOST_MASS_G, out),
+		"and a lot of nothing has no conversion")
+	assert_false(StockAgeScript.expiry_decay_loss_milli_g_into(1000, SEED_MASS_G, 0, out),
+		"the decay-loss form refuses on the same inputs")
+
+
+func test_a_yield_that_overflows_int64_refuses_rather_than_saturating() -> void:
+	""""Do not saturate overflow": a saturated product would create matter out of arithmetic.
+
+	Driven through the pure form because no container in this game admits 9.3e16 milli-U of a
+	100 g/U seed, and the checked multiply must still be the thing that stops it.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	var huge: int = 9223372036854775807
+	assert_false(StockAgeScript.expiry_compost_quantity_into(
+		huge, SEED_MASS_G, COMPOST_MASS_G, out), "the product does not fit int64")
+	assert_equal(out.value, 0, "and no compost quantity is invented")
+	assert_false(StockAgeScript.expiry_decay_loss_milli_g_into(
+		huge, SEED_MASS_G, COMPOST_MASS_G, out), "nor is a decay remainder")
+
+
+func test_all_five_seed_items_become_compost_on_their_shelf_hour() -> void:
+	""""Acceptance: all five seed types" -- each converts, and each at its own floored yield."""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var lots: Array[Vector2i] = []
+	for key: StringName in SEED_KEYS:
+		lots.append(_lot(store, key, 10000, _expired_seed_start_age(CELLAR_FACTOR)))
+	var out: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
+	assert_true(out.ok, "the hour ran")
+	assert_equal(out.seed_lots_converted, SEED_KEYS.size(), "all five seed lots converted")
+	assert_equal(out.seed_lots_retired, 0, "none floored to zero at 10000 milli-U")
+	assert_equal(out.compost_sourced_milli, SEED_KEYS.size() * 1000, "each yielding 1000")
+	for lot: Vector2i in lots:
+		assert_equal(_inv.lot_item_id(lot), _item(&"compost"), "the row is compost now")
+		assert_equal(_inv.lot_quantity_milli(lot), 1000, "at floor(10000/10)")
+		assert_equal(_inv.lot_age_milli_hours(lot), 0, "with a fresh age, not the seed's 1440 h")
+	assert_true(_inv.audit().ok, "and conservation closes across all five")
+
+
+func test_an_expired_seed_lot_is_sunk_whole_and_compost_sourced_floored() -> void:
+	""""records the ENTIRE seed quantity as a seed sink and the calculated positive compost
+	quantity as a compost source"."""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var seed_id: int = _item(&"seed_grain")
+	var compost_id: int = _item(&"compost")
+	var lot: Vector2i = _lot(store, &"seed_grain", 10000, _expired_seed_start_age(CELLAR_FACTOR))
+	var out: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
+	assert_true(out.ok, "the hour ran")
+	assert_equal(_inv.lot_item_id(lot), compost_id, "the row itself became compost")
+	assert_equal(out.lots_expired, 1, "the conversion counts as an expiry")
+	assert_equal(out.seed_sunk_milli, 10000, "the whole seed quantity is reported sunk")
+	assert_equal(_inv.total_sunk_milli(seed_id), 10000, "and the seed ledger says the same")
+	assert_equal(_inv.total_sourced_milli(compost_id), 1000, "while compost is sourced floored")
+	assert_equal(_inv.total_live_milli(seed_id), 0, "no seed survives the conversion")
+	assert_equal(_inv.total_live_milli(compost_id), 1000, "and the compost is live")
+	assert_equal(out.seed_decay_loss_milli_g, 0, "an exact multiple of ten loses nothing")
+	assert_true(_inv.audit().ok, "conservation closes on both items")
+
+
+func test_the_floored_remainder_is_decay_loss_carried_by_the_seed_sink() -> void:
+	"""19 milli-U -> 1 milli-U of compost and 900 milli-grams of decay loss (the ruling's row).
+
+	The loss is not silently dropped: the ENTIRE 19 is sunk against seed_grain while only 1 is
+	sourced as compost, so `audit()`'s per-item `live + sunk == sourced` still closes and the
+	missing 0.9 g is visible as the difference between the two ledgers' nominal masses.
+	"""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var lot: Vector2i = _lot(store, &"seed_grain", 19, _expired_seed_start_age(CELLAR_FACTOR))
+	var out: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
+	assert_true(out.ok, "the hour ran")
+	assert_equal(out.seed_lots_converted, 1, "19 milli-U still yields a positive lot")
+	assert_equal(_inv.lot_quantity_milli(lot), 1, "of exactly 1 milli-U of compost")
+	assert_equal(out.seed_decay_loss_milli_g, 900, "and reports 900 milli-grams of decay loss")
+	assert_equal(_inv.total_sunk_milli(_item(&"seed_grain")), 19, "the whole 19 is sunk")
+	assert_equal(_inv.total_sourced_milli(_item(&"compost")), 1, "only 1 milli-U is sourced")
+	assert_true(1 * COMPOST_MASS_G <= 19 * SEED_MASS_G, "the nominal invariant holds")
+	assert_true(_inv.audit().ok, "conservation closes with the loss accounted")
+
+
+func test_a_seed_lot_whose_yield_floors_to_zero_is_retired_not_left_at_zero() -> void:
+	""""When output is zero, atomically invalidate reservations and sink retire the seed lot
+	without creating a zero-quantity compost lot"."""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var lot: Vector2i = _lot(store, &"seed_grain", 9, _expired_seed_start_age(CELLAR_FACTOR))
+	var out: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
+	assert_true(out.ok, "the hour ran")
+	assert_equal(out.seed_lots_retired, 1, "the lot retired")
+	assert_equal(out.seed_lots_converted, 0, "nothing was converted")
+	assert_equal(out.refused_lots, 0, "and retirement is an OUTCOME, not a refusal")
+	assert_false(_inv.is_lot_valid(lot), "the row is gone rather than lingering at zero")
+	assert_equal(_inv.live_lot_count(), 0, "no zero-quantity compost lot was created")
+	assert_equal(_inv.total_live_milli(_item(&"compost")), 0, "and no compost exists")
+	assert_equal(_inv.total_sunk_milli(_item(&"seed_grain")), 9, "the whole 9 is sunk as decay")
+	assert_equal(out.seed_decay_loss_milli_g, 900, "all 900 milli-grams of it lost")
+	assert_equal(_inv.container_used_mass_g(store), 0, "and the container got its mass back")
+	assert_true(_inv.audit().ok, "conservation closes on a retirement too")
+
+
+func test_splitting_a_seed_lot_can_only_lose_compost_never_gain_it() -> void:
+	"""STOCK-SEED-R01: "sum(floor(q_i/10)) <= floor(sum(q_i)/10)", because the rule is PER LOT.
+
+	18 milli-U in one lot yields 1; the same 18 as 9 + 9 yields 0 + 0. Applying the floor to the
+	container's aggregate instead of per lot would hand the split stack a unit it did not earn.
+	"""
+	var whole_store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	_lot(whole_store, &"seed_grain", 18, _expired_seed_start_age(CELLAR_FACTOR))
+	var whole: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
+	assert_equal(whole.compost_sourced_milli, 1, "one lot of 18 milli-U yields 1")
+	before_each()
+	var split_store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	_lot(split_store, &"seed_grain", 9, _expired_seed_start_age(CELLAR_FACTOR))
+	_lot(split_store, &"seed_grain", 9, _expired_seed_start_age(CELLAR_FACTOR))
+	var split: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
+	assert_equal(split.compost_sourced_milli, 0, "the same 18 split in two yields nothing")
+	assert_equal(split.seed_lots_retired, 2, "both halves retire instead")
+	assert_true(split.compost_sourced_milli <= whole.compost_sourced_milli,
+		"splitting never increases the compost an expiring seed stack produces")
+
+
+func test_a_seed_conversion_invalidates_its_reservations_in_the_same_transaction() -> void:
+	""""Inventory atomically invalidates/releases the lot's reservations" at the boundary.
+
+	Without the release inside the transaction `transform_lot_item()` refuses
+	LOT_HAS_RESERVATION and the seed would still be seed, which is what this pins.
+	"""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var lot: Vector2i = _lot(store, &"seed_grain", 10000, _expired_seed_start_age(CELLAR_FACTOR))
+	assert_true(_inv.reserve_lot(lot, 4000).ok, "a sowing job claims part of the seed")
+	var out: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
+	assert_true(out.ok, "the hour ran")
+	assert_equal(out.reservations_invalidated_milli, 4000, "the claim is reported invalidated")
+	assert_equal(_inv.lot_reserved_milli(lot), 0, "no worker keeps a claim on the compost")
+	assert_equal(_inv.lot_item_id(lot), _item(&"compost"), "and the conversion still committed")
+	assert_equal(out.replans_owed, 1, "with the replanning owed to an owner that does not exist")
+
+
+func test_a_reserved_zero_yield_seed_lot_retires_with_its_claim_released() -> void:
+	"""Zero output still releases the claim first: a retired lot may hold no reservation."""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var lot: Vector2i = _lot(store, &"seed_grain", 9, _expired_seed_start_age(CELLAR_FACTOR))
+	assert_true(_inv.reserve_lot(lot, 9).ok, "the whole 9 milli-U is claimed")
+	var out: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
+	assert_true(out.ok, "the hour ran")
+	assert_equal(out.reservations_invalidated_milli, 9, "the claim is reported invalidated")
+	assert_equal(out.seed_lots_retired, 1, "and the lot retired")
+	assert_false(_inv.is_lot_valid(lot), "with no reserved quantity left pointing at nothing")
+	assert_true(_inv.audit().ok, "conservation closes")
+
+
+func test_a_seed_lot_one_hour_short_of_its_shelf_life_is_not_converted() -> void:
+	""""Trigger only when the existing hourly aging pass REACHES the declared expiry".
+
+	The crossing is `age >= shelf_hours * 1000` and nothing earlier: a lot two hours out still
+	ages for real, and converts on the hour it actually reaches 1440000.
+	"""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var start: int = SEED_SHELF_HOURS * MILLI_HOURS_PER_HOUR - 2 * CELLAR_FACTOR
+	var lot: Vector2i = _lot(store, &"seed_grain", 10000, start)
+	var first: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
+	assert_true(first.ok, "the first hour ran")
+	assert_equal(first.seed_lots_converted, 0, "one hour short converts nothing")
+	assert_equal(_inv.lot_item_id(lot), _item(&"seed_grain"), "the lot is still seed")
+	assert_equal(_inv.lot_age_milli_hours(lot), SEED_SHELF_HOURS * MILLI_HOURS_PER_HOUR
+		- CELLAR_FACTOR, "and it aged by exactly one cellar hour")
+	var second: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 10))
+	assert_equal(second.seed_lots_converted, 1, "the next hour reaches the threshold exactly")
+	assert_equal(_inv.lot_item_id(lot), _item(&"compost"), "and the seed becomes compost")
+
+
+func test_a_seed_conversion_never_charges_the_container_more_mass() -> void:
+	""""No extra container capacity may be charged from rounded seed mass".
+
+	19 milli-U of a 100 g/U seed charges ceil(1900/1000) = 2 g; the 1 milli-U of compost it
+	becomes charges 1 g. The floor can only ever return capacity, never take more.
+	"""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var lot: Vector2i = _lot(store, &"seed_grain", 19, _expired_seed_start_age(CELLAR_FACTOR))
+	var before: int = _inv.container_used_mass_g(store)
+	assert_equal(before, 2, "19 milli-U at 100 g/U charges a 2 g ceiling")
+	assert_true(_age.run_hour(_hour_tick(3, 9)).ok, "the hour ran")
+	assert_equal(_inv.lot_item_id(lot), _item(&"compost"), "the conversion committed")
+	assert_equal(_inv.container_used_mass_g(store), 1, "and the compost charges 1 g")
+	assert_true(_inv.container_used_mass_g(store) <= before, "never more than the seed did")
+
+
+func test_a_refused_expiry_hour_leaves_the_inventory_byte_identical() -> void:
+	"""Decision 0059: a refusal leaves every collaborating store byte identical.
+
+	The hour is refused at preflight with somebody else's transaction open, which is the one
+	refusal a unit test can force through the real catalog; `state_bytes()` is the proof, not a
+	spot check of two fields.
+	"""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	_lot(store, &"seed_grain", 10000, _expired_seed_start_age(CELLAR_FACTOR))
+	var before: PackedByteArray = _inv.state_bytes()
+	assert_true(_inv.begin().ok, "another owner opens a transaction")
+	var out: StockAgeScript.HourResult = _age.run_hour(_hour_tick(3, 9))
+	assert_false(out.ok, "the aging pass refuses rather than nesting")
+	assert_equal(out.error, &"INVENTORY_TRANSACTION_OPEN", "and names why")
+	assert_equal(out.seed_lots_converted, 0, "a refusal carries no counts")
+	_inv.abort()
+	assert_equal(_inv.state_bytes(), before, "and the store is byte identical")
+
+
+# --- STOCK-SEED-R01's consumer eligibility predicate (enforcement is Inventory's) ----------------
+
+func test_an_expired_seed_lot_is_refused_to_every_seed_consumer() -> void:
+	"""The predicate STOCK-SEED-R01 requires seed consumers to apply, at the exact boundary.
+
+	ENFORCEMENT IS NOT IN THIS MODULE: the ruling gives quantity admission to `inventory.gd`,
+	which this lane does not own, so this proves the predicate and not that any consumer calls
+	it. Nothing in the repository does yet.
+	"""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var threshold: int = SEED_SHELF_HOURS * MILLI_HOURS_PER_HOUR
+	var fresh: Vector2i = _lot(store, &"seed_grain", 1000, threshold - 1)
+	assert_false(_age.refuses_seed_consumption(fresh), "one milli-hour short is still usable")
+	var expired: Vector2i = _lot(store, &"seed_grain", 1000, threshold)
+	assert_true(_age.refuses_seed_consumption(expired), "reaching the threshold refuses it")
+	var older: Vector2i = _lot(store, &"seed_grain", 1000, threshold + 5000)
+	assert_true(_age.refuses_seed_consumption(older), "and so does anything past it")
+
+
+func test_the_seed_guard_has_no_opinion_about_food_and_fails_closed() -> void:
+	"""A non-seed answers false; anything the guard cannot evaluate answers true."""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var berries: Vector2i = _lot(store, &"berries", 1000,
+		BERRIES_SHELF_HOURS * MILLI_HOURS_PER_HOUR)
+	assert_false(_age.refuses_seed_consumption(berries),
+		"expired berries are not this guard's business")
+	assert_true(_age.refuses_seed_consumption(InventoryScript.NULL_REF),
+		"an invalid lot is never admitted")
+	assert_true(_age.refuses_seed_consumption(Vector2i(berries.x, berries.y + 1)),
+		"nor is a stale reference whose generation has moved on")
+	var unbound: StockAgeScript = StockAgeScript.new()
+	assert_true(unbound.refuses_seed_consumption(Vector2i(0, 1)),
+		"and an unbound stage refuses rather than admitting what it cannot read")
+
+
+func test_reading_the_seed_guard_converts_nothing() -> void:
+	"""STOCK-SEED-R01: "No conversion on ... reads". The predicate is a read and stays one."""
+	var store: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
+	var lot: Vector2i = _lot(store, &"seed_grain", 10000,
+		SEED_SHELF_HOURS * MILLI_HOURS_PER_HOUR)
+	var before: PackedByteArray = _inv.state_bytes()
+	assert_true(_age.refuses_seed_consumption(lot), "the lot is past its shelf life")
+	assert_equal(_inv.state_bytes(), before, "and reading that changed nothing at all")
+	assert_equal(_inv.lot_item_id(lot), _item(&"seed_grain"), "the seed is still seed")
+	assert_equal(_inv.total_sourced_milli(_item(&"compost")), 0, "no compost was sourced")

@@ -65,15 +65,20 @@ assert DECISION_0083_ADDED==10336
 # freed lot slot the next create_lot() receives.
 DECISION_0085_ADDED=(1+1+4+4)*101376
 assert DECISION_0085_ADDED==1013760
+# decision 0092: game_manager.gd's pre-load rollback checkpoint, _checkpoint: PackedInt64Array,
+# CHECKPOINT_FIELDS(10) * 8 bytes. Allocated once in _init() and overwritten in place; it holds
+# the clock's ten runtime scalars in restore_runtime() argument order and is never serialized.
+DECISION_0092_ADDED=10*8
+assert DECISION_0092_ADDED==80
 # decision 0095: residents.gd's _life_stage, a B8 column over RESIDENT_CAPACITY. It is a §2.2
 # field row, so it enters the payload through the "Fixed registry payload" allocation row rather
-# than as an allocation row of its own -- the allocation count does not move.
+# than as an allocation row of its own -- the allocation count does not move for it.
 DECISION_0095_ADDED=1*512
 assert DECISION_0095_ADDED==512
-assert len(allocations)==24 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0095_ADDED
+assert len(allocations)==25 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==63732954
-assert live==72121562 and candidate==57517370 and live+candidate==129638932
+assert payload==63733034
+assert live==72121642 and candidate==57517450 and live+candidate==129639092
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

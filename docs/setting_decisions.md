@@ -938,35 +938,6 @@ No new paid-generation budget is authorized. Existing UI illustration treatment
 remains separately scoped; this image contains no UI and does not approve unseen
 UI assets. See [visual alignment](art-reference/visual_direction_alignment.md).
 
-## 9. Progress ledger
-
-| Date | Work completed | Still open |
-|---|---|---|
-| 2026-09-05 | Read current concept/GDD/UI/asset contracts and legacy bible; inspected publisher/author reference material; wrote setting bible and agent handoff; asked Round 1 | DEC-001–027; no answers recorded yet |
-| 2026-09-05, revision 0.2 | Recorded DEC-001/002/024 as confirmed variety and whole-series scope; added scenario contracts and DEC-028; asked Round 2 | DEC-003–023 and DEC-025–028; concrete scenario lineups and first-release coverage remain open |
-| 2026-09-05, revision 0.3 | Recorded DEC-028 as all-options-first; supplied requested recommendations for DEC-005/006 with source limits and revision consequences | Admission and diet choices, concrete scenario lineup and remaining interview topics |
-| 2026-09-05, revision 0.4 | Adopted DEC-005/006; reconciled rules v2 across GDD, UI, catalogs, architecture and validation policy; asked Round 3 | Full runtime and scenario content still outstanding; player role, belief and building form awaiting answers |
-| 2026-09-06, revision 0.5 | Recorded DEC-008/009/010 within their answered scopes; added earth-built home requirement and DEC-029/030; asked Round 4 | Excavation scope, supernatural certainty, exact scenarios, content boundaries and family simulation remain open |
-| 2026-09-06, revision 0.6 | Recorded all three underground methods, serious consequences/grief and visible family life; superseded the single-level recommendation; asked Round 5 | Exact underground engineering, method interoperability, family simulation and content limits remain open |
-| 2026-09-06, revision 0.7 | Confirmed interoperable construction and uncertain supernatural truth; supplied dependent-resident family recommendation | DEC-032 remains open; detailed underground/family engineering and content limits remain outstanding |
-| 2026-09-06, revision 0.8 | Adopted dependent residents, shared care, active elders and fixed first-release life stages; asked Round 6 | Child vulnerability, humor/art direction, exact family engineering and remaining lore questions stay open |
-| 2026-09-06, revision 0.9 | Adopted child-vulnerability recommendation and warm everyday humor; explained three visual styles | DEC-018 remains open; exact family engineering, antagonist tone and wider content boundaries remain outstanding |
-| 2026-09-06, revision 0.10 | Adopted the storybook/grounded-realism blend and domain-specific art guide; asked Round 7 | Species proportions, dialogue, canon divergence, exact mechanics and remaining lore details are open |
-| 2026-09-06, revision 0.11 | Recorded recognizable anatomy, light dialect and selective canon flexibility; added continuity boundary records; asked Round 8 | Exact sizes, scenario continuity/cast, naming, culinary traditions and audio remain open |
-| 2026-09-06, revision 0.12 | Adopted blended naming, all offered feast meanings and contextual sound/music blend; asked Round 9 | Exact names/customs/audio contracts, story delivery, Charter meaning and antagonist motives remain open |
-| 2026-09-06, revision 0.13 | Adopted mixed story delivery, the Refuge’s community-written Charter and varied antagonist motives/scales; asked Round 10 | Rowan/founding, wider content limits, exact story UI and future faction rules remain open |
-| 2026-09-06, revision 0.14 | Added six-book primary focus with publisher evidence; recorded mouse-keeper Rowan, displaced founding and two boundary subjects | Offscreen/exclusion clarification pending; detailed cause, place, cast and engineering remain open |
-| 2026-09-06, revision 0.15 | Added passage-analysis companion, explicit source coverage and adaptation checks | Complete six-novel analysis needs full texts and reading; no interview decisions changed |
-| 2026-09-06, revision 0.16 | Read all supplied Lord Brocktree narrative sections; recorded source mismatch, detailed analysis and bounded bible integration | Other five complete readings, edition verification and existing decision gaps remain; no new interview answers or mechanics |
-| 2026-09-06, revision 0.17 | Verified eleven additional files and authored targeted studies, source audit, comparative contradictions and context integration | All eleven new sequential readings, full Eulalia! access, edition checks and existing DEC gaps remain open; no user answers or mechanics invented |
-| 2026-09-06, revision 0.18 | Reviewed every supplied screenshot and recorded direct model-reference use, traversal analysis and source conflicts | Model production and complete traversal amendments remain; no slide-wide gameplay adoption or new interview answers |
-
-Rounds 1–10 establish product range, first-release coverage, admission, diet, scenario-dependent player roles, rare meaningful wonder and player-selectable settlement forms including earth-built homes. Round 4 adds all underground construction methods, serious consequences/grief and visible family life. Round 5 confirms construction interoperability and uncertain supernatural truth; DEC-032 subsequently adopts the dependent-resident model. Round 6 adopts child survival vulnerability and warm everyday humor; the visual follow-up adopts a blend of storybook and grounded realism. Round 7 confirms recognizable anatomy, light dialect and selective canon flexibility. Round 8 adopts naming, feast and sound blends. Round 9 adopts story-delivery variety, the community-written Refuge Charter and varied antagonist motives/scales. Round 10 confirms experienced mouse-keeper Rowan and displaced founding, adds six-book reference emphasis, and names torture/child cruelty as boundaries with offscreen treatment being clarified. Policy adoption does not complete the game implementation or interview.
-
-Revision 0.19 records DEC-035 and the separate design-focused pass. SET-MOVE-001 and all owning-document integration notes are adopted direction with explicit engineering gates, not a claim of runtime completion.
-
-Revision 0.20 adds the systematic supplied-book content library. Source coverage is complete for available normalized blocks; missing source material and all existing engineering/creative decisions retain their stated limits. No DEC-nnn policy is newly closed.
-
 ### DEC-039 — Approved creature proportions for all five species
 
 2026-09-12 · State: `USER_CONFIRMED` for anatomical heights and their relative scale.
@@ -1002,3 +973,60 @@ from the scale *between* species and was not what this review judged.
 The proxies carry no fur, face or costume by design — texture would have obscured the
 scale relationships this review exists to settle. DEC-018/037/038 continue to govern
 finish.
+
+### DEC-040 — Excavation spoil and preventable movement hazards
+
+| Field | Value |
+|---|---|
+| status | `USER_CONFIRMED` for spoil/hazard direction; depth remains `PROPOSED` |
+| answered_on | 2026-09-12 |
+| user_wording | “Four underground levels at 4 m spacing — candidate, not constant.” “Real haulable, reusable spoil with its own catalog key and mass — explicitly not stone or compost renamed.” “Warned, preventable hazards with rescue, using existing injury and care, rather than surprise death rolls.” |
+| interpretation | Digging generates a real material/logistics economy; movement hazards are communicated and preventable, with rescue and existing settlement injury/care consequences |
+| scope | `[RELEASE_1]`, connected movement and interoperable underground construction under DEC-029/031/035 |
+| operative_rule | Excavated spoil is a distinct haulable, reusable inventory material with its own catalog identity and declared mass. Warn of relevant movement/excavation hazards and provide prevention/rescue behavior under the settlement injury/care system; no surprise death rolls. |
+| mechanical_change | Settles the two player-policy choices previously pending in the MOVE-G01 review. Does not supply item key spelling, mass, excavation yield, recipes, work, disposal/refund quantities, injury kinds, probabilities, oxygen rates or damage values. |
+| depth_boundary | Four underground levels at 4m spacing remain an engineering candidate. 65536 tile-level addresses and 14680064 bytes for a naive 14-byte half-metre-cell payload are sizing arithmetic, not an adopted representation or complete memory ledger. G02 must derive and review representation and peak memory before adoption. |
+| remaining_questions | Exact production catalogs, prevention/retreat/rescue conditions, deterministic hazard triggers, legal spoil placement/reuse/disposal, complete G01 parameters and G02–G05 engineering/validation |
+| affected_docs | `docs/movement_direction_amendment.md`, `docs/game_gdd.md`, `docs/gameplay_balance.md`, `docs/rulings/2026-09-12_move_g01_review.md` |
+| supersedes | The pending spoil and hazard preference status in the 2026-09-12 MOVE-G01 review; does not supersede the depth candidate status or existing injury/care rules |
+| revisit_trigger | A proposed production mechanic changes these confirmed player-facing directions |
+
+Preventability and rescue do not mean guaranteed survival or immunity. Serious
+consequences remain possible through the explicitly authored injury/care rules;
+this approval does not invent a new fatality formula. It also does not authorize
+paid assets or imply implementation, performance or save-parity evidence.
+DEC-039 is left available for the separately reported height decision; no height
+approval is inferred or renumbered here.
+
+## 9. Progress ledger
+
+| Date | Work completed | Still open |
+|---|---|---|
+| 2026-09-05 | Read current concept/GDD/UI/asset contracts and legacy bible; inspected publisher/author reference material; wrote setting bible and agent handoff; asked Round 1 | DEC-001–027; no answers recorded yet |
+| 2026-09-05, revision 0.2 | Recorded DEC-001/002/024 as confirmed variety and whole-series scope; added scenario contracts and DEC-028; asked Round 2 | DEC-003–023 and DEC-025–028; concrete scenario lineups and first-release coverage remain open |
+| 2026-09-05, revision 0.3 | Recorded DEC-028 as all-options-first; supplied requested recommendations for DEC-005/006 with source limits and revision consequences | Admission and diet choices, concrete scenario lineup and remaining interview topics |
+| 2026-09-05, revision 0.4 | Adopted DEC-005/006; reconciled rules v2 across GDD, UI, catalogs, architecture and validation policy; asked Round 3 | Full runtime and scenario content still outstanding; player role, belief and building form awaiting answers |
+| 2026-09-06, revision 0.5 | Recorded DEC-008/009/010 within their answered scopes; added earth-built home requirement and DEC-029/030; asked Round 4 | Excavation scope, supernatural certainty, exact scenarios, content boundaries and family simulation remain open |
+| 2026-09-06, revision 0.6 | Recorded all three underground methods, serious consequences/grief and visible family life; superseded the single-level recommendation; asked Round 5 | Exact underground engineering, method interoperability, family simulation and content limits remain open |
+| 2026-09-06, revision 0.7 | Confirmed interoperable construction and uncertain supernatural truth; supplied dependent-resident family recommendation | DEC-032 remains open; detailed underground/family engineering and content limits remain outstanding |
+| 2026-09-06, revision 0.8 | Adopted dependent residents, shared care, active elders and fixed first-release life stages; asked Round 6 | Child vulnerability, humor/art direction, exact family engineering and remaining lore questions stay open |
+| 2026-09-06, revision 0.9 | Adopted child-vulnerability recommendation and warm everyday humor; explained three visual styles | DEC-018 remains open; exact family engineering, antagonist tone and wider content boundaries remain outstanding |
+| 2026-09-06, revision 0.10 | Adopted the storybook/grounded-realism blend and domain-specific art guide; asked Round 7 | Species proportions, dialogue, canon divergence, exact mechanics and remaining lore details are open |
+| 2026-09-06, revision 0.11 | Recorded recognizable anatomy, light dialect and selective canon flexibility; added continuity boundary records; asked Round 8 | Exact sizes, scenario continuity/cast, naming, culinary traditions and audio remain open |
+| 2026-09-06, revision 0.12 | Adopted blended naming, all offered feast meanings and contextual sound/music blend; asked Round 9 | Exact names/customs/audio contracts, story delivery, Charter meaning and antagonist motives remain open |
+| 2026-09-06, revision 0.13 | Adopted mixed story delivery, the Refuge’s community-written Charter and varied antagonist motives/scales; asked Round 10 | Rowan/founding, wider content limits, exact story UI and future faction rules remain open |
+| 2026-09-06, revision 0.14 | Added six-book primary focus with publisher evidence; recorded mouse-keeper Rowan, displaced founding and two boundary subjects | Offscreen/exclusion clarification pending; detailed cause, place, cast and engineering remain open |
+| 2026-09-06, revision 0.15 | Added passage-analysis companion, explicit source coverage and adaptation checks | Complete six-novel analysis needs full texts and reading; no interview decisions changed |
+| 2026-09-06, revision 0.16 | Read all supplied Lord Brocktree narrative sections; recorded source mismatch, detailed analysis and bounded bible integration | Other five complete readings, edition verification and existing decision gaps remain; no new interview answers or mechanics |
+| 2026-09-06, revision 0.17 | Verified eleven additional files and authored targeted studies, source audit, comparative contradictions and context integration | All eleven new sequential readings, full Eulalia! access, edition checks and existing DEC gaps remain open; no user answers or mechanics invented |
+| 2026-09-06, revision 0.18 | Reviewed every supplied screenshot and recorded direct model-reference use, traversal analysis and source conflicts | Model production and complete traversal amendments remain; no slide-wide gameplay adoption or new interview answers |
+
+Rounds 1–10 establish product range, first-release coverage, admission, diet, scenario-dependent player roles, rare meaningful wonder and player-selectable settlement forms including earth-built homes. Round 4 adds all underground construction methods, serious consequences/grief and visible family life. Round 5 confirms construction interoperability and uncertain supernatural truth; DEC-032 subsequently adopts the dependent-resident model. Round 6 adopts child survival vulnerability and warm everyday humor; the visual follow-up adopts a blend of storybook and grounded realism. Round 7 confirms recognizable anatomy, light dialect and selective canon flexibility. Round 8 adopts naming, feast and sound blends. Round 9 adopts story-delivery variety, the community-written Refuge Charter and varied antagonist motives/scales. Round 10 confirms experienced mouse-keeper Rowan and displaced founding, adds six-book reference emphasis, and names torture/child cruelty as boundaries with offscreen treatment being clarified. Policy adoption does not complete the game implementation or interview.
+
+Revision 0.19 records DEC-035 and the separate design-focused pass. SET-MOVE-001 and all owning-document integration notes are adopted direction with explicit engineering gates, not a claim of runtime completion.
+
+Revision 0.20 adds the systematic supplied-book content library. Source coverage is complete for available normalized blocks; missing source material and all existing engineering/creative decisions retain their stated limits. No DEC-nnn policy is newly closed.
+
+### DEC-040 engineering follow-through
+
+Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

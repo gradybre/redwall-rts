@@ -29,6 +29,15 @@ const CHURN_CYCLES: int = 2000
 
 var _directory: EntityDirectoryScript = null
 
+## Scratch buffers for the ARCH-SAVE-002 §3 column API. Sized on first use rather than in
+## `before_each()`, so the tests that never touch them pay nothing.
+var _c_active: PackedByteArray = PackedByteArray()
+var _c_generation: PackedInt32Array = PackedInt32Array()
+var _c_retired: PackedByteArray = PackedByteArray()
+var _c_persistent_id: PackedInt32Array = PackedInt32Array()
+var _c_kind: PackedInt32Array = PackedInt32Array()
+var _c_typed_row: PackedInt32Array = PackedInt32Array()
+
 
 func before_each() -> void:
 	"""Build a fresh directory with every column allocated to capacity."""
@@ -42,9 +51,7 @@ func after_each() -> void:
 
 func _force_generation(slot: int, value: int) -> void:
 	"""Set one slot's stored generation, so exhaustion is reachable without 2^31 creates."""
-	var generations: PackedInt32Array = _directory.get("_generation")
-	generations[slot] = value
-	_directory.set("_generation", generations)
+	_force_generation_on(_directory, slot, value)
 
 
 func test_create_returns_unique_live_references() -> void:
@@ -477,3 +484,474 @@ func test_thousand_entity_lifecycle_within_frame_budget() -> void:
 	for sample: int in range(PERF_SAMPLES - 1):
 		fastest_usec = mini(fastest_usec, _measure_lifecycle_usec())
 	assert_less_than(float(fastest_usec) / 1000.0, PERF_BUDGET_MSEC, "1000-row lifecycle stays under the frame budget")
+
+
+# --- bulk column capture and restore (ARCH-SAVE-002 §3, decision 0105) ---------------------------
+
+func _force_generation_on(store: EntityDirectoryScript, slot: int, value: int) -> void:
+	"""Set one slot's stored generation in any directory, not only the shared fixture."""
+	var generations: PackedInt32Array = store.get("_generation")
+	generations[slot] = value
+	store.set("_generation", generations)
+
+
+func _size_scratch_columns() -> void:
+	"""Give the six scratch columns the capacity length `copy_columns_into()` demands."""
+	_c_active.resize(EntityDirectoryScript.DIRECTORY_CAPACITY)
+	_c_retired.resize(EntityDirectoryScript.DIRECTORY_CAPACITY)
+	_c_generation.resize(EntityDirectoryScript.DIRECTORY_CAPACITY)
+	_c_persistent_id.resize(EntityDirectoryScript.DIRECTORY_CAPACITY)
+	_c_kind.resize(EntityDirectoryScript.DIRECTORY_CAPACITY)
+	_c_typed_row.resize(EntityDirectoryScript.DIRECTORY_CAPACITY)
+
+
+func _capture_from(store: EntityDirectoryScript) -> bool:
+	"""Fill the scratch columns from `store`, returning what `copy_columns_into()` returned."""
+	_size_scratch_columns()
+	return store.copy_columns_into(_c_active, _c_generation, _c_retired, _c_persistent_id,
+		_c_kind, _c_typed_row)
+
+
+func _restore_into(store: EntityDirectoryScript) -> bool:
+	"""Apply the scratch columns to `store`, returning what `restore_columns()` returned."""
+	return store.restore_columns(_c_active, _c_generation, _c_retired, _c_persistent_id,
+		_c_kind, _c_typed_row)
+
+
+func _set_scratch_live(slot: int, generation: int, persistent_id: int, kind: int,
+		row: int) -> void:
+	"""Mark one scratch slot live with a full identity, as `_publish_row()` leaves it."""
+	_c_active[slot] = 1
+	_c_generation[slot] = generation
+	_c_persistent_id[slot] = persistent_id
+	_c_kind[slot] = kind
+	_c_typed_row[slot] = row
+
+
+func _build_world(store: EntityDirectoryScript) -> void:
+	"""Populate a directory with live, reused, free, retired and never-used slots.
+
+	Slots 0,1,2,4,7 are live residents, slot 3 is a live job on a reused slot at generation 2,
+	slot 5 is free at generation 1, slot 6 is retired at the spent generation, and everything
+	from slot 8 up has never been used.
+	"""
+	var refs: Array[Vector2i] = []
+	for index: int in range(8):
+		refs.append(store.create(EntityDirectoryScript.KIND_RESIDENT))
+	assert_true(store.destroy(refs[3]), "slot 3 is released so a later kind can reuse it")
+	assert_true(store.destroy(refs[5]), "slot 5 stays free with a spent generation of 1")
+	var job: Vector2i = store.create(EntityDirectoryScript.KIND_JOB)
+	assert_equal(job, Vector2i(3, 2), "the job takes the lowest free slot at the next generation")
+	_force_generation_on(store, 6, EntityDirectoryScript.MAX_INT32)
+	assert_true(store.destroy(Vector2i(6, EntityDirectoryScript.MAX_INT32)),
+		"slot 6 spends its last generation and retires")
+
+
+func _assert_restore_refused(store: EntityDirectoryScript, code: StringName,
+		message: String) -> void:
+	"""A refused restore names its code and leaves the directory byte-identical (decision 0059)."""
+	var before: PackedByteArray = store.state_bytes()
+	assert_false(_restore_into(store), message)
+	assert_equal(store.last_column_refusal(), code, "%s names its refusal" % message)
+	assert_true(store.state_bytes() == before, "%s changed nothing" % message)
+
+
+func test_copy_columns_into_reads_live_free_retired_and_never_used_slots() -> void:
+	"""The capture step answers for all four slot states, which no other reader does."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "the six columns are published")
+	assert_equal(_c_active[0], 1, "slot 0 is live")
+	assert_equal(_c_kind[0], EntityDirectoryScript.KIND_RESIDENT, "and holds its kind")
+	assert_equal(_c_generation[3], 2, "the reused slot carries its second generation")
+	assert_equal(_c_kind[3], EntityDirectoryScript.KIND_JOB, "under its new kind")
+	assert_equal(_c_active[5], 0, "slot 5 is free")
+	assert_equal(_c_persistent_id[5], 0, "a free slot's persistent id is absent, not stale")
+	assert_equal(_c_kind[5], EntityDirectoryScript.KIND_ANY, "so is its kind")
+	assert_equal(_c_typed_row[5], EntityDirectoryScript.NULL_SLOT, "and its typed row")
+	assert_equal(_c_retired[6], 1, "slot 6 is retired")
+	assert_equal(_c_generation[6], EntityDirectoryScript.MAX_INT32, "at the spent generation")
+	assert_equal(_c_generation[9], 0, "a never-used slot holds generation 0")
+	assert_equal(_c_retired[9], 0, "and is not retired")
+
+
+func test_copy_columns_into_is_the_only_reader_of_an_inactive_slots_generation() -> void:
+	"""BLOCKER D1's exact value: the generation of a slot that is free, not live.
+
+	`ref_of_slot()` answers NULL_REF for slot 5 because nothing lives there, so the generation
+	the persistence registry requires to survive verbatim is invisible to every other reader.
+	Capturing five columns and leaving this one at zero would hand the next `create()` a pair a
+	pre-save `EntityRef` still holds.
+	"""
+	_build_world(_directory)
+	assert_equal(_directory.ref_of_slot(5), EntityDirectoryScript.NULL_REF,
+		"the live-slot reader sees nothing at slot 5")
+	assert_equal(_directory.ref_of_slot(6), EntityDirectoryScript.NULL_REF,
+		"nor at the retired slot 6")
+	assert_true(_capture_from(_directory), "the columns are published")
+	assert_equal(_c_generation[5], 1, "the free slot's generation is captured verbatim")
+	assert_equal(_c_generation[6], EntityDirectoryScript.MAX_INT32,
+		"and so is the retired slot's")
+
+
+func test_copy_columns_into_refuses_a_buffer_that_is_not_capacity_sized() -> void:
+	"""A wrongly sized buffer is the wrong buffer; resizing it silently would hide that."""
+	_build_world(_directory)
+	_size_scratch_columns()
+	_c_active.fill(0)
+	_c_kind.resize(EntityDirectoryScript.KIND_COUNT)
+	assert_false(_directory.copy_columns_into(_c_active, _c_generation, _c_retired,
+		_c_persistent_id, _c_kind, _c_typed_row), "a short kind column is refused")
+	assert_equal(_directory.last_column_refusal(), EntityDirectoryScript.REFUSAL_COLUMN_SHAPE,
+		"the refusal names the shape")
+	assert_equal(_c_kind.size(), EntityDirectoryScript.KIND_COUNT, "and nothing was written")
+	assert_equal(_c_active.count(1), 0, "not even into the correctly sized buffers")
+
+
+func test_copied_columns_are_snapshots_not_aliases() -> void:
+	"""Mutating a captured column must not reach the directory, and later creates must not reach it."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	_c_active[5] = 1
+	_c_generation[0] = 99
+	assert_false(_directory.is_valid(Vector2i(5, 1)), "the directory did not gain a live slot")
+	assert_equal(_directory.ref_of_slot(0), Vector2i(0, 1), "nor a rewritten generation")
+	var added: Vector2i = _directory.create(EntityDirectoryScript.KIND_ROOM)
+	assert_equal(added.x, 5, "the directory allocates on")
+	assert_equal(_c_kind[5], EntityDirectoryScript.KIND_ANY, "without touching the snapshot")
+
+
+func test_restore_columns_reproduces_the_source_world_in_another_directory() -> void:
+	"""A real round trip: capture one directory, restore a second, and prove they agree."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_true(_restore_into(loaded), "restored: %s" % loaded.last_column_refusal())
+	assert_equal(loaded.total_live_count(), _directory.total_live_count(), "same live count")
+	assert_equal(loaded.free_slot_count(), _directory.free_slot_count(), "same free count")
+	for kind: int in range(EntityDirectoryScript.KIND_COUNT):
+		assert_equal(loaded.live_count(kind), _directory.live_count(kind), "same live rows")
+		assert_equal(loaded.free_row_count(kind), _directory.free_row_count(kind), "same free rows")
+	assert_true(loaded.is_valid_of_kind(Vector2i(3, 2), EntityDirectoryScript.KIND_JOB),
+		"a pre-save reference still validates against the loaded world")
+	assert_true(loaded.is_slot_retired(6), "the retired slot stayed retired")
+	var source_columns: PackedByteArray = _c_generation.to_byte_array()
+	assert_true(_capture_from(loaded), "the loaded directory publishes its own columns")
+	assert_true(_c_generation.to_byte_array() == source_columns, "every generation survived")
+
+
+func test_restore_columns_pins_allocation_order_across_a_round_trip() -> void:
+	"""Determinism: the restored world must allocate the same slots in the same order.
+
+	The property no "the same slots are live" assertion can see. A free window filled descending,
+	or one that lost a free slot, still restores an identical-looking world and then diverges on
+	the very next `create()` -- and every entity created after the load lands in a different slot
+	from the one the saving world would have used.
+	"""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_true(_restore_into(loaded), "restored: %s" % loaded.last_column_refusal())
+	var from_source: PackedInt32Array = _allocation_script(_directory)
+	var from_loaded: PackedInt32Array = _allocation_script(loaded)
+	assert_equal(from_loaded, from_source, "the loaded world allocates exactly as the saved one")
+	assert_equal(from_source[0], 5, "starting at the lowest free slot, not the highest")
+	assert_equal(from_source[1], 8,
+		"then the first never-used slot, skipping the retired 6 and the live 7")
+	var source_row: int = _directory.get_typed_row(
+		_directory.create(EntityDirectoryScript.KIND_RESIDENT))
+	var loaded_row: int = loaded.get_typed_row(
+		loaded.create(EntityDirectoryScript.KIND_RESIDENT))
+	assert_equal(loaded_row, source_row, "and the per-kind row windows allocate alike")
+	assert_equal(loaded_row, 3, "at the lowest free resident row, which ascending fill is for")
+
+
+func _allocation_script(store: EntityDirectoryScript) -> PackedInt32Array:
+	"""Run one fixed create/destroy script and return the slot of every reference it allocated.
+
+	Interleaved on purpose: a free window that is a valid min-heap and one that merely starts
+	ascending diverge only once slots are pushed back into it.
+	"""
+	var slots: PackedInt32Array = PackedInt32Array()
+	var held: Array[Vector2i] = []
+	for index: int in range(12):
+		var ref: Vector2i = store.create(EntityDirectoryScript.KIND_ROOM)
+		slots.append(ref.x)
+		held.append(ref)
+	for index: int in [7, 2, 9, 0, 4]:
+		assert_true(store.destroy(held[index]), "the script releases slot %d" % held[index].x)
+	for index: int in range(9):
+		slots.append(store.create(EntityDirectoryScript.KIND_ROOM).x)
+	return slots
+
+
+func test_restore_columns_excludes_live_slots_from_the_free_heap() -> void:
+	"""A live slot left in the free window would be handed straight back out to a second owner."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_true(_restore_into(loaded), "restored: %s" % loaded.last_column_refusal())
+	assert_equal(loaded.free_slot_count(), EntityDirectoryScript.DIRECTORY_CAPACITY - 7,
+		"six live slots and one retired slot are out of the pool")
+	var next: Vector2i = loaded.create(EntityDirectoryScript.KIND_ROOM)
+	assert_equal(next.x, 5, "the next create takes the free slot, not a live one")
+	assert_true(loaded.is_valid_of_kind(Vector2i(0, 1), EntityDirectoryScript.KIND_RESIDENT),
+		"and the live slot 0 still belongs to its original owner")
+
+
+func test_restore_columns_keeps_a_retired_slot_out_of_the_pool() -> void:
+	"""A retired slot handed back needs a wrapped generation: the collision ARCH-ID-002 forbids."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_true(_restore_into(loaded), "restored: %s" % loaded.last_column_refusal())
+	assert_true(loaded.is_slot_retired(6), "slot 6 is retired in the loaded world")
+	var first: Vector2i = loaded.create(EntityDirectoryScript.KIND_ROOM)
+	var second: Vector2i = loaded.create(EntityDirectoryScript.KIND_ROOM)
+	assert_equal(first.x, 5, "the free slot comes back")
+	assert_equal(second.x, 8, "and the retired slot 6 is skipped for the first never-used one")
+
+
+func test_restore_columns_rebuilds_the_reverse_owner_map() -> void:
+	"""ARCH-ID-003's reverse map is rebuilt, not restored, and the rebuild is what validates it."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_true(_restore_into(loaded), "restored: %s" % loaded.last_column_refusal())
+	assert_equal(loaded.owner_slot_of_typed_row(EntityDirectoryScript.KIND_JOB, 0), 3,
+		"the job's typed row points back at slot 3")
+	assert_equal(loaded.owner_slot_of_typed_row(EntityDirectoryScript.KIND_RESIDENT, 0), 0,
+		"and each resident row at its own slot")
+	assert_equal(loaded.owner_slot_of_typed_row(EntityDirectoryScript.KIND_RESIDENT, 5),
+		EntityDirectoryScript.NULL_SLOT, "a released resident row has no owner")
+	assert_equal(loaded.get_typed_row(Vector2i(3, 2)), 0, "and the forward map agrees")
+
+
+func test_restore_columns_rebuilds_counters_over_a_directory_that_already_held_a_world() -> void:
+	"""Every counter is recomputed from the columns; none may survive from the overwritten world."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	for index: int in range(40):
+		assert_true(loaded.create(EntityDirectoryScript.KIND_FURNITURE) \
+			!= EntityDirectoryScript.NULL_REF, "the target already holds an unrelated world")
+	assert_equal(loaded.live_count(EntityDirectoryScript.KIND_FURNITURE), 40, "of 40 rows")
+	assert_true(_restore_into(loaded), "restored: %s" % loaded.last_column_refusal())
+	assert_equal(loaded.total_live_count(), 6, "the live count is the restored world's")
+	assert_equal(loaded.live_count(EntityDirectoryScript.KIND_FURNITURE), 0, "the furniture is gone")
+	assert_equal(loaded.free_row_count(EntityDirectoryScript.KIND_FURNITURE), 81920,
+		"and its rows returned to the pool")
+	assert_equal(loaded.live_count(EntityDirectoryScript.KIND_RESIDENT), 5, "five residents live")
+	assert_equal(loaded.free_row_count(EntityDirectoryScript.KIND_RESIDENT), 507, "on 5 of 512 rows")
+	assert_equal(loaded.free_slot_count(), EntityDirectoryScript.DIRECTORY_CAPACITY - 7,
+		"and the free slot count counts the restored world's occupancy")
+
+
+func test_two_restores_of_one_column_set_produce_the_same_image() -> void:
+	"""The rebuild is a pure function of the six columns: two targets with different histories agree."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var fresh: EntityDirectoryScript = EntityDirectoryScript.new()
+	var used: EntityDirectoryScript = EntityDirectoryScript.new()
+	for index: int in range(30):
+		var ref: Vector2i = used.create(EntityDirectoryScript.KIND_HIVE)
+		if index % 2 == 0:
+			assert_true(used.destroy(ref), "churn leaves a permuted heap and a stale tail")
+	assert_true(_restore_into(fresh), "restored into a fresh directory")
+	assert_true(_restore_into(used), "restored over a churned directory")
+	assert_true(fresh.state_bytes() != used.state_bytes(),
+		"only the §1-owned persistent id allocator still differs (BLOCKER D2)")
+	used.set("_next_persistent_id", fresh.get("_next_persistent_id"))
+	assert_true(fresh.state_bytes() == used.state_bytes(),
+		"both rebuilds produce the same canonical image")
+
+
+func test_restore_columns_does_not_restore_the_persistent_id_allocator() -> void:
+	"""BLOCKER D2, pinned: `_next_persistent_id` belongs to §1 WORLD and must not be written here.
+
+	Writing it in both sections would put one future-affecting value in two places. The cost is
+	visible and is meant to be: a restored world reissues persistent IDs from wherever its own
+	allocator stands, so the images differ until §1 carries the scalar. This test fails in BOTH
+	directions -- if the restore ever starts writing it, the first assertion goes.
+	"""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_true(_restore_into(loaded), "restored: %s" % loaded.last_column_refusal())
+	assert_equal(loaded.get("_next_persistent_id"), 1, "the loaded allocator is untouched at 1")
+	assert_equal(_directory.get("_next_persistent_id"), 10, "while the saved world stands at 10")
+	assert_true(loaded.state_bytes() != _directory.state_bytes(),
+		"so the two worlds are not yet identical")
+	loaded.set("_next_persistent_id", _directory.get("_next_persistent_id"))
+	assert_true(loaded.state_bytes() == _directory.state_bytes(),
+		"and that one scalar, set by hand, is the whole remaining difference")
+
+
+func test_state_bytes_ignores_the_stale_heap_tail_and_the_refusal_code() -> void:
+	"""The diagnostic image covers the live free-window prefix only, for the reason §3 gives.
+
+	Beyond `_free_count` the window is garbage left by earlier pops, and two worlds identical in
+	every observable way can hold different bytes there. Including it would make the refusal
+	comparison assert something that is not state.
+	"""
+	_build_world(_directory)
+	var image: PackedByteArray = _directory.state_bytes()
+	var heap: PackedInt32Array = _directory.get("_free_heap")
+	var free_count: int = _directory.get("_free_count")
+	heap[free_count + 3] = 999999
+	_directory.set("_free_heap", heap)
+	assert_true(_directory.state_bytes() == image, "the stale tail is outside the image")
+	assert_equal(_directory.create(EntityDirectoryScript.KIND_COUNT),
+		EntityDirectoryScript.NULL_REF, "a refused create sets a category-3 code")
+	assert_true(_directory.state_bytes() == image, "which is outside the image too")
+	heap[0] = heap[0] + 1
+	_directory.set("_free_heap", heap)
+	assert_true(_directory.state_bytes() != image, "but the live prefix is inside it")
+
+
+func test_restore_columns_refuses_a_duplicate_typed_row_and_changes_nothing() -> void:
+	"""Two live slots claiming one typed row is caught by the rebuild itself, not by a second pass."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	_build_world(loaded)
+	_c_typed_row[4] = _c_typed_row[2]
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_DUPLICATE_TYPED_ROW,
+		"two residents on one typed row")
+	assert_true(loaded.is_valid_of_kind(Vector2i(4, 1), EntityDirectoryScript.KIND_RESIDENT),
+		"the target's own reverse map still validates every live row")
+	assert_equal(loaded.owner_slot_of_typed_row(EntityDirectoryScript.KIND_RESIDENT, 4), 4,
+		"including the entry the abandoned rebuild had already written")
+
+
+func test_restore_columns_refuses_a_mis_sized_column_set() -> void:
+	"""A column set that is not capacity-long is refused before anything indexes into it."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	_build_world(loaded)
+	_c_generation.resize(EntityDirectoryScript.DIRECTORY_CAPACITY - 1)
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_SHAPE,
+		"a short generation column")
+
+
+func test_restore_columns_refuses_an_occupancy_byte_outside_zero_and_one() -> void:
+	"""`_active` and `_retired` are one byte per slot, and only two of its 256 values are legal."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	_build_world(loaded)
+	_c_active[11] = 2
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_ACTIVE_BYTE,
+		"an occupancy byte of 2")
+	_c_active[11] = 0
+	_c_retired[11] = 7
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_RETIRED_BYTE,
+		"a retirement byte of 7")
+
+
+func test_restore_columns_refuses_a_negative_generation_from_the_int32_sign_trap() -> void:
+	"""GDScript ints are 64-bit: 0x80000000 is positive, and -2147483648 is its int32 reading.
+
+	Storing 2147483648 in a PackedInt32Array wraps it to -2147483648, which is what a save
+	carrying the bytes `00 00 00 80` decodes to. A generation only ever rises from 0, so it is
+	refused rather than accepted as a plausible 2147483648 no int32 column could ever hold.
+	"""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	_build_world(loaded)
+	_c_generation[12] = 0x80000000
+	assert_equal(_c_generation[12], -2147483648, "the trap itself: the high bit wraps to negative")
+	assert_true(0x80000000 > 0, "while the same literal is positive as a GDScript int")
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_GENERATION_NEGATIVE,
+		"a generation of -2147483648")
+
+
+func test_restore_columns_refuses_each_broken_live_identity() -> void:
+	"""A live slot must carry the four values `_publish_row()` leaves, and each is checked."""
+	_build_world(_directory)
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	_build_world(loaded)
+	assert_true(_capture_from(_directory), "captured")
+	_c_generation[0] = 0
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_LIVE_GENERATION,
+		"a live slot at generation 0")
+	assert_true(_capture_from(_directory), "recaptured")
+	_c_persistent_id[0] = 0
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_LIVE_PERSISTENT_ID,
+		"a live slot with no persistent id")
+	assert_true(_capture_from(_directory), "recaptured")
+	_c_kind[0] = EntityDirectoryScript.KIND_COUNT
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_LIVE_KIND,
+		"a live slot with a kind past the table")
+	assert_true(_capture_from(_directory), "recaptured")
+	_c_typed_row[0] = 512
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_LIVE_ROW,
+		"a live resident on row 512 of a 512-row store")
+
+
+func test_restore_columns_refuses_a_free_slot_carrying_a_stale_identity() -> void:
+	"""`destroy()` clears a freed slot's identity, so a restored free slot must carry none."""
+	_build_world(_directory)
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	_build_world(loaded)
+	assert_true(_capture_from(_directory), "captured")
+	_c_typed_row[5] = 0
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_FREE_IDENTITY,
+		"a free slot whose null typed row was restored as row 0")
+	assert_true(_capture_from(_directory), "recaptured")
+	_c_persistent_id[5] = 3
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_FREE_IDENTITY,
+		"a free slot holding a stale persistent id")
+
+
+func test_restore_columns_refuses_both_halves_of_a_retirement_disagreement() -> void:
+	"""Retirement is cross-checked per slot AND per column; neither check subsumes the other.
+
+	The balanced swap is the case that proves it: one slot retired below the spent generation
+	while another sits at the spent generation un-retired. The counts cancel, so only the
+	per-slot half sees it -- and a loader that trusted the count alone would hand the first slot
+	back to the allocator and never reuse the second.
+	"""
+	_build_world(_directory)
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	_build_world(loaded)
+	assert_true(_capture_from(_directory), "captured")
+	_c_retired[6] = 0
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_RETIREMENT,
+		"a spent slot restored as reusable")
+	assert_true(_capture_from(_directory), "recaptured")
+	_c_retired[6] = 0
+	_c_generation[6] = 10
+	_c_retired[9] = 1
+	_c_generation[9] = EntityDirectoryScript.MAX_INT32
+	assert_true(_restore_into(loaded), "the swap is internally consistent and restores")
+	assert_true(loaded.is_slot_retired(9), "with the retirement moved to slot 9")
+	assert_true(_capture_from(_directory), "recaptured")
+	_c_retired[6] = 0
+	_c_generation[6] = EntityDirectoryScript.MAX_INT32
+	_c_retired[9] = 1
+	_c_generation[9] = 10
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_RETIREMENT,
+		"a balanced swap whose counts cancel")
+
+
+func test_restore_columns_refuses_a_two_hundred_fifty_seventh_living_resident() -> void:
+	"""GDD §4.1 caps living residents at 256; the resident store's 512 rows do not.
+
+	`create()` refuses the 257th and a load must too, or a saved file would be the way past a cap
+	the allocator enforces everywhere else.
+	"""
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	_build_world(loaded)
+	assert_true(_capture_from(EntityDirectoryScript.new()), "capture an empty world")
+	for index: int in range(EntityDirectoryScript.RESIDENT_LIVING_CAP):
+		_set_scratch_live(index, 1, index + 1, EntityDirectoryScript.KIND_RESIDENT, index)
+	assert_true(_restore_into(loaded), "256 living residents restore: %s"
+		% loaded.last_column_refusal())
+	assert_equal(loaded.live_count(EntityDirectoryScript.KIND_RESIDENT), 256, "all of them")
+	_set_scratch_live(EntityDirectoryScript.RESIDENT_LIVING_CAP, 1,
+		EntityDirectoryScript.RESIDENT_LIVING_CAP + 1, EntityDirectoryScript.KIND_RESIDENT,
+		EntityDirectoryScript.RESIDENT_LIVING_CAP)
+	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_LIVING_CAP,
+		"a 257th living resident")

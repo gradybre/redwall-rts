@@ -775,22 +775,99 @@ func test_capture_columns_validates_before_it_copies() -> void:
 	assert_true(bad.equals(SaveSectionDirectory.Record.new()), "leaving the Record untouched")
 
 
-func test_capture_from_a_live_store_refuses_and_names_the_blocker() -> void:
-	"""BLOCKER D1: no public reader exists for the generation of an inactive slot.
+func test_capture_from_a_live_store_reads_every_column() -> void:
+	"""BLOCKER D1 is closed: `copy_columns_into()` reads the inactive generations too.
 
-	Capturing five of the six columns and leaving generations at zero would hand the next
-	`create()` a pair a pre-save reference still holds. This refuses instead, and must keep
-	refusing until `entity_directory.gd` gains a bulk column reader.
+	This test asserted the opposite while the blocker was open, and it was right then: with no
+	reader for the generation of an INACTIVE slot, its old assertion was
+	`assert_equal(refusal.code, REFUSE_STORE_NO_COLUMN_READER, "capture from a live store
+	refuses")`, because capturing five of six columns and leaving generations at zero would hand
+	the next `create()` a pair a pre-save reference still holds. The directory owner has since
+	added the bulk column API (decision 0105), so the contract to pin is the capture itself --
+	including the free slot 1 whose generation no other reader can see.
 	"""
 	var store: EntityDirectoryScript = EntityDirectoryScript.new()
-	assert_true(store.create(EntityDirectoryScript.KIND_ROOM) != EntityDirectoryScript.NULL_REF,
-		"the store holds a live row")
+	var kept: Vector2i = store.create(EntityDirectoryScript.KIND_ROOM)
+	var released: Vector2i = store.create(EntityDirectoryScript.KIND_ROOM)
+	assert_true(store.destroy(released), "one slot is freed, carrying its generation with it")
 	var out: SaveSectionDirectory.Record = SaveSectionDirectory.Record.new()
 	var refusal: SaveHeader.Refusal = SaveSectionDirectory.capture_into(store, out)
-	assert_equal(refusal.code, SaveSectionDirectory.REFUSE_STORE_NO_COLUMN_READER,
-		"capture from a live store refuses")
-	assert_true(refusal.detail.contains("copy_columns_into"), "and names the API it needs")
-	assert_true(out.equals(SaveSectionDirectory.Record.new()), "and captures nothing")
+	assert_true(refusal.is_ok(), "capture from a live store succeeds: %s" % refusal.detail)
+	assert_equal(out.active[kept.x], 1, "the live slot is captured live")
+	assert_equal(out.generation[kept.x], kept.y, "with its generation")
+	assert_equal(out.active[released.x], 0, "the freed slot is captured free")
+	assert_equal(out.generation[released.x], released.y,
+		"and its generation survives, which is the value the registry demands verbatim")
+	assert_equal(store.ref_of_slot(released.x), EntityDirectoryScript.NULL_REF,
+		"while every other reader still sees nothing there")
+
+
+func test_the_round_trip_returns_a_byte_identical_section_and_the_same_allocation_order() -> void:
+	"""capture -> encode -> decode -> apply -> re-encode, against a second directory.
+
+	The re-encode is the strongest single check available: it compares all 6343616 bytes of both
+	worlds, so a column that failed to publish or a slot restored one generation off changes it.
+	The allocation order is checked separately because no byte comparison of the six columns can
+	see it -- the heaps are rebuilt, not written.
+	"""
+	var saved: EntityDirectoryScript = _live_store()
+	var captured: SaveSectionDirectory.Record = SaveSectionDirectory.Record.new()
+	assert_true(SaveSectionDirectory.capture_into(saved, captured).is_ok(), "captured")
+	assert_equal(captured.active.count(1), 4, "the capture is not vacuous: four slots are live")
+	assert_equal(captured.retired.count(1), 1, "and one is retired")
+	var bytes: PackedByteArray = _encode(captured)
+	var decoded: SaveSectionDirectory.Record = SaveSectionDirectory.Record.new()
+	assert_true(_decode_refusal(bytes, decoded).is_ok(), "decoded")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	var applied: SaveHeader.Refusal = SaveSectionDirectory.apply(decoded, loaded)
+	assert_true(applied.is_ok(), "applied: %s %s" % [applied.code, applied.detail])
+	assert_true(SaveSectionDirectory.agrees_with_directory(decoded, loaded).is_ok(),
+		"the loaded store agrees with the record it was loaded from")
+	var recaptured: SaveSectionDirectory.Record = SaveSectionDirectory.Record.new()
+	assert_true(SaveSectionDirectory.capture_into(loaded, recaptured).is_ok(), "recaptured")
+	assert_true(_encode(recaptured) == bytes, "the reloaded world re-encodes byte for byte")
+	assert_equal(_next_slots(loaded, 4), _next_slots(saved, 4),
+		"and allocates the same slots in the same order")
+
+
+func test_apply_refuses_an_invalid_record_and_leaves_the_store_alone() -> void:
+	"""Decision 0059 at the point it matters most: every EntityRef resolves through this store."""
+	var store: EntityDirectoryScript = _live_store()
+	var before: PackedByteArray = store.state_bytes()
+	_set_live(_record, 4, 2, 7, EntityDirectoryScript.KIND_FURNITURE, 11)
+	_record.generation[4] = 0
+	var refusal: SaveHeader.Refusal = SaveSectionDirectory.apply(_record, store)
+	assert_equal(refusal.code, SaveSectionDirectory.REFUSE_LIVE_SLOT_GENERATION,
+		"a live slot at generation 0 is refused by this section, before the store is asked")
+	assert_true(store.state_bytes() == before, "and the store is byte-identical")
+	assert_equal(store.last_column_refusal(), EntityDirectoryScript.REFUSAL_NONE,
+		"the directory was never asked to restore anything")
+
+
+func _live_store() -> EntityDirectoryScript:
+	"""A directory holding live, reused, free, retired and never-used slots."""
+	var store: EntityDirectoryScript = EntityDirectoryScript.new()
+	var refs: Array[Vector2i] = []
+	for index: int in range(6):
+		refs.append(store.create(EntityDirectoryScript.KIND_RESIDENT))
+	assert_true(store.destroy(refs[2]), "slot 2 is released and reused below")
+	assert_true(store.destroy(refs[4]), "slot 4 stays free at generation 1")
+	assert_true(store.create(EntityDirectoryScript.KIND_JOB) == Vector2i(2, 2),
+		"the job takes the lowest free slot")
+	var generations: PackedInt32Array = store.get("_generation")
+	generations[5] = EntityDirectoryScript.MAX_INT32
+	store.set("_generation", generations)
+	assert_true(store.destroy(Vector2i(5, EntityDirectoryScript.MAX_INT32)),
+		"slot 5 spends its last generation and retires")
+	return store
+
+
+func _next_slots(store: EntityDirectoryScript, count: int) -> PackedInt32Array:
+	"""The slots the next `count` creates hand out, which is the restored-lowest-free property."""
+	var slots: PackedInt32Array = PackedInt32Array()
+	for index: int in range(count):
+		slots.append(store.create(EntityDirectoryScript.KIND_ROOM).x)
+	return slots
 
 
 # --- source discipline ------------------------------------------------------------------------------------------
@@ -805,11 +882,16 @@ func test_module_source_holds_no_float() -> void:
 	assert_false(source.contains("PackedFloat"), "no float column")
 
 
-func test_module_names_both_open_blockers() -> void:
-	"""A blocker that is not written down is a blocker the next reader re-discovers the hard way."""
+func test_module_names_the_closed_blocker_and_the_open_one() -> void:
+	"""A blocker that is not written down is a blocker the next reader re-discovers the hard way.
+
+	This asserted `source.contains("BLOCKER D1")` alongside D2 while both were open, and that was
+	right then. D1 is closed by decision 0105 and the header now records how; D2 is untouched, so
+	the assertion that this section writes no persistent-id allocator is unchanged.
+	"""
 	var source: String = FileAccess.get_file_as_string(
 		"res://scripts/core/save_section_directory.gd")
-	assert_true(source.contains("BLOCKER D1"), "the missing directory column reader/writer")
+	assert_true(source.contains("BLOCKER D1 -- CLOSED"), "the column reader/writer landed")
 	assert_true(source.contains("BLOCKER D2"), "the unwritten _next_persistent_id")
 	assert_false(source.contains("_free_heap["), "the heaps are never indexed here")
 	assert_false(source.contains("_next_persistent_id ="), "and this section assigns no allocator")

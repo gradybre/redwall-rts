@@ -25,8 +25,9 @@ extends RefCounted
 ## WHAT THIS SLICE DELIBERATELY DOES NOT DO, AND WHO OWNS IT.
 ##
 ##   * NO `RESERVED -> TRAVEL -> WORK` WIRING, AND NO JOB STATE IS WRITTEN. READY_07 1.2 puts that
-##     after starter profiles, real services and work-unit context. `begin_travel()` takes a route
-##     request, not a job, and arriving sets a MOTION phase and nothing else.
+##     after real services and work-unit context. `begin_travel()` takes a route request and a work
+##     contact, not a job, and arriving sets a MOTION phase and nothing else. The starter profiles
+##     below are one of its three preconditions; the other two are still absent.
 ##   * NO CONTACT RESERVATION, no 30-tick lease renewal, no 300/900-tick retry rules. Those belong
 ##     with real contacts (`crossing_claims.gd`, task 05.4).
 ##   * NO SEPARATION. `correction_x`/`correction_z` stay zero; bounded soft separation needs the
@@ -48,6 +49,17 @@ extends RefCounted
 ## are owned elsewhere and are byte-unchanged by this work, so the ledger reads 2048 low until
 ## their owner applies it. Decision 0066 carries the arithmetic.
 ##
+## Decision 0083 adds two more tables for the starter profile increment, and the same gap applies:
+##
+##   * `ResidentTravelAdmission[512]` -- `_cursor_profile_id`, `_cursor_profile_revision`,
+##     `_cursor_mode`, `_cursor_load_g`, `_cursor_destination_revision`: 5 x 4 x 512 = **10240** B.
+##   * `StarterGroundProfile[4]` -- `_profile_species_id`, `_profile_size_class`,
+##     `_profile_speed_u_per_s`, `_profile_carry_g`, `_profile_mode_mask`, `_profile_revision`:
+##     6 x 4 x 4 = **96** B.
+##
+## Running total still owed to `systems_architecture.md` §2.3 and `ready07_arithmetic.py` by their
+## owner: 2048 + 10240 + 96 = **12384** bytes. Both files are byte-unchanged by this work.
+##
 ## ---------------------------------------------------------------------------------------
 ## THE CURSOR NAMES ITS OWNER, NOT MERELY ITS ROW.
 ##
@@ -63,6 +75,35 @@ extends RefCounted
 ## length: a generation belongs to a directory SLOT, every slot's first use carries generation 1,
 ## and slots and typed rows come from separate free heaps, so a generation stamp matches across
 ## two different entities routinely. Persistent ids are never reused.
+##
+## ---------------------------------------------------------------------------------------
+## THE STARTER GROUND PROFILES -- WHAT THEY BIND, AND WHAT THEY REFUSE TO BIND.
+##
+## The 2026-09-11 movement ruling permits one independent increment while full MOVE-G01 stays open:
+## **starter ground profiles only; this closes no MOVE gate.** Four profiles exist, one per actual
+## starter species in GDD 5.1's cohort sentence "12 adults (6 mice, 2 moles, 2 otters, 2
+## squirrels)", in that sentence's order. No synthetic species is added.
+##
+## Every numeric field is READ from `residents.gd` at `_init()` rather than copied as a literal, so
+## a profile cannot drift away from GDD 5.2's size class, speed cap and carry capacity. The audit
+## this increment owes is therefore executed on every construction, not written down once.
+##
+## WHAT A PROFILE DOES NOT CARRY, NAMED RATHER THAN GUESSED:
+##
+##   * NO CLEARANCE CLASS. Body, posture and gear envelopes are unstated everywhere: the asset
+##     package's own species heights say they "do NOT set navigation clearance, service reach, step
+##     height or movement capability", and the ruling adds that battle separation radii cannot
+##     determine them either. `profile_clearance_class_into()` therefore REFUSES rather than
+##     returning a number, and travel admission does not silently choose one. A caller-supplied
+##     synthetic clearance on a reference route is still fine and is still not a species policy.
+##   * NO LIFE STAGE BUT ADULT. `residents.gd` has no life-stage column at all; the cohort is
+##     twelve adults. `LIFE_STAGE_ADULT` is the only profiled stage and any other refuses.
+##   * NO MODE BUT GROUND AND FORD WALKING. Swimming, diving, climbing/canopy and tunnel travel
+##     stay in first-release scope under SET-MOVE-001 1 and are enumerated below so they cannot be
+##     lost by omission -- they are UNPROFILED IN THIS INCREMENT and refuse explicitly. That is an
+##     incremental capability boundary, not a narrowing of the adopted scope.
+##   * NO EQUIPMENT ELIGIBILITY RULE. The committed load is checked against GDD 5.2's carry
+##     capacity, which is specified. Which tool or gear blocks which passage is not, anywhere.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -93,10 +134,62 @@ const MOTION_IDLE: int = 0
 const MOTION_TRAVELLING: int = 1
 const MOTION_ARRIVED: int = 2
 const MOTION_ROUTE_LOST: int = 3
+const MOTION_PROFILE_STALE: int = 4
+const MOTION_CONTACT_STALE: int = 5
+const MOTION_PHASE_COUNT: int = 6
 
 const MOTION_PHASE_NAMES: Array[StringName] = [
-	&"IDLE", &"TRAVELLING", &"ARRIVED", &"ROUTE_LOST",
+	&"IDLE", &"TRAVELLING", &"ARRIVED", &"ROUTE_LOST", &"PROFILE_STALE", &"CONTACT_STALE",
 ]
+
+# --- starter ground profiles, 2026-09-11 ruling item 1 -------------------------------------------
+
+## GDD 5.1's cohort sentence order: "6 mice, 2 moles, 2 otters, 2 squirrels". These four keys are
+## the ONLY starter species; `residents.gd` compiles twelve more that this increment does not
+## profile, and a request for any of them refuses rather than borrowing a neighbour's row.
+const PROFILE_SPECIES_KEYS: Array[StringName] = [&"mouse", &"mole", &"otter", &"squirrel"]
+
+## Stable ASCII profile keys. `starter` names the increment, `ground` the domain, `adult` the life
+## stage and the last token the species, so a later life stage or domain extends the namespace
+## instead of overloading one of these.
+const PROFILE_KEYS: Array[StringName] = [
+	&"starter.ground.adult.mouse",
+	&"starter.ground.adult.mole",
+	&"starter.ground.adult.otter",
+	&"starter.ground.adult.squirrel",
+]
+const PROFILE_COUNT: int = 4
+
+## Published revision of a profile on first construction. A revision is an identity artifact the
+## ruling asks for, not a balance value; `revise_profile()` advances one so a route admitted under
+## an older revision can be made to invalidate.
+const PROFILE_FIRST_REVISION: int = 1
+
+## `residents.gd` carries no life-stage column, and GDD 5.1's cohort is twelve adults. This is the
+## only profiled stage; juveniles and elders are unprofiled, not absent from the release.
+const LIFE_STAGE_ADULT: int = 0
+const LIFE_STAGE_COUNT: int = 1
+
+# --- traversal modes, SET-MOVE-001 1 -------------------------------------------------------------
+#
+# All six are ENUMERATED so the adopted scope cannot be narrowed by omission. Only the first two are
+# profiled in this increment; the rest refuse MODE_NOT_PROFILED, with their costs, speeds, entry and
+# exit durations, air budgets and grip rules still owed by MOVE-G01.
+
+const MODE_GROUND_WALK: int = 0
+const MODE_FORD_WALK: int = 1
+const MODE_SWIM_SURFACE: int = 2
+const MODE_DIVE: int = 3
+const MODE_CLIMB: int = 4
+const MODE_TUNNEL_WALK: int = 5
+const MODE_COUNT: int = 6
+
+const MODE_NAMES: Array[StringName] = [
+	&"GROUND_WALK", &"FORD_WALK", &"SWIM_SURFACE", &"DIVE", &"CLIMB", &"TUNNEL_WALK",
+]
+
+## The two modes this increment profiles, as a bit mask over the enum above.
+const PROFILED_MODE_MASK: int = (1 << MODE_GROUND_WALK) | (1 << MODE_FORD_WALK)
 
 const REFUSE_NONE: StringName = &""
 const REFUSE_NOT_RESIDENT: StringName = &"REF_IS_NOT_A_LIVING_RESIDENT"
@@ -105,6 +198,20 @@ const REFUSE_ROUTE_NOT_READY: StringName = &"ROUTE_REQUEST_NOT_READY"
 const REFUSE_ROUTE_START: StringName = &"RESIDENT_NOT_ON_ROUTE_START"
 const REFUSE_SIZE_CLASS: StringName = &"RESIDENT_SIZE_CLASS_INVALID"
 const REFUSE_NOT_TRAVELLING: StringName = &"RESIDENT_IS_NOT_TRAVELLING"
+const REFUSE_PROFILE_ID: StringName = &"PROFILE_NOT_PUBLISHED"
+const REFUSE_PROFILE_SPECIES: StringName = &"PROFILE_SPECIES_MISMATCH"
+const REFUSE_PROFILE_REVISION: StringName = &"PROFILE_REVISION_STALE"
+const REFUSE_PROFILE_CLEARANCE: StringName = &"PROFILE_CLEARANCE_UNSPECIFIED"
+const REFUSE_MODE_RANGE: StringName = &"MODE_NOT_IN_ENUM"
+const REFUSE_MODE_UNPROFILED: StringName = &"MODE_NOT_PROFILED"
+const REFUSE_LIFE_STAGE: StringName = &"LIFE_STAGE_NOT_PROFILED"
+const REFUSE_LOAD_NEGATIVE: StringName = &"COMMITTED_LOAD_NEGATIVE"
+const REFUSE_LOAD_CAPACITY: StringName = &"LOAD_EXCEEDS_CARRY_CAPACITY"
+const REFUSE_CONTACT_UNBOUND: StringName = &"CONTACT_NOT_BOUND"
+const REFUSE_CONTACT_OWNER: StringName = &"CONTACT_OWNER_REF_STALE"
+const REFUSE_CONTACT_LOCATION: StringName = &"CONTACT_LOCATION_NOT_CURRENT"
+const REFUSE_CONTACT_REVISION: StringName = &"CONTACT_DESTINATION_REVISION_STALE"
+const REFUSE_ROUTE_CONTACT: StringName = &"ROUTE_DOES_NOT_END_AT_CONTACT_APPROACH"
 
 const NO_REQUEST: int = -1
 
@@ -112,11 +219,53 @@ const NO_REQUEST: int = -1
 ## stale reference, so 0 is "this cursor belongs to nobody" and can never collide with an owner.
 const NO_OWNER_ID: int = 0
 
+## Internal absence markers for the admission columns. Neither crosses a public boundary as a
+## failure code: every public refusal is an explicit `false` plus a StringName.
+const NO_PROFILE: int = -1
+const NO_MODE: int = -1
+
+class Admission:
+	extends RefCounted
+	## One travel admission's caller-supplied terms: which profile, which mode, what is carried.
+	##
+	## Caller-owned and reused, so admitting travel allocates nothing. Everything here is checked
+	## together before any motion row is written -- the ruling's "documented atomic boundary before
+	## travel". A refused admission leaves the resident exactly as it was.
+
+	var profile_id: int = -1
+	var life_stage: int = -1
+	var mode: int = -1
+	var committed_load_g: int = 0
+
+	func clear() -> void:
+		"""Return this record to the unusable state, so a stale reuse refuses rather than travels."""
+		profile_id = -1
+		life_stage = -1
+		mode = -1
+		committed_load_g = 0
+
+	func set_terms(profile: int, stage: int, travel_mode: int, load_g: int) -> void:
+		"""Fill all four terms in one call, so a partially-updated reuse is harder to write."""
+		profile_id = profile
+		life_stage = stage
+		mode = travel_mode
+		committed_load_g = load_g
+
+
 var _directory: EntityDirectory = null
 var _world: SpatialWorld = null
 var _navigation: Navigation = null
 var _transforms: Transforms = null
 var _residents: ResidentsScript = null
+
+# --- StarterGroundProfile, PROFILE_COUNT rows ----------------------------------------------------
+
+var _profile_species_id: PackedInt32Array = PackedInt32Array()
+var _profile_size_class: PackedInt32Array = PackedInt32Array()
+var _profile_speed_u_per_s: PackedInt32Array = PackedInt32Array()
+var _profile_carry_g: PackedInt32Array = PackedInt32Array()
+var _profile_mode_mask: PackedInt32Array = PackedInt32Array()
+var _profile_revision: PackedInt32Array = PackedInt32Array()
 
 # --- ResidentMotion, ARCH-MEM-008's sixteen i32 columns ------------------------------------------
 
@@ -143,6 +292,14 @@ var _cursor_request: PackedInt32Array = PackedInt32Array()
 var _cursor_route_generation: PackedInt32Array = PackedInt32Array()
 var _cursor_index: PackedInt32Array = PackedInt32Array()
 var _cursor_owner_id: PackedInt32Array = PackedInt32Array()
+
+# --- ResidentTravelAdmission, the terms this row's journey was admitted under ----------------------
+
+var _cursor_profile_id: PackedInt32Array = PackedInt32Array()
+var _cursor_profile_revision: PackedInt32Array = PackedInt32Array()
+var _cursor_mode: PackedInt32Array = PackedInt32Array()
+var _cursor_load_g: PackedInt32Array = PackedInt32Array()
+var _cursor_destination_revision: PackedInt32Array = PackedInt32Array()
 
 var _scratch: IntMath.IntResult = IntMath.IntResult.new()
 var _pose: Transforms.Pose = Transforms.Pose.new()
@@ -175,6 +332,8 @@ func _init(
 	_residents = residents
 	_allocate_motion()
 	_allocate_cursors()
+	_allocate_profiles()
+	_build_starter_profiles()
 
 
 func _allocate_motion() -> void:
@@ -208,45 +367,265 @@ func _allocate_cursors() -> void:
 	_cursor_route_generation.resize(MOTION_CAPACITY)
 	_cursor_index.resize(MOTION_CAPACITY)
 	_cursor_owner_id.resize(MOTION_CAPACITY)
+	_cursor_profile_id.resize(MOTION_CAPACITY)
+	_cursor_profile_revision.resize(MOTION_CAPACITY)
+	_cursor_mode.resize(MOTION_CAPACITY)
+	_cursor_load_g.resize(MOTION_CAPACITY)
+	_cursor_destination_revision.resize(MOTION_CAPACITY)
 	for row: int in MOTION_CAPACITY:
 		_cursor_request[row] = NO_REQUEST
 		_cursor_owner_id[row] = NO_OWNER_ID
+		_cursor_profile_id[row] = NO_PROFILE
+		_cursor_mode[row] = NO_MODE
 		_grid_cell[row] = NO_REQUEST
 		_grid_next[row] = NO_REQUEST
 
 
+func _allocate_profiles() -> void:
+	"""Allocate the six starter-profile columns once to PROFILE_COUNT rows."""
+	_profile_species_id.resize(PROFILE_COUNT)
+	_profile_size_class.resize(PROFILE_COUNT)
+	_profile_speed_u_per_s.resize(PROFILE_COUNT)
+	_profile_carry_g.resize(PROFILE_COUNT)
+	_profile_mode_mask.resize(PROFILE_COUNT)
+	_profile_revision.resize(PROFILE_COUNT)
+
+
+func _build_starter_profiles() -> void:
+	"""Derive every starter profile from `residents.gd`, refusing rather than defaulting a species.
+
+	THE AUDIT IS THIS FUNCTION. Nothing here is a literal: the compiled species id, the size class,
+	the speed cap and the carry capacity are all read back out of the resident store, which holds
+	GDD 5.2's table including its deliberate large-is-slower anomaly. A species the store does not
+	compile leaves its profile row unpublished -- `_profile_revision` stays 0 -- rather than
+	inheriting a neighbour's numbers.
+	"""
+	for profile: int in PROFILE_COUNT:
+		_profile_revision[profile] = 0
+		var species: IntMath.IntResult = _residents.species_id(PROFILE_SPECIES_KEYS[profile])
+		var size: IntMath.IntResult = _residents.species_size_class(PROFILE_SPECIES_KEYS[profile])
+		if not species.ok or not size.ok:
+			continue
+		var speed: IntMath.IntResult = _residents.size_movement_u_per_s(size.value)
+		var carry: IntMath.IntResult = _residents.size_carry_g(size.value)
+		if not speed.ok or not carry.ok:
+			continue
+		_profile_species_id[profile] = species.value
+		_profile_size_class[profile] = size.value
+		_profile_speed_u_per_s[profile] = speed.value
+		_profile_carry_g[profile] = carry.value
+		_profile_mode_mask[profile] = PROFILED_MODE_MASK
+		_profile_revision[profile] = PROFILE_FIRST_REVISION
+
+
+# --- the published starter profile manifest ---------------------------------------------------------
+
+func is_profile(profile_id: int) -> bool:
+	"""True when `profile_id` names a published starter profile. A predicate, not an error channel."""
+	return profile_id >= 0 and profile_id < PROFILE_COUNT \
+		and _profile_revision[profile_id] >= PROFILE_FIRST_REVISION
+
+
+func profile_key_of(profile_id: int) -> StringName:
+	"""The stable ASCII key of a published profile, or the empty name when none is published."""
+	return PROFILE_KEYS[profile_id] if is_profile(profile_id) else &""
+
+
+func profile_for_species_into(species_key: StringName, out: IntMath.IntResult) -> bool:
+	"""The profile id covering a species key, or an explicit refusal for an unprofiled species.
+
+	Twelve of `residents.gd`'s sixteen release-1 species have no starter profile. They refuse here
+	rather than resolving to a size-class neighbour, because a size class is not a traversal
+	profile and treating it as one is how an unreviewed species reaches production travel.
+	"""
+	var profile: int = PROFILE_SPECIES_KEYS.find(species_key)
+	if profile < 0 or not is_profile(profile):
+		_last_refusal = REFUSE_PROFILE_SPECIES
+		return out.refuse(REFUSE_PROFILE_SPECIES)
+	_last_refusal = REFUSE_NONE
+	return out.succeed(profile)
+
+
+func profile_revision_of(profile_id: int) -> int:
+	"""The current revision of a published profile, or 0 when nothing is published at that id."""
+	return _profile_revision[profile_id] if is_profile(profile_id) else 0
+
+
+func profile_speed_into(profile_id: int, out: IntMath.IntResult) -> bool:
+	"""GDD 5.2's per-size movement cap for a profile in u/second, or an explicit refusal."""
+	return _profile_field_into(_profile_speed_u_per_s, profile_id, out)
+
+
+func profile_carry_capacity_into(profile_id: int, out: IntMath.IntResult) -> bool:
+	"""GDD 5.2's per-size carry capacity for a profile in grams, or an explicit refusal."""
+	return _profile_field_into(_profile_carry_g, profile_id, out)
+
+
+func profile_size_class_into(profile_id: int, out: IntMath.IntResult) -> bool:
+	"""The inherited size class a profile's species falls in, or an explicit refusal."""
+	return _profile_field_into(_profile_size_class, profile_id, out)
+
+
+func profile_species_id_into(profile_id: int, out: IntMath.IntResult) -> bool:
+	"""The compiled `residents.gd` species id a profile covers, or an explicit refusal."""
+	return _profile_field_into(_profile_species_id, profile_id, out)
+
+
+func _profile_field_into(
+	column: PackedInt32Array, profile_id: int, out: IntMath.IntResult
+) -> bool:
+	"""One published profile column, or REFUSE_PROFILE_ID. Shared so each reader is two lines."""
+	if not is_profile(profile_id):
+		_last_refusal = REFUSE_PROFILE_ID
+		return out.refuse(REFUSE_PROFILE_ID)
+	_last_refusal = REFUSE_NONE
+	return out.succeed(column[profile_id])
+
+
+func profile_clearance_class_into(profile_id: int, out: IntMath.IntResult) -> bool:
+	"""ALWAYS REFUSES: no starter profile carries a body-plus-gear clearance class.
+
+	This function exists so the gap is a refusal a caller must handle rather than a field nobody
+	notices is missing. The asset package states its species heights "do NOT set navigation
+	clearance, service reach, step height or movement capability", and the 2026-09-11 movement
+	ruling adds that battle separation radii cannot determine these dimensions either. Nothing else
+	in `docs/` states a horizontal body, posture, gear or load envelope for a resident. Until the
+	movement and asset owners author those envelopes and derive a class against
+	`spatial_world.gd`'s anchored passable-square convention, this refuses -- for every profile,
+	including one whose id is perfectly valid.
+	"""
+	if not is_profile(profile_id):
+		_last_refusal = REFUSE_PROFILE_ID
+		return out.refuse(REFUSE_PROFILE_ID)
+	_last_refusal = REFUSE_PROFILE_CLEARANCE
+	return out.refuse(REFUSE_PROFILE_CLEARANCE)
+
+
+func profile_permits_mode(profile_id: int, mode: int) -> bool:
+	"""True when a published profile admits a traversal mode in THIS increment."""
+	if not is_profile(profile_id) or mode < 0 or mode >= MODE_COUNT:
+		return false
+	return (_profile_mode_mask[profile_id] & (1 << mode)) != 0
+
+
+func revise_profile(profile_id: int) -> bool:
+	"""Advance one published profile's revision, or refuse explicitly.
+
+	Routes already admitted under the old revision do not silently continue: `_advance_row()` sees
+	the mismatch and settles the body MOTION_PROFILE_STALE, which is SET-MOVE-001 MOVE-REQ-006's
+	"revalidate affected future route segments before entry" at this increment's granularity.
+	"""
+	if not is_profile(profile_id):
+		_last_refusal = REFUSE_PROFILE_ID
+		return false
+	_profile_revision[profile_id] += 1
+	_last_refusal = REFUSE_NONE
+	return true
+
+
 # --- starting and stopping -------------------------------------------------------------------------
 
-func begin_travel(resident: Vector2i, request_row: int) -> bool:
-	"""Attach a ready route to a placed resident and start travelling it, or refuse explicitly.
+func begin_travel(
+	resident: Vector2i, request_row: int, admission: Admission, contact: SpatialWorld.Contact
+) -> bool:
+	"""Admit one resident to travel a ready route to a work contact, or refuse explicitly.
 
-	The resident must already stand on the route's first cell. There is no teleport-to-start and
-	no "close enough" tolerance: a body that is not on the route it was handed has not been given
-	its route, and silently snapping it would hide exactly that mistake.
+	EVERY CHECK RUNS BEFORE ANY COLUMN IS WRITTEN. That is the ruling's atomic admission boundary:
+	a refused admission leaves the resident's motion row exactly as it was, so a caller cannot
+	half-start a journey and discover the incompatibility one tick later.
+
+	The resident must already stand on the route's first cell, and the route must END on the
+	contact's approach cell. There is no teleport-to-start, no "close enough" tolerance and no
+	nearest-contact fallback: a body that is not on the route it was handed has not been given its
+	route, and a route that stops somewhere near the destination has not reached it.
 	"""
 	var row: int = _motion_row(resident)
 	if row < 0:
 		return false
-	if not _navigation.is_ready(request_row):
-		_last_refusal = REFUSE_ROUTE_NOT_READY
+	var refusal: StringName = _refuse_admission(resident, request_row, admission, contact)
+	if refusal != REFUSE_NONE:
+		_last_refusal = refusal
 		return false
-	if not _transforms.read_into(resident, _pose):
-		_last_refusal = REFUSE_NOT_PLACED
-		return false
-	if not _world.cell_of_position_into(_pose.x, _pose.z, _scratch):
-		_last_refusal = REFUSE_ROUTE_START
-		return false
-	var here: int = _scratch.value
 	if not _navigation.route_cell_into(request_row, 0, _scratch):
 		_last_refusal = REFUSE_ROUTE_NOT_READY
 		return false
-	if _scratch.value != here:
-		_last_refusal = REFUSE_ROUTE_START
+	return _attach_route(resident, row, request_row, _scratch.value, admission, contact)
+
+
+func _refuse_admission(
+	resident: Vector2i, request_row: int, admission: Admission, contact: SpatialWorld.Contact
+) -> StringName:
+	"""Every precondition for admitting travel, as the refusal it produces or REFUSE_NONE."""
+	var profile_refusal: StringName = _refuse_profile_terms(resident, admission)
+	if profile_refusal != REFUSE_NONE:
+		return profile_refusal
+	var contact_refusal: StringName = _refuse_contact_terms(contact)
+	if contact_refusal != REFUSE_NONE:
+		return contact_refusal
+	if not _navigation.is_ready(request_row):
+		return REFUSE_ROUTE_NOT_READY
+	if not _route_ends_at(request_row, contact.approach.cell):
+		return REFUSE_ROUTE_CONTACT
+	return _refuse_route_start(resident, request_row)
+
+
+func _refuse_profile_terms(resident: Vector2i, admission: Admission) -> StringName:
+	"""The profile, life stage, mode and committed-load half of admission."""
+	if not is_profile(admission.profile_id):
+		return REFUSE_PROFILE_ID
+	if admission.life_stage != LIFE_STAGE_ADULT:
+		return REFUSE_LIFE_STAGE
+	if admission.mode < 0 or admission.mode >= MODE_COUNT:
+		return REFUSE_MODE_RANGE
+	if not profile_permits_mode(admission.profile_id, admission.mode):
+		return REFUSE_MODE_UNPROFILED
+	var species: IntMath.IntResult = _residents.species_of(_directory.get_typed_row(resident))
+	if not species.ok or species.value != _profile_species_id[admission.profile_id]:
+		return REFUSE_PROFILE_SPECIES
+	if admission.committed_load_g < 0:
+		return REFUSE_LOAD_NEGATIVE
+	if admission.committed_load_g > _profile_carry_g[admission.profile_id]:
+		return REFUSE_LOAD_CAPACITY
+	return REFUSE_NONE
+
+
+func _refuse_contact_terms(contact: SpatialWorld.Contact) -> StringName:
+	"""The destination half of admission: bound, owned by something live, and current."""
+	if not contact.is_bound():
+		return REFUSE_CONTACT_UNBOUND
+	if not _directory.is_valid(contact.owner_ref()):
+		return REFUSE_CONTACT_OWNER
+	if not _world.contact_is_current(contact):
+		return REFUSE_CONTACT_LOCATION
+	return REFUSE_NONE
+
+
+func _refuse_route_start(resident: Vector2i, request_row: int) -> StringName:
+	"""The resident must be placed, and standing on the route's own first cell."""
+	if not _transforms.read_into(resident, _pose):
+		return REFUSE_NOT_PLACED
+	if not _world.cell_of_position_into(_pose.x, _pose.z, _scratch):
+		return REFUSE_ROUTE_START
+	var here: int = _scratch.value
+	if not _navigation.route_cell_into(request_row, 0, _scratch):
+		return REFUSE_ROUTE_NOT_READY
+	return REFUSE_NONE if _scratch.value == here else REFUSE_ROUTE_START
+
+
+func _route_ends_at(request_row: int, cell: int) -> bool:
+	"""True when the route's LAST cell is `cell` -- arrival must be the exact contact approach."""
+	if not _navigation.route_length_into(request_row, _scratch):
 		return false
-	return _attach_route(resident, row, request_row, here)
+	var last_index: int = _scratch.value - 1
+	if last_index < 0 or not _navigation.route_cell_into(request_row, last_index, _scratch):
+		return false
+	return _scratch.value == cell
 
 
-func _attach_route(resident: Vector2i, row: int, request_row: int, here: int) -> bool:
+func _attach_route(
+	resident: Vector2i, row: int, request_row: int, here: int, admission: Admission,
+	contact: SpatialWorld.Contact
+) -> bool:
 	"""Initialize one resident's motion and cursor state on a route it already stands at the start of."""
 	var speed: int = _speed_of(resident)
 	if speed <= 0:
@@ -260,6 +639,11 @@ func _attach_route(resident: Vector2i, row: int, request_row: int, here: int) ->
 		_navigation.request_route_id(request_row))
 	_cursor_index[row] = 0
 	_cursor_owner_id[row] = _directory.get_persistent_id(resident)
+	_cursor_profile_id[row] = admission.profile_id
+	_cursor_profile_revision[row] = _profile_revision[admission.profile_id]
+	_cursor_mode[row] = admission.mode
+	_cursor_load_g[row] = admission.committed_load_g
+	_cursor_destination_revision[row] = contact.destination_revision
 	_movement_phase[row] = MOTION_TRAVELLING
 	_travelling_count += 1
 	_advance_cursor_target(row)
@@ -296,7 +680,36 @@ func stop(resident: Vector2i) -> bool:
 	_cursor_route_generation[row] = 0
 	_cursor_index[row] = 0
 	_cursor_owner_id[row] = NO_OWNER_ID
+	_cursor_profile_id[row] = NO_PROFILE
+	_cursor_profile_revision[row] = 0
+	_cursor_mode[row] = NO_MODE
+	_cursor_load_g[row] = 0
+	_cursor_destination_revision[row] = 0
 	_movement_phase[row] = MOTION_IDLE
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func revalidate_destination(resident: Vector2i, destination_revision: int) -> bool:
+	"""Re-present a travelling resident's destination revision; settle it CONTACT_STALE on mismatch.
+
+	THE CONTACT OWNER CALLS THIS, BECAUSE ONLY IT KNOWS WHEN ITS DESTINATION CHANGED. Movement
+	holds the number the journey was admitted under and compares; it cannot detect an emptied store
+	or a withdrawn service on its own, and does not pretend to by polling anything.
+
+	OPEN, NAMED NOT INVENTED: nothing yet calls this every tick, because no building, room or
+	service store publishes a destination revision. That producer is the contact owner's piece of
+	the ruling's item 4 and is not written here. Returns false when the reference is not a
+	travelling resident; a settled row is a true return, since the revalidation did happen.
+	"""
+	var row: int = _motion_row(resident)
+	if row < 0:
+		return false
+	if _movement_phase[row] != MOTION_TRAVELLING:
+		_last_refusal = REFUSE_NOT_TRAVELLING
+		return false
+	if _cursor_destination_revision[row] != destination_revision:
+		_settle(row, MOTION_CONTACT_STALE)
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -348,6 +761,9 @@ func _advance_row(row: int) -> bool:
 	if resident.x < 0 or not _cursor_owner_matches(row, resident) or not _route_still_valid(row):
 		_settle(row, MOTION_ROUTE_LOST)
 		return false
+	if not _admitted_profile_still_current(row):
+		_settle(row, MOTION_PROFILE_STALE)
+		return false
 	if not _transforms.read_into(resident, _pose):
 		_settle(row, MOTION_ROUTE_LOST)
 		return false
@@ -376,6 +792,20 @@ func _cursor_owner_matches(row: int, resident: Vector2i) -> bool:
 	inherit its route.
 	"""
 	return _cursor_owner_id[row] == _directory.get_persistent_id(resident)
+
+
+func _admitted_profile_still_current(row: int) -> bool:
+	"""True while the profile this journey was admitted under is still published at that revision.
+
+	SET-MOVE-001 MOVE-REQ-006 revalidates a route when a profile revision changes. This increment
+	revalidates the WHOLE remaining journey rather than the next segment, because segment-level
+	eligibility needs the clearance, posture, grip and load envelopes MOVE-G01 still owes; settling
+	the body is the conservative outcome and never lets it continue under withdrawn terms.
+	"""
+	var profile: int = _cursor_profile_id[row]
+	if not is_profile(profile):
+		return false
+	return _profile_revision[profile] == _cursor_profile_revision[row]
 
 
 func _spend_budget(row: int, from_x: int, from_z: int, budget_x: int, budget_z: int) -> void:
@@ -581,6 +1011,36 @@ func route_owner_id_of(resident: Vector2i) -> int:
 	"""The persistent id this row's cursor was attached for, or NO_OWNER_ID when it follows none."""
 	var row: int = _motion_row(resident)
 	return NO_OWNER_ID if row < 0 else _cursor_owner_id[row]
+
+
+func admitted_profile_of(resident: Vector2i) -> int:
+	"""The profile id this resident's journey was admitted under, or NO_PROFILE when it follows none."""
+	var row: int = _motion_row(resident)
+	return NO_PROFILE if row < 0 else _cursor_profile_id[row]
+
+
+func admitted_profile_revision_of(resident: Vector2i) -> int:
+	"""The profile revision captured at admission, or 0 when this resident follows no route."""
+	var row: int = _motion_row(resident)
+	return 0 if row < 0 else _cursor_profile_revision[row]
+
+
+func admitted_mode_of(resident: Vector2i) -> int:
+	"""The traversal mode this resident was admitted in, or NO_MODE when it follows no route."""
+	var row: int = _motion_row(resident)
+	return NO_MODE if row < 0 else _cursor_mode[row]
+
+
+func admitted_load_g_of(resident: Vector2i) -> int:
+	"""The committed load in grams this resident was admitted carrying."""
+	var row: int = _motion_row(resident)
+	return 0 if row < 0 else _cursor_load_g[row]
+
+
+func admitted_destination_revision_of(resident: Vector2i) -> int:
+	"""The destination revision captured at admission, or 0 when this resident follows no route."""
+	var row: int = _motion_row(resident)
+	return 0 if row < 0 else _cursor_destination_revision[row]
 
 
 func travelling_count() -> int:

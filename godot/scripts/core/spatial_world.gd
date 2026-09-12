@@ -33,6 +33,16 @@ extends RefCounted
 ## specified, and nothing here may be published into an active gameplay catalog as if it were one.
 ##
 ## ---------------------------------------------------------------------------------------
+## THE CONTACT SCHEMA IS A SCHEMA, NOT A CATALOG OF DESTINATIONS.
+##
+## `Contact` below is the movement half of the 2026-09-11 ruling's starter contact manifest: a work
+## cell, a separate approach cell a body actually stands on, one generation-checked owner, and the
+## owner's destination revision. What this module supplies is the RECORD SHAPE and its refusals.
+## The exact supported footprint and contact envelope -- how far an approach may be from its work
+## point, whether a footprint spans cells, which side of a building offers one -- is the contact
+## owner's value and is NOT invented here. No adjacency rule is imposed for that reason.
+##
+## ---------------------------------------------------------------------------------------
 ## MEMORY. The five columns below ARE systems_architecture.md 2.3's "Static navigation map",
 ## 262144 x 14 bytes = 3670016: walkability/layer bytes plus terrain/height/clearance i32. No
 ## second world, no shadow copy, and no `resize()` outside `_init()`.
@@ -90,6 +100,14 @@ const REFUSE_DOMAIN: StringName = &"DOMAIN_NOT_CONTRACTED"
 const REFUSE_LAYER: StringName = &"LAYER_NOT_CONTRACTED"
 const REFUSE_REVISION_EXHAUSTED: StringName = &"MAP_REVISION_EXHAUSTED"
 const REFUSE_NULL_OWNER: StringName = &"LOCATION_OWNER_REQUIRED"
+const REFUSE_CONTACT_REVISION: StringName = &"CONTACT_DESTINATION_REVISION_REQUIRED"
+const REFUSE_CONTACT_APPROACH: StringName = &"CONTACT_APPROACH_NOT_WALKABLE"
+
+## The first legal destination revision. Zero means "this contact named no destination state at
+## all", which is how an empty building or an absent service store is kept out of the manifest --
+## the ruling's "empty buildings or nonexistent service stores are not valid targets". The revision
+## VALUE is the contact owner's; only its null is contracted here.
+const FIRST_DESTINATION_REVISION: int = 1
 
 
 class Location:
@@ -127,6 +145,47 @@ class Location:
 	func same_place_as(other: Location) -> bool:
 		"""True when both records name the same domain, layer and cell. Ignores owner and revision."""
 		return domain == other.domain and layer == other.layer and cell == other.cell
+
+
+class Contact:
+	extends RefCounted
+	## One work or service destination: WHERE THE WORK IS and WHERE A BODY MUST STAND ARE TWO
+	## DIFFERENT CELLS, plus the destination's own revision.
+	##
+	## The two locations are separate on purpose. A workbench, a store shelf or a well head occupies
+	## a cell that navigation need not make walkable at all; the body stands on the approach cell.
+	## Collapsing them is exactly SET-MOVE-001 MOVE-REQ-013's defect -- "being horizontally close
+	## cannot satisfy a below-floor job" -- one level up.
+	##
+	## `destination_revision` is the CONTACT OWNER'S number, not this module's. It changes when the
+	## thing being travelled to changes in a way that invalidates an admitted journey: a store
+	## emptied, a service withdrawn, a building demolished and rebuilt on the same handle. Movement
+	## records it at admission and refuses on mismatch; it never guesses what should bump it.
+	##
+	## NOT SETTLED HERE, AND DELIBERATELY NOT INVENTED: how far an approach cell may lie from its
+	## work cell, whether a footprint spans several cells, and which approach a multi-sided building
+	## offers. Those are the "exact supported footprint/contact envelopes" the 2026-09-11 movement
+	## ruling assigns to the contact owner. This record therefore takes the approach cell as given
+	## and checks only that it is a real, walkable ground cell -- no adjacency rule is imposed,
+	## because imposing one would be choosing that envelope.
+
+	var work: Location = Location.new()
+	var approach: Location = Location.new()
+	var destination_revision: int = 0
+
+	func clear() -> void:
+		"""Return this contact to the unbound state; `is_bound()` is false afterwards."""
+		work.clear()
+		approach.clear()
+		destination_revision = 0
+
+	func is_bound() -> bool:
+		"""True when both endpoints name a place and the owner declared a destination revision."""
+		return work.is_bound() and approach.is_bound() and destination_revision > 0
+
+	func owner_ref() -> Vector2i:
+		"""The owning entity reference; both endpoints always carry the same owner."""
+		return work.owner_ref()
 
 
 # --- static navigation map, systems_architecture.md 2.3 "Static navigation map" ------------------
@@ -404,6 +463,49 @@ func location_is_current(location: Location) -> bool:
 	if location.revision != _map_revision:
 		return false
 	return is_cell(location.cell)
+
+
+func bind_ground_contact(
+	out: Contact, work_cell: int, approach_cell: int, owner: Vector2i, destination_revision: int
+) -> bool:
+	"""Fill `out` with a work/service destination, or refuse explicitly and leave it unbound.
+
+	Every check runs before anything is written, so a refused bind never leaves a half-filled
+	contact that a later `is_bound()` would accept. The approach cell must be walkable -- a contact
+	a body cannot legally stand at is not a destination -- while the work cell need only exist,
+	because building interiors and water work points are not required to be navigable ground.
+	"""
+	out.clear()
+	if destination_revision < FIRST_DESTINATION_REVISION:
+		_last_refusal = REFUSE_CONTACT_REVISION
+		return false
+	if not is_cell(work_cell) or not is_cell(approach_cell):
+		_last_refusal = REFUSE_INVALID_CELL
+		return false
+	if not is_walkable_cell(approach_cell):
+		_last_refusal = REFUSE_CONTACT_APPROACH
+		return false
+	if not bind_ground_location(out.work, work_cell, owner):
+		out.clear()
+		return false
+	if not bind_ground_location(out.approach, approach_cell, owner):
+		out.clear()
+		return false
+	out.destination_revision = destination_revision
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func contact_is_current(contact: Contact) -> bool:
+	"""True when both of a bound contact's endpoints still name cells at the CURRENT map revision.
+
+	Says nothing about the owner being alive or the destination revision still being the admitted
+	one. Those are two separate questions, asked by two separate callers, and merging them would
+	hide which of the three went stale.
+	"""
+	if not contact.is_bound():
+		return false
+	return location_is_current(contact.work) and location_is_current(contact.approach)
 
 
 func domain_is_contracted(domain: int) -> bool:

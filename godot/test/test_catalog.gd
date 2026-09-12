@@ -213,9 +213,10 @@ func test_every_protected_domain_has_a_fixed_enum_table() -> void:
 	from eleven to thirteen when RoomType and BuildingState did (decision 0018: every enum
 	§4.3 numbers explicitly belongs here), and to fourteen when Milestone did under decision
 	0080 -- BAL-CAT-002 numbers M0..M4 individually, which is the same "individually listed"
-	test. The number is asserted so a domain added without a
+	test -- and to fifteen when InjuryKind did under decision 0108, §4.3 having numbered it at
+	game_gdd.md:215 all along. The number is asserted so a domain added without a
 	fixed_enum table, or a table added without its domain name, fails."""
-	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 14, "fourteen protected enum domains")
+	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 15, "fifteen protected enum domains")
 	for domain_name: String in CatalogScript.PROTECTED_ENUM_DOMAINS:
 		assert_false(CatalogScript.fixed_enum(domain_name).is_empty(),
 			"protected domain %s must publish a fixed enum table" % domain_name)
@@ -753,3 +754,107 @@ func test_the_new_domains_were_never_numbered_any_other_way() -> void:
 			"%s says why, rather than reporting an unknown domain" % domain_name)
 	assert_false(CatalogScript.convert_legacy_id("RoomType", 0).ok,
 		"RoomType is protected, not a compiled domain at all")
+
+
+# --- decision 0108's InjuryKind domain (SET-MOVE-ECON-001 HAZ-001) --------------------------------
+
+## GDD §4.3 (game_gdd.md:215), transcribed from the specification and never read back out of the
+## module under test.
+const EXPECTED_INJURY_KIND: Dictionary = {
+	"NONE": 0, "CUT": 1, "BITE": 2, "FALL": 3, "EXPOSURE": 4, "EXHAUSTION": 5,
+}
+
+## The same six keys in STRICTLY DESCENDING ASCII order. Feeding the compiler its worst case
+## proves the sort is doing work: declaration-order enumeration would produce the exact reverse.
+const INJURY_KIND_KEYS_DESCENDING: Array[StringName] = [
+	&"NONE", &"FALL", &"EXPOSURE", &"EXHAUSTION", &"CUT", &"BITE",
+]
+
+## What ascending ASCII generates from those keys -- which is NOT what §4.3 states.
+const INJURY_KIND_ASCII_ORDER: Dictionary = {
+	"BITE": 0, "CUT": 1, "EXHAUSTION": 2, "EXPOSURE": 3, "FALL": 4, "NONE": 5,
+}
+
+## Five of the six differ from §4.3; only CUT=1 falls in the same place under both orders.
+const INJURY_KIND_ASCII_DISAGREEMENTS: int = 5
+
+
+func test_fixed_injury_kind_enum_matches_gdd_4_3_exactly() -> void:
+	"""HAZ-001 reuses §4.3's existing kinds; the table is fixed data, published in one place."""
+	assert_equal(CatalogScript.INJURY_KIND, EXPECTED_INJURY_KIND, "the whole InjuryKind table")
+	assert_equal(CatalogScript.fixed_enum(CatalogScript.INJURY_KIND_DOMAIN), EXPECTED_INJURY_KIND,
+		"fixed_enum returns the InjuryKind table")
+	assert_equal(CatalogScript.INJURY_KIND_DOMAIN, "InjuryKind", "the domain's declared name")
+	assert_equal(CatalogScript.INJURY_KIND.size(), 6, "exactly six kinds, no seventh")
+	assert_true(CatalogScript.PROTECTED_ENUM_DOMAINS.has(CatalogScript.INJURY_KIND_DOMAIN),
+		"InjuryKind must be protected, not recompilable")
+
+
+func test_injury_kind_hazard_bindings_are_the_inherited_numbers() -> void:
+	"""HAZ-002/003 bind airless to EXPOSURE, rest-zero to EXHAUSTION and a drop to FALL.
+
+	Each must resolve to the number §4.3 already gave it: a hazard owner that mirrored its own
+	kind constants locally, or a renumbering here, would repoint every persisted Injury.kind."""
+	assert_equal(int(CatalogScript.INJURY_KIND["EXPOSURE"]), 4, "HAZ-002's airless kind is 4")
+	assert_equal(int(CatalogScript.INJURY_KIND["EXHAUSTION"]), 5, "HAZ-003's kind is 5")
+	assert_equal(int(CatalogScript.INJURY_KIND["FALL"]), 3, "a declared fall's kind is 3")
+	assert_equal(int(CatalogScript.INJURY_KIND["NONE"]), 0, "absence of injury is 0, not -1")
+	assert_false(CatalogScript.INJURY_KIND.has("DROWNING"),
+		"HAZ-001 introduces no new injury-kind member")
+	assert_false(CatalogScript.INJURY_KIND.has("AIRLESS"),
+		"airless submergence reuses EXPOSURE rather than adding a kind")
+
+
+func test_injury_kind_is_not_its_own_ascii_order_and_refuses_recompilation() -> void:
+	"""Exactly why InjuryKind is protected rather than compiled.
+
+	Ascending ASCII over these six keys generates BITE=0, CUT=1, EXHAUSTION=2, EXPOSURE=3,
+	FALL=4, NONE=5. Five of the six disagree with §4.3, and CUT=1 coincides -- which is the
+	dangerous shape, not a safe one: a partial agreement is exactly what makes a silent
+	regeneration look plausible while it repoints the other five persisted Injury.kind values."""
+	var ascii_ids: Dictionary = CatalogScript.compile_domain(
+		"Nonesuch", INJURY_KIND_KEYS_DESCENDING).ids
+	var disagreements: int = 0
+	for key: String in INJURY_KIND_ASCII_ORDER.keys():
+		assert_equal(int(ascii_ids[StringName(key)]), int(INJURY_KIND_ASCII_ORDER[key]),
+			"ascending ASCII puts '%s' at %d" % [key, int(INJURY_KIND_ASCII_ORDER[key])])
+		if int(ascii_ids[StringName(key)]) != int(CatalogScript.INJURY_KIND[key]):
+			disagreements += 1
+	assert_equal(disagreements, INJURY_KIND_ASCII_DISAGREEMENTS,
+		"five of six members genuinely disagree between the two orders")
+	assert_equal(int(ascii_ids[&"CUT"]), int(CatalogScript.INJURY_KIND["CUT"]),
+		"CUT is the one coincidence, asserted rather than left to chance")
+	var refused: CatalogScript.DomainResult = CatalogScript.compile_domain(
+		CatalogScript.INJURY_KIND_DOMAIN, INJURY_KIND_KEYS_DESCENDING)
+	assert_false(refused.ok, "compiling InjuryKind must refuse")
+	assert_true(refused.ids.is_empty(), "a refused compile produces no IDs")
+	assert_true(refused.error.contains("fixed enum"), "and says it is a fixed enum")
+
+
+func test_descending_input_still_compiles_to_ascending_ascii_ids() -> void:
+	"""The sort, not the declaration order, decides -- shown on its worst case.
+
+	These keys arrive in strictly descending ASCII order, so a compiler that enumerated its input
+	instead of sorting it would produce the exact reverse of this expectation on every key."""
+	var compiled: CatalogScript.DomainResult = _assert_domain_ok(
+		CatalogScript.compile_domain("EventDefinition", INJURY_KIND_KEYS_DESCENDING),
+		"descending-order compile")
+	var last: int = INJURY_KIND_KEYS_DESCENDING.size() - 1
+	for index: int in INJURY_KIND_KEYS_DESCENDING.size():
+		var key: StringName = INJURY_KIND_KEYS_DESCENDING[index]
+		assert_equal(int(compiled.ids[key]), last - index,
+			"'%s' arrived at position %d and must compile to %d" % [key, index, last - index])
+
+
+func test_injury_kind_is_absent_from_the_compiled_domain_list() -> void:
+	"""A protected domain that also appeared as compiled could be regenerated by the other path."""
+	assert_false(CatalogScript.COMPILED_ENUM_DOMAINS.has(CatalogScript.INJURY_KIND_DOMAIN),
+		"InjuryKind is protected and must never be a compiled domain")
+	assert_true(CatalogScript.compiled_enum(CatalogScript.INJURY_KIND_DOMAIN).is_empty(),
+		"compiled_enum owns no InjuryKind table")
+	var lookup: CatalogScript.EnumLookup = CatalogScript.compiled_id_of(
+		CatalogScript.INJURY_KIND_DOMAIN, &"FALL")
+	assert_false(lookup.ok, "compiled_id_of must refuse a protected domain")
+	assert_true(lookup.error.contains("not a compiled enum domain"), "and say why")
+	assert_true(CatalogScript.FIXED_ENUM_TABLES.has(CatalogScript.INJURY_KIND_DOMAIN),
+		"while the fixed table index does own it")

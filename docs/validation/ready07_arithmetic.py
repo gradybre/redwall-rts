@@ -99,10 +99,14 @@ assert DECISION_0095_ADDED==512
 # acquire refuses and mints none. scheduler_events.gd adds no field.
 DECISION_0104_ADDED=8+1
 assert DECISION_0104_ADDED==9
-assert len(allocations)==27 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED
+# decision 0109: injury.gd's aggregate store (5 B8 + 3 I32 + 3 I64 over RESIDENT_CAPACITY) plus
+# needs.gd's one _airless input byte. 2560 + 6144 + 12288 + 512.
+DECISION_0109_ADDED=(5*1*512)+(3*4*512)+(3*8*512)+(1*1*512)
+assert DECISION_0109_ADDED==21504
+assert len(allocations)==27 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==63733043
-assert live==72121651 and candidate==57517459 and live+candidate==129639110
+assert payload==63754547
+assert live==72143155 and candidate==57538963 and live+candidate==129682118
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s
@@ -111,7 +115,13 @@ for label,value in [('Planned allocated payload',payload),('One live world plus 
 catalog=json.loads((r/'godot/data/catalog_ids.json').read_text())['domains']['ItemDefinition']
 bindings={'resource': ['wood','stone','iron'],'forage':['berries','nuts','mushrooms','herb','roots'],'fish':['trout','dace','salmon','perch','carp','whitefish','herring','mackerel','mussel']}
 actual={k:[catalog[n] for n in names] for k,names in bindings.items()}
-assert actual=={'resource':[59,52,19],'forage':[1,35,32,15,39],'fish':[55,8,41,37,5,58,16,20,33]}
+# ECON-002's `excavated_earth` sorts between `dried_fruit` and `flax` and takes id 11, so EVERY
+# item at id >= 11 shifted up by exactly one. berries(1), carp(5) and dace(8) are below it and did
+# not move, which is the check that the shift is the ASCII sort and not a reshuffle. Previous pins,
+# kept so the move is legible: resource [59,52,19] forage [1,35,32,15,39] fish [55,8,41,37,5,58,16,20,33].
+# This is why ARCH-CAT-004 resolves items BY KEY at the binding boundary: a save carrying compiled
+# ids as numbers would have been invalidated by adding one catalog row in the middle of the alphabet.
+assert actual=={'resource':[60,53,20],'forage':[1,36,33,16,40],'fish':[56,8,42,38,5,59,17,21,34]}
 ticks={f'{season}:{day}':((season*12+day-1)*18000-4500) for season,day in [(1,3),(1,6),(1,8),(1,9),(2,1),(2,3),(2,6)]}
 assert list(ticks.values())==[247500,301500,337500,355500,427500,463500,517500]
 assert struct.calcsize('<qIIiiiI')==32 and struct.calcsize('<iiIIqII')==32

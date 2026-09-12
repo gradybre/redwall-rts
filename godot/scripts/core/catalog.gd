@@ -14,8 +14,12 @@ extends RefCounted
 ## Milestone joined them on 2026-09-11 (decision 0074): §4.3 does not print it, but BAL-CAT-002
 ## numbers M0..M4 individually, which is the same "individually listed" test §4.2's closing
 ## paragraph applies -- so it is protected data, not compiler output.
-## §4.3 numbers five more that this module does not yet carry -- WorldMode, ResidentStatus, Role,
-## InjuryKind, FeastState -- so adding one is an intentional artifact/digest change, not a fix.
+## InjuryKind joined them on 2026-09-12 (decision 0108) under SET-MOVE-ECON-001 HAZ-001, which
+## says in terms "Use integer state and existing GDD InjuryKind: NONE=0, CUT=1, BITE=2, FALL=3,
+## EXPOSURE=4, EXHAUSTION=5. No new injury-kind enum ... is introduced." That was always an
+## intentional artifact/digest change rather than a fix, and it moved both.
+## §4.3 numbers three more that this module does not yet carry -- WorldMode, ResidentStatus,
+## Role, FeastState -- so adding one is an intentional artifact/digest change, not a fix.
 ##
 ## Decision 0018 fixes the rule: every enum §4.3 numbers explicitly lives in
 ## PROTECTED_ENUM_DOMAINS, because the protected table is the thing that REFUSES a recompile. A
@@ -89,6 +93,21 @@ const CROP_STATE: Dictionary = {
 ## §4.3: "OrderMode | ONCE=0, REPEAT=1, MAINTAIN_STOCK=2". `ProductionOrder.mode` in §4.2.
 const ORDER_MODE: Dictionary = {"ONCE": 0, "REPEAT": 1, "MAINTAIN_STOCK": 2}
 const QUALITY: Dictionary = {"POOR": 0, "PLAIN": 1, "GOOD": 2, "EXCELLENT": 3}
+## §4.3: "InjuryKind | NONE=0, CUT=1, BITE=2, FALL=3, EXPOSURE=4, EXHAUSTION=5" (game_gdd.md:215).
+## `Injury.kind` in §4.2 is persisted state, so these six are save-carried, and they are NOT the
+## ascending ASCII order of their own keys (that would be BITE=0, CUT=1, EXHAUSTION=2,
+## EXPOSURE=3, FALL=4, NONE=5). §4.2's closing paragraph therefore does not reach them: §4.3
+## lists them individually and they are protected, per decision 0018.
+##
+## SET-MOVE-ECON-001 HAZ-002/HAZ-003 bind three of these six to new hazard outcomes -- airless
+## submergence raises EXPOSURE, rest-zero raises EXHAUSTION, a declared drop raises FALL -- by
+## REUSING these numbers. No parallel kind domain exists and none may be created; a module that
+## needs one of these values reads `Catalog.INJURY_KIND[...]` rather than mirroring it. Severity
+## values, hourly drains, care work and the aggregate Injury store are NOT here: they belong to
+## the injury/care owner (task 08), and this table carries identity only.
+const INJURY_KIND: Dictionary = {
+	"NONE": 0, "CUT": 1, "BITE": 2, "FALL": 3, "EXPOSURE": 4, "EXHAUSTION": 5,
+}
 const SEVERITY: Dictionary = {"INFO": 0, "ADVISORY": 1, "WARNING": 2, "CRITICAL": 3}
 ## §4.3: "RoomType | DORMITORY=0, PRIVATE_ROOM=1, KITCHEN=2, DINING=3, COMMON=4, INFIRMARY=5,
 ## PANTRY=6, CORRIDOR=7". `Room.type` in §4.2 is persisted, and these numbers are NOT the
@@ -129,7 +148,7 @@ const MILESTONE: Dictionary = {"M0": 0, "M1": 1, "M2": 2, "M3": 3, "M4": 4}
 
 const PROTECTED_ENUM_DOMAINS: Array[String] = [
 	"Speed", "Activity", "JobKind", "JobState", "ZoneType", "Season", "Soil", "CropState",
-	"OrderMode", "Quality", "Severity", "RoomType", "BuildingState", "Milestone",
+	"OrderMode", "Quality", "InjuryKind", "Severity", "RoomType", "BuildingState", "Milestone",
 ]
 
 ## Domain name -> its §4.3 table, so that adding a protected enum is one entry rather than one
@@ -139,7 +158,8 @@ const PROTECTED_ENUM_DOMAINS: Array[String] = [
 const FIXED_ENUM_TABLES: Dictionary = {
 	"Speed": SPEED, "Activity": ACTIVITY, "JobKind": JOB_KIND, "JobState": JOB_STATE,
 	"ZoneType": ZONE_TYPE, "Season": SEASON, "Soil": SOIL, "CropState": CROP_STATE,
-	"OrderMode": ORDER_MODE, "Quality": QUALITY, "Severity": SEVERITY, "RoomType": ROOM_TYPE,
+	"OrderMode": ORDER_MODE, "Quality": QUALITY, "InjuryKind": INJURY_KIND,
+	"Severity": SEVERITY, "RoomType": ROOM_TYPE,
 	"BuildingState": BUILDING_STATE, "Milestone": MILESTONE,
 }
 
@@ -155,6 +175,10 @@ const STATION_DOMAIN: String = "Station"
 
 ## The protected Milestone domain's own name, used wherever a caller asks for it by string.
 const MILESTONE_DOMAIN: String = "Milestone"
+
+## The protected InjuryKind domain's own name. SET-MOVE-ECON-001 HAZ-001/002/003 and the
+## aggregate injury/care owner ask for it by string; nothing else may spell it.
+const INJURY_KIND_DOMAIN: String = "InjuryKind"
 
 ## GDD §4.2: "empty catalog IDs are -1". Absence, never a refusal channel and never a key.
 const EMPTY_CATALOG_ID: int = -1
@@ -263,6 +287,33 @@ const COMPILED_ENUM_DOMAINS: Array[String] = [
 	EVENT_DEFINITION_DOMAIN, FURNITURE_DEFINITION_DOMAIN, HABITAT_TYPE_DOMAIN,
 	STATION_DOMAIN,
 ]
+
+# --- SET-MOVE-ECON-001 catalog work this module does NOT carry, and exactly why ------------------
+#
+# BLOCKER EH-01-A: the `excavated_earth` ItemDefinition row. ECON-002 authors it completely --
+# category MATERIAL, mass 1000 g/U, nutrition 0, shelf_hours 0, raw_edible false, seed false,
+# effect NONE, effect_value 0 -- and forbids aliasing `stone` or `compost` onto it. It is NOT
+# added here because the ItemDefinition catalog has exactly one authored source:
+# docs/gameplay_balance.md §3.1, mechanically extracted by tools/extract_item_definitions.py
+# (whose EXPECTED_ROW_COUNT is 60) into res://data/item_definitions.json. Adding the key to the
+# JSON or to this module without the §3.1 row would be the hand-copied second catalog that
+# pipeline exists to prevent, and the suite runs the real extractor against the real document, so
+# it would fail honestly. Both files are outside this change's ownership; the §3.1 row and the
+# row-count bump are reported to the owner rather than invented here.
+#
+# BLOCKER EH-01-B: the InventoryLot provenance domain. GDD §4.2 types `InventoryLot.provenance`
+# as `enum` and §4.3 does NOT number it, so under §4.2's closing paragraph it is compiled from
+# its own sorted ASCII keys -- exactly as inventory.gd's own note says ("Provenance ... [is an]
+# OPAQUE int32 catalog enum value ... compiled by catalog.gd from sorted ASCII keys"). ECON-002
+# supplies three members (EXCAVATION, BACKFILL_RECLAIM, SPOIL_RECLAIM); §5.1 names STARTER for
+# the initial loose lots and §5.7 a coastal-brine kind the salt recipe filters on. But NO
+# specification declares the domain's NAME or its
+# complete key set. A domain name is the artifact's own object key, and a partial key set
+# renumbers every member the moment the next one lands -- the failure BUILDING_DEFINITION was
+# published complete to avoid. Publishing three of an unknown number of keys under an invented
+# name would bake a wrong, save-carried numbering into the digest. It is therefore refused here,
+# not guessed, on the same grounds catalog_ids.gd refuses to name the entity-kind and RNG-stream
+# domains. Unblocking it needs one ruling: the domain name plus the complete member list.
 
 # --- legacy ordinal conversion (ruling §2: translate or refuse, never reinterpret) ---------------
 

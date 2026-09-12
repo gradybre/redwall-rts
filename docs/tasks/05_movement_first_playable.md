@@ -110,3 +110,17 @@ PATH-R02 replaces mandatory anchor composition with exact-start A*; MOVE-DEP-R01
 Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.
 
 - [x] **PATH-R02 — implemented in `navigation.gd`, 2026-09-12.** Engineering record: [decision 0091](../decisions/0091-exact-start-astar-replaces-macro-anchor-composition.md). Exact-start A* on every exact-start cache miss; no threshold, no nearest-point splice; the 2048 quota unchanged and no new packed column, so the memory ledger is untouched. The `(100,100)→(104,102)` fixture is now 48 with Dijkstra agreement, and the obsolete 160 acceptance is retired with its historical evidence preserved in the replacing test. Readiness remeasured: ARCH-PATH-008's 256 short routes improve from p95 7 ticks with 2 storage refusals to p95 3 ticks with none, while 64 starts sharing one macro regress from p95 1 tick to 24 and are disclosed as a failure scene. **Closes no MOVE gate and claims no ARCH-PATH-007/008 pass.**
+
+## Executor G01 request review — 2026-09-12
+
+Read [the reviewed request and owner boundaries](../rulings/2026-09-12_move_g01_review.md). Clearance domain exists; profile envelopes remain missing. Keep four-profile starter acceptance separate from all-species/stage release coverage. 05.1b still requires G01 and G02; no checkbox changes are implied.
+
+## Policy confirmation — DEC-040
+
+Brendan confirmed real haulable/reusable spoil and warned, preventable hazards with rescue. Astra can now author their exact G01 catalogs without re-asking those preferences. Four underground levels at 4m spacing remain a candidate pending G02 representation and memory review. Read the updated movement request review; retain all open engineering and validation gates.
+
+See [DEC-040](../setting_decisions.md#dec-040--excavation-spoil-and-preventable-movement-hazards).
+
+## EH numerical package — next independent work
+
+[SET-MOVE-ECON-001 handoff](../planning/underground_economy_hazard_handoff.md) sequences EH-01–07 with file ownership and evidence. Begin dependency-ready catalog, work/tool and health kernels in parallel; full05.1b and G01–G05 remain unchecked until their complete acceptance. No invented species/clearance/depth defaults.

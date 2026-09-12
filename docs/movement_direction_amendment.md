@@ -19,13 +19,13 @@ Placed burrows, planned underground rooms/tunnels and free multi-level excavatio
 
 | Included direction | Required practical use | Not settled by this approval |
 |---|---|---|
-| Finished tunnels | Homes, storage, service routes and workplaces continue to connect after builders leave | Geometric bounds, material costs, spoil, structural hazards |
+| Finished tunnels | Homes, storage, service routes and workplaces continue to connect after builders leave; DEC-040 requires real haulable/reusable spoil during excavation | Geometric bounds, material costs, spoil quantities/placement/reuse, exact structural hazards |
 | Wading/surface swimming/diving distinctions | Valid entry, exit, body/gear/load compatibility and planned return to air | Per-profile capability assignments, speeds, air/recovery rates, hazards |
 | Ladders/trunks/branches | Ordinary access, orchard work and observation; safe descent | Specific canopy construction catalog, heights, capacities and clip timings |
 | Shared spatial identity | Jobs, occupancy, rooms, transfers, picking and saves agree on actual location | Finite packed arena layouts and migration version |
 | Individual eligibility | Body, posture, equipment, training and scenario can affect access | A blanket innate ability table inferred from species or slide lists |
 
-Sapping, traps, combat ambushes, underwater attacks, free flight, moving vessels and arbitrary branch-gap jumping are not included merely because the slides mention them. The settlement remains without a combat layer. Neither new drowning/falling penalties nor immunity to all hazards is chosen here; unsafe behavior cannot be invented as an implementation fallback.
+Sapping, traps, combat ambushes, underwater attacks, free flight, moving vessels and arbitrary branch-gap jumping are not included merely because the slides mention them. The settlement remains without a combat layer. DEC-040 subsequently confirms warned, preventable hazards with rescue through existing settlement injury/care, rather than surprise death rolls. Exact drowning/falling penalties, triggers and rescue timing remain engineering contracts; immunity is not inferred, and unsafe behavior cannot be invented as an implementation fallback.
 
 ## 2. Normative EARS requirements
 
@@ -119,3 +119,13 @@ These gates are outstanding engineering work with specified outputs. They do not
 | MOVE-TEST-10 | Exhaust each new finite arena and interrupt a topology edit | Defined refusal/rollback; no corrupted handles, lost inventory or stranded occupant |
 
 The user's Windows PC has 64 GB RAM and an RTX 5090 and is currently unavailable. Mac work continues. Record Windows parity/performance as deferred pending its return, and retain the separate qualification-floor obligation. Neither hardware specification nor these document fixtures is benchmark evidence.
+
+## DEC-040 follow-up — confirmed logistics and hazard direction
+
+Real spoil has its own inventory identity and declared mass; it is not stone or compost renamed. Hazards require warnings, prevention and rescue using existing injury/care. Four underground levels at 4m spacing remain a candidate pending G02 representation and memory review. Exact numerical contracts and all movement gates remain open.
+
+See [DEC-040](setting_decisions.md#dec-040--excavation-spoil-and-preventable-movement-hazards).
+
+## Numerical follow-through — SET-MOVE-ECON-001
+
+[SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) now owns the DEC-040 economy/hazard numbers, outcomes and explicit disability cases. It adds no random disaster rolls or species permissions. It preserves required multi-level construction, swimming/diving and connected canopy access; geometry/profile/mode/architecture bindings remain predecessors for their affected production scope. The four-level candidate is not adopted by this numerical supplement.

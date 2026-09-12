@@ -90,7 +90,8 @@ extends RefCounted
 ##   cold environment    COLD_ENV_NEUTRAL (default) / EXPOSED / HEATED_SHELTER    <- rooms, weather
 ##   clothing tier       1 (GDD §5.1 spawn equipment)                             <- equipment
 ##   infirmary           false (default)                                          <- rooms
-##   injury state        INJURY_NONE (default)                                    <- Injury component
+##   injury state        INJURY_NONE (default)                                    <- injury.gd
+##   airless             false (default)                                          <- air/movement owner
 ##   winter / hard freeze  false (world-level, default)                           <- season, weather
 ## With every default in force a resident's hunger, comfort, social and purpose decay, rest
 ## decays while awake, cold neither accumulates nor clears, and health recovers under
@@ -110,8 +111,12 @@ extends RefCounted
 ##     pass already-resolved nutrition points to add_food_nutrition().
 ##   * Per-tick work output (80 milli-WU x factor/1000) and XP: labour, not needs. work_factor()
 ##     publishes the §5.2 factor; the milli-WU accumulator is a later slice.
-##   * Injury damage rates (REQ-SET-172, §5.11) and treatment. Injury presence reaches this
-##     module only as the INJURY_* input that §5.2 itself uses.
+##   * Injury INCIDENTS, aggregate severity, untreated hours, care work and rescue. Those are
+##     `injury.gd`'s (the GDD §4.2 Injury row). What lives HERE is the RATE half only, because
+##     §5.2 and SET-MOVE-ECON-001 HAZ-002 both require a single health integration: REQ-SET-172's
+##     untreated drain and HAZ-002's airless drain are two more terms of _health_rate_per_hour(),
+##     summed into the same signed denominator-750 remainder as starvation, cold and recovery.
+##     There is no second health clock, and this module still creates no injury of its own.
 ##   * REQ-SET-016 death consequences beyond recording the death: releasing reservations, the
 ##     chronicle entry, the burial job and recoverable inventory are other modules' work.
 ##
@@ -187,7 +192,8 @@ const SOCIAL_SHARED_MEAL_POINTS: int = 200
 ## Largest magnitude any rate reaching _integrate_step() may have, in that column's own
 ## sub-unit per game hour. Every need rate below is within it (the largest is rest-in-bed at
 ## 1200000), as is every cold rate (at most 2000 milli-hours/hour) and health rate (at most
-## 11 points/hour). _check_rate_bounds() proves the need rates at construction rather than
+## 136 points/hour: 4 starving + 3 cold + 4 untreated severity 2 + 125 airless).
+## _check_rate_bounds() proves the need AND health rates at construction rather than
 ## trusting the reading, and _integrate_step() REFUSES a rate outside it rather than
 ## integrating something it has no overflow proof for.
 const MAX_RATE_MAGNITUDE: int = 1200 * MILLI_PER_POINT
@@ -233,6 +239,21 @@ const HEALTH_RECOVERY_PER_HOUR: int = 2
 const HEALTH_RECOVERY_INFIRMARY_PER_HOUR: int = 4
 ## REQ-SET-017 gate: hunger and rest must both be at least this to recover.
 const HEALTH_RECOVERY_NEED_FLOOR: int = 4000
+## REQ-SET-172: "While a severity 1 injury is untreated ... remove 1 health/hour; severity 2
+## shall remove 4/hour until treatment." Indexed by the INJURY_* input column, whose three
+## members are exactly none / untreated severity 1 / untreated severity 2 -- `injury.gd` maps
+## its aggregate severity onto them, closing the deferral the INJURY_* block records.
+## SET-MOVE-ECON-001 HAZ-004: "Untreated damage is 1/hour for severity 1 or 4/hour for
+## severity 2, NOT ONE COPY PER INCIDENT", which is why the rate reads the aggregate state and
+## never an incident count.
+const HEALTH_UNTREATED_INJURY_DRAIN_PER_HOUR: Array[int] = [0, 1, 4]
+## SET-MOVE-ECON-001 HAZ-002 (`air_standard_v1`, NEW_AUTHOR_ADOPTED under DEC-040): an interval
+## that starts submerged with 0 air removes 125 health/game hour. HAZ-002 requires it to
+## "combine with needs, cold and untreated-injury rates in the single health owner, retaining
+## the existing signed denominator-750 remainder. Never run separate rounded health clocks."
+## So it is a rate term here, not a subtracted lump somewhere else: with untreated severity 2
+## and nothing else the total is exactly -129/hour, HAZ-002's own fixture.
+const HEALTH_AIRLESS_DRAIN_PER_HOUR: int = 125
 
 # --- cold exposure (REQ-SET-018/019, §5.2 closing paragraph, §5.10) ------------------------
 
@@ -427,6 +448,11 @@ var _cold_environment: PackedByteArray = PackedByteArray()
 var _clothing_tier: PackedByteArray = PackedByteArray()
 var _infirmary: PackedByteArray = PackedByteArray()
 var _injury_state: PackedByteArray = PackedByteArray()
+## HAZ-002: 1 while an interval starts submerged with 0 available air. The air budget, the
+## episode and the EXPOSURE incident belong to the air/movement owner and `injury.gd`; only
+## the health RATE consequence is this module's, and 0 is the honest default of a world with
+## no water traversal implemented.
+var _airless: PackedByteArray = PackedByteArray()
 
 # --- world-level inputs and derived rates ---------------------------------------------------
 
@@ -476,8 +502,14 @@ func _check_rate_bounds() -> void:
 	than assumed: with |rate| <= 1.2e6 and |remainder| < 7.5e5 no accumulator step can come
 	near int64. _integrate_step() re-checks the bound at runtime and refuses a rate outside it,
 	so a future rate added here without updating MAX_RATE_MAGNITUDE fails loudly at both ends
-	rather than integrating something the proof does not cover.
+	rather than integrating something the proof does not cover. The health rate is proved the
+	same way: its worst case is every drain at once, and adding a term without widening the
+	bound trips this assert rather than reaching _integrate_step()'s refusal at runtime.
 	"""
+	assert(HEALTH_STARVATION_DRAIN_PER_HOUR + HEALTH_COLD_DRAIN_PER_HOUR
+		+ HEALTH_UNTREATED_INJURY_DRAIN_PER_HOUR[INJURY_UNTREATED_SERIOUS]
+		+ HEALTH_AIRLESS_DRAIN_PER_HOUR <= MAX_RATE_MAGNITUDE,
+		"the summed health drain exceeds the integrator's proven rate bound")
 	var largest: int = maxi(HUNGER_DECAY_MILLI_PER_HOUR * SIZE_MULTIPLIER[SIZE_LARGE]
 		* WINTER_HUNGER_MULTIPLIER / (SIZE_DENOMINATOR * SEASON_DENOMINATOR),
 		REST_RESTORE_BED_MILLI_PER_HOUR)
@@ -507,6 +539,7 @@ func _allocate_columns() -> void:
 	_clothing_tier.resize(RESIDENT_CAPACITY)
 	_infirmary.resize(RESIDENT_CAPACITY)
 	_injury_state.resize(RESIDENT_CAPACITY)
+	_airless.resize(RESIDENT_CAPACITY)
 	_hunger_rate_milli.resize(SIZE_COUNT)
 	_rate_scratch.resize(NEED_COUNT)
 
@@ -546,6 +579,7 @@ func _fill_environment_defaults() -> void:
 	_clothing_tier.fill(CLOTHING_TIER_MIN)
 	_infirmary.fill(0)
 	_injury_state.fill(INJURY_NONE)
+	_airless.fill(0)
 
 
 # --- result plumbing -------------------------------------------------------------------------
@@ -642,6 +676,7 @@ func _write_spawn_row(slot: int, size_class: int) -> void:
 	_clothing_tier[slot] = CLOTHING_TIER_MIN
 	_infirmary[slot] = 0
 	_injury_state[slot] = INJURY_NONE
+	_airless[slot] = 0
 	_status[slot] = STATUS_ACTIVE
 
 
@@ -969,6 +1004,44 @@ func set_injury_state(slot: int, injury_state: int) -> OpResult:
 	_injury_state[slot] = injury_state
 	_refresh_status(slot)
 	return _result(REFUSE_NONE)
+
+
+func set_airless(slot: int, airless: bool) -> OpResult:
+	"""Declare whether this resident's interval starts submerged with 0 available air.
+
+	SET-MOVE-ECON-001 HAZ-002. The air budget, its 1-unit-per-submerged-tick consumption and
+	the once-per-episode EXPOSURE incident are NOT here: the air/movement owner decides when
+	an interval is airless and `injury.gd` owns the incident. This flag only selects the
+	-125/hour term of the single health rate, so the drain cannot drift from the needs, cold
+	and untreated-injury terms it is summed with.
+	"""
+	var code: StringName = _check_present_slot(slot)
+	if code != REFUSE_NONE:
+		return _result(code)
+	_airless[slot] = 1 if airless else 0
+	return _result(REFUSE_NONE)
+
+
+func airless_of(slot: int) -> IntMath.IntResult:
+	"""1 while the HAZ-002 airless drain applies to this resident, 0 otherwise."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	var code: StringName = _check_present_slot(slot)
+	if code != REFUSE_NONE:
+		out.refuse(String(code))
+		return out
+	out.succeed(_airless[slot])
+	return out
+
+
+func injury_state_of(slot: int) -> IntMath.IntResult:
+	"""Current INJURY_* input: none, active (severity 1), or untreated serious (severity 2)."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	var code: StringName = _check_present_slot(slot)
+	if code != REFUSE_NONE:
+		out.refuse(String(code))
+		return out
+	out.succeed(_injury_state[slot])
+	return out
 
 
 # --- events ------------------------------------------------------------------------------------
@@ -1381,18 +1454,26 @@ func _is_cold_damaging(slot: int, cold_gain: int) -> bool:
 func _health_rate_per_hour(slot: int, starving: bool, cold_gain: int) -> int:
 	"""Signed health rate in whole points per game hour, summed over §5.2's causes.
 
-	REQ-SET-014 (-4 starving), REQ-SET-018 (-3 cold) and REQ-SET-017 (+2, or +4 in an
-	infirmary) are independent requirements with independent conditions, so they SUM rather
-	than override. Starvation and recovery are mutually exclusive by construction: recovery
-	needs hunger >= 4000 and starvation needs hunger = 0. Cold damage and recovery are not,
-	and a well-fed rested resident freezing outdoors nets -1/hour, which is the literal
-	reading of both requirements.
+	REQ-SET-014 (-4 starving), REQ-SET-018 (-3 cold), REQ-SET-017 (+2, or +4 in an infirmary),
+	REQ-SET-172 (-1 or -4 untreated) and HAZ-002 (-125 airless) are independent requirements
+	with independent conditions, so they SUM rather than override. Starvation and recovery are
+	mutually exclusive by construction: recovery needs hunger >= 4000 and starvation needs
+	hunger = 0. Cold damage and recovery are not, and a well-fed rested resident freezing
+	outdoors nets -1/hour, which is the literal reading of both requirements.
+
+	THIS IS THE WHOLE HEALTH RATE. HAZ-002 forbids a second rounded health clock, so the
+	untreated-injury and airless drains are terms here and are integrated by the same
+	_integrate_step() with the same retained remainder. Untreated severity 2 plus airless is
+	-129/hour exactly, which is the amendment's own arithmetic fixture.
 	"""
 	var rate: int = 0
 	if starving:
 		rate -= HEALTH_STARVATION_DRAIN_PER_HOUR
 	if _is_cold_damaging(slot, cold_gain):
 		rate -= HEALTH_COLD_DRAIN_PER_HOUR
+	rate -= HEALTH_UNTREATED_INJURY_DRAIN_PER_HOUR[_injury_state[slot]]
+	if _airless[slot] == 1:
+		rate -= HEALTH_AIRLESS_DRAIN_PER_HOUR
 	if _can_recover_health(slot):
 		rate += HEALTH_RECOVERY_INFIRMARY_PER_HOUR if _infirmary[slot] == 1 \
 			else HEALTH_RECOVERY_PER_HOUR

@@ -135,3 +135,131 @@ MOVE-TEST-01's burrow/tunnel/deeper-room scenario.
 The executor will not close MOVE-G02 (architecture), G03 (UI), G04 (asset/crowd)
 or G05 (validation) from this package, and no answer here authorizes paid asset
 generation, which the asset generation lock governs on its own axis.
+
+---
+
+# Corrections after Astra's review, 2026-09-12
+
+[Astra's review](2026-09-12_move_g01_review.md) found four material
+overstatements in the request above. **The original text is preserved unedited**,
+per the review's own handoff instruction; these corrections sit below it so a
+reader sees both what was claimed and what was wrong with it.
+
+Each was checked against the code before being accepted. All four hold.
+
+## C1 — The clearance domain already exists. Only the assignment is missing.
+
+The request framed clearance as absent. It is not. `spatial_world.gd` declares
+classes over a 512×512 grid of `CELL_SIZE_UNITS = 512` (half-metre) cells, and
+`_clearance[cell]` is *"the side of the largest all-passable square whose
+**north-west corner** is that cell"* — anchored, not centred, with
+`CELL_CENTRE_OFFSET_UNITS = 256`.
+
+**This was readable in that file's own header**, which states that it *"publishes
+no body, posture or gear clearance number, because READY_07 §1.2 is explicit that
+exact production body/gear clearances are a profile decision."* The request should
+have asked the narrower question it actually meant.
+
+What is genuinely missing: each profile's **body/gear envelope** and **proof of
+correct placement within the anchored square** — integer local min/max X/Y/Z, the
+root/origin, anchor-to-root offset, swept envelopes over entry/travel/turn/exit,
+and an explicit margin. `ceil(max(width, depth)/512)` gives a size lower bound and
+**does not prove placement**; the 256u centre offset cannot be treated as the
+centre of a larger square.
+
+The correction does not soften the refusal: `PROFILE_CLEARANCE_UNSPECIFIED` stays,
+and a guessed body width must not be used to turn it into an apparent pass.
+
+## C2 — Settlement health loss already exists. Reuse it.
+
+The request said the settlement layer has no damage path. Wrong.
+`needs.apply_health_event(slot, points)` and `needs.set_injury_state(slot, state)`
+are both implemented, GDD §5.4/5.5 already assign fishing and foraging health loss
+and injury severity, REQ-SET-172 sets untreated damage at ¼ health per hour for
+severity 1/2, and REQ-SET-173 owns treatment.
+
+Absence of settlement **combat** does not imply absence of health **loss** — the
+request conflated the two. What remains owed is the aggregate Injury
+kind/severity/care store, hazard integration, and the new hazard rules themselves.
+**Superseded the same day:** the review's closing line, that fishing's
+bite/cut/exposure descriptions "are not a complete compiled `InjuryKind` domain",
+was corrected by Astra's own follow-up audit. **The GDD defines the domain** at
+`game_gdd.md:215` — `NONE=0, CUT=1, BITE=2, FALL=3, EXPOSURE=4, EXHAUSTION=5` —
+and `catalog.gd` already names `InjuryKind` among its compiled domains. Reuse that
+domain; what is missing is its runtime integration, not its definition.
+
+## C3 — Construction rules exist. Underground needs extensions, not a second system.
+
+REQ-SET-124–128 and 137 already rule delivery before work, consumption when work
+begins, 100% refund before work and 80% after (milli-U floor), evacuation before
+demolition, and demolition at 25% of declared work returning 50% of materials.
+
+Underground excavation, spoil and backfill are **extensions to that owner**, not a
+parallel building or inventory system. The request implied more was missing than
+is.
+
+## C4 — Q1 and Q2 do not unblock swimming or climbing.
+
+The request claimed Q1+Q2 would be enough to begin surface work for 05.1b. They
+are not: speeds, entry/exit durations, equipment and posture, supported
+exit/landing, and **interruption behaviour (Q5)** all apply on the surface too.
+Q5 is a predecessor for swimming and climbing even with no underground work
+involved.
+
+And **full 05.1b needs G02's architecture bindings after G01** — the task text
+never said G01 alone completes it. The request's scoping paragraph was wrong.
+
+## Also corrected
+
+**Mode states are three, not two.** `UNPROFILED` (data or implementation missing —
+a development boundary that *may not masquerade as an animal's inherent
+inability*), `DISABLED` (an authored restriction with a reason and the exact
+circumstance that could change it), and `ENABLED` (a complete cost/eligibility row
+exists; entry still checks body, gear, load, health, stage, endpoints, topology
+and protected return access). The request asked for two.
+
+No species-mode permission table is approved, and no universal "moles cannot swim"
+or "only squirrels climb" may be inferred — the content atlas records training,
+assistance, equipment and access beyond species identity.
+
+**Species and life-stage coverage is settled, and not in our favour.** Four
+adults-only profiles are a legitimate starter increment but **not** the release
+catalog: all 16 admitted species need ground and applicable connected-mode
+profiles, and a badger height approval does not make a badger profile.
+**CHILD/ELDER immobility is explicitly not an approved release design** — DEC-032
+requires visible dependent residents and active elders. `LIFE_STAGE_NOT_PROFILED`
+is a temporary refusal pending PC-04, and must not be removed by substituting
+adult coefficients.
+
+## Proposals now on the table, awaiting Brendan — not constants
+
+- **Four underground levels at 4 m spacing**, floors at −4096, −8192, −12288 and
+  −16384 u from one registered immutable ground datum, surface footprint retained.
+  **Unratified engineering candidates.** They imply 65536 tile-level addresses, or
+  1048576 half-metre cell addresses fully expanded; neither is a store capacity,
+  and full arrays at the inherited row width alone would be 14680064 bytes.
+- **Real haulable, reusable spoil** with its own catalog key, mass per U, yield per
+  excavation unit and deterministic disposal sinks — not stone or compost renamed.
+  A ground pile holds 400000 g, not infinite space.
+- **Warned, preventable hazards with rescue**, using existing injury and care
+  consequences rather than surprise instant-death rolls.
+
+None is adopted. The executor will not implement any of the three until Brendan
+answers.
+
+## DEC-039 provenance
+
+The review could not locate DEC-039 and correctly recorded it as
+*"executor-reported, source not located"* rather than disproven.
+
+**It is on `master`, in `docs/setting_decisions.md`** as "DEC-039 — Approved
+creature proportions for all five species", landed with the lookdev work.
+`SPECIES_HEIGHT_U` reads `[1024, 922, 1178, 1526, 2611]` and every entry of
+`SPECIES_STATUS` reads approved. The heights are not to be reverted to the 1024u
+squirrel candidate.
+
+The cause of the miss is structural, not clerical, and is fixed in the same change
+as this correction: **`DEC-nnn` records live in `docs/setting_decisions.md` while
+`NNNN` records live in `docs/decisions/`, and nothing said so.** An auditor looking
+in the decision log for a user decision would find nothing, every time.
+`docs/decisions/README.md` now states the split.

@@ -1,0 +1,40 @@
+{
+  "status": "DOCUMENT_REVIEW_ONLY",
+  "request_source": "/private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/833ff660-9ff2-4805-addb-29528fe5fe8a/scratchpad/moveg01/docs/rulings/2026-09-12_move_g01_request.md",
+  "original_request_sha256": null,
+  "source_cleanup": "Source was read successfully; scratch directory disappeared before archival. Saved digest is transcribed from that read, not an original-file copy.",
+  "digest_sha256": "32810b77532c8dc3300ee6544a03ebd619d868b0d7d85fc585641ee5504b9313",
+  "preserved_request": "docs/rulings/requests/2026-09-12_move_g01_request.md",
+  "checks": {
+    "digest_written_as_authored": true,
+    "four_level_tile_address_count": 65536,
+    "four_level_navigation_address_count": 1048576,
+    "dense_surface_payload_only_bytes": 14680064,
+    "deepest_floor_u": -16384,
+    "existing_clearance_min": true,
+    "existing_clearance_max": true,
+    "existing_health_event": true,
+    "dec_039_in_main_decisions": false,
+    "dec_039_in_scratch_decisions": {
+      "found_in_initial_read": false,
+      "repeat_check": "unavailable after scratch cleanup"
+    }
+  },
+  "independent_reviews": [
+    "Chandrasekhar: clearance and height provenance",
+    "Harvey: construction, inventory and health/injury owners"
+  ],
+  "pending_user_choices": [
+    "spoil handling",
+    "hazard feel"
+  ],
+  "runtime_tests_run": false,
+  "not_established": [
+    "G01 closure",
+    "profile geometry",
+    "adopted new coefficients",
+    "runtime behavior",
+    "memory qualification",
+    "save parity"
+  ]
+}

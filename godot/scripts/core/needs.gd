@@ -1261,6 +1261,85 @@ func _purpose_restore_milli_per_hour(slot: int) -> int:
 			return 0
 
 
+# --- published net need rates (NEED-RATE-R01) ------------------------------------------------
+#
+# The four readers below exist because the selected-resident panel must display the SAME
+# continuous rate the integrator is about to apply, and UXV-020 forbids it recreating these
+# formulas, reading a private column, or substituting a universal baseline. They publish the
+# signed NET rate in milli-need-points per SIMULATED hour -- the exact int64 _fill_need_rates()
+# writes for this resident this instant.
+#
+# WHAT THEY ARE NOT:
+#   * Not a cache. Nothing is retained, there is no dirty flag and no invalidation rule; a
+#     context change is visible on the very next call because the selector runs again.
+#   * Not a second formula. _fill_need_rates() stays the single rate authority; these copy one
+#     of its named entries out by value. A rate is never computed twice in this file.
+#   * Not a hot path. The per-tick sweep keeps its one-pass _fill_need_rates() call and gains
+#     nothing here: _tick_resident() does not call these, so a tick's call count is unchanged.
+#   * Not an event. No need, remainder, activity/environment flag, status, clock or RNG is
+#     written. Asking what the rate is changes nothing about the settlement.
+#
+# SIGN. These are already net and already signed: rest awake is -375000, comfort in a heated
+# room is +200000. `hunger_rate_milli_per_hour()` is deliberately the other way round -- it
+# keeps its established POSITIVE decay magnitude and its existing callers, and the display
+# adapter is the thing that forms R = -magnitude. Negating one of these a second time, or
+# subtracting a baseline that _fill_need_rates() already subtracted, is the mistake the
+# fixture table plus the 750-tick comparison in test_needs.gd exists to catch.
+#
+# ZERO IS A REAL ANSWER. Mild outdoors restores +100000 against a -100000 comfort decay, so its
+# net rate is exactly 0 with ok == true. A refusal also carries 0, which is why the refusal
+# travels on `.ok` and the caller is required to inspect it (finding H4): a cleared zero from a
+# refused read is NOT a balanced resident.
+
+func rest_rate_milli_per_hour_into(slot: int, out: IntMath.IntResult) -> bool:
+	"""Signed net rest rate, milli-need-points/simulated hour: +1200000 in a bed, +750000 on the
+	floor, -375000 awake. Sleep has no awake decay, so the sleeping rates are gross by §5.2."""
+	return _net_need_rate_into(slot, NEED_REST, out)
+
+
+func comfort_rate_milli_per_hour_into(slot: int, out: IntMath.IntResult) -> bool:
+	"""Signed net comfort rate, milli-need-points/simulated hour: +200000 in a valid heated room,
+	0 in mild outdoors, -100000 with no restoration. The 0 is a success, not a refusal."""
+	return _net_need_rate_into(slot, NEED_COMFORT, out)
+
+
+func social_rate_milli_per_hour_into(slot: int, out: IntMath.IntResult) -> bool:
+	"""Signed net social rate, milli-need-points/simulated hour: +1100000 paired, -100000 alone.
+	A shared meal's +200 points is a discrete event and is deliberately not folded in here."""
+	return _net_need_rate_into(slot, NEED_SOCIAL, out)
+
+
+func purpose_rate_milli_per_hour_into(slot: int, out: IntMath.IntResult) -> bool:
+	"""Signed net purpose rate, milli-need-points/simulated hour: +245000 from useful labor,
+	+325000 mentoring, -75000 with no source. Planned-but-unstarted jobs contribute nothing."""
+	return _net_need_rate_into(slot, NEED_PURPOSE, out)
+
+
+func _net_need_rate_into(slot: int, need: int, out: IntMath.IntResult) -> bool:
+	"""Copy one need's currently selected signed net rate into the caller-owned `out`.
+
+	COLD PATH, BETWEEN COMPLETED UPDATES. `_rate_scratch` is the tick sweep's five-element
+	buffer, consumed by _integrate_needs() before the next resident is touched. Reusing it here
+	is allowed (it is bounded scratch, not a stored rate), but only because no caller can reach
+	this while a tick holds live values in it: this module invokes no callback and emits no
+	signal, so _tick_resident() cannot be re-entered, and the UI reads its snapshot between
+	completed simulation updates. The scratch ARRAY is never handed out -- `out.succeed()` takes
+	the int64 by value, so a later tick cannot rewrite an answer the caller is still holding.
+
+	Refuses a row that is out of range, unspawned or dead, with the actual reason and a cleared
+	value. It refuses a dead row deliberately: a corpse has no continuous rate, and answering
+	with the rate its columns happen to still describe would be the stale-row read the ruling
+	forbids.
+	"""
+	var code: StringName = _check_live_slot(slot)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	_fill_need_rates(slot)
+	return out.succeed(_rate_scratch[need])
+
+
+# --- cold and health rate selection ------------------------------------------------------------
+
 func _cold_gain_milli_per_hour(slot: int) -> int:
 	"""Cold gain while exposed: tier 1 1000/hour, tier 2 0; hard freeze 2000 and 1000."""
 	var tier2: bool = _clothing_tier[slot] >= CLOTHING_TIER_MAX

@@ -32,4 +32,4 @@ READY_07 §7.1–7.2; Astra's explicit engineering rulings dated 2026-09-11.
 
 ## Implementation — 2026-09-11
 
-[Decision 0080](0080-the-packed-building-room-and-furniture-stores.md) implements this specification: the two catalog domains, the earned-bit gate in `scripts/core/milestones.gd`, the §4.1–4.3 facts and Station provider binding in `scripts/core/building_definitions.gd`, and the packed Building/Room/Furniture stores with the presence mask in `scripts/core/buildings.gd`. Progression, recipe/station runtime, service topology, construction, heat and save parity remain open there, and 0080 names each one.
+[Decision 0080](0088-the-packed-building-room-and-furniture-stores.md) implements this specification: the two catalog domains, the earned-bit gate in `scripts/core/milestones.gd`, the §4.1–4.3 facts and Station provider binding in `scripts/core/building_definitions.gd`, and the packed Building/Room/Furniture stores with the presence mask in `scripts/core/buildings.gd`. Progression, recipe/station runtime, service topology, construction, heat and save parity remain open there, and 0080 names each one.

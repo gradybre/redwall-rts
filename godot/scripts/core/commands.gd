@@ -103,7 +103,7 @@ extends RefCounted
 ## until the next accepted submission -- read it inside the drain loop, which is where a tick uses
 ## it. INTERPRETATION, recorded in decision 0042.
 ##
-## ALLOCATE BEFORE CONSUME (decision 0024), WHICH IS WHAT MAKES A GROUP ATOMIC. Both group forms
+## ALLOCATE BEFORE CONSUME (decision 0059), WHICH IS WHAT MAKES A GROUP ATOMIC. Both group forms
 ## validate every member -- queue room, sequence room, arena room, envelope, and every EntityRef
 ## against the directory's generation -- BEFORE one byte is written. A group with one invalid
 ## member leaves the queue byte-identical: same rows, same order index, same arena, same counters,
@@ -507,7 +507,7 @@ func _stamped_key_refusal(tick: int, members: int) -> StringName:
 func submit_group_into(members: Array, out: SubmitResult) -> bool:
 	"""Queue several player edits atomically: every member validates, or none is written.
 
-	Decision 0024's allocate-before-consume at the queue layer. Members keep their submitted order,
+	Decision 0059's allocate-before-consume at the queue layer. Members keep their submitted order,
 	because they share one `execute_tick` and take consecutive sequence numbers. On refusal the
 	queue is byte-identical to what it was, and `out.member` names the member that failed.
 	"""

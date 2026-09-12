@@ -31,11 +31,14 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 ## 275 rows / 3407b52e4db6fb19874d8ea3a3d636e46575def0048b513558f7a5d3894c3e90 before it. All four
 ## are an INTENTIONAL CATALOG/SCHEMA CHANGE, not a parity result -- every save written
 ## against the old digest refuses until an explicit migration exists, which is the alarm working.
-const COMMITTED_BYTE_LENGTH: int = 4161
+## Moved a fifth time 2026-09-12 by decision 0113, which published PROV-R01's protected
+## InventoryProvenance domain (6 rows): 4161 bytes / 29 domains / 282 rows /
+## d5bf21b45b31a2d90d7d0f6b9367450787eb506fd5ae27b6f6f54c08f23cfd67 before it.
+const COMMITTED_BYTE_LENGTH: int = 4282
 const COMMITTED_SHA256: String = \
-	"d5bf21b45b31a2d90d7d0f6b9367450787eb506fd5ae27b6f6f54c08f23cfd67"
-const COMMITTED_DOMAIN_COUNT: int = 29
-const COMMITTED_ROW_COUNT: int = 282
+	"4b25ab62a4a0330c3acf5ebeba83ddd1019c29cc9650b8b9ce4822d8b035677d"
+const COMMITTED_DOMAIN_COUNT: int = 30
+const COMMITTED_ROW_COUNT: int = 288
 
 ## ECON-002's `excavated_earth`, the one ItemDefinition row added in the same increment as
 ## InjuryKind. Named separately from `INJURY_KIND_ROWS` so the row-count accounting states which
@@ -46,9 +49,10 @@ const ECON_002_ITEM_ROWS: int = 1
 const COMMITTED_DOMAINS: Array[String] = [
 	"Activity", "BuildingDefinition", "BuildingState", "CommandKind", "CropDefinition",
 	"CropFamily", "CropState", "EventDefinition", "ForageQuotaMode", "FurnitureDefinition",
-	"HabitatType", "InjuryKind", "ItemCategory", "ItemDefinition", "ItemEffect", "JobKind",
-	"JobState", "Milestone", "OrderMode", "Quality", "RoomType", "ScheduleTemplate", "Season",
-	"Severity", "Soil", "SpeciesDefinition", "Speed", "Station", "ZoneType",
+	"HabitatType", "InjuryKind", "InventoryProvenance", "ItemCategory", "ItemDefinition",
+	"ItemEffect", "JobKind", "JobState", "Milestone", "OrderMode", "Quality", "RoomType",
+	"ScheduleTemplate", "Season", "Severity", "Soil", "SpeciesDefinition", "Speed", "Station",
+	"ZoneType",
 ]
 
 ## The exact canonical encoding of a two-domain toy map, written out by hand: sorted at both
@@ -341,13 +345,15 @@ func test_reserved_entries_survive_unchanged() -> void:
 
 
 func test_every_protected_enum_is_carried_verbatim() -> void:
-	"""All fifteen protected enums appear with catalog.gd's explicit values, gaps included.
+	"""All sixteen protected enums appear with catalog.gd's explicit values, gaps included.
 
 	Eleven until decision 0056 added RoomType and BuildingState, which §4.3 numbers individually
 	and which are therefore protected rather than compiled from their own keys. Fourteen since
 	decision 0080 added Milestone: §4.3 does not print it, but BAL-CAT-002 numbers M0..M4
-	individually, which is the same "individually listed" test §4.2's closing paragraph sets."""
-	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 15, "fifteen protected enums")
+	individually, which is the same "individually listed" test §4.2's closing paragraph sets.
+	Fifteen since decision 0108 added InjuryKind, and sixteen since decision 0113 added
+	PROV-R01's InventoryProvenance, whose six numbers the ruling states one by one."""
+	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 16, "sixteen protected enums")
 	for name: String in CatalogScript.PROTECTED_ENUM_DOMAINS:
 		_assert_map_equals(_domain(name), CatalogScript.fixed_enum(name), name)
 
@@ -1057,18 +1063,24 @@ func test_the_artifact_carries_injury_kind_whole() -> void:
 func test_injury_kind_moved_the_digest_by_exactly_its_own_rows() -> void:
 	"""One new domain of six rows plus ECON-002's one new item -- nothing else moved.
 
+	THIS TEST NOW MEASURES AGAINST THE ARTIFACT DECISION 0108 PRODUCED, not the current one.
+	Decision 0113's InventoryProvenance landed on top of it, so comparing 0108's increment to
+	COMMITTED_* would silently absorb 0113's six rows into 0108's accounting. Each change is
+	measured against the artifact it replaced, and the current total is asserted separately by
+	test_inventory_provenance_moved_the_digest_by_exactly_its_own_rows().
+
 	THIS TEST GAINED A TERM. It read `PRE_INJURY_ROW_COUNT + INJURY_KIND_ROWS` when InjuryKind was
 	the only change in flight. `excavated_earth` landed in the same increment -- it is a row in
 	ItemDefinition, the balance table's single authored source -- so the accounting is now two named
 	terms rather than one. Naming them separately is the point: a future change that moves the row
 	count without saying which domain it came from fails here instead of being absorbed.
 	"""
-	assert_equal(PRE_INJURY_ROW_COUNT + INJURY_KIND_ROWS + ECON_002_ITEM_ROWS, COMMITTED_ROW_COUNT,
+	assert_equal(PRE_INJURY_ROW_COUNT + INJURY_KIND_ROWS + ECON_002_ITEM_ROWS,
+		PRE_PROVENANCE_ROW_COUNT,
 		"InjuryKind's six rows plus ECON-002's one item are exactly the difference")
-	assert_equal(PRE_INJURY_DOMAIN_COUNT + 1, COMMITTED_DOMAIN_COUNT, "one new domain, no more")
-	assert_true(PRE_INJURY_BYTE_LENGTH != COMMITTED_BYTE_LENGTH, "the byte length moved")
-	assert_true(PRE_INJURY_SHA256 != COMMITTED_SHA256, "the digest moved, deliberately")
-	assert_equal(_artifact().digest_hex(), COMMITTED_SHA256, "and it moved to exactly this value")
+	assert_equal(PRE_INJURY_DOMAIN_COUNT + 1, PRE_PROVENANCE_DOMAIN_COUNT, "one new domain, no more")
+	assert_true(PRE_INJURY_BYTE_LENGTH != PRE_PROVENANCE_BYTE_LENGTH, "the byte length moved")
+	assert_true(PRE_INJURY_SHA256 != PRE_PROVENANCE_SHA256, "the digest moved, deliberately")
 
 
 func test_a_renumbered_injury_kind_fails_verification() -> void:
@@ -1103,3 +1115,127 @@ func test_the_committed_injury_kind_is_not_its_own_ascii_order() -> void:
 		"five of six §4.3 numbers differ from the ASCII regeneration")
 	assert_equal(int(kinds["NONE"]), 0, "§4.3 puts NONE first; ASCII order would put it last")
 	assert_equal(int(kinds["BITE"]), 2, "§4.3 puts BITE at 2; ASCII order would put it at 0")
+
+
+# --- decision 0113's InventoryProvenance domain (PROV-R01) ----------------------------------------
+
+## The artifact this change moved AWAY from, pinned so "it changed" is asserted, never assumed.
+const PRE_PROVENANCE_SHA256: String = \
+	"d5bf21b45b31a2d90d7d0f6b9367450787eb506fd5ae27b6f6f54c08f23cfd67"
+const PRE_PROVENANCE_BYTE_LENGTH: int = 4161
+const PRE_PROVENANCE_DOMAIN_COUNT: int = 29
+const PRE_PROVENANCE_ROW_COUNT: int = 282
+
+## PROV-R01's six members, transcribed from the ruling table and never read back out of the
+## module under test.
+const EXPECTED_INVENTORY_PROVENANCE: Dictionary = {
+	"ORDINARY": 0, "STARTER": 1, "COASTAL_BRINE": 2,
+	"EXCAVATION": 3, "BACKFILL_RECLAIM": 4, "SPOIL_RECLAIM": 5,
+}
+const INVENTORY_PROVENANCE_ROWS: int = 6
+## What ascending ASCII would generate from the same six keys -- which agrees with PROV-R01 on
+## NO member at all, unlike InjuryKind where CUT=1 coincides.
+const PROVENANCE_ASCII_ORDER: Dictionary = {
+	"BACKFILL_RECLAIM": 0, "COASTAL_BRINE": 1, "EXCAVATION": 2,
+	"ORDINARY": 3, "SPOIL_RECLAIM": 4, "STARTER": 5,
+}
+
+
+func test_the_artifact_carries_inventory_provenance_whole() -> void:
+	"""All six PROV-R01 members reach the committed bytes as one domain, and only those six.
+
+	"Do not silently retain a three-member ECON-only domain": a domain holding only EXCAVATION,
+	BACKFILL_RECLAIM and SPOIL_RECLAIM would pass every generic test in this file and renumber
+	every persisted lot the day STARTER landed. The row count is what refuses it."""
+	var domains: Dictionary = _artifact().domains
+	assert_true(domains.has("InventoryProvenance"), "the artifact must carry InventoryProvenance")
+	var members: Dictionary = _domain("InventoryProvenance")
+	assert_equal(members.size(), INVENTORY_PROVENANCE_ROWS, "exactly six members")
+	for key: String in EXPECTED_INVENTORY_PROVENANCE.keys():
+		assert_true(members.has(key), "the bytes must carry '%s'" % key)
+		assert_equal(int(members[key]), int(EXPECTED_INVENTORY_PROVENANCE[key]),
+			"PROV-R01 numbers '%s' exactly once" % key)
+	assert_false(members.has("COUNT"), "COUNT is not a member")
+	assert_false(members.has("UNSET_PROVENANCE"),
+		"UNSET_PROVENANCE is a spelling of ORDINARY, never a seventh key")
+
+
+func test_inventory_provenance_moved_the_digest_by_exactly_its_own_rows() -> void:
+	"""One new domain of six rows and nothing else: the accounting names its own contribution."""
+	assert_equal(PRE_PROVENANCE_ROW_COUNT + INVENTORY_PROVENANCE_ROWS, COMMITTED_ROW_COUNT,
+		"InventoryProvenance's six rows are exactly the difference")
+	assert_equal(PRE_PROVENANCE_DOMAIN_COUNT + 1, COMMITTED_DOMAIN_COUNT, "one new domain, no more")
+	assert_true(PRE_PROVENANCE_BYTE_LENGTH != COMMITTED_BYTE_LENGTH, "the byte length moved")
+	assert_true(PRE_PROVENANCE_SHA256 != COMMITTED_SHA256, "the digest moved, deliberately")
+	assert_equal(_artifact().digest_hex(), COMMITTED_SHA256, "and it moved to exactly this value")
+
+
+func test_the_committed_provenance_is_not_its_own_ascii_order() -> void:
+	"""Proof the artifact carries PROV-R01's protected numbers, not a sorted regeneration.
+
+	Ascending ASCII over these keys gives BACKFILL_RECLAIM=0, COASTAL_BRINE=1, EXCAVATION=2,
+	ORDINARY=3, SPOIL_RECLAIM=4, STARTER=5. All SIX disagree with the ruling, so a build that
+	sorted this domain would put BACKFILL_RECLAIM where ORDINARY belongs -- reading every
+	ordinary lot in every save as reclaimed backfill."""
+	var members: Dictionary = _domain("InventoryProvenance")
+	var disagreements: int = 0
+	for key: String in PROVENANCE_ASCII_ORDER.keys():
+		if int(members[key]) != int(PROVENANCE_ASCII_ORDER[key]):
+			disagreements += 1
+	assert_equal(disagreements, INVENTORY_PROVENANCE_ROWS,
+		"every one of the six differs from the ASCII regeneration")
+	assert_equal(int(members["ORDINARY"]), 0, "PROV-R01 puts ORDINARY at 0; ASCII would put it at 3")
+	assert_equal(int(members["BACKFILL_RECLAIM"]), 4, "and BACKFILL_RECLAIM at 4, not 0")
+
+
+func test_a_sorted_provenance_domain_fails_verification() -> void:
+	"""The exact mutation the ruling forbids -- sorting the domain -- must refuse, not be absorbed."""
+	var sorted_domains: Dictionary = _artifact().domains.duplicate(true)
+	var members: Dictionary = sorted_domains["InventoryProvenance"]
+	for key: String in PROVENANCE_ASCII_ORDER.keys():
+		members[key] = int(PROVENANCE_ASCII_ORDER[key])
+	var bytes: PackedByteArray = CatalogIds.encode_canonical(sorted_domains)
+	_assert_refuses(bytes, CatalogIds.REFUSE_ID_MISMATCH, "a lexicographically sorted domain")
+	var refusal: CatalogIds.Refusal = CatalogIds.compare_domains(sorted_domains, _artifact().domains)
+	assert_false(refusal.is_ok(), "compare_domains must see the sort")
+
+
+func test_a_three_member_provenance_domain_fails_verification() -> void:
+	"""The ECON-only domain PROV-R01 forbids: three of six keys, refused against the artifact."""
+	var partial: Dictionary = _artifact().domains.duplicate(true)
+	var econ_only: Dictionary = {}
+	var members: Dictionary = _domain("InventoryProvenance")
+	for key: String in ["EXCAVATION", "BACKFILL_RECLAIM", "SPOIL_RECLAIM"]:
+		econ_only[key] = members[key]
+	partial["InventoryProvenance"] = econ_only
+	var refusal: CatalogIds.Refusal = CatalogIds.compare_domains(partial, _artifact().domains)
+	assert_false(refusal.is_ok(), "a three-key InventoryProvenance must not compare equal")
+	assert_equal(refusal.code, CatalogIds.REFUSE_KEY_MISMATCH, "it is a missing-key refusal")
+	_assert_refuses(CatalogIds.encode_canonical(partial), CatalogIds.REFUSE_KEY_MISMATCH,
+		"an ECON-only provenance domain")
+
+
+func test_a_seventh_provenance_member_fails_verification() -> void:
+	"""UNSET_PROVENANCE as a seventh key is exactly the reading PROV-R01 rules out."""
+	var extended: Dictionary = _artifact().domains.duplicate(true)
+	var members: Dictionary = extended["InventoryProvenance"]
+	members["UNSET_PROVENANCE"] = 6
+	var refusal: CatalogIds.Refusal = CatalogIds.compare_domains(extended, _artifact().domains)
+	assert_false(refusal.is_ok(), "a seventh member must not compare equal")
+	assert_equal(refusal.code, CatalogIds.REFUSE_KEY_MISMATCH, "it is an extra-key refusal")
+	_assert_refuses(CatalogIds.encode_canonical(extended), CatalogIds.REFUSE_KEY_MISMATCH,
+		"a seventh provenance member")
+
+
+func test_a_renumbered_provenance_member_fails_verification() -> void:
+	"""One id moved: a save-carried lot origin must never be silently re-pointed."""
+	var renumbered: Dictionary = _artifact().domains.duplicate(true)
+	var members: Dictionary = renumbered["InventoryProvenance"]
+	members["COASTAL_BRINE"] = 3
+	members["EXCAVATION"] = 2
+	var bytes: PackedByteArray = CatalogIds.encode_canonical(renumbered)
+	_assert_refuses(bytes, CatalogIds.REFUSE_ID_MISMATCH, "COASTAL_BRINE and EXCAVATION swapped")
+	var refusal: CatalogIds.Refusal = CatalogIds.compare_domains(renumbered, _artifact().domains)
+	assert_false(refusal.is_ok(), "compare_domains must see the swap")
+	assert_true(refusal.detail.contains("COASTAL_BRINE") or refusal.detail.contains("EXCAVATION"),
+		"and name a key that moved")

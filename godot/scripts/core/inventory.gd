@@ -96,6 +96,19 @@ extends RefCounted
 ##    invalidation step, which every declared-expiry sequence starts with. See the guard's
 ##    section comment for why that is the only shape that tells disposal from consumption.
 ##
+## 7. PROVENANCE IS ADMITTED ONCE AND CARRIED EVERYWHERE (PROV-R01, decision 0113). The domain
+##    check runs at create_lot(), the ONLY door that writes `_l_provenance` from a caller's
+##    argument; every other path copies an already-admitted value from an existing row, so no
+##    operation can launder an invalid origin in through a side door. What that means per
+##    operation, which is the ruling's own list: split_lot() and transfer() pass
+##    `_l_provenance[source]` into _write_new_lot() unchanged; move_lot() and
+##    gear's detach/attach never touch the column at all; a cancelled reservation and a poisoned
+##    transaction restore it from the journal pre-image byte for byte; merge_lots() requires
+##    EQUALITY of provenance and refuses ATTRIBUTE_MISMATCH otherwise, so two origins can never
+##    be averaged into one; and transform_lot_item_into() -- §5.8 spoilage -- CARRIES the origin
+##    as history onto the new item while the new ITEM IDENTITY decides eligibility, so spoilage
+##    manufactures no coastal or virgin-source entitlement.
+##
 ## ARCH-MEM-001: every column is a packed array allocated once in _init(). No GDScript Array is
 ## allocated per row; a container's lots are an intrusive doubly linked list threaded through
 ## two packed lot columns, not a per-container child array.
@@ -134,6 +147,9 @@ extends RefCounted
 ## a separate integration step and is not part of task 2.5.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
+## PROV-R01's protected InventoryProvenance domain. Read, never mirrored: this module
+## publishes no provenance number of its own, so there is exactly one copy of each.
+const CatalogScript := preload("res://scripts/core/catalog.gd")
 
 const NULL_SLOT: int = -1
 const NULL_GENERATION: int = 0
@@ -161,16 +177,28 @@ const CATEGORY_COUNT: int = 64
 ## Filters value admitting every category. Arithmetic shift keeps every bit set.
 const FILTERS_ACCEPT_ALL: int = -1
 
-## Provenance and container policy are OPAQUE int32 catalog enum values. GDD §4.3 numbers
-## neither enumeration, so under BAL-CAT-001 their concrete members are compiled by catalog.gd
-## from sorted ASCII keys and this module must not assert what any of them equal. Inventory
-## therefore only ever stores these two columns and compares them for equality; it never
-## branches on a particular member and never publishes one.
+## PROVENANCE IS A CLOSED PROTECTED DOMAIN (PROV-R01, decision 0113). It was opaque until
+## 2026-09-12: GDD §4.3 did not number it, so this module treated `_l_provenance` as an
+## arbitrary int32 it compared for equality and nothing more. PROV-R01 froze the complete
+## six-member InventoryProvenance domain with explicit numbers, so `-1`, `6`, INT32_MAX and
+## every other arbitrary value are now REFUSED at the one door that writes the column.
 ##
-## The two names below are LOCAL SENTINELS for a field a caller left unset -- the value a
-## freshly cleared column holds. They are NOT catalog IDs: no compiled member is guaranteed to
-## carry these numbers, and nothing may read them as meaning "unknown" or "default".
-const UNSET_PROVENANCE: int = 0
+## THIS MODULE STILL PUBLISHES NO PROVENANCE NUMBER. The members live in `catalog.gd`, which
+## owns the protected table and the artifact digest; every value named here is read from there.
+## What inventory owns is ADMISSION to its own column and PRESERVATION across every operation.
+##
+## Container policy remains genuinely opaque: §4.3 numbers no policy enum, BAL-CAT-001 compiles
+## it from sorted ASCII keys and no ruling has closed it, so `_c_policy` keeps the old
+## equality-only treatment and UNSET_POLICY keeps its sentinel wording. That asymmetry is
+## deliberate; do not "tidy" it by inventing a policy domain that no contract states.
+##
+## `UNSET_PROVENANCE` is the COMPATIBILITY SPELLING for ORDINARY and is no longer a sentinel:
+## PROV-R01 says "The old `UNSET_PROVENANCE=0` is a compatibility spelling for ORDINARY, not a
+## seventh member and not an unknown numeric wildcard." A cleared column therefore holds a real,
+## valid member meaning ordinary harvest/freshwater/crafted origin -- which grants no privilege,
+## and in particular "does not prove coastal collection or a virgin source".
+const UNSET_PROVENANCE: int = CatalogScript.PROVENANCE_ORDINARY
+## Container policy is still an opaque compiled enum; this is a genuine unset-field sentinel.
 const UNSET_POLICY: int = 0
 
 ## Largest storage age that can still be rounded up to a whole hour without overflowing int64
@@ -276,6 +304,12 @@ const REFUSE_AUDIT_LOT_CYCLE: StringName = &"AUDIT_LOT_LIST_CYCLE"
 const REFUSE_INVALID_AGE_FACTOR: StringName = &"INVALID_AGE_FACTOR"
 const REFUSE_AGE_LIMIT_REACHED: StringName = &"AGE_LIMIT_REACHED"
 const REFUSE_SAME_ITEM: StringName = &"SAME_ITEM"
+
+## PROV-R01: a lot value outside the six published InventoryProvenance members is refused, not
+## stored and not reinterpreted. It is its own code rather than OVERFLOW because `6` and `-1`
+## fit an int32 perfectly well and are still not origins; conflating the two would let a reader
+## conclude that only magnitude was the problem.
+const REFUSE_INVALID_PROVENANCE: StringName = &"INVALID_PROVENANCE"
 
 ## The single method name an equipment authority must publish. Duck typed on purpose: `gear.gd`
 ## preloads this module, so this module must not preload `gear.gd` back.
@@ -1263,10 +1297,11 @@ func _check_new_lot(container_ref: Vector2i, item_id: int, quantity_milli: int, 
 func _check_lot_int32_fields(quality: int, provenance: int, recipe_id: int) -> StringName:
 	"""Refuse a lot whose int32 columns would truncate (ARCH-AUTH-003). REFUSE_NONE when all fit.
 
-	`quality`, `provenance` and `recipe_id` are stored in int32 columns. `provenance` is an
-	opaque catalog enum value, so a value outside int32 would not merely lose magnitude, it
-	would land on a different, plausible looking member; all three refuse instead. Only the
-	verdict is needed here, so fits_int32() is used and nothing is narrowed or allocated.
+	`quality`, `provenance` and `recipe_id` are stored in int32 columns, so a value outside int32
+	would not merely lose magnitude, it would land on a different, plausible looking member; all
+	three refuse instead. Only the verdict is needed here, so fits_int32() is used and nothing is
+	narrowed or allocated. Provenance additionally faces the domain check below: the width test
+	alone would admit `6` and `-1`, which fit perfectly and name no origin.
 	"""
 	if not IntMath.fits_int32(quality):
 		return REFUSE_OVERFLOW
@@ -1274,7 +1309,25 @@ func _check_lot_int32_fields(quality: int, provenance: int, recipe_id: int) -> S
 		return REFUSE_OVERFLOW
 	if not IntMath.fits_int32(recipe_id):
 		return REFUSE_OVERFLOW
-	return REFUSE_NONE
+	return _check_lot_provenance(provenance)
+
+
+func _check_lot_provenance(provenance: int) -> StringName:
+	"""Refuse any value outside PROV-R01's six published InventoryProvenance members.
+
+	THE ITEM-LABEL HALF OF PROV-R01 IS NOT ENFORCED HERE, and that is a boundary, not a gap.
+	"COASTAL_BRINE requires the `brine` item" and "all three earth labels require
+	`excavated_earth`" are rules about ItemDefinition KEYS; this store holds an item's compiled
+	id, mass and category and has never known a key (`register_item()` takes no name). The rules
+	themselves are published and tested as `Catalog.check_lot_provenance()` and
+	`Catalog.check_salt_brine_input()`, and the producers that hold the key -- the saltpan recipe
+	and EH-02's excavation/backfill/spoil transactions -- call them before reaching create_lot().
+	A second, id-based copy here could disagree with that one, which is the drift this codebase
+	refuses everywhere else; see the reported wiring blocker rather than adding one.
+	"""
+	if CatalogScript.is_inventory_provenance(provenance):
+		return REFUSE_NONE
+	return REFUSE_INVALID_PROVENANCE
 
 
 func _write_new_lot(slot: int, container_ref: Vector2i, item_id: int, quantity_milli: int, quality: int, provenance: int, recipe_id: int, age_milli_hours: int, age_remainder: int) -> void:
@@ -2594,8 +2647,26 @@ func lot_quality(lot_ref: Vector2i) -> int:
 
 
 func lot_provenance(lot_ref: Vector2i) -> int:
-	"""Provenance enum value of a lot, or -1 for an invalid ref."""
+	"""Provenance member of a lot, or -1 for an invalid ref.
+
+	-1 IS NOT A PROVENANCE. PROV-R01 publishes exactly 0..5 and `_check_lot_provenance()` is the
+	only door into the column, so no live lot can carry -1 and a caller cannot mistake the
+	invalid-ref answer for an origin. `lot_provenance_into()` is the refusal-carrying form for a
+	caller that must distinguish the two without allocating.
+	"""
 	return _l_provenance[lot_ref.x] if is_lot_valid(lot_ref) else -1
+
+
+func lot_provenance_into(lot_ref: Vector2i, out: IntMath.IntResult) -> bool:
+	"""Write a lot's provenance member into `out`, or refuse with a zeroed value channel.
+
+	The `_into` form allocates nothing: `out` is the caller's reused IntResult. A refusal zeroes
+	the value, so an ignored `false` cannot surface 0 -- ORDINARY -- as if it were an answer,
+	which is precisely the confusion a default-is-a-real-member domain would otherwise invite.
+	"""
+	if not is_lot_valid(lot_ref):
+		return out.refuse("no live lot at (%d, %d)" % [lot_ref.x, lot_ref.y])
+	return out.succeed(_l_provenance[lot_ref.x])
 
 
 func lot_recipe_id(lot_ref: Vector2i) -> int:

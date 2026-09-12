@@ -18,6 +18,9 @@ extends RefCounted
 ## says in terms "Use integer state and existing GDD InjuryKind: NONE=0, CUT=1, BITE=2, FALL=3,
 ## EXPOSURE=4, EXHAUSTION=5. No new injury-kind enum ... is introduced." That was always an
 ## intentional artifact/digest change rather than a fix, and it moved both.
+## InventoryProvenance joined them on 2026-09-12 (decision 0113) under PROV-R01, which freezes
+## the complete six-member domain with explicit numbers and says "This is a protected enum, NOT
+## a lexicographically assigned domain". Same terms: an intentional artifact/digest change.
 ## §4.3 numbers three more that this module does not yet carry -- WorldMode, ResidentStatus,
 ## Role, FeastState -- so adding one is an intentional artifact/digest change, not a fix.
 ##
@@ -146,9 +149,69 @@ const BUILDING_STATE: Dictionary = {
 ## `milestones.gd` owns that binding and the unlock gate; this table owns only the five ordinals.
 const MILESTONE: Dictionary = {"M0": 0, "M1": 1, "M2": 2, "M3": 3, "M4": 4}
 
+## `InventoryLot.provenance`'s domain, published COMPLETE under PROV-R01
+## (docs/rulings/2026-09-12_save_registry_answers.md) and now listed in GDD §4.3. Decision 0113.
+##
+## PROTECTED, NOT COMPILED, and the ruling says so in terms: "This is a protected enum, NOT a
+## lexicographically assigned domain ... Do not silently retain a three-member ECON-only domain
+## or sort these values." Ascending ASCII over these six keys would give BACKFILL_RECLAIM=0,
+## COASTAL_BRINE=1, EXCAVATION=2, ORDINARY=3, SPOIL_RECLAIM=4, STARTER=5 -- SIX disagreements,
+## not five: no member lands in the same place under both orders. §4.2's closing paragraph
+## therefore does not reach it and compile_domain() refuses the name, per decision 0018.
+##
+## COUNT IS NOT A MEMBER, and there is no seventh key. `inventory.gd`'s `UNSET_PROVENANCE = 0`
+## is a COMPATIBILITY SPELLING for ORDINARY -- the value a freshly cleared column holds -- and
+## is neither an unknown numeric wildcard nor a claim of coastal collection or a virgin source.
+##
+## All six are signed-int32 lot values persisted in `_l_provenance` (§7, owner schema 2), so
+## renumbering one silently repoints every stored lot at a different origin. Future origins need
+## an explicit amendment, a new protected identity and compatibility handling -- never a seventh
+## key added here. This table carries IDENTITY plus the two label rules below; no ledger, no
+## excavation store and no recipe row is transcribed here.
+const INVENTORY_PROVENANCE: Dictionary = {
+	"ORDINARY": 0, "STARTER": 1, "COASTAL_BRINE": 2,
+	"EXCAVATION": 3, "BACKFILL_RECLAIM": 4, "SPOIL_RECLAIM": 5,
+}
+
+## The protected InventoryProvenance domain's own name. Nothing else may spell it.
+const INVENTORY_PROVENANCE_DOMAIN: String = "InventoryProvenance"
+
+## The six members by name, so a caller reads a number from here instead of mirroring one.
+const PROVENANCE_ORDINARY: int = INVENTORY_PROVENANCE["ORDINARY"]
+const PROVENANCE_STARTER: int = INVENTORY_PROVENANCE["STARTER"]
+const PROVENANCE_COASTAL_BRINE: int = INVENTORY_PROVENANCE["COASTAL_BRINE"]
+const PROVENANCE_EXCAVATION: int = INVENTORY_PROVENANCE["EXCAVATION"]
+const PROVENANCE_BACKFILL_RECLAIM: int = INVENTORY_PROVENANCE["BACKFILL_RECLAIM"]
+const PROVENANCE_SPOIL_RECLAIM: int = INVENTORY_PROVENANCE["SPOIL_RECLAIM"]
+
+## The two ItemDefinition keys PROV-R01 names. Both are rows in the owning §3.1 catalog and
+## reach `res://data/item_definitions.json` through tools/extract_item_definitions.py; neither
+## is authored here.
+const BRINE_ITEM_KEY: StringName = &"brine"
+const EXCAVATED_EARTH_ITEM_KEY: StringName = &"excavated_earth"
+
+## PROV-R01's LABEL RULE as one table rather than a chain of branches: the ItemDefinition key a
+## provenance label REQUIRES before a lot may carry it at all.
+##
+## "Salt input requires BOTH the `brine` item and COASTAL_BRINE. Ordinary river/well water
+## cannot gain eligibility merely by being delivered to a saltpan." -- so COASTAL_BRINE on
+## anything but `brine` is refused, and `brine` without COASTAL_BRINE is not salt input.
+## "All three earth labels require `excavated_earth`."
+##
+## ORDINARY and STARTER are ABSENT because they restrict no item, which is not the same as
+## being unlisted: is_inventory_provenance() decides membership and this table decides only what
+## a member additionally demands.
+const PROVENANCE_REQUIRED_ITEM_KEY: Dictionary = {
+	"COASTAL_BRINE": "brine",
+	"EXCAVATION": "excavated_earth",
+	"BACKFILL_RECLAIM": "excavated_earth",
+	"SPOIL_RECLAIM": "excavated_earth",
+}
+
 const PROTECTED_ENUM_DOMAINS: Array[String] = [
 	"Speed", "Activity", "JobKind", "JobState", "ZoneType", "Season", "Soil", "CropState",
 	"OrderMode", "Quality", "InjuryKind", "Severity", "RoomType", "BuildingState", "Milestone",
+	"InventoryProvenance",
 ]
 
 ## Domain name -> its §4.3 table, so that adding a protected enum is one entry rather than one
@@ -161,6 +224,7 @@ const FIXED_ENUM_TABLES: Dictionary = {
 	"OrderMode": ORDER_MODE, "Quality": QUALITY, "InjuryKind": INJURY_KIND,
 	"Severity": SEVERITY, "RoomType": ROOM_TYPE,
 	"BuildingState": BUILDING_STATE, "Milestone": MILESTONE,
+	"InventoryProvenance": INVENTORY_PROVENANCE,
 }
 
 # --- compiled enum domains (GDD §4.2 closing paragraph, BAL-CAT-001/002) -------------------------
@@ -301,19 +365,18 @@ const COMPILED_ENUM_DOMAINS: Array[String] = [
 # it would fail honestly. Both files are outside this change's ownership; the §3.1 row and the
 # row-count bump are reported to the owner rather than invented here.
 #
-# BLOCKER EH-01-B: the InventoryLot provenance domain. GDD §4.2 types `InventoryLot.provenance`
-# as `enum` and §4.3 does NOT number it, so under §4.2's closing paragraph it is compiled from
-# its own sorted ASCII keys -- exactly as inventory.gd's own note says ("Provenance ... [is an]
-# OPAQUE int32 catalog enum value ... compiled by catalog.gd from sorted ASCII keys"). ECON-002
-# supplies three members (EXCAVATION, BACKFILL_RECLAIM, SPOIL_RECLAIM); §5.1 names STARTER for
-# the initial loose lots and §5.7 a coastal-brine kind the salt recipe filters on. But NO
-# specification declares the domain's NAME or its
-# complete key set. A domain name is the artifact's own object key, and a partial key set
-# renumbers every member the moment the next one lands -- the failure BUILDING_DEFINITION was
-# published complete to avoid. Publishing three of an unknown number of keys under an invented
-# name would bake a wrong, save-carried numbering into the digest. It is therefore refused here,
-# not guessed, on the same grounds catalog_ids.gd refuses to name the entity-kind and RNG-stream
-# domains. Unblocking it needs one ruling: the domain name plus the complete member list.
+# BLOCKER EH-01-B IS CLOSED. It asked for one ruling -- "the domain name plus the complete
+# member list" -- and PROV-R01 supplies exactly that: the name InventoryProvenance and all six
+# members with explicit numbers, protected rather than compiled. INVENTORY_PROVENANCE above is
+# that published domain; the three ECON-002 members are numbered 3/4/5 within it and were never
+# published alone, which is the partial-domain failure this comment used to guard against.
+#
+# STILL NOT HERE, and named rather than invented: the excavation/backfill/spoil EMBEDDED
+# LEDGERS. PROV-R01 says "Source and embedded ledgers, not the label alone, prove that a
+# corresponding withdrawal/output may occur exactly once", and check_earth_withdrawal() below
+# is the arithmetic half of that rule -- a pure predicate over a ledger balance a caller
+# supplies. The ledger COLUMNS themselves are EH-02's tip/excavation store, whose extents and
+# save rows are not settled here and are not guessed here.
 
 # --- legacy ordinal conversion (ruling §2: translate or refuse, never reinterpret) ---------------
 
@@ -374,6 +437,131 @@ class EnumLookup:
 		key = p_key
 		id = p_id
 		error = p_error
+
+
+class RuleResult:
+	"""Verdict of one PROV-R01 semantic rule: admitted, or refused with the reason why.
+
+	`.ok` MUST be inspected first. There is no value channel and no sentinel: a refusal carries
+	nothing a caller could mistake for an admitted origin, which is the whole point of a domain
+	whose default member means "ordinary" rather than "unknown".
+	"""
+	var ok: bool
+	var error: String
+
+	func _init(p_ok: bool, p_error: String) -> void:
+		"""Store the verdict and, when refused, the reason."""
+		ok = p_ok
+		error = p_error
+
+
+# --- PROV-R01 InventoryProvenance rules ----------------------------------------------------------
+
+static func is_inventory_provenance(id: int) -> bool:
+	"""True only for one of the six published InventoryProvenance lot values.
+
+	-1, 6 and every other arbitrary int32 are NOT members. PROV-R01: "Existing arbitrary-int test
+	fixtures are not valid saves under this domain." The default 0 IS a member -- it is ORDINARY,
+	the compatibility spelling of `inventory.gd`'s UNSET_PROVENANCE -- and never an unknown.
+	"""
+	for key: String in INVENTORY_PROVENANCE.keys():
+		if int(INVENTORY_PROVENANCE[key]) == id:
+			return true
+	return false
+
+
+static func inventory_provenance_key_of(id: int) -> EnumLookup:
+	"""The member key one provenance value names, or a refusal that carries no usable key."""
+	for key: String in INVENTORY_PROVENANCE.keys():
+		if int(INVENTORY_PROVENANCE[key]) == id:
+			return EnumLookup.new(true, StringName(key), id, "")
+	var message: String = "'%s' has no member %d"
+	return EnumLookup.new(false, &"", 0, message % [INVENTORY_PROVENANCE_DOMAIN, id])
+
+
+static func check_lot_provenance(provenance_id: int, item_key: StringName) -> RuleResult:
+	"""PROV-R01's label rule: a provenance may only sit on the item its origin actually produces.
+
+	COASTAL_BRINE demands the `brine` item; EXCAVATION, BACKFILL_RECLAIM and SPOIL_RECLAIM each
+	demand `excavated_earth`. ORDINARY and STARTER demand nothing, so any item may carry them.
+	A non-member value refuses before any item is considered.
+	"""
+	var member: EnumLookup = inventory_provenance_key_of(provenance_id)
+	if not member.ok:
+		return RuleResult.new(false, member.error)
+	var name: String = String(member.key)
+	if not PROVENANCE_REQUIRED_ITEM_KEY.has(name):
+		return RuleResult.new(true, "")
+	var required: String = String(PROVENANCE_REQUIRED_ITEM_KEY[name])
+	if String(item_key) == required:
+		return RuleResult.new(true, "")
+	var message: String = "provenance %s requires item '%s', not '%s'"
+	return RuleResult.new(false, message % [name, required, String(item_key)])
+
+
+static func check_salt_brine_input(item_key: StringName, provenance_id: int) -> RuleResult:
+	"""PROV-R01: salt input requires BOTH the `brine` item AND COASTAL_BRINE, never either alone.
+
+	"Ordinary river/well water cannot gain eligibility merely by being delivered to a saltpan."
+	So `water` with COASTAL_BRINE refuses (the label rule catches it), and `brine` with ORDINARY
+	refuses here -- a freshwater brine is a real lot, it is simply not coastal.
+	"""
+	var labelled: RuleResult = check_lot_provenance(provenance_id, item_key)
+	if not labelled.ok:
+		return labelled
+	if String(item_key) != String(BRINE_ITEM_KEY):
+		var wrong: String = "salt input requires the '%s' item, not '%s'"
+		return RuleResult.new(false, wrong % [String(BRINE_ITEM_KEY), String(item_key)])
+	if provenance_id != PROVENANCE_COASTAL_BRINE:
+		var origin: String = "salt input requires COASTAL_BRINE provenance, not %s"
+		return RuleResult.new(false, origin % String(inventory_provenance_key_of(provenance_id).key))
+	return RuleResult.new(true, "")
+
+
+static func recipe_output_provenance(declared_origin_key: StringName) -> EnumLookup:
+	"""PROV-R01: a recipe's output is ORDINARY unless its owning contract names another member.
+
+	An EMPTY key is the ordinary case and resolves to ORDINARY -- "consuming brine does not make
+	salt itself brine", so a producer that merely read its input's provenance would be wrong.
+	A named key must be one of the six; anything else refuses rather than defaulting, because a
+	silent default is how an unlisted origin would become ORDINARY without anyone deciding it.
+	"""
+	if String(declared_origin_key).is_empty():
+		return EnumLookup.new(true, &"ORDINARY", PROVENANCE_ORDINARY, "")
+	var name: String = String(declared_origin_key)
+	if not INVENTORY_PROVENANCE.has(name):
+		var message: String = "'%s' is not a member of %s"
+		return EnumLookup.new(false, &"", 0, message % [name, INVENTORY_PROVENANCE_DOMAIN])
+	return EnumLookup.new(true, declared_origin_key, int(INVENTORY_PROVENANCE[name]), "")
+
+
+static func _requires_excavated_earth(member_key: String) -> bool:
+	"""True for the three earth labels only. COASTAL_BRINE also demands an item, but not earth."""
+	if not PROVENANCE_REQUIRED_ITEM_KEY.has(member_key):
+		return false
+	return String(PROVENANCE_REQUIRED_ITEM_KEY[member_key]) == String(EXCAVATED_EARTH_ITEM_KEY)
+
+
+static func check_earth_withdrawal(provenance_id: int, ledger_remaining_milli: int,
+		requested_milli: int) -> RuleResult:
+	"""PROV-R01: the LEDGER, not the label, proves a withdrawal may occur -- and only once.
+
+	`ledger_remaining_milli` is the source/embedded balance the caller's own store still holds.
+	A label with an exhausted balance refuses, so a lot cannot be re-presented for a second
+	withdrawal of the same embedded quantity. The ledger COLUMNS belong to EH-02's tip store;
+	this is the arithmetic half only, and it invents no capacity and no default balance.
+	"""
+	var member: EnumLookup = inventory_provenance_key_of(provenance_id)
+	if not member.ok:
+		return RuleResult.new(false, member.error)
+	if not _requires_excavated_earth(String(member.key)):
+		return RuleResult.new(false, "%s records no earth source to withdraw" % String(member.key))
+	if requested_milli <= 0:
+		return RuleResult.new(false, "a withdrawal of %d milli-U is not a withdrawal" % requested_milli)
+	if ledger_remaining_milli < requested_milli:
+		var short: String = "%s ledger holds %d milli-U; %d was requested"
+		return RuleResult.new(false, short % [String(member.key), ledger_remaining_milli, requested_milli])
+	return RuleResult.new(true, "")
 
 
 static func fixed_enum(domain_name: String) -> Dictionary:

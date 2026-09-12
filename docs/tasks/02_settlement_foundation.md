@@ -82,15 +82,24 @@ are **not** here and remain task 08's.
   `tools/extract_item_definitions.py`; §3.1 is the catalog's single authored source
   and the suite runs that real extractor against that real document, so the key
   cannot be hand-inserted into the JSON or into `catalog.gd`.
-- [ ] **`InventoryLot.provenance` domain — blocked, not started.** GDD §4.2 types it
-  `enum` and §4.3 does not number it, so it compiles from sorted ASCII keys; but no
-  specification declares the domain's name or its complete member list. ECON-002
-  supplies `EXCAVATION`, `BACKFILL_RECLAIM` and `SPOIL_RECLAIM`; §5.11 mentions
-  `STARTER` and §5.7 a coastal-brine kind. Publishing a partial set under an
-  invented name would bake a wrong save-carried numbering into the header digest.
-  Needs one ruling: the domain name plus the complete member list.
+- [x] **`InventoryLot.provenance` domain — unblocked and published** (decision 0113).
+  PROV-R01 supplied the one thing this entry asked for: the domain name plus the
+  complete member list. `catalog.gd` now carries `InventoryProvenance` in
+  `PROTECTED_ENUM_DOMAINS` as `ORDINARY=0, STARTER=1, COASTAL_BRINE=2,
+  EXCAVATION=3, BACKFILL_RECLAIM=4, SPOIL_RECLAIM=5` — protected, not compiled,
+  because all six disagree with the ascending-ASCII regeneration.
+  `catalog_ids.json` moved 4161 -> 4282 bytes, 29 -> 30 domains, 282 -> 288 rows,
+  digest `d5bf21b4...cfd67` -> `4b25ab62...5677d`: an intentional catalog/schema
+  change. `inventory.gd` refuses a non-member with `INVALID_PROVENANCE`, and
+  `UNSET_PROVENANCE` is now the compatibility spelling of ORDINARY.
+  **Still open, reported to their owners:** the saltpan recipe's input filter and
+  EH-02's excavation/backfill/spoil transactions must call
+  `Catalog.check_salt_brine_input()` / `check_lot_provenance()` /
+  `check_earth_withdrawal()` before creating a lot; the embedded-ledger columns
+  themselves are EH-02's and are not built here.
 
-Neither blocker closes or advances any MOVE gate, and task 05.1b remains not started.
+Neither remaining blocker closes or advances any MOVE gate, and task 05.1b remains
+not started.
 
 ### 2.3 — Entity directory, refs, resident slots
 - **Owns** `godot/scripts/core/entity_directory.gd`, `godot/test/test_entity_directory.gd`

@@ -242,6 +242,24 @@ func owner_slot_of_typed_row(kind: int, row: int) -> int:
 	return _typed_owner_slot[_kind_base[kind] + row]
 
 
+func ref_of_slot(slot: int) -> Vector2i:
+	"""The live reference naming `slot`, or NULL_REF when that slot holds no live row.
+
+	The reverse of `is_valid()`: a caller that has a SLOT -- an audit walking the directory, a
+	loader rebuilding references, `owner_slot_of_typed_row()`'s answer -- rebuilds the full
+	`(slot, generation)` pair here instead of storing a second copy of the generation beside it.
+	NULL_REF is GDD §4.1's own null reference `(-1, 0)`, not a failure sentinel: an inactive slot
+	genuinely names no entity, and the returned reference validates like any other.
+
+	Adds no column and no allocator state; it reads the two that ARCH-ID-002 already keeps.
+	"""
+	if slot < 0 or slot >= DIRECTORY_CAPACITY:
+		return NULL_REF
+	if _active[slot] != 1:
+		return NULL_REF
+	return Vector2i(slot, _generation[slot])
+
+
 func get_persistent_id(ref: Vector2i) -> int:
 	"""The never-reused persistent ID of a live reference, or 0 when it is stale."""
 	if not is_valid(ref):

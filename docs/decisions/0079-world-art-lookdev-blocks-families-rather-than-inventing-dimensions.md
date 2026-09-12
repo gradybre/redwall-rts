@@ -74,3 +74,15 @@ manifest; `docs/crowd_rendering_architecture.md` §2.7, §7 and §9; `docs/game_
 IMG-03, IMG-04, IMG-07, IMG-08, IMG-12, IMG-17, IMG-18 and IMG-25 at their manifest
 regions; `godot/data/catalog_ids.json`; and direct inspection of
 `godot/assets/units/species_mouse_body_a_lod0.glb`.
+
+## Superseding authoring decisions — 2026-09-11, decision0080
+
+The original blocked finding above remains historical evidence. Decision0080 and
+[ART-GAP-R01–05](../planning/asset_dimensions_and_budgets.md) now explicitly adopt
+building-height envelopes, non-creature/material/cutaway/naming budgets and
+settlement L0 admission. GAP-03/04/05 and adjacent06–09 have authoring definitions;
+their exported/runtime evidence remains open. GAP-01/02 now have exact comparison
+candidates and measurement rules, but bulk-production proportions still await
+decision0002's user-required review. GAP-10/Windows qualification and MOVE gates
+remain open. Do not keep those authoring tasks blocked solely by the earlier
+absence of these definitions, or mistake their adoption for performance evidence.

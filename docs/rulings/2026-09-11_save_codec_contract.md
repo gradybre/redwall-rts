@@ -89,7 +89,7 @@ coverage. No hand-selected subset may be called the release rules identity.
 
 **Lookup:** build `lookup_identity.bin`: bytes `RWL-LOOKUP-1\0`, u32 table count,
 then unique ASCII-key-sorted records `key:string, element_type:u8, count:u32,
-values_in_declared_order`. Types 0–4 have the same encoding above; no string-valued
+values_in_declared_order`. Each key is nonempty ASCII, maximum256 bytes. Types 0–4 have the same encoding above; no string-valued
 integer tables. Every authoritative multi-value integer lookup registers here
 (including arithmetic/geometry tables); declare multidimensional shape in the
 rules artifact and flatten row-major. Scalars belong in rules, tables here;
@@ -211,8 +211,9 @@ The input to SHA-256 is exactly, with no padding:
 5. record_count:u32 LE followed by exactly that many typed field records.
 
 Each field record is `section_id:u32, owner_key:string, field_key:string,
-type:u8, value_count:u64, values`. Keys are unique nonempty ASCII, max256 bytes
-per key. Types0–5 use the rules-manifest encodings above; each type5 value has
+type:u8, value_count:u64, values`. The tuple
+`(section_id,owner_key,field_key)` is unique; owner_key intentionally repeats
+across its fields. Both keys are nonempty ASCII, max256 bytes each. Types0–5 use the rules-manifest encodings above; each type5 value has
 its own u32 UTF-8 byte length. There is no record terminator/padding. Records
 appear by section1–14, then ASCII owner_key, then the DECLARED field ordinal in
 that owner's versioned canonical schema (not alphabetically by display label).

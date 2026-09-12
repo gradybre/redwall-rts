@@ -35,7 +35,7 @@ also receive explicit authoring contracts. Windows qualification remains deferre
 The reviewed source brief is now also available at
 [world art lookdev brief](../art-reference/world_art_lookdev_brief.md) and its
 historical decision0079; resolve its old BLOCKED notes through this ruling.
-The JSON records the originating executor-worktree path and review SHA; source
+The JSON records the durable source path and review SHA; source
 notes such as its erroneous initial six-blocker count are historical, not an
 instruction to overwrite the executor's work.
 

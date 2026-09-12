@@ -1,4 +1,4 @@
-# 0090 — The resident stage is a stored column; the rig is a species fact that may refuse
+# 0095 — The resident stage is a stored column; the rig is a species fact that may refuse
 
 Date: 2026-09-12 · Status: **Accepted**
 

@@ -83,7 +83,7 @@ Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) 
 ### Life-stage identity status — 2026-09-12
 
 Implemented in `godot/scripts/core/residents.gd` under
-[decision 0090](../decisions/0090-the-resident-stage-column-and-the-logical-rig-binding.md):
+[decision 0095](../decisions/0095-the-resident-stage-column-and-the-logical-rig-binding.md):
 
 - [x] `Resident.life_stage:B8[512]`, ADULT 0 / CHILD 1 / ELDER 2, COUNT 3 as a bound only
 - [x] Explicit validated stage on the generic spawn; refusal, never a clamp, for an

@@ -108,3 +108,16 @@ against `PROTECTED_ENUM_DOMAINS`, which is a stronger guard than the `match` it 
 `docs/rulings/2026-09-11_ready07_open_item_answers.md` §7.1–7.2 step 1; `docs/game_gdd.md` §4.2
 closing paragraph, §4.3 and §5.9; `docs/gameplay_balance.md` §4.1/§4.2/§4.3 and BAL-CAT-006/007;
 decisions 0018, 0033, 0034, 0042, 0043.
+
+## Resolution addendum — 2026-09-11
+
+[R-BUILD-DOM-001–004](../rulings/2026-09-11_building_room_domains.md) resolves
+open items 1–4 above. BAL-CAT-002 already authored unlock values M0=0 through
+M4=4; the missing binding/publication is now protected Milestone. Station's
+complete 11-key ASCII domain is now explicit. Room.furniture_mask uses the
+existing FurnitureDefinition ID as bit position, for committed presence only.
+The kitchen S is retained separately from the four pantry-capacity shelves.
+The historical questions above are preserved, not current unanswered blockers.
+Catalog artifact regeneration, stores and service integration remain executor
+work; this addendum does not report them complete. Item 5's other enum coverage
+remains separate.

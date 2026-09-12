@@ -350,6 +350,20 @@ Tick halves reconstruct a signed nonnegative int64 with range checks. Settlement
 
 **ARCH-MEM-005.** Arena offsets/counts, owner-to-child indexes, occupancy masks, free heaps, stable ID lookup, dirty bits, and the supplementary columns in §3 are allocation overhead outside original field payload. The budget table includes them explicitly. Packed arrays are allocated once to these capacity lengths; page caches and stream buffers are bounded. Never call `resize()` in an ordinary resident update. Oversized incoming content is rejected before allocating a replacement world. `[NEW allocation policy; GDD §5.11]`
 
+## Building/room domain clarification — 2026-09-11
+
+[R-BUILD-DOM-001–004](rulings/2026-09-11_building_room_domains.md) binds existing fields without adding
+packed columns: protected Milestone M0–M4 for both definition.unlock fields and
+Progress.milestone; a separate 11-key compiled Station domain for recipe.station;
+and Room.furniture_mask bit i for FurnitureDefinition i, known mask 511.
+World.milestone_mask and Progress.unlocked_mask share the actual-earned-bit
+meaning, initialized to 1 and updated atomically by Progression; highest ordinal
+is presentation, not a substitute gate. Preserve both existing field widths.
+Room masks remain persisted/hashed; validate staged membership against saved
+masks before publish. Catalog additions require artifact regeneration and an
+intentional digest change; no runtime artifact or allocation has been changed
+by this documentation. The ruling supplies exact mappings and acceptance.
+
 ## 3. Additional state required by the fixed behavioral rules
 
 The GDD registry does not encode every deadline, ownership mapping, or remainder its requirements need. These **additional saved tables** are `[NEW]`; original components remain byte-for-byte typed as specified. A code generator SHALL generate both sets from distinct schema declarations and include both in ruleset hashing. The missing-schema conflict is explicit in Conflicts Found.
@@ -480,6 +494,11 @@ These are known allocations that no line of §2.2, §3 or §2.3 counts. They are
 ## 4. Entity allocation, lifetime, and safe references
 
 **ARCH-ID-001.** Every referenceable runtime entity receives one slot in a global directory; its `kind` and `typed_row` locate the appropriate typed store `[NEW directory]`. Resident rows remain separately bounded at 512 `[GDD §4.1]`. Child records such as Reservation, MoodMemory, Skills, and NoticeCondition are owner-indexed rows, not extra entity objects. A Job or InventoryLot is referenceable and does receive a directory entry. Use fixed kind numeric IDs from sorted ASCII kind keys, preserving GDD's explicitly numbered enums in their own domains. Persistent IDs are globally unique positive int32 values, assigned monotonically and never reused `[GDD §4.1–4.2]`.
+
+**R-INIT-ID-001 clarification (2026-09-11):** composed new-world initialization
+resets before allocation, assigns the starting cohort global IDs 1–12 first, and
+then continues the same counter for world entities. A later terrain publication
+must not clear the directory. See [lifecycle/transaction requirements](rulings/2026-09-11_initial_ids_and_narrow_alerts.md).
 
 **ARCH-ID-002.** Both directory and typed-row allocators use preallocated indexed min-heaps of free indices. Pop the lowest free slot, initialize all columns and children explicitly, then publish `active=1` at lifecycle commit. Initial generation is 1 `[NEW]`; increment on reuse, not on destroy, matching `[crowd §4.1]`. Generation 2147483647 may be used once; after its destruction retire the slot permanently rather than wrapping. Persistent ID exhaustion at 2147483647 refuses further creation and offers saving/continuation of the existing world; it never wraps or resets on load. `[NEW overflow disposition]`
 

@@ -1,0 +1,1699 @@
+{
+	"assets": [
+		{
+			"category": "painted_resource",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.RES.FOOD_READY",
+			"opaque_bounds": [
+				2,
+				7,
+				20,
+				15
+			],
+			"optical_widths": [
+				24,
+				32
+			],
+			"sha256": "c4bf8259fb523d75235777a781f7127a52bcb1fd64da72aff7d27f7d7064a48d",
+			"source": "res://ui/painted/res_food_ready.svg"
+		},
+		{
+			"category": "painted_resource",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.RES.FUEL",
+			"opaque_bounds": [
+				3,
+				2,
+				18,
+				21
+			],
+			"optical_widths": [
+				24,
+				32
+			],
+			"sha256": "b801fae425090cddf356c550fb77bb09747d54a9d21b92ebdab755b9ca7e2d1c",
+			"source": "res://ui/painted/res_fuel.svg"
+		},
+		{
+			"category": "painted_resource",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.RES.WOOD",
+			"opaque_bounds": [
+				1,
+				1,
+				22,
+				21
+			],
+			"optical_widths": [
+				24,
+				32
+			],
+			"sha256": "6fdf4fd5dffacea1ed64e1a5dfc759396cd63d4af8cdc4a8ac913e4c01dd0a2a",
+			"source": "res://ui/painted/res_wood.svg"
+		},
+		{
+			"category": "painted_resource",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.RES.STONE",
+			"opaque_bounds": [
+				1,
+				4,
+				22,
+				19
+			],
+			"optical_widths": [
+				24,
+				32
+			],
+			"sha256": "3a55152ab281036d778cc030d054ba03fd00ca29a15aa92e8a66865bd0c81aed",
+			"source": "res://ui/painted/res_stone.svg"
+		},
+		{
+			"category": "painted_resource",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.RES.POPULATION",
+			"opaque_bounds": [
+				1,
+				1,
+				22,
+				22
+			],
+			"optical_widths": [
+				24,
+				32
+			],
+			"sha256": "bf945b6543dfddab4362b90380581c5aff5b4be2c4cef14671e7d326c5a67884",
+			"source": "res://ui/painted/res_population.svg"
+		},
+		{
+			"category": "painted_resource",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.RES.BEDS",
+			"opaque_bounds": [
+				1,
+				5,
+				22,
+				18
+			],
+			"optical_widths": [
+				24,
+				32
+			],
+			"sha256": "ca9ac65363cf6b40f7cc3da85a5226f094426cdfb2c7d12c2469bb083fcb44f0",
+			"source": "res://ui/painted/res_beds.svg"
+		},
+		{
+			"category": "painted_command",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.CMD.BUILD",
+			"opaque_bounds": [
+				3,
+				1,
+				17,
+				22
+			],
+			"optical_widths": [
+				24
+			],
+			"sha256": "764ee237223c57771097249ed167a817086f93abbb4050600c83cc0af1a9d4fb",
+			"source": "res://ui/painted/cmd_build.svg"
+		},
+		{
+			"category": "painted_command",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.CMD.ZONE",
+			"opaque_bounds": [
+				1,
+				2,
+				22,
+				20
+			],
+			"optical_widths": [
+				24
+			],
+			"sha256": "43edbbe0b590965b32fa1f1c22d16af5b91d5f1d6ce350073e134e834c5e31d1",
+			"source": "res://ui/painted/cmd_zone.svg"
+		},
+		{
+			"category": "painted_command",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.CMD.WORK",
+			"opaque_bounds": [
+				2,
+				2,
+				21,
+				21
+			],
+			"optical_widths": [
+				24
+			],
+			"sha256": "e17507fdaf7411933375e4995351f82cbb2f76d0998109fd26b1bf15a1136922",
+			"source": "res://ui/painted/cmd_work.svg"
+		},
+		{
+			"category": "painted_command",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.CMD.FOOD",
+			"opaque_bounds": [
+				2,
+				7,
+				20,
+				15
+			],
+			"optical_widths": [
+				24
+			],
+			"sha256": "c4bf8259fb523d75235777a781f7127a52bcb1fd64da72aff7d27f7d7064a48d",
+			"source": "res://ui/painted/res_food_ready.svg"
+		},
+		{
+			"category": "painted_command",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.CMD.PEOPLE",
+			"opaque_bounds": [
+				1,
+				1,
+				22,
+				22
+			],
+			"optical_widths": [
+				24
+			],
+			"sha256": "bf945b6543dfddab4362b90380581c5aff5b4be2c4cef14671e7d326c5a67884",
+			"source": "res://ui/painted/res_population.svg"
+		},
+		{
+			"category": "painted_command",
+			"document": [
+				24,
+				24
+			],
+			"id": "ART.CMD.GOALS",
+			"opaque_bounds": [
+				3,
+				1,
+				18,
+				22
+			],
+			"optical_widths": [
+				24
+			],
+			"sha256": "a00f2482851a4a8192e11ce0f0ca1250b986dfb716afe3a5cc99acb6f059ba06",
+			"source": "res://ui/painted/cmd_goals.svg"
+		},
+		{
+			"category": "symbolic_narrow",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.NARROW.BUILD",
+			"opaque_bounds": [
+				2,
+				1,
+				13,
+				13
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "192de5a1508827f632e1dc136622b65f052400de442d9732abaf21766e665994",
+			"source": "res://ui/symbolic16/build.svg"
+		},
+		{
+			"category": "symbolic_narrow",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.NARROW.ZONE",
+			"opaque_bounds": [
+				0,
+				1,
+				16,
+				14
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "33157a587bd6710f78585efca54df697c4dd97ba776d2cbd6b0ee5cc05792dbe",
+			"source": "res://ui/symbolic16/zone.svg"
+		},
+		{
+			"category": "symbolic_narrow",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.NARROW.WORK",
+			"opaque_bounds": [
+				1,
+				1,
+				15,
+				12
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "7d318f5c12f176d2fa48c331c5e917e87228a319691677733b2f9f47ee724010",
+			"source": "res://ui/symbolic16/work.svg"
+		},
+		{
+			"category": "symbolic_narrow",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.NARROW.FOOD",
+			"opaque_bounds": [
+				1,
+				5,
+				14,
+				8
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "41e391bf059f61f12182577bf31fc06ef4b8456f8c33b3bab5f87052c807f6d8",
+			"source": "res://ui/symbolic16/food.svg"
+		},
+		{
+			"category": "symbolic_narrow",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.NARROW.PEOPLE",
+			"opaque_bounds": [
+				0,
+				2,
+				16,
+				13
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "b6e98bd671222251123eb53bf936edeb7c7e2ff51d2b02f8868146cbcdf617c6",
+			"source": "res://ui/symbolic16/people.svg"
+		},
+		{
+			"category": "symbolic_narrow",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.NARROW.GOALS",
+			"opaque_bounds": [
+				1,
+				2,
+				14,
+				12
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "293d015046243a2a47eeffee8822a93c23cd2397de2c850cded3545ea1e4abf5",
+			"source": "res://ui/symbolic16/goals.svg"
+		},
+		{
+			"category": "symbolic_control",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.SYM.CLOSE",
+			"opaque_bounds": [
+				2,
+				2,
+				12,
+				12
+			],
+			"optical_widths": [
+				16,
+				18,
+				24
+			],
+			"sha256": "1010e4a6232146e3bb7830525aaa26f1fe96ebacd7c0d931b092ce03bc45028d",
+			"source": "res://ui/icons/cancel.svg"
+		},
+		{
+			"category": "symbolic_control",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.SYM.CHECK",
+			"opaque_bounds": [
+				2,
+				3,
+				12,
+				10
+			],
+			"optical_widths": [
+				16,
+				18,
+				24
+			],
+			"sha256": "6c27622b4b44778f3de96962cff31b814ec8f67a5e6384eca6988bcd8fc031d7",
+			"source": "res://ui/icons/check.svg"
+		},
+		{
+			"category": "symbolic_control",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.SYM.LOCK",
+			"opaque_bounds": [
+				2,
+				2,
+				12,
+				12
+			],
+			"optical_widths": [
+				16,
+				18,
+				24
+			],
+			"sha256": "f86416ea5926fef5a2fd234796693228e29cef72e3395004ae5d489c4f7ad791",
+			"source": "res://ui/icons/lock.svg"
+		},
+		{
+			"category": "symbolic_control",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.SYM.WARNING",
+			"opaque_bounds": [
+				1,
+				2,
+				14,
+				12
+			],
+			"optical_widths": [
+				16,
+				18,
+				24
+			],
+			"sha256": "cd9db2f8a301863a3951eaf242312ed604d4579dbfe43335f060565a38025e25",
+			"source": "res://ui/icons/warning.svg"
+		},
+		{
+			"category": "symbolic_control",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.SYM.CAMERA",
+			"opaque_bounds": [
+				0,
+				0,
+				16,
+				16
+			],
+			"optical_widths": [
+				16,
+				18,
+				24
+			],
+			"sha256": "e9a54da7785cdbf301556e929e04ce497023b6e46394bb8b2001186237d1affa",
+			"source": "res://ui/icons/center_view.svg"
+		},
+		{
+			"category": "symbolic_control",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.SYM.PAUSE",
+			"opaque_bounds": [
+				4,
+				2,
+				8,
+				12
+			],
+			"optical_widths": [
+				16,
+				18,
+				24
+			],
+			"sha256": "18b956e12a31300b2463e5b375725e0fcd45f431ca1537b2ac7a9d42928ead49",
+			"source": "res://ui/icons/pause.svg"
+		},
+		{
+			"category": "symbolic_control",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.SYM.DATE",
+			"opaque_bounds": [
+				1,
+				1,
+				14,
+				14
+			],
+			"optical_widths": [
+				16,
+				18,
+				24
+			],
+			"sha256": "2956314da633665a482b4c95f698fdca73499a982025adb33738cd52ecab0e5c",
+			"source": "res://ui/icons/calendar.svg"
+		},
+		{
+			"category": "emblem",
+			"document": [
+				48,
+				48
+			],
+			"id": "ART.EMBLEM.MOUSE_48",
+			"opaque_bounds": [
+				1,
+				1,
+				46,
+				46
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "c266a1727f3d8e55a371bf7bdf4d1f92a5f092a464220d61e3a4ce7837baa20f",
+			"source": "res://ui/emblems/species_mouse_48.svg"
+		},
+		{
+			"category": "emblem",
+			"document": [
+				64,
+				64
+			],
+			"id": "ART.EMBLEM.MOUSE_64",
+			"opaque_bounds": [
+				0,
+				0,
+				64,
+				64
+			],
+			"optical_widths": [
+				64
+			],
+			"sha256": "8455edecce45a1022e718d5e926882cd0b9be1c020fd202c74d8256bf8316412",
+			"source": "res://ui/emblems/species_mouse_64.svg"
+		},
+		{
+			"category": "emblem",
+			"document": [
+				48,
+				48
+			],
+			"id": "ART.EMBLEM.MOLE_48",
+			"opaque_bounds": [
+				1,
+				1,
+				46,
+				46
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "cdf6ab7046428d9b38caf0f8b8746d8bad13e7bb7e08aee9bed363bda92ce8a7",
+			"source": "res://ui/emblems/species_mole_48.svg"
+		},
+		{
+			"category": "emblem",
+			"document": [
+				64,
+				64
+			],
+			"id": "ART.EMBLEM.MOLE_64",
+			"opaque_bounds": [
+				0,
+				0,
+				64,
+				64
+			],
+			"optical_widths": [
+				64
+			],
+			"sha256": "1266da63a279f67c94a3db2fb91d5c08bc3de9dd261bf976e72b54e1b7a6a149",
+			"source": "res://ui/emblems/species_mole_64.svg"
+		},
+		{
+			"category": "emblem",
+			"document": [
+				48,
+				48
+			],
+			"id": "ART.EMBLEM.OTTER_48",
+			"opaque_bounds": [
+				1,
+				1,
+				46,
+				46
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "7ada24012d4793c454ae116024079a49d828aad72a88efa7d8f21c83740e279a",
+			"source": "res://ui/emblems/species_otter_48.svg"
+		},
+		{
+			"category": "emblem",
+			"document": [
+				64,
+				64
+			],
+			"id": "ART.EMBLEM.OTTER_64",
+			"opaque_bounds": [
+				0,
+				0,
+				64,
+				64
+			],
+			"optical_widths": [
+				64
+			],
+			"sha256": "e0d9c2421536d292ef71cd39a6fd801f952cfcf74cd171ba5c1ed41391952621",
+			"source": "res://ui/emblems/species_otter_64.svg"
+		},
+		{
+			"category": "emblem",
+			"document": [
+				48,
+				48
+			],
+			"id": "ART.EMBLEM.SQUIRREL_48",
+			"opaque_bounds": [
+				1,
+				1,
+				46,
+				46
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "84f558c37f784c7aafa12c8f58baf58081e6e3acd137bb9aae22100df7a4a33a",
+			"source": "res://ui/emblems/species_squirrel_48.svg"
+		},
+		{
+			"category": "emblem",
+			"document": [
+				64,
+				64
+			],
+			"id": "ART.EMBLEM.SQUIRREL_64",
+			"opaque_bounds": [
+				0,
+				0,
+				64,
+				64
+			],
+			"optical_widths": [
+				64
+			],
+			"sha256": "eacba0f803defa250091ae2cf7566dc3c0b4024a50afb547e4f4905c9de08f47",
+			"source": "res://ui/emblems/species_squirrel_64.svg"
+		},
+		{
+			"category": "ornament",
+			"document": [
+				48,
+				16
+			],
+			"id": "ART.ORN.SPRIG",
+			"opaque_bounds": [
+				1,
+				1,
+				46,
+				8
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "a57d53c9f5437ec85510af0e41decc444e3c0dea5b381e489310d50502230826",
+			"source": "res://ui/ornaments/sprig.svg"
+		},
+		{
+			"category": "ornament",
+			"document": [
+				28,
+				14
+			],
+			"id": "ART.ORN.OAK_LEAF",
+			"opaque_bounds": [
+				1,
+				0,
+				26,
+				14
+			],
+			"optical_widths": [
+				28
+			],
+			"sha256": "6a770d9d2722831e7e86482aae9f227266626c13a2d9add3af2a417eecd0c435",
+			"source": "res://ui/ornaments/oak_leaf.svg"
+		},
+		{
+			"category": "ornament",
+			"document": [
+				12,
+				16
+			],
+			"id": "ART.ORN.ACORN",
+			"opaque_bounds": [
+				0,
+				0,
+				12,
+				15
+			],
+			"optical_widths": [
+				12
+			],
+			"sha256": "b9f74074c3616621b87d6b980609e2090290adaccf64ef429e11c987ab4448fe",
+			"source": "res://ui/ornaments/acorn.svg"
+		},
+		{
+			"category": "ornament",
+			"document": [
+				16,
+				48
+			],
+			"id": "ART.ORN.BINDING_SEAM",
+			"opaque_bounds": [
+				0,
+				0,
+				16,
+				48
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "b6233bebf0b3a77fa171999a1237041c1c04701a0a2d0fef89f792d6b12c55d6",
+			"source": "res://ui/ornaments/binding_seam.svg"
+		},
+		{
+			"category": "ornament",
+			"document": [
+				48,
+				8
+			],
+			"id": "ART.ORN.PAGE_EDGE",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				6
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "61d93c8f1f6a75665a3ac8ea6e0f0c7c0a1b97a10d3e9e2eae3fa9944171e845",
+			"source": "res://ui/ornaments/page_edge.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				48,
+				8
+			],
+			"id": "ART.FRAME.TRAY.EDGE_TOP",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				8
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "6abf066eea7926c247673055e3083010cf71d4c2be73dd2e230f66e7498f4183",
+			"source": "res://ui/frames/resource_tray/resource_tray_edge_top.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				48,
+				8
+			],
+			"id": "ART.FRAME.TRAY.EDGE_BOTTOM",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				8
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "5b6b747454171bc75c5b3b5a3dcd14bf7ecb8f550c48ac5efb14759ed6010842",
+			"source": "res://ui/frames/resource_tray/resource_tray_edge_bottom.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				8,
+				48
+			],
+			"id": "ART.FRAME.TRAY.EDGE_LEFT",
+			"opaque_bounds": [
+				0,
+				0,
+				8,
+				48
+			],
+			"optical_widths": [
+				8
+			],
+			"sha256": "900fce46c935be64fd83da6539ab7d985ea13948090e720bc2f2cf7c669fada1",
+			"source": "res://ui/frames/resource_tray/resource_tray_edge_left.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				8,
+				48
+			],
+			"id": "ART.FRAME.TRAY.EDGE_RIGHT",
+			"opaque_bounds": [
+				0,
+				0,
+				8,
+				48
+			],
+			"optical_widths": [
+				8
+			],
+			"sha256": "f8a202c2c6bfde37478e5ac6895b00d6322744f663a5519b35cc5279ea4043cf",
+			"source": "res://ui/frames/resource_tray/resource_tray_edge_right.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				18,
+				18
+			],
+			"id": "ART.FRAME.TRAY.CORNER_TL",
+			"opaque_bounds": [
+				0,
+				0,
+				18,
+				18
+			],
+			"optical_widths": [
+				18
+			],
+			"sha256": "479a06845b2cd6fe38edfde407c3cb14af2a6537c1cf36012301ea0cb75ec9e3",
+			"source": "res://ui/frames/resource_tray/resource_tray_corner_tl.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				18,
+				18
+			],
+			"id": "ART.FRAME.TRAY.CORNER_TR",
+			"opaque_bounds": [
+				0,
+				0,
+				18,
+				18
+			],
+			"optical_widths": [
+				18
+			],
+			"sha256": "9ce05b6cd77aa5b1c78be3d866f3af62b815441149fd1855ad08e35facec00f5",
+			"source": "res://ui/frames/resource_tray/resource_tray_corner_tr.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				18,
+				18
+			],
+			"id": "ART.FRAME.TRAY.CORNER_BL",
+			"opaque_bounds": [
+				0,
+				0,
+				18,
+				18
+			],
+			"optical_widths": [
+				18
+			],
+			"sha256": "4858490ba27e63c22a87f8cf3569fa831dabe882df6cd86e7a19fe84e393ca40",
+			"source": "res://ui/frames/resource_tray/resource_tray_corner_bl.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				18,
+				18
+			],
+			"id": "ART.FRAME.TRAY.CORNER_BR",
+			"opaque_bounds": [
+				0,
+				0,
+				18,
+				18
+			],
+			"optical_widths": [
+				18
+			],
+			"sha256": "80fefc78af906c5cdcecaa8ed0747fd6110ce88cfa34d7c64ad12c2ffe2e824e",
+			"source": "res://ui/frames/resource_tray/resource_tray_corner_br.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				48,
+				5
+			],
+			"id": "ART.FRAME.TIME.EDGE_TOP",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				5
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "e8c45e09b447c370925142d265156b10fdc4cf98d178a94a2b1b4f2d5604f49b",
+			"source": "res://ui/frames/time_group/time_group_edge_top.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				48,
+				5
+			],
+			"id": "ART.FRAME.TIME.EDGE_BOTTOM",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				5
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "6ad1f07c2f7bc3706997538cd10145fc96bb62fcd660f830d466e2ffcb314d62",
+			"source": "res://ui/frames/time_group/time_group_edge_bottom.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				5,
+				48
+			],
+			"id": "ART.FRAME.TIME.EDGE_LEFT",
+			"opaque_bounds": [
+				0,
+				0,
+				5,
+				48
+			],
+			"optical_widths": [
+				5
+			],
+			"sha256": "214d04e4f9709a8132b4995c5ff52120cf494e3f5aac763616c8ee0db8e6a1fc",
+			"source": "res://ui/frames/time_group/time_group_edge_left.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				5,
+				48
+			],
+			"id": "ART.FRAME.TIME.EDGE_RIGHT",
+			"opaque_bounds": [
+				0,
+				0,
+				5,
+				48
+			],
+			"optical_widths": [
+				5
+			],
+			"sha256": "cbea0e6a175adfe995c940970f08cecec20f026e2795d9670fb19390382e43d5",
+			"source": "res://ui/frames/time_group/time_group_edge_right.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.FRAME.TIME.CORNER_TL",
+			"opaque_bounds": [
+				0,
+				0,
+				16,
+				16
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "097b46b3b80b89bdc9dc44b91802009c135bb6f34ba5ee035cb208d18792fb93",
+			"source": "res://ui/frames/time_group/time_group_corner_tl.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.FRAME.TIME.CORNER_TR",
+			"opaque_bounds": [
+				0,
+				0,
+				16,
+				16
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "8e33d3a5fc4c60bf7bbf8d3ac76b57b8f6dcebb3812404317f44038255101703",
+			"source": "res://ui/frames/time_group/time_group_corner_tr.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.FRAME.TIME.CORNER_BL",
+			"opaque_bounds": [
+				0,
+				0,
+				16,
+				16
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "54423f7d3b16f0fd259ebf19c01457b3b0160442e0c92e3bc755099524c26f73",
+			"source": "res://ui/frames/time_group/time_group_corner_bl.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				16,
+				16
+			],
+			"id": "ART.FRAME.TIME.CORNER_BR",
+			"opaque_bounds": [
+				0,
+				0,
+				16,
+				16
+			],
+			"optical_widths": [
+				16
+			],
+			"sha256": "a0f7e5e86b286cf4a68e69fe9c139ec13d224384824ce81a3c7ea9b483d580f8",
+			"source": "res://ui/frames/time_group/time_group_corner_br.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				48,
+				6
+			],
+			"id": "ART.FRAME.FOLIO.EDGE_TOP",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				6
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "114312ea195b185ba987bb2a7cd7b7db9a5e408c7990c9e62cf3454c6a35a02e",
+			"source": "res://ui/frames/map_folio/map_folio_edge_top.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				48,
+				6
+			],
+			"id": "ART.FRAME.FOLIO.EDGE_BOTTOM",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				6
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "db1b3ff0f4e2a6ae5c95fa4c9b7fd9f9026733bf125e9537f8fdfe891ed4fdd3",
+			"source": "res://ui/frames/map_folio/map_folio_edge_bottom.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				6,
+				48
+			],
+			"id": "ART.FRAME.FOLIO.EDGE_LEFT",
+			"opaque_bounds": [
+				0,
+				0,
+				6,
+				48
+			],
+			"optical_widths": [
+				6
+			],
+			"sha256": "0a70032b87e715aec109de01a46c74df54865f8860dbead74d6b7529eef569de",
+			"source": "res://ui/frames/map_folio/map_folio_edge_left.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				6,
+				48
+			],
+			"id": "ART.FRAME.FOLIO.EDGE_RIGHT",
+			"opaque_bounds": [
+				0,
+				0,
+				6,
+				48
+			],
+			"optical_widths": [
+				6
+			],
+			"sha256": "7972cff75018719287580232bc70c6100956d096dcf9a962b5e4d86bdda1d435",
+			"source": "res://ui/frames/map_folio/map_folio_edge_right.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				18,
+				18
+			],
+			"id": "ART.FRAME.FOLIO.CORNER_TL",
+			"opaque_bounds": [
+				0,
+				0,
+				18,
+				18
+			],
+			"optical_widths": [
+				18
+			],
+			"sha256": "4e05f6230f8616118c5f293268e61b6463e992c5864df5c5db12ce37c6230ea8",
+			"source": "res://ui/frames/map_folio/map_folio_corner_tl.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				18,
+				18
+			],
+			"id": "ART.FRAME.FOLIO.CORNER_TR",
+			"opaque_bounds": [
+				0,
+				0,
+				18,
+				18
+			],
+			"optical_widths": [
+				18
+			],
+			"sha256": "77a917aebb07ba1e5a77d6ce9bedab6175d3eb90fdd28a903992b781d517ce36",
+			"source": "res://ui/frames/map_folio/map_folio_corner_tr.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				18,
+				18
+			],
+			"id": "ART.FRAME.FOLIO.CORNER_BL",
+			"opaque_bounds": [
+				0,
+				0,
+				18,
+				18
+			],
+			"optical_widths": [
+				18
+			],
+			"sha256": "61243e12bc19b89f1099157490f8df5d8aa3aa1cc992ac215fd1346b7dc3698f",
+			"source": "res://ui/frames/map_folio/map_folio_corner_bl.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				18,
+				18
+			],
+			"id": "ART.FRAME.FOLIO.CORNER_BR",
+			"opaque_bounds": [
+				0,
+				0,
+				18,
+				18
+			],
+			"optical_widths": [
+				18
+			],
+			"sha256": "4781e78435e9d60ccec2bf1ec5387a5834e71665070246102cbfbcf9d0bfdf08",
+			"source": "res://ui/frames/map_folio/map_folio_corner_br.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				48,
+				5
+			],
+			"id": "ART.FRAME.JOURNAL.EDGE_TOP",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				5
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "99ddaf52131138b1145510c151cc75af8b7ac5d4aa7bdbdf3b2d4565c906ea92",
+			"source": "res://ui/frames/journal/journal_edge_top.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				48,
+				5
+			],
+			"id": "ART.FRAME.JOURNAL.EDGE_BOTTOM",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				5
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "bbe674ffa57d72485ec910cf20ffc73866b1693167c78d47061a28d7957e3db1",
+			"source": "res://ui/frames/journal/journal_edge_bottom.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				12,
+				48
+			],
+			"id": "ART.FRAME.JOURNAL.EDGE_LEFT",
+			"opaque_bounds": [
+				0,
+				0,
+				12,
+				48
+			],
+			"optical_widths": [
+				12
+			],
+			"sha256": "bc4d68e5fa9d042661346c28bde657c2b9fe3bd83a463bbdd026a24bb3dac935",
+			"source": "res://ui/frames/journal/journal_edge_left.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				5,
+				48
+			],
+			"id": "ART.FRAME.JOURNAL.EDGE_RIGHT",
+			"opaque_bounds": [
+				0,
+				0,
+				5,
+				48
+			],
+			"optical_widths": [
+				5
+			],
+			"sha256": "7f87d7f0330cda9c98713fcab9568939e4df7704c4588ab87fbd91828aafd10e",
+			"source": "res://ui/frames/journal/journal_edge_right.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				12,
+				16
+			],
+			"id": "ART.FRAME.JOURNAL.CORNER_TL",
+			"opaque_bounds": [
+				0,
+				0,
+				12,
+				16
+			],
+			"optical_widths": [
+				12
+			],
+			"sha256": "0b434d8877514c6f2dedc24a8330f789b8055a1f961cafb37a71e38792f8540b",
+			"source": "res://ui/frames/journal/journal_corner_tl.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				14,
+				14
+			],
+			"id": "ART.FRAME.JOURNAL.CORNER_TR",
+			"opaque_bounds": [
+				0,
+				0,
+				14,
+				14
+			],
+			"optical_widths": [
+				14
+			],
+			"sha256": "9070bb2581e5a5c132c66388813877f7ff0d3c00c2e4331b12f65ce03cdd072b",
+			"source": "res://ui/frames/journal/journal_corner_tr.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				12,
+				16
+			],
+			"id": "ART.FRAME.JOURNAL.CORNER_BL",
+			"opaque_bounds": [
+				0,
+				0,
+				12,
+				16
+			],
+			"optical_widths": [
+				12
+			],
+			"sha256": "690fdeb302d4b3cc8792a40de9d8aad0c7cd867082a45ad3f8ba37b86b729cc5",
+			"source": "res://ui/frames/journal/journal_corner_bl.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				14,
+				14
+			],
+			"id": "ART.FRAME.JOURNAL.CORNER_BR",
+			"opaque_bounds": [
+				0,
+				0,
+				14,
+				14
+			],
+			"optical_widths": [
+				14
+			],
+			"sha256": "1f75e7776da981f1db593e84ffab1c0e6fb479f942ea480e4bb38a71beeed16b",
+			"source": "res://ui/frames/journal/journal_corner_br.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				10,
+				14
+			],
+			"id": "ART.FRAME.JOURNAL.RING",
+			"opaque_bounds": [
+				0,
+				1,
+				10,
+				12
+			],
+			"optical_widths": [
+				10
+			],
+			"sha256": "c1bcbb36bc7412f966078be457a4642a93cf7eef2427080b3f7e6149b447b104",
+			"source": "res://ui/frames/journal/journal_ring.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				14,
+				40
+			],
+			"id": "ART.FRAME.JOURNAL.STRAP",
+			"opaque_bounds": [
+				0,
+				0,
+				14,
+				40
+			],
+			"optical_widths": [
+				14
+			],
+			"sha256": "6cc7248cef2e8abdd1d33eb17e1f9b86024da83aa747bce75e083271178540df",
+			"source": "res://ui/frames/journal/journal_strap.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				48,
+				7
+			],
+			"id": "ART.FRAME.DOCK.EDGE_TOP",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				7
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "76191ff6c5b1133d0e45c00cd2ad049b17b2e7c3ca595cb2baa0ab5a874bb34c",
+			"source": "res://ui/frames/command_dock/command_dock_edge_top.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				48,
+				7
+			],
+			"id": "ART.FRAME.DOCK.EDGE_BOTTOM",
+			"opaque_bounds": [
+				0,
+				0,
+				48,
+				7
+			],
+			"optical_widths": [
+				48
+			],
+			"sha256": "13c4a43444f55acff41f3ba2d68ceec4af00cecbe23b41d6ca7898032f04b457",
+			"source": "res://ui/frames/command_dock/command_dock_edge_bottom.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				7,
+				48
+			],
+			"id": "ART.FRAME.DOCK.EDGE_LEFT",
+			"opaque_bounds": [
+				0,
+				0,
+				7,
+				48
+			],
+			"optical_widths": [
+				7
+			],
+			"sha256": "1e6f496b81178f6de2a89e23314338d1d0a09a35a81fd7aaf2fb7efd32623b60",
+			"source": "res://ui/frames/command_dock/command_dock_edge_left.svg"
+		},
+		{
+			"category": "frame_edge",
+			"document": [
+				7,
+				48
+			],
+			"id": "ART.FRAME.DOCK.EDGE_RIGHT",
+			"opaque_bounds": [
+				0,
+				0,
+				7,
+				48
+			],
+			"optical_widths": [
+				7
+			],
+			"sha256": "2d0924d8bd996976ff4999e2091904434a0878ec51afdcc85a4079a4d5dbb98e",
+			"source": "res://ui/frames/command_dock/command_dock_edge_right.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				22,
+				22
+			],
+			"id": "ART.FRAME.DOCK.CORNER_TL",
+			"opaque_bounds": [
+				0,
+				0,
+				22,
+				22
+			],
+			"optical_widths": [
+				22
+			],
+			"sha256": "5cd49e645cefc98ecfaf0f3869281fc1a597c12ebfa31aff89d74a05859ed23f",
+			"source": "res://ui/frames/command_dock/command_dock_corner_tl.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				22,
+				22
+			],
+			"id": "ART.FRAME.DOCK.CORNER_TR",
+			"opaque_bounds": [
+				0,
+				0,
+				22,
+				22
+			],
+			"optical_widths": [
+				22
+			],
+			"sha256": "abb079befbbf8c2c9ecf2feabd6763988442f0770dfc6a82acd14c40e7701898",
+			"source": "res://ui/frames/command_dock/command_dock_corner_tr.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				22,
+				22
+			],
+			"id": "ART.FRAME.DOCK.CORNER_BL",
+			"opaque_bounds": [
+				0,
+				0,
+				22,
+				22
+			],
+			"optical_widths": [
+				22
+			],
+			"sha256": "849456d70e3a43423b788ab173a33e165f14516f96dab5fae476de0374454659",
+			"source": "res://ui/frames/command_dock/command_dock_corner_bl.svg"
+		},
+		{
+			"category": "frame_corner",
+			"document": [
+				22,
+				22
+			],
+			"id": "ART.FRAME.DOCK.CORNER_BR",
+			"opaque_bounds": [
+				0,
+				0,
+				22,
+				22
+			],
+			"optical_widths": [
+				22
+			],
+			"sha256": "a217bef7eda3d46946545d1fab2e0b4c459d2956dbfedca80405aea17f11f473",
+			"source": "res://ui/frames/command_dock/command_dock_corner_br.svg"
+		}
+	],
+	"decorative_pigments": [
+		"I01 #25372D Ink",
+		"I02 #14211B Deep shade",
+		"I03 #EAE1C8 Oat",
+		"I04 #F5F0DF Cream",
+		"I05 #708171 Sage",
+		"I06 #466647 Leaf",
+		"I07 #B49A58 Brass",
+		"I08 #91613E Timber",
+		"I09 #594332 Umber",
+		"I10 #B76545 Clay",
+		"I11 #D99743 Ember",
+		"I12 #8A8D84 Flint"
+	],
+	"frames": [
+		{
+			"corner_extents_tl_tr_bl_br": [
+				[
+					18,
+					18
+				],
+				[
+					18,
+					18
+				],
+				[
+					18,
+					18
+				],
+				[
+					18,
+					18
+				]
+			],
+			"id": "resource_tray",
+			"stretch_margins_trbl": [
+				8,
+				8,
+				8,
+				8
+			]
+		},
+		{
+			"corner_extents_tl_tr_bl_br": [
+				[
+					16,
+					16
+				],
+				[
+					16,
+					16
+				],
+				[
+					16,
+					16
+				],
+				[
+					16,
+					16
+				]
+			],
+			"id": "time_group",
+			"stretch_margins_trbl": [
+				5,
+				5,
+				5,
+				5
+			]
+		},
+		{
+			"corner_extents_tl_tr_bl_br": [
+				[
+					18,
+					18
+				],
+				[
+					18,
+					18
+				],
+				[
+					18,
+					18
+				],
+				[
+					18,
+					18
+				]
+			],
+			"id": "map_folio",
+			"stretch_margins_trbl": [
+				6,
+				6,
+				6,
+				6
+			]
+		},
+		{
+			"corner_extents_tl_tr_bl_br": [
+				[
+					12,
+					16
+				],
+				[
+					14,
+					14
+				],
+				[
+					12,
+					16
+				],
+				[
+					14,
+					14
+				]
+			],
+			"id": "journal",
+			"stretch_margins_trbl": [
+				5,
+				5,
+				5,
+				12
+			]
+		},
+		{
+			"corner_extents_tl_tr_bl_br": [
+				[
+					22,
+					22
+				],
+				[
+					22,
+					22
+				],
+				[
+					22,
+					22
+				],
+				[
+					22,
+					22
+				]
+			],
+			"id": "command_dock",
+			"stretch_margins_trbl": [
+				7,
+				7,
+				7,
+				7
+			]
+		}
+	],
+	"licence": "Same as the repository.",
+	"origin": "Original hand-authored SVG for this repository. No paid generation.",
+	"owner": "SET-UX-VIS-002 revision 2 section 2.4, ART-UI-03 to 08 and ART-UI-11",
+	"schema": "redwall.ui.art.manifest/1"
+}

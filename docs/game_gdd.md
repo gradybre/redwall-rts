@@ -179,6 +179,14 @@ Additional fixed child stores close persistence requirements used by the job and
 
 All gameplay enum numeric values not individually listed are generated once from the lexicographically sorted ASCII catalog keys within their own domain and committed to `catalog_ids.json`; loading verifies its hash. Runtime enumeration by dictionary insertion order is prohibited. Empty references are `(-1,0)`; empty catalog IDs are −1; empty counters/remainders are 0. Newly allocated components are initialized explicitly before an entity becomes active. A registry validation failure aborts loading before mutating the current world.
 
+**2026-09-11 building/room domain clarification:** BuildingDefinition.unlock and
+RecipeDefinition.unlock reference the protected Milestone domain. RecipeDefinition.station
+references the separate compiled Station service domain from BAL-CAT-011. Room.furniture_mask
+is the OR of `1 << FurnitureDefinition ID` over live committed furniture rows with a
+valid reference to that room generation; presence never substitutes for counts or
+service validation. Known mask=511. [R-BUILD-DOM-001–004](rulings/2026-09-11_building_room_domains.md)
+defines exact IDs, mutation/load rules, station binding and the starter shelf.
+
 ### 4.3 Enumerations and immutable catalogs
 
 | Enum | Values |
@@ -194,6 +202,7 @@ All gameplay enum numeric values not individually listed are generated once from
 | ZoneType | FISH=0, RESERVED_1=1, FORAGE=2, FARM=3, ORCHARD=4, FORESTRY=5, QUARRY=6, STOCKPILE=7, CONSERVATION=8 |
 | RoomType | DORMITORY=0, PRIVATE_ROOM=1, KITCHEN=2, DINING=3, COMMON=4, INFIRMARY=5, PANTRY=6, CORRIDOR=7 |
 | BuildingState | BLUEPRINT=0, BUILDING=1, ACTIVE=2, PAUSED=3, DAMAGED=4, DEMOLISHING=5 |
+| Milestone | M0=0, M1=1, M2=2, M3=3, M4=4; protected domain, Start maps to M0 |
 | Soil | LOAM=0, CLAY=1, SAND=2 |
 | CropState | EMPTY=0, SOWN=1, GROWING=2, RIPE=3, WITHERED=4 |
 | OrderMode | ONCE=0, REPEAT=1, MAINTAIN_STOCK=2 |
@@ -231,6 +240,13 @@ Species catalog release 1: mouse, shrew, mole, rat, squirrel, sparrow, otter, ha
 | REQ-SET-010 | Where sandbox mode is selected, the system shall use the same survival rules and permit continued play after Charter victory, with no forced objective deadline. |
 
 At 1×: day 10 minutes, season 120 minutes, year 8 hours. At 2×: day 5 minutes, season 60 minutes, year 4 hours. At 4×: day 2.5 minutes, season 30 minutes, year 2 hours. Pause adds arbitrary wall time. Tick 0 corresponds to 06:00 on the first day; calendar time uses `(tick+4500) mod18000`, with the first midnight at tick 13500. Daily events use crossings of this offset calendar, not `tick mod18000==0`.
+
+**Initialization identity clarification (2026-09-11, R-INIT-ID-001):** IDs 1–12
+are global persistent IDs, with Rowan=1. The composed new-world transaction resets
+once before allocation, allocates the cohort identities first, then allocates world
+entities using the same continuing sequence. Terrain publication must not reset
+those identities. Preserve prior-valid-world failure behavior and publish atomically;
+see [the lifecycle and acceptance ruling](rulings/2026-09-11_initial_ids_and_narrow_alerts.md).
 
 Initial conditions:12 adults (6 mice,2 moles,2 otters,2 squirrels); IDs 1–12; ID 1 named Warden Rowan; all five needs 7500, health 100, active job skills level 2 except Rowan KEEP 3; reserved skill index 3 has XP/level 0; no injuries; relationship edges(1,2),(3,4),(5,6),(7,8),(9,10),(11,12) affinity 20. Start with one completed refuge hall containing 12 beds, one kitchen bench, twelve seat places, one hearth, and one pantry; one well, four open stockpiles, and one outdoor workbench.
 
@@ -670,7 +686,7 @@ BBBB..TTTT
 ......SSSS
 ```
 
-Every seat has an adjacent walk tile above or below; shelves can be reached from the open common-room edge. Four pantry shelves supply 200000g storage. On the 128×128 exterior tile grid, place the hall at(58,59), stockpiles at(50,60),(50,65),(70,60),(70,65), well at(64,54), and workbench at(58,54), all rotation 0. Clear these footprints before resource placement. Hall interior origin is exterior origin+(1,1). Four stockpiles provide 1600000g material storage; starting food fits the pantry. All initial items are assigned to legal containers by food first, then item ID, filling container IDs ascending.
+Every seat has an adjacent walk tile above or below; shelves can be reached from the open common-room edge. Four pantry shelves supply 200000g storage. The fifth S at kitchen row 1 is a separate kitchen-owned shelf; it adds no pantry capacity or new industrial buffer. R-BUILD-DOM-004 preserves all five instances. On the 128×128 exterior tile grid, place the hall at(58,59), stockpiles at(50,60),(50,65),(70,60),(70,65), well at(64,54), and workbench at(58,54), all rotation 0. Clear these footprints before resource placement. Hall interior origin is exterior origin+(1,1). Four stockpiles provide 1600000g material storage; starting food fits the pantry. All initial items are assigned to legal containers by food first, then item ID, filling container IDs ascending.
 
 *Baseline fixture boundary: the layout above specifies the existing starter interior, not the limit of the required construction system. DEC-029/031 and SET-MOVE-001 require placed burrows, planned tunnels/rooms and free multi-level excavation to work together. The former one-floor release restriction is superseded. Finish MOVE-G01/G02 before treating room/service rules and capacity bounds as complete for expanded space.*
 
@@ -750,6 +766,15 @@ Winter failure order is causal, not a scripted massacre: insufficient preserved 
 Immigration events occur every third midnight from day 4. Candidate count=`min(8,2+floor(reputation/2000)+orchard_feast_bonus)`, reputation 0–10000. Candidates arrive only after player acceptance; capacity is limited by spare valid beds and the 256 resident cap. Default automatic acceptance is off. Acceptance predicts resulting food demand and rejects if ready food-days<4 after acceptance; an explicit event-specific override permits it. Candidate species use the scenario AdmissionProfile under SET-AMEND-001 §5. The refuge normal pool is mouse,mole,otter,squirrel,shrew,hedgehog,hare,badger in that order. At event day D=4+3*e, ordinary slot i uses pool[(world_seed mod N+e+i) mod N]. A declared exception replaces slot C-1 and requires explicit acceptance; it is never auto-admitted. The refuge has the authored rat petition at absolute day 10. Pending rows expire next midnight; acceptance/refusal clears the row atomically. The global 16-species catalog remains available to other validated profiles; giant residents are not candidates. New residents arrive with health 100, needs 6500, tier 1 clothing, one basic tool, skill XP 5000 in two seeded active skills and 0 otherwise; reserved skill index 3 remains zero. Immigration adds no food or currency.
 
 Reputation is recomputed daily: `clamp(floor(mean_mood/2)+min(3000,100*completed_feasts)+1000*charter_awarded−500*deaths_last_12_days,0,10000)`. Empty population mean is 0. Acceptance cannot hide current deaths by resetting history.
+
+**R-BUILD-DOM-001 mask binding:** bit m in World.milestone_mask and
+Progress.unlocked_mask records actual award of Milestone m. Active new worlds
+start with M0=0 and both masks=1; unknown/unbound progression is unavailable.
+Progress.milestone is the highest earned ordinal for display, not an unlock
+threshold. A definition requires its exact earned bit; do not infer earlier
+awards from a higher ordinal. Awards/rewards commit once when their own conditions
+pass, with eligible awards evaluated in ascending ID order. Masks agree and
+reserve bits above 4 as zero; see [domain ruling](rulings/2026-09-11_building_room_domains.md).
 
 | Milestone | Condition | Unlock/reward |
 |---|---|---|

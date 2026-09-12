@@ -24,7 +24,13 @@ UIManager="*res://scripts/systems/ui_manager.gd"
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
-window/stretch/mode="canvas_items"
+; SET-UX-VIS-002 / UI 1.2: the UI lays out against the ACTUAL viewport, so the responsive
+; profiles key off a logical width that changes with the window. "canvas_items" against a
+; fixed 1920x1080 base gave every window a 1920x1080 logical size -- measured: a 1280x720
+; window still resolved to WIDE -- which made UI 1.2's NARROW composition unreachable at
+; runtime and testable only in isolation. Astra ruled the correction in the READY_07
+; save/UI addendum: disable automatic base stretching and let the UI own its own scale.
+window/stretch/mode="disabled"
 window/stretch/aspect="expand"
 
 [input]

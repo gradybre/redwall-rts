@@ -62,7 +62,7 @@ rules; this card does not replace the binary schema.
   checkpoint, autosave rotation and interrupted-I/O recovery. Recompute expanded
   peak memory; the baseline single-floor ledger is insufficient. No second full
   mutable world beyond the budget or partially visible decoded world.
-  *Partly done 2026-09-12 (decision 0091):* RESTORE-R01's LOAD integration is
+  *Partly done 2026-09-12 (decision 0092):* RESTORE-R01's LOAD integration is
   wired in `godot/scripts/systems/game_manager.gd`. `begin_load()` raises the
   shared guard, checked before host advance (`_process` and the direct
   `advance_host_time()` entry point) and before scheduler pumping

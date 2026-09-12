@@ -1,4 +1,4 @@
-# 0091 — GameManager's load barrier, and the two halves of RESTORE-R01 it cannot close
+# 0092 — GameManager's load barrier, and the two halves of RESTORE-R01 it cannot close
 
 Date: 2026-09-12 · Status: **Accepted**
 
@@ -120,7 +120,7 @@ exists to prevent.
 
   | Allocation | Count | Bytes each | Total | Lifetime | Note |
   | --- | --- | --- | --- | --- | --- |
-  | Load rollback checkpoint | 1 | 80 | 80 | mutable | decision 0091: `_checkpoint: PackedInt64Array` in `godot/scripts/systems/game_manager.gd`, 10 elements x 8 bytes = 80, allocated once in `_init()` and overwritten in place. Holds the clock's ten runtime scalars in `restore_runtime()` argument order. Transient: never serialized, and it duplicates no clock — RESTORE-R01 forbids a second WorldRuntime store. |
+  | Load rollback checkpoint | 1 | 80 | 80 | mutable | decision 0092: `_checkpoint: PackedInt64Array` in `godot/scripts/systems/game_manager.gd`, 10 elements x 8 bytes = 80, allocated once in `_init()` and overwritten in place. Holds the clock's ten runtime scalars in `restore_runtime()` argument order. Transient: never serialized, and it duplicates no clock — RESTORE-R01 forbids a second WorldRuntime store. |
 
   Plus five transient booleans and one int (`_loading`, `_restore_installed`,
   `_published`, `_unrecoverable`, `_checkpoint_started`, `_checkpoint_state`),

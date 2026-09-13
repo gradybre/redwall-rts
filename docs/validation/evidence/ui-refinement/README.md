@@ -344,3 +344,86 @@ name at NARROW leaves a usable body. No screen-reader qualification: the heading
 semantics, the decorative medallion and the Capped explanation are set and asserted,
 and no assistive technology was run. No Windows or minimum-hardware claim, and no
 high-DPI capture.
+
+---
+
+# ALERT-R02 captures — 2026-09-12
+
+Captured from the **native macOS game** on branch `feat/alert-r02` (ADR 0134).
+
+| | |
+|---|---|
+| Suite at capture | `3931 test(s), 136919 assertion(s), 0 failure(s)` |
+| Launch | `godot --path godot --script capture_alert_r02_scratch.gd --resolution <W>x<H> -- <absolute-out.png> <mode> <scale>` |
+| Modes | `capacity`, `short`, `details2`, `roster` |
+| Scene | the project's own `run/main_scene`, `res://scenes/main.tscn`, instantiated by the harness |
+| Harness | `capture_alert_r02_scratch.gd`, a scratch file **deleted before commit**; the command is recorded here because it is the part that matters |
+
+**The harness supplies no message text anywhere.** Every string on screen was composed
+by the code under test. The short Info notice is `main.gd`'s own boot line, raised through
+`UIManager.push_alert()`. The long Error notice is produced by choosing HOLT in the
+UI-SET-103 session — a value the form offers and `ui_world_session.gd` refuses as
+unauthored — and then running `UIManager.create_world()`, the real Create action. The
+`details2` mode calls `UiShell.open_notice_details_for(1)`, which is the second card's own
+activation entry point, and `roster` emits `pressed` on UI-SET-031's real button.
+
+All four traps from the sections above are still true and were all hit again: a `--script`
+SceneTree run hangs forever if an error abandons `_initialize()`, so this harness counts
+frames and quits either way; `save_png` needs an **absolute** path; autoload identifiers do
+not resolve at compile time under `--script`, so `UIManager` is reached with
+`root.get_node_or_null("UIManager")`; and `--headless` returns null from `get_image()`, so
+every capture below was run **windowed**.
+
+| File | Window / scale | Profile | Shows |
+|---|---|---|---|
+| `32_alertr02_capacity_wide_1920x1080.png` | 1920×1080 / 100% | WIDE | **The stack at capacity.** Two cards, `Error: Generation failed (+1)` over `Info: Settlement notice (+1)`, each with its own severity icon, the second beginning at card-1-bottom + 4 |
+| `33_alertr02_capacity_standard_1280x720.png` | 1280×720 / 100% | STANDARD | The same pair in the 360-wide standard zone |
+| `34_alertr02_capacity_narrow_1280x720_150.png` | 1280×720 / 150% | NARROW | Two notices active, **one 44 px compact card** in the 48 px zone, `Paused: PLAYER` clear below it |
+| `35_alertr02_capacity_narrow_1280x720_125.png` | 1280×720 / 125% | NARROW | The same at the second user scale |
+| `36_alertr02_complete_wide_1920x1080.png` | 1920×1080 / 100% | WIDE | **The complete message, not a summary.** `Mossflower stirs.` drawn verbatim in a 47 px card |
+| `37_alertr02_complete_standard_1280x720.png` | 1280×720 / 100% | STANDARD | The same complete message at STANDARD |
+| `38_alertr02_compact_narrow_1280x720_150.png` | 1280×720 / 150% | NARROW | The SAME notice as `36`/`37`, drawn as `Info: Settlement notice` — NARROW is compact whether or not the message would have fitted |
+| `39_alertr02_secondcard_details_standard_1280x720.png` | 1280×720 / 100% | STANDARD | The **second** card's own disclosure: UI-SET-012 open with the second card's notice expanded and the first shown as a summary row |
+| `40_alertr02_roster_occlusion_standard_1280x720.png` | 1280×720 / 100% | STANDARD | **An open defect, not a fix.** Both cards are placed and `visible`; the roster workspace covers the whole zone |
+
+## What these captures close
+
+1. **A second card exists and is packed, not stacked at a fixed origin.** `32` and `33`
+   show the pair; the arithmetic behind them is ALERT-R02 rules 1, 2 and 4 and is swept in
+   `test_ui_layout.gd`.
+2. **NARROW is compact by construction.** `38` carries the same notice as `36` and `37`
+   and still shows the authored title — the compact form is not a length-dependent
+   fallback. `34` shows the 48 px zone holding one card with the pause line clear.
+3. **STANDARD and WIDE prefer the complete text.** `36` and `37` print
+   `Mossflower stirs.` byte for byte in a card grown to 47 px.
+4. **Nothing is truncated and no font was reduced.** No `…`, no cut word and no smaller
+   type appears in any capture; the card Labels are `clip_text = false`,
+   `OVERRUN_NO_TRIMMING`, at UI §2.1's 16 px NOTICE size.
+
+## Measured, and worth stating
+
+One wrapped line in the real theme is **23 px**, so with §1.2's 12 px padding top and
+bottom the smallest possible FULL card is **47 px**, not 44. A 47 px first card leaves 41
+of the 92 px interior, which is below the 44 px minimum row, so a second notice is then
+not placed and the rail states it instead. That is why `36`/`37` show one card while `32`
+and `33` — where the first card is a 44 px summary — show two. ADR 0134 has the table.
+
+## An open defect these captures record and do NOT fix
+
+**The centred workspace frame occludes the top-centre alert zone at 1280×720**, capture
+`40`. Both cards are placed correctly and report `visible = true`; they are simply drawn
+under a higher §3 layer. §3's own table puts the workspace at layer 40 and permanent HUD
+zones at layer 20, so this is not a z-order bug. What is unresolved is that §1.2's alert
+rectangle `(460, 16, 360, 96)` lies wholly inside its modal/workspace rectangle
+`(160, 16, 960, 688)` at the supported viewport floor, and §1.2 fixes no precedence
+between them. That belongs to §1.2's owner; ADR 0134 records the arithmetic at all three
+profiles.
+
+## What these images still do not establish
+
+No visual approval — **ART-UI-12 remains open and nothing here claims it**. No
+screen-reader qualification: both cards' accessible names and descriptions are set and
+asserted, including `Open alert details` on the second card, and no assistive technology
+was run. No Windows, minimum-hardware or high-DPI claim. Counter cells still clip at
+STANDARD and NARROW (`Food 5.`, `Wood 18`, `Resident`) and the NARROW command strip still
+overlaps the minimap frame — both pre-existing and both outside ALERT-R02.

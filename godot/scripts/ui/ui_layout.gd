@@ -167,6 +167,7 @@ const REFUSE_USER_SCALE: StringName = &"UI_UNSUPPORTED_USER_SCALE"
 const REFUSE_VIEWPORT_BELOW_SUPPORTED: StringName = &"UI_VIEWPORT_BELOW_SUPPORTED_RANGE"
 const REFUSE_INVALID_INDEX: StringName = &"UI_INVALID_LAYOUT_INDEX"
 const REFUSE_INVALID_PROFILE: StringName = &"UI_INVALID_LAYOUT_PROFILE"
+const REFUSE_ALERT_COUNT: StringName = &"UI_INVALID_ALERT_NOTICE_COUNT"
 
 
 class Geometry:
@@ -448,28 +449,36 @@ class Stack:
 
 
 func alert_stack_into(profile: int, alert_width: float, measured: PackedFloat32Array,
-		out: Stack) -> bool:
-	"""Lay the alert cards down their zone at the heights their own content needs.
+		count: int, out: Stack) -> bool:
+	"""Pack `count` notices down their zone at the heights their own content needs.
 
-	R-UI-ALERT-001: "Never grow each card against the full stack ceiling independently while
-	retaining fixed row origins" -- that is what produced overlapping cards, because every card
-	measured itself against the whole 96 px zone and then drew from a fixed row y. Here the
-	cursor advances by the height actually granted, so two cards cannot overlap whatever they
-	measure. "Their visible-card limit is a maximum, not a requirement to overlap: if measured
-	full cards do not fit together, show fewer" -- a card with less than ALERT_CARD_HEIGHT of
-	room left is not placed at all.
+	ALERT-R02's four packing rules, in order. (1) The highest-priority notice shows its full
+	text when its measured card is at most the zone interior, otherwise its 44 px authored
+	summary. (2) A second notice takes its full card if it fits the room left after the 4 px
+	gap, otherwise its 44 px summary if THAT fits, otherwise it is not shown. (3) The count of
+	notices this leaves undisplayed is the caller's to publish through the history rail; no
+	third row is created here. (4) Card two begins at `card1_bottom + 4`, which is what the
+	cursor is -- never at a fixed 48 px origin, which is how independently grown cards came to
+	overlap.
 
-	A card whose measured content exceeds the room remaining is SUMMARISED rather than clipped
-	or grown: it keeps the 44 px row and draws the authored compact line instead. At NARROW the
-	zone is 48 px, so the room is always exactly one card and the summary is always the
-	presentation -- which is the ruling's construction, not a fallback that happens to trigger.
+	NARROW is not a case of rule 1. `ALERT_H` is [48,96,96]: the NARROW zone's interior is 44
+	logical pixels, which is exactly one card, so its ceiling EQUALS its floor and no measured
+	content can ever be granted more room. The compact form there is the construction, and the
+	`profile != PROFILE_NARROW` term states it rather than leaving it to arithmetic that would
+	silently admit a short message.
+
+	Nothing here shortens a string. A card that cannot show its measured content is SUMMARISED
+	-- it draws the caller's authored compact line at 44 px -- and never clipped, ellipsized or
+	drawn at a reduced font size.
 	"""
 	out.reset()
 	if not is_profile(profile):
 		return _refuse(REFUSE_INVALID_PROFILE)
+	if count < 0 or count > measured.size():
+		return _refuse(REFUSE_ALERT_COUNT)
 	var ceiling: float = float(ALERT_H[profile]) - 2.0 * ALERT_PADDING
 	var cursor: float = ALERT_PADDING
-	var wanted: int = mini(measured.size(), alert_card_count(profile))
+	var wanted: int = mini(count, alert_card_count(profile))
 	for index: int in wanted:
 		var remaining: float = ceiling + ALERT_PADDING - cursor
 		if remaining < ALERT_CARD_HEIGHT:
@@ -482,6 +491,17 @@ func alert_stack_into(profile: int, alert_width: float, measured: PackedFloat32A
 		cursor += height + ALERT_CARD_GAP
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+static func alert_zone_interior(profile: int) -> float:
+	"""The content height inside one profile's alert zone: its height less both 2 px insets.
+
+	44 at NARROW -- one card and nothing else -- and 92 at STANDARD and WIDE, which is the
+	number ALERT-R02 measures a full card against.
+	"""
+	if not is_profile(profile):
+		return 0.0
+	return float(ALERT_H[profile]) - 2.0 * ALERT_PADDING
 
 
 static func alert_card_count(profile: int) -> int:

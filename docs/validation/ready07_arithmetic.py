@@ -124,10 +124,18 @@ assert DECISION_0114_ADDED==144
 # checked-in registry. 800 + 1770 + 4720 + 2360 fixed, plus 8734 bytes of key text.
 DECISION_0127_ADDED=(50*4*4)+(590*3*1)+(590*8)+(590*4)+8734
 assert DECISION_0127_ADDED==18384
-assert len(allocations)==29 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED
+# decision 0130: the resident render path. 512*100 instance buffer (48 B of PackedFloat32Array
+# transform, 4 B of owner slot and the RenderingServer's own 48 B TRANSFORM_3D instance, counted
+# rather than assumed free) plus 87552*36 for a SECOND transforms.gd instance. That second store
+# is a scaffold, not a design: settlement_system.gd composes no Transform store and GDD 5.1
+# authors no resident spawn coordinates, so the renderer borrows a presentation-private one. It
+# is 98% of this delta and the row is deleted WHOLE when movement composes ARCH-SYS-001.
+DECISION_0130_ADDED=(512*100)+(87552*36)
+assert DECISION_0130_ADDED==3203072
+assert len(allocations)==31 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==63765395
-assert live==72154003 and candidate==57549811 and live+candidate==129703814
+assert payload==66968467
+assert live==75357075 and candidate==60752883 and live+candidate==136109958
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

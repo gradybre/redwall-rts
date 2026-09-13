@@ -1102,3 +1102,230 @@ func test_a_retired_row_leaves_a_canonical_zero_byte_behind() -> void:
 	assert_equal(image_free[elder.value], EXPECTED_ADULT, "and the free row is back to 0")
 	for index: int in image_free.size():
 		assert_equal(image_free[index], 0, "row %d is canonical zero" % index)
+
+
+# --- NAME-R02: the one shared personal-name validator ------------------------------------------
+#
+# Every test below calls the SETTER or the validator DIRECTLY, never through a command. NAME-R02's
+# acceptance is explicit that "direct setter calls (not only commands)" are required, because the
+# defect it closes was exactly an asymmetry between the two: `command_dispatch.gd` checked the
+# alias rules and `set_name()` checked nothing, so a store could hold a name the codec refused.
+
+func _name_image() -> PackedByteArray:
+	"""A byte image of every row's `(present, named, name)` triple, for refusal-changes-nothing."""
+	var out: PackedByteArray = PackedByteArray()
+	for slot: int in Residents.RESIDENT_CAPACITY:
+		out.append(1 if _residents.is_present(slot) else 0)
+		out.append(1 if _residents.is_named(slot) else 0)
+		out.append_array(String(_residents.name_key_of(slot)).to_utf8_buffer())
+		out.append(0)
+	return out
+
+
+func _assert_setter_refuses(name_value: StringName, expected: StringName, why: String) -> void:
+	"""Spawn a mouse, call `set_name()` directly, and assert the refusal changed no state."""
+	var slot: int = _residents.spawn(&"mouse").value
+	assert_true(_residents.set_name(slot, &"Anchor").ok, "the row starts with a valid name")
+	var before: PackedByteArray = _name_image()
+	var refused: Residents.OpResult = _residents.set_name(slot, name_value)
+	assert_false(refused.ok, "%s is refused" % why)
+	assert_equal(refused.error, expected, "under the %s rule" % expected)
+	assert_equal(_name_image(), before, "and the store image is byte-identical: %s" % why)
+
+
+func test_a_forty_character_ascii_name_is_refused_at_the_setter() -> void:
+	"""NAME-R02's named acceptance case: 40 ASCII characters, refused rather than truncated."""
+	_assert_setter_refuses(StringName("Z".repeat(40)), Residents.REFUSE_NAME_SCALARS,
+		"a 40-scalar ASCII name")
+
+
+func test_the_scalar_bounds_are_one_two_thirty_two_and_thirty_three() -> void:
+	"""1 and 33 refuse; 2 and 32 are the inclusive boundaries and are admitted."""
+	var slot: int = _residents.spawn(&"mouse").value
+	assert_equal(_residents.set_name(slot, &"A").error, Residents.REFUSE_NAME_SCALARS,
+		"one scalar is under the bound")
+	assert_true(_residents.set_name(slot, &"Ok").ok, "two scalars is the lower boundary")
+	assert_true(_residents.set_name(slot, StringName("Q".repeat(32))).ok,
+		"32 scalars is the upper boundary")
+	assert_equal(_residents.set_name(slot, StringName("Q".repeat(33))).error,
+		Residents.REFUSE_NAME_SCALARS, "33 scalars is over it")
+	assert_equal(String(_residents.name_key_of(slot)), "Q".repeat(32),
+		"and the refused 33-scalar name did not overwrite the 32-scalar one")
+
+
+func test_c0_del_and_c1_control_scalars_are_all_rejected() -> void:
+	"""NAME-R02 names all three blocks; DEL and C1 are the ones a `< 0x20` check misses."""
+	assert_true(Residents.is_control_scalar(0x00),
+		"U+0000 is category Cc; Godot's String cannot carry a NUL, so the predicate is the test")
+	for code_point: int in [0x09, 0x0a, 0x1f, 0x7f, 0x80, 0x9f]:
+		var slot: int = _residents.spawn(&"mouse").value
+		var name_value: StringName = StringName("Oak%sLeaf" % String.chr(code_point))
+		var refused: Residents.OpResult = _residents.set_name(slot, name_value)
+		assert_equal(refused.error, Residents.REFUSE_NAME_CONTROL,
+			"U+%04X is a control scalar" % code_point)
+		assert_false(_residents.is_named(slot), "and the row stayed anonymous")
+
+
+func test_the_neighbours_of_every_control_block_are_admitted() -> void:
+	"""U+0020, U+007E and U+00A0 bracket the three blocks and must not be swept up with them."""
+	assert_false(Residents.is_control_scalar(0x20), "U+0020 space")
+	assert_false(Residents.is_control_scalar(0x7e), "U+007E tilde")
+	assert_false(Residents.is_control_scalar(0xa0), "U+00A0 no-break space")
+	assert_true(Residents.is_control_scalar(0x1f), "U+001F is the last C0")
+	assert_true(Residents.is_control_scalar(0x7f), "U+007F DEL")
+	assert_true(Residents.is_control_scalar(0x9f), "U+009F is the last C1")
+	var slot: int = _residents.spawn(&"mouse").value
+	assert_true(_residents.set_name(slot, StringName("Oak%sLeaf" % String.chr(0xa0))).ok,
+		"so a no-break space inside a name is legal")
+
+
+func test_scalar_length_is_neither_byte_length_nor_grapheme_clusters() -> void:
+	"""The trap NAME-R02 names, built so a byte counter and a cluster counter BOTH get it wrong.
+
+	"A" + U+0301 repeated 17 times is 34 Unicode scalar values, 51 UTF-8 bytes and 17 grapheme
+	clusters. The scalar rule refuses it at 34 > 32. A validator counting grapheme clusters sees
+	17 and admits it; one counting bytes sees 51 against a 128-byte cap and admits it too. Only
+	counting scalars produces the ruled answer.
+	"""
+	var slot: int = _residents.spawn(&"mouse").value
+	var cluster_pair: String = "A%s" % String.chr(0x0301)
+	var seventeen: StringName = StringName(cluster_pair.repeat(17))
+	assert_equal(Residents.scalar_length_of(seventeen), 34, "34 Unicode scalar values")
+	assert_equal(Residents.utf8_byte_length_of(seventeen), 51,
+		"51 UTF-8 bytes -- U+0301 costs two -- comfortably under the 128-byte cap")
+	assert_equal(_residents.set_name(slot, seventeen).error, Residents.REFUSE_NAME_SCALARS,
+		"refused on the SCALAR count, which is the only unit that refuses it")
+	var sixteen: StringName = StringName(cluster_pair.repeat(16))
+	assert_equal(Residents.scalar_length_of(sixteen), 32, "32 scalars is the boundary")
+	assert_true(_residents.set_name(slot, sixteen).ok, "and is admitted")
+	var supplementary: StringName = StringName(String.chr(0x10348).repeat(32))
+	assert_equal(Residents.scalar_length_of(supplementary), 32, "32 supplementary scalars")
+	assert_equal(Residents.utf8_byte_length_of(supplementary), 128, "and exactly 128 bytes")
+	assert_true(_residents.set_name(slot, supplementary).ok, "both caps at once, and legal")
+
+
+func test_a_multibyte_name_is_bounded_by_bytes_before_scalars() -> void:
+	"""33 four-byte scalars is 132 bytes: the byte cap binds first, and says so."""
+	var slot: int = _residents.spawn(&"mouse").value
+	var wide: StringName = StringName(String.chr(0x10348).repeat(33))
+	assert_equal(Residents.utf8_byte_length_of(wide), 132, "132 UTF-8 bytes")
+	assert_equal(_residents.set_name(slot, wide).error, Residents.REFUSE_NAME_BYTES,
+		"refused under the 128-byte cap, not the scalar cap")
+	assert_true(_residents.set_name(slot, StringName("Mól%s" % String.chr(0x10348))).ok,
+		"while a short mixed-plane name is admitted")
+
+
+func test_the_byte_cap_is_the_ruled_128_and_the_computation_is_exact() -> void:
+	"""`utf8_byte_length_of` is arithmetic over scalar widths; it must match a real encode."""
+	assert_equal(Residents.NAME_MAX_UTF8_BYTES, 128, "S2 caps a name at 128 bytes")
+	for sample: String in ["Oak", "Móle", String.chr(0x10348), "Warden Rowan",
+			String.chr(0x0301), String.chr(0x4e2d)]:
+		assert_equal(Residents.utf8_byte_length_of(StringName(sample)),
+			sample.to_utf8_buffer().size(), "'%s' measures the same either way" % sample)
+
+
+func test_an_unpaired_surrogate_cannot_be_admitted_as_a_name() -> void:
+	"""A surrogate has no strict UTF-8 encoding, so it is refused rather than replaced."""
+	assert_false(Residents.is_unicode_scalar(0xd800), "U+D800 is not a scalar value")
+	assert_false(Residents.is_unicode_scalar(0xdfff), "nor is U+DFFF")
+	assert_false(Residents.is_unicode_scalar(0x110000), "nor is anything past U+10FFFF")
+	assert_true(Residents.is_unicode_scalar(0x10ffff), "U+10FFFF itself is the last one")
+	assert_true(Residents.is_unicode_scalar(0), "and U+0000 is a scalar, refused as a CONTROL")
+
+
+func test_nothing_is_normalized_truncated_or_replaced() -> void:
+	"""NAME-R02: do not normalize, truncate or replace invalid input; refuse it."""
+	var slot: int = _residents.spawn(&"mouse").value
+	assert_true(_residents.set_name(slot, &"Rosewood").ok, "a valid name is stored")
+	assert_equal(_residents.set_name(slot, StringName("Z".repeat(40))).error,
+		Residents.REFUSE_NAME_SCALARS, "an over-long one refuses")
+	assert_equal(String(_residents.name_key_of(slot)), "Rosewood",
+		"no 32-scalar prefix of the refused name was written")
+	var decomposed: StringName = StringName("Mo%sle" % String.chr(0x0301))
+	assert_true(_residents.set_name(slot, decomposed).ok, "a decomposed name is stored")
+	assert_equal(String(_residents.name_key_of(slot)), String(decomposed),
+		"exactly as supplied, with no NFC composition applied")
+
+
+func test_an_anonymous_live_resident_is_legal_and_round_trips() -> void:
+	"""The correction at the heart of NAME-R02: a live resident may hold the empty name."""
+	var slot: int = _residents.spawn(&"mouse").value
+	assert_true(_residents.is_alive(slot), "the resident is alive")
+	assert_false(_residents.is_named(slot), "and anonymous")
+	assert_equal(_residents.row_name_refusal(slot), Residents.REFUSE_NONE,
+		"which the occupancy table admits")
+	assert_true(_residents.set_name(slot, &"Fieldrose").ok, "it can be named")
+	assert_true(_residents.set_name(slot, &"").ok, "and restored to the anonymous snapshot")
+	assert_false(_residents.is_named(slot), "the flag follows the key")
+	assert_equal(_residents.row_name_refusal(slot), Residents.REFUSE_NONE, "and still agrees")
+
+
+func test_the_starter_settlement_is_eleven_anonymous_founders_and_one_name() -> void:
+	"""GDD §5.1 read literally under the OLD sentence refused this settlement outright."""
+	assert_true(_residents.spawn_initial_settlement().ok, "the cohort spawns")
+	assert_true(_residents.is_named(Residents.WARDEN_INDEX), "ID 1 carries the authored name")
+	assert_equal(_residents.name_key_of(Residents.WARDEN_INDEX), Residents.WARDEN_NAME,
+		"which went through the shared validator on the way in")
+	for slot: int in Residents.RESIDENT_CAPACITY:
+		assert_equal(_residents.row_name_refusal(slot), Residents.REFUSE_NONE,
+			"row %d satisfies the NAME-R02 table" % slot)
+
+
+func test_the_occupancy_table_refuses_both_mismatch_directions() -> void:
+	"""A named row cannot be empty; an anonymous row cannot hide a name. Both, not one."""
+	assert_equal(Residents.name_occupancy_refusal(true, true, &""),
+		Residents.REFUSE_NAMED_ROW_EMPTY, "present, flagged named, empty name")
+	assert_equal(Residents.name_occupancy_refusal(true, false, &"Rowan"),
+		Residents.REFUSE_ANONYMOUS_ROW_NAMED, "present, anonymous, nonempty name")
+	assert_equal(Residents.name_occupancy_refusal(true, false, &""), Residents.REFUSE_NONE,
+		"present anonymous, INCLUDING a live resident, is the ruled legal row")
+	assert_equal(Residents.name_occupancy_refusal(true, true, &"Rowan"), Residents.REFUSE_NONE,
+		"and present named with a valid name")
+	assert_equal(Residents.name_occupancy_refusal(false, false, &""), Residents.REFUSE_NONE,
+		"a free row is empty and unflagged")
+	assert_equal(Residents.name_occupancy_refusal(false, false, &"Ghost"),
+		Residents.REFUSE_FREE_ROW_NAMED, "and a free row carrying a name is refused")
+
+
+func test_restore_name_never_derives_the_flag_from_the_string() -> void:
+	"""NAME-R02's ordering rule at the setter: the pair is validated, not reconciled."""
+	var slot: int = _residents.spawn(&"mouse").value
+	var before: PackedByteArray = _name_image()
+	assert_equal(_residents.restore_name(slot, true, &"").error,
+		Residents.REFUSE_NAMED_ROW_EMPTY, "named with no name refuses")
+	assert_equal(_residents.restore_name(slot, false, &"Rowan").error,
+		Residents.REFUSE_ANONYMOUS_ROW_NAMED, "anonymous with a name refuses")
+	assert_equal(_name_image(), before, "and neither refusal wrote a byte")
+	assert_true(_residents.restore_name(slot, true, &"Rowan").ok, "an agreeing pair installs")
+	assert_true(_residents.is_named(slot), "with the flag as supplied")
+	assert_true(_residents.restore_name(slot, false, &"").ok,
+		"and an earlier anonymous snapshot installs with no naming trigger")
+	assert_false(_residents.is_named(slot), "leaving a live anonymous resident")
+
+
+func test_a_name_cannot_be_set_on_a_row_that_holds_no_resident() -> void:
+	"""Occupancy is still checked first: a free slot has no identity to name."""
+	assert_equal(_residents.set_name(300, &"Ghostfur").error, Residents.REFUSE_NOT_PRESENT,
+		"set_name refuses a free row")
+	assert_equal(_residents.restore_name(300, true, &"Ghostfur").error,
+		Residents.REFUSE_NOT_PRESENT, "and so does restore_name")
+	assert_equal(_residents.row_name_refusal(-1), Residents.REFUSE_INVALID_SLOT,
+		"an out-of-range slot is its own refusal, not a silent false")
+
+
+func test_a_retained_dead_row_keeps_its_name_and_its_flag() -> void:
+	"""NAME-R02: do not erase a retained row's identity merely because `is_alive()` is false.
+
+	The row is killed through the needs store's own health event, so this is a real dead resident
+	and not a flag flipped for the test.
+	"""
+	var slot: int = _residents.spawn(&"mouse").value
+	assert_true(_residents.set_name(slot, &"Brambletail").ok, "the resident is named")
+	assert_true(_residents.is_alive(slot), "alive to begin with")
+	assert_true(_residents.needs().apply_health_event(slot, -100).ok, "health reaches 0")
+	assert_false(_residents.is_alive(slot), "so the resident is dead")
+	assert_true(_residents.is_present(slot), "and the row is retained, not freed")
+	assert_true(_residents.is_named(slot), "the named flag survives death")
+	assert_equal(_residents.name_key_of(slot), &"Brambletail", "and so does the name")
+	assert_equal(_residents.row_name_refusal(slot), Residents.REFUSE_NONE,
+		"the occupancy table admits it without consulting `is_alive()` at all")

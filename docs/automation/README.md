@@ -109,6 +109,14 @@ reason for every hold.
 4. **`DEVIATIONS` / `SURVIVED_MUTANTS` / `BLOCKED` are all empty, and all
    present.** A missing block holds the PR exactly as a non-empty one does.
 
+   `BLOCKED:` means **this change is not safe to merge**. It does NOT mean
+   "downstream work remains blocked": a lane that honestly scopes what it did
+   not claim is doing the right thing, and holding its PR for that would teach
+   every future lane to under-report scope to get through the gate. A gate that
+   punishes honesty gets lied to. Scope a lane deliberately left open belongs in
+   the PR body as prose, not in this field. §11's codec not existing is not a
+   reason to refuse §11's store.
+
 Check 4 is what keeps a human in the loop without keeping them in the way. Most
 changes declare nothing and merge untouched. A lane that overrules its brief may
 be right — one was, citing SAVE-LAYOUT-R01 over the instruction I had given it —
@@ -135,6 +143,11 @@ rather than silently dispatching nothing.
 Worth writing down, because a pipeline this automatic invites more trust than it
 has earned:
 
+- **It cannot tell a branch-deletion hazard from a tidy-up.** It learned one:
+  merging a PR that other PRs are based on must NOT delete its branch, because
+  GitHub closes those PRs rather than retargeting them, and a closed PR whose
+  base branch is gone cannot be reopened. That specific case is now handled;
+  the general class is not.
 - **It cannot see absent work.** Nothing in this repository detects a task that
   was never added to the queue. That is what Astra's periodic review is for, and
   it is the last item in every review packet for that reason.

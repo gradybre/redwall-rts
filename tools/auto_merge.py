@@ -149,7 +149,21 @@ def main() -> int:
 		print(f"READY {label}")
 		if args.merge:
 			try:
-				_gh("pr", "merge", str(pr["number"]), "--merge", "--delete-branch")
+				# NEVER --delete-branch a branch another open PR is based on. GitHub does
+				# not retarget those PRs -- it CLOSES them. Merging #106 with the flag set
+				# closed #107 and #108 outright, and a closed PR whose base branch no
+				# longer exists cannot be reopened; both had to be recreated by hand
+				# against master. Deleting is a tidiness nicety and is worth nothing
+				# against that.
+				dependents = [str(other["number"]) for other in open_prs()
+					if other.get("baseRefName") == pr["headRefName"]
+					and other["number"] != pr["number"]]
+				merge_args = ["pr", "merge", str(pr["number"]), "--merge"]
+				if dependents:
+					print(f"        keeping branch: #{', #'.join(dependents)} are based on it")
+				else:
+					merge_args.append("--delete-branch")
+				_gh(*merge_args)
 				print(f"        merged")
 				merged.append(pr["number"])
 			except RuntimeError as error:

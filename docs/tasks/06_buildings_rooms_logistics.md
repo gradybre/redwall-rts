@@ -131,7 +131,11 @@ until they land:
 
 - Registry/architecture rows for the six new `work.gd` columns (10752 B at 512
   residents). `state_registry_coverage.py` fails until they exist.
-- A non-allocating `jobs.tool_gate_into()`. Without it the productive tick cannot
-  read §5.3's tool gate, so a tool-required job whose worker holds **no** binding
-  produces work and wears nothing. The behaviour is pinned by a test rather than
-  left to be discovered.
+- ~~A non-allocating `jobs.tool_gate_into()`.~~ **Delivered** by decision 0126:
+  `jobs.gd` now publishes `tool_gate_into(job_slot, out) -> bool` and
+  `tool_gate_of()` delegates to it. **`work.gd` still does not call it** — that
+  file was not on 0126's allowlist, so the productive tick still does not read
+  §5.3's tool gate and a tool-required job whose worker holds **no** binding
+  still produces work and wears nothing. The behaviour stays pinned by a test.
+  What is owed now is one call site plus the header and test update in `work.gd`,
+  and that is the EH-03 owner's change, not a missing API.

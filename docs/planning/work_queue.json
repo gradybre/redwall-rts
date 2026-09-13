@@ -52,13 +52,15 @@
     {
       "id": "BULK-COLUMNS",
       "title": "Bulk column read/write API across every packed store",
-      "status": "in_flight",
+      "status": "review",
       "depends_on": [],
       "owns": [
-        "godot/scripts/core/entity_directory.gd",
+        "godot/scripts/core/needs.gd",
         "godot/scripts/core/residents.gd",
-        "godot/scripts/core/inventory.gd",
-        "godot/test/test_bulk_columns.gd"
+        "godot/scripts/core/jobs.gd",
+        "godot/test/test_needs_columns.gd",
+        "godot/test/test_residents_columns.gd",
+        "godot/test/test_jobs_columns.gd"
       ],
       "agent": "game-coder",
       "gate": "none",

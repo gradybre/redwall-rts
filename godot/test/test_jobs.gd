@@ -30,6 +30,10 @@ const HOUR_SLEEP: int = 23
 ## A creation tick shared by candidates that must tie on the fifth sort term.
 const SHARED_CREATED_TICK: int = 100
 
+## Iterations for the tool-gate cost comparison. Large enough that one allocation per call is the
+## dominant term and small enough to stay near 20ms; the assertion is a ratio, never a budget.
+const TIMED_GATE_READS: int = 20000
+
 var _residents: ResidentsScript = null
 var _needs: NeedsScript = null
 var _priorities: PrioritiesScript = null
@@ -1662,3 +1666,115 @@ func test_a_despawned_agents_identity_is_not_readable_from_its_old_row() -> void
 	assert_true(_jobs.agent_persistent_id_into(replacement, out), "the new agent answers")
 	assert_true(out.value > original_id,
 		"with an id that has never been issued before, so no tie-break order is inherited")
+
+
+# --- decision 0110: the non-allocating tool-gate read --------------------------------------------
+
+func test_the_into_tool_gate_read_agrees_with_the_allocating_one_on_every_gate_value() -> void:
+	"""Decision 0110's gate, read both ways. The two forms must never answer differently.
+
+	FOUR JOBS HOLDING FOUR DIFFERENT GATE VALUES AT ONCE, not one job rewritten four times: a
+	reader that answered from a fixed row, or that returned the last value written to the column,
+	agrees with the allocating form on a single-row fixture and is caught here.
+	"""
+	var gates: Array[int] = [JobsScript.GATE_NOT_REQUIRED, JobsScript.GATE_SATISFIED,
+		JobsScript.GATE_BLOCKED, JobsScript.GATE_UNAVAILABLE]
+	var slots: Array[int] = []
+	for gate: int in gates:
+		var job: int = _make_job(JobsScript.JOB_KIND_CRAFT)
+		assert_true(_jobs.set_tool_gate(job, gate).ok, "gate %d is declared" % gate)
+		slots.append(job)
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	for index: int in gates.size():
+		var allocating: IntMath.IntResult = _jobs.tool_gate_of(slots[index])
+		assert_true(allocating.ok, "the allocating read succeeds for gate %d" % gates[index])
+		assert_true(_jobs.tool_gate_into(slots[index], out),
+			"the _into read succeeds for gate %d" % gates[index])
+		assert_equal(out.value, gates[index],
+			"and reports the gate that job actually holds, %d" % gates[index])
+		assert_equal(out.value, allocating.value,
+			"which is what the allocating form reports for gate %d" % gates[index])
+
+
+func test_the_into_tool_gate_read_refuses_an_address_it_cannot_answer() -> void:
+	"""No sentinel. GATE_NOT_REQUIRED is 0, so a refusal carrying 0 must be told apart by `ok`."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	assert_equal(JobsScript.GATE_NOT_REQUIRED, 0, "the passing gate value really is zero")
+	assert_false(_jobs.tool_gate_into(-1, out), "a negative slot refuses")
+	assert_equal(out.error, String(JobsScript.REFUSE_INVALID_JOB_SLOT), "with its own code")
+	assert_equal(out.value, 0, "and the refusal carries no number")
+	assert_false(_jobs.tool_gate_into(JobsScript.JOB_CAPACITY, out), "a slot past capacity refuses")
+	assert_equal(out.error, String(JobsScript.REFUSE_INVALID_JOB_SLOT), "with the same code")
+	var empty: int = 0
+	assert_false(_jobs.tool_gate_into(empty, out), "an in-range row holding no Job refuses")
+	assert_equal(out.error, String(JobsScript.REFUSE_JOB_NOT_PRESENT),
+		"and says the Job row is the thing that is missing")
+	assert_false(_jobs.tool_gate_of(empty).ok, "the allocating form refuses the same row")
+
+
+func test_a_destroyed_jobs_tool_gate_stops_answering_rather_than_reading_zero() -> void:
+	"""A tool-required job destroyed mid-tick must not degrade into "no tool required"."""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	var job: int = _make_job(JobsScript.JOB_KIND_CRAFT)
+	assert_true(_jobs.set_tool_gate(job, JobsScript.GATE_BLOCKED).ok, "the tool is missing")
+	assert_true(_jobs.tool_gate_into(job, out), "the live job answers")
+	assert_equal(out.value, JobsScript.GATE_BLOCKED, "with its declared gate")
+	assert_true(_jobs.destroy_job(job).ok, "the job is destroyed")
+	assert_false(_jobs.tool_gate_into(job, out), "and the freed row refuses")
+	assert_equal(out.error, String(JobsScript.REFUSE_JOB_NOT_PRESENT), "with the absent-row code")
+	assert_equal(out.value, 0, "carrying no gate value at all")
+
+
+func test_the_into_tool_gate_read_allocates_nothing_across_a_tick_of_calls() -> void:
+	"""AGENTS.md's no-allocation-on-hot-paths rule, measured as a live-object census.
+
+	The allocating form is run FIRST as the control, with every result retained so it cannot be
+	freed before the count is read: 200 calls must produce 200 live objects. The same 200 reads
+	through the `_into` form must produce none, which is the whole reason decision 0110 asked for
+	it. Only the success path is counted; a refusal builds a String, which is not an Object.
+	"""
+	var job: int = _make_job(JobsScript.JOB_KIND_CRAFT)
+	assert_true(_jobs.set_tool_gate(job, JobsScript.GATE_SATISFIED).ok, "the tool is in hand")
+	var held: Array[IntMath.IntResult] = []
+	var before_of: int = Performance.get_monitor(Performance.OBJECT_COUNT)
+	for _index: int in 200:
+		held.append(_jobs.tool_gate_of(job))
+	var after_of: int = Performance.get_monitor(Performance.OBJECT_COUNT)
+	assert_equal(after_of - before_of, 200, "200 allocating reads allocate 200 objects")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	var before_into: int = Performance.get_monitor(Performance.OBJECT_COUNT)
+	for _index: int in 200:
+		_jobs.tool_gate_into(job, out)
+	var after_into: int = Performance.get_monitor(Performance.OBJECT_COUNT)
+	assert_equal(after_into - before_into, 0, "200 _into reads allocate nothing")
+	assert_equal(out.value, JobsScript.GATE_SATISFIED, "and the caller's own result was written")
+
+
+func test_the_into_tool_gate_read_costs_less_than_the_allocating_one_per_call() -> void:
+	"""The allocation a live-object census CANNOT see: one IntResult built and dropped per call.
+
+	A transient RefCounted is freed before `OBJECT_COUNT` can be read, so the census above passes
+	against an `_into` form that internally allocates a result and copies out of it -- which is
+	exactly the regression decision 0110 asked this form to prevent. Cost is the only signal left.
+
+	The assertion is a ratio, not a budget, so it carries no machine-specific constant: an `_into`
+	form that allocates does STRICTLY MORE work than the allocating form (that work, plus the
+	copy), so it can never come in under half its time. Measured here at 0.30 across five trials;
+	the bar is 0.50. 20000 iterations is ~20ms in total.
+	"""
+	var job: int = _make_job(JobsScript.JOB_KIND_CRAFT)
+	assert_true(_jobs.set_tool_gate(job, JobsScript.GATE_SATISFIED).ok, "the tool is in hand")
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	var started: int = Time.get_ticks_usec()
+	for _index: int in TIMED_GATE_READS:
+		_jobs.tool_gate_of(job)
+	var allocating_usec: int = Time.get_ticks_usec() - started
+	started = Time.get_ticks_usec()
+	for _index: int in TIMED_GATE_READS:
+		_jobs.tool_gate_into(job, out)
+	var into_usec: int = Time.get_ticks_usec() - started
+	assert_true(allocating_usec > 0, "the allocating form took measurable time")
+	assert_true(into_usec * 2 < allocating_usec,
+		"the _into form allocates nothing: %d usec against %d usec for %d reads" % [into_usec,
+			allocating_usec, TIMED_GATE_READS])
+	assert_equal(out.value, JobsScript.GATE_SATISFIED, "and the caller's own result was written")

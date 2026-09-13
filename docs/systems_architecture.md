@@ -433,12 +433,13 @@ The GDD registry does not encode every deadline, ownership mapping, or remainder
 | RoomTileLinks | tile_id | I32 | 4 | 1 | 16384 | 65536 | [NEW] Nonoverlapping room tiles |
 | EventSchedule | kind, source_id, arg0, arg1 | I32 | 4 | 4 | 64 | 1024 | [NEW] Bounded calendar events; per-job deadlines remain in jobs; NEW 64 |
 | EventSchedule | due_tick, sequence | I64 | 8 | 2 | 64 | 1024 | [NEW] Bounded calendar events; per-job deadlines remain in jobs; NEW 64 |
+| EventSchedule | next_sequence | I64 | 8 | 1 | 1 | 8 | [SAVE-R09-005] `WorldRuntime.next_event_sequence` reassigned to EventSchedule ownership/§11: 8 B changing owner, not 8 B added. Initial 1, issued 1..I64_MAX, never reused, 0 = EXHAUSTED |
 | SocialDailyPair | last_social_gain_day, last_rescue_event, last_feast_event, last_conflict_day | I32 | 4 | 4 | 2048 | 32768 | [NEW] Affinity once/event restrictions |
 | MortalityWindow | starvation, exposure, other, departures | I32 | 4 | 4 | 48 | 768 | [NEW] Current winter and trailing 12-day counters; NEW 48-day ring |
 | MasteryCounter | good_batches, total_portions | I32 | 4 | 2 | 64 | 512 | [NEW] Unchanged recipe thresholds; NEW 64 counter slots, bitmask limit |
 | LotEffect | effect_kind, effect_value, effect_duration_ticks, source_item_id | I32 | 4 | 4 | 16384 | 262144 | [NEW] Prepared/preserved source effect survives ingredient consumption |
 | WorldRuntime | next_persistent_id, prepared_portions, next_job_sequence, last_progress_day, requested_speed, pause_reasons | I32 | 4 | 6 | 1 | 24 | [NEW] Allocator/progression/session counters  [decision 0115] SAVE COMPOSITION NOTE, no byte on this row changes: `next_persistent_id` is persisted as a SEPARATE `entity_directory` owner block in §1 WORLD, not as a field of the WorldRuntime payload, because the directory owns the allocator and §1's 80-byte world_runtime body is frozen. The live value is a scalar in `entity_directory.gd`; this row budgets it against the WorldRuntime store that does not exist yet, and it moves here rather than being counted twice if that store is ever built. |
-| WorldRuntime | next_command_sequence, next_event_sequence, chronicle_count | I64 | 8 | 3 | 1 | 24 | [NEW] Allocator/progression/session counters |
+| WorldRuntime | next_command_sequence, chronicle_count | I64 | 8 | 2 | 1 | 16 | [NEW] Allocator/progression/session counters; `next_event_sequence` left this row for EventSchedule/§11 under SAVE-R09-005 |
 | NamePoolUtf8 | utf8_byte | B8 | 1 | 1 | 131072 | 131072 | [NEW] NEW 128 KiB live sanitized names; historic strings stream with chronicle |
 | NamePoolIndex | offset, byte_count, reference_count | I32 | 4 | 3 | 4096 | 49152 | [NEW] NEW 4096 active names; release unreferenced aliases |
 | BuildingItemMinimum | minimum_milli | I64 | 8 | 1 | 262144 | 2097152 | [NEW] NEW policy arena; 256 item IDs maximum in this compiled release |

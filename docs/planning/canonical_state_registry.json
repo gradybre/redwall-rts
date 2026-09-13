@@ -56,7 +56,7 @@
  },
  "canonical_stream": "RWL-STATE-1",
  "record_count": 582,
- "packed_source_field_count": 530,
+ "packed_source_field_count": 536,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime.",
  "owners": [
   {
@@ -8043,7 +8043,6 @@
      "hash": true,
      "source_module": "event_schedule",
      "source_member": "_next_sequence",
-     "implementation": "REQUIRED_NOT_PRESENT_IN_SNAPSHOT",
      "shape": {
       "count": 1
      },
@@ -8057,7 +8056,6 @@
      "hash": true,
      "source_module": "event_schedule",
      "source_member": "_count",
-     "implementation": "REQUIRED_NOT_PRESENT_IN_SNAPSHOT",
      "shape": {
       "count": 1
      },
@@ -8071,14 +8069,14 @@
      "hash": true,
      "source_module": "event_schedule",
      "source_member": "_kind",
-     "implementation": "REQUIRED_NOT_PRESENT_IN_SNAPSHOT",
      "shape": {
       "count_field": "_count",
       "max_count": 64,
       "order": "due_tick_then_sequence"
      },
      "scalar": false,
-     "ordinal": 2
+     "ordinal": 2,
+     "source_contract": "C171"
     },
     {
      "field_key": "_source_id",
@@ -8087,14 +8085,14 @@
      "hash": true,
      "source_module": "event_schedule",
      "source_member": "_source_id",
-     "implementation": "REQUIRED_NOT_PRESENT_IN_SNAPSHOT",
      "shape": {
       "count_field": "_count",
       "max_count": 64,
       "order": "due_tick_then_sequence"
      },
      "scalar": false,
-     "ordinal": 3
+     "ordinal": 3,
+     "source_contract": "C171"
     },
     {
      "field_key": "_arg0",
@@ -8103,14 +8101,14 @@
      "hash": true,
      "source_module": "event_schedule",
      "source_member": "_arg0",
-     "implementation": "REQUIRED_NOT_PRESENT_IN_SNAPSHOT",
      "shape": {
       "count_field": "_count",
       "max_count": 64,
       "order": "due_tick_then_sequence"
      },
      "scalar": false,
-     "ordinal": 4
+     "ordinal": 4,
+     "source_contract": "C171"
     },
     {
      "field_key": "_arg1",
@@ -8119,14 +8117,14 @@
      "hash": true,
      "source_module": "event_schedule",
      "source_member": "_arg1",
-     "implementation": "REQUIRED_NOT_PRESENT_IN_SNAPSHOT",
      "shape": {
       "count_field": "_count",
       "max_count": 64,
       "order": "due_tick_then_sequence"
      },
      "scalar": false,
-     "ordinal": 5
+     "ordinal": 5,
+     "source_contract": "C171"
     },
     {
      "field_key": "_due_tick",
@@ -8135,14 +8133,14 @@
      "hash": true,
      "source_module": "event_schedule",
      "source_member": "_due_tick",
-     "implementation": "REQUIRED_NOT_PRESENT_IN_SNAPSHOT",
      "shape": {
       "count_field": "_count",
       "max_count": 64,
       "order": "due_tick_then_sequence"
      },
      "scalar": false,
-     "ordinal": 6
+     "ordinal": 6,
+     "source_contract": "C171"
     },
     {
      "field_key": "_sequence",
@@ -8151,14 +8149,14 @@
      "hash": true,
      "source_module": "event_schedule",
      "source_member": "_sequence",
-     "implementation": "REQUIRED_NOT_PRESENT_IN_SNAPSHOT",
      "shape": {
       "count_field": "_count",
       "max_count": 64,
       "order": "due_tick_then_sequence"
      },
      "scalar": false,
-     "ordinal": 7
+     "ordinal": 7,
+     "source_contract": "C171"
     }
    ]
   },
@@ -9411,6 +9409,11 @@
   "C170": {
    "unused": "`_present` 0 is a free row; `_kind` 0 (KIND_NONE) means no aggregate injury; `_severity` 0 when uninjured; `_rescuer_slot` -1 with generation 0 is the null ref",
    "notes": "HAZ-001/002/004's aggregate Injury store (decision 0109). `_kind` is GDD 4.3's InjuryKind, derived from catalog.gd's protected domain. The rescuer is an EntityRef in the DIRECTORY namespace. `_last_incident_ordinal` is the one-shot dedup latch: dropping it lets a replayed hazard charge twice, and dropping `_airless_episode` creates a second EXPOSURE incident on reload for one the world already resolved."
+  },
+  "C171": {
+   "contract": "SAVE-R09-005 section 11 EVENT_SCHEDULE record columns",
+   "module": "godot/scripts/core/event_schedule.gd",
+   "unused": "rows [_count, 64) are held byte zero; _sequence 0 is the EXHAUSTED allocator marker and never a live row"
   }
  },
  "section_schema_versions": [

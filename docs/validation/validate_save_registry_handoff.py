@@ -67,7 +67,10 @@ def validate_source(data, source):
     mapped={'PackedByteArray':{'u8'},'PackedInt32Array':{'i32','u32'},'PackedInt64Array':{'i64','u64'},'PackedStringArray':{'utf8_u32'}}
     for key,typ in actual.items():assert declared[key]['type'] in mapped[typ], key
     # 512 was the 197472b snapshot; the same REG-R01 growth rule applies here as to record_count.
-    assert len(actual)==data['packed_source_field_count']==530
+    # 530 -> 536 when event_schedule.gd landed section 11's six record columns. This pin is a
+    # snapshot, NOT a format constant: REG-R01 requires it to grow, so moving it is the expected
+    # maintenance and freezing it would refuse every new store.
+    assert len(actual)==data['packed_source_field_count']==536
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 
 def valid_name(present, named, raw):

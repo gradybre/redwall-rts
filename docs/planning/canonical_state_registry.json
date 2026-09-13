@@ -6272,7 +6272,9 @@
      "source_member": "_l_provenance",
      "shape": {
       "declared_capacity": "`_l_capacity` <= 16384",
-      "order": "ascending_physical_slot"
+      "order": "ascending_physical_slot",
+      "value_domain": "InventoryProvenance",
+      "value_extent": "0..5 inclusive"
      },
      "ordinal": 18,
      "source_contract": "C132"

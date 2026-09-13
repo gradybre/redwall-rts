@@ -8713,7 +8713,10 @@
     "primary_count": 512,
     "max_payload_bytes": 67588,
     "max_section_bytes": 67625,
-    "format": "u32_row_count_then_512_utf8_u32_strings"
+    "format": "store_count_u32_then_owner_wrapper_then_u32_row_count_then_512_utf8_u32_strings",
+    "framing_bytes": 37,
+    "min_section_bytes": 2089,
+    "note": "Framing is 4 (store_count) + 33 (owner wrapper: 4 key length + 9 'residents' + 4 owner_schema_version + 8 primary_count + 8 payload_byte_length) = 37. The retained inner row_count is validated against primary_count, and payload_byte_length against length - 37 from the descriptor. Neither framing count nor the wrapper becomes an extra canonical record. Decision 0112."
    }
   }
  ],

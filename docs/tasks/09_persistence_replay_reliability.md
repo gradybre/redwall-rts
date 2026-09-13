@@ -176,25 +176,73 @@ named blockers are in
 
 Still open, and not claimed by this work:
 
-- [ ] **BLOCKER N1** — section 14 has no registered owner-block framing.
-      SAVE-LAYOUT-R01 scopes the `owner_key / owner_schema_version /
-      primary_count / payload_byte_length` wrapper to sections 3/4/5 and says
-      6/7/8/9/14 still need registered owner schemas. No wrapper, owner_key
-      spelling or schema version is invented here; adding one later increments
-      the section version.
-- [ ] **BLOCKER N2** — SAVE-R09-002's "a live resident cannot load an empty name"
-      versus GDD REQ-SET-041's anonymous residents. Implemented as the `_named`
-      consistency rule; needs the ruling author's confirmation.
-- [ ] **BLOCKER N3** — `residents.gd::set_name()` enforces none of
-      ARCH-SAVE-005's name rules, so a live store can hold a name this codec
-      must refuse to write. `residents.gd` was read-only for this task.
-- [ ] **BLOCKER N4** — section 14 must be applied after section 4, because
-      `set_name()` rewrites `_named`. No load orchestrator exists to hold that
-      order.
+- [x] **BLOCKER N1 CLOSED** — NAME-R02 registers owner `residents`, owner schema
+      1, primary_count 512, and section 14 now carries `store_count:u32`=1 plus
+      SAVE-LAYOUT-R01's 33-byte wrapper ahead of the unchanged payload.
+- [x] **BLOCKER N2 CLOSED** — NAME-R02 corrects SAVE-R09-002 and publishes the
+      three-row table. A present anonymous row, INCLUDING a live resident, is
+      flag 0 and the empty name. The earlier reading is confirmed, not guessed.
+- [x] **BLOCKER N3 CLOSED** — `residents.gd::name_refusal()` is the one shared
+      validator, reached by `set_name()`, `restore_name()`, automatic name
+      assignment, capture and restore. The codec adds no rule and only maps codes.
+- [x] **BLOCKER N4 CLOSED at the codec** — `occupancy_refusal()` validates all
+      512 rows BEFORE `apply()`'s first write, and the writes go through
+      `restore_name()`, which takes the incoming flag explicitly. A load
+      orchestrator holding the §4-then-§14 order is still owed, separately.
 - [ ] Registry and architecture rows for the codec's transient `Record` column,
-      and the §2.2 `name_key` I32-versus-`PackedStringArray` divergence, are
-      reported to the integration owner; neither file was on this task's
-      allowlist.
+      the new §14 framing arithmetic, and the §2.2 `name_key`
+      I32-versus-`PackedStringArray` divergence, are reported to the integration
+      owner; neither file was on this task's allowlist.
+
+## NAME-R02 and the §14 owner wrapper — 2026-09-12
+
+`godot/scripts/core/residents.gd` and `godot/scripts/core/save_section_name_pool.gd`
+implement NAME-R02 and the §14 wrapper paragraph of
+[the save-registry answers](../rulings/2026-09-12_save_registry_answers.md).
+Reasoning is in
+[decision 0112](../decisions/0112-one-resident-owned-name-validator-and-the-section-14-owner-wrapper.md).
+
+- [x] **One resident-owned validator.** `Residents.name_refusal()`: strict UTF-8,
+      at most 128 bytes, 2–32 Unicode scalar values, and an explicit Cc predicate
+      over U+0000–U+001F, U+007F and U+0080–U+009F. Empty stays legal. Nothing is
+      normalized, truncated or replaced; a refusal writes neither column.
+- [x] Scalars are counted as **scalars**. Pinned with `"A" + U+0301` ×17 — 34
+      scalars, 51 UTF-8 bytes, 17 grapheme clusters — which a byte counter and a
+      cluster counter both admit and only the scalar rule refuses.
+- [x] `utf8_byte_length_of()` is arithmetic over the 0x7F/0x7FF/0xFFFF width
+      boundaries, asserted equal to a real `to_utf8_buffer()` encode on six
+      fixtures, so `residents.gd` need not preload the codec.
+- [x] **§14 wrapper**: `store_count:u32`=1, `owner_key` `residents` (9 bytes),
+      `owner_schema_version:u32`=1, `primary_count:u64`=512,
+      `payload_byte_length:u64`, then the retained `row_count:u32`=512 and 512
+      `utf8_u32` rows. Wrapper 33 bytes, framing 37; payload 2052..67588; section
+      2089..**67625**. Both counts validated, and `payload_byte_length` checked
+      against the descriptor's own framed length.
+- [x] Section 14's schema version is **2**, published as `SCHEMA_VERSION` because
+      `save_header.gd` carries the descriptor field opaquely.
+- [x] The canonical record is unchanged: `(14, "residents", "_name_key", type 5,
+      count 512, values)`. Measured on the real starter settlement — section 2101
+      bytes, canonical 2060, delta exactly 41.
+      `docs/planning/canonical_state_registry.json` already declares all of this;
+      no change to that file is required.
+- [x] **The ordering rule.** `occupancy_refusal()` runs over all 512 rows before
+      `apply()` writes anything, and the writes use `restore_name()`, which never
+      derives `_named` from emptiness. Both mismatch directions refuse; a refusal
+      leaves the store byte-identical, asserted by image comparison (ADR 0059).
+- [x] A retained dead row keeps its name and its flag; the fixture kills a real
+      resident through `needs.apply_health_event(slot, -100)`.
+- [x] Two tests that asserted the pre-NAME-R02 behaviour were rewritten, not
+      deleted, and the change is recorded in decision 0112.
+
+Reported, not done — outside this task's allowlist:
+
+- [ ] `command_dispatch.gd::_alias_refusal()` is still a second copy of the name
+      rules and misses C1 controls, which now surface as `RESULT_STORE_REFUSED`
+      rather than `RESULT_ALIAS_CONTROL_CHARACTER`. No invalid name reaches a
+      column either way; folding it into the shared validator belongs to that
+      file's owner.
+- [ ] §4 has no codec, so nothing restores `_named`. **No release-save
+      completeness is claimed by this work.**
 
 ## 09.2 §3 ENTITY_DIRECTORY implementation — 2026-09-12
 

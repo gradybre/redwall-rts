@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "note": "The ONLY place a paid-generation or visual-acceptance gate can be cleared. tools/art_gate.py refuses anything whose entry here is not `approved`, and dispatch_plan.py will not emit a brendan_art task without one. Nothing in this file may be written by an agent: an approval is Brendan typing `approved` and a date. Meshy credits are real money.",
+  "approvals": [
+    {
+      "id": "ART-PROPORTION",
+      "what": "Author and render the five-species proportion comparison scene (mouse, mole, squirrel, otter, badger) beside the same doorway, table and workbench in the prescribed poses and cameras.",
+      "spends_credits": false,
+      "estimated_credits": 0,
+      "why_gated": "Decision 0002 requires visual comparison before bulk proportions are approved. This scene IS that comparison, so its output is the evidence Brendan rules on.",
+      "status": "pending",
+      "requested": "2026-09-12",
+      "decided": null,
+      "decided_by": null
+    },
+    {
+      "id": "ART-CREATURES",
+      "what": "Generate the remaining creature body models through Meshy once proportions are approved.",
+      "spends_credits": true,
+      "estimated_credits": null,
+      "estimate_note": "Unknown until the species list and per-model settings are fixed. The gate presents an exact figure before any call; image_to_3d is 5-35 credits per model depending on ai_model and texture resolution.",
+      "why_gated": "Real money, and decision 0002 forbids bulk generation before proportion approval.",
+      "status": "pending",
+      "requested": "2026-09-12",
+      "decided": null,
+      "decided_by": null
+    },
+    {
+      "id": "ART-UI-12",
+      "what": "Visual acceptance of the refined HUD. Astra requests further NARROW-breakpoint evidence before it will sign off.",
+      "spends_credits": false,
+      "estimated_credits": 0,
+      "why_gated": "Visual acceptance is a human judgement about whether it looks right. No test asserts taste.",
+      "status": "pending",
+      "requested": "2026-09-12",
+      "decided": null,
+      "decided_by": null
+    }
+  ]
+}

@@ -112,11 +112,14 @@
     {
       "id": "ALERT-R02",
       "title": "ALERT-R02 alert summary profiles",
-      "status": "in_flight",
+      "status": "review",
       "depends_on": [],
       "owns": [
-        "godot/scripts/ui/alert_panel.gd",
-        "godot/test/test_alert_panel.gd"
+        "godot/scripts/ui/ui_layout.gd",
+        "godot/scripts/ui/ui_shell.gd",
+        "godot/test/test_ui_layout.gd",
+        "godot/test/test_ui_shell.gd",
+        "docs/validation/evidence/ui-refinement/"
       ],
       "agent": "game-coder",
       "gate": "none"

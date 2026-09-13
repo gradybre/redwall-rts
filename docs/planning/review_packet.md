@@ -19,6 +19,8 @@ Advisory, not blocking anything today:
 
 - Multi-table primary_count for sections 8 and 9 (asked 2026-09-12)
 - 501 of 590 registry fields carry declared_capacity as prose (asked 2026-09-12)
+- ALERT-R02's 44px card height is packing arithmetic, not reachable typography (asked 2026-09-12)
+- §1.2 publishes an alert zone that lies wholly inside the workspace frame (asked 2026-09-12)
 
 ## 3. Waiting on Brendan
 
@@ -28,8 +30,8 @@ Advisory, not blocking anything today:
 
 ## 4. State of the queue
 
-- **in_flight** (3): `ALERT-R02`, `BULK-COLUMNS`, `CONSTRUCTION-STORE`
-- **review** (5): `EVENT-SCHEDULE`, `GATE-MERGE`, `RENDER-PATH`, `SAVE-S12`, `SAVE-S7`
+- **in_flight** (2): `BULK-COLUMNS`, `CONSTRUCTION-STORE`
+- **review** (6): `ALERT-R02`, `EVENT-SCHEDULE`, `GATE-MERGE`, `RENDER-PATH`, `SAVE-S12`, `SAVE-S7`
 - **blocked** (7): `ART-CREATURES`, `ART-PROPORTION`, `ART-UI-12`, `DIGEST-DETERMINISM`, `MOVE-ENVELOPES`, `SAVE-CAPTURE`, `SAVE-S1-OWNERS`
 
 ## 5. Merged in this window

@@ -2739,3 +2739,140 @@ func test_the_integrity_refusal_class_is_read_from_stock_ages_own_constants() ->
 		StockAgeScript.REFUSE_NOT_HOUR_BOUNDARY), "a non-crossing tick owed no hour")
 	assert_false(SettlementSystemScript.is_stock_integrity_refusal(
 		StockAgeScript.REFUSE_INVALID_TICK), "and a negative tick is a caller error")
+
+
+# --- STOCK-SEED-R01: the seed-expiry authority is wired in the production composition --------------
+#
+# WHAT THESE ADD OVER `test_inventory.gd`. That suite proves `inventory.gd` asks the authority on
+# every guarded path and `stock_age.gd` derives the verdict correctly, against a pair the test
+# builds itself. NONE of that reached the running game: `set_seed_expiry_authority()` existed,
+# `refuses_seed_consumption()` existed, and NOTHING CALLED THE SETTER, so the settlement's own
+# inventory had no authority bound and admitted expired seed. These tests are about the wiring.
+#
+# `docs/gameplay_balance.md` gives seed_grain a 1440-hour shelf life, and GDD §5.8 expires a lot
+# at `shelf_hours * 1000` milli-hours, so 1440000 is EXACT expiry and 1439999 is one milli-hour
+# short. Both are exercised, because a `>` where the rule says `>=` passes every other test here.
+
+const SEED_SHELF_MILLI_HOURS: int = 1440 * 1000
+const SEED_LOT_QUANTITY_MILLI: int = 10000
+const SEED_RESERVE_MILLI: int = 250
+
+
+func _settlement_store() -> Vector2i:
+	"""A container in the settlement's OWN inventory, owned by a directory-free stand-in ref."""
+	var made: WorldInventoryScript.OpResult = _settlement.inventory().create_container(
+		Vector2i(7, 1), 100000000, WorldInventoryScript.FILTERS_ACCEPT_ALL, 0, true)
+	assert_true(made.ok, "the container is created: %s" % made.error)
+	return made.ref
+
+
+func _settlement_seed_lot(container: Vector2i, age_milli_hours: int) -> Vector2i:
+	"""One real `seed_grain` lot in the settlement's inventory at a chosen persisted age."""
+	var item_id: int = _settlement.item_definitions().compiled_id(&"seed_grain")
+	var made: WorldInventoryScript.OpResult = _settlement.inventory().create_lot(container,
+		item_id, SEED_LOT_QUANTITY_MILLI, 0, 0, 0, age_milli_hours, 0)
+	assert_true(made.ok, "the seed lot is created: %s" % made.error)
+	return made.ref
+
+
+func test_the_settlement_binds_its_own_aging_stage_as_the_seed_expiry_authority() -> void:
+	"""The wiring call, asserted where it is made: `_compose_stock_layer()`, before any consumer."""
+	assert_true(_settlement.inventory().has_seed_expiry_authority(),
+		"a freshly composed settlement already enforces STOCK-SEED-R01")
+	assert_not_null(_settlement.stock_age(), "and the stage that answers for it exists")
+	var container: Vector2i = _settlement_store()
+	var expired: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS)
+	assert_true(_settlement.stock_age().refuses_seed_consumption(expired),
+		"the settlement's OWN stage is the thing refusing, not a stand-in")
+	assert_equal(_settlement.inventory().reserve_lot(expired, SEED_RESERVE_MILLI).error,
+		WorldInventoryScript.REFUSE_SEED_PAST_SHELF_LIFE,
+		"and its verdict reaches the lot store")
+
+
+func test_exact_expiry_is_refused_at_reserve_and_one_milli_hour_short_is_not() -> void:
+	"""GDD §5.8's boundary is `>=`. 1440000 is over; 1439999 is not."""
+	var container: Vector2i = _settlement_store()
+	var fresh: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS - 1)
+	assert_true(_settlement.inventory().reserve_lot(fresh, SEED_RESERVE_MILLI).ok,
+		"one milli-hour short of the threshold still sows")
+	var exact: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS)
+	var refused: WorldInventoryScript.OpResult = _settlement.inventory().reserve_lot(
+		exact, SEED_RESERVE_MILLI)
+	assert_false(refused.ok, "reaching the threshold exactly is refused")
+	assert_equal(refused.error, WorldInventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "by name")
+
+
+func test_an_existing_claim_is_revalidated_at_commit_and_refused() -> void:
+	"""A reservation taken while the seed was fresh carries NO permission into the commit.
+
+	This is the half a cached verdict would break: the claim was legitimate when it was taken, the
+	lot aged out underneath it, and `consume_reserved()` -- the sowing/work commit -- must ask
+	again rather than replay the earlier yes.
+	"""
+	var container: Vector2i = _settlement_store()
+	var seed: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS - 1000)
+	assert_true(_settlement.inventory().reserve_lot(seed, SEED_RESERVE_MILLI).ok,
+		"the claim is taken while the seed is still usable")
+	assert_true(_settlement.inventory().advance_lot_age_hour(seed, 1000, 1000).ok,
+		"then one game hour of §5.8 storage age takes it to the threshold exactly")
+	assert_equal(_settlement.inventory().lot_age_milli_hours(seed), SEED_SHELF_MILLI_HOURS,
+		"1440000 milli-hours, the exact expiry boundary")
+	var committed: WorldInventoryScript.OpResult = _settlement.inventory().consume_reserved(
+		seed, SEED_RESERVE_MILLI)
+	assert_false(committed.ok, "so the commit is refused")
+	assert_equal(committed.error, WorldInventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "by name")
+	assert_equal(_settlement.inventory().lot_quantity_milli(seed), SEED_LOT_QUANTITY_MILLI,
+		"and nothing was consumed")
+
+
+func test_the_guard_still_lets_the_hourly_pass_convert_the_seed_it_refuses() -> void:
+	"""The conversion is not a consumer. A guard that blocked its own cleanup would deadlock."""
+	var container: Vector2i = _settlement_store()
+	_settlement.stock_age().declare_storage_class(container, StockAgeScript.STORAGE_CELLAR, false)
+	var seed: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS)
+	assert_equal(_settlement.inventory().reserve_lot(seed, SEED_RESERVE_MILLI).error,
+		WorldInventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "a sower is refused")
+	var hour: StockAgeScript.HourResult = _settlement.stock_age().run_hour(
+		2 * SimClockScript.TICKS_PER_DAY + 9 * SimClockScript.TICKS_PER_HOUR
+			- SimClockScript.CALENDAR_OFFSET_TICKS)
+	assert_true(hour.ok, "while the hourly pass still runs: %s" % hour.error)
+	assert_equal(hour.seed_lots_converted, 1, "converting the lot the guard refused")
+	assert_equal(_settlement.inventory().lot_item_id(seed),
+		_settlement.item_definitions().compiled_id(&"compost"), "into compost")
+	assert_true(_settlement.inventory().reserve_lot(seed, SEED_RESERVE_MILLI).ok,
+		"which no seed rule refuses")
+
+
+func test_the_wiring_survives_a_settlement_reset() -> void:
+	"""`inventory.clear()` drops rows and the item registry; the authority is wiring, not state."""
+	_settlement.reset()
+	assert_true(_settlement.inventory().has_seed_expiry_authority(),
+		"the guard is still bound after a reset")
+	var container: Vector2i = _settlement_store()
+	var expired: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS)
+	assert_equal(_settlement.inventory().reserve_lot(expired, SEED_RESERVE_MILLI).error,
+		WorldInventoryScript.REFUSE_SEED_PAST_SHELF_LIFE,
+		"and it still refuses against the reloaded catalog")
+
+
+func test_the_seed_guard_survives_a_critical_pause_and_its_retry_recovery() -> void:
+	"""The fault path opens and aborts an inventory transaction; the binding must outlive both.
+
+	`set_seed_expiry_authority()` REFUSES while a transaction is open, which is the shape of the
+	bug this pins: a settlement that rebound the guard during recovery would silently fail to,
+	and every sower afterwards would be handed dead seed by a settlement that looked healthy.
+	"""
+	_faulting_hour_setup()
+	assert_true(_settlement.run_tick(750), "hour 750 faults under the stray transaction")
+	assert_true(_settlement.is_critical_pause_held(), "the CRITICAL hold is raised")
+	assert_true(_settlement.inventory().has_seed_expiry_authority(),
+		"and the guard is still bound while the settlement is paused")
+	_settlement.inventory().abort()
+	assert_true(_settlement.run_tick(751), "the retry recovers the hour")
+	assert_false(_settlement.is_critical_pause_held(), "and releases the hold")
+	assert_true(_settlement.inventory().has_seed_expiry_authority(),
+		"the guard survived the whole fault/recovery cycle")
+	var container: Vector2i = _settlement_store()
+	var expired: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS)
+	assert_equal(_settlement.inventory().reserve_lot(expired, SEED_RESERVE_MILLI).error,
+		WorldInventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and still refuses expired seed")

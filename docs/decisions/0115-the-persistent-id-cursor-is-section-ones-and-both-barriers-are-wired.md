@@ -1,4 +1,4 @@
-# 0111 — The persistent-ID cursor is section 1's, and both standing barriers are wired
+# 0115 — The persistent-ID cursor is section 1's, and both standing barriers are wired
 
 Date: 2026-09-12 · Status: **Accepted**
 

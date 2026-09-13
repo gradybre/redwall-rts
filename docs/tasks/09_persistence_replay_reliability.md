@@ -273,7 +273,7 @@ block framing. Reasoning and the two open blockers are in
       `restore_columns()`. Until then §3 cannot capture a live directory (free-slot
       generations are unreadable) and has no `apply()`. `capture_into()` refuses
       explicitly and names the API.
-- [x] **BLOCKER D2 — CLOSED 2026-09-12** by decision 0111. `_next_persistent_id` is §1
+- [x] **BLOCKER D2 — CLOSED 2026-09-12** by decision 0115. `_next_persistent_id` is §1
       WORLD's own `entity_directory` block: schema 1, primary_count 1, payload 4 bytes
       `_next_persistent_id:u32 LE`, domain `1..2147483648` with 2147483648 the exhausted
       cursor. `entity_directory.next_persistent_id()` captures it and
@@ -347,7 +347,7 @@ capture a live world and apply a decoded one. See
 - Sixteen mutants killed, one per Godot invocation, both production files
   `shasum -a 256` byte-compared after each restore.
 
-- [x] **BLOCKER D2 — CLOSED 2026-09-12** (decision 0111). §1 WORLD now carries the
+- [x] **BLOCKER D2 — CLOSED 2026-09-12** (decision 0115). §1 WORLD now carries the
       cursor and `restore_columns_and_cursor()` assigns it. The two tests that asserted
       the gap in the positive are retained and now assert the SPLIT: `restore_columns()`
       alone still leaves the cursor to §1, and the combined call makes the two worlds
@@ -364,7 +364,7 @@ capture a live world and apply a decoded one. See
 
 ## D2 allocator, §1 composition and two standing barriers — 2026-09-12
 
-Decision [0111](../decisions/0111-the-persistent-id-cursor-is-section-ones-and-both-barriers-are-wired.md).
+Decision [0115](../decisions/0115-the-persistent-id-cursor-is-section-ones-and-both-barriers-are-wired.md).
 Lane files: `godot/scripts/core/save_section_world_runtime.gd`,
 `godot/scripts/core/entity_directory.gd`, `godot/scripts/systems/game_manager.gd`,
 `godot/scripts/systems/settlement_system.gd` and their four focused suites.

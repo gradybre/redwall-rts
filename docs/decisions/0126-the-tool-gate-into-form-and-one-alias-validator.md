@@ -87,7 +87,9 @@ of being mapped onto a plausible-looking neighbour.
   `tool_gate_into()` reads the existing `_tool_gate` byte column and the alias
   fold-in deletes code. `state_registry_coverage.py` is unchanged at 47 modules,
   326 rows, 648 packed columns.
-* The alias half **depends on `feat/name-r02`** and does not compile without it.
+* The alias half **depends on decision 0112's `name_refusal()`**, which landed on
+  master as 98074fd while this change was in flight. This branch is rebased onto
+  it; the alias half does not compile on anything earlier.
 
 ## Source
 

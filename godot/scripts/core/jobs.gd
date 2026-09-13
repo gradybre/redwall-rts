@@ -163,6 +163,15 @@ extends RefCounted
 ## `_admit()` walks the 512 agent rows only when a continuation is at or below the admitted
 ## bucket, which one integer comparison decides.
 ##
+## THIS STORE PUBLISHES `_into` FORMS FOR EVERY READER `work.gd` TAKES PER PRODUCTIVE TICK:
+## `remaining_mwu_into()`, `state_into()`, `kind_into()`, `tool_gate_into()`,
+## `resident_may_work_into()`, `agent_persistent_id_into()`, `first_member_into()` and
+## `next_member_into()`. Each writes into a caller-owned IntResult and returns `out.ok`. The
+## `tool_gate_of()` is written as a delegation to `tool_gate_into()` so the two cannot drift into
+## disagreeing about a validation order or a refusal code. The older pairs still read their column
+## twice through the shared `_read()` helper; converting them is a separate, unblocking change and
+## is deliberately not made here.
+##
 ## REFUSAL, NOT SENTINELS. Every mutator returns an OpResult and every reader an
 ## IntMath.IntResult whose `.ok` must be inspected. "No eligible job this pass" is an explicit
 ## REFUSE_NO_ELIGIBLE_JOB refusal carrying job slot 0 and the null reference, never a -1 job
@@ -1149,9 +1158,36 @@ func station_gate_of(job_slot: int) -> IntMath.IntResult:
 
 
 func tool_gate_of(job_slot: int) -> IntMath.IntResult:
-	"""Eligibility step 4's tool gate. No Equipment store exists; see the header."""
+	"""Eligibility step 4's tool gate. No Equipment store exists; see the header.
+
+	The ALLOCATING form. It delegates to `tool_gate_into()` rather than repeating the column read,
+	so the per-tick caller and the convenience caller cannot ever answer differently: there is one
+	validation order, one column and one refusal code between them.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	tool_gate_into(job_slot, out)
+	return out
+
+
+func tool_gate_into(job_slot: int, out: IntMath.IntResult) -> bool:
+	"""Non-allocating `tool_gate_of()`: write the tool gate into `out` and return out.ok.
+
+	Decision 0110 records why this exists. `work.gd` must consult §5.3's tool gate ONCE PER
+	CONTRIBUTOR PER PRODUCTIVE TICK to know whether a job requires a tool at all, and the
+	allocating reader builds an `IntResult` on every one of those calls -- AGENTS.md's
+	no-allocation-on-hot-paths rule forbids it, so until this form existed the gate simply was
+	not read and a tool-required job whose worker held no binding produced work and wore nothing.
+
+	The result is CALLER-OWNED: the caller passes its own long-lived scratch and this writes into
+	it. An invalid slot or a row holding no live Job is an EXPLICIT REFUSAL carrying `out.error`,
+	never GATE_NOT_REQUIRED -- the `false` return must not be read as a valid zero, because
+	GATE_NOT_REQUIRED is itself 0 and "this job needs no tool" and "there is no job here" are
+	opposite answers that a sentinel would merge.
+	"""
 	var code: StringName = _check_job_slot(job_slot)
-	return _read(code, _tool_gate[job_slot] if code == REFUSE_NONE else 0)
+	if code != REFUSE_NONE:
+		return out.refuse(String(code))
+	return out.succeed(_tool_gate[job_slot])
 
 
 func unlock_gate_of(job_slot: int) -> IntMath.IntResult:

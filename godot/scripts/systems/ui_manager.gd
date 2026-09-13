@@ -35,6 +35,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const NeedsScript := preload("res://scripts/core/needs.gd")
 const UiResidentCard := preload("res://scripts/ui/ui_resident_card.gd")
+const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 
 
 ## GameManager's PLAYING state, restated so the paused-start rule does not depend on an import
@@ -73,6 +74,18 @@ const STOCK_EMPTY_CODE: String = "ECONOMY_STOCK_EMPTY"
 const CLOCK_OVERLOAD_CODE: String = "CLOCK_OVERLOADED"
 const NO_WORLD_CODE: String = "UI_NO_WORLD_GENERATED"
 const ROSTER_STALE_CODE: String = "UI_ROSTER_ROW_IS_STALE"
+## The row's directory slot is live again, but holds a DIFFERENT entity than the row named.
+## This is the condition a bare-slot roster could not see: `is_alive(slot)` is true and the
+## panel would have opened on the replacement. ARCH-UI-002 makes it a refusal instead.
+const ROSTER_REUSED_CODE: String = "UI_ROSTER_SLOT_REUSED"
+## The reference still validates, but the persistent id at that slot is not the one the row
+## cached -- the directory columns were replaced under the open roster.
+const ROSTER_IDENTITY_CODE: String = "UI_ROSTER_IDENTITY_CHANGED"
+## A living resident whose row this store would not publish a persistent id for.
+const REFUSE_ROSTER_IDENTITY: StringName = &"UI_ROSTER_NO_IDENTITY"
+## What an unbound roster row holds where a persistent id would be. Never a real id:
+## `entity_directory.gd` issues from 1, and answers 0 for a stale reference.
+const NO_PERSISTENT_ID: int = 0
 
 var _hud: HudScript = null
 var _time_source: GameManagerScript = null
@@ -82,10 +95,37 @@ var _session: UiWorldSession = UiWorldSession.new()
 var _player_has_resumed: bool = false
 var _opening_pause_applied: bool = false
 var _last_refusal: StringName = REFUSE_NONE
-## Which resident slot each roster row currently IS. REQ-UX-013: identity, not a render index.
-var _roster_slots: PackedInt32Array = PackedInt32Array()
+## What each roster row IS, as three packed columns of the same length, indexed by row.
+##
+## ARCH-UI-002: "View commands use generation-validated persistent identity, never render
+## instance slots." A bare slot column cannot honour that. A slot alone survives its resident:
+## when the directory reallocates it, `is_alive(slot)` is true again and a click on the OLD row
+## opens the NEW resident -- B's needs, health and name under A's heading, with no refusal. So
+## each row carries the full DIRECTORY `EntityRef` (`entity_directory.gd`'s `_generation` on the
+## directory slot -- not inventory's container or lot spaces, and not navigation's route space)
+## AND the never-reused persistent id, and a click validates both before resolving anything.
+##
+## Allocated once at `UiShell.ROSTER_POOL` and never resized; `refresh_roster()` overwrites.
+var _roster_ref_slot: PackedInt32Array = PackedInt32Array()
+var _roster_ref_generation: PackedInt32Array = PackedInt32Array()
+var _roster_persistent_id: PackedInt32Array = PackedInt32Array()
+## How many of those rows are bound. The rest hold the null ref `(-1, 0)` and no id.
+var _roster_count: int = 0
 ## UI-SET-036's composer. Built once: its five need rows are reused on every selection.
 var _card: UiResidentCard = UiResidentCard.new()
+
+
+func _init() -> void:
+	"""Allocate the roster identity columns once, at construction.
+
+	NOT in `_ready()`: this router is built off-tree by its suite and by `hud.tscn`'s loader
+	alike, and a column that only exists once the node entered the tree would be empty for the
+	first. Three `resize()` calls happen here and nowhere else -- never inside a refresh.
+	"""
+	_roster_ref_slot.resize(UiShell.ROSTER_POOL)
+	_roster_ref_generation.resize(UiShell.ROSTER_POOL)
+	_roster_persistent_id.resize(UiShell.ROSTER_POOL)
+	_clear_roster_identity()
 
 
 func _ready() -> void:
@@ -234,24 +274,61 @@ func refresh_roster() -> bool:
 
 	§4 binds a resident row to "Name/anonymous label+species+role+mood+health+current job". Four
 	of those six have a store today; role and current job do not, and are left out rather than
-	filled with a plausible word. `_roster_slots` records which resident each row IS, because
-	REQ-UX-013 requires resolving persistent identity rather than a render index.
+	filled with a plausible word. Each row records the resident's generation-checked reference
+	AND persistent id, because REQ-UX-013 and ARCH-UI-002 require resolving persistent identity
+	rather than a render index -- or, as this file used to, a bare reusable slot.
 	"""
 	if not _has_hud() or SettlementSystem == null:
 		return _refuse(REFUSE_NO_SETTLEMENT)
 	var residents: ResidentsScript = SettlementSystem.residents()
 	var needs: NeedsScript = SettlementSystem.needs()
-	_roster_slots.clear()
+	_clear_roster_identity()
 	var labels: PackedStringArray = PackedStringArray()
 	for slot: int in ResidentsScript.RESIDENT_CAPACITY:
-		if labels.size() >= UiShell.ROSTER_POOL:
+		if _roster_count >= UiShell.ROSTER_POOL:
 			break
 		if not residents.is_alive(slot):
 			continue
-		_roster_slots.append(slot)
+		if not _bind_roster_row(_roster_count, residents, slot):
+			_clear_roster_identity()
+			return _refuse(REFUSE_ROSTER_IDENTITY)
 		labels.append(_roster_label(residents, needs, slot))
+		_roster_count += 1
 	_hud.shell().set_roster(labels, residents.living_count())
 	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _clear_roster_identity() -> void:
+	"""Return every row to the null reference `(-1, 0)` and no persistent id, without resizing.
+
+	`(-1, 0)` is GDD §4.1's own null reference and validates like any other -- as false. An
+	unbound row therefore refuses a click by the same path a stale one does, with no separate
+	"is this row real" flag that could disagree with the columns beside it.
+	"""
+	_roster_ref_slot.fill(EntityDirectoryScript.NULL_SLOT)
+	_roster_ref_generation.fill(EntityDirectoryScript.NULL_GENERATION)
+	_roster_persistent_id.fill(NO_PERSISTENT_ID)
+	_roster_count = 0
+
+
+func _bind_roster_row(row_index: int, residents: ResidentsScript, slot: int) -> bool:
+	"""Cache one row's `(slot, generation)` reference and its persistent id. Refuses; never guesses.
+
+	Both come from the stores, neither is derived from the other, and a row is bound only when
+	both arrive. A living resident the store will not publish a persistent id for leaves the row
+	unbound and fails the whole refresh -- writing `NO_PERSISTENT_ID` into a bound row would be a
+	sentinel that later compares equal to a stale reference's answer of 0.
+	"""
+	var ref: Vector2i = residents.ref_of(slot)
+	if ref == EntityDirectoryScript.NULL_REF:
+		return false
+	var persistent: IntMath.IntResult = residents.persistent_id_of(slot)
+	if not persistent.ok or persistent.value <= NO_PERSISTENT_ID:
+		return false
+	_roster_ref_slot[row_index] = ref.x
+	_roster_ref_generation[row_index] = ref.y
+	_roster_persistent_id[row_index] = persistent.value
 	return true
 
 
@@ -271,23 +348,75 @@ func _roster_label(residents: ResidentsScript, needs: NeedsScript, slot: int) ->
 
 
 func _on_resident_row_picked(row_index: int) -> void:
-	"""Open UI-SET-036 on the resident that row IS, resolved through its stored slot."""
-	if not _has_hud() or row_index < 0 or row_index >= _roster_slots.size():
+	"""Open UI-SET-036 on the resident that row IS, validated through the directory first.
+
+	The order matters and is the whole fix: the cached reference is validated BEFORE any row is
+	resolved, so a reallocated slot can never be read at all. A row that fails validation
+	refuses in the open and selects nothing; it does not fall through to a blank panel, and it
+	does not quietly show whoever holds that slot now.
+	"""
+	if not _has_hud() or row_index < 0 or row_index >= _roster_count:
 		return
-	var slot: int = _roster_slots[row_index]
 	var residents: ResidentsScript = SettlementSystem.residents()
-	var needs: NeedsScript = SettlementSystem.needs()
-	if not residents.is_alive(slot):
-		_hud.shell().raise_notice(UiNotices.CATEGORY_ROSTER_STALE,
-			"That resident is no longer living; the roster row is stale.",
-			"%s row %d" % [ROSTER_SOURCE, row_index], ROSTER_STALE_CODE,
-			"Open the roster again to rebuild its rows.")
+	var ref: Vector2i = Vector2i(_roster_ref_slot[row_index], _roster_ref_generation[row_index])
+	var identity: StringName = _roster_identity_refusal(residents, row_index, ref)
+	if identity != REFUSE_NONE:
+		_report_stale_row(row_index, identity)
 		return
-	_show_resident_detail(residents, needs, slot)
+	var resolved: IntMath.IntResult = residents.slot_of_ref(ref)
+	if not resolved.ok:
+		_report_stale_row(row_index, StringName(resolved.error))
+		return
+	if not residents.is_alive(resolved.value):
+		_report_stale_row(row_index, StringName(ROSTER_STALE_CODE))
+		return
+	_show_resident_detail(residents, SettlementSystem.needs(), ref, resolved.value)
 
 
-func _show_resident_detail(residents: ResidentsScript, needs: NeedsScript, slot: int) -> void:
+func _roster_identity_refusal(residents: ResidentsScript, row_index: int,
+		ref: Vector2i) -> StringName:
+	"""Why row `row_index` no longer names the resident it was built for, or REFUSE_NONE.
+
+	Two independent guards, and neither subsumes the other. The generation rejects a reference
+	whose slot was destroyed OR handed to a different entity -- `ref_of_slot()` separates those
+	two so the notice can say which happened instead of calling both "stale". The persistent id
+	then rejects a slot that still validates but no longer belongs to the same individual, which
+	is what a restored set of directory columns leaves behind under an already open roster.
+	"""
+	var directory: EntityDirectoryScript = residents.directory()
+	if not directory.is_valid_of_kind(ref, EntityDirectoryScript.KIND_RESIDENT):
+		if directory.ref_of_slot(ref.x) == EntityDirectoryScript.NULL_REF:
+			return StringName(ROSTER_STALE_CODE)
+		return StringName(ROSTER_REUSED_CODE)
+	if directory.get_persistent_id(ref) != _roster_persistent_id[row_index]:
+		return StringName(ROSTER_IDENTITY_CODE)
+	return REFUSE_NONE
+
+
+func _report_stale_row(row_index: int, code: StringName) -> void:
+	"""Refuse the click in the open: an Error notice naming the row, and the retained code.
+
+	UI-SET-085 wants the exact code, the plain reason and a recovery action. The sentence is
+	deliberate about what did NOT happen -- "nothing was selected" -- because the defect this
+	replaces was silent, and a player who saw the panel change would have had no way to know the
+	row had gone stale underneath them.
+	"""
+	_hud.shell().raise_notice(UiNotices.CATEGORY_ROSTER_STALE,
+		"That roster row no longer names the resident it was built for; nothing was selected.",
+		"%s row %d" % [ROSTER_SOURCE, row_index], String(code),
+		"Open the roster again to rebuild its rows.")
+	_refuse(code)
+
+
+func _show_resident_detail(residents: ResidentsScript, needs: NeedsScript, ref: Vector2i,
+		slot: int) -> void:
 	"""Fill UI-SET-036 in UXV-019's order: identity, health, five needs, activity and skills.
+
+	Takes BOTH the validated reference and the row it resolved to. The reference is what the
+	panel selects and what the need rows are captured through; the slot is only an index into
+	columns the caller has already proved belong to that reference. Nothing here revalidates,
+	and nothing here re-derives the reference from the slot -- `ref_of(slot)` would answer for
+	whoever holds the row now, which is the substitution this whole path exists to prevent.
 
 	THE OLD LINE WAS `Hunger 7500 of 10000`, and it broke two requirements at once. UXV-020
 	forbids exposing a basis-point figure as the player-facing value, and UXV-021 fixes the
@@ -301,21 +430,25 @@ func _show_resident_detail(residents: ResidentsScript, needs: NeedsScript, slot:
 	shell.set_detail_health(UiResidentCard.health_text(needs, slot))
 	shell.set_detail_activity(UiResidentCard.activity_text(needs,
 		SettlementSystem.jobs(), slot))
-	_fill_need_rows(shell, residents, needs, slot)
+	_fill_need_rows(shell, residents, needs, ref)
 	_fill_species_emblem(shell, residents, slot)
-	shell.select_resident(residents.ref_of(slot), "")
+	shell.select_resident(ref, "")
 	shell.set_detail_open(true)
 
 
 func _fill_need_rows(shell: UiShell, residents: ResidentsScript, needs: NeedsScript,
-		slot: int) -> bool:
+		ref: Vector2i) -> bool:
 	"""UXV-020's five rows: exact percent, 8 px track and per-simulated-hour change each.
 
 	A refusal from the card leaves the rows EMPTY and raises the refusal, rather than printing
 	four rows and one plausible fifth. `needs.gd` publishes an effective rate for hunger only,
 	so the other four rows carry the card's explicit "Rate unavailable" -- see its header.
+
+	NEED-RATE-R01's ref-first entry point, not the slot-keyed convenience beside it: the five
+	rows are captured at one boundary from the same validated reference the panel selected, so
+	the card cannot re-resolve a slot that changed hands between the click and the capture.
 	"""
-	if not _card.fill_needs(residents, needs, slot):
+	if not _card.fill_needs_for(residents.directory(), residents, needs, ref):
 		shell.raise_notice(UiNotices.CATEGORY_ROSTER_STALE,
 			"That resident's needs could not be read (%s)." % _card.last_refusal(),
 			ROSTER_SOURCE, String(_card.last_refusal()),

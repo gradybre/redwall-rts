@@ -47,7 +47,7 @@ extends Node
 ## one. Nothing is bound by default, and an unbound GameManager runs the clock and no simulation,
 ## which is exactly what a test instance wants.
 ##
-## LOAD BARRIER (RESTORE-R01, decision 0091). `begin_load()` raises a transient guard that this
+## LOAD BARRIER (RESTORE-R01, decision 0092). `begin_load()` raises a transient guard that this
 ## node checks BEFORE host advance and BEFORE every scheduler pump, and that every operational
 ## control refuses under: start, pause, resume, toggle, speed, cycle and overload acknowledgement
 ## each return a `LOAD_IN_PROGRESS` refusal having altered neither the clock nor the queue. The
@@ -67,12 +67,28 @@ extends Node
 ## `restore_runtime()` call before restoring the previous `_started`/`_state` -- so a load that
 ## fails after the clock was installed leaves BOOT as BOOT, and a running game as it stood.
 ##
-## WHAT THIS GUARD DOES NOT REACH, and cannot from this file: `clock()` and `scheduler_events()`
-## hand out the raw clock and queue, whose own mutators know nothing about this barrier.
-## RESTORE-R01 requires the shared guard to reach inside those two objects, and both files are
-## owned elsewhere, so the hole is recorded in decision 0091 rather than papered over with a check
-## a raw caller bypasses anyway. The disk half of "disk-backed rollback" is equally absent: no
-## section 1 WORLD writer exists on this base, so the checkpoint here is in memory only.
+## THE RAW-OBJECT HOLE IS CLOSED, AND IT TOOK BOTH HALVES. `clock()` and `scheduler_events()`
+## still hand out the raw clock and queue, and their mutators still know nothing about `_loading`.
+## What they DO know is `sim_clock.gd`'s own token barrier (decision 0104): `acquire_load_barrier()`
+## bars the clock's whole operational command surface, and `scheduler_events.gd` reads that same
+## barrier through its bound clock. `begin_load()` now TAKES that grant beside the checkpoint
+## capture, so a raw caller reaching past this node is refused by the clock itself.
+##
+## `_loading` STAYS. It is not redundant with the token: it guards this coordinator's OWN controls
+## and `_process`, which the clock cannot see -- `start_game()` would replace the very clock
+## holding the barrier, and the host-advance path would charge load time as debt. They are one
+## barrier's two checkpoints, and `begin_load()` refuses outright if it cannot have both: if the
+## grant is refused, nothing is captured, `_loading` stays false and the call changes nothing.
+##
+## The token lives in ONE transient reference field, `_barrier`. It is never serialized, never
+## journaled and never OR-ed into the pause mask -- RESTORE-R01 is explicit that the transient
+## guard "is not OR-ed into the serialized/canonical logical pause mask". `end_load()` and
+## `rollback_load()` release it where each already resets `_last_host_usec`; an UNRECOVERABLE
+## rollback deliberately leaves it HELD, because a world that could not be put back must not be
+## handed to the player or to a raw caller.
+##
+## The disk half of "disk-backed rollback" is still absent: no section 1 WORLD file writer exists
+## on this base, so the checkpoint here is in memory only.
 
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const SchedulerEventsScript := preload("res://scripts/core/scheduler_events.gd")
@@ -98,6 +114,9 @@ const REFUSE_CLOCK_RESTORE: StringName = &"CLOCK_RESTORE_REFUSED"
 const REFUSE_LOAD_NOT_INSTALLED: StringName = &"LOAD_NOT_INSTALLED"
 const REFUSE_LOAD_NOT_PUBLISHED: StringName = &"LOAD_NOT_PUBLISHED"
 const REFUSE_LOAD_UNRECOVERABLE: StringName = &"LOAD_UNRECOVERABLE"
+## The clock refused the out-of-band grant, so `begin_load()` refuses the whole load rather than
+## opening a coordinator-only guard a raw caller would walk straight past.
+const REFUSE_LOAD_BARRIER: StringName = &"LOAD_BARRIER_UNAVAILABLE"
 
 ## Rollback checkpoint column: the clock's ten runtime scalars in `restore_runtime()` argument
 ## order, allocated once in `_init()` and overwritten in place, never resized.
@@ -141,6 +160,9 @@ var _restore_installed: bool = false
 var _published: bool = false
 ## Set only when a rollback could not reinstall its own checkpoint: the barrier then stays held.
 var _unrecoverable: bool = false
+## RESTORE-R01's out-of-band grant, held for exactly the span of one load. A reference, not state:
+## it is not serialized, not journaled and not part of any digest.
+var _barrier: SimClockScript.LoadBarrier = null
 ## Pre-load checkpoint, allocated once so a rollback allocates nothing at its worst moment.
 var _checkpoint: PackedInt64Array = PackedInt64Array()
 var _checkpoint_started: bool = false
@@ -438,11 +460,20 @@ func begin_load() -> bool:
 	is what makes step 6's rollback a return to the pre-load state rather than to some midpoint.
 	Refused from inside a tick: the queue is executing a boundary and the clock is mid-drain, so
 	nothing may be installed underneath it.
+
+	The clock's own token barrier is taken FIRST, before a single field moves, and the whole call
+	is refused as LOAD_BARRIER_UNAVAILABLE if the grant is refused -- a second concurrent load
+	must not get a coordinator guard while the clock believes the first one still owns it. On that
+	path nothing is captured and `is_loading()` stays false, which is the contract this preserves.
 	"""
 	if _loading:
 		return _refuse(REFUSE_LOAD_ALREADY_OPEN)
 	if _events.is_executing_tick():
 		return _refuse(REFUSE_LOAD_INSIDE_TICK)
+	var grant: SimClockScript.LoadBarrierGrant = _clock.acquire_load_barrier()
+	if not grant.is_ok():
+		return _refuse(REFUSE_LOAD_BARRIER)
+	_barrier = grant.token
 	_capture_checkpoint()
 	_checkpoint_started = _started
 	_checkpoint_state = _state
@@ -510,6 +541,7 @@ func end_load() -> bool:
 	if not _published:
 		return _refuse(REFUSE_LOAD_NOT_PUBLISHED)
 	_loading = false
+	_release_barrier()
 	_last_host_usec = Time.get_ticks_usec()
 	_last_refusal = REFUSE_NONE
 	return true
@@ -533,9 +565,33 @@ func rollback_load() -> bool:
 	_restore_installed = false
 	_published = false
 	_loading = false
+	_release_barrier()
 	_last_host_usec = Time.get_ticks_usec()
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+func _release_barrier() -> bool:
+	"""Lower the clock's token barrier this load raised and drop the reference. False if none.
+
+	The token is the ONLY route down -- `sim_clock.gd` publishes no `lower_load_barrier()` -- so
+	dropping the reference without releasing would leave every clock command refused forever.
+	Both exits call this; the UNRECOVERABLE rollback path deliberately does not.
+	"""
+	if _barrier == null:
+		return false
+	var released: bool = _barrier.release()
+	_barrier = null
+	return released
+
+
+func is_load_barrier_held() -> bool:
+	"""True while this manager holds the clock's out-of-band grant. The other half of `is_loading()`.
+
+	A raw caller that reached `clock()` or `scheduler_events()` past this node is refused by the
+	clock while this is true, which is the hole `_loading` alone could never close.
+	"""
+	return _clock.is_load_barrier_held()
 
 
 func is_loading() -> bool:

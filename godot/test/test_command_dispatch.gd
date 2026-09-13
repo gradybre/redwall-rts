@@ -922,6 +922,116 @@ func test_a_multibyte_alias_is_measured_in_characters_not_bytes() -> void:
 	assert_equal(_commit(), 1, "and it commits, because 32 characters is inside the bound")
 
 
+func test_a_c1_control_character_in_an_alias_is_named_as_a_control_character() -> void:
+	"""THE BLOCKER (decision 0112/0126). C1 is U+0080..009F and the old copy of the rules missed it.
+
+	This dispatch layer used to test `code_point < 32 or code_point == 127`, so U+0085 (NEL) and
+	U+009F reached `set_name()`, which refused them under NAME-R02's own predicate -- the player
+	was told COMMAND_STORE_REFUSED instead of which rule they broke. The assertion is therefore on
+	the CODE, not on the mere fact of refusal, because both spellings refuse.
+
+	Both ends of the block are tested: an implementation that widened the bound by one, or that
+	tested only the first C1 code point, passes half of this.
+	"""
+	for code_point: int in [0x80, 0x85, 0x9f]:
+		_assert_alias_refused("Ro%swan" % String.chr(code_point),
+			CommandDispatchScript.RESULT_ALIAS_CONTROL_CHARACTER)
+
+
+func test_the_scalar_just_past_the_c1_block_is_not_a_control_character() -> void:
+	"""U+00A0 is the first scalar above C1 and must be admitted, so the fix is not an over-reach."""
+	var resident: Vector2i = _resident()
+	var alias: String = "Ro%swan" % String.chr(0xa0)
+	assert_true(_submit(KIND_NAME_RESIDENT, resident, 0, 0, alias.to_utf8_buffer()),
+		"it is admitted")
+	assert_equal(_commit(), 1, "and it commits")
+	assert_equal(_residents.name_key_of(_jobs.directory().get_typed_row(resident)),
+		StringName(alias), "carrying the alias unchanged")
+
+
+func test_c0_and_delete_are_still_named_as_control_characters() -> void:
+	"""The two ranges the old copy DID catch must keep their code after the fold-in."""
+	_assert_alias_refused("Ro%swan" % String.chr(0x01),
+		CommandDispatchScript.RESULT_ALIAS_CONTROL_CHARACTER)
+	_assert_alias_refused("Ro%swan" % String.chr(0x1f),
+		CommandDispatchScript.RESULT_ALIAS_CONTROL_CHARACTER)
+	_assert_alias_refused("Ro%swan" % String.chr(0x7f),
+		CommandDispatchScript.RESULT_ALIAS_CONTROL_CHARACTER)
+
+
+func test_an_alias_is_measured_in_scalars_and_not_in_grapheme_clusters() -> void:
+	"""NAME-R02's named trap. "e"+U+0301 is ONE cluster and TWO scalars; the rule counts scalars."""
+	var cluster: String = "e%s" % String.chr(0x301)
+	var over: String = cluster.repeat(17)
+	assert_equal(over.length(), 34, "17 clusters really are 34 scalars")
+	_assert_alias_refused(over, CommandDispatchScript.RESULT_ALIAS_LENGTH)
+	var resident: Vector2i = _resident()
+	var exact: String = cluster.repeat(16)
+	assert_equal(exact.length(), ALIAS_MAX_CHARACTERS, "16 clusters are exactly 32 scalars")
+	assert_true(_submit(KIND_NAME_RESIDENT, resident, 0, 0, exact.to_utf8_buffer()),
+		"the 32-scalar alias is admitted")
+	assert_equal(_commit(), 1, "and it commits")
+	assert_equal(_residents.name_key_of(_jobs.directory().get_typed_row(resident)),
+		StringName(exact), "stored scalar-for-scalar, never normalized to a precomposed form")
+
+
+func test_a_thirty_two_scalar_alias_at_the_full_byte_ceiling_is_accepted() -> void:
+	"""The other half of the same trap: bytes are not the scalar count either.
+
+	32 astral scalars encode to 128 bytes, the exact byte ceiling. An implementation that counted
+	bytes as the scalar length would see 128 against a bound of 32 and refuse this.
+	"""
+	var resident: Vector2i = _resident()
+	var alias: String = String.chr(0x1f600).repeat(ALIAS_MAX_CHARACTERS)
+	assert_equal(alias.length(), ALIAS_MAX_CHARACTERS, "Godot's String counts 32 scalars")
+	assert_equal(alias.to_utf8_buffer().size(), CommandDispatchScript.ALIAS_MAX_BYTES,
+		"which encode to exactly the byte ceiling")
+	assert_true(_submit(KIND_NAME_RESIDENT, resident, 0, 0, alias.to_utf8_buffer()),
+		"it is admitted")
+	assert_equal(_commit(), 1, "and it commits")
+	assert_equal(_residents.name_key_of(_jobs.directory().get_typed_row(resident)),
+		StringName(alias), "carrying all 32 scalars")
+
+
+func test_an_alias_past_the_byte_ceiling_is_refused_before_it_is_decoded() -> void:
+	"""33 astral scalars are 132 bytes: over the ceiling, refused as a length and never truncated."""
+	var alias: String = String.chr(0x1f600).repeat(ALIAS_MAX_CHARACTERS + 1)
+	assert_true(alias.to_utf8_buffer().size() > CommandDispatchScript.ALIAS_MAX_BYTES,
+		"the fixture really is over the byte ceiling")
+	_assert_alias_refused(alias, CommandDispatchScript.RESULT_ALIAS_LENGTH)
+
+
+func test_a_refused_alias_leaves_the_residents_name_columns_byte_identical() -> void:
+	"""ADR 0059, checked by byte comparison rather than by a spot read of the target row.
+
+	A second, ALREADY NAMED resident is in the store, so a refusal that reset, shifted or
+	re-encoded any other row is caught as well as one that wrote the target.
+	"""
+	var bystander: Vector2i = _resident()
+	assert_true(_submit(KIND_NAME_RESIDENT, bystander, 0, 0, "Cornflower".to_utf8_buffer()),
+		"a bystander is named first")
+	assert_equal(_commit(), 1, "and that name commits")
+	var before: PackedByteArray = _name_column_bytes()
+	var target: Vector2i = _resident()
+	assert_true(_submit(KIND_NAME_RESIDENT, target, 0, 0,
+		("Ro%swan" % String.chr(0x9f)).to_utf8_buffer()), "a C1 alias is admitted to the queue")
+	assert_equal(_commit(), 0, "and refuses at commit")
+	assert_equal(_last_code(), CommandDispatchScript.RESULT_ALIAS_CONTROL_CHARACTER,
+		"naming the control character")
+	assert_true(_name_column_bytes() == before,
+		"and every name column byte is exactly what the refusal found")
+
+
+func _name_column_bytes() -> PackedByteArray:
+	"""Serialise every resident row's `(named flag, name)` pair so two states compare as bytes."""
+	var bytes: PackedByteArray = PackedByteArray()
+	for slot: int in ResidentsScript.RESIDENT_CAPACITY:
+		bytes.append(1 if _residents.is_named(slot) else 0)
+		bytes.append_array(String(_residents.name_key_of(slot)).to_utf8_buffer())
+		bytes.append(0)
+	return bytes
+
+
 func _assert_alias_refused(alias: String, expected: int) -> void:
 	"""Submit one alias, commit it, and assert both the refusal id and that no name was written."""
 	var resident: Vector2i = _resident()

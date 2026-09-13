@@ -528,6 +528,10 @@ const REFUSE_CLOCK_BIND: StringName = &"SIMULATION_CLOCK_BIND_REFUSED"
 const REFUSE_CALENDAR_MISMATCH: StringName = &"DAY_BOUNDARY_CALENDAR_MISMATCH"
 const REFUSE_INVALID_INDEX: StringName = &"INVALID_INDEX"
 const REFUSE_ECOLOGY_BIND: StringName = &"COMMAND_ECOLOGY_BIND_REFUSED"
+## STOCK-SEED-R01's guard could not be bound to the lot store, so seed consumption would be
+## enforced by nobody. Fatal for the same reason the ecology bind is: the HUD would show a running
+## settlement while every sower helped itself to dead seed.
+const REFUSE_SEED_AUTHORITY_BIND: StringName = &"SEED_EXPIRY_AUTHORITY_BIND_REFUSED"
 const REFUSE_PLANNER_DAY: StringName = &"JOB_PLANNER_DAY_REFUSED"
 ## STOCK-SEED-R01. `STOCK_AGE_INTEGRITY_HALT` is what every tick refuses with once an arithmetic,
 ## ledger or schema failure in the hourly sweep has survived its one revalidated retry; it is a
@@ -704,6 +708,31 @@ func _compose_stock_layer() -> void:
 	_item_definitions = ItemDefinitionsScript.new()
 	_item_definitions.load_default(_inventory)
 	_stock_age = StockAgeScript.new(_inventory, _item_definitions)
+	_bind_seed_expiry_authority()
+
+
+func _bind_seed_expiry_authority() -> void:
+	"""Give the lot store STOCK-SEED-R01's seed-consumer predicate. The wiring call, made once.
+
+	`inventory.gd` publishes `set_seed_expiry_authority()` and `stock_age.gd` publishes
+	`refuses_seed_consumption()`; both have existed and NOTHING called the setter, so the guard
+	refused nothing in the running game -- an unbound store cannot identify a seed at all, so it
+	had no lots to refuse rather than every lot. This is the one place that owns both
+	collaborators, which is where the ruling puts the call.
+
+	ORDER IS THE POINT. It runs at the end of `_compose_stock_layer()`: after the inventory, the
+	item catalog and the aging stage exist, and before `_init()` returns -- so before any command,
+	planner, work step or hourly pass can reach a lot. A refused bind is fatal rather than silent.
+
+	`_clear_stock_layer()` does NOT rebind: `set_seed_expiry_authority()` is wiring, not simulation
+	state, and `inventory.clear()` deliberately preserves it. Rebinding there would hide a store
+	that had somehow lost its guard.
+	"""
+	var bound: InventoryScript.OpResult = _inventory.set_seed_expiry_authority(_stock_age)
+	if bound.ok:
+		return
+	_last_refusal = REFUSE_SEED_AUTHORITY_BIND
+	push_error("SettlementSystem could not bind the seed-expiry authority: %s" % bound.error)
 
 
 func _bind_ecology_to_commands() -> void:

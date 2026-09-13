@@ -407,7 +407,7 @@ Neither needs new state.
 | Scan continuation key (u8) | `_continuation_bucket` | 1 | `AGENT_CAPACITY` = 512 | `_job_scan_cursor == 0` means no scan in progress | 1 | §4 COMPONENT_COLUMNS | See the first row of this group. |
 | Job pass scratch | `_skill_scratch`, `_priority_scratch` | 4 | `JOB_KIND_COUNT` = 12 | Refilled per candidate evaluation | 3 | -- | Twelve entries each, one per job kind. |
 | Jobs derived counters | -- | -- | -- | `_deepest_continuation_bucket == -1` when no resident holds a continuation | 2 | §8 JOB_INDEXES | `_live_count`, `_agent_count` and `_deepest_continuation_bucket`. The last is an UPPER BOUND whose only cost when too high is one wasted walk, so a load may restore it at its maximum and converge. |
-| Jobs pass inputs and scratch | -- | -- | -- | -- | 3 | -- | `_food_reserve_below_two_days` is a per-pass world input the caller restates each pass. `_best_*`, `_walk_*`, `_math`, `_dangerous_consent_scratch` and `_hazard_locked_scratch` live inside one candidate evaluation. |
+| Jobs pass inputs and scratch | -- | -- | -- | -- | 3 | -- | `_food_reserve_below_two_days` is a per-pass world input the caller restates each pass. `_best_*`, `_walk_*`, `_math`, `_dangerous_consent_scratch` and `_hazard_locked_scratch` live inside one candidate evaluation. `_last_column_refusal` [decision 0132] is the StringName code from the most recent `restore_columns()` refusal: a diagnostic scalar, excluded from `state_bytes()`, owing no ledger byte. |
 
 ### `godot/scripts/core/milestones.gd`
 
@@ -456,7 +456,7 @@ Neither needs new state.
 | Hunger rate table | `_hunger_rate_milli` | 8 | `SIZE_COUNT` = 3 | One entry per size class | 2 | §4 COMPONENT_COLUMNS | Three constants derived from the balance table at construction, not runtime state. |
 | Needs tick scratch | `_rate_scratch` | 8 | `NEED_COUNT` = 5 | Refilled per resident | 3 | -- | Five entries, one per need, reused by the tick. |
 | Needs live counters | -- | -- | -- | -- | 2 | §4 COMPONENT_COLUMNS | `_present_count` and `_living_count`, recomputed from `_present` and `_status`. ARCH-SAVE-005 caps living residents at 256, which is checked against the recomputed value, not a stored one. |
-| Needs pass inputs and scratch | -- | -- | -- | -- | 3 | -- | `_winter` and `_hard_freeze` are per-tick world inputs the caller restates every tick. `_death_count`, `_last_refused_slot`, `_math`, `_step_value`, `_step_remainder` and `_out_value` are diagnostics or scratch. |
+| Needs pass inputs and scratch | -- | -- | -- | -- | 3 | -- | `_winter` and `_hard_freeze` are per-tick world inputs the caller restates every tick. `_death_count`, `_last_refused_slot`, `_math`, `_step_value`, `_step_remainder` and `_out_value` are diagnostics or scratch. `_last_column_refusal` [decision 0132] is the StringName code from the most recent `restore_columns()` refusal: a diagnostic scalar, excluded from `state_bytes()`, owing no ledger byte. |
 
 ### `godot/scripts/core/orchard_hive.gd`
 
@@ -531,7 +531,7 @@ Neither needs new state.
 | Resident active list | `_live_slots` | 4 | `RESIDENT_CAPACITY` = 512 | Only `[0, _live_count)` is meaningful | 2 | §4 COMPONENT_COLUMNS | Rebuilt ascending. |
 | Cohort rollback scratch | `_cohort_slots` | 4 | `INITIAL_POPULATION` = 12 | Only the current synchronous spawn/rollback call owns meaningful entries | 3 | -- | STATE-COHORT-R01: written by spawn_initial_settlement and read only by _rollback_cohort. Successful-call residue has no future meaning; bare reusable slots cannot record founder identity after death. No save/digest membership; save cannot observe an in-flight call. See rulings/2026-09-11_focus_and_rollback_state.md. |
 | Resident catalog and counters | -- | -- | -- | -- | 2 | §2 CATALOG_IDS | `_species_ids` and `_catalog_error` are rebuilt by reloading the catalog; `_live_count` is recomputed with the active list. |
-| Resident scratch | -- | -- | -- | -- | 3 | -- | `_math` and the `_owns_collaborators` construction flag. |
+| Resident scratch | -- | -- | -- | -- | 3 | -- | `_math` and the `_owns_collaborators` construction flag. `_last_column_refusal` [decision 0132] is the StringName code from the most recent `restore_columns()` refusal: a diagnostic scalar, excluded from `state_bytes()`, owing no ledger byte. |
 
 ### `godot/scripts/core/resource_catalog_binding.gd`
 

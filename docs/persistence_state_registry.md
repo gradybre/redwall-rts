@@ -560,6 +560,13 @@ Neither needs new state.
 |---|---|---:|---|---|:-:|---|---|
 | Fixed header and section table | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` beyond the lazily built 256-entry CRC-32/ISO-HDLC lookup table, which is a compile-time constant derived from the reversed polynomial `systems_architecture.md:745` states. Everything else is static: the 256-byte header codec, the 64-byte descriptor codec, the body SHA-256 and the section-table validator. The header's own bytes are file structure, not simulation state; the catalog hash it carries at offset 72 is `catalog_ids.gd`'s digest, not a second one. |
 
+### `godot/scripts/core/save_section_job_indexes.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 8 JOB_INDEXES codec | -- | -- | -- | -- | 3 | -- | Decision 0120. Holds no module-level `var`; every function is static. Writes §8 as `store_count:u32` = 1, `owner_key` "job_planner", `owner_schema_version:u32` = 1, `primary_count:u64` (**unruled -- BLOCKER J1**), `payload_byte_length:u64` = 363112, then 29 columns column-major in the registry artifact's declared ordinal order. Arithmetic: `39 + 29*8 + 362880` = **363151** section bytes, of which **362880** are canonical values; the wrapper and the 29 per-column counts contribute no canonical record. Extents are read per field from `job_planner.gd`'s own constants -- 8192 (ordinals 0-10), 4096 (11-12), 128 (13-15), 640 (16-20), 1024 (21-28) -- and NEVER from ordinal 0, which is the guess REG-R01 forbids for an owner with several differently sized tables. |
+| Section 8 decode/capture scratch | -- | var | five tables | each field's declared unused value | 3 | -- | `Record` is **362880 bytes** of bounded codec scratch, not a new authoritative column and nonexistent between a save and a load: `8192*(8*4 + 3*1)` = 286720, `4096*(2*4)` = 32768, `128*(1 + 2*4)` = 1152, `640*(2*1 + 2*4 + 8)` = 11520, `1024*(5*4 + 8 + 2*1)` = 30720. The authoritative columns stay in `job_planner.gd`, which owes the bulk column API named in BLOCKER J2. |
+
 ### `godot/scripts/core/save_section_name_pool.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

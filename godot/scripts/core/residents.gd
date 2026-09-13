@@ -76,6 +76,20 @@ extends RefCounted
 ##     follow-up is explicit that "a missing rig is a presentation/export gap, not authority to
 ##     deny legal simulation". `spawn_with_stage()` never consults the rig tables.
 ##
+## PERSONAL NAMES (NAME-R02, 2026-09-12). This store owns the ONE validator every naming path
+## shares: `set_name()`, `restore_name()`, `command_dispatch.gd`'s NAME_RESIDENT arm, the §5.1
+## automatic Warden assignment and `save_section_name_pool.gd`'s capture and restore all reach
+## `name_refusal()`, and none of them carries a second copy of the rules. Before NAME-R02 this
+## setter validated NOTHING -- it stored any StringName and derived `_named` from emptiness -- so
+## a live row could hold a name the section 14 codec was then obliged to refuse. That asymmetry
+## was the ruling's blocker N3 and it is closed here, not at the wire.
+##
+## The occupancy table is `name_occupancy_refusal()` and it is checked as a PAIR. A derived flag
+## can only ever produce agreement, so it can only ever conceal a disagreement; `restore_name()`
+## exists precisely so a save's `(named, name)` halves are validated against each other instead
+## of one being recomputed from the other. Liveness is never consulted: a retained dead or
+## departed row keeps its identity.
+##
 ## STILL MISSING, reported not invented: MOVE-DEP-R02 requires the stage column to be persisted
 ## and hashed in save section §4 with an owner/schema increment, and no save module exists in
 ## this repository (see `docs/persistence_state_registry.md`'s "Blocked" section). There is
@@ -220,6 +234,50 @@ const INITIAL_ARRIVAL_TICK: int = 0
 const NO_NAME_KEY: StringName = &""
 const NULL_REF: Vector2i = EntityDirectory.NULL_REF
 
+# --- personal names, NAME-R02 (2026-09-12) --------------------------------------------------
+
+## NAME-R02 corrects SAVE-R09-002. The whole occupancy/name table, which is what makes a live
+## anonymous resident legal:
+##
+##   | Resident row                                  | `_named` | `_name_key`                 |
+##   |-----------------------------------------------|---------:|-----------------------------|
+##   | Free                                          |        0 | empty                       |
+##   | Present anonymous, INCLUDING a live resident   |        0 | empty                       |
+##   | Present named                                 |        1 | nonempty valid personal name|
+##
+## The earlier reading -- "a live resident cannot load an empty name" taken literally -- refused
+## the GDD §5.1 starter settlement outright: REQ-SET-040 makes naming trigger-based and eleven of
+## the twelve founders are anonymous. A retained dead or departed row follows its own occupancy
+## rule and keeps whatever identity it had; nothing here erases a name because `is_alive()` is
+## false.
+
+## SAVE-R09-002's S2 answer: at most 128 encoded UTF-8 bytes.
+const NAME_MAX_UTF8_BYTES: int = 128
+## ARCH-SAVE-005: 2-32 UNICODE SCALAR VALUES. Not bytes and not grapheme clusters -- the three
+## differ, and NAME-R02 names counting either of the other two as the trap.
+const NAME_MIN_SCALARS: int = 2
+const NAME_MAX_SCALARS: int = 32
+
+## Unicode general category Cc, written out as explicit bounds. NAME-R02: "This is an explicit
+## control-code predicate, not an unversioned call to an engine Unicode category database", so
+## the rule cannot change under this store when an engine upgrade reclassifies anything.
+const CONTROL_C0_MAX: int = 0x1f
+const CONTROL_DEL: int = 0x7f
+const CONTROL_C1_MAX: int = 0x9f
+
+## The strict-UTF-8 encodable range: a Unicode scalar value is 0..0x10FFFF excluding the
+## surrogate block. A code point outside it has no strict UTF-8 encoding at all, so it can never
+## reach the save arena and is refused here rather than replaced.
+const UNICODE_SCALAR_MAX: int = 0x10ffff
+const SURROGATE_MIN: int = 0xd800
+const SURROGATE_MAX: int = 0xdfff
+
+## The three strict-UTF-8 width boundaries, so `utf8_byte_length_of()` is arithmetic rather than
+## an encode into a throwaway buffer.
+const UTF8_ONE_BYTE_MAX: int = 0x7f
+const UTF8_TWO_BYTE_MAX: int = 0x7ff
+const UTF8_THREE_BYTE_MAX: int = 0xffff
+
 const REFUSE_NONE: StringName = &""
 const REFUSE_INVALID_SLOT: StringName = &"INVALID_SLOT"
 const REFUSE_NOT_PRESENT: StringName = &"RESIDENT_NOT_PRESENT"
@@ -228,6 +286,17 @@ const REFUSE_INVALID_ROLE: StringName = &"INVALID_ROLE"
 const REFUSE_INVALID_SKILL: StringName = &"INVALID_SKILL"
 const REFUSE_INVALID_XP: StringName = &"INVALID_XP"
 const REFUSE_INVALID_COUNT: StringName = &"INVALID_COUNT"
+## NAME-R02's five name refusals. Five codes and not one, because a load report that said only
+## "bad name" could not tell an over-long alias from a corrupted flag/string pair.
+const REFUSE_NAME_BYTES: StringName = &"NAME_OVER_BYTE_CAP"
+const REFUSE_NAME_SCALARS: StringName = &"NAME_SCALAR_COUNT"
+const REFUSE_NAME_CONTROL: StringName = &"NAME_CONTROL_CHARACTER"
+const REFUSE_NAME_NOT_UTF8: StringName = &"NAME_NOT_STRICT_UTF8"
+## The occupancy half of the table: a named row cannot be empty, an anonymous row cannot hide a
+## name, and a free row can carry neither.
+const REFUSE_NAMED_ROW_EMPTY: StringName = &"NAMED_ROW_EMPTY_NAME"
+const REFUSE_ANONYMOUS_ROW_NAMED: StringName = &"ANONYMOUS_ROW_HAS_NAME"
+const REFUSE_FREE_ROW_NAMED: StringName = &"FREE_ROW_HAS_NAME"
 const REFUSE_RESERVED_SKILL: StringName = &"RESERVED_SKILL_INDEX"
 const REFUSE_SETTLEMENT_NOT_EMPTY: StringName = &"SETTLEMENT_NOT_EMPTY"
 const REFUSE_NO_LIVING_RESIDENTS: StringName = &"NO_LIVING_RESIDENTS"
@@ -753,7 +822,10 @@ func spawn_initial_settlement() -> OpResult:
 			_rollback_cohort(index)
 			return _refuse(spawned.error)
 		_cohort_slots[index] = spawned.value
-		_write_initial_resident(spawned.value, index)
+		var written: StringName = _write_initial_resident(spawned.value, index)
+		if written != REFUSE_NONE:
+			_rollback_cohort(index + 1)
+			return _refuse(written)
 	return _succeed(INITIAL_POPULATION, NULL_REF)
 
 
@@ -772,14 +844,21 @@ func _rollback_cohort(created: int) -> void:
 		_cohort_slots[index] = EntityDirectory.NULL_SLOT
 
 
-func _write_initial_resident(slot: int, index: int) -> void:
-	"""Apply the §5.1 role, name, arrival tick and starting XP to one starter resident."""
+func _write_initial_resident(slot: int, index: int) -> StringName:
+	"""Apply the §5.1 role, name, arrival tick and starting XP to one starter resident.
+
+	The Warden's authored name goes through `set_name()` rather than into the columns directly:
+	NAME-R02 makes AUTOMATIC NAME ASSIGNMENT one of the shared validator's callers, so an authored
+	constant that stopped satisfying the rule refuses the cohort instead of seeding a store the
+	section 14 codec would later be unable to write. Returns REFUSE_NONE when the row is written.
+	"""
 	_arrival_tick[slot] = INITIAL_ARRIVAL_TICK
 	var is_warden: bool = index == WARDEN_INDEX
 	if is_warden:
 		_role[slot] = ROLE_WARDEN
-		_named[slot] = 1
-		_name_key[slot] = String(WARDEN_NAME)
+		var named: OpResult = set_name(slot, WARDEN_NAME)
+		if not named.ok:
+			return named.error
 	var base: int = slot * SKILL_COUNT
 	for skill: int in SKILL_COUNT:
 		if skill == SKILL_RESERVED_INDEX:
@@ -789,6 +868,7 @@ func _write_initial_resident(slot: int, index: int) -> void:
 			xp = WARDEN_KEEP_XP
 		_skill_xp[base + skill] = xp
 		_skill_level[base + skill] = skill_level_for_xp(xp)
+	return REFUSE_NONE
 
 
 # --- readers -----------------------------------------------------------------------------------
@@ -1125,6 +1205,130 @@ func _check_skill_address(slot: int, skill: int) -> StringName:
 	return REFUSE_NONE
 
 
+# --- NAME-R02: the one shared name validator ----------------------------------------------------
+
+static func is_unicode_scalar(code_point: int) -> bool:
+	"""True for a code point that strict UTF-8 can encode: 0..0x10FFFF, no surrogate.
+
+	Static and public so the rule is testable on its own. A surrogate or an out-of-range code
+	point has no strict UTF-8 encoding, so it can never be written to or read back from the save
+	arena; NAME-R02 forbids replacing it, which leaves refusing it.
+	"""
+	if code_point < 0 or code_point > UNICODE_SCALAR_MAX:
+		return false
+	return code_point < SURROGATE_MIN or code_point > SURROGATE_MAX
+
+
+static func is_control_scalar(code_point: int) -> bool:
+	"""True for Unicode category Cc: U+0000-U+001F, U+007F DEL and U+0080-U+009F.
+
+	Written as three explicit bounds. NAME-R02 requires an explicit control-code predicate rather
+	than a call into whatever Unicode category tables the engine build happens to carry, so an
+	engine upgrade cannot silently change which names this store admits.
+	"""
+	if code_point <= CONTROL_C0_MAX:
+		return true
+	return code_point >= CONTROL_DEL and code_point <= CONTROL_C1_MAX
+
+
+static func utf8_byte_length_of(name_value: StringName) -> int:
+	"""Strict-UTF-8 encoded byte length, computed from the scalar width boundaries.
+
+	Arithmetic rather than `to_utf8_buffer().size()`, so the check allocates nothing and the
+	rule reads as the rule. Only meaningful once every scalar satisfies `is_unicode_scalar()`;
+	`name_refusal()` proves that before it asks.
+	"""
+	var text: String = String(name_value)
+	var total: int = 0
+	for index: int in text.length():
+		var code_point: int = text.unicode_at(index)
+		if code_point <= UTF8_ONE_BYTE_MAX:
+			total += 1
+		elif code_point <= UTF8_TWO_BYTE_MAX:
+			total += 2
+		elif code_point <= UTF8_THREE_BYTE_MAX:
+			total += 3
+		else:
+			total += 4
+	return total
+
+
+static func scalar_length_of(name_value: StringName) -> int:
+	"""Number of Unicode SCALAR VALUES in a name -- not bytes and not grapheme clusters.
+
+	Godot's String is UTF-32, so `length()` is already the scalar count: "Mo" + U+0301 + "le" is
+	5 scalars and 4 grapheme clusters, and a three-scalar ZWJ sequence is one cluster and 11
+	bytes. The three units disagree, which is exactly why NAME-R02 names the unit.
+	"""
+	return String(name_value).length()
+
+
+static func name_refusal(name_value: StringName) -> StringName:
+	"""THE shared personal-name validator (NAME-R02). REFUSE_NONE when the name is admissible.
+
+	Used by `set_name()`, `restore_name()`, the NAME_RESIDENT command path, automatic name
+	assignment and the section 14 codec, so one rule cannot hold at the setter and a different
+	one at the wire. The EMPTY name is admitted: it is the anonymous row, the common case.
+
+	Nothing is normalized, truncated or replaced. The order is encodability, then the 128-byte
+	cap, then the 2-32 scalar rule, then the control-code predicate, which is the order
+	SAVE-R09-002 states and the order the section 14 refusal codes were pinned against.
+	"""
+	var text: String = String(name_value)
+	if text.is_empty():
+		return REFUSE_NONE
+	var scalars: int = text.length()
+	for index: int in scalars:
+		if not is_unicode_scalar(text.unicode_at(index)):
+			return REFUSE_NAME_NOT_UTF8
+	if utf8_byte_length_of(name_value) > NAME_MAX_UTF8_BYTES:
+		return REFUSE_NAME_BYTES
+	if scalars < NAME_MIN_SCALARS or scalars > NAME_MAX_SCALARS:
+		return REFUSE_NAME_SCALARS
+	for index: int in scalars:
+		if is_control_scalar(text.unicode_at(index)):
+			return REFUSE_NAME_CONTROL
+	return REFUSE_NONE
+
+
+static func name_occupancy_refusal(present: bool, named: bool,
+		name_value: StringName) -> StringName:
+	"""NAME-R02's three-row table, checked as a pair rather than derived from one half.
+
+	A free row and a present anonymous row share the SAME shape -- flag 0 and an empty name --
+	so occupancy alone never decides whether a name is legal. `present` is still taken separately
+	so a caller that hangs a name on a free row is refused with its own code.
+
+	Deriving the flag from emptiness is what this function exists to replace: a derivation can
+	only ever produce agreement, and therefore can only ever conceal a disagreement.
+	"""
+	var invalid: StringName = name_refusal(name_value)
+	if invalid != REFUSE_NONE:
+		return invalid
+	var empty: bool = String(name_value).is_empty()
+	if not present:
+		if named or not empty:
+			return REFUSE_FREE_ROW_NAMED
+		return REFUSE_NONE
+	if named and empty:
+		return REFUSE_NAMED_ROW_EMPTY
+	if not named and not empty:
+		return REFUSE_ANONYMOUS_ROW_NAMED
+	return REFUSE_NONE
+
+
+func row_name_refusal(slot: int) -> StringName:
+	"""Check one LIVE row's stored `(_named, _name_key)` pair against the NAME-R02 table.
+
+	Reads the physical columns rather than the public readers, because `name_key_of()` masks an
+	absent row's stored key behind the empty name and would report a stale key as clean.
+	"""
+	if slot < 0 or slot >= RESIDENT_CAPACITY:
+		return REFUSE_INVALID_SLOT
+	return name_occupancy_refusal(_present[slot] == 1, _named[slot] == 1,
+		StringName(_name_key[slot]))
+
+
 # --- mutators -----------------------------------------------------------------------------------
 
 func set_role(slot: int, role: int) -> OpResult:
@@ -1138,11 +1342,51 @@ func set_role(slot: int, role: int) -> OpResult:
 
 
 func set_name(slot: int, name_value: StringName) -> OpResult:
-	"""Name a resident, or clear the name by passing the empty name."""
+	"""Name a present resident, or install the empty name of an anonymous row (NAME-R02).
+
+	VALIDATES THROUGH THE SHARED VALIDATOR, which is the closure of blocker N3: this setter used
+	to store any StringName at all and derive `_named` from emptiness, so a live store could hold
+	a 40-scalar name with control characters that the section 14 codec then had to refuse. One
+	rule now holds at the setter and at the wire.
+
+	The EMPTY name stays legal here because this is also the entry point that creates and
+	restores an anonymous row. It is not a player-facing "clear personal identity" action:
+	NAME-R02 gives alias entry no such command, and `command_dispatch.gd` refuses an empty alias
+	payload before it ever reaches this function.
+
+	A REFUSAL WRITES NOTHING. Both columns are written only after the name has been admitted, so
+	a refused call leaves the row byte-identical.
+	"""
 	if not is_present(slot):
 		return _refuse(REFUSE_NOT_PRESENT)
+	var invalid: StringName = name_refusal(name_value)
+	if invalid != REFUSE_NONE:
+		return _refuse(invalid)
 	_name_key[slot] = String(name_value)
 	_named[slot] = 0 if name_value == NO_NAME_KEY else 1
+	return _succeed(slot, ref_of(slot))
+
+
+func restore_name(slot: int, named: bool, name_value: StringName) -> OpResult:
+	"""Install a save's `(named, name)` PAIR on one present row without deriving either half.
+
+	NAME-R02's ordering rule, verbatim: "apply names last must not conceal corruption".
+	`set_name()` recomputes `_named` from emptiness, so a save whose section 4 flag and section 14
+	string disagree would be quietly repaired into a self-consistent row and the corruption would
+	never be reported. This entry point takes both halves explicitly, validates the pair against
+	the occupancy table BEFORE it writes a byte, and refuses the disagreement in either
+	direction.
+
+	Restore may install an earlier valid ANONYMOUS snapshot -- `named` false with the empty name
+	-- with no operational naming trigger involved.
+	"""
+	if not is_present(slot):
+		return _refuse(REFUSE_NOT_PRESENT)
+	var invalid: StringName = name_occupancy_refusal(true, named, name_value)
+	if invalid != REFUSE_NONE:
+		return _refuse(invalid)
+	_name_key[slot] = String(name_value)
+	_named[slot] = 1 if named else 0
 	return _succeed(slot, ref_of(slot))
 
 

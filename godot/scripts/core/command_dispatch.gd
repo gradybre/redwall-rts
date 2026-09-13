@@ -312,14 +312,11 @@ const POLICY_COUNT: int = 2
 const TILE_ROW_BYTES: int = 4
 const ZONE_TILE_MAX_ROWS: int = ForageScript.ZONE_LINK_CAPACITY
 
-## ARCH-SAVE-005: "Player aliases are 2-32 Unicode characters with control characters rejected".
-## The byte ceiling is 32 characters at UTF-8's 4-byte maximum; a longer payload is refused before
-## it is decoded rather than truncated.
-const ALIAS_MIN_CHARACTERS: int = 2
-const ALIAS_MAX_CHARACTERS: int = 32
-const ALIAS_MAX_BYTES: int = ALIAS_MAX_CHARACTERS * 4
-const ASCII_SPACE: int = 32
-const ASCII_DELETE: int = 127
+## ARCH-SAVE-005's alias rules are NOT restated here. `residents.gd` owns the one personal-name
+## validator (NAME-R02, decision 0112) and this module asks it -- see `_alias_refusal()`. What
+## remains is the pre-decode payload ceiling, taken FROM that store so the two cannot disagree:
+## a payload longer than a name's encoded maximum is refused before it is decoded, not truncated.
+const ALIAS_MAX_BYTES: int = ResidentsScript.NAME_MAX_UTF8_BYTES
 
 ## Every kind's payload fits this one buffer, so no arm resizes anything per tick.
 const PAYLOAD_SCRATCH_BYTES: int = GROUP_COUNT_BYTES + TILE_ROW_BYTES * ZONE_TILE_MAX_ROWS
@@ -999,8 +996,9 @@ func _commit_name_resident(command: CommandsScript.Command) -> int:
 	"""Apply ARCH-SAVE-005's sanitized player alias to one resident.
 
 	"Player aliases are 2-32 Unicode characters with control characters rejected", and malformed
-	UTF-8 is rejected. All three are refusals with their own codes; none is a truncation, because
-	a silently shortened name is a name the player did not choose.
+	UTF-8 is rejected. Each is a refusal with its own code; NONE IS A TRUNCATION, a normalization
+	or a replacement, because a silently shortened or rewritten name is a name the player did not
+	choose. The rules themselves are `residents.gd`'s -- see `_alias_refusal()`.
 	"""
 	if _residents == null:
 		return RESULT_STORE_NOT_BOUND
@@ -1025,21 +1023,50 @@ func _commit_name_resident(command: CommandsScript.Command) -> int:
 
 
 func _alias_refusal(alias: String, byte_count: int) -> int:
-	"""ARCH-SAVE-005's three alias rules, in checked integers. RESULT_COMMITTED when clean.
+	"""ARCH-SAVE-005's alias rules, ASKED OF `residents.gd` rather than restated here.
 
-	Malformed UTF-8 is caught by RE-ENCODING: Godot's decoder substitutes replacement characters
-	rather than failing, so a decode that does not round-trip to the original bytes is the only
-	honest test available, and it also catches an embedded NUL and an overlong encoding.
+	This function used to carry a SECOND COPY of the name rules, and the copy had drifted: its
+	control test was `code_point < 32 or code_point == 127`, which misses the C1 block
+	U+0080..009F entirely. Those aliases were refused -- `set_name()` caught them -- but with
+	RESULT_STORE_REFUSED, so the player was told the store said no rather than which rule they
+	broke. `Residents.name_refusal()` is the single validator (NAME-R02, decision 0112) and it
+	decides scalar count, byte cap and the control predicate for every entry point alike.
+
+	WHAT STAYS HERE is the only rule that is about the WIRE and not about the name: the decoded
+	alias must re-encode to the byte count the command declared. Godot's decoder substitutes
+	U+FFFD rather than failing, and U+FFFD is a perfectly legal name scalar, so no name validator
+	can see that the payload was malformed -- only the round trip can.
 	"""
 	if alias.to_utf8_buffer().size() != byte_count:
 		return RESULT_ALIAS_MALFORMED_UTF8
-	if alias.length() < ALIAS_MIN_CHARACTERS or alias.length() > ALIAS_MAX_CHARACTERS:
+	return _alias_result_for(ResidentsScript.name_refusal(StringName(alias)))
+
+
+func _alias_result_for(code: StringName) -> int:
+	"""Map one `residents.gd` name refusal onto this layer's own RESULT_ALIAS_* vocabulary.
+
+	A command result is a saved, replayed, ledgered integer whose meaning is fixed by
+	RESULT_CODES, so a resident-store StringName is never leaked into one. Both of the store's
+	size rules -- the 128-byte cap and the 2-32 scalar rule -- are ARCH-SAVE-005's single "alias
+	length" refusal at this layer; they are separate codes in the store because a load report must
+	tell an over-long alias from a corrupted string, and that distinction is the store's, not the
+	player's.
+
+	An UNRECOGNISED code is refused explicitly as a store refusal carrying the store's own code,
+	never mapped to a plausible-looking neighbour: if `residents.gd` grows a sixth name rule, the
+	player is told the store refused and `_result_store_code` names which rule, instead of this
+	function guessing that it was probably a length problem.
+	"""
+	if code == ResidentsScript.REFUSE_NONE:
+		return RESULT_COMMITTED
+	if code == ResidentsScript.REFUSE_NAME_CONTROL:
+		return RESULT_ALIAS_CONTROL_CHARACTER
+	if code == ResidentsScript.REFUSE_NAME_NOT_UTF8:
+		return RESULT_ALIAS_MALFORMED_UTF8
+	if code == ResidentsScript.REFUSE_NAME_BYTES or code == ResidentsScript.REFUSE_NAME_SCALARS:
 		return RESULT_ALIAS_LENGTH
-	for index: int in alias.length():
-		var code_point: int = alias.unicode_at(index)
-		if code_point < ASCII_SPACE or code_point == ASCII_DELETE:
-			return RESULT_ALIAS_CONTROL_CHARACTER
-	return RESULT_COMMITTED
+	_store_code = code
+	return RESULT_STORE_REFUSED
 
 
 # --- DESIGNATE_ZONE: the one arm that closes the loop from intent to work -----------------------

@@ -100,6 +100,19 @@ Dependencies:reviewed04.5b component direction; full New Settlement success depe
 on04.3 legal fixture/services; no substitution. Acceptance:A03,A08,A13–16. Completion
 establishes this supported flow subset, not all UI definitions or colony survival.
 
+**Roster row identity — done 2026-09-12** ([decision 0114](../decisions/0114-a-roster-row-is-a-generation-checked-identity.md)).
+The 2026-09-12 ruling's UI item is implemented: each roster row caches the resident's
+DIRECTORY `(slot, generation)` reference and persistent id, a click validates both
+before resolving anything, and a reused slot refuses with its own code and notice
+instead of selecting the replacement. Six tests, six mutations (five killed, one
+recorded as equivalent). Suite: 3771 test(s), 133041 assertion(s), 0 failure(s).
+
+The 04.5c checkbox above stays UNTICKED. Identity was one clause of it; roster
+scroll, the full New Settlement form, zone previews and actual overflow access are
+untouched by this lane. **No visual verdict is claimed — ART-UI-12 remains PENDING**,
+and the §2.3/registry rows the three new packed columns owe are reported to the
+integration lead, not written, because neither document is this lane's file.
+
 ### 04.5d — Qualify the bounded slice and hand off
 
 - [ ] Execute all23 acceptance cases or name exact blockers. Preserve raw runner

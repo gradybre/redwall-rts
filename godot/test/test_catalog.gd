@@ -214,9 +214,10 @@ func test_every_protected_domain_has_a_fixed_enum_table() -> void:
 	§4.3 numbers explicitly belongs here), and to fourteen when Milestone did under decision
 	0080 -- BAL-CAT-002 numbers M0..M4 individually, which is the same "individually listed"
 	test -- and to fifteen when InjuryKind did under decision 0108, §4.3 having numbered it at
-	game_gdd.md:215 all along. The number is asserted so a domain added without a
-	fixed_enum table, or a table added without its domain name, fails."""
-	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 15, "fifteen protected enum domains")
+	game_gdd.md:215 all along, and to sixteen when InventoryProvenance did under decision 0113,
+	PROV-R01 having frozen its six explicit numbers. The number is asserted so a domain added
+	without a fixed_enum table, or a table added without its domain name, fails."""
+	assert_equal(CatalogScript.PROTECTED_ENUM_DOMAINS.size(), 16, "sixteen protected enum domains")
 	for domain_name: String in CatalogScript.PROTECTED_ENUM_DOMAINS:
 		assert_false(CatalogScript.fixed_enum(domain_name).is_empty(),
 			"protected domain %s must publish a fixed enum table" % domain_name)
@@ -858,3 +859,183 @@ func test_injury_kind_is_absent_from_the_compiled_domain_list() -> void:
 	assert_true(lookup.error.contains("not a compiled enum domain"), "and say why")
 	assert_true(CatalogScript.FIXED_ENUM_TABLES.has(CatalogScript.INJURY_KIND_DOMAIN),
 		"while the fixed table index does own it")
+
+
+# --- decision 0113's InventoryProvenance domain (PROV-R01) ----------------------------------------
+
+## PROV-R01's table, transcribed from the ruling and never read back out of the module under test.
+const EXPECTED_INVENTORY_PROVENANCE: Dictionary = {
+	"ORDINARY": 0, "STARTER": 1, "COASTAL_BRINE": 2,
+	"EXCAVATION": 3, "BACKFILL_RECLAIM": 4, "SPOIL_RECLAIM": 5,
+}
+
+## The same six keys in STRICTLY DESCENDING ASCII order, so declaration-order enumeration would
+## produce the exact reverse of the compiler's answer.
+const PROVENANCE_KEYS_DESCENDING: Array[StringName] = [
+	&"STARTER", &"SPOIL_RECLAIM", &"ORDINARY", &"EXCAVATION", &"COASTAL_BRINE",
+	&"BACKFILL_RECLAIM",
+]
+
+## What ascending ASCII generates from those keys -- which is NOT what PROV-R01 states, on any
+## member at all.
+const PROVENANCE_ASCII_ORDER: Dictionary = {
+	"BACKFILL_RECLAIM": 0, "COASTAL_BRINE": 1, "EXCAVATION": 2,
+	"ORDINARY": 3, "SPOIL_RECLAIM": 4, "STARTER": 5,
+}
+
+
+func test_fixed_inventory_provenance_matches_prov_r01_exactly() -> void:
+	"""The complete six-member domain, published in one place under its ruled name."""
+	assert_equal(CatalogScript.INVENTORY_PROVENANCE, EXPECTED_INVENTORY_PROVENANCE,
+		"the whole InventoryProvenance table")
+	assert_equal(CatalogScript.fixed_enum(CatalogScript.INVENTORY_PROVENANCE_DOMAIN),
+		EXPECTED_INVENTORY_PROVENANCE, "fixed_enum returns the InventoryProvenance table")
+	assert_equal(CatalogScript.INVENTORY_PROVENANCE_DOMAIN, "InventoryProvenance",
+		"the domain's declared name")
+	assert_equal(CatalogScript.INVENTORY_PROVENANCE.size(), 6, "exactly six members, no seventh")
+	assert_true(CatalogScript.PROTECTED_ENUM_DOMAINS.has(
+		CatalogScript.INVENTORY_PROVENANCE_DOMAIN),
+		"InventoryProvenance must be protected, not recompilable")
+	assert_false(CatalogScript.INVENTORY_PROVENANCE.has("COUNT"), "COUNT is not a member")
+	assert_false(CatalogScript.INVENTORY_PROVENANCE.has("UNSET_PROVENANCE"),
+		"UNSET_PROVENANCE is a spelling of ORDINARY, never a seventh member")
+
+
+func test_the_named_provenance_constants_are_the_ruled_numbers() -> void:
+	"""A module reads these rather than mirroring a number; each must be PROV-R01's own value."""
+	assert_equal(CatalogScript.PROVENANCE_ORDINARY, 0, "ORDINARY is 0")
+	assert_equal(CatalogScript.PROVENANCE_STARTER, 1, "§5.1's scenario grant is 1")
+	assert_equal(CatalogScript.PROVENANCE_COASTAL_BRINE, 2, "an eligible coastal source is 2")
+	assert_equal(CatalogScript.PROVENANCE_EXCAVATION, 3, "ECON-002 first excavation is 3")
+	assert_equal(CatalogScript.PROVENANCE_BACKFILL_RECLAIM, 4, "re-excavated backfill is 4")
+	assert_equal(CatalogScript.PROVENANCE_SPOIL_RECLAIM, 5, "spoil-tip recovery is 5")
+
+
+func test_provenance_membership_admits_exactly_the_six() -> void:
+	"""-1, 6 and other arbitrary int32 values are not origins, however well they fit a column."""
+	for id: int in [0, 1, 2, 3, 4, 5]:
+		assert_true(CatalogScript.is_inventory_provenance(id), "%d is a member" % id)
+	for id: int in [-1, 6, 7, 100, 2147483647, -2147483648]:
+		assert_false(CatalogScript.is_inventory_provenance(id), "%d is not a member" % id)
+	assert_true(CatalogScript.is_inventory_provenance(0),
+		"0 is ORDINARY, a real member, not an unknown wildcard")
+	var missing: CatalogScript.EnumLookup = CatalogScript.inventory_provenance_key_of(6)
+	assert_false(missing.ok, "6 names no key")
+	assert_equal(missing.key, &"", "and a refusal carries no usable key")
+	assert_equal(CatalogScript.inventory_provenance_key_of(0).key, &"ORDINARY", "0 is ORDINARY")
+	assert_equal(CatalogScript.inventory_provenance_key_of(5).key, &"SPOIL_RECLAIM", "5 is spoil")
+
+
+func test_inventory_provenance_is_not_its_own_ascii_order_and_refuses_recompilation() -> void:
+	"""Exactly why it is protected: ascending ASCII disagrees on ALL SIX members.
+
+	Sorting would put BACKFILL_RECLAIM at 0, where ORDINARY belongs, so every ordinary lot in
+	every save would read back as reclaimed backfill. There is not even a coincidence to make
+	the mistake look half-right."""
+	var ascii_ids: Dictionary = CatalogScript.compile_domain(
+		"Nonesuch", PROVENANCE_KEYS_DESCENDING).ids
+	var disagreements: int = 0
+	for key: String in PROVENANCE_ASCII_ORDER.keys():
+		assert_equal(int(ascii_ids[StringName(key)]), int(PROVENANCE_ASCII_ORDER[key]),
+			"ascending ASCII puts '%s' at %d" % [key, int(PROVENANCE_ASCII_ORDER[key])])
+		if int(ascii_ids[StringName(key)]) != int(CatalogScript.INVENTORY_PROVENANCE[key]):
+			disagreements += 1
+	assert_equal(disagreements, 6, "all six members disagree between the two orders")
+	var refused: CatalogScript.DomainResult = CatalogScript.compile_domain(
+		CatalogScript.INVENTORY_PROVENANCE_DOMAIN, PROVENANCE_KEYS_DESCENDING)
+	assert_false(refused.ok, "compiling InventoryProvenance must refuse")
+	assert_true(refused.ids.is_empty(), "a refused compile produces no IDs")
+	assert_true(refused.error.contains("fixed enum"), "and says it is a fixed enum")
+
+
+func test_inventory_provenance_is_absent_from_the_compiled_domain_list() -> void:
+	"""A protected domain that also appeared as compiled could be regenerated by the other path."""
+	assert_false(CatalogScript.COMPILED_ENUM_DOMAINS.has(
+		CatalogScript.INVENTORY_PROVENANCE_DOMAIN),
+		"InventoryProvenance is protected and must never be a compiled domain")
+	assert_true(CatalogScript.compiled_enum(
+		CatalogScript.INVENTORY_PROVENANCE_DOMAIN).is_empty(),
+		"compiled_enum owns no InventoryProvenance table")
+	var lookup: CatalogScript.EnumLookup = CatalogScript.compiled_id_of(
+		CatalogScript.INVENTORY_PROVENANCE_DOMAIN, &"STARTER")
+	assert_false(lookup.ok, "compiled_id_of must refuse a protected domain")
+	assert_true(CatalogScript.FIXED_ENUM_TABLES.has(
+		CatalogScript.INVENTORY_PROVENANCE_DOMAIN), "while the fixed table index does own it")
+
+
+# --- PROV-R01's semantic rules --------------------------------------------------------------------
+
+func test_the_label_rule_binds_each_restricted_member_to_its_item() -> void:
+	"""COASTAL_BRINE demands `brine`; all three earth labels demand `excavated_earth`."""
+	assert_true(CatalogScript.check_lot_provenance(
+		CatalogScript.PROVENANCE_COASTAL_BRINE, &"brine").ok, "coastal brine on brine")
+	for id: int in [CatalogScript.PROVENANCE_EXCAVATION,
+			CatalogScript.PROVENANCE_BACKFILL_RECLAIM, CatalogScript.PROVENANCE_SPOIL_RECLAIM]:
+		assert_true(CatalogScript.check_lot_provenance(id, &"excavated_earth").ok,
+			"earth label %d on excavated_earth" % id)
+		var wrong: CatalogScript.RuleResult = CatalogScript.check_lot_provenance(id, &"stone")
+		assert_false(wrong.ok, "earth label %d refuses stone" % id)
+		assert_true(wrong.error.contains("excavated_earth"), "and names the item it requires")
+	assert_false(CatalogScript.check_lot_provenance(
+		CatalogScript.PROVENANCE_COASTAL_BRINE, &"water").ok, "coastal brine refuses water")
+
+
+func test_the_label_rule_restricts_no_item_for_ordinary_or_starter() -> void:
+	"""ORDINARY and STARTER grant no privilege and demand no item, on any row."""
+	for key: StringName in [&"grain", &"brine", &"excavated_earth", &"salt"]:
+		assert_true(CatalogScript.check_lot_provenance(
+			CatalogScript.PROVENANCE_ORDINARY, key).ok, "ORDINARY admits '%s'" % key)
+		assert_true(CatalogScript.check_lot_provenance(
+			CatalogScript.PROVENANCE_STARTER, key).ok, "STARTER admits '%s'" % key)
+	var bad: CatalogScript.RuleResult = CatalogScript.check_lot_provenance(6, &"grain")
+	assert_false(bad.ok, "a non-member refuses before any item is considered")
+	assert_false(CatalogScript.check_lot_provenance(-1, &"grain").ok, "and so does -1")
+
+
+func test_salt_input_requires_both_the_brine_item_and_coastal_brine() -> void:
+	"""Both halves, each failing alone: PROV-R01's explicit two-part eligibility test."""
+	assert_true(CatalogScript.check_salt_brine_input(
+		&"brine", CatalogScript.PROVENANCE_COASTAL_BRINE).ok, "brine + COASTAL_BRINE is eligible")
+	var fresh: CatalogScript.RuleResult = CatalogScript.check_salt_brine_input(
+		&"brine", CatalogScript.PROVENANCE_ORDINARY)
+	assert_false(fresh.ok, "brine alone is not eligible")
+	assert_true(fresh.error.contains("COASTAL_BRINE"), "and the refusal names the missing origin")
+	var well: CatalogScript.RuleResult = CatalogScript.check_salt_brine_input(
+		&"water", CatalogScript.PROVENANCE_COASTAL_BRINE)
+	assert_false(well.ok, "river or well water cannot be labelled coastal at all")
+	assert_false(CatalogScript.check_salt_brine_input(
+		&"water", CatalogScript.PROVENANCE_ORDINARY).ok, "nor delivered as ordinary water")
+	assert_false(CatalogScript.check_salt_brine_input(
+		&"brine", CatalogScript.PROVENANCE_STARTER).ok, "a starter brine is not coastal either")
+
+
+func test_recipe_output_is_ordinary_unless_its_contract_names_an_origin() -> void:
+	"""Consuming brine does not make salt itself brine; an unlisted origin refuses, never defaults."""
+	var plain: CatalogScript.EnumLookup = CatalogScript.recipe_output_provenance(&"")
+	assert_true(plain.ok, "an unspecified output origin resolves")
+	assert_equal(plain.id, CatalogScript.PROVENANCE_ORDINARY, "to ORDINARY")
+	assert_false(plain.id == CatalogScript.PROVENANCE_COASTAL_BRINE,
+		"salt made from coastal brine is not itself coastal brine")
+	var named: CatalogScript.EnumLookup = CatalogScript.recipe_output_provenance(&"STARTER")
+	assert_true(named.ok, "a contract may name a listed origin")
+	assert_equal(named.id, CatalogScript.PROVENANCE_STARTER, "and it resolves to that member")
+	var unknown: CatalogScript.EnumLookup = CatalogScript.recipe_output_provenance(&"SALTPAN")
+	assert_false(unknown.ok, "an unlisted origin refuses")
+	assert_equal(unknown.id, 0, "and carries no usable id")
+
+
+func test_a_withdrawal_needs_a_ledger_balance_and_not_merely_a_label() -> void:
+	"""The ledger proves the withdrawal; the label alone never does, and never twice."""
+	var earth: int = CatalogScript.PROVENANCE_SPOIL_RECLAIM
+	assert_true(CatalogScript.check_earth_withdrawal(earth, 2000, 2000).ok,
+		"a balance that covers the request admits it")
+	var exhausted: CatalogScript.RuleResult = CatalogScript.check_earth_withdrawal(earth, 0, 2000)
+	assert_false(exhausted.ok, "the same label cannot be presented a second time")
+	assert_true(exhausted.error.contains("0"), "and the refusal reports the balance")
+	assert_false(CatalogScript.check_earth_withdrawal(earth, 1999, 2000).ok, "nor a short balance")
+	assert_false(CatalogScript.check_earth_withdrawal(earth, 2000, 0).ok, "zero is no withdrawal")
+	assert_false(CatalogScript.check_earth_withdrawal(
+		CatalogScript.PROVENANCE_COASTAL_BRINE, 2000, 1).ok, "brine records no earth source")
+	assert_false(CatalogScript.check_earth_withdrawal(
+		CatalogScript.PROVENANCE_ORDINARY, 2000, 1).ok, "and neither does ORDINARY")
+	assert_false(CatalogScript.check_earth_withdrawal(6, 2000, 1).ok, "a non-member refuses")

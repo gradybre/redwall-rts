@@ -86,11 +86,13 @@
     {
       "id": "CONSTRUCTION-STORE",
       "title": "Construction store for task 06.1",
-      "status": "in_flight",
+      "status": "review",
       "depends_on": [],
       "owns": [
         "godot/scripts/core/construction.gd",
-        "godot/test/test_construction.gd"
+        "godot/test/test_construction.gd",
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/test/test_settlement_system.gd"
       ],
       "agent": "game-coder",
       "gate": "none"

@@ -81,6 +81,35 @@
       "question": "At 1280x720 @100% the alert zone is (460, 16, 360, 96) and 1.2's workspace/modal frame is (160, 16, 960, 688): the zone is WHOLLY INSIDE the frame. At 1280x720 @150% the same is true. At 1920x1080 the frame starts at y=180 and there is no overlap. 3's layer table puts the workspace at layer 40 and permanent HUD zones at layer 20, so the workspace drawing over the alerts is the specification working as written. Does the alert zone move, does the workspace frame move or shrink, or is a third precedence rule needed?",
       "why_we_cannot_decide": "This is not a z-order bug to fix in code -- both cards are placed correctly and report visible = true, and the layer ordering is exactly what 3 specifies. Two 1.2 rectangles collide at the supported viewport floor and 1.2 fixes no precedence between them. Every available fix is a change to 1.2 geometry.",
       "impact": "Alerts can be occluded at the 1280x720 floor, which is a supported resolution. Captured as evidence 40. Recorded as open in ADR 0134 and the task checklist."
+    },
+    {
+      "anchor": "inventory-container-enumeration-by-owner",
+      "title": "REQ-SET-128's stored-goods half cannot be enforced: inventory.gd cannot enumerate containers by owner",
+      "blocks": [
+        "CONSTRUCTION-STORE"
+      ],
+      "asked": "2026-09-13",
+      "question": "REQ-SET-128 refuses a destructive edit on an occupied building. The RESIDENT half is enforced against the real store, with the exact blocked count in the refusal. The GOODS half cannot be: `inventory.gd` has no owner index and no container iteration, and `container_owner()` needs a ref the caller must already hold. Should inventory.gd publish a container-by-owner enumeration, or should the rule be restated so the goods half is checked somewhere that can see it?",
+      "why_we_cannot_decide": "The alternative is accepting a caller-supplied 'goods are clear' boolean, which MOVE-DEP-R05 forbids -- a missing contract must refuse differently from an authored allowance, and a boolean from the caller is neither.",
+      "impact": "Blocks 06.2's 'Refuse occupied/only-exit destructive edits'. The construction store refuses on residents and is silent on goods, which is a half-enforced rule."
+    },
+    {
+      "anchor": "tier-two-demolition-basis",
+      "title": "A tier-2 building's demolition basis is unresolved",
+      "blocks": [],
+      "asked": "2026-09-13",
+      "question": "REQ-SET-127 prices demolition at 'declared construction WU x 0.25' returning '50% original material costs'. \u00a74.2's upgrade table declares no demolition consequence, so for an upgraded building 'original' is ambiguous: the base \u00a74.1 row, the sum of base plus upgrades, or the current tier's declared cost?",
+      "why_we_cannot_decide": "Summing the upgrade chain is a rule, not an inference, and inventing it would set refund economics the balance tables never authored.",
+      "impact": "The store uses the base \u00a74.1 row at every tier and says so in its own header. Whichever way this is ruled, only a constant changes."
+    },
+    {
+      "anchor": "econ-003-excavation-phase-domain",
+      "title": "ECON-003's excavation phases need compiled ids and a site-phase column",
+      "blocks": [],
+      "asked": "2026-09-13",
+      "question": "ECON-003 names nine excavation phases. They are SITE states and map onto the construction store's five project phases not at all one-for-one: each ECON-003 transition is one project run through the whole lifecycle, with 'consume inputs once at WORK start' = `begin_work()` and 'retain earned work, publish nothing' = PHASE_WORK_DONE. This needs compiled ASCII ids in `catalog.gd` and a site-phase column from the excavation owner. Who owns that column, and are the nine ids a protected or a compiled enum domain?",
+      "why_we_cannot_decide": "Adding a domain to catalog.gd is a schema change with a digest consequence, and the excavation owner does not exist yet to be asked.",
+      "impact": "Advisory. The mapping is documented in ADR 0131 so the excavation lane inherits it rather than re-deriving it."
     }
   ]
 }

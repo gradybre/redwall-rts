@@ -14,7 +14,12 @@
       "status": "review",
       "pr": 106,
       "depends_on": [],
-      "owns": ["docs/validation/merge_gate.py", "docs/validation/test_merge_gate.py", "docs/systems_architecture.md", "docs/validation/ready07_arithmetic.py"],
+      "owns": [
+        "docs/validation/merge_gate.py",
+        "docs/validation/test_merge_gate.py",
+        "docs/systems_architecture.md",
+        "docs/validation/ready07_arithmetic.py"
+      ],
       "agent": "self",
       "gate": "none"
     },
@@ -24,7 +29,10 @@
       "status": "review",
       "pr": 103,
       "depends_on": [],
-      "owns": ["godot/scripts/core/save_section_07.gd", "godot/test/test_save_section_07.gd"],
+      "owns": [
+        "godot/scripts/core/save_section_07.gd",
+        "godot/test/test_save_section_07.gd"
+      ],
       "agent": "game-coder",
       "gate": "none"
     },
@@ -34,7 +42,10 @@
       "status": "review",
       "pr": 104,
       "depends_on": [],
-      "owns": ["godot/scripts/core/save_section_12.gd", "godot/test/test_save_section_12.gd"],
+      "owns": [
+        "godot/scripts/core/save_section_12.gd",
+        "godot/test/test_save_section_12.gd"
+      ],
       "agent": "game-coder",
       "gate": "none"
     },
@@ -43,7 +54,12 @@
       "title": "Bulk column read/write API across every packed store",
       "status": "in_flight",
       "depends_on": [],
-      "owns": ["godot/scripts/core/entity_directory.gd", "godot/scripts/core/residents.gd", "godot/scripts/core/inventory.gd", "godot/test/test_bulk_columns.gd"],
+      "owns": [
+        "godot/scripts/core/entity_directory.gd",
+        "godot/scripts/core/residents.gd",
+        "godot/scripts/core/inventory.gd",
+        "godot/test/test_bulk_columns.gd"
+      ],
       "agent": "game-coder",
       "gate": "none",
       "unblocks_note": "Every section codec can encode but none can capture from or restore into a live store. This is the single dependency holding all twelve."
@@ -53,7 +69,11 @@
       "title": "Crowd render path: consume the presentation snapshot into World/Entities",
       "status": "in_flight",
       "depends_on": [],
-      "owns": ["godot/scripts/render/crowd_renderer.gd", "godot/scenes/main.tscn", "godot/test/test_crowd_renderer.gd"],
+      "owns": [
+        "godot/scripts/render/crowd_renderer.gd",
+        "godot/scenes/main.tscn",
+        "godot/test/test_crowd_renderer.gd"
+      ],
       "agent": "game-coder",
       "gate": "none",
       "unblocks_note": "Residents are currently invisible. main.tscn's World/Entities is empty and nothing consumes presentation_extract.gd."
@@ -63,25 +83,38 @@
       "title": "Construction store for task 06.1",
       "status": "in_flight",
       "depends_on": [],
-      "owns": ["godot/scripts/core/construction.gd", "godot/test/test_construction.gd"],
+      "owns": [
+        "godot/scripts/core/construction.gd",
+        "godot/test/test_construction.gd"
+      ],
       "agent": "game-coder",
       "gate": "none"
     },
     {
       "id": "EVENT-SCHEDULE",
       "title": "EventSchedule store for section 11",
-      "status": "in_flight",
+      "status": "review",
       "depends_on": [],
-      "owns": ["godot/scripts/core/event_schedule.gd", "godot/test/test_event_schedule.gd"],
+      "owns": [
+        "godot/scripts/core/event_schedule.gd",
+        "godot/test/test_event_schedule.gd",
+        "docs/persistence_state_registry.md",
+        "docs/planning/canonical_state_registry.json",
+        "docs/validation/validate_save_registry_handoff.py"
+      ],
       "agent": "game-coder",
-      "gate": "none"
+      "gate": "none",
+      "note": "Landed with the ledger allocator reassignment, registry rows and canonical registry amendment applied by the integration lead: those four files were outside the lane's allowlist by design."
     },
     {
       "id": "ALERT-R02",
       "title": "ALERT-R02 alert summary profiles",
       "status": "in_flight",
       "depends_on": [],
-      "owns": ["godot/scripts/ui/alert_panel.gd", "godot/test/test_alert_panel.gd"],
+      "owns": [
+        "godot/scripts/ui/alert_panel.gd",
+        "godot/test/test_alert_panel.gd"
+      ],
       "agent": "game-coder",
       "gate": "none"
     },
@@ -89,8 +122,16 @@
       "id": "SAVE-CAPTURE",
       "title": "Wire every section codec to capture from and restore into live stores",
       "status": "blocked",
-      "depends_on": ["BULK-COLUMNS", "SAVE-S7", "SAVE-S12", "EVENT-SCHEDULE"],
-      "owns": ["godot/scripts/core/save_file.gd", "godot/test/test_save_round_trip.gd"],
+      "depends_on": [
+        "BULK-COLUMNS",
+        "SAVE-S7",
+        "SAVE-S12",
+        "EVENT-SCHEDULE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_file.gd",
+        "godot/test/test_save_round_trip.gd"
+      ],
       "agent": "game-coder",
       "gate": "none"
     },
@@ -99,7 +140,9 @@
       "title": "Section 1's seven owners with no encoder (blocker W2)",
       "status": "blocked",
       "depends_on": [],
-      "owns": ["godot/scripts/core/save_section_01.gd"],
+      "owns": [
+        "godot/scripts/core/save_section_01.gd"
+      ],
       "agent": "game-coder",
       "gate": "astra_ruling",
       "astra_request": "docs/rulings/requests/OPEN.md#w2-section-1-owners-without-encoders"
@@ -109,7 +152,9 @@
       "title": "inventory.gd must blank retired rows so the section 15 digest is deterministic",
       "status": "blocked",
       "depends_on": [],
-      "owns": ["godot/scripts/core/inventory.gd"],
+      "owns": [
+        "godot/scripts/core/inventory.gd"
+      ],
       "agent": "game-coder",
       "gate": "astra_ruling",
       "astra_request": "docs/rulings/requests/OPEN.md#retired-row-blanking"
@@ -119,7 +164,10 @@
       "title": "Measured movement envelopes, MOVE-G01 Q1/Q2",
       "status": "blocked",
       "depends_on": [],
-      "owns": ["docs/planning/movement_contracts.md", "godot/scripts/core/spatial_world.gd"],
+      "owns": [
+        "docs/planning/movement_contracts.md",
+        "godot/scripts/core/spatial_world.gd"
+      ],
       "agent": "game-coder",
       "gate": "astra_ruling",
       "astra_request": "docs/rulings/requests/OPEN.md#move-g01-clearance-and-modes"
@@ -129,7 +177,10 @@
       "title": "Five-species proportion comparison scene for approval",
       "status": "blocked",
       "depends_on": [],
-      "owns": ["godot/assets/lookdev/proportion_comparison.tscn", "docs/art-reference/proportion_comparison.md"],
+      "owns": [
+        "godot/assets/lookdev/proportion_comparison.tscn",
+        "docs/art-reference/proportion_comparison.md"
+      ],
       "agent": "game-coder",
       "gate": "brendan_art",
       "approval_id": "ART-PROPORTION"
@@ -138,8 +189,12 @@
       "id": "ART-CREATURES",
       "title": "Bulk creature model generation, Meshy",
       "status": "blocked",
-      "depends_on": ["ART-PROPORTION"],
-      "owns": ["godot/assets/units/"],
+      "depends_on": [
+        "ART-PROPORTION"
+      ],
+      "owns": [
+        "godot/assets/units/"
+      ],
       "agent": "self",
       "gate": "brendan_art",
       "approval_id": "ART-CREATURES",
@@ -150,7 +205,9 @@
       "title": "ART-UI-12 visual acceptance, further NARROW evidence",
       "status": "blocked",
       "depends_on": [],
-      "owns": ["docs/design/ui_refinement/"],
+      "owns": [
+        "docs/design/ui_refinement/"
+      ],
       "agent": "user-qa",
       "gate": "brendan_art",
       "approval_id": "ART-UI-12"

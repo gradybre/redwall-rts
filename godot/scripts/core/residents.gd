@@ -90,11 +90,18 @@ extends RefCounted
 ## of one being recomputed from the other. Liveness is never consulted: a retained dead or
 ## departed row keeps its identity.
 ##
-## STILL MISSING, reported not invented: MOVE-DEP-R02 requires the stage column to be persisted
-## and hashed in save section §4 with an owner/schema increment, and no save module exists in
-## this repository (see `docs/persistence_state_registry.md`'s "Blocked" section). There is
-## consequently no restore writer here: inventing one would be inventing the migration provenance
-## rule the ruling requires ("do not infer an arbitrary loaded resident is adult").
+## MOVE-DEP-R02 requires the stage column to be persisted and hashed in save section §4 with an
+## owner/schema increment. Decision 0132 adds the STORE half of that -- `copy_columns_into()` and
+## `restore_columns()` below carry `_life_stage` as one of the nineteen §4 columns, in the
+## registry's ordinal order -- and it infers nothing: the stage arrives in the column set or the
+## call refuses, and no row is repaired to ADULT. The MIGRATION half is still not this module's
+## and is still unwritten: refusing a PRE-COLUMN schema is the §4 codec's job through
+## `owner_schema_version`, because this store is handed a column set and cannot see which schema
+## version produced it. "Do not infer an arbitrary loaded resident is adult" holds either way.
+##
+## STILL MISSING, reported not invented: there is no §4 codec in this repository yet (see
+## `docs/persistence_state_registry.md`'s "Blocked" section), so nothing reads or writes the wire
+## bytes these columns travel as.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -420,6 +427,10 @@ var _cohort_slots: PackedInt32Array = PackedInt32Array()
 ## Checked-arithmetic scratch for int_math's `_into` forms. Nothing here invokes a callback or
 ## signal, so no public operation can re-enter while it holds a live value.
 var _math: IntMath.IntResult = IntMath.IntResult.new()
+## The bulk-column namespace's own refusal code (decision 0132). Category 3: not state, not
+## persisted, and excluded from `state_bytes()` so a refusal cannot alter the image that proves
+## it changed nothing.
+var _last_column_refusal: StringName = REFUSE_NONE
 
 
 func _init(p_directory: EntityDirectory = null, p_needs: NeedsScript = null) -> void:
@@ -1710,3 +1721,524 @@ func _read_refusal(code: StringName) -> IntMath.IntResult:
 	var out: IntMath.IntResult = IntMath.IntResult.new()
 	out.refuse(String(code))
 	return out
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (decision 0132) ----------------------------------
+#
+# Section 4 COMPONENT_COLUMNS captures and applies this store's nineteen category-1 columns as one
+# set. Every other reader here refuses a row whose `_present` is 0, so a FREE row's retained
+# bytes were unreachable without reaching into `_species` or `_skill_xp` from another file. No
+# module in this repository reads another's private columns, and this pair is what makes that
+# unnecessary for section 4.
+#
+# `docs/persistence_state_registry.md` classifies every member and
+# `docs/planning/canonical_state_registry.json` numbers the nineteen ordinals; COLUMN_KEYS is
+# transcribed from that artifact in its ordinal order, and `test_residents.gd` re-reads the
+# artifact and compares.
+#
+# `_name_key` IS NOT HERE, AND ITS ABSENCE IS THE CONTRACT. The registry assigns it to §14
+# NAME_POOL, while §4 owns the `_named` flag beside it. `restore_columns()` therefore installs
+# `_named` and empties every name, and §14 completes each present row through the ONE name entry
+# point decision 0112 published, `restore_name()`, which takes both halves and refuses their
+# disagreement. There is no second name path here. Between the two sections a restored named row
+# holds a flag with no string; `unresolved_name_row_count()` counts exactly those rows, so a load
+# that never ran §14 is observable rather than silent.
+#
+# `_selected` IS NOT HERE EITHER: ARCH-HASH-001 excludes selection by name and the registry
+# classifies it category 3.
+#
+# GENERATION NAMESPACES, WHICH ARE NOT ONE NAMESPACE. `_ref_*`, `_home_*` and `_bed_*` are
+# DIRECTORY generations and are validated as such. `_equip_satchel_generation` is an
+# `inventory.gd` CONTAINER generation and is checked for shape only -- this store holds no
+# inventory, so validating it against the directory would accept a stale handle whose two
+# integers happen to match a live directory slot. Lot and route generations do not appear here.
+
+const COLUMN_TYPE_U8: int = 0
+const COLUMN_TYPE_I32: int = 2
+const COLUMN_TYPE_I64: int = 4
+
+## The nineteen §4 category-1 columns in the registry's declared ordinal order.
+const COLUMN_COUNT: int = 19
+const COLUMN_KEYS: Array[StringName] = [
+	&"_present", &"_species", &"_size_class", &"_named", &"_life_stage", &"_arrival_tick",
+	&"_role", &"_home_slot", &"_home_generation", &"_bed_slot", &"_bed_generation",
+	&"_ref_slot", &"_ref_generation", &"_equip_tool_item_id", &"_equip_tool_durability",
+	&"_equip_satchel_slot", &"_equip_satchel_generation", &"_skill_xp", &"_skill_level",
+]
+const COLUMN_TYPE_CODES: Array[int] = [
+	COLUMN_TYPE_U8, COLUMN_TYPE_I32, COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_U8,
+	COLUMN_TYPE_I64, COLUMN_TYPE_U8, COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32,
+	COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32,
+	COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I64, COLUMN_TYPE_I32,
+]
+const COLUMN_EXTENTS: Array[int] = [
+	RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY,
+	RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY,
+	RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY,
+	RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY,
+	RESIDENT_CAPACITY, RESIDENT_CAPACITY * SKILL_COUNT, RESIDENT_CAPACITY * SKILL_COUNT,
+]
+
+## Bulk column refusals, read through `last_column_refusal()` and never through an OpResult.
+## Every code is prefixed `COLUMN_`, so a load can never clobber the reason a `spawn()` or a
+## `set_name()` was refused before its caller read it, and no code value is shared with those.
+const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
+const REFUSE_COLUMN_CATALOG: StringName = &"COLUMN_SPECIES_CATALOG"
+const REFUSE_COLUMN_PRESENT_BYTE: StringName = &"COLUMN_PRESENT_BYTE"
+const REFUSE_COLUMN_NAMED_BYTE: StringName = &"COLUMN_NAMED_BYTE"
+const REFUSE_COLUMN_ENUM_BYTE: StringName = &"COLUMN_ENUM_BYTE"
+const REFUSE_COLUMN_SPECIES: StringName = &"COLUMN_SPECIES"
+const REFUSE_COLUMN_SIZE_CLASS: StringName = &"COLUMN_SIZE_CLASS_MISMATCH"
+const REFUSE_COLUMN_ARRIVAL_TICK: StringName = &"COLUMN_ARRIVAL_TICK"
+const REFUSE_COLUMN_REF_SHAPE: StringName = &"COLUMN_REF_SHAPE"
+const REFUSE_COLUMN_DIRECTORY_REF: StringName = &"COLUMN_DIRECTORY_REF"
+const REFUSE_COLUMN_EQUIPMENT: StringName = &"COLUMN_EQUIPMENT"
+const REFUSE_COLUMN_SKILL_XP: StringName = &"COLUMN_SKILL_XP"
+const REFUSE_COLUMN_SKILL_LEVEL: StringName = &"COLUMN_SKILL_LEVEL"
+const REFUSE_COLUMN_RESERVED_SKILL: StringName = &"COLUMN_RESERVED_SKILL"
+const REFUSE_COLUMN_FREE_ROW: StringName = &"COLUMN_FREE_ROW"
+const REFUSE_COLUMN_LIVING_CAP: StringName = &"COLUMN_LIVING_CAP"
+
+
+class Columns:
+	"""Caller-owned image of the nineteen §4 category-1 columns, allocated once to capacity.
+
+	One object per save or per load, never one per resident. Field order is COLUMN_KEYS order,
+	which is the registry's ordinal order. `name_key` is deliberately absent: it is §14's.
+	"""
+	var present: PackedByteArray = PackedByteArray()
+	var species: PackedInt32Array = PackedInt32Array()
+	var size_class: PackedByteArray = PackedByteArray()
+	var named: PackedByteArray = PackedByteArray()
+	var life_stage: PackedByteArray = PackedByteArray()
+	var arrival_tick: PackedInt64Array = PackedInt64Array()
+	var role: PackedByteArray = PackedByteArray()
+	var home_slot: PackedInt32Array = PackedInt32Array()
+	var home_generation: PackedInt32Array = PackedInt32Array()
+	var bed_slot: PackedInt32Array = PackedInt32Array()
+	var bed_generation: PackedInt32Array = PackedInt32Array()
+	var ref_slot: PackedInt32Array = PackedInt32Array()
+	var ref_generation: PackedInt32Array = PackedInt32Array()
+	var equip_tool_item_id: PackedInt32Array = PackedInt32Array()
+	var equip_tool_durability: PackedInt32Array = PackedInt32Array()
+	var equip_satchel_slot: PackedInt32Array = PackedInt32Array()
+	var equip_satchel_generation: PackedInt32Array = PackedInt32Array()
+	var skill_xp: PackedInt64Array = PackedInt64Array()
+	var skill_level: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Size all nineteen columns to their declared extents. The only place this class resizes."""
+		skill_xp.resize(RESIDENT_CAPACITY * SKILL_COUNT)
+		skill_level.resize(RESIDENT_CAPACITY * SKILL_COUNT)
+		arrival_tick.resize(RESIDENT_CAPACITY)
+		for column: PackedInt32Array in [species, home_slot, home_generation, bed_slot,
+				bed_generation, ref_slot, ref_generation, equip_tool_item_id,
+				equip_tool_durability, equip_satchel_slot, equip_satchel_generation]:
+			column.resize(RESIDENT_CAPACITY)
+		for column: PackedByteArray in [present, size_class, named, life_stage, role]:
+			column.resize(RESIDENT_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with the value this store's own `clear()` leaves, not with zero.
+
+		The six reference columns go to the §4.1 null pair `(-1, 0)` and the equipped tool to
+		`NO_TOOL_ITEM`; "use zero only where the owner declares zero".
+		"""
+		skill_xp.fill(0)
+		skill_level.fill(0)
+		arrival_tick.fill(0)
+		species.fill(0)
+		for column: PackedInt32Array in [home_slot, bed_slot, ref_slot, equip_satchel_slot]:
+			column.fill(EntityDirectory.NULL_SLOT)
+		for column: PackedInt32Array in [home_generation, bed_generation, ref_generation,
+				equip_satchel_generation]:
+			column.fill(EntityDirectory.NULL_GENERATION)
+		equip_tool_item_id.fill(NO_TOOL_ITEM)
+		equip_tool_durability.fill(0)
+		present.fill(0)
+		named.fill(0)
+		size_class.fill(SIZE_SMALL)
+		life_stage.fill(LIFE_STAGE_ADULT)
+		role.fill(ROLE_RESIDENT)
+
+	func equals(other: Columns) -> bool:
+		"""True when all nineteen columns are byte-identical. Proves a refusal changed nothing."""
+		return present == other.present and species == other.species \
+			and size_class == other.size_class and named == other.named \
+			and life_stage == other.life_stage and arrival_tick == other.arrival_tick \
+			and role == other.role and home_slot == other.home_slot \
+			and home_generation == other.home_generation and bed_slot == other.bed_slot \
+			and bed_generation == other.bed_generation and ref_slot == other.ref_slot \
+			and ref_generation == other.ref_generation \
+			and equip_tool_item_id == other.equip_tool_item_id \
+			and equip_tool_durability == other.equip_tool_durability \
+			and equip_satchel_slot == other.equip_satchel_slot \
+			and equip_satchel_generation == other.equip_satchel_generation \
+			and skill_xp == other.skill_xp and skill_level == other.skill_level
+
+
+func last_column_refusal() -> StringName:
+	"""The code from the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from the OpResult every mutator returns, and from `catalog_error()`. A
+	caller reads a spawn or name refusal off its own result; a load writing into that channel
+	would make one operation report another's problem. Every code here is prefixed `COLUMN_`.
+	"""
+	return _last_column_refusal
+
+
+func unresolved_name_row_count() -> int:
+	"""Present rows whose `_named` flag is set but whose §14 name has not been installed yet.
+
+	A restored section 4 carries the flag and no string, so this is the number of rows still
+	owed a `restore_name()` call. Zero before any restore, zero again once §14 has run, and
+	NON-ZERO in between -- which is what makes a load that skipped section 14 observable instead
+	of silently leaving named residents with no name. It is a count and never a sentinel: no
+	value of it encodes a failure.
+	"""
+	var total: int = 0
+	var slot: int = _present.find(1, 0)
+	while slot >= 0:
+		if _named[slot] == 1 and _name_key[slot].is_empty():
+			total += 1
+		slot = _present.find(1, slot + 1)
+	return total
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the nineteen §4 category-1 columns into caller-owned buffers. False refuses.
+
+	Section 4's capture step, and the ONLY way to read a released row's retained species, skills
+	or arrival tick -- `despawn()` leaves those columns at the last tenant's values and every
+	public reader refuses the row. Section 14 captures `_name_key` separately through its own
+	codec; it is not duplicated here.
+
+	The copies are snapshots: mutating `out` afterwards cannot reach a column.
+	"""
+	if not _columns_are_capacity_sized(out):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_bytes(out.present, _present)
+	_refill_bytes(out.size_class, _size_class)
+	_refill_bytes(out.named, _named)
+	_refill_bytes(out.life_stage, _life_stage)
+	_refill_bytes(out.role, _role)
+	_refill_i64(out.arrival_tick, _arrival_tick)
+	_refill_i64(out.skill_xp, _skill_xp)
+	_refill_i32(out.skill_level, _skill_level)
+	_refill_i32(out.species, _species)
+	_copy_reference_columns_into(out)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _copy_reference_columns_into(out: Columns) -> void:
+	"""Refill the ten reference and Equipment int32 columns. Split out to stay under 30 lines."""
+	_refill_i32(out.home_slot, _home_slot)
+	_refill_i32(out.home_generation, _home_generation)
+	_refill_i32(out.bed_slot, _bed_slot)
+	_refill_i32(out.bed_generation, _bed_generation)
+	_refill_i32(out.ref_slot, _ref_slot)
+	_refill_i32(out.ref_generation, _ref_generation)
+	_refill_i32(out.equip_tool_item_id, _equip_tool_item_id)
+	_refill_i32(out.equip_tool_durability, _equip_tool_durability)
+	_refill_i32(out.equip_satchel_slot, _equip_satchel_slot)
+	_refill_i32(out.equip_satchel_generation, _equip_satchel_generation)
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace the nineteen §4 columns, empty every name, and rebuild the live list. False refuses.
+
+	Section 4's apply step, and it requires SECTION 3 TO HAVE BEEN RESTORED FIRST. Each present
+	row's `(_ref_slot, _ref_generation)` is resolved through the directory and must name a live
+	KIND_RESIDENT slot whose typed row is this row. That resolution IS the rebuild's validator, in
+	the same way the directory's owner map is its own: a directory slot owns exactly one typed
+	row, so two resident rows claiming one slot cannot both satisfy it, and a row whose reference
+	the directory does not honour is refused rather than installed.
+
+	`_live_slots` and `_live_count` are REBUILT ascending from the restored `_present`, never read
+	from the caller. `_name_key` is emptied on every row: the names belong to §14 and a string
+	left over from the previous world would be exactly the concealed corruption NAME-R02 forbids.
+	`_selected` is not touched, being presentation state outside the canonical hash.
+
+	Allocate before consume (decision 0059): every rule is checked before the first write, so a
+	refusal leaves the store byte-identical and `state_bytes()` proves it by comparison.
+	"""
+	var refusal: StringName = _restore_column_refusal(columns)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_install_columns(columns)
+	_name_key.fill(String(NO_NAME_KEY))
+	_rebuild_live_slots()
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func state_bytes() -> PackedByteArray:
+	"""Diagnostic image of every member a restore can reach, for byte-identical rollback checks.
+
+	NOT A PRODUCTION CALL: it allocates. Included: the nineteen persisted columns, `_name_key`
+	(which a restore empties), the rebuilt live list over its live prefix, `_live_count` and
+	`_selected`, so a restore that touched presentation state would show. Excluded: the live
+	list's tail beyond `_live_count`, which is stale residue two identical stores can disagree
+	on, and `_last_column_refusal`, which is category 3.
+	"""
+	var image: PackedByteArray = PackedByteArray()
+	image.append_array(_present)
+	image.append_array(_species.to_byte_array())
+	for column: PackedByteArray in [_size_class, _named, _life_stage, _role, _selected]:
+		image.append_array(column)
+	image.append_array(_arrival_tick.to_byte_array())
+	for column: PackedInt32Array in [_home_slot, _home_generation, _bed_slot, _bed_generation,
+			_ref_slot, _ref_generation, _equip_tool_item_id, _equip_tool_durability,
+			_equip_satchel_slot, _equip_satchel_generation, _skill_level]:
+		image.append_array(column.to_byte_array())
+	image.append_array(_skill_xp.to_byte_array())
+	for slot: int in RESIDENT_CAPACITY:
+		image.append_array(_name_key[slot].to_utf8_buffer())
+		image.append_array(PackedInt32Array([_name_key[slot].length()]).to_byte_array())
+	image.append_array(_live_slots.slice(0, _live_count).to_byte_array())
+	image.append_array(PackedInt64Array([_live_count]).to_byte_array())
+	return image
+
+
+func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""True when every one of the nineteen buffers is exactly its declared extent."""
+	if columns.skill_xp.size() != RESIDENT_CAPACITY * SKILL_COUNT:
+		return false
+	if columns.skill_level.size() != RESIDENT_CAPACITY * SKILL_COUNT:
+		return false
+	if columns.arrival_tick.size() != RESIDENT_CAPACITY:
+		return false
+	for column: PackedInt32Array in [columns.species, columns.home_slot, columns.home_generation,
+			columns.bed_slot, columns.bed_generation, columns.ref_slot, columns.ref_generation,
+			columns.equip_tool_item_id, columns.equip_tool_durability,
+			columns.equip_satchel_slot, columns.equip_satchel_generation]:
+		if column.size() != RESIDENT_CAPACITY:
+			return false
+	for column: PackedByteArray in [columns.present, columns.size_class, columns.named,
+			columns.life_stage, columns.role]:
+		if column.size() != RESIDENT_CAPACITY:
+			return false
+	return true
+
+
+func _restore_column_refusal(columns: Columns) -> StringName:
+	"""Every rule a restored column set must satisfy, checked before a single column is written."""
+	if _catalog_error != "":
+		return REFUSE_COLUMN_CATALOG
+	if not _columns_are_capacity_sized(columns):
+		return REFUSE_COLUMN_SHAPE
+	var bytes: StringName = _column_byte_domain_refusal(columns)
+	if bytes != REFUSE_NONE:
+		return bytes
+	var skills: StringName = _column_skill_refusal(columns)
+	if skills != REFUSE_NONE:
+		return skills
+	var references: StringName = _column_reference_refusal(columns)
+	if references != REFUSE_NONE:
+		return references
+	var free_rows: StringName = _column_free_row_refusal(columns)
+	if free_rows != REFUSE_NONE:
+		return free_rows
+	if columns.present.count(1) > RESIDENT_LIVING_CAP:
+		return REFUSE_COLUMN_LIVING_CAP
+	return _column_live_row_refusal(columns)
+
+
+func _column_byte_domain_refusal(columns: Columns) -> StringName:
+	"""Every byte column holds only values its own enumeration declares (ARCH-SAVE-005)."""
+	if not _byte_column_below(columns.present, 2):
+		return REFUSE_COLUMN_PRESENT_BYTE
+	if not _byte_column_below(columns.named, 2):
+		return REFUSE_COLUMN_NAMED_BYTE
+	if not _byte_column_below(columns.size_class, SIZE_COUNT):
+		return REFUSE_COLUMN_ENUM_BYTE
+	if not _byte_column_below(columns.life_stage, LIFE_STAGE_COUNT):
+		return REFUSE_COLUMN_ENUM_BYTE
+	if not _byte_column_below(columns.role, ROLE_COUNT):
+		return REFUSE_COLUMN_ENUM_BYTE
+	return REFUSE_NONE
+
+
+func _column_skill_refusal(columns: Columns) -> StringName:
+	"""XP is non-negative, every level is the §5.3 curve's own answer, and index 3 stays empty.
+
+	Checked over the WHOLE column and not the live rows alone: `despawn()` leaves the skills of a
+	released row untouched, so a free row still carries a consistent pair and a load that broke
+	one would otherwise pass. The level rule reuses `skill_level_for_xp()`, so the restore path
+	and `set_skill_xp()` cannot drift apart.
+	"""
+	if not _int64_column_within(columns.skill_xp, 0, IntMath.INT64_MAX):
+		return REFUSE_COLUMN_SKILL_XP
+	for index: int in RESIDENT_CAPACITY * SKILL_COUNT:
+		if columns.skill_level[index] != skill_level_for_xp(columns.skill_xp[index]):
+			return REFUSE_COLUMN_SKILL_LEVEL
+	for slot: int in RESIDENT_CAPACITY:
+		var reserved: int = slot * SKILL_COUNT + SKILL_RESERVED_INDEX
+		if columns.skill_xp[reserved] != 0 or columns.skill_level[reserved] != 0:
+			return REFUSE_COLUMN_RESERVED_SKILL
+	return REFUSE_NONE
+
+
+func _column_reference_refusal(columns: Columns) -> StringName:
+	"""Shape of every stored reference pair and of the Equipment mirror, over the whole column.
+
+	SHAPE ONLY, and by namespace. The home, bed and self references are DIRECTORY pairs and are
+	resolved against the directory for live rows in `_column_live_row_refusal()`; the satchel pair
+	is an `inventory.gd` CONTAINER pair and is checked here for well-formedness and nowhere for
+	liveness, because this store holds no inventory to resolve it against.
+	"""
+	for slot: int in RESIDENT_CAPACITY:
+		if not _is_well_formed_pair(columns.home_slot[slot], columns.home_generation[slot]):
+			return REFUSE_COLUMN_REF_SHAPE
+		if not _is_well_formed_pair(columns.bed_slot[slot], columns.bed_generation[slot]):
+			return REFUSE_COLUMN_REF_SHAPE
+		if not _is_well_formed_pair(columns.ref_slot[slot], columns.ref_generation[slot]):
+			return REFUSE_COLUMN_REF_SHAPE
+		if not _is_well_formed_pair(columns.equip_satchel_slot[slot],
+				columns.equip_satchel_generation[slot]):
+			return REFUSE_COLUMN_REF_SHAPE
+		var item: int = columns.equip_tool_item_id[slot]
+		var durability: int = columns.equip_tool_durability[slot]
+		if item < NO_TOOL_ITEM or durability < 0:
+			return REFUSE_COLUMN_EQUIPMENT
+		if item == NO_TOOL_ITEM and durability != 0:
+			return REFUSE_COLUMN_EQUIPMENT
+	return REFUSE_NONE
+
+
+func _is_well_formed_pair(slot: int, generation: int) -> bool:
+	"""True for the §4.1 null pair `(-1, 0)` or any pair with slot >= 0 and generation > 0."""
+	if slot == EntityDirectory.NULL_SLOT:
+		return generation == EntityDirectory.NULL_GENERATION
+	return slot >= 0 and generation > 0
+
+
+func _column_free_row_refusal(columns: Columns) -> StringName:
+	"""Every `_present == 0` row carries exactly what `despawn()` and `clear()` leave behind.
+
+	The species, size class, arrival tick, home, bed and skills are NOT here, deliberately:
+	`despawn()` leaves all six at the last tenant's values, so demanding an unused value would
+	refuse a column set this store itself can produce. The `_named` half goes through the shared
+	NAME-R02 table rather than a second copy of its rule.
+	"""
+	var slot: int = columns.present.find(0, 0)
+	while slot >= 0:
+		if name_occupancy_refusal(false, columns.named[slot] == 1, NO_NAME_KEY) != REFUSE_NONE:
+			return REFUSE_COLUMN_FREE_ROW
+		if columns.life_stage[slot] != LIFE_STAGE_ADULT or columns.role[slot] != ROLE_RESIDENT:
+			return REFUSE_COLUMN_FREE_ROW
+		if columns.ref_slot[slot] != EntityDirectory.NULL_SLOT:
+			return REFUSE_COLUMN_FREE_ROW
+		if columns.equip_tool_item_id[slot] != NO_TOOL_ITEM:
+			return REFUSE_COLUMN_FREE_ROW
+		if columns.equip_satchel_slot[slot] != EntityDirectory.NULL_SLOT:
+			return REFUSE_COLUMN_FREE_ROW
+		slot = columns.present.find(0, slot + 1)
+	return REFUSE_NONE
+
+
+func _column_live_row_refusal(columns: Columns) -> StringName:
+	"""Each present row's species, size class, arrival tick and DIRECTORY self-reference.
+
+	The size class is re-derived from the species table rather than trusted: `_write_spawn_row()`
+	takes it from the catalog and nothing mutates it afterwards, so a save whose two disagree is
+	corrupt rather than merely unusual. The reference resolution is the section-3 dependency
+	named in `restore_columns()`.
+	"""
+	var slot: int = columns.present.find(1, 0)
+	while slot >= 0:
+		var species_id: int = columns.species[slot]
+		if species_id < 0 or species_id >= SPECIES_COUNT:
+			return REFUSE_COLUMN_SPECIES
+		if columns.size_class[slot] != _species_size[species_id]:
+			return REFUSE_COLUMN_SIZE_CLASS
+		if columns.arrival_tick[slot] < 0:
+			return REFUSE_COLUMN_ARRIVAL_TICK
+		var ref: Vector2i = Vector2i(columns.ref_slot[slot], columns.ref_generation[slot])
+		if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_RESIDENT):
+			return REFUSE_COLUMN_DIRECTORY_REF
+		if _directory.get_typed_row(ref) != slot:
+			return REFUSE_COLUMN_DIRECTORY_REF
+		slot = columns.present.find(1, slot + 1)
+	return REFUSE_NONE
+
+
+func _install_columns(columns: Columns) -> void:
+	"""Take a private copy of each validated column. `duplicate()` so the caller cannot alias one."""
+	_present = columns.present.duplicate()
+	_species = columns.species.duplicate()
+	_size_class = columns.size_class.duplicate()
+	_named = columns.named.duplicate()
+	_life_stage = columns.life_stage.duplicate()
+	_arrival_tick = columns.arrival_tick.duplicate()
+	_role = columns.role.duplicate()
+	_home_slot = columns.home_slot.duplicate()
+	_home_generation = columns.home_generation.duplicate()
+	_bed_slot = columns.bed_slot.duplicate()
+	_bed_generation = columns.bed_generation.duplicate()
+	_ref_slot = columns.ref_slot.duplicate()
+	_ref_generation = columns.ref_generation.duplicate()
+	_equip_tool_item_id = columns.equip_tool_item_id.duplicate()
+	_equip_tool_durability = columns.equip_tool_durability.duplicate()
+	_equip_satchel_slot = columns.equip_satchel_slot.duplicate()
+	_equip_satchel_generation = columns.equip_satchel_generation.duplicate()
+	_skill_xp = columns.skill_xp.duplicate()
+	_skill_level = columns.skill_level.duplicate()
+
+
+func _rebuild_live_slots() -> void:
+	"""Refill the live list ASCENDING from the INSTALLED `_present`, and recount it.
+
+	Ascending is load-bearing rather than cosmetic: `_insert_live_slot()` keeps the live store's
+	list ascending, so a restored store iterates residents in the same order as the one that
+	saved it only if this rebuild reproduces that arrangement.
+	"""
+	_live_slots.fill(EntityDirectory.NULL_SLOT)
+	_live_count = 0
+	var slot: int = _present.find(1, 0)
+	while slot >= 0:
+		_live_slots[_live_count] = slot
+		_live_count += 1
+		slot = _present.find(1, slot + 1)
+
+
+func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
+	"""True when every byte is in [0, bound). One C++ count per legal value, no per-row loop."""
+	var total: int = 0
+	for value: int in range(bound):
+		total += column.count(value)
+	return total == column.size()
+
+
+func _int64_column_within(column: PackedInt64Array, low: int, high: int) -> bool:
+	"""True when every signed int64 entry lies in [low, high]. Sorts a copy and reads both ends.
+
+	The int32/int64 sign trap lives here: these arrive already read as SIGNED, so the bytes
+	`00 00 00 80` are -2147483648 and not the 2147483648 no int32 can hold. The low bound is
+	compared explicitly and nothing is clamped.
+	"""
+	var sorted: PackedInt64Array = column.duplicate()
+	sorted.sort()
+	return sorted[0] >= low and sorted[sorted.size() - 1] <= high
+
+
+func _refill_bytes(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+func _refill_i64(out: PackedInt64Array, source: PackedInt64Array) -> void:
+	"""Refill a caller's int64 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)

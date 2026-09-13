@@ -326,6 +326,10 @@ const STATUS_INCAPACITATED: int = 3
 const STATUS_LEAVING: int = 4
 const STATUS_DEAD: int = 5
 const STATUS_TRANSFERRED: int = 6
+## Bound on the seven values above, never a stored status. Arithmetic over the enumeration this
+## module already declares, in the shape ARCH-SAVE-005 asks for -- "bounds each byte against its
+## `*_COUNT`" -- so it fixes no new policy: TRANSFERRED = 6 remains the largest legal byte.
+const STATUS_COUNT: int = 7
 ## "DEAD at health=0, INCAPACITATED at health=1..15". A treated resident wakes at health>=16.
 const HEALTH_INCAPACITATED_MAX: int = 15
 
@@ -467,6 +471,10 @@ var _present_count: int = 0
 var _living_count: int = 0
 var _death_count: int = 0
 var _last_refused_slot: int = -1
+## The bulk-column namespace's own refusal code (decision 0132). Category 3 like the counters
+## above: not state, not persisted, and excluded from `state_bytes()` so a refusal cannot alter
+## the image that proves it changed nothing.
+var _last_column_refusal: StringName = REFUSE_NONE
 
 # --- scratch (not simulation state) ---------------------------------------------------------
 
@@ -1668,3 +1676,496 @@ func memory_duration_hours_of(memory_key: StringName) -> IntMath.IntResult:
 	if MEMORY_UNTIL_TREATED[index]:
 		return _read(REFUSE_DURATION_CONDITIONAL, 0)
 	return _read(REFUSE_NONE, MEMORY_DURATION_HOURS[index])
+
+
+# --- ARCH-SAVE-002 section 4 bulk column API (decision 0132) ----------------------------------
+#
+# Section 4 COMPONENT_COLUMNS captures and applies this store's twenty category-1 columns as one
+# set, through `copy_columns_into()` and `restore_columns()`. Before these landed, a codec could
+# read a need only through `need_of()`, which answers for a PRESENT row alone -- so a free row's
+# retained bytes, and the recomputed living count the cap is checked against, were unreachable
+# without reaching into `_need_value` from another file. No module here reads another's private
+# columns and this pair is what makes that unnecessary.
+#
+# `docs/persistence_state_registry.md` classifies every member of this store and
+# `docs/planning/canonical_state_registry.json` numbers the twenty ordinals; COLUMN_KEYS below is
+# transcribed from that artifact in its ordinal order and `test_needs.gd` re-reads the artifact
+# and compares, so a divergence fails rather than ships.
+#
+# CATEGORY 2, REBUILT AND NEVER CARRIED: `_present_count` and `_living_count`. They are counts of
+# `_present` and `_status`, and recomputing them IS this store's validator -- ARCH-SAVE-005's
+# 256-living cap is checked against the RECOMPUTED number, so a save claiming a 300-strong
+# settlement refuses instead of installing one. `_hunger_rate_milli` is also category 2 but is
+# derived from `_winter`, which is a per-tick world input the caller restates (category 3), so
+# neither is touched here.
+#
+# NO GENERATION LIVES IN THIS STORE. Rows are indexed by the RESIDENT typed row that
+# `entity_directory.gd` allocates; the directory generation, `inventory.gd`'s container and lot
+# generations and `navigation.gd`'s route generation are all elsewhere. Nothing below validates a
+# generation of any namespace, because this store holds none.
+
+const COLUMN_TYPE_U8: int = 0
+const COLUMN_TYPE_I32: int = 2
+const COLUMN_TYPE_I64: int = 4
+
+## The twenty category-1 columns in the registry's declared ordinal order. Publishing the order
+## here is what lets a codec emit ordinals without guessing, and what lets a test refuse a
+## reordering: an alphabetical or declaration-order walk produces a different list.
+const COLUMN_COUNT: int = 20
+const COLUMN_KEYS: Array[StringName] = [
+	&"_present", &"_need_value", &"_need_remainder", &"_health", &"_health_remainder",
+	&"_cold_milli_hours", &"_cold_remainder", &"_starving_ticks", &"_departure_days",
+	&"_status", &"_size_class", &"_activity", &"_comfort_environment", &"_social_paired",
+	&"_purpose_source", &"_cold_environment", &"_clothing_tier", &"_infirmary",
+	&"_injury_state", &"_airless",
+]
+const COLUMN_TYPE_CODES: Array[int] = [
+	COLUMN_TYPE_U8, COLUMN_TYPE_I32, COLUMN_TYPE_I64, COLUMN_TYPE_I32, COLUMN_TYPE_I64,
+	COLUMN_TYPE_I64, COLUMN_TYPE_I64, COLUMN_TYPE_I64, COLUMN_TYPE_I32,
+	COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_U8,
+	COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_U8,
+	COLUMN_TYPE_U8, COLUMN_TYPE_U8,
+]
+const COLUMN_EXTENTS: Array[int] = [
+	RESIDENT_CAPACITY, RESIDENT_CAPACITY * NEED_COUNT, RESIDENT_CAPACITY * NEED_COUNT,
+	RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY,
+	RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY,
+	RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY,
+	RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY, RESIDENT_CAPACITY,
+	RESIDENT_CAPACITY,
+]
+
+## Bulk column refusals, read through `last_column_refusal()` and NEVER through an OpResult.
+## Every code is prefixed `COLUMN_` so it can never collide with a mutator's refusal above: a
+## load must not be able to clobber the reason a `spawn()` was refused before its caller read it.
+const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
+const REFUSE_COLUMN_PRESENT_BYTE: StringName = &"COLUMN_PRESENT_BYTE"
+const REFUSE_COLUMN_FLAG_BYTE: StringName = &"COLUMN_FLAG_BYTE"
+const REFUSE_COLUMN_ENUM_BYTE: StringName = &"COLUMN_ENUM_BYTE"
+const REFUSE_COLUMN_CLOTHING_TIER: StringName = &"COLUMN_CLOTHING_TIER"
+const REFUSE_COLUMN_NEED_RANGE: StringName = &"COLUMN_NEED_RANGE"
+const REFUSE_COLUMN_HEALTH_RANGE: StringName = &"COLUMN_HEALTH_RANGE"
+const REFUSE_COLUMN_NEGATIVE_COUNTER: StringName = &"COLUMN_NEGATIVE_COUNTER"
+const REFUSE_COLUMN_REMAINDER: StringName = &"COLUMN_REMAINDER"
+const REFUSE_COLUMN_FREE_ROW: StringName = &"COLUMN_FREE_ROW"
+const REFUSE_COLUMN_LIVING_CAP: StringName = &"COLUMN_LIVING_CAP"
+
+
+class Columns:
+	"""Caller-owned image of the twenty category-1 columns, allocated once to capacity.
+
+	One object per save or per load, not per resident: ARCH-MEM-001 bans a per-entity object and
+	this is neither on a per-tick path nor sized by population. Field order is COLUMN_KEYS order,
+	which is the registry's ordinal order.
+
+	The buffers belong to the CALLER. `copy_columns_into()` refills them in place and refuses a
+	wrongly sized one rather than resizing it, because an array of the wrong length is the wrong
+	array and silently growing it would hide that.
+	"""
+	var present: PackedByteArray = PackedByteArray()
+	var need_value: PackedInt32Array = PackedInt32Array()
+	var need_remainder: PackedInt64Array = PackedInt64Array()
+	var health: PackedInt32Array = PackedInt32Array()
+	var health_remainder: PackedInt64Array = PackedInt64Array()
+	var cold_milli_hours: PackedInt64Array = PackedInt64Array()
+	var cold_remainder: PackedInt64Array = PackedInt64Array()
+	var starving_ticks: PackedInt64Array = PackedInt64Array()
+	var departure_days: PackedInt32Array = PackedInt32Array()
+	var status: PackedByteArray = PackedByteArray()
+	var size_class: PackedByteArray = PackedByteArray()
+	var activity: PackedByteArray = PackedByteArray()
+	var comfort_environment: PackedByteArray = PackedByteArray()
+	var social_paired: PackedByteArray = PackedByteArray()
+	var purpose_source: PackedByteArray = PackedByteArray()
+	var cold_environment: PackedByteArray = PackedByteArray()
+	var clothing_tier: PackedByteArray = PackedByteArray()
+	var infirmary: PackedByteArray = PackedByteArray()
+	var injury_state: PackedByteArray = PackedByteArray()
+	var airless: PackedByteArray = PackedByteArray()
+
+	func _init() -> void:
+		"""Size all twenty columns to their declared extents. The only place this class resizes."""
+		need_value.resize(RESIDENT_CAPACITY * NEED_COUNT)
+		need_remainder.resize(RESIDENT_CAPACITY * NEED_COUNT)
+		for column: PackedInt32Array in [health, departure_days]:
+			column.resize(RESIDENT_CAPACITY)
+		for column: PackedInt64Array in [health_remainder, cold_milli_hours, cold_remainder,
+				starving_ticks]:
+			column.resize(RESIDENT_CAPACITY)
+		for column: PackedByteArray in [present, status, size_class, activity,
+				comfort_environment, social_paired, purpose_source, cold_environment,
+				clothing_tier, infirmary, injury_state, airless]:
+			column.resize(RESIDENT_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with the value this store's own `clear()` leaves, not with zero.
+
+		`_status` goes to DEAD and `_clothing_tier` to 1: the declared unused value of a column is
+		whatever its owner declares, and two of these are not 0.
+		"""
+		need_value.fill(0)
+		need_remainder.fill(0)
+		health.fill(0)
+		departure_days.fill(0)
+		for column: PackedInt64Array in [health_remainder, cold_milli_hours, cold_remainder,
+				starving_ticks]:
+			column.fill(0)
+		for column: PackedByteArray in [present, social_paired, infirmary, airless]:
+			column.fill(0)
+		status.fill(STATUS_DEAD)
+		size_class.fill(SIZE_SMALL)
+		activity.fill(ACTIVITY_AWAKE)
+		comfort_environment.fill(COMFORT_ENV_NONE)
+		purpose_source.fill(PURPOSE_SOURCE_NONE)
+		cold_environment.fill(COLD_ENV_NEUTRAL)
+		clothing_tier.fill(CLOTHING_TIER_MIN)
+		injury_state.fill(INJURY_NONE)
+
+	func equals(other: Columns) -> bool:
+		"""True when all twenty columns are byte-identical. Proves a refusal changed nothing."""
+		return present == other.present and need_value == other.need_value \
+			and need_remainder == other.need_remainder and health == other.health \
+			and health_remainder == other.health_remainder \
+			and cold_milli_hours == other.cold_milli_hours \
+			and cold_remainder == other.cold_remainder \
+			and starving_ticks == other.starving_ticks \
+			and departure_days == other.departure_days and status == other.status \
+			and size_class == other.size_class and activity == other.activity \
+			and comfort_environment == other.comfort_environment \
+			and social_paired == other.social_paired \
+			and purpose_source == other.purpose_source \
+			and cold_environment == other.cold_environment \
+			and clothing_tier == other.clothing_tier and infirmary == other.infirmary \
+			and injury_state == other.injury_state and airless == other.airless
+
+
+func last_column_refusal() -> StringName:
+	"""The code from the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	Deliberately a SEPARATE channel from the OpResult every mutator returns. A caller reads a
+	spawn refusal off its own result; a save or load that wrote into that channel would make one
+	operation report another's problem. The two namespaces also share no code value: everything
+	reachable here is prefixed `COLUMN_`.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the twenty category-1 columns into caller-owned buffers. False refuses.
+
+	Section 4's capture step, and the ONLY way to read a FREE row's retained bytes: every other
+	reader here refuses a row whose `_present` is 0, so the values a released row carries -- and
+	the recomputed counts the living cap is checked against -- are otherwise unreachable.
+
+	The copies are snapshots. Mutating `out` afterwards cannot reach a column, and a later tick
+	cannot reach `out`.
+	"""
+	if not _columns_are_capacity_sized(out):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_refill_bytes(out.present, _present)
+	_refill_i32(out.need_value, _need_value)
+	_refill_i64(out.need_remainder, _need_remainder)
+	_refill_i32(out.health, _health)
+	_refill_i64(out.health_remainder, _health_remainder)
+	_refill_i64(out.cold_milli_hours, _cold_milli_hours)
+	_refill_i64(out.cold_remainder, _cold_remainder)
+	_refill_i64(out.starving_ticks, _starving_ticks)
+	_refill_i32(out.departure_days, _departure_days)
+	_copy_state_bytes_into(out)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _copy_state_bytes_into(out: Columns) -> void:
+	"""Refill the eleven byte columns of ordinals 9-19. Split out to keep the caller under 30."""
+	_refill_bytes(out.status, _status)
+	_refill_bytes(out.size_class, _size_class)
+	_refill_bytes(out.activity, _activity)
+	_refill_bytes(out.comfort_environment, _comfort_environment)
+	_refill_bytes(out.social_paired, _social_paired)
+	_refill_bytes(out.purpose_source, _purpose_source)
+	_refill_bytes(out.cold_environment, _cold_environment)
+	_refill_bytes(out.clothing_tier, _clothing_tier)
+	_refill_bytes(out.infirmary, _infirmary)
+	_refill_bytes(out.injury_state, _injury_state)
+	_refill_bytes(out.airless, _airless)
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all twenty columns and recompute both counters. False refuses; nothing is written.
+
+	Section 4's apply step. The store becomes the settlement these columns describe: the previous
+	contents are discarded wholesale, so a slot index taken before the call belongs to a different
+	world. Restore into a store you are loading over.
+
+	`_present_count` and `_living_count` are RECOMPUTED from the restored columns and never read
+	from the caller. That recount is this store's validator: ARCH-SAVE-005's 256 living residents
+	is checked against the recomputed number before a byte is installed, so a column set claiming
+	more refuses rather than installing a settlement the cap forbids.
+
+	Allocate before consume (decision 0059): every rule -- shape, byte domains, value ranges,
+	remainder magnitudes, the free-row rule and the cap -- is checked before the first write, and
+	no partial write exists to roll back. A refusal leaves the store byte-identical and
+	`state_bytes()` proves it by comparison rather than by eye.
+
+	`_winter`, `_hard_freeze` and `_death_count` are NOT touched: the first two are per-tick world
+	inputs the caller restates, and the third is a diagnostic. See `last_column_refusal()`.
+	"""
+	var refusal: StringName = _restore_column_refusal(columns)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_install_columns(columns)
+	_rebuild_counters()
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func state_bytes() -> PackedByteArray:
+	"""Diagnostic image of every member this store's behaviour depends on.
+
+	NOT A PRODUCTION CALL: it allocates. It exists so a refused `restore_columns()` can be proved
+	to have changed nothing by byte comparison. Included: the twenty persisted columns, both
+	recomputed counters, the two world inputs and the derived hunger rates. Excluded:
+	`_death_count`, `_last_refused_slot` and `_last_column_refusal`, which are category 3 and
+	would make every refusal alter the image it is being compared against.
+	"""
+	var image: PackedByteArray = PackedByteArray()
+	image.append_array(_present)
+	image.append_array(_need_value.to_byte_array())
+	image.append_array(_need_remainder.to_byte_array())
+	image.append_array(_health.to_byte_array())
+	image.append_array(_health_remainder.to_byte_array())
+	image.append_array(_cold_milli_hours.to_byte_array())
+	image.append_array(_cold_remainder.to_byte_array())
+	image.append_array(_starving_ticks.to_byte_array())
+	image.append_array(_departure_days.to_byte_array())
+	for column: PackedByteArray in [_status, _size_class, _activity, _comfort_environment,
+			_social_paired, _purpose_source, _cold_environment, _clothing_tier, _infirmary,
+			_injury_state, _airless]:
+		image.append_array(column)
+	image.append_array(PackedInt64Array([_present_count, _living_count,
+		1 if _winter else 0, 1 if _hard_freeze else 0]).to_byte_array())
+	image.append_array(_hunger_rate_milli.to_byte_array())
+	return image
+
+
+func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""True when every one of the twenty buffers is exactly its declared extent."""
+	if columns.need_value.size() != RESIDENT_CAPACITY * NEED_COUNT:
+		return false
+	if columns.need_remainder.size() != RESIDENT_CAPACITY * NEED_COUNT:
+		return false
+	for column: PackedInt32Array in [columns.health, columns.departure_days]:
+		if column.size() != RESIDENT_CAPACITY:
+			return false
+	for column: PackedInt64Array in [columns.health_remainder, columns.cold_milli_hours,
+			columns.cold_remainder, columns.starving_ticks]:
+		if column.size() != RESIDENT_CAPACITY:
+			return false
+	for column: PackedByteArray in [columns.present, columns.status, columns.size_class,
+			columns.activity, columns.comfort_environment, columns.social_paired,
+			columns.purpose_source, columns.cold_environment, columns.clothing_tier,
+			columns.infirmary, columns.injury_state, columns.airless]:
+		if column.size() != RESIDENT_CAPACITY:
+			return false
+	return true
+
+
+func _restore_column_refusal(columns: Columns) -> StringName:
+	"""Every rule a restored column set must satisfy, checked before a single column is written."""
+	if not _columns_are_capacity_sized(columns):
+		return REFUSE_COLUMN_SHAPE
+	var bytes: StringName = _column_byte_domain_refusal(columns)
+	if bytes != REFUSE_NONE:
+		return bytes
+	var values: StringName = _column_value_domain_refusal(columns)
+	if values != REFUSE_NONE:
+		return values
+	var free_rows: StringName = _column_free_row_refusal(columns)
+	if free_rows != REFUSE_NONE:
+		return free_rows
+	if _living_row_count(columns.present, columns.status) > RESIDENT_LIVING_CAP:
+		return REFUSE_COLUMN_LIVING_CAP
+	return REFUSE_NONE
+
+
+func _column_byte_domain_refusal(columns: Columns) -> StringName:
+	"""Every byte column holds only values its own enumeration declares (ARCH-SAVE-005)."""
+	if not _byte_column_below(columns.present, 2):
+		return REFUSE_COLUMN_PRESENT_BYTE
+	for column: PackedByteArray in [columns.social_paired, columns.infirmary, columns.airless]:
+		if not _byte_column_below(column, 2):
+			return REFUSE_COLUMN_FLAG_BYTE
+	if not _byte_column_below(columns.clothing_tier, CLOTHING_TIER_MAX + 1):
+		return REFUSE_COLUMN_CLOTHING_TIER
+	if columns.clothing_tier.count(0) != 0:
+		# GDD §5.1 spawns at tier 1 and there is no tier 0 garment; a zero byte here is an
+		# unwritten column, not a resident with no clothing.
+		return REFUSE_COLUMN_CLOTHING_TIER
+	if not _byte_column_below(columns.status, STATUS_COUNT):
+		return REFUSE_COLUMN_ENUM_BYTE
+	if not _byte_column_below(columns.size_class, SIZE_COUNT):
+		return REFUSE_COLUMN_ENUM_BYTE
+	if not _byte_column_below(columns.activity, ACTIVITY_COUNT):
+		return REFUSE_COLUMN_ENUM_BYTE
+	if not _byte_column_below(columns.comfort_environment, COMFORT_ENV_COUNT):
+		return REFUSE_COLUMN_ENUM_BYTE
+	if not _byte_column_below(columns.purpose_source, PURPOSE_SOURCE_COUNT):
+		return REFUSE_COLUMN_ENUM_BYTE
+	if not _byte_column_below(columns.cold_environment, COLD_ENV_COUNT):
+		return REFUSE_COLUMN_ENUM_BYTE
+	if not _byte_column_below(columns.injury_state, INJURY_STATE_COUNT):
+		return REFUSE_COLUMN_ENUM_BYTE
+	return REFUSE_NONE
+
+
+func _column_value_domain_refusal(columns: Columns) -> StringName:
+	"""Need, health, counter and remainder domains, over the whole column including free rows.
+
+	THE INT32 SIGN TRAP. These arrive as int32 and int64 columns, so the bytes `00 00 00 80` are
+	the NEGATIVE -2147483648 and not the 2147483648 no int32 can hold. Every bound below is
+	therefore a signed comparison and the low end is checked explicitly; nothing is clamped.
+
+	The remainder bounds are the integration proof, not decoration: `_integrate_step()` is only
+	overflow-safe while |remainder| < its denominator, so a remainder at or beyond one is refused
+	rather than integrated.
+	"""
+	if not _int32_column_within(columns.need_value, NEED_MIN, NEED_MAX):
+		return REFUSE_COLUMN_NEED_RANGE
+	if not _int32_column_within(columns.health, HEALTH_MIN, HEALTH_MAX):
+		return REFUSE_COLUMN_HEALTH_RANGE
+	if not _int32_column_within(columns.departure_days, 0, IntMath.INT32_MAX):
+		return REFUSE_COLUMN_NEGATIVE_COUNTER
+	if not _int64_column_within(columns.starving_ticks, 0, IntMath.INT64_MAX):
+		return REFUSE_COLUMN_NEGATIVE_COUNTER
+	if not _int64_column_within(columns.cold_milli_hours, 0, IntMath.INT64_MAX):
+		return REFUSE_COLUMN_NEGATIVE_COUNTER
+	if not _int64_column_within(columns.need_remainder, -(NEED_DENOMINATOR - 1),
+			NEED_DENOMINATOR - 1):
+		return REFUSE_COLUMN_REMAINDER
+	if not _int64_column_within(columns.health_remainder, -(HEALTH_DENOMINATOR - 1),
+			HEALTH_DENOMINATOR - 1):
+		return REFUSE_COLUMN_REMAINDER
+	if not _int64_column_within(columns.cold_remainder, -(COLD_DENOMINATOR - 1),
+			COLD_DENOMINATOR - 1):
+		return REFUSE_COLUMN_REMAINDER
+	return REFUSE_NONE
+
+
+func _column_free_row_refusal(columns: Columns) -> StringName:
+	"""Every `_present == 0` row carries exactly what `despawn()` and `clear()` leave behind.
+
+	The nine columns checked are the ones both paths zero, plus the DEAD status both write. The
+	size class and the environment inputs are NOT here and that is deliberate rather than an
+	omission: `despawn()` leaves them at the last tenant's values, so requiring an unused value
+	would refuse a column set this very store can produce.
+	"""
+	var slot: int = columns.present.find(0, 0)
+	while slot >= 0:
+		if not _free_row_is_clear(columns, slot):
+			return REFUSE_COLUMN_FREE_ROW
+		slot = columns.present.find(0, slot + 1)
+	return REFUSE_NONE
+
+
+func _free_row_is_clear(columns: Columns, slot: int) -> bool:
+	"""True when one inactive row holds the released-row values and the DEAD status."""
+	if columns.status[slot] != STATUS_DEAD:
+		return false
+	if columns.health[slot] != 0 or columns.health_remainder[slot] != 0:
+		return false
+	if columns.cold_milli_hours[slot] != 0 or columns.cold_remainder[slot] != 0:
+		return false
+	if columns.starving_ticks[slot] != 0:
+		return false
+	var base: int = slot * NEED_COUNT
+	for need: int in NEED_COUNT:
+		if columns.need_value[base + need] != 0 or columns.need_remainder[base + need] != 0:
+			return false
+	return true
+
+
+func _living_row_count(present: PackedByteArray, status: PackedByteArray) -> int:
+	"""Spawned rows whose resident is not dead. One function, used on the incoming columns to
+	enforce the cap and on the installed ones to rebuild the counter, so the two cannot drift."""
+	var total: int = 0
+	var slot: int = present.find(1, 0)
+	while slot >= 0:
+		if status[slot] != STATUS_DEAD:
+			total += 1
+		slot = present.find(1, slot + 1)
+	return total
+
+
+func _install_columns(columns: Columns) -> void:
+	"""Take a private copy of each validated column. `duplicate()` so the caller cannot alias one."""
+	_present = columns.present.duplicate()
+	_need_value = columns.need_value.duplicate()
+	_need_remainder = columns.need_remainder.duplicate()
+	_health = columns.health.duplicate()
+	_health_remainder = columns.health_remainder.duplicate()
+	_cold_milli_hours = columns.cold_milli_hours.duplicate()
+	_cold_remainder = columns.cold_remainder.duplicate()
+	_starving_ticks = columns.starving_ticks.duplicate()
+	_departure_days = columns.departure_days.duplicate()
+	_status = columns.status.duplicate()
+	_size_class = columns.size_class.duplicate()
+	_activity = columns.activity.duplicate()
+	_comfort_environment = columns.comfort_environment.duplicate()
+	_social_paired = columns.social_paired.duplicate()
+	_purpose_source = columns.purpose_source.duplicate()
+	_cold_environment = columns.cold_environment.duplicate()
+	_clothing_tier = columns.clothing_tier.duplicate()
+	_infirmary = columns.infirmary.duplicate()
+	_injury_state = columns.injury_state.duplicate()
+	_airless = columns.airless.duplicate()
+
+
+func _rebuild_counters() -> void:
+	"""Recount both category-2 counters from the INSTALLED columns, never from an input."""
+	_present_count = _present.count(1)
+	_living_count = _living_row_count(_present, _status)
+	_last_refused_slot = -1
+
+
+func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
+	"""True when every byte is in [0, bound). One C++ count per legal value, no per-row loop."""
+	var total: int = 0
+	for value: int in range(bound):
+		total += column.count(value)
+	return total == column.size()
+
+
+func _int32_column_within(column: PackedInt32Array, low: int, high: int) -> bool:
+	"""True when every signed int32 entry lies in [low, high]. Sorts a copy and reads both ends."""
+	var sorted: PackedInt32Array = column.duplicate()
+	sorted.sort()
+	return sorted[0] >= low and sorted[sorted.size() - 1] <= high
+
+
+func _int64_column_within(column: PackedInt64Array, low: int, high: int) -> bool:
+	"""True when every signed int64 entry lies in [low, high]. Sorts a copy and reads both ends."""
+	var sorted: PackedInt64Array = column.duplicate()
+	sorted.sort()
+	return sorted[0] >= low and sorted[sorted.size() - 1] <= high
+
+
+func _refill_bytes(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+func _refill_i64(out: PackedInt64Array, source: PackedInt64Array) -> void:
+	"""Refill a caller's int64 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)

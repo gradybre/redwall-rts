@@ -955,3 +955,178 @@ func test_restore_columns_refuses_a_two_hundred_fifty_seventh_living_resident() 
 		EntityDirectoryScript.RESIDENT_LIVING_CAP)
 	_assert_restore_refused(loaded, EntityDirectoryScript.REFUSAL_COLUMN_LIVING_CAP,
 		"a 257th living resident")
+
+
+# --- D2: the section 1 persistent-ID cursor -------------------------------------------------------
+#
+# THE FIXTURES ARE THE RULING'S OWN. "create 1/2/3, destroy 3, save/load, next = 4; destroy all
+# then save/load still next = 4; MAX_INT32 issuance survives load as exhausted; invalid 0,
+# 2147483649 and cursor <= stored ID all fail before publication."
+#
+# EVERY ONE OF THEM KILLS `max(live ids) + 1`. That derivation is the whole reason the cursor is
+# a saved scalar: `destroy()` zeroes `_persistent_id`, so after destroying the third entity the
+# live maximum is 2 and the derivation reissues 3 -- an identity the saved world already spent.
+# With every entity dead the derivation collapses to 1 and reissues all of them.
+
+
+func _restore_with_cursor(store: EntityDirectoryScript, cursor: int) -> bool:
+	"""Apply the scratch columns AND a cursor, returning what `restore_columns_and_cursor()` did."""
+	return store.restore_columns_and_cursor(_c_active, _c_generation, _c_retired,
+		_c_persistent_id, _c_kind, _c_typed_row, cursor)
+
+
+func _round_trip_cursor(store: EntityDirectoryScript) -> EntityDirectoryScript:
+	"""Capture `store`'s columns and cursor into a fresh directory, asserting the restore took."""
+	assert_true(_capture_from(store), "the six columns are published")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_true(_restore_with_cursor(loaded, store.next_persistent_id()),
+		"restored: %s" % loaded.last_column_refusal())
+	return loaded
+
+
+func test_three_creates_one_destroy_and_a_round_trip_still_issue_four() -> void:
+	"""The ruling's first D2 fixture. `max(live ids) + 1` would answer 3 here and reissue it."""
+	var third: Vector2i = Vector2i.ZERO
+	for index: int in range(3):
+		third = _directory.create(EntityDirectoryScript.KIND_HIVE)
+	assert_true(_directory.destroy(third), "the third entity dies")
+	assert_equal(_directory.next_persistent_id(), 4, "the live cursor already stands at 4")
+	var loaded: EntityDirectoryScript = _round_trip_cursor(_directory)
+	assert_equal(loaded.next_persistent_id(), 4, "and the restored world issues 4, not 3")
+	var next: Vector2i = loaded.create(EntityDirectoryScript.KIND_HIVE)
+	assert_equal(loaded.get_persistent_id(next), 4, "which is the identity it actually hands out")
+
+
+func test_a_world_whose_every_entity_died_still_issues_four() -> void:
+	"""The ruling's second D2 fixture, and the one `max(live ids) + 1` fails hardest.
+
+	With no live row at all that derivation has no maximum: it restarts at 1 and reissues every
+	identity the world ever spent. The cursor is saved precisely so a dead world is not a new one.
+	"""
+	for index: int in range(3):
+		assert_true(_directory.destroy(_directory.create(EntityDirectoryScript.KIND_HIVE)),
+			"created and immediately destroyed")
+	assert_equal(_directory.total_live_count(), 0, "nothing is alive")
+	var loaded: EntityDirectoryScript = _round_trip_cursor(_directory)
+	assert_equal(loaded.next_persistent_id(), 4, "the restored empty world still issues 4")
+	assert_equal(loaded.get_persistent_id(loaded.create(EntityDirectoryScript.KIND_HIVE)), 4,
+		"and never reissues 1")
+
+
+func test_the_final_int32_identity_survives_a_load_as_the_exhausted_cursor() -> void:
+	"""The ruling's third D2 fixture: MAX_INT32 issued, cursor restored as 2147483648.
+
+	The exhausted cursor is a legal SAVED value and an illegal COLUMN value, which is why the
+	live slot below carries 2147483647 while the scalar beside it carries 2147483648.
+	"""
+	_directory.set("_next_persistent_id", EntityDirectoryScript.MAX_INT32)
+	var last: Vector2i = _directory.create(EntityDirectoryScript.KIND_HIVE)
+	assert_equal(_directory.get_persistent_id(last), EntityDirectoryScript.MAX_INT32,
+		"the final signed-int32 identity is issued")
+	assert_equal(_directory.next_persistent_id(), EntityDirectoryScript.PERSISTENT_ID_EXHAUSTED,
+		"leaving the cursor exhausted")
+	var loaded: EntityDirectoryScript = _round_trip_cursor(_directory)
+	assert_equal(loaded.next_persistent_id(), EntityDirectoryScript.PERSISTENT_ID_EXHAUSTED,
+		"which survives the load")
+	assert_equal(loaded.create(EntityDirectoryScript.KIND_HIVE), EntityDirectoryScript.NULL_REF,
+		"and the restored world issues no further identity")
+	assert_equal(loaded.last_refusal(), EntityDirectoryScript.REFUSAL_PERSISTENT_ID, "by name")
+
+
+func test_the_exhausted_cursor_is_exactly_max_int32_plus_one() -> void:
+	"""2147483648 is the cursor AFTER the last identity, not an identity. Pinned by arithmetic."""
+	assert_equal(EntityDirectoryScript.PERSISTENT_ID_EXHAUSTED, 2147483648,
+		"the ruling's number, written out")
+	assert_equal(EntityDirectoryScript.PERSISTENT_ID_EXHAUSTED,
+		EntityDirectoryScript.MAX_INT32 + 1, "and it is one past the last i32 identity")
+	assert_equal(EntityDirectoryScript.PERSISTENT_ID_MIN, 1, "the first identity is 1, not 0")
+
+
+func test_an_invalid_or_stale_cursor_refuses_before_anything_is_published() -> void:
+	"""The ruling's fourth D2 fixture: 0, 2147483649 and a cursor at or below a stored ID.
+
+	A stale cursor is a REFUSAL, never a repair. Repairing it upward would silently accept a save
+	whose allocator ledger disagrees with its own columns, and the next create would then look
+	correct while the file it came from did not.
+	"""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured a world whose highest stored id is 9")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	var before: PackedByteArray = loaded.state_bytes()
+	assert_false(_restore_with_cursor(loaded, 0), "cursor 0 refuses")
+	assert_equal(loaded.last_column_refusal(), EntityDirectoryScript.REFUSAL_COLUMN_CURSOR_RANGE,
+		"by name")
+	assert_false(_restore_with_cursor(loaded, EntityDirectoryScript.PERSISTENT_ID_EXHAUSTED + 1),
+		"2147483649 refuses")
+	assert_equal(loaded.last_column_refusal(), EntityDirectoryScript.REFUSAL_COLUMN_CURSOR_RANGE,
+		"by the same name")
+	assert_false(_restore_with_cursor(loaded, _highest_scratch_id()),
+		"a cursor EQUAL to the highest stored id refuses")
+	assert_equal(loaded.last_column_refusal(), EntityDirectoryScript.REFUSAL_COLUMN_CURSOR_STALE,
+		"as stale")
+	assert_false(_restore_with_cursor(loaded, _highest_scratch_id() - 1),
+		"and so does one below it")
+	assert_true(loaded.state_bytes() == before,
+		"and every refusal left the directory byte-identical (decision 0059)")
+	assert_true(_restore_with_cursor(loaded, _highest_scratch_id() + 1),
+		"while the smallest legal cursor is accepted")
+
+
+func _highest_scratch_id() -> int:
+	"""The largest persistent id in the scratch column, which the cursor must strictly exceed."""
+	var sorted: PackedInt32Array = _c_persistent_id.duplicate()
+	sorted.sort()
+	return sorted[EntityDirectoryScript.DIRECTORY_CAPACITY - 1]
+
+
+func test_the_exhausted_value_can_never_enter_a_live_persistent_id_column() -> void:
+	"""The int32 sign trap, on the column D2 widens the LEDGER of and not the column.
+
+	GDScript ints are 64-bit, so `0x80000000` is the POSITIVE 2147483648 while the same four bytes
+	read out of an i32 column are -2147483648. A test that compared against `0x80000000` would
+	pass against a column that had quietly stored the negative -- which is the bug this checks
+	for, so both readings are asserted here rather than one.
+	"""
+	assert_equal(0x80000000, EntityDirectoryScript.PERSISTENT_ID_EXHAUSTED,
+		"a 64-bit GDScript int reads those bytes as 2147483648")
+	var column: PackedInt32Array = PackedInt32Array()
+	column.resize(1)
+	column[0] = -2147483648
+	assert_equal(column.to_byte_array().hex_encode(), "00000080",
+		"and an i32 column spells that very value with the exhausted bytes")
+	assert_true(column[0] != EntityDirectoryScript.PERSISTENT_ID_EXHAUSTED,
+		"so the two readings are NOT the same number")
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	_c_persistent_id[0] = -2147483648
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_false(_restore_with_cursor(loaded, _highest_scratch_id() + 1),
+		"a live slot carrying those bytes is refused")
+	assert_equal(loaded.last_column_refusal(),
+		EntityDirectoryScript.REFUSAL_COLUMN_LIVE_PERSISTENT_ID, "as an out-of-domain identity")
+
+
+func test_restore_columns_alone_still_leaves_the_cursor_to_section_one() -> void:
+	"""The two entry points are distinct on purpose: §3's codec must not write a §1 value."""
+	_build_world(_directory)
+	assert_true(_capture_from(_directory), "captured")
+	var loaded: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_true(_restore_into(loaded), "the columns-only call succeeds")
+	assert_equal(loaded.next_persistent_id(), 1, "and leaves the cursor where it stood")
+	assert_true(_restore_with_cursor(loaded, _directory.next_persistent_id()),
+		"while the combined call installs it")
+	assert_equal(loaded.next_persistent_id(), _directory.next_persistent_id(), "exactly")
+	assert_true(loaded.state_bytes() == _directory.state_bytes(),
+		"and the two worlds are now byte-identical, cursor included")
+
+
+func test_clear_returns_the_cursor_to_one_and_is_not_a_load_step() -> void:
+	"""A NEW world issues from 1. A loader reaching identity through `clear()` would reissue."""
+	for index: int in range(5):
+		_directory.create(EntityDirectoryScript.KIND_HIVE)
+	assert_equal(_directory.next_persistent_id(), 6, "five identities have been spent")
+	_directory.clear()
+	assert_equal(_directory.next_persistent_id(), EntityDirectoryScript.PERSISTENT_ID_MIN,
+		"a cleared directory is a new world and issues 1")
+	assert_equal(_directory.get_persistent_id(
+		_directory.create(EntityDirectoryScript.KIND_HIVE)), 1, "starting over from 1")

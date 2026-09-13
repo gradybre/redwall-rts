@@ -12,9 +12,11 @@ extends "res://test/framework/test_case.gd"
 ## "restore exactly" fails in three different ways -- truncating to 2000000, collapsing to 2, or
 ## rounding the remainder away -- and only the last of those changes the field's magnitude much.
 ##
-## INTEGER BOUNDARIES COME FROM ARITHMETIC, NOT LITERALS. `DEBT_MAX` is `INT64_MAX / 4`, derived
-## from `sim_clock.gd::_is_overloaded()`'s `4*debt` comparison, and the tests probe `DEBT_MAX` and
-## `DEBT_MAX + 1` by computing them rather than by typing 2305843009213693951.
+## INTEGER BOUNDARIES COME FROM ARITHMETIC, NOT LITERALS. `COMPLETED_TICK_MAX` is
+## `INT64_MAX - 4500`, derived from GDD §5.1's offset calendar, and the tests probe it and one
+## past it by computing them rather than by typing the number out. `DEBT_MAX` was `INT64_MAX / 4`
+## until RESTORE-R01 settled the saved domain as `0..INT64_MAX`; the two tests that asserted the
+## old cap now assert the correction and the agreement with `sim_clock.restore_refusal()`.
 
 const SaveCodec := preload("res://scripts/core/save_codec.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
@@ -246,28 +248,48 @@ func test_the_completed_tick_ceiling_is_the_calendar_offset_boundary() -> void:
 		WorldRuntime.REFUSE_TICK_UNREPRESENTABLE, "one past it refuses")
 
 
-func test_the_debt_ceiling_is_the_overload_comparison_boundary() -> void:
-	"""`4*debt` must be representable, so the ceiling is INT64_MAX / 4 exactly. Refuse, not clamp."""
-	assert_equal(WorldRuntime.DEBT_MAX,
-		SaveCodec.INT64_MAX / SimClockScript.OVERLOAD_NUMERATOR, "the bound is derived")
+func test_the_debt_domain_is_restore_r01s_whole_int64_range() -> void:
+	"""RESTORE-R01 corrects this module: debt lies in `0..INT64_MAX`, not `0..INT64_MAX/4`.
+
+	THIS TEST REPLACES `test_the_debt_ceiling_is_the_overload_comparison_boundary`, which asserted
+	the OLD cap. The cap was read off `sim_clock.gd::_is_overloaded()`'s `4*debt` comparison, but
+	the ruling settles the saved domain the other way and adds that "restoring a representable
+	value is not permission to overflow it" -- the checked multiplication owns that bound. The
+	defect the old cap caused is asserted below by name: this codec used to REFUSE debts that
+	`sim_clock.restore_runtime()` accepts, which is a codec quietly narrowing stored debt.
+	"""
+	assert_equal(WorldRuntime.DEBT_MAX, SaveCodec.INT64_MAX, "the domain is the whole int64")
+	assert_true(WorldRuntime.DEBT_MAX > SaveCodec.INT64_MAX / SimClockScript.OVERLOAD_NUMERATOR,
+		"and it is strictly wider than the INT64_MAX/4 cap it replaces")
 	_record.debt = WorldRuntime.DEBT_MAX
 	assert_true(WorldRuntime.record_refusal(_record).is_ok(), "the ceiling itself is accepted")
-	var back: WorldRuntime.Record = WorldRuntime.Record.new()
-	assert_true(WorldRuntime.decode_into(_bytes_of(_record), 0, back).is_ok(), "and round trips")
-	assert_equal(back.debt, WorldRuntime.DEBT_MAX, "unclamped")
-	_record.debt = WorldRuntime.DEBT_MAX + 1
-	assert_equal(WorldRuntime.record_refusal(_record).code,
-		WorldRuntime.REFUSE_DEBT_UNREPRESENTABLE, "one past it refuses")
+	assert_true(SimClockScript.restore_refusal(0, WorldRuntime.DEBT_MAX,
+		SimClockScript.SPEED_NORMAL, 0, 0, 0, 0, 0, 0, 0).is_ok(),
+		"and the clock accepts exactly the same value, which is the agreement that was broken")
+	_record.debt = -1
+	assert_equal(WorldRuntime.record_refusal(_record).code, WorldRuntime.REFUSE_NEGATIVE_DEBT,
+		"the rule a value can still violate is the lower one")
 
 
-func test_an_unrepresentable_debt_rejects_on_decode_rather_than_saturating() -> void:
-	"""G3: an invalid value rejects, never saturates. The record must come back untouched."""
+func test_the_largest_debt_decodes_exactly_and_is_never_quietly_reduced() -> void:
+	"""G3 and RESTORE-R01 together: exact, unscaled, unclamped -- and a refusal touches nothing.
+
+	The previous version of this test asserted that an `INT64_MAX` debt REFUSED on decode. Under
+	the corrected domain it must round trip, remainder included, so the saturation trap is probed
+	with the value that IS still invalid: a negative debt.
+	"""
 	var bytes: PackedByteArray = _bytes_of(_record)
 	bytes.encode_s64(WorldRuntime.OFFSET_DEBT, SaveCodec.INT64_MAX)
+	var back: WorldRuntime.Record = WorldRuntime.Record.new()
+	assert_true(WorldRuntime.decode_into(bytes, 0, back).is_ok(), "INT64_MAX debt is accepted")
+	assert_equal(back.debt, SaveCodec.INT64_MAX, "exactly, not reduced to any ceiling")
+	assert_equal(back.subtick_debt(), SaveCodec.INT64_MAX % SimClockScript.TICK_COST,
+		"with its sub-tick remainder intact")
+	bytes.encode_s64(WorldRuntime.OFFSET_DEBT, -1)
 	var target: WorldRuntime.Record = WorldRuntime.Record.new()
 	target.debt = 77
 	assert_equal(WorldRuntime.decode_into(bytes, 0, target).code,
-		WorldRuntime.REFUSE_DEBT_UNREPRESENTABLE, "INT64_MAX debt refuses")
+		WorldRuntime.REFUSE_NEGATIVE_DEBT, "a negative debt still refuses")
 	assert_equal(target.debt, 77, "and the caller's record is untouched, not saturated")
 
 
@@ -552,3 +574,324 @@ func test_the_module_declares_no_float_path() -> void:
 	assert_false(source.contains(": float"), "no float-typed declaration")
 	assert_false(source.contains("-> float"), "no float return")
 	assert_false(source.contains("PackedFloat"), "no float column")
+
+
+# --- section 1 composition (REG-R01 §1, SAVE-LAYOUT-R01) ------------------------------------------
+#
+# THE BYTE VECTOR IS THE TEST. A composition that round-trips against its own encoder proves only
+# that one module agrees with itself; the hex below is what another process has to read. Every
+# number in it is stated by REG-R01 or SAVE-LAYOUT-R01: a 44-byte map-provenance prefix, a u32
+# store count, then blocks in ASCII owner-key order tiling the remainder with no gaps.
+
+const SECTION_SCENARIO_VERSION: int = 1
+const SECTION_GENERATOR_SCHEMA: int = 1
+const SECTION_CURSOR: int = 4
+
+
+func _section() -> WorldRuntime.SectionRecord:
+	"""A valid section 1 carrying the suite's baseline WorldRuntime record and cursor 4."""
+	var section: WorldRuntime.SectionRecord = WorldRuntime.SectionRecord.new()
+	section.scenario_version = SECTION_SCENARIO_VERSION
+	section.effective_seed = WORLD_SEED
+	section.map_generator_schema = SECTION_GENERATOR_SCHEMA
+	section.next_persistent_id = SECTION_CURSOR
+	section.runtime.copy_from(_record)
+	return section
+
+
+func _section_bytes(section: WorldRuntime.SectionRecord) -> PackedByteArray:
+	"""Encode a whole section 1 and assert it succeeded, returning its bytes."""
+	var out: WorldRuntime.EncodeResult = WorldRuntime.EncodeResult.new()
+	assert_true(WorldRuntime.encode_section(section, out), "encode_section: %s" % out.detail)
+	return out.bytes
+
+
+func _wrapped(owner_key: String, schema_version: int, primary_count: int,
+		payload: PackedByteArray) -> PackedByteArray:
+	"""Hand-build SAVE-LAYOUT-R01's block wrapper so a malformed section can be composed at all."""
+	var block: PackedByteArray = PackedByteArray()
+	var key: PackedByteArray = owner_key.to_utf8_buffer()
+	var head: PackedByteArray = PackedByteArray()
+	head.resize(4)
+	head.encode_u32(0, key.size())
+	block.append_array(head)
+	block.append_array(key)
+	var tail: PackedByteArray = PackedByteArray()
+	tail.resize(20)
+	tail.encode_u32(0, schema_version)
+	tail.encode_u64(4, primary_count)
+	tail.encode_u64(12, payload.size())
+	block.append_array(tail)
+	block.append_array(payload)
+	return block
+
+
+func _composed(store_count: int, blocks: Array[PackedByteArray]) -> PackedByteArray:
+	"""Prefix, a caller-chosen store_count and caller-ordered blocks, however wrong."""
+	var bytes: PackedByteArray = _section_bytes(_section()).slice(0, WorldRuntime.PREFIX_BYTES)
+	var count: PackedByteArray = PackedByteArray()
+	count.resize(4)
+	count.encode_u32(0, store_count)
+	bytes.append_array(count)
+	for block: PackedByteArray in blocks:
+		bytes.append_array(block)
+	return bytes
+
+
+func _cursor_payload(cursor: int) -> PackedByteArray:
+	"""The entity_directory block's whole payload: `_next_persistent_id:u32 LE`."""
+	var payload: PackedByteArray = PackedByteArray()
+	payload.resize(WorldRuntime.DIRECTORY_PAYLOAD_BYTES)
+	payload.encode_u32(0, cursor)
+	return payload
+
+
+func _decoded(bytes: PackedByteArray) -> WorldRuntime.SectionRecord:
+	"""Decode a whole section and assert it succeeded, returning the record."""
+	var back: WorldRuntime.SectionRecord = WorldRuntime.SectionRecord.new()
+	var refusal: SaveHeader.Refusal = WorldRuntime.decode_section(bytes, 0, bytes.size(), back)
+	assert_true(refusal.is_ok(), "decode_section: %s %s" % [refusal.code, refusal.detail])
+	return back
+
+
+func _refused_code(bytes: PackedByteArray) -> StringName:
+	"""Decode a whole section expecting a refusal, returning its code."""
+	var back: WorldRuntime.SectionRecord = WorldRuntime.SectionRecord.new()
+	return WorldRuntime.decode_section(bytes, 0, bytes.size(), back).code
+
+
+func test_the_section_one_byte_vector_is_pinned_field_for_field() -> void:
+	"""Every offset REG-R01 and SAVE-LAYOUT-R01 state, as bytes another process must read."""
+	var bytes: PackedByteArray = _section_bytes(_section())
+	assert_equal(bytes.size(), 209, "44 prefix + 4 store_count + 44 directory + 117 runtime")
+	assert_equal(bytes.size(), WorldRuntime.OWNED_SECTION_BYTES, "and the constant agrees")
+	assert_equal(bytes.slice(0, 44).hex_encode(),
+		"010000002f283501010000000000000000000000000000000000000000000000000000000000000000000000",
+		"the 44-byte map provenance prefix: scenario 1, seed 20260911, generator 1, zero digest")
+	assert_equal(bytes.slice(44, 48).hex_encode(), "02000000", "store_count = 2, u32 LE")
+	assert_equal(bytes.slice(48, 92).hex_encode(),
+		"10000000656e746974795f6469726563746f72790100000001000000000000000400000000000000"
+			+ "04000000",
+		"the entity_directory block: key 16, schema 1, primary 1, payload 4, cursor 4")
+	assert_equal(bytes.slice(92, 209).hex_encode(),
+		"0d000000776f726c645f72756e74696d650100000001000000000000005000000000000000"
+			+ "31d40000000000002f283501010000000200000001000000a125260000000000"
+			+ "0100000000000000020000000000000003000000000000000400000000000000"
+			+ "05000000000000000600000000000000",
+		"the world_runtime block: key 13, schema 1, primary 1, payload 80, then the 80 bytes")
+
+
+func test_the_owner_blocks_are_emitted_in_ascii_key_order() -> void:
+	"""`entity_directory` precedes `world_runtime` because 'e' precedes 'w', and nothing else."""
+	var bytes: PackedByteArray = _section_bytes(_section())
+	var first: int = bytes.slice(52, 68).get_string_from_utf8().find("entity_directory")
+	assert_equal(first, 0, "the first block names entity_directory")
+	assert_equal(bytes.slice(96, 109).get_string_from_utf8(), "world_runtime",
+		"and the second names world_runtime")
+	assert_true(WorldRuntime.owner_order_index("entity_directory")
+		< WorldRuntime.owner_order_index("world_runtime"), "which is their registered ASCII order")
+	assert_equal(WorldRuntime.SECTION_OWNER_KEYS.size(), WorldRuntime.SECTION_OWNER_COUNT,
+		"REG-R01 registers nine section 1 owners")
+	var previous: String = ""
+	for key: String in WorldRuntime.SECTION_OWNER_KEYS:
+		assert_true(key > previous, "'%s' follows '%s' in ASCII order" % [key, previous])
+		previous = key
+
+
+func test_a_section_round_trips_every_field_including_the_cursor() -> void:
+	"""Prefix, cursor and the 80-byte body all survive, and the body is byte-identical."""
+	var section: WorldRuntime.SectionRecord = _section()
+	section.authored_map_digest.fill(0xAB)
+	var back: WorldRuntime.SectionRecord = _decoded(_section_bytes(section))
+	assert_equal(back.scenario_version, SECTION_SCENARIO_VERSION, "scenario version")
+	assert_equal(back.effective_seed, WORLD_SEED, "effective seed")
+	assert_equal(back.map_generator_schema, SECTION_GENERATOR_SCHEMA, "generator schema")
+	assert_equal(back.authored_map_digest, section.authored_map_digest, "authored map digest")
+	assert_equal(back.next_persistent_id, SECTION_CURSOR, "the D2 cursor")
+	assert_equal(_bytes_of(back.runtime), _bytes_of(_record), "and the 80-byte body, byte for byte")
+
+
+func test_the_world_runtime_payload_is_the_unchanged_eighty_byte_block() -> void:
+	"""No directory state enters this payload: it is `encode_block()`'s output at its own offsets."""
+	var bytes: PackedByteArray = _section_bytes(_section())
+	var payload: PackedByteArray = bytes.slice(129, 209)
+	assert_equal(payload.size(), WorldRuntime.BLOCK_BYTES, "80 bytes, unchanged")
+	assert_equal(payload, _bytes_of(_record), "and identical to the standalone block encoding")
+	assert_equal(payload.decode_s64(WorldRuntime.OFFSET_COMPLETED_TICK), 54321,
+		"the completed tick is still at offset 0 of the payload")
+	assert_equal(payload.decode_s64(WorldRuntime.OFFSET_DEBT), ACCEPTANCE_DEBT,
+		"and debt still at offset 24")
+	assert_equal(payload.slice(WorldRuntime.OFFSET_RESERVED_ZERO,
+		WorldRuntime.OFFSET_RESERVED_ZERO + WorldRuntime.RESERVED_ZERO_BYTES).hex_encode(),
+		"000000", "its three reserved bytes are still zero")
+
+
+func test_the_exhausted_cursor_is_pinned_as_the_bytes_00000080() -> void:
+	"""2147483648 saved as u32 LE. GDScript ints are 64-bit, so those bytes are POSITIVE here.
+
+	The trap this exists for: `-2147483648` is the int32 reading of the same four bytes, and a
+	test written with that literal would pass against a codec that had stored the negative. Both
+	readings are asserted, and they are asserted to be different numbers.
+	"""
+	var section: WorldRuntime.SectionRecord = _section()
+	section.next_persistent_id = WorldRuntime.PERSISTENT_ID_EXHAUSTED
+	var bytes: PackedByteArray = _section_bytes(section)
+	assert_equal(bytes.slice(88, 92).hex_encode(), "00000080", "the exhausted cursor's bytes")
+	assert_equal(bytes.decode_u32(88), 2147483648, "which read as a u32 are 2147483648")
+	assert_equal(bytes.decode_s32(88), -2147483648, "and read as an i32 are -2147483648")
+	assert_true(bytes.decode_u32(88) != bytes.decode_s32(88), "two readings, two numbers")
+	assert_equal(_decoded(bytes).next_persistent_id, WorldRuntime.PERSISTENT_ID_EXHAUSTED,
+		"and the decoder takes the unsigned one")
+
+
+func test_a_cursor_outside_one_to_two_billion_refuses_on_decode() -> void:
+	"""D2's domain: 0 and 2147483649 are refused; 1 and 2147483648 are not."""
+	var bytes: PackedByteArray = _section_bytes(_section())
+	bytes.encode_u32(88, 0)
+	assert_equal(_refused_code(bytes), WorldRuntime.REFUSE_CURSOR_RANGE, "cursor 0 refuses")
+	bytes.encode_u32(88, WorldRuntime.PERSISTENT_ID_EXHAUSTED + 1)
+	assert_equal(_refused_code(bytes), WorldRuntime.REFUSE_CURSOR_RANGE, "2147483649 refuses")
+	bytes.encode_u32(88, WorldRuntime.PERSISTENT_ID_MIN)
+	assert_true(WorldRuntime.cursor_refusal(1).is_ok(), "1 is the smallest legal cursor")
+	assert_equal(_decoded(bytes).next_persistent_id, 1, "and it decodes")
+	bytes.encode_u32(88, WorldRuntime.PERSISTENT_ID_EXHAUSTED)
+	assert_equal(_decoded(bytes).next_persistent_id, WorldRuntime.PERSISTENT_ID_EXHAUSTED,
+		"and so does the exhausted cursor, which is legal rather than an error")
+
+
+func test_a_refused_section_leaves_the_callers_record_untouched() -> void:
+	"""Allocate before consume (decision 0059), at the section level rather than the block's."""
+	var bytes: PackedByteArray = _section_bytes(_section())
+	bytes.encode_u32(88, 0)
+	var target: WorldRuntime.SectionRecord = _decoded(_section_bytes(_section()))
+	target.next_persistent_id = 77
+	target.scenario_version = 99
+	assert_equal(WorldRuntime.decode_section(bytes, 0, bytes.size(), target).code,
+		WorldRuntime.REFUSE_CURSOR_RANGE, "the section refuses")
+	assert_equal(target.next_persistent_id, 77, "and the caller's cursor is untouched")
+	assert_equal(target.scenario_version, 99, "as is every other field it had set")
+
+
+func test_blocks_out_of_ascii_order_or_repeated_are_refused() -> void:
+	"""SAVE-LAYOUT-R01 orders blocks by ASCII owner key, and each owner has at most one block."""
+	var directory: PackedByteArray = _wrapped("entity_directory", 1, 1,
+		_cursor_payload(SECTION_CURSOR))
+	var runtime: PackedByteArray = _wrapped("world_runtime", 1, 1, _bytes_of(_record))
+	assert_equal(_refused_code(_composed(2, [runtime, directory] as Array[PackedByteArray])),
+		WorldRuntime.REFUSE_SECTION_OWNER_ORDER, "world_runtime first is out of order")
+	assert_equal(_refused_code(_composed(2, [directory, directory] as Array[PackedByteArray])),
+		WorldRuntime.REFUSE_SECTION_OWNER_ORDER, "and a repeated owner is not ascending either")
+	assert_true(WorldRuntime.decode_section(
+		_composed(2, [directory, runtime] as Array[PackedByteArray]), 0, 209,
+		WorldRuntime.SectionRecord.new()).is_ok(), "while the ascending pair decodes")
+
+
+func test_an_unregistered_owner_key_is_refused_rather_than_skipped() -> void:
+	"""A key REG-R01 does not register cannot be measured past: its schema is unknown."""
+	var stranger: PackedByteArray = _wrapped("aardvark", 1, 1, _cursor_payload(1))
+	var directory: PackedByteArray = _wrapped("entity_directory", 1, 1,
+		_cursor_payload(SECTION_CURSOR))
+	var runtime: PackedByteArray = _wrapped("world_runtime", 1, 1, _bytes_of(_record))
+	assert_equal(_refused_code(_composed(3,
+		[stranger, directory, runtime] as Array[PackedByteArray])),
+		WorldRuntime.REFUSE_SECTION_OWNER_KEY, "an unregistered owner refuses the section")
+	assert_equal(WorldRuntime.owner_order_index("aardvark"), -1, "because it is not registered")
+
+
+func test_a_foreign_registered_block_is_measured_and_never_interpreted() -> void:
+	"""§1's other seven owners tile beside these two without this module guessing their schemas."""
+	var directory: PackedByteArray = _wrapped("entity_directory", 1, 1,
+		_cursor_payload(SECTION_CURSOR))
+	var weather: PackedByteArray = _wrapped("weather", 3, 512, _cursor_payload(9))
+	var runtime: PackedByteArray = _wrapped("world_runtime", 1, 1, _bytes_of(_record))
+	var bytes: PackedByteArray = _composed(3,
+		[directory, weather, runtime] as Array[PackedByteArray])
+	var back: WorldRuntime.SectionRecord = _decoded(bytes)
+	assert_equal(back.foreign_keys, PackedStringArray(["weather"]), "the foreign key is recorded")
+	assert_equal(back.foreign_schema_version[0], 3, "with its own declared schema version")
+	assert_equal(back.foreign_primary_count[0], 512, "and its own primary count")
+	assert_equal(bytes.decode_u32(back.foreign_payload_offset[0]), 9,
+		"and an offset its owner can decode its payload from")
+	assert_equal(back.foreign_payload_length[0], 4, "of the declared length")
+	assert_equal(back.next_persistent_id, SECTION_CURSOR, "the owned cursor is unaffected")
+	assert_false(back.missing_owner_keys().has("weather"), "and weather is no longer missing")
+
+
+func test_a_section_that_does_not_tile_exactly_is_refused() -> void:
+	"""No gaps, no overlap and no trailing bytes: the last block ends at the section end."""
+	var directory: PackedByteArray = _wrapped("entity_directory", 1, 1,
+		_cursor_payload(SECTION_CURSOR))
+	var runtime: PackedByteArray = _wrapped("world_runtime", 1, 1, _bytes_of(_record))
+	var bytes: PackedByteArray = _composed(2, [directory, runtime] as Array[PackedByteArray])
+	var padded: PackedByteArray = bytes.duplicate()
+	padded.append(0)
+	assert_equal(_refused_code(padded), WorldRuntime.REFUSE_SECTION_NOT_TILED,
+		"one trailing byte is a gap the blocks did not cover")
+	assert_equal(_refused_code(_composed(1, [directory] as Array[PackedByteArray])),
+		WorldRuntime.REFUSE_SECTION_OWNER_MISSING, "and a section missing world_runtime refuses")
+	var runtime_only: PackedByteArray = _composed(1, [runtime] as Array[PackedByteArray])
+	assert_equal(_refused_code(runtime_only), WorldRuntime.REFUSE_SECTION_OWNER_MISSING,
+		"as does one missing entity_directory")
+
+
+func test_store_count_is_bounded_by_the_registered_owner_count() -> void:
+	"""REG-R01 registers nine §1 owners, so `store_count` lies in 1..9 and 0 is not a section."""
+	var directory: PackedByteArray = _wrapped("entity_directory", 1, 1,
+		_cursor_payload(SECTION_CURSOR))
+	var runtime: PackedByteArray = _wrapped("world_runtime", 1, 1, _bytes_of(_record))
+	var blocks: Array[PackedByteArray] = [directory, runtime] as Array[PackedByteArray]
+	assert_equal(_refused_code(_composed(0, blocks)), WorldRuntime.REFUSE_SECTION_STORE_COUNT,
+		"store_count 0 refuses")
+	assert_equal(_refused_code(_composed(WorldRuntime.SECTION_OWNER_COUNT + 1, blocks)),
+		WorldRuntime.REFUSE_SECTION_STORE_COUNT, "and so does one past the registered count")
+
+
+func test_an_owned_block_with_the_wrong_wrapper_is_refused() -> void:
+	"""Schema 1, primary_count 1 and the exact payload width, for both owned blocks."""
+	var runtime: PackedByteArray = _wrapped("world_runtime", 1, 1, _bytes_of(_record))
+	var wrong_schema: PackedByteArray = _wrapped("entity_directory", 2, 1,
+		_cursor_payload(SECTION_CURSOR))
+	assert_equal(_refused_code(_composed(2,
+		[wrong_schema, runtime] as Array[PackedByteArray])),
+		WorldRuntime.REFUSE_SECTION_OWNER_SCHEMA, "schema 2 is not this owner's schema")
+	var wrong_primary: PackedByteArray = _wrapped("entity_directory", 1, 352418,
+		_cursor_payload(SECTION_CURSOR))
+	assert_equal(_refused_code(_composed(2,
+		[wrong_primary, runtime] as Array[PackedByteArray])),
+		WorldRuntime.REFUSE_SECTION_PRIMARY_COUNT, "§1's directory block has ONE primary row")
+	var wrong_width: PackedByteArray = _wrapped("entity_directory", 1, 1,
+		PackedByteArray([1, 0, 0, 0, 0, 0, 0, 0]))
+	assert_equal(_refused_code(_composed(2,
+		[wrong_width, runtime] as Array[PackedByteArray])),
+		WorldRuntime.REFUSE_SECTION_PAYLOAD_LENGTH, "the cursor payload is four bytes exactly")
+
+
+func test_the_seven_unencodable_section_one_owners_are_named_not_invented() -> void:
+	"""BLOCKER W2, asserted rather than described: `store_count` is 2 and the gap is reported."""
+	var back: WorldRuntime.SectionRecord = _decoded(_section_bytes(_section()))
+	assert_equal(back.missing_owner_keys(), PackedStringArray(["buildings", "farming", "forage",
+		"resource_nodes", "spatial_world", "weather", "world_init"]),
+		"the seven registered §1 owners with no encoder anywhere")
+	assert_equal(WorldRuntime.OWNED_OWNER_KEYS.size(), 2, "this module encodes two of the nine")
+	assert_equal(WorldRuntime.SECTION_SCHEMA_VERSION, 2,
+		"REG-R01's baseline vector gives section 1 version 2 for this composition")
+
+
+func test_this_blocks_canonical_field_records_are_four_not_five_or_twelve() -> void:
+	"""REG-R01's correction: the tick is in §15's canonical prefix and debt/counters are excluded.
+
+	`canonical_bytes_of()` still begins with the completed tick, which is exactly why it must not
+	be concatenated into §15's stream as an extra header -- it would hash the tick a second time.
+	"""
+	assert_equal(WorldRuntime.CANONICAL_FIELD_KEYS.size(), WorldRuntime.CANONICAL_FIELD_COUNT,
+		"four canonical field records")
+	assert_equal(WorldRuntime.CANONICAL_FIELD_KEYS, [&"_world_seed", &"_seeded",
+		&"_requested_speed", &"_pause_mask"] as Array[StringName], "and they are these four")
+	assert_false(WorldRuntime.CANONICAL_FIELD_KEYS.has(&"_completed_tick"),
+		"the completed tick appears once, in the canonical prefix, and not again here")
+	assert_false(WorldRuntime.CANONICAL_FIELD_KEYS.has(&"_debt"), "debt contributes no record")
+	for name: String in WorldRuntime.COUNTER_NAMES:
+		assert_false(WorldRuntime.CANONICAL_FIELD_KEYS.has(StringName(name)),
+			"%s contributes no canonical field record either" % name)
+	assert_equal(WorldRuntime.CANONICAL_BYTES, 21,
+		"while the legacy hashed-prefix helper is unchanged at 21 bytes")

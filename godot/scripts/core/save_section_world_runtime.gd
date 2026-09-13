@@ -51,13 +51,17 @@ extends RefCounted
 ## come back as 2500001, not 2000000 and not 2. `decode_into()` validates and REFUSES an
 ## unrepresentable value; it never saturates, and nothing here rounds a remainder away.
 ##
-## THE DEBT CEILING IS DERIVED, NOT INVENTED. `sim_clock.gd::_is_overloaded()` implements
-## ARCH-CLOCK-001's division-free comparison `4*debt > 30*speed*1000000`, so a restored debt whose
-## quadruple overflows int64 would make the very first overload test refuse arithmetic on a value
-## the save said was fine. The bound is therefore `INT64_MAX / 4` exactly, read off that
-## multiplication rather than picked. Likewise `completed_tick + 4500` is GDD §5.1's offset
-## calendar, so the tick ceiling is `INT64_MAX - 4500`. Both are "validate representable
-## arithmetic bounds before publication"; both reject rather than saturate.
+## THE DEBT CEILING IS `INT64_MAX`, CORRECTED BY RESTORE-R01. This module used to cap debt at
+## `INT64_MAX / 4`, reasoning from `sim_clock.gd::_is_overloaded()`'s division-free `4*debt`
+## comparison. RESTORE-R01 settles the domain the other way: "debt and each of the six counters in
+## 0..INT64_MAX", and "subsequent arithmetic must continue to refuse overflow rather than wrap or
+## clamp; restoring a representable value is not permission to overflow it". The old cap made this
+## codec REFUSE a debt `sim_clock.restore_runtime()` accepts, which is a codec quietly reducing
+## the stored debt's admissible range -- exactly what the ruling forbids. The overload test is
+## already checked arithmetic (`IntMath.checked_mul_into(4, _debt, ...)`, treating an overflow as
+## overloaded), so the checked side owns that bound and the codec validates representability only.
+## `completed_tick + 4500` is GDD §5.1's offset calendar, so the tick ceiling stays
+## `INT64_MAX - 4500`. Both reject rather than saturate.
 ##
 ## BLOCKER W1 -- THERE IS NO WAY TO PUBLISH THIS BLOCK INTO A LIVE `sim_clock.gd`, AND ADDING ONE
 ## IS NOT THIS MODULE'S TO DO. `sim_clock.gd` exposes a reader for every field here
@@ -76,25 +80,49 @@ extends RefCounted
 ## fields together with no side effects, and `sim_clock.gd` belongs to another owner. Half-
 ## publishing through `set_pause()` would be worse than refusing, so this module refuses.
 ##
-## RESTORE ORDER, FOR WHOEVER ADDS THAT ACCESSOR. G3: restore the logical saved pause mask BEFORE
-## applying any transient LOAD guard, and adding or removing that guard must not erase PLAYER,
-## MENU, CRITICAL or VICTORY holds. `pause_mask_without_load()` and `pause_mask_with_load()` give
-## the two masks so the guard is a pure bit operation on the saved value, and
-## `test_save_section_world_runtime.gd` proves adding and removing LOAD leaves the other four
-## bits untouched. Also reset the host-time sampling origin at that boundary so time spent
-## loading is not charged as debt -- a host timestamp is not serialized here at all, which is the
-## point.
+## THE TRANSIENT LOAD GUARD IS NOT A MASK BIT ANY MORE -- RESTORE-R01 SUPERSEDES G3 HERE. The
+## load-in-progress guard is an OUT-OF-BAND barrier (`sim_clock.acquire_load_barrier()`, held by
+## `game_manager.begin_load()`), and the ruling is explicit that it "is not OR-ed into the
+## serialized/canonical logical pause mask". So a saving world does not acquire a LOAD bit by
+## being loaded, and a restore does not mutate the mask to raise or lower one. What the ruling
+## DOES require is that a genuinely saved LOAD bit survives: "never blindly clear the LOAD bit
+## because this particular load operation finished". `pause_mask_without_load()` and
+## `pause_mask_with_load()` therefore remain as pure bit helpers for a caller that must reason
+## about the two masks -- they are NOT a restore step, and nothing in the restore path calls
+## them. Also reset the host-time sampling origin at the release boundary so time spent loading
+## is not charged as debt; no host timestamp is serialized here at all, which is the point.
+##
+## THIS BLOCK'S CANONICAL FIELD RECORDS ARE FOUR, NOT TWELVE AND NOT THIRTEEN. REG-R01's
+## correction: "The completed tick appears once in the canonical prefix, not again as a typed
+## record. Debt and six clock counters persist in the 80-byte body but contribute no canonical
+## field record." `CANONICAL_FIELD_KEYS` below is therefore `_world_seed, _seeded,
+## _requested_speed, _pause_mask`. `canonical_bytes_of()` is the OLD 21-byte block-prefix helper
+## and it still begins with the completed tick, so it MUST NOT be concatenated into §15's stream
+## as an extra header -- doing so would hash the tick twice. Nothing here hashes debt.
+##
+## SECTION 1 COMPOSITION (REG-R01, SAVE-LAYOUT-R01). See the `--- section 1 composition ---`
+## division below: a 44-byte map-provenance prefix, `store_count:u32`, then owner blocks in ASCII
+## key order tiling the remainder with no gaps. This module encodes the two blocks it owns --
+## `entity_directory` (the 4-byte D2 cursor) and `world_runtime` (this 80-byte body) -- and
+## decodes any registered §1 owner's block extent without guessing its schema.
 ##
 ## COLD PATH. ARCH-SAVE-003; see `save_section_rng.gd`'s note. Nothing here runs per tick.
 ##
 ## NO FLOAT. ARCH-AUTH-002; `test_save_section_world_runtime.gd` greps this source to enforce it.
 ##
 ## OPEN, NOT INVENTED:
-##   * `schema_version` stays opaque. Task 09.2's card records the version policy as unresolved
-##     and forbids silently repurposing v1 bytes, so no version number is chosen here.
-##   * Whether section 1's blocks must be CONTIGUOUS with each other, and in what order, is not
-##     settled anywhere. `decode_into()` takes an explicit offset and `BLOCK_BYTES` says how far
-##     it reached, which is enough to compose either way without deciding.
+##   * BLOCKER W2 -- SEVEN OF SECTION 1'S NINE OWNERS HAVE NO ENCODER ANYWHERE. REG-R01 registers
+##     `buildings, entity_directory, farming, forage, resource_nodes, spatial_world, weather,
+##     world_init, world_runtime` in §1. Two are encoded here; the other seven are owned by other
+##     modules and none of them publishes a §1 block yet. `encode_section()` therefore emits
+##     `store_count = 2`, which is a DEVELOPMENT section 1 and not a release one. It is not this
+##     module's place to invent seven payloads, and `missing_owner_keys()` names the gap in code
+##     rather than leaving it to be discovered. `decode_section()` already accepts and measures
+##     their blocks, so the composition grows without this file guessing anyone's schema.
+##   * The 44-byte prefix's `scenario_version`, `map_generator_schema` and `authored_map_digest`
+##     are carried and bounded here; SAVE-R09-003 gives their VALUES to the world/scenario owner,
+##     and `world_init.gd` does not produce them yet. No default is manufactured: a caller that
+##     does not set them saves zeros, and only the map-hash producer may decide what zeros mean.
 ##   * `world_seed` is validated only as an i32, which is what `rng.gd::seed_world()` requires.
 ##     ARCH-NAME-001 calls world seeds a "positive I32" domain, but it says so at the NAMING
 ##     boundary; no contract restricts the saved seed, so no positivity rule is imposed here.
@@ -102,6 +130,7 @@ extends RefCounted
 const SaveCodec := preload("res://scripts/core/save_codec.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
+const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 
 # --- ARCH-SAVE-002 identity and layout ------------------------------------------------------------
 
@@ -135,9 +164,11 @@ const COUNTER_COUNT: int = 6
 
 # --- derived validation bounds --------------------------------------------------------------------
 
-## ARCH-CLOCK-001 compares `4*debt` against `30*speed*1000000` without dividing
-## (`sim_clock.gd::_is_overloaded`), so a restorable debt is one whose quadruple is representable.
-const DEBT_MAX: int = SaveCodec.INT64_MAX / SimClockScript.OVERLOAD_NUMERATOR
+## RESTORE-R01: "debt and each of the six counters in 0..INT64_MAX". The GDScript int IS int64,
+## so the only rule a value can violate is the lower one -- which is why `_host_metadata_refusal()`
+## tests for a NEGATIVE debt and no longer for an upper bound. Kept as a named constant because
+## the registry and the clock must be able to cite the same ceiling.
+const DEBT_MAX: int = SaveCodec.INT64_MAX
 
 ## GDD §5.1's calendar is `(tick + 4500) mod 18000`, so a restorable tick is one that addition
 ## does not overflow.
@@ -160,6 +191,8 @@ const REFUSE_SPEED: StringName = &"SAVE_WORLDRT_SPEED"
 const REFUSE_PAUSE_MASK: StringName = &"SAVE_WORLDRT_PAUSE_MASK"
 const REFUSE_SEEDED_FLAG: StringName = &"SAVE_WORLDRT_SEEDED_FLAG"
 const REFUSE_NEGATIVE_DEBT: StringName = &"SAVE_WORLDRT_NEGATIVE_DEBT"
+## Retired by RESTORE-R01's `0..INT64_MAX` debt domain and no longer reachable; the spelling stays
+## so a decoder of an older fixture that recorded it can still name what it meant.
 const REFUSE_DEBT_UNREPRESENTABLE: StringName = &"SAVE_WORLDRT_DEBT_UNREPRESENTABLE"
 const REFUSE_NEGATIVE_COUNTER: StringName = &"SAVE_WORLDRT_NEGATIVE_COUNTER"
 const REFUSE_HEADER_TICK_MISMATCH: StringName = &"SAVE_WORLDRT_HEADER_TICK_MISMATCH"
@@ -429,13 +462,13 @@ static func _control_refusal(record: Record) -> SaveHeader.Refusal:
 
 
 static func _host_metadata_refusal(record: Record) -> SaveHeader.Refusal:
-	"""Debt and the six counters are nonnegative I64, and debt's quadruple must be representable."""
+	"""Debt and the six counters are nonnegative I64 -- RESTORE-R01's whole domain rule.
+
+	There is deliberately no upper test: `0..INT64_MAX` IS the GDScript int, and the tighter
+	`INT64_MAX/4` this once enforced would refuse saves `sim_clock.restore_runtime()` accepts.
+	"""
 	if record.debt < 0:
 		return SaveHeader.Refusal.new(REFUSE_NEGATIVE_DEBT, "debt %d is negative" % record.debt)
-	if record.debt > DEBT_MAX:
-		return SaveHeader.Refusal.new(REFUSE_DEBT_UNREPRESENTABLE,
-			"debt %d overflows ARCH-CLOCK-001's `%d*debt` overload test"
-				% [record.debt, SimClockScript.OVERLOAD_NUMERATOR])
 	for index: int in COUNTER_COUNT:
 		if record.counters[index] < 0:
 			return SaveHeader.Refusal.new(REFUSE_NEGATIVE_COUNTER,
@@ -507,7 +540,17 @@ static func _first_difference(record: Record, live: Record) -> String:
 # --- ARCH-HASH-001 contribution ------------------------------------------------------------------
 
 static func canonical_bytes_of(record: Record, out: EncodeResult) -> bool:
-	"""This block's contribution to ARCH-HASH-001: the five hashed fields and nothing else.
+	"""The legacy 21-byte hashed prefix of this block. NOT §15's canonical field stream.
+
+	REG-R01 corrects what this is for: "The completed tick appears once in the canonical prefix,
+	not again as a typed record", and debt and the six counters "contribute no canonical field
+	record". So this helper MUST NOT be concatenated into §15's stream as an extra header -- the
+	completed tick is already there and would be hashed twice. `CANONICAL_FIELD_KEYS` is the
+	block's actual canonical field set, and it is four keys, not five and not twelve.
+
+	What this still is: a stable digest of the block's hashed prefix, used by
+	`test_save_section_world_runtime.gd` to prove that changing debt or a counter does not move it
+	while changing the speed or the mask does. That property is the reason it survives.
 
 	G3's table, row by row: completed tick INCLUDE; requested speed and the logical pause mask
 	INCLUDE; host debt EXCLUDE; the six recorded clock counters EXCLUDE. The world seed is an
@@ -530,3 +573,506 @@ static func canonical_bytes_of(record: Record, out: EncodeResult) -> bool:
 	if writer.failed():
 		return out.refuse(REFUSE_ENCODE_FAILED, "%s: %s" % [writer.refusal(), writer.detail()])
 	return out.succeed(writer.to_bytes())
+
+
+# --- section 1 composition (REG-R01 §1, SAVE-LAYOUT-R01) -------------------------------------------
+#
+# THE WHOLE SECTION, NOT JUST THIS BLOCK:
+#
+#   | Offset | Type     | Field                                                | Bytes |
+#   |-------:|----------|------------------------------------------------------|------:|
+#   |      0 | u32      | scenario_version                                     |     4 |
+#   |      4 | i32      | effective_seed                                       |     4 |
+#   |      8 | u32      | map_generator_schema                                 |     4 |
+#   |     12 | bytes    | authored_map_digest                                  |    32 |
+#   |     44 | u32      | store_count                                          |     4 |
+#   |     48 | block    | owner blocks, ASCII key order, tiling to section end  |     - |
+#
+# The first 44 bytes are SAVE-R09-003's map-provenance prefix, retained verbatim. Each block is
+# SAVE-LAYOUT-R01's wrapper -- `owner_key:utf8-u32, owner_schema_version:u32, primary_count:u64,
+# payload_byte_length:u64, payload` -- and the blocks TILE the remainder: the first starts at 48,
+# every next one starts where the previous ended, and the last ends exactly at the section end.
+# A gap, an overlap, a repeat, a descending key or a trailing byte is a refusal.
+#
+# THE TWO BLOCKS THIS MODULE OWNS, in the ASCII order they are emitted:
+#
+#   "entity_directory", schema 1, primary_count 1, payload 4  -> `_next_persistent_id:u32 LE`
+#   "world_runtime",    schema 1, primary_count 1, payload 80 -> the block above, byte for byte
+#
+# NO DIRECTORY STATE ENTERS THE WORLDRUNTIME PAYLOAD. The 80 bytes and their offsets are exactly
+# what they were; the D2 cursor is a separate owner with a separate key, which is what makes it
+# possible to version one without versioning the other.
+
+
+## SAVE-LAYOUT-R01's wrapper, less the owner key's own bytes: length u32, schema u32,
+## primary_count u64, payload_byte_length u64.
+const WRAPPER_FIXED_BYTES: int = 24
+
+## SAVE-R09-003's map-provenance prefix and its fields.
+const PREFIX_BYTES: int = 44
+const OFFSET_SCENARIO_VERSION: int = 0
+const OFFSET_EFFECTIVE_SEED: int = 4
+const OFFSET_MAP_GENERATOR_SCHEMA: int = 8
+const OFFSET_AUTHORED_MAP_DIGEST: int = 12
+const AUTHORED_MAP_DIGEST_BYTES: int = 32
+const OFFSET_STORE_COUNT: int = 44
+const STORE_COUNT_BYTES: int = 4
+
+## REG-R01's baseline section-version vector `[2,2,1,2,1,1,2,1,2,1,1,2,1,2,1]` gives §1 version 2,
+## for this composition. The OWNER schemas inside it are 1; the two numbers are not the same thing.
+const SECTION_SCHEMA_VERSION: int = 2
+
+## Every owner REG-R01 registers in §1, in the ASCII order blocks must appear in. `store_count`
+## is bounded by this list's length, which is what "the registry bounds store_count" means here.
+const SECTION_OWNER_KEYS: Array[String] = ["buildings", "entity_directory", "farming", "forage",
+	"resource_nodes", "spatial_world", "weather", "world_init", "world_runtime"]
+const SECTION_OWNER_COUNT: int = 9
+
+## The owner keys this module encodes, in the order it emits them. `encode_section()` REFUSES if
+## this list is not strictly ASCII-ascending, so the ordering rule is enforced rather than assumed.
+const OWNER_KEY_ENTITY_DIRECTORY: String = "entity_directory"
+const OWNER_KEY_WORLD_RUNTIME: String = "world_runtime"
+const OWNED_OWNER_KEYS: Array[String] = [OWNER_KEY_ENTITY_DIRECTORY, OWNER_KEY_WORLD_RUNTIME]
+
+## Both owned blocks are schema 1 with one primary row (REG-R01).
+const OWNER_SCHEMA_VERSION: int = 1
+const OWNER_PRIMARY_COUNT: int = 1
+
+## `_next_persistent_id:u32 LE` and nothing else.
+const DIRECTORY_PAYLOAD_BYTES: int = 4
+
+## Owner keys are nonempty ASCII, at most 256 bytes (S2).
+const OWNER_KEY_MAX_BYTES: int = 256
+const ASCII_MAX: int = 127
+
+## D2's cursor domain, mirrored from `entity_directory.gd` so the codec and the store cite one rule.
+const PERSISTENT_ID_MIN: int = EntityDirectoryScript.PERSISTENT_ID_MIN
+const PERSISTENT_ID_EXHAUSTED: int = EntityDirectoryScript.PERSISTENT_ID_EXHAUSTED
+
+## Exact width of the two-block development composition this module can emit today (BLOCKER W2).
+const OWNED_SECTION_BYTES: int = PREFIX_BYTES + STORE_COUNT_BYTES \
+	+ WRAPPER_FIXED_BYTES + 16 + DIRECTORY_PAYLOAD_BYTES \
+	+ WRAPPER_FIXED_BYTES + 13 + BLOCK_BYTES
+
+## REG-R01's correction: the completed tick is carried once by §15's canonical prefix and debt and
+## the six counters contribute no canonical field record at all. These four are what remain.
+const CANONICAL_FIELD_KEYS: Array[StringName] = [&"_world_seed", &"_seeded", &"_requested_speed",
+	&"_pause_mask"]
+const CANONICAL_FIELD_COUNT: int = 4
+
+const REFUSE_SECTION_TRUNCATED: StringName = &"SAVE_WORLDRT_SECTION_TRUNCATED"
+const REFUSE_SECTION_STORE_COUNT: StringName = &"SAVE_WORLDRT_SECTION_STORE_COUNT"
+const REFUSE_SECTION_OWNER_KEY: StringName = &"SAVE_WORLDRT_SECTION_OWNER_KEY"
+const REFUSE_SECTION_OWNER_ORDER: StringName = &"SAVE_WORLDRT_SECTION_OWNER_ORDER"
+const REFUSE_SECTION_OWNER_SCHEMA: StringName = &"SAVE_WORLDRT_SECTION_OWNER_SCHEMA"
+const REFUSE_SECTION_PRIMARY_COUNT: StringName = &"SAVE_WORLDRT_SECTION_PRIMARY_COUNT"
+const REFUSE_SECTION_PAYLOAD_LENGTH: StringName = &"SAVE_WORLDRT_SECTION_PAYLOAD_LENGTH"
+const REFUSE_SECTION_NOT_TILED: StringName = &"SAVE_WORLDRT_SECTION_NOT_TILED"
+const REFUSE_SECTION_OWNER_MISSING: StringName = &"SAVE_WORLDRT_SECTION_OWNER_MISSING"
+const REFUSE_SECTION_PREFIX_FIELD: StringName = &"SAVE_WORLDRT_SECTION_PREFIX_FIELD"
+const REFUSE_CURSOR_RANGE: StringName = &"SAVE_WORLDRT_CURSOR_RANGE"
+
+
+class SectionRecord:
+	"""One decoded section 1: the map-provenance prefix, the D2 cursor, this block, and the
+	measured extents of every OTHER registered owner's block that was present.
+
+	The foreign columns are how §1 grows without this module guessing anyone's schema: the key,
+	declared schema version, primary count and the payload's absolute offset and length are all
+	recorded, so `spatial_world.gd` or `farming.gd` can decode its own block out of the same
+	buffer. No foreign payload is interpreted here, and none is re-encoded.
+	"""
+	var scenario_version: int = 0
+	var effective_seed: int = 0
+	var map_generator_schema: int = 0
+	var authored_map_digest: PackedByteArray = PackedByteArray()
+	var next_persistent_id: int = PERSISTENT_ID_MIN
+	var runtime: Record = null
+	var foreign_keys: PackedStringArray = PackedStringArray()
+	var foreign_schema_version: PackedInt32Array = PackedInt32Array()
+	var foreign_primary_count: PackedInt64Array = PackedInt64Array()
+	var foreign_payload_offset: PackedInt64Array = PackedInt64Array()
+	var foreign_payload_length: PackedInt64Array = PackedInt64Array()
+
+	func _init() -> void:
+		"""Allocate the 32-byte authored-map digest and the owned WorldRuntime record."""
+		authored_map_digest.resize(AUTHORED_MAP_DIGEST_BYTES)
+		runtime = Record.new()
+
+	func note_foreign(key: String, schema_version: int, primary_count: int,
+			payload_offset: int, payload_length: int) -> void:
+		"""Record one non-owned registered owner's block extent, in the order it was read."""
+		foreign_keys.append(key)
+		foreign_schema_version.append(schema_version)
+		foreign_primary_count.append(primary_count)
+		foreign_payload_offset.append(payload_offset)
+		foreign_payload_length.append(payload_length)
+
+	func copy_from(other: SectionRecord) -> void:
+		"""Overwrite every field from `other`, including the foreign extent columns."""
+		scenario_version = other.scenario_version
+		effective_seed = other.effective_seed
+		map_generator_schema = other.map_generator_schema
+		authored_map_digest = other.authored_map_digest.duplicate()
+		next_persistent_id = other.next_persistent_id
+		runtime.copy_from(other.runtime)
+		foreign_keys = other.foreign_keys.duplicate()
+		foreign_schema_version = other.foreign_schema_version.duplicate()
+		foreign_primary_count = other.foreign_primary_count.duplicate()
+		foreign_payload_offset = other.foreign_payload_offset.duplicate()
+		foreign_payload_length = other.foreign_payload_length.duplicate()
+
+	func missing_owner_keys() -> PackedStringArray:
+		"""Registered §1 owners with no block in this section. Empty means complete (BLOCKER W2).
+
+		Completeness is REPORTED, not enforced: refusing a development section 1 that legitimately
+		predates seven encoders would block the load path this composition exists to unblock. The
+		release gate belongs to the load orchestrator, which is the only caller that knows whether
+		it is reading a release save.
+		"""
+		var absent: PackedStringArray = PackedStringArray()
+		for key: String in SECTION_OWNER_KEYS:
+			if key == OWNER_KEY_ENTITY_DIRECTORY or key == OWNER_KEY_WORLD_RUNTIME:
+				continue
+			if foreign_keys.has(key):
+				continue
+			absent.append(key)
+		return absent
+
+
+static func owner_order_index(owner_key: String) -> int:
+	"""Position of a registered §1 owner key in ASCII order, or -1 when it is not registered.
+
+	Not a failure sentinel dressed as a value: -1 means "no such registered owner", and every
+	caller here turns it straight into REFUSE_SECTION_OWNER_KEY rather than indexing with it.
+	"""
+	return SECTION_OWNER_KEYS.find(owner_key)
+
+
+static func section_refusal(section: SectionRecord) -> SaveHeader.Refusal:
+	"""Every rule section 1 enforces outside the 80-byte block's own `record_refusal()`."""
+	if section.authored_map_digest.size() != AUTHORED_MAP_DIGEST_BYTES:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_PREFIX_FIELD,
+			"the authored map digest is %d bytes, not %d"
+				% [section.authored_map_digest.size(), AUTHORED_MAP_DIGEST_BYTES])
+	if section.scenario_version < 0 or section.scenario_version > SaveCodec.UINT32_MAX:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_PREFIX_FIELD,
+			"scenario version %d is not a u32" % section.scenario_version)
+	if section.map_generator_schema < 0 or section.map_generator_schema > SaveCodec.UINT32_MAX:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_PREFIX_FIELD,
+			"map generator schema %d is not a u32" % section.map_generator_schema)
+	if section.effective_seed < SaveCodec.INT32_MIN or section.effective_seed > SaveCodec.INT32_MAX:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_PREFIX_FIELD,
+			"effective seed %d is not an i32" % section.effective_seed)
+	var cursor: SaveHeader.Refusal = cursor_refusal(section.next_persistent_id)
+	if not cursor.is_ok():
+		return cursor
+	return record_refusal(section.runtime)
+
+
+static func cursor_refusal(next_persistent_id: int) -> SaveHeader.Refusal:
+	"""D2's domain rule: the cursor lies in `1..2147483648`, and 2147483648 means EXHAUSTED.
+
+	The upper bound is a legal saved value, not an error: it is the cursor left after the final
+	signed-int32 identity has been issued. It is the LIVE COLUMN that may never carry it, and
+	`entity_directory.gd` enforces that. This codec refuses 0 and 2147483649.
+	"""
+	if next_persistent_id < PERSISTENT_ID_MIN or next_persistent_id > PERSISTENT_ID_EXHAUSTED:
+		return SaveHeader.Refusal.new(REFUSE_CURSOR_RANGE,
+			"the persistent-id cursor %d is outside %d..%d"
+				% [next_persistent_id, PERSISTENT_ID_MIN, PERSISTENT_ID_EXHAUSTED])
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func encode_section(section: SectionRecord, out: EncodeResult) -> bool:
+	"""Encode the 44-byte prefix, `store_count` and this module's two owner blocks, in ASCII order.
+
+	`store_count` is `OWNED_OWNER_KEYS.size()`, which is 2 and is a DEVELOPMENT section 1 -- seven
+	registered §1 owners have no encoder anywhere yet (BLOCKER W2). Nothing is invented to pad it.
+	"""
+	var invalid: SaveHeader.Refusal = section_refusal(section)
+	if not invalid.is_ok():
+		return out.refuse(invalid.code, invalid.detail)
+	var order: SaveHeader.Refusal = _owned_key_order_refusal()
+	if not order.is_ok():
+		return out.refuse(order.code, order.detail)
+	var writer: SaveCodec.Writer = SaveCodec.Writer.new(OWNED_SECTION_BYTES)
+	_write_prefix(section, writer)
+	writer.write_u32(OWNED_OWNER_KEYS.size())
+	for owner_key: String in OWNED_OWNER_KEYS:
+		if not _write_owned_block(section, owner_key, writer):
+			return out.refuse(REFUSE_ENCODE_FAILED, "block %s would not encode" % owner_key)
+	if writer.failed():
+		return out.refuse(REFUSE_ENCODE_FAILED, "%s: %s" % [writer.refusal(), writer.detail()])
+	var bytes: PackedByteArray = writer.to_bytes()
+	if bytes.size() != OWNED_SECTION_BYTES:
+		return out.refuse(REFUSE_LENGTH,
+			"section 1 encoded %d bytes, not %d" % [bytes.size(), OWNED_SECTION_BYTES])
+	return out.succeed(bytes)
+
+
+static func _owned_key_order_refusal() -> SaveHeader.Refusal:
+	"""Prove `OWNED_OWNER_KEYS` is registered and strictly ASCII-ascending before anything is emitted.
+
+	SAVE-LAYOUT-R01 orders blocks by ASCII owner key. Checking the emitted order HERE, rather than
+	trusting the literal's arrangement, is what makes a swapped pair a refusal instead of a file
+	that decodes on the machine that wrote it and nowhere else.
+	"""
+	var previous: int = -1
+	for owner_key: String in OWNED_OWNER_KEYS:
+		var index: int = owner_order_index(owner_key)
+		if index < 0:
+			return SaveHeader.Refusal.new(REFUSE_SECTION_OWNER_KEY,
+				"'%s' is not a registered section 1 owner" % owner_key)
+		if index <= previous:
+			return SaveHeader.Refusal.new(REFUSE_SECTION_OWNER_ORDER,
+				"'%s' breaks ASCII owner order" % owner_key)
+		previous = index
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _write_prefix(section: SectionRecord, writer: SaveCodec.Writer) -> void:
+	"""Write SAVE-R09-003's 44-byte map-provenance prefix, retained verbatim."""
+	writer.write_u32(section.scenario_version)
+	writer.write_i32(section.effective_seed)
+	writer.write_u32(section.map_generator_schema)
+	writer.write_bytes(section.authored_map_digest)
+
+
+static func _write_owned_block(section: SectionRecord, owner_key: String,
+		writer: SaveCodec.Writer) -> bool:
+	"""Write one owned block: SAVE-LAYOUT-R01's wrapper, then its payload."""
+	var payload: PackedByteArray = PackedByteArray()
+	if owner_key == OWNER_KEY_ENTITY_DIRECTORY:
+		var cursor: SaveCodec.Writer = SaveCodec.Writer.new(DIRECTORY_PAYLOAD_BYTES)
+		cursor.write_u32(section.next_persistent_id)
+		payload = cursor.to_bytes()
+	else:
+		var body: EncodeResult = EncodeResult.new()
+		if not encode_block(section.runtime, body):
+			return false
+		payload = body.bytes
+	writer.write_utf8_u32(owner_key, OWNER_KEY_MAX_BYTES)
+	writer.write_u32(OWNER_SCHEMA_VERSION)
+	writer.write_u64(OWNER_PRIMARY_COUNT)
+	writer.write_u64(payload.size())
+	writer.write_bytes(payload)
+	return not writer.failed()
+
+
+class BlockWalk:
+	"""Mutable state of one `decode_section()` walk: ASCII order so far and the owned blocks seen.
+
+	A class rather than three out-parameters because GDScript passes integers and booleans by
+	value, and a walk that cannot remember the previous key cannot enforce an order.
+	"""
+	var previous_index: int = -1
+	var seen_directory: bool = false
+	var seen_runtime: bool = false
+
+	func missing_owned_key() -> String:
+		"""The owned owner key this walk never saw, or the empty String when both were present."""
+		if not seen_directory:
+			return OWNER_KEY_ENTITY_DIRECTORY
+		if not seen_runtime:
+			return OWNER_KEY_WORLD_RUNTIME
+		return ""
+
+
+static func decode_section(bytes: PackedByteArray, offset: int, section_byte_length: int,
+		out: SectionRecord) -> SaveHeader.Refusal:
+	"""Decode a whole section 1 at `offset`, validating the extent before reading a field.
+
+	Allocate before consume (decision 0059): every block is walked into a local SectionRecord and
+	the caller's is overwritten only after the blocks tile the section exactly, both owned owners
+	are present and every field validates. A malformed section leaves `out` untouched.
+	"""
+	var extent: SaveHeader.Refusal = section_extent_refusal(bytes, offset, section_byte_length)
+	if not extent.is_ok():
+		return extent
+	var reader: SaveCodec.Reader = SaveCodec.Reader.new(bytes)
+	if not reader.seek(offset):
+		return SaveHeader.Refusal.new(REFUSE_SECTION_TRUNCATED, reader.detail())
+	var staged: SectionRecord = SectionRecord.new()
+	var prefix: SaveHeader.Refusal = _read_prefix(reader, staged)
+	if not prefix.is_ok():
+		return prefix
+	var walked: SaveHeader.Refusal = _read_blocks(bytes, reader, offset + section_byte_length,
+		staged)
+	if not walked.is_ok():
+		return walked
+	var invalid: SaveHeader.Refusal = section_refusal(staged)
+	if not invalid.is_ok():
+		return invalid
+	out.copy_from(staged)
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func section_extent_refusal(bytes: PackedByteArray, offset: int,
+		section_byte_length: int) -> SaveHeader.Refusal:
+	"""Prove `section_byte_length` bytes are readable at `offset` and can hold prefix and count."""
+	if offset < 0:
+		return SaveHeader.Refusal.new(REFUSE_NEGATIVE_OFFSET, "offset %d is negative" % offset)
+	if section_byte_length < PREFIX_BYTES + STORE_COUNT_BYTES:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_TRUNCATED,
+			"section 1 is %d bytes, below the %d-byte prefix and store count"
+				% [section_byte_length, PREFIX_BYTES + STORE_COUNT_BYTES])
+	if bytes.size() < section_byte_length or offset > bytes.size() - section_byte_length:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_TRUNCATED,
+			"section 1 needs %d bytes at offset %d, buffer holds %d"
+				% [section_byte_length, offset, bytes.size()])
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _read_prefix(reader: SaveCodec.Reader, staged: SectionRecord) -> SaveHeader.Refusal:
+	"""Read SAVE-R09-003's 44-byte map-provenance prefix into the staged record."""
+	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
+	reader.read_u32_into(scalar)
+	staged.scenario_version = scalar.value
+	reader.read_i32_into(scalar)
+	staged.effective_seed = scalar.value
+	reader.read_u32_into(scalar)
+	staged.map_generator_schema = scalar.value
+	if not reader.read_bytes_into(AUTHORED_MAP_DIGEST_BYTES, staged.authored_map_digest):
+		return SaveHeader.Refusal.new(REFUSE_SECTION_TRUNCATED, reader.detail())
+	if reader.failed():
+		return SaveHeader.Refusal.new(REFUSE_SECTION_TRUNCATED, reader.detail())
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _read_blocks(bytes: PackedByteArray, reader: SaveCodec.Reader, section_end: int,
+		staged: SectionRecord) -> SaveHeader.Refusal:
+	"""Read `store_count` and then every owner block, proving they tile the section exactly."""
+	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
+	if not reader.read_u32_into(scalar):
+		return SaveHeader.Refusal.new(REFUSE_SECTION_TRUNCATED, reader.detail())
+	var store_count: int = scalar.value
+	if store_count < 1 or store_count > SECTION_OWNER_COUNT:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_STORE_COUNT,
+			"store_count %d is outside 1..%d" % [store_count, SECTION_OWNER_COUNT])
+	var walk: BlockWalk = BlockWalk.new()
+	for index: int in store_count:
+		var block: SaveHeader.Refusal = _read_one_block(bytes, reader, section_end, staged, walk)
+		if not block.is_ok():
+			return block
+	if reader.position() != section_end:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_NOT_TILED,
+			"%d blocks ended at %d, not the section end %d"
+				% [store_count, reader.position(), section_end])
+	var missing: String = walk.missing_owned_key()
+	if missing != "":
+		return SaveHeader.Refusal.new(REFUSE_SECTION_OWNER_MISSING,
+			"section 1 carries no '%s' block" % missing)
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _read_one_block(bytes: PackedByteArray, reader: SaveCodec.Reader, section_end: int,
+		staged: SectionRecord, walk: BlockWalk) -> SaveHeader.Refusal:
+	"""Read one owner block's wrapper, dispatch its payload, and advance past it exactly."""
+	var text: SaveCodec.Text = SaveCodec.Text.new()
+	if not reader.read_utf8_u32_into(OWNER_KEY_MAX_BYTES, text):
+		return SaveHeader.Refusal.new(REFUSE_SECTION_OWNER_KEY, reader.detail())
+	var owner_key: String = text.value
+	var index: int = owner_order_index(owner_key)
+	if index < 0:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_OWNER_KEY,
+			"'%s' is not a registered section 1 owner" % owner_key)
+	if index <= walk.previous_index:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_OWNER_ORDER,
+			"'%s' is out of ASCII owner order or repeated" % owner_key)
+	walk.previous_index = index
+	var header: SaveCodec.Scalar = SaveCodec.Scalar.new()
+	reader.read_u32_into(header)
+	var schema_version: int = header.value
+	reader.read_u64_into(header)
+	var primary_count: int = header.value
+	reader.read_u64_into(header)
+	var payload_length: int = header.value
+	if reader.failed():
+		return SaveHeader.Refusal.new(REFUSE_SECTION_TRUNCATED, reader.detail())
+	var payload_offset: int = reader.position()
+	if payload_length < 0 or payload_length > section_end - payload_offset:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_PAYLOAD_LENGTH,
+			"'%s' declares %d payload bytes, %d remain in the section"
+				% [owner_key, payload_length, section_end - payload_offset])
+	return _dispatch_block(bytes, reader, owner_key, schema_version, primary_count,
+		payload_offset, payload_length, staged, walk)
+
+
+static func _dispatch_block(bytes: PackedByteArray, reader: SaveCodec.Reader, owner_key: String,
+		schema_version: int, primary_count: int, payload_offset: int, payload_length: int,
+		staged: SectionRecord, walk: BlockWalk) -> SaveHeader.Refusal:
+	"""Decode an owned payload or measure a foreign one, then seek past `payload_length` exactly."""
+	var decoded: SaveHeader.Refusal = _decode_payload(bytes, owner_key, schema_version,
+		primary_count, payload_offset, payload_length, staged, walk)
+	if not decoded.is_ok():
+		return decoded
+	if not reader.seek(payload_offset + payload_length):
+		return SaveHeader.Refusal.new(REFUSE_SECTION_TRUNCATED, reader.detail())
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _decode_payload(bytes: PackedByteArray, owner_key: String, schema_version: int,
+		primary_count: int, payload_offset: int, payload_length: int, staged: SectionRecord,
+		walk: BlockWalk) -> SaveHeader.Refusal:
+	"""Dispatch one block's payload by owner key. Foreign blocks are measured, never interpreted."""
+	if owner_key == OWNER_KEY_ENTITY_DIRECTORY:
+		walk.seen_directory = true
+		return _decode_directory_payload(bytes, schema_version, primary_count, payload_offset,
+			payload_length, staged)
+	if owner_key == OWNER_KEY_WORLD_RUNTIME:
+		walk.seen_runtime = true
+		return _decode_runtime_payload(bytes, schema_version, primary_count, payload_offset,
+			payload_length, staged)
+	staged.note_foreign(owner_key, schema_version, primary_count, payload_offset, payload_length)
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _decode_directory_payload(bytes: PackedByteArray, schema_version: int,
+		primary_count: int, payload_offset: int, payload_length: int,
+		staged: SectionRecord) -> SaveHeader.Refusal:
+	"""Read D2's `_next_persistent_id:u32 LE`. Schema 1, primary_count 1, exactly four bytes."""
+	var wrapper: SaveHeader.Refusal = _owned_wrapper_refusal(OWNER_KEY_ENTITY_DIRECTORY,
+		schema_version, primary_count, payload_length, DIRECTORY_PAYLOAD_BYTES)
+	if not wrapper.is_ok():
+		return wrapper
+	var reader: SaveCodec.Reader = SaveCodec.Reader.new(bytes)
+	if not reader.seek(payload_offset):
+		return SaveHeader.Refusal.new(REFUSE_SECTION_TRUNCATED, reader.detail())
+	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
+	if not reader.read_u32_into(scalar):
+		return SaveHeader.Refusal.new(REFUSE_SECTION_TRUNCATED, reader.detail())
+	var cursor: SaveHeader.Refusal = cursor_refusal(scalar.value)
+	if not cursor.is_ok():
+		return cursor
+	staged.next_persistent_id = scalar.value
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _decode_runtime_payload(bytes: PackedByteArray, schema_version: int,
+		primary_count: int, payload_offset: int, payload_length: int,
+		staged: SectionRecord) -> SaveHeader.Refusal:
+	"""Read the 80-byte WorldRuntime body through the same `decode_into()` every caller uses."""
+	var wrapper: SaveHeader.Refusal = _owned_wrapper_refusal(OWNER_KEY_WORLD_RUNTIME,
+		schema_version, primary_count, payload_length, BLOCK_BYTES)
+	if not wrapper.is_ok():
+		return wrapper
+	return decode_into(bytes, payload_offset, staged.runtime)
+
+
+static func _owned_wrapper_refusal(owner_key: String, schema_version: int, primary_count: int,
+		payload_length: int, expected_payload: int) -> SaveHeader.Refusal:
+	"""The three wrapper rules both owned blocks share: schema 1, one primary row, fixed payload."""
+	if schema_version != OWNER_SCHEMA_VERSION:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_OWNER_SCHEMA,
+			"'%s' declares schema %d, not %d"
+				% [owner_key, schema_version, OWNER_SCHEMA_VERSION])
+	if primary_count != OWNER_PRIMARY_COUNT:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_PRIMARY_COUNT,
+			"'%s' declares primary_count %d, not %d"
+				% [owner_key, primary_count, OWNER_PRIMARY_COUNT])
+	if payload_length != expected_payload:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_PAYLOAD_LENGTH,
+			"'%s' declares %d payload bytes, not %d"
+				% [owner_key, payload_length, expected_payload])
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")

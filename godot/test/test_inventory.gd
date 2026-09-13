@@ -50,10 +50,24 @@ const CATEGORY_GEAR: int = 4
 const TOOL_MASS: int = 1000
 
 const BIG_MASS: int = 100000000
-## Opaque catalog enum stand-ins. GDD §4.3 numbers neither provenance nor container policy, so
-## these are arbitrary in-range int32 values chosen by this suite, NOT catalog IDs and NOT
-## constants the module publishes; the module only ever compares these columns for equality.
-const TEST_PROVENANCE: int = 3
+## PROV-R01 (decision 0113) CLOSED the provenance domain. These were both arbitrary in-range
+## int32 stand-ins until 2026-09-12; provenance is now one of exactly six published members and
+## an arbitrary value is refused, so the fixtures below name members. Container policy is still
+## genuinely opaque -- no ruling has closed it -- so TEST_POLICY remains an arbitrary value.
+##
+## Transcribed from the ruling table rather than read out of catalog.gd, so a renumbering there
+## fails here instead of being followed.
+const PROV_ORDINARY: int = 0
+const PROV_STARTER: int = 1
+const PROV_COASTAL_BRINE: int = 2
+const PROV_EXCAVATION: int = 3
+const PROV_BACKFILL_RECLAIM: int = 4
+const PROV_SPOIL_RECLAIM: int = 5
+## The six members as a list, for the tests that must cover every one.
+const PROVENANCE_MEMBERS: Array[int] = [0, 1, 2, 3, 4, 5]
+## Values that fit an int32 perfectly and still name no origin.
+const NON_MEMBER_PROVENANCE: Array[int] = [-1, 6, 7, 42, 2147483647, -2147483648]
+const TEST_PROVENANCE: int = PROV_EXCAVATION
 const TEST_POLICY: int = 0
 const INT64_MAX: int = 9223372036854775807
 const OWNER_A: Vector2i = Vector2i(7, 1)
@@ -279,12 +293,12 @@ func test_filters_refuse_a_disallowed_category() -> void:
 func test_merge_refuses_each_differing_attribute() -> void:
 	"""GDD §4.2 and BAL-SAFE-003: merge only on identical item, quality, provenance, recipe."""
 	var container: Vector2i = _container()
-	var base: Vector2i = _lot(container, ITEM_GRAIN, 1000, 1, 5, 3, 0, 0)
-	_assert_merge_refused(base, _lot(container, ITEM_CLOTH, 1000, 1, 5, 3, 0, 0), InventoryScript.REFUSE_ATTRIBUTE_MISMATCH, "item")
-	_assert_merge_refused(base, _lot(container, ITEM_GRAIN, 1000, 2, 5, 3, 0, 0), InventoryScript.REFUSE_ATTRIBUTE_MISMATCH, "quality")
-	_assert_merge_refused(base, _lot(container, ITEM_GRAIN, 1000, 1, 6, 3, 0, 0), InventoryScript.REFUSE_ATTRIBUTE_MISMATCH, "provenance")
-	_assert_merge_refused(base, _lot(container, ITEM_GRAIN, 1000, 1, 5, 4, 0, 0), InventoryScript.REFUSE_ATTRIBUTE_MISMATCH, "recipe")
-	_assert_merge_refused(base, _lot(container, ITEM_GRAIN, 1000, 1, 5, 3, 1500, 0), InventoryScript.REFUSE_AGE_MISMATCH, "rounded age")
+	var base: Vector2i = _lot(container, ITEM_GRAIN, 1000, 1, PROV_SPOIL_RECLAIM, 3, 0, 0)
+	_assert_merge_refused(base, _lot(container, ITEM_CLOTH, 1000, 1, PROV_SPOIL_RECLAIM, 3, 0, 0), InventoryScript.REFUSE_ATTRIBUTE_MISMATCH, "item")
+	_assert_merge_refused(base, _lot(container, ITEM_GRAIN, 1000, 2, PROV_SPOIL_RECLAIM, 3, 0, 0), InventoryScript.REFUSE_ATTRIBUTE_MISMATCH, "quality")
+	_assert_merge_refused(base, _lot(container, ITEM_GRAIN, 1000, 1, PROV_BACKFILL_RECLAIM, 3, 0, 0), InventoryScript.REFUSE_ATTRIBUTE_MISMATCH, "provenance")
+	_assert_merge_refused(base, _lot(container, ITEM_GRAIN, 1000, 1, PROV_SPOIL_RECLAIM, 4, 0, 0), InventoryScript.REFUSE_ATTRIBUTE_MISMATCH, "recipe")
+	_assert_merge_refused(base, _lot(container, ITEM_GRAIN, 1000, 1, PROV_SPOIL_RECLAIM, 3, 1500, 0), InventoryScript.REFUSE_AGE_MISMATCH, "rounded age")
 
 
 func _assert_merge_refused(dest: Vector2i, source: Vector2i, code: StringName, attribute: String) -> void:
@@ -329,12 +343,12 @@ func test_split_refuses_degenerate_quantities() -> void:
 func test_split_preserves_every_attribute() -> void:
 	"""The child of a split carries the parent's item, quality, provenance, recipe and age."""
 	var container: Vector2i = _container()
-	var parent: Vector2i = _lot(container, ITEM_MEAL, 4000, 2, 5, 11, 2500, 9)
+	var parent: Vector2i = _lot(container, ITEM_MEAL, 4000, 2, PROV_SPOIL_RECLAIM, 11, 2500, 9)
 	var child: InventoryScript.OpResult = _inv.split_lot(parent, 1000)
 	assert_true(child.ok, "the split succeeds")
 	assert_equal(_inv.lot_item_id(child.ref), ITEM_MEAL, "item carries over")
 	assert_equal(_inv.lot_quality(child.ref), 2, "quality carries over")
-	assert_equal(_inv.lot_provenance(child.ref), 5, "provenance carries over")
+	assert_equal(_inv.lot_provenance(child.ref), PROV_SPOIL_RECLAIM, "provenance carries over")
 	assert_equal(_inv.lot_recipe_id(child.ref), 11, "recipe carries over")
 	assert_equal(_inv.lot_age_milli_hours(child.ref), 2500, "age is not reset by a split")
 	assert_equal(_inv.lot_age_remainder(child.ref), 9, "the aging remainder is not reset by a split")
@@ -981,16 +995,24 @@ func test_out_of_range_container_policy_is_refused_not_truncated() -> void:
 
 
 func test_int32_boundary_values_are_stored_verbatim() -> void:
-	"""The int32 extremes are legal opaque values and must round-trip, not be refused."""
+	"""The int32 extremes are legal opaque values for the columns that are still opaque.
+
+	Quality, recipe_id and container policy remain uninterpreted int32s and must round-trip at
+	the extremes rather than be refused. PROVENANCE NO LONGER DOES: PROV-R01 closed that domain
+	at six members, so INT32_MAX is now a refusal there and is asserted separately below."""
 	var high: int = 2147483647
 	var low: int = -2147483648
 	var created: InventoryScript.OpResult = _inv.create_container(OWNER_A, BIG_MASS, InventoryScript.FILTERS_ACCEPT_ALL, low, true)
 	assert_true(created.ok, "a policy at INT32_MIN is accepted")
 	assert_equal(_inv.container_policy(created.ref), low, "the policy round-trips exactly")
-	var lot: Vector2i = _lot(created.ref, ITEM_GRAIN, 1000, high, high, high)
+	var lot: Vector2i = _lot(created.ref, ITEM_GRAIN, 1000, high, PROV_ORDINARY, high)
 	assert_equal(_inv.lot_quality(lot), high, "quality round-trips at INT32_MAX")
-	assert_equal(_inv.lot_provenance(lot), high, "provenance round-trips at INT32_MAX")
 	assert_equal(_inv.lot_recipe_id(lot), high, "recipe_id round-trips at INT32_MAX")
+	assert_equal(_inv.lot_provenance(lot), PROV_ORDINARY, "and provenance stays its member")
+	var refused: InventoryScript.OpResult = _inv.create_lot(
+		created.ref, ITEM_GRAIN, 1000, high, high, high, 0, 0)
+	assert_false(refused.ok, "INT32_MAX is no longer a provenance")
+	assert_equal(refused.error, InventoryScript.REFUSE_INVALID_PROVENANCE, "and says so by name")
 
 
 # --- Ages that cannot be rounded ----------------------------------------------------------------
@@ -1087,31 +1109,86 @@ func test_abort_restores_the_container_free_stack_after_a_destroy() -> void:
 # --- Opaque catalog enums -----------------------------------------------------------------------
 
 func test_module_publishes_no_provenance_or_policy_catalog_numbers() -> void:
-	"""BAL-CAT-001 compiles provenance and policy from sorted catalog keys, not from this module.
+	"""The numbers live in catalog.gd's protected table; this module mirrors none of them.
 
-	GDD §4.3 numbers neither enumeration, so inventory must not name a member and assert its
-	value; STARTER in particular is very unlikely to compile to 1. Only unset-field sentinels
-	are published, and the columns are compared for equality alone.
+	PROV-R01 closed the provenance domain, so inventory now VALIDATES membership -- but it still
+	must not carry a second copy of any member's value, because two copies can disagree. Policy
+	remains a genuinely opaque compiled enum and keeps its unset-field sentinel.
 	"""
 	var constants: Dictionary = _inv.get_script().get_script_constant_map()
 	assert_false(constants.has("PROVENANCE_STARTER"), "no STARTER provenance number is invented here")
 	assert_false(constants.has("PROVENANCE_UNKNOWN"), "no UNKNOWN provenance number is invented here")
+	assert_false(constants.has("PROVENANCE_COASTAL_BRINE"), "nor a coastal-brine number")
 	assert_false(constants.has("POLICY_DEFAULT"), "no default policy number is invented here")
-	assert_true(constants.has("UNSET_PROVENANCE"), "an unset-field sentinel is published instead")
+	assert_true(constants.has("UNSET_PROVENANCE"), "the ORDINARY compatibility spelling is published")
 	assert_true(constants.has("UNSET_POLICY"), "an unset-field sentinel is published instead")
 
 
-func test_provenance_is_compared_only_for_equality() -> void:
-	"""Any two distinct int32 provenance values block a merge; none is privileged over another."""
+func test_unset_provenance_is_the_compatibility_spelling_of_ordinary() -> void:
+	"""PROV-R01: `UNSET_PROVENANCE=0` is ORDINARY, "not a seventh member and not an unknown".
+
+	The value a freshly cleared column holds is therefore a real, valid member meaning ordinary
+	harvest / freshwater / crafted origin. It grants no privilege -- in particular it "does not
+	prove coastal collection or a virgin source" -- and it is admitted like any other member."""
+	assert_equal(InventoryScript.UNSET_PROVENANCE, PROV_ORDINARY,
+		"the compatibility spelling is exactly ORDINARY")
+	assert_false(InventoryScript.UNSET_PROVENANCE == PROV_COASTAL_BRINE,
+		"an unset field never means coastal brine")
+	assert_false(InventoryScript.UNSET_PROVENANCE == PROV_EXCAVATION,
+		"nor a virgin excavation source")
 	var container: Vector2i = _container()
-	var a: Vector2i = _lot(container, ITEM_GRAIN, 1000, 0, 2147483647)
-	var b: Vector2i = _lot(container, ITEM_GRAIN, 1000, 0, -2147483648)
-	var mismatch: InventoryScript.OpResult = _inv.merge_lots(a, b)
-	assert_false(mismatch.ok, "two different opaque provenance values never merge")
-	assert_equal(mismatch.error, InventoryScript.REFUSE_ATTRIBUTE_MISMATCH, "the refusal names the attribute mismatch")
-	var c: Vector2i = _lot(container, ITEM_GRAIN, 1000, 0, 2147483647)
-	assert_true(_inv.merge_lots(a, c).ok, "equal opaque provenance values merge")
-	assert_equal(_inv.lot_provenance(a), 2147483647, "the merged lot keeps the value verbatim")
+	var lot: Vector2i = _lot(container, ITEM_GRAIN, 1000, 0, InventoryScript.UNSET_PROVENANCE)
+	assert_true(_inv.is_lot_valid(lot), "an ordinary lot is created, not refused as unknown")
+	assert_equal(_inv.lot_provenance(lot), PROV_ORDINARY, "and reads back as ORDINARY")
+	var coastal: Vector2i = _lot(container, ITEM_GRAIN, 1000, 0, PROV_COASTAL_BRINE)
+	assert_false(_inv.merge_lots(lot, coastal).ok, "ordinary and coastal are different origins")
+
+
+func test_every_published_member_is_admitted_and_reads_back() -> void:
+	"""The exact six-key mapping, each one created and read back off its own row."""
+	var container: Vector2i = _container()
+	for member: int in PROVENANCE_MEMBERS:
+		var lot: Vector2i = _lot(container, ITEM_GRAIN, 1000, 0, member)
+		assert_true(_inv.is_lot_valid(lot), "member %d is admitted" % member)
+		assert_equal(_inv.lot_provenance(lot), member, "member %d reads back" % member)
+	assert_equal(_inv.live_lot_count(), PROVENANCE_MEMBERS.size(), "six rows, one per member")
+
+
+func test_a_non_member_provenance_is_refused_and_writes_nothing() -> void:
+	"""-1, 6 and other arbitrary int32 values fit the column and still name no origin.
+
+	PROV-R01: "Existing arbitrary-int test fixtures are not valid saves under this domain."
+	ADR 0059's allocate-before-consume rule is asserted by byte comparison, not by inspection."""
+	var container: Vector2i = _container()
+	for value: int in NON_MEMBER_PROVENANCE:
+		var before: PackedByteArray = _inv.state_bytes()
+		var result: InventoryScript.OpResult = _inv.create_lot(
+			container, ITEM_GRAIN, 1000, 0, value, 0, 0, 0)
+		assert_false(result.ok, "provenance %d is refused" % value)
+		assert_equal(result.error, InventoryScript.REFUSE_INVALID_PROVENANCE,
+			"the refusal names the domain, not an overflow, for %d" % value)
+		assert_true(_inv.state_bytes() == before, "the refused %d wrote nothing" % value)
+	assert_equal(_inv.live_lot_count(), 0, "no row was stored for any of them")
+
+
+func test_provenance_is_compared_for_equality_across_the_whole_domain() -> void:
+	"""Merging requires identical attributes INCLUDING provenance: every unequal pair refuses."""
+	var container: Vector2i = _container()
+	var rows: Array[Vector2i] = []
+	for member: int in PROVENANCE_MEMBERS:
+		rows.append(_lot(container, ITEM_GRAIN, 1000, 0, member))
+	for i: int in PROVENANCE_MEMBERS.size():
+		for j: int in PROVENANCE_MEMBERS.size():
+			if i == j:
+				continue
+			var refused: InventoryScript.OpResult = _inv.merge_lots(rows[i], rows[j])
+			assert_false(refused.ok, "%d and %d are different origins" % [i, j])
+			assert_equal(refused.error, InventoryScript.REFUSE_ATTRIBUTE_MISMATCH,
+				"the refusal names the attribute mismatch for %d vs %d" % [i, j])
+	var twin: Vector2i = _lot(container, ITEM_GRAIN, 1000, 0, PROV_COASTAL_BRINE)
+	assert_true(_inv.merge_lots(rows[PROV_COASTAL_BRINE], twin).ok, "equal origins merge")
+	assert_equal(_inv.lot_provenance(rows[PROV_COASTAL_BRINE]), PROV_COASTAL_BRINE,
+		"and the merged lot keeps the member verbatim")
 
 
 # --- Allocation and result-scratch discipline (task 2.7, decision 0015) --------------------------
@@ -1475,7 +1552,7 @@ func test_a_detach_and_attach_round_trip_preserves_the_whole_lot_row() -> void:
 	var box: Vector2i = _container()
 	var authority: StubAuthority = StubAuthority.new()
 	assert_true(_inv.set_equipment_authority(authority).ok, "the authority binds")
-	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 4, 7, 9, 12345, 678).ref
+	var lot: Vector2i = _inv.create_lot(box, ITEM_TOOL, 1000, 4, PROV_STARTER, 9, 12345, 678).ref
 	authority.attest(lot)
 	assert_true(_inv.detach_lot_to_equipment(lot).ok, "detach")
 	assert_true(_inv.is_lot_valid(lot), "the very same reference is still valid while equipped")
@@ -1484,7 +1561,7 @@ func test_a_detach_and_attach_round_trip_preserves_the_whole_lot_row() -> void:
 	assert_true(_inv.attach_equipped_lot(lot, box, false).ok, "attach")
 	assert_equal(_inv.lot_quantity_milli(lot), 1000, "quantity is unchanged")
 	assert_equal(_inv.lot_quality(lot), 4, "quality is unchanged")
-	assert_equal(_inv.lot_provenance(lot), 7, "provenance is unchanged")
+	assert_equal(_inv.lot_provenance(lot), PROV_STARTER, "provenance is unchanged")
 	assert_equal(_inv.lot_recipe_id(lot), 9, "recipe id is unchanged")
 	assert_equal(_inv.lot_age_milli_hours(lot), 12345, "age is not reset")
 	assert_equal(_inv.lot_age_remainder(lot), 678, "and neither is its remainder")
@@ -2119,3 +2196,93 @@ class SeedAuthority extends RefCounted:
 		"""The predicate `inventory.gd` calls on every seed-consuming admission."""
 		queries += 1
 		return expired.has(lot_ref)
+
+
+# --- PROV-R01 preservation across every operation that touches a lot -------------------------------
+
+func test_a_transfer_preserves_the_source_provenance_on_the_new_row() -> void:
+	"""PROV-R01: "Transfers, splits, gear moves and input refunds preserve their lot attributes"."""
+	var source: Vector2i = _container()
+	var dest: Vector2i = _container(BIG_MASS, OWNER_B)
+	var lot: Vector2i = _lot(source, ITEM_GRAIN, 4000, 1, PROV_COASTAL_BRINE, 3)
+	var moved: InventoryScript.OpResult = _inv.transfer(lot, dest, 1000)
+	assert_true(moved.ok, "the transfer succeeds")
+	assert_equal(_inv.lot_provenance(moved.ref), PROV_COASTAL_BRINE,
+		"the delivered row carries the source origin")
+	assert_equal(_inv.lot_provenance(lot), PROV_COASTAL_BRINE, "and the remainder still does too")
+	assert_equal(_inv.lot_container(moved.ref), dest, "the new row really is in the destination")
+
+
+func test_a_whole_lot_move_preserves_provenance() -> void:
+	"""Moving a row between containers rewrites its container and nothing else about its origin."""
+	var source: Vector2i = _container()
+	var dest: Vector2i = _container(BIG_MASS, OWNER_B)
+	var lot: Vector2i = _lot(source, ITEM_GRAIN, 2000, 0, PROV_BACKFILL_RECLAIM)
+	assert_true(_inv.move_lot(lot, dest).ok, "the move succeeds")
+	assert_equal(_inv.lot_provenance(lot), PROV_BACKFILL_RECLAIM, "origin survives the move")
+	assert_equal(_inv.lot_container(lot), dest, "and the row really did move")
+
+
+func test_a_transfer_never_merges_across_differing_provenance() -> void:
+	"""Two origins in one container stay two rows: a transfer cannot launder one into the other."""
+	var source: Vector2i = _container()
+	var dest: Vector2i = _container(BIG_MASS, OWNER_B)
+	var resident: Vector2i = _lot(dest, ITEM_GRAIN, 1000, 0, PROV_ORDINARY)
+	var incoming: Vector2i = _lot(source, ITEM_GRAIN, 4000, 0, PROV_STARTER)
+	var moved: InventoryScript.OpResult = _inv.transfer(incoming, dest, 1000)
+	assert_true(moved.ok, "the transfer itself is legal")
+	assert_true(moved.ref != resident, "it did not merge into the ordinary row")
+	assert_equal(_inv.lot_provenance(moved.ref), PROV_STARTER, "the delivered row is still STARTER")
+	assert_equal(_inv.lot_provenance(resident), PROV_ORDINARY, "and the resident row is untouched")
+	var same: Vector2i = _lot(source, ITEM_GRAIN, 4000, 0, PROV_ORDINARY)
+	var merged: InventoryScript.OpResult = _inv.transfer(same, dest, 1000)
+	assert_equal(merged.ref, resident, "an equal origin does merge into the existing row")
+
+
+func test_a_rolled_back_transaction_restores_provenance_exactly() -> void:
+	"""Cancellation restores the column from the journal pre-image, byte for byte."""
+	var container: Vector2i = _container()
+	var lot: Vector2i = _lot(container, ITEM_GRAIN, 4000, 0, PROV_SPOIL_RECLAIM)
+	var before: PackedByteArray = _inv.state_bytes()
+	assert_true(_inv.begin().ok, "the transaction opens")
+	assert_true(_inv.split_lot(lot, 1000).ok, "a split inside it succeeds")
+	assert_false(_inv.create_lot(container, ITEM_GRAIN, 1000, 0, 6, 0, 0, 0).ok,
+		"a non-member provenance poisons the transaction")
+	assert_false(_inv.commit().ok, "the poisoned transaction refuses to commit")
+	assert_equal(_inv.lot_provenance(lot), PROV_SPOIL_RECLAIM, "the origin is back")
+	assert_true(_inv.state_bytes() == before, "and the whole store is byte-identical")
+
+
+func test_spoilage_carries_the_origin_onto_the_new_item() -> void:
+	"""PROV-R01: spoilage preserves origin as history; the new ITEM decides eligibility.
+
+	The row keeps EXCAVATION here purely as history. Nothing downstream may read that label as
+	entitlement, because the eligibility rules are item-keyed: `Catalog.check_lot_provenance()`
+	would refuse this pairing outright for a producer, and `check_salt_brine_input()` answers on
+	the item first. Spoilage manufactures no coastal or virgin-source entitlement."""
+	var container: Vector2i = _container()
+	var lot: Vector2i = _lot(container, ITEM_MEAL, 4000, 2, PROV_EXCAVATION, 5, 3000, 7)
+	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
+	assert_true(_inv.transform_lot_item_into(lot, ITEM_GRAIN, 2000, out), "the transform succeeds")
+	assert_equal(_inv.lot_item_id(lot), ITEM_GRAIN, "the identity really did change")
+	assert_equal(_inv.lot_provenance(lot), PROV_EXCAVATION, "the origin is carried as history")
+	assert_equal(_inv.lot_quality(lot), 2, "and so are the other carried attributes")
+
+
+func test_lot_provenance_into_separates_a_refusal_from_an_answer() -> void:
+	"""The `_into` form carries a refusal without allocating and without a usable value.
+
+	`lot_provenance()` answers -1 for an invalid ref, which cannot be mistaken for an origin
+	because -1 is not a member -- but ORDINARY is 0, so a zeroed refusal value must never be
+	readable as an answer either. That is what the boolean return is for."""
+	var container: Vector2i = _container()
+	var lot: Vector2i = _lot(container, ITEM_GRAIN, 1000, 0, PROV_ORDINARY)
+	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
+	assert_true(_inv.lot_provenance_into(lot, out), "a live lot answers")
+	assert_equal(out.value, PROV_ORDINARY, "with its member")
+	assert_false(_inv.lot_provenance_into(Vector2i(999, 1), out), "an invalid ref refuses")
+	assert_equal(out.value, 0, "and zeroes the value channel")
+	assert_false(out.error.is_empty(), "while naming what was rejected")
+	assert_equal(_inv.lot_provenance(Vector2i(999, 1)), -1, "the plain reader answers -1")
+	assert_false(InventoryScript.CatalogScript.is_inventory_provenance(-1),
+		"which is not a member, so it cannot be read as an origin")

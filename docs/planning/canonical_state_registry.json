@@ -2451,7 +2451,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 0,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     },
     {
      "field_key": "_kind",
@@ -2465,7 +2465,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 1,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     },
     {
      "field_key": "_airless_episode",
@@ -2479,7 +2479,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 2,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     },
     {
      "field_key": "_exhaustion_latch",
@@ -2493,7 +2493,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 3,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     },
     {
      "field_key": "_care_context_blocked",
@@ -2507,7 +2507,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 4,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     },
     {
      "field_key": "_severity",
@@ -2521,7 +2521,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 5,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     },
     {
      "field_key": "_rescuer_slot",
@@ -2535,7 +2535,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 6,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     },
     {
      "field_key": "_rescuer_generation",
@@ -2549,7 +2549,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 7,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     },
     {
      "field_key": "_untreated_ticks",
@@ -2563,7 +2563,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 8,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     },
     {
      "field_key": "_care_progress_mwu",
@@ -2577,7 +2577,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 9,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     },
     {
      "field_key": "_last_incident_ordinal",
@@ -2591,7 +2591,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 10,
-     "source_contract": "HAZ-001"
+     "source_contract": "C170"
     }
    ]
   },
@@ -3648,7 +3648,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 19,
-     "source_contract": "HAZ-002"
+     "source_contract": "C168"
     }
    ]
   },
@@ -4775,7 +4775,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 3,
-     "source_contract": "ECON-002"
+     "source_contract": "C169"
     },
     {
      "field_key": "_tool_lot_slot",
@@ -4789,7 +4789,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 4,
-     "source_contract": "ECON-002"
+     "source_contract": "C169"
     },
     {
      "field_key": "_tool_lot_generation",
@@ -4803,7 +4803,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 5,
-     "source_contract": "ECON-002"
+     "source_contract": "C169"
     },
     {
      "field_key": "_tool_job_slot",
@@ -4817,7 +4817,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 6,
-     "source_contract": "ECON-002"
+     "source_contract": "C169"
     },
     {
      "field_key": "_tool_job_generation",
@@ -4831,7 +4831,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 7,
-     "source_contract": "ECON-002"
+     "source_contract": "C169"
     },
     {
      "field_key": "_tool_broken",
@@ -4845,7 +4845,7 @@
       "order": "ascending_physical_slot"
      },
      "ordinal": 8,
-     "source_contract": "ECON-002"
+     "source_contract": "C169"
     }
    ]
   },
@@ -6272,7 +6272,9 @@
      "source_member": "_l_provenance",
      "shape": {
       "declared_capacity": "`_l_capacity` <= 16384",
-      "order": "ascending_physical_slot"
+      "order": "ascending_physical_slot",
+      "value_domain": "InventoryProvenance",
+      "value_extent": "0..5 inclusive"
      },
      "ordinal": 18,
      "source_contract": "C132"
@@ -8711,7 +8713,10 @@
     "primary_count": 512,
     "max_payload_bytes": 67588,
     "max_section_bytes": 67625,
-    "format": "u32_row_count_then_512_utf8_u32_strings"
+    "format": "store_count_u32_then_owner_wrapper_then_u32_row_count_then_512_utf8_u32_strings",
+    "framing_bytes": 37,
+    "min_section_bytes": 2089,
+    "note": "Framing is 4 (store_count) + 33 (owner wrapper: 4 key length + 9 'residents' + 4 owner_schema_version + 8 primary_count + 8 payload_byte_length) = 37. The retained inner row_count is validated against primary_count, and payload_byte_length against length - 37 from the descriptor. Neither framing count nor the wrapper becomes an extra canonical record. Decision 0112."
    }
   }
  ],
@@ -9394,6 +9399,18 @@
   "C167": {
    "unused": "Empty string for an unnamed row",
    "notes": "ARCH-SAVE-001 stores strings length-prefixed UTF-8; ARCH-SAVE-005 requires 2-32 Unicode characters with control characters rejected, and forbids ordering simulation by a display string."
+  },
+  "C168": {
+   "unused": "0 means the resident is breathing normally; it is a real value, not an absence",
+   "notes": "HAZ-002's per-resident airless input to needs.gd's one health rate (decision 0109). Losing it silently restores a drowning resident to safety on load."
+  },
+  "C169": {
+   "unused": "`_wear_remainder` 0-9999 is a real value; `_tool_lot_slot` -1 with generation 0 is the null binding; `_tool_broken` 0 means not broken",
+   "notes": "SET-MOVE-ECON-001 ECON-002's per-contributor tool settlement in work.gd (decision 0110). The lot and job references are full generation-carrying refs in the INVENTORY LOT and JOB namespaces, not gear.gd's bare row indices. Must be saved with gear.gd's claim columns or a load leaves a claim in one store with no binding in the other. `_wear_remainder` is architecture 3's ResidentRuntime.wear_remainder, moved rather than duplicated."
+  },
+  "C170": {
+   "unused": "`_present` 0 is a free row; `_kind` 0 (KIND_NONE) means no aggregate injury; `_severity` 0 when uninjured; `_rescuer_slot` -1 with generation 0 is the null ref",
+   "notes": "HAZ-001/002/004's aggregate Injury store (decision 0109). `_kind` is GDD 4.3's InjuryKind, derived from catalog.gd's protected domain. The rescuer is an EntityRef in the DIRECTORY namespace. `_last_incident_ordinal` is the one-shot dedup latch: dropping it lets a replayed hazard charge twice, and dropping `_airless_episode` creates a second EXPOSURE incident on reload for one the world already resolved."
   }
  },
  "section_schema_versions": [

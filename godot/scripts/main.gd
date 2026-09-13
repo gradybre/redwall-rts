@@ -1,7 +1,9 @@
 extends Node
-## Boot scene: wires the HUD to UIManager and seeds the starting settlement stores.
+## Boot scene: wires the HUD to UIManager, seeds the starting settlement stores, and attaches the
+## resident crowd to the cohort those stores create.
 
 const HudScript := preload("res://scripts/ui/hud.gd")
+const ResidentStageScript := preload("res://scripts/presentation/resident_stage.gd")
 
 ## GDD §5.1 initial inventory, in whole catalog units. Copied verbatim from the specification
 ## line "Initial inventory U: wood 180, stone 100, ..."; nothing here is invented or rounded.
@@ -34,6 +36,8 @@ const STARTING_INVENTORY_U: Dictionary = {
 const MILLI_PER_UNIT: int = 1000
 
 @onready var _hud: HudScript = $UI/HUD as HudScript
+@onready var _resident_stage: ResidentStageScript = \
+	$World/Entities/ResidentStage as ResidentStageScript
 
 
 func _ready() -> void:
@@ -53,6 +57,7 @@ func _ready() -> void:
 	UIManager.register_hud(_hud)
 	_seed_stores()
 	_generate_initial_world()
+	_attach_resident_stage()
 	GameManager.start_game()
 	UIManager.push_alert("Mossflower stirs.")
 	print("[Main] boot complete: %s  food-days %s  ready %d NP  fuel-days %s" % [
@@ -93,14 +98,33 @@ func _generate_initial_world() -> void:
 	EconomySystem.bind_residents(SettlementSystem.residents())
 
 
+func _attach_resident_stage() -> void:
+	"""Bind the crowd renderer to the cohort, AFTER the settlement that owns it exists.
+
+	Not in the stage's own `_ready()`: Godot readies children before parents, so that runs before
+	`_generate_initial_world()` above and would bind an empty settlement. A refusal is reported
+	rather than swallowed, because an unbound crowd and a settlement with nobody in it draw the
+	same empty ground.
+	"""
+	if _resident_stage == null:
+		push_error("main.tscn has no ResidentStage at World/Entities; residents will not be drawn.")
+		return
+	if not _resident_stage.attach(SettlementSystem.residents()):
+		push_error("Resident crowd could not attach: %s" % _resident_stage.last_refusal())
+		return
+	print("[Main] resident crowd attached: mesh %s" % _resident_stage.mesh_source())
+
+
 func _exit_tree() -> void:
-	"""Release the HUD reference and the borrowed residents binding before this scene is freed.
+	"""Release the HUD, the crowd and the borrowed residents binding before this scene is freed.
 
 	The settlement itself is NOT cleared here. It is authoritative state owned by an autoload and
 	this scene is one view of it; the next boot resets it before creating a new cohort.
 	"""
 	UIManager.unregister_hud()
 	EconomySystem.bind_residents(null)
+	if _resident_stage != null:
+		_resident_stage.detach()
 
 
 func _unhandled_input(event: InputEvent) -> void:

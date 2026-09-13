@@ -26,7 +26,7 @@ for l in s[a:b].splitlines():
 # +1 row for decision 0055's Weather absolute-season columns (16 B). Decision 0054's scheduler
 # queue is an allocation row only: a control block, not per-entity columns, so no field row moves.
 # +1 row for decision 0095's Resident life_stage column (512 B, B8 x RESIDENT_CAPACITY).
-assert len(fields)==142 and sum(fields)==25029474
+assert len(fields)==144 and sum(fields)==25036642
 # §3's printed rows must sum to the "Auxiliary payload" allocation row.
 #
 # THE HOLE THIS CLOSES. `fields` above slices on the '## 2.3' boundary, so it covers §2.2 ONLY --
@@ -100,9 +100,15 @@ assert DECISION_0095_ADDED==512
 DECISION_0104_ADDED=8+1
 assert DECISION_0104_ADDED==9
 # decision 0109: injury.gd's aggregate store (5 B8 + 3 I32 + 3 I64 over RESIDENT_CAPACITY) plus
-# needs.gd's one _airless input byte. 2560 + 6144 + 12288 + 512.
-DECISION_0109_ADDED=(5*1*512)+(3*4*512)+(3*8*512)+(1*1*512)
-assert DECISION_0109_ADDED==21504
+# needs.gd's one _airless input byte. 2560 + 6144 + 12288 + 512 = 21504 GROSS. The Injury
+# component already held two rows in 2.2 (5 I32 = 10240 and 1 I64 = 4096) budgeting kind,
+# severity, rescuer_slot, rescuer_generation and care_progress_mwu under their planned widths.
+# Those 14336 bytes were replaced by the implemented layout, not added to it, so the NET
+# allocation is 7168. The 2.2 rows now carry injury.gd's actual widths; this term is the
+# difference. Counting the gross here is exactly the double-count merge_gate.py's cross-form
+# check exists to catch, and is how it was found.
+DECISION_0109_ADDED=(5*1*512)+(3*4*512)+(3*8*512)+(1*1*512)-(10240+4096)
+assert DECISION_0109_ADDED==7168
 # decision 0110: work.gd's per-contributor tool settlement, 5 I32 + 1 B8 over RESIDENT_CAPACITY
 # (10240 + 512), MINUS the 4096 that ResidentRuntime's I64 group budgeted for wear_remainder.
 # That store does not exist and this one does; one field budgeted twice at two widths is how a
@@ -120,8 +126,8 @@ DECISION_0127_ADDED=(50*4*4)+(590*3*1)+(590*8)+(590*4)+8734
 assert DECISION_0127_ADDED==18384
 assert len(allocations)==29 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==63779731
-assert live==72168339 and candidate==57564147 and live+candidate==129732486
+assert payload==63765395
+assert live==72154003 and candidate==57549811 and live+candidate==129703814
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

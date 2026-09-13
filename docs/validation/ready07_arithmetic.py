@@ -114,10 +114,14 @@ assert DECISION_0110_ADDED==6656
 # removing it frees no counted byte. state_registry_coverage.py globs godot/scripts/core only.
 DECISION_0114_ADDED=3*4*12
 assert DECISION_0114_ADDED==144
-assert len(allocations)==28 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED
+# decision 0127: canonical_state_hash.gd's resident declaration table, built once from the
+# checked-in registry. 800 + 1770 + 4720 + 2360 fixed, plus 8734 bytes of key text.
+DECISION_0127_ADDED=(50*4*4)+(590*3*1)+(590*8)+(590*4)+8734
+assert DECISION_0127_ADDED==18384
+assert len(allocations)==29 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==63761347
-assert live==72149955 and candidate==57545763 and live+candidate==129695718
+assert payload==63779731
+assert live==72168339 and candidate==57564147 and live+candidate==129732486
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

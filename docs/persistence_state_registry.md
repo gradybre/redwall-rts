@@ -152,6 +152,12 @@ Neither needs new state.
 | Per-kind furniture counters | `_f_kind_count` | 4 | `FURNITURE_KIND_COUNT` = 9 | 0 means no live row of that kind anywhere | 2 | §4 COMPONENT_COLUMNS | Nine totals so a HUD bed counter costs a lookup instead of an 81920-row scan. Exactly recomputable from `_f_present` and `_f_type_id`, so writing it would create a second source of truth for a number the rows already state. |
 | Store counts and collaborators | -- | -- | -- | -- | 2 | §4 COMPONENT_COLUMNS | `_b_live_count`, `_r_live_count`, `_f_live_count` are recomputed from the three occupancy bitsets and `_room_tile_used` from the live rooms' runs. `_directory`, `_owns_directory` and `_definitions` are wiring: the shared allocator, the construction flag, and the immutable catalog facts, all re-bound on load. |
 
+### `godot/scripts/core/canonical_state_hash.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| §15 canonical field walker | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` beyond `_production`, the once-built `Declaration` cached from the generated table. That table is REG-R01's checked-in declaration compiled from `planning/canonical_state_registry.json`: build-time constant data, not simulation state, so losing it on reload changes no outcome. Its packed columns live inside `Declaration` and total **9650 fixed bytes** (50 owners x 4 x i32 = 800; 590 fields x 3 x u8 = 1770; 590 x i64 declared counts = 4720; 590 x i32 UTF-8 caps = 2360) plus **8734 bytes** of key text (461 owner-key + 8273 field-key UTF-8 bytes) in two `PackedStringArray`s -- **18384 bytes resident**, built once and never resized. The 65536-byte `Emitter` chunk is per-walk scratch allocated in its `_init`, not a resident column. The module WRITES §15 -- exactly 32 raw SHA-256 bytes over SAVE-R09's RWL-STATE-1 stream -- but owns none of the state it hashes: every value arrives from the owning store's adapter, and a declared owner with no adapter refuses (`CANONICAL_NO_ADAPTER`) instead of hashing a subset. ARCH-SAVE-007's "a memory allocation row alone does not make a field persisted or canonical" applies in both directions here. See [decision 0127](decisions/0127-the-canonical-field-walker-refuses-what-it-cannot-hash.md). |
+
 ### `godot/scripts/core/catalog.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

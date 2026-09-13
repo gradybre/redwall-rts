@@ -103,7 +103,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | InventoryContainer | owner_slot, owner_generation, policy | I32 | 4 | 3 | 101376 | 1216512 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | InventoryContainer | max_mass_g, filters, reserved_mass_g | I64 | 8 | 3 | 101376 | 2433024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | InventoryContainer | reachable | B8 | 1 | 1 | 101376 | 101376 | [GDD §4.2; lengths ARCH-MEM-002–004] |
-| InventoryLot | item_id, quality, provenance, recipe_id, container_slot, container_generation | I32 | 4 | 6 | 16384 | 393216 | [GDD §4.2; lengths ARCH-MEM-002–004] |
+| InventoryLot | item_id, quality, provenance, recipe_id, container_slot, container_generation | I32 | 4 | 6 | 16384 | 393216 | [GDD §4.2; §4.3 InventoryProvenance via PROV-R01, decision 0113; lengths ARCH-MEM-002–004] Every byte on this row is unchanged: §4.3 now NUMBERS provenance, so §4.2's closing paragraph no longer reaches it, and the column's extent is 0..5 rather than any int32 |
 | InventoryLot | quantity_milli, reserved_milli, age_milli_hours, age_remainder | I64 | 8 | 4 | 16384 | 524288 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Reservation | job_slot, job_generation, lot_slot, lot_generation, purpose | I32 | 4 | 5 | 32768 | 655360 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Reservation | quantity_milli, expiry | I64 | 8 | 2 | 32768 | 524288 | [GDD §4.2; lengths ARCH-MEM-002–004] |

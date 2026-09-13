@@ -560,6 +560,12 @@ Neither needs new state.
 |---|---|---:|---|---|:-:|---|---|
 | Fixed header and section table | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` beyond the lazily built 256-entry CRC-32/ISO-HDLC lookup table, which is a compile-time constant derived from the reversed polynomial `systems_architecture.md:745` states. Everything else is static: the 256-byte header codec, the 64-byte descriptor codec, the body SHA-256 and the section-table validator. The header's own bytes are file structure, not simulation state; the catalog hash it carries at offset 72 is `catalog_ids.gd`'s digest, not a second one. |
 
+### `godot/scripts/core/save_section_navigation.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section 9 NAVIGATION codec | -- | -- | -- | -- | 3 | -- | Decision 0121. Holds no module-level `var`; all static, with a caller-owned `Record`, a caller-owned `Derived` and per-call buffers. Writes §9 under SAVE-LAYOUT-R01: `store_count:u32` = 2, then `movement` (schema 1, primary 512, payload 18504) and `navigation` (schema 2, primary 8192, payload 5161468 + 4*(heap_size + arena_used)) in ASCII key order, column-major, in declared ordinal order -- **5180042 bytes empty, 10422922 maximum**. It owns none of that state: the classified rows are `navigation.gd`'s six and `movement.gd`'s three §9 groups. Only `_heap` and `_arena` are `count_field`-shaped and only those are prefix-truncated; `_g`, `_parent`, `_heap_position` and `_state` are declared at full `CELL_COUNT` with `ascending_physical_slot` and are written verbatim, because sparsifying them changes what the §15 digest covers and needs a ruling. `Record` is 18432+52+4194304+262144+16384+688128+1048576+4194304 = **10422324 bytes** and `Derived` is 8192+1024+1024 = **10240 bytes** of BOUNDED CODEC SCRATCH on ARCH-SAVE-003's cold path -- not new authoritative columns, and neither exists between a save and a load. |
+
 ### `godot/scripts/core/save_section_name_pool.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

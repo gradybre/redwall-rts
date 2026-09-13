@@ -39,6 +39,13 @@ SAME_BARE_NAME_TWICE = (
 	"| Building | state | I32 | 4 | 1 | 512 | 2048 |\n"
 	"| FarmPlot | state | I32 | 4 | 1 | 512 | 2048 |\n")
 BAD_ARITHMETIC = "| Roster | _row_slot | I32 | 4 | 3 | 12 | 96 |\n"
+# Section 3's index tables name members bare while a store's own section spells them as
+# GDScript does. Before L2 was scoped to one owner, adding ConstructionIndex made it collide
+# with BuildingIndex, FurnitureIndex and RoomIndex on present/ref_slot/ref_generation/type_id
+# -- six findings, not one of them a shared byte. Found when the check refused a real PR.
+DIFFERENT_OWNERS_CROSS_FORM = (
+	"| BuildingIndex | present, ref_slot | I32 | 4 | 2 | 1024 | 8192 |\n"
+	"| ConstructionIndex | _present, _ref_slot | I32 | 4 | 2 | 1024 | 8192 |\n")
 
 
 def run(ledger: str, *args: str) -> tuple[int, str]:
@@ -74,6 +81,8 @@ def main() -> int:
 		refuse=False)
 	expect("L2 cross-form double budget", *run(GOOD_TRAIL + CROSS_FORM),
 		refuse=True, needle="written both ways")
+	expect("L2 cross-form on unrelated owners", *run(GOOD_TRAIL + DIFFERENT_OWNERS_CROSS_FORM),
+		refuse=False)
 	expect("L3 row arithmetic", *run(GOOD_TRAIL + BAD_ARITHMETIC), refuse=True, needle="L3")
 
 	with tempfile.TemporaryDirectory() as directory:

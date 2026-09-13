@@ -14,7 +14,7 @@ blocking in `docs/planning/work_queue.json`, which is what releases them to the
 dispatcher.
 
 
-**4 blocking, 2 advisory.** Oldest asked 2026-09-12.
+**4 blocking, 4 advisory.** Oldest asked 2026-09-12.
 
 | Question | Asked | Holding up |
 |---|---|---|
@@ -24,6 +24,8 @@ dispatcher.
 | [Multi-table primary_count for sections 8 and 9](#multi-table-primary-count) | 2026-09-12 | nothing yet |
 | [501 of 590 registry fields carry declared_capacity as prose](#declared-capacity-as-prose) | 2026-09-12 | nothing yet |
 | [No resident has an authoritative position, so the renderer borrows a second Transform store](#resident-spawn-positions-and-the-pose-scaffold) | 2026-09-12 | `RENDER-PATH` |
+| [ALERT-R02's 44px card height is packing arithmetic, not reachable typography](#alert-card-44px-is-not-reachable-typography) | 2026-09-12 | nothing yet |
+| [§1.2 publishes an alert zone that lies wholly inside the workspace frame](#alert-zone-inside-workspace-frame) | 2026-09-12 | nothing yet |
 
 ## Section 1: seven declared owners have no encoder
 
@@ -92,6 +94,26 @@ dispatcher.
 **Why the executor cannot decide it.** Mechanical conversion of 501 fields is exactly the kind of bulk inference that has produced silent errors here before.
 
 **Impact.** shape.declared_capacity cannot be validated as a number until resolved.
+
+## ALERT-R02's 44px card height is packing arithmetic, not reachable typography
+
+*Asked 2026-09-12.*
+
+**Question.** ALERT-R02 states that two 44px full cards fit exactly in the 92px STANDARD/WIDE alert zone. Measured in the real theme, one wrapped line is 23px and 1.2's padding is 12px top and bottom, so the smallest possible FULL card is 47px, not 44. A 47px first card leaves 41px, below the 44px minimum, and the second notice is not placed. Should the zone grow, the padding shrink, or does the ruling accept that two full cards never co-occur and 44px describes only the compact summary form?
+
+**Why the executor cannot decide it.** The implementation matches the ruling's arithmetic exactly and the arithmetic is self-consistent. What is wrong is the premise that a 44px card can carry a full line, and correcting a premise is not an implementation choice.
+
+**Impact.** Captures 36/37 show one card where the ruling implies two. Behaviour is correct and the rail states it; the ruling's own example is unreachable.
+
+## §1.2 publishes an alert zone that lies wholly inside the workspace frame
+
+*Asked 2026-09-12.*
+
+**Question.** At 1280x720 @100% the alert zone is (460, 16, 360, 96) and 1.2's workspace/modal frame is (160, 16, 960, 688): the zone is WHOLLY INSIDE the frame. At 1280x720 @150% the same is true. At 1920x1080 the frame starts at y=180 and there is no overlap. 3's layer table puts the workspace at layer 40 and permanent HUD zones at layer 20, so the workspace drawing over the alerts is the specification working as written. Does the alert zone move, does the workspace frame move or shrink, or is a third precedence rule needed?
+
+**Why the executor cannot decide it.** This is not a z-order bug to fix in code -- both cards are placed correctly and report visible = true, and the layer ordering is exactly what 3 specifies. Two 1.2 rectangles collide at the supported viewport floor and 1.2 fixes no precedence between them. Every available fix is a change to 1.2 geometry.
+
+**Impact.** Alerts can be occluded at the 1280x720 floor, which is a supported resolution. Captured as evidence 40. Recorded as open in ADR 0134 and the task checklist.
 
 
 ## What is NOT here

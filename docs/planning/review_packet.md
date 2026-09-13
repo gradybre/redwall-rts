@@ -30,8 +30,8 @@ Advisory, not blocking anything today:
 
 ## 4. State of the queue
 
-- **in_flight** (2): `BULK-COLUMNS`, `CONSTRUCTION-STORE`
-- **review** (6): `ALERT-R02`, `EVENT-SCHEDULE`, `GATE-MERGE`, `RENDER-PATH`, `SAVE-S12`, `SAVE-S7`
+- **in_flight** (1): `CONSTRUCTION-STORE`
+- **review** (7): `ALERT-R02`, `BULK-COLUMNS`, `EVENT-SCHEDULE`, `GATE-MERGE`, `RENDER-PATH`, `SAVE-S12`, `SAVE-S7`
 - **blocked** (7): `ART-CREATURES`, `ART-PROPORTION`, `ART-UI-12`, `DIGEST-DETERMINISM`, `MOVE-ENVELOPES`, `SAVE-CAPTURE`, `SAVE-S1-OWNERS`
 
 ## 5. Merged in this window

@@ -67,12 +67,15 @@
     {
       "id": "RENDER-PATH",
       "title": "Crowd render path: consume the presentation snapshot into World/Entities",
-      "status": "in_flight",
+      "status": "review",
       "depends_on": [],
       "owns": [
-        "godot/scripts/render/crowd_renderer.gd",
+        "godot/scripts/presentation/",
         "godot/scenes/main.tscn",
-        "godot/test/test_crowd_renderer.gd"
+        "godot/scripts/main.gd",
+        "godot/test/test_resident_crowd.gd",
+        "godot/test/test_resident_stage.gd",
+        "godot/test/test_resident_pose_scaffold.gd"
       ],
       "agent": "game-coder",
       "gate": "none",

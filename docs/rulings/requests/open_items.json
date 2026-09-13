@@ -5,7 +5,9 @@
     {
       "anchor": "w2-section-1-owners-without-encoders",
       "title": "Section 1: seven declared owners have no encoder",
-      "blocks": ["SAVE-S1-OWNERS"],
+      "blocks": [
+        "SAVE-S1-OWNERS"
+      ],
       "asked": "2026-09-12",
       "question": "Section 1 declares seven owners for which no encoder exists. Are these owners in the section-1 payload with encoders still to be written, or are they registry entries that section 1 deliberately does not persist? The two readings produce different section lengths and a different digest.",
       "why_we_cannot_decide": "Either answer is internally consistent with SAVE-R09. Guessing sets a wire format that later has to be broken.",
@@ -14,7 +16,9 @@
     {
       "anchor": "retired-row-blanking",
       "title": "inventory.gd does not blank retired rows",
-      "blocks": ["DIGEST-DETERMINISM"],
+      "blocks": [
+        "DIGEST-DETERMINISM"
+      ],
       "asked": "2026-09-12",
       "question": "A retired inventory row keeps its old bytes. The section 15 canonical digest therefore depends on what a slot USED to hold, so two worlds with identical live state can hash differently. Should retirement blank the row (changing behaviour and costing a write per retirement), or should the digest skip retired rows (changing the digest's definition)?",
       "why_we_cannot_decide": "The first changes runtime behaviour, the second changes what the digest means. Both are yours.",
@@ -23,7 +27,9 @@
     {
       "anchor": "move-g01-clearance-and-modes",
       "title": "MOVE-G01 Q1 and Q2: clearance classes and per-species modes",
-      "blocks": ["MOVE-ENVELOPES"],
+      "blocks": [
+        "MOVE-ENVELOPES"
+      ],
       "asked": "2026-09-12",
       "question": "Q1: the clearance class domain and its species assignments, or the measured-envelope convention that derives them. Q2: per species, which of swim-surface, dive, climb and tunnel-walk are enabled and which are explicitly disabled.",
       "why_we_cannot_decide": "spatial_world.gd publishes cell classes over 512-unit half-metre cells anchored north-west, and its own header says it publishes no body or gear clearance. Every profile clearance reader currently refuses. A missing contract is a movement admission blocker, not something to fill in.",
@@ -46,6 +52,17 @@
       "question": "May the executor convert prose capacities to integers mechanically where the prose is unambiguous, reporting every conversion for audit, or must each be ruled?",
       "why_we_cannot_decide": "Mechanical conversion of 501 fields is exactly the kind of bulk inference that has produced silent errors here before.",
       "impact": "shape.declared_capacity cannot be validated as a number until resolved."
+    },
+    {
+      "anchor": "resident-spawn-positions-and-the-pose-scaffold",
+      "title": "No resident has an authoritative position, so the renderer borrows a second Transform store",
+      "blocks": [
+        "RENDER-PATH"
+      ],
+      "asked": "2026-09-12",
+      "question": "Two gaps meet here. `settlement_system.gd` composes fourteen core stores and `transforms.gd` is not one of them, so nothing in the boot path ever calls `place()`. And GDD 5.1 authors no resident spawn coordinates -- it says only that initial room assignments follow resident ID ascending and bed ID ascending, and beds need a Furniture store `world_init.gd`'s own header records as BLOCKED. Should `settlement_system.gd` compose `transforms.gd` now and GDD 5.1 gain authored spawn coordinates, or does the renderer keep a presentation-private pose store until movement lands?",
+      "why_we_cannot_decide": "Writing an invented resident layout into authoritative state is exactly the kind of invented production constant the movement amendment forbids. The executor declined to do it and built a presentation-private scaffold instead, which is reversible but costs 3151872 bytes -- 98% of the render path's whole ledger delta, and a second live copy of nine packed columns.",
+      "impact": "Residents render, but from a presentation-private pose store that no tick stage reads and no save section contains. The single unauthored choice -- which cleared tile a resident stands on -- is isolated in `muster_tile_x/z()`. The ledger row is marked DELETED WHOLE when movement composes ARCH-SYS-001, so the cost is temporary by construction, but it is real while it lasts and it pushes the transactional peak from 129703814 to 136109958."
     }
   ]
 }

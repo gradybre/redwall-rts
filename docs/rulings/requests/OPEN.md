@@ -14,7 +14,7 @@ blocking in `docs/planning/work_queue.json`, which is what releases them to the
 dispatcher.
 
 
-**3 blocking, 2 advisory.** Oldest asked 2026-09-12.
+**4 blocking, 2 advisory.** Oldest asked 2026-09-12.
 
 | Question | Asked | Holding up |
 |---|---|---|
@@ -23,6 +23,7 @@ dispatcher.
 | [MOVE-G01 Q1 and Q2: clearance classes and per-species modes](#move-g01-clearance-and-modes) | 2026-09-12 | `MOVE-ENVELOPES` |
 | [Multi-table primary_count for sections 8 and 9](#multi-table-primary-count) | 2026-09-12 | nothing yet |
 | [501 of 590 registry fields carry declared_capacity as prose](#declared-capacity-as-prose) | 2026-09-12 | nothing yet |
+| [No resident has an authoritative position, so the renderer borrows a second Transform store](#resident-spawn-positions-and-the-pose-scaffold) | 2026-09-12 | `RENDER-PATH` |
 
 ## Section 1: seven declared owners have no encoder
 
@@ -59,6 +60,18 @@ dispatcher.
 **Impact.** Blocks measured movement envelopes. Ground and ford are the only two profiled modes of six.
 
 - Blocks `MOVE-ENVELOPES` — Measured movement envelopes, MOVE-G01 Q1/Q2
+
+## No resident has an authoritative position, so the renderer borrows a second Transform store
+
+*Asked 2026-09-12.*
+
+**Question.** Two gaps meet here. `settlement_system.gd` composes fourteen core stores and `transforms.gd` is not one of them, so nothing in the boot path ever calls `place()`. And GDD 5.1 authors no resident spawn coordinates -- it says only that initial room assignments follow resident ID ascending and bed ID ascending, and beds need a Furniture store `world_init.gd`'s own header records as BLOCKED. Should `settlement_system.gd` compose `transforms.gd` now and GDD 5.1 gain authored spawn coordinates, or does the renderer keep a presentation-private pose store until movement lands?
+
+**Why the executor cannot decide it.** Writing an invented resident layout into authoritative state is exactly the kind of invented production constant the movement amendment forbids. The executor declined to do it and built a presentation-private scaffold instead, which is reversible but costs 3151872 bytes -- 98% of the render path's whole ledger delta, and a second live copy of nine packed columns.
+
+**Impact.** Residents render, but from a presentation-private pose store that no tick stage reads and no save section contains. The single unauthored choice -- which cleared tile a resident stands on -- is isolated in `muster_tile_x/z()`. The ledger row is marked DELETED WHOLE when movement composes ARCH-SYS-001, so the cost is temporary by construction, but it is real while it lasts and it pushes the transactional peak from 129703814 to 136109958.
+
+- Blocks `RENDER-PATH` — Crowd render path: consume the presentation snapshot into World/Entities
 
 ## Multi-table primary_count for sections 8 and 9
 

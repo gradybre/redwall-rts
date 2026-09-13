@@ -13,6 +13,7 @@ None in this window.
 - **Section 1: seven declared owners have no encoder** (asked 2026-09-12) — holding `SAVE-S1-OWNERS`. [Full question](../rulings/requests/OPEN.md#w2-section-1-owners-without-encoders)
 - **inventory.gd does not blank retired rows** (asked 2026-09-12) — holding `DIGEST-DETERMINISM`. [Full question](../rulings/requests/OPEN.md#retired-row-blanking)
 - **MOVE-G01 Q1 and Q2: clearance classes and per-species modes** (asked 2026-09-12) — holding `MOVE-ENVELOPES`. [Full question](../rulings/requests/OPEN.md#move-g01-clearance-and-modes)
+- **No resident has an authoritative position, so the renderer borrows a second Transform store** (asked 2026-09-12) — holding `RENDER-PATH`. [Full question](../rulings/requests/OPEN.md#resident-spawn-positions-and-the-pose-scaffold)
 
 Advisory, not blocking anything today:
 
@@ -27,8 +28,8 @@ Advisory, not blocking anything today:
 
 ## 4. State of the queue
 
-- **in_flight** (4): `ALERT-R02`, `BULK-COLUMNS`, `CONSTRUCTION-STORE`, `RENDER-PATH`
-- **review** (4): `EVENT-SCHEDULE`, `GATE-MERGE`, `SAVE-S12`, `SAVE-S7`
+- **in_flight** (3): `ALERT-R02`, `BULK-COLUMNS`, `CONSTRUCTION-STORE`
+- **review** (5): `EVENT-SCHEDULE`, `GATE-MERGE`, `RENDER-PATH`, `SAVE-S12`, `SAVE-S7`
 - **blocked** (7): `ART-CREATURES`, `ART-PROPORTION`, `ART-UI-12`, `DIGEST-DETERMINISM`, `MOVE-ENVELOPES`, `SAVE-CAPTURE`, `SAVE-S1-OWNERS`
 
 ## 5. Merged in this window

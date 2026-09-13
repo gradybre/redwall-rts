@@ -112,6 +112,12 @@ jobs:
       - name: Merge gate (ledger chain, double budgets, row arithmetic)
         run: python3 docs/validation/merge_gate.py
 
+      - name: Dispatch graph is well formed
+        run: python3 tools/dispatch_plan.py --validate
+
+      - name: Astra inbox index is current
+        run: python3 tools/astra_inbox.py --check
+
       - name: State registry covers every packed column
         run: python3 docs/validation/state_registry_coverage.py
 

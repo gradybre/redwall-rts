@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "note": "Source of truth for the Astra inbox. tools/astra_inbox.py renders docs/rulings/requests/OPEN.md from this and CI checks the rendering is current, so the index cannot drift from the items. anchor must match the #fragment referenced by work_queue.json.",
+  "items": [
+    {
+      "anchor": "w2-section-1-owners-without-encoders",
+      "title": "Section 1: seven declared owners have no encoder",
+      "blocks": ["SAVE-S1-OWNERS"],
+      "asked": "2026-09-12",
+      "question": "Section 1 declares seven owners for which no encoder exists. Are these owners in the section-1 payload with encoders still to be written, or are they registry entries that section 1 deliberately does not persist? The two readings produce different section lengths and a different digest.",
+      "why_we_cannot_decide": "Either answer is internally consistent with SAVE-R09. Guessing sets a wire format that later has to be broken.",
+      "impact": "Blocks the section 1 codec, and therefore the first-body-offset arithmetic every later section depends on."
+    },
+    {
+      "anchor": "retired-row-blanking",
+      "title": "inventory.gd does not blank retired rows",
+      "blocks": ["DIGEST-DETERMINISM"],
+      "asked": "2026-09-12",
+      "question": "A retired inventory row keeps its old bytes. The section 15 canonical digest therefore depends on what a slot USED to hold, so two worlds with identical live state can hash differently. Should retirement blank the row (changing behaviour and costing a write per retirement), or should the digest skip retired rows (changing the digest's definition)?",
+      "why_we_cannot_decide": "The first changes runtime behaviour, the second changes what the digest means. Both are yours.",
+      "impact": "Section 15 digests are not reproducible until this is settled, so no save-parity claim can be made."
+    },
+    {
+      "anchor": "move-g01-clearance-and-modes",
+      "title": "MOVE-G01 Q1 and Q2: clearance classes and per-species modes",
+      "blocks": ["MOVE-ENVELOPES"],
+      "asked": "2026-09-12",
+      "question": "Q1: the clearance class domain and its species assignments, or the measured-envelope convention that derives them. Q2: per species, which of swim-surface, dive, climb and tunnel-walk are enabled and which are explicitly disabled.",
+      "why_we_cannot_decide": "spatial_world.gd publishes cell classes over 512-unit half-metre cells anchored north-west, and its own header says it publishes no body or gear clearance. Every profile clearance reader currently refuses. A missing contract is a movement admission blocker, not something to fill in.",
+      "impact": "Blocks measured movement envelopes. Ground and ford are the only two profiled modes of six."
+    },
+    {
+      "anchor": "multi-table-primary-count",
+      "title": "Multi-table primary_count for sections 8 and 9",
+      "blocks": [],
+      "asked": "2026-09-12",
+      "question": "A section holding several tables has no single primary row count. Should primary_count name one designated table, be the sum, or be a sentinel meaning not-applicable?",
+      "why_we_cannot_decide": "Section 8 froze its payload rather than invent one, and section 9 declared its own. Those two answers disagree and both shipped.",
+      "impact": "Two sections currently disagree on the meaning of a header field."
+    },
+    {
+      "anchor": "declared-capacity-as-prose",
+      "title": "501 of 590 registry fields carry declared_capacity as prose",
+      "blocks": [],
+      "asked": "2026-09-12",
+      "question": "May the executor convert prose capacities to integers mechanically where the prose is unambiguous, reporting every conversion for audit, or must each be ruled?",
+      "why_we_cannot_decide": "Mechanical conversion of 501 fields is exactly the kind of bulk inference that has produced silent errors here before.",
+      "impact": "shape.declared_capacity cannot be validated as a number until resolved."
+    }
+  ]
+}

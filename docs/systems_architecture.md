@@ -72,6 +72,7 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | Resident | arrival_tick | I64 | 8 | 1 | 512 | 4096 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Resident | named, selected_P | B8 | 1 | 2 | 512 | 1024 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Resident | life_stage | B8 | 1 | 1 | 512 | 512 | [MOVE-DEP-R02; GDD §4.2 amendment 2026-09-12; decision 0095] Fixed bounded domain ADULT 0, CHILD 1, ELDER 2; COUNT 3 is a bound and is never stored |
+| Needs | airless | B8 | 1 | 1 | 512 | 512 | [HAZ-002; decision 0109] `needs.gd`'s per-resident airless input to its one health rate |
 | Needs | hunger, rest, comfort, social, purpose, health, cold_hours, starving_hours, departure_days | I32 | 4 | 9 | 512 | 18432 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | NeedRemainders | hunger, rest, comfort, social, purpose | I64 | 8 | 5 | 512 | 20480 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Skills.xp | xp[owner*12+skill] | I64 | 8 | 1 | 6144 | 49152 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -91,8 +92,9 @@ Directory length G=352418, the sum of the rows above; positioned-entity capacity
 | Equipment | tool_item_id, tool_durability, clothing_tier, satchel_slot, satchel_generation | I32 | 4 | 5 | 512 | 10240 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Relationship | a_id, b_id, affinity, last_contact_day | I32 | 4 | 4 | 2048 | 32768 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Relationship | friend | B8 | 1 | 1 | 2048 | 2048 | [GDD §4.2; lengths ARCH-MEM-002–004] |
-| Injury | kind, severity, untreated_hours, rescuer_slot, rescuer_generation | I32 | 4 | 5 | 512 | 10240 | [GDD §4.2; lengths ARCH-MEM-002–004] |
-| Injury | care_progress_mwu | I64 | 8 | 1 | 512 | 4096 | [GDD §4.2; lengths ARCH-MEM-002–004] |
+| Injury | present, kind, airless_episode, exhaustion_latch, care_context_blocked | B8 | 1 | 5 | 512 | 2560 | [GDD §4.2; decision 0109 implements it in `injury.gd`] Replaces the pre-implementation I32 budget: `kind` is the protected InjuryKind domain and fits a byte, and HAZ-002/003's three latches are new |
+| Injury | severity, rescuer_slot, rescuer_generation | I32 | 4 | 3 | 512 | 6144 | [GDD §4.2; decision 0109] |
+| Injury | untreated_ticks, care_progress_mwu, last_incident_ordinal | I64 | 8 | 3 | 512 | 12288 | [GDD §4.2; decision 0109] `untreated_hours` is now stored as ticks, following `_starving_ticks`; `last_incident_ordinal` is HAZ-004's dedup latch |
 | Building | type_id, tier, origin_tile, rotation, state, condition, construction_slot, construction_generation, interior_id | I32 | 4 | 9 | 1024 | 36864 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Room | type, building_slot, building_generation, tile_offset, tile_count, temperature_tenths, furniture_mask, occupants | I32 | 4 | 8 | 16384 | 524288 | [GDD §4.2; lengths ARCH-MEM-002–004] |
 | Room | valid | B8 | 1 | 1 | 16384 | 16384 | [GDD §4.2; lengths ARCH-MEM-002–004] |
@@ -214,8 +216,8 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
-| Fixed registry payload | 25029474 | 1 | 25029474 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037; +126976 decision 0039; +212992 decision 0040; +13312 decision 0041; +40960 decision 0045 FieldPolicy); +35840 decision 0051 hive-service slice; +16 decision 0055 Weather absolute-season identity; +512 decision 0095 Resident life stage) |
-| Auxiliary payload | 20172256 | 1 | 20172256 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053) |
+| Fixed registry payload | 25036642 | 1 | 25036642 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037; +126976 decision 0039; +212992 decision 0040; +13312 decision 0041; +40960 decision 0045 FieldPolicy); +35840 decision 0051 hive-service slice; +16 decision 0055 Weather absolute-season identity; +512 decision 0095 Resident life stage) |
+| Auxiliary payload | 20150752 | 1 | 20150752 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
 | Route cell arena | 1048576 | 4 | 4194304 | mutable | ARCH-PATH-005 cells |
@@ -246,13 +248,13 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 63779731 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
+| Planned allocated payload | 63765395 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054 |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 72168339 | Payload + reserve |
-| Headroom below decimal 100 MB | 27831661 | 100000000 − live total |
-| Additional candidate mutable state | 57564147 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 129732486 | Live total + candidate mutable state |
-| Transactional headroom | -29732486 | 100000000 − transactional peak |
+| One live world plus reserve | 72154003 | Payload + reserve |
+| Headroom below decimal 100 MB | 27845997 | 100000000 − live total |
+| Additional candidate mutable state | 57549811 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 129703814 | Live total + candidate mutable state |
+| Transactional headroom | -29703814 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11 by decisions 0055,
 0054 and 0066).** Current planned payload is
@@ -328,10 +330,10 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
 | GameManager load rollback checkpoint | decision 0092 | +80 | 63732522 | 72121130 |
 | Resident life stage column | decision 0095 | +512 | 63733034 | 72121642 |
 | Clock load barrier token and its reference | decision 0104 | +9 | 63733043 | 72121651 |
-| Aggregate injury store and the airless input | decision 0109 | +21504 | 63754547 | 72143155 |
-| ProductiveWork tool settlement, less wear_remainder's old I64 budget | decision 0110 | +6656 | 63761203 | 72149811 |
-| UI roster row generation-checked identity | decision 0114 | +144 | 63761347 | 72149955 |
-| §15 canonical declaration table | decision 0127 | +18384 | 63779731 | 72168339 |
+| Injury columns, net of the Injury component rows already in §2.2 | decision 0109 | +7168 | 63740211 | 72128819 |
+| ProductiveWork tool settlement, less wear_remainder's old I64 budget | decision 0110 | +6656 | 63746867 | 72135475 |
+| UI roster row generation-checked identity | decision 0114 | +144 | 63747011 | 72135619 |
+| §15 canonical declaration table | decision 0127 | +18384 | 63765395 | 72154003 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
@@ -518,10 +520,6 @@ These are known allocations that no line of §2.2, §3 or §2.3 counts. They are
 | StarterGroundProfile revisions | _profile_revision | I32 | 4 | 1 | 4 | 16 | [decision 0083] Not derivable from the five columns above, which is why it is its own row; `0` means nothing is published at that id |
 | StockAge storage declarations | _c_storage_class, _c_heated_interior | B8 | 1 | 2 | 101376 | 202752 | [decision 0085] GDD §5.8's store factor and the heated-interior exception over `CONTAINER_CAPACITY`; drop them and every stored lot stops aging |
 | StockAge declaration generation and slot list | _c_declared_generation, _declared_slots | I32 | 4 | 2 | 101376 | 811008 | [decision 0085] The generation is `inventory.gd`'s CONTAINER space, NOT the entity directory's; without it a recycled container slot inherits the previous occupant's storage class |
-| Injury row bytes and latches | _present, _kind, _airless_episode, _exhaustion_latch, _care_context_blocked | B8 | 1 | 5 | 512 | 2560 | [decision 0109] HAZ-002/003's aggregate injury store, one row per RESIDENT typed row |
-| Injury severity and rescuer reference | _severity, _rescuer_slot, _rescuer_generation | I32 | 4 | 3 | 512 | 6144 | [decision 0109] GDD §4.2's Injury.severity and Injury.rescuer; the rescuer is a DIRECTORY EntityRef |
-| Injury clocks, care work and incident ordinal | _untreated_ticks, _care_progress_mwu, _last_incident_ordinal | I64 | 8 | 3 | 512 | 12288 | [decision 0109] untreated_hours is the floor of _untreated_ticks over 750; the ordinal is HAZ-004's one-shot dedup latch |
-| Needs airless input | _airless | B8 | 1 | 1 | 512 | 512 | [decision 0109] HAZ-002's per-resident airless input to needs.gd's one health rate |
 | U5's remaining child stores | U5; ruling 2026-09-09 §4 | **Partially closed.** Reservation was budgeted by decision 0019 and GearInstance by ARCH-STATE-007 above. `BatchState`, `LotEffect`, `NoticeCondition` and `ChildSliceIndex` still have **no allocator storage budgeted**, so U5 is not closed as a whole. |
 | Path/lease bookkeeping fields | REQ-SET-032/033; ARCH-JOB-004 | Allocated but never written: `path_id`, `path_cursor`, `lease_expiry`, `blocked_tick`, `manual_until`. The **memory is counted** in §2.2's JobAgent rows; the point is that the behavior these back is unimplemented, so no further allocation should be assumed absent. |
 | Other implemented core stores | — | `residents.gd`, `needs.gd`, `priorities.gd`, `inventory.gd`, `orchard_hive.gd` and `entity_directory.gd` each allocate presence, liveness, free-list, environment-input and journal columns beyond their §2.2 rows, in the same way `jobs.gd` did before this pass. Only the jobs module was reconciled here. Each of the others needs the same column-by-column pass against §2.2/§3 before any measured-memory qualification is attempted; their deltas are **not** in the 59370190 total. |

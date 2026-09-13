@@ -109,6 +109,9 @@ jobs:
       - name: Memory ledger arithmetic
         run: python3 docs/validation/ready07_arithmetic.py
 
+      - name: Merge gate (ledger chain, double budgets, row arithmetic)
+        run: python3 docs/validation/merge_gate.py
+
       - name: State registry covers every packed column
         run: python3 docs/validation/state_registry_coverage.py
 
@@ -118,3 +121,4 @@ jobs:
           python3 docs/validation/test_headless_runner.py
           python3 docs/validation/test_qualify.py
           python3 docs/validation/test_winter.py
+          python3 docs/validation/test_merge_gate.py

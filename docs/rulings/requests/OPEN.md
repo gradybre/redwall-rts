@@ -14,7 +14,7 @@ blocking in `docs/planning/work_queue.json`, which is what releases them to the
 dispatcher.
 
 
-**4 blocking, 4 advisory.** Oldest asked 2026-09-12.
+**5 blocking, 6 advisory.** Oldest asked 2026-09-12.
 
 | Question | Asked | Holding up |
 |---|---|---|
@@ -26,6 +26,9 @@ dispatcher.
 | [No resident has an authoritative position, so the renderer borrows a second Transform store](#resident-spawn-positions-and-the-pose-scaffold) | 2026-09-12 | `RENDER-PATH` |
 | [ALERT-R02's 44px card height is packing arithmetic, not reachable typography](#alert-card-44px-is-not-reachable-typography) | 2026-09-12 | nothing yet |
 | [§1.2 publishes an alert zone that lies wholly inside the workspace frame](#alert-zone-inside-workspace-frame) | 2026-09-12 | nothing yet |
+| [REQ-SET-128's stored-goods half cannot be enforced: inventory.gd cannot enumerate containers by owner](#inventory-container-enumeration-by-owner) | 2026-09-13 | `CONSTRUCTION-STORE` |
+| [A tier-2 building's demolition basis is unresolved](#tier-two-demolition-basis) | 2026-09-13 | nothing yet |
+| [ECON-003's excavation phases need compiled ids and a site-phase column](#econ-003-excavation-phase-domain) | 2026-09-13 | nothing yet |
 
 ## Section 1: seven declared owners have no encoder
 
@@ -75,6 +78,18 @@ dispatcher.
 
 - Blocks `RENDER-PATH` — Crowd render path: consume the presentation snapshot into World/Entities
 
+## REQ-SET-128's stored-goods half cannot be enforced: inventory.gd cannot enumerate containers by owner
+
+*Asked 2026-09-13.*
+
+**Question.** REQ-SET-128 refuses a destructive edit on an occupied building. The RESIDENT half is enforced against the real store, with the exact blocked count in the refusal. The GOODS half cannot be: `inventory.gd` has no owner index and no container iteration, and `container_owner()` needs a ref the caller must already hold. Should inventory.gd publish a container-by-owner enumeration, or should the rule be restated so the goods half is checked somewhere that can see it?
+
+**Why the executor cannot decide it.** The alternative is accepting a caller-supplied 'goods are clear' boolean, which MOVE-DEP-R05 forbids -- a missing contract must refuse differently from an authored allowance, and a boolean from the caller is neither.
+
+**Impact.** Blocks 06.2's 'Refuse occupied/only-exit destructive edits'. The construction store refuses on residents and is silent on goods, which is a half-enforced rule.
+
+- Blocks `CONSTRUCTION-STORE` — Construction store for task 06.1
+
 ## Multi-table primary_count for sections 8 and 9
 
 *Asked 2026-09-12.*
@@ -114,6 +129,26 @@ dispatcher.
 **Why the executor cannot decide it.** This is not a z-order bug to fix in code -- both cards are placed correctly and report visible = true, and the layer ordering is exactly what 3 specifies. Two 1.2 rectangles collide at the supported viewport floor and 1.2 fixes no precedence between them. Every available fix is a change to 1.2 geometry.
 
 **Impact.** Alerts can be occluded at the 1280x720 floor, which is a supported resolution. Captured as evidence 40. Recorded as open in ADR 0134 and the task checklist.
+
+## A tier-2 building's demolition basis is unresolved
+
+*Asked 2026-09-13.*
+
+**Question.** REQ-SET-127 prices demolition at 'declared construction WU x 0.25' returning '50% original material costs'. §4.2's upgrade table declares no demolition consequence, so for an upgraded building 'original' is ambiguous: the base §4.1 row, the sum of base plus upgrades, or the current tier's declared cost?
+
+**Why the executor cannot decide it.** Summing the upgrade chain is a rule, not an inference, and inventing it would set refund economics the balance tables never authored.
+
+**Impact.** The store uses the base §4.1 row at every tier and says so in its own header. Whichever way this is ruled, only a constant changes.
+
+## ECON-003's excavation phases need compiled ids and a site-phase column
+
+*Asked 2026-09-13.*
+
+**Question.** ECON-003 names nine excavation phases. They are SITE states and map onto the construction store's five project phases not at all one-for-one: each ECON-003 transition is one project run through the whole lifecycle, with 'consume inputs once at WORK start' = `begin_work()` and 'retain earned work, publish nothing' = PHASE_WORK_DONE. This needs compiled ASCII ids in `catalog.gd` and a site-phase column from the excavation owner. Who owns that column, and are the nine ids a protected or a compiled enum domain?
+
+**Why the executor cannot decide it.** Adding a domain to catalog.gd is a schema change with a digest consequence, and the excavation owner does not exist yet to be asked.
+
+**Impact.** Advisory. The mapping is documented in ADR 0131 so the excavation lane inherits it rather than re-deriving it.
 
 
 ## What is NOT here

@@ -75,6 +75,22 @@ const NEED_ROW_ID: int = 39
 ## GDD §4.2 fixes five need columns, and UXV-020 requires five rows for them.
 const NEED_ROW_COUNT: int = 5
 
+## The roster row this lane's identity tests exercise, and the typed row behind it in the
+## §5.1 cohort. They are equal here because the twelve starting residents occupy rows 0..11 in
+## order; the tests assert the reuse lands on ROW_TWO_SLOT rather than assuming it.
+const ROW_TWO: int = 2
+const ROW_TWO_SLOT: int = 2
+const ROW_THREE_SLOT: int = 3
+## A species no member of the §5.1 cohort has, so the panel's species line alone distinguishes
+## the replacement from the resident whose slot it took.
+const REPLACEMENT_SPECIES: StringName = &"badger"
+
+## `ui_manager.gd`'s roster refusal codes, restated here so a silent rename fails this suite.
+const STALE_CODE: String = "UI_ROSTER_ROW_IS_STALE"
+const REUSED_CODE: String = "UI_ROSTER_SLOT_REUSED"
+const IDENTITY_CODE: String = "UI_ROSTER_IDENTITY_CHANGED"
+
+
 var _ui: UIManagerScript = null
 var _hud: HudScript = null
 var _residents: ResidentsScript = null
@@ -718,3 +734,186 @@ func test_the_create_button_gives_the_cohort_persistent_ids_one_to_twelve() -> v
 		assert_true(id.ok, "cohort row %d has an id" % index)
 		assert_equal(id.value, index + 1, "cohort row %d is persistent id %d" % [index, index + 1])
 	SettlementSystem.reset()
+
+
+# --- ARCH-UI-002: a roster row is an identity, not a reusable slot ----------------------------
+
+func _reuse_row_two_with_a_badger() -> int:
+	"""Despawn the resident behind roster row 2 and let the stores hand its slot to a badger.
+
+	Returns the reused typed row. This is the scenario the ruling names -- "a stale click must
+	never select the replacement at the same bare slot" -- and it is deliberately a REUSE and not
+	an emptying: `entity_directory.gd` pops the lowest free slot and the lowest free typed row,
+	so the badger lands on exactly the row the mouse left, with `is_alive()` true again.
+	"""
+	var residents: ResidentsScript = SettlementSystem.residents()
+	var victim: Vector2i = residents.ref_of(ROW_TWO_SLOT)
+	assert_true(residents.despawn(victim).ok, "the row 2 resident is despawned")
+	var spawned: ResidentsScript.OpResult = residents.spawn(REPLACEMENT_SPECIES)
+	assert_true(spawned.ok, "a replacement is spawned: %s" % spawned.error)
+	assert_equal(spawned.value, ROW_TWO_SLOT, "and it reuses the row the mouse left")
+	return spawned.value
+
+
+func test_a_roster_row_caches_the_generation_and_persistent_id_of_its_resident() -> void:
+	"""ARCH-UI-002: the row stores `(slot, generation)` and the never-reused id, not a bare slot.
+
+	Asserted on the columns themselves because that is where the defect lived. A refresh that
+	recorded only the typed row would satisfy every rendered-text assertion in this suite and
+	still hand a click the wrong resident, which is exactly how it survived until now.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var residents: ResidentsScript = SettlementSystem.residents()
+	for row: int in STARTER_COHORT:
+		var ref: Vector2i = residents.ref_of(row)
+		var id: IntMath.IntResult = residents.persistent_id_of(row)
+		assert_equal(_ui._roster_ref_slot[row], ref.x, "row %d holds its directory slot" % row)
+		assert_equal(_ui._roster_ref_generation[row], ref.y,
+			"row %d holds that slot's generation" % row)
+		assert_true(ref.y > 0, "and that generation is a real one, not the null 0")
+		assert_true(id.ok, "row %d has a persistent id" % row)
+		assert_equal(_ui._roster_persistent_id[row], id.value,
+			"row %d holds the persistent id too" % row)
+	SettlementSystem.reset()
+
+
+func test_a_reused_slot_refuses_the_stale_click_instead_of_selecting_the_replacement() -> void:
+	"""The defect, end to end: despawn, reuse, click. THE REPLACEMENT MUST NOT BE SELECTED.
+
+	`is_alive(slot)` -- the only guard this path used to have -- is TRUE here, and the panel
+	would have filled with the badger's species, needs and health under the mouse's row. The
+	generation on the cached reference is what separates the two, so the click refuses.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(ROW_TWO).emit_signal(&"pressed")
+	var opened: String = shell.detail_identity_label().text
+	assert_true(opened.contains("mouse"), "row 2 opened on the mouse it names: '%s'" % opened)
+	_reuse_row_two_with_a_badger()
+	var residents: ResidentsScript = SettlementSystem.residents()
+	assert_true(residents.is_alive(ROW_TWO_SLOT), "the reused slot is alive again")
+	shell.roster_row(ROW_TWO).emit_signal(&"pressed")
+	assert_equal(shell.detail_identity_label().text, opened,
+		"the panel still describes the resident the row was built for")
+	assert_false(shell.detail_identity_label().text.contains(String(REPLACEMENT_SPECIES)),
+		"and never the replacement that took the slot")
+	assert_equal(String(_ui.last_refusal()), REUSED_CODE, "the click refused by name")
+	SettlementSystem.reset()
+
+
+func test_the_reused_slot_refusal_reaches_the_player_as_its_own_notice() -> void:
+	"""Not a silent swap and not a blank panel: the refusal is stated, with its code."""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	_reuse_row_two_with_a_badger()
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(ROW_TWO).emit_signal(&"pressed")
+	var notice: UiNoticesScript.Notice = UiNoticesScript.Notice.new()
+	assert_true(shell.card_notice_into(notice), "a notice reached the card")
+	assert_equal(notice.code, REUSED_CODE, "carrying the exact refusal code")
+	assert_true(notice.message.contains("nothing was selected"),
+		"and saying what did not happen: '%s'" % notice.message)
+	assert_true(notice.recovery.length() > 0, "with a recovery action")
+	SettlementSystem.reset()
+
+
+func test_a_refreshed_roster_selects_the_resident_that_now_holds_the_reused_slot() -> void:
+	"""The refusal is not a dead end: rebuilding the rows binds the badger and the click opens it.
+
+	Both halves matter. A fix that refused every click after any despawn would pass the test
+	above and make the roster useless; this pins that a REFRESHED row resolves to the resident
+	that row now names, with its own species on screen.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	_reuse_row_two_with_a_badger()
+	assert_true(_ui.refresh_roster(), "the roster is rebuilt over the reused slot")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(ROW_TWO).emit_signal(&"pressed")
+	var identity: String = shell.detail_identity_label().text
+	assert_true(identity.contains(String(REPLACEMENT_SPECIES)),
+		"the refreshed row opens on the resident that holds it now: '%s'" % identity)
+	assert_false(identity.contains("mouse"), "and not on the one that used to")
+	assert_equal(String(_ui.last_refusal()), "", "the refreshed click is not a refusal")
+	SettlementSystem.reset()
+
+
+func test_an_emptied_roster_slot_still_refuses_with_the_stale_code() -> void:
+	"""The case the old guard did catch, kept: a row whose slot holds nobody refuses distinctly.
+
+	It gets ROSTER_STALE_CODE and not the reuse code, because the notice should say which of the
+	two happened rather than calling both "stale" -- `ref_of_slot()` is what tells them apart.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var residents: ResidentsScript = SettlementSystem.residents()
+	assert_true(residents.despawn(residents.ref_of(ROW_TWO_SLOT)).ok, "row 2's resident leaves")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(ROW_TWO).emit_signal(&"pressed")
+	assert_equal(String(_ui.last_refusal()), STALE_CODE, "the emptied row refuses as stale")
+	var notice: UiNoticesScript.Notice = UiNoticesScript.Notice.new()
+	assert_true(shell.card_notice_into(notice), "and states it")
+	assert_equal(notice.code, STALE_CODE, "with the stale code, not the reuse one")
+	SettlementSystem.reset()
+
+
+func test_a_replaced_directory_identity_refuses_even_though_the_reference_validates() -> void:
+	"""The second guard, alone: same slot, same generation, DIFFERENT persistent id.
+
+	`restore_columns()` replaces the six persisted directory columns wholesale -- "a reference
+	taken before the call belongs to a different world". Swapping two live residents' persistent
+	ids is a world where row 2's reference still validates and no longer names the same
+	individual. The generation check cannot see this; the cached persistent id is the only thing
+	that can, which is why the ruling requires both to be stored.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_initial_settlement(), "the cohort is created")
+	assert_true(_ui.refresh_roster(), "the roster fills")
+	var residents: ResidentsScript = SettlementSystem.residents()
+	var cached: int = _ui._roster_persistent_id[ROW_TWO]
+	_swap_persistent_ids(residents.directory(), residents.ref_of(ROW_TWO_SLOT).x,
+		residents.ref_of(ROW_THREE_SLOT).x)
+	var ref: Vector2i = residents.ref_of(ROW_TWO_SLOT)
+	assert_true(residents.directory().is_valid_of_kind(ref,
+		EntityDirectoryScript.KIND_RESIDENT), "the reference still validates after the restore")
+	assert_true(residents.directory().get_persistent_id(ref) != cached,
+		"but the slot carries a different persistent identity")
+	var shell: UiShellScript = _hud.shell()
+	shell.roster_row(ROW_TWO).emit_signal(&"pressed")
+	assert_equal(String(_ui.last_refusal()), IDENTITY_CODE, "the click refuses on identity")
+	SettlementSystem.reset()
+
+
+func _swap_persistent_ids(directory: EntityDirectoryScript, first: int, second: int) -> void:
+	"""Restore the directory with two live slots' persistent ids exchanged. Nothing else moves.
+
+	Every other column is copied back verbatim, so generation, kind, typed row, occupancy and
+	retirement are byte-identical and `restore_columns()`'s own validators all pass.
+	"""
+	var capacity: int = EntityDirectoryScript.DIRECTORY_CAPACITY
+	var active: PackedByteArray = PackedByteArray()
+	var retired: PackedByteArray = PackedByteArray()
+	var generation: PackedInt32Array = PackedInt32Array()
+	var persistent: PackedInt32Array = PackedInt32Array()
+	var kind: PackedInt32Array = PackedInt32Array()
+	var typed_row: PackedInt32Array = PackedInt32Array()
+	active.resize(capacity)
+	retired.resize(capacity)
+	generation.resize(capacity)
+	persistent.resize(capacity)
+	kind.resize(capacity)
+	typed_row.resize(capacity)
+	assert_true(directory.copy_columns_into(active, generation, retired, persistent, kind,
+		typed_row), "the columns are captured: %s" % directory.last_column_refusal())
+	var held: int = persistent[first]
+	persistent[first] = persistent[second]
+	persistent[second] = held
+	assert_true(directory.restore_columns(active, generation, retired, persistent, kind,
+		typed_row), "the swapped world is restored: %s" % directory.last_column_refusal())

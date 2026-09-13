@@ -645,11 +645,24 @@ func test_the_barrier_runs_no_tick_however_much_host_time_arrives() -> void:
 
 
 func test_the_barrier_pumps_nothing_and_the_queue_applies_once_after_release() -> void:
-	"""A restored pending record survives every load frame and lands exactly once afterwards."""
+	"""A record pending when the load began survives every load frame and lands once afterwards.
+
+	THE FIRST HALF OF THIS TEST CHANGED, AND THE CHANGE IS THE POINT. It used to submit the MENU
+	hold from INSIDE the load through the raw queue, and that worked because `begin_load()` raised
+	a coordinator-only guard the raw queue never saw. `begin_load()` now takes `sim_clock.gd`'s
+	token barrier, which bars queue admission too (RESTORE-R01: the barrier must guard
+	"pause/resume/speed admission ... direct setters"), so that submission is now REFUSED. The
+	record therefore has to be pending BEFORE the barrier goes up -- which is the case that
+	actually matters, because that is the shape §12 restores.
+	"""
 	_game.start_game()
+	assert_true(_game.scheduler_events().submit_pause_into(SchedulerEventsScript.PRODUCER_MENU,
+		SimClockScript.MENU, SchedulerEventsScript.VALUE_HOLD, _submit),
+		"the hold is admitted while no barrier stands")
 	_game.begin_load()
-	_game.scheduler_events().submit_pause_into(SchedulerEventsScript.PRODUCER_MENU,
-		SimClockScript.MENU, SchedulerEventsScript.VALUE_HOLD, _submit)
+	assert_false(_game.scheduler_events().submit_pause_into(SchedulerEventsScript.PRODUCER_VICTORY,
+		SimClockScript.VICTORY, SchedulerEventsScript.VALUE_HOLD, _submit),
+		"and a raw submission DURING the load is barred, not queued")
 	_run_frames(4, FRAME_USEC)
 	assert_equal(_game.scheduler_events().pending_count(), 1, "four load frames drained nothing")
 	assert_false(_game.is_paused(), "so the pending MENU hold has not been applied")
@@ -805,11 +818,16 @@ func test_a_load_frame_does_not_even_sample_the_host_clock() -> void:
 
 
 func test_the_internal_drain_pumps_nothing_under_the_barrier() -> void:
-	"""The guard on the shared drain itself, reached directly rather than through a control."""
+	"""The guard on the shared drain itself, reached directly rather than through a control.
+
+	The record is admitted BEFORE `begin_load()` now: the token barrier bars admission as well as
+	pumping, so a submission taken under the barrier would be refused and there would be nothing
+	pending for the drain to leave alone.
+	"""
 	_game.start_game()
-	_game.begin_load()
 	_game.scheduler_events().submit_pause_into(SchedulerEventsScript.PRODUCER_MENU,
 		SimClockScript.MENU, SchedulerEventsScript.VALUE_HOLD, _submit)
+	_game.begin_load()
 	var pumps_before: int = _game.scheduler_events().pump_count()
 	_game._drain_boundary()
 	assert_equal(_game.scheduler_events().pump_count(), pumps_before, "the queue was not pumped")
@@ -951,3 +969,97 @@ func _on_day_advanced(absolute_day: int) -> void:
 func _on_clock_diagnostic(message: String) -> void:
 	"""Record a scheduler diagnostic for assertion."""
 	_diagnostics.append(message)
+
+
+# --- RESTORE-R01: the coordinator holds the clock's out-of-band grant ------------------------------
+#
+# THE HOLE THESE CLOSE. `_loading` guards this node's own controls and `_process`. It has never
+# guarded `clock()` or `scheduler_events()`, which hand out the raw objects, and RESTORE-R01 says
+# in terms that "a GameManager-only check is insufficient". `sim_clock.gd` grew the token barrier
+# for exactly this and NOTHING RAISED IT, so in the running game the hole was still open.
+#
+# `_loading` is not redundant now that the token is taken. The clock cannot see `start_game()`
+# replacing the clock, and it cannot see `_process()` charging load seconds as debt. Two
+# checkpoints, one barrier -- which is why `begin_load()` refuses outright rather than opening
+# half of it.
+
+
+func test_begin_load_raises_the_clocks_own_token_barrier() -> void:
+	"""Both checkpoints go up together, and the raw clock refuses commands while they are up."""
+	_game.start_game()
+	assert_false(_game.clock().is_load_barrier_held(), "no barrier stands before the load")
+	assert_true(_game.begin_load(), "the load opens")
+	assert_true(_game.is_loading(), "the coordinator guard is up")
+	assert_true(_game.clock().is_load_barrier_held(), "and so is the clock's own barrier")
+	assert_true(_game.is_load_barrier_held(), "which this node reports through the clock")
+	assert_false(_game.clock().set_speed(SimClockScript.SPEED_QUADRUPLE),
+		"a RAW clock command, reached past this node entirely, is refused")
+	assert_equal(_game.clock().requested_speed(), SimClockScript.SPEED_NORMAL, "changing nothing")
+	assert_false(_game.clock().set_pause(SimClockScript.MENU, true),
+		"and so is a raw pause, which is the path RESTORE-R01 names")
+
+
+func test_begin_load_refuses_entirely_when_the_grant_is_refused() -> void:
+	"""Nothing changed: no checkpoint, no coordinator guard, and the standing barrier untouched.
+
+	The grant is taken BEFORE a field moves, so a second load that cannot have the barrier does
+	not get a coordinator guard the clock disagrees with.
+	"""
+	_game.start_game()
+	var outsider: SimClockScript.LoadBarrierGrant = _game.clock().acquire_load_barrier()
+	assert_true(outsider.is_ok(), "someone else holds the clock's barrier")
+	assert_false(_game.begin_load(), "so begin_load refuses")
+	assert_equal(_game.last_refusal(), GameManagerScript.REFUSE_LOAD_BARRIER, "by name")
+	assert_false(_game.is_loading(), "and no coordinator guard was opened")
+	assert_true(_game.clock().is_load_barrier_held(), "the outsider's barrier still stands")
+	assert_false(_game.restore_clock_runtime(1, 0, SimClockScript.SPEED_NORMAL, 0,
+		0, 0, 0, 0, 0, 0), "so no restore can be installed through the refused load")
+	assert_equal(_game.last_refusal(), GameManagerScript.REFUSE_LOAD_NOT_OPEN, "the load is shut")
+	assert_true(outsider.token.release(), "and the outsider still owns the only route down")
+
+
+func test_end_load_releases_the_token_and_rollback_releases_it_too() -> void:
+	"""Both exits lower the barrier where each already reset the host origin."""
+	_game.start_game()
+	assert_true(_game.begin_load(), "the load opens")
+	assert_true(_restore_ten(0, 0, SimClockScript.SPEED_NORMAL, 0), "a runtime is installed")
+	assert_true(_game.publish_restored_world(), "and published")
+	assert_true(_game.end_load(), "the ordinary exit succeeds")
+	assert_false(_game.clock().is_load_barrier_held(), "and the clock is open again")
+	assert_true(_game.clock().set_speed(SimClockScript.SPEED_DOUBLE), "commands work once more")
+	assert_true(_game.begin_load(), "a LATER load may raise it again")
+	assert_true(_game.clock().is_load_barrier_held(), "which it does")
+	assert_true(_game.rollback_load(), "and the rollback exit releases it too")
+	assert_false(_game.clock().is_load_barrier_held(), "leaving no stuck barrier behind")
+
+
+func test_an_unrecoverable_rollback_deliberately_leaves_the_barrier_held() -> void:
+	"""A world that could not be put back is not handed to the player, or to a raw caller."""
+	_game.start_game()
+	assert_true(_game.begin_load(), "the load opens")
+	_game.set("_checkpoint_state", -1)
+	_game.set("_checkpoint", PackedInt64Array([0, -1, SimClockScript.SPEED_NORMAL,
+		0, 0, 0, 0, 0, 0, 0]))
+	assert_false(_game.rollback_load(), "the checkpoint will not reinstall")
+	assert_equal(_game.last_refusal(), GameManagerScript.REFUSE_LOAD_UNRECOVERABLE, "by name")
+	assert_true(_game.is_load_unrecoverable(), "which is reported")
+	assert_true(_game.clock().is_load_barrier_held(), "and the barrier stays UP, loudly")
+	assert_false(_game.clock().set_speed(SimClockScript.SPEED_DOUBLE),
+		"so no raw caller can drive a world that could not be restored")
+
+
+func test_the_token_is_transient_and_never_reaches_the_pause_mask() -> void:
+	"""RESTORE-R01: the guard "is not OR-ed into the serialized/canonical logical pause mask"."""
+	_game.start_game()
+	var mask_before: int = _game.clock().pause_mask()
+	assert_true(_game.begin_load(), "the load opens")
+	assert_equal(_game.clock().pause_mask(), mask_before,
+		"the raised barrier added no bit to the mask")
+	assert_true(_restore_ten(0, 0, SimClockScript.SPEED_NORMAL, SimClockScript.MENU),
+		"a MENU-paused world is restored")
+	assert_equal(_game.clock().pause_mask(), SimClockScript.MENU,
+		"the restored mask is exactly the saved one, with no LOAD bit")
+	assert_true(_game.publish_restored_world(), "published")
+	assert_true(_game.end_load(), "and released")
+	assert_equal(_game.clock().pause_mask(), SimClockScript.MENU,
+		"and releasing the barrier did not clear the saved hold either")

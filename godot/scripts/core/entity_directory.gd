@@ -27,6 +27,29 @@ extends RefCounted
 ## carries its own container and lot generations, and `navigation.gd` its own
 ## route-descriptor generation, all independently of these.
 ##
+## D2 -- THE PERSISTENT-ID CURSOR IS SECTION 1's, AND IT IS ASSIGNED EXPLICITLY.
+## REG-R01 registers `entity_directory` a SECOND block, in §1 WORLD, schema 1,
+## primary_count 1, payload four bytes: `_next_persistent_id:u32 LE`. Its valid
+## range is `1..2147483648`, and 2147483648 -- `PERSISTENT_ID_EXHAUSTED` -- is the
+## cursor AFTER the last signed-int32 identity has been issued. That widens the
+## LEDGER to unsigned; the live `_persistent_id` column stays i32 and never holds
+## the exhausted value, which is why `_live_column_refusal()` refuses any id below
+## 1 (the bytes `00 00 00 80` read back from an i32 column as -2147483648, never as
+## the 2147483648 they would mean in the u32 ledger).
+##
+## `next_persistent_id()` is the capture side; `restore_columns_and_cursor()` is the
+## restore side, and it ASSIGNS the saved cursor rather than deriving one. Deriving
+## `max(live ids) + 1` is wrong the moment anything has died, because `destroy()`
+## zeroes `_persistent_id` -- create 1/2/3, destroy 3 and the derivation yields 3,
+## reissuing an identity the save already spent. With every entity dead it yields 1.
+## The validation is therefore a COMPARISON, not a computation: the cursor must
+## exceed every positive stored id. A cursor that does not is a refusal; it is never
+## repaired upward. `restore_columns()` keeps its old columns-only contract and does
+## NOT touch the cursor, so §3's codec cannot write a §1 value.
+##
+## `clear()` returns the cursor to 1 because a NEW world issues from 1. That is not
+## a load step and no loader may reach identity through it.
+##
 ## Promoted from the verified `docs/validation/headless/resident_slots.gd`
 ## kernel, which stays in place as the isolated experimental control.
 
@@ -39,6 +62,13 @@ const KIND_ANY: int = -1
 
 ## Largest int32. Bounds generation, persistent ID, and every packed column.
 const MAX_INT32: int = 2147483647
+
+## The first persistent identity a new world issues (REG-R01, §1 `_next_persistent_id`).
+const PERSISTENT_ID_MIN: int = 1
+
+## The cursor left AFTER the final signed-int32 identity has been issued. It is a legal SAVED
+## cursor and an illegal COLUMN value: no live `_persistent_id` may ever carry it.
+const PERSISTENT_ID_EXHAUSTED: int = MAX_INT32 + 1
 
 ## Kind IDs are the index of each key in ascending ASCII order (ARCH-ID-001).
 const KIND_BUILDING: int = 0
@@ -115,6 +145,10 @@ const REFUSAL_COLUMN_FREE_IDENTITY: StringName = &"COLUMN_FREE_IDENTITY"
 const REFUSAL_COLUMN_RETIREMENT: StringName = &"COLUMN_RETIREMENT"
 const REFUSAL_COLUMN_DUPLICATE_TYPED_ROW: StringName = &"COLUMN_DUPLICATE_TYPED_ROW"
 const REFUSAL_COLUMN_LIVING_CAP: StringName = &"COLUMN_LIVING_CAP"
+## D2 cursor refusals. `RANGE` is a cursor outside `1..PERSISTENT_ID_EXHAUSTED`; `STALE` is one
+## that does not exceed every positive stored id, which would reissue a spent identity.
+const REFUSAL_COLUMN_CURSOR_RANGE: StringName = &"COLUMN_CURSOR_RANGE"
+const REFUSAL_COLUMN_CURSOR_STALE: StringName = &"COLUMN_CURSOR_STALE"
 
 # EntityIdentity columns, systems_architecture.md §2.2.
 var _persistent_id: PackedInt32Array = PackedInt32Array()
@@ -142,7 +176,7 @@ var _kind_free_count: PackedInt32Array = PackedInt32Array()
 var _kind_live_count: PackedInt32Array = PackedInt32Array()
 var _free_count: int = 0
 var _live_count: int = 0
-var _next_persistent_id: int = 1
+var _next_persistent_id: int = PERSISTENT_ID_MIN
 var _last_refusal: StringName = REFUSAL_NONE
 ## The bulk-column namespace's own refusal code. Category 3 like `_last_refusal`: not state, not
 ## persisted, and excluded from `state_bytes()` so a refusal cannot alter the image proving it
@@ -405,9 +439,11 @@ func restore_columns(active: PackedByteArray, generation: PackedInt32Array,
 	and the one member the collision scan touches is rebuilt from the untouched columns on the way
 	out, so a refusal leaves the directory byte-identical -- `state_bytes()` proves it.
 
-	`_next_persistent_id` is NOT restored: the registry assigns it to §1 WORLD as
-	`WorldRuntime.next_persistent_id` (BLOCKER D2). Until §1 carries it, a restored directory
-	reissues persistent IDs from wherever its own allocator stands.
+	`_next_persistent_id` is NOT written here, and that is the contract rather than a gap: REG-R01
+	assigns the cursor to §1 WORLD's own `entity_directory` block, so §3's codec must not carry a
+	§1 value. `restore_columns_and_cursor()` is the entry point that installs both together, and
+	a load restores §3 and the cursor through it under one unpublished barrier. A directory
+	restored through THIS call keeps whatever cursor it already had.
 	"""
 	var refusal: StringName = _restore_refusal(active, generation, retired, persistent_id,
 		kind, typed_row)
@@ -424,6 +460,60 @@ func restore_columns(active: PackedByteArray, generation: PackedInt32Array,
 	_rebuild_allocator()
 	_last_column_refusal = REFUSAL_NONE
 	return true
+
+
+func next_persistent_id() -> int:
+	"""The §1 WORLD persistent-ID cursor: the identity the next `create()` will issue.
+
+	REG-R01's `entity_directory` block in §1 is exactly this scalar, so the save owner reads it
+	here and writes it as `u32 LE`. `PERSISTENT_ID_EXHAUSTED` (2147483648) is a legal answer and
+	means every signed-int32 identity has been spent -- `create()` refuses PERSISTENT_ID_EXHAUSTED
+	from that point on. It is never a live column value.
+	"""
+	return _next_persistent_id
+
+
+func restore_columns_and_cursor(active: PackedByteArray, generation: PackedInt32Array,
+		retired: PackedByteArray, persistent_id: PackedInt32Array, kind: PackedInt32Array,
+		typed_row: PackedInt32Array, next_persistent_id: int) -> bool:
+	"""Restore §3's six columns AND §1's persistent-ID cursor as one indivisible step.
+
+	The load path. The cursor is ASSIGNED from the save, never derived: `destroy()` zeroes
+	`_persistent_id`, so `max(live ids) + 1` reissues an identity the saved world already spent,
+	and with every entity dead it collapses to 1. It is validated against the INCOMING column --
+	it must exceed every positive stored id and lie in `1..PERSISTENT_ID_EXHAUSTED` -- before a
+	single byte is installed, so a stale cursor refuses rather than being repaired upward.
+
+	Allocate before consume (decision 0059): the cursor rule joins `restore_columns()`'s own
+	rules ahead of every write, so a refusal from either half leaves the directory byte-identical
+	and `state_bytes()` proves it. See `last_column_refusal()` for which rule refused.
+	"""
+	var cursor: StringName = cursor_refusal(next_persistent_id, persistent_id)
+	if cursor != REFUSAL_NONE:
+		_last_column_refusal = cursor
+		return false
+	if not restore_columns(active, generation, retired, persistent_id, kind, typed_row):
+		return false
+	_next_persistent_id = next_persistent_id
+	return true
+
+
+func cursor_refusal(next_persistent_id: int, persistent_id: PackedInt32Array) -> StringName:
+	"""The D2 rule, on its own so a loader can test a cursor before it owns a directory.
+
+	Two rules and no third: the cursor lies in `1..PERSISTENT_ID_EXHAUSTED`, and it EXCEEDS every
+	positive id in the column. Zeroed ids belong to destroyed rows and constrain nothing, which is
+	exactly why the maximum of the LIVE ids cannot stand in for the cursor.
+	"""
+	if next_persistent_id < PERSISTENT_ID_MIN or next_persistent_id > PERSISTENT_ID_EXHAUSTED:
+		return REFUSAL_COLUMN_CURSOR_RANGE
+	if persistent_id.size() != DIRECTORY_CAPACITY:
+		return REFUSAL_COLUMN_SHAPE
+	var sorted: PackedInt32Array = persistent_id.duplicate()
+	sorted.sort()
+	if sorted[DIRECTORY_CAPACITY - 1] >= next_persistent_id:
+		return REFUSAL_COLUMN_CURSOR_STALE
+	return REFUSAL_NONE
 
 
 func state_bytes() -> PackedByteArray:
@@ -480,6 +570,11 @@ func clear() -> void:
 	the clear still holds, and that reference would then validate against an unrelated row --
 	the aliasing ARCH-ID-002's generation counter exists to make impossible. Generations
 	therefore only ever move forward: across reuse, and across a clear as well.
+
+	THIS IS NOT A LOAD STEP. The cursor returns to PERSISTENT_ID_MIN because a NEW world issues
+	its first identity as 1. A loader must reach `restore_columns_and_cursor()` instead; calling
+	this and then restoring columns would publish a world whose identities restart at 1 over ids
+	the save already spent.
 	"""
 	_persistent_id.fill(0)
 	_kind.fill(KIND_ANY)
@@ -488,7 +583,7 @@ func clear() -> void:
 	_typed_owner_slot.fill(NULL_SLOT)
 	_rebuild_free_heaps()
 	_live_count = 0
-	_next_persistent_id = 1
+	_next_persistent_id = PERSISTENT_ID_MIN
 	_last_refusal = REFUSAL_NONE
 	_last_column_refusal = REFUSAL_NONE
 
@@ -622,7 +717,10 @@ func _live_column_refusal(active: PackedByteArray, generation: PackedInt32Array,
 	while slot >= 0:
 		if generation[slot] < 1:
 			return REFUSAL_COLUMN_LIVE_GENERATION
-		if persistent_id[slot] < 1:
+		if persistent_id[slot] < PERSISTENT_ID_MIN:
+			# The int32 sign trap again, and D2's live-column rule: the exhausted cursor
+			# 2147483648 has no i32 spelling, so its bytes `00 00 00 80` arrive here as
+			# -2147483648 and are refused as the out-of-domain id they are.
 			return REFUSAL_COLUMN_LIVE_PERSISTENT_ID
 		var row_kind: int = kind[slot]
 		if row_kind < 0 or row_kind >= KIND_COUNT:
@@ -766,7 +864,7 @@ func _refuse_create(kind: int) -> StringName:
 	"""The ARCH-ID-004 code blocking a create, or REFUSAL_NONE when it may proceed."""
 	if kind < 0 or kind >= KIND_COUNT:
 		return REFUSAL_UNKNOWN_KIND
-	if _next_persistent_id > MAX_INT32:
+	if _next_persistent_id >= PERSISTENT_ID_EXHAUSTED:
 		return REFUSAL_PERSISTENT_ID
 	if kind == KIND_RESIDENT and _kind_live_count[kind] >= RESIDENT_LIVING_CAP:
 		return REFUSAL_LIVING_CAP

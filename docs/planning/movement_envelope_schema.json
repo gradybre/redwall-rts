@@ -1,16 +1,16 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"$id": "redwall-rts/docs/planning/movement_envelope_schema.json",
-	"title": "Measured movement envelope records (MOVE-C2-R01)",
-	"description": "The shape a MEASURED swept-envelope record must take before tools/validate_movement_envelopes.py will derive a clearance class from it. This file contains NO body dimension, no species profile and no clearance value: it is the record shape and its refusals only. MOVE-C2-R01 Q1 adopted the convention; Q2 per-species production profiles remain OPEN, and a record validating here is not an authored profile, not an enabled mode and not evidence that any species can or cannot use a mode. Geometry constants (cell size, root offset, clearance-class domain) are declared per file and cross-checked by the validator against godot/scripts/core/spatial_world.gd, which owns them; this schema deliberately does not restate their values.",
+	"title": "Measured movement envelope records (MOVE-C2-R01 Q1, MOVE-C3-R01 6)",
+	"description": "The shape a MEASURED swept-envelope record must take before tools/validate_movement_envelopes.py will derive a clearance class from it. This file contains NO body dimension, no species profile and no clearance value: it is the record shape and its refusals only. MOVE-C2-R01 Q1 adopted the convention; Q2 per-species production profiles remain OPEN, and a record validating here is not an authored profile, not an enabled mode and not evidence that any species can or cannot use a mode. Geometry constants (cell size, root offset, clearance-class domain) are declared per file and cross-checked by the validator against godot/scripts/core/spatial_world.gd, which owns them; this schema deliberately does not restate their values. Version 2 (MOVE-C3-R01 6) adds no dimension either: it fixes the meaning of the residual interpolation error, requires every axis margin to cover it, and requires the micrometre export rounding direction to be declared, because version 1 recorded an error it never applied.",
 	"type": "object",
 	"additionalProperties": false,
 	"required": ["schema_version", "units", "convention", "records"],
 	"properties": {
 		"schema_version": {
-			"description": "Bumped whenever a field is added, removed or re-meant. The validator refuses a version it does not implement rather than reading a record it may misunderstand.",
+			"description": "Bumped whenever a field is added, removed or re-meant. The validator refuses a version it does not implement rather than reading a record it may misunderstand. Version 2 (MOVE-C3-R01 6) re-means interpolation_error_bound_units as the RESIDUAL error not already enclosed by the submitted extrema, requires every axis margin to cover it, and requires the micrometre export rounding direction to be declared. A version 1 record is NOT silently reinterpreted under those rules: it is refused, and its owner must reassert error coverage and source evidence as version 2.",
 			"type": "integer",
-			"const": 1
+			"const": 2
 		},
 		"units": {
 			"type": "object",
@@ -143,6 +143,7 @@
 				"orientations_covered",
 				"pose_interpolation_covered",
 				"interpolation_error_bound_units",
+				"micrometre_export_rounding",
 				"bounds_micrometres"
 			],
 			"properties": {
@@ -163,7 +164,21 @@
 					"type": "boolean",
 					"const": true
 				},
-				"interpolation_error_bound_units": {"type": "integer", "minimum": 0},
+				"interpolation_error_bound_units": {
+					"description": "MOVE-C3-R01 6: the RESIDUAL conservative interpolation error, in simulation units, that bounds_micrometres does NOT already enclose. It is not the total measurement error and it is not an allowance already spent inside the extrema. The present field is a single scalar, so it bounds EVERY axis, and the validator requires margin_units.x, .y and .z each to be at least this value. A positive residual with a zero margin is refused no matter what zero_margin_justification says: prose cannot cover a declared uncovered error.",
+					"type": "integer",
+					"minimum": 0
+				},
+				"zero_residual_evidence": {
+					"description": "Required by the validator when interpolation_error_bound_units is 0. MOVE-C3-R01 6: a zero residual is legal only when the owner establishes that the submitted extrema already enclose the full continuous sweep, in which case the same error must NOT be counted a second time as a margin. This is the owner's written evidence for that claim, not a numerical allowance.",
+					"type": "string",
+					"minLength": 1
+				},
+				"micrometre_export_rounding": {
+					"description": "MOVE-C3-R01 6: how the measured coordinate was rounded when it crossed into the signed integer micrometres this file commits. This tool consumes integers and cannot reconstruct precision discarded before its input, so the direction must be declared here. minima_floor_maxima_ceil = rounded outward at export, the only direction that cannot shrink a body. certified_residual_allowance = not rounded outward at export, in which case the validator requires a strictly positive interpolation_error_bound_units to carry that discarded precision, and the margins must cover it. Nearest and truncation are not offered: an inward export is the defect this version exists to close, and later outward u-quantization does not repair it.",
+					"type": "string",
+					"enum": ["minima_floor_maxima_ceil", "certified_residual_allowance"]
+				},
 				"bounds_micrometres": {"$ref": "#/$defs/bounds"}
 			}
 		},
@@ -182,7 +197,7 @@
 			}
 		},
 		"margin": {
-			"description": "MOVE-C2-R01 3's explicitly authored nonnegative per-axis allowance, with provenance. A missing margin is invalid. An explicit zero is accepted only with a written justification from the measurement owner; there is no importer epsilon and no height-derived default.",
+			"description": "MOVE-C2-R01 3's explicitly authored nonnegative per-axis allowance, with provenance. A missing margin is invalid. An explicit zero is accepted only with a written justification from the measurement owner; there is no importer epsilon and no height-derived default. MOVE-C3-R01 6 adds a floor that a justification cannot lower: every axis allowance must be at least measurement.interpolation_error_bound_units, the residual the extrema do not already enclose.",
 			"type": "object",
 			"additionalProperties": false,
 			"required": ["x", "y", "z", "provenance"],

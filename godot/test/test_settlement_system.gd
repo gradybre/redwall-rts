@@ -48,6 +48,7 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 const RngScript := preload("res://scripts/core/rng.gd")
 const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 const BuildingsScript := preload("res://scripts/core/buildings.gd")
+const ConstructionScript := preload("res://scripts/core/construction.gd")
 const CatalogScript := preload("res://scripts/core/catalog.gd")
 
 ## GDD §5.1: the starting settlement is twelve residents.
@@ -2437,6 +2438,89 @@ func test_the_building_store_adds_no_stage_to_the_tick() -> void:
 	_settlement.run_tick(0)
 	assert_equal(_settlement.buildings().live_building_count(), 0,
 		"and a tick places nothing of its own")
+
+
+# --- the Construction store's composition ------------------------------------------------------
+
+func test_the_construction_store_shares_this_settlements_building_store() -> void:
+	"""The composition IS the change: a project must act on a building this settlement owns.
+
+	A `Construction` built over its own allocator would open projects, price them, refund them
+	and pass its own suite -- and would refuse `open_build()` for every real blueprint, because
+	no blueprint would live in that Building store. This asserts the borrow rather than the type.
+	"""
+	assert_not_null(_settlement.construction(), "the settlement composes a Construction store")
+	assert_true(_settlement.construction().buildings() == _settlement.buildings(),
+		"the project store must act on THIS settlement's Building rows")
+	assert_true(_settlement.construction().directory() == _settlement.directory(),
+		"and therefore on this settlement's one directory")
+	assert_true(_settlement.construction() == _settlement.construction(),
+		"and the accessor must hand back the same store, not a fresh one per call")
+
+
+func test_a_project_opened_through_the_settlement_names_a_real_building() -> void:
+	"""REQ-SET-124 end to end over the composed stores: place, open, and read the join back."""
+	assert_true(_generate(), "the settlement generates")
+	var hall: Vector2i = _place_hall()
+	var project: ConstructionScript.OpResult = _settlement.construction().open_build(hall)
+	assert_true(project.ok, "the project opens (%s)" % project.error)
+	assert_equal(_settlement.buildings().construction_ref_of_building(hall), project.ref,
+		"the Building row names the project this settlement's store published")
+	assert_equal(_settlement.construction().subject_ref_of(project.ref), hall,
+		"and the project names the building this settlement's store placed")
+	assert_equal(_settlement.directory().live_count(
+		EntityDirectoryScript.KIND_CONSTRUCTION), 1,
+		"the project's slot came out of the one shared directory")
+
+
+func test_a_generated_settlement_still_holds_no_construction_project() -> void:
+	"""Composition is not construction, for the project store exactly as for the building store.
+
+	`world_init.gd` places no blueprint, so there is nothing for a project to be opened against.
+	A HUD wired to `live_project_count()` today reads a TRUE 0.
+	"""
+	assert_equal(_settlement.construction().live_project_count(), 0,
+		"an ungenerated settlement holds no project")
+	assert_true(_generate(), "the settlement generates")
+	assert_equal(_settlement.construction().live_project_count(), 0,
+		"and generating one still builds nothing")
+	assert_true(_settlement.construction().verify_refund_policies().ok,
+		"an empty project column is trivially self-consistent")
+
+
+func test_resetting_the_settlement_releases_every_project_row() -> void:
+	"""`_clear_stores()` empties this store too, so no project survives a reset."""
+	assert_true(_generate(), "the settlement generates")
+	var project: ConstructionScript.OpResult = _settlement.construction().open_build(_place_hall())
+	assert_true(project.ok, "a project opens")
+	assert_equal(_settlement.construction().live_project_count(), 1, "one project is live")
+	_settlement.reset()
+	assert_equal(_settlement.construction().live_project_count(), 0,
+		"the reset settlement holds no project")
+	assert_false(_settlement.construction().is_live_project(project.ref),
+		"and the old project reference no longer validates")
+
+
+func test_the_construction_store_adds_no_stage_to_the_tick() -> void:
+	"""`work.gd` owns the productive tick and does not call this store, so the eight stay eight.
+
+	The eight are command commit, interval, stock age, crop hour, job planner, selection, work
+	and presentation. None of them is a construction stage, and adding one would mean naming it
+	here with its reason.
+	"""
+	assert_equal(_settlement.tick_stage_count(), 8,
+		"the tick still dispatches exactly the eight stages it did without the project store")
+	_populated()
+	var project: ConstructionScript.OpResult = _settlement.construction().open_build(_place_hall())
+	assert_true(project.ok, "a project opens")
+	var work: IntMath.IntResult = IntMath.IntResult.new()
+	_settlement.run_tick(0)
+	assert_true(_settlement.construction().remaining_mwu_into(project.ref, work),
+		"its work reads after a tick")
+	assert_equal(work.value,
+		_settlement.building_definitions().work_mwu_of(
+			int(CatalogScript.BUILDING_DEFINITION["hall"])),
+		"and a tick retires none of it, because nothing drives construction work yet")
 
 
 # --- STOCK-SEED-R01: the critical pause and the exactly-once revalidated retry -----------------

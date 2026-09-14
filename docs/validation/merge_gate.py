@@ -131,6 +131,16 @@ def check_no_double_budget(text: str) -> list[str]:
 		rows = sorted({row for _, row in uses})
 		if len(rows) < 2:
 			continue
+		# Only compare rows describing the SAME owner. Section 3's index tables name their
+		# members bare (`BuildingIndex | present`) while a store's own section names them as
+		# GDScript spells them (`_present`), so without this every index table collides with
+		# every other one -- ConstructionIndex against BuildingIndex, FurnitureIndex and
+		# RoomIndex, none of which share a byte. The real defect this check exists for was
+		# always SAME-owner: `Injury` against `Injury store`. Requiring the owner labels to
+		# share their leading token keeps that and drops six false positives.
+		leading = {row.split()[0].rstrip(".,") for row in rows if row.split()}
+		if len(leading) > 1:
+			continue
 		problems.append(
 			f"L2 {member!r} is written both ways ({', '.join(sorted(spellings))}) "
 			f"across rows: {', '.join(r[:40] for r in rows)}")

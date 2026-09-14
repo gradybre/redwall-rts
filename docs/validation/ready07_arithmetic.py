@@ -132,10 +132,17 @@ assert DECISION_0127_ADDED==18384
 # is 98% of this delta and the row is deleted WHOLE when movement composes ARCH-SYS-001.
 DECISION_0130_ADDED=(512*100)+(87552*36)
 assert DECISION_0130_ADDED==3203072
-assert len(allocations)==31 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED
+# decision 0131: construction.gd's project lifecycle. Two B8 and seven I32 columns over
+# PROJECT_CAPACITY = 82944, plus a four-slot I64 material ledger at 82944*4 = 331776. §2.2's
+# existing Construction columns are NOT re-added: this is the index and ledger the store owns
+# on top of them. The bill tables are 3828 bytes of immutable catalog inside §2.3's existing
+# 2097152-byte arena and owe no row.
+DECISION_0131_ADDED=(2*1*82944)+(7*4*82944)+(1*8*331776)
+assert DECISION_0131_ADDED==5142528
+assert len(allocations)==31 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==66968467
-assert live==75357075 and candidate==60752883 and live+candidate==136109958
+assert payload==72110995
+assert live==80499603 and candidate==65895411 and live+candidate==146395014
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

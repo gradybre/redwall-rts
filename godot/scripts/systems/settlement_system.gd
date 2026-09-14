@@ -311,6 +311,21 @@ extends Node
 ## read it -- still has no connected-heat model (see the absent-stage list above). `run_tick()`
 ## and `run_day_boundary()` are byte-for-byte the same dispatch they were.
 ##
+## ---------------------------------------------------------------------------------------
+## THE CONSTRUCTION STORE IS COMPOSED OVER THE SAME BUILDING STORE, AND IT IS EMPTY.
+## `construction.gd` holds REQ-SET-124-128/137's project lifecycle -- delivery before work,
+## consumption when work begins, the 100%/80% cancellation refund and the 50% demolition return.
+## It is constructed as `Construction.new(_buildings)` and therefore BORROWS this settlement's one
+## Building store and, through it, this settlement's one directory: a project's subject is a row
+## `buildings()` actually owns, and `Building.construction` names a project `construction()`
+## actually owns. A `Construction` built with its own allocator would refuse every real building.
+##
+## `live_project_count()` is 0 after `create_generated_settlement()` for the same reason
+## `live_building_count()` is: nothing here places a blueprint, so nothing here opens a project.
+## ALSO ADDS NO TICK STAGE. `work.gd` owns the productive tick that would call `add_work_mwu()`
+## and `jobs.gd` owns REQ-SET-124's delivery and build jobs; neither file calls this store yet,
+## so `tick_stage_count()` is still 8 and every stage keeps its name.
+##
 ## THE WORLD SEED IS NO LONGER MISSING. `rng()` is composed here UNSEEDED and stays that way in a
 ## settlement nobody generated; `create_generated_settlement()` seeds it, because `world_init.gd`
 ## owns REQ-SET-009's `World.seed` and seeds all nine streams as part of publishing. §5.10's
@@ -457,6 +472,7 @@ const SchedulerEventsScript := preload("res://scripts/core/scheduler_events.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
 const BuildingsScript := preload("res://scripts/core/buildings.gd")
 const BuildingDefinitionsScript := preload("res://scripts/core/building_definitions.gd")
+const ConstructionScript := preload("res://scripts/core/construction.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const StockAgeScript := preload("res://scripts/core/stock_age.gd")
@@ -559,6 +575,7 @@ var _planner: JobPlannerScript = null
 var _presentation: PresentationExtractScript = null
 var _world: WorldInitScript = null
 var _buildings: BuildingsScript = null
+var _construction: ConstructionScript = null
 var _inventory: InventoryScript = null
 var _item_definitions: ItemDefinitionsScript = null
 var _stock_age: StockAgeScript = null
@@ -683,6 +700,7 @@ func _init() -> void:
 		_ecology.fishing(), _rng, _crop_weather.farming(), _ecology.orchard_hive(), _jobs,
 		_commands)
 	_buildings = BuildingsScript.new(_directory)
+	_construction = ConstructionScript.new(_buildings)
 	_compose_stock_layer()
 	_bind_ecology_to_commands()
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
@@ -785,6 +803,8 @@ func _assert_shared_contracts() -> void:
 		"REQ-SET-009's generator must allocate out of this settlement's one directory")
 	assert(_buildings.directory() == _directory,
 		"the Building/Room/Furniture store must share this settlement's one directory")
+	assert(_construction.buildings() == _buildings and _construction.directory() == _directory,
+		"REQ-SET-124's projects must act on THIS settlement's buildings and one directory")
 	assert(BuildingsScript.MAP_TILES_X == WorldInitScript.MAP_TILES_X
 			and BuildingsScript.MAP_TILES_Z == WorldInitScript.MAP_TILES_Z,
 		"the building tile maps and REQ-SET-009's ground map must index the same §5.1 grid")
@@ -1027,6 +1047,7 @@ func _clear_stores() -> void:
 	_presentation.clear()
 	_world.clear()
 	_buildings.clear()
+	_construction.clear()
 	_rng.clear()
 
 
@@ -2099,6 +2120,17 @@ func buildings() -> BuildingsScript:
 	`residents()` owns and the mask, the tile maps and the directory cannot disagree.
 	"""
 	return _buildings
+
+
+func construction() -> ConstructionScript:
+	"""REQ-SET-124-128/137's project lifecycle, over THIS settlement's one Building store.
+
+	Empty until something places a blueprint and opens a project: composition is not construction,
+	and `world_init.gd` places no building for one to be opened against. What the composition buys
+	is that `Building.construction` and this store's rows name each other through the same
+	allocator, so a project cannot outlive, or be orphaned by, the building it is building.
+	"""
+	return _construction
 
 
 func building_definitions() -> BuildingDefinitionsScript:

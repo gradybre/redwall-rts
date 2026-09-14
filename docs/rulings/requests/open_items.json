@@ -32,6 +32,15 @@
       "question": "ECON-003 names nine excavation phases. They are SITE states and map onto the construction store's five project phases not at all one-for-one: each ECON-003 transition is one project run through the whole lifecycle, with 'consume inputs once at WORK start' = `begin_work()` and 'retain earned work, publish nothing' = PHASE_WORK_DONE. This needs compiled ASCII ids in `catalog.gd` and a site-phase column from the excavation owner. Who owns that column, and are the nine ids a protected or a compiled enum domain?",
       "why_we_cannot_decide": "Adding a domain to catalog.gd is a schema change with a digest consequence, and the excavation owner does not exist yet to be asked.",
       "impact": "Advisory. The mapping is documented in ADR 0131 so the excavation lane inherits it rather than re-deriving it."
+    },
+    {
+      "anchor": "capacity-resolver-addition-allowlist",
+      "title": "May the capacity resolver allowlist `+` for nested constant definitions?",
+      "blocks": [],
+      "asked": "2026-09-14",
+      "question": "REG-C3-R01 allowlists \"products and qualified constants\" for the source-proved capacity resolver. Two of 519 capacities cannot be proved because resolution halts on an addition: `const LINK_CAPACITY = RECIPIENT_CAPACITY * LINKS_PER_RECIPIENT` reaches `const RECIPIENT_CAPACITY = FARM_RECIPIENT_CAPACITY + ORCHARD_CAPACITY`. Source does prove the declared 30720. May `+` join the allowlist for nested constant definitions, or should these two rows stay quarantined?",
+      "why_we_cannot_decide": "The allowlist is the ruling's, not the executor's. Widening it is a one-line change the audit lane deliberately declined to make, because a resolver that grows its own grammar to resolve more things is no longer proving anything on the ruling's terms.",
+      "impact": "Exactly 2 of 519 capacities are unproved, both orchard_hive link columns (_link_hive_slot, _link_hive_generation). 517 are proved with zero contradictions. Nothing is blocked; the rows are quarantined in docs/planning/registry_capacity_audit.json rather than guessed."
     }
   ],
   "answered": [

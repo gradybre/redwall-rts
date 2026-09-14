@@ -14,13 +14,14 @@ blocking in `docs/planning/work_queue.json`, which is what releases them to the
 dispatcher.
 
 
-**1 blocking, 2 advisory.** Oldest asked 2026-09-12.
+**1 blocking, 3 advisory.** Oldest asked 2026-09-12.
 
 | Question | Asked | Holding up |
 |---|---|---|
 | [MOVE-G01 Q1 and Q2: clearance classes and per-species modes](#move-g01-clearance-and-modes) | 2026-09-12 | `MOVE-ENVELOPES` |
 | [A tier-2 building's demolition basis is unresolved](#tier-two-demolition-basis) | 2026-09-13 | nothing yet |
 | [ECON-003's excavation phases need compiled ids and a site-phase column](#econ-003-excavation-phase-domain) | 2026-09-13 | nothing yet |
+| [May the capacity resolver allowlist `+` for nested constant definitions?](#capacity-resolver-addition-allowlist) | 2026-09-14 | nothing yet |
 
 <a id="move-g01-clearance-and-modes"></a>
 ## MOVE-G01 Q1 and Q2: clearance classes and per-species modes
@@ -56,6 +57,17 @@ dispatcher.
 **Why the executor cannot decide it.** Adding a domain to catalog.gd is a schema change with a digest consequence, and the excavation owner does not exist yet to be asked.
 
 **Impact.** Advisory. The mapping is documented in ADR 0131 so the excavation lane inherits it rather than re-deriving it.
+
+<a id="capacity-resolver-addition-allowlist"></a>
+## May the capacity resolver allowlist `+` for nested constant definitions?
+
+*Asked 2026-09-14.*
+
+**Question.** REG-C3-R01 allowlists "products and qualified constants" for the source-proved capacity resolver. Two of 519 capacities cannot be proved because resolution halts on an addition: `const LINK_CAPACITY = RECIPIENT_CAPACITY * LINKS_PER_RECIPIENT` reaches `const RECIPIENT_CAPACITY = FARM_RECIPIENT_CAPACITY + ORCHARD_CAPACITY`. Source does prove the declared 30720. May `+` join the allowlist for nested constant definitions, or should these two rows stay quarantined?
+
+**Why the executor cannot decide it.** The allowlist is the ruling's, not the executor's. Widening it is a one-line change the audit lane deliberately declined to make, because a resolver that grows its own grammar to resolve more things is no longer proving anything on the ruling's terms.
+
+**Impact.** Exactly 2 of 519 capacities are unproved, both orchard_hive link columns (_link_hive_slot, _link_hive_generation). 517 are proved with zero contradictions. Nothing is blocked; the rows are quarantined in docs/planning/registry_capacity_audit.json rather than guessed.
 
 
 ## What is NOT here

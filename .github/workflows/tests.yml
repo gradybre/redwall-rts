@@ -135,6 +135,14 @@ jobs:
       - name: Lane records are one file each, not appended to a shared checklist
         run: python3 tools/lane_notes.py --check
 
+      # MOVE-C2-R01's fit arithmetic. Its load-bearing property is that a negative
+      # translated minimum reports PLACEMENT_INCOMPATIBLE_AT_OFFSET and never
+      # CLEARANCE_CLASS_EXCEEDS_DOMAIN -- no clearance class repairs it, because the
+      # square grows south and east from its anchor. A regression there would send
+      # someone hunting for a k that does not exist.
+      - name: Movement envelope fit arithmetic
+        run: python3 tools/test_movement_envelopes.py
+
       - name: State registry covers every packed column
         run: python3 docs/validation/state_registry_coverage.py
 

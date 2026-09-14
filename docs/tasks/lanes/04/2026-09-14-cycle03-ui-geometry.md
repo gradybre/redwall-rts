@@ -1,6 +1,7 @@
 # UI-C3-R01 — cycle-03 geometry, 2026-09-14
 
 Task: 04_5_ui_visual_refinement.md
+Date: 2026-09-14
 Ruling: `docs/rulings/2026-09-14_cycle03_ui_geometry.md` (UI-C3-R01)
 Decision: [0144](../../../decisions/0144-the-ordinary-workspace-was-an-unimplemented-amendment.md)
 Base: `origin/master` at `388f4f4`, branch `feat/ui-responsive-c3`

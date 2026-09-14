@@ -1,0 +1,65 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M5 Pro (Apple9)
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] _set_rect (res://scripts/ui/ui_shell.gd:2295)
+         [1] _place (res://scripts/ui/ui_shell.gd:2190)
+         [2] _place_zones (res://scripts/ui/ui_shell.gd:1641)
+         [3] layout_for (res://scripts/ui/ui_shell.gd:1598)
+         [4] _apply_geometry (res://scripts/ui/ui_shell.gd:1636)
+         [5] _ready (res://scripts/ui/ui_shell.gd:519)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] _set_rect (res://scripts/ui/ui_shell.gd:2295)
+         [1] _place (res://scripts/ui/ui_shell.gd:2190)
+         [2] _place_zones (res://scripts/ui/ui_shell.gd:1641)
+         [3] layout_for (res://scripts/ui/ui_shell.gd:1598)
+         [4] _apply_geometry (res://scripts/ui/ui_shell.gd:1636)
+         [5] _show_alert_card (res://scripts/ui/ui_shell.gd:2700)
+         [6] _refresh_card (res://scripts/ui/ui_shell.gd:2617)
+         [7] set_alert_display (res://scripts/ui/ui_shell.gd:2572)
+         [8] show_alert (res://scripts/ui/hud.gd:139)
+         [9] _ready (res://scripts/ui/hud.gd:85)
+[Main] resident crowd attached: mesh species_mouse_body_a_lod0.glb
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] _set_rect (res://scripts/ui/ui_shell.gd:2295)
+         [1] _place (res://scripts/ui/ui_shell.gd:2190)
+         [2] _place_zones (res://scripts/ui/ui_shell.gd:1641)
+         [3] layout_for (res://scripts/ui/ui_shell.gd:1598)
+         [4] _apply_geometry (res://scripts/ui/ui_shell.gd:1636)
+         [5] _show_alert_card (res://scripts/ui/ui_shell.gd:2700)
+         [6] _refresh_card (res://scripts/ui/ui_shell.gd:2622)
+         [7] raise_notice (res://scripts/ui/ui_shell.gd:2590)
+         [8] set_alert_display (res://scripts/ui/ui_shell.gd:2574)
+         [9] show_alert (res://scripts/ui/hud.gd:139)
+         [10] push_alert (res://scripts/systems/ui_manager.gd:528)
+         [11] _ready (res://scripts/main.gd:62)
+[Main] boot complete: PAUSED  food-days 5.48  ready 408000 NP  fuel-days --
+[capture] mode=unpopulated scale=150 profile=0 viewport=1280x720
+[capture] cell id=2 rect=[P: (8.0, 8.0), S: (104.0, 56.0)] text='' text_px=0.00 budget_px=96.00 verdict=FITS value_digits_that_fit=8
+[capture] cell id=3 not drawn at this profile
+[capture] cell id=4 not drawn at this profile
+[capture] cell id=5 not drawn at this profile
+[capture] cell id=6 rect=[P: (8.0, 64.0), S: (104.0, 56.0)] text='' text_px=0.00 budget_px=96.00 verdict=FITS value_digits_that_fit=8
+[capture] cell id=7 not drawn at this profile
+[capture] alerts rect=[P: (246.6667, 76.0), S: (360.0, 48.0)] wanted=1 visible=1 undisplayed=0
+[capture]   card0 visible=true rect=[P: (373.0, 117.0), S: (480.0, 66.0)] text='Info: Settlement notice'
+[capture]   card1 visible=false rect=[P: (370.0, 114.0), S: (420.0, 66.0)] text=''
+[capture] unpopulated -> /private/tmp/claude-501/-Users-brendan-Developer-redwall-rts/833ff660-9ff2-4805-addb-29528fe5fe8a/scratchpad/uic3/cycle-03/07_counters_narrow_1280x720_150_markers.png (1280x720)
+WARNING: 14 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

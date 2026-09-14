@@ -1,5 +1,7 @@
 # Status — the programme, task 03, and the READY_06 answers
 
+**Latest planner cycle, 2026-09-14:** [Cycle 1 rulings, actual baseline and next executor sequence](planning/astra_cycles/cycle_01.md). Two blockers answered; canonical source membership and duplicate ADR checks currently fail in the reviewed mixed snapshot. Read this before the historical status below.
+
 **2026-09-11 planner review:** the implementation has advanced beyond portions of
 this historical status text. The executor reports 1999 tests/56972 assertions at
 6cac394; see [READY_07 answers](rulings/2026-09-11_ready07_open_item_answers.md)

@@ -1,5 +1,7 @@
 # Next settlement planning package
 
+**Latest planner cycle, 2026-09-14:** [Cycle 1 rulings, actual baseline and next executor sequence](astra_cycles/cycle_01.md). Two blockers answered; canonical source membership and duplicate ADR checks currently fail in the reviewed mixed snapshot. Read this before the historical status below.
+
 **Resident UI addendum:** [heading geometry and four rate readers](../rulings/2026-09-12_resident_header_and_need_rates.md).
 
 **Latest Astra follow-up (2026-09-12):** [six executor answers](../rulings/2026-09-12_executor_followup.md). Read before the older status below.

@@ -1,0 +1,45 @@
+$ python3 -B docs/validation/validate_cycle01_handoff.py
+exit_code=0
+PASS Cycle 1: nine-owner wire arithmetic; four malformed target refusals; twelve starter-root fixtures; archived answers; queue gates; stable inbox anchors; packet evidence limits.
+Scope: planning consistency only; no production codec, physical clearance, art or save-continuation acceptance.
+
+
+$ python3 -B tools/dispatch_plan.py --validate
+exit_code=0
+dispatch_plan: PASS -- 24 tasks, 0 problem(s)
+
+
+$ python3 -B tools/astra_inbox.py --check
+exit_code=0
+astra_inbox: PASS -- OPEN.md matches open_items.json
+
+
+$ python3 -B docs/validation/state_registry_coverage.py
+exit_code=0
+state_registry_coverage: PASS -- 52 modules, 350 rows, 681 packed columns checked
+
+
+$ python3 -B docs/validation/validate_save_registry_handoff.py --source-root .
+exit_code=1
+PASS 31 independent name, cursor, UTF-8 framing and name-section-bound fixtures
+state_registry_coverage: PASS -- 52 modules, 350 rows, 681 packed columns checked
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts/docs/validation/validate_save_registry_handoff.py", line 116, in <module>
+    if __name__=='__main__':raise SystemExit(main())
+  File "/Users/brendan/Developer/redwall-rts/docs/validation/validate_save_registry_handoff.py", line 109, in main
+    if args.source_root:validate_source(data,args.source_root)
+  File "/Users/brendan/Developer/redwall-rts/docs/validation/validate_save_registry_handoff.py", line 66, in validate_source
+    assert actual.keys() == declared.keys(), f'packed registry drift: added={actual.keys()-declared.keys()}, missing={declared.keys()-actual.keys()}'
+AssertionError: packed registry drift: added={('construction', '_type_id'), ('construction', '_subject_slot'), ('construction', '_delivered_milli'), ('construction', '_purpose'), ('construction', '_material_container_generation'), ('construction', '_assigned_count'), ('construction', '_material_container_slot'), ('construction', '_present'), ('construction', '_refund_policy'), ('construction', '_ref_slot'), ('construction', '_max_workers'), ('construction', '_paused'), ('construction', '_work_begun'), ('construction', '_remaining_mwu'), ('construction', '_subject_generation'), ('construction', '_ref_generation'), ('construction', '_phase')}, missing=set()
+
+
+$ python3 -B docs/validation/decision_numbers.py
+exit_code=1
+decision_numbers: 0090 is claimed by 2 records: 0090-resident-heading-and-public-need-rates.md, 0090-the-clocks-one-validated-restore-boundary.md
+decision_numbers: 0091 is claimed by 2 records: 0091-exact-start-astar-replaces-macro-anchor-composition.md, 0091-move-g01-request-review-and-owner-boundaries.md
+decision_numbers: 0092 is claimed by 2 records: 0092-the-load-barrier-and-the-one-restore-call-site.md, 0092-underground-economy-and-hazard-parameters.md
+decision_numbers: FAIL -- 129 records, 3 problem(s)
+
+
+$ git diff --check
+exit_code=0

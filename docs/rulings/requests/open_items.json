@@ -3,26 +3,16 @@
   "note": "Source of truth for the Astra inbox. tools/astra_inbox.py renders docs/rulings/requests/OPEN.md from this and CI checks the rendering is current, so the index cannot drift from the items. anchor must match the #fragment referenced by work_queue.json.",
   "items": [
     {
-      "anchor": "w2-section-1-owners-without-encoders",
-      "title": "Section 1: seven declared owners have no encoder",
-      "blocks": [
-        "SAVE-S1-OWNERS"
-      ],
-      "asked": "2026-09-12",
-      "question": "Section 1 declares seven owners for which no encoder exists. Are these owners in the section-1 payload with encoders still to be written, or are they registry entries that section 1 deliberately does not persist? The two readings produce different section lengths and a different digest.",
-      "why_we_cannot_decide": "Either answer is internally consistent with SAVE-R09. Guessing sets a wire format that later has to be broken.",
-      "impact": "Blocks the section 1 codec, and therefore the first-body-offset arithmetic every later section depends on."
-    },
-    {
       "anchor": "retired-row-blanking",
-      "title": "inventory.gd does not blank retired rows",
+      "title": "Canonical inactive and retired inventory representation",
       "blocks": [
         "DIGEST-DETERMINISM"
       ],
       "asked": "2026-09-12",
-      "question": "A retired inventory row keeps its old bytes. The section 15 canonical digest therefore depends on what a slot USED to hold, so two worlds with identical live state can hash differently. Should retirement blank the row (changing behaviour and costing a write per retirement), or should the digest skip retired rows (changing the digest's definition)?",
+      "question": "Which authoritative fields remain meaningful after deactivation or retirement, and what canonical values must the fixed field walker emit for all other fields? Reconcile SAVE-LAYOUT-R01 declared unused values with generation/retirement/free-order state and the existing inventory lifecycle. Decide the owner normalization and mutation obligations without assuming a whole-row blank, omitted rows, or identical future behavior from identical live entities alone.",
       "why_we_cannot_decide": "The first changes runtime behaviour, the second changes what the digest means. Both are yours.",
-      "impact": "Section 15 digests are not reproducible until this is settled, so no save-parity claim can be made."
+      "impact": "Blocks the section15 canonical adapter contract and full save-continuation evidence. Distinguish real future-state differences from irrelevant inactive payload history.",
+      "question_before_cycle_01": "A retired inventory row keeps its old bytes. The section 15 canonical digest therefore depends on what a slot USED to hold, so two worlds with identical live state can hash differently. Should retirement blank the row (changing behaviour and costing a write per retirement), or should the digest skip retired rows (changing the digest's definition)?"
     },
     {
       "anchor": "move-g01-clearance-and-modes",
@@ -51,18 +41,8 @@
       "asked": "2026-09-12",
       "question": "May the executor convert prose capacities to integers mechanically where the prose is unambiguous, reporting every conversion for audit, or must each be ruled?",
       "why_we_cannot_decide": "Mechanical conversion of 501 fields is exactly the kind of bulk inference that has produced silent errors here before.",
-      "impact": "shape.declared_capacity cannot be validated as a number until resolved."
-    },
-    {
-      "anchor": "resident-spawn-positions-and-the-pose-scaffold",
-      "title": "No resident has an authoritative position, so the renderer borrows a second Transform store",
-      "blocks": [
-        "RENDER-PATH"
-      ],
-      "asked": "2026-09-12",
-      "question": "Two gaps meet here. `settlement_system.gd` composes fourteen core stores and `transforms.gd` is not one of them, so nothing in the boot path ever calls `place()`. And GDD 5.1 authors no resident spawn coordinates -- it says only that initial room assignments follow resident ID ascending and bed ID ascending, and beds need a Furniture store `world_init.gd`'s own header records as BLOCKED. Should `settlement_system.gd` compose `transforms.gd` now and GDD 5.1 gain authored spawn coordinates, or does the renderer keep a presentation-private pose store until movement lands?",
-      "why_we_cannot_decide": "Writing an invented resident layout into authoritative state is exactly the kind of invented production constant the movement amendment forbids. The executor declined to do it and built a presentation-private scaffold instead, which is reversible but costs 3151872 bytes -- 98% of the render path's whole ledger delta, and a second live copy of nine packed columns.",
-      "impact": "Residents render, but from a presentation-private pose store that no tick stage reads and no save section contains. The single unauthored choice -- which cleared tile a resident stands on -- is isolated in `muster_tile_x/z()`. The ledger row is marked DELETED WHOLE when movement composes ARCH-SYS-001, so the cost is temporary by construction, but it is real while it lasts and it pushes the transactional peak from 129703814 to 136109958."
+      "impact": "shape.declared_capacity cannot be validated as a number until resolved.",
+      "audit_note": "Cycle 1: quoted 590/501 census is historical. Current artifact has582 records/536 packed source fields and fails source comparison on17 Construction additions. Recount exact fields on reconciled base before any broad conversion."
     },
     {
       "anchor": "alert-card-44px-is-not-reachable-typography",
@@ -86,7 +66,7 @@
       "anchor": "inventory-container-enumeration-by-owner",
       "title": "REQ-SET-128's stored-goods half cannot be enforced: inventory.gd cannot enumerate containers by owner",
       "blocks": [
-        "CONSTRUCTION-STORE"
+        "CONSTRUCTION-GOODS"
       ],
       "asked": "2026-09-13",
       "question": "REQ-SET-128 refuses a destructive edit on an occupied building. The RESIDENT half is enforced against the real store, with the exact blocked count in the refusal. The GOODS half cannot be: `inventory.gd` has no owner index and no container iteration, and `container_owner()` needs a ref the caller must already hold. Should inventory.gd publish a container-by-owner enumeration, or should the rule be restated so the goods half is checked somewhere that can see it?",
@@ -110,6 +90,38 @@
       "question": "ECON-003 names nine excavation phases. They are SITE states and map onto the construction store's five project phases not at all one-for-one: each ECON-003 transition is one project run through the whole lifecycle, with 'consume inputs once at WORK start' = `begin_work()` and 'retain earned work, publish nothing' = PHASE_WORK_DONE. This needs compiled ASCII ids in `catalog.gd` and a site-phase column from the excavation owner. Who owns that column, and are the nine ids a protected or a compiled enum domain?",
       "why_we_cannot_decide": "Adding a domain to catalog.gd is a schema change with a digest consequence, and the excavation owner does not exist yet to be asked.",
       "impact": "Advisory. The mapping is documented in ADR 0131 so the excavation lane inherits it rather than re-deriving it."
+    }
+  ],
+  "answered": [
+    {
+      "anchor": "w2-section-1-owners-without-encoders",
+      "title": "Section 1: seven declared owners have no encoder",
+      "blocks": [
+        "SAVE-S1-OWNERS"
+      ],
+      "asked": "2026-09-12",
+      "question": "Section 1 declares seven owners for which no encoder exists. Are these owners in the section-1 payload with encoders still to be written, or are they registry entries that section 1 deliberately does not persist? The two readings produce different section lengths and a different digest.",
+      "why_we_cannot_decide": "Either answer is internally consistent with SAVE-R09. Guessing sets a wire format that later has to be broken.",
+      "impact": "Blocks the section 1 codec, and therefore the first-body-offset arithmetic every later section depends on.",
+      "answered": "2026-09-14",
+      "cycle": 1,
+      "ruling": "docs/rulings/2026-09-14_world_section_owner_encoders.md#w2-section-1-owners-without-encoders",
+      "implementation_complete": false
+    },
+    {
+      "anchor": "resident-spawn-positions-and-the-pose-scaffold",
+      "title": "No resident has an authoritative position, so the renderer borrows a second Transform store",
+      "blocks": [
+        "RENDER-PATH"
+      ],
+      "asked": "2026-09-12",
+      "question": "Two gaps meet here. `settlement_system.gd` composes fourteen core stores and `transforms.gd` is not one of them, so nothing in the boot path ever calls `place()`. And GDD 5.1 authors no resident spawn coordinates -- it says only that initial room assignments follow resident ID ascending and bed ID ascending, and beds need a Furniture store `world_init.gd`'s own header records as BLOCKED. Should `settlement_system.gd` compose `transforms.gd` now and GDD 5.1 gain authored spawn coordinates, or does the renderer keep a presentation-private pose store until movement lands?",
+      "why_we_cannot_decide": "Writing an invented resident layout into authoritative state is exactly the kind of invented production constant the movement amendment forbids. The executor declined to do it and built a presentation-private scaffold instead, which is reversible but costs 3151872 bytes -- 98% of the render path's whole ledger delta, and a second live copy of nine packed columns.",
+      "impact": "Residents render, but from a presentation-private pose store that no tick stage reads and no save section contains. The single unauthored choice -- which cleared tile a resident stands on -- is isolated in `muster_tile_x/z()`. The ledger row is marked DELETED WHOLE when movement composes ARCH-SYS-001, so the cost is temporary by construction, but it is real while it lasts and it pushes the transactional peak from 129703814 to 136109958.",
+      "answered": "2026-09-14",
+      "cycle": 1,
+      "ruling": "docs/rulings/2026-09-14_initial_resident_positions.md#resident-spawn-positions-and-the-pose-scaffold",
+      "implementation_complete": false
     }
   ]
 }

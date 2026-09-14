@@ -1,0 +1,34 @@
+{
+  "result": "PASS_SCOPE_ONLY",
+  "scope": "Registry structure, persisted-packed membership/types against197472b, independent arithmetic/string fixtures; not runtime codec/save parity",
+  "checks": {
+    "registry_owners": 49,
+    "canonical_records": 564,
+    "persisted_packed_fields": 512,
+    "source_modules_checked": 46,
+    "source_registry_rows_checked": 318,
+    "source_packed_columns_checked": 630,
+    "independent_contract_fixtures": 31,
+    "release_gate_expected_exit": 2,
+    "release_gate_reason": "release_save_ready=false",
+    "relative_links_missing": [],
+    "underground_oracle_tests": 21,
+    "underground_oracle_failures": 0
+  },
+  "source_commit": "197472b9d7f2385ba5eb173aef0ebb0e29511c3e",
+  "sha256": {
+    "docs/rulings/2026-09-12_save_registry_answers.md": "958e899f37e87f38b5c1e38dfd36a3f65b824cf568e7d2cf1cb6f7c79373337b",
+    "docs/planning/canonical_state_registry.json": "8bc291758e92e49a532131932206d858168572271ae9b7bc35a948815fe27775",
+    "docs/validation/validate_save_registry_handoff.py": "d0e0ffee58fe903076ee47fbf76f7d0a6718e008997ed81ed4a589d02447b389",
+    "docs/rulings/requests/2026-09-12_save_registry_request.md": "bce074a5989694825027d322d3c6054f19331a85043c8008338e2ccf849baa5e"
+  },
+  "not_verified": [
+    "Godot runtime changes",
+    "binary section integration",
+    "full rules and lookup manifest completeness",
+    "full canonical adapters",
+    "load and cross-process save parity",
+    "complete movement envelopes",
+    "Brendan ART-UI-12 approval"
+  ]
+}

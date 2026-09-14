@@ -14,46 +14,34 @@ blocking in `docs/planning/work_queue.json`, which is what releases them to the
 dispatcher.
 
 
-**5 blocking, 6 advisory.** Oldest asked 2026-09-12.
+**3 blocking, 6 advisory.** Oldest asked 2026-09-12.
 
 | Question | Asked | Holding up |
 |---|---|---|
-| [Section 1: seven declared owners have no encoder](#w2-section-1-owners-without-encoders) | 2026-09-12 | `SAVE-S1-OWNERS` |
-| [inventory.gd does not blank retired rows](#retired-row-blanking) | 2026-09-12 | `DIGEST-DETERMINISM` |
+| [Canonical inactive and retired inventory representation](#retired-row-blanking) | 2026-09-12 | `DIGEST-DETERMINISM` |
 | [MOVE-G01 Q1 and Q2: clearance classes and per-species modes](#move-g01-clearance-and-modes) | 2026-09-12 | `MOVE-ENVELOPES` |
 | [Multi-table primary_count for sections 8 and 9](#multi-table-primary-count) | 2026-09-12 | nothing yet |
 | [501 of 590 registry fields carry declared_capacity as prose](#declared-capacity-as-prose) | 2026-09-12 | nothing yet |
-| [No resident has an authoritative position, so the renderer borrows a second Transform store](#resident-spawn-positions-and-the-pose-scaffold) | 2026-09-12 | `RENDER-PATH` |
 | [ALERT-R02's 44px card height is packing arithmetic, not reachable typography](#alert-card-44px-is-not-reachable-typography) | 2026-09-12 | nothing yet |
 | [§1.2 publishes an alert zone that lies wholly inside the workspace frame](#alert-zone-inside-workspace-frame) | 2026-09-12 | nothing yet |
-| [REQ-SET-128's stored-goods half cannot be enforced: inventory.gd cannot enumerate containers by owner](#inventory-container-enumeration-by-owner) | 2026-09-13 | `CONSTRUCTION-STORE` |
+| [REQ-SET-128's stored-goods half cannot be enforced: inventory.gd cannot enumerate containers by owner](#inventory-container-enumeration-by-owner) | 2026-09-13 | `CONSTRUCTION-GOODS` |
 | [A tier-2 building's demolition basis is unresolved](#tier-two-demolition-basis) | 2026-09-13 | nothing yet |
 | [ECON-003's excavation phases need compiled ids and a site-phase column](#econ-003-excavation-phase-domain) | 2026-09-13 | nothing yet |
 
-## Section 1: seven declared owners have no encoder
+<a id="retired-row-blanking"></a>
+## Canonical inactive and retired inventory representation
 
 *Asked 2026-09-12.*
 
-**Question.** Section 1 declares seven owners for which no encoder exists. Are these owners in the section-1 payload with encoders still to be written, or are they registry entries that section 1 deliberately does not persist? The two readings produce different section lengths and a different digest.
-
-**Why the executor cannot decide it.** Either answer is internally consistent with SAVE-R09. Guessing sets a wire format that later has to be broken.
-
-**Impact.** Blocks the section 1 codec, and therefore the first-body-offset arithmetic every later section depends on.
-
-- Blocks `SAVE-S1-OWNERS` — Section 1's seven owners with no encoder (blocker W2)
-
-## inventory.gd does not blank retired rows
-
-*Asked 2026-09-12.*
-
-**Question.** A retired inventory row keeps its old bytes. The section 15 canonical digest therefore depends on what a slot USED to hold, so two worlds with identical live state can hash differently. Should retirement blank the row (changing behaviour and costing a write per retirement), or should the digest skip retired rows (changing the digest's definition)?
+**Question.** Which authoritative fields remain meaningful after deactivation or retirement, and what canonical values must the fixed field walker emit for all other fields? Reconcile SAVE-LAYOUT-R01 declared unused values with generation/retirement/free-order state and the existing inventory lifecycle. Decide the owner normalization and mutation obligations without assuming a whole-row blank, omitted rows, or identical future behavior from identical live entities alone.
 
 **Why the executor cannot decide it.** The first changes runtime behaviour, the second changes what the digest means. Both are yours.
 
-**Impact.** Section 15 digests are not reproducible until this is settled, so no save-parity claim can be made.
+**Impact.** Blocks the section15 canonical adapter contract and full save-continuation evidence. Distinguish real future-state differences from irrelevant inactive payload history.
 
-- Blocks `DIGEST-DETERMINISM` — inventory.gd must blank retired rows so the section 15 digest is deterministic
+- Blocks `DIGEST-DETERMINISM` — Resolve canonical inactive and retired inventory representation
 
+<a id="move-g01-clearance-and-modes"></a>
 ## MOVE-G01 Q1 and Q2: clearance classes and per-species modes
 
 *Asked 2026-09-12.*
@@ -66,18 +54,7 @@ dispatcher.
 
 - Blocks `MOVE-ENVELOPES` — Measured movement envelopes, MOVE-G01 Q1/Q2
 
-## No resident has an authoritative position, so the renderer borrows a second Transform store
-
-*Asked 2026-09-12.*
-
-**Question.** Two gaps meet here. `settlement_system.gd` composes fourteen core stores and `transforms.gd` is not one of them, so nothing in the boot path ever calls `place()`. And GDD 5.1 authors no resident spawn coordinates -- it says only that initial room assignments follow resident ID ascending and bed ID ascending, and beds need a Furniture store `world_init.gd`'s own header records as BLOCKED. Should `settlement_system.gd` compose `transforms.gd` now and GDD 5.1 gain authored spawn coordinates, or does the renderer keep a presentation-private pose store until movement lands?
-
-**Why the executor cannot decide it.** Writing an invented resident layout into authoritative state is exactly the kind of invented production constant the movement amendment forbids. The executor declined to do it and built a presentation-private scaffold instead, which is reversible but costs 3151872 bytes -- 98% of the render path's whole ledger delta, and a second live copy of nine packed columns.
-
-**Impact.** Residents render, but from a presentation-private pose store that no tick stage reads and no save section contains. The single unauthored choice -- which cleared tile a resident stands on -- is isolated in `muster_tile_x/z()`. The ledger row is marked DELETED WHOLE when movement composes ARCH-SYS-001, so the cost is temporary by construction, but it is real while it lasts and it pushes the transactional peak from 129703814 to 136109958.
-
-- Blocks `RENDER-PATH` — Crowd render path: consume the presentation snapshot into World/Entities
-
+<a id="inventory-container-enumeration-by-owner"></a>
 ## REQ-SET-128's stored-goods half cannot be enforced: inventory.gd cannot enumerate containers by owner
 
 *Asked 2026-09-13.*
@@ -88,8 +65,9 @@ dispatcher.
 
 **Impact.** Blocks 06.2's 'Refuse occupied/only-exit destructive edits'. The construction store refuses on residents and is silent on goods, which is a half-enforced rule.
 
-- Blocks `CONSTRUCTION-STORE` — Construction store for task 06.1
+- Blocks `CONSTRUCTION-GOODS` — Enforce stored-goods safety for destructive building edits
 
+<a id="multi-table-primary-count"></a>
 ## Multi-table primary_count for sections 8 and 9
 
 *Asked 2026-09-12.*
@@ -100,6 +78,7 @@ dispatcher.
 
 **Impact.** Two sections currently disagree on the meaning of a header field.
 
+<a id="declared-capacity-as-prose"></a>
 ## 501 of 590 registry fields carry declared_capacity as prose
 
 *Asked 2026-09-12.*
@@ -110,6 +89,7 @@ dispatcher.
 
 **Impact.** shape.declared_capacity cannot be validated as a number until resolved.
 
+<a id="alert-card-44px-is-not-reachable-typography"></a>
 ## ALERT-R02's 44px card height is packing arithmetic, not reachable typography
 
 *Asked 2026-09-12.*
@@ -120,6 +100,7 @@ dispatcher.
 
 **Impact.** Captures 36/37 show one card where the ruling implies two. Behaviour is correct and the rail states it; the ruling's own example is unreachable.
 
+<a id="alert-zone-inside-workspace-frame"></a>
 ## §1.2 publishes an alert zone that lies wholly inside the workspace frame
 
 *Asked 2026-09-12.*
@@ -130,6 +111,7 @@ dispatcher.
 
 **Impact.** Alerts can be occluded at the 1280x720 floor, which is a supported resolution. Captured as evidence 40. Recorded as open in ADR 0134 and the task checklist.
 
+<a id="tier-two-demolition-basis"></a>
 ## A tier-2 building's demolition basis is unresolved
 
 *Asked 2026-09-13.*
@@ -140,6 +122,7 @@ dispatcher.
 
 **Impact.** The store uses the base §4.1 row at every tier and says so in its own header. Whichever way this is ruled, only a constant changes.
 
+<a id="econ-003-excavation-phase-domain"></a>
 ## ECON-003's excavation phases need compiled ids and a site-phase column
 
 *Asked 2026-09-13.*

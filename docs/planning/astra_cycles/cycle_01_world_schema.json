@@ -1,0 +1,1149 @@
+{
+  "manifest_id": "R-WORLD-S1-001-TARGET-1",
+  "author_id": "R-WORLD-S1-001",
+  "open_anchor": "w2-section-1-owners-without-encoders",
+  "status": "PLANNING_TARGET_NOT_ACTIVE_REGISTRY",
+  "active_registry_mutation_performed": false,
+  "runtime_import_permitted": false,
+  "scope": "Section 1 target and its explicit registry delta only; not a replacement full canonical registry or save-readiness certificate.",
+  "implementation_precondition": "Re-audit field membership, numeric extents, all relevant source hashes, version conflicts, and global counts on the integrated working snapshot; old HEAD alone is not the implementation base. Apply registry, classification, adapters, compiled tables, checks, versions and rules identity atomically with implementation.",
+  "source_snapshot": {
+    "repository": "/Users/brendan/Developer/redwall-rts",
+    "head": "3e094e927c822056b51953aac4168b77acdee814",
+    "evidence_basis": "working files, compared read-only with index",
+    "status_counts": {
+      "A ": 247,
+      "M ": 83,
+      "??": 5
+    },
+    "fingerprint_algorithm": "SHA-256 of UTF-8 concatenation of sorted relative path + NUL + lowercase file SHA-256 + LF",
+    "selected_source_fingerprint_sha256": "87bf5357b1862fa6782c217904af8dc59048b5ac74e8e82f4cb1fc69ccfcdaec",
+    "files": {
+      "AGENTS.md": {
+        "sha256": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "bytes": 6907,
+        "matches_index": true
+      },
+      "docs/persistence_state_registry.md": {
+        "sha256": "a9ca00e1422c999edbf86a38b0966d94c010c72e3c98048ad4fbac192060697f",
+        "bytes": 148535,
+        "matches_index": true
+      },
+      "docs/planning/canonical_state_registry.json": {
+        "sha256": "1201b8a88a296dfd5273c063066fefd03000a70018aa95f6fdd65ba8272eb768",
+        "bytes": 268295,
+        "matches_index": true
+      },
+      "docs/rulings/2026-09-11_save_codec_contract.md": {
+        "sha256": "a45e09e314cfb624d98b96a5710713068de07c814ad74ff4a67f229cd6d2e03a",
+        "bytes": 18461,
+        "matches_index": true
+      },
+      "docs/rulings/2026-09-12_clock_restore_and_layout_followup.md": {
+        "sha256": "231f36bfc07369d50cbe3ed55a6278f010698163473711a599d8c088962544b8",
+        "bytes": 15436,
+        "matches_index": true
+      },
+      "docs/rulings/2026-09-12_save_registry_answers.md": {
+        "sha256": "958e899f37e87f38b5c1e38dfd36a3f65b824cf568e7d2cf1cb6f7c79373337b",
+        "bytes": 25283,
+        "matches_index": true
+      },
+      "docs/rulings/requests/OPEN.md": {
+        "sha256": "5d95b035f94c4058cc2bd764fe878779f4cf4126079640ef8c7d3753d30af391",
+        "bytes": 12684,
+        "matches_index": true
+      },
+      "docs/validation/decision_numbers.py": {
+        "sha256": "4b1c218b5fb53007c33256a3fffbe2e9ec9929a755df1f73a3266780ea5987cd",
+        "bytes": 2898,
+        "matches_index": true
+      },
+      "docs/validation/state_registry_coverage.py": {
+        "sha256": "2191e4809e3e0dc6215cc3c7e9708975b6bfdabc90580f419938c3e54201978f",
+        "bytes": 14695,
+        "matches_index": true
+      },
+      "docs/validation/validate_save_registry_handoff.py": {
+        "sha256": "a77fefd74e7af789f5b018a7060cfb66e92ff90b712addb8c7ffffb0fad1a1ce",
+        "bytes": 7066,
+        "matches_index": true
+      },
+      "godot/scripts/core/buildings.gd": {
+        "sha256": "efaac6fdb73e2909ed2da19b4700ef8a97c7f38380d31aee71f351a9b34bca18",
+        "bytes": 76156,
+        "matches_index": true
+      },
+      "godot/scripts/core/canonical_state_hash.gd": {
+        "sha256": "1caefd3ceb2f411e8726c67cc4e5af6dc86b148c5965ee9043562e9b177e2d09",
+        "bytes": 62355,
+        "matches_index": true
+      },
+      "godot/scripts/core/catalog.gd": {
+        "sha256": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+        "bytes": 42630,
+        "matches_index": true
+      },
+      "godot/scripts/core/construction.gd": {
+        "sha256": "accd44a3c6a367d132e5189698171b9991c103ab70a9b03cdfabf20721b8fe8e",
+        "bytes": 60307,
+        "matches_index": true
+      },
+      "godot/scripts/core/entity_directory.gd": {
+        "sha256": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "bytes": 39989,
+        "matches_index": true
+      },
+      "godot/scripts/core/farming.gd": {
+        "sha256": "35063cee7e2872ac63b2a76dbc28ff0433fcb888d51809434f59125a3cf0fb92",
+        "bytes": 105842,
+        "matches_index": true
+      },
+      "godot/scripts/core/forage.gd": {
+        "sha256": "6684b6be65bc722ee990be87e53180ecb95728d5a0f2f7803e57d8d6b0005d6d",
+        "bytes": 134965,
+        "matches_index": true
+      },
+      "godot/scripts/core/orchard_hive.gd": {
+        "sha256": "bb1e885b046f61aeb03f6939f2c05c7a4597e3238cf412e111abd07be4e3c780",
+        "bytes": 110808,
+        "matches_index": true
+      },
+      "godot/scripts/core/resource_nodes.gd": {
+        "sha256": "3782a676489bc60782f29961f6d43f8bf455e80e928329c87adeab42ea72ee4c",
+        "bytes": 42984,
+        "matches_index": true
+      },
+      "godot/scripts/core/rng.gd": {
+        "sha256": "3bfc333d24db8eb239c10cb5a910d00abe9e440eb897219b3894ea1fdafeffef",
+        "bytes": 23436,
+        "matches_index": true
+      },
+      "godot/scripts/core/save_codec.gd": {
+        "sha256": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508",
+        "bytes": 31624,
+        "matches_index": true
+      },
+      "godot/scripts/core/save_header.gd": {
+        "sha256": "ae44b8ab307e987c8084b81ba707fd1db8befe26868fba8120b6944236bfbed5",
+        "bytes": 34195,
+        "matches_index": true
+      },
+      "godot/scripts/core/save_section_world_runtime.gd": {
+        "sha256": "eca4b522392529e74cbba303da7ea7d274128a39bb002ac3ec620bdb632fcaf3",
+        "bytes": 54979,
+        "matches_index": true
+      },
+      "godot/scripts/core/sim_clock.gd": {
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a",
+        "bytes": 42547,
+        "matches_index": true
+      },
+      "godot/scripts/core/spatial_world.gd": {
+        "sha256": "1713ffa8bd63b6cb50ff01654d2f79debf4674f0f73108fb17907541cce9c782",
+        "bytes": 24581,
+        "matches_index": true
+      },
+      "godot/scripts/core/weather.gd": {
+        "sha256": "cf50f8a5ac90f5d1f5ff24e4ca3b221b0e0898cb8f56597c963fe21b5877b864",
+        "bytes": 84243,
+        "matches_index": true
+      },
+      "godot/scripts/core/world_init.gd": {
+        "sha256": "664d7bbdd96456818f0e1baaf19af6081fac9dcd317df31b8770c0999c717130",
+        "bytes": 105612,
+        "matches_index": true
+      },
+      "godot/test/test_canonical_state_hash.gd": {
+        "sha256": "8c0e152b9a5744d7c35ac3745e820e406c1eef0b59214733443d86b3d15019e5",
+        "bytes": 41533,
+        "matches_index": true
+      },
+      "godot/test/test_save_section_world_runtime.gd": {
+        "sha256": "964798b7da5b4e3b7d947411cb9ed03a0b5e023b72ffcf93725533b5156b555a",
+        "bytes": 49059,
+        "matches_index": true
+      }
+    },
+    "read_only_checks": [
+      {
+        "command": "python3 -B docs/validation/validate_save_registry_handoff.py --source-root .",
+        "exit_code": 1,
+        "result": "FAIL: source/canonical mismatch, added 17 construction fields, missing none; 31 independent contract fixtures pass; nested state_registry_coverage passes 52 modules / 350 rows / 681 packed columns"
+      },
+      {
+        "command": "python3 -B docs/validation/decision_numbers.py",
+        "exit_code": 1,
+        "result": "FAIL: pre-existing duplicate numbers 0090, 0091, 0092; 128 records, 3 problems"
+      }
+    ]
+  },
+  "registry_delta": {
+    "remove_fields": [
+      {
+        "section_id": 1,
+        "owner_key": "resource_nodes",
+        "field_key": "_deposit_tiles",
+        "old_ordinal": 1,
+        "reason": "non-reentrant placement scratch, category 3; omitted from save and canonical hash after atomic implementation"
+      },
+      {
+        "section_id": 1,
+        "owner_key": "resource_nodes",
+        "field_key": "_deposit_ref_slot",
+        "old_ordinal": 2,
+        "reason": "non-reentrant placement scratch, category 3; omitted from save and canonical hash after atomic implementation"
+      },
+      {
+        "section_id": 1,
+        "owner_key": "resource_nodes",
+        "field_key": "_deposit_ref_generation",
+        "old_ordinal": 3,
+        "reason": "non-reentrant placement scratch, category 3; omitted from save and canonical hash after atomic implementation"
+      }
+    ],
+    "owner_schema_version_changes": [
+      {
+        "section_id": 1,
+        "owner_key": "resource_nodes",
+        "observed": 1,
+        "target": 2
+      }
+    ],
+    "section_schema_version_changes": [
+      {
+        "section_id": 1,
+        "observed": 2,
+        "target": 3
+      }
+    ],
+    "other_owner_and_section_versions": "unchanged by this scoped delta; re-audit concurrent changes",
+    "rules_identity_change_required": true,
+    "snapshot_only_global_count_expectations": {
+      "not_format_constants": true,
+      "record_count": {
+        "observed": 582,
+        "delta": -3,
+        "expected_if_only_this_delta": 579
+      },
+      "packed_source_field_count": {
+        "observed": 536,
+        "delta": -3,
+        "expected_if_only_this_delta": 533
+      },
+      "owner_group_count": {
+        "observed": 50,
+        "delta": 0,
+        "expected_if_only_this_delta": 50
+      },
+      "warning": "579 and 533 are subtract-three-only arithmetic on the observed stale registry, BEFORE mandatory reconciliation of 17 construction category-1 packed fields and any newer state. They MUST NOT be pinned as final integrated global counts. Recompute from reconciled source and declarations."
+    },
+    "release_save_ready": "not changed or certified by this ruling",
+    "excluded_source_contract": "C007 loses these field references; remove it only if unused after integrated-base re-audit",
+    "mandatory_integrated_reconciliation": {
+      "authority": "REG-R01 register implemented state on arrival",
+      "construction_category_1_fields_absent_from_canonical": [
+        "_assigned_count",
+        "_delivered_milli",
+        "_material_container_generation",
+        "_material_container_slot",
+        "_max_workers",
+        "_paused",
+        "_phase",
+        "_present",
+        "_purpose",
+        "_ref_generation",
+        "_ref_slot",
+        "_refund_policy",
+        "_remaining_mwu",
+        "_subject_generation",
+        "_subject_slot",
+        "_type_id",
+        "_work_begun"
+      ],
+      "count": 17,
+      "other_new_state": "must be audited on implementation base; no final global total or full target registry is declared here"
+    }
+  },
+  "section": {
+    "section_id": 1,
+    "section_schema_version": 3,
+    "byte_order": "little_endian",
+    "store_count": 9,
+    "owner_order": "ASCII ascending, exact required membership",
+    "prefix_bytes": 44,
+    "prefix_fields": [
+      {
+        "key": "scenario_version",
+        "type": "u32",
+        "offset": 0
+      },
+      {
+        "key": "effective_seed",
+        "type": "i32",
+        "offset": 4
+      },
+      {
+        "key": "map_generator_schema",
+        "type": "u32",
+        "offset": 8
+      },
+      {
+        "key": "authored_map_digest",
+        "type": "raw_bytes",
+        "count": 32,
+        "offset": 12
+      }
+    ],
+    "store_count_offset": 44,
+    "store_count_bytes": 4,
+    "owner_wrapper": "owner_key:utf8_u32; owner_schema_version:u32; primary_count:u64; payload_byte_length:u64",
+    "owner_wrapper_fixed_bytes": 24,
+    "ordinary_payload": "each field in ordinal order: element_count:u64 then exactly count*type_width LE value bytes; scalar count=1; no field key/type bytes, padding, field_count, or child-table headers",
+    "owners": [
+      {
+        "owner_key": "buildings",
+        "owner_schema_version": 1,
+        "primary_count": 16384,
+        "primary_count_meaning": "exterior tiles",
+        "payload_format": "ordinary_columns",
+        "validator_id": "S1-BUILDINGS",
+        "fields": [
+          {
+            "ordinal": 0,
+            "field_key": "_building_slot",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "buildings",
+            "source_member": "_building_slot",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C001",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 0,
+            "value_offset_in_payload": 8
+          },
+          {
+            "ordinal": 1,
+            "field_key": "_room_slot",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "buildings",
+            "source_member": "_room_slot",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C001",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 65544,
+            "value_offset_in_payload": 65552
+          },
+          {
+            "ordinal": 2,
+            "field_key": "_furniture_slot",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "buildings",
+            "source_member": "_furniture_slot",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C001",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 131088,
+            "value_offset_in_payload": 131096
+          }
+        ],
+        "payload_bytes": 196632,
+        "wrapper_bytes": 33,
+        "block_offset_in_section": 48,
+        "payload_offset_in_section": 81,
+        "end_offset_in_section": 196713
+      },
+      {
+        "owner_key": "entity_directory",
+        "owner_schema_version": 1,
+        "primary_count": 1,
+        "primary_count_meaning": "one fixed aggregate",
+        "payload_format": "fixed_record_exception",
+        "validator_id": "S1-ENTITY_DIRECTORY",
+        "fields": [
+          {
+            "ordinal": 0,
+            "field_key": "_next_persistent_id",
+            "type": "u32",
+            "type_code": 1,
+            "source_module": "entity_directory",
+            "source_member": "_next_persistent_id",
+            "hash": true,
+            "element_count": 1,
+            "type_width_bytes": 4,
+            "value_bytes": 4,
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 0
+          }
+        ],
+        "payload_bytes": 4,
+        "wrapper_bytes": 40,
+        "block_offset_in_section": 196713,
+        "payload_offset_in_section": 196753,
+        "end_offset_in_section": 196757
+      },
+      {
+        "owner_key": "farming",
+        "owner_schema_version": 1,
+        "primary_count": 16384,
+        "primary_count_meaning": "exterior tiles",
+        "payload_format": "ordinary_columns",
+        "validator_id": "S1-FARMING",
+        "fields": [
+          {
+            "ordinal": 0,
+            "field_key": "_tile_fertility",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "farming",
+            "source_member": "_tile_fertility",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C002",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 0,
+            "value_offset_in_payload": 8
+          },
+          {
+            "ordinal": 1,
+            "field_key": "_tile_last_family",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "farming",
+            "source_member": "_tile_last_family",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C002",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 65544,
+            "value_offset_in_payload": 65552
+          },
+          {
+            "ordinal": 2,
+            "field_key": "_tile_family_streak",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "farming",
+            "source_member": "_tile_family_streak",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C002",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 131088,
+            "value_offset_in_payload": 131096
+          },
+          {
+            "ordinal": 3,
+            "field_key": "_tile_last_legume_day",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "farming",
+            "source_member": "_tile_last_legume_day",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C002",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 196632,
+            "value_offset_in_payload": 196640
+          },
+          {
+            "ordinal": 4,
+            "field_key": "_tile_compost_season",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "farming",
+            "source_member": "_tile_compost_season",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C002",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 262176,
+            "value_offset_in_payload": 262184
+          },
+          {
+            "ordinal": 5,
+            "field_key": "_tile_active_plot_row",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "farming",
+            "source_member": "_tile_active_plot_row",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C002",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 327720,
+            "value_offset_in_payload": 327728
+          },
+          {
+            "ordinal": 6,
+            "field_key": "_tile_orchard_row",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "farming",
+            "source_member": "_tile_orchard_row",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C002",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 393264,
+            "value_offset_in_payload": 393272
+          },
+          {
+            "ordinal": 7,
+            "field_key": "_tile_ripe_tick",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "farming",
+            "source_member": "_tile_ripe_tick",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 8,
+            "value_bytes": 131072,
+            "source_contract": "C003",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 458808,
+            "value_offset_in_payload": 458816
+          },
+          {
+            "ordinal": 8,
+            "field_key": "_tile_growth_remainder",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "farming",
+            "source_member": "_tile_growth_remainder",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 8,
+            "value_bytes": 131072,
+            "source_contract": "C003",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 589888,
+            "value_offset_in_payload": 589896
+          },
+          {
+            "ordinal": 9,
+            "field_key": "_tile_tended_today",
+            "type": "u8",
+            "type_code": 0,
+            "source_module": "farming",
+            "source_member": "_tile_tended_today",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 1,
+            "value_bytes": 16384,
+            "source_contract": "C004",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 720968,
+            "value_offset_in_payload": 720976
+          }
+        ],
+        "payload_bytes": 737360,
+        "wrapper_bytes": 31,
+        "block_offset_in_section": 196757,
+        "payload_offset_in_section": 196788,
+        "end_offset_in_section": 934148
+      },
+      {
+        "owner_key": "forage",
+        "owner_schema_version": 1,
+        "primary_count": 16384,
+        "primary_count_meaning": "exterior tiles",
+        "payload_format": "ordinary_columns",
+        "validator_id": "S1-FORAGE",
+        "fields": [
+          {
+            "ordinal": 0,
+            "field_key": "_tile_link_head",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "forage",
+            "source_member": "_tile_link_head",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C005",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 0,
+            "value_offset_in_payload": 8
+          }
+        ],
+        "payload_bytes": 65544,
+        "wrapper_bytes": 30,
+        "block_offset_in_section": 934148,
+        "payload_offset_in_section": 934178,
+        "end_offset_in_section": 999722
+      },
+      {
+        "owner_key": "resource_nodes",
+        "owner_schema_version": 2,
+        "primary_count": 16384,
+        "primary_count_meaning": "exterior tiles",
+        "payload_format": "ordinary_columns",
+        "validator_id": "S1-RESOURCE_NODES",
+        "fields": [
+          {
+            "ordinal": 0,
+            "field_key": "_resource_slot",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "resource_nodes",
+            "source_member": "_resource_slot",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 4,
+            "value_bytes": 65536,
+            "source_contract": "C006",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 0,
+            "value_offset_in_payload": 8
+          }
+        ],
+        "payload_bytes": 65544,
+        "wrapper_bytes": 38,
+        "block_offset_in_section": 999722,
+        "payload_offset_in_section": 999760,
+        "end_offset_in_section": 1065304
+      },
+      {
+        "owner_key": "spatial_world",
+        "owner_schema_version": 1,
+        "primary_count": 262144,
+        "primary_count_meaning": "navigation cells",
+        "payload_format": "ordinary_columns",
+        "validator_id": "S1-SPATIAL_WORLD",
+        "fields": [
+          {
+            "ordinal": 0,
+            "field_key": "_map_revision",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "spatial_world",
+            "source_member": "_map_revision",
+            "hash": true,
+            "element_count": 1,
+            "type_width_bytes": 4,
+            "value_bytes": 4,
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 0,
+            "value_offset_in_payload": 8
+          },
+          {
+            "ordinal": 1,
+            "field_key": "_walkable",
+            "type": "u8",
+            "type_code": 0,
+            "source_module": "spatial_world",
+            "source_member": "_walkable",
+            "hash": true,
+            "element_count": 262144,
+            "type_width_bytes": 1,
+            "value_bytes": 262144,
+            "source_contract": "C008",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 12,
+            "value_offset_in_payload": 20
+          },
+          {
+            "ordinal": 2,
+            "field_key": "_layer",
+            "type": "u8",
+            "type_code": 0,
+            "source_module": "spatial_world",
+            "source_member": "_layer",
+            "hash": true,
+            "element_count": 262144,
+            "type_width_bytes": 1,
+            "value_bytes": 262144,
+            "source_contract": "C008",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 262164,
+            "value_offset_in_payload": 262172
+          },
+          {
+            "ordinal": 3,
+            "field_key": "_terrain",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "spatial_world",
+            "source_member": "_terrain",
+            "hash": true,
+            "element_count": 262144,
+            "type_width_bytes": 4,
+            "value_bytes": 1048576,
+            "source_contract": "C009",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 524316,
+            "value_offset_in_payload": 524324
+          },
+          {
+            "ordinal": 4,
+            "field_key": "_height_units",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "spatial_world",
+            "source_member": "_height_units",
+            "hash": true,
+            "element_count": 262144,
+            "type_width_bytes": 4,
+            "value_bytes": 1048576,
+            "source_contract": "C009",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 1572900,
+            "value_offset_in_payload": 1572908
+          }
+        ],
+        "payload_bytes": 2621484,
+        "wrapper_bytes": 37,
+        "block_offset_in_section": 1065304,
+        "payload_offset_in_section": 1065341,
+        "end_offset_in_section": 3686825
+      },
+      {
+        "owner_key": "weather",
+        "owner_schema_version": 1,
+        "primary_count": 1,
+        "primary_count_meaning": "one fixed aggregate",
+        "payload_format": "ordinary_columns",
+        "validator_id": "S1-WEATHER",
+        "fields": [
+          {
+            "ordinal": 0,
+            "field_key": "_row",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "weather",
+            "source_member": "_row",
+            "hash": true,
+            "element_count": 8,
+            "type_width_bytes": 4,
+            "value_bytes": 32,
+            "source_contract": "C010",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 0,
+            "value_offset_in_payload": 8
+          },
+          {
+            "ordinal": 1,
+            "field_key": "_row64",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "weather",
+            "source_member": "_row64",
+            "hash": true,
+            "element_count": 2,
+            "type_width_bytes": 8,
+            "value_bytes": 16,
+            "source_contract": "C011",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 40,
+            "value_offset_in_payload": 48
+          }
+        ],
+        "payload_bytes": 64,
+        "wrapper_bytes": 31,
+        "block_offset_in_section": 3686825,
+        "payload_offset_in_section": 3686856,
+        "end_offset_in_section": 3686920
+      },
+      {
+        "owner_key": "world_init",
+        "owner_schema_version": 1,
+        "primary_count": 16384,
+        "primary_count_meaning": "exterior tiles",
+        "payload_format": "ordinary_columns",
+        "validator_id": "S1-WORLD_INIT",
+        "fields": [
+          {
+            "ordinal": 0,
+            "field_key": "_published",
+            "type": "u8",
+            "type_code": 0,
+            "source_module": "world_init",
+            "source_member": "_published",
+            "hash": true,
+            "element_count": 1,
+            "type_width_bytes": 1,
+            "value_bytes": 1,
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 0,
+            "value_offset_in_payload": 8
+          },
+          {
+            "ordinal": 1,
+            "field_key": "_published_seed",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "world_init",
+            "source_member": "_published_seed",
+            "hash": true,
+            "element_count": 1,
+            "type_width_bytes": 4,
+            "value_bytes": 4,
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 9,
+            "value_offset_in_payload": 17
+          },
+          {
+            "ordinal": 2,
+            "field_key": "_terrain",
+            "type": "u8",
+            "type_code": 0,
+            "source_module": "world_init",
+            "source_member": "_terrain",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 1,
+            "value_bytes": 16384,
+            "source_contract": "C012",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 21,
+            "value_offset_in_payload": 29
+          },
+          {
+            "ordinal": 3,
+            "field_key": "_soil",
+            "type": "u8",
+            "type_code": 0,
+            "source_module": "world_init",
+            "source_member": "_soil",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 1,
+            "value_bytes": 16384,
+            "source_contract": "C012",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 16413,
+            "value_offset_in_payload": 16421
+          },
+          {
+            "ordinal": 4,
+            "field_key": "_basin",
+            "type": "u8",
+            "type_code": 0,
+            "source_module": "world_init",
+            "source_member": "_basin",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 1,
+            "value_bytes": 16384,
+            "source_contract": "C012",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 32805,
+            "value_offset_in_payload": 32813
+          },
+          {
+            "ordinal": 5,
+            "field_key": "_cleared",
+            "type": "u8",
+            "type_code": 0,
+            "source_module": "world_init",
+            "source_member": "_cleared",
+            "hash": true,
+            "element_count": 16384,
+            "type_width_bytes": 1,
+            "value_bytes": 16384,
+            "source_contract": "C012",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 49197,
+            "value_offset_in_payload": 49205
+          },
+          {
+            "ordinal": 6,
+            "field_key": "_basin_ref_slot",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "world_init",
+            "source_member": "_basin_ref_slot",
+            "hash": true,
+            "element_count": 7,
+            "type_width_bytes": 4,
+            "value_bytes": 28,
+            "source_contract": "C013",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 65589,
+            "value_offset_in_payload": 65597
+          },
+          {
+            "ordinal": 7,
+            "field_key": "_basin_ref_generation",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "world_init",
+            "source_member": "_basin_ref_generation",
+            "hash": true,
+            "element_count": 7,
+            "type_width_bytes": 4,
+            "value_bytes": 28,
+            "source_contract": "C013",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 65625,
+            "value_offset_in_payload": 65633
+          },
+          {
+            "ordinal": 8,
+            "field_key": "_basin_danger",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "world_init",
+            "source_member": "_basin_danger",
+            "hash": true,
+            "element_count": 7,
+            "type_width_bytes": 4,
+            "value_bytes": 28,
+            "source_contract": "C013",
+            "count_prefix_bytes": 8,
+            "count_offset_in_payload": 65661,
+            "value_offset_in_payload": 65669
+          }
+        ],
+        "payload_bytes": 65697,
+        "wrapper_bytes": 34,
+        "block_offset_in_section": 3686920,
+        "payload_offset_in_section": 3686954,
+        "end_offset_in_section": 3752651
+      },
+      {
+        "owner_key": "world_runtime",
+        "owner_schema_version": 1,
+        "primary_count": 1,
+        "primary_count_meaning": "one fixed aggregate",
+        "payload_format": "fixed_record_exception",
+        "validator_id": "S1-WORLD_RUNTIME",
+        "fields": [
+          {
+            "ordinal": 0,
+            "field_key": "_completed_tick",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "sim_clock",
+            "source_member": "_completed_tick",
+            "hash": false,
+            "element_count": 1,
+            "type_width_bytes": 8,
+            "value_bytes": 8,
+            "hash_location": "RWL-STATE-1 prefix exactly once",
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 0
+          },
+          {
+            "ordinal": 1,
+            "field_key": "_world_seed",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "rng",
+            "source_member": "_world_seed",
+            "hash": true,
+            "element_count": 1,
+            "type_width_bytes": 4,
+            "value_bytes": 4,
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 8
+          },
+          {
+            "ordinal": 2,
+            "field_key": "_seeded",
+            "type": "u8",
+            "type_code": 0,
+            "source_module": "rng",
+            "source_member": "_seeded",
+            "hash": true,
+            "element_count": 1,
+            "type_width_bytes": 1,
+            "value_bytes": 1,
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 12
+          },
+          {
+            "ordinal": 3,
+            "field_key": "_requested_speed",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "sim_clock",
+            "source_member": "_requested_speed",
+            "hash": true,
+            "element_count": 1,
+            "type_width_bytes": 4,
+            "value_bytes": 4,
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 16
+          },
+          {
+            "ordinal": 4,
+            "field_key": "_pause_mask",
+            "type": "i32",
+            "type_code": 2,
+            "source_module": "sim_clock",
+            "source_member": "_pause_mask",
+            "hash": true,
+            "element_count": 1,
+            "type_width_bytes": 4,
+            "value_bytes": 4,
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 20
+          },
+          {
+            "ordinal": 5,
+            "field_key": "_debt",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "sim_clock",
+            "source_member": "_debt",
+            "hash": false,
+            "element_count": 1,
+            "type_width_bytes": 8,
+            "value_bytes": 8,
+            "hash_location": "excluded_host_metadata; protected_by_body_digest_and_crc",
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 24
+          },
+          {
+            "ordinal": 6,
+            "field_key": "_fallback_count",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "sim_clock",
+            "source_member": "_fallback_count",
+            "hash": false,
+            "element_count": 1,
+            "type_width_bytes": 8,
+            "value_bytes": 8,
+            "hash_location": "excluded_host_metadata; protected_by_body_digest_and_crc",
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 32
+          },
+          {
+            "ordinal": 7,
+            "field_key": "_diagnostic_pause_count",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "sim_clock",
+            "source_member": "_diagnostic_pause_count",
+            "hash": false,
+            "element_count": 1,
+            "type_width_bytes": 8,
+            "value_bytes": 8,
+            "hash_location": "excluded_host_metadata; protected_by_body_digest_and_crc",
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 40
+          },
+          {
+            "ordinal": 8,
+            "field_key": "_acknowledged_catchup_resets",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "sim_clock",
+            "source_member": "_acknowledged_catchup_resets",
+            "hash": false,
+            "element_count": 1,
+            "type_width_bytes": 8,
+            "value_bytes": 8,
+            "hash_location": "excluded_host_metadata; protected_by_body_digest_and_crc",
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 48
+          },
+          {
+            "ordinal": 9,
+            "field_key": "_acknowledged_ticks_discarded",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "sim_clock",
+            "source_member": "_acknowledged_ticks_discarded",
+            "hash": false,
+            "element_count": 1,
+            "type_width_bytes": 8,
+            "value_bytes": 8,
+            "hash_location": "excluded_host_metadata; protected_by_body_digest_and_crc",
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 56
+          },
+          {
+            "ordinal": 10,
+            "field_key": "_subtick_debt_discards",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "sim_clock",
+            "source_member": "_subtick_debt_discards",
+            "hash": false,
+            "element_count": 1,
+            "type_width_bytes": 8,
+            "value_bytes": 8,
+            "hash_location": "excluded_host_metadata; protected_by_body_digest_and_crc",
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 64
+          },
+          {
+            "ordinal": 11,
+            "field_key": "_day_boundaries_crossed",
+            "type": "i64",
+            "type_code": 4,
+            "source_module": "sim_clock",
+            "source_member": "_day_boundaries_crossed",
+            "hash": false,
+            "element_count": 1,
+            "type_width_bytes": 8,
+            "value_bytes": 8,
+            "hash_location": "excluded_host_metadata; protected_by_body_digest_and_crc",
+            "count_prefix_bytes": 0,
+            "value_offset_in_payload": 72
+          }
+        ],
+        "reserved_zero": [
+          {
+            "offset_in_payload": 13,
+            "bytes": 3
+          }
+        ],
+        "payload_bytes": 80,
+        "wrapper_bytes": 37,
+        "block_offset_in_section": 3752651,
+        "payload_offset_in_section": 3752688,
+        "end_offset_in_section": 3752768
+      }
+    ],
+    "derived": {
+      "section_byte_length": 3752768,
+      "descriptor_row_count": 344067,
+      "all_wrapper_bytes": 311,
+      "all_payload_bytes": 3752409,
+      "ordinary_field_count_prefixes": 31,
+      "declared_field_count": 44,
+      "canonical_record_count": 36,
+      "file_header_bytes": 256,
+      "descriptor_count": 15,
+      "descriptor_bytes_each": 64,
+      "first_section_file_offset": 1216,
+      "second_section_file_offset": 3753984,
+      "pre_correction_all_declared_fields_section_bytes": 3752984,
+      "scratch_reclassification_bytes_removed": 216,
+      "offset_basis": "uncompressed fixed target layout, exact compatible build; re-audit if any extents or format change"
+    }
+  },
+  "validation_reference": "docs/rulings/2026-09-14_world_section_owner_encoders.md sections 5-7; target contract, not active registry",
+  "verification_status": "Static source re-read, target extraction/arithmetic, and read-only Python checks only. Source/canonical gate and decision-number gate fail as recorded. No Godot round-trip, restore, continuation, or release-readiness certification."
+}

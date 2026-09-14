@@ -1,0 +1,192 @@
+{
+  "schema": 1,
+  "produced": "2026-09-14",
+  "task": "BASELINE-INTEGRATION",
+  "purpose": "The precise shared baseline every Cycle 1 lane builds on. Astra reviewed a working snapshot, Git HEAD pointed somewhere else, and merged master was ahead of both. This records which is authoritative for what, so no later lane has to rediscover it.",
+  "sources": {
+    "merged_master": {
+      "ref": "a9193d74e66ab5b4bb533653c4ee4cc1aafa25f3",
+      "note": "AUTHORITATIVE for all code and for every file below marked master_only or diverged."
+    },
+    "local_branch": {
+      "name": "docs/executor-followup-rulings",
+      "head": "3e094e927c822056b51953aac4168b77acdee814",
+      "note": "Brendan's working branch. Far behind master; its HEAD is NOT a usable base."
+    },
+    "staged_snapshot": {
+      "ref": "refs/wip/baseline-2026-09-14",
+      "commit": "f162f167a39fae8ac78adbc2e92c14f9c362c8af",
+      "note": "The reviewed staged index, preserved as a reachable commit so it cannot be lost or garbage-collected. The working tree was never modified. Nothing was committed from it to a branch: its content is already in master."
+    },
+    "integration_branch": {
+      "name": "chore/baseline-integration",
+      "base": "a9193d74e66ab5b4bb533653c4ee4cc1aafa25f3"
+    }
+  },
+  "reconciliation": {
+    "identical_to_master": 1413,
+    "master_only": {
+      "count": 51,
+      "resolution": "Master wins. These are the \u00a77/\u00a712 codecs and lane records merged after the snapshot was taken.",
+      "paths": [
+        "docs/decisions/0122-section-7-frames-six-owners-and-declares-its-extents.md",
+        "docs/decisions/0123-section-12-keeps-its-record-major-form-and-refuses-an-unreproducible-payload-arena.md",
+        "docs/decisions/0135-lane-records-are-one-file-each.md",
+        "docs/tasks/lanes/02/2026-09-06-retired-at-arch-mig-006-steps-4-5.md",
+        "docs/tasks/lanes/02/2026-09-06-review-outcome.md",
+        "docs/tasks/lanes/02/2026-09-07-reader-follow-up.md",
+        "docs/tasks/lanes/03/2026-09-12-seed-expiry-follow-up.md",
+        "docs/tasks/lanes/04/2026-09-11-building-domain-ruling-definitions-resolved.md",
+        "docs/tasks/lanes/04/2026-09-11-f6-and-asset-integration-follow-up.md",
+        "docs/tasks/lanes/04/2026-09-11-identity-ruling-implementation-remains-open.md",
+        "docs/tasks/lanes/04/2026-09-11-narrow-alert-ruling-implementation-remains-open.md",
+        "docs/tasks/lanes/04/2026-09-12-alert-r02-implementation-status.md",
+        "docs/tasks/lanes/04/2026-09-12-astra-follow-up.md",
+        "docs/tasks/lanes/04/2026-09-12-resident-ui-contract-follow-up.md",
+        "docs/tasks/lanes/04/2026-09-12-ui-identity-r01-and-need-rate-r01-implementation-status.md",
+        "docs/tasks/lanes/05/2026-09-11-latest-blocker-handoff.md",
+        "docs/tasks/lanes/05/2026-09-12-astra-follow-up.md",
+        "docs/tasks/lanes/05/2026-09-12-executor-g01-request-review.md",
+        "docs/tasks/lanes/06/2026-09-11-06-1-s-first-increment-landed.md",
+        "docs/tasks/lanes/06/2026-09-11-art-authoring-contract.md",
+        "docs/tasks/lanes/06/2026-09-11-building-domain-ruling-definitions-resolved.md",
+        "docs/tasks/lanes/06/2026-09-12-06-1-s-construction-store-and-its-lifecycle.md",
+        "docs/tasks/lanes/06/2026-09-12-astra-follow-up.md",
+        "docs/tasks/lanes/06/2026-09-12-econ-002-per-contributor-tool-settlement-eh-03-slice-of-06-4.md",
+        "docs/tasks/lanes/06/2026-09-12-store-is-composed-into-the-settlement.md",
+        "docs/tasks/lanes/08/2026-09-12-astra-follow-up.md",
+        "docs/tasks/lanes/09/2026-09-11-09-2-contract-handoff.md",
+        "docs/tasks/lanes/09/2026-09-12-09-2-section-3-entity-directory-implementation.md",
+        "docs/tasks/lanes/09/2026-09-12-09-3-section-7-inventories-and-lease-indexes.md",
+        "docs/tasks/lanes/09/2026-09-12-astra-follow-up.md",
+        "docs/tasks/lanes/09/2026-09-12-clock-queue-load-barrier.md",
+        "docs/tasks/lanes/09/2026-09-12-d2-allocator-section-1-composition-and-two-standing-barriers.md",
+        "docs/tasks/lanes/09/2026-09-12-directory-bulk-columns-blocker-d1-closed.md",
+        "docs/tasks/lanes/09/2026-09-12-name-r02-and-the-section-14-owner-wrapper.md",
+        "docs/tasks/lanes/09/2026-09-12-section-12-pending-commands-codec-save-section-pending-comma.md",
+        "docs/tasks/lanes/09/2026-09-12-section-14-name-pool-landed.md",
+        "docs/tasks/lanes/09/2026-09-12-section-15-state-digest-canonical-field-walker.md",
+        "docs/tasks/lanes/09/2026-09-12-section-4-component-store-bulk-columns-needs-residents-jobs.md",
+        "docs/tasks/lanes/09/2026-09-12-section-8-job-indexes-codec-save-registry-lane.md",
+        "docs/tasks/lanes/09/2026-09-12-section-9-navigation-landed.md",
+        "docs/tasks/lanes/10/2026-09-12-resident-render-path-crowd-tier-only.md",
+        "docs/tasks/lanes/README.md",
+        "godot/scripts/core/save_section_inventories.gd",
+        "godot/scripts/core/save_section_inventories.gd.uid",
+        "godot/scripts/core/save_section_pending_commands.gd",
+        "godot/scripts/core/save_section_pending_commands.gd.uid",
+        "godot/test/test_save_section_inventories.gd",
+        "godot/test/test_save_section_inventories.gd.uid",
+        "godot/test/test_save_section_pending_commands.gd",
+        "godot/test/test_save_section_pending_commands.gd.uid",
+        "tools/lane_notes.py"
+      ]
+    },
+    "diverged": {
+      "count": 12,
+      "resolution": "Master wins for all twelve. Eleven are the lane-record migration (ADR 0135) and one is the persistence registry gaining Construction and EventSchedule rows. The snapshot predates both; nothing in it was newer.",
+      "paths": [
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md",
+        "docs/tasks/02_settlement_foundation.md",
+        "docs/tasks/02_test_migration_ledger.md",
+        "docs/tasks/03_ecology_crops_weather.md",
+        "docs/tasks/04_5_ui_visual_refinement.md",
+        "docs/tasks/04_world_commands.md",
+        "docs/tasks/05_movement_first_playable.md",
+        "docs/tasks/06_buildings_rooms_logistics.md",
+        "docs/tasks/08_community_scenarios_progression.md",
+        "docs/tasks/09_persistence_replay_reliability.md",
+        "docs/tasks/10_presentation_qualification.md"
+      ]
+    },
+    "local_only_tracked": 0,
+    "transferred_untracked": {
+      "count": 17,
+      "resolution": "The only genuinely new content. Copied onto master and committed on the integration branch."
+    },
+    "astra_unstaged_edits": {
+      "count": 11,
+      "resolution": "Applied onto master with git apply --3way, per file so one failure could not abort the rest. All 11 applied cleanly."
+    }
+  },
+  "adr_collisions": {
+    "note": "Astra and the executor allocate decision numbers from separate sessions with no shared counter, so collisions are expected rather than bad luck. Resolved by COMPARING CONTENT, not by deleting unexplained copies.",
+    "resolved": [
+      {
+        "stale": "0090-resident-heading-and-public-need-rates.md",
+        "holds_the_number_on_master": "0090-the-clocks-one-validated-restore-boundary.md",
+        "outcome": "Superseded, dropped. Master already carries this decision as 0097, differing ONLY by an added provenance note recording the very same renumber. The untracked file is the pre-renumber original."
+      },
+      {
+        "stale": "0091-move-g01-request-review-and-owner-boundaries.md",
+        "holds_the_number_on_master": "0091-exact-start-astar-replaces-macro-anchor-composition.md",
+        "outcome": "Superseded, dropped. BYTE-IDENTICAL to master's 0106 below the heading."
+      },
+      {
+        "stale": "0092-underground-economy-and-hazard-parameters.md",
+        "holds_the_number_on_master": "0092-the-load-barrier-and-the-one-restore-call-site.md",
+        "outcome": "Superseded, dropped. BYTE-IDENTICAL to master's 0107 below the heading."
+      },
+      {
+        "stale": "0135-cycle-one-starter-poses-and-world-owner-framing.md",
+        "holds_the_number_on_master": "0135-lane-records-are-one-file-each.md",
+        "outcome": "GENUINELY NEW decision. Renumbered to 0136; heading updated; no inbound links existed."
+      }
+    ],
+    "executor_error_recorded": "The first pass renumbered the three stale copies to 0136/0137/0138, creating a THIRD copy of each decision. Caught by reading the queue's own `owns` list, which already named 0097/0106/0107 as the live numbers. Reverted before commit. Comparing content first, as the ruling instructed, would have caught it immediately."
+  },
+  "known_failures_not_fixed_here": [
+    {
+      "id": "SAVE-REGISTRY-RECONCILE",
+      "check": "validate_save_registry_handoff.py --source-root .",
+      "status": "REPRODUCED",
+      "detail": "17 construction.gd packed fields are classified as persistent state and present in code and the classification registry, but absent from canonical_state_registry.json: _present, _work_begun, _ref_slot, _ref_generation, _subject_slot, _subject_generation, _purpose, _type_id, _phase, _remaining_mwu, _material_container_slot, _material_container_generation, _delivered_milli, _refund_policy, _paused, _assigned_count, _max_workers. Owned by SAVE-REGISTRY-RECONCILE, not this lane."
+    }
+  ],
+  "baseline_measurements": {
+    "suite": {
+      "command": "./tools/run_tests.sh (after godot --headless --path godot --editor --quit)",
+      "tests": 4336,
+      "assertions": 152719,
+      "failures": 0,
+      "note": "Identical to merged master's numbers, as expected: this lane changes only docs/ and docs/planning. A first run WITHOUT the editor import pass reports ~37 phantom failures from unimported font/theme resources in any fresh worktree. An exit code of 0 is not evidence a test ran -- tools/run_tests.sh asserts on the runner's own summary line for that reason."
+    },
+    "validators": {
+      "merge_gate": "PASS",
+      "ready07_arithmetic": "PASS",
+      "decision_numbers": "PASS (129 records)",
+      "state_registry_coverage": "PASS (54 modules, 352 rows, 681 packed columns)",
+      "lane_notes": "PASS",
+      "dispatch_plan --validate": "PASS",
+      "astra_inbox --check": "PASS",
+      "validate_cycle01_handoff": "PASS",
+      "validate_save_registry_handoff --source-root .": "FAIL, see known_failures_not_fixed_here"
+    },
+    "shutdown_warnings": {
+      "note": "Two DIFFERENT invocations emit different figures; Astra's packet recorded only the second pair. Neither fails any test, and neither is investigated here -- CLEAN-SHUTDOWN is named in Astra's absent-work list and needs its own lane.",
+      "editor_import_pass": {
+        "command": "godot --headless --path godot --editor --quit",
+        "objectdb_instances_leaked": 1464,
+        "resources_still_in_use": 7
+      },
+      "test_run": {
+        "command": "godot --headless --path godot --script test/run_tests.gd",
+        "objectdb_instances_leaked": 14,
+        "resources_still_in_use": 3
+      }
+    }
+  },
+  "next_lanes_may_start": {
+    "base": "chore/baseline-integration once merged, else origin/master plus this branch",
+    "ready_now": [
+      "SAVE-REGISTRY-RECONCILE",
+      "RENDER-SPAWN",
+      "PLAN-SAVE-COVERAGE",
+      "PLAN-RELEASE-COVERAGE",
+      "PACKET-EVIDENCE",
+      "ART-UI-12-EVIDENCE"
+    ],
+    "caution": "SAVE-REGISTRY-RECONCILE and SAVE-S1-OWNERS both touch canonical_state_registry.json. Astra's sequence says the reconcile must PRESERVE the S1 scratch change for S1's atomic migration, or the two must run as one owned lane. They must not run concurrently."
+  }
+}

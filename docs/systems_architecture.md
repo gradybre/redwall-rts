@@ -1049,3 +1049,17 @@ Read [the exact ruling](rulings/2026-09-12_resident_header_and_need_rates.md).
 ## SET-MOVE-ECON-001 integration boundary
 
 [The numerical amendment](underground_economy_hazard_amendment.md) supplies economic quanta, phase/refund/source semantics and hazard recovery values; it does not allocate new runtime arrays or set a save version. G02 must ledger physical quantum state, material/source claims, work-ready commit retries, tip embedded stock, support/closure readiness, contributor wear settlement, air/recovery/incident state, declared fall progress, rescued-body relationships, protected landing occupancy and care state, including all scratch/load peaks. Compose work/XP/tool acceptance atomically and integrate health rates in one owner. Do not multiply old surface memory by a floor count and claim full capacity; version actual schema/catalog changes before runtime activation.
+
+## Cycle 1 owner-contract addendum — 2026-09-14
+
+INIT-POSE-R01 amends ARCH-SYS-001 composition: the settlement owns the single
+directory-bound Transform store; the renderer borrows it. Starter root placement
+is authored in GDD §5.1. See [the complete contract](rulings/2026-09-14_initial_resident_positions.md).
+
+R-WORLD-S1-001 completes ARCH-SAVE-002 / REG-R01's WORLD owner framing and
+corrects three ResourceNodes deposit scratch fields. Its
+[owner schemas and validation](rulings/2026-09-14_world_section_owner_encoders.md)
+are adopted targets for atomic implementation, not evidence that the current
+registry or codecs already implement them. Existing allocation ledger rows stay
+in force until the allocations are actually removed. Neither ruling closes
+movement gates, save completeness, performance qualification or visual acceptance.

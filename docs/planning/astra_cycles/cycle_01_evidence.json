@@ -1,0 +1,527 @@
+{
+  "cycle": 1,
+  "date": "2026-09-14",
+  "repository": "/Users/brendan/Developer/redwall-rts",
+  "head": "3e094e927c822056b51953aac4168b77acdee814",
+  "cached_origin_master": "a9193d74e66ab5b4bb533653c4ee4cc1aafa25f3",
+  "source_kind": "working files, not clean HEAD or integration tree",
+  "index_sha256_before": "a0c6514e6a0dce6e3f0cf39a4c0b8e83d5107472239b866a3c9c452177925316",
+  "art_approvals_sha256": "70c23ada3d0cca58cce01c63d93a6254a3cebb027164259a99a55ea09ad4220b",
+  "source_sha256": {
+    "godot/scripts/systems/settlement_system.gd": "863d4e6563af98044dbc6df1604f9b0ae02d354ba51e999800d70701a51494ed",
+    "godot/scripts/core/transforms.gd": "c5432aa63dcbd774bfca9b1aaa2fdbbe5908a4159a3ce42f7fc30fbca0e62188",
+    "godot/scripts/presentation/resident_pose_scaffold.gd": "a48543eee2aba2f9320a10f44acbf2220935879901eec0f7822ded927bdbfb85",
+    "godot/scripts/presentation/resident_stage.gd": "31a4ad7b525a61899becb210e2ad8dadcff7bdce24fbbcdaf4f23f1d5ff3998b",
+    "docs/persistence_state_registry.md": "a9ca00e1422c999edbf86a38b0966d94c010c72e3c98048ad4fbac192060697f",
+    "docs/planning/canonical_state_registry.json": "1201b8a88a296dfd5273c063066fefd03000a70018aa95f6fdd65ba8272eb768",
+    "godot/scripts/core/construction.gd": "accd44a3c6a367d132e5189698171b9991c103ab70a9b03cdfabf20721b8fe8e",
+    "godot/scripts/core/world_init.gd": "664d7bbdd96456818f0e1baaf19af6081fac9dcd317df31b8770c0999c717130",
+    "godot/scripts/core/resource_nodes.gd": "3782a676489bc60782f29961f6d43f8bf455e80e928329c87adeab42ea72ee4c",
+    "godot/scripts/core/farming.gd": "35063cee7e2872ac63b2a76dbc28ff0433fcb888d51809434f59125a3cf0fb92"
+  },
+  "baseline": {
+    "tests": 4238,
+    "assertions": 142421,
+    "failures": 0,
+    "exit_code": 0,
+    "leaked_objectdb_instances": 14,
+    "resources_still_in_use": 3
+  },
+  "source_registry_check": "FAIL:17 Construction fields not declared",
+  "decision_number_check": "FAIL:three pre-existing duplicate pairs0090/0091/0092",
+  "merged_pr_query": {
+    "filter": "merged:2026-09-10..2026-09-14",
+    "limit": 200,
+    "records": 103,
+    "captured_utc": "2026-09-14T12:28:13Z"
+  },
+  "reviewed_prs": [
+    {
+      "number": 114,
+      "merge": "7acbf5b0171b749e53cef1721451947461caf3a7"
+    },
+    {
+      "number": 113,
+      "merge": "f50f113b946150fb10da081076a78c53707147e4"
+    },
+    {
+      "number": 112,
+      "merge": "cde84de1d92983a4b60e71d0129ecc0b1d74da93"
+    },
+    {
+      "number": 111,
+      "merge": "222689f888f379eb34ef689fc9519c55c912e0a4"
+    },
+    {
+      "number": 110,
+      "merge": "02dea97fe8a49f195c1b06a50f851b22818b6392"
+    },
+    {
+      "number": 109,
+      "merge": "f3706682a095426b6d3c23fe8d8df1203e349bd6"
+    },
+    {
+      "number": 106,
+      "merge": "5f31622ab154f1b13f14440331259b447c2e9937"
+    },
+    {
+      "number": 105,
+      "merge": "63cb6a4d4cca63cca79126d3a321c7cf6197fcea"
+    },
+    {
+      "number": 104,
+      "merge": "b37cf82f50e53fb77f60ef8adb707bbe660bf78c"
+    },
+    {
+      "number": 103,
+      "merge": "63109153e44974bb318d3e3e2507338bd7321492"
+    },
+    {
+      "number": 102,
+      "merge": "4a7dda8725903b4b3c546ee281e54d86e84345ab"
+    },
+    {
+      "number": 101,
+      "merge": "914444bce3e4791a01c789d29d57ee21080648cb"
+    },
+    {
+      "number": 100,
+      "merge": "27b02a1f45622642bd388512def0eee28d0e38e0"
+    },
+    {
+      "number": 99,
+      "merge": "4172d784ef2ad8ccb0816b4bdec833441fdf86e3"
+    },
+    {
+      "number": 98,
+      "merge": "98074fd54298d20899cab512e2fbda99a50e74a6"
+    },
+    {
+      "number": 97,
+      "merge": "d0ce83596d31adc0fbbe905bc638e1eb3adc2d0d"
+    },
+    {
+      "number": 96,
+      "merge": "90ee65040e95c341611cb5a4d15a7aab5b4c2329"
+    },
+    {
+      "number": 95,
+      "merge": "446acfbbf6c69279e07a6a6ce07b4bbb54f550f5"
+    },
+    {
+      "number": 94,
+      "merge": "033c49178845c06432e9c38917ce39c4298be4fe"
+    },
+    {
+      "number": 93,
+      "merge": "19869bcfc5dbd998148f9a2788a13a9954de9746"
+    },
+    {
+      "number": 92,
+      "merge": "ba0fbc6ef7cdd51951ce01f151bfbd6de9a4d3f0"
+    },
+    {
+      "number": 91,
+      "merge": "52cc3fa8f44fbdd174b6a4d8426aa4cefe2eb846"
+    },
+    {
+      "number": 90,
+      "merge": "5dd5ea0fbc2224eda24dbc6fbd44857e9ff05699"
+    },
+    {
+      "number": 89,
+      "merge": "a55ab38051281370850f5cc09d0d01dee2339ef1"
+    },
+    {
+      "number": 88,
+      "merge": "c43e904b425e3a3073a8a8740d89b0061970a522"
+    },
+    {
+      "number": 87,
+      "merge": "2f8d365feac10e630b72ea7beda7aa1821d44cb6"
+    },
+    {
+      "number": 86,
+      "merge": "197472b9d7f2385ba5eb173aef0ebb0e29511c3e"
+    },
+    {
+      "number": 85,
+      "merge": "b19fb6508366edb3a24960a9faeb7c19c80bef3c"
+    },
+    {
+      "number": 84,
+      "merge": "1edf352deb0dfa4b94aa0cf0456a794ee2acc0c5"
+    },
+    {
+      "number": 83,
+      "merge": "35e3ba96b4d8902d765aee27fb8dacbb2949b7a9"
+    },
+    {
+      "number": 82,
+      "merge": "ec6c2d9804aa76e4c502aecdd4bdca1dac09d87b"
+    },
+    {
+      "number": 81,
+      "merge": "d58da9f6c940ecebd32172aca44e5a63c5b3949a"
+    },
+    {
+      "number": 80,
+      "merge": "58dadf334c5896b885b595ab290ace35632406dd"
+    },
+    {
+      "number": 79,
+      "merge": "50252cd8bb508c8ae451fb44eb8a07e6791b9ce1"
+    },
+    {
+      "number": 78,
+      "merge": "4b57659f28de9d6b5786e4c263f45564f057e257"
+    },
+    {
+      "number": 77,
+      "merge": "e127f6321b02682a1d7326e2f833c48d61394689"
+    },
+    {
+      "number": 76,
+      "merge": "12e1b2a2aa0325692caadb653e40ebaee3854fb1"
+    },
+    {
+      "number": 75,
+      "merge": "0a53e9b841e1fc698ee86289d8ed31a7e8115522"
+    },
+    {
+      "number": 74,
+      "merge": "6269f2bea70a6552c9508670031c7916d268f32f"
+    },
+    {
+      "number": 73,
+      "merge": "8e45a7fc06f4ee326c705778119aba239f9ea841"
+    },
+    {
+      "number": 72,
+      "merge": "9216fa014e0b10c3450a77b9e1817167ae8fca1b"
+    },
+    {
+      "number": 71,
+      "merge": "e206a08c502c81bc64a2de9f150ab23073e4b62e"
+    },
+    {
+      "number": 70,
+      "merge": "0b1cb2e3a498d5a3ad5171e3ac5a12af1897d850"
+    },
+    {
+      "number": 69,
+      "merge": "2633c21141c22c527dd277fae1a54bb9ec497970"
+    },
+    {
+      "number": 68,
+      "merge": "603c5871b2ebf8ce945ad9700f65b2783f1888e8"
+    },
+    {
+      "number": 67,
+      "merge": "1981585b7346376f37002f4da5861bd99f77cd5f"
+    },
+    {
+      "number": 66,
+      "merge": "bfb46ebd035d455539310321b0105724cf53dec1"
+    },
+    {
+      "number": 65,
+      "merge": "ad4837cd71ba3b31c92fc546cf9bd585f264117c"
+    },
+    {
+      "number": 64,
+      "merge": "c5d71a0ea353e7e7726f55a00ed7fcfb8b65e80c"
+    },
+    {
+      "number": 62,
+      "merge": "6438301e873bbf7f8b8c280f1569457fbb8844ff"
+    },
+    {
+      "number": 61,
+      "merge": "a4c0af8ff93306fb03b04d1f5b2ffaf26dfa36fa"
+    },
+    {
+      "number": 60,
+      "merge": "b3623e81962f8ee0151b0e7f774f581bb9a6d5fb"
+    },
+    {
+      "number": 59,
+      "merge": "b6310c29d103adf977b7d59acfb3ccaf396abd67"
+    },
+    {
+      "number": 58,
+      "merge": "29ef02d39937ccb09163604fd1eb74759e52a216"
+    },
+    {
+      "number": 57,
+      "merge": "5f9761a095f16ea6926f07a4c1e82b363918e27c"
+    },
+    {
+      "number": 56,
+      "merge": "ab00d4a823e21fd5a392678ef6d0b403e3c671a1"
+    },
+    {
+      "number": 55,
+      "merge": "57915ed7987d1c2a8da8e7a4b2877ed9c28a21e2"
+    },
+    {
+      "number": 54,
+      "merge": "24eada1d01ac3794fdcbf3460637a4656954ddf9"
+    },
+    {
+      "number": 53,
+      "merge": "8169a5cf54ae5580b581b014962cd6435093292c"
+    },
+    {
+      "number": 52,
+      "merge": "1078191c94f515d7373fa90d8157c56e05723eab"
+    },
+    {
+      "number": 51,
+      "merge": "5d6bce70be3b2344251ae75e47543499fc018bca"
+    },
+    {
+      "number": 50,
+      "merge": "2c0588979050f91cf2f076da454710a5a609c05e"
+    },
+    {
+      "number": 49,
+      "merge": "d19d275a410403ee611e9f3dfdec39f5d55b5a24"
+    },
+    {
+      "number": 48,
+      "merge": "09bb2e67020491cf5181769c155cf39b96cfd57a"
+    },
+    {
+      "number": 47,
+      "merge": "e0e36c83a5aac95d926854c9247d9d05bca55e8e"
+    },
+    {
+      "number": 46,
+      "merge": "a324605d977af9aa4fee616287e137383e7d88b3"
+    },
+    {
+      "number": 45,
+      "merge": "6ba4b5d3c77c41fc1514c92f6d4339bcba68e42a"
+    },
+    {
+      "number": 44,
+      "merge": "08f2b2a57d6a0944f33b2db86c74b521bd400ca9"
+    },
+    {
+      "number": 43,
+      "merge": "d42bb337dd35b7ff6ac4696682d2dca7db843213"
+    },
+    {
+      "number": 42,
+      "merge": "ab2f9fbd72c136b571abe186436fd5137f35a785"
+    },
+    {
+      "number": 41,
+      "merge": "ad5c1de4d78ca99385a12977f04322e2801dec39"
+    },
+    {
+      "number": 40,
+      "merge": "739ee8391c811f173c8664475b0b02dfd5629110"
+    },
+    {
+      "number": 39,
+      "merge": "fa6b8330fd91d01f4b15847ce6d30d26bc2f9157"
+    },
+    {
+      "number": 38,
+      "merge": "885768d6c1239290ea51513ae7f8e9bfb0af1aaf"
+    },
+    {
+      "number": 37,
+      "merge": "61dd27bb3fbbe3cf272e580d27fe933b1f9297de"
+    },
+    {
+      "number": 36,
+      "merge": "8b1e51f05a43f090ed6584c287864c32b40e1034"
+    },
+    {
+      "number": 35,
+      "merge": "77413f35bc605ea07c229f00c1628922b17bca31"
+    },
+    {
+      "number": 34,
+      "merge": "e5216ad1cdf93ea2031f8abd776face8b3e017a5"
+    },
+    {
+      "number": 33,
+      "merge": "a34afb0271940c57c271ffa81c5e66f77d1a8ae0"
+    },
+    {
+      "number": 32,
+      "merge": "28e6771fd932d6acefa0ff0b2ba10967a37419f4"
+    },
+    {
+      "number": 31,
+      "merge": "a2060f6a7b6c5e16f0ae0a3c2de62fc3ad94b318"
+    },
+    {
+      "number": 30,
+      "merge": "f40b8b109b736bcd763e08f5c4a3b7804bbcfea5"
+    },
+    {
+      "number": 29,
+      "merge": "a746b84d927b06cce7b0ce79483eb5aac40831d6"
+    },
+    {
+      "number": 28,
+      "merge": "360969d0b2acde8fe40a01166b3e7e24fa241404"
+    },
+    {
+      "number": 27,
+      "merge": "790ec80e48ca8d6fb0205a1a2682c311593085b9"
+    },
+    {
+      "number": 26,
+      "merge": "bb0f3c06780251580388378d0f65e509b6edbc11"
+    },
+    {
+      "number": 25,
+      "merge": "d997d0737172349a8dadbd47ccbe8d0a863db3f5"
+    },
+    {
+      "number": 24,
+      "merge": "1a54db5ce1930c91ad241f0c11431a154c484bf4"
+    },
+    {
+      "number": 23,
+      "merge": "6cac394159998dd61581c3e40e92c93e93075376"
+    },
+    {
+      "number": 22,
+      "merge": "63fb7cbb74917b05f6fcb10acfe473a8607582ae"
+    },
+    {
+      "number": 21,
+      "merge": "0b3781b12f079a53af7db38bf8f5b40787f42f63"
+    },
+    {
+      "number": 20,
+      "merge": "10167f5d9460c5156a60cbbe7bd595311d879e4c"
+    },
+    {
+      "number": 18,
+      "merge": "0957f9824e949a90492318851fe44140abc17c04"
+    },
+    {
+      "number": 17,
+      "merge": "55d2d80789f5a80911b1cc16715386db496fe810"
+    },
+    {
+      "number": 16,
+      "merge": "5005e6f508db1077da8af10948d7bb87c4dba4c4"
+    },
+    {
+      "number": 15,
+      "merge": "0e4ec1e9d6ea823df79bf7b7350811e49296a1b9"
+    },
+    {
+      "number": 14,
+      "merge": "5ec57a8e770a672bf937cf5b30e8724b5e218c66"
+    },
+    {
+      "number": 13,
+      "merge": "74c4e157c6aa28807bd69841c87a4544a9b1f94d"
+    },
+    {
+      "number": 12,
+      "merge": "eeed56da0982bbf0bb188c636287e0a8a63a575f"
+    },
+    {
+      "number": 11,
+      "merge": "1459c915524af75e1aa2bd0a29b3378b24307758"
+    },
+    {
+      "number": 10,
+      "merge": "9984302ee5c58136ebd863ee14c1c178840f8b43"
+    },
+    {
+      "number": 9,
+      "merge": "d87364ef76a3d122e893ca9d06ee35236b929079"
+    },
+    {
+      "number": 8,
+      "merge": "5660b92d99b82ce74e6b9eb6ab3ead7375bd478f"
+    }
+  ],
+  "answered": [
+    "w2-section-1-owners-without-encoders",
+    "resident-spawn-positions-and-the-pose-scaffold"
+  ],
+  "remaining_blocking": [
+    "retired-row-blanking",
+    "move-g01-clearance-and-modes",
+    "inventory-container-enumeration-by-owner"
+  ],
+  "implementation_complete": false,
+  "art_approved": false,
+  "credits_spent": 0,
+  "post_publication_checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/validate_cycle01_handoff.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/dispatch_plan.py",
+        "--validate"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/astra_inbox.py",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/state_registry_coverage.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/validate_save_registry_handoff.py",
+        "--source-root",
+        "."
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/decision_numbers.py"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "index_sha256_after": "a0c6514e6a0dce6e3f0cf39a4c0b8e83d5107472239b866a3c9c452177925316"
+}

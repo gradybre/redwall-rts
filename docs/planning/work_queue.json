@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-09-12",
+  "updated": "2026-09-14",
   "note": "The dispatchable graph. tools/dispatch_plan.py reads this and emits the largest conflict-free set of ready tasks. Status values: blocked, ready, in_flight, review, done. A task is dispatchable only when every dependency is done, its gate is cleared, and no file it owns is owned by a task already in flight.",
   "gates": {
     "none": "No human decision required. Fully automatic.",
@@ -11,7 +11,7 @@
     {
       "id": "GATE-MERGE",
       "title": "Merge gate and the injury ledger correction",
-      "status": "review",
+      "status": "done",
       "pr": 106,
       "depends_on": [],
       "owns": [
@@ -21,12 +21,15 @@
         "docs/validation/ready07_arithmetic.py"
       ],
       "agent": "self",
-      "gate": "none"
+      "gate": "none",
+      "merged_at": "2026-09-13T04:21:10Z",
+      "merge_commit": "5f31622ab154f1b13f14440331259b447c2e9937",
+      "completion_scope": "Merged slice only; see Cycle 1 alignment report for remaining owning requirements."
     },
     {
       "id": "SAVE-S7",
       "title": "Section 7 INVENTORIES codec",
-      "status": "review",
+      "status": "done",
       "pr": 103,
       "depends_on": [],
       "owns": [
@@ -34,12 +37,15 @@
         "godot/test/test_save_section_07.gd"
       ],
       "agent": "game-coder",
-      "gate": "none"
+      "gate": "none",
+      "merged_at": "2026-09-14T01:59:53Z",
+      "merge_commit": "63109153e44974bb318d3e3e2507338bd7321492",
+      "completion_scope": "Merged slice only; see Cycle 1 alignment report for remaining owning requirements."
     },
     {
       "id": "SAVE-S12",
       "title": "Section 12 economy codec, record-major per SAVE-LAYOUT-R01",
-      "status": "review",
+      "status": "done",
       "pr": 104,
       "depends_on": [],
       "owns": [
@@ -47,12 +53,15 @@
         "godot/test/test_save_section_12.gd"
       ],
       "agent": "game-coder",
-      "gate": "none"
+      "gate": "none",
+      "merged_at": "2026-09-14T02:06:36Z",
+      "merge_commit": "b37cf82f50e53fb77f60ef8adb707bbe660bf78c",
+      "completion_scope": "Merged slice only; see Cycle 1 alignment report for remaining owning requirements."
     },
     {
       "id": "BULK-COLUMNS",
-      "title": "Bulk column read/write API across every packed store",
-      "status": "review",
+      "title": "Bulk column API for Needs, Residents and Jobs",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "godot/scripts/core/needs.gd",
@@ -64,12 +73,16 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "unblocks_note": "Every section codec can encode but none can capture from or restore into a live store. This is the single dependency holding all twelve."
+      "unblocks_note": "Only these three store adapters are complete. PLAN-SAVE-COVERAGE must identify every other adapter, body and producer.",
+      "pr": 111,
+      "merged_at": "2026-09-14T01:49:09Z",
+      "merge_commit": "222689f888f379eb34ef689fc9519c55c912e0a4",
+      "completion_scope": "Merged slice only; see Cycle 1 alignment report for remaining owning requirements."
     },
     {
       "id": "RENDER-PATH",
-      "title": "Crowd render path: consume the presentation snapshot into World/Entities",
-      "status": "review",
+      "title": "Initial MultiMesh crowd over a temporary presentation pose store",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "godot/scripts/presentation/",
@@ -81,12 +94,16 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "unblocks_note": "Residents are currently invisible. main.tscn's World/Entities is empty and nothing consumes presentation_extract.gd."
+      "unblocks_note": "Merged infrastructure; RENDER-SPAWN replaces private poses. Correct species appearance, materials, rigs and movement remain separate.",
+      "pr": 109,
+      "merged_at": "2026-09-14T01:48:39Z",
+      "merge_commit": "f3706682a095426b6d3c23fe8d8df1203e349bd6",
+      "completion_scope": "Merged slice only; see Cycle 1 alignment report for remaining owning requirements."
     },
     {
       "id": "CONSTRUCTION-STORE",
       "title": "Construction store for task 06.1",
-      "status": "review",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "godot/scripts/core/construction.gd",
@@ -95,12 +112,16 @@
         "godot/test/test_settlement_system.gd"
       ],
       "agent": "game-coder",
-      "gate": "none"
+      "gate": "none",
+      "pr": 112,
+      "merged_at": "2026-09-14T01:49:32Z",
+      "merge_commit": "cde84de1d92983a4b60e71d0129ecc0b1d74da93",
+      "completion_scope": "Merged slice only; see Cycle 1 alignment report for remaining owning requirements."
     },
     {
       "id": "EVENT-SCHEDULE",
       "title": "EventSchedule store for section 11",
-      "status": "review",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "godot/scripts/core/event_schedule.gd",
@@ -111,12 +132,16 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Landed with the ledger allocator reassignment, registry rows and canonical registry amendment applied by the integration lead: those four files were outside the lane's allowlist by design."
+      "note": "Landed with the ledger allocator reassignment, registry rows and canonical registry amendment applied by the integration lead: those four files were outside the lane's allowlist by design.",
+      "pr": 114,
+      "merged_at": "2026-09-14T01:48:25Z",
+      "merge_commit": "7acbf5b0171b749e53cef1721451947461caf3a7",
+      "completion_scope": "Merged slice only; see Cycle 1 alignment report for remaining owning requirements."
     },
     {
       "id": "ALERT-R02",
       "title": "ALERT-R02 alert summary profiles",
-      "status": "review",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "godot/scripts/ui/ui_layout.gd",
@@ -126,7 +151,11 @@
         "docs/validation/evidence/ui-refinement/"
       ],
       "agent": "game-coder",
-      "gate": "none"
+      "gate": "none",
+      "pr": 110,
+      "merged_at": "2026-09-14T01:48:54Z",
+      "merge_commit": "02dea97fe8a49f195c1b06a50f851b22818b6392",
+      "completion_scope": "Merged slice only; see Cycle 1 alignment report for remaining owning requirements."
     },
     {
       "id": "SAVE-CAPTURE",
@@ -136,38 +165,76 @@
         "BULK-COLUMNS",
         "SAVE-S7",
         "SAVE-S12",
-        "EVENT-SCHEDULE"
+        "EVENT-SCHEDULE",
+        "BASELINE-INTEGRATION",
+        "SAVE-S1-OWNERS",
+        "DIGEST-DETERMINISM",
+        "RENDER-SPAWN",
+        "PLAN-SAVE-COVERAGE"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
         "godot/test/test_save_round_trip.gd"
       ],
       "agent": "game-coder",
-      "gate": "none"
+      "gate": "none",
+      "note": "Do not release this umbrella when PLAN-SAVE-COVERAGE finishes unless all discovered codec, adapter, header-identity and validation prerequisite task IDs are also dependencies. status=blocked alone is not a dispatcher gate."
     },
     {
       "id": "SAVE-S1-OWNERS",
       "title": "Section 1's seven owners with no encoder (blocker W2)",
-      "status": "blocked",
-      "depends_on": [],
+      "status": "ready",
+      "depends_on": [
+        "BASELINE-INTEGRATION",
+        "SAVE-REGISTRY-RECONCILE"
+      ],
       "owns": [
-        "godot/scripts/core/save_section_01.gd"
+        "godot/scripts/core/save_section_01.gd",
+        "godot/scripts/core/save_section_world_runtime.gd",
+        "godot/scripts/core/buildings.gd",
+        "godot/scripts/core/farming.gd",
+        "godot/scripts/core/forage.gd",
+        "godot/scripts/core/resource_nodes.gd",
+        "godot/scripts/core/spatial_world.gd",
+        "godot/scripts/core/weather.gd",
+        "godot/scripts/core/world_init.gd",
+        "godot/test/test_save_section_01.gd",
+        "godot/test/test_save_section_world_runtime.gd",
+        "godot/test/test_world_owner_columns.gd",
+        "godot/test/test_canonical_state_hash.gd",
+        "godot/scripts/core/canonical_state_hash.gd",
+        "tools/generate_canonical_state_table.py",
+        "docs/persistence_state_registry.md",
+        "docs/planning/canonical_state_registry.json",
+        "docs/validation/validate_save_registry_handoff.py",
+        "docs/systems_architecture.md",
+        "docs/tasks/09_persistence_replay_reliability.md"
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
-      "astra_request": "docs/rulings/requests/OPEN.md#w2-section-1-owners-without-encoders"
+      "astra_request": "docs/rulings/requests/OPEN.md#w2-section-1-owners-without-encoders",
+      "astra_answered": true,
+      "astra_ruling": "docs/rulings/2026-09-14_world_section_owner_encoders.md",
+      "note": "Implement atomic owner adapters/schema migration and semantic validation under R-WORLD-S1-001. Recount integrated registry; target manifest is not active registry."
     },
     {
       "id": "DIGEST-DETERMINISM",
-      "title": "inventory.gd must blank retired rows so the section 15 digest is deterministic",
+      "title": "Resolve canonical inactive and retired inventory representation",
       "status": "blocked",
-      "depends_on": [],
+      "depends_on": [
+        "BASELINE-INTEGRATION",
+        "SAVE-REGISTRY-RECONCILE"
+      ],
       "owns": [
-        "godot/scripts/core/inventory.gd"
+        "godot/scripts/core/inventory.gd",
+        "godot/scripts/core/canonical_state_hash.gd",
+        "godot/test/test_inventory.gd",
+        "godot/test/test_canonical_state_hash.gd"
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
-      "astra_request": "docs/rulings/requests/OPEN.md#retired-row-blanking"
+      "astra_request": "docs/rulings/requests/OPEN.md#retired-row-blanking",
+      "note": "Decision remains OPEN. Do not assume row blanking, omission, or equivalence from live state alone."
     },
     {
       "id": "MOVE-ENVELOPES",
@@ -184,16 +251,18 @@
     },
     {
       "id": "ART-PROPORTION",
-      "title": "Five-species proportion comparison scene for approval",
+      "title": "Verify recorded proportion acceptance and its exact scope after approval",
       "status": "blocked",
-      "depends_on": [],
+      "depends_on": [
+        "ART-PROPORTION-PREP"
+      ],
       "owns": [
-        "godot/assets/lookdev/proportion_comparison.tscn",
-        "docs/art-reference/proportion_comparison.md"
+        "docs/art-reference/proportion_acceptance.md"
       ],
       "agent": "game-coder",
       "gate": "brendan_art",
-      "approval_id": "ART-PROPORTION"
+      "approval_id": "ART-PROPORTION",
+      "note": "DEC-039 already approves five height anchors. Pending approval ledger is unchanged; verify broader anatomy/contact scope without inventing or broadening user approval."
     },
     {
       "id": "ART-CREATURES",
@@ -214,13 +283,184 @@
       "id": "ART-UI-12",
       "title": "ART-UI-12 visual acceptance, further NARROW evidence",
       "status": "blocked",
-      "depends_on": [],
+      "depends_on": [
+        "ART-UI-12-EVIDENCE"
+      ],
       "owns": [
-        "docs/design/ui_refinement/"
+        "docs/design/ui_refinement/visual_acceptance_verdict.md"
       ],
       "agent": "user-qa",
       "gate": "brendan_art",
       "approval_id": "ART-UI-12"
+    },
+    {
+      "id": "BASELINE-INTEGRATION",
+      "title": "Reconcile the reviewed working snapshot with the actual integration base",
+      "status": "review",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/integration_manifest.json",
+        "docs/planning/README.md",
+        "docs/STATUS.md",
+        "docs/decisions/0097-resident-heading-and-public-need-rates.md",
+        "docs/decisions/0106-move-g01-request-review-and-owner-boundaries.md",
+        "docs/decisions/0107-underground-economy-and-hazard-parameters.md",
+        "docs/decisions/0090-the-clocks-one-validated-restore-boundary.md",
+        "docs/decisions/0091-exact-start-astar-replaces-macro-anchor-composition.md",
+        "docs/decisions/0092-the-load-barrier-and-the-one-restore-call-site.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Record base SHA and source hashes; preserve existing staged/untracked work; reconcile duplicate ADR histories and links; baseline Godot result and failures/warnings. Do not claim source-registry pass before SAVE-REGISTRY-RECONCILE.",
+      "note": "Manifest at docs/planning/integration_manifest.json records the three snapshots, the four ADR collisions resolved by content comparison, the reproduced 17-field registry gap left for SAVE-REGISTRY-RECONCILE, and both shutdown warning pairs."
+    },
+    {
+      "id": "SAVE-REGISTRY-RECONCILE",
+      "title": "Register missing Construction state and verify complete source membership",
+      "status": "ready",
+      "depends_on": [
+        "BASELINE-INTEGRATION",
+        "EVENT-SCHEDULE",
+        "CONSTRUCTION-STORE"
+      ],
+      "owns": [
+        "docs/persistence_state_registry.md",
+        "docs/planning/canonical_state_registry.json",
+        "docs/validation/validate_save_registry_handoff.py",
+        "godot/test/test_canonical_state_hash.gd",
+        "godot/scripts/core/canonical_state_hash.gd",
+        "tools/generate_canonical_state_table.py"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "REG-R01: register all 17 currently missing Construction fields and any integrated additions with explicit owners/ordinals; source-membership checker passes. Do not silently implement the S1 scratch/version delta without its codecs; serialize with SAVE-S1-OWNERS."
+    },
+    {
+      "id": "RENDER-SPAWN",
+      "title": "Compose authoritative starter poses and remove the presentation Transform duplicate",
+      "status": "ready",
+      "depends_on": [
+        "BASELINE-INTEGRATION",
+        "RENDER-PATH",
+        "CONSTRUCTION-STORE"
+      ],
+      "owns": [
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/core/transforms.gd",
+        "godot/scripts/presentation/resident_pose_scaffold.gd",
+        "godot/scripts/presentation/resident_stage.gd",
+        "godot/scripts/presentation/resident_crowd.gd",
+        "godot/scripts/main.gd",
+        "godot/scenes/main.tscn",
+        "godot/test/test_settlement_system.gd",
+        "godot/test/test_transforms.gd",
+        "godot/test/test_resident_stage.gd",
+        "godot/test/test_resident_crowd.gd",
+        "godot/test/test_resident_pose_scaffold.gd",
+        "docs/systems_architecture.md",
+        "docs/tasks/05_movement_first_playable.md",
+        "docs/validation/evidence/resident-render-path/authoritative-spawn/"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "astra_answered": true,
+      "astra_request": "docs/rulings/requests/OPEN.md#resident-spawn-positions-and-the-pose-scaffold",
+      "astra_ruling": "docs/rulings/2026-09-14_initial_resident_positions.md",
+      "acceptance": "INIT-POSE-R01 complete acceptance including reset/reuse/refusal/publication; save codec test may remain explicitly blocked on missing section 4. No movement or visual gate closure."
+    },
+    {
+      "id": "CONSTRUCTION-GOODS",
+      "title": "Enforce stored-goods safety for destructive building edits",
+      "status": "blocked",
+      "depends_on": [
+        "BASELINE-INTEGRATION",
+        "CONSTRUCTION-STORE"
+      ],
+      "owns": [
+        "godot/scripts/core/inventory.gd",
+        "godot/scripts/core/construction.gd",
+        "godot/test/test_inventory.gd",
+        "godot/test/test_construction.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "astra_request": "docs/rulings/requests/OPEN.md#inventory-container-enumeration-by-owner"
+    },
+    {
+      "id": "PLAN-SAVE-COVERAGE",
+      "title": "Materialize every remaining save prerequisite before whole-world capture",
+      "status": "ready",
+      "depends_on": [
+        "BASELINE-INTEGRATION"
+      ],
+      "owns": [
+        "docs/planning/save_implementation_matrix.md",
+        "docs/planning/work_queue.json",
+        "docs/tasks/09_persistence_replay_reliability.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Inventory all 15 bodies, each owner capture/restore/hash adapter, header producers, cross-section validators and load orchestration. Include section12 arena-base restore and missing orchard inverse producer. Insert bounded owned tasks and add every implementation prerequisite to SAVE-CAPTURE before marking this planning task done. Publish a validation check that refuses a missing matrix task/dependency; expand ownership for that checker through the integration lead before implementing it."
+    },
+    {
+      "id": "PLAN-RELEASE-COVERAGE",
+      "title": "Restore omitted release work to the dispatch graph from tasks 04 through 10",
+      "status": "ready",
+      "depends_on": [
+        "BASELINE-INTEGRATION",
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "docs/planning/release_coverage_matrix.md",
+        "docs/planning/work_queue.json"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Create owned task entries for initial buildings/furniture/stocks, construction commands/jobs/hauling, event domains/producers/consumers, species rendering and UI corrections, shutdown leak investigation and qualification. Preserve all confirmed settlement scope and unresolved gates; no task completion from document existence alone."
+    },
+    {
+      "id": "PACKET-EVIDENCE",
+      "title": "Make review packets pin integration refs and report complete final PR declaration coverage",
+      "status": "ready",
+      "depends_on": [
+        "BASELINE-INTEGRATION"
+      ],
+      "owns": [
+        "tools/review_packet.py",
+        "tools/test_review_packet.py",
+        "docs/planning/review_packet.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "Explicit reviewed base/ref SHAs; include squash merges; paginated final PR bodies with capture timestamp; missing/error/stale evidence never prints None. Declare and test declaration grammar, including none with explanation. Retain cycle watermark and source audit."
+    },
+    {
+      "id": "ART-PROPORTION-PREP",
+      "title": "Existing five-species box proportion comparison evidence",
+      "status": "done",
+      "depends_on": [],
+      "owns": [
+        "godot/assets/lookdev/proportion_comparison.tscn",
+        "godot/assets/lookdev/captures/elevation_front.png"
+      ],
+      "agent": "user-qa",
+      "gate": "none",
+      "completion_scope": "Existing scene/capture inspected in Cycle 1. Box height comparison only; DEC-039 height anchors recorded, not finished anatomy or full contact acceptance."
+    },
+    {
+      "id": "ART-UI-12-EVIDENCE",
+      "title": "Prepare responsive visual evidence without granting visual acceptance",
+      "status": "ready",
+      "depends_on": [
+        "BASELINE-INTEGRATION"
+      ],
+      "owns": [
+        "docs/validation/evidence/ui-refinement/cycle-01/"
+      ],
+      "agent": "user-qa",
+      "gate": "none",
+      "acceptance": "Capture real scene at WIDE/STANDARD/NARROW with alerts, workspace and resident details; report clipping, occlusion, focus and apparent style; no paid generation, no art ledger changes. Existing unresolved layout questions remain open."
     }
-  ]
+  ],
+  "cycle_report": "docs/planning/astra_cycles/cycle_01.md"
 }

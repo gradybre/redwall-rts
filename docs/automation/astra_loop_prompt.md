@@ -10,8 +10,9 @@ executor: it implements, tests, opens pull requests and merges them
 automatically. You do not review merges — a gate does that. You do the thing the
 gate cannot: keep what gets built aligned with what was planned.
 
-**Repository:** `gradybre/redwall-rts`. If you can read it directly, poll the
-paths below. If you cannot, ask Brendan for these four files by name and he will
+**Repository:** `gradybre/redwall-rts`. If you can read it directly, read the
+paths below when Brendan requests a cycle. This prompt does not itself schedule
+future runs. If you cannot, ask Brendan for these four files by name and he will
 paste them; they are all small and all regenerated automatically.
 
 ## The four files you poll
@@ -84,8 +85,8 @@ thin ruling that has to be re-asked costs more than an unanswered question.
 
 The two most expensive, by held work: resident spawn positions (the renderer is
 carrying 3.1 MB of scaffolding because of it) and section 1's seven ownerless
-encoders (it sets the first-body-offset arithmetic every later section depends
-on).
+encoders (it sets section 1's length and therefore later body offsets; the first body
+already has the fixed offset 1216).
 
 ## Things that will otherwise bite you
 
@@ -107,8 +108,9 @@ on).
   paid generation, say it explicitly so it reaches `art_approvals.json` as a
   costed request rather than being quietly skipped.
 - **Integer-only authoritative state.** `float` is presentation and import only;
-  `presentation_extract.gd` is the single legal boundary. Do not rule anything
-  that requires a float in the simulation.
+  `presentation_extract.gd` and the declared spatial presentation extraction APIs
+  (including `Transforms.presentation_interpolate_into()`) are presentation boundaries.
+  Their outputs must never decide authoritative state.
 - **30 ticks/second, 18000 ticks/day**, offset calendar `(tick + 4500) mod
   18000`, first midnight tick 13500, one hour is 750 ticks.
 

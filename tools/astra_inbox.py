@@ -76,6 +76,7 @@ def render() -> str:
 	out.append("")
 
 	for item in blocking + advisory:
+		out.append(f'<a id="{item["anchor"]}"></a>')
 		out.append(f"## {item['title']}")
 		out.append("")
 		out.append(f"*Asked {item['asked']}.*")

@@ -102,18 +102,25 @@ def main() -> int:
 		"buries.")
 	out.append("")
 
-	out.append("## 1. Declared exceptions in merged work")
+	out.append(f"Evidence source: local HEAD `{_git('rev-parse', 'HEAD').strip()}` commit history; "
+        "queue and inbox are current working files. This generator does not read final PR bodies "
+        "and its merge list omits one-parent squash results. Missing declarations are unknown, not approval.")
+	out.append("")
+	cycle = ROOT / "docs/planning/astra_cycles/cycle_01.md"
+	if cycle.exists():
+		out.append("[Cycle 1 reviewed evidence and rulings](astra_cycles/cycle_01.md) supersede the older exception summary; this is a dated audit, not a live GitHub status check.")
+		out.append("")
+	out.append("## 1. Declared exceptions in local commit history (incomplete PR coverage)")
 	out.append("")
 	if declarations:
-		out.append("Each of these was let through by a human at the moment they wanted it "
-			"merged. That is a weaker check than it sounds, so they are re-listed here.")
+		out.append("These are local commit declarations. Their presence does not establish human approval or their final status in a merged PR.")
 		out.append("")
 		out.append("| Commit | Block | Declared |")
 		out.append("|---|---|---|")
 		for sha, block, text in declarations:
 			out.append(f"| `{sha}` | {block} | {text[:100]} |")
 	else:
-		out.append("None in this window.")
+		out.append("No nonempty declarations found in this local commit window. Final PR-body coverage is unavailable; this does not establish that merged work had no exceptions.")
 	out.append("")
 
 	out.append("## 2. Waiting on you")
@@ -161,7 +168,7 @@ def main() -> int:
 				+ ", ".join(f"`{i}`" for i in sorted(by_status[status])))
 	out.append("")
 
-	out.append("## 5. Merged in this window")
+	out.append("## 5. Local multi-parent merge commits in this window (not all merged PRs)")
 	out.append("")
 	if merges:
 		for sha, subject in merges:

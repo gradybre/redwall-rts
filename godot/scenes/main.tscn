@@ -1,7 +1,9 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/presentation/resident_stage.gd" id="3_stage"]
+[ext_resource type="Script" path="res://scripts/presentation/resident_crowd.gd" id="4_crowd"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 albedo_color = Color(0.29, 0.42, 0.24, 1)
@@ -9,7 +11,7 @@ roughness = 0.9
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 material = SubResource("StandardMaterial3D_ground")
-size = Vector2(60, 60)
+size = Vector2(256, 256)
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
@@ -18,7 +20,14 @@ script = ExtResource("1_main")
 
 [node name="Entities" type="Node3D" parent="World"]
 
+[node name="ResidentStage" type="Node3D" parent="World/Entities"]
+script = ExtResource("3_stage")
+
+[node name="ResidentCrowd" type="MultiMeshInstance3D" parent="World/Entities/ResidentStage"]
+script = ExtResource("4_crowd")
+
 [node name="Ground" type="MeshInstance3D" parent="World"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 128, 0.5, 128)
 mesh = SubResource("PlaneMesh_ground")
 
 [node name="Sun" type="DirectionalLight3D" parent="World"]
@@ -27,10 +36,10 @@ rotation = Vector3(-0.959931, 0.610865, 0)
 shadow_enabled = true
 
 [node name="Camera3D" type="Camera3D" parent="World"]
-position = Vector3(0, 16, 16)
+position = Vector3(128, 16.5, 155)
 rotation = Vector3(-0.785398, 0, 0)
 projection = 1
-size = 26.0
+size = 18.0
 
 [node name="UI" type="Node" parent="."]
 

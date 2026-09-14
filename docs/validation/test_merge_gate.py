@@ -27,6 +27,15 @@ BROKEN_CHAIN = HEADER + (
 	"| Baseline | — | — | 1000 | 8389608 |\n"
 	"| First | decision 0001 | +24 | 1024 | 8389632 |\n"
 	"| Second | decision 0002 | +16 | 1048 | 8389656 |\n")
+NEGATIVE_DELTA = HEADER + (
+	"| Baseline | — | — | 1000 | 8389608 |\n"
+	"| Added | decision 0001 | +24 | 1024 | 8389632 |\n"
+	"| Removed whole | decision 0002 | -24 | 1000 | 8389608 |\n")
+# A U+2212 MINUS SIGN is visually identical to ASCII "-" in a diff. It used to raise
+# ValueError out of check_trail, which reads as a broken gate rather than a bad row.
+UNICODE_MINUS = HEADER + (
+	"| Baseline | — | — | 1000 | 8389608 |\n"
+	"| Removed whole | decision 0002 | \u22124 | 996 | 8389604 |\n")
 BROKEN_RESERVE = HEADER + (
 	"| Baseline | — | — | 1000 | 8389608 |\n"
 	"| First | decision 0001 | +24 | 1024 | 8389999 |\n")
@@ -76,6 +85,8 @@ def main() -> int:
 	expect("L1 clean chain", *run(GOOD_TRAIL), refuse=False)
 	expect("L1 broken chain", *run(BROKEN_CHAIN), refuse=True, needle="L1 trail break")
 	expect("L1 broken reserve", *run(BROKEN_RESERVE), refuse=True, needle="L1 reserve mismatch")
+	expect("L1 negative delta", *run(NEGATIVE_DELTA), refuse=False)
+	expect("L1 unicode minus", *run(UNICODE_MINUS), refuse=True, needle="unreadable delta")
 	expect("L2 one spelling only", *run(GOOD_TRAIL + CLEAN_ROWS), refuse=False)
 	expect("L2 same bare name, different owners", *run(GOOD_TRAIL + SAME_BARE_NAME_TWICE),
 		refuse=False)

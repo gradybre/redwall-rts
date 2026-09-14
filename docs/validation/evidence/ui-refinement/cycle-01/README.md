@@ -149,7 +149,7 @@ Measured in the real font by the harness, printed per capture:
 `UXV-032` — "long refusal and larger text shall wrap/scroll **without clipping**, ellipsis on
 critical content, reduced font size or a covered footer"
 (`docs/design/ui_refinement/requirements.csv`, UI §1.3, A08). ADR
-[`0076`](../../../decisions/0076-the-narrow-alert-card-is-an-authored-summary.md) §111 records
+[`0076`](../../../../decisions/0076-the-narrow-alert-card-is-an-authored-summary.md) §111 records
 the counter cells as **a separate UXV-032 defect, deliberately left unfixed** because that
 ruling's compact-summary exception covers HUD notices and does not extend to other labels.
 
@@ -211,7 +211,7 @@ so this is not a z-order bug. What is unresolved is that §1.2's alert rectangle
 `(460, 16, 360, 96)` lies wholly inside the modal/workspace rectangle `(160, 16, 960, 688)`
 at the supported viewport floor, and §1.2 fixes no precedence between them. **That belongs to
 §1.2's owner.** ADR
-[`0134`](../../../decisions/0134-alert-r02-packs-two-instances-of-one-catalogued-card.md)
+[`0134`](../../../../decisions/0134-alert-r02-packs-two-instances-of-one-catalogued-card.md)
 records the arithmetic at all three profiles; the existing capture `40` records the condition.
 
 **PRE-EXISTING**, and already open as the unchecked item in

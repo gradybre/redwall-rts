@@ -111,16 +111,39 @@ def check_gate(pr: dict) -> list[str]:
 
 
 def check_report(pr: dict) -> list[str]:
-	"""CHECK 4: the PR body's declared exceptions must be empty and present."""
-	import re
-	body = pr.get("body") or ""
+	"""CHECK 4: the PR body's declared exceptions, under review_packet's grammar.
+
+	This used to keep its OWN parser, and that parser was wrong in a way worth
+	recording. It called `re.search`, which returns the FIRST match, so a real
+	exception written BELOW an earlier `none` -- a quoted template, a checklist,
+	a copied example -- was invisible and the PR merged. Demonstrated:
+
+	    DEVIATIONS: none
+	    ...
+	    DEVIATIONS: overruled the brief, shipped anyway   <- never seen
+
+	It also treated an empty value as clean, in the same tuple as "none".
+
+	Two parsers for one grammar is how the two drift, so there is now one:
+	`review_packet.parse_declarations`, which takes the MOST SEVERE outcome
+	across every occurrence and is driven by 67 self-test cases. QUALIFIED --
+	`none -- <prose>` -- deliberately holds rather than clearing: no regex can
+	tell "none, both were killed" from "none, we shipped with one alive", so the
+	machine refuses to decide and hands it to a human. That is the same posture
+	as the rest of this gate.
+	"""
+	from review_packet import parse_declarations
+
 	problems: list[str] = []
-	for block in REPORT_BLOCKS:
-		match = re.search(rf"^\s*\**{block}:\**\s*(.*)$", body, re.M)
-		if match is None:
+	for block, entry in parse_declarations(pr.get("body") or "").items():
+		outcome = entry["outcome"]
+		if outcome == "CLEAR":
+			continue
+		if outcome == "MISSING":
 			problems.append(f"body declares no {block}:")
-		elif match.group(1).strip().strip("*").lower() not in ("none", "none.", ""):
-			problems.append(f"{block}: {match.group(1).strip()[:60]}")
+			continue
+		shown = " | ".join(v[:60] for v in entry["occurrences"] if v)
+		problems.append(f"{block} is {outcome}: {shown or '(empty)'}")
 	return problems
 
 

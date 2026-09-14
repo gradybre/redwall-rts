@@ -75,11 +75,26 @@ const U32_HIGH_BIT: int = 2147483648
 const NAME_CAP_BYTES: int = 128
 ## REG-R01 REQUIRES this to grow: it is a snapshot of how many packed columns the registry
 ## currently persists, not a format constant. It read 512 at executor snapshot 197472b, 530
-## after the save-registry reconciliation, and 536 once event_schedule.gd landed section 11's
-## six record columns. A new store SHOULD move it. What must NOT move without a ruling is
-## `record_count`, which counts declared records and stayed at 582 -- section 11's eight
-## fields were already declared before any of them had a module.
-const REGISTRY_PACKED_FIELD_COUNT: int = 536
+## after the save-registry reconciliation, 536 once event_schedule.gd landed section 11's
+## six record columns, and 553 once construction.gd's seventeen category-1 columns were
+## registered. A new store SHOULD move it.
+##
+## `record_count` moves only when the DECLARED field set changes, and the two cases differ:
+## section 11's eight fields were already declared before any of them had a module, so that
+## landing moved this pin alone and left `record_count` at 582. construction.gd's seventeen
+## columns were never declared at all, so registering them is seventeen NEW hash=true
+## declarations and `record_count` moves with them, 582 -> 599.
+const REGISTRY_PACKED_FIELD_COUNT: int = 553
+
+## construction.gd's section-4 block, pinned independently of the registry JSON so that deleting
+## a field from BOTH the JSON and the compiled table still fails. The JSON-comparison tests above
+## only prove the two agree; these two constants are what proves they agree about the right thing.
+const CONSTRUCTION_SECTION_FOUR_KEYS: String = (
+	"_present, _material_container_slot, _material_container_generation, _assigned_count, "
+	+ "_max_workers, _refund_policy, _remaining_mwu, _paused, _work_begun, _ref_slot, "
+	+ "_ref_generation, _subject_slot, _subject_generation, _purpose, _type_id, _phase"
+)
+const CONSTRUCTION_SECTION_FOUR_TYPES: String = "0, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2"
 
 
 class FixtureAdapter:
@@ -363,7 +378,7 @@ func _assert_field_shape(declaration: Digest.Declaration, field: Dictionary, ind
 
 
 func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
-	"""582 canonical records over 50 owners, 536 persisted packed fields, release_save_ready false."""
+	"""599 canonical records over 52 owners, 553 persisted packed fields, release_save_ready false."""
 	var data: Dictionary = _registry()
 	assert_equal(int(data["record_count"]), Digest.CANONICAL_RECORD_COUNT, "registry record_count")
 	assert_equal(int(data["packed_source_field_count"]), REGISTRY_PACKED_FIELD_COUNT,
@@ -371,7 +386,7 @@ func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
 	assert_equal(String(data["registry_id"]), Digest.DECLARATION_ID, "registry id")
 	assert_false(bool(data["release_save_ready"]), "release_save_ready stays false")
 	assert_equal(Digest.production_declaration().record_count(), Digest.CANONICAL_RECORD_COUNT,
-		"the compiled declaration counts the same 582 records")
+		"the compiled declaration counts the same 599 records")
 
 
 func test_production_declaration_validates_and_excludes_section_fifteen() -> void:
@@ -401,10 +416,45 @@ func test_world_runtime_exclusions_are_declared_but_unhashed() -> void:
 		"only the four non-prefix scalars are hashed")
 
 
+func _owner_keys_and_types(section: int, key: String) -> PackedStringArray:
+	"""Return one owner's declared field keys and type codes as two comma-joined strings."""
+	var declaration: Digest.Declaration = Digest.production_declaration()
+	var owner: int = declaration.find_owner(section, key)
+	assert_true(owner < declaration.owner_count(), "section %d declares %s" % [section, key])
+	var keys: PackedStringArray = PackedStringArray()
+	var types: PackedStringArray = PackedStringArray()
+	var begin: int = declaration.owner_field_begin(owner)
+	for offset: int in declaration.owner_field_count(owner):
+		keys.append(declaration.field_key(begin + offset))
+		types.append(str(declaration.field_type(begin + offset)))
+		assert_true(declaration.field_is_hashed(begin + offset),
+			"%s.%s is a record" % [key, declaration.field_key(begin + offset)])
+	return PackedStringArray([", ".join(keys), ", ".join(types)])
+
+
+func test_construction_section_four_columns_are_declared_in_order() -> void:
+	"""The sixteen category-1 project columns, occupied bitset first per ARCH-SAVE-002.
+
+	`construction.gd` declares `_present` AFTER `_material_container_slot`; the canonical order
+	hoists it to ordinal 0 exactly as (4, "needs") and (4, "buildings") do. Walking GDScript
+	declaration order instead yields a digest that is stable, plausible and wrong.
+	"""
+	var found: PackedStringArray = _owner_keys_and_types(4, "construction")
+	assert_equal(found[0], CONSTRUCTION_SECTION_FOUR_KEYS, "section 4 construction field order")
+	assert_equal(found[1], CONSTRUCTION_SECTION_FOUR_TYPES, "section 4 construction type codes")
+
+
+func test_construction_delivered_arena_is_its_own_section_five_owner() -> void:
+	"""REQ-SET-124's delivered ledger is a CHILD_ARENA, not a project column, and is i64."""
+	var found: PackedStringArray = _owner_keys_and_types(5, "construction")
+	assert_equal(found[0], "_delivered_milli", "section 5 construction declares only the arena")
+	assert_equal(found[1], "4", "quantity_milli is i64 (type code 4), never i32")
+
+
 # --- 3. refusals ----------------------------------------------------------------------------------
 
 func test_production_walker_refuses_because_no_owner_has_an_adapter() -> void:
-	"""The deliverable refusal: 50 declared owners, 0 adapters, no digest and no subset."""
+	"""The deliverable refusal: 52 declared owners, 0 adapters, no digest and no subset."""
 	var walker: Digest.Walker = Digest.production_walker()
 	assert_false(walker.adapter_coverage_complete(), "no adapter exists yet")
 	assert_equal(walker.missing_adapter_owners().size(), Digest.CANONICAL_OWNER_COUNT,

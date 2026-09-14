@@ -55,8 +55,8 @@
   "world_init": "664d7bbdd96456818f0e1baaf19af6081fac9dcd317df31b8770c0999c717130"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 582,
- "packed_source_field_count": 536,
+ "record_count": 599,
+ "packed_source_field_count": 553,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime.",
  "owners": [
   {
@@ -1325,6 +1325,237 @@
      },
      "ordinal": 28,
      "source_contract": "C025"
+    }
+   ]
+  },
+  {
+   "section_id": 4,
+   "owner_key": "construction",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_present",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_present",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 0,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_material_container_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_material_container_slot",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 1,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_material_container_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_material_container_generation",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 2,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_assigned_count",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_assigned_count",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 3,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_max_workers",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_max_workers",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 4,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_refund_policy",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_refund_policy",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 5,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_remaining_mwu",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_remaining_mwu",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 6,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_paused",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_paused",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 7,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_work_begun",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_work_begun",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 8,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_ref_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_ref_slot",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 9,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_ref_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_ref_generation",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 10,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_subject_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_subject_slot",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 11,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_subject_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_subject_generation",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 12,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_purpose",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_purpose",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 13,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_type_id",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_type_id",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 14,
+     "source_contract": "C172"
+    },
+    {
+     "field_key": "_phase",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_phase",
+     "shape": {
+      "declared_capacity": "`CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 15,
+     "source_contract": "C172"
     }
    ]
   },
@@ -5196,6 +5427,27 @@
      },
      "ordinal": 14,
      "source_contract": "C116"
+    }
+   ]
+  },
+  {
+   "section_id": 5,
+   "owner_key": "construction",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_delivered_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "construction",
+     "source_member": "_delivered_milli",
+     "shape": {
+      "declared_capacity": "`DELIVERED_CELLS` = 331776",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 0,
+     "source_contract": "C172"
     }
    ]
   },
@@ -9414,6 +9666,10 @@
    "contract": "SAVE-R09-005 section 11 EVENT_SCHEDULE record columns",
    "module": "godot/scripts/core/event_schedule.gd",
    "unused": "rows [_count, 64) are held byte zero; _sequence 0 is the EXHAUSTED allocator marker and never a live row"
+  },
+  "C172": {
+   "unused": "`_present` 0 is a free row; `_material_container_slot` -1 with generation 0 is the null ref; `_ref_slot` and `_subject_slot` -1 with generation 0 are the null refs; `_assigned_count` 0 is a project with no builder bound, which is also every paused project; `_paused` 0 is running and `_work_begun` 0 is not yet consumed; `_remaining_mwu` 0 on a live row means the work is finished, not that the row is free; `_type_id` -1 only on a free row; `_delivered_milli` 0 means nothing delivered on that line, and cells at or beyond a project's own bill size are always 0",
+   "notes": "REQ-SET-124-127's construction projects, registered on arrival under REG-R01's growth rule; they were classified category 1 in docs/persistence_state_registry.md and implemented in construction.gd but never declared here. `_material_container_slot`/`_material_container_generation` is an INVENTORY CONTAINER reference validated against inventory.gd's `_c_generation`, NOT a directory one; `_ref_*` and `_subject_*` are both DIRECTORY references. A furniture project's subject is stored only here: GDD 4.2 gives Furniture no construction column, so it cannot be rebuilt from the Building store the way a building subject can. `_work_begun` is the sole record that REQ-SET-125's consumption happened and is the only thing moving REQ-SET-126's refund from 100% to 80%; it is not derivable from `_remaining_mwu`, because work can have begun with no milli-WU earned yet. `_refund_policy` is written and then cross-checked by `verify_refund_policies()`, which refuses a mismatch rather than repairing it, so both sides of that comparison must survive a load. `_purpose`, `_type_id` and `_phase` are module ordinals, not compiled catalog domains, so a codec pins them itself. `_delivered_milli` is section 5 CHILD_ARENAS: owner-major at the fixed stride `MATERIAL_SLOTS_PER_PROJECT` = 4, so line k of project row r is cell r * 4 + k, and it is retained after consumption precisely so the 80% case has something to compute from. construction.gd's bill tables (`_build_key`, `_build_milli`, `_build_count`, `_upgrade_*`, `_furniture_*`) are category 2 immutable catalog, recompiled on construction, and are deliberately NOT declared here."
   }
  },
  "section_schema_versions": [

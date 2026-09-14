@@ -76,6 +76,18 @@ def check_trail(text: str) -> list[str]:
 	for cells in _trail_rows(text):
 		label, delta, payload, live = cells[0], cells[2], int(cells[3]), int(cells[4])
 		if delta not in ("—", "--"):
+			# A delta may now be NEGATIVE: decision 0138 deletes the presentation pose
+			# scaffold whole, the first row in this ledger to remove bytes. Accept an
+			# ASCII sign only, and say so rather than crashing -- a U+2212 MINUS SIGN
+			# pasted from a document looks identical in a diff and used to raise
+			# ValueError out of this function, which reads as a broken gate rather
+			# than a malformed row.
+			if not re.fullmatch(r"[+-]?\d+", delta):
+				problems.append(
+					f"L1 unreadable delta at {label[:48]!r}: {delta!r} is not an ASCII "
+					f"signed integer (a Unicode minus sign U+2212 is the usual cause)")
+				previous = payload
+				continue
 			step = int(delta.lstrip("+"))
 			if previous is not None and previous + step != payload:
 				problems.append(

@@ -10,6 +10,11 @@ extends MultiMeshInstance3D
 ## ---------------------------------------------------------------------------------------
 ## THIS OBJECT IS DOWNSTREAM OF THE SIMULATION AND CANNOT REACH BACK INTO IT.
 ##
+## UNDER INIT-POSE-R01 BOTH READERS ARE THE SETTLEMENT'S OWN. `bind_stores()` always took the
+## Transform store as an argument; what changed is that the argument is now
+## `settlement_system.gd`'s single directory-bound instance rather than a presentation-private
+## scaffold. Nothing in this file needed to change for that, and nothing here may construct one.
+##
 ##   * IT HOLDS TWO BORROWED READERS AND CALLS ONLY CONST-SHAPED METHODS ON THEM.
 ##     `residents.is_alive()`, `residents.ref_of()` and `transforms.presentation_interpolate_into()`
 ##     are the complete list. None of the three writes an authoritative column; the third is
@@ -143,6 +148,15 @@ func unbind_stores() -> void:
 	_drawn_count = 0
 	_skipped_unplaced = 0
 	multimesh.visible_instance_count = 0
+
+
+func transforms() -> TransformsScript:
+	"""The BORROWED pose store this crowd reads, or null while unbound.
+
+	Exists so a test can prove the renderer reads the SETTLEMENT's store by identity rather than
+	by comparing coordinates two stores might coincidentally share.
+	"""
+	return _transforms
 
 
 func is_bound() -> bool:

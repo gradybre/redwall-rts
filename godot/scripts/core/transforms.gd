@@ -148,6 +148,36 @@ func _init(directory: EntityDirectory) -> void:
 	_assert_bases_tile_the_capacity()
 
 
+func reset() -> void:
+	"""COLD, GUARDED RESET: zero all nine columns and the derived count. Never on a tick path.
+
+	GUARDED means the settlement is the only caller: it runs inside `settlement_system.reset()`,
+	alongside the directory and resident clears, so a pose can never outlive the entity that owns
+	it. INIT-POSE-R01 §2.4 is the reason it zeroes `_bound_persistent_id` too -- a new-world reset
+	restarts persistent ids at 1, so leftover binding bytes from a PREVIOUS world would match a
+	DIFFERENT entity that happens to draw the same id, and `is_bound()` would hand back a dead
+	world's coordinates. Within one world ids never repeat and this could be skipped; across two
+	worlds it cannot.
+
+	LOAD IS NOT THIS CALL FOLLOWED BY SPAWNING. A restore installs saved current AND previous
+	fields through their owner; calling `place()` for a restored resident would overwrite the
+	saved history with previous = current and silently flatten one tick of motion.
+
+	Allocates nothing: every column is filled in place at the capacity `_init()` sized it to.
+	"""
+	_x.fill(0)
+	_y.fill(0)
+	_z.fill(0)
+	_yaw.fill(0)
+	_prev_x.fill(0)
+	_prev_y.fill(0)
+	_prev_z.fill(0)
+	_prev_yaw.fill(0)
+	_bound_persistent_id.fill(0)
+	_bound_count = 0
+	_last_refusal = REFUSE_NONE
+
+
 func _assert_bases_tile_the_capacity() -> void:
 	"""Fail loudly if the positioned bases and the directory capacities ever stop agreeing."""
 	var total: int = 0
@@ -418,6 +448,29 @@ static func _fold(digest: int, value: int) -> int:
 	and produce a platform-dependent modulo.
 	"""
 	return (digest * DIGEST_MULTIPLIER + value % DIGEST_MODULUS + DIGEST_MODULUS) % DIGEST_MODULUS
+
+
+func state_bytes() -> PackedByteArray:
+	"""A deterministic image of all nine authoritative columns, for equality comparison.
+
+	Decision 0059's refusal assertion: a refused placement must leave this store byte-identical,
+	and no field-by-field inspection establishes that as convincingly -- a reader can forget a
+	column, and this cannot. Not a save format: no header, no version, no declared widths.
+
+	This ALLOCATES, deliberately and only here. It is a diagnostic and test path and is never
+	called from a tick; `authoritative_digest()` is the non-copying scan for the same question.
+	"""
+	var image: PackedByteArray = PackedByteArray()
+	image.append_array(_x.to_byte_array())
+	image.append_array(_y.to_byte_array())
+	image.append_array(_z.to_byte_array())
+	image.append_array(_yaw.to_byte_array())
+	image.append_array(_prev_x.to_byte_array())
+	image.append_array(_prev_y.to_byte_array())
+	image.append_array(_prev_z.to_byte_array())
+	image.append_array(_prev_yaw.to_byte_array())
+	image.append_array(_bound_persistent_id.to_byte_array())
+	return image
 
 
 func last_refusal() -> StringName:

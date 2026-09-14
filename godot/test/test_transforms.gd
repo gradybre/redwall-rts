@@ -311,3 +311,79 @@ func test_an_empty_store_digests_to_zero_and_a_placement_changes_it() -> void:
 	assert_true(
 		_transforms.authoritative_digest() != 0,
 		"a body at the origin is not the same state as no body at all")
+
+
+# --- the cold reset and the state image ----------------------------------------------------------
+#
+# INIT-POSE-R01 §2.4 adds a guarded reset for all nine columns and the derived count, and §2.2's
+# refusal discipline needs an image a test can compare whole. Both land here rather than in the
+# settlement, because the columns are this store's.
+
+func test_the_state_image_covers_every_column_not_a_sample_of_them() -> void:
+	"""Nine columns at 87552 int32 each. A reader that forgot one would make refusals unprovable."""
+	assert_equal(_transforms.state_bytes().size(), 9 * TransformsScript.TRANSFORM_CAPACITY * 4,
+		"the image is all nine int32 columns at full capacity")
+
+
+func test_every_written_field_moves_the_state_image() -> void:
+	"""Each of the eight pose fields, plus the binding stamp, must be inside the image.
+
+	Written one at a time through the store's own writers, so a column left out of `state_bytes()`
+	shows up as an image that did not change when the field did.
+	"""
+	var ref: Vector2i = _resident()
+	var empty: PackedByteArray = _transforms.state_bytes()
+	assert_true(_transforms.place(ref, 7, 0, 0, 0), "x and the binding stamp are written")
+	var after_place: PackedByteArray = _transforms.state_bytes()
+	assert_true(after_place != empty, "which moves the image")
+	assert_true(_transforms.advance(ref, 7, 11, 0), "y moves and x rolls into prev_x")
+	var after_advance: PackedByteArray = _transforms.state_bytes()
+	assert_true(after_advance != after_place, "which moves it again")
+	assert_true(_transforms.set_yaw(ref, 1234), "and yaw rolls into prev_yaw")
+	assert_true(_transforms.state_bytes() != after_advance, "which moves it a third time")
+
+
+func test_the_reset_returns_all_nine_columns_to_a_freshly_allocated_store() -> void:
+	"""A new world may restart persistent ids at 1, so a leftover binding stamp is a live match."""
+	var fresh: PackedByteArray = TransformsScript.new(EntityDirectoryScript.new()).state_bytes()
+	var ref: Vector2i = _resident()
+	assert_true(_transforms.place(ref, 4096, 512, 8192, 0), "a resident is placed")
+	assert_true(_transforms.advance(ref, 6144, 512, 8192), "and then moves, so previous differs")
+	assert_equal(_transforms.bound_count(), 1, "one row is bound")
+	assert_true(_transforms.state_bytes() != fresh, "and the image is not an empty store's")
+	_transforms.reset()
+	assert_equal(_transforms.state_bytes(), fresh,
+		"the reset leaves every column byte-identical to a freshly allocated store")
+	assert_equal(_transforms.bound_count(), 0, "and the derived count with them")
+	assert_equal(_transforms.authoritative_digest(), 0, "an emptied store digests to zero")
+
+
+func test_a_row_reused_after_a_reset_reads_as_unplaced_until_it_is_placed_again() -> void:
+	"""The stale-binding hazard the reset exists for, from the direction that can actually bite.
+
+	The reset drops the directory's OWN rows too in the settlement; here the same reference is
+	kept deliberately, because an implementation that reset the poses and not the binding stamps
+	would hand this reference its predecessor's coordinates and pass every count-based check.
+	"""
+	var ref: Vector2i = _resident()
+	assert_true(_transforms.place(ref, 4096, 512, 8192, 900), "the row is placed")
+	_transforms.reset()
+	assert_false(_transforms.is_bound(ref), "the row reads as never placed")
+	assert_false(_transforms.read_into(ref, _pose), "and refuses to be read")
+	assert_equal(_transforms.last_refusal(), TransformsScript.REFUSE_NOT_BOUND,
+		"naming the missing placement rather than returning stale coordinates")
+	assert_true(_transforms.place(ref, 1, 2, 3, 4), "placing it again works")
+	assert_true(_transforms.read_into(ref, _pose), "and it reads back")
+	assert_equal(_pose.x, 1, "as the NEW pose")
+	assert_equal(_pose.prev_x, 1, "with previous equal to current, not the pre-reset history")
+	assert_equal(_transforms.bound_count(), 1, "and the count counted it exactly once")
+
+
+func test_a_refused_place_leaves_the_whole_store_byte_identical() -> void:
+	"""Decision 0059 over the nine columns: a refusal writes nothing, not even a partial row."""
+	var ref: Vector2i = _resident()
+	var before: PackedByteArray = _transforms.state_bytes()
+	assert_false(_transforms.place(ref, 2147483648, 0, 0, 0), "an out-of-int32 x refuses")
+	assert_equal(_transforms.last_refusal(), TransformsScript.REFUSE_OUT_OF_INT32, "by that name")
+	assert_equal(_transforms.state_bytes(), before, "and not one byte of any column moved")
+	assert_equal(_transforms.bound_count(), 0, "nor did the derived count")

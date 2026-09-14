@@ -23,17 +23,20 @@ extends Node3D
 ## a store is not a UI update.
 ##
 ## ---------------------------------------------------------------------------------------
-## THIS NODE WRITES NOTHING INTO THE SIMULATION. It calls `residents.directory()` to build the
-## scaffold's private pose store, and `refresh_into()` on the crowd. Every other call it makes is
-## a read. See `resident_crowd.gd` and `resident_pose_scaffold.gd` for what each of those may and
-## may not touch.
+## THIS NODE WRITES NOTHING INTO THE SIMULATION, AND NO LONGER OWNS A POSE STORE. Under
+## INIT-POSE-R01 the settlement composes ONE `transforms.gd` over its own directory and places
+## §5.1's cohort inside the generation transaction; `attach()` takes that exact instance as an
+## argument and the crowd reads it. The presentation-private `resident_pose_scaffold.gd` that
+## stood the cohort up before this -- a SECOND authoritative-size pose store, 3151872 bytes -- is
+## deleted whole, and nothing here may allocate another. The only calls this node makes into the
+## simulation are reads, plus `refresh_into()` on its own crowd child.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const ResidentCrowdScript := preload("res://scripts/presentation/resident_crowd.gd")
-const PoseScaffoldScript := preload("res://scripts/presentation/resident_pose_scaffold.gd")
+const TransformsScript := preload("res://scripts/core/transforms.gd")
 
 ## Crowd doc 9.1's scale anchor: the reference model is a 1.0 m mouse, deliberately not biological.
 ## Only the FALLBACK box uses it; the shipped GLB is already normalised to that height.
@@ -50,13 +53,16 @@ const MESH_SOURCE_FALLBACK: StringName = &"fallback_box"
 const REFUSE_NONE: StringName = &""
 const REFUSE_NO_CROWD: StringName = &"STAGE_NO_CROWD_CHILD"
 const REFUSE_NO_RESIDENTS: StringName = &"STAGE_NO_RESIDENT_STORE"
-const REFUSE_SCAFFOLD: StringName = &"STAGE_SCAFFOLD_REFUSED"
+## The settlement owns the pose store; a renderer handed none refuses rather than building one.
+const REFUSE_NO_TRANSFORMS: StringName = &"STAGE_NO_TRANSFORM_STORE"
 const REFUSE_BIND: StringName = &"STAGE_CROWD_BIND_REFUSED"
 
 @onready var _crowd: ResidentCrowdScript = $ResidentCrowd as ResidentCrowdScript
 
 var _time: GameManagerScript = null
-var _scaffold: PoseScaffoldScript = null
+## BORROWED, never owned: the settlement's one Transform store. Dropped on `detach()` without a
+## single write, and never replaced by a locally constructed one.
+var _transforms: TransformsScript = null
 var _mesh_source: StringName = MESH_SOURCE_NONE
 var _attached: bool = false
 var _last_refusal: StringName = REFUSE_NONE
@@ -74,8 +80,13 @@ func _ready() -> void:
 		push_error("ResidentStage has no ResidentCrowd child; residents will not be drawn.")
 
 
-func attach(residents: ResidentsScript) -> bool:
-	"""Bind the crowd to a live resident store and stand its cohort up. Called by `main.gd`.
+func attach(residents: ResidentsScript, transforms: TransformsScript) -> bool:
+	"""Bind the crowd to the settlement's OWN resident and pose stores. Called by `main.gd`.
+
+	BOTH ARE BORROWED AND NEITHER IS CREATED HERE. Placement is the settlement's, inside its
+	generation transaction (INIT-POSE-R01); this call only points the renderer at the result.
+	A resident whose pose was never placed is skipped by the crowd and counted, so an unplaced
+	cohort reads as unplaced rather than as a pile at the world origin.
 
 	Refuses explicitly rather than leaving a half-bound crowd: an empty stage and a stage that
 	failed to bind look identical on screen, and only one of them is a defect.
@@ -84,11 +95,11 @@ func attach(residents: ResidentsScript) -> bool:
 		return _refuse(REFUSE_NO_CROWD)
 	if residents == null:
 		return _refuse(REFUSE_NO_RESIDENTS)
-	_scaffold = PoseScaffoldScript.new(residents)
-	if not _scaffold.place_all():
-		return _refuse(REFUSE_SCAFFOLD)
-	if not _crowd.bind_stores(residents, _scaffold.transforms()):
+	if transforms == null:
+		return _refuse(REFUSE_NO_TRANSFORMS)
+	if not _crowd.bind_stores(residents, transforms):
 		return _refuse(REFUSE_BIND)
+	_transforms = transforms
 	_crowd.set_crowd_mesh(_resolve_crowd_mesh())
 	_attached = true
 	_last_refusal = REFUSE_NONE
@@ -96,10 +107,10 @@ func attach(residents: ResidentsScript) -> bool:
 
 
 func detach() -> void:
-	"""Drop the borrowed store and the scaffold without writing to either."""
+	"""Drop both borrowed stores without writing to either."""
 	if _crowd != null:
 		_crowd.unbind_stores()
-	_scaffold = null
+	_transforms = null
 	_attached = false
 
 
@@ -192,9 +203,13 @@ func crowd() -> ResidentCrowdScript:
 	return _crowd
 
 
-func scaffold() -> PoseScaffoldScript:
-	"""The presentation-private pose scaffold; see its header for what it stands in for."""
-	return _scaffold
+func transforms() -> TransformsScript:
+	"""The BORROWED settlement pose store this stage draws from, or null while detached.
+
+	A reader, so a test can prove the renderer and the settlement hold the SAME object rather
+	than two stores that happen to agree today.
+	"""
+	return _transforms
 
 
 func mesh_source() -> StringName:

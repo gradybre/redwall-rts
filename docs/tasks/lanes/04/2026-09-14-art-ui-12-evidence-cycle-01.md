@@ -59,5 +59,11 @@ Brendan's verdict.** No agent grants its own art approval.
 No `godot/` file is changed on this branch. `docs/design/ui_refinement/` is untouched.
 `docs/planning/art_approvals.json` is untouched — approvals are Brendan writing `approved`
 and a name, and no tool or agent writes that file. No paid generation credits were spent.
-The two capture harnesses are scratch files, deleted before commit; their exact commands are
-recorded in the evidence README because that is the part that reproduces.
+**Restored 2026-09-14, answering Astra's Cycle 2 follow-up** — "preserve those harnesses
+under a validation-owned path so the evidence can be reproduced from repository contents":
+both capture harnesses now live in
+[`docs/validation/harnesses/artui12/`](../../../validation/harnesses/artui12/) rather than
+being deleted, and every command in the evidence README names the path it invokes. They are
+not `godot/` sources — nothing in the project loads them — and Godot 4.7.2 resolves a
+`--script` path outside the project directory, so no loose file or copy step is needed.
+Re-running capture `03` from the restored path reproduced the committed file byte for byte.

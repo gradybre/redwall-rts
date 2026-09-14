@@ -16,7 +16,7 @@ them and nothing here supersedes any of them.
 | Suite at capture | `ok: 4336 tests, 152719 assertions, 0 failures.` |
 | Platform | native macOS, **windowed**; `--headless` returns null from `get_image()` |
 | Scene | the project's own `run/main_scene`, `res://scenes/main.tscn` |
-| Harness | `capture_artui12_scratch.gd` and `diff_artui12_scratch.gd`, scratch files **deleted before commit**; the exact commands are recorded below because that is the part that reproduces |
+| Harness | [`docs/validation/harnesses/artui12/`](../../../harnesses/artui12/) — `capture_artui12_scratch.gd` and `diff_artui12_scratch.gd`, **retained in the repository** so every command below runs as written |
 
 ## Why these two, and only these two
 
@@ -38,9 +38,17 @@ worktree has an empty import cache, and without that step fonts and themes are u
 every capture is wrong.
 
 ```bash
-godot --path godot --script capture_artui12_scratch.gd --resolution 1280x720 \
-    -- <ABSOLUTE-out.png> <mode> <scale-percent>
+godot --path godot \
+    --script ../docs/validation/harnesses/artui12/capture_artui12_scratch.gd \
+    --resolution 1280x720 -- <ABSOLUTE-out.png> <mode> <scale-percent>
 ```
+
+**The harness does not have to live inside `godot/`.** Godot 4.7.2's `--script` resolves a
+path outside the project directory, and both the `../` relative form above and the equivalent
+absolute path were run and produced identical output. That was measured rather than assumed,
+because the alternative would have been to keep a loose script in `godot/` or to copy one in
+and out around every run. Nothing in `godot/` loads these two files and the project builds and
+tests without them.
 
 `save_png` needs an **absolute** path. A `--script` SceneTree run hangs forever if an error
 abandons `_initialize()` before `quit()`, so every run above was wrapped in
@@ -66,10 +74,15 @@ resolve at compile time under `--script`, so `UIManager` is reached with
 So, for example, capture 08 is exactly:
 
 ```bash
-godot --path godot --script capture_artui12_scratch.gd --resolution 1280x720 \
+godot --path godot \
+    --script ../docs/validation/harnesses/artui12/capture_artui12_scratch.gd \
+    --resolution 1280x720 \
     -- /ABSOLUTE/PATH/docs/validation/evidence/ui-refinement/cycle-01/08_counters_narrow_1280x720_150_settlement.png \
        settlement 150
 ```
+
+Re-running capture `03` this way from the restored path produced a file **byte-identical** to
+the committed one, `sha256 eb4a9f781c8958741322082ac061a61d17eb1556e90cf472223219721b050908`.
 
 ## What drove each screen, and what the harness supplied
 
@@ -178,9 +191,13 @@ The captures are bit-deterministic: the same mode captured twice produced **0 di
 pixels of 921600**. The comparison below is therefore exact, with no tolerance.
 
 ```bash
-godot --headless --path godot --script diff_artui12_scratch.gd \
+godot --headless --path godot \
+    --script ../docs/validation/harnesses/artui12/diff_artui12_scratch.gd \
     -- <ABSOLUTE-a.png> <ABSOLUTE-b.png> <x> <y> <w> <h>
 ```
+
+Headless is correct for the comparator and only for it: it reads the PNGs off disk and never
+asks a window for its framebuffer.
 
 The shell reports card 0's rectangle as `(462, 18, 320, 44)` and card 1's as
 `(462, 66, 320, 44)`.

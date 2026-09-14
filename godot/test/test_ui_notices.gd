@@ -362,3 +362,50 @@ func _retained_messages() -> PackedStringArray:
 		if _notices.notice_into(order[index], 0, _notice):
 			out.append(_notice.message)
 	return out
+
+
+# --- UI-C3-R01 §3: the summary must fit its card's HEIGHT as well as its width ------------------
+
+func test_every_authored_summary_fits_the_card_height_it_is_drawn_in() -> void:
+	"""§3: "An authored summary must itself fit measured width; enforce this for every active
+	producer/profile during content validation."
+
+	The width was already enforced. This adds the height the ruling's own arithmetic turns on:
+	"A one-line 16px notice measures 23px; max(text23,icon24)+24=48" at STANDARD and WIDE, and
+	"max(icon24,text23)+16=40<=44" at NARROW with its 8 px summary padding. A summary that
+	wrapped to two lines would need 46 px of text and fit neither card, so this measures the
+	authored line WRAPPED INTO ITS OWN CARD rather than assuming it is one line.
+	"""
+	var font: Font = _notice_font()
+	var size: int = _notice_font_size()
+	for profile: int in UiLayout.PROFILE_COUNT:
+		var interior: float = UiLayout.alert_summary_width(profile, 360.0)
+		var padding: float = UiLayout.alert_summary_padding_y(profile)
+		var card: float = UiLayout.alert_card_min_height(profile)
+		for category: int in UiNotices.CATEGORY_COUNT:
+			var line: String = UiNotices.summary_line(category, UiNotices.MAX_OTHER_COUNT)
+			var text: float = font.get_multiline_string_size(line, HORIZONTAL_ALIGNMENT_LEFT,
+				interior, size).y
+			var needed: float = maxf(text, UiLayout.ALERT_SEVERITY_ICON) + 2.0 * padding
+			assert_true(needed <= card,
+				"profile %d: '%s' needs %.1f px of card and has %.1f" % [profile, line,
+					needed, card])
+
+
+func test_the_narrow_summary_padding_is_what_makes_its_forty_four_fit() -> void:
+	"""§3's exception, as the difference it makes: the generic 12 px does NOT fit 44.
+
+	This is the arithmetic that made the NARROW card unreachable. Asserting the 8 alone would
+	pass against a file that had never changed from 12, so both are computed here.
+	"""
+	var font: Font = _notice_font()
+	var line: String = UiNotices.widest_summary_line()
+	var text: float = font.get_multiline_string_size(line, HORIZONTAL_ALIGNMENT_LEFT,
+		UiLayout.alert_summary_width(UiLayout.PROFILE_NARROW, 360.0), _notice_font_size()).y
+	var content: float = maxf(text, UiLayout.ALERT_SEVERITY_ICON)
+	assert_true(content + 2.0 * UiLayout.PANEL_PADDING
+		> UiLayout.alert_card_min_height(UiLayout.PROFILE_NARROW),
+		"the generic 12 px padding overflows the 44 px narrow card")
+	assert_true(content + 2.0 * UiLayout.alert_summary_padding_y(UiLayout.PROFILE_NARROW)
+		<= UiLayout.alert_card_min_height(UiLayout.PROFILE_NARROW),
+		"and §3's authored 8 px is what makes the same line fit it")

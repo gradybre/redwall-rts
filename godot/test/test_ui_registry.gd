@@ -17,10 +17,22 @@ const LAST_ID: int = 103
 
 ## Rows quoted from §4: id, name fragment, zone, profile, gate, min w/h, max w/h.
 const QUOTED_ROWS: Array = [
+	## MIGRATED BY UI-C3-R01 §2. These two rows read `176, 88, 480, 88` and `104, 36, 144, 40`
+	## when §4 gave the cluster one 88 px band of 36 px cells. The ruling replaces both heights:
+	## "Replace the 36-high resource cells with 56-high readout buttons in a 128-high resource
+	## frame." The WIDTHS are §4's own and are unchanged -- "Retain frame widths: Standard 360,
+	## Wide 480, Narrow 176" -- so a width that drifted still fails here.
 	[1, "Resource cluster", UiRegistry.ZONE_TOP_LEFT, UiRegistry.PROFILE_PANEL,
-		UiRegistry.GATE_ALWAYS, 176, 88, 480, 88],
+		UiRegistry.GATE_ALWAYS, 176, 128, 480, 128],
 	[2, "Food counter", UiRegistry.ZONE_TOP_LEFT, UiRegistry.PROFILE_READOUT,
-		UiRegistry.GATE_ALWAYS, 104, 36, 144, 40],
+		UiRegistry.GATE_ALWAYS, 104, 56, 144, 56],
+	## MIGRATED BY UI-C3-R01 §3, which raises the zone and the card the same way: "STANDARD/WIDE
+	## outer alert height becomes 104" and "Content height is 100". UI-SET-011's MINIMUM stays at
+	## NARROW's authored 44 px card, which §3 retains.
+	[10, "Alert stack", UiRegistry.ZONE_TOP_CENTER, UiRegistry.PROFILE_PANEL,
+		UiRegistry.GATE_CONDITION, 280, 48, 420, 104],
+	[11, "Alert card", UiRegistry.ZONE_TOP_CENTER, UiRegistry.PROFILE_NOTICE,
+		UiRegistry.GATE_CONDITION, 280, 44, 420, 100],
 	[14, "Pause button", UiRegistry.ZONE_TOP_RIGHT, UiRegistry.PROFILE_TOGGLE,
 		UiRegistry.GATE_ALWAYS, 44, 36, 56, 44],
 	[20, "Minimap frame", UiRegistry.ZONE_BOTTOM_LEFT, UiRegistry.PROFILE_PANEL,

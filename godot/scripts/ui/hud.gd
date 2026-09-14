@@ -29,6 +29,21 @@ extends CanvasLayer
 ##   * a transient alert goes to UI-SET-011's card.
 ## `Ready NP` has no cell of its own: §4 binds it inside UI-SET-002's value, whose accessible
 ## name is "Ready food: "+food_days+" days; "+ready_NP+" nutrition". It is in the ledger line.
+##
+## ---------------------------------------------------------------------------------------
+## UI-C3-R01 §2 ALSO FIXES THE PRIMARY VALUE STRINGS, AND THOSE ARE NOT THIS FILE'S TO WRITE.
+## The ruling requires "ready-food days with exactly two decimals and ` days`", "living
+## population as `N / 256`" and "assigned/legal usable bed capacity as `N / C` when its owning
+## service supplies both". Two of the three are still short of that at the time of writing:
+## `EconomySystem.food_days_text()` returns "5.48" with no unit, and `ui_manager.gd` pushes the
+## living count through `set_counter(&"Residents", ..., "")`, which prints "12" and not
+## "12 / 256". BOTH COMPOSE THEIR STRING IN `scripts/systems/ui_manager.gd` AND
+## `scripts/systems/economy_system.gd`, and this script renders what it is given byte for byte:
+## adding " days" or a "/ 256" denominator HERE would be this file deriving a value, which is
+## exactly what the contract above forbids and what would make a printed figure indistinguishable
+## from a computed one. It is named here rather than invented, and reported to those files'
+## owner. The CELL that draws them -- its two lines, its measurement and its ledger disclosure --
+## is complete and does not depend on which of the two forms arrives.
 
 const ShellScript := preload("res://scripts/ui/ui_shell.gd")
 

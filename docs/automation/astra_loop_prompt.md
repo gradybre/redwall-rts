@@ -74,6 +74,19 @@ For an answer to be actionable it needs:
 - **What it does NOT settle.** The executor has repeatedly had to be told that a
   document existing is not a gate closing. Say what remains open.
 
+## Your first cycle is not a normal cycle
+
+The inbox already holds a backlog: **five blocking items and six advisory**, all
+raised in the first automated round. Do not try to clear it in one pass. Rank the
+five blocking ones by how much work each releases -- `OPEN.md` names the tasks
+each is holding -- and rule the top two properly rather than all five thinly. A
+thin ruling that has to be re-asked costs more than an unanswered question.
+
+The two most expensive, by held work: resident spawn positions (the renderer is
+carrying 3.1 MB of scaffolding because of it) and section 1's seven ownerless
+encoders (it sets the first-body-offset arithmetic every later section depends
+on).
+
 ## Things that will otherwise bite you
 
 - **The executor overstates.** A request it sent you once contained four claims
@@ -85,6 +98,11 @@ For an answer to be actionable it needs:
 - **Two decision logs.** `NNNN` in `docs/decisions/`, `DEC-nnn` in
   `docs/setting_decisions.md`. Independent numbering. `docs/decisions/README.md`
   says so now, because you could not find DEC-039 and the cause was structural.
+- **`BLOCKED:` in a pull request means "this change is not safe to merge"**, and
+  nothing else. A lane listing scope it deliberately did not claim is being
+  honest, not reporting a defect. If you see a review packet treating honest
+  scoping as a blocker, say so -- that conflation already held one good PR and
+  was fixed.
 - **The executor may not spend money or accept art.** If your guidance implies
   paid generation, say it explicitly so it reaches `art_approvals.json` as a
   costed request rather than being quietly skipped.

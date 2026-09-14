@@ -40,6 +40,13 @@ extends Node
 ##   ARCH-SYS-013 ProductiveWork     -> `work.tick_solo_into()` / `tick_party_into()`
 ##   ARCH-SYS-023 PresentationExtract-> `presentation.capture()`  every tick, LAST
 ##
+## ARCH-SYS-001's STORE IS NOW COMPOSED, AND IT IS STILL NOT A TICK STAGE. `transforms.gd` is
+## built here over THIS settlement's directory and `transforms()` publishes it; INIT-POSE-R01's
+## starter placement writes §5.1's twelve poses ONCE, inside the generation transaction. There is
+## no per-tick TransformSnapshot call and no second `_process` movement loop: nothing moves, so
+## there is no tick-start history to roll. When ARCH-SYS-012 Movement is composed it becomes the
+## SOLE per-tick writer of this same instance. `tick_stage_count()` is unchanged at EIGHT.
+##
 ## TWO OF THOSE NINE ARE OUT OF THE TABLE'S ORDER, AND BOTH ARE SAID SO RATHER THAN GLOSSED:
 ##
 ##   * ARCH-SYS-009 RUNS BEFORE ARCH-SYS-008, not after it. The table reads 008, 009, 010; this
@@ -72,7 +79,8 @@ extends Node
 ## skipped, and the paragraph above states exactly what running it early does and does not cost.
 ##
 ## ARCH-SYS-002 IS FIRST BECAUSE §5 SAYS "after snapshot, before selectors", and ARCH-SYS-001
-## TransformSnapshot does not exist -- there is no Transform store -- so nothing precedes it here.
+## TransformSnapshot is not DISPATCHED even though its store now exists: no entity moves, so
+## there is no snapshot to take, and nothing precedes the commit here.
 ## A player edit committed at the top of tick k is therefore visible to the SAME tick's selection
 ## and work stages, which is what "before selectors" buys.
 ##
@@ -102,7 +110,11 @@ extends Node
 ##
 ## EVERY OTHER STAGE IS ABSENT BECAUSE ITS OWNING STORE DOES NOT EXIST, and none of them is
 ## faked here:
-##   ARCH-SYS-001 TransformSnapshot   no Transform store; no position, no movement.
+##   ARCH-SYS-001 TransformSnapshot   THE STORE IS NOW COMPOSED -- `transforms()` -- and §5.1's
+##                                    twelve hold authoritative roots under INIT-POSE-R01. What
+##                                    is still missing is anything that MOVES: no per-tick
+##                                    snapshot is taken because current and previous cannot
+##                                    differ while no mover exists.
 ##   ARCH-SYS-004 StockAge            RUNS NOW -- see the dispatched list above and decision
 ##                                    0085. It is not in this absent list any more. What is
 ##                                    still missing is WHICH STORE a container is: GDD §5.8's
@@ -117,7 +129,9 @@ extends Node
 ##   ARCH-SYS-009 JobPlanner          RUNS NOW -- see the dispatched list above. It is not in
 ##                                    this absent list any more.
 ##   ARCH-SYS-011 Navigation          no pathfinder, no navigation graph, no route cache.
-##   ARCH-SYS-012 Movement            no Transform store and no path to follow.
+##   ARCH-SYS-012 Movement            the Transform store now exists; no pathfinder, no route and
+##                                    no mover do. `movement.gd` is not composed here and nothing
+##                                    calls `advance()` in the running game.
 ##   ARCH-SYS-014 BatchCompletion     no BatchState, no recipe store, no passive-wait flag.
 ##   ARCH-SYS-015 LogisticsCommit     no completion or transfer plans to commit.
 ##   ARCH-SYS-016 RoomHeat            THE BUILDING, ROOM AND FURNITURE STORE IS NOW COMPOSED --
@@ -139,8 +153,12 @@ extends Node
 ##                                    computes mood from the five needs alone.
 ##   ARCH-SYS-019 Lifecycle           no create/destroy/arrival/departure intents exist to
 ##                                    commit; the only lifecycle event in the game is the §5.1
-##                                    world-and-cohort creation below, which is not a per-tick
-##                                    intent.
+##                                    world-cohort-and-pose creation below, which is not a
+##                                    per-tick intent. INIT-POSE-R01 defines `i = persistent_id-1`
+##                                    for ids 1..12 ONLY: immigration, births, rescue release,
+##                                    load, teleportation and scenario variants each need their
+##                                    own placement contract, and a later arrival belongs at
+##                                    §5.1's map exit (64,126), never on the assembly row.
 ##   ARCH-SYS-020 Progression         no Progress store and no completed recipes or feasts.
 ##   ARCH-SYS-021 ForecastNotice      `economy_system.gd` recomputes its summary synchronously on
 ##                                    every committed change; its hourly half has nothing to
@@ -470,6 +488,10 @@ const RngScript := preload("res://scripts/core/rng.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const SchedulerEventsScript := preload("res://scripts/core/scheduler_events.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
+const TransformsScript := preload("res://scripts/core/transforms.gd")
+## Reached for the two authored ore-deposit footprints alone: INIT-POSE-R01 requires the assembly
+## row proved clear of the static resource footprints, and decision 0029 owns their coordinates.
+const ResourceNodesScript := preload("res://scripts/core/resource_nodes.gd")
 const BuildingsScript := preload("res://scripts/core/buildings.gd")
 const BuildingDefinitionsScript := preload("res://scripts/core/building_definitions.gd")
 const ConstructionScript := preload("res://scripts/core/construction.gd")
@@ -535,6 +557,26 @@ const PREPARED_MEAL_REACHABLE: bool = false
 ## GDD §5.1: the settlement opens on absolute day 1, at tick 0, which is 06:00 and no crossing.
 const OPENING_CALENDAR_DAY: int = 1
 
+## INIT-POSE-R01's authored starter placement: the refuge hall's SOUTH EXTERIOR APRON. Ordered by
+## persistent id ascending, `i = persistent_id - 1` for ids 1..12 and for NO OTHER ID -- immigration,
+## births, rescue release, load, teleportation and scenario variants each need their own placement
+## contract, and a later arrival uses §5.1's map exit (64,126), never this row.
+##
+## Every value below is the ruling's own table, and `_assert_assembly_row()` re-derives each one
+## from the inherited geometry in `world_init.gd` rather than trusting the transcription.
+const ASSEMBLY_COHORT_SIZE: int = 12
+const ASSEMBLY_FIRST_TILE_X: int = 58
+const ASSEMBLY_TILE_Z: int = 69
+const ASSEMBLY_FIRST_TILE_INDEX: int = 8890
+const ASSEMBLY_FIRST_ROOT_X_UNITS: int = 119808
+const ASSEMBLY_ROOT_X_STEP_UNITS: int = 2048
+const ASSEMBLY_ROOT_Y_UNITS: int = 512
+const ASSEMBLY_ROOT_Z_UNITS: int = 142336
+## The authored neutral model orientation, asset forward -Z. THIS IS NOT A ROTATION CONVENTION:
+## `transforms.gd` names the yaw zero reference and handedness as MOVE-G01/G04 blockers, and no
+## moving actor may infer a positive-yaw direction from this value.
+const ASSEMBLY_YAW: int = 0
+
 const REFUSE_NONE: StringName = &""
 const REFUSE_INVALID_TICK: StringName = &"INVALID_TICK"
 const REFUSE_INVALID_DAY: StringName = &"INVALID_ABSOLUTE_DAY"
@@ -555,6 +597,19 @@ const REFUSE_PLANNER_DAY: StringName = &"JOB_PLANNER_DAY_REFUSED"
 const REFUSE_STOCK_INTEGRITY_HALT: StringName = &"STOCK_AGE_INTEGRITY_HALT"
 ## Asked which hour faulted when none has. A refusal, because tick 0 is a real tick.
 const REFUSE_STOCK_NO_FAULT: StringName = &"NO_STOCK_INTEGRITY_FAULT"
+
+## INIT-POSE-R01 refusals. Each names the input that failed; none is a sentinel value and none
+## leaves a partially placed cohort, because every one of them is decided BEFORE the first place().
+const REFUSE_POSE_NO_PLAN: StringName = &"INITIAL_POSE_NO_PREPARED_WORLD"
+const REFUSE_POSE_IDENTITY: StringName = &"INITIAL_POSE_IDENTITY_INVALID"
+const REFUSE_POSE_TILE: StringName = &"INITIAL_POSE_TILE_INVALID"
+const REFUSE_POSE_TERRAIN: StringName = &"INITIAL_POSE_TILE_NOT_LAND"
+const REFUSE_POSE_NOT_CLEARED: StringName = &"INITIAL_POSE_TILE_NOT_CLEARED"
+const REFUSE_POSE_OCCUPIED: StringName = &"INITIAL_POSE_TILE_OCCUPIED"
+const REFUSE_POSE_TRANSFORM: StringName = &"INITIAL_POSE_TRANSFORM_REFUSED"
+## R-INIT-ID-001 step 5, tightened by INIT-POSE-R01 §2.5: replacement rollback does not exist, so
+## a published world is never overwritten -- not even one with nobody standing in it.
+const REFUSE_WORLD_ALREADY_PUBLISHED: StringName = &"SETTLEMENT_WORLD_ALREADY_PUBLISHED"
 
 # --- the settlement's stores (composed once in _init, never reallocated) ----------------------
 
@@ -579,6 +634,10 @@ var _construction: ConstructionScript = null
 var _inventory: InventoryScript = null
 var _item_definitions: ItemDefinitionsScript = null
 var _stock_age: StockAgeScript = null
+## ARCH-SYS-001's ONE authoritative pose store, bound to the SAME directory as the resident store.
+## The renderer borrows it through `transforms()`; presentation never constructs a second one and
+## never writes a simulation pose. Movement, when it is composed, becomes its sole per-tick writer.
+var _transforms: TransformsScript = null
 
 # --- the live-resident index ------------------------------------------------------------------
 
@@ -672,6 +731,12 @@ var _stock_pause_refusal: StringName = REFUSE_NONE
 ## Reused so raising or clearing the pause allocates nothing, even at the worst moment.
 var _submit_result: SchedulerEventsScript.SubmitResult = SchedulerEventsScript.SubmitResult.new()
 
+## INIT-POSE-R01 placement scratch, sized once in `_init()`: the resident row holding each
+## persistent id 1..12, and one reused Pose record for the post-placement read-back. Neither is
+## simulation state and neither is touched on a tick path -- placement happens once per world.
+var _assembly_slot: PackedInt32Array = PackedInt32Array()
+var _assembly_pose: TransformsScript.Pose = TransformsScript.Pose.new()
+
 
 func _init() -> void:
 	"""Compose the settlement stores once and size the live index; allocate nothing later.
@@ -701,8 +766,21 @@ func _init() -> void:
 		_commands)
 	_buildings = BuildingsScript.new(_directory)
 	_construction = ConstructionScript.new(_buildings)
+	_transforms = TransformsScript.new(_directory)
 	_compose_stock_layer()
 	_bind_ecology_to_commands()
+	_size_index_and_scratch_columns()
+	_assert_shared_contracts()
+	_assert_assembly_row()
+
+
+func _size_index_and_scratch_columns() -> void:
+	"""ARCH-MEM-001: size every index and scratch column ONCE, here and nowhere else.
+
+	Not one of these is resized, grown or reallocated afterwards -- a per-tick `resize()` is the
+	allocation this architecture forbids, and `resolve_assembly_order_into()` REFUSES an
+	undersized output column rather than quietly growing it.
+	"""
 	_live_slots.resize(ResidentsScript.RESIDENT_CAPACITY)
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
 	_daily_legs.resize(DAILY_LEG_CAPACITY)
@@ -710,7 +788,8 @@ func _init() -> void:
 	_stage_usec.resize(TICK_STAGE_COUNT)
 	_stage_usec_total.resize(TICK_STAGE_COUNT)
 	_stage_measured.resize(TICK_STAGE_COUNT)
-	_assert_shared_contracts()
+	_assembly_slot.resize(ASSEMBLY_COHORT_SIZE)
+	_assembly_slot.fill(EntityDirectoryScript.NULL_SLOT)
 
 
 func _compose_stock_layer() -> void:
@@ -767,6 +846,34 @@ func _bind_ecology_to_commands() -> void:
 	_last_refusal = REFUSE_ECOLOGY_BIND
 	push_error("SettlementSystem could not bind the ecology to ARCH-SYS-002: %s"
 		% _dispatch.last_refusal())
+
+
+func _assert_assembly_row() -> void:
+	"""Re-derive INIT-POSE-R01's authored table from the inherited geometry it was written against.
+
+	The ruling states the row as literal numbers AND as a construction: the hall's south exterior
+	apron, at §5.1's 2 m tile pitch and tile centre, on §5.1's land elevation. Transcribing the
+	numbers alone would let the two drift apart silently, so both halves are checked here and the
+	build fails loudly rather than spawning a cohort inside a wall.
+	"""
+	assert(ASSEMBLY_FIRST_TILE_X == WorldInitScript.HALL_ORIGIN_X,
+		"the row starts at the hall's own west edge")
+	assert(ASSEMBLY_TILE_Z == WorldInitScript.HALL_ORIGIN_Z + WorldInitScript.HALL_SIZE_Z,
+		"and one tile SOUTH of its footprint, which occupies z=59..68")
+	assert(ASSEMBLY_COHORT_SIZE == WorldInitScript.HALL_SIZE_X
+			and ASSEMBLY_COHORT_SIZE == ResidentsScript.INITIAL_POPULATION,
+		"§5.1's twelve residents fill exactly one row of §5.9's twelve-tile-wide hall")
+	assert(ASSEMBLY_FIRST_TILE_INDEX
+			== WorldInitScript.tile_index_of(ASSEMBLY_FIRST_TILE_X, ASSEMBLY_TILE_Z),
+		"the authored tile index must be z*128+x of the authored tile")
+	assert(ASSEMBLY_ROOT_X_STEP_UNITS == WorldInitScript.TILE_SIZE_UNITS,
+		"adjacent roots are one tile pitch apart")
+	assert(ASSEMBLY_FIRST_ROOT_X_UNITS
+			== WorldInitScript.tile_center_x_units(ASSEMBLY_FIRST_TILE_X)
+			and ASSEMBLY_ROOT_Z_UNITS == WorldInitScript.tile_center_z_units(ASSEMBLY_TILE_Z),
+		"the authored roots are the authored tile's centre")
+	assert(ASSEMBLY_ROOT_Y_UNITS == WorldInitScript.LAND_Y_UNITS,
+		"y is §5.1's authored land elevation, not a guessed ground height")
 
 
 func _assert_shared_contracts() -> void:
@@ -862,6 +969,8 @@ func create_generated_settlement(items: ItemDefinitionsScript,
 	"""
 	if _residents.population() != 0:
 		return _refuse(ResidentsScript.REFUSE_SETTLEMENT_NOT_EMPTY)
+	if _world.is_published():
+		return _refuse(REFUSE_WORLD_ALREADY_PUBLISHED)
 	var built: WorldInitScript.RequestResult = WorldInitScript.bound_request(items, world_seed)
 	if not built.ok:
 		return _refuse(built.error)
@@ -914,6 +1023,8 @@ func _run_initialization_transaction() -> bool:
 		return _abandon_transaction(seeded)
 	if not create_initial_settlement():
 		return _abandon_transaction(_last_refusal)
+	if not _place_initial_cohort():
+		return _abandon_transaction(_last_refusal)
 	var published: WorldInitScript.GenerateResult = _world.publish_prepared()
 	if not published.ok:
 		return _abandon_transaction(published.error)
@@ -963,6 +1074,216 @@ func create_initial_settlement() -> bool:
 		_last_refusal = code
 		return false
 	_last_refusal = REFUSE_NONE
+	return true
+
+
+# --- INIT-POSE-R01: the authored starter placement ---------------------------------------------
+
+func _place_initial_cohort() -> bool:
+	"""Stand §5.1's twelve on the hall's south apron, inside the generation transaction.
+
+	VALIDATE EVERYTHING FIRST, THEN PLACE. The ruling is explicit that a failure on resident
+	twelve cannot expose eleven placements, so no column is written until every identity, tile,
+	terrain, elevation, clearing, footprint and prepared-resource check has passed for all twelve.
+	There is no dynamic-growth fallback and no partial row.
+
+	It runs against the PREPARED world -- after the cohort takes ids 1-12 and before
+	`publish_prepared()` creates a single world entity -- so the ground it proves clear is the
+	ground the world is about to be published onto.
+	"""
+	var code: StringName = _refuse_assembly_row()
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	for index: int in ASSEMBLY_COHORT_SIZE:
+		var ref: Vector2i = _residents.ref_of(_assembly_slot[index])
+		if not _transforms.place(ref, assembly_root_x_units(index), ASSEMBLY_ROOT_Y_UNITS,
+				ASSEMBLY_ROOT_Z_UNITS, ASSEMBLY_YAW):
+			return _refuse(REFUSE_POSE_TRANSFORM)
+	return _verify_assembly_poses()
+
+
+static func assembly_root_x_units(index: int) -> int:
+	"""The authored root x of cohort index `index`, one 2 m tile pitch apart along the apron."""
+	return ASSEMBLY_FIRST_ROOT_X_UNITS + ASSEMBLY_ROOT_X_STEP_UNITS * index
+
+
+static func assembly_tile_index(index: int) -> int:
+	"""The authored exterior tile index of cohort index `index`, ascending along one row."""
+	return ASSEMBLY_FIRST_TILE_INDEX + index
+
+
+func _refuse_assembly_row() -> StringName:
+	"""Every INIT-POSE-R01 input, decided before the first write. Returns REFUSE_NONE when clear."""
+	if not _world.has_prepared_plan():
+		return REFUSE_POSE_NO_PLAN
+	var identities: StringName = _resolve_assembly_slots()
+	if identities != REFUSE_NONE:
+		return identities
+	var ground: StringName = _refuse_assembly_ground()
+	if ground != REFUSE_NONE:
+		return ground
+	return refuse_assembly_occupancy(_world)
+
+
+static func resolve_assembly_order_into(residents: ResidentsScript,
+		out: PackedInt32Array) -> StringName:
+	"""Map persistent ids 1..12 onto resident rows, refusing any cohort that is not exactly that.
+
+	ASSIGNMENT IS BY PERSISTENT ID, NOT BY SLOT ORDER OR ITERATION ORDER. The row a resident
+	occupies and the order the store happens to be walked in are both allocation details; the
+	ruling orders the cohort by id, so the id -- and only the id -- indexes the apron. A missing,
+	duplicated or out-of-range id refuses the whole placement rather than leaving one unplaced.
+
+	STATIC AND STORE-INJECTED so an isolated fixture can hand it a cohort whose slot order and id
+	order DISAGREE. On a fresh directory they never do -- ids are minted in slot order -- so a
+	production-world test alone cannot tell this rule apart from `out[slot] = slot`.
+	`out` must already be sized to ASSEMBLY_COHORT_SIZE; nothing is resized here.
+	"""
+	if residents == null or out.size() != ASSEMBLY_COHORT_SIZE:
+		return REFUSE_POSE_IDENTITY
+	if residents.living_count() != ASSEMBLY_COHORT_SIZE:
+		return REFUSE_POSE_IDENTITY
+	out.fill(EntityDirectoryScript.NULL_SLOT)
+	for slot: int in ResidentsScript.RESIDENT_CAPACITY:
+		if not residents.is_alive(slot):
+			continue
+		var persistent: IntMath.IntResult = residents.persistent_id_of(slot)
+		if not persistent.ok or persistent.value < 1 or persistent.value > ASSEMBLY_COHORT_SIZE:
+			return REFUSE_POSE_IDENTITY
+		if out[persistent.value - 1] != EntityDirectoryScript.NULL_SLOT:
+			return REFUSE_POSE_IDENTITY
+		out[persistent.value - 1] = slot
+	return REFUSE_NONE
+
+
+func _resolve_assembly_slots() -> StringName:
+	"""Resolve this settlement's cohort order, then prove every resolved row can hold a pose."""
+	var order: StringName = resolve_assembly_order_into(_residents, _assembly_slot)
+	if order != REFUSE_NONE:
+		return order
+	return _refuse_assembly_bindings()
+
+
+func _refuse_assembly_bindings() -> StringName:
+	"""Prove every resolved row has a live, positioned, derivable and unplaced Transform row."""
+	for index: int in ASSEMBLY_COHORT_SIZE:
+		var slot: int = _assembly_slot[index]
+		if slot == EntityDirectoryScript.NULL_SLOT:
+			return REFUSE_POSE_IDENTITY
+		var ref: Vector2i = _residents.ref_of(slot)
+		if not _directory.is_valid(ref) \
+				or _directory.get_kind(ref) != EntityDirectoryScript.KIND_RESIDENT:
+			return REFUSE_POSE_IDENTITY
+		if not _transforms.transform_row_into(ref, _read):
+			return REFUSE_POSE_TRANSFORM
+		if _transforms.is_bound(ref):
+			return REFUSE_POSE_TRANSFORM
+	return REFUSE_NONE
+
+
+func _refuse_assembly_ground() -> StringName:
+	"""Check the twelve apron tiles against the map rules the prepared world was staged from.
+
+	`world_init.gd`'s `_stage_masks()` writes the staged terrain, soil and CLEARED columns as
+	`terrain_of()`, `soil_of()` and `is_cleared_tile()` of each coordinate, so calling those
+	predicates here reads the prepared world's own rules rather than a second opinion copied out
+	of the specification. Tiles are unique by construction and proved so: each index must be
+	`8890 + i`, and distinct `i` cannot produce one index twice.
+	"""
+	for index: int in ASSEMBLY_COHORT_SIZE:
+		var tile_x: int = ASSEMBLY_FIRST_TILE_X + index
+		var tile: int = WorldInitScript.tile_index_of(tile_x, ASSEMBLY_TILE_Z)
+		if tile != assembly_tile_index(index) or not WorldInitScript.is_tile_index(tile):
+			return REFUSE_POSE_TILE
+		if WorldInitScript.tile_center_x_units(tile_x) != assembly_root_x_units(index) \
+				or WorldInitScript.tile_center_z_units(ASSEMBLY_TILE_Z) != ASSEMBLY_ROOT_Z_UNITS:
+			return REFUSE_POSE_TILE
+		if WorldInitScript.terrain_of(tile_x, ASSEMBLY_TILE_Z) != WorldInitScript.TERRAIN_LAND \
+				or not WorldInitScript.is_walkable(tile_x, ASSEMBLY_TILE_Z):
+			return REFUSE_POSE_TERRAIN
+		if WorldInitScript.elevation_y_units_of(tile_x, ASSEMBLY_TILE_Z) != ASSEMBLY_ROOT_Y_UNITS:
+			return REFUSE_POSE_TERRAIN
+		if not WorldInitScript.is_cleared_tile(tile_x, ASSEMBLY_TILE_Z):
+			return REFUSE_POSE_NOT_CLEARED
+	return REFUSE_NONE
+
+
+static func refuse_assembly_occupancy(world: WorldInitScript) -> StringName:
+	"""Prove no static footprint and no PLANNED resource node stands on the apron row.
+
+	The tree half reads the HELD PLAN -- `planned_tree_centre_at()` and `planned_grove_at()` are
+	the tiles `publish_prepared()` is about to plant -- rather than the published store, which is
+	still empty at this point in the transaction. One pass over at most 3100 planned tiles, once
+	per generated world; `assembly_covers_tile()` makes each test O(1).
+
+	STORE-INJECTED so a fixture can hand it a plan that DOES claim an apron tile. On the authored
+	map that cannot happen -- the clear mask reserves the row and a planned tree requires uncleared
+	ground -- so the refusing branch is unreachable through generation and would otherwise never
+	be executed by any test at all.
+	"""
+	if world == null:
+		return REFUSE_POSE_OCCUPIED
+	for index: int in ASSEMBLY_COHORT_SIZE:
+		var tile_x: int = ASSEMBLY_FIRST_TILE_X + index
+		if WorldInitScript.is_starter_footprint_tile(tile_x, ASSEMBLY_TILE_Z):
+			return REFUSE_POSE_OCCUPIED
+		if _is_deposit_tile(tile_x, ASSEMBLY_TILE_Z):
+			return REFUSE_POSE_OCCUPIED
+	for index: int in world.planned_tree_centre_count():
+		var centre: IntMath.IntResult = world.planned_tree_centre_at(index)
+		if not centre.ok or assembly_covers_tile(centre.value):
+			return REFUSE_POSE_OCCUPIED
+	for index: int in world.planned_grove_count():
+		var grove: IntMath.IntResult = world.planned_grove_at(index)
+		if not grove.ok or assembly_covers_tile(grove.value):
+			return REFUSE_POSE_OCCUPIED
+	return REFUSE_NONE
+
+
+static func assembly_covers_tile(tile: int) -> bool:
+	"""True when an exterior tile index is one of the twelve authored apron tiles.
+
+	`8890..8901` inclusive and nothing else. Public because it is the whole of the exclusion rule
+	the occupancy scan applies, and a rule that only runs on tiles no world ever produces needs a
+	direct test rather than an argument that it is equivalent to doing nothing.
+	"""
+	var offset: int = tile - ASSEMBLY_FIRST_TILE_INDEX
+	return offset >= 0 and offset < ASSEMBLY_COHORT_SIZE
+
+
+static func _is_deposit_tile(x: int, z: int) -> bool:
+	"""True when (x,z) lies under either of decision 0029's two authored ore-deposit footprints."""
+	return _in_deposit(x, z, ResourceNodesScript.STONE_DEPOSIT_ORIGIN_X,
+			ResourceNodesScript.STONE_DEPOSIT_ORIGIN_Z) \
+		or _in_deposit(x, z, ResourceNodesScript.IRON_DEPOSIT_ORIGIN_X,
+			ResourceNodesScript.IRON_DEPOSIT_ORIGIN_Z)
+
+
+static func _in_deposit(x: int, z: int, origin_x: int, origin_z: int) -> bool:
+	"""True when (x,z) lies inside one 4x4 deposit footprint anchored at (origin_x, origin_z)."""
+	var size: int = ResourceNodesScript.DEPOSIT_FOOTPRINT_SIZE
+	return x >= origin_x and x < origin_x + size and z >= origin_z and z < origin_z + size
+
+
+func _verify_assembly_poses() -> bool:
+	"""Read all twelve poses back and refuse unless each is the authored pose with no history.
+
+	`place()` writes previous = current, which is what makes a spawned resident interpolate to
+	exactly where it stands instead of being dragged out of somewhere it has never been. That
+	property is checked here rather than assumed, because a renderer cannot tell the difference
+	on a still frame.
+	"""
+	for index: int in ASSEMBLY_COHORT_SIZE:
+		var ref: Vector2i = _residents.ref_of(_assembly_slot[index])
+		if not _transforms.read_into(ref, _assembly_pose):
+			return _refuse(REFUSE_POSE_TRANSFORM)
+		if _assembly_pose.x != assembly_root_x_units(index) \
+				or _assembly_pose.y != ASSEMBLY_ROOT_Y_UNITS \
+				or _assembly_pose.z != ASSEMBLY_ROOT_Z_UNITS \
+				or _assembly_pose.yaw != ASSEMBLY_YAW:
+			return _refuse(REFUSE_POSE_TRANSFORM)
+		if not _assembly_pose.matches_previous():
+			return _refuse(REFUSE_POSE_TRANSFORM)
 	return true
 
 
@@ -1048,6 +1369,7 @@ func _clear_stores() -> void:
 	_world.clear()
 	_buildings.clear()
 	_construction.clear()
+	_transforms.reset()
 	_rng.clear()
 
 
@@ -2120,6 +2442,19 @@ func buildings() -> BuildingsScript:
 	`residents()` owns and the mask, the tile maps and the directory cannot disagree.
 	"""
 	return _buildings
+
+
+func transforms() -> TransformsScript:
+	"""ARCH-SYS-001's ONE authoritative pose store, bound to this settlement's one directory.
+
+	THE SETTLEMENT OWNS IT; PRESENTATION BORROWS IT. `resident_stage.gd` takes this exact object
+	and reads it through `presentation_interpolate_into()`, which fills a caller-owned float
+	record and can change no authoritative field. No renderer may construct a second
+	`transforms.gd`: an authoritative-size private pose store is 3151872 bytes of duplicate state
+	and a second answer to where a resident is. When movement is composed it becomes the sole
+	per-tick writer of this same instance, under ARCH-SYS-001's single-writer discipline.
+	"""
+	return _transforms
 
 
 func construction() -> ConstructionScript:

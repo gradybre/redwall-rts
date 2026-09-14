@@ -16,6 +16,15 @@ extends "res://test/framework/test_case.gd"
 const ResidentStageScript := preload("res://scripts/presentation/resident_stage.gd")
 const ResidentCrowdScript := preload("res://scripts/presentation/resident_crowd.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
+const TransformsScript := preload("res://scripts/core/transforms.gd")
+
+## An explicit, valid pose for the fixtures below. INIT-POSE-R01 §4: a generic rendering test
+## supplies its own transforms rather than invoking a production placement algorithm for an
+## arbitrary population, so nothing here can be read as an authored spawn position.
+const FIXTURE_X_UNITS: int = 4096
+const FIXTURE_Y_UNITS: int = 512
+const FIXTURE_Z_UNITS: int = 8192
+const FIXTURE_X_STEP_UNITS: int = 2048
 
 ## `sim_clock.gd`'s `TICK_COST`, restated: "one tick costs 1000000 debt units".
 const TICK_COST: int = 1000000
@@ -25,6 +34,7 @@ const COHORT: int = 12
 
 var _stage: ResidentStageScript = null
 var _residents: ResidentsScript = null
+var _transforms: TransformsScript = null
 
 
 func before_each() -> void:
@@ -35,6 +45,7 @@ func before_each() -> void:
 	_stage.add_child(crowd)
 	_stage._ready()
 	_residents = ResidentsScript.new()
+	_transforms = TransformsScript.new(_residents.directory())
 
 
 func after_each() -> void:
@@ -43,12 +54,21 @@ func after_each() -> void:
 		_stage.free()
 		_stage = null
 	_residents = null
+	_transforms = null
 
 
 func _spawn(count: int) -> void:
-	"""Spawn `count` adult mice into ascending resident rows."""
+	"""Spawn `count` adult mice into ascending resident rows and place each at its own pose.
+
+	Each gets a DIFFERENT x, so an instance drawing the wrong resident is visible rather than
+	hidden behind twelve identical coordinates.
+	"""
 	for index: int in count:
-		_residents.spawn(&"mouse")
+		var spawned: ResidentsScript.OpResult = _residents.spawn(&"mouse")
+		assert_true(spawned.ok, "the fixture resident spawned")
+		assert_true(_transforms.place(spawned.ref,
+			FIXTURE_X_UNITS + FIXTURE_X_STEP_UNITS * index, FIXTURE_Y_UNITS, FIXTURE_Z_UNITS, 0),
+			"and the fixture placed it at an explicit pose")
 
 
 # --- the alpha ---------------------------------------------------------------------------------
@@ -89,24 +109,42 @@ func test_a_stage_draws_nothing_until_it_is_attached() -> void:
 
 func test_attaching_without_a_resident_store_refuses() -> void:
 	"""An unbound crowd and an empty settlement draw the same ground; only one is a defect."""
-	assert_false(_stage.attach(null), "attaching to nothing refuses")
+	assert_false(_stage.attach(null, _transforms), "attaching to nothing refuses")
 	assert_equal(_stage.last_refusal(), ResidentStageScript.REFUSE_NO_RESIDENTS, "named exactly")
 	assert_false(_stage.is_attached(), "and the stage stays detached")
 
 
-func test_attaching_stands_the_cohort_up_and_binds_the_crowd() -> void:
-	"""One call: scaffold the poses, bind the readers, resolve the mesh."""
+func test_attaching_without_a_pose_store_refuses_instead_of_building_one() -> void:
+	"""INIT-POSE-R01 §2: the settlement owns the Transform store and the renderer borrows it.
+
+	A stage handed no store must REFUSE. The alternative -- constructing its own -- is the
+	3151872-byte presentation-private duplicate this work exists to delete.
+	"""
+	_residents.spawn(&"mouse")
+	assert_false(_stage.attach(_residents, null), "attaching without a pose store refuses")
+	assert_equal(_stage.last_refusal(), ResidentStageScript.REFUSE_NO_TRANSFORMS, "named exactly")
+	assert_false(_stage.is_attached(), "and the stage stays detached")
+	assert_null(_stage.transforms(), "holding no pose store of any kind")
+
+
+func test_attaching_borrows_the_exact_store_it_was_handed() -> void:
+	"""Identity, not equality: the renderer must read the settlement's own object.
+
+	Two stores that happen to agree today are two authorities tomorrow, so this asserts the same
+	instance reaches both the stage and the crowd rather than comparing coordinates.
+	"""
 	_spawn(COHORT)
-	assert_true(_stage.attach(_residents), "the stage attached")
+	assert_true(_stage.attach(_residents, _transforms), "the stage attached")
 	assert_true(_stage.is_attached(), "and reports itself attached")
-	assert_equal(_stage.scaffold().placed_count(), COHORT, "all twelve are placed")
-	assert_true(_stage.crowd().is_bound(), "and the crowd is bound to them")
+	assert_true(_stage.transforms() == _transforms, "the stage holds the store it was handed")
+	assert_true(_stage.crowd().transforms() == _transforms, "and so does the crowd")
+	assert_true(_stage.crowd().is_bound(), "which is bound and ready to draw")
 
 
 func test_the_authored_crowd_mesh_is_the_one_that_ships() -> void:
 	"""The shipped GLB, not the fallback box. A capture must never be read as the wrong asset."""
 	_spawn(1)
-	_stage.attach(_residents)
+	_stage.attach(_residents, _transforms)
 	assert_equal(_stage.mesh_source(), ResidentStageScript.MESH_SOURCE_GLB,
 		"species_mouse_body_a_lod0.glb is what the crowd draws")
 	assert_true(_stage.crowd().has_crowd_mesh(), "and the MultiMesh holds it")
@@ -115,7 +153,7 @@ func test_the_authored_crowd_mesh_is_the_one_that_ships() -> void:
 func test_a_frame_draws_one_instance_per_living_resident() -> void:
 	"""End to end through the stage's own per-frame entry point."""
 	_spawn(COHORT)
-	_stage.attach(_residents)
+	_stage.attach(_residents, _transforms)
 	_stage._process(0.0)
 	assert_equal(_stage.drawn_count(), COHORT, "twelve residents drawn")
 	assert_equal(_stage.crowd().visible_instance_count(), COHORT, "and twelve instances visible")
@@ -130,15 +168,21 @@ func test_a_frame_before_attachment_draws_nothing_and_does_not_refuse() -> void:
 		"and the crowd was never asked to refuse")
 
 
-func test_detaching_stops_drawing_and_drops_the_scaffold() -> void:
-	"""A scene reload must not leave the crowd holding the previous run's residents."""
+func test_detaching_stops_drawing_and_drops_the_borrowed_store() -> void:
+	"""A scene reload must not leave the crowd holding the previous run's residents.
+
+	Dropping the reference must not touch the store: the settlement outlives the scene, so a
+	detach that cleared a pose would erase authoritative state a reload then reads back.
+	"""
 	_spawn(COHORT)
-	_stage.attach(_residents)
+	_stage.attach(_residents, _transforms)
 	_stage._process(0.0)
+	var before: PackedByteArray = _transforms.state_bytes()
 	_stage.detach()
 	assert_false(_stage.is_attached(), "the stage is detached")
-	assert_null(_stage.scaffold(), "the scaffold is dropped")
+	assert_null(_stage.transforms(), "the borrowed store is dropped")
 	assert_equal(_stage.crowd().visible_instance_count(), 0, "and nothing is drawn")
+	assert_equal(_transforms.state_bytes(), before, "the settlement's poses are byte-identical")
 
 
 func test_the_fallback_box_is_anchored_on_the_one_metre_mouse() -> void:

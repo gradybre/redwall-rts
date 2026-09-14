@@ -346,6 +346,24 @@ func test_a_thousand_refreshes_change_no_authoritative_field() -> void:
 	assert_equal(_residents.living_count(), 4, "and no resident was disturbed")
 
 
+func test_a_thousand_refreshes_move_no_byte_of_any_column() -> void:
+	"""The digest above scans BOUND rows only, and a stray write can land on an unbound one.
+
+	`state_bytes()` covers all nine columns at full capacity, so a renderer writing into a row it
+	does not own -- which no digest and no per-resident read-back would notice -- is caught here.
+	The store is also proved to be the BORROWED one rather than a copy the crowd made.
+	"""
+	_spawn(4)
+	for slot: int in 4:
+		_place(slot, slot + 1, slot + 2)
+	_bind()
+	assert_true(_crowd.transforms() == _transforms, "the crowd borrowed this exact store")
+	var before: PackedByteArray = _transforms.state_bytes()
+	for step: int in 1000:
+		_refresh(step % 1001, 1000)
+	assert_equal(_transforms.state_bytes(), before, "and moved not one byte of any column")
+
+
 func test_an_invisible_view_and_a_drawn_one_commit_the_same_state() -> void:
 	"""Two identical stores, one drawn a hundred times and one never, must agree byte for byte."""
 	var other_residents: ResidentsScript = ResidentsScript.new()

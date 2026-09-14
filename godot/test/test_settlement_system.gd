@@ -50,6 +50,7 @@ const OrchardHiveScript := preload("res://scripts/core/orchard_hive.gd")
 const BuildingsScript := preload("res://scripts/core/buildings.gd")
 const ConstructionScript := preload("res://scripts/core/construction.gd")
 const CatalogScript := preload("res://scripts/core/catalog.gd")
+const TransformsScript := preload("res://scripts/core/transforms.gd")
 
 ## GDD §5.1: the starting settlement is twelve residents.
 const COHORT_SIZE: int = 12
@@ -186,6 +187,131 @@ class SeedObservingSettlement extends SettlementSystemScript:
 		nodes_when_cohort_created = ecology().resource_nodes().count()
 		published_when_cohort_created = world().is_published()
 		return super()
+
+
+class PoseObservingSettlement extends SettlementSystemScript:
+	"""A settlement that records what the world looked like AT the moment the poses were written.
+
+	INIT-POSE-R01 §2.2 requires the placement validated against the PREPARED world, before any
+	generated settlement is published. That is a statement about an instant inside one call, so
+	it can only be observed from inside it.
+	"""
+
+	var published_when_placed: bool = true
+	var nodes_when_placed: int = -1
+	var living_when_placed: int = -1
+
+	func _place_initial_cohort() -> bool:
+		"""Record the publication state and census, then run the real placement."""
+		published_when_placed = world().is_published()
+		nodes_when_placed = ecology().resource_nodes().count()
+		living_when_placed = residents().living_count()
+		return super()
+
+
+class ReversedIdResidents extends ResidentsScript:
+	"""A cohort whose persistent ids run BACKWARDS against its slot order, and nothing else.
+
+	INIT-POSE-R01 §4: "Vary allocation slots and iteration order in isolated fixtures while
+	keeping persistent IDs." On a fresh directory ids are minted in slot order, so a production
+	world can never separate "by persistent id" from "by slot" -- the two agree on every row.
+	Overriding the id reader is the only way to make them disagree, and it changes nothing else:
+	the rows, the references and the directory are the real store's.
+	"""
+
+	func persistent_id_of(slot: int) -> IntMath.IntResult:
+		"""Report the reverse of the real id, so slot 0 carries id 12 and slot 11 carries id 1."""
+		var real: IntMath.IntResult = super(slot)
+		if not real.ok:
+			return real
+		var flipped: IntMath.IntResult = IntMath.IntResult.new()
+		flipped.succeed(COHORT_SIZE + 1 - real.value)
+		return flipped
+
+
+class PlannedApronWorld extends WorldInitScript:
+	"""A world plan that claims a resource node IS planned on one of the twelve apron tiles.
+
+	The authored map can never produce this: §5.1's clear mask reserves the row before resource
+	placement, and a planned tree requires UNCLEARED ground. So the exclusion rule's refusing
+	branch is unreachable through generation, and only a fixture can execute it. `plan_tile` is
+	the one thing overridden; everything else is the real generator's.
+	"""
+
+	var plan_tile: int = 0
+	var plan_is_grove: bool = false
+	var plan_refuses: bool = false
+
+	func planned_tree_centre_count() -> int:
+		"""One planned centre unless this fixture is exercising the grove list instead."""
+		return 0 if plan_is_grove else 1
+
+	func planned_grove_count() -> int:
+		"""One planned grove node when this fixture is exercising the grove list."""
+		return 1 if plan_is_grove else 0
+
+	func planned_tree_centre_at(_index: int) -> IntMath.IntResult:
+		"""Report the fixture's tile, or a refusal when the plan reader itself is failing."""
+		return _planned()
+
+	func planned_grove_at(_index: int) -> IntMath.IntResult:
+		"""Report the fixture's tile, or a refusal when the plan reader itself is failing."""
+		return _planned()
+
+	func _planned() -> IntMath.IntResult:
+		"""One plan entry: either the fixture's tile or an explicit refusal to read it."""
+		var out: IntMath.IntResult = IntMath.IntResult.new()
+		if plan_refuses:
+			out.refuse("TEST_PLAN_UNREADABLE")
+			return out
+		out.succeed(plan_tile)
+		return out
+
+
+class HistoryBreakingTransforms extends TransformsScript:
+	"""A pose store whose `place()` leaves a PREVIOUS pose behind, and is otherwise the real one.
+
+	A spawn has no history: `place()` writes previous = current so a renderer interpolating into
+	the first frame does not drag a body out of somewhere it has never been. A store that got that
+	wrong would still read back the right CURRENT coordinates, so only the settlement's own
+	read-back check can catch it -- and only a fixture can make it happen.
+	"""
+
+	func place(ref: Vector2i, x: int, y: int, z: int, yaw: int) -> bool:
+		"""Write the correct current pose, but leave a previous pose one tile west of it."""
+		if not super(ref, x - 2048, y, z, yaw):
+			return false
+		return super.advance(ref, x, y, z)
+
+
+class OccupiedRowTransforms extends TransformsScript:
+	"""A pose store that reports every row as ALREADY PLACED, and is otherwise the real one.
+
+	The precondition this exercises is the one that stops a second placement silently replacing a
+	pose that is already bound to this entity -- a reused typed row, or a second placement pass.
+	"""
+
+	func is_bound(_ref: Vector2i) -> bool:
+		"""Claim every row already holds a placed pose."""
+		return true
+
+
+class HistoryBreakingSettlement extends SettlementSystemScript:
+	"""A settlement whose Transform store breaks the previous = current rule. See the store."""
+
+	func _init() -> void:
+		"""Compose the real settlement, then swap in the misbehaving pose store."""
+		super()
+		_transforms = HistoryBreakingTransforms.new(directory())
+
+
+class OccupiedRowSettlement extends SettlementSystemScript:
+	"""A settlement whose Transform store reports every candidate row already placed."""
+
+	func _init() -> void:
+		"""Compose the real settlement, then swap in the already-bound pose store."""
+		super()
+		_transforms = OccupiedRowTransforms.new(directory())
 
 
 var _settlement: SettlementSystemScript = null
@@ -2960,3 +3086,414 @@ func test_the_seed_guard_survives_a_critical_pause_and_its_retry_recovery() -> v
 	var expired: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS)
 	assert_equal(_settlement.inventory().reserve_lot(expired, SEED_RESERVE_MILLI).error,
 		WorldInventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "and still refuses expired seed")
+
+
+# --- INIT-POSE-R01: the authoritative starter placement ----------------------------------------
+#
+# THE GAP THESE CLOSE. Nothing in the running game gave a resident a position: `transforms.gd`
+# was not among the composed stores, `place()` was never called, and the renderer carried a
+# presentation-private 3151872-byte second pose store to have anything to draw. These tests pin
+# the ruling's authored row -- ids 1..12 on the hall's south apron at `(58+i, 69)` -- against the
+# PREPARED world's own terrain, clearing and resource plan, not against constants copied twice.
+#
+# EVERY EXPECTED NUMBER BELOW IS RESTATED FROM THE RULING, never read back out of the module.
+
+## INIT-POSE-R01 §1's authored table, transcribed from the ruling itself.
+const ROW_FIRST_TILE_X: int = 58
+const ROW_TILE_Z: int = 69
+const ROW_FIRST_TILE_INDEX: int = 8890
+const ROW_FIRST_ROOT_X_UNITS: int = 119808
+const ROW_ROOT_X_STEP_UNITS: int = 2048
+const ROW_ROOT_Y_UNITS: int = 512
+const ROW_ROOT_Z_UNITS: int = 142336
+const ROW_YAW: int = 0
+
+
+func _slot_of_persistent_id(persistent_id: int) -> int:
+	"""The resident row currently holding `persistent_id`, or RESIDENT_CAPACITY when none does.
+
+	Read from the store rather than assumed equal to `persistent_id - 1`: the whole point of the
+	ruling's ordering rule is that the row is an allocation detail.
+	"""
+	for slot: int in ResidentsScript.RESIDENT_CAPACITY:
+		if not _settlement.residents().is_alive(slot):
+			continue
+		if _settlement.residents().persistent_id_of(slot).value == persistent_id:
+			return slot
+	return ResidentsScript.RESIDENT_CAPACITY
+
+
+func _pose_of_persistent_id(persistent_id: int) -> TransformsScript.Pose:
+	"""Read the authoritative pose of the resident holding `persistent_id`, or null if unreadable."""
+	var slot: int = _slot_of_persistent_id(persistent_id)
+	if slot == ResidentsScript.RESIDENT_CAPACITY:
+		return null
+	var pose: TransformsScript.Pose = TransformsScript.Pose.new()
+	if not _settlement.transforms().read_into(_settlement.residents().ref_of(slot), pose):
+		return null
+	return pose
+
+
+func test_the_settlement_owns_one_transform_store_bound_to_its_own_directory() -> void:
+	"""INIT-POSE-R01 §2.1: ONE store, on the SAME directory as the resident rows it positions.
+
+	A Transform row is `base(kind) + typed_row` of the directory row an entity already owns, so a
+	store built over a DIFFERENT directory derives rows for entities that do not exist. Identity
+	is asserted, not agreement: two directories that look alike today are two allocators tomorrow.
+	"""
+	assert_not_null(_settlement.transforms(), "the settlement composes a Transform store")
+	assert_true(_settlement.transforms() == _settlement.transforms(),
+		"and publishes one object rather than minting a copy per call")
+	assert_equal(_settlement.transforms().bound_count(), 0,
+		"which holds no pose at all before a world is generated")
+
+
+func test_the_generated_cohort_stands_on_the_authored_assembly_row() -> void:
+	"""The ruling's §1 table, resident by resident, by PERSISTENT ID and not by row.
+
+	x steps one 2 m tile pitch per id; y is §5.1's authored land elevation; z is one row south of
+	the hall. Yaw is the neutral authored model orientation and previous equals current, because a
+	spawn has no history to interpolate out of.
+	"""
+	assert_true(_generate(), "REQ-SET-009 runs (refusal: %s)" % _settlement.last_refusal())
+	assert_equal(_settlement.transforms().bound_count(), COHORT_SIZE, "twelve poses are placed")
+	for index: int in COHORT_SIZE:
+		var pose: TransformsScript.Pose = _pose_of_persistent_id(index + 1)
+		assert_not_null(pose, "persistent id %d has a readable pose" % (index + 1))
+		assert_equal(pose.x, ROW_FIRST_ROOT_X_UNITS + ROW_ROOT_X_STEP_UNITS * index,
+			"id %d stands at its own authored x" % (index + 1))
+		assert_equal(pose.y, ROW_ROOT_Y_UNITS, "on the authored land elevation")
+		assert_equal(pose.z, ROW_ROOT_Z_UNITS, "on the single authored apron row")
+		assert_equal(pose.yaw, ROW_YAW, "at the neutral authored orientation")
+		assert_true(pose.matches_previous(), "with previous equal to current on a new spawn")
+
+
+func test_the_twelve_assembly_tiles_are_distinct_and_are_the_authored_indices() -> void:
+	"""`8890 + i`, which is `z*128+x` of `(58+i, 69)`, and twelve DIFFERENT tiles.
+
+	Two residents sharing a tile would be invisible in a pose test -- both poses would still read
+	back exactly as written -- so the distinctness is asserted over the tile indices themselves.
+	"""
+	var seen: Dictionary = {}
+	for index: int in COHORT_SIZE:
+		var tile: int = WorldInitScript.tile_index_of(ROW_FIRST_TILE_X + index, ROW_TILE_Z)
+		assert_equal(tile, ROW_FIRST_TILE_INDEX + index, "tile %d is the authored index" % index)
+		assert_false(seen.has(tile), "and no earlier resident already stood on it")
+		seen[tile] = true
+		assert_equal(WorldInitScript.tile_center_x_units(ROW_FIRST_TILE_X + index),
+			ROW_FIRST_ROOT_X_UNITS + ROW_ROOT_X_STEP_UNITS * index,
+			"whose centre is the authored root x")
+	assert_equal(seen.size(), COHORT_SIZE, "twelve distinct tiles for twelve residents")
+	assert_equal(WorldInitScript.tile_center_z_units(ROW_TILE_Z), ROW_ROOT_Z_UNITS,
+		"and one shared authored root z")
+
+
+func test_the_generated_map_reserves_the_assembly_row_before_resource_placement() -> void:
+	"""§5.1's clear mask, read from the PUBLISHED column of the world that just generated.
+
+	Not `is_cleared_tile()` restated: `is_cleared_at()` reads the byte `_stage_masks()` wrote and
+	`_stage_tree_plan()` then consulted, which is the ordering the ruling requires -- the row is
+	reserved BEFORE a resource node is planned onto it.
+	"""
+	assert_true(_generate(), "REQ-SET-009 runs (refusal: %s)" % _settlement.last_refusal())
+	for index: int in COHORT_SIZE:
+		var tile_x: int = ROW_FIRST_TILE_X + index
+		assert_true(_settlement.world().is_cleared_at(ROW_FIRST_TILE_INDEX + index),
+			"apron tile %d is cleared in the published mask" % tile_x)
+		assert_equal(_settlement.world().terrain_at(ROW_FIRST_TILE_INDEX + index).value,
+			WorldInitScript.TERRAIN_LAND, "and is land")
+		assert_equal(WorldInitScript.elevation_y_units_of(tile_x, ROW_TILE_Z), ROW_ROOT_Y_UNITS,
+			"at §5.1's authored land elevation")
+		assert_true(WorldInitScript.is_walkable(tile_x, ROW_TILE_Z), "and is walkable ground")
+
+
+func test_nothing_static_or_generated_occupies_the_assembly_row() -> void:
+	"""Footprint and resource exclusion, checked against the world that actually generated.
+
+	The apron is the ring OUTSIDE §5.9's footprints, so no resident stands in a wall; and no tree,
+	grove or ore node may own one of the twelve tiles once the plan has been published.
+	"""
+	assert_true(_generate(), "REQ-SET-009 runs (refusal: %s)" % _settlement.last_refusal())
+	for index: int in COHORT_SIZE:
+		var tile_x: int = ROW_FIRST_TILE_X + index
+		assert_false(WorldInitScript.is_starter_footprint_tile(tile_x, ROW_TILE_Z),
+			"tile %d is under no starter building footprint" % tile_x)
+		assert_true(WorldInitScript.is_starter_apron_tile(tile_x, ROW_TILE_Z),
+			"it is the hall's exterior apron, which is cleared ground and not a floor slab")
+		assert_equal(_settlement.ecology().resource_nodes().ref_at_tile(
+			ROW_FIRST_TILE_INDEX + index), EntityDirectoryScript.NULL_REF,
+			"and no generated resource node stands on it")
+
+
+func test_the_assembly_row_grants_no_home_bed_or_building() -> void:
+	"""The ruling is explicit: this is an exterior apron, not a bed, room, floor slab or building.
+
+	A starter placement that quietly counted as a home assignment would satisfy §5.1's room rule
+	with no Furniture row in existence, which is exactly the fiction this must not create.
+	"""
+	assert_true(_generate(), "REQ-SET-009 runs (refusal: %s)" % _settlement.last_refusal())
+	assert_equal(_settlement.buildings().live_building_count(), 0, "no building was created")
+	assert_equal(_settlement.buildings().live_room_count(), 0, "no room")
+	assert_equal(_settlement.buildings().live_furniture_count(), 0, "and no bed")
+	for index: int in COHORT_SIZE:
+		var slot: int = _slot_of_persistent_id(index + 1)
+		assert_false(_settlement.residents().home_is_live(slot), "id %d has no home" % (index + 1))
+		assert_false(_settlement.residents().bed_is_live(slot), "and no bed")
+
+
+func test_placement_happens_against_the_prepared_world_not_a_published_one() -> void:
+	"""INIT-POSE-R01 §2.2: validate and place BEFORE publishing, inside one transaction.
+
+	Observed from inside the call, because afterwards the world is published either way. The
+	cohort must already exist -- ids 1-12 are what it is ordered by -- and no world entity may.
+	"""
+	var settlement: PoseObservingSettlement = PoseObservingSettlement.new()
+	assert_true(settlement.create_generated_settlement(_loaded_items()),
+		"the settlement initializes (refusal: %s)" % settlement.last_refusal())
+	assert_false(settlement.published_when_placed,
+		"the poses were written before the world was published")
+	assert_equal(settlement.nodes_when_placed, 0, "with no world entity allocated yet")
+	assert_equal(settlement.living_when_placed, COHORT_SIZE, "and the whole cohort standing")
+	assert_equal(settlement.transforms().bound_count(), COHORT_SIZE,
+		"which is what ends up published with the world")
+	settlement.free()
+
+
+func test_the_cohort_only_fixture_places_nobody() -> void:
+	"""INIT-POSE-R01 §2.6: `create_initial_settlement()` claims no map and no positioned world.
+
+	It stays usable as a cohort fixture, and it must NOT quietly acquire the placement contract:
+	an unpositioned cohort over no terrain is what it has always been.
+	"""
+	assert_true(_settlement.create_initial_settlement(), "the cohort-only path still works")
+	assert_equal(_settlement.living_count(), COHORT_SIZE, "twelve residents exist")
+	assert_equal(_settlement.transforms().bound_count(), 0, "and not one of them is placed")
+	assert_false(_settlement.world().is_published(), "over no published world")
+
+
+func test_assignment_follows_the_persistent_id_and_not_the_resident_row() -> void:
+	"""The isolated fixture INIT-POSE-R01 §4 asks for: slot order and id order made to DISAGREE.
+
+	With ids reversed against rows, the resolver must hand apron index 0 to the row carrying id 1
+	-- which is now the LAST row, not the first. An implementation keyed on the slot returns the
+	identity permutation here and is caught; on a production world the two are indistinguishable.
+	"""
+	var residents: ReversedIdResidents = ReversedIdResidents.new()
+	assert_true(residents.spawn_initial_settlement().ok, "the fixture cohort spawns")
+	var order: PackedInt32Array = PackedInt32Array()
+	order.resize(COHORT_SIZE)
+	assert_equal(SettlementSystemScript.resolve_assembly_order_into(residents, order),
+		SettlementSystemScript.REFUSE_NONE, "the reversed cohort resolves")
+	for index: int in COHORT_SIZE:
+		assert_equal(order[index], COHORT_SIZE - 1 - index,
+			"apron index %d is the row whose persistent id is %d" % [index, index + 1])
+
+
+func test_the_resolver_refuses_a_cohort_that_is_not_exactly_ids_one_to_twelve() -> void:
+	"""No dynamic-growth fallback and no partial row: an unusable cohort refuses as a whole.
+
+	The formula has NO definition for persistent id 13 or above, so a cohort carrying one is a
+	refusal rather than an extra apron tile invented on the spot.
+	"""
+	var order: PackedInt32Array = PackedInt32Array()
+	order.resize(COHORT_SIZE)
+	assert_equal(SettlementSystemScript.resolve_assembly_order_into(null, order),
+		SettlementSystemScript.REFUSE_POSE_IDENTITY, "no store refuses")
+	var short_cohort: ResidentsScript = ResidentsScript.new()
+	for index: int in COHORT_SIZE - 1:
+		short_cohort.spawn(&"mouse")
+	assert_equal(SettlementSystemScript.resolve_assembly_order_into(short_cohort, order),
+		SettlementSystemScript.REFUSE_POSE_IDENTITY, "eleven residents refuse")
+	var over_cohort: ResidentsScript = ResidentsScript.new()
+	for index: int in COHORT_SIZE + 1:
+		over_cohort.spawn(&"mouse")
+	assert_equal(SettlementSystemScript.resolve_assembly_order_into(over_cohort, order),
+		SettlementSystemScript.REFUSE_POSE_IDENTITY, "and thirteen refuse, id 13 having no tile")
+
+
+func test_the_resolver_refuses_an_undersized_output_column_rather_than_resizing_it() -> void:
+	"""ARCH-MEM-001: the scratch column is sized once in `_init()` and never grown at a call."""
+	var residents: ResidentsScript = ResidentsScript.new()
+	assert_true(residents.spawn_initial_settlement().ok, "a real cohort stands")
+	var too_small: PackedInt32Array = PackedInt32Array()
+	too_small.resize(COHORT_SIZE - 1)
+	assert_equal(SettlementSystemScript.resolve_assembly_order_into(residents, too_small),
+		SettlementSystemScript.REFUSE_POSE_IDENTITY, "an undersized column refuses")
+	assert_equal(too_small.size(), COHORT_SIZE - 1, "and is not resized behind the caller's back")
+
+
+func test_a_refused_generation_over_a_published_world_leaves_the_poses_byte_identical() -> void:
+	"""INIT-POSE-R01 §2.5: a published world is never overwritten, even with nobody standing in it.
+
+	Replacement rollback does not exist, so the `resident_count > 0` guard alone is insufficient:
+	an empty-but-published world would be destroyed by the transaction's reset and could not be
+	rebuilt. Decision 0059's allocate-before-consume, proved over the whole pose image.
+	"""
+	assert_true(_generate(), "a valid world stands first")
+	var poses: PackedByteArray = _settlement.transforms().state_bytes()
+	var terrain: PackedByteArray = _terrain_image()
+	_settlement.residents().clear()
+	assert_equal(_settlement.residents().population(), 0,
+		"the resident store the emptiness guard reads now holds nobody")
+	assert_true(_settlement.world().is_published(), "over a world that is still published")
+	assert_false(_generate(), "and a second initialization over it is refused")
+	assert_equal(_settlement.last_refusal(),
+		SettlementSystemScript.REFUSE_WORLD_ALREADY_PUBLISHED, "naming the published world")
+	assert_equal(_settlement.transforms().state_bytes(), poses,
+		"every one of the nine pose columns is byte-identical")
+	assert_equal(_terrain_image(), terrain, "and so is the standing world's terrain")
+
+
+func test_a_cohort_refusal_inside_the_transaction_leaves_no_pose_standing() -> void:
+	"""A failure between the reset and publication must publish no half-placed row either."""
+	var settlement: RefusingCohortSettlement = RefusingCohortSettlement.new()
+	var empty: PackedByteArray = settlement.transforms().state_bytes()
+	assert_false(settlement.create_generated_settlement(_loaded_items()), "the cohort refuses")
+	assert_equal(settlement.transforms().bound_count(), 0, "no pose was bound")
+	assert_equal(settlement.transforms().state_bytes(), empty,
+		"and the pose columns are byte-identical to a settlement that never tried")
+	settlement.free()
+
+
+func test_a_new_world_reset_leaks_no_pose_into_the_world_that_follows_it() -> void:
+	"""INIT-POSE-R01 §2.4: a new world may restart persistent ids at 1, so old binding bytes are
+	unsafe even though ids never repeat WITHIN a world.
+
+	The second world's id 1 is a different creature standing in a newly initialized row; a reset
+	that left the first world's binding stamp behind would hand it the first world's coordinates.
+	"""
+	assert_true(_generate(), "a first world stands")
+	var first: Vector2i = _settlement.residents().ref_of(_slot_of_persistent_id(1))
+	_settlement.reset()
+	assert_equal(_settlement.transforms().bound_count(), 0, "the reset released every pose")
+	assert_equal(_settlement.transforms().state_bytes(),
+		SettlementSystemScript.new().transforms().state_bytes(),
+		"leaving the columns byte-identical to a freshly composed store")
+	assert_false(_settlement.transforms().is_bound(first),
+		"and the first world's reference reads as unplaced, not as its old coordinates")
+	assert_true(_generate(), "a second world generates over it")
+	var pose: TransformsScript.Pose = _pose_of_persistent_id(1)
+	assert_not_null(pose, "the second world's id 1 has its own pose")
+	assert_equal(pose.x, ROW_FIRST_ROOT_X_UNITS, "which is its own newly initialized apron tile")
+	assert_true(pose.matches_previous(), "with no history carried over from the first world")
+
+
+func test_repeated_presentation_reads_change_no_authoritative_pose_byte() -> void:
+	"""The renderer borrows this store; a thousand frames at varied alphas must not write to it.
+
+	`presentation_interpolate_into()` is the one legal float boundary and it fills a caller-owned
+	record. Compared over the whole nine-column image, not a sampled field.
+	"""
+	assert_true(_generate(), "a world stands")
+	var before: PackedByteArray = _settlement.transforms().state_bytes()
+	var digest: int = _settlement.transforms().authoritative_digest()
+	var out: TransformsScript.PresentationPose = TransformsScript.PresentationPose.new()
+	for frame: int in 200:
+		for index: int in COHORT_SIZE:
+			var ref: Vector2i = _settlement.residents().ref_of(_slot_of_persistent_id(index + 1))
+			assert_true(_settlement.transforms().presentation_interpolate_into(
+				ref, frame * 5000, 1000000, out), "the frame drew")
+	assert_equal(_settlement.transforms().state_bytes(), before, "not one byte moved")
+	assert_equal(_settlement.transforms().authoritative_digest(), digest, "nor did the digest")
+
+
+func _planned_apron_world() -> PlannedApronWorld:
+	"""A generator whose staged plan this test controls, over stores nothing else shares."""
+	var residents: ResidentsScript = ResidentsScript.new()
+	var jobs: JobsScript = JobsScript.new(residents, null, null)
+	return PlannedApronWorld.new(residents.directory(), ResourceNodesScript.new(),
+		ForageScript.new(), FishingScript.new(), RngScript.new(), null, null, jobs)
+
+
+func test_the_apron_exclusion_covers_exactly_the_twelve_authored_tiles() -> void:
+	"""`8890..8901` inclusive, and the tile either side of the row is NOT covered.
+
+	This rule only ever fires on tiles the authored map does not produce, so without a direct
+	test it could be replaced by `return false` and every other test would stay green.
+	"""
+	assert_false(SettlementSystemScript.assembly_covers_tile(ROW_FIRST_TILE_INDEX - 1),
+		"the tile west of the row is outside it")
+	for index: int in COHORT_SIZE:
+		assert_true(SettlementSystemScript.assembly_covers_tile(ROW_FIRST_TILE_INDEX + index),
+			"apron tile %d is covered" % (ROW_FIRST_TILE_INDEX + index))
+	assert_false(SettlementSystemScript.assembly_covers_tile(
+		ROW_FIRST_TILE_INDEX + COHORT_SIZE), "and the tile east of the row is outside it")
+
+
+func test_a_plan_that_puts_a_resource_node_on_the_apron_refuses_the_placement() -> void:
+	"""The exclusion's REFUSING branch, executed rather than argued to be unreachable.
+
+	Both plan lists are covered: §5.1 plants capped centres first and then a guaranteed grove on
+	top of them, and a resident standing inside either is the same defect.
+	"""
+	var world: PlannedApronWorld = _planned_apron_world()
+	world.plan_tile = ROW_FIRST_TILE_INDEX + 3
+	assert_equal(SettlementSystemScript.refuse_assembly_occupancy(world),
+		SettlementSystemScript.REFUSE_POSE_OCCUPIED, "a planned tree centre on the row refuses")
+	world.plan_is_grove = true
+	assert_equal(SettlementSystemScript.refuse_assembly_occupancy(world),
+		SettlementSystemScript.REFUSE_POSE_OCCUPIED, "and so does a planned grove node")
+
+
+func test_a_plan_clear_of_the_apron_passes_the_exclusion() -> void:
+	"""The other side of the same branch: a plan that avoids the row must NOT refuse.
+
+	Without this, `return REFUSE_POSE_OCCUPIED` unconditionally would satisfy the test above.
+	"""
+	var world: PlannedApronWorld = _planned_apron_world()
+	world.plan_tile = ROW_FIRST_TILE_INDEX - 1
+	assert_equal(SettlementSystemScript.refuse_assembly_occupancy(world),
+		SettlementSystemScript.REFUSE_NONE, "a centre west of the row is fine")
+	world.plan_tile = ROW_FIRST_TILE_INDEX + COHORT_SIZE
+	world.plan_is_grove = true
+	assert_equal(SettlementSystemScript.refuse_assembly_occupancy(world),
+		SettlementSystemScript.REFUSE_NONE, "and a grove node east of it is fine")
+
+
+func test_an_unreadable_plan_refuses_rather_than_being_treated_as_empty() -> void:
+	"""A plan entry that cannot be read is not evidence the row is clear. No world is no evidence
+	either: the exclusion refuses rather than passing a placement it could not check."""
+	var world: PlannedApronWorld = _planned_apron_world()
+	world.plan_refuses = true
+	world.plan_tile = ROW_FIRST_TILE_INDEX + 5000
+	assert_equal(SettlementSystemScript.refuse_assembly_occupancy(world),
+		SettlementSystemScript.REFUSE_POSE_OCCUPIED, "an unreadable centre refuses")
+	world.plan_is_grove = true
+	assert_equal(SettlementSystemScript.refuse_assembly_occupancy(world),
+		SettlementSystemScript.REFUSE_POSE_OCCUPIED, "an unreadable grove entry refuses")
+	assert_equal(SettlementSystemScript.refuse_assembly_occupancy(null),
+		SettlementSystemScript.REFUSE_POSE_OCCUPIED, "and no generator at all refuses")
+
+
+func test_a_pose_store_that_leaves_a_previous_pose_behind_refuses_the_whole_world() -> void:
+	"""INIT-POSE-R01 §1: previous and yaw EQUAL current on this new spawn, verified by read-back.
+
+	The current coordinates would still be right, so no position assertion could see it. The
+	settlement reads all twelve poses back after writing them and refuses the transaction whole.
+	"""
+	var settlement: HistoryBreakingSettlement = HistoryBreakingSettlement.new()
+	assert_false(settlement.create_generated_settlement(_loaded_items()),
+		"a spawn with history refuses the generation")
+	assert_equal(settlement.last_refusal(), SettlementSystemScript.REFUSE_POSE_TRANSFORM,
+		"naming the Transform write")
+	assert_false(settlement.world().is_published(), "and no world is published")
+	assert_equal(settlement.residents().population(), 0, "with no cohort left standing")
+	settlement.free()
+
+
+func test_a_candidate_row_that_is_already_placed_refuses_before_anything_is_written() -> void:
+	"""The precondition, exercised: a row already bound is not silently overwritten.
+
+	Decided BEFORE the first `place()`, so a store reporting every row occupied leaves the pose
+	columns byte-identical rather than half-written.
+	"""
+	var settlement: OccupiedRowSettlement = OccupiedRowSettlement.new()
+	var empty: PackedByteArray = settlement.transforms().state_bytes()
+	assert_false(settlement.create_generated_settlement(_loaded_items()),
+		"an already-placed candidate row refuses the generation")
+	assert_equal(settlement.last_refusal(), SettlementSystemScript.REFUSE_POSE_TRANSFORM,
+		"naming the Transform binding")
+	assert_equal(settlement.transforms().state_bytes(), empty,
+		"and not one pose column byte was written")
+	assert_false(settlement.world().is_published(), "with no world published")
+	settlement.free()

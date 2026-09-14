@@ -99,17 +99,22 @@ func _generate_initial_world() -> void:
 
 
 func _attach_resident_stage() -> void:
-	"""Bind the crowd renderer to the cohort, AFTER the settlement that owns it exists.
+	"""Bind the crowd renderer to the cohort AND to the settlement's own pose store.
 
 	Not in the stage's own `_ready()`: Godot readies children before parents, so that runs before
 	`_generate_initial_world()` above and would bind an empty settlement. A refusal is reported
 	rather than swallowed, because an unbound crowd and a settlement with nobody in it draw the
 	same empty ground.
+
+	BOTH STORES COME FROM THE SETTLEMENT (INIT-POSE-R01). The renderer is handed
+	`SettlementSystem.transforms()` -- the one directory-bound Transform store the generation
+	transaction placed §5.1's twelve into -- rather than constructing a presentation-private one
+	of its own. A generation that refused leaves nobody placed, and the crowd draws nothing.
 	"""
 	if _resident_stage == null:
 		push_error("main.tscn has no ResidentStage at World/Entities; residents will not be drawn.")
 		return
-	if not _resident_stage.attach(SettlementSystem.residents()):
+	if not _resident_stage.attach(SettlementSystem.residents(), SettlementSystem.transforms()):
 		push_error("Resident crowd could not attach: %s" % _resident_stage.last_refusal())
 		return
 	print("[Main] resident crowd attached: mesh %s" % _resident_stage.mesh_source())

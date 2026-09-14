@@ -344,6 +344,42 @@ extends Node
 ## and `jobs.gd` owns REQ-SET-124's delivery and build jobs; neither file calls this store yet,
 ## so `tick_stage_count()` is still 8 and every stage keeps its name.
 ##
+## ---------------------------------------------------------------------------------------
+## `request_demolition()` IS REQ-SET-128'S COMPOSED GATE, AND TODAY IT ALWAYS REFUSES.
+## INV-GOODS-R01 puts the goods half of REQ-SET-128 exactly here, because this is the only place
+## `buildings()`, `construction()` and `inventory()` meet over one directory. The gate runs five
+## ordered stages and CHANGES NO STATE IN ANY OF THEM -- it never reaches
+## `construction().open_demolition()`, so no project is published and no building is moved to
+## DEMOLISHING by this path:
+##
+##   1. SUBJECT. A stale ref, a building that is not ACTIVE, or one already carrying a project.
+##   2. ENDPOINT PROOF. Walk the building, each of its rooms, each furniture in those rooms, and
+##      the project bound to each of those subjects; every ref must be live in the directory, and
+##      a project's `material_container` must name a LIVE inventory container -- or, when it
+##      names none, the project must have had nothing delivered to it. A binding that cannot be
+##      proved is MISSING_CONTAINMENT_CONTRACT and NOT an empty result.
+##   3. GOODS. `inventory().containers_by_owner_into()` per distinct endpoint owner, plus each
+##      project's material container by handle, de-duplicated by container slot. Every live lot
+##      is counted ONCE whatever its `reserved_milli`, and a container's `reserved_mass_g` is
+##      reported SEPARATELY as an outstanding capacity claim -- undelivered headroom is not a lot
+##      and no lot is invented to account for it.
+##   4. OCCUPANTS, RECHECKED AFTER stage 2 and from `construction()`'s own counters, so the
+##      resident half is re-read against the same rows the endpoint proof just walked.
+##   5. FOOTPRINT COVERAGE, which no store can supply -- see `_footprint_binding_refusal()`.
+##
+## STAGE 5 IS WHY THIS CANNOT YET SUCCEED, AND SAYING SO IS THE POINT. An InventoryContainer row
+## carries owner, mass, filters, reserved mass, policy and reachability and NO POSITION, and
+## nothing maps a tile to a container, so a ground pile or another entity's container standing
+## inside the footprint cannot be enumerated at all. Owner equality proves OWNERSHIP; it does not
+## prove CONTAINMENT. Reporting stages 2-4 as a pass would therefore be reporting "I looked and
+## found nothing" when the truth is "I cannot see there". The evacuation/relocation half --
+## real hauling, then a retry that re-reads these same stores -- is a separate follow-up with its
+## own owner; nothing here teleports a lot, mints a ground pile, or unequips anybody.
+##
+## THE WHOLE GATE IS READ-ONLY, WHICH IS ASSERTED IN BYTES. Every path returns a
+## `DemolitionReport` carrying exact counts and the exact stranded lot refs, and leaves Building,
+## Construction, Inventory and the directory byte-identical.
+##
 ## THE WORLD SEED IS NO LONGER MISSING. `rng()` is composed here UNSEEDED and stays that way in a
 ## settlement nobody generated; `create_generated_settlement()` seeds it, because `world_init.gd`
 ## owns REQ-SET-009's `World.seed` and seeds all nine streams as part of publishing. §5.10's
@@ -611,6 +647,91 @@ const REFUSE_POSE_TRANSFORM: StringName = &"INITIAL_POSE_TRANSFORM_REFUSED"
 ## a published world is never overwritten -- not even one with nobody standing in it.
 const REFUSE_WORLD_ALREADY_PUBLISHED: StringName = &"SETTLEMENT_WORLD_ALREADY_PUBLISHED"
 
+## REQ-SET-128's composed demolition gate (INV-GOODS-R01). Every one of these is a refusal that
+## wrote nothing. The two resident refusals are `construction.gd`'s OWN codes, re-raised rather
+## than re-spelled, so a caller cannot tell this gate's occupant answer from that store's.
+const REFUSE_DEMOLITION_STALE_BUILDING: StringName = &"DEMOLITION_STALE_BUILDING_REF"
+const REFUSE_DEMOLITION_NOT_ACTIVE: StringName = &"DEMOLITION_BUILDING_NOT_ACTIVE"
+const REFUSE_DEMOLITION_IN_PROGRESS: StringName = &"DEMOLITION_ALREADY_UNDER_CONSTRUCTION"
+## A binding needed to prove coverage is ABSENT. Distinct from every refusal below it, because
+## "I could not see" and "I looked and it is occupied" must never read as the same answer -- and
+## neither of them may read as the proved-empty success this gate cannot yet reach.
+const REFUSE_DEMOLITION_MISSING_CONTAINMENT: StringName = &"DEMOLITION_MISSING_CONTAINMENT_CONTRACT"
+const REFUSE_DEMOLITION_STORED_GOODS: StringName = &"DEMOLITION_BLOCKED_STORED_GOODS"
+const REFUSE_DEMOLITION_CAPACITY_CLAIM: StringName = &"DEMOLITION_BLOCKED_CAPACITY_CLAIM"
+## The owner query itself refused -- a malformed owner or an undersized buffer. Its own refusal,
+## never folded into "no goods found".
+const REFUSE_DEMOLITION_SCAN: StringName = &"DEMOLITION_GOODS_SCAN_REFUSED"
+const REFUSE_DEMOLITION_OVERFLOW: StringName = &"DEMOLITION_GOODS_TOTAL_OVERFLOW"
+
+## The two endpoint stages. Named rather than a boolean flag: ONE walk defines the affected
+## endpoint set, and running it twice with different stages is what makes the goods scan
+## provably cover exactly the endpoints the proof just validated.
+const ENDPOINT_STAGE_PROVE: int = 0
+const ENDPOINT_STAGE_SCAN: int = 1
+
+
+class DemolitionReport:
+	"""One demolition request's outcome and the exact evidence behind it.
+
+	`OpResult.value` alone cannot describe a multi-lot notice (INV-GOODS-R01), so this carries
+	the counts a notice needs AND the stranded lot refs themselves. `ok` is false on every path
+	this gate can currently take; `error` says which of them, and the counters below are only
+	filled by the stage that reached them -- a refusal at the endpoint proof leaves the goods
+	totals at 0 BECAUSE NOTHING WAS COUNTED, which is exactly why `error` and not a zero total is
+	what a caller must read.
+
+	The lot columns are allocated once at the lot store's capacity and refilled per request.
+	"""
+	var ok: bool = false
+	var error: StringName = &""
+	var endpoint_owner_count: int = 0
+	var scanned_container_count: int = 0
+	var stranded_lot_count: int = 0
+	var stranded_quantity_milli: int = 0
+	var outstanding_reserved_mass_g: int = 0
+	var claiming_container_count: int = 0
+	var occupant_count: int = 0
+	var furniture_user_count: int = 0
+	var _lot_slot: PackedInt32Array = PackedInt32Array()
+	var _lot_generation: PackedInt32Array = PackedInt32Array()
+
+	func _init(lot_capacity: int) -> void:
+		"""Size the stranded-lot columns once, to the lot store's own capacity."""
+		_lot_slot.resize(lot_capacity)
+		_lot_generation.resize(lot_capacity)
+		reset()
+
+	func reset() -> void:
+		"""Clear every field before a request, so no number survives from an earlier one."""
+		ok = false
+		error = &""
+		endpoint_owner_count = 0
+		scanned_container_count = 0
+		stranded_lot_count = 0
+		stranded_quantity_milli = 0
+		outstanding_reserved_mass_g = 0
+		claiming_container_count = 0
+		occupant_count = 0
+		furniture_user_count = 0
+
+	func record_lot(lot_ref: Vector2i) -> void:
+		"""Record one stranded lot ref. The count is the authority; the columns are the list."""
+		if stranded_lot_count < _lot_slot.size():
+			_lot_slot[stranded_lot_count] = lot_ref.x
+			_lot_generation[stranded_lot_count] = lot_ref.y
+		stranded_lot_count += 1
+
+	func stranded_lot_at(index: int) -> Vector2i:
+		"""The `index`th stranded lot ref, or Inventory's null ref when the index names none.
+
+		These are INVENTORY-LOT refs, so the null ref is Inventory's, not the directory's.
+		"""
+		if index < 0 or index >= stranded_lot_count or index >= _lot_slot.size():
+			return InventoryScript.NULL_REF
+		return Vector2i(_lot_slot[index], _lot_generation[index])
+
+
 # --- the settlement's stores (composed once in _init, never reallocated) ----------------------
 
 var _residents: ResidentsScript = ResidentsScript.new()
@@ -737,6 +858,16 @@ var _submit_result: SchedulerEventsScript.SubmitResult = SchedulerEventsScript.S
 var _assembly_slot: PackedInt32Array = PackedInt32Array()
 var _assembly_pose: TransformsScript.Pose = TransformsScript.Pose.new()
 
+## INV-GOODS-R01's demolition-gate scratch, allocated once in _init() and refilled per request.
+## No tick stage reads or writes any of it: a demolition request is a cold destructive path.
+## The pair buffer is sized from the lot store's OWN published maximum rather than from a
+## number chosen here, because a smaller buffer would be a silent cap on how much stranded
+## stock the gate can see, and the query refuses an undersized buffer rather than truncating.
+var _demolition: DemolitionReport = null
+var _demolition_pairs: PackedInt32Array = PackedInt32Array()
+var _demolition_seen: PackedByteArray = PackedByteArray()
+var _demolition_read: IntMath.IntResult = IntMath.IntResult.new()
+
 
 func _init() -> void:
 	"""Compose the settlement stores once and size the live index; allocate nothing later.
@@ -790,6 +921,9 @@ func _size_index_and_scratch_columns() -> void:
 	_stage_measured.resize(TICK_STAGE_COUNT)
 	_assembly_slot.resize(ASSEMBLY_COHORT_SIZE)
 	_assembly_slot.fill(EntityDirectoryScript.NULL_SLOT)
+	_demolition = DemolitionReport.new(InventoryScript.LOT_CAPACITY)
+	_demolition_pairs.resize(_inventory.owner_query_cells())
+	_demolition_seen.resize(_inventory.owner_query_cells() / 2)
 
 
 func _compose_stock_layer() -> void:
@@ -2466,6 +2600,259 @@ func construction() -> ConstructionScript:
 	allocator, so a project cannot outlive, or be orphaned by, the building it is building.
 	"""
 	return _construction
+
+
+# --- REQ-SET-128: the composed demolition gate (INV-GOODS-R01) ---------------------------------
+
+func request_demolition(building_ref: Vector2i) -> DemolitionReport:
+	"""REQ-SET-128 in full: prove the affected endpoints, then recheck goods, claims and occupants.
+
+	CHANGES NOTHING ON ANY PATH. It never calls `construction().open_demolition()`, so no project
+	is published and no building is moved to DEMOLISHING here; what it returns is evidence. The
+	five stages run in the header's order and stop at the first refusal, and the occupant recheck
+	is deliberately AFTER the endpoint proof rather than before it.
+
+	`report.ok` would mean every stage passed. It is unreachable while stage 5 refuses, and even
+	then this gate would publish nothing: the hauling, relocation and publication half belongs to
+	the separate containment/evacuation integration.
+	"""
+	_demolition.reset()
+	var code: StringName = _refuse_demolition_subject(building_ref)
+	if code == REFUSE_NONE:
+		code = _walk_endpoints(building_ref, ENDPOINT_STAGE_PROVE)
+	if code == REFUSE_NONE:
+		code = _scan_demolition_goods(building_ref)
+	if code == REFUSE_NONE:
+		code = _recheck_demolition_residents(building_ref)
+	if code == REFUSE_NONE:
+		code = _footprint_binding_refusal()
+	_demolition.error = code
+	_demolition.ok = code == REFUSE_NONE
+	return _demolition
+
+
+func _refuse_demolition_subject(building_ref: Vector2i) -> StringName:
+	"""Stage 1: the subject must be a live ACTIVE building that carries no project yet."""
+	if not _buildings.is_live_building(building_ref):
+		return REFUSE_DEMOLITION_STALE_BUILDING
+	if _buildings.construction_ref_of_building(building_ref) != EntityDirectoryScript.NULL_REF:
+		return REFUSE_DEMOLITION_IN_PROGRESS
+	if _buildings.state_of_building(building_ref).value != ConstructionScript.STATE_ACTIVE:
+		return REFUSE_DEMOLITION_NOT_ACTIVE
+	return REFUSE_NONE
+
+
+func _walk_endpoints(building_ref: Vector2i, stage: int) -> StringName:
+	"""Visit every affected endpoint of one building, in one deterministic order, once per stage.
+
+	ONE definition of the affected set, run twice. The proof stage and the goods stage cannot
+	disagree about which endpoints exist, because neither of them owns a list -- both ARE this
+	walk. Rooms come in the building's chain order and furniture in each room's, so the stranded
+	list a notice shows is stable across two calls that changed nothing.
+	"""
+	var code: StringName = _visit_endpoint(building_ref, stage)
+	if code != REFUSE_NONE:
+		return code
+	for room_row: int in _buildings.rooms_of_building(building_ref):
+		var room_ref: Vector2i = _buildings.room_ref_of_row(room_row)
+		code = _visit_endpoint(room_ref, stage)
+		if code != REFUSE_NONE:
+			return code
+		for furniture_row: int in _buildings.furniture_rows_in_room(room_ref):
+			code = _visit_endpoint(_buildings.furniture_ref_of_row(furniture_row), stage)
+			if code != REFUSE_NONE:
+				return code
+	return REFUSE_NONE
+
+
+func _visit_endpoint(subject_ref: Vector2i, stage: int) -> StringName:
+	"""Visit one affected subject, then whatever construction project is bound to that subject."""
+	var code: StringName = _visit_owner(subject_ref, stage)
+	if code != REFUSE_NONE:
+		return code
+	var project: Vector2i = _construction.project_of_subject(subject_ref)
+	if project == EntityDirectoryScript.NULL_REF:
+		return REFUSE_NONE
+	code = _visit_owner(project, stage)
+	if code != REFUSE_NONE:
+		return code
+	return _visit_material_container(project, stage)
+
+
+func _visit_owner(owner_ref: Vector2i, stage: int) -> StringName:
+	"""Prove one endpoint owner, or scan every container Inventory keys to it.
+
+	A ref a store hands back must still be live in the ONE directory. A store that returns a ref
+	the directory has retired is a binding this gate cannot prove -- not an owner with nothing
+	in it -- so it refuses as a missing containment contract and counts no goods.
+
+	THE SCAN REFUSAL IS A GUARD AND IS CURRENTLY UNREACHABLE, WHICH IS WHY IT STAYS. The query
+	refuses a malformed owner and an undersized buffer; the owner has just been proved live in
+	the directory, and `_demolition_pairs` is sized from `owner_query_cells()` -- the store's own
+	published maximum -- so neither can happen as this file stands. Dropping the branch would
+	silently read a refused query as "this owner has no goods", which is the one reading
+	INV-GOODS-R01 exists to forbid, and a later caller with its own buffer would inherit it.
+	"""
+	if not _directory.is_valid(owner_ref):
+		return REFUSE_DEMOLITION_MISSING_CONTAINMENT
+	if stage == ENDPOINT_STAGE_PROVE:
+		_demolition.endpoint_owner_count += 1
+		return REFUSE_NONE
+	if not _inventory.containers_by_owner_into(owner_ref, _demolition_pairs, _demolition_read):
+		return REFUSE_DEMOLITION_SCAN  # guard, not a reachable state: see the docstring
+	return _accumulate_scanned_containers(_demolition_read.value)
+
+
+func _visit_material_container(project_ref: Vector2i, stage: int) -> StringName:
+	"""Prove or scan a project's `material_container`, which is an INVENTORY-CONTAINER handle.
+
+	THE SECOND REFERENCE DOMAIN, KEPT SEPARATE ON PURPOSE. `construction.gd` range-validates this
+	pair and holds no Inventory with which to attest it, so validating it as a directory ref
+	would accept a stale handle whose two numbers happened to match a live entity. Here it is
+	validated as what it is, against the store that issued it.
+	"""
+	var handle: Vector2i = _construction.material_container_ref_of(project_ref)
+	if handle == EntityDirectoryScript.NULL_REF:
+		return _unbound_material_refusal(project_ref)
+	if not _inventory.is_container_valid(handle):
+		return REFUSE_DEMOLITION_MISSING_CONTAINMENT
+	if stage == ENDPOINT_STAGE_PROVE:
+		return REFUSE_NONE
+	return _accumulate_container(handle)
+
+
+func _unbound_material_refusal(project_ref: Vector2i) -> StringName:
+	"""Refuse a project that has taken delivery but names no container it was delivered into.
+
+	REQ-SET-124 records a delivery only AFTER the hauling owner has physically moved goods into
+	`material_container`. A nonzero delivered line with no bound container therefore describes
+	real goods at an endpoint this gate cannot name: a missing binding, not an empty store. A
+	project that has taken nothing is no endpoint at all and passes.
+	"""
+	if not _construction.purpose_into(project_ref, _demolition_read):
+		return REFUSE_DEMOLITION_MISSING_CONTAINMENT
+	var purpose: int = _demolition_read.value
+	if not _construction.type_id_into(project_ref, _demolition_read):
+		return REFUSE_DEMOLITION_MISSING_CONTAINMENT
+	if not _construction.bill_size_into(purpose, _demolition_read.value, _demolition_read):
+		return REFUSE_DEMOLITION_MISSING_CONTAINMENT
+	var lines: int = _demolition_read.value
+	for index: int in lines:
+		if not _construction.delivered_milli_into(project_ref, index, _demolition_read):
+			return REFUSE_DEMOLITION_MISSING_CONTAINMENT
+		if _demolition_read.value > 0:
+			return REFUSE_DEMOLITION_MISSING_CONTAINMENT
+	return REFUSE_NONE
+
+
+func _scan_demolition_goods(building_ref: Vector2i) -> StringName:
+	"""Stage 3: re-walk the proved endpoints, counting live lots and outstanding capacity claims.
+
+	Stranded stock refuses before an outstanding claim because a lot is a thing that must be
+	hauled and a claim is a thing its owner must release; neither is folded into the other, and
+	both totals stand in the report whichever of them refused.
+	"""
+	_demolition_seen.fill(0)
+	var code: StringName = _walk_endpoints(building_ref, ENDPOINT_STAGE_SCAN)
+	if code != REFUSE_NONE:
+		return code
+	if _demolition.stranded_lot_count > 0:
+		return REFUSE_DEMOLITION_STORED_GOODS
+	if _demolition.outstanding_reserved_mass_g > 0:
+		return REFUSE_DEMOLITION_CAPACITY_CLAIM
+	return REFUSE_NONE
+
+
+func _accumulate_scanned_containers(pair_count: int) -> StringName:
+	"""Fold every container the last owner query wrote into the report, each one exactly once."""
+	for index: int in pair_count:
+		var container_ref: Vector2i = Vector2i(_demolition_pairs[index * 2],
+			_demolition_pairs[index * 2 + 1])
+		var code: StringName = _accumulate_container(container_ref)
+		if code != REFUSE_NONE:
+			return code
+	return REFUSE_NONE
+
+
+func _accumulate_container(container_ref: Vector2i) -> StringName:
+	"""Count one container's live lots and its outstanding capacity claim, at most once.
+
+	The seen mask is what makes "at most once" true across the two ways one container can be
+	reached: keyed to an endpoint owner, and named by a project's `material_container` handle.
+	`reserved_mass_g` is UNDELIVERED HEADROOM and is reported separately from the lots -- it is
+	not a lot, and no lot is invented to account for it.
+	"""
+	if _demolition_seen[container_ref.x] == 1:
+		return REFUSE_NONE
+	_demolition_seen[container_ref.x] = 1
+	_demolition.scanned_container_count += 1
+	var reserved: int = _inventory.container_reserved_mass_g(container_ref)
+	if reserved > 0:
+		_demolition.claiming_container_count += 1
+		if not IntMath.checked_add_into(_demolition.outstanding_reserved_mass_g, reserved,
+				_demolition_read):
+			return REFUSE_DEMOLITION_OVERFLOW
+		_demolition.outstanding_reserved_mass_g = _demolition_read.value
+	return _accumulate_container_lots(container_ref)
+
+
+func _accumulate_container_lots(container_ref: Vector2i) -> StringName:
+	"""Walk one container's lot list, bounded by its own live lot count, counting each lot once.
+
+	A lot with `reserved_milli > 0` is counted ONCE and not twice: the reservation is a claim on
+	that lot, not extra goods beside it.
+
+	The overflow branch is the same kind of guard as `_visit_owner()`'s: 16384 lot rows cannot
+	currently sum an int64 past its limit, and the total is still summed with a checked add
+	rather than left to wrap silently if that ever changes.
+	"""
+	var lot_ref: Vector2i = _inventory.container_first_lot(container_ref)
+	for _index: int in _inventory.container_lot_count(container_ref):
+		if lot_ref == InventoryScript.NULL_REF:
+			break
+		_demolition.record_lot(lot_ref)
+		if not IntMath.checked_add_into(_demolition.stranded_quantity_milli,
+				_inventory.lot_quantity_milli(lot_ref), _demolition_read):
+			return REFUSE_DEMOLITION_OVERFLOW
+		_demolition.stranded_quantity_milli = _demolition_read.value
+		lot_ref = _inventory.container_next_lot(lot_ref)
+	return REFUSE_NONE
+
+
+func _recheck_demolition_residents(building_ref: Vector2i) -> StringName:
+	"""Stage 4: re-read `construction.gd`'s OWN occupant and furniture-user counts.
+
+	AFTER the endpoint proof, never before it. The proof walks the very rooms and furniture this
+	count is taken over, and a count taken first is a count taken against a set this gate had not
+	yet established it could see. No yield and no mutation separates the two.
+	"""
+	_demolition.occupant_count = _construction.occupant_count_of_building(building_ref)
+	if _demolition.occupant_count > 0:
+		return ConstructionScript.REFUSE_OCCUPANTS_PRESENT
+	_demolition.furniture_user_count = _construction.furniture_user_count_of_building(
+		building_ref)
+	if _demolition.furniture_user_count > 0:
+		return ConstructionScript.REFUSE_FURNITURE_IN_USE
+	return REFUSE_NONE
+
+
+func _footprint_binding_refusal() -> StringName:
+	"""Stage 5: refuse while nothing binds an inventory container to a footprint tile.
+
+	AN InventoryContainer ROW CARRIES NO POSITION. GDD §4.2 gives it owner, max mass, filters,
+	reserved mass, policy and reachability, and `buildings.gd`'s tile maps name buildings, rooms
+	and furniture -- never a container. So a ground pile standing in the doorway, or another
+	entity's container physically inside this footprint, cannot be enumerated at all, and the
+	owner scan above proves OWNERSHIP rather than CONTAINMENT.
+
+	Reporting the previous four stages as a pass would therefore report "I looked and found
+	nothing" when the truth is "I cannot see there" -- which is the one confusion INV-GOODS-R01
+	is written to prevent. BLOCKER: the footprint/placement binding owner must publish a
+	container-by-tile (or container-placement) binding before this gate can reach a success, and
+	the relocation half is the separate containment/evacuation integration. No constant, default
+	or allowance is invented here in the meantime.
+	"""
+	return REFUSE_DEMOLITION_MISSING_CONTAINMENT
 
 
 func building_definitions() -> BuildingDefinitionsScript:

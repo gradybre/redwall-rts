@@ -2286,3 +2286,153 @@ func test_lot_provenance_into_separates_a_refusal_from_an_answer() -> void:
 	assert_equal(_inv.lot_provenance(Vector2i(999, 1)), -1, "the plain reader answers -1")
 	assert_false(InventoryScript.CatalogScript.is_inventory_provenance(-1),
 		"which is not a member, so it cannot be read as an origin")
+
+
+# --- INV-GOODS-R01: bounded container enumeration by owner -------------------------------------
+
+func _pairs(cells: int) -> PackedInt32Array:
+	"""A caller-owned flat pair buffer of `cells` int32 cells, prefilled with a visible marker.
+
+	The marker is what proves a refusal wrote nothing: a zeroed buffer could not tell a refusal
+	that truncated into cell 0 from one that never touched it.
+	"""
+	var buffer: PackedInt32Array = PackedInt32Array()
+	buffer.resize(cells)
+	buffer.fill(-7)
+	return buffer
+
+
+func test_owner_query_cells_is_two_per_container_row() -> void:
+	"""The caller sizes its scratch from the store, not from a number of its own choosing."""
+	assert_equal(_inv.owner_query_cells(), 16, "eight container rows, two cells each")
+	assert_equal(InventoryScript.new(3, 4).owner_query_cells(), 6,
+		"and it follows the capacity the store was actually built at")
+
+
+func test_containers_by_owner_lists_one_owners_rows_in_ascending_slot_order() -> void:
+	"""INV-GOODS-R01: complete inventory-container pairs, deterministic in container-slot order."""
+	var first: Vector2i = _container(BIG_MASS, OWNER_A)
+	var other: Vector2i = _container(BIG_MASS, OWNER_B)
+	var third: Vector2i = _container(BIG_MASS, OWNER_A)
+	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
+	var pairs: PackedInt32Array = _pairs(_inv.owner_query_cells())
+	assert_true(_inv.containers_by_owner_into(OWNER_A, pairs, out), "the scan completes")
+	assert_equal(out.value, 2, "two of the three containers are owned by A")
+	assert_equal(Vector2i(pairs[0], pairs[1]), first, "the lower slot comes first")
+	assert_equal(Vector2i(pairs[2], pairs[3]), third, "then the higher slot")
+	assert_true(_inv.containers_by_owner_into(OWNER_B, pairs, out), "B's scan completes too")
+	assert_equal(out.value, 1, "and finds only B's own container")
+	assert_equal(Vector2i(pairs[0], pairs[1]), other, "which is the row B created")
+
+
+func test_containers_by_owner_matches_the_complete_owner_pair() -> void:
+	"""The stored generation is compared too: a reused directory slot is a different owner."""
+	var owned: Vector2i = _container(BIG_MASS, Vector2i(7, 1))
+	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
+	var pairs: PackedInt32Array = _pairs(_inv.owner_query_cells())
+	assert_true(_inv.containers_by_owner_into(Vector2i(7, 2), pairs, out),
+		"the same slot at the next generation is a well-formed question")
+	assert_equal(out.value, 0, "and it owns nothing, because the pair does not match")
+	assert_true(_inv.containers_by_owner_into(Vector2i(7, 1), pairs, out), "the real owner asks")
+	assert_equal(out.value, 1, "and finds its container")
+	assert_equal(Vector2i(pairs[0], pairs[1]), owned, "which is the row it created")
+
+
+func test_containers_by_owner_returns_container_refs_and_not_the_owner_pair() -> void:
+	"""The two reference domains: a directory owner goes in, an inventory-container ref comes out.
+
+	The container's generation is advanced by destroying and recreating its row, so the pair
+	written back cannot be the owner's `(7, 1)` echoed into the output.
+	"""
+	var first: Vector2i = _container(BIG_MASS, OWNER_A)
+	assert_true(_inv.destroy_container(first).ok, "the first container is retired")
+	var reused: Vector2i = _container(BIG_MASS, OWNER_A)
+	assert_equal(reused.x, first.x, "the slot is reused")
+	assert_equal(reused.y, 2, "at the next container generation")
+	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
+	var pairs: PackedInt32Array = _pairs(_inv.owner_query_cells())
+	assert_true(_inv.containers_by_owner_into(OWNER_A, pairs, out), "the scan completes")
+	assert_equal(out.value, 1, "one live container")
+	assert_equal(pairs[1], 2, "carrying the CONTAINER generation, not the owner's 1")
+	assert_true(_inv.is_container_valid(Vector2i(pairs[0], pairs[1])),
+		"so the pair validates as a container ref")
+	assert_equal(_inv.container_owner(Vector2i(pairs[0], pairs[1])), OWNER_A,
+		"whose owner is the directory ref that was asked for")
+
+
+func test_containers_by_owner_skips_a_retired_row_that_still_carries_its_owner() -> void:
+	"""`destroy_container()` clears only liveness, so the owner columns are real dead residue."""
+	var retired: Vector2i = _container(BIG_MASS, OWNER_A)
+	assert_true(_inv.destroy_container(retired).ok, "the container is retired")
+	assert_equal(_inv.container_owner(retired), InventoryScript.NULL_REF,
+		"and no longer answers as a live container")
+	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
+	var pairs: PackedInt32Array = _pairs(_inv.owner_query_cells())
+	assert_true(_inv.containers_by_owner_into(OWNER_A, pairs, out), "the scan completes")
+	assert_equal(out.value, 0, "a dead row is not stranded stock")
+	var taken: Vector2i = _container(BIG_MASS, OWNER_B)
+	assert_equal(taken.x, retired.x, "the freed slot is handed to a different owner")
+	assert_true(_inv.containers_by_owner_into(OWNER_A, pairs, out), "A asks again")
+	assert_equal(out.value, 0, "and the reused slot is still not A's")
+	assert_true(_inv.containers_by_owner_into(OWNER_B, pairs, out), "B asks")
+	assert_equal(out.value, 1, "and the reused slot is B's")
+
+
+func test_containers_by_owner_proves_an_empty_result_for_a_live_owner() -> void:
+	"""The zero case is a COMPLETE scan reporting 0 -- the only shape allowed to mean empty."""
+	_container(BIG_MASS, OWNER_A)
+	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
+	var pairs: PackedInt32Array = _pairs(_inv.owner_query_cells())
+	assert_true(_inv.containers_by_owner_into(OWNER_B, pairs, out), "B's scan completes")
+	assert_equal(out.value, 0, "B owns no container")
+	assert_true(out.error.is_empty(), "and it is an answer, not a refusal")
+	assert_equal(pairs[0], -7, "nothing was written into the caller's buffer")
+
+
+func test_containers_by_owner_refuses_a_malformed_owner_instead_of_matching_unowned_rows() -> void:
+	"""`create_container()` never validates its owner, so unowned residue must not be an answer."""
+	var unowned: Vector2i = _container(BIG_MASS, InventoryScript.NULL_REF)
+	assert_equal(_inv.container_owner(unowned), InventoryScript.NULL_REF,
+		"a container really can carry the null owner")
+	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
+	var pairs: PackedInt32Array = _pairs(_inv.owner_query_cells())
+	for malformed: Vector2i in [InventoryScript.NULL_REF, Vector2i(5, 0), Vector2i(-3, 2),
+			Vector2i(0, -1)]:
+		assert_false(_inv.containers_by_owner_into(malformed, pairs, out),
+			"(%d, %d) is not an owner" % [malformed.x, malformed.y])
+		assert_equal(out.error, String(InventoryScript.REFUSE_INVALID_OWNER_REF), "and says so")
+		assert_equal(out.value, 0, "with the count cleared")
+	assert_equal(pairs[0], -7, "and nothing written into the caller's buffer")
+
+
+func test_containers_by_owner_refuses_an_undersized_buffer_without_truncating() -> void:
+	"""A truncated list of stranded goods is the one answer a destructive gate must never get."""
+	_container(BIG_MASS, OWNER_A)
+	_container(BIG_MASS, OWNER_A)
+	_container(BIG_MASS, OWNER_A)
+	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
+	var small: PackedInt32Array = _pairs(4)
+	assert_false(_inv.containers_by_owner_into(OWNER_A, small, out),
+		"four cells cannot hold three pairs")
+	assert_equal(out.error, String(InventoryScript.REFUSE_OWNER_OUTPUT_TOO_SMALL), "and it says so")
+	assert_equal(out.value, 0, "with the count cleared")
+	assert_equal(small, _pairs(4), "and not one cell of the caller's buffer was written")
+	var exact: PackedInt32Array = _pairs(6)
+	assert_true(_inv.containers_by_owner_into(OWNER_A, exact, out), "six cells hold three pairs")
+	assert_equal(out.value, 3, "exactly")
+
+
+func test_containers_by_owner_fills_a_full_store_and_changes_nothing() -> void:
+	"""The largest result fits the published buffer size, and the whole query is read-only."""
+	for index: int in 8:
+		_container(BIG_MASS, OWNER_A)
+	_lot(Vector2i(0, 1), ITEM_GRAIN, 4000)
+	var before: PackedByteArray = _inv.state_bytes()
+	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
+	var pairs: PackedInt32Array = _pairs(_inv.owner_query_cells())
+	assert_true(_inv.containers_by_owner_into(OWNER_A, pairs, out), "every row is one owner's")
+	assert_equal(out.value, 8, "all eight are reported")
+	assert_equal(pairs[14], 7, "the last pair is the last slot")
+	assert_false(_inv.containers_by_owner_into(OWNER_A, _pairs(2), out), "an undersized ask refuses")
+	assert_true(_inv.state_bytes() == before,
+		"and neither the scan nor the refusal changed one byte of the store")

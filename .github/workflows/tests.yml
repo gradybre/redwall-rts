@@ -118,6 +118,9 @@ jobs:
       - name: Astra inbox index is current
         run: python3 tools/astra_inbox.py --check
 
+      - name: Lane records are one file each, not appended to a shared checklist
+        run: python3 tools/lane_notes.py --check
+
       - name: State registry covers every packed column
         run: python3 docs/validation/state_registry_coverage.py
 

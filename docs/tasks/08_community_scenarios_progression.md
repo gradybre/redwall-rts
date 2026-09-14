@@ -75,102 +75,10 @@ not implement dependents or scenarios. Feed all new state into task 09 parity
 and all scenarios into task 10 qualification; do not claim three-year survival
 from arithmetic or three point samples.
 
-## Astra follow-up — 2026-09-12
+## Lane records
 
-MOVE-DEP-R02 supplies the fixed authoritative life-stage column/domain. PC-04 still owns dependent needs/care/work profiles; do not enable children/elders with adult defaults.
-Read [the current executor handoff](../rulings/2026-09-12_executor_followup.md) before dispatch.
-
-### Life-stage identity status — 2026-09-12
-
-Implemented in `godot/scripts/core/residents.gd` under
-[decision 0095](../decisions/0095-the-resident-stage-column-and-the-logical-rig-binding.md):
-
-- [x] `Resident.life_stage:B8[512]`, ADULT 0 / CHILD 1 / ELDER 2, COUNT 3 as a bound only
-- [x] Explicit validated stage on the generic spawn; refusal, never a clamp, for an
-      out-of-domain value (including 256, which truncates to ADULT in a byte column)
-- [x] Explicit initialization on free-slot reuse; canonical unused 0 on retirement
-- [x] Generation-checked reader that rejects a stale reference rather than answering
-      from whichever resident later took the slot
-- [x] The twelve starters pass ADULT at the starter site
-- [x] The sixteen MOVE-DEP-R03 logical rig identities, compiled in ASCII order and bound
-      through each species' own key; CHILD/ELDER variants refuse instead of inheriting
-      the adult rig, and that refusal does not deny a spawn
-
-Still open and **not** claimed by that work:
-
-- [ ] PC-04's dependent needs, care, schedule, work and hazard rules. Nothing derives a
-      child or elder coefficient from an adult one, and no non-adult may run through
-      adult coefficients at runtime.
-- [x] Movement admission reads the resident's actual stage rather than an
-      `Admission.life_stage` caller value, in `godot/scripts/core/movement.gd` under
-      [decision 0101](../decisions/0101-travel-admission-reads-the-stored-life-stage.md).
-      A caller that disagrees with the store refuses on its own code
-      (`LIFE_STAGE_DISAGREES_WITH_RESIDENT`), distinct from a resident whose own stage
-      has no profile (`LIFE_STAGE_NOT_PROFILED`, unchanged). CHILD and ELDER residents
-      refuse; this enables no non-adult travel and claims nothing of PC-04.
-- [ ] `_profile_life_stage:B8[4]` as a **packed column** on the starter profile catalog.
-      The per-profile ADULT binding exists as `movement.gd`'s `PROFILE_LIFE_STAGE` const
-      table and admission matches against it, so the behaviour is in place; the four
-      bytes are not allocated. Blocked on a `docs/persistence_state_registry.md` row —
-      `state_registry_coverage.py` `C3` fails without one, and `C5` forbids folding it
-      into the width-4 `StarterGroundProfile catalog` row — plus the §2.3 ledger row
-      decision 0083 already owes. Exact rows and byte arithmetic in decision 0101.
-- [ ] Save section §4 persistence and hashing of the stage column with its owner/schema
-      increment, plus the migration provenance rule for schemas that predate it. No save
-      module exists yet.
-- [ ] The +512-byte memory-ledger row in `docs/systems_architecture.md` §2.2 and the
-      `_life_stage` row in `docs/persistence_state_registry.md`.
-      `docs/validation/state_registry_coverage.py` fails `C3` until they land.
-- [ ] The `StarterGroundProfile` §2.3 ledger row decision 0083 owes, at 96 bytes today and
-      **100** once `_profile_life_stage` lands (6 x 4 x 4 + 1 x 1 x 4). `movement.gd`'s
-      running owed total is 12384 bytes now and 12388 then.
-
-## EH injury and rescue contracts
-
-[HAZ-001–006 and EH-04/05](../planning/underground_economy_hazard_handoff.md) bind the existing InjuryKind domain to exact air/exhaustion/fall/rescue rules and one health-rate owner. PC-04 remains responsible for dependent-resident coefficients/profiles; this package grants no child hazardous work or adult fallback.
-
-### Aggregate Injury and care status — 2026-09-12
-
-Implemented in `godot/scripts/core/injury.gd` with the `needs.gd` rate integration,
-under [decision 0109](../decisions/0109-the-aggregate-injury-store-and-one-health-rate.md).
-This covers [SET-MOVE-ECON-001](../underground_economy_hazard_amendment.md)
-HAZ-001/002/004 and the HAZ-003 clauses that are aggregate-Injury state.
-
-- [x] GDD §4.2's `Injury` row as packed columns: kind, severity, untreated ticks,
-      `care_progress_mwu` and a generation-checked `rescuer` EntityRef
-- [x] GDD §4.3's `InjuryKind` reused unchanged (`NONE=0 … EXHAUSTION=5`); no parallel
-      domain, no renumbering, and each value asserted literally by `test_injury.gd`
-- [x] REQ-SET-172's untreated drain as a term of the single `needs.gd` health rate —
-      1/hour at severity 1, 4/hour at severity 2, one shared denominator-750 remainder
-- [x] HAZ-002's −125/hour airless drain in the same rate; the amendment's own fixtures
-      (6 / 495 / 582 intervals from health 100 give 99 / 15 / 0) hold in GDScript
-- [x] Aggregate merge: worse severity replaces, an equal-severity tie keeps the lower
-      `InjuryKind` ID, and neither untreated elapsed time nor paid care work is erased
-- [x] One-shot incidents deduplicated by a strictly increasing per-resident ordinal
-- [x] REQ-SET-173 treatment (60 WU, +10 health capped 100) and REQ-SET-174
-      self-treatment (120 WU); the requirement is a checked argument, never invented
-- [x] No resurrection: the heal is attempted before the injury is cleared, so a dead
-      resident's fully paid treatment refuses and the clear is never reached
-- [x] HAZ-002 one EXPOSURE incident per continuous airless episode, and HAZ-003's
-      EXHAUSTION incident with its rest-4000 re-arm gate
-- [x] HAZ-003 fall arithmetic: damage `min(40, ceil(D*8/1024))`, severity by the 2048u
-      boundary, recovery duration `max(1, ceil(D*30/4096))` published for the mover
-- [x] REQ-SET-171 rescue relationship, one patient per rescuer, and GDD §5.2's rule
-      that a rescue does not clear an injury until treatment completes
-
-Still open and **not** claimed by that work:
-
-- [ ] The scheduler phase that calls `injury.tick_all()` beside `needs.tick_all()`.
-      G02/task 08 owns the phase order; the store installs itself nowhere.
-- [ ] The herb 1000 + cloth 500 milli-U treatment debit and the HEAL/HAUL work
-      accrual. Those are `inventory.gd` and `work.gd`; only the prices are published.
-- [ ] The rescue route, carrying speed, combined envelope, landing choice and the
-      movement contexts that set `care_context_blocked`. `movement.gd` / EH-05.
-- [ ] PC-04 dependent care. No life-stage term appears in the store and none is derived.
-- [ ] `docs/persistence_state_registry.md` rows for `injury.gd` (three) and for
-      `needs.gd`'s new `_airless` byte, plus the `docs/systems_architecture.md` §3.1
-      ledger lines totalling 21504 bytes. `state_registry_coverage.py` fails until
-      they land; the exact rows and arithmetic are in decision 0109.
-- [ ] Migrating `InjuryKind` into `catalog.gd`'s `PROTECTED_ENUM_DOMAINS`, which is an
-      intentional compiled-artifact/digest change owned by the catalog owner.
-- [ ] Save section persistence and hashing of these columns. No save module exists yet.
+Dated write-ups from finished lanes live in [`lanes/08/`](lanes/08/), one file
+each. **Do not append a dated section to this file** -- a shared append point made
+five lanes conflict in a single round, and `tools/lane_notes.py --check` now
+refuses it in CI. Tick the boxes above; write the record there. The convention is
+in [`lanes/README.md`](lanes/README.md).

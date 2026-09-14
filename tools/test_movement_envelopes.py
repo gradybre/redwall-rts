@@ -24,6 +24,14 @@ things with that record:
 Re-centring is not tested as a remedy because it is not one: MOVE-C2-R01 5
 requires a separately reviewed MOVE-G02 position/anchor/save contract.
 
+CASE T1-T4 is the schema 2 repair (MOVE-C3-R01 6). Schema 1 required
+`interpolation_error_bound_units` and then never applied it, so a record could
+declare a residual interpolation error, carry zero margins, and still be handed
+FIT_OK class 1. The T tests refuse that record on every axis independently,
+prove that covering the residual is what exposes the placement refusal it was
+hiding, refuse an unevidenced zero and an inward micrometre export, and refuse
+a schema 1 document that would otherwise satisfy every schema 2 rule.
+
 EVERY DIMENSION IN THIS FILE IS SYNTHETIC. There is no measured body width,
 height, gear extent or load bound here or anywhere in this lane's output. The
 numbers were chosen to sit on the arithmetic's boundaries, and the species key
@@ -67,7 +75,7 @@ def check(name: str, condition: bool, note: str = "") -> None:
 
 
 def synthetic_record(x_min: int, x_max: int, z_min: int, z_max: int, margin: int = 4,
-		offset: Tuple[int, int] = (256, 256)) -> Dict[str, Any]:
+		offset: Tuple[int, int] = (256, 256), residual: int = 0) -> Dict[str, Any]:
 	"""One well-formed synthetic record with the given INVENTED micrometre extrema."""
 	margin_block: Dict[str, Any] = {"x": margin, "y": margin, "z": margin,
 		"provenance": "synthetic fixture constant"}
@@ -91,7 +99,11 @@ def synthetic_record(x_min: int, x_max: int, z_min: int, z_max: int, margin: int
 			"states_covered": ["ENTRY", "TRAVEL", "HOLD", "TURN", "REVERSAL", "RETREAT", "EXIT"],
 			"orientations_covered": ["SYNTHETIC_ALL_YAW"],
 			"pose_interpolation_covered": True,
-			"interpolation_error_bound_units": 0,
+			"interpolation_error_bound_units": residual,
+			"zero_residual_evidence": (
+				"synthetic fixture; the invented extrema ARE the whole sweep, so nothing continuous "
+				"lies outside them. This states nothing about any measured body."),
+			"micrometre_export_rounding": "minima_floor_maxima_ceil",
 			"bounds_micrometres": {
 				"x_min": x_min, "x_max": x_max, "y_min": 0, "y_max": 100000,
 				"z_min": z_min, "z_max": z_max,
@@ -107,7 +119,7 @@ def document(records: List[Dict[str, Any]]) -> Dict[str, Any]:
 	convention = {"up_axis": "+Y", "forward_axis": "-Z", "cell_anchor": "north_west"}
 	convention.update(GEOMETRY.convention_fields())
 	return {
-		"schema_version": 1,
+		"schema_version": 2,
 		"units": {"simulation_units_per_metre": 1024,
 			"measured_input_unit": "signed_integer_micrometres"},
 		"convention": convention,
@@ -345,9 +357,13 @@ def test_a_stale_convention_block_is_refused() -> None:
 	check("N18b the refusal names the source's value",
 		any("stale domain" in problem for problem in found), "; ".join(found))
 	instance["convention"]["cell_size_units"] = GEOMETRY.cell_size_units
-	instance["schema_version"] = 2
+	instance["schema_version"] = 3
 	check("N18c an unimplemented schema version is refused",
 		any("schema_version" in problem for problem in vme.file_semantic_problems(instance, GEOMETRY)))
+	instance["schema_version"] = 2
+	check("N18d the implemented version 2 is accepted",
+		vme.file_semantic_problems(instance, GEOMETRY) == [],
+		"; ".join(vme.file_semantic_problems(instance, GEOMETRY)))
 
 
 def test_the_schema_subset_is_closed() -> None:
@@ -388,6 +404,215 @@ def test_a_square_leaving_the_map_is_refused() -> None:
 		and not vme.anchor_square_within_map(1, 0, GEOMETRY.clearance_class_max, GEOMETRY))
 	check("N22d a negative anchor is refused",
 		not vme.anchor_square_within_map(-1, 0, 1, GEOMETRY))
+
+
+# =================================================================================================
+# MOVE-C3-R01 6: RESIDUAL INTERPOLATION ERROR, ITS COVERAGE, AND THE EXPORT BOUNDARY
+#
+# The defect these tests exist for: schema 1 REQUIRED interpolation_error_bound_units and then
+# never used it. A synthetic box with a declared 1u residual and zero margins passed schema and
+# semantic validation and returned FIT_OK class 1. Applying that same 1u makes its translated
+# minimum -1 and its maximum 513, which correctly refuses placement. So FIT_OK was not a complete
+# measurement-bound check. EVERY NUMBER BELOW IS STILL SYNTHETIC.
+# =================================================================================================
+
+
+def test_a_declared_residual_error_must_be_covered_on_every_axis() -> None:
+	"""T1: the reproduced defect. A residual recorded and never applied is the accounting gap."""
+	probe = synthetic_record(-250000, 250000, -250000, 250000, margin=0, residual=1)
+	probe["margin_units"]["zero_margin_justification"] = (
+		"synthetic boundary probe; present deliberately to show prose cannot cover a residual")
+	found = problems_for(probe)
+	check("T1 the 1u-residual zero-margin record is refused instead of fitted", bool(found),
+		"accepted the record the Cycle 3 probe reproduces")
+	joined = " | ".join(found)
+	check("T1b all three axes are named as uncovered",
+		all("margin_units.%s" % axis in joined for axis in ("x", "y", "z")), joined)
+	check("T1c the refusal says the justification does not move a bound",
+		any("does not move a bound" in problem for problem in found), joined)
+	fit = vme.compute_fit(probe, GEOMETRY)
+	check("T1d compute_fit refuses it too, rather than returning FIT_OK class 1",
+		fit.outcome == vme.REFUSE_UNCOVERED_ERROR and not fit.ok and fit.clearance_class is None,
+		"%s %s" % (fit.outcome, fit.clearance_class))
+	check("T1e require_class() still raises instead of returning a sentinel class",
+		_raises(fit.require_class, vme.EnvelopeRefusal))
+
+
+def test_covering_the_residual_exposes_the_placement_refusal_it_was_hiding() -> None:
+	"""T1f-T1h: the declared 1u is exactly what puts this box behind its own north-west anchor."""
+	covered = synthetic_record(-250000, 250000, -250000, 250000, margin=1, residual=1)
+	covered["variant"]["variant_key"] = "SYNTHETIC_RESIDUAL_COVERED"
+	fit = fit_for(covered)
+	check("T1f once the residual is covered the box refuses as PLACEMENT_INCOMPATIBLE_AT_OFFSET",
+		fit.outcome == vme.REFUSE_PLACEMENT, fit.outcome)
+	check("T1g with the translated bounds the Cycle 3 probe computed by hand",
+		fit.translated_bounds == {"x_lo": -1, "x_hi": 513, "z_lo": -1, "z_hi": 513},
+		str(fit.translated_bounds))
+	check("T1h and exhaustively no class in the published domain repairs it",
+		fit.admitting_class_count == 0 and independently_least_class(-1, -1, 513, 513) is None)
+	check("T1h2 that refusal is still distinct from the class-domain one",
+		fit.outcome != vme.REFUSE_CLASS_DOMAIN and "no clearance class repairs this" in fit.detail)
+
+
+def test_each_axis_margin_is_checked_independently() -> None:
+	"""T1i-T1k: one short axis refuses on its own, and the rule is >=, not >."""
+	for axis in ("x", "y", "z"):
+		record = synthetic_record(-200000, 200000, -200000, 200000, margin=3, residual=3)
+		record["margin_units"][axis] = 2
+		found = problems_for(record)
+		joined = " | ".join(found)
+		check("T1i a %s margin one unit short of the residual is refused on its own" % axis,
+			bool(found), "accepted an uncovered %s axis" % axis)
+		check("T1j only the %s axis is named; the covering neighbours do not excuse it" % axis,
+			sum("margin_units.%s" % other in joined for other in ("x", "y", "z")) == 1, joined)
+	exact = synthetic_record(-200000, 200000, -200000, 200000, margin=3, residual=3)
+	check("T1k a margin exactly equal to the residual covers it", not problems_for(exact),
+		"; ".join(problems_for(exact)))
+
+
+def test_an_absent_or_negative_residual_is_never_read_as_zero() -> None:
+	"""T1l-T1o: an unstated error is a refusal. MOVE-C3-R01 6 supplies no default."""
+	record = synthetic_record(-200000, 200000, -200000, 200000, margin=4)
+	record["measurement"].pop("interpolation_error_bound_units")
+	found = problems_for(record)
+	check("T1l a record with no interpolation_error_bound_units is refused", bool(found))
+	check("T1m the schema names the missing required field",
+		any("interpolation_error_bound_units" in problem and "required property" in problem
+			for problem in found), "; ".join(found))
+	check("T1n the semantic check refuses it independently of the schema",
+		vme.residual_error_problems(record, "$") != [])
+	negative = synthetic_record(-200000, 200000, -200000, 200000, margin=4, residual=-1)
+	check("T1o a negative residual is refused, never clamped to zero",
+		bool(problems_for(negative)) and vme.residual_error_problems(negative, "$") != [])
+
+
+def test_a_zero_residual_needs_written_evidence_and_is_not_counted_twice() -> None:
+	"""T3: zero is legal only when the extrema already enclose the whole continuous sweep."""
+	record = synthetic_record(-200000, 200000, -200000, 200000, margin=4)
+	check("T3 a zero residual carrying its evidence is accepted", not problems_for(record),
+		"; ".join(problems_for(record)))
+	record["measurement"].pop("zero_residual_evidence")
+	check("T3b a zero residual with no evidence is refused",
+		any("zero_residual_evidence" in problem for problem in problems_for(record)),
+		"; ".join(problems_for(record)))
+	record["measurement"]["zero_residual_evidence"] = ""
+	check("T3c an empty evidence string is refused too", bool(problems_for(record)))
+	both_zero = synthetic_record(-200000, 200000, -200000, 200000, margin=0)
+	check("T3d an evidenced zero residual with a justified zero margin is accepted -- the same "
+		"error is not counted a second time", not problems_for(both_zero),
+		"; ".join(problems_for(both_zero)))
+
+
+def test_the_micrometre_export_direction_is_declared_and_never_inward() -> None:
+	"""T2a-T2d: an inward export is not repaired by the later outward u-quantization."""
+	for value in ("nearest", "truncate", "toward_zero", "minima_ceil_maxima_floor", ""):
+		record = synthetic_record(-200000, 200000, -200000, 200000, margin=4)
+		record["measurement"]["micrometre_export_rounding"] = value
+		check("T2a export rounding %r is refused" % value, bool(problems_for(record)),
+			"accepted an inward or unknown export direction")
+	undeclared = synthetic_record(-200000, 200000, -200000, 200000, margin=4)
+	undeclared["measurement"].pop("micrometre_export_rounding")
+	check("T2b an undeclared export direction is refused", bool(problems_for(undeclared)))
+	certified = synthetic_record(-200000, 200000, -200000, 200000, margin=4)
+	certified["measurement"]["micrometre_export_rounding"] = "certified_residual_allowance"
+	check("T2c a non-outward export declaring a zero residual is refused; that is the loophole",
+		any("carries none" in problem for problem in problems_for(certified)),
+		"; ".join(problems_for(certified)))
+	allowed = synthetic_record(-200000, 200000, -200000, 200000, margin=4, residual=4)
+	allowed["measurement"]["micrometre_export_rounding"] = "certified_residual_allowance"
+	check("T2d a non-outward export carrying a covered positive residual is accepted",
+		not problems_for(allowed), "; ".join(problems_for(allowed)))
+
+
+def test_the_schema_and_the_semantic_layer_each_refuse_on_their_own() -> None:
+	"""T5: two layers cover these rules, so each is exercised ALONE. A union test hides a hole."""
+	inward = synthetic_record(-200000, 200000, -200000, 200000, margin=4)
+	inward["measurement"]["micrometre_export_rounding"] = "nearest"
+	check("T5 the semantic layer alone refuses an inward export direction",
+		vme.export_rounding_problems(inward, "$") != [], "semantic layer accepted 'nearest'")
+	check("T5b the schema layer alone refuses it as well",
+		vme.validate_instance(document([inward]), SCHEMA) != [], "schema accepted 'nearest'")
+	undeclared = synthetic_record(-200000, 200000, -200000, 200000, margin=4)
+	undeclared["measurement"].pop("micrometre_export_rounding")
+	check("T5c the schema layer alone requires micrometre_export_rounding",
+		any("micrometre_export_rounding" in problem and "required property" in problem
+			for problem in vme.validate_instance(document([undeclared]), SCHEMA)),
+		"; ".join(vme.validate_instance(document([undeclared]), SCHEMA)))
+	check("T5d the semantic layer alone also refuses the undeclared direction",
+		vme.export_rounding_problems(undeclared, "$") != [])
+	negative = synthetic_record(-200000, 200000, -200000, 200000, margin=4, residual=-1)
+	check("T5e the schema layer alone refuses a negative residual as below its minimum",
+		any("below the minimum" in problem
+			for problem in vme.validate_instance(document([negative]), SCHEMA)),
+		"; ".join(vme.validate_instance(document([negative]), SCHEMA)))
+	check("T5f the semantic layer alone refuses it too",
+		vme.residual_error_problems(negative, "$") != [])
+	uncovered = synthetic_record(-200000, 200000, -200000, 200000, margin=0, residual=1)
+	check("T5g the semantic layer alone refuses an uncovered residual, which no schema keyword "
+		"can express", vme.residual_error_problems(uncovered, "$") != [])
+	check("T5h and the schema alone does NOT catch it -- which is why the semantic rule exists",
+		vme.validate_instance(document([uncovered]), SCHEMA) == [],
+		"; ".join(vme.validate_instance(document([uncovered]), SCHEMA)))
+
+
+def test_the_export_boundary_rounds_outward_in_exact_rationals() -> None:
+	"""T2e-T2j: MOVE-C3-R01 6's +-250000.25um case, with no float anywhere in the computation."""
+	high = vme.export_maximum_micrometres(1000001, 4)
+	low = vme.export_minimum_micrometres(-1000001, 4)
+	check("T2e a maximum of 250000.25um exports UP to 250001um", high == 250001, str(high))
+	check("T2f a minimum of -250000.25um exports DOWN to -250001um", low == -250001, str(low))
+	check("T2g the outward export then quantizes to the 257u and -257u the extremum needs",
+		vme.quantize_axis_units(low, high, 0) == (-257, 257),
+		str(vme.quantize_axis_units(low, high, 0)))
+	check("T2h truncating at export would instead have answered 256u and -256u, and falsely fitted",
+		vme.quantize_axis_units(-250000, 250000, 0) == (-256, 256),
+		str(vme.quantize_axis_units(-250000, 250000, 0)))
+	check("T2i a nonpositive denominator refuses instead of flipping the rounding direction",
+		_raises(lambda: vme.export_maximum_micrometres(1, 0), vme.EnvelopeRefusal)
+		and _raises(lambda: vme.export_minimum_micrometres(1, -4), vme.EnvelopeRefusal))
+	for numerator, denominator in ((7, 2), (-7, 2), (1000001, 4), (-1000001, 4), (8, 4), (-8, 4)):
+		exact = Fraction(numerator, denominator)
+		check("T2j the export helpers match the exact-rational oracle at %d/%d"
+			% (numerator, denominator),
+			(vme.export_minimum_micrometres(numerator, denominator),
+				vme.export_maximum_micrometres(numerator, denominator))
+			== (math.floor(exact), math.ceil(exact)),
+			"%s vs %s" % ((vme.export_minimum_micrometres(numerator, denominator),
+				vme.export_maximum_micrometres(numerator, denominator)),
+				(math.floor(exact), math.ceil(exact))))
+
+
+def test_a_schema_1_record_meeting_schema_2_rules_is_still_refused() -> None:
+	"""T4: a version bump is not a relabelling. An old record is refused, never quietly reread."""
+	instance = document([synthetic_record(-200000, 200000, -200000, 200000, margin=4, residual=4)])
+	check("T4 precondition: this content satisfies every schema 2 rule at version 2",
+		vme.validate_instance(instance, SCHEMA) == []
+		and vme.file_semantic_problems(instance, GEOMETRY) == [],
+		"; ".join(vme.validate_instance(instance, SCHEMA)
+			+ vme.file_semantic_problems(instance, GEOMETRY)))
+	instance["schema_version"] = 1
+	check("T4b the identical content at version 1 is refused structurally",
+		bool(vme.validate_instance(instance, SCHEMA)))
+	semantic = vme.file_semantic_problems(instance, GEOMETRY)
+	check("T4c and is named as historical, explicitly not migrated",
+		any("historical record" in problem and "No automatic migration" in problem
+			for problem in semantic), "; ".join(semantic))
+	check("T4d the version 2 rules are named as the reason it cannot be reinterpreted",
+		any("RESIDUAL" in problem for problem in semantic), "; ".join(semantic))
+	_check_version_1_file_is_refused(instance)
+	check("T4f the implemented input-record version is 2, with 1 as its only predecessor",
+		vme.SUPPORTED_SCHEMA_VERSION == 2 and vme.HISTORICAL_SCHEMA_VERSIONS == (1,),
+		"%s %s" % (vme.SUPPORTED_SCHEMA_VERSION, vme.HISTORICAL_SCHEMA_VERSIONS))
+
+
+def _check_version_1_file_is_refused(instance: Dict[str, Any]) -> None:
+	"""T4e: end to end through validate_file, so no fit is derived from a version 1 document."""
+	with tempfile.TemporaryDirectory() as directory:
+		path = pathlib.Path(directory) / "historical_version_1.json"
+		path.write_text(json.dumps(instance), encoding="utf-8")
+		report = vme.validate_file(path, SCHEMA, GEOMETRY)
+		check("T4e a version 1 file is refused whole, with no fit derived from it",
+			report.refused() and report.fits == [], str(report.fits))
 
 
 # =================================================================================================
@@ -539,8 +764,13 @@ def test_the_command_line_exit_statuses() -> None:
 		_check_cli(root / "synthetic_placement_incompatible.json", 2, "DOES_NOT_FIT")
 		for name in sorted(path.name for path in root.glob("malformed_*.json")):
 			_check_cli(root / name, 1, "REFUSE")
-		check("C01b there were four malformed fixtures to refuse",
-			len(list(root.glob("malformed_*.json"))) == 4)
+		check("C01b there were eight malformed fixtures to refuse, four of them MOVE-C3-R01's",
+			len(list(root.glob("malformed_*.json"))) == 8,
+			str(sorted(path.name for path in root.glob("malformed_*.json"))))
+		for name in ("malformed_uncovered_interpolation_error.json",
+				"malformed_zero_residual_without_evidence.json",
+				"malformed_inward_micrometre_export.json", "malformed_schema_version_1.json"):
+			check("C01c %s is emitted" % name, (root / name).is_file())
 	empty = subprocess.run([sys.executable, str(TOOL)], capture_output=True, text=True)
 	check("C02 naming no record file refuses rather than passing on an empty run",
 		empty.returncode == 1 and "not a pass" in empty.stdout, empty.stdout)

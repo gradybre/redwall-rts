@@ -20,7 +20,17 @@ WHAT IT DOES
      match spatial_world.gd; a zero margin needs a written justification; a
      synthetic fixture may not carry provenance and a measurement must.
 
-  3. The anchored fit, in exact integer arithmetic (MOVE-C2-R01 3-5):
+  3. Residual interpolation error coverage (MOVE-C3-R01 6, schema 2):
+     `interpolation_error_bound_units` is the conservative interpolation error the
+     submitted extrema do NOT enclose, and it bounds every axis. Each axis margin
+     must be at least that residual, or the record is refused -- recorded and then
+     never applied is the accounting gap this version closes. A zero residual needs
+     written evidence that the extrema already enclose the whole sweep, so the same
+     error is never counted twice. The record also declares how its micrometres were
+     rounded at export; only outward, or a certified positive residual, is accepted.
+     Schema 1 records are refused by name as historical, never silently reread.
+
+  4. The anchored fit, in exact integer arithmetic (MOVE-C2-R01 3-5):
 
        lo_u = floor(1024 * measured_min) - margin_u      (outward)
        hi_u = ceil (1024 * measured_max) + margin_u      (outward)
@@ -73,10 +83,14 @@ SPATIAL_SOURCE = ROOT / "godot/scripts/core/spatial_world.gd"
 MOVEMENT_SOURCE = ROOT / "godot/scripts/core/movement.gd"
 RESIDENT_SOURCE = ROOT / "godot/scripts/core/residents.gd"
 
-SUPPORTED_SCHEMA_VERSION = 1
+SUPPORTED_SCHEMA_VERSION = 2
+HISTORICAL_SCHEMA_VERSIONS = (1,)
 MICROMETRES_PER_METRE = 1000000
 INT32_MIN = -2147483648
 INT32_MAX = 2147483647
+
+EXPORT_ROUNDING_OUTWARD = "minima_floor_maxima_ceil"
+EXPORT_ROUNDING_CERTIFIED = "certified_residual_allowance"
 
 FIT_OK = "FIT_OK"
 REFUSE_PLACEMENT = "PLACEMENT_INCOMPATIBLE_AT_OFFSET"
@@ -84,6 +98,7 @@ REFUSE_CLASS_DOMAIN = "CLEARANCE_CLASS_EXCEEDS_DOMAIN"
 REFUSE_INT32 = "QUANTIZED_BOUND_OUT_OF_INT32"
 REFUSE_INVERTED = "MEASURED_BOUNDS_INVERTED"
 REFUSE_INCONSISTENT = "FIT_INTERNAL_INCONSISTENCY"
+REFUSE_UNCOVERED_ERROR = "UNCOVERED_INTERPOLATION_ERROR"
 
 EXIT_OK = 0
 EXIT_REFUSED = 1
@@ -329,13 +344,26 @@ def _check_array(value: List[Any], schema: Dict[str, Any], where: str,
 # --- semantics the schema cannot express ---------------------------------------------------------
 
 
+def schema_version_problems(document: Dict[str, Any]) -> List[str]:
+	"""MOVE-C3-R01 6: refuse any version but 2, and name version 1 as historical, never migrated."""
+	version = document.get("schema_version")
+	if version == SUPPORTED_SCHEMA_VERSION:
+		return []
+	if version in HISTORICAL_SCHEMA_VERSIONS:
+		return ["$.schema_version: %r is a historical record. Version %d re-means "
+			"measurement.interpolation_error_bound_units as the RESIDUAL error the extrema do not "
+			"enclose and requires every axis margin to cover it, so a version %r record cannot be "
+			"reinterpreted under those rules and cannot qualify. It may be READ as history; its "
+			"owner must reassert error coverage and source evidence as version %d. No automatic "
+			"migration is performed here."
+			% (version, SUPPORTED_SCHEMA_VERSION, version, SUPPORTED_SCHEMA_VERSION)]
+	return ["$.schema_version: %r is not implemented by this validator (%d)"
+		% (version, SUPPORTED_SCHEMA_VERSION)]
+
+
 def file_semantic_problems(document: Dict[str, Any], geometry: SourceGeometry) -> List[str]:
 	"""Version support and agreement between the declared convention and the owning sources."""
-	problems: List[str] = []
-	version = document.get("schema_version")
-	if version != SUPPORTED_SCHEMA_VERSION:
-		problems.append("$.schema_version: %r is not implemented by this validator (%d)"
-			% (version, SUPPORTED_SCHEMA_VERSION))
+	problems: List[str] = schema_version_problems(document)
 	declared = document.get("convention") or {}
 	for name, expected in geometry.convention_fields().items():
 		if declared.get(name) != expected:
@@ -352,6 +380,8 @@ def record_semantic_problems(record: Dict[str, Any], where: str,
 	problems.extend(_data_class_problems(record, where))
 	problems.extend(_identity_problems(record, where, geometry))
 	problems.extend(_margin_problems(record, where))
+	problems.extend(residual_error_problems(record, where))
+	problems.extend(export_rounding_problems(record, where))
 	problems.extend(_bounds_problems(record, where))
 	return problems
 
@@ -406,6 +436,67 @@ def _margin_problems(record: Dict[str, Any], where: str) -> List[str]:
 	return []
 
 
+def residual_error_problems(record: Dict[str, Any], where: str) -> List[str]:
+	"""MOVE-C3-R01 6: every axis margin must cover the declared residual interpolation error.
+
+	The error field is the conservative interpolation error the submitted extrema do NOT already
+	enclose. Recording it and never applying it is the accounting gap schema 2 exists to close.
+	"""
+	measurement = record.get("measurement") or {}
+	residual = measurement.get("interpolation_error_bound_units")
+	if not isinstance(residual, int) or isinstance(residual, bool) or residual < 0:
+		return ["%s.measurement.interpolation_error_bound_units: %r is not a declared nonnegative "
+			"residual interpolation error -- an unstated error is never read as zero"
+			% (where, residual)]
+	if residual == 0:
+		return _zero_residual_problems(measurement, where)
+	margin = record.get("margin_units") or {}
+	problems: List[str] = []
+	for axis in ("x", "y", "z"):
+		allowance = margin.get(axis)
+		if not isinstance(allowance, int) or isinstance(allowance, bool) or allowance < residual:
+			problems.append(_uncovered_axis_message(where, axis, allowance, residual))
+	return problems
+
+
+def _uncovered_axis_message(where: str, axis: str, allowance: Any, residual: int) -> str:
+	"""The refusal text for one axis whose authored allowance does not cover the residual error."""
+	return ("%s.margin_units.%s: allowance %r does not cover the declared residual interpolation "
+		"error of %d unit(s). MOVE-C3-R01 6 requires each axis margin to be at least the residual "
+		"the submitted extrema do not enclose. A zero_margin_justification cannot cover a positive "
+		"uncovered residual: prose does not move a bound." % (where, axis, allowance, residual))
+
+
+def _zero_residual_problems(measurement: Dict[str, Any], where: str) -> List[str]:
+	"""A zero residual is legal only with written evidence that the extrema enclose the whole sweep."""
+	if measurement.get("zero_residual_evidence"):
+		return []
+	return ["%s.measurement: interpolation_error_bound_units 0 requires zero_residual_evidence -- "
+		"MOVE-C3-R01 6 permits a zero residual only when the owner establishes that the submitted "
+		"extrema already enclose the full continuous sweep, so that the same error is not then "
+		"counted a second time as a margin" % where]
+
+
+def export_rounding_problems(record: Dict[str, Any], where: str) -> List[str]:
+	"""MOVE-C3-R01 6: an export that did not round outward must carry a positive residual instead."""
+	measurement = record.get("measurement") or {}
+	rounding = measurement.get("micrometre_export_rounding")
+	if rounding not in (EXPORT_ROUNDING_OUTWARD, EXPORT_ROUNDING_CERTIFIED):
+		return ["%s.measurement.micrometre_export_rounding: %r is not a declared export direction "
+			"(%s or %s). Nearest and truncation are refused: this tool consumes integers and cannot "
+			"reconstruct precision discarded before its input, and outward u-quantization does not "
+			"repair an inward export." % (where, rounding, EXPORT_ROUNDING_OUTWARD,
+				EXPORT_ROUNDING_CERTIFIED)]
+	if rounding != EXPORT_ROUNDING_CERTIFIED:
+		return []
+	residual = measurement.get("interpolation_error_bound_units")
+	if isinstance(residual, int) and not isinstance(residual, bool) and residual > 0:
+		return []
+	return ["%s.measurement: micrometre_export_rounding %r declares that the export did not round "
+		"outward, so it must carry a strictly positive interpolation_error_bound_units for the "
+		"precision discarded there; %r carries none" % (where, rounding, residual)]
+
+
 def _bounds_problems(record: Dict[str, Any], where: str) -> List[str]:
 	"""A maximum below its minimum is not a sweep; it is a transcription error."""
 	bounds = ((record.get("measurement") or {}).get("bounds_micrometres") or {})
@@ -437,6 +528,34 @@ def ceil_div_nonnegative(numerator: int, denominator: int) -> int:
 		raise EnvelopeRefusal("CEIL_DIV_NEGATIVE_NUMERATOR: %d -- the placement test runs first"
 			% numerator)
 	return (numerator + denominator - 1) // denominator
+
+
+def _checked_denominator(denominator: int) -> int:
+	"""A measured rational's denominator must be positive; a nonpositive one refuses, never flips."""
+	if denominator <= 0:
+		raise EnvelopeRefusal("EXPORT_DENOMINATOR_NOT_POSITIVE: %r -- a measured coordinate reaches "
+			"this boundary as an exact rational count of micrometres; no float is accepted and no "
+			"denominator is assumed" % (denominator,))
+	return denominator
+
+
+def export_minimum_micrometres(numerator: int, denominator: int) -> int:
+	"""MOVE-C3-R01 6: floor an exact measured MINIMUM into micrometres, away from the body.
+
+	The export boundary is earlier than quantize_axis_units and is not repaired by it. Nearest or
+	toward-zero rounding here shrinks the committed body: -250000.25um truncates to -250000um, which
+	quantizes to -256u instead of the -257u the real extremum needs.
+	"""
+	return floor_div(numerator, _checked_denominator(denominator))
+
+
+def export_maximum_micrometres(numerator: int, denominator: int) -> int:
+	"""MOVE-C3-R01 6: ceil an exact measured MAXIMUM into micrometres, away from the body.
+
+	+250000.25um truncates to +250000um, which quantizes to 256u and can falsely fit on the class
+	boundary; rounding outward here keeps the 257u the extremum actually requires.
+	"""
+	return ceil_div_signed(numerator, _checked_denominator(denominator))
 
 
 def quantize_axis_units(min_micrometres: int, max_micrometres: int, margin_units: int,
@@ -519,6 +638,10 @@ def compute_fit(record: Dict[str, Any], geometry: SourceGeometry) -> FitResult:
 	}
 	context = dict(local_bounds=local, translated_bounds=translated,
 		offset=(offset_x, offset_z), offset_is_baseline=baseline)
+	uncovered = residual_error_problems(record, "record") + export_rounding_problems(record, "record")
+	if uncovered:
+		return FitResult(REFUSE_UNCOVERED_ERROR, False, "; ".join(uncovered),
+			admitting_class_count=0, **context)
 	offenders = _int32_offenders(dict(local, **translated))
 	if offenders:
 		return FitResult(REFUSE_INT32, False,
@@ -692,6 +815,10 @@ def _synthetic_record(variant_key: str, half_extent_micrometres: int, margin: in
 			"orientations_covered": ["SYNTHETIC_ALL_YAW"],
 			"pose_interpolation_covered": True,
 			"interpolation_error_bound_units": 0,
+			"zero_residual_evidence": "synthetic fixture: the extrema above ARE the fixture, so "
+				"there is no continuous sweep outside them and no residual to carry. This is a "
+				"statement about invented numbers, never about a measured body.",
+			"micrometre_export_rounding": EXPORT_ROUNDING_OUTWARD,
 			"bounds_micrometres": {
 				"x_min": -half_extent_micrometres, "x_max": half_extent_micrometres,
 				"y_min": 0, "y_max": half_extent_micrometres,
@@ -746,13 +873,38 @@ def _malformed_fixtures(base: Dict[str, Any], geometry: SourceGeometry) -> Dict[
 		"proportion_revision": 1, "measured_by": "nobody", "measured_on": "2026-09-14"}
 	unknown_property = json.loads(json.dumps(base))
 	unknown_property["clearance_class"] = 3
-	return {
+	fixtures = {
 		"malformed_zero_margin_without_justification.json":
 			synthetic_document([zero_margin], geometry),
 		"malformed_hand_numbered_mode_id.json": synthetic_document([hand_numbered], geometry),
 		"malformed_synthetic_carries_provenance.json":
 			synthetic_document([with_provenance], geometry),
 		"malformed_unknown_property.json": synthetic_document([unknown_property], geometry),
+	}
+	fixtures.update(_malformed_error_fixtures(base, geometry))
+	return fixtures
+
+
+def _malformed_error_fixtures(base: Dict[str, Any],
+		geometry: SourceGeometry) -> Dict[str, Dict[str, Any]]:
+	"""MOVE-C3-R01 6's four refusals: uncovered residual, unevidenced zero, inward export, schema 1."""
+	uncovered = json.loads(json.dumps(base))
+	uncovered["measurement"]["interpolation_error_bound_units"] = 1
+	uncovered["margin_units"].update({"x": 0, "y": 0, "z": 0})
+	uncovered["margin_units"]["zero_margin_justification"] = (
+		"synthetic fixture: this prose is deliberately present to show it cannot cover a "
+		"positive uncovered residual.")
+	unevidenced = json.loads(json.dumps(base))
+	unevidenced["measurement"].pop("zero_residual_evidence")
+	inward = json.loads(json.dumps(base))
+	inward["measurement"]["micrometre_export_rounding"] = "nearest"
+	historical = synthetic_document([json.loads(json.dumps(base))], geometry)
+	historical["schema_version"] = HISTORICAL_SCHEMA_VERSIONS[0]
+	return {
+		"malformed_uncovered_interpolation_error.json": synthetic_document([uncovered], geometry),
+		"malformed_zero_residual_without_evidence.json": synthetic_document([unevidenced], geometry),
+		"malformed_inward_micrometre_export.json": synthetic_document([inward], geometry),
+		"malformed_schema_version_1.json": historical,
 	}
 
 

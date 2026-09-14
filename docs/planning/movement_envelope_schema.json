@@ -1,0 +1,229 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "redwall-rts/docs/planning/movement_envelope_schema.json",
+	"title": "Measured movement envelope records (MOVE-C2-R01)",
+	"description": "The shape a MEASURED swept-envelope record must take before tools/validate_movement_envelopes.py will derive a clearance class from it. This file contains NO body dimension, no species profile and no clearance value: it is the record shape and its refusals only. MOVE-C2-R01 Q1 adopted the convention; Q2 per-species production profiles remain OPEN, and a record validating here is not an authored profile, not an enabled mode and not evidence that any species can or cannot use a mode. Geometry constants (cell size, root offset, clearance-class domain) are declared per file and cross-checked by the validator against godot/scripts/core/spatial_world.gd, which owns them; this schema deliberately does not restate their values.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["schema_version", "units", "convention", "records"],
+	"properties": {
+		"schema_version": {
+			"description": "Bumped whenever a field is added, removed or re-meant. The validator refuses a version it does not implement rather than reading a record it may misunderstand.",
+			"type": "integer",
+			"const": 1
+		},
+		"units": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["simulation_units_per_metre", "measured_input_unit"],
+			"properties": {
+				"simulation_units_per_metre": {
+					"description": "GDD 4.2's 1/1024 m authoritative position unit.",
+					"type": "integer",
+					"const": 1024
+				},
+				"measured_input_unit": {
+					"description": "MOVE-C2-R01 3 permits floating point during offline/import measurement but requires committed bounds to be integers. The crossing happens when the record is authored: the measured extremum is written here as an exact signed integer count of micrometres, and every later step is exact integer arithmetic. There is no float anywhere in this file or in the fit computation.",
+					"type": "string",
+					"const": "signed_integer_micrometres"
+				},
+				"note": {"type": "string"}
+			}
+		},
+		"convention": {
+			"description": "The geometry this record set was measured against. Every value is cross-checked against the owning GDScript source; a mismatch refuses the file instead of silently proving fit against a stale domain.",
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"up_axis",
+				"forward_axis",
+				"cell_anchor",
+				"cell_size_units",
+				"cell_centre_offset_units",
+				"clearance_class_min",
+				"clearance_class_max",
+				"cells_x",
+				"cells_z"
+			],
+			"properties": {
+				"up_axis": {"type": "string", "const": "+Y"},
+				"forward_axis": {"type": "string", "const": "-Z"},
+				"cell_anchor": {
+					"description": "MOVE-C2-R01 4: a ground anchor (cx,cz) is the NORTH-WEST corner A=(cell_size*cx, cell_size*cz). Class k proves the square from A to A+(cell_size*k, cell_size*k). It is not a centred radius, and no other anchoring is contracted.",
+					"type": "string",
+					"const": "north_west"
+				},
+				"cell_size_units": {"type": "integer", "minimum": 1},
+				"cell_centre_offset_units": {"type": "integer", "minimum": 0},
+				"clearance_class_min": {"type": "integer", "minimum": 1},
+				"clearance_class_max": {"type": "integer", "minimum": 1},
+				"cells_x": {"type": "integer", "minimum": 1},
+				"cells_z": {"type": "integer", "minimum": 1}
+			}
+		},
+		"records": {
+			"type": "array",
+			"minItems": 1,
+			"items": {"$ref": "#/$defs/record"}
+		}
+	},
+	"$defs": {
+		"record": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"data_class",
+				"identity",
+				"variant",
+				"measurement",
+				"margin_units",
+				"anchor_to_root_offset_units"
+			],
+			"properties": {
+				"data_class": {
+					"description": "measurement = reviewed source geometry was actually measured, and provenance is mandatory. synthetic_fixture = invented numbers that exist to exercise the tooling, must carry synthetic_note, and must NOT carry provenance, so a fixture can never be read or reported as a body dimension.",
+					"type": "string",
+					"enum": ["measurement", "synthetic_fixture"]
+				},
+				"identity": {"$ref": "#/$defs/identity"},
+				"variant": {"$ref": "#/$defs/variant"},
+				"measurement": {"$ref": "#/$defs/measurement"},
+				"margin_units": {"$ref": "#/$defs/margin"},
+				"anchor_to_root_offset_units": {"$ref": "#/$defs/offset"},
+				"provenance": {"$ref": "#/$defs/provenance"},
+				"synthetic_note": {"type": "string", "minLength": 1}
+			}
+		},
+		"identity": {
+			"description": "MOVE-C2-R01 1's versioned (species key, stored life stage, mode, posture, equipment/cargo variant). The stage and mode names and ids are checked against residents.gd and movement.gd; they are not re-enumerated here, because a hand-written copy of a compiled enum is how ids get hand-numbered.",
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"species_key",
+				"life_stage",
+				"life_stage_id",
+				"mode",
+				"mode_id",
+				"posture",
+				"profile_revision"
+			],
+			"properties": {
+				"species_key": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+				"life_stage": {"type": "string", "pattern": "^[A-Z][A-Z_]*$"},
+				"life_stage_id": {"type": "integer", "minimum": 0},
+				"mode": {"type": "string", "pattern": "^[A-Z][A-Z_]*$"},
+				"mode_id": {"type": "integer", "minimum": 0},
+				"posture": {"type": "string", "minLength": 1},
+				"profile_revision": {"type": "integer", "minimum": 1}
+			}
+		},
+		"variant": {
+			"description": "MOVE-C2-R01 1-2: bind actual gear, attachments and finite supported cargo shapes, not just a carry mass, and include all of them in the sweep.",
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["variant_key", "equipment", "cargo", "support_attachments", "all_listed_items_included_in_sweep"],
+			"properties": {
+				"variant_key": {"type": "string", "minLength": 1},
+				"equipment": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+				"cargo": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+				"support_attachments": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+				"all_listed_items_included_in_sweep": {
+					"description": "Must be true. A record that lists gear or cargo and then excludes it from the swept bounds is the 'make an unmeasured tail, load or turn disappear to pass a fit test' failure MOVE-C2-R01 2 forbids; declaring false refuses the record rather than producing a smaller class.",
+					"type": "boolean",
+					"const": true
+				}
+			}
+		},
+		"measurement": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"method",
+				"states_covered",
+				"orientations_covered",
+				"pose_interpolation_covered",
+				"interpolation_error_bound_units",
+				"bounds_micrometres"
+			],
+			"properties": {
+				"method": {"type": "string", "minLength": 1},
+				"states_covered": {
+					"description": "MOVE-C2-R01 2's legal entry, travel, hold, turn, reversal, retreat and exit states. All seven are required: a sweep that omits one is not a bounded sweep, and the variant is not ready.",
+					"type": "array",
+					"uniqueItems": true,
+					"minItems": 7,
+					"items": {
+						"type": "string",
+						"enum": ["ENTRY", "TRAVEL", "HOLD", "TURN", "REVERSAL", "RETREAT", "EXIT"]
+					}
+				},
+				"orientations_covered": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+				"pose_interpolation_covered": {
+					"description": "Must be true. MOVE-C2-R01 2 requires interpolation between poses, not sampled frame endpoints; false means the sweep was not bounded.",
+					"type": "boolean",
+					"const": true
+				},
+				"interpolation_error_bound_units": {"type": "integer", "minimum": 0},
+				"bounds_micrometres": {"$ref": "#/$defs/bounds"}
+			}
+		},
+		"bounds": {
+			"description": "The swept extrema in the model's LOCAL frame, relative to the local origin (the root), +Y up and -Z forward, as exact signed micrometres. The validator quantizes these outward into simulation units; it never shrinks them.",
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["x_min", "x_max", "y_min", "y_max", "z_min", "z_max"],
+			"properties": {
+				"x_min": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000},
+				"x_max": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000},
+				"y_min": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000},
+				"y_max": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000},
+				"z_min": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000},
+				"z_max": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000}
+			}
+		},
+		"margin": {
+			"description": "MOVE-C2-R01 3's explicitly authored nonnegative per-axis allowance, with provenance. A missing margin is invalid. An explicit zero is accepted only with a written justification from the measurement owner; there is no importer epsilon and no height-derived default.",
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["x", "y", "z", "provenance"],
+			"properties": {
+				"x": {"type": "integer", "minimum": 0},
+				"y": {"type": "integer", "minimum": 0},
+				"z": {"type": "integer", "minimum": 0},
+				"provenance": {"type": "string", "minLength": 1},
+				"zero_margin_justification": {"type": "string", "minLength": 1}
+			}
+		},
+		"offset": {
+			"description": "MOVE-C2-R01 5's declared anchor-to-root offset, in simulation units, applied to the local bounds before the containment test. The production baseline is spatial_world.gd's CELL_CENTRE_OFFSET_UNITS on both axes. A different offset may be measured and REPORTED; its production use needs a reviewed MOVE-G02 placement contract, so the validator marks a non-baseline offset report-only rather than accepting it as authority.",
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["x", "z"],
+			"properties": {
+				"x": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000},
+				"z": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000}
+			}
+		},
+		"provenance": {
+			"description": "Required for data_class measurement, forbidden for data_class synthetic_fixture. MOVE-C2-R01 1 and 7: record the source mesh/rig/clip and proportion revisions and hashes, so a source change can invalidate the dependent qualification.",
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"source_mesh",
+				"source_content_sha256",
+				"proportion_revision",
+				"measured_by",
+				"measured_on"
+			],
+			"properties": {
+				"source_mesh": {"type": "string", "minLength": 1},
+				"source_content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+				"source_rig": {"type": "string", "minLength": 1},
+				"source_clip": {"type": "string", "minLength": 1},
+				"proportion_revision": {"type": "integer", "minimum": 1},
+				"measured_by": {"type": "string", "minLength": 1},
+				"measured_on": {"type": "string", "pattern": "^20[0-9]{2}-[0-9]{2}-[0-9]{2}$"}
+			}
+		}
+	}
+}

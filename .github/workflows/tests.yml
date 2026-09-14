@@ -118,6 +118,20 @@ jobs:
       - name: Astra inbox index is current
         run: python3 tools/astra_inbox.py --check
 
+      # The check that catches an implemented-but-undeclared packed column. It was
+      # NOT in CI, which is how seventeen construction.gd columns reached master
+      # classified as persistent state and absent from the canonical registry --
+      # found by Astra reading the tree, not by any gate. --source-root is the
+      # half that compares the registry against the actual GDScript; without it
+      # the run only checks the artifact against itself.
+      - name: Canonical registry matches the source it claims to describe
+        run: python3 docs/validation/validate_save_registry_handoff.py --source-root .
+
+      # The compiled declaration table was hand-maintained for 590 entries and had
+      # already drifted from the registry before a generator existed.
+      - name: Compiled declaration table is regenerable from the registry
+        run: python3 tools/generate_canonical_state_table.py --check
+
       - name: Lane records are one file each, not appended to a shared checklist
         run: python3 tools/lane_notes.py --check
 

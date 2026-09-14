@@ -33,8 +33,8 @@
       "pr": 103,
       "depends_on": [],
       "owns": [
-        "godot/scripts/core/save_section_07.gd",
-        "godot/test/test_save_section_07.gd"
+        "godot/scripts/core/save_section_inventories.gd",
+        "godot/test/test_save_section_inventories.gd"
       ],
       "agent": "game-coder",
       "gate": "none",
@@ -49,8 +49,8 @@
       "pr": 104,
       "depends_on": [],
       "owns": [
-        "godot/scripts/core/save_section_12.gd",
-        "godot/test/test_save_section_12.gd"
+        "godot/scripts/core/save_section_pending_commands.gd",
+        "godot/test/test_save_section_pending_commands.gd"
       ],
       "agent": "game-coder",
       "gate": "none",
@@ -219,35 +219,53 @@
     },
     {
       "id": "DIGEST-DETERMINISM",
-      "title": "Resolve canonical inactive and retired inventory representation",
-      "status": "blocked",
+      "title": "Implement the shared canonical inventory projection and strict schema3 codec",
+      "status": "ready",
       "depends_on": [
         "BASELINE-INTEGRATION",
-        "SAVE-REGISTRY-RECONCILE"
+        "SAVE-REGISTRY-RECONCILE",
+        "SAVE-S1-OWNERS"
       ],
       "owns": [
         "godot/scripts/core/inventory.gd",
         "godot/scripts/core/canonical_state_hash.gd",
         "godot/test/test_inventory.gd",
-        "godot/test/test_canonical_state_hash.gd"
+        "godot/test/test_canonical_state_hash.gd",
+        "godot/scripts/core/save_section_inventories.gd",
+        "godot/test/test_save_section_inventories.gd",
+        "docs/persistence_state_registry.md",
+        "docs/planning/canonical_state_registry.json",
+        "docs/validation/validate_save_registry_handoff.py",
+        "tools/generate_canonical_state_table.py",
+        "docs/systems_architecture.md",
+        "docs/tasks/lanes/09/2026-09-14-inventory-canonical-projection.md"
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
       "astra_request": "docs/rulings/requests/OPEN.md#retired-row-blanking",
-      "note": "Decision remains OPEN. Do not assume row blanking, omission, or equivalence from live state alone."
+      "note": "INV-CANON-R01 answers the question. Source masking only at quiescence; strict loader canonical form; no hot retirement clear, row omission or free-stack sort. Atomic schema3 activation; full continuation tests remain required.",
+      "astra_answered": true,
+      "astra_ruling": "docs/rulings/2026-09-14_cycle02_inventory_canonicalization.md"
     },
     {
       "id": "MOVE-ENVELOPES",
       "title": "Measured movement envelopes, MOVE-G01 Q1/Q2",
       "status": "blocked",
-      "depends_on": [],
+      "depends_on": [
+        "BASELINE-INTEGRATION",
+        "MOVE-ENVELOPE-TOOLING",
+        "MOVE-PROFILE-AUTHORING"
+      ],
       "owns": [
         "docs/planning/movement_contracts.md",
         "godot/scripts/core/spatial_world.gd"
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
-      "astra_request": "docs/rulings/requests/OPEN.md#move-g01-clearance-and-modes"
+      "astra_request": "docs/rulings/requests/OPEN.md#move-g01-clearance-and-modes",
+      "astra_answered": false,
+      "partial_ruling": "docs/rulings/2026-09-14_cycle02_movement_envelopes.md",
+      "note": "Q1 convention answered. Q2 complete authoredprofiles and source-bound measured envelopes remain outstanding; all64adult connected rows presentlynotready. Tool completion is not productionfit or gateclosure."
     },
     {
       "id": "ART-PROPORTION",
@@ -296,7 +314,7 @@
     {
       "id": "BASELINE-INTEGRATION",
       "title": "Reconcile the reviewed working snapshot with the actual integration base",
-      "status": "review",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "docs/planning/integration_manifest.json",
@@ -312,12 +330,16 @@
       "agent": "self",
       "gate": "none",
       "acceptance": "Record base SHA and source hashes; preserve existing staged/untracked work; reconcile duplicate ADR histories and links; baseline Godot result and failures/warnings. Do not claim source-registry pass before SAVE-REGISTRY-RECONCILE.",
-      "note": "Manifest at docs/planning/integration_manifest.json records the three snapshots, the four ADR collisions resolved by content comparison, the reproduced 17-field registry gap left for SAVE-REGISTRY-RECONCILE, and both shutdown warning pairs."
+      "note": "Manifest at docs/planning/integration_manifest.json records the three snapshots, the four ADR collisions resolved by content comparison, the reproduced 17-field registry gap left for SAVE-REGISTRY-RECONCILE, and both shutdown warning pairs.",
+      "pr": 116,
+      "merged_at": "2026-09-14T13:37:10Z",
+      "merge_commit": "127c8e4ce14ef7acab0b2b608abb8b6b92935928",
+      "completion_scope": "Verified merged PR116; code base is integrated master, local old snapshot preserved. Source-registry gap remains separately owned."
     },
     {
       "id": "SAVE-REGISTRY-RECONCILE",
       "title": "Register missing Construction state and verify complete source membership",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "BASELINE-INTEGRATION",
         "EVENT-SCHEDULE",
@@ -333,12 +355,14 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "REG-R01: register all 17 currently missing Construction fields and any integrated additions with explicit owners/ordinals; source-membership checker passes. Do not silently implement the S1 scratch/version delta without its codecs; serialize with SAVE-S1-OWNERS."
+      "acceptance": "REG-R01: register all 17 currently missing Construction fields and any integrated additions with explicit owners/ordinals; source-membership checker passes. Do not silently implement the S1 scratch/version delta without its codecs; serialize with SAVE-S1-OWNERS.",
+      "pr": 119,
+      "note": "Merged as PR #119 after Astra's Cycle 2 PR snapshot."
     },
     {
       "id": "RENDER-SPAWN",
       "title": "Compose authoritative starter poses and remove the presentation Transform duplicate",
-      "status": "ready",
+      "status": "in_flight",
       "depends_on": [
         "BASELINE-INTEGRATION",
         "RENDER-PATH",
@@ -366,12 +390,13 @@
       "astra_answered": true,
       "astra_request": "docs/rulings/requests/OPEN.md#resident-spawn-positions-and-the-pose-scaffold",
       "astra_ruling": "docs/rulings/2026-09-14_initial_resident_positions.md",
-      "acceptance": "INIT-POSE-R01 complete acceptance including reset/reuse/refusal/publication; save codec test may remain explicitly blocked on missing section 4. No movement or visual gate closure."
+      "acceptance": "INIT-POSE-R01 complete acceptance including reset/reuse/refusal/publication; save codec test may remain explicitly blocked on missing section 4. No movement or visual gate closure.",
+      "note": "Dispatched before Cycle 2 landed and still running. It owns settlement_system.gd and its test, which CONSTRUCTION-GOODS also claims -- so that lane must wait, however ready its dependencies look."
     },
     {
       "id": "CONSTRUCTION-GOODS",
-      "title": "Enforce stored-goods safety for destructive building edits",
-      "status": "blocked",
+      "title": "Publish container-by-owner enumeration and a truthful demolition refusal",
+      "status": "ready",
       "depends_on": [
         "BASELINE-INTEGRATION",
         "CONSTRUCTION-STORE"
@@ -380,11 +405,17 @@
         "godot/scripts/core/inventory.gd",
         "godot/scripts/core/construction.gd",
         "godot/test/test_inventory.gd",
-        "godot/test/test_construction.gd"
+        "godot/test/test_construction.gd",
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/test/test_settlement_system.gd",
+        "docs/tasks/lanes/06/2026-09-14-container-owner-query.md"
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
-      "astra_request": "docs/rulings/requests/OPEN.md#inventory-container-enumeration-by-owner"
+      "astra_request": "docs/rulings/requests/OPEN.md#inventory-container-enumeration-by-owner",
+      "astra_answered": true,
+      "astra_ruling": "docs/rulings/2026-09-14_cycle02_construction_goods.md",
+      "acceptance": "INV-GOODS-R01 bounded query and composing refusal; missing affected-endpoint binding refuses distinctly. Do not claim full06.2 evacuation or only-exit safety; CONSTRUCTION-EVACUATION-INTEGRATION owns that remainder."
     },
     {
       "id": "PLAN-SAVE-COVERAGE",
@@ -400,7 +431,7 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "Inventory all 15 bodies, each owner capture/restore/hash adapter, header producers, cross-section validators and load orchestration. Include section12 arena-base restore and missing orchard inverse producer. Insert bounded owned tasks and add every implementation prerequisite to SAVE-CAPTURE before marking this planning task done. Publish a validation check that refuses a missing matrix task/dependency; expand ownership for that checker through the integration lead before implementing it."
+      "acceptance": "Inventory all 15 bodies, each owner capture/restore/hash adapter, header producers, cross-section validators and load orchestration. Include section12 arena-base restore and missing orchard inverse producer. Insert bounded owned tasks and add every implementation prerequisite to SAVE-CAPTURE before marking this planning task done. Publish a validation check that refuses a missing matrix task/dependency; expand ownership for that checker through the integration lead before implementing it. Use merged real paths save_section_inventories.gd and save_section_pending_commands.gd; include INV-CANON-R01 target and present source-state gaps."
     },
     {
       "id": "PLAN-RELEASE-COVERAGE",
@@ -421,18 +452,24 @@
     {
       "id": "PACKET-EVIDENCE",
       "title": "Make review packets pin integration refs and report complete final PR declaration coverage",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "BASELINE-INTEGRATION"
       ],
       "owns": [
         "tools/review_packet.py",
         "tools/test_review_packet.py",
-        "docs/planning/review_packet.md"
+        "docs/planning/review_packet.md",
+        "docs/decisions/0139-a-declared-grammar-for-the-declaration-blocks.md",
+        "docs/tasks/lanes/09/2026-09-14-review-packet-evidence-and-declaration-grammar.md",
+        "tools/auto_merge.py"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "Explicit reviewed base/ref SHAs; include squash merges; paginated final PR bodies with capture timestamp; missing/error/stale evidence never prints None. Declare and test declaration grammar, including none with explanation. Retain cycle watermark and source audit."
+      "acceptance": "Explicit reviewed base/ref SHAs; include squash merges; paginated final PR bodies with capture timestamp; missing/error/stale evidence never prints None. Declare and test declaration grammar, including none with explanation. Retain cycle watermark and source audit.",
+      "pr": 117,
+      "head_commit": "bd1af7711aeb282f50a4dc35abfbfef778cd0634",
+      "note": "Merged as PR #117 after Astra's Cycle 2 PR snapshot."
     },
     {
       "id": "ART-PROPORTION-PREP",
@@ -450,17 +487,86 @@
     {
       "id": "ART-UI-12-EVIDENCE",
       "title": "Prepare responsive visual evidence without granting visual acceptance",
+      "status": "review",
+      "depends_on": [
+        "BASELINE-INTEGRATION"
+      ],
+      "owns": [
+        "docs/validation/evidence/ui-refinement/cycle-01/",
+        "docs/tasks/lanes/04/2026-09-14-art-ui-12-evidence-cycle-01.md",
+        "docs/validation/evidence/ui-refinement/cycle-01/01_counters_standard_1280x720_100_markers.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/02_counters_standard_1280x720_100_settlement.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/03_counters_standard_1280x720_100_ladder.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/04_counters_narrow_1280x720_125_markers.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/05_counters_narrow_1280x720_125_settlement.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/06_counters_narrow_1280x720_125_ladder.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/07_counters_narrow_1280x720_150_markers.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/08_counters_narrow_1280x720_150_settlement.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/09_counters_narrow_1280x720_150_ladder.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/10_occlusion_roster_open_alert_expired_standard_1280x720.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/11_occlusion_roster_open_alert_active_standard_1280x720.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/12_occlusion_roster_closed_alert_active_standard_1280x720.png",
+        "docs/validation/evidence/ui-refinement/cycle-01/README.md"
+      ],
+      "agent": "user-qa",
+      "gate": "none",
+      "acceptance": "Capture real scene at WIDE/STANDARD/NARROW with alerts, workspace and resident details; report clipping, occlusion, focus and apparent style; no paid generation, no art ledger changes. Existing unresolved layout questions remain open.",
+      "pr": 118,
+      "head_commit": "8e847c43bb7b2574602121a26b261b0b5e6570b7",
+      "review_followup": "Retain capture/diff harnesses in a validation-owned repository path for reproducibility. Cycle2 did not grant ART-UI-12 acceptance.",
+      "note": "PR #118 open and held at the merge gate on a non-empty DEVIATIONS block, which is Brendan's call. Astra's Cycle 2 follow-up -- preserve the deleted capture/diff harnesses under a validation-owned path -- is being addressed on the same branch."
+    },
+    {
+      "id": "CONSTRUCTION-EVACUATION-INTEGRATION",
+      "title": "Complete affected endpoint coverage and real hauling before demolition",
+      "status": "ready",
+      "depends_on": [
+        "BASELINE-INTEGRATION",
+        "CONSTRUCTION-GOODS",
+        "PLAN-RELEASE-COVERAGE"
+      ],
+      "owns": [
+        "docs/planning/destructive_edit_endpoint_contract.md",
+        "docs/tasks/lanes/06/2026-09-14-demolition-evacuation-integration.md",
+        "docs/planning/work_queue.json"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Map all building/room/furniture/project/ground-pile endpoints and surviving/removed contacts. Assign concrete coordinator/jobs/hauling/movement files and dependent tasks through integration lead before edits. Real jobs move goods before a final no-yield revalidation; exact stranded claims/lots/residents; no teleports. Done only after composed runtime acceptance, not a planning file."
+    },
+    {
+      "id": "MOVE-ENVELOPE-TOOLING",
+      "title": "Implement the measured-envelope import and anchored fit validator",
       "status": "ready",
       "depends_on": [
         "BASELINE-INTEGRATION"
       ],
       "owns": [
-        "docs/validation/evidence/ui-refinement/cycle-01/"
+        "tools/validate_movement_envelopes.py",
+        "tools/test_movement_envelopes.py",
+        "docs/planning/movement_envelope_schema.json",
+        "docs/tasks/lanes/05/2026-09-14-envelope-tooling.md"
       ],
-      "agent": "user-qa",
+      "agent": "game-coder",
       "gate": "none",
-      "acceptance": "Capture real scene at WIDE/STANDARD/NARROW with alerts, workspace and resident details; report clipping, occlusion, focus and apparent style; no paid generation, no art ledger changes. Existing unresolved layout questions remain open."
+      "acceptance": "MOVE-C2-R01 exact outward quantization, explicit margins, anchor offset containment, class1..512, complete source metadata and negative fixtures. Tooling only; no invented measured inputs or runtimeprofile activation."
+    },
+    {
+      "id": "MOVE-PROFILE-AUTHORING",
+      "title": "Prepare movement profile proposals and evidence inventory for unresolved Q2",
+      "status": "ready",
+      "depends_on": [
+        "BASELINE-INTEGRATION"
+      ],
+      "owns": [
+        "docs/planning/movement_profile_authoring.md",
+        "docs/planning/movement_profile_readiness.json",
+        "docs/tasks/lanes/05/2026-09-14-profile-authoring.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Proposal/evidence-only planning task. Account for all 16 species x 3 stages x 6 modes, recording source-backed inherited policy, costs, gear/load/support/return/recovery and readiness where settled. Mark every missing or unresolved value explicitly; do not require or invent complete binding policy or cost rows. Reuse DEC039/DEC040/ECON/HAZ. Separate proposed values from inherited values and measured evidence. Return unresolved production choices to Astra for a Q2 ruling. No production catalog activation, new constants, or MOVE-G01 closure is authorized; completing this task does not answer Q2."
     }
   ],
-  "cycle_report": "docs/planning/astra_cycles/cycle_01.md"
+  "cycle_report": "docs/planning/astra_cycles/cycle_02.md"
 }

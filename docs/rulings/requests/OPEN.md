@@ -14,58 +14,30 @@ blocking in `docs/planning/work_queue.json`, which is what releases them to the
 dispatcher.
 
 
-**3 blocking, 6 advisory.** Oldest asked 2026-09-12.
+**1 blocking, 6 advisory.** Oldest asked 2026-09-12.
 
 | Question | Asked | Holding up |
 |---|---|---|
-| [Canonical inactive and retired inventory representation](#retired-row-blanking) | 2026-09-12 | `DIGEST-DETERMINISM` |
 | [MOVE-G01 Q1 and Q2: clearance classes and per-species modes](#move-g01-clearance-and-modes) | 2026-09-12 | `MOVE-ENVELOPES` |
 | [Multi-table primary_count for sections 8 and 9](#multi-table-primary-count) | 2026-09-12 | nothing yet |
 | [501 of 590 registry fields carry declared_capacity as prose](#declared-capacity-as-prose) | 2026-09-12 | nothing yet |
 | [ALERT-R02's 44px card height is packing arithmetic, not reachable typography](#alert-card-44px-is-not-reachable-typography) | 2026-09-12 | nothing yet |
 | [§1.2 publishes an alert zone that lies wholly inside the workspace frame](#alert-zone-inside-workspace-frame) | 2026-09-12 | nothing yet |
-| [REQ-SET-128's stored-goods half cannot be enforced: inventory.gd cannot enumerate containers by owner](#inventory-container-enumeration-by-owner) | 2026-09-13 | `CONSTRUCTION-GOODS` |
 | [A tier-2 building's demolition basis is unresolved](#tier-two-demolition-basis) | 2026-09-13 | nothing yet |
 | [ECON-003's excavation phases need compiled ids and a site-phase column](#econ-003-excavation-phase-domain) | 2026-09-13 | nothing yet |
-
-<a id="retired-row-blanking"></a>
-## Canonical inactive and retired inventory representation
-
-*Asked 2026-09-12.*
-
-**Question.** Which authoritative fields remain meaningful after deactivation or retirement, and what canonical values must the fixed field walker emit for all other fields? Reconcile SAVE-LAYOUT-R01 declared unused values with generation/retirement/free-order state and the existing inventory lifecycle. Decide the owner normalization and mutation obligations without assuming a whole-row blank, omitted rows, or identical future behavior from identical live entities alone.
-
-**Why the executor cannot decide it.** The first changes runtime behaviour, the second changes what the digest means. Both are yours.
-
-**Impact.** Blocks the section15 canonical adapter contract and full save-continuation evidence. Distinguish real future-state differences from irrelevant inactive payload history.
-
-- Blocks `DIGEST-DETERMINISM` — Resolve canonical inactive and retired inventory representation
 
 <a id="move-g01-clearance-and-modes"></a>
 ## MOVE-G01 Q1 and Q2: clearance classes and per-species modes
 
 *Asked 2026-09-12.*
 
-**Question.** Q1: the clearance class domain and its species assignments, or the measured-envelope convention that derives them. Q2: per species, which of swim-surface, dive, climb and tunnel-walk are enabled and which are explicitly disabled.
+**Question.** Q1 is answered by MOVE-C2-R01: retain classes1..512, measure/quantize swept bounds and prove actual anchor-offset containment. Q2 remains open: supply the complete authored species/stage/mode rows with costs, gear/load, support and recovery bindings, and the qualified measured envelope inputs. The current64adult connected-mode combinations are notready, not biological prohibitions; a readiness table is not the completed capability catalog.
 
 **Why the executor cannot decide it.** spatial_world.gd publishes cell classes over 512-unit half-metre cells anchored north-west, and its own header says it publishes no body or gear clearance. Every profile clearance reader currently refuses. A missing contract is a movement admission blocker, not something to fill in.
 
-**Impact.** Blocks measured movement envelopes. Ground and ford are the only two profiled modes of six.
+**Impact.** MOVE-ENVELOPE-TOOLING can proceed; production MOVE-ENVELOPES and05.1b remain gated. See docs/rulings/2026-09-14_cycle02_movement_envelopes.md. Missing measured evidence must not be invented by either planner or executor.
 
 - Blocks `MOVE-ENVELOPES` — Measured movement envelopes, MOVE-G01 Q1/Q2
-
-<a id="inventory-container-enumeration-by-owner"></a>
-## REQ-SET-128's stored-goods half cannot be enforced: inventory.gd cannot enumerate containers by owner
-
-*Asked 2026-09-13.*
-
-**Question.** REQ-SET-128 refuses a destructive edit on an occupied building. The RESIDENT half is enforced against the real store, with the exact blocked count in the refusal. The GOODS half cannot be: `inventory.gd` has no owner index and no container iteration, and `container_owner()` needs a ref the caller must already hold. Should inventory.gd publish a container-by-owner enumeration, or should the rule be restated so the goods half is checked somewhere that can see it?
-
-**Why the executor cannot decide it.** The alternative is accepting a caller-supplied 'goods are clear' boolean, which MOVE-DEP-R05 forbids -- a missing contract must refuse differently from an authored allowance, and a boolean from the caller is neither.
-
-**Impact.** Blocks 06.2's 'Refuse occupied/only-exit destructive edits'. The construction store refuses on residents and is silent on goods, which is a half-enforced rule.
-
-- Blocks `CONSTRUCTION-GOODS` — Enforce stored-goods safety for destructive building edits
 
 <a id="multi-table-primary-count"></a>
 ## Multi-table primary_count for sections 8 and 9

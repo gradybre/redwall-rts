@@ -1,0 +1,54 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: reserve source
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] require (/private/tmp/cycle2_inventory_probe.gd:8)
+       [1] _initialize (/private/tmp/cycle2_inventory_probe.gd:16)
+ERROR: merge reserved source
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] require (/private/tmp/cycle2_inventory_probe.gd:8)
+       [1] _initialize (/private/tmp/cycle2_inventory_probe.gd:17)
+ERROR: retired reservation residue is real
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] require (/private/tmp/cycle2_inventory_probe.gd:8)
+       [1] _initialize (/private/tmp/cycle2_inventory_probe.gd:20)
+ERROR: live reservation retained
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] require (/private/tmp/cycle2_inventory_probe.gd:8)
+       [1] _initialize (/private/tmp/cycle2_inventory_probe.gd:21)
+MERGE: dead quantity=0 dead reserved=0 live reserved=0
+ERROR: one-slot whole transfer
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] require (/private/tmp/cycle2_inventory_probe.gd:8)
+       [1] _initialize (/private/tmp/cycle2_inventory_probe.gd:30)
+ERROR: reuse source slot with fresh generation
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] require (/private/tmp/cycle2_inventory_probe.gd:8)
+       [1] _initialize (/private/tmp/cycle2_inventory_probe.gd:31)
+ERROR: attributes survive retire then read
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] require (/private/tmp/cycle2_inventory_probe.gd:8)
+       [1] _initialize (/private/tmp/cycle2_inventory_probe.gd:32)
+ERROR: rounded transfer age and remainder
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] require (/private/tmp/cycle2_inventory_probe.gd:8)
+       [1] _initialize (/private/tmp/cycle2_inventory_probe.gd:33)
+TRANSFER: slot reused, item/quality/provenance/recipe/age retained
+CYCLE2 INVENTORY PROBE: 14 checks, 8 failures; production source unchanged
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+WARNING: 14 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

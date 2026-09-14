@@ -1,0 +1,481 @@
+{
+  "id": "INV-CANON-R01-TARGET-1",
+  "status": "ADOPTED_TARGET_NOT_ACTIVE_REGISTRY",
+  "active_registry_mutated": false,
+  "implementation_base": "127c8e4ce14ef7acab0b2b608abb8b6b92935928",
+  "section_id": 7,
+  "owner_key": "inventory",
+  "owner_schema_version": 3,
+  "section_schema_version": 3,
+  "canonical_record_delta": 0,
+  "preserved_fields": [
+    "_c_free_count",
+    "_l_free_count",
+    "_c_live",
+    "_l_live",
+    "_c_generation",
+    "_l_generation",
+    "_c_free",
+    "_l_free"
+  ],
+  "fields": [
+    {
+      "field_key": "_c_free_count",
+      "type": "u32",
+      "type_code": 1,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_free_count",
+      "shape": {
+        "count": 1,
+        "order": "scalar"
+      },
+      "scalar": true,
+      "classification": "derived_length_required_before_stack_values",
+      "ordinal": 0
+    },
+    {
+      "field_key": "_l_free_count",
+      "type": "u32",
+      "type_code": 1,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_free_count",
+      "shape": {
+        "count": 1,
+        "order": "scalar"
+      },
+      "scalar": true,
+      "classification": "derived_length_required_before_stack_values",
+      "ordinal": 1
+    },
+    {
+      "field_key": "_c_live",
+      "type": "u8",
+      "type_code": 0,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_live",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 2,
+      "source_contract": "C022"
+    },
+    {
+      "field_key": "_l_live",
+      "type": "u8",
+      "type_code": 0,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_live",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 3,
+      "source_contract": "C022"
+    },
+    {
+      "field_key": "_c_generation",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_generation",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 4,
+      "source_contract": "C129"
+    },
+    {
+      "field_key": "_l_generation",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_generation",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 5,
+      "source_contract": "C132"
+    },
+    {
+      "field_key": "_c_owner_slot",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_owner_slot",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 6,
+      "source_contract": "C129"
+    },
+    {
+      "field_key": "_c_owner_generation",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_owner_generation",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 7,
+      "source_contract": "C129"
+    },
+    {
+      "field_key": "_c_policy",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_policy",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 8,
+      "source_contract": "C129"
+    },
+    {
+      "field_key": "_c_lot_count",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_lot_count",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 9,
+      "source_contract": "C129"
+    },
+    {
+      "field_key": "_c_first_lot",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_first_lot",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 10,
+      "source_contract": "C129"
+    },
+    {
+      "field_key": "_c_max_mass_g",
+      "type": "i64",
+      "type_code": 4,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_max_mass_g",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 11,
+      "source_contract": "C130"
+    },
+    {
+      "field_key": "_c_filters",
+      "type": "i64",
+      "type_code": 4,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_filters",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 12,
+      "source_contract": "C130"
+    },
+    {
+      "field_key": "_c_reserved_mass_g",
+      "type": "i64",
+      "type_code": 4,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_reserved_mass_g",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 13,
+      "source_contract": "C130"
+    },
+    {
+      "field_key": "_c_used_mass_g",
+      "type": "i64",
+      "type_code": 4,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_used_mass_g",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 14,
+      "source_contract": "C130"
+    },
+    {
+      "field_key": "_c_reachable",
+      "type": "u8",
+      "type_code": 0,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_reachable",
+      "shape": {
+        "declared_capacity": "`_c_capacity` <= 101376",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 15,
+      "source_contract": "C131"
+    },
+    {
+      "field_key": "_l_item_id",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_item_id",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 16,
+      "source_contract": "C132"
+    },
+    {
+      "field_key": "_l_quality",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_quality",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 17,
+      "source_contract": "C132"
+    },
+    {
+      "field_key": "_l_provenance",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_provenance",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot",
+        "value_domain": "InventoryProvenance",
+        "value_extent": "0..5 inclusive"
+      },
+      "ordinal": 18,
+      "source_contract": "C132"
+    },
+    {
+      "field_key": "_l_recipe_id",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_recipe_id",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 19,
+      "source_contract": "C132"
+    },
+    {
+      "field_key": "_l_container_slot",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_container_slot",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 20,
+      "source_contract": "C132"
+    },
+    {
+      "field_key": "_l_container_generation",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_container_generation",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 21,
+      "source_contract": "C132"
+    },
+    {
+      "field_key": "_l_next",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_next",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 22,
+      "source_contract": "C132"
+    },
+    {
+      "field_key": "_l_prev",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_prev",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 23,
+      "source_contract": "C132"
+    },
+    {
+      "field_key": "_l_quantity_milli",
+      "type": "i64",
+      "type_code": 4,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_quantity_milli",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 24,
+      "source_contract": "C133"
+    },
+    {
+      "field_key": "_l_reserved_milli",
+      "type": "i64",
+      "type_code": 4,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_reserved_milli",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 25,
+      "source_contract": "C133"
+    },
+    {
+      "field_key": "_l_age_milli_hours",
+      "type": "i64",
+      "type_code": 4,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_age_milli_hours",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 26,
+      "source_contract": "C133"
+    },
+    {
+      "field_key": "_l_age_remainder",
+      "type": "i64",
+      "type_code": 4,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_age_remainder",
+      "shape": {
+        "declared_capacity": "`_l_capacity` <= 16384",
+        "order": "ascending_physical_slot"
+      },
+      "ordinal": 27,
+      "source_contract": "C133"
+    },
+    {
+      "field_key": "_c_free",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_c_free",
+      "shape": {
+        "count_field": "_c_free_count",
+        "order": "used_stack_prefix_preserve_pop_order"
+      },
+      "ordinal": 28,
+      "source_contract": "C134"
+    },
+    {
+      "field_key": "_l_free",
+      "type": "i32",
+      "type_code": 2,
+      "hash": true,
+      "source_module": "inventory",
+      "source_member": "_l_free",
+      "shape": {
+        "count_field": "_l_free_count",
+        "order": "used_stack_prefix_preserve_pop_order"
+      },
+      "ordinal": 29,
+      "source_contract": "C135"
+    }
+  ],
+  "inactive_values": {
+    "c": {
+      "_c_owner_slot": -1,
+      "_c_owner_generation": 0,
+      "_c_policy": 0,
+      "_c_lot_count": 0,
+      "_c_first_lot": -1,
+      "_c_max_mass_g": 0,
+      "_c_filters": 0,
+      "_c_reserved_mass_g": 0,
+      "_c_used_mass_g": 0,
+      "_c_reachable": 0
+    },
+    "l": {
+      "_l_item_id": 0,
+      "_l_quality": 0,
+      "_l_provenance": 0,
+      "_l_recipe_id": 0,
+      "_l_container_slot": -1,
+      "_l_container_generation": 0,
+      "_l_next": -1,
+      "_l_prev": -1,
+      "_l_quantity_milli": 0,
+      "_l_reserved_milli": 0,
+      "_l_age_milli_hours": 0,
+      "_l_age_remainder": 0
+    }
+  },
+  "generation_min": 1,
+  "generation_max": 2147483647,
+  "prefix_tail": "excluded from logical count; restored backing tail -1",
+  "rule": "docs/rulings/2026-09-14_cycle02_inventory_canonicalization.md",
+  "code_sha256": "15defe8ccc172d5931bd42a3fe57a82ed9fc1852dac5d6f2d3b3fafa556d11db",
+  "release_save_ready": false
+}

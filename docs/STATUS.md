@@ -1,5 +1,8 @@
 # Status — the programme, task 03, and the READY_06 answers
 
+**Cycle 2, 2026-09-14:** [current decisions and executor handoff](planning/astra_cycles/cycle_02.md). Baseline PR116 is merged; two inventory/goods questions answered, movement partly answered and still gated. PR117/118 remain in review in this cycle’s snapshot. The older local checkout is not the reconciled master baseline.
+
+
 **Latest planner cycle, 2026-09-14:** [Cycle 1 rulings, actual baseline and next executor sequence](planning/astra_cycles/cycle_01.md). Two blockers answered; canonical source membership and duplicate ADR checks currently fail in the reviewed mixed snapshot. Read this before the historical status below.
 
 **2026-09-11 planner review:** the implementation has advanced beyond portions of

@@ -1,0 +1,138 @@
+[
+  {
+    "body": "PACKET-EVIDENCE, Astra Cycle 1. Two problems, one root cause: the review packet was auditing the wrong thing, and two separate parsers disagreed about what a declaration means.\n\n## The packet was not auditing pull requests\n\nIt read **local HEAD commit bodies**, used `git log --merges` (which omits squash merges entirely), and could not see work merged after the local ref. It then reported \"None in this window\" \u2014 which Astra correctly called unsupported: of 103 in-window merged PRs, it listed 50, missed 49 reachable from cached master, and three more it could not reach at all.\n\nNow sourced from merged PR bodies via `gh pr list --search`, with pagination by **time bisection** \u2014 that API has no cursor, so a sub-window returning exactly `--limit` rows is split into overlapping halves and re-queried, and a saturated one-second window **raises** rather than silently returning short. Verified live: the same 105 records at `--limit 100` (3 sub-queries) and at `--limit 10` (37 sub-queries).\n\nThe packet now states which ref and window it covered, how many records it saw, and what it could not see \u2014 so it can no longer present *no evidence* as *no exceptions*.\n\n## The grammar: five outcomes, not two\n\n```\nCLEAR      <- normalises to exactly \"none\"\nMALFORMED  <- normalises to empty\nQUALIFIED  <- begins \"none\" + non-word char, with anything else remaining\nDECLARED   <- anything else\nMISSING    <- no declaration line for that block\n```\n\n**`none \u2014 <explanation>` is QUALIFIED, and that is the load-bearing choice.** The two constraints admit no binary answer. Calling it empty means `SURVIVED_MUTANTS: none \u2014 M7 is still alive, we shipped anyway` clears the gate. Calling it non-empty is what misreported #103 and #104, which both describe mutants that *died*. No regex separates those strings \u2014 the difference is in the meaning of prose. So the parser refuses to decide: QUALIFIED is neither cleared nor counted as a survivor; it is printed in full in its own section that says only a human can grade it.\n\nDeliberate consequences: `n/a` is DECLARED (only the literal `none` clears \u2014 widening the vocabulary widens the hiding place); a lowercase `deviations:` is MISSING, so casing-evasion lands in the *louder* bucket; multiple lines take the **most severe** outcome, so a trailing `DEVIATIONS: none` cannot cancel a real one above it; `|` is excluded from the margin, so a docs table naming the blocks is a specification, not a declaration.\n\n## The hole this exposed in the merge gate\n\n`auto_merge.py` kept its own parser for the same three blocks, and it used `re.search` \u2014 **the first match wins.** A real exception written below an earlier `none` was invisible and the PR merged:\n\n```\nDEVIATIONS: none\n...\nDEVIATIONS: overruled the brief, shipped anyway   <- never seen\n```\n\nDemonstrated against the old code before replacing it. `check_report` now calls `review_packet.parse_declarations`. Two parsers for one grammar is how the two drift.\n\n| case | before | after |\n|---|---|---|\n| honest `none` | merges | merges |\n| real exception after a quoted `none` | **merges** | holds |\n| bare blocks, no content | holds | holds |\n| qualified `none` | merges | holds |\n| genuine survivor | holds | holds |\n\n**One correction to the lane's report:** it stated a bare `DEVIATIONS:` auto-merges today. It does not \u2014 the old pattern's greedy `\\s*` swallows the newline and captures the following line. The ordering hole is the one that actually bites. Checked empirically rather than by reading.\n\n## Mutations\n\n16 run, one per invocation, byte-compared after each restore. **14 killed first time; 2 survived and exposed real test gaps:**\n\n- *margin admits `|`* survived \u2014 the fixture had prose before the block name, never exercising the pipe exclusion. Two table-cell fixtures added. Killed.\n- *`_cell` truncates to 40 chars* survived \u2014 the \"in full\" assertion only checked a prefix. Replaced with character-for-character containment plus \"no `\u2026` anywhere in the packet\". Killed.\n\nNo test weakened or deleted.\n\n## Evidence\n\n```\nreview_packet self-test: 67 case(s), 0 failure(s) -- PASS\nreview_packet: 103 PR record(s) from snapshot; 2 declared, 2 qualified, 0 malformed, 282 missing block(s)\nstate_registry_coverage: PASS -- 54 modules, 352 rows, 681 packed columns checked\n4336 test(s), 152719 assertion(s), 0 failure(s)\n```\n\nThe self-test replays the preserved corpus and reproduces Astra's counts exactly: 103 records, 9 with all three blocks, 94 with none.\n\nRecorded as ADR 0139.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/decisions/0139-a-declared-grammar-for-the-declaration-blocks.md",
+        "additions": 183,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/review_packet.md",
+        "additions": 80,
+        "deletions": 83,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-14-review-packet-evidence-and-declaration-grammar.md",
+        "additions": 70,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/auto_merge.py",
+        "additions": 31,
+        "deletions": 8,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tools/review_packet.py",
+        "additions": 490,
+        "deletions": 127,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tools/test_review_packet.py",
+        "additions": 306,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "bd1af7711aeb282f50a4dc35abfbfef778cd0634",
+    "number": 117,
+    "title": "A declared grammar for the declaration blocks, and the merge gate hole it exposed"
+  },
+  {
+    "body": "ART-UI-12-EVIDENCE, Astra Cycle 1. **Evidence only \u2014 no visual approval is claimed or granted anywhere in this change. ART-UI-12 remains Brendan's verdict.**\n\nAstra found the existing captures insufficient: \"the roster-over-alert and clipped-counter examples fail the intended readable shell.\" Rather than re-shoot the 40 captures that already exist, this closes the two gaps they cannot answer.\n\n`git diff origin/master HEAD -- godot/` is **empty**. `art_approvals.json` and `docs/design/ui_refinement/` are untouched. No credits spent.\n\n## Counter clipping: arithmetic, not anecdote\n\nText budget = cell width \u2212 24 px icon \u2212 2+2 px style margins \u2212 4 px separation = **77.33 px STANDARD / 72.00 px NARROW**.\n\nTwo facts the existing 40 captures did not carry:\n\n- **No populated counter fits** at 1280\u00d7720 at any of the three user scales \u2014 two digits maximum at STANDARD.\n- **The bare word `Residents` measures 86.00 px**, so that cell overflows **with no value in it at all**.\n\nCapture `03` puts the boundary in one frame: `Food 1` and `Wood 12` whole, `Stone 123` \u2192 `Stone 12`, `Residents 1234` \u2192 `Resident`.\n\n## Occlusion: measured, not inferred from a flag\n\nPreviously this rested on cards reporting `visible = true`. Captures are bit-deterministic (same mode twice \u2192 0 differing pixels of 921600), so the comparison is exact:\n\n| Pair | Differing pixels |\n|---|---|\n| `10` vs `11` \u2014 alert expired vs active, workspace open | **0 of 14080** over card 0's rect `(462,18,320,44)`; **0 of 11520** over card 1's band |\n| `11` vs `12` \u2014 workspace open vs closed, alert active | 2829 and 2641 |\n\nThe cards are placed, report visible, and draw **zero pixels** while the workspace is open.\n\n## A third condition found and deliberately not captured\n\nThe same unstated \u00a71.2 precedence puts **216 of the resources rectangle's 360 px**, and the minimap frame from x=160, inside the modal rectangle `(160,16,960,688)`. Already visible in existing capture `40`, merely unremarked \u2014 so it is named with arithmetic in the README rather than re-shot.\n\n## Reproducibility\n\n```\ngodot --headless --path godot --editor --quit            # mandatory first, fresh worktree\ngodot --path godot --script capture_artui12_scratch.gd --resolution 1280x720 \\\n    -- <ABSOLUTE-out.png> <mode> <scale>\ngodot --headless --path godot --script diff_artui12_scratch.gd -- <a.png> <b.png> <x y w h>\n```\n\nEvery run wrapped in `perl -e 'alarm 240; exec @ARGV'`. Modes per file are tabulated in the README.\n\nSuite on the final tree: `ok: 4336 tests, 152719 assertions, 0 failures.`\n\nDEVIATIONS: (1) a third occlusion frame was shot \u2014 the workspace-closed control `12` \u2014 because a bare with/without pair cannot distinguish \"occluded\" from \"the card drew nothing\"; (2) the `ladder` mode supplies value magnitudes through `ui_shell.set_counter_display()`, the only harness-supplied content in the set, labelled as such in the README, with all nine other captures carrying store-derived or boot values only; (3) capture harnesses lived at `godot/*_artui12_scratch.gd` during the run, outside `godot/scripts/`, deleted before commit and verified by an empty diff over `godot/`. Integration note: the lane's two commits were authored with a private email GitHub refused to publish, and were rewritten to the same `users.noreply.github.com` address every other commit in this repository uses. Content unchanged.\nSURVIVED_MUTANTS: none \u2014 this lane runs no mutations.\nBLOCKED: none.\n\n## Recorded, not chased\n\nBetween `10` and `11` the roster's first row *label* shifts 4 px horizontally while the row's own reported rect `(172,28,280,56)` is identical in both. An unexplained relayout side effect, noted in both documents and explicitly not claimed as part of either defect.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/tasks/lanes/04/2026-09-14-art-ui-12-evidence-cycle-01.md",
+        "additions": 63,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/01_counters_standard_1280x720_100_markers.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/02_counters_standard_1280x720_100_settlement.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/03_counters_standard_1280x720_100_ladder.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/04_counters_narrow_1280x720_125_markers.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/05_counters_narrow_1280x720_125_settlement.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/06_counters_narrow_1280x720_125_ladder.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/07_counters_narrow_1280x720_150_markers.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/08_counters_narrow_1280x720_150_settlement.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/09_counters_narrow_1280x720_150_ladder.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/10_occlusion_roster_open_alert_expired_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/11_occlusion_roster_open_alert_active_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/12_occlusion_roster_closed_alert_active_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/README.md",
+        "additions": 243,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "8e847c43bb7b2574602121a26b261b0b5e6570b7",
+    "number": 118,
+    "title": "ART-UI-12 evidence: the clipping budget in numbers, the occlusion in pixels"
+  }
+]

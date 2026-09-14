@@ -1,0 +1,6 @@
+DEFICIENCY REPRODUCTION ONLY; synthetic inputs, not production qualification.
+source_root: /private/tmp/cycle3_source/master
+checker_sha256: 6b2fe4f340d1f5336891ba691f04bebf1a63031d6a1d723f3681401c9324463a
+{"admitting_class_count": 512, "clearance_class": 1, "margin_u": 0, "outcome": "FIT_OK", "residual_error_u": 1, "translated_bounds": {"x_hi": 512, "x_lo": 0, "z_hi": 512, "z_lo": 0}, "validation_errors": []}
+{"admitting_class_count": 0, "clearance_class": null, "margin_u": 1, "outcome": "PLACEMENT_INCOMPATIBLE_AT_OFFSET", "residual_error_u": 1, "translated_bounds": {"x_hi": 513, "x_lo": -1, "z_hi": 513, "z_lo": -1}, "validation_errors": []}
+OBSERVED DEFICIENCY REPRODUCED: uncovered error passes; covering it refuses placement.

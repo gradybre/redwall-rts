@@ -1,0 +1,74 @@
+{
+  "cycle": 3,
+  "captured_at": "2026-09-14T16:52:52.582418+00:00",
+  "integration_base": "2021444c520a8bf2f0c3aecd84a034149a1fb414",
+  "new_merged_prs": [
+    117,
+    118,
+    119,
+    120,
+    121
+  ],
+  "open_prs": [
+    122,
+    123
+  ],
+  "source_hashes": {
+    "godot/scripts/core/save_section_job_indexes.gd": "3493bb485ab226570f6007eb840b735452f8c6159d1aeff78449c6acdbc55846",
+    "godot/scripts/core/save_section_navigation.gd": "c66584f1ec5128cc35b7400edf1b063fa6b38424dd392a28fae01230aa9b4957",
+    "godot/scripts/core/movement.gd": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3",
+    "godot/scripts/core/spatial_world.gd": "1713ffa8bd63b6cb50ff01654d2f79debf4674f0f73108fb17907541cce9c782",
+    "godot/scripts/core/needs.gd": "31fc6a56d294154024f39ff4f04924d9c2148fc4f08acee388fd6ea94595d553",
+    "godot/scripts/core/job_planner.gd": "183845e20d22efc2c35263324089284008a20b02d3884b2d19a0a877507ee29b",
+    "godot/scripts/ui/ui_shell.gd": "91ea1787973216ae5e97c6fbf81b3b52d5181c59e192e1e98a5701f65505e81b",
+    "docs/planning/canonical_state_registry.json": "67ce756333657748f019ef5f0b930d1cec94ea3bd85f4423071a250d4c56d56e",
+    "tools/validate_movement_envelopes.py": "6b2fe4f340d1f5336891ba691f04bebf1a63031d6a1d723f3681401c9324463a",
+    "docs/ui_visual_refinement_amendment.md": "f2db692cd07550f9eacf1c209d54f68d13e026236e287636fff2b6eb7316a15e"
+  },
+  "checks": {
+    "godot_font_probe": {
+      "checks": 26,
+      "failures": 0,
+      "exit_code": 0
+    },
+    "cycle3_contracts": {
+      "checks": 75,
+      "exit_code": 0
+    },
+    "movement_tool_existing": {
+      "checks": 124,
+      "exit_code": 0
+    },
+    "packet_parser": {
+      "checks": 67,
+      "exit_code": 0
+    },
+    "registry_source": {
+      "persisted_fields": 553,
+      "canonical_records": 599,
+      "owners": 52,
+      "exit_code": 0
+    },
+    "capacity_grammar": {
+      "strings": 519,
+      "eq": 473,
+      "lte": 46,
+      "other": 80
+    },
+    "interpolation_error": "REPRODUCED_UNFIXED_DEFECT"
+  },
+  "full_godot_suite_rerun": false,
+  "art_approval": false,
+  "runtime_edited": false,
+  "index_before": "a0c6514e6a0dce6e3f0cf39a4c0b8e83d5107472239b866a3c9c452177925316",
+  "final_validation": {
+    "contract_checks": 75,
+    "queue_tasks": 37,
+    "queue_problems": 0,
+    "inbox_render": "PASS",
+    "cycle2_regression_checks": 37,
+    "diff_check": "PASS",
+    "links": "PASS; three integrated-only paths verified at2021444",
+    "runtime_index_art_unchanged": true
+  }
+}

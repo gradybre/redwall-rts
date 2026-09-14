@@ -1,0 +1,40 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+FONT size=14 height=20.0 regular=20.0
+14 | Residents | semibold=67.0 regular=64.0
+14 | Ready food | semibold=77.0 regular=75.0
+14 | 256 / 256 | semibold=61.0 regular=61.0
+14 | 5.48 days | semibold=64.0 regular=62.0
+14 | 999.99 days | semibold=80.0 regular=78.0
+14 | 1,000 U | semibold=51.0 regular=50.0
+14 | Unavailable | semibold=81.0 regular=77.0
+14 | See ledger | semibold=72.0 regular=70.0
+FONT size=16 height=23.0 regular=23.0
+16 | Residents | semibold=77.0 regular=73.0
+16 | Ready food | semibold=88.0 regular=85.0
+16 | 256 / 256 | semibold=70.0 regular=70.0
+16 | 5.48 days | semibold=73.0 regular=71.0
+16 | 999.99 days | semibold=91.0 regular=89.0
+16 | 1,000 U | semibold=58.0 regular=57.0
+16 | Unavailable | semibold=92.0 regular=88.0
+16 | See ledger | semibold=82.0 regular=80.0
+FONT size=18 height=26.0 regular=26.0
+18 | Residents | semibold=86.0 regular=83.0
+18 | Ready food | semibold=99.0 regular=96.0
+18 | 256 / 256 | semibold=79.0 regular=78.0
+18 | 5.48 days | semibold=82.0 regular=80.0
+18 | 999.99 days | semibold=102.0 regular=100.0
+18 | 1,000 U | semibold=65.0 regular=64.0
+18 | Unavailable | semibold=104.0 regular=99.0
+18 | See ledger | semibold=93.0 regular=90.0
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+WARNING: 14 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

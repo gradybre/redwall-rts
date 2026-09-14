@@ -1,0 +1,1904 @@
+[
+  {
+    "body": "MOVE-PROFILE-AUTHORING. **Proposal and evidence only**, per Astra's Cycle 2 handoff: \"missing policy/cost values stay explicitly unresolved until the Q2 ruling.\" Nothing here answers Q2, authors a profile, or closes a movement gate.\n\n## The register\n\n**35 Q2 slots, every value `null`** \u2014 5 measured envelope inputs, 11 cost-row fields, 8 safety bindings, 6 geometry extents, 5 policy questions only Astra can answer. Each carries its units, its owning contract, and what it is currently blocking, so Astra can rule on an inventory rather than reconstruct one.\n\n**288 rows** (16 species \u00d7 3 life stages \u00d7 6 modes): **8 adopted, 0 explicitly_disabled, 280 unresolved_q2, 0 admission_qualified.** The 64 adult connected rows and the 8 ground/ford `S/N` cells reconcile exactly with MOVE-C2-R01's own counts.\n\nBoth the matrix and the totals were **rebuilt and re-asserted at write time** rather than transcribed, and the file's own `validator_rules` are asserted before it is written: every leaf resolves to a row class, no row's `blocking_contract` has `kind: presentation`, no `presentation_gaps` id appears in any `evidence_absent`, and no slot carries a value.\n\n## Two new questions\n\n**Q2-24 \u2014 `FORD_WALK` has an id and a bit but no behaviour.** `_cursor_mode` is written at `_attach_route()` and read only by `admitted_mode_of()`; no cell predicate, cost or eligibility rule consults it. Ford and ground walk are today the same traversal with different labels. `world_init.gd` does define a ford geometrically (`is_ford()`, river tiles z = 48..51, `FORD_Y_UNITS = -128`), but that is inherited GDD \u00a75.1 map geometry, not a movement policy, and no per-profile water-depth limit exists anywhere.\n\n**Q2-32 \u2014 does HAZ-001's CHILD prohibition reach travel?** It forbids CHILD hazardous *work* and excavation, and classifies dive, swim and unprotected climb as dangerous. Whether a child may *travel* those modes is stated nowhere. That single unanswered question is what prevents 48 CHILD rows from being classified either way \u2014 and they stay `unresolved_q2` rather than being upgraded to `explicitly_disabled` by inference.\n\n## It found real envelope data and refused to use it\n\n`godot/assets/lookdev/proportion_comparison_manifest.json` **does** carry per-pose horizontal and vertical extents for five species. Recorded as `EV-BLOCKOUT-POSE-BOUNDS` and disqualified on five independent grounds, any one sufficient: hand-authored blockout rather than reviewed production geometry; `landmark_status: PROPOSED_FOR_REVIEW`; MOVE-C2-R01's explicit proxy exclusion; discrete rest poses rather than a sweep with an error bound; and no margin or declared anchor-to-root offset, which Q1 \u00a73 makes disqualifying on its own.\n\nThat is the \"already exists\" trap this project has been caught by before \u2014 found, named, and neither used nor pretended away.\n\n## Two claims in our own planning docs are false today\n\n`movement_starter_ground_profile.md` asserts `residents.gd` has no life-stage column and that `SpeciesDefinition.rig_id` has no values. **Both exist.** Treated as historical and not repeated.\n\nReported, not edited: `docs/planning/asset_dimensions_and_budgets.md` lists squirrel at 1024 u against DEC-039's approved **1178**, which the lookdev manifest already carries. Another lane's file.\n\n## The separation it binds itself to\n\n> A missing rig is a presentation/export gap. A missing clearance, profile or contact contract is a movement **admission** blocker. They must refuse differently, and neither may be substituted for the other.\n\nAll sixteen rig identities exist and **close nothing here** \u2014 a logical rig identity is not a capability. Conversely no missing mesh or clip appears anywhere as a reason a species cannot use a mode; those live only in `presentation_gaps`, which no admission validator reads. `BC-RIG` is declared `kind: presentation` specifically so a validator can assert it never appears as a row's blocker.\n\n## Not claimed\n\nNo dimension, cost, speed, air budget, depth or clearance value is authored. No route recentring is proposed \u2014 production placement stays `(+256,+256)`. MOVE-G01\u2013G05, 05.1b and the `MOVE-ENVELOPES` inbox item are unchanged. No paid generation is authorized.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/planning/movement_profile_authoring.md",
+        "additions": 341,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/movement_profile_readiness.json",
+        "additions": 1984,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/05/2026-09-14-profile-authoring.md",
+        "additions": 61,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "4a59235d0b98b325829a9a02e71dee35116997ff",
+    "mergedAt": null,
+    "number": 123,
+    "state": "OPEN",
+    "title": "Movement Q2: 35 empty slots, 288 rows, and two questions nobody had asked",
+    "url": "https://github.com/gradybre/redwall-rts/pull/123"
+  },
+  {
+    "body": "RENDER-SPAWN, implementing INIT-POSE-R01. `settlement_system.gd` now composes **one** `transforms.gd` bound to the same EntityDirectory as the resident store; the renderer borrows it. `resident_pose_scaffold.gd` is **deleted whole**, and its test with it.\n\n## The ledger shrinks \u2014 the first negative row in this project\n\nThe arithmetic is exact rather than approximate: \u00a72.2's `Transform` rows (2,801,664) plus \u00a73's `TransformBinding` (350,208) = **3,151,872**, which is precisely what the scaffold duplicated. Nothing moved; bytes were removed.\n\n| Identity | Before | After |\n|---|---:|---:|\n| Allocation rows | 31 | **30** |\n| Planned payload | 72,110,995 | **68,959,123** |\n| One live world plus reserve | 80,499,603 | **77,347,731** |\n| Headroom below 100 MB | 19,500,397 | **22,652,269** |\n| Transactional peak | 146,395,014 | **140,091,270** |\n\nDecision 0130's `+3203072` step stays \u2014 only its second row is removed, and the 51,200 instance-buffer row it also added remains.\n\n## It found a crash in the merge gate\n\n`check_trail` parsed `int(delta.lstrip(\"+\"))`. A **U+2212 MINUS SIGN** \u2014 visually identical to ASCII `-` in a diff, and the obvious thing to paste from a document \u2014 raised `ValueError` out of the check, which reads as a *broken gate* rather than a bad row. That is the worse of the two failures.\n\nIt now refuses with the row, the value and the likely cause named. `test_merge_gate.py` gains both cases: a valid negative delta chains and passes; a Unicode minus refuses. Neither had ever been exercised, because until now **every row in this ledger added bytes**.\n\nThe lane hit this and worked around it with ASCII. The tool should not have needed the workaround.\n\n## Placement\n\nInitial cohort ordered by persistent ID, `i = persistent_id - 1`: exterior tile `(58+i, 69)`, root x `119808 + 2048*i`, y `512`, z `142336`, yaw `0`, previous equal to current. The hall's south apron \u2014 outside its `12x10` footprint, granting no home assignment.\n\n**`world_init.gd` is byte-identical to base**, verified by `git diff --quiet` and `shasum`. The clear mask *already* reserved the row: `is_cleared_tile()` includes `is_starter_apron_tile()`, whose hall ring covers x=57..70, z=58..69. No new reservation was needed and none was invented.\n\n## Mutations: 17 run, 17 killed\n\nFour survived the first pass and got **tests**, not equivalence claims. `refuse_assembly_occupancy()` and `resolve_assembly_order_into()` were made static and store/world-injected purely so fixtures can execute branches that are unreachable on a production world \u2014 on a real world an id-order rule and a slot-order rule are indistinguishable. Recorded in ADR 0138 rather than left as an unexplained signature.\n\nDisclosed unprompted: an earlier sequence was interrupted mid-mutation by the lane's own edit to a frozen file, leaving one `world_init.gd` mutant applied. It was restored from git, SHA-256 compared, every contaminated verdict discarded, and the 17 rows come from a single clean sequence over a frozen tree.\n\n## Evidence\n\n```\n./tools/run_tests.sh\nstate_registry_coverage: PASS -- 54 modules, 352 rows, 681 packed columns checked\n4355 test(s), 155623 assertion(s), 0 failure(s)\n```\n\nCaptures in `docs/validation/evidence/resident-render-path/authoritative-spawn/`. The harness printed `store settlement==stage true  settlement==crowd true  bound=12` \u2014 reference identity, one object \u2014 and capture `04` raises resident 1 by 2048 units, showing it visibly lifted with its shadow at `instance 0 origin (117.0, 2.5, 139.0)`. That is the proof the renderer reads the authoritative store rather than a copy.\n\n## Not claimed\n\n**No visual acceptance.** The cohort still draws as one untextured bind-pose mouse mesh, and the \u2212Z-forward facing question needs a human eye. Species, material, rig and facing validation are a separate presentation lane.\n\nOwed downstream, not merge-blocking: the \u00a74 Transform save codec round trip for a resident whose previous and current differ, and the rules-identity revision in `canonical_state_registry.json`, which another lane owned at the time.\n\nThere is **no definition for persistent ID 13+**. Immigration, births, rescue release, load and scenario variants need their own placement contracts, and later arrivals must not reuse the assembly row instead of the map exit `(64,126)`.\n\nRecorded as ADR 0138.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/decisions/0138-the-settlement-owns-one-pose-store-and-places-the-cohort-on-the-hall-apron.md",
+        "additions": 129,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/systems_architecture.md",
+        "additions": 7,
+        "deletions": 7,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/05_movement_first_playable.md",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/lanes/05/2026-09-14-render-spawn-authoritative-initial-poses.md",
+        "additions": 234,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/resident-render-path/authoritative-spawn/README.md",
+        "additions": 214,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/resident-render-path/authoritative-spawn/screenshots/01_authoritative_cohort_wide_1920x1080.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/resident-render-path/authoritative-spawn/screenshots/02_authoritative_cohort_closeup_1920x1080.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/resident-render-path/authoritative-spawn/screenshots/03_authoritative_cohort_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/resident-render-path/authoritative-spawn/screenshots/04_controlled_pose_change_1920x1080.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/merge_gate.py",
+        "additions": 12,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/ready07_arithmetic.py",
+        "additions": 11,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/test_merge_gate.py",
+        "additions": 11,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/core/transforms.gd",
+        "additions": 53,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/main.gd",
+        "additions": 7,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/presentation/resident_crowd.gd",
+        "additions": 14,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/presentation/resident_pose_scaffold.gd",
+        "additions": 0,
+        "deletions": 145,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "godot/scripts/presentation/resident_stage.gd",
+        "additions": 33,
+        "deletions": 18,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/systems/settlement_system.gd",
+        "additions": 341,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_resident_crowd.gd",
+        "additions": 18,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_resident_pose_scaffold.gd",
+        "additions": 0,
+        "deletions": 167,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "godot/test/test_resident_stage.gd",
+        "additions": 58,
+        "deletions": 14,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_settlement_system.gd",
+        "additions": 537,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_transforms.gd",
+        "additions": 76,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefOid": "024d09affc83faf377d5fc5276db5d510751ca7a",
+    "mergedAt": null,
+    "number": 122,
+    "state": "OPEN",
+    "title": "One authoritative pose store, and the 3,151,872 bytes that stopped being duplicated",
+    "url": "https://github.com/gradybre/redwall-rts/pull/122"
+  },
+  {
+    "body": "MOVE-ENVELOPE-TOOLING, implementing MOVE-C2-R01's measurement method. **This is tooling, not measurements** \u2014 no body dimension is invented, and every number in the fixtures is synthetic and refused if it claims otherwise.\n\n## The result Astra required, proved rather than asserted\n\n`compute_fit` returns four distinguishable refusals. For a negative translated minimum it returns `PLACEMENT_INCOMPATIBLE_AT_OFFSET`, never `CLEARANCE_CLASS_EXCEEDS_DOMAIN` \u2014 and it **proves** it by scanning the whole 1..512 domain:\n\n```\nPLACEMENT_INCOMPATIBLE_AT_OFFSET  synthetic_specimen_alpha/ADULT/GROUND_WALK/... [synthetic_fixture]\n   local x[-418..418] z[-418..418] -> translated x[-162..674] z[-162..674] at offset (256, 256)\n   translated minimum below the north-west anchor. The clearance square grows SOUTH and EAST\n   from its anchor, so no clearance class repairs this: 0 of the 512 published classes admit\n   these bounds. A naive ceil(max(width,depth)/cell) would have answered class 2, which is\n   exactly the lower bound MOVE-C2-R01 \u00a74 says never replaces containment.\n```\n\nNaming the wrong answer it would otherwise have given is the part that makes this useful: someone reading `class 2` would go hunting for a k that cannot exist.\n\n`FitResult.require_class()` raises on any refused fit \u2014 there is **no sentinel class**. Re-centring is neither proposed nor implemented; a non-baseline offset is accepted report-only and printed as `(NOT baseline: report only)`.\n\n## It reads the constants instead of restating them\n\n`spatial_world.gd` is byte-unchanged. The validator parses `CELL_SIZE_UNITS`, `CELL_CENTRE_OFFSET_UNITS`, `MIN/MAX_CLEARANCE_CLASS` and `CELLS_X/Z` out of it, mode ids out of `movement.gd`, and life-stage ids out of `residents.gd` \u2014 and **refuses a record file whose `convention` block disagrees with the parsed source.** A restated constant is a constant that drifts.\n\n## No dimension can masquerade as a measurement\n\nEvery number is a synthetic constant under `synthetic_specimen_alpha`. A record with `data_class: synthetic_fixture` is **refused if it carries provenance**, and a `measurement` is refused if it lacks it \u2014 so a fixture cannot be read as a body dimension in either direction. Measured extrema are exact signed integer micrometres; there is no float in the schema, validator or tests.\n\n## Evidence\n\n```\npython3 tools/test_movement_envelopes.py\ntest_movement_envelopes: PASS -- 124 check(s), 0 failure(s)\n\n./tools/run_tests.sh\n4338 test(s), 152837 assertion(s), 0 failure(s)\n```\n\nExit codes verified independently: naming no record file exits **1** (\"validating nothing is not a pass\"); the placement-incompatible fixture exits **2**; each malformed fixture exits **1**.\n\n**19 mutants, 19 killed**, one per invocation with a `shasum -a 256` byte-compare after each restore. Coverage includes the anchor offset dropped, quantization rounded inward on both bounds, the class bound and ceiling division off by one, the negative minimum misreported as a class problem, the placement check removed, and `require_class()` returning `-1` instead of refusing.\n\nThe lane corrected its own lane record, which said \"seventeen\" \u2014 the true count is 19 including two schema mutants. It also flagged that M1 initially killed only via an uncaught `TypeError`, so `main()` now records a crash as a failure rather than losing the summary line.\n\n## CI gap closed here\n\n`tools/test_movement_envelopes.py` was not in the workflow, which the lane reported as outside its allowlist. Now wired into the `contracts` job.\n\nRecorded as [ADR 0141](docs/decisions/0141-a-placement-refusal-is-not-a-clearance-class-refusal.md).\n\n**No movement gate is closed.** MOVE-C2-R01 Q2 per-species rows remain open and nothing here authors a profile.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": ".github/workflows/tests.yml",
+        "additions": 8,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/decisions/0141-a-placement-refusal-is-not-a-clearance-class-refusal.md",
+        "additions": 78,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/movement_envelope_schema.json",
+        "additions": 229,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/05/2026-09-14-envelope-tooling.md",
+        "additions": 89,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/test_movement_envelopes.py",
+        "additions": 584,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/validate_movement_envelopes.py",
+        "additions": 845,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "a0e9c17e37bd947d983e239ebfa39f922951e6e0",
+    "mergedAt": "2026-09-14T16:36:20Z",
+    "number": 121,
+    "state": "MERGED",
+    "title": "Movement envelope tooling: a placement refusal is not a clearance-class refusal",
+    "url": "https://github.com/gradybre/redwall-rts/pull/121"
+  },
+  {
+    "body": "Transfers Astra's Cycle 2 package and reconciles the queue with what has merged since its PR snapshot. **No implementation, no art approval, no credit authorization.**\n\n## Two blockers answered, one partially\n\n| Question | Ruling | Lane |\n|---|---|---|\n| Retired inventory rows vs the canonical digest | **INV-CANON-R01** \u2014 normalize unused payloads in the quiescent save/hash copy; preserve live values, generations and used free-stack order; never clear source attributes during hot retirement | DIGEST-DETERMINISM |\n| Container enumeration / stranded goods | **INV-GOODS-R01** \u2014 a bounded owner query, plus a real demolition coordinator that proves complete affected endpoints and rechecks goods/claims/occupants. Real hauling precedes demolition | CONSTRUCTION-GOODS |\n| MOVE-G01 Q1/Q2 | **MOVE-C2-R01** \u2014 retain classes 1\u2013512, measure swept body/gear/load bounds, quantize outward, prove fit against the actual north-west anchor. **Q2 production profiles remain open** | MOVE-ENVELOPE-TOOLING + MOVE-PROFILE-AUTHORING; MOVE-ENVELOPES stays gated |\n\n## The finding that prevents a wrong implementation\n\nA blanket retirement clear \u2014 the obvious reading of \"blank retired rows\" \u2014 is **unsafe** in the current algorithm. `_apply_transfer()` retires the source *before* `_credit_new_lot()` reads its attributes, and with one free lot slot the same slot is reused with a new generation. The save/hash adapter must not mutate those runtime bytes; normalization belongs in the quiescent copy.\n\nAlso: generation MAX is **not** synonymous with retirement. A slot freed from MAX\u22121 is pushed at MAX for its final valid reuse, so free-MAX, live-MAX and retired-MAX are three distinct states, and prefix membership plus occupancy is what distinguishes them.\n\nAnd a reachable state the merged \u00a77 codec would reject: reserving 250 milli-U on a 1000 lot then merging into a compatible 1000 lot leaves the dead source at quantity 0 / reserved 250 while the live destination correctly holds reserved 250. An unconditional `reserved <= quantity` check rejects it. The new projection writes dead `reserved=0` while retaining the live claim.\n\n## Queue reconciliation\n\nAstra's queue was computed against a base older than master, so `git apply --3way` conflicted on all five shared planning files. The planner's versions are authoritative for Cycle 2, so they were taken whole and corrected for three landings its PR snapshot predates: PACKET-EVIDENCE done (#117), SAVE-REGISTRY-RECONCILE done (#119), ART-UI-12-EVIDENCE in review (#118).\n\n**RENDER-SPAWN is marked `in_flight`.** It was dispatched before Cycle 2 landed and is still running, and it owns `settlement_system.gd` and its test \u2014 which CONSTRUCTION-GOODS also claims. Without that mark the dispatcher offered both at once, which is exactly the collision the ownership rule exists to prevent. The queue now withholds CONSTRUCTION-GOODS and offers three lanes rather than four.\n\n## One pin relaxed, with its reason\n\nAstra's own `validate_cycle02_handoff.py` required `PACKET-EVIDENCE` to be `review` with pr 117 \u2014 a snapshot of its PR-query moment. #117 has since merged, so that pin would fail on a tree that is *more* correct than the one it was written against. The PR number is the durable half and stays exact; the status may advance, since a lane only moves forward from review. Same distinction as `packed_source_field_count`: a snapshot REG-R01 requires to grow is not a format constant.\n\n## Evidence\n\n`merge_gate` \u00b7 `ready07_arithmetic` \u00b7 `decision_numbers` (132) \u00b7 `lane_notes` \u00b7 `state_registry_coverage` \u00b7 `validate_save_registry_handoff --source-root .` \u00b7 `generate_canonical_state_table --check` \u00b7 `dispatch_plan --validate` (27 tasks) \u00b7 `astra_inbox --check` \u00b7 Astra's `validate_cycle02_handoff` (37 checks) \u2014 all PASS.\n\nAstra separately ran a focused Godot probe against unchanged local Inventory, byte-identical to PR116: **14 checks, 0 failures**. Its two failed preliminary attempts are preserved in the package, including one whose exit helper could print success after an assertion \u2014 diagnostic-harness errors, not production fixes.\n\nRecorded as ADR 0140.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/STATUS.md",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/decisions/0140-cycle-two-inventory-projection-and-movement-measurement.md",
+        "additions": 25,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/README.md",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/LATEST.json",
+        "additions": 5,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle2_inventory_probe.log",
+        "additions": 14,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle2_inventory_probe_attempt1.log",
+        "additions": 94,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle2_inventory_probe_attempt2.log",
+        "additions": 54,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_02.md",
+        "additions": 175,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_02_checks.log",
+        "additions": 51,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_02_evidence.json",
+        "additions": 113,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_02_inventory_target.json",
+        "additions": 481,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_02_merged_prs.json",
+        "additions": 92,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_02_open_prs.json",
+        "additions": 138,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/work_queue.json",
+        "additions": 136,
+        "deletions": 30,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/rulings/2026-09-14_cycle02_construction_goods.md",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/rulings/2026-09-14_cycle02_inventory_canonicalization.md",
+        "additions": 194,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/rulings/2026-09-14_cycle02_movement_envelopes.md",
+        "additions": 146,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/rulings/requests/OPEN.md",
+        "additions": 3,
+        "deletions": 31,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/rulings/requests/open_items.json",
+        "additions": 35,
+        "deletions": 25,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/cycle02_inventory_probe.gd",
+        "additions": 37,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/validate_cycle02_handoff.py",
+        "additions": 100,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "2c12b82c0ea2c0b2d868ed661e38401fc892bf42",
+    "mergedAt": "2026-09-14T15:42:08Z",
+    "number": 120,
+    "state": "MERGED",
+    "title": "Astra Cycle 2: inventory canonicalization, stranded goods, movement measurement",
+    "url": "https://github.com/gradybre/redwall-rts/pull/120"
+  },
+  {
+    "body": "SAVE-REGISTRY-RECONCILE, Astra Cycle 1 step 2. Astra called this \"a concrete unrecorded schema omission ... that must be repaired, not accepted as an exclusion.\"\n\nSeventeen `construction.gd` packed columns existed in code and in `docs/persistence_state_registry.md`, classified as persistent state, and were **absent from `canonical_state_registry.json`**. No gate was looking \u2014 Astra found it by reading the tree.\n\n## What landed\n\n16 project columns as `(4, \"construction\", v1)` and `_delivered_milli` as `(5, \"construction\", v1)`, all `hash: true`, under one new contract key **C172** \u2014 computed as `max(int(k[1:]))+1` from the file, because a previous lane proposed a key that was already taken. Types read off the GDScript; capacities quote `CONSTRUCTION_CAPACITY = 82944` and `DELIVERED_CELLS = 331776`.\n\n`_present` takes **ordinal 0** under ARCH-SAVE-002's occupied-bitset-first rule, even though `construction.gd` declares it after `_material_container_slot`. `(4,\"needs\")` and `(4,\"buildings\")` already carry the same hoist.\n\n## Both pins moved, and for a different reason than last time\n\n`record_count` 582 \u2192 **599**, `packed_source_field_count` 536 \u2192 **553**.\n\nDecision 0133's eight `event_schedule` fields were *already declared* before their module existed, so that landing moved the packed count alone. Construction's seventeen were **never declared**, so they are seventeen new `hash: true` declarations and `record_count` follows. That contrast is written beside both numbers in the validator and the test, not just the digits \u2014 confusing the two is how a snapshot becomes a format constant that refuses every new store.\n\n## The mutant that justifies the new tests\n\n**G5**: the registry reordered into `construction.gd`'s declaration order *and the table regenerated consistently*. The Python validator passed and **every pre-existing Godot test passed.** Those tests only prove the table and the JSON agree \u2014 they cannot see the two agreeing about the wrong thing. The new `test_construction_section_four_columns_are_declared_in_order` pins key order and type codes as literal constants and was the sole failure.\n\nThat is the same symmetric-blindness shape as \u00a77's `_read_block()` and \u00a79's ordinal swap.\n\n12 mutants, 12 killed, one per Godot invocation, every file `shasum -a 256` byte-compared after restore.\n\n## A generator that proved the hand-maintained table had already drifted\n\n`tools/generate_canonical_state_table.py` is new. `canonical_state_hash.gd`'s header has named it since ADR 0127 but it never existed, so 590 entries were hand-maintained. Run against the **pre-change** registry it reproduced the checked-in table byte for byte except one number: the header said \"530 persisted packed fields\" when the registry had said 536 since decision 0133.\n\n## The CI gap this exposed \u2014 fixed here\n\n`.github/workflows/tests.yml` ran `state_registry_coverage.py` but **not** `validate_save_registry_handoff.py`, the check that compares the registry against the GDScript backing it. `--source-root .` is the load-bearing half; without it the validator only checks the artifact against itself.\n\nBoth now run in the `contracts` job \u2014 pure Python, no engine, no LFS, 0.2s. **Verified as a negative:** removing one construction column's declaration makes both new steps exit 1; restoring it makes both exit 0, with the registry byte-identical by `shasum`.\n\n## Evidence\n\n```\nPASS source membership/types: 553 persisted packed fields\nPASS registry structure: 52 owners, 599 canonical records\nPASS generated declaration table matches canonical_state_registry.json\nstate_registry_coverage: PASS -- 54 modules, 352 rows, 681 packed columns checked\ndecision_numbers: PASS -- 130 records\nmerge_gate: PASS\nok: 4338 tests, 152837 assertions, 0 failures.\n```\n\n## Scope deliberately not claimed\n\n**R-WORLD-S1-001 untouched** \u2014 `resource_nodes`' three deposit members are still declared, its `owner_schema_version` is 1, `section_schema_versions[0]` is 2. That ruling's \"\u22123 only\" figures of 579/533 were explicitly forbidden as final pins; the integrated totals are 599/553, which is what it asked for. SAVE-S1-OWNERS activates that migration atomically.\n\nNo section or owner version movement: both new blocks are additions at `owner_schema_version 1`, no existing owner's field set changed, and no \u00a74 or \u00a75 codec exists to pin either number against.\n\nNo adapter \u2014 `production_walker()` still refuses `CANONICAL_NO_ADAPTER`, now listing 52 owners.\n\n`source_module_sha256` left stale **on purpose**: nine of its 47 entries already disagree with the tree and seven core modules are absent from it. It is a 197472b snapshot, and half-refreshing it would make it look current.\n\nRecorded as ADR 0137.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": ".github/workflows/tests.yml",
+        "additions": 14,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/decisions/0137-construction-columns-were-implemented-state-that-was-never-declared.md",
+        "additions": 112,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/persistence_state_registry.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/planning/canonical_state_registry.json",
+        "additions": 258,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-14-save-registry-reconcile-construction-columns.md",
+        "additions": 93,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/validate_save_registry_handoff.py",
+        "additions": 9,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/core/canonical_state_hash.gd",
+        "additions": 66,
+        "deletions": 63,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_canonical_state_hash.gd",
+        "additions": 58,
+        "deletions": 8,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tools/generate_canonical_state_table.py",
+        "additions": 155,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "87534c78bfd066209e90306b391af4f906d40ffc",
+    "mergedAt": "2026-09-14T14:26:46Z",
+    "number": 119,
+    "state": "MERGED",
+    "title": "Construction's seventeen columns were implemented state nobody declared",
+    "url": "https://github.com/gradybre/redwall-rts/pull/119"
+  },
+  {
+    "body": "ART-UI-12-EVIDENCE, Astra Cycle 1. **Evidence only \u2014 no visual approval is claimed or granted anywhere in this change. ART-UI-12 remains Brendan's verdict.**\n\nAstra found the existing captures insufficient: \"the roster-over-alert and clipped-counter examples fail the intended readable shell.\" Rather than re-shoot the 40 captures that already exist, this closes the two gaps they cannot answer.\n\n**This branch changes no `godot/` file.** Measured against the merge base, which is the correct measure: `git diff $(git merge-base origin/master HEAD) HEAD -- godot/` is empty. An earlier revision of this body said `git diff origin/master HEAD -- godot/`, which was true when written and became false the moment #119 merged and changed two `canonical_state_hash` files on master. The lane caught that; a moving tip is not a baseline. `art_approvals.json` and `docs/design/ui_refinement/` are untouched. No credits spent.\n\n## Counter clipping: arithmetic, not anecdote\n\nText budget = cell width \u2212 24 px icon \u2212 2+2 px style margins \u2212 4 px separation = **77.33 px STANDARD / 72.00 px NARROW**.\n\nTwo facts the existing 40 captures did not carry:\n\n- **No populated counter fits** at 1280\u00d7720 at any of the three user scales \u2014 two digits maximum at STANDARD.\n- **The bare word `Residents` measures 86.00 px**, so that cell overflows **with no value in it at all**.\n\nCapture `03` puts the boundary in one frame: `Food 1` and `Wood 12` whole, `Stone 123` \u2192 `Stone 12`, `Residents 1234` \u2192 `Resident`.\n\n## Occlusion: measured, not inferred from a flag\n\nPreviously this rested on cards reporting `visible = true`. Captures are bit-deterministic (same mode twice \u2192 0 differing pixels of 921600), so the comparison is exact:\n\n| Pair | Differing pixels |\n|---|---|\n| `10` vs `11` \u2014 alert expired vs active, workspace open | **0 of 14080** over card 0's rect `(462,18,320,44)`; **0 of 11520** over card 1's band |\n| `11` vs `12` \u2014 workspace open vs closed, alert active | 2829 and 2641 |\n\nThe cards are placed, report visible, and draw **zero pixels** while the workspace is open.\n\n## A third condition found and deliberately not captured\n\nThe same unstated \u00a71.2 precedence puts **216 of the resources rectangle's 360 px**, and the minimap frame from x=160, inside the modal rectangle `(160,16,960,688)`. Already visible in existing capture `40`, merely unremarked \u2014 so it is named with arithmetic in the README rather than re-shot.\n\n## Reproducibility\n\n```\ngodot --headless --path godot --editor --quit            # mandatory first, fresh worktree\ngodot --path godot --script capture_artui12_scratch.gd --resolution 1280x720 \\\n    -- <ABSOLUTE-out.png> <mode> <scale>\ngodot --headless --path godot --script diff_artui12_scratch.gd -- <a.png> <b.png> <x y w h>\n```\n\nEvery run wrapped in `perl -e 'alarm 240; exec @ARGV'`. Modes per file are tabulated in the README.\n\nSuite on the final tree: `ok: 4336 tests, 152719 assertions, 0 failures.`\n\nDEVIATIONS: (1) a third occlusion frame was shot \u2014 the workspace-closed control `12` \u2014 because a bare with/without pair cannot distinguish \"occluded\" from \"the card drew nothing\"; (2) the `ladder` mode supplies value magnitudes through `ui_shell.set_counter_display()`, the only harness-supplied content in the set, labelled as such in the README, with all nine other captures carrying store-derived or boot values only; (3) the per-cell fit diagnostic returned `-1` when a bare label already overflowed its budget \u2014 a sentinel standing in for a count, against the house rule \u2014 and now prints `value_digits_that_fit=none, the bare label already overflows`. Printed diagnostic only; the byte-identical reproduction of capture 03 proves no pixel depends on it. Integration note: the lane's commits were authored with a private email GitHub refused to publish and were rewritten to the `users.noreply.github.com` address every other commit here uses; content unchanged. Astra accepted (1) and (2) in Cycle 2 as \"reasonable evidence choices\".\nSURVIVED_MUTANTS: none \u2014 this lane runs no mutations.\nBLOCKED: none.\n\n## Harnesses retained \u2014 Astra's Cycle 2 follow-up\n\nAstra asked for the deleted capture/diff scripts back so the evidence is reproducible from repository contents. They now live at `docs/validation/harnesses/artui12/`, and the README's command blocks name the path they invoke.\n\nThe lane **measured** rather than assumed that Godot 4.7.2 resolves `--script` outside the project directory \u2014 both the relative and absolute forms produce identical output \u2014 so no file sits loose in `godot/` and there is no copy-in step.\n\nReproduction proof: re-running the capture from the restored location produced a PNG **byte-identical** to the committed capture 03, `sha256 eb4a9f78\u2026`, with the diagnostic printing `Wood 12 text_px=76.00 budget_px=77.33 FITS` and `Stone 123 \u2026 CLIPPED by 8.67 px`.\n\nOpen and deliberately not decided here: the `_scratch` suffix in both filenames is now a misnomer, kept because the committed README and this PR both cite it.\n\n## Recorded, not chased\n\nBetween `10` and `11` the roster's first row *label* shifts 4 px horizontally while the row's own reported rect `(172,28,280,56)` is identical in both. An unexplained relayout side effect, noted in both documents and explicitly not claimed as part of either defect.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "files": [
+      {
+        "path": "docs/tasks/lanes/04/2026-09-14-art-ui-12-evidence-cycle-01.md",
+        "additions": 69,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/01_counters_standard_1280x720_100_markers.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/02_counters_standard_1280x720_100_settlement.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/03_counters_standard_1280x720_100_ladder.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/04_counters_narrow_1280x720_125_markers.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/05_counters_narrow_1280x720_125_settlement.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/06_counters_narrow_1280x720_125_ladder.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/07_counters_narrow_1280x720_150_markers.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/08_counters_narrow_1280x720_150_settlement.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/09_counters_narrow_1280x720_150_ladder.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/10_occlusion_roster_open_alert_expired_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/11_occlusion_roster_open_alert_active_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/12_occlusion_roster_closed_alert_active_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/cycle-01/README.md",
+        "additions": 260,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/harnesses/artui12/capture_artui12_scratch.gd",
+        "additions": 190,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/harnesses/artui12/diff_artui12_scratch.gd",
+        "additions": 64,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "73efa1e62da16497299e0c505506b84502cc57a7",
+    "mergedAt": "2026-09-14T16:36:31Z",
+    "number": 118,
+    "state": "MERGED",
+    "title": "ART-UI-12 evidence: the clipping budget in numbers, the occlusion in pixels",
+    "url": "https://github.com/gradybre/redwall-rts/pull/118"
+  },
+  {
+    "body": "PACKET-EVIDENCE, Astra Cycle 1. Two problems, one root cause: the review packet was auditing the wrong thing, and two separate parsers disagreed about what a declaration means.\n\n## The packet was not auditing pull requests\n\nIt read **local HEAD commit bodies**, used `git log --merges` (which omits squash merges entirely), and could not see work merged after the local ref. It then reported \"None in this window\" \u2014 which Astra correctly called unsupported: of 103 in-window merged PRs, it listed 50, missed 49 reachable from cached master, and three more it could not reach at all.\n\nNow sourced from merged PR bodies via `gh pr list --search`, with pagination by **time bisection** \u2014 that API has no cursor, so a sub-window returning exactly `--limit` rows is split into overlapping halves and re-queried, and a saturated one-second window **raises** rather than silently returning short. Verified live: the same 105 records at `--limit 100` (3 sub-queries) and at `--limit 10` (37 sub-queries).\n\nThe packet now states which ref and window it covered, how many records it saw, and what it could not see \u2014 so it can no longer present *no evidence* as *no exceptions*.\n\n## The grammar: five outcomes, not two\n\n```\nCLEAR      <- normalises to exactly \"none\"\nMALFORMED  <- normalises to empty\nQUALIFIED  <- begins \"none\" + non-word char, with anything else remaining\nDECLARED   <- anything else\nMISSING    <- no declaration line for that block\n```\n\n**`none \u2014 <explanation>` is QUALIFIED, and that is the load-bearing choice.** The two constraints admit no binary answer. Calling it empty means `SURVIVED_MUTANTS: none \u2014 M7 is still alive, we shipped anyway` clears the gate. Calling it non-empty is what misreported #103 and #104, which both describe mutants that *died*. No regex separates those strings \u2014 the difference is in the meaning of prose. So the parser refuses to decide: QUALIFIED is neither cleared nor counted as a survivor; it is printed in full in its own section that says only a human can grade it.\n\nDeliberate consequences: `n/a` is DECLARED (only the literal `none` clears \u2014 widening the vocabulary widens the hiding place); a lowercase `deviations:` is MISSING, so casing-evasion lands in the *louder* bucket; multiple lines take the **most severe** outcome, so a trailing `DEVIATIONS: none` cannot cancel a real one above it; `|` is excluded from the margin, so a docs table naming the blocks is a specification, not a declaration.\n\n## The hole this exposed in the merge gate\n\n`auto_merge.py` kept its own parser for the same three blocks, and it used `re.search` \u2014 **the first match wins.** A real exception written below an earlier `none` was invisible and the PR merged:\n\n```\nDEVIATIONS: none\n...\nDEVIATIONS: overruled the brief, shipped anyway   <- never seen\n```\n\nDemonstrated against the old code before replacing it. `check_report` now calls `review_packet.parse_declarations`. Two parsers for one grammar is how the two drift.\n\n| case | before | after |\n|---|---|---|\n| honest `none` | merges | merges |\n| real exception after a quoted `none` | **merges** | holds |\n| bare blocks, no content | holds | holds |\n| qualified `none` | merges | holds |\n| genuine survivor | holds | holds |\n\n**One correction to the lane's report:** it stated a bare `DEVIATIONS:` auto-merges today. It does not \u2014 the old pattern's greedy `\\s*` swallows the newline and captures the following line. The ordering hole is the one that actually bites. Checked empirically rather than by reading.\n\n## Mutations\n\n16 run, one per invocation, byte-compared after each restore. **14 killed first time; 2 survived and exposed real test gaps:**\n\n- *margin admits `|`* survived \u2014 the fixture had prose before the block name, never exercising the pipe exclusion. Two table-cell fixtures added. Killed.\n- *`_cell` truncates to 40 chars* survived \u2014 the \"in full\" assertion only checked a prefix. Replaced with character-for-character containment plus \"no `\u2026` anywhere in the packet\". Killed.\n\nNo test weakened or deleted.\n\n## Evidence\n\n```\nreview_packet self-test: 67 case(s), 0 failure(s) -- PASS\nreview_packet: 103 PR record(s) from snapshot; 2 declared, 2 qualified, 0 malformed, 282 missing block(s)\nstate_registry_coverage: PASS -- 54 modules, 352 rows, 681 packed columns checked\n4336 test(s), 152719 assertion(s), 0 failure(s)\n```\n\nThe self-test replays the preserved corpus and reproduces Astra's counts exactly: 103 records, 9 with all three blocks, 94 with none.\n\nRecorded as ADR 0139.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/decisions/0139-a-declared-grammar-for-the-declaration-blocks.md",
+        "additions": 183,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/review_packet.md",
+        "additions": 80,
+        "deletions": 83,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-14-review-packet-evidence-and-declaration-grammar.md",
+        "additions": 70,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/auto_merge.py",
+        "additions": 31,
+        "deletions": 8,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tools/review_packet.py",
+        "additions": 490,
+        "deletions": 127,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tools/test_review_packet.py",
+        "additions": 306,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "bd1af7711aeb282f50a4dc35abfbfef778cd0634",
+    "mergedAt": "2026-09-14T14:26:36Z",
+    "number": 117,
+    "state": "MERGED",
+    "title": "A declared grammar for the declaration blocks, and the merge gate hole it exposed",
+    "url": "https://github.com/gradybre/redwall-rts/pull/117"
+  },
+  {
+    "body": "Astra Cycle 1, step 1. Astra reviewed a working snapshot, Git HEAD pointed at a much older commit, and merged master was ahead of both. Every Cycle 1 lane needs to know which is authoritative for what \u2014 so this records it once rather than having each lane rediscover it.\n\n## The reconciliation\n\n| | |\n|---:|---|\n| **1413** | identical between the reviewed snapshot and merged master |\n| **51** | master-only \u2014 \u00a77/\u00a712 codecs and lane records merged after the snapshot |\n| **12** | diverged \u2014 **master newer in all twelve**; nothing in the snapshot was ahead |\n| **0** | local-only tracked files |\n| **17** | untracked \u2014 the only genuinely new content, transferred here |\n| **11** | Astra's unstaged edits, applied with `git apply --3way` **per file** so one failure could not abort the rest. All eleven clean. |\n\n## Brendan's work was not touched\n\nThe staged index is preserved as a **reachable commit** at `refs/wip/baseline-2026-09-14`, written with `commit-tree` so it cannot be garbage-collected. The working tree still reports the same 341 changed paths it did before this lane started. Nothing was mass-committed \u2014 its content is already in master.\n\n## Four ADR collisions, resolved by comparing content\n\nAstra and the executor allocate decision numbers from separate sessions with no shared counter, so collisions are the expected outcome rather than bad luck.\n\nThe untracked `0090`/`0091`/`0092` turned out to be **stale pre-renumber copies** of decisions master already carries as `0097`/`0106`/`0107` \u2014 two byte-identical below the heading, and the third differing only by a provenance note master already carries *describing that very renumber*. Dropped as superseded, which is not the same as deleting an unexplained copy.\n\nAstra's cycle-one ADR is genuinely new and took **0136**, since 0135 is the merged lane-records decision.\n\n### I got that wrong first\n\nThe initial pass renumbered the three stale copies to 0136/0137/0138, **creating a third copy of each decision**. It was caught only by reading the queue's own `owns` list, which already named 0097/0106/0107 as the live numbers. Reverted before commit.\n\nThe ruling said to resolve duplicates *by comparing contents*. I renumbered first and compared after; doing it in the stated order would have caught this immediately. It is recorded in the manifest rather than quietly fixed.\n\n## Reproduced, deliberately not fixed\n\n`validate_save_registry_handoff.py --source-root .` fails exactly as Astra reported: **17 `construction.gd` packed fields** classified as persistent state but absent from `canonical_state_registry.json`. That is `SAVE-REGISTRY-RECONCILE`'s owned work.\n\nThe manifest also flags that `SAVE-REGISTRY-RECONCILE` and `SAVE-S1-OWNERS` both touch the canonical registry and **must not run concurrently** \u2014 Astra's sequence requires the reconcile to preserve the S1 scratch change, or the two to run as one owned lane.\n\n## Shutdown warnings \u2014 two different pairs\n\nAstra's packet recorded one. There are two, from different invocations:\n\n| Invocation | ObjectDB leaked | Resources in use |\n|---|---:|---:|\n| `--editor --quit` import pass | 1464 | 7 |\n| `--script test/run_tests.gd` | 14 | 3 |\n\nNeither fails a test; neither is investigated here. `CLEAN-SHUTDOWN` is in Astra's absent-work list and needs its own lane.\n\n## Evidence\n\n```\n./tools/run_tests.sh\nstate_registry_coverage: PASS -- 54 modules, 352 rows, 681 packed columns checked\n4336 test(s), 152719 assertion(s), 0 failure(s)\n```\n\nIdentical to master, as expected for a docs-only change. `merge_gate`, `ready07_arithmetic`, `decision_numbers` (129), `lane_notes`, `dispatch_plan --validate` (24 tasks), `astra_inbox --check` and Astra's own `validate_cycle01_handoff` all PASS.\n\n**No ruling is implemented here.** INIT-POSE-R01 and R-WORLD-S1-001 remain for RENDER-SPAWN and SAVE-S1-OWNERS. No credits authorized, no visual acceptance granted.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/STATUS.md",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/automation/astra_loop_prompt.md",
+        "additions": 8,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/decisions/0136-cycle-one-starter-poses-and-world-owner-framing.md",
+        "additions": 27,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/game_gdd.md",
+        "additions": 9,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/planning/README.md",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_01.md",
+        "additions": 234,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_01_baseline.log",
+        "additions": 7777,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_01_checks.log",
+        "additions": 45,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_01_evidence.json",
+        "additions": 527,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_01_merged_prs.json",
+        "additions": 929,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/astra_cycles/cycle_01_world_schema.json",
+        "additions": 1149,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/integration_manifest.json",
+        "additions": 192,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/review_packet.md",
+        "additions": 13,
+        "deletions": 21,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/planning/work_queue.json",
+        "additions": 277,
+        "deletions": 37,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/rulings/2026-09-14_initial_resident_positions.md",
+        "additions": 161,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/rulings/2026-09-14_world_section_owner_encoders.md",
+        "additions": 374,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/rulings/requests/OPEN.md",
+        "additions": 17,
+        "deletions": 34,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/rulings/requests/open_items.json",
+        "additions": 39,
+        "deletions": 27,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/systems_architecture.md",
+        "additions": 14,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/evidence/astra-review-2026-09-12/28_identity_narrow_1280x720_150_short.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/astra-review-2026-09-12/29_identity_narrow_1280x720_150_name32.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/astra-review-2026-09-12/README.md",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/save_registry_handoff_results.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/validate_cycle01_handoff.py",
+        "additions": 94,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/astra_inbox.py",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tools/review_packet.py",
+        "additions": 12,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefOid": "249b235b3925483792beee0feb821c6c992ad1a8",
+    "mergedAt": "2026-09-14T13:37:10Z",
+    "number": 116,
+    "state": "MERGED",
+    "title": "BASELINE-INTEGRATION: one shared base from three disagreeing snapshots",
+    "url": "https://github.com/gradybre/redwall-rts/pull/116"
+  },
+  {
+    "body": "Every lane finished by appending a dated `## ` section to the end of its task checklist. Two lanes finishing against the same checklist wrote at the same place, so git called it a conflict **every time** \u2014 five for five on `09_persistence_replay_reliability.md` in one round, each the same mechanical keep-both where the answer was never in doubt.\n\nThe cost was never the risk of resolving one wrongly. It was that it recurred on every lane forever, and a resolution done by hand thirty times eventually gets done carelessly \u2014 on the file that records what shipped.\n\n## It was not a \u00a709 problem\n\nTen task files carried **38 dated sections** between them. \u00a706 had seven, \u00a704 eight, \u00a704.5 five. \u00a709 only conflicted first because it was busiest; every one of those files was the same conflict waiting for two lanes to touch it.\n\nAll 38 moved to `docs/tasks/lanes/<task>/<YYYY-MM-DD>-<slug>.md`, each opening with a title, a `Task:` line and a `Date:` line. Headings promoted one level; fenced code blocks left alone. **Two new files with different names cannot conflict, in any landing order.**\n\n## Two deliberate choices\n\n**No committed index.** An index is a shared file with a shared append point \u2014 it would reintroduce precisely what this removes. The directory listing is the index; `tools/lane_notes.py` renders it on demand.\n\n**The checklists stay.** The `[ ]` and `[x]` items are real task state, and lanes tick distinct lines. That collides rarely, and when it does the collision is *meaningful* and wants a human. Only the dated write-ups moved.\n\n## The check matters more than the migration\n\n`tools/lane_notes.py --check` runs in the `contracts` job and refuses **a task file that has grown a dated `## ` section again** \u2014 the habit coming back, which is the actual failure mode. Without it this is a tidy-up that lasts until the next lane forgets its brief, and briefs are written fresh each round.\n\nIt also refuses a file not named `<date>-<slug>.md`, one missing its title/`Task:`/`Date:` lines, and a `lanes/<n>/` directory naming no task file.\n\nVerified as a negative, not just a pass: appended a dated section, confirmed the refusal names the file **and line**, restored it, confirmed both a PASS and a byte-identical `shasum -a 256`.\n\n## Evidence\n\n```\n./tools/run_tests.sh\nstate_registry_coverage: PASS -- 54 modules, 352 rows, 681 packed columns checked\n4336 test(s), 152719 assertion(s), 0 failure(s)\n```\n\nWorth recording: the **first** run in this fresh worktree reported `37 failure(s)` because I ran it before `godot --headless --path godot --editor --quit`. After the import pass the assertion count matches the pre-change run exactly (152719), so all 37 were the documented unimported-resource phantom, not anything here. This change touches markdown, one new Python tool and a CI step.\n\n`decision_numbers` PASS (128 records) \u00b7 `merge_gate` PASS \u00b7 `ready07_arithmetic` PASS \u00b7 `lane_notes` PASS (38 records).\n\nRecorded as [ADR 0135](docs/decisions/0135-lane-records-are-one-file-each.md).\n\n## What this does not fix\n\n`docs/systems_architecture.md` is deliberately **not** split. A memory ledger genuinely is one document, and splitting it would break the arithmetic every validator depends on. That file stays serialised by the dispatcher's ownership rule, which is a slower answer but the correct one.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": ".github/workflows/tests.yml",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/decisions/0135-lane-records-are-one-file-each.md",
+        "additions": 73,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/02_settlement_foundation.md",
+        "additions": 6,
+        "deletions": 490,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/02_test_migration_ledger.md",
+        "additions": 6,
+        "deletions": 47,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/03_ecology_crops_weather.md",
+        "additions": 6,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/04_5_ui_visual_refinement.md",
+        "additions": 7,
+        "deletions": 83,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/04_world_commands.md",
+        "additions": 7,
+        "deletions": 28,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/05_movement_first_playable.md",
+        "additions": 6,
+        "deletions": 26,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/06_buildings_rooms_logistics.md",
+        "additions": 6,
+        "deletions": 121,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/08_community_scenarios_progression.md",
+        "additions": 6,
+        "deletions": 98,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/09_persistence_replay_reliability.md",
+        "additions": 6,
+        "deletions": 636,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/10_presentation_qualification.md",
+        "additions": 6,
+        "deletions": 37,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/lanes/02/2026-09-06-retired-at-arch-mig-006-steps-4-5.md",
+        "additions": 26,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/02/2026-09-06-review-outcome.md",
+        "additions": 495,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/02/2026-09-07-reader-follow-up.md",
+        "additions": 14,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/03/2026-09-12-seed-expiry-follow-up.md",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/04/2026-09-11-building-domain-ruling-definitions-resolved.md",
+        "additions": 13,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/04/2026-09-11-f6-and-asset-integration-follow-up.md",
+        "additions": 13,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/04/2026-09-11-identity-ruling-implementation-remains-open.md",
+        "additions": 12,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/04/2026-09-11-narrow-alert-ruling-implementation-remains-open.md",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/04/2026-09-12-alert-r02-implementation-status.md",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/04/2026-09-12-astra-follow-up.md",
+        "additions": 8,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/04/2026-09-12-resident-ui-contract-follow-up.md",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/04/2026-09-12-ui-identity-r01-and-need-rate-r01-implementation-status.md",
+        "additions": 38,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/05/2026-09-11-latest-blocker-handoff.md",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/05/2026-09-12-astra-follow-up.md",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/05/2026-09-12-executor-g01-request-review.md",
+        "additions": 7,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/06/2026-09-11-06-1-s-first-increment-landed.md",
+        "additions": 7,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/06/2026-09-11-art-authoring-contract.md",
+        "additions": 12,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/06/2026-09-11-building-domain-ruling-definitions-resolved.md",
+        "additions": 13,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/06/2026-09-12-06-1-s-construction-store-and-its-lifecycle.md",
+        "additions": 41,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/06/2026-09-12-astra-follow-up.md",
+        "additions": 8,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/06/2026-09-12-econ-002-per-contributor-tool-settlement-eh-03-slice-of-06-4.md",
+        "additions": 36,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/06/2026-09-12-store-is-composed-into-the-settlement.md",
+        "additions": 23,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/08/2026-09-12-astra-follow-up.md",
+        "additions": 53,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-11-09-2-contract-handoff.md",
+        "additions": 16,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-09-2-section-3-entity-directory-implementation.md",
+        "additions": 46,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-09-3-section-7-inventories-and-lease-indexes.md",
+        "additions": 71,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-astra-follow-up.md",
+        "additions": 8,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-clock-queue-load-barrier.md",
+        "additions": 32,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-d2-allocator-section-1-composition-and-two-standing-barriers.md",
+        "additions": 62,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-directory-bulk-columns-blocker-d1-closed.md",
+        "additions": 48,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-name-r02-and-the-section-14-owner-wrapper.md",
+        "additions": 53,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-section-12-pending-commands-codec-save-section-pending-comma.md",
+        "additions": 70,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-section-14-name-pool-landed.md",
+        "additions": 56,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-section-15-state-digest-canonical-field-walker.md",
+        "additions": 53,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-section-4-component-store-bulk-columns-needs-residents-jobs.md",
+        "additions": 49,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-section-8-job-indexes-codec-save-registry-lane.md",
+        "additions": 61,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/09/2026-09-12-section-9-navigation-landed.md",
+        "additions": 57,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/10/2026-09-12-resident-render-path-crowd-tier-only.md",
+        "additions": 42,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/lanes/README.md",
+        "additions": 52,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/lane_notes.py",
+        "additions": 125,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "1b4dba6a2bb0c9e75a64f99a0ca47fdbf9f56428",
+    "mergedAt": "2026-09-14T12:20:05Z",
+    "number": 115,
+    "state": "MERGED",
+    "title": "One file per lane record, so two lanes cannot conflict",
+    "url": "https://github.com/gradybre/redwall-rts/pull/115"
+  },
+  {
+    "body": "Replaces #108, closed when `--delete-branch` removed its base on the #106 merge. Same head branch, same commits, retargeted to master.\n\nTwo commits: the lane's store, then the integration reconciliation the lane was deliberately not allowed to make.\n\n## The store\n\nTranscribed from the registry's \u00a711 declaration, not designed. Six packed columns at `CAPACITY = 64` in declared ordinal order, plus the two declared scalars. Allocated once in `_init()`; `resize()` appears only in `_allocate_columns()`. `_assert_contracts()` proves the eight keys, ordinals, type codes and SAVE-R09-005's 32-byte stride at construction, so a renumbering edit fails at `_init()` rather than at a save.\n\nAllocate-before-consume (ADR 0059): `_advance_sequence()` is the last statement of `schedule_into()`, so a full / exhausted / non-int32 / non-future refusal leaves the store byte-identical including `_next_sequence`. Day boundaries only via `(tick + 4500) mod 18000` \u2014 never `tick % 18000`, which is 06:00.\n\nTen mutations, all died, one per Godot invocation with a `shasum -a 256` byte-compare between runs.\n\n## The reconciliation\n\n`WorldRuntime.next_event_sequence` moves to EventSchedule ownership: **8 bytes changing owner, not 8 added.** WorldRuntime's I64 row drops 3 columns \u2192 2 (24 \u2192 16), EventSchedule gains a 1-column row (8). Net zero; every ledger total unchanged.\n\n`packed_source_field_count` 530 \u2192 **536**. `record_count` stays **582** \u2014 \u00a711's eight fields were declared long before a module implemented them.\n\n## Three things the lane got wrong\n\nAll from computing against a base that moved underneath it:\n\n| Reported | Actual |\n|---|---|\n| Ledger at lines 417/418/425 | The injury repair moved them to **434/435/441** |\n| Next contract key `C168` | C168\u2013C170 already taken \u2192 **C171** |\n| `3943 test(s), 0 failure(s)` | On the rebased tree: `4043 test(s), **1 failure**` |\n\nThat failure was `test_registry_counts_are_the_ones_the_ruling_reconciled`, pinning `REGISTRY_PACKED_FIELD_COUNT = 530`. The pin now carries its reason \u2014 REG-R01 *requires* it to grow, while `record_count` must not move without a ruling.\n\n## Evidence\n\n```\n./tools/run_tests.sh\nstate_registry_coverage: PASS -- 51 modules, 335 rows, 654 packed columns checked\n4043 test(s), 139176 assertion(s), 0 failure(s)\n```\n\n`ready07_arithmetic` PASS \u00b7 `merge_gate` PASS \u00b7 `decision_numbers` PASS \u00b7 `validate_save_registry_handoff --source-root .` PASS (536 packed fields, 50 owners, 582 records).\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n## Scope deliberately not claimed\n\n\u00a711 has **no codec** \u2014 nothing encodes or decodes `next_sequence:i64` + N 32-byte records \u2014 and **no ruled kind/argument domain**, so `_kind`/`_source_id`/`_arg0`/`_arg1` are validated as int32 storage carrying no meaning. There is no producer, no consumer, and the store is wired into no autoload. No release-save completeness is claimed and \u00a715's digest is not unblocked by this alone.\n\nNeither is a defect in this change, and neither makes it unsafe to merge \u2014 this store is additive and nothing depends on it yet. Stating it under `BLOCKED:` previously held the PR, which conflated \"unsafe to merge\" with \"scope not claimed\"; that field now means only the former.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/decisions/0133-section-eleven-gets-the-store-the-registry-already-declared.md",
+        "additions": 121,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/persistence_state_registry.md",
+        "additions": 9,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/planning/canonical_state_registry.json",
+        "additions": 18,
+        "deletions": 15,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/systems_architecture.md",
+        "additions": 2,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/09_persistence_replay_reliability.md",
+        "additions": 19,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/validate_save_registry_handoff.py",
+        "additions": 4,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/core/event_schedule.gd",
+        "additions": 634,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/scripts/core/event_schedule.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_canonical_state_hash.gd",
+        "additions": 8,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_event_schedule.gd",
+        "additions": 442,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_event_schedule.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "e00e245092a2d273f6738c16ff71e38a5516e0b8",
+    "mergedAt": "2026-09-14T01:48:25Z",
+    "number": 114,
+    "state": "MERGED",
+    "title": "Section 11 EVENT_SCHEDULE: the store the registry already declared",
+    "url": "https://github.com/gradybre/redwall-rts/pull/114"
+  },
+  {
+    "body": "Replaces #107, which GitHub closed when `--delete-branch` removed its base branch on the #106 merge. Same head branch, same commits, retargeted to master. That auto-close is a real bug in `tools/auto_merge.py` and is fixed in a follow-up.\n\nAnswers \"build this whole process \u2014 fully automated end to end, with approval for art\" and \"a prompt to give Astra so it can build its own loop\".\n\nContract: [`docs/automation/README.md`](docs/automation/README.md). Recorded as [ADR 0129](docs/decisions/0129-the-development-loop-stops-only-for-art.md).\n\n## The cycle\n\n`work_queue.json` \u2192 `dispatch_plan.py` \u2192 subagents with file allowlists \u2192 PR from the template \u2192 CI \u2192 `auto_merge.py` \u2192 merged \u2192 dependants unblock \u2192 repeat. Two side channels feed the same queue: `OPEN.md` for questions only Astra can answer, `art_approvals.json` for things only Brendan can.\n\n| Tool | Refuses |\n|---|---|\n| `dispatch_plan.py` | Tasks whose owned paths intersect each other or anything `in_flight` **or `review`**. `--validate` also refuses cycles, unknown deps, and art gates with no approval id. |\n| `auto_merge.py` | Any PR failing one of four: all checks SUCCESS (not pending), mergeable and not draft, `merge_gate.py` against the **branch's** ledger, all three declarations present and empty. |\n| `art_gate.py` | Anything not `approved` by a named human. No `--force`, no env var, no agent-writable path. |\n| `astra_inbox.py --check` | A stale `OPEN.md`. |\n\n## Why art is the only stop\n\nPaid generation spends Brendan's money and reverting a commit does not refund it. Visual acceptance is taste \u2014 no test asserts whether the badger reads as a badger, and an agent accepting its own art is grading its own work. Decision 0002 separately forbids bulk creature generation before proportion approval.\n\nThe `DEVIATIONS`/`SURVIVED_MUTANTS`/`BLOCKED` blocks keep a human in the loop without keeping them in the way: most changes declare nothing and merge untouched. A lane once overruled my brief **correctly**, citing SAVE-LAYOUT-R01 over the instruction I gave it \u2014 a script that ranked that would be wrong whichever way it ruled, so it stops and surfaces instead.\n\n## Proven in use since it was written\n\nFive lanes ran through it. It caught a stale test pin, a contract-key collision, three stale ledger citations, and \u2014 on PR #112 \u2014 **six false positives from its own L2 check**, which is now scoped to one owner with the failing fixture kept as a regression case.\n\n## Bug found while building it\n\n`gh api -f ref=<branch>` sends a **request body**, which a GET ignores \u2014 so the ledger fetch silently returned the default branch's file. `auto_merge.py` would have checked master's ledger and called it the PR's. Fixed to a query string, with the reason written beside it.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": ".github/pull_request_template.md",
+        "additions": 28,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": ".github/workflows/tests.yml",
+        "additions": 6,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/automation/README.md",
+        "additions": 161,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/automation/astra_loop_prompt.md",
+        "additions": 138,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/decisions/0129-the-development-loop-stops-only-for-art.md",
+        "additions": 88,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/art_approvals.json",
+        "additions": 40,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/review_packet.md",
+        "additions": 130,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/work_queue.json",
+        "additions": 226,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/rulings/requests/OPEN.md",
+        "additions": 162,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/rulings/requests/open_items.json",
+        "additions": 115,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/art_gate.py",
+        "additions": 127,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/astra_inbox.py",
+        "additions": 120,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/auto_merge.py",
+        "additions": 179,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/dispatch_plan.py",
+        "additions": 216,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/review_packet.py",
+        "additions": 197,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "7186fb0874691e34f208924173d482376e3d7d68",
+    "mergedAt": "2026-09-14T01:50:34Z",
+    "number": 113,
+    "state": "MERGED",
+    "title": "The development loop: continuous dispatch, automatic merge, art asks permission",
+    "url": "https://github.com/gradybre/redwall-rts/pull/113"
+  },
+  {
+    "body": "Stacked on #111 \u2192 #110 \u2192 #109 \u2192 #108 \u2192 #106. REQ-SET-124\u2013128/137's project lifecycle as its own store \u2014 **not** a second Building store. The Building state machine (BLUEPRINT \u2192 BUILDING \u2192 ACTIVE, ACTIVE \u2192 DEMOLISHING \u2192 gone) is driven from here.\n\nDelivery before work; consumption at exactly **one** transition (`begin_work()`); 100%-before / 80%-after cancellation refund floored to milli-U; evacuation before demolition; demolition priced at declared construction WU \u00d7 0.25 returning 50% of the original \u00a74.1 cost. Two-phase cancellation and completion, both idempotent on retry, so a failed output publishes nothing.\n\nThe 100%/80% and 50% paths **refuse each other** \u2014 ARCH-JOB-004's ban on a shared \"refund all\" helper is structural here, not a comment. `_work_begun` is its own column because it is not derivable from `_remaining_mwu`: a project with full remaining work has not necessarily begun.\n\n## This PR proved my own merge gate wrong\n\nL2 refused it with **six false positives** \u2014 `present`, `ref_slot`, `ref_generation`, `type_id`, `phase`, `purpose` \u2014 colliding ConstructionIndex against BuildingIndex, FurnitureIndex and RoomIndex. Not one shares a byte.\n\nL2 flags a field written `x` in one row and `_x` in another, on the theory it is one byte budgeted twice. **That holds only within one owner**, which is what the real Injury defect was. \u00a73's index tables name members bare while a store's own section spells them as GDScript does.\n\nFixed both ways: L2 now compares only rows whose owner labels share a leading token, `test_merge_gate.py` gained the exact false-positive fixture as a regression case, and these rows switched to bare names to match the \u00a73 convention they'd broken.\n\n## Ledger\n\nThree \u00a73 rows, **5,142,528 bytes**. The lane computed its figures against `origin/master`, so all seven identities were wrong for this tree:\n\n| | Before | After |\n|---|---:|---:|\n| Payload | 66968467 | **72110995** |\n| Live world | 75357075 | **80499603** |\n| Transactional peak | 136109958 | **146395014** |\n\nLive keeps 19,500,397 bytes of headroom. \u00a72.2's existing Construction columns are not re-added or enlarged; the bill tables are 3828 bytes inside \u00a72.3's existing arena and owe no row.\n\n## Mutations: 13, two declared survivors, neither waved through\n\nThe five named in the brief all die: M9/M1 (refusal that still consumed / still published), M2+M3 (the 100%/80% boundary \u2014 both the fraction *and* its placement), M4 (demolition fraction), M5+M7 (work before delivery), M6 (cancelled construction leaving a live row).\n\n**M12 is unreachable, not untested.** `_refund_policy` is written only by `_policy_for()`, the same function the check runs, so no public call sequence can disagree; its caller is the save decoder, which does not exist. ADR 0088 records the identical caveat for `buildings.verify_room_masks()`.\n\n**M13 is equivalent.** PHASE_READY is reachable today only through complete delivery. The gate is deliberate defence against a decoder writing PHASE_READY over an empty ledger \u2014 which is exactly what M7's 30 kills show matters. It was not deleted to manufacture a kill.\n\n**Harness incident, disclosed by the lane and recorded in ADR 0131:** a second harness was launched before the first finished; both mutated the same file, producing one false `MUTATION_NOT_APPLIED` and one inflated kill count. Every contaminated verdict was discarded, the harness took a single-instance lock, and all 13 were re-run from a restored file, reproducing the earlier clean run mutation for mutation.\n\n## What is NOT done\n\n**06.1 is left unchecked and the starter settlement is still empty** \u2014 0 buildings, 0 rooms, 0 furniture, 0 projects, now pinned by a test rather than assumed. No Job and no tick stage: `TICK_STAGE_COUNT` is still **8** and that test is unchanged; nothing calls `add_work_mwu()` yet. The dispatcher integration (PLACE_BLUEPRINT, DEMOLISH, \u2026) is not started.\n\n```\n./tools/run_tests.sh\nstate_registry_coverage: PASS -- 52 modules, 350 rows, 681 packed columns checked\n4238 test(s), 142421 assertion(s), 0 failure(s)\n```\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: M12 unreachable, M13 equivalent \u2014 both argued above, neither deleted to manufacture a kill\nBLOCKED: none\n\n### Scope not claimed (not merge-blockers)\n\nREQ-SET-128's stored-goods half needs container-by-owner enumeration from `inventory.gd`; the tier-2 demolition basis is unresolved and uses the base \u00a74.1 row at every tier; 06.1 is left unchecked and the starter settlement is still empty. All three are filed in Astra's inbox. None makes this change unsafe to merge \u2014 it is additive and nothing depends on it yet.\n\nMerged on Brendan's explicit instruction with the two declared survivors standing: M12 unreachable, M13 equivalent, both argued above.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "files": [
+      {
+        "path": "docs/decisions/0131-the-construction-store-owns-the-project-lifecycle-not-a-second-building-store.md",
+        "additions": 276,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/persistence_state_registry.md",
+        "additions": 20,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/systems_architecture.md",
+        "additions": 11,
+        "deletions": 7,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/06_buildings_rooms_logistics.md",
+        "additions": 38,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/merge_gate.py",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/ready07_arithmetic.py",
+        "additions": 10,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/test_merge_gate.py",
+        "additions": 9,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/core/construction.gd",
+        "additions": 1294,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/scripts/core/construction.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/scripts/systems/settlement_system.gd",
+        "additions": 32,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_construction.gd",
+        "additions": 845,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_construction.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_settlement_system.gd",
+        "additions": 84,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefOid": "7cf455d8cd798a42ad91bf5e7b90b1a02ae1f110",
+    "mergedAt": "2026-09-14T01:49:32Z",
+    "number": 112,
+    "state": "MERGED",
+    "title": "The Construction store: project lifecycle, and the gate check it proved wrong",
+    "url": "https://github.com/gradybre/redwall-rts/pull/112"
+  },
+  {
+    "body": "Stacked on #110 \u2192 #109 \u2192 #108 \u2192 #106. **This is the dependency that was holding all twelve section codecs.** Every one could encode; none could capture from or restore into a live store. Decision 0105 solved it for `entity_directory.gd`; this extends the pattern to the three largest \u00a74 COMPONENT_COLUMNS owners.\n\n`needs.gd` (20 columns), `residents.gd` (19), `jobs.gd` (38 \u00a74 + 4 \u00a75, restored as one transaction). Each publishes `copy_columns_into()`, `restore_columns()`, `last_column_refusal()`, `state_bytes()` and its declared ordinal tables.\n\n`docs/persistence_state_registry.md` and `canonical_state_registry.json` **agree for all three modules** \u2014 nothing needed adjudication. The suites re-read the JSON artifact and compare ordinal by ordinal.\n\n## One deliberate departure from 0105\n\nThe directory takes six positional buffers. Twenty, nineteen and forty-two do not fit that shape, so the buffers travel in a per-store `Columns` inner class \u2014 allocated once to declared extents, one named public field per category-1 column in ordinal order, caller-owned and refilled in place exactly as 0105 requires. Re-verified on 4.7.2 that packed arrays are true references through a class member as well as a local *before* anything was written against the assumption.\n\n## Restore ordering is now enforced, not documented\n\n1. \u00a73 before `residents.gd`; \u00a73 **and** `residents.gd` before `jobs.gd`. A reference the directory does not honour refuses; a JobAgent row on an absent resident refuses.\n2. \u00a714 must run after \u00a74 for names. `restore_columns()` installs `_named` and empties every `_name_key`; `unresolved_name_row_count()` returns a count, never a sentinel.\n3. `jobs.gd`'s \u00a74 and \u00a75 restore as **one call** \u2014 a half-applied pair is not a state the store can hold.\n\n## Five mutants survived, and none were waved through\n\nThree were checks no input could reach, **deleted** with the reasoning written into the docstrings: the worker-binding `named != bound_jobs` comparison; an `agent_present != 1` guard the free-agent-row rule already subsumes; and the generation half of the job\u2192agent reference comparison.\n\nTwo were **missing coverage**, and got tests: deleting the *slot* half of that comparison survived until \"two live jobs claiming one worker\" was added, deliberately on the same directory generation so nothing else separates them; and widening the *negative* need-remainder bound survived a positive-only boundary test \u2014 decay leaves negative remainders, so that was the side that mattered.\n\n32 runs over 26 sites, one mutation per Godot invocation, each file `shasum -a 256` byte-compared after every restore. The member-chain step-cap mutant kills by **non-termination**, blowing the harness alarm with no summary line \u2014 which is what `test_a_cyclic_member_chain_refuses_instead_of_hanging` is named for, and is recorded as a hang rather than a failure count.\n\n## An environment finding, proved rather than assumed\n\nOn the fresh worktree *before* `--editor --quit`, the suite reported `3912 test(s), 36 failure(s)` \u2014 and reported the **identical 36-failure set with all three production files reverted to `origin/master`**. All were UI/theme/font suites on unimported resources. That is how you establish \"not mine\".\n\n## Corrected a stale production comment\n\n`residents.gd`'s header asserted there was no restore writer because inventing one would invent migration provenance. The store half now exists and infers nothing \u2014 `_life_stage` arrives in the column set or the call refuses, and no row is repaired to ADULT. Refusing a **pre-column schema** remains the codec's job through `owner_schema_version`, because a store handed a column set cannot see which schema produced it.\n\n## Rebase note\n\nConflicted on `docs/tasks/09_persistence_replay_reliability.md` \u2014 two lanes each appending a dated section. Mechanical keep-both; both survive at lines 501 and 604.\n\n**No ledger byte owed.** Everything published is a reader, validator, refusal code or inner class. Three existing category-3 scratch rows extended for `_last_column_refusal` rather than three new rows added.\n\n```\n./tools/run_tests.sh\nstate_registry_coverage: PASS -- 51 modules, 335 rows, 654 packed columns checked\n4188 test(s), 141922 assertion(s), 0 failure(s)\n```\n\nNo release-save completeness claimed: there is still no \u00a74 COMPONENT_COLUMNS codec and no \u00a75 CHILD_ARENAS codec. These are the store halves only. BLOCKER J2 is untouched \u2014 it names `job_planner.gd`, a different module.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md",
+        "additions": 199,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/persistence_state_registry.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/09_persistence_replay_reliability.md",
+        "additions": 45,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/core/jobs.gd",
+        "additions": 934,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/core/needs.gd",
+        "additions": 501,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/core/residents.gd",
+        "additions": 537,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_jobs_columns.gd",
+        "additions": 543,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_jobs_columns.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_needs_columns.gd",
+        "additions": 356,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_needs_columns.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_residents_columns.gd",
+        "additions": 376,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_residents_columns.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "ba978e19a4f9e9ce8414e4b20cf799f0de2412da",
+    "mergedAt": "2026-09-14T01:49:09Z",
+    "number": 111,
+    "state": "MERGED",
+    "title": "Bulk column API on needs, residents and jobs: the wall every save codec hit",
+    "url": "https://github.com/gradybre/redwall-rts/pull/111"
+  },
+  {
+    "body": "Stacked on #109 \u2192 #108 \u2192 #106. Implements ALERT-R02: NARROW always compact; STANDARD/WIDE prefer the complete text with adaptive fitting and fallback inside the existing zone.\n\nThe second alert card is a second **instance** of UI-SET-011, not a new \u00a74 id \u2014 \u00a74 catalogues one \"Alert card\" row and \u00a78.2 lists 011 once. It shares the registry row, hit-test id and accessible role, carries node suffix `alert_card_2`, and its tab stop is spliced at the `Control` level because `ui_focus_order.gd` is keyed on \u00a74 ids and is not this lane's file.\n\n`alert_stack_into` gained an explicit `count`: the shell's measured buffer is preallocated at 2, so `measured.size()` could not express \"how many notices want a card\" and the second slot rendered as an empty card. Out-of-range refuses with `UI_INVALID_ALERT_NOTICE_COUNT`.\n\nA card prints *exactly* `notice.summary` or *exactly* `notice.message` \u2014 no third truncating branch. The accessible description carries the whole message either way.\n\n## Two things measured that the ruling could not have known\n\nNeither was fixed here. Both are premises, and correcting a premise is not an implementation choice \u2014 they are now items in Astra's inbox.\n\n**1. The 44px full card is unreachable typography.** ALERT-R02 states two 44px full cards fit exactly in the 92px zone. In the real theme one wrapped line is **23px**, and \u00a71.2's padding is 12px top and bottom, so the smallest possible *full* card is **47px**. A 47px first card leaves 41px \u2014 under the 44px minimum \u2014 and the second notice is not placed. Captures `36`/`37` show one card where the ruling implies two; `32`/`33`, where card one is a 44px *summary*, show two. The rail states it correctly in both.\n\n**2. \u00a71.2 publishes two rectangles that collide at the supported floor.** At 1280\u00d7720 @100% the alert zone `(460, 16, 360, 96)` lies **wholly inside** the workspace/modal frame `(160, 16, 960, 688)`. Same at @150%. At 1920\u00d71080 the frame starts at y=180 and there is no overlap. This is **not** a z-order bug: \u00a73's layer table puts workspace at layer 40 and permanent HUD zones at layer 20, so the workspace drawing over the alert zone is the specification working as written. Both cards are placed correctly and report `visible = true`. Captured as evidence `40`; recorded open in ADR 0134 and the task checklist.\n\n## Evidence\n\n`docs/validation/evidence/ui-refinement/screenshots/`, files `32`\u2013`40`, native macOS, windowed, absolute `save_png` path. The harness supplies **no message text**: the Info line is `main.gd`'s own boot alert and the Error line comes from choosing HOLT in UI-SET-103 and running the real `create_world()`.\n\nNothing overflows or clips in any capture. Pre-existing and not this lane's: counter cells clip (ADR 0076) and the NARROW command strip overlaps the minimap frame.\n\nTen mutations, all killed, one Godot invocation each with a `shasum -a 256` byte-compare between runs. M4a/M4b split the required \"stack exceeding its zone\" mutant so each run mutates one line.\n\n**No new packed column, so no ledger or registry row is owed.**\n\n```\n./tools/run_tests.sh\nstate_registry_coverage: PASS -- 51 modules, 335 rows, 654 packed columns checked\n4109 test(s), 141364 assertion(s), 0 failure(s)\n```\n\nThe lane's own `3931 / 0` was measured before the rebase; this is the post-rebase number.\n\nART-UI-12's visual verdict stays open. No visual approval and no screen-reader qualification are claimed \u2014 both cards' names and descriptions are set and asserted, but no assistive technology was run.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/decisions/0134-alert-r02-packs-two-instances-of-one-catalogued-card.md",
+        "additions": 110,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/tasks/04_5_ui_visual_refinement.md",
+        "additions": 31,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/README.md",
+        "additions": 83,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/screenshots/32_alertr02_capacity_wide_1920x1080.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/screenshots/33_alertr02_capacity_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/screenshots/34_alertr02_capacity_narrow_1280x720_150.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/screenshots/35_alertr02_capacity_narrow_1280x720_125.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/screenshots/36_alertr02_complete_wide_1920x1080.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/screenshots/37_alertr02_complete_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/screenshots/38_alertr02_compact_narrow_1280x720_150.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/screenshots/39_alertr02_secondcard_details_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/ui-refinement/screenshots/40_alertr02_roster_occlusion_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/scripts/ui/ui_layout.gd",
+        "additions": 36,
+        "deletions": 16,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/ui/ui_shell.gd",
+        "additions": 380,
+        "deletions": 95,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_ui_layout.gd",
+        "additions": 128,
+        "deletions": 11,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_ui_shell.gd",
+        "additions": 234,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefOid": "389452e2b43841d9e77a69a398d3a77725cfbccd",
+    "mergedAt": "2026-09-14T01:48:54Z",
+    "number": 110,
+    "state": "MERGED",
+    "title": "ALERT-R02: two instances of one catalogued card, and two \u00a71.2 premises that don't hold",
+    "url": "https://github.com/gradybre/redwall-rts/pull/110"
+  },
+  {
+    "body": "Stacked on #108 \u2192 #106. **Residents render for the first time.** `World/Entities` was empty and nothing consumed `presentation_extract.gd`; now twelve mice draw from a `MultiMeshInstance3D` with 512 instances preallocated in `_init()` and `visible_instance_count` following the living.\n\nFifteen mutations, all killed, one Godot invocation each with a `shasum -a 256` byte-compare between runs. Two of them \u2014 M5 (`is_present` instead of `is_alive`, so the dead keep drawing) and M7 (the filled buffer never reaches the MultiMesh) \u2014 were added *after* writing the tests that catch them; the original suite let both through, because despawn clears presence and life together and every other test read the private buffer rather than the MultiMesh.\n\n## What you can see, and what is wrong with it\n\nUntextured white, bind pose with arms out, standing in a rigid straight line. The straight line is not a rendering bug \u2014 see below.\n\nThe lane predicted the mice would face backwards. **They don't** \u2014 the closeup shows them facing the camera. Correcting that here so nobody chases it.\n\nPre-existing and not this lane's: the HUD still reads `Residents --` and `No world generated` after a successful generation, visible in the before capture too.\n\n## The line is a refusal, not a layout\n\n**No resident in the running game has an authoritative position.** `settlement_system.gd` composes fourteen core stores and `transforms.gd` is not one of them, so nothing calls `place()`. And GDD \u00a75.1 authors no spawn coordinates \u2014 only that room assignments follow resident ID ascending and bed ID ascending, and beds need a Furniture store `world_init.gd`'s own header records as BLOCKED.\n\nWriting an invented layout into authoritative state is the invented production constant the movement amendment forbids, so the lane built a presentation-private pose store instead: read by no tick stage, in no save section, all geometry derived from `world_init.gd`. The single unauthored choice \u2014 which cleared tile a resident stands on \u2014 is isolated in `muster_tile_x/z()`.\n\nIt costs **3,151,872 bytes**, 98% of this PR's whole ledger delta, and the row is marked *deleted whole* when movement composes ARCH-SYS-001. Now a blocking question for Astra rather than a commit-message footnote.\n\n## Ledger\n\n| Row | Count | Per | Bytes |\n|---|---:|---:|---:|\n| Resident crowd instance buffer | 512 | 100 | 51200 |\n| Presentation pose scaffold Transform store | 87552 | 36 | 3151872 |\n\n| | Before | After |\n|---|---:|---:|\n| Payload | 63765395 | **66968467** |\n| Live world | 72154003 | **75357075** |\n| Transactional peak | 129703814 | **136109958** |\n\nLive keeps 24,642,925 bytes of headroom. The peak was already past the gate \u2014 that is why ARCH-MEM-006 selected disk-backed rollback.\n\n## Evidence\n\n`docs/validation/evidence/resident-render-path/` \u2014 native macOS, windowed, absolute `save_png` paths, plus the before capture at `914444b` showing empty ground. Instance origins `(117.0, 0.5, 139.0)`, `(119.0, \u2026)`, `(121.0, \u2026)`, hand-checkable against \u00a75.9's hall origin and \u00a75.1's tile pitch: `(2048*58+1024)/1024 = 117.0`.\n\n```\n./tools/run_tests.sh\nstate_registry_coverage: PASS -- 51 modules, 335 rows, 654 packed columns checked\n4090 test(s), 139326 assertion(s), 0 failure(s)\n```\n\nThe lane's own `3959 / 0 failures` was measured against a base that has since moved twice; this is the post-rebase number.\n\nNo qualification claimed \u2014 task 10.4 needs measurement not taken, and no clip name, LOD distance or rig is referenced anywhere in this work.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/decisions/0130-the-resident-render-path-is-a-multimesh-over-a-borrowed-pose-store.md",
+        "additions": 109,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/systems_architecture.md",
+        "additions": 9,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/10_presentation_qualification.md",
+        "additions": 39,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/evidence/resident-render-path/README.md",
+        "additions": 167,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/resident-render-path/before/before_01_empty_entities_1920x1080.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/resident-render-path/screenshots/01_cohort_wide_1920x1080.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/resident-render-path/screenshots/02_cohort_closeup_1920x1080.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/evidence/resident-render-path/screenshots/03_cohort_standard_1280x720.png",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/ready07_arithmetic.py",
+        "additions": 11,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scenes/main.tscn",
+        "additions": 13,
+        "deletions": 4,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/main.gd",
+        "additions": 26,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/presentation/resident_crowd.gd",
+        "additions": 296,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/scripts/presentation/resident_crowd.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/scripts/presentation/resident_pose_scaffold.gd",
+        "additions": 145,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/scripts/presentation/resident_pose_scaffold.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/scripts/presentation/resident_stage.gd",
+        "additions": 218,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/scripts/presentation/resident_stage.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_resident_crowd.gd",
+        "additions": 380,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_resident_crowd.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_resident_pose_scaffold.gd",
+        "additions": 167,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_resident_pose_scaffold.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_resident_stage.gd",
+        "additions": 147,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_resident_stage.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "d45c7fbd64f278898add45d62efe232b20dbd629",
+    "mergedAt": "2026-09-14T01:48:39Z",
+    "number": 109,
+    "state": "MERGED",
+    "title": "Residents on screen: a MultiMesh crowd over a borrowed pose store",
+    "url": "https://github.com/gradybre/redwall-rts/pull/109"
+  },
+  {
+    "body": "Stacked on #106 (it needs the repaired ledger). Two commits: the lane's store, then the integration reconciliation the lane was deliberately not allowed to make.\n\n## The store\n\nTranscribed from the registry's \u00a711 declaration, not designed. Six packed columns at `CAPACITY = 64` in declared ordinal order, plus the two declared scalars. Allocated once in `_init()`; `resize()` appears only in `_allocate_columns()`. `_assert_contracts()` proves the eight keys, ordinals, type codes and SAVE-R09-005's 32-byte stride at construction, so a renumbering edit fails at `_init()` rather than at a save.\n\nAllocate-before-consume (ADR 0059): `_advance_sequence()` is the last statement of `schedule_into()`, so a full / exhausted / non-int32 / non-future refusal leaves the store byte-identical including `_next_sequence`. Day boundaries only via `(tick + 4500) mod 18000` \u2014 never `tick % 18000`, which is 06:00.\n\nTen mutations, all died, one mutation per Godot invocation with a `shasum -a 256` byte-compare against a pristine copy between each.\n\n## The reconciliation\n\n`WorldRuntime.next_event_sequence` moves to EventSchedule ownership: **8 bytes changing owner, not 8 added.** WorldRuntime's I64 row drops 3 columns \u2192 2 (24 \u2192 16), EventSchedule gains a 1-column row (8). Net zero; every ledger total unchanged.\n\n`packed_source_field_count` 530 \u2192 **536**. `record_count` stays **582** \u2014 \u00a711's eight fields were declared long before a module implemented them.\n\n## Three things the lane got wrong\n\nAll from computing against a base that moved underneath it, all caught by re-deriving instead of transcribing:\n\n| Reported | Actual |\n|---|---|\n| Ledger at lines 417/418/425 | The injury repair moved them to **434/435/441** |\n| Next contract key `C168` | C168\u2013C170 already taken by the registry reconciliation \u2192 **C171** |\n| `3943 test(s), 0 failure(s)` | On the rebased tree: `4043 test(s), **1 failure**` |\n\nThat failure was `test_registry_counts_are_the_ones_the_ruling_reconciled`, pinning `REGISTRY_PACKED_FIELD_COUNT = 530`. The pin now carries its reason \u2014 REG-R01 *requires* it to grow (512 \u2192 530 \u2192 536), while `record_count` must not move without a ruling. Confusing the two turns a snapshot into a format constant that refuses every new store.\n\nA green report is only as good as the tree it ran against.\n\n## Evidence\n\n```\n./tools/run_tests.sh\nstate_registry_coverage: PASS -- 51 modules, 335 rows, 654 packed columns checked\n4043 test(s), 139176 assertion(s), 0 failure(s)\n```\n\n`ready07_arithmetic` PASS (144 field rows, 29 allocation rows, totals unchanged) \u00b7 `merge_gate` PASS \u00b7 `decision_numbers` PASS \u00b7 `validate_save_registry_handoff --source-root .` PASS (536 packed fields, 50 owners, 582 records).\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: \u00a711 has no codec and no ruled kind/argument domain; neither is claimed here\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": "docs/decisions/0133-section-eleven-gets-the-store-the-registry-already-declared.md",
+        "additions": 121,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/persistence_state_registry.md",
+        "additions": 9,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/planning/canonical_state_registry.json",
+        "additions": 18,
+        "deletions": 15,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/systems_architecture.md",
+        "additions": 2,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/tasks/09_persistence_replay_reliability.md",
+        "additions": 19,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/validate_save_registry_handoff.py",
+        "additions": 4,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/scripts/core/event_schedule.gd",
+        "additions": 634,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/scripts/core/event_schedule.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_canonical_state_hash.gd",
+        "additions": 8,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "godot/test/test_event_schedule.gd",
+        "additions": 442,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "godot/test/test_event_schedule.gd.uid",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "e00e245092a2d273f6738c16ff71e38a5516e0b8",
+    "mergedAt": null,
+    "number": 108,
+    "state": "CLOSED",
+    "title": "Section 11 EVENT_SCHEDULE: the store the registry already declared",
+    "url": "https://github.com/gradybre/redwall-rts/pull/108"
+  },
+  {
+    "body": "Stacked on #106. Answers \"build this whole process \u2014 fully automated end to end, with approval for art\" and \"a prompt to give Astra so it can build its own loop\".\n\nContract: [`docs/automation/README.md`](docs/automation/README.md). Recorded as [ADR 0129](docs/decisions/0129-the-development-loop-stops-only-for-art.md).\n\n## The cycle\n\n`work_queue.json` \u2192 `dispatch_plan.py` \u2192 subagents with file allowlists \u2192 PR from the template \u2192 CI \u2192 `auto_merge.py` \u2192 merged \u2192 dependants unblock \u2192 back to dispatch. Two side channels feed the same queue: `OPEN.md` for questions only Astra can answer, `art_approvals.json` for things only Brendan can.\n\n| Tool | Refuses |\n|---|---|\n| `dispatch_plan.py` | Tasks whose owned paths intersect each other or anything `in_flight` **or `review`**. `--validate` also refuses cycles, unknown deps, and art gates with no approval id. |\n| `auto_merge.py` | Any PR failing one of four: all checks SUCCESS (not pending), mergeable and not draft, `merge_gate.py` against the **branch's** ledger, all three declarations present and empty. |\n| `art_gate.py` | Anything not `approved` by a named human. No `--force`, no env var, no agent-writable path. |\n| `astra_inbox.py --check` | A stale `OPEN.md`. |\n\n## Why art is the only stop\n\nPaid generation spends Brendan's money and reverting a commit does not refund it. Visual acceptance is taste \u2014 no test asserts whether the badger reads as a badger, and an agent accepting its own art is grading its own work. Decision 0002 separately forbids bulk creature generation before proportion approval. Everything else is arithmetic, behaviour or process.\n\nThe `DEVIATIONS`/`SURVIVED_MUTANTS`/`BLOCKED` blocks keep a human in the loop without keeping them in the way: most changes declare nothing and merge untouched. A lane once overruled my brief **correctly**, citing SAVE-LAYOUT-R01 over the instruction I gave it \u2014 a script that ranked that would be wrong whichever way it ruled, so it stops and surfaces instead.\n\n## Honest first output\n\n```\nDISPATCH NOW (0):\nRUNNING (5): ALERT-R02, BULK-COLUMNS, CONSTRUCTION-STORE, EVENT-SCHEDULE, RENDER-PATH\nAWAITING MERGE (3): GATE-MERGE, SAVE-S12, SAVE-S7\nWITHHELD (7):\n  ART-CREATURES        depends on ART-PROPORTION\n  ART-PROPORTION       art approval 'ART-PROPORTION' is not approved\n  ART-UI-12            art approval 'ART-UI-12' is not approved\n  DIGEST-DETERMINISM   awaiting Astra: ...#retired-row-blanking\n  MOVE-ENVELOPES       awaiting Astra: ...#move-g01-clearance-and-modes\n  SAVE-CAPTURE         depends on BULK-COLUMNS, SAVE-S7, SAVE-S12, EVENT-SCHEDULE\n  SAVE-S1-OWNERS       awaiting Astra: ...#w2-section-1-owners-without-encoders\n```\n\nNothing is dispatchable because everything unblocked is already running. A queue that invented work to look busy would be worse than one that says so.\n\n## Bug found while building it\n\n`gh api -f ref=<branch>` sends a **request body**, which a GET ignores \u2014 so the ledger fetch silently returned the default branch's file. `auto_merge.py` would have checked master's ledger and called it the PR's. Fixed to a query string, with the reason written beside it.\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)",
+    "files": [
+      {
+        "path": ".github/pull_request_template.md",
+        "additions": 22,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": ".github/workflows/tests.yml",
+        "additions": 6,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/automation/README.md",
+        "additions": 148,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/automation/astra_loop_prompt.md",
+        "additions": 120,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/decisions/0129-the-development-loop-stops-only-for-art.md",
+        "additions": 88,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/art_approvals.json",
+        "additions": 40,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/review_packet.md",
+        "additions": 130,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/planning/work_queue.json",
+        "additions": 226,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/rulings/requests/OPEN.md",
+        "additions": 162,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/rulings/requests/open_items.json",
+        "additions": 115,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/art_gate.py",
+        "additions": 127,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/astra_inbox.py",
+        "additions": 120,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/auto_merge.py",
+        "additions": 165,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/dispatch_plan.py",
+        "additions": 216,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "tools/review_packet.py",
+        "additions": 197,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "e02f663fc02da96627860f1773d02afcbfa904a5",
+    "mergedAt": null,
+    "number": 107,
+    "state": "CLOSED",
+    "title": "The development loop: continuous dispatch, automatic merge, art asks permission",
+    "url": "https://github.com/gradybre/redwall-rts/pull/107"
+  },
+  {
+    "body": "Answers \"can you build something that reviews and catches those merge issues to allow us to automate the merge as well\".\n\n`docs/validation/merge_gate.py` runs four checks in the `contracts` job \u2014 no engine, no LFS, under a second. Every one is a defect that actually reached a PR here, passed the full Godot suite and every other validator, and was caught only by a human recomputing the arithmetic.\n\n| Check | Refuses |\n|---|---|\n| **L1** | A trail row whose running payload is not the row above plus its own delta, or whose reserve column is not payload + 8388608. Checked row by row: comparing totals is what let five merges through. |\n| **L2** | A field written `x` in one ledger row and `_x` in another \u2014 one byte budgeted twice, once under the planned component and once under the store implementing it. |\n| **L3** | A ledger row where width \u00d7 columns \u00d7 rows \u2260 its own byte total. |\n| **A1** | An agent report whose `DEVIATIONS:` / `SURVIVED_MUTANTS:` / `BLOCKED:` blocks are non-empty **or missing**. |\n\nA1 does not judge the exception \u2014 a lane that overrules its brief may be right, and one was, citing SAVE-LAYOUT-R01 over my instruction. It removes the change from the automatic path so a human reads it.\n\n## L2 fired on its author's own change\n\nDecision 0109 added all eleven of `injury.gd`'s columns to \u00a73 as **+21504**, while \u00a72.2 already carried the Injury component's rows budgeting `kind`, `severity`, `rescuer_slot`, `rescuer_generation` and `care_progress_mwu` at 10240 + 4096. **14336 bytes counted twice.**\n\nThe repair moves `injury.gd`'s actual layout into \u00a72.2 \u2014 where implemented component columns live, as `residents.gd`'s own `_named`/`_selected` are \u2014 and reduces 0109's trail delta to its net **+7168**:\n\n| | Before | After |\n|---|---:|---:|\n| \u00a72.2 | 142 rows / 25029474 | **144 rows / 25036642** |\n| \u00a73 | \u2014 | **72 rows / 20150752** |\n| Payload | 63779731 | **63765395** |\n| Live world | 72168339 | **72154003** |\n| Transactional peak | 129732486 | **129703814** |\n\n`ready07_arithmetic.py`'s `DECISION_0109_ADDED` now carries the subtraction with the reason beside it.\n\n## The negative case is a first-class test\n\nA gate that only ever passes is indistinguishable from a gate that does nothing. `test_merge_gate.py` drives all four checks with the defect they exist for *and* with a clean input \u2014 eleven cases, including the reduced form of this double budget and the bare-name case (`Building`, `FarmPlot`, `Feast`, `Job` and `RngStream` each legitimately carry their own `state`) that made the discarded first draft emit 84 false positives.\n\nVerified by hand: the gate REFUSES the pre-repair tree with 6 problems and PASSES the repaired one, with `docs/systems_architecture.md` byte-identical by `shasum -a 256` after the experiment.\n\nRecorded as [ADR 0128](docs/decisions/0128-the-merge-gate-and-the-injury-double-budget-it-found.md).\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)\n\nDEVIATIONS: none\nSURVIVED_MUTANTS: none\nBLOCKED: none\n",
+    "files": [
+      {
+        "path": ".github/workflows/tests.yml",
+        "additions": 4,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/decisions/0128-the-merge-gate-and-the-injury-double-budget-it-found.md",
+        "additions": 84,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/systems_architecture.md",
+        "additions": 16,
+        "deletions": 18,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/merge_gate.py",
+        "additions": 204,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/validation/ready07_arithmetic.py",
+        "additions": 12,
+        "deletions": 6,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/validation/test_merge_gate.py",
+        "additions": 98,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefOid": "be3e7bd2c0bd6e41283eb419a7d5700c306b81e1",
+    "mergedAt": "2026-09-13T04:21:10Z",
+    "number": 106,
+    "state": "MERGED",
+    "title": "Merge gate, and the 14336-byte injury double budget it caught",
+    "url": "https://github.com/gradybre/redwall-rts/pull/106"
+  }
+]

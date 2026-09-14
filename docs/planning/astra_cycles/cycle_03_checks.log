@@ -1,0 +1,12 @@
+CHECK GROUP 1
+PASS Cycle3: 75 checks; design geometry/format/grammar/handoff only.
+Observed registry: 599 canonical fields; 519 capacity strings = 473 exact + 46 upper bounds. Source proofs still owned by REGISTRY-CAPACITY-AUDIT.
+dispatch_plan: PASS -- 37 tasks, 0 problem(s)
+astra_inbox: PASS -- OPEN.md matches open_items.json
+PASS Cycle 2 contract fixtures: 37 checks; projection, allocator, fit, gate and handoff cases.
+No production codec, body measurement, movement admission, visual approval or save-continuation result is inferred.
+
+CHECK GROUP 2
+PASS unchanged Git index, runtime GDScript and art approvals
+Integrated-only links: ['docs/decisions/0141-a-placement-refusal-is-not-a-clearance-class-refusal.md', 'docs/tasks/lanes/05/2026-09-14-envelope-tooling.md', 'tools/validate_movement_envelopes.py']
+Missing: []

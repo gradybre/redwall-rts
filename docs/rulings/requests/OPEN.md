@@ -14,15 +14,11 @@ blocking in `docs/planning/work_queue.json`, which is what releases them to the
 dispatcher.
 
 
-**1 blocking, 6 advisory.** Oldest asked 2026-09-12.
+**1 blocking, 2 advisory.** Oldest asked 2026-09-12.
 
 | Question | Asked | Holding up |
 |---|---|---|
 | [MOVE-G01 Q1 and Q2: clearance classes and per-species modes](#move-g01-clearance-and-modes) | 2026-09-12 | `MOVE-ENVELOPES` |
-| [Multi-table primary_count for sections 8 and 9](#multi-table-primary-count) | 2026-09-12 | nothing yet |
-| [501 of 590 registry fields carry declared_capacity as prose](#declared-capacity-as-prose) | 2026-09-12 | nothing yet |
-| [ALERT-R02's 44px card height is packing arithmetic, not reachable typography](#alert-card-44px-is-not-reachable-typography) | 2026-09-12 | nothing yet |
-| [§1.2 publishes an alert zone that lies wholly inside the workspace frame](#alert-zone-inside-workspace-frame) | 2026-09-12 | nothing yet |
 | [A tier-2 building's demolition basis is unresolved](#tier-two-demolition-basis) | 2026-09-13 | nothing yet |
 | [ECON-003's excavation phases need compiled ids and a site-phase column](#econ-003-excavation-phase-domain) | 2026-09-13 | nothing yet |
 
@@ -31,57 +27,13 @@ dispatcher.
 
 *Asked 2026-09-12.*
 
-**Question.** Q1 is answered by MOVE-C2-R01: retain classes1..512, measure/quantize swept bounds and prove actual anchor-offset containment. Q2 remains open: supply the complete authored species/stage/mode rows with costs, gear/load, support and recovery bindings, and the qualified measured envelope inputs. The current64adult connected-mode combinations are notready, not biological prohibitions; a readiness table is not the completed capability catalog.
+**Question.** Q1 method is adopted. MOVE-C3-R01 additionally binds authored ford segments, child hazardous entry/recovery, ordinary access/elder policy and measured residual-error coverage. Q2 still needs adult/elder water/unprotected-climb assignments, complete connected costs and source-qualified body/gear/pose/load envelopes, support and contacts. No production admission is qualified.
 
 **Why the executor cannot decide it.** spatial_world.gd publishes cell classes over 512-unit half-metre cells anchored north-west, and its own header says it publishes no body or gear clearance. Every profile clearance reader currently refuses. A missing contract is a movement admission blocker, not something to fill in.
 
-**Impact.** MOVE-ENVELOPE-TOOLING can proceed; production MOVE-ENVELOPES and05.1b remain gated. See docs/rulings/2026-09-14_cycle02_movement_envelopes.md. Missing measured evidence must not be invented by either planner or executor.
+**Impact.** MOVE-POLICY-REGISTER, MOVE-ENVELOPE-ERROR and bounded MOVE-FORD-POLICY can proceed under dependencies. Production MOVE-ENVELOPES/05.1b/G01/G02 remain gated; no invented dimensions or bank-step capability.
 
 - Blocks `MOVE-ENVELOPES` — Measured movement envelopes, MOVE-G01 Q1/Q2
-
-<a id="multi-table-primary-count"></a>
-## Multi-table primary_count for sections 8 and 9
-
-*Asked 2026-09-12.*
-
-**Question.** A section holding several tables has no single primary row count. Should primary_count name one designated table, be the sum, or be a sentinel meaning not-applicable?
-
-**Why the executor cannot decide it.** Section 8 froze its payload rather than invent one, and section 9 declared its own. Those two answers disagree and both shipped.
-
-**Impact.** Two sections currently disagree on the meaning of a header field.
-
-<a id="declared-capacity-as-prose"></a>
-## 501 of 590 registry fields carry declared_capacity as prose
-
-*Asked 2026-09-12.*
-
-**Question.** May the executor convert prose capacities to integers mechanically where the prose is unambiguous, reporting every conversion for audit, or must each be ruled?
-
-**Why the executor cannot decide it.** Mechanical conversion of 501 fields is exactly the kind of bulk inference that has produced silent errors here before.
-
-**Impact.** shape.declared_capacity cannot be validated as a number until resolved.
-
-<a id="alert-card-44px-is-not-reachable-typography"></a>
-## ALERT-R02's 44px card height is packing arithmetic, not reachable typography
-
-*Asked 2026-09-12.*
-
-**Question.** ALERT-R02 states that two 44px full cards fit exactly in the 92px STANDARD/WIDE alert zone. Measured in the real theme, one wrapped line is 23px and 1.2's padding is 12px top and bottom, so the smallest possible FULL card is 47px, not 44. A 47px first card leaves 41px, below the 44px minimum, and the second notice is not placed. Should the zone grow, the padding shrink, or does the ruling accept that two full cards never co-occur and 44px describes only the compact summary form?
-
-**Why the executor cannot decide it.** The implementation matches the ruling's arithmetic exactly and the arithmetic is self-consistent. What is wrong is the premise that a 44px card can carry a full line, and correcting a premise is not an implementation choice.
-
-**Impact.** Captures 36/37 show one card where the ruling implies two. Behaviour is correct and the rail states it; the ruling's own example is unreachable.
-
-<a id="alert-zone-inside-workspace-frame"></a>
-## §1.2 publishes an alert zone that lies wholly inside the workspace frame
-
-*Asked 2026-09-12.*
-
-**Question.** At 1280x720 @100% the alert zone is (460, 16, 360, 96) and 1.2's workspace/modal frame is (160, 16, 960, 688): the zone is WHOLLY INSIDE the frame. At 1280x720 @150% the same is true. At 1920x1080 the frame starts at y=180 and there is no overlap. 3's layer table puts the workspace at layer 40 and permanent HUD zones at layer 20, so the workspace drawing over the alerts is the specification working as written. Does the alert zone move, does the workspace frame move or shrink, or is a third precedence rule needed?
-
-**Why the executor cannot decide it.** This is not a z-order bug to fix in code -- both cards are placed correctly and report visible = true, and the layer ordering is exactly what 3 specifies. Two 1.2 rectangles collide at the supported viewport floor and 1.2 fixes no precedence between them. Every available fix is a change to 1.2 geometry.
-
-**Impact.** Alerts can be occluded at the 1280x720 floor, which is a supported resolution. Captured as evidence 40. Recorded as open in ADR 0134 and the task checklist.
 
 <a id="tier-two-demolition-basis"></a>
 ## A tier-2 building's demolition basis is unresolved

@@ -170,7 +170,9 @@
         "SAVE-S1-OWNERS",
         "DIGEST-DETERMINISM",
         "RENDER-SPAWN",
-        "PLAN-SAVE-COVERAGE"
+        "PLAN-SAVE-COVERAGE",
+        "SAVE-S8-COUNT",
+        "PLAN-STOCK-FAULT-CONTINUATION"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -254,7 +256,10 @@
       "depends_on": [
         "BASELINE-INTEGRATION",
         "MOVE-ENVELOPE-TOOLING",
-        "MOVE-PROFILE-AUTHORING"
+        "MOVE-PROFILE-AUTHORING",
+        "MOVE-POLICY-REGISTER",
+        "MOVE-ENVELOPE-ERROR",
+        "MOVE-FORD-POLICY"
       ],
       "owns": [
         "docs/planning/movement_contracts.md",
@@ -264,8 +269,8 @@
       "gate": "astra_ruling",
       "astra_request": "docs/rulings/requests/OPEN.md#move-g01-clearance-and-modes",
       "astra_answered": false,
-      "partial_ruling": "docs/rulings/2026-09-14_cycle02_movement_envelopes.md",
-      "note": "Q1 convention answered. Q2 complete authoredprofiles and source-bound measured envelopes remain outstanding; all64adult connected rows presentlynotready. Tool completion is not productionfit or gateclosure."
+      "partial_ruling": "docs/rulings/2026-09-14_cycle03_movement_policy.md",
+      "note": "Cycle3 resolves specific policy and error accounting only. Production profiles/costs/envelopes/support/G02 remain open; no measured gate closure."
     },
     {
       "id": "ART-PROPORTION",
@@ -302,7 +307,8 @@
       "title": "ART-UI-12 visual acceptance, further NARROW evidence",
       "status": "blocked",
       "depends_on": [
-        "ART-UI-12-EVIDENCE"
+        "ART-UI-12-EVIDENCE",
+        "UI-C3-EVIDENCE"
       ],
       "owns": [
         "docs/design/ui_refinement/visual_acceptance_verdict.md"
@@ -346,44 +352,60 @@
         "CONSTRUCTION-STORE"
       ],
       "owns": [
+        ".github/workflows/tests.yml",
+        "docs/decisions/0137-construction-columns-were-implemented-state-that-was-never-declared.md",
         "docs/persistence_state_registry.md",
         "docs/planning/canonical_state_registry.json",
+        "docs/tasks/lanes/09/2026-09-14-save-registry-reconcile-construction-columns.md",
         "docs/validation/validate_save_registry_handoff.py",
-        "godot/test/test_canonical_state_hash.gd",
         "godot/scripts/core/canonical_state_hash.gd",
+        "godot/test/test_canonical_state_hash.gd",
         "tools/generate_canonical_state_table.py"
       ],
       "agent": "game-coder",
       "gate": "none",
       "acceptance": "REG-R01: register all 17 currently missing Construction fields and any integrated additions with explicit owners/ordinals; source-membership checker passes. Do not silently implement the S1 scratch/version delta without its codecs; serialize with SAVE-S1-OWNERS.",
       "pr": 119,
-      "note": "Merged as PR #119 after Astra's Cycle 2 PR snapshot."
+      "note": "Verified merged in Cycle3; completion is the declared slice, not downstream acceptance.",
+      "head_commit": "87534c78bfd066209e90306b391af4f906d40ffc",
+      "merged_at": "2026-09-14T14:26:46Z",
+      "merge_commit": "75ee532ae137f8d4630cd838d60bab37d23bd912"
     },
     {
       "id": "RENDER-SPAWN",
       "title": "Compose authoritative starter poses and remove the presentation Transform duplicate",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "BASELINE-INTEGRATION",
         "RENDER-PATH",
         "CONSTRUCTION-STORE"
       ],
       "owns": [
-        "godot/scripts/systems/settlement_system.gd",
-        "godot/scripts/core/transforms.gd",
-        "godot/scripts/presentation/resident_pose_scaffold.gd",
-        "godot/scripts/presentation/resident_stage.gd",
-        "godot/scripts/presentation/resident_crowd.gd",
-        "godot/scripts/main.gd",
-        "godot/scenes/main.tscn",
-        "godot/test/test_settlement_system.gd",
-        "godot/test/test_transforms.gd",
-        "godot/test/test_resident_stage.gd",
-        "godot/test/test_resident_crowd.gd",
-        "godot/test/test_resident_pose_scaffold.gd",
+        "docs/decisions/0138-the-settlement-owns-one-pose-store-and-places-the-cohort-on-the-hall-apron.md",
         "docs/systems_architecture.md",
         "docs/tasks/05_movement_first_playable.md",
-        "docs/validation/evidence/resident-render-path/authoritative-spawn/"
+        "docs/tasks/lanes/05/2026-09-14-render-spawn-authoritative-initial-poses.md",
+        "docs/validation/evidence/resident-render-path/authoritative-spawn/",
+        "docs/validation/evidence/resident-render-path/authoritative-spawn/README.md",
+        "docs/validation/evidence/resident-render-path/authoritative-spawn/screenshots/01_authoritative_cohort_wide_1920x1080.png",
+        "docs/validation/evidence/resident-render-path/authoritative-spawn/screenshots/02_authoritative_cohort_closeup_1920x1080.png",
+        "docs/validation/evidence/resident-render-path/authoritative-spawn/screenshots/03_authoritative_cohort_standard_1280x720.png",
+        "docs/validation/evidence/resident-render-path/authoritative-spawn/screenshots/04_controlled_pose_change_1920x1080.png",
+        "docs/validation/merge_gate.py",
+        "docs/validation/ready07_arithmetic.py",
+        "docs/validation/test_merge_gate.py",
+        "godot/scenes/main.tscn",
+        "godot/scripts/core/transforms.gd",
+        "godot/scripts/main.gd",
+        "godot/scripts/presentation/resident_crowd.gd",
+        "godot/scripts/presentation/resident_pose_scaffold.gd",
+        "godot/scripts/presentation/resident_stage.gd",
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/test/test_resident_crowd.gd",
+        "godot/test/test_resident_pose_scaffold.gd",
+        "godot/test/test_resident_stage.gd",
+        "godot/test/test_settlement_system.gd",
+        "godot/test/test_transforms.gd"
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
@@ -391,7 +413,9 @@
       "astra_request": "docs/rulings/requests/OPEN.md#resident-spawn-positions-and-the-pose-scaffold",
       "astra_ruling": "docs/rulings/2026-09-14_initial_resident_positions.md",
       "acceptance": "INIT-POSE-R01 complete acceptance including reset/reuse/refusal/publication; save codec test may remain explicitly blocked on missing section 4. No movement or visual gate closure.",
-      "note": "Dispatched before Cycle 2 landed and still running. It owns settlement_system.gd and its test, which CONSTRUCTION-GOODS also claims -- so that lane must wait, however ready its dependencies look."
+      "note": "Merged as PR #122 after Astra's Cycle 3 PR snapshot, which recorded it as open. Its owned files are released.",
+      "pr": 122,
+      "head_commit": "024d09affc83faf377d5fc5276db5d510751ca7a"
     },
     {
       "id": "CONSTRUCTION-GOODS",
@@ -431,7 +455,7 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "Inventory all 15 bodies, each owner capture/restore/hash adapter, header producers, cross-section validators and load orchestration. Include section12 arena-base restore and missing orchard inverse producer. Insert bounded owned tasks and add every implementation prerequisite to SAVE-CAPTURE before marking this planning task done. Publish a validation check that refuses a missing matrix task/dependency; expand ownership for that checker through the integration lead before implementing it. Use merged real paths save_section_inventories.gd and save_section_pending_commands.gd; include INV-CANON-R01 target and present source-state gaps."
+      "acceptance": "Inventory all 15 bodies, each owner capture/restore/hash adapter, header producers, cross-section validators and load orchestration. Include section12 arena-base restore and missing orchard inverse producer. Insert bounded owned tasks and add every implementation prerequisite to SAVE-CAPTURE before marking this planning task done. Publish a validation check that refuses a missing matrix task/dependency; expand ownership for that checker through the integration lead before implementing it. Use merged real paths save_section_inventories.gd and save_section_pending_commands.gd; include INV-CANON-R01 target and present source-state gaps. Include SAVE-C3-R01 and stock-integrity fault/retry/hold continuation. Before SAVE-CAPTURE dispatch, materialize all discovered runtime prerequisites; completed planning tasks alone cannot release it."
     },
     {
       "id": "PLAN-RELEASE-COVERAGE",
@@ -447,7 +471,7 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "Create owned task entries for initial buildings/furniture/stocks, construction commands/jobs/hauling, event domains/producers/consumers, species rendering and UI corrections, shutdown leak investigation and qualification. Preserve all confirmed settlement scope and unresolved gates; no task completion from document existence alone."
+      "acceptance": "Create owned task entries for initial buildings/furniture/stocks, construction commands/jobs/hauling, event domains/producers/consumers, species rendering and UI corrections, shutdown leak investigation and qualification. Preserve all confirmed settlement scope and unresolved gates; no task completion from document existence alone. Explicitly cover one active inventory/economy authority, initial hall/beds/furniture/stocks and12equipped+12storedtools under REQ-SET-009. Preserve ARRIVAL and RELIEF follow-up tasks; do not claim completion from cohort/terrain assertions."
     },
     {
       "id": "PACKET-EVIDENCE",
@@ -457,19 +481,21 @@
         "BASELINE-INTEGRATION"
       ],
       "owns": [
-        "tools/review_packet.py",
-        "tools/test_review_packet.py",
-        "docs/planning/review_packet.md",
         "docs/decisions/0139-a-declared-grammar-for-the-declaration-blocks.md",
+        "docs/planning/review_packet.md",
         "docs/tasks/lanes/09/2026-09-14-review-packet-evidence-and-declaration-grammar.md",
-        "tools/auto_merge.py"
+        "tools/auto_merge.py",
+        "tools/review_packet.py",
+        "tools/test_review_packet.py"
       ],
       "agent": "game-coder",
       "gate": "none",
       "acceptance": "Explicit reviewed base/ref SHAs; include squash merges; paginated final PR bodies with capture timestamp; missing/error/stale evidence never prints None. Declare and test declaration grammar, including none with explanation. Retain cycle watermark and source audit.",
       "pr": 117,
       "head_commit": "bd1af7711aeb282f50a4dc35abfbfef778cd0634",
-      "note": "Merged as PR #117 after Astra's Cycle 2 PR snapshot."
+      "note": "Verified merged in Cycle3; completion is the declared slice, not downstream acceptance.",
+      "merged_at": "2026-09-14T14:26:36Z",
+      "merge_commit": "15222502985c08ba9a3a26e85524fd52535f0ff0"
     },
     {
       "id": "ART-PROPORTION-PREP",
@@ -487,13 +513,13 @@
     {
       "id": "ART-UI-12-EVIDENCE",
       "title": "Prepare responsive visual evidence without granting visual acceptance",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "BASELINE-INTEGRATION"
       ],
       "owns": [
-        "docs/validation/evidence/ui-refinement/cycle-01/",
         "docs/tasks/lanes/04/2026-09-14-art-ui-12-evidence-cycle-01.md",
+        "docs/validation/evidence/ui-refinement/cycle-01/",
         "docs/validation/evidence/ui-refinement/cycle-01/01_counters_standard_1280x720_100_markers.png",
         "docs/validation/evidence/ui-refinement/cycle-01/02_counters_standard_1280x720_100_settlement.png",
         "docs/validation/evidence/ui-refinement/cycle-01/03_counters_standard_1280x720_100_ladder.png",
@@ -506,15 +532,19 @@
         "docs/validation/evidence/ui-refinement/cycle-01/10_occlusion_roster_open_alert_expired_standard_1280x720.png",
         "docs/validation/evidence/ui-refinement/cycle-01/11_occlusion_roster_open_alert_active_standard_1280x720.png",
         "docs/validation/evidence/ui-refinement/cycle-01/12_occlusion_roster_closed_alert_active_standard_1280x720.png",
-        "docs/validation/evidence/ui-refinement/cycle-01/README.md"
+        "docs/validation/evidence/ui-refinement/cycle-01/README.md",
+        "docs/validation/harnesses/artui12/capture_artui12_scratch.gd",
+        "docs/validation/harnesses/artui12/diff_artui12_scratch.gd"
       ],
       "agent": "user-qa",
       "gate": "none",
       "acceptance": "Capture real scene at WIDE/STANDARD/NARROW with alerts, workspace and resident details; report clipping, occlusion, focus and apparent style; no paid generation, no art ledger changes. Existing unresolved layout questions remain open.",
       "pr": 118,
-      "head_commit": "8e847c43bb7b2574602121a26b261b0b5e6570b7",
-      "review_followup": "Retain capture/diff harnesses in a validation-owned repository path for reproducibility. Cycle2 did not grant ART-UI-12 acceptance.",
-      "note": "PR #118 open and held at the merge gate on a non-empty DEVIATIONS block, which is Brendan's call. Astra's Cycle 2 follow-up -- preserve the deleted capture/diff harnesses under a validation-owned path -- is being addressed on the same branch."
+      "head_commit": "73efa1e62da16497299e0c505506b84502cc57a7",
+      "review_followup": "PR118 retained capture/diff harnesses. UI-C3-R01 now owns implementation corrections; no art approval.",
+      "note": "Verified merged in Cycle3; completion is the declared slice, not downstream acceptance.",
+      "merged_at": "2026-09-14T16:36:31Z",
+      "merge_commit": "2021444c520a8bf2f0c3aecd84a034149a1fb414"
     },
     {
       "id": "CONSTRUCTION-EVACUATION-INTEGRATION",
@@ -537,24 +567,31 @@
     {
       "id": "MOVE-ENVELOPE-TOOLING",
       "title": "Implement the measured-envelope import and anchored fit validator",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "BASELINE-INTEGRATION"
       ],
       "owns": [
-        "tools/validate_movement_envelopes.py",
-        "tools/test_movement_envelopes.py",
+        ".github/workflows/tests.yml",
+        "docs/decisions/0141-a-placement-refusal-is-not-a-clearance-class-refusal.md",
         "docs/planning/movement_envelope_schema.json",
-        "docs/tasks/lanes/05/2026-09-14-envelope-tooling.md"
+        "docs/tasks/lanes/05/2026-09-14-envelope-tooling.md",
+        "tools/test_movement_envelopes.py",
+        "tools/validate_movement_envelopes.py"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "MOVE-C2-R01 exact outward quantization, explicit margins, anchor offset containment, class1..512, complete source metadata and negative fixtures. Tooling only; no invented measured inputs or runtimeprofile activation."
+      "acceptance": "MOVE-C2-R01 exact outward quantization, explicit margins, anchor offset containment, class1..512, complete source metadata and negative fixtures. Tooling only; no invented measured inputs or runtimeprofile activation.",
+      "pr": 121,
+      "head_commit": "a0e9c17e37bd947d983e239ebfa39f922951e6e0",
+      "merged_at": "2026-09-14T16:36:20Z",
+      "merge_commit": "28c551704936bc5874295e4f952dd72401f009ff",
+      "note": "Verified merged in Cycle3; completion is the declared slice, not downstream acceptance."
     },
     {
       "id": "MOVE-PROFILE-AUTHORING",
       "title": "Prepare movement profile proposals and evidence inventory for unresolved Q2",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "BASELINE-INTEGRATION"
       ],
@@ -565,8 +602,188 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "Proposal/evidence-only planning task. Account for all 16 species x 3 stages x 6 modes, recording source-backed inherited policy, costs, gear/load/support/return/recovery and readiness where settled. Mark every missing or unresolved value explicitly; do not require or invent complete binding policy or cost rows. Reuse DEC039/DEC040/ECON/HAZ. Separate proposed values from inherited values and measured evidence. Return unresolved production choices to Astra for a Q2 ruling. No production catalog activation, new constants, or MOVE-G01 closure is authorized; completing this task does not answer Q2."
+      "acceptance": "Proposal/evidence-only planning task. Account for all 16 species x 3 stages x 6 modes, recording source-backed inherited policy, costs, gear/load/support/return/recovery and readiness where settled. Mark every missing or unresolved value explicitly; do not require or invent complete binding policy or cost rows. Reuse DEC039/DEC040/ECON/HAZ. Separate proposed values from inherited values and measured evidence. Return unresolved production choices to Astra for a Q2 ruling. No production catalog activation, new constants, or MOVE-G01 closure is authorized; completing this task does not answer Q2.",
+      "pr": 123,
+      "head_commit": "4a59235d0b98b325829a9a02e71dee35116997ff",
+      "note": "Merged as PR #123 after Astra's Cycle 3 PR snapshot, which recorded it as open. Its owned files are released."
+    },
+    {
+      "id": "UI-RESPONSIVE-C3",
+      "title": "Implement measured resource cards, alert packing and workspace variants",
+      "status": "ready",
+      "depends_on": [
+        "ART-UI-12-EVIDENCE"
+      ],
+      "owns": [
+        "godot/scripts/ui/ui_layout.gd",
+        "godot/scripts/ui/ui_shell.gd",
+        "godot/scripts/ui/ui_notices.gd",
+        "godot/scripts/ui/ui_world_session.gd",
+        "godot/scripts/ui/ui_registry.gd",
+        "godot/test/test_ui_layout.gd",
+        "godot/test/test_ui_shell.gd",
+        "godot/test/test_ui_notices.gd",
+        "docs/tasks/lanes/04/2026-09-14-cycle03-ui-geometry.md",
+        "godot/scripts/ui/hud.gd",
+        "godot/test/test_hud.gd",
+        "godot/test/test_ui_registry.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "UI-C3-R01: two-line56px cells/128frame; explicit food/population NARROW ids; exact values or working ledger disclosure; 104px Standard/Wide alerts; distinct workspace/compact management/true modal geometry. Keep focus/input/pause/surface contracts and real state. Real narrow screenshot/input tests required; no ART-UI-12 claim."
+    },
+    {
+      "id": "UI-C3-EVIDENCE",
+      "title": "Capture corrected responsive shell and input evidence",
+      "status": "ready",
+      "depends_on": [
+        "UI-RESPONSIVE-C3"
+      ],
+      "owns": [
+        "docs/validation/evidence/ui-refinement/cycle-03/",
+        "docs/validation/harnesses/ui-cycle03/",
+        "docs/tasks/lanes/04/2026-09-14-cycle03-ui-evidence.md"
+      ],
+      "agent": "user-qa",
+      "gate": "none",
+      "acceptance": "All UI-C3-R01 profiles/scales, boundary widths, actual font and physical rounding; paired alert pixels with workspace open; keyboard/focus/world-click isolation and value disclosure. Keep synthetic specimens separate; retain harnesses. Human art verdict remains separate."
+    },
+    {
+      "id": "SAVE-S8-COUNT",
+      "title": "Bind section8 primary count and pin section9 descriptor semantics",
+      "status": "ready",
+      "depends_on": [
+        "SAVE-REGISTRY-RECONCILE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_section_job_indexes.gd",
+        "godot/test/test_save_section_job_indexes.gd",
+        "godot/test/test_save_section_navigation.gd",
+        "docs/tasks/lanes/09/2026-09-14-cycle03-primary-count.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "SAVE-C3-R01: S8 block and descriptor8192, same363112payload/363151section bytes, schema1; S9 block512/8192 and descriptor8192, section2. Reject alternate counts; keep J2 live capture/restore independently refused until implemented. No whole-save claim."
+    },
+    {
+      "id": "REGISTRY-CAPACITY-AUDIT",
+      "title": "Build source-verified numeric capacity sidecar without changing active registry",
+      "status": "ready",
+      "depends_on": [
+        "SAVE-REGISTRY-RECONCILE"
+      ],
+      "owns": [
+        "tools/audit_registry_capacities.py",
+        "tools/test_registry_capacity_audit.py",
+        "docs/planning/registry_capacity_audit.json",
+        "docs/tasks/lanes/09/2026-09-14-cycle03-capacity-audit.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "REG-C3-R01: preserve exact versus maximum meaning, original prose and row keys; prove expression and source binding, quarantine ambiguous/conflicting rows, no eval. Recount currentbase; 519 strings/473eq/46lte are reviewed snapshot not immutable total. No active registry/version/identity change."
+    },
+    {
+      "id": "MOVE-POLICY-REGISTER",
+      "title": "Apply adopted Cycle3 policy decisions to the Q2 register",
+      "status": "ready",
+      "depends_on": [
+        "MOVE-PROFILE-AUTHORING"
+      ],
+      "owns": [
+        "docs/planning/movement_profile_authoring.md",
+        "docs/planning/movement_profile_readiness.json",
+        "tools/test_movement_profile_policy.py",
+        "docs/tasks/lanes/05/2026-09-14-cycle03-policy-register.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "MOVE-C3-R01: separate adopted policy from measured/profile readiness. Bind ford, child voluntaryhazard versus recovery, elder/access and existingHAZ rules with citations. Correct needs/health units and stale claims. Recompute288 leaves; preserve conditional childCLIMB, no production qualified rows without real evidence. No all-null invariant after rulings; no invented dimensions/costs."
+    },
+    {
+      "id": "MOVE-ENVELOPE-ERROR",
+      "title": "Require covered residual interpolation error in envelope schema2",
+      "status": "ready",
+      "depends_on": [
+        "MOVE-ENVELOPE-TOOLING"
+      ],
+      "owns": [
+        "docs/planning/movement_envelope_schema.json",
+        "tools/validate_movement_envelopes.py",
+        "tools/test_movement_envelopes.py",
+        "docs/tasks/lanes/05/2026-09-14-cycle03-envelope-error.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "MOVE-C3-R01 \u00a76: schema2 residual-error semantics, all-axis margins cover residual, zero requires conservative-sweep evidence, outward conversion to micrometres before units. Reject old ambiguous qualification. Reproduce then kill uncovered-error boundary; preserve source hash, negative placement and no-measurement claims."
+    },
+    {
+      "id": "MOVE-FORD-POLICY",
+      "title": "Enforce authored ford segment policy without opening unqualified bank travel",
+      "status": "ready",
+      "depends_on": [
+        "MOVE-POLICY-REGISTER"
+      ],
+      "owns": [
+        "godot/scripts/core/movement.gd",
+        "godot/test/test_movement.gd",
+        "godot/test/test_spatial_world.gd",
+        "docs/planning/ford_segment_state_contract.md",
+        "docs/tasks/lanes/05/2026-09-14-cycle03-ford-policy.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "MOVE-C3-R01 F1-F4: exact authored mask and per-segment required mode, callerlabel cannotbypass, inherited baselinecost. Profile/support/bank gates remain; synthetic tests are not productionactivation. Document and assign versioned cursor/save work before changing old saved mode semantics; no zero-duration bank jump."
+    },
+    {
+      "id": "PLAN-ARRIVAL-PLACEMENT",
+      "title": "Specify later-arrival admission and placement at the authored map exit",
+      "status": "ready",
+      "depends_on": [
+        "RENDER-SPAWN",
+        "PLAN-RELEASE-COVERAGE"
+      ],
+      "owns": [
+        "docs/planning/arrival_placement_contract.md",
+        "docs/planning/work_queue.json",
+        "docs/tasks/lanes/08/2026-09-14-arrival-placement-contract.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "REQ-SET-153/DEC032: authored exit(64,126), household admission and beds, blockedexit behavior, atomic directory/resident/Transform publication, save/determinism. Initial12 apron formula never applies to later arrivals. Fixed life stages; no birth/aging scope added. Materialize bounded implementation tasks and geometry gates before marking plan complete."
+    },
+    {
+      "id": "PLAN-STOCK-FAULT-CONTINUATION",
+      "title": "Resolve completed-tick saves versus pending stock-integrity retry state",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "docs/planning/stock_fault_save_contract.md",
+        "docs/planning/save_implementation_matrix.md",
+        "docs/planning/work_queue.json",
+        "docs/tasks/lanes/09/2026-09-14-stock-fault-continuation.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "ADR0100/task07+09: inventory fault tick/code, retry entitlement and CRITICAL hold. Reconcile safe completed-tick boundary versus partial fault state before choosing persisted fields; never save an invalid partial world or grant a fresh retry on load. Materialize owned runtime/codec/replay prerequisites in SAVE-CAPTURE, with pendingretry and terminalhalt continuation evidence. Planning alone cannot close acceptance."
+    },
+    {
+      "id": "PLAN-RELIEF-SEEDS",
+      "title": "Specify command-to-next-dawn relief delivery and owned implementation tasks",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-RELEASE-COVERAGE"
+      ],
+      "owns": [
+        "docs/planning/relief_seed_delivery_contract.md",
+        "docs/planning/work_queue.json",
+        "docs/tasks/lanes/07/2026-09-14-relief-seed-delivery.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "REQ-SET-170/task07.4: existing five8U seed grants, one/world-year, nextdawn scheduled receipt into legal inventory, nonpunitive assistance event and exact refusal/storage/year rollover/save replay. Current REQUEST_RELIEF_SEEDS envelope is not policy/delivery. Bind actual event/header owners and add finite owned implementation tasks; no new aid quantity or punitive cost."
     }
   ],
-  "cycle_report": "docs/planning/astra_cycles/cycle_02.md"
+  "cycle_report": "docs/planning/astra_cycles/cycle_03.md"
 }

@@ -34,7 +34,7 @@ extends RefCounted
 ##   |      4 | u32    | owner_key byte length = 11                  |     4 |
 ##   |      8 | utf8   | owner_key = "job_planner"                   |    11 |
 ##   |     19 | u32    | owner_schema_version = 1                    |     4 |
-##   |     23 | u64    | primary_count -- SEE BLOCKER J1             |     8 |
+##   |     23 | u64    | primary_count = 8192 -- SAVE-C3-R01         |     8 |
 ##   |     31 | u64    | payload_byte_length = 363112                |     8 |
 ##   |     39 |        | payload: 29 x (element_count:u64 + values)  |363112 |
 ##   | 363151 |        | end of section                              |       |
@@ -81,23 +81,49 @@ extends RefCounted
 ## constant again. A field whose extent were taken from `_owner_slot`'s 8192 would make the 128-row
 ## zone table read 8192 zones and consume the hive table's bytes; the suite mutates exactly that.
 ##
-## ## BLOCKER J1 -- `primary_count`'S VALUE IS UNRULED AND IS NOT INVENTED HERE
+## ## BLOCKER J1 IS CLOSED: `primary_count` = 8192, THE DESIGNATED PENDING-SERVICE TABLE
 ##
-## SAVE-LAYOUT-R01 fixes `primary_count` for a single-table owner: section 3's is the directory
-## capacity, section 4's is "its full physical capacity", section 5's is the owner or arena count,
-## and REG-R01 names 1, 1, 512 and 4 for `world_runtime`, `entity_directory`, `residents` and
-## `movement`. Section 8's owner has THREE independent owner capacities (4096 farm plots, 128
-## designations, 1024 hives) and two derived child tables above them. No document publishes which
-## of them -- or which sum of them -- is this block's primary count, and the registry artifact
-## carries no `primary_count` key for `job_planner`.
+## SAVE-C3-R01 (2026-09-14) supplies the number decision 0120 refused to invent, and -- more
+## importantly than the digits -- it supplies the MEANING, which is what two sections disagreed
+## about. `primary_count` is "a DECLARED PRIMARY PHYSICAL ROW EXTENT for that owner block, not a
+## total of every field's extents and not an occupancy count". For a multi-table owner the section
+## contract must NAME the primary table; section 8 names the PENDING-SERVICE ROW TABLE.
 ##
-## So this module does not choose one. `encode_section()` takes the count as a REQUIRED ARGUMENT
-## and `decode_section_into()` takes the value it must match; neither ever derives it from a
-## column, a sum or a capacity. `primary_count_refusal()` validates only what IS settled -- the u64
-## wire domain and a positive count -- and says so. Until a ruling supplies the value, NO SECTION 8
-## BLOCK MAY BE WRITTEN INTO A PRODUCTION SAVE FILE: two writers passing different counts would
-## produce two incompatible section 8s that both decode. The whole 363112-byte payload below IS
-## frozen and is unaffected by the choice; only those eight bytes wait.
+## THE REASON IS OPERATIONAL, NOT ARITHMETIC. Section 8 is the job planner's index. What that index
+## IS, as a thing a load has to reconstitute, is the pending service ledger: rows 0..8191 of
+## `SERVICE_ROW_COUNT`, carrying the status, the Job binding, the service day and the sowing gate.
+## The other four extents describe that ledger's inputs and edges -- 4096 rows of per-plot cycle
+## history, 128 designation enablement flags, 640 forage demand rows, 1024 hive service rows.
+## `primary_count` names the block's principal table so a reader knows WHICH physical extent the
+## framing word refers to; it is not a census of the block. That is exactly why:
+##
+##   * 14080, the sum of all five extents, is REFUSED. It is not any table's row extent, so no
+##     decode could ever check a column against it; a "sum" reading makes the word describe
+##     nothing, and it is the reading section 9 already rejected for itself.
+##   * 5248, the sum of the three independent OWNER capacities (4096 + 128 + 1024), is REFUSED for
+##     the same reason, with the extra defect of being a sum over an arbitrary subset.
+##   * 4096 is REFUSED: the per-plot cycle history is a secondary table keyed by farm plot, not the
+##     ledger this section exists to carry.
+##   * 7 is REFUSED. It was this suite's old fixture, chosen precisely BECAUSE it was not any real
+##     extent, back when the count was carried rather than chosen. It is evidence of the gap that
+##     SAVE-C3-R01 closed and is never a compatibility precedent.
+##
+## SAVE-C3-R01 also fixes HOW it is enforced: "Writer and decoder must validate against the
+## compiled constant rather than a caller-supplied positive number." So `encode_section()` no
+## longer takes the count and `decode_section_into()` no longer takes an expectation; both use
+## PRIMARY_COUNT, and `primary_count_refusal()` is the public gate that refuses every other value
+## including all four named above. A caller cannot pick, so two writers cannot disagree.
+##
+## THIS DOES NOT REINTERPRET A RELEASED SAVE. Production writing was refused while the count was
+## unruled, so no file carries a section 8 with a different word there. Section and owner schema
+## versions therefore BOTH STAY 1 (SAVE-C3-R01, "Version/field disposition"); no gratuitous bump.
+## The 363112-byte payload and the 363151-byte section length are unchanged, as are all 29 field
+## ordinals, types and extents.
+##
+## THE DESCRIPTOR IS 8192 TOO, and for a stated reason rather than by coincidence: SAVE-LAYOUT-R01
+## makes a multi-block section's descriptor `row_count` the checked SUM of its blocks' primary
+## counts, and section 8 holds exactly ONE block, so the sum of one term is that term.
+## `descriptor_row_count()` takes no argument, exactly as section 9's does.
 ##
 ## ## BLOCKER J2 -- `job_planner.gd` PUBLISHES NO BULK COLUMN API, SO THERE IS NO LIVE ROUND TRIP
 ##
@@ -177,10 +203,13 @@ extends RefCounted
 ##   * `owner_key` is `"job_planner"`, read off REG-R01's artifact (`owner_key: "job_planner"`),
 ##     not chosen. OWNER_SCHEMA_VERSION is 1, from that artifact's `owner_schema_version` and from
 ##     the baseline section vector `[2,2,1,2,1,1,2,1,2,1,1,2,1,2,1]`, whose eighth entry is 1.
-##   * The 64-byte DESCRIPTOR's `schema_version`, `row_count` and CRC-32 are `save_header.gd`'s.
-##     This module produces the bytes they protect and computes none of them.
-##   * `release_save_ready` stays false. Section 15 is not this module's, and nothing here claims
-##     section 8 completes a release save.
+##   * The 64-byte DESCRIPTOR is `save_header.gd`'s to write and its CRC-32 is `save_header.gd`'s
+##     to compute. This module supplies only the one word the header cannot know,
+##     `descriptor_row_count()`, and produces the bytes the rest protect.
+##   * `release_save_ready` stays false. SAVE-C3-R01 binds two COUNTS and nothing else: BLOCKER J2
+##     is open, there is no section 8 capture or restore adapter, and no release-save completeness
+##     follows. Section 15 is not this module's, and nothing here claims section 8 completes a
+##     release save.
 
 const SaveCodec := preload("res://scripts/core/save_codec.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
@@ -210,6 +239,17 @@ const OWNER_ROWS: int = JobPlannerScript.OWNER_CAPACITY
 const ZONE_ROWS: int = JobPlannerScript.ZONE_OWNER_CAPACITY
 const DEMAND_ROWS: int = JobPlannerScript.DEMAND_ROW_COUNT
 const HIVE_ROWS: int = JobPlannerScript.HIVE_OWNER_CAPACITY
+
+## SAVE-C3-R01's designated primary count for this block: the PENDING-SERVICE row table.
+##
+## Written as `SERVICE_ROWS` and not as the literal 8192 because the ruling designates a TABLE, not
+## a number -- "designate the pending-service row table, SERVICE_ROW_COUNT, as the primary
+## operational table". If `job_planner.gd` ever resized that ledger, this word must move with it,
+## and the owner schema version must move too. It is emphatically NOT "whatever ordinal 0's extent
+## happens to be": the four other extents are read from their own constants and checked separately,
+## and 14080 (all five summed), 5248 (the three owner capacities summed), 4096 (the secondary
+## per-plot cycle table) and 7 (the retired test fixture) are each refused by name below.
+const PRIMARY_COUNT: int = SERVICE_ROWS
 
 ## The planner's own domains, likewise read and never restated.
 const OPERATION_COUNT: int = JobPlannerScript.OPERATION_COUNT
@@ -404,8 +444,9 @@ const REFUSE_RECORD_SHAPE: StringName = &"SAVE_JOB_RECORD_SHAPE"
 const REFUSE_STORE_COUNT: StringName = &"SAVE_JOB_STORE_COUNT"
 const REFUSE_OWNER_KEY: StringName = &"SAVE_JOB_OWNER_KEY"
 const REFUSE_OWNER_SCHEMA_VERSION: StringName = &"SAVE_JOB_OWNER_SCHEMA_VERSION"
+## SAVE-C3-R01 retired SAVE_JOB_PRIMARY_COUNT_UNRULED: the count is ruled, so an unruled-count
+## refusal can no longer be raised. The production refusal below now stands on BLOCKER J2 alone.
 const REFUSE_PRIMARY_COUNT: StringName = &"SAVE_JOB_PRIMARY_COUNT"
-const REFUSE_PRIMARY_COUNT_UNRULED: StringName = &"SAVE_JOB_PRIMARY_COUNT_UNRULED"
 const REFUSE_PAYLOAD_LENGTH: StringName = &"SAVE_JOB_PAYLOAD_LENGTH"
 const REFUSE_ELEMENT_COUNT: StringName = &"SAVE_JOB_ELEMENT_COUNT"
 const REFUSE_FIELD_ORDINAL: StringName = &"SAVE_JOB_FIELD_ORDINAL"
@@ -670,49 +711,51 @@ static func canonical_type_of(field: int) -> int:
 	return FIELD_TYPES[field]
 
 
-static func descriptor_row_count(primary_count: int) -> int:
-	"""The 64-byte descriptor's `row_count` for a section holding one block of `primary_count`.
+static func descriptor_row_count() -> int:
+	"""The 64-byte descriptor's `row_count` for section 8: the one block's designated primary.
 
 	SAVE-LAYOUT-R01 makes a multi-block section's descriptor row count "the checked sum of block
-	primary_count values"; section 8 holds one block, so the sum is that block's own count. The
-	VALUE is still BLOCKER J1's: this function does not choose it either, it forwards it.
+	primary_count values". Section 8 holds exactly ONE block, so that sum has one term and the
+	descriptor is PRIMARY_COUNT. It takes no argument, because SAVE-C3-R01 gives a caller nothing
+	to choose; section 9's `descriptor_row_count()` has the same shape for the same reason.
 	"""
-	return primary_count
+	return PRIMARY_COUNT
 
 
 static func primary_count_refusal(primary_count: int) -> SaveHeader.Refusal:
-	"""Validate a caller-supplied `primary_count` against everything that IS settled.
+	"""Refuse any `primary_count` but SAVE-C3-R01's designated pending-service extent.
 
-	BLOCKER J1: no ruling, and no `primary_count` key in REG-R01's artifact, says what section 8's
-	primary count IS. This module refuses to choose between the planner's three owner capacities
-	(4096 plots, 128 designations, 1024 hives) and the two child tables above them, so the count
-	arrives from the caller and only the wire domain is checked here: a u64 field cannot carry a
-	negative or unrepresentable value, and a block covering zero primary rows is not this block.
-	Passing SERVICE_ROWS because it happens to be the first column's extent is exactly the guess
-	REG-R01 forbids, and nothing in this file will do it for a caller.
+	SAVE-C3-R01: "Writer and decoder must validate against the compiled constant rather than a
+	caller-supplied positive number." A positive-and-representable check is NOT enough -- 4096,
+	5248 and 14080 are all positive, all representable, and all wrong -- so the comparison is
+	against PRIMARY_COUNT itself and the detail names why the plausible alternatives are not it.
 	"""
-	if primary_count <= 0:
-		return SaveHeader.Refusal.new(REFUSE_PRIMARY_COUNT,
-			"primary_count %d is not a positive row count" % primary_count)
-	if not SaveCodec.fits_u64(primary_count):
-		return SaveHeader.Refusal.new(REFUSE_PRIMARY_COUNT,
-			"primary_count %d is not representable as u64" % primary_count)
-	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+	if primary_count == PRIMARY_COUNT:
+		return SaveHeader.Refusal.new(REFUSE_NONE, "")
+	return SaveHeader.Refusal.new(REFUSE_PRIMARY_COUNT,
+		("primary_count %d is not section 8's designated %d pending-service rows. SAVE-C3-R01 "
+			+ "designates one primary TABLE per owner block; it is not a sum (%d over all five "
+			+ "extents, %d over the three owner capacities), not the secondary %d-row per-plot "
+			+ "cycle table, and not the retired 7-row fixture.")
+			% [primary_count, PRIMARY_COUNT, SERVICE_ROWS + OWNER_ROWS + ZONE_ROWS + DEMAND_ROWS
+				+ HIVE_ROWS, OWNER_ROWS + ZONE_ROWS + HIVE_ROWS, OWNER_ROWS])
 
 
 static func production_write_refusal() -> SaveHeader.Refusal:
-	"""BLOCKER J1, as an explicit refusal a save orchestrator can call before writing a file.
+	"""BLOCKER J2, as an explicit refusal a save orchestrator can call before writing a file.
 
-	Every other byte of section 8 is frozen. These eight are not, and two writers choosing
-	differently would produce two incompatible section 8s that both decode cleanly. A save owner
-	wiring section 8 into a real file must get a refusal here, not a plausible number.
+	SAVE-C3-R01 closed BLOCKER J1 and told this lane to "keep production refusal until J2 is
+	actually implemented and tested, even after the J1-specific refusal is retired". So the
+	refusal stands on the remaining hole and nothing else: the planner publishes no bulk column
+	reader or writer, so no live planner state can reach this codec and no section 8 written from
+	one would be faithful. Binding the count is not a save.
 	"""
-	return SaveHeader.Refusal.new(REFUSE_PRIMARY_COUNT_UNRULED,
-		("section 8's primary_count is unruled: REG-R01 declares no primary_count for owner '%s', "
-			+ "whose %d fields span five tables of %d/%d/%d/%d/%d rows. Obtain a ruling before "
-			+ "writing this block into a save file; `encode_section()` takes the value explicitly "
-			+ "and never derives it.")
-			% [OWNER_KEY, FIELD_COUNT, SERVICE_ROWS, OWNER_ROWS, ZONE_ROWS, DEMAND_ROWS,
+	return SaveHeader.Refusal.new(REFUSE_STORE_NO_COLUMN_API,
+		("section 8's primary_count is settled at %d, but BLOCKER J2 is not: owner '%s' publishes "
+			+ "no copy_job_index_columns_into()/restore_job_index_columns() pair, so its %d "
+			+ "service, %d cycle, %d zone, %d demand and %d hive rows cannot be captured from or "
+			+ "restored into a live store. Do not write this block into a save file.")
+			% [PRIMARY_COUNT, OWNER_KEY, SERVICE_ROWS, OWNER_ROWS, ZONE_ROWS, DEMAND_ROWS,
 				HIVE_ROWS])
 
 
@@ -807,16 +850,16 @@ static func encode_payload(record: Record, out: EncodeResult) -> bool:
 	return out.succeed(buffer)
 
 
-static func encode_section(record: Record, primary_count: int, out: EncodeResult) -> bool:
+static func encode_section(record: Record, out: EncodeResult) -> bool:
 	"""Materialise a whole section 8: the 39-byte owner wrapper, then the payload.
 
-	`primary_count` is the caller's, per BLOCKER J1, and is written verbatim into the wrapper. The
-	`payload_byte_length` field is the ACTUAL encoded body length, measured from the bytes this
+	The wrapper's `primary_count` is PRIMARY_COUNT and a caller cannot supply another, per
+	SAVE-C3-R01. There is deliberately NO `primary_count_refusal(PRIMARY_COUNT)` call here: against
+	a compiled constant it could never refuse, and a guard that cannot fire is a guard a mutation
+	test cannot kill. A PRIMARY_COUNT outside the u64 domain fails in `writer.write_u64()` instead.
+	The `payload_byte_length` field is the ACTUAL encoded body length, measured from the bytes this
 	call produced, so the wrapper cannot claim a length the body does not have.
 	"""
-	var count: SaveHeader.Refusal = primary_count_refusal(primary_count)
-	if not count.is_ok():
-		return out.refuse(count.code, count.detail)
 	var order: SaveHeader.Refusal = byte_order_refusal()
 	if not order.is_ok():
 		return out.refuse(order.code, order.detail)
@@ -827,7 +870,7 @@ static func encode_section(record: Record, primary_count: int, out: EncodeResult
 	writer.write_u32(STORE_COUNT)
 	writer.write_utf8_u32(OWNER_KEY, OWNER_KEY_MAX_BYTES)
 	writer.write_u32(OWNER_SCHEMA_VERSION)
-	writer.write_u64(primary_count)
+	writer.write_u64(PRIMARY_COUNT)
 	writer.write_u64(payload.bytes.size())
 	if writer.failed():
 		return out.refuse(REFUSE_ENCODE_FAILED, "%s: %s" % [writer.refusal(), writer.detail()])
@@ -863,7 +906,7 @@ static func canonical_bytes_of(record: Record, out: EncodeResult) -> bool:
 
 # --- decode ----------------------------------------------------------------------------------------
 
-static func decode_section_into(bytes: PackedByteArray, offset: int, expected_primary_count: int,
+static func decode_section_into(bytes: PackedByteArray, offset: int,
 		out: Record) -> SaveHeader.Refusal:
 	"""Decode section 8 from `offset`, validating everything before `out` is written at all.
 
@@ -873,12 +916,11 @@ static func decode_section_into(bytes: PackedByteArray, offset: int, expected_pr
 	PENDING row with no Job or a sowing cycle that disagrees with its cursor therefore leaves `out`
 	byte-identical -- the extent gate would catch a truncation long before any of those.
 
-	`expected_primary_count` is the caller's, per BLOCKER J1: this function refuses a wrapper that
-	disagrees with it and never derives the expected value from a column.
+	SAVE-C3-R01: the expectation is the COMPILED CONSTANT, never a caller-supplied number and
+	never a column's extent read back out of the body. A wrapper whose `primary_count` word at
+	byte 23 disagrees with PRIMARY_COUNT is refused before any column is published, so a section 8
+	written under a different reading of the field cannot load as if it agreed.
 	"""
-	var count: SaveHeader.Refusal = primary_count_refusal(expected_primary_count)
-	if not count.is_ok():
-		return count
 	var extent: SaveHeader.Refusal = extent_refusal(bytes, offset)
 	if not extent.is_ok():
 		return extent
@@ -888,7 +930,7 @@ static func decode_section_into(bytes: PackedByteArray, offset: int, expected_pr
 	var reader: SaveCodec.Reader = SaveCodec.Reader.new(bytes)
 	if not reader.seek(offset):
 		return SaveHeader.Refusal.new(REFUSE_TRUNCATED, reader.detail())
-	var framing: SaveHeader.Refusal = _read_framing(reader, expected_primary_count)
+	var framing: SaveHeader.Refusal = _read_framing(reader)
 	if not framing.is_ok():
 		return framing
 	return _decode_columns_into(bytes, reader, out)
@@ -924,8 +966,7 @@ static func extent_refusal(bytes: PackedByteArray, offset: int) -> SaveHeader.Re
 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
 
 
-static func _read_framing(reader: SaveCodec.Reader,
-		expected_primary_count: int) -> SaveHeader.Refusal:
+static func _read_framing(reader: SaveCodec.Reader) -> SaveHeader.Refusal:
 	"""Read and check the 39-byte block header: store count, owner, schema, counts, length."""
 	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
 	if not reader.read_u32_into(scalar):
@@ -938,9 +979,9 @@ static func _read_framing(reader: SaveCodec.Reader,
 		return owner
 	if not reader.read_u64_into(scalar):
 		return SaveHeader.Refusal.new(REFUSE_TRUNCATED, reader.detail())
-	if scalar.value != expected_primary_count:
-		return SaveHeader.Refusal.new(REFUSE_PRIMARY_COUNT,
-			"primary_count %d is not the expected %d" % [scalar.value, expected_primary_count])
+	var count: SaveHeader.Refusal = primary_count_refusal(scalar.value)
+	if not count.is_ok():
+		return count
 	if not reader.read_u64_into(scalar):
 		return SaveHeader.Refusal.new(REFUSE_TRUNCATED, reader.detail())
 	if scalar.value != PAYLOAD_BYTES:

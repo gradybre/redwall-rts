@@ -14,6 +14,14 @@ extends "res://test/framework/test_case.gd"
 ##   * a generation whose four bytes are `00 00 00 80` -- a plausible 2147483648 read unsigned and
 ##     an impossible -2147483648 read signed.
 ##
+## THE PRIMARY COUNT IS NOW RULED, AND THE VECTORS ARE LITERAL. SAVE-C3-R01 designates 8192 -- the
+## pending-service row table -- and requires writer and decoder to validate against the compiled
+## constant rather than a caller-supplied positive number. So the wrapper is pinned as one literal
+## hex string sliced at literal offsets (23, 31, 39), and the four values the ruling rejects (7,
+## 4096, 5248, 14080) are injected STRAIGHT INTO THE WIRE, because the encoder no longer offers a
+## way to produce one. Every one of those four is positive and u64-representable; the old
+## positive-only gate would have passed all four.
+##
 ## THE INT32 SIGN TRAP IS EXERCISED, NOT ASSUMED. A real bug has hidden inside the test written to
 ## catch it, so the boundary case here builds its value through `SaveCodec.u32_bits_to_int32()` and
 ## `int32_bits_to_u32()` and asserts the pair agrees, rather than typing a signed literal.
@@ -42,11 +50,27 @@ const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const REGISTRY_PATH: String = "res://../docs/planning/canonical_state_registry.json"
 const MODULE_PATH: String = "res://scripts/core/save_section_job_indexes.gd"
 
-## The primary count this suite passes through the wrapper. BLOCKER J1: section 8's real value is
-## UNRULED, so this is a FIXTURE and nothing more -- it is deliberately not one of the planner's
-## five table extents, so a codec that quietly derived the count from a column would disagree with
-## every pinned vector here instead of accidentally agreeing with one.
-const FIXTURE_PRIMARY_COUNT: int = 7
+## SAVE-C3-R01's designated primary count, restated as a LITERAL rather than as
+## `Section.PRIMARY_COUNT`. A test that asserted `PRIMARY_COUNT == PRIMARY_COUNT` would pass
+## against any value the module chose; these four digits are the ruling's, and if the module moves
+## off them this suite says so.
+const RULED_PRIMARY_COUNT: int = 8192
+
+## The four values SAVE-C3-R01 names and REJECTS, each with the reading that produces it. They are
+## tested BY VALUE because the point is that every one of them is positive, representable, and
+## wrong -- a "positive u64" gate would wave all four through.
+const REJECTED_OLD_FIXTURE: int = 7
+const REJECTED_PLOT_CYCLE_TABLE: int = 4096
+const REJECTED_OWNER_CAPACITY_SUM: int = 5248
+const REJECTED_ALL_FIVE_EXTENT_SUM: int = 14080
+
+## Absolute wire offsets, written as literals on purpose. `Section.OFFSET_PRIMARY_COUNT` is the
+## module's own arithmetic, and a vector that located itself through the thing it is checking is
+## how §7's `_read_block()` and §9's ordinal swap both survived a round trip. 23 = 4 (store_count)
+## + 4 (key length) + 11 ("job_planner") + 4 (owner schema).
+const WIRE_OFFSET_PRIMARY_COUNT: int = 23
+const WIRE_OFFSET_PAYLOAD_LENGTH: int = 31
+const WIRE_FRAMING_BYTES: int = 39
 
 var _record: Section.Record = null
 
@@ -146,18 +170,22 @@ func _populate_hives() -> void:
 	_write(Section.FIELD_HIVE_BLOCKER, 8, 3)
 
 
-func _encode(record: Section.Record, primary_count: int) -> PackedByteArray:
-	"""Encode a whole section and assert it succeeded, returning its bytes."""
+func _encode(record: Section.Record) -> PackedByteArray:
+	"""Encode a whole section and assert it succeeded, returning its bytes.
+
+	Takes no primary count: SAVE-C3-R01 binds it to the compiled constant, so there is nothing for
+	a test -- or any other caller -- to pass. A wrong count now has to be INJECTED INTO THE WIRE at
+	byte 23, which is what `test_a_primary_count_that_is_not_the_designated_table_refuses()` does.
+	"""
 	var out: Section.EncodeResult = Section.EncodeResult.new()
-	var ok: bool = Section.encode_section(record, primary_count, out)
+	var ok: bool = Section.encode_section(record, out)
 	assert_true(ok, "encode_section succeeds: %s %s" % [out.refusal, out.detail])
 	return out.bytes
 
 
-func _decode(bytes: PackedByteArray, primary_count: int,
-		out: Section.Record) -> SaveHeader.Refusal:
+func _decode(bytes: PackedByteArray, out: Section.Record) -> SaveHeader.Refusal:
 	"""Decode a section at offset 0 into `out`."""
-	return Section.decode_section_into(bytes, 0, primary_count, out)
+	return Section.decode_section_into(bytes, 0, out)
 
 
 func _patch_u32(bytes: PackedByteArray, offset: int, value: int) -> PackedByteArray:
@@ -285,15 +313,45 @@ func test_empty_record_holds_the_declared_unused_values() -> void:
 # --- pinned bytes -------------------------------------------------------------------------------
 
 func test_framing_bytes_are_pinned() -> void:
-	"""The 39-byte owner wrapper, byte for byte, with the fixture primary count."""
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
-	assert_equal(bytes.size(), Section.SECTION_BYTES, "section length")
-	var wrapper: String = bytes.slice(0, Section.FRAMING_BYTES).hex_encode()
-	assert_equal(wrapper.substr(0, 46), "010000000b0000006a6f625f706c616e6e657201000000",
-		"store count 1, key length 11, 'job_planner', schema 1")
-	assert_equal(wrapper.substr(46, 16), "0700000000000000", "primary_count 7, little-endian u64")
-	assert_equal(wrapper.substr(62, 16), "688a050000000000", "payload_byte_length 363112")
-	assert_equal(wrapper.length(), 78, "the wrapper is 39 bytes and nothing more")
+	"""The 39-byte owner wrapper as ONE literal hex vector, sliced at literal offsets.
+
+	SAVE-C3-R01's acceptance is "pin exact §8 wrapper bytes". Every offset and every digit below is
+	a literal: `bytes.slice(0, 39)`, not `slice(0, Section.FRAMING_BYTES)`. A vector that addressed
+	itself through the module's own constants would move silently with them, which is exactly how
+	§7's recomputed payload length and §9's symmetric ordinal swap both survived a round trip.
+
+	`0020000000000000` is 8192 as a little-endian u64 (0x2000), sitting at byte 23.
+	"""
+	var bytes: PackedByteArray = _encode(_record)
+	assert_equal(bytes.size(), 363151, "section length is the frozen 363151 bytes")
+	assert_equal(bytes.slice(0, WIRE_FRAMING_BYTES).hex_encode(),
+		"01000000"
+		+ "0b000000"
+		+ "6a6f625f706c616e6e6572"
+		+ "01000000"
+		+ "0020000000000000"
+		+ "688a050000000000",
+		"store count 1, key length 11, 'job_planner', schema 1, primary 8192, payload 363112")
+	assert_equal(bytes.slice(WIRE_OFFSET_PRIMARY_COUNT, WIRE_OFFSET_PRIMARY_COUNT + 8).hex_encode(),
+		"0020000000000000", "byte 23 is the designated primary count, 8192 LE")
+	assert_equal(bytes.slice(WIRE_OFFSET_PAYLOAD_LENGTH, WIRE_FRAMING_BYTES).hex_encode(),
+		"688a050000000000", "byte 31 is payload_byte_length 363112")
+
+
+func test_the_pinned_offsets_are_the_modules_offsets() -> void:
+	"""The literal offsets above and the module's own arithmetic must agree.
+
+	Kept SEPARATE from the vector on purpose: the vector proves the bytes, this proves the module
+	has not quietly redefined where they live. Folding the two together is what makes a wire check
+	self-referential.
+	"""
+	assert_equal(Section.OFFSET_PRIMARY_COUNT, WIRE_OFFSET_PRIMARY_COUNT, "primary count at 23")
+	assert_equal(Section.OFFSET_PAYLOAD_BYTE_LENGTH, WIRE_OFFSET_PAYLOAD_LENGTH, "length at 31")
+	assert_equal(Section.FRAMING_BYTES, WIRE_FRAMING_BYTES, "the wrapper is 39 bytes")
+	assert_equal(Section.SECTION_BYTES, 363151, "the section length is unchanged by SAVE-C3-R01")
+	assert_equal(Section.PAYLOAD_BYTES, 363112, "the payload is unchanged by SAVE-C3-R01")
+	assert_equal(Section.FIELD_COUNT, 29, "29 fields, unchanged by SAVE-C3-R01")
+	assert_equal(Section.OWNER_SCHEMA_VERSION, 1, "no gratuitous owner version bump")
 
 
 func test_element_counts_are_each_field_own_extent() -> void:
@@ -302,7 +360,7 @@ func test_element_counts_are_each_field_own_extent() -> void:
 	This is where an extent guessed from the first column dies on the wire: a `_demand_enabled`
 	prefix of 8192 instead of 128 is visible here before any value is read.
 	"""
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
 	for field: int in Section.FIELD_COUNT:
 		assert_true(SaveCodec.read_u64_at(bytes, Section.field_count_offset(field), scalar),
@@ -321,7 +379,7 @@ func test_column_major_values_are_pinned() -> void:
 	them; column-major keeps each whole, which is what these two vectors prove.
 	"""
 	_populate()
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	var slot_start: int = Section.field_value_offset(Section.FIELD_DEMAND_JOB_SLOT) \
 		+ _demand_row(2, 1) * 4
 	assert_equal(bytes.slice(slot_start, slot_start + 8).hex_encode(), "2d010000ffffffff",
@@ -358,52 +416,108 @@ func test_canonical_bytes_exclude_the_framing() -> void:
 func test_round_trip_is_byte_identical() -> void:
 	"""Encode, decode, re-encode: the same 363151 bytes and the same 29 columns."""
 	_populate()
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	var decoded: Section.Record = Section.Record.new()
-	_refuses(_decode(bytes, FIXTURE_PRIMARY_COUNT, decoded), Section.REFUSE_NONE, "round trip")
+	_refuses(_decode(bytes, decoded), Section.REFUSE_NONE, "round trip")
 	assert_true(decoded.equals(_record), "every column survives the round trip")
-	assert_equal(_encode(decoded, FIXTURE_PRIMARY_COUNT), bytes, "re-encode is byte-identical")
+	assert_equal(_encode(decoded), bytes, "re-encode is byte-identical")
 
 
-# --- BLOCKER J1: the primary count is carried, never derived ---------------------------------------
+# --- SAVE-C3-R01: the primary count is the designated pending-service table -----------------------
 
-func test_primary_count_is_carried_not_derived() -> void:
-	"""Two counts produce two sections differing ONLY in those eight bytes, and both round-trip."""
-	var seven: PackedByteArray = _encode(_record, 7)
-	var other: PackedByteArray = _encode(_record, Section.SERVICE_ROWS)
-	assert_false(seven == other, "the wrapper carries the caller's count")
-	assert_equal(seven.slice(0, Section.OFFSET_PRIMARY_COUNT),
-		other.slice(0, Section.OFFSET_PRIMARY_COUNT), "everything before the count agrees")
-	assert_equal(seven.slice(Section.OFFSET_PAYLOAD_BYTE_LENGTH, Section.SECTION_BYTES),
-		other.slice(Section.OFFSET_PAYLOAD_BYTE_LENGTH, Section.SECTION_BYTES),
-		"everything after the count agrees")
-	var decoded: Section.Record = Section.Record.new()
-	_refuses(_decode(seven, 7, decoded), Section.REFUSE_NONE, "seven decodes against seven")
-	_refuses(_decode(other, Section.SERVICE_ROWS, decoded), Section.REFUSE_NONE,
-		"8192 decodes against 8192")
+func test_primary_count_is_the_designated_pending_service_table() -> void:
+	"""8192, because it is the PENDING-SERVICE row extent -- not because it is column zero's.
 
-
-func test_a_disagreeing_primary_count_refuses() -> void:
-	"""A wrapper whose count is not the caller's expectation is refused, not accepted."""
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
-	var decoded: Section.Record = Section.Record.new()
-	_refuses(_decode(bytes, Section.SERVICE_ROWS, decoded), Section.REFUSE_PRIMARY_COUNT,
-		"a count of 7 is not 8192")
-	_refuses(Section.decode_section_into(bytes, 0, 0, decoded), Section.REFUSE_PRIMARY_COUNT,
-		"zero is not a primary count")
-	var out: Section.EncodeResult = Section.EncodeResult.new()
-	assert_false(Section.encode_section(_record, -1, out), "a negative count refuses")
-	assert_equal(out.refusal, Section.REFUSE_PRIMARY_COUNT, "negative count refusal code")
-	assert_equal(out.bytes.size(), 0, "a refused encode produces no bytes")
+	The distinction is not pedantry: 8192 is also `FIELD_EXTENTS[0]`, so a codec that derived the
+	count from the first column would produce the same byte for the wrong reason and pass every
+	equality test here. What separates the two is that the designation follows the TABLE: this
+	asserts `PRIMARY_COUNT == SERVICE_ROW_COUNT` against the planner's own constant, and asserts it
+	is NOT any of the other four extents nor any of the sums a reader might otherwise derive.
+	"""
+	assert_equal(Section.PRIMARY_COUNT, RULED_PRIMARY_COUNT, "SAVE-C3-R01 designates 8192")
+	assert_equal(Section.PRIMARY_COUNT, JobPlannerScript.SERVICE_ROW_COUNT,
+		"it is the pending-service row table, read from the planner")
+	assert_equal(Section.SERVICE_ROWS + Section.OWNER_ROWS + Section.ZONE_ROWS
+		+ Section.DEMAND_ROWS + Section.HIVE_ROWS, REJECTED_ALL_FIVE_EXTENT_SUM,
+		"the five extents really do sum to 14080")
+	assert_equal(Section.OWNER_ROWS + Section.ZONE_ROWS + Section.HIVE_ROWS,
+		REJECTED_OWNER_CAPACITY_SUM, "the three owner capacities really do sum to 5248")
+	for rejected: int in [REJECTED_OLD_FIXTURE, REJECTED_PLOT_CYCLE_TABLE,
+			REJECTED_OWNER_CAPACITY_SUM, REJECTED_ALL_FIVE_EXTENT_SUM]:
+		assert_false(Section.PRIMARY_COUNT == rejected, "%d is not the primary count" % rejected)
+	assert_equal(Section.OWNER_ROWS, REJECTED_PLOT_CYCLE_TABLE, "4096 is the secondary table")
+	assert_equal(Section.ZONE_ROWS, 128, "the zone table is 128 and stayed 128")
+	assert_equal(Section.DEMAND_ROWS, 640, "the demand table is 640 and stayed 640")
+	assert_equal(Section.HIVE_ROWS, 1024, "the hive table is 1024 and stayed 1024")
 
 
-func test_production_write_is_refused_while_the_count_is_unruled() -> void:
-	"""BLOCKER J1 is an explicit refusal a save owner receives, not a comment it may miss."""
+func test_the_caller_cannot_choose_a_primary_count() -> void:
+	"""`primary_count_refusal()` accepts exactly one value and refuses all four named alternatives.
+
+	SAVE-C3-R01: "Writer and decoder must validate against the compiled constant rather than a
+	caller-supplied positive number." Every rejected value here is positive and u64-representable,
+	so a `> 0` gate would pass all of them.
+	"""
+	assert_true(Section.primary_count_refusal(RULED_PRIMARY_COUNT).is_ok(), "8192 is accepted")
+	for rejected: int in [REJECTED_OLD_FIXTURE, REJECTED_PLOT_CYCLE_TABLE,
+			REJECTED_OWNER_CAPACITY_SUM, REJECTED_ALL_FIVE_EXTENT_SUM, 128, 640, 1024, 8191,
+			8193, 0, -1]:
+		var refusal: SaveHeader.Refusal = Section.primary_count_refusal(rejected)
+		assert_false(refusal.is_ok(), "%d is refused as a primary count" % rejected)
+		assert_equal(refusal.code, Section.REFUSE_PRIMARY_COUNT, "refusal code for %d" % rejected)
+
+
+func test_a_primary_count_that_is_not_the_designated_table_refuses() -> void:
+	"""A header whose count word disagrees with the body is refused, and writes nothing.
+
+	The wrong count is injected STRAIGHT INTO THE WIRE at literal byte 23, because the encoder no
+	longer offers a way to produce one. This is the mutation the ruling names: a decode that
+	accepted such a header would load a section 8 written under a different reading of the field.
+	"""
+	var bytes: PackedByteArray = _encode(_record)
+	var loaded: Section.Record = Section.Record.new()
+	_refuses(_decode(bytes, loaded), Section.REFUSE_NONE, "the honest section loads")
+	var before: Section.Record = Section.Record.new()
+	before.copy_from(loaded)
+	for rejected: int in [REJECTED_OLD_FIXTURE, REJECTED_PLOT_CYCLE_TABLE,
+			REJECTED_OWNER_CAPACITY_SUM, REJECTED_ALL_FIVE_EXTENT_SUM, 0]:
+		var forged: PackedByteArray = _patch_u64(bytes, WIRE_OFFSET_PRIMARY_COUNT, rejected)
+		assert_equal(forged.size(), 363151, "the forged section is still full length")
+		assert_equal(forged.slice(0, WIRE_OFFSET_PRIMARY_COUNT),
+			bytes.slice(0, WIRE_OFFSET_PRIMARY_COUNT), "only the count word changed")
+		assert_equal(forged.slice(WIRE_OFFSET_PAYLOAD_LENGTH, 363151),
+			bytes.slice(WIRE_OFFSET_PAYLOAD_LENGTH, 363151), "the body is untouched")
+		_refuses(_decode(forged, loaded), Section.REFUSE_PRIMARY_COUNT,
+			"a header claiming %d is refused" % rejected)
+		assert_true(loaded.equals(before), "the refused decode wrote nothing")
+
+
+func test_the_encoder_writes_the_ruled_count_unconditionally() -> void:
+	"""Two encodes of two different Records agree byte for byte across the whole wrapper."""
+	var empty: PackedByteArray = _encode(_record)
+	_populate()
+	var full: PackedByteArray = _encode(_record)
+	assert_false(empty == full, "the two Records do differ somewhere")
+	assert_equal(empty.slice(0, WIRE_FRAMING_BYTES), full.slice(0, WIRE_FRAMING_BYTES),
+		"the wrapper does not depend on the state it frames")
+	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
+	assert_true(SaveCodec.read_u64_at(full, WIRE_OFFSET_PRIMARY_COUNT, scalar), "count is readable")
+	assert_equal(scalar.value, RULED_PRIMARY_COUNT, "a populated section still declares 8192")
+
+
+func test_production_write_is_refused_while_the_store_has_no_column_api() -> void:
+	"""SAVE-C3-R01 closes J1 but tells this lane to keep refusing production writes for J2.
+
+	Binding a count is not a capture adapter. The refusal must therefore still fire, and must now
+	name the REMAINING hole rather than the closed one.
+	"""
 	var refusal: SaveHeader.Refusal = Section.production_write_refusal()
-	assert_false(refusal.is_ok(), "writing section 8 into a save file is refused")
-	assert_equal(refusal.code, Section.REFUSE_PRIMARY_COUNT_UNRULED, "blocker J1 refusal code")
-	assert_true(refusal.detail.contains("primary_count"), "the refusal names the missing field")
-	assert_true(refusal.detail.contains(str(Section.HIVE_ROWS)), "it names the candidate extents")
+	assert_false(refusal.is_ok(), "writing section 8 into a save file is still refused")
+	assert_equal(refusal.code, Section.REFUSE_STORE_NO_COLUMN_API, "it is BLOCKER J2's code")
+	assert_true(refusal.detail.contains("copy_job_index_columns_into"),
+		"the refusal names the reader the planner owner must add")
+	assert_true(refusal.detail.contains(str(RULED_PRIMARY_COUNT)),
+		"and records that the count itself is settled")
 
 
 # --- BLOCKER J2: no live store round trip yet -------------------------------------------------------
@@ -453,24 +567,24 @@ func test_a_full_length_invalid_section_leaves_the_record_byte_identical() -> vo
 	before anything is read, so the case that proves validate-then-commit is a section of exactly
 	the right length whose 300000th byte is wrong."""
 	_populate()
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	var corrupt: PackedByteArray = bytes.duplicate()
 	var offset: int = Section.field_value_offset(Section.FIELD_HIVE_JOB_SLOT) + 8 * 4
 	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
 	assert_true(SaveCodec.write_i32_into(corrupt, offset, 77, scalar), "corrupted a free hive row")
 	assert_equal(corrupt.size(), Section.SECTION_BYTES, "the corrupt section is full length")
 	var out: Section.Record = Section.Record.new()
-	_refuses(_decode(bytes, FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_NONE, "first load")
+	_refuses(_decode(bytes, out), Section.REFUSE_NONE, "first load")
 	var before: Section.Record = Section.Record.new()
 	before.copy_from(out)
-	_refuses(_decode(corrupt, FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_ROW_NOT_CLEAR,
+	_refuses(_decode(corrupt, out), Section.REFUSE_ROW_NOT_CLEAR,
 		"a free hive row holding a Job slot is refused")
 	assert_true(out.equals(before), "the refused decode wrote nothing at all")
 
 
 func test_truncation_and_offsets_are_gated_before_any_read() -> void:
 	"""`extent_refusal()` is the primary gate and is public so it can be tested on its own."""
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	assert_true(Section.extent_refusal(bytes, 0).is_ok(), "a whole section at offset 0")
 	_refuses(Section.extent_refusal(bytes, 1), Section.REFUSE_TRUNCATED, "one byte short")
 	_refuses(Section.extent_refusal(bytes, -1), Section.REFUSE_NEGATIVE_OFFSET, "negative offset")
@@ -481,7 +595,7 @@ func test_truncation_and_offsets_are_gated_before_any_read() -> void:
 	padded.append_array(bytes)
 	assert_true(Section.extent_refusal(padded, 9).is_ok(), "a section at a nonzero offset")
 	var out: Section.Record = Section.Record.new()
-	_refuses(Section.decode_section_into(padded, 9, FIXTURE_PRIMARY_COUNT, out),
+	_refuses(Section.decode_section_into(padded, 9, out),
 		Section.REFUSE_NONE, "decoding at a nonzero offset")
 
 
@@ -490,47 +604,52 @@ func test_section_length_refusal_checks_a_descriptor() -> void:
 	assert_true(Section.section_length_refusal(Section.SECTION_BYTES).is_ok(), "the exact length")
 	_refuses(Section.section_length_refusal(Section.SECTION_BYTES - 1), Section.REFUSE_LENGTH,
 		"one byte short")
-	assert_equal(Section.descriptor_row_count(FIXTURE_PRIMARY_COUNT), FIXTURE_PRIMARY_COUNT,
-		"one block, so the descriptor row count is that block's primary count")
+	assert_equal(Section.descriptor_row_count(), RULED_PRIMARY_COUNT,
+		"§8 holds one block, so its descriptor row_count is that block's primary count")
+	assert_equal(Section.descriptor_row_count(), Section.PRIMARY_COUNT,
+		"the descriptor and the wrapper cannot disagree")
+	for rejected: int in [REJECTED_OLD_FIXTURE, REJECTED_PLOT_CYCLE_TABLE,
+			REJECTED_OWNER_CAPACITY_SUM, REJECTED_ALL_FIVE_EXTENT_SUM]:
+		assert_false(Section.descriptor_row_count() == rejected,
+			"the descriptor is not %d" % rejected)
 
 
 func test_a_payload_length_that_disagrees_with_the_body_refuses() -> void:
 	"""The wrapper cannot claim a length the 363112-byte body does not have."""
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	var out: Section.Record = Section.Record.new()
 	_refuses(_decode(_patch_u64(bytes, Section.OFFSET_PAYLOAD_BYTE_LENGTH,
-		Section.PAYLOAD_BYTES - 8), FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_PAYLOAD_LENGTH,
+		Section.PAYLOAD_BYTES - 8), out), Section.REFUSE_PAYLOAD_LENGTH,
 		"a short payload length")
 	_refuses(_decode(_patch_u64(bytes, Section.OFFSET_PAYLOAD_BYTE_LENGTH,
-		Section.SECTION_BYTES), FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_PAYLOAD_LENGTH,
+		Section.SECTION_BYTES), out), Section.REFUSE_PAYLOAD_LENGTH,
 		"a payload length that swallowed the wrapper")
 
 
 func test_the_owner_wrapper_is_checked_field_by_field() -> void:
 	"""Store count, owner key and schema version each refuse on their own."""
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	var out: Section.Record = Section.Record.new()
-	_refuses(_decode(_patch_u32(bytes, Section.OFFSET_STORE_COUNT, 2), FIXTURE_PRIMARY_COUNT,
-		out), Section.REFUSE_STORE_COUNT, "section 8 holds one registered block")
+	_refuses(_decode(_patch_u32(bytes, Section.OFFSET_STORE_COUNT, 2), out), Section.REFUSE_STORE_COUNT, "section 8 holds one registered block")
 	var foreign: PackedByteArray = bytes.duplicate()
 	foreign[Section.OFFSET_OWNER_KEY] = "J".to_utf8_buffer()[0]
-	_refuses(_decode(foreign, FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_OWNER_KEY,
+	_refuses(_decode(foreign, out), Section.REFUSE_OWNER_KEY,
 		"'Job_planner' is not this owner")
 	_refuses(_decode(_patch_u32(bytes, Section.OFFSET_OWNER_SCHEMA_VERSION, 2),
-		FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_OWNER_SCHEMA_VERSION, "schema 2 is not 1")
+		out), Section.REFUSE_OWNER_SCHEMA_VERSION, "schema 2 is not 1")
 	_refuses(_decode(_patch_u32(bytes, Section.OFFSET_OWNER_KEY_LENGTH, 12),
-		FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_OWNER_KEY, "a key length of 12")
+		out), Section.REFUSE_OWNER_KEY, "a key length of 12")
 
 
 func test_an_element_count_from_another_table_refuses() -> void:
 	"""The 128-row zone column declaring the service table's 8192 rows is refused on the wire."""
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	var out: Section.Record = Section.Record.new()
 	var offset: int = Section.field_count_offset(Section.FIELD_DEMAND_ENABLED)
-	_refuses(_decode(_patch_u64(bytes, offset, Section.SERVICE_ROWS), FIXTURE_PRIMARY_COUNT, out),
+	_refuses(_decode(_patch_u64(bytes, offset, Section.SERVICE_ROWS), out),
 		Section.REFUSE_ELEMENT_COUNT, "a zone column claiming 8192 rows")
 	_refuses(_decode(_patch_u64(bytes, Section.field_count_offset(0), 0),
-		FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_ELEMENT_COUNT, "an empty first column")
+		out), Section.REFUSE_ELEMENT_COUNT, "an empty first column")
 
 
 func test_a_record_of_the_wrong_shape_refuses_before_indexing() -> void:
@@ -555,14 +674,14 @@ func test_a_generation_of_0x80000000_is_refused_as_negative() -> void:
 	assert_equal(unsigned, 2147483648, "0x80000000 is positive in a 64-bit int")
 	assert_equal(SaveCodec.u32_bits_to_int32(unsigned), -2147483648, "the same bits as int32")
 	assert_equal(SaveCodec.int32_bits_to_u32(-2147483648), unsigned, "and back again")
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	var offset: int = Section.field_value_offset(Section.FIELD_OWNER_GENERATION)
 	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
 	var corrupt: PackedByteArray = bytes.duplicate()
 	assert_true(SaveCodec.write_u32_into(corrupt, offset, unsigned, scalar), "wrote 00 00 00 80")
 	assert_equal(corrupt.slice(offset, offset + 4).hex_encode(), "00000080", "the pinned bytes")
 	var out: Section.Record = Section.Record.new()
-	_refuses(_decode(corrupt, FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_NEGATIVE_VALUE,
+	_refuses(_decode(corrupt, out), Section.REFUSE_NEGATIVE_VALUE,
 		"a generation of -2147483648 is refused, not read as 2147483648")
 
 
@@ -574,11 +693,11 @@ func test_the_largest_representable_generation_survives() -> void:
 	_write(Section.FIELD_JOB_SLOT, 0, 8)
 	_write(Section.FIELD_JOB_GENERATION, 0, EntityDirectoryScript.MAX_INT32)
 	assert_true(Section.record_refusal(_record).is_ok(), "a spent generation is still valid")
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	var offset: int = Section.field_value_offset(Section.FIELD_OWNER_GENERATION)
 	assert_equal(bytes.slice(offset, offset + 4).hex_encode(), "ffffff7f", "2147483647's bytes")
 	var out: Section.Record = Section.Record.new()
-	_refuses(_decode(bytes, FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_NONE, "it round-trips")
+	_refuses(_decode(bytes, out), Section.REFUSE_NONE, "it round-trips")
 	assert_equal(out.value_of(Section.FIELD_OWNER_GENERATION, 0),
 		EntityDirectoryScript.MAX_INT32, "and comes back exactly")
 
@@ -691,9 +810,9 @@ func test_the_history_a_free_row_is_allowed_to_keep() -> void:
 	_write(Section.FIELD_HIVE_BLOCKER, 11, 4)
 	assert_true(Section.record_refusal(_record).is_ok(),
 		"a free row may keep its completion history and its reason")
-	var bytes: PackedByteArray = _encode(_record, FIXTURE_PRIMARY_COUNT)
+	var bytes: PackedByteArray = _encode(_record)
 	var out: Section.Record = Section.Record.new()
-	_refuses(_decode(bytes, FIXTURE_PRIMARY_COUNT, out), Section.REFUSE_NONE, "and round-trips")
+	_refuses(_decode(bytes, out), Section.REFUSE_NONE, "and round-trips")
 	assert_equal(out.value_of(Section.FIELD_SERVICED_DAY, _service_row(6, 0)), 41,
 		"the completion day survived")
 
@@ -834,7 +953,7 @@ func test_encode_refuses_an_invalid_record() -> void:
 	"""An invalid Record never reaches the wire, through any of the three encoders."""
 	_write(Section.FIELD_STATUS, 1, JobPlannerScript.STATUS_COUNT)
 	var section: Section.EncodeResult = Section.EncodeResult.new()
-	assert_false(Section.encode_section(_record, FIXTURE_PRIMARY_COUNT, section), "no section")
+	assert_false(Section.encode_section(_record, section), "no section")
 	assert_equal(section.refusal, Section.REFUSE_STATUS_DOMAIN, "section refusal code")
 	var payload: Section.EncodeResult = Section.EncodeResult.new()
 	assert_false(Section.encode_payload(_record, payload), "no payload")

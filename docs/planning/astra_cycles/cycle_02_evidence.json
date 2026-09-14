@@ -1,0 +1,113 @@
+{
+  "cycle": 2,
+  "date": "2026-09-14",
+  "integration_base": "127c8e4ce14ef7acab0b2b608abb8b6b92935928",
+  "local_head": "3e094e927c822056b51953aac4168b77acdee814",
+  "new_merged_prs": [
+    116,
+    115
+  ],
+  "open_prs": [
+    117,
+    118
+  ],
+  "query_utc": "2026-09-14T14:20:01Z",
+  "baseline_result_source": "Executor-reported PR116:4336tests152719assertions0failures, not independently rerun this cycle",
+  "focused_probe": {
+    "checks": 14,
+    "failures": 0,
+    "exit_code": 0,
+    "warning_objects": 14,
+    "warning_resources": 3,
+    "source": "unchanged Inventory verified byte-identical to PR116"
+  },
+  "index_sha256_before": "a0c6514e6a0dce6e3f0cf39a4c0b8e83d5107472239b866a3c9c452177925316",
+  "code_sha256": {
+    "godot/scripts/core/inventory.gd": "15defe8ccc172d5931bd42a3fe57a82ed9fc1852dac5d6f2d3b3fafa556d11db",
+    "godot/scripts/core/construction.gd": "accd44a3c6a367d132e5189698171b9991c103ab70a9b03cdfabf20721b8fe8e",
+    "godot/scripts/core/spatial_world.gd": "1713ffa8bd63b6cb50ff01654d2f79debf4674f0f73108fb17907541cce9c782",
+    "godot/scripts/core/save_section_inventories.gd": "b1e880fee43a6159ee65c759c8dc1479b0533b3a11701dbd71b8e279d0d709cc"
+  },
+  "answered": [
+    "retired-row-blanking",
+    "inventory-container-enumeration-by-owner"
+  ],
+  "partial": [
+    "move-g01-clearance-and-modes"
+  ],
+  "runtime_changed": false,
+  "art_approvals_changed": false,
+  "credits_spent": 0,
+  "post_publication_checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/validate_cycle02_handoff.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/validate_cycle01_handoff.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/dispatch_plan.py",
+        "--validate"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/astra_inbox.py",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/state_registry_coverage.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/validate_save_registry_handoff.py",
+        "--source-root",
+        "."
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/validation/decision_numbers.py"
+      ],
+      "exit_code": 1
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "planning_fixture_checks": 37,
+  "runtime_probe_rerun_after_publication": false
+}

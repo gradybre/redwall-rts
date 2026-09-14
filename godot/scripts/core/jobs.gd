@@ -603,6 +603,10 @@ var _walk_job_id: int = 0
 ## The persistent ID a suspended pass resumes after: the last candidate examined in the bucket it
 ## was suspended in, or the ID it entered that bucket at when it examined none.
 var _walk_last_examined_id: int = 0
+## The bulk-column namespace's own refusal code (decision 0132). Category 3: not state, not
+## persisted, and excluded from `state_bytes()` so a refusal cannot alter the image that proves
+## it changed nothing.
+var _last_column_refusal: StringName = REFUSE_NONE
 
 
 func _init(p_residents: ResidentsScript = null, p_priorities: PrioritiesScript = null,
@@ -2349,3 +2353,933 @@ func _beats_incumbent(bucket: int, player_priority: int, job_priority: int, skil
 	if created_tick != _best_created_tick:
 		return created_tick < _best_created_tick
 	return job_id < _best_job_id
+
+
+# --- ARCH-SAVE-002 sections 4 and 5 bulk column API (decision 0132) ---------------------------
+#
+# This store owns rows in TWO sections and the registry numbers them in two separate ordinal
+# spaces: §4 COMPONENT_COLUMNS carries thirty-eight columns and §5 CHILD_ARENAS carries the four
+# coordinator/member columns of decision 0017. One `Columns` object carries both, because a
+# restore of either half alone is not a state this store can hold: the member chain is only
+# meaningful against the Job rows it links, and a half-applied pair is the worst outcome
+# ARCH-SAVE-003 names. The two ORDER tables stay separate, so neither section's ordinals can
+# drift into the other's.
+#
+# Before these landed a codec could read a job only through `kind_of()` and its siblings, which
+# refuse a row whose `_job_present` is 0 -- so a released row's retained bytes, and the fact that
+# `_clear_job_row()` really did leave no residue, were unreachable without reaching into
+# `_kind` from another file. No module here reads another's private columns.
+#
+# CATEGORY 2, REBUILT AND NEVER CARRIED (the §8 JOB_INDEXES rows of this store):
+# `_job_persistent_id` and `_agent_persistent_id` are caches of the directory's never-reused
+# identity and are refilled from §3; `_live_slots` and `_bucket_begin` are the ordered index and
+# are rebuilt ascending; `_live_count`, `_agent_count` and `_deepest_continuation_bucket` are
+# counts of the columns above. None is read from the caller.
+#
+# ORDER OF RESTORE, WHICH IS A REAL DEPENDENCY AND NOT A PREFERENCE. §3 ENTITY_DIRECTORY must be
+# restored before this call, because every live Job row's identity is resolved through the
+# directory and `_job_persistent_id` is refilled from it. `residents.gd` must be restored before
+# it too, because a JobAgent row exists only for a present resident and `_agent_persistent_id`
+# comes from that store. Both are checked, not assumed: a reference the directory does not
+# honour, or an agent on an absent resident, refuses.
+#
+# GENERATION NAMESPACES. `_job_ref_*`, `_requester_*`, `_destination_*`, `_source_*`,
+# `_worker_*`, `_agent_job_*`, `_agent_target_*` and `_coordinator_*` are all DIRECTORY
+# generations. This store holds no inventory container or lot handle and no navigation route
+# handle, so none of the other three namespaces appears in any column here.
+
+const COLUMN_TYPE_U8: int = 0
+const COLUMN_TYPE_I32: int = 2
+const COLUMN_TYPE_I64: int = 4
+
+## The thirty-eight §4 COMPONENT_COLUMNS category-1 columns, in the registry's ordinal order.
+const SECTION4_COLUMN_COUNT: int = 38
+const SECTION4_COLUMN_KEYS: Array[StringName] = [
+	&"_job_present", &"_agent_present", &"_kind", &"_requester_slot", &"_requester_generation",
+	&"_destination_slot", &"_destination_generation", &"_source_slot", &"_source_generation",
+	&"_priority", &"_required_skill", &"_state", &"_worker_slot", &"_worker_generation",
+	&"_remaining_mwu", &"_created_tick", &"_job_ref_slot", &"_job_ref_generation",
+	&"_urgency", &"_dangerous", &"_station_gate", &"_tool_gate", &"_unlock_gate",
+	&"_inputs_gate", &"_is_coordinator", &"_agent_job_slot", &"_agent_job_generation",
+	&"_agent_phase", &"_agent_target_slot", &"_agent_target_generation", &"_agent_path_id",
+	&"_agent_path_cursor", &"_agent_lease_expiry", &"_agent_blocked_tick",
+	&"_agent_manual_until", &"_agent_hazard_locked", &"_job_scan_cursor",
+	&"_continuation_bucket",
+]
+const SECTION4_COLUMN_TYPE_CODES: Array[int] = [
+	COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32,
+	COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32,
+	COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32,
+	COLUMN_TYPE_I64, COLUMN_TYPE_I64, COLUMN_TYPE_I32, COLUMN_TYPE_I32,
+	COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_U8,
+	COLUMN_TYPE_U8, COLUMN_TYPE_U8, COLUMN_TYPE_I32, COLUMN_TYPE_I32,
+	COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32,
+	COLUMN_TYPE_I32, COLUMN_TYPE_I64, COLUMN_TYPE_I64,
+	COLUMN_TYPE_I64, COLUMN_TYPE_U8, COLUMN_TYPE_I32,
+	COLUMN_TYPE_U8,
+]
+const SECTION4_COLUMN_EXTENTS: Array[int] = [
+	JOB_CAPACITY, AGENT_CAPACITY, JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY,
+	JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY,
+	JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY,
+	JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY,
+	JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY,
+	JOB_CAPACITY, JOB_CAPACITY, AGENT_CAPACITY, AGENT_CAPACITY,
+	AGENT_CAPACITY, AGENT_CAPACITY, AGENT_CAPACITY, AGENT_CAPACITY,
+	AGENT_CAPACITY, AGENT_CAPACITY, AGENT_CAPACITY,
+	AGENT_CAPACITY, AGENT_CAPACITY, AGENT_CAPACITY,
+	AGENT_CAPACITY,
+]
+
+## The four §5 CHILD_ARENAS category-1 columns, in that section's own ordinal order.
+const SECTION5_COLUMN_COUNT: int = 4
+const SECTION5_COLUMN_KEYS: Array[StringName] = [
+	&"_coordinator_slot", &"_coordinator_generation", &"_member_head", &"_member_next",
+]
+const SECTION5_COLUMN_TYPE_CODES: Array[int] = [
+	COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32, COLUMN_TYPE_I32,
+]
+const SECTION5_COLUMN_EXTENTS: Array[int] = [
+	JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY, JOB_CAPACITY,
+]
+
+## Bulk column refusals, read through `last_column_refusal()` and never through an OpResult.
+## Every code is prefixed `COLUMN_`, so a load cannot clobber the reason a `create_job()` or an
+## `assign_worker()` was refused before its caller read it, and no value is shared with those.
+const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
+const REFUSE_COLUMN_PRESENT_BYTE: StringName = &"COLUMN_PRESENT_BYTE"
+const REFUSE_COLUMN_FLAG_BYTE: StringName = &"COLUMN_FLAG_BYTE"
+const REFUSE_COLUMN_URGENCY: StringName = &"COLUMN_URGENCY"
+const REFUSE_COLUMN_GATE: StringName = &"COLUMN_GATE"
+const REFUSE_COLUMN_JOB_DEFINITION: StringName = &"COLUMN_JOB_DEFINITION"
+const REFUSE_COLUMN_JOB_STATE: StringName = &"COLUMN_JOB_STATE"
+const REFUSE_COLUMN_NEGATIVE_MWU: StringName = &"COLUMN_NEGATIVE_MWU"
+const REFUSE_COLUMN_NEGATIVE_TICK: StringName = &"COLUMN_NEGATIVE_TICK"
+const REFUSE_COLUMN_REF_SHAPE: StringName = &"COLUMN_REF_SHAPE"
+const REFUSE_COLUMN_DIRECTORY_REF: StringName = &"COLUMN_DIRECTORY_REF"
+const REFUSE_COLUMN_FREE_JOB_ROW: StringName = &"COLUMN_FREE_JOB_ROW"
+const REFUSE_COLUMN_FREE_AGENT_ROW: StringName = &"COLUMN_FREE_AGENT_ROW"
+const REFUSE_COLUMN_AGENT_RESIDENT: StringName = &"COLUMN_AGENT_RESIDENT"
+const REFUSE_COLUMN_RESERVED_NONZERO: StringName = &"COLUMN_RESERVED_NONZERO"
+const REFUSE_COLUMN_CONTINUATION: StringName = &"COLUMN_CONTINUATION"
+const REFUSE_COLUMN_WORKER_BINDING: StringName = &"COLUMN_WORKER_BINDING"
+const REFUSE_COLUMN_COORDINATOR: StringName = &"COLUMN_COORDINATOR"
+const REFUSE_COLUMN_MEMBER_CHAIN: StringName = &"COLUMN_MEMBER_CHAIN"
+
+
+class Columns:
+	"""Caller-owned image of the forty-two category-1 columns of sections 4 and 5.
+
+	One object per save or per load, never one per job or per agent. Field order is the two
+	ordinal tables above, §4 first and §5 last.
+	"""
+	var job_present: PackedByteArray = PackedByteArray()
+	var agent_present: PackedByteArray = PackedByteArray()
+	var kind: PackedInt32Array = PackedInt32Array()
+	var requester_slot: PackedInt32Array = PackedInt32Array()
+	var requester_generation: PackedInt32Array = PackedInt32Array()
+	var destination_slot: PackedInt32Array = PackedInt32Array()
+	var destination_generation: PackedInt32Array = PackedInt32Array()
+	var source_slot: PackedInt32Array = PackedInt32Array()
+	var source_generation: PackedInt32Array = PackedInt32Array()
+	var priority: PackedInt32Array = PackedInt32Array()
+	var required_skill: PackedInt32Array = PackedInt32Array()
+	var state: PackedInt32Array = PackedInt32Array()
+	var worker_slot: PackedInt32Array = PackedInt32Array()
+	var worker_generation: PackedInt32Array = PackedInt32Array()
+	var remaining_mwu: PackedInt64Array = PackedInt64Array()
+	var created_tick: PackedInt64Array = PackedInt64Array()
+	var job_ref_slot: PackedInt32Array = PackedInt32Array()
+	var job_ref_generation: PackedInt32Array = PackedInt32Array()
+	var urgency: PackedByteArray = PackedByteArray()
+	var dangerous: PackedByteArray = PackedByteArray()
+	var station_gate: PackedByteArray = PackedByteArray()
+	var tool_gate: PackedByteArray = PackedByteArray()
+	var unlock_gate: PackedByteArray = PackedByteArray()
+	var inputs_gate: PackedByteArray = PackedByteArray()
+	var is_coordinator: PackedByteArray = PackedByteArray()
+	var agent_job_slot: PackedInt32Array = PackedInt32Array()
+	var agent_job_generation: PackedInt32Array = PackedInt32Array()
+	var agent_phase: PackedInt32Array = PackedInt32Array()
+	var agent_target_slot: PackedInt32Array = PackedInt32Array()
+	var agent_target_generation: PackedInt32Array = PackedInt32Array()
+	var agent_path_id: PackedInt32Array = PackedInt32Array()
+	var agent_path_cursor: PackedInt32Array = PackedInt32Array()
+	var agent_lease_expiry: PackedInt64Array = PackedInt64Array()
+	var agent_blocked_tick: PackedInt64Array = PackedInt64Array()
+	var agent_manual_until: PackedInt64Array = PackedInt64Array()
+	var agent_hazard_locked: PackedByteArray = PackedByteArray()
+	var job_scan_cursor: PackedInt32Array = PackedInt32Array()
+	var continuation_bucket: PackedByteArray = PackedByteArray()
+	var coordinator_slot: PackedInt32Array = PackedInt32Array()
+	var coordinator_generation: PackedInt32Array = PackedInt32Array()
+	var member_head: PackedInt32Array = PackedInt32Array()
+	var member_next: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Size all forty-two columns to their declared extents. The only place this resizes."""
+		for column: PackedInt32Array in [kind, requester_slot, requester_generation,
+				destination_slot, destination_generation, source_slot, source_generation,
+				priority, required_skill, state, worker_slot, worker_generation, job_ref_slot,
+				job_ref_generation, coordinator_slot, coordinator_generation, member_head,
+				member_next]:
+			column.resize(JOB_CAPACITY)
+		for column: PackedInt64Array in [remaining_mwu, created_tick]:
+			column.resize(JOB_CAPACITY)
+		for column: PackedByteArray in [job_present, urgency, dangerous, station_gate, tool_gate,
+				unlock_gate, inputs_gate, is_coordinator]:
+			column.resize(JOB_CAPACITY)
+		for column: PackedInt32Array in [agent_job_slot, agent_job_generation, agent_phase,
+				agent_target_slot, agent_target_generation, agent_path_id, agent_path_cursor,
+				job_scan_cursor]:
+			column.resize(AGENT_CAPACITY)
+		for column: PackedInt64Array in [agent_lease_expiry, agent_blocked_tick,
+				agent_manual_until]:
+			column.resize(AGENT_CAPACITY)
+		for column: PackedByteArray in [agent_present, agent_hazard_locked, continuation_bucket]:
+			column.resize(AGENT_CAPACITY)
+		clear()
+
+	func clear() -> void:
+		"""Refill every column with the value this store's own `clear()` leaves, not with zero."""
+		for column: PackedInt32Array in [priority, required_skill, agent_phase, agent_path_id,
+				agent_path_cursor, job_scan_cursor]:
+			column.fill(0)
+		for column: PackedInt64Array in [remaining_mwu, created_tick, agent_lease_expiry,
+				agent_blocked_tick, agent_manual_until]:
+			column.fill(0)
+		for column: PackedByteArray in [job_present, agent_present, dangerous, is_coordinator,
+				agent_hazard_locked, continuation_bucket]:
+			column.fill(0)
+		for column: PackedByteArray in [station_gate, tool_gate, unlock_gate, inputs_gate]:
+			column.fill(GATE_NOT_REQUIRED)
+		kind.fill(JOB_KIND_HAUL)
+		state.fill(JOB_STATE_QUEUED)
+		urgency.fill(URGENCY_ORDINARY)
+		for column: PackedInt32Array in [member_head, member_next]:
+			column.fill(EntityDirectory.NULL_SLOT)
+		for column: PackedInt32Array in [requester_slot, destination_slot, source_slot,
+				worker_slot, job_ref_slot, coordinator_slot, agent_job_slot, agent_target_slot]:
+			column.fill(EntityDirectory.NULL_SLOT)
+		for column: PackedInt32Array in [requester_generation, destination_generation,
+				source_generation, worker_generation, job_ref_generation,
+				coordinator_generation, agent_job_generation, agent_target_generation]:
+			column.fill(EntityDirectory.NULL_GENERATION)
+
+	func equals(other: Columns) -> bool:
+		"""True when all forty-two columns are byte-identical. Proves a refusal changed nothing."""
+		return _job_columns_equal(other) and _agent_columns_equal(other) \
+			and coordinator_slot == other.coordinator_slot \
+			and coordinator_generation == other.coordinator_generation \
+			and member_head == other.member_head and member_next == other.member_next
+
+	func _job_columns_equal(other: Columns) -> bool:
+		"""The twenty-five Job-indexed §4 columns, compared. Split to stay under 30 lines."""
+		return job_present == other.job_present and kind == other.kind \
+			and requester_slot == other.requester_slot \
+			and requester_generation == other.requester_generation \
+			and destination_slot == other.destination_slot \
+			and destination_generation == other.destination_generation \
+			and source_slot == other.source_slot \
+			and source_generation == other.source_generation \
+			and priority == other.priority and required_skill == other.required_skill \
+			and state == other.state and worker_slot == other.worker_slot \
+			and worker_generation == other.worker_generation \
+			and remaining_mwu == other.remaining_mwu and created_tick == other.created_tick \
+			and job_ref_slot == other.job_ref_slot \
+			and job_ref_generation == other.job_ref_generation \
+			and urgency == other.urgency and dangerous == other.dangerous \
+			and station_gate == other.station_gate and tool_gate == other.tool_gate \
+			and unlock_gate == other.unlock_gate and inputs_gate == other.inputs_gate \
+			and is_coordinator == other.is_coordinator
+
+	func _agent_columns_equal(other: Columns) -> bool:
+		"""The thirteen JobAgent-indexed §4 columns, compared."""
+		return agent_present == other.agent_present \
+			and agent_job_slot == other.agent_job_slot \
+			and agent_job_generation == other.agent_job_generation \
+			and agent_phase == other.agent_phase \
+			and agent_target_slot == other.agent_target_slot \
+			and agent_target_generation == other.agent_target_generation \
+			and agent_path_id == other.agent_path_id \
+			and agent_path_cursor == other.agent_path_cursor \
+			and agent_lease_expiry == other.agent_lease_expiry \
+			and agent_blocked_tick == other.agent_blocked_tick \
+			and agent_manual_until == other.agent_manual_until \
+			and agent_hazard_locked == other.agent_hazard_locked \
+			and job_scan_cursor == other.job_scan_cursor \
+			and continuation_bucket == other.continuation_bucket
+
+
+func last_column_refusal() -> StringName:
+	"""The code from the most recent refused bulk column call, or REFUSE_NONE after a success.
+
+	A SEPARATE channel from the OpResult every mutator returns. A caller reads a `create_job()`
+	refusal off its own result; a save or load writing into that channel would make one operation
+	report another's problem. Every code reachable here is prefixed `COLUMN_`.
+	"""
+	return _last_column_refusal
+
+
+func copy_columns_into(out: Columns) -> bool:
+	"""Copy the forty-two §4 and §5 category-1 columns into caller-owned buffers. False refuses.
+
+	The capture step for both sections, and the ONLY way to read a released Job or JobAgent row's
+	retained bytes: every reader here refuses a row whose occupancy byte is 0.
+
+	The copies are snapshots; mutating `out` afterwards cannot reach a column.
+	"""
+	if not _columns_are_capacity_sized(out):
+		_last_column_refusal = REFUSE_COLUMN_SHAPE
+		return false
+	_copy_job_columns_into(out)
+	_copy_agent_columns_into(out)
+	_refill_i32(out.coordinator_slot, _coordinator_slot)
+	_refill_i32(out.coordinator_generation, _coordinator_generation)
+	_refill_i32(out.member_head, _member_head)
+	_refill_i32(out.member_next, _member_next)
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func _copy_job_columns_into(out: Columns) -> void:
+	"""Refill the twenty-five Job-indexed §4 buffers. Split out to stay under 30 lines."""
+	_refill_bytes(out.job_present, _job_present)
+	_refill_i32(out.kind, _kind)
+	_refill_i32(out.requester_slot, _requester_slot)
+	_refill_i32(out.requester_generation, _requester_generation)
+	_refill_i32(out.destination_slot, _destination_slot)
+	_refill_i32(out.destination_generation, _destination_generation)
+	_refill_i32(out.source_slot, _source_slot)
+	_refill_i32(out.source_generation, _source_generation)
+	_refill_i32(out.priority, _priority)
+	_refill_i32(out.required_skill, _required_skill)
+	_refill_i32(out.state, _state)
+	_refill_i32(out.worker_slot, _worker_slot)
+	_refill_i32(out.worker_generation, _worker_generation)
+	_refill_i64(out.remaining_mwu, _remaining_mwu)
+	_refill_i64(out.created_tick, _created_tick)
+	_refill_i32(out.job_ref_slot, _job_ref_slot)
+	_refill_i32(out.job_ref_generation, _job_ref_generation)
+	_refill_bytes(out.urgency, _urgency)
+	_refill_bytes(out.dangerous, _dangerous)
+	_refill_bytes(out.station_gate, _station_gate)
+	_refill_bytes(out.tool_gate, _tool_gate)
+	_refill_bytes(out.unlock_gate, _unlock_gate)
+	_refill_bytes(out.inputs_gate, _inputs_gate)
+	_refill_bytes(out.is_coordinator, _is_coordinator)
+
+
+func _copy_agent_columns_into(out: Columns) -> void:
+	"""Refill the thirteen JobAgent-indexed §4 buffers."""
+	_refill_bytes(out.agent_present, _agent_present)
+	_refill_i32(out.agent_job_slot, _agent_job_slot)
+	_refill_i32(out.agent_job_generation, _agent_job_generation)
+	_refill_i32(out.agent_phase, _agent_phase)
+	_refill_i32(out.agent_target_slot, _agent_target_slot)
+	_refill_i32(out.agent_target_generation, _agent_target_generation)
+	_refill_i32(out.agent_path_id, _agent_path_id)
+	_refill_i32(out.agent_path_cursor, _agent_path_cursor)
+	_refill_i64(out.agent_lease_expiry, _agent_lease_expiry)
+	_refill_i64(out.agent_blocked_tick, _agent_blocked_tick)
+	_refill_i64(out.agent_manual_until, _agent_manual_until)
+	_refill_bytes(out.agent_hazard_locked, _agent_hazard_locked)
+	_refill_i32(out.job_scan_cursor, _job_scan_cursor)
+	_refill_bytes(out.continuation_bucket, _continuation_bucket)
+
+
+func restore_columns(columns: Columns) -> bool:
+	"""Replace all forty-two columns and rebuild every derived index. False refuses.
+
+	The apply step for sections 4 and 5 together. The store becomes the world these columns
+	describe; a job slot taken before the call belongs to a different world.
+
+	REBUILT, NEVER READ FROM THE CALLER: `_job_persistent_id` and `_agent_persistent_id` come back
+	from §3 through the directory and the resident store, `_live_slots` and `_bucket_begin` are
+	refilled in declared-urgency runs ordered by ascending persistent ID exactly as
+	`_insert_live_slot()` keeps them, and `_live_count`, `_agent_count` and
+	`_deepest_continuation_bucket` are recounted.
+
+	THE REBUILD IS A VALIDATOR, not a repair. A live Job row's `(_job_ref_slot,
+	_job_ref_generation)` must resolve through the directory to a live KIND_JOB slot whose typed
+	row is this row: a directory slot owns exactly one typed row, so two Job rows claiming one
+	slot cannot both satisfy it and neither can a row the directory has forgotten. The worker
+	binding is checked in BOTH directions, because a job naming a worker who does not hold it and
+	an agent holding a job that does not name it are different corruptions and one does not imply
+	the other.
+
+	Allocate before consume (decision 0059): every rule is checked before the first write, so a
+	refusal leaves the store byte-identical and `state_bytes()` proves it by comparison.
+	"""
+	var refusal: StringName = _restore_column_refusal(columns)
+	if refusal != REFUSE_NONE:
+		_last_column_refusal = refusal
+		return false
+	_install_columns(columns)
+	_rebuild_indexes()
+	_last_column_refusal = REFUSE_NONE
+	return true
+
+
+func state_bytes() -> PackedByteArray:
+	"""Diagnostic image of every member a restore can reach, for byte-identical rollback checks.
+
+	NOT A PRODUCTION CALL: it allocates. Included: the forty-two persisted columns, both rebuilt
+	persistent-ID caches, the live index over its live prefix, the bucket bounds and the three
+	counters. Excluded: `_live_slots` beyond `_live_count`, which is stale residue two identical
+	stores can disagree on, every `_best_*`/`_walk_*` scratch, and `_last_column_refusal`.
+	"""
+	var image: PackedByteArray = PackedByteArray()
+	image.append_array(_job_present)
+	image.append_array(_agent_present)
+	for column: PackedInt32Array in [_kind, _requester_slot, _requester_generation,
+			_destination_slot, _destination_generation, _source_slot, _source_generation,
+			_priority, _required_skill, _state, _worker_slot, _worker_generation, _job_ref_slot,
+			_job_ref_generation, _agent_job_slot, _agent_job_generation, _agent_phase,
+			_agent_target_slot, _agent_target_generation, _agent_path_id, _agent_path_cursor,
+			_job_scan_cursor, _coordinator_slot, _coordinator_generation, _member_head,
+			_member_next, _job_persistent_id, _agent_persistent_id, _bucket_begin]:
+		image.append_array(column.to_byte_array())
+	for column: PackedInt64Array in [_remaining_mwu, _created_tick, _agent_lease_expiry,
+			_agent_blocked_tick, _agent_manual_until]:
+		image.append_array(column.to_byte_array())
+	for column: PackedByteArray in [_urgency, _dangerous, _station_gate, _tool_gate,
+			_unlock_gate, _inputs_gate, _is_coordinator, _agent_hazard_locked,
+			_continuation_bucket]:
+		image.append_array(column)
+	image.append_array(_live_slots.slice(0, _live_count).to_byte_array())
+	image.append_array(PackedInt64Array([_live_count, _agent_count,
+		_deepest_continuation_bucket]).to_byte_array())
+	return image
+
+
+func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""True when every one of the forty-two buffers is exactly its declared extent."""
+	for column: PackedInt32Array in [columns.kind, columns.requester_slot,
+			columns.requester_generation, columns.destination_slot,
+			columns.destination_generation, columns.source_slot, columns.source_generation,
+			columns.priority, columns.required_skill, columns.state, columns.worker_slot,
+			columns.worker_generation, columns.job_ref_slot, columns.job_ref_generation,
+			columns.coordinator_slot, columns.coordinator_generation, columns.member_head,
+			columns.member_next]:
+		if column.size() != JOB_CAPACITY:
+			return false
+	for column: PackedInt64Array in [columns.remaining_mwu, columns.created_tick]:
+		if column.size() != JOB_CAPACITY:
+			return false
+	for column: PackedByteArray in [columns.job_present, columns.urgency, columns.dangerous,
+			columns.station_gate, columns.tool_gate, columns.unlock_gate, columns.inputs_gate,
+			columns.is_coordinator]:
+		if column.size() != JOB_CAPACITY:
+			return false
+	return _agent_columns_are_capacity_sized(columns)
+
+
+func _agent_columns_are_capacity_sized(columns: Columns) -> bool:
+	"""True when every JobAgent-indexed buffer is exactly AGENT_CAPACITY long."""
+	for column: PackedInt32Array in [columns.agent_job_slot, columns.agent_job_generation,
+			columns.agent_phase, columns.agent_target_slot, columns.agent_target_generation,
+			columns.agent_path_id, columns.agent_path_cursor, columns.job_scan_cursor]:
+		if column.size() != AGENT_CAPACITY:
+			return false
+	for column: PackedInt64Array in [columns.agent_lease_expiry, columns.agent_blocked_tick,
+			columns.agent_manual_until]:
+		if column.size() != AGENT_CAPACITY:
+			return false
+	for column: PackedByteArray in [columns.agent_present, columns.agent_hazard_locked,
+			columns.continuation_bucket]:
+		if column.size() != AGENT_CAPACITY:
+			return false
+	return true
+
+
+func _restore_column_refusal(columns: Columns) -> StringName:
+	"""Every rule a restored column set must satisfy, checked before a single column is written."""
+	if not _columns_are_capacity_sized(columns):
+		return REFUSE_COLUMN_SHAPE
+	var bytes: StringName = _column_byte_domain_refusal(columns)
+	if bytes != REFUSE_NONE:
+		return bytes
+	var free_jobs: StringName = _column_free_job_refusal(columns)
+	if free_jobs != REFUSE_NONE:
+		return free_jobs
+	var live_jobs: StringName = _column_live_job_refusal(columns)
+	if live_jobs != REFUSE_NONE:
+		return live_jobs
+	var agents: StringName = _column_agent_refusal(columns)
+	if agents != REFUSE_NONE:
+		return agents
+	var binding: StringName = _column_worker_binding_refusal(columns)
+	if binding != REFUSE_NONE:
+		return binding
+	return _column_member_chain_refusal(columns)
+
+
+func _column_byte_domain_refusal(columns: Columns) -> StringName:
+	"""Every byte column holds only values its own enumeration declares (ARCH-SAVE-005)."""
+	for column: PackedByteArray in [columns.job_present, columns.agent_present]:
+		if not _byte_column_below(column, 2):
+			return REFUSE_COLUMN_PRESENT_BYTE
+	for column: PackedByteArray in [columns.dangerous, columns.is_coordinator,
+			columns.agent_hazard_locked]:
+		if not _byte_column_below(column, 2):
+			return REFUSE_COLUMN_FLAG_BYTE
+	for column: PackedByteArray in [columns.urgency, columns.continuation_bucket]:
+		if not _byte_column_below(column, URGENCY_COUNT):
+			return REFUSE_COLUMN_URGENCY
+	for column: PackedByteArray in [columns.station_gate, columns.tool_gate, columns.unlock_gate,
+			columns.inputs_gate]:
+		if not _byte_column_below(column, GATE_COUNT):
+			return REFUSE_COLUMN_GATE
+	return REFUSE_NONE
+
+
+func _column_free_job_refusal(columns: Columns) -> StringName:
+	"""Every `_job_present == 0` row carries exactly what `_clear_job_row()` leaves behind.
+
+	The same residue `inactive_job_row_is_clear()` asserts on the LIVE store, checked here on the
+	incoming columns because nothing may be installed before it holds. `test_jobs.gd` runs that
+	public reader over every free row after a successful restore, so the two cannot drift apart
+	without a test failing.
+	"""
+	var slot: int = columns.job_present.find(0, 0)
+	while slot >= 0:
+		if not _free_job_row_is_clear(columns, slot):
+			return REFUSE_COLUMN_FREE_JOB_ROW
+		slot = columns.job_present.find(0, slot + 1)
+	return REFUSE_NONE
+
+
+func _free_job_row_is_clear(columns: Columns, slot: int) -> bool:
+	"""True when one released Job row holds no residue of the job that last occupied it."""
+	if columns.kind[slot] != JOB_KIND_HAUL or columns.priority[slot] != 0:
+		return false
+	if columns.required_skill[slot] != 0 or columns.state[slot] != JOB_STATE_QUEUED:
+		return false
+	if columns.remaining_mwu[slot] != 0 or columns.created_tick[slot] != 0:
+		return false
+	if columns.urgency[slot] != URGENCY_ORDINARY or columns.dangerous[slot] != 0:
+		return false
+	if columns.station_gate[slot] != GATE_NOT_REQUIRED:
+		return false
+	if columns.tool_gate[slot] != GATE_NOT_REQUIRED:
+		return false
+	if columns.unlock_gate[slot] != GATE_NOT_REQUIRED:
+		return false
+	if columns.inputs_gate[slot] != GATE_NOT_REQUIRED:
+		return false
+	if columns.is_coordinator[slot] != 0:
+		return false
+	if columns.member_head[slot] != EntityDirectory.NULL_SLOT:
+		return false
+	if columns.member_next[slot] != EntityDirectory.NULL_SLOT:
+		return false
+	return _free_job_references_are_null(columns, slot)
+
+
+func _free_job_references_are_null(columns: Columns, slot: int) -> bool:
+	"""True when all six of a released Job row's reference pairs are the §4.1 null pair."""
+	if columns.coordinator_slot[slot] != EntityDirectory.NULL_SLOT:
+		return false
+	if columns.coordinator_generation[slot] != EntityDirectory.NULL_GENERATION:
+		return false
+	if columns.job_ref_slot[slot] != EntityDirectory.NULL_SLOT:
+		return false
+	if columns.job_ref_generation[slot] != EntityDirectory.NULL_GENERATION:
+		return false
+	if columns.requester_slot[slot] != EntityDirectory.NULL_SLOT:
+		return false
+	if columns.destination_slot[slot] != EntityDirectory.NULL_SLOT:
+		return false
+	if columns.source_slot[slot] != EntityDirectory.NULL_SLOT:
+		return false
+	return columns.worker_slot[slot] == EntityDirectory.NULL_SLOT
+
+
+func _column_live_job_refusal(columns: Columns) -> StringName:
+	"""Each present Job row's definition, progress, reference shape and DIRECTORY identity."""
+	var slot: int = columns.job_present.find(1, 0)
+	while slot >= 0:
+		var definition: OpResult = validate_job_definition(columns.kind[slot],
+			columns.required_skill[slot])
+		if not definition.ok:
+			return REFUSE_COLUMN_JOB_DEFINITION
+		if columns.state[slot] < 0 or columns.state[slot] >= JOB_STATE_COUNT:
+			return REFUSE_COLUMN_JOB_STATE
+		if columns.remaining_mwu[slot] < 0:
+			return REFUSE_COLUMN_NEGATIVE_MWU
+		if columns.created_tick[slot] < 0:
+			return REFUSE_COLUMN_NEGATIVE_TICK
+		if not _live_job_references_are_shaped(columns, slot):
+			return REFUSE_COLUMN_REF_SHAPE
+		var ref: Vector2i = Vector2i(columns.job_ref_slot[slot], columns.job_ref_generation[slot])
+		if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_JOB):
+			return REFUSE_COLUMN_DIRECTORY_REF
+		if _directory.get_typed_row(ref) != slot:
+			return REFUSE_COLUMN_DIRECTORY_REF
+		slot = columns.job_present.find(1, slot + 1)
+	return REFUSE_NONE
+
+
+func _live_job_references_are_shaped(columns: Columns, slot: int) -> bool:
+	"""True when a live Job row's five optional DIRECTORY pairs are null or well formed."""
+	if not _is_well_formed_pair(columns.requester_slot[slot], columns.requester_generation[slot]):
+		return false
+	if not _is_well_formed_pair(columns.destination_slot[slot],
+			columns.destination_generation[slot]):
+		return false
+	if not _is_well_formed_pair(columns.source_slot[slot], columns.source_generation[slot]):
+		return false
+	if not _is_well_formed_pair(columns.worker_slot[slot], columns.worker_generation[slot]):
+		return false
+	return _is_well_formed_pair(columns.coordinator_slot[slot],
+		columns.coordinator_generation[slot])
+
+
+func _is_well_formed_pair(slot: int, generation: int) -> bool:
+	"""True for the §4.1 null pair `(-1, 0)` or any pair with slot >= 0 and generation > 0."""
+	if slot == EntityDirectory.NULL_SLOT:
+		return generation == EntityDirectory.NULL_GENERATION
+	return slot >= 0 and generation > 0
+
+
+func _column_agent_refusal(columns: Columns) -> StringName:
+	"""Every JobAgent row: occupancy against the resident store, free-row residue, reserved zeros.
+
+	A present agent requires a PRESENT RESIDENT, which is why `residents.gd` must be restored
+	before this call; `_agent_persistent_id` is refilled from that store immediately afterwards.
+	"""
+	for slot: int in AGENT_CAPACITY:
+		if columns.agent_present[slot] == 0:
+			if not _free_agent_row_is_clear(columns, slot):
+				return REFUSE_COLUMN_FREE_AGENT_ROW
+			continue
+		if not _residents.is_present(slot):
+			return REFUSE_COLUMN_AGENT_RESIDENT
+		if not _residents.persistent_id_of(slot).ok:
+			return REFUSE_COLUMN_AGENT_RESIDENT
+		var reserved: StringName = _reserved_agent_column_refusal(columns, slot)
+		if reserved != REFUSE_NONE:
+			return reserved
+		if columns.agent_phase[slot] < 0 or columns.job_scan_cursor[slot] < 0:
+			return REFUSE_COLUMN_CONTINUATION
+		if not _is_well_formed_pair(columns.agent_job_slot[slot],
+				columns.agent_job_generation[slot]):
+			return REFUSE_COLUMN_REF_SHAPE
+		if not _is_well_formed_pair(columns.agent_target_slot[slot],
+				columns.agent_target_generation[slot]):
+			return REFUSE_COLUMN_REF_SHAPE
+	return REFUSE_NONE
+
+
+func _reserved_agent_column_refusal(columns: Columns, slot: int) -> StringName:
+	"""The five RESERVED-ALLOCATION-ONLY agent columns must be zero, as the registry states.
+
+	`_agent_path_id`, `_agent_path_cursor`, `_agent_lease_expiry`, `_agent_blocked_tick` and
+	`_agent_manual_until` have no writer: no pathfinder exists and REQ-SET-032/033 leases and
+	ManualTask are unimplemented (blocker U6), so the registry says section 4 "must write them as
+	zeros and MUST NOT repurpose these v1 bytes". Refusing a non-zero one is that rule enforced,
+	not a new one; the rule moves the day those owners land, and this refusal is where it moves.
+	"""
+	if columns.agent_path_id[slot] != 0 or columns.agent_path_cursor[slot] != 0:
+		return REFUSE_COLUMN_RESERVED_NONZERO
+	if columns.agent_lease_expiry[slot] != 0 or columns.agent_blocked_tick[slot] != 0:
+		return REFUSE_COLUMN_RESERVED_NONZERO
+	if columns.agent_manual_until[slot] != 0:
+		return REFUSE_COLUMN_RESERVED_NONZERO
+	return REFUSE_NONE
+
+
+func _free_agent_row_is_clear(columns: Columns, slot: int) -> bool:
+	"""True when one released JobAgent row holds exactly what `_clear_agent_row()` leaves."""
+	if columns.agent_job_slot[slot] != EntityDirectory.NULL_SLOT:
+		return false
+	if columns.agent_job_generation[slot] != EntityDirectory.NULL_GENERATION:
+		return false
+	if columns.agent_target_slot[slot] != EntityDirectory.NULL_SLOT:
+		return false
+	if columns.agent_target_generation[slot] != EntityDirectory.NULL_GENERATION:
+		return false
+	if columns.agent_phase[slot] != 0 or columns.agent_path_id[slot] != 0:
+		return false
+	if columns.agent_path_cursor[slot] != 0 or columns.agent_lease_expiry[slot] != 0:
+		return false
+	if columns.agent_blocked_tick[slot] != 0 or columns.agent_manual_until[slot] != 0:
+		return false
+	if columns.job_scan_cursor[slot] != 0 or columns.continuation_bucket[slot] != 0:
+		return false
+	return columns.agent_hazard_locked[slot] == 0
+
+
+func _column_worker_binding_refusal(columns: Columns) -> StringName:
+	"""The worker binding, checked in BOTH directions so neither half can be corrupt alone.
+
+	A Job naming a worker who does not hold it, and an agent holding a Job that does not name it,
+	are different corruptions and neither walk catches the other's. Both resolve through the
+	directory and the resident store rather than trusting a stored pair.
+
+	THERE IS NO THIRD CHECK, and the absence is deliberate. A count of bound agents against a
+	count of worked jobs was written here first and then removed: each walk already proves its
+	own row's opposite half resolves back to it, so the two maps are inverse wherever they are
+	defined and the totals can never disagree. Mutation testing found it: deleting the comparison
+	failed nothing, because nothing could reach it. An unfalsifiable check is not a validator.
+	"""
+	for slot: int in AGENT_CAPACITY:
+		if columns.agent_present[slot] == 0:
+			continue
+		if columns.agent_job_slot[slot] == EntityDirectory.NULL_SLOT:
+			continue
+		var job_ref: Vector2i = Vector2i(columns.agent_job_slot[slot],
+			columns.agent_job_generation[slot])
+		if not _directory.is_valid_of_kind(job_ref, EntityDirectory.KIND_JOB):
+			return REFUSE_COLUMN_WORKER_BINDING
+		var job_slot: int = _directory.get_typed_row(job_ref)
+		if columns.job_present[job_slot] != 1:
+			return REFUSE_COLUMN_WORKER_BINDING
+		if Vector2i(columns.worker_slot[job_slot],
+				columns.worker_generation[job_slot]) != _residents.ref_of(slot):
+			return REFUSE_COLUMN_WORKER_BINDING
+	return _column_job_worker_refusal(columns)
+
+
+func _column_job_worker_refusal(columns: Columns) -> StringName:
+	"""The other direction: every live Job naming a worker is held by exactly that agent.
+
+	A worker pair that resolves to a present resident whose agent row names this very Job is the
+	whole rule. `slot_of_ref()` refuses a stale or wrong-kind pair, so a Job naming a resident
+	who has since been replaced in that slot is caught here and not merely counted.
+
+	A resident with NO agent row at all needs no separate test, and the second mutation run that
+	found the first redundancy found this one too: `_column_agent_refusal()` has already proved
+	every `_agent_present == 0` row carries the null job pair, and a live Job's own reference is
+	never null, so the comparison below refuses that case on its own. The ordering is therefore
+	load-bearing -- agents are checked before the binding is -- and it is stated here rather than
+	guarded by a line no input can reach.
+
+	Only the SLOT half of the agent's job reference is compared, for the same reason. The walk
+	above has already resolved that agent's full pair through the directory, and a directory slot
+	carries exactly one live generation, so an equal slot with a different generation is a state
+	the first walk refuses before this one runs. A third mutation run confirmed the generation
+	comparison here could be deleted without failing anything.
+	"""
+	var slot: int = columns.job_present.find(1, 0)
+	while slot >= 0:
+		if columns.worker_slot[slot] != EntityDirectory.NULL_SLOT:
+			var worker: Vector2i = Vector2i(columns.worker_slot[slot],
+				columns.worker_generation[slot])
+			var resident: IntMath.IntResult = _residents.slot_of_ref(worker)
+			if not resident.ok:
+				return REFUSE_COLUMN_WORKER_BINDING
+			if columns.agent_job_slot[resident.value] != columns.job_ref_slot[slot]:
+				return REFUSE_COLUMN_WORKER_BINDING
+		slot = columns.job_present.find(1, slot + 1)
+	return REFUSE_NONE
+
+
+func _column_member_chain_refusal(columns: Columns) -> StringName:
+	"""Decision 0017's party structure: every member is in exactly one coordinator's chain.
+
+	Walked rather than counted, with a step cap of JOB_CAPACITY so a cycle refuses instead of
+	hanging. A member appears in at most one chain because its own `_coordinator_slot` can name
+	only one coordinator, and the totals then prove no member was left out of every chain. This
+	is the §5 half of the same "the walk is the validator" property §3's owner map has.
+	"""
+	var walked: int = 0
+	var slot: int = columns.job_present.find(1, 0)
+	while slot >= 0:
+		if columns.member_head[slot] != EntityDirectory.NULL_SLOT \
+				and columns.is_coordinator[slot] != 1:
+			return REFUSE_COLUMN_COORDINATOR
+		if columns.is_coordinator[slot] == 1:
+			var counted: int = _chain_length(columns, slot)
+			if counted < 0:
+				return REFUSE_COLUMN_MEMBER_CHAIN
+			walked += counted
+		slot = columns.job_present.find(1, slot + 1)
+	if walked != _member_reference_count(columns):
+		return REFUSE_COLUMN_MEMBER_CHAIN
+	return REFUSE_NONE
+
+
+func _chain_length(columns: Columns, coordinator: int) -> int:
+	"""Members reachable from one coordinator, or -1 when the chain is malformed or cyclic."""
+	var cursor: int = columns.member_head[coordinator]
+	var steps: int = 0
+	while cursor != EntityDirectory.NULL_SLOT:
+		if cursor < 0 or cursor >= JOB_CAPACITY or columns.job_present[cursor] != 1:
+			return -1
+		if cursor == coordinator or columns.is_coordinator[cursor] == 1:
+			return -1
+		if _directory.get_typed_row(Vector2i(columns.coordinator_slot[cursor],
+				columns.coordinator_generation[cursor])) != coordinator:
+			return -1
+		steps += 1
+		if steps > JOB_CAPACITY:
+			return -1
+		cursor = columns.member_next[cursor]
+	return steps
+
+
+func _member_reference_count(columns: Columns) -> int:
+	"""Live Job rows that name a coordinator, which every chain walk together must reach."""
+	var total: int = 0
+	var slot: int = columns.job_present.find(1, 0)
+	while slot >= 0:
+		if columns.coordinator_slot[slot] != EntityDirectory.NULL_SLOT:
+			total += 1
+		slot = columns.job_present.find(1, slot + 1)
+	return total
+
+
+func _install_columns(columns: Columns) -> void:
+	"""Take a private copy of each validated column. `duplicate()` so the caller cannot alias one."""
+	_kind = columns.kind.duplicate()
+	_requester_slot = columns.requester_slot.duplicate()
+	_requester_generation = columns.requester_generation.duplicate()
+	_destination_slot = columns.destination_slot.duplicate()
+	_destination_generation = columns.destination_generation.duplicate()
+	_source_slot = columns.source_slot.duplicate()
+	_source_generation = columns.source_generation.duplicate()
+	_priority = columns.priority.duplicate()
+	_required_skill = columns.required_skill.duplicate()
+	_state = columns.state.duplicate()
+	_worker_slot = columns.worker_slot.duplicate()
+	_worker_generation = columns.worker_generation.duplicate()
+	_remaining_mwu = columns.remaining_mwu.duplicate()
+	_created_tick = columns.created_tick.duplicate()
+	_job_present = columns.job_present.duplicate()
+	_job_ref_slot = columns.job_ref_slot.duplicate()
+	_job_ref_generation = columns.job_ref_generation.duplicate()
+	_install_flag_columns(columns)
+	_install_agent_columns(columns)
+
+
+func _install_flag_columns(columns: Columns) -> void:
+	"""Take a private copy of the eligibility flags and the four §5 chain columns."""
+	_urgency = columns.urgency.duplicate()
+	_dangerous = columns.dangerous.duplicate()
+	_station_gate = columns.station_gate.duplicate()
+	_tool_gate = columns.tool_gate.duplicate()
+	_unlock_gate = columns.unlock_gate.duplicate()
+	_inputs_gate = columns.inputs_gate.duplicate()
+	_is_coordinator = columns.is_coordinator.duplicate()
+	_coordinator_slot = columns.coordinator_slot.duplicate()
+	_coordinator_generation = columns.coordinator_generation.duplicate()
+	_member_head = columns.member_head.duplicate()
+	_member_next = columns.member_next.duplicate()
+
+
+func _install_agent_columns(columns: Columns) -> void:
+	"""Take a private copy of every JobAgent-indexed column."""
+	_agent_job_slot = columns.agent_job_slot.duplicate()
+	_agent_job_generation = columns.agent_job_generation.duplicate()
+	_agent_phase = columns.agent_phase.duplicate()
+	_agent_target_slot = columns.agent_target_slot.duplicate()
+	_agent_target_generation = columns.agent_target_generation.duplicate()
+	_agent_path_id = columns.agent_path_id.duplicate()
+	_agent_path_cursor = columns.agent_path_cursor.duplicate()
+	_agent_lease_expiry = columns.agent_lease_expiry.duplicate()
+	_agent_blocked_tick = columns.agent_blocked_tick.duplicate()
+	_agent_manual_until = columns.agent_manual_until.duplicate()
+	_agent_present = columns.agent_present.duplicate()
+	_agent_hazard_locked = columns.agent_hazard_locked.duplicate()
+	_job_scan_cursor = columns.job_scan_cursor.duplicate()
+	_continuation_bucket = columns.continuation_bucket.duplicate()
+
+
+func _rebuild_indexes() -> void:
+	"""Refill every category-2 member from the INSTALLED columns, never from an input."""
+	_rebuild_persistent_ids()
+	_rebuild_live_index()
+	_agent_count = _agent_present.count(1)
+	_rebuild_deepest_continuation()
+	_reset_best()
+
+
+func _rebuild_persistent_ids() -> void:
+	"""Refill both identity caches from §3: the directory for jobs, the resident store for agents.
+
+	These are caches of the directory's never-reused persistent ID and are explicitly not carried
+	in the section bytes. A free row caches 0, exactly as `_clear_job_row()` and
+	`despawn_agent()` leave it.
+	"""
+	_job_persistent_id.fill(0)
+	var slot: int = _job_present.find(1, 0)
+	while slot >= 0:
+		_job_persistent_id[slot] = _directory.get_persistent_id(
+			Vector2i(_job_ref_slot[slot], _job_ref_generation[slot]))
+		slot = _job_present.find(1, slot + 1)
+	_agent_persistent_id.fill(0)
+	var agent: int = _agent_present.find(1, 0)
+	while agent >= 0:
+		_agent_persistent_id[agent] = _residents.persistent_id_of(agent).value
+		agent = _agent_present.find(1, agent + 1)
+
+
+func _rebuild_live_index() -> void:
+	"""Refill `_live_slots` and `_bucket_begin` in declared-urgency runs, ascending persistent ID.
+
+	The arrangement `_insert_live_slot()` maintains, rebuilt rather than carried: a run's order
+	depends on the SET of live jobs and their IDs, not on the insertion history, so a restored
+	store offers candidates in the same order as the one that saved it. The sort key packs
+	`(urgency, persistent id, slot)` into one int64 -- 3 bits, 31 bits and 13 bits -- so one sort
+	orders every run at once. `keys` is cold-path local scratch, freed on return, not a column.
+	"""
+	var keys: PackedInt64Array = PackedInt64Array()
+	var slot: int = _job_present.find(1, 0)
+	while slot >= 0:
+		keys.append((_urgency[slot] << 44) | (_job_persistent_id[slot] << 13) | slot)
+		slot = _job_present.find(1, slot + 1)
+	keys.sort()
+	_live_slots.fill(0)
+	_live_count = keys.size()
+	for index: int in keys.size():
+		_live_slots[index] = int(keys[index] & 0x1FFF)
+	_bucket_begin.fill(_live_count)
+	for bucket: int in range(URGENCY_COUNT, -1, -1):
+		for index: int in range(_live_count - 1, -1, -1):
+			if _urgency[_live_slots[index]] >= bucket:
+				_bucket_begin[bucket] = index
+	_bucket_begin[URGENCY_COUNT] = _live_count
+
+
+func _rebuild_deepest_continuation() -> void:
+	"""Recompute the upper bound on the deepest live continuation, exactly as `_admit_into()` does.
+
+	A key of `(bucket 0, ID 0)` is no continuation at all, which is the same test the admission
+	path applies; anything else contributes its bucket. -1 when no agent holds one.
+	"""
+	_deepest_continuation_bucket = -1
+	var slot: int = _agent_present.find(1, 0)
+	while slot >= 0:
+		var bucket: int = _continuation_bucket[slot]
+		if bucket != 0 or _job_scan_cursor[slot] != 0:
+			if bucket > _deepest_continuation_bucket:
+				_deepest_continuation_bucket = bucket
+		slot = _agent_present.find(1, slot + 1)
+
+
+func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
+	"""True when every byte is in [0, bound). One C++ count per legal value, no per-row loop."""
+	var total: int = 0
+	for value: int in range(bound):
+		total += column.count(value)
+	return total == column.size()
+
+
+func _refill_bytes(out: PackedByteArray, source: PackedByteArray) -> void:
+	"""Refill a caller's byte buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+func _refill_i64(out: PackedInt64Array, source: PackedInt64Array) -> void:
+	"""Refill a caller's int64 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)

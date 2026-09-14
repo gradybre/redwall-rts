@@ -50,51 +50,10 @@ UI snapshots, and the BAL-RUN strategy automation. No performance claim on the
 qualification hardware. No survival trajectory. The reservation **row store** is
 absent (blocker U4) — only the per-lot `reserved_milli` invariant is covered.
 
-## Retired at ARCH-MIG-006 steps 4-5 (2026-09-06)
+## Lane records
 
-Retired because the defect class disappears under integer arithmetic:
-
-| Test | Reason |
-|---|---|
-| `test_small_rates_are_not_discarded_at_high_stock` | Guarded float epsilon starvation. Covered in spirit by `test_repeated_small_deposits_stay_exact`, which needs no tolerance |
-| `test_exactly_affordable_cost_is_payable_after_float_accumulation` | Guarded `SPEND_TOLERANCE`. Integer milli-units accumulate exactly |
-
-Retired because the specification contradicts the asserted behaviour:
-
-| Test | Reason |
-|---|---|
-| `test_cycle_speed_wraps_through_multipliers` | Asserted a 3x cycle; REQ-SET-003 forbids 3x |
-| `test_cycle_speed_drives_the_engine_clock` | **Contract inverted** — now `test_engine_time_scale_is_never_written` |
-| `test_add_resource_clamps_at_cap` | **Contract inverted** — REQ-SET-110/120 require explicit refusal, not silent clamping |
-| `test_set_cap_clamps_existing_stockpile`, `test_lowering_a_cap_does_not_report_depletion` | No per-resource cap exists; REQ-SET-120 forbids deleting stored goods to fit a smaller store |
-| `test_tick_applies_net_rates` | Invented per-second production. Production comes from jobs and recipes, which this milestone does not build, so there is no replacement |
-
-Everything else was **re-expressed, not weakened**: elapsed seconds became completed
-ticks, float consume became integer withdraw, and the 2 ms tick budget became the
-2 ms summary-recompute budget.
-
-## What the HUD honestly shows
-
-Populated: **Ready NP** (the food-days *numerator*, derived from edible,
-non-seed, unreserved, unexpired lots — reproduces the GDD §7.1 starter fixture of
-exactly 408,000 NP), **Wood**, **Stone**.
-
-Left as `--`, never a fabricated zero: **Food-days** and **Fuel-days** (their §5.8
-divisors need resident demand and heating demand, which do not exist),
-**Residents** and **Beds** (no model yet).
-
-Aging and spoilage are **inert** — `_is_expired()` is implemented and tested but
-always returns false, because store and temperature factors come from systems this
-milestone does not build.
-
-
-## Reader follow-up (2026-09-07)
-
-No prototype assertion was retired or weakened. Added seven regression methods across
-needs/residents/work; expanded and renamed
-`test_resident_may_work_reports_eligibility_step_one` to
-`test_resident_may_work_into_preserves_step_one_and_wrapper_references`: retained healthy
-work, collapse refusal and out-of-range refusal, strengthened collapse to the exact 500/501
-boundary and added scratch reset/fresh wrapper/reference checks.
-Baseline 624 tests / 19,275 assertions; updated 631 / 19,381; both zero failures.
-[Evidence and fixture limits](../validation/work_reader_benchmark.md).
+Dated write-ups from finished lanes live in [`lanes/02/`](lanes/02/), one file
+each. **Do not append a dated section to this file** -- a shared append point made
+five lanes conflict in a single round, and `tools/lane_notes.py --check` now
+refuses it in CI. Tick the boxes above; write the record there. The convention is
+in [`lanes/README.md`](lanes/README.md).

@@ -230,9 +230,10 @@ without world generation (REQ-SET-009), the command queue (ARCH-SYS-002, U2) and
 movement (ARCH-MOVE-001, MOVE-G01–05) — none of which are in this group, and none
 of which should be quietly folded into it.
 
-## Seed expiry follow-up — 2026-09-12
+## Lane records
 
-[STOCK-SEED-R01](../rulings/2026-09-12_alerts_and_seed_expiry.md) supplies the
-missing seed→compost quantity and exact atomic/rounding acceptance. Implement the
-seed branch under the real hourly aging owner; this does not change shelf life,
-composter processing, sowing refunds or starter-inventory integration status.
+Dated write-ups from finished lanes live in [`lanes/03/`](lanes/03/), one file
+each. **Do not append a dated section to this file** -- a shared append point made
+five lanes conflict in a single round, and `tools/lane_notes.py --check` now
+refuses it in CI. Tick the boxes above; write the record there. The convention is
+in [`lanes/README.md`](lanes/README.md).

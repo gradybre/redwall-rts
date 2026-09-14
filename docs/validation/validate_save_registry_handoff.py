@@ -39,7 +39,13 @@ def validate_registry(data):
     # at all -- they are seventeen NEW hash=true declarations, so they are seventeen new records.
     # Contrast section 11, which moved packed_source_field_count and NOT this, because those
     # eight fields were already declared and only acquired a source module.
-    assert records == data['record_count'] == 599
+    # 599 -> 596 on R-WORLD-S1-001: section 1 resource_nodes loses _deposit_tiles,
+    # _deposit_ref_slot and _deposit_ref_generation. They were three hash=true declarations, so
+    # removing them removes exactly three records. This pin moves DOWNWARD and that is legal --
+    # REG-R01 requires the declaration to track the source classification in BOTH directions, and
+    # the three columns are now category-3 placement scratch that contributes no save payload.
+    # It is not a format constant: freeze it and the next reconciliation is refused.
+    assert records == data['record_count'] == 596
     directory = next(o for o in owners if (o['section_id'],o['owner_key']) == (3,'entity_directory'))
     assert [f['field_key'] for f in directory['fields']] == ['_active','_generation','_retired','_persistent_id','_kind','_typed_row']
     allocator = next(o for o in owners if (o['section_id'],o['owner_key']) == (1,'entity_directory'))
@@ -77,7 +83,12 @@ def validate_source(data, source):
     # 536 -> 553 on registering construction.gd's seventeen already-implemented category-1
     # columns: sixteen project columns in section 4 and the delivered-material arena in section 5.
     # That omission is exactly the drift the assertion above is here to catch.
-    assert len(actual)==data['packed_source_field_count']==553
+    # 553 -> 550 on R-WORLD-S1-001's reclassification of resource_nodes' three deposit-placement
+    # columns from category 1 to category 3. They leave BOTH sides of this equality together:
+    # docs/persistence_state_registry.md stops declaring them category 1, so `actual` loses three
+    # members, and canonical_state_registry.json stops declaring them, so `declared` loses the
+    # same three. A one-sided edit fails the membership assertion above, which is the point.
+    assert len(actual)==data['packed_source_field_count']==550
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 
 def valid_name(present, named, raw):

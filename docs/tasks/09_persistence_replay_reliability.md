@@ -77,6 +77,27 @@ rules; this card does not replace the binary schema.
   `canonical_state_registry.json` owes the stale
   `REQUIRED_NOT_PRESENT_IN_SNAPSHOT` markers, a `source_contract` on the six row
   fields and `packed_source_field_count` 530 -> 536.
+  *§1 WORLD's whole section landed 2026-09-14 (decision 0142, R-WORLD-S1-001):*
+  `godot/scripts/core/save_section_01.gd` encodes, decodes, semantically
+  validates and restores all NINE §1 owners at the ruled offsets -- 3752768
+  bytes, `store_count = 9`, descriptor `row_count` 344067, section 2 at 3753984
+  -- reading every wrapper item and every field at a COMPILED ABSOLUTE OFFSET
+  and comparing each declared extent against it rather than advancing a cursor
+  by it. The same activation reclassified `resource_nodes._deposit_tiles`,
+  `._deposit_ref_slot` and `._deposit_ref_generation` as category-3 placement
+  scratch, took `(1, resource_nodes)` to owner schema 2 and section 1 to schema
+  3, and changed the active rules identity to
+  `RWL-CANONICAL-REGISTRY-2026-09-14-2`; `record_count` 599 -> 596 and
+  `packed_source_field_count` 553 -> 550. `save_section_world_runtime.gd`'s
+  two-block composer is renamed `encode_development_section()` and
+  `encode_section()` refuses, so there is one producer of a §1 and not two.
+  **Still open inside 09.2:** BLOCKER W1 is UNCHANGED -- `sim_clock.gd` still has
+  no side-effect-free writer, so `world_runtime` is validated and carried but
+  never published, and the D2 cursor is still installed with §3. The 44-byte
+  provenance prefix still has no value producer. `farming._tile_orchard_row` is
+  persisted and bounded but NO writer populates it, so its reverse map is an open
+  integration prerequisite and the cross-check deliberately asserts none.
+  Thirteen sections remain unwritten and `SCHQ0001` is still unwired.
 - [ ] 09.3 Implement transactional disk-backed rollback load, validated inactive
   checkpoint, autosave rotation and interrupted-I/O recovery. Recompute expanded
   peak memory; the baseline single-floor ledger is insufficient. No second full

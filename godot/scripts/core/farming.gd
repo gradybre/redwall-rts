@@ -2248,3 +2248,296 @@ func _refuse(code: StringName) -> OpResult:
 	carries a usable number, so an ignored refusal cannot surface a plausible answer.
 	"""
 	return OpResult.new(false, code, 0, NULL_REF)
+
+
+# --- §1 WORLD block: capture, local validation, cross-check and restore --------------------------
+#
+# R-WORLD-S1-001 §6 S1-FARMING. Section 1's `farming` block is owner schema 1, primary_count 16384
+# and a 737360-byte payload holding TileHistory's ten columns in this ordinal order: fertility,
+# last family, family streak, last legume day, compost season, active plot row, orchard row (all
+# i32), ripe tick and growth remainder (i64), then tended-today (u8).
+#
+# THESE ARE ABSOLUTE HISTORY VALUES AND THEY ARE NOT NORMALIZED ON LOAD. `destroy_plot()` above
+# deliberately PRESERVES ripe tick, growth remainder and tending when a designation goes away, so
+# a tile with no live plot can legitimately carry all three. Absence of a plot is not permission
+# to zero them. Compost season is an ABSOLUTE season ordinal, not a 0-3 cyclic one, and last
+# legume day is an absolute calendar day; neither is rebased against the load-time clock, and no
+# chronological equality with that clock is introduced here.
+#
+# THE ORCHARD REVERSE MAP IS AN OPEN SOURCE-MAINTENANCE GATE, NOT A SAVE DEFECT. `_tile_orchard_row`
+# is allocated, initialized to NO_ROW, read by `tile_orchard_row_of()` and persisted -- but NO
+# WRITER IN THIS MODULE EVER POPULATES IT. R-WORLD-S1-001 §6 names that gap and requires the
+# integration to establish the intended live-orchard inverse maintenance BEFORE anyone claims the
+# reverse orchard check passes. This file therefore bounds the column's domain and round-trips it
+# faithfully, and `section_1_cross_check_refusal()` deliberately does NOT assert an orchard
+# inverse: asserting one would either rubber-stamp an all-NO_ROW map beside live orchards or
+# reconstruct over a contradictory incoming map, and the ruling forbids both. The field stays
+# registered; removing it is not the fix.
+
+## Section 1's owner key, schema version and declared primary row extent for this block.
+const SECTION_1_OWNER_KEY: String = "farming"
+const SECTION_1_OWNER_SCHEMA_VERSION: int = 1
+const SECTION_1_PRIMARY_COUNT: int = TILE_COUNT
+
+## R-WORLD-S1-001 §6 bounds an orchard row at 0..1023. The DEFINING constant is
+## `orchard_hive.gd::ORCHARD_CAPACITY`, which cannot be preloaded here: that module already
+## preloads this one and GDScript will not resolve a cyclic preload. `test_world_owner_columns.gd`
+## asserts the two are equal, so this mirror cannot drift without a failing test.
+const ORCHARD_ROW_CAPACITY: int = 1024
+
+## Growth remainder is the stored modulo-1000000 residue, so its inclusive maximum is one less.
+const GROWTH_REMAINDER_MAX: int = GROWTH_FACTOR_DENOMINATOR - 1
+
+const COLUMN_REFUSE_NONE: StringName = &""
+const COLUMN_REFUSE_SHAPE: StringName = &"S1_FARMING_COLUMN_SHAPE"
+const COLUMN_REFUSE_FERTILITY: StringName = &"S1_FARMING_FERTILITY_RANGE"
+const COLUMN_REFUSE_FAMILY: StringName = &"S1_FARMING_FAMILY_RANGE"
+const COLUMN_REFUSE_STREAK: StringName = &"S1_FARMING_STREAK_RANGE"
+const COLUMN_REFUSE_HISTORY_PAIR: StringName = &"S1_FARMING_HISTORY_PAIR"
+const COLUMN_REFUSE_LEGUME_DAY: StringName = &"S1_FARMING_LEGUME_DAY_RANGE"
+const COLUMN_REFUSE_COMPOST_SEASON: StringName = &"S1_FARMING_COMPOST_SEASON_RANGE"
+const COLUMN_REFUSE_PLOT_ROW: StringName = &"S1_FARMING_PLOT_ROW_RANGE"
+const COLUMN_REFUSE_ORCHARD_ROW: StringName = &"S1_FARMING_ORCHARD_ROW_RANGE"
+const COLUMN_REFUSE_RIPE_TICK: StringName = &"S1_FARMING_RIPE_TICK_RANGE"
+const COLUMN_REFUSE_REMAINDER: StringName = &"S1_FARMING_REMAINDER_RANGE"
+const COLUMN_REFUSE_TENDED_FLAG: StringName = &"S1_FARMING_TENDED_FLAG"
+const COLUMN_REFUSE_NO_COMPONENT: StringName = &"S1_FARMING_NO_COMPONENT"
+const COLUMN_REFUSE_STALE_IDENTITY: StringName = &"S1_FARMING_STALE_IDENTITY"
+const COLUMN_REFUSE_MISSING_INVERSE: StringName = &"S1_FARMING_MISSING_INVERSE"
+const COLUMN_REFUSE_MIRROR: StringName = &"S1_FARMING_MIRROR_DISAGREES"
+
+## Detail behind the most recent §1 column refusal. Empty after an accepted call.
+var _section_1_detail: String = ""
+
+
+func section_1_detail() -> String:
+	"""Human-readable detail behind the last §1 column refusal, or an empty string."""
+	return _section_1_detail
+
+
+class SavedTileHistory:
+	"""TileHistory's ten saved columns, sized once so a decoder never resizes them on a load.
+
+	A carrier rather than ten out-parameters: GDScript caps a readable signature long before ten,
+	and the ordinal order below IS the section's wire order, so the two cannot silently diverge.
+	"""
+	var fertility: PackedInt32Array = PackedInt32Array()
+	var last_family: PackedInt32Array = PackedInt32Array()
+	var family_streak: PackedInt32Array = PackedInt32Array()
+	var last_legume_day: PackedInt32Array = PackedInt32Array()
+	var compost_season: PackedInt32Array = PackedInt32Array()
+	var active_plot_row: PackedInt32Array = PackedInt32Array()
+	var orchard_row: PackedInt32Array = PackedInt32Array()
+	var ripe_tick: PackedInt64Array = PackedInt64Array()
+	var growth_remainder: PackedInt64Array = PackedInt64Array()
+	var tended_today: PackedByteArray = PackedByteArray()
+
+	func _init() -> void:
+		"""Size all ten columns to TILE_COUNT once."""
+		fertility.resize(TILE_COUNT)
+		last_family.resize(TILE_COUNT)
+		family_streak.resize(TILE_COUNT)
+		last_legume_day.resize(TILE_COUNT)
+		compost_season.resize(TILE_COUNT)
+		active_plot_row.resize(TILE_COUNT)
+		orchard_row.resize(TILE_COUNT)
+		ripe_tick.resize(TILE_COUNT)
+		growth_remainder.resize(TILE_COUNT)
+		tended_today.resize(TILE_COUNT)
+
+	func is_sized() -> bool:
+		"""True when every one of the ten columns is exactly TILE_COUNT long."""
+		return (fertility.size() == TILE_COUNT and last_family.size() == TILE_COUNT
+			and family_streak.size() == TILE_COUNT and last_legume_day.size() == TILE_COUNT
+			and compost_season.size() == TILE_COUNT and active_plot_row.size() == TILE_COUNT
+			and orchard_row.size() == TILE_COUNT and ripe_tick.size() == TILE_COUNT
+			and growth_remainder.size() == TILE_COUNT and tended_today.size() == TILE_COUNT)
+
+
+func copy_section_1_columns_into(out: SavedTileHistory) -> bool:
+	"""Snapshot all ten TileHistory columns into a caller-owned, correctly sized carrier."""
+	if not out.is_sized():
+		return _refuse_section_1(COLUMN_REFUSE_SHAPE, "the destination carrier is not %d-sized"
+			% TILE_COUNT)
+	_refill_i32(out.fertility, _tile_fertility)
+	_refill_i32(out.last_family, _tile_last_family)
+	_refill_i32(out.family_streak, _tile_family_streak)
+	_refill_i32(out.last_legume_day, _tile_last_legume_day)
+	_refill_i32(out.compost_season, _tile_compost_season)
+	_refill_i32(out.active_plot_row, _tile_active_plot_row)
+	_refill_i32(out.orchard_row, _tile_orchard_row)
+	_refill_i64(out.ripe_tick, _tile_ripe_tick)
+	_refill_i64(out.growth_remainder, _tile_growth_remainder)
+	out.tended_today.clear()
+	out.tended_today.append_array(_tile_tended_today)
+	_section_1_detail = ""
+	return true
+
+
+func _refill_i32(out: PackedInt32Array, source: PackedInt32Array) -> void:
+	"""Refill a caller's int32 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+func _refill_i64(out: PackedInt64Array, source: PackedInt64Array) -> void:
+	"""Refill a caller's int64 buffer in place with a snapshot of one column. One C++ copy."""
+	out.clear()
+	out.append_array(source)
+
+
+func section_1_local_refusal(state: SavedTileHistory) -> StringName:
+	"""S1-FARMING's local domains, tile by tile, before anything is published."""
+	if not state.is_sized():
+		_refuse_section_1(COLUMN_REFUSE_SHAPE, "the carrier is not %d-sized" % TILE_COUNT)
+		return COLUMN_REFUSE_SHAPE
+	for tile: int in TILE_COUNT:
+		var soil: StringName = _section_1_soil_refusal(state, tile)
+		if soil != COLUMN_REFUSE_NONE:
+			return soil
+		var rows: StringName = _section_1_row_refusal(state, tile)
+		if rows != COLUMN_REFUSE_NONE:
+			return rows
+		var growth: StringName = _section_1_growth_refusal(state, tile)
+		if growth != COLUMN_REFUSE_NONE:
+			return growth
+	_section_1_detail = ""
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_soil_refusal(state: SavedTileHistory, tile: int) -> StringName:
+	"""Fertility, the rotation pair, the legume clock and the compost season of one tile."""
+	if state.fertility[tile] < FERTILITY_MIN or state.fertility[tile] > FERTILITY_MAX:
+		return _refuse_section_1_code(COLUMN_REFUSE_FERTILITY, "tile %d fertility %d outside %d..%d"
+			% [tile, state.fertility[tile], FERTILITY_MIN, FERTILITY_MAX])
+	if state.last_family[tile] < FAMILY_NONE or state.last_family[tile] >= FAMILY_COUNT:
+		return _refuse_section_1_code(COLUMN_REFUSE_FAMILY, "tile %d last family %d outside %d..%d"
+			% [tile, state.last_family[tile], FAMILY_NONE, FAMILY_COUNT - 1])
+	if state.family_streak[tile] < STREAK_NONE or state.family_streak[tile] > STREAK_MAX:
+		return _refuse_section_1_code(COLUMN_REFUSE_STREAK, "tile %d streak %d outside %d..%d"
+			% [tile, state.family_streak[tile], STREAK_NONE, STREAK_MAX])
+	if not is_history_pair_consistent(state.last_family[tile], state.family_streak[tile]):
+		return _refuse_section_1_code(COLUMN_REFUSE_HISTORY_PAIR,
+			"tile %d pairs family %d with streak %d"
+				% [tile, state.last_family[tile], state.family_streak[tile]])
+	if state.last_legume_day[tile] < NO_LEGUME_DAY or state.last_legume_day[tile] > STREAK_MAX:
+		return _refuse_section_1_code(COLUMN_REFUSE_LEGUME_DAY,
+			"tile %d legume day %d outside %d..%d"
+				% [tile, state.last_legume_day[tile], NO_LEGUME_DAY, STREAK_MAX])
+	if state.compost_season[tile] < NO_SEASON or state.compost_season[tile] > STREAK_MAX:
+		return _refuse_section_1_code(COLUMN_REFUSE_COMPOST_SEASON,
+			"tile %d compost season %d outside %d..%d"
+				% [tile, state.compost_season[tile], NO_SEASON, STREAK_MAX])
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_row_refusal(state: SavedTileHistory, tile: int) -> StringName:
+	"""The two typed-row columns of one tile. Neither is a directory slot, so neither is checked as one."""
+	var plot: int = state.active_plot_row[tile]
+	if plot != NO_ROW and (plot < 0 or plot >= FARM_PLOT_CAPACITY):
+		return _refuse_section_1_code(COLUMN_REFUSE_PLOT_ROW,
+			"tile %d names plot row %d, outside %d..%d"
+				% [tile, plot, NO_ROW, FARM_PLOT_CAPACITY - 1])
+	var orchard: int = state.orchard_row[tile]
+	if orchard != NO_ROW and (orchard < 0 or orchard >= ORCHARD_ROW_CAPACITY):
+		return _refuse_section_1_code(COLUMN_REFUSE_ORCHARD_ROW,
+			"tile %d names orchard row %d, outside %d..%d"
+				% [tile, orchard, NO_ROW, ORCHARD_ROW_CAPACITY - 1])
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_growth_refusal(state: SavedTileHistory, tile: int) -> StringName:
+	"""Ripe tick, growth remainder and the tending flag of one tile."""
+	if state.ripe_tick[tile] < NO_RIPE_TICK:
+		return _refuse_section_1_code(COLUMN_REFUSE_RIPE_TICK,
+			"tile %d ripe tick %d is below %d" % [tile, state.ripe_tick[tile], NO_RIPE_TICK])
+	if state.growth_remainder[tile] < 0 or state.growth_remainder[tile] > GROWTH_REMAINDER_MAX:
+		return _refuse_section_1_code(COLUMN_REFUSE_REMAINDER,
+			"tile %d growth remainder %d outside 0..%d"
+				% [tile, state.growth_remainder[tile], GROWTH_REMAINDER_MAX])
+	if state.tended_today[tile] > 1:
+		return _refuse_section_1_code(COLUMN_REFUSE_TENDED_FLAG,
+			"tile %d tended flag is %d, not 0 or 1" % [tile, state.tended_today[tile]])
+	return COLUMN_REFUSE_NONE
+
+
+func section_1_cross_check_refusal() -> StringName:
+	"""The live FarmPlot inverse in BOTH directions, plus the two mirrors that are true equalities.
+
+	Fertility, last family and family streak are written to plot and tile in one step by this
+	module, so they are direct equalities. `_compost_milli` is NOT checked: it is a season-dependent
+	derived mirror, and R-WORLD-S1-001 §6 forbids treating that as a historical equality.
+	"""
+	for tile: int in TILE_COUNT:
+		var slot: int = _tile_active_plot_row[tile]
+		if slot == NO_ROW:
+			continue
+		var forward: StringName = _section_1_plot_refusal(tile, slot)
+		if forward != COLUMN_REFUSE_NONE:
+			return forward
+	for slot: int in FARM_PLOT_CAPACITY:
+		if _present[slot] != 1:
+			continue
+		var tile: int = _tile[slot]
+		if not is_tile_index(tile) or _tile_active_plot_row[tile] != slot:
+			return _refuse_section_1_code(COLUMN_REFUSE_MISSING_INVERSE,
+				"live plot %d holds tile %d, whose active-plot entry is %d"
+					% [slot, tile, _tile_active_plot_row[tile] if is_tile_index(tile) else NO_ROW])
+	_section_1_detail = ""
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_plot_refusal(tile: int, slot: int) -> StringName:
+	"""One occupied tile against the FarmPlot row it names: presence, identity, tile and mirrors."""
+	if slot < 0 or slot >= FARM_PLOT_CAPACITY or _present[slot] != 1:
+		return _refuse_section_1_code(COLUMN_REFUSE_NO_COMPONENT,
+			"tile %d names plot row %d, which is not a present plot" % [tile, slot])
+	if _tile[slot] != tile:
+		return _refuse_section_1_code(COLUMN_REFUSE_MISSING_INVERSE,
+			"tile %d names plot row %d, which stands on tile %d" % [tile, slot, _tile[slot]])
+	var ref: Vector2i = Vector2i(_ref_slot[slot], _ref_generation[slot])
+	if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_FARM_PLOT) \
+			or _directory.get_typed_row(ref) != slot:
+		return _refuse_section_1_code(COLUMN_REFUSE_STALE_IDENTITY,
+			"plot row %d carries reference (%d,%d), which does not resolve back to it"
+				% [slot, ref.x, ref.y])
+	if _fertility[slot] != _tile_fertility[tile] or _last_family[slot] != _tile_last_family[tile] \
+			or _family_streak[slot] != _tile_family_streak[tile]:
+		return _refuse_section_1_code(COLUMN_REFUSE_MIRROR,
+			"plot row %d mirrors (%d,%d,%d) against the tile's (%d,%d,%d)"
+				% [slot, _fertility[slot], _last_family[slot], _family_streak[slot],
+					_tile_fertility[tile], _tile_last_family[tile], _tile_family_streak[tile]])
+	return COLUMN_REFUSE_NONE
+
+
+func restore_section_1_columns(state: SavedTileHistory) -> bool:
+	"""Install validated TileHistory. Validates first, so a refusal leaves every column alone.
+
+	No gameplay mutator runs: nothing is sown, destroyed, cleared or rebased against the clock.
+	"""
+	if section_1_local_refusal(state) != COLUMN_REFUSE_NONE:
+		return false
+	_tile_fertility = state.fertility.duplicate()
+	_tile_last_family = state.last_family.duplicate()
+	_tile_family_streak = state.family_streak.duplicate()
+	_tile_last_legume_day = state.last_legume_day.duplicate()
+	_tile_compost_season = state.compost_season.duplicate()
+	_tile_active_plot_row = state.active_plot_row.duplicate()
+	_tile_orchard_row = state.orchard_row.duplicate()
+	_tile_ripe_tick = state.ripe_tick.duplicate()
+	_tile_growth_remainder = state.growth_remainder.duplicate()
+	_tile_tended_today = state.tended_today.duplicate()
+	_section_1_detail = ""
+	return true
+
+
+func _refuse_section_1(code: StringName, detail: String) -> bool:
+	"""Record one §1 column refusal's detail and return false, so callers can `return` it."""
+	_section_1_detail = "%s: %s" % [code, detail]
+	return false
+
+
+func _refuse_section_1_code(code: StringName, detail: String) -> StringName:
+	"""Record one §1 column refusal's detail and hand the code straight back to a `return`."""
+	_section_1_detail = "%s: %s" % [code, detail]
+	return code

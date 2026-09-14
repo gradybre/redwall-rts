@@ -1724,3 +1724,257 @@ func _count_kind(room_row: int, key: String) -> int:
 func _refuse(code: StringName) -> OpResult:
 	"""One refusal: no value, the null reference, and the code that says what was rejected."""
 	return OpResult.new(false, code, 0, NULL_REF)
+
+
+# --- §1 WORLD block: capture, local validation, cross-check and restore --------------------------
+#
+# R-WORLD-S1-001 §6 S1-BUILDINGS. Section 1's `buildings` block is owner schema 1, primary_count
+# 16384 and a 196632-byte payload holding three i32 tile maps in this ordinal order:
+#
+#   0 `_building_slot`   -1, else a Building row  0..1023
+#   1 `_room_slot`       -1, else a Room row      0..16383
+#   2 `_furniture_slot`  -1, else a Furniture row 0..81919
+#
+# THE ROW RANGES ARE THREE DIFFERENT NAMESPACES AND ONE OF THEM IS NOT THE GRID SIZE. A tile map
+# value is a TYPED ROW in its own store, never a directory slot and never a tile index; the room
+# range coincides with TILE_COUNT by accident of ROOM_CAPACITY, which is exactly why each is
+# bounded against its own capacity constant below rather than against a shared one.
+#
+# WHY THE CROSS-CHECK WALKS FOOTPRINTS AND NOT ORIGIN TILES. A structure claims its whole rotated
+# extent (`_stamp_footprint`), a room claims its saved tile run (`_room_tile_id` between
+# `_r_tile_offset` and `_r_tile_count`) and a floor-standing furniture piece claims its rotated
+# floor extent (`_stamp_furniture_tiles`). Checking only an origin would accept a map that had
+# lost every other tile of a 12x10 hall. The reverse direction is proved by COUNT rather than by
+# a second quadratic walk: the forward walk proves every claimed tile maps back to its claimant,
+# so if the number of occupied tiles also equals the total claimed area, no stray occupied tile
+# can exist. EDGE FURNITURE CLAIMS NOTHING (§4.3's "0/0 means edge placement"), so its extent is
+# zero and it must not be required to hold a floor tile.
+
+## Section 1's owner key, schema version and declared primary row extent for this block.
+const SECTION_1_OWNER_KEY: String = "buildings"
+const SECTION_1_OWNER_SCHEMA_VERSION: int = 1
+const SECTION_1_PRIMARY_COUNT: int = TILE_COUNT
+
+const COLUMN_REFUSE_NONE: StringName = &""
+const COLUMN_REFUSE_SHAPE: StringName = &"S1_BUILDINGS_COLUMN_SHAPE"
+const COLUMN_REFUSE_ROW_RANGE: StringName = &"S1_BUILDINGS_ROW_RANGE"
+const COLUMN_REFUSE_NO_COMPONENT: StringName = &"S1_BUILDINGS_NO_COMPONENT"
+const COLUMN_REFUSE_STALE_IDENTITY: StringName = &"S1_BUILDINGS_STALE_IDENTITY"
+const COLUMN_REFUSE_FOOTPRINT: StringName = &"S1_BUILDINGS_FOOTPRINT_MISMATCH"
+const COLUMN_REFUSE_STRAY_TILE: StringName = &"S1_BUILDINGS_STRAY_TILE"
+
+## Detail behind the most recent §1 column refusal. Empty after an accepted call.
+var _section_1_detail: String = ""
+
+
+func section_1_detail() -> String:
+	"""Human-readable detail behind the last §1 column refusal, or an empty string."""
+	return _section_1_detail
+
+
+func copy_section_1_columns_into(out_building_slot: PackedInt32Array,
+		out_room_slot: PackedInt32Array, out_furniture_slot: PackedInt32Array) -> bool:
+	"""Snapshot the three tile maps into caller-owned buffers already TILE_COUNT long."""
+	if not _section_1_sized(_building_slot, _room_slot, _furniture_slot, "the live tile maps"):
+		return false
+	if not _section_1_sized(out_building_slot, out_room_slot, out_furniture_slot,
+			"the destination buffers"):
+		return false
+	out_building_slot.clear()
+	out_building_slot.append_array(_building_slot)
+	out_room_slot.clear()
+	out_room_slot.append_array(_room_slot)
+	out_furniture_slot.clear()
+	out_furniture_slot.append_array(_furniture_slot)
+	_section_1_detail = ""
+	return true
+
+
+func _section_1_sized(building_slot: PackedInt32Array, room_slot: PackedInt32Array,
+		furniture_slot: PackedInt32Array, role: String) -> bool:
+	"""True when all three tile maps are exactly TILE_COUNT long; records a detail when not."""
+	if (building_slot.size() == TILE_COUNT and room_slot.size() == TILE_COUNT
+			and furniture_slot.size() == TILE_COUNT):
+		return true
+	return _refuse_section_1(COLUMN_REFUSE_SHAPE, "%s are %d/%d/%d entries, not %d each"
+		% [role, building_slot.size(), room_slot.size(), furniture_slot.size(), TILE_COUNT])
+
+
+func section_1_local_refusal(building_slot: PackedInt32Array, room_slot: PackedInt32Array,
+		furniture_slot: PackedInt32Array) -> StringName:
+	"""S1-BUILDINGS local domain: three full grids, each value NO_LINK or a row in its own range."""
+	if not _section_1_sized(building_slot, room_slot, furniture_slot, "the tile maps"):
+		return COLUMN_REFUSE_SHAPE
+	var maps: Array[PackedInt32Array] = [building_slot, room_slot, furniture_slot]
+	var limits: Array[int] = [BUILDING_CAPACITY, ROOM_CAPACITY, FURNITURE_CAPACITY]
+	var names: Array[String] = ["_building_slot", "_room_slot", "_furniture_slot"]
+	for which: int in maps.size():
+		var column: PackedInt32Array = maps[which]
+		for tile: int in TILE_COUNT:
+			var row: int = column[tile]
+			if row == NO_LINK:
+				continue
+			if row < 0 or row >= limits[which]:
+				_refuse_section_1(COLUMN_REFUSE_ROW_RANGE, "%s tile %d names row %d, outside %d..%d"
+					% [names[which], tile, row, NO_LINK, limits[which] - 1])
+				return COLUMN_REFUSE_ROW_RANGE
+	_section_1_detail = ""
+	return COLUMN_REFUSE_NONE
+
+
+func section_1_cross_check_refusal() -> StringName:
+	"""Every live building, room and furniture footprint against the LIVE tile maps, both ways."""
+	var buildings: StringName = _section_1_building_refusal()
+	if buildings != COLUMN_REFUSE_NONE:
+		return buildings
+	var rooms: StringName = _section_1_room_refusal()
+	if rooms != COLUMN_REFUSE_NONE:
+		return rooms
+	return _section_1_furniture_refusal()
+
+
+func _section_1_building_refusal() -> StringName:
+	"""Stamp every live building's rotated footprint and prove the map holds exactly that."""
+	var claimed: int = 0
+	for row: int in BUILDING_CAPACITY:
+		if _b_present[row] == 0:
+			continue
+		var identity: StringName = _section_1_identity_refusal(
+			Vector2i(_b_ref_slot[row], _b_ref_generation[row]), EntityDirectory.KIND_BUILDING,
+			row, "building")
+		if identity != COLUMN_REFUSE_NONE:
+			return identity
+		var size_x: int = _definitions.footprint_x_of(_b_type_id[row])
+		var size_z: int = _definitions.footprint_z_of(_b_type_id[row])
+		var area: int = _section_1_extent_refusal_area(_b_origin_tile[row], size_x, size_z,
+			_b_rotation[row], _building_slot, row, "building")
+		if area < 0:
+			return COLUMN_REFUSE_FOOTPRINT
+		claimed += area
+	return _section_1_occupancy_refusal(_building_slot, claimed, "_building_slot")
+
+
+func _section_1_room_refusal() -> StringName:
+	"""Every live room's SAVED TILE RUN against `_room_slot`, then the occupied-tile total."""
+	var claimed: int = 0
+	for row: int in ROOM_CAPACITY:
+		if _r_present[row] == 0:
+			continue
+		var identity: StringName = _section_1_identity_refusal(
+			Vector2i(_r_ref_slot[row], _r_ref_generation[row]), EntityDirectory.KIND_ROOM,
+			row, "room")
+		if identity != COLUMN_REFUSE_NONE:
+			return identity
+		var begin: int = _r_tile_offset[row]
+		var count: int = _r_tile_count[row]
+		if begin < 0 or count <= 0 or begin + count > _room_tile_id.size():
+			return _refuse_section_1_code(COLUMN_REFUSE_FOOTPRINT,
+				"room %d claims run [%d,%d) of a %d-entry arena"
+					% [row, begin, begin + count, _room_tile_id.size()])
+		for index: int in count:
+			var tile: int = _room_tile_id[begin + index]
+			if not is_tile_index(tile) or _room_slot[tile] != row:
+				return _refuse_section_1_code(COLUMN_REFUSE_FOOTPRINT,
+					"room %d claims tile %d, whose map entry is %d"
+						% [row, tile, _room_slot[tile] if is_tile_index(tile) else NO_LINK])
+		claimed += count
+	return _section_1_occupancy_refusal(_room_slot, claimed, "_room_slot")
+
+
+func _section_1_furniture_refusal() -> StringName:
+	"""Every live piece's FLOOR footprint; an edge piece claims zero tiles and is not required to."""
+	var claimed: int = 0
+	for row: int in FURNITURE_CAPACITY:
+		if _f_present[row] == 0:
+			continue
+		var identity: StringName = _section_1_identity_refusal(
+			Vector2i(_f_ref_slot[row], _f_ref_generation[row]), EntityDirectory.KIND_FURNITURE,
+			row, "furniture")
+		if identity != COLUMN_REFUSE_NONE:
+			return identity
+		var size_x: int = _definitions.floor_x_of(_f_type_id[row])
+		var size_z: int = _definitions.floor_z_of(_f_type_id[row])
+		if size_x <= 0 or size_z <= 0:
+			continue
+		var area: int = _section_1_extent_refusal_area(_f_origin_tile[row], size_x, size_z,
+			_f_rotation[row], _furniture_slot, row, "furniture")
+		if area < 0:
+			return COLUMN_REFUSE_FOOTPRINT
+		claimed += area
+	return _section_1_occupancy_refusal(_furniture_slot, claimed, "_furniture_slot")
+
+
+func _section_1_extent_refusal_area(origin_tile: int, size_x: int, size_z: int, rotation: int,
+		column: PackedInt32Array, row: int, role: String) -> int:
+	"""Tiles a rotated extent claims when every one of them maps back to `row`, else -1.
+
+	-1 is not a value this function's caller ever uses as an area: it returns immediately with
+	COLUMN_REFUSE_FOOTPRINT, and the detail naming the offending tile is already recorded.
+	"""
+	var extent_x: int = extent_x_of(size_x, size_z, rotation)
+	var extent_z: int = extent_z_of(size_x, size_z, rotation)
+	if not _footprint_fits(origin_tile, extent_x, extent_z):
+		_refuse_section_1(COLUMN_REFUSE_FOOTPRINT,
+			"%s %d has a %dx%d extent at tile %d, off the grid"
+				% [role, row, extent_x, extent_z, origin_tile])
+		return -1
+	for offset_z: int in extent_z:
+		for offset_x: int in extent_x:
+			var tile: int = _tile_at(origin_tile, offset_x, offset_z)
+			if column[tile] != row:
+				_refuse_section_1(COLUMN_REFUSE_FOOTPRINT,
+					"%s %d covers tile %d, whose map entry is %d" % [role, row, tile, column[tile]])
+				return -1
+	return extent_x * extent_z
+
+
+func _section_1_occupancy_refusal(column: PackedInt32Array, claimed: int,
+		name: String) -> StringName:
+	"""Prove no OCCUPIED tile is unaccounted for: the map holds exactly the claimed total."""
+	var occupied: int = 0
+	for tile: int in TILE_COUNT:
+		if column[tile] != NO_LINK:
+			occupied += 1
+	if occupied != claimed:
+		return _refuse_section_1_code(COLUMN_REFUSE_STRAY_TILE,
+			"%s holds %d occupied tiles against %d claimed by live rows"
+				% [name, occupied, claimed])
+	_section_1_detail = ""
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_identity_refusal(ref: Vector2i, kind: int, row: int, role: String) -> StringName:
+	"""The live row's directory reference must be valid, of the expected kind and name this row."""
+	if not _directory.is_valid_of_kind(ref, kind):
+		return _refuse_section_1_code(COLUMN_REFUSE_STALE_IDENTITY,
+			"%s row %d carries reference (%d,%d), not a live entity of kind %d"
+				% [role, row, ref.x, ref.y, kind])
+	if _directory.get_typed_row(ref) != row:
+		return _refuse_section_1_code(COLUMN_REFUSE_STALE_IDENTITY,
+			"%s row %d's reference resolves to typed row %d"
+				% [role, row, _directory.get_typed_row(ref)])
+	return COLUMN_REFUSE_NONE
+
+
+func restore_section_1_columns(building_slot: PackedInt32Array, room_slot: PackedInt32Array,
+		furniture_slot: PackedInt32Array) -> bool:
+	"""Install three validated tile maps. Validates first, so a refusal changes nothing."""
+	if section_1_local_refusal(building_slot, room_slot, furniture_slot) != COLUMN_REFUSE_NONE:
+		return false
+	_building_slot = building_slot.duplicate()
+	_room_slot = room_slot.duplicate()
+	_furniture_slot = furniture_slot.duplicate()
+	_section_1_detail = ""
+	return true
+
+
+func _refuse_section_1(code: StringName, detail: String) -> bool:
+	"""Record one §1 column refusal's detail and return false, so callers can `return` it."""
+	_section_1_detail = "%s: %s" % [code, detail]
+	return false
+
+
+func _refuse_section_1_code(code: StringName, detail: String) -> StringName:
+	"""Record one §1 column refusal's detail and hand the code straight back to a `return`."""
+	_section_1_detail = "%s: %s" % [code, detail]
+	return code

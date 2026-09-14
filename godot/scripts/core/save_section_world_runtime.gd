@@ -111,7 +111,15 @@ extends RefCounted
 ## NO FLOAT. ARCH-AUTH-002; `test_save_section_world_runtime.gd` greps this source to enforce it.
 ##
 ## OPEN, NOT INVENTED:
-##   * BLOCKER W2 -- SEVEN OF SECTION 1'S NINE OWNERS HAVE NO ENCODER ANYWHERE. REG-R01 registers
+## BLOCKER W2 IS CLOSED BY R-WORLD-S1-001, AND `save_section_01.gd` IS WHERE. That module encodes,
+## decodes, validates and restores all nine §1 owners at the ruled offsets, takes §1 to schema 3
+## and `resource_nodes` to owner schema 2, and drops the three deposit scratch arrays from the wire
+## entirely. THIS module keeps the two fixed-format payloads it has always owned -- the 4-byte D2
+## cursor and the 80-byte WorldRuntime body -- plus `decode_section()`, which remains a bounded
+## MEASURING walker over an arbitrary §1 composition and deliberately interprets no foreign block.
+## The paragraph below is retained as the record of what the gap was.
+##
+##   * BLOCKER W2 (CLOSED) -- SEVEN OF SECTION 1'S NINE OWNERS HAD NO ENCODER ANYWHERE. REG-R01 registers
 ##     `buildings, entity_directory, farming, forage, resource_nodes, spatial_world, weather,
 ##     world_init, world_runtime` in §1. Two are encoded here; the other seven are owned by other
 ##     modules and none of them publishes a §1 block yet. `encode_section()` therefore emits
@@ -618,9 +626,11 @@ const AUTHORED_MAP_DIGEST_BYTES: int = 32
 const OFFSET_STORE_COUNT: int = 44
 const STORE_COUNT_BYTES: int = 4
 
-## REG-R01's baseline section-version vector `[2,2,1,2,1,1,2,1,2,1,1,2,1,2,1]` gives §1 version 2,
-## for this composition. The OWNER schemas inside it are 1; the two numbers are not the same thing.
-const SECTION_SCHEMA_VERSION: int = 2
+## REG-R01's baseline section-version vector gave §1 version 2. R-WORLD-S1-001 moves it to **3**
+## in the same activation that reclassifies `resource_nodes`' three deposit arrays as scratch and
+## takes that owner to schema 2; the registry's vector now reads `[3,2,1,2,1,1,2,1,2,1,1,2,1,2,1]`.
+## The OWNER schemas inside the section are a different namespace: eight of the nine are still 1.
+const SECTION_SCHEMA_VERSION: int = 3
 
 ## Every owner REG-R01 registers in §1, in the ASCII order blocks must appear in. `store_count`
 ## is bounded by this list's length, which is what "the registry bounds store_count" means here.
@@ -671,6 +681,8 @@ const REFUSE_SECTION_NOT_TILED: StringName = &"SAVE_WORLDRT_SECTION_NOT_TILED"
 const REFUSE_SECTION_OWNER_MISSING: StringName = &"SAVE_WORLDRT_SECTION_OWNER_MISSING"
 const REFUSE_SECTION_PREFIX_FIELD: StringName = &"SAVE_WORLDRT_SECTION_PREFIX_FIELD"
 const REFUSE_CURSOR_RANGE: StringName = &"SAVE_WORLDRT_CURSOR_RANGE"
+## R-WORLD-S1-001 retired the two-block composition as a producer; see `encode_section()`.
+const REFUSE_SECTION_SUPERSEDED: StringName = &"SAVE_WORLDRT_SECTION_SUPERSEDED"
 
 
 class SectionRecord:
@@ -785,10 +797,27 @@ static func cursor_refusal(next_persistent_id: int) -> SaveHeader.Refusal:
 
 
 static func encode_section(section: SectionRecord, out: EncodeResult) -> bool:
-	"""Encode the 44-byte prefix, `store_count` and this module's two owner blocks, in ASCII order.
+	"""REFUSED. R-WORLD-S1-001 makes `save_section_01.gd` the only producer of a section 1.
 
-	`store_count` is `OWNED_OWNER_KEYS.size()`, which is 2 and is a DEVELOPMENT section 1 -- seven
-	registered §1 owners have no encoder anywhere yet (BLOCKER W2). Nothing is invented to pad it.
+	The ruling is explicit that the target section has exactly nine owners and that "missing blocks
+	are not a permitted target-schema variant". A second producer that emitted two of them would be
+	a working way to write a section no target decoder accepts, so the entry point that used to do
+	it now names its successor instead of quietly producing one.
+
+	The two-block composition itself is NOT deleted: `encode_development_section()` still builds it,
+	and the suite uses it to exercise the wrapper, ordering and tiling rules that both producers
+	share. What changed is that nothing can reach it by the old name and by accident.
+	"""
+	var _unused: SectionRecord = section
+	return out.refuse(REFUSE_SECTION_SUPERSEDED,
+		"section 1 is composed by save_section_01.gd; this module owns two of its nine blocks")
+
+
+static func encode_development_section(section: SectionRecord, out: EncodeResult) -> bool:
+	"""Encode the 44-byte prefix, `store_count = 2` and this module's two owner blocks.
+
+	A DEVELOPMENT composition and nothing more. It is the fixture the wrapper/order/tiling tests
+	are built on, and it is not a section any target decoder accepts; `save_section_01.gd` is.
 	"""
 	var invalid: SaveHeader.Refusal = section_refusal(section)
 	if not invalid.is_ok():

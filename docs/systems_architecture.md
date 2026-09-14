@@ -832,6 +832,30 @@ membership and acceptance. This assigns section ownership; task 09.2 still owns
 its explicit field byte offsets/schema. A memory allocation row alone does not
 make a field persisted or canonical; apply the explicit owning contracts.
 
+**ARCH-SAVE-009 (2026-09-14, [R-WORLD-S1-001](rulings/2026-09-14_world_section_owner_encoders.md)).**
+Section 1 WORLD carries EXACTLY NINE owner blocks in strict ASCII key order -- `buildings`,
+`entity_directory`, `farming`, `forage`, `resource_nodes`, `spatial_world`, `weather`,
+`world_init`, `world_runtime` -- and a missing block is not a permitted variant. The section is a
+44-byte map-provenance prefix, `store_count:u32 = 9`, then blocks tiling the remainder with no gap,
+overlap or trailing byte; each wrapper occupies `24 + len(owner_key)` bytes. Seven owners use the
+ordinary payload form `element_count:u64` then `element_count * type_width` value bytes per field in
+declared ordinal order, with an explicit `element_count = 1` on every scalar; `entity_directory`
+(4 bytes) and `world_runtime` (80 bytes) keep their existing fixed formats and carry no count
+prefixes. Count prefixes are structural bytes and produce no canonical field record. Payloads total
+3752409 bytes, wrappers 311, section length **3752768**, first body offset **1216**, section 2 at
+**3753984**, and the section descriptor's `row_count` is the checked SUM of the nine block primary
+counts, **344067** -- not a population, a field count or a canonical record count. `world_init`
+declares primary_count 16384 and `spatial_world` 262144 despite their scalar fields; `weather`
+declares 1 for its one aggregate row of eight i32 and two i64 values.
+
+The same activation reclassifies `resource_nodes._deposit_tiles`, `._deposit_ref_slot` and
+`._deposit_ref_generation` as CATEGORY-3 operation scratch: they describe one placement in progress,
+not a deposit registry, so they contribute no save payload and no canonical field record.
+`resource_nodes` therefore takes owner schema **2** and section 1 takes schema **3**; the other
+eight §1 owner versions stay 1 and no other section's block owned by the same module changes. Older
+bytes are NOT reinterpreted under the new versions -- an incompatible development save is refused,
+and no migration is implemented. Implementation: `godot/scripts/core/save_section_01.gd`.
+
 **ARCH-HASH-001.** Canonical state hash is SHA-256 over domain string `RWL-STATE-1`, rules/catalog/map/lookup hashes, exact engine build string, completed tick, all authoritative occupied/generation and typed fields in schema order, variable children, all auxiliary future-affecting state, pending commands in execution order, RNG states/draw counts, navigation progress/cache eviction state, and the Chronicle count plus rolling digest. The Chronicle rolling digest is `SHA256(previous_digest || encoded_record)` starting with 32 zero bytes `[NEW streaming history representation]`; a save validates the full stream against it. Include current/previous authoritative Transform fields, not first-frame presentation overrides. Exclude selected flags, camera, UI panels, skin/LOD/batch slots, completed command-outcome rings/cursors, host scheduler debt and historical clock counters, allocator addresses, timing metrics, and derived spatial/active indexes. `[GDD §4.2, REQ-SET-159–160; crowd §6.4]`
 
 **ARCH-HASH-002.** Hash every tick in verification mode and every 300 ticks in ordinary replay recording `[crowd §6.4]`. End-of-tick hashing may exceed normal timing budgets in verification mode; report that mode separately instead of hiding its cost. On mismatch dump section digest, first different field/slot/child index, RNG draw counters, pending path progress, and last 30 commands `[crowd §6.4]`. Comparing only a final digest is insufficient for the parity gate.

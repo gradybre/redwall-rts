@@ -571,3 +571,192 @@ func _ensure_clearance() -> void:
 func last_refusal() -> StringName:
 	"""The refusal code from the most recent refusing call, or REFUSE_NONE after a success."""
 	return _last_refusal
+
+
+# --- §1 WORLD block: capture, local validation, cross-check and restore --------------------------
+#
+# R-WORLD-S1-001 §6 S1-SPATIAL_WORLD. Section 1's `spatial_world` block is owner schema 1,
+# primary_count 262144 and a 2621484-byte payload in this ordinal order: `_map_revision` as a
+# ONE-ELEMENT i32 field, then `_walkable` and `_layer` as u8 cell columns and `_terrain` and
+# `_height_units` as i32 cell columns. The primary count is the CELL extent even though the first
+# field is a scalar; each field's own element count is what fixes its extent on the wire.
+#
+# EVERY CELL IS WRITTEN, INCLUDING THE BLOCKED ONES. A blocked cell is state, not absence.
+#
+# RESTORE MUST NOT REBUILD WALKABILITY FROM AUTHORED TERRAIN. `override_static_legality()` above
+# legitimately changes a cell's legality and advances the revision, so the live map is NOT a
+# function of `world_init.gd`'s authored masks and "equals the authored value" is not a valid
+# load check. `restore_section_1_columns()` therefore installs the STORED columns and then
+# rebuilds only what is genuinely derived from them -- `_walkable_count` and `_clearance` --
+# rather than calling `rebuild_static_legality()`, which would overwrite stored legality with the
+# authored answer and silently discard every edit the saved world had made.
+#
+# `_clearance` IS NOT PERSISTED AND MUST NOT BE. It is a pure function of `_walkable`, recomputed
+# here by the same `_recompute_clearance()` the live store uses, so there is exactly one
+# implementation of that geometry and a restored map cannot disagree with an edited one.
+#
+# THE REVISION DOMAIN STAYS i32. R-WORLD-S1-001 forbids widening it to i64 at this boundary;
+# `MAX_MAP_REVISION` is already `IntMath.INT32_MAX` and exhaustion refuses rather than wrapping.
+
+## Section 1's owner key, schema version and declared primary row extent for this block.
+const SECTION_1_OWNER_KEY: String = "spatial_world"
+const SECTION_1_OWNER_SCHEMA_VERSION: int = 1
+const SECTION_1_PRIMARY_COUNT: int = CELL_COUNT
+
+## The baseline terrain domain, read from its owner rather than mirrored as a number here.
+const TERRAIN_ID_COUNT: int = WorldInit.TERRAIN_COUNT
+
+const COLUMN_REFUSE_NONE: StringName = &""
+const COLUMN_REFUSE_SHAPE: StringName = &"S1_SPATIAL_COLUMN_SHAPE"
+const COLUMN_REFUSE_REVISION: StringName = &"S1_SPATIAL_REVISION_RANGE"
+const COLUMN_REFUSE_WALKABLE_FLAG: StringName = &"S1_SPATIAL_WALKABLE_FLAG"
+const COLUMN_REFUSE_LAYER: StringName = &"S1_SPATIAL_LAYER_NOT_CONTRACTED"
+const COLUMN_REFUSE_TERRAIN: StringName = &"S1_SPATIAL_TERRAIN_RANGE"
+const COLUMN_REFUSE_HEIGHT: StringName = &"S1_SPATIAL_HEIGHT_RANGE"
+const COLUMN_REFUSE_DERIVED: StringName = &"S1_SPATIAL_DERIVED_DISAGREES"
+
+## Code and detail behind the most recent §1 column refusal. Both empty after an accepted call.
+var _section_1_code: StringName = COLUMN_REFUSE_NONE
+var _section_1_detail: String = ""
+
+
+func section_1_code() -> StringName:
+	"""The code of the last §1 column refusal, or COLUMN_REFUSE_NONE."""
+	return _section_1_code
+
+
+func section_1_detail() -> String:
+	"""Human-readable detail behind the last §1 column refusal, or an empty string."""
+	return _section_1_detail
+
+
+func section_1_map_revision() -> int:
+	"""The scalar this block's ordinal-0 field carries: the live map revision."""
+	return _map_revision
+
+
+func copy_section_1_columns_into(out_walkable: PackedByteArray, out_layer: PackedByteArray,
+		out_terrain: PackedInt32Array, out_height_units: PackedInt32Array) -> bool:
+	"""Snapshot the four saved cell columns into caller-owned buffers already CELL_COUNT long."""
+	if not _section_1_sized(_walkable, _layer, _terrain, _height_units, "the live columns"):
+		return false
+	if not _section_1_sized(out_walkable, out_layer, out_terrain, out_height_units,
+			"the destination buffers"):
+		return false
+	out_walkable.clear()
+	out_walkable.append_array(_walkable)
+	out_layer.clear()
+	out_layer.append_array(_layer)
+	out_terrain.clear()
+	out_terrain.append_array(_terrain)
+	out_height_units.clear()
+	out_height_units.append_array(_height_units)
+	_section_1_accept()
+	return true
+
+
+func _section_1_sized(walkable: PackedByteArray, layer: PackedByteArray,
+		terrain: PackedInt32Array, height_units: PackedInt32Array, role: String) -> bool:
+	"""True when all four cell columns are exactly CELL_COUNT long; records a detail when not."""
+	if (walkable.size() == CELL_COUNT and layer.size() == CELL_COUNT
+			and terrain.size() == CELL_COUNT and height_units.size() == CELL_COUNT):
+		return true
+	return _refuse_section_1(COLUMN_REFUSE_SHAPE, "%s are %d/%d/%d/%d entries, not %d each"
+		% [role, walkable.size(), layer.size(), terrain.size(), height_units.size(), CELL_COUNT])
+
+
+func section_1_local_refusal(map_revision: int, walkable: PackedByteArray,
+		layer: PackedByteArray, terrain: PackedInt32Array,
+		height_units: PackedInt32Array) -> StringName:
+	"""S1-SPATIAL_WORLD local domains over the scalar and all 262144 cells of each column."""
+	if map_revision < FIRST_MAP_REVISION or map_revision > MAX_MAP_REVISION:
+		_refuse_section_1(COLUMN_REFUSE_REVISION, "map revision %d outside %d..%d"
+			% [map_revision, FIRST_MAP_REVISION, MAX_MAP_REVISION])
+		return COLUMN_REFUSE_REVISION
+	if not _section_1_sized(walkable, layer, terrain, height_units, "the columns"):
+		return COLUMN_REFUSE_SHAPE
+	for cell: int in CELL_COUNT:
+		if walkable[cell] > 1:
+			return _refuse_section_1_code(COLUMN_REFUSE_WALKABLE_FLAG,
+				"cell %d walkable flag is %d, not 0 or 1" % [cell, walkable[cell]])
+		if layer[cell] != LAYER_SURFACE:
+			return _refuse_section_1_code(COLUMN_REFUSE_LAYER,
+				"cell %d layer is %d; only %d is contracted" % [cell, layer[cell], LAYER_SURFACE])
+		if terrain[cell] < 0 or terrain[cell] >= TERRAIN_ID_COUNT:
+			return _refuse_section_1_code(COLUMN_REFUSE_TERRAIN,
+				"cell %d terrain id %d outside 0..%d" % [cell, terrain[cell], TERRAIN_ID_COUNT - 1])
+		if height_units[cell] < IntMath.INT32_MIN or height_units[cell] > IntMath.INT32_MAX:
+			return _refuse_section_1_code(COLUMN_REFUSE_HEIGHT,
+				"cell %d height %d is not an i32" % [cell, height_units[cell]])
+	_section_1_accept()
+	return COLUMN_REFUSE_NONE
+
+
+func section_1_cross_check_refusal() -> StringName:
+	"""The two DERIVED members must agree with the installed columns, cell for cell.
+
+	This is not a save field check: `_walkable_count` and `_clearance` are rebuilt on restore, so
+	what this proves is that the rebuild actually ran and produced the same answers the live store
+	would. A restore that installed columns and forgot the rebuild fails here.
+	"""
+	var walkable_total: int = 0
+	for cell: int in CELL_COUNT:
+		walkable_total += _walkable[cell]
+	if walkable_total != _walkable_count:
+		return _refuse_section_1_code(COLUMN_REFUSE_DERIVED,
+			"the column holds %d walkable cells against a count of %d"
+				% [walkable_total, _walkable_count])
+	if _clearance_dirty:
+		return _refuse_section_1_code(COLUMN_REFUSE_DERIVED,
+			"clearance is still marked dirty after a restore")
+	for cell: int in CELL_COUNT:
+		if _walkable[cell] == 0 and _clearance[cell] != 0:
+			return _refuse_section_1_code(COLUMN_REFUSE_DERIVED,
+				"blocked cell %d carries clearance %d" % [cell, _clearance[cell]])
+		if _walkable[cell] == 1 and _clearance[cell] < MIN_CLEARANCE_CLASS:
+			return _refuse_section_1_code(COLUMN_REFUSE_DERIVED,
+				"passable cell %d carries clearance %d" % [cell, _clearance[cell]])
+	_section_1_accept()
+	return COLUMN_REFUSE_NONE
+
+
+func restore_section_1_columns(map_revision: int, walkable: PackedByteArray,
+		layer: PackedByteArray, terrain: PackedInt32Array,
+		height_units: PackedInt32Array) -> bool:
+	"""Install the validated stored map, then rebuild ONLY `_walkable_count` and `_clearance`."""
+	if section_1_local_refusal(map_revision, walkable, layer, terrain,
+			height_units) != COLUMN_REFUSE_NONE:
+		return false
+	_walkable = walkable.duplicate()
+	_layer = layer.duplicate()
+	_terrain = terrain.duplicate()
+	_height_units = height_units.duplicate()
+	_map_revision = map_revision
+	var walkable_total: int = 0
+	for cell: int in CELL_COUNT:
+		walkable_total += _walkable[cell]
+	_walkable_count = walkable_total
+	_clearance_dirty = false
+	_recompute_clearance()
+	_section_1_accept()
+	return true
+
+
+func _section_1_accept() -> void:
+	"""Clear the recorded §1 refusal, so a stale code cannot be read after an accepted call."""
+	_section_1_code = COLUMN_REFUSE_NONE
+	_section_1_detail = ""
+
+
+func _refuse_section_1(code: StringName, detail: String) -> bool:
+	"""Record one §1 column refusal and return false, so callers can `return` it."""
+	_section_1_code = code
+	_section_1_detail = "%s: %s" % [code, detail]
+	return false
+
+
+func _refuse_section_1_code(code: StringName, detail: String) -> StringName:
+	"""Record one §1 column refusal and hand the code straight back to a `return`."""
+	_section_1_code = code
+	_section_1_detail = "%s: %s" % [code, detail]
+	return code

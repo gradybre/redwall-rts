@@ -602,7 +602,8 @@ func _section() -> WorldRuntime.SectionRecord:
 func _section_bytes(section: WorldRuntime.SectionRecord) -> PackedByteArray:
 	"""Encode a whole section 1 and assert it succeeded, returning its bytes."""
 	var out: WorldRuntime.EncodeResult = WorldRuntime.EncodeResult.new()
-	assert_true(WorldRuntime.encode_section(section, out), "encode_section: %s" % out.detail)
+	assert_true(WorldRuntime.encode_development_section(section, out),
+		"encode_development_section: %s" % out.detail)
 	return out.bytes
 
 
@@ -866,15 +867,29 @@ func test_an_owned_block_with_the_wrong_wrapper_is_refused() -> void:
 		WorldRuntime.REFUSE_SECTION_PAYLOAD_LENGTH, "the cursor payload is four bytes exactly")
 
 
-func test_the_seven_unencodable_section_one_owners_are_named_not_invented() -> void:
-	"""BLOCKER W2, asserted rather than described: `store_count` is 2 and the gap is reported."""
+func test_the_development_composition_still_reports_the_seven_owners_it_omits() -> void:
+	"""The two-block composition remains a DEVELOPMENT one and still names what it leaves out.
+
+	R-WORLD-S1-001 closed BLOCKER W2 in `save_section_01.gd`, which encodes all nine. This
+	fixture's `store_count` is still 2, so `missing_owner_keys()` must still report the seven --
+	a reporter that went quiet once another module grew an encoder would be reporting nothing.
+	"""
 	var back: WorldRuntime.SectionRecord = _decoded(_section_bytes(_section()))
 	assert_equal(back.missing_owner_keys(), PackedStringArray(["buildings", "farming", "forage",
 		"resource_nodes", "spatial_world", "weather", "world_init"]),
-		"the seven registered §1 owners with no encoder anywhere")
+		"the seven §1 owners this development composition omits")
 	assert_equal(WorldRuntime.OWNED_OWNER_KEYS.size(), 2, "this module encodes two of the nine")
-	assert_equal(WorldRuntime.SECTION_SCHEMA_VERSION, 2,
-		"REG-R01's baseline vector gives section 1 version 2 for this composition")
+
+
+func test_section_one_takes_schema_three_and_the_old_producer_refuses() -> void:
+	"""R-WORLD-S1-001: §1 moves 2 -> 3, and `encode_section()` refuses rather than emitting two."""
+	assert_equal(WorldRuntime.SECTION_SCHEMA_VERSION, 3,
+		"R-WORLD-S1-001 takes section 1 to schema version 3 with the scratch correction")
+	var out: WorldRuntime.EncodeResult = WorldRuntime.EncodeResult.new()
+	assert_false(WorldRuntime.encode_section(_section(), out),
+		"the retired two-block producer refuses")
+	assert_equal(out.refusal, WorldRuntime.REFUSE_SECTION_SUPERSEDED, "and it says why")
+	assert_equal(out.bytes.size(), 0, "a refusal produces no bytes at all")
 
 
 func test_this_blocks_canonical_field_records_are_four_not_five_or_twelve() -> void:

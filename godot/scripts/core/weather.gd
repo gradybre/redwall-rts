@@ -1709,3 +1709,261 @@ func _refuse(code: StringName) -> OpResult:
 	a usable number, so an ignored refusal cannot surface a plausible answer.
 	"""
 	return OpResult.new(false, code, 0)
+
+
+# --- §1 WORLD block: capture, local validation and restore ---------------------------------------
+#
+# R-WORLD-S1-001 §6 S1-WEATHER. Section 1's `weather` block is owner schema **1**, primary_count
+# **1** and a 64-byte payload of exactly two fields: `_row` as EIGHT i32 values and `_row64` as
+# TWO i64 values. ONE AGGREGATE ROW, NOT EIGHT ENTITIES -- the primary count is 1 and each field
+# carries its own element count, which is what keeps the eight columns from being mistaken for
+# eight weather rows.
+#
+# TWO VERSION NAMESPACES THAT MUST NOT BE CONFLATED. `SCHEMA_VERSION = 2` above is THIS STORE'S
+# SNAPSHOT-IDENTITY version, the one `adopt_snapshot_identity()` requires because the two I64
+# season identities exist. The section-1 OWNER WRAPPER version is 1 and is unrelated: it names
+# the shape of the block, not the shape of the row. Writing 2 into the wrapper would declare a
+# block layout that does not exist.
+#
+# THE TEMPERATURE AND RAIN BOUNDS ARE DERIVED, NOT TRANSCRIBED. `section_1_temperature_minimum()`
+# and its three companions walk §5.10's own season and event tables through the same
+# `_temperature_tenths_for()` / `_rain_for()` the store uses, over every ELIGIBLE (season, event)
+# pair plus the no-event baseline. They therefore cannot drift from the tables the way a pair of
+# copied numbers would. They are reachability bounds only: passing them is not a proof that a
+# stored pair matches the day its row claims, and this module deliberately does NOT refresh or
+# overwrite a saved row to make it agree with a clock.
+#
+# NOTHING HERE DRAWS FROM RNG AND NOTHING HERE CLEARS. `restore_section_1_columns()` installs the
+# validated values directly. Routing a restore through `schedule_season_event()` would consume a
+# WEATHER draw and change every later roll; routing it through `clear()` would erase a historical
+# forecast and force the scheduled identity to -1. An expired event legitimately keeps its
+# scheduled-once identity and its disclosed forecast, so neither is normalized away.
+
+## Section 1's owner key, wrapper schema version and declared primary row extent for this block.
+## The wrapper version is NOT `SCHEMA_VERSION`; see the header.
+const SECTION_1_OWNER_KEY: String = "weather"
+const SECTION_1_OWNER_SCHEMA_VERSION: int = 1
+const SECTION_1_PRIMARY_COUNT: int = ROW_COUNT
+
+## An absent event or forecast tuple is exactly (EVENT_NONE, 0, 0).
+const ABSENT_TUPLE_DAY: int = 0
+const ABSENT_TUPLE_DURATION: int = 0
+
+const COLUMN_REFUSE_NONE: StringName = &""
+const COLUMN_REFUSE_SHAPE: StringName = &"S1_WEATHER_COLUMN_SHAPE"
+const COLUMN_REFUSE_EVENT_ID: StringName = &"S1_WEATHER_EVENT_ID"
+const COLUMN_REFUSE_TUPLE: StringName = &"S1_WEATHER_TUPLE_MISMATCH"
+const COLUMN_REFUSE_TEMPERATURE: StringName = &"S1_WEATHER_TEMPERATURE_RANGE"
+const COLUMN_REFUSE_RAIN: StringName = &"S1_WEATHER_RAIN_RANGE"
+const COLUMN_REFUSE_IDENTITY: StringName = &"S1_WEATHER_IDENTITY_RANGE"
+const COLUMN_REFUSE_MISSING_IDENTITY: StringName = &"S1_WEATHER_MISSING_IDENTITY"
+const COLUMN_REFUSE_NOT_ELIGIBLE: StringName = &"S1_WEATHER_EVENT_NOT_ELIGIBLE"
+
+## Code and detail behind the most recent §1 column refusal. Both empty after an accepted call.
+var _section_1_code: StringName = COLUMN_REFUSE_NONE
+var _section_1_detail: String = ""
+
+
+func section_1_code() -> StringName:
+	"""The code of the last §1 column refusal, or COLUMN_REFUSE_NONE."""
+	return _section_1_code
+
+
+func section_1_detail() -> String:
+	"""Human-readable detail behind the last §1 column refusal, or an empty string."""
+	return _section_1_detail
+
+
+static func section_1_temperature_minimum() -> int:
+	"""Lowest temperature §5.10's tables can reach, over every eligible (season, event) pair."""
+	return _section_1_temperature_bound(true)
+
+
+static func section_1_temperature_maximum() -> int:
+	"""Highest temperature §5.10's tables can reach, over every eligible (season, event) pair."""
+	return _section_1_temperature_bound(false)
+
+
+static func _section_1_temperature_bound(want_minimum: bool) -> int:
+	"""Walk the no-event baseline and every eligible event, through the store's own derivation."""
+	var best: int = SEASON_TEMPERATURE_TENTHS[SEASON_SPRING]
+	for season: int in SEASON_COUNT:
+		best = _section_1_extreme(best, SEASON_TEMPERATURE_TENTHS[season], want_minimum)
+		for event: int in EVENT_COUNT:
+			if not _is_eligible(event, season):
+				continue
+			best = _section_1_extreme(best, _temperature_tenths_for(season, event), want_minimum)
+	return best
+
+
+static func section_1_rain_minimum() -> int:
+	"""Lowest rain §5.10's tables can reach, over every eligible (season, event) pair."""
+	return _section_1_rain_bound(true)
+
+
+static func section_1_rain_maximum() -> int:
+	"""Highest rain §5.10's tables can reach, over every eligible (season, event) pair."""
+	return _section_1_rain_bound(false)
+
+
+static func _section_1_rain_bound(want_minimum: bool) -> int:
+	"""Walk the no-event baseline and every eligible event, through the store's own derivation."""
+	var best: int = SEASON_RAIN[SEASON_SPRING]
+	for season: int in SEASON_COUNT:
+		best = _section_1_extreme(best, SEASON_RAIN[season], want_minimum)
+		for event: int in EVENT_COUNT:
+			if not _is_eligible(event, season):
+				continue
+			best = _section_1_extreme(best, _rain_for(season, event), want_minimum)
+	return best
+
+
+static func _section_1_extreme(best: int, candidate: int, want_minimum: bool) -> int:
+	"""The smaller of the two when `want_minimum`, otherwise the larger."""
+	if want_minimum:
+		return candidate if candidate < best else best
+	return candidate if candidate > best else best
+
+
+func copy_section_1_columns_into(out_row: PackedInt32Array, out_row64: PackedInt64Array) -> bool:
+	"""Snapshot both weather rows into caller-owned buffers already at their declared extents."""
+	if _row.size() != ROW_COLUMN_COUNT or _row64.size() != ROW64_COLUMN_COUNT:
+		return _refuse_section_1(COLUMN_REFUSE_SHAPE, "the live rows are %d/%d, not %d/%d"
+			% [_row.size(), _row64.size(), ROW_COLUMN_COUNT, ROW64_COLUMN_COUNT])
+	if out_row.size() != ROW_COLUMN_COUNT or out_row64.size() != ROW64_COLUMN_COUNT:
+		return _refuse_section_1(COLUMN_REFUSE_SHAPE, "the destinations are %d/%d, not %d/%d"
+			% [out_row.size(), out_row64.size(), ROW_COLUMN_COUNT, ROW64_COLUMN_COUNT])
+	out_row.clear()
+	out_row.append_array(_row)
+	out_row64.clear()
+	out_row64.append_array(_row64)
+	_section_1_accept()
+	return true
+
+
+func section_1_local_refusal(row: PackedInt32Array, row64: PackedInt64Array) -> StringName:
+	"""S1-WEATHER: both tuples against §5.10's tables, both bounds, and both season identities."""
+	if row.size() != ROW_COLUMN_COUNT or row64.size() != ROW64_COLUMN_COUNT:
+		_refuse_section_1(COLUMN_REFUSE_SHAPE, "the rows are %d/%d, not %d/%d"
+			% [row.size(), row64.size(), ROW_COLUMN_COUNT, ROW64_COLUMN_COUNT])
+		return COLUMN_REFUSE_SHAPE
+	var scheduled: StringName = _section_1_tuple_refusal(row[COL_EVENT], row[COL_START_DAY],
+		row[COL_DURATION_DAYS], "event")
+	if scheduled != COLUMN_REFUSE_NONE:
+		return scheduled
+	var forecast: StringName = _section_1_tuple_refusal(row[COL_FORECAST_0], row[COL_FORECAST_1],
+		row[COL_FORECAST_2], "forecast")
+	if forecast != COLUMN_REFUSE_NONE:
+		return forecast
+	var measured: StringName = _section_1_measured_refusal(row)
+	if measured != COLUMN_REFUSE_NONE:
+		return measured
+	return _section_1_identity_refusal(row, row64)
+
+
+func _section_1_tuple_refusal(event: int, start_day: int, duration: int,
+		role: String) -> StringName:
+	"""One (event, start_day, duration_days) tuple: absent is exactly (-1,0,0), present is §5.10's."""
+	if event == EVENT_NONE:
+		if start_day != ABSENT_TUPLE_DAY or duration != ABSENT_TUPLE_DURATION:
+			return _refuse_section_1_code(COLUMN_REFUSE_TUPLE,
+				"absent %s carries (%d,%d,%d), not (%d,%d,%d)"
+					% [role, event, start_day, duration, EVENT_NONE, ABSENT_TUPLE_DAY,
+						ABSENT_TUPLE_DURATION])
+		return COLUMN_REFUSE_NONE
+	if not is_event(event):
+		return _refuse_section_1_code(COLUMN_REFUSE_EVENT_ID,
+			"%s id %d is neither %d nor 0..%d" % [role, event, EVENT_NONE, EVENT_COUNT - 1])
+	if start_day != EVENT_START_DAY[event] or duration != EVENT_DURATION_DAYS[event]:
+		return _refuse_section_1_code(COLUMN_REFUSE_TUPLE,
+			"%s %d carries start/duration (%d,%d), not the compiled (%d,%d)"
+				% [role, event, start_day, duration, EVENT_START_DAY[event],
+					EVENT_DURATION_DAYS[event]])
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_measured_refusal(row: PackedInt32Array) -> StringName:
+	"""Temperature and rain against the bounds derived from §5.10's own tables."""
+	var temperature: int = row[COL_TEMPERATURE_TENTHS]
+	if temperature < section_1_temperature_minimum() \
+			or temperature > section_1_temperature_maximum():
+		return _refuse_section_1_code(COLUMN_REFUSE_TEMPERATURE,
+			"temperature %d outside the reachable %d..%d" % [temperature,
+				section_1_temperature_minimum(), section_1_temperature_maximum()])
+	var rain: int = row[COL_RAIN]
+	if rain < section_1_rain_minimum() or rain > section_1_rain_maximum():
+		return _refuse_section_1_code(COLUMN_REFUSE_RAIN,
+			"rain %d outside the reachable %d..%d"
+				% [rain, section_1_rain_minimum(), section_1_rain_maximum()])
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_identity_refusal(row: PackedInt32Array, row64: PackedInt64Array) -> StringName:
+	"""Both I64 identities: storable, present where their tuple is present, and admitting it."""
+	var scheduled: int = row64[COL64_SCHEDULED_ABSOLUTE_SEASON]
+	var forecast: int = row64[COL64_FORECAST_ABSOLUTE_SEASON]
+	if not _is_storable_identity(scheduled) or not _is_storable_identity(forecast):
+		return _refuse_section_1_code(COLUMN_REFUSE_IDENTITY,
+			"season identities (%d,%d) are not both %d or a real absolute season"
+				% [scheduled, forecast, ABSOLUTE_SEASON_NONE])
+	var pairs: Array[int] = [row[COL_EVENT], scheduled, row[COL_FORECAST_0], forecast]
+	var roles: Array[String] = ["event", "forecast"]
+	for which: int in roles.size():
+		var event: int = pairs[which * 2]
+		var identity: int = pairs[which * 2 + 1]
+		if event == EVENT_NONE:
+			continue
+		if identity == ABSOLUTE_SEASON_NONE:
+			return _refuse_section_1_code(COLUMN_REFUSE_MISSING_IDENTITY,
+				"a present %s has no absolute season identity" % roles[which])
+		if not _is_eligible(event, season_of_absolute_season(identity)):
+			return _refuse_section_1_code(COLUMN_REFUSE_NOT_ELIGIBLE,
+				"%s %d is not eligible in the season of absolute season %d"
+					% [roles[which], event, identity])
+	_section_1_accept()
+	return COLUMN_REFUSE_NONE
+
+
+func section_1_is_cleared_fixture(row: PackedInt32Array, row64: PackedInt64Array) -> bool:
+	"""True for `clear()`'s exact empty row: absent tuples, zero measurements, both identities -1.
+
+	REPORTED, never refused here. §4.3's "zero-filled weather is not valid opening weather" is a
+	rule about STARTING a world, and the load orchestrator is the only caller that knows whether
+	it is opening one. Refusing it in the codec would make a legitimately cleared store
+	unsaveable; treating it as initialized gameplay weather would be worse.
+	"""
+	return (row.size() == ROW_COLUMN_COUNT and row64.size() == ROW64_COLUMN_COUNT
+		and row[COL_EVENT] == EVENT_NONE and row[COL_FORECAST_0] == EVENT_NONE
+		and row[COL_TEMPERATURE_TENTHS] == 0 and row[COL_RAIN] == 0
+		and row64[COL64_SCHEDULED_ABSOLUTE_SEASON] == ABSOLUTE_SEASON_NONE
+		and row64[COL64_FORECAST_ABSOLUTE_SEASON] == ABSOLUTE_SEASON_NONE)
+
+
+func restore_section_1_columns(row: PackedInt32Array, row64: PackedInt64Array) -> bool:
+	"""Install both validated rows verbatim. No RNG draw, no clear, no refresh against a clock."""
+	if section_1_local_refusal(row, row64) != COLUMN_REFUSE_NONE:
+		return false
+	_row = row.duplicate()
+	_row64 = row64.duplicate()
+	_section_1_accept()
+	return true
+
+
+func _section_1_accept() -> void:
+	"""Clear the recorded §1 refusal, so a stale code cannot be read after an accepted call."""
+	_section_1_code = COLUMN_REFUSE_NONE
+	_section_1_detail = ""
+
+
+func _refuse_section_1(code: StringName, detail: String) -> bool:
+	"""Record one §1 column refusal and return false, so callers can `return` it."""
+	_section_1_code = code
+	_section_1_detail = "%s: %s" % [code, detail]
+	return false
+
+
+func _refuse_section_1_code(code: StringName, detail: String) -> StringName:
+	"""Record one §1 column refusal and hand the code straight back to a `return`."""
+	_section_1_code = code
+	_section_1_detail = "%s: %s" % [code, detail]
+	return code

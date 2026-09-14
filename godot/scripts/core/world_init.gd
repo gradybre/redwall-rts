@@ -2239,3 +2239,313 @@ func _publish_ore_deposits(request: Request) -> void:
 	var iron: ResourceNodesScript.OpResult = _nodes.place_iron_deposit(request.iron_resource_id,
 		ORE_REGROW_DAYS, OPENING_CALENDAR_DAY, request.tree_resource_id)
 	assert(iron.ok, "the iron footprint holds only planned tree nodes")
+
+
+# --- §1 WORLD block: capture, local validation, cross-check and restore --------------------------
+#
+# R-WORLD-S1-001 §6 S1-WORLD_INIT. Section 1's `world_init` block is owner schema 1,
+# primary_count 16384 -- the EXTERIOR TILE extent, even though two of its nine fields are scalars
+# and three are seven-entry basin columns -- and a 65697-byte payload in this ordinal order:
+# `_published` (u8, one element), `_published_seed` (i32, one element), the four u8 tile grids
+# terrain/soil/basin/cleared, then the three i32 basin columns ref slot, ref generation and danger.
+#
+# BYTE 255 IS A DECLARED SENTINEL, NOT A SIGNED -1. `SOIL_NONE` and `NO_BASIN` are both 255 in an
+# unsigned byte column: a water tile genuinely has no soil, and the ford genuinely belongs to no
+# ecology basin. Decoding 255 through a signed conversion would turn both into -1 and then fail
+# every domain test; the column is read as u8 and compared against the constants above.
+#
+# THE EMPTY STATE IS EXPLICIT AND IT IS CHECKED. `_reset_published()` defines it exactly:
+# published false, seed 0, terrain LAND everywhere, soil 255, basin 255, cleared 0, all seven
+# references (-1,0) and all seven dangers 0. `section_1_local_refusal()` enforces that shape when
+# the published flag is 0, so a half-built map cannot be smuggled in behind an unpublished flag.
+# That is not a claim that a partially generated world is saveable -- it is the opposite.
+#
+# THE SEED AGREEMENT IS A CROSS-SECTION RULE AND IS NOT ENFORCED HERE. R-WORLD-S1-001 requires a
+# published seed to agree with the section's provenance effective seed AND with `world_runtime`'s
+# world seed, on a seeded runtime. Neither value is visible from this module, so
+# `save_section_01.gd` owns that check, which is where both are in scope. The seed keeps its
+# signed-i32 domain: no positivity rule is invented at this boundary.
+
+## Section 1's owner key, schema version and declared primary row extent for this block.
+const SECTION_1_OWNER_KEY: String = "world_init"
+const SECTION_1_OWNER_SCHEMA_VERSION: int = 1
+const SECTION_1_PRIMARY_COUNT: int = TILE_COUNT
+
+## The compiled soil domain. Read from `farming.gd`, which already owns the constant and already
+## asserts it equals `Catalog.SOIL.size()`, rather than mirroring a third copy of the number here.
+const SOIL_ID_COUNT: int = FarmingScript.SOIL_COUNT
+
+const COLUMN_REFUSE_NONE: StringName = &""
+const COLUMN_REFUSE_SHAPE: StringName = &"S1_WORLD_INIT_COLUMN_SHAPE"
+const COLUMN_REFUSE_PUBLISHED_FLAG: StringName = &"S1_WORLD_INIT_PUBLISHED_FLAG"
+const COLUMN_REFUSE_SEED: StringName = &"S1_WORLD_INIT_SEED_RANGE"
+const COLUMN_REFUSE_TERRAIN: StringName = &"S1_WORLD_INIT_TERRAIN_RANGE"
+const COLUMN_REFUSE_SOIL: StringName = &"S1_WORLD_INIT_SOIL_RANGE"
+const COLUMN_REFUSE_BASIN: StringName = &"S1_WORLD_INIT_BASIN_RANGE"
+const COLUMN_REFUSE_CLEARED_FLAG: StringName = &"S1_WORLD_INIT_CLEARED_FLAG"
+const COLUMN_REFUSE_DANGER: StringName = &"S1_WORLD_INIT_DANGER_RANGE"
+const COLUMN_REFUSE_NOT_EMPTY: StringName = &"S1_WORLD_INIT_UNPUBLISHED_NOT_EMPTY"
+const COLUMN_REFUSE_NULL_BASIN_REF: StringName = &"S1_WORLD_INIT_NULL_BASIN_REF"
+const COLUMN_REFUSE_HALF_NULL_REF: StringName = &"S1_WORLD_INIT_HALF_NULL_REF"
+const COLUMN_REFUSE_DUPLICATE_BASIN: StringName = &"S1_WORLD_INIT_DUPLICATE_BASIN"
+const COLUMN_REFUSE_STALE_IDENTITY: StringName = &"S1_WORLD_INIT_STALE_IDENTITY"
+const COLUMN_REFUSE_ZONE_TYPE: StringName = &"S1_WORLD_INIT_ZONE_TYPE"
+const COLUMN_REFUSE_DANGER_DISAGREES: StringName = &"S1_WORLD_INIT_DANGER_DISAGREES"
+
+## Code and detail behind the most recent §1 column refusal. Both empty after an accepted call.
+var _section_1_code: StringName = COLUMN_REFUSE_NONE
+var _section_1_detail: String = ""
+
+
+func section_1_code() -> StringName:
+	"""The code of the last §1 column refusal, or COLUMN_REFUSE_NONE."""
+	return _section_1_code
+
+
+func section_1_detail() -> String:
+	"""Human-readable detail behind the last §1 column refusal, or an empty string."""
+	return _section_1_detail
+
+
+func section_1_is_published() -> bool:
+	"""This block's ordinal-0 scalar: whether a generated map has been published."""
+	return _published
+
+
+func section_1_published_seed() -> int:
+	"""This block's ordinal-1 scalar: the signed i32 seed the published map was generated from."""
+	return _published_seed
+
+
+class SavedMap:
+	"""The seven saved §1 columns of the published map, sized once at their declared extents."""
+	var terrain: PackedByteArray = PackedByteArray()
+	var soil: PackedByteArray = PackedByteArray()
+	var basin: PackedByteArray = PackedByteArray()
+	var cleared: PackedByteArray = PackedByteArray()
+	var basin_ref_slot: PackedInt32Array = PackedInt32Array()
+	var basin_ref_generation: PackedInt32Array = PackedInt32Array()
+	var basin_danger: PackedInt32Array = PackedInt32Array()
+
+	func _init() -> void:
+		"""Size the four tile grids and the three basin columns once."""
+		terrain.resize(TILE_COUNT)
+		soil.resize(TILE_COUNT)
+		basin.resize(TILE_COUNT)
+		cleared.resize(TILE_COUNT)
+		basin_ref_slot.resize(BASIN_COUNT)
+		basin_ref_generation.resize(BASIN_COUNT)
+		basin_danger.resize(BASIN_COUNT)
+
+	func is_sized() -> bool:
+		"""True when all seven columns are at their declared extents."""
+		return (terrain.size() == TILE_COUNT and soil.size() == TILE_COUNT
+			and basin.size() == TILE_COUNT and cleared.size() == TILE_COUNT
+			and basin_ref_slot.size() == BASIN_COUNT
+			and basin_ref_generation.size() == BASIN_COUNT
+			and basin_danger.size() == BASIN_COUNT)
+
+
+func copy_section_1_columns_into(out: SavedMap) -> bool:
+	"""Snapshot the seven saved map columns into a caller-owned, correctly sized carrier."""
+	if not out.is_sized():
+		return _refuse_section_1(COLUMN_REFUSE_SHAPE, "the destination carrier is not sized")
+	out.terrain.clear()
+	out.terrain.append_array(_terrain)
+	out.soil.clear()
+	out.soil.append_array(_soil)
+	out.basin.clear()
+	out.basin.append_array(_basin)
+	out.cleared.clear()
+	out.cleared.append_array(_cleared)
+	out.basin_ref_slot.clear()
+	out.basin_ref_slot.append_array(_basin_ref_slot)
+	out.basin_ref_generation.clear()
+	out.basin_ref_generation.append_array(_basin_ref_generation)
+	out.basin_danger.clear()
+	out.basin_danger.append_array(_basin_danger)
+	_section_1_accept()
+	return true
+
+
+func section_1_local_refusal(published: int, published_seed: int, state: SavedMap) -> StringName:
+	"""S1-WORLD_INIT local domains, plus `_reset_published()`'s exact shape when unpublished."""
+	if not state.is_sized():
+		_refuse_section_1(COLUMN_REFUSE_SHAPE, "the carrier is not at its declared extents")
+		return COLUMN_REFUSE_SHAPE
+	if published > 1:
+		_refuse_section_1(COLUMN_REFUSE_PUBLISHED_FLAG,
+			"the published flag is %d, not 0 or 1" % published)
+		return COLUMN_REFUSE_PUBLISHED_FLAG
+	if published_seed < IntMath.INT32_MIN or published_seed > IntMath.INT32_MAX:
+		_refuse_section_1(COLUMN_REFUSE_SEED, "published seed %d is not an i32" % published_seed)
+		return COLUMN_REFUSE_SEED
+	var grids: StringName = _section_1_grid_refusal(state)
+	if grids != COLUMN_REFUSE_NONE:
+		return grids
+	var basins: StringName = _section_1_basin_column_refusal(published, state)
+	if basins != COLUMN_REFUSE_NONE:
+		return basins
+	# "Every non-sentinel tile basin index must resolve through that table" is already TOTAL at
+	# this point and deliberately has no separate branch: `_section_1_grid_refusal()` has bounded
+	# every tile's index to 0..BASIN_COUNT-1 or the 255 sentinel, and for a published map
+	# `_section_1_basin_column_refusal()` has proved all seven entries are bound and distinct. A
+	# fourth loop re-deriving that would be unreachable code shaped like a check.
+	if published == 0:
+		return _section_1_empty_refusal(published_seed, state)
+	_section_1_accept()
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_grid_refusal(state: SavedMap) -> StringName:
+	"""Terrain, soil, basin and cleared over all 16384 tiles, honouring both 255 sentinels."""
+	for tile: int in TILE_COUNT:
+		if state.terrain[tile] >= TERRAIN_COUNT:
+			return _refuse_section_1_code(COLUMN_REFUSE_TERRAIN,
+				"tile %d terrain %d outside 0..%d" % [tile, state.terrain[tile], TERRAIN_COUNT - 1])
+		if state.soil[tile] != SOIL_NONE and state.soil[tile] >= SOIL_ID_COUNT:
+			return _refuse_section_1_code(COLUMN_REFUSE_SOIL,
+				"tile %d soil %d is neither %d nor 0..%d"
+					% [tile, state.soil[tile], SOIL_NONE, SOIL_ID_COUNT - 1])
+		if state.basin[tile] != NO_BASIN and state.basin[tile] >= BASIN_COUNT:
+			return _refuse_section_1_code(COLUMN_REFUSE_BASIN,
+				"tile %d basin %d is neither %d nor 0..%d"
+					% [tile, state.basin[tile], NO_BASIN, BASIN_COUNT - 1])
+		if state.cleared[tile] > 1:
+			return _refuse_section_1_code(COLUMN_REFUSE_CLEARED_FLAG,
+				"tile %d cleared flag is %d, not 0 or 1" % [tile, state.cleared[tile]])
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_basin_column_refusal(published: int, state: SavedMap) -> StringName:
+	"""Danger bands, half-null references, and -- once published -- seven distinct live slots."""
+	for index: int in BASIN_COUNT:
+		var danger: int = state.basin_danger[index]
+		if danger < 0 or danger > DANGER_FAR:
+			return _refuse_section_1_code(COLUMN_REFUSE_DANGER,
+				"basin %d danger %d outside 0..%d" % [index, danger, DANGER_FAR])
+		var slot: int = state.basin_ref_slot[index]
+		var generation: int = state.basin_ref_generation[index]
+		var is_null: bool = slot == EntityDirectory.NULL_SLOT \
+			and generation == EntityDirectory.NULL_GENERATION
+		if not is_null and (slot == EntityDirectory.NULL_SLOT
+				or generation == EntityDirectory.NULL_GENERATION):
+			return _refuse_section_1_code(COLUMN_REFUSE_HALF_NULL_REF,
+				"basin %d reference (%d,%d) is half null" % [index, slot, generation])
+		if published == 1 and is_null:
+			return _refuse_section_1_code(COLUMN_REFUSE_NULL_BASIN_REF,
+				"a published map leaves basin %d unbound" % index)
+	if published == 1:
+		return _section_1_distinct_basin_refusal(state)
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_distinct_basin_refusal(state: SavedMap) -> StringName:
+	"""No two basins may name the same directory slot: seven owners, seven zones."""
+	for index: int in BASIN_COUNT:
+		for earlier: int in index:
+			if state.basin_ref_slot[earlier] == state.basin_ref_slot[index]:
+				return _refuse_section_1_code(COLUMN_REFUSE_DUPLICATE_BASIN,
+					"basins %d and %d both name directory slot %d"
+						% [earlier, index, state.basin_ref_slot[index]])
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_empty_refusal(published_seed: int, state: SavedMap) -> StringName:
+	"""`_reset_published()`'s exact empty state, enforced field for field when unpublished."""
+	if published_seed != 0:
+		return _refuse_section_1_code(COLUMN_REFUSE_NOT_EMPTY,
+			"an unpublished map carries seed %d, not 0" % published_seed)
+	for tile: int in TILE_COUNT:
+		if state.terrain[tile] != TERRAIN_LAND or state.soil[tile] != SOIL_NONE \
+				or state.basin[tile] != NO_BASIN or state.cleared[tile] != 0:
+			return _refuse_section_1_code(COLUMN_REFUSE_NOT_EMPTY,
+				"unpublished tile %d carries (%d,%d,%d,%d), not the reset values"
+					% [tile, state.terrain[tile], state.soil[tile], state.basin[tile],
+						state.cleared[tile]])
+	for index: int in BASIN_COUNT:
+		if state.basin_danger[index] != 0:
+			return _refuse_section_1_code(COLUMN_REFUSE_NOT_EMPTY,
+				"unpublished basin %d carries danger %d, not 0" % [index, state.basin_danger[index]])
+	_section_1_accept()
+	return COLUMN_REFUSE_NONE
+
+
+func section_1_cross_check_refusal() -> StringName:
+	"""The seven live basin zones behind a published map: identity, zone type and danger band.
+
+	Indices 0..3 must be FORAGE zones and 4..6 FISH zones, in compiled HabitatType order, each
+	one's live `zone_danger_of()` agreeing with the stored band. An unpublished map binds none,
+	which `section_1_local_refusal()` has already proved, so there is nothing to resolve.
+	"""
+	if not _published:
+		_section_1_accept()
+		return COLUMN_REFUSE_NONE
+	for index: int in BASIN_COUNT:
+		var ref: Vector2i = Vector2i(_basin_ref_slot[index], _basin_ref_generation[index])
+		if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_HARVEST_ZONE):
+			return _refuse_section_1_code(COLUMN_REFUSE_STALE_IDENTITY,
+				"basin %d reference (%d,%d) is not a live harvest zone" % [index, ref.x, ref.y])
+		var zone: StringName = _section_1_zone_refusal(index, _directory.get_typed_row(ref))
+		if zone != COLUMN_REFUSE_NONE:
+			return zone
+	_section_1_accept()
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_zone_refusal(index: int, slot: int) -> StringName:
+	"""One basin's live HarvestZone row: the intended zone type, and the stored danger band."""
+	var expected: int = ForageScript.ZONE_TYPE_FORAGE if index < FOREST_BASIN_COUNT \
+		else ForageScript.ZONE_TYPE_FISH
+	var kind: IntMath.IntResult = _forage.zone_type_of(slot)
+	if not kind.ok or kind.value != expected:
+		return _refuse_section_1_code(COLUMN_REFUSE_ZONE_TYPE,
+			"basin %d resolves to zone slot %d of type %d, not %d"
+				% [index, slot, kind.value if kind.ok else -1, expected])
+	var danger: IntMath.IntResult = _forage.zone_danger_of(slot)
+	if not danger.ok or danger.value != _basin_danger[index]:
+		return _refuse_section_1_code(COLUMN_REFUSE_DANGER_DISAGREES,
+			"basin %d stores danger %d against the live zone's %d"
+				% [index, _basin_danger[index], danger.value if danger.ok else -1])
+	return COLUMN_REFUSE_NONE
+
+
+func restore_section_1_columns(published: int, published_seed: int, state: SavedMap) -> bool:
+	"""Install the validated published map. Validates first, so a refusal changes nothing.
+
+	No generation runs and no zone is created: this writes the stored columns and the two scalars
+	and stops. `_staged_*` is untouched, because staging is generation scratch and not saved state.
+	"""
+	if section_1_local_refusal(published, published_seed, state) != COLUMN_REFUSE_NONE:
+		return false
+	_terrain = state.terrain.duplicate()
+	_soil = state.soil.duplicate()
+	_basin = state.basin.duplicate()
+	_cleared = state.cleared.duplicate()
+	_basin_ref_slot = state.basin_ref_slot.duplicate()
+	_basin_ref_generation = state.basin_ref_generation.duplicate()
+	_basin_danger = state.basin_danger.duplicate()
+	_published = published == 1
+	_published_seed = published_seed
+	_section_1_accept()
+	return true
+
+
+func _section_1_accept() -> void:
+	"""Clear the recorded §1 refusal, so a stale code cannot be read after an accepted call."""
+	_section_1_code = COLUMN_REFUSE_NONE
+	_section_1_detail = ""
+
+
+func _refuse_section_1(code: StringName, detail: String) -> bool:
+	"""Record one §1 column refusal and return false, so callers can `return` it."""
+	_section_1_code = code
+	_section_1_detail = "%s: %s" % [code, detail]
+	return false
+
+
+func _refuse_section_1_code(code: StringName, detail: String) -> StringName:
+	"""Record one §1 column refusal and hand the code straight back to a `return`."""
+	_section_1_code = code
+	_section_1_detail = "%s: %s" % [code, detail]
+	return code

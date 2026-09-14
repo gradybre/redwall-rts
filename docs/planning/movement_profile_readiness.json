@@ -1,0 +1,1984 @@
+{
+  "schema": "redwall.movement.profile_readiness/1",
+  "status": "PROPOSAL_AND_EVIDENCE_ONLY_Q2_UNRESOLVED",
+  "generated_for": "MOVE-PROFILE-AUTHORING",
+  "generated_on": "2026-09-14",
+  "code_base": "26f1f8f",
+  "companion_document": "docs/planning/movement_profile_authoring.md",
+  "answers_q2": false,
+  "closes_gates": [],
+  "invented_values": 0,
+  "authority": [
+    "docs/rulings/2026-09-14_cycle02_movement_envelopes.md",
+    "docs/planning/astra_cycles/cycle_02.md",
+    "docs/movement_direction_amendment.md",
+    "docs/rulings/2026-09-12_movement_dependency_rulings.md",
+    "docs/rulings/2026-09-12_move_g01_review.md",
+    "docs/setting_decisions.md#dec-039",
+    "docs/setting_decisions.md#dec-040",
+    "docs/underground_economy_hazard_amendment.md"
+  ],
+  "states": {
+    "adopted": "An authored profile row exists and binds this mode. Equals MOVE-C2-R01's 'S/N' cell: production qualification is still NOT ready. Never an admission grant. admission_qualified is false for every such row in this file.",
+    "explicitly_disabled": "An identified AUTHORED prohibition applies to this profile/action/state, with its reason and the conditions that can change it preserved. Equals MOVE-C2-R01's DISABLED.",
+    "unresolved_q2": "The required authored profile is missing or incomplete, or required implementation/qualification is missing. Equals MOVE-C2-R01's AUTHORED_PROFILE_NOT_READY and the code's UNPROFILED / MODE_NOT_PROFILED. This is NOT a prohibition and NOT a claim that a finished profile exists."
+  },
+  "validator_rules": [
+    "rows MUST contain exactly 16 species keys; each MUST contain exactly the 3 life_stages; each MUST contain exactly the 6 modes. 288 leaf entries, no more and no fewer.",
+    "Every leaf value MUST resolve to a key of row_classes.",
+    "row_classes[*].state MUST be one of the three declared states.",
+    "No row_class may set admission_qualified true while any of its blocking_q2_slots is unfilled.",
+    "Every q2_slot MUST have value null in this file. A non-null value is a lane violation.",
+    "blocking_contract MUST reference a blocking_contracts key whose kind is 'admission'. A row whose blocking_contract has kind 'presentation' is a validation FAILURE: MOVE-DEP-R03 forbids a presentation gap gating admission.",
+    "presentation_gaps entries MUST NOT appear in any row's blocking_contract or evidence_absent.",
+    "totals MUST equal the recomputed counts over rows."
+  ],
+  "life_stages": [
+    {
+      "key": "ADULT",
+      "id": 0,
+      "source": "residents.gd LIFE_STAGE_ADULT; MOVE-DEP-R02"
+    },
+    {
+      "key": "CHILD",
+      "id": 1,
+      "source": "residents.gd LIFE_STAGE_CHILD; MOVE-DEP-R02"
+    },
+    {
+      "key": "ELDER",
+      "id": 2,
+      "source": "residents.gd LIFE_STAGE_ELDER; MOVE-DEP-R02"
+    }
+  ],
+  "modes": [
+    {
+      "key": "GROUND_WALK",
+      "id": 0,
+      "system_scope": "adopted",
+      "profiled_in_code": true,
+      "source": "movement.gd MODE_GROUND_WALK"
+    },
+    {
+      "key": "FORD_WALK",
+      "id": 1,
+      "system_scope": "adopted",
+      "profiled_in_code": true,
+      "source": "movement.gd MODE_FORD_WALK"
+    },
+    {
+      "key": "SWIM_SURFACE",
+      "id": 2,
+      "system_scope": "adopted_as_required",
+      "profiled_in_code": false,
+      "source": "movement.gd MODE_SWIM_SURFACE; SET-MOVE-001 \u00a71"
+    },
+    {
+      "key": "DIVE",
+      "id": 3,
+      "system_scope": "adopted_as_required",
+      "profiled_in_code": false,
+      "source": "movement.gd MODE_DIVE; SET-MOVE-001 \u00a71"
+    },
+    {
+      "key": "CLIMB",
+      "id": 4,
+      "system_scope": "adopted_as_required",
+      "profiled_in_code": false,
+      "source": "movement.gd MODE_CLIMB; SET-MOVE-001 \u00a71, DEC-035"
+    },
+    {
+      "key": "TUNNEL_WALK",
+      "id": 5,
+      "system_scope": "adopted_as_required",
+      "profiled_in_code": false,
+      "source": "movement.gd MODE_TUNNEL_WALK; SET-MOVE-001 \u00a71, DEC-029/031/035"
+    }
+  ],
+  "mode_scope_note": "system_scope is a settlement-scope statement, never a per-species capability grant. SET-MOVE-001 \u00a71 excludes 'a blanket innate ability table inferred from species or slide lists'; MOVE-C2-R01: 'No table entry grants an innate ability.' There is no FLIGHT mode; sparrow and kestrel stay grounded under MOVE-DEP-R03, which is a scope exclusion and not a prohibition on any of the six modes.",
+  "species": [
+    {
+      "key": "badger",
+      "species_id": 0,
+      "size_class": "large",
+      "starter_profile": false
+    },
+    {
+      "key": "ferret",
+      "species_id": 1,
+      "size_class": "medium",
+      "starter_profile": false
+    },
+    {
+      "key": "fox",
+      "species_id": 2,
+      "size_class": "large",
+      "starter_profile": false
+    },
+    {
+      "key": "hare",
+      "species_id": 3,
+      "size_class": "medium",
+      "starter_profile": false
+    },
+    {
+      "key": "hedgehog",
+      "species_id": 4,
+      "size_class": "medium",
+      "starter_profile": false
+    },
+    {
+      "key": "kestrel",
+      "species_id": 5,
+      "size_class": "medium",
+      "starter_profile": false
+    },
+    {
+      "key": "mole",
+      "species_id": 6,
+      "size_class": "small",
+      "starter_profile": true,
+      "profile_key": "starter.ground.adult.mole",
+      "profile_id": 1
+    },
+    {
+      "key": "mouse",
+      "species_id": 7,
+      "size_class": "small",
+      "starter_profile": true,
+      "profile_key": "starter.ground.adult.mouse",
+      "profile_id": 0
+    },
+    {
+      "key": "otter",
+      "species_id": 8,
+      "size_class": "medium",
+      "starter_profile": true,
+      "profile_key": "starter.ground.adult.otter",
+      "profile_id": 2
+    },
+    {
+      "key": "rat",
+      "species_id": 9,
+      "size_class": "small",
+      "starter_profile": false
+    },
+    {
+      "key": "shrew",
+      "species_id": 10,
+      "size_class": "small",
+      "starter_profile": false
+    },
+    {
+      "key": "sparrow",
+      "species_id": 11,
+      "size_class": "small",
+      "starter_profile": false
+    },
+    {
+      "key": "squirrel",
+      "species_id": 12,
+      "size_class": "small",
+      "starter_profile": true,
+      "profile_key": "starter.ground.adult.squirrel",
+      "profile_id": 3
+    },
+    {
+      "key": "weasel",
+      "species_id": 13,
+      "size_class": "medium",
+      "starter_profile": false
+    },
+    {
+      "key": "wildcat",
+      "species_id": 14,
+      "size_class": "large",
+      "starter_profile": false
+    },
+    {
+      "key": "wolverine",
+      "species_id": 15,
+      "size_class": "large",
+      "starter_profile": false
+    }
+  ],
+  "species_id_source": "godot/data/catalog_ids.json domains.SpeciesDefinition (compiled ascending ASCII). Size classes from residents.gd SPECIES_SMALL_KEYS / SPECIES_MEDIUM_KEYS / SPECIES_LARGE_KEYS. Neither was hand-numbered.",
+  "blocking_contracts": {
+    "BC-CLEARANCE": {
+      "kind": "admission",
+      "title": "Measured swept envelope, explicit margin, declared offset, derived clearance class",
+      "authority": [
+        "MOVE-C2-R01 Q1 \u00a71-\u00a75",
+        "MOVE-DEP-R01"
+      ],
+      "owners": [
+        "asset measurement owner",
+        "movement owner (validates and quantizes)"
+      ],
+      "refusal_codes": [
+        "PROFILE_CLEARANCE_UNSPECIFIED"
+      ],
+      "q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05"
+      ]
+    },
+    "BC-PROFILE-ROW": {
+      "kind": "admission",
+      "title": "Complete authored per-species/stage/mode policy and cost row",
+      "authority": [
+        "MOVE-C2-R01 Q2",
+        "MOVE-G01",
+        "SET-MOVE-001 \u00a75"
+      ],
+      "owners": [
+        "movement owner",
+        "GDD/gameplay balance owner",
+        "asset owner"
+      ],
+      "refusal_codes": [
+        "PROFILE_NOT_PUBLISHED",
+        "MODE_NOT_PROFILED",
+        "LIFE_STAGE_NOT_PROFILED"
+      ],
+      "q2_slots": [
+        "Q2-06",
+        "Q2-07",
+        "Q2-08",
+        "Q2-09",
+        "Q2-10",
+        "Q2-11",
+        "Q2-12",
+        "Q2-13",
+        "Q2-14",
+        "Q2-15",
+        "Q2-16",
+        "Q2-31",
+        "Q2-34",
+        "Q2-35"
+      ]
+    },
+    "BC-GEOMETRY": {
+      "kind": "admission",
+      "title": "Finite underground / water / canopy extents, domains, layers and connection geometry",
+      "authority": [
+        "MOVE-C2-R01 residual gates",
+        "MOVE-G01",
+        "DEC-040 depth boundary"
+      ],
+      "owners": [
+        "spatial/geometry owner",
+        "GDD/gameplay balance owner"
+      ],
+      "refusal_codes": [
+        "DOMAIN_NOT_CONTRACTED",
+        "LAYER_NOT_CONTRACTED"
+      ],
+      "q2_slots": [
+        "Q2-25",
+        "Q2-26",
+        "Q2-27",
+        "Q2-28",
+        "Q2-29",
+        "Q2-30"
+      ]
+    },
+    "BC-SAFETY-BINDING": {
+      "kind": "admission",
+      "title": "Per-profile and per-connection binding of the already-authored HAZ rules",
+      "authority": [
+        "HAZ-002",
+        "HAZ-003",
+        "HAZ-004",
+        "HAZ-005",
+        "MOVE-REQ-009",
+        "MOVE-REQ-010",
+        "MOVE-REQ-011"
+      ],
+      "owners": [
+        "movement owner",
+        "GDD/gameplay balance owner",
+        "spatial owner",
+        "asset owner"
+      ],
+      "note": "The PARAMETERS are settled and must not be reopened. Only the binding is missing.",
+      "q2_slots": [
+        "Q2-17",
+        "Q2-18",
+        "Q2-19",
+        "Q2-20",
+        "Q2-21",
+        "Q2-22",
+        "Q2-23",
+        "Q2-24"
+      ]
+    },
+    "BC-CONTACT": {
+      "kind": "admission",
+      "title": "Actual generation-safe contact producers",
+      "authority": [
+        "MOVE-DEP-R05",
+        "MOVE-REQ-005"
+      ],
+      "owners": [
+        "buildings / rooms / furniture / logistics / service owners (task 06)"
+      ],
+      "refusal_codes": [
+        "CONTACT_NOT_BOUND",
+        "CONTACT_OWNER_REF_STALE",
+        "CONTACT_LOCATION_NOT_CURRENT",
+        "CONTACT_DESTINATION_REVISION_STALE",
+        "CONTACT_DESTINATION_REVISION_REQUIRED",
+        "CONTACT_APPROACH_NOT_WALKABLE"
+      ],
+      "q2_slots": []
+    },
+    "BC-PC04": {
+      "kind": "admission",
+      "title": "Dependent-resident needs, care, schedule, work and hazard rules for CHILD and ELDER",
+      "authority": [
+        "PC-04 (task 08.2)",
+        "DEC-032",
+        "MOVE-DEP-R02",
+        "HAZ-001"
+      ],
+      "owners": [
+        "family/care amendment owner (task 08)"
+      ],
+      "refusal_codes": [
+        "LIFE_STAGE_NOT_PROFILED"
+      ],
+      "q2_slots": [
+        "Q2-32",
+        "Q2-33"
+      ]
+    },
+    "BC-RIG": {
+      "kind": "presentation",
+      "title": "Rig, clip, palette, bounds and LOD availability",
+      "authority": [
+        "MOVE-DEP-R03",
+        "MOVE-G04"
+      ],
+      "owners": [
+        "asset / crowd owner"
+      ],
+      "refusal_codes": [
+        "RIG_STAGE_VARIANT_UNBOUND",
+        "RIG_CATALOG_INVALID",
+        "UNKNOWN_RIG"
+      ],
+      "must_never_gate": [
+        "resident spawn",
+        "stored life stage",
+        "movement admission",
+        "save state"
+      ],
+      "q2_slots": [],
+      "note": "Declared here ONLY so a validator can assert it never appears as a row's blocking_contract. MOVE-DEP-R03: 'Missing art MUST NOT refuse otherwise legal resident spawn or authoritative movement.'"
+    }
+  },
+  "evidence": {
+    "EV-PROFILE-ROW": {
+      "exists_for": "ADULT mouse/mole/otter/squirrel",
+      "source": "godot/scripts/core/movement.gd _build_starter_profiles(), PROFILE_KEYS, PROFILE_SPECIES_KEYS",
+      "qualifies_admission": false
+    },
+    "EV-MODE-BIT": {
+      "exists_for": "GROUND_WALK and FORD_WALK on the four starter profiles",
+      "source": "movement.gd PROFILED_MODE_MASK, _profile_mode_mask",
+      "qualifies_admission": false
+    },
+    "EV-SPEED-CAP": {
+      "exists_for": "all size classes, ground/ford only",
+      "source": "residents.gd SIZE_MOVEMENT_U_PER_S = [3277, 4096, 3072] u/s (GDD \u00a75.2)",
+      "qualifies_admission": false
+    },
+    "EV-CARRY-CAP": {
+      "exists_for": "all size classes, ground/ford only",
+      "source": "residents.gd SIZE_CARRY_G = [12000, 16000, 24000] g (GDD \u00a75.2)",
+      "qualifies_admission": false
+    },
+    "EV-LIFE-STAGE-COLUMN": {
+      "exists_for": "all 512 resident rows",
+      "source": "residents.gd _life_stage B8[512]; MOVE-DEP-R02",
+      "qualifies_admission": false,
+      "note": "Storing CHILD is legal; travelling as one is not."
+    },
+    "EV-HEIGHT-DEC039": {
+      "exists_for": "mouse 1024, mole 922, squirrel 1178, otter 1526, badger 2611 (u, 1/1024 m)",
+      "source": "docs/setting_decisions.md DEC-039",
+      "qualifies_admission": false,
+      "note": "Explicitly does NOT set navigation clearance, service reach, step height or movement capability."
+    },
+    "EV-BLOCKOUT-POSE-BOUNDS": {
+      "exists_for": "mouse, mole, squirrel, otter, badger; poses standing/walking/carrying/crouching",
+      "source": "godot/assets/lookdev/proportion_comparison_manifest.json species[].poses[].measured_min_mm / measured_max_mm",
+      "qualifies_admission": false,
+      "disqualified_because": [
+        "hand-authored blockout volumes, not reviewed production geometry",
+        "landmark_status PROPOSED_FOR_REVIEW",
+        "MOVE-C2-R01: torso-width proxy values are not clearance measurements",
+        "discrete rest poses, not a complete sweep over entry/travel/hold/turn/reversal/retreat/exit with interpolation coverage and an error bound",
+        "no equipment, stowed-gear, cargo or rescue-attachment variant",
+        "no margin_u and no declared anchor-to-root offset; MOVE-C2-R01 Q1 \u00a73 makes a missing margin invalid"
+      ]
+    },
+    "EV-AIR-STANDARD-V1": {
+      "exists_for": "the parameter set only",
+      "source": "docs/underground_economy_hazard_amendment.md HAZ-002",
+      "qualifies_admission": false,
+      "note": "MOVE-C2-R01: 'assigns no species capability'. Bound to no profile."
+    },
+    "EV-HAZ-RECOVERY-RULES": {
+      "exists_for": "the rule set only",
+      "source": "HAZ-003, HAZ-004, HAZ-005",
+      "qualifies_admission": false,
+      "note": "Bound to no profile and to no connection."
+    },
+    "EV-GROUND-DOMAIN": {
+      "exists_for": "DOMAIN_GROUND / LAYER_SURFACE only",
+      "source": "spatial_world.gd DOMAIN_COUNT = 1, LAYER_COUNT = 1",
+      "qualifies_admission": false
+    },
+    "EV-SWEPT-ENVELOPE": {
+      "exists_for": "nothing",
+      "source": null,
+      "qualifies_admission": true,
+      "required_by": "MOVE-C2-R01 Q1 \u00a71-\u00a73"
+    },
+    "EV-MARGIN": {
+      "exists_for": "nothing",
+      "source": null,
+      "qualifies_admission": true,
+      "required_by": "MOVE-C2-R01 Q1 \u00a73"
+    },
+    "EV-PLACEMENT-FIT": {
+      "exists_for": "nothing",
+      "source": null,
+      "qualifies_admission": true,
+      "required_by": "MOVE-C2-R01 Q1 \u00a74-\u00a75 at the production offset (+256,+256)"
+    },
+    "EV-CLEARANCE-CLASS": {
+      "exists_for": "nothing",
+      "source": null,
+      "qualifies_admission": true,
+      "required_by": "movement.gd profile_clearance_class_into(), which refuses unconditionally"
+    },
+    "EV-MODE-COST-ROW": {
+      "exists_for": "nothing",
+      "source": null,
+      "qualifies_admission": true,
+      "required_by": "MOVE-C2-R01 Q2"
+    },
+    "EV-CONNECTION-CATALOGUE": {
+      "exists_for": "nothing",
+      "source": null,
+      "qualifies_admission": true,
+      "required_by": "MOVE-C2-R01 Q1 \u00a76; SET-MOVE-001 \u00a73"
+    },
+    "EV-CONTACT-PRODUCER": {
+      "exists_for": "nothing",
+      "source": null,
+      "qualifies_admission": true,
+      "required_by": "MOVE-DEP-R05"
+    },
+    "EV-STAGE-PROFILE": {
+      "exists_for": "nothing",
+      "source": null,
+      "qualifies_admission": true,
+      "required_by": "MOVE-C2-R01 Q2; PC-04"
+    },
+    "EV-PC04-RULES": {
+      "exists_for": "nothing",
+      "source": null,
+      "qualifies_admission": true,
+      "required_by": "PC-04 (task 08.2)"
+    }
+  },
+  "q2_slots": [
+    {
+      "id": "Q2-01",
+      "group": "envelope",
+      "name": "swept_bounds_x_lo_u / x_hi_u / z_lo_u / z_hi_u",
+      "units": "signed integer u (1/1024 m), local frame",
+      "owning_contract": "MOVE-C2-R01 Q1 \u00a72-\u00a73; MOVE-DEP-R01",
+      "owner": "asset measurement owner, validated by movement",
+      "blocks": [
+        "Q2-05",
+        "every mode's admission for every species"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-02",
+      "group": "envelope",
+      "name": "swept_bounds_y_lo_u / y_hi_u",
+      "units": "signed integer u",
+      "owning_contract": "MOVE-C2-R01 Q1 \u00a72, \u00a76",
+      "owner": "asset measurement owner",
+      "blocks": [
+        "Q2-28",
+        "vertical and opening fit for doors, tunnels, branches, landings"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-03",
+      "group": "envelope",
+      "name": "margin_u per axis, with provenance",
+      "units": "nonnegative integer u; explicit zero only with owner justification",
+      "owning_contract": "MOVE-C2-R01 Q1 \u00a73",
+      "owner": "measurement owner",
+      "blocks": [
+        "outward quantization",
+        "Q2-01",
+        "Q2-02"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-04",
+      "group": "envelope",
+      "name": "anchor_to_root_offset_ox_u / oz_u",
+      "units": "signed integer u",
+      "owning_contract": "MOVE-C2-R01 Q1 \u00a71, \u00a74-\u00a75",
+      "owner": "asset measurement owner + movement owner",
+      "blocks": [
+        "the containment test ox+xlo>=0, oz+zlo>=0, ox+xhi<=512k, oz+zhi<=512k"
+      ],
+      "value": null,
+      "note": "Production placement stays (+256,+256). A negative translated minimum is a placement incompatibility that no larger k repairs. No recentring is proposed; that needs a separate reviewed position/anchor/save contract."
+    },
+    {
+      "id": "Q2-05",
+      "group": "envelope",
+      "name": "clearance_class_k (derived, never authored directly)",
+      "units": "integer class 1..512; one class = one 512u cell side",
+      "owning_contract": "MOVE-C2-R01 Q1 \u00a74; spatial_world.gd MIN/MAX_CLEARANCE_CLASS",
+      "owner": "movement owner, derived from asset input",
+      "blocks": [
+        "movement.gd profile_clearance_class_into() refuses PROFILE_CLEARANCE_UNSPECIFIED for every profile id",
+        "all 8 adopted rows"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-06",
+      "group": "cost_row",
+      "name": "mode_speed_u_per_s for SWIM_SURFACE / DIVE / CLIMB / TUNNEL_WALK",
+      "units": "integer u per second",
+      "owning_contract": "MOVE-G01; SET-MOVE-001 \u00a75",
+      "owner": "GDD/gameplay balance owner",
+      "blocks": [
+        "all 64 adult connected rows",
+        "the dive budget T in HAZ-002"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-07",
+      "group": "cost_row",
+      "name": "entry_duration_ticks / exit_duration_ticks per mode and connection kind",
+      "units": "fixed ticks at 30 Hz",
+      "owning_contract": "MOVE-G01; movement_contracts \u00a74",
+      "owner": "GDD/gameplay balance owner",
+      "blocks": [
+        "positive edge cost",
+        "T",
+        "HAZ-002 admission"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-08",
+      "group": "cost_row",
+      "name": "turn_duration_ticks / reversal_duration_ticks",
+      "units": "fixed ticks at 30 Hz",
+      "owning_contract": "MOVE-C2-R01 Q1 \u00a76",
+      "owner": "GDD/gameplay balance owner + asset owner (clips)",
+      "blocks": [
+        "swept-turn fit evidence",
+        "corner and bend legality"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-09",
+      "group": "cost_row",
+      "name": "edge_traversal_cost per connection kind",
+      "units": "positive integer ticks",
+      "owning_contract": "MOVE-DEP-R04",
+      "owner": "GDD/gameplay balance owner, bound by movement/G02",
+      "blocks": [
+        "expanded-graph routing may not be enabled before this exists"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-10",
+      "group": "cost_row",
+      "name": "posture_id / posture_mask per mode",
+      "units": "enumerated posture domain (the domain itself is unauthored)",
+      "owning_contract": "SET-MOVE-001 \u00a74 posture_supported; movement_contracts \u00a72",
+      "owner": "movement owner + asset owner",
+      "blocks": [
+        "the posture_supported conjunct in edge eligibility"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-11",
+      "group": "cost_row",
+      "name": "grip_mask / required grip per climbing connection",
+      "units": "enumerated grip domain (the domain itself is unauthored)",
+      "owning_contract": "SET-MOVE-001 \u00a74 grip_fit",
+      "owner": "GDD/gameplay balance owner + asset owner",
+      "blocks": [
+        "every CLIMB row"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-12",
+      "group": "cost_row",
+      "name": "mode_load_limit_g per mode",
+      "units": "grams",
+      "owning_contract": "MOVE-G01; depends on Q2-35",
+      "owner": "GDD/gameplay balance owner",
+      "blocks": [
+        "non-ground load admission"
+      ],
+      "value": null,
+      "note": "The inherited 12000/16000/24000 g caps are ground/ford carry capacity and are not extended here."
+    },
+    {
+      "id": "Q2-13",
+      "group": "cost_row",
+      "name": "cargo_shape_variants, each with its own Group-A bounds",
+      "units": "finite set membership + u",
+      "owning_contract": "MOVE-C2-R01 Q1 \u00a71",
+      "owner": "asset owner + economy owner",
+      "blocks": [
+        "any admission with committed cargo, in any mode"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-14",
+      "group": "cost_row",
+      "name": "equipment_to_passage_eligibility",
+      "units": "predicate over gear ids x connection ids",
+      "owning_contract": "MOVE-REQ-005",
+      "owner": "GDD/gameplay balance owner",
+      "blocks": [
+        "gear-conditioned refusal; today only committed load is checked"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-15",
+      "group": "cost_row",
+      "name": "need_and_work_effects_per_mode",
+      "units": "integer per game-hour, on the existing signed denominator-750 remainder in the single health owner",
+      "owning_contract": "HAZ-002/HAZ-004 integration; SET-MOVE-001 \u00a75",
+      "owner": "GDD/gameplay balance owner + health owner",
+      "blocks": [
+        "the interruption matrix",
+        "MOVE-REQ-010 accounting"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-16",
+      "group": "cost_row",
+      "name": "interruption_recovery_row per (species, stage, mode) binding the HAZ-005 columns",
+      "units": "referenced disposition per trigger",
+      "owning_contract": "HAZ-005",
+      "owner": "GDD/gameplay balance owner",
+      "blocks": [
+        "HAZ-005 activation",
+        "save obligations for recovery state"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-17",
+      "group": "safety_binding",
+      "name": "swim_declared_float_return_posture",
+      "units": "posture + clip identity",
+      "owning_contract": "HAZ-003 (required before enabling SWIM_SURFACE)",
+      "owner": "asset owner + movement owner",
+      "blocks": [
+        "every SWIM_SURFACE row"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-18",
+      "group": "safety_binding",
+      "name": "airless_recovery_binding for surface swimmers, required even where voluntary DIVE is disabled",
+      "units": "binding to the HAZ-002 rules",
+      "owning_contract": "HAZ-003",
+      "owner": "movement owner + GDD/gameplay balance owner",
+      "blocks": [
+        "every SWIM_SURFACE row"
+      ],
+      "value": null,
+      "note": "Involuntary submergence is a recovery phase and never enables voluntary dive."
+    },
+    {
+      "id": "Q2-19",
+      "group": "safety_binding",
+      "name": "dive_air_profile_binding: which (species, stage, posture) dive profiles bind air_standard_v1",
+      "units": "set membership",
+      "owning_contract": "HAZ-002",
+      "owner": "Astra (Q2) then movement owner",
+      "blocks": [
+        "every DIVE row"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-20",
+      "group": "safety_binding",
+      "name": "dive_protected_breathable_endpoint_catalogue",
+      "units": "location identities + geometry",
+      "owning_contract": "HAZ-002; MOVE-REQ-009",
+      "owner": "spatial owner",
+      "blocks": [
+        "dive admission",
+        "T cannot be computed without the corridor"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-21",
+      "group": "safety_binding",
+      "name": "climb_recovery_case per connection: protected | unprotected",
+      "units": "enumerated, per connection",
+      "owning_contract": "HAZ-003",
+      "owner": "spatial owner + GDD/gameplay balance owner",
+      "blocks": [
+        "every CLIMB row; a connection with neither case refuses activation"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-22",
+      "group": "safety_binding",
+      "name": "climb_unprotected_fall_landing, recovery_trajectory, vertical_drop_D_u",
+      "units": "landing identity; integer trajectory; D in u, D > 0",
+      "owning_contract": "HAZ-003",
+      "owner": "spatial owner",
+      "blocks": [
+        "unprotected climb activation"
+      ],
+      "value": null,
+      "note": "The consequence formulas are settled; D and the landing are not."
+    },
+    {
+      "id": "Q2-23",
+      "group": "safety_binding",
+      "name": "rescue_combined_envelope per connection; rescue_profile_protected_airway",
+      "units": "u (combined swept bounds); boolean property of a declared rescue profile",
+      "owning_contract": "HAZ-004; MOVE-C2-R01 deliverable 3",
+      "owner": "asset owner + movement owner",
+      "blocks": [
+        "rescue admission on any connected mode"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-24",
+      "group": "safety_binding",
+      "name": "ford_predicate: what distinguishes FORD_WALK from GROUND_WALK in eligibility and cost, including any max_water_depth_u",
+      "units": "u for depth; predicate over cells",
+      "owning_contract": "MOVE-G01; GDD \u00a75.1",
+      "owner": "GDD/gameplay balance owner + spatial owner",
+      "blocks": [
+        "FORD_WALK has a distinct mode id and bit but no distinct predicate or cost in movement.gd"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-25",
+      "group": "geometry",
+      "name": "domain_count, layer_count and their identities",
+      "units": "enumerated",
+      "owning_contract": "MOVE-G01",
+      "owner": "spatial owner",
+      "blocks": [
+        "every non-ground mode: DOMAIN_NOT_CONTRACTED / LAYER_NOT_CONTRACTED"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-26",
+      "group": "geometry",
+      "name": "underground_level_count, level_spacing_u",
+      "units": "count; u",
+      "owning_contract": "DEC-040 depth boundary",
+      "owner": "spatial owner + GDD/gameplay balance owner, with G02 memory review",
+      "blocks": [
+        "TUNNEL_WALK"
+      ],
+      "value": null,
+      "note": "Four levels at 4 m remains a CANDIDATE, not a constant. No depth is proposed here."
+    },
+    {
+      "id": "Q2-27",
+      "group": "geometry",
+      "name": "underground / water / canopy horizontal and vertical extents, resolution, max_cells_per_domain",
+      "units": "u; counts",
+      "owning_contract": "MOVE-G01 finite world envelope",
+      "owner": "spatial owner",
+      "blocks": [
+        "all four connected modes",
+        "no overflow or refusal fixture can exist for a capacity with no number"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-28",
+      "group": "geometry",
+      "name": "connection_opening_width_u / height_u, slope and step geometry, supported posture, both directions",
+      "units": "u; enumerated",
+      "owning_contract": "MOVE-C2-R01 Q1 \u00a76; SET-MOVE-001 \u00a73",
+      "owner": "spatial owner + asset owner",
+      "blocks": [
+        "doors, tunnels, branches, shore transitions"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-29",
+      "group": "geometry",
+      "name": "water_column_representation: depth field, submerged levels, shore transition geometry",
+      "units": "u; enumerated",
+      "owning_contract": "MOVE-G01",
+      "owner": "spatial owner",
+      "blocks": [
+        "SWIM_SURFACE",
+        "DIVE",
+        "Q2-24"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-30",
+      "group": "geometry",
+      "name": "canopy_heights, trunk/branch/ladder connection catalogue and arc lengths",
+      "units": "u",
+      "owning_contract": "MOVE-G01; HAZ-003 prices arcs per started 4096u",
+      "owner": "spatial owner",
+      "blocks": [
+        "CLIMB; the protected-climb build cost is settled but has no arc to price"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-31",
+      "group": "policy",
+      "name": "Per (species, life stage, mode): is the intended terminal state ENABLED or DISABLED?",
+      "units": "enumerated state",
+      "owning_contract": "MOVE-C2-R01 Q2; docs/rulings/requests/OPEN.md#move-g01-clearance-and-modes",
+      "owner": "Astra",
+      "blocks": [
+        "the entire readiness matrix; 280 unresolved_q2 rows"
+      ],
+      "value": null,
+      "note": "Today: zero ENABLED complete rows, zero species-wide DISABLED rows."
+    },
+    {
+      "id": "Q2-32",
+      "group": "policy",
+      "name": "Does HAZ-001's CHILD hazardous-work/excavation prohibition extend to CHILD non-work travel in SWIM_SURFACE, DIVE and unprotected CLIMB?",
+      "units": "boolean per mode, with conditions",
+      "owning_contract": "HAZ-001; DEC-032; PC-04",
+      "owner": "Astra + PC-04 owner",
+      "blocks": [
+        "48 CHILD rows cannot be classified unresolved_q2 versus explicitly_disabled"
+      ],
+      "value": null,
+      "note": "New question raised by this package. HAZ-001 classifies those actions as dangerous and forbids CHILD hazardous WORK and excavation; it does not state whether non-work travel is covered."
+    },
+    {
+      "id": "Q2-33",
+      "group": "policy",
+      "name": "Does any ELDER row carry a stage restriction, or are ELDER rows unrestricted once profiled?",
+      "units": "enumerated restriction",
+      "owning_contract": "MOVE-C2-R01; DEC-032 active elder roles; PC-04",
+      "owner": "Astra + PC-04 owner",
+      "blocks": [
+        "96 ELDER rows"
+      ],
+      "value": null,
+      "note": "MOVE-C2-R01 forbids inferring an elder penalty."
+    },
+    {
+      "id": "Q2-34",
+      "group": "policy",
+      "name": "Is any mode a learned/acquired ability rather than a profile property? If so, name its acquisition, state and save owner.",
+      "units": "enumerated; owner assignment",
+      "owning_contract": "MOVE-C2-R01; SET-MOVE-001 \u00a71 (training)",
+      "owner": "Astra, then movement owner + save owner",
+      "blocks": [
+        "the shape of the profile row itself",
+        "a save schema decision"
+      ],
+      "value": null
+    },
+    {
+      "id": "Q2-35",
+      "group": "policy",
+      "name": "Do the inherited ground speed and carry caps apply unchanged to the other four modes, or does each mode author its own?",
+      "units": "u/s; grams",
+      "owning_contract": "MOVE-C2-R01 (these are 'inherited limits, not new connected-mode speeds or spatial envelopes')",
+      "owner": "Astra + GDD/gameplay balance owner",
+      "blocks": [
+        "Q2-06",
+        "Q2-12"
+      ],
+      "value": null
+    }
+  ],
+  "q2_slot_count": 35,
+  "q2_slots_with_values": 0,
+  "inherited_settled_inputs": {
+    "note": "Cycle 2: these are inherited inputs, not questions reopened by this cycle. They must not be re-derived, re-proposed or refined by this lane.",
+    "DEC-039_heights_u": {
+      "mouse": 1024,
+      "mole": 922,
+      "squirrel": 1178,
+      "otter": 1526,
+      "badger": 2611
+    },
+    "DEC-039_bounds": "Approval of anatomical scale only. Landmark ratios remain PROPOSED_FOR_REVIEW. These heights do NOT set navigation clearance, service reach, step height or movement capability, and no clearance in this package is derived from one.",
+    "DEC-040": "Spoil is a real haulable reusable material with its own catalog identity and declared mass. Hazards are warned, preventable, with rescue through existing injury/care. Four underground levels at 4 m spacing remains a CANDIDATE.",
+    "ECON": "ECON-001 cut quantum is an axis-aligned 1024u cube (1 m3) on the 1024u lattice; MOVE-C2-R01 states it is NOT a navigation voxel or body envelope. ECON-002..006 item identity, operations, lifecycle, hauling, cancellation/refund and conservation are authored.",
+    "HAZ": "HAZ-001 hazard policy, dangerous-action classification and entry thresholds; HAZ-002 air_standard_v1 (1200 capacity, 1/submerged tick, 4/breathable tick, +300 contingency, advisory <=450, 125 health/game-hour airless drain, admission available_air >= T+300, planned underwater queue wait 0); HAZ-003 exhaustion/fall/recovery including protected-climb build cost and the unprotected-climb consequence formulas; HAZ-004 rescue/treatment; HAZ-005 interruption matrix; HAZ-006 fixtures. All assign no species capability.",
+    "adopted_scope": "Persistent constructed tunnels, inhabited underground space, interoperable placed-burrow / planned-tunnel / free multi-level excavation, surface swimming, diving, connected climbing and canopy access all remain first-release requirements under SET-MOVE-001 \u00a71 and DEC-029/031/035.",
+    "engine_conventions": "30 Hz; speeds 0/1/2/4; int32 positions in 1/1024 m; -Z forward, +Y up; 256 living / 512 resident slots; clearance class domain 1..512 over 512u north-west anchored squares with predicate _clearance[cell] >= class; root offset (+256,+256); ground caps 3277/4096/3072 u/s and 12000/16000/24000 g; LifeStage ADULT 0 / CHILD 1 / ELDER 2 with COUNT 3 a bound never stored."
+  },
+  "authored_prohibitions": [
+    {
+      "id": "PROHIB-CHILD-HAZARDOUS-WORK",
+      "state": "explicitly_disabled",
+      "scope": "work and job class, NOT a traversal mode row",
+      "subject": "CHILD hazardous work and excavation",
+      "authority": [
+        "DEC-032",
+        "HAZ-001"
+      ],
+      "conditions_that_can_change_it": "None stated. PC-04 owns CHILD and ELDER activation.",
+      "recorded_as_mode_row": false,
+      "note": "Deliberately NOT expressed as a species x mode row. Whether it extends to CHILD non-work travel in dangerous modes is Q2-32."
+    },
+    {
+      "id": "PROHIB-SITUATIONAL",
+      "state": "explicitly_disabled",
+      "scope": "action- and state-conditioned, applicable to every species; never species-wide",
+      "subject": "MOVE-C2-R01's explicit disabled actions and admission refusals: incomplete/unsupported/water-intersecting excavation; dangerous entry without consent or at health<70, hunger<=3500, rest<4000, or active untreated injury; dive without protected breathable endpoint, complete finite round trip, or available_air>=T+300; surface swim without declared float/return and incapacity/submergence recovery; climb without protected support/rescue attachment or without a declared fall landing/trajectory; removal of occupied passage, only safe exit, protected air landing/descent or rescue support; free flight, branch-gap jumps, underwater attacks, moving vessels, unsupported collapse/flood shortcuts.",
+      "authority": [
+        "MOVE-C2-R01",
+        "ECON-003",
+        "HAZ-001",
+        "HAZ-002",
+        "HAZ-003",
+        "HAZ-005",
+        "MOVE-REQ-008",
+        "SET-MOVE-001 \u00a71"
+      ],
+      "recorded_as_mode_row": false
+    }
+  ],
+  "species_wide_prohibitions": [],
+  "species_wide_prohibition_count": 0,
+  "species_wide_prohibition_note": "MOVE-C2-R01: 'Species-wide DISABLED rows for the four requested modes: zero established by current policy.' A missing profile is never recorded here. Missing profile != authored incompatibility.",
+  "presentation_gaps": [
+    {
+      "id": "PG-RIG-ADULT",
+      "kind": "presentation",
+      "subject": "Adult rig identity for all 16 species",
+      "state": "logical identity PRESENT, asset NOT ASSERTED",
+      "source": "residents.gd SPECIES_RIG_KEYS / RIG_DOMAIN; docs/planning/species_rig_identity.json",
+      "gates_admission": false,
+      "note": "Naming rig_mouse_v1 asserts no skeleton, clip, palette or export exists. A logical rig identity is not a capability and is evidence for no row in this file."
+    },
+    {
+      "id": "PG-RIG-STAGE-VARIANT",
+      "kind": "presentation",
+      "subject": "(species, life_stage) rig variants for CHILD and ELDER",
+      "state": "ABSENT for all 32 combinations",
+      "source": "residents.gd rig_binding() refuses RIG_STAGE_VARIANT_UNBOUND",
+      "gates_admission": false,
+      "note": "residents.gd header: 'A CHILD mouse spawns and is legal simulation state with no rig binding at all'; spawn_with_stage() never consults the rig tables."
+    },
+    {
+      "id": "PG-CLIPS",
+      "kind": "presentation",
+      "subject": "Versioned entry / turn / hold / return / recovery clips, bounds, bake totals, LOD and memory evidence",
+      "state": "ABSENT",
+      "source": "MOVE-G04 remains open per MOVE-C2-R01 residual gates",
+      "gates_admission": false
+    }
+  ],
+  "row_classes": {
+    "RC_ADULT_GROUND_STARTER": {
+      "state": "adopted",
+      "ruling_cell": "S/N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-PROFILE-ROW",
+        "EV-MODE-BIT",
+        "EV-SPEED-CAP",
+        "EV-CARRY-CAP",
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-GROUND-DOMAIN"
+      ],
+      "evidence_absent": [
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-CLEARANCE",
+      "additional_blocking_contracts": [
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-13",
+        "Q2-14"
+      ],
+      "note": "Mode binding is authored; production qualification is not. profile_clearance_class_into() refuses PROFILE_CLEARANCE_UNSPECIFIED for this profile id."
+    },
+    "RC_ADULT_FORD_STARTER": {
+      "state": "adopted",
+      "ruling_cell": "S/N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-PROFILE-ROW",
+        "EV-MODE-BIT",
+        "EV-SPEED-CAP",
+        "EV-CARRY-CAP",
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-GROUND-DOMAIN"
+      ],
+      "evidence_absent": [
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-CLEARANCE",
+      "additional_blocking_contracts": [
+        "BC-CONTACT",
+        "BC-SAFETY-BINDING"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-13",
+        "Q2-14",
+        "Q2-24"
+      ],
+      "note": "Additionally: FORD_WALK has a distinct mode id and bit but no distinct cell predicate or cost in movement.gd. _cursor_mode is written at _attach_route() and read only by admitted_mode_of()."
+    },
+    "RC_ADULT_GROUND_UNPROFILED": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-SPEED-CAP",
+        "EV-CARRY-CAP",
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-GROUND-DOMAIN"
+      ],
+      "evidence_absent": [
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PROFILE-ROW",
+      "additional_blocking_contracts": [
+        "BC-CLEARANCE",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-13",
+        "Q2-14",
+        "Q2-31"
+      ],
+      "note": "No starter profile row exists for this species. movement.gd refuses PROFILE_SPECIES_MISMATCH rather than borrowing a size neighbour. This is not a prohibition."
+    },
+    "RC_ADULT_FORD_UNPROFILED": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-SPEED-CAP",
+        "EV-CARRY-CAP",
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-GROUND-DOMAIN"
+      ],
+      "evidence_absent": [
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PROFILE-ROW",
+      "additional_blocking_contracts": [
+        "BC-CLEARANCE",
+        "BC-CONTACT",
+        "BC-SAFETY-BINDING"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-13",
+        "Q2-14",
+        "Q2-24",
+        "Q2-31"
+      ]
+    },
+    "RC_ADULT_SWIM": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-HAZ-RECOVERY-RULES"
+      ],
+      "evidence_absent": [
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-CONNECTION-CATALOGUE",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PROFILE-ROW",
+      "additional_blocking_contracts": [
+        "BC-CLEARANCE",
+        "BC-GEOMETRY",
+        "BC-SAFETY-BINDING",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-06",
+        "Q2-07",
+        "Q2-08",
+        "Q2-09",
+        "Q2-10",
+        "Q2-12",
+        "Q2-13",
+        "Q2-14",
+        "Q2-15",
+        "Q2-16",
+        "Q2-17",
+        "Q2-18",
+        "Q2-23",
+        "Q2-25",
+        "Q2-27",
+        "Q2-28",
+        "Q2-29",
+        "Q2-31",
+        "Q2-35"
+      ],
+      "refuses_today": "MODE_NOT_PROFILED; and DOMAIN_NOT_CONTRACTED for any non-ground domain",
+      "note": "Adopted as required settlement capability under SET-MOVE-001 \u00a71. Not profiled, not prohibited."
+    },
+    "RC_ADULT_DIVE": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-AIR-STANDARD-V1",
+        "EV-HAZ-RECOVERY-RULES"
+      ],
+      "evidence_absent": [
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-CONNECTION-CATALOGUE",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PROFILE-ROW",
+      "additional_blocking_contracts": [
+        "BC-CLEARANCE",
+        "BC-GEOMETRY",
+        "BC-SAFETY-BINDING",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-06",
+        "Q2-07",
+        "Q2-08",
+        "Q2-09",
+        "Q2-10",
+        "Q2-12",
+        "Q2-13",
+        "Q2-14",
+        "Q2-15",
+        "Q2-16",
+        "Q2-19",
+        "Q2-20",
+        "Q2-23",
+        "Q2-25",
+        "Q2-27",
+        "Q2-28",
+        "Q2-29",
+        "Q2-31",
+        "Q2-35"
+      ],
+      "refuses_today": "MODE_NOT_PROFILED; and movement.gd holds no air state at all (searched for air / available_air / air_remaining / AIR: zero matches)",
+      "note": "air_standard_v1 is authored and assigns no species capability. Q2-19 is which profiles bind it."
+    },
+    "RC_ADULT_CLIMB": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-HAZ-RECOVERY-RULES"
+      ],
+      "evidence_absent": [
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-CONNECTION-CATALOGUE",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PROFILE-ROW",
+      "additional_blocking_contracts": [
+        "BC-CLEARANCE",
+        "BC-GEOMETRY",
+        "BC-SAFETY-BINDING",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-06",
+        "Q2-07",
+        "Q2-08",
+        "Q2-09",
+        "Q2-10",
+        "Q2-11",
+        "Q2-12",
+        "Q2-13",
+        "Q2-14",
+        "Q2-15",
+        "Q2-16",
+        "Q2-21",
+        "Q2-22",
+        "Q2-23",
+        "Q2-25",
+        "Q2-27",
+        "Q2-28",
+        "Q2-30",
+        "Q2-31",
+        "Q2-35"
+      ],
+      "refuses_today": "MODE_NOT_PROFILED",
+      "note": "Protected-climb build cost and unprotected-climb consequence formulas are settled under HAZ-003. The arcs, landings and drops they price do not exist."
+    },
+    "RC_ADULT_TUNNEL": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-LIFE-STAGE-COLUMN"
+      ],
+      "evidence_absent": [
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-CONNECTION-CATALOGUE",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PROFILE-ROW",
+      "additional_blocking_contracts": [
+        "BC-CLEARANCE",
+        "BC-GEOMETRY",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-06",
+        "Q2-07",
+        "Q2-08",
+        "Q2-09",
+        "Q2-10",
+        "Q2-12",
+        "Q2-13",
+        "Q2-14",
+        "Q2-15",
+        "Q2-16",
+        "Q2-25",
+        "Q2-26",
+        "Q2-27",
+        "Q2-28",
+        "Q2-31",
+        "Q2-35"
+      ],
+      "refuses_today": "MODE_NOT_PROFILED; DOMAIN_NOT_CONTRACTED",
+      "note": "Walking a completed supported tunnel is ordinary access and is independent of excavation capability. ECON-001's 1024u priced cube is not a navigation voxel or body envelope."
+    },
+    "RC_CHILD_NONHAZ": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-LIFE-STAGE-COLUMN"
+      ],
+      "evidence_absent": [
+        "EV-STAGE-PROFILE",
+        "EV-PC04-RULES",
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PC04",
+      "additional_blocking_contracts": [
+        "BC-PROFILE-ROW",
+        "BC-CLEARANCE",
+        "BC-GEOMETRY",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-31"
+      ],
+      "refuses_today": "LIFE_STAGE_NOT_PROFILED (movement.gd PROFILE_LIFE_STAGE is four entries, all ADULT)",
+      "note": "Release immobility for CHILD is NOT adopted. No adult coefficient is substituted. The missing rig variant (PG-RIG-STAGE-VARIANT) is a presentation gap and is deliberately not listed as a blocker."
+    },
+    "RC_CHILD_HAZ": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-HAZ-RECOVERY-RULES"
+      ],
+      "evidence_absent": [
+        "EV-STAGE-PROFILE",
+        "EV-PC04-RULES",
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-CONNECTION-CATALOGUE",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PC04",
+      "additional_blocking_contracts": [
+        "BC-PROFILE-ROW",
+        "BC-CLEARANCE",
+        "BC-GEOMETRY",
+        "BC-SAFETY-BINDING",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-31",
+        "Q2-32"
+      ],
+      "refuses_today": "LIFE_STAGE_NOT_PROFILED",
+      "note": "HAZ-001 classifies DIVE, SWIM_SURFACE and unprotected CLIMB as dangerous, and forbids CHILD hazardous WORK and excavation (PROHIB-CHILD-HAZARDOUS-WORK). Whether that extends to CHILD non-work travel in these modes is Q2-32 and is NOT decided here. Until it is ruled, the state stays unresolved_q2 rather than being upgraded to explicitly_disabled by inference."
+    },
+    "RC_ELDER_NONHAZ": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-LIFE-STAGE-COLUMN"
+      ],
+      "evidence_absent": [
+        "EV-STAGE-PROFILE",
+        "EV-PC04-RULES",
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PC04",
+      "additional_blocking_contracts": [
+        "BC-PROFILE-ROW",
+        "BC-CLEARANCE",
+        "BC-GEOMETRY",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-31",
+        "Q2-33"
+      ],
+      "refuses_today": "LIFE_STAGE_NOT_PROFILED",
+      "note": "DEC-032 requires active elder roles. MOVE-C2-R01 forbids inferring an elder penalty. No elder coefficient is proposed."
+    },
+    "RC_ELDER_HAZ": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "evidence_present": [
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-HAZ-RECOVERY-RULES"
+      ],
+      "evidence_absent": [
+        "EV-STAGE-PROFILE",
+        "EV-PC04-RULES",
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-CONNECTION-CATALOGUE",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PC04",
+      "additional_blocking_contracts": [
+        "BC-PROFILE-ROW",
+        "BC-CLEARANCE",
+        "BC-GEOMETRY",
+        "BC-SAFETY-BINDING",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-31",
+        "Q2-33"
+      ],
+      "refuses_today": "LIFE_STAGE_NOT_PROFILED"
+    }
+  },
+  "rows": {
+    "badger": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "ferret": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "fox": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "hare": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "hedgehog": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "kestrel": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "mole": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_STARTER",
+        "FORD_WALK": "RC_ADULT_FORD_STARTER",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "mouse": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_STARTER",
+        "FORD_WALK": "RC_ADULT_FORD_STARTER",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "otter": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_STARTER",
+        "FORD_WALK": "RC_ADULT_FORD_STARTER",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "rat": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "shrew": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "sparrow": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "squirrel": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_STARTER",
+        "FORD_WALK": "RC_ADULT_FORD_STARTER",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "weasel": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "wildcat": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    },
+    "wolverine": {
+      "ADULT": {
+        "GROUND_WALK": "RC_ADULT_GROUND_UNPROFILED",
+        "FORD_WALK": "RC_ADULT_FORD_UNPROFILED",
+        "SWIM_SURFACE": "RC_ADULT_SWIM",
+        "DIVE": "RC_ADULT_DIVE",
+        "CLIMB": "RC_ADULT_CLIMB",
+        "TUNNEL_WALK": "RC_ADULT_TUNNEL"
+      },
+      "CHILD": {
+        "GROUND_WALK": "RC_CHILD_NONHAZ",
+        "FORD_WALK": "RC_CHILD_NONHAZ",
+        "SWIM_SURFACE": "RC_CHILD_HAZ",
+        "DIVE": "RC_CHILD_HAZ",
+        "CLIMB": "RC_CHILD_HAZ",
+        "TUNNEL_WALK": "RC_CHILD_NONHAZ"
+      },
+      "ELDER": {
+        "GROUND_WALK": "RC_ELDER_NONHAZ",
+        "FORD_WALK": "RC_ELDER_NONHAZ",
+        "SWIM_SURFACE": "RC_ELDER_HAZ",
+        "DIVE": "RC_ELDER_HAZ",
+        "CLIMB": "RC_ELDER_HAZ",
+        "TUNNEL_WALK": "RC_ELDER_NONHAZ"
+      }
+    }
+  },
+  "totals": {
+    "rows": 288,
+    "adopted": 8,
+    "explicitly_disabled": 0,
+    "unresolved_q2": 280,
+    "admission_qualified": 0,
+    "adult_rows": 96,
+    "adult_connected_rows_not_ready": 64,
+    "adult_ground_ford_rows": 32,
+    "adult_ground_ford_adopted": 8,
+    "adult_ground_ford_unresolved": 24,
+    "child_rows": 96,
+    "elder_rows": 96,
+    "cross_check": "adult_connected_rows_not_ready = 64 matches MOVE-C2-R01 'all 64 adult species/mode combinations'. adult_ground_ford_adopted = 8 matches the ruling's four S/N species across two modes."
+  },
+  "explicitly_not_proposed": [
+    "Any body, gear, cargo or swept dimension in any unit.",
+    "Any clearance class for any profile.",
+    "Any margin, including zero.",
+    "Any mode speed, entry/exit/turn duration or edge cost.",
+    "Any air budget, depth, elevation, level count or level spacing.",
+    "Any route recentring, alternative root offset, or change to the (+256,+256) production placement.",
+    "Any species-wide prohibition, and any inference of incompatibility from a missing profile.",
+    "Any CHILD or ELDER coefficient, and any adult fallback for a non-adult stage.",
+    "Any save schema version, packed column, arena capacity or byte-ledger change.",
+    "Any change to DEC-039 heights, DEC-040 direction, or the ECON/HAZ parameter set."
+  ]
+}

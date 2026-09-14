@@ -35,7 +35,11 @@ def validate_registry(data):
     # 564 was the 197472b snapshot. REG-R01 requires the declaration to grow when concurrent
     # state lands, so this pin moves WITH a reconciliation and is not a constant of the format:
     # +18 for needs._airless, work's six tool-settlement columns and injury's eleven.
-    assert records == data['record_count'] == 582
+    # 582 -> 599 because construction.gd's SEVENTEEN category-1 columns had never been declared
+    # at all -- they are seventeen NEW hash=true declarations, so they are seventeen new records.
+    # Contrast section 11, which moved packed_source_field_count and NOT this, because those
+    # eight fields were already declared and only acquired a source module.
+    assert records == data['record_count'] == 599
     directory = next(o for o in owners if (o['section_id'],o['owner_key']) == (3,'entity_directory'))
     assert [f['field_key'] for f in directory['fields']] == ['_active','_generation','_retired','_persistent_id','_kind','_typed_row']
     allocator = next(o for o in owners if (o['section_id'],o['owner_key']) == (1,'entity_directory'))
@@ -70,7 +74,10 @@ def validate_source(data, source):
     # 530 -> 536 when event_schedule.gd landed section 11's six record columns. This pin is a
     # snapshot, NOT a format constant: REG-R01 requires it to grow, so moving it is the expected
     # maintenance and freezing it would refuse every new store.
-    assert len(actual)==data['packed_source_field_count']==536
+    # 536 -> 553 on registering construction.gd's seventeen already-implemented category-1
+    # columns: sixteen project columns in section 4 and the delivered-material arena in section 5.
+    # That omission is exactly the drift the assertion above is here to catch.
+    assert len(actual)==data['packed_source_field_count']==553
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 
 def valid_name(present, named, raw):

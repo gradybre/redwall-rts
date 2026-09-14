@@ -222,6 +222,18 @@ const WORKSPACE_PAGES: Array[int] = [ID_NEW_SETTLEMENT, ID_WORLD_LIST, ID_NAME_E
 ## Room the Create action has inside UI-SET-103, which is at least 480 wide by §4.
 const CREATE_BUTTON_ROOM: float = 480.0
 const WARNING_ICON: String = "res://ui/icons/warning.svg"
+## §7: "Wide/standard HUD shows at most 2 cards; narrow shows 1 and an unread count", which is
+## `UiLayout.alert_card_count()`. The shell BUILDS both instances once and the layout decides
+## how many of them the zone can hold this pass; a card with no notice is hidden, not empty.
+const ALERT_CARD_INSTANCES: int = UiLayout.ALERT_CARDS_WIDE
+## §4's preamble allows a repeated row as "instances of a definition with stable runtime IDs".
+## UI-SET-011's SECOND card is one of those instances. §4 catalogues ONE "Alert card" row and
+## §8.2 lists element 011 exactly once, so there is no second §4 id for the second card and
+## NONE IS INVENTED: the instance takes this suffix on its node name -- as UI-SET-066's
+## instance inside UI-SET-103 takes CREATE_ACTION_KEY -- and shares element 011's registry row,
+## its click-through id and its accessible role. A distinct §4 id for card two, if §4's owner
+## wants one, would replace this and the focus splice in `_wire_second_card_focus()`.
+const SECOND_CARD_KEY: String = "alert_card_2"
 ## R-UI-ALERT-001's expanded view. UI-SET-012 retains §7's 500, and this is how many rows this
 ## shell BUILDS for it: §1.3's virtualized list is not built here, exactly as the 256-resident
 ## roster's is not, so the panel states how many of the retained notices it is showing rather
@@ -311,17 +323,20 @@ var _outgoing: PackedInt32Array = PackedInt32Array()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 ## R-UI-ALERT-001's notice record: the whole condition behind every card this shell draws.
 var _notices: UiNotices = UiNotices.new()
-## Scratch for the notice currently on the card, and for the row being written into the
-## expanded view. Both are reused so repainting the history allocates nothing per row.
-var _card_notice: UiNotices.Notice = UiNotices.Notice.new()
+## Scratch for the notice on each UI-SET-011 instance, and for the row being written into the
+## expanded view. All are reused so repainting the stack or the history allocates nothing.
+var _card_notices: Array[UiNotices.Notice] = []
 var _row_notice: UiNotices.Notice = UiNotices.Notice.new()
 var _history_order: PackedInt32Array = PackedInt32Array()
 ## The measured content height of each alert card, and where the layout put them.
 var _measured_cards: PackedFloat32Array = PackedFloat32Array()
 var _alert_stack: UiLayout.Stack = UiLayout.Stack.new()
-## Which retained notice the card is showing, and its id -- the id is what an announcement is
-## keyed on, so a repaint with no real change announces nothing.
-var _card_index: int = -1
+## Which retained notice each card instance is showing, -1 where it is showing none, and how
+## many active notices WANTED a card before the zone decided how many of them fit.
+var _card_indices: PackedInt32Array = PackedInt32Array()
+var _cards_wanted: int = 0
+## The id on the FIRST card -- the id is what an announcement is keyed on, so a repaint with no
+## real change announces nothing.
 var _card_notice_id: int = 0
 var _announcements: int = 0
 ## True while the player has hidden the card without resolving anything (hud.gd's hold expiry).
@@ -329,6 +344,12 @@ var _card_hidden: bool = true
 ## Which notice the expanded view has selected, and which control opened it.
 var _details_index: int = -1
 var _details_opener: int = ID_HISTORY_TRIGGER
+## Which UI-SET-011 instance opened it, so §2.2's "focus returns to the opening control"
+## returns to the card the player actually activated rather than always to the first one.
+var _details_opener_card: int = 0
+## Which UI-SET-011 instance last took keyboard focus. Both share §4 id 011, so `focused_element()`
+## alone cannot say which card an Enter press would act on.
+var _focused_card: int = 0
 
 ## Built controls by §4 id. One entry per element this shell renders.
 var _controls: Dictionary = {}
@@ -347,7 +368,8 @@ var _presentation: PresentationExtractScript = null
 ## profile and accessible name", so these are not separate registry entries and are never
 ## focusable or hit-testable; they are what their owning element prints.
 var _ledger_line: Label = null
-var _alert_message: Label = null
+## One message Label and one severity icon per UI-SET-011 instance, in stack order.
+var _alert_messages: Array[Label] = []
 var _history_line: Label = null
 var _error_line: Label = null
 var _error_scroll: ScrollContainer = null
@@ -357,7 +379,9 @@ var _calendar_line: Label = null
 var _workspace_line: Label = null
 var _minimap_line: Label = null
 var _tooltip_line: Label = null
-var _alert_icon: TextureRect = null
+var _alert_icons: Array[TextureRect] = []
+## The built UI-SET-011 instances themselves, in stack order. Index 0 is `_controls[011]`.
+var _alert_cards: Array[Panel] = []
 var _history_header: Label = null
 var _history_rows: Array[Label] = []
 var _history_scroll: ScrollContainer = null
@@ -429,7 +453,11 @@ func _init() -> void:
 	_outgoing.resize(UiRegistry.ELEMENT_COUNT)
 	_stroke.resize(ForageScript.ZONE_LINK_CAPACITY)
 	_history_order.resize(UiNotices.HISTORY_CAP)
-	_measured_cards.resize(UiLayout.ALERT_CARDS_WIDE)
+	_measured_cards.resize(ALERT_CARD_INSTANCES)
+	_card_indices.resize(ALERT_CARD_INSTANCES)
+	for instance: int in ALERT_CARD_INSTANCES:
+		_card_indices[instance] = -1
+		_card_notices.append(UiNotices.Notice.new())
 
 
 func _ready() -> void:
@@ -754,7 +782,8 @@ func _build_alerts() -> void:
 	"""UI-SET-010's stack, its card, the history trigger in its rail and the history panel."""
 	var stack: Panel = _zone_panel(ID_ALERT_STACK, "Active settlement alerts")
 	stack.visible = false
-	stack.add_child(_build_alert_card())
+	for instance: int in ALERT_CARD_INSTANCES:
+		stack.add_child(_build_alert_card(instance))
 	_build_history_trigger()
 	_build_history()
 	_build_error_panel()
@@ -763,24 +792,45 @@ func _build_alerts() -> void:
 	add_child(pause_label)
 
 
-func _build_alert_card() -> Panel:
-	"""UI-SET-011's card: a severity icon, one text line, and an activation that discloses all.
+func _build_alert_card(instance: int) -> Panel:
+	"""One UI-SET-011 instance: a severity icon, one wrapping line, and its own activation.
 
 	R-UI-ALERT-001 requires "pointer activation or Enter/Space on the card" to open the full
-	notice. That makes the card a FOCUS STOP, which §8.2 already lists it as -- id 011 sits in
-	`HUD_ORDER` between the resource expander and the history trigger -- so it takes FOCUS_ALL
-	and handles its own `gui_input` rather than being a decorative panel that a keyboard cannot
-	reach. UI §5 puts pause on Space "with world focus"; a focused HUD card is not world focus,
-	so consuming Space here does not contradict the input map.
+	notice. That makes every card a FOCUS STOP, which §8.2 lists element 011 as -- id 011 sits
+	in `HUD_ORDER` between the resource expander and the history trigger -- so each takes
+	FOCUS_ALL and handles its own `gui_input` rather than being a decorative panel a keyboard
+	cannot reach. UI §5 puts pause on Space "with world focus"; a focused HUD card is not world
+	focus, so consuming Space here does not contradict the input map.
 	"""
-	var card: Panel = _new_panel(ID_ALERT_CARD, "")
+	var card: Panel = _new_panel(ID_ALERT_CARD, "") if instance == 0 \
+		else _new_card_instance()
 	card.visible = false
 	card.focus_mode = Control.FOCUS_ALL
-	card.focus_entered.connect(_on_control_focused.bind(ID_ALERT_CARD))
-	card.gui_input.connect(_on_alert_card_input)
-	_alert_icon = _add_severity_icon(card, WARNING_ICON)
-	_alert_message = _new_text(card, &"Message", "")
-	_alert_message.offset_left = PANEL_PADDING + SEVERITY_ICON_SIZE + ROW_GAP
+	card.focus_entered.connect(_on_alert_card_focused.bind(instance))
+	card.gui_input.connect(_on_alert_card_input.bind(instance))
+	_alert_cards.append(card)
+	_alert_icons.append(_add_severity_icon(card, WARNING_ICON))
+	var message: Label = _new_text(card, &"Message", "")
+	message.offset_left = PANEL_PADDING + SEVERITY_ICON_SIZE + ROW_GAP
+	_alert_messages.append(message)
+	return card
+
+
+func _new_card_instance() -> Panel:
+	"""Build UI-SET-011's SECOND instance, which shares the definition's registry row.
+
+	`_new_panel()` writes `_controls[id]`, and that dictionary holds one Control per §4 id;
+	§4 catalogues one "Alert card". So the second instance is built from the SAME registry row
+	-- same §2.2 profile, same minimum size, same accessible role -- and deliberately does not
+	take the definition's single entry. Its name carries SECOND_CARD_KEY so a capture, a tree
+	dump and a bug report can all name which card is which.
+	"""
+	var card: Panel = Panel.new()
+	card.name = "%s/%s" % [_registry.element_key(ID_ALERT_CARD), SECOND_CARD_KEY]
+	card.mouse_filter = Control.MOUSE_FILTER_STOP
+	card.theme_type_variation = PROFILE_VARIATION[_registry.profile_of(ID_ALERT_CARD).value]
+	card.custom_minimum_size = _minimum_size(ID_ALERT_CARD)
+	card.size = card.custom_minimum_size
 	return card
 
 
@@ -1306,7 +1356,23 @@ func _on_control_focused(id: int) -> void:
 	own tooltip from `tooltip_text`; this is the keyboard half, plus UI-SET-074's outline, which
 	"is never hidden by selected state".
 	"""
-	var control: Control = _controls[id]
+	_show_focus_visuals(_controls[id] as Control, id)
+
+
+func _on_alert_card_focused(instance: int) -> void:
+	"""The same 0 ms description and GOLD outline, for the UI-SET-011 instance that took focus.
+
+	`_on_control_focused()` looks the Control up by §4 id, and both cards share id 011, so it
+	would outline the FIRST card whichever one the player tabbed to. This passes the Control
+	that actually has focus and records which instance it was, so Enter opens that card's
+	notice rather than the top one.
+	"""
+	_focused_card = instance
+	_show_focus_visuals(_alert_cards[instance], ID_ALERT_CARD)
+
+
+func _show_focus_visuals(control: Control, id: int) -> void:
+	"""Draw UI-SET-073 and UI-SET-074 against one focused control's own rectangle."""
 	var tooltip: Panel = _controls[ID_TOOLTIP] as Panel
 	_tooltip_line.text = control.tooltip_text
 	tooltip.visible = not _tooltip_line.text.is_empty()
@@ -1749,60 +1815,72 @@ func _place(id: int, rect: Rect2) -> void:
 
 
 func _place_alert_cards() -> void:
-	"""Lay the alert cards out at their measured heights, then print what each one may show.
+	"""Lay every wanted card out at the height its own content needs, then print what it shows.
 
 	The layout decides whether a card has room for its full message; this reads that answer back
 	and writes either the whole message or the authored compact summary into the card. The two
 	cannot disagree, because the text is chosen AFTER the rectangle that has to hold it.
+
+	`_cards_wanted` -- not the buffer's fixed length -- is how many notices are asking for a
+	card, so an empty second slot can never become an empty second card. Every instance is
+	hidden first, so a refused pack leaves no card drawn at a stale rectangle.
 	"""
-	_measured_cards[0] = _measured_full_height()
-	for index: int in range(1, _measured_cards.size()):
-		_measured_cards[index] = 0.0
+	for instance: int in ALERT_CARD_INSTANCES:
+		_measured_cards[instance] = _measured_full_height(instance)
+		_alert_cards[instance].visible = false
 	if not _layout.alert_stack_into(_geometry.profile, _geometry.alerts.size.x,
-			_measured_cards, _alert_stack):
+			_measured_cards, _cards_wanted, _alert_stack):
 		return
-	if _alert_stack.visible_count <= 0:
-		return
-	_place_local(ID_ALERT_CARD, _alert_stack.rects[0])
-	_print_card_text(_alert_stack.summarised[0] == 1)
+	for instance: int in _alert_stack.visible_count:
+		_set_rect(_alert_cards[instance], _alert_stack.rects[instance])
+		_alert_cards[instance].visible = true
+		_print_card_text(instance, _alert_stack.summarised[instance] == 1)
+	_apply_trigger_semantics()
 
 
-func _print_card_text(summarised: bool) -> void:
-	"""Write the card's visible line: the authored summary, or the whole original message.
+func _print_card_text(instance: int, summarised: bool) -> void:
+	"""Write one card's visible line: the authored summary, or the whole original message.
 
 	Neither branch shortens anything. The summary is an authored title from `ui_notices.gd`; the
-	full branch is the message byte for byte. The accessible description carries the WHOLE
-	message either way, which is the ruling's access guarantee.
+	full branch is the message byte for byte. There is no third branch: nothing here ellipsizes,
+	crops or reduces a font size to make text fit, and the accessible description carries the
+	WHOLE message either way, which is the ruling's access guarantee.
 
 	`_refresh_card()` has already written the full message, so a shell that has never been laid
 	out -- no window, zero size -- still shows the notice rather than an empty card. This is the
 	call that REPLACES it with the authored summary once a rectangle exists to judge against.
 	"""
-	if _card_index < 0:
-		_alert_message.text = ""
+	var label: Label = _alert_messages[instance]
+	if _card_indices[instance] < 0:
+		label.text = ""
 		return
-	_alert_message.text = _card_notice.summary if summarised else _card_notice.message
+	var notice: UiNotices.Notice = _card_notices[instance]
+	label.text = notice.summary if summarised else notice.message
 
 
-func _measured_full_height() -> float:
-	"""How tall the card's FULL message would be, wrapped into the card's own interior width.
+func _measured_full_height(instance: int) -> float:
+	"""How tall one card's FULL message would be, wrapped into that card's interior width.
 
 	Measured from the font rather than read off the Label, because an autowrap Label reports a
 	SINGLE LINE from `get_minimum_size()` until its width is constrained -- and its width comes
 	from the card this number is sizing. Measuring the text directly breaks that circle. The
 	interior subtracts the severity icon and its gap, which is what the text actually gets."""
+	if instance >= _cards_wanted or _card_indices[instance] < 0:
+		return 0.0
 	var interior: float = UiLayout.alert_summary_width(_geometry.profile,
 		_geometry.alerts.size.x)
-	if _card_index < 0 or _card_notice.message.is_empty() or interior <= 0.0:
+	var notice: UiNotices.Notice = _card_notices[instance]
+	if notice.message.is_empty() or interior <= 0.0:
 		return 0.0
-	var font: Font = _alert_message.get_theme_font(&"font")
+	var label: Label = _alert_messages[instance]
+	var font: Font = label.get_theme_font(&"font")
 	if font == null:
 		return 0.0
 	## The NOTICE's own message, not the Label's text: once `_print_card_text()` has written the
 	## authored summary the Label no longer holds the thing being measured, and measuring the
 	## summary would let the card oscillate between the two presentations on successive passes.
-	return font.get_multiline_string_size(_card_notice.message, HORIZONTAL_ALIGNMENT_LEFT,
-		interior, _alert_message.get_theme_font_size(&"font_size")).y + 2.0 * PANEL_PADDING
+	return font.get_multiline_string_size(notice.message, HORIZONTAL_ALIGNMENT_LEFT,
+		interior, label.get_theme_font_size(&"font_size")).y + 2.0 * PANEL_PADDING
 
 
 func _place_local(id: int, rect: Rect2) -> void:
@@ -1829,7 +1907,44 @@ func _wire_focus() -> int:
 	data structure and not a behaviour. Called from `_apply_geometry()` because the visible
 	set changes with the profile, so the order must be recomputed when the layout changes."""
 	_focus.bind_controls(_controls)
-	return _focus.wire_hud(_gates)
+	var wired: int = _focus.wire_hud(_gates)
+	_wire_second_card_focus()
+	return wired
+
+
+func _wire_second_card_focus() -> void:
+	"""Splice UI-SET-011's second instance into the tab order, between card one and the rail.
+
+	§8.2 lists element 011 exactly once because §4 catalogues the card as ONE definition, so
+	there is no second id to add to that table and none is invented. The chain is spliced at
+	the Control level instead -- `focus_next`/`focus_previous` are what Godot's own Tab
+	navigation reads -- and §8.2's stated sequence, alerts then the history trigger, is kept.
+	A hidden second card is skipped, leaving the order the router already wired.
+	"""
+	if _alert_cards.size() < ALERT_CARD_INSTANCES:
+		return
+	var second: Control = _alert_cards[1]
+	var first: Control = _controls[ID_ALERT_CARD]
+	var trigger: Control = _controls[ID_HISTORY_TRIGGER]
+	if not second.visible or not first.visible:
+		return
+	_link_focus(first, second, true)
+	_link_focus(second, trigger, true)
+	_link_focus(second, first, false)
+	_link_focus(trigger, second, false)
+
+
+func _link_focus(here: Control, target: Control, forward: bool) -> void:
+	"""Write one direction of a Control's focus wiring, mirroring `ui_focus_order.gd`'s `_link`."""
+	var path: NodePath = here.get_path_to(target)
+	if forward:
+		here.focus_next = path
+		here.focus_neighbor_right = path
+		here.focus_neighbor_bottom = path
+		return
+	here.focus_previous = path
+	here.focus_neighbor_left = path
+	here.focus_neighbor_top = path
 
 
 func _register_hit_regions() -> void:
@@ -1846,10 +1961,30 @@ func _register_hit_regions() -> void:
 		var consumes: bool = control.mouse_filter != Control.MOUSE_FILTER_IGNORE
 		_hits.add_visible_region(id, _shell_rect_of(control), _layer_of(id), consumes,
 			_availability.creates_control(id, _gates))
+	_register_second_card_region()
 	if _workspace_page == ID_NAME_EDITOR:
 		_hits.raise_scrim(UiHitTest.LAYER_MODAL)
 	else:
 		_hits.lower_scrim()
+
+
+func _register_second_card_region() -> void:
+	"""UI-SET-011's second instance owns a real input rectangle of its own.
+
+	`_register_hit_regions()` walks `_controls`, which holds one Control per §4 id, so the
+	second card would consume its click in the engine while §1.2's click-through table said the
+	world received it -- the exact "no world-click leakage" failure the ruling lists as an
+	acceptance case. It registers under element 011 because that is what it IS: §4's repeated
+	rows are instances of one definition, and a click on either card opens an alert's details.
+	"""
+	if _alert_cards.size() < ALERT_CARD_INSTANCES:
+		return
+	var card: Panel = _alert_cards[1]
+	if not card.visible or not _is_visible_chain(card):
+		return
+	_hits.add_visible_region(ID_ALERT_CARD, _shell_rect_of(card),
+		UiHitTest.LAYER_PERMANENT_HUD, card.mouse_filter != Control.MOUSE_FILTER_IGNORE,
+		_availability.creates_control(ID_ALERT_CARD, _gates))
 
 
 func _shell_rect_of(control: Control) -> Rect2:
@@ -1999,59 +2134,98 @@ func _notice_tick() -> int:
 
 
 func _refresh_card() -> void:
-	"""Repaint UI-SET-011 from the highest-severity active notice, or hide it when none is.
+	"""Repaint UI-SET-010's cards from the highest-severity active notices, or hide the stack.
 
 	"State updates must not steal focus or generate repeated announcements without a real notice
-	change": nothing here grabs focus, and the accessible description is rewritten only when the
-	notice ID on the card actually changes, which `notice_announcements()` counts.
+	change": nothing here grabs focus, and the announcement counter rises only when the notice
+	ID on the FIRST card actually changes, which `notice_announcements()` reports.
 	"""
+	_resolve_card_notices()
 	_apply_trigger_semantics()
-	var top: IntMath.IntResult = _notices.top_active()
-	if not top.ok or _card_hidden:
-		_card_index = -1
+	if _cards_wanted <= 0:
 		_show_alert_card(false)
 		return
-	_card_index = top.value
-	_notices.notice_into(_card_index, _notices.active_count() - 1, _card_notice)
-	if _card_notice.id != _card_notice_id:
-		_card_notice_id = _card_notice.id
-		_announcements += 1
-	_apply_card_semantics()
-	_alert_message.text = _card_notice.message
+	for instance: int in _cards_wanted:
+		_apply_card_semantics(instance)
+		_alert_messages[instance].text = _card_notices[instance].message
 	_show_alert_card(true)
 
 
+func _resolve_card_notices() -> void:
+	"""Choose which notices the cards show: §7's top two active, in §7's own display order.
+
+	`order_into()` writes every retained row in that order with the UNRESOLVED ones FIRST, so
+	its first `active_count()` entries are exactly the active notices in card priority. Taking
+	the leading two is ALERT-R02's "preserving established priority" without inventing a second
+	ordering rule that could disagree with the expanded view's. It is O(retained^2) and runs
+	when the notice set changes, never per frame: a relayout reads the indices cached here.
+	"""
+	for instance: int in ALERT_CARD_INSTANCES:
+		_card_indices[instance] = -1
+	_cards_wanted = 0
+	var active: int = _notices.active_count()
+	if _card_hidden or active <= 0:
+		return
+	_notices.order_into(_history_order)
+	_cards_wanted = mini(active, ALERT_CARD_INSTANCES)
+	for instance: int in _cards_wanted:
+		_card_indices[instance] = _history_order[instance]
+		_notices.notice_into(_card_indices[instance], active - 1, _card_notices[instance])
+	if _card_notices[0].id != _card_notice_id:
+		_card_notice_id = _card_notices[0].id
+		_announcements += 1
+
+
 func _apply_trigger_semantics() -> void:
-	"""UI-SET-102's value binding: "Notification history; "+unread_count+" unread"."""
+	"""UI-SET-102's value binding, plus ALERT-R02's count of what the zone could not show.
+
+	§4's binding is "Notification history; "+unread_count+" unread" and it is kept verbatim.
+	ALERT-R02 rule 3 puts the number of UNDISPLAYED notices "through the existing notice/detail
+	affordance in the existing 36 px history rail", so it is appended to that same 32 px
+	trigger's description rather than given "an unbudgeted third row", and it covers no card's
+	message text because it is not drawn over one.
+	"""
 	var trigger: Button = _controls[ID_HISTORY_TRIGGER] as Button
 	var text: String = "Notification history; %d unread" % _notices.active_count()
+	var undisplayed: int = undisplayed_notices()
+	if undisplayed > 0:
+		text = "%s; %d not shown on the alert stack" % [text, undisplayed]
 	trigger.accessibility_description = text
 	trigger.tooltip_text = text
 
 
-func _apply_card_semantics() -> void:
-	"""Give the card its severity icon, its colour and its full accessible description.
+func _apply_card_semantics(instance: int) -> void:
+	"""Give one card its severity icon, its colour and its full accessible description.
 
 	The description carries the WHOLE original message and names the `Open alert details`
 	action, so a player with hover tooltips disabled still has a complete access path -- the
-	ruling says in terms that a tooltip alone is not one.
+	ruling says in terms that a tooltip alone is not one. Every instance gets this, so the
+	second card is as reachable as the first.
 	"""
-	var card: Panel = _controls[ID_ALERT_CARD] as Panel
-	var accessible: String = _notices.accessible_text(_card_notice)
+	var card: Panel = _alert_cards[instance]
+	var notice: UiNotices.Notice = _card_notices[instance]
+	var accessible: String = _notices.accessible_text(notice)
 	card.accessibility_name = "%s %s. %s" % [_registry.element_key(ID_ALERT_CARD),
-		_registry.name_of(ID_ALERT_CARD), _card_notice.severity_word]
+		_registry.name_of(ID_ALERT_CARD), notice.severity_word]
 	card.accessibility_description = accessible
 	card.tooltip_text = accessible
-	_alert_icon.texture = load(_card_notice.icon_path) as Texture2D
-	_alert_icon.modulate = UiTheme.color_of(_card_notice.color_token)
+	_alert_icons[instance].texture = load(notice.icon_path) as Texture2D
+	_alert_icons[instance].modulate = UiTheme.color_of(notice.color_token)
 
 
 func _show_alert_card(shown: bool) -> void:
-	"""Show or hide UI-SET-011 and its stack, and rebuild the click-through table for it."""
-	(_controls[ID_ALERT_CARD] as Control).visible = shown
+	"""Show or hide UI-SET-010 and its cards, and rebuild the click-through table for them.
+
+	Only the FIRST card is turned on here. Whether a second one fits is a question about the
+	zone's remaining height, and only `_place_alert_cards()` has a measured rectangle to answer
+	it with; turning it on before that would draw a card the zone may have no room for.
+	"""
 	(_controls[ID_ALERT_STACK] as Control).visible = shown
+	_alert_cards[0].visible = shown
 	if not shown:
-		_alert_message.text = ""
+		for instance: int in ALERT_CARD_INSTANCES:
+			_alert_cards[instance].visible = false
+			_alert_messages[instance].text = ""
 	_apply_geometry()
 	_register_hit_regions()
 
@@ -2299,23 +2473,26 @@ func _on_history_pressed() -> void:
 	shell_action.emit(ID_HISTORY_TRIGGER)
 
 
-func _on_alert_card_input(event: InputEvent) -> void:
-	"""R-UI-ALERT-001: pointer activation or Enter/Space on the card discloses the whole notice.
+func _on_alert_card_input(event: InputEvent, instance: int) -> void:
+	"""R-UI-ALERT-001: pointer activation or Enter/Space on a card discloses the whole notice.
 
 	UI §5 assigns Space to `time_pause` "with world focus"; a focused HUD card is not world
 	focus, so this consumes Space and `main.gd`'s `_unhandled_input` never sees it. Enter is the
-	project's own `ui_accept`, which is declared Enter-only for exactly that reason.
+	project's own `ui_accept`, which is declared Enter-only for exactly that reason. The bound
+	instance is which card was activated, so the second card opens ITS notice, not the first's.
 	"""
 	if not _is_activation(event):
 		return
-	_consume(event)
-	if _details_index >= 0 and _details_index == _card_index:
+	_consume(instance)
+	if _card_indices[instance] < 0:
+		return
+	if _details_index >= 0 and _details_index == _card_indices[instance]:
 		close_notice_details()
 		return
-	open_notice_details()
+	open_notice_details_for(instance)
 
 
-func _consume(event: InputEvent) -> void:
+func _consume(instance: int) -> void:
 	"""Take one event out of the chain so no other handler acts on the same key or click.
 
 	Off-tree -- the headless suite builds this shell without a Window -- there is no Viewport to
@@ -2324,7 +2501,7 @@ func _consume(event: InputEvent) -> void:
 	if is_inside_tree():
 		get_viewport().set_input_as_handled()
 		return
-	(_controls[ID_ALERT_CARD] as Control).accept_event()
+	_alert_cards[instance].accept_event()
 
 
 func _is_activation(event: InputEvent) -> bool:
@@ -2346,13 +2523,27 @@ func open_notice_details() -> bool:
 	showing something. Focus moves INTO the expanded view so a screen reader announces the
 	disclosure; `close_notice_details()` puts it back on the card that opened it.
 	"""
-	if _card_index < 0:
+	return open_notice_details_for(0)
+
+
+func open_notice_details_for(instance: int) -> bool:
+	"""Open UI-SET-012 on ONE card's notice, with its full details expanded.
+
+	Refuses when that instance carries no notice, rather than opening an empty panel that
+	claims to be showing something, and refuses an instance UI-SET-010 does not build rather
+	than clamping into the first card's notice.
+	"""
+	if instance < 0 or instance >= ALERT_CARD_INSTANCES:
+		return _refuse(REFUSE_UNKNOWN_ELEMENT)
+	if _card_indices[instance] < 0:
 		return _refuse(REFUSE_NO_NOTICE)
-	return _open_history_with(_card_index, ID_ALERT_CARD)
+	_details_opener_card = instance
+	return _open_history_with(_card_indices[instance], ID_ALERT_CARD)
 
 
 func open_notice_history() -> bool:
 	"""Open UI-SET-012 on the whole history with no notice selected, as the N shortcut does."""
+	_details_opener_card = 0
 	return _open_history_with(-1, ID_HISTORY_TRIGGER)
 
 
@@ -2387,11 +2578,32 @@ func close_notice_details() -> bool:
 	_wire_details_focus(false)
 	_details_index = -1
 	_register_hit_regions()
-	var returned: bool = _focus.focus_element(_details_opener)
+	var returned: bool = _return_focus_to_opener()
 	_details_opener = ID_HISTORY_TRIGGER
+	_details_opener_card = 0
 	if not returned:
 		return _refuse(_focus.last_refusal())
 	_last_refusal = REFUSE_NONE
+	return true
+
+
+func _return_focus_to_opener() -> bool:
+	"""§2.2: "focus returns to the opening control if still present" -- the exact instance.
+
+	UI-SET-011's two cards share §4 id 011, so `focus_element(011)` would always land on the
+	first card. When the SECOND card opened the disclosure, focus goes back to that Control
+	directly. `_focused_element` is written here because the router's own cursor is keyed on
+	§4 ids and cannot distinguish the two instances.
+	"""
+	if _details_opener != ID_ALERT_CARD or _details_opener_card <= 0:
+		return _focus.focus_element(_details_opener)
+	var card: Control = _alert_cards[_details_opener_card]
+	if not card.visible:
+		return _focus.focus_element(_details_opener)
+	if card.is_inside_tree():
+		card.grab_focus()
+	_focused_element = ID_ALERT_CARD
+	_focused_card = _details_opener_card
 	return true
 
 
@@ -2890,13 +3102,49 @@ func ledger_label() -> Label:
 
 
 func alert_label() -> Label:
-	"""UI-SET-011's message text: the authored summary, or the whole message when it fits."""
-	return _alert_message
+	"""The FIRST card's message text: the authored summary, or the whole message when it fits."""
+	return _alert_messages[0]
+
+
+func alert_label_at(instance: int) -> Label:
+	"""One card instance's message text, or null for an instance UI-SET-010 does not build."""
+	if instance < 0 or instance >= _alert_messages.size():
+		_refuse(REFUSE_UNKNOWN_ELEMENT)
+		return null
+	_last_refusal = REFUSE_NONE
+	return _alert_messages[instance]
+
+
+func alert_card_at(instance: int) -> Panel:
+	"""One card instance's Panel, or null for an instance UI-SET-010 does not build.
+
+	Index 0 is `control_for(ID_ALERT_CARD)`; index 1 is the second instance, which shares §4
+	id 011 and therefore has no entry of its own in the control table.
+	"""
+	if instance < 0 or instance >= _alert_cards.size():
+		_refuse(REFUSE_UNKNOWN_ELEMENT)
+		return null
+	_last_refusal = REFUSE_NONE
+	return _alert_cards[instance]
 
 
 func alert_icon() -> TextureRect:
-	"""UI-SET-011's severity icon, which §7 requires beside the severity word."""
-	return _alert_icon
+	"""The FIRST card's severity icon, which §7 requires beside the severity word."""
+	return _alert_icons[0]
+
+
+func undisplayed_notices() -> int:
+	"""Active notices the alert zone had no room for -- ALERT-R02 rule 3's count.
+
+	Never negative. Before the first layout the stack has placed nothing, so every active
+	notice is honestly undisplayed; that is the state the empty shell is actually in.
+	"""
+	return maxi(_notices.active_count() - _alert_stack.visible_count, 0)
+
+
+func focused_alert_card() -> int:
+	"""Which UI-SET-011 instance last took keyboard focus. 0 until a card is focused."""
+	return _focused_card
 
 
 func notices() -> UiNotices:
@@ -2905,18 +3153,47 @@ func notices() -> UiNotices:
 
 
 func card_notice_into(out: UiNotices.Notice) -> bool:
-	"""Expand the notice currently on the card. Refuses when no card is showing one."""
-	if _card_index < 0:
+	"""Expand the notice on the FIRST card. Refuses when no card is showing one."""
+	return card_notice_at_into(0, out)
+
+
+func card_notice_at_into(instance: int, out: UiNotices.Notice) -> bool:
+	"""Expand the notice on one card instance. Refuses when that card is showing none."""
+	if instance < 0 or instance >= ALERT_CARD_INSTANCES:
+		return _refuse(REFUSE_UNKNOWN_ELEMENT)
+	if _card_indices[instance] < 0:
 		return _refuse(REFUSE_NO_NOTICE)
-	if not _notices.notice_into(_card_index, _notices.active_count() - 1, out):
+	if not _notices.notice_into(_card_indices[instance], _notices.active_count() - 1, out):
 		return _refuse(_notices.last_refusal())
 	_last_refusal = REFUSE_NONE
 	return true
 
 
 func card_is_summarised() -> bool:
-	"""True when the visible card is drawing its authored summary instead of the full message."""
-	return _alert_stack.visible_count > 0 and _alert_stack.summarised[0] == 1
+	"""True when the FIRST card is drawing its authored summary instead of the full message."""
+	return card_at_is_summarised(0)
+
+
+func card_at_is_summarised(instance: int) -> bool:
+	"""True when one placed card is drawing its authored summary instead of the full message.
+
+	False for an instance the zone did not place, which is not the same claim: a card that is
+	not on screen is not summarising anything. `visible_alert_cards()` is how a caller tells
+	the two apart.
+	"""
+	if instance < 0 or instance >= _alert_stack.summarised.size():
+		return false
+	return instance < _alert_stack.visible_count and _alert_stack.summarised[instance] == 1
+
+
+func visible_alert_cards() -> int:
+	"""How many UI-SET-011 instances the zone actually placed this layout."""
+	return _alert_stack.visible_count
+
+
+func wanted_alert_cards() -> int:
+	"""How many active notices asked for a card, before the zone decided how many fit."""
+	return _cards_wanted
 
 
 func alert_stack() -> UiLayout.Stack:
@@ -2963,8 +3240,16 @@ func notice_announcements() -> int:
 
 
 func activate_alert_card(event: InputEvent) -> void:
-	"""Drive the card's own activation path from a synthetic event, for the input suite."""
-	_on_alert_card_input(event)
+	"""Drive the FIRST card's own activation path from a synthetic event, for the input suite."""
+	_on_alert_card_input(event, 0)
+
+
+func activate_alert_card_at(instance: int, event: InputEvent) -> void:
+	"""Drive one card instance's activation path from a synthetic event."""
+	if instance < 0 or instance >= ALERT_CARD_INSTANCES:
+		_refuse(REFUSE_UNKNOWN_ELEMENT)
+		return
+	_on_alert_card_input(event, instance)
 
 
 func status_label() -> Button:

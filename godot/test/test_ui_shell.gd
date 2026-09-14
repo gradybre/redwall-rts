@@ -790,6 +790,240 @@ func test_the_card_carries_its_severity_icon_and_word() -> void:
 		"and stays out of the accessibility tree, which the description already covers")
 
 
+# --- ALERT-R02: adaptive packing, and what each card is allowed to print -------------------------
+
+func test_a_second_notice_takes_the_second_card_when_the_zone_has_room() -> void:
+	"""ALERT-R02 rule 2, through the real shell: two notices, two cards, neither overlapping.
+
+	The first notice is the reported three-line refusal, which measures taller than the 92 px
+	interior and therefore takes its 44 px summary; that leaves exactly 44 px, which the second
+	notice fills with its own summary. This is "the stack at capacity".
+	"""
+	_raise_pair()
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	assert_equal(_shell.geometry().profile, UiLayout.PROFILE_STANDARD, "1280 at 100% is STANDARD")
+	assert_equal(_shell.wanted_alert_cards(), 2, "two active notices want a card")
+	assert_equal(_shell.visible_alert_cards(), 2, "and the zone places both")
+	var first: Panel = _shell.alert_card_at(0)
+	var second: Panel = _shell.alert_card_at(1)
+	assert_true(second.visible, "the second card is really on screen")
+	assert_almost_equal(second.position.y, first.position.y + first.size.y
+		+ UiLayout.ALERT_CARD_GAP, "and begins at card1_bottom + 4")
+	assert_equal(_shell.alert_label_at(1).text, "Warning: Stores empty (+1)",
+		"printing the second notice's own authored summary, not the first's")
+
+
+func test_the_second_card_shows_the_second_notice_and_not_a_copy_of_the_first() -> void:
+	"""Each card carries its OWN notice: severity, message and accessible description."""
+	_raise_pair()
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var first: UiNotices.Notice = UiNotices.Notice.new()
+	var second: UiNotices.Notice = UiNotices.Notice.new()
+	assert_true(_shell.card_notice_at_into(0, first), "the first card has a notice")
+	assert_true(_shell.card_notice_at_into(1, second), "and so does the second")
+	assert_equal(first.message, THREE_LINE_REFUSAL, "the first is the refusal")
+	assert_equal(second.message, "Out of ration!", "the second is the depletion")
+	assert_true(first.id != second.id, "they are two different notices")
+	assert_true(_shell.alert_card_at(1).accessibility_description.contains("Out of ration!"),
+		"the second card's description carries ITS OWN full message")
+	assert_true(_shell.alert_card_at(1).accessibility_description.contains("Open alert details"),
+		"and names the action that discloses the rest")
+
+
+func test_the_second_card_is_hidden_while_only_one_notice_is_active() -> void:
+	"""A card with no notice is not drawn. An empty second row is not a presentation."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"stores", "STOCK_EMPTY", ""), "one condition is raised")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	assert_equal(_shell.wanted_alert_cards(), 1, "one notice wants a card")
+	assert_equal(_shell.visible_alert_cards(), 1, "one card is placed")
+	assert_false(_shell.alert_card_at(1).visible, "and the second instance is not drawn")
+	assert_equal(_shell.alert_label_at(1).text, "", "with nothing printed into it")
+
+
+func test_narrow_places_one_card_however_many_notices_are_active() -> void:
+	"""ALERT-R02: "NARROW always compact", and §7 gives it exactly one card."""
+	_raise_pair()
+	_narrow()
+	assert_equal(_shell.wanted_alert_cards(), 2, "two notices are still active")
+	assert_equal(_shell.visible_alert_cards(), 1, "but NARROW places one card")
+	assert_false(_shell.alert_card_at(1).visible, "the second instance is not drawn there")
+	assert_true(_shell.card_at_is_summarised(0), "and the one card is the authored summary")
+	assert_almost_equal(_shell.alert_card_at(0).size.y, UiLayout.ALERT_CARD_HEIGHT,
+		"at the fixed 44 px row")
+
+
+func test_a_standard_card_prefers_the_complete_message_when_it_fits() -> void:
+	"""ALERT-R02: STANDARD/WIDE "prefer the complete original notice when it fits"."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"stores", "STOCK_EMPTY", ""), "the depletion is raised")
+	for size: Array in [[1280, 720, 100], [1920, 1080, 100]]:
+		assert_true(_shell.apply_user_scale(int(size[2])), "the user scale applies")
+		assert_true(_shell.layout_for(int(size[0]), int(size[1])), "the layout computes")
+		assert_false(_shell.card_at_is_summarised(0),
+			"%dx%d shows the complete message" % [size[0], size[1]])
+		assert_equal(_shell.alert_label_at(0).text, "Out of ration!",
+			"%dx%d prints the message byte for byte" % [size[0], size[1]])
+		assert_true(_shell.alert_card_at(0).size.y >= UiLayout.ALERT_CARD_HEIGHT,
+			"%dx%d grows the card to hold it" % [size[0], size[1]])
+
+
+func test_every_visible_card_prints_an_authored_string_and_never_an_abbreviation() -> void:
+	"""There are exactly TWO legal card strings: the authored summary, or the whole message.
+
+	Swept over all three profiles and both cards. Any third string -- an ellipsis, a substring,
+	a shortened sentence -- fails here, which is the property "adaptive fitting" must not be
+	allowed to become.
+	"""
+	_raise_pair()
+	for size: Array in [[1920, 1080, 100], [1280, 720, 100], [1280, 720, 150]]:
+		assert_true(_shell.apply_user_scale(int(size[2])), "the user scale applies")
+		assert_true(_shell.layout_for(int(size[0]), int(size[1])), "the layout computes")
+		for instance: int in _shell.visible_alert_cards():
+			_assert_card_text_is_authored(instance, "%dx%d@%d" % size)
+
+
+func _assert_card_text_is_authored(instance: int, where: String) -> void:
+	"""One card's drawn line must be exactly its notice's summary or exactly its message."""
+	var notice: UiNotices.Notice = UiNotices.Notice.new()
+	assert_true(_shell.card_notice_at_into(instance, notice),
+		"%s card %d has a notice" % [where, instance])
+	var drawn: String = _shell.alert_label_at(instance).text
+	var expected: String = notice.summary if _shell.card_at_is_summarised(instance) \
+		else notice.message
+	assert_equal(drawn, expected,
+		"%s card %d prints its authored string, not a shortened one" % [where, instance])
+	assert_false(drawn.ends_with("..."), "%s card %d is not an abbreviation" % [where, instance])
+	assert_false(drawn.contains("\u2026"), "%s card %d carries no ellipsis" % [where, instance])
+	var label: Label = _shell.alert_label_at(instance)
+	assert_false(label.clip_text, "%s card %d does not clip" % [where, instance])
+	assert_equal(label.text_overrun_behavior, TextServer.OVERRUN_NO_TRIMMING,
+		"%s card %d trims nothing" % [where, instance])
+	assert_equal(label.get_theme_font_size(&"font_size"), UiTheme.FONT_CRITICAL_MINIMUM,
+		"%s card %d never shrinks its font to fit" % [where, instance])
+
+
+func test_no_alert_card_is_drawn_outside_its_zone_at_any_profile() -> void:
+	"""The real Control rectangles, read back from the built tree, stay inside UI-SET-010.
+
+	Arithmetic fit is checked in `test_ui_layout.gd`; this is the same property read off the
+	nodes that will actually be drawn, with both a long and a short notice present.
+	"""
+	_raise_pair()
+	for size: Array in [[1920, 1080, 100], [1280, 720, 100], [1280, 720, 125], [1280, 720, 150]]:
+		assert_true(_shell.apply_user_scale(int(size[2])), "the user scale applies")
+		assert_true(_shell.layout_for(int(size[0]), int(size[1])), "the layout computes")
+		var zone: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+		var bottom: float = UiLayout.ALERT_PADDING
+		for instance: int in UiLayout.ALERT_CARDS_WIDE:
+			var card: Panel = _shell.alert_card_at(instance)
+			if not card.visible:
+				continue
+			assert_true(card.position.y >= bottom,
+				"%dx%d@%d card %d starts below the previous one" % [size[0], size[1], size[2], instance])
+			assert_true(card.position.y + card.size.y <= zone.size.y - UiLayout.ALERT_PADDING,
+				"%dx%d@%d card %d ends inside the %.0f px zone" % [size[0], size[1], size[2],
+					instance, zone.size.y])
+			bottom = card.position.y + card.size.y + UiLayout.ALERT_CARD_GAP
+
+
+func test_the_history_rail_states_how_many_notices_the_zone_could_not_show() -> void:
+	"""ALERT-R02 rule 3: the undisplayed count goes through the existing 32 px rail trigger.
+
+	NARROW holds one card of two active notices, so exactly one is undisplayed and the rail
+	says so. No third row is added and no message text is covered: the count is on the trigger.
+	"""
+	_raise_pair()
+	_narrow()
+	assert_equal(_shell.undisplayed_notices(), 1, "one active notice has no card")
+	var trigger: Button = _shell.control_for(UiShell.ID_HISTORY_TRIGGER) as Button
+	assert_true(trigger.accessibility_description.contains("2 unread"),
+		"§4's own unread binding is kept: %s" % trigger.accessibility_description)
+	assert_true(trigger.accessibility_description.contains("1 not shown"),
+		"and the undisplayed count is stated: %s" % trigger.accessibility_description)
+	assert_true(_shell.apply_user_scale(100), "back to the 100 percent user scale")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	assert_equal(_shell.undisplayed_notices(), 0, "STANDARD shows both, so none is undisplayed")
+	assert_false((_shell.control_for(UiShell.ID_HISTORY_TRIGGER) as Button)
+		.accessibility_description.contains("not shown"),
+		"and the rail claims no shortfall it does not have")
+
+
+func test_the_second_card_owns_its_own_click_rectangle() -> void:
+	""""No world-click leakage": a card that consumes a click must say so in the hit table."""
+	_raise_pair()
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var card: Panel = _shell.alert_card_at(1)
+	assert_true(card.visible, "the second card is on screen")
+	var zone: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+	var point: Vector2 = zone.position + card.position + card.size * 0.5
+	assert_false(_shell.hit_test().world_receives(point),
+		"a click on the second card is not a world click")
+	var element: IntMath.IntResult = _shell.hit_test().element_at(point)
+	assert_true(element.ok, "the hit table names an element there")
+	assert_equal(element.value, UiShell.ID_ALERT_CARD,
+		"and it is UI-SET-011, which is what the second instance IS")
+
+
+func test_the_second_card_is_a_tab_stop_between_the_first_card_and_the_rail() -> void:
+	"""§8.2's order is alerts then the history trigger; the second instance sits inside it."""
+	_raise_pair()
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var first: Control = _shell.control_for(UiShell.ID_ALERT_CARD)
+	var second: Panel = _shell.alert_card_at(1)
+	var trigger: Control = _shell.control_for(UiShell.ID_HISTORY_TRIGGER)
+	assert_equal(second.focus_mode, Control.FOCUS_ALL, "the second card can take focus")
+	assert_equal(first.get_node_or_null(first.focus_next), second,
+		"Tab from the first card reaches the second")
+	assert_equal(second.get_node_or_null(second.focus_next), trigger,
+		"and Tab from the second reaches the history trigger")
+	assert_equal(second.get_node_or_null(second.focus_previous), first,
+		"Shift+Tab from the second returns to the first")
+	assert_equal(trigger.get_node_or_null(trigger.focus_previous), second,
+		"and Shift+Tab from the trigger returns to the second")
+
+
+func test_enter_on_the_second_card_opens_that_card_s_own_notice() -> void:
+	"""Keyboard activation discloses the notice the player is on, not the highest-priority one."""
+	_raise_pair()
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	_shell.activate_alert_card_at(1, _key_event(KEY_ENTER))
+	assert_true(_shell.control_for(UiShell.ID_HISTORY).visible, "the expanded view opens")
+	assert_true(_expanded_text().contains("Out of ration!"),
+		"with the SECOND card's notice expanded: %s" % _expanded_text())
+	assert_true(_expanded_text().contains("STOCK_EMPTY"),
+		"including its own validation code")
+
+
+func test_closing_the_second_card_s_disclosure_returns_focus_to_that_card() -> void:
+	"""§2.2: "focus returns to the opening control if still present" -- the instance, not the id."""
+	_raise_pair()
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	assert_true(_shell.open_notice_details_for(1), "the second card discloses its notice")
+	assert_true(_shell.close_notice_details(), "and the expanded view closes")
+	assert_equal(_shell.focused_element(), UiShell.ID_ALERT_CARD, "focus is back on a card")
+	assert_equal(_shell.focused_alert_card(), 1, "and it is the card that opened it")
+
+
+func test_a_card_instance_the_stack_does_not_build_is_refused() -> void:
+	"""No sentinel and no clamp into the first card: an instance that does not exist refuses."""
+	_raise_pair()
+	assert_false(_shell.open_notice_details_for(UiLayout.ALERT_CARDS_WIDE),
+		"a third card instance is refused")
+	assert_equal(_shell.last_refusal(), UiShell.REFUSE_UNKNOWN_ELEMENT, "by name")
+	assert_true(_shell.alert_card_at(-1) == null, "and there is no card below index 0")
+	var notice: UiNotices.Notice = UiNotices.Notice.new()
+	assert_false(_shell.card_notice_at_into(7, notice), "nor a notice on an unbuilt instance")
+
+
+func _raise_pair() -> void:
+	"""Raise the reported long refusal and a short depletion, in that priority order."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "the refusal is raised")
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"stores", "STOCK_EMPTY", ""), "and the depletion after it")
+
+
 # --- the accessible description is a full access path, not a tooltip -----------------------------
 
 func test_the_accessible_description_carries_severity_and_the_whole_message() -> void:

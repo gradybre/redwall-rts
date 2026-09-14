@@ -259,7 +259,7 @@ func test_the_narrow_alert_zone_holds_exactly_one_card_at_y_seventy_six() -> voi
 	assert_almost_equal(_geometry.alerts.size.y, 48.0, "and 48 logical pixels high")
 	var measured: PackedFloat32Array = PackedFloat32Array([200.0])
 	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_NARROW, _geometry.alerts.size.x,
-		measured, _stack), "the stack computes")
+		measured, measured.size(), _stack), "the stack computes")
 	assert_equal(_stack.visible_count, 1, "one card is placed")
 	assert_almost_equal(_stack.rects[0].size.y, 44.0, "44 high however tall its content measures")
 	assert_almost_equal(_stack.rects[0].position.y + _stack.rects[0].size.y, 46.0,
@@ -275,8 +275,8 @@ func test_a_narrow_card_summarises_even_when_its_content_would_fit() -> void:
 	unpredictability the authored table exists to remove.
 	"""
 	var measured: PackedFloat32Array = PackedFloat32Array([20.0])
-	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_NARROW, 360.0, measured, _stack),
-		"a short card computes")
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_NARROW, 360.0, measured,
+		measured.size(), _stack), "a short card computes")
 	assert_equal(_stack.summarised[0], 1, "and still draws the authored summary")
 
 
@@ -288,8 +288,8 @@ func test_two_long_standard_cards_cannot_overlap() -> void:
 	over one another; here the cursor advances by the height actually granted.
 	"""
 	var measured: PackedFloat32Array = PackedFloat32Array([400.0, 400.0])
-	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_STANDARD, 360.0, measured, _stack),
-		"the stack computes")
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_STANDARD, 360.0, measured,
+		measured.size(), _stack), "the stack computes")
 	for index: int in _stack.visible_count:
 		var card: Rect2 = _stack.rects[index]
 		assert_true(card.position.y >= UiLayout.ALERT_PADDING, "card %d starts inside the zone" % index)
@@ -304,8 +304,8 @@ func test_two_long_standard_cards_cannot_overlap() -> void:
 func test_a_card_that_fills_the_zone_leaves_no_room_for_a_second_one() -> void:
 	""""Their visible-card limit is a maximum, not a requirement to overlap ... show fewer"."""
 	var measured: PackedFloat32Array = PackedFloat32Array([92.0, 44.0])
-	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured, _stack),
-		"the stack computes")
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured,
+		measured.size(), _stack), "the stack computes")
 	assert_equal(_stack.visible_count, 1, "the second card is not placed at all")
 	assert_almost_equal(_stack.rects[0].size.y, 92.0, "the first card takes the whole interior")
 	assert_equal(_stack.summarised[0], 0, "and shows its full content")
@@ -314,12 +314,129 @@ func test_a_card_that_fills_the_zone_leaves_no_room_for_a_second_one() -> void:
 func test_two_short_cards_keep_the_existing_wide_composition() -> void:
 	"""Wide and standard "retain their existing layouts when content fits"."""
 	var measured: PackedFloat32Array = PackedFloat32Array([44.0, 44.0])
-	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured, _stack),
-		"the stack computes")
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured,
+		measured.size(), _stack), "the stack computes")
 	assert_equal(_stack.visible_count, 2, "both cards are shown")
 	assert_almost_equal(_stack.rects[1].position.y + _stack.rects[1].size.y, 94.0,
 		"and the pair still ends at §1.2's 94")
 	assert_equal(_stack.summarised[1], 0, "neither has to summarise")
+
+
+func test_alert_r02_packs_the_four_cases_its_consequences_list() -> void:
+	"""ALERT-R02's own worked consequences, each as a measured pair and an expected shape.
+
+	"two 44px full cards fit exactly 92px. A 44px first full card plus an oversized second gets
+	a 44px second summary. A 60px first full card appears alone. A first notice too large for
+	92px uses a summary; another card may then fit."
+	"""
+	_assert_pack([44.0, 44.0], 2, [0, 0], [44.0, 44.0], "two full 44s")
+	_assert_pack([44.0, 300.0], 2, [0, 1], [44.0, 44.0], "a full 44 and an oversized second")
+	_assert_pack([60.0, 44.0], 1, [0], [60.0], "a 60 px first card is alone")
+	_assert_pack([300.0, 44.0], 2, [1, 0], [44.0, 44.0], "an oversized first summarises")
+
+
+func _assert_pack(measured_values: Array, expect_visible: int, expect_summarised: Array,
+		expect_heights: Array, what: String) -> void:
+	"""Pack one measured pair at WIDE and assert the card count, summaries and heights."""
+	var measured: PackedFloat32Array = PackedFloat32Array(measured_values)
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured,
+		measured.size(), _stack), "%s packs" % what)
+	assert_equal(_stack.visible_count, expect_visible, "%s shows %d card(s)" % [what, expect_visible])
+	for index: int in expect_visible:
+		assert_equal(_stack.summarised[index], int(expect_summarised[index]),
+			"%s: card %d summarised flag" % [what, index])
+		assert_almost_equal(_stack.rects[index].size.y, float(expect_heights[index]),
+			"%s: card %d height" % [what, index])
+	if expect_visible == 2:
+		assert_almost_equal(_stack.rects[1].position.y,
+			_stack.rects[0].position.y + _stack.rects[0].size.y + UiLayout.ALERT_CARD_GAP,
+			"%s: card 2 begins at card1_bottom + 4, not at a fixed origin" % what)
+
+
+func test_the_narrow_zone_interior_is_one_card_so_its_ceiling_equals_its_floor() -> void:
+	"""`ALERT_H` is [48,96,96]: NARROW's 44 px interior IS one card, so nothing can grow there.
+
+	This is the arithmetic that makes the compact NARROW form a construction rather than a
+	length-dependent fallback. If the interior ever exceeded the card height, a NARROW card
+	could be granted room it has no zone for.
+	"""
+	assert_almost_equal(UiLayout.alert_zone_interior(UiLayout.PROFILE_NARROW),
+		UiLayout.ALERT_CARD_HEIGHT, "the narrow interior is exactly one 44 px card")
+	assert_almost_equal(UiLayout.alert_zone_interior(UiLayout.PROFILE_STANDARD), 92.0,
+		"standard leaves 92 for content")
+	assert_almost_equal(UiLayout.alert_zone_interior(UiLayout.PROFILE_WIDE), 92.0,
+		"and so does wide")
+	assert_almost_equal(UiLayout.alert_zone_interior(UiLayout.PROFILE_COUNT), 0.0,
+		"an unknown profile has no interior to state")
+
+
+func test_no_measured_content_makes_a_narrow_card_show_its_full_text() -> void:
+	"""ALERT-R02: "NARROW always compact". Swept, so no single short value can slip through."""
+	for height: float in [0.0, 1.0, 20.0, 43.0, 44.0, 45.0, 92.0, 400.0]:
+		var measured: PackedFloat32Array = PackedFloat32Array([height, height])
+		assert_true(_layout.alert_stack_into(UiLayout.PROFILE_NARROW, 360.0, measured,
+			measured.size(), _stack), "a %.0f px measurement packs at NARROW" % height)
+		assert_equal(_stack.visible_count, 1, "NARROW places exactly one card at %.0f" % height)
+		assert_equal(_stack.summarised[0], 1,
+			"and it is the authored summary at %.0f px measured" % height)
+		assert_almost_equal(_stack.rects[0].size.y, UiLayout.ALERT_CARD_HEIGHT,
+			"at the fixed 44 px row at %.0f" % height)
+
+
+func test_no_packed_card_can_be_drawn_outside_its_own_zone() -> void:
+	"""Swept containment: no rectangle may start above the inset or end past the zone height.
+
+	This is the property a "grow each card against the whole ceiling" regression breaks, and it
+	is swept rather than sampled because a single measured pair can pass by luck.
+	"""
+	var sizes: Array[float] = [0.0, 10.0, 44.0, 45.0, 47.0, 60.0, 88.0, 92.0, 93.0, 400.0]
+	for profile: int in UiLayout.PROFILE_COUNT:
+		for first: float in sizes:
+			for second: float in sizes:
+				_assert_contained(profile, PackedFloat32Array([first, second]))
+
+
+func _assert_contained(profile: int, measured: PackedFloat32Array) -> void:
+	"""Pack one measured pair and assert every placed card lies inside the zone, in order."""
+	assert_true(_layout.alert_stack_into(profile, 360.0, measured, measured.size(), _stack),
+		"profile %d packs %s" % [profile, measured])
+	var limit: float = float(UiLayout.ALERT_H[profile]) - UiLayout.ALERT_PADDING
+	var previous_bottom: float = UiLayout.ALERT_PADDING
+	assert_true(_stack.visible_count <= UiLayout.alert_card_count(profile),
+		"profile %d never exceeds its card budget" % profile)
+	for index: int in _stack.visible_count:
+		var card: Rect2 = _stack.rects[index]
+		assert_true(card.position.y >= previous_bottom,
+			"profile %d card %d starts at or below the previous bottom" % [profile, index])
+		assert_true(card.position.y + card.size.y <= limit,
+			"profile %d card %d ends inside the zone (%s of %.0f)" % [profile, index,
+				card.position.y + card.size.y, limit])
+		assert_true(card.size.y >= UiLayout.ALERT_CARD_HEIGHT,
+			"profile %d card %d is never shorter than the 44 px row" % [profile, index])
+		previous_bottom = card.position.y + card.size.y + UiLayout.ALERT_CARD_GAP
+
+
+func test_the_stack_refuses_a_count_it_has_no_measurements_for() -> void:
+	"""A count beyond the measured buffer is refused by name, never clamped into a guess."""
+	var measured: PackedFloat32Array = PackedFloat32Array([44.0, 44.0])
+	assert_false(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured, 3, _stack),
+		"three cards cannot be packed from two measurements")
+	assert_equal(_layout.last_refusal(), UiLayout.REFUSE_ALERT_COUNT, "and it refuses by name")
+	assert_equal(_stack.visible_count, 0, "with no card placed")
+	assert_false(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured, -1, _stack),
+		"a negative count is refused too")
+	assert_equal(_layout.last_refusal(), UiLayout.REFUSE_ALERT_COUNT, "by the same name")
+
+
+func test_a_stack_asked_for_no_cards_places_none() -> void:
+	"""An empty alert zone is a real state: no notice wants a card, so no card is drawn."""
+	var measured: PackedFloat32Array = PackedFloat32Array([44.0, 44.0])
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured, 0, _stack),
+		"packing nothing succeeds")
+	assert_equal(_stack.visible_count, 0, "and places nothing")
+	assert_true(_layout.alert_stack_into(UiLayout.PROFILE_WIDE, 420.0, measured, 1, _stack),
+		"packing one succeeds")
+	assert_equal(_stack.visible_count, 1, "and places exactly one")
 
 
 func test_the_summary_interior_accounts_for_the_icon_the_gaps_and_the_rail() -> void:
@@ -340,8 +457,8 @@ func test_the_summary_interior_accounts_for_the_icon_the_gaps_and_the_rail() -> 
 func test_the_alert_stack_refuses_a_profile_it_has_no_zone_for() -> void:
 	"""No rectangle is invented for a profile §1.2 does not define."""
 	var measured: PackedFloat32Array = PackedFloat32Array([44.0])
-	assert_false(_layout.alert_stack_into(UiLayout.PROFILE_COUNT, 360.0, measured, _stack),
-		"an unknown profile is refused")
+	assert_false(_layout.alert_stack_into(UiLayout.PROFILE_COUNT, 360.0, measured,
+		measured.size(), _stack), "an unknown profile is refused")
 	assert_equal(_layout.last_refusal(), UiLayout.REFUSE_INVALID_PROFILE, "by name")
 	assert_equal(_stack.visible_count, 0, "and no card is placed")
 

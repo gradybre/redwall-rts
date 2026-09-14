@@ -58,6 +58,25 @@ rules; this card does not replace the binary schema.
   or the six counters, and `set_pause(PLAYER, true)` discards sub-tick debt, so
   the WorldRuntime block can be captured and verified but NOT published. It needs
   a side-effect-free `restore_runtime(...)` from that module's owner.
+  *§11's STORE landed 2026-09-12 (decision 0133):*
+  `godot/scripts/core/event_schedule.gd` implements the EVENT_SCHEDULE owner
+  `canonical_state_registry.json` had only forward-declared -- eight fields at
+  REG-R01's ordinals, six packed columns at 64 rows (2048 B, already budgeted at
+  `systems_architecture.md:417-418`), dense and sorted `(due_tick, sequence)`,
+  SAVE-R09-005's allocator (initial 1, never reused, zero means EXHAUSTED) and a
+  `restore_rows()` gate that validates order, uniqueness, sequence range and tick
+  sign before writing a byte. Refusals leave the store byte-identical and the
+  tail past `_count` is held zero. **Still open, and NOT closed by this:** §11 has
+  no CODEC -- nothing encodes or decodes `next_sequence:i64` + N 32-byte records
+  -- there is no producer and no consumer, and SAVE-R09-005's required
+  kind/argument DOMAIN and event production/consumption rules are still unruled,
+  so the columns are validated as int32 storage and carry no meaning. §13
+  CHRONICLE and §15 STATE_DIGEST still have no owning module.
+  **REGISTRY DEBT:** `docs/persistence_state_registry.md` owes this module a
+  section and `state_registry_coverage.py` fails C1 until it is applied;
+  `canonical_state_registry.json` owes the stale
+  `REQUIRED_NOT_PRESENT_IN_SNAPSHOT` markers, a `source_contract` on the six row
+  fields and `packed_source_field_count` 530 -> 536.
 - [ ] 09.3 Implement transactional disk-backed rollback load, validated inactive
   checkpoint, autosave rotation and interrupted-I/O recovery. Recompute expanded
   peak memory; the baseline single-floor ledger is insufficient. No second full

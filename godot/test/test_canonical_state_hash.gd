@@ -73,7 +73,13 @@ const CAPTURE_CAP: int = 4096
 
 const U32_HIGH_BIT: int = 2147483648
 const NAME_CAP_BYTES: int = 128
-const REGISTRY_PACKED_FIELD_COUNT: int = 530
+## REG-R01 REQUIRES this to grow: it is a snapshot of how many packed columns the registry
+## currently persists, not a format constant. It read 512 at executor snapshot 197472b, 530
+## after the save-registry reconciliation, and 536 once event_schedule.gd landed section 11's
+## six record columns. A new store SHOULD move it. What must NOT move without a ruling is
+## `record_count`, which counts declared records and stayed at 582 -- section 11's eight
+## fields were already declared before any of them had a module.
+const REGISTRY_PACKED_FIELD_COUNT: int = 536
 
 
 class FixtureAdapter:
@@ -357,7 +363,7 @@ func _assert_field_shape(declaration: Digest.Declaration, field: Dictionary, ind
 
 
 func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
-	"""582 canonical records over 50 owners, 530 persisted packed fields, release_save_ready false."""
+	"""582 canonical records over 50 owners, 536 persisted packed fields, release_save_ready false."""
 	var data: Dictionary = _registry()
 	assert_equal(int(data["record_count"]), Digest.CANONICAL_RECORD_COUNT, "registry record_count")
 	assert_equal(int(data["packed_source_field_count"]), REGISTRY_PACKED_FIELD_COUNT,

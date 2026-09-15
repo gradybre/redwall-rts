@@ -153,10 +153,18 @@ assert DECISION_0131_ADDED==5142528
 # row is removed, and the 51200 instance-buffer row it also added remains.
 DECISION_0138_REMOVED=-(87552*9*4)
 assert DECISION_0138_REMOVED==-3151872
-assert len(allocations)==30 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED
+# decision 0145: the demolition owner scan. Three cold-path buffers in settlement_system.gd,
+# sized once in _init() and written only by request_demolition(), never by a tick. The scan
+# pairs are inventory.owner_query_cells() = 101376 x 2; the seen bitmap is one byte per
+# container cell; the report holds generation-checked lot identity rather than bare slots.
+# godot/scripts/systems is outside state_registry_coverage.py's glob, so these owe no registry
+# row -- which is exactly why they need a ledger row instead of being invisible.
+DECISION_0145_ADDED=(202752*4)+(101376*1)+(2*16384*4)
+assert DECISION_0145_ADDED==1043456
+assert len(allocations)==33 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==68959564
-assert live==77348172 and candidate==62743980 and live+candidate==140092152
+assert payload==70003020
+assert live==78391628 and candidate==63787436 and live+candidate==142179064
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

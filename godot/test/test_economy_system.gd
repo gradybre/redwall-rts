@@ -66,7 +66,10 @@ const STARTER_READY_NP: int = 408000
 ## 74400 NP/day, thus 5.48 ready food-days at start".
 const STARTER_DEMAND_NP: int = 74400
 const STARTER_FOOD_DAYS_CENTI: int = 548
-const STARTER_FOOD_DAYS_TEXT: String = "5.48"
+## UI-C3-R01 §2 puts the unit on the figure at its owner, so the populated form carries it.
+## The refused case keeps the bare "--": "-- days" would read as a measured zero rather than
+## an absent divisor.
+const STARTER_FOOD_DAYS_TEXT: String = "5.48 days"
 
 var _economy: EconomySystemScript = null
 var _residents: ResidentsScript = null
@@ -410,7 +413,7 @@ func test_food_days_truncates_rather_than_rounds() -> void:
 	_bind_starting_settlement()
 	assert_equal(STARTER_READY_NP * 100 / STARTER_DEMAND_NP, 548, "the exact quotient floors to 548")
 	assert_true(STARTER_READY_NP * 100 % STARTER_DEMAND_NP > 0, "the quotient is not exact")
-	assert_equal(_economy.food_days_text(), "5.48", "the discarded remainder is not rounded up")
+	assert_equal(_economy.food_days_text(), "5.48 days", "the discarded remainder is not rounded up")
 
 
 func test_food_days_uses_the_winter_demand_multiplier() -> void:
@@ -419,7 +422,7 @@ func test_food_days_uses_the_winter_demand_multiplier() -> void:
 	assert_true(_residents.set_winter(true).ok, "winter arrives")
 	assert_equal(_economy.daily_demand_np().value, 89280, "winter demand is 74400 x 1.20")
 	assert_equal(_economy.food_days_centi().value, 456, "the same stores now cover 4.56 days")
-	assert_equal(_economy.food_days_text(), "4.56", "the display followed the season")
+	assert_equal(_economy.food_days_text(), "4.56 days", "the display followed the season")
 
 
 func test_food_days_excludes_reserved_and_inedible_stock() -> void:

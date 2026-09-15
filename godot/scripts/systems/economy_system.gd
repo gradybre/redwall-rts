@@ -349,7 +349,11 @@ func food_days_text() -> String:
 	var centi: IntMath.IntResult = food_days_centi()
 	if not centi.ok:
 		return UNPOPULATED_TEXT
-	return "%d.%02d" % [centi.value / FOOD_DAYS_SCALE, centi.value % FOOD_DAYS_SCALE]
+	# UI-C3-R01 §2 requires the unit on the figure. It belongs here and not in hud.gd, which
+	# renders byte for byte by contract: a renderer that appends a unit is deriving a value it
+	# was given. The refused case keeps the bare marker -- "-- days" would read as a measured
+	# zero rather than an absent divisor.
+	return "%d.%02d days" % [centi.value / FOOD_DAYS_SCALE, centi.value % FOOD_DAYS_SCALE]
 
 
 func fuel_days_text() -> String:

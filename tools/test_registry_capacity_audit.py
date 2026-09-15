@@ -432,28 +432,35 @@ def test_p05_real_census_matches_astra_or_says_so_loudly() -> None:
 	"""The real registry's census, stated against Astra's Cycle 3 numbers."""
 	built = real_audit()
 	observed = built["census"]["observed"]
-	check("P05 519 prose records", observed["prose_records"] == 519)
-	check("P05 473 equality", observed["equality"] == 473)
+	check("P05 516 prose records", observed["prose_records"] == 516)
+	check("P05 470 equality", observed["equality"] == 470)
 	check("P05 46 upper bounds", observed["upper_bound"] == 46)
 	check("P05 80 other canonical shapes", observed["other_canonical_shapes"] == 80)
-	check("P05 56 distinct expressions", observed["distinct_expressions"] == 56)
-	check("P05 599 canonical records and 8 non-hash", observed["canonical_records"] == 599 and observed["non_hash_fields"] == 8)
+	check("P05 55 distinct expressions", observed["distinct_expressions"] == 55)
+	check("P05 596 canonical records and 8 non-hash", observed["canonical_records"] == 596 and observed["non_hash_fields"] == 8)
 	check("P05 no non-hash row was swept in", observed["non_hash_fields_admitted_to_audit"] == 0)
-	check("P05 the census agrees with Astra Cycle 3 and lists no disagreement",
-		built["census"]["agrees_with_astra_cycle_03"] and built["census"]["disagreements"] == [])
+	# The census no longer equals Astra's 388f4f4 snapshot, and must not be made to. Decision
+	# 0142 retired three deposit members after that snapshot was taken, so five counts moved.
+	# What matters is that EVERY difference is one a recorded decision accounts for: zero
+	# UNEXPLAINED disagreements. Asserting equality here would have meant either reverting a
+	# correct registry change or editing Astra's evidence to match the code.
+	check("P05 every difference from Astra Cycle 3 is explained by a recorded decision",
+		built["census"]["disagreements"] == [])
+	check("P05 the explained drift is decision 0142's three deposit members",
+		len(built["census"]["explained_since_census"]) == 5)
 	check("P05 equality plus bounds is the whole prose set",
 		observed["equality"] + observed["upper_bound"] == observed["prose_records"])
 
 
 def test_p06_real_proof_status_is_exactly_reported() -> None:
-	"""The real proof outcome: 471 equalities, 46 bounds, 2 unproved, 0 contradictions."""
+	"""The real proof outcome: 468 equalities, 46 bounds, 2 unproved, 0 contradictions."""
 	built = real_audit()
 	counts = built["status_counts"]
-	check("P06 471 proved equalities", counts.get("proved_equality") == 471)
+	check("P06 468 proved equalities", counts.get("proved_equality") == 468)
 	check("P06 46 proved upper bounds", counts.get("proved_upper_bound") == 46)
 	check("P06 2 unproved non-allowlisted operators", counts.get("unproved_non_allowlisted_operator") == 2)
 	check("P06 no other status appears", set(counts) == {"proved_equality", "proved_upper_bound", "unproved_non_allowlisted_operator"})
-	check("P06 the statuses sum to 519", sum(counts.values()) == 519)
+	check("P06 the statuses sum to 516", sum(counts.values()) == 516)
 	quarantined = built["unproved_or_contradicted"]
 	check("P06 both quarantined rows are orchard_hive link columns",
 		sorted(row["field_key"] for row in quarantined) == ["_link_hive_generation", "_link_hive_slot"])
@@ -467,7 +474,7 @@ def test_p07_every_proved_row_carries_its_provenance() -> None:
 	"""A proved row without a file, line and chain is an assertion, not a proof."""
 	built = real_audit()
 	proved = [row for row in built["rows"] if row["status"].startswith("proved_")]
-	check("P07 517 rows are proved", len(proved) == 517)
+	check("P07 514 rows are proved", len(proved) == 514)
 	check("P07 every proved row names a real source file",
 		all((ROOT / row["source_file"]).is_file() for row in proved))
 	check("P07 every proved row cites a resize line", all(row["source_resize_line"] >= 1 for row in proved))
@@ -481,13 +488,13 @@ def test_p07_every_proved_row_carries_its_provenance() -> None:
 
 
 def test_p08_keys_are_unique_and_nothing_is_lost() -> None:
-	"""Every audit key is unique, and the 599 canonical records are fully accounted for."""
+	"""Every audit key is unique, and the 596 canonical records are fully accounted for."""
 	built = real_audit()
 	keys = [(row["section_id"], row["owner_key"], row["ordinal"], row["field_key"]) for row in built["rows"]]
-	check("P08 519 keys, all unique", len(keys) == 519 and len(set(keys)) == 519)
+	check("P08 516 keys, all unique", len(keys) == 516 and len(set(keys)) == 516)
 	other = built["non_capacity_canonical_records"]
 	check("P08 80 non-capacity records are listed, not dropped", len(other) == 80)
-	check("P08 the two lists partition the 599 canonical records", len(keys) + len(other) == 599)
+	check("P08 the two lists partition the 596 canonical records", len(keys) + len(other) == 596)
 	overlap = set(keys) & {(row["section_id"], row["owner_key"], row["ordinal"], row["field_key"]) for row in other}
 	check("P08 the two lists do not overlap", overlap == set())
 
@@ -510,7 +517,12 @@ def test_p10_the_sidecar_declares_itself_unadopted() -> None:
 	built = real_audit()
 	check("P10 the sidecar is marked read-only", built["kind"] == "read_only_sidecar")
 	check("P10 the sidecar is marked unadopted", built["adopted"] is False)
-	check("P10 the audited registry stays version 1", built["audited_registry"]["registry_version"] == 1)
+	# registry_version is the ACTIVE registry's, read not asserted: decision 0142 moved it 1 -> 2
+	# with the rules identity. Pinning a literal here would make this sidecar refuse every future
+	# registry revision, which is the opposite of an audit's job.
+	check("P10 the audit reports the registry version it actually read",
+		built["audited_registry"]["registry_version"]
+			== json.loads((ROOT / "docs/planning/canonical_state_registry.json").read_text())["registry_version"])
 	check("P10 the audit does not re-assert the registry's source sha",
 		"source_registry_sha256" not in json.dumps(built["audited_registry"]))
 	check("P10 the notes say no prose is converted",

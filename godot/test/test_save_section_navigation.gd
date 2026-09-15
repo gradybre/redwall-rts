@@ -626,6 +626,122 @@ func test_wrong_owner_schema_versions_are_refused() -> void:
 		"navigation schema 1 is refused: %s" % navigation.detail)
 
 
+# --- SAVE-C3-R01: what §9's two primary counts MEAN, pinned at absolute wire offsets --------------
+
+func test_primary_counts_are_designated_tables_not_a_census() -> void:
+	"""512 and 8192 are DESIGNATED tables. Their sum, 8704, is not a count of anything on the wire.
+
+	Decision 0121 declared these two values and decision 0120 refused to declare §8's; SAVE-C3-R01
+	settled that disagreement by fixing the SEMANTICS rather than only the digits. `primary_count`
+	is "a declared primary physical row extent for that owner block, not a total of every field's
+	extents and not an occupancy count". So:
+
+	  * `movement` = 512 is unambiguous: one table, `MOTION_CAPACITY`.
+	  * `navigation` = 8192 is the DESIGNATED path-request table, `PATH_REQUEST_CAPACITY`, chosen
+	    out of 13 scalars, four 262144-cell builder columns, 256 route descriptors, 8192 requests
+	    and two used prefixes. The path request is what §9 is about.
+	  * The 256 route descriptors and the 262144 spatial cells are validated SEPARATELY and are
+	    never substituted for the primary; the literals below say so by value.
+	"""
+	assert_equal(SaveSectionNavigation.PRIMARY_COUNT_MOVEMENT, 512, "movement declares 512")
+	assert_equal(SaveSectionNavigation.PRIMARY_COUNT_MOVEMENT,
+		MovementScript.MOTION_CAPACITY, "and 512 is MOTION_CAPACITY, read from the owner")
+	assert_equal(SaveSectionNavigation.PRIMARY_COUNT_NAVIGATION, 8192, "navigation declares 8192")
+	assert_equal(SaveSectionNavigation.PRIMARY_COUNT_NAVIGATION,
+		NavigationScript.PATH_REQUEST_CAPACITY, "and 8192 is PATH_REQUEST_CAPACITY")
+	assert_equal(SaveSectionNavigation.ROUTE_DESCRIPTOR_CAPACITY, 256,
+		"the 256 route descriptors are a separate extent")
+	assert_equal(SaveSectionNavigation.CELL_COUNT, 262144, "the spatial cells are a third")
+	for rejected: int in [256, 262144, 511, 8704, 262912]:
+		assert_false(SaveSectionNavigation.PRIMARY_COUNT_NAVIGATION == rejected,
+			"navigation's primary is not %d" % rejected)
+
+
+func test_wire_primary_counts_are_pinned_at_absolute_offsets() -> void:
+	"""Read the two count words straight out of the encoded section, at literal byte offsets.
+
+	20 = 4 (store_count) + 4 (key length) + 8 ("movement") + 4 (owner schema).
+	18558 = 18540 (navigation wrapper) + 4 (key length) + 10 ("navigation") + 4 (owner schema).
+	Both are literals rather than `OFFSET_MOVEMENT_WRAPPER + ...`, because an offset recomputed
+	from the module being checked moves with it -- §7's `_read_block()` did exactly that.
+	"""
+	var bytes: PackedByteArray = _encode(_record)
+	assert_equal(_hex(bytes.slice(20, 28)), "0002000000000000", "byte 20: movement primary 512")
+	assert_equal(_hex(bytes.slice(18558, 18566)), "0020000000000000",
+		"byte 18558: navigation primary 8192")
+	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
+	assert_true(SaveCodec.read_u64_at(bytes, 20, scalar), "the movement count is readable")
+	assert_equal(scalar.value, 512, "512, decoded from the wire rather than from a constant")
+	assert_true(SaveCodec.read_u64_at(bytes, 18558, scalar), "the navigation count is readable")
+	assert_equal(scalar.value, 8192, "8192, decoded from the wire")
+	assert_equal(SaveSectionNavigation.OWNER_SCHEMA_VERSION_MOVEMENT, 1, "movement stays schema 1")
+	assert_equal(SaveSectionNavigation.OWNER_SCHEMA_VERSION_NAVIGATION, 2, "navigation stays 2")
+	assert_equal(SaveSectionNavigation.SECTION_SCHEMA_VERSION, 2, "§9 stays section schema 2")
+
+
+func test_section_descriptor_row_count_is_8192_and_not_the_sum() -> void:
+	"""§9's descriptor `row_count` is the navigation primary, NOT 512 + 8192.
+
+	§4 and §5 keep SAVE-LAYOUT-R01's checked sum of block primary counts, and SAVE-C3-R01 is
+	explicit that this does NOT generalise: "the section descriptor's `row_count` is
+	section-specific". §9 is the exception it names by value -- 8192, "not 8704 (sum of the two
+	blocks)" -- so the number is pinned here where a later reader will look for it.
+	"""
+	assert_equal(SaveSectionNavigation.descriptor_row_count(), 8192, "the descriptor declares 8192")
+	assert_equal(SaveSectionNavigation.PRIMARY_COUNT_MOVEMENT
+		+ SaveSectionNavigation.PRIMARY_COUNT_NAVIGATION, 8704, "the two blocks really sum to 8704")
+	assert_false(SaveSectionNavigation.descriptor_row_count()
+		== SaveSectionNavigation.PRIMARY_COUNT_MOVEMENT
+		+ SaveSectionNavigation.PRIMARY_COUNT_NAVIGATION, "and the descriptor is NOT that sum")
+	assert_false(SaveSectionNavigation.descriptor_row_count()
+		== SaveSectionNavigation.PRIMARY_COUNT_MOVEMENT, "nor the movement block's 512")
+	assert_false(SaveSectionNavigation.descriptor_row_count()
+		== SaveSectionNavigation.ROUTE_DESCRIPTOR_CAPACITY, "nor the 256 route descriptors")
+
+
+func _descriptor_row_count_agrees(row_count: int) -> bool:
+	"""The assembler/header-boundary rule: a §9 descriptor must declare exactly this section's row
+	count. Local to the suite because `save_section_navigation.gd` is not this lane's file to
+	extend; a production `descriptor_row_count()` that moved would still fail the case below."""
+	return row_count == SaveSectionNavigation.descriptor_row_count()
+
+
+func test_a_descriptor_claiming_8704_is_refused_at_the_header_boundary() -> void:
+	"""A real 64-byte descriptor, encoded and decoded, with 8192 accepted and 8704 refused.
+
+	The wire word is pinned at literal descriptor offset 24, so a §9 descriptor carrying the sum
+	cannot pass as one carrying the designated navigation count.
+	"""
+	var honest: SaveHeader.Descriptor = SaveHeader.Descriptor.new()
+	honest.section_id = 9
+	honest.schema_version = SaveSectionNavigation.SECTION_SCHEMA_VERSION
+	honest.offset = 256
+	honest.byte_length = SaveSectionNavigation.SECTION_FIXED_BYTES
+	honest.row_count = SaveSectionNavigation.descriptor_row_count()
+	var bytes: PackedByteArray = PackedByteArray()
+	bytes.resize(SaveHeader.SECTION_DESCRIPTOR_BYTES)
+	assert_true(SaveHeader.encode_descriptor_into(honest, bytes, 0).is_ok(), "descriptor encodes")
+	assert_equal(_hex(bytes.slice(24, 32)), "0020000000000000",
+		"descriptor byte 24 carries 8192 as a little-endian u64")
+	var back: SaveHeader.Descriptor = SaveHeader.Descriptor.new()
+	assert_true(SaveHeader.decode_descriptor_into(bytes, 0, back).is_ok(), "descriptor decodes")
+	assert_equal(back.row_count, 8192, "the decoded descriptor declares 8192")
+	assert_true(_descriptor_row_count_agrees(back.row_count), "§9 accepts its own descriptor")
+	var forged: SaveHeader.Descriptor = SaveHeader.Descriptor.new()
+	forged.section_id = 9
+	forged.schema_version = SaveSectionNavigation.SECTION_SCHEMA_VERSION
+	forged.offset = 256
+	forged.byte_length = SaveSectionNavigation.SECTION_FIXED_BYTES
+	forged.row_count = 8704
+	var forged_bytes: PackedByteArray = PackedByteArray()
+	forged_bytes.resize(SaveHeader.SECTION_DESCRIPTOR_BYTES)
+	assert_true(SaveHeader.encode_descriptor_into(forged, forged_bytes, 0).is_ok(), "it encodes")
+	assert_equal(_hex(forged_bytes.slice(24, 32)), "0022000000000000", "8704 is 0x2200")
+	assert_false(_descriptor_row_count_agrees(forged.row_count),
+		"a descriptor claiming the 8704 sum is refused")
+	assert_false(_descriptor_row_count_agrees(512), "and so is one claiming the movement block")
+
+
 func test_wrong_primary_counts_are_refused() -> void:
 	"""Each block's declared primary count is the owner's, validated rather than trusted."""
 	var bytes: PackedByteArray = _encode(_record)

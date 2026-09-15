@@ -935,3 +935,166 @@ func _refuse(code: StringName) -> OpResult:
 	carries a usable number, so an ignored refusal cannot surface a plausible answer.
 	"""
 	return OpResult.new(false, code, 0, NULL_REF)
+
+
+# --- §1 WORLD block: capture, local validation, cross-check and restore --------------------------
+#
+# R-WORLD-S1-001 §6 S1-RESOURCE_NODES. THIS OWNER'S ONE SAVED FIELD IS `_resource_slot`. The
+# ruling's target table for section 1 gives `resource_nodes` owner schema **2**, primary_count
+# 16384, a 65544-byte payload and exactly one field at ordinal 0.
+#
+# THE THREE DEPOSIT ARRAYS ARE GONE FROM THE SAVE, AND THAT IS THE POINT OF THE VERSION BUMP.
+# `_deposit_tiles`, `_deposit_ref_slot` and `_deposit_ref_generation` are declared above as the
+# working set of ONE placement in progress. `_refuse_deposit()` writes the footprint BEFORE the
+# later field and occupancy checks run, `_reserve_deposit_rows()` parks temporary directory
+# references in them, and a partial rollback destroys those references without clearing the
+# arrays. A freshly allocated arena additionally holds default zeros, which name tile 0 and slot
+# 0 rather than "absent". Persisting them would have made scratch left behind by a FAILED
+# operation part of the save and of the canonical state hash, and a strict live-reference check
+# on load could then have rejected a legitimate later world. R-WORLD-S1-001 §7 therefore
+# reclassified all three as category-3 operation scratch: no wire bytes, no count prefix, no null
+# normalization, no canonical adapter. The committed deposit is still fully recoverable, because
+# each placed node is an ordinary ResourceNode row with its own `_tile` and its own
+# `_resource_slot` inverse entry. Changing only these three arrays MUST NOT change section 1's
+# bytes or the canonical digest, and `test_world_owner_columns.gd` pins exactly that.
+#
+# LOCAL DOMAIN AND CROSS-OWNER CHECK ARE DELIBERATELY SEPARATE CALLS. `section_1_local_refusal()`
+# judges the decoded column on its own, before anything is published, which is all a decoder can
+# do while section 4's component rows are still staged elsewhere. `section_1_cross_check_refusal()`
+# judges the LIVE store afterwards, in both directions. Merging them would force the loader to
+# publish component rows in order to validate the tile map, which is exactly the ordering the
+# load barrier exists to prevent.
+
+## Section 1's owner key, schema version and declared primary row extent for this block.
+const SECTION_1_OWNER_KEY: String = "resource_nodes"
+const SECTION_1_OWNER_SCHEMA_VERSION: int = 2
+const SECTION_1_PRIMARY_COUNT: int = TILE_COUNT
+
+const COLUMN_REFUSE_NONE: StringName = &""
+const COLUMN_REFUSE_SHAPE: StringName = &"S1_RESOURCE_COLUMN_SHAPE"
+const COLUMN_REFUSE_ROW_RANGE: StringName = &"S1_RESOURCE_ROW_RANGE"
+const COLUMN_REFUSE_NO_COMPONENT: StringName = &"S1_RESOURCE_NO_COMPONENT"
+const COLUMN_REFUSE_TILE_DISAGREES: StringName = &"S1_RESOURCE_TILE_DISAGREES"
+const COLUMN_REFUSE_STALE_IDENTITY: StringName = &"S1_RESOURCE_STALE_IDENTITY"
+const COLUMN_REFUSE_MISSING_INVERSE: StringName = &"S1_RESOURCE_MISSING_INVERSE"
+
+## Detail behind the most recent §1 column refusal. Empty after an accepted call.
+var _section_1_detail: String = ""
+
+
+func section_1_detail() -> String:
+	"""Human-readable detail behind the last §1 column refusal, or an empty string."""
+	return _section_1_detail
+
+
+func copy_section_1_columns_into(out_resource_slot: PackedInt32Array) -> bool:
+	"""Snapshot `_resource_slot` into a caller-owned buffer that is already TILE_COUNT long.
+
+	Refuses a wrongly sized buffer rather than resizing it: a caller holding a differently sized
+	array is holding the wrong array, and growing it here would hide that.
+	"""
+	if _resource_slot.size() != TILE_COUNT:
+		return _refuse_section_1(COLUMN_REFUSE_SHAPE,
+			"the live tile map is %d entries, not %d" % [_resource_slot.size(), TILE_COUNT])
+	if out_resource_slot.size() != TILE_COUNT:
+		return _refuse_section_1(COLUMN_REFUSE_SHAPE,
+			"the destination buffer is %d entries, not %d"
+				% [out_resource_slot.size(), TILE_COUNT])
+	out_resource_slot.clear()
+	out_resource_slot.append_array(_resource_slot)
+	_section_1_detail = ""
+	return true
+
+
+func section_1_local_refusal(resource_slot: PackedInt32Array) -> StringName:
+	"""S1-RESOURCE_NODES local domain: exactly TILE_COUNT values, each NO_NODE or 0..4095."""
+	if resource_slot.size() != TILE_COUNT:
+		_refuse_section_1(COLUMN_REFUSE_SHAPE,
+			"the tile map is %d entries, not %d" % [resource_slot.size(), TILE_COUNT])
+		return COLUMN_REFUSE_SHAPE
+	for tile: int in TILE_COUNT:
+		var row: int = resource_slot[tile]
+		if row == NO_NODE:
+			continue
+		if row < 0 or row >= RESOURCE_NODE_CAPACITY:
+			_refuse_section_1(COLUMN_REFUSE_ROW_RANGE,
+				"tile %d names row %d, outside %d..%d"
+					% [tile, row, NO_NODE, RESOURCE_NODE_CAPACITY - 1])
+			return COLUMN_REFUSE_ROW_RANGE
+	_section_1_detail = ""
+	return COLUMN_REFUSE_NONE
+
+
+func section_1_cross_check_refusal() -> StringName:
+	"""Both directions of the tile-map/component inverse, against the LIVE store.
+
+	Forward: every occupied tile names a present row whose `_tile` is that tile and whose
+	directory reference is still live and of KIND_RESOURCE_NODE. Reverse: every present row's
+	`_tile` is on the grid and its inverse entry names that row back. An exhausted node is still
+	a present node, so a zero quantity is never a reason to reject one.
+	"""
+	var forward: StringName = _section_1_forward_refusal()
+	if forward != COLUMN_REFUSE_NONE:
+		return forward
+	for row: int in RESOURCE_NODE_CAPACITY:
+		if _present[row] == 0:
+			continue
+		var tile: int = _tile[row]
+		if not is_tile_index(tile):
+			_refuse_section_1(COLUMN_REFUSE_TILE_DISAGREES,
+				"live row %d stands on tile %d, off the grid" % [row, tile])
+			return COLUMN_REFUSE_TILE_DISAGREES
+		if _resource_slot[tile] != row:
+			_refuse_section_1(COLUMN_REFUSE_MISSING_INVERSE,
+				"live row %d holds tile %d, whose inverse entry names %d"
+					% [row, tile, _resource_slot[tile]])
+			return COLUMN_REFUSE_MISSING_INVERSE
+	_section_1_detail = ""
+	return COLUMN_REFUSE_NONE
+
+
+func _section_1_forward_refusal() -> StringName:
+	"""Tile-map to component direction of `section_1_cross_check_refusal()`."""
+	for tile: int in TILE_COUNT:
+		var row: int = _resource_slot[tile]
+		if row == NO_NODE:
+			continue
+		if row < 0 or row >= RESOURCE_NODE_CAPACITY or _present[row] == 0:
+			_refuse_section_1(COLUMN_REFUSE_NO_COMPONENT,
+				"tile %d names row %d, which is not a present node" % [tile, row])
+			return COLUMN_REFUSE_NO_COMPONENT
+		if _tile[row] != tile:
+			_refuse_section_1(COLUMN_REFUSE_TILE_DISAGREES,
+				"tile %d names row %d, which stands on tile %d" % [tile, row, _tile[row]])
+			return COLUMN_REFUSE_TILE_DISAGREES
+		var ref: Vector2i = Vector2i(_ref_slot[row], _ref_generation[row])
+		if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_RESOURCE_NODE):
+			_refuse_section_1(COLUMN_REFUSE_STALE_IDENTITY,
+				"row %d carries reference (%d,%d), which is not a live resource node"
+					% [row, ref.x, ref.y])
+			return COLUMN_REFUSE_STALE_IDENTITY
+		if _directory.get_typed_row(ref) != row:
+			_refuse_section_1(COLUMN_REFUSE_STALE_IDENTITY,
+				"row %d's reference resolves to typed row %d"
+					% [row, _directory.get_typed_row(ref)])
+			return COLUMN_REFUSE_STALE_IDENTITY
+	return COLUMN_REFUSE_NONE
+
+
+func restore_section_1_columns(resource_slot: PackedInt32Array) -> bool:
+	"""Install a validated tile map. Validates first, so a refusal leaves the live column alone.
+
+	No gameplay mutator runs: nothing is created, destroyed, allocated or cleared. The deposit
+	scratch arrays are NOT touched, because they are not part of this owner's saved state.
+	"""
+	if section_1_local_refusal(resource_slot) != COLUMN_REFUSE_NONE:
+		return false
+	_resource_slot = resource_slot.duplicate()
+	_section_1_detail = ""
+	return true
+
+
+func _refuse_section_1(code: StringName, detail: String) -> bool:
+	"""Record one §1 column refusal's detail and return false, so callers can `return` it."""
+	_section_1_detail = "%s: %s" % [code, detail]
+	return false

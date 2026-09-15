@@ -240,7 +240,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | Command dispatch source-intent ledger | 128 | 16 | 2048 | mutable | [decision 0049] Task 04.4's "Record source intent/job identity so repeated evaluation cannot duplicate a job": four i32 per `forage.gd` HarvestZone row -- ARCH-CMD-001's `(player_id, sequence_high, sequence_low)` plus the produced zone's generation. Indexed BY the zone row it describes rather than by a window over command history, so it is bounded by §4.2's own 128 designations and cannot forget an intent whose designation is still alive. `command_dispatch.gd` writes it on a committed DESIGNATE_ZONE and reads it in that kind's preflight |
 | Scheduler event queue and control header | 1 | 8224 | 8224 | mutable | [decision 0054] R07-SCHED-001's ARCH-CMD-002 speed/pause queue in `godot/scripts/core/scheduler_events.gd`: 256 records of 32 bytes (one i64 `boundary_tick` plus six i32 -- `sequence_low`, `sequence_high`, `kind`, `reason`, `value`, `reserved`) = 8192, plus the 32-byte queue control header (`head`, `count`, `next_sequence_low/high`, `last_drained_boundary` i64, `last_applied_sequence_low/high`). Counted as one 8224-byte allocation rather than 257 x 32 because the control header is not a record. SEPARATE from the "Command queue" row above: economic commands keep their own 4096 x 64 records, their own arena and their own sequence space, and ARCH-CMD-003's 24 kind ids are not renumbered. The tail derives from head and count, so there is NO order-index row here of the kind decision 0042 needed for the economic ring |
 | ARCH-SYS-023 presentation snapshot | 1 | 244 | 244 | presentation counted conservatively | [decision 0049] `godot/scripts/core/presentation_extract.gd`: TWO i64 frames of 14 committed fields (224 bytes) plus one availability byte per field and one visibility byte per layer (20 bytes). Two frames because a render interpolates between the last two COMMITTED ticks. Separate from the "UI numeric snapshots" row above, which budgets per-resident summaries this stage does not produce. The per-stage microsecond and measurement columns `settlement_system.gd` keeps (3 x 7 i64 = 168 bytes) sit inside the "Timing samples" diagnostic row and add nothing here |
-| §15 canonical declaration table | 1 | 18384 | 18384 | presentation counted conservatively | [decision 0127] `canonical_state_hash.gd`'s `_production` Declaration, compiled from REG-R01's checked-in registry and built ONCE: 50 owners x 4 i32 = 800, 590 fields x 3 u8 = 1770, 590 i64 declared counts = 4720, 590 i32 UTF-8 caps = 2360 (9650 fixed) plus 8734 bytes of key text in two PackedStringArrays. Counted conservatively because it is RESIDENT -- unlike every save_section_* codec's Record, which exists only between a capture and an apply and takes no row. It is build-time constant data rather than simulation state, so losing it on reload changes no outcome; it is budgeted anyway rather than argued out. The 65536-byte Emitter chunk is per-walk scratch, not resident |
+| §15 canonical declaration table | 1 | 18825 | 18825 | presentation counted conservatively | [decision 0127; corrected by decision 0142] `canonical_state_hash.gd`'s `_production` Declaration, compiled from REG-R01's checked-in registry and built ONCE: 52 owners x 4 i32 = 832, 604 fields x 3 u8 = 1812, 604 i64 declared counts = 4832, 604 i32 UTF-8 caps = 2416 (9892 fixed) plus 8933 bytes of key text in two PackedStringArrays. The row read 50/590/18384 from decision 0127 and was never re-derived as owners and fields were added, so it UNDER-budgeted by 441 bytes; recomputed here from the registry rather than adjusted to match a label. Counted conservatively because it is RESIDENT -- unlike every save_section_* codec's Record, which exists only between a capture and an apply and takes no row. It is build-time constant data rather than simulation state, so losing it on reload changes no outcome; it is budgeted anyway rather than argued out. The 65536-byte Emitter chunk is per-walk scratch, not resident |
 | UI roster row identity | 12 | 12 | 144 | presentation counted conservatively | [decision 0114] `godot/scripts/systems/ui_manager.gd`: three `PackedInt32Array` columns -- `_roster_ref_slot`, `_roster_ref_generation`, `_roster_persistent_id` -- at `UiShell.ROSTER_POOL` = 12, resized once in `_init()` rather than `_ready()` because the suite builds this router off-tree. This is a FULL +144, not a net +96: the `_roster_slots` PackedInt32Array it replaces was never ledgered, so removing it frees no counted byte. `_roster_count` is a scalar and owes no column row. `state_registry_coverage.py` globs `godot/scripts/core` only and never inspected this file |
 | Resident crowd instance buffer | 512 | 100 | 51200 | presentation counted conservatively | [decision 0130] `godot/scripts/presentation/resident_crowd.gd`: `_buffer` PackedFloat32Array at INSTANCE_CAPACITY*FLOATS_PER_INSTANCE = 512*12 = 6144 floats (24576 B) plus `_instance_slot` PackedInt32Array at 512 (2048 B), both resized once in `_init()`, plus the RenderingServer's own 512*12-float TRANSFORM_3D instance buffer (24576 B) counted here rather than assumed free. 48+4+48 = 100 B per resident row. Sized on the 512-ROW capacity, not GDD 4.1's 256 living cap, because a dead row keeps its slot; `visible_instance_count` is what follows the living. `state_registry_coverage.py` globs `godot/scripts/core` only and never inspects this directory |
 | Load rollback checkpoint | 1 | 80 | 80 | mutable | [decision 0092] RESTORE-R01's pre-load checkpoint in `godot/scripts/systems/game_manager.gd`: `_checkpoint: PackedInt64Array`, `CHECKPOINT_FIELDS` = 10 elements x 8 bytes, allocated once in `_init()` and overwritten in place so a rollback allocates nothing at its worst moment. Holds the clock's ten runtime scalars in `restore_runtime()` argument order. It is NOT a second WorldRuntime store, which RESTORE-R01 forbids: it duplicates no clock, is never serialized, and is reinstalled through the same validated `restore_runtime()` boundary rather than by writing clock fields directly. `state_registry_coverage.py` scans `godot/scripts/core` only and so cannot see this column -- a checker-scope gap, not an exemption |
@@ -249,13 +249,13 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 68959123 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054, **−3151872 decision 0138** (the presentation-private pose scaffold row is deleted, not moved: §2.2's `Transform` 2801664 and §3's `TransformBinding` 350208 already budget the one directory-bound store `settlement_system.gd` now composes, and 2801664+350208=3151872 exactly) |
+| Planned allocated payload | 68959564 | Mechanical sum of printed allocation rows; decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054, **−3151872 decision 0138** (the presentation-private pose scaffold row is deleted, not moved: §2.2's `Transform` 2801664 and §3's `TransformBinding` 350208 already budget the one directory-bound store `settlement_system.gd` now composes, and 2801664+350208=3151872 exactly) |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 77347731 | Payload + reserve |
-| Headroom below decimal 100 MB | 22652269 | 100000000 − live total |
-| Additional candidate mutable state | 62743539 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
-| Transactional peak plus same reserve | 140091270 | Live total + candidate mutable state |
-| Transactional headroom | -40091270 | 100000000 − transactional peak |
+| One live world plus reserve | 77348172 | Payload + reserve |
+| Headroom below decimal 100 MB | 22651828 | 100000000 − live total |
+| Additional candidate mutable state | 62743980 | Second mutable world during transactional load: payload − 3670016 navigation map − 2097152 catalog arenas − 262144 I/O − 131072 UI snapshots − 55200 timing |
+| Transactional peak plus same reserve | 140092152 | Live total + candidate mutable state |
+| Transactional headroom | -40092152 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11 by decisions 0055,
 0054 and 0066).** Current planned payload is
@@ -338,6 +338,7 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
 | Resident crowd MultiMesh and its presentation-private pose scaffold | decision 0130 | +3203072 | 66968467 | 75357075 |
 | Construction project lifecycle | decision 0131 | +5142528 | 72110995 | 80499603 |
 | Presentation-private pose scaffold deleted; the settlement composes ARCH-SYS-001 and INIT-POSE-R01 places the cohort into it | decision 0138 | -3151872 | 68959123 | 77347731 |
+| §15 declaration table re-derived from the registry it compiles, correcting a stale 50/590 row | decision 0142 | +441 | 68959564 | 77348172 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
@@ -831,6 +832,30 @@ hash inclusion and cross-speed gameplay projections are distinct dimensions;
 membership and acceptance. This assigns section ownership; task 09.2 still owns
 its explicit field byte offsets/schema. A memory allocation row alone does not
 make a field persisted or canonical; apply the explicit owning contracts.
+
+**ARCH-SAVE-009 (2026-09-14, [R-WORLD-S1-001](rulings/2026-09-14_world_section_owner_encoders.md)).**
+Section 1 WORLD carries EXACTLY NINE owner blocks in strict ASCII key order -- `buildings`,
+`entity_directory`, `farming`, `forage`, `resource_nodes`, `spatial_world`, `weather`,
+`world_init`, `world_runtime` -- and a missing block is not a permitted variant. The section is a
+44-byte map-provenance prefix, `store_count:u32 = 9`, then blocks tiling the remainder with no gap,
+overlap or trailing byte; each wrapper occupies `24 + len(owner_key)` bytes. Seven owners use the
+ordinary payload form `element_count:u64` then `element_count * type_width` value bytes per field in
+declared ordinal order, with an explicit `element_count = 1` on every scalar; `entity_directory`
+(4 bytes) and `world_runtime` (80 bytes) keep their existing fixed formats and carry no count
+prefixes. Count prefixes are structural bytes and produce no canonical field record. Payloads total
+3752409 bytes, wrappers 311, section length **3752768**, first body offset **1216**, section 2 at
+**3753984**, and the section descriptor's `row_count` is the checked SUM of the nine block primary
+counts, **344067** -- not a population, a field count or a canonical record count. `world_init`
+declares primary_count 16384 and `spatial_world` 262144 despite their scalar fields; `weather`
+declares 1 for its one aggregate row of eight i32 and two i64 values.
+
+The same activation reclassifies `resource_nodes._deposit_tiles`, `._deposit_ref_slot` and
+`._deposit_ref_generation` as CATEGORY-3 operation scratch: they describe one placement in progress,
+not a deposit registry, so they contribute no save payload and no canonical field record.
+`resource_nodes` therefore takes owner schema **2** and section 1 takes schema **3**; the other
+eight §1 owner versions stay 1 and no other section's block owned by the same module changes. Older
+bytes are NOT reinterpreted under the new versions -- an incompatible development save is refused,
+and no migration is implemented. Implementation: `godot/scripts/core/save_section_01.gd`.
 
 **ARCH-HASH-001.** Canonical state hash is SHA-256 over domain string `RWL-STATE-1`, rules/catalog/map/lookup hashes, exact engine build string, completed tick, all authoritative occupied/generation and typed fields in schema order, variable children, all auxiliary future-affecting state, pending commands in execution order, RNG states/draw counts, navigation progress/cache eviction state, and the Chronicle count plus rolling digest. The Chronicle rolling digest is `SHA256(previous_digest || encoded_record)` starting with 32 zero bytes `[NEW streaming history representation]`; a save validates the full stream against it. Include current/previous authoritative Transform fields, not first-frame presentation overrides. Exclude selected flags, camera, UI panels, skin/LOD/batch slots, completed command-outcome rings/cursors, host scheduler debt and historical clock counters, allocator addresses, timing metrics, and derived spatial/active indexes. `[GDD §4.2, REQ-SET-159–160; crowd §6.4]`
 

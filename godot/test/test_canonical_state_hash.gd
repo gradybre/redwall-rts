@@ -84,7 +84,26 @@ const NAME_CAP_BYTES: int = 128
 ## landing moved this pin alone and left `record_count` at 582. construction.gd's seventeen
 ## columns were never declared at all, so registering them is seventeen NEW hash=true
 ## declarations and `record_count` moves with them, 582 -> 599.
-const REGISTRY_PACKED_FIELD_COUNT: int = 553
+##
+## R-WORLD-S1-001 then moved BOTH pins DOWNWARD, 599 -> 596 and 553 -> 550, by reclassifying
+## resource_nodes' `_deposit_tiles`, `_deposit_ref_slot` and `_deposit_ref_generation` from
+## category-1 persisted state to category-3 placement scratch. Three declarations leave the
+## registry, so three hash=true records leave `record_count`; the same three leave
+## docs/persistence_state_registry.md's category-1 set, so three persisted packed columns leave
+## this pin. A snapshot pin is allowed to move in either direction; what it may never do is stay
+## still while the declaration underneath it changes.
+const REGISTRY_PACKED_FIELD_COUNT: int = 550
+
+## Pinned as LITERALS, deliberately not read from the JSON or from `Digest.*`. Every other
+## assertion in this suite compares the compiled table against the registry it was generated
+## from, so both sides move together and neither can catch a coordinated edit. These four are
+## the independent anchor: R-WORLD-S1-001 requires the active rules identity to CHANGE with the
+## activation, and an identity that silently stayed at the 2026-09-12 value would satisfy every
+## self-referential check in this file while shipping a different field set under an old name.
+const REGISTRY_RECORD_COUNT: int = 596
+const REGISTRY_FIELD_COUNT: int = 604
+const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-14-2"
+const REGISTRY_DECLARATION_VERSION: int = 2
 
 ## construction.gd's section-4 block, pinned independently of the registry JSON so that deleting
 ## a field from BOTH the JSON and the compiled table still fails. The JSON-comparison tests above
@@ -378,7 +397,7 @@ func _assert_field_shape(declaration: Digest.Declaration, field: Dictionary, ind
 
 
 func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
-	"""599 canonical records over 52 owners, 553 persisted packed fields, release_save_ready false."""
+	"""596 canonical records over 52 owners, 550 persisted packed fields, release_save_ready false."""
 	var data: Dictionary = _registry()
 	assert_equal(int(data["record_count"]), Digest.CANONICAL_RECORD_COUNT, "registry record_count")
 	assert_equal(int(data["packed_source_field_count"]), REGISTRY_PACKED_FIELD_COUNT,
@@ -386,7 +405,48 @@ func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
 	assert_equal(String(data["registry_id"]), Digest.DECLARATION_ID, "registry id")
 	assert_false(bool(data["release_save_ready"]), "release_save_ready stays false")
 	assert_equal(Digest.production_declaration().record_count(), Digest.CANONICAL_RECORD_COUNT,
-		"the compiled declaration counts the same 599 records")
+		"the compiled declaration counts the same 596 records")
+
+
+func test_the_active_rules_identity_and_counts_match_their_independent_pins() -> void:
+	"""R-WORLD-S1-001: the identity and both counts MOVED, against literals held outside the JSON."""
+	var data: Dictionary = _registry()
+	assert_equal(Digest.DECLARATION_ID, REGISTRY_DECLARATION_ID, "compiled declaration identity")
+	assert_equal(Digest.DECLARATION_VERSION, REGISTRY_DECLARATION_VERSION, "declaration version")
+	assert_equal(String(data["registry_id"]), REGISTRY_DECLARATION_ID, "registry identity")
+	assert_equal(int(data["registry_version"]), REGISTRY_DECLARATION_VERSION, "registry version")
+	assert_equal(Digest.CANONICAL_RECORD_COUNT, REGISTRY_RECORD_COUNT, "compiled record count")
+	assert_equal(Digest.CANONICAL_FIELD_COUNT, REGISTRY_FIELD_COUNT, "compiled field count")
+	assert_equal(int(data["record_count"]), REGISTRY_RECORD_COUNT, "registry record count")
+	assert_equal(int(data["packed_source_field_count"]), REGISTRY_PACKED_FIELD_COUNT,
+		"registry packed source field count")
+	assert_equal(int((data["section_schema_versions"] as Array)[0]), 3,
+		"R-WORLD-S1-001 takes section 1 to schema version 3 in the active registry")
+
+
+func test_section_one_resource_nodes_declares_only_the_tile_inverse_at_schema_two() -> void:
+	"""The three deposit scratch arrays produce NO canonical field record, in either table."""
+	var data: Dictionary = _registry()
+	var owners: Array = data["owners"] as Array
+	var found: bool = false
+	for entry: Variant in owners:
+		var owner: Dictionary = entry as Dictionary
+		if int(owner["section_id"]) != 1 or String(owner["owner_key"]) != "resource_nodes":
+			continue
+		found = true
+		assert_equal(int(owner["owner_schema_version"]), 2, "resource_nodes owner schema version")
+		var keys: PackedStringArray = PackedStringArray()
+		for field: Variant in owner["fields"] as Array:
+			keys.append(String((field as Dictionary)["field_key"]))
+		assert_equal(keys, PackedStringArray(["_resource_slot"]), "declared field keys")
+	assert_true(found, "section 1 still registers a resource_nodes owner")
+	var declaration: Digest.Declaration = Digest.production_declaration()
+	var index: int = declaration.find_owner(1, "resource_nodes")
+	assert_true(index < declaration.owner_count(), "the compiled table registers it too")
+	assert_equal(declaration.owner_schema_version(index), 2, "compiled owner schema version")
+	assert_equal(declaration.owner_field_count(index), 1, "compiled field count")
+	assert_equal(declaration.field_key(declaration.owner_field_begin(index)), "_resource_slot",
+		"compiled field key")
 
 
 func test_production_declaration_validates_and_excludes_section_fifteen() -> void:

@@ -2971,3 +2971,209 @@ func _refuse(code: StringName) -> OpResult:
 	carries a usable number, so an ignored refusal cannot surface a plausible answer.
 	"""
 	return OpResult.new(false, code, 0, NULL_REF)
+
+
+# --- §1 WORLD block: capture, local validation, cross-check and restore --------------------------
+#
+# R-WORLD-S1-001 §6 S1-FORAGE. Section 1's `forage` block is owner schema 1, primary_count 16384
+# and a 65544-byte payload holding ONE i32 column, `_tile_link_head`: per exterior tile, the head
+# of that tile's zone-link chain, or NO_LINK.
+#
+# SAVED ORDER IS PART OF THE STATE. `add_tile()` above inserts at the HEAD of both the tile chain
+# and the zone chain, so the traversal order a world was saved in is the reverse of the order the
+# tiles were designated in. Sorting the heads on load, or rebuilding the chains from equal set
+# membership, would silently change every subsequent traversal. The head column is therefore
+# restored verbatim and the arena that gives it meaning is §4's, not this block's.
+#
+# THE FREE LIST IS NOT LINKAGE. `_free_link()` sets a released link's `_link_tile` to NO_LINK and
+# threads it onto `_link_free_head` through `_link_tile_next` -- the SAME next column a live tile
+# chain uses. A validator that only followed `_link_tile_next` would happily walk from a live
+# chain into the free list. The cross-check below therefore requires `_link_tile[link] == tile`
+# on every step, bounds every walk by the 16384-entry arena so a cycle cannot spin, and finally
+# proves the tile chains and the zone chains reach the SAME set of links and that their total
+# equals `_link_used`. A head is a link-arena index; it is never a zone row and never a directory
+# reference.
+
+## Section 1's owner key, schema version and declared primary row extent for this block.
+const SECTION_1_OWNER_KEY: String = "forage"
+const SECTION_1_OWNER_SCHEMA_VERSION: int = 1
+const SECTION_1_PRIMARY_COUNT: int = TILE_COUNT
+
+const COLUMN_REFUSE_NONE: StringName = &""
+const COLUMN_REFUSE_SHAPE: StringName = &"S1_FORAGE_COLUMN_SHAPE"
+const COLUMN_REFUSE_HEAD_RANGE: StringName = &"S1_FORAGE_HEAD_RANGE"
+const COLUMN_REFUSE_UNALLOCATED: StringName = &"S1_FORAGE_LINK_UNALLOCATED"
+const COLUMN_REFUSE_WRONG_TILE: StringName = &"S1_FORAGE_LINK_WRONG_TILE"
+const COLUMN_REFUSE_CYCLE: StringName = &"S1_FORAGE_LINK_CYCLE"
+const COLUMN_REFUSE_DEAD_ZONE: StringName = &"S1_FORAGE_LINK_DEAD_ZONE"
+const COLUMN_REFUSE_STALE_IDENTITY: StringName = &"S1_FORAGE_STALE_IDENTITY"
+const COLUMN_REFUSE_CHAIN_DISAGREES: StringName = &"S1_FORAGE_CHAINS_DISAGREE"
+const COLUMN_REFUSE_UNREACHABLE: StringName = &"S1_FORAGE_LINK_UNREACHABLE"
+
+## Code and detail behind the most recent §1 column refusal. Both empty after an accepted call.
+var _section_1_code: StringName = COLUMN_REFUSE_NONE
+var _section_1_detail: String = ""
+
+
+func section_1_detail() -> String:
+	"""Human-readable detail behind the last §1 column refusal, or an empty string."""
+	return _section_1_detail
+
+
+func section_1_code() -> StringName:
+	"""The code of the last §1 column refusal, so a bool-returning helper need not re-derive it."""
+	return _section_1_code
+
+
+func copy_section_1_columns_into(out_tile_link_head: PackedInt32Array) -> bool:
+	"""Snapshot `_tile_link_head` into a caller-owned buffer that is already TILE_COUNT long."""
+	if _tile_link_head.size() != TILE_COUNT:
+		return _refuse_section_1(COLUMN_REFUSE_SHAPE,
+			"the live head column is %d entries, not %d" % [_tile_link_head.size(), TILE_COUNT])
+	if out_tile_link_head.size() != TILE_COUNT:
+		return _refuse_section_1(COLUMN_REFUSE_SHAPE,
+			"the destination buffer is %d entries, not %d"
+				% [out_tile_link_head.size(), TILE_COUNT])
+	out_tile_link_head.clear()
+	out_tile_link_head.append_array(_tile_link_head)
+	_section_1_accept()
+	return true
+
+
+func section_1_local_refusal(tile_link_head: PackedInt32Array) -> StringName:
+	"""S1-FORAGE local domain: TILE_COUNT values, each NO_LINK or an arena index 0..16383."""
+	if tile_link_head.size() != TILE_COUNT:
+		_refuse_section_1(COLUMN_REFUSE_SHAPE,
+			"the head column is %d entries, not %d" % [tile_link_head.size(), TILE_COUNT])
+		return COLUMN_REFUSE_SHAPE
+	for tile: int in TILE_COUNT:
+		var head: int = tile_link_head[tile]
+		if head == NO_LINK:
+			continue
+		if head < 0 or head >= ZONE_LINK_CAPACITY:
+			_refuse_section_1(COLUMN_REFUSE_HEAD_RANGE, "tile %d names link %d, outside %d..%d"
+				% [tile, head, NO_LINK, ZONE_LINK_CAPACITY - 1])
+			return COLUMN_REFUSE_HEAD_RANGE
+	_section_1_accept()
+	return COLUMN_REFUSE_NONE
+
+
+func section_1_cross_check_refusal() -> StringName:
+	"""Tile chains and zone chains must reach the same live links, and `_link_used` of them."""
+	var seen: PackedByteArray = PackedByteArray()
+	seen.resize(ZONE_LINK_CAPACITY)
+	var reached: int = _section_1_walk_tiles(seen)
+	if reached < 0:
+		return _section_1_code
+	if reached != _link_used:
+		return _refuse_section_1_code(COLUMN_REFUSE_CHAIN_DISAGREES,
+			"tile chains reach %d links against an arena using %d" % [reached, _link_used])
+	return _section_1_walk_zones(seen, reached)
+
+
+func _section_1_walk_tiles(seen: PackedByteArray) -> int:
+	"""Walk every tile chain, marking each live link once. Total links reached, or -1 on a refusal.
+
+	-1 never reaches a caller as a count: `section_1_cross_check_refusal()` turns it straight into
+	the refusal code whose detail this call has already recorded.
+	"""
+	var reached: int = 0
+	for tile: int in TILE_COUNT:
+		var link: int = _tile_link_head[tile]
+		var steps: int = 0
+		while link != NO_LINK:
+			steps += 1
+			if steps > ZONE_LINK_CAPACITY or (link >= 0 and link < ZONE_LINK_CAPACITY
+					and seen[link] == 1):
+				_refuse_section_1(COLUMN_REFUSE_CYCLE,
+					"tile %d's chain revisits link %d" % [tile, link])
+				return -1
+			if link < 0 or link >= ZONE_LINK_CAPACITY or link >= _link_bump:
+				_refuse_section_1(COLUMN_REFUSE_UNALLOCATED,
+					"tile %d's chain reaches link %d, never handed out" % [tile, link])
+				return -1
+			if _link_tile[link] != tile:
+				_refuse_section_1(COLUMN_REFUSE_WRONG_TILE,
+					"link %d is on tile %d's chain but records tile %d"
+						% [link, tile, _link_tile[link]])
+				return -1
+			if not _section_1_zone_is_live(_link_zone[link], link):
+				return -1
+			seen[link] = 1
+			reached += 1
+			link = _link_tile_next[link]
+	return reached
+
+
+func _section_1_zone_is_live(zone_slot: int, link: int) -> bool:
+	"""One link's owning zone must be a present row whose directory reference resolves back to it."""
+	if zone_slot < 0 or zone_slot >= HARVEST_ZONE_CAPACITY or _zone_present[zone_slot] == 0:
+		return _refuse_section_1(COLUMN_REFUSE_DEAD_ZONE,
+			"link %d belongs to zone slot %d, which is not a present zone" % [link, zone_slot])
+	var ref: Vector2i = Vector2i(_zone_ref_slot[zone_slot], _zone_ref_generation[zone_slot])
+	if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_HARVEST_ZONE) \
+			or _directory.get_typed_row(ref) != zone_slot:
+		return _refuse_section_1(COLUMN_REFUSE_STALE_IDENTITY,
+			"zone slot %d carries reference (%d,%d), which does not resolve back to it"
+				% [zone_slot, ref.x, ref.y])
+	return true
+
+
+func _section_1_walk_zones(seen: PackedByteArray, reached: int) -> StringName:
+	"""Walk every present zone chain against the links the tile walk marked, and against its count."""
+	var counted: int = 0
+	for zone_slot: int in HARVEST_ZONE_CAPACITY:
+		if _zone_present[zone_slot] == 0:
+			continue
+		var link: int = _zone_link_head[zone_slot]
+		var steps: int = 0
+		while link != NO_LINK:
+			steps += 1
+			if steps > ZONE_LINK_CAPACITY or link < 0 or link >= ZONE_LINK_CAPACITY:
+				return _refuse_section_1_code(COLUMN_REFUSE_CYCLE,
+					"zone %d's chain will not terminate at link %d" % [zone_slot, link])
+			if seen[link] != 1:
+				return _refuse_section_1_code(COLUMN_REFUSE_UNREACHABLE,
+					"zone %d's chain holds link %d, which no tile chain reaches"
+						% [zone_slot, link])
+			if _link_zone[link] != zone_slot:
+				return _refuse_section_1_code(COLUMN_REFUSE_CHAIN_DISAGREES,
+					"link %d is on zone %d's chain but records zone %d"
+						% [link, zone_slot, _link_zone[link]])
+			seen[link] = 2
+			counted += 1
+			link = _link_zone_next[link]
+	if counted != reached:
+		return _refuse_section_1_code(COLUMN_REFUSE_CHAIN_DISAGREES,
+			"zone chains hold %d links against %d on the tile chains" % [counted, reached])
+	_section_1_accept()
+	return COLUMN_REFUSE_NONE
+
+
+func restore_section_1_columns(tile_link_head: PackedInt32Array) -> bool:
+	"""Install a validated head column verbatim. Validates first, so a refusal changes nothing."""
+	if section_1_local_refusal(tile_link_head) != COLUMN_REFUSE_NONE:
+		return false
+	_tile_link_head = tile_link_head.duplicate()
+	_section_1_accept()
+	return true
+
+
+func _refuse_section_1(code: StringName, detail: String) -> bool:
+	"""Record one §1 column refusal and return false, so callers can `return` it."""
+	_section_1_code = code
+	_section_1_detail = "%s: %s" % [code, detail]
+	return false
+
+
+func _refuse_section_1_code(code: StringName, detail: String) -> StringName:
+	"""Record one §1 column refusal and hand the code straight back to a `return`."""
+	_section_1_code = code
+	_section_1_detail = "%s: %s" % [code, detail]
+	return code
+
+
+func _section_1_accept() -> void:
+	"""Clear the recorded §1 refusal, so a stale code cannot be read after an accepted call."""
+	_section_1_code = COLUMN_REFUSE_NONE
+	_section_1_detail = ""

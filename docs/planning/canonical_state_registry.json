@@ -1,13 +1,13 @@
 {
- "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-12-1",
- "registry_version": 1,
+ "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-14-2",
+ "registry_version": 2,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
  "source_registry_sha256": "ae7de3e6c599a24377172bf4ff9cf5c020d54e4fb0f24dc67bcad657da50664d",
  "source_module_sha256": {
   "building_definitions": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
-  "buildings": "efaac6fdb73e2909ed2da19b4700ef8a97c7f38380d31aee71f351a9b34bca18",
+  "buildings": "8f21111b4857714f4ac803c30c3eec46f206c0b5cdedfeeb357a0061ba3f875e",
   "catalog": "9d36bb8546c2d6a80f56188e56893ba0d0a60500b2bf9e61fb26404ff6498064",
   "catalog_ids": "63dfd84986c0761316301470c8dfb845a41670a91bb0f34f08cfc2ceeba84afb",
   "command_dispatch": "32fa5b5ab6043e603c9fc4a0678ff05f9dc60afd80902cc89d17bdc0f3656ce2",
@@ -15,10 +15,10 @@
   "crop_weather": "cbc7f6683568fc658c5886c8efb2321446c7b0fd65b4e1f37b490e1f55ec956f",
   "ecology": "f52b130c039af592cdef6e8c854b33bc03a0db7c40ebcf41ab7509c7ce820084",
   "entity_directory": "77bf27d047f0f390b799258ff2473beda9d56315eaea45711174f59d8d5629b4",
-  "farming": "35063cee7e2872ac63b2a76dbc28ff0433fcb888d51809434f59125a3cf0fb92",
+  "farming": "c025f23da0f88ddff8c5ea64bae0f3bb75d7085f83f949bd3877e70443aea773",
   "field_policy": "262198e7a04d340c5205007c7ff1124264efe761b675fd99f657fb38a9fb5315",
   "fishing": "85f5437585155faab04c140641710014cf4cb477ea82eb08078aa0ac85f34025",
-  "forage": "6684b6be65bc722ee990be87e53180ecb95728d5a0f2f7803e57d8d6b0005d6d",
+  "forage": "74694b212993599a8ffc0f488f2e45d6c81acdaba1297c4fd723c0860790dbcb",
   "gear": "8b957442e3397708cd8343fc9849b4f6cccb5f4478bd7099d44afe47d3499472",
   "injury": "a0932b0c2fddd8ea32f460d1ca4d88977fa759391fcac6f845957fff433184c2",
   "int_math": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
@@ -36,27 +36,28 @@
   "reservations": "3211416652559e63e7b3926038514e422b90a08782113d469d45f30c5cfd0ef0",
   "residents": "9fcf83efc4f4af7161c66b2e4a80cb0958d9fd57e1d61eebc573c8dc3e5483c7",
   "resource_catalog_binding": "74bc0fddbc829af0877d6616ecd508c48efc1d7b443be6b6fa27d95b440a0fec",
-  "resource_nodes": "3782a676489bc60782f29961f6d43f8bf455e80e928329c87adeab42ea72ee4c",
+  "resource_nodes": "033f5255a0904d193a08197c71321f8ff3a8aa58d8274fdd42dd3a54da20de23",
   "rng": "3bfc333d24db8eb239c10cb5a910d00abe9e440eb897219b3894ea1fdafeffef",
   "save_codec": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508",
   "save_header": "ae44b8ab307e987c8084b81ba707fd1db8befe26868fba8120b6944236bfbed5",
+  "save_section_01": "366615ff13877341cb940033c606c595b8c58414c3764219c517282d1d97bedb",
   "save_section_directory": "5a8adaa3f727b4989b769ea614c45d07e8e8595872640fae7cbf713c153a5859",
   "save_section_name_pool": "03f5e69b5c2d85e98ba2d166dab9f4bafabfe85579c6899beca0535b33181a69",
   "save_section_rng": "4269c6e7bf9a59c96ef3b5d8cb58bfe5729a53446494d08dddd8a466a03fcaa4",
-  "save_section_world_runtime": "ae19a94a5dd3d0f0ab00ec2ea05d21f9b2cc472af766c93346f986686c2df915",
+  "save_section_world_runtime": "72ffee177897d1ea85e251160d959652a5e3e1edb92f7e06eb4aa44f4c5e4421",
   "schedule": "9da6ee9fde956812017b7d01ccfcef97832145849949d9a92bb000a11fde3ab7",
   "scheduler_events": "5981c3c05c454f46968a252bd544da084b9a530b3bbcf26d8041c583e09063bc",
   "sim_clock": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a",
-  "spatial_world": "1713ffa8bd63b6cb50ff01654d2f79debf4674f0f73108fb17907541cce9c782",
+  "spatial_world": "3825788db07885db94dab7288c832b8219f89e54da22d871d58e98e2d590b26b",
   "stock_age": "339b85a374bdabe1242474f25fbbf4b16ffd42e077c52156d49db1fe5fecd557",
   "transforms": "c5432aa63dcbd774bfca9b1aaa2fdbbe5908a4159a3ce42f7fc30fbca0e62188",
-  "weather": "cf50f8a5ac90f5d1f5ff24e4ca3b221b0e0898cb8f56597c963fe21b5877b864",
+  "weather": "f2c1bf034645b897c80edcce861cd488a01b0d280e8eb7dcc5067c9e8aa7ca3e",
   "work": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
-  "world_init": "664d7bbdd96456818f0e1baaf19af6081fac9dcd317df31b8770c0999c717130"
+  "world_init": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 599,
- "packed_source_field_count": 553,
+ "record_count": 596,
+ "packed_source_field_count": 550,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime.",
  "owners": [
   {
@@ -310,7 +311,7 @@
   {
    "section_id": 1,
    "owner_key": "resource_nodes",
-   "owner_schema_version": 1,
+   "owner_schema_version": 2,
    "fields": [
     {
      "field_key": "_resource_slot",
@@ -325,48 +326,6 @@
      },
      "ordinal": 0,
      "source_contract": "C006"
-    },
-    {
-     "field_key": "_deposit_tiles",
-     "type": "i32",
-     "type_code": 2,
-     "hash": true,
-     "source_module": "resource_nodes",
-     "source_member": "_deposit_tiles",
-     "shape": {
-      "declared_capacity": "`DEPOSIT_NODE_COUNT` = 16",
-      "order": "ascending_physical_slot"
-     },
-     "ordinal": 1,
-     "source_contract": "C007"
-    },
-    {
-     "field_key": "_deposit_ref_slot",
-     "type": "i32",
-     "type_code": 2,
-     "hash": true,
-     "source_module": "resource_nodes",
-     "source_member": "_deposit_ref_slot",
-     "shape": {
-      "declared_capacity": "`DEPOSIT_NODE_COUNT` = 16",
-      "order": "ascending_physical_slot"
-     },
-     "ordinal": 2,
-     "source_contract": "C007"
-    },
-    {
-     "field_key": "_deposit_ref_generation",
-     "type": "i32",
-     "type_code": 2,
-     "hash": true,
-     "source_module": "resource_nodes",
-     "source_member": "_deposit_ref_generation",
-     "shape": {
-      "declared_capacity": "`DEPOSIT_NODE_COUNT` = 16",
-      "order": "ascending_physical_slot"
-     },
-     "ordinal": 3,
-     "source_contract": "C007"
     }
    ]
   },
@@ -9006,10 +8965,6 @@
    "unused": "`-1` for a tile with no node",
    "notes": "`WorldTileMaps.resource_slot` in \u00a72's ledger (systems_architecture.md:397). It is the inverse of `_tile`, so the loader cross-checks the two rather than choosing one."
   },
-  "C007": {
-   "unused": "`-1` slot with generation 0 is the null ref",
-   "notes": "The sixteen nodes of a 4x4 mineral deposit; world-generation output that must survive a reload as generated."
-  },
   "C008": {
    "unused": "`_walkable == 0` blocks; `_layer` is always 0 in the single-floor baseline",
    "notes": "512x512 cells at 512 units. `_layer` is allocated for MOVE-G03's multi-floor scope and is currently constant: 09.2 writes it as it stands and must not repurpose the byte when floors land."
@@ -9673,7 +9628,7 @@
   }
  },
  "section_schema_versions": [
-  2,
+  3,
   2,
   1,
   2,

@@ -1079,14 +1079,14 @@ static func production_walker() -> Walker:
 # Generated from docs/planning/canonical_state_registry.json by
 # tools/generate_canonical_state_table.py. Do not hand-edit: test_canonical_state_hash.gd
 # re-reads that JSON and proves every entry below equals it.
-#   registry_id RWL-CANONICAL-REGISTRY-2026-09-12-1, registry_version 1
-#   52 owners, 607 declared fields, 599 canonical records, 553 persisted packed fields.
+#   registry_id RWL-CANONICAL-REGISTRY-2026-09-14-2, registry_version 2
+#   52 owners, 604 declared fields, 596 canonical records, 550 persisted packed fields.
 
-const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-12-1"
-const DECLARATION_VERSION: int = 1
+const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-14-2"
+const DECLARATION_VERSION: int = 2
 const CANONICAL_OWNER_COUNT: int = 52
-const CANONICAL_FIELD_COUNT: int = 607
-const CANONICAL_RECORD_COUNT: int = 599
+const CANONICAL_FIELD_COUNT: int = 604
+const CANONICAL_RECORD_COUNT: int = 596
 
 const OWNER_SECTIONS: Array = [
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5,
@@ -1105,12 +1105,12 @@ const OWNER_KEYS: Array = [
 ]
 
 const OWNER_VERSIONS: Array = [
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1,
+	1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1
 ]
 
 const OWNER_FIELD_COUNTS: Array = [
-	3, 1, 10, 1, 4, 5, 2, 9, 12, 1, 6, 29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9,
+	3, 1, 10, 1, 1, 5, 2, 9, 12, 1, 6, 29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9,
 	9, 9, 15, 1, 10, 4, 2, 4, 2, 1, 7, 11, 12, 30, 8, 6, 29, 9, 57, 2, 8, 20, 14, 2, 1
 ]
 
@@ -1118,12 +1118,11 @@ const FIELD_KEYS: Array = [
 	"_building_slot", "_room_slot", "_furniture_slot", "_next_persistent_id", "_tile_fertility",
 	"_tile_last_family", "_tile_family_streak", "_tile_last_legume_day", "_tile_compost_season",
 	"_tile_active_plot_row", "_tile_orchard_row", "_tile_ripe_tick", "_tile_growth_remainder",
-	"_tile_tended_today", "_tile_link_head", "_resource_slot", "_deposit_tiles",
-	"_deposit_ref_slot", "_deposit_ref_generation", "_map_revision", "_walkable", "_layer",
-	"_terrain", "_height_units", "_row", "_row64", "_published", "_published_seed", "_terrain",
-	"_soil", "_basin", "_cleared", "_basin_ref_slot", "_basin_ref_generation", "_basin_danger",
-	"_completed_tick", "_world_seed", "_seeded", "_requested_speed", "_pause_mask", "_debt",
-	"_fallback_count", "_diagnostic_pause_count", "_acknowledged_catchup_resets",
+	"_tile_tended_today", "_tile_link_head", "_resource_slot", "_map_revision", "_walkable",
+	"_layer", "_terrain", "_height_units", "_row", "_row64", "_published", "_published_seed",
+	"_terrain", "_soil", "_basin", "_cleared", "_basin_ref_slot", "_basin_ref_generation",
+	"_basin_danger", "_completed_tick", "_world_seed", "_seeded", "_requested_speed", "_pause_mask",
+	"_debt", "_fallback_count", "_diagnostic_pause_count", "_acknowledged_catchup_resets",
 	"_acknowledged_ticks_discarded", "_subtick_debt_discards", "_day_boundaries_crossed",
 	"_profile_revision", "_active", "_generation", "_retired", "_persistent_id", "_kind",
 	"_typed_row", "_b_present", "_r_present", "_f_present", "_b_type_id", "_b_tier",
@@ -1244,37 +1243,37 @@ const FIELD_KEYS: Array = [
 ]
 
 const FIELD_TYPES: Array = [
-	2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 4, 0, 2, 0, 0, 0, 0,
-	2, 2, 2, 4, 2, 0, 2, 2, 4, 4, 4, 4, 4, 4, 4, 2, 0, 2, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2,
-	2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2,
-	0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 2, 2,
-	4, 0, 0, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2, 2, 2, 4, 4, 4, 0, 0, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2,
-	0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 2, 2, 2, 2, 2, 2, 0, 0,
-	0, 0, 0, 2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 2, 4, 4, 2, 2, 0, 2, 2, 2, 0,
-	0, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 4, 2, 0, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2,
-	2, 2, 0, 2, 2, 1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4,
-	4, 2, 2, 0, 2, 2, 2, 2, 2, 4, 4, 1, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0, 2, 2, 0, 2,
-	2, 0, 0, 2, 2, 4, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 4, 4, 1, 2, 2, 2, 2, 4, 4, 1, 1, 1, 1, 4, 2,
-	1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 2, 2, 2, 2, 3, 0, 5
+	2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 0, 0, 2, 2, 2, 4, 0, 2, 0, 0, 0, 0, 2, 2, 2,
+	4, 2, 0, 2, 2, 4, 4, 4, 4, 4, 4, 4, 2, 0, 2, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2,
+	0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0,
+	2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 2, 2, 4, 0, 0,
+	2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2, 2, 2, 4, 4, 4, 0, 0, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 0, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0,
+	2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 2, 4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2,
+	0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 4, 2, 0, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0,
+	2, 2, 1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2,
+	0, 2, 2, 2, 2, 2, 4, 4, 1, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0, 2, 2, 0, 2, 2, 0, 0,
+	2, 2, 4, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 4, 4, 1, 2, 2, 2, 2, 4, 4, 1, 1, 1, 1, 4, 2, 1, 1, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 2, 2, 2, 2, 3, 0, 5
 ]
 
 ## Field indexes the registry marks hash=false: emitted by no record. See hash_location.
 const FIELD_EXCLUDED_INDEXES: Array = [
-	35, 40, 41, 42, 43, 44, 45, 46
+	32, 37, 38, 39, 40, 41, 42, 43
 ]
 
 ## Sparse (index, value) pairs for fields whose shape declares an exact element count.
 const FIELD_COUNT_INDEXES: Array = [
-	3, 19, 26, 27, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 368, 369, 370, 388, 389, 390,
-	421, 422, 459, 460, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 562, 563,
-	570, 571, 572, 573, 590, 591, 592, 593, 594, 595, 596, 604, 605
+	3, 16, 23, 24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 365, 366, 367, 385, 386, 387,
+	418, 419, 456, 457, 500, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 559, 560,
+	567, 568, 569, 570, 587, 588, 589, 590, 591, 592, 593, 601, 602
 ]
 const FIELD_COUNT_VALUES: Array = [
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -1283,7 +1282,7 @@ const FIELD_COUNT_VALUES: Array = [
 
 ## Sparse (index, value) pairs for type-5 fields' declared UTF-8 byte cap (SAVE-R09-002).
 const FIELD_MAX_UTF8_INDEXES: Array = [
-	606
+	603
 ]
 const FIELD_MAX_UTF8_VALUES: Array = [
 	128

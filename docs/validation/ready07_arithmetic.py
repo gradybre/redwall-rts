@@ -122,8 +122,14 @@ DECISION_0114_ADDED=3*4*12
 assert DECISION_0114_ADDED==144
 # decision 0127: canonical_state_hash.gd's resident declaration table, built once from the
 # checked-in registry. 800 + 1770 + 4720 + 2360 fixed, plus 8734 bytes of key text.
-DECISION_0127_ADDED=(50*4*4)+(590*3*1)+(590*8)+(590*4)+8734
-assert DECISION_0127_ADDED==18384
+# decision 0127, CORRECTED by decision 0142. The row read 50 owners and 590 fields from the day
+# it was written and was never re-derived as owners and fields were added, so it under-budgeted by
+# 441 bytes. These terms are now the registry's actual census -- 52 owners, 604 fields, 8933 bytes
+# of key text across the two PackedStringArrays -- computed from canonical_state_registry.json
+# rather than adjusted to match the old total. A row that names its own arithmetic and is never
+# re-run is a row that silently decays.
+DECISION_0127_ADDED=(52*4*4)+(604*3*1)+(604*8)+(604*4)+8933
+assert DECISION_0127_ADDED==18825
 # decision 0130: the resident render path. 512*100 instance buffer (48 B of PackedFloat32Array
 # transform, 4 B of owner slot and the RenderingServer's own 48 B TRANSFORM_3D instance, counted
 # rather than assumed free) plus 87552*36 for a SECOND transforms.gd instance. That second store
@@ -149,8 +155,8 @@ DECISION_0138_REMOVED=-(87552*9*4)
 assert DECISION_0138_REMOVED==-3151872
 assert len(allocations)==30 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED
 payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==68959123
-assert live==77347731 and candidate==62743539 and live+candidate==140091270
+assert payload==68959564
+assert live==77348172 and candidate==62743980 and live+candidate==140092152
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

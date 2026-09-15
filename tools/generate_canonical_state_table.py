@@ -89,6 +89,19 @@ def render(data: dict) -> str:
     """Build the whole marker-to-marker region, including its provenance header comment."""
     table = collect(data)
     records = sum(int(f["hash"]) for o in data["owners"] for f in o["fields"])
+    # THE BLIND SPOT THIS CLOSES. `records` is COMPUTED from the owners, and everything below
+    # emits the computed value, so a stale `record_count` sitting in the registry passed
+    # --check untouched: the generator regenerated a table that agreed with itself while
+    # disagreeing with the artifact it generates from. Found by decision 0142's mutant M11,
+    # where freezing record_count at 599 left this check green and only
+    # validate_save_registry_handoff.py refused. Two checks that look complementary are not
+    # complementary if one of them cannot see the field the other is pinning.
+    declared_records = int(data["record_count"])
+    if records != declared_records:
+        raise SystemExit(
+            "generate_canonical_state_table: registry record_count is %d but its owners carry "
+            "%d hash:true fields. The declared count is stale or a field's hash flag moved; "
+            "fix the registry rather than regenerating over it." % (declared_records, records))
     header = [
         BEGIN,
         "# Generated from docs/planning/canonical_state_registry.json by",

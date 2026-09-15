@@ -218,16 +218,23 @@ func test_an_unsupported_user_scale_is_refused_by_the_shell_too() -> void:
 func test_every_built_control_meets_its_registry_minimum_size() -> void:
 	"""A control smaller than §4's minimum would be a hit target the specification forbids.
 
-	UI-SET-037 is the ONE exception, and it is an explicit override rather than a slip.
+	UI-SET-037 is ONE exception, and it is an explicit override rather than a slip.
 	UI-IDENTITY-R01: "In this resident template its intrinsic minimum width is 0; allocate
 	exactly the remaining 172/172/220px. Do not set Label/container custom_minimum_size.x=280."
 	`test_the_name_column_carries_no_280_px_minimum()` asserts that override directly, so the
 	zero is checked rather than merely skipped here.
+
+	UI-SET-051 IS THE SECOND, ADDED BY UI-C3-R01 §4 and for the same mechanical reason. Its
+	compact management variant is "640x312 below the band" at the minimum logical viewport, and
+	§4's own row publishes a 320 px minimum height; a `custom_minimum_size` of 320 would clamp
+	the 312 straight back up, exactly as a 280 px name column widened back through Close.
+	`test_the_workspace_frame_carries_no_registry_minimum_to_clamp_the_compact_variant()`
+	asserts that override directly.
 	"""
 	var registry: UiRegistry = _shell.registry()
 	var size: UiRegistry.Size = UiRegistry.Size.new()
 	for id: int in range(UiRegistry.FIRST_ID, UiRegistry.LAST_ID + 1):
-		if id == UiShell.ID_DETAIL_TITLE:
+		if id == UiShell.ID_DETAIL_TITLE or id == UiShell.ID_WORKSPACE:
 			continue
 		if not _shell.renders(id) or not registry.size_into(id, size):
 			continue
@@ -320,9 +327,15 @@ func test_the_status_line_and_ledger_are_printed_byte_for_byte() -> void:
 	assert_equal(_shell.status_label().text, "Paused  x4  Y1 spring 1", "the status line is exact")
 	_shell.set_ledger_display("Food-days 5.48   Beds --")
 	assert_equal(_shell.ledger_label().text, "Food-days 5.48   Beds --", "the ledger line is exact")
-	_shell.set_counter_display(UiShell.ID_FOOD, "5.48")
-	assert_true((_shell.control_for(UiShell.ID_FOOD) as Button).text.contains("5.48"),
-		"and the counter cell shows the supplied string")
+	## MIGRATED BY UI-C3-R01 §2. This read the Button's own `text` -- `"Food 5.48"` on one line,
+	## which is the composition the cycle-01 evidence measured at 84.00 px against a 77.33 px
+	## budget. The cell is now two lines and the Button carries no text of its own, so the
+	## verbatim guarantee is asserted on the line that actually draws the value.
+	_shell.set_counter_display(UiShell.ID_FOOD, "5.48 days")
+	assert_equal(_shell.counter_value_label(UiShell.ID_FOOD).text, "5.48 days",
+		"the counter's value line shows the supplied string byte for byte")
+	assert_equal((_shell.control_for(UiShell.ID_FOOD) as Button).text, "",
+		"and the Button itself prints nothing, so no second copy can disagree with it")
 
 
 func test_the_speed_toggles_show_which_speed_is_requested() -> void:
@@ -809,8 +822,15 @@ func test_a_second_notice_takes_the_second_card_when_the_zone_has_room() -> void
 	assert_true(second.visible, "the second card is really on screen")
 	assert_almost_equal(second.position.y, first.position.y + first.size.y
 		+ UiLayout.ALERT_CARD_GAP, "and begins at card1_bottom + 4")
-	assert_equal(_shell.alert_label_at(1).text, "Warning: Stores empty (+1)",
-		"printing the second notice's own authored summary, not the first's")
+	## MIGRATED BY UI-C3-R01 §3. This asserted the second card printed its AUTHORED SUMMARY,
+	## "Warning: Stores empty (+1)", because §1.2's 92 px interior left 46 px after the first
+	## card's 44 px summary and this notice's one measured line needs 47. The ruling's 100 px
+	## interior and 48 px floor leave exactly 48, so the same notice now fits its FULL message --
+	## which is what §3 requires: "Preserve ALERT-R02 priority and full-message preference".
+	assert_equal(_shell.alert_label_at(1).text, "Out of ration!",
+		"printing the second notice's own full message, not the first's and not a shortened one")
+	assert_equal(_shell.card_at_is_summarised(1), false,
+		"because the reachable 48 px card has room for it")
 
 
 func test_the_second_card_shows_the_second_notice_and_not_a_copy_of_the_first() -> void:
@@ -1955,3 +1975,326 @@ func _drawn_height(label: Label) -> float:
 	return label.get_theme_font(&"font").get_multiline_string_size(label.text,
 		HORIZONTAL_ALIGNMENT_LEFT, label.size.x,
 		label.get_theme_font_size(&"font_size"), -1, flags).y
+
+
+# --- UI-C3-R01 §1/§4: the workspace stopped drawing over the HUD -------------------------------
+
+func test_the_roster_workspace_no_longer_covers_the_alert_zone() -> void:
+	"""UI-C3-R01 §1, against the built tree. This is the cycle-01 occlusion, as a rectangle.
+
+	Captures 10-12 measured it exactly: "Not one pixel of the frame changes between two active
+	alert cards and no alert card at all", because `ID_WORKSPACE` was placed at `_geometry.modal`
+	-- `(160,16,960,688)` at 1280x720 -- which contains the whole alert zone. Opening the roster
+	must now leave every permanent HUD rectangle uncovered.
+	"""
+	assert_true(_shell.open_workspace_page(UiRegistry.ROSTER_ID), "the roster opens")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var frame: Control = _shell.control_for(UiShell.ID_WORKSPACE)
+	var placed: Rect2 = Rect2(frame.position, frame.size)
+	assert_true(frame.visible, "the frame really is on screen")
+	assert_false(placed.intersects(_shell.geometry().alerts), "it clears the alert zone")
+	assert_false(placed.intersects(_shell.geometry().resources), "it clears the resource frame")
+	assert_false(placed.intersects(_shell.geometry().minimap), "it clears the minimap")
+	assert_true(placed.position.y >= _shell.geometry().management_top - 0.01,
+		"because it starts at or below the reserved 152 px band")
+
+
+func test_a_true_modal_page_still_occludes_from_the_centred_rectangle() -> void:
+	"""§4: "True New Settlement ... retain their owning centered geometry/scrim/focus contracts".
+
+	The fix is NOT "put all HUD controls above all dialogs". A true modal is still a modal, and
+	this asserts that the same frame takes §1.2's centred rectangle for UI-SET-103.
+	"""
+	assert_true(_shell.open_workspace_page(UiShell.ID_NEW_SETTLEMENT), "New Settlement opens")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var frame: Control = _shell.control_for(UiShell.ID_WORKSPACE)
+	assert_almost_equal(frame.size.x, _shell.geometry().modal.size.x,
+		"the modal page keeps §1.2's centred width")
+	assert_almost_equal(frame.position.y, _shell.geometry().modal.position.y,
+		"and its centred origin")
+	assert_true(Rect2(frame.position, frame.size).intersects(_shell.geometry().alerts),
+		"so a genuine modal does still occlude the HUD behind it")
+
+
+func test_the_workspace_frame_carries_no_registry_minimum_to_clamp_the_compact_variant() -> void:
+	"""§4's compact body is 640x312 and §4's row publishes a 320 px minimum height.
+
+	A Control clamps its own size UP to `custom_minimum_size`, so leaving 320 on this frame would
+	return the 312 to 320 without any code saying so -- the same mechanism UI-IDENTITY-R01
+	records for UI-SET-037's name column. §4's row itself is unchanged and still published.
+	"""
+	var frame: Control = _shell.control_for(UiShell.ID_WORKSPACE)
+	assert_almost_equal(frame.custom_minimum_size.y, 0.0,
+		"the frame carries no minimum height of its own")
+	assert_almost_equal(frame.custom_minimum_size.x, 0.0, "and no minimum width")
+	var size: UiRegistry.Size = UiRegistry.Size.new()
+	assert_true(_shell.registry().size_into(UiShell.ID_WORKSPACE, size),
+		"§4 still publishes UI-SET-051's own row")
+	assert_equal(size.min_height, 320, "which still reads 320 for its other uses")
+
+
+func test_the_compact_variant_reflows_to_the_rulings_exact_rectangle() -> void:
+	"""§4: "At 1280x720/150% (logical 853⅓x480), body is (106⅔,152,640,312)"."""
+	assert_true(_shell.open_workspace_page(UiRegistry.ROSTER_ID), "the roster opens")
+	assert_true(_shell.apply_user_scale(UiLayout.USER_SCALE_150), "150 percent applies")
+	assert_true(_shell.layout_for(1280, 720), "the narrow layout computes")
+	assert_true(_shell.workspace_is_compact(), "the compact variant owns this viewport")
+	var frame: Control = _shell.control_for(UiShell.ID_WORKSPACE)
+	assert_almost_equal(frame.position.x, 106.6667, "x is 106⅔")
+	assert_almost_equal(frame.position.y, 152.0, "y is the reserved band")
+	assert_almost_equal(frame.size.x, 640.0, "640 wide")
+	assert_almost_equal(frame.size.y, 312.0, "and 312 high, not clamped back to 320 or 560")
+	assert_almost_equal(_shell.workspace_body().size.y, 188.0,
+		"with 188 px of scrollable body between the fixed 64 header and 60 footer")
+
+
+func test_the_ordinary_workspace_raises_no_scrim_and_the_compact_one_does() -> void:
+	"""§4.2 gives the ordinary workspace "no SCRIM or full-screen input block"; §4's compact
+	variant "retains JOURNAL, z80, focus trap and SCRIM"."""
+	assert_true(_shell.open_workspace_page(UiRegistry.ROSTER_ID), "the roster opens")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	assert_false(_shell.hit_test().scrim_is_up(), "an ordinary workspace raises no scrim")
+	assert_true(_shell.hit_test().world_receives(Vector2(1000.0, 300.0)),
+		"and the world beside it is still clickable")
+	assert_true(_shell.apply_user_scale(UiLayout.USER_SCALE_150), "150 percent applies")
+	assert_true(_shell.layout_for(1280, 720), "the narrow layout computes")
+	assert_true(_shell.hit_test().scrim_is_up(), "the compact variant raises one")
+	assert_false(_shell.hit_test().world_receives(Vector2(700.0, 60.0)),
+		"so a click on a dimmed alert cannot reach the world as a command")
+
+
+# --- UI-C3-R01 §2: the two-line resource cell --------------------------------------------------
+
+func test_the_narrow_profile_binds_population_and_not_the_next_array_entry() -> void:
+	"""UI-C3-R01 §1: "Select IDs 002 and 006 explicitly; never take the first two entries".
+
+	Every NARROW capture in cycle-01 showed Food and FUEL, because the cell loop drew slots 0 and
+	1 of `COUNTER_IDS`. Fuel is UI-SET-003 and it is not §1.3's second persistent counter.
+	"""
+	assert_true(_shell.apply_user_scale(UiLayout.USER_SCALE_150), "150 percent applies")
+	assert_true(_shell.layout_for(1280, 720), "the narrow layout computes")
+	assert_equal(_shell.geometry().profile, UiLayout.PROFILE_NARROW, "1280 at 150 percent is narrow")
+	assert_true((_shell.control_for(UiShell.ID_FOOD) as Control).visible, "UI-SET-002 is shown")
+	assert_true((_shell.control_for(UiShell.ID_POPULATION) as Control).visible,
+		"UI-SET-006 is shown")
+	assert_false((_shell.control_for(UiShell.ID_FUEL) as Control).visible,
+		"and UI-SET-003 is not, however the six-counter array is ordered")
+	var population: Control = _shell.control_for(UiShell.ID_POPULATION)
+	assert_almost_equal(population.position.y, 64.0,
+		"population takes the SECOND narrow slot, at y64")
+	assert_equal(_shell.counter_caption_label(UiShell.ID_FOOD).text, "Food",
+		"the narrow caption is the short word")
+	assert_true(_shell.control_for(UiShell.ID_FOOD).accessibility_description.contains("Ready food"),
+		"while accessibility keeps the full Ready food meaning")
+
+
+func test_a_counter_cell_draws_two_lines_at_the_rulings_own_rectangles() -> void:
+	"""§2: a 16 px icon and 14 px caption on line one, the number alone on line two."""
+	var cell: Control = _shell.control_for(UiShell.ID_WOOD)
+	assert_almost_equal(cell.size.y, 56.0, "the cell is 56 high")
+	assert_equal((cell as Button).text, "", "and the Button prints nothing itself")
+	var caption: Label = _shell.counter_caption_label(UiShell.ID_WOOD)
+	var value: Label = _shell.counter_value_label(UiShell.ID_WOOD)
+	var icon: TextureRect = _shell.counter_icon(UiShell.ID_WOOD)
+	assert_equal(caption.text, "Wood", "the caption names the resource")
+	assert_almost_equal(icon.size.x, 16.0, "the icon is 16 px")
+	assert_almost_equal(caption.position.x, icon.position.x + 16.0 + 4.0,
+		"the caption sits one 4 px gap past it")
+	## The POSITIONS are compared against the allocated line boxes rather than against the Labels'
+	## own realised heights: `Control.add_theme_font_size_override()` only refreshes a control's
+	## theme cache while it is inside the tree, and this shell is built off-tree here, so a Label's
+	## `get_minimum_size()` in the suite reports Godot's default face. What the cell DRAWS with is
+	## measured from the Theme resource by `ui_shell.gd` itself, which is identical in both.
+	var caption_box: Rect2 = UiLayout.resource_caption_rect(cell.size)
+	assert_almost_equal(caption.position.y, caption_box.position.y,
+		"the caption line starts at the reserved 4 px edge")
+	assert_almost_equal(value.position.y, caption_box.position.y + caption_box.size.y,
+		"and the number owns the whole second line, with no interline gap")
+	assert_almost_equal(value.position.y + UiLayout.RESOURCE_VALUE_LINE,
+		cell.size.y - UiLayout.RESOURCE_CELL_PADDING - 2.0,
+		"ending inside the reserved bottom edge")
+	assert_almost_equal(value.size.x, UiLayout.resource_value_width(cell.size.x),
+		"at the full cell_width-8")
+
+
+func test_every_caption_measures_inside_its_own_gutter_in_the_real_font() -> void:
+	"""§2: "Measure caption+icon as well as the value."
+
+	The bare word `Residents` measured 86.00 px against a 77.33 px budget in the old 18 px cell,
+	so the cell overflowed with no value in it at all. This measures every caption this shell can
+	print, at every profile, in the vendored face the shell actually draws with.
+	"""
+	for scale: int in [UiLayout.USER_SCALE_100, UiLayout.USER_SCALE_150]:
+		assert_true(_shell.apply_user_scale(scale), "%d percent applies" % scale)
+		assert_true(_shell.layout_for(1280, 720), "the layout computes at %d" % scale)
+		for id: int in [UiShell.ID_FOOD, UiShell.ID_FUEL, UiShell.ID_WOOD, UiShell.ID_STONE,
+				UiShell.ID_POPULATION, UiShell.ID_BEDS]:
+			var cell: Control = _shell.control_for(id)
+			if not cell.visible:
+				continue
+			var caption: Label = _shell.counter_caption_label(id)
+			var measured: float = caption.get_theme_font(&"font").get_string_size(caption.text,
+				HORIZONTAL_ALIGNMENT_LEFT, -1.0,
+				caption.get_theme_font_size(&"font_size")).x
+			assert_true(measured <= UiLayout.resource_caption_width(cell.size.x) + 0.01,
+				"UI-SET-%03d caption '%s' measures %.2f inside %.2f at scale %d" % [id,
+					caption.text, measured, UiLayout.resource_caption_width(cell.size.x), scale])
+
+
+func test_a_value_that_fits_is_printed_whole_at_the_numeric_size() -> void:
+	"""§2: the exact value at 18 px Semibold whenever it measures inside cell_width-8."""
+	assert_true(_shell.set_counter_display(UiShell.ID_FOOD, "5.48 days"), "the value is accepted")
+	var value: Label = _shell.counter_value_label(UiShell.ID_FOOD)
+	assert_equal(value.text, "5.48 days", "the whole figure is drawn")
+	assert_false(_shell.counter_discloses_ledger(UiShell.ID_FOOD), "no disclosure is needed")
+	assert_equal(value.theme_type_variation, UiShell.VALUE_VARIATION, "at the numeric role")
+	assert_false(value.clip_text, "and the line never clips what it is given")
+
+
+func test_a_value_too_long_for_its_cell_becomes_an_explicit_ledger_action() -> void:
+	"""§2's overflow exception: "retain the caption and replace the numeric line with See ledger".
+
+	"This is a named disclosure state, not a shortened number, infinity, ellipsis or a falsely
+	smaller stock. Never abbreviate to K/M, silently crop, shrink numeric text, or hide a low-food
+	warning." The exact figure stays in the accessible description and in the ledger.
+	"""
+	var huge: String = "9,223,372,036,854,775,807 U"
+	assert_true(_shell.set_counter_display(UiShell.ID_WOOD, huge), "the value is accepted")
+	assert_true(_shell.counter_discloses_ledger(UiShell.ID_WOOD), "it does not fit the cell")
+	var value: Label = _shell.counter_value_label(UiShell.ID_WOOD)
+	assert_equal(value.text, "See ledger", "so the numeric line becomes the named action")
+	assert_false(value.text.contains("…"), "with no ellipsis")
+	assert_false(value.text.contains("K") or value.text.contains("M"), "and no K/M abbreviation")
+	assert_equal(_shell.counter_caption_label(UiShell.ID_WOOD).text, "Wood",
+		"the caption still identifies the resource")
+	assert_true(_shell.control_for(UiShell.ID_WOOD).accessibility_description.contains(huge),
+		"and the EXACT figure is what a screen reader is given")
+
+
+func test_the_disclosure_is_at_the_sixteen_pixel_body_size_and_fits() -> void:
+	"""§2: "at the normal 16px body size", which must itself measure inside the cell."""
+	assert_true(_shell.set_counter_display(UiShell.ID_WOOD, "9,223,372,036,854,775,807 U"),
+		"the oversized value is accepted")
+	var value: Label = _shell.counter_value_label(UiShell.ID_WOOD)
+	assert_equal(value.theme_type_variation, UiShell.DISCLOSURE_VARIATION, "at the body role")
+	assert_equal(value.get_theme_font_size(&"font_size"), UiTheme.FONT_BODY, "which is 16 px")
+	var measured: float = value.get_theme_font(&"font").get_string_size(value.text,
+		HORIZONTAL_ALIGNMENT_LEFT, -1.0, value.get_theme_font_size(&"font_size")).x
+	assert_true(measured <= value.size.x + 0.01,
+		"and the action itself measures %.2f inside the %.2f px line" % [measured, value.size.x])
+
+
+func test_the_ledger_action_really_opens_the_ledger() -> void:
+	"""§2: "Activation opens the exact, wrapped/scrollable resource record", by pointer or key.
+
+	A disclosure that names an action and does not perform it is worse than the clipped digits it
+	replaced, so this presses the real Button and reads the real ledger.
+	"""
+	var ledger: Control = _shell.control_for(UiShell.ID_LEDGER)
+	assert_false(ledger.visible, "the ledger starts closed")
+	_shell.set_ledger_display("Wood 9,223,372,036,854,775,807 U")
+	(_shell.control_for(UiShell.ID_WOOD) as Button).pressed.emit()
+	assert_true(ledger.visible, "activating the cell opens it")
+	assert_true(_shell.ledger_label().text.contains("9,223,372,036,854,775,807"),
+		"showing the exact figure the cell could not print")
+	assert_false(_shell.ledger_label().clip_text, "in a line that wraps rather than clips")
+
+
+func test_an_unavailable_counter_reads_unavailable_and_never_a_dash_or_a_zero() -> void:
+	"""§2: "Unknown data reads Unavailable at 16px with the actual reason, never zero or an
+	unlabeled dash"."""
+	for id: int in [UiShell.ID_FUEL, UiShell.ID_BEDS]:
+		var value: Label = _shell.counter_value_label(id)
+		assert_equal(value.text, "Unavailable", "UI-SET-%03d says so in words" % id)
+		assert_equal(value.get_theme_font_size(&"font_size"), UiTheme.FONT_BODY, "at 16 px")
+		assert_true(_shell.control_for(id).accessibility_description.begins_with("Unavailable"),
+			"UI-SET-%03d still carries its named missing owner" % id)
+		assert_false(_shell.counter_discloses_ledger(id),
+			"an absent owner is not an overflow and does not claim a figure exists")
+
+
+func test_a_focused_resource_cell_rings_inside_itself_not_across_its_neighbour() -> void:
+	"""§2's focus-geometry exception, against the built tree's own rectangles."""
+	var cluster: Vector2 = _shell.control_for(UiShell.ID_RESOURCE_CLUSTER).position
+	var first: Control = _shell.control_for(UiShell.ID_FOOD)
+	var below: Control = _shell.control_for(UiShell.ID_STONE)
+	first.focus_entered.emit()
+	var outline: Control = _shell.control_for(UiShell.ID_FOCUS_OUTLINE)
+	var ring: Rect2 = Rect2(outline.position, outline.size)
+	assert_true(outline.visible, "the ring is drawn")
+	assert_true(Rect2(cluster + first.position, first.size).encloses(ring),
+		"entirely inside the focused cell")
+	assert_false(ring.intersects(Rect2(cluster + below.position, below.size)),
+		"and never across the touching cell below it")
+	var time_zone: Vector2 = _shell.control_for(UiShell.ID_TIME_CLUSTER).position
+	var menu: Control = _shell.control_for(UiShell.ID_MENU)
+	menu.focus_entered.emit()
+	assert_almost_equal(outline.position.x, time_zone.x + menu.position.x
+		- float(UiTheme.FOCUS_OUTLINE_OFFSET),
+		"while every other control keeps §2.2's outward offset-2 ring")
+
+
+func test_a_narrow_summary_card_is_padded_and_centred_the_way_the_ruling_states() -> void:
+	"""§3: "Its summary-only vertical padding is 8 ... Vertically center the content in 44"."""
+	_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"stores", "STOCK_EMPTY", "")
+	assert_true(_shell.apply_user_scale(UiLayout.USER_SCALE_150), "150 percent applies")
+	assert_true(_shell.layout_for(1280, 720), "the narrow layout computes")
+	var card: Panel = _shell.alert_card_at(0)
+	assert_true(card.visible, "the one narrow card is drawn")
+	assert_true(_shell.card_at_is_summarised(0), "and NARROW is always the authored summary")
+	assert_almost_equal(card.size.y, 44.0, "in the authored 44 px card")
+	var message: Label = _shell.alert_label_at(0)
+	assert_almost_equal(message.offset_top, 8.0, "its text is padded 8 px, not 12")
+	assert_almost_equal(message.offset_bottom, -8.0, "on both edges")
+	assert_equal(message.vertical_alignment, VERTICAL_ALIGNMENT_CENTER,
+		"and centred in the 44 px card")
+	var icon: TextureRect = _shell.alert_icon()
+	assert_almost_equal(icon.position.y, (44.0 - 24.0) / 2.0,
+		"the 24 px severity icon is centred with it")
+
+
+func test_a_full_standard_card_keeps_the_generic_twelve_pixel_padding() -> void:
+	"""§3: this is "an explicit NOTICE summary exception ... not a change to full-message padding"."""
+	_shell.raise_notice(UiNotices.CATEGORY_STOCK_EMPTY, "Out of ration!",
+		"stores", "STOCK_EMPTY", "")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	assert_false(_shell.card_at_is_summarised(0), "the message fits its own card")
+	var message: Label = _shell.alert_label_at(0)
+	assert_almost_equal(message.offset_top, 12.0, "so the full message keeps 12 px")
+	assert_almost_equal(_shell.alert_icon().position.y, 12.0,
+		"and its icon stays at the panel padding rather than centring")
+	assert_almost_equal(_shell.alert_card_at(0).size.y, 48.0,
+		"in the 48 px card §3 makes reachable")
+
+
+func test_a_narrowed_workspace_narrows_its_content_column_with_it() -> void:
+	"""The frame's own width owns the column, so re-laying out smaller cannot leave wide rows.
+
+	This is a SEQUENCE: lay the frame out wide, then narrow. The column's minimum used to be
+	assigned from the ScrollContainer's REALISED width, and a ScrollContainer with horizontal
+	scrolling disabled takes its minimum width from that same column -- a ratchet that can only
+	grow. The 936 px rows of the old 960-wide centred frame survived inside the 640-wide one and
+	`clip_contents` cut the last glyphs off every resident's health.
+	"""
+	assert_true(_shell.open_workspace_page(UiRegistry.ROSTER_ID), "the roster opens")
+	_shell.set_roster(PackedStringArray(["Warden Rowan  mouse  Health 100 / 100"]), 1)
+	assert_true(_shell.layout_for(1920, 1080), "the wide layout computes first")
+	var column: Control = _shell.workspace_body().get_child(0) as Control
+	var wide_frame: float = _shell.control_for(UiShell.ID_WORKSPACE).size.x
+	assert_almost_equal(column.custom_minimum_size.x, wide_frame - 24.0,
+		"the column is given the wide frame's own interior")
+	assert_true(_shell.layout_for(1280, 720), "then the standard one")
+	var frame: Control = _shell.control_for(UiShell.ID_WORKSPACE)
+	## The COLUMN's minimum is what a test can read off-tree: a ScrollContainer's realised size is
+	## clamped by a minimum cache Godot only refreshes inside the tree, and this shell is built
+	## outside it. The ratchet was the assignment, and the assignment is asserted here; the native
+	## capture in this cycle's evidence is where the rows are seen to fit.
+	assert_almost_equal(column.custom_minimum_size.x, frame.size.x - 24.0,
+		"and the narrowed frame's interior afterwards, never the wider one it kept before")
+	assert_true(column.custom_minimum_size.x <= frame.size.x,
+		"so the content column fits inside the frame that holds it")
+	assert_almost_equal(_shell.workspace_body().position.y, 64.0,
+		"below §4.2's fixed 64 px header")
+	assert_almost_equal(_shell.workspace_body().size.y,
+		frame.size.y - 64.0 - 60.0, "and above its fixed 60 px footer")

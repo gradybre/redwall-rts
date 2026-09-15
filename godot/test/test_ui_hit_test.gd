@@ -62,10 +62,17 @@ func _register_permanent_hud() -> void:
 
 
 func _world_point(index: int) -> Vector2:
-	"""One of SAMPLE_COUNT points spread across the centre band the world owns at 1280x720."""
+	"""One of SAMPLE_COUNT points spread across the centre band the world owns at 1280x720.
+
+	The y origin is `management_top`, NOT a literal. It used to be a hard-coded 120.0, which
+	was inside the world band while the resource frame ended at y112. UI-C3-R01 gives that
+	frame 128px spanning y16..144, so rows y120 and y136 at x240..368 -- 18 of the 1000
+	samples -- now legitimately land on the resource cluster. The fixture was stale, not the
+	rule: anchoring on the reserved band keeps the samples clear of the minimap, commands and
+	detail at 1280x720 and follows the geometry instead of restating one of its old values."""
 	var columns: int = 40
 	var x: float = 240.0 + float(index % columns) * 16.0
-	var y: float = 120.0 + float(index / columns) * 16.0
+	var y: float = _geometry.management_top + float(index / columns) * 16.0
 	return Vector2(x, y)
 
 

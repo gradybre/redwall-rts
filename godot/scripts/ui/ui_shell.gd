@@ -172,10 +172,34 @@ const FRAME_OF_ZONE: Dictionary = {
 
 ## The six counter cells §1.2's grid holds, in its stated left-to-right, top-to-bottom order.
 const COUNTER_IDS: Array[int] = [ID_FOOD, ID_FUEL, ID_WOOD, ID_STONE, ID_POPULATION, ID_BEDS]
-## The words §1.1's zone map uses for those six counters: "Food Fuel Wood / Stone Residents
-## Beds". The VISIBLE text is short because the cell is 104-144 px wide; the full §4 value
-## binding lives in the accessible name, which is where §4 puts it.
-const COUNTER_LABELS: Array[String] = ["Food", "Fuel", "Wood", "Stone", "Residents", "Beds"]
+## UI-C3-R01 §2's captions: "Ready food / Fuel / Wood / Stone / Residents / Beds". The caption
+## is the FIRST line of the two-line cell and it always identifies the resource; the value owns
+## the second line. "Food" alone was not the §1.1 wording for UI-SET-002 -- ready food and
+## potential food are different quantities, and UXV-016 requires them kept distinct.
+const COUNTER_LABELS: Array[String] = ["Ready food", "Fuel", "Wood", "Stone", "Residents", "Beds"]
+## §1.3's NARROW resource area, by explicit element id. UI-C3-R01 §1: "the NARROW capture shows
+## Food and Fuel. Its specified second persistent counter is Population. Select IDs 002 and 006
+## explicitly; never take the first two entries of the six-counter array." Taking `COUNTER_IDS`
+## prefix is exactly how Fuel came to stand in Population's slot.
+const NARROW_COUNTER_IDS: Array[int] = [ID_FOOD, ID_POPULATION]
+## "NARROW uses Food / Residents with full Ready food meaning retained in accessibility and
+## disclosure", which is why the shortened caption never reaches the accessible name.
+const NARROW_COUNTER_LABELS: Array[String] = ["Food", "Residents"]
+## UI-C3-R01 §2's named disclosure state for a value too long for its cell. It is an ACTION, not
+## a shortened number: "Never abbreviate to K/M, silently crop, shrink numeric text, or hide a
+## low-food warning." Activating the cell opens UI-SET-009's ledger, which carries every
+## counter's exact value, wrapped and scrollable.
+const SEE_LEDGER: String = "See ledger"
+## The two typographic roles UI-C3-R01 §2 names for the cell: "Caption uses 14px regular Sans
+## ... numeric line uses 18px Semibold". Both already exist as §2.2 theme variations, so the
+## cell selects a ROLE rather than overriding a font size of its own. The disclosure and
+## unavailable lines take the body role, which is §2.1's 16 px minimum for critical body text.
+const CAPTION_VARIATION: StringName = &"WoodlandSecondary"
+const VALUE_VARIATION: StringName = &"WoodlandCounter"
+const DISCLOSURE_VARIATION: StringName = &"WoodlandBody"
+## "Unknown data reads Unavailable at 16px with the actual reason, never zero or an unlabeled
+## dash." The reason itself is the accessible description `ui_availability.gd` supplies.
+const UNAVAILABLE_VALUE: String = "Unavailable"
 ## The command strip's visible words, each the §4 row's name without the word "command".
 const COMMAND_LABELS: Array[String] = ["Build", "Zone", "Jobs", "Food", "Residents", "Feast",
 	"Objectives"]
@@ -219,6 +243,15 @@ const ZONE_BRUSH_HEIGHT: float = 160.0
 ## UI-SET-087 stays out of this list: F6 is its only route, which `ui_registry.gd` asserts.
 const WORKSPACE_PAGES: Array[int] = [ID_NEW_SETTLEMENT, ID_WORLD_LIST, ID_NAME_EDITOR,
 	UiRegistry.ROSTER_ID]
+## The pages that are TRUE MODALS, not ordinary workspaces. SET-UX-VIS-002 §4.2 splits UI-SET-051
+## into two variants and UI-C3-R01 §4 preserves the split: "True New Settlement, confirmation,
+## error and other MODAL variants retain their owning centered geometry/scrim/focus contracts; do
+## not apply the management band to every modal". These two keep §1.2's centred modal rectangle
+## and still occlude; the roster and the world list do not.
+const MODAL_PAGES: Array[int] = [ID_NEW_SETTLEMENT, ID_NAME_EDITOR]
+## SET-UX-VIS-002 §4.2's fixed frame bands: "Header 64 and footer 60 stay fixed; rows scroll."
+const WORKSPACE_HEADER: float = 64.0
+const WORKSPACE_FOOTER: float = 60.0
 ## Room the Create action has inside UI-SET-103, which is at least 480 wide by §4.
 const CREATE_BUTTON_ROOM: float = 480.0
 const WARNING_ICON: String = "res://ui/icons/warning.svg"
@@ -368,6 +401,20 @@ var _presentation: PresentationExtractScript = null
 ## profile and accessible name", so these are not separate registry entries and are never
 ## focusable or hit-testable; they are what their owning element prints.
 var _ledger_line: Label = null
+## The three drawn parts of each UI-SET-002..007 cell, in `COUNTER_IDS` order. UI-C3-R01 §2's
+## cell is two lines, so the Button's own single `text` cannot express it: the caption and the
+## value are separate Labels at separate font sizes, and the 16 px optical icon is a child
+## rather than the Button's own icon, whose placement the Button owns and this composition does
+## not allow.
+var _counter_captions: Array[Label] = []
+var _counter_values: Array[Label] = []
+var _counter_icons: Array[TextureRect] = []
+## The EXACT value each counter was last given, kept whole whatever the cell draws. This is what
+## the accessible description announces and what the ledger discloses when the cell overflows;
+## nothing here ever stores a shortened form of it.
+var _counter_full: PackedStringArray = PackedStringArray()
+## 1 where the exact value does not measure inside the cell and the See ledger action is drawn.
+var _counter_overflow: PackedByteArray = PackedByteArray()
 ## One message Label and one severity icon per UI-SET-011 instance, in stack order.
 var _alert_messages: Array[Label] = []
 var _history_line: Label = null
@@ -427,6 +474,9 @@ var _roster_shown: int = 0
 var _workspace_page: int = ID_NEW_SETTLEMENT
 var _workspace_scroll: ScrollContainer = null
 var _workspace_column: VBoxContainer = null
+## The fixed 64 px header band's line: the §4 name of the page that is open. It is text INSIDE
+## UI-SET-051, not a registry element of its own, so it is never focusable or hit-tested.
+var _workspace_title: Label = null
 ## The roster's own container. UI-SET-069's id is the first ROW's control, so the page needs a
 ## holder of its own: without one the page loop would toggle row 0 and leave rows 1-11 standing
 ## on every other page.
@@ -499,7 +549,7 @@ func _new_panel(id: int, text: String) -> Panel:
 	panel.name = String(_registry.element_key(id))
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.theme_type_variation = PROFILE_VARIATION[_registry.profile_of(id).value]
-	panel.custom_minimum_size = _minimum_size(id)
+	panel.custom_minimum_size = _control_minimum_size(id)
 	panel.size = panel.custom_minimum_size
 	_apply_semantics(panel, id, text)
 	_controls[id] = panel
@@ -537,6 +587,11 @@ func _style_button(button: Button, id: int) -> void:
 	LOCK instead of the glyph for an action it cannot perform.
 	"""
 	button.theme_type_variation = PROFILE_VARIATION[_registry.profile_of(id).value]
+	## UI-C3-R01 §2 gives a resource cell a 16 px optical icon INSIDE its caption line, at a
+	## rectangle this composition owns. A Button draws its own `icon` beside its own `text` on one
+	## line, which is the single-line cell the ruling replaces, so these cells take none.
+	if COUNTER_IDS.has(id):
+		return
 	if not _availability.is_wired(id):
 		button.icon = load(LOCK_ICON) as Texture2D
 		return
@@ -559,6 +614,24 @@ func _icon_texture_for(id: int) -> Texture2D:
 		if _geometry.profile == UiLayout.PROFILE_NARROW and SYMBOLIC_OF_PAINTED.has(subject):
 			return load("%s%s.svg" % [SYMBOLIC_DIRECTORY, SYMBOLIC_OF_PAINTED[subject]])
 		return load("%s%s.svg" % [PAINTED_DIRECTORY, subject]) as Texture2D
+	return load("%s%s.svg" % [ICON_DIRECTORY, ICON_OF_ELEMENT[id]]) as Texture2D
+
+
+func _counter_icon_texture(id: int) -> Texture2D:
+	"""The 16 px glyph in one counter's caption line: its symbolic variant, or its optical line one.
+
+	ART-UI-04 asks for "the simpler 16 px variant at narrow sizes rather than shrinking intricate
+	painted detail until it becomes noise", and UI-C3-R01 §2 sets every resource caption icon to
+	16 px. Only `food` and `people` have an authored `symbolic16` file, so Fuel, Wood, Stone and
+	Beds take ART-UI-05's optical line glyph at the same size. NO ICON IS GENERATED HERE: four
+	missing 16 px symbolic variants are an art gap reported to the lock's owner, not something
+	this file invents or scales a painted asset down into.
+	"""
+	if not _availability.is_wired(id):
+		return load(LOCK_ICON) as Texture2D
+	var subject: String = PAINTED_OF_ELEMENT[id]
+	if SYMBOLIC_OF_PAINTED.has(subject):
+		return load("%s%s.svg" % [SYMBOLIC_DIRECTORY, SYMBOLIC_OF_PAINTED[subject]]) as Texture2D
 	return load("%s%s.svg" % [ICON_DIRECTORY, ICON_OF_ELEMENT[id]]) as Texture2D
 
 
@@ -663,6 +736,23 @@ func _apply_semantics(control: Control, id: int, text: String) -> void:
 	control.tooltip_text = reason
 
 
+func _control_minimum_size(id: int) -> Vector2:
+	"""The minimum a BUILT control carries: §4's row, except where an adopted ruling overrides it.
+
+	UI-C3-R01 §4's compact variant is 640x312 at the minimum logical viewport, and §4's own row for
+	UI-SET-051 publishes a 320 px minimum height. A Control clamps its size UP to
+	`custom_minimum_size`, so leaving the registry minimum on this frame silently returns the 312
+	to 320 -- the same defect UI-IDENTITY-R01 records for UI-SET-037's name column. The override
+	has to be applied HERE rather than cleared afterwards: `Control.update_minimum_size()` returns
+	immediately while a control is outside the tree, so a later assignment does not invalidate the
+	cached minimum, and this shell is built off-tree by the headless suite. §4's row is unchanged
+	and still published; `_workspace_content_height()` still reads its 320 as the content floor.
+	"""
+	if id == ID_WORKSPACE:
+		return Vector2.ZERO
+	return _minimum_size(id)
+
+
 func _minimum_size(id: int) -> Vector2:
 	"""The registry's minimum size for an element, or a zero size for a runtime-sized row."""
 	var size: UiRegistry.Size = UiRegistry.Size.new()
@@ -757,12 +847,16 @@ func _build_world_surface() -> void:
 
 
 func _build_resources() -> void:
-	"""UI-SET-001's cluster, its six counter cells, the expander and the ledger below it."""
+	"""UI-SET-001's cluster, its six two-line counter cells, the expander and the ledger below it."""
 	var cluster: Panel = _zone_panel(ID_RESOURCE_CLUSTER, "Settlement resources")
+	_counter_full.resize(COUNTER_IDS.size())
+	_counter_overflow.resize(COUNTER_IDS.size())
 	for index: int in COUNTER_IDS.size():
 		var id: int = COUNTER_IDS[index]
-		var cell: Button = _new_button(id, "%s %s" % [COUNTER_LABELS[index], UNPOPULATED])
+		var cell: Button = _new_button(id, "")
 		cell.toggle_mode = false
+		cell.pressed.connect(_on_counter_pressed.bind(id))
+		_build_counter_cell(cell, index)
 		cluster.add_child(cell)
 	var expand: Button = _new_button(ID_EXPAND, "+")
 	expand.pressed.connect(_on_expand_pressed)
@@ -776,6 +870,79 @@ func _build_resources() -> void:
 	_apply_semantics(bar, ID_SCROLL, "Scroll the resource ledger")
 	_controls[ID_SCROLL] = bar
 	ledger.add_child(bar)
+
+
+func _build_counter_cell(cell: Button, index: int) -> void:
+	"""UI-C3-R01 §2's two-line readout: a 16 px icon and a 14 px caption, then an 18 px number.
+
+	The Button carries NO text of its own. One line of "Food 5.48" in an 18 px face is what the
+	cycle-01 evidence measured at 84.00 px against a 77.33 px budget, and the bare word
+	`Residents` overflowed at 86.00 px with no value in it at all. Splitting the cell gives the
+	caption its own 14 px line beside a 16 px optical icon and gives the number the whole width.
+	"""
+	_counter_icons.append(_new_cell_icon(cell))
+	_counter_captions.append(_new_cell_text(cell, &"Caption", CAPTION_VARIATION,
+		COUNTER_LABELS[index]))
+	_counter_values.append(_new_cell_text(cell, &"Value", VALUE_VARIATION, UNPOPULATED))
+	_counter_full[index] = UNPOPULATED
+	_counter_overflow[index] = 0
+	## Paint once at BUILD time, not only at the first layout. A counter with no owning store is
+	## never written again -- `set_counter_display()` refuses it -- so a cell left holding its
+	## construction placeholder would show UI-C3-R01 §2's forbidden "unlabeled dash" for the whole
+	## session on a shell that had not been laid out yet.
+	_paint_counter_cell(index)
+
+
+func _apply_cell_role(label: Label, variation: StringName) -> void:
+	"""Put one cell line into a §2.2 typographic role, as an OVERRIDE rather than a variation.
+
+	`theme_type_variation` is resolved through the tree's theme owner, and this shell is built
+	off-tree by the headless suite: a caption there would silently measure in Godot's default
+	16 px face while the game drew it in the vendored 14 px one, and the measurement that decides
+	UI-C3-R01 §2's ledger disclosure would be taken against the wrong font. The role is still
+	recorded on the control so a test can read which one is in force.
+	"""
+	label.theme_type_variation = variation
+	var font: Font = _variation_font(variation)
+	if font != null:
+		label.add_theme_font_override(&"font", font)
+	label.add_theme_font_size_override(&"font_size", _variation_font_size(variation))
+
+
+func _new_cell_icon(cell: Button) -> TextureRect:
+	"""The 16 px optical resource icon in a cell's caption line. Decorative: the caption names it."""
+	var icon: TextureRect = TextureRect.new()
+	icon.name = "Icon"
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_make_decoration(icon)
+	cell.add_child(icon)
+	return icon
+
+
+func _new_cell_text(cell: Button, text_name: StringName, variation: StringName,
+		text: String) -> Label:
+	"""One of a counter cell's two lines. Never clipped: what it is given, it draws whole.
+
+	`clip_text` is FALSE on both lines deliberately. The old cell set it true, which is how a
+	value lost its last glyph silently. Everything written into the value line is measured against
+	`UiLayout.resource_value_width()` first, so nothing that cannot fit is ever written here.
+	"""
+	var label: Label = Label.new()
+	label.name = String(text_name)
+	label.text = text
+	label.clip_text = false
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	## UI-C3-R01 §2 measures the two lines as "20px line box" and "26px line box" "with no extra
+	## interline gap", and 20+26+8 is how the composition fits 56. Godot's own Label default adds
+	## 3 px of line spacing, which would make the pair 52 and push the number past the reserved
+	## bottom edge, so the cell states the gap it was measured with.
+	label.add_theme_constant_override(&"line_spacing", 0)
+	label.add_theme_color_override(&"font_color", UiTheme.color_of(UiTheme.TOKEN_TEXT))
+	_apply_cell_role(label, variation)
+	_make_decoration(label)
+	cell.add_child(label)
+	return label
 
 
 func _build_alerts() -> void:
@@ -1193,6 +1360,10 @@ func _build_workspace() -> void:
 	frame.visible = false
 	frame.clip_contents = true
 	_decorate(frame)
+	_workspace_title = _new_text(frame, &"Title", "")
+	_workspace_title.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_workspace_title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_workspace_title.theme_type_variation = &"WoodlandPanelTitle"
 	_workspace_scroll = ScrollContainer.new()
 	_workspace_scroll.name = "Scroll"
 	_workspace_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -1376,13 +1547,29 @@ func _show_focus_visuals(control: Control, id: int) -> void:
 	var tooltip: Panel = _controls[ID_TOOLTIP] as Panel
 	_tooltip_line.text = control.tooltip_text
 	tooltip.visible = not _tooltip_line.text.is_empty()
-	var rect: Rect2 = _shell_rect_of(control).grow(float(UiTheme.FOCUS_OUTLINE_OFFSET))
+	var rect: Rect2 = _focus_outline_rect(control, id)
 	var outline: Label = _controls[ID_FOCUS_OUTLINE] as Label
 	_set_rect(outline, rect)
 	outline.visible = true
 	_set_rect(tooltip, Rect2(rect.position + Vector2(0.0, rect.size.y + ROW_GAP),
 		Vector2(rect.size.x, MAP_HEADER_BUTTON)))
 	_focused_element = id
+
+
+func _focus_outline_rect(control: Control, id: int) -> Rect2:
+	"""Where UI-SET-074's ring goes: §2.2's offset-2 ring, or a resource cell's inset one.
+
+	UI-C3-R01 §2: "Resource readouts use one explicit focus-geometry exception: a 2px ring inset
+	1px inside the cell, contained entirely in the reserved 4px padding ... The external offset 2
+	ring is not used on these touching resource rows; all other controls retain their existing
+	ring contract." The rows genuinely touch -- y8 and y64 with 56 px cells -- so an outward ring
+	on the top row would be painted across the bottom row's caption line.
+	"""
+	var rect: Rect2 = _shell_rect_of(control)
+	if COUNTER_IDS.has(id):
+		var inset: Rect2 = UiLayout.resource_focus_rect(control.size)
+		return Rect2(rect.position + inset.position, inset.size)
+	return rect.grow(float(UiTheme.FOCUS_OUTLINE_OFFSET))
 
 
 func focused_element() -> int:
@@ -1475,20 +1662,14 @@ func _place_zones() -> void:
 	_place(ID_ZONE_BRUSH, Rect2(_geometry.commands.position
 		- Vector2(0.0, brush_size.y + ROW_GAP), brush_size))
 	_place(ID_DETAIL, _geometry.detail)
-	_place(ID_WORKSPACE, _geometry.modal)
+	_place(ID_WORKSPACE, _workspace_rect())
 	_refresh_frames()
 	_place_interiors()
 
 
 func _place_interiors() -> void:
 	"""Lay out the interiors §1.2 gives explicit geometry for, then the flowed panels."""
-	for index: int in COUNTER_IDS.size():
-		var visible_cell: bool = index < UiLayout.counter_cell_count(_geometry.profile)
-		var cell: Control = _controls[COUNTER_IDS[index]]
-		cell.visible = visible_cell
-		if visible_cell:
-			_set_rect(cell, _layout.counter_cell(_geometry.profile,
-				_geometry.resources.size.x, index))
+	_place_counter_cells()
 	var narrow: bool = _geometry.profile == UiLayout.PROFILE_NARROW
 	(_controls[ID_EXPAND] as Control).visible = narrow
 	if narrow:
@@ -1512,6 +1693,147 @@ func _place_interiors() -> void:
 	var map_rect: Rect2 = UiLayout.minimap_content_rect(_geometry.profile)
 	_place_local(ID_MINIMAP_VIEW, map_rect)
 	_flow_children(ID_CALENDAR, [ID_PITCH])
+
+
+func _place_counter_cells() -> void:
+	"""Place the cells this profile shows -- BY ELEMENT ID -- and repaint each one's interior.
+
+	UI-C3-R01 §1: "the NARROW capture shows Food and Fuel. Its specified second persistent counter
+	is Population. Select IDs 002 and 006 explicitly; never take the first two entries of the
+	six-counter array." The old loop showed cell `index` when `index < counter_cell_count`, which
+	IS taking the prefix, and Fuel stood in Population's slot in every NARROW capture because of
+	it. `_counter_slot_of()` answers per id, so no ordering of `COUNTER_IDS` can reintroduce it.
+	"""
+	for index: int in COUNTER_IDS.size():
+		var slot: int = _counter_slot_of(COUNTER_IDS[index])
+		var cell: Control = _controls[COUNTER_IDS[index]]
+		cell.visible = slot >= 0
+		if slot < 0:
+			continue
+		_set_rect(cell, _layout.counter_cell(_geometry.profile,
+			_geometry.resources.size.x, slot))
+		_place_counter_interior(index, cell.size)
+		_paint_counter_cell(index)
+
+
+func _counter_slot_of(id: int) -> int:
+	"""Which cell slot a counter occupies at the current profile, or -1 when it is not drawn."""
+	if _geometry.profile == UiLayout.PROFILE_NARROW:
+		return NARROW_COUNTER_IDS.find(id)
+	return COUNTER_IDS.find(id)
+
+
+func _place_counter_interior(index: int, cell_size: Vector2) -> void:
+	"""The three rectangles UI-C3-R01 §2 reserves inside one cell: icon, caption line, value line."""
+	_set_rect(_counter_icons[index], UiLayout.resource_icon_rect(cell_size))
+	_set_rect(_counter_captions[index], UiLayout.resource_caption_rect(cell_size))
+	_set_rect(_counter_values[index], UiLayout.resource_value_rect(cell_size))
+
+
+func _paint_counter_cell(index: int) -> void:
+	"""Write one cell's caption, icon and value line, measuring the value before painting it.
+
+	UI-C3-R01 §2's overflow exception, in order: "measure the complete primary value before
+	painting. If it cannot fit unchanged at 18px, retain the caption and replace the numeric line
+	with See ledger at the normal 16px body size." Nothing is abbreviated, cropped, ellipsized or
+	shrunk, and `_counter_full` keeps the exact value whatever is drawn.
+	"""
+	var id: int = COUNTER_IDS[index]
+	var caption: Label = _counter_captions[index]
+	caption.text = _counter_caption_of(id, index)
+	_counter_icons[index].texture = _counter_icon_texture(id)
+	var value: Label = _counter_values[index]
+	if not _availability.is_wired(id):
+		_counter_overflow[index] = 0
+		_apply_cell_role(value, DISCLOSURE_VARIATION)
+		value.text = UNAVAILABLE_VALUE
+		return
+	var exact: String = _counter_full[index]
+	var fits: bool = _value_fits(index, exact)
+	_counter_overflow[index] = 0 if fits else 1
+	_apply_cell_role(value, VALUE_VARIATION if fits else DISCLOSURE_VARIATION)
+	value.text = exact if fits else SEE_LEDGER
+	_apply_counter_semantics(index)
+
+
+func _counter_caption_of(id: int, index: int) -> String:
+	"""The caption this profile prints: §1.3's NARROW wording, or UI-C3-R01 §2's full one.
+
+	"NARROW uses Food / Residents with full Ready food meaning retained in accessibility and
+	disclosure", so the shortened word never reaches `_apply_counter_semantics()`.
+	"""
+	if _geometry.profile != UiLayout.PROFILE_NARROW:
+		return COUNTER_LABELS[index]
+	var slot: int = NARROW_COUNTER_IDS.find(id)
+	if slot < 0:
+		return COUNTER_LABELS[index]
+	return NARROW_COUNTER_LABELS[slot]
+
+
+func _value_fits(index: int, exact: String) -> bool:
+	"""True when the exact value measures inside `cell_width-8` in the real 18 px Semibold face.
+
+	A cell with no rectangle yet cannot judge anything: the shell is built before any layout, and
+	reporting an overflow against a zero-width cell would replace every value with See ledger on
+	a shell that has simply not been laid out. It is treated as fitting, and the next layout pass
+	measures it for real.
+	"""
+	var cell: Control = _controls[COUNTER_IDS[index]]
+	if cell.size.x <= 0.0:
+		return true
+	var font: Font = _variation_font(VALUE_VARIATION)
+	if font == null:
+		return true
+	return font.get_string_size(exact, HORIZONTAL_ALIGNMENT_LEFT, -1.0,
+		_variation_font_size(VALUE_VARIATION)).x <= UiLayout.resource_value_width(cell.size.x)
+
+
+func _variation_font(variation: StringName) -> Font:
+	"""The Font one §2.2 theme variation uses, read from the shell's own Theme resource.
+
+	Read from the RESOURCE rather than through `get_theme_font()`, because this shell is built and
+	measured off-tree by the headless suite and a tree-dependent lookup would measure against
+	Godot's default font there and against the vendored Noto face in the game.
+	"""
+	var shell_theme: Theme = theme as Theme
+	if shell_theme == null:
+		return null
+	return shell_theme.get_font(&"font", variation)
+
+
+func _variation_font_size(variation: StringName) -> int:
+	"""The font size one §2.2 theme variation uses, read from the shell's own Theme resource."""
+	var shell_theme: Theme = theme as Theme
+	if shell_theme == null:
+		return UiTheme.FONT_BODY
+	return shell_theme.get_font_size(&"font_size", variation)
+
+
+func _apply_counter_semantics(index: int) -> void:
+	"""Give one cell the WHOLE value in its accessible description, whatever the cell draws.
+
+	UI-C3-R01 §2: "keyboard focus announces the full accessible value and unit without automatic
+	navigation." The description is rewritten in place and no focus is moved, so a value that
+	changes while a cell is focused is announced where the player already is.
+	"""
+	var id: int = COUNTER_IDS[index]
+	var exact: String = "%s %s" % [COUNTER_LABELS[index], _counter_full[index]]
+	if _counter_overflow[index] == 1:
+		exact = "%s; %s for the exact figure" % [exact, SEE_LEDGER]
+	(_controls[id] as Control).accessibility_description = exact
+
+
+func _on_counter_pressed(id: int) -> void:
+	"""UI-C3-R01 §2's disclosure action: open UI-SET-009's ledger on this resource's exact record.
+
+	"Activation opens the exact, wrapped/scrollable resource record." The ledger line carries every
+	counter's complete value as `hud.gd` composed it, in a panel that wraps and scrolls, so the
+	figure a cell could not print is one activation away by pointer and by keyboard. The action is
+	operable whether or not the value overflowed, which is what keeps the disclosure real.
+	"""
+	(_zones[ID_LEDGER] as Control).visible = true
+	_register_hit_regions()
+	shell_action.emit(id)
 
 
 func _fit_in_viewport(rect: Rect2) -> Rect2:
@@ -1775,20 +2097,74 @@ func _wrap_children(owner_id: int, children: Array, owner_size: Vector2) -> void
 
 
 func _flow_workspace() -> void:
-	"""Size the scrolling body and pin the footer, then show only the open page.
+	"""Size the scrolling body between the fixed header and footer, then show only the open page.
 
-	§3: "Only one primary management workspace open". The three pages this shell builds are
+	§3: "Only one primary management workspace open". The four pages this shell builds are
 	mutually exclusive, so the column shows exactly the one the player asked for.
+
+	SET-UX-VIS-002 §4.2: "Header 64 and footer 60 stay fixed; rows scroll." UI-C3-R01 §4 states
+	the consequence the compact variant has to produce: at logical 853⅓x480 the frame is 640x312
+	"with 188px of scrollable body between header and footer". 312-64-60 is that 188, and it is
+	reflow rather than a clipped 560 px dialog because the body scrolls.
 	"""
 	var frame: Control = _controls[ID_WORKSPACE]
-	var footer: Vector2 = _preferred_size(ID_BACK, frame.size.x - 2.0 * PANEL_PADDING)
-	_set_rect(_workspace_scroll, Rect2(PANEL_PADDING, PANEL_PADDING,
-		frame.size.x - 2.0 * PANEL_PADDING,
-		frame.size.y - footer.y - 3.0 * PANEL_PADDING))
-	_workspace_column.custom_minimum_size = Vector2(_workspace_scroll.size.x, 0.0)
+	var interior: float = frame.size.x - 2.0 * PANEL_PADDING
+	var footer: Vector2 = _preferred_size(ID_BACK, interior)
+	_workspace_title.text = String(_registry.name_of(_workspace_page))
+	_set_rect(_workspace_title, Rect2(PANEL_PADDING, PANEL_PADDING, interior,
+		WORKSPACE_HEADER - 2.0 * PANEL_PADDING))
+	## The column is given the width the frame HAS, never the width the ScrollContainer ended up
+	## with. Horizontal scrolling is disabled, so the ScrollContainer's own minimum width is its
+	## content's -- reading the realised size back into the content's minimum is a ratchet that can
+	## only grow. It did: the roster kept the 936 px rows of the old 960-wide centred frame inside
+	## the 640-wide one, and the frame clipped every row's last glyphs.
+	_workspace_column.custom_minimum_size = Vector2(interior, 0.0)
+	_set_rect(_workspace_scroll, Rect2(PANEL_PADDING, WORKSPACE_HEADER, interior,
+		maxf(0.0, frame.size.y - WORKSPACE_HEADER - WORKSPACE_FOOTER)))
 	_set_rect(_controls[ID_BACK], Rect2(PANEL_PADDING,
-		frame.size.y - footer.y - PANEL_PADDING, footer.x, footer.y))
+		frame.size.y - WORKSPACE_FOOTER + (WORKSPACE_FOOTER - footer.y) / 2.0, footer.x, footer.y))
 	_show_open_page()
+
+
+func _workspace_rect() -> Rect2:
+	"""Where UI-SET-051 goes: §1.2's centred modal for a true modal page, §4.2's frame otherwise.
+
+	THIS IS THE LINE UI-C3-R01 §1 NAMES. It read `_geometry.modal` for every page, which at the
+	supported floor is `(160,16,960,688)` -- a rectangle that contains the whole alert zone, the
+	right two of the three resource columns and part of the minimap. The cycle-01 evidence
+	measured the consequence exactly: "Not one pixel of the frame changes between two active
+	alert cards and no alert card at all." §4.2 had already distinguished the two variants; this
+	applies it. The HUD is NOT raised above dialogs to fix it -- a true modal still occludes.
+	"""
+	if MODAL_PAGES.has(_workspace_page):
+		return _geometry.modal
+	return UiLayout.workspace_rect(_geometry, _workspace_content_height())
+
+
+func _workspace_content_height() -> float:
+	"""The frame height this page's own content asks for, before §4.2's 560 and available caps.
+
+	§4.2: "Height is the lesser of content height, 560 and that available height." The content is
+	the column's own combined minimum plus the two fixed bands, and it never drops below §4's
+	published minimum for UI-SET-051, so an unmeasurable column cannot collapse the frame.
+	"""
+	var body: float = _workspace_column.get_combined_minimum_size().y
+	return maxf(_minimum_size(ID_WORKSPACE).y, body + WORKSPACE_HEADER + WORKSPACE_FOOTER)
+
+
+func workspace_body() -> ScrollContainer:
+	"""UI-SET-051's scrolling body, between SET-UX-VIS-002 §4.2's fixed 64 header and 60 footer."""
+	return _workspace_scroll
+
+
+func workspace_title() -> Label:
+	"""The line in the fixed header band: the §4 name of the page that is open."""
+	return _workspace_title
+
+
+func workspace_is_compact() -> bool:
+	"""True when the ordinary interval is under 248 px and UI-C3-R01 §4's compact variant owns it."""
+	return not MODAL_PAGES.has(_workspace_page) and UiLayout.workspace_is_compact(_geometry)
 
 
 func _flow_children(owner_id: int, children: Array) -> void:
@@ -1834,8 +2210,31 @@ func _place_alert_cards() -> void:
 	for instance: int in _alert_stack.visible_count:
 		_set_rect(_alert_cards[instance], _alert_stack.rects[instance])
 		_alert_cards[instance].visible = true
+		_place_card_interior(instance, _alert_stack.rects[instance].size.y,
+			_alert_stack.summarised[instance] == 1)
 		_print_card_text(instance, _alert_stack.summarised[instance] == 1)
 	_apply_trigger_semantics()
+
+
+func _place_card_interior(instance: int, height: float, summarised: bool) -> void:
+	"""Inset one card's icon and text: the 12 px panel padding, or a summary's own vertical 8.
+
+	UI-C3-R01 §3: "NARROW ... Its summary-only vertical padding is 8, horizontal 12 remains;
+	max(icon24,text23)+16=40<=44. Vertically center the content in 44. This is an explicit NOTICE
+	summary exception to generic panel padding, not a change to full-message padding." A summary
+	at the generic 12 px leaves 44-24=20 px for a 23 px line, which is the compact card that
+	could not show its own authored summary. A FULL message keeps 12 on every edge.
+	"""
+	var pad: float = UiLayout.alert_summary_padding_y(_geometry.profile) if summarised \
+		else PANEL_PADDING
+	var icon: TextureRect = _alert_icons[instance]
+	icon.position = Vector2(PANEL_PADDING,
+		(height - SEVERITY_ICON_SIZE) / 2.0 if summarised else PANEL_PADDING)
+	var message: Label = _alert_messages[instance]
+	message.offset_top = pad
+	message.offset_bottom = -pad
+	message.vertical_alignment = VERTICAL_ALIGNMENT_CENTER if summarised \
+		else VERTICAL_ALIGNMENT_TOP
 
 
 func _print_card_text(instance: int, summarised: bool) -> void:
@@ -1962,10 +2361,23 @@ func _register_hit_regions() -> void:
 		_hits.add_visible_region(id, _shell_rect_of(control), _layer_of(id), consumes,
 			_availability.creates_control(id, _gates))
 	_register_second_card_region()
-	if _workspace_page == ID_NAME_EDITOR:
+	if _workspace_owns_input():
 		_hits.raise_scrim(UiHitTest.LAYER_MODAL)
 	else:
 		_hits.lower_scrim()
+
+
+func _workspace_owns_input() -> bool:
+	"""True while an open workspace holds a SCRIM and the HUD behind it is out of input and focus.
+
+	UI-C3-R01 §4: the compact variant retains "focus trap and SCRIM ... Background HUD controls are
+	excluded from input/focus while this compact modal owns input", and "Do not let a click through
+	a dimmed alert issue a world command." An ORDINARY workspace raises no scrim at all, which is
+	§4.2's "no SCRIM or full-screen input block" -- the HUD stays live beside it.
+	"""
+	if not (_zones[ID_WORKSPACE] as Control).visible:
+		return false
+	return _workspace_page == ID_NAME_EDITOR or workspace_is_compact()
 
 
 func _register_second_card_region() -> void:
@@ -2020,12 +2432,24 @@ func _layer_of(id: int) -> int:
 		return UiHitTest.LAYER_TOOLTIP
 	if id == ID_QUICK_MENU:
 		return UiHitTest.LAYER_QUICK_MENU
-	if id == ID_WORKSPACE or id == ID_NEW_SETTLEMENT or id == ID_WORLD_LIST \
-			or id == ID_NAME_EDITOR:
-		return UiHitTest.LAYER_MODAL
+	if id == ID_WORKSPACE or WORKSPACE_PAGES.has(id):
+		return _workspace_layer()
 	if id == ID_LEDGER or id == ID_HISTORY or id == ID_CALENDAR or id == ID_DETAIL:
 		return UiHitTest.LAYER_EXPANSION
 	return UiHitTest.LAYER_PERMANENT_HUD
+
+
+func _workspace_layer() -> int:
+	"""§3's layer for the workspace frame and its open page: 40 ordinary, 80 modal or compact.
+
+	SET-UX-VIS-002 §4.2 gives the ordinary workspace "z40, no SCRIM or full-screen input block"
+	and the compact roster "z80, SCRIM and focus trap"; the New Settlement and name MODAL variants
+	keep 80 with their own contracts. Every page used to return 80, which is how a roster came to
+	sit in the modal layer above the permanent HUD.
+	"""
+	if MODAL_PAGES.has(_workspace_page) or UiLayout.workspace_is_compact(_geometry):
+		return UiHitTest.LAYER_MODAL
+	return UiHitTest.LAYER_WORKSPACE
 
 
 # --- bindings ---------------------------------------------------------------------------------------
@@ -2043,7 +2467,12 @@ func bind_session(session: UiWorldSession) -> void:
 # --- rendering real values -------------------------------------------------------------------------
 
 func set_counter_display(id: int, value_text: String) -> bool:
-	"""Print one counter's value verbatim. Refuses for a counter with no owning source.
+	"""Record one counter's exact value and repaint its cell. Refuses a counter with no source.
+
+	The caller's string is kept BYTE FOR BYTE in `_counter_full` whether or not the cell can draw
+	it. What the cell draws is UI-C3-R01 §2's decision -- the exact value at 18 px, or the See
+	ledger action at 16 px when it does not measure inside `cell_width-8` -- and the accessible
+	description carries the whole figure either way.
 
 	A counter whose store does not exist keeps its "Unavailable" reason: writing a value into it
 	would be exactly the fabricated reading this shell exists not to produce.
@@ -2052,11 +2481,53 @@ func set_counter_display(id: int, value_text: String) -> bool:
 		return _refuse(REFUSE_UNKNOWN_ELEMENT)
 	if not _availability.is_wired(id):
 		return _refuse(REFUSE_NOT_WIRED)
-	var button: Button = _controls[id] as Button
-	button.text = "%s %s" % [COUNTER_LABELS[COUNTER_IDS.find(id)], value_text]
-	button.accessibility_description = button.text
+	var index: int = COUNTER_IDS.find(id)
+	if index < 0:
+		return _refuse(REFUSE_UNKNOWN_ELEMENT)
+	_counter_full[index] = value_text
+	_paint_counter_cell(index)
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+func counter_value_label(id: int) -> Label:
+	"""The numeric line of one counter cell, or null for an element that is not a counter."""
+	var index: int = COUNTER_IDS.find(id)
+	if index < 0:
+		_refuse(REFUSE_UNKNOWN_ELEMENT)
+		return null
+	_last_refusal = REFUSE_NONE
+	return _counter_values[index]
+
+
+func counter_caption_label(id: int) -> Label:
+	"""The caption line of one counter cell, or null for an element that is not a counter."""
+	var index: int = COUNTER_IDS.find(id)
+	if index < 0:
+		_refuse(REFUSE_UNKNOWN_ELEMENT)
+		return null
+	_last_refusal = REFUSE_NONE
+	return _counter_captions[index]
+
+
+func counter_icon(id: int) -> TextureRect:
+	"""The 16 px caption-line icon of one counter cell, or null for a non-counter element."""
+	var index: int = COUNTER_IDS.find(id)
+	if index < 0:
+		_refuse(REFUSE_UNKNOWN_ELEMENT)
+		return null
+	_last_refusal = REFUSE_NONE
+	return _counter_icons[index]
+
+
+func counter_discloses_ledger(id: int) -> bool:
+	"""True when this counter's exact value does not fit and its cell draws the See ledger action."""
+	var index: int = COUNTER_IDS.find(id)
+	if index < 0:
+		_refuse(REFUSE_UNKNOWN_ELEMENT)
+		return false
+	_last_refusal = REFUSE_NONE
+	return _counter_overflow[index] == 1
 
 
 func set_status_line(text: String) -> void:

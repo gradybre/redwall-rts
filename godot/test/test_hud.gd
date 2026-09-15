@@ -20,6 +20,9 @@ extends "res://test/framework/test_case.gd"
 ## property of the runner, not of the HUD.
 
 const HudScript := preload("res://scripts/ui/hud.gd")
+## UI-C3-R01 §2 splits the counter cell into two lines, so this suite follows a value into the
+## line that draws it. The shell is preloaded by PATH, not by class name, for decision 0004.
+const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const EconomySystemScript := preload("res://scripts/systems/economy_system.gd")
 
 const HUD_SCENE_PATH: String = "res://scenes/ui/hud.tscn"
@@ -211,3 +214,40 @@ func test_alert_is_shown_then_expires_after_its_hold_time() -> void:
 	assert_equal(_rendered_alert(), "Out of ration!", "it is still held at half its hold time")
 	_hud._process(HudScript.ALERT_HOLD_SECONDS)
 	assert_equal(_rendered_alert(), "", "it expired once the hold time elapsed")
+
+
+# --- UI-C3-R01 §2: the value reaches the cell's own numeric line -------------------------------
+
+func test_a_counter_value_reaches_its_cells_numeric_line_verbatim() -> void:
+	"""The renderer's contract, end to end: hud.gd's string is what the cell's value line draws.
+
+	The ledger line was already asserted above. UI-C3-R01 §2 splits the cell into a caption line
+	and a numeric line, so this follows the same string into the line that actually carries the
+	figure -- which is where a reformatting or a rounding would now hide.
+	"""
+	_hud.set_counter_text(&"Food-days", "5.48")
+	var shell: UiShell = _hud.shell()
+	assert_equal(shell.counter_value_label(UiShell.ID_FOOD).text, "5.48",
+		"the food cell's numeric line carries the supplied string")
+	assert_equal(shell.counter_caption_label(UiShell.ID_FOOD).text, "Ready food",
+		"beside the caption that identifies which food it is")
+	_hud.set_counter(&"Wood", 1000, "U")
+	assert_equal(shell.counter_value_label(UiShell.ID_WOOD).text, "1,000 U",
+		"and the wood cell carries the grouped integer and its unit")
+
+
+func test_an_unavailable_counter_never_takes_the_dash_marker_in_its_cell() -> void:
+	"""§2: "Unknown data reads Unavailable ... never zero or an unlabeled dash".
+
+	`_render_cell()` pushes the "--" marker at every counter, including the two with no owning
+	store. The shell REFUSES those, and this asserts the refusal is what the player sees: the
+	named reason, not a marker that reads like a measured absence.
+	"""
+	_hud.clear_counters()
+	var shell: UiShell = _hud.shell()
+	assert_equal(shell.counter_value_label(UiShell.ID_FUEL).text, "Unavailable",
+		"the fuel cell says so in words")
+	assert_equal(shell.counter_value_label(UiShell.ID_BEDS).text, "Unavailable",
+		"and so does the bed cell")
+	assert_true(_rendered_counters().contains("Fuel-days --"),
+		"while UI-SET-009's ledger line still carries hud.gd's own marker, unchanged")

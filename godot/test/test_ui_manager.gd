@@ -46,7 +46,10 @@ const STARTING_INVENTORY_U: Dictionary = {
 
 ## GDD §7.1 starter fixture: 408000 ready NP over 74400 NP/day is 5.48 food-days. These are the
 ## numbers a player sees at boot, stated here so a hardcoded counter cannot reproduce them.
-const STARTER_FOOD_DAYS_TEXT: String = "5.48"
+## UI-C3-R01 §2 puts the unit on the figure at its owner, economy_system.food_days_text().
+## This file keeps its own copy of the expectation; test_economy_system.gd has another. Both
+## had to move, and the duplicate is why this suite failed after the first was corrected.
+const STARTER_FOOD_DAYS_TEXT: String = "5.48 days"
 const STARTER_READY_NP_TEXT: String = "408,000 NP"
 const STARTER_WOOD_TEXT: String = "180 U"
 const STARTER_STONE_TEXT: String = "100 U"
@@ -180,7 +183,11 @@ func test_every_supplied_counter_matches_the_starter_fixture() -> void:
 	assert_true(line.contains("Wood %s" % STARTER_WOOD_TEXT), "wood is 180 U")
 	assert_true(line.contains("Stone %s" % STARTER_STONE_TEXT), "stone is 100 U")
 	assert_true(line.contains("Fuel-days %s" % UNPOPULATED), "fuel-days stays unpopulated")
-	assert_true(line.contains("Residents %d" % STARTER_COHORT), "residents is §5.1's twelve")
+	# UI-C3-R01 §2 renders living population as "N / 256". `contains("Residents 12")` still
+	# passed against "Residents 12 / 256" -- a prefix match that no longer proves the format,
+	# so it asserts the whole cell and the cap is read from the store rather than written 256.
+	assert_true(line.contains("Residents %d / %d" % [STARTER_COHORT, ResidentsScript.RESIDENT_LIVING_CAP]),
+		"residents is §5.1's twelve against the §4.1 living cap, got '%s'" % line)
 	assert_equal(_residents.living_count(), STARTER_COHORT, "and the store agrees")
 	assert_true(line.contains("Beds %s" % UNPOPULATED), "beds stays unpopulated")
 

@@ -639,7 +639,12 @@ func _refresh_population() -> void:
 	if not EconomySystem.has_residents():
 		_hud.set_counter_text(&"Residents", HudScript.UNPOPULATED)
 		return
-	_hud.set_counter(&"Residents", EconomySystem.residents().living_count(), "")
+	# UI-C3-R01 §2: living population renders as "N / 256", not a bare count. The cap is read
+	# from the residents store rather than written as a literal, so a GDD §4.1 change moves it
+	# here without a second edit. hud.gd renders byte for byte by contract, so the unit has to
+	# arrive from the owner that knows it -- adding it there would make the renderer derive.
+	var living: int = EconomySystem.residents().living_count()
+	_hud.set_counter_text(&"Residents", "%d / %d" % [living, ResidentsScript.RESIDENT_LIVING_CAP])
 
 
 func _refresh_status() -> void:

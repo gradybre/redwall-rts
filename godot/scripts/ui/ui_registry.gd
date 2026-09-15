@@ -249,6 +249,19 @@ const SIZE_KINDS: Array[int] = [
 ## Minimum width, minimum height, maximum width, maximum height -- §4's "minimum->maximum
 ## width x height" column. A row whose SIZE_KIND is not SIZE_FIXED holds zeroes here and is
 ## refused by `minimum_size_into()`; the zeroes are unreachable, not a default size.
+##
+## UI-C3-R01 REVISED SIX OF THESE ROWS, and they are the only ones it touched. §2 replaces "the
+## 36-high resource cells with 56-high readout buttons in a 128-high resource frame", so
+## UI-SET-001 becomes 176..480 x 128 and UI-SET-002..007 become 104..144 x 56 -- a fixed height,
+## because the two-line composition is what makes the number readable and a 40 px variant would
+## reintroduce the clipping the cycle-01 evidence measured. §3 raises UI-SET-010's maximum height
+## to 104 ("STANDARD/WIDE outer alert height becomes 104") and UI-SET-011's to 100 ("Content
+## height is 100"), while UI-SET-011's minimum stays at NARROW's authored 44.
+##
+## UI-SET-051 is NOT revised here: §4's 480x320 row still publishes the workspace's own minimum,
+## and UI-C3-R01 §4's compact variant overrides it for that one placement only. `ui_shell.gd`
+## allocates that rectangle explicitly instead of setting a `custom_minimum_size` that would
+## clamp 312 back up to 320.
 const MIN_W: Array[int] = [
 	176, 104, 104, 104, 104, 104, 104, 32, 320,
 	280, 280, 400, 256, 44, 36, 36, 36, 240, 36,
@@ -265,7 +278,7 @@ const MIN_W: Array[int] = [
 ]
 
 const MIN_H: Array[int] = [
-	88, 36, 36, 36, 36, 36, 36, 32, 240,
+	128, 56, 56, 56, 56, 56, 56, 32, 240,
 	48, 44, 280, 48, 36, 36, 36, 36, 240, 36,
 	192, 144, 32, 0, 8, 0,
 	136, 44, 44, 44, 44, 44, 44, 44, 44, 44,
@@ -295,8 +308,8 @@ const MAX_W: Array[int] = [
 ]
 
 const MAX_H: Array[int] = [
-	88, 40, 40, 40, 40, 40, 40, 44, 640,
-	96, 88, 640, 88, 44, 44, 44, 44, 600, 44,
+	128, 56, 56, 56, 56, 56, 56, 44, 640,
+	104, 100, 640, 88, 44, 44, 44, 44, 600, 44,
 	288, 240, 44, 0, 512, 0,
 	136, 44, 44, 44, 44, 44, 44, 44, 44, 44,
 	936, 64, 72, 56, 56, 44, 320, 64, 80,

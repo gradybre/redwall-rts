@@ -71,13 +71,22 @@ extends RefCounted
 ## this module; nothing here is renamed or widened to pre-empt them.
 ##
 ## WHAT THIS STORE DOES NOT DECIDE -- named, not invented:
-##   * REQ-SET-128's STRANDED-GOODS HALF IS NOT ENFORCED. The resident half is: `open_demolition()`
-##     refuses a building whose rooms report occupants or whose furniture has a live user, and it
-##     reports the exact count. The goods half needs to enumerate the containers `inventory.gd`
-##     holds for a building owner, and `inventory.gd` publishes no owner index and no container
-##     iteration -- `container_owner()` needs a reference the caller must already have. Refusing on
-##     a caller-supplied "goods are clear" boolean would be exactly the unbounded attestation
-##     MOVE-DEP-R05 rejects, so no gate was fabricated. The integration owner must close it.
+##   * REQ-SET-128's STRANDED-GOODS HALF IS STILL NOT ENFORCED HERE, AND CANNOT BE. The resident
+##     half is: `open_demolition()` refuses a building whose rooms report occupants or whose
+##     furniture has a live user, and it reports the exact count. The goods half needs Inventory,
+##     and this store holds no reference to it -- by design, since a store that reached into
+##     Inventory would be the cross-store commit ARCH-JOB-004 keeps out of here. `inventory.gd`
+##     now publishes `containers_by_owner_into()` (INV-GOODS-R01), but a container owner scan
+##     alone does not prove physical containment, so the composed gate lives where all three
+##     stores meet: `settlement_system.gd::request_demolition()`. Refusing on a caller-supplied
+##     "goods are clear" boolean would be exactly the unbounded attestation MOVE-DEP-R05 rejects,
+##     and that is still not done.
+##
+##     SO `open_demolition()` IS A STORE-LEVEL TRANSITION, NOT THE PLAYER-FACING GATE. It is
+##     correct for what it checks and blind to what it does not check, and a caller that wants
+##     REQ-SET-128 in full must go through the coordinator. `occupant_count_of_building()` and
+##     `furniture_user_count_of_building()` are public so that coordinator rechecks THESE counts
+##     immediately before any state change, rather than keeping a second copy of the rule.
 ##   * A TIER-2 BUILDING'S DEMOLITION BASIS IS UNRESOLVED. REQ-SET-127 says "50% original material
 ##     costs" and "the declared construction WU x 0.25". §4.2's upgrade table declares no
 ##     demolition consequence and no document says whether a tier-2 package's materials and work
@@ -666,14 +675,19 @@ func open_demolition(building_ref: Vector2i) -> OpResult:
 	Refuses with the exact blocked count while any room reports occupants or any furniture has a
 	live user. The stored-goods half of REQ-SET-128 is NOT enforced here and the header says why.
 	The project's work is the declared construction WU x 0.25 and it delivers no material at all.
+
+	NOT THE PLAYER-FACING GATE. This publishes the project and moves the subject to DEMOLISHING
+	as soon as the resident half passes; it can see no container at all. REQ-SET-128 in full is
+	`settlement_system.gd::request_demolition()`, which proves endpoints and rechecks goods,
+	claims and occupants before anything here is called.
 	"""
 	var code: StringName = _refuse_open_building(building_ref, STATE_ACTIVE)
 	if code != REFUSE_NONE:
 		return _refuse(code)
-	var occupants: int = _occupant_count_of(building_ref)
+	var occupants: int = occupant_count_of_building(building_ref)
 	if occupants > 0:
 		return OpResult.new(false, REFUSE_OCCUPANTS_PRESENT, occupants, NULL_REF)
-	var users: int = _furniture_user_count_of(building_ref)
+	var users: int = furniture_user_count_of_building(building_ref)
 	if users > 0:
 		return OpResult.new(false, REFUSE_FURNITURE_IN_USE, users, NULL_REF)
 	var opened: OpResult = _open(PURPOSE_DEMOLISH, building_ref,
@@ -1188,6 +1202,18 @@ func project_of_building(building_ref: Vector2i) -> Vector2i:
 	return construction if is_live_project(construction) else NULL_REF
 
 
+func project_of_subject(subject_ref: Vector2i) -> Vector2i:
+	"""The live project acting on ANY subject -- a building OR a furniture row -- or `(-1, 0)`.
+
+	`project_of_building()` reads the `Building.construction` link; furniture carries no such
+	column, so the only way to ask the question for a bed is the subject scan below. A demolition
+	gate must ask it for every furniture row it is about to destroy, because a furniture project
+	can hold a material container full of delivered goods that belongs to nobody else.
+	"""
+	var row: int = _project_of_subject(subject_ref)
+	return NULL_REF if row == NO_ROW else _ref_of_row(row)
+
+
 func _project_of_subject(subject_ref: Vector2i) -> int:
 	"""The row of the live project whose subject is this reference, or NO_ROW.
 
@@ -1214,8 +1240,12 @@ func live_project_count() -> int:
 
 # --- demolition gates and verification ------------------------------------------------------------
 
-func _occupant_count_of(building_ref: Vector2i) -> int:
-	"""REQ-SET-128's resident half: how many occupants this building's rooms still report."""
+func occupant_count_of_building(building_ref: Vector2i) -> int:
+	"""REQ-SET-128's resident half: how many occupants this building's rooms still report.
+
+	PUBLIC so the composed demolition gate rechecks this exact count -- from these exact rows --
+	after it has proved its endpoint set, instead of carrying a stale number or a second rule.
+	"""
 	var total: int = 0
 	for room_row: int in _buildings.rooms_of_building(building_ref):
 		var room_ref: Vector2i = _buildings.room_ref_of_row(room_row)
@@ -1225,8 +1255,11 @@ func _occupant_count_of(building_ref: Vector2i) -> int:
 	return total
 
 
-func _furniture_user_count_of(building_ref: Vector2i) -> int:
-	"""REQ-SET-128's resident half again: furniture still bound to a live user blocks demolition."""
+func furniture_user_count_of_building(building_ref: Vector2i) -> int:
+	"""REQ-SET-128's resident half again: furniture still bound to a live user blocks demolition.
+
+	PUBLIC for the same reason as `occupant_count_of_building()`.
+	"""
 	var total: int = 0
 	for room_row: int in _buildings.rooms_of_building(building_ref):
 		var room_ref: Vector2i = _buildings.room_ref_of_row(room_row)

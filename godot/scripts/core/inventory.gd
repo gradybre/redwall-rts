@@ -109,6 +109,29 @@ extends RefCounted
 ##    as history onto the new item while the new ITEM IDENTITY decides eligibility, so spoilage
 ##    manufactures no coastal or virgin-source entitlement.
 ##
+## 8. CONTAINER ENUMERATION BY OWNER IS A BOUNDED SCAN, AND NEVER A SAVED INDEX (INV-GOODS-R01).
+##    `containers_by_owner_into()` walks the finite container rows and writes the complete
+##    INVENTORY-CONTAINER refs whose complete stored DIRECTORY owner pair equals the requested
+##    one. THOSE ARE TWO DIFFERENT REFERENCE DOMAINS and this query is the boundary between them:
+##    what goes in is a directory `(slot, generation)`, what comes out is an inventory-container
+##    `(slot, generation)`, and neither is ever validated as the other. Nothing is persisted. The
+##    ruling authorizes the scan and nothing more, because a saved reverse index is state that
+##    must be advanced on every create/destroy and rebuilt on every load, and this is a cold
+##    destructive path that runs once per demolition request.
+##
+##    A MISSING OWNER IS NOT AN EMPTY RESULT. `create_container()` writes the owner pair it is
+##    handed WITHOUT validating it against the directory -- this module does not own the
+##    directory and says so -- so the null ref `(-1, 0)` and a zero generation are real residue
+##    in `_c_owner_slot`/`_c_owner_generation`, and answering a malformed owner with "every
+##    container nobody owns" would read exactly like a proof that nothing is stored there. So a
+##    malformed owner REFUSES, an undersized output REFUSES WITHOUT TRUNCATING, and the visible
+##    count is zeroed on both. Only a complete scan for a well-formed owner may report 0.
+##
+##    IT PROVES OWNERSHIP AND NOT CONTAINMENT. Equality with a Building ref says a container is
+##    keyed to that Building; it says nothing about what physically stands inside its footprint,
+##    because a container row carries no position at all. The demolition gate that needs
+##    containment is `settlement_system.gd::request_demolition()`, and it refuses.
+##
 ## ARCH-MEM-001: every column is a packed array allocated once in _init(). No GDScript Array is
 ## allocated per row; a container's lots are an intrusive doubly linked list threaded through
 ## two packed lot columns, not a per-container child array.
@@ -326,6 +349,15 @@ const REFUSE_INVALID_SEED_EXPIRY_AUTHORITY: StringName = &"INVALID_SEED_EXPIRY_A
 ## as EQUIPMENT_ATTESTATION_METHOD: `stock_age.gd` preloads this module, so this module cannot
 ## preload `stock_age.gd` back and cannot name its type.
 const SEED_EXPIRY_ATTESTATION_METHOD: StringName = &"refuses_seed_consumption"
+
+## INV-GOODS-R01's two enumeration refusals. Both are refusals of the QUESTION, not reports of an
+## empty store, and both zero the count so an ignored `false` cannot surface 0 as an answer.
+## A malformed owner is refused rather than matched against the unvalidated owner residue
+## `create_container()` is free to write; an output buffer too small for the complete result is
+## refused rather than filled to its brim, because a truncated list of stranded goods is exactly
+## the shape of evidence that would let a destructive edit through.
+const REFUSE_INVALID_OWNER_REF: StringName = &"INVALID_OWNER_REF"
+const REFUSE_OWNER_OUTPUT_TOO_SMALL: StringName = &"OWNER_OUTPUT_TOO_SMALL"
 
 
 class OpResult:
@@ -2734,6 +2766,81 @@ func container_owner(container_ref: Vector2i) -> Vector2i:
 	if not is_container_valid(container_ref):
 		return NULL_REF
 	return Vector2i(_c_owner_slot[container_ref.x], _c_owner_generation[container_ref.x])
+
+
+func owner_query_cells() -> int:
+	"""How many int32 cells a caller must own to hold this store's largest owner-query result.
+
+	Two per container row, because the query writes complete `(slot, generation)` pairs and one
+	owner could in principle key every live container. A caller sizes its scratch from THIS
+	rather than from a number of its own choosing: a hand-picked buffer is a cap on how much
+	stranded stock a demolition gate can see, and INV-GOODS-R01 requires the query to account
+	for the caller's scratch instead of truncating into it.
+	"""
+	return _c_capacity * 2
+
+
+func containers_by_owner_into(owner_ref: Vector2i, out_pairs: PackedInt32Array,
+		out: IntMath.IntResult) -> bool:
+	"""Write every live container whose stored owner equals `owner_ref` into the caller's buffer.
+
+	INV-GOODS-R01's bounded owner scan, and the whole of it. `owner_ref` is a DIRECTORY ref; the
+	pairs written are INVENTORY-CONTAINER refs, flat as `slot, generation, slot, generation, ...`
+	in ascending container-slot order, which is deterministic because it is the row order itself
+	and not a hash or an insertion order. `out.value` is the number of PAIRS, so the cells
+	written are `2 * out.value`; anything past that in the buffer is the caller's own residue and
+	is neither read nor cleared here.
+
+	IT REFUSES RATHER THAN MISLEADS. A malformed owner -- the null ref, a negative slot, a
+	generation of 0 -- refuses INVALID_OWNER_REF instead of matching the unvalidated owner
+	residue of rows nobody owns. A buffer too small for the COMPLETE result refuses
+	OWNER_OUTPUT_TOO_SMALL and writes nothing at all, which is why the count is taken in a first
+	pass before a single cell is written. Both zero `out.value`.
+
+	Read-only: no column is returned, no live view escapes, no row is touched, and no reverse
+	index is built or kept. Costs one pass over the occupied part of the container store per
+	pass, which is why it belongs on a cold destructive path and not on a tick.
+	"""
+	if owner_ref.x < 0 or owner_ref.y <= 0:
+		return out.refuse(String(REFUSE_INVALID_OWNER_REF))
+	var found: int = _count_containers_of_owner(owner_ref)
+	if out_pairs.size() < found * 2:
+		return out.refuse(String(REFUSE_OWNER_OUTPUT_TOO_SMALL))
+	_write_containers_of_owner(owner_ref, out_pairs)
+	return out.succeed(found)
+
+
+func _owns_container(slot: int, owner_ref: Vector2i) -> bool:
+	"""Whether one LIVE container row carries exactly this COMPLETE owner pair.
+
+	Both fields, always. A dead row keeps the owner it had -- `destroy_container()` clears only
+	`_c_live` -- so the liveness test is what stops a retired container being reported as
+	stranded stock, and comparing the slot alone would match an owner whose directory slot has
+	since been reused by an unrelated entity at a later generation.
+	"""
+	if _c_live[slot] != 1:
+		return false
+	return _c_owner_slot[slot] == owner_ref.x and _c_owner_generation[slot] == owner_ref.y
+
+
+func _count_containers_of_owner(owner_ref: Vector2i) -> int:
+	"""Count the live containers of one owner, bounded by the highest slot ever handed out."""
+	var found: int = 0
+	for slot: int in range(_c_slot_high_water):
+		if _owns_container(slot, owner_ref):
+			found += 1
+	return found
+
+
+func _write_containers_of_owner(owner_ref: Vector2i, out_pairs: PackedInt32Array) -> void:
+	"""Write the owner's container refs as flat ascending pairs. Capacity is checked by then."""
+	var cell: int = 0
+	for slot: int in range(_c_slot_high_water):
+		if not _owns_container(slot, owner_ref):
+			continue
+		out_pairs[cell] = slot
+		out_pairs[cell + 1] = _c_generation[slot]
+		cell += 2
 
 
 func container_reachable(container_ref: Vector2i) -> bool:

@@ -843,3 +843,65 @@ func test_the_store_capacity_matches_the_directory_and_the_architecture() -> voi
 		"systems_architecture.md §2.2 states 82944")
 	assert_equal(Buildings.FURNITURE_CAPACITY + Buildings.BUILDING_CAPACITY, 82944,
 		"and ARCH-MEM-002 derives it from the furniture and building bounds")
+
+
+# --- INV-GOODS-R01: the surface the composed demolition gate reads -------------------------------
+
+func test_project_of_subject_answers_for_a_furniture_row_as_well_as_a_building() -> void:
+	"""Furniture carries no `construction` column, so the subject scan is the only way to ask.
+
+	The composed gate must find a furniture project because that project can hold a material
+	container full of delivered goods that `Building.construction` never names.
+	"""
+	var building: Vector2i = _active_hall()
+	var room: Buildings.OpResult = _buildings.designate_room(building,
+		int(CatalogScript.ROOM_TYPE["DORMITORY"]), _interior_tiles(building, 4))
+	assert_true(room.ok, "a dormitory is designated (%s)" % room.error)
+	var bed: Buildings.OpResult = _buildings.place_furniture(room.ref, _bed_id,
+		_buildings.room_tile_at(room.ref, 0).value, 0)
+	assert_true(bed.ok, "a bed is placed (%s)" % bed.error)
+	assert_equal(_construction.project_of_subject(bed.ref), EntityDirectory.NULL_REF,
+		"an unbuilt bed has no project yet")
+	var project: Construction.OpResult = _construction.open_furniture(bed.ref)
+	assert_true(project.ok, "the furniture project opens (%s)" % project.error)
+	assert_equal(_construction.project_of_subject(bed.ref), project.ref,
+		"and the subject scan finds it")
+	assert_equal(_construction.project_of_building(bed.ref), EntityDirectory.NULL_REF,
+		"while the `Building.construction` reader cannot, because a bed has no such column")
+	assert_equal(_construction.project_of_subject(building), EntityDirectory.NULL_REF,
+		"and the building itself still carries none")
+
+
+func test_project_of_subject_refuses_a_retired_subject_rather_than_guessing() -> void:
+	"""A completed project leaves no row, so the scan answers the null ref and not a stale one."""
+	var project: Vector2i = _open_hall()
+	var subject: Vector2i = _construction.subject_ref_of(project)
+	assert_equal(_construction.project_of_subject(subject), project, "the open project is found")
+	_deliver_hall(project)
+	assert_true(_construction.begin_work(project).ok, "work begins")
+	assert_true(_construction.add_work_mwu(project, HALL_WORK).ok, "and completes")
+	assert_true(_construction.commit_completion(project).ok, "the hall commits")
+	assert_equal(_construction.project_of_subject(subject), EntityDirectory.NULL_REF,
+		"and the retired project is gone rather than answered stale")
+
+
+func test_the_demolition_counters_are_public_and_read_the_live_rows() -> void:
+	"""The composed gate rechecks THESE counters instead of keeping a second copy of the rule."""
+	var building: Vector2i = _active_hall()
+	assert_equal(_construction.occupant_count_of_building(building), 0, "an empty hall")
+	assert_equal(_construction.furniture_user_count_of_building(building), 0, "with no user")
+	var room: Buildings.OpResult = _buildings.designate_room(building,
+		int(CatalogScript.ROOM_TYPE["DORMITORY"]), _interior_tiles(building, 4))
+	assert_true(room.ok, "a dormitory is designated (%s)" % room.error)
+	assert_true(_buildings.set_room_occupants(room.ref, 2).ok, "two residents are inside")
+	assert_equal(_construction.occupant_count_of_building(building), 2,
+		"and the public counter reports exactly them")
+	var bed: Buildings.OpResult = _buildings.place_furniture(room.ref, _bed_id,
+		_buildings.room_tile_at(room.ref, 0).value, 0)
+	assert_true(bed.ok, "a bed is placed (%s)" % bed.error)
+	var sleeper: Vector2i = _buildings.directory().create(EntityDirectory.KIND_RESIDENT)
+	assert_true(_buildings.set_furniture_user(bed.ref, sleeper).ok, "the bed has a sleeper")
+	assert_equal(_construction.furniture_user_count_of_building(building), 1,
+		"and the furniture counter reports exactly it")
+	assert_equal(_construction.occupant_count_of_building(Vector2i(900, 1)), 0,
+		"a stale building has no rooms to report, which the gate treats as no answer at all")

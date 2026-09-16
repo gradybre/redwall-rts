@@ -185,7 +185,7 @@
     {
       "id": "SAVE-S1-OWNERS",
       "title": "Section 1's seven owners with no encoder (blocker W2)",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "BASELINE-INTEGRATION",
         "SAVE-REGISTRY-RECONCILE"
@@ -217,7 +217,8 @@
       "astra_request": "docs/rulings/requests/OPEN.md#w2-section-1-owners-without-encoders",
       "astra_answered": true,
       "astra_ruling": "docs/rulings/2026-09-14_world_section_owner_encoders.md",
-      "note": "Implement atomic owner adapters/schema migration and semantic validation under R-WORLD-S1-001. Recount integrated registry; target manifest is not active registry."
+      "note": "Implement atomic owner adapters/schema migration and semantic validation under R-WORLD-S1-001. Recount integrated registry; target manifest is not active registry.",
+      "pr": 128
     },
     {
       "id": "DIGEST-DETERMINISM",
@@ -420,7 +421,7 @@
     {
       "id": "CONSTRUCTION-GOODS",
       "title": "Publish container-by-owner enumeration and a truthful demolition refusal",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "BASELINE-INTEGRATION",
         "CONSTRUCTION-STORE"
@@ -439,7 +440,8 @@
       "astra_request": "docs/rulings/requests/OPEN.md#inventory-container-enumeration-by-owner",
       "astra_answered": true,
       "astra_ruling": "docs/rulings/2026-09-14_cycle02_construction_goods.md",
-      "acceptance": "INV-GOODS-R01 bounded query and composing refusal; missing affected-endpoint binding refuses distinctly. Do not claim full06.2 evacuation or only-exit safety; CONSTRUCTION-EVACUATION-INTEGRATION owns that remainder."
+      "acceptance": "INV-GOODS-R01 bounded query and composing refusal; missing affected-endpoint binding refuses distinctly. Do not claim full06.2 evacuation or only-exit safety; CONSTRUCTION-EVACUATION-INTEGRATION owns that remainder.",
+      "pr": 130
     },
     {
       "id": "PLAN-SAVE-COVERAGE",
@@ -610,7 +612,7 @@
     {
       "id": "UI-RESPONSIVE-C3",
       "title": "Implement measured resource cards, alert packing and workspace variants",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "ART-UI-12-EVIDENCE"
       ],
@@ -630,7 +632,8 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "UI-C3-R01: two-line56px cells/128frame; explicit food/population NARROW ids; exact values or working ledger disclosure; 104px Standard/Wide alerts; distinct workspace/compact management/true modal geometry. Keep focus/input/pause/surface contracts and real state. Real narrow screenshot/input tests required; no ART-UI-12 claim."
+      "acceptance": "UI-C3-R01: two-line56px cells/128frame; explicit food/population NARROW ids; exact values or working ledger disclosure; 104px Standard/Wide alerts; distinct workspace/compact management/true modal geometry. Keep focus/input/pause/surface contracts and real state. Real narrow screenshot/input tests required; no ART-UI-12 claim.",
+      "pr": 129
     },
     {
       "id": "UI-C3-EVIDENCE",
@@ -651,7 +654,7 @@
     {
       "id": "SAVE-S8-COUNT",
       "title": "Bind section8 primary count and pin section9 descriptor semantics",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "SAVE-REGISTRY-RECONCILE"
       ],
@@ -663,12 +666,13 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "SAVE-C3-R01: S8 block and descriptor8192, same363112payload/363151section bytes, schema1; S9 block512/8192 and descriptor8192, section2. Reject alternate counts; keep J2 live capture/restore independently refused until implemented. No whole-save claim."
+      "acceptance": "SAVE-C3-R01: S8 block and descriptor8192, same363112payload/363151section bytes, schema1; S9 block512/8192 and descriptor8192, section2. Reject alternate counts; keep J2 live capture/restore independently refused until implemented. No whole-save claim.",
+      "pr": 127
     },
     {
       "id": "REGISTRY-CAPACITY-AUDIT",
       "title": "Build source-verified numeric capacity sidecar without changing active registry",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "SAVE-REGISTRY-RECONCILE"
       ],
@@ -680,7 +684,8 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "REG-C3-R01: preserve exact versus maximum meaning, original prose and row keys; prove expression and source binding, quarantine ambiguous/conflicting rows, no eval. Recount currentbase; 519 strings/473eq/46lte are reviewed snapshot not immutable total. No active registry/version/identity change."
+      "acceptance": "REG-C3-R01: preserve exact versus maximum meaning, original prose and row keys; prove expression and source binding, quarantine ambiguous/conflicting rows, no eval. Recount currentbase; 519 strings/473eq/46lte are reviewed snapshot not immutable total. No active registry/version/identity change.",
+      "pr": 126
     },
     {
       "id": "MOVE-POLICY-REGISTER",
@@ -702,7 +707,7 @@
     {
       "id": "MOVE-ENVELOPE-ERROR",
       "title": "Require covered residual interpolation error in envelope schema2",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "MOVE-ENVELOPE-TOOLING"
       ],
@@ -714,7 +719,8 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "MOVE-C3-R01 \u00a76: schema2 residual-error semantics, all-axis margins cover residual, zero requires conservative-sweep evidence, outward conversion to micrometres before units. Reject old ambiguous qualification. Reproduce then kill uncovered-error boundary; preserve source hash, negative placement and no-measurement claims."
+      "acceptance": "MOVE-C3-R01 \u00a76: schema2 residual-error semantics, all-axis margins cover residual, zero requires conservative-sweep evidence, outward conversion to micrometres before units. Reject old ambiguous qualification. Reproduce then kill uncovered-error boundary; preserve source hash, negative placement and no-measurement claims.",
+      "pr": 125
     },
     {
       "id": "MOVE-FORD-POLICY",

@@ -1,0 +1,141 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward+ - Using Device #0: Apple - Apple M5 Pro (Apple9)
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] _set_rect (res://scripts/ui/ui_shell.gd:2295)
+         [1] _place (res://scripts/ui/ui_shell.gd:2190)
+         [2] _place_zones (res://scripts/ui/ui_shell.gd:1641)
+         [3] layout_for (res://scripts/ui/ui_shell.gd:1598)
+         [4] _apply_geometry (res://scripts/ui/ui_shell.gd:1636)
+         [5] _ready (res://scripts/ui/ui_shell.gd:519)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] _set_rect (res://scripts/ui/ui_shell.gd:2295)
+         [1] _place (res://scripts/ui/ui_shell.gd:2190)
+         [2] _place_zones (res://scripts/ui/ui_shell.gd:1641)
+         [3] layout_for (res://scripts/ui/ui_shell.gd:1598)
+         [4] _apply_geometry (res://scripts/ui/ui_shell.gd:1636)
+         [5] _show_alert_card (res://scripts/ui/ui_shell.gd:2700)
+         [6] _refresh_card (res://scripts/ui/ui_shell.gd:2617)
+         [7] set_alert_display (res://scripts/ui/ui_shell.gd:2572)
+         [8] show_alert (res://scripts/ui/hud.gd:139)
+         [9] _ready (res://scripts/ui/hud.gd:85)
+[Main] resident crowd attached: mesh species_mouse_body_a_lod0.glb
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] _set_rect (res://scripts/ui/ui_shell.gd:2295)
+         [1] _place (res://scripts/ui/ui_shell.gd:2190)
+         [2] _place_zones (res://scripts/ui/ui_shell.gd:1641)
+         [3] layout_for (res://scripts/ui/ui_shell.gd:1598)
+         [4] _apply_geometry (res://scripts/ui/ui_shell.gd:1636)
+         [5] _show_alert_card (res://scripts/ui/ui_shell.gd:2700)
+         [6] _refresh_card (res://scripts/ui/ui_shell.gd:2622)
+         [7] raise_notice (res://scripts/ui/ui_shell.gd:2590)
+         [8] set_alert_display (res://scripts/ui/ui_shell.gd:2574)
+         [9] show_alert (res://scripts/ui/hud.gd:139)
+         [10] push_alert (res://scripts/systems/ui_manager.gd:528)
+         [11] _ready (res://scripts/main.gd:62)
+[Main] boot complete: PAUSED  food-days 5.48 days  ready 408000 NP  fuel-days --
+[input] create -> true
+[input] relayout=false
+[input] mode=detail_open scale=125 profile=0 logical=1024.00x576.00 viewport=1280x720
+[input] resources=[P: (16.0, 16.0), S: (176.0, 128.0)] alerts=[P: (332.0, 76.0), S: (360.0, 48.0)] time=[P: (752.0, 16.0), S: (256.0, 48.0)] management_top=152.00
+[input] minimap=[P: (16.0, 368.0), S: (160.0, 192.0)] commands=[P: (192.0, 424.0), S: (480.0, 136.0)] detail=[P: (688.0, 128.0), S: (320.0, 432.0)] detail_open=true scrim=false
+[input] regions=29 consuming=26
+[region] index=0 rect=[P: (0.0, 0.0), S: (1024.0, 576.0)] consumes=false
+[region] index=1 rect=[P: (16.0, 16.0), S: (176.0, 128.0)] consumes=true
+[region] index=2 rect=[P: (24.0, 24.0), S: (104.0, 56.0)] consumes=true
+[region] index=3 rect=[P: (24.0, 80.0), S: (104.0, 56.0)] consumes=true
+[region] index=4 rect=[P: (152.0, 58.0), S: (32.0, 44.0)] consumes=true
+[region] index=5 rect=[P: (332.0, 76.0), S: (360.0, 48.0)] consumes=true
+[region] index=6 rect=[P: (334.0, 78.0), S: (320.0, 44.0)] consumes=true
+[region] index=7 rect=[P: (658.0, 78.0), S: (32.0, 32.0)] consumes=true
+[region] index=8 rect=[P: (332.0, 132.0), S: (240.0, 32.0)] consumes=false
+[region] index=9 rect=[P: (752.0, 16.0), S: (256.0, 48.0)] consumes=true
+[region] index=10 rect=[P: (756.0, 22.0), S: (44.0, 36.0)] consumes=true
+[region] index=11 rect=[P: (804.0, 22.0), S: (36.0, 36.0)] consumes=true
+[region] index=12 rect=[P: (844.0, 22.0), S: (36.0, 36.0)] consumes=true
+[region] index=13 rect=[P: (884.0, 22.0), S: (36.0, 36.0)] consumes=true
+[region] index=14 rect=[P: (924.0, 22.0), S: (36.0, 36.0)] consumes=true
+[region] index=15 rect=[P: (964.0, 22.0), S: (36.0, 36.0)] consumes=true
+[region] index=16 rect=[P: (16.0, 368.0), S: (160.0, 192.0)] consumes=true
+[region] index=17 rect=[P: (24.0, 368.0), S: (32.0, 32.0)] consumes=true
+[region] index=18 rect=[P: (64.0, 368.0), S: (32.0, 32.0)] consumes=true
+[region] index=19 rect=[P: (24.0, 400.0), S: (144.0, 144.0)] consumes=true
+[region] index=20 rect=[P: (192.0, 424.0), S: (480.0, 136.0)] consumes=true
+[region] index=21 rect=[P: (204.0, 436.0), S: (112.0, 44.0)] consumes=true
+[region] index=22 rect=[P: (324.0, 436.0), S: (112.0, 44.0)] consumes=true
+[region] index=23 rect=[P: (444.0, 436.0), S: (112.0, 44.0)] consumes=true
+[region] index=24 rect=[P: (204.0, 488.0), S: (112.0, 44.0)] consumes=true
+[region] index=25 rect=[P: (324.0, 488.0), S: (112.0, 44.0)] consumes=true
+[region] index=26 rect=[P: (444.0, 488.0), S: (112.0, 44.0)] consumes=true
+[region] index=27 rect=[P: (944.0, 148.0), S: (44.0, 44.0)] consumes=true
+[region] index=28 rect=[P: (0.0, 0.0), S: (1.0, 23.0)] consumes=false
+[element] id=1 rect=[P: (16.0, 16.0), S: (176.0, 128.0)] consumes=true registered=true centre_owner=6 verdict=NESTED: centre belongs to 6 drawn inside it
+[element] id=2 rect=[P: (24.0, 24.0), S: (104.0, 56.0)] consumes=true registered=true centre_owner=2 verdict=OWNS ITS OWN CENTRE
+[element] id=6 rect=[P: (24.0, 80.0), S: (104.0, 56.0)] consumes=true registered=true centre_owner=6 verdict=OWNS ITS OWN CENTRE
+[element] id=8 rect=[P: (152.0, 58.0), S: (32.0, 44.0)] consumes=true registered=true centre_owner=8 verdict=OWNS ITS OWN CENTRE
+[element] id=10 rect=[P: (332.0, 76.0), S: (360.0, 48.0)] consumes=true registered=true centre_owner=11 verdict=NESTED: centre belongs to 11 drawn inside it
+[element] id=11 rect=[P: (334.0, 78.0), S: (320.0, 44.0)] consumes=true registered=true centre_owner=11 verdict=OWNS ITS OWN CENTRE
+[element] id=13 rect=[P: (752.0, 16.0), S: (256.0, 48.0)] consumes=true registered=true centre_owner=13 verdict=OWNS ITS OWN CENTRE
+[element] id=14 rect=[P: (756.0, 22.0), S: (44.0, 36.0)] consumes=true registered=true centre_owner=14 verdict=OWNS ITS OWN CENTRE
+[element] id=15 rect=[P: (804.0, 22.0), S: (36.0, 36.0)] consumes=true registered=true centre_owner=15 verdict=OWNS ITS OWN CENTRE
+[element] id=16 rect=[P: (844.0, 22.0), S: (36.0, 36.0)] consumes=true registered=true centre_owner=16 verdict=OWNS ITS OWN CENTRE
+[element] id=17 rect=[P: (884.0, 22.0), S: (36.0, 36.0)] consumes=true registered=true centre_owner=17 verdict=OWNS ITS OWN CENTRE
+[element] id=19 rect=[P: (964.0, 22.0), S: (36.0, 36.0)] consumes=true registered=true centre_owner=19 verdict=OWNS ITS OWN CENTRE
+[element] id=20 rect=[P: (16.0, 368.0), S: (160.0, 192.0)] consumes=true registered=true centre_owner=21 verdict=NESTED: centre belongs to 21 drawn inside it
+[element] id=21 rect=[P: (24.0, 400.0), S: (144.0, 144.0)] consumes=true registered=true centre_owner=21 verdict=OWNS ITS OWN CENTRE
+[element] id=22 rect=[P: (24.0, 368.0), S: (32.0, 32.0)] consumes=true registered=true centre_owner=22 verdict=OWNS ITS OWN CENTRE
+[element] id=23 rect=[P: (0.0, 0.0), S: (1024.0, 576.0)] consumes=false registered=true centre_owner=NONE(UI_NO_REGION_AT_POINT) verdict=DECORATIVE, takes nothing
+[element] id=26 rect=[P: (192.0, 424.0), S: (480.0, 136.0)] consumes=true registered=true centre_owner=31 verdict=NESTED: centre belongs to 31 drawn inside it
+[element] id=27 rect=[P: (204.0, 436.0), S: (112.0, 44.0)] consumes=true registered=true centre_owner=27 verdict=OWNS ITS OWN CENTRE
+[element] id=28 rect=[P: (324.0, 436.0), S: (112.0, 44.0)] consumes=true registered=true centre_owner=28 verdict=OWNS ITS OWN CENTRE
+[element] id=29 rect=[P: (444.0, 436.0), S: (112.0, 44.0)] consumes=true registered=true centre_owner=29 verdict=OWNS ITS OWN CENTRE
+[element] id=30 rect=[P: (204.0, 488.0), S: (112.0, 44.0)] consumes=true registered=true centre_owner=30 verdict=OWNS ITS OWN CENTRE
+[element] id=31 rect=[P: (324.0, 488.0), S: (112.0, 44.0)] consumes=true registered=true centre_owner=31 verdict=OWNS ITS OWN CENTRE
+[element] id=32 rect=[P: (444.0, 488.0), S: (112.0, 44.0)] consumes=true registered=true centre_owner=32 verdict=OWNS ITS OWN CENTRE
+[element] id=36 rect=[P: (688.0, 128.0), S: (320.0, 432.0)] consumes=true registered=false centre_owner=NONE(UI_NO_REGION_AT_POINT) verdict=DRAWN AND CLICKABLE BUT HAS NO INPUT RECTANGLE
+[element] id=37 rect=[P: (764.0, 148.0), S: (172.0, 493.0)] consumes=false registered=false centre_owner=NONE(UI_NO_REGION_AT_POINT) verdict=DECORATIVE, takes nothing
+[element] id=38 rect=[P: (708.0, 212.0), S: (280.0, 36.0)] consumes=true registered=false centre_owner=NONE(UI_NO_REGION_AT_POINT) verdict=DRAWN AND CLICKABLE BUT HAS NO INPUT RECTANGLE
+[element] id=40 rect=[P: (708.0, 323.0), S: (280.0, 44.0)] consumes=false registered=false centre_owner=NONE(UI_NO_REGION_AT_POINT) verdict=DECORATIVE, takes nothing
+[element] id=74 rect=[P: (0.0, 0.0), S: (1.0, 23.0)] consumes=false registered=true centre_owner=NONE(UI_NO_REGION_AT_POINT) verdict=DECORATIVE, takes nothing
+[element] id=86 rect=[P: (332.0, 132.0), S: (240.0, 32.0)] consumes=false registered=true centre_owner=NONE(UI_NO_REGION_AT_POINT) verdict=DECORATIVE, takes nothing
+[element] id=89 rect=[P: (64.0, 368.0), S: (32.0, 32.0)] consumes=true registered=true centre_owner=89 verdict=OWNS ITS OWN CENTRE
+[element] id=93 rect=[P: (944.0, 148.0), S: (44.0, 44.0)] consumes=true registered=true centre_owner=93 verdict=OWNS ITS OWN CENTRE
+[element] id=98 rect=[P: (708.0, 375.0), S: (280.0, 32.0)] consumes=true registered=false centre_owner=NONE(UI_NO_REGION_AT_POINT) verdict=DRAWN AND CLICKABLE BUT HAS NO INPUT RECTANGLE
+[element] id=101 rect=[P: (924.0, 22.0), S: (36.0, 36.0)] consumes=true registered=true centre_owner=101 verdict=OWNS ITS OWN CENTRE
+[element] id=102 rect=[P: (658.0, 78.0), S: (32.0, 32.0)] consumes=true registered=true centre_owner=102 verdict=OWNS ITS OWN CENTRE
+[input] crossing pairs=0
+[probe] #0 resource frame, 4px inside its top-left logical=(20.0, 20.0) world_receives=false owner=1 layer=20
+[probe] #1 resource frame, last pixel inside its right edge logical=(191.0, 20.0) world_receives=false owner=1 layer=20
+[probe] #2 first pixel right of the resource frame logical=(192.0, 20.0) world_receives=true owner=NONE(UI_NO_REGION_AT_POINT) layer=none
+[probe] #3 resource frame, last pixel inside its bottom edge logical=(20.0, 143.0) world_receives=false owner=1 layer=20
+[probe] #4 first pixel below the resource frame logical=(20.0, 144.0) world_receives=true owner=NONE(UI_NO_REGION_AT_POINT) layer=none
+[probe] #5 first row of the reserved band (management_top) logical=(20.0, 152.0) world_receives=true owner=NONE(UI_NO_REGION_AT_POINT) layer=none
+[probe] #6 the stale fixture's old origin (240,120) logical=(240.0, 120.0) world_receives=true owner=NONE(UI_NO_REGION_AT_POINT) layer=none
+[probe] #7 the stale fixture's last stale row (368,136) logical=(368.0, 136.0) world_receives=true owner=NONE(UI_NO_REGION_AT_POINT) layer=none
+[probe] #8 test_ui_hit_test _world_point(0) logical=(240.0, 152.0) world_receives=true owner=NONE(UI_NO_REGION_AT_POINT) layer=none
+[probe] #9 test_ui_hit_test _world_point(999) logical=(864.0, 536.0) world_receives=true owner=NONE(UI_NO_REGION_AT_POINT) layer=none
+[probe] #10 centre of the world band logical=(512.0, 288.0) world_receives=true owner=NONE(UI_NO_REGION_AT_POINT) layer=none
+[probe] #11 alert card 0, its centre logical=(494.0, 100.0) world_receives=false owner=11 layer=20
+[probe] #12 first pixel below the alert zone logical=(336.0, 124.0) world_receives=true owner=NONE(UI_NO_REGION_AT_POINT) layer=none
+[probe] #13 minimap frame, its centre logical=(96.0, 464.0) world_receives=false owner=21 layer=20
+[probe] #14 command strip, its centre logical=(432.0, 492.0) world_receives=false owner=31 layer=20
+[probe] #15 detail panel, its centre logical=(848.0, 344.0) world_receives=true owner=NONE(UI_NO_REGION_AT_POINT) layer=none
+[input] detail_open -> /tmp/claude-501/wt-ui-c3-evidence/docs/validation/evidence/ui-refinement/cycle-03-input/11_detail_open_narrow_1280x720_125.png (1280x720)
+WARNING: 14 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

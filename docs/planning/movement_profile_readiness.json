@@ -1,7 +1,7 @@
 {
-  "schema": "redwall.movement.profile_readiness/1",
-  "status": "PROPOSAL_AND_EVIDENCE_ONLY_Q2_UNRESOLVED",
-  "generated_for": "MOVE-PROFILE-AUTHORING",
+  "schema": "redwall.movement.profile_readiness/2",
+  "status": "CYCLE3_POLICY_APPLIED_Q2_MATERIALLY_ADVANCED_NOT_CLOSED",
+  "generated_for": "MOVE-PROFILE-AUTHORING; revised by lane MOVE-POLICY-REGISTER",
   "generated_on": "2026-09-14",
   "code_base": "26f1f8f",
   "companion_document": "docs/planning/movement_profile_authoring.md",
@@ -16,7 +16,12 @@
     "docs/rulings/2026-09-12_move_g01_review.md",
     "docs/setting_decisions.md#dec-039",
     "docs/setting_decisions.md#dec-040",
-    "docs/underground_economy_hazard_amendment.md"
+    "docs/underground_economy_hazard_amendment.md",
+    "docs/rulings/2026-09-14_cycle03_movement_policy.md",
+    "docs/planning/astra_cycles/cycle_03.md",
+    "docs/setting_decisions.md#dec-032",
+    "docs/game_gdd.md 5.1 (the authored natural ford)",
+    "docs/game_gdd.md 5.2 (inherited resident speed and carry ceilings)"
   ],
   "states": {
     "adopted": "An authored profile row exists and binds this mode. Equals MOVE-C2-R01's 'S/N' cell: production qualification is still NOT ready. Never an admission grant. admission_qualified is false for every such row in this file.",
@@ -28,10 +33,15 @@
     "Every leaf value MUST resolve to a key of row_classes.",
     "row_classes[*].state MUST be one of the three declared states.",
     "No row_class may set admission_qualified true while any of its blocking_q2_slots is unfilled.",
-    "Every q2_slot MUST have value null in this file. A non-null value is a lane violation.",
+    "A supplied policy or binding value MUST cite an adopted ruling; unresolved numeric and measurement fields remain explicitly empty (MOVE-C3-R01 \u00a77, which retires PR123's proposal-lane all-null invariant). In THIS revision no slot was supplied: every q2_slot value MUST still be null and q2_slots_with_values MUST be 0. A non-null value without a cycle3_disposition.decision_source naming an adopted ruling is a lane violation.",
     "blocking_contract MUST reference a blocking_contracts key whose kind is 'admission'. A row whose blocking_contract has kind 'presentation' is a validation FAILURE: MOVE-DEP-R03 forbids a presentation gap gating admission.",
     "presentation_gaps entries MUST NOT appear in any row's blocking_contract or evidence_absent.",
-    "totals MUST equal the recomputed counts over rows."
+    "totals MUST equal the recomputed counts over rows.",
+    "modes MUST contain exactly six entries with ids 0..5 and the compiled keys. Protection is a connection property, not a seventh mode: CLIMB protection cases are recorded as climb_action_variants beneath a CLIMB row class and never as an added, duplicated or discarded mode row.",
+    "A row_class whose state is explicitly_disabled MUST name an authored_prohibition that resolves to an authored_prohibitions[*].id, and that prohibition MUST record conditions_that_can_change_it. A missing profile, envelope, recovery definition or contact is never recorded this way: it is unresolved_q2 (MOVE-C3-R01 \u00a75).",
+    "Every cycle3_disposition MUST carry a decision_source naming an adopted ruling and MUST NOT introduce a dimension, cost, speed, air budget, depth or clearance value.",
+    "admission_qualified MUST be false for every row_class and totals.admission_qualified MUST be 0. No measured envelope exists.",
+    "Every q2 slot id a row_class cites in blocking_q2_slots or resolved_q2_slots MUST exist in q2_slots, and no slot may appear in both lists for the same row: a slot is either still blocking that row or answered for it, never both."
   ],
   "life_stages": [
     {
@@ -94,7 +104,7 @@
       "source": "movement.gd MODE_TUNNEL_WALK; SET-MOVE-001 \u00a71, DEC-029/031/035"
     }
   ],
-  "mode_scope_note": "system_scope is a settlement-scope statement, never a per-species capability grant. SET-MOVE-001 \u00a71 excludes 'a blanket innate ability table inferred from species or slide lists'; MOVE-C2-R01: 'No table entry grants an innate ability.' There is no FLIGHT mode; sparrow and kestrel stay grounded under MOVE-DEP-R03, which is a scope exclusion and not a prohibition on any of the six modes.",
+  "mode_scope_note": "system_scope is a settlement-scope statement, never a per-species capability grant. SET-MOVE-001 \u00a71 excludes 'a blanket innate ability table inferred from species or slide lists'; MOVE-C2-R01: 'No table entry grants an innate ability.' There is no FLIGHT mode; sparrow and kestrel stay grounded under MOVE-DEP-R03, which is a scope exclusion and not a prohibition on any of the six modes. MOVE-C3-R01 \u00a75 additionally protects the six existing mode ids: record action and protection variants beneath CLIMB rather than duplicating or discarding mode rows, and do not add a fourth catalog state meaning 'policy-approved therefore ready'.",
   "species": [
     {
       "key": "badger",
@@ -353,7 +363,8 @@
       "q2_slots": [
         "Q2-32",
         "Q2-33"
-      ]
+      ],
+      "note": "MOVE-C3-R01 \u00a7\u00a72-3 answers the POLICY questions Q2-32 and Q2-33; PC-04 still owns the dependent needs, care, schedule and routine rules, and movement still owns enforcing the action context without an adult fallback. Answering the policy did not publish a CHILD or ELDER profile."
     },
     "BC-RIG": {
       "kind": "presentation",
@@ -405,7 +416,7 @@
       "exists_for": "all 512 resident rows",
       "source": "residents.gd _life_stage B8[512]; MOVE-DEP-R02",
       "qualifies_admission": false,
-      "note": "Storing CHILD is legal; travelling as one is not."
+      "note": "Storing CHILD or ELDER is legal simulation state. Travel by a non-adult stage refuses TODAY because no stage profile is published (LIFE_STAGE_NOT_PROFILED), which is a missing-profile refusal and NOT an authored inability. MOVE-C3-R01 \u00a7\u00a72-3 supersedes this row's former unqualified 'travelling as one is not legal': ordinary ground, authored ford and completed supported tunnel access are policy-permitted for CHILD as nonproductive access and for ELDER with no age veto, each still subject to its own authored profile and PC-04; only new deliberate CHILD entry into voluntary SWIM_SURFACE, DIVE and unprotected CLIMB is prohibited."
     },
     "EV-HEIGHT-DEC039": {
       "exists_for": "mouse 1024, mole 922, squirrel 1178, otter 1526, badger 2611 (u, 1/1024 m)",
@@ -550,7 +561,13 @@
         "the containment test ox+xlo>=0, oz+zlo>=0, ox+xhi<=512k, oz+zhi<=512k"
       ],
       "value": null,
-      "note": "Production placement stays (+256,+256). A negative translated minimum is a placement incompatibility that no larger k repairs. No recentring is proposed; that needs a separate reviewed position/anchor/save contract."
+      "note": "Production placement stays (+256,+256). A negative translated minimum is a placement incompatibility that no larger k repairs. No recentring is proposed; that needs a separate reviewed position/anchor/save contract.",
+      "cycle3_disposition": {
+        "status": "BASELINE_RETAINED_MEASUREMENT_OPEN",
+        "decision_source": "MOVE-C3-R01 \u00a77",
+        "settled": "The production baseline is already (+256,+256); this was never an unanswered placement preference. Each record still declares its own offset.",
+        "still_open": "Measurement verification per record. An alternative offset requires a separate G02 placement/save adoption."
+      }
     },
     {
       "id": "Q2-05",
@@ -682,14 +699,20 @@
       "id": "Q2-15",
       "group": "cost_row",
       "name": "need_and_work_effects_per_mode",
-      "units": "integer per game-hour, on the existing signed denominator-750 remainder in the single health owner",
-      "owning_contract": "HAZ-002/HAZ-004 integration; SET-MOVE-001 \u00a75",
+      "units": "integer per game-hour. NOT one denominator: needs use the GDD \u00a75.2 / REQ-SET-011 scaled-rate denominator 750000 (needs.gd NEED_DENOMINATOR = TICKS_PER_HOUR 750 * MILLI_PER_POINT 1000), health uses the signed denominator 750 (needs.gd HEALTH_DENOMINATOR), and work retains its own arithmetic. Corrected under MOVE-C3-R01 \u00a74: a shared health integration rule does not transfer needs and work into the health owner.",
+      "owning_contract": "GDD \u00a75.2 / REQ-SET-011 needs arithmetic; HAZ-002/HAZ-004 integration; SET-MOVE-001 \u00a75",
       "owner": "GDD/gameplay balance owner + health owner",
       "blocks": [
         "the interruption matrix",
         "MOVE-REQ-010 accounting"
       ],
-      "value": null
+      "value": null,
+      "cycle3_disposition": {
+        "status": "ANSWERED_IN_PART",
+        "decision_source": "MOVE-C3-R01 \u00a74",
+        "settled": "Ordinary ground, authored ford and completed supported tunnel walking use the existing awake needs and activity rules; there is no newly authored terrain exertion multiplier. All travel produces no work unit, job output or production XP. Rescue pickup/set-down and underwater work are separate work phases with their existing HAZ costs and must not accrue during travel.",
+        "still_open": "The additional mode-effect decision for swimming and climbing exertion, marked separately from inherited needs and hazard terms. It must not be silently given an invented zero."
+      }
     },
     {
       "id": "Q2-16",
@@ -702,7 +725,13 @@
         "HAZ-005 activation",
         "save obligations for recovery state"
       ],
-      "value": null
+      "value": null,
+      "cycle3_disposition": {
+        "status": "BINDING_BOUND_ARTIFACT_OPEN",
+        "decision_source": "MOVE-C3-R01 \u00a74",
+        "settled": "Use the matching HAZ-005 mode/protection column for cancel, needs, incapacity, death, profile/load revision and topology loss. No species-specific immunity and no invented alternate consequence.",
+        "still_open": "State, edge and recovery identities; scheduler integration; the protected route; save fields."
+      }
     },
     {
       "id": "Q2-17",
@@ -727,7 +756,13 @@
         "every SWIM_SURFACE row"
       ],
       "value": null,
-      "note": "Involuntary submergence is a recovery phase and never enables voluntary dive."
+      "note": "Involuntary submergence is a recovery phase and never enables voluntary dive.",
+      "cycle3_disposition": {
+        "status": "BINDING_BOUND_ARTIFACT_OPEN",
+        "decision_source": "MOVE-C3-R01 \u00a74",
+        "settled": "A surface swim requires a declared float/return and HAZ-002 airless recovery even where voluntary DIVE permission is absent. Involuntary submergence is recovery, never a voluntary dive grant.",
+        "still_open": "Measured posture, retained-air state and the recovery implementation."
+      }
     },
     {
       "id": "Q2-19",
@@ -739,7 +774,13 @@
       "blocks": [
         "every DIVE row"
       ],
-      "value": null
+      "value": null,
+      "cycle3_disposition": {
+        "status": "BINDING_BOUND_ARTIFACT_OPEN",
+        "decision_source": "MOVE-C3-R01 \u00a74",
+        "settled": "Under current HAZ-002 a newly enabled budget-limited dive profile explicitly binds air_standard_v1. No exceptional breath multiplier and no unlimited-air profile is authored.",
+        "still_open": "The actually permitted profile set, the full cost T, the protected air endpoint and runtime accounting."
+      }
     },
     {
       "id": "Q2-20",
@@ -764,7 +805,13 @@
       "blocks": [
         "every CLIMB row; a connection with neither case refuses activation"
       ],
-      "value": null
+      "value": null,
+      "cycle3_disposition": {
+        "status": "BINDING_BOUND_ARTIFACT_OPEN",
+        "decision_source": "MOVE-C3-R01 \u00a74",
+        "settled": "Every climb connection declares exactly one HAZ-003 recovery case, protected or unprotected. Danger classification and CHILD eligibility follow that case, not the mode id.",
+        "still_open": "Real attachments and rescue access, or the fall landing, trajectory and drop D."
+      }
     },
     {
       "id": "Q2-22",
@@ -789,7 +836,13 @@
       "blocks": [
         "rescue admission on any connected mode"
       ],
-      "value": null
+      "value": null,
+      "cycle3_disposition": {
+        "status": "BINDING_BOUND_ARTIFACT_OPEN",
+        "decision_source": "MOVE-C3-R01 \u00a74",
+        "settled": "HAZ-004 owns one-rescuer/one-patient handling, cargo ownership, half eligible-profile speed and airway treatment. A carried patient is not invented inventory mass.",
+        "still_open": "The combined measured envelope, patient compatibility, pickup and set-down contacts, and both parties' applicable air accounting."
+      }
     },
     {
       "id": "Q2-24",
@@ -801,7 +854,14 @@
       "blocks": [
         "FORD_WALK has a distinct mode id and bit but no distinct predicate or cost in movement.gd"
       ],
-      "value": null
+      "value": null,
+      "cycle3_disposition": {
+        "status": "ANSWERED_IN_PART",
+        "decision_source": "MOVE-C3-R01 \u00a71",
+        "settled": "FORD_WALK means supported walking across the explicitly authored GDD \u00a75.1 ford, using the authoritative world_init mask; it is not swimming and not a generic 'any sufficiently shallow water' predicate. The required mode is derived per ROUTE SEGMENT, not from the caller's route-wide label: a segment with either endpoint on a ford cell requires FORD_WALK, an ordinary land-to-land segment requires GROUND_WALK, and a mixed route must satisfy every required mode. Corner, clearance and continuous support/sweep checks are retained; endpoint classification alone cannot legalize a diagonal through water. Existing ground/ford speed and carry bindings and the baseline 10/14 route cost model are inherited unchanged: no swim multiplier, oxygen charge, danger surcharge or fixed entry toll. Ford walking is not dangerous entry and does not trigger HAZ-001 consent or its health/rest entry thresholds.",
+        "still_open": "Generalized wading depth, new wading locations, changed water levels and bank/step/shore transition geometry and timing; body/support/airway fit remains a measured-profile gate; the explicit field/API/version change for per-segment mode is owned by Movement/G02.",
+        "explicitly_not_inferred": "The 128u difference between water surface and ford floor is NOT a universal per-species maximum water depth, and the 640u land/ford-floor difference is NOT an approved step height, ramp or instantaneous vertical transfer. Unsupported water is never relabelled ford to avoid a swim profile."
+      }
     },
     {
       "id": "Q2-25",
@@ -890,7 +950,13 @@
         "the entire readiness matrix; 280 unresolved_q2 rows"
       ],
       "value": null,
-      "note": "Today: zero ENABLED complete rows, zero species-wide DISABLED rows."
+      "note": "Today: zero ENABLED complete rows, zero species-wide DISABLED rows.",
+      "cycle3_disposition": {
+        "status": "ANSWERED_IN_PART",
+        "decision_source": "MOVE-C3-R01 \u00a73",
+        "settled": "A common ordinary-access policy applies to all sixteen catalog species: supported ground, the authored ford and completed dry supported tunnel walking are ordinary settlement access requiring no species-specific innate permission and no excavation skill, and qualified protected climbing infrastructure may serve ordinary access without a species-exclusive veto. This is a positive policy permission SUBJECT TO A COMPLETE PROFILE, not the catalog state ENABLED. CHILD water and unprotected-climb entry is prohibited per 2.",
+        "still_open": "ADULT and ELDER species permissions for SWIM_SURFACE, voluntary DIVE and unprotected CLIMB, and a complete release profile for every supported case. Zero rows are ENABLED and zero are admission_qualified."
+      }
     },
     {
       "id": "Q2-32",
@@ -903,7 +969,13 @@
         "48 CHILD rows cannot be classified unresolved_q2 versus explicitly_disabled"
       ],
       "value": null,
-      "note": "New question raised by this package. HAZ-001 classifies those actions as dangerous and forbids CHILD hazardous WORK and excavation; it does not state whether non-work travel is covered."
+      "note": "New question raised by this package. HAZ-001 classifies those actions as dangerous and forbids CHILD hazardous WORK and excavation; it does not state whether non-work travel is covered.",
+      "cycle3_disposition": {
+        "status": "ANSWERED",
+        "decision_source": "MOVE-C3-R01 \u00a72",
+        "settled": "Yes, and wider than the question asked. DEC-032 already forbids 'hazardous expeditions' as well as hazardous work and excavation, which PR123 omitted. New deliberate CHILD travel through a HAZ-001 dangerous connection is prohibited irrespective of intent: work, needs, play or learning, a direct move, an expedition or accompanying an adult. Voluntary SWIM_SURFACE and DIVE are prohibited for all sixteen species. Unprotected CLIMB entry is prohibited; a qualified HAZ-003 protected connection with a compatible child profile is eligible for nonproductive ordinary access. Consent, a direct order, an escort's presence and a skill value cannot override any of it. This is a NEW-ENTRY restriction: recovery and rescue of a child already in danger is preserved and is a different state.",
+        "still_open": "PC-04 and movement must enforce the action context with no adult fallback; the CHILD profiles the otherwise permissible access needs are still unpublished."
+      }
     },
     {
       "id": "Q2-33",
@@ -916,7 +988,13 @@
         "96 ELDER rows"
       ],
       "value": null,
-      "note": "MOVE-C2-R01 forbids inferring an elder penalty."
+      "note": "MOVE-C2-R01 forbids inferring an elder penalty.",
+      "cycle3_disposition": {
+        "status": "ANSWERED",
+        "decision_source": "MOVE-C3-R01 \u00a73",
+        "settled": "No. No ELDER-only mode veto, age penalty or stricter danger threshold is added in release 1. The authored action policies and HAZ thresholds apply to an elder's actual state with their explicitly authored stage profile and PC-04 rules.",
+        "still_open": "The actual ELDER stage profiles. A missing elder profile returns not-ready and is never replaced by adult coefficients, so no elder row is admissible yet."
+      }
     },
     {
       "id": "Q2-34",
@@ -929,7 +1007,13 @@
         "the shape of the profile row itself",
         "a save schema decision"
       ],
-      "value": null
+      "value": null,
+      "cycle3_disposition": {
+        "status": "ANSWERED",
+        "decision_source": "MOVE-C3-R01 \u00a73",
+        "settled": "No mode is a learned ability in this release. Traversal eligibility is declared in versioned profiles and explicit connection, equipment and access conditions; it is not acquired by accumulating movement XP or raising an unrelated work skill. No hidden mutable 'trained swimmer' bit and no acquisition system is introduced, so no new save owner is assigned.",
+        "still_open": "Authored scenario or resident eligibility differences must have a real owned input and recorded provenance. A later training progression requires its own separate acquisition, state and save contract."
+      }
     },
     {
       "id": "Q2-35",
@@ -942,7 +1026,13 @@
         "Q2-06",
         "Q2-12"
       ],
-      "value": null
+      "value": null,
+      "cycle3_disposition": {
+        "status": "ANSWERED",
+        "decision_source": "MOVE-C3-R01 \u00a74",
+        "settled": "Neither, as posed. GDD \u00a75.2's resident movement caps and carry capacities are retained as baseline RESIDENT ceilings; they are not an automatically copied nominal speed/load row for every connected mode. Connected-mode authoring must state its own applicable speed and load binding and any tighter constraint, and exceeding an inherited ceiling requires an explicit owning amendment. Changing mode never expands a resident's satchel, and the absence of a new row is not unlimited capacity.",
+        "still_open": "Q2-06 and Q2-12: the actual connected speed, turn duration, bank-transition duration and cargo rows. A referenced existing limit is not an achieved speed under posture, slope and carried shape."
+      }
     }
   ],
   "q2_slot_count": 35,
@@ -968,22 +1058,57 @@
       "id": "PROHIB-CHILD-HAZARDOUS-WORK",
       "state": "explicitly_disabled",
       "scope": "work and job class, NOT a traversal mode row",
-      "subject": "CHILD hazardous work and excavation",
+      "subject": "CHILD hazardous work, hazardous expeditions and excavation",
       "authority": [
         "DEC-032",
-        "HAZ-001"
+        "HAZ-001",
+        "MOVE-C3-R01 \u00a72"
       ],
-      "conditions_that_can_change_it": "None stated. PC-04 owns CHILD and ELDER activation.",
+      "conditions_that_can_change_it": "None stated. PC-04 owns CHILD and ELDER activation. A safe travel path does not make a productive assignment legal, and a helping animation may not secretly produce inventory or production XP.",
       "recorded_as_mode_row": false,
-      "note": "Deliberately NOT expressed as a species x mode row. Whether it extends to CHILD non-work travel in dangerous modes is Q2-32."
+      "note": "Still deliberately NOT a species x mode row: this is a work and job class. MOVE-C3-R01 \u00a72 restores DEC-032's omitted 'hazardous expeditions' clause, which PR123 narrowed to hazardous work and excavation, and answers Q2-32 separately as a TRAVEL policy recorded under PROHIB-CHILD-HAZARDOUS-ENTRY. Child excavation remains prohibited even though properly supported dry excavation adds no HAZ danger flag."
+    },
+    {
+      "id": "PROHIB-CHILD-HAZARDOUS-ENTRY",
+      "state": "explicitly_disabled",
+      "scope": "New deliberate CHILD entry into a HAZ-001 dangerous connection. A life-stage and action policy applied uniformly to every species, NOT a species restriction and NOT a seventh mode.",
+      "subject": "Voluntary CHILD SWIM_SURFACE and voluntary CHILD DIVE, for all sixteen species; and CHILD entry onto an UNPROTECTED CLIMB connection. Prohibited irrespective of whether the intention is work, needs, play or learning, a direct move, an expedition or accompanying an adult.",
+      "authority": [
+        "DEC-032",
+        "HAZ-001",
+        "MOVE-C3-R01 \u00a72"
+      ],
+      "cannot_be_overridden_by": [
+        "player or resident consent",
+        "a direct order",
+        "an escort's presence: no escort grants a forbidden mode, and an accompanying adult confers no permission",
+        "a skill value",
+        "a rope icon, a nearby adult or a caller boolean asserting a connection is protected"
+      ],
+      "conditions_that_can_change_it": "A qualified HAZ-003 PROTECTED climb connection with its actual support and rescue arrangement, plus a compatible CHILD profile, makes protected CLIMB eligible for nonproductive ordinary access: see row_classes.RC_CHILD_CLIMB_CONDITIONAL. Nothing currently lifts the voluntary swim or dive prohibition; revisiting DEC-032's hazardous-expedition boundary needs its own ruling and owner.",
+      "is_new_entry_restriction_only": true,
+      "does_not_imply": [
+        "immunity",
+        "disappearance of a child already in danger",
+        "a ban on recovering a child already in danger",
+        "permission to schedule hazardous leisure travel under a rescue label",
+        "that a child becomes a productive rescue worker"
+      ],
+      "recorded_as_mode_row": true,
+      "row_classes": [
+        "RC_CHILD_WATER_PROHIBITED",
+        "RC_CHILD_CLIMB_CONDITIONAL"
+      ],
+      "note": "32 CHILD rows (16 species x SWIM_SURFACE, DIVE) carry the definite prohibition. The 16 CHILD CLIMB rows are conditional on the connection's declared HAZ-003 case and are NOT wholly disabled; protection is a connection property, not a mode. Protected access to a platform does not authorize a productive job at its landing."
     },
     {
       "id": "PROHIB-SITUATIONAL",
       "state": "explicitly_disabled",
       "scope": "action- and state-conditioned, applicable to every species; never species-wide",
-      "subject": "MOVE-C2-R01's explicit disabled actions and admission refusals: incomplete/unsupported/water-intersecting excavation; dangerous entry without consent or at health<70, hunger<=3500, rest<4000, or active untreated injury; dive without protected breathable endpoint, complete finite round trip, or available_air>=T+300; surface swim without declared float/return and incapacity/submergence recovery; climb without protected support/rescue attachment or without a declared fall landing/trajectory; removal of occupied passage, only safe exit, protected air landing/descent or rescue support; free flight, branch-gap jumps, underwater attacks, moving vessels, unsupported collapse/flood shortcuts.",
+      "subject": "Action- and state-conditioned refusals that are genuinely AUTHORED prohibitions: through travel in an incomplete, unsupported or water-intersecting excavation; dangerous entry without consent or at health<70, hunger<=3500, rest<4000, or with an active untreated injury; a dive whose declared round trip is not finite and complete or whose available_air is below T+300; a surface swim or climb executed without the float/return, submergence-recovery, protected-support or fall-landing condition its connection declares; removal of an occupied passage, the only safe exit, a protected air landing or descent, or rescue support; and free flight, branch-gap jumps, underwater attacks, moving vessels and unsupported collapse/flood shortcuts.",
       "authority": [
         "MOVE-C2-R01",
+        "MOVE-C3-R01 \u00a75",
         "ECON-003",
         "HAZ-001",
         "HAZ-002",
@@ -992,12 +1117,14 @@
         "MOVE-REQ-008",
         "SET-MOVE-001 \u00a71"
       ],
-      "recorded_as_mode_row": false
+      "recorded_as_mode_row": false,
+      "conditions_that_can_change_it": "Each is lifted by its own stated condition being satisfied at admission time: consent and the HAZ-001 thresholds, a complete finite round trip with a protected breathable endpoint, the declared float/return and recovery, the declared protected support or fall landing, and a remaining safe exit. None is lifted by authoring alone.",
+      "note": "MOVE-C3-R01 \u00a75 corrects PR123 2.4: the ABSENCE of an authored float/return posture, airless-recovery binding, breathable-endpoint set, protected-support definition or fall landing is NOT recorded here. Missing authoring is AUTHORED_PROFILE_NOT_READY and is listed under missing_definitions_not_prohibitions. Runtime entry refuses either way; lack of authoring is not an authored inability."
     }
   ],
   "species_wide_prohibitions": [],
   "species_wide_prohibition_count": 0,
-  "species_wide_prohibition_note": "MOVE-C2-R01: 'Species-wide DISABLED rows for the four requested modes: zero established by current policy.' A missing profile is never recorded here. Missing profile != authored incompatibility.",
+  "species_wide_prohibition_note": "MOVE-C2-R01: 'Species-wide DISABLED rows for the four requested modes: zero established by current policy.' Still zero after MOVE-C3-R01. PROHIB-CHILD-HAZARDOUS-ENTRY applies to every species, which is exactly why it is not a species restriction: it is conditioned on life stage and action, no species is singled out or exempted, and MOVE-C3-R01 \u00a73 grants the same ordinary-access policy to all sixteen. A missing profile is never recorded here.",
   "presentation_gaps": [
     {
       "id": "PG-RIG-ADULT",
@@ -1059,7 +1186,10 @@
         "Q2-13",
         "Q2-14"
       ],
-      "note": "Mode binding is authored; production qualification is not. profile_clearance_class_into() refuses PROFILE_CLEARANCE_UNSPECIFIED for this profile id."
+      "note": "Mode binding is authored; production qualification is not. profile_clearance_class_into() refuses PROFILE_CLEARANCE_UNSPECIFIED for this profile id.",
+      "ordinary_access_policy": "PERMITTED_SUBJECT_TO_COMPLETE_PROFILE",
+      "ordinary_access_decision_source": "MOVE-C3-R01 \u00a73",
+      "ordinary_access_note": "Ordinary settlement access: no species-specific innate permission and no excavation skill is required, and walking a COMPLETED supported tunnel is not exclusive to a digging specialist. Body, stage, posture, grip, cargo, health and connection qualifications remain conjunctive. This is a policy permission, NOT the catalog state ENABLED and not an admission grant."
     },
     "RC_ADULT_FORD_STARTER": {
       "state": "adopted",
@@ -1095,7 +1225,11 @@
         "Q2-14",
         "Q2-24"
       ],
-      "note": "Additionally: FORD_WALK has a distinct mode id and bit but no distinct cell predicate or cost in movement.gd. _cursor_mode is written at _attach_route() and read only by admitted_mode_of()."
+      "note": "MOVE-C3-R01 \u00a71: FORD_WALK is supported walking across the authored GDD \u00a75.1 ford, enforced PER SEGMENT from the authoritative mask (a segment with either endpoint on a ford cell requires it), not stored as an unused route-wide label. It inherits the existing ground speed, carry and 10/14 baseline cost treatment with no surcharge, and it is not dangerous entry. The 128u water/floor difference is not a per-species maximum wading depth and the 640u land/floor difference is not a step capability. Today movement.gd still writes _cursor_mode once at _attach_route(); the explicit per-segment field, API and version change is Movement/G02's.",
+      "ordinary_access_policy": "PERMITTED_SUBJECT_TO_COMPLETE_PROFILE",
+      "ordinary_access_decision_source": "MOVE-C3-R01 \u00a73",
+      "ordinary_access_note": "Ordinary settlement access: no species-specific innate permission and no excavation skill is required, and walking a COMPLETED supported tunnel is not exclusive to a digging specialist. Body, stage, posture, grip, cargo, health and connection qualifications remain conjunctive. This is a policy permission, NOT the catalog state ENABLED and not an admission grant.",
+      "ford_semantics": "MOVE-C3-R01 \u00a71: FORD_WALK is supported walking across the authored GDD \u00a75.1 ford, enforced PER SEGMENT from the authoritative mask (a segment with either endpoint on a ford cell requires it), not stored as an unused route-wide label. It inherits the existing ground speed, carry and 10/14 baseline cost treatment with no surcharge, and it is not dangerous entry. The 128u water/floor difference is not a per-species maximum wading depth and the 640u land/floor difference is not a step capability. Today movement.gd still writes _cursor_mode once at _attach_route(); the explicit per-segment field, API and version change is Movement/G02's."
     },
     "RC_ADULT_GROUND_UNPROFILED": {
       "state": "unresolved_q2",
@@ -1131,7 +1265,10 @@
         "Q2-14",
         "Q2-31"
       ],
-      "note": "No starter profile row exists for this species. movement.gd refuses PROFILE_SPECIES_MISMATCH rather than borrowing a size neighbour. This is not a prohibition."
+      "note": "No starter profile row exists for this species. movement.gd refuses PROFILE_SPECIES_MISMATCH rather than borrowing a size neighbour. This is not a prohibition.",
+      "ordinary_access_policy": "PERMITTED_SUBJECT_TO_COMPLETE_PROFILE",
+      "ordinary_access_decision_source": "MOVE-C3-R01 \u00a73",
+      "ordinary_access_note": "Ordinary settlement access: no species-specific innate permission and no excavation skill is required, and walking a COMPLETED supported tunnel is not exclusive to a digging specialist. Body, stage, posture, grip, cargo, health and connection qualifications remain conjunctive. This is a policy permission, NOT the catalog state ENABLED and not an admission grant."
     },
     "RC_ADULT_FORD_UNPROFILED": {
       "state": "unresolved_q2",
@@ -1168,7 +1305,12 @@
         "Q2-14",
         "Q2-24",
         "Q2-31"
-      ]
+      ],
+      "ordinary_access_policy": "PERMITTED_SUBJECT_TO_COMPLETE_PROFILE",
+      "ordinary_access_decision_source": "MOVE-C3-R01 \u00a73",
+      "ordinary_access_note": "Ordinary settlement access: no species-specific innate permission and no excavation skill is required, and walking a COMPLETED supported tunnel is not exclusive to a digging specialist. Body, stage, posture, grip, cargo, health and connection qualifications remain conjunctive. This is a policy permission, NOT the catalog state ENABLED and not an admission grant.",
+      "ford_semantics": "MOVE-C3-R01 \u00a71: FORD_WALK is supported walking across the authored GDD \u00a75.1 ford, enforced PER SEGMENT from the authoritative mask (a segment with either endpoint on a ford cell requires it), not stored as an unused route-wide label. It inherits the existing ground speed, carry and 10/14 baseline cost treatment with no surcharge, and it is not dangerous entry. The 128u water/floor difference is not a per-species maximum wading depth and the 640u land/floor difference is not a step capability. Today movement.gd still writes _cursor_mode once at _attach_route(); the explicit per-segment field, API and version change is Movement/G02's.",
+      "note": "MOVE-C3-R01 \u00a71: FORD_WALK is supported walking across the authored GDD \u00a75.1 ford, enforced PER SEGMENT from the authoritative mask (a segment with either endpoint on a ford cell requires it), not stored as an unused route-wide label. It inherits the existing ground speed, carry and 10/14 baseline cost treatment with no surcharge, and it is not dangerous entry. The 128u water/floor difference is not a per-species maximum wading depth and the 640u land/floor difference is not a step capability. Today movement.gd still writes _cursor_mode once at _attach_route(); the explicit per-segment field, API and version change is Movement/G02's."
     },
     "RC_ADULT_SWIM": {
       "state": "unresolved_q2",
@@ -1222,7 +1364,8 @@
         "Q2-35"
       ],
       "refuses_today": "MODE_NOT_PROFILED; and DOMAIN_NOT_CONTRACTED for any non-ground domain",
-      "note": "Adopted as required settlement capability under SET-MOVE-001 \u00a71. Not profiled, not prohibited."
+      "note": "Adopted as required settlement capability under SET-MOVE-001 \u00a71. Not profiled, not prohibited.",
+      "policy_still_open": "MOVE-C3-R01 \u00a73 advances Q2-31 but does NOT assign ADULT species permissions for SWIM_SURFACE or voluntary DIVE. Species/profile assignment and costs are still owed and HAZ conditions are mandatory. Not profiled, not prohibited."
     },
     "RC_ADULT_DIVE": {
       "state": "unresolved_q2",
@@ -1277,7 +1420,8 @@
         "Q2-35"
       ],
       "refuses_today": "MODE_NOT_PROFILED; and movement.gd holds no air state at all (searched for air / available_air / air_remaining / AIR: zero matches)",
-      "note": "air_standard_v1 is authored and assigns no species capability. Q2-19 is which profiles bind it."
+      "note": "air_standard_v1 is authored and assigns no species capability. Q2-19 is which profiles bind it.",
+      "policy_still_open": "MOVE-C3-R01 \u00a73 advances Q2-31 but does NOT assign ADULT species permissions for SWIM_SURFACE or voluntary DIVE. Species/profile assignment and costs are still owed and HAZ conditions are mandatory. Not profiled, not prohibited."
     },
     "RC_ADULT_CLIMB": {
       "state": "unresolved_q2",
@@ -1332,7 +1476,8 @@
         "Q2-35"
       ],
       "refuses_today": "MODE_NOT_PROFILED",
-      "note": "Protected-climb build cost and unprotected-climb consequence formulas are settled under HAZ-003. The arcs, landings and drops they price do not exist."
+      "note": "Protected-climb build cost and unprotected-climb consequence formulas are settled under HAZ-003. The arcs, landings and drops they price do not exist.",
+      "climb_protection_case": "Q2-21 (MOVE-C3-R01 \u00a74): every climb connection declares exactly one HAZ-003 recovery case, protected or unprotected, and danger follows that case rather than the mode id. Qualified protected climbing infrastructure may serve ordinary access with no species-exclusive veto (MOVE-C3-R01 \u00a73); the unprotected case still owes its species/profile assignment and costs, with HAZ conditions mandatory. Neither case is authored yet, so the row stays unresolved_q2."
     },
     "RC_ADULT_TUNNEL": {
       "state": "unresolved_q2",
@@ -1381,7 +1526,10 @@
         "Q2-35"
       ],
       "refuses_today": "MODE_NOT_PROFILED; DOMAIN_NOT_CONTRACTED",
-      "note": "Walking a completed supported tunnel is ordinary access and is independent of excavation capability. ECON-001's 1024u priced cube is not a navigation voxel or body envelope."
+      "note": "Walking a completed supported tunnel is ordinary access and is independent of excavation capability (MOVE-C3-R01 \u00a73). ECON-001's 1024u priced cube is not a navigation voxel or body envelope. Digging creates space; travelling through finished space is separate. An unfinished void cannot borrow this permission.",
+      "ordinary_access_policy": "PERMITTED_SUBJECT_TO_COMPLETE_PROFILE",
+      "ordinary_access_decision_source": "MOVE-C3-R01 \u00a73",
+      "ordinary_access_note": "Ordinary settlement access: no species-specific innate permission and no excavation skill is required, and walking a COMPLETED supported tunnel is not exclusive to a digging specialist. Body, stage, posture, grip, cargo, health and connection qualifications remain conjunctive. This is a policy permission, NOT the catalog state ENABLED and not an admission grant."
     },
     "RC_CHILD_NONHAZ": {
       "state": "unresolved_q2",
@@ -1417,47 +1565,13 @@
         "Q2-31"
       ],
       "refuses_today": "LIFE_STAGE_NOT_PROFILED (movement.gd PROFILE_LIFE_STAGE is four entries, all ADULT)",
-      "note": "Release immobility for CHILD is NOT adopted. No adult coefficient is substituted. The missing rig variant (PG-RIG-STAGE-VARIANT) is a presentation gap and is deliberately not listed as a blocker."
-    },
-    "RC_CHILD_HAZ": {
-      "state": "unresolved_q2",
-      "ruling_cell": "N",
-      "admission_qualified": false,
-      "evidence_present": [
-        "EV-LIFE-STAGE-COLUMN",
-        "EV-HAZ-RECOVERY-RULES"
-      ],
-      "evidence_absent": [
-        "EV-STAGE-PROFILE",
-        "EV-PC04-RULES",
-        "EV-PROFILE-ROW",
-        "EV-MODE-COST-ROW",
-        "EV-CONNECTION-CATALOGUE",
-        "EV-SWEPT-ENVELOPE",
-        "EV-MARGIN",
-        "EV-PLACEMENT-FIT",
-        "EV-CLEARANCE-CLASS",
-        "EV-CONTACT-PRODUCER"
-      ],
-      "blocking_contract": "BC-PC04",
-      "additional_blocking_contracts": [
-        "BC-PROFILE-ROW",
-        "BC-CLEARANCE",
-        "BC-GEOMETRY",
-        "BC-SAFETY-BINDING",
-        "BC-CONTACT"
-      ],
-      "blocking_q2_slots": [
-        "Q2-01",
-        "Q2-02",
-        "Q2-03",
-        "Q2-04",
-        "Q2-05",
-        "Q2-31",
+      "note": "Release immobility for CHILD is NOT adopted and no adult coefficient is substituted. MOVE-C3-R01 \u00a7\u00a72-3: ground, the authored ford and completed supported tunnel access are not prohibited by child stage alone and are permitted as NONPRODUCTIVE access; the actual CHILD profile and PC-04 needs, care and routine rules remain required, so the row stays unresolved_q2. A child still cannot be assigned an ordinary productive job even when its travel path is safe, and child excavation remains prohibited. The missing rig variant (PG-RIG-STAGE-VARIANT) is a presentation gap and is deliberately not listed as a blocker.",
+      "ordinary_access_policy": "PERMITTED_NONPRODUCTIVE_SUBJECT_TO_COMPLETE_PROFILE",
+      "ordinary_access_decision_source": "MOVE-C3-R01 \u00a73",
+      "ordinary_access_note": "Ordinary settlement access: no species-specific innate permission and no excavation skill is required, and walking a COMPLETED supported tunnel is not exclusive to a digging specialist. Body, stage, posture, grip, cargo, health and connection qualifications remain conjunctive. This is a policy permission, NOT the catalog state ENABLED and not an admission grant.",
+      "resolved_q2_slots": [
         "Q2-32"
-      ],
-      "refuses_today": "LIFE_STAGE_NOT_PROFILED",
-      "note": "HAZ-001 classifies DIVE, SWIM_SURFACE and unprotected CLIMB as dangerous, and forbids CHILD hazardous WORK and excavation (PROHIB-CHILD-HAZARDOUS-WORK). Whether that extends to CHILD non-work travel in these modes is Q2-32 and is NOT decided here. Until it is ruled, the state stays unresolved_q2 rather than being upgraded to explicitly_disabled by inference."
+      ]
     },
     "RC_ELDER_NONHAZ": {
       "state": "unresolved_q2",
@@ -1490,11 +1604,17 @@
         "Q2-03",
         "Q2-04",
         "Q2-05",
-        "Q2-31",
-        "Q2-33"
+        "Q2-31"
       ],
       "refuses_today": "LIFE_STAGE_NOT_PROFILED",
-      "note": "DEC-032 requires active elder roles. MOVE-C2-R01 forbids inferring an elder penalty. No elder coefficient is proposed."
+      "note": "DEC-032 requires active individual elder roles and says age alone is neither helplessness nor a universal productivity penalty. No elder coefficient is proposed. MOVE-C3-R01 \u00a73 answers Q2-33: no ELDER-only mode veto, age penalty or stricter danger threshold in release 1. The same authored action policies and HAZ thresholds apply to the elder's actual state. This did NOT publish an elder profile: a missing elder profile returns not-ready and is never replaced by adult coefficients.",
+      "ordinary_access_policy": "PERMITTED_SUBJECT_TO_COMPLETE_PROFILE",
+      "ordinary_access_decision_source": "MOVE-C3-R01 \u00a73",
+      "ordinary_access_note": "Ordinary settlement access: no species-specific innate permission and no excavation skill is required, and walking a COMPLETED supported tunnel is not exclusive to a digging specialist. Body, stage, posture, grip, cargo, health and connection qualifications remain conjunctive. This is a policy permission, NOT the catalog state ENABLED and not an admission grant.",
+      "resolved_q2_slots": [
+        "Q2-33"
+      ],
+      "elder_policy": "MOVE-C3-R01 \u00a73 answers Q2-33: no ELDER-only mode veto, age penalty or stricter danger threshold in release 1. The same authored action policies and HAZ thresholds apply to the elder's actual state. This did NOT publish an elder profile: a missing elder profile returns not-ready and is never replaced by adult coefficients."
     },
     "RC_ELDER_HAZ": {
       "state": "unresolved_q2",
@@ -1530,10 +1650,123 @@
         "Q2-03",
         "Q2-04",
         "Q2-05",
-        "Q2-31",
+        "Q2-31"
+      ],
+      "refuses_today": "LIFE_STAGE_NOT_PROFILED",
+      "resolved_q2_slots": [
         "Q2-33"
       ],
-      "refuses_today": "LIFE_STAGE_NOT_PROFILED"
+      "elder_policy": "MOVE-C3-R01 \u00a73 answers Q2-33: no ELDER-only mode veto, age penalty or stricter danger threshold in release 1. The same authored action policies and HAZ thresholds apply to the elder's actual state. This did NOT publish an elder profile: a missing elder profile returns not-ready and is never replaced by adult coefficients.",
+      "climb_protection_case": "Q2-21 (MOVE-C3-R01 \u00a74): every climb connection declares exactly one HAZ-003 recovery case, protected or unprotected, and danger follows that case rather than the mode id. Qualified protected climbing infrastructure may serve ordinary access with no species-exclusive veto (MOVE-C3-R01 \u00a73); the unprotected case still owes its species/profile assignment and costs, with HAZ conditions mandatory. Neither case is authored yet, so the row stays unresolved_q2."
+    },
+    "RC_CHILD_WATER_PROHIBITED": {
+      "state": "explicitly_disabled",
+      "ruling_cell": "DISABLED",
+      "admission_qualified": false,
+      "authored_prohibition": "PROHIB-CHILD-HAZARDOUS-ENTRY",
+      "prohibited_action": "New deliberate CHILD entry into voluntary SWIM_SURFACE or voluntary DIVE, for any of the sixteen species, for any intention including work, needs, play or learning, a direct move, an expedition or accompanying an adult.",
+      "decision_source": "MOVE-C3-R01 \u00a72; DEC-032 'no ordinary productive labor assignments, hazardous expeditions or excavation jobs'; HAZ-001 dangerous-action classification",
+      "conditions_that_can_change_it": "None currently. Consent, a direct order, an escort's presence and a skill value cannot override it. Revisiting DEC-032's hazardous-expedition boundary requires its own ruling and owner.",
+      "not_covered_by_this_row": "recovery_is_not_entry -- rescue or recovery of a child ALREADY in danger is a different state and is preserved.",
+      "evidence_present": [
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-HAZ-RECOVERY-RULES"
+      ],
+      "evidence_absent": [
+        "EV-STAGE-PROFILE",
+        "EV-PC04-RULES",
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-CONNECTION-CATALOGUE",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PC04",
+      "additional_blocking_contracts": [
+        "BC-PROFILE-ROW",
+        "BC-CLEARANCE",
+        "BC-GEOMETRY",
+        "BC-SAFETY-BINDING",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-31"
+      ],
+      "resolved_q2_slots": [
+        "Q2-32"
+      ],
+      "refuses_today": "LIFE_STAGE_NOT_PROFILED, and independently of that the CHILD action policy",
+      "note": "The state is explicitly_disabled by AUTHORED POLICY. blocking_contract records the separately unmet admission contract that would also refuse today; clearing that contract would not lift the prohibition, and the prohibition is not evidence that a profile is unnecessary. This is a life-stage and action policy applied to every species, not a species-wide prohibition."
+    },
+    "RC_CHILD_CLIMB_CONDITIONAL": {
+      "state": "unresolved_q2",
+      "ruling_cell": "N",
+      "admission_qualified": false,
+      "replaces": "RC_CHILD_HAZ's unconditional grouping of the whole CLIMB mode (MOVE-C3-R01 \u00a72)",
+      "climb_action_variants": {
+        "unprotected": {
+          "policy": "PROHIBITED",
+          "authored_prohibition": "PROHIB-CHILD-HAZARDOUS-ENTRY",
+          "decision_source": "MOVE-C3-R01 \u00a72",
+          "conditions_that_can_change_it": "Only the connection itself becoming a qualified HAZ-003 protected connection. A rope icon, a nearby adult or a caller boolean cannot turn an unprotected connection into a protected one."
+        },
+        "protected": {
+          "policy": "PERMITTED_NONPRODUCTIVE_SUBJECT_TO_COMPLETE_PROFILE",
+          "decision_source": "MOVE-C3-R01 \u00a7\u00a72-3",
+          "requires": [
+            "a qualified protected connection carrying HAZ-003's actual support and rescue arrangement",
+            "a compatible complete CHILD profile",
+            "PC-04 needs, care and routine rules"
+          ],
+          "does_not_authorize": "a productive job at the landing -- protected access to a platform is not an orchard-work assignment, and a helping animation may not produce inventory or production XP"
+        }
+      },
+      "evidence_present": [
+        "EV-LIFE-STAGE-COLUMN",
+        "EV-HAZ-RECOVERY-RULES"
+      ],
+      "evidence_absent": [
+        "EV-STAGE-PROFILE",
+        "EV-PC04-RULES",
+        "EV-PROFILE-ROW",
+        "EV-MODE-COST-ROW",
+        "EV-CONNECTION-CATALOGUE",
+        "EV-SWEPT-ENVELOPE",
+        "EV-MARGIN",
+        "EV-PLACEMENT-FIT",
+        "EV-CLEARANCE-CLASS",
+        "EV-CONTACT-PRODUCER"
+      ],
+      "blocking_contract": "BC-PC04",
+      "additional_blocking_contracts": [
+        "BC-PROFILE-ROW",
+        "BC-CLEARANCE",
+        "BC-GEOMETRY",
+        "BC-SAFETY-BINDING",
+        "BC-CONTACT"
+      ],
+      "blocking_q2_slots": [
+        "Q2-01",
+        "Q2-02",
+        "Q2-03",
+        "Q2-04",
+        "Q2-05",
+        "Q2-21",
+        "Q2-31"
+      ],
+      "resolved_q2_slots": [
+        "Q2-32"
+      ],
+      "refuses_today": "LIFE_STAGE_NOT_PROFILED; and no connection declares a HAZ-003 protection case yet (Q2-21)",
+      "note": "The row is NOT wholly disabled: protection is a property of the connection, not a seventh mode, and MOVE-C3-R01 \u00a72 forbids marking all 48 CHILD dangerous-mode rows disabled. The whole-row state stays unresolved_q2 because the permitted protected variant has no published child profile and no connection declares its recovery case. CLIMB is not classified dangerous by mode alone."
     }
   },
   "rows": {
@@ -1549,9 +1782,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1575,9 +1808,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1601,9 +1834,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1627,9 +1860,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1653,9 +1886,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1679,9 +1912,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1705,9 +1938,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1731,9 +1964,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1757,9 +1990,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1783,9 +2016,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1809,9 +2042,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1835,9 +2068,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1861,9 +2094,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1887,9 +2120,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1913,9 +2146,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1939,9 +2172,9 @@
       "CHILD": {
         "GROUND_WALK": "RC_CHILD_NONHAZ",
         "FORD_WALK": "RC_CHILD_NONHAZ",
-        "SWIM_SURFACE": "RC_CHILD_HAZ",
-        "DIVE": "RC_CHILD_HAZ",
-        "CLIMB": "RC_CHILD_HAZ",
+        "SWIM_SURFACE": "RC_CHILD_WATER_PROHIBITED",
+        "DIVE": "RC_CHILD_WATER_PROHIBITED",
+        "CLIMB": "RC_CHILD_CLIMB_CONDITIONAL",
         "TUNNEL_WALK": "RC_CHILD_NONHAZ"
       },
       "ELDER": {
@@ -1957,8 +2190,8 @@
   "totals": {
     "rows": 288,
     "adopted": 8,
-    "explicitly_disabled": 0,
-    "unresolved_q2": 280,
+    "explicitly_disabled": 32,
+    "unresolved_q2": 248,
     "admission_qualified": 0,
     "adult_rows": 96,
     "adult_connected_rows_not_ready": 64,
@@ -1966,8 +2199,13 @@
     "adult_ground_ford_adopted": 8,
     "adult_ground_ford_unresolved": 24,
     "child_rows": 96,
+    "child_explicitly_disabled": 32,
+    "child_unresolved_q2": 64,
+    "child_climb_conditional": 16,
     "elder_rows": 96,
-    "cross_check": "adult_connected_rows_not_ready = 64 matches MOVE-C2-R01 'all 64 adult species/mode combinations'. adult_ground_ford_adopted = 8 matches the ruling's four S/N species across two modes."
+    "elder_explicitly_disabled": 0,
+    "ordinary_access_policy_rows": 144,
+    "cross_check": "adult_connected_rows_not_ready = 64 still matches MOVE-C2-R01 'all 64 adult species/mode combinations'; adult_ground_ford_adopted = 8 still matches its four S/N species across two modes. New under MOVE-C3-R01 \u00a72: explicitly_disabled = 32 = 16 species x {SWIM_SURFACE, DIVE} at CHILD, exactly the ruling's '32 CHILD species/mode rows have a definite prohibition', and child_climb_conditional = 16 is reported separately rather than folded into that figure -- 32 + 16 = the 48 rows the ruling forbids marking wholly disabled. ordinary_access_policy_rows = 144 = 16 species x 3 stages x {GROUND_WALK, FORD_WALK, TUNNEL_WALK} under MOVE-C3-R01 \u00a73. admission_qualified stays 0: no measured envelope exists."
   },
   "explicitly_not_proposed": [
     "Any body, gear, cargo or swept dimension in any unit.",
@@ -1979,6 +2217,96 @@
     "Any species-wide prohibition, and any inference of incompatibility from a missing profile.",
     "Any CHILD or ELDER coefficient, and any adult fallback for a non-adult stage.",
     "Any save schema version, packed column, arena capacity or byte-ledger change.",
-    "Any change to DEC-039 heights, DEC-040 direction, or the ECON/HAZ parameter set."
-  ]
+    "Any change to DEC-039 heights, DEC-040 direction, or the ECON/HAZ parameter set.",
+    "Any per-species maximum water depth inferred from the ford's 128u water/floor difference, and any step height, ramp or vertical transfer inferred from the 640u land/floor difference.",
+    "Any ENABLED row, any admission_qualified row, and any fourth catalog state meaning 'policy-approved therefore ready'.",
+    "Any seventh mode. Climb protection is a connection property recorded as a variant beneath the CLIMB row.",
+    "Any ADULT or ELDER species permission for SWIM_SURFACE, voluntary DIVE or unprotected CLIMB; MOVE-C3-R01 \u00a73 leaves those to Q2-31.",
+    "Any movement-XP field, learned-unlock bit or acquisition system; MOVE-C3-R01 \u00a73 answers Q2-34 by declaring eligibility in versioned profiles instead."
+  ],
+  "revised_on": "2026-09-15",
+  "revised_under": "MOVE-C3-R01 (docs/rulings/2026-09-14_cycle03_movement_policy.md)",
+  "revision_base": "origin/master 50e78ce",
+  "revision_note": "Schema 2 is this planning register's own shape change: q2_slots may now carry a cycle3_disposition, row_classes may carry ordinary_access_policy, authored_prohibition and climb_action_variants, and rows may resolve to the prohibited/conditional CHILD classes. It is NOT the movement envelope input schema 2 adopted by MOVE-C3-R01 \u00a76, which versions docs/planning/movement_envelope_schema.json under a different owner, and it is not a save schema version.",
+  "q2_materially_advanced": true,
+  "q2_advancement_note": "MOVE-C3-R01 settles named policy slots. MOVE-G01/Q2 remains OPEN for complete mode and species cost rows, ADULT/ELDER water and unprotected-climb permissions, real source-bound measured envelopes, support and contact producers, and the associated G02 contracts. No movement gate is closed by this revision.",
+  "q2_slots_with_cycle3_disposition": 13,
+  "q2_slots_still_open_without_disposition": 22,
+  "q2_open_slot_note": "The 22 slots with no cycle3_disposition are untouched by MOVE-C3-R01: Q2-01-03, Q2-05-14, Q2-17, Q2-20, Q2-22, Q2-25-30. They are real measurement, geometry and cost authoring work, not choices a policy paragraph fills, and they stay explicitly empty.",
+  "missing_definitions_not_prohibitions": {
+    "authority": [
+      "MOVE-C3-R01 \u00a75",
+      "MOVE-C2-R01"
+    ],
+    "state": "unresolved_q2",
+    "rule": "A required missing profile, measured envelope, recovery definition or actual contact is AUTHORED_PROFILE_NOT_READY. Runtime entry still refuses, but lack of authoring is not an authored inability and must never be filed with the known prohibited actions.",
+    "items": [
+      {
+        "subject": "The declared float/return posture and submergence recovery for surface swimming",
+        "q2_slots": [
+          "Q2-17",
+          "Q2-18"
+        ]
+      },
+      {
+        "subject": "The set of protected breathable dive endpoints and the dive air-profile binding",
+        "q2_slots": [
+          "Q2-19",
+          "Q2-20"
+        ]
+      },
+      {
+        "subject": "The per-connection protected/unprotected climb recovery case and its fall landing, trajectory and drop",
+        "q2_slots": [
+          "Q2-21",
+          "Q2-22"
+        ]
+      },
+      {
+        "subject": "The combined rescue envelope, patient compatibility and pickup/set-down contacts",
+        "q2_slots": [
+          "Q2-23"
+        ]
+      },
+      {
+        "subject": "Generalized wading depth and bank/step/shore transition geometry and timing beyond the authored ford",
+        "q2_slots": [
+          "Q2-24",
+          "Q2-29"
+        ]
+      },
+      {
+        "subject": "CHILD and ELDER stage profiles and PC-04 rules for the access their stage policy now permits",
+        "q2_slots": [
+          "Q2-31"
+        ]
+      }
+    ]
+  },
+  "recovery_is_not_entry": {
+    "id": "POL-CHILD-RECOVERY-PRESERVED",
+    "authority": [
+      "MOVE-C3-R01 \u00a72",
+      "HAZ-002",
+      "HAZ-004",
+      "HAZ-005"
+    ],
+    "statement": "The CHILD prohibition is a NEW-ENTRY restriction. A child being rescued from water is not a child entering water: they are different states and the register records them separately. No row in `rows` describes recovery.",
+    "preserved_for_an_existing_distressed_occupant": [
+      "occupancy",
+      "retained air",
+      "cargo",
+      "injury",
+      "execution of its validated committed return or recovery path",
+      "an eligible rescue"
+    ],
+    "requirements": "A rescue needs the combined envelope, real support and airway handling, and rescuer eligibility. A carried child is a patient in HAZ-004's checked relationship, not a self-swimming actor.",
+    "grants_nothing": [
+      "no child voluntary mode",
+      "no scheduling of hazardous leisure travel under a rescue label",
+      "no child rescue job: children do not become productive rescue workers",
+      "no air refill and no teleport"
+    ],
+    "recorded_as_mode_row": false
+  }
 }

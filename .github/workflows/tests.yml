@@ -143,6 +143,13 @@ jobs:
       - name: Movement envelope fit arithmetic
         run: python3 tools/test_movement_envelopes.py
 
+      # The Q2 register's own validator_rules as executable checks: 288 leaf entries, every leaf
+      # resolving to a row class, no presentation gap as a blocker, no slot carrying a value, and
+      # totals equal to a recount over rows. The register is the artifact Astra rules against, so
+      # a register that drifts from its own rules is a planner reading a document that lies.
+      - name: Movement profile policy register
+        run: python3 tools/test_movement_profile_policy.py
+
       - name: State registry covers every packed column
         run: python3 docs/validation/state_registry_coverage.py
 

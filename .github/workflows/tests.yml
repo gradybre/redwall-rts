@@ -132,6 +132,25 @@ jobs:
       - name: Compiled declaration table is regenerable from the registry
         run: python3 tools/generate_canonical_state_table.py --check
 
+      # NONE of the cycle handoff validators ran in CI until now. validate_cycle01_handoff had
+      # been failing since Cycle 2 answered two of its inbox items, and nothing noticed: it was
+      # only ever invoked by hand during its own transfer. A validator outside CI is a validator
+      # that passes until someone remembers it, which is how the memory ledger went wrong on
+      # master more than once before its own check was automated.
+      - name: Astra cycle handoff contracts
+        run: |
+          set -euo pipefail
+          python3 docs/validation/validate_cycle01_handoff.py
+          python3 docs/validation/validate_cycle02_handoff.py
+          python3 docs/validation/validate_cycle03_handoff.py --source-root .
+
+      # The capacity sidecar must stay regenerable and in step with the registry it audits.
+      - name: Registry capacity audit sidecar
+        run: |
+          set -euo pipefail
+          python3 tools/audit_registry_capacities.py --check
+          python3 tools/test_registry_capacity_audit.py
+
       - name: Lane records are one file each, not appended to a shared checklist
         run: python3 tools/lane_notes.py --check
 

@@ -4,23 +4,23 @@
   "audit_schema_version": 1,
   "audited_registry": {
     "path": "docs/planning/canonical_state_registry.json",
-    "registry_file_sha256": "880383997c6e52301eb3a5ef79204dd8534982bec8fcfecbec7bb37c01e49078",
-    "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-12-1",
-    "registry_version": 1
+    "registry_file_sha256": "2f0b4380a341b9d3508a8b4ed89c08d8d4cdddcae78bf3fa7825dfd34a16aa0d",
+    "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-14-2",
+    "registry_version": 2
   },
   "audited_source": {
     "module_sha256": {
-      "buildings": "efaac6fdb73e2909ed2da19b4700ef8a97c7f38380d31aee71f351a9b34bca18",
+      "buildings": "8f21111b4857714f4ac803c30c3eec46f206c0b5cdedfeeb357a0061ba3f875e",
       "command_dispatch": "4d5fe18ab8456160442ce5d8d7d53cafa75e2c269aa75e1e116aa4f9ce58821a",
-      "construction": "accd44a3c6a367d132e5189698171b9991c103ab70a9b03cdfabf20721b8fe8e",
+      "construction": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
       "entity_directory": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
-      "farming": "35063cee7e2872ac63b2a76dbc28ff0433fcb888d51809434f59125a3cf0fb92",
+      "farming": "c025f23da0f88ddff8c5ea64bae0f3bb75d7085f83f949bd3877e70443aea773",
       "field_policy": "262198e7a04d340c5205007c7ff1124264efe761b675fd99f657fb38a9fb5315",
       "fishing": "85f5437585155faab04c140641710014cf4cb477ea82eb08078aa0ac85f34025",
-      "forage": "6684b6be65bc722ee990be87e53180ecb95728d5a0f2f7803e57d8d6b0005d6d",
+      "forage": "74694b212993599a8ffc0f488f2e45d6c81acdaba1297c4fd723c0860790dbcb",
       "gear": "8b957442e3397708cd8343fc9849b4f6cccb5f4478bd7099d44afe47d3499472",
       "injury": "a0932b0c2fddd8ea32f460d1ca4d88977fa759391fcac6f845957fff433184c2",
-      "inventory": "15defe8ccc172d5931bd42a3fe57a82ed9fc1852dac5d6f2d3b3fafa556d11db",
+      "inventory": "85939d7d1d8f0cc2b2201c2a111d3ae972f8dcae977a013ff60b87d03c2dc388",
       "job_planner": "183845e20d22efc2c35263324089284008a20b02d3884b2d19a0a877507ee29b",
       "jobs": "bf74583b409dd22da8b9100318e224b63bede5ed01c66be09f4ed0ab38809f3c",
       "movement": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3",
@@ -30,20 +30,20 @@
       "priorities": "ef5cfeb2deb574c3c23a0478dc3b243adcbf8b9cffa964e21d391c29adc90551",
       "reservations": "3211416652559e63e7b3926038514e422b90a08782113d469d45f30c5cfd0ef0",
       "residents": "7ce35ffc7e14ff9e8ba86d70d54a1401e0814751d0b71779d92ba476cd89655c",
-      "resource_nodes": "3782a676489bc60782f29961f6d43f8bf455e80e928329c87adeab42ea72ee4c",
+      "resource_nodes": "033f5255a0904d193a08197c71321f8ff3a8aa58d8274fdd42dd3a54da20de23",
       "rng": "3bfc333d24db8eb239c10cb5a910d00abe9e440eb897219b3894ea1fdafeffef",
       "schedule": "9da6ee9fde956812017b7d01ccfcef97832145849949d9a92bb000a11fde3ab7",
-      "spatial_world": "1713ffa8bd63b6cb50ff01654d2f79debf4674f0f73108fb17907541cce9c782",
+      "spatial_world": "3825788db07885db94dab7288c832b8219f89e54da22d871d58e98e2d590b26b",
       "stock_age": "339b85a374bdabe1242474f25fbbf4b16ffd42e077c52156d49db1fe5fecd557",
       "transforms": "e09e5c33201cdfb3b27ef69d9973d01f9369120836dc5ec4b2d1d3c383ef444f",
-      "weather": "cf50f8a5ac90f5d1f5ff24e4ca3b221b0e0898cb8f56597c963fe21b5877b864",
+      "weather": "f2c1bf034645b897c80edcce861cd488a01b0d280e8eb7dcc5067c9e8aa7ca3e",
       "work": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
-      "world_init": "664d7bbdd96456818f0e1baaf19af6081fac9dcd317df31b8770c0999c717130"
+      "world_init": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a"
     },
     "root": "godot/scripts/core"
   },
   "census": {
-    "agrees_with_astra_cycle_03": true,
+    "agrees_with_astra_cycle_03": false,
     "astra_cycle_03": {
       "canonical_records": 599,
       "distinct_expressions": 56,
@@ -54,19 +54,27 @@
       "prose_records": 519,
       "upper_bound": 46
     },
+    "astra_cycle_03_taken_at": "388f4f4",
     "disagreements": [],
+    "explained_since_census": [
+      "canonical_records: this audit 596, Astra Cycle 3 599 (-3) -- decision 0142 retired three deposit members",
+      "distinct_expressions: this audit 55, Astra Cycle 3 56 (-1) -- decision 0142 retired three deposit members",
+      "equality: this audit 470, Astra Cycle 3 473 (-3) -- decision 0142 retired three deposit members",
+      "packed_source_fields: this audit 550, Astra Cycle 3 553 (-3) -- decision 0142 retired three deposit members",
+      "prose_records: this audit 516, Astra Cycle 3 519 (-3) -- decision 0142 retired three deposit members"
+    ],
     "observed": {
-      "canonical_records": 599,
-      "distinct_expressions": 56,
-      "equality": 473,
+      "canonical_records": 596,
+      "distinct_expressions": 55,
+      "equality": 470,
       "non_hash_fields": 8,
       "non_hash_fields_admitted_to_audit": 0,
       "non_hash_fields_carrying_declared_capacity": 0,
       "other_canonical_shapes": 80,
       "owners": 52,
-      "packed_source_fields": 553,
-      "prose_records": 519,
-      "registry_listed_fields": 607,
+      "packed_source_fields": 550,
+      "prose_records": 516,
+      "registry_listed_fields": 604,
       "upper_bound": 46
     }
   },
@@ -1240,75 +1248,6 @@
       "status": "proved_equality"
     },
     {
-      "declared_capacity_prose": "`DEPOSIT_NODE_COUNT` = 16",
-      "field_key": "_deposit_tiles",
-      "ordinal": 1,
-      "owner_key": "resource_nodes",
-      "parsed_expression": "DEPOSIT_NODE_COUNT",
-      "proof_chain": [
-        "DEPOSIT_NODE_COUNT -> godot/scripts/core/resource_nodes.gd:141 `const DEPOSIT_NODE_COUNT = 16` = 16"
-      ],
-      "proof_kind": "compiled_constant",
-      "prose_relation": "eq",
-      "prose_value": 16,
-      "quarantine_reason": "",
-      "section_id": 1,
-      "source_file": "godot/scripts/core/resource_nodes.gd",
-      "source_member": "_deposit_tiles",
-      "source_module": "resource_nodes",
-      "source_relation": "eq",
-      "source_resize_expression": "DEPOSIT_NODE_COUNT",
-      "source_resize_line": 307,
-      "source_value": 16,
-      "status": "proved_equality"
-    },
-    {
-      "declared_capacity_prose": "`DEPOSIT_NODE_COUNT` = 16",
-      "field_key": "_deposit_ref_slot",
-      "ordinal": 2,
-      "owner_key": "resource_nodes",
-      "parsed_expression": "DEPOSIT_NODE_COUNT",
-      "proof_chain": [
-        "DEPOSIT_NODE_COUNT -> godot/scripts/core/resource_nodes.gd:141 `const DEPOSIT_NODE_COUNT = 16` = 16"
-      ],
-      "proof_kind": "compiled_constant",
-      "prose_relation": "eq",
-      "prose_value": 16,
-      "quarantine_reason": "",
-      "section_id": 1,
-      "source_file": "godot/scripts/core/resource_nodes.gd",
-      "source_member": "_deposit_ref_slot",
-      "source_module": "resource_nodes",
-      "source_relation": "eq",
-      "source_resize_expression": "DEPOSIT_NODE_COUNT",
-      "source_resize_line": 308,
-      "source_value": 16,
-      "status": "proved_equality"
-    },
-    {
-      "declared_capacity_prose": "`DEPOSIT_NODE_COUNT` = 16",
-      "field_key": "_deposit_ref_generation",
-      "ordinal": 3,
-      "owner_key": "resource_nodes",
-      "parsed_expression": "DEPOSIT_NODE_COUNT",
-      "proof_chain": [
-        "DEPOSIT_NODE_COUNT -> godot/scripts/core/resource_nodes.gd:141 `const DEPOSIT_NODE_COUNT = 16` = 16"
-      ],
-      "proof_kind": "compiled_constant",
-      "prose_relation": "eq",
-      "prose_value": 16,
-      "quarantine_reason": "",
-      "section_id": 1,
-      "source_file": "godot/scripts/core/resource_nodes.gd",
-      "source_member": "_deposit_ref_generation",
-      "source_module": "resource_nodes",
-      "source_relation": "eq",
-      "source_resize_expression": "DEPOSIT_NODE_COUNT",
-      "source_resize_line": 309,
-      "source_value": 16,
-      "status": "proved_equality"
-    },
-    {
       "declared_capacity_prose": "`CELL_COUNT` = 262144",
       "field_key": "_walkable",
       "ordinal": 1,
@@ -2458,7 +2397,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2470,7 +2409,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 375,
+      "source_resize_line": 384,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2481,7 +2420,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2493,7 +2432,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 368,
+      "source_resize_line": 377,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2504,7 +2443,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2516,7 +2455,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 369,
+      "source_resize_line": 378,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2527,7 +2466,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2539,7 +2478,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 370,
+      "source_resize_line": 379,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2550,7 +2489,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2562,7 +2501,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 371,
+      "source_resize_line": 380,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2573,7 +2512,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2585,7 +2524,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 372,
+      "source_resize_line": 381,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2596,7 +2535,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2608,7 +2547,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 373,
+      "source_resize_line": 382,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2619,7 +2558,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2631,7 +2570,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 374,
+      "source_resize_line": 383,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2642,7 +2581,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2654,7 +2593,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 376,
+      "source_resize_line": 385,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2665,7 +2604,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2677,7 +2616,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 377,
+      "source_resize_line": 386,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2688,7 +2627,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2700,7 +2639,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 378,
+      "source_resize_line": 387,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2711,7 +2650,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2723,7 +2662,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 379,
+      "source_resize_line": 388,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2734,7 +2673,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2746,7 +2685,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 380,
+      "source_resize_line": 389,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2757,7 +2696,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2769,7 +2708,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 381,
+      "source_resize_line": 390,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2780,7 +2719,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2792,7 +2731,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 382,
+      "source_resize_line": 391,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -2803,7 +2742,7 @@
       "owner_key": "construction",
       "parsed_expression": "CONSTRUCTION_CAPACITY",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2815,7 +2754,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 383,
+      "source_resize_line": 392,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -9076,9 +9015,9 @@
       "owner_key": "construction",
       "parsed_expression": "DELIVERED_CELLS",
       "proof_chain": [
-        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:109 `const CONSTRUCTION_CAPACITY = 82944` = 82944",
-        "MATERIAL_SLOTS_PER_PROJECT -> godot/scripts/core/construction.gd:115 `const MATERIAL_SLOTS_PER_PROJECT = 4` = 4",
-        "DELIVERED_CELLS -> godot/scripts/core/construction.gd:122 `const DELIVERED_CELLS = CONSTRUCTION_CAPACITY * MATERIAL_SLOTS_PER_PROJECT` = 331776"
+        "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944",
+        "MATERIAL_SLOTS_PER_PROJECT -> godot/scripts/core/construction.gd:124 `const MATERIAL_SLOTS_PER_PROJECT = 4` = 4",
+        "DELIVERED_CELLS -> godot/scripts/core/construction.gd:131 `const DELIVERED_CELLS = CONSTRUCTION_CAPACITY * MATERIAL_SLOTS_PER_PROJECT` = 331776"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9090,7 +9029,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "DELIVERED_CELLS",
-      "source_resize_line": 384,
+      "source_resize_line": 393,
       "source_value": 331776,
       "status": "proved_equality"
     },
@@ -10188,8 +10127,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10201,7 +10140,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 508,
+      "source_resize_line": 540,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10212,8 +10151,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10225,7 +10164,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 528,
+      "source_resize_line": 560,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10236,8 +10175,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10249,7 +10188,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 501,
+      "source_resize_line": 533,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10260,8 +10199,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10273,7 +10212,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 521,
+      "source_resize_line": 553,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10284,8 +10223,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10297,7 +10236,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 498,
+      "source_resize_line": 530,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10308,8 +10247,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10321,7 +10260,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 499,
+      "source_resize_line": 531,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10332,8 +10271,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10345,7 +10284,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 500,
+      "source_resize_line": 532,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10356,8 +10295,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10369,7 +10308,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 502,
+      "source_resize_line": 534,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10380,8 +10319,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10393,7 +10332,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 503,
+      "source_resize_line": 535,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10404,8 +10343,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10417,7 +10356,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 504,
+      "source_resize_line": 536,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10428,8 +10367,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10441,7 +10380,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 505,
+      "source_resize_line": 537,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10452,8 +10391,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10465,7 +10404,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 506,
+      "source_resize_line": 538,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10476,8 +10415,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10489,7 +10428,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 507,
+      "source_resize_line": 539,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10500,8 +10439,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_c_capacity",
       "proof_chain": [
-        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
-        "_c_capacity -> godot/scripts/core/inventory.gd:488 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+        "CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "_c_capacity -> godot/scripts/core/inventory.gd:520 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10513,7 +10452,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_c_capacity",
-      "source_resize_line": 509,
+      "source_resize_line": 541,
       "source_value": 101376,
       "status": "proved_upper_bound"
     },
@@ -10524,8 +10463,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10537,7 +10476,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 515,
+      "source_resize_line": 547,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10548,8 +10487,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10561,7 +10500,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 516,
+      "source_resize_line": 548,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10572,8 +10511,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10585,7 +10524,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 517,
+      "source_resize_line": 549,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10596,8 +10535,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10609,7 +10548,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 518,
+      "source_resize_line": 550,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10620,8 +10559,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10633,7 +10572,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 519,
+      "source_resize_line": 551,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10644,8 +10583,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10657,7 +10596,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 520,
+      "source_resize_line": 552,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10668,8 +10607,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10681,7 +10620,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 522,
+      "source_resize_line": 554,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10692,8 +10631,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10705,7 +10644,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 523,
+      "source_resize_line": 555,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10716,8 +10655,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10729,7 +10668,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 524,
+      "source_resize_line": 556,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10740,8 +10679,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10753,7 +10692,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 525,
+      "source_resize_line": 557,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10764,8 +10703,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10777,7 +10716,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 526,
+      "source_resize_line": 558,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -10788,8 +10727,8 @@
       "owner_key": "inventory",
       "parsed_expression": "_l_capacity",
       "proof_chain": [
-        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:162 `const LOT_CAPACITY = 16384` = 16384",
-        "_l_capacity -> godot/scripts/core/inventory.gd:489 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+        "LOT_CAPACITY -> godot/scripts/core/inventory.gd:185 `const LOT_CAPACITY = 16384` = 16384",
+        "_l_capacity -> godot/scripts/core/inventory.gd:521 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10801,7 +10740,7 @@
       "source_module": "inventory",
       "source_relation": "lte",
       "source_resize_expression": "_l_capacity",
-      "source_resize_line": 527,
+      "source_resize_line": 559,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11004,7 +10943,7 @@
       "owner_key": "stock_age",
       "parsed_expression": "CONTAINER_CAPACITY",
       "proof_chain": [
-        "InventoryScript.CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "InventoryScript.CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
         "CONTAINER_CAPACITY -> godot/scripts/core/stock_age.gd:197 `const CONTAINER_CAPACITY = InventoryScript.CONTAINER_CAPACITY` = 101376"
       ],
       "proof_kind": "compiled_constant",
@@ -11028,7 +10967,7 @@
       "owner_key": "stock_age",
       "parsed_expression": "CONTAINER_CAPACITY",
       "proof_chain": [
-        "InventoryScript.CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "InventoryScript.CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
         "CONTAINER_CAPACITY -> godot/scripts/core/stock_age.gd:197 `const CONTAINER_CAPACITY = InventoryScript.CONTAINER_CAPACITY` = 101376"
       ],
       "proof_kind": "compiled_constant",
@@ -11052,7 +10991,7 @@
       "owner_key": "stock_age",
       "parsed_expression": "CONTAINER_CAPACITY",
       "proof_chain": [
-        "InventoryScript.CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:161 `const CONTAINER_CAPACITY = 101376` = 101376",
+        "InventoryScript.CONTAINER_CAPACITY -> godot/scripts/core/inventory.gd:184 `const CONTAINER_CAPACITY = 101376` = 101376",
         "CONTAINER_CAPACITY -> godot/scripts/core/stock_age.gd:197 `const CONTAINER_CAPACITY = InventoryScript.CONTAINER_CAPACITY` = 101376"
       ],
       "proof_kind": "compiled_constant",
@@ -13065,7 +13004,7 @@
     }
   ],
   "status_counts": {
-    "proved_equality": 471,
+    "proved_equality": 468,
     "proved_upper_bound": 46,
     "unproved_non_allowlisted_operator": 2
   },

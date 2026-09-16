@@ -68,6 +68,22 @@ MAX_RESOLVE_DEPTH = 16
 # Astra's Cycle 3 census, quoted so a disagreement is loud instead of silent.
 # cycle_03.md calls these "source snapshot counts, not future immutable totals",
 # so a later legitimate change moves them; it does not license tuning the parser.
+# Astra's Cycle 3 census, taken at merged master 388f4f4. It is a DATED SNAPSHOT for comparison,
+# not a pin: cycle_03.md says so itself -- "source snapshot counts, not future immutable totals".
+#
+# Decision 0142 (SAVE-S1-OWNERS) then reclassified resource_nodes' three deposit members as
+# category-3 scratch, which is why every count below moved by exactly three:
+#
+#     prose_records    519 -> 516      canonical_records  599 -> 596
+#     equality         473 -> 470      packed_source      553 -> 550
+#     distinct_expressions 56 -> 55    (one expression lost its last user)
+#
+# The disagreement machinery did its job here: this audit merged before 0142 did, the registry
+# changed underneath it, and the tool REPORTED the difference rather than adjusting to it. The
+# snapshot is therefore kept at its original values and dated, and the live expectation is
+# derived from the registry -- suppressing the older figures would throw away the evidence that
+# the mechanism works.
+ASTRA_CYCLE_03_CENSUS_AT = "388f4f4"
 ASTRA_CYCLE_03_CENSUS = {
 	"prose_records": 519,
 	"equality": 473,
@@ -77,6 +93,16 @@ ASTRA_CYCLE_03_CENSUS = {
 	"canonical_records": 599,
 	"packed_source_fields": 553,
 	"owners": 52,
+}
+
+# What decision 0142 removed, so a later reader can tell an EXPLAINED drift from a new one. A
+# disagreement that is not in this table is unexplained and wants a human.
+EXPLAINED_SINCE_CENSUS = {
+	"prose_records": -3,
+	"equality": -3,
+	"canonical_records": -3,
+	"packed_source_fields": -3,
+	"distinct_expressions": -1,
 }
 
 RELATION_EQ = "eq"
@@ -482,15 +508,29 @@ def _census(registry: dict, rows: list) -> dict:
 		"distinct_expressions": len({r["declared_capacity_prose"] for r in rows}),
 		"packed_source_fields": registry["packed_source_field_count"],
 	}
-	disagreements = sorted(
-		"%s: this audit %d, Astra Cycle 3 %d" % (key, observed[key], value)
-		for key, value in ASTRA_CYCLE_03_CENSUS.items() if observed.get(key) != value
-	)
+	# A difference is EXPLAINED when it is exactly the delta a recorded decision accounts for,
+	# and UNEXPLAINED otherwise. Collapsing the two would mean either suppressing a real drift
+	# or refusing forever on a drift already understood -- and the second teaches people to
+	# ignore the line, which is the same failure as the first.
+	explained: list = []
+	unexplained: list = []
+	for key, value in sorted(ASTRA_CYCLE_03_CENSUS.items()):
+		seen = observed.get(key)
+		if seen == value:
+			continue
+		delta = seen - value
+		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
+		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
+			explained.append(line + " -- decision 0142 retired three deposit members")
+		else:
+			unexplained.append(line)
 	return {
 		"observed": observed,
 		"astra_cycle_03": dict(ASTRA_CYCLE_03_CENSUS),
-		"agrees_with_astra_cycle_03": not disagreements,
-		"disagreements": disagreements,
+		"astra_cycle_03_taken_at": ASTRA_CYCLE_03_CENSUS_AT,
+		"agrees_with_astra_cycle_03": not explained and not unexplained,
+		"explained_since_census": explained,
+		"disagreements": unexplained,
 	}
 
 
@@ -601,7 +641,16 @@ def _report(audit: dict) -> int:
 			% (row["section_id"], row["owner_key"], row["ordinal"], row["field_key"], row["status"], row["quarantine_reason"]))
 	for line in census["disagreements"]:
 		print("  DISAGREEMENT WITH ASTRA CYCLE 3 CENSUS -- %s" % line)
-	print("census agrees with Astra Cycle 3: %s" % ("yes" if census["agrees_with_astra_cycle_03"] else "NO"))
+	for line in census.get("explained_since_census", []):
+		print("  explained drift -- %s" % line)
+	if census["agrees_with_astra_cycle_03"]:
+		print("census agrees with Astra Cycle 3 (%s): yes" % ASTRA_CYCLE_03_CENSUS_AT)
+	elif not census["disagreements"]:
+		print("census differs from Astra Cycle 3 (%s) only by recorded decisions: reconciled"
+			% ASTRA_CYCLE_03_CENSUS_AT)
+	else:
+		print("census differs from Astra Cycle 3 (%s) in ways NO recorded decision explains: %d"
+			% (ASTRA_CYCLE_03_CENSUS_AT, len(census["disagreements"])))
 	return 0
 
 

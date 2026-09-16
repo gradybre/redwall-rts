@@ -200,8 +200,20 @@ const OWNER_KEYS: Array[String] = [
 	"fishing", "forage", "gear", "inventory", "reservations", "stock_age",
 ]
 
-## REG-R01's `owner_schema_version` per owner. `inventory` is 2; the other five are 1.
-const OWNER_SCHEMA_VERSIONS: Array[int] = [1, 1, 1, 2, 1, 1]
+## REG-R01's `owner_schema_version` per owner. INV-CANON-R01 takes `inventory` from 2 to **3**
+## with the canonicalized unused payload; the other five are still 1. The 3 is READ from
+## `inventory.gd`, which declares it beside the projection it describes, rather than restated
+## here: two modules naming the version independently is two numbers that can disagree.
+const OWNER_SCHEMA_VERSIONS: Array[int] = [
+	1, 1, 1, InventoryScript.CANONICAL_OWNER_SCHEMA_VERSION, 1, 1,
+]
+
+## The 64-byte descriptor's section schema version. REG-R01's baseline vector gave section 7
+## version 2 "for protected provenance"; INV-CANON-R01 moves it to **3** in the same activation
+## that takes the `inventory` OWNER to 3. Those are different namespaces and both move here.
+## `save_header.gd` carries the number and does not interpret it, so the section owner publishes
+## it -- exactly as `save_section_world_runtime.gd` publishes section 1's.
+const SECTION_SCHEMA_VERSION: int = 3
 
 ## SAVE-LAYOUT-R01 / S2: owner keys are nonempty ASCII, at most 256 bytes.
 const OWNER_KEY_MAX_BYTES: int = 256
@@ -328,6 +340,10 @@ const GEAR_ROW_CAPACITY: int = GearScript.ROW_CAPACITY
 const RESERVATION_ROW_CAPACITY: int = ReservationsScript.ROW_CAPACITY
 const CONTAINER_CAPACITY: int = InventoryScript.CONTAINER_CAPACITY
 const LOT_CAPACITY: int = InventoryScript.LOT_CAPACITY
+
+## INV-CANON-R01's generation floor for `inventory`'s own two generation spaces. Read from the
+## store, which owns the fact that `_init()`'s `clear()` starts every generation at 1.
+const INVENTORY_GENERATION_MIN: int = InventoryScript.CANONICAL_GENERATION_MIN
 const ITEM_CAPACITY: int = InventoryScript.ITEM_CAPACITY
 const STORAGE_CLASS_COUNT: int = StockAgeScript.STORAGE_CLASS_COUNT
 const STORAGE_UNDECLARED: int = StockAgeScript.STORAGE_UNDECLARED
@@ -1545,8 +1561,9 @@ static func _blank_row_refusal(block: OwnerRecord, row: int,
 	`fishing._clear_effort_claim_row()`, `forage._clear_claim_row()`, `gear._blank_row()` and
 	`reservations._free_row()` each blank EVERY column of a released row, so a nonzero residue
 	there is corruption, not history -- and, left unchecked, two observably identical worlds
-	would produce different bytes. `inventory.gd` deliberately does NOT blank a retired row, so
-	this check is not applied to it; see OPEN, NOT INVENTED.
+	would produce different bytes. `inventory.gd` still does NOT blank a retired row at
+	retirement time -- see `_inventory_unused_refusal()` for why that would be a defect -- so it
+	uses its own literal INV-CANON-R01 table rather than this one.
 	"""
 	for ordinal: int in ordinals:
 		var expected: int = canonical_fill_of(block.owner, ordinal)
@@ -1556,6 +1573,68 @@ static func _blank_row_refusal(block: OwnerRecord, row: int,
 				"owner '%s' row %d is free but '%s' holds %d, not the blank %d"
 					% [OWNER_KEYS[block.owner], row, field_keys_of(block.owner)[ordinal],
 						actual, expected])
+	return _accepted()
+
+
+## INV-CANON-R01's unused-value table for `inventory`, written out as LITERALS.
+##
+## DELIBERATELY NOT `canonical_fill_of()`. That function is what a freshly allocated
+## `OwnerRecord` column is FILLED with, so validating an inactive row against it would be a
+## check whose expectation comes from the thing it checks: change the fill and the check moves
+## with it, silently. These are the twenty-two numbers the ruling prints, typed here once, and
+## `test_save_section_inventories.gd` reads them back off the encoded wire at literal offsets.
+##
+## Container ordinals 6..15 and lot ordinals 16..27 -- every inventory payload field. The three
+## groups NOT in these lists are the ones the ruling preserves: occupancy (2, 3), the row's own
+## generation (4, 5), and the two free stacks (28, 29).
+const INVENTORY_UNUSED_CONTAINER_ORDINALS: Array[int] = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+const INVENTORY_UNUSED_CONTAINER_VALUES: Array[int] = [-1, 0, 0, 0, -1, 0, 0, 0, 0, 0]
+const INVENTORY_UNUSED_LOT_ORDINALS: Array[int] = [
+	16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+]
+const INVENTORY_UNUSED_LOT_VALUES: Array[int] = [0, 0, 0, 0, -1, 0, -1, -1, 0, 0, 0, 0]
+
+
+static func _inventory_unused_refusal(block: OwnerRecord, row: int, ordinals: Array[int],
+		values: Array[int]) -> SaveHeader.Refusal:
+	"""INV-CANON-R01: an inactive inventory row must carry exactly the unused payload.
+
+	STRICTER THAN THE OLD CODEC, ON PURPOSE. Schema 2 let a retired row keep its last live
+	item, quality, provenance, quantity and reserved quantity, so two observably identical
+	worlds produced different section 7 bytes and different digests. Schema 3 refuses a
+	noncanonical unused value outright rather than replacing it with the safe one it could have
+	been: an incoming inactive provenance 6 does not become ORDINARY on the way in.
+
+	THE STORE STILL DOES NOT BLANK AT RETIREMENT. `_apply_transfer()` retires the source before
+	`_credit_new_lot()` reads its attributes, and at one free lot slot the same slot comes back
+	under a new generation, so a hot-path clear would destroy the values the next statement
+	needs. Normalization belongs in the quiescent save/hash copy and nowhere else.
+	"""
+	for index: int in ordinals.size():
+		var actual: int = _cell_of(block, ordinals[index], row)
+		if actual != values[index]:
+			return _refuse(REFUSE_BLANK_ROW,
+				("owner 'inventory' row %d is inactive but '%s' holds %d, not the unused %d "
+					+ "INV-CANON-R01 declares")
+					% [row, field_keys_of(block.owner)[ordinals[index]], actual, values[index]])
+	return _accepted()
+
+
+static func _row_generation_refusal(value: int, ordinal: int, row: int) -> SaveHeader.Refusal:
+	"""INV-CANON-R01: every inventory row generation is in 1..INT32_MAX, live or not.
+
+	`_init()` calls `clear()`, which steps every generation from 0 to 1, so a zero can only be
+	an uninitialised or forged column. Schema 2's shared `_generation_refusal()` accepted 0 on
+	an inactive row; this refuses it. A future virgin zero-generation allocator would need its
+	own explicit contract, and inventing one here is exactly what the ruling forbids.
+
+	THE SIGN TRAP still applies: `00 00 00 80` arrives here as -2147483648 and is refused as a
+	negative, not accepted as a plausible 2147483648.
+	"""
+	if value < INVENTORY_GENERATION_MIN or value > MAX_INT32:
+		return _refuse(REFUSE_GENERATION_RANGE,
+			"owner 'inventory' field '%s' row %d holds generation %d, outside %d..%d"
+				% [KEYS_INVENTORY[ordinal], row, value, INVENTORY_GENERATION_MIN, MAX_INT32])
 	return _accepted()
 
 
@@ -1824,10 +1903,15 @@ static func _inventory_containers_refusal(block: OwnerRecord) -> SaveHeader.Refu
 	var lot_capacity: int = int(block.child_extents[0])
 	for slot: int in block.primary_count:
 		var is_live: bool = live[slot] == 1
-		var generation: SaveHeader.Refusal = _generation_refusal(block.i32_column(4)[slot],
-			is_live, block.owner, 4, slot)
+		var generation: SaveHeader.Refusal = _row_generation_refusal(block.i32_column(4)[slot],
+			4, slot)
 		if not generation.is_ok():
 			return generation
+		if not is_live:
+			var unused: SaveHeader.Refusal = _inventory_unused_refusal(block, slot,
+				INVENTORY_UNUSED_CONTAINER_ORDINALS, INVENTORY_UNUSED_CONTAINER_VALUES)
+			if not unused.is_ok():
+				return unused
 		var owner_slot: int = block.i32_column(6)[slot]
 		var reference: SaveHeader.Refusal = _slot_refusal(owner_slot, false, DIRECTORY_CAPACITY,
 			block.owner, 6, slot)
@@ -1892,10 +1976,15 @@ static func _inventory_lots_refusal(block: OwnerRecord) -> SaveHeader.Refusal:
 	var lot_capacity: int = int(block.child_extents[0])
 	for slot: int in lot_capacity:
 		var is_live: bool = live[slot] == 1
-		var generation: SaveHeader.Refusal = _generation_refusal(block.i32_column(5)[slot],
-			is_live, block.owner, 5, slot)
+		var generation: SaveHeader.Refusal = _row_generation_refusal(block.i32_column(5)[slot],
+			5, slot)
 		if not generation.is_ok():
 			return generation
+		if not is_live:
+			var unused: SaveHeader.Refusal = _inventory_unused_refusal(block, slot,
+				INVENTORY_UNUSED_LOT_ORDINALS, INVENTORY_UNUSED_LOT_VALUES)
+			if not unused.is_ok():
+				return unused
 		var provenance: SaveHeader.Refusal = _provenance_refusal(block.i32_column(18)[slot], slot)
 		if not provenance.is_ok():
 			return provenance
@@ -2174,3 +2263,226 @@ static func empty_record() -> Record:
 	var record: Record = Record.new()
 	fill_empty(record)
 	return record
+
+
+# --- INV-CANON-R01: live capture, publication and the section 15 adapter -------------------------
+#
+# BLOCKER I1 IS NARROWED, NOT CLOSED. `inventory.gd` now publishes the shape the directory
+# published in decision 0105 -- a quiescent, normalized, caller-owned projection -- so this module
+# can capture and restore THAT ONE OWNER. `fishing`, `forage`, `gear`, `reservations` and
+# `stock_age` still publish nothing, so there is still no `capture_into(record)` for the whole
+# section and this module claims none. A five-sixths section is not a section.
+#
+# ONE PROJECTION DRIVES BOTH CONSUMERS. `capture_inventory_into()` fills the `inventory`
+# OwnerRecord from `Inventory.CanonicalColumns`, and `InventoryAdapter` reads THAT SAME
+# OwnerRecord. The encoder and the canonical walker therefore cannot disagree about what an
+# inactive row contains, because neither of them owns a mask: the store's projection does.
+#
+# NOTHING HERE ALLOCATES A SECOND WORLD. The caller owns both the `Record` and the
+# `CanonicalColumns` buffer and may reuse them across saves; the peak is those two, and both are
+# ARCH-SAVE-003 cold-path scratch already accounted for as such.
+
+const Digest := preload("res://scripts/core/canonical_state_hash.gd")
+
+const REFUSE_STORE_MISSING: StringName = &"SAVE_INV_STORE_MISSING"
+const REFUSE_CAPTURE_REFUSED: StringName = &"SAVE_INV_CAPTURE_REFUSED"
+const REFUSE_RESTORE_FAILED: StringName = &"SAVE_INV_RESTORE_FAILED"
+const REFUSE_ADAPTER_FIELD: StringName = &"SAVE_INV_ADAPTER_UNKNOWN_FIELD"
+
+## The two methods a live inventory store must expose to be captured from and restored into.
+const CAPTURE_METHOD: StringName = &"copy_canonical_columns_into"
+const RESTORE_METHOD: StringName = &"restore_canonical_columns"
+const DETAIL_METHOD: StringName = &"canonical_detail"
+
+
+static func inventory_columns_for(record: Record) -> InventoryScript.CanonicalColumns:
+	"""Allocate a projection buffer matching one record's declared inventory extents.
+
+	Called once by a caller that then reuses the buffer; capture and apply allocate nothing.
+	"""
+	var block: OwnerRecord = record.of(OWNER_INVENTORY)
+	return InventoryScript.CanonicalColumns.new(block.primary_count, int(block.child_extents[0]))
+
+
+static func _inventory_shape_refusal(block: OwnerRecord,
+		columns: InventoryScript.CanonicalColumns) -> SaveHeader.Refusal:
+	"""Refuse a projection buffer whose extents are not the record block's own."""
+	if block.primary_count != columns.container_capacity:
+		return _refuse(REFUSE_PRIMARY_COUNT,
+			"projection declares %d containers, the record block %d"
+				% [columns.container_capacity, block.primary_count])
+	if int(block.child_extents[0]) != columns.lot_capacity:
+		return _refuse(REFUSE_CHILD_EXTENT, "projection declares %d lots, the record block %d"
+			% [columns.lot_capacity, int(block.child_extents[0])])
+	return _accepted()
+
+
+static func capture_inventory_into(record: Record, store: Object,
+		columns: InventoryScript.CanonicalColumns) -> SaveHeader.Refusal:
+	"""Stage one live inventory's normalized projection into `record`'s `inventory` block.
+
+	The store decides whether the boundary is quiescent and whether its own state is valid; a
+	refusal there becomes a refusal here carrying the store's detail, never a partial block.
+	The staged block is then validated by this module's own decode-side rules, so a capture that
+	produces something the decoder would reject fails at save time rather than at load time.
+	"""
+	if store == null or not store.has_method(CAPTURE_METHOD):
+		return _refuse(REFUSE_STORE_MISSING,
+			"no inventory store exposing %s() was supplied" % CAPTURE_METHOD)
+	var block: OwnerRecord = record.of(OWNER_INVENTORY)
+	var shape: SaveHeader.Refusal = _inventory_shape_refusal(block, columns)
+	if not shape.is_ok():
+		return shape
+	if not store.call(CAPTURE_METHOD, columns):
+		return _refuse(REFUSE_CAPTURE_REFUSED, String(store.call(DETAIL_METHOD)))
+	_install_container_columns(block, columns)
+	_install_lot_columns(block, columns)
+	return owner_refusal(block)
+
+
+static func _install_container_columns(block: OwnerRecord,
+		columns: InventoryScript.CanonicalColumns) -> void:
+	"""Write the two scalars, the container columns and the container free prefix, by ordinal."""
+	block.set_scalar(0, columns.c_free_count)
+	block.set_scalar(1, columns.l_free_count)
+	block.set_u8_column(2, columns.c_live)
+	block.set_i32_column(4, columns.c_generation)
+	block.set_i32_column(6, columns.c_owner_slot)
+	block.set_i32_column(7, columns.c_owner_generation)
+	block.set_i32_column(8, columns.c_policy)
+	block.set_i32_column(9, columns.c_lot_count)
+	block.set_i32_column(10, columns.c_first_lot)
+	block.set_i64_column(11, columns.c_max_mass_g)
+	block.set_i64_column(12, columns.c_filters)
+	block.set_i64_column(13, columns.c_reserved_mass_g)
+	block.set_i64_column(14, columns.c_used_mass_g)
+	block.set_u8_column(15, columns.c_reachable)
+	block.set_stack_column(28, columns.c_free, columns.c_free_count)
+
+
+static func _install_lot_columns(block: OwnerRecord,
+		columns: InventoryScript.CanonicalColumns) -> void:
+	"""Write the lot columns and the lot free prefix, by declared ordinal."""
+	block.set_u8_column(3, columns.l_live)
+	block.set_i32_column(5, columns.l_generation)
+	block.set_i32_column(16, columns.l_item_id)
+	block.set_i32_column(17, columns.l_quality)
+	block.set_i32_column(18, columns.l_provenance)
+	block.set_i32_column(19, columns.l_recipe_id)
+	block.set_i32_column(20, columns.l_container_slot)
+	block.set_i32_column(21, columns.l_container_generation)
+	block.set_i32_column(22, columns.l_next)
+	block.set_i32_column(23, columns.l_prev)
+	block.set_i64_column(24, columns.l_quantity_milli)
+	block.set_i64_column(25, columns.l_reserved_milli)
+	block.set_i64_column(26, columns.l_age_milli_hours)
+	block.set_i64_column(27, columns.l_age_remainder)
+	block.set_stack_column(29, columns.l_free, columns.l_free_count)
+
+
+static func apply_inventory(record: Record, store: Object,
+		columns: InventoryScript.CanonicalColumns) -> SaveHeader.Refusal:
+	"""Publish a decoded `inventory` block into a live store, through the same projection.
+
+	Validates the block again before it touches the store, so a caller that decoded with one
+	code path and applies with another cannot skip the check. The store then re-validates the
+	projection on its own terms and refuses without publishing anything.
+
+	CROSS-OWNER REFERENCES ARE NOT VALIDATED HERE, and this is not the load barrier. A
+	`gear._lot_slot`, a `reservations` row naming a lot, and a container's directory owner are
+	all checked by the orchestrator that sees every block at once.
+	"""
+	if store == null or not store.has_method(RESTORE_METHOD):
+		return _refuse(REFUSE_STORE_MISSING,
+			"no inventory store exposing %s() was supplied" % RESTORE_METHOD)
+	var block: OwnerRecord = record.of(OWNER_INVENTORY)
+	var shape: SaveHeader.Refusal = _inventory_shape_refusal(block, columns)
+	if not shape.is_ok():
+		return shape
+	var invalid: SaveHeader.Refusal = owner_refusal(block)
+	if not invalid.is_ok():
+		return invalid
+	_extract_container_columns(block, columns)
+	_extract_lot_columns(block, columns)
+	if not store.call(RESTORE_METHOD, columns):
+		return _refuse(REFUSE_RESTORE_FAILED, String(store.call(DETAIL_METHOD)))
+	return _accepted()
+
+
+static func _extract_container_columns(block: OwnerRecord,
+		columns: InventoryScript.CanonicalColumns) -> void:
+	"""Read the container half of a decoded block back into a projection buffer."""
+	columns.c_free_count = block.scalar(0)
+	columns.l_free_count = block.scalar(1)
+	columns.c_live = block.u8_column(2)
+	columns.c_generation = block.i32_column(4)
+	columns.c_owner_slot = block.i32_column(6)
+	columns.c_owner_generation = block.i32_column(7)
+	columns.c_policy = block.i32_column(8)
+	columns.c_lot_count = block.i32_column(9)
+	columns.c_first_lot = block.i32_column(10)
+	columns.c_max_mass_g = block.i64_column(11)
+	columns.c_filters = block.i64_column(12)
+	columns.c_reserved_mass_g = block.i64_column(13)
+	columns.c_used_mass_g = block.i64_column(14)
+	columns.c_reachable = block.u8_column(15)
+	columns.c_free = block.i32_column(28)
+
+
+static func _extract_lot_columns(block: OwnerRecord,
+		columns: InventoryScript.CanonicalColumns) -> void:
+	"""Read the lot half of a decoded block back into a projection buffer."""
+	columns.l_live = block.u8_column(3)
+	columns.l_generation = block.i32_column(5)
+	columns.l_item_id = block.i32_column(16)
+	columns.l_quality = block.i32_column(17)
+	columns.l_provenance = block.i32_column(18)
+	columns.l_recipe_id = block.i32_column(19)
+	columns.l_container_slot = block.i32_column(20)
+	columns.l_container_generation = block.i32_column(21)
+	columns.l_next = block.i32_column(22)
+	columns.l_prev = block.i32_column(23)
+	columns.l_quantity_milli = block.i64_column(24)
+	columns.l_reserved_milli = block.i64_column(25)
+	columns.l_age_milli_hours = block.i64_column(26)
+	columns.l_age_remainder = block.i64_column(27)
+	columns.l_free = block.i32_column(29)
+
+
+class InventoryAdapter:
+	"""Section 15's value adapter for the `inventory` owner, over a staged OwnerRecord.
+
+	Reads the SAME block the encoder writes, at the SAME declared element counts, so a save and
+	a canonical digest cannot disagree about a single inactive byte. It holds a reference to the
+	block rather than a copy of its columns: packed arrays are copy-on-write.
+	"""
+	var _block: OwnerRecord = null
+
+	func _init(p_block: OwnerRecord) -> void:
+		"""Bind this adapter to one staged `inventory` block."""
+		_block = p_block
+
+	func canonical_field_values(field_key: StringName, out: Digest.FieldValues) -> bool:
+		"""Supply one declared field's values, or refuse a key `inventory` does not declare."""
+		var ordinal: int = KEYS_INVENTORY.find(field_key)
+		if ordinal < 0:
+			return out.refuse(REFUSE_ADAPTER_FIELD,
+				"'inventory' declares no field '%s'" % field_key)
+		var count: int = SaveSectionInventoriesScript.persisted_count_of(_block, ordinal)
+		var type_code: int = SaveSectionInventoriesScript.field_type_of(OWNER_INVENTORY, ordinal)
+		if type_code == TYPE_U8:
+			return out.supply_bytes(_block.u8_column(ordinal), count)
+		if type_code == TYPE_I32:
+			return out.supply_int32(_block.i32_column(ordinal), count)
+		return out.supply_int64(_block.i64_column(ordinal), count)
+
+
+static func register_inventory_adapter(walker: Digest.Walker, record: Record) -> Digest.Refusal:
+	"""Bind the `inventory` owner's canonical adapter on `walker`, over `record`'s block.
+
+	The other five section 7 owners are NOT registered, because they publish no columns to
+	register. `Walker.digest_into()` therefore still refuses with CANONICAL_NO_ADAPTER, which is
+	the specified behaviour and not a gap to be papered over with a subset digest.
+	"""
+	return walker.register_owner(SECTION_ID, OWNER_KEYS[OWNER_INVENTORY],
+		InventoryAdapter.new(record.of(OWNER_INVENTORY)))

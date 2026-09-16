@@ -45,6 +45,13 @@ def validate_registry(data):
     # REG-R01 requires the declaration to track the source classification in BOTH directions, and
     # the three columns are now category-3 placement scratch that contributes no save payload.
     # It is not a format constant: freeze it and the next reconciliation is refused.
+    # INV-CANON-R01 leaves it at 596 AND THAT IS THE REASON, not an omission: schema 3
+    # normalizes what an EXISTING declared field may contain on an inactive row. It adds no
+    # field, removes none, and moves no hash flag, so the canonical record delta is exactly 0
+    # -- the ruling's `canonical_record_delta: 0`. What moved instead is the (7, 'inventory')
+    # owner_schema_version and section_schema_versions[6], both 2 -> 3, and the registry
+    # identity with them. A pin that had moved here would mean a field set change nobody
+    # authorized.
     assert records == data['record_count'] == 596
     directory = next(o for o in owners if (o['section_id'],o['owner_key']) == (3,'entity_directory'))
     assert [f['field_key'] for f in directory['fields']] == ['_active','_generation','_retired','_persistent_id','_kind','_typed_row']
@@ -88,6 +95,10 @@ def validate_source(data, source):
     # docs/persistence_state_registry.md stops declaring them category 1, so `actual` loses three
     # members, and canonical_state_registry.json stops declaring them, so `declared` loses the
     # same three. A one-sided edit fails the membership assertion above, which is the point.
+    # INV-CANON-R01 leaves it at 550 for the same reason record_count stays at 596: it
+    # reclassifies no column. inventory.gd's twenty-eight category-1 packed columns are
+    # unchanged, and its new `_canonical_detail` is a String, not a packed column, so it enters
+    # neither side of this equality.
     assert len(actual)==data['packed_source_field_count']==550
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 

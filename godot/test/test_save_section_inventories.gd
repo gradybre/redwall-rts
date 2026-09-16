@@ -30,6 +30,7 @@ const SaveHeader := preload("res://scripts/core/save_header.gd")
 const Section := preload("res://scripts/core/save_section_inventories.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const CatalogScript := preload("res://scripts/core/catalog.gd")
+const Digest := preload("res://scripts/core/canonical_state_hash.gd")
 
 ## Small runtime capacities for the three owners whose primary count is a construction argument.
 ## `fishing`, `forage` and `stock_age` are compile-time fixed and cannot be shrunk.
@@ -145,9 +146,19 @@ func test_store_count_and_owner_order_are_ascii() -> void:
 
 
 func test_owner_schema_versions_match_the_registry() -> void:
-	"""REG-R01: inventory is owner schema 2 for protected provenance; the other five are 1."""
-	assert_equal(Section.OWNER_SCHEMA_VERSIONS[Section.OWNER_INVENTORY], 2,
-		"inventory declares owner schema 2")
+	"""INV-CANON-R01 takes inventory from owner schema 2 to 3; the other five are still 1.
+
+	UPDATED, NOT WEAKENED. This asserted 2 before the canonicalized unused payload landed, and
+	2 is now the wrong answer: a schema-2 reader would accept a retired row still carrying its
+	last live item, quantity and reserved quantity, which is the non-determinism the activation
+	removes. The number is read from `inventory.gd`, which owns it, rather than typed again.
+	"""
+	assert_equal(Section.OWNER_SCHEMA_VERSIONS[Section.OWNER_INVENTORY], 3,
+		"inventory declares owner schema 3")
+	assert_equal(InventoryScript.CANONICAL_OWNER_SCHEMA_VERSION, 3,
+		"the store declares the same owner schema version the codec writes")
+	assert_equal(Section.SECTION_SCHEMA_VERSION, 3,
+		"section 7's descriptor schema moves to 3 in the same activation")
 	for owner: int in Section.OWNER_COUNT:
 		if owner == Section.OWNER_INVENTORY:
 			continue
@@ -472,15 +483,20 @@ func test_blocks_out_of_ascii_order_are_refused() -> void:
 
 
 func test_wrong_owner_schema_version_is_refused() -> void:
-	"""A stream declaring inventory schema 1 is an older layout and must not be read as 2."""
+	"""A stream declaring inventory schema 2 is the older layout and must not be read as 3.
+
+	UPDATED WITH THE ACTIVATION. The old development stream is not reinterpreted: INV-CANON-R01
+	says an old save is refused unless an explicit migration validates it and writes the new
+	representation, and no such migration exists. So schema 2 on the wire refuses here.
+	"""
 	var bytes: PackedByteArray = _encode(_record)
 	var offset: int = _block_offset(_record, Section.OWNER_INVENTORY) + 4 + 9
-	assert_equal(bytes[offset], 2, "inventory's wire schema version is 2")
-	bytes[offset] = 1
+	assert_equal(bytes[offset], 3, "inventory's wire schema version is 3")
+	bytes[offset] = 2
 	var back: Section.Record = Section.Record.new()
 	var refusal: SaveHeader.Refusal = Section.decode_into(bytes, 0, bytes.size(), back)
 	assert_equal(refusal.code, Section.REFUSE_OWNER_SCHEMA_VERSION,
-		"inventory schema 1 is refused")
+		"inventory schema 2 is refused under schema 3")
 
 
 func test_declared_payload_length_must_match_what_the_block_consumes() -> void:
@@ -691,3 +707,474 @@ func test_source_holds_no_float() -> void:
 	assert_true(code.contains("PackedInt64Array"), "the stripped code still holds real code")
 	for token: String in ["float", "randf", "PackedFloat", "is_equal_approx"]:
 		assert_false(code.contains(token), "the code contains no '%s'" % token)
+
+
+# --- INV-CANON-R01: live capture, normalization and publication -----------------------------------
+#
+# WHAT THESE PROVE THAT A ROUND TRIP DOES NOT.
+#
+# A round trip compares this module against itself. The three checks that do not are:
+# `test_normalized_reserved_merge_residue_at_literal_wire_offsets()`, which reads the encoded
+# bytes at offsets ADDED UP BY HAND in the test rather than at offsets the codec computed;
+# `test_two_histories_with_different_residue_produce_identical_bytes()`, which builds two stores
+# whose observable state is the same and whose retired rows differ; and
+# `test_meaningful_differences_still_change_the_canonical_stream()`, which proves the mask has
+# not swallowed anything that matters.
+
+## The `inventory` block offset inside a `_small_record()` section, ADDED UP BY HAND from
+## SAVE-LAYOUT-R01's framing rather than read out of `block_bytes_of()`. Only THREE owners
+## precede `inventory` in ASCII order -- `reservations` and `stock_age` follow it:
+##   4 (store_count) + 12891 (fishing, fixed) + 434298 (forage, fixed)
+##   + 464 (gear at 8 rows: 24 + 4 key bytes wrapper, + 4 extent count, + 12*8 element counts,
+##          + (2*1 + 10*4) * 8 values)
+const INVENTORY_BLOCK_OFFSET: int = 447657
+
+## Value offsets INSIDE that block, likewise added up by hand: 33 wrapper bytes (24 + 9 key
+## bytes), 12 extent bytes (a u32 count and one u64 extent), then each earlier field's 8-byte
+## element count plus its values at 8 containers and 4 lots. Ordinals 0..17 occupy 668 payload
+## bytes and ordinals 0..24 occupy 852, so `_l_provenance` starts at 33 + 12 + 668 + 8 = 721 and
+## `_l_reserved_milli` at 33 + 12 + 852 + 8 = 905 bytes into the block.
+const LOT_PROVENANCE_VALUE_OFFSET: int = 448378
+const LOT_RESERVED_VALUE_OFFSET: int = 448562
+
+
+func _live_store() -> InventoryScript:
+	"""A store shaped exactly like `_small_record()`: 8 containers, 4 lots, one item registered."""
+	var store: InventoryScript = InventoryScript.new(SMALL_CONTAINERS, SMALL_LOTS)
+	assert_true(store.register_item(7, 250, 0).ok, "the fixture item registers")
+	return store
+
+
+func _capture(store: InventoryScript) -> Section.Record:
+	"""Capture one live store into a fresh small record, failing the test on any refusal."""
+	var record: Section.Record = _small_record()
+	var columns: InventoryScript.CanonicalColumns = Section.inventory_columns_for(record)
+	var refusal: SaveHeader.Refusal = Section.capture_inventory_into(record, store, columns)
+	if not refusal.is_ok():
+		fail("capture refused: %s %s" % [refusal.code, refusal.detail])
+	return record
+
+
+func _reserved_merge_store() -> InventoryScript:
+	"""INV-CANON-R01's reachable residue: dead lot 1 at quantity 0 / reserved 250, live lot 0."""
+	var store: InventoryScript = _live_store()
+	var box: Vector2i = store.create_container(Vector2i(4, 1), 100000, -1, 0, true).ref
+	var destination: Vector2i = store.create_lot(box, 7, 1000, 0, 3, 0, 0, 0).ref
+	var source: Vector2i = store.create_lot(box, 7, 1000, 0, 3, 0, 0, 0).ref
+	assert_true(store.reserve_lot(source, 250).ok, "the source carries a 250 milli claim")
+	assert_true(store.merge_lots(destination, source).ok, "the compatible lots merge")
+	assert_equal(destination.x, 0, "the destination is physical lot 0")
+	assert_equal(source.x, 1, "the source is physical lot 1")
+	return store
+
+
+func test_the_reserved_merge_residue_is_real_in_the_live_store() -> void:
+	"""The precondition, asserted before anything is normalized: raw state 0 / 250 beside 250."""
+	var store: InventoryScript = _reserved_merge_store()
+	assert_equal(store._l_live[1], 0, "the merged source is inactive")
+	assert_equal(store._l_quantity_milli[1], 0, "the merged source holds no quantity")
+	assert_equal(store._l_reserved_milli[1], 250, "and its reserved residue is real, not tidied")
+	assert_equal(store._l_reserved_milli[0], 250, "the live destination holds the one claim")
+	assert_true(store.audit().ok, "the live audit passes on that state")
+
+
+func test_normalized_reserved_merge_residue_at_literal_wire_offsets() -> void:
+	"""Read the encoded section at HAND-ADDED offsets: dead reserved 0, the live claim intact.
+
+	The offsets above are arithmetic a reader can redo with SAVE-LAYOUT-R01 and a calculator.
+	They are compared with `_field_value_offset()` as well, so a drift in the codec's own
+	arithmetic is caught -- but the values are read at the LITERAL offsets, because a check whose
+	expectation comes from the thing it checks has already been shipped here three times.
+	"""
+	var bytes: PackedByteArray = _encode(_capture(_reserved_merge_store()))
+	assert_equal(_block_offset(_record, Section.OWNER_INVENTORY), INVENTORY_BLOCK_OFFSET,
+		"the hand-added inventory block offset matches the codec's")
+	assert_equal(_field_value_offset(_record, Section.OWNER_INVENTORY, 25),
+		LOT_RESERVED_VALUE_OFFSET, "the hand-added `_l_reserved_milli` offset matches the codec's")
+	assert_equal(bytes.decode_s64(LOT_RESERVED_VALUE_OFFSET), 250,
+		"live lot 0 keeps its 250 milli claim on the wire")
+	assert_equal(bytes.decode_s64(LOT_RESERVED_VALUE_OFFSET + 8), 0,
+		"dead lot 1's reserved residue is written as 0")
+	assert_equal(bytes.decode_s32(LOT_PROVENANCE_VALUE_OFFSET), 3,
+		"live lot 0 keeps EXCAVATION provenance")
+	assert_equal(bytes.decode_s32(LOT_PROVENANCE_VALUE_OFFSET + 4), 0,
+		"dead lot 1's provenance is the unused ORDINARY, which is a real member")
+
+
+func test_capture_does_not_touch_one_byte_of_the_live_store() -> void:
+	"""The hot retirement path is untouched: `state_bytes()` is identical across a capture.
+
+	This is the guard against the tempting fix. `_apply_transfer()` retires the source BEFORE
+	`_credit_new_lot()` reads its attributes, so a normalization that reached into the live
+	columns would destroy the values the next statement needs.
+	"""
+	var store: InventoryScript = _reserved_merge_store()
+	var before: PackedByteArray = store.state_bytes()
+	var record: Section.Record = _capture(store)
+	assert_equal(store.state_bytes(), before, "capture left the raw rollback image identical")
+	assert_equal(store._l_reserved_milli[1], 250, "the dead row still carries its raw residue")
+	assert_equal(record.of(Section.OWNER_INVENTORY).i64_column(25)[1], 0,
+		"only the caller-owned projection is normalized")
+
+
+func test_one_free_lot_slot_transfer_survives_capture_and_restore() -> void:
+	"""The whole-lot transfer that reuses its source slot: attributes, age and generation live."""
+	var store: InventoryScript = InventoryScript.new(SMALL_CONTAINERS, 1)
+	assert_true(store.register_item(7, 250, 0).ok, "register")
+	var from: Vector2i = store.create_container(Vector2i(5, 1), 100000, -1, 0, true).ref
+	var to: Vector2i = store.create_container(Vector2i(6, 1), 100000, -1, 0, true).ref
+	var lot: Vector2i = store.create_lot(from, 7, 1000, 2, 3, 11, 123, 42).ref
+	var moved: Section.Record = null
+	var result: InventoryScript.OpResult = store.transfer(lot, to, 1000)
+	assert_true(result.ok, "the one-slot whole transfer succeeds")
+	assert_equal(result.ref.x, lot.x, "the same physical slot comes back")
+	assert_false(store.is_lot_valid(lot), "the old reference no longer validates")
+	var record: Section.Record = _small_record()
+	record.owners[Section.OWNER_INVENTORY] = Section.OwnerRecord.new(
+		Section.OWNER_INVENTORY, SMALL_CONTAINERS, PackedInt64Array([1]))
+	Section.fill_empty(record)
+	var columns: InventoryScript.CanonicalColumns = Section.inventory_columns_for(record)
+	var refusal: SaveHeader.Refusal = Section.capture_inventory_into(record, store, columns)
+	assert_equal(refusal.code, Section.REFUSE_NONE, "capture: %s" % refusal.detail)
+	moved = record
+	var block: Section.OwnerRecord = moved.of(Section.OWNER_INVENTORY)
+	assert_equal(block.i32_column(5)[0], result.ref.y, "the replacement generation is persisted")
+	assert_equal(block.i64_column(26)[0], 123, "the transferred age survives")
+	assert_equal(block.i64_column(27)[0], 42, "and so does its sub-hour remainder")
+
+
+func test_save_load_save_is_byte_identical_through_a_live_store() -> void:
+	"""Capture, encode, decode, publish into a second store, recapture: the same bytes."""
+	var store: InventoryScript = _reserved_merge_store()
+	var first: PackedByteArray = _encode(_capture(store))
+	var parsed: Section.Record = Section.Record.new()
+	var refusal: SaveHeader.Refusal = Section.decode_into(first, 0, first.size(), parsed)
+	assert_equal(refusal.code, Section.REFUSE_NONE, "the captured section decodes: %s"
+		% refusal.detail)
+	assert_equal(_encode(parsed), first, "re-encoding the decoded record is byte-identical")
+	var restored: InventoryScript = _live_store()
+	var columns: InventoryScript.CanonicalColumns = Section.inventory_columns_for(parsed)
+	var applied: SaveHeader.Refusal = Section.apply_inventory(parsed, restored, columns)
+	assert_equal(applied.code, Section.REFUSE_NONE, "publication: %s" % applied.detail)
+	assert_equal(restored._l_reserved_milli[0], 250, "the live claim is restored")
+	assert_equal(restored._l_reserved_milli[1], 0, "the dead row stays normalized")
+	assert_equal(restored._l_generation[1], store._l_generation[1],
+		"the dead row's generation is restored exactly, not rewound or advanced")
+	assert_true(restored.audit().ok, "the republished store audits")
+	assert_equal(_encode(_capture(restored)), first, "save -> load -> save is byte-identical")
+
+
+func test_two_histories_with_different_residue_produce_identical_bytes() -> void:
+	"""Same live state, same generations, same stack prefixes, different inactive residue and tails.
+
+	The residue difference is written straight into the dead row and the excluded stack tail,
+	because merge and transfer are the only two operations that leave residue at all and both
+	leave the SAME residue for the same inputs -- so a pair of real histories cannot isolate the
+	variable. What matters is the property: two worlds identical in every live value, generation
+	and stack prefix, differing only where the ruling says nothing is observable, must hash the
+	same. `assert_false` on the raw images is what stops this being a vacuous comparison.
+	"""
+	var plain: InventoryScript = _reserved_merge_store()
+	var scribbled: InventoryScript = _reserved_merge_store()
+	scribbled._l_item_id[1] = 0
+	scribbled._l_quality[1] = 4
+	scribbled._l_provenance[1] = 5
+	scribbled._l_recipe_id[1] = 19
+	scribbled._l_reserved_milli[1] = 17
+	scribbled._l_age_milli_hours[1] = 3000
+	scribbled._l_free[scribbled._l_free_count] = 2
+	scribbled._c_policy[4] = 11
+	assert_false(plain.state_bytes() == scribbled.state_bytes(),
+		"the two raw images genuinely differ, so this is not a vacuous comparison")
+	assert_equal(plain._l_live, scribbled._l_live, "occupancy is identical")
+	assert_equal(plain._l_generation, scribbled._l_generation, "generations are identical")
+	assert_equal(plain._l_free_count, scribbled._l_free_count, "the free counts are identical")
+	assert_equal(_encode(_capture(plain)), _encode(_capture(scribbled)),
+		"the normalized sections are byte-identical")
+
+
+func test_meaningful_differences_still_change_the_canonical_stream() -> void:
+	"""Generation, free-stack order, reachability, quantity, provenance and the live claim all show.
+
+	The mask must not be a shredder. Each case below differs from the baseline in exactly one
+	preserved value, and each must produce different bytes.
+	"""
+	var baseline: PackedByteArray = _encode(_capture(_reserved_merge_store()))
+	for label: String in ["generation", "stack_order", "reachable", "quantity", "provenance",
+			"reserved"]:
+		var store: InventoryScript = _reserved_merge_store()
+		_perturb(store, label)
+		assert_false(_encode(_capture(store)) == baseline,
+			"a different %s must change the canonical stream" % label)
+
+
+func _perturb(store: InventoryScript, label: String) -> void:
+	"""Change exactly one preserved value of the reserved-merge fixture."""
+	if label == "generation":
+		store._l_generation[3] = 17
+	elif label == "stack_order":
+		var swapped: int = store._l_free[0]
+		store._l_free[0] = store._l_free[1]
+		store._l_free[1] = swapped
+	elif label == "reachable":
+		store._c_reachable[0] = 0
+	elif label == "quantity":
+		store._l_quantity_milli[0] = 1500
+		store._c_used_mass_g[0] = 375
+		store._sourced_milli[7] = 1500
+	elif label == "provenance":
+		store._l_provenance[0] = 2
+	else:
+		store._l_reserved_milli[0] = 200
+
+
+func test_free_max_live_max_and_retired_max_stay_three_distinct_states() -> void:
+	"""INT32_MAX is not retirement. Prefix membership and occupancy separate the three."""
+	var free_max: InventoryScript = _live_store()
+	free_max._l_generation[free_max._l_free[free_max._l_free_count - 1]] = InventoryScript.MAX_INT32
+	var retired_max: InventoryScript = _live_store()
+	var slot: int = retired_max._l_free[retired_max._l_free_count - 1]
+	retired_max._l_generation[slot] = InventoryScript.MAX_INT32
+	retired_max._l_free_count -= 1
+	retired_max._l_free[retired_max._l_free_count] = InventoryScript.NULL_SLOT
+	var free_bytes: PackedByteArray = _encode(_capture(free_max))
+	var retired_bytes: PackedByteArray = _encode(_capture(retired_max))
+	assert_false(free_bytes == retired_bytes,
+		"a slot free AT INT32_MAX and a slot retired at INT32_MAX are different worlds")
+	var live_max: InventoryScript = _live_store()
+	var box: Vector2i = live_max.create_container(Vector2i(4, 1), 100000, -1, 0, true).ref
+	var lot: Vector2i = live_max.create_lot(box, 7, 1000, 0, 3, 0, 0, 0).ref
+	live_max._l_generation[lot.x] = InventoryScript.MAX_INT32
+	assert_false(_encode(_capture(live_max)) == free_bytes, "a live INT32_MAX row stays live")
+
+
+func test_final_reuse_of_a_generation_max_slot_is_captured() -> void:
+	"""A slot freed from INT32_MAX-1 is pushed AT INT32_MAX and is allocated one last time."""
+	var store: InventoryScript = _live_store()
+	var box: Vector2i = store.create_container(Vector2i(4, 1), 100000, -1, 0, true).ref
+	store._l_generation[0] = InventoryScript.MAX_INT32 - 1
+	var first: Vector2i = store.create_lot(box, 7, 1000, 0, 3, 0, 0, 0).ref
+	assert_equal(first.x, 0, "the fixture lot takes slot 0")
+	assert_true(store.sink_lot_quantity(first, 1000).ok, "sinking the whole lot retires it")
+	assert_equal(store._l_generation[0], InventoryScript.MAX_INT32,
+		"freeing from INT32_MAX-1 lands on INT32_MAX")
+	var again: Vector2i = store.create_lot(box, 7, 1000, 0, 3, 0, 0, 0).ref
+	assert_equal(again, Vector2i(0, InventoryScript.MAX_INT32),
+		"that slot is handed out one final time at INT32_MAX")
+	var block: Section.OwnerRecord = _capture(store).of(Section.OWNER_INVENTORY)
+	assert_equal(block.i32_column(5)[0], InventoryScript.MAX_INT32, "and is captured live at MAX")
+	assert_equal(block.u8_column(3)[0], 1, "with occupancy 1, which is what makes it live-MAX")
+
+
+func test_capture_refuses_a_boundary_that_is_not_quiescent() -> void:
+	"""ARCH-SAVE-003 saves at a COMPLETED boundary: an open transaction refuses, never captures."""
+	var store: InventoryScript = _reserved_merge_store()
+	assert_true(store.begin().ok, "a transaction opens")
+	var record: Section.Record = _small_record()
+	var columns: InventoryScript.CanonicalColumns = Section.inventory_columns_for(record)
+	var refusal: SaveHeader.Refusal = Section.capture_inventory_into(record, store, columns)
+	assert_equal(refusal.code, Section.REFUSE_CAPTURE_REFUSED, "the capture refuses")
+	assert_true(refusal.detail.contains("transaction is open"), "and says why: %s" % refusal.detail)
+	assert_true(record.equals(_small_record()), "the caller's record is untouched")
+	assert_true(store.commit().ok, "the empty transaction commits")
+
+
+func test_capture_refuses_a_store_whose_extents_are_not_the_records() -> void:
+	"""A projection buffer sized for another world refuses rather than filling half a block."""
+	var record: Section.Record = _small_record()
+	var columns: InventoryScript.CanonicalColumns = Section.inventory_columns_for(record)
+	var wrong: InventoryScript = InventoryScript.new(SMALL_CONTAINERS, SMALL_LOTS + 1)
+	var refusal: SaveHeader.Refusal = Section.capture_inventory_into(record, wrong, columns)
+	assert_equal(refusal.code, Section.REFUSE_CAPTURE_REFUSED, "a mismatched store refuses")
+	var missing: SaveHeader.Refusal = Section.capture_inventory_into(record, null, columns)
+	assert_equal(missing.code, Section.REFUSE_STORE_MISSING, "a null store refuses by name")
+
+
+func test_generation_zero_on_an_inactive_row_is_refused_under_schema_three() -> void:
+	"""The looser schema-2 check accepted 0 on a free row. Instantiated generations start at 1."""
+	var record: Section.Record = _capture(_reserved_merge_store())
+	var block: Section.OwnerRecord = record.of(Section.OWNER_INVENTORY)
+	assert_equal(block.i32_column(5)[3], 1, "the untouched lot row sits at generation 1")
+	_set_cell(block, 5, 3, 0)
+	var refusal: SaveHeader.Refusal = Section.owner_refusal(block)
+	assert_equal(refusal.code, Section.REFUSE_GENERATION_RANGE,
+		"a zero generation on an inactive row is refused: %s" % refusal.detail)
+	_set_cell(block, 5, 3, 1)
+	_set_cell(block, 4, 5, 0)
+	assert_equal(Section.owner_refusal(block).code, Section.REFUSE_GENERATION_RANGE,
+		"and so is a zero generation on an inactive container row")
+
+
+func test_every_noncanonical_inactive_value_is_refused_one_at_a_time() -> void:
+	"""All twenty-two unused values, each perturbed alone, each refused by name."""
+	var ordinals: Array[int] = []
+	ordinals.append_array(Section.INVENTORY_UNUSED_CONTAINER_ORDINALS)
+	ordinals.append_array(Section.INVENTORY_UNUSED_LOT_ORDINALS)
+	assert_equal(ordinals.size(), 22, "the ruling's table has twenty-two unused values")
+	for ordinal: int in ordinals:
+		var record: Section.Record = _capture(_reserved_merge_store())
+		var block: Section.OwnerRecord = record.of(Section.OWNER_INVENTORY)
+		var row: int = 5 if ordinal < 16 else 3
+		var canonical: int = Section._cell_of(block, ordinal, row)
+		_set_cell(block, ordinal, row, canonical + 1)
+		var refusal: SaveHeader.Refusal = Section.owner_refusal(block)
+		assert_equal(refusal.code, Section.REFUSE_BLANK_ROW,
+			"a noncanonical '%s' on an inactive row is refused"
+				% Section.KEYS_INVENTORY[ordinal])
+
+
+func test_a_noncanonical_inactive_provenance_is_refused_and_never_mapped_to_ordinary() -> void:
+	"""An incoming inactive provenance 6 refuses. It does not quietly become ORDINARY."""
+	var record: Section.Record = _capture(_reserved_merge_store())
+	var block: Section.OwnerRecord = record.of(Section.OWNER_INVENTORY)
+	_set_cell(block, 18, 3, 6)
+	assert_equal(Section.owner_refusal(block).code, Section.REFUSE_BLANK_ROW,
+		"6 on an inactive row is outside the unused table")
+	_set_cell(block, 18, 3, 2)
+	assert_equal(Section.owner_refusal(block).code, Section.REFUSE_BLANK_ROW,
+		"and so is the in-domain COASTAL_BRINE, because an inactive row claims no origin")
+
+
+func test_publication_refuses_without_writing_a_byte_of_the_target_store() -> void:
+	"""A refused apply leaves the destination store byte-identical (decision 0059)."""
+	var record: Section.Record = _capture(_reserved_merge_store())
+	var block: Section.OwnerRecord = record.of(Section.OWNER_INVENTORY)
+	_set_cell(block, 24, 3, 500)
+	var target: InventoryScript = _live_store()
+	var before: PackedByteArray = target.state_bytes()
+	var columns: InventoryScript.CanonicalColumns = Section.inventory_columns_for(record)
+	var refusal: SaveHeader.Refusal = Section.apply_inventory(record, target, columns)
+	assert_equal(refusal.code, Section.REFUSE_BLANK_ROW, "an inactive quantity 500 refuses")
+	assert_equal(target.state_bytes(), before, "and the target store is untouched")
+
+
+func test_restoration_rebuilds_the_derived_counts_and_scan_bounds() -> void:
+	"""Occupancy, generations and prefixes are restored; counts and high-water are re-derived."""
+	var store: InventoryScript = _reserved_merge_store()
+	var record: Section.Record = _capture(store)
+	var target: InventoryScript = _live_store()
+	var columns: InventoryScript.CanonicalColumns = Section.inventory_columns_for(record)
+	assert_equal(Section.apply_inventory(record, target, columns).code, Section.REFUSE_NONE,
+		"publication succeeds")
+	assert_equal(target._l_free_count, store._l_free_count, "the lot free count is restored")
+	assert_equal(target._l_free.slice(0, target._l_free_count),
+		store._l_free.slice(0, store._l_free_count), "and so is the exact stack permutation")
+	assert_equal(store._l_free, PackedInt32Array([3, 2, 1, 0]),
+		"the live store's excluded tail still holds the 0 an earlier pop left there")
+	assert_equal(target._l_free, PackedInt32Array([3, 2, 1, -1]),
+		"and the restored tail is rebuilt to -1, which is what makes the two hash alike")
+	assert_equal(target._c_generation, store._c_generation, "container generations are verbatim")
+	assert_equal(target.total_live_milli(7), store.total_live_milli(7), "live quantity is restored")
+	assert_true(target.is_lot_valid(Vector2i(0, target._l_generation[0])), "lot 0 revalidates")
+
+
+# --- INV-CANON-R01: the section 15 adapter over the same projection -------------------------------
+#
+# The digest and the wire must not be able to disagree. `InventoryAdapter` reads the SAME staged
+# OwnerRecord the encoder drains, so the tests below assert the property on the DIGEST as well as
+# on the bytes: identical residue-only differences hash alike, and every preserved difference
+# changes the digest.
+#
+# The declaration walked here is a FIXTURE declaration carrying only `(7, 'inventory')`. The
+# production declaration still refuses, because 51 owners have no adapter, and
+# `covers_release_state` is false on every result below. Nothing here is release-save evidence.
+
+const INVENTORY_FIXTURE_IDENTITY: String = "RWL-FIXTURE-SECTION-7-INVENTORY"
+const FIXTURE_ENGINE_LINE: String = "godot 4.7.2 fixture\n"
+const FIXTURE_COMPLETED_TICK: int = 1234
+
+
+func _inventory_declaration() -> Digest.Declaration:
+	"""A one-owner declaration carrying section 7's `inventory` block, in its declared order."""
+	var builder: Digest.Builder = Digest.Builder.new()
+	builder.begin_owner(Section.SECTION_ID, "inventory",
+		Section.OWNER_SCHEMA_VERSIONS[Section.OWNER_INVENTORY])
+	for ordinal: int in Section.field_count_of(Section.OWNER_INVENTORY):
+		var scalar: bool = Section.field_extent_of(Section.OWNER_INVENTORY, ordinal) \
+			== Section.EXT_SCALAR
+		builder.add_field(String(Section.KEYS_INVENTORY[ordinal]),
+			Section.field_type_of(Section.OWNER_INVENTORY, ordinal), true, scalar, 1, 0)
+	return builder.seal(INVENTORY_FIXTURE_IDENTITY)
+
+
+func _digest_of(store: InventoryScript) -> PackedByteArray:
+	"""Capture one store and walk the inventory-only fixture declaration over its staged block."""
+	var record: Section.Record = _capture(store)
+	var walker: Digest.Walker = Digest.Walker.new(_inventory_declaration())
+	var registered: Digest.Refusal = Section.register_inventory_adapter(walker, record)
+	assert_true(registered.is_ok(), "the inventory adapter registers: %s" % registered.detail)
+	var inputs: Digest.Inputs = Digest.Inputs.new()
+	inputs.rules_digest = _fixture_digest(0x11)
+	inputs.catalog_digest = _fixture_digest(0x22)
+	inputs.map_digest = _fixture_digest(0x33)
+	inputs.lookup_digest = _fixture_digest(0x44)
+	inputs.engine_identity_line = FIXTURE_ENGINE_LINE
+	inputs.completed_tick = FIXTURE_COMPLETED_TICK
+	var result: Digest.DigestResult = Digest.DigestResult.new()
+	var refusal: Digest.Refusal = walker.digest_into(inputs, result, 0)
+	assert_true(refusal.is_ok(), "the fixture walk succeeds: %s %s"
+		% [refusal.code, refusal.detail])
+	assert_false(result.covers_release_state, "a fixture declaration never claims release cover")
+	return result.digest
+
+
+func _fixture_digest(value: int) -> PackedByteArray:
+	"""A 32-byte compatibility identity of one repeated byte."""
+	var bytes: PackedByteArray = PackedByteArray()
+	bytes.resize(32)
+	bytes.fill(value)
+	return bytes
+
+
+func test_the_adapter_supplies_every_declared_field_and_refuses_any_other() -> void:
+	"""All thirty keys resolve at their declared element counts; an undeclared key refuses."""
+	var record: Section.Record = _capture(_reserved_merge_store())
+	var adapter: Section.InventoryAdapter = Section.InventoryAdapter.new(
+		record.of(Section.OWNER_INVENTORY))
+	var values: Digest.FieldValues = Digest.FieldValues.new()
+	for ordinal: int in Section.field_count_of(Section.OWNER_INVENTORY):
+		var key: StringName = Section.KEYS_INVENTORY[ordinal]
+		assert_true(adapter.canonical_field_values(key, values), "'%s' is supplied" % key)
+		assert_equal(values.count,
+			Section.persisted_count_of(record.of(Section.OWNER_INVENTORY), ordinal),
+			"'%s' supplies its declared element count" % key)
+	assert_false(adapter.canonical_field_values(&"_l_deposit_tiles", values),
+		"an undeclared key refuses by name rather than returning a plausible column")
+	assert_equal(values.refusal, Section.REFUSE_ADAPTER_FIELD, "and says which refusal it is")
+
+
+func test_the_free_stack_fields_hash_only_their_used_prefix() -> void:
+	"""Ordinals 28 and 29 supply `count` values, never the excluded garbage tail."""
+	var store: InventoryScript = _reserved_merge_store()
+	var record: Section.Record = _capture(store)
+	var adapter: Section.InventoryAdapter = Section.InventoryAdapter.new(
+		record.of(Section.OWNER_INVENTORY))
+	var values: Digest.FieldValues = Digest.FieldValues.new()
+	assert_true(adapter.canonical_field_values(&"_l_free", values), "_l_free is supplied")
+	assert_equal(values.count, store._l_free_count, "it hashes exactly the used prefix")
+	assert_equal(values.int32s.slice(0, values.count),
+		store._l_free.slice(0, store._l_free_count), "in the store's own pop order")
+
+
+func test_residue_only_differences_produce_the_same_digest() -> void:
+	"""The hash side of the determinism claim, over the same staged block the encoder drains."""
+	var plain: InventoryScript = _reserved_merge_store()
+	var scribbled: InventoryScript = _reserved_merge_store()
+	scribbled._l_quality[1] = 4
+	scribbled._l_provenance[1] = 5
+	scribbled._l_reserved_milli[1] = 17
+	scribbled._l_free[scribbled._l_free_count] = 2
+	assert_false(plain.state_bytes() == scribbled.state_bytes(), "the raw images differ")
+	assert_equal(_digest_of(plain), _digest_of(scribbled),
+		"and the canonical digests do not")
+
+
+func test_a_live_difference_still_changes_the_digest() -> void:
+	"""A live reserved quantity is not residue: changing it must move the digest."""
+	var baseline: PackedByteArray = _digest_of(_reserved_merge_store())
+	var changed: InventoryScript = _reserved_merge_store()
+	changed._l_reserved_milli[0] = 200
+	assert_false(_digest_of(changed) == baseline, "the live claim is hashed")
+	var generation: InventoryScript = _reserved_merge_store()
+	generation._l_generation[3] = 17
+	assert_false(_digest_of(generation) == baseline, "an inactive row's own generation is hashed")

@@ -29,6 +29,8 @@ extends "res://test/framework/test_case.gd"
 
 const Digest := preload("res://scripts/core/canonical_state_hash.gd")
 const SaveCodec := preload("res://scripts/core/save_codec.gd")
+const Section07 := preload("res://scripts/core/save_section_inventories.gd")
+const InventoryScript := preload("res://scripts/core/inventory.gd")
 
 const REGISTRY_PATH: String = "res://../docs/planning/canonical_state_registry.json"
 
@@ -92,6 +94,12 @@ const NAME_CAP_BYTES: int = 128
 ## docs/persistence_state_registry.md's category-1 set, so three persisted packed columns leave
 ## this pin. A snapshot pin is allowed to move in either direction; what it may never do is stay
 ## still while the declaration underneath it changes.
+##
+## INV-CANON-R01 moves NEITHER pin, and that is its stated result rather than an oversight:
+## `canonical_record_delta: 0`. Schema 3 changes what an already-declared field may hold on an
+## INACTIVE row; it declares no new field, retires none, and reclassifies no packed column. The
+## two numbers that moved in that activation are the (7, 'inventory') owner schema and section
+## 7's descriptor schema, both 2 -> 3, pinned separately below.
 const REGISTRY_PACKED_FIELD_COUNT: int = 550
 
 ## Pinned as LITERALS, deliberately not read from the JSON or from `Digest.*`. Every other
@@ -100,10 +108,34 @@ const REGISTRY_PACKED_FIELD_COUNT: int = 550
 ## the independent anchor: R-WORLD-S1-001 requires the active rules identity to CHANGE with the
 ## activation, and an identity that silently stayed at the 2026-09-12 value would satisfy every
 ## self-referential check in this file while shipping a different field set under an old name.
+## INV-CANON-R01 moves the identity 2026-09-14-2 -> 2026-09-15-3 and the version 2 -> 3. The
+## declaration under the old name is not the declaration under the new one: an inventory block
+## that normalizes its inactive payload accepts a strictly smaller set of states than schema 2
+## did, and leaving the name still would let a stricter codec ship under the old identity while
+## every self-referential check in this file stayed green.
 const REGISTRY_RECORD_COUNT: int = 596
 const REGISTRY_FIELD_COUNT: int = 604
-const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-14-2"
-const REGISTRY_DECLARATION_VERSION: int = 2
+const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-15-3"
+const REGISTRY_DECLARATION_VERSION: int = 3
+
+## INV-CANON-R01's two version numbers, pinned as literals and read back from BOTH the registry
+## JSON and the compiled table. They live in different namespaces -- one is the owner block's
+## `owner_schema_version`, the other the 64-byte descriptor's `schema_version` -- and the whole
+## point of the activation is that they move together with the codec.
+const INVENTORY_OWNER_SCHEMA_VERSION: int = 3
+const SECTION_SEVEN_SCHEMA_VERSION: int = 3
+
+## Section 7 `inventory`'s thirty declared field keys in DECLARED ORDINAL ORDER, pinned outside
+## the JSON. REG-R01's order interleaves container and lot columns and is explicitly not
+## alphabetical; INV-CANON-R01 changes the payload SEMANTICS and not one key or ordinal.
+const INVENTORY_DECLARED_KEYS: String = (
+	"_c_free_count, _l_free_count, _c_live, _l_live, _c_generation, _l_generation, "
+	+ "_c_owner_slot, _c_owner_generation, _c_policy, _c_lot_count, _c_first_lot, "
+	+ "_c_max_mass_g, _c_filters, _c_reserved_mass_g, _c_used_mass_g, _c_reachable, "
+	+ "_l_item_id, _l_quality, _l_provenance, _l_recipe_id, _l_container_slot, "
+	+ "_l_container_generation, _l_next, _l_prev, _l_quantity_milli, _l_reserved_milli, "
+	+ "_l_age_milli_hours, _l_age_remainder, _c_free, _l_free"
+)
 
 ## construction.gd's section-4 block, pinned independently of the registry JSON so that deleting
 ## a field from BOTH the JSON and the compiled table still fails. The JSON-comparison tests above
@@ -422,6 +454,55 @@ func test_the_active_rules_identity_and_counts_match_their_independent_pins() ->
 		"registry packed source field count")
 	assert_equal(int((data["section_schema_versions"] as Array)[0]), 3,
 		"R-WORLD-S1-001 takes section 1 to schema version 3 in the active registry")
+
+
+func test_inventory_owner_and_section_seven_schemas_activate_together_at_three() -> void:
+	"""INV-CANON-R01: the registry, the compiled table and the §7 codec all read 3, or none do.
+
+	FOUR INDEPENDENT SOURCES, deliberately. The registry JSON and the compiled table are
+	generated from each other and would move together under a coordinated edit; the literal
+	pins above and the codec's own two constants are what make that edit visible. A tree where
+	the registry says 3 and the codec still writes 2 is the broken tree this test exists for.
+	"""
+	var data: Dictionary = _registry()
+	assert_equal(int((data["section_schema_versions"] as Array)[6]), SECTION_SEVEN_SCHEMA_VERSION,
+		"registry section_schema_versions[6] is section 7")
+	assert_equal(Section07.SECTION_SCHEMA_VERSION, SECTION_SEVEN_SCHEMA_VERSION,
+		"the §7 codec publishes the descriptor schema version")
+	var owner: Dictionary = _owner_of(data, 7, "inventory")
+	assert_equal(int(owner["owner_schema_version"]), INVENTORY_OWNER_SCHEMA_VERSION,
+		"registry (7, inventory) owner schema version")
+	assert_equal(Section07.OWNER_SCHEMA_VERSIONS[Section07.OWNER_INVENTORY],
+		INVENTORY_OWNER_SCHEMA_VERSION, "the §7 codec writes the owner schema version")
+	assert_equal(InventoryScript.CANONICAL_OWNER_SCHEMA_VERSION, INVENTORY_OWNER_SCHEMA_VERSION,
+		"the store declares the owner schema version the codec reads")
+	var index: int = Digest.production_declaration().find_owner(7, "inventory")
+	assert_equal(Digest.OWNER_VERSIONS[index], INVENTORY_OWNER_SCHEMA_VERSION,
+		"the compiled declaration table carries the same owner schema version")
+
+
+func test_section_seven_keeps_its_thirty_inventory_fields_and_adds_no_record() -> void:
+	"""`canonical_record_delta` is 0: the same 30 keys in the same order, at 596 records."""
+	var data: Dictionary = _registry()
+	var owner: Dictionary = _owner_of(data, 7, "inventory")
+	var keys: PackedStringArray = PackedStringArray()
+	for field: Variant in owner["fields"] as Array:
+		keys.append(String((field as Dictionary)["field_key"]))
+	assert_equal(keys.size(), 30, "INV-CANON-R01 keeps all 30 declared inventory fields")
+	assert_equal(", ".join(keys), INVENTORY_DECLARED_KEYS,
+		"the declared order is unchanged, container and lot columns still interleaved")
+	assert_equal(int(data["record_count"]), REGISTRY_RECORD_COUNT,
+		"no canonical record is added or removed by the schema 3 activation")
+
+
+func _owner_of(data: Dictionary, section: int, key: String) -> Dictionary:
+	"""One registry owner block, failing the test rather than returning an empty Dictionary."""
+	for entry: Variant in data["owners"] as Array:
+		var owner: Dictionary = entry as Dictionary
+		if int(owner["section_id"]) == section and String(owner["owner_key"]) == key:
+			return owner
+	fail("registry declares no owner (%d, '%s')" % [section, key])
+	return {}
 
 
 func test_section_one_resource_nodes_declares_only_the_tile_inverse_at_schema_two() -> void:

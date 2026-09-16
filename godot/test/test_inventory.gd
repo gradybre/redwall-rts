@@ -2436,3 +2436,236 @@ func test_containers_by_owner_fills_a_full_store_and_changes_nothing() -> void:
 	assert_false(_inv.containers_by_owner_into(OWNER_A, _pairs(2), out), "an undersized ask refuses")
 	assert_true(_inv.state_bytes() == before,
 		"and neither the scan nor the refusal changed one byte of the store")
+
+
+# --- INV-CANON-R01: the quiescent canonical projection --------------------------------------------
+#
+# The store side of the determinism change. What these prove that the §7 suite does not is that
+# NORMALIZATION NEVER REACHES THE LIVE COLUMNS: every one of them compares `state_bytes()` across
+# the call, and the transfer test drives the exact sequence a blanket retirement clear would
+# break -- `_apply_transfer()` retires the source before `_credit_new_lot()` reads its attributes.
+
+func _projection() -> InventoryScript.CanonicalColumns:
+	"""A projection buffer sized to the suite's default 8-container, 64-lot store."""
+	return InventoryScript.CanonicalColumns.new(8, 64)
+
+
+func _copy() -> InventoryScript.CanonicalColumns:
+	"""Capture `_inv`, failing the test rather than returning a half-filled buffer."""
+	var columns: InventoryScript.CanonicalColumns = _projection()
+	if not _inv.copy_canonical_columns_into(columns):
+		fail("canonical copy refused: %s" % _inv.canonical_detail())
+	return columns
+
+
+func test_canonical_copy_leaves_the_live_columns_byte_identical() -> void:
+	"""The whole point: the save/hash copy is a READ. `state_bytes()` cannot move across it."""
+	var box: Vector2i = _container()
+	var keep: Vector2i = _lot(box, ITEM_GRAIN, 1000)
+	var drop: Vector2i = _lot(box, ITEM_GRAIN, 1000)
+	assert_true(_inv.reserve_lot(drop, 250).ok, "the source carries a claim")
+	assert_true(_inv.merge_lots(keep, drop).ok, "and is merged away")
+	var before: PackedByteArray = _inv.state_bytes()
+	var columns: InventoryScript.CanonicalColumns = _copy()
+	assert_true(_inv.state_bytes() == before, "the raw rollback image is unchanged")
+	assert_equal(_inv._l_reserved_milli[drop.x], 250, "the live residue is still there")
+	assert_equal(columns.l_reserved_milli[drop.x], 0, "and only the copy is normalized")
+	assert_equal(columns.l_reserved_milli[keep.x], 250, "while the live claim is retained")
+
+
+func test_canonical_copy_preserves_generations_and_the_used_free_prefix() -> void:
+	"""Occupancy and both generation columns are copied verbatim; the prefix keeps pop order."""
+	var box: Vector2i = _container()
+	var first: Vector2i = _lot(box, ITEM_GRAIN, 1000)
+	var second: Vector2i = _lot(box, ITEM_GRAIN, 1000)
+	assert_true(_inv.sink_lot_quantity(second, 1000).ok, "retiring one slot pushes it back")
+	assert_true(_inv.sink_lot_quantity(first, 1000).ok, "and then another")
+	var columns: InventoryScript.CanonicalColumns = _copy()
+	assert_equal(columns.l_free_count, _inv._l_free_count, "the free count is copied")
+	assert_equal(columns.l_free.slice(0, columns.l_free_count),
+		_inv._l_free.slice(0, _inv._l_free_count), "the used prefix keeps its exact order")
+	assert_equal(columns.l_free[columns.l_free_count - 1], first.x,
+		"last freed is first out, so the prefix is not sorted")
+	assert_equal(columns.l_generation[second.x], _inv._l_generation[second.x],
+		"an inactive row's own generation is never masked to zero")
+	assert_equal(columns.l_live[second.x], 0, "though its occupancy is 0")
+
+
+func test_canonical_copy_writes_the_full_unused_payload_on_an_inactive_row() -> void:
+	"""INV-CANON-R01's twelve lot values and ten container values, checked one at a time."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 1000, 3, TEST_PROVENANCE, 9, 77, 5)
+	assert_true(_inv.sink_lot_quantity(lot, 1000).ok, "the lot is sunk and its row retired")
+	var columns: InventoryScript.CanonicalColumns = _copy()
+	var slot: int = lot.x
+	assert_equal(_inv._l_item_id[slot], ITEM_MEAL, "the live row still carries its item")
+	assert_equal(columns.l_item_id[slot], 0, "_l_item_id")
+	assert_equal(columns.l_quality[slot], 0, "_l_quality")
+	assert_equal(columns.l_provenance[slot], 0, "_l_provenance is ORDINARY, a real member")
+	assert_equal(columns.l_recipe_id[slot], 0, "_l_recipe_id")
+	assert_equal(columns.l_container_slot[slot], -1, "_l_container_slot")
+	assert_equal(columns.l_container_generation[slot], 0, "_l_container_generation")
+	assert_equal(columns.l_next[slot], -1, "_l_next")
+	assert_equal(columns.l_prev[slot], -1, "_l_prev")
+	assert_equal(columns.l_quantity_milli[slot], 0, "_l_quantity_milli")
+	assert_equal(columns.l_reserved_milli[slot], 0, "_l_reserved_milli")
+	assert_equal(columns.l_age_milli_hours[slot], 0, "_l_age_milli_hours")
+	assert_equal(columns.l_age_remainder[slot], 0, "_l_age_remainder")
+
+
+func test_canonical_copy_writes_the_unused_container_payload_too() -> void:
+	"""A destroyed container's ten payload values are masked; its generation is not."""
+	var box: Vector2i = _container(12345)
+	assert_true(_inv.destroy_container(box).ok, "an empty container is destroyed")
+	var columns: InventoryScript.CanonicalColumns = _copy()
+	assert_equal(_inv._c_max_mass_g[box.x], 12345, "the live row keeps its capacity residue")
+	assert_equal(columns.c_owner_slot[box.x], -1, "_c_owner_slot")
+	assert_equal(columns.c_owner_generation[box.x], 0, "_c_owner_generation")
+	assert_equal(columns.c_policy[box.x], 0, "_c_policy")
+	assert_equal(columns.c_lot_count[box.x], 0, "_c_lot_count")
+	assert_equal(columns.c_first_lot[box.x], -1, "_c_first_lot")
+	assert_equal(columns.c_max_mass_g[box.x], 0, "_c_max_mass_g")
+	assert_equal(columns.c_filters[box.x], 0, "_c_filters")
+	assert_equal(columns.c_reserved_mass_g[box.x], 0, "_c_reserved_mass_g")
+	assert_equal(columns.c_used_mass_g[box.x], 0, "_c_used_mass_g")
+	assert_equal(columns.c_reachable[box.x], 0, "_c_reachable")
+	assert_equal(columns.c_generation[box.x], _inv._c_generation[box.x], "_c_generation survives")
+
+
+func test_a_live_row_is_copied_exactly_and_never_masked() -> void:
+	"""Liveness is the occupancy byte alone: quantity, provenance and reachability all survive."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_MEAL, 3000, 2, TEST_PROVENANCE, 9, 77, 5)
+	var columns: InventoryScript.CanonicalColumns = _copy()
+	assert_equal(columns.l_item_id[lot.x], ITEM_MEAL, "the live item id is copied")
+	assert_equal(columns.l_quality[lot.x], 2, "the live quality is copied")
+	assert_equal(columns.l_provenance[lot.x], TEST_PROVENANCE, "the live provenance is copied")
+	assert_equal(columns.l_recipe_id[lot.x], 9, "the live recipe is copied")
+	assert_equal(columns.l_quantity_milli[lot.x], 3000, "the live quantity is copied")
+	assert_equal(columns.l_age_milli_hours[lot.x], 77, "the live age is copied")
+	assert_equal(columns.l_age_remainder[lot.x], 5, "and its sub-hour remainder")
+	assert_equal(columns.c_reachable[box.x], 1, "the live container stays reachable")
+	assert_equal(columns.c_max_mass_g[box.x], BIG_MASS, "and keeps its declared capacity")
+
+
+func test_the_whole_lot_transfer_that_reuses_its_own_slot_still_works() -> void:
+	"""The case a blanket retirement clear breaks: retire, then read the retired attributes."""
+	var single: InventoryScript = _make_inventory(8, 1)
+	var from: Vector2i = single.create_container(OWNER_A, BIG_MASS,
+		InventoryScript.FILTERS_ACCEPT_ALL, TEST_POLICY, true).ref
+	var to: Vector2i = single.create_container(OWNER_B, BIG_MASS,
+		InventoryScript.FILTERS_ACCEPT_ALL, TEST_POLICY, true).ref
+	var lot: Vector2i = single.create_lot(from, ITEM_MEAL, 1000, 2, TEST_PROVENANCE, 11, 123,
+		42).ref
+	var moved: InventoryScript.OpResult = single.transfer(lot, to, 1000)
+	assert_true(moved.ok, "the one-slot whole transfer succeeds")
+	assert_equal(moved.ref.x, lot.x, "the same physical slot comes back")
+	assert_false(moved.ref.y == lot.y, "under a new generation")
+	assert_false(single.is_lot_valid(lot), "so the old reference no longer validates")
+	assert_equal(single._l_item_id[moved.ref.x], ITEM_MEAL, "the item survived the retirement")
+	assert_equal(single._l_age_milli_hours[moved.ref.x], 123, "and so did the age")
+	var columns: InventoryScript.CanonicalColumns = InventoryScript.CanonicalColumns.new(8, 1)
+	assert_true(single.copy_canonical_columns_into(columns), "and the state captures")
+	assert_equal(columns.l_quality[moved.ref.x], 2, "with the transferred quality intact")
+
+
+func test_the_canonical_copy_refuses_a_boundary_that_is_not_completed() -> void:
+	"""An open transaction, a poisoned one and a wrong-sized buffer each refuse explicitly."""
+	var columns: InventoryScript.CanonicalColumns = _projection()
+	assert_true(_inv.begin().ok, "a transaction opens")
+	assert_false(_inv.copy_canonical_columns_into(columns), "an open transaction refuses")
+	assert_true(_inv.canonical_detail().contains("transaction is open"),
+		"and says so: %s" % _inv.canonical_detail())
+	assert_true(_inv.commit().ok, "the empty transaction commits")
+	var wrong: InventoryScript.CanonicalColumns = InventoryScript.CanonicalColumns.new(8, 63)
+	assert_false(_inv.copy_canonical_columns_into(wrong), "a mis-sized buffer refuses")
+	assert_true(_inv.canonical_detail().contains("63"), "naming the extent it was handed")
+	assert_true(_inv.copy_canonical_columns_into(columns), "the right-sized buffer succeeds")
+	assert_equal(_inv.canonical_detail(), "", "and clears the detail")
+
+
+func test_the_canonical_copy_refuses_a_corrupt_allocator_partition() -> void:
+	"""Occupancy, generation range and the complete partition are re-derived before any copy."""
+	var columns: InventoryScript.CanonicalColumns = _projection()
+	_inv._l_generation[5] = 0
+	assert_false(_inv.copy_canonical_columns_into(columns), "a zero generation refuses")
+	_inv._l_generation[5] = 1
+	_inv._l_live[5] = 2
+	assert_false(_inv.copy_canonical_columns_into(columns), "an occupancy byte of 2 refuses")
+	_inv._l_live[5] = 0
+	_inv._l_free_count -= 1
+	assert_false(_inv.copy_canonical_columns_into(columns),
+		"a slot that is neither live nor on the prefix nor retired refuses")
+	assert_true(_inv.canonical_detail().contains("exhausted"),
+		"naming retirement as the only fourth state: %s" % _inv.canonical_detail())
+	_inv._l_free_count += 1
+	assert_true(_inv.copy_canonical_columns_into(columns), "the intact store copies")
+
+
+func test_a_free_int32_max_slot_is_not_treated_as_retired() -> void:
+	"""Freeing from INT32_MAX-1 pushes AT INT32_MAX, and that slot is still allocatable."""
+	var box: Vector2i = _container()
+	_inv._l_generation[0] = InventoryScript.MAX_INT32 - 1
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 1000)
+	assert_equal(lot, Vector2i(0, InventoryScript.MAX_INT32 - 1), "the fixture takes slot 0")
+	assert_true(_inv.sink_lot_quantity(lot, 1000).ok, "sinking it frees the slot")
+	assert_equal(_inv._l_generation[0], InventoryScript.MAX_INT32, "at INT32_MAX")
+	var columns: InventoryScript.CanonicalColumns = _copy()
+	assert_equal(columns.l_free[columns.l_free_count - 1], 0,
+		"and it is on the prefix, so it is free-MAX and not retired-MAX")
+	var again: Vector2i = _lot(box, ITEM_GRAIN, 1000)
+	assert_equal(again, Vector2i(0, InventoryScript.MAX_INT32), "one final allocation is legal")
+
+
+func test_restore_publishes_without_clearing_or_advancing_a_generation() -> void:
+	"""`clear()` would advance every generation and refill the pool; restore must not."""
+	var box: Vector2i = _container()
+	var lot: Vector2i = _lot(box, ITEM_GRAIN, 4000)
+	var gone: Vector2i = _lot(box, ITEM_GRAIN, 1000)
+	assert_true(_inv.sink_lot_quantity(gone, 1000).ok, "one row is retired")
+	var columns: InventoryScript.CanonicalColumns = _copy()
+	var target: InventoryScript = _make_inventory(8, 64)
+	assert_true(target.restore_canonical_columns(columns),
+		"publication succeeds: %s" % target.canonical_detail())
+	assert_equal(target._l_generation, _inv._l_generation, "every generation is verbatim")
+	assert_equal(target._c_generation, _inv._c_generation, "in both namespaces")
+	assert_equal(target._l_free_count, _inv._l_free_count, "the free count is verbatim")
+	assert_true(target.is_lot_valid(lot), "the saved lot ref revalidates against the new store")
+	assert_true(target.audit().ok, "and the republished store audits")
+	assert_equal(target.total_live_milli(ITEM_GRAIN), 4000, "with its live quantity intact")
+
+
+func test_restore_refuses_a_projection_whose_inactive_payload_is_not_canonical() -> void:
+	"""Decoding is stricter than copying: a noncanonical unused byte refuses, never repairs."""
+	var box: Vector2i = _container()
+	_lot(box, ITEM_GRAIN, 1000)
+	var columns: InventoryScript.CanonicalColumns = _copy()
+	var target: InventoryScript = _make_inventory(8, 64)
+	var before: PackedByteArray = target.state_bytes()
+	columns.l_provenance[9] = 6
+	assert_false(target.restore_canonical_columns(columns), "an inactive provenance 6 refuses")
+	assert_true(target.canonical_detail().contains("noncanonical"),
+		"by name: %s" % target.canonical_detail())
+	assert_true(target.state_bytes() == before, "and nothing was published")
+	columns.l_provenance[9] = 2
+	assert_false(target.restore_canonical_columns(columns),
+		"an in-domain COASTAL_BRINE on an inactive row is refused too, not accepted as history")
+	columns.l_provenance[9] = 0
+	assert_true(target.restore_canonical_columns(columns), "the canonical value publishes")
+
+
+func test_restore_refuses_a_projection_with_a_dirty_excluded_tail() -> void:
+	"""The tail past the free count is rebuilt to -1, so a value there is corruption."""
+	var box: Vector2i = _container()
+	_lot(box, ITEM_GRAIN, 1000)
+	var columns: InventoryScript.CanonicalColumns = _copy()
+	assert_equal(columns.l_free_count, 63, "one allocation leaves exactly one excluded cell")
+	assert_equal(columns.l_free[63], -1, "which the copy rebuilt to -1")
+	var target: InventoryScript = _make_inventory(8, 64)
+	columns.l_free[63] = 5
+	assert_false(target.restore_canonical_columns(columns),
+		"a leftover slot number in the excluded tail refuses")
+	assert_true(target.canonical_detail().contains("tail"),
+		"named as a tail: %s" % target.canonical_detail())
+	columns.l_free[63] = -1
+	assert_true(target.restore_canonical_columns(columns), "the rebuilt tail publishes")

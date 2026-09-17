@@ -69,7 +69,18 @@ def main():
     assert m['runtime_import_permitted'] is False and m['active_registry_mutation_performed'] is False
     q=json.loads((ROOT/'docs/planning/work_queue.json').read_text())
     items=json.loads((ROOT/'docs/rulings/requests/open_items.json').read_text())
-    assert len([i for i in items['items'] if i['blocks']])==3
+    # This used to assert the LIVE blocking count was 3 -- a Cycle 1 snapshot. Cycles 2 and 3
+    # then answered items, which is what cycles are for, and this validator failed from that
+    # moment. It is not in CI, so nothing noticed until a manual sweep of merged master.
+    #
+    # A cycle's validator must check ITS OWN claims, not a number later cycles are supposed to
+    # move. What is durable about Cycle 1 is that the two questions it answered are recorded as
+    # answered and are no longer blocking anything; the size of the live inbox is Cycle 3's
+    # business and Cycle 4's, not Cycle 1's.
+    blocking_anchors = {i['anchor'] for i in items['items'] if i['blocks']}
+    for settled in ['w2-section-1-owners-without-encoders',
+                    'resident-spawn-positions-and-the-pose-scaffold']:
+        assert settled not in blocking_anchors, settled
     answered={i['anchor']:i for i in items['answered']}
     for key in ['w2-section-1-owners-without-encoders','resident-spawn-positions-and-the-pose-scaffold']:
         assert key in answered and not answered[key]['implementation_complete']
@@ -80,12 +91,26 @@ def main():
     approvals=json.loads((ROOT/'docs/planning/art_approvals.json').read_text())
     assert dispatch.validate(q,approvals)==[]
     planned={t['id'] for t in dispatch.plan(q,approvals)['dispatch']}
-    assert 'BASELINE-INTEGRATION' in planned and 'SAVE-CAPTURE' not in planned
+    # Same stale-snapshot shape as the inbox count above. BASELINE-INTEGRATION was DISPATCHABLE
+    # when Cycle 1 landed and is DONE now, so asserting it is still in the plan asserts that the
+    # work never happened. Its durable end state is what matters.
+    #
+    # SAVE-CAPTURE staying out of the plan IS durable and is the invariant worth keeping: it is
+    # the broad umbrella task, and Astra was explicit that it must not dispatch with missing
+    # bodies.
+    states = {t['id']: t['status'] for t in q['tasks']}
+    assert states.get('BASELINE-INTEGRATION') == 'done', states.get('BASELINE-INTEGRATION')
+    assert 'SAVE-CAPTURE' not in planned
     assert 'ART-CREATURES' not in planned and 'ART-UI-12' not in planned
     text=(ROOT/'docs/rulings/requests/OPEN.md').read_text()
     for i in items['items']:assert text.count(f'id="{i["anchor"]}"')==1
     packet=(ROOT/'docs/planning/review_packet.md').read_text()
-    assert 'Missing declarations are unknown, not approval.' in packet
+    # Cycle 1 pinned the exact sentence 'Missing declarations are unknown, not approval.'
+    # PR117 rewrote the packet generator with a declared grammar and said the same thing better
+    # -- 'A block nobody wrote is missing evidence. It is not an approved exception'. Pinning a
+    # sentence makes an improvement in wording read as a regression, so this pins the CLAIM.
+    lowered = packet.lower()
+    assert 'missing evidence' in lowered and 'not an approved exception' in lowered
     assert 'No nonempty declarations found' not in packet or 'does not establish' in packet
     print('PASS Cycle 1: nine-owner wire arithmetic; four malformed target refusals; twelve starter-root fixtures; archived answers; queue gates; stable inbox anchors; packet evidence limits.')
     print('Scope: planning consistency only; no production codec, physical clearance, art or save-continuation acceptance.')

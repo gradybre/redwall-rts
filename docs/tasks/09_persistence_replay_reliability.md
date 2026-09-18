@@ -91,6 +91,14 @@ rules; this card does not replace the binary schema.
   `packed_source_field_count` 553 -> 550. `save_section_world_runtime.gd`'s
   two-block composer is renamed `encode_development_section()` and
   `encode_section()` refuses, so there is one producer of a §1 and not two.
+
+  Decision 0148 then took `(7, inventory)` to owner schema 3 and section 7 to
+  schema 3, moving the active rules identity to
+  `RWL-CANONICAL-REGISTRY-2026-09-15-3` at registry version 3. Both counts stay
+  at 596 and 550: schema 3 restricts what an ALREADY DECLARED field may hold on
+  an INACTIVE row, so no field was added, retired, reclassified, or had its
+  `hash` flag moved. A schema-2 stream is refused rather than reinterpreted --
+  no migration exists.
   **Still open inside 09.2:** BLOCKER W1 is UNCHANGED -- `sim_clock.gd` still has
   no side-effect-free writer, so `world_runtime` is validated and carried but
   never published, and the D2 cursor is still installed with §3. The 44-byte

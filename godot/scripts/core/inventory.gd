@@ -510,6 +510,12 @@ var _audit_live_milli: PackedInt64Array = PackedInt64Array()
 var _c_slot_high_water: int = 0
 var _l_slot_high_water: int = 0
 
+## Why the last `copy_canonical_columns_into()` or `restore_canonical_columns()` refused
+## (INV-CANON-R01). Diagnostic scratch, never journaled and absent from state_bytes(): a save
+## boundary is not a public mutator and has no OpResult to carry, so the refusal reason travels
+## here beside the `false` rather than inside a value channel.
+var _canonical_detail: String = ""
+
 
 func _init(p_container_capacity: int = CONTAINER_CAPACITY, p_lot_capacity: int = LOT_CAPACITY) -> void:
 	"""Allocate every column once at the requested capacities.
@@ -3145,3 +3151,585 @@ func _ok(ref: Vector2i, value: int) -> OpResult:
 func _refuse(code: StringName) -> OpResult:
 	"""Build an explicit refusal carrying no partially applied effect."""
 	return OpResult.new(false, code, NULL_REF, 0)
+
+
+# --- INV-CANON-R01: the quiescent canonical save/hash projection -------------------------------
+#
+# WHY THIS IS NOT A CHANGE TO RETIREMENT.
+#
+# `_retire_lot()` unlinks a lot, clears its occupancy byte and advances its generation. It
+# deliberately LEAVES the attributes behind, and that is load-bearing: `_apply_transfer()`
+# retires the source BEFORE `_credit_new_lot()` reads its item, quality, provenance and recipe,
+# and with one free lot slot the allocator hands back the SAME physical slot under a new
+# generation. A "tidy" blanking clear inside `_retire_lot()` would therefore destroy the
+# attributes the very next statement reads. INV-CANON-R01 answers that by putting normalization
+# where it costs nothing and breaks nothing: in a caller-owned copy taken at a completed,
+# quiescent boundary. Nothing below writes a single byte of the live columns.
+#
+# WHAT THE COPY CHANGES, AND WHAT IT MUST NOT.
+#
+# A row whose `_c_live`/`_l_live` is 1 is copied EXACTLY. Liveness is decided by the occupancy
+# byte alone -- never by container nullness (decision 0061's equipped record is live and has a
+# null container), never by quantity, reachability or membership in any list.
+#
+# A row whose occupancy is 0 is emitted at the ruling's unused-value table, which is this
+# module's own clear-state spelling: NULL_SLOT for a slot, NULL_GENERATION for a reference
+# generation, UNSET_POLICY, UNSET_PROVENANCE (which is ORDINARY, a real member and not an
+# unknown wildcard) and 0 for every count, mass, quantity and age.
+#
+# THE ROW'S OWN GENERATION IS NEVER MASKED. `_c_generation`/`_l_generation` are copied unchanged
+# for live and inactive rows alike, and both free stacks keep their exact used prefix in pop
+# order. That is what preserves the three distinct states INT32_MAX can be in: a slot freed from
+# INT32_MAX-1 is pushed AT INT32_MAX and is still available for one final allocation (free-MAX);
+# a live row may sit at INT32_MAX (live-MAX); an inactive row off the prefix at INT32_MAX is
+# retired (retired-MAX). Prefix membership and occupancy are what tell them apart. Collapsing
+# any two of the three -- by rebuilding the stack, by filtering MAX rows out of it, or by
+# zeroing an inactive generation -- is a defect, not a simplification.
+#
+# WHY THIS IS NOT `state_bytes()`. That remains the full rollback/debug image and deliberately
+# keeps stale payload; a failed transaction must restore it byte for byte. This projection is
+# the CANONICAL representation and nothing else consumes it.
+#
+# THE RESERVED-MERGE RESIDUE. `_apply_merge()` moves the source's reserved quantity onto the
+# destination and leaves the number behind in the dead source, so a reachable state is dead
+# quantity 0 / dead reserved 250 beside a live destination correctly holding reserved 250. The
+# live audit passes, and a raw serialization followed by an unconditional `reserved <= quantity`
+# check would reject it. The projection writes the dead row's reserved as 0 and retains the live
+# claim, which is one claim and not two: occupancy is decisive. External Reservation rows are a
+# different store and still need their own retargeting and cross-store validation.
+
+## INV-CANON-R01 adopts `(section 7, inventory)` owner schema 3. Declared here, beside the
+## projection it describes, and READ by `save_section_inventories.gd` rather than restated there.
+const CANONICAL_OWNER_SCHEMA_VERSION: int = 3
+
+## Every instantiated inventory generation is in 1..INT32_MAX: `_init()` calls `clear()`, which
+## steps each column from 0 to 1. A zero-generation inactive row passed the older loose codec
+## check and is REFUSED here. A virgin zero-generation scheme would need its own allocator
+## contract; this one has none.
+const CANONICAL_GENERATION_MIN: int = 1
+
+const REFUSE_CANONICAL_NOT_QUIESCENT: StringName = &"CANONICAL_NOT_QUIESCENT"
+const REFUSE_CANONICAL_EXTENT: StringName = &"CANONICAL_EXTENT"
+const REFUSE_CANONICAL_OCCUPANCY: StringName = &"CANONICAL_OCCUPANCY"
+const REFUSE_CANONICAL_GENERATION: StringName = &"CANONICAL_GENERATION"
+const REFUSE_CANONICAL_FREE_STACK: StringName = &"CANONICAL_FREE_STACK"
+const REFUSE_CANONICAL_SLOT_UNACCOUNTED: StringName = &"CANONICAL_SLOT_UNACCOUNTED"
+const REFUSE_CANONICAL_INACTIVE_PAYLOAD: StringName = &"CANONICAL_INACTIVE_PAYLOAD"
+const REFUSE_CANONICAL_LIVE_ROW: StringName = &"CANONICAL_LIVE_ROW"
+const REFUSE_CANONICAL_AUDIT: StringName = &"CANONICAL_AUDIT"
+
+
+class CanonicalColumns:
+	"""One caller-owned, bounded, normalized inventory projection. Never a second world.
+
+	Every column is allocated once here at the store's declared capacity and is never resized.
+	This is the SAME declared projection the section 7 encoder and the section 15 canonical
+	adapter both read, so a save and a hash cannot implement competing masks.
+
+	The two free stacks are held at full backing capacity with a `NULL_SLOT` tail; only
+	`c_free_count` / `l_free_count` entries are logical, and the tail is excluded from the saved
+	field count. It exists so two projections of the same state compare equal byte for byte.
+	"""
+	var container_capacity: int = 0
+	var lot_capacity: int = 0
+	var c_free_count: int = 0
+	var l_free_count: int = 0
+	var c_live: PackedByteArray = PackedByteArray()
+	var c_reachable: PackedByteArray = PackedByteArray()
+	var c_generation: PackedInt32Array = PackedInt32Array()
+	var c_owner_slot: PackedInt32Array = PackedInt32Array()
+	var c_owner_generation: PackedInt32Array = PackedInt32Array()
+	var c_policy: PackedInt32Array = PackedInt32Array()
+	var c_lot_count: PackedInt32Array = PackedInt32Array()
+	var c_first_lot: PackedInt32Array = PackedInt32Array()
+	var c_free: PackedInt32Array = PackedInt32Array()
+	var c_max_mass_g: PackedInt64Array = PackedInt64Array()
+	var c_filters: PackedInt64Array = PackedInt64Array()
+	var c_reserved_mass_g: PackedInt64Array = PackedInt64Array()
+	var c_used_mass_g: PackedInt64Array = PackedInt64Array()
+	var l_live: PackedByteArray = PackedByteArray()
+	var l_generation: PackedInt32Array = PackedInt32Array()
+	var l_item_id: PackedInt32Array = PackedInt32Array()
+	var l_quality: PackedInt32Array = PackedInt32Array()
+	var l_provenance: PackedInt32Array = PackedInt32Array()
+	var l_recipe_id: PackedInt32Array = PackedInt32Array()
+	var l_container_slot: PackedInt32Array = PackedInt32Array()
+	var l_container_generation: PackedInt32Array = PackedInt32Array()
+	var l_next: PackedInt32Array = PackedInt32Array()
+	var l_prev: PackedInt32Array = PackedInt32Array()
+	var l_free: PackedInt32Array = PackedInt32Array()
+	var l_quantity_milli: PackedInt64Array = PackedInt64Array()
+	var l_reserved_milli: PackedInt64Array = PackedInt64Array()
+	var l_age_milli_hours: PackedInt64Array = PackedInt64Array()
+	var l_age_remainder: PackedInt64Array = PackedInt64Array()
+
+	func _init(p_container_capacity: int, p_lot_capacity: int) -> void:
+		"""Allocate all 28 columns at the two declared capacities. The only resize here."""
+		container_capacity = p_container_capacity
+		lot_capacity = p_lot_capacity
+		_allocate_container_columns()
+		_allocate_lot_columns()
+
+	func _allocate_container_columns() -> void:
+		"""Size the thirteen container columns to the container capacity, once."""
+		c_live.resize(container_capacity)
+		c_reachable.resize(container_capacity)
+		c_generation.resize(container_capacity)
+		c_owner_slot.resize(container_capacity)
+		c_owner_generation.resize(container_capacity)
+		c_policy.resize(container_capacity)
+		c_lot_count.resize(container_capacity)
+		c_first_lot.resize(container_capacity)
+		c_free.resize(container_capacity)
+		c_max_mass_g.resize(container_capacity)
+		c_filters.resize(container_capacity)
+		c_reserved_mass_g.resize(container_capacity)
+		c_used_mass_g.resize(container_capacity)
+
+	func _allocate_lot_columns() -> void:
+		"""Size the fifteen lot columns to the lot capacity, once."""
+		l_live.resize(lot_capacity)
+		l_generation.resize(lot_capacity)
+		l_item_id.resize(lot_capacity)
+		l_quality.resize(lot_capacity)
+		l_provenance.resize(lot_capacity)
+		l_recipe_id.resize(lot_capacity)
+		l_container_slot.resize(lot_capacity)
+		l_container_generation.resize(lot_capacity)
+		l_next.resize(lot_capacity)
+		l_prev.resize(lot_capacity)
+		l_free.resize(lot_capacity)
+		l_quantity_milli.resize(lot_capacity)
+		l_reserved_milli.resize(lot_capacity)
+		l_age_milli_hours.resize(lot_capacity)
+		l_age_remainder.resize(lot_capacity)
+
+
+func canonical_capacities() -> Vector2i:
+	"""This store's `(container_capacity, lot_capacity)`, so a caller can size a buffer."""
+	return Vector2i(_c_capacity, _l_capacity)
+
+
+func canonical_detail() -> String:
+	"""Why the last canonical copy or restore refused, or an empty string after a success."""
+	return _canonical_detail
+
+
+func copy_canonical_columns_into(out: CanonicalColumns) -> bool:
+	"""Fill `out` with this store's normalized projection. Refuses rather than capturing midway.
+
+	ARCH-SAVE-003 saves at a completed boundary, so this refuses an open or poisoned
+	transaction, a non-empty undo journal and a re-entrant attestation rather than photographing
+	a half-applied transfer. It then re-derives occupancy, generations, the allocator partition
+	and every live structural/accounting relationship BEFORE it copies anything, and it writes
+	only into the caller's buffer -- the live columns are not touched, in this call or any other.
+	"""
+	_canonical_detail = ""
+	var quiescent: StringName = _canonical_quiescent_refusal()
+	if quiescent != REFUSE_NONE:
+		return false
+	if out.container_capacity != _c_capacity or out.lot_capacity != _l_capacity:
+		_canonical_detail = "buffer declares %d containers and %d lots, not %d and %d" \
+			% [out.container_capacity, out.lot_capacity, _c_capacity, _l_capacity]
+		return false
+	if _canonical_source_refusal() != REFUSE_NONE:
+		return false
+	_project_containers_into(out)
+	_project_lots_into(out)
+	_project_stacks_into(out)
+	return true
+
+
+func _canonical_quiescent_refusal() -> StringName:
+	"""Refuse anything but a completed, non-reentrant boundary with an empty undo journal."""
+	if _tx_open:
+		_canonical_detail = "an inventory transaction is open"
+		return REFUSE_CANONICAL_NOT_QUIESCENT
+	if _tx_poisoned:
+		_canonical_detail = "the last transaction is poisoned and has not been rolled back"
+		return REFUSE_CANONICAL_NOT_QUIESCENT
+	if _j_count != 0:
+		_canonical_detail = "the undo journal holds %d entries" % _j_count
+		return REFUSE_CANONICAL_NOT_QUIESCENT
+	if _attesting:
+		_canonical_detail = "an equipment attestation is in progress"
+		return REFUSE_CANONICAL_NOT_QUIESCENT
+	return REFUSE_NONE
+
+
+func _canonical_source_refusal() -> StringName:
+	"""Validate the live store's occupancy, generations, allocator partitions and live rows."""
+	var containers: StringName = _canonical_partition_refusal(_c_live, _c_generation, _c_free,
+		_c_free_count, _c_capacity, "container")
+	if containers != REFUSE_NONE:
+		return containers
+	var lots: StringName = _canonical_partition_refusal(_l_live, _l_generation, _l_free,
+		_l_free_count, _l_capacity, "lot")
+	if lots != REFUSE_NONE:
+		return lots
+	if not audit().ok:
+		_canonical_detail = "the live inventory audit refuses this state"
+		return REFUSE_CANONICAL_AUDIT
+	return REFUSE_NONE
+
+
+func _canonical_partition_refusal(live: PackedByteArray, generation: PackedInt32Array,
+		free: PackedInt32Array, free_count: int, capacity: int, label: String) -> StringName:
+	"""One allocator's complete partition: every slot is live, on the used prefix, or retired.
+
+	COLD PATH. The `seen` mask is allocated per call because this runs at a save boundary and
+	never on a tick; ARCH-MEM-001's allocate-once rule governs the per-tick columns above.
+	"""
+	if free_count < 0 or free_count > capacity:
+		_canonical_detail = "%s free count %d is outside 0..%d" % [label, free_count, capacity]
+		return REFUSE_CANONICAL_FREE_STACK
+	var seen: PackedByteArray = PackedByteArray()
+	seen.resize(capacity)
+	seen.fill(0)
+	var occupancy: StringName = _canonical_occupancy_refusal(live, generation, capacity, label)
+	if occupancy != REFUSE_NONE:
+		return occupancy
+	var prefix: StringName = _canonical_prefix_refusal(live, free, free_count, seen, label)
+	if prefix != REFUSE_NONE:
+		return prefix
+	return _canonical_unaccounted_refusal(live, generation, seen, label)
+
+
+func _canonical_occupancy_refusal(live: PackedByteArray, generation: PackedInt32Array,
+		capacity: int, label: String) -> StringName:
+	"""Occupancy is exactly 0 or 1, and every generation -- live or not -- is in 1..INT32_MAX."""
+	for slot: int in range(capacity):
+		if live[slot] > 1:
+			_canonical_detail = "%s %d holds occupancy %d, not 0 or 1" % [label, slot, live[slot]]
+			return REFUSE_CANONICAL_OCCUPANCY
+		if generation[slot] < CANONICAL_GENERATION_MIN or generation[slot] > MAX_INT32:
+			_canonical_detail = "%s %d holds generation %d, outside %d..%d" \
+				% [label, slot, generation[slot], CANONICAL_GENERATION_MIN, MAX_INT32]
+			return REFUSE_CANONICAL_GENERATION
+	return REFUSE_NONE
+
+
+func _canonical_prefix_refusal(live: PackedByteArray, free: PackedInt32Array, free_count: int,
+		seen: PackedByteArray, label: String) -> StringName:
+	"""The used free prefix names distinct, in-range, non-live slots. Order is state, not sorted."""
+	for index: int in range(free_count):
+		var slot: int = free[index]
+		if slot < 0 or slot >= seen.size():
+			_canonical_detail = "%s free entry %d names slot %d, outside 0..%d" \
+				% [label, index, slot, seen.size() - 1]
+			return REFUSE_CANONICAL_FREE_STACK
+		if seen[slot] == 1:
+			_canonical_detail = "%s free stack names slot %d twice" % [label, slot]
+			return REFUSE_CANONICAL_FREE_STACK
+		if live[slot] == 1:
+			_canonical_detail = "%s free entry %d names live slot %d" % [label, index, slot]
+			return REFUSE_CANONICAL_FREE_STACK
+		seen[slot] = 1
+	return REFUSE_NONE
+
+
+func _canonical_unaccounted_refusal(live: PackedByteArray, generation: PackedInt32Array,
+		seen: PackedByteArray, label: String) -> StringName:
+	"""An inactive slot OFF the prefix is retired, so its generation must be INT32_MAX.
+
+	INT32_MAX alone does NOT mean retired. `_free_lot_slot()` increments INT32_MAX-1 to
+	INT32_MAX and pushes that slot, so a free-MAX slot is on the prefix and still allocatable;
+	a live-MAX row is live. Only prefix membership and occupancy separate the three.
+	"""
+	for slot: int in range(seen.size()):
+		if live[slot] == 1 or seen[slot] == 1:
+			continue
+		if generation[slot] != MAX_INT32:
+			_canonical_detail = ("%s %d is neither live nor on the free prefix, and its "
+				+ "generation %d is not the exhausted %d retirement leaves behind") \
+				% [label, slot, generation[slot], MAX_INT32]
+			return REFUSE_CANONICAL_SLOT_UNACCOUNTED
+	return REFUSE_NONE
+
+
+func _project_containers_into(out: CanonicalColumns) -> void:
+	"""Project every physical container row. No row is omitted and none is reordered."""
+	for slot: int in range(_c_capacity):
+		_project_container_row(out, slot)
+
+
+func _project_container_row(out: CanonicalColumns, slot: int) -> void:
+	"""Copy one live container exactly, or write INV-CANON-R01's unused container payload."""
+	out.c_live[slot] = _c_live[slot]
+	out.c_generation[slot] = _c_generation[slot]
+	if _c_live[slot] == 1:
+		out.c_owner_slot[slot] = _c_owner_slot[slot]
+		out.c_owner_generation[slot] = _c_owner_generation[slot]
+		out.c_policy[slot] = _c_policy[slot]
+		out.c_lot_count[slot] = _c_lot_count[slot]
+		out.c_first_lot[slot] = _c_first_lot[slot]
+		out.c_max_mass_g[slot] = _c_max_mass_g[slot]
+		out.c_filters[slot] = _c_filters[slot]
+		out.c_reserved_mass_g[slot] = _c_reserved_mass_g[slot]
+		out.c_used_mass_g[slot] = _c_used_mass_g[slot]
+		out.c_reachable[slot] = _c_reachable[slot]
+		return
+	out.c_owner_slot[slot] = NULL_SLOT
+	out.c_owner_generation[slot] = NULL_GENERATION
+	out.c_policy[slot] = UNSET_POLICY
+	out.c_lot_count[slot] = 0
+	out.c_first_lot[slot] = NULL_SLOT
+	out.c_max_mass_g[slot] = 0
+	out.c_filters[slot] = 0
+	out.c_reserved_mass_g[slot] = 0
+	out.c_used_mass_g[slot] = 0
+	out.c_reachable[slot] = 0
+
+
+func _project_lots_into(out: CanonicalColumns) -> void:
+	"""Project every physical lot row. No row is omitted and none is reordered."""
+	for slot: int in range(_l_capacity):
+		_project_lot_row(out, slot)
+
+
+func _project_lot_row(out: CanonicalColumns, slot: int) -> void:
+	"""Copy one live lot exactly, or write INV-CANON-R01's unused lot payload.
+
+	A live lot's `_l_container_slot` of NULL_SLOT is decision 0061's EQUIPPED record and is
+	copied as it stands; the mask is never applied on container nullness.
+	"""
+	out.l_live[slot] = _l_live[slot]
+	out.l_generation[slot] = _l_generation[slot]
+	if _l_live[slot] == 1:
+		out.l_item_id[slot] = _l_item_id[slot]
+		out.l_quality[slot] = _l_quality[slot]
+		out.l_provenance[slot] = _l_provenance[slot]
+		out.l_recipe_id[slot] = _l_recipe_id[slot]
+		out.l_container_slot[slot] = _l_container_slot[slot]
+		out.l_container_generation[slot] = _l_container_generation[slot]
+		out.l_next[slot] = _l_next[slot]
+		out.l_prev[slot] = _l_prev[slot]
+		out.l_quantity_milli[slot] = _l_quantity_milli[slot]
+		out.l_reserved_milli[slot] = _l_reserved_milli[slot]
+		out.l_age_milli_hours[slot] = _l_age_milli_hours[slot]
+		out.l_age_remainder[slot] = _l_age_remainder[slot]
+		return
+	_write_unused_lot_payload(out, slot)
+
+
+func _write_unused_lot_payload(out: CanonicalColumns, slot: int) -> void:
+	"""INV-CANON-R01's twelve unused lot values, spelled in this module's own clear sentinels.
+
+	`_l_reserved_milli` becoming 0 is the reserved-merge residue case: `_apply_merge()` moved
+	the claim to the destination and left the number on the dead source.
+	"""
+	out.l_item_id[slot] = 0
+	out.l_quality[slot] = 0
+	out.l_provenance[slot] = UNSET_PROVENANCE
+	out.l_recipe_id[slot] = 0
+	out.l_container_slot[slot] = NULL_SLOT
+	out.l_container_generation[slot] = NULL_GENERATION
+	out.l_next[slot] = NULL_SLOT
+	out.l_prev[slot] = NULL_SLOT
+	out.l_quantity_milli[slot] = 0
+	out.l_reserved_milli[slot] = 0
+	out.l_age_milli_hours[slot] = 0
+	out.l_age_remainder[slot] = 0
+
+
+func _project_stacks_into(out: CanonicalColumns) -> void:
+	"""Copy both free stacks' used prefixes IN ORDER and canonicalise the excluded tails to -1.
+
+	Pop order is the array permutation -- `_alloc_lot_slot()` takes `_l_free[count - 1]` -- so
+	the prefix is state and is never sorted. The tail beyond the count is stale garbage two
+	observably identical worlds can disagree about, and is not part of the saved field count.
+	"""
+	out.c_free_count = _c_free_count
+	out.l_free_count = _l_free_count
+	for index: int in range(_c_capacity):
+		out.c_free[index] = _c_free[index] if index < _c_free_count else NULL_SLOT
+	for index: int in range(_l_capacity):
+		out.l_free[index] = _l_free[index] if index < _l_free_count else NULL_SLOT
+
+
+func restore_canonical_columns(cols: CanonicalColumns) -> bool:
+	"""Publish a decoded normalized projection into this store, without allocating anything.
+
+	No `clear()`, no gameplay create/destroy and no generation increment: all three would change
+	the pool the save recorded. Occupancy, generations and both free-stack prefixes are restored
+	exactly as decoded, and only derived scan bounds and counts are rebuilt.
+
+	EQUIPMENT ATTESTATION IS NOT RE-CHECKED HERE. `audit()`'s equipped biconditional needs a
+	bound `gear.gd` authority, which the load orchestrator rebinds after the six section 7
+	owners are published; running it now would refuse every legitimate equipped lot.
+	"""
+	_canonical_detail = ""
+	if _tx_open or _j_count != 0 or _attesting:
+		_canonical_detail = "the store is not quiescent"
+		return false
+	if cols.container_capacity != _c_capacity or cols.lot_capacity != _l_capacity:
+		_canonical_detail = "projection declares %d containers and %d lots, not %d and %d" \
+			% [cols.container_capacity, cols.lot_capacity, _c_capacity, _l_capacity]
+		return false
+	if _canonical_columns_refusal(cols) != REFUSE_NONE:
+		return false
+	_restore_container_columns(cols)
+	_restore_lot_columns(cols)
+	_rebuild_derived_state()
+	return true
+
+
+func _canonical_columns_refusal(cols: CanonicalColumns) -> StringName:
+	"""Validate an incoming projection: the same partition rules, plus the canonical unused mask.
+
+	STRICTER THAN CAPTURE. A noncanonical unused byte is REFUSED rather than replaced by the
+	safe value it could have been; an inactive provenance 6 does not quietly become ORDINARY.
+	"""
+	var containers: StringName = _canonical_partition_refusal(cols.c_live, cols.c_generation,
+		cols.c_free, cols.c_free_count, cols.container_capacity, "container")
+	if containers != REFUSE_NONE:
+		return containers
+	var lots: StringName = _canonical_partition_refusal(cols.l_live, cols.l_generation,
+		cols.l_free, cols.l_free_count, cols.lot_capacity, "lot")
+	if lots != REFUSE_NONE:
+		return lots
+	var tails: StringName = _canonical_tail_refusal(cols)
+	if tails != REFUSE_NONE:
+		return tails
+	var inactive: StringName = _canonical_inactive_refusal(cols)
+	if inactive != REFUSE_NONE:
+		return inactive
+	return _canonical_live_refusal(cols)
+
+
+func _canonical_tail_refusal(cols: CanonicalColumns) -> StringName:
+	"""Both excluded free-stack tails must be the rebuilt `NULL_SLOT`, never leftover values."""
+	for index: int in range(cols.c_free_count, cols.container_capacity):
+		if cols.c_free[index] != NULL_SLOT:
+			_canonical_detail = "container free tail %d holds %d, not %d" \
+				% [index, cols.c_free[index], NULL_SLOT]
+			return REFUSE_CANONICAL_FREE_STACK
+	for index: int in range(cols.l_free_count, cols.lot_capacity):
+		if cols.l_free[index] != NULL_SLOT:
+			_canonical_detail = "lot free tail %d holds %d, not %d" \
+				% [index, cols.l_free[index], NULL_SLOT]
+			return REFUSE_CANONICAL_FREE_STACK
+	return REFUSE_NONE
+
+
+func _canonical_inactive_refusal(cols: CanonicalColumns) -> StringName:
+	"""Every inactive row carries exactly the unused payload, checked value by value."""
+	for slot: int in range(cols.container_capacity):
+		if cols.c_live[slot] == 1:
+			continue
+		if cols.c_owner_slot[slot] != NULL_SLOT or cols.c_lot_count[slot] != 0 \
+				or cols.c_owner_generation[slot] != NULL_GENERATION \
+				or cols.c_policy[slot] != UNSET_POLICY \
+				or cols.c_first_lot[slot] != NULL_SLOT or cols.c_max_mass_g[slot] != 0 \
+				or cols.c_filters[slot] != 0 or cols.c_reserved_mass_g[slot] != 0 \
+				or cols.c_used_mass_g[slot] != 0 or cols.c_reachable[slot] != 0:
+			_canonical_detail = "inactive container %d carries a noncanonical payload" % slot
+			return REFUSE_CANONICAL_INACTIVE_PAYLOAD
+	for slot: int in range(cols.lot_capacity):
+		if cols.l_live[slot] == 1:
+			continue
+		if _canonical_lot_is_masked(cols, slot):
+			continue
+		_canonical_detail = "inactive lot %d carries a noncanonical payload" % slot
+		return REFUSE_CANONICAL_INACTIVE_PAYLOAD
+	return REFUSE_NONE
+
+
+func _canonical_lot_is_masked(cols: CanonicalColumns, slot: int) -> bool:
+	"""True when an inactive lot row holds all twelve unused values and nothing else."""
+	return cols.l_item_id[slot] == 0 and cols.l_quality[slot] == 0 \
+		and cols.l_provenance[slot] == UNSET_PROVENANCE and cols.l_recipe_id[slot] == 0 \
+		and cols.l_container_slot[slot] == NULL_SLOT \
+		and cols.l_container_generation[slot] == NULL_GENERATION \
+		and cols.l_next[slot] == NULL_SLOT and cols.l_prev[slot] == NULL_SLOT \
+		and cols.l_quantity_milli[slot] == 0 and cols.l_reserved_milli[slot] == 0 \
+		and cols.l_age_milli_hours[slot] == 0 and cols.l_age_remainder[slot] == 0
+
+
+func _canonical_live_refusal(cols: CanonicalColumns) -> StringName:
+	"""Live rows keep GDD §4.2's own domains: a bounded item, provenance, quantity and age."""
+	for slot: int in range(cols.lot_capacity):
+		if cols.l_live[slot] != 1:
+			continue
+		if cols.l_item_id[slot] < 0 or cols.l_item_id[slot] >= ITEM_CAPACITY:
+			_canonical_detail = "live lot %d names item %d" % [slot, cols.l_item_id[slot]]
+			return REFUSE_CANONICAL_LIVE_ROW
+		if cols.l_provenance[slot] < CatalogScript.PROVENANCE_ORDINARY \
+				or cols.l_provenance[slot] > CatalogScript.PROVENANCE_SPOIL_RECLAIM:
+			_canonical_detail = "live lot %d carries provenance %d" \
+				% [slot, cols.l_provenance[slot]]
+			return REFUSE_CANONICAL_LIVE_ROW
+		if cols.l_quantity_milli[slot] < 0 or cols.l_reserved_milli[slot] < 0 \
+				or cols.l_reserved_milli[slot] > cols.l_quantity_milli[slot] \
+				or cols.l_age_milli_hours[slot] < 0 or cols.l_age_remainder[slot] < 0:
+			_canonical_detail = "live lot %d holds an out-of-domain quantity or age" % slot
+			return REFUSE_CANONICAL_LIVE_ROW
+	return REFUSE_NONE
+
+
+func _restore_container_columns(cols: CanonicalColumns) -> void:
+	"""Adopt the thirteen decoded container columns verbatim, generations and prefix included."""
+	_c_live = cols.c_live.duplicate()
+	_c_reachable = cols.c_reachable.duplicate()
+	_c_generation = cols.c_generation.duplicate()
+	_c_owner_slot = cols.c_owner_slot.duplicate()
+	_c_owner_generation = cols.c_owner_generation.duplicate()
+	_c_policy = cols.c_policy.duplicate()
+	_c_lot_count = cols.c_lot_count.duplicate()
+	_c_first_lot = cols.c_first_lot.duplicate()
+	_c_free = cols.c_free.duplicate()
+	_c_max_mass_g = cols.c_max_mass_g.duplicate()
+	_c_filters = cols.c_filters.duplicate()
+	_c_reserved_mass_g = cols.c_reserved_mass_g.duplicate()
+	_c_used_mass_g = cols.c_used_mass_g.duplicate()
+	_c_free_count = cols.c_free_count
+
+
+func _restore_lot_columns(cols: CanonicalColumns) -> void:
+	"""Adopt the fifteen decoded lot columns verbatim, generations and prefix included."""
+	_l_live = cols.l_live.duplicate()
+	_l_generation = cols.l_generation.duplicate()
+	_l_item_id = cols.l_item_id.duplicate()
+	_l_quality = cols.l_quality.duplicate()
+	_l_provenance = cols.l_provenance.duplicate()
+	_l_recipe_id = cols.l_recipe_id.duplicate()
+	_l_container_slot = cols.l_container_slot.duplicate()
+	_l_container_generation = cols.l_container_generation.duplicate()
+	_l_next = cols.l_next.duplicate()
+	_l_prev = cols.l_prev.duplicate()
+	_l_free = cols.l_free.duplicate()
+	_l_quantity_milli = cols.l_quantity_milli.duplicate()
+	_l_reserved_milli = cols.l_reserved_milli.duplicate()
+	_l_age_milli_hours = cols.l_age_milli_hours.duplicate()
+	_l_age_remainder = cols.l_age_remainder.duplicate()
+	_l_free_count = cols.l_free_count
+
+
+func _rebuild_derived_state() -> void:
+	"""Recompute the scan bounds, the live counts and the conservation ledger from the rows.
+
+	THE LEDGER IS NOT A SAVED FIELD AND IS NOT PROMOTED INTO ONE. `_sourced_milli`/`_sunk_milli`
+	are lifetime debug tallies classified category 3, so a reloaded world has no sink history to
+	restore. Re-seeding `sourced` with the restored live quantity and `sunk` with zero is the
+	only rebuild that leaves `audit()`'s `live + sunk == sourced` identity true without inventing
+	a history the save never carried; it records no new fact.
+	"""
+	_c_live_count = 0
+	_c_slot_high_water = 0
+	for slot: int in range(_c_capacity):
+		if _c_live[slot] == 1:
+			_c_live_count += 1
+			_c_slot_high_water = slot + 1
+	_sourced_milli.fill(0)
+	_sunk_milli.fill(0)
+	_l_live_count = 0
+	_l_slot_high_water = 0
+	_equipped_lot_count = 0
+	for slot: int in range(_l_capacity):
+		if _l_live[slot] != 1:
+			continue
+		_l_live_count += 1
+		_l_slot_high_water = slot + 1
+		if _l_container_slot[slot] == NULL_SLOT:
+			_equipped_lot_count += 1
+		_sourced_milli[_l_item_id[slot]] += _l_quantity_milli[slot]

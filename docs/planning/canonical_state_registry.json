@@ -1,6 +1,6 @@
 {
- "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-14-2",
- "registry_version": 2,
+ "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-15-3",
+ "registry_version": 3,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -6218,7 +6218,7 @@
   {
    "section_id": 7,
    "owner_key": "inventory",
-   "owner_schema_version": 2,
+   "owner_schema_version": 3,
    "fields": [
     {
      "field_key": "_c_free_count",
@@ -9634,7 +9634,7 @@
   2,
   1,
   1,
-  2,
+  3,
   1,
   2,
   1,

@@ -162,17 +162,30 @@
       "title": "Wire every section codec to capture from and restore into live stores",
       "status": "blocked",
       "depends_on": [
-        "BULK-COLUMNS",
-        "SAVE-S7",
-        "SAVE-S12",
-        "EVENT-SCHEDULE",
         "BASELINE-INTEGRATION",
-        "SAVE-S1-OWNERS",
+        "BULK-COLUMNS",
         "DIGEST-DETERMINISM",
-        "RENDER-SPAWN",
+        "EVENT-SCHEDULE",
         "PLAN-SAVE-COVERAGE",
+        "PLAN-STOCK-FAULT-CONTINUATION",
+        "RENDER-SPAWN",
+        "SAVE-COLUMNS-INVENTORY",
+        "SAVE-COLUMNS-JOBPLANNER",
+        "SAVE-COLUMNS-NAVIGATION",
+        "SAVE-D2-CURSOR-WRITER",
+        "SAVE-ORCHESTRATOR",
+        "SAVE-P2-ARENA-RESTORE",
+        "SAVE-PROVENANCE-PRODUCER",
+        "SAVE-S1-OWNERS",
+        "SAVE-S11-CODEC",
+        "SAVE-S12",
+        "SAVE-S13-CODEC",
+        "SAVE-S4-CODEC",
+        "SAVE-S5-CODEC",
+        "SAVE-S6-CODEC",
+        "SAVE-S7",
         "SAVE-S8-COUNT",
-        "PLAN-STOCK-FAULT-CONTINUATION"
+        "SAVE-W1-PUBLISH"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -180,7 +193,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Do not release this umbrella when PLAN-SAVE-COVERAGE finishes unless all discovered codec, adapter, header-identity and validation prerequisite task IDs are also dependencies. status=blocked alone is not a dispatcher gate."
+      "note": "Umbrella. Its dependency list named four tasks; PLAN-SAVE-COVERAGE found thirteen prerequisites. It may not dispatch until every one is done AND a full-world round trip is demonstrated on a generated world that actually contains a settlement."
     },
     {
       "id": "SAVE-S1-OWNERS",
@@ -446,7 +459,7 @@
     {
       "id": "PLAN-SAVE-COVERAGE",
       "title": "Materialize every remaining save prerequisite before whole-world capture",
-      "status": "ready",
+      "status": "review",
       "depends_on": [
         "BASELINE-INTEGRATION"
       ],
@@ -638,7 +651,7 @@
     {
       "id": "UI-C3-EVIDENCE",
       "title": "Capture corrected responsive shell and input evidence",
-      "status": "ready",
+      "status": "review",
       "depends_on": [
         "UI-RESPONSIVE-C3"
       ],
@@ -789,6 +802,224 @@
       "agent": "self",
       "gate": "none",
       "acceptance": "REQ-SET-170/task07.4: existing five8U seed grants, one/world-year, nextdawn scheduled receipt into legal inventory, nonpunitive assistance event and exact refusal/storage/year rollover/save replay. Current REQUEST_RELIEF_SEEDS envelope is not policy/delivery. Bind actual event/header owners and add finite owned implementation tasks; no new aid quantity or punitive cost."
+    },
+    {
+      "id": "SAVE-COLUMNS-INVENTORY",
+      "title": "Publish bulk column APIs on the six section 7 owners; closes BLOCKER I1",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/inventory.gd",
+        "godot/scripts/core/gear.gd",
+        "godot/scripts/core/reservations.gd",
+        "godot/scripts/core/stock_age.gd",
+        "godot/scripts/core/fishing.gd",
+        "godot/scripts/core/forage.gd",
+        "godot/test/test_inventory_columns.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-COLUMNS-JOBPLANNER",
+      "title": "Publish a bulk column API on job_planner; closes BLOCKER J2",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/job_planner.gd",
+        "godot/test/test_job_planner_columns.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-COLUMNS-NAVIGATION",
+      "title": "Publish bulk column APIs on navigation and movement; closes BLOCKER N1",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/navigation.gd",
+        "godot/scripts/core/movement.gd",
+        "godot/test/test_navigation_columns.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-S4-CODEC",
+      "title": "Section 4 COMPONENT_COLUMNS codec across its eighteen owners",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_section_component_columns.gd",
+        "godot/test/test_save_section_component_columns.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-S5-CODEC",
+      "title": "Section 5 CHILD_ARENAS codec; jobs restores its section 4 and 5 halves atomically",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_section_child_arenas.gd",
+        "godot/test/test_save_section_child_arenas.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-S6-CODEC",
+      "title": "Section 6 codec for command_dispatch, crop_weather and ecology",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_section_ecology.gd",
+        "godot/test/test_save_section_ecology.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-S11-CODEC",
+      "title": "Section 11 codec over the existing event_schedule store",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_section_event_schedule.gd",
+        "godot/test/test_save_section_event_schedule.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-S13-CODEC",
+      "title": "Section 13 CHRONICLE codec; neither owner nor store exists",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_section_chronicle.gd",
+        "godot/test/test_save_section_chronicle.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-W1-PUBLISH",
+      "title": "Publish world_runtime rather than only capturing it; closes BLOCKER W1",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_section_world_runtime.gd",
+        "godot/test/test_save_section_world_runtime.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-P2-ARENA-RESTORE",
+      "title": "Arena-base restore in commands.gd so a split drain round-trips; closes BLOCKER P2",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/commands.gd",
+        "godot/test/test_commands_arena_restore.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-D2-CURSOR-WRITER",
+      "title": "Write the section 3 allocator cursor nothing currently writes; closes BLOCKER D2",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_section_directory.gd",
+        "godot/test/test_save_section_directory.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-ORCHESTRATOR",
+      "title": "Sequence the fifteen sections, enforce load order, own the disk-backed rollback checkpoint",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_file.gd",
+        "godot/test/test_save_round_trip.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "SAVE-PROVENANCE-PRODUCER",
+      "title": "A value producer for the 44-byte provenance prefix under SAVE-R09-003",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_provenance.gd",
+        "godot/test/test_save_provenance.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+    },
+    {
+      "id": "UI-DRAWN-WITHOUT-INPUT",
+      "title": "Five drawn opaque elements have no input rectangle, so clicks fall through to the world",
+      "status": "ready",
+      "depends_on": [
+        "UI-C3-EVIDENCE"
+      ],
+      "owns": [
+        "godot/scripts/ui/ui_shell.gd",
+        "godot/scripts/ui/ui_hit_test.gd",
+        "godot/test/test_ui_shell.gd",
+        "godot/test/test_ui_hit_test.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Found by UI-C3-EVIDENCE's rendered overlays, not by any test. add_visible_region() refuses a region when the \u00a74 Gate is unsatisfied, justified by 'an element whose gate is unsatisfied has no Control at all'. That premise is FALSE for 051 WORKSPACE, 092 BACK, 036 DETAIL, 038 DETAIL_TABS and 098 PIN: the shell draws them anyway, so they are visible, opaque and unclickable. Measured: the centre of the open roster workspace (752,356) and of the open detail panel (1096,416) both resolve to WORLD. A click in the middle of a visible panel issues a world command -- UX-T04's own failure criterion. Either the gate must also suppress drawing, or a drawn control must claim its rectangle; the current pair is self-contradictory. test_the_gate_decides_before_the_availability_claim_does pins the ordering as correct, and it IS correct given the premise -- which is why no test caught this."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

@@ -1,0 +1,12 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "ce679f85885349168745d3cead107dec7ccded59",
+  "task": "Independent source acceptance for FAMILY-RULES-R01 helper",
+  "paths": [
+    "docs/planning/family_rules_api_contract.md",
+    "godot/scripts/core/family_rules.gd",
+    "godot/test/test_family_rules.gd",
+    "docs/validation/evidence/family-rules-2026-09-19/focus-first.log"
+  ],
+  "instructions": "Independent review of pure unbound FAMILY-RULES-R01v1. Reviewall36valuescheckedproducts/flooronlyfinal,indexbijection, readinesstimingandfailedconstruction, domainrefusalbeforehugeintarithmetic, samecalleroutstalevalueclears, querynoalloc/tablemutation, onlyIntMathpreload noNeedscycle. ParentverifiedIntResult fieldsok/value/error,succeed/refuse bool,errorString. Registryparentclassifies2privatearrayscategory2section2derived288B,readinessscalarcat2; no canonicalchange. Tests independentlypin36values6IDs,invaliddomainsincludingINT64limits, liveexistingNeedsadultcomparison andactualpacked288bytesread-only. Focus186tests21561assertions0fail before parent added explicit inttypes to3constructionloopvariables only; fullsuite underway. Parent fixed newregistryreadinessrow torequiredsection2 (original-- failedC8), no weakenaudit. No activation orwholeworldclaim. Provide prioritizedreproducibleblockersorclear,briefadvisoriesnotextracode. No tools execution, no sourcechanges. Return exactrawJSONkeys status,summary,questions,files,decisionIds;statuscomplete;filesone newartifact docs/validation/evidence/family-rules-2026-09-19/independent-review.md contentreview baseSha256null. Escapequotesproperly, concise<=1200words. One15minattempt."
+}

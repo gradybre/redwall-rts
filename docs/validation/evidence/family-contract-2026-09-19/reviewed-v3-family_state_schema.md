@@ -1,6 +1,6 @@
 # PC-04 bounded state and load contract
 
-FAMILY-STATE-R01 · version3 draft · 2026-09-19 · Astra
+FAMILY-STATE-R01 · version2 draft · 2026-09-19 · Astra
 
 Companion to family_execution_package.md. Proposed, not active registry state.
 Do not implement or mark the family package complete before independent review
@@ -179,16 +179,3 @@ All18cells must validate against the explicit formula before publication. Other
 fixed stage rates are literal scalar constants; no per-tick dictionaries or table
 rebuilds. Stagecount3 is only a bound, never a stored stage. Table bytes are
 immutable catalog memory, not added to the46352mutable ownerpayload.
-
-
-## Version3 cross-owner injury and social clarification
-
-Injury adds two B8[512] columns, chill_episode and chill_active:1024live bytes and
-1024snapshot bytes, outside this family's46352-byte payload. The latter bit
-tracks untreated chill and clears atomically with aggregate treatment; a later
-unrelated injury cannot recreate a chill warning. Active implies episode1 and
-a live aggregate. The lifecycle contract owns exact onset/rearm/retirement rules.
-Relationship paired_social_day owns its tick accumulator; qualifying paired
-contact writes existing last_contact_day in the same operation. Refuse a saved
-paired day later than last contact. SocialMood018 alone combines care/social
-participation, commits the once/day award and computes finalmood after017a/017b.

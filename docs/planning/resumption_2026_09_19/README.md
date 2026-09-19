@@ -10,9 +10,9 @@ snapshot with 356 changed/untracked entries; it was preserved. The [file invento
 
 ## Current verified position
 
-PRs 140–147 are merged. The latest integrated candidate is `34c2196`; its final CI passed **4662 tests / 181239 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
+PRs 140–148 are merged. The latest integrated candidate is `ce679f8`; its final CI passed **4670 tests / 181533 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
 
-The family planning draft is integrated without runtime activation. A new runtime counterexample proves that planner dirty-list order/membership affects future job IDs despite identical previously declared fields; SAVE-J2-R01 is implementing the format/classification correction with explicit old-schema refusal.
+The family planning draft is integrated without runtime activation. A new runtime counterexample proves that planner dirty-list order/membership affects future job IDs despite identical previously declared fields; SAVE-J2-R01 implements the format/classification correction with explicit old-schema refusal, merged in PR148. The full owner bulk adapter remains open.
 
 ## Verified baseline
 
@@ -198,3 +198,20 @@ transaction packets. The task remains in-flight; no child/elder runtime is enabl
 Evidence records reviewer findings, the source limits of old module comments, and
 a deterministic arithmetic check. INIT-B's affinity20 pairs are no longer described
 as already satisfying the friendship threshold40.
+
+
+## Family numerical/schema closure and first implementation packet
+
+Four independent planning reviews now confirm the family numerical tables,
+care latches, bounded household/dependent payloads and the repaired illness
+episode model. A separate untreated-chill bit prevents an unrelated post-treatment
+injury from reviving a cured illness warning. SocialMood018 owns finalmood after
+care/medical changes and shared pair-day contact; proposed phases remain inactive.
+
+The pure fixed-stage rate helper is an implemented candidate under FAMILY-RULES-R01
+(decision0158). Final-source tests:4675/181984/0 full and186/21561/0 focused, all15
+specification gates and source review passed. Its two private18-value tables
+occupy288 packed bytes. It is not yet wired into the running settlement: family
+owner APIs, admission/lifecycle atomicity, relationship/injury consumers, named
+scenarios and qualified stage profiles remain substantive work. PC04 stays
+in-flight; these tests do not certify family gameplay.

@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "003797d43a9acfe5da6533247234b322d0bea07d",
+  "task": "Confirm family v4 finite repairs and review exact pure rate-table API",
+  "paths": [
+    "docs/planning/family_execution_package.md",
+    "docs/planning/family_state_schema.md",
+    "docs/planning/family_lifecycle_contract.md",
+    "docs/planning/family_rules_api_contract.md",
+    "docs/validation/evidence/family-contract-2026-09-19/draft-v3-review.md",
+    "docs/validation/evidence/family-contract-2026-09-19/arithmetic.json"
+  ],
+  "instructions": "Independent bounded review: v4execution/v3state/v3life resolve previous C01 CHILL warning resurrection via newatomic chill_activebit, C02tickpredicate, C03dualday writes andsavedinequality, C04SocialMood018 singlefinalmood ordering. Confirmorreturnconcrete blocker. Also critically review FAMILY-RULES-R01v1 exact standalone helperAPI for readiness, preloadcycleavoidance,36integeroutputs/indexing,288derivedbytes, refusalprecedence, zero allocations onqueries. Purehelper mayimplementbefore fullfamilyactivation; no runtimechildcoeff/canonicalfingerprint changes untilactivation. Distinguish helperblockers from remainingcare/admission transaction APIs intentionallyopen. Existing IDs parentreadfromsource: Residents ADULT0CHILD1ELDER2, Needs SMALL0MEDIUM1LARGE2; existingNeeds is_winterbool. No repositorytools. Return concise <=2000words actionable review, no duplicatearithmeticnarrative. No code or edits. ExactJSON keys status,summary,questions,files,decisionIds;statuscomplete; filesone artifact path docs/validation/evidence/family-contract-2026-09-19/draft-v4-and-rules-api-review.md,content report,baseSha256null. Escape all quotes properly insideJSON. One15minboundedattempt. Do not inventabsentAPIclaims from excerpts."
+}

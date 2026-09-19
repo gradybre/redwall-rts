@@ -1,0 +1,52 @@
+[
+  {
+    "attempt": "family-rules-a1",
+    "model": "claude-sonnet-5",
+    "session_id": "28f924b0-e03c-43a2-8ea8-4f066716dfd0",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/family_rules_api_contract.md",
+        "sha256": "18dbaa8748fedc7e57f9d3690d8252412c5485816324f155c76c3da8e6c86322"
+      },
+      {
+        "path": "docs/decisions/0158-publish-the-fixed-stage-rate-table-as-a-derived-helper.md",
+        "sha256": "d8830a9f4bef2277ed59bece0e8458321bf974e19c946d454e303ee65dd63b11"
+      },
+      {
+        "path": "godot/scripts/core/int_math.gd",
+        "sha256": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca"
+      },
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/draft-v4-and-rules-api-review.md",
+        "sha256": "d2d38a6dba7d1354315ebf3552c04d2559e8e47af58cd5fe769333a3ff106abc"
+      }
+    ]
+  },
+  {
+    "attempt": "family-rules-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "ee198aed-5832-4e47-8b3f-de68bb615847",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/family_rules_api_contract.md",
+        "sha256": "18dbaa8748fedc7e57f9d3690d8252412c5485816324f155c76c3da8e6c86322"
+      },
+      {
+        "path": "godot/scripts/core/family_rules.gd",
+        "sha256": "3e7e41a936d9bddf746257aaac5b8f5f0f79f5f2ba478831aad82351f68b4d6d"
+      },
+      {
+        "path": "godot/test/test_family_rules.gd",
+        "sha256": "b3705de4752f93dea32d92a674c3db69344d0503891e56baf4dadb1db0213f89"
+      },
+      {
+        "path": "docs/validation/evidence/family-rules-2026-09-19/focus-first.log",
+        "sha256": "747c5ef93468db30b4b6c8e0417663eea1f5b17d926bda1bb10163f13c8f5a4d"
+      }
+    ]
+  }
+]

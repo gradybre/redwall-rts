@@ -600,7 +600,7 @@ Unscaled host clock -> scheduler debt -> fixed tick k
 **PC-04 proposed phase extension (FAMILY-C4-R01 v3; not runtime-active).**
 The reviewed draft in `planning/family_execution_package.md` proposes ARCH-SYS-017a
 for elapsed-interval companionship care, ARCH-SYS-017b for ordered CHILL/medical
-completion and final mood, and ARCH-SYS-019a after lifecycle commit for old-day
+completion followed by final mood in existing ARCH-SYS-018, and ARCH-SYS-019a after lifecycle commit for old-day
 care attribution/reset and the global selection pass at in-flight tick k mod30=0.
 Selection stages next-interval assignments; it never grants service in its own tick.
 Existing Needs health integration is still exactly once, with pre-interval rate

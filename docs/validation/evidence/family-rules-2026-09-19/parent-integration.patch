@@ -1,0 +1,15 @@
+--- author/family_rules.gd
++++ accepted/family_rules.gd
+@@ -44,9 +44,9 @@
+ 
+ func _build_tables() -> bool:
+ 	"""Fill both tables for every stage/size/winter combination; return false on the first refusal."""
+-	for stage in range(3):
+-		for size in range(3):
+-			for winter_i in range(2):
++	for stage: int in range(3):
++		for size: int in range(3):
++			for winter_i: int in range(2):
+ 				var index: int = stage * 6 + size * 2 + winter_i
+ 				var hunger_result: IntMath.IntResult = IntMath.IntResult.new()
+ 				if not _compute_value_into(HUNGER_BASE, STAGE_MULT[stage], SIZE_MULT[size], SEASON_MULT[winter_i], hunger_result):

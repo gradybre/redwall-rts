@@ -1,0 +1,435 @@
+{
+  "registry_version": 4,
+  "record_count": 596,
+  "packed_source_field_count": 550,
+  "section_schema_versions": [
+    3,
+    2,
+    1,
+    2,
+    1,
+    1,
+    3,
+    1,
+    2,
+    1,
+    1,
+    3,
+    1,
+    2,
+    1
+  ],
+  "owner": {
+    "section_id": 8,
+    "owner_key": "job_planner",
+    "owner_schema_version": 1,
+    "fields": [
+      {
+        "field_key": "_owner_slot",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_owner_slot",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 0,
+        "source_contract": "C141"
+      },
+      {
+        "field_key": "_owner_generation",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_owner_generation",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 1,
+        "source_contract": "C141"
+      },
+      {
+        "field_key": "_service_day",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_service_day",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 2,
+        "source_contract": "C141"
+      },
+      {
+        "field_key": "_job_slot",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_job_slot",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 3,
+        "source_contract": "C141"
+      },
+      {
+        "field_key": "_job_generation",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_job_generation",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 4,
+        "source_contract": "C141"
+      },
+      {
+        "field_key": "_serviced_day",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_serviced_day",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 5,
+        "source_contract": "C141"
+      },
+      {
+        "field_key": "_status",
+        "type": "u8",
+        "type_code": 0,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_status",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 6,
+        "source_contract": "C142"
+      },
+      {
+        "field_key": "_requires_water",
+        "type": "u8",
+        "type_code": 0,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_requires_water",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 7,
+        "source_contract": "C142"
+      },
+      {
+        "field_key": "_field_cycle",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_field_cycle",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 8,
+        "source_contract": "C143"
+      },
+      {
+        "field_key": "_requested_crop",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_requested_crop",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 9,
+        "source_contract": "C143"
+      },
+      {
+        "field_key": "_gate_reason",
+        "type": "u8",
+        "type_code": 0,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_gate_reason",
+        "shape": {
+          "declared_capacity": "`SERVICE_ROW_COUNT` = 8192",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 10,
+        "source_contract": "C144"
+      },
+      {
+        "field_key": "_cycle_cursor",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_cycle_cursor",
+        "shape": {
+          "declared_capacity": "`OWNER_CAPACITY` = 4096",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 11,
+        "source_contract": "C145"
+      },
+      {
+        "field_key": "_completed_cycle",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_completed_cycle",
+        "shape": {
+          "declared_capacity": "`OWNER_CAPACITY` = 4096",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 12,
+        "source_contract": "C145"
+      },
+      {
+        "field_key": "_demand_enabled",
+        "type": "u8",
+        "type_code": 0,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_demand_enabled",
+        "shape": {
+          "declared_capacity": "`ZONE_OWNER_CAPACITY` = 128",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 13,
+        "source_contract": "C146"
+      },
+      {
+        "field_key": "_demand_owner_slot",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_demand_owner_slot",
+        "shape": {
+          "declared_capacity": "`ZONE_OWNER_CAPACITY` = 128",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 14,
+        "source_contract": "C147"
+      },
+      {
+        "field_key": "_demand_owner_generation",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_demand_owner_generation",
+        "shape": {
+          "declared_capacity": "`ZONE_OWNER_CAPACITY` = 128",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 15,
+        "source_contract": "C147"
+      },
+      {
+        "field_key": "_demand_status",
+        "type": "u8",
+        "type_code": 0,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_demand_status",
+        "shape": {
+          "declared_capacity": "`DEMAND_ROW_COUNT` = 640",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 16,
+        "source_contract": "C148"
+      },
+      {
+        "field_key": "_demand_blocker",
+        "type": "u8",
+        "type_code": 0,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_demand_blocker",
+        "shape": {
+          "declared_capacity": "`DEMAND_ROW_COUNT` = 640",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 17,
+        "source_contract": "C148"
+      },
+      {
+        "field_key": "_demand_job_slot",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_demand_job_slot",
+        "shape": {
+          "declared_capacity": "`DEMAND_ROW_COUNT` = 640",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 18,
+        "source_contract": "C149"
+      },
+      {
+        "field_key": "_demand_job_generation",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_demand_job_generation",
+        "shape": {
+          "declared_capacity": "`DEMAND_ROW_COUNT` = 640",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 19,
+        "source_contract": "C149"
+      },
+      {
+        "field_key": "_demand_quantified_milli",
+        "type": "i64",
+        "type_code": 4,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_demand_quantified_milli",
+        "shape": {
+          "declared_capacity": "`DEMAND_ROW_COUNT` = 640",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 20,
+        "source_contract": "C149"
+      },
+      {
+        "field_key": "_hive_owner_slot",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_hive_owner_slot",
+        "shape": {
+          "declared_capacity": "`HIVE_OWNER_CAPACITY` = 1024",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 21,
+        "source_contract": "C150"
+      },
+      {
+        "field_key": "_hive_owner_generation",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_hive_owner_generation",
+        "shape": {
+          "declared_capacity": "`HIVE_OWNER_CAPACITY` = 1024",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 22,
+        "source_contract": "C150"
+      },
+      {
+        "field_key": "_hive_service_day",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_hive_service_day",
+        "shape": {
+          "declared_capacity": "`HIVE_OWNER_CAPACITY` = 1024",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 23,
+        "source_contract": "C150"
+      },
+      {
+        "field_key": "_hive_job_slot",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_hive_job_slot",
+        "shape": {
+          "declared_capacity": "`HIVE_OWNER_CAPACITY` = 1024",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 24,
+        "source_contract": "C150"
+      },
+      {
+        "field_key": "_hive_job_generation",
+        "type": "i32",
+        "type_code": 2,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_hive_job_generation",
+        "shape": {
+          "declared_capacity": "`HIVE_OWNER_CAPACITY` = 1024",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 25,
+        "source_contract": "C150"
+      },
+      {
+        "field_key": "_hive_feed_demand_milli",
+        "type": "i64",
+        "type_code": 4,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_hive_feed_demand_milli",
+        "shape": {
+          "declared_capacity": "`HIVE_OWNER_CAPACITY` = 1024",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 26,
+        "source_contract": "C151"
+      },
+      {
+        "field_key": "_hive_status",
+        "type": "u8",
+        "type_code": 0,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_hive_status",
+        "shape": {
+          "declared_capacity": "`HIVE_OWNER_CAPACITY` = 1024",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 27,
+        "source_contract": "C151"
+      },
+      {
+        "field_key": "_hive_blocker",
+        "type": "u8",
+        "type_code": 0,
+        "hash": true,
+        "source_module": "job_planner",
+        "source_member": "_hive_blocker",
+        "shape": {
+          "declared_capacity": "`HIVE_OWNER_CAPACITY` = 1024",
+          "order": "ascending_physical_slot"
+        },
+        "ordinal": 28,
+        "source_contract": "C151"
+      }
+    ]
+  }
+}

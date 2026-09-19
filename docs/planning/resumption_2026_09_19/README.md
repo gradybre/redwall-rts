@@ -10,7 +10,9 @@ snapshot with 356 changed/untracked entries; it was preserved. The [file invento
 
 ## Current verified position
 
-PRs 140–146 are merged. The latest integrated candidate is `7b3e83b`; its final CI passed **4662 tests / 181239 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
+PRs 140–147 are merged. The latest integrated candidate is `34c2196`; its final CI passed **4662 tests / 181239 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
+
+The family planning draft is integrated without runtime activation. A new runtime counterexample proves that planner dirty-list order/membership affects future job IDs despite identical previously declared fields; SAVE-J2-R01 is implementing the format/classification correction with explicit old-schema refusal.
 
 ## Verified baseline
 

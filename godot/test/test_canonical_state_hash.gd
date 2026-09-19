@@ -101,7 +101,8 @@ const NAME_CAP_BYTES: int = 128
 ## INACTIVE row; it declares no new field, retires none, and reclassifies no packed column. The
 ## two numbers that moved in that activation are the (7, 'inventory') owner schema and section
 ## 7's descriptor schema, both 2 -> 3, pinned separately below.
-const REGISTRY_PACKED_FIELD_COUNT: int = 550
+## SAVE-J2-R01 adds three packed lists and three scalar counts: +6 records, +3 packed.
+const REGISTRY_PACKED_FIELD_COUNT: int = 553
 
 ## Pinned as LITERALS, deliberately not read from the JSON or from `Digest.*`. Every other
 ## assertion in this suite compares the compiled table against the registry it was generated
@@ -114,12 +115,13 @@ const REGISTRY_PACKED_FIELD_COUNT: int = 550
 ## that normalizes its inactive payload accepts a strictly smaller set of states than schema 2
 ## did, and leaving the name still would let a stricter codec ship under the old identity while
 ## every self-referential check in this file stayed green.
-const REGISTRY_RECORD_COUNT: int = 596
-const REGISTRY_FIELD_COUNT: int = 604
+const REGISTRY_RECORD_COUNT: int = 602
+const REGISTRY_FIELD_COUNT: int = 610
 const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-15-3"
 ## SAVE-SEQ-R01 v2 advances declaration version to 4 while retaining this exact namespace.
 ## The version is independent of the opaque identity suffix; commands owner becomes 2.
-const REGISTRY_DECLARATION_VERSION: int = 4
+## SAVE-J2-R01 advances version 5 and planner owner/section schema 2.
+const REGISTRY_DECLARATION_VERSION: int = 5
 
 ## INV-CANON-R01's two version numbers, pinned as literals and read back from BOTH the registry
 ## JSON and the compiled table. They live in different namespaces -- one is the owner block's
@@ -432,7 +434,7 @@ func _assert_field_shape(declaration: Digest.Declaration, field: Dictionary, ind
 
 
 func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
-	"""596 canonical records over 52 owners, 550 persisted packed fields, release_save_ready false."""
+	"""602 canonical records over 52 owners, 553 persisted packed fields, release_save_ready false."""
 	var data: Dictionary = _registry()
 	assert_equal(int(data["record_count"]), Digest.CANONICAL_RECORD_COUNT, "registry record_count")
 	assert_equal(int(data["packed_source_field_count"]), REGISTRY_PACKED_FIELD_COUNT,
@@ -440,7 +442,7 @@ func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
 	assert_equal(String(data["registry_id"]), Digest.DECLARATION_ID, "registry id")
 	assert_false(bool(data["release_save_ready"]), "release_save_ready stays false")
 	assert_equal(Digest.production_declaration().record_count(), Digest.CANONICAL_RECORD_COUNT,
-		"the compiled declaration counts the same 596 records")
+		"the compiled declaration counts the same 602 records")
 
 
 func test_the_active_rules_identity_and_counts_match_their_independent_pins() -> void:

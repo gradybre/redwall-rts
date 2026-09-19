@@ -1,0 +1,48 @@
+{
+  "wrapper_hex": "010000000b0000006a6f625f706c616e6e6572020000000020000000000000a4dc050000000000",
+  "fields": [
+    {
+      "ordinal": 29,
+      "count_offset": 363151,
+      "value_offset": 363159,
+      "extent": 4096,
+      "first_twelve_bytes": "001000000000000007000000"
+    },
+    {
+      "ordinal": 30,
+      "count_offset": 379543,
+      "value_offset": 379551,
+      "extent": 1,
+      "first_twelve_bytes": "010000000000000001000000"
+    },
+    {
+      "ordinal": 31,
+      "count_offset": 379555,
+      "value_offset": 379563,
+      "extent": 128,
+      "first_twelve_bytes": "800000000000000013000000"
+    },
+    {
+      "ordinal": 32,
+      "count_offset": 380075,
+      "value_offset": 380083,
+      "extent": 1,
+      "first_twelve_bytes": "010000000000000001000000"
+    },
+    {
+      "ordinal": 33,
+      "count_offset": 380087,
+      "value_offset": 380095,
+      "extent": 1024,
+      "first_twelve_bytes": "00040000000000005b000000"
+    },
+    {
+      "ordinal": 34,
+      "count_offset": 384191,
+      "value_offset": 384199,
+      "extent": 1,
+      "first_twelve_bytes": "010000000000000001000000"
+    }
+  ],
+  "section_bytes": 384203
+}

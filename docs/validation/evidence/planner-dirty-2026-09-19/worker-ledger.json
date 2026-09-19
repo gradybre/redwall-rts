@@ -1,0 +1,78 @@
+[
+  {
+    "attempt": "planner-dirty-a1",
+    "model": "claude-opus-5",
+    "session_id": "2477ce11-e2fe-40f4-94f0-b7b1cd37e24d",
+    "state": "timeout",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/planner_dirty_state_contract.md",
+        "sha256": "274eb5f8b38ae5a8eca9b2c627d0323eba0410ca2b0d07967cdf56d4275a1fa0"
+      },
+      {
+        "path": "docs/decisions/0157-persist-planner-dirty-order-and-membership.md",
+        "sha256": "175b717b015e2d0742dce2555b4b887909c1a9da92c80f6065edccc256393426"
+      },
+      {
+        "path": "docs/validation/evidence/planner-save-contract-2026-09-19/independent-contract-review.md",
+        "sha256": "380c11e967934d826ccaa1ca6826f8a0a1543bf57a3370e7b1cedbc70abce25d"
+      },
+      {
+        "path": "docs/validation/evidence/planner-save-contract-2026-09-19/astra-disposition.md",
+        "sha256": "02b1ddc9a209c5e2aedb2c045d0fc2d3a3f1015e9f0fd9fa19d294209cc3ad7e"
+      },
+      {
+        "path": "godot/scripts/core/job_planner.gd",
+        "sha256": "183845e20d22efc2c35263324089284008a20b02d3884b2d19a0a877507ee29b"
+      },
+      {
+        "path": "godot/scripts/core/save_section_job_indexes.gd",
+        "sha256": "88390cc6ce854b840c8b51cacf224aaeeaa963bc483fe8903545cf709af18538"
+      }
+    ],
+    "disposition": "No patch returned or applied. Astra performs bounded implementation against independently reviewed contract; independent Claude source review required."
+  },
+  {
+    "attempt": "planner-dirty-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "ad4a57e3-2667-4127-b945-42a93a85e161",
+    "state": "invalid_output",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/planner_dirty_state_contract.md",
+        "sha256": "274eb5f8b38ae5a8eca9b2c627d0323eba0410ca2b0d07967cdf56d4275a1fa0"
+      },
+      {
+        "path": "godot/scripts/core/save_section_job_indexes.gd",
+        "sha256": "02648e6cf631a15fccf149bf9cd9d26a8b2133d77d45f9fbd51c50c590b93e7d"
+      },
+      {
+        "path": "godot/test/test_planner_dirty_format.gd",
+        "sha256": "ce3ce58f2e0aa29a35fb235a5ae1e99994ebf9c9cbd130465d63af52d822f431"
+      },
+      {
+        "path": "godot/test/test_save_section_job_indexes.gd",
+        "sha256": "f21c2cee8dbfa82fef9ff957b25f79a193bbb0e467ece79eaf6795e1ea582113"
+      },
+      {
+        "path": "docs/validation/evidence/planner-dirty-2026-09-19/planner-source-excerpt.md",
+        "sha256": "02d3b172b386e28bb531687e151db2d874bd9acabdfd9bb148464d458d07901e"
+      },
+      {
+        "path": "docs/validation/evidence/planner-dirty-2026-09-19/implementation.patch",
+        "sha256": "c783e2994e54c2d6cca4a90161afb6b8ec104d9451ebb9ebd1a23c6504b328b8"
+      },
+      {
+        "path": "docs/validation/evidence/planner-dirty-2026-09-19/integration-notes.md",
+        "sha256": "d2a124c5de11fa13dbd949773fdd26bc80fde57724725e31fd19e80cc9ba783b"
+      },
+      {
+        "path": "docs/validation/evidence/planner-dirty-2026-09-19/wire-vectors.json",
+        "sha256": "9632fb056bea60b93d6e0e8f8ca006b822b1249f7d2eaa444f8c1fb91bc615d4"
+      }
+    ],
+    "recovery": "Owned public final-assistant text; escaped exactly four unescaped double-quote characters inside the sole content string (contains(\"1\") and has(\"scalar\")). No content change. Exact schema, one allowlisted new artifact, null base, unchanged input SHA256 verified. Raw response and repaired bundle retained. Original invalid_output state retained. No thinking read."
+  }
+]

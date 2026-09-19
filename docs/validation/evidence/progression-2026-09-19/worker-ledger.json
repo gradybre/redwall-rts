@@ -1,0 +1,117 @@
+[
+  {
+    "attempt": "progress-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "fdb33588-5d81-4766-b053-e016c4fed38b",
+    "state": "complete",
+    "owner_stopped": true,
+    "quarantine": false,
+    "elapsed_ms": 154939,
+    "pid": 84490,
+    "input_sha256": "b5686e6e204eaa21c3c7fcd5b9b44014fc19d53a75da980e60f99c50cceb5f1b",
+    "input_files": [
+      {
+        "path": "docs/planning/progression_execution_package.md",
+        "sha256": "ecbc1e42f1cdbef404f1d6cb2805277213c268c0c6eb6e48da9832da656a2888"
+      },
+      {
+        "path": "docs/validation/evidence/progression-2026-09-19/contract-source-excerpts.md",
+        "sha256": "171a68e1dfce27a11ded89e1834925011b0d4d9cb3734d14f181fdfe5fc25525"
+      },
+      {
+        "path": "godot/scripts/core/milestones.gd",
+        "sha256": "34aabaa1d72187c984c4cbbd1f6772d96f0f9056c7af76bd9b912c1765fb4fc5"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      }
+    ]
+  },
+  {
+    "attempt": "progress-interval-a1",
+    "model": "claude-opus-5",
+    "session_id": "17b2144a-cf77-4c50-ad29-0c6cedbce426",
+    "state": "complete",
+    "owner_stopped": true,
+    "quarantine": false,
+    "elapsed_ms": 298701,
+    "pid": 87020,
+    "input_sha256": "df0df148c65e6adb4135526a67a9bfc006845b38c0bee98bbe0e210e200170f0",
+    "input_files": [
+      {
+        "path": "docs/rulings/2026-09-19_progression_interval.md",
+        "sha256": "6254ba8f1f58ba596a061a469c520dc00bbaf60a5b414e2c76ff5f16f53ee0a8"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/scripts/core/int_math.gd",
+        "sha256": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca"
+      },
+      {
+        "path": "godot/test/test_milestones.gd",
+        "sha256": "ecb1caa908ce05708fafb91a24e35c130e0de2b5d326e7b82e4e2f24d21d9ef8"
+      },
+      {
+        "path": "godot/test/framework/test_case.gd",
+        "sha256": "d7ea4c9b45ba1e5b8fbabfeb85ce7723ae54ad83a5f3aac7e1e7efe0fb5430f7"
+      }
+    ]
+  },
+  {
+    "attempt": "progress-final-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "5822e09d-baca-46f5-94b2-880a987ca0a9",
+    "state": "complete",
+    "owner_stopped": true,
+    "quarantine": false,
+    "elapsed_ms": 155677,
+    "pid": 89507,
+    "input_sha256": "1c9bd70fd3e4a492495cde00170e5fbd63b215f97328fbea6f55e4c2078a3b52",
+    "input_files": [
+      {
+        "path": "docs/rulings/2026-09-19_progression_interval.md",
+        "sha256": "6254ba8f1f58ba596a061a469c520dc00bbaf60a5b414e2c76ff5f16f53ee0a8"
+      },
+      {
+        "path": "docs/planning/progression_execution_package.md",
+        "sha256": "fb7d4fbbf5442b244f3e601462ff786288ac639840929acf16af2d6ac9275141"
+      },
+      {
+        "path": "docs/validation/evidence/progression-2026-09-19/contract-review.md",
+        "sha256": "ad874dd6ccd52f4ac4ca56850fdff24c07fba8466812751ec8e52891920ec81d"
+      },
+      {
+        "path": "docs/validation/evidence/progression-2026-09-19/review-disposition.md",
+        "sha256": "ef27d1a8becc0913973be99c371911e5edb87d5501e6a0b1b0596a108e043574"
+      },
+      {
+        "path": "godot/scripts/core/progression_interval.gd",
+        "sha256": "dcd2334e7f504db1c5ac6838d6b09d54d197b8d357ccb053940b2763f4077295"
+      },
+      {
+        "path": "godot/test/test_progression_interval.gd",
+        "sha256": "e950deca19e8cd974dac5859604371eb9b04edba38ccbf02f6d38161afc8ac61"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/scripts/core/int_math.gd",
+        "sha256": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca"
+      },
+      {
+        "path": "docs/planning/resumption_2026_09_19/starter_settlement.md",
+        "sha256": "2a2143a9cdb56190cac3029cfac08e8e0cd7ae86bf7eeba58f3f16d7c6027963"
+      },
+      {
+        "path": "docs/planning/work_queue.json",
+        "sha256": "95be10f21636187c25a8dd027ff01ebfb1cacd4a64ff0712cc925ecbb6033afd"
+      }
+    ]
+  }
+]

@@ -515,6 +515,12 @@ Neither needs new state.
 | Player work policy | `_auto_fallback`, `_dangerous_work`, `_present` | 1 | `PRIORITY_CAPACITY` = 512 | `_present == 0` is a free row | 1 | §4 COMPONENT_COLUMNS | Per-resident consent flags; `_dangerous_work` gates §5.3's dangerous-job step. |
 | Priority scalars | -- | -- | -- | -- | 2 | §4 COMPONENT_COLUMNS | `_present_count`, recomputed from `_present`. |
 
+### `godot/scripts/core/progression_interval.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Continuous interval arithmetic | -- | -- | -- | -- | 3 | -- | PROGRESS-C4-R01: static functions only, no mutable module fields or packed allocations. Caller-owned result is scratch. The future Progress owner must separately budget and serialize observation state before production integration. This helper does not add an owner or save record. |
+
 ### `godot/scripts/core/reservations.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

@@ -129,4 +129,18 @@ folder. No intermediate failure log is presented as a passing result.
 
 Final local repair acceptance: **4574 tests,159269 assertions,0 failures**,15static checks passed,190capacity checks passed. Suite shutdown remains553objects/33resources (down from1882/33); the autoload boot process now exits without the old14object/3resource warnings. These are bounded repair results, not first-playable or release acceptance.
 
-Reviewed repair PR: [#140](https://github.com/gradybre/redwall-rts/pull/140). Queue review states are this handoff snapshot; reconcile GitHub merge state before dispatching the next writer.
+Repair PR [#140](https://github.com/gradybre/redwall-rts/pull/140) merged at `5ea810e15150bec509aa5d9eca5faa15bb441a87` after both GitHub checks passed on head `49901b7`. Its four queue entries are now reconciled as done for their bounded scope. The subsequent [progression contract](../progression_execution_package.md) has completed independent contract review and a bounded stateless timing helper; full progression and release remain incomplete.
+
+## Progression follow-through
+
+PROGRESS-C4-R01 resolves the Charter interval as54000complete ticks with both
+endpoints observed. The stateless helper refuses gaps/corrupt tuples and checks
+the exact winter-day12 midnight. Sixteen new tests bring the full suite to
+**4590tests/159439assertions/0failures**; independent review found no blocking
+regression. Evidence is in [the progression record](../../validation/evidence/progression-2026-09-19/).
+The producer facts, saved owner, grants, UI and full progression are not wired.
+
+The starter/queue follow-through also makes ARCH-MEM-006's disk rollback a real
+dependency of prior-valid-world replacement. Save orchestration cannot dispatch
+ahead of its concrete section/owner prerequisites. None of these planning
+corrections creates a rollback mechanism or finishes the starter settlement.

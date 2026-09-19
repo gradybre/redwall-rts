@@ -994,9 +994,22 @@
     {
       "id": "SAVE-ORCHESTRATOR",
       "title": "Sequence the fifteen sections, enforce load order, own the disk-backed rollback checkpoint",
-      "status": "ready",
+      "status": "blocked",
       "depends_on": [
-        "PLAN-SAVE-COVERAGE"
+        "PLAN-SAVE-COVERAGE",
+        "PLAN-STOCK-FAULT-CONTINUATION",
+        "SAVE-COLUMNS-INVENTORY",
+        "SAVE-COLUMNS-JOBPLANNER",
+        "SAVE-COLUMNS-NAVIGATION",
+        "SAVE-D2-CURSOR-WRITER",
+        "SAVE-P2-ARENA-RESTORE",
+        "SAVE-PROVENANCE-PRODUCER",
+        "SAVE-S11-CODEC",
+        "SAVE-S13-CODEC",
+        "SAVE-S4-CODEC",
+        "SAVE-S5-CODEC",
+        "SAVE-S6-CODEC",
+        "SAVE-W1-PUBLISH"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -1004,7 +1017,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner."
     },
     {
       "id": "SAVE-PROVENANCE-PRODUCER",
@@ -1024,7 +1037,7 @@
     {
       "id": "UI-DRAWN-WITHOUT-INPUT",
       "title": "Five drawn opaque elements have no input rectangle, so clicks fall through to the world",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "UI-C3-EVIDENCE"
       ],
@@ -1042,12 +1055,14 @@
       "astra_ruling": "docs/rulings/2026-09-19_cycle04_resumption.md",
       "acceptance": "UI-C4-R01: synchronize contextual visibility, gates, focus and real consuming rectangles; test workspace/detail open-close and supported scales, plus engine input. No visual approval or full world-input implementation inferred.",
       "completion_scope": "Bounded visibility/input/focus consistency repair; full UI, Escape/world router, native pointer and ART-UI-12 acceptance remain separate.6engine-routing positive-control cases and final full suite pass; independent B1-B4 closure recorded.",
-      "pr": 140
+      "pr": 140,
+      "merge_commit": "5ea810e15150bec509aa5d9eca5faa15bb441a87",
+      "merged_at": "2026-09-19T19:23:11Z"
     },
     {
       "id": "REG-C4-ADDITION",
       "title": "Prove nested capacity sums with a closed int64 grammar",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "REGISTRY-CAPACITY-AUDIT"
       ],
@@ -1061,12 +1076,14 @@
       "astra_answered": true,
       "astra_ruling": "docs/rulings/2026-09-19_cycle04_resumption.md",
       "acceptance": "REG-C4-R01 bounded grammar, source binding and intermediate int64 checks; independent review accepted.190checks470equalities46bounds. Exact-text/metadata transport recoveries and integration repairs recorded in resumption evidence; sidecar2 stays unadopted.",
-      "pr": 140
+      "pr": 140,
+      "merge_commit": "5ea810e15150bec509aa5d9eca5faa15bb441a87",
+      "merged_at": "2026-09-19T19:23:11Z"
     },
     {
       "id": "INIT-A",
       "title": "Map starter APIs and physical owners",
-      "status": "review",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "docs/planning/resumption_2026_09_19/starter_binding_manifest.json"
@@ -1074,7 +1091,9 @@
       "agent": "self",
       "gate": "none",
       "acceptance": "API names verified from source; owners, existing canonical APIs, duplicate stock, missing bindings, storage-class and transaction limitations explicitly recorded. Runtime activation is not granted by this map.",
-      "pr": 140
+      "pr": 140,
+      "merge_commit": "5ea810e15150bec509aa5d9eca5faa15bb441a87",
+      "merged_at": "2026-09-19T19:23:11Z"
     },
     {
       "id": "INIT-0",
@@ -1156,7 +1175,8 @@
         "INIT-0",
         "INIT-B",
         "INIT-C",
-        "INIT-D"
+        "INIT-D",
+        "SAVE-CAPTURE"
       ],
       "owns": [
         "godot/scripts/systems/settlement_system.gd",
@@ -1169,7 +1189,8 @@
       "gate": "astra_ruling",
       "acceptance": "One preflight/reset/seed/cohort/physical-world publication; same seed equality; prior valid world/save unchanged on any refusal; exact clocks/RNG/poses/map report bindings; no second full world allocation.",
       "astra_answered": false,
-      "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch"
+      "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch",
+      "note": "ARCH-MEM-006 prior-valid-world replacement requires the completed disk checkpoint/restore path. Empty-world boot/preparation may be separately scoped but is not this task's full acceptance."
     },
     {
       "id": "INIT-F",
@@ -1224,7 +1245,8 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "PC-06/task08.6 and ARCH-CONFLICT-004: continuous winter interval, counters/reset conditions, cap/victory/continuation/collapse-save protection and exact tests; no milestone activation without approved finite rules."
+      "acceptance": "PC-06/task08.6 and ARCH-CONFLICT-004: continuous winter interval, counters/reset conditions, cap/victory/continuation/collapse-save protection and exact tests; no milestone activation without approved finite rules.",
+      "note": "Timing ambiguity adopted and stateless helper independently accepted. Full package remains open until bounded producer/history APIs, active field/schema changes, reward transaction and clock/UI/disk packets are complete. Do not infer full PC06 closure from helper tests."
     },
     {
       "id": "PLAN-LIVE-CONSTRUCTION",
@@ -1305,7 +1327,7 @@
     {
       "id": "STOCK-AUTHORITY-LIFETIME",
       "title": "Remove the verified Inventory/StockAge ownership cycle",
-      "status": "review",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "godot/scripts/core/inventory.gd",
@@ -1317,7 +1339,24 @@
       "astra_answered": true,
       "astra_request": "docs/rulings/2026-09-19_stock_authority_lifetime.md",
       "acceptance": "STOCK-C4-LIFETIME-R01: borrowed live predicate, orphan fails closed, no canonical state changes; exact lifetime probe and full regression; remaining leak causes distinct.",
-      "pr": 140
+      "pr": 140,
+      "merge_commit": "5ea810e15150bec509aa5d9eca5faa15bb441a87",
+      "merged_at": "2026-09-19T19:23:11Z"
+    },
+    {
+      "id": "PROGRESS-INTERVAL",
+      "title": "Implement the checked continuous winter interval helper",
+      "status": "review",
+      "depends_on": [],
+      "owns": [
+        "godot/scripts/core/progression_interval.gd",
+        "godot/test/test_progression_interval.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "astra_answered": true,
+      "astra_ruling": "docs/rulings/2026-09-19_progression_interval.md",
+      "acceptance": "PROGRESS-C4-R01 v2: contiguous checked int64 observations, inclusive54000interval gate, exact calendar eligibility, no mutable owner or production award; independent tests and review. Full progression integration remains blocked on its separate owners/schema."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

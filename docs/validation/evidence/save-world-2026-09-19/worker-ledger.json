@@ -1,0 +1,170 @@
+[
+  {
+    "attempt": "save-world-a1",
+    "model": "claude-opus-5",
+    "session_id": "e084d43e-384e-4e9f-8d5a-27e8d6dea7ac",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "godot/scripts/core/save_section_world_runtime.gd",
+        "sha256": "72ffee177897d1ea85e251160d959652a5e3e1edb92f7e06eb4aa44f4c5e4421"
+      },
+      {
+        "path": "godot/scripts/core/save_section_rng.gd",
+        "sha256": "4269c6e7bf9a59c96ef3b5d8cb58bfe5729a53446494d08dddd8a466a03fcaa4"
+      },
+      {
+        "path": "godot/scripts/core/rng.gd",
+        "sha256": "3bfc333d24db8eb239c10cb5a910d00abe9e440eb897219b3894ea1fdafeffef"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/scripts/systems/game_manager.gd",
+        "sha256": "6f4372a571fafbd8e6a7fc5a66eff246dd45f0cdfd71612ed08032ab78c3b947"
+      },
+      {
+        "path": "godot/test/test_game_manager.gd",
+        "sha256": "59828a46f3bf86f6827e589baed2f9acea4eeb5d81ca934a0f23b7a43305e7e3"
+      },
+      {
+        "path": "docs/rulings/2026-09-12_clock_restore_and_layout_followup.md",
+        "sha256": "231f36bfc07369d50cbe3ed55a6278f010698163473711a599d8c088962544b8"
+      },
+      {
+        "path": "docs/planning/save_implementation_matrix.md",
+        "sha256": "af65091b4203aeb55e3d14524429eb17fb4ec4cf0be0d269ae63432a56fbd525"
+      },
+      {
+        "path": "docs/rulings/2026-09-19_world_runtime_install.md",
+        "sha256": "d8b59aa7d71d01e221a1cb2c24fb5dfe81d2841a87455645b6b9d2c96cf0f7ed"
+      },
+      {
+        "path": "godot/test/test_save_section_world_runtime.gd",
+        "sha256": "3a46229e784a5777924fb9a47daf0cc72562bc6fc17175402e21375854f99718"
+      },
+      {
+        "path": "godot/test/test_save_section_rng.gd",
+        "sha256": "1ee802c13671f278fe7ac2ee7047f480062b46a7d5fe01d1e55b1457c5e0a87f"
+      },
+      {
+        "path": "godot/test/framework/test_case.gd",
+        "sha256": "d7ea4c9b45ba1e5b8fbabfeb85ce7723ae54ad83a5f3aac7e1e7efe0fb5430f7"
+      }
+    ]
+  },
+  {
+    "attempt": "save-world-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "4c7475a0-bcc9-4fe5-9f53-ff1325dfb5c3",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "godot/scripts/core/save_section_world_runtime.gd",
+        "sha256": "07a531d503ad1f7ad1b7c901802eb17070830af16a700fae0ad47473d77ff445"
+      },
+      {
+        "path": "godot/scripts/core/save_section_rng.gd",
+        "sha256": "4269c6e7bf9a59c96ef3b5d8cb58bfe5729a53446494d08dddd8a466a03fcaa4"
+      },
+      {
+        "path": "godot/scripts/core/rng.gd",
+        "sha256": "3bfc333d24db8eb239c10cb5a910d00abe9e440eb897219b3894ea1fdafeffef"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/scripts/systems/game_manager.gd",
+        "sha256": "6f4372a571fafbd8e6a7fc5a66eff246dd45f0cdfd71612ed08032ab78c3b947"
+      },
+      {
+        "path": "godot/test/test_game_manager.gd",
+        "sha256": "59828a46f3bf86f6827e589baed2f9acea4eeb5d81ca934a0f23b7a43305e7e3"
+      },
+      {
+        "path": "docs/rulings/2026-09-12_clock_restore_and_layout_followup.md",
+        "sha256": "231f36bfc07369d50cbe3ed55a6278f010698163473711a599d8c088962544b8"
+      },
+      {
+        "path": "docs/planning/save_implementation_matrix.md",
+        "sha256": "33cc978ecf92513e5ba7750e20e60ca2a5e2caa866d547e9c32e48d383e983f7"
+      },
+      {
+        "path": "docs/rulings/2026-09-19_world_runtime_install.md",
+        "sha256": "d8b59aa7d71d01e221a1cb2c24fb5dfe81d2841a87455645b6b9d2c96cf0f7ed"
+      },
+      {
+        "path": "godot/test/test_save_section_world_runtime.gd",
+        "sha256": "3a46229e784a5777924fb9a47daf0cc72562bc6fc17175402e21375854f99718"
+      },
+      {
+        "path": "godot/test/test_save_section_rng.gd",
+        "sha256": "1ee802c13671f278fe7ac2ee7047f480062b46a7d5fe01d1e55b1457c5e0a87f"
+      },
+      {
+        "path": "godot/test/framework/test_case.gd",
+        "sha256": "d7ea4c9b45ba1e5b8fbabfeb85ce7723ae54ad83a5f3aac7e1e7efe0fb5430f7"
+      },
+      {
+        "path": "godot/scripts/core/save_world_runtime_install.gd",
+        "sha256": "f13aaa9d41078aae76088dc0019d493f339395e2d5654cf514113a883aa3fb3b"
+      },
+      {
+        "path": "godot/test/test_save_world_runtime_install.gd",
+        "sha256": "3c1b06e0db90863fafb0ff0fdd40d56a4c1bb842a1c6c8d868bc3af42f76456f"
+      },
+      {
+        "path": "docs/decisions/0153-install-clock-and-rng-as-one-save-step.md",
+        "sha256": "fc83798aa316f5b420a9b22118abfcd51589c09f922b5b12f883d9ed0c10a889"
+      }
+    ]
+  },
+  {
+    "attempt": "save-world-final-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "775be27f-15cb-4650-941b-03774fdf3b43",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/rulings/2026-09-19_world_runtime_install.md",
+        "sha256": "d8b59aa7d71d01e221a1cb2c24fb5dfe81d2841a87455645b6b9d2c96cf0f7ed"
+      },
+      {
+        "path": "godot/scripts/core/save_world_runtime_install.gd",
+        "sha256": "bb065193b209048aeb5a45fd2b773b2dd9d544e6da7d4a50076132db1e88fd60"
+      },
+      {
+        "path": "godot/test/test_save_world_runtime_install.gd",
+        "sha256": "9d4c1b40acc1fb2e72b713e0e76624072d9ca8b4044b17250e8aa225970c09ea"
+      },
+      {
+        "path": "godot/test/save_world_focus.gd",
+        "sha256": "4c7bdeb00928b0f1058f187b167cc322a5b51b061a76e17114da9a1013ac98ac"
+      },
+      {
+        "path": "godot/test/run_tests.gd",
+        "sha256": "1e4032bafb0a34965a4d184c56ee116f73f0a34941cfc13b37edff21c2a2ecb7"
+      },
+      {
+        "path": "godot/scripts/core/scheduler_events.gd",
+        "sha256": "5981c3c05c454f46968a252bd544da084b9a530b3bbcf26d8041c583e09063bc"
+      },
+      {
+        "path": "godot/scripts/core/rng.gd",
+        "sha256": "3bfc333d24db8eb239c10cb5a910d00abe9e440eb897219b3894ea1fdafeffef"
+      },
+      {
+        "path": "godot/scripts/core/save_section_rng.gd",
+        "sha256": "4269c6e7bf9a59c96ef3b5d8cb58bfe5729a53446494d08dddd8a466a03fcaa4"
+      },
+      {
+        "path": "docs/validation/evidence/save-world-2026-09-19/independent-review.md",
+        "sha256": "09e1ca1a547ce364c252fc8bcb2dc4b195018a4037366044e2eb0a1b37898250"
+      }
+    ]
+  }
+]

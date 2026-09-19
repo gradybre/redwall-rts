@@ -948,18 +948,23 @@
     },
     {
       "id": "SAVE-W1-PUBLISH",
-      "title": "Publish world_runtime rather than only capturing it; closes BLOCKER W1",
-      "status": "ready",
+      "title": "Install decoded WorldRuntime and RNG streams under the manager load barrier",
+      "status": "review",
       "depends_on": [
         "PLAN-SAVE-COVERAGE"
       ],
       "owns": [
         "godot/scripts/core/save_section_world_runtime.gd",
-        "godot/test/test_save_section_world_runtime.gd"
+        "godot/test/test_save_section_world_runtime.gd",
+        "godot/scripts/core/save_world_runtime_install.gd",
+        "godot/test/test_save_world_runtime_install.gd"
       ],
       "agent": "game-coder",
-      "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+      "gate": "astra_ruling",
+      "note": "Existing clock writer and manager barrier are implemented. This task supplies their save-layer join with RNG seed/streams, preserving every checked operation and explicit recovery failure. Full coordinator remains separate.",
+      "astra_answered": true,
+      "astra_ruling": "docs/rulings/2026-09-19_world_runtime_install.md",
+      "acceptance": "SAVE-W1-R02: validated decoded records/header tick, exact ten clock fields plus seed/nine stream positions, bounded RNG recovery, held manager barrier; no full-file/world publication claim."
     },
     {
       "id": "SAVE-P2-ARENA-RESTORE",
@@ -979,7 +984,7 @@
     {
       "id": "SAVE-D2-CURSOR-WRITER",
       "title": "Join section3 identities and the section1 allocator cursor under the load barrier",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE"
       ],
@@ -995,7 +1000,10 @@
       "note": "Section1 already captures/encodes the cursor and the directory already has the atomic writer. This packet supplies the joint save-layer consumer; the future coordinator must bind the actual clock/directory and remains separate.",
       "astra_answered": true,
       "astra_ruling": "docs/rulings/2026-09-19_save_identity_restore.md",
-      "acceptance": "SAVE-D2-R02: exact decoded cursor plus six validated columns, existing atomic owner call; supplied world clock barrier held; spent/exhausted identities, immutable refusal/input separation; no format change or full-world restore claim."
+      "acceptance": "SAVE-D2-R02: exact decoded cursor plus six validated columns, existing atomic owner call; supplied world clock barrier held; spent/exhausted identities, immutable refusal/input separation; no format change or full-world restore claim.",
+      "pr": 142,
+      "merge_commit": "77d03dcdd29889259150c351ceb040209e3dff74",
+      "merged_at": "2026-09-19T20:11:02Z"
     },
     {
       "id": "SAVE-ORCHESTRATOR",

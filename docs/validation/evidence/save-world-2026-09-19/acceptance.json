@@ -1,0 +1,43 @@
+{
+  "base_commit": "77d03dcdd29889259150c351ceb040209e3dff74",
+  "scope": "Decoded WorldRuntime plus section10 RNG install only",
+  "files_sha256": {
+    "godot/scripts/core/save_world_runtime_install.gd": "bb065193b209048aeb5a45fd2b773b2dd9d544e6da7d4a50076132db1e88fd60",
+    "godot/test/test_save_world_runtime_install.gd": "9d4c1b40acc1fb2e72b713e0e76624072d9ca8b4044b17250e8aa225970c09ea",
+    "godot/test/save_world_focus.gd": "4c7bdeb00928b0f1058f187b167cc322a5b51b061a76e17114da9a1013ac98ac",
+    "docs/rulings/2026-09-19_world_runtime_install.md": "d8b59aa7d71d01e221a1cb2c24fb5dfe81d2841a87455645b6b9d2c96cf0f7ed"
+  },
+  "full_local_tests": {
+    "command": "caffeinate -i ./tools/run_tests.sh",
+    "exit_code": 0,
+    "tests": 4623,
+    "assertions": 163075,
+    "failures": 0,
+    "log": "tests-first.log",
+    "subsequent_changes": "Three added tests plus strengthened fixtures; production logic unchanged, one docstring reworded"
+  },
+  "final_focused_tests": {
+    "command": "godot --headless --path godot --script test/save_world_focus.gd",
+    "exit_code": 0,
+    "tests": 27,
+    "assertions": 3999,
+    "failures": 0,
+    "log": "tests-focused-final.log",
+    "supervised": true
+  },
+  "static_checks": {
+    "count": 15,
+    "all_passed": true,
+    "log": "contracts.json"
+  },
+  "editor_import": {
+    "exit_code": 0,
+    "log": "import.log"
+  },
+  "independent_review": "independent-review.md",
+  "review_disposition": "review-disposition.md",
+  "active_schema_or_ledger_changed": false,
+  "full_world_restore": false,
+  "unattended_service_active": false,
+  "final_test_review": "final-test-review.md"
+}

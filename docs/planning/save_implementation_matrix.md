@@ -14,7 +14,7 @@ Every row was read off the source at `50e78ce`, not off a checklist.
 The tables below are the historical `50e78ce` inventory. Later source evidence supersedes these particular blocker descriptions:
 
 - D2: the public directory cursor reader, section 1 capture/codec and atomic `restore_columns_and_cursor()` already exist. SAVE-D2-R02 and decision 0152 define the new stateless `save_identity_restore.gd` caller joining the decoded section 3 columns and section 1 cursor under a held load barrier. Its bounded acceptance requires round-trip, spent-ID, exhausted-cursor and refusal tests plus independent review. It does not complete disk loading or world replacement.
-- W1: `SimClock.restore_runtime()` and GameManager's load barrier/clock restoration APIs already exist. Connecting decoded WorldRuntime and RNG state to the full coordinator remains work; the missing API claim below is historical.
+- W1: `SimClock.restore_runtime()` and GameManager's load barrier/clock restoration APIs already exist. SAVE-W1-R02 / decision 0153 defines their joint decoded WorldRuntime/RNG install adapter, with exact header/tombstone checks and bounded prior-RNG recovery. Acceptance is tracked in its evidence folder and queue entry. Connecting it to the full coordinator remains work; the missing API claim below is historical.
 - I1: PR #137 added the canonical inventory bulk API. The other five named inventory owners and the complete section 7 live adapter remain open.
 
 `release_save_ready` remains **false**. The full coordinator must bind the correct world's clock and directory, verify all sections and implement the approved disk-backed rollback; this adapter alone supplies none of those guarantees.

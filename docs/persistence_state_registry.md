@@ -589,6 +589,12 @@ Neither needs new state.
 | Per-stream draw counts | `_draw_count` | 8 | `STREAM_COUNT` = 9 | 0 draws is the seeded state | 1 | §10 RNG | ARCH-RNG-002: "Store state plus int64 draw count", and ARCH-HASH-001 hashes "RNG states/draw counts". They are also the localiser ARCH-HASH-002 dumps on a mismatch, so a divergence names a stream and a draw index rather than "the RNG". |
 | RNG seed and seeded flag | -- | -- | -- | `_seeded == false` with `_world_seed == 0` is the unseeded store | 1 | §1 WORLD | `_world_seed` is `World.seed` in §2's ledger. §10 cannot be decoded without it: `restore_stream()` requires a seeded store because the retired HUNTING stream's canonical value is defined against the seed, and SET-AMEND-001 §3 requires a noncanonical tombstone to FAIL validation. ARCH-SAVE-002's section order already puts WORLD (1) before RNG (10), so the load order works; 09.2 must not reorder them. |
 
+### `godot/scripts/core/save_world_runtime_install.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless runtime install adapter | -- | -- | -- | -- | 3 | -- | SAVE-W1-R02 / decision 0153. Static cold-path join of decoded WorldRuntime and RNG records. Temporary 108-byte RNG column snapshot and seed scalars support local recovery; no retained simulation state, duplicate clock/world or new wire fields. The full coordinator owns world association and publication/recovery policy. |
+
 ### `godot/scripts/core/save_identity_restore.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

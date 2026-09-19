@@ -1041,7 +1041,8 @@
       "astra_answered": true,
       "astra_ruling": "docs/rulings/2026-09-19_cycle04_resumption.md",
       "acceptance": "UI-C4-R01: synchronize contextual visibility, gates, focus and real consuming rectangles; test workspace/detail open-close and supported scales, plus engine input. No visual approval or full world-input implementation inferred.",
-      "completion_scope": "Bounded visibility/input/focus consistency repair; full UI, Escape/world router, native pointer and ART-UI-12 acceptance remain separate.6engine-routing positive-control cases and final full suite pass; independent B1-B4 closure recorded."
+      "completion_scope": "Bounded visibility/input/focus consistency repair; full UI, Escape/world router, native pointer and ART-UI-12 acceptance remain separate.6engine-routing positive-control cases and final full suite pass; independent B1-B4 closure recorded.",
+      "pr": 140
     },
     {
       "id": "REG-C4-ADDITION",
@@ -1059,7 +1060,8 @@
       "gate": "astra_ruling",
       "astra_answered": true,
       "astra_ruling": "docs/rulings/2026-09-19_cycle04_resumption.md",
-      "acceptance": "REG-C4-R01 bounded grammar, source binding and intermediate int64 checks; independent review accepted.190checks470equalities46bounds. Exact-text/metadata transport recoveries and integration repairs recorded in resumption evidence; sidecar2 stays unadopted."
+      "acceptance": "REG-C4-R01 bounded grammar, source binding and intermediate int64 checks; independent review accepted.190checks470equalities46bounds. Exact-text/metadata transport recoveries and integration repairs recorded in resumption evidence; sidecar2 stays unadopted.",
+      "pr": 140
     },
     {
       "id": "INIT-A",
@@ -1071,7 +1073,8 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "API names verified from source; owners, existing canonical APIs, duplicate stock, missing bindings, storage-class and transaction limitations explicitly recorded. Runtime activation is not granted by this map."
+      "acceptance": "API names verified from source; owners, existing canonical APIs, duplicate stock, missing bindings, storage-class and transaction limitations explicitly recorded. Runtime activation is not granted by this map.",
+      "pr": 140
     },
     {
       "id": "INIT-0",
@@ -1102,12 +1105,12 @@
         "INIT-A"
       ],
       "owns": [
-        "godot/scripts/core/starter_relationships.gd",
-        "godot/test/test_starter_relationships.gd"
+        "godot/scripts/core/relationships.gd",
+        "godot/test/test_relationships.gd"
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
-      "acceptance": "Bind GDD six reciprocal Friend pairs through one relationship owner. Refuse capacity or invalid identity before reset; persistent ids1-12 unchanged; no invented bond/family coefficients.",
+      "acceptance": "Bind GDD six reciprocal Friend pairs through one relationship owner. Refuse capacity or invalid identity before reset; persistent ids1-12 unchanged; no invented bond/family coefficients. Permanent relationship layout waits for PC-04 compatibility and explicit registry/memory ownership expansion.",
       "astra_answered": false,
       "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch"
     },
@@ -1313,7 +1316,8 @@
       "gate": "astra_ruling",
       "astra_answered": true,
       "astra_request": "docs/rulings/2026-09-19_stock_authority_lifetime.md",
-      "acceptance": "STOCK-C4-LIFETIME-R01: borrowed live predicate, orphan fails closed, no canonical state changes; exact lifetime probe and full regression; remaining leak causes distinct."
+      "acceptance": "STOCK-C4-LIFETIME-R01: borrowed live predicate, orphan fails closed, no canonical state changes; exact lifetime probe and full regression; remaining leak causes distinct.",
+      "pr": 140
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

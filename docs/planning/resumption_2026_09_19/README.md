@@ -128,3 +128,5 @@ accepted test results and worker recovery history are retained in the evidence
 folder. No intermediate failure log is presented as a passing result.
 
 Final local repair acceptance: **4574 tests,159269 assertions,0 failures**,15static checks passed,190capacity checks passed. Suite shutdown remains553objects/33resources (down from1882/33); the autoload boot process now exits without the old14object/3resource warnings. These are bounded repair results, not first-playable or release acceptance.
+
+Reviewed repair PR: [#140](https://github.com/gradybre/redwall-rts/pull/140). Queue review states are this handoff snapshot; reconcile GitHub merge state before dispatching the next writer.

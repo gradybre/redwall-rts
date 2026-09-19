@@ -93,7 +93,9 @@ flags or the attestation guard. No new canonical state or schema version.
    separated by success. Out stale success is cleared by refusal.
 7. Source state_bytes equal before/after; separately compare scan hints, diagnostics,
    transaction flags/cleanup, journal count/arrays, _math/_plan/_out scratch and
-   _attesting. An authority whose predicate throws/asserts if called is never called.
+   _attesting. An authority witness must record calls and assert zero after the read; this
+   keeps failures inside the normal runner. A throwing/asserting witness is also
+   acceptable if it produces a non-vacuous failing test when reached.
    Read from a hostile authority callback while _attesting=true refuses BUSY.
 
 Implementation ownership: inventory.gd plus dedicated tests. Parent owns registry,

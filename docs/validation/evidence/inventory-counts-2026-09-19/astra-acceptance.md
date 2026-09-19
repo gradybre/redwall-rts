@@ -21,3 +21,11 @@ warnings are retained, not suppressed or presented as clean shutdown.
 The read certifies local structural counts only. It does not attest Gear or
 Directory, compute ready NP, bind Economy, fix boot, activate families or complete
 save/restore. Source counts do not constitute first-playable acceptance.
+
+The first merge attempt held because the PR body declared the already-reviewed
+witness substitution as an exception and qualified its BLOCKED status. Astra
+resolved this ordinary test-method detail explicitly in the accepted contract:
+a zero-call counter is an allowed witness, matching the independently reviewed
+implementation. No source or test behavior changed. The PR body retains the
+explanation outside its machine-readable declarations. No merge gate is bypassed;
+new exact-head CI is required for the documentation clarification.

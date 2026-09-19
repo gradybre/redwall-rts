@@ -145,4 +145,8 @@ dependency of prior-valid-world replacement. Save orchestration cannot dispatch
 ahead of its concrete section/owner prerequisites. None of these planning
 corrections creates a rollback mechanism or finishes the starter settlement.
 
-Reviewed progression follow-through: [PR141](https://github.com/gradybre/redwall-rts/pull/141). Its queue entry is a pre-merge snapshot; reconcile the actual GitHub state before another dispatch.
+Progression follow-through [PR141](https://github.com/gradybre/redwall-rts/pull/141) merged at `960d9c438beb01b84d652dd10395f9584628fa9b` after both GitHub checks passed on head `8c6bfda`. Its bounded helper task is reconciled as done; full PC-06 remains open.
+
+## Identity restore follow-through
+
+The new stateless save adapter joins section 3's six identity columns and section 1's saved allocator cursor through the existing atomic owner API. It requires the supplied clock's load barrier. Nine tests prove deleted/all-deleted IDs remain spent, exhaustion persists, and refusals preserve state. Local acceptance: **4599 tests / 159572 assertions / zero failures**, all 15 static checks passed; independent Opus review found no blocker. [Evidence](../../validation/evidence/save-identity-2026-09-19/) retains the initial registry-format failure and passing retry. Full disk/world restore remains incomplete.

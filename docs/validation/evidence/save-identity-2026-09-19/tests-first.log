@@ -1,0 +1,4 @@
+FAIL C4 save_identity_restore.gd line 596: member cell '—' names no column
+FAIL C4 save_identity_restore.gd line 596: member cell '—' names no column
+FAIL C9 save_identity_restore.gd line 596: a category 3 row is not saved; its section must be --
+state_registry_coverage: 3 failure(s)

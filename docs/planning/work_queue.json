@@ -187,7 +187,8 @@
         "SAVE-S7",
         "SAVE-S8-COUNT",
         "SAVE-W1-PUBLISH",
-        "PLAN-REPLAY-CHECKPOINT-CONTRACT"
+        "PLAN-REPLAY-CHECKPOINT-CONTRACT",
+        "SAVE-HEADER-REPLAY-FORMAT"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -1039,7 +1040,8 @@
         "SAVE-S5-CODEC",
         "SAVE-S6-CODEC",
         "SAVE-W1-PUBLISH",
-        "PLAN-REPLAY-CHECKPOINT-CONTRACT"
+        "PLAN-REPLAY-CHECKPOINT-CONTRACT",
+        "SAVE-HEADER-REPLAY-FORMAT"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -1394,7 +1396,7 @@
     {
       "id": "SAVE-ECONOMIC-SEQUENCE-FORMAT",
       "title": "Version the pending-command format to represent exhausted economic sequence allocation",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "SAVE-P2-ARENA-RESTORE"
       ],
@@ -1419,12 +1421,15 @@
       "astra_request": "docs/decisions/0154-preserve-pending-command-arena-layout.md; author explicit exhaustion representation and version/migration contract before implementation",
       "acceptance": "Preserve every ordinary u64 sequence including zero, represent exhausted allocation without wrap/reuse, reject or migrate old formats explicitly, update canonical/wire/ledger metadata and prove round-trip plus next-submission refusal.",
       "astra_ruling": "docs/rulings/2026-09-19_economic_sequence_format.md",
-      "note": "SAVE-SEQ-R01 v2 after independent source review: retain exact registry namespace, explicit atomic prefix validation and version recognition, canonical int64 value form, terminal installs only via pending-window API. Header replay checkpoint remains separately gated. Implementation and acceptance are in progress; full-file coordinator remains gated."
+      "note": "Merged PR145; exact-head CI35471420193 passed4652tests180955assertions0failures. SAVE-SEQ-R01 v2 active; full-file header/coordinator remain separate.",
+      "pr": 145,
+      "merge_commit": "11526f7f4df968e463ea8c8610cd895c3ee1812b",
+      "merged_at": "2026-09-19T21:56:53Z"
     },
     {
       "id": "PLAN-REPLAY-CHECKPOINT-CONTRACT",
       "title": "Define replay checkpoint header and economic allocator ownership across full save files",
-      "status": "ready",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "docs/planning/replay_checkpoint_contract.md"
@@ -1432,7 +1437,47 @@
       "agent": "self",
       "gate": "none",
       "acceptance": "Resolve Header.replay_sequence at216 and unimplemented WorldRuntime.next_command_sequence ownership/meaning, full command sequence domain plus initial/terminal states, versioned bytes and canonical binding, and precise downstream runtime tasks. No scalar alias, silent truncation, sentinel reuse or whole-save claim based only on section12.",
-      "note": "Discovered during SAVE-SEQ-R01 technical review. Header currently uses nonnegative signed-int64 codec values; full-save producer/restore binding is absent. This contract is a full-save prerequisite."
+      "note": "SAVE-REPLAY-R01 v2 and ADR0156 close the contract after independent review; implementation is a separate task, not fullfile acceptance."
+    },
+    {
+      "id": "SAVE-HEADER-REPLAY-FORMAT",
+      "title": "Version the outer header and bind its checkpoint to section12 admission state",
+      "status": "in_flight",
+      "depends_on": [
+        "PLAN-REPLAY-CHECKPOINT-CONTRACT",
+        "SAVE-ECONOMIC-SEQUENCE-FORMAT"
+      ],
+      "owns": [
+        "godot/scripts/core/save_header.gd",
+        "godot/scripts/core/save_section_01.gd",
+        "godot/scripts/core/commands.gd",
+        "godot/scripts/core/canonical_state_hash.gd",
+        "godot/test/test_save_header.gd",
+        "godot/test/test_save_section_01.gd",
+        "godot/test/test_save_replay_checkpoint.gd",
+        "godot/test/save_replay_focus.gd",
+        "docs/validation/validate_cycle01_handoff.py",
+        "docs/validation/validate_blocker_package.py"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "astra_answered": true,
+      "astra_ruling": "docs/planning/replay_checkpoint_contract.md",
+      "acceptance": "SAVE-REPLAY-R01 v2: format2/header264, explicit16byte version dispatch and transactional tuple/padding refusals; exact high/low/tick binding without section preloads or owner writes; absolute file offsets+8 only; independent pinned bytes, schema/version/hostile and crosscheck tests, complete source census, static/fullsuite/independentreview. No wholefile or recorder acceptance."
+    },
+    {
+      "id": "PLAN-REPLAY-STREAM-CONTRACT",
+      "title": "Define replay log framing, admission/append transaction, checkpoint association and branch recovery",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-REPLAY-CHECKPOINT-CONTRACT"
+      ],
+      "owns": [
+        "docs/planning/replay_stream_contract.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Task09.4 finite versioned record grammar for both lanes, replay/log identities, branch selection after load, append refusal/crash recovery and accepted-command durability,300tick checkpoints/everytick verification, bounded disk/memory retention and exact downstream implementation tasks. A checkpoint pair alone is not a byte cursor or recorder."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

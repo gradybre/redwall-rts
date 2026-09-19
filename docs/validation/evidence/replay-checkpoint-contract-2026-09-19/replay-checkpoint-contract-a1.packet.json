@@ -1,0 +1,11 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "24fe7d6d6749d3d92bfa0da20b299a0c6cd4685f",
+  "task": "Review proposed SAVE-REPLAY-R01 header and checkpoint contract before implementation",
+  "paths": [
+    "docs/planning/replay_checkpoint_contract.md",
+    "docs/validation/evidence/replay-checkpoint-contract-2026-09-19/source-excerpts.json",
+    "docs/rulings/2026-09-19_economic_sequence_format.md"
+  ],
+  "instructions": "Independent technical contract review only, no implementation. Examine proposed SAVE-REPLAY-R01 draft v1 against actual numbered source excerpts (full-file SHA accompanies slices). Is a264-byte outerformat2 header carrying lowu32 at216/reservedzero220/highu64at224/bodydigest232 a complete, minimal, safe representation of economic admission checkpoint including exhausted high2^32/low0, with section12 crosscheck and no competing owner? Verify header/table/S1 offsets and exact version/refusal policy, existing structural decode separation, canonical/rules binding and frozen admission versus executed/replay-file semantics. Identify concrete blockers or missing ownership/API/tests, not scope creep. The draft deliberately does NOT settle replay-record framing/append protocol, which remains task09.4, and does NOT claim fullfileorchestrator. Suggest bounded revisions and precise downstream tasks. No source edits. Return ONLY raw JSON nofence with EXACT keys status,summary,questions,files,decisionIds, status complete; files EXACTLY [{\"path\":\"docs/validation/evidence/replay-checkpoint-contract-2026-09-19/independent-contract-review.md\",\"content\":\"your concise review\",\"baseSha256\":null}]. Questions for Astra only if contract ambiguity; ordinary engineering is Astra-owned, no human escalation needed. Verify paths/metadata. No execution claim."
+}

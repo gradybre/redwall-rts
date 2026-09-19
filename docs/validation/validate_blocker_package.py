@@ -22,7 +22,7 @@ check('Crop4096 tile arithmetic',[a['crop_module_triangles'][k]*4096 for k in ['
 mip_bytes=sum((2**i)**2*4*3 for i in range(12))
 check('2048 three-map RGBA8 full mip accounting',mip_bytes==67108860 and mip_bytes*4<=a['noncreature_texture_bytes'],{'one_set_bytes':mip_bytes,'four_sets_bytes':mip_bytes*4})
 check('L0 hysteresis',math.isclose(64*1.1,a['settlement_l0']['promote_px']) and math.isclose(64*.9,a['settlement_l0']['demote_below_px']) and a['settlement_l0']['cap']==24)
-check('Save descriptor table end',256+15*64==1216)
+check('Save descriptor table end (SAVE-REPLAY-R01)',264+15*64==1224)
 check('Section11 capacity framing',8+32*64==2056)
 check('Chronicle page accounting',2*64*24==3072)
 u32=lambda n:struct.pack('<I',n)

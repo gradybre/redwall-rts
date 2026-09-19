@@ -611,7 +611,7 @@ Neither needs new state.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| Fixed header and section table | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` beyond the lazily built 256-entry CRC-32/ISO-HDLC lookup table, which is a compile-time constant derived from the reversed polynomial `systems_architecture.md:745` states. Everything else is static: the 256-byte header codec, the 64-byte descriptor codec, the body SHA-256 and the section-table validator. The header's own bytes are file structure, not simulation state; the catalog hash it carries at offset 72 is `catalog_ids.gd`'s digest, not a second one. |
+| Fixed header and section table | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` beyond the lazily built 256-entry CRC-32/ISO-HDLC lookup table, which is a compile-time constant derived from the reversed polynomial `systems_architecture.md:745` states. Everything else is static: the SAVE-REPLAY-R01 format2/264-byte header codec, the 64-byte descriptor codec, the body SHA-256 and the section-table validator. The pure checkpoint binding validator compares header high/low and tick with decoded section12/section1 values without importing section modules or restoring stores. The header pair is redundant, not a second allocator. The header's own bytes are file structure, not additional simulation state; the catalog hash it carries at offset 72 is `catalog_ids.gd`'s digest, not a second one. |
 
 ### `godot/scripts/core/save_section_01.gd`
 

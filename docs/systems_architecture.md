@@ -448,7 +448,7 @@ The GDD registry does not encode every deadline, ownership mapping, or remainder
 | MasteryCounter | good_batches, total_portions | I32 | 4 | 2 | 64 | 512 | [NEW] Unchanged recipe thresholds; NEW 64 counter slots, bitmask limit |
 | LotEffect | effect_kind, effect_value, effect_duration_ticks, source_item_id | I32 | 4 | 4 | 16384 | 262144 | [NEW] Prepared/preserved source effect survives ingredient consumption |
 | WorldRuntime | next_persistent_id, prepared_portions, next_job_sequence, last_progress_day, requested_speed, pause_reasons | I32 | 4 | 6 | 1 | 24 | [NEW] Allocator/progression/session counters  [decision 0115] SAVE COMPOSITION NOTE, no byte on this row changes: `next_persistent_id` is persisted as a SEPARATE `entity_directory` owner block in §1 WORLD, not as a field of the WorldRuntime payload, because the directory owns the allocator and §1's 80-byte world_runtime body is frozen. The live value is a scalar in `entity_directory.gd`; this row budgets it against the WorldRuntime store that does not exist yet, and it moves here rather than being counted twice if that store is ever built. |
-| WorldRuntime | next_command_sequence, chronicle_count | I64 | 8 | 2 | 1 | 16 | [NEW] Allocator/progression/session counters; `next_event_sequence` left this row for EventSchedule/§11 under SAVE-R09-005 |
+| WorldRuntime | next_command_sequence (historical reserved allowance), chronicle_count | I64 | 8 | 2 | 1 | 16 | [SAVE-REPLAY-R01] No live WorldRuntime command allocator may be implemented: commands owns the pair persisted in section12. Retain the old8byte allowance pending complete memory-ledger reconciliation; no measured reduction is claimed. Chronicle remains separate; `next_event_sequence` left this row for EventSchedule/§11 under SAVE-R09-005 |
 | NamePoolUtf8 | utf8_byte | B8 | 1 | 1 | 131072 | 131072 | [NEW] NEW 128 KiB live sanitized names; historic strings stream with chronicle |
 | NamePoolIndex | offset, byte_count, reference_count | I32 | 4 | 3 | 4096 | 49152 | [NEW] NEW 4096 active names; release unreferenced aliases |
 | BuildingItemMinimum | minimum_milli | I64 | 8 | 1 | 262144 | 2097152 | [NEW] NEW policy arena; 256 item IDs maximum in this compiled release |
@@ -800,8 +800,8 @@ Command stride is 64 bytes `[DERIVED sum]`. Variable payloads contain full selec
 | Save header offset | Encoding | Meaning | Bytes |
 |---:|---|---|---:|
 | 0 | ASCII | Magic RWLSET01 | 8 |
-| 8 | u32 | Format version 1 | 4 |
-| 12 | u32 | Header bytes 256 | 4 |
+| 8 | u32 | Format version 2 (SAVE-REPLAY-R01) | 4 |
+| 12 | u32 | Header bytes 264 | 4 |
 | 16 | u32 | Endian sentinel 16909060 | 4 |
 | 20 | u32 | Section count | 4 |
 | 24 | u64 | Total file bytes | 8 |
@@ -811,12 +811,16 @@ Command stride is 64 bytes `[DERIVED sum]`. Variable payloads contain full selec
 | 104 | SHA-256 bytes | Map hash | 32 |
 | 136 | SHA-256 bytes | Integer lookup-table hash | 32 |
 | 168 | SHA-256 bytes | Engine patch/build identity hash | 32 |
-| 200 | u64 | Section table offset, always 256 | 8 |
+| 200 | u64 | Section table offset, always 264 | 8 |
 | 208 | u64 | Chronicle record count | 8 |
-| 216 | u64 | Replay command sequence at checkpoint | 8 |
-| 224 | SHA-256 bytes | Body digest over table plus section bytes | 32 |
+| 216 | u32 | Next economic admission sequence low word | 4 |
+| 220 | u32 | Reserved zero | 4 |
+| 224 | u64 | Next economic admission sequence high word | 8 |
+| 232 | SHA-256 bytes | Body digest over table plus section bytes | 32 |
 
-Each section descriptor is 64 bytes: `section_id:u32, schema_version:u32, offset:u64, byte_length:u64, row_count:u64, crc32:u32, flags:u32, reserved_zero:24 bytes` `[NEW]`. CRC is CRC-32/ISO-HDLC: polynomial reversed 3988292384, initial register 4294967295, reflected bytes, final XOR 4294967295; check vector ASCII `123456789` gives 3421780262 `[NEW codec choice]`. SHA-256 protects the complete canonical body; CRC localizes corruption. Header numeric/hash fields other than the stored body digest receive their own hash through the canonical state domain described next, so a changed completed tick is detected by state verification, not CRC alone.
+SAVE-REPLAY-R01 ([contract](planning/replay_checkpoint_contract.md), decision0156) defines the header pair as a redundant next-admission checkpoint, exactly equal to section12, including exhausted high4294967296/low0. The header is264bytes; body/table SHA-256 begins264 and does not protect the header pair. Before world mutation, cross-check it against section12 and completed tick against section1, then require canonical verification. Format1 refuses without migration. This new header change supersedes the earlier outer1 rule, not the rejected scheduler-only version2 proposal. Full-file orchestration remains incomplete.
+
+Each section descriptor is 64 bytes: `section_id:u32, schema_version:u32, offset:u64, byte_length:u64, row_count:u64, crc32:u32, flags:u32, reserved_zero:24 bytes` `[NEW]`. CRC is CRC-32/ISO-HDLC: polynomial reversed 3988292384, initial register 4294967295, reflected bytes, final XOR 4294967295; check vector ASCII `123456789` gives 3421780262 `[NEW codec choice]`. SHA-256 protects the complete canonical body; CRC localizes corruption. The body checksum does not protect header bytes. Validate header structure and identity bindings separately; cross-check its completed tick with section1 and its checkpoint pair with section12. Their authoritative values enter canonical state through those owners, not through a duplicate header record. Full canonical verification is still required before publication.
 
 **ARCH-SAVE-002.** Section IDs are assigned in this exact order `[NEW]`: 1 WORLD, 2 CATALOG_IDS, 3 ENTITY_DIRECTORY, 4 COMPONENT_COLUMNS, 5 CHILD_ARENAS, 6 AUXILIARY_STATE, 7 INVENTORIES_AND_LEASE_INDEXES, 8 JOB_INDEXES, 9 NAVIGATION, 10 RNG, 11 EVENT_SCHEDULE, 12 PENDING_COMMANDS, 13 CHRONICLE, 14 NAME_POOL, 15 STATE_DIGEST. For each store serialize its occupancy and explicitly persisted fields COLUMN-MAJOR: declared field order outside,
 ascending physical slot inside, using [SAVE-LAYOUT-R01](rulings/2026-09-12_clock_restore_and_layout_followup.md)
@@ -847,8 +851,8 @@ ordinary payload form `element_count:u64` then `element_count * type_width` valu
 declared ordinal order, with an explicit `element_count = 1` on every scalar; `entity_directory`
 (4 bytes) and `world_runtime` (80 bytes) keep their existing fixed formats and carry no count
 prefixes. Count prefixes are structural bytes and produce no canonical field record. Payloads total
-3752409 bytes, wrappers 311, section length **3752768**, first body offset **1216**, section 2 at
-**3753984**, and the section descriptor's `row_count` is the checked SUM of the nine block primary
+3752409 bytes, wrappers 311, section length **3752768**, first body offset **1224**, section 2 at
+**3753992** (SAVE-REPLAY-R01 relocates file positions by8; body bytes unchanged), and the section descriptor's `row_count` is the checked SUM of the nine block primary
 counts, **344067** -- not a population, a field count or a canonical record count. `world_init`
 declares primary_count 16384 and `spatial_world` 262144 despite their scalar fields; `weather`
 declares 1 for its one aggregate row of eight i32 and two i64 values.

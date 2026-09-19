@@ -1,0 +1,7 @@
+{
+  "path": "godot/scripts/core/save_section_world_runtime.gd",
+  "sha256": "07a531d503ad1f7ad1b7c901802eb17070830af16a700fae0ad47473d77ff445",
+  "body_bytes": 80,
+  "command_sequence_field_present": false,
+  "basis": "Record fields, fixed byte table and CANONICAL_FIELD_KEYS inspected; unchanged from PR145"
+}

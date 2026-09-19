@@ -48,8 +48,9 @@ const RULING_END_OFFSETS: Array[int] = [196713, 196757, 934148, 999722, 1065304,
 
 const RULING_SECTION_BYTES: int = 3752768
 const RULING_DESCRIPTOR_ROW_COUNT: int = 344067
-const RULING_FIRST_SECTION_OFFSET: int = 1216
-const RULING_SECTION_2_OFFSET: int = 3753984
+## SAVE-REPLAY-R01 amends only the absolute file positions by+8.
+const RULING_FIRST_SECTION_OFFSET: int = 1224
+const RULING_SECTION_2_OFFSET: int = 3753992
 const RULING_SECTION_SCHEMA_VERSION: int = 3
 const RULING_STORE_COUNT: int = 9
 const RULING_COUNT_PREFIX_TOTAL: int = 248
@@ -203,7 +204,7 @@ func test_every_wrapper_block_and_payload_offset_matches_the_ruling() -> void:
 
 
 func test_the_section_arithmetic_is_the_rulings_and_the_table_agrees_with_itself() -> void:
-	"""§8: 3752768 bytes, descriptor row_count 344067, first offset 1216, §2 at 3753984."""
+	"""§8: 3752768 bytes, descriptor row_count 344067, first offset 1224, §2 at 3753992."""
 	assert_equal(Section.SECTION_BYTES, RULING_SECTION_BYTES, "section 1 length")
 	assert_equal(Section.DESCRIPTOR_ROW_COUNT, RULING_DESCRIPTOR_ROW_COUNT, "descriptor row_count")
 	assert_equal(Section.FIRST_SECTION_OFFSET, RULING_FIRST_SECTION_OFFSET, "first body offset")
@@ -562,15 +563,15 @@ func test_a_decoded_section_re_encodes_to_the_same_bytes() -> void:
 
 
 func test_the_section_decodes_at_the_offset_a_real_file_puts_it_at() -> void:
-	"""First body offset 1216, with the section preceded by header-shaped filler."""
+	"""First body offset 1224, with the section preceded by header-shaped filler."""
 	var bytes: PackedByteArray = PackedByteArray()
 	bytes.resize(RULING_FIRST_SECTION_OFFSET)
 	bytes.append_array(_encoded(_captured()))
-	assert_equal(bytes.size(), RULING_SECTION_2_OFFSET, "section 2 begins at 3753984")
+	assert_equal(bytes.size(), RULING_SECTION_2_OFFSET, "section 2 begins at 3753992")
 	var back: Section.State = Section.State.new()
 	var refusal: SaveHeader.Refusal = Section.decode_section(bytes, RULING_FIRST_SECTION_OFFSET,
 		RULING_SECTION_BYTES, back)
-	assert_true(refusal.is_ok(), "decode at 1216: %s %s" % [refusal.code, refusal.detail])
+	assert_true(refusal.is_ok(), "decode at 1224: %s %s" % [refusal.code, refusal.detail])
 	assert_equal(back.next_persistent_id, CURSOR, "and the cursor came back")
 
 

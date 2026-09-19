@@ -1,0 +1,23 @@
+[
+  {
+    "attempt": "replay-checkpoint-contract-a1",
+    "model": "claude-opus-5",
+    "session_id": "7d76a228-4fcc-484c-9306-b137f2eb7e70",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/replay_checkpoint_contract.md",
+        "sha256": "b28cbac0dab406a8e288d67c8ffd60447af7358ca3ecac4ebf6bcabd6576a21c"
+      },
+      {
+        "path": "docs/validation/evidence/replay-checkpoint-contract-2026-09-19/source-excerpts.json",
+        "sha256": "85196916650ba8b4da6edbd7d404d68b3092e8ca8d0c42f1bb264181767c25f6"
+      },
+      {
+        "path": "docs/rulings/2026-09-19_economic_sequence_format.md",
+        "sha256": "49078d0ed8d1831bcc320e59fc800c6e24b7ced706a1cee114dc7212e94b591f"
+      }
+    ]
+  }
+]

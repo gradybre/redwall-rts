@@ -1,0 +1,10 @@
+{
+  "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0",
+  "godot/scripts/core/save_section_01.gd": "46605d156a333ab701593fdad344a8a77c21f5e5742ae471c33b0238f63992cb",
+  "godot/scripts/core/commands.gd": "139f2a3286c7a5e6a5721fc8a628740d467108a809ca6a7c63a3531d3d583477",
+  "godot/scripts/core/canonical_state_hash.gd": "8293e4a6038c6f58944011bd59ee4d568e805b61e38d5f073a3b98a3c1045b8a",
+  "godot/test/test_save_header.gd": "3fadb89943830602e782097077af11ff9217999afdf23dae9c3031bf07ede7bb",
+  "godot/test/test_save_section_01.gd": "f188246095c803e2b1dd3583881e482e62de5348afa89c9652ef9746f69a5333",
+  "godot/test/test_save_replay_checkpoint.gd": "d672136c9d8951971b749fb17b8d375135daf5918a8cf5040304e96538404fa4",
+  "godot/test/save_replay_focus.gd": "a6395bbc4ffc601408896634765ac0f546093140ffcd02305ab357e3ca725568"
+}

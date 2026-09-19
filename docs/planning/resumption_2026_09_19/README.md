@@ -10,7 +10,7 @@ snapshot with 356 changed/untracked entries; it was preserved. The [file invento
 
 ## Current verified position
 
-PRs 140–144 are merged. The latest integrated candidate is `24fe7d6`; its final CI passed **4643 tests / 180723 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is the active next task; full-file replay checkpoint binding remains a separate contract gate.
+PRs 140–145 are merged. The latest integrated candidate is `11526f7`; its final CI passed **4652 tests / 180955 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding has passed local acceptance and independent review, with integration CI pending.
 
 ## Verified baseline
 
@@ -178,4 +178,9 @@ Local acceptance: **4643 tests / 180723 assertions / zero failures**,15 static c
 
 SAVE-SEQ-R01 v2 advances section12 to schema3 with a28-byte prefix, preserving the runtime allocator's exhausted state after its last ordinary value is issued. The commands canonical owner advances to2 and declaration version to4; its high scalar is u64 while field counts and packed allocations stay unchanged. Old section schemas refuse explicitly.
 
-Local acceptance: **4652 tests / 180952 assertions / zero failures**, plus15 static checks; final focused268/33707/0. Tests cover both pending and drained exhaustion and actual next-submission refusal. [Evidence](../../validation/evidence/save-sequence-2026-09-19/) retains the caught owner-version mismatch and patch integration correction. Independent review found no blocking findings; CI is pending. The full-file header binding, remaining save owners/coordinator and first-playable settlement remain incomplete.
+Local acceptance: **4652 tests / 180952 assertions / zero failures**, plus15 static checks; final focused268/33707/0. Tests cover both pending and drained exhaustion and actual next-submission refusal. [Evidence](../../validation/evidence/save-sequence-2026-09-19/) retains the caught owner-version mismatch and patch integration correction. Independent review found no blocking findings. PR145 merged at11526f7 after exact-head CI35471420193 passed4652/180955/0. The full-file header binding, remaining save owners/coordinator and first-playable settlement remain incomplete.
+
+
+## Full-file checkpoint follow-through
+
+SAVE-REPLAY-R01 version2 and decision0156 define the full-file checkpoint as a redundant copy of the next economic admission pair, including exhaustion, validated against section12 and section1 tick. The outer header advances to format2/264bytes; section body layouts stay unchanged. Independent contract review's five gaps were resolved before implementation. Local acceptance passed **4662 tests / 181239 assertions / zero failures**, focused159/11265/0, all15 static checks and editor import. Independent source review found no blocking findings; five advisories have recorded dispositions. Integration CI remains pending. [Evidence](../../validation/evidence/replay-checkpoint-2026-09-19/) and the [source census](../../validation/evidence/replay-checkpoint-contract-2026-09-19/offset-census-disposition.md) record the exact scope. Full-file load coordination and the separately queued replay-stream contract remain unfinished.

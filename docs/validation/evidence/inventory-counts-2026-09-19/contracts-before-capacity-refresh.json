@@ -1,0 +1,146 @@
+[
+  {
+    "command": [
+      "python3",
+      "docs/validation/decision_numbers.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.036,
+    "output": "decision_numbers: PASS -- 152 records, 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/ready07_arithmetic.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.034,
+    "output": "{\"status\": \"PASS\", \"field_rows\": 144, \"allocation_rows\": 33, \"scheduler_total_bytes\": 8224, \"checked_local_links\": 129, \"runtime_tests\": \"NOT_RUN\"}\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/merge_gate.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.025,
+    "output": "merge_gate: PASS -- ledger only, 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/dispatch_plan.py",
+      "--validate"
+    ],
+    "exit_code": 0,
+    "seconds": 0.026,
+    "output": "dispatch_plan: PASS -- 77 tasks, 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/astra_inbox.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.026,
+    "output": "astra_inbox: PASS -- OPEN.md matches open_items.json\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_save_registry_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "seconds": 0.226,
+    "output": "PASS 31 independent name, cursor, UTF-8 framing and name-section-bound fixtures\nstate_registry_coverage: PASS -- 59 modules, 361 rows, 683 packed columns checked\nPASS source membership/types: 553 persisted packed fields (not semantic adapter validation)\nPASS registry structure: 52 owners, 602 canonical records\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_canonical_state_table.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.028,
+    "output": "PASS generated declaration table matches canonical_state_registry.json\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle01_handoff.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.027,
+    "output": "PASS Cycle 1: nine-owner wire arithmetic; four malformed target refusals; twelve starter-root fixtures; archived answers; queue gates; stable inbox anchors; packet evidence limits.\nScope: planning consistency only; no production codec, physical clearance, art or save-continuation acceptance.\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle02_handoff.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.026,
+    "output": "PASS Cycle 2 contract fixtures: 37 checks; projection, allocator, fit, gate and handoff cases.\nNo production codec, body measurement, movement admission, visual approval or save-continuation result is inferred.\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle03_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "seconds": 0.031,
+    "output": "PASS Cycle3: 76 checks; design geometry/format/grammar/handoff only.\nObserved registry: 602 canonical fields; 519 capacity strings = 473 exact + 46 upper bounds. Source proofs still owned by REGISTRY-CAPACITY-AUDIT.\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 1,
+    "seconds": 1.206,
+    "output": "REFUSED: docs/planning/registry_capacity_audit.json is not what this source produces\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 1,
+    "seconds": 2.422,
+    "output": "FAIL P09 --check passes against the committed sidecar\nFAIL P09 --check prints no refusal\nFAIL P09 the sidecar on disk is what render() produces\ntest_registry_capacity_audit: FAIL -- 190 check(s), 3 failure(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/lane_notes.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.039,
+    "output": "lane_notes: PASS -- 54 lane record(s), 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_envelopes.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.417,
+    "output": "test_movement_envelopes: PASS -- 191 check(s), 0 failure(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_profile_policy.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.071,
+    "output": "test_movement_profile_policy: PASS -- 148 check(s), 0 failure(s)\n"
+  }
+]

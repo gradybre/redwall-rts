@@ -1,0 +1,256 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_inventory_stock_counts.gd
+  PASS  test_empty_record_sizes_and_payload
+  PASS  test_multiple_stores_reservations_and_owner_read_only
+  PASS  test_shape_and_busy_refusals_have_defined_precedence
+  PASS  test_real_open_and_poisoned_transactions_are_untouched
+  PASS  test_malformed_live_rows_refuse_without_partial_output
+  PASS  test_structural_equipment_counts_do_not_claim_cross_owner_validation
+  PASS  test_checked_sum_boundary_overflow_and_row_precedence
+  PASS  test_retired_reused_rows_and_different_allocation_orders
+  PASS  test_reused_and_aliased_outputs_publish_independent_new_snapshots
+  PASS  test_actual_attestation_reentry_refuses_without_lowering_guard
+  PASS  test_real_gear_equip_destroy_empty_store_and_unequip
+test_inventory.gd
+  PASS  test_item_masses_match_gdd_5_7
+  PASS  test_item_id_space_does_not_drift_from_the_catalog
+  PASS  test_unregistered_item_is_refused
+  PASS  test_capacity_debit_uses_per_lot_ceiling
+  PASS  test_per_lot_rounding_differs_from_summed_total_rounding
+  PASS  test_merge_recovers_rounding_slack_without_changing_quantity
+  PASS  test_capacity_refusal_is_explicit_and_changes_nothing
+  PASS  test_capacity_is_never_silently_clamped
+  PASS  test_split_refused_when_per_lot_ceiling_would_exceed_capacity
+  PASS  test_reserved_container_mass_counts_against_capacity
+  PASS  test_lot_row_capacity_refusal_is_explicit
+  PASS  test_container_row_capacity_refusal_is_explicit
+  PASS  test_filters_refuse_a_disallowed_category
+  PASS  test_merge_refuses_each_differing_attribute
+  PASS  test_merge_refuses_across_containers
+  PASS  test_merge_adopts_the_older_rounded_age
+  PASS  test_split_refuses_degenerate_quantities
+  PASS  test_split_preserves_every_attribute
+  PASS  test_transfer_conserves_quantity_between_containers
+  PASS  test_transfer_merges_into_a_compatible_destination_lot
+  PASS  test_whole_lot_transfer_retires_the_source_row
+  PASS  test_transfer_refuses_an_over_capacity_destination
+  PASS  test_move_lot_carries_its_reservation
+  PASS  test_reserved_never_exceeds_quantity
+  PASS  test_reservation_cancellation_restores_available_exactly
+  PASS  test_reserved_quantity_cannot_be_transferred_away
+  PASS  test_consume_reserved_reduces_claim_and_quantity_together
+  PASS  test_sink_refuses_to_consume_claimed_quantity
+  PASS  test_failed_single_operation_leaves_state_byte_identical
+  PASS  test_all_or_nothing_under_mid_sequence_failure
+  PASS  test_operations_after_a_poisoned_step_refuse_without_writing
+  PASS  test_committed_transaction_is_durable
+  PASS  test_abort_restores_state_exactly
+  PASS  test_nested_begin_is_refused
+  PASS  test_journal_exhaustion_refuses_and_rolls_back
+  PASS  test_poisoning_does_not_outlive_the_transaction_that_caused_it
+  PASS  test_refusal_names_the_cause_that_actually_blocked_the_operation
+  PASS  test_container_mass_refusals_name_capacity_and_shortfall_separately
+  PASS  test_clear_does_not_let_a_pre_clear_ref_alias_a_rebuilt_row
+  PASS  test_stale_lot_ref_is_rejected_after_retirement
+  PASS  test_destroy_container_refuses_while_it_holds_lots
+  PASS  test_conservation_across_long_deterministic_random_sequence
+  PASS  test_random_sequence_keeps_reserved_within_quantity
+  PASS  test_random_sequence_keeps_container_mass_within_capacity
+  PASS  test_capacity_check_refuses_overflow_instead_of_wrapping
+  PASS  test_reserving_more_than_int64_holds_refuses
+  PASS  test_audit_detects_a_container_over_its_capacity
+  PASS  test_audit_scans_through_to_the_highest_row_ever_allocated
+  PASS  test_audit_detects_a_negative_reserved_mass
+  PASS  test_out_of_range_lot_int32_fields_are_refused_not_truncated
+  PASS  test_out_of_range_container_policy_is_refused_not_truncated
+  PASS  test_int32_boundary_values_are_stored_verbatim
+  PASS  test_unroundable_age_is_refused_at_lot_creation
+  PASS  test_merge_refuses_unroundable_ages_instead_of_calling_them_equal
+  PASS  test_transfer_refuses_when_a_merge_candidate_age_cannot_be_rounded
+  PASS  test_abort_restores_the_lot_free_stack_after_an_allocation_and_a_retirement
+  PASS  test_abort_restores_the_container_free_stack_after_a_destroy
+  PASS  test_module_publishes_no_provenance_or_policy_catalog_numbers
+  PASS  test_unset_provenance_is_the_compatibility_spelling_of_ordinary
+  PASS  test_every_published_member_is_admitted_and_reads_back
+  PASS  test_a_non_member_provenance_is_refused_and_writes_nothing
+  PASS  test_provenance_is_compared_for_equality_across_the_whole_domain
+  PASS  test_a_transfer_produces_exactly_one_surviving_object_per_call
+  PASS  test_a_refusal_never_carries_the_previous_operations_ref_or_value
+  PASS  test_every_refusing_operation_returns_the_null_ref_and_zero
+  PASS  test_a_poisoned_transaction_refuses_later_operations_with_the_first_code
+  PASS  test_audit_reuses_its_conservation_tally_across_repeated_calls
+  PASS  test_a_null_container_lot_refuses_with_no_authority_bound
+  PASS  test_a_null_container_lot_refuses_when_the_authority_does_not_attest
+  PASS  test_an_object_without_an_attestation_method_cannot_be_the_authority
+  PASS  test_unbinding_the_authority_refuses_while_equipped_lots_live
+  PASS  test_an_equipped_lot_is_excluded_from_container_mass
+  PASS  test_an_equipped_lot_is_excluded_from_loose_stock_availability
+  PASS  test_loose_and_equipped_always_partition_the_live_quantity
+  PASS  test_every_lot_mutator_refuses_an_equipped_lot
+  PASS  test_detach_refuses_a_lot_that_still_carries_a_reservation
+  PASS  test_attach_refuses_while_the_authority_still_calls_the_lot_equipped
+  PASS  test_unequip_lands_in_a_reserved_destination_without_losing_its_space
+  PASS  test_attach_from_reserved_mass_refuses_without_enough_reserved
+  PASS  test_a_detach_and_attach_round_trip_preserves_the_whole_lot_row
+  PASS  test_audit_refuses_an_orphaned_null_container_lot
+  PASS  test_audit_refuses_a_shelved_lot_the_authority_still_calls_equipped
+  PASS  test_an_authority_that_re_enters_the_inventory_is_refused
+  PASS  test_a_rolled_back_detach_restores_the_state_byte_for_byte
+  PASS  test_a_rolled_back_attach_restores_the_state_byte_for_byte
+  PASS  test_create_lot_still_demands_a_real_container
+  PASS  test_audit_re_derives_the_equipped_lot_count_instead_of_trusting_it
+  PASS  test_audit_refuses_a_cyclic_lot_list_instead_of_walking_it_forever
+  PASS  test_one_aged_hour_is_the_floor_of_the_two_factors_over_a_thousand
+  PASS  test_a_negative_aging_factor_refuses_instead_of_ageing_backwards
+  PASS  test_an_aged_hour_rolls_back_with_the_transaction_that_refused
+  PASS  test_a_transformed_lot_keeps_its_row_and_moves_both_conservation_ledgers
+  PASS  test_an_equal_mass_transformation_moves_the_containers_charged_mass_by_nothing
+  PASS  test_a_transformation_resets_the_age_so_the_new_item_starts_its_own_shelf_life
+  PASS  test_a_transformation_refuses_a_reserved_lot_rather_than_carrying_the_claim
+  PASS  test_a_transformation_refuses_an_unknown_item_the_same_item_and_an_empty_quantity
+  PASS  test_a_transformation_that_would_overflow_the_container_refuses_and_changes_nothing
+  PASS  test_neither_mutator_will_touch_an_equipped_lot
+  PASS  test_a_seed_expiry_authority_must_publish_the_predicate_it_is_bound_for
+  PASS  test_an_expired_seed_lot_cannot_be_reserved
+  PASS  test_an_expired_seed_lot_cannot_be_withdrawn
+  PASS  test_an_expired_seed_claim_is_revalidated_at_the_commit
+  PASS  test_an_expired_seed_lot_cannot_be_transferred_into_production
+  PASS  test_an_expired_seed_lot_cannot_be_moved_into_another_container
+  PASS  test_an_expired_seed_lot_cannot_be_split_for_seed_selection
+  PASS  test_an_expired_seed_lot_cannot_be_transformed_for_a_consumer
+  PASS  test_a_usable_seed_is_admitted_to_every_one_of_those_paths
+  PASS  test_every_admission_asks_the_authority_again
+  PASS  test_release_and_cancellation_are_never_refused_for_an_expired_seed
+  PASS  test_the_declared_expiry_may_retire_and_transform_what_no_consumer_may_touch
+  PASS  test_a_cleanup_declaration_licenses_exactly_one_following_step
+  PASS  test_a_cleanup_declaration_never_crosses_a_transaction
+  PASS  test_a_spent_declaration_does_not_come_back_in_the_next_transaction
+  PASS  test_an_authority_that_cannot_evaluate_a_lot_refuses_it
+  PASS  test_the_real_expiry_stage_converts_the_seed_its_own_predicate_refuses
+  PASS  test_the_real_expiry_stage_retires_a_zero_yield_seed_through_the_guard
+  PASS  test_a_transfer_preserves_the_source_provenance_on_the_new_row
+  PASS  test_a_whole_lot_move_preserves_provenance
+  PASS  test_a_transfer_never_merges_across_differing_provenance
+  PASS  test_a_rolled_back_transaction_restores_provenance_exactly
+  PASS  test_spoilage_carries_the_origin_onto_the_new_item
+  PASS  test_lot_provenance_into_separates_a_refusal_from_an_answer
+  PASS  test_owner_query_cells_is_two_per_container_row
+  PASS  test_containers_by_owner_lists_one_owners_rows_in_ascending_slot_order
+  PASS  test_containers_by_owner_matches_the_complete_owner_pair
+  PASS  test_containers_by_owner_returns_container_refs_and_not_the_owner_pair
+  PASS  test_containers_by_owner_skips_a_retired_row_that_still_carries_its_owner
+  PASS  test_containers_by_owner_proves_an_empty_result_for_a_live_owner
+  PASS  test_containers_by_owner_refuses_a_malformed_owner_instead_of_matching_unowned_rows
+  PASS  test_containers_by_owner_refuses_an_undersized_buffer_without_truncating
+  PASS  test_containers_by_owner_fills_a_full_store_and_changes_nothing
+  PASS  test_canonical_copy_leaves_the_live_columns_byte_identical
+  PASS  test_canonical_copy_preserves_generations_and_the_used_free_prefix
+  PASS  test_canonical_copy_writes_the_full_unused_payload_on_an_inactive_row
+  PASS  test_canonical_copy_writes_the_unused_container_payload_too
+  PASS  test_a_live_row_is_copied_exactly_and_never_masked
+  PASS  test_the_whole_lot_transfer_that_reuses_its_own_slot_still_works
+  PASS  test_the_canonical_copy_refuses_a_boundary_that_is_not_completed
+  PASS  test_the_canonical_copy_refuses_a_corrupt_allocator_partition
+  PASS  test_a_free_int32_max_slot_is_not_treated_as_retired
+  PASS  test_restore_publishes_without_clearing_or_advancing_a_generation
+  PASS  test_restore_refuses_a_projection_whose_inactive_payload_is_not_canonical
+  PASS  test_restore_refuses_a_projection_with_a_dirty_excluded_tail
+test_gear.gd
+  PASS  test_allocator_and_claim_bytes_match_the_ruling
+  PASS  test_eligibility_predicate_is_not_the_gear_category
+  PASS  test_candle_cannot_be_given_a_gear_instance
+  PASS  test_wear_models_are_assigned_per_item
+  PASS  test_cycle_wear_matches_the_gear_table
+  PASS  test_durability_caps_follow_manufacture_and_model
+  PASS  test_iron_manufacture_belongs_to_tool_alone
+  PASS  test_new_gear_starts_at_its_cap_and_unclaimed
+  PASS  test_gear_lot_must_be_indivisible
+  PASS  test_one_lot_carries_at_most_one_instance
+  PASS  test_create_refuses_inside_an_open_inventory_transaction
+  PASS  test_allocates_through_slot_16383
+  PASS  test_full_pool_creation_refuses_atomically
+  PASS  test_lowest_freed_row_is_reused_deterministically
+  PASS  test_no_row_is_published_before_it_is_initialised
+  PASS  test_stale_lot_handle_fails
+  PASS  test_stale_job_handle_fails
+  PASS  test_stale_owner_handle_fails
+  PASS  test_installed_owner_kinds_are_refused_not_guessed
+  PASS  test_two_jobs_cannot_claim_one_gear_object
+  PASS  test_exact_wear_starts_and_one_below_refuses
+  PASS  test_repeated_completion_cannot_double_debit
+  PASS  test_repeated_cancellation_cannot_double_release
+  PASS  test_repair_and_ownership_change_refused_while_claimed
+  PASS  test_outfit_tier2_keeps_identity_but_never_wears
+  PASS  test_a_broken_general_tool_cannot_start_work
+  PASS  test_general_wear_is_one_point_per_ten_work_units
+  PASS  test_general_wear_preserves_its_remainder_across_tasks
+  PASS  test_repeated_general_wear_cannot_double_debit
+  PASS  test_general_wear_floors_at_zero_and_reports_breaking
+  PASS  test_the_two_wear_models_never_cross
+  PASS  test_general_wear_rejects_an_out_of_range_remainder
+  PASS  test_repair_clamps_to_the_basic_general_cap
+  PASS  test_repair_clamps_to_the_iron_general_cap
+  PASS  test_repair_clamps_to_the_fishing_cap
+  PASS  test_repair_is_not_a_durability_reset
+  PASS  test_the_two_repair_recipes_stay_distinct
+  PASS  test_destroy_refuses_while_the_lot_is_still_live
+  PASS  test_destroy_refuses_while_claimed
+  PASS  test_restore_rebuilds_the_free_heap_ascending
+  PASS  test_restore_refuses_an_impossible_row
+  PASS  test_a_row_is_never_published_without_its_identity
+  PASS  test_state_image_is_row_history_independent
+  PASS  test_a_created_gear_row_is_not_equipped_and_keeps_its_container
+  PASS  test_equip_preserves_identity_age_provenance_quantity_and_durability
+  PASS  test_an_equipped_lot_has_a_null_container_and_charges_no_mass
+  PASS  test_unequip_returns_the_same_lot_without_resetting_durability
+  PASS  test_equip_and_unequip_move_the_equipment_mirror_together
+  PASS  test_wear_and_repair_write_through_to_the_equipment_mirror
+  PASS  test_the_mirror_audit_catches_a_hand_written_mirror
+  PASS  test_the_mirror_audit_catches_a_mirror_with_no_equipped_instance
+  PASS  test_a_refused_equip_leaves_every_store_byte_identical
+  PASS  test_an_equip_that_fails_after_the_mirror_write_rolls_all_three_back
+  PASS  test_an_unequip_that_fails_to_shelve_restores_the_equipped_relation
+  PASS  test_equip_and_unequip_refuse_while_a_job_holds_the_claim
+  PASS  test_set_owner_clear_owner_and_destroy_refuse_while_equipped
+  PASS  test_a_dead_owner_stops_attesting_and_the_inventory_audit_reports_the_orphan
+  PASS  test_only_the_general_tool_may_be_equipped
+  PASS  test_equipping_refuses_an_owner_who_is_not_a_live_resident
+  PASS  test_equip_refuses_without_its_bindings
+  PASS  test_unequip_lands_in_a_reserved_destination
+  PASS  test_rebinding_the_equip_collaborators_refuses_while_gear_is_equipped
+  PASS  test_the_starter_allotment_constants_are_the_gdd_numbers
+  PASS  test_seeding_creates_24_tools_with_12_equipped_and_12_stored
+  PASS  test_every_seeded_tool_starts_at_durability_1000
+  PASS  test_starter_seeding_mints_no_outfit_tier2_item
+  PASS  test_seeding_refuses_a_cohort_that_is_not_twelve_residents
+  PASS  test_seeding_refuses_a_repeated_owner
+  PASS  test_a_seeding_that_runs_out_of_container_space_undoes_itself_whole
+  PASS  test_seeding_refuses_whole_when_the_gear_pool_cannot_hold_24
+  PASS  test_owned_but_unequipped_gear_attests_nothing
+  PASS  test_equipping_a_worn_tool_carries_its_wear_with_it
+  PASS  test_accrued_wear_keeps_the_claim_and_applied_wear_releases_it
+  PASS  test_accrual_carries_the_remainder_exactly_as_the_applied_form_does
+  PASS  test_preflight_general_wear_reports_durability_and_writes_nothing
+  PASS  test_preflight_general_wear_refuses_a_wrong_job_and_a_wrong_wear_model
+  PASS  test_accrual_refuses_a_fishing_model_and_an_out_of_range_remainder
+  PASS  test_accrual_can_break_a_tool_without_giving_the_claim_back
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+WARNING: 275 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
+
+232 test(s), 3515 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

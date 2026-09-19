@@ -1,0 +1,5 @@
+{
+  "godot/scripts/core/inventory.gd": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
+  "godot/test/test_inventory_stock_counts.gd": "52bfa985b3d749d2c27c97abc1ae3e79459c70f29948dc02b28d038dfa5751a3",
+  "godot/test/inventory_counts_focus.gd": "7b18a669095a3382bcbc5886dc95bc6cf015aaee9aaf7fd7b5091965b99bbae7"
+}

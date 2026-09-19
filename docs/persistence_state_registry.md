@@ -380,6 +380,13 @@ Neither needs new state.
 | Inventory counts and capacities | -- | -- | -- | -- | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | `_c_capacity`/`_l_capacity` are construction arguments; `_c_free_count`, `_l_free_count`, `_c_live_count` and `_l_live_count` are recomputed from `_c_live`/`_l_live` and the free stacks. `_equipped_lot_count` is recomputed the same way, from the live lots whose `_l_container_slot` is `-1`, and `audit()` already re-derives it rather than trusting it. |
 | Transaction state and scan hints | -- | -- | -- | -- | 3 | -- | `_tx_open`, `_tx_poisoned`, `_tx_error`, `_tx_saved_*`, `_plan`, `_math`, `_out_ref`, `_out_value`. ARCH-SAVE-003 saves only a completed boundary, so `_tx_open` must be false at any legal save point. `_c_slot_high_water`/`_l_slot_high_water` are excluded by the module's own `state_bytes()` precisely so two byte images of identical state cannot differ over a scan hint. `_tx_saved_equipped_count` belongs to the same transaction group. `_equipment_authority` is a wiring reference to `gear.gd` and `_attesting` is a frame-local re-entry guard that is false outside an attestation: both rebind at load, and a loader must re-bind the authority before auditing, because with none bound every equipped lot reads as an orphan. |
 
+INIT-COUNT-R01v2 / decision0159 adds nested caller-owned `StockCounts`, not owner
+state: four256-entry i64 buffers (8192B), plus one8192B temporary staging record
+per cold count. On success the target adopts independent staging buffers; no
+persistent Inventory member, canonical field or schema version is added. The
+single scan performs local structural validation without equipment callbacks;
+full cross-owner attestation remains the audit/load coordinator's obligation.
+
 ### `godot/scripts/core/item_definitions.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "ce679f85885349168745d3cead107dec7ccded59",
+  "task": "Audit bounded inventory projection integration prerequisites for INIT0",
+  "paths": [
+    "docs/planning/resumption_2026_09_19/starter_settlement.md",
+    "docs/planning/resumption_2026_09_19/starter_binding_manifest.json",
+    "godot/scripts/systems/economy_system.gd",
+    "godot/scripts/main.gd",
+    "godot/scripts/ui/ui_world_session.gd",
+    "docs/validation/evidence/inventory-authority-contract-2026-09-19/source-excerpts.json"
+  ],
+  "instructions": "Read-only focused audit for INIT0 inventory authority. Actualbootprobe known: UI180kwood40kberries24ktools in Economy separateInventory; simulationSettlementInventoryzero; StockAge usesSettlement. Need turnlegacyEconomy into read-only borrowed projection with no transient production-sizedInventory allocation, no clear/load/seed writes throughborrow, unavailabledistinctzero, oneownerworldpublish. Existingfullnewworldtransaction blocked diskrollback/physicalINITC/D; do not pretendunboundhelperfixesboot. Determine smallestboundedpreparation API task that materiallyenablescutover withoutloststockfakecontainers orunfinishedruntimeactivation. Analyzeall productionmutatorcalls visible main/worldsession vsreaders, read-only summary needs(wholelive/loose/equipped/unreserved/readyNP), safeefficientallcontainer/lotenumeration sourcegaps (onlypublicowner-filtered/containerchain readers supplied; no assertabsenceoutsideexcerpt), catalogidentity/lifetime/reset binding and commit/stockhour summaryfreshness, capacities/memory. Source excerpts missingrequestedfunctionname meansnotshown, notproofabsent. Return finite actualcontradictions and exactproposedAPI signatures/outputrecords/refusals/refresh atomicity andbudget, with alternative rejectedwherevaluable. This is advisory engineeringaudit, no sourceedits oractivation or fullPC acceptance. Keep concise<=2500words, actionable notfullspecrewrite. RawJSONexactkeys status,summary,questions,files,decisionIds;statuscomplete;filesone artifact docs/validation/evidence/inventory-authority-contract-2026-09-19/gap-audit.md,content report,baseSha256null. Escapequotes. One15minattempt."
+}

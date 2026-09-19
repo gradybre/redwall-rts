@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "ab457e8380e8026d1b8768331d33a8119a8f0a86",
+  "task": "Implement INIT-COUNT-R01v2 source insertion block",
+  "paths": [
+    "docs/planning/inventory_stock_counts_contract.md",
+    "docs/decisions/0159-count-stock-without-invoking-equipment-authorities.md",
+    "godot/scripts/core/inventory.gd",
+    "godot/scripts/core/int_math.gd",
+    "docs/validation/evidence/inventory-authority-contract-2026-09-19/counts-review-disposition.md"
+  ],
+  "instructions": "Implement accepted INIT-COUNT-R01v2. Return one NEW artifact docs/validation/evidence/inventory-counts-2026-09-19/inventory-stock-counts-block.gd, baseSha256 null, content is exact standalone insertion fragment containing new constants, nested StockCounts class and public/private methods only. Astra will insert it unchanged immediately before '# --- Audit ' in inventory.gd after verifying input SHA. Do NOT return the whole inventory or patch, do not rewrite existing helpers. No tools. No tests (parent authors independently). Follow existing typed GDScript style with docstrings. Keep helpers short. Strict no owner or callback writes, local checked math. Output shape validation uses target null short-circuit. Class must refer outer ITEM_CAPACITY legally as existing CanonicalColumns pattern. Strict highwater, per-row input, cheap structural placement. Use 4 separate zero initialized buffers then replace fields with staging arrays after success, not element copying into potentially aliased caller. Error constants StringName converted String. Local arithmetic out distinct owner scratch. Four successful array adoptions no callback between. New nested object allocations allowed cold only. Return exact raw JSON status complete,summary,questions [],files [one],decisionIds ['0159']. <=4000 output words. Flag uncertainties instead of changing contract."
+}

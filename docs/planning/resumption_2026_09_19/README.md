@@ -10,7 +10,7 @@ snapshot with 356 changed/untracked entries; it was preserved. The [file invento
 
 ## Current verified position
 
-PRs 140–148 are merged. The latest integrated candidate is `ce679f8`; its final CI passed **4670 tests / 181533 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
+PRs 140–149 are merged. The latest integrated candidate is `ab457e8`; its final CI passed **4675 tests / 181984 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
 
 The family planning draft is integrated without runtime activation. A new runtime counterexample proves that planner dirty-list order/membership affects future job IDs despite identical previously declared fields; SAVE-J2-R01 implements the format/classification correction with explicit old-schema refusal, merged in PR148. The full owner bulk adapter remains open.
 
@@ -215,3 +215,17 @@ occupy288 packed bytes. It is not yet wired into the running settlement: family
 owner APIs, admission/lifecycle atomicity, relationship/injury consumers, named
 scenarios and qualified stage profiles remain substantive work. PC04 stays
 in-flight; these tests do not certify family gameplay.
+
+
+The fixed-stage helper and family planning repairs merged in [PR149](https://github.com/gradybre/redwall-rts/pull/149) at `ab457e8380e8026d1b8768331d33a8119a8f0a86`. CI run35475979469 passed both checks on exact head `be314d1e0b0ca474984729794cac6ea87c44d460`; bounded helper queue entry is done. Whole family integration remains open. The next inventory-owner contract is under independent review; it does not yet alter the two-store boot.
+
+
+## Inventory count primitive
+
+INIT-COUNT-R01v2 / decision0159 supplies one callback-free cold whole-stock scan,
+with checked live/loose/equipped/unreserved-loose totals and atomic output. Eleven
+new tests include real Gear equip/unequip and aliased caller outputs. Final local
+suite4686/183384/0, focused232/3515/0,15static checks and independent review pass.
+[Evidence](../../validation/evidence/inventory-counts-2026-09-19/) retains the
+contract corrections and actual array-alias probe. This candidate does not bind
+the UI or fix the two inventories; ready NP and composition remain work.

@@ -1,0 +1,60 @@
+[
+  {
+    "attempt": "inventory-counts-a1",
+    "model": "claude-sonnet-5",
+    "session_id": "ca66c75e-2ea8-4325-8576-f2257bd47d43",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/inventory_stock_counts_contract.md",
+        "sha256": "59972286de951c47d4041880b8ecd2a38a3294afba10f10ad4bb43ebc4dcc881"
+      },
+      {
+        "path": "docs/decisions/0159-count-stock-without-invoking-equipment-authorities.md",
+        "sha256": "4c8b31d8607bca293a81a455ab21b9707f2ae41f84528a068785846660dae456"
+      },
+      {
+        "path": "godot/scripts/core/inventory.gd",
+        "sha256": "fb5edbddab8c8852148a544d010ede1b03750016f9432aa0b7a3f93bacb8b848"
+      },
+      {
+        "path": "godot/scripts/core/int_math.gd",
+        "sha256": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca"
+      },
+      {
+        "path": "docs/validation/evidence/inventory-authority-contract-2026-09-19/counts-review-disposition.md",
+        "sha256": "8b52be9267479ddce0fdb2c37c5c91a172e03b23f3c495f085867d6e536ec06c"
+      }
+    ]
+  },
+  {
+    "attempt": "inventory-counts-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "dc66ed11-1fa6-43bf-a4e3-09fde3ef2ec8",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/inventory_stock_counts_contract.md",
+        "sha256": "59972286de951c47d4041880b8ecd2a38a3294afba10f10ad4bb43ebc4dcc881"
+      },
+      {
+        "path": "docs/validation/evidence/inventory-authority-contract-2026-09-19/counts-review-disposition.md",
+        "sha256": "8b52be9267479ddce0fdb2c37c5c91a172e03b23f3c495f085867d6e536ec06c"
+      },
+      {
+        "path": "godot/scripts/core/inventory.gd",
+        "sha256": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39"
+      },
+      {
+        "path": "godot/test/test_inventory_stock_counts.gd",
+        "sha256": "52bfa985b3d749d2c27c97abc1ae3e79459c70f29948dc02b28d038dfa5751a3"
+      },
+      {
+        "path": "docs/validation/evidence/inventory-counts-2026-09-19/focus-first.log",
+        "sha256": "a4559f5b587072008a275bc3e525d9e9e603f6dea0e6dcd4e41a7036cbc277aa"
+      }
+    ]
+  }
+]

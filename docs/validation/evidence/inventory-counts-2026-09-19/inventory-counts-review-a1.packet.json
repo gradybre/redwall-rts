@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "ab457e8380e8026d1b8768331d33a8119a8f0a86",
+  "task": "Independent source acceptance INIT-COUNT-R01v2",
+  "paths": [
+    "docs/planning/inventory_stock_counts_contract.md",
+    "docs/validation/evidence/inventory-authority-contract-2026-09-19/counts-review-disposition.md",
+    "godot/scripts/core/inventory.gd",
+    "godot/test/test_inventory_stock_counts.gd",
+    "docs/validation/evidence/inventory-counts-2026-09-19/focus-first.log"
+  ],
+  "instructions": "Independent source acceptance. Contract v2 is authoritative. Confirm row validation and checked integer totals, callback-free reads, no private scratch writes, atomic refusals and publication with aliased caller arrays. Parent independently wrote tests; focused232/3515/0 passes. Review real Gear fixture and cleanup, error precedence, restore precondition, output old-reference contract. Counts only validate Inventory local structure; no stronger cross-owner attestation promise. Full suite is underway. If defects cite concrete repro/remedy. Scope no activation. Return exact raw JSON status complete,summary,questions [],files exactly one NEW docs/validation/evidence/inventory-counts-2026-09-19/independent-review.md baseSha256 null content concise <=1400words,decisionIds []. Do not edit source. No tools. One bounded attempt; output properly JSON escaped."
+}

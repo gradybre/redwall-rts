@@ -1510,7 +1510,7 @@
     {
       "id": "FAMILY-RULES-TABLE",
       "title": "Publish reviewed fixed-stage hunger and daily-demand tables",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "godot/scripts/core/family_rules.gd",
@@ -1519,7 +1519,26 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "FAMILY-RULES-R01v1 / decision0158 independently reviewed. Pure unbound derived catalog helper only; full PLAN-PC04-FAMILIES remains in_flight. No runtime family activation, changed save fields or new profile assumptions."
+      "note": "FAMILY-RULES-R01v1 / decision0158 independently reviewed. Pure unbound derived catalog helper only; full PLAN-PC04-FAMILIES remains in_flight. No runtime family activation, changed save fields or new profile assumptions.",
+      "pr": 149,
+      "merge_commit": "ab457e8380e8026d1b8768331d33a8119a8f0a86",
+      "merged_at": "2026-09-19T23:31:07Z"
+    },
+    {
+      "id": "INIT-COUNT",
+      "title": "Add read-only whole-inventory stock count snapshot",
+      "status": "in_flight",
+      "depends_on": [
+        "INIT-A"
+      ],
+      "owns": [
+        "godot/scripts/core/inventory.gd",
+        "godot/test/test_inventory_stock_counts.gd",
+        "docs/planning/inventory_stock_counts_contract.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "INIT-COUNT-R01v2 / decision0159. Independent contract review disposition accepted. Unbound owner primitive; no Economy/UI/startup activation."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

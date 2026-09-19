@@ -1,0 +1,64 @@
+[
+  {
+    "attempt": "inventory-authority-audit-a1",
+    "model": "claude-opus-5",
+    "session_id": "b8fe6584-7ddf-4e4e-9e3e-fae24f8994c3",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/resumption_2026_09_19/starter_settlement.md",
+        "sha256": "2a2143a9cdb56190cac3029cfac08e8e0cd7ae86bf7eeba58f3f16d7c6027963"
+      },
+      {
+        "path": "docs/planning/resumption_2026_09_19/starter_binding_manifest.json",
+        "sha256": "bab27391cb2daaac6939463174893e348818cffe911e23440958a1bddf5ce54b"
+      },
+      {
+        "path": "godot/scripts/systems/economy_system.gd",
+        "sha256": "037a99044c6fdaa7a77ed36e7602adc07f8bc7bb54d7107baa5bfc213b507446"
+      },
+      {
+        "path": "godot/scripts/main.gd",
+        "sha256": "59e3b8a91b458523375251d1ce8bdde2d4ac29e28a6d56c6f0977561cc53b29d"
+      },
+      {
+        "path": "godot/scripts/ui/ui_world_session.gd",
+        "sha256": "201ebeb98ad8fc9ac06510360dcd15cd1b8dfbaeeaf86c6c92093a6a8150ae1c"
+      },
+      {
+        "path": "docs/validation/evidence/inventory-authority-contract-2026-09-19/source-excerpts.json",
+        "sha256": "0be1d1d6f5cd1032409e2d7af8a2adcc7b82c54ad8c11d52f23ecceea564f0fe"
+      }
+    ]
+  },
+  {
+    "attempt": "inventory-counts-contract-a1",
+    "model": "claude-opus-5",
+    "session_id": "1d7c9ba8-b4e6-4aa5-b51c-fcb4149253d2",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/inventory_stock_counts_contract.md",
+        "sha256": "c89945d123c58d0d51d2fe1f8a3bf7433b9fd4346ebb7027fed003e8096ec8db"
+      },
+      {
+        "path": "godot/scripts/core/inventory.gd",
+        "sha256": "fb5edbddab8c8852148a544d010ede1b03750016f9432aa0b7a3f93bacb8b848"
+      },
+      {
+        "path": "godot/scripts/core/gear.gd",
+        "sha256": "8b957442e3397708cd8343fc9849b4f6cccb5f4478bd7099d44afe47d3499472"
+      },
+      {
+        "path": "godot/test/test_gear.gd",
+        "sha256": "a65de86810092f58c43cb5c3c957eaf3a66d13048e836cf1c597778dfbdef146"
+      },
+      {
+        "path": "godot/scripts/core/int_math.gd",
+        "sha256": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca"
+      }
+    ]
+  }
+]

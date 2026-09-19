@@ -12,7 +12,7 @@ extends RefCounted
 ##
 ## WHAT THIS MODULE IS NOT
 ##
-##   * It is NOT the header's body digest. That is SHA-256 over file bytes [256, EOF) and lives in
+##   * It is NOT the header's body digest. That is SHA-256 over file bytes [264, EOF) and lives in
 ##     save_header.gd. The two answer different questions and are computed over different inputs.
 ##   * It is NOT a release-save certification. `docs/planning/canonical_state_registry.json` carries
 ##     `release_save_ready: false`, and nothing here changes that. At the time of writing NO owner

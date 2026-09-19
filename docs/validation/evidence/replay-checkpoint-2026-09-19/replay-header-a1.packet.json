@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "1a6a86f783ca301b37b9bd569a131bacb21b914c",
+  "task": "Implement SAVE-REPLAY-R01 v2 header codec and pure checkpoint binding",
+  "paths": [
+    "docs/planning/replay_checkpoint_contract.md",
+    "docs/decisions/0156-bind-full-file-replay-checkpoints-to-economic-allocation.md",
+    "docs/validation/evidence/replay-checkpoint-contract-2026-09-19/independent-contract-review.md",
+    "docs/validation/evidence/replay-checkpoint-contract-2026-09-19/astra-disposition.md",
+    "godot/scripts/core/save_header.gd",
+    "godot/scripts/core/save_codec.gd",
+    "godot/test/test_save_header.gd"
+  ],
+  "instructions": "Ack SAVE-REPLAY-R01 version2, including final encode clarification. Implement ONLY godot/scripts/core/save_header.gd as a unified patch in one NEW artifact docs/validation/evidence/replay-checkpoint-2026-09-19/header.patch. Parent owns every test, section1 file offsets, comments in other modules, registry/docs/queue/ledger. Outer2/header264/table264; offset216 low-u32,220 carried reservedu32=0,224 high-u64,232digest. Typed Header fields economic_next_sequence_low/high/checkpoint_reserved_zero; remove old replay_sequence and OFFSET_REPLAY_SEQUENCE. Use constants OFFSET_ECONOMIC_NEXT_SEQUENCE_LOW, OFFSET_CHECKPOINT_RESERVED_ZERO, OFFSET_ECONOMIC_NEXT_SEQUENCE_HIGH. Existing CRC256 entries stays256! No blind numeric replacement. Preserve existing other decode/descriptor/hash semantics. Add exact preamble_refusal16byte/magic/versionprecedence, invoke before264byte gate. No public oldformat writer: encode bounds-first then version/header/table gate,digests,widths,pair/padding,stagingcopy. Decode stage and reject tuple/padding beforecopy, unreadable checkpoint high maps REFUSE_SEQUENCE_RANGE (other u64 failures unchanged). Add pure header-owned tuple predicate for ordinaryu32pairs or terminal(2^32,0), without any section/scheduler/commands preload. Header semantic validator includes tuple/padding. Add checkpoint_binding_refusal(header,section12_next_high,section12_next_low,section1_completed_tick) exactly as contract, null/version/pair/padding/negative ticks and distinct mismatch code. It validates binding only, no disk/store/clock operations. Preserve accepted record APIs except explicitly changed checkpoint fields/version. Docstrings/type all APIs; no stub/TODO. Update stale header layout comments but preserve clearly historical provenance where useful; no claim fullfilewriter nowexists. Return ONLY raw valid JSON NO fences with EXACT keys status,summary,questions,files,decisionIds; files EXACTLY [{\"path\":\"docs/validation/evidence/replay-checkpoint-2026-09-19/header.patch\",\"content\":\"unified patch with exact old contexts and valid hunk counts\",\"baseSha256\":null}]. A single missing old return/context caused previous repair: verify exact old source lines and include old return removals when replacing them. No tests/tools execution claim. Deadline15min/no-progress3min oneattempt."
+}

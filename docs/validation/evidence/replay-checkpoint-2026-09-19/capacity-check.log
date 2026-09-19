@@ -1,0 +1,10 @@
+registry: 604 listed fields, 596 canonical, 8 non-hash (0 admitted here)
+capacity census: 516 prose = 470 equality + 46 upper bound, 80 other canonical shapes, 55 distinct expressions
+  proved_equality                  470
+  proved_upper_bound               46
+  explained drift -- canonical_records: this audit 596, Astra Cycle 3 599 (-3) -- decision 0142 retired three deposit members
+  explained drift -- distinct_expressions: this audit 55, Astra Cycle 3 56 (-1) -- decision 0142 retired three deposit members
+  explained drift -- equality: this audit 470, Astra Cycle 3 473 (-3) -- decision 0142 retired three deposit members
+  explained drift -- packed_source_fields: this audit 550, Astra Cycle 3 553 (-3) -- decision 0142 retired three deposit members
+  explained drift -- prose_records: this audit 516, Astra Cycle 3 519 (-3) -- decision 0142 retired three deposit members
+census differs from Astra Cycle 3 (388f4f4) only by recorded decisions: reconciled

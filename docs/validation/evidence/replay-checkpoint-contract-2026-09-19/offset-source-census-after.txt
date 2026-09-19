@@ -1,0 +1,340 @@
+docs/validation/qualify.py:56:    require(SHA.fullmatch(descriptor['sha256']) is not None,'Invalid SHA-256')
+docs/validation/qualify.py:92:        require(row['living']==256,'Capture does not maintain 256 living residents')
+godot/scripts/presentation/resident_crowd.gd:5:## REQ-SET-163 allows "at most 24 of the 256 residents" to be conventional skeletal actors. This
+godot/scripts/presentation/resident_crowd.gd:39:## WHY 512 INSTANCES AND NOT 256. GDD 4.1 caps LIVING residents at 256, but `residents.gd` holds
+godot/test/test_economy_system.gd:486:	"""Deriving food-days over a full 256-resident settlement costs less than 2 ms."""
+godot/test/test_economy_system.gd:495:	assert_less_than(_economy.get_last_food_days_usec(), SUMMARY_BUDGET_USEC, "under 2ms at 256 residents")
+docs/validation/validate_cycle03_handoff.py:15: rw={'wide':480,'standard':360,'narrow':176}[p];tw={'wide':320,'standard':304,'narrow':256}[p]
+docs/validation/test_qualify.py:21:                           process_ram_bytes=128000000,skeletal_count=24,living=256,ticks_executed=count))
+docs/validation/test_qualify.py:117:        self.assertEqual(route_bound(256,256)['p95_ready_tick'],31)
+docs/validation/test_qualify.py:118:        self.assertTrue(route_bound(58,256)['within_250000_us'])
+docs/validation/test_qualify.py:119:        self.assertFalse(route_bound(59,256)['within_250000_us'])
+docs/validation/validate_cycle02_handoff.py:71:    check(fit((-256,-256),(256,256),(256,256))==1)
+docs/validation/validate_cycle02_handoff.py:72:    check(fit((-256,-256),(257,256),(256,256))==2)
+docs/validation/validate_cycle02_handoff.py:73:    refuse(lambda:fit((-257,-100),(255,100),(256,256)))
+docs/validation/validate_cycle01_handoff.py:42:    assert sum(primary)==344067 and 256+15*64+offset==3753984
+docs/validation/cycle03_ui_font_probe.gd:20:		for value: String in ["5.48 days","256 / 256","1,000 U","0.00 days"]:
+godot/scripts/systems/settlement_system.gd:559:## are for 256 residents on a stated machine, and nothing here qualifies against them.
+godot/scripts/systems/settlement_system.gd:2455:	A measurement, not a budget: nothing here compares it to REQ-SET-163, which is stated for 256
+godot/scripts/systems/game_manager.gd:27:## the 250/256 reserve and decision 0054's queued overload rung. Decision 0054's open item 1 named
+docs/validation/headless/resident_slots.gd:5:const LIVING_CAP: int = 256
+docs/validation/validate_save_registry_handoff.py:21:        assert key and key.isascii() and len(key.encode()) <= 256
+docs/validation/validate_save_registry_handoff.py:26:            assert key and key.isascii() and len(key.encode()) <= 256 and key not in seen
+godot/scripts/systems/ui_manager.gd:642:	# UI-C3-R01 §2: living population renders as "N / 256", not a bare count. The cap is read
+tools/benchmark_main_loop.gd:22:## for byte to `res://bench/benchmark_work.gd` and records its SHA-256, which is why the
+docs/validation/ready07_arithmetic.py:53:assert DECISION_0050_ROW_SUM-DECISION_0050_CARRIED_BEFORE==131072+306304+256
+docs/validation/ready07_arithmetic.py:187:assert (SCHEDULER_CAPACITY,SCHEDULER_RECORD,SCHEDULER_CONTROL,SCHEDULER_NORMAL)==(256,32,32,250)
+tools/test_registry_capacity_audit.py:171:	"""N03: prose says 256, source says 512. The audit reports the contradiction."""
+tools/test_registry_capacity_audit.py:173:	row = audit_one(index, "`BETA_ROWS` = 256")
+tools/test_registry_capacity_audit.py:175:	check("N03 the finding keeps both numbers", row["prose_value"] == 256 and row["source_value"] == 512)
+tools/test_registry_capacity_audit.py:321:	doubled = "const BETA_ROWS: int = 512\n" + const_module("BETA_ROWS", "256")
+tools/test_registry_capacity_audit.py:340:	row = audit_one(module_index(alpha=mixed), "`_beta_rows * BETA_STRIDE` <= 256")
+tools/compare_work_benchmarks.py:217:            f"  - started {payload['started_utc']}, fixture SHA-256 "
+tools/run_work_benchmark.py:8:Every invocation freezes the fixture into a temporary directory and records its SHA-256, hashes
+tools/run_work_benchmark.py:46:POPULATIONS = (12, 256)
+tools/run_work_benchmark.py:296:    """SHA-256 of every core script the fixture preloads, so a result names the code it timed."""
+tools/run_work_benchmark.py:380:             f"- fixture SHA-256: `{payload['fixture_sha256']}`",
+tools/run_work_benchmark.py:391:                  f"- prior fixture SHA-256: `{prior['fixture_sha256']}`",
+tools/pool_work_benchmarks.py:30:The bare `loop` config is NOT a substitute: tens of microseconds at population 256 leaves the
+tools/pool_work_benchmarks.py:212:              "| Side | Path | Started | work.gd SHA-256 | fixture SHA-256 | runner |",
+tools/validate_movement_envelopes.py:44:offset is +256/+256. So a swept body wide enough to reach behind its own root
+tools/validate_movement_envelopes.py:790:# enough that its translated minimum goes negative at the baseline +256/+256 root offset. The
+tools/validate_movement_envelopes.py:832:		"anchor_to_root_offset_units": {"x": 256, "z": 256},
+tools/export_benchmark_build.py:21:WHAT IT DOES NOT TOUCH. `tools/benchmark_work.gd` is copied byte for byte; its SHA-256 is
+tools/export_benchmark_build.py:84:    """The SHA-256 of one file's bytes."""
+tools/export_benchmark_build.py:89:    """SHA-256 of every core script, so a build can name the code it packed."""
+godot/test/test_orchard_hive.gd:610:	var inventory: InventoryScript = InventoryScript.new(8, 256)
+tools/benchmark_work.gd:31:## Hash protocol: SHA-256 over UTF-8 canonical lines. Each line is
+tools/benchmark_work.gd:70:## a bare index-and-add pass, tens of microseconds at population 256, small enough that the
+tools/benchmark_work.gd:249:	if population != 12 and population != 256:
+tools/benchmark_work.gd:250:		return "population must be 12 or 256"
+tools/benchmark_work.gd:851:	"""SHA-256 of this fixture's canonical state lines; sets `_hash_lines` to the line count."""
+docs/validation/arithmetic.py:11:    if min(small,medium,large)<0 or small+medium+large>256:raise ValueError('Invalid living cohort')
+docs/validation/arithmetic.py:45:            'path':'GDD §5.11 fixed 2048 expansions/tick and route gate; NEW cold FIFO workload of 256 expansions per route',
+docs/validation/arithmetic.py:68:        'path':[route_bound(n,256) for n in (1,58,59,256)],
+tools/test_movement_envelopes.py:10:minimum is negative at the baseline +256/+256 root offset. The clearance square
+tools/test_movement_envelopes.py:78:		offset: Tuple[int, int] = (256, 256), residual: int = 0) -> Dict[str, Any]:
+tools/test_movement_envelopes.py:235:	exact_um = ((cell * top) - 256) * vme.MICROMETRES_PER_METRE // 1024
+tools/test_movement_envelopes.py:568:		vme.quantize_axis_units(-250000, 250000, 0) == (-256, 256),
+tools/test_movement_envelopes.py:673:	exact_um = (cell - 256) * vme.MICROMETRES_PER_METRE // 1024
+tools/test_movement_envelopes.py:692:	flush_um = -256 * vme.MICROMETRES_PER_METRE // 1024
+tools/test_movement_envelopes.py:737:	check("P09b its root/centre offset parsed as 256", GEOMETRY.cell_centre_offset_units == 256,
+docs/validation/headless/test_foundation.gd:42:	for index: int in range(256):
+docs/validation/headless/test_foundation.gd:47:	check.call(pool.next_persistent_id == next_id and pool.living_count == 256, "refusal does not consume identity")
+godot/test/test_save_header.gd:140:	assert_equal(SaveHeader.OFFSET_ECONOMIC_NEXT_SEQUENCE_LOW, 216, "checkpoint low")
+godot/test/test_save_header.gd:142:	assert_equal(SaveHeader.OFFSET_ECONOMIC_NEXT_SEQUENCE_HIGH, 224, "checkpoint high")
+godot/test/test_save_header.gd:384:	"""The offset-72 bytes must BE catalog_ids.gd's digest, not a second SHA-256 of something."""
+godot/test/test_save_header.gd:658:	assert_equal(header.body_digest.size(), 32, "the digest is SHA-256")
+docs/validation/ui_refinement_contract.py:45:        mw,dw=(256,384) if profile=='WIDE' else (208,336) if profile=='STANDARD' else (160,320)
+godot/test/test_save_replay_checkpoint.gd:59:	assert_equal(bytes.slice(216, 232).hex_encode(), "efcdab89000000000000008000000000", "checkpoint layout")
+godot/test/test_save_replay_checkpoint.gd:80:			assert_equal(bytes.slice(216, 232).hex_encode(), "00000000000000000000000001000000", "terminal bytes")
+godot/test/test_save_replay_checkpoint.gd:119:		bytes.encode_u64(224, high)
+godot/test/test_save_replay_checkpoint.gd:125:	terminal_low.encode_u64(224, 4294967296)
+godot/test/test_save_replay_checkpoint.gd:126:	terminal_low.encode_u32(216, 1)
+godot/test/test_save_replay_checkpoint.gd:133:	for size: int in [0, 7, 8, 11, 12, 15, 16, 256, 263]:
+godot/test/test_save_replay_checkpoint.gd:136:		for size: int in [16, 256, 264]:
+godot/test/test_save_replay_checkpoint.gd:158:			header.header_bytes = 256
+godot/test/test_save_replay_checkpoint.gd:161:			header.section_table_offset = 256
+godot/test/test_save_replay_checkpoint.gd:176:	for offset: int in [32, 216, 224]:
+godot/test/test_needs.gd:88:		"256 living residents, matching entity_directory.gd")
+godot/test/test_needs.gd:117:	"""GDD §4.1: 512 rows but never more than 256 living residents."""
+godot/test/test_needs.gd:120:	assert_equal(_needs.living_count(), 256, "256 living")
+godot/test/test_needs.gd:121:	var refused := _needs.spawn(256, NeedsScript.SIZE_SMALL)
+godot/test/test_ui_manager.gd:186:	# UI-C3-R01 §2 renders living population as "N / 256". `contains("Residents 12")` still
+godot/test/test_ui_manager.gd:187:	# passed against "Residents 12 / 256" -- a prefix match that no longer proves the format,
+godot/test/test_ui_manager.gd:188:	# so it asserts the whole cell and the cap is read from the store rather than written 256.
+godot/test/test_lookdev_dimensions.gd:235:	"""128 MiB meshes and 256 MiB textures, inside the existing loaded-graphics ceiling."""
+godot/test/test_lookdev_dimensions.gd:237:	assert_equal(Dimensions.NONCREATURE_TEXTURE_BYTES, 268435456, "256 MiB of textures")
+godot/test/test_save_section_world_runtime.gd:149:	"""Debt is category 1: genuinely saved, and covered by the section CRC and body SHA-256."""
+godot/test/test_canonical_state_hash.gd:12:##      byte stream and its SHA-256 are pinned as hex computed independently in Python, NOT read
+godot/test/test_canonical_state_hash.gd:296:	"""SHA-256 of that exact stream, pinned as hex from Python, not from this module."""
+godot/test/test_canonical_state_hash.gd:304:	"""The digest is SHA-256 of the emitted stream and of nothing else."""
+godot/test/test_canonical_state_hash.gd:310:		"digest equals SHA-256 over the captured stream")
+godot/test/test_canonical_state_hash.gd:850:	"""Nonempty, printable ASCII, one final LF, at most 256 UTF-8 bytes including that LF."""
+godot/test/test_canonical_state_hash.gd:852:			"A".repeat(256) + "\n"]:
+godot/scripts/core/save_section_directory.gd:94:## the body SHA-256 over the same bytes and must not do it twice.
+godot/scripts/core/save_section_directory.gd:192:##   * The section CRC-32 and the body SHA-256 are `save_header.gd`'s. This module produces the
+godot/scripts/core/save_section_directory.gd:213:const OWNER_KEY_MAX_BYTES: int = 256
+godot/scripts/core/save_section_directory.gd:500:	chunk straddles two columns, so a caller folding CRC-32 and SHA-256 over the stream sees the
+godot/scripts/core/save_section_directory.gd:1100:	"""No kind exceeds its typed-store capacity, and living residents stay at or below 256."""
+godot/test/test_residents.gd:179:	"""GDD §4.1: storage is 512 rows but living population never exceeds 256."""
+godot/test/test_residents.gd:181:	assert_equal(_residents.population(), 256, "256 residents are alive")
+godot/test/test_residents.gd:185:	assert_equal(_residents.population(), 256, "nothing was silently dropped")
+godot/test/test_residents.gd:195:	assert_equal(_residents.population(), 256, "the population returns to the cap")
+godot/test/test_residents.gd:779:	"""256 is 0 modulo a PackedByteArray element: an unchecked store would read back as ADULT.
+godot/test/test_residents.gd:784:	var spawned: Residents.OpResult = _residents.spawn_with_stage(&"mouse", 256)
+godot/test/test_residents.gd:785:	assert_false(spawned.ok, "256 is not ADULT")
+godot/test/test_save_section_directory.gd:513:	padded.resize(1216)
+godot/test/test_save_section_directory.gd:516:	var refusal: SaveHeader.Refusal = SaveSectionDirectory.decode_into(padded, 1216, decoded)
+godot/test/test_save_section_directory.gd:517:	assert_true(refusal.is_ok(), "decode at 1216: %s %s" % [refusal.code, refusal.detail])
+godot/test/test_save_section_directory.gd:638:	"""GDD §4.1 caps living residents at 256 even though the store holds 512 rows."""
+godot/test/test_save_section_directory.gd:641:	assert_true(SaveSectionDirectory.record_refusal(_record).is_ok(), "256 residents is legal")
+godot/test/test_needs_columns.gd:293:	"""The cap is 256 and not 255: the boundary is asserted from both sides."""
+godot/test/test_needs_columns.gd:300:	assert_true(target.restore_columns(_columns), "256 living residents is accepted")
+godot/test/test_work.gd:1188:	_inventory = InventoryScript.new(8, 256)
+godot/test/test_residents_columns.gd:337:	"""ARCH-SAVE-005 caps living residents at 256 and the cap is checked before any write."""
+godot/test/test_settlement_system.gd:136:## A very loose ceiling. ARCH-PERF-001's real gate is p99 <= 2000 us at 256 residents on the
+godot/test/test_settlement_system.gd:1242:	Twelve residents is not 256, and a debug editor binary is not the exported release build
+godot/test/test_world_owner_columns.gd:70:	"""SHA-256 hex of an i32 column, so a failed comparison reports 64 characters, not 16384.
+godot/test/test_building_definitions.gd:198:	"""R-BUILD-DOM-003: `furniture_bit(i) = 1 << i`; the nine bits are 1..256 and the mask 511."""
+godot/test/test_building_definitions.gd:201:		"kitchen_bench": 32, "patient_bed": 64, "seat": 128, "shelf": 256,
+godot/test/test_save_codec.gd:167:	assert_false(SaveCodec.write_u8_into(bytes, 0, 256, scratch), "256 is not a u8")
+godot/scripts/core/save_section_navigation.gd:106:## scalars, 262144-cell builder columns, 256 descriptors, 8192 requests and two used prefixes. No
+godot/scripts/core/save_section_navigation.gd:201:## SAVE-LAYOUT-R01 / S2: owner keys are nonempty ASCII, at most 256 bytes.
+godot/scripts/core/save_section_navigation.gd:202:const OWNER_KEY_MAX_BYTES: int = 256
+godot/scripts/core/save_section_navigation.gd:554:		"""One route descriptor value: `column` is a DESC_* index, `row` a descriptor in [0, 256)."""
+godot/scripts/core/save_section_navigation.gd:723:	straddles two columns, so a caller folding CRC-32 and SHA-256 over the stream sees exactly the
+godot/scripts/core/save_section_navigation.gd:1699:	the number of stored routes and not the 256-row capacity.
+godot/test/test_field_policy.gd:727:	designation at 256 tiles, so the largest honest answer is 64000 milli-U."""
+godot/test/test_field_policy.gd:731:	var full: IntMath.IntResult = _policy.seed_requirement_milli_of(_field, 256)
+godot/test/test_field_policy.gd:733:	assert_equal(full.value, SEED_MILLI_PER_TILE * 256, "256 tiles need 64000 milli-U")
+godot/test/test_save_section_01.gd:112:		digest[index] = (index * 7 + 3) % 256
+godot/test/test_save_section_01.gd:140:	"""SHA-256 hex of a byte run, so a mismatch reports 64 characters and not 3.75 MB.
+godot/test/test_save_section_01.gd:153:	"""SHA-256 hex of an i32 column."""
+godot/test/test_save_section_01.gd:158:	"""SHA-256 hex of an i64 column."""
+godot/scripts/core/item_definitions.gd:11:##     256-key ItemDefinition cap is enforced there).
+godot/test/test_catalog_ids.gd:209:	"""The artifact is 4062 bytes, 28 domains, 275 entries, and hashes to the recorded SHA-256."""
+godot/test/test_catalog_ids.gd:212:	assert_equal(artifact.digest_hex(), COMMITTED_SHA256, "artifact SHA-256")
+godot/test/test_scheduler_events.gd:110:	"""256 records of 32 bytes plus a 32-byte control header is the row added to ARCH-MEM-010."""
+godot/test/test_scheduler_events.gd:111:	assert_equal(Scheduler.QUEUE_CAPACITY, 256, "capacity is 256 records")
+godot/test/test_scheduler_events.gd:112:	assert_equal(Scheduler.RECORD_PAYLOAD_BYTES, 8192, "256 * 32 is 8192")
+godot/test/test_scheduler_events.gd:510:	assert_equal(_queue.pending_count(), 256, "the ring is now exactly full")
+godot/test/test_scheduler_events.gd:514:	"""At 256 even a reserved control event refuses; no accepted record is ever overwritten."""
+godot/test/test_scheduler_events.gd:521:	assert_equal(_queue.pending_count(), 256, "the ring is full")
+godot/test/test_scheduler_events.gd:528:	assert_equal(_queue.pending_count(), 256, "nothing was overwritten")
+godot/test/test_scheduler_events.gd:705:	"""There is no order index: position i is (head + i) mod 256, wrap included."""
+godot/test/test_scheduler_events.gd:717:		"the head has wrapped the 256-row ring")
+godot/test/test_scheduler_events.gd:962:	"""E <= 4096, P <= 1048576, S <= 256, each refused by name rather than clamped."""
+godot/test/test_scheduler_events.gd:963:	assert_equal(Scheduler.section_twelve_refusal(4096, 1048576, 256), &"",
+godot/test/test_scheduler_events.gd:1079:	"""count <= 256, checked before any row is read."""
+godot/test/test_catalog.gd:3:## independence, fixed-enum preservation, and the ItemDefinition 256-key ceiling.
+godot/test/test_catalog.gd:77:# --- ItemDefinition 256-key ceiling ----------------------------------------------------------------
+godot/test/test_catalog.gd:88:	"""256 keys is the documented ceiling, not the first rejected size."""
+godot/test/test_catalog.gd:90:		"ItemDefinition", _make_unique_keys(256)
+godot/test/test_catalog.gd:92:	assert_true(result.ok, "256 ItemDefinition keys must be accepted")
+godot/test/test_catalog.gd:93:	assert_equal(result.ids.size(), 256, "all 256 keys receive an id")
+godot/test/test_catalog.gd:97:	"""ARCH-STATE-004: an ItemDefinition catalog over 256 keys is refused at compile time."""
+godot/test/test_catalog.gd:106:	"""The 256 cap is ARCH-STATE-004's ItemDefinition limit, not a blanket rule on every domain."""
+godot/test/test_economic_sequence_format.gd:176:	assert_equal(Scheduler.section_twelve_length(4096, 1048576, 256), 1318988, "maximum formula")
+godot/test/test_fishing.gd:140:const EXPECTED_FISHING_STATE_BYTES: int = 256
+godot/test/test_fishing.gd:1010:	"""Ruling §5's 512-row slice and its 12800-byte payload, plus decision 0027's 256 bytes."""
+godot/test/test_entity_directory.gd:145:	"""Living residents stop at 256 with an explicit code, leaving the 256 alive intact."""
+godot/test/test_entity_directory.gd:149:	assert_equal(_directory.live_count(EntityDirectoryScript.KIND_RESIDENT), 256, "256 residents are alive")
+godot/test/test_entity_directory.gd:153:	assert_equal(_directory.live_count(EntityDirectoryScript.KIND_RESIDENT), 256, "no resident was silently dropped")
+godot/test/test_entity_directory.gd:172:	"""The 256 living cap is a resident rule, not a directory-wide one."""
+godot/test/test_entity_directory.gd:838:	"""`_active` and `_retired` are one byte per slot, and only two of its 256 values are legal."""
+godot/test/test_entity_directory.gd:940:	"""GDD §4.1 caps living residents at 256; the resident store's 512 rows do not.
+godot/test/test_entity_directory.gd:950:	assert_true(_restore_into(loaded), "256 living residents restore: %s"
+godot/test/test_entity_directory.gd:952:	assert_equal(loaded.live_count(EntityDirectoryScript.KIND_RESIDENT), 256, "all of them")
+godot/test/test_memory_ledger_probe.gd:157:	assert_equal(int(row["packed_bytes"]), 256 * 32, "256 records of 32 bytes")
+godot/scripts/core/movement.gd:367:# resident per tick -- 256 residents x 30 Hz x 4x. `_consume_into()` and `_spend_budget()` each
+godot/test/test_inventory.gd:15:## Preloaded for the drift guard only: ARCH-STATE-004's 256 item keys are written down in
+godot/test/test_inventory.gd:138:	"""DRIFT GUARD. ARCH-STATE-004 caps the compiled ItemDefinition domain at 256 keys, and
+godot/test/test_inventory.gd:139:	that 256 is written down twice: `catalog.gd`'s ITEM_DEFINITION_MAX_KEYS, which refuses a
+godot/test/test_inventory.gd:148:	assert_equal(InventoryScript.ITEM_CAPACITY, 256, "ARCH-STATE-004's compiled key cap")
+godot/test/test_inventory.gd:741:	_inv = _make_inventory(4, 256)
+godot/test/test_save_section_name_pool.gd:384:	assert_equal(_decode_code(_patched(payload, SaveNames.OFFSET_PRIMARY_COUNT, _u64_le(256))),
+godot/test/test_presentation_extract.gd:402:	assert_equal(_extract.snapshot_bytes(), 244, "which is 224 + 14 + 6 bytes")
+godot/test/test_movement.gd:864:	for asserted: int in [-1, ResidentsScript.LIFE_STAGE_COUNT, 256]:
+godot/scripts/core/save_section_rng.gd:67:##   * The section CRC-32 and the body SHA-256 are `save_header.gd`'s; this module produces the
+godot/scripts/core/save_section_rng.gd:385:	concatenated in and the final SHA-256. None of those is decided here.
+godot/scripts/core/save_section_01.gd:122:const OWNER_KEY_MAX_BYTES: int = 256
+godot/test/test_save_section_pending_commands.gd:191:	assert_equal(PendingCommands.extension_byte_length(256), 48 + 32 * 256, "X = 48 + 32*256")
+godot/test/test_save_section_pending_commands.gd:196:		76 + 64 * 4096 + 1048576 + 32 * 256, "the bound is 76 + 64*4096 + 1048576 + 32*256")
+godot/test/test_save_section_pending_commands.gd:338:	"""The scheduler ring wraps past 256 and its stored head is still the canonical 0."""
+godot/test/test_save_section_pending_commands.gd:753:		PendingCommands.REFUSE_SCHEDULER_COUNT, "S above 256 refuses, and is named as S")
+godot/test/test_navigation.gd:52:## ARCH-PATH-008's first benchmark fixture is "256 distinct short routes". 256 is also the living
+godot/test/test_navigation.gd:54:const READINESS_BATCH: int = 256
+godot/test/test_navigation.gd:173:	"""2048 expansions a tick, 256 descriptors, 1048576 route cells, 8192 request records."""
+godot/test/test_navigation.gd:175:	assert_equal(NavigationScript.ROUTE_DESCRIPTOR_CAPACITY, 256, "256 cache descriptors")
+godot/test/test_navigation.gd:629:	goal to the anchor and then back over cells it had already visited, for 224 against an optimum
+godot/test/test_navigation.gd:796:		"all 256 descriptors are in use")
+godot/test/test_navigation.gd:803:	assert_equal(held.size(), NavigationScript.ROUTE_DESCRIPTOR_CAPACITY, "256 routes are held")
+godot/test/test_navigation.gd:837:	"""Submit one short macro-anchor route per macro until all 256 descriptors are referenced."""
+godot/test/test_navigation.gd:914:	"""Submit ARCH-PATH-008's 256 distinct short routes, none of them starting on a macro anchor.
+godot/test/test_navigation.gd:951:	PATH-R02 requires this because cross-start cache reuse decreases: 256 residents in 256
+godot/test/test_navigation.gd:956:	256-expansion burst and the labyrinth, on the qualification hardware.
+godot/test/test_navigation.gd:959:	var settled: PackedInt32Array = _ticks_to_ready(requests, 256)
+godot/test/test_navigation.gd:987:	_ticks_to_ready(requests, 256)
+godot/test/test_navigation.gd:1025:	var settled: PackedInt32Array = _ticks_to_ready(requests, 256)
+godot/test/test_navigation.gd:1053:	var first_ticks: PackedInt32Array = _ticks_to_ready(first, 256)
+godot/test/test_navigation.gd:1060:	var second_ticks: PackedInt32Array = _ticks_to_ready(second, 256)
+godot/test/test_ui_registry.gd:39:		UiRegistry.GATE_ALWAYS, 160, 192, 256, 288],
+godot/test/test_save_section_navigation.gd:499:	padded.resize(1216)
+godot/test/test_save_section_navigation.gd:503:	var decoded: SaveHeader.Refusal = SaveSectionNavigation.decode_into(padded, 1216, back)
+godot/test/test_save_section_navigation.gd:504:	assert_true(decoded.is_ok(), "decode at 1216 succeeds: %s" % decoded.detail)
+godot/test/test_save_section_navigation.gd:641:	    out of 13 scalars, four 262144-cell builder columns, 256 route descriptors, 8192 requests
+godot/test/test_save_section_navigation.gd:643:	  * The 256 route descriptors and the 262144 spatial cells are validated SEPARATELY and are
+godot/test/test_save_section_navigation.gd:652:	assert_equal(SaveSectionNavigation.ROUTE_DESCRIPTOR_CAPACITY, 256,
+godot/test/test_save_section_navigation.gd:653:		"the 256 route descriptors are a separate extent")
+godot/test/test_save_section_navigation.gd:655:	for rejected: int in [256, 262144, 511, 8704, 262912]:
+godot/test/test_save_section_navigation.gd:699:		== SaveSectionNavigation.ROUTE_DESCRIPTOR_CAPACITY, "nor the 256 route descriptors")
+godot/test/test_save_section_navigation.gd:718:	honest.offset = 256
+godot/test/test_save_section_navigation.gd:733:	forged.offset = 256
+godot/test/test_save_section_navigation.gd:752:	var navigation: SaveHeader.Refusal = _decode(_patch(bytes, 18558, 256, SaveCodec.U64_BYTES),
+godot/test/test_save_section_navigation.gd:755:		"navigation primary 256 is refused: %s" % navigation.detail)
+godot/test/test_ui_layout.gd:5:## default scale: resources x16..376; alerts x460..820; time x960..1264; minimap x16..224,
+godot/test/test_ui_layout.gd:30:const SPAN_MINIMAP: Array[float] = [16.0, 224.0, 464.0, 704.0]
+godot/test/test_ui_layout.gd:32:const SPAN_COMMANDS: Array[float] = [256.0, 896.0, 568.0, 704.0]
+godot/test/test_ui_layout.gd:234:		"which fits inside the 256-wide narrow cluster")
+godot/scripts/core/save_header.gd:6:## sentence that follows it. Bytes 216..263, and outer format version 2, are transcribed from
+godot/scripts/core/save_header.gd:8:## SAVE-R09-001's fixed outer version 1 / 256-byte header for the outer number and header
+godot/scripts/core/save_header.gd:15:##   offset, always 264 (u64) · 208 chronicle record count (u64) · 216 economic next sequence
+godot/scripts/core/save_header.gd:16:##   low (u32) · 220 reserved zero (u32) · 224 economic next sequence high (u64) · 232 body
+godot/scripts/core/save_header.gd:29:## `catalog_ids.gd.build()` / `digest_of()`. There is exactly one SHA-256 of the catalog in this
+godot/scripts/core/save_header.gd:106:const OFFSET_ECONOMIC_NEXT_SEQUENCE_LOW: int = 216
+godot/scripts/core/save_header.gd:108:const OFFSET_ECONOMIC_NEXT_SEQUENCE_HIGH: int = 224
+godot/scripts/core/save_header.gd:213:	"""Build the 256-entry reflected CRC table once, from the stated reversed polynomial."""
+godot/scripts/core/save_header.gd:214:	if _crc_table.size() == 256:
+godot/scripts/core/save_header.gd:217:	table.resize(256)
+godot/scripts/core/save_header.gd:218:	for index: int in 256:
+godot/scripts/core/save_header.gd:320:	"""Judge the offset-216 pair and the offset-220 reserved word of an already staged header.
+godot/scripts/core/save_header.gd:408:	The 16-byte preamble gate runs FIRST, so a 256-byte outer format 1 file is named an
+godot/scripts/core/save_header.gd:457:	"""Stage the offset-216 low word, the offset-220 reserved word and the offset-224 high word.
+godot/scripts/core/save_header.gd:459:	The cursor already sits at offset 216 when `_read_header_words()` returns, so all three are
+godot/scripts/core/save_header.gd:771:	"""SHA-256 over the section table plus every section byte: everything from offset 264 on.
+godot/test/test_gear.gd:64:	_inv = InventoryScript.new(8, 256)
+godot/test/test_gear.gd:1039:	_inv = RefusingDetachInventory.new(8, 256)
+godot/test/test_gear.gd:1064:	_inv = RefusingAttachInventory.new(8, 256)
+godot/scripts/core/save_section_pending_commands.gd:65:## `_head`; `scheduler_events.gd` holds 256 rows and a ring `_head`. In BOTH, only the `_count`
+godot/scripts/core/save_section_pending_commands.gd:240:## `76 + 64*0 + 0 + 32*0`, and `76 + 64*4096 + 1048576 + 32*256`. Both stated so a reader can see
+godot/scripts/core/save_section_pending_commands.gd:968:	"""The contract's "Require E <= 4096, P <= 1048576, S <= 256", naming which one failed.
+godot/scripts/core/sim_clock.gd:34:## R07-SCHED-001's separate 256-record queue, its own unsigned 64-bit sequence,
+godot/scripts/core/sim_clock.gd:44:## boundary barrier, the unsigned-sequence tiebreak, the 250/256 reserve and
+godot/scripts/core/scheduler_events.gd:19:##   Capacity 256 records = 8192 bytes; queue control 32 bytes; TOTAL 8224 bytes.
+godot/scripts/core/scheduler_events.gd:114:## Contract: "Capacity 256 records = 8192 bytes. Queue control is 32 bytes ... Total 8224 bytes."
+godot/scripts/core/scheduler_events.gd:115:const QUEUE_CAPACITY: int = 256
+godot/scripts/core/scheduler_events.gd:217:## Contract: "Require E <= 4096, P <= 1048576, S <= 256".
+godot/scripts/core/scheduler_events.gd:412:		"256 records of 32 bytes plus a 32-byte control header is the ledger's 8224")
+godot/scripts/core/scheduler_events.gd:564:	"""The 256/250 split: normal traffic stops at 250 so internal control events always fit."""
+godot/scripts/core/scheduler_events.gd:1252:	"""The contract's "Require E <= 4096, P <= 1048576, S <= 256" and nonnegativity."""
+godot/scripts/core/scheduler_events.gd:1367:	"""The contract's 256-record bound."""
+godot/scripts/core/save_section_name_pool.gd:141:##   * The section CRC-32 and body SHA-256 are `save_header.gd`'s; this module produces the
+godot/scripts/core/save_section_name_pool.gd:167:## SAVE-LAYOUT-R01: owner keys are nonempty ASCII, at most 256 bytes.
+godot/scripts/core/save_section_name_pool.gd:168:const OWNER_KEY_MAX_BYTES: int = 256
+godot/scripts/core/save_section_name_pool.gd:753:	which section 15 owns along with the `RWL-STATE-1` domain string and the final SHA-256. They
+godot/test/test_buildings.gd:397:	assert_equal(_store.furniture_mask_of(_pantry).value, 256, "and its mask is untouched")
+godot/test/test_buildings.gd:436:	"""kitchen_bench(32) + hearth(4) + shelf(256) = 292, which §5.9's kitchen row contains."""
+godot/test/test_buildings.gd:442:	assert_equal(_store.furniture_mask_of(_pantry).value, 256, "the pantry holds shelves only")
+godot/test/test_buildings.gd:452:	assert_equal(_store.furniture_mask_of(room).value, MASK_BED_HEARTH_SHELF, "1 + 4 + 256")
+godot/test/test_buildings.gd:546:	assert_equal(_store.furniture_mask_of(first).value, 256, "the first room holds a shelf")
+godot/test/test_buildings.gd:647:	assert_equal(_store.furniture_mask_of(_pantry).value, 256 + 2, "shelf plus decoration")
+godot/test/test_buildings.gd:649:	assert_equal(_store.furniture_mask_of(_pantry).value, 256, "and its bit goes with it")
+godot/test/test_buildings.gd:702:	assert_equal(_store.furniture_mask_of(_kitchen).value & 256, 256,
+godot/test/test_buildings.gd:915:	"""Occupancy cannot exceed the 256 living-population cap; temperature may be negative."""
+godot/test/test_spatial_world.gd:55:	"""ARCH-PATH-001: 256 m square at 1/2 m gives 512x512=262144 cells of 512 position units."""
+godot/test/test_spatial_world.gd:60:		SpatialWorldScript.CELLS_X * SpatialWorldScript.CELL_SIZE_UNITS, 256 * 1024,
+godot/test/test_spatial_world.gd:61:		"512 cells of 512 units span exactly 256 m")
+godot/test/test_spatial_world.gd:86:	assert_equal(x, 300 * 512 + 256, "centre x is the cell origin plus half a cell")
+godot/test/test_spatial_world.gd:87:	assert_equal(z, 200 * 512 + 256, "centre z is the cell origin plus half a cell")
+godot/test/test_spatial_world.gd:93:	"""A position beyond the 256 m square refuses rather than clamping to an edge cell."""
+godot/test/test_spatial_world.gd:97:	assert_false(_world.cell_of_position_into(262144, 0, _result), "256 m is one past the last cell")
+godot/scripts/core/save_section_world_runtime.gd:40:## ARCH-HASH-001 while remaining covered by the section CRC-32 and the body SHA-256. So:
+godot/scripts/core/save_section_world_runtime.gd:563:	final SHA-256. None of those is decided here.
+godot/scripts/core/save_section_world_runtime.gd:647:## Owner keys are nonempty ASCII, at most 256 bytes (S2).
+godot/scripts/core/save_section_world_runtime.gd:648:const OWNER_KEY_MAX_BYTES: int = 256
+godot/scripts/core/inventory.gd:183:## ARCH-STATE-004: at most 256 compiled ItemDefinition keys.
+godot/scripts/core/inventory.gd:186:const ITEM_CAPACITY: int = 256
+godot/scripts/core/residents.gd:7:##     rows and the 256 living cap. Every spawn here goes through `create(KIND_RESIDENT)`, so
+godot/scripts/core/residents.gd:111:## Resident typed rows, GDD §4.1: storage 512, living population never above 256.
+godot/scripts/core/residents.gd:113:const RESIDENT_LIVING_CAP: int = 256
+godot/scripts/core/spatial_world.gd:62:const CELL_CENTRE_OFFSET_UNITS: int = 256
+godot/scripts/core/jobs.gd:67:## would leave a resident idle for 256 passes, i.e. 256 real seconds at 1x, and §5.3 says the
+godot/scripts/core/event_schedule.gd:21:##   there. Its queue is a 256-slot RING with a movable `_head`.
+godot/scripts/ui/ui_hit_test.gd:57:const REGION_CAPACITY: int = 256
+godot/scripts/core/buildings.gd:24:## interior_partition=16, kitchen_bench=32, patient_bed=64, seat=128, shelf=256 and the known
+godot/scripts/core/buildings.gd:50:## Both rooms still carry shelf-presence bit 256; presence is not capacity.
+godot/scripts/core/buildings.gd:1092:	"""Set `Room.occupants`. Refuses a negative count or one above the 256 living population cap."""
+godot/scripts/core/catalog.gd:66:const ITEM_DEFINITION_MAX_KEYS: int = 256
+godot/scripts/core/catalog.gd:698:	repeats, or the domain is ItemDefinition with more than 256 keys.
+godot/scripts/core/canonical_state_hash.gd:7:## RWL-STATE-1") defines section 15 as exactly 32 raw SHA-256 bytes over an ordered stream of
+godot/scripts/core/canonical_state_hash.gd:11:## and streams the result into SHA-256 without ever materialising the whole stream.
+godot/scripts/core/canonical_state_hash.gd:15:##   * It is NOT the header's body digest. That is SHA-256 over file bytes [264, EOF) and lives in
+godot/scripts/core/canonical_state_hash.gd:84:## SAVE-R09-002 / S2: owner and field keys are nonempty ASCII, at most 256 bytes.
+godot/scripts/core/canonical_state_hash.gd:85:const MAX_KEY_BYTES: int = 256
+godot/scripts/core/canonical_state_hash.gd:86:## S2 freezes the engine identity line at 256 UTF-8 bytes "including its final LF".
+godot/scripts/core/canonical_state_hash.gd:87:const MAX_ENGINE_IDENTITY_BYTES: int = 256
+godot/scripts/core/canonical_state_hash.gd:277:# --- bounded SHA-256 emitter ------------------------------------------------------------------------
+godot/scripts/core/canonical_state_hash.gd:281:	"""Appends canonical bytes into a fixed chunk buffer and folds full chunks into SHA-256.
+godot/scripts/core/canonical_state_hash.gd:300:		"""Allocate the one chunk buffer and start SHA-256. `p_capture_limit` 0 disables capture."""
+godot/scripts/core/canonical_state_hash.gd:333:		"""Fold the buffered bytes into SHA-256 and rewind the buffer cursor."""
+godot/scripts/core/canonical_state_hash.gd:432:		"""Fold the tail and write the 32 raw SHA-256 bytes into `out`. False on any refusal."""
+godot/scripts/core/canonical_state_hash.gd:438:			return fail(REFUSE_DIGEST_LENGTH, "SHA-256 returned %d bytes" % digest.size())
+godot/scripts/core/canonical_state_hash.gd:687:		"""SAVE-R09-002: keys are nonempty ASCII, at most 256 UTF-8 bytes."""
+godot/scripts/core/canonical_state_hash.gd:788:		"""Walk the declaration and write the 32 raw SHA-256 bytes into `result`.
+godot/scripts/core/canonical_state_hash.gd:859:		"""SAVE-R09-003's engine line: nonempty ASCII, one trailing LF, at most 256 UTF-8 bytes."""
+godot/scripts/core/canonical_state_hash.gd:865:				"engine identity line is %d bytes, over the 256-byte cap" % encoded.size())
+godot/scripts/core/navigation.gd:104:const ROUTE_DESCRIPTOR_CAPACITY: int = 256
+godot/scripts/core/navigation.gd:305:	"""Allocate the 1048576-cell route arena and the 256 route descriptors, all marked free.
+godot/scripts/core/navigation.gd:1417:	"""How many of the 256 route descriptors currently hold a stored route."""
+godot/scripts/core/needs.gd:135:const RESIDENT_LIVING_CAP: int = 256
+godot/scripts/core/needs.gd:1697:# 256-living cap is checked against the RECOMPUTED number, so a save claiming a 300-strong
+godot/scripts/core/needs.gd:1904:	from the caller. That recount is this store's validator: ARCH-SAVE-005's 256 living residents
+godot/scripts/core/catalog_ids.gd:45:## still differ byte for byte, and it is the bytes the SHA-256 covers.
+godot/scripts/core/catalog_ids.gd:685:	"""SHA-256 over exactly these bytes: the save header's offset-72 catalog hash."""
+godot/scripts/core/fishing.gd:181:##     policy flag (+32) as **256 bytes** of schema addition; decision 0027 is Accepted on that
+godot/scripts/core/fishing.gd:194:##     to the 256-byte aggregate/policy total above. The EXPEDITION STORE'S OWN COLUMNS DO NOT
+godot/scripts/core/fishing.gd:1852:	"""Decision 0027's ratified 256 bytes: effort_used 128, restocking 96, intensive_harvest 32.
+godot/scripts/core/entity_directory.gd:124:## Resident storage is 512 slots but living residents never exceed 256 (GDD §4.1).
+godot/scripts/core/entity_directory.gd:125:const RESIDENT_LIVING_CAP: int = 256
+godot/scripts/ui/ui_registry.gd:267:	280, 280, 400, 256, 44, 36, 36, 36, 240, 36,
+godot/scripts/ui/ui_registry.gd:298:	256, 240, 44, 0, 512, 0,
+godot/scripts/ui/ui_layout.gd:76:const MINIMAP_W: Array[int] = [160, 208, 256]
+godot/scripts/ui/ui_layout.gd:80:const TIME_W: Array[int] = [256, 304, 320]
+godot/scripts/ui/ui_layout.gd:177:## padding 4, y6. Total width 252 fits the 256-wide cluster."
+godot/scripts/ui/hud.gd:36:## population as `N / 256`" and "assigned/legal usable bed capacity as `N / C` when its owning
+godot/scripts/ui/hud.gd:40:## "12 / 256". BOTH COMPOSE THEIR STRING IN `scripts/systems/ui_manager.gd` AND
+godot/scripts/ui/hud.gd:42:## adding " days" or a "/ 256" denominator HERE would be this file deriving a value, which is
+godot/scripts/ui/ui_shell.gd:236:## for a 256-resident roster is NOT built, and `set_roster()` says so when more exist.
+godot/scripts/ui/ui_shell.gd:271:## shell BUILDS for it: §1.3's virtualized list is not built here, exactly as the 256-resident
+godot/scripts/ui/ui_shell.gd:1435:	§1.3 requires a VIRTUALIZED list for a roster that can reach 256. This pool is fixed at
+godot/scripts/ui/ui_shell.gd:1477:		frame.accessibility_description += "; the virtualized list for 256 is not built"
+godot/scripts/core/save_section_job_indexes.gd:229:## SAVE-LAYOUT-R01: "nonempty ASCII, max 256 bytes".
+godot/scripts/core/save_section_job_indexes.gd:230:const OWNER_KEY_MAX_BYTES: int = 256
+godot/scripts/core/save_section_job_indexes.gd:893:	the concatenation order and the final SHA-256, and none of those is decided here.
+godot/scripts/core/field_policy.gd:26:## (3072 B) and two B8 (256 B). Those eight columns are here unchanged and unenlarged.
+godot/scripts/core/field_policy.gd:488:	store that silently addresses 128 rows of a 256-row owner class.
+godot/scripts/core/save_section_inventories.gd:112:## the caller folds each chunk because it must also fold the body SHA-256 over the same bytes.
+godot/scripts/core/save_section_inventories.gd:218:## SAVE-LAYOUT-R01 / S2: owner keys are nonempty ASCII, at most 256 bytes.
+godot/scripts/core/save_section_inventories.gd:219:const OWNER_KEY_MAX_BYTES: int = 256
+godot/scripts/core/save_section_inventories.gd:984:	owners, so a caller folding CRC-32 and SHA-256 over the stream sees exactly the bytes

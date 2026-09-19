@@ -162,9 +162,9 @@ const DESCRIPTOR_ROW_COUNT: int = 344067
 ## 44 + 4 + 311 wrapper bytes + 3752409 payload bytes.
 const SECTION_BYTES: int = 3752768
 
-## SAVE-R09's fixed header and fifteen 64-byte descriptors put the first body byte here, which
-## missing encoders never moved; what they blocked was every LENGTH after it.
-const FIRST_SECTION_OFFSET: int = 1216
+## SAVE-REPLAY-R01 outer format2: header264 plus fifteen64-byte descriptors gives1224.
+## Section-relative owner offsets and SECTION_BYTES remain R-WORLD-S1-001 unchanged.
+const FIRST_SECTION_OFFSET: int = 1224
 const SECTION_2_OFFSET: int = FIRST_SECTION_OFFSET + SECTION_BYTES
 
 # --- the seven ordinary owners' field tables ----------------------------------------------------

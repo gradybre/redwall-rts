@@ -1,0 +1,181 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_header.gd
+  PASS  test_crc32_matches_the_stated_check_vector
+  PASS  test_crc32_of_nothing_is_zero_and_of_one_byte_is_known
+  PASS  test_crc32_streams_incrementally_to_the_same_value
+  PASS  test_crc32_detects_a_single_flipped_bit
+  PASS  test_every_header_offset_matches_the_architecture_table
+  PASS  test_the_header_and_descriptor_sizes_are_exactly_consumed
+  PASS  test_the_magic_and_endian_sentinel_land_as_stated_bytes
+  PASS  test_the_header_round_trips_every_field
+  PASS  test_the_header_encoding_is_byte_identical_across_runs
+  PASS  test_a_maximum_tick_and_a_zero_tick_both_survive
+  PASS  test_a_short_buffer_refuses_rather_than_reading_past_its_end
+  PASS  test_a_corrupted_magic_is_refused
+  PASS  test_a_future_format_version_is_refused_separately_from_a_wrong_one
+  PASS  test_a_byte_swapped_endian_sentinel_is_refused
+  PASS  test_the_fixed_structural_constants_are_refused_when_changed
+  PASS  test_a_negative_completed_tick_is_refused
+  PASS  test_a_declared_file_length_that_is_not_the_real_one_is_refused
+  PASS  test_an_unrepresentable_u64_header_field_is_refused_not_read_as_negative
+  PASS  test_a_digest_of_the_wrong_length_is_refused_on_encode
+  PASS  test_the_catalog_hash_offset_agrees_with_the_catalog_module
+  PASS  test_the_header_carries_the_catalog_modules_digest_byte_for_byte
+  PASS  test_a_foreign_catalog_hash_is_refused
+  PASS  test_a_descriptor_round_trips_every_field_at_its_width_boundary
+  PASS  test_a_descriptor_zeroes_its_reserved_tail_and_refuses_a_dirty_one
+  PASS  test_descriptors_sit_on_a_64_byte_stride_without_interfering
+  PASS  test_a_descriptor_outside_its_buffer_is_refused
+  PASS  test_a_negative_descriptor_word_is_refused_on_encode
+  PASS  test_the_section_table_parses_all_fifteen_descriptors
+  PASS  test_a_section_table_that_runs_off_the_end_is_refused_and_publishes_nothing
+  PASS  test_a_correct_section_table_is_accepted
+  PASS  test_a_duplicate_or_out_of_range_section_id_is_refused
+  PASS  test_a_missing_section_id_is_refused
+  PASS  test_a_section_range_outside_the_file_is_refused
+  PASS  test_a_section_range_that_would_overflow_is_refused_before_it_wraps
+  PASS  test_overlapping_sections_are_refused_in_offset_order_not_listing_order
+  PASS  test_an_overlap_of_exactly_one_byte_is_refused
+  PASS  test_sections_laid_out_in_descending_offset_order_are_accepted
+  PASS  test_empty_sections_and_gaps_are_permitted
+  PASS  test_the_body_digest_covers_the_table_and_every_section_byte
+  PASS  test_the_body_digest_deliberately_does_not_cover_the_header
+  PASS  test_the_body_digest_refuses_a_file_with_no_body
+  PASS  test_a_whole_assembled_file_passes_every_check_in_order
+  PASS  test_assembling_the_same_file_twice_gives_identical_bytes
+  PASS  test_the_header_source_contains_no_float_path
+test_save_replay_checkpoint.gd
+  PASS  test_format2_header_has_an_independent_full_byte_vector
+  PASS  test_full_checkpoint_domain_round_trips_without_signed_combination
+  PASS  test_invalid_tuple_writer_and_semantic_validator_agree_atomically
+  PASS  test_reserved_word_is_carried_and_rejected_without_normalization
+  PASS  test_hostile_high_u64_and_terminal_low_refuse_without_copying
+  PASS  test_preamble_precedence_distinguishes_old_future_foreign_and_truncated
+  PASS  test_old_header_metadata_has_no_public_writer
+  PASS  test_binding_mismatch_is_visible_even_when_body_digest_is_unchanged
+  PASS  test_binding_rejects_invalid_inputs_before_reporting_mismatch
+  PASS  test_actual_exhausted_queue_binds_to_decoded_header_in_both_states
+test_save_section_01.gd
+  PASS  test_the_nine_owners_their_versions_and_their_counts_are_the_ruled_ones
+  PASS  test_only_resource_nodes_moved_to_owner_schema_two
+  PASS  test_every_wrapper_block_and_payload_offset_matches_the_ruling
+  PASS  test_the_section_arithmetic_is_the_rulings_and_the_table_agrees_with_itself
+  PASS  test_resource_nodes_declares_one_field_and_the_three_scratch_arrays_are_absent
+  PASS  test_every_declared_field_lands_at_the_rulings_count_and_value_offsets
+  PASS  test_the_section_carries_forty_four_stored_fields_and_thirty_six_records
+  PASS  test_the_encoded_section_is_exactly_the_ruled_length
+  PASS  test_the_provenance_prefix_and_store_count_sit_at_their_absolute_offsets
+  PASS  test_every_wrapper_is_pinned_at_its_absolute_offset
+  PASS  test_every_element_count_prefix_is_pinned_at_its_absolute_offset
+  PASS  test_the_two_fixed_format_payloads_carry_no_count_prefix
+  PASS  test_the_weather_block_is_one_aggregate_row_of_eight_and_two
+  PASS  test_the_mixed_grid_owners_declare_grid_primary_counts_not_singletons
+  PASS  test_the_module_declares_no_float_path
+  PASS  test_every_owner_round_trips_with_boundary_sentinels_intact
+  PASS  test_a_decoded_section_re_encodes_to_the_same_bytes
+  PASS  test_the_section_decodes_at_the_offset_a_real_file_puts_it_at
+  PASS  test_a_store_count_other_than_nine_is_refused
+  PASS  test_two_owner_keys_swapped_in_place_are_refused
+  PASS  test_a_wrong_key_byte_count_is_refused
+  PASS  test_a_wrong_owner_schema_version_is_refused_for_each_owner
+  PASS  test_a_wrong_primary_count_or_payload_length_is_refused
+  PASS  test_singleton_primary_counts_for_the_mixed_grids_are_rejected
+  PASS  test_every_element_count_prefix_must_equal_its_declared_count
+  PASS  test_a_section_one_byte_short_is_refused_rather_than_measured
+  PASS  test_a_refused_decode_leaves_the_callers_state_byte_identical
+  PASS  test_an_out_of_domain_value_is_refused_by_its_owners_own_validator
+  PASS  test_changing_only_the_deposit_scratch_changes_no_section_byte
+  PASS  test_a_placement_that_really_lands_does_change_the_section
+  PASS  test_the_resource_adapter_refuses_each_scratch_field_by_name
+  PASS  test_all_nine_section_one_owners_supply_a_canonical_adapter
+  PASS  test_every_declared_section_one_record_is_supplied_at_its_declared_count
+  PASS  test_an_unknown_field_key_is_refused_by_every_owner_adapter
+  PASS  test_the_runtime_adapter_emits_four_records_and_never_debt
+  PASS  test_a_published_seed_must_agree_with_provenance_and_with_the_runtime
+  PASS  test_an_unpublished_map_asserts_nothing_about_the_seed
+  PASS  test_a_validated_section_restores_into_a_second_world_and_captures_identically
+  PASS  test_a_refused_restore_leaves_the_target_world_unchanged
+  PASS  test_a_restore_that_refuses_late_still_leaves_the_earlier_owners_alone
+  PASS  test_an_unbound_store_refuses_rather_than_skipping_an_owner
+test_economic_sequence_format.gd
+  PASS  test_last_issued_command_round_trip
+  PASS  test_drained_exhausted_queue_round_trip
+  PASS  test_prefix_writer_refuses_invalid_tuple_without_any_write
+  PASS  test_prefix_writer_refuses_extreme_offsets_without_any_write
+  PASS  test_ordinary_high_words_keep_unsigned_values_and_zero_is_ordinary
+  PASS  test_schema_is_recognized_before_full_prefix_is_required
+  PASS  test_invalid_u64_and_terminal_tuples_refuse_atomically
+  PASS  test_section_size_constants_are_pinned_independently
+test_save_section_pending_commands.gd
+  PASS  test_section_identity_matches_the_ruling
+  PASS  test_owner_keys_are_in_ascii_order
+  PASS  test_layout_arithmetic_is_the_contracts_own
+  PASS  test_extension_length_inverse_is_a_shape_predicate
+  PASS  test_declared_field_ordinals_match_the_registry
+  PASS  test_record_field_ordinals_follow_the_wire_record_order
+  PASS  test_empty_section_bytes_are_pinned
+  PASS  test_one_command_and_one_event_bytes_are_pinned
+  PASS  test_descriptor_row_count_is_both_live_windows
+  PASS  test_round_trip_is_byte_identical
+  PASS  test_round_trip_survives_a_wrapped_economic_head
+  PASS  test_round_trip_survives_a_wrapped_scheduler_head
+  PASS  test_wrapped_scheduler_queue_restores_in_order
+  PASS  test_economic_sequence_at_the_u32_sign_bit_round_trips
+  PASS  test_economic_key_order_is_unsigned_across_the_sign_bit
+  PASS  test_reversed_sign_bit_keys_are_refused
+  PASS  test_scheduler_sequence_at_the_u32_sign_bit_round_trips
+  PASS  test_scheduler_sequence_read_signed_would_break_the_applied_gate
+  PASS  test_drained_rows_leave_no_trace_in_the_record
+  PASS  test_a_record_carrying_ring_garbage_is_refused
+  PASS  test_arena_bytes_no_command_owns_must_be_zero
+  PASS  test_arena_bytes_between_two_spans_must_be_zero
+  PASS  test_overlapping_payload_spans_are_refused
+  PASS  test_nonzero_reserved_word_is_refused
+  PASS  test_nonzero_flags_are_refused
+  PASS  test_unknown_command_kind_is_refused
+  PASS  test_foreign_player_id_is_refused
+  PASS  test_malformed_null_target_is_refused
+  PASS  test_nonzero_scheduler_head_is_refused
+  PASS  test_nonzero_scheduler_reserved_padding_is_refused
+  PASS  test_scheduler_events_at_two_boundaries_are_refused
+  PASS  test_non_increasing_scheduler_sequence_is_refused
+  PASS  test_exhausted_scheduler_sentinel_is_never_a_pending_event
+  PASS  test_extension_payload_length_must_agree_with_the_body
+  PASS  test_prefix_extension_bytes_must_agree_with_the_body
+  PASS  test_extension_tag_must_sit_after_every_economic_byte
+  PASS  test_wrong_extension_tag_is_refused
+  PASS  test_wrong_extension_schema_version_is_refused
+  PASS  test_wrong_section_schema_is_refused
+  PASS  test_extent_refusal_is_the_primary_gate
+  PASS  test_extent_refusal_bounds_every_declared_count
+  PASS  test_section_tiles_at_a_nonzero_offset_with_no_gaps
+  PASS  test_commands_due_at_first_midnight_round_trip
+  PASS  test_commands_due_at_a_day_boundary_round_trip
+  PASS  test_apply_restores_payload_bytes_verbatim
+  PASS  test_apply_refuses_a_non_empty_store_and_changes_nothing
+  PASS  test_apply_refuses_a_tick_the_restored_clock_has_already_completed
+  PASS  test_apply_refuses_a_boundary_the_scheduler_owner_rejects
+  PASS  test_apply_passes_through_the_load_barrier
+  PASS  test_agrees_with_stores_cross_checks_the_public_readers
+  PASS  test_arena_rebuild_gate_accepts_a_contiguous_arena
+  PASS  test_arena_restore_accepts_a_dead_prefix_and_retains_offsets
+  PASS  test_arena_restore_accepts_offsets_permuted_relative_to_keys
+  PASS  test_arena_restore_accepts_a_zero_dead_tail_without_compaction
+  PASS  test_source_contains_no_float
+  PASS  test_record_clear_restores_the_declared_unused_values
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+159 test(s), 11265 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

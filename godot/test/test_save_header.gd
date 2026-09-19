@@ -1,5 +1,5 @@
 extends "res://test/framework/test_case.gd"
-## ARCH-SAVE-002's fixed 256-byte header, its 64-byte section descriptors and CRC-32/ISO-HDLC.
+## ARCH-SAVE-002's fixed 264-byte header, its 64-byte section descriptors and CRC-32/ISO-HDLC.
 ##
 ## The header is where a corrupt or foreign file is supposed to be caught, so nearly every test
 ## here corrupts one field and asserts the named refusal. The offsets are asserted as literals
@@ -45,7 +45,8 @@ func _header(total_bytes: int) -> SaveHeader.Header:
 	header.total_file_bytes = total_bytes
 	header.completed_tick = 13500
 	header.chronicle_record_count = 3
-	header.replay_sequence = 41
+	header.economic_next_sequence_low = 41
+	header.economic_next_sequence_high = 2147483648
 	header.rules_hash = _digest(1)
 	header.catalog_hash = _digest(2)
 	header.map_hash = _digest(3)
@@ -136,21 +137,23 @@ func test_every_header_offset_matches_the_architecture_table() -> void:
 	assert_equal(SaveHeader.OFFSET_ENGINE_HASH, 168, "engine build hash")
 	assert_equal(SaveHeader.OFFSET_SECTION_TABLE_OFFSET, 200, "section table offset")
 	assert_equal(SaveHeader.OFFSET_CHRONICLE_RECORD_COUNT, 208, "chronicle record count")
-	assert_equal(SaveHeader.OFFSET_REPLAY_SEQUENCE, 216, "replay sequence")
-	assert_equal(SaveHeader.OFFSET_BODY_DIGEST, 224, "body digest")
+	assert_equal(SaveHeader.OFFSET_ECONOMIC_NEXT_SEQUENCE_LOW, 216, "checkpoint low")
+	assert_equal(SaveHeader.OFFSET_CHECKPOINT_RESERVED_ZERO, 220, "checkpoint padding")
+	assert_equal(SaveHeader.OFFSET_ECONOMIC_NEXT_SEQUENCE_HIGH, 224, "checkpoint high")
+	assert_equal(SaveHeader.OFFSET_BODY_DIGEST, 232, "body digest")
 
 
 func test_the_header_and_descriptor_sizes_are_exactly_consumed() -> void:
-	"""224 + 32 = 256 leaves no slack, and the descriptor's eight fields sum to 64."""
-	assert_equal(SaveHeader.OFFSET_BODY_DIGEST + SaveHeader.DIGEST_BYTES, 256,
-		"the last header field ends exactly at 256")
-	assert_equal(SaveHeader.HEADER_BYTES, 256, "header bytes")
-	assert_equal(SaveHeader.SECTION_TABLE_OFFSET, 256, "the table starts where the header ends")
+	"""232 + 32 = 264 leaves no slack, and the descriptor's eight fields sum to 64."""
+	assert_equal(SaveHeader.OFFSET_BODY_DIGEST + SaveHeader.DIGEST_BYTES, 264,
+		"the last header field ends exactly at 264")
+	assert_equal(SaveHeader.HEADER_BYTES, 264, "header bytes")
+	assert_equal(SaveHeader.SECTION_TABLE_OFFSET, 264, "the table starts where the header ends")
 	assert_equal(SaveHeader.DESC_OFFSET_RESERVED_ZERO + SaveHeader.DESC_RESERVED_ZERO_BYTES, 64,
 		"the descriptor's reserved tail ends exactly at 64")
 	assert_equal(SaveHeader.SECTION_DESCRIPTOR_BYTES, 64, "descriptor stride")
 	assert_equal(SaveHeader.SECTION_COUNT, 15, "ARCH-SAVE-002 assigns fifteen section IDs")
-	assert_equal(SaveHeader.body_offset(), 256 + 64 * 15, "the body starts at 1216")
+	assert_equal(SaveHeader.body_offset(), 264 + 64 * 15, "the body starts at 1224")
 
 
 func test_the_magic_and_endian_sentinel_land_as_stated_bytes() -> void:
@@ -177,14 +180,16 @@ func test_the_header_round_trips_every_field() -> void:
 	assert_true(SaveHeader.encode_header_into(header, bytes).is_ok(), "encoded")
 	var back: SaveHeader.Header = SaveHeader.Header.new()
 	assert_true(SaveHeader.decode_header_into(bytes, back).is_ok(), "decoded")
-	assert_equal(back.format_version, 1, "format version")
-	assert_equal(back.header_bytes, 256, "header bytes")
+	assert_equal(back.format_version, 2, "format version")
+	assert_equal(back.header_bytes, 264, "header bytes")
 	assert_equal(back.endian_sentinel, 16909060, "endian sentinel")
 	assert_equal(back.section_count, 15, "section count")
 	assert_equal(back.total_file_bytes, _file_bytes(), "total file bytes")
 	assert_equal(back.completed_tick, 13500, "completed tick")
 	assert_equal(back.chronicle_record_count, 3, "chronicle record count")
-	assert_equal(back.replay_sequence, 41, "replay sequence")
+	assert_equal(back.economic_next_sequence_low, 41, "checkpoint low")
+	assert_equal(back.economic_next_sequence_high, 2147483648, "checkpoint high")
+	assert_equal(back.checkpoint_reserved_zero, 0, "checkpoint padding")
 	assert_equal(back.rules_hash, _digest(1), "rules hash")
 	assert_equal(back.catalog_hash, _digest(2), "catalog hash")
 	assert_equal(back.map_hash, _digest(3), "map hash")
@@ -202,7 +207,7 @@ func test_the_header_encoding_is_byte_identical_across_runs() -> void:
 	assert_true(SaveHeader.encode_header_into(_header(_file_bytes()), first).is_ok(), "first")
 	assert_true(SaveHeader.encode_header_into(_header(_file_bytes()), second).is_ok(), "second")
 	assert_equal(first, second, "two encodes of equal input agree byte for byte")
-	assert_equal(first.size(), 256, "and occupy exactly the header")
+	assert_equal(first.size(), 264, "and occupy exactly the header")
 
 
 func test_a_maximum_tick_and_a_zero_tick_both_survive() -> void:
@@ -221,21 +226,21 @@ func test_a_maximum_tick_and_a_zero_tick_both_survive() -> void:
 # --- header refusals ----------------------------------------------------------------------------
 
 func test_a_short_buffer_refuses_rather_than_reading_past_its_end() -> void:
-	"""255 bytes is one short of the header; a decoder must not reach for the 256th."""
+	"""263 bytes is one short of the header; a decoder must not reach for the 264th."""
 	var back: SaveHeader.Header = SaveHeader.Header.new()
-	var short: PackedByteArray = PackedByteArray()
-	short.resize(SaveHeader.HEADER_BYTES - 1)
+	var valid: PackedByteArray = _buffer_of(SaveHeader.HEADER_BYTES)
+	assert_true(SaveHeader.encode_header_into(_header(1224), valid).is_ok(), "valid format2 preamble")
+	var short: PackedByteArray = valid.slice(0, SaveHeader.HEADER_BYTES - 1)
 	assert_equal(SaveHeader.decode_header_into(short, back).code, SaveHeader.REFUSE_HEADER_TRUNCATED,
-		"255 bytes refuse")
-	short.resize(SaveHeader.HEADER_BYTES)
-	assert_true(SaveHeader.decode_header_into(short, back).is_ok(), "256 bytes parse")
+		"263 bytes refuse")
+	assert_true(SaveHeader.decode_header_into(valid, back).is_ok(), "264 bytes parse")
 	var out: PackedByteArray = PackedByteArray()
 	out.resize(SaveHeader.HEADER_BYTES - 1)
-	assert_equal(SaveHeader.encode_header_into(_header(1216), out).code,
-		SaveHeader.REFUSE_HEADER_TRUNCATED, "and encoding into 255 bytes refuses")
+	assert_equal(SaveHeader.encode_header_into(_header(1224), out).code,
+		SaveHeader.REFUSE_HEADER_TRUNCATED, "and encoding into 263 bytes refuses")
 	assert_equal(out, _buffer_of(SaveHeader.HEADER_BYTES - 1),
 		"a refused encode left the buffer untouched")
-	var also_bad: SaveHeader.Header = _header(1216)
+	var also_bad: SaveHeader.Header = _header(1224)
 	also_bad.map_hash = PackedByteArray()
 	assert_equal(SaveHeader.encode_header_into(also_bad, out).code,
 		SaveHeader.REFUSE_HEADER_TRUNCATED,
@@ -253,7 +258,7 @@ func test_a_corrupted_magic_is_refused() -> void:
 	"""ARCH-SAVE-004 checks the magic first, so a foreign file never reaches field parsing."""
 	var bytes: PackedByteArray = PackedByteArray()
 	bytes.resize(SaveHeader.HEADER_BYTES)
-	assert_true(SaveHeader.encode_header_into(_header(1216), bytes).is_ok(), "encoded")
+	assert_true(SaveHeader.encode_header_into(_header(1224), bytes).is_ok(), "encoded")
 	assert_true(SaveHeader.magic_refusal(bytes).is_ok(), "a clean magic is accepted")
 	for position: int in SaveHeader.MAGIC_BYTES:
 		var dirty: PackedByteArray = bytes.duplicate()
@@ -267,15 +272,15 @@ func test_a_corrupted_magic_is_refused() -> void:
 func test_a_future_format_version_is_refused_separately_from_a_wrong_one() -> void:
 	"""ARCH-SAVE-005 names "future format versions" specifically; version 0 is a different fault."""
 	var header: SaveHeader.Header = _header(SaveHeader.body_offset())
-	header.format_version = 2
+	header.format_version = 3
 	assert_equal(SaveHeader.header_refusal(header, SaveHeader.body_offset()).code,
-		SaveHeader.REFUSE_FUTURE_FORMAT_VERSION, "version 2 is refused as a future version")
+		SaveHeader.REFUSE_FUTURE_FORMAT_VERSION, "version 3 is refused as a future version")
 	header.format_version = 0
 	assert_equal(SaveHeader.header_refusal(header, SaveHeader.body_offset()).code,
 		SaveHeader.REFUSE_FORMAT_VERSION, "version 0 is refused as a wrong version")
-	header.format_version = 1
+	header.format_version = 2
 	assert_true(SaveHeader.header_refusal(header, SaveHeader.body_offset()).is_ok(),
-		"version 1 is accepted")
+		"version 2 is accepted")
 
 
 func test_a_byte_swapped_endian_sentinel_is_refused() -> void:
@@ -301,7 +306,7 @@ func test_the_fixed_structural_constants_are_refused_when_changed() -> void:
 		wrong_table.section_table_offset = offset
 		assert_equal(SaveHeader.header_refusal(wrong_table, base).code,
 			SaveHeader.REFUSE_SECTION_TABLE_OFFSET,
-			"a table offset of %d is refused; it is always 256" % offset)
+			"a table offset of %d is refused; it is always 264" % offset)
 	var wrong_count: SaveHeader.Header = _header(base)
 	wrong_count.section_count = 14
 	assert_equal(SaveHeader.header_refusal(wrong_count, base).code,
@@ -340,7 +345,7 @@ func test_an_unrepresentable_u64_header_field_is_refused_not_read_as_negative() 
 	"""A hostile total-file-bytes of 0xffffffffffffffff must not reach a caller as -1."""
 	var bytes: PackedByteArray = PackedByteArray()
 	bytes.resize(SaveHeader.HEADER_BYTES)
-	assert_true(SaveHeader.encode_header_into(_header(1216), bytes).is_ok(), "encoded")
+	assert_true(SaveHeader.encode_header_into(_header(1224), bytes).is_ok(), "encoded")
 	for index: int in 8:
 		bytes[SaveHeader.OFFSET_TOTAL_FILE_BYTES + index] = 255
 	var back: SaveHeader.Header = SaveHeader.Header.new()
@@ -353,7 +358,7 @@ func test_an_unrepresentable_u64_header_field_is_refused_not_read_as_negative() 
 func test_a_digest_of_the_wrong_length_is_refused_on_encode() -> void:
 	"""Every one of the six digests is 32 bytes; 31 and 33 are both faults."""
 	for short: bool in [true, false]:
-		var header: SaveHeader.Header = _header(1216)
+		var header: SaveHeader.Header = _header(1224)
 		var wrong: PackedByteArray = _digest(9)
 		wrong.resize(SaveHeader.DIGEST_BYTES - 1 if short else SaveHeader.DIGEST_BYTES + 1)
 		header.map_hash = wrong
@@ -379,7 +384,7 @@ func test_the_header_carries_the_catalog_modules_digest_byte_for_byte() -> void:
 	"""The offset-72 bytes must BE catalog_ids.gd's digest, not a second SHA-256 of something."""
 	var built: CatalogIdsScript.BuildResult = CatalogIdsScript.build()
 	assert_true(built.ok, "this build compiles its own catalog")
-	var header: SaveHeader.Header = _header(1216)
+	var header: SaveHeader.Header = _header(1224)
 	header.catalog_hash = built.artifact.digest
 	var bytes: PackedByteArray = PackedByteArray()
 	bytes.resize(SaveHeader.HEADER_BYTES)
@@ -395,7 +400,7 @@ func test_a_foreign_catalog_hash_is_refused() -> void:
 	"""A save written by a build with different catalog IDs must not load into this one."""
 	var built: CatalogIdsScript.BuildResult = CatalogIdsScript.build()
 	assert_true(built.ok, "this build compiles its own catalog")
-	var header: SaveHeader.Header = _header(1216)
+	var header: SaveHeader.Header = _header(1224)
 	header.catalog_hash = built.artifact.digest.duplicate()
 	header.catalog_hash[0] = header.catalog_hash[0] ^ 1
 	assert_equal(SaveHeader.catalog_hash_refusal(header).code,
@@ -493,7 +498,7 @@ func test_a_negative_descriptor_word_is_refused_on_encode() -> void:
 
 
 func test_the_section_table_parses_all_fifteen_descriptors() -> void:
-	"""The table lives at 256 and is fifteen entries of 64 bytes, ending at 1216."""
+	"""The table lives at 264 and is fifteen entries of 64 bytes, ending at 1224."""
 	var bytes: PackedByteArray = _assemble()
 	var table: Array[SaveHeader.Descriptor] = []
 	assert_true(SaveHeader.decode_section_table(bytes, table).is_ok(), "parsed")
@@ -645,7 +650,7 @@ func test_empty_sections_and_gaps_are_permitted() -> void:
 # --- the body digest ------------------------------------------------------------------------------
 
 func test_the_body_digest_covers_the_table_and_every_section_byte() -> void:
-	""""Body digest over table plus section bytes": everything from offset 256 onward."""
+	""""Body digest over table plus section bytes": everything from offset 264 onward."""
 	var bytes: PackedByteArray = _assemble()
 	var header: SaveHeader.Header = SaveHeader.Header.new()
 	assert_true(SaveHeader.decode_header_into(bytes, header).is_ok(), "decoded")
@@ -678,8 +683,8 @@ func test_the_body_digest_deliberately_does_not_cover_the_header() -> void:
 
 
 func test_the_body_digest_refuses_a_file_with_no_body() -> void:
-	"""A 255-byte file has no body at all; the digest must refuse, not hash an empty string."""
-	var header: SaveHeader.Header = _header(1216)
+	"""A 263-byte file has no body at all; the digest must refuse, not hash an empty string."""
+	var header: SaveHeader.Header = _header(1224)
 	var short: PackedByteArray = PackedByteArray()
 	short.resize(SaveHeader.HEADER_BYTES - 1)
 	assert_equal(SaveHeader.body_digest_refusal(short, header).code,

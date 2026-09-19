@@ -1,0 +1,20 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "11526f7f4df968e463ea8c8610cd895c3ee1812b",
+  "task": "Independent SAVE-REPLAY-R01 v2 header and binding acceptance review",
+  "paths": [
+    "docs/planning/replay_checkpoint_contract.md",
+    "docs/decisions/0156-bind-full-file-replay-checkpoints-to-economic-allocation.md",
+    "godot/scripts/core/save_header.gd",
+    "godot/scripts/core/save_codec.gd",
+    "godot/test/test_save_header.gd",
+    "godot/test/test_save_replay_checkpoint.gd",
+    "godot/test/test_save_section_01.gd",
+    "godot/test/save_replay_focus.gd",
+    "docs/validation/evidence/replay-checkpoint-2026-09-19/integration-diff.json",
+    "docs/validation/evidence/replay-checkpoint-2026-09-19/integration-notes.md",
+    "docs/validation/evidence/replay-checkpoint-2026-09-19/focus-first.log",
+    "docs/validation/evidence/replay-checkpoint-contract-2026-09-19/offset-census-disposition.md"
+  ],
+  "instructions": "Independent source review, not author. Ack SAVE-REPLAY-R01 v2 including final encode clarification. Review actual header format2/264, offsets/pair/padding,16bytepreambleprecedence, transactional encode/decode, checked high-u64 distinctcode, pure scalar header/section12/section1 binding without preloadcycle orstoremutation. Validate relocationdiffs onlyfileoffsets+8, unchangedsectionbody/canonicaldeclarations andCRC256. Tests should pin fullindependent264bytevector,all validboundaries,hostile tuple/signbit/padding,old/future/truncatedmagicversion and output/inputimmutability, bodydigestunchangedheadercorruption rejectedbybinding, actualpending/drainedterminal capture. Focus159tests11265assertions0fail passed; fullsuite underway. No fullfilewriter/coordinator/recorder/native acceptance. One implementation worker patch needed exactcontext hunkmetadata reconstruction only; everyoldcontextmatchedonce and no semanticrepair. Parent wrote tests/docs/integrationdiff. Return reproducible prioritized blockers withlineandboundedrepair, or no blocking findings plus limitedadvisories. Note evidence limits, no execution claims. Return ONLY rawvalidJSON nofences EXACTkeys status,summary,questions,files,decisionIds; statuscomplete; filesEXACTLY [{\"path\":\"docs/validation/evidence/replay-checkpoint-2026-09-19/independent-review.md\",\"content\":\"your concise review\",\"baseSha256\":null}]. No code/testedits. Oneattempt15min/no-progress3min."
+}

@@ -273,6 +273,8 @@ This ruling resolves that conflict by reclassification, not by inventing a depos
 
 ## 8. Exact sizes, offsets, and canonical counts
 
+**2026-09-19 file-position amendment:** [SAVE-REPLAY-R01](../planning/replay_checkpoint_contract.md) changes the outer header to264bytes. Current first_section_offset is264+15*64=1224; section_2_offset is1224+3752768=3753992. Every section-relative offset, length and canonical count below is unchanged. The older1216/3753984 arithmetic remains historical provenance, not the current file layout.
+
 For the adopted target: the seven ordinary payloads contain 31 field-count prefixes (248 bytes). All nine payloads total 3,752,409 bytes; all nine wrappers total 311 bytes. Therefore:
 
 ```text

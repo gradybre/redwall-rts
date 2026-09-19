@@ -8,6 +8,8 @@ schemas remain required. Do not serialize a missing system as if it were complet
 
 ## SAVE-R09-001 — Container and section versions
 
+**2026-09-19 amendment:** [SAVE-REPLAY-R01 version2](../planning/replay_checkpoint_contract.md) supersedes the following outer1/header256 requirement with outer2/header264 for the economic checkpoint representation. The old scheduler-only version2 proposal stays rejected. Descriptor and current per-section schema policy are unchanged; the text below retains its historical context.
+
 Keep `RWLSET01`, outer `format_version=1`, 256-byte header and 64-byte descriptors.
 Initial section versions for IDs 1–15 are `[1,1,1,1,1,1,1,1,1,1,1,2,1,1,1]`.
 Section 12's prefix already declares schema 2; its nested `SCHQ0001` schema stays

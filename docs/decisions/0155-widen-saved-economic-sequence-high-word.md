@@ -1,6 +1,6 @@
 # 0155 — Widen the saved economic allocator high word
 
-Date: 2026-09-19 · Status: Accepted; implementation under final acceptance
+Date: 2026-09-19 · Status: Accepted; implemented in merged PR145
 
 The economic allocator has 2^64 ordinary sequence values plus one exhausted state.
 Two u32 words cannot encode all of them. Zero is an ordinary initial value, so the

@@ -1,0 +1,421 @@
+diff --git a/godot/scripts/core/save_header.gd b/godot/scripts/core/save_header.gd
+--- a/godot/scripts/core/save_header.gd
++++ b/godot/scripts/core/save_header.gd
+@@ -1,13 +1,17 @@
+ extends RefCounted
+-## ARCH-SAVE-002's fixed 256-byte save header and its 64-byte section descriptors.
++## ARCH-SAVE-002's fixed save header and its 64-byte section descriptors, at outer format 2.
+ ##
+-## WHAT IS IMPLEMENTED, AND WHERE IT IS STATED. Every constant below is transcribed from
+-## `docs/systems_architecture.md:716-733` -- the save-header offset table and the descriptor
+-## sentence that follows it. Nothing here is chosen by this module:
++## WHAT IS IMPLEMENTED, AND WHERE IT IS STATED. Bytes 0..215 are transcribed from
++## `docs/systems_architecture.md:716-733` -- the save-header offset table and the descriptor
++## sentence that follows it. Bytes 216..263, and outer format version 2, are transcribed from
++## SAVE-REPLAY-R01 version 2 (`docs/planning/replay_checkpoint_contract.md`), which amends
++## SAVE-R09-001's fixed outer version 1 / 256-byte header for the outer number and header
++## length only. Nothing here is chosen by this module:
+ ##
+-##   offset 0 magic ASCII `RWLSET01` (8) · 8 format version 1 (u32) · 12 header bytes 256 (u32)
++##   offset 0 magic ASCII `RWLSET01` (8) · 8 format version 2 (u32) · 12 header bytes 264 (u32)
+ ##   16 endian sentinel 16909060 (u32) · 20 section count (u32) · 24 total file bytes (u64)
+ ##   32 completed tick (i64) · 40 rules hash · 72 catalog hash · 104 map hash · 136 integer
+ ##   lookup-table hash · 168 engine patch/build identity hash (32 each) · 200 section table
+-##   offset, always 256 (u64) · 208 chronicle record count (u64) · 216 replay command sequence
+-##   at checkpoint (u64) · 224 body digest over table plus section bytes (32).
++##   offset, always 264 (u64) · 208 chronicle record count (u64) · 216 economic next sequence
++##   low (u32) · 220 reserved zero (u32) · 224 economic next sequence high (u64) · 232 body
++##   digest over table plus section bytes (32). The header ends at exactly 264.
+@@ -49,7 +53,7 @@
+ ##     exact declared file length, and permits a gap. Tightening that is 09.2's call to make.
+ ##
+ ## PERSISTENCE AND DIGEST MEMBERSHIP ARE SEPARATE DIMENSIONS (ARCH-SAVE-007, 2026-09-11). The
+-## offset-224 body digest and the per-section CRC cover EVERY saved byte, including the host
++## offset-232 body digest and the per-section CRC cover EVERY saved byte, including the host
+ ## debt and six clock counters that ARCH-HASH-001 explicitly excludes from the canonical state
+ ## hash. This module owns the former and not the latter: nothing here computes, stores or
+@@ -70,15 +74,19 @@
+ # --- the fixed header layout ------------------------------------------------------------------
+ 
+ const MAGIC: String = "RWLSET01"
+ const MAGIC_BYTES: int = 8
+-const HEADER_BYTES: int = 256
+-const FORMAT_VERSION: int = 1
++const PREAMBLE_BYTES: int = 16
++const HEADER_BYTES: int = 264
++const FORMAT_VERSION: int = 2
+ const ENDIAN_SENTINEL: int = 16909060
+ const DIGEST_BYTES: int = 32
+-const SECTION_TABLE_OFFSET: int = 256
++const SECTION_TABLE_OFFSET: int = 264
+ const SECTION_DESCRIPTOR_BYTES: int = 64
+ const SECTION_COUNT: int = 15
+ const SECTION_ID_MIN: int = 1
+ const SECTION_ID_MAX: int = 15
++const CHECKPOINT_RESERVED_ZERO_BYTES: int = 4
++const SEQUENCE_TERMINAL_HIGH: int = 4294967296
++const SEQUENCE_TERMINAL_LOW: int = 0
+ 
+ const OFFSET_MAGIC: int = 0
+@@ -95,7 +103,9 @@
+ const OFFSET_ENGINE_HASH: int = 168
+ const OFFSET_SECTION_TABLE_OFFSET: int = 200
+ const OFFSET_CHRONICLE_RECORD_COUNT: int = 208
+-const OFFSET_REPLAY_SEQUENCE: int = 216
+-const OFFSET_BODY_DIGEST: int = 224
++const OFFSET_ECONOMIC_NEXT_SEQUENCE_LOW: int = 216
++const OFFSET_CHECKPOINT_RESERVED_ZERO: int = 220
++const OFFSET_ECONOMIC_NEXT_SEQUENCE_HIGH: int = 224
++const OFFSET_BODY_DIGEST: int = 232
+ 
+ const DESC_OFFSET_SECTION_ID: int = 0
+@@ -143,6 +153,8 @@
+ const REFUSE_SECTION_NEGATIVE: StringName = &"SAVE_HEADER_SECTION_NEGATIVE"
+ const REFUSE_RESERVED_NONZERO: StringName = &"SAVE_HEADER_RESERVED_NONZERO"
+ const REFUSE_VALUE_RANGE: StringName = &"SAVE_HEADER_VALUE_RANGE"
++const REFUSE_SEQUENCE_RANGE: StringName = &"SAVE_HEADER_SEQUENCE_RANGE"
++const REFUSE_CHECKPOINT_MISMATCH: StringName = &"SAVE_HEADER_CHECKPOINT_MISMATCH"
+ 
+ 
+ class Refusal:
+@@ -163,4 +175,4 @@
+ class Header:
+-	"""The 256 fixed header bytes as typed integers and 32-byte digests. No float, no Variant."""
++	"""The 264 fixed header bytes as typed integers and 32-byte digests. No float, no Variant."""
+ 	var format_version: int = FORMAT_VERSION
+ 	var header_bytes: int = HEADER_BYTES
+@@ -176,4 +188,6 @@
+ 	var section_table_offset: int = SECTION_TABLE_OFFSET
+ 	var chronicle_record_count: int = 0
+-	var replay_sequence: int = 0
++	var economic_next_sequence_low: int = 0
++	var checkpoint_reserved_zero: int = 0
++	var economic_next_sequence_high: int = 0
+ 	var body_digest: PackedByteArray = PackedByteArray()
+@@ -236,16 +250,25 @@
+ static func encode_header_into(header: Header, out: PackedByteArray) -> Refusal:
+-	"""Write the 256 fixed header bytes into `out` at offset 0, or refuse without writing.
++	"""Write the 264 fixed header bytes into `out` at offset 0, or refuse without writing.
+ 
+-	Every digest length and every field range is checked BEFORE the first byte is written, so a
+-	refused encode leaves `out` byte-identical to what the caller handed in.
++	Gate order, fixed by SAVE-REPLAY-R01 version 2: destination room first, then the outer
++	format / header-size / table-offset metadata through `_version_refusal()`, then digest
++	lengths, then generic numeric widths, then the checkpoint tuple and its reserved padding.
++	Only then is a staging buffer written and copied out, so a refused encode leaves `out`
++	byte-identical to what the caller handed in and no public path emits a format 1 header.
+ 	"""
+ 	if out.size() < HEADER_BYTES:
+ 		return Refusal.new(REFUSE_HEADER_TRUNCATED,
+ 			"a %d-byte buffer cannot hold the %d-byte header" % [out.size(), HEADER_BYTES])
++	var version: Refusal = _version_refusal(header)
++	if not version.is_ok():
++		return version
+ 	var digests: Refusal = digest_lengths_refusal(header)
+ 	if not digests.is_ok():
+ 		return digests
+ 	var ranges: Refusal = _encodable_ranges_refusal(header)
+ 	if not ranges.is_ok():
+ 		return ranges
++	var checkpoint: Refusal = checkpoint_refusal(header)
++	if not checkpoint.is_ok():
++		return checkpoint
+ 	var staging: PackedByteArray = PackedByteArray()
+@@ -269,11 +292,47 @@
+ 	if not SaveCodec.fits_u32(header.format_version) or not SaveCodec.fits_u32(header.header_bytes) \
+ 			or not SaveCodec.fits_u32(header.endian_sentinel) \
+ 			or not SaveCodec.fits_u32(header.section_count):
+ 		return Refusal.new(REFUSE_VALUE_RANGE, "a u32 header word is outside the u32 domain")
+ 	if header.total_file_bytes < 0 or header.section_table_offset < 0 \
+-			or header.chronicle_record_count < 0 or header.replay_sequence < 0:
++			or header.chronicle_record_count < 0:
+ 		return Refusal.new(REFUSE_VALUE_RANGE, "a u64 header word is negative")
+ 	return Refusal.new(REFUSE_NONE, "")
++
++
++static func is_sequence_pair_valid(high: int, low: int) -> bool:
++	"""True for an ordinary (u32 high, u32 low) economic pair, or for the terminal (2^32, 0).
++
++	The single header-owned tuple predicate SAVE-REPLAY-R01 version 2 requires: pure over two
++	plain integers, and reached from encoding, decoding, `header_refusal()` and the binding
++	validator alike so one rule cannot drift into three. It preloads no section, scheduler or
++	commands module; section 12 remains the allocator owner and this is only a declaration.
++	"""
++	if high < 0 or low < 0:
++		return false
++	if high == SEQUENCE_TERMINAL_HIGH:
++		return low == SEQUENCE_TERMINAL_LOW
++	return SaveCodec.fits_u32(high) and SaveCodec.fits_u32(low)
++
++
++static func checkpoint_refusal(header: Header) -> Refusal:
++	"""Judge the offset-216 pair and the offset-220 reserved word of an already staged header.
++
++	Nonzero reserved padding is REFUSE_RESERVED_NONZERO; every invalid (low, high) tuple --
++	negative words, a high above 2^32, the terminal high with a nonzero low, or a low outside
++	the u32 domain -- is REFUSE_SEQUENCE_RANGE. The reserved word is carried from the file and
++	judged here, never skipped and never normalised to zero before validation.
++	"""
++	if header.checkpoint_reserved_zero != 0:
++		return Refusal.new(REFUSE_RESERVED_NONZERO,
++			"the %d reserved checkpoint bytes at offset %d are not zero"
++				% [CHECKPOINT_RESERVED_ZERO_BYTES, OFFSET_CHECKPOINT_RESERVED_ZERO])
++	if not is_sequence_pair_valid(header.economic_next_sequence_high,
++			header.economic_next_sequence_low):
++		return Refusal.new(REFUSE_SEQUENCE_RANGE,
++			"the economic pair (high %d, low %d) is neither an ordinary u32 pair nor (%d, %d)"
++				% [header.economic_next_sequence_high, header.economic_next_sequence_low,
++					SEQUENCE_TERMINAL_HIGH, SEQUENCE_TERMINAL_LOW])
++	return Refusal.new(REFUSE_NONE, "")
+ 
+ 
+ static func _write_header_words(header: Header, out: PackedByteArray) -> bool:
+@@ -289,9 +348,13 @@
+ 	ok = SaveCodec.write_u64_into(out, OFFSET_SECTION_TABLE_OFFSET, header.section_table_offset,
+ 		scratch) and ok
+ 	ok = SaveCodec.write_u64_into(out, OFFSET_CHRONICLE_RECORD_COUNT, header.chronicle_record_count,
+ 		scratch) and ok
+-	return SaveCodec.write_u64_into(out, OFFSET_REPLAY_SEQUENCE, header.replay_sequence,
+-		scratch) and ok
++	ok = SaveCodec.write_u32_into(out, OFFSET_ECONOMIC_NEXT_SEQUENCE_LOW,
++		header.economic_next_sequence_low, scratch) and ok
++	ok = SaveCodec.write_u32_into(out, OFFSET_CHECKPOINT_RESERVED_ZERO,
++		header.checkpoint_reserved_zero, scratch) and ok
++	return SaveCodec.write_u64_into(out, OFFSET_ECONOMIC_NEXT_SEQUENCE_HIGH,
++		header.economic_next_sequence_high, scratch) and ok
+ 
+ 
+ static func _write_header_digests(header: Header, out: PackedByteArray) -> bool:
+@@ -310,19 +373,62 @@
+ # --- header decode ----------------------------------------------------------------------------
+ 
++static func preamble_refusal(bytes: PackedByteArray) -> Refusal:
++	"""The 16-byte format dispatch gate, in SAVE-REPLAY-R01 version 2's exact precedence.
++
++	Requires 16 bytes (REFUSE_HEADER_TRUNCATED), then the magic (REFUSE_MAGIC), then a version
++	above 2 (REFUSE_FUTURE_FORMAT_VERSION), then any version other than 2 (REFUSE_FORMAT_VERSION)
++	-- which is how an outer format 1 file is named an unsupported development format instead of
++	being reported as truncation. A wrong magic in a 16-byte preamble is a magic refusal even
++	when its version word is also wrong. It reads only bytes 0..15, allocates no Header, mutates
++	neither the caller's input nor any output, and does not replace the caller's later
++	`header_refusal()`.
++	"""
++	if bytes.size() < PREAMBLE_BYTES:
++		return Refusal.new(REFUSE_HEADER_TRUNCATED,
++			"a %d-byte buffer is shorter than the %d-byte preamble"
++				% [bytes.size(), PREAMBLE_BYTES])
++	var magic: Refusal = magic_refusal(bytes)
++	if not magic.is_ok():
++		return magic
++	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
++	if not SaveCodec.read_u32_at(bytes, OFFSET_FORMAT_VERSION, scalar):
++		return Refusal.new(REFUSE_HEADER_TRUNCATED, scalar.detail)
++	if scalar.value > FORMAT_VERSION:
++		return Refusal.new(REFUSE_FUTURE_FORMAT_VERSION,
++			"format version %d is newer than %d" % [scalar.value, FORMAT_VERSION])
++	if scalar.value != FORMAT_VERSION:
++		return Refusal.new(REFUSE_FORMAT_VERSION,
++			"format version %d is not %d" % [scalar.value, FORMAT_VERSION])
++	return Refusal.new(REFUSE_NONE, "")
++
++
+ static func decode_header_into(bytes: PackedByteArray, out: Header) -> Refusal:
+-	"""Parse the 256 fixed header bytes into `out`, or refuse without a partial parse.
++	"""Parse the 264 fixed header bytes into `out`, or refuse without a partial parse.
+ 
+-	Structural only: it refuses a short buffer and a u64 field a GDScript int cannot hold, and
+-	does not judge magic, version, tick or file length. `header_refusal()` does that, in
+-	ARCH-SAVE-004's order.
++	The 16-byte preamble gate runs FIRST, so a 256-byte outer format 1 file is named an
++	unsupported version rather than truncation, while a valid format 2 preamble in a 263-byte
++	file is truncation. Raw decode therefore gains magic and version dispatch deliberately: a
++	zero-filled buffer is no longer a valid structural fixture. After that this stays structural.
++	It refuses a u64 field a GDScript int cannot hold, and it stages the checkpoint pair and its
++	reserved word and judges them BEFORE anything is copied into the caller's Header, so output
++	remains fully transactional. An unreadable checkpoint high word -- including a set sign bit
++	-- is REFUSE_SEQUENCE_RANGE; every other u64 word keeps its existing refusal, and no width
++	failure substitutes a zero. Endian, tick, section count and file extent stay in
++	`header_refusal()`, in ARCH-SAVE-004's order.
+ 	"""
++	var preamble: Refusal = preamble_refusal(bytes)
++	if not preamble.is_ok():
++		return preamble
+ 	if bytes.size() < HEADER_BYTES:
+ 		return Refusal.new(REFUSE_HEADER_TRUNCATED,
+ 			"a %d-byte buffer is shorter than the %d-byte header" % [bytes.size(), HEADER_BYTES])
+ 	var reader: SaveCodec.Reader = SaveCodec.Reader.new(bytes)
+ 	var parsed: Header = Header.new()
+ 	if not _read_header_words(reader, parsed):
+ 		return Refusal.new(reader.refusal(), reader.detail())
++	var staged: Refusal = _read_checkpoint_words(reader, parsed)
++	if not staged.is_ok():
++		return staged
++	var checkpoint: Refusal = checkpoint_refusal(parsed)
++	if not checkpoint.is_ok():
++		return checkpoint
+ 	_read_header_digests(bytes, parsed)
+ 	_copy_header(parsed, out)
+ 	return Refusal.new(REFUSE_NONE, "")
+@@ -341,8 +447,31 @@
+ 	reader.seek(OFFSET_SECTION_TABLE_OFFSET)
+ 	parsed.section_table_offset = scalar.value if reader.read_u64_into(scalar) else 0
+ 	parsed.chronicle_record_count = scalar.value if reader.read_u64_into(scalar) else 0
+-	parsed.replay_sequence = scalar.value if reader.read_u64_into(scalar) else 0
+ 	return not reader.failed()
+ 
+ 
++static func _read_checkpoint_words(reader: SaveCodec.Reader, parsed: Header) -> Refusal:
++	"""Stage the offset-216 low word, the offset-220 reserved word and the offset-224 high word.
++
++	The cursor already sits at offset 216 when `_read_header_words()` returns, so all three are
++	read in the same sequential run without a second seek. The reserved word is carried verbatim
++	into `parsed` for `checkpoint_refusal()` to judge, never skipped. A high word a GDScript int
++	cannot hold -- the sign-bit case -- is reported as REFUSE_SEQUENCE_RANGE rather than as the
++	codec's generic u64 refusal, which every other u64 header word keeps unchanged.
++	"""
++	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
++	if not reader.read_u32_into(scalar):
++		return Refusal.new(reader.refusal(), reader.detail())
++	parsed.economic_next_sequence_low = scalar.value
++	if not reader.read_u32_into(scalar):
++		return Refusal.new(reader.refusal(), reader.detail())
++	parsed.checkpoint_reserved_zero = scalar.value
++	if not reader.read_u64_into(scalar):
++		return Refusal.new(REFUSE_SEQUENCE_RANGE,
++			"the checkpoint high word at offset %d is not a u64 a GDScript int can hold: %s"
++				% [OFFSET_ECONOMIC_NEXT_SEQUENCE_HIGH, reader.detail()])
++	parsed.economic_next_sequence_high = scalar.value
++	return Refusal.new(REFUSE_NONE, "")
++
++
+ static func _read_header_digests(bytes: PackedByteArray, parsed: Header) -> void:
+@@ -371,4 +500,6 @@
+ 	out.section_table_offset = parsed.section_table_offset
+ 	out.chronicle_record_count = parsed.chronicle_record_count
+-	out.replay_sequence = parsed.replay_sequence
++	out.economic_next_sequence_low = parsed.economic_next_sequence_low
++	out.checkpoint_reserved_zero = parsed.checkpoint_reserved_zero
++	out.economic_next_sequence_high = parsed.economic_next_sequence_high
+ 	out.body_digest = parsed.body_digest
+@@ -389,16 +520,21 @@
+ static func header_refusal(header: Header, available_bytes: int) -> Refusal:
+ 	"""ARCH-SAVE-004's magic/endian/version/tick/length checks over an already parsed header.
+ 
+ 	`available_bytes` is the real byte count on disk; ARCH-SAVE-004 requires the "exact file
+-	length", so a header claiming any other total is refused rather than trusted.
++	length", so a header claiming any other total is refused rather than trusted. SAVE-REPLAY-R01
++	version 2 adds the checkpoint tuple and its reserved padding to this semantic gate, after the
++	tick check and before the file-extent checks.
+ 	"""
+ 	var version: Refusal = _version_refusal(header)
+ 	if not version.is_ok():
+ 		return version
+ 	if header.endian_sentinel != ENDIAN_SENTINEL:
+ 		return Refusal.new(REFUSE_ENDIAN_SENTINEL, "endian sentinel %d is not %d"
+ 			% [header.endian_sentinel, ENDIAN_SENTINEL])
+ 	if header.completed_tick < 0:
+ 		return Refusal.new(REFUSE_NEGATIVE_TICK,
+ 			"completed tick %d is negative" % header.completed_tick)
++	var checkpoint: Refusal = checkpoint_refusal(header)
++	if not checkpoint.is_ok():
++		return checkpoint
+ 	return _extent_refusal(header, available_bytes)
+@@ -407,3 +543,8 @@
+ static func _version_refusal(header: Header) -> Refusal:
+-	"""Format version, header size and section table offset. BLOCKER H1 stops at the file level."""
++	"""Format version, header size and section table offset. BLOCKER H1 stops at the file level.
++
++	Outer format 2, a 264-byte header and a 264-byte table offset, per SAVE-REPLAY-R01 version 2.
++	An outer format 1 file is refused here as an unsupported development format, and a version
++	above 2 keeps the distinct future-version refusal.
++	"""
+ 	if header.format_version > FORMAT_VERSION:
+@@ -439,3 +580,3 @@
+ static func body_offset() -> int:
+-	"""First byte after the header and the full section table: 256 + 64*15."""
++	"""First byte after the header and the full section table: 264 + 64*15 = 1224."""
+ 	return SECTION_TABLE_OFFSET + SECTION_DESCRIPTOR_BYTES * SECTION_COUNT
+@@ -532,4 +673,4 @@
+ static func decode_section_table(bytes: PackedByteArray, out: Array[Descriptor]) -> Refusal:
+-	"""Parse all fifteen descriptors starting at offset 256, or refuse leaving `out` untouched.
++	"""Parse all fifteen descriptors starting at offset 264, or refuse leaving `out` untouched.
+ 
+ 	Allocate before consume: the descriptors are parsed into a local array and published only
+@@ -551,8 +692,9 @@
+ static func compute_body_digest(bytes: PackedByteArray) -> PackedByteArray:
+-	"""SHA-256 over the section table plus every section byte: everything from offset 256 on.
++	"""SHA-256 over the section table plus every section byte: everything from offset 264 on.
+ 
+-	"Body digest over table plus section bytes" (systems_architecture.md:729). Returns an empty
+-	array only when the buffer is shorter than the header, which `body_digest_refusal()` refuses
+-	before ever comparing -- an empty digest is never compared against a stored one.
++	"Body digest over table plus section bytes" (systems_architecture.md:729), stored at offset
++	232 under outer format 2. Returns an empty array only when the buffer is shorter than the
++	header, which `body_digest_refusal()` refuses before ever comparing -- an empty digest is
++	never compared against a stored one.
+ 	"""
+ 	if bytes.size() < HEADER_BYTES:
+@@ -563,3 +705,3 @@
+ static func body_digest_refusal(bytes: PackedByteArray, header: Header) -> Refusal:
+-	"""Recompute the offset-224 body digest over the file and compare it byte for byte."""
++	"""Recompute the offset-232 body digest over the file and compare it byte for byte."""
+ 	if bytes.size() < HEADER_BYTES:
+@@ -601,5 +743,57 @@
+ 	if header.catalog_hash != built.artifact.digest:
+ 		return Refusal.new(REFUSE_CATALOG_HASH_MISMATCH,
+ 			"the save's catalog hash %s is not this build's %s"
+ 				% [header.catalog_hash.hex_encode(), built.artifact.digest_hex()])
+ 	return Refusal.new(REFUSE_NONE, "")
++
++
++# --- header / section 12 checkpoint binding -----------------------------------------------------
++
++static func checkpoint_binding_refusal(header: Header, section12_next_high: int,
++		section12_next_low: int, section1_completed_tick: int) -> Refusal:
++	"""Refuse unless the header's redundant checkpoint equals section 12's pair and section 1's tick.
++
++	SAVE-REPLAY-R01 version 2's deliberately narrow binding validator. It takes an already
++	decoded Header and three plain integers the caller read from that same decoded file, and it
++	owns only the association of those scalars. It preloads no section, scheduler, commands or
++	world-runtime module, reads no disk, touches no store or clock, restores nothing, admits
++	nothing and reserves no sequence. The header is a redundant declaration; section 12 remains
++	the allocator owner.
++
++	Precedence: a null Header is REFUSE_VALUE_RANGE; an invalid outer version, header size or
++	table offset is the existing version gate's refusal; nonzero reserved padding is
++	REFUSE_RESERVED_NONZERO; either malformed allocator pair is REFUSE_SEQUENCE_RANGE; either
++	negative tick is REFUSE_NEGATIVE_TICK; and only then does a well-formed but unequal high,
++	low or tick give REFUSE_CHECKPOINT_MISMATCH. Only exact equality accepts.
++
++	This is not a whole-header, body or world validator. The full coordinator separately
++	validates file extents, identities, every section's own semantics, the clock maximum,
++	pending references and the canonical state digest before any live-array write.
++	"""
++	if header == null:
++		return Refusal.new(REFUSE_VALUE_RANGE, "no header was supplied to bind against")
++	var version: Refusal = _version_refusal(header)
++	if not version.is_ok():
++		return version
++	var checkpoint: Refusal = checkpoint_refusal(header)
++	if not checkpoint.is_ok():
++		return checkpoint
++	if not is_sequence_pair_valid(section12_next_high, section12_next_low):
++		return Refusal.new(REFUSE_SEQUENCE_RANGE,
++			"the section 12 pair (high %d, low %d) is neither an ordinary u32 pair nor (%d, %d)"
++				% [section12_next_high, section12_next_low, SEQUENCE_TERMINAL_HIGH,
++					SEQUENCE_TERMINAL_LOW])
++	if header.completed_tick < 0 or section1_completed_tick < 0:
++		return Refusal.new(REFUSE_NEGATIVE_TICK,
++			"header tick %d and section 1 tick %d must both be nonnegative"
++				% [header.completed_tick, section1_completed_tick])
++	if header.economic_next_sequence_high != section12_next_high \
++			or header.economic_next_sequence_low != section12_next_low:
++		return Refusal.new(REFUSE_CHECKPOINT_MISMATCH,
++			"the header pair (high %d, low %d) is not section 12's (high %d, low %d)"
++				% [header.economic_next_sequence_high, header.economic_next_sequence_low,
++					section12_next_high, section12_next_low])
++	if header.completed_tick != section1_completed_tick:
++		return Refusal.new(REFUSE_CHECKPOINT_MISMATCH,
++			"the header tick %d is not section 1's clock tick %d"
++				% [header.completed_tick, section1_completed_tick])
++	return Refusal.new(REFUSE_NONE, "")

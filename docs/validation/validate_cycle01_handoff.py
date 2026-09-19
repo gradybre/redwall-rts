@@ -38,7 +38,10 @@ def verify_world(m):
         offset+=size
         assert o['end_offset_in_section']==offset
     assert fields==44 and offset==3752768
+    # Preserve the historical Cycle1 file-position proof; SAVE-REPLAY-R01 relocates it by8.
     assert sum(primary)==344067 and 256+15*64+offset==3753984
+    # This second arithmetic is the live format2 runtime file position.
+    assert 264+15*64+offset==3753992
     assert [f['field_key'] for f in owners[4]['fields']]==['_resource_slot']
     return True
 

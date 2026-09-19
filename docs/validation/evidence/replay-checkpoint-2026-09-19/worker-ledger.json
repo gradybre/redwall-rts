@@ -1,0 +1,96 @@
+[
+  {
+    "attempt": "replay-header-a1",
+    "model": "claude-opus-5",
+    "session_id": "f1157ae6-2831-4560-a411-dc23fc308fe8",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/replay_checkpoint_contract.md",
+        "sha256": "7dc571e175e0297c1e54f391c7e2ef2e4d91a080c5b068a6a8dd59d64812358d"
+      },
+      {
+        "path": "docs/decisions/0156-bind-full-file-replay-checkpoints-to-economic-allocation.md",
+        "sha256": "5e9ec52188801c1e9fb81cb2870de6819f6692131491a3d52e666a6176466c55"
+      },
+      {
+        "path": "docs/validation/evidence/replay-checkpoint-contract-2026-09-19/independent-contract-review.md",
+        "sha256": "2ae7a69ef461864d1a1a6adf424a37bb8e1acb302257330ea7560632f9488233"
+      },
+      {
+        "path": "docs/validation/evidence/replay-checkpoint-contract-2026-09-19/astra-disposition.md",
+        "sha256": "29ddd9a4ad40816bad0c692b03d9f8d4b8f9372a1e4fe7f22a7d0b9d60024a4f"
+      },
+      {
+        "path": "godot/scripts/core/save_header.gd",
+        "sha256": "ae44b8ab307e987c8084b81ba707fd1db8befe26868fba8120b6944236bfbed5"
+      },
+      {
+        "path": "godot/scripts/core/save_codec.gd",
+        "sha256": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508"
+      },
+      {
+        "path": "godot/test/test_save_header.gd",
+        "sha256": "ef8b81c1cc1ef6fb5090e1e53571dbbb9a0a25dfe548234a2a54dd1acc2ebe81"
+      }
+    ]
+  },
+  {
+    "attempt": "replay-header-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "01023f1c-68cf-4a66-af0c-d27164524ee7",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/replay_checkpoint_contract.md",
+        "sha256": "7dc571e175e0297c1e54f391c7e2ef2e4d91a080c5b068a6a8dd59d64812358d"
+      },
+      {
+        "path": "docs/decisions/0156-bind-full-file-replay-checkpoints-to-economic-allocation.md",
+        "sha256": "5e9ec52188801c1e9fb81cb2870de6819f6692131491a3d52e666a6176466c55"
+      },
+      {
+        "path": "godot/scripts/core/save_header.gd",
+        "sha256": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      {
+        "path": "godot/scripts/core/save_codec.gd",
+        "sha256": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508"
+      },
+      {
+        "path": "godot/test/test_save_header.gd",
+        "sha256": "be1e51bd9308b268ba617911c36169047a92f579fe6af4c1bdd82cf54494780c"
+      },
+      {
+        "path": "godot/test/test_save_replay_checkpoint.gd",
+        "sha256": "d672136c9d8951971b749fb17b8d375135daf5918a8cf5040304e96538404fa4"
+      },
+      {
+        "path": "godot/test/test_save_section_01.gd",
+        "sha256": "f188246095c803e2b1dd3583881e482e62de5348afa89c9652ef9746f69a5333"
+      },
+      {
+        "path": "godot/test/save_replay_focus.gd",
+        "sha256": "a6395bbc4ffc601408896634765ac0f546093140ffcd02305ab357e3ca725568"
+      },
+      {
+        "path": "docs/validation/evidence/replay-checkpoint-2026-09-19/integration-diff.json",
+        "sha256": "7aa4ad8cbd597531c40e66a4453dabdcf97e512c3de72b767677955446f33ecf"
+      },
+      {
+        "path": "docs/validation/evidence/replay-checkpoint-2026-09-19/integration-notes.md",
+        "sha256": "953fb531a6fc1ed4e39815125892f95bbb7f9663a732f38a13c094d4d982affc"
+      },
+      {
+        "path": "docs/validation/evidence/replay-checkpoint-2026-09-19/focus-first.log",
+        "sha256": "f6c8bf58d8ad499e22a7038701df418f376d10aa283a79bc97a4bb907c02f473"
+      },
+      {
+        "path": "docs/validation/evidence/replay-checkpoint-contract-2026-09-19/offset-census-disposition.md",
+        "sha256": "0286c516b8976a04497846baad387da5b1207fcedd46a36c12a2cd6d9c037c83"
+      }
+    ]
+  }
+]

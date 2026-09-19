@@ -1,0 +1,11 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "596f898028b7710f4df4c1ec933ab96e9ea4afac",
+  "task": "Review PC-04 family version1 numerical and routine draft",
+  "paths": [
+    "docs/planning/family_execution_package.md",
+    "docs/validation/evidence/family-contract-2026-09-19/source-excerpts.json",
+    "docs/validation/evidence/family-contract-2026-09-19/independent-gap-audit.md"
+  ],
+  "instructions": "Independent review of Astra PC-04 version1 draft, not implementation. Review new chosen coefficients/arithmetic/routine/care fairness, policy compliance and deterministic corner cases. It openly leaves illness/departure/packed schema/commands/admission templates incomplete: do not accept full PC04 or treat those as hidden completion claims. Identify precise gaps in the selected rules and propose bounded concrete repairs. In particular care-vs-food/rescue ordering, sleep override, fairness no eligible provider, child purpose/social/learningXP, inherited medical care affinity vs ordinary dailycare, warning/threshold precedence, forecast daily demand, stage bounds and no elder penalty. Review-only output. Caution prior audit quoted stale module GAPS comments as current absence: buildings.gd/furniture/rooms/priorities/schedule and resident set_home/set_bed exist. Do not claim stores absent from stale comments; flag source knowledge limitations. Source agency: values are Astra proposals under delegated engineering, not user-inherited. Return rawJSON only exactkeys status,summary,questions,files,decisionIds;statuscomplete;files exactly [{\"path\":\"docs/validation/evidence/family-contract-2026-09-19/draft-v1-review.md\",\"content\":\"review with bounded repairs\",\"baseSha256\":null}]. No code edits. One attempt15min/no-progress3min."
+}

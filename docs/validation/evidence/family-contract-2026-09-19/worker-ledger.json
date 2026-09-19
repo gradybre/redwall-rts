@@ -1,0 +1,73 @@
+[
+  {
+    "attempt": "family-contract-audit-a1",
+    "model": "claude-opus-5",
+    "session_id": "ada2c776-7c28-40e9-8919-046bf2f6fb32",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/source-excerpts.json",
+        "sha256": "76f1097a11c95e10b59e1acd6d8841db42e69c28890bd3e91b9f7c0f54827432"
+      },
+      {
+        "path": "docs/tasks/08_community_scenarios_progression.md",
+        "sha256": "de8339bc7700d4d5c280f17a5724540020fb2db4e2e1673b04b83a45a9b83e6e"
+      },
+      {
+        "path": "docs/planning/release_coverage_matrix.md",
+        "sha256": "5437fb5f0868c2c93b7384bcfc3ff2a0e2f090ca3cea0b1c3b1bac3390002f3e"
+      }
+    ]
+  },
+  {
+    "attempt": "family-draft-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "d4414c31-1233-42d3-92fd-550093b23428",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/family_execution_package.md",
+        "sha256": "3a9819fbc83b9fc223ba94b56211e2756ec296713b0f56390520aa113905d15c"
+      },
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/source-excerpts.json",
+        "sha256": "76f1097a11c95e10b59e1acd6d8841db42e69c28890bd3e91b9f7c0f54827432"
+      },
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/independent-gap-audit.md",
+        "sha256": "45210210a3fbc57e821b31874e03d6e74bf3f78f21d414bf444ab35bd44067ee"
+      }
+    ]
+  },
+  {
+    "attempt": "family-v2-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "4711dd86-a5a8-4a1c-998c-76625447f1df",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/family_execution_package.md",
+        "sha256": "04b5d867e595e11d2967c17ef1a5c70ecfaf0145f1b4f5a67c2d6a83be6a96e5"
+      },
+      {
+        "path": "docs/planning/family_state_schema.md",
+        "sha256": "fabbadf633c7876a6309bda163b886dd0edd2631de9efd9a8dae206da36a7a3d"
+      },
+      {
+        "path": "docs/planning/family_lifecycle_contract.md",
+        "sha256": "eb84883307ac8579bfa68c8626b13a36cbade618dc63cea45fa3481d78bc4b08"
+      },
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/phase-source-excerpts.json",
+        "sha256": "8ae096ee9aadf6b639dbae67d5aeda1a392fa6c2d059f33f9e6134787c4eb64f"
+      },
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/draft-v1-review.md",
+        "sha256": "1fdc535acd6a47262e631a3aa9d9e37d458642ed3987bb4f25601b7f95f566cc"
+      }
+    ]
+  }
+]

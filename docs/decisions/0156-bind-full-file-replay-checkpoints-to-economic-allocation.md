@@ -1,6 +1,6 @@
 # 0156 — Bind full-file replay checkpoints to economic allocation
 
-Date: 2026-09-19 · Status: Implemented and locally accepted; integration CI pending
+Date: 2026-09-19 · Status: Implemented and integrated in PR146 (`7b3e83b`)
 
 Section12 schema3 can represent the economic allocator's ordinary u64 range plus
 its exhausted state, while the outer header's scalar checkpoint cannot. The old

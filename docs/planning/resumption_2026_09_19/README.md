@@ -10,7 +10,7 @@ snapshot with 356 changed/untracked entries; it was preserved. The [file invento
 
 ## Current verified position
 
-PRs 140–145 are merged. The latest integrated candidate is `11526f7`; its final CI passed **4652 tests / 180955 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding has passed local acceptance and independent review, with integration CI pending.
+PRs 140–146 are merged. The latest integrated candidate is `7b3e83b`; its final CI passed **4662 tests / 181239 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
 
 ## Verified baseline
 
@@ -183,4 +183,16 @@ Local acceptance: **4652 tests / 180952 assertions / zero failures**, plus15 sta
 
 ## Full-file checkpoint follow-through
 
-SAVE-REPLAY-R01 version2 and decision0156 define the full-file checkpoint as a redundant copy of the next economic admission pair, including exhaustion, validated against section12 and section1 tick. The outer header advances to format2/264bytes; section body layouts stay unchanged. Independent contract review's five gaps were resolved before implementation. Local acceptance passed **4662 tests / 181239 assertions / zero failures**, focused159/11265/0, all15 static checks and editor import. Independent source review found no blocking findings; five advisories have recorded dispositions. Integration CI remains pending. [Evidence](../../validation/evidence/replay-checkpoint-2026-09-19/) and the [source census](../../validation/evidence/replay-checkpoint-contract-2026-09-19/offset-census-disposition.md) record the exact scope. Full-file load coordination and the separately queued replay-stream contract remain unfinished.
+SAVE-REPLAY-R01 version2 and decision0156 define the full-file checkpoint as a redundant copy of the next economic admission pair, including exhaustion, validated against section12 and section1 tick. The outer header advances to format2/264bytes; section body layouts stay unchanged. Independent contract review's five gaps were resolved before implementation. Local acceptance passed **4662 tests / 181239 assertions / zero failures**, focused159/11265/0, all15 static checks and editor import. Independent source review found no blocking findings; five advisories have recorded dispositions. PR146 merged at `7b3e83b0f448828a43e207eabf946f80ba8207b2` after CI35472659237 confirmed4662/181239/0 on head596f898. [Evidence](../../validation/evidence/replay-checkpoint-2026-09-19/) and the [source census](../../validation/evidence/replay-checkpoint-contract-2026-09-19/offset-census-disposition.md) record the exact scope. Full-file load coordination and the separately queued replay-stream contract remain unfinished.
+
+
+## Family authoring progress
+
+PC-04 now has an explicit [execution draft](../family_execution_package.md),
+[bounded state proposal](../family_state_schema.md) and [lifecycle/command proposal](../family_lifecycle_contract.md). Two independent reviews checked numeric and policy
+choices; the second confirmed the corrected care equilibrium and byte products.
+Astra's latest repairs remain proposals pending confirmation and exact owner API/
+transaction packets. The task remains in-flight; no child/elder runtime is enabled.
+Evidence records reviewer findings, the source limits of old module comments, and
+a deterministic arithmetic check. INIT-B's affinity20 pairs are no longer described
+as already satisfying the friendship threshold40.

@@ -90,6 +90,29 @@ These are bounded ownership packets, not claims that their unresolved upstream
 interfaces already exist. INIT-A must publish concrete API recipes before INIT-C
 or D dispatch; PC-04 compatibility remains a real prerequisite for INIT-B.
 
+## Reset and rollback dependency clarification
+
+ARCH-MEM-006 already selects disk-backed rollback because two resident mutable
+worlds exceed the memory budget. Therefore INIT-E's replacement of an existing
+valid world depends on task09's complete validated checkpoint/restore orchestrator,
+not merely successful world-generation preflight. Preflight protects expected
+refusals; it cannot restore state after an unexpected publish/I/O failure.
+Never solve this by allocating an unbudgeted duplicate Inventory or full world.
+Boot into an empty world and pure preparation/projection helpers can be developed
+before full rollback, but cannot be credited as safe New Settlement replacement.
+Keep the previous map, report, resident/stock projections and save logically
+published until replacement commits; a failed candidate cannot become UI.world().
+
+INIT-0 is the first authority integration, with implementation divided into a
+read-only borrowed projection, initializer-owned admission of actual containers,
+and production cutover coordinated with INIT-E. Projection methods cannot clear,
+load catalogs or seed the borrowed store. Legacy test fixtures must explicitly
+own their isolated inventory; no constructor may transiently allocate a second
+production-sized Inventory merely to overwrite it with the borrowed one. An
+unbound projection reports unavailable rather than a zero-stock valid world.
+Successful publication binds once after the one reset and one seed operation;
+failed preparation leaves the prior binding and quantities intact.
+
 ## Required failures and evidence
 
 Preflight failures: unknown/retired catalog entry, incompatible variant, overfull

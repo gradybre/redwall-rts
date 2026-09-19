@@ -22,7 +22,7 @@ Specification `SET-RESOLUTION-001`, revision 1, 2026-09-05. Applies to `/Users/b
 | Calendar horizon discrepancy | `RESOLVED_REPORTING` | Report tick 2587500 for calendar day 144 end; extend through 2592000 for three elapsed years |
 | Missing durability/batch/save state | `RESOLVED_IN_ARCHITECTURE` | Preserve GDD fields and implement the explicitly budgeted auxiliary arrays in systems_architecture §3; runtime still absent |
 | Two simultaneous world allocations | `RESOLVED_IN_ARCHITECTURE` | Use the selected disk-backed rollback/load contract; arithmetic verifies 66101862 planned bytes versus 117599532 for two worlds; live peaks remain unmeasured |
-| M4 maintenance wording | `SOURCE_AMBIGUITY_REMAINS` | Midnight samples cannot prove continuous maintenance. §5 gives an exact proposed interpretation; source remains untouched |
+| M4 maintenance wording | `SOURCE_CLARIFIED_RUNTIME_PENDING` | PROGRESS-C4-R01 adopts inclusive interval endpoints; saved owner/schema and runtime qualification remain pending |
 | Universal route deadline with fixed search quota | `PROVEN_WORKLOAD_CONFLICT` | Cold FIFO reference burst needs 31 ticks at p95, exceeding 7 complete ticks allowed by 1/4 second. §6 gives exact options |
 
 **RES-AUTH-001.** WHEN the implementation agent reads this record, it SHALL use the disposition column as evidence status, not permission to replace GDD values. A planned architecture, arithmetic pass, isolated control, and observed game result are distinct forms of evidence. `[NEW reporting requirement; GDD §8.1]`
@@ -91,7 +91,13 @@ The current generated `windows-status.json` is `BLOCKED`; no Windows timing valu
 
 Mastery still requires the specified repeated GOOD/EXCELLENT production; listing candidate recipes does not count them as mastered, provide ingredients, or prove the eight specialists/six skills, feasts, reserve, population or mood requirements. This closes the orchard dependency assumption, not the full M4 simulation gap.
 
-## 5. M4 temporal ambiguity: exact proposed amendment
+## 5. M4 temporal ambiguity: historical proposal and adopted clarification
+
+2026-09-19: [PROGRESS-C4-R01](rulings/2026-09-19_progression_interval.md) adopts
+truth from T−54000 through T inclusive in GDD §5.11. Both endpoints count,
+covering 54000 complete intervals. The proposal below is retained as history;
+its statements that source remains untouched are superseded. Saved state and
+actual runtime/M4 qualification remain unimplemented.
 
 The existing drafts interpreted the source as checks at the starts of winter days 10,11,12. Three point samples do not prove continuous maintenance between those samples. The GDD both says “conditions maintained last 3 winter days” and permits award at midnight starting winter day 12. Its timing words need one explicit interpretation; changing a threshold is unnecessary.
 

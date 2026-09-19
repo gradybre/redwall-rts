@@ -1,0 +1,18 @@
+{
+  "pr": 140,
+  "url": "https://github.com/gradybre/redwall-rts/pull/140",
+  "head": "49901b7a7174868fe49d56612f6ef18747e511ec",
+  "merge_commit": "5ea810e15150bec509aa5d9eca5faa15bb441a87",
+  "merged_at": "2026-09-19T19:23:11Z",
+  "workflow_run": 35463636082,
+  "checks": {
+    "Specification contracts": "SUCCESS",
+    "Godot headless suite": "SUCCESS"
+  },
+  "remote_test_summary": {
+    "tests": 4574,
+    "assertions": 159269,
+    "failures": 0
+  },
+  "merge_method": "repository tools/auto_merge.py --only 140 --merge"
+}

@@ -1,6 +1,6 @@
 {
   "id": "INIT-A-2026-09-19",
-  "version": 1,
+  "version": 2,
   "status": "observed_api_map_with_blockers",
   "basis": "origin/master 47a4da2642912afee4d5249424d31ab6c92f014a; exact method presence checked from local source",
   "activation_approved": false,
@@ -142,6 +142,7 @@
       "remaining_integration": "Currently seeds separate Economy store before Settlement reset within generation. Do not move those seeds earlier into shared store or reset will erase them."
     }
   ],
-  "next_packet": "INIT-0 may begin only after bounded shared-owner reset/seeding/failure contract is written; physical seeding depends on INIT-C/D and movement contact contracts.",
-  "memory": "Do not allocate another production Inventory or entire replacement world to implement borrowing or rollback. Prepared compact plans and preflight are permitted within measured budgets."
+  "next_packet": "INIT-0 requires the bounded borrowed-view/admission/cutover contract. Physical seeding depends on INIT-C/D. Replacing a prior valid world in INIT-E also requires ARCH-MEM-006 disk-backed rollback; the full save orchestrator is not yet implemented.",
+  "memory": "Do not allocate another production Inventory or entire replacement world to implement borrowing or rollback. Prepared compact plans and preflight are permitted within measured budgets.",
+  "rollback_dependency": "ARCH-MEM-006: validated old and incoming disk checkpoints; reuse one set of mutable allocations under LOAD barrier; do not expose failed candidate or allocate a second complete world."
 }

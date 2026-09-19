@@ -1,0 +1,33 @@
+{
+  "base_commit": "5ea810e15150bec509aa5d9eca5faa15bb441a87",
+  "scope": "Stateless progression interval helper, authored timing, planning dependency corrections",
+  "files_sha256": {
+    "godot/scripts/core/progression_interval.gd": "dcd2334e7f504db1c5ac6838d6b09d54d197b8d357ccb053940b2763f4077295",
+    "godot/test/test_progression_interval.gd": "415a7888dd86aa36f308e98a89842f6f585502f642d6dad914c3f9586f73c15d",
+    "docs/rulings/2026-09-19_progression_interval.md": "6254ba8f1f58ba596a061a469c520dc00bbaf60a5b414e2c76ff5f16f53ee0a8"
+  },
+  "tests": {
+    "command": "caffeinate -i ./tools/run_tests.sh",
+    "exit_code": 0,
+    "tests": 4590,
+    "assertions": 159439,
+    "failures": 0,
+    "log": "tests-first.log",
+    "post_test_changes": "Only pause-test docstring/assertion label; no test or production logic changed"
+  },
+  "static_checks": {
+    "count": 15,
+    "all_passed": true,
+    "log": "contracts.json"
+  },
+  "shutdown": {
+    "leaked_objects": 553,
+    "retained_resources": 33,
+    "boot_warnings": 0
+  },
+  "independent_review": "independent-review.md",
+  "native_interaction": "not performed; Mac unlock request pending",
+  "production_progression_bound": false,
+  "active_schema_or_ledger_changed": false,
+  "unattended_service_active": false
+}

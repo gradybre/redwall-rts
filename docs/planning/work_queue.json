@@ -1356,7 +1356,8 @@
       "gate": "astra_ruling",
       "astra_answered": true,
       "astra_ruling": "docs/rulings/2026-09-19_progression_interval.md",
-      "acceptance": "PROGRESS-C4-R01 v2: contiguous checked int64 observations, inclusive54000interval gate, exact calendar eligibility, no mutable owner or production award; independent tests and review. Full progression integration remains blocked on its separate owners/schema."
+      "acceptance": "PROGRESS-C4-R01 v2: contiguous checked int64 observations, inclusive54000interval gate, exact calendar eligibility, no mutable owner or production award; independent tests and review. Full progression integration remains blocked on its separate owners/schema.",
+      "pr": 141
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

@@ -144,3 +144,5 @@ The starter/queue follow-through also makes ARCH-MEM-006's disk rollback a real
 dependency of prior-valid-world replacement. Save orchestration cannot dispatch
 ahead of its concrete section/owner prerequisites. None of these planning
 corrections creates a rollback mechanism or finishes the starter settlement.
+
+Reviewed progression follow-through: [PR141](https://github.com/gradybre/redwall-rts/pull/141). Its queue entry is a pre-merge snapshot; reconcile the actual GitHub state before another dispatch.

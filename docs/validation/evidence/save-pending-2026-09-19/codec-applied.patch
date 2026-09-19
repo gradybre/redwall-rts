@@ -1,0 +1,445 @@
+--- a/godot/scripts/core/save_section_pending_commands.gd
++++ b/godot/scripts/core/save_section_pending_commands.gd
+@@ -111,15 +111,37 @@
+ ## bytes, so `apply()` rebuilds that subsection from the Record with the SAME private writer
+ ## `encode_record()` uses and hands it over -- the owner then revalidates tag, lengths, count,
+ ## reason ownership, zero padding, sequence order and `pending boundary == saved completed tick`
+-## before it writes a column. `commands.gd` gets `restore_sequence()` then one
+-## `admit_stamped_into()` per record in canonical order. Both restore paths deliberately pass
+-## THROUGH the load barrier: restore is not a command (RESTORE-R01).
++## before it writes a column. `commands.gd` gets SAVE-P2-R02's
++## `restore_pending_window(records, arena, next_sequence_high, next_sequence_low)`, which installs
++## the whole economic window verbatim: every payload keeps the offset it was saved with, the saved
++## highwater becomes the arena cursor, and both allocator words are assigned rather than derived.
++## NEITHER `restore_sequence()` NOR `admit_stamped_into()` IS USED HERE -- admission would re-derive
++## every offset through the bump allocator, compacting a partially drained arena, and would refuse
++## a window whose saved allocator is already exhausted. Both restore paths deliberately pass
++## THROUGH the load barrier: restore is not a command (RESTORE-R01), and `apply()` REQUIRES that
++## barrier to be held rather than merely tolerating it.
+ ##
+ ## ORDERING OBLIGATION ON THE LOAD ORCHESTRATOR. §1 WORLD's clock and §3 ENTITY_DIRECTORY must be
+-## restored BEFORE §12. `admit_stamped_into()` refuses a tick at or before `completed_tick()` and
+-## validates every target `EntityRef` against the live directory, and `restore_extension()`
+-## compares every pending boundary against the saved completed tick. Restoring §12 first would
+-## refuse a perfectly good save.
++## restored BEFORE §12. `commands.gd::pending_window_refusal()` refuses a tick at or before
++## `completed_tick()` and validates every target `EntityRef` against the live directory, and
++## `restore_extension()` compares every pending boundary against the saved completed tick.
++## Restoring §12 first would refuse a perfectly good save.
++##
++## ## TWO OWNERS, ONE BOUNDARY: THE ORDER AND THE RECOVERY
++##
++## `apply()` first proves both queues share the SAME `SimClock` OBJECT -- identity, never an equal
++## tick number read off two different clocks -- that its completed tick is the saved one, that its
++## load barrier is held, and that BOTH queues are empty. It then validates the whole Record, the
++## `SCHQ0001` bytes through `extension_refusal()` and the packed economic window through
++## `pending_window_refusal()`, all of it BEFORE the first mutation (decision 0059).
++##
++## The economic queue installs FIRST and the scheduler SECOND, because the scheduler's
++## `restore_extension()` is itself atomic. If it refuses anyway, the prior EMPTY economic window
++## and its exact prior allocator pair go back through the same owner API and THAT BOOL IS CHECKED:
++## a successful recovery reports the scheduler's refusal, a failed one reports the distinct
++## SAVE_PC_ROLLBACK_FAILED and says plainly that this module can no longer describe the command
++## queue. Nothing fallible runs after the scheduler has succeeded, no public `clear()` is called,
++## no barrier is released and no whole-world rollback is claimed: the coordinator owns that.
+ ##
+ ## ## BLOCKER P1 -- THE LANE BRIEF ASKS FOR A FRAMING SAVE-LAYOUT-R01 EXEMPTS
+ ##
+@@ -138,16 +160,13 @@
+ ## field-record stream." REPORTED, not silently chosen. If a later ruling does move §12 onto the
+ ## generic wrapper, `SECTION_SCHEMA_VERSION` and the whole prefix change together.
+ ##
+-## ## BLOCKER P2 -- `commands.gd` HAS NO ARENA-BASE RESTORE, SO A SPLIT DRAIN REFUSES
+-##
+-## `_allocate_payload()` is a bump cursor that resets only when the queue is empty, so restoring
+-## through `admit_stamped_into()` always lays the pending payloads out contiguously from offset 0.
+-## A world saved with a NON-ZERO first pending offset -- reachable only when a partial drain left
+-## the queue non-empty, which `submit_into()`'s uniform `completed_tick+1` stamping cannot produce
+-## and only a replay stream with mixed future ticks can -- cannot be reproduced through any public
+-## `commands.gd` API. `arena_rebuild_refusal()` therefore refuses at CAPTURE as well as at apply,
+-## because writing a save that cannot be loaded is worse than refusing to write one. Closing this
+-## needs `commands.gd` to publish an arena-base restore; that file is not this lane's to change.
++## ## BOUNDED COLD SCRATCH AT THE RESTORE BOUNDARY
++##
++## One `apply()` builds, ONCE EACH, the `SCHQ0001` bytes (at most 8240), the packed economic
++## records (at most 262144) and the used arena prefix (at most 1048576); it hands those same
++## buffers to the owners' validators and then to their installers, so the bytes that were checked
++## are the bytes that are installed, and drops them on return. There is no Array-of-Command, no
++## second `Commands` object, and no retained or persisted field anywhere in this module.
+ ##
+ ## ## COLD PATH, NO FLOAT
+ ##
+@@ -162,6 +181,7 @@
+ const SchedulerEventsScript := preload("res://scripts/core/scheduler_events.gd")
+ const CatalogScript := preload("res://scripts/core/catalog.gd")
+ const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
++const SimClockScript := preload("res://scripts/core/sim_clock.gd")
+ 
+ # --- ARCH-SAVE-002 identity -----------------------------------------------------------------------
+ 
+@@ -288,6 +308,7 @@
+ const REFUSE_ARENA_NOT_REBUILDABLE: StringName = &"SAVE_PC_ARENA_NOT_REBUILDABLE"
+ const REFUSE_STORE_NOT_EMPTY: StringName = &"SAVE_PC_STORE_NOT_EMPTY"
+ const REFUSE_STORE_REFUSED: StringName = &"SAVE_PC_STORE_REFUSED"
++const REFUSE_ROLLBACK_FAILED: StringName = &"SAVE_PC_ROLLBACK_FAILED"
+ const REFUSE_ENCODE_FAILED: StringName = &"SAVE_PC_ENCODE_FAILED"
+ 
+ 
+@@ -613,9 +634,6 @@
+ 				"the command queue refused position %d: %s" % [position, store.last_refusal()])
+ 		_assign_economic_row(staged, position, scratch)
+ 	staged.payload_used = store.payload_used()
+-	var rebuild: SaveHeader.Refusal = arena_rebuild_refusal(staged)
+-	if not rebuild.is_ok():
+-		return rebuild
+ 	return _capture_payload(store, staged)
+ 
+ 
+@@ -640,28 +658,47 @@
+ 
+ 
+ static func _capture_payload(store: CommandsScript, staged: Record) -> SaveHeader.Refusal:
+-	"""Rebuild the arena as the live spans verbatim and every other byte zero.
+-
+-	`arena_rebuild_refusal()` has already proved the spans tile `[0, payload_used)` contiguously
+-	in queue order, so concatenating each command's bytes reproduces the used prefix exactly --
+-	and the zero tail is ARCH-SAVE-002's "encode zero for unused payload", not an invention.
++	"""Copy every live span to the offset it actually occupies, into one zeroed arena.
++
++	SAVE-P2-R02: allocation order and key order may disagree, and a partial drain leaves a dead
++	prefix, interior holes and a dead tail INSIDE the used prefix. So the arena is zero-filled
++	once and each pending payload is written AT ITS OWN `payload_offset` -- never concatenated,
++	which would silently compact the layout and change the capacity the restored world offers its
++	next submission. Every byte no live span owns stays zero, which is ARCH-SAVE-002's "encode
++	zero for unused payload" and is what makes two observationally identical worlds encode
++	identically. Every read is checked, and every span is bounded BEFORE a byte is written at it.
+ 	"""
+ 	var arena: PackedByteArray = PackedByteArray()
++	arena.resize(PAYLOAD_ARENA_BYTES)
++	arena.fill(0)
+ 	var scratch: PackedByteArray = PackedByteArray()
+ 	scratch.resize(_longest_payload(staged))
+ 	var command: CommandsScript.Command = CommandsScript.Command.new()
+ 	for position: int in staged.economic_count:
+-		store.read_into(position, command)
++		if not store.read_into(position, command):
++			return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
++				"the command queue refused position %d: %s" % [position, store.last_refusal()])
++		var span: SaveHeader.Refusal = _live_span_refusal(command.payload_offset,
++			command.payload_length, staged.payload_used, position)
++		if not span.is_ok():
++			return span
+ 		if not store.read_payload_into(command, scratch):
+ 			return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
+ 				"the command queue refused the payload of position %d: %s"
+ 					% [position, store.last_refusal()])
+-		arena.append_array(scratch.slice(0, command.payload_length))
+-	var tail: PackedByteArray = PackedByteArray()
+-	tail.resize(PAYLOAD_ARENA_BYTES - arena.size())
+-	tail.fill(0)
+-	arena.append_array(tail)
++		for index: int in command.payload_length:
++			arena[command.payload_offset + index] = scratch[index]
+ 	staged.payload = arena
++	return SaveHeader.Refusal.new(REFUSE_NONE, "")
++
++
++static func _live_span_refusal(offset: int, length: int, used: int,
++		position: int) -> SaveHeader.Refusal:
++	"""Bound one live span inside the used prefix, in subtraction, before anything is written."""
++	if offset < 0 or length < 0 or offset > used or length > used - offset:
++		return SaveHeader.Refusal.new(REFUSE_PAYLOAD_SPAN,
++			"queue position %d spans (%d, %d), outside the %d-byte used prefix"
++				% [position, offset, length, used])
+ 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+ 
+ 
+@@ -1315,28 +1352,30 @@
+ 
+ 
+ static func arena_rebuild_refusal(record: Record) -> SaveHeader.Refusal:
+-	"""Prove `commands.gd`'s bump allocator reproduces this Record's arena exactly. BLOCKER P2.
+-
+-	`_allocate_payload()` resets the cursor only while the queue is empty, so restoring through
+-	`admit_stamped_into()` always lays the pending payloads out contiguously from offset 0 in
+-	canonical order. Any other arena -- a non-zero first offset left by a partial drain -- has no
+-	public restore path, so it is refused at CAPTURE as well as at apply rather than written into
+-	a file that cannot be loaded.
+-	"""
+-	var cursor: int = 0
++	"""Prove this Record's arena is a CONSISTENT set of spans over an otherwise zeroed prefix.
++
++	SAVE-P2-R02 REMOVED THE CONTIGUITY TEST. `commands.gd::restore_pending_window()` installs
++	every payload at the offset it was saved with and takes the saved highwater as its cursor, so
++	a non-zero base, an interior hole left by a partial drain, a dead tail and a disagreement
++	between allocation order and key order are all LEGAL and must round-trip byte for byte. What
++	is still refused is an INCONSISTENT arena: a span outside the used prefix, two spans claiming
++	one byte, or a nonzero byte no span owns.
++
++	The shape and bound gates run first, so a malformed Record is refused by the existing
++	validation rather than indexed into.
++	"""
++	var shape: SaveHeader.Refusal = _shape_refusal(record)
++	if not shape.is_ok():
++		return shape
++	var bound: SaveHeader.Refusal = bound_refusal(record.economic_count, record.payload_used,
++		record.scheduler_count)
++	if not bound.is_ok():
++		return bound
+ 	for row: int in record.economic_count:
+-		if record.payload_offset[row] != cursor:
+-			return SaveHeader.Refusal.new(REFUSE_ARENA_NOT_REBUILDABLE,
+-				("record %d sits at arena offset %d, not the %d a restore would give it. "
+-					+ "commands.gd publishes no arena-base restore; see BLOCKER P2.")
+-					% [row, record.payload_offset[row], cursor])
+-		cursor += record.payload_length[row]
+-	if cursor != record.payload_used:
+-		return SaveHeader.Refusal.new(REFUSE_ARENA_NOT_REBUILDABLE,
+-			("the pending payloads occupy %d bytes but the arena cursor is at %d; a restore "
+-				+ "would leave it at %d. See BLOCKER P2.")
+-				% [cursor, record.payload_used, cursor])
+-	return SaveHeader.Refusal.new(REFUSE_NONE, "")
++		var span: SaveHeader.Refusal = _span_shape_refusal(record, row)
++		if not span.is_ok():
++			return span
++	return _payload_refusal(record)
+ 
+ 
+ # --- apply ---------------------------------------------------------------------------------------------
+@@ -1348,28 +1387,101 @@
+ 
+ 	The load half of §12. §1's clock and §3's directory MUST already be restored: every incoming
+ 	tick is checked against `completed_tick()` and every target against the live directory.
+-	Everything is validated -- this module's rules, the arena rebuild, both stores empty, the
+-	owners' own validators over every incoming record -- BEFORE the first mutation, so a refusal
+-	leaves both stores byte-identical (decision 0059).
+-	"""
++	Both queues must be bound to the SAME clock object, that clock's completed tick must be the
++	saved one, its load barrier must be HELD, and both queues must be empty. Everything -- this
++	module's rules, the arena's span/zero consistency, the scheduler's own extension validator and
++	`commands.gd`'s own pending-window validator over the exact bytes that will be installed --
++	runs BEFORE the first mutation, so a refusal leaves both stores byte-identical (decision 0059).
++	"""
++	var bindings: SaveHeader.Refusal = _binding_refusal(record, commands_store, scheduler_store,
++		saved_completed_tick)
++	if not bindings.is_ok():
++		return bindings
+ 	var invalid: SaveHeader.Refusal = record_refusal(record)
+ 	if not invalid.is_ok():
+ 		return invalid
+-	var rebuild: SaveHeader.Refusal = arena_rebuild_refusal(record)
+-	if not rebuild.is_ok():
+-		return rebuild
++	var arena_form: SaveHeader.Refusal = arena_rebuild_refusal(record)
++	if not arena_form.is_ok():
++		return arena_form
+ 	var extension: PackedByteArray = extension_bytes_of(record)
++	var records: PackedByteArray = packed_records_of(record)
++	var arena: PackedByteArray = arena_prefix_of(record)
+ 	var preflight: SaveHeader.Refusal = _preflight_refusal(record, commands_store,
+-		scheduler_store, saved_completed_tick, extension)
++		scheduler_store, saved_completed_tick, extension, records, arena)
+ 	if not preflight.is_ok():
+ 		return preflight
+-	return _commit(record, commands_store, scheduler_store, saved_completed_tick, extension)
++	return _install(record, commands_store, scheduler_store, saved_completed_tick, extension,
++		records, arena)
++
++
++static func _binding_refusal(record: Record, commands_store: CommandsScript,
++		scheduler_store: SchedulerEventsScript,
++		saved_completed_tick: int) -> SaveHeader.Refusal:
++	"""Prove the two owners and the caller are talking about ONE world, before anything else.
++
++	The clock test is OBJECT IDENTITY, not an equal tick number: two clocks can read the same
++	completed tick and belong to different worlds, and installing a pending window against the
++	wrong one would stamp every restored command's due tick into a numbering it never had.
++	"""
++	if record == null:
++		return SaveHeader.Refusal.new(REFUSE_RECORD_SHAPE, "apply was given no record")
++	if commands_store == null or scheduler_store == null:
++		return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
++			"apply needs both owner queues; one of them was null")
++	var clock: SimClockScript = commands_store.clock()
++	if clock == null:
++		return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
++			"the command queue is bound to no clock")
++	if clock != scheduler_store.clock():
++		return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
++			("the two queues are bound to different clock objects; a shared completed tick is "
++				+ "not evidence that they belong to one world"))
++	if not clock.is_load_barrier_held():
++		return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
++			"section 12 installs only inside a HELD load barrier; this clock holds none")
++	if clock.completed_tick() != saved_completed_tick:
++		return SaveHeader.Refusal.new(REFUSE_BOUNDARY_MISMATCH,
++			"the bound clock has completed tick %d, the save %d"
++				% [clock.completed_tick(), saved_completed_tick])
++	return SaveHeader.Refusal.new(REFUSE_NONE, "")
++
++
++static func packed_records_of(record: Record) -> PackedByteArray:
++	"""The E 64-byte economic records in canonical order, as `restore_pending_window()` takes them.
++
++	Built ONCE per apply and handed first to the owner's validator and then to its installer, so
++	the bytes that were checked are the bytes that are installed. At most 262144 bytes of cold
++	scratch; no per-row Command array and no second live queue is built anywhere. An empty array
++	is returned only when the record writer refused, which the caller distinguishes from the legal
++	empty window by comparing the size against `64 * E`.
++	"""
++	var buffer: PackedByteArray = PackedByteArray()
++	buffer.resize(ECONOMIC_RECORD_BYTES * record.economic_count)
++	buffer.fill(0)
++	var command: CommandsScript.Command = CommandsScript.Command.new()
++	for index: int in record.economic_count:
++		_fill_command(record, index, command)
++		if not CommandsScript.encode_command_into(command, buffer,
++				ECONOMIC_RECORD_BYTES * index):
++			return PackedByteArray()
++	return buffer
++
++
++static func arena_prefix_of(record: Record) -> PackedByteArray:
++	"""The used prefix of the arena: its LENGTH is the saved highwater, dead bytes included."""
++	return record.payload.slice(0, record.payload_used)
+ 
+ 
+ static func _preflight_refusal(record: Record, commands_store: CommandsScript,
+ 		scheduler_store: SchedulerEventsScript, saved_completed_tick: int,
+-		extension: PackedByteArray) -> SaveHeader.Refusal:
+-	"""Prove both stores are empty and both owners accept every incoming record. Writes nothing."""
++		extension: PackedByteArray, records: PackedByteArray,
++		arena: PackedByteArray) -> SaveHeader.Refusal:
++	"""Prove both stores are empty and both owners accept their WHOLE window. Writes nothing.
++
++	The economic side is validated as one packed window rather than record by record, because
++	that is the unit `restore_pending_window()` installs: span overlap, dead-byte zeroing and the
++	allocator pair are properties of the window, not of any single record.
++	"""
+ 	if commands_store.pending_count() != 0:
+ 		return SaveHeader.Refusal.new(REFUSE_STORE_NOT_EMPTY,
+ 			"the command queue already holds %d pending commands"
+@@ -1381,67 +1493,68 @@
+ 	if extension.is_empty():
+ 		return SaveHeader.Refusal.new(REFUSE_ENCODE_FAILED,
+ 			"the SCHQ0001 writer refused to build the subsection this restore needs")
++	if records.size() != ECONOMIC_RECORD_BYTES * record.economic_count:
++		return SaveHeader.Refusal.new(REFUSE_ENCODE_FAILED,
++			"the 64-byte record writer refused to build the window this restore needs")
+ 	var owned: StringName = scheduler_store.extension_refusal(extension, 0, saved_completed_tick)
+ 	if owned != REFUSE_NONE:
+ 		return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
+ 			"scheduler_events.gd refuses this subsection: %s" % owned)
+-	return _command_envelope_refusal(record, commands_store)
+-
+-
+-static func _command_envelope_refusal(record: Record,
+-		store: CommandsScript) -> SaveHeader.Refusal:
+-	"""Run `commands.gd`'s own envelope validator over every incoming record. Writes nothing.
+-
+-	This is where a target `EntityRef` meets the restored directory's generations, which is why
+-	§3 has to be restored first.
+-	"""
+-	var command: CommandsScript.Command = CommandsScript.Command.new()
+-	var floor_tick: int = store.clock().completed_tick()
+-	for row: int in record.economic_count:
+-		_fill_command(record, row, command)
+-		var refusal: StringName = store.envelope_refusal(command)
+-		if refusal != CommandsScript.REFUSE_NONE:
+-			return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
+-				"commands.gd refuses record %d: %s" % [row, refusal])
+-		if command.execute_tick <= floor_tick:
+-			return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
+-				"record %d is due at tick %d, at or before the restored completed tick %d"
+-					% [row, command.execute_tick, floor_tick])
+-	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+-
+-
+-static func _commit(record: Record, commands_store: CommandsScript,
++	var window: StringName = commands_store.pending_window_refusal(records, arena,
++		record.economic_next_sequence_high, record.economic_next_sequence_low)
++	if window != REFUSE_NONE:
++		return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
++			"commands.gd refuses this pending window: %s" % window)
++	return SaveHeader.Refusal.new(REFUSE_NONE, "")
++
++
++static func _install(record: Record, commands_store: CommandsScript,
+ 		scheduler_store: SchedulerEventsScript, saved_completed_tick: int,
+-		extension: PackedByteArray) -> SaveHeader.Refusal:
+-	"""Install both queues, scheduler first, after every gate has passed.
+-
+-	A refusal here means the owner's validator and this module's disagreed after the preflight
+-	accepted -- the same divergence `save_section_directory.gd::apply()` reports rather than
+-	leaving a half-written store unexplained.
+-	"""
+-	if not scheduler_store.restore_extension(extension, 0, saved_completed_tick):
++		extension: PackedByteArray, records: PackedByteArray,
++		arena: PackedByteArray) -> SaveHeader.Refusal:
++	"""Install both queues -- commands first, scheduler second -- after every gate has passed.
++
++	The scheduler goes SECOND because its `restore_extension()` is itself atomic, so the only
++	state that can need putting back is the economic one -- and that is the EMPTY window and the
++	exact allocator pair the preflight proved was there, reinstalled through the same owner API.
++	Its bool is checked: an unchecked recovery would let this module claim a rollback it never
++	proved. NOTHING FALLIBLE RUNS AFTER THE SCHEDULER SUCCEEDS.
++	"""
++	var prior_high: int = commands_store.next_sequence_high()
++	var prior_low: int = commands_store.next_sequence_low()
++	if not commands_store.restore_pending_window(records, arena,
++			record.economic_next_sequence_high, record.economic_next_sequence_low):
+ 		return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
+-			"scheduler_events.gd refused a subsection its own validator accepted: %s"
+-				% scheduler_store.last_refusal())
+-	if not commands_store.restore_sequence(record.economic_next_sequence_high,
+-			record.economic_next_sequence_low):
+-		return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
+-			"commands.gd refused the restored sequence: %s" % commands_store.last_refusal())
+-	return _admit_all(record, commands_store)
+-
+-
+-static func _admit_all(record: Record, store: CommandsScript) -> SaveHeader.Refusal:
+-	"""Admit every pending command in canonical order, payload bytes and all."""
+-	var command: CommandsScript.Command = CommandsScript.Command.new()
+-	var result: CommandsScript.SubmitResult = CommandsScript.SubmitResult.new()
+-	for row: int in record.economic_count:
+-		_fill_command(record, row, command)
+-		command.payload = record.payload.slice(record.payload_offset[row],
+-			record.payload_offset[row] + record.payload_length[row])
+-		if not store.admit_stamped_into(command, result):
+-			return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
+-				"commands.gd refused record %d after accepting it in preflight: %s"
+-					% [row, result.error])
++			"commands.gd refused a pending window its own validator accepted: %s"
++				% _owner_detail(commands_store.last_refusal()))
++	if scheduler_store.restore_extension(extension, 0, saved_completed_tick):
++		return SaveHeader.Refusal.new(REFUSE_NONE, "")
++	var failure: String = _owner_detail(scheduler_store.last_refusal())
++	if not commands_store.restore_pending_window(PackedByteArray(), PackedByteArray(),
++			prior_high, prior_low):
++		return SaveHeader.Refusal.new(REFUSE_ROLLBACK_FAILED,
++			("scheduler_events.gd refused a subsection its own validator accepted (%s), and "
++				+ "commands.gd then refused to reinstall the empty window and allocator "
++				+ "(%d, %d) it held before (%s). This module cannot say what the command queue "
++				+ "now holds; it claims no rollback, releases no barrier and leaves the load "
++				+ "open for the coordinator.")
++				% [failure, prior_high, prior_low, _owner_detail(commands_store.last_refusal())])
++	return SaveHeader.Refusal.new(REFUSE_STORE_REFUSED,
++		("scheduler_events.gd refused a subsection its own validator accepted: %s. The command "
++			+ "queue was reinstalled as the empty window and allocator (%d, %d) it held before.")
++			% [failure, prior_high, prior_low])
++
++
++static func _owner_detail(code: StringName) -> String:
++	"""An owner's refusal code, or a stated fallback when it answered false and published none.
++
++	Both owners report some failures through a bool alone, so formatting the bare code would
++	produce a message that reads as if no failure had been described. Saying so explicitly is
++	the difference between an unexplained refusal and one that names its own silence.
++	"""
++	if code == REFUSE_NONE:
++		return "it published no refusal code"
++	return String(code)
+ 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+ 
+ 

@@ -191,7 +191,7 @@ Neither needs new state.
 | Empty-reference constant | `_no_refs` | 4 | never allocated | Always length 0 | 3 | -- | A permanently empty array passed as the "no referenced ids" argument. Never sized, never written. |
 | Queue control and sequence allocator | -- | -- | -- | -- | 1 | §12 PENDING_COMMANDS | `_count`, `_payload_used`, `_next_sequence_high` and `_next_sequence_low` are four of ready07's six prefix U32 fields (`docs/planning/ready07_scheduler_contract.md:125-127`). The sequence pair is an allocator, not a counter: reusing a number would make two distinct commands compare equal in a replay stream. |
 | Ring head | -- | -- | -- | -- | 2 | §12 PENDING_COMMANDS | `_head`. Records are written in canonical order and restored from row 0, so its canonical restored value is 0. |
-| Command diagnostics and scratch | -- | -- | -- | -- | 3 | -- | `_kind_count`, `_accepted_count`, `_refused_count`, `_drained_count`, `_refused_member`, `_last_refusal`, `_math`, `_scratch`. |
+| Command diagnostics and scratch | -- | -- | -- | -- | 3 | -- | `_kind_count`, `_accepted_count`, `_refused_count`, `_drained_count`, `_refused_member`, `_last_refusal`, `_math`, `_scratch`. SAVE-P2-R02 adds cold restore scratch only: one decoded Command, up to4096 packed span keys (32768B), and caller-owned encoded record/used-prefix buffers. No retained column or second Commands instance; restore preserves diagnostic counters. |
 
 ### `godot/scripts/core/construction.gd`
 

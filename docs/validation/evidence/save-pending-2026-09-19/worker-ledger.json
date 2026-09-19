@@ -1,0 +1,169 @@
+[
+  {
+    "attempt": "save-pending-a1",
+    "model": "claude-opus-5",
+    "session_id": "78a2fb7e-9289-4a51-8a3d-f45e8b21abb2",
+    "state": "timeout",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "godot/scripts/core/commands.gd",
+        "sha256": "f174bb300044e78db875d46620d6c8a28ab7f31f0795d752251bcf3d4e280c13"
+      },
+      {
+        "path": "godot/scripts/core/save_section_pending_commands.gd",
+        "sha256": "c3ff0614455477c2f9a8dde24c874be5168f806222028167e688bf5255b7f39e"
+      },
+      {
+        "path": "godot/scripts/core/scheduler_events.gd",
+        "sha256": "5981c3c05c454f46968a252bd544da084b9a530b3bbcf26d8041c583e09063bc"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/test/test_commands.gd",
+        "sha256": "caf495742da63461a265e978a17d6b4be0d237c9f8ff2f03ed6bd8e6e51a6374"
+      },
+      {
+        "path": "godot/test/test_save_section_pending_commands.gd",
+        "sha256": "ef83f697b613bc7115673abcb813e59ed074f91ec6313cfdff072c1b034ddd9a"
+      },
+      {
+        "path": "docs/rulings/2026-09-12_clock_restore_and_layout_followup.md",
+        "sha256": "231f36bfc07369d50cbe3ed55a6278f010698163473711a599d8c088962544b8"
+      },
+      {
+        "path": "docs/planning/save_implementation_matrix.md",
+        "sha256": "33cc978ecf92513e5ba7750e20e60ca2a5e2caa866d547e9c32e48d383e983f7"
+      },
+      {
+        "path": "docs/rulings/2026-09-19_pending_command_restore.md",
+        "sha256": "9d8f8cf9c2fc626a8fd82e3c0f8c87c4f59cdf0c034c390a6b101f2980a500c1"
+      },
+      {
+        "path": "docs/decisions/0154-preserve-pending-command-arena-layout.md",
+        "sha256": "32dff7bc266258dc946ece90b7a54930573a8541811f8a8d790d4cdea8037fd6"
+      },
+      {
+        "path": "godot/test/framework/test_case.gd",
+        "sha256": "d7ea4c9b45ba1e5b8fbabfeb85ce7723ae54ad83a5f3aac7e1e7efe0fb5430f7"
+      }
+    ]
+  },
+  {
+    "attempt": "save-pending-owner-a2",
+    "model": "claude-opus-5",
+    "session_id": "3784fdd9-faee-4e2d-a3d4-01f33964aa4a",
+    "state": "invalid_output",
+    "owner_stopped": true,
+    "recovery": "Removed only enclosing Markdown JSON fence; applied all nine exact, uniquely matching old contexts atomically with regenerated hunk metadata. Original adapter refusal retained.",
+    "inputs": [
+      {
+        "path": "godot/scripts/core/commands.gd",
+        "sha256": "f174bb300044e78db875d46620d6c8a28ab7f31f0795d752251bcf3d4e280c13"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/scripts/core/entity_directory.gd",
+        "sha256": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a"
+      },
+      {
+        "path": "godot/test/test_commands.gd",
+        "sha256": "caf495742da63461a265e978a17d6b4be0d237c9f8ff2f03ed6bd8e6e51a6374"
+      },
+      {
+        "path": "godot/test/framework/test_case.gd",
+        "sha256": "d7ea4c9b45ba1e5b8fbabfeb85ce7723ae54ad83a5f3aac7e1e7efe0fb5430f7"
+      },
+      {
+        "path": "docs/rulings/2026-09-19_pending_command_restore.md",
+        "sha256": "9d8f8cf9c2fc626a8fd82e3c0f8c87c4f59cdf0c034c390a6b101f2980a500c1"
+      }
+    ]
+  },
+  {
+    "attempt": "save-pending-codec-a1",
+    "model": "claude-opus-5",
+    "session_id": "8c7ec001-e246-4902-9d0f-07633a1fb358",
+    "state": "invalid_output",
+    "owner_stopped": true,
+    "recovery": "Only missing baseSha256:null added for new patch artifact; source SHA and exact context checked; raw adapter refusal retained.",
+    "inputs": [
+      {
+        "path": "godot/scripts/core/commands.gd",
+        "sha256": "c84f76f1357dc489e40004886e4e49b9bb961aad07cd38f1b1c986790d0184cb"
+      },
+      {
+        "path": "godot/scripts/core/save_section_pending_commands.gd",
+        "sha256": "c3ff0614455477c2f9a8dde24c874be5168f806222028167e688bf5255b7f39e"
+      },
+      {
+        "path": "godot/scripts/core/scheduler_events.gd",
+        "sha256": "5981c3c05c454f46968a252bd544da084b9a530b3bbcf26d8041c583e09063bc"
+      },
+      {
+        "path": "docs/rulings/2026-09-19_pending_command_restore.md",
+        "sha256": "9d8f8cf9c2fc626a8fd82e3c0f8c87c4f59cdf0c034c390a6b101f2980a500c1"
+      },
+      {
+        "path": "godot/test/test_commands_arena_restore.gd",
+        "sha256": "0877d8af1d0a0afe14c8af7261db47907b10fc762be69a6fcf079bc1e2cba062"
+      }
+    ]
+  },
+  {
+    "attempt": "save-pending-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "639b0a5d-37d5-4587-9aa9-eacdc952818f",
+    "state": "invalid_output",
+    "owner_stopped": true,
+    "recovery": "Missing baseSha256:null added only for new review artifact; source snapshot hashes all match reviewed files.",
+    "inputs": [
+      {
+        "path": "docs/rulings/2026-09-19_pending_command_restore.md",
+        "sha256": "9d8f8cf9c2fc626a8fd82e3c0f8c87c4f59cdf0c034c390a6b101f2980a500c1"
+      },
+      {
+        "path": "docs/decisions/0154-preserve-pending-command-arena-layout.md",
+        "sha256": "32dff7bc266258dc946ece90b7a54930573a8541811f8a8d790d4cdea8037fd6"
+      },
+      {
+        "path": "godot/scripts/core/commands.gd",
+        "sha256": "c84f76f1357dc489e40004886e4e49b9bb961aad07cd38f1b1c986790d0184cb"
+      },
+      {
+        "path": "godot/scripts/core/save_section_pending_commands.gd",
+        "sha256": "b951e66d49e7023585ddb17010930d088d5d5a16b0375064260f654363234209"
+      },
+      {
+        "path": "godot/scripts/core/scheduler_events.gd",
+        "sha256": "5981c3c05c454f46968a252bd544da084b9a530b3bbcf26d8041c583e09063bc"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/test/test_commands_arena_restore.gd",
+        "sha256": "a261a55e995ea72826962df346bbe3f231e957d4710188b6d05db0add432ba0d"
+      },
+      {
+        "path": "godot/test/test_save_section_pending_commands.gd",
+        "sha256": "cb8df476f508e7fa33851f4da9859dacc77ef4b8915fc3ac6959d471279fe0ab"
+      },
+      {
+        "path": "godot/test/save_pending_focus.gd",
+        "sha256": "63969b8b2f4869c7df147732dcf7583a348d004047cb56314590c782f33101d4"
+      },
+      {
+        "path": "docs/validation/evidence/save-pending-2026-09-19/focus-integrated-second.log",
+        "sha256": "56c9edd1a33ec4708188e2960c72658598d4382b24a245a412bf67e4b2861a7e"
+      }
+    ]
+  }
+]

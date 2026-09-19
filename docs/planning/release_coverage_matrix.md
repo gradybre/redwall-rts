@@ -1,6 +1,6 @@
 # Settlement release coverage and ownership
 
-2026-09-19 · Astra resumption v1 · Source baseline `47a4da2`.
+2026-09-19 · Astra resumption v2 · Initial source baseline `47a4da2`; integrated repairs through `897d3e3` (PR143).
 
 This matrix accounts for the complete adopted settlement release. Status means
 the observed layer, not requirement completion inferred from filenames or tests.
@@ -19,23 +19,24 @@ the rows below also preserve policy obligations outside that declaration list.
 | Families and community | Adult cohort; life-stage identity exists; full dependent/caregiver contract absent | PC-04 exact fixed-stage schemas/rates/schedules/care, warnings/rescue and non-graphic serious survival consequences; relationships and memories | Task08; no births/aging, adult fallback, child productive/hazardous work, or cap above256 |
 | Admission and arrivals | Setting policy and amendment; candidate/arrival implementation absent | Atomic eligibility, exceptions, petition expiry, bed/population checks, legal arrival placement and deterministic naming | Task08 + PLAN-ARRIVAL-PLACEMENT; no reuse of initial-root formula for arrivals |
 | Scenarios and content | Twelve-book reference library; one numeric refuge baseline | PC-03 finite named scenarios covering original/Abbey/novel-era settings and founding/restoration/established premises; authored cast/continuity, exact stocks/maps/objectives and saves | Task08, PC-03; missing Eulalia text/Salamandastron pages remain source limits, not invented prose |
-| Feasts, chronicle and progression | Catalog/specification and event schedule infrastructure | Finite authored events with trigger/repeat/effect/save rules, feasts, grief/remembrance, Charter and continuous winter interval, victory/continuation/collapse autosave protection | Task08/09; PC-06, ARCH-CONFLICT-004; no new supernatural power system |
-| Persistence and replay | Nine section modules plus canonical inventory projection; many live adapters absent | Thirteen save prerequisites, owner bulk APIs, section bodies, provenance, pending arena restore, stock-fault continuation, disk orchestrator, complete rollback/replay/save corruption recovery | Existing save matrix/queue, task09; `release_save_ready=false` until full generated world and continuation proof |
-| Player interface | Authored responsive shell, roster/needs/alerts, retained screenshots and input-region mismatch | UI-C4 repair; actual selection/camera/input, all management screens, settings/keybinding persistence, onboarding/forecast and accessible keyboard/trackpad flow | Task04.5/10; all 103 registry elements assessed against real state, ART-UI-12 separate |
+| Feasts, chronicle and progression | Catalog/specification, event schedule infrastructure and reviewed winter interval helper | Finite authored events with trigger/repeat/effect/save rules, feasts, grief/remembrance, Charter and continuous winter interval, victory/continuation/collapse autosave protection | Task08/09; PC-06, ARCH-CONFLICT-004; no new supernatural power system |
+| Persistence and replay | Nine section modules plus canonical inventory projection and accepted identity/clock/RNG install adapters; many live adapters absent | Remaining save prerequisites, owner bulk APIs, section bodies, provenance, pending arena/sequence restore, stock-fault continuation, disk orchestrator, complete rollback/replay/save corruption recovery | Existing save matrix/queue, task09; `release_save_ready=false` until full generated world and continuation proof |
+| Player interface | Authored responsive shell, roster/needs/alerts; UI-C4 visibility/input repair and headless positive-control routing probes accepted | actual selection/camera/input, all management screens, settings/keybinding persistence, onboarding/forecast and accessible keyboard/trackpad flow | Task04.5/10; all 103 registry elements assessed against real state, ART-UI-12 separate |
 | Art and animation | Approved finish concept and five height anchors; one imported mouse body, procedural crowd/lookdev and UI art | Source-backed species/rig/gear/pose families, buildings/terrain/water/canopy/underground assets, LOD and material/animation/contact integration | Task10 + art gates; paid generation needs exact approved spend, no code-side art self-approval |
 | Audio | Direction specified; no complete runtime audio delivery demonstrated | Contextual acoustic/orchestral music, ambience, effects, voices/singing where authored; volume controls and source/provenance | Task10; source reference is not an automatically licensed production audio file |
-| Reliability and qualification | 4551-test clean baseline and static contract gates pass; shutdown warnings retained | Investigate leaked objects/resources, profile actual integrated workloads, deterministic negative/race/recovery checks, accessibility/visual review and three-year survival runs | Task10 independent QA; Mac evidence distinct from minimum-spec hardware, Windows remains user-deferred |
+| Reliability and qualification | 4626-test integrated CI passes with static contract gates; inventory lifetime leak repaired, 553 objects/33 resources remain in suite shutdown | Investigate leaked objects/resources, profile actual integrated workloads, deterministic negative/race/recovery checks, accessibility/visual review and three-year survival runs | Task10 independent QA; Mac evidence distinct from minimum-spec hardware, Windows remains user-deferred |
 | Packaging and release | GitHub PR/CI path operational; controller installed for controlled foreground use | Reproducible local Mac game package, manifest/runbook/save compatibility and release observation; configure any additional external distribution target before publication | Task10 release owner; no new public store upload, signing purchase or paid hosting inferred |
 
 ## Dispatch policy
 
-The queue has been reconciled with merged PRs 134/136/137/138. A ready label
+The queue has been reconciled with merged PRs 134/136/137/138 and 140–143. A ready label
 left behind after merge is not permission to repeat a finished lane. PR139 owns
 only the review-packet refresh. Preserve the old dirty source checkout and its
 untracked planning records; transfer only reviewed differences with known bases.
 
-Prioritize INIT-0 ownership and INIT-A binding alongside the small UI input repair
-and independent save owner APIs. Before writing new gameplay, expand each row to
+INIT-A source ownership mapping and the bounded UI repair are accepted. Prioritize
+exact pending restore and the other save prerequisites that gate atomic starter
+replacement, while authoring the remaining gameplay packages. Before writing new gameplay, expand each row to
 task packets with exact interfaces, rules, failure behavior and tests; the broad
 table does not make absent numerical contracts ready. PC-03/04/06 and complete
 Q2 authoring remain active Astra planning work. PLAN-RELEASE-COVERAGE is not fully

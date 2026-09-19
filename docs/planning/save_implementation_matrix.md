@@ -17,6 +17,9 @@ The tables below are the historical `50e78ce` inventory. Later source evidence s
 - W1: `SimClock.restore_runtime()` and GameManager's load barrier/clock restoration APIs already exist. SAVE-W1-R02 / decision 0153 defines their joint decoded WorldRuntime/RNG install adapter, with exact header/tombstone checks and bounded prior-RNG recovery. Acceptance is tracked in its evidence folder and queue entry. Connecting it to the full coordinator remains work; the missing API claim below is historical.
 - I1: PR #137 added the canonical inventory bulk API. The other five named inventory owners and the complete section 7 live adapter remain open.
 
+- P2: allocation order can differ from canonical command order even without a partial drain. SAVE-P2-R02 / decision0154 specifies exact offset/highwater restoration, economic load-barrier guards and checked two-owner recovery. Implementation acceptance remains attached to its queue/evidence.
+- Economic allocator exhaustion: runtime high4294967296/low0 cannot fit schema2's u32 pair. SAVE-SEQ-R01 / decision0155 defines the separate, not-yet-active schema3 widened-high-word follow-up. Full save orchestration/capture now depends on it; P2 alone cannot close this format gap.
+
 `release_save_ready` remains **false**. The full coordinator must bind the correct world's clock and directory, verify all sections and implement the approved disk-backed rollback; this adapter alone supplies none of those guarantees.
 
 ---

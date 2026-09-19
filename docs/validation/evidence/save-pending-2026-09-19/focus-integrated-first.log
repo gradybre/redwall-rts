@@ -1,0 +1,1994 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_commands.gd
+  PASS  test_every_field_sits_at_its_own_section_8_1_offset
+  PASS  test_every_intent_field_round_trips_through_the_queue
+  PASS  test_the_stride_is_sixty_four_bytes_and_the_queue_holds_four_thousand_and_ninety_six
+  PASS  test_a_record_round_trips_through_its_own_bytes
+  PASS  test_all_twenty_four_kinds_compile_to_their_ascii_order
+  PASS  test_the_kind_domain_is_the_ascii_compilation_of_its_own_keys
+  PASS  test_an_unknown_kind_is_refused_and_queues_nothing
+  PASS  test_sequence_order_is_unsigned_across_the_sign_bit
+  PASS  test_compare_key_parts_orders_by_tick_then_player_then_high_then_low
+  PASS  test_permuted_arrival_produces_the_canonical_order
+  PASS  test_a_repeated_ordering_key_is_refused
+  PASS  test_a_stamped_record_due_at_a_completed_tick_is_refused
+  PASS  test_a_foreign_player_id_is_refused
+  PASS  test_a_submitted_command_is_due_at_the_next_tick
+  PASS  test_paused_edits_share_one_tick_with_increasing_sequences
+  PASS  test_pending_commands_survive_a_pause_without_being_consumed
+  PASS  test_a_group_with_one_invalid_member_commits_none_of_it
+  PASS  test_a_valid_group_commits_every_member_in_order
+  PASS  test_a_single_refusal_never_reports_a_previous_group_member
+  PASS  test_an_id_group_refuses_an_envelope_that_also_carries_payload_bytes
+  PASS  test_compare_keys_reads_a_whole_record_through_the_same_comparison
+  PASS  test_a_reset_envelope_is_the_empty_one
+  PASS  test_an_empty_or_mistyped_group_is_refused
+  PASS  test_an_id_group_validates_every_reference_before_writing_one
+  PASS  test_an_id_group_refuses_an_unsorted_or_malformed_list
+  PASS  test_reserved_zero_must_be_zero
+  PASS  test_an_undefined_flag_bit_is_refused
+  PASS  test_a_target_is_generation_checked_against_the_directory
+  PASS  test_the_null_reference_is_a_legal_absent_target
+  PASS  test_an_out_of_range_field_is_refused
+  PASS  test_the_four_thousand_and_ninety_seventh_command_refuses_cleanly
+  PASS  test_a_payload_larger_than_the_arena_refuses
+  PASS  test_the_arena_is_reclaimed_only_when_the_queue_empties
+  PASS  test_a_payload_round_trips_through_the_arena
+  PASS  test_a_payload_span_outside_the_arena_is_refused
+  PASS  test_the_session_sequence_exhausts_instead_of_wrapping
+  PASS  test_the_sequence_carries_into_the_high_word
+  PASS  test_restore_sequence_refuses_a_bad_word_or_a_busy_queue
+  PASS  test_rows_are_never_handed_out_twice_across_churn
+  PASS  test_reading_outside_the_queue_refuses
+  PASS  test_only_due_commands_drain
+  PASS  test_clear_returns_the_queue_to_its_initial_state
+  PASS  test_the_counters_report_admissions_refusals_and_drains
+  PASS  test_the_queue_shares_the_clock_and_directory_it_was_given
+  PASS  test_rebind_clock_refuses_a_non_empty_queue_and_a_null_clock
+test_commands_arena_restore.gd
+SCRIPT ERROR: Parse Error: Cannot return value of type "Refusal" because the function return type is "String".
+          at: GDScript::reload (res://scripts/core/save_section_pending_commands.gd:1558)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://test/test_commands_arena_restore.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+ERROR: Failed to load script "res://test/test_commands_arena_restore.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://test/run_tests.gd:125)
+       [1] _run_worker (res://test/run_tests.gd:91)
+       [2] _initialize (res://test/run_tests.gd:78)
+  PASS  test_restore_retains_permuted_offsets_holes_dead_tail_and_capacity
+  PASS  test_zero_length_spans_share_offsets_and_may_equal_highwater
+  PASS  test_restore_requires_current_held_barrier_even_when_previously_released
+  PASS  test_malformed_late_records_and_spans_refuse_before_mutation
+  PASS  test_stale_target_and_reversed_duplicate_or_past_keys_refuse
+  PASS  test_unsigned_record_keys_and_terminal_allocator_are_distinct
+  PASS  test_every_ordinary_mutator_is_barred_without_counter_or_output_changes
+  PASS  test_constructor_under_barrier_and_rebind_to_barred_clock
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_real_mixed_tick_admission_and_partial_drain_round_trip (res://test/test_commands_arena_restore.gd:267)
+          GDScript backtrace (most recent call first):
+              [0] test_real_mixed_tick_admission_and_partial_drain_round_trip (res://test/test_commands_arena_restore.gd:267)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_real_mixed_tick_admission_and_partial_drain_round_trip
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _saved_pair (res://test/test_commands_arena_restore.gd:322)
+          GDScript backtrace (most recent call first):
+              [0] _saved_pair (res://test/test_commands_arena_restore.gd:322)
+              [1] test_codec_requires_same_clock_same_tick_and_held_barrier (res://test/test_commands_arena_restore.gd:337)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'apply' in base 'GDScript'.
+          at: test_codec_requires_same_clock_same_tick_and_held_barrier (res://test/test_commands_arena_restore.gd:342)
+          GDScript backtrace (most recent call first):
+              [0] test_codec_requires_same_clock_same_tick_and_held_barrier (res://test/test_commands_arena_restore.gd:342)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_codec_requires_same_clock_same_tick_and_held_barrier
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _saved_pair (res://test/test_commands_arena_restore.gd:322)
+          GDScript backtrace (most recent call first):
+              [0] _saved_pair (res://test/test_commands_arena_restore.gd:322)
+              [1] test_late_scheduler_failure_restores_prior_empty_economic_allocator (res://test/test_commands_arena_restore.gd:357)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'apply' in base 'GDScript'.
+          at: test_late_scheduler_failure_restores_prior_empty_economic_allocator (res://test/test_commands_arena_restore.gd:365)
+          GDScript backtrace (most recent call first):
+              [0] test_late_scheduler_failure_restores_prior_empty_economic_allocator (res://test/test_commands_arena_restore.gd:365)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_late_scheduler_failure_restores_prior_empty_economic_allocator
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _saved_pair (res://test/test_commands_arena_restore.gd:322)
+          GDScript backtrace (most recent call first):
+              [0] _saved_pair (res://test/test_commands_arena_restore.gd:322)
+              [1] test_late_scheduler_failure_can_recover_a_terminal_prior_allocator (res://test/test_commands_arena_restore.gd:376)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'apply' in base 'GDScript'.
+          at: test_late_scheduler_failure_can_recover_a_terminal_prior_allocator (res://test/test_commands_arena_restore.gd:383)
+          GDScript backtrace (most recent call first):
+              [0] test_late_scheduler_failure_can_recover_a_terminal_prior_allocator (res://test/test_commands_arena_restore.gd:383)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_late_scheduler_failure_can_recover_a_terminal_prior_allocator
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _saved_pair (res://test/test_commands_arena_restore.gd:322)
+          GDScript backtrace (most recent call first):
+              [0] _saved_pair (res://test/test_commands_arena_restore.gd:322)
+              [1] test_failed_economic_recovery_reports_uncertainty_and_holds_barrier (res://test/test_commands_arena_restore.gd:390)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'apply' in base 'GDScript'.
+          at: test_failed_economic_recovery_reports_uncertainty_and_holds_barrier (res://test/test_commands_arena_restore.gd:398)
+          GDScript backtrace (most recent call first):
+              [0] test_failed_economic_recovery_reports_uncertainty_and_holds_barrier (res://test/test_commands_arena_restore.gd:398)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_failed_economic_recovery_reports_uncertainty_and_holds_barrier
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _saved_pair (res://test/test_commands_arena_restore.gd:322)
+          GDScript backtrace (most recent call first):
+              [0] _saved_pair (res://test/test_commands_arena_restore.gd:322)
+              [1] test_first_economic_install_failure_leaves_both_queues_unchanged (res://test/test_commands_arena_restore.gd:407)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'apply' in base 'GDScript'.
+          at: test_first_economic_install_failure_leaves_both_queues_unchanged (res://test/test_commands_arena_restore.gd:414)
+          GDScript backtrace (most recent call first):
+              [0] test_first_economic_install_failure_leaves_both_queues_unchanged (res://test/test_commands_arena_restore.gd:414)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_first_economic_install_failure_leaves_both_queues_unchanged
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_success_preserves_nonzero_admission_refusal_and_drain_counters
+  PASS  test_high_sequence_word_order_is_unsigned_too
+  PASS  test_exact_record_capacity_restores_without_allocating_sequences
+test_save_section_pending_commands.gd
+  PASS  test_section_identity_matches_the_ruling
+SCRIPT ERROR: Invalid call. Nonexistent function 'extension_offset_of' in base 'GDScript'.
+          at: test_owner_keys_are_in_ascii_order (res://test/test_save_section_pending_commands.gd:178)
+          GDScript backtrace (most recent call first):
+              [0] test_owner_keys_are_in_ascii_order (res://test/test_save_section_pending_commands.gd:178)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_owner_keys_are_in_ascii_order
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'extension_byte_length' in base 'GDScript'.
+          at: test_layout_arithmetic_is_the_contracts_own (res://test/test_save_section_pending_commands.gd:190)
+          GDScript backtrace (most recent call first):
+              [0] test_layout_arithmetic_is_the_contracts_own (res://test/test_save_section_pending_commands.gd:190)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_layout_arithmetic_is_the_contracts_own
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'scheduler_count_of_extension_bytes' in base 'GDScript'.
+          at: test_extension_length_inverse_is_a_shape_predicate (res://test/test_save_section_pending_commands.gd:201)
+          GDScript backtrace (most recent call first):
+              [0] test_extension_length_inverse_is_a_shape_predicate (res://test/test_save_section_pending_commands.gd:201)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_extension_length_inverse_is_a_shape_predicate
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_declared_field_ordinals_match_the_registry
+  PASS  test_record_field_ordinals_follow_the_wire_record_order
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_empty_section_bytes_are_pinned (res://test/test_save_section_pending_commands.gd:256)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_empty_section_bytes_are_pinned (res://test/test_save_section_pending_commands.gd:256)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_empty_section_bytes_are_pinned (res://test/test_save_section_pending_commands.gd:259)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_empty_section_bytes_are_pinned (res://test/test_save_section_pending_commands.gd:260)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 8)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s64 (core/variant/variant_call.cpp:901)
+   GDScript backtrace (most recent call first):
+       [0] test_empty_section_bytes_are_pinned (res://test/test_save_section_pending_commands.gd:263)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_empty_section_bytes_are_pinned
+        an empty section 12 occupies 72 bytes (expected 72, got 0)
+        the empty section is byte-pinned (expected 0200000000000000000000003000000000000000000000005343485130303031010000002000000000000000000000000100000000000000ffffffffffffffff0000000000000000, got )
+        the first u32 is the section schema 2 (expected 2, got 0)
+        scheduler_extension_bytes is 48 when S is 0 (expected 48, got 0)
+        the extension tag begins immediately after the prefix when E and P are 0 (expected SCHQ0001, got )
+        last_drained_boundary starts at NO_PRIOR_DRAIN (expected -1, got 0)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_one_command_and_one_event_bytes_are_pinned (res://test/test_save_section_pending_commands.gd:271)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_one_command_and_one_event_bytes_are_pinned (res://test/test_save_section_pending_commands.gd:271)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_one_command_and_one_event_bytes_are_pinned (res://test/test_save_section_pending_commands.gd:274)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_one_command_and_one_event_bytes_are_pinned (res://test/test_save_section_pending_commands.gd:275)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_one_command_and_one_event_bytes_are_pinned (res://test/test_save_section_pending_commands.gd:276)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_one_command_and_one_event_bytes_are_pinned
+        72 + 64 + 5 + 32 = 173 (expected 173, got 0)
+        the section is byte-pinned (expected 020000000100000005000000500000000100000000000000010000000000000000000000000000000000000008000000ffffffff00000000000000000000000005000000000000000000000005000000000000000000000001020304055343485130303031010000004000000000000000010000000200000000000000ffffffffffffffff00000000000000000000000000000000010000000000000000000000000000000200000000000000, got )
+        E is 1 (expected 1, got 0)
+        P is 5 (expected 5, got 0)
+        X is 48 + 32*1 (expected 80, got 0)
+        the payload arena's used prefix follows the records verbatim (expected [1, 2, 3, 4, 5], got [])
+        the scheduler owner's block begins at 24 + 64*E + P (expected SCHQ0001, got )
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] test_descriptor_row_count_is_both_live_windows (res://test/test_save_section_pending_commands.gd:288)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'descriptor_row_count' in base 'GDScript'.
+          at: test_descriptor_row_count_is_both_live_windows (res://test/test_save_section_pending_commands.gd:289)
+          GDScript backtrace (most recent call first):
+              [0] test_descriptor_row_count_is_both_live_windows (res://test/test_save_section_pending_commands.gd:289)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_descriptor_row_count_is_both_live_windows
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_round_trip_is_byte_identical (res://test/test_save_section_pending_commands.gd:302)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_round_trip_is_byte_identical (res://test/test_save_section_pending_commands.gd:302)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_round_trip_is_byte_identical (res://test/test_save_section_pending_commands.gd:303)
+          GDScript backtrace (most recent call first):
+              [0] test_round_trip_is_byte_identical (res://test/test_save_section_pending_commands.gd:303)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_round_trip_is_byte_identical
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_round_trip_survives_a_wrapped_economic_head (res://test/test_save_section_pending_commands.gd:326)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_round_trip_survives_a_wrapped_economic_head (res://test/test_save_section_pending_commands.gd:326)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s32 (core/variant/variant_call.cpp:889)
+   GDScript backtrace (most recent call first):
+       [0] test_round_trip_survives_a_wrapped_economic_head (res://test/test_save_section_pending_commands.gd:327)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s32 (core/variant/variant_call.cpp:889)
+   GDScript backtrace (most recent call first):
+       [0] test_round_trip_survives_a_wrapped_economic_head (res://test/test_save_section_pending_commands.gd:329)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s32 (core/variant/variant_call.cpp:889)
+   GDScript backtrace (most recent call first):
+       [0] test_round_trip_survives_a_wrapped_economic_head (res://test/test_save_section_pending_commands.gd:331)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_round_trip_survives_a_wrapped_economic_head
+        the wrapped head must put the oldest pending command first (expected 101, got 0)
+        queue position 1 is the second pending command, whatever row holds it (expected 102, got 0)
+        queue position 2 is the third pending command (expected 103, got 0)
+        the arena carries the three payloads in queue order and nothing else (expected [1, 2, 2, 3, 3, 3], got [])
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_round_trip_survives_a_wrapped_scheduler_head (res://test/test_save_section_pending_commands.gd:345)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_round_trip_survives_a_wrapped_scheduler_head (res://test/test_save_section_pending_commands.gd:345)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s32 (core/variant/variant_call.cpp:889)
+   GDScript backtrace (most recent call first):
+       [0] test_round_trip_survives_a_wrapped_scheduler_head (res://test/test_save_section_pending_commands.gd:347)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s32 (core/variant/variant_call.cpp:889)
+   GDScript backtrace (most recent call first):
+       [0] test_round_trip_survives_a_wrapped_scheduler_head (res://test/test_save_section_pending_commands.gd:349)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s32 (core/variant/variant_call.cpp:889)
+   GDScript backtrace (most recent call first):
+       [0] test_round_trip_survives_a_wrapped_scheduler_head (res://test/test_save_section_pending_commands.gd:352)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s32 (core/variant/variant_call.cpp:889)
+   GDScript backtrace (most recent call first):
+       [0] test_round_trip_survives_a_wrapped_scheduler_head (res://test/test_save_section_pending_commands.gd:354)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_round_trip_survives_a_wrapped_scheduler_head
+        the stored count is the live window (expected 2, got 0)
+        queue position 0 is the older pending event (expected 4, got 0)
+        queue position 1 is the newer pending event (expected 2, got 0)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_wrapped_scheduler_queue_restores_in_order (res://test/test_save_section_pending_commands.gd:365)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_wrapped_scheduler_queue_restores_in_order (res://test/test_save_section_pending_commands.gd:365)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_wrapped_scheduler_queue_restores_in_order (res://test/test_save_section_pending_commands.gd:366)
+          GDScript backtrace (most recent call first):
+              [0] test_wrapped_scheduler_queue_restores_in_order (res://test/test_save_section_pending_commands.gd:366)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_wrapped_scheduler_queue_restores_in_order
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_economic_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:391)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_economic_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:391)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_economic_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:392)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] test_economic_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:394)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid access to property or key 'sequence_low' on a base object of type 'Nil'.
+          at: test_economic_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:395)
+          GDScript backtrace (most recent call first):
+              [0] test_economic_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:395)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_economic_sequence_at_the_u32_sign_bit_round_trips
+        the wire carries the u32 BITS, not a sign-extended value (expected 2147483648, got 0)
+        ABORTED: 4 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_economic_key_order_is_unsigned_across_the_sign_bit (res://test/test_save_section_pending_commands.gd:409)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_economic_key_order_is_unsigned_across_the_sign_bit (res://test/test_save_section_pending_commands.gd:409)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_economic_key_order_is_unsigned_across_the_sign_bit (res://test/test_save_section_pending_commands.gd:410)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_economic_key_order_is_unsigned_across_the_sign_bit (res://test/test_save_section_pending_commands.gd:412)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_economic_key_order_is_unsigned_across_the_sign_bit (res://test/test_save_section_pending_commands.gd:414)
+          GDScript backtrace (most recent call first):
+              [0] test_economic_key_order_is_unsigned_across_the_sign_bit (res://test/test_save_section_pending_commands.gd:414)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_economic_key_order_is_unsigned_across_the_sign_bit
+        queue position 0 holds 0x7fffffff (expected 2147483647, got 0)
+        queue position 1 holds 0x80000000, AFTER it (expected 2147483648, got 0)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_reversed_sign_bit_keys_are_refused (res://test/test_save_section_pending_commands.gd:427)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_reversed_sign_bit_keys_are_refused (res://test/test_save_section_pending_commands.gd:427)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Out of bounds get index '88' (on base: 'PackedByteArray')
+          at: test_reversed_sign_bit_keys_are_refused (res://test/test_save_section_pending_commands.gd:430)
+          GDScript backtrace (most recent call first):
+              [0] test_reversed_sign_bit_keys_are_refused (res://test/test_save_section_pending_commands.gd:430)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_reversed_sign_bit_keys_are_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_scheduler_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:440)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_scheduler_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:440)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_scheduler_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:442)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_scheduler_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:444)
+          GDScript backtrace (most recent call first):
+              [0] test_scheduler_sequence_at_the_u32_sign_bit_round_trips (res://test/test_save_section_pending_commands.gd:444)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_scheduler_sequence_at_the_u32_sign_bit_round_trips
+        the wire carries the u32 bits (expected 2147483648, got 0)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_scheduler_sequence_read_signed_would_break_the_applied_gate (res://test/test_save_section_pending_commands.gd:459)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_scheduler_sequence_read_signed_would_break_the_applied_gate (res://test/test_save_section_pending_commands.gd:459)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_scheduler_sequence_read_signed_would_break_the_applied_gate (res://test/test_save_section_pending_commands.gd:461)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_scheduler_sequence_read_signed_would_break_the_applied_gate (res://test/test_save_section_pending_commands.gd:464)
+          GDScript backtrace (most recent call first):
+              [0] test_scheduler_sequence_read_signed_would_break_the_applied_gate (res://test/test_save_section_pending_commands.gd:464)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_scheduler_sequence_read_signed_would_break_the_applied_gate
+        last_applied is the u32 0x7fffffff (expected 2147483647, got 0)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_drained_rows_leave_no_trace_in_the_record (res://test/test_save_section_pending_commands.gd:484)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_drained_rows_leave_no_trace_in_the_record (res://test/test_save_section_pending_commands.gd:484)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] test_drained_rows_leave_no_trace_in_the_record (res://test/test_save_section_pending_commands.gd:485)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid access to property or key 'economic_count' on a base object of type 'Nil'.
+          at: test_drained_rows_leave_no_trace_in_the_record (res://test/test_save_section_pending_commands.gd:486)
+          GDScript backtrace (most recent call first):
+              [0] test_drained_rows_leave_no_trace_in_the_record (res://test/test_save_section_pending_commands.gd:486)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_drained_rows_leave_no_trace_in_the_record
+        ABORTED: 4 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] test_a_record_carrying_ring_garbage_is_refused (res://test/test_save_section_pending_commands.gd:500)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid access to property or key 'arg0' on a base object of type 'Nil'.
+          at: test_a_record_carrying_ring_garbage_is_refused (res://test/test_save_section_pending_commands.gd:501)
+          GDScript backtrace (most recent call first):
+              [0] test_a_record_carrying_ring_garbage_is_refused (res://test/test_save_section_pending_commands.gd:501)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_a_record_carrying_ring_garbage_is_refused
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_arena_bytes_no_command_owns_must_be_zero (res://test/test_save_section_pending_commands.gd:515)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_arena_bytes_no_command_owns_must_be_zero (res://test/test_save_section_pending_commands.gd:515)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_arena_bytes_no_command_owns_must_be_zero (res://test/test_save_section_pending_commands.gd:517)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_arena_bytes_no_command_owns_must_be_zero (res://test/test_save_section_pending_commands.gd:523)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_arena_bytes_no_command_owns_must_be_zero
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_arena_bytes_between_two_spans_must_be_zero (res://test/test_save_section_pending_commands.gd:531)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_arena_bytes_between_two_spans_must_be_zero (res://test/test_save_section_pending_commands.gd:531)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_arena_bytes_between_two_spans_must_be_zero (res://test/test_save_section_pending_commands.gd:532)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_arena_bytes_between_two_spans_must_be_zero (res://test/test_save_section_pending_commands.gd:534)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_s32 (core/variant/variant_call.cpp:1105)
+   GDScript backtrace (most recent call first):
+       [0] test_arena_bytes_between_two_spans_must_be_zero (res://test/test_save_section_pending_commands.gd:535)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_arena_bytes_between_two_spans_must_be_zero (res://test/test_save_section_pending_commands.gd:540)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_arena_bytes_between_two_spans_must_be_zero
+        the honest arena holds five bytes (expected 5, got 0)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_overlapping_payload_spans_are_refused (res://test/test_save_section_pending_commands.gd:548)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_overlapping_payload_spans_are_refused (res://test/test_save_section_pending_commands.gd:548)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_s32 (core/variant/variant_call.cpp:1105)
+   GDScript backtrace (most recent call first):
+       [0] test_overlapping_payload_spans_are_refused (res://test/test_save_section_pending_commands.gd:550)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_overlapping_payload_spans_are_refused (res://test/test_save_section_pending_commands.gd:551)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_overlapping_payload_spans_are_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_nonzero_reserved_word_is_refused (res://test/test_save_section_pending_commands.gd:560)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_nonzero_reserved_word_is_refused (res://test/test_save_section_pending_commands.gd:560)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_s32 (core/variant/variant_call.cpp:1105)
+   GDScript backtrace (most recent call first):
+       [0] test_nonzero_reserved_word_is_refused (res://test/test_save_section_pending_commands.gd:561)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_nonzero_reserved_word_is_refused (res://test/test_save_section_pending_commands.gd:562)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_nonzero_reserved_word_is_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_nonzero_flags_are_refused (res://test/test_save_section_pending_commands.gd:569)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_nonzero_flags_are_refused (res://test/test_save_section_pending_commands.gd:569)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_s32 (core/variant/variant_call.cpp:1105)
+   GDScript backtrace (most recent call first):
+       [0] test_nonzero_flags_are_refused (res://test/test_save_section_pending_commands.gd:570)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_nonzero_flags_are_refused (res://test/test_save_section_pending_commands.gd:571)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_nonzero_flags_are_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_unknown_command_kind_is_refused (res://test/test_save_section_pending_commands.gd:578)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_unknown_command_kind_is_refused (res://test/test_save_section_pending_commands.gd:578)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_s32 (core/variant/variant_call.cpp:1105)
+   GDScript backtrace (most recent call first):
+       [0] test_unknown_command_kind_is_refused (res://test/test_save_section_pending_commands.gd:579)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_unknown_command_kind_is_refused (res://test/test_save_section_pending_commands.gd:580)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_unknown_command_kind_is_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_foreign_player_id_is_refused (res://test/test_save_section_pending_commands.gd:587)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_foreign_player_id_is_refused (res://test/test_save_section_pending_commands.gd:587)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_s32 (core/variant/variant_call.cpp:1105)
+   GDScript backtrace (most recent call first):
+       [0] test_foreign_player_id_is_refused (res://test/test_save_section_pending_commands.gd:588)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_foreign_player_id_is_refused (res://test/test_save_section_pending_commands.gd:589)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_foreign_player_id_is_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_malformed_null_target_is_refused (res://test/test_save_section_pending_commands.gd:596)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_malformed_null_target_is_refused (res://test/test_save_section_pending_commands.gd:596)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_s32 (core/variant/variant_call.cpp:1105)
+   GDScript backtrace (most recent call first):
+       [0] test_malformed_null_target_is_refused (res://test/test_save_section_pending_commands.gd:597)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_malformed_null_target_is_refused (res://test/test_save_section_pending_commands.gd:598)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_malformed_null_target_is_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_nonzero_scheduler_head_is_refused (res://test/test_save_section_pending_commands.gd:605)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_nonzero_scheduler_head_is_refused (res://test/test_save_section_pending_commands.gd:605)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_s32 (core/variant/variant_call.cpp:1105)
+   GDScript backtrace (most recent call first):
+       [0] test_nonzero_scheduler_head_is_refused (res://test/test_save_section_pending_commands.gd:606)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_nonzero_scheduler_head_is_refused (res://test/test_save_section_pending_commands.gd:608)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_nonzero_scheduler_head_is_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_nonzero_scheduler_reserved_padding_is_refused (res://test/test_save_section_pending_commands.gd:615)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_nonzero_scheduler_reserved_padding_is_refused (res://test/test_save_section_pending_commands.gd:615)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_s32 (core/variant/variant_call.cpp:1105)
+   GDScript backtrace (most recent call first):
+       [0] test_nonzero_scheduler_reserved_padding_is_refused (res://test/test_save_section_pending_commands.gd:616)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_nonzero_scheduler_reserved_padding_is_refused (res://test/test_save_section_pending_commands.gd:618)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_nonzero_scheduler_reserved_padding_is_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_scheduler_events_at_two_boundaries_are_refused (res://test/test_save_section_pending_commands.gd:626)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_scheduler_events_at_two_boundaries_are_refused (res://test/test_save_section_pending_commands.gd:626)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 8" is true.
+   at: func_PackedByteArray_encode_s64 (core/variant/variant_call.cpp:1118)
+   GDScript backtrace (most recent call first):
+       [0] test_scheduler_events_at_two_boundaries_are_refused (res://test/test_save_section_pending_commands.gd:627)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_scheduler_events_at_two_boundaries_are_refused (res://test/test_save_section_pending_commands.gd:629)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_scheduler_events_at_two_boundaries_are_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_non_increasing_scheduler_sequence_is_refused (res://test/test_save_section_pending_commands.gd:637)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_non_increasing_scheduler_sequence_is_refused (res://test/test_save_section_pending_commands.gd:637)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 4)" is true. Returning: 0
+   at: func_PackedByteArray_decode_u32 (core/variant/variant_call.cpp:883)
+   GDScript backtrace (most recent call first):
+       [0] test_non_increasing_scheduler_sequence_is_refused (res://test/test_save_section_pending_commands.gd:639)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_non_increasing_scheduler_sequence_is_refused (res://test/test_save_section_pending_commands.gd:639)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_non_increasing_scheduler_sequence_is_refused (res://test/test_save_section_pending_commands.gd:641)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_non_increasing_scheduler_sequence_is_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_exhausted_scheduler_sentinel_is_never_a_pending_event (res://test/test_save_section_pending_commands.gd:648)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_exhausted_scheduler_sentinel_is_never_a_pending_event (res://test/test_save_section_pending_commands.gd:648)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_exhausted_scheduler_sentinel_is_never_a_pending_event (res://test/test_save_section_pending_commands.gd:650)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_exhausted_scheduler_sentinel_is_never_a_pending_event (res://test/test_save_section_pending_commands.gd:651)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_exhausted_scheduler_sentinel_is_never_a_pending_event (res://test/test_save_section_pending_commands.gd:652)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_exhausted_scheduler_sentinel_is_never_a_pending_event
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_extension_payload_length_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:659)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_extension_payload_length_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:659)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_extension_payload_length_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:660)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_extension_payload_length_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:661)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_extension_payload_length_must_agree_with_the_body
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_prefix_extension_bytes_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:668)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_prefix_extension_bytes_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:668)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_prefix_extension_bytes_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:669)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_prefix_extension_bytes_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:670)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_prefix_extension_bytes_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:672)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_prefix_extension_bytes_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:672)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_prefix_extension_bytes_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:673)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_prefix_extension_bytes_must_agree_with_the_body (res://test/test_save_section_pending_commands.gd:674)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_prefix_extension_bytes_must_agree_with_the_body
+        ABORTED: 6 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_extension_tag_must_sit_after_every_economic_byte (res://test/test_save_section_pending_commands.gd:682)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_extension_tag_must_sit_after_every_economic_byte (res://test/test_save_section_pending_commands.gd:682)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_extension_tag_must_sit_after_every_economic_byte (res://test/test_save_section_pending_commands.gd:689)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_extension_tag_must_sit_after_every_economic_byte
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_wrong_extension_tag_is_refused (res://test/test_save_section_pending_commands.gd:696)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_wrong_extension_tag_is_refused (res://test/test_save_section_pending_commands.gd:696)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 1" is true.
+   at: func_PackedByteArray_encode_u8 (core/variant/variant_call.cpp:1073)
+   GDScript backtrace (most recent call first):
+       [0] test_wrong_extension_tag_is_refused (res://test/test_save_section_pending_commands.gd:697)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_wrong_extension_tag_is_refused (res://test/test_save_section_pending_commands.gd:698)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_wrong_extension_tag_is_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_wrong_extension_schema_version_is_refused (res://test/test_save_section_pending_commands.gd:705)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_wrong_extension_schema_version_is_refused (res://test/test_save_section_pending_commands.gd:705)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_wrong_extension_schema_version_is_refused (res://test/test_save_section_pending_commands.gd:706)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_wrong_extension_schema_version_is_refused (res://test/test_save_section_pending_commands.gd:707)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_wrong_extension_schema_version_is_refused
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_wrong_section_schema_is_refused (res://test/test_save_section_pending_commands.gd:713)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_wrong_section_schema_is_refused (res://test/test_save_section_pending_commands.gd:713)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_wrong_section_schema_is_refused (res://test/test_save_section_pending_commands.gd:714)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+          GDScript backtrace (most recent call first):
+              [0] _assert_decode_refuses (res://test/test_save_section_pending_commands.gd:151)
+              [1] test_wrong_section_schema_is_refused (res://test/test_save_section_pending_commands.gd:715)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_wrong_section_schema_is_refused
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_extent_refusal_is_the_primary_gate (res://test/test_save_section_pending_commands.gd:723)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_extent_refusal_is_the_primary_gate (res://test/test_save_section_pending_commands.gd:723)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'extent_refusal' in base 'GDScript'.
+          at: test_extent_refusal_is_the_primary_gate (res://test/test_save_section_pending_commands.gd:724)
+          GDScript backtrace (most recent call first):
+              [0] test_extent_refusal_is_the_primary_gate (res://test/test_save_section_pending_commands.gd:724)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_extent_refusal_is_the_primary_gate
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_extent_refusal_bounds_every_declared_count (res://test/test_save_section_pending_commands.gd:741)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_extent_refusal_bounds_every_declared_count (res://test/test_save_section_pending_commands.gd:741)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > int64_t(size) - 4" is true.
+   at: func_PackedByteArray_encode_u32 (core/variant/variant_call.cpp:1099)
+   GDScript backtrace (most recent call first):
+       [0] test_extent_refusal_bounds_every_declared_count (res://test/test_save_section_pending_commands.gd:743)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'extent_refusal' in base 'GDScript'.
+          at: test_extent_refusal_bounds_every_declared_count (res://test/test_save_section_pending_commands.gd:744)
+          GDScript backtrace (most recent call first):
+              [0] test_extent_refusal_bounds_every_declared_count (res://test/test_save_section_pending_commands.gd:744)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_extent_refusal_bounds_every_declared_count
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_section_tiles_at_a_nonzero_offset_with_no_gaps (res://test/test_save_section_pending_commands.gd:764)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_section_tiles_at_a_nonzero_offset_with_no_gaps (res://test/test_save_section_pending_commands.gd:764)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_section_tiles_at_a_nonzero_offset_with_no_gaps (res://test/test_save_section_pending_commands.gd:769)
+          GDScript backtrace (most recent call first):
+              [0] test_section_tiles_at_a_nonzero_offset_with_no_gaps (res://test/test_save_section_pending_commands.gd:769)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_section_tiles_at_a_nonzero_offset_with_no_gaps
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_commands_due_at_first_midnight_round_trip (res://test/test_save_section_pending_commands.gd:787)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_commands_due_at_first_midnight_round_trip (res://test/test_save_section_pending_commands.gd:787)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 8)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s64 (core/variant/variant_call.cpp:901)
+   GDScript backtrace (most recent call first):
+       [0] test_commands_due_at_first_midnight_round_trip (res://test/test_save_section_pending_commands.gd:788)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 8)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s64 (core/variant/variant_call.cpp:901)
+   GDScript backtrace (most recent call first):
+       [0] test_commands_due_at_first_midnight_round_trip (res://test/test_save_section_pending_commands.gd:790)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_commands_due_at_first_midnight_round_trip (res://test/test_save_section_pending_commands.gd:793)
+          GDScript backtrace (most recent call first):
+              [0] test_commands_due_at_first_midnight_round_trip (res://test/test_save_section_pending_commands.gd:793)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_commands_due_at_first_midnight_round_trip
+        the edit is due exactly at the first midnight (expected 13500, got 0)
+        the event waits at the saved completed tick, one before it (expected 13499, got 0)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_commands_due_at_a_day_boundary_round_trip (res://test/test_save_section_pending_commands.gd:807)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _encode (res://test/test_save_section_pending_commands.gd:93)
+          GDScript backtrace (most recent call first):
+              [0] _encode (res://test/test_save_section_pending_commands.gd:93)
+              [1] _encoded_world (res://test/test_save_section_pending_commands.gd:101)
+              [2] test_commands_due_at_a_day_boundary_round_trip (res://test/test_save_section_pending_commands.gd:807)
+              [3] _run_test (res://test/run_tests.gd:161)
+              [4] _run_suite (res://test/run_tests.gd:138)
+              [5] _run_worker (res://test/run_tests.gd:91)
+              [6] _initialize (res://test/run_tests.gd:78)
+ERROR: Condition "p_offset < 0 || p_offset > (int64_t(size) - 8)" is true. Returning: 0
+   at: func_PackedByteArray_decode_s64 (core/variant/variant_call.cpp:901)
+   GDScript backtrace (most recent call first):
+       [0] test_commands_due_at_a_day_boundary_round_trip (res://test/test_save_section_pending_commands.gd:808)
+       [1] _run_test (res://test/run_tests.gd:161)
+       [2] _run_suite (res://test/run_tests.gd:138)
+       [3] _run_worker (res://test/run_tests.gd:91)
+       [4] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_commands_due_at_a_day_boundary_round_trip (res://test/test_save_section_pending_commands.gd:810)
+          GDScript backtrace (most recent call first):
+              [0] test_commands_due_at_a_day_boundary_round_trip (res://test/test_save_section_pending_commands.gd:810)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_commands_due_at_a_day_boundary_round_trip
+        the edit is due at tick 18000 (expected 18000, got 0)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_apply_restores_payload_bytes_verbatim (res://test/test_save_section_pending_commands.gd:827)
+          GDScript backtrace (most recent call first):
+              [0] test_apply_restores_payload_bytes_verbatim (res://test/test_save_section_pending_commands.gd:827)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_apply_restores_payload_bytes_verbatim
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_apply_refuses_a_non_empty_store_and_changes_nothing (res://test/test_save_section_pending_commands.gd:846)
+          GDScript backtrace (most recent call first):
+              [0] test_apply_refuses_a_non_empty_store_and_changes_nothing (res://test/test_save_section_pending_commands.gd:846)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_apply_refuses_a_non_empty_store_and_changes_nothing
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_apply_refuses_a_tick_the_restored_clock_has_already_completed (res://test/test_save_section_pending_commands.gd:866)
+          GDScript backtrace (most recent call first):
+              [0] test_apply_refuses_a_tick_the_restored_clock_has_already_completed (res://test/test_save_section_pending_commands.gd:866)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_apply_refuses_a_tick_the_restored_clock_has_already_completed
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_apply_refuses_a_boundary_the_scheduler_owner_rejects (res://test/test_save_section_pending_commands.gd:885)
+          GDScript backtrace (most recent call first):
+              [0] test_apply_refuses_a_boundary_the_scheduler_owner_rejects (res://test/test_save_section_pending_commands.gd:885)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_apply_refuses_a_boundary_the_scheduler_owner_rejects
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_apply_passes_through_the_load_barrier (res://test/test_save_section_pending_commands.gd:903)
+          GDScript backtrace (most recent call first):
+              [0] test_apply_passes_through_the_load_barrier (res://test/test_save_section_pending_commands.gd:903)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_apply_passes_through_the_load_barrier
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] test_agrees_with_stores_cross_checks_the_public_readers (res://test/test_save_section_pending_commands.gd:923)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'agrees_with_stores' in base 'GDScript'.
+          at: test_agrees_with_stores_cross_checks_the_public_readers (res://test/test_save_section_pending_commands.gd:924)
+          GDScript backtrace (most recent call first):
+              [0] test_agrees_with_stores_cross_checks_the_public_readers (res://test/test_save_section_pending_commands.gd:924)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_agrees_with_stores_cross_checks_the_public_readers
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] test_arena_rebuild_gate_accepts_a_contiguous_arena (res://test/test_save_section_pending_commands.gd:938)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid access to property or key 'payload_offset' on a base object of type 'Nil'.
+          at: test_arena_rebuild_gate_accepts_a_contiguous_arena (res://test/test_save_section_pending_commands.gd:939)
+          GDScript backtrace (most recent call first):
+              [0] test_arena_rebuild_gate_accepts_a_contiguous_arena (res://test/test_save_section_pending_commands.gd:939)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_arena_rebuild_gate_accepts_a_contiguous_arena
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] test_arena_restore_accepts_a_dead_prefix_and_retains_offsets (res://test/test_save_section_pending_commands.gd:949)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid access to property or key 'payload' on a base object of type 'Nil'.
+          at: test_arena_restore_accepts_a_dead_prefix_and_retains_offsets (res://test/test_save_section_pending_commands.gd:950)
+          GDScript backtrace (most recent call first):
+              [0] test_arena_restore_accepts_a_dead_prefix_and_retains_offsets (res://test/test_save_section_pending_commands.gd:950)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_arena_restore_accepts_a_dead_prefix_and_retains_offsets
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] test_arena_restore_accepts_offsets_permuted_relative_to_keys (res://test/test_save_section_pending_commands.gd:963)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid access to property or key 'payload_offset' on a base object of type 'Nil'.
+          at: test_arena_restore_accepts_offsets_permuted_relative_to_keys (res://test/test_save_section_pending_commands.gd:964)
+          GDScript backtrace (most recent call first):
+              [0] test_arena_restore_accepts_offsets_permuted_relative_to_keys (res://test/test_save_section_pending_commands.gd:964)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_arena_restore_accepts_offsets_permuted_relative_to_keys
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _capture (res://test/test_save_section_pending_commands.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _capture (res://test/test_save_section_pending_commands.gd:84)
+              [1] test_arena_restore_accepts_a_zero_dead_tail_without_compaction (res://test/test_save_section_pending_commands.gd:972)
+              [2] _run_test (res://test/run_tests.gd:161)
+              [3] _run_suite (res://test/run_tests.gd:138)
+              [4] _run_worker (res://test/run_tests.gd:91)
+              [5] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid assignment of property or key 'payload_used' with value of type 'int' on a base object of type 'Nil'.
+          at: test_arena_restore_accepts_a_zero_dead_tail_without_compaction (res://test/test_save_section_pending_commands.gd:973)
+          GDScript backtrace (most recent call first):
+              [0] test_arena_restore_accepts_a_zero_dead_tail_without_compaction (res://test/test_save_section_pending_commands.gd:973)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_arena_restore_accepts_a_zero_dead_tail_without_compaction
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_source_contains_no_float
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_record_clear_restores_the_declared_unused_values (res://test/test_save_section_pending_commands.gd:1023)
+          GDScript backtrace (most recent call first):
+              [0] test_record_clear_restores_the_declared_unused_values (res://test/test_save_section_pending_commands.gd:1023)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_record_clear_restores_the_declared_unused_values
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+  FAIL  <test run>
+        2 script error(s) outside any test method
+
+118 test(s), 26940 assertion(s), 59 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,40 @@
+{
+  "attempt": "save-pending-contract-a1",
+  "model": "claude-opus-5",
+  "session_id": "dfa10244-ad2b-444b-bc9d-9dd5cb8bd292",
+  "owner_stopped": true,
+  "inputs": [
+    {
+      "path": "godot/scripts/core/commands.gd",
+      "sha256": "f174bb300044e78db875d46620d6c8a28ab7f31f0795d752251bcf3d4e280c13"
+    },
+    {
+      "path": "godot/scripts/core/save_section_pending_commands.gd",
+      "sha256": "c3ff0614455477c2f9a8dde24c874be5168f806222028167e688bf5255b7f39e"
+    },
+    {
+      "path": "godot/scripts/core/scheduler_events.gd",
+      "sha256": "5981c3c05c454f46968a252bd544da084b9a530b3bbcf26d8041c583e09063bc"
+    },
+    {
+      "path": "godot/scripts/core/sim_clock.gd",
+      "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+    },
+    {
+      "path": "godot/test/test_commands.gd",
+      "sha256": "caf495742da63461a265e978a17d6b4be0d237c9f8ff2f03ed6bd8e6e51a6374"
+    },
+    {
+      "path": "godot/test/test_save_section_pending_commands.gd",
+      "sha256": "ef83f697b613bc7115673abcb813e59ed074f91ec6313cfdff072c1b034ddd9a"
+    },
+    {
+      "path": "docs/rulings/2026-09-12_clock_restore_and_layout_followup.md",
+      "sha256": "231f36bfc07369d50cbe3ed55a6278f010698163473711a599d8c088962544b8"
+    },
+    {
+      "path": "docs/planning/save_implementation_matrix.md",
+      "sha256": "33cc978ecf92513e5ba7750e20e60ca2a5e2caa866d547e9c32e48d383e983f7"
+    }
+  ]
+}

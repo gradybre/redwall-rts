@@ -1,0 +1,417 @@
+diff --git a/godot/scripts/core/commands.gd b/godot/scripts/core/commands.gd
+--- a/godot/scripts/core/commands.gd
++++ b/godot/scripts/core/commands.gd
+@@ -200,6 +200,23 @@
+ const REFUSE_ID_GROUP_MEMBER: StringName = &"COMMAND_ID_GROUP_MEMBER_INVALID"
+ const REFUSE_POSITION: StringName = &"COMMAND_POSITION_OUT_OF_RANGE"
+ const REFUSE_BUFFER_TOO_SMALL: StringName = &"COMMAND_BUFFER_TOO_SMALL"
++
++## SAVE-P2-R02's guard and pending-window codes. COMMAND_LOAD_BARRIER is what every ordinary
++## mutation answers while the bound clock holds a load barrier; the WINDOW codes belong to
++## `pending_window_refusal()` alone and can never come out of an admission.
++const REFUSE_LOAD_BARRIER: StringName = &"COMMAND_LOAD_BARRIER"
++const REFUSE_WINDOW_RECORD_SHAPE: StringName = &"COMMAND_WINDOW_RECORD_SHAPE"
++const REFUSE_WINDOW_ARENA_SIZE: StringName = &"COMMAND_WINDOW_ARENA_SIZE"
++const REFUSE_WINDOW_ARENA_NOT_EMPTY: StringName = &"COMMAND_WINDOW_ARENA_NOT_EMPTY"
++const REFUSE_WINDOW_ORDER: StringName = &"COMMAND_WINDOW_ORDER"
++const REFUSE_WINDOW_SPAN: StringName = &"COMMAND_WINDOW_SPAN"
++const REFUSE_WINDOW_SPAN_OVERLAP: StringName = &"COMMAND_WINDOW_SPAN_OVERLAP"
++const REFUSE_WINDOW_DEAD_BYTE: StringName = &"COMMAND_WINDOW_DEAD_BYTE"
++const REFUSE_WINDOW_SEQUENCE: StringName = &"COMMAND_WINDOW_SEQUENCE"
++
++## One `(payload_offset, payload_length)` pair packed into a single i64, so a whole window's spans
++## sort in one C++ call. Both fields are bounded by the 1048576-byte arena, which fits in 21 bits.
++const SPAN_KEY_SCALE: int = 2097152
+ 
+ 
+ class Command:
+@@ -350,9 +367,13 @@
+ 	target EntityRef is validated against, so a second directory would validate against the wrong
+ 	generations.
++
++	Construction goes through the private `_reset_state()` rather than the public `clear()`, which
++	is now barred while the bound clock holds a load barrier (SAVE-P2-R02): a queue built over an
++	already-barred clock must still start empty.
+ 	"""
+ 	_clock = p_clock if p_clock != null else SimClock.new()
+ 	_directory = p_directory if p_directory != null else EntityDirectory.new()
+ 	_kind_count = Catalog.COMMAND_KIND.size()
+ 	_assert_contracts()
+ 	_allocate_columns()
+-	clear()
++	_reset_state()
+@@ -384,25 +405,30 @@
+ func clear() -> void:
+ 	"""Return the queue, the arena and the session sequence to their initial state.
+ 
+ 	This is world initialization, not a drain: it discards pending commands and resets the
+ 	sequence, so nothing that survives a save may call it.
++
++	BARRED WHILE THE BOUND CLOCK HOLDS A LOAD BARRIER (SAVE-P2-R02): discarding a window a load is
++	in the middle of installing is precisely the mutation that barrier exists to stop. The API
++	stays void, so a barred call reports itself through `last_refusal()` and changes nothing else.
+ 	"""
++	if _barred():
++		_last_refusal = REFUSE_LOAD_BARRIER
++		return
++	_reset_state()
++
++
++func _reset_state() -> void:
++	"""The reset itself, reachable from `_init()` while the bound clock is already barred."""
++	_reset_rows()
+-	for index: int in QUEUE_CAPACITY:
+-		_order[index] = index
+-	_execute_tick.fill(0)
+-	for column: PackedInt32Array in [_player_id, _sequence_low, _sequence_high, _kind, _goal_x,
+-			_goal_z, _arg0, _arg1, _payload_offset, _payload_length, _flags, _reserved_zero]:
+-		column.fill(0)
+-	_target_slot.fill(EntityDirectory.NULL_SLOT)
+-	_target_generation.fill(EntityDirectory.NULL_GENERATION)
+ 	_payload.fill(0)
+ 	_head = 0
+ 	_count = 0
+ 	_payload_used = 0
+ 	_next_sequence_high = 0
+ 	_next_sequence_low = 0
+ 	_last_refusal = REFUSE_NONE
+ 	_refused_member = 0
+ 	_accepted_count = 0
+ 	_refused_count = 0
+ 	_drained_count = 0
+@@ -486,11 +512,39 @@
++# --- the load barrier this queue shares with its clock (SAVE-P2-R02) ------------------------------
++
++func _barred() -> bool:
++	"""True while the bound clock holds a load barrier, which bars every ordinary mutation.
++
++	The barrier lives in `sim_clock.gd` and is raised by whoever is installing a world, so this
++	queue and its clock can never disagree about whether a load is open. There is no second flag
++	in this module, and no route here that lowers one.
++	"""
++	return _clock.is_load_barrier_held()
++
++
++func _bar_submit(out: SubmitResult) -> bool:
++	"""Report a barred admission without touching a counter, a row or `_refused_member`.
++
++	Deliberately NOT `_refuse()`: SAVE-P2-R02 refuses before any refusal counter moves, because a
++	command stopped by the barrier was never an admission against this world at all.
++	"""
++	_last_refusal = REFUSE_LOAD_BARRIER
++	out.fill(false, REFUSE_LOAD_BARRIER, 0, _refused_member)
++	return false
++
++
+ # --- admission -----------------------------------------------------------------------------------
+ 
+ func submit_into(command: Command, out: SubmitResult) -> bool:
+ 	"""Queue one player edit for `completed_tick+1`, stamping ARCH-CMD-001's whole envelope.
+ 
+ 	The caller's `execute_tick`, `player_id` and sequence halves are IGNORED and overwritten: the
+ 	queue is the only stamper, so a reused envelope cannot smuggle a stale key. Returns false and
+ 	fills `out` with the refusal on any failure, having changed nothing.
++
++	Barred while the bound clock holds a load barrier, BEFORE `_refused_member` is cleared and
++	before any counter moves: `out` then carries COMMAND_LOAD_BARRIER and nothing else changes.
+ 	"""
++	if _barred():
++		return _bar_submit(out)
+ 	_refused_member = 0
+ 	var tick: int = next_execute_tick()
+@@ -529,8 +583,12 @@
+ func submit_group_into(members: Array, out: SubmitResult) -> bool:
+ 	"""Queue several player edits atomically: every member validates, or none is written.
+ 
+ 	Decision 0059's allocate-before-consume at the queue layer. Members keep their submitted order,
+ 	because they share one `execute_tick` and take consecutive sequence numbers. On refusal the
+ 	queue is byte-identical to what it was, and `out.member` names the member that failed.
++
++	Barred while the bound clock holds a load barrier, before any member is validated and before
++	any counter moves.
+ 	"""
++	if _barred():
++		return _bar_submit(out)
+ 	var tick: int = next_execute_tick()
+@@ -554,5 +612,9 @@
+ 	This form BUILDS the payload, so an envelope that also carries opaque bytes is refused rather
+ 	than having them silently dropped.
++
++	Barred while the bound clock holds a load barrier, before `_refused_member` is cleared.
+ 	"""
++	if _barred():
++		return _bar_submit(out)
+ 	_refused_member = 0
+ 	var tick: int = next_execute_tick()
+@@ -580,4 +642,9 @@
+ 	NOT advanced -- a loader restores it with `restore_sequence()`.
++
++	Barred while the bound clock holds a load barrier: a replay stream is not a load, and a load
++	installs its whole window through `restore_pending_window()` instead.
+ 	"""
++	if _barred():
++		return _bar_submit(out)
+ 	_refused_member = 0
+ 	var length: int = command.payload.size()
+@@ -853,5 +920,10 @@
+ 	readable until the next accepted submission.
++
++	Barred while the bound clock holds a load barrier: it returns false WITHOUT touching `out` and
++	without counting a drain, which is the truth -- nothing was consumed -- rather than a sentinel.
+ 	"""
++	if _barred():
++		return false
+ 	if _count == 0:
+ 		return false
+ 	var row: int = _order[_head]
+@@ -1007,18 +1079,248 @@
+ 	_next_sequence_high = high
+ 	_next_sequence_low = low
+ 	_last_refusal = REFUSE_NONE
+ 	return true
++
++
++# --- SAVE-P2-R02: the pending-window restore boundary ---------------------------------------------
++#
++# ONE VALIDATOR AND ONE MUTATOR, AND THE VALIDATOR IS PURE. `pending_window_refusal()` answers for
++# a whole saved window -- a compact run of §8.1's 64-byte records in canonical key order, plus the
++# USED PREFIX of the arena, whose length IS the saved highwater -- and writes nothing at all, not
++# even `_last_refusal`, so a save owner may test a decoded window before it owns a queue to put it
++# in. `restore_pending_window()` runs that same validator before its first write, so a refusal
++# leaves every row, every arena byte, both sequence words and all three diagnostic counters as
++# they were (decision 0059, allocate before consume).
++#
++# RESTORE IS NOT AN ADMISSION. Nothing here stamps, allocates, advances the session sequence, runs
++# a tick, drains or calls a producer, and no counter moves. It never consumes an allocator
++# sequence either, so a window whose saved counter is already exhausted restores intact and simply
++# refuses the NEXT ordinary submission through `_sequence_room()`.
++#
++# EXACT OFFSETS, NOT COMPACTION. Every live command keeps the `payload_offset` it was allocated
++# and `_payload_used` becomes the saved highwater, so the capacity the restored world offers its
++# next submission is the capacity the saved world had. Allocation order and key order may
++# disagree; dead prefixes, holes and tails are legal; and every byte no live span owns must
++# ALREADY be zero -- a nonzero dead byte refuses rather than being scrubbed.
++#
++# THE BARRIER IS REQUIRED, NOT OPTIONAL. Both entry points answer COMMAND_LOAD_BARRIER when the
++# bound clock's barrier is NOT held. This is the privileged path: it may replace a NON-EMPTY
++# window, which is what lets a coordinator put a previous owner back after a later install
++# refused, and is exactly why it may only run inside a load the barrier has already announced.
++#
++# COLD SCRATCH ONLY. One decoded `Command` and at most 4096 packed span keys (32768 bytes) per
++# call, on a boundary that happens once per world. No second `Commands` object is built, no
++# per-row object array exists, and no retained or persisted field is added anywhere here.
++
++func pending_window_refusal(records: PackedByteArray, arena: PackedByteArray,
++		next_sequence_high: int, next_sequence_low: int) -> StringName:
++	"""Every rule a saved pending window must satisfy, as a check that mutates nothing.
++
++	`records` is `n * 64` bytes of §8.1 records in ARCH-CMD-001 order, STRICTLY ascending and so
++	without a repeated key. `arena` is the used prefix of §8.1's payload arena: its size is the
++	saved highwater, dead bytes included. An empty run requires an empty prefix.
++	"""
++	if not _clock.is_load_barrier_held():
++		return REFUSE_LOAD_BARRIER
++	if records.size() % RECORD_BYTES != 0:
++		return REFUSE_WINDOW_RECORD_SHAPE
++	var count: int = records.size() / RECORD_BYTES
++	if count > QUEUE_CAPACITY:
++		return REFUSE_WINDOW_RECORD_SHAPE
++	if arena.size() > PAYLOAD_ARENA_BYTES:
++		return REFUSE_WINDOW_ARENA_SIZE
++	if count == 0 and arena.size() != 0:
++		return REFUSE_WINDOW_ARENA_NOT_EMPTY
++	if not _window_sequence_is_legal(next_sequence_high, next_sequence_low):
++		return REFUSE_WINDOW_SEQUENCE
++	var keys: PackedInt64Array = PackedInt64Array()
++	keys.resize(count)
++	var refusal: StringName = _window_record_refusal(records, arena, count, Command.new(), keys)
++	if refusal != REFUSE_NONE:
++		return refusal
++	return _window_arena_refusal(arena, keys)
++
++
++func _window_record_refusal(records: PackedByteArray, arena: PackedByteArray, count: int,
++		probe: Command, keys: PackedInt64Array) -> StringName:
++	"""Decode every record in turn, validating its envelope, its key order and its payload span.
++
++	The order test is STRICT, so a repeated key refuses exactly as `admit_stamped_into()` refuses
++	one: two records sharing a key would leave the drained order ambiguous. Targets are checked
++	against the directory's CURRENT generations by `envelope_refusal()`, and every execute tick
++	must still be in the future of the bound clock's completed tick.
++	"""
++	var completed: int = _clock.completed_tick()
++	var previous_tick: int = 0
++	var previous_player: int = 0
++	var previous_high: int = 0
++	var previous_low: int = 0
++	for index: int in count:
++		if not decode_record_into(records, index * RECORD_BYTES, probe):
++			return REFUSE_WINDOW_RECORD_SHAPE
++		if probe.player_id != RELEASE_ONE_PLAYER_ID:
++			return REFUSE_UNKNOWN_PLAYER
++		if probe.execute_tick <= completed:
++			return REFUSE_TICK_IN_PAST
++		var envelope: StringName = envelope_refusal(probe)
++		if envelope != REFUSE_NONE:
++			return envelope
++		if index > 0 and compare_key_parts(previous_tick, previous_player, previous_high,
++				previous_low, probe.execute_tick, probe.player_id, probe.sequence_high,
++				probe.sequence_low) >= 0:
++			return REFUSE_WINDOW_ORDER
++		if not _span_is_bounded(probe.payload_offset, probe.payload_length, arena.size()):
++			return REFUSE_WINDOW_SPAN
++		keys[index] = probe.payload_offset * SPAN_KEY_SCALE + probe.payload_length
++		previous_tick = probe.execute_tick
++		previous_player = probe.player_id
++		previous_high = probe.sequence_high
++		previous_low = probe.sequence_low
++	return REFUSE_NONE
++
++
++static func _span_is_bounded(offset: int, length: int, used: int) -> bool:
++	"""True when `(offset, length)` lies inside the used prefix, tested without an addition.
++
++	A zero-length span is legal at any offset in `0..used`, `used` itself included, and two of
++	them may share one: the queue reserved no byte for either, so neither owns one.
++	"""
++	if offset < 0 or length < 0 or offset > used:
++		return false
++	return length <= used - offset
++
++
++func _window_arena_refusal(arena: PackedByteArray, keys: PackedInt64Array) -> StringName:
++	"""Sort the live spans by offset and prove they neither overlap nor leave a nonzero hole.
++
++	One C++ sort over at most 4096 packed keys, then one walk: every byte between the previous
++	span's end and the next span's start is dead and must already be zero, and so is every byte
++	from the last live span's end to the saved highwater. Dead SPACE is legal; dead DATA is not.
++	"""
++	keys.sort()
++	var cursor: int = 0
++	for index: int in keys.size():
++		var offset: int = keys[index] / SPAN_KEY_SCALE
++		var length: int = keys[index] % SPAN_KEY_SCALE
++		if offset < cursor:
++			return REFUSE_WINDOW_SPAN_OVERLAP
++		if not _bytes_are_zero(arena, cursor, offset):
++			return REFUSE_WINDOW_DEAD_BYTE
++		cursor = offset + length
++	if not _bytes_are_zero(arena, cursor, arena.size()):
++		return REFUSE_WINDOW_DEAD_BYTE
++	return REFUSE_NONE
++
++
++static func _bytes_are_zero(bytes: PackedByteArray, from_index: int, to_index: int) -> bool:
++	"""True when every byte in `[from_index, to_index)` is zero; an empty range is vacuously so."""
++	for index: int in range(from_index, to_index):
++		if bytes[index] != 0:
++			return false
++	return true
++
++
++static func _window_sequence_is_legal(high: int, low: int) -> bool:
++	"""The counter a restored window resumes from: any u32 pair, or the exhausted runtime pair.
++
++	`(4294967296, 0)` is what `_advance_sequence()` leaves once the final sequence has been spent.
++	It is a legal RUNTIME value -- `_sequence_room()` refuses every later submission from it -- so
++	a window carrying it restores rather than being refused into a world that cannot express what
++	it already was. No other high word above u32, and no negative word, is legal.
++	"""
++	if high == U32_MODULUS:
++		return low == 0
++	return high >= 0 and high <= U32_MAX and low >= 0 and low <= U32_MAX
++
++
++func restore_pending_window(records: PackedByteArray, arena: PackedByteArray,
++		next_sequence_high: int, next_sequence_low: int) -> bool:
++	"""Install a validated pending window verbatim, replacing whatever this queue now holds.
++
++	Validated in full before the first write, so a refusal leaves the queue byte-identical and
++	sets only `last_refusal()`. On success the records occupy rows 0..n-1 in canonical order with
++	`_head` at 0, every payload keeps the EXACT offset it was saved with, `_payload_used` becomes
++	the saved highwater, and both session sequence words are assigned rather than derived.
++
++	The accepted, refused and drained counters are deliberately PRESERVED: they count what this
++	process has done, not what the restored window contains.
++	"""
++	var refusal: StringName = pending_window_refusal(records, arena, next_sequence_high,
++		next_sequence_low)
++	if refusal != REFUSE_NONE:
++		_last_refusal = refusal
++		return false
++	var probe: Command = Command.new()
++	var count: int = records.size() / RECORD_BYTES
++	_reset_rows()
++	for index: int in count:
++		var decoded: bool = decode_record_into(records, index * RECORD_BYTES, probe)
++		assert(decoded, "every record in a validated window decodes")
++		_write_restored_row(index, probe)
++	_head = 0
++	_count = count
++	_copy_arena_prefix(arena)
++	_next_sequence_high = next_sequence_high
++	_next_sequence_low = next_sequence_low
++	_last_refusal = REFUSE_NONE
++	return true
++
++
++func _reset_rows() -> void:
++	"""Return every storage row and the order ring to the canonical empty arrangement.
++
++	`_order` becomes the identity permutation, so restored rows land at positions 0..n-1 with
++	`_head` at 0 -- the arrangement a cleared queue would have reached by admitting the same
++	records in key order. Unused rows keep §8.1's null target and zero everywhere else.
++	"""
++	for index: int in QUEUE_CAPACITY:
++		_order[index] = index
++	_execute_tick.fill(0)
++	for column: PackedInt32Array in [_player_id, _sequence_low, _sequence_high, _kind, _goal_x,
++			_goal_z, _arg0, _arg1, _payload_offset, _payload_length, _flags, _reserved_zero]:
++		column.fill(0)
++	_target_slot.fill(EntityDirectory.NULL_SLOT)
++	_target_generation.fill(EntityDirectory.NULL_GENERATION)
++
++
++func _write_restored_row(row: int, command: Command) -> void:
++	"""Write one decoded record into storage row `row`, its saved payload span included."""
++	_write_row(row, command, command.execute_tick, command.player_id, command.sequence_high,
++		command.sequence_low)
++	_payload_offset[row] = command.payload_offset
++	_payload_length[row] = command.payload_length
++
++
++func _copy_arena_prefix(arena: PackedByteArray) -> void:
++	"""Zero the arena, copy the saved used prefix back into it, and set the highwater cursor.
++
++	The copy goes into the buffer this queue already owns, so the caller's array is never
++	retained and mutating it afterwards cannot reach a payload.
++	"""
++	_payload.fill(0)
++	for index: int in arena.size():
++		_payload[index] = arena[index]
++	_payload_used = arena.size()
+ 
+ 
+ func rebind_clock(p_clock: SimClock) -> bool:
+ 	"""Point this queue at another clock. Only legal on an EMPTY queue, and never at null.
+ 
+ 	`GameManager.start_game()` replaces its `SimClock` instance, so ARCH-SYS-002's composition has
+ 	to be able to follow it or it would go on stamping `completed_tick+1` from a clock that stopped
+ 	moving. Rebinding under a non-empty queue is refused rather than performed: the pending records
+ 	were stamped against the OLD clock's tick numbering, and re-basing them would silently move
+ 	when a player's edits execute.
++
++	Barred while EITHER clock holds a load barrier -- the one this queue is bound to now, and the
++	one it is being asked to follow -- before `_clock` moves. Following a clock that is still being
++	restored would stamp against a tick numbering that is not yet installed.
+ 	"""
++	if _barred():
++		_last_refusal = REFUSE_LOAD_BARRIER
++		return false
+ 	if p_clock == null:
+ 		_last_refusal = REFUSE_NO_CLOCK
+ 		return false
++	if p_clock.is_load_barrier_held():
++		_last_refusal = REFUSE_LOAD_BARRIER
++		return false
+ 	if _count != 0:

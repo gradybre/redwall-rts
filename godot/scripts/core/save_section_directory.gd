@@ -70,7 +70,7 @@ extends RefCounted
 ##   * NOT THIS SECTION'S. `_next_persistent_id` IS future-affecting and IS NOT derivable
 ##     (`destroy()` zeroes `_persistent_id`, so "max live id + 1" is wrong the moment anything has
 ##     died), but the registry assigns it to §1 WORLD as `WorldRuntime.next_persistent_id`. See
-##     BLOCKER D2: nothing writes it yet.
+##     BLOCKER D2 below: the joint save adapter restores the separately decoded cursor.
 ##
 ## PERSISTENCE OBLIGATION AND DIGEST MEMBERSHIP ARE SEPARATE AXES (decision 0063). For section 3
 ## the two lists happen to coincide, and that is a finding, not an assumption: ARCH-HASH-001
@@ -162,14 +162,15 @@ extends RefCounted
 ## this validator. A divergence between the two surfaces as REFUSE_STORE_REFUSED_COLUMNS rather
 ## than as a half-written directory.
 ##
-## ## BLOCKER D2 -- `_next_persistent_id` IS REGISTERED TO §1 WORLD AND NOBODY WRITES IT
+## ## BLOCKER D2 -- JOINT IDENTITY RESTORE ADAPTER; DISK COORDINATOR STILL OPEN
 ##
-## The registry puts it in §1 as `WorldRuntime.next_persistent_id`, so it is deliberately absent
-## from this section's six columns. But `save_section_world_runtime.gd`'s 80-byte block does not
-## carry it either, and `entity_directory.gd` exposes no reader for it. Until §1's owner adds the
-## field AND the directory owner adds a reader, a reloaded world restarts persistent IDs at 1 and
-## breaks ARCH-SAVE-004's unique-persistent-id validation. Section 3 cannot fix this by writing
-## the scalar itself: that would put one future-affecting value in two sections.
+## The cursor belongs to section 1's entity_directory owner block, not the frozen 80-byte
+## WorldRuntime block and not these six columns. `next_persistent_id()` and section 1 capture
+## already expose it. `save_identity_restore.gd` joins the decoded cursor and this Record through
+## `restore_columns_and_cursor()` under the supplied clock's actual load barrier (SAVE-D2-R02).
+## A full loader must call that joint adapter with the clock belonging to its target world.
+## This module's columns-only apply remains available but does not restore the allocator cursor.
+## Full disk coordination and whole-world rollback remain separate, unimplemented acceptance.
 ##
 ## ## OPEN, NOT INVENTED
 ##
@@ -692,8 +693,8 @@ static func apply(record: Record, store: EntityDirectoryScript) -> SaveHeader.Re
 
 	The category-2 members are NOT published: `_typed_owner_slot`, both min-heaps and every
 	counter are rebuilt by the directory from the six columns. Neither is `_next_persistent_id`,
-	which the registry assigns to §1 WORLD (BLOCKER D2 below): a world loaded today therefore
-	carries its slots and generations faithfully and still reissues persistent IDs from 1.
+	which the registry assigns to §1 WORLD (BLOCKER D2 above). A loader must instead use
+	`save_identity_restore.gd` with the separately decoded cursor to restore both together.
 	"""
 	var invalid: SaveHeader.Refusal = record_refusal(record)
 	if not invalid.is_ok():

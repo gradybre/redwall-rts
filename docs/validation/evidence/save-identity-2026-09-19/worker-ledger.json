@@ -1,0 +1,98 @@
+[
+  {
+    "attempt": "save-identity-a1",
+    "model": "claude-opus-5",
+    "session_id": "8b8a0aa5-df9c-45f1-a9f8-df683c72a74e",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/rulings/2026-09-19_save_identity_restore.md",
+        "sha256": "32718152fc2b127cef3902889e1ce185c7eef6caa4d4ea86e895118ce160ef06"
+      },
+      {
+        "path": "godot/scripts/core/entity_directory.gd",
+        "sha256": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a"
+      },
+      {
+        "path": "godot/scripts/core/save_section_directory.gd",
+        "sha256": "5a8adaa3f727b4989b769ea614c45d07e8e8595872640fae7cbf713c153a5859"
+      },
+      {
+        "path": "godot/scripts/core/save_codec.gd",
+        "sha256": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508"
+      },
+      {
+        "path": "godot/scripts/core/save_header.gd",
+        "sha256": "ae44b8ab307e987c8084b81ba707fd1db8befe26868fba8120b6944236bfbed5"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/test/test_save_section_directory.gd",
+        "sha256": "effa4892cef4dd07bf343fece730187a2403df3766f01e2ce982394a720e3cc7"
+      },
+      {
+        "path": "godot/test/framework/test_case.gd",
+        "sha256": "d7ea4c9b45ba1e5b8fbabfeb85ce7723ae54ad83a5f3aac7e1e7efe0fb5430f7"
+      }
+    ]
+  },
+  {
+    "attempt": "save-identity-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "636397f6-e662-437a-91b9-eaeb6af8e458",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/rulings/2026-09-19_save_identity_restore.md",
+        "sha256": "32718152fc2b127cef3902889e1ce185c7eef6caa4d4ea86e895118ce160ef06"
+      },
+      {
+        "path": "godot/scripts/core/entity_directory.gd",
+        "sha256": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a"
+      },
+      {
+        "path": "godot/scripts/core/save_section_directory.gd",
+        "sha256": "e074a3cd8d880e8a6c6bb184f9b04d297601622194dca35dd9c1dd93e93e27e8"
+      },
+      {
+        "path": "godot/scripts/core/save_codec.gd",
+        "sha256": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508"
+      },
+      {
+        "path": "godot/scripts/core/save_header.gd",
+        "sha256": "ae44b8ab307e987c8084b81ba707fd1db8befe26868fba8120b6944236bfbed5"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/test/test_save_section_directory.gd",
+        "sha256": "effa4892cef4dd07bf343fece730187a2403df3766f01e2ce982394a720e3cc7"
+      },
+      {
+        "path": "godot/test/framework/test_case.gd",
+        "sha256": "d7ea4c9b45ba1e5b8fbabfeb85ce7723ae54ad83a5f3aac7e1e7efe0fb5430f7"
+      },
+      {
+        "path": "godot/scripts/core/save_identity_restore.gd",
+        "sha256": "dcce8b6977c47ee01130804c6556286c8810ad62cf60a7e790b300daab39da98"
+      },
+      {
+        "path": "godot/test/test_save_identity_restore.gd",
+        "sha256": "a97265a28f12286e6ba3496c4428dc54d5379e4fff88665054bfda9142069a07"
+      },
+      {
+        "path": "docs/decisions/0152-restore-directory-and-cursor-together.md",
+        "sha256": "5359beccdd5f0d8bfcd3f498976b16a068513684c533f75c459ece8bca19bcc5"
+      },
+      {
+        "path": "docs/planning/save_implementation_matrix.md",
+        "sha256": "af65091b4203aeb55e3d14524429eb17fb4ec4cf0be0d269ae63432a56fbd525"
+      }
+    ]
+  }
+]

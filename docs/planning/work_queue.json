@@ -978,18 +978,24 @@
     },
     {
       "id": "SAVE-D2-CURSOR-WRITER",
-      "title": "Write the section 3 allocator cursor nothing currently writes; closes BLOCKER D2",
-      "status": "ready",
+      "title": "Join section3 identities and the section1 allocator cursor under the load barrier",
+      "status": "review",
       "depends_on": [
         "PLAN-SAVE-COVERAGE"
       ],
       "owns": [
+        "godot/scripts/core/save_identity_restore.gd",
+        "godot/test/test_save_identity_restore.gd",
         "godot/scripts/core/save_section_directory.gd",
-        "godot/test/test_save_section_directory.gd"
+        "godot/test/test_save_section_directory.gd",
+        "docs/planning/save_implementation_matrix.md"
       ],
       "agent": "game-coder",
-      "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+      "gate": "astra_ruling",
+      "note": "Section1 already captures/encodes the cursor and the directory already has the atomic writer. This packet supplies the joint save-layer consumer; the future coordinator must bind the actual clock/directory and remains separate.",
+      "astra_answered": true,
+      "astra_ruling": "docs/rulings/2026-09-19_save_identity_restore.md",
+      "acceptance": "SAVE-D2-R02: exact decoded cursor plus six validated columns, existing atomic owner call; supplied world clock barrier held; spent/exhausted identities, immutable refusal/input separation; no format change or full-world restore claim."
     },
     {
       "id": "SAVE-ORCHESTRATOR",
@@ -1346,7 +1352,7 @@
     {
       "id": "PROGRESS-INTERVAL",
       "title": "Implement the checked continuous winter interval helper",
-      "status": "review",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "godot/scripts/core/progression_interval.gd",
@@ -1357,7 +1363,9 @@
       "astra_answered": true,
       "astra_ruling": "docs/rulings/2026-09-19_progression_interval.md",
       "acceptance": "PROGRESS-C4-R01 v2: contiguous checked int64 observations, inclusive54000interval gate, exact calendar eligibility, no mutable owner or production award; independent tests and review. Full progression integration remains blocked on its separate owners/schema.",
-      "pr": 141
+      "pr": 141,
+      "merge_commit": "960d9c438beb01b84d652dd10395f9584628fa9b",
+      "merged_at": "2026-09-19T19:51:06Z"
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

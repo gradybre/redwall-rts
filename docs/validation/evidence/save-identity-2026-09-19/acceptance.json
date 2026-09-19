@@ -1,0 +1,28 @@
+{
+  "base_commit": "960d9c438beb01b84d652dd10395f9584628fa9b",
+  "scope": "Joint identity columns and saved allocator cursor adapter only",
+  "files_sha256": {
+    "godot/scripts/core/save_identity_restore.gd": "dcce8b6977c47ee01130804c6556286c8810ad62cf60a7e790b300daab39da98",
+    "godot/test/test_save_identity_restore.gd": "a97265a28f12286e6ba3496c4428dc54d5379e4fff88665054bfda9142069a07",
+    "godot/scripts/core/save_section_directory.gd": "e074a3cd8d880e8a6c6bb184f9b04d297601622194dca35dd9c1dd93e93e27e8",
+    "docs/rulings/2026-09-19_save_identity_restore.md": "32718152fc2b127cef3902889e1ce185c7eef6caa4d4ea86e895118ce160ef06"
+  },
+  "tests": {
+    "command": "caffeinate -i ./tools/run_tests.sh",
+    "exit_code": 0,
+    "tests": 4599,
+    "assertions": 159572,
+    "failures": 0,
+    "log": "tests-second.log"
+  },
+  "static_checks": {
+    "count": 15,
+    "all_passed": true,
+    "log": "contracts.json"
+  },
+  "independent_review": "independent-review.md",
+  "review_disposition": "review-disposition.md",
+  "active_schema_or_ledger_changed": false,
+  "full_world_restore": false,
+  "unattended_service_active": false
+}

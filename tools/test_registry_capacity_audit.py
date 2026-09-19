@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Self-test for the source-proved registry capacity audit (REG-C3-R01).
+"""Self-test for the source-proved registry capacity audit (REG-C3-R01, REG-C4-R01).
 
 NEGATIVE TESTS COME FIRST AND OUTNUMBER THE POSITIVE ONES, deliberately. An
 auditor with no refusal test is indistinguishable from one that stamps
@@ -7,7 +7,7 @@ auditor with no refusal test is indistinguishable from one that stamps
 indistinguishable from one that returns `eq` unconditionally -- which is
 precisely the flattening REG-C3-R01 forbids.
 
-The five cases this file exists for are the ones the task names:
+The five original cases this file exists for are the ones the task names:
 
   N01  prose that could be read two ways is refused, never resolved by
        preference. `<=` contains `=`, so a lenient left-hand side would make
@@ -22,6 +22,17 @@ The five cases this file exists for are the ones the task names:
   N08  a capacity defined by an expression rather than a literal resolves when
        the expression is an allowlisted product, and is refused with its exact
        halting definition when it is not.
+
+REG-C4-R01 (2026-09-19) extends the resolver to bounded addition, and adds:
+
+  N18  multiplication binds before addition and both associate left to right.
+  N19  a sum may mix a local constant with a qualified `Alias.CONST` sum term.
+  N20  int64 overflow is caught on every addition step, including inside a
+       nested constant's own `+`, exactly as it always was for `*`.
+  N21  unary plus, empty addends and parenthesised sums are refused, never
+       silently repaired; only `+` and `*` were ever added to the allowlist.
+  N22  a self-referential or mutually-referential constant halts at the depth
+       bound rather than looping forever.
 
 EVERY SYNTHETIC MODULE HERE IS FICTIONAL. The constants are named so a search
 for a real store cannot find them, and no synthetic number is a capacity this
@@ -210,14 +221,19 @@ def test_n07_a_symbol_is_never_borrowed_from_another_module() -> None:
 
 
 def test_n08_expression_not_a_literal() -> None:
-	"""N08: allowlisted products resolve; other arithmetic halts with its exact definition."""
+	"""N08: allowlisted products resolve; other arithmetic halts with its exact definition.
+
+	REG-C4-R01 adds `+` to the allowlist, so this case no longer includes it (see
+	N18-N22 for addition's own coverage); subtraction, division and parentheses
+	remain refused exactly as before.
+	"""
 	product = module_index(alpha=const_module(
 		"BETA_TOTAL", "BETA_ROWS * BETA_COLUMNS",
 		extra="const BETA_ROWS: int = 7\nconst BETA_COLUMNS: int = 11\n"))
 	row = audit_one(product, "`BETA_TOTAL` = 77")
 	check("N08 a product of constants proves", row["status"] == "proved_equality" and row["source_value"] == 77)
 	check("N08 the proof chain shows every substitution", len(row["proof_chain"]) == 3)
-	for expression, operator in (("BETA_ROWS + BETA_COLUMNS", "+"), ("BETA_ROWS - BETA_COLUMNS", "-"),
+	for expression, operator in (("BETA_ROWS - BETA_COLUMNS", "-"),
 			("BETA_ROWS / BETA_COLUMNS", "/"), ("(BETA_ROWS)", "(")):
 		index = module_index(alpha=const_module(
 			"BETA_TOTAL", expression,
@@ -358,6 +374,184 @@ def test_n17_no_row_is_ever_dropped() -> None:
 		sum(built["status_counts"].values()) == 4)
 
 
+def test_n18_sum_precedence_and_nested_products() -> None:
+	"""REG-C4-R01: `+` associates left to right and binds looser than `*`, never the reverse."""
+	index = module_index(alpha=const_module(
+		"BETA_TOTAL", "BETA_ROWS + BETA_COLUMNS * BETA_STRIDE",
+		extra="const BETA_ROWS: int = 5\nconst BETA_COLUMNS: int = 3\nconst BETA_STRIDE: int = 4\n"))
+	row = audit_one(index, "`BETA_TOTAL` = 17")
+	check("N18 multiplication binds before addition", row["status"] == "proved_equality" and row["source_value"] == 17)
+	wrong = audit_one(index, "`BETA_TOTAL` = 32")
+	check("N18 the product-then-sum reading is the only one; a left-to-right sum-first reading does not match",
+		wrong["status"] == "finding_value_mismatch")
+	left_to_right = module_index(alpha=const_module(
+		"BETA_TOTAL", "BETA_A + BETA_B + BETA_C",
+		extra="const BETA_A: int = 1\nconst BETA_B: int = 2\nconst BETA_C: int = 3\n"))
+	sums = audit_one(left_to_right, "`BETA_TOTAL` = 6")
+	check("N18 a chain of sums resolves left to right", sums["status"] == "proved_equality" and sums["source_value"] == 6)
+	check("N18 the proof chain records every addend", len(sums["proof_chain"]) == 4)
+
+
+def test_n19_qualified_sums_resolve_through_aliases() -> None:
+	"""A sum may mix a local constant with a qualified constant from a preloaded module."""
+	index = module_index(
+		alpha='const Gamma := preload("res://scripts/core/gamma.gd")\n'
+			+ const_module("BETA_TOTAL", "BETA_ROWS + Gamma.GAMMA_ROWS",
+				resize_expression="BETA_ROWS + Gamma.GAMMA_ROWS",
+				extra="const BETA_ROWS: int = 40\n"),
+		gamma=const_module("GAMMA_ROWS", "2", column="_gamma_column"),
+	)
+	row = audit_one(index, "`BETA_ROWS + Gamma.GAMMA_ROWS` = 42")
+	check("N19 a qualified sum proves", row["status"] == "proved_equality" and row["source_value"] == 42)
+	check("N19 the chain names the aliased module", any("synthetic/gamma.gd" in step for step in row["proof_chain"]))
+
+
+def test_n20_addition_overflow_is_refused() -> None:
+	"""A sum whose running total cannot fit signed int64 is refused, not wrapped or truncated."""
+	index = module_index(alpha=const_module(
+		"BETA_TOTAL", "BETA_A + BETA_B",
+		extra="const BETA_A: int = %d\nconst BETA_B: int = 5\n" % (audit.INT64_MAX - 1)))
+	row = audit_one(index, "`BETA_TOTAL` = %d" % (audit.INT64_MAX + 4))
+	check("N20 an overflowing sum is refused", row["status"] == "unproved_overflow")
+	check("N20 no overflowed value is published", "source_value" not in row)
+	edge = module_index(alpha=const_module(
+		"BETA_TOTAL", "BETA_A + BETA_B",
+		extra="const BETA_A: int = %d\nconst BETA_B: int = 1\n" % (audit.INT64_MAX - 1)))
+	check("N20 a sum landing exactly on the int64 maximum still proves",
+		audit_one(edge, "`BETA_TOTAL` = %d" % audit.INT64_MAX)["status"] == "proved_equality")
+	nested = module_index(alpha=const_module(
+		"BETA_TOTAL", "BETA_MID + 1",
+		extra="const BETA_MID: int = %d\n" % audit.INT64_MAX))
+	nested_row = audit_one(nested, "`BETA_TOTAL` = 1")
+	check("N20 a nested constant's own overflow halts before any top-level comparison",
+		nested_row["status"] == "unproved_overflow")
+
+
+
+def test_c4_overflow_cannot_be_rescued_by_zero() -> None:
+	"""A nested overflowing sum is invalid even when its caller multiplies by zero."""
+	index = module_index(alpha=const_module(
+		"BETA_TOTAL", "BETA_MID * 0",
+		extra="const BETA_MID: int = %d + 1\n" % audit.INT64_MAX))
+	row = audit_one(index, "`BETA_TOTAL` = 0")
+	check("C4 nested addition overflow survives a later zero multiplier",
+		row["status"] == "unproved_overflow" and "source_value" not in row)
+	direct = audit.resolve_expression(index, "alpha", "%d * 2 * 0 + 1" % audit.INT64_MAX)
+	check("C4 product intermediate overflow survives a later zero and sum",
+		isinstance(direct, audit.Unproved) and direct.reason == "overflow")
+
+
+def test_n21_malformed_addition_is_refused() -> None:
+	"""Unary `+`, empty addends and parenthesised sums are refused, never silently repaired."""
+	index = module_index(alpha=const_module(
+		"BETA_TOTAL", "BETA_ROWS + BETA_COLUMNS",
+		extra="const BETA_ROWS: int = 7\nconst BETA_COLUMNS: int = 11\n"))
+	for expression in ("+BETA_ROWS + BETA_COLUMNS", "BETA_ROWS + BETA_COLUMNS +",
+			"BETA_ROWS + + BETA_COLUMNS", "BETA_ROWS++BETA_COLUMNS"):
+		refused = audit.resolve_expression(index, "alpha", expression)
+		check("N21 %r is refused as unsupported, not repaired" % expression,
+			isinstance(refused, audit.Unproved) and refused.reason == "unsupported_expression")
+	for expression in ("(BETA_ROWS + BETA_COLUMNS)", "BETA_ROWS - BETA_COLUMNS"):
+		refused = audit.resolve_expression(index, "alpha", expression)
+		check("N21 %r is refused as non-allowlisted" % expression,
+			isinstance(refused, audit.Unproved) and refused.reason == "non_allowlisted_operator")
+	malformed = module_index(alpha=const_module("BETA_ROWS", "7", resize_expression="+BETA_ROWS"))
+	row = audit_one(malformed, "`+BETA_ROWS` = 7")
+	check("N21 source-bound unary plus is refused by the proof grammar",
+		row["status"] == "unproved_unsupported_expression" and "source_value" not in row)
+
+
+def test_n22_cyclic_constants_are_quarantined_not_looped_forever() -> None:
+	"""A self-referential or mutually-referential constant halts at the depth bound, not in an infinite loop."""
+	self_ref = module_index(alpha=const_module("BETA_TOTAL", "BETA_TOTAL"))
+	row = audit_one(self_ref, "`BETA_TOTAL` = 5")
+	check("N22 a self-referential constant is quarantined", row["status"] == "unproved_resolution_too_deep")
+	check("N22 no value is invented for the cycle", "source_value" not in row)
+	mutual = module_index(alpha=const_module("BETA_A", "BETA_B", extra="const BETA_B: int = BETA_A\n"))
+	mutual_row = audit_one(mutual, "`BETA_A` = 5")
+	check("N22 a mutually-referential pair is quarantined too", mutual_row["status"] == "unproved_resolution_too_deep")
+	cyclic_sum = module_index(alpha=const_module("BETA_A", "BETA_B + 1", extra="const BETA_B: int = BETA_A + 1\n"))
+	cyclic_sum_row = audit_one(cyclic_sum, "`BETA_A` = 5")
+	check("N22 a cycle hidden inside a sum is quarantined the same way",
+		cyclic_sum_row["status"] == "unproved_resolution_too_deep")
+
+
+def test_f01_nested_and_self_conflicting_resize_is_caught() -> None:
+	"""Independent review F-01: a differently-indented or self-prefixed resize is not invisible.
+
+	Before this fix, only a resize written at exactly one leading tab was ever
+	seen, so a second, conflicting resize written inside an `if` body (deeper
+	indent) or spelled `self.column.resize(...)` was never compared against the
+	first, and the row proved despite two different sizing expressions existing
+	in source.
+	"""
+	nested = (
+		const_module("BETA_ROWS", "512", extra="const BETA_OTHER: int = 8\n")
+		+ "\tif true:\n"
+		+ "\t\t_alpha_column.resize(BETA_OTHER)\n"
+	)
+	row = audit_one(module_index(alpha=nested), "`BETA_ROWS` = 512")
+	check("F01 a resize nested inside `if` is no longer invisible",
+		row["status"] == "unproved_conflicting_resize")
+	self_prefixed = (
+		"const BETA_ROWS: int = 512\n"
+		"const BETA_OTHER: int = 8\n"
+		"var _alpha_column: PackedInt32Array = PackedInt32Array()\n"
+		"func _init() -> void:\n"
+		"\tself._alpha_column.resize(BETA_ROWS)\n"
+		"\t_alpha_column.resize(BETA_OTHER)\n"
+	)
+	row2 = audit_one(module_index(alpha=self_prefixed), "`BETA_ROWS` = 512")
+	check("F01 self.column.resize and bare column.resize are recognised as the same column",
+		row2["status"] == "unproved_conflicting_resize")
+	single_self = const_module("BETA_ROWS", "512").replace(
+		"\t_alpha_column.resize(BETA_ROWS)\n", "\tself._alpha_column.resize(BETA_ROWS)\n")
+	proved = audit_one(module_index(alpha=single_self), "`BETA_ROWS` = 512")
+	check("F01 a single self-prefixed resize still proves", proved["status"] == "proved_equality")
+
+
+def test_f02_augmented_assignment_defeats_clamp_proof() -> None:
+	"""Independent review F-02: a `+=`/`*=` after the clamp is counted, not ignored.
+
+	Before this fix, ASSIGN_RE_TEMPLATE matched only a bare `= ` assignment, so a
+	variable clamped once and then adjusted with an augmented operator still
+	looked like exactly one assignment with exactly one clamp, and the row
+	proved an upper bound the variable could then exceed.
+	"""
+	augmented = clamped_module("_beta_rows", "BETA_ROW_MAX", 16384).replace(
+		"\t_alpha_column.resize(_beta_rows)\n",
+		"\t_beta_rows += 1\n\t_alpha_column.resize(_beta_rows)\n")
+	row = audit_one(module_index(alpha=augmented), "`_beta_rows` <= 16384")
+	check("F02 a later += is counted and defeats the single-clamp proof",
+		row["status"] == "unproved_unbounded_runtime_variable")
+	multiplied = clamped_module("_beta_rows", "BETA_ROW_MAX", 16384).replace(
+		"\t_alpha_column.resize(_beta_rows)\n",
+		"\t_beta_rows *= 1\n\t_alpha_column.resize(_beta_rows)\n")
+	row2 = audit_one(module_index(alpha=multiplied), "`_beta_rows` <= 16384")
+	check("F02 a `*=` after the clamp is counted too", row2["status"] == "unproved_unbounded_runtime_variable")
+	self_clamped = clamped_module("_beta_rows", "BETA_ROW_MAX", 16384).replace(
+		"\t_beta_rows = clampi(p_rows, 1, BETA_ROW_MAX)\n",
+		"\tself._beta_rows = clampi(p_rows, 1, BETA_ROW_MAX)\n")
+	honest = audit_one(module_index(alpha=self_clamped), "`_beta_rows` <= 16384")
+	check("F02 a self-prefixed clamp with no other writes still proves",
+		honest["status"] == "proved_upper_bound")
+
+
+def test_f01_f02_unrecognised_forms_cannot_hide_behind_a_proof() -> None:
+	"""An accepted statement does not excuse a later write outside its syntax."""
+	for tail in ["\tif true: _alpha_column.resize(BETA_ROWS); _alpha_column.resize(8)\n",
+		"\t_alpha_column.resize(\n\t\t8)\n"]:
+		row = audit_one(module_index(alpha=const_module("BETA_ROWS", "512") + tail), "`BETA_ROWS` = 512")
+		check("F01 extra unsupported resize is refused", not row["status"].startswith("proved_"))
+	for operator in ["=", "+=", "-=", "*=", "/=", "%=", "**=", "<<=", ">>=", "&=", "|=", "^="]:
+		for prefix in ["", "self."]:
+			text = clamped_module("_beta_rows", "BETA_ROW_MAX", 16384)
+			text += "\tif true: %s_beta_rows%s1\n" % (prefix, operator)
+			row = audit_one(module_index(alpha=text), "`_beta_rows` <= 16384")
+			check("F02 inline %s%s invalidates bound" % (prefix, operator),
+				row["status"] == "unproved_unbounded_runtime_variable")
+
+
 # --------------------------------------------------------------------------
 # POSITIVE AND STRUCTURAL TESTS
 # --------------------------------------------------------------------------
@@ -429,7 +623,13 @@ def test_p04_render_is_byte_stable() -> None:
 
 
 def test_p05_real_census_matches_astra_or_says_so_loudly() -> None:
-	"""The real registry's census, stated against Astra's Cycle 3 numbers."""
+	"""The real registry's census, stated against Astra's Cycle 3 numbers.
+
+	The prose-level census (this test) is unaffected by REG-C4-R01: prose_relation
+	and prose_value are recorded as soon as the prose itself parses, independent
+	of whether the bound expression later resolves. The proof OUTCOME split is
+	test_p06's job, not this one's.
+	"""
 	built = real_audit()
 	observed = built["census"]["observed"]
 	check("P05 516 prose records", observed["prose_records"] == 516)
@@ -453,28 +653,35 @@ def test_p05_real_census_matches_astra_or_says_so_loudly() -> None:
 
 
 def test_p06_real_proof_status_is_exactly_reported() -> None:
-	"""The real proof outcome: 468 equalities, 46 bounds, 2 unproved, 0 contradictions."""
+	"""The real proof outcome under REG-C4-R01: 470 equalities, 46 bounds, 0 unproved, 0 contradictions.
+
+	Before REG-C4-R01, the two orchard_hive link capacities (`_link_hive_generation`,
+	`_link_hive_slot`) halted on a nested constant's own `+` and were quarantined as
+	`unproved_non_allowlisted_operator`. Addition is now allowlisted, so both resolve
+	from source -- no constant was invented to make this true; the same source that
+	halted resolution before now completes it.
+	"""
 	built = real_audit()
 	counts = built["status_counts"]
-	check("P06 468 proved equalities", counts.get("proved_equality") == 468)
+	check("P06 470 proved equalities", counts.get("proved_equality") == 470)
 	check("P06 46 proved upper bounds", counts.get("proved_upper_bound") == 46)
-	check("P06 2 unproved non-allowlisted operators", counts.get("unproved_non_allowlisted_operator") == 2)
-	check("P06 no other status appears", set(counts) == {"proved_equality", "proved_upper_bound", "unproved_non_allowlisted_operator"})
+	check("P06 no other status appears", set(counts) == {"proved_equality", "proved_upper_bound"})
 	check("P06 the statuses sum to 516", sum(counts.values()) == 516)
-	quarantined = built["unproved_or_contradicted"]
-	check("P06 both quarantined rows are orchard_hive link columns",
-		sorted(row["field_key"] for row in quarantined) == ["_link_hive_generation", "_link_hive_slot"])
-	check("P06 the quarantine names the halting definition",
-		all("orchard_hive.gd:316" in row["quarantine_reason"] for row in quarantined))
-	check("P06 no quarantined row carries a value",
-		all("source_value" not in row for row in built["rows"] if row["status"].startswith("unproved_")))
+	check("P06 nothing is quarantined or contradicted", built["unproved_or_contradicted"] == [])
+	links = [row for row in built["rows"] if row["field_key"] in ("_link_hive_generation", "_link_hive_slot")]
+	check("P06 both orchard link capacities are present and proved",
+		len(links) == 2 and all(row["status"] == "proved_equality" for row in links))
+	check("P06 the orchard link proof still runs through the same nested definition",
+		all(any("orchard_hive.gd:316" in step for step in row["proof_chain"]) for row in links))
+	check("P06 no proved row is missing its resolved value",
+		all("source_value" in row for row in links))
 
 
 def test_p07_every_proved_row_carries_its_provenance() -> None:
 	"""A proved row without a file, line and chain is an assertion, not a proof."""
 	built = real_audit()
 	proved = [row for row in built["rows"] if row["status"].startswith("proved_")]
-	check("P07 514 rows are proved", len(proved) == 514)
+	check("P07 all 516 rows are proved", len(proved) == 516)
 	check("P07 every proved row names a real source file",
 		all((ROOT / row["source_file"]).is_file() for row in proved))
 	check("P07 every proved row cites a resize line", all(row["source_resize_line"] >= 1 for row in proved))
@@ -500,7 +707,12 @@ def test_p08_keys_are_unique_and_nothing_is_lost() -> None:
 
 
 def test_p09_committed_sidecar_is_what_this_source_produces() -> None:
-	"""The committed sidecar regenerates byte-identically, and nothing active is touched."""
+	"""The committed sidecar regenerates byte-identically, and nothing active is touched.
+
+	This is the determinism/regeneration gate. The REG-C4-R01 sidecar is
+	regenerated during integration; this check requires the committed artifact
+	to match current source exactly and never updates it itself.
+	"""
 	before = hashlib.sha256(audit.REGISTRY_PATH.read_bytes()).hexdigest()
 	result = subprocess.run([sys.executable, str(ROOT / "tools/audit_registry_capacities.py"), "--check"],
 		capture_output=True, text=True)
@@ -527,6 +739,8 @@ def test_p10_the_sidecar_declares_itself_unadopted() -> None:
 		"source_registry_sha256" not in json.dumps(built["audited_registry"]))
 	check("P10 the notes say no prose is converted",
 		any("later ruling decides adoption" in note for note in built["notes"]))
+	check("P10 the contract names both governing rulings",
+		"REG-C3-R01" in built["contract"] and "REG-C4-R01" in built["contract"])
 
 
 _REAL: dict = {}

@@ -1,0 +1,207 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-09-19T18:26:51.955261+00:00",
+  "baseline": "47a4da2642912afee4d5249424d31ab6c92f014a",
+  "mode": "existing settlement continuation",
+  "startup_probe": {
+    "buildings": 0,
+    "furniture": 0,
+    "inventory_same_instance": false,
+    "items": {
+      "berries": {
+        "displayed_inventory_milli": 40000,
+        "simulation_inventory_milli": 0
+      },
+      "tool": {
+        "displayed_inventory_milli": 24000,
+        "simulation_inventory_milli": 0
+      },
+      "wood": {
+        "displayed_inventory_milli": 180000,
+        "simulation_inventory_milli": 0
+      }
+    },
+    "residents": 12,
+    "rooms": 0,
+    "scope": "actual main-scene startup; no fabricated ticks or state injection"
+  },
+  "baseline_tests": {
+    "tests": 4551,
+    "assertions": 158103,
+    "failures": 0,
+    "engine": "4.7.2.stable.official.ed1daf0bf",
+    "shutdown_warnings": {
+      "suite_child_objects": 1882,
+      "suite_child_resources": 33,
+      "boot_objects": 14,
+      "boot_resources": 3
+    }
+  },
+  "static_checks": {
+    "passed": 15,
+    "evidence": "../../validation/evidence/resumption-2026-09-19/contracts.json"
+  },
+  "preserved_art_proposal": {
+    "original_path": "/Users/brendan/Developer/redwall-rts/docs/planning/creature_generation_batch.md",
+    "sha256": "d07312a628fee4cb396d739243e19a18b1de1003b7c41cdc90d85110d2130b85",
+    "approval": "proposal only; prices are historical and require fresh check before a spend request"
+  },
+  "startup_mass_audit": {
+    "rows": [
+      {
+        "key": "wood",
+        "quantity_milli": 180000,
+        "mass_g": 900000,
+        "category": "MATERIAL",
+        "routing": "stockpile"
+      },
+      {
+        "key": "stone",
+        "quantity_milli": 100000,
+        "mass_g": 500000,
+        "category": "MATERIAL",
+        "routing": "stockpile"
+      },
+      {
+        "key": "iron",
+        "quantity_milli": 20000,
+        "mass_g": 40000,
+        "category": "MATERIAL",
+        "routing": "stockpile"
+      },
+      {
+        "key": "rope",
+        "quantity_milli": 20000,
+        "mass_g": 10000,
+        "category": "MATERIAL",
+        "routing": "stockpile"
+      },
+      {
+        "key": "tool",
+        "quantity_milli": 24000,
+        "mass_g": 24000,
+        "category": "GEAR",
+        "routing": "stockpile"
+      },
+      {
+        "key": "cloth",
+        "quantity_milli": 24000,
+        "mass_g": 6000,
+        "category": "MATERIAL",
+        "routing": "stockpile"
+      },
+      {
+        "key": "water",
+        "quantity_milli": 60000,
+        "mass_g": 60000,
+        "category": "LIQUID",
+        "routing": "pantry"
+      },
+      {
+        "key": "grain",
+        "quantity_milli": 80000,
+        "mass_g": 20000,
+        "category": "RAW_FOOD",
+        "routing": "pantry"
+      },
+      {
+        "key": "roots",
+        "quantity_milli": 80000,
+        "mass_g": 20000,
+        "category": "RAW_FOOD",
+        "routing": "pantry"
+      },
+      {
+        "key": "berries",
+        "quantity_milli": 40000,
+        "mass_g": 10000,
+        "category": "RAW_FOOD",
+        "routing": "pantry"
+      },
+      {
+        "key": "nuts",
+        "quantity_milli": 40000,
+        "mass_g": 10000,
+        "category": "RAW_FOOD",
+        "routing": "pantry"
+      },
+      {
+        "key": "dried_fish",
+        "quantity_milli": 60000,
+        "mass_g": 15000,
+        "category": "PRESERVED",
+        "routing": "pantry"
+      },
+      {
+        "key": "ration",
+        "quantity_milli": 60000,
+        "mass_g": 30000,
+        "category": "PREPARED",
+        "routing": "pantry"
+      },
+      {
+        "key": "seed_grain",
+        "quantity_milli": 32000,
+        "mass_g": 3200,
+        "category": "SEED",
+        "routing": "pantry"
+      },
+      {
+        "key": "seed_roots",
+        "quantity_milli": 32000,
+        "mass_g": 3200,
+        "category": "SEED",
+        "routing": "pantry"
+      },
+      {
+        "key": "seed_beans",
+        "quantity_milli": 16000,
+        "mass_g": 1600,
+        "category": "SEED",
+        "routing": "pantry"
+      },
+      {
+        "key": "seed_cabbage",
+        "quantity_milli": 16000,
+        "mass_g": 1600,
+        "category": "SEED",
+        "routing": "pantry"
+      },
+      {
+        "key": "seed_flax",
+        "quantity_milli": 16000,
+        "mass_g": 1600,
+        "category": "SEED",
+        "routing": "pantry"
+      },
+      {
+        "key": "herb",
+        "quantity_milli": 12000,
+        "mass_g": 3000,
+        "category": "RAW_FOOD",
+        "routing": "pantry"
+      },
+      {
+        "key": "compost",
+        "quantity_milli": 32000,
+        "mass_g": 32000,
+        "category": "MATERIAL",
+        "routing": "stockpile"
+      }
+    ],
+    "total_g": 1691200,
+    "pantry_g": 179200,
+    "stockpile_g_before_equipping": 1512000,
+    "stockpile_g_after_equipping": 1500000,
+    "capacity_only": "arithmetic from runtime item catalog, not live legal owner/contact validation"
+  },
+  "runtime": {
+    "native_ui": "blocked Mac locked",
+    "installed_loop_doctor": {
+      "productionReady": false,
+      "toolWorkersEnabled": false,
+      "version": "0.1.1"
+    },
+    "claude": "bounded foreground subscription transport; one worker at a time; no unattended supervisor activated"
+  }
+}

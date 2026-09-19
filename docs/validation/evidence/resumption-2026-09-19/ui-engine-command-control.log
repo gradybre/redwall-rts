@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] _probe (res://../docs/validation/evidence/resumption-2026-09-19/ui_engine_input_probe.gd:40)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] _set_rect (res://scripts/ui/ui_shell.gd:2295)
+         [1] _place (res://scripts/ui/ui_shell.gd:2190)
+         [2] _place_zones (res://scripts/ui/ui_shell.gd:1641)
+         [3] layout_for (res://scripts/ui/ui_shell.gd:1598)
+         [4] _apply_geometry (res://scripts/ui/ui_shell.gd:1636)
+         [5] _on_resized (res://scripts/ui/ui_shell.gd:1582)
+         [6] _probe (res://../docs/validation/evidence/resumption-2026-09-19/ui_engine_input_probe.gd:40)
+REDWALL_UI_ENGINE_INPUT {"cases":[{"case":"open_world","engine_unhandled_world":true,"expected_world":true,"hit_table_world":true,"passed":true,"pending_commands_after":1,"pending_commands_before":0,"point":[640.0,350.0]},{"case":"detail_open","engine_unhandled_world":false,"expected_world":false,"hit_table_world":false,"passed":true,"pending_commands_after":1,"pending_commands_before":1,"point":[1096.0,416.0]},{"case":"detail_closed","engine_unhandled_world":true,"expected_world":true,"hit_table_world":true,"passed":true,"pending_commands_after":2,"pending_commands_before":1,"point":[1096.0,416.0]},{"case":"workspace_open","engine_unhandled_world":false,"expected_world":false,"hit_table_world":false,"passed":true,"pending_commands_after":2,"pending_commands_before":2,"point":[752.0,400.0]},{"case":"back_button","engine_unhandled_world":false,"expected_world":false,"hit_table_world":false,"passed":true,"pending_commands_after":2,"pending_commands_before":2,"point":[564.0,530.0]},{"case":"workspace_closed","engine_unhandled_world":true,"expected_world":true,"hit_table_world":true,"passed":true,"pending_commands_after":3,"pending_commands_before":2,"point":[752.0,400.0]}],"failures":0,"scope":"headless viewport routing with instrumented world handler submitting NAME_RESIDENT through real UiCommandBridge and Settlement commands; seeded resident fixture, no simulation ticks; not production world router, native pointer or visual acceptance"}

@@ -1,0 +1,273 @@
+{
+  "schema": 1,
+  "mode": "foreground subscription file bundles; no model shell/filesystem/MCP tools",
+  "controller_production_ready": false,
+  "unattended_service_active": false,
+  "attempts": [
+    {
+      "attempt": "cap-add-a1",
+      "role": "implementation",
+      "model": "claude-sonnet-5",
+      "session_id": "a7af9fea-3f5a-4288-b4fb-b2c6916c6ba8",
+      "owner_stopped": true,
+      "quarantined": false,
+      "adapter_state": "invalid_output",
+      "adapter_code": "BUNDLE_NOT_JSON",
+      "input_files": [
+        {
+          "path": "tools/audit_registry_capacities.py",
+          "sha256": "11d6e321c48d71176bfa02d0e637ca17882fe3660a1212346d744adafc61046c"
+        },
+        {
+          "path": "tools/test_registry_capacity_audit.py",
+          "sha256": "5f1dd2ee963d4375a2d8fab564cdf456f63ef18eb40c48d6cea3608177446224"
+        },
+        {
+          "path": "docs/rulings/2026-09-19_cycle04_resumption.md",
+          "sha256": "063d6a33feb6f8e5bed9f9f1d44023a2848081f28d9aabe28865441ef70b0565"
+        }
+      ],
+      "integration": "Two contiguous assistant text segments reassembled without content editing; passed unmodified parseWorkerBundle; exactly2allowedpaths/baseSHA/compile checks. One author test corrected and2overflow tests added before review."
+    },
+    {
+      "attempt": "cap-review-a1",
+      "role": "independent review",
+      "model": "claude-opus-5",
+      "session_id": "1ea90980-03f8-4fd8-a264-5f8fad6b9479",
+      "owner_stopped": true,
+      "quarantined": false,
+      "adapter_state": "complete",
+      "adapter_code": null,
+      "input_files": [
+        {
+          "path": "tools/audit_registry_capacities.py",
+          "sha256": "6ae86b0c53ec616431268d41384dd75435ac94ddf45469fd46dbacb155f6bfc1"
+        },
+        {
+          "path": "tools/test_registry_capacity_audit.py",
+          "sha256": "ce737a1b5a7b06bed59325179fd3e7d895ba837bda21781189a5a34816655261"
+        },
+        {
+          "path": "docs/rulings/2026-09-19_cycle04_resumption.md",
+          "sha256": "063d6a33feb6f8e5bed9f9f1d44023a2848081f28d9aabe28865441ef70b0565"
+        },
+        {
+          "path": "docs/planning/resumption_2026_09_19/starter_settlement.md",
+          "sha256": "f36c7fff88206b3ee05f2742b0a69a156ff02111ec7a09f9da6793f9f5cdc83e"
+        }
+      ]
+    },
+    {
+      "attempt": "cap-sound-a1",
+      "role": "review repair",
+      "model": "claude-sonnet-5",
+      "session_id": "3667a497-a422-434b-b63f-d75acf34e4e2",
+      "owner_stopped": true,
+      "quarantined": false,
+      "adapter_state": "complete",
+      "adapter_code": null,
+      "input_files": [
+        {
+          "path": "tools/audit_registry_capacities.py",
+          "sha256": "df2d9c39fcfccf7191ceed3fafff74838f5d5e01b50596029cec7bc18aaa00bb"
+        },
+        {
+          "path": "tools/test_registry_capacity_audit.py",
+          "sha256": "f0380c84f9ff9f6762cb16ba6a0db0644fe600783785a7333399b117c0d03eba"
+        },
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/capacity-independent-review.md",
+          "sha256": "1e55406a1b3ea52d89a782d3483afa4e5e7e8b01a5af773c6cb00cdf70964d67"
+        }
+      ],
+      "integration": "git apply refused incorrect hunk metadata. Exact old hunk texts each matched once; recovery changed no code, normalized patch archived. Astra added unsupported-direct-call and inline-write quarantine with26negative checks."
+    },
+    {
+      "attempt": "ui-c4-a1",
+      "role": "implementation",
+      "model": "claude-sonnet-5",
+      "session_id": "009ffac8-19a2-4dfa-91c1-7bbea16a265c",
+      "owner_stopped": true,
+      "quarantined": false,
+      "adapter_state": "invalid_output",
+      "adapter_code": "BUNDLE_KEYS_INVALID",
+      "input_files": [
+        {
+          "path": "godot/scripts/ui/ui_shell.gd",
+          "sha256": "a8a53c26c8c0aa8a31d8c81c147cb0db854dd17ff80d1051ba83691ce71fde18"
+        },
+        {
+          "path": "godot/scripts/ui/ui_availability.gd",
+          "sha256": "117f3db5a958c56bd803ff213b9cf027aff7bd30b74893c1712ff73209b97484"
+        },
+        {
+          "path": "godot/scripts/ui/ui_focus_order.gd",
+          "sha256": "fe39cc2a33eb5d1b198344a63121c8999ab86eecf723d78368eed67fd0e801e9"
+        },
+        {
+          "path": "godot/scripts/ui/ui_hit_test.gd",
+          "sha256": "9ba8e0e7b0ab46f6ae5a44494087ed0eb0542ca0636fbf08d244889eae5000b4"
+        },
+        {
+          "path": "godot/scripts/systems/ui_manager.gd",
+          "sha256": "14cbe44be2246512bd406fa08952ebbc17987086851a554c67eb06d3e56fbe97"
+        },
+        {
+          "path": "godot/test/test_ui_shell.gd",
+          "sha256": "0d63c1ab50e4f6f0c062119276154a464944e0da587d23bfd65221748d160c27"
+        },
+        {
+          "path": "godot/test/framework/test_case.gd",
+          "sha256": "d7ea4c9b45ba1e5b8fbabfeb85ce7723ae54ad83a5f3aac7e1e7efe0fb5430f7"
+        },
+        {
+          "path": "docs/rulings/2026-09-19_cycle04_resumption.md",
+          "sha256": "5966212cfd9bd0580bbeb9714eda28e4fbf66ddffffcfffaf2173376d8ae6999"
+        }
+      ],
+      "integration": "Adapter rejected missing decisionIds. Astra supplied only declared packet ID UI-C4-R01 and unchanged bundle passed strict parser. Patch passed git apply --recount. Astra corrected evidence wording, added125percent test case and input rebuild after off-tree open; engine routing then passed6cases."
+    },
+    {
+      "attempt": "stock-life-a1",
+      "role": "implementation",
+      "model": "claude-opus-5",
+      "session_id": "4f684858-8ad6-4626-bf9d-a48d5544c0b7",
+      "owner_stopped": true,
+      "quarantined": false,
+      "adapter_state": "complete",
+      "adapter_code": null,
+      "input_files": [
+        {
+          "path": "godot/scripts/core/inventory.gd",
+          "sha256": "454ab2f0836a77ca8c9b1545e1ecbeb85cb0cf26fc7e4eb6ba4cba4386df7ecc"
+        },
+        {
+          "path": "godot/scripts/core/stock_age.gd",
+          "sha256": "339b85a374bdabe1242474f25fbbf4b16ffd42e077c52156d49db1fe5fecd557"
+        },
+        {
+          "path": "godot/test/test_inventory.gd",
+          "sha256": "8e9d3943f8a6b6832e2a24dbc9e0f62e446512ef57968a274098abbf82bbfbea"
+        },
+        {
+          "path": "godot/test/framework/test_case.gd",
+          "sha256": "d7ea4c9b45ba1e5b8fbabfeb85ce7723ae54ad83a5f3aac7e1e7efe0fb5430f7"
+        },
+        {
+          "path": "docs/rulings/2026-09-19_stock_authority_lifetime.md",
+          "sha256": "1bce89d0669023de32eff09929b16cc486e0e0a6ea0e4025ccb2acb4a04d8c97"
+        },
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/stock_lifetime_probe.gd",
+          "sha256": "5ac863348ecdd4bf8b9cc3b869b9c79d557d0e9cf80d76f1e958cab832ebddd1"
+        },
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/stock-lifetime.log",
+          "sha256": "0c23d746e0a4ca7d34b515e3b99b85b9cb43199153cbe2ba4da99dec076b64a8"
+        }
+      ]
+    },
+    {
+      "attempt": "final-review-a1",
+      "role": "independent review",
+      "model": "claude-opus-5",
+      "session_id": "3639815d-55f0-4fe2-b5b3-beb106ce349b",
+      "owner_stopped": true,
+      "quarantined": false,
+      "adapter_state": "complete",
+      "input_files": [
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/final-review-context.md",
+          "sha256": "f3a46588fa6c965f98c56e143a71a3195c53ad5de472fea207b417fc603bd687"
+        },
+        {
+          "path": "tools/audit_registry_capacities.py",
+          "sha256": "85b6928644332780ded321dcb72370c04c17e3883aae49a0c2fb2d31971f4c4b"
+        },
+        {
+          "path": "tools/test_registry_capacity_audit.py",
+          "sha256": "0a4a0699e93d28f1aabbad83c444eec4bee50e5c8b03af134b933f310abe08eb"
+        },
+        {
+          "path": "godot/test/test_ui_context_gates.gd",
+          "sha256": "27720d1588a587083770af9f7cf60abf4c181fddd5b728959aa98e67e463c707"
+        },
+        {
+          "path": "godot/test/test_stock_authority_lifetime.gd",
+          "sha256": "399d696e1bec05dd228164a6dd734cd8501cb9e4a24299c396870607f30be155"
+        },
+        {
+          "path": "godot/scripts/ui/ui_availability.gd",
+          "sha256": "117f3db5a958c56bd803ff213b9cf027aff7bd30b74893c1712ff73209b97484"
+        },
+        {
+          "path": "docs/rulings/2026-09-19_cycle04_resumption.md",
+          "sha256": "d196e27ce981d81da809a5fd7b3dfc00fd35e7ad593d1cb13ee0ccce93c277b7"
+        },
+        {
+          "path": "docs/rulings/2026-09-19_stock_authority_lifetime.md",
+          "sha256": "1bce89d0669023de32eff09929b16cc486e0e0a6ea0e4025ccb2acb4a04d8c97"
+        },
+        {
+          "path": "docs/planning/resumption_2026_09_19/starter_settlement.md",
+          "sha256": "00ca2911835511ce29e1e31b86447cbd04855a49f1cd983e78a38675f5398f51"
+        },
+        {
+          "path": "docs/planning/resumption_2026_09_19/starter_binding_manifest.json",
+          "sha256": "4db1bd897740849ade8ad64b7c9625a745b616c9a7af0e2eb31c420e0dc479df"
+        },
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/ui-engine-final.log",
+          "sha256": "cd4fa0f2abbbe9d4dfedfec284effc1b88104f90f345215725f3bb389b7e643b"
+        },
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/stock-lifetime-after.log",
+          "sha256": "df63a72d14ea4b52db129b66dbba61f5b7ab08ff49e267b0bb3ab40b22285f24"
+        }
+      ]
+    },
+    {
+      "attempt": "review-closure-a1",
+      "role": "independent review",
+      "model": "claude-opus-5",
+      "session_id": "7e0c7dc1-3a86-4af9-ab55-78742a034ccb",
+      "owner_stopped": true,
+      "quarantined": false,
+      "adapter_state": "complete",
+      "input_files": [
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/final-independent-review.md",
+          "sha256": "579f2181877a2d71e92bfe948136f66576fe68fafbc3bafed1bc577b3ee0d217"
+        },
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/ui-review-repair-context.md",
+          "sha256": "47d9745a3900730c4c8984ddc15a5304d087d3683a7e7fe4e491fc9cfd231d43"
+        },
+        {
+          "path": "godot/scripts/ui/ui_focus_order.gd",
+          "sha256": "fe39cc2a33eb5d1b198344a63121c8999ab86eecf723d78368eed67fd0e801e9"
+        },
+        {
+          "path": "godot/test/test_ui_context_gates.gd",
+          "sha256": "5865de69b8f398550fe39eb1c47f1b69e288e43b02fec8a6c047f2e938398382"
+        },
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/ui_engine_input_probe.gd",
+          "sha256": "81f2ccc71edf6704eda98291a15b70e1ae5c254c990cae345270e19fa28fa9a2"
+        },
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/ui-engine-command-control.log",
+          "sha256": "dee8ddb160ef37ac32eab04e8a67507203031d36bd4ac805a83a35b057c3e834"
+        },
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/stock_lifetime_probe.gd",
+          "sha256": "77ba1649eb2b82bcbf67513c6d923ef8cad0a527ce0ce63c944bc0dca22e22aa"
+        },
+        {
+          "path": "docs/validation/evidence/resumption-2026-09-19/stock-lifetime-final.log",
+          "sha256": "297022cf392520791409b609782d21ff8e9278f6f5ad2210cefda5608e4fdfbe"
+        }
+      ]
+    }
+  ]
+}

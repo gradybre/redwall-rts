@@ -1,0 +1,147 @@
+{
+  "id": "INIT-A-2026-09-19",
+  "version": 1,
+  "status": "observed_api_map_with_blockers",
+  "basis": "origin/master 47a4da2642912afee4d5249424d31ab6c92f014a; exact method presence checked from local source",
+  "activation_approved": false,
+  "owners": [
+    {
+      "owner": "directory",
+      "source": "godot/scripts/core/entity_directory.gd",
+      "source_sha256": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+      "requested_apis": [
+        "create",
+        "clear"
+      ],
+      "unavailable_names": [],
+      "contract": "Persistent identities for all physical entities; residents 1-12 first; continuing ID space.",
+      "remaining_integration": "Missing unified starter allocation order after cohort and before world publication."
+    },
+    {
+      "owner": "inventory",
+      "source": "godot/scripts/core/inventory.gd",
+      "source_sha256": "454ab2f0836a77ca8c9b1545e1ecbeb85cb0cf26fc7e4eb6ba4cba4386df7ecc",
+      "requested_apis": [
+        "create_container",
+        "create_lot",
+        "copy_canonical_columns_into",
+        "restore_canonical_columns"
+      ],
+      "unavailable_names": [],
+      "contract": "SettlementSystem.inventory() is the single production owner. Equipment/lots must not be duplicated in EconomySystem.",
+      "remaining_integration": "Economy has its own Inventory.new; UI regeneration does not reset/reseed it."
+    },
+    {
+      "owner": "catalog",
+      "source": "godot/scripts/core/item_definitions.gd",
+      "source_sha256": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551",
+      "requested_apis": [
+        "load_default",
+        "compiled_id",
+        "category_compiled_id"
+      ],
+      "unavailable_names": [],
+      "contract": "Single compatible compiled item domain; catalog load mutates inventory registry.",
+      "remaining_integration": "Catalog re-registration must happen after clear, before container/lot admission."
+    },
+    {
+      "owner": "storage_age",
+      "source": "godot/scripts/core/stock_age.gd",
+      "source_sha256": "339b85a374bdabe1242474f25fbbf4b16ffd42e077c52156d49db1fe5fecd557",
+      "requested_apis": [
+        "declare_storage_class",
+        "withdraw_storage_class",
+        "run_hour_into"
+      ],
+      "unavailable_names": [],
+      "contract": "Container classification and heated-interior flags derive from real building/room identity.",
+      "remaining_integration": "No starter containers or room heat owner yet; binding inventory alone is insufficient."
+    },
+    {
+      "owner": "structures",
+      "source": "godot/scripts/core/buildings.gd",
+      "source_sha256": "8f21111b4857714f4ac803c30c3eec46f206c0b5cdedfeeb357a0061ba3f875e",
+      "requested_apis": [
+        "place_building",
+        "set_building_state",
+        "set_building_tier",
+        "set_building_condition",
+        "set_building_interior_id",
+        "designate_room",
+        "place_furniture",
+        "set_furniture_user"
+      ],
+      "unavailable_names": [],
+      "contract": "Seven building instances, four hall rooms, GDD furniture; valid generation refs.",
+      "remaining_integration": "place_building validates footprint/catalog/unlocks but is not full terrain/contact/door proof. Interior and reachability contracts remain dependencies."
+    },
+    {
+      "owner": "gear",
+      "source": "godot/scripts/core/gear.gd",
+      "source_sha256": "8b957442e3397708cd8343fc9849b4f6cccb5f4478bd7099d44afe47d3499472",
+      "requested_apis": [
+        "bind_equipment",
+        "preflight_seed_starter_tools",
+        "seed_starter_tools"
+      ],
+      "unavailable_names": [],
+      "contract": "24 tools total; 12 equipped with 1000 durability and 12 stored.",
+      "remaining_integration": "Needs actual resident order and legal container; do not deposit 24 then create another 24."
+    },
+    {
+      "owner": "boot",
+      "source": "godot/scripts/systems/settlement_system.gd",
+      "source_sha256": "3f9f6f948a567e387d666107f2360dc9b0d22cbba686e25b79f494f0738a1ec5",
+      "requested_apis": [
+        "create_generated_settlement",
+        "_refuse_cohort_preflight",
+        "_run_initialization_transaction",
+        "reset"
+      ],
+      "unavailable_names": [],
+      "contract": "Preflight; one reset; RNG seed; cohort IDs1-12; poses; prepared world publish.",
+      "remaining_integration": "Does not compose buildings, relationships or starter goods. Refuses populated world rather than restoring it."
+    },
+    {
+      "owner": "ui_generation",
+      "source": "godot/scripts/ui/ui_world_session.gd",
+      "source_sha256": "201ebeb98ad8fc9ac06510360dcd15cd1b8dfbaeeaf86c6c92093a6a8150ae1c",
+      "requested_apis": [
+        "create_with_cohort_into"
+      ],
+      "unavailable_names": [],
+      "contract": "Owns current UI world map/report; reset and cohort are callbacks.",
+      "remaining_integration": "Must unify publication without losing map/report, preflight cohort before reset, and synchronize inventory only after success. Current world() may switch to an unpublished generator on refusal."
+    },
+    {
+      "owner": "economy_projection",
+      "source": "godot/scripts/systems/economy_system.gd",
+      "source_sha256": "037a99044c6fdaa7a77ed36e7602adc07f8bc7bb54d7107baa5bfc213b507446",
+      "requested_apis": [
+        "reset",
+        "deposit",
+        "withdraw",
+        "recompute_summary",
+        "bind_residents"
+      ],
+      "unavailable_names": [],
+      "contract": "Read shared stock and resident demand; route legal deposits through same owner.",
+      "remaining_integration": "Borrowed inventory/catalog/container binding API absent. Two-container-only totals omit future stores. Reset currently clears owned store and catalog."
+    },
+    {
+      "owner": "main",
+      "source": "godot/scripts/main.gd",
+      "source_sha256": "59e3b8a91b458523375251d1ce8bdde2d4ac29e28a6d56c6f0977561cc53b29d",
+      "requested_apis": [
+        "_ready",
+        "_seed_stores",
+        "_generate_initial_world"
+      ],
+      "unavailable_names": [],
+      "contract": "Boot and UI must reach same initializer and quantities.",
+      "remaining_integration": "Currently seeds separate Economy store before Settlement reset within generation. Do not move those seeds earlier into shared store or reset will erase them."
+    }
+  ],
+  "next_packet": "INIT-0 may begin only after bounded shared-owner reset/seeding/failure contract is written; physical seeding depends on INIT-C/D and movement contact contracts.",
+  "memory": "Do not allocate another production Inventory or entire replacement world to implement borrowing or rollback. Prepared compact plans and preflight are permitted within measured budgets."
+}

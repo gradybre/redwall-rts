@@ -14,33 +14,6 @@
       "impact": "MOVE-POLICY-REGISTER, MOVE-ENVELOPE-ERROR and bounded MOVE-FORD-POLICY can proceed under dependencies. Production MOVE-ENVELOPES/05.1b/G01/G02 remain gated; no invented dimensions or bank-step capability.",
       "question_before_cycle_02": "Q1: the clearance class domain and its species assignments, or the measured-envelope convention that derives them. Q2: per species, which of swim-surface, dive, climb and tunnel-walk are enabled and which are explicitly disabled.",
       "partial_ruling": "docs/rulings/2026-09-14_cycle03_movement_policy.md"
-    },
-    {
-      "anchor": "tier-two-demolition-basis",
-      "title": "A tier-2 building's demolition basis is unresolved",
-      "blocks": [],
-      "asked": "2026-09-13",
-      "question": "REQ-SET-127 prices demolition at 'declared construction WU x 0.25' returning '50% original material costs'. \u00a74.2's upgrade table declares no demolition consequence, so for an upgraded building 'original' is ambiguous: the base \u00a74.1 row, the sum of base plus upgrades, or the current tier's declared cost?",
-      "why_we_cannot_decide": "Summing the upgrade chain is a rule, not an inference, and inventing it would set refund economics the balance tables never authored.",
-      "impact": "The store uses the base \u00a74.1 row at every tier and says so in its own header. Whichever way this is ruled, only a constant changes."
-    },
-    {
-      "anchor": "econ-003-excavation-phase-domain",
-      "title": "ECON-003's excavation phases need compiled ids and a site-phase column",
-      "blocks": [],
-      "asked": "2026-09-13",
-      "question": "ECON-003 names nine excavation phases. They are SITE states and map onto the construction store's five project phases not at all one-for-one: each ECON-003 transition is one project run through the whole lifecycle, with 'consume inputs once at WORK start' = `begin_work()` and 'retain earned work, publish nothing' = PHASE_WORK_DONE. This needs compiled ASCII ids in `catalog.gd` and a site-phase column from the excavation owner. Who owns that column, and are the nine ids a protected or a compiled enum domain?",
-      "why_we_cannot_decide": "Adding a domain to catalog.gd is a schema change with a digest consequence, and the excavation owner does not exist yet to be asked.",
-      "impact": "Advisory. The mapping is documented in ADR 0131 so the excavation lane inherits it rather than re-deriving it."
-    },
-    {
-      "anchor": "capacity-resolver-addition-allowlist",
-      "title": "May the capacity resolver allowlist `+` for nested constant definitions?",
-      "blocks": [],
-      "asked": "2026-09-14",
-      "question": "REG-C3-R01 allowlists \"products and qualified constants\" for the source-proved capacity resolver. Two of 519 capacities cannot be proved because resolution halts on an addition: `const LINK_CAPACITY = RECIPIENT_CAPACITY * LINKS_PER_RECIPIENT` reaches `const RECIPIENT_CAPACITY = FARM_RECIPIENT_CAPACITY + ORCHARD_CAPACITY`. Source does prove the declared 30720. May `+` join the allowlist for nested constant definitions, or should these two rows stay quarantined?",
-      "why_we_cannot_decide": "The allowlist is the ruling's, not the executor's. Widening it is a one-line change the audit lane deliberately declined to make, because a resolver that grows its own grammar to resolve more things is no longer proving anything on the ruling's terms.",
-      "impact": "Exactly 2 of 519 capacities are unproved, both orchard_hive link columns (_link_hive_slot, _link_hive_generation). 517 are proved with zero contradictions. Nothing is blocked; the rows are quarantined in docs/planning/registry_capacity_audit.json rather than guessed."
     }
   ],
   "answered": [
@@ -157,6 +130,45 @@
       "cycle": 3,
       "implementation_complete": false,
       "ruling": "docs/rulings/2026-09-14_cycle03_ui_geometry.md#alert-zone-inside-workspace-frame"
+    },
+    {
+      "anchor": "tier-two-demolition-basis",
+      "title": "A tier-2 building's demolition basis is unresolved",
+      "blocks": [],
+      "asked": "2026-09-13",
+      "question": "REQ-SET-127 prices demolition at 'declared construction WU x 0.25' returning '50% original material costs'. \u00a74.2's upgrade table declares no demolition consequence, so for an upgraded building 'original' is ambiguous: the base \u00a74.1 row, the sum of base plus upgrades, or the current tier's declared cost?",
+      "why_we_cannot_decide": "Summing the upgrade chain is a rule, not an inference, and inventing it would set refund economics the balance tables never authored.",
+      "impact": "The store uses the base \u00a74.1 row at every tier and says so in its own header. Whichever way this is ruled, only a constant changes.",
+      "answered": "2026-09-19",
+      "cycle": 4,
+      "implementation_complete": false,
+      "ruling": "docs/rulings/2026-09-19_cycle04_resumption.md"
+    },
+    {
+      "anchor": "econ-003-excavation-phase-domain",
+      "title": "ECON-003's excavation phases need compiled ids and a site-phase column",
+      "blocks": [],
+      "asked": "2026-09-13",
+      "question": "ECON-003 names nine excavation phases. They are SITE states and map onto the construction store's five project phases not at all one-for-one: each ECON-003 transition is one project run through the whole lifecycle, with 'consume inputs once at WORK start' = `begin_work()` and 'retain earned work, publish nothing' = PHASE_WORK_DONE. This needs compiled ASCII ids in `catalog.gd` and a site-phase column from the excavation owner. Who owns that column, and are the nine ids a protected or a compiled enum domain?",
+      "why_we_cannot_decide": "Adding a domain to catalog.gd is a schema change with a digest consequence, and the excavation owner does not exist yet to be asked.",
+      "impact": "Advisory. The mapping is documented in ADR 0131 so the excavation lane inherits it rather than re-deriving it.",
+      "answered": "2026-09-19",
+      "cycle": 4,
+      "implementation_complete": false,
+      "ruling": "docs/rulings/2026-09-19_cycle04_resumption.md"
+    },
+    {
+      "anchor": "capacity-resolver-addition-allowlist",
+      "title": "May the capacity resolver allowlist `+` for nested constant definitions?",
+      "blocks": [],
+      "asked": "2026-09-14",
+      "question": "REG-C3-R01 allowlists \"products and qualified constants\" for the source-proved capacity resolver. Two of 519 capacities cannot be proved because resolution halts on an addition: `const LINK_CAPACITY = RECIPIENT_CAPACITY * LINKS_PER_RECIPIENT` reaches `const RECIPIENT_CAPACITY = FARM_RECIPIENT_CAPACITY + ORCHARD_CAPACITY`. Source does prove the declared 30720. May `+` join the allowlist for nested constant definitions, or should these two rows stay quarantined?",
+      "why_we_cannot_decide": "The allowlist is the ruling's, not the executor's. Widening it is a one-line change the audit lane deliberately declined to make, because a resolver that grows its own grammar to resolve more things is no longer proving anything on the ruling's terms.",
+      "impact": "Exactly 2 of 519 capacities are unproved, both orchard_hive link columns (_link_hive_slot, _link_hive_generation). 517 are proved with zero contradictions. Nothing is blocked; the rows are quarantined in docs/planning/registry_capacity_audit.json rather than guessed.",
+      "answered": "2026-09-19",
+      "cycle": 4,
+      "implementation_complete": false,
+      "ruling": "docs/rulings/2026-09-19_cycle04_resumption.md"
     }
   ]
 }

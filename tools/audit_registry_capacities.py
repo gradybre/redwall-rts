@@ -10,6 +10,15 @@ docs/planning/canonical_state_registry.json and WRITES ONLY
 docs/planning/registry_capacity_audit.json. It never edits the registry, the
 registry's checker, the persistence document, or any compiled declaration.
 
+REG-C4-R01 (2026-09-19, docs/rulings/2026-09-19_cycle04_resumption.md) extends
+the proof grammar with bounded addition: a declared capacity may now be a
+left-associative sum of the same allowlisted products, `sum := product ('+'
+product)*`, with multiplication still binding tighter and every intermediate --
+including inside a nested constant's own definition -- checked against signed
+int64 before the next step. Nothing else about the sidecar's shape, scope or
+authority changes: this is still a read-only proof grammar, not a store, a
+capacity, a save schema or a memory allocation.
+
 THE PROOF RULE. A capacity is proved by godot/scripts/core/<module>.gd and by
 nothing else. The registry's own prose is the CLAIM under audit; agreement
 between the registry and another document is not evidence and is never accepted
@@ -20,8 +29,10 @@ here. Concretely, for each field the audit:
      requires it to be the SAME expression text (the binding proof);
   3. resolves that expression with a restricted integer evaluator -- decimal
      literals, module constants, `Alias.CONST` through explicit `preload`
-     aliases, and `*` products only. There is no `eval`, no cross-module
-     guessing of a bare name, and no float anywhere;
+     aliases, and left-associative sums of `*` products (REG-C4-R01:
+     `sum := product ('+' product)*`, multiplication binding tighter). There
+     is no `eval`, no cross-module guessing of a bare name, and no float
+     anywhere;
   4. classifies the SOURCE as equality or upper bound from the source itself: a
      compile-time constant is an equality, a runtime `var` narrowed by exactly
      one `clampi(arg, lo, MAX)` is an upper bound;
@@ -59,7 +70,7 @@ SIDECAR_PATH = ROOT / "docs/planning/registry_capacity_audit.json"
 CORE_DIR = ROOT / "godot/scripts/core"
 
 AUDIT_ID = "RWL-REGISTRY-CAPACITY-AUDIT-2026-09-14-1"
-AUDIT_SCHEMA_VERSION = 1
+AUDIT_SCHEMA_VERSION = 2
 
 INT64_MIN = -9223372036854775808
 INT64_MAX = 9223372036854775807
@@ -125,15 +136,33 @@ GROUP_RESIZE_RE = re.compile(
 	r"^\tfor ([a-z_]+)(?:: Packed[A-Za-z0-9]+Array)? in \[([\s\S]*?)\]:\n((?:\t\t[^\n]*\n)+)",
 	re.M,
 )
-CLAMPI_RE = re.compile(r"^[ \t]*(_[a-z0-9_]+) = clampi\(([^,]+), *(-?\d+), *([^()]+?)\)[ \t]*$", re.M)
-ASSIGN_RE_TEMPLATE = r"^[ \t]*%s = (?!=)[^\n]*$"
+# REG-C4-R01 independent-review F-01: a direct resize is now recognised at ANY
+# indentation (nested if/for/match bodies), with an optional `self.` prefix,
+# and as the tail of a single inline compound statement (`if cond: x.resize(...)`).
+# Additional direct resize spellings are counted below: an unmatched call must
+# quarantine the row even when a different, supported resize was recognised.
+DIRECT_RESIZE_TEMPLATE = r"^[ \t]*(?:\S.*:[ \t]*)?(?:self\.)?%s\.resize\(([^\n]+)\)[ \t]*$"
+CLAMPI_RE = re.compile(r"^[ \t]*(?:self\.)?(_[a-z0-9_]+) = clampi\(([^,]+), *(-?\d+), *([^()]+?)\)[ \t]*$", re.M)
+# REG-C4-R01 independent-review F-02: every AUGMENTED runtime assignment counts
+# too (=, +=, -=, *=, /=, %=, **=, <<=, >>=, &=, |=, ^=), with an optional
+# `self.` prefix and conventional whitespace, so a single clamp proof cannot
+# ignore a later write that moves the variable past its proved maximum.
+# `%%=` below escapes the literal `%` this template is later formatted with via `%`.
+ASSIGN_RE_TEMPLATE = (
+	r"(?<![A-Za-z0-9_.])(?:self\.)?%s[ \t]*"
+	r"(?:\*\*=|<<=|>>=|\+=|-=|\*=|/=|%%=|&=|\|=|\^=|=(?!=))"
+)
 
 TERM_RE = re.compile(r"^(?:\d+|[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?)$")
 RUNTIME_VAR_RE = re.compile(r"^_[a-z0-9_]+$")
 DECIMAL_RE = re.compile(r"^\d+$")
 UPPER_NAME_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 QUALIFIED_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)\.([A-Z][A-Z0-9_]*)$")
-NON_ALLOWLISTED_OPERATORS = "+-/%()<>&|^~"
+# REG-C4-R01 allowlists sums ('+') of products ('*') and qualified constants only.
+# Everything below -- unary sign, parentheses, subtraction, division, calls,
+# indexing, comparisons, bitwise operators -- halts resolution rather than being
+# folded or guessed at.
+NON_ALLOWLISTED_OPERATORS = "-/%()<>&|^~"
 
 
 class Proved(NamedTuple):
@@ -228,7 +257,12 @@ def load_source_index(core_dir: pathlib.Path = CORE_DIR) -> dict:
 
 # --- prose grammar --------------------------------------------------------
 
-LHS_RE = re.compile(r"^\s*`([A-Za-z0-9_. *]+)`\s*$")
+# The backtick class admits the same characters the resize-binding expression
+# may use under REG-C4-R01: names, dots, digits, `*` and `+`. A prose reading
+# still has to be the SAME text as the source's own resize argument (checked
+# later in resize_binding/audit_field); widening this class only lets the
+# prose SAY a sum, never lets it be believed without that binding match.
+LHS_RE = re.compile(r"^\s*`([A-Za-z0-9_. +*]+)`\s*$")
 RHS_RE = re.compile(r"^\s*(\d+)\s*$")
 RELATION_SPELLINGS = (("<=", RELATION_LTE), ("=", RELATION_EQ))
 
@@ -283,21 +317,48 @@ def _guard_int64(value: int, where: str):
 
 
 def resolve_expression(index: dict, module: str, expression: str, depth: int = 0):
-	"""Resolve an allowlisted integer expression from source. Products and names only."""
+	"""Resolve an allowlisted sum of products (REG-C4-R01).
+
+	The grammar is `sum := product ('+' product)*; product := term ('*' term)*`,
+	with `*` binding before `+` and both associating left to right. Every
+	intermediate result -- each product's running multiplication AND the running
+	sum across `+` -- is checked against signed int64 before the next step is
+	taken, including inside a nested constant's own definition, so an
+	overflowing intermediate can never be rescued by a later term that happens
+	to bring the total back into range.
+	"""
 	if depth > MAX_RESOLVE_DEPTH:
 		return Unproved("resolution_too_deep", "exceeded %d substitutions" % MAX_RESOLVE_DEPTH)
 	if module not in index:
 		return Unproved("unknown_module", "no godot/scripts/core/%s.gd" % module)
 	operators = sorted({character for character in expression if character in NON_ALLOWLISTED_OPERATORS})
 	if operators:
-		# REG-C3-R01 allowlists "products and qualified constants". `+` is NOT on that
-		# list, so a nested `const A = B + C` halts here instead of being folded. That is
-		# a deliberate refusal, not a parser gap: extending the allowlist is a decision
-		# for the reviewer of this sidecar, and the quarantine row names the exact
+		# REG-C4-R01 allowlists sums of products and qualified constants: `+` and
+		# `*` only, left-associative, with `*` binding tighter. Everything else --
+		# unary sign, parentheses, subtraction, division and the rest -- halts
+		# here instead of being folded. That is a deliberate refusal, not a
+		# parser gap: widening the grammar further is a decision for the
+		# reviewer of this sidecar, and the quarantine row names the exact
 		# definition and line where resolution stopped.
 		return Unproved("non_allowlisted_operator",
-			"%r uses %s; REG-C3-R01 allowlists products and qualified constants only"
+			"%r uses %s; REG-C4-R01 allowlists sums of products and qualified constants only"
 			% (expression, "".join(operators)))
+	total = 0
+	chain: list = []
+	for summand in expression.split("+"):
+		product = resolve_product(index, module, summand.strip(), depth)
+		if isinstance(product, Unproved):
+			return product
+		chain.extend(product.chain)
+		guarded = _guard_int64(total + product.value, expression)
+		if isinstance(guarded, Unproved):
+			return guarded
+		total = guarded.value
+	return Proved(total, tuple(chain))
+
+
+def resolve_product(index: dict, module: str, expression: str, depth: int):
+	"""Resolve one product term: literals and names joined by `*`, left to right."""
 	terms = [term.strip() for term in expression.split("*")]
 	if any(not TERM_RE.match(term) for term in terms):
 		return Unproved("unsupported_expression", "%r is not literals and names joined by `*`" % expression)
@@ -356,7 +417,9 @@ def resolve_clamped_bound(index: dict, module: str, variable: str):
 	source = index[module]
 	if variable not in source.int_vars:
 		return Unproved("unknown_symbol", "%s.gd declares no `var %s: int`" % (module, variable))
-	assignments = re.findall(ASSIGN_RE_TEMPLATE % re.escape(variable), source.text, re.M)
+	assignment_source = "\n".join(line for line in source.text.splitlines()
+		if not line.lstrip().startswith("#"))
+	assignments = re.findall(ASSIGN_RE_TEMPLATE % re.escape(variable), assignment_source, re.M)
 	clamps = [m for m in CLAMPI_RE.finditer(source.text) if m.group(1) == variable]
 	if len(clamps) != 1 or len(assignments) != len(clamps):
 		return Unproved(
@@ -374,17 +437,32 @@ def resolve_clamped_bound(index: dict, module: str, variable: str):
 	return Proved(bound.value, bound.chain + (step,))
 
 
+def _flatten_terms(expression: str) -> list:
+	"""Every leaf term across a sum of products, in left-to-right order.
+
+	With only one summand this is exactly the old product-only term list, so a
+	single-product expression's classification is unchanged; REG-C4-R01 only
+	generalises this to look across every summand as well.
+	"""
+	terms: list = []
+	for summand in expression.split("+"):
+		terms.extend(term.strip() for term in summand.split("*"))
+	return terms
+
+
 def classify_from_source(index: dict, module: str, expression: str):
 	"""Decide equality versus maximum FROM SOURCE, never from the prose operator.
 
 	A compile-time constant sizes the column exactly. A runtime `var` narrowed by
-	a single `clampi` sizes it at most. Mixing the two in one product is refused
-	rather than collapsed, because the result would be neither claim.
+	a single `clampi` sizes it at most. Mixing the two anywhere in the sum -- by
+	`+` or by `*` -- is refused rather than collapsed, because the result would be
+	neither claim.
 	"""
-	terms = [term.strip() for term in expression.split("*")]
+	terms = _flatten_terms(expression)
 	runtime = [term for term in terms if RUNTIME_VAR_RE.match(term)]
 	if runtime and len(terms) > 1:
-		return RELATION_LTE, Unproved("mixed_dynamic_expression", "%r multiplies runtime var(s) %s" % (expression, runtime))
+		return RELATION_LTE, Unproved("mixed_dynamic_expression",
+			"%r mixes runtime var(s) %s with other term(s)" % (expression, runtime))
 	if runtime:
 		return RELATION_LTE, resolve_clamped_bound(index, module, runtime[0])
 	return RELATION_EQ, resolve_expression(index, module, expression)
@@ -400,7 +478,17 @@ def resize_binding(index: dict, module: str, member: str):
 	source = index[module]
 	if member not in source.columns:
 		return Unproved("missing_column", "%s.gd declares no packed column %s" % (module, member))
-	direct = list(re.finditer(r"^\t%s\.resize\(([^\n]+)\)[ \t]*$" % re.escape(member), source.text, re.M))
+	# REG-C4-R01 independent-review F-01: DIRECT_RESIZE_TEMPLATE matches this column's
+	# resize at any indentation and with or without a `self.` prefix, so a conflicting
+	# resize nested inside an `if`/`for` body is no longer invisible to this scan.
+	direct = list(re.finditer(DIRECT_RESIZE_TEMPLATE % re.escape(member), source.text, re.M))
+	# Count every direct call token, including unsupported multiline/semicolon forms.
+	# A supported call elsewhere must not hide an unrecognised second sizing.
+	call_token = re.compile(r"(?<![A-Za-z0-9_])(?:self\.)?%s\.resize[ \t]*\(" % re.escape(member))
+	call_count = sum(len(call_token.findall(line)) for line in source.text.splitlines()
+		if not line.lstrip().startswith("#"))
+	if call_count != len(direct):
+		return Unproved("unsupported_resize", "%s.%s has an unrecognised direct resize" % (module, member))
 	found = [(m.group(1).strip(), _line_of(source.text, m.start())) for m in direct]
 	for group in GROUP_RESIZE_RE.finditer(source.text):
 		members = [name.strip() for name in group.group(2).replace("\n", " ").split(",")]
@@ -554,7 +642,8 @@ def build_audit(registry: dict, index: dict) -> dict:
 	return {
 		"audit_id": AUDIT_ID,
 		"audit_schema_version": AUDIT_SCHEMA_VERSION,
-		"contract": "REG-C3-R01 (docs/rulings/2026-09-14_cycle03_save_counts_and_capacities.md)",
+		"contract": "REG-C3-R01 (docs/rulings/2026-09-14_cycle03_save_counts_and_capacities.md); "
+			"REG-C4-R01 (docs/rulings/2026-09-19_cycle04_resumption.md)",
 		"kind": "read_only_sidecar",
 		"adopted": False,
 		"notes": [
@@ -562,12 +651,14 @@ def build_audit(registry: dict, index: dict) -> dict:
 			"No prose capacity is converted into the registry here; a later ruling decides adoption.",
 			"Every proof is GDScript source. Agreement with another document is never accepted as proof.",
 			"Equality and upper bound are preserved as distinct claims and are never flattened.",
-			"source_registry_sha256 in the registry is NOT re-asserted by this audit; only the file digest below is this audit's own observation.",
+			"REG-C4-R01 extends the proof grammar to bounded, left-associative sums of the existing "
+				"allowlisted products; no store, capacity or save schema changed as a result.",
+			"source_registry_sha256 in the registry is NOT re-asserted by this audit; only the canonical JSON digest below is this audit's own observation.",
 		],
 		"audited_registry": {
 			"registry_id": registry["registry_id"],
 			"registry_version": registry["registry_version"],
-			"registry_file_sha256": hashlib.sha256(
+			"registry_canonical_json_sha256": hashlib.sha256(
 				json.dumps(registry, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest(),
 			"path": REGISTRY_PATH.relative_to(ROOT).as_posix(),
 		},

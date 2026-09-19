@@ -1,0 +1,108 @@
+--- a/tools/audit_registry_capacities.py
++++ b/tools/audit_registry_capacities.py
+@@ -133,8 +133,19 @@
+ GROUP_RESIZE_RE = re.compile(
+ 	r"^\tfor ([a-z_]+)(?:: Packed[A-Za-z0-9]+Array)? in \[([\s\S]*?)\]:\n((?:\t\t[^\n]*\n)+)",
+ 	re.M,
+ )
+-CLAMPI_RE = re.compile(r"^[ \t]*(_[a-z0-9_]+) = clampi\(([^,]+), *(-?\d+), *([^()]+?)\)[ \t]*$", re.M)
+-ASSIGN_RE_TEMPLATE = r"^[ \t]*%s = (?!=)[^\n]*$"
++# REG-C4-R01 independent-review F-01: a direct resize is now recognised at ANY
++# indentation (nested if/for/match bodies), with an optional `self.` prefix,
++# and as the tail of a single inline compound statement (`if cond: x.resize(...)`).
++# Anything else -- several statements on one line, a resize hidden behind another
++# call -- is simply not matched, which fails CLOSED via `unsized_column` rather
++# than being silently accepted as the only sizing of the column.
++DIRECT_RESIZE_TEMPLATE = r"^[ \t]*(?:\S.*:[ \t]*)?(?:self\.)?%s\.resize\(([^\n]+)\)[ \t]*$"
++CLAMPI_RE = re.compile(r"^[ \t]*(?:self\.)?(_[a-z0-9_]+) = clampi\(([^,]+), *(-?\d+), *([^()]+?)\)[ \t]*$", re.M)
++# REG-C4-R01 independent-review F-02: every AUGMENTED runtime assignment counts
++# too (=, +=, -=, *=, /=, %=, **=, <<=, >>=, &=, |=, ^=), with an optional
++# `self.` prefix and conventional whitespace, so a single clamp proof cannot
++# ignore a later write that moves the variable past its proved maximum.
++# `%%=` below escapes the literal `%` this template is later formatted with via `%`.
++ASSIGN_RE_TEMPLATE = (
++	r"^[ \t]*(?:self\.)?%s[ \t]*"
++	r"(?:\*\*=|<<=|>>=|\+=|-=|\*=|/=|%%=|&=|\|=|\^=|=(?!=))"
++	r"[^\n]*$"
++)
+@@ -460,7 +471,10 @@ def resize_binding(index: dict, module: str, member: str):
+ 	if member not in source.columns:
+ 		return Unproved("missing_column", "%s.gd declares no packed column %s" % (module, member))
+-	direct = list(re.finditer(r"^\t%s\.resize\(([^\n]+)\)[ \t]*$" % re.escape(member), source.text, re.M))
++	# REG-C4-R01 independent-review F-01: DIRECT_RESIZE_TEMPLATE matches this column's
++	# resize at any indentation and with or without a `self.` prefix, so a conflicting
++	# resize nested inside an `if`/`for` body is no longer invisible to this scan.
++	direct = list(re.finditer(DIRECT_RESIZE_TEMPLATE % re.escape(member), source.text, re.M))
+ 	found = [(m.group(1).strip(), _line_of(source.text, m.start())) for m in direct]
+ 	for group in GROUP_RESIZE_RE.finditer(source.text):
+--- a/tools/test_registry_capacity_audit.py
++++ b/tools/test_registry_capacity_audit.py
+@@ -404,6 +404,64 @@ def test_n22_cyclic_constants_are_quarantined_not_looped_forever() -> None:
+ 	check("N22 a cycle hidden inside a sum is quarantined the same way",
+ 		cyclic_sum_row["status"] == "unproved_resolution_too_deep")
+ 
+
++def test_f01_nested_and_self_conflicting_resize_is_caught() -> None:
++	"""Independent review F-01: a differently-indented or self-prefixed resize is not invisible.
++
++	Before this fix, only a resize written at exactly one leading tab was ever
++	seen, so a second, conflicting resize written inside an `if` body (deeper
++	indent) or spelled `self.column.resize(...)` was never compared against the
++	first, and the row proved despite two different sizing expressions existing
++	in source.
++	"""
++	nested = (
++		const_module("BETA_ROWS", "512", extra="const BETA_OTHER: int = 8\n")
++		+ "\tif true:\n"
++		+ "\t\t_alpha_column.resize(BETA_OTHER)\n"
++	)
++	row = audit_one(module_index(alpha=nested), "`BETA_ROWS` = 512")
++	check("F01 a resize nested inside `if` is no longer invisible",
++		row["status"] == "unproved_conflicting_resize")
++	self_prefixed = (
++		"const BETA_ROWS: int = 512\n"
++		"const BETA_OTHER: int = 8\n"
++		"var _alpha_column: PackedInt32Array = PackedInt32Array()\n"
++		"func _init() -> void:\n"
++		"\tself._alpha_column.resize(BETA_ROWS)\n"
++		"\t_alpha_column.resize(BETA_OTHER)\n"
++	)
++	row2 = audit_one(module_index(alpha=self_prefixed), "`BETA_ROWS` = 512")
++	check("F01 self.column.resize and bare column.resize are recognised as the same column",
++		row2["status"] == "unproved_conflicting_resize")
++	single_self = const_module("BETA_ROWS", "512").replace(
++		"\t_alpha_column.resize(BETA_ROWS)\n", "\tself._alpha_column.resize(BETA_ROWS)\n")
++	proved = audit_one(module_index(alpha=single_self), "`BETA_ROWS` = 512")
++	check("F01 a single self-prefixed resize still proves", proved["status"] == "proved_equality")
++
++
++def test_f02_augmented_assignment_defeats_clamp_proof() -> None:
++	"""Independent review F-02: a `+=`/`*=` after the clamp is counted, not ignored.
++
++	Before this fix, ASSIGN_RE_TEMPLATE matched only a bare `= ` assignment, so a
++	variable clamped once and then adjusted with an augmented operator still
++	looked like exactly one assignment with exactly one clamp, and the row
++	proved an upper bound the variable could then exceed.
++	"""
++	augmented = clamped_module("_beta_rows", "BETA_ROW_MAX", 16384).replace(
++		"\t_alpha_column.resize(_beta_rows)\n",
++		"\t_beta_rows += 1\n\t_alpha_column.resize(_beta_rows)\n")
++	row = audit_one(module_index(alpha=augmented), "`_beta_rows` <= 16384")
++	check("F02 a later += is counted and defeats the single-clamp proof",
++		row["status"] == "unproved_unbounded_runtime_variable")
++	multiplied = clamped_module("_beta_rows", "BETA_ROW_MAX", 16384).replace(
++		"\t_alpha_column.resize(_beta_rows)\n",
++		"\t_beta_rows *= 1\n\t_alpha_column.resize(_beta_rows)\n")
++	row2 = audit_one(module_index(alpha=multiplied), "`_beta_rows` <= 16384")
++	check("F02 a `*=` after the clamp is counted too", row2["status"] == "unproved_unbounded_runtime_variable")
++	self_clamped = clamped_module("_beta_rows", "BETA_ROW_MAX", 16384).replace(
++		"\t_beta_rows = clampi(p_rows, 1, BETA_ROW_MAX)\n",
++		"\tself._beta_rows = clampi(p_rows, 1, BETA_ROW_MAX)\n")
++	honest = audit_one(module_index(alpha=self_clamped), "`_beta_rows` <= 16384")
++	check("F02 a self-prefixed clamp with no other writes still proves",
++		honest["status"] == "proved_upper_bound")
++
++
+ # --------------------------------------------------------------------------
+ # POSITIVE AND STRUCTURAL TESTS
+ # --------------------------------------------------------------------------

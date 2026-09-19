@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-09-19T19:09:30.628769+00:00",
+  "base_commit": "47a4da2642912afee4d5249424d31ab6c92f014a",
+  "scope": "bounded capacity/UI consistency/stock-lifetime repairs; end-to-end game is not complete",
+  "code_sha256": {
+    "tools/audit_registry_capacities.py": "85b6928644332780ded321dcb72370c04c17e3883aae49a0c2fb2d31971f4c4b",
+    "tools/test_registry_capacity_audit.py": "0a4a0699e93d28f1aabbad83c444eec4bee50e5c8b03af134b933f310abe08eb",
+    "godot/scripts/core/inventory.gd": "fb5edbddab8c8852148a544d010ede1b03750016f9432aa0b7a3f93bacb8b848",
+    "godot/scripts/ui/ui_shell.gd": "044f44ce53207ac99dd50c816a1e33775674c7650c0d9eaa0bab0bc23831debe",
+    "godot/test/test_inventory.gd": "d8728e970d3aaf4aa4eeae25a42c483fd502aaa3574576122488ea3a38b3de02",
+    "godot/test/test_ui_shell.gd": "b75d0374fad99042734ebe7b42b4b90c94f1c00ab06e168cc97dee9b16a8dd1a",
+    "godot/test/test_stock_authority_lifetime.gd": "399d696e1bec05dd228164a6dd734cd8501cb9e4a24299c396870607f30be155",
+    "godot/test/test_ui_context_gates.gd": "5865de69b8f398550fe39eb1c47f1b69e288e43b02fec8a6c047f2e938398382"
+  },
+  "full_suite": {
+    "exit_code": 0,
+    "tests": 4574,
+    "assertions": 159269,
+    "failures": 0,
+    "log": "tests-acceptance.log",
+    "shutdown_objects": 553,
+    "shutdown_resources": 33,
+    "boot_warnings": 0
+  },
+  "static_checks": {
+    "passed": 15,
+    "log": "contracts-final.json"
+  },
+  "capacity_checks": 190,
+  "engine_input_cases": 6,
+  "command_positive_control": true,
+  "independent_review": "review-closure.md",
+  "art_approval": "unchanged; separate human gates",
+  "unattended_service_active": false
+}

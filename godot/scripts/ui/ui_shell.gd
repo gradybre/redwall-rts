@@ -2747,6 +2747,7 @@ func clear_resident_detail() -> void:
 		_need_rates[index].text = ""
 		_need_basis_points[index] = 0
 		_need_rows[index].visible = false
+	_recompute_selection_gate()
 
 
 func set_detail_health(text: String) -> void:
@@ -2891,6 +2892,7 @@ func set_detail_open(open: bool) -> void:
 	"""Open or close UI-SET-036, which also changes §1.2's command-strip interval."""
 	_detail_open = open
 	(_zones[ID_DETAIL] as Control).visible = open
+	_recompute_selection_gate()
 	_apply_geometry()
 
 
@@ -3294,17 +3296,38 @@ func open_workspace_page(page_id: int, opener_id: int = ID_RESIDENTS) -> bool:
 	no longer shown cannot keep an input rectangle."""
 	if not WORKSPACE_PAGES.has(page_id):
 		return _refuse(REFUSE_UNKNOWN_ELEMENT)
+	if _registry.gate_of(page_id).value == UiRegistry.GATE_SELECTED and not _gates.has_selection:
+		return _refuse(REFUSE_NO_TARGET)
 	var members: PackedInt32Array = PackedInt32Array([page_id])
 	if not _focus.open_surface(page_id, members, members.size(), opener_id):
 		return _refuse(REFUSE_UNKNOWN_ELEMENT)
 	_retire_outgoing_members()
 	_workspace_page = page_id
-	_gates.set_surface_open(page_id, true)
+	_apply_workspace_gate(page_id, true)
 	(_zones[ID_WORKSPACE] as Control).visible = true
 	_show_open_page()
 	_apply_geometry()
+	# Context changes must refresh input and focus even when an off-tree layout cannot run.
+	_register_hit_regions()
+	_wire_focus()
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+func _apply_workspace_gate(page_id: int, open: bool) -> void:
+	"""UI-C4-R01: opening a workspace page must gate the frame and its Back action too.
+
+	§4 gates UI-SET-051 (the frame) and UI-SET-092 (Back) on WORKSPACE, exactly the same fact
+	as the page itself. Only the page's own surface bit was being written, so the frame and
+	Back stayed §4-ABSENT under a truly open page: `_register_hit_regions()` reads
+	`creates_control()` before it will register a region, so a visibly drawn, opaque frame
+	was absent from the hit table. The engine-input baseline confirms Godot consumed
+	those clicks; the table was the inconsistent layer.
+	"""
+	_gates.set_surface_open(page_id, open)
+	_gates.set_surface_open(ID_WORKSPACE, open)
+	_gates.set_surface_open(ID_BACK, open)
+	_gates.set_surface_open(ID_SEARCH, open)
 
 
 func _retire_outgoing_members() -> void:
@@ -3322,12 +3345,33 @@ func workspace_page() -> int:
 	return _workspace_page
 
 
+func _recompute_selection_gate() -> void:
+	"""UI-C4-R01: SELECTED reflects any live reference OR an open detail/tile context.
+
+	`Gates.has_selection` was written nowhere, so every SELECTED-gated element -- the journal,
+	its tabs, Pin -- was permanently §4-ABSENT even while visibly drawn. A tile has no stored
+	resident/job/zone reference at all (`ui_manager.gd` opens tile detail through
+	`set_detail_display()`/`set_detail_open()` alone), so the open detail panel itself is also
+	a selected context, not only the four typed references.
+	"""
+	_gates.has_selection = _detail_open \
+		or _selected_basin != EntityDirectoryScript.NULL_REF \
+		or _selected_zone != EntityDirectoryScript.NULL_REF \
+		or _selected_job != EntityDirectoryScript.NULL_REF \
+		or _selected_resident != EntityDirectoryScript.NULL_REF
+	if not _built:
+		return
+	_register_hit_regions()
+	_wire_focus()
+
+
 func select_basin(basin: Vector2i, danger_band: int) -> bool:
 	"""Point the zone tool at a generated ecology basin. Refuses a band §5.5 does not define."""
 	if danger_band < DANGER_MIN or danger_band > DANGER_MAX:
 		return _refuse(REFUSE_TILE_RANGE)
 	_selected_basin = basin
 	_selected_basin_danger = danger_band
+	_recompute_selection_gate()
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -3372,18 +3416,20 @@ func select_zone(zone: Vector2i, enabled: bool) -> void:
 	_selected_zone = zone
 	_selected_zone_enabled = enabled
 	(_controls[ID_WORK_POLICY] as Control).visible = zone != EntityDirectoryScript.NULL_REF
-	_register_hit_regions()
+	_recompute_selection_gate()
 
 
 func select_job(job: Vector2i) -> void:
 	"""Select a queued job, which the quick menu can cancel."""
 	_selected_job = job
+	_recompute_selection_gate()
 
 
 func select_resident(resident: Vector2i, proposed_name: String) -> void:
 	"""Select a resident and the name typed into UI-SET-082's editor."""
 	_selected_resident = resident
 	_pending_name = proposed_name
+	_recompute_selection_gate()
 
 
 func cancel_selected_job() -> bool:
@@ -3535,15 +3581,21 @@ func report_action_result(accepted: bool, message: String) -> void:
 
 
 func _on_back_pressed() -> void:
-	"""UI-SET-092: close the workspace frame, returning focus where §2.2 sends it.
+	"""UI-SET-092: close the workspace frame. A CLOSE, never a toggle: it always ends closed.
 
 	§2.2: focus returns to the opening control if still present, otherwise the zone's first
 	control. The router owns both branches; closing without it left focus standing on a
-	control that had just been hidden."""
+	control that had just been hidden. §4 gates the frame (051) and Back (092) on WORKSPACE
+	exactly as it gates the page itself, so both drop with it here too, and a second press
+	must find nothing left open to reopen -- `_toggle_zone()` flips visibility either way and
+	could reopen what the first press had just closed.
+	"""
 	_focus.close_surface(_gates)
 	_retire_outgoing_members()
-	_gates.set_surface_open(_workspace_page, false)
-	_toggle_zone(ID_WORKSPACE)
+	_apply_workspace_gate(_workspace_page, false)
+	(_zones[ID_WORKSPACE] as Control).visible = false
+	_register_hit_regions()
+	_wire_focus()
 	shell_action.emit(ID_BACK)
 
 
@@ -3765,6 +3817,15 @@ func focus_order() -> UiFocusOrder:
 func availability() -> UiAvailability:
 	"""The availability claim every control's disabled state is derived from."""
 	return _availability
+
+
+func gates() -> UiAvailability.Gates:
+	"""The runtime context facts this shell's §4 Gate column is evaluated against.
+
+	Exposed for the suite, which must prove `has_selection` and the workspace surface bits
+	actually track the live selection and the open workspace, not merely assert it in prose.
+	"""
+	return _gates
 
 
 func registry() -> UiRegistry:

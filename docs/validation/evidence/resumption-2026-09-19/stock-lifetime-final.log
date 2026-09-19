@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+REDWALL_STOCK_LIFETIME {"bound":true,"cleanup_unbind_attempted":false,"cleanup_unbind_succeeded":null,"inventory_released_at_probe_end":true,"inventory_retained_after_external_refs_dropped":false,"stock_age_released_at_probe_end":true,"stock_age_retained_after_external_refs_dropped":false}

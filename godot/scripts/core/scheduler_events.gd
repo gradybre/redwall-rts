@@ -189,15 +189,31 @@ const EXTENSION_HEADER_BYTES: int = 16
 ## X = 48 + 32*S in the contract's own arithmetic.
 const EXTENSION_FIXED_BYTES: int = EXTENSION_HEADER_BYTES + CONTROL_BYTES
 
-## Contract, container version 2's section 12 prefix: "an exact 24-byte prefix, six U32 fields".
+## SAVE-SEQ-R01: section 12's prefix is an exact 28-byte SCHEMA 3 prefix -- five u32 fields, then
+## the economic allocator's HIGH word as a u64 LE at offset 20, occupying bytes 20..27. Two u32
+## words cannot encode the economic allocator's 2^64 ordinary values plus its one exhausted state,
+## and zero is an ORDINARY initial value there, so the scheduler's (0,0) sentinel cannot be copied
+## into that space without destroying a valid economic state. Only the saved word widens: the live
+## allocator, the 64-byte economic record, this queue's own sequence policy and the SCHQ0001
+## extension are all unchanged.
+##
+## Schema 2 is retained ONLY as history, so a reader can see which number this superseded. No
+## active codec or helper in this file writes it; every writer names SECTION_SCHEMA_VERSION_THREE.
 const SECTION_SCHEMA_VERSION_TWO: int = 2
-const SECTION_PREFIX_BYTES: int = 24
+const SECTION_SCHEMA_VERSION_THREE: int = 3
+const SECTION_PREFIX_BYTES: int = 28
 const OFFSET_PREFIX_SECTION_SCHEMA: int = 0
 const OFFSET_PREFIX_ECONOMIC_COUNT: int = 4
 const OFFSET_PREFIX_ECONOMIC_PAYLOAD_USED: int = 8
 const OFFSET_PREFIX_SCHEDULER_EXTENSION_BYTES: int = 12
 const OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_LOW: int = 16
 const OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_HIGH: int = 20
+## The widened field's own width, stated so the 28 above is arithmetic a reader can check:
+## 5 * 4 + 8 = 28.
+const PREFIX_NEXT_SEQUENCE_HIGH_BYTES: int = 8
+## `commands.gd::_advance_sequence()` leaves exactly this high word, with low 0, once the final
+## ordinary sequence has been spent. It is the ONE legal allocator high word above u32.
+const ECONOMIC_TERMINAL_SEQUENCE_HIGH: int = U32_MODULUS
 ## Contract: "Require E <= 4096, P <= 1048576, S <= 256".
 const MAX_ECONOMIC_RECORDS: int = 4096
 const MAX_ECONOMIC_PAYLOAD_BYTES: int = 1048576
@@ -1214,11 +1230,14 @@ func _restore_control(bytes: PackedByteArray, control: int) -> void:
 		control + OFFSET_CONTROL_LAST_APPLIED_SEQUENCE_HIGH)
 
 
-# --- container version 2's section 12 arithmetic (pure; it reads no economic store) ----------------------------------
+# --- section 12 schema 3 arithmetic (pure; it reads no economic store) ----------------------------------
 
 static func section_twelve_length(economic_count: int, economic_payload_used: int,
 		scheduler_count: int) -> int:
-	"""The contract's `72 + 64*E + P + 32*S`. Returns a length, never a failure sentinel.
+	"""SAVE-SEQ-R01's `76 + 64*E + P + 32*S`. Returns a length, never a failure sentinel.
+
+	The 76 is the widened 28-byte prefix plus the extension's fixed 48; the four added bytes are
+	the economic high allocator word's widening and nothing else. An empty section 12 is 76 bytes.
 
 	Callers validate the three inputs with `section_twelve_refusal()` FIRST; this is arithmetic,
 	not a gate. It exists so the prefix's `scheduler_extension_bytes` and the section directory's
@@ -1240,25 +1259,61 @@ static func section_twelve_refusal(economic_count: int, economic_payload_used: i
 	return REFUSE_NONE
 
 
+static func economic_allocator_refusal(economic_next_high: int,
+		economic_next_low: int) -> StringName:
+	"""SAVE-SEQ-R01's exact economic allocator domain, judged without touching any buffer.
+
+	ORDINARY states are any u32 high word with any u32 low word, INCLUDING the initial `(0,0)`,
+	which is a meaningful economic state and never a sentinel here. The ONE terminal state is
+	`(4294967296, 0)`, which the runtime allocator reaches after issuing `(4294967295,
+	4294967295)`. Everything else refuses: 4294967297, a terminal high carrying a nonzero low,
+	and every negative word. The terminal value is neither clamped nor wrapped -- a world that was
+	exhausted comes back exhausted, and its next ordinary submission refuses in its own owner.
+
+	Pure and total, so the prefix writer can run it as a PRE-WRITE gate and a decoder can run it
+	over a parsed tuple, with neither able to disagree with the other about what is legal.
+	"""
+	if economic_next_low < 0 or economic_next_low > U32_MAX:
+		return REFUSE_SEQUENCE_RANGE
+	if economic_next_high == ECONOMIC_TERMINAL_SEQUENCE_HIGH:
+		return REFUSE_NONE if economic_next_low == 0 else REFUSE_SEQUENCE_RANGE
+	if economic_next_high < 0 or economic_next_high > U32_MAX:
+		return REFUSE_SEQUENCE_RANGE
+	return REFUSE_NONE
+
+
 static func encode_section_prefix_into(out: PackedByteArray, byte_offset: int, economic_count: int,
 		economic_payload_used: int, scheduler_count: int, economic_next_low: int,
 		economic_next_high: int) -> bool:
-	"""Write the exact 24-byte prefix: six u32 in the contract's stated order.
+	"""Write the exact 28-byte schema 3 prefix: five u32 fields, then the u64 high allocator word.
+
+	EVERY GATE RUNS BEFORE THE SCHEMA WORD IS WRITTEN. SAVE-SEQ-R01 v2 requires the COMPLETE
+	economic allocator tuple to be validated in the pre-write gates, not after the leading fields
+	are already down, so a pre-dirtied destination buffer is left byte-identical for every invalid
+	tuple rather than carrying a half-written prefix that names schema 3 and then stops.
+
+	The room check is written as a SUBTRACTION against the buffer size, so a very large offset
+	cannot overflow past the end and read as room.
 
 	`economic_next_sequence_*` preserve `commands.gd`'s own allocator semantics, NOT this
-	scheduler's initial-1 / (0,0)-sentinel policy; the two sequence spaces never mix.
+	scheduler's initial-1 / (0,0)-sentinel policy; the two sequence spaces never mix. The high
+	word is saved as u64 because the terminal 4294967296 is not a u32 -- and the low word, this
+	queue's four control words and every record half are unchanged u32 bit patterns.
 	"""
-	if byte_offset < 0 or out.size() < byte_offset + SECTION_PREFIX_BYTES:
+	if byte_offset < 0 or out.size() < SECTION_PREFIX_BYTES \
+			or byte_offset > out.size() - SECTION_PREFIX_BYTES:
 		return false
 	if section_twelve_refusal(economic_count, economic_payload_used, scheduler_count) != REFUSE_NONE:
 		return false
-	out.encode_u32(byte_offset + OFFSET_PREFIX_SECTION_SCHEMA, SECTION_SCHEMA_VERSION_TWO)
+	if economic_allocator_refusal(economic_next_high, economic_next_low) != REFUSE_NONE:
+		return false
+	out.encode_u32(byte_offset + OFFSET_PREFIX_SECTION_SCHEMA, SECTION_SCHEMA_VERSION_THREE)
 	out.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_COUNT, economic_count)
 	out.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_PAYLOAD_USED, economic_payload_used)
 	out.encode_u32(byte_offset + OFFSET_PREFIX_SCHEDULER_EXTENSION_BYTES,
 		EXTENSION_FIXED_BYTES + RECORD_BYTES * scheduler_count)
 	out.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_LOW, economic_next_low)
-	out.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_HIGH, economic_next_high)
+	out.encode_u64(byte_offset + OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_HIGH, economic_next_high)
 	return true
 
 

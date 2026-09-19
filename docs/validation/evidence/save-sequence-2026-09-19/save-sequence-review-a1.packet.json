@@ -1,0 +1,23 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "24fe7d6d6749d3d92bfa0da20b299a0c6cd4685f",
+  "task": "Independent SAVE-SEQ-R01 v2 code and acceptance review",
+  "paths": [
+    "docs/rulings/2026-09-19_economic_sequence_format.md",
+    "docs/decisions/0155-widen-saved-economic-sequence-high-word.md",
+    "godot/scripts/core/commands.gd",
+    "godot/scripts/core/save_section_pending_commands.gd",
+    "godot/scripts/core/scheduler_events.gd",
+    "godot/scripts/core/save_codec.gd",
+    "godot/scripts/core/canonical_state_hash.gd",
+    "docs/planning/canonical_state_registry.json",
+    "godot/test/test_economic_sequence_format.gd",
+    "godot/test/test_save_section_pending_commands.gd",
+    "godot/test/test_scheduler_events.gd",
+    "godot/test/test_canonical_state_hash.gd",
+    "godot/test/save_sequence_focus.gd",
+    "docs/validation/evidence/save-sequence-2026-09-19/integration-notes.md",
+    "docs/validation/evidence/save-sequence-2026-09-19/focus-second.log"
+  ],
+  "instructions": "Independent review only. Ack SAVE-SEQ-R01 v2. Review the exact active implementation: schema3 prefix28, high u64 at20, domain u32pairs+terminal(2^32,0), unchanged scheduler/record semantics, pure atomic prefix writer, schema recognition before full prefix, checked u64 decode, fullwindow restoration (legacy restore_sequence remains u32), owner schema2/declaration4/type3/ordinal2/count1/hash stable namespace. Review tests for actual final issue, pending and drained terminal round trips, refusal immutability/hostile bytes, unsigned boundary cases, canonical int64 value emission. Parent corrected an omitted original success-return line during patch intake, updated missed OWNER_SCHEMA_VERSION_COMMANDS=2 after focused test failure, and corrected two stale comments. See integration notes. Focused268tests33704assertions passed; fullsuite underway. No full-file header216/coordinator/native acceptance claimed. The full canonical registry+generatedtable are included; inspect necessary slices within context. Report prioritized reproducible blockers with exact lines and bounded repair, or explicitly no blocking findings with limits. No broad unrelated issues. Return ONLY raw valid JSON, no fences, with EXACT keys status,summary,questions,files,decisionIds. status complete; questions empty if none; files EXACTLY [{\"path\":\"docs/validation/evidence/save-sequence-2026-09-19/independent-review.md\",\"content\":\"your review\",\"baseSha256\":null}]. No edits to code/tests and no tool/test execution claim. Oneattempt15min/no-progress3min."
+}

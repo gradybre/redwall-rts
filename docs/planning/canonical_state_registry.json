@@ -1,6 +1,6 @@
 {
  "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-15-3",
- "registry_version": 3,
+ "registry_version": 4,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -58,7 +58,7 @@
  "canonical_stream": "RWL-STATE-1",
  "record_count": 596,
  "packed_source_field_count": 550,
- "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime.",
+ "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
    "section_id": 1,
@@ -8374,7 +8374,7 @@
   {
    "section_id": 12,
    "owner_key": "commands",
-   "owner_schema_version": 1,
+   "owner_schema_version": 2,
    "fields": [
     {
      "field_key": "_count",
@@ -8406,8 +8406,8 @@
     },
     {
      "field_key": "_next_sequence_high",
-     "type": "u32",
-     "type_code": 1,
+     "type": "u64",
+     "type_code": 3,
      "hash": true,
      "source_module": "commands",
      "source_member": "_next_sequence_high",
@@ -9639,7 +9639,7 @@
   2,
   1,
   1,
-  2,
+  3,
   1,
   2,
   1

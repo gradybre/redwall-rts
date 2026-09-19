@@ -24,10 +24,13 @@ extends RefCounted
 ## `SCHQ0001` extension, exactly that way round. See BLOCKER P1 below; this is a reported
 ## divergence from the lane brief, not an unnoticed one.
 ##
-## §12 IS ALREADY AT SCHEMA 2 AND IS NOT BUMPED. REG-R01's baseline vector is
-## `[2,2,1,2,1,1,2,1,2,1,1,2,1,2,1]` with the note "§12 was already 2". The 2 is physically
-## present as the prefix's first u32 (`SECTION_SCHEMA_VERSION_TWO` in `scheduler_events.gd`), and
-## the nested `SCHQ0001` stays at schema 1.
+## §12 IS AT SCHEMA 3. REG-R01's baseline vector had it at 2 ("§12 was already 2"); SAVE-SEQ-R01
+## advances that single index 2 -> 3 to carry the economic allocator's HIGH word as a u64, because
+## two u32 words cannot represent the allocator's 2^64 ordinary values plus its one exhausted
+## state and zero is an ORDINARY economic value rather than a spare sentinel. The 3 is physically
+## present as the prefix's first u32 (`SECTION_SCHEMA_VERSION_THREE` in `scheduler_events.gd`),
+## the nested `SCHQ0001` stays at schema 1, and schema 2 is REFUSED here by name rather than
+## migrated: an old file is preserved and reported, never rewritten or deleted.
 ##
 ## ## THE BYTES
 ##
@@ -36,23 +39,25 @@ extends RefCounted
 ##
 ##   | Offset          | Type       | Field                                     | Bytes |
 ##   |----------------:|------------|-------------------------------------------|------:|
-##   | 0               | u32        | section_schema = 2                        |     4 |
+##   | 0               | u32        | section_schema = 3                        |     4 |
 ##   | 4               | u32        | economic_count E (<= 4096)                |     4 |
 ##   | 8               | u32        | economic_payload_used P (<= 1048576)      |     4 |
 ##   | 12              | u32        | scheduler_extension_bytes X = 48 + 32*S   |     4 |
 ##   | 16              | u32        | economic_next_sequence_low                |     4 |
-##   | 20              | u32        | economic_next_sequence_high               |     4 |
-##   | 24              | 64 x E     | economic records, canonical command order | 64*E  |
-##   | 24+64E          | u8 x P     | economic payload arena used prefix        |     P |
-##   | 24+64E+P        | ascii      | `SCHQ0001`                                |     8 |
-##   | 32+64E+P        | u32        | extension schema_version = 1              |     4 |
-##   | 36+64E+P        | u32        | extension payload length = 32 + 32*S      |     4 |
-##   | 40+64E+P        | -          | (control block begins at +48 from tag)    |       |
-##   | 40+64E+P        | 32 bytes   | queue control, canonical head = 0         |    32 |
-##   | 72+64E+P        | 32 x S     | scheduler records, queue order            | 32*S  |
+##   | 20              | u64        | economic_next_sequence_high               |     8 |
+##   | 28              | 64 x E     | economic records, canonical command order | 64*E  |
+##   | 28+64E          | u8 x P     | economic payload arena used prefix        |     P |
+##   | 28+64E+P        | ascii      | `SCHQ0001`                                |     8 |
+##   | 36+64E+P        | u32        | extension schema_version = 1              |     4 |
+##   | 40+64E+P        | u32        | extension payload length = 32 + 32*S      |     4 |
+##   | 44+64E+P        | -          | (control block begins at +48 from tag)    |       |
+##   | 44+64E+P        | 32 bytes   | queue control, canonical head = 0         |    32 |
+##   | 76+64E+P        | 32 x S     | scheduler records, queue order            | 32*S  |
 ##
-## Section length = `72 + 64*E + P + 32*S`, which is `scheduler_events.gd::section_twelve_length()`
-## and is called rather than restated. An empty §12 is 72 bytes, never zero.
+## Section length = `76 + 64*E + P + 32*S`, which is `scheduler_events.gd::section_twelve_length()`
+## and is called rather than restated. An empty §12 is 76 bytes, never zero. The four added bytes
+## are the high allocator word's widening and nothing else: no new field, no second world, no
+## record or scheduler-extension change, and no reordering of anything that follows.
 ##
 ## ## RING BUFFERS: THE LIVE WINDOW IS PERSISTED, THE TAIL IS REBUILT
 ##
@@ -90,8 +95,12 @@ extends RefCounted
 ## `commands.gd::compare_key_parts()` or `scheduler_events.gd::compare_sequence()`, which mask
 ## first. Record columns hold the i32 SPELLING (what the store's column holds); the wire holds the
 ## u32 BITS, and `encode_command_into()`/`decode_record_into()` are the only conversion.
-## The four `next_sequence` scalars are UNSIGNED 0..4294967295, because that is what
-## `restore_sequence()` accepts and what the prefix's u32 fields carry.
+## The scheduler's four control words and the economic LOW word are UNSIGNED 0..4294967295,
+## because that is what their owners accept and what the prefix's u32 fields carry. The economic
+## HIGH word is the one exception SAVE-SEQ-R01 makes: it is a u64 admitting 0..4294967295 beside
+## any low word, plus exactly 4294967296 beside low 0, which is the terminal exhausted allocator
+## the runtime actually reaches. It is validated on its own rather than inside the u32 loop, and
+## it is never clamped or wrapped into a fresh-looking world.
 ##
 ## ## ALLOCATE BEFORE CONSUME (decision 0059)
 ##
@@ -152,7 +161,7 @@ extends RefCounted
 ## §12". Three further facts point the same way: the "already 2" schema version physically IS the
 ## prefix's first u32 and has nowhere to live in the wrapper form; `scheduler_events.gd` already
 ## ships `section_twelve_length()`, `section_twelve_refusal()` and `encode_section_prefix_into()`
-## labelled "container version 2's section 12 arithmetic"; and REG-R01's own §12 field ordinals
+## labelled "section 12 schema 3 arithmetic"; and REG-R01's own §12 field ordinals
 ## reproduce the 64-byte and 32-byte RECORD field orders exactly (ordinals 4..18 for `commands`
 ## are §8.1's record fields in §8.1's order; ordinals 7..13 for `scheduler_events` are the 32-byte
 ## record's). Those ordinals are honoured here as the CANONICAL FIELD-RECORD STREAM order for
@@ -188,14 +197,18 @@ const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 ## ARCH-SAVE-002's section order: "... 11 EVENT_SCHEDULE, 12 PENDING_COMMANDS, ...".
 const SECTION_ID: int = 12
 
-## REG-R01: "§12 was already 2". Read off `scheduler_events.gd` so the two cannot drift.
-const SECTION_SCHEMA_VERSION: int = SchedulerEventsScript.SECTION_SCHEMA_VERSION_TWO
+## SAVE-SEQ-R01 takes §12 from schema 2 to schema 3. Read off `scheduler_events.gd` so the wire
+## writer and this decoder cannot drift.
+const SECTION_SCHEMA_VERSION: int = SchedulerEventsScript.SECTION_SCHEMA_VERSION_THREE
+## Historical schema marker only. Refusals report the actual schema word read from input;
+## this constant is not a decoder gate and no schema 2 body is read or migrated.
+const SECTION_SCHEMA_VERSION_SUPERSEDED: int = SchedulerEventsScript.SECTION_SCHEMA_VERSION_TWO
 
 ## The two registered owners, in the ASCII order REG-R01 orders blocks by. `commands` owns the
 ## prefix and the economic records; `scheduler_events` owns the trailing `SCHQ0001` extension.
 const OWNER_KEY_COMMANDS: String = "commands"
 const OWNER_KEY_SCHEDULER: String = "scheduler_events"
-const OWNER_SCHEMA_VERSION_COMMANDS: int = 1
+const OWNER_SCHEMA_VERSION_COMMANDS: int = 2
 const OWNER_SCHEMA_VERSION_SCHEDULER: int = 1
 
 # --- layout, every number read off its owner --------------------------------------------------------
@@ -224,12 +237,16 @@ const SECTION_TAG: String = SchedulerEventsScript.SECTION_TAG
 const SECTION_TAG_BYTES: int = SchedulerEventsScript.SECTION_TAG_BYTES
 const EXTENSION_SCHEMA_VERSION: int = SchedulerEventsScript.SECTION_SCHEMA_VERSION
 
-## `72 + 64*0 + 0 + 32*0`, and `72 + 64*4096 + 1048576 + 32*256`. Both stated so a reader can see
-## the bound without running the arithmetic; `section_byte_length()` recomputes them.
-const EMPTY_SECTION_BYTES: int = 72
-const MAX_SECTION_BYTES: int = 1318984
+## `76 + 64*0 + 0 + 32*0`, and `76 + 64*4096 + 1048576 + 32*256`. Both stated so a reader can see
+## the bound without running the arithmetic; `section_byte_length()` recomputes them. Each grew by
+## the four bytes SAVE-SEQ-R01 adds to the prefix's high allocator word.
+const EMPTY_SECTION_BYTES: int = 76
+const MAX_SECTION_BYTES: int = 1318988
 
 const U32_MAX: int = CommandsScript.U32_MAX
+## The single legal allocator high word above u32: the exhausted economic state, whose only legal
+## low word is 0.
+const ECONOMIC_TERMINAL_SEQUENCE_HIGH: int = SchedulerEventsScript.ECONOMIC_TERMINAL_SEQUENCE_HIGH
 const NULL_SLOT: int = EntityDirectoryScript.NULL_SLOT
 const NULL_GENERATION: int = EntityDirectoryScript.NULL_GENERATION
 const RELEASE_ONE_PLAYER_ID: int = CommandsScript.RELEASE_ONE_PLAYER_ID
@@ -546,7 +563,7 @@ class EncodeResult:
 # --- layout arithmetic ------------------------------------------------------------------------------
 
 static func section_byte_length(record: Record) -> int:
-	"""`72 + 64*E + P + 32*S` for this Record, through `scheduler_events.gd`'s own formula.
+	"""`76 + 64*E + P + 32*S` for this Record, through `scheduler_events.gd`'s own formula.
 
 	Arithmetic, not a gate: `record_refusal()` has to have bounded E, P and S first. Delegating
 	means the section directory's length and the prefix's `scheduler_extension_bytes` can never be
@@ -873,9 +890,18 @@ static func extent_refusal(bytes: PackedByteArray, offset: int) -> SaveHeader.Re
 	has to read E, P and X first -- and it bounds all three (SAVE-LAYOUT-R01: "validate count,
 	checked multiplication, remaining bytes ... before allocating or writing a store") before the
 	total is computed, so the multiplication cannot overflow.
+
+	THE SCHEMA WORD IS RECOGNISED BEFORE THE WIDER PREFIX IS DEMANDED. SAVE-SEQ-R01 v2: a 24-byte
+	buffer naming schema 2 must report the ACTUAL unsupported 2 against the supported 3, because
+	"this file is older than this build" is the true diagnosis and a truncation report would send
+	a player looking for a corrupt file instead. Fewer than four readable bytes genuinely is a
+	truncation and is reported as one. Neither answer changes a byte of caller output.
 	"""
 	if offset < 0:
 		return SaveHeader.Refusal.new(REFUSE_NEGATIVE_OFFSET, "offset %d is negative" % offset)
+	var schema: SaveHeader.Refusal = _schema_word_refusal(bytes, offset)
+	if not schema.is_ok():
+		return schema
 	if bytes.size() < PREFIX_BYTES or offset > bytes.size() - PREFIX_BYTES:
 		return SaveHeader.Refusal.new(REFUSE_TRUNCATED,
 			"section 12 needs at least %d prefix bytes at offset %d, buffer holds %d"
@@ -892,14 +918,33 @@ static func extent_refusal(bytes: PackedByteArray, offset: int) -> SaveHeader.Re
 	return SaveHeader.Refusal.new(REFUSE_NONE, "")
 
 
-static func _prefix_shape_refusal(bytes: PackedByteArray, offset: int) -> SaveHeader.Refusal:
-	"""Check the prefix's schema word, its three counts and the `48 + 32*S` extension length."""
+static func _schema_word_refusal(bytes: PackedByteArray, offset: int) -> SaveHeader.Refusal:
+	"""Prove four bytes are readable at `offset`, then that they name the supported schema.
+
+	Runs BEFORE the 28-byte prefix is demanded, so an old schema 2 file -- whose entire prefix is
+	24 bytes -- is refused as the unsupported VERSION it declares rather than as a truncation. The
+	refusal names the actual and the supported version through the existing mechanism; no implicit
+	migration and no silent default is supplied, which SAVE-SEQ-R01 forbids by name. The input file
+	is untouched: an incompatible load is a refusal, never a delete or a rewrite.
+	"""
 	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
-	SaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_SECTION_SCHEMA, scalar)
+	if not SaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_SECTION_SCHEMA, scalar):
+		return SaveHeader.Refusal.new(REFUSE_TRUNCATED,
+			"section 12 needs %d schema bytes at offset %d, buffer holds %d"
+				% [SaveCodec.U32_BYTES, offset, bytes.size()])
 	if scalar.value != SECTION_SCHEMA_VERSION:
 		return SaveHeader.Refusal.new(REFUSE_SECTION_SCHEMA,
 			"section 12 declares schema %d, not the supported %d"
 				% [scalar.value, SECTION_SCHEMA_VERSION])
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+static func _prefix_shape_refusal(bytes: PackedByteArray, offset: int) -> SaveHeader.Refusal:
+	"""Check the prefix's three counts and the `48 + 32*S` extension length.
+
+	The schema word is already proved by `_schema_word_refusal()`, which runs first precisely so an
+	old file is named as an old file rather than as a short one.
+	"""
 	var counts: PackedInt32Array = _prefix_counts(bytes, offset)
 	if counts[2] < 0:
 		return SaveHeader.Refusal.new(REFUSE_EXTENSION_LENGTH,
@@ -945,7 +990,7 @@ static func section_length_refusal(byte_length: int, record: Record) -> SaveHead
 	"""Check a descriptor's declared section length against this Record's computed length.
 
 	SAVE-R09-004 requires exact block consumption and no trailing bytes. Section 12 has no fixed
-	length, so the check is against `72 + 64*E + P + 32*S` for the state actually held.
+	length, so the check is against `76 + 64*E + P + 32*S` for the state actually held.
 	"""
 	var expected: int = section_byte_length(record)
 	if byte_length != expected:
@@ -968,7 +1013,9 @@ static func decode_into(bytes: PackedByteArray, offset: int, out: Record) -> Sav
 		return extent
 	var parsed: Record = Record.new()
 	var counts: PackedInt32Array = _prefix_counts(bytes, offset)
-	_read_prefix(bytes, offset, counts, parsed)
+	var prefix: SaveHeader.Refusal = _read_prefix(bytes, offset, counts, parsed)
+	if not prefix.is_ok():
+		return prefix
 	_read_economic(bytes, offset, parsed)
 	var extension: SaveHeader.Refusal = _read_extension(bytes, offset, parsed)
 	if not extension.is_ok():
@@ -981,16 +1028,27 @@ static func decode_into(bytes: PackedByteArray, offset: int, out: Record) -> Sav
 
 
 static func _read_prefix(bytes: PackedByteArray, offset: int, counts: PackedInt32Array,
-		parsed: Record) -> void:
-	"""Take the prefix's counts and the economic sequence allocator into the Record."""
+		parsed: Record) -> SaveHeader.Refusal:
+	"""Take the prefix's counts and the economic sequence allocator into the Record.
+
+	The high word is a u64 at offset 20 under schema 3, and `save_codec.gd::read_u64_at()` is the
+	CHECKED primitive for it -- it already exists, so no duplicate is added here. Its bool IS
+	tested: a bit pattern GDScript cannot hold as a nonnegative int is refused rather than left as
+	the zero a discarded result would leave behind, because a silent zero would restore a world
+	whose allocator was exhausted as one that still has 2^64 sequences in front of it.
+	"""
 	var scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()
 	parsed.economic_count = counts[0]
 	parsed.payload_used = counts[1]
 	parsed.scheduler_count = counts[2]
 	SaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_NEXT_SEQUENCE_LOW, scalar)
 	parsed.economic_next_sequence_low = scalar.value
-	SaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_NEXT_SEQUENCE_HIGH, scalar)
+	if not SaveCodec.read_u64_at(bytes, offset + OFFSET_PREFIX_NEXT_SEQUENCE_HIGH, scalar):
+		return SaveHeader.Refusal.new(REFUSE_SEQUENCE_RANGE,
+			"the economic next_sequence_high at offset %d is not a readable u64 (%s)"
+				% [offset + OFFSET_PREFIX_NEXT_SEQUENCE_HIGH, scalar.refusal])
 	parsed.economic_next_sequence_high = scalar.value
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
 
 
 static func _read_economic(bytes: PackedByteArray, offset: int, parsed: Record) -> void:
@@ -1130,25 +1188,49 @@ static func _scalar_refusal(record: Record) -> SaveHeader.Refusal:
 
 
 static func _sequence_range_refusal(record: Record) -> SaveHeader.Refusal:
-	"""All four sequence allocators are u32 values 0..4294967295, never i32 bit spellings.
+	"""The five u32 allocator words, then the economic high word's own wider domain.
 
 	This is the sign trap's other face: the COLUMNS hold i32 bits and the ALLOCATORS hold unsigned
-	values, because that is what `restore_sequence()` takes and what the prefix's u32 carries. A
+	values, because that is what their owners take and what the prefix carries. A
 	negative here would round-trip as 4294967295-something and reorder a whole session.
+
+	SAVE-SEQ-R01 SPLITS THE ECONOMIC HIGH WORD OUT OF THIS LOOP, because it is the one allocator
+	word that is not a u32. The scheduler's four control words and the economic LOW word are
+	unchanged u32; the high word is judged by `_economic_high_refusal()` against the ordinary and
+	terminal domain instead.
 	"""
-	var names: PackedStringArray = PackedStringArray(["economic next_sequence_high",
-		"economic next_sequence_low", "scheduler next_sequence_low",
-		"scheduler next_sequence_high", "scheduler last_applied_low",
-		"scheduler last_applied_high"])
-	var values: PackedInt64Array = PackedInt64Array([record.economic_next_sequence_high,
-		record.economic_next_sequence_low, record.scheduler_next_sequence_low,
-		record.scheduler_next_sequence_high, record.scheduler_last_applied_low,
-		record.scheduler_last_applied_high])
+	var names: PackedStringArray = PackedStringArray(["economic next_sequence_low",
+		"scheduler next_sequence_low", "scheduler next_sequence_high",
+		"scheduler last_applied_low", "scheduler last_applied_high"])
+	var values: PackedInt64Array = PackedInt64Array([record.economic_next_sequence_low,
+		record.scheduler_next_sequence_low, record.scheduler_next_sequence_high,
+		record.scheduler_last_applied_low, record.scheduler_last_applied_high])
 	for index: int in values.size():
 		if values[index] < 0 or values[index] > U32_MAX:
 			return SaveHeader.Refusal.new(REFUSE_SEQUENCE_RANGE,
 				"%s is %d, outside 0..%d" % [names[index], values[index], U32_MAX])
-	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+	return _economic_high_refusal(record)
+
+
+static func _economic_high_refusal(record: Record) -> SaveHeader.Refusal:
+	"""The saved economic high word: 0..4294967295 beside any low, or 4294967296 beside low 0.
+
+	The domain itself is `scheduler_events.gd::economic_allocator_refusal()`, so the prefix writer's
+	pre-write gate and this decoder cannot disagree about which tuples exist; this only turns its
+	one generic code into a refusal that says which half was wrong. The terminal value is accepted
+	as it stands -- never clamped, never wrapped -- so a world saved exhausted comes back
+	exhausted, and 4294967297 or a terminal high carrying a nonzero low refuses instead.
+	"""
+	if SchedulerEventsScript.economic_allocator_refusal(record.economic_next_sequence_high,
+			record.economic_next_sequence_low) == REFUSE_NONE:
+		return SaveHeader.Refusal.new(REFUSE_NONE, "")
+	if record.economic_next_sequence_high == ECONOMIC_TERMINAL_SEQUENCE_HIGH:
+		return SaveHeader.Refusal.new(REFUSE_SEQUENCE_RANGE,
+			"the terminal economic next_sequence_high %d carries low %d, not the only legal 0"
+				% [ECONOMIC_TERMINAL_SEQUENCE_HIGH, record.economic_next_sequence_low])
+	return SaveHeader.Refusal.new(REFUSE_SEQUENCE_RANGE,
+		"economic next_sequence_high is %d, outside 0..%d and not the terminal %d"
+			% [record.economic_next_sequence_high, U32_MAX, ECONOMIC_TERMINAL_SEQUENCE_HIGH])
 
 
 static func _economic_refusal(record: Record) -> SaveHeader.Refusal:

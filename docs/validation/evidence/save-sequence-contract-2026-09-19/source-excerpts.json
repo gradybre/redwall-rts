@@ -1,0 +1,501 @@
+{
+  "base_commit": "d94b8d25c8fbb4489484577f1c4346eaec39c379",
+  "purpose": "Exact source excerpts for SAVE-SEQ-R01 review; full file SHA identifies source. No omitted code is claimed reviewed.",
+  "sources": [
+    {
+      "path": "godot/scripts/core/commands.gd",
+      "sha256": "c84f76f1357dc489e40004886e4e49b9bb961aad07cd38f1b1c986790d0184cb",
+      "ranges": [
+        {
+          "start_line": 145,
+          "end_line": 157,
+          "text": "const RELEASE_ONE_PLAYER_ID: int = 0\n\n## u32 bits held in an i32 column, read back the way ARCH-RNG-001 reads stored xorshift state.\nconst U32_MASK: int = 0xffffffff\nconst U32_MAX: int = 4294967295\nconst U32_SIGN_BIT: int = 2147483648\nconst U32_MODULUS: int = 4294967296\n\n## ARCH-CMD-003's \"count first followed by owner-ID-sorted rows\", in the original component field\n## types: `count` is one i32 and each row is an EntityRef, which GDD \u00a74.2 defines as two i32.\nconst ID_GROUP_COUNT_BYTES: int = 4\nconst ID_GROUP_ROW_BYTES: int = 8\nconst ID_GROUP_MAX_ROWS: int = (PAYLOAD_ARENA_BYTES - ID_GROUP_COUNT_BYTES) / ID_GROUP_ROW_BYTES\n"
+        },
+        {
+          "start_line": 825,
+          "end_line": 845,
+          "text": "\nfunc _write_id_group(offset: int, refs: PackedInt32Array) -> void:\n\t\"\"\"Encode ARCH-CMD-003's count-prefixed, owner-ID-sorted EntityRef rows into the arena.\"\"\"\n\tvar count: int = refs.size() / 2\n\t_payload.encode_s32(offset, count)\n\tfor index: int in count:\n\t\tvar row_offset: int = offset + ID_GROUP_COUNT_BYTES + index * ID_GROUP_ROW_BYTES\n\t\t_payload.encode_s32(row_offset, refs[index * 2])\n\t\t_payload.encode_s32(row_offset + FIELD_BYTES, refs[index * 2 + 1])\n\n\nfunc _advance_sequence() -> void:\n\t\"\"\"Step the 64-bit session sequence by one, carrying into the high word. It never wraps.\"\"\"\n\tif _next_sequence_low >= U32_MAX:\n\t\t_next_sequence_low = 0\n\t\t_next_sequence_high += 1\n\t\treturn\n\t_next_sequence_low += 1\n\n\nfunc _sequence_room(count: int) -> bool:\n"
+        },
+        {
+          "start_line": 836,
+          "end_line": 844,
+          "text": "func _advance_sequence() -> void:\n\t\"\"\"Step the 64-bit session sequence by one, carrying into the high word. It never wraps.\"\"\"\n\tif _next_sequence_low >= U32_MAX:\n\t\t_next_sequence_low = 0\n\t\t_next_sequence_high += 1\n\t\treturn\n\t_next_sequence_low += 1\n\n\n"
+        },
+        {
+          "start_line": 845,
+          "end_line": 853,
+          "text": "func _sequence_room(count: int) -> bool:\n\t\"\"\"True when `count` more sequence numbers remain below the 2^64 ceiling, without wrapping.\"\"\"\n\tif _next_sequence_high > U32_MAX:\n\t\treturn false\n\tif _next_sequence_high < U32_MAX:\n\t\treturn true\n\treturn U32_MAX - _next_sequence_low + 1 >= count\n\n\n"
+        },
+        {
+          "start_line": 1029,
+          "end_line": 1048,
+          "text": "func encode_record_into(position: int, out: PackedByteArray, byte_offset: int) -> bool:\n\t\"\"\"Encode the queued command at `position` into `out`, for a save or replay writer.\n\n\tUnwired: no save module exists in this repository, so nothing shipping calls this yet.\n\t\"\"\"\n\tif position < 0 or position >= _count:\n\t\t_last_refusal = REFUSE_POSITION\n\t\treturn false\n\t_read_row(_row_at(position), _scratch)\n\tif not encode_command_into(_scratch, out, byte_offset):\n\t\t_last_refusal = REFUSE_BUFFER_TOO_SMALL\n\t\treturn false\n\treturn true\n\n\n# --- session sequence, capacity and diagnostics ---------------------------------------------------\n\nfunc restore_sequence(high: int, low: int) -> bool:\n\t\"\"\"Set the session sequence a loaded world resumes from. Only legal on an empty queue.\n\n"
+        },
+        {
+          "start_line": 1046,
+          "end_line": 1094,
+          "text": "func restore_sequence(high: int, low: int) -> bool:\n\t\"\"\"Set the session sequence a loaded world resumes from. Only legal on an empty queue.\n\n\t\u00a78.1's save header carries the \"Replay command sequence at checkpoint\" at offset 216; this is\n\twhere it comes back. Restoring under a non-empty queue could mint a key already in it, so it\n\trefuses instead.\n\t\"\"\"\n\tif high < 0 or high > U32_MAX or low < 0 or low > U32_MAX:\n\t\t_last_refusal = REFUSE_SEQUENCE_RANGE\n\t\treturn false\n\tif _count != 0:\n\t\t_last_refusal = REFUSE_QUEUE_NOT_EMPTY\n\t\treturn false\n\t_next_sequence_high = high\n\t_next_sequence_low = low\n\t_last_refusal = REFUSE_NONE\n\treturn true\n\n\n# --- SAVE-P2-R02: the pending-window restore boundary ---------------------------------------------\n#\n# ONE VALIDATOR AND ONE MUTATOR, AND THE VALIDATOR IS PURE. `pending_window_refusal()` answers for\n# a whole saved window -- a compact run of \u00a78.1's 64-byte records in canonical key order, plus the\n# USED PREFIX of the arena, whose length IS the saved highwater -- and writes nothing at all, not\n# even `_last_refusal`, so a save owner may test a decoded window before it owns a queue to put it\n# in. `restore_pending_window()` runs that same validator before its first write, so a refusal\n# leaves every row, every arena byte, both sequence words and all three diagnostic counters as\n# they were (decision 0059, allocate before consume).\n#\n# RESTORE IS NOT AN ADMISSION. Nothing here stamps, allocates, advances the session sequence, runs\n# a tick, drains or calls a producer, and no counter moves. It never consumes an allocator\n# sequence either, so a window whose saved counter is already exhausted restores intact and simply\n# refuses the NEXT ordinary submission through `_sequence_room()`.\n#\n# EXACT OFFSETS, NOT COMPACTION. Every live command keeps the `payload_offset` it was allocated\n# and `_payload_used` becomes the saved highwater, so the capacity the restored world offers its\n# next submission is the capacity the saved world had. Allocation order and key order may\n# disagree; dead prefixes, holes and tails are legal; and every byte no live span owns must\n# ALREADY be zero -- a nonzero dead byte refuses rather than being scrubbed.\n#\n# THE BARRIER IS REQUIRED, NOT OPTIONAL. Both entry points answer COMMAND_LOAD_BARRIER when the\n# bound clock's barrier is NOT held. This is the privileged path: it may replace a NON-EMPTY\n# window, which is what lets a coordinator put a previous owner back after a later install\n# refused, and is exactly why it may only run inside a load the barrier has already announced.\n#\n# COLD SCRATCH ONLY. One decoded `Command` and at most 4096 packed span keys (32768 bytes) per\n# call, on a boundary that happens once per world. No second `Commands` object is built, no\n# per-row object array exists, and no retained or persisted field is added anywhere here.\n\n"
+        },
+        {
+          "start_line": 1203,
+          "end_line": 1215,
+          "text": "static func _window_sequence_is_legal(high: int, low: int) -> bool:\n\t\"\"\"The counter a restored window resumes from: any u32 pair, or the exhausted runtime pair.\n\n\t`(4294967296, 0)` is what `_advance_sequence()` leaves once the final sequence has been spent.\n\tIt is a legal RUNTIME value -- `_sequence_room()` refuses every later submission from it -- so\n\ta window carrying it restores rather than being refused into a world that cannot express what\n\tit already was. No other high word above u32, and no negative word, is legal.\n\t\"\"\"\n\tif high == U32_MODULUS:\n\t\treturn low == 0\n\treturn high >= 0 and high <= U32_MAX and low >= 0 and low <= U32_MAX\n\n\n"
+        }
+      ]
+    },
+    {
+      "path": "godot/scripts/core/scheduler_events.gd",
+      "sha256": "5981c3c05c454f46968a252bd544da084b9a530b3bbcf26d8041c583e09063bc",
+      "ranges": [
+        {
+          "start_line": 187,
+          "end_line": 205,
+          "text": "const OFFSET_EXTENSION_PAYLOAD_LENGTH: int = 12\nconst EXTENSION_HEADER_BYTES: int = 16\n## X = 48 + 32*S in the contract's own arithmetic.\nconst EXTENSION_FIXED_BYTES: int = EXTENSION_HEADER_BYTES + CONTROL_BYTES\n\n## Contract, container version 2's section 12 prefix: \"an exact 24-byte prefix, six U32 fields\".\nconst SECTION_SCHEMA_VERSION_TWO: int = 2\nconst SECTION_PREFIX_BYTES: int = 24\nconst OFFSET_PREFIX_SECTION_SCHEMA: int = 0\nconst OFFSET_PREFIX_ECONOMIC_COUNT: int = 4\nconst OFFSET_PREFIX_ECONOMIC_PAYLOAD_USED: int = 8\nconst OFFSET_PREFIX_SCHEDULER_EXTENSION_BYTES: int = 12\nconst OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_LOW: int = 16\nconst OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_HIGH: int = 20\n## Contract: \"Require E <= 4096, P <= 1048576, S <= 256\".\nconst MAX_ECONOMIC_RECORDS: int = 4096\nconst MAX_ECONOMIC_PAYLOAD_BYTES: int = 1048576\nconst ECONOMIC_RECORD_BYTES: int = 64\n\n"
+        },
+        {
+          "start_line": 1217,
+          "end_line": 1264,
+          "text": "# --- container version 2's section 12 arithmetic (pure; it reads no economic store) ----------------------------------\n\nstatic func section_twelve_length(economic_count: int, economic_payload_used: int,\n\t\tscheduler_count: int) -> int:\n\t\"\"\"The contract's `72 + 64*E + P + 32*S`. Returns a length, never a failure sentinel.\n\n\tCallers validate the three inputs with `section_twelve_refusal()` FIRST; this is arithmetic,\n\tnot a gate. It exists so the prefix's `scheduler_extension_bytes` and the section directory's\n\town length cannot be derived twice from two different formulas.\n\t\"\"\"\n\treturn SECTION_PREFIX_BYTES + ECONOMIC_RECORD_BYTES * economic_count \\\n\t\t+ economic_payload_used + EXTENSION_FIXED_BYTES + RECORD_BYTES * scheduler_count\n\n\nstatic func section_twelve_refusal(economic_count: int, economic_payload_used: int,\n\t\tscheduler_count: int) -> StringName:\n\t\"\"\"The contract's \"Require E <= 4096, P <= 1048576, S <= 256\" and nonnegativity.\"\"\"\n\tif economic_count < 0 or economic_count > MAX_ECONOMIC_RECORDS:\n\t\treturn REFUSE_SECTION_COUNT\n\tif economic_payload_used < 0 or economic_payload_used > MAX_ECONOMIC_PAYLOAD_BYTES:\n\t\treturn REFUSE_SECTION_LENGTH\n\tif scheduler_count < 0 or scheduler_count > QUEUE_CAPACITY:\n\t\treturn REFUSE_SECTION_COUNT\n\treturn REFUSE_NONE\n\n\nstatic func encode_section_prefix_into(out: PackedByteArray, byte_offset: int, economic_count: int,\n\t\teconomic_payload_used: int, scheduler_count: int, economic_next_low: int,\n\t\teconomic_next_high: int) -> bool:\n\t\"\"\"Write the exact 24-byte prefix: six u32 in the contract's stated order.\n\n\t`economic_next_sequence_*` preserve `commands.gd`'s own allocator semantics, NOT this\n\tscheduler's initial-1 / (0,0)-sentinel policy; the two sequence spaces never mix.\n\t\"\"\"\n\tif byte_offset < 0 or out.size() < byte_offset + SECTION_PREFIX_BYTES:\n\t\treturn false\n\tif section_twelve_refusal(economic_count, economic_payload_used, scheduler_count) != REFUSE_NONE:\n\t\treturn false\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_SECTION_SCHEMA, SECTION_SCHEMA_VERSION_TWO)\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_COUNT, economic_count)\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_PAYLOAD_USED, economic_payload_used)\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_SCHEDULER_EXTENSION_BYTES,\n\t\tEXTENSION_FIXED_BYTES + RECORD_BYTES * scheduler_count)\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_LOW, economic_next_low)\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_HIGH, economic_next_high)\n\treturn true\n\n\n"
+        },
+        {
+          "start_line": 1219,
+          "end_line": 1230,
+          "text": "static func section_twelve_length(economic_count: int, economic_payload_used: int,\n\t\tscheduler_count: int) -> int:\n\t\"\"\"The contract's `72 + 64*E + P + 32*S`. Returns a length, never a failure sentinel.\n\n\tCallers validate the three inputs with `section_twelve_refusal()` FIRST; this is arithmetic,\n\tnot a gate. It exists so the prefix's `scheduler_extension_bytes` and the section directory's\n\town length cannot be derived twice from two different formulas.\n\t\"\"\"\n\treturn SECTION_PREFIX_BYTES + ECONOMIC_RECORD_BYTES * economic_count \\\n\t\t+ economic_payload_used + EXTENSION_FIXED_BYTES + RECORD_BYTES * scheduler_count\n\n\n"
+        },
+        {
+          "start_line": 1231,
+          "end_line": 1242,
+          "text": "static func section_twelve_refusal(economic_count: int, economic_payload_used: int,\n\t\tscheduler_count: int) -> StringName:\n\t\"\"\"The contract's \"Require E <= 4096, P <= 1048576, S <= 256\" and nonnegativity.\"\"\"\n\tif economic_count < 0 or economic_count > MAX_ECONOMIC_RECORDS:\n\t\treturn REFUSE_SECTION_COUNT\n\tif economic_payload_used < 0 or economic_payload_used > MAX_ECONOMIC_PAYLOAD_BYTES:\n\t\treturn REFUSE_SECTION_LENGTH\n\tif scheduler_count < 0 or scheduler_count > QUEUE_CAPACITY:\n\t\treturn REFUSE_SECTION_COUNT\n\treturn REFUSE_NONE\n\n\n"
+        },
+        {
+          "start_line": 1243,
+          "end_line": 1266,
+          "text": "static func encode_section_prefix_into(out: PackedByteArray, byte_offset: int, economic_count: int,\n\t\teconomic_payload_used: int, scheduler_count: int, economic_next_low: int,\n\t\teconomic_next_high: int) -> bool:\n\t\"\"\"Write the exact 24-byte prefix: six u32 in the contract's stated order.\n\n\t`economic_next_sequence_*` preserve `commands.gd`'s own allocator semantics, NOT this\n\tscheduler's initial-1 / (0,0)-sentinel policy; the two sequence spaces never mix.\n\t\"\"\"\n\tif byte_offset < 0 or out.size() < byte_offset + SECTION_PREFIX_BYTES:\n\t\treturn false\n\tif section_twelve_refusal(economic_count, economic_payload_used, scheduler_count) != REFUSE_NONE:\n\t\treturn false\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_SECTION_SCHEMA, SECTION_SCHEMA_VERSION_TWO)\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_COUNT, economic_count)\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_PAYLOAD_USED, economic_payload_used)\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_SCHEDULER_EXTENSION_BYTES,\n\t\tEXTENSION_FIXED_BYTES + RECORD_BYTES * scheduler_count)\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_LOW, economic_next_low)\n\tout.encode_u32(byte_offset + OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_HIGH, economic_next_high)\n\treturn true\n\n\n# --- loader hooks, capacity and diagnostics -----------------------------------------------------------------------\n\n"
+        }
+      ]
+    },
+    {
+      "path": "godot/scripts/core/save_section_pending_commands.gd",
+      "sha256": "b951e66d49e7023585ddb17010930d088d5d5a16b0375064260f654363234209",
+      "ranges": [
+        {
+          "start_line": 185,
+          "end_line": 236,
+          "text": "\n# --- ARCH-SAVE-002 identity -----------------------------------------------------------------------\n\n## ARCH-SAVE-002's section order: \"... 11 EVENT_SCHEDULE, 12 PENDING_COMMANDS, ...\".\nconst SECTION_ID: int = 12\n\n## REG-R01: \"\u00a712 was already 2\". Read off `scheduler_events.gd` so the two cannot drift.\nconst SECTION_SCHEMA_VERSION: int = SchedulerEventsScript.SECTION_SCHEMA_VERSION_TWO\n\n## The two registered owners, in the ASCII order REG-R01 orders blocks by. `commands` owns the\n## prefix and the economic records; `scheduler_events` owns the trailing `SCHQ0001` extension.\nconst OWNER_KEY_COMMANDS: String = \"commands\"\nconst OWNER_KEY_SCHEDULER: String = \"scheduler_events\"\nconst OWNER_SCHEMA_VERSION_COMMANDS: int = 1\nconst OWNER_SCHEMA_VERSION_SCHEDULER: int = 1\n\n# --- layout, every number read off its owner --------------------------------------------------------\n\nconst PREFIX_BYTES: int = SchedulerEventsScript.SECTION_PREFIX_BYTES\nconst OFFSET_PREFIX_SECTION_SCHEMA: int = SchedulerEventsScript.OFFSET_PREFIX_SECTION_SCHEMA\nconst OFFSET_PREFIX_ECONOMIC_COUNT: int = SchedulerEventsScript.OFFSET_PREFIX_ECONOMIC_COUNT\nconst OFFSET_PREFIX_PAYLOAD_USED: int = SchedulerEventsScript.OFFSET_PREFIX_ECONOMIC_PAYLOAD_USED\nconst OFFSET_PREFIX_EXTENSION_BYTES: int = \\\n\tSchedulerEventsScript.OFFSET_PREFIX_SCHEDULER_EXTENSION_BYTES\nconst OFFSET_PREFIX_NEXT_SEQUENCE_LOW: int = \\\n\tSchedulerEventsScript.OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_LOW\nconst OFFSET_PREFIX_NEXT_SEQUENCE_HIGH: int = \\\n\tSchedulerEventsScript.OFFSET_PREFIX_ECONOMIC_NEXT_SEQUENCE_HIGH\n\nconst ECONOMIC_CAPACITY: int = CommandsScript.QUEUE_CAPACITY\nconst ECONOMIC_RECORD_BYTES: int = CommandsScript.RECORD_BYTES\nconst PAYLOAD_ARENA_BYTES: int = CommandsScript.PAYLOAD_ARENA_BYTES\n\nconst SCHEDULER_CAPACITY: int = SchedulerEventsScript.QUEUE_CAPACITY\nconst SCHEDULER_RECORD_BYTES: int = SchedulerEventsScript.RECORD_BYTES\nconst CONTROL_BYTES: int = SchedulerEventsScript.CONTROL_BYTES\nconst EXTENSION_HEADER_BYTES: int = SchedulerEventsScript.EXTENSION_HEADER_BYTES\nconst EXTENSION_FIXED_BYTES: int = SchedulerEventsScript.EXTENSION_FIXED_BYTES\nconst SECTION_TAG: String = SchedulerEventsScript.SECTION_TAG\nconst SECTION_TAG_BYTES: int = SchedulerEventsScript.SECTION_TAG_BYTES\nconst EXTENSION_SCHEMA_VERSION: int = SchedulerEventsScript.SECTION_SCHEMA_VERSION\n\n## `72 + 64*0 + 0 + 32*0`, and `72 + 64*4096 + 1048576 + 32*256`. Both stated so a reader can see\n## the bound without running the arithmetic; `section_byte_length()` recomputes them.\nconst EMPTY_SECTION_BYTES: int = 72\nconst MAX_SECTION_BYTES: int = 1318984\n\nconst U32_MAX: int = CommandsScript.U32_MAX\nconst NULL_SLOT: int = EntityDirectoryScript.NULL_SLOT\nconst NULL_GENERATION: int = EntityDirectoryScript.NULL_GENERATION\nconst RELEASE_ONE_PLAYER_ID: int = CommandsScript.RELEASE_ONE_PLAYER_ID\nconst SCHEDULER_KIND_COUNT: int = SchedulerEventsScript.KIND_COUNT\n"
+        },
+        {
+          "start_line": 741,
+          "end_line": 765,
+          "text": "static func encode_record(record: Record, out: EncodeResult) -> bool:\n\t\"\"\"Materialise a whole validated section 12 into one buffer.\n\n\tThe record bodies come from their OWNERS' encoders (`encode_command_into()`,\n\t`encode_event_into()`) and the prefix from `encode_section_prefix_into()`, so \u00a78.1's 64-byte\n\tlayout and the contract's 32-byte layout exist in exactly one place each.\n\t\"\"\"\n\tvar invalid: SaveHeader.Refusal = record_refusal(record)\n\tif not invalid.is_ok():\n\t\treturn out.refuse(invalid.code, invalid.detail)\n\tvar buffer: PackedByteArray = PackedByteArray()\n\tbuffer.resize(section_byte_length(record))\n\tbuffer.fill(0)\n\tif not SchedulerEventsScript.encode_section_prefix_into(buffer, 0, record.economic_count,\n\t\t\trecord.payload_used, record.scheduler_count, record.economic_next_sequence_low,\n\t\t\trecord.economic_next_sequence_high):\n\t\treturn out.refuse(REFUSE_ENCODE_FAILED, \"the section 12 prefix writer refused\")\n\tif not _write_economic_into(record, buffer, 0):\n\t\treturn out.refuse(REFUSE_ENCODE_FAILED, \"an economic record writer refused\")\n\tif not _write_extension_into(record, buffer,\n\t\t\textension_offset_of(record.economic_count, record.payload_used)):\n\t\treturn out.refuse(REFUSE_ENCODE_FAILED, \"the SCHQ0001 writer refused\")\n\treturn out.succeed(buffer)\n\n\n"
+        },
+        {
+          "start_line": 868,
+          "end_line": 894,
+          "text": "static func extent_refusal(bytes: PackedByteArray, offset: int) -> SaveHeader.Refusal:\n\t\"\"\"Prove a whole section 12 is readable at `offset`, reading the prefix to learn its length.\n\n\tPublic because it is the PRIMARY gate and must be testable on its own, exactly as\n\t`save_section_directory.gd::extent_refusal()` is. Section 12 is variable length, so the gate\n\thas to read E, P and X first -- and it bounds all three (SAVE-LAYOUT-R01: \"validate count,\n\tchecked multiplication, remaining bytes ... before allocating or writing a store\") before the\n\ttotal is computed, so the multiplication cannot overflow.\n\t\"\"\"\n\tif offset < 0:\n\t\treturn SaveHeader.Refusal.new(REFUSE_NEGATIVE_OFFSET, \"offset %d is negative\" % offset)\n\tif bytes.size() < PREFIX_BYTES or offset > bytes.size() - PREFIX_BYTES:\n\t\treturn SaveHeader.Refusal.new(REFUSE_TRUNCATED,\n\t\t\t\"section 12 needs at least %d prefix bytes at offset %d, buffer holds %d\"\n\t\t\t\t% [PREFIX_BYTES, offset, bytes.size()])\n\tvar header: SaveHeader.Refusal = _prefix_shape_refusal(bytes, offset)\n\tif not header.is_ok():\n\t\treturn header\n\tvar counts: PackedInt32Array = _prefix_counts(bytes, offset)\n\tvar total: int = SchedulerEventsScript.section_twelve_length(counts[0], counts[1], counts[2])\n\tif bytes.size() < total or offset > bytes.size() - total:\n\t\treturn SaveHeader.Refusal.new(REFUSE_TRUNCATED,\n\t\t\t\"section 12 needs %d bytes at offset %d, buffer holds %d\"\n\t\t\t\t% [total, offset, bytes.size()])\n\treturn SaveHeader.Refusal.new(REFUSE_NONE, \"\")\n\n\n"
+        },
+        {
+          "start_line": 868,
+          "end_line": 943,
+          "text": "static func extent_refusal(bytes: PackedByteArray, offset: int) -> SaveHeader.Refusal:\n\t\"\"\"Prove a whole section 12 is readable at `offset`, reading the prefix to learn its length.\n\n\tPublic because it is the PRIMARY gate and must be testable on its own, exactly as\n\t`save_section_directory.gd::extent_refusal()` is. Section 12 is variable length, so the gate\n\thas to read E, P and X first -- and it bounds all three (SAVE-LAYOUT-R01: \"validate count,\n\tchecked multiplication, remaining bytes ... before allocating or writing a store\") before the\n\ttotal is computed, so the multiplication cannot overflow.\n\t\"\"\"\n\tif offset < 0:\n\t\treturn SaveHeader.Refusal.new(REFUSE_NEGATIVE_OFFSET, \"offset %d is negative\" % offset)\n\tif bytes.size() < PREFIX_BYTES or offset > bytes.size() - PREFIX_BYTES:\n\t\treturn SaveHeader.Refusal.new(REFUSE_TRUNCATED,\n\t\t\t\"section 12 needs at least %d prefix bytes at offset %d, buffer holds %d\"\n\t\t\t\t% [PREFIX_BYTES, offset, bytes.size()])\n\tvar header: SaveHeader.Refusal = _prefix_shape_refusal(bytes, offset)\n\tif not header.is_ok():\n\t\treturn header\n\tvar counts: PackedInt32Array = _prefix_counts(bytes, offset)\n\tvar total: int = SchedulerEventsScript.section_twelve_length(counts[0], counts[1], counts[2])\n\tif bytes.size() < total or offset > bytes.size() - total:\n\t\treturn SaveHeader.Refusal.new(REFUSE_TRUNCATED,\n\t\t\t\"section 12 needs %d bytes at offset %d, buffer holds %d\"\n\t\t\t\t% [total, offset, bytes.size()])\n\treturn SaveHeader.Refusal.new(REFUSE_NONE, \"\")\n\n\nstatic func _prefix_shape_refusal(bytes: PackedByteArray, offset: int) -> SaveHeader.Refusal:\n\t\"\"\"Check the prefix's schema word, its three counts and the `48 + 32*S` extension length.\"\"\"\n\tvar scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_SECTION_SCHEMA, scalar)\n\tif scalar.value != SECTION_SCHEMA_VERSION:\n\t\treturn SaveHeader.Refusal.new(REFUSE_SECTION_SCHEMA,\n\t\t\t\"section 12 declares schema %d, not the supported %d\"\n\t\t\t\t% [scalar.value, SECTION_SCHEMA_VERSION])\n\tvar counts: PackedInt32Array = _prefix_counts(bytes, offset)\n\tif counts[2] < 0:\n\t\treturn SaveHeader.Refusal.new(REFUSE_EXTENSION_LENGTH,\n\t\t\t\"scheduler_extension_bytes is not %d + 32*S\" % EXTENSION_FIXED_BYTES)\n\treturn bound_refusal(counts[0], counts[1], counts[2])\n\n\nstatic func _prefix_counts(bytes: PackedByteArray, offset: int) -> PackedInt32Array:\n\t\"\"\"`[E, P, S]` read straight off the prefix, with S recovered from X. Unvalidated.\"\"\"\n\tvar scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_ECONOMIC_COUNT, scalar)\n\tvar economic: int = scalar.value\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_PAYLOAD_USED, scalar)\n\tvar used: int = scalar.value\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_EXTENSION_BYTES, scalar)\n\treturn PackedInt32Array([economic, used, scheduler_count_of_extension_bytes(scalar.value)])\n\n\nstatic func bound_refusal(economic_count: int, payload_used: int,\n\t\tscheduler_count: int) -> SaveHeader.Refusal:\n\t\"\"\"The contract's \"Require E <= 4096, P <= 1048576, S <= 256\", naming which one failed.\n\n\tThe bound itself is `scheduler_events.gd::section_twelve_refusal()` so the three limits live in\n\tone place; this only translates its two generic codes into a refusal that says which of the\n\tthree counts was wrong, because \"SECTION_COUNT\" alone cannot tell E from S.\n\t\"\"\"\n\tif SchedulerEventsScript.section_twelve_refusal(economic_count, payload_used,\n\t\t\tscheduler_count) == REFUSE_NONE:\n\t\treturn SaveHeader.Refusal.new(REFUSE_NONE, \"\")\n\tif economic_count < 0 or economic_count > SchedulerEventsScript.MAX_ECONOMIC_RECORDS:\n\t\treturn SaveHeader.Refusal.new(REFUSE_ECONOMIC_COUNT,\n\t\t\t\"E is %d, outside 0..%d\"\n\t\t\t\t% [economic_count, SchedulerEventsScript.MAX_ECONOMIC_RECORDS])\n\tif payload_used < 0 or payload_used > SchedulerEventsScript.MAX_ECONOMIC_PAYLOAD_BYTES:\n\t\treturn SaveHeader.Refusal.new(REFUSE_PAYLOAD_USED,\n\t\t\t\"P is %d, outside 0..%d\"\n\t\t\t\t% [payload_used, SchedulerEventsScript.MAX_ECONOMIC_PAYLOAD_BYTES])\n\treturn SaveHeader.Refusal.new(REFUSE_SCHEDULER_COUNT,\n\t\t\"S is %d, outside 0..%d\" % [scheduler_count, SCHEDULER_CAPACITY])\n\n\n"
+        },
+        {
+          "start_line": 895,
+          "end_line": 909,
+          "text": "static func _prefix_shape_refusal(bytes: PackedByteArray, offset: int) -> SaveHeader.Refusal:\n\t\"\"\"Check the prefix's schema word, its three counts and the `48 + 32*S` extension length.\"\"\"\n\tvar scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_SECTION_SCHEMA, scalar)\n\tif scalar.value != SECTION_SCHEMA_VERSION:\n\t\treturn SaveHeader.Refusal.new(REFUSE_SECTION_SCHEMA,\n\t\t\t\"section 12 declares schema %d, not the supported %d\"\n\t\t\t\t% [scalar.value, SECTION_SCHEMA_VERSION])\n\tvar counts: PackedInt32Array = _prefix_counts(bytes, offset)\n\tif counts[2] < 0:\n\t\treturn SaveHeader.Refusal.new(REFUSE_EXTENSION_LENGTH,\n\t\t\t\"scheduler_extension_bytes is not %d + 32*S\" % EXTENSION_FIXED_BYTES)\n\treturn bound_refusal(counts[0], counts[1], counts[2])\n\n\n"
+        },
+        {
+          "start_line": 910,
+          "end_line": 920,
+          "text": "static func _prefix_counts(bytes: PackedByteArray, offset: int) -> PackedInt32Array:\n\t\"\"\"`[E, P, S]` read straight off the prefix, with S recovered from X. Unvalidated.\"\"\"\n\tvar scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_ECONOMIC_COUNT, scalar)\n\tvar economic: int = scalar.value\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_PAYLOAD_USED, scalar)\n\tvar used: int = scalar.value\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_EXTENSION_BYTES, scalar)\n\treturn PackedInt32Array([economic, used, scheduler_count_of_extension_bytes(scalar.value)])\n\n\n"
+        },
+        {
+          "start_line": 958,
+          "end_line": 982,
+          "text": "static func decode_into(bytes: PackedByteArray, offset: int, out: Record) -> SaveHeader.Refusal:\n\t\"\"\"Decode section 12 from `offset`, validating everything before `out` is written at all.\n\n\tAllocate before consume (decision 0059): the extent is proved, the prefix and both owners'\n\trecords land in a LOCAL Record, and every cross-column invariant runs against that local. A\n\tFULL-LENGTH section carrying an out-of-order key, a nonzero `reserved`, an overlapping payload\n\tspan or arena garbage therefore leaves `out` byte-identical -- validate-then-commit.\n\t\"\"\"\n\tvar extent: SaveHeader.Refusal = extent_refusal(bytes, offset)\n\tif not extent.is_ok():\n\t\treturn extent\n\tvar parsed: Record = Record.new()\n\tvar counts: PackedInt32Array = _prefix_counts(bytes, offset)\n\t_read_prefix(bytes, offset, counts, parsed)\n\t_read_economic(bytes, offset, parsed)\n\tvar extension: SaveHeader.Refusal = _read_extension(bytes, offset, parsed)\n\tif not extension.is_ok():\n\t\treturn extension\n\tvar invalid: SaveHeader.Refusal = record_refusal(parsed)\n\tif not invalid.is_ok():\n\t\treturn invalid\n\tout.copy_from(parsed)\n\treturn SaveHeader.Refusal.new(REFUSE_NONE, \"\")\n\n\n"
+        },
+        {
+          "start_line": 958,
+          "end_line": 995,
+          "text": "static func decode_into(bytes: PackedByteArray, offset: int, out: Record) -> SaveHeader.Refusal:\n\t\"\"\"Decode section 12 from `offset`, validating everything before `out` is written at all.\n\n\tAllocate before consume (decision 0059): the extent is proved, the prefix and both owners'\n\trecords land in a LOCAL Record, and every cross-column invariant runs against that local. A\n\tFULL-LENGTH section carrying an out-of-order key, a nonzero `reserved`, an overlapping payload\n\tspan or arena garbage therefore leaves `out` byte-identical -- validate-then-commit.\n\t\"\"\"\n\tvar extent: SaveHeader.Refusal = extent_refusal(bytes, offset)\n\tif not extent.is_ok():\n\t\treturn extent\n\tvar parsed: Record = Record.new()\n\tvar counts: PackedInt32Array = _prefix_counts(bytes, offset)\n\t_read_prefix(bytes, offset, counts, parsed)\n\t_read_economic(bytes, offset, parsed)\n\tvar extension: SaveHeader.Refusal = _read_extension(bytes, offset, parsed)\n\tif not extension.is_ok():\n\t\treturn extension\n\tvar invalid: SaveHeader.Refusal = record_refusal(parsed)\n\tif not invalid.is_ok():\n\t\treturn invalid\n\tout.copy_from(parsed)\n\treturn SaveHeader.Refusal.new(REFUSE_NONE, \"\")\n\n\nstatic func _read_prefix(bytes: PackedByteArray, offset: int, counts: PackedInt32Array,\n\t\tparsed: Record) -> void:\n\t\"\"\"Take the prefix's counts and the economic sequence allocator into the Record.\"\"\"\n\tvar scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()\n\tparsed.economic_count = counts[0]\n\tparsed.payload_used = counts[1]\n\tparsed.scheduler_count = counts[2]\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_NEXT_SEQUENCE_LOW, scalar)\n\tparsed.economic_next_sequence_low = scalar.value\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_NEXT_SEQUENCE_HIGH, scalar)\n\tparsed.economic_next_sequence_high = scalar.value\n\n\n"
+        },
+        {
+          "start_line": 983,
+          "end_line": 995,
+          "text": "static func _read_prefix(bytes: PackedByteArray, offset: int, counts: PackedInt32Array,\n\t\tparsed: Record) -> void:\n\t\"\"\"Take the prefix's counts and the economic sequence allocator into the Record.\"\"\"\n\tvar scalar: SaveCodec.Scalar = SaveCodec.Scalar.new()\n\tparsed.economic_count = counts[0]\n\tparsed.payload_used = counts[1]\n\tparsed.scheduler_count = counts[2]\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_NEXT_SEQUENCE_LOW, scalar)\n\tparsed.economic_next_sequence_low = scalar.value\n\tSaveCodec.read_u32_at(bytes, offset + OFFSET_PREFIX_NEXT_SEQUENCE_HIGH, scalar)\n\tparsed.economic_next_sequence_high = scalar.value\n\n\n"
+        },
+        {
+          "start_line": 1132,
+          "end_line": 1153,
+          "text": "static func _sequence_range_refusal(record: Record) -> SaveHeader.Refusal:\n\t\"\"\"All four sequence allocators are u32 values 0..4294967295, never i32 bit spellings.\n\n\tThis is the sign trap's other face: the COLUMNS hold i32 bits and the ALLOCATORS hold unsigned\n\tvalues, because that is what `restore_sequence()` takes and what the prefix's u32 carries. A\n\tnegative here would round-trip as 4294967295-something and reorder a whole session.\n\t\"\"\"\n\tvar names: PackedStringArray = PackedStringArray([\"economic next_sequence_high\",\n\t\t\"economic next_sequence_low\", \"scheduler next_sequence_low\",\n\t\t\"scheduler next_sequence_high\", \"scheduler last_applied_low\",\n\t\t\"scheduler last_applied_high\"])\n\tvar values: PackedInt64Array = PackedInt64Array([record.economic_next_sequence_high,\n\t\trecord.economic_next_sequence_low, record.scheduler_next_sequence_low,\n\t\trecord.scheduler_next_sequence_high, record.scheduler_last_applied_low,\n\t\trecord.scheduler_last_applied_high])\n\tfor index: int in values.size():\n\t\tif values[index] < 0 or values[index] > U32_MAX:\n\t\t\treturn SaveHeader.Refusal.new(REFUSE_SEQUENCE_RANGE,\n\t\t\t\t\"%s is %d, outside 0..%d\" % [names[index], values[index], U32_MAX])\n\treturn SaveHeader.Refusal.new(REFUSE_NONE, \"\")\n\n\n"
+        },
+        {
+          "start_line": 1133,
+          "end_line": 1157,
+          "text": "\t\"\"\"All four sequence allocators are u32 values 0..4294967295, never i32 bit spellings.\n\n\tThis is the sign trap's other face: the COLUMNS hold i32 bits and the ALLOCATORS hold unsigned\n\tvalues, because that is what `restore_sequence()` takes and what the prefix's u32 carries. A\n\tnegative here would round-trip as 4294967295-something and reorder a whole session.\n\t\"\"\"\n\tvar names: PackedStringArray = PackedStringArray([\"economic next_sequence_high\",\n\t\t\"economic next_sequence_low\", \"scheduler next_sequence_low\",\n\t\t\"scheduler next_sequence_high\", \"scheduler last_applied_low\",\n\t\t\"scheduler last_applied_high\"])\n\tvar values: PackedInt64Array = PackedInt64Array([record.economic_next_sequence_high,\n\t\trecord.economic_next_sequence_low, record.scheduler_next_sequence_low,\n\t\trecord.scheduler_next_sequence_high, record.scheduler_last_applied_low,\n\t\trecord.scheduler_last_applied_high])\n\tfor index: int in values.size():\n\t\tif values[index] < 0 or values[index] > U32_MAX:\n\t\t\treturn SaveHeader.Refusal.new(REFUSE_SEQUENCE_RANGE,\n\t\t\t\t\"%s is %d, outside 0..%d\" % [names[index], values[index], U32_MAX])\n\treturn SaveHeader.Refusal.new(REFUSE_NONE, \"\")\n\n\nstatic func _economic_refusal(record: Record) -> SaveHeader.Refusal:\n\t\"\"\"Every pending command's fields, and ARCH-CMD-001's strictly increasing ordering key.\"\"\"\n\tfor row: int in record.economic_count:\n\t\tvar invalid: SaveHeader.Refusal = _economic_row_refusal(record, row)\n"
+        }
+      ]
+    },
+    {
+      "path": "godot/scripts/core/canonical_state_hash.gd",
+      "sha256": "db6a1a8d1f9596506146260f3103c7281734cf9fea637b9b3dc50c1131daba78",
+      "ranges": [
+        {
+          "start_line": 975,
+          "end_line": 1010,
+          "text": "\t\tif type_code == TYPE_U32:\n\t\t\treturn _emit_u32(emitter)\n\t\treturn _emit_wide(type_code, emitter)\n\n\tfunc _emit_u32(emitter: Emitter) -> Refusal:\n\t\t\"\"\"u32 from i32 bit patterns, or from logical i64 values range-checked against 0..2^32-1.\"\"\"\n\t\tif _values.storage == STORAGE_INT32:\n\t\t\tfor position: int in _values.count:\n\t\t\t\temitter.put_u32(SaveCodec.int32_bits_to_u32(_values.int32s[position]))\n\t\t\treturn Refusal.new(REFUSE_NONE, \"\")\n\t\tfor position: int in _values.count:\n\t\t\tvar value: int = _values.int64s[position]\n\t\t\tif value < 0 or value > SaveCodec.UINT32_MAX:\n\t\t\t\treturn Refusal.new(REFUSE_VALUE_RANGE,\n\t\t\t\t\t\"u32 value %d at index %d is outside 0..4294967295\" % [value, position])\n\t\t\temitter.put_u32(value)\n\t\treturn Refusal.new(REFUSE_NONE, \"\")\n\n\tfunc _emit_wide(type_code: int, emitter: Emitter) -> Refusal:\n\t\t\"\"\"u64 and i64. A negative u64 refuses: GDScript cannot hold the upper half of that range.\"\"\"\n\t\tif type_code == TYPE_I64:\n\t\t\tfor position: int in _values.count:\n\t\t\t\temitter.put_i64(_values.int64s[position])\n\t\t\treturn Refusal.new(REFUSE_NONE, \"\")\n\t\tfor position: int in _values.count:\n\t\t\tvar value: int = _values.int64s[position]\n\t\t\tif value < 0:\n\t\t\t\treturn Refusal.new(REFUSE_VALUE_RANGE,\n\t\t\t\t\t\"u64 value at index %d is negative as a GDScript int\" % position)\n\t\t\temitter.put_u64(value)\n\t\treturn Refusal.new(REFUSE_NONE, \"\")\n\n\tfunc _storage_allowed(type_code: int, storage: int) -> bool:\n\t\t\"\"\"The fixed type-to-storage table. No inference, no default, no silent widening.\"\"\"\n\t\tif type_code == TYPE_U8:\n\t\t\treturn storage == STORAGE_BYTE\n"
+        },
+        {
+          "start_line": 1040,
+          "end_line": 1058,
+          "text": "\n\nstatic func production_declaration() -> Declaration:\n\t\"\"\"The canonical declaration compiled from the checked-in registry. Built once, then shared.\"\"\"\n\tif _production != null:\n\t\treturn _production\n\tvar builder: Builder = Builder.new()\n\tvar field_index: int = 0\n\tfor owner: int in CANONICAL_OWNER_COUNT:\n\t\tbuilder.begin_owner(int(OWNER_SECTIONS[owner]), String(OWNER_KEYS[owner]),\n\t\t\tint(OWNER_VERSIONS[owner]))\n\t\tfor _offset: int in int(OWNER_FIELD_COUNTS[owner]):\n\t\t\t_add_generated_field(builder, field_index)\n\t\t\tfield_index += 1\n\t_production = builder.seal(DECLARATION_ID)\n\treturn _production\n\n\nstatic func _add_generated_field(builder: Builder, index: int) -> void:\n"
+        },
+        {
+          "start_line": 1081,
+          "end_line": 1116,
+          "text": "# re-reads that JSON and proves every entry below equals it.\n#   registry_id RWL-CANONICAL-REGISTRY-2026-09-15-3, registry_version 3\n#   52 owners, 604 declared fields, 596 canonical records, 550 persisted packed fields.\n\nconst DECLARATION_ID: String = \"RWL-CANONICAL-REGISTRY-2026-09-15-3\"\nconst DECLARATION_VERSION: int = 3\nconst CANONICAL_OWNER_COUNT: int = 52\nconst CANONICAL_FIELD_COUNT: int = 604\nconst CANONICAL_RECORD_COUNT: int = 596\n\nconst OWNER_SECTIONS: Array = [\n\t1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5,\n\t5, 5, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 9, 9, 10, 11, 12, 12, 13, 14\n]\n\nconst OWNER_KEYS: Array = [\n\t\"buildings\", \"entity_directory\", \"farming\", \"forage\", \"resource_nodes\", \"spatial_world\",\n\t\"weather\", \"world_init\", \"world_runtime\", \"movement\", \"entity_directory\", \"buildings\",\n\t\"construction\", \"farming\", \"field_policy\", \"fishing\", \"forage\", \"injury\", \"jobs\", \"movement\",\n\t\"needs\", \"orchard_hive\", \"priorities\", \"residents\", \"resource_nodes\", \"schedule\", \"transforms\",\n\t\"work\", \"world_init\", \"buildings\", \"construction\", \"forage\", \"jobs\", \"orchard_hive\",\n\t\"command_dispatch\", \"crop_weather\", \"ecology\", \"fishing\", \"forage\", \"gear\", \"inventory\",\n\t\"reservations\", \"stock_age\", \"job_planner\", \"movement\", \"navigation\", \"rng\", \"event_schedule\",\n\t\"commands\", \"scheduler_events\", \"chronicle\", \"residents\"\n]\n\nconst OWNER_VERSIONS: Array = [\n\t1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1,\n\t1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1\n]\n\nconst OWNER_FIELD_COUNTS: Array = [\n\t3, 1, 10, 1, 1, 5, 2, 9, 12, 1, 6, 29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9,\n\t9, 9, 15, 1, 10, 4, 2, 4, 2, 1, 7, 11, 12, 30, 8, 6, 29, 9, 57, 2, 8, 20, 14, 2, 1\n]\n\n"
+        }
+      ]
+    },
+    {
+      "path": "godot/test/test_canonical_state_hash.gd",
+      "sha256": "ff3e0cfac3c98f67fdc9586633566c54725cfa7845af0a9fab99e87299363acd",
+      "ranges": [
+        {
+          "start_line": 94,
+          "end_line": 144,
+          "text": "## docs/persistence_state_registry.md's category-1 set, so three persisted packed columns leave\n## this pin. A snapshot pin is allowed to move in either direction; what it may never do is stay\n## still while the declaration underneath it changes.\n##\n## INV-CANON-R01 moves NEITHER pin, and that is its stated result rather than an oversight:\n## `canonical_record_delta: 0`. Schema 3 changes what an already-declared field may hold on an\n## INACTIVE row; it declares no new field, retires none, and reclassifies no packed column. The\n## two numbers that moved in that activation are the (7, 'inventory') owner schema and section\n## 7's descriptor schema, both 2 -> 3, pinned separately below.\nconst REGISTRY_PACKED_FIELD_COUNT: int = 550\n\n## Pinned as LITERALS, deliberately not read from the JSON or from `Digest.*`. Every other\n## assertion in this suite compares the compiled table against the registry it was generated\n## from, so both sides move together and neither can catch a coordinated edit. These four are\n## the independent anchor: R-WORLD-S1-001 requires the active rules identity to CHANGE with the\n## activation, and an identity that silently stayed at the 2026-09-12 value would satisfy every\n## self-referential check in this file while shipping a different field set under an old name.\n## INV-CANON-R01 moves the identity 2026-09-14-2 -> 2026-09-15-3 and the version 2 -> 3. The\n## declaration under the old name is not the declaration under the new one: an inventory block\n## that normalizes its inactive payload accepts a strictly smaller set of states than schema 2\n## did, and leaving the name still would let a stricter codec ship under the old identity while\n## every self-referential check in this file stayed green.\nconst REGISTRY_RECORD_COUNT: int = 596\nconst REGISTRY_FIELD_COUNT: int = 604\nconst REGISTRY_DECLARATION_ID: String = \"RWL-CANONICAL-REGISTRY-2026-09-15-3\"\nconst REGISTRY_DECLARATION_VERSION: int = 3\n\n## INV-CANON-R01's two version numbers, pinned as literals and read back from BOTH the registry\n## JSON and the compiled table. They live in different namespaces -- one is the owner block's\n## `owner_schema_version`, the other the 64-byte descriptor's `schema_version` -- and the whole\n## point of the activation is that they move together with the codec.\nconst INVENTORY_OWNER_SCHEMA_VERSION: int = 3\nconst SECTION_SEVEN_SCHEMA_VERSION: int = 3\n\n## Section 7 `inventory`'s thirty declared field keys in DECLARED ORDINAL ORDER, pinned outside\n## the JSON. REG-R01's order interleaves container and lot columns and is explicitly not\n## alphabetical; INV-CANON-R01 changes the payload SEMANTICS and not one key or ordinal.\nconst INVENTORY_DECLARED_KEYS: String = (\n\t\"_c_free_count, _l_free_count, _c_live, _l_live, _c_generation, _l_generation, \"\n\t+ \"_c_owner_slot, _c_owner_generation, _c_policy, _c_lot_count, _c_first_lot, \"\n\t+ \"_c_max_mass_g, _c_filters, _c_reserved_mass_g, _c_used_mass_g, _c_reachable, \"\n\t+ \"_l_item_id, _l_quality, _l_provenance, _l_recipe_id, _l_container_slot, \"\n\t+ \"_l_container_generation, _l_next, _l_prev, _l_quantity_milli, _l_reserved_milli, \"\n\t+ \"_l_age_milli_hours, _l_age_remainder, _c_free, _l_free\"\n)\n\n## construction.gd's section-4 block, pinned independently of the registry JSON so that deleting\n## a field from BOTH the JSON and the compiled table still fails. The JSON-comparison tests above\n## only prove the two agree; these two constants are what proves they agree about the right thing.\nconst CONSTRUCTION_SECTION_FOUR_KEYS: String = (\n\t\"_present, _material_container_slot, _material_container_generation, _assigned_count, \"\n"
+        },
+        {
+          "start_line": 436,
+          "end_line": 458,
+          "text": "\t\t\"registry persisted packed field count\")\n\tassert_equal(String(data[\"registry_id\"]), Digest.DECLARATION_ID, \"registry id\")\n\tassert_false(bool(data[\"release_save_ready\"]), \"release_save_ready stays false\")\n\tassert_equal(Digest.production_declaration().record_count(), Digest.CANONICAL_RECORD_COUNT,\n\t\t\"the compiled declaration counts the same 596 records\")\n\n\nfunc test_the_active_rules_identity_and_counts_match_their_independent_pins() -> void:\n\t\"\"\"R-WORLD-S1-001: the identity and both counts MOVED, against literals held outside the JSON.\"\"\"\n\tvar data: Dictionary = _registry()\n\tassert_equal(Digest.DECLARATION_ID, REGISTRY_DECLARATION_ID, \"compiled declaration identity\")\n\tassert_equal(Digest.DECLARATION_VERSION, REGISTRY_DECLARATION_VERSION, \"declaration version\")\n\tassert_equal(String(data[\"registry_id\"]), REGISTRY_DECLARATION_ID, \"registry identity\")\n\tassert_equal(int(data[\"registry_version\"]), REGISTRY_DECLARATION_VERSION, \"registry version\")\n\tassert_equal(Digest.CANONICAL_RECORD_COUNT, REGISTRY_RECORD_COUNT, \"compiled record count\")\n\tassert_equal(Digest.CANONICAL_FIELD_COUNT, REGISTRY_FIELD_COUNT, \"compiled field count\")\n\tassert_equal(int(data[\"record_count\"]), REGISTRY_RECORD_COUNT, \"registry record count\")\n\tassert_equal(int(data[\"packed_source_field_count\"]), REGISTRY_PACKED_FIELD_COUNT,\n\t\t\"registry packed source field count\")\n\tassert_equal(int((data[\"section_schema_versions\"] as Array)[0]), 3,\n\t\t\"R-WORLD-S1-001 takes section 1 to schema version 3 in the active registry\")\n\n\n"
+        }
+      ]
+    },
+    {
+      "path": "godot/scripts/core/save_header.gd",
+      "sha256": "ae44b8ab307e987c8084b81ba707fd1db8befe26868fba8120b6944236bfbed5",
+      "ranges": [
+        {
+          "start_line": 25,
+          "end_line": 49,
+          "text": "## `catalog_ids.gd.build()` / `digest_of()`. There is exactly one SHA-256 of the catalog in this\n## repository and it is not in this file.\n##\n## WHAT THIS MODULE DELIBERATELY DOES NOT DO -- task 09.2 owns all of it and is BLOCKED:\n##\n##   * BLOCKER H1: the schema version policy. `docs/tasks/09_persistence_replay_reliability.md:17`\n##     requires \"an explicit version policy before writing release saves\" and \"do not silently\n##     repurpose v1 bytes\". So the per-section `schema_version` is carried and range-checked as a\n##     u32 and NOTHING here validates its value. The file-level format version IS stated as 1\n##     (systems_architecture.md:718) and ARCH-SAVE-005 requires rejecting \"future format\n##     versions\", so that one is checked.\n##   * BLOCKER H2: the rules hash (offset 40), map hash (104), integer lookup-table hash (136)\n##     and engine build hash (168) have NO producer in this repository. Decision 0034 says so of\n##     the rules hash in terms: \"the separate offset-40 rules hash, whose serializer does not\n##     exist yet either\". They are therefore carried as caller-supplied 32-byte digests, checked\n##     for length and nothing else. This module does not invent how any of them is computed.\n##   * BLOCKER H3: section BODIES. ARCH-SAVE-002 assigns fifteen section IDs and never enumerates\n##     their contents; \u00a711 EVENT_SCHEDULE, \u00a713 CHRONICLE and \u00a715 STATE_DIGEST have no owning\n##     module at all (`docs/persistence_state_registry.md`, whose section assignment is stated\n##     there as its own reading with a basis, not as a quotation). Not one byte of a section body\n##     is written or parsed here.\n##   * BLOCKER H4: whether section ranges must TILE the file with no gaps. ARCH-SAVE-004 requires\n##     \"nonoverlapping ranges, exact file length, overflow-safe offsets\" and does not say\n##     contiguous. `section_table_refusal()` therefore enforces non-overlap, containment and the\n##     exact declared file length, and permits a gap. Tightening that is 09.2's call to make.\n"
+        }
+      ]
+    }
+  ],
+  "registry": {
+    "path": "docs/planning/canonical_state_registry.json",
+    "sha256": "765e79901b4007c697dcfe4df0b853766d69a1498d31a62b65aafd20d3f7185e",
+    "subset": {
+      "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-15-3",
+      "registry_version": 3,
+      "record_count": 596,
+      "packed_source_field_count": 550,
+      "section_schema_versions": [
+        3,
+        2,
+        1,
+        2,
+        1,
+        1,
+        3,
+        1,
+        2,
+        1,
+        1,
+        2,
+        1,
+        2,
+        1
+      ],
+      "commands_owner": {
+        "section_id": 12,
+        "owner_key": "commands",
+        "owner_schema_version": 1,
+        "fields": [
+          {
+            "field_key": "_count",
+            "type": "u32",
+            "type_code": 1,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_count",
+            "shape": {
+              "count": 1,
+              "order": "scalar"
+            },
+            "scalar": true,
+            "ordinal": 0
+          },
+          {
+            "field_key": "_payload_used",
+            "type": "u32",
+            "type_code": 1,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_payload_used",
+            "shape": {
+              "count": 1,
+              "order": "scalar"
+            },
+            "scalar": true,
+            "ordinal": 1
+          },
+          {
+            "field_key": "_next_sequence_high",
+            "type": "u32",
+            "type_code": 1,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_next_sequence_high",
+            "shape": {
+              "count": 1,
+              "order": "scalar"
+            },
+            "scalar": true,
+            "ordinal": 2
+          },
+          {
+            "field_key": "_next_sequence_low",
+            "type": "u32",
+            "type_code": 1,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_next_sequence_low",
+            "shape": {
+              "count": 1,
+              "order": "scalar"
+            },
+            "scalar": true,
+            "ordinal": 3
+          },
+          {
+            "field_key": "_execute_tick",
+            "type": "i64",
+            "type_code": 4,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_execute_tick",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 4,
+            "source_contract": "C162"
+          },
+          {
+            "field_key": "_player_id",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_player_id",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 5,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_sequence_low",
+            "type": "u32",
+            "type_code": 1,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_sequence_low",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 6,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_sequence_high",
+            "type": "u32",
+            "type_code": 1,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_sequence_high",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 7,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_kind",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_kind",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 8,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_target_slot",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_target_slot",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 9,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_target_generation",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_target_generation",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 10,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_goal_x",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_goal_x",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 11,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_goal_z",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_goal_z",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 12,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_arg0",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_arg0",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 13,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_arg1",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_arg1",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 14,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_payload_offset",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_payload_offset",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 15,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_payload_length",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_payload_length",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 16,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_flags",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_flags",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 17,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_reserved_zero",
+            "type": "i32",
+            "type_code": 2,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_reserved_zero",
+            "shape": {
+              "count_field": "_count",
+              "order": "execute_tick_player_id_unsigned_sequence"
+            },
+            "ordinal": 18,
+            "source_contract": "C163"
+          },
+          {
+            "field_key": "_payload",
+            "type": "u8",
+            "type_code": 0,
+            "hash": true,
+            "source_module": "commands",
+            "source_member": "_payload",
+            "shape": {
+              "count_field": "_payload_used",
+              "order": "used_payload_prefix"
+            },
+            "ordinal": 19,
+            "source_contract": "C164"
+          }
+        ]
+      }
+    }
+  }
+}

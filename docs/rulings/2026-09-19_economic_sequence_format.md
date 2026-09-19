@@ -1,7 +1,7 @@
 # SAVE-SEQ-R01 — represent exhausted economic allocation explicitly
 
-2026-09-19 · Astra · Version 1 · Implementation follows SAVE-P2-R02.
-This is a follow-up format contract, not an active schema change in the P2 repair.
+2026-09-19 · Astra · Version 2 · Implementation follows SAVE-P2-R02.
+This separate follow-up activates schema3 after the merged P2 repair, which retained schema2.
 
 Every ordinary pair of u32 economic sequence words is meaningful, including the
 initial `(0,0)`. The existing terminal runtime state is `(4294967296,0)`, after
@@ -72,3 +72,51 @@ scheduler framing helpers, pending codec/tests, canonical JSON/generated declara
 registry prose, current compatibility checks and deterministic fixtures. Obtain a
 fresh independent persistence review, full Godot suite and static checks before merge.
 The full save umbrella retains this prerequisite until that evidence passes.
+
+## Version2 source-review refinements (2026-09-19)
+
+The standalone scheduler `encode_section_prefix_into()` must validate the complete
+economic allocator tuple in its pre-write gates, before even the schema word is
+written. Use a pre-dirtied destination buffer to prove byte-exact refusal for every
+invalid tuple. The pending codec splits economic high out of its existing six-word
+u32 range loop; economic low and all four scheduler next/last-applied words remain
+u32. Preserve scheduler extension semantics and record widths.
+
+At decode, first prove four bytes readable at the supplied nonnegative offset and
+check the schema word, then require the full28-byte prefix. A24-byte buffer naming
+schema2 must report the actual unsupported2/supported3 versions without changing
+output; fewer than four available bytes report truncation. Add high-word garbage
+0x0000000200000000, invalid terminal-low and negative/signed-domain fixtures, plus
+arithmetic pins for0/0/0 and4096/1048576/256. `read_u64_at` already exists in
+save_codec.gd; use its checked result, and do not add a duplicate primitive.
+
+The exact retained registry namespace string is
+`RWL-CANONICAL-REGISTRY-2026-09-15-3`; only its registry_version becomes4. Its suffix
+is part of that opaque existing identifier. The proposed new dated namespace is
+rejected. Resolve owner/field indices by their keys; do not assume an index from
+the review. Counts remain604 listed/596canonical/550packed/20commands fields.
+
+The existing GDScript allocator scalar already uses int64. Canonical u64 values
+must be handed to the hash writer as its existing STORAGE_INT64/PackedInt64Array
+form, which `_emit_wide()` already accepts; the registry/generator does not define
+a new per-field storage member. Verify production declaration owner schema2,
+ordinal2/type3/scalarcount1/hash inclusion, actual eight-byte value emission and a
+hash difference between terminal and final-available tuples. This is bounded
+canonical-field evidence; a missing whole-world live adapter is not supplied by
+a test fixture. No new retained field or memory-ledger allocation is introduced.
+
+`commands.restore_sequence()` remains its older empty/u32-only hook and MUST
+continue to refuse the terminal tuple. All section12 installs and recoveries use
+`restore_pending_window()` exclusively, including empty windows. Pin that route
+and old-hook refusal in tests. Widening an unused compatibility hook is unnecessary.
+Correct its stale comment claiming the section12 allocator is restored from the
+header at216; section12 is the owner of its full next-allocator tuple.
+
+The separate full-file header `Header.replay_sequence` at216 and the unimplemented
+architecture `WorldRuntime.next_command_sequence` entry have no live producer or
+settled cross-section binding. The header codec currently supports nonnegative
+signed-int64 scalar values and cannot simply carry the entire economic allocator
+domain. PLAN-REPLAY-CHECKPOINT-CONTRACT must define their meanings/ownership,
+initial and terminal cases, complete-domain representation/versioning and byte/hash
+agreement before full save orchestration/capture can dispatch. This section12
+change does not claim to resolve or silently reinterpret that header field.

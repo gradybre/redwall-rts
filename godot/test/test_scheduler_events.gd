@@ -947,14 +947,14 @@ func _encoded_extension(saved: Scheduler) -> PackedByteArray:
 
 
 func test_the_extension_length_is_48_plus_32_per_record() -> void:
-	"""The contract's X = 48 + 32*S, and its 24-byte section prefix arithmetic."""
+	"""The contract's X = 48 + 32*S, and its schema3 28-byte section prefix arithmetic."""
 	assert_equal(_queue.extension_byte_length(), 48, "an empty queue's extension is 48 bytes")
 	for index: int in 3:
 		_queue.submit_speed_into(2, _result)
 	assert_equal(_queue.extension_byte_length(), 48 + 96, "three records add 96")
-	assert_equal(Scheduler.SECTION_PREFIX_BYTES, 24, "the section prefix is 24 bytes")
-	assert_equal(Scheduler.section_twelve_length(0, 0, 0), 72, "72 + 64E + P + 32S with all zero")
-	assert_equal(Scheduler.section_twelve_length(2, 100, 3), 72 + 128 + 100 + 96,
+	assert_equal(Scheduler.SECTION_PREFIX_BYTES, 28, "the section prefix is 28 bytes")
+	assert_equal(Scheduler.section_twelve_length(0, 0, 0), 76, "76 + 64E + P + 32S with all zero")
+	assert_equal(Scheduler.section_twelve_length(2, 100, 3), 76 + 128 + 100 + 96,
 		"and with two economic records, 100 payload bytes and three scheduler records")
 
 
@@ -972,18 +972,18 @@ func test_the_section_prefix_bounds_are_the_contracts() -> void:
 		"and a negative count refuses")
 
 
-func test_the_section_prefix_writes_six_u32_in_the_stated_order() -> void:
-	"""section_schema 2, E, P, X, economic next sequence low then high."""
+func test_the_section_prefix_writes_five_u32_and_one_u64_in_order() -> void:
+	"""section_schema3, E, P, X, low u32 and high u64."""
 	var bytes: PackedByteArray = PackedByteArray()
 	bytes.resize(Scheduler.SECTION_PREFIX_BYTES)
 	assert_true(Scheduler.encode_section_prefix_into(bytes, 0, 7, 640, 3, 11, 13),
 		"the prefix encodes")
-	assert_equal(bytes.decode_u32(0), 2, "section_schema is 2")
+	assert_equal(bytes.decode_u32(0), 3, "section_schema is 3")
 	assert_equal(bytes.decode_u32(4), 7, "then the economic count")
 	assert_equal(bytes.decode_u32(8), 640, "then the economic payload used")
 	assert_equal(bytes.decode_u32(12), 48 + 96, "then the scheduler extension bytes")
 	assert_equal(bytes.decode_u32(16), 11, "then the economic next sequence low word")
-	assert_equal(bytes.decode_u32(20), 13, "then its high word")
+	assert_equal(bytes.decode_u64(20), 13, "then its high word")
 	assert_false(Scheduler.encode_section_prefix_into(bytes, 0, 4097, 0, 0, 0, 0),
 		"an out-of-bound economic count refuses")
 

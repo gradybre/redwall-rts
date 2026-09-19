@@ -63,22 +63,15 @@ extends RefCounted
 ## `completed_tick + 4500` is GDD §5.1's offset calendar, so the tick ceiling stays
 ## `INT64_MAX - 4500`. Both reject rather than saturate.
 ##
-## BLOCKER W1 -- THERE IS NO WAY TO PUBLISH THIS BLOCK INTO A LIVE `sim_clock.gd`, AND ADDING ONE
-## IS NOT THIS MODULE'S TO DO. `sim_clock.gd` exposes a reader for every field here
-## (`completed_tick()`, `debt()`, `requested_speed()`, `pause_mask()` and the six counter
-## getters) and a WRITER for only one and a half of them:
-##
-##   * `set_speed()` restores `_requested_speed`. Fine.
-##   * `set_pause()` sets one reason bit at a time -- but `set_pause(PLAYER, true)` ZEROES
-##     `_debt` when `0 < _debt < TICK_COST` and increments `_subtick_debt_discards`. Restoring a
-##     saved PLAYER pause through it would subtract debt during restore and corrupt a counter,
-##     which is precisely what G3 forbids. It is not usable as a restore path.
-##   * `_completed_tick`, `_debt` and all six counters have NO writer at all.
-##
-## So this module stops at a validated `Record` and `agrees_with_clock()`, which verifies a live
-## clock against one. Publication needs a `SimClock.restore_runtime(...)` that sets all nine
-## fields together with no side effects, and `sim_clock.gd` belongs to another owner. Half-
-## publishing through `set_pause()` would be worse than refusing, so this module refuses.
+## BLOCKER W1 -- THE CLOCK OWNER API EXISTS; JOINT SAVE INSTALL IS SEPARATE
+## `SimClock.restore_runtime()` and `GameManager.restore_clock_runtime()` already install the
+## ten clock values exactly under the manager's load barrier. Ordinary set_pause(PLAYER, true)
+## discards sub-tick debt and must never be used to manufacture a restored clock.
+## `save_world_runtime_install.gd` (SAVE-W1-R02) joins this decoded record with section 10's
+## stream positions: reseeding alone would zero every draw count. It validates both first,
+## installs RNG then clock, and recovers prior RNG on refusal without lowering the barrier.
+## Its success is not world publication; all other sections, disk recovery and final publication
+## remain the full coordinator's responsibility. This codec's frozen 80-byte format is unchanged.
 ##
 ## THE TRANSIENT LOAD GUARD IS NOT A MASK BIT ANY MORE -- RESTORE-R01 SUPERSEDES G3 HERE. The
 ## load-in-progress guard is an OUT-OF-BAND barrier (`sim_clock.acquire_load_barrier()`, held by

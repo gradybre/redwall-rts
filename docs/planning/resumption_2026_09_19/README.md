@@ -150,3 +150,11 @@ Progression follow-through [PR141](https://github.com/gradybre/redwall-rts/pull/
 ## Identity restore follow-through
 
 The new stateless save adapter joins section 3's six identity columns and section 1's saved allocator cursor through the existing atomic owner API. It requires the supplied clock's load barrier. Nine tests prove deleted/all-deleted IDs remain spent, exhaustion persists, and refusals preserve state. Local acceptance: **4599 tests / 159572 assertions / zero failures**, all 15 static checks passed; independent Opus review found no blocker. [Evidence](../../validation/evidence/save-identity-2026-09-19/) retains the initial registry-format failure and passing retry. Full disk/world restore remains incomplete.
+
+Identity restore [PR #142](https://github.com/gradybre/redwall-rts/pull/142) merged at `77d03dcdd29889259150c351ceb040209e3dff74` after both CI checks passed on head `8ab03f9`. SAVE-D2 is done for its bounded scope; the full-world save task remains blocked on its other prerequisites.
+
+## Clock and RNG restore follow-through
+
+SAVE-W1-R02 joins decoded WorldRuntime and section10 RNG state under GameManager's load barrier. It validates both before writes, installs RNG first and the clock last, and checks each recovery write on failure. A prior seed change is valid; unseeded incoming release records refuse. No world is published and no barrier is released here.
+
+The initial complete local run passed **4623 tests / 163075 assertions / zero failures**. After strengthening the fixtures and adding three failure/guard tests, the exact final focused suite passed **27 tests / 3999 assertions / zero failures** through the same supervisor. All 15 static checks and editor import passed. Independent Opus review found no blocker; [evidence and precise scope](../../validation/evidence/save-world-2026-09-19/) distinguish the full run from the later focused run. Full settlement save/load, initialization, movement/work integration, family/scenario authoring and release qualification remain unfinished.

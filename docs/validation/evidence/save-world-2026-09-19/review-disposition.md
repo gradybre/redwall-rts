@@ -1,0 +1,9 @@
+# Astra review disposition
+
+The independent implementation review found no blocker. Astra's pre-review integration made preflight private, replaced nested recovery with individually checked prior stream writes, included the prior seed in test snapshots, checked fixture operation results and corrected a refusal fixture that captured state after the call. Source is 247 lines; the test's soft length target was exceeded for meaningful contract cases.
+
+Advisory 1: core-to-GameManager preload is the intentional SAVE-W1-R02 signature; no cycle exists and Godot import/suite passed. The future coordinator must preserve that dependency direction or move the adapter as a unit. Advisories 2/3: final tests add no-float source checks and byte-complete input-record immutability. Advisory 4: docstring shortened, no logic changed. Advisory 5: deterministic registry/contract checks verify the new stateless declaration (58 modules, 356 rows, 681 packed columns; no new canonical state or ledger allocation).
+
+Astra additionally strengthened the queue proof with an actual pending speed command and byte-complete queue/control comparison, maximum int64 counters, first-seed failure recovery, and an injected first recovery-stream failure after all nine incoming writes. The production logic is unchanged from independent review; only a docstring changed. The final focused runner subclasses the existing non-vacuous supervisor and inherits its engine-error/zero-assertion audit.
+
+The review's `_carry` wording is broader than the API permits: a Refusal is defined by its code, so an empty Refusal already means success. Explicit boolean owner failures use named local refusals. No generic detection of an owner falsely claiming success is promised. Full-file verification, matching-world associations, disk rollback and publication remain separate. The rollback-failed outcome holds the barrier but does not set a nonexistent external-store manager latch.

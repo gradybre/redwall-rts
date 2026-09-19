@@ -1,0 +1,45 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_world_runtime_install.gd
+  PASS  test_install_restores_every_clock_scalar_and_every_stream
+  PASS  test_restored_streams_continue_the_sources_sequence
+  PASS  test_the_hunting_tombstone_survives_canonical_and_undrawn
+  PASS  test_a_different_prior_seed_is_legal_and_is_replaced
+  PASS  test_a_previously_unseeded_target_is_installed_too
+  PASS  test_every_named_debt_speed_and_mask_installs_exactly
+  PASS  test_a_player_pause_with_sub_tick_debt_does_not_zero_it
+  PASS  test_the_terminal_representable_tick_and_debt_install
+  PASS  test_install_emits_no_signal_and_changes_no_queue_state
+  PASS  test_install_leaves_the_load_open_unpublished_and_barred
+  PASS  test_install_retains_no_alias_of_either_input_record
+  PASS  test_null_inputs_are_refused_by_name
+  PASS  test_a_manager_with_no_open_load_is_refused
+  PASS  test_a_published_load_is_refused
+  PASS  test_a_false_seeded_flag_is_refused
+  PASS  test_a_header_tick_mismatch_is_refused
+  PASS  test_invalid_world_fields_are_refused_with_the_codecs_own_codes
+  PASS  test_invalid_stream_records_are_refused
+  PASS  test_seed_range_and_column_shape_refuse_without_mutation
+  PASS  test_released_manager_barrier_refuses_without_mutation
+  PASS  test_a_failed_stream_restore_rolls_the_seeded_store_back
+  PASS  test_a_failed_clock_install_rolls_the_seeded_store_back
+  PASS  test_a_failed_clock_install_clears_a_previously_unseeded_store
+  PASS  test_a_failed_rollback_is_reported_explicitly_and_keeps_the_barrier
+  PASS  test_a_failed_initial_seed_recovers_the_prior_rng
+  PASS  test_a_failed_recovery_stream_write_is_not_reported_as_recovered
+  PASS  test_the_adapter_declares_no_float_path
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+27 test(s), 3999 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

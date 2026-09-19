@@ -1136,11 +1136,11 @@ static func restore_section(state: State, stores: Stores) -> SaveHeader.Refusal:
 	columns and rebuilds only its declared derived data.
 
 	TWO OWNERS ARE DELIBERATELY NOT PUBLISHED HERE. The `entity_directory` cursor is installed
-	with section 3 through `EntityDirectory.restore_columns_and_cursor()` under the same barrier,
-	and `world_runtime` has no side-effect-free publication path at all -- BLOCKER W1 in
-	`save_section_world_runtime.gd` records that `sim_clock.gd` exposes no writer for the completed
-	tick, the debt or the six counters, and half-publishing through `set_pause()` would subtract
-	debt during a restore. Both values are carried on the returned State for their owners to use.
+	with section 3 by `save_identity_restore.gd` under the same barrier. `world_runtime` joins
+	section 10's RNG streams through `save_world_runtime_install.gd` (SAVE-W1-R02), using the
+	existing exact clock/manager restore APIs. Neither path uses ordinary pause setters.
+	Both values remain on State for the full coordinator to compose; this operation restores
+	only the seven ordinary owners and does not claim whole-world transactional publication.
 	"""
 	var invalid: SaveHeader.Refusal = validate_section(state, stores)
 	if not invalid.is_ok():

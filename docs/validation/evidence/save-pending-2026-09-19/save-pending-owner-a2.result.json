@@ -1,0 +1,19 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "3784fdd9-faee-4e2d-a3d4-01f33964aa4a",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 57579,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 96903,
+    "costEstimateUsd": 2.4085150000000004
+  },
+  "elapsedMs": 570387,
+  "pid": 13578,
+  "exitCode": 0,
+  "state": "invalid_output",
+  "code": "BUNDLE_NOT_JSON",
+  "message": "worker output failed strict bundle validation"
+}

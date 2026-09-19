@@ -1,0 +1,2 @@
+error: patch failed: godot/scripts/core/save_section_pending_commands.gd:596
+error: godot/scripts/core/save_section_pending_commands.gd: patch does not apply

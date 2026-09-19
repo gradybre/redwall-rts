@@ -1,0 +1,112 @@
+# SAVE-P2 source review — pending-command arena restore
+
+Read-only audit, 2026-09-19. No code changed, nothing run. Sources read: `godot/scripts/core/commands.gd`, `save_section_pending_commands.gd`, `scheduler_events.gd`, `sim_clock.gd`, `godot/test/test_commands.gd`, `test_save_section_pending_commands.gd`.
+
+## 1. P2 is wider than "non-zero first offset"
+
+`save_section_pending_commands.gd::arena_rebuild_refusal()` demands that spans tile `[0, payload_used)` contiguously **in canonical order**, and its own comment attributes any other shape to a partial drain. That attribution is incomplete. Three independent producers exist:
+
+**(a) Order skew without any drain.** `_commit_stamped()` calls `_allocate_payload()` *before* `_insert_at(_lower_bound(...))`. Allocation is therefore in **arrival** order while the row lands in **ARCH-CMD-001 key** order. `admit_stamped_into()` accepts records whose `execute_tick` differ, and `test_commands.gd::test_permuted_arrival_produces_the_canonical_order()` admits sequences `4,1,3,0,2` and asserts canonical placement. If those carried payloads, queue position 0 would hold the *last* allocated span. First offset can be zero, `payload_used` can equal the exact sum of all lengths, no drain has occurred — and `arena_rebuild_refusal()` still refuses, because it walks positions and compares against a running cursor.
+
+**(b) Interior holes.** `drain_due_into()` advances `_head` and never lowers `_payload_used`. A queue drained from the head down but not to empty leaves the drained prefix's bytes inside the used region owned by nobody. `_payload_refusal()` already requires those bytes to be zero (ARCH-SAVE-002), which capture satisfies by reconstruction — but the *offsets* of the survivors still start above zero.
+
+**(c) Highwater cursor vs live sum.** `payload_available()` is `PAYLOAD_ARENA_BYTES - payload_used()`. After (b), `payload_used` strictly exceeds the sum of surviving spans. Any restore that compacts would hand the loaded world **more** future admission capacity than the saved world had, so a submission that `COMMAND_PAYLOAD_ARENA_FULL`-refused before the save would be accepted after it. Exact future capacity is a save-correctness property, not a tidiness one.
+
+`payload_used()` returning `0` while `_count == 0` is correct and needs no change: reclamation is only lazy, and an empty queue genuinely has the whole arena.
+
+## 2. Smallest complete owner API
+
+One new public mutator on `commands.gd`, plus its pure twin. Nothing else; the codec keeps writing no private field.
+
+```gdscript
+func restore_pending_window(records: Array, offsets: PackedInt32Array,
+        arena: PackedByteArray, payload_used: int,
+        next_sequence_high: int, next_sequence_low: int) -> bool
+static func restore_window_refusal(records: Array, offsets: PackedInt32Array,
+        arena_size: int, payload_used: int,
+        next_sequence_high: int, next_sequence_low: int) -> StringName
+```
+
+Semantics required of it:
+
+- Legal only on an empty queue (`_count == 0`), else `COMMAND_QUEUE_NOT_EMPTY`. It is a loader install, not an admission.
+- `records` are already in canonical order; `offsets[i]` is record `i`'s span base **verbatim**. No reallocation, no compaction, no bump-cursor call.
+- Writes rows `0..n-1`, sets `_head = 0`, `_count = n`, `_payload_used = payload_used`, copies `arena` into `_payload[0, payload_used)` and zero-fills the remainder.
+- Sets the session sequence in the same call, so `restore_sequence()` is not a second mutation the codec must sequence.
+- Validates *everything* before the first write (decision 0059). A refusal leaves the queue byte-identical.
+
+Why not smaller: a per-record `restore_payload_span(position, offset, length)` cannot be atomic and admits torn states. Why not larger: no new column, no arena-base setter that could be called mid-session, no second entry point.
+
+**Rejected alternative.** Extending `admit_stamped_into()` with an offset argument re-enters the admission path (`payload_available()` gating, duplicate-key scan) per record, which is precisely the reallocation the packet forbids.
+
+## 3. §12 capture/apply changes — no wire change
+
+`payload_offset` is already persisted at record offset 48 (`OFFSET_PAYLOAD_OFFSET`), and `payload_used` at prefix offset 8. The bytes already carry everything. Schema 2, the 24-byte prefix, the 64/32-byte records, `SCHQ0001`, ordered command refs and the sequence invariants all stay exactly as they are.
+
+**Capture.** `_capture_payload()` currently concatenates live payloads in queue order, which silently *invents* contiguity. Replace with: allocate one `payload_used`-length zero buffer, and for each position copy its bytes to `record.payload_offset[row]`. Bytes covered by no span stay zero — that is ARCH-SAVE-002's rule, not a new one, and `_payload_refusal()` already enforces it on both directions. Peak transient drops (see §5).
+
+**Validation.** `arena_rebuild_refusal()` stops being a contiguity test and becomes an allocator-invariant test:
+
+1. every `payload_offset >= 0`, `payload_length >= 0`;
+2. `payload_offset + payload_length <= payload_used` (checked add);
+3. no two spans overlap — already `_payload_refusal()`;
+4. every byte in `[0, payload_used)` outside a span is zero — already `_payload_refusal()`;
+5. `payload_used <= PAYLOAD_ARENA_BYTES` — already `bound_refusal()`.
+
+Monotonicity by position and a zero first offset are **dropped**. `SAVE_PC_ARENA_NOT_REBUILDABLE` survives for rules 1–2 so no refusal vocabulary is lost.
+
+**Apply.** `_commit()` calls `restore_pending_window()` once instead of `restore_sequence()` + N× `admit_stamped_into()`.
+
+**Zero-length payloads.** `_allocate_payload(0)` returns the cursor unadvanced, so two zero-length commands share one offset, and an offset equal to `payload_used` is legal. Rule 2 above permits both (`off + 0 <= payload_used`). `_sorted_spans()` packs `offset * 2097152 + length`; equal offsets with length 0 sort first and leave `cursor` unmoved, so no false `SAVE_PC_PAYLOAD_OVERLAP`. The offset **value** is on the wire and must round-trip unchanged — a restore that normalised zero-length offsets to 0 would change bytes for an observationally identical world.
+
+## 4. Two hazards this packet must not paper over
+
+**Exhausted economic sequence is unrepresentable.** `commands.gd::_advance_sequence()` increments `_next_sequence_high` without masking; `_sequence_room()` refuses once `high > U32_MAX`. That terminal state is `2^32`, which the prefix's `economic_next_sequence_high` u32 cannot hold, and `restore_sequence()` rejects `high > U32_MAX` outright. So a world whose economic sequence exhausted **cannot be saved and reloaded faithfully** today. `scheduler_events.gd` solved its own case with the `(0,0)` sentinel and an explicit `restore_sequence()` exemption; `commands.gd` has no sentinel and no exemption. This is a live gap, not a theoretical one, and it is not inside P2's stated scope.
+
+**Two-store apply is not atomic.** `apply()` preflights (`extension_refusal`, per-record `envelope_refusal`, tick floor) and then `_commit()` installs the **scheduler first**, then the commands store. A commands-side refusal after a successful `restore_extension()` leaves the scheduler queue mutated and the command queue empty — a half-applied §12. The preflight narrows this but does not close it: it does not exercise duplicate-key detection, arena capacity through the real allocator, or the sequence install.
+
+Related and unenforced: nothing checks that `commands_store.clock()` and `scheduler_store.clock()` are the **same** `SimClock`, nor that `completed_tick() == saved_completed_tick`. `_command_envelope_refusal()` reads the commands store's clock; `extension_refusal()` uses the caller's argument. Two clocks would pass both. And `commands.gd` has **no load-barrier concept at all** — `scheduler_events.gd::_command_barred()` bars its admissions, but `commands.gd::admit_stamped_into()` and `submit_into()` are reachable during a load through any raw reference, which RESTORE-R01 (decision 0104) calls insufficient by name.
+
+I do **not** claim the current documents settle any of this. Full-world rollback stays external to this lane.
+
+## 5. Cold memory cost
+
+No new persistent allocation in `commands.gd`: no column, no arena copy, no cursor mirror. `restore_pending_window()` takes caller-owned buffers and writes into the existing `_payload`.
+
+Cold-path footprint is unchanged or better. `Record` already holds a 1,048,576-byte arena plus ~262 KiB of economic columns and ~8 KiB scheduler columns. Today `_capture_payload()` builds an accumulating `arena` **plus** a separate `tail` before concatenating — a transient peak near 2 MiB. The offset-aware rewrite writes into a single pre-sized buffer, cutting that peak to ~1 MiB. `encode_record()`'s output buffer is unchanged (`MAX_SECTION_BYTES` = 1,318,984). ARCH-SAVE-003 puts all of this at a load/save boundary, never per tick.
+
+## 6. Test matrix
+
+| # | Case | Expected |
+|---|---|---|
+| 1 | permuted `admit_stamped_into` with payloads, no drain | captures, encodes, re-encodes byte-identically |
+| 2 | as (1) after the change, offsets non-monotonic by position | accepted; per-record offsets preserved exactly |
+| 3 | partial drain leaving interior hole | hole bytes zero on the wire; survivors keep true offsets |
+| 4 | (3) restored, then submit a payload sized to the pre-save `payload_available()` | accepted; one byte more refuses `COMMAND_PAYLOAD_ARENA_FULL` |
+| 5 | `payload_used` strictly above max span end (dead tail) | accepted; capacity matches pre-save exactly |
+| 6 | two zero-length payloads sharing one offset | round-trips; no `SAVE_PC_PAYLOAD_OVERLAP` |
+| 7 | zero-length payload at `offset == payload_used` | accepted; offset value unchanged |
+| 8 | span with `offset + length > payload_used` | `SAVE_PC_ARENA_NOT_REBUILDABLE`, Record untouched |
+| 9 | negative offset or length | same refusal, Record untouched |
+| 10 | non-zero byte in a hole | `SAVE_PC_PAYLOAD_GARBAGE` |
+| 11 | overlapping spans | `SAVE_PC_PAYLOAD_OVERLAP` |
+| 12 | `restore_pending_window()` on a non-empty queue | refuses; queue byte-identical (compare encoded bytes) |
+| 13 | refusal inside `restore_pending_window()` after N valid records | queue byte-identical; no sequence consumed |
+| 14 | apply refused at the commands store after scheduler install | **currently half-applied** — pin the observed behaviour, do not assert atomicity until decided |
+| 15 | apply with two distinct `SimClock` instances | must refuse once decision 4 lands |
+| 16 | apply with `completed_tick() != saved_completed_tick` | must refuse once decision 4 lands |
+| 17 | sequence at `0x7fffffff`/`0x80000000` across restore | unsigned order preserved (existing coverage extended) |
+| 18 | exhausted economic sequence | pin as unrepresentable until decision 3 lands |
+| 19 | full arena, 4096 records, max spans | encodes at `MAX_SECTION_BYTES`; round-trips |
+| 20 | ordered command refs / ID-group payload after restore | count-prefixed sorted rows byte-identical |
+
+## 7. Remaining Astra choices
+
+1. **Reachability vs consistency.** Accept any span set satisfying §3's five rules, or additionally require the set be reachable by some real sequence of admissions and drains? I recommend consistency only — reachability is expensive to decide and adds no safety.
+2. **Dead tail.** May `payload_used` exceed the maximum span end? Recommend yes; a partial drain produces it naturally and refusing would make correct worlds unsaveable.
+3. **Exhausted economic sequence.** Sentinel (mirroring `scheduler_events.gd`), an explicit prefix flag, or refuse-to-save? Wire change if a flag; §12 is schema 2 and REG-R01 fixes its prefix, so this is Astra's call, not mine.
+4. **Clock identity.** Should `apply()` refuse unless both stores share one `SimClock` **and** that clock's `completed_tick()` equals `saved_completed_tick`? I recommend yes, with a new `SAVE_PC_CLOCK_MISMATCH`.
+5. **Load barrier on `commands.gd`.** Mirror `scheduler_events.gd::_command_barred()` so admissions are barred during a load, with `restore_pending_window()` passing through? Recommend yes; it is another owner's file, so it needs a ruling.
+6. **Two-store apply atomicity.** Options: (a) document the scheduler-first order and rely on a strengthened preflight; (b) install commands first, since its restore becomes one total call; (c) require an explicit reset-on-failure path. None is free, and (c) needs a privileged reset on both owners that bypasses the barred public `clear()`.
+
+Implementation stays undispatched until these are ruled.

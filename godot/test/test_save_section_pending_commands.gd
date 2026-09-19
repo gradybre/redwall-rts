@@ -304,7 +304,7 @@ func test_round_trip_is_byte_identical() -> void:
 	var refusal: SaveHeader.Refusal = _decode_refusal(first, decoded)
 	assert_equal(refusal.code, PendingCommands.REFUSE_NONE, "a clean section decodes")
 	var world: Array = _fresh_world()
-	var applied: SaveHeader.Refusal = PendingCommands.apply(decoded,
+	var applied: SaveHeader.Refusal = _apply_with_barrier(decoded,
 		world[2] as CommandsScript, world[3] as SchedulerEventsScript, 0)
 	assert_equal(applied.code, PendingCommands.REFUSE_NONE,
 		"a clean section applies: %s" % applied.detail)
@@ -368,7 +368,7 @@ func test_wrapped_scheduler_queue_restores_in_order() -> void:
 		"the wrapped queue decodes")
 	var world: Array = _fresh_world()
 	var scheduler: SchedulerEventsScript = world[3] as SchedulerEventsScript
-	assert_equal(PendingCommands.apply(decoded, world[2] as CommandsScript, scheduler, 0).code,
+	assert_equal(_apply_with_barrier(decoded, world[2] as CommandsScript, scheduler, 0).code,
 		PendingCommands.REFUSE_NONE, "the wrapped queue applies")
 	assert_equal(scheduler.head_position(), 0, "a restored queue starts at row 0")
 	var event: SchedulerEventsScript.Event = SchedulerEventsScript.Event.new()
@@ -795,7 +795,7 @@ func test_commands_due_at_first_midnight_round_trip() -> void:
 		"the midnight section decodes")
 	var world: Array = _fresh_world()
 	(world[0] as SimClockScript).restore_runtime(FIRST_MIDNIGHT_TICK - 1, 0, 1, 0, 0, 0, 0, 0, 0, 0)
-	assert_equal(PendingCommands.apply(decoded, world[2] as CommandsScript,
+	assert_equal(_apply_with_barrier(decoded, world[2] as CommandsScript,
 		world[3] as SchedulerEventsScript, FIRST_MIDNIGHT_TICK - 1).code,
 		PendingCommands.REFUSE_NONE, "and applies against a clock restored to 13499")
 
@@ -812,7 +812,7 @@ func test_commands_due_at_a_day_boundary_round_trip() -> void:
 		"the day-boundary section decodes")
 	var world: Array = _fresh_world()
 	(world[0] as SimClockScript).restore_runtime(TICKS_PER_DAY - 1, 0, 1, 0, 0, 0, 0, 0, 0, 0)
-	assert_equal(PendingCommands.apply(decoded, world[2] as CommandsScript,
+	assert_equal(_apply_with_barrier(decoded, world[2] as CommandsScript,
 		world[3] as SchedulerEventsScript, TICKS_PER_DAY - 1).code,
 		PendingCommands.REFUSE_NONE, "and applies against a clock restored to 17999")
 	assert_equal((world[2] as CommandsScript).next_execute_tick(), TICKS_PER_DAY,
@@ -829,7 +829,7 @@ func test_apply_restores_payload_bytes_verbatim() -> void:
 		"the section decodes")
 	var world: Array = _fresh_world()
 	var commands: CommandsScript = world[2] as CommandsScript
-	assert_equal(PendingCommands.apply(decoded, commands,
+	assert_equal(_apply_with_barrier(decoded, commands,
 		world[3] as SchedulerEventsScript, 0).code, PendingCommands.REFUSE_NONE, "it applies")
 	var command: CommandsScript.Command = CommandsScript.Command.new()
 	assert_true(commands.read_into(0, command), "the restored queue has the command")
@@ -854,7 +854,7 @@ func test_apply_refuses_a_non_empty_store_and_changes_nothing() -> void:
 	assert_true(commands.submit_into(occupant, CommandsScript.SubmitResult.new()),
 		"the target world already holds an edit")
 	var before: PackedByteArray = _encode_stores(commands, scheduler)
-	assert_equal(PendingCommands.apply(decoded, commands, scheduler, 0).code,
+	assert_equal(_apply_with_barrier(decoded, commands, scheduler, 0).code,
 		PendingCommands.REFUSE_STORE_NOT_EMPTY, "apply refuses a non-empty queue")
 	assert_equal(_encode_stores(commands, scheduler), before,
 		"and both stores are byte-identical afterwards")
@@ -872,7 +872,7 @@ func test_apply_refuses_a_tick_the_restored_clock_has_already_completed() -> voi
 	assert_true((world[0] as SimClockScript).restore_runtime(9, 0, 1, 0, 0, 0, 0, 0, 0, 0),
 		"the target clock is restored past the saved tick")
 	var before: PackedByteArray = _encode_stores(commands, scheduler)
-	assert_equal(PendingCommands.apply(decoded, commands, scheduler, 9).code,
+	assert_equal(_apply_with_barrier(decoded, commands, scheduler, 9).code,
 		PendingCommands.REFUSE_STORE_REFUSED, "apply refuses the stale record")
 	assert_equal(_encode_stores(commands, scheduler), before,
 		"and both stores are byte-identical afterwards")
@@ -888,8 +888,11 @@ func test_apply_refuses_a_boundary_the_scheduler_owner_rejects() -> void:
 	var world: Array = _fresh_world()
 	var commands: CommandsScript = world[2] as CommandsScript
 	var scheduler: SchedulerEventsScript = world[3] as SchedulerEventsScript
+	assert_true((world[0] as SimClockScript).restore_runtime(4, 0, 1, 0, 0, 0, 0, 0, 0, 0),
+		"target clock matches the supplied saved tick")
+	decoded.execute_tick[0] = 5
 	var before: PackedByteArray = _encode_stores(commands, scheduler)
-	assert_equal(PendingCommands.apply(decoded, commands, scheduler, 4).code,
+	assert_equal(_apply_with_barrier(decoded, commands, scheduler, 4).code,
 		PendingCommands.REFUSE_STORE_REFUSED,
 		"a saved completed tick the pending events do not match refuses")
 	assert_equal(_encode_stores(commands, scheduler), before,
@@ -909,7 +912,7 @@ func test_apply_passes_through_the_load_barrier() -> void:
 	var grant: SimClockScript.LoadBarrierGrant = clock.acquire_load_barrier()
 	assert_true(grant.is_ok(), "the barrier is raised for this load")
 	assert_true(clock.is_load_barrier_held(), "and it is held")
-	assert_equal(PendingCommands.apply(decoded, world[2] as CommandsScript,
+	assert_equal(_apply_with_barrier(decoded, world[2] as CommandsScript,
 		world[3] as SchedulerEventsScript, 0).code, PendingCommands.REFUSE_NONE,
 		"the install writes through the barrier it was raised for")
 	assert_equal(_encode_stores(world[2] as CommandsScript, world[3] as SchedulerEventsScript),
@@ -943,45 +946,60 @@ func test_arena_rebuild_gate_accepts_a_contiguous_arena() -> void:
 		"a contiguous arena is rebuildable through admit_stamped_into()")
 
 
-func test_arena_rebuild_gate_refuses_an_unreproducible_base() -> void:
-	"""BLOCKER P2: commands.gd has no arena-base restore, so a shifted arena refuses, not lies."""
-	assert_true(_submit(8, 1, PackedByteArray([1, 2, 3])), "one pending command")
+func test_arena_restore_accepts_a_dead_prefix_and_retains_offsets() -> void:
+	"""A zero prefix is consumed arena space, not a reason to compact live bytes."""
+	assert_true(_submit(8, 1, PackedByteArray([1, 2, 3])), "fixture command")
 	var record: PendingCommands.Record = _capture()
+	record.payload.fill(0)
+	record.payload[1] = 1
+	record.payload[2] = 2
+	record.payload[3] = 3
 	record.payload_offset[0] = 1
 	record.payload_used = 4
-	var refusal: SaveHeader.Refusal = PendingCommands.arena_rebuild_refusal(record)
-	assert_equal(refusal.code, PendingCommands.REFUSE_ARENA_NOT_REBUILDABLE,
-		"an arena a restore cannot reproduce is refused rather than written")
-	assert_true(refusal.detail.contains("BLOCKER P2"),
-		"and the refusal names the missing commands.gd API")
+	_assert_arena_round_trip(record)
 
 
-func test_arena_rebuild_gate_refuses_offsets_a_bump_allocator_never_assigns() -> void:
-	"""Spans that sum to the right cursor can still sit in an order no restore would produce."""
-	assert_true(_submit(8, 1, PackedByteArray([1, 2, 3])), "the first command")
-	assert_true(_submit(8, 2, PackedByteArray([4, 5])), "the second command")
+func test_arena_restore_accepts_offsets_permuted_relative_to_keys() -> void:
+	"""Allocation order and canonical key order are independent."""
+	assert_true(_submit(8, 1, PackedByteArray([1, 2, 3])), "first command")
+	assert_true(_submit(8, 2, PackedByteArray([4, 5])), "second command")
 	var record: PendingCommands.Record = _capture()
-	assert_equal(record.payload_used, 5, "the honest cursor is the sum of both spans")
 	record.payload_offset[0] = 2
 	record.payload_offset[1] = 0
-	var refusal: SaveHeader.Refusal = PendingCommands.arena_rebuild_refusal(record)
-	assert_equal(refusal.code, PendingCommands.REFUSE_ARENA_NOT_REBUILDABLE,
-		"offsets that sum correctly but sit in the wrong order are still unreproducible")
-	assert_true(refusal.detail.contains("arena offset 2"),
-		"and the refusal names the offset a restore would not have assigned")
+	_assert_arena_round_trip(record)
 
 
-func test_arena_rebuild_gate_refuses_a_cursor_past_the_spans() -> void:
-	"""A cursor beyond the pending spans is consumed space no public restore path reproduces."""
-	assert_true(_submit(8, 1, PackedByteArray([1, 2, 3])), "one pending command")
+func test_arena_restore_accepts_a_zero_dead_tail_without_compaction() -> void:
+	"""The highwater can exceed the final live span and must survive restore."""
+	assert_true(_submit(8, 1, PackedByteArray([1, 2, 3])), "fixture command")
 	var record: PendingCommands.Record = _capture()
 	record.payload_used = 9
-	assert_equal(PendingCommands.arena_rebuild_refusal(record).code,
-		PendingCommands.REFUSE_ARENA_NOT_REBUILDABLE,
-		"a cursor past the live spans refuses")
-	assert_equal(PendingCommands.apply(record, _commands, _scheduler, 0).code,
-		PendingCommands.REFUSE_ARENA_NOT_REBUILDABLE,
-		"and apply refuses it too, before touching a store")
+	_assert_arena_round_trip(record)
+
+
+func _assert_arena_round_trip(record: PendingCommands.Record) -> void:
+	"""Exercise real encoding, decoding and target installation for each arena shape."""
+	assert_true(PendingCommands.arena_rebuild_refusal(record).is_ok(), "consistent arena accepted")
+	var bytes: PackedByteArray = _encode(record)
+	var decoded: PendingCommands.Record = PendingCommands.Record.new()
+	assert_true(_decode_refusal(bytes, decoded).is_ok(), "wire decodes")
+	var world: Array = _fresh_world()
+	assert_true(_apply_with_barrier(decoded, world[2], world[3], 0).is_ok(), "exact owner install")
+	assert_equal(_encode_stores(world[2], world[3]), bytes, "exact offsets, payload and highwater")
+
+
+func _apply_with_barrier(record: PendingCommands.Record, commands: CommandsScript,
+		scheduler: SchedulerEventsScript, saved_tick: int) -> SaveHeader.Refusal:
+	"""Give historical codec fixtures a real barrier, releasing only this helper's token."""
+	var token: SimClockScript.LoadBarrier = null
+	if not commands.clock().is_load_barrier_held():
+		var grant: SimClockScript.LoadBarrierGrant = commands.clock().acquire_load_barrier()
+		assert_true(grant.is_ok(), "apply fixture obtains barrier")
+		token = grant.token
+	var refusal: SaveHeader.Refusal = PendingCommands.apply(record, commands, scheduler, saved_tick)
+	if token != null:
+		assert_true(token.release(), "helper releases its own token")
+	return refusal
 
 
 # --- housekeeping -----------------------------------------------------------------------------------------

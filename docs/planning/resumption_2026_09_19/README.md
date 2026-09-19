@@ -8,6 +8,10 @@ The original checkout at `docs/executor-followup-rulings` is an older mixed
 snapshot with 356 changed/untracked entries; it was preserved. The [file inventory](original_checkout_inventory.json) also checks materialized LFS assets against their pointer hashes: 248 apparent binary differences are the same integrated assets, not new art. Eleven local-only paths include historical/renumbered ADRs, archived Cycle3 review inputs, the preserved asset proposal, and the retired presentation pose scaffold. Work resumes in
 `/Users/brendan/Developer/redwall-rts-loop-2026-09-19` from integrated master.
 
+## Current verified position
+
+PRs 140–143 are merged. The latest integrated candidate is `897d3e3`; its final CI passed **4626 tests / 163571 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration has passed local acceptance and independent review and is awaiting PR/CI integration; explicit encoding of economic sequence exhaustion follows.
+
 ## Verified baseline
 
 Godot 4.7.2: **4551 tests, 158103 assertions, zero test failures**. Fifteen
@@ -75,8 +79,10 @@ stock and 1500000g stored materials/equipment after 12 tools are equipped, withi
 the authored 200000g/1600000g aggregate capacities. This is capacity arithmetic,
 not proof of room ownership, contact access or correct per-container placement.
 
-Full Q2 physical/cost profiles, PC-03 finite scenarios, PC-04 family rules and
-PC-06 progression interval still need complete authored execution packets.
+Full Q2 physical/cost profiles, PC-03 finite scenarios and PC-04 family rules
+still need complete authored execution packets. PC-06 now has an exact interval
+contract and reviewed timing helper; its producers, saved owner and live bindings
+remain to be implemented.
 Their omission remains explicit; the review and starter package do not pretend
 to close all planning or to finish development.
 
@@ -158,3 +164,11 @@ Identity restore [PR #142](https://github.com/gradybre/redwall-rts/pull/142) mer
 SAVE-W1-R02 joins decoded WorldRuntime and section10 RNG state under GameManager's load barrier. It validates both before writes, installs RNG first and the clock last, and checks each recovery write on failure. A prior seed change is valid; unseeded incoming release records refuse. No world is published and no barrier is released here.
 
 The initial complete local run passed **4623 tests / 163075 assertions / zero failures**. After strengthening the fixtures and adding three failure/guard tests, the exact final focused suite passed **27 tests / 3999 assertions / zero failures** through the same supervisor. All 15 static checks and editor import passed. Independent Opus review found no blocker; [evidence and precise scope](../../validation/evidence/save-world-2026-09-19/) distinguish the full run from the later focused run. Full settlement save/load, initialization, movement/work integration, family/scenario authoring and release qualification remain unfinished.
+
+Clock/RNG restore [PR #143](https://github.com/gradybre/redwall-rts/pull/143) merged at `897d3e3624a0618c00e08a8e26e3bbce8f02069c`. Final GitHub CI on head `28d9722` passed **4626 tests / 163571 assertions / zero failures**, plus specification checks (run35467235353). Its bounded queue task is reconciled as done.
+
+## Exact pending-command restoration
+
+SAVE-P2-R02 preserves every command record, payload offset and allocation highwater, including permuted allocation order, partial-drain holes and dead tails. Ordinary queue changes respect the actual clock barrier; the two-owner adapter installs commands first and checks restoration of the prior allocator if the scheduler refuses. Failed recovery reports explicit uncertainty and retains the barrier.
+
+Local acceptance: **4643 tests / 180723 assertions / zero failures**,15 static checks; the focused suite118/27176/0 and independent review found no blocker. [Evidence](../../validation/evidence/save-pending-2026-09-19/) retains intermediate failures and the bounded worker recovery history. Integration still awaits required PR/CI checks. Schema2 is unchanged; [SAVE-SEQ-R01](../../rulings/2026-09-19_economic_sequence_format.md) specifies the separate future format extension for terminal economic sequence allocation. Full-world save/loading and first-playable acceptance remain incomplete.

@@ -1,0 +1,30 @@
+{
+  "baseline": "897d3e3624a0618c00e08a8e26e3bbce8f02069c",
+  "ruling": "SAVE-P2-R02 v1",
+  "focus": {
+    "tests": 118,
+    "assertions": 27176,
+    "failures": 0,
+    "log": "focus-integrated-second.log"
+  },
+  "full": {
+    "tests": 4643,
+    "assertions": 180723,
+    "failures": 0,
+    "log": "tests-first.log"
+  },
+  "static_checks": 15,
+  "remaining_suite_shutdown": {
+    "objects": 553,
+    "resources": 33
+  },
+  "independent_review": "no blocking findings; advisories dispositioned",
+  "release_save_ready": false,
+  "source_sha256": {
+    "godot/scripts/core/commands.gd": "c84f76f1357dc489e40004886e4e49b9bb961aad07cd38f1b1c986790d0184cb",
+    "godot/scripts/core/save_section_pending_commands.gd": "b951e66d49e7023585ddb17010930d088d5d5a16b0375064260f654363234209",
+    "godot/test/test_commands_arena_restore.gd": "a261a55e995ea72826962df346bbe3f231e957d4710188b6d05db0add432ba0d",
+    "godot/test/test_save_section_pending_commands.gd": "cb8df476f508e7fa33851f4da9859dacc77ef4b8915fc3ac6959d471279fe0ab",
+    "godot/test/save_pending_focus.gd": "63969b8b2f4869c7df147732dcf7583a348d004047cb56314590c782f33101d4"
+  }
+}

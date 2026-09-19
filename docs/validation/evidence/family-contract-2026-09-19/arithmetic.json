@@ -1,0 +1,102 @@
+{
+  "status": "PASS",
+  "scope": "planning arithmetic only",
+  "first_turn": [
+    8750,
+    0
+  ],
+  "second_turn_ticks": 71,
+  "completion": [
+    9000,
+    250000
+  ],
+  "daily_maintenance_service_ticks": 1500,
+  "rows": [
+    {
+      "stage": "ADULT",
+      "season": "other",
+      "hunger_milli_per_hour": [
+        250000,
+        300000,
+        400000
+      ],
+      "np_per_day": [
+        6000,
+        7200,
+        9600
+      ]
+    },
+    {
+      "stage": "ADULT",
+      "season": "winter",
+      "hunger_milli_per_hour": [
+        300000,
+        360000,
+        480000
+      ],
+      "np_per_day": [
+        7200,
+        8640,
+        11520
+      ]
+    },
+    {
+      "stage": "CHILD",
+      "season": "other",
+      "hunger_milli_per_hour": [
+        187500,
+        225000,
+        300000
+      ],
+      "np_per_day": [
+        4500,
+        5400,
+        7200
+      ]
+    },
+    {
+      "stage": "CHILD",
+      "season": "winter",
+      "hunger_milli_per_hour": [
+        225000,
+        270000,
+        360000
+      ],
+      "np_per_day": [
+        5400,
+        6480,
+        8640
+      ]
+    },
+    {
+      "stage": "ELDER",
+      "season": "other",
+      "hunger_milli_per_hour": [
+        250000,
+        300000,
+        400000
+      ],
+      "np_per_day": [
+        6000,
+        7200,
+        9600
+      ]
+    },
+    {
+      "stage": "ELDER",
+      "season": "winter",
+      "hunger_milli_per_hour": [
+        300000,
+        360000,
+        480000
+      ],
+      "np_per_day": [
+        7200,
+        8640,
+        11520
+      ]
+    }
+  ],
+  "owner_payload_bytes": 46352,
+  "owner_local_live_scratch_snapshot_bytes": 98336
+}

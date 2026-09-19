@@ -1161,7 +1161,7 @@
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
-      "acceptance": "Bind GDD six reciprocal Friend pairs through one relationship owner. Refuse capacity or invalid identity before reset; persistent ids1-12 unchanged; no invented bond/family coefficients. Permanent relationship layout waits for PC-04 compatibility and explicit registry/memory ownership expansion.",
+      "acceptance": "Bind GDD six reciprocal affinity-20 pairs (not friend=true at threshold40) through one relationship owner. Refuse capacity or invalid identity before reset; persistent ids1-12 unchanged; no invented bond/family coefficients. Permanent relationship layout waits for PC-04 compatibility and explicit registry/memory ownership expansion.",
       "astra_answered": false,
       "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch"
     },
@@ -1258,14 +1258,17 @@
     {
       "id": "PLAN-PC04-FAMILIES",
       "title": "Author fixed life stages, dependents and care",
-      "status": "ready",
+      "status": "in_flight",
       "depends_on": [],
       "owns": [
-        "docs/planning/family_execution_package.md"
+        "docs/planning/family_execution_package.md",
+        "docs/planning/family_state_schema.md",
+        "docs/planning/family_lifecycle_contract.md"
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "PC-04/task08.2: household/caregiver schema, age-stage species coefficients, schedules, services, safety/interruption/warnings/rescue/consequences. No births/aging, child productive/hazardous work or adults-only fallback; exact integer coefficients and save/replay contracts."
+      "acceptance": "PC-04/task08.2: household/caregiver schema, age-stage species coefficients, schedules, services, safety/interruption/warnings/rescue/consequences. No births/aging, child productive/hazardous work or adults-only fallback; exact integer coefficients and save/replay contracts.",
+      "note": "Astra v3 numerical/routine draft, state/lifecycle v2 and two independent reviews. Exact arithmetic passes; review repair confirmation and API/transaction packets remain. No dependent runtime activation or planning-complete claim."
     },
     {
       "id": "PLAN-PC06-PROGRESSION",
@@ -1442,7 +1445,7 @@
     {
       "id": "SAVE-HEADER-REPLAY-FORMAT",
       "title": "Version the outer header and bind its checkpoint to section12 admission state",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "PLAN-REPLAY-CHECKPOINT-CONTRACT",
         "SAVE-ECONOMIC-SEQUENCE-FORMAT"
@@ -1463,7 +1466,10 @@
       "gate": "astra_ruling",
       "astra_answered": true,
       "astra_ruling": "docs/planning/replay_checkpoint_contract.md",
-      "acceptance": "SAVE-REPLAY-R01 v2: format2/header264, explicit16byte version dispatch and transactional tuple/padding refusals; exact high/low/tick binding without section preloads or owner writes; absolute file offsets+8 only; independent pinned bytes, schema/version/hostile and crosscheck tests, complete source census, static/fullsuite/independentreview. No wholefile or recorder acceptance."
+      "acceptance": "SAVE-REPLAY-R01v2/ADR0156. Outer2/header264; exact allocator pair including exhaustion and tick binding; preamble version refusal and caller immutability. Independent review no blockers; CI35472659237 4662tests181239assertions0failures. Full coordinator/replay stream remain separate.",
+      "pr": 146,
+      "merge_commit": "7b3e83b0f448828a43e207eabf946f80ba8207b2",
+      "merged_at": "2026-09-19T22:19:57Z"
     },
     {
       "id": "PLAN-REPLAY-STREAM-CONTRACT",

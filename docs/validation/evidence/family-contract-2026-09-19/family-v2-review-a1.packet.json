@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "7b3e83b0f448828a43e207eabf946f80ba8207b2",
+  "task": "Independent family v2 closure review: phases, schemas, illness and commands",
+  "paths": [
+    "docs/planning/family_execution_package.md",
+    "docs/planning/family_state_schema.md",
+    "docs/planning/family_lifecycle_contract.md",
+    "docs/validation/evidence/family-contract-2026-09-19/phase-source-excerpts.json",
+    "docs/validation/evidence/family-contract-2026-09-19/draft-v1-review.md"
+  ],
+  "instructions": "Independent review-only of three proposed family documents. No runtime activation or completePC04claim. Review concrete remaining contradictions, exact scalar/schema arithmetic, care/day/phase/assignment timing, illness preserving existing Needs preintervalsample, commandprotocol/refs and lifecycle. Prior reviewF01 was wrong: eligibility remains latched across750tickturns, so secondturn canreach9000; daily equilibrium uses gross restoration3000*2hours=6000 versus24hoursdecay250*24=6000, not6000/net2750. Parent retains3000 and750 and adds explicit arithmetic/refusals. Validate this independently rather than rubberstamping priorreview. Identify smallest finite blocker set for an execution-ready numerical/schema contract; distinguish implementation/externalprofile prerequisites from missing rules. If choices require no userreservedscope/spend/artdecision, suggest exactboundedrepair forAstra. Prioritize phase consistency, dictionary/scratchpeak, activeprovider/livebinding, pairedsocialdayaccumulator and illnessordinal/payloadversion. Mention obsolete prose contradictions rather than acceptappendicesoveroldertext silently. Return concise report at most3000words with numbered findings; no rewritten code or markdownfiles except one report. RawJSONexactkeys status,summary,questions,files,decisionIds;statuscomplete;files exactly [{\"path\":\"docs/validation/evidence/family-contract-2026-09-19/draft-v2-review.md\",\"content\":\"report\",\"baseSha256\":null}]. Oneattempt15min/no-progress3min."
+}

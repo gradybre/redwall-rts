@@ -1,0 +1,11 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "11526f7f4df968e463ea8c8610cd895c3ee1812b",
+  "task": "Independent PC-04 family contract gap and ownership audit",
+  "paths": [
+    "docs/validation/evidence/family-contract-2026-09-19/source-excerpts.json",
+    "docs/tasks/08_community_scenarios_progression.md",
+    "docs/planning/release_coverage_matrix.md"
+  ],
+  "instructions": "You are independent planning specialist, no implementation. Audit inherited dependent family policy and current owner surfaces. Astra will author exact amendment. Identify required finite decisions, distinguish approved policies from missing numeric choices, suggest bounded state ownership/schema and dependency ordering, flag conflicts with existing adult needs/injury/movement/relationship rules. Prioritize exact missing rates, care work and fallback ordering, household/admission transaction, beds, schedules, danger warning/rescue, separation/loss, save/UI/test obligations. No invented user-approved values; proposals must be labeled proposals. Do not reopen fixed life stages, no birth/aging, child ordinary/hazardous labor prohibition, elder no universal productivity penalty, caps256/512, settled movement Q2-34/35. Do not design literary scenarios or claim source access beyond supplied excerpts. Return concise actionable audit with explicit source line citations and planning acceptance checklist, no code. Raw JSON only with exact keys status,summary,questions,files,decisionIds; status complete; files exactly [{\"path\":\"docs/validation/evidence/family-contract-2026-09-19/independent-gap-audit.md\",\"content\":\"your report\",\"baseSha256\":null}]. One attempt15min/no-progress3min."
+}

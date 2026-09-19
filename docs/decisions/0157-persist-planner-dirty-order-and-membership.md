@@ -1,6 +1,6 @@
 # 0157 — Persist planner dirty order and membership
 
-Date: 2026-09-19 · Status: Implemented candidate; independently reviewed and locally validated, merge pending
+Date: 2026-09-19 · Status: Implemented and merged in PR148; final CI4670tests/181533assertions/0fail
 
 The save registry excludes job_planner's dirty work lists as derived accelerators.
 A runtime counterexample shows identical declared canonical columns producing

@@ -1,6 +1,6 @@
 # Fixed life stages, households and care
 
-PC-04 / FAMILY-C4-R01 · version 4 draft · 2026-09-19 · Astra
+PC-04 / FAMILY-C4-R01 · version 3 draft · 2026-09-19 · Astra
 
 Status: authoring and independent review. This is a proposed exact engineering
 amendment under the delegated settlement scope, not a record of numeric values
@@ -80,8 +80,7 @@ and failed rescue remain the causal survival routes.
 
 Adult/elder mood keeps the inherited divisor10 formula. Child mood is
 clamp(floor((3*hunger+2*rest+2*comfort+social+2*purpose+2*care)/12)+memories,
-0,10000). Care integrates at ARCH-SYS-017a; ARCH-SYS-018 SocialMood computes final mood
-after care, medical completion and that tick's paired/social/memory effects; lifecycle follows.
+0,10000). Care is integrated before mood at CareHealth; lifecycle follows.
 There is one accumulator for care, owned by the dependent store. Reaching either
 bound discards outward overflow and remainder exactly as Needs does.
 
@@ -132,7 +131,7 @@ work may finish its existing at-most30WU segment before ordinary care begins.
 A service runs until the first of care>=9000, child/provider interruption,
 contact invalidation or 750 ticks of actual paired service. The 750-tick limit
 is a turn-taking bound, not a completion bonus. Partial restoration persists;
-no all-or-nothing payout can be duplicated by cancellation/reload. Reselect in a global care pass every30ticks (in-flight tick k modulo30=0, before completed_tick publication);
+no all-or-nothing payout can be duplicated by cancellation/reload. Reselect in a global care pass every30ticks (completed tick modulo30=0);
 this is distinct from per-resident ordinary job staggering. The pass runs after
 that tick's care/health/lifecycle commit and stages service assignments for the
 next interval. It grants no restoration in its own selection tick. The service/
@@ -354,7 +353,7 @@ consume or alter the degree8affinity graph themselves.
 The second independent review confirmed the corrected care equilibrium and all
 byte products. Its nine blockers are addressed in the companion revisions:
 CHILL submits after movement at CareHealth and first drains nexttick; allnotice
-codes have predicates; CHILL_UNTREATED now derives from the separate untreated bit (version4 correction);
+codes have predicates; CHILL_UNTREATED derives from onsetlatch plusactiveaggregate;
 pairedsocialstate belongs to boundedRelationship rows with same-day eviction
 protection; all newdomains/columns participate in a coordinated versionchange;
 turn-limit reselection excludes the samepair in thatpass; saved validator ranges
@@ -364,8 +363,7 @@ arrays; family care subphases have named proposed architecture ordinals below.
 For tick k, care integration is ARCH-SYS-017a, using only service participation
 from the preceding committed interval and granting nothing for a new assignment.
 Needs retains its existing one-health-integration rule; ARCH-SYS-017b submits
-CHILL and medical completions; ARCH-SYS-018 SocialMood then commits paired-contact
-affinity/memory effects and computes finalmood once; ARCH-SYS-019 commits
+CHILL and medical completions, then computes finalmood; ARCH-SYS-019 commits
 lifecycle. ARCH-SYS-019a resets care dailyfairness if k is midnight (elapsedtick
 alreadycredited to oldday), then on k mod30=0 selects for the nextinterval.
 The predicate uses the in-flighttick k, before completed_tick is finallypublished.
@@ -387,39 +385,3 @@ atomic admission/lifecycle participants, bounded implementation tasks, owning-sp
 amendments and independent confirmation of these repairs are recorded. Actual
 profile measurements, complete codecs, named mixed-family scenario and runtime
 player evidence are subsequent execution dependencies, not already implemented.
-
-
-## Version4 independent-review disposition
-
-All v2 numerical/schema blockers were independently confirmed closed. The v3
-review found one remaining illness-state ambiguity and two stale prose seams.
-FAMILY-LIFE-R01v3 separates untreated chill from its onset/rearm latch (+512bytes
-beyond the previous Injury proposal, now1024live+1024snapshot). No coefficient or
-health integration changed. The main care-pass sentence now uses in-flight k.
-
-The Relationship owner writes paired_social_day and existing last_contact_day
-together on every qualifying paired care/social interval in ARCH-SYS-018.
-paired_social_day owns accumulator reset and its750-tick award latch;
-last_contact_day owns eviction eligibility and oldest-contact sorting. Generic
-rescue/feast/conflict contact may additionally advance last_contact_day without
-awarding paired ticks; this only protects an edge longer, never awards again.
-Both dates are current absolute day when a paired interval commits. A restored
-row with paired_social_day later than last_contact_day refuses. New-day paired
-contact resets its ticks before adding; no paired-day field is reset merely by
-an attempted edge eviction. No same-day awarded edge can be recreated for a
-second award because its last_contact_day forbids eviction until the nextday.
-
-ARCH-SYS-017b no longer claims to publish finalmood. ARCH-SYS-018 first consumes
-actual preceding-interval paired care/social participation exactly once, updates
-the shared pair-day accumulator/award, applies that tick's scheduled social and
-conflict/memory events, and derives finalmood using post017a care and post017b
-health. Lifecycle and progression read this final018 result. Existing Needs
-mood readers remain pure formula helpers; this ordering introduces no second
-health integration or persistent duplicate mood column. The integration packet
-must bind one participation producer so care and social cannot double-credit
-one pair in one interval. Proposed phases remain inactive until that packet.
-
-The pure rate-table implementation has its own exact public interface in
-[family_rules_api_contract.md](family_rules_api_contract.md). It may be accepted
-as a preparation helper without claiming completed family activation. All other
-public owner records, transaction and scenario/profile prerequisites remain open.

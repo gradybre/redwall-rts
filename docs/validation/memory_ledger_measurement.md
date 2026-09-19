@@ -356,3 +356,20 @@ means the 8388608-byte reserve remains generous at that destination too.
 | Resident set size | This harness measures allocation; RSS needs an OS-level probe and a running simulation, not a construction-time delta |
 | Allocator behaviour on the qualification floor | Measured on macOS arm64 with Godot 4.7.2; the 1.63% overhead figure is platform-specific |
 | `PackedStringArray` payload | It has no fixed element width; only slot count and current UTF-8 content are measurable. See §3.1 |
+
+
+## 2026-09-19 additive helper allocation: family stage rates
+
+FAMILY-RULES-R01 / decision0158 introduces an **unbound derived catalog helper**.
+A constructed instance has two PackedInt64Array buffers of18 elements each:
+`_hunger_rates_milli`144B + `_daily_demand_np`144B = **288B packed payload**.
+`test_family_rules.gd::test_flat_packed_payload_is_288_bytes_and_queries_leave_it_identical`
+reads both real buffer lengths/byte arrays. This is an allocation measurement of
+the helper, excluding object/constant-array/scalar overhead; it is not RSS or a
+new whole-world measurement. The legacy measurements above remain unchanged.
+
+Its eventual composition belongs to the read-only catalog/lookup ownership
+(row18), one instance per published rules package. The running settlement does
+not construct it yet. This record therefore claims no current startup increase
+and no proof that all future catalog owners fit the2097152-byte budget.
+No canonical field or mutable resident snapshot is added by this helper.

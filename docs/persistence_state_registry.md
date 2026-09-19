@@ -1,9 +1,9 @@
 # Persistence: the future-affecting-state registry
 
 Task 09.1. One row per store per column group, for every module under
-`godot/scripts/core/`. **There is no save module in this repository.** This
-document is the inventory that makes writing one (09.2/09.3) possible; it writes
-no bytes and settles no schema.
+`godot/scripts/core/`. This registry now includes the implemented section codecs
+and restore helpers; complete save orchestration remains unfinished. The rows
+classify state ownership. Owning contracts and versioned codecs define its wire format.
 
 Enforced by [`docs/validation/state_registry_coverage.py`](validation/state_registry_coverage.py),
 which reads the packed columns straight out of the GDScript and fails when a
@@ -250,6 +250,13 @@ Neither needs new state.
 | Event record i64 fields | `_due_tick`, `_sequence` | 8 | `CAPACITY` = 64 | Rows `[_count, CAPACITY)` are byte zero; sequence 0 is the EXHAUSTED marker and never a live row | 1 | §11 EVENT_SCHEDULE | 2 x 8 B x 64 = **1024 B**, `docs/systems_architecture.md:435`. Live sequences are unique, nonzero and below `_next_sequence` unless it is exhausted; `restore_rows()` checks all of that plus strict `(due_tick, sequence)` ascent before writing a byte. Due ticks are offset-calendar ticks: a midnight is `(tick + 4500) mod 18000 == 0` and tick 13500 is the first one, never `tick % 18000`. Rows do not expire on their own -- SAVE-R09-005 forbids silently expired rows, so a due row stays until a consumer pops it. |
 | Event schedule scalars | -- | -- | -- | `_next_sequence == 0` means the allocator is EXHAUSTED; it is not an empty schedule and not a null | 1 | §11 EVENT_SCHEDULE | `_next_sequence` is SAVE-R09-005's "ALREADY BUDGETED `WorldRuntime.next_event_sequence` i64 reassigned to EventSchedule ownership/section 11" -- 8 B moving owner, NOT 8 B added, so `docs/systems_architecture.md:441` must drop it from the WorldRuntime I64 row as this store gains it. Initial 1, issued 1..I64_MAX, never reused, never inferred from live rows. `_count` is the declared u32 scalar, 4 B on the wire, a plain GDScript int in memory and so no packed-column row. Both are ordinals 0 and 1 of REG-R01's eight declared fields. |
 | Event schedule diagnostics and scratch | -- | -- | -- | -- | 3 | -- | `_last_refusal`, the code from the most recent refused call, and `_math`, the reused `IntResult` scratch. Neither is simulation state; both are a `StringName`/object handle rather than a packed column, so they owe no ledger byte. |
+
+### `godot/scripts/core/family_rules.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Fixed-stage compiled rate tables | `_hunger_rates_milli`, `_daily_demand_np` | 8 | `TABLE_COUNT` = 18 | Every valid stage/size/season row is populated | 2 | §2 CATALOG_IDS | FAMILY-RULES-R01 / decision0158. Two private tables reconstruct from the same compiled rules,288 packed bytes. Scalar readers only. The helper is unbound preparation; authoritative family activation and the complete rules fingerprint are separate prerequisites. No additional canonical/save field is declared. |
+| Table readiness | -- | -- | -- | false until every checked value is built | 2 | §2 CATALOG_IDS | `_ready` is a derived construction result, not resident state. Queries cannot publish a partial table. |
 
 ### `godot/scripts/core/farming.gd`
 

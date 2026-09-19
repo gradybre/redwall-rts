@@ -69,5 +69,71 @@
         "sha256": "1fdc535acd6a47262e631a3aa9d9e37d458642ed3987bb4f25601b7f95f566cc"
       }
     ]
+  },
+  {
+    "attempt": "family-v3-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "3d4210f6-cda6-4f3c-a4a2-847d2bc2c472",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/family_execution_package.md",
+        "sha256": "46a414de8ffd469026f9311b409bf0ef2f51ca74b12b57e3d711894d603b341d"
+      },
+      {
+        "path": "docs/planning/family_state_schema.md",
+        "sha256": "592f05f67efaebed934e881f7e45cd5f93c7b3eb60865c544dd10734c60b34f4"
+      },
+      {
+        "path": "docs/planning/family_lifecycle_contract.md",
+        "sha256": "bd7d6eef0ce4f3315da1e7b3f4e18161391f9ac673b79eaa399527dba70cb134"
+      },
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/draft-v2-review.md",
+        "sha256": "eafd27d43e32c766034b722ed7c48df58d08bdf6abf81598b2502f5f9eab1ae5"
+      },
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/arithmetic.json",
+        "sha256": "6d93e33c5d9eb7eba38c01d9c149cb114ee7e375d772ab4c10a27baaad5eb40e"
+      },
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/phase-source-excerpts.json",
+        "sha256": "8ae096ee9aadf6b639dbae67d5aeda1a392fa6c2d059f33f9e6134787c4eb64f"
+      }
+    ]
+  },
+  {
+    "attempt": "family-v4-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "7d7fa84e-c553-49de-853d-50194bfbe816",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/family_execution_package.md",
+        "sha256": "ab8389a229d643249d308a86dbd634ae94050e6d3ac551c2c2650e2bc6b13352"
+      },
+      {
+        "path": "docs/planning/family_state_schema.md",
+        "sha256": "c75e208dd2db6ac9a6f8ab061e40898de0f3539bc31b5f3c7147af0f5631c647"
+      },
+      {
+        "path": "docs/planning/family_lifecycle_contract.md",
+        "sha256": "f8c7131a76e0cc4a1c2e31e92b871e1ff3e692e4ae627f43c682ab64cd6a0607"
+      },
+      {
+        "path": "docs/planning/family_rules_api_contract.md",
+        "sha256": "66d7c83b540afd1547b6211c2b89b1f0d02652c5465be15fb84b988223f2fc2d"
+      },
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/draft-v3-review.md",
+        "sha256": "c37c8e2f8dc2f47400d5fc829e49f03a2a2445a503d39f6e9eabbaff7ac51001"
+      },
+      {
+        "path": "docs/validation/evidence/family-contract-2026-09-19/arithmetic.json",
+        "sha256": "6d93e33c5d9eb7eba38c01d9c149cb114ee7e375d772ab4c10a27baaad5eb40e"
+      }
+    ]
   }
 ]

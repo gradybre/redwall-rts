@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "34c2196e4f7742f9e8bf6ef11fae24feb7454b2c",
+  "task": "Confirm repaired family numerical/schema/lifecycle drafts and identify finite remaining execution contracts",
+  "paths": [
+    "docs/planning/family_execution_package.md",
+    "docs/planning/family_state_schema.md",
+    "docs/planning/family_lifecycle_contract.md",
+    "docs/validation/evidence/family-contract-2026-09-19/draft-v2-review.md",
+    "docs/validation/evidence/family-contract-2026-09-19/arithmetic.json",
+    "docs/validation/evidence/family-contract-2026-09-19/phase-source-excerpts.json"
+  ],
+  "instructions": "Independent confirmation review of FAMILY-C4-R01v3 / FAMILY-STATE-R01v2 / FAMILY-LIFE-R01v2. These are integrated planning drafts, not activated runtime. Check v2 review nine B1-B9 plus F10-F17 repairs and specifically new same-day affinity-edge eviction protection, turn-limit scratch/accounting, saved validator canonicalization, CHILL predicate/nexttickphase, proposed phases. Parent rejected v2 arithmetic statement4500mod18000=0; correct4500mod30=0 and18000mod30=0, firstmidnight13500. Do not doublecount care decay or re-propose obsolete3250rate: gross3000twohours balances250all24hours; eligibilitylatched means9000reachable. Classify numerical/schema decisions closed vs exact public API/atomic admission transaction/spec activation still needed. No claimruntimecompletion. Any actual blocker give exactcontradiction/reproducer and smallestordinary engineeringresolution. Do not assertmissingAPIsolelybecauseexcerptomits: Injury.last_incident_ordinal_of actuallyexistsandcursorpersisted (parentverified). No tools execution; sourceprovidedonly. Return concise report, avoidrepeatingallpreviousreviewarithmetic. Return ONLY rawJSON exactkeys status,summary,questions,files,decisionIds;statuscomplete;files exactly [{path:\"docs/validation/evidence/family-contract-2026-09-19/draft-v3-review.md\",content:review,baseSha256:null}]. One15minattempt, no code or sourceedits. No major scope/spend/art decisions."
+}

@@ -1,6 +1,6 @@
 # PC-04 lifecycle, illness and command closure draft
 
-FAMILY-LIFE-R01 · version3 draft · 2026-09-19 · Astra. Not active rules.
+FAMILY-LIFE-R01 · version2 draft · 2026-09-19 · Astra. Not active rules.
 This companion supplies proposed resolutions for the remaining gameplay choices;
 independent review and owning-spec amendments are required before activation.
 
@@ -17,7 +17,7 @@ through validated stage records. No unqualified stage inherits a default row.
 In ARCH-SYS-017 CareHealth of tick k, after movement incidents, a living
 resident whose cold_milli_hours committed by tick k's Needs integration is>=4000
 and chill_episode=0 receives one CHILL severity1 incident,
-immediatehealthloss0. Set chill_episode=1 and chill_active=1 together only after successful incident commit.
+immediatehealthloss0. Set chill_episode=1 only after successful incident commit.
 Its untreated drain first enters the existing health sample in tick k+1;
 there is no retroactive health resampling or second health integration. Existing severity merge rules remain exact: worse severity replaces; equal
 severity retains the lower kindID; untreated time and paid care remain; aggregate
@@ -33,17 +33,13 @@ conscious child with reachable supplies and qualified safe contact; this is not
 an ordinary productive job and never awards XP. Children never rescue another
 resident or become productive HEAL workers. Incapacity cannot self-rescue.
 
-The episode latch rearms only when cold_milli_hours<=1000 and chill_active=0. Sheltering stops cold damage immediately by existing rules,
+The episode latch rearms only when cold_milli_hours<=1000 and no active CHILL
+aggregate remains. Sheltering stops cold damage immediately by existing rules,
 but does not magically complete treatment. Treatment while still deeply exposed
 cannot create repeated same-tick CHILL incidents. Existing higher-severity injury
 may suppress the primary CHILL label; incident history records the actual onset.
-The onset latch chill_episode and untreated bit chill_active are each B8[512],
-initial/absent0, valid0/1, owned by Injury: +1024livebytes and +1024snapshotbytes
-in total. Both enter its owner schema and canonical image. chill_active=1 requires
-chill_episode=1 and an active aggregate injury. Successful aggregate treatment
-clears chill_active even if FALL/CUT was the primary kind; it does not clear the
-onset latch while cold>1000. Death/row retirement clears both bits. An unrelated
-new injury never sets chill_active. Sheltering alone never clears untreated illness.
+The latch is B8[512], initial/absent0, valid0/1, owned by Injury; +512livebytes,
++512snapshotbytes, and must be in its owner schema and canonical image.
 
 All hazard incident producers use the same existing per-resident monotonic ordinal
 contract. The CareHealth coordinator reads the last accepted ordinal, checked-adds1
@@ -53,7 +49,8 @@ and holds publication with an explicit invariant error; it never resets the curs
 or drops an injury. This ordering and publication response require joint hazard/
 CareHealth review before implementation. Treatment does not reset last ordinal.
 
-Warnings: exposure WARNING atcold>=3000, clearbelow2000; CHILL_UNTREATED is active exactly when chill_active=1: WARNING, or CRITICAL at health<=15. This intentionally describes
+Warnings: exposure WARNING atcold>=3000, clearbelow2000; CHILL_UNTREATED is active exactly when chill_episode=1 and an active aggregate
+injury remains: WARNING, or CRITICAL at health<=15. This intentionally describes
 aggregate medical need after chill onset even when FALL/CUT wins the primary kind.
 Successful aggregate treatment clears that notice immediately; the retained onset
 latch alone cannot keep the notice active. Existing hunger<=1500/0, health<=15/0, airless and
@@ -173,9 +170,9 @@ producer, notice owner, memory store or chronicle exists.
 ## Version2 owner and phase clarifications
 
 All of CHILL=6, PLAY=4/LEARNING=5, young_day, the SET_POLICY selectors and
-Injury.chill_episode and Injury.chill_active enter one versioned family rules/catalog fingerprint. They
+Injury.chill_episode enter one versioned family rules/catalog fingerprint. They
 require explicit GDD protected-enum and schedule-template amendments. Existing
-ordinal values stay fixed. Injury owner schema1 advances to2 when the two bits are
+ordinal values stay fixed. Injury owner schema1 advances to2 when the bit is
 implemented; its actual baseline schema must be checked at dispatch, never
 overwrite an intervening revision. New family owner starts at1. Needs, Residents
 and Schedule owner version changes follow their exact changed canonical columns
@@ -190,17 +187,3 @@ signature at dispatch. Treating any aggregate after an onset clears that medical
 need as one aggregate treatment, not a per-kind cure list. The coordinator's
 I64_MAX handling and publish-hold response require fault-test evidence before
 activation; no claim is made that the current coordinator already supplies it.
-
-
-## Version3 treatment-episode correction
-
-The independent v3 review reproduced a false warning: CHILL onset, successful
-treatment while cold remains>1000, then unrelated CUT reactivated a predicate
-based on the onset latch and any aggregate injury. Separate chill_active now
-tracks untreated chill; treatment clears it, while chill_episode continues to
-prevent immediate repeat onset. Fixture sequence: onset -> (episode1,active1);
-treatment atcold2000 -> (1,0); CUT atcold2000 -> (1,0), no CHILL notice; shelter
-tocold1000 -> (0,0) even if CUT remains; a subsequent actual onset atcold4000
-sets(1,1). Failure to commit either onset or treatment changes neither bit.
-These updates belong to the same atomic Injury operation as their aggregate
-change, never a best-effort coordinator write afterward.

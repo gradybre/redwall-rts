@@ -1,0 +1,8 @@
+{
+  "godot/scripts/core/family_rules.gd": "3e7e41a936d9bddf746257aaac5b8f5f0f79f5f2ba478831aad82351f68b4d6d",
+  "godot/test/test_family_rules.gd": "b3705de4752f93dea32d92a674c3db69344d0503891e56baf4dadb1db0213f89",
+  "godot/test/family_rules_focus.gd": "39396b5146754e37d5aa9d9363dbb3b206fdb2450a0be054f7dd92998970b79a",
+  "docs/planning/family_rules_api_contract.md": "ed36de08ce430707841ecf8b0b1114a55d052bc25ea5e62caf6dd475251bed37",
+  "docs/persistence_state_registry.md": "fdd707da675024b37dc50c4a89277fbaedc7f386024acbdf006dae26d1957aeb",
+  "docs/validation/memory_ledger_measurement.md": "37bc03a43456214ef560661b5cbe810706fd8dba2989ebd36f6767a38b801da6"
+}

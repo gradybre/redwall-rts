@@ -1489,7 +1489,7 @@
     {
       "id": "SAVE-PLANNER-DIRTY-FORMAT",
       "title": "Persist exact planner dirty-list order and membership under schema2",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "SAVE-S8-COUNT"
       ],
@@ -1501,7 +1501,25 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "SAVE-J2-R01v2 / decision0157. Runtime probe disproves derived-list classification. Add six canonical fields and strict schema dispatch; zero popped tails. Live bulk capture/apply and cross-owner restore remain separate J2 work."
+      "note": "SAVE-J2-R01v2 / decision0157. Runtime probe disproves derived-list classification. Add six canonical fields and strict schema dispatch; zero popped tails. Live bulk capture/apply and cross-owner restore remain separate J2 work.",
+      "pr": 148,
+      "merge_commit": "ce679f85885349168745d3cead107dec7ccded59",
+      "merged_at": "2026-09-19T23:11:49Z",
+      "acceptance": "Full final-head CI4670tests/181533assertions/0fail; focused293/6431/0; all15specification checks; independent source review no blockers. Live bulk API/full save remain separate."
+    },
+    {
+      "id": "FAMILY-RULES-TABLE",
+      "title": "Publish reviewed fixed-stage hunger and daily-demand tables",
+      "status": "in_flight",
+      "depends_on": [],
+      "owns": [
+        "godot/scripts/core/family_rules.gd",
+        "godot/test/test_family_rules.gd",
+        "docs/planning/family_rules_api_contract.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "FAMILY-RULES-R01v1 / decision0158 independently reviewed. Pure unbound derived catalog helper only; full PLAN-PC04-FAMILIES remains in_flight. No runtime family activation, changed save fields or new profile assumptions."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

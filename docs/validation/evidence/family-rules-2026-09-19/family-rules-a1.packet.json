@@ -1,0 +1,12 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "ce679f85885349168745d3cead107dec7ccded59",
+  "task": "Implement pure FAMILY-RULES-R01v1 fixed-stage rate tables",
+  "paths": [
+    "docs/planning/family_rules_api_contract.md",
+    "docs/decisions/0158-publish-the-fixed-stage-rate-table-as-a-derived-helper.md",
+    "godot/scripts/core/int_math.gd",
+    "docs/validation/evidence/family-contract-2026-09-19/draft-v4-and-rules-api-review.md"
+  ],
+  "instructions": "Implement exact accepted FAMILY-RULES-R01v1 including finaldispatchcitations. Own ONLY NEW godot/scripts/core/family_rules.gd. TypedGDScript/docstringeverymethod,extendsRefCounted,onlyIntMathpreload. Two privatePackedInt64Array named _hunger_rates_milli and _daily_demand_np,eachresizeTABLE_COUNT18,private_readyboolinitialfalse. Buildall36checkedproducts/floordivincoldconstructorbefore_readytrue. No duplicatepermanentarrays,nodicts,queryallocationorconsumeractivation. Public is_ready,hunger_rate_milli_into,daily_demand_np_into exactsignature. Refuseunreadytheninvalidstage theninvalidsize; errorsstringsownedhelperexactcodes. No arithmetic/index oninvalidhugeints. Neednotaddtestonlyfailurehooks. Parent owns independenttests/registry/ledger. No CLIexecutionavailable,donotclaimtests. ReturnrawJSON exactkeys status,summary,questions,files,decisionIds;statuscomplete;files EXACTLY[{path:\"godot/scripts/core/family_rules.gd\",content:fullsource,baseSha256:null}]. CorrectJSONescapedquotes,newlines. Short implementation, avoidexcessivecommentary. One15minuteattempt/no-progress3minute. Acknowledge FAMILY-RULES-R01v1. Supported model claude-sonnet-5 verified in earlier cap-sound-a1 completion."
+}

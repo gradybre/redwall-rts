@@ -22,6 +22,8 @@ The tables below are the historical `50e78ce` inventory. Later source evidence s
 
 - Header/replay binding: SAVE-REPLAY-R01 version2 / decision0156 resolves the old scalar gap with outer format2/header264 and a redundant high/low next-admission checkpoint, validated against section12 and section1 tick. SAVE-HEADER-REPLAY-FORMAT is integrated in PR146 and remains an explicit prerequisite of full orchestration/capture. The full coordinator must invoke the binding validator on the same decoded file; no coordinator or replay recorder is supplied by the header codec. PLAN-REPLAY-STREAM-CONTRACT retains the separate task09.4 log/append/branch contract.
 
+- J2 dirty-state gap: the old derived-list classification is disproved by the 2026-09-19 runtime probe. SAVE-J2-R01 / decision0157 promotes three lists and three counts, preserving exact order under owner/section schema2. This format correction does not supply the missing bulk capture/apply adapter. A future coordinator must pass the actual descriptor schema to `decode_section_with_schema_into()`.
+
 `release_save_ready` remains **false**. The full coordinator must bind the correct world's clock and directory, verify all sections and implement the approved disk-backed rollback; this adapter alone supplies none of those guarantees.
 
 ---

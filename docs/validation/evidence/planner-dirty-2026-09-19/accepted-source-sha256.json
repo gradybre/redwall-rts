@@ -1,0 +1,11 @@
+{
+  "godot/scripts/core/job_planner.gd": "577c9e9751a0c2ad9683fdc060b69d95265eb0c7e3ac8568acf8c92621dbe244",
+  "godot/scripts/core/save_section_job_indexes.gd": "02648e6cf631a15fccf149bf9cd9d26a8b2133d77d45f9fbd51c50c590b93e7d",
+  "godot/scripts/core/canonical_state_hash.gd": "45c39989274569510570dd71e4324704ef220f66458c9967f069d3f0d2e7e0ae",
+  "godot/test/test_planner_dirty_format.gd": "ce3ce58f2e0aa29a35fb235a5ae1e99994ebf9c9cbd130465d63af52d822f431",
+  "godot/test/test_save_section_job_indexes.gd": "f21c2cee8dbfa82fef9ff957b25f79a193bbb0e467ece79eaf6795e1ea582113",
+  "godot/test/test_canonical_state_hash.gd": "93d7f644f96f3a293e053940b9b3aab6aef533d378e1ddc190e1fbb9a61ea41f",
+  "docs/planning/canonical_state_registry.json": "228b475fc22ee86a404a4bb54f1b8bea7e1006f6bd1dd9bebe724eb283f4c701",
+  "docs/planning/registry_capacity_audit.json": "b452e3db99616f1a2d016f99af443dd559668b254d822a5957ed72abd204a61e",
+  "docs/persistence_state_registry.md": "d95a27d7b8094a203b795a6ef1fd27638c0bdbae0795940bdd0dc1d9207c20aa"
+}

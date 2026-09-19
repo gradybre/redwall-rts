@@ -41,7 +41,8 @@ def main():
  # §8/§9 primary extents: independent designated counts, never sum of child tables.
  check(sum([8192,4096,128,640,1024])==14080,'five extent sum')
  check(8192!=14080 and 8192!=512+8192,'primary not sum')
- check(23+8+4+363112+4==363151,'section8 byte length')
+ check(23+8+4+363112+4==363151,'historical Cycle3 section8 byte length')
+ check(39+35*8+383884==384203,'SAVE-J2-R01 section8 byte length')
  schema=json.loads((args.source_root/'docs/planning/canonical_state_registry.json').read_text())
  # Traverse metadata shape independently of the registry's outer owner layout.
  fields=[]

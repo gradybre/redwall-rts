@@ -52,7 +52,8 @@ def validate_registry(data):
     # owner_schema_version and section_schema_versions[6], both 2 -> 3, and the registry
     # identity with them. A pin that had moved here would mean a field set change nobody
     # authorized.
-    assert records == data['record_count'] == 596
+    # SAVE-J2-R01 adds three packed dirty lists and three scalar counts.
+    assert records == data['record_count'] == 602
     directory = next(o for o in owners if (o['section_id'],o['owner_key']) == (3,'entity_directory'))
     assert [f['field_key'] for f in directory['fields']] == ['_active','_generation','_retired','_persistent_id','_kind','_typed_row']
     allocator = next(o for o in owners if (o['section_id'],o['owner_key']) == (1,'entity_directory'))
@@ -99,7 +100,8 @@ def validate_source(data, source):
     # reclassifies no column. inventory.gd's twenty-eight category-1 packed columns are
     # unchanged, and its new `_canonical_detail` is a String, not a packed column, so it enters
     # neither side of this equality.
-    assert len(actual)==data['packed_source_field_count']==550
+    # SAVE-J2-R01 promotes exactly three packed dirty-list arrays.
+    assert len(actual)==data['packed_source_field_count']==553
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 
 def valid_name(present, named, raw):

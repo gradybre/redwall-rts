@@ -108,11 +108,11 @@ ASTRA_CYCLE_03_CENSUS = {
 
 # What decision 0142 removed, so a later reader can tell an EXPLAINED drift from a new one. A
 # disagreement that is not in this table is unexplained and wants a human.
+# Decision 0157 adds three packed lists and three scalars. Against the original census,
+# this offsets 0142's packed removals while adding three net canonical scalar records.
 EXPLAINED_SINCE_CENSUS = {
-	"prose_records": -3,
-	"equality": -3,
-	"canonical_records": -3,
-	"packed_source_fields": -3,
+	"canonical_records": 3,
+	"other_canonical_shapes": 3,
 	"distinct_expressions": -1,
 }
 
@@ -609,7 +609,7 @@ def _census(registry: dict, rows: list) -> dict:
 		delta = seen - value
 		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
 		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
-			explained.append(line + " -- decision 0142 retired three deposit members")
+			explained.append(line + " -- decisions 0142 and 0157: retire three deposit members; persist three dirty lists and three counts")
 		else:
 			unexplained.append(line)
 	return {

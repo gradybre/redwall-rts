@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PLANNER_DIRTY_PROBE=[{"canonical_bytes":362880,"created":2,"dirty_mark_order":[0,1],"plot_job_ids":[4,3],"section8_before_sha256":"eaf4cec39ff412c884aaf0616450a9f3a47aecbfd4eabfb3cb2b70d7fb8dc2bf"},{"canonical_bytes":362880,"created":2,"dirty_mark_order":[1,0],"plot_job_ids":[3,4],"section8_before_sha256":"eaf4cec39ff412c884aaf0616450a9f3a47aecbfd4eabfb3cb2b70d7fb8dc2bf"},{"canonical_bytes":362880,"created":1,"dirty_mark_order":[],"plot_job_ids":[3,0],"section8_before_sha256":"eaf4cec39ff412c884aaf0616450a9f3a47aecbfd4eabfb3cb2b70d7fb8dc2bf"}]
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -846,9 +846,10 @@
     {
       "id": "SAVE-COLUMNS-JOBPLANNER",
       "title": "Publish a bulk column API on job_planner; closes BLOCKER J2",
-      "status": "ready",
+      "status": "blocked",
       "depends_on": [
-        "PLAN-SAVE-COVERAGE"
+        "PLAN-SAVE-COVERAGE",
+        "SAVE-PLANNER-DIRTY-FORMAT"
       ],
       "owns": [
         "godot/scripts/core/job_planner.gd",
@@ -856,7 +857,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. 2026-09-19: SAVE-J2-R01 fixes missing future-affecting dirty order first. Exact bulk snapshot/reference-validation/atomic restore contract must be accepted before implementation; revalidate_after_load must not silently repair strict restoration."
     },
     {
       "id": "SAVE-COLUMNS-NAVIGATION",
@@ -1484,6 +1485,23 @@
       "agent": "self",
       "gate": "none",
       "acceptance": "Task09.4 finite versioned record grammar for both lanes, replay/log identities, branch selection after load, append refusal/crash recovery and accepted-command durability,300tick checkpoints/everytick verification, bounded disk/memory retention and exact downstream implementation tasks. A checkpoint pair alone is not a byte cursor or recorder."
+    },
+    {
+      "id": "SAVE-PLANNER-DIRTY-FORMAT",
+      "title": "Persist exact planner dirty-list order and membership under schema2",
+      "status": "in_flight",
+      "depends_on": [
+        "SAVE-S8-COUNT"
+      ],
+      "owns": [
+        "godot/scripts/core/job_planner.gd",
+        "godot/scripts/core/save_section_job_indexes.gd",
+        "godot/test/test_planner_dirty_format.gd",
+        "docs/planning/planner_dirty_state_contract.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "SAVE-J2-R01v2 / decision0157. Runtime probe disproves derived-list classification. Add six canonical fields and strict schema dispatch; zero popped tails. Live bulk capture/apply and cross-owner restore remain separate J2 work."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

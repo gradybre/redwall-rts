@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "506cb6cc6613639ad141b65327d235d662a9ff71",
+  "task": "Implement SAVE-J2-R01v2 planner dirty state format and canonical tails",
+  "paths": [
+    "docs/planning/planner_dirty_state_contract.md",
+    "docs/decisions/0157-persist-planner-dirty-order-and-membership.md",
+    "docs/validation/evidence/planner-save-contract-2026-09-19/independent-contract-review.md",
+    "docs/validation/evidence/planner-save-contract-2026-09-19/astra-disposition.md",
+    "godot/scripts/core/job_planner.gd",
+    "godot/scripts/core/save_section_job_indexes.gd"
+  ],
+  "instructions": "Implement accepted SAVE-J2-R01 version2 exactly. You own ONLY codechanges in godot/scripts/core/job_planner.gd (zero poppedcell threepophelpers; pertinentcomments), and save_section_job_indexes.gd (schema2/35fields exactconstants metadata, i32 groupindices19..24, extents1forcounts, canonicalbytes383884/payload384164/section384203, count/prefix/uniqueness/zerotail validator withcoldfunctionlocal maxextent seenbytes, 23bytepreamble ownerthenactualsectionschemadispatch beforefullnewextent via decode_section_with_schema_into). Existingdecode delegatescurrent2. Readcontractfinalparagraph forcodes/precedence. No newauthoritativecolumn ormodulepreloadcycle. Keep 29oldfieldrules, allocationbeforepublication/inputoutputimmutability, standalonebyteorderingcheck. Actualcapture/applystillJ2refusal no fakebulkAPI. No changes to budgets or LIFOorder; onlyclear poppedtails in liveplanner. Parent owns registry/docs/tests/canonicalgeneratedtable; do not edit these. TypedGDScript/docstrings style, no stubs/TODO. ReviewcurrentRecordconstructor/storageindices/generic field_width/count helpers etc exhaustively; newcountfields i32extent1. No runtimeexecutionavailable, do not claimtests. Return exact source-unifiedpatch as ONE new artifact files[{path:\"docs/validation/evidence/planner-dirty-2026-09-19/implementation.patch\",content:PATCH,baseSha256:null}]; no otherfile. Full exactoldcontext in eachhunk, correctlinecounts preferred; no ellipses/unrepresentedoldlines. RawJSONonlyexactkeys status,summary,questions,files,decisionIds;statuscomplete orneeds_clarification for real ambiguity. AckSAVE-J2-R01v2 in summary. Oneattempt15min/no-progress3min. No prompts to user; resolve ordinary implementation details within exactcontract."
+}

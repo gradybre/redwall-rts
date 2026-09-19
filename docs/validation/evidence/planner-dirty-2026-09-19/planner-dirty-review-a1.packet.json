@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "34c2196e4f7742f9e8bf6ef11fae24feb7454b2c",
+  "task": "Independent SAVE-J2-R01 source acceptance review after Astra bounded implementation",
+  "paths": [
+    "docs/planning/planner_dirty_state_contract.md",
+    "godot/scripts/core/save_section_job_indexes.gd",
+    "godot/test/test_planner_dirty_format.gd",
+    "godot/test/test_save_section_job_indexes.gd",
+    "docs/validation/evidence/planner-dirty-2026-09-19/planner-source-excerpt.md",
+    "docs/validation/evidence/planner-dirty-2026-09-19/implementation.patch",
+    "docs/validation/evidence/planner-dirty-2026-09-19/integration-notes.md",
+    "docs/validation/evidence/planner-dirty-2026-09-19/wire-vectors.json"
+  ],
+  "instructions": "Independent source review of SAVE-J2-R01v2. Astra implemented after author timeout (no worker source applied). You have full codec and tests, exact diff and actual SHA-pinned liveplanner mark/pop excerpts. Confirm all35field metadata/storageindices/types/extents, schema2 readable23bytepreamble owner-before-descriptor-before-extent, original29validators retained, negative/count/index/duplicate/tail precedence, 4096byte local seen scratch reuse, exactLIFO idempotence zero poppedtails. Review schema refusal and no partial publication/inputmutation, literalappendwirevectors, real [4,3]/[3,4]/[3,0] outcome regression. Existing firstfocus293tests6431assertions had ONLY one stale test subtracting29*8; parent corrected35*8 before this snapshot; repeatfocus underway. No live capture/apply orfullworldclaim. Return prioritized reproducible blockers withboundedfix or no blocking findings; evidence limits. Keep review bounded, do not rewrite long design rationale. No executiontools. Return ONLY rawJSON exactkeys status,summary,questions,files,decisionIds;statuscomplete;files exactly one new artifact path docs/validation/evidence/planner-dirty-2026-09-19/independent-review.md withcontent review andbaseSha256null. Do not modify source. Acknowledge SAVE-J2-R01v2. One15min attempt; prioritize outcome over exhaustive commentary."
+}

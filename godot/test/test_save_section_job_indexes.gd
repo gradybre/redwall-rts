@@ -35,10 +35,9 @@ extends "res://test/framework/test_case.gd"
 ##
 ## FIELD ORDER IS CHECKED AGAINST THE ARTIFACT, NOT AGAINST THIS FILE. `test_declared_ordinals_...`
 ## reads `docs/planning/canonical_state_registry.json` and compares key, type code and declared
-## capacity for all 29 ordinals. NOTE, and it is a finding rather than a convenience: for
-## `job_planner.gd` the registry's ordinal order and the module's GDScript declaration order
-## COINCIDE, so "emit in declaration order" is a no-op mutation for this section specifically and
-## cannot be detected by any test. What the suite does detect is emission in ANY other order,
+## capacity for all 35 ordinals. SAVE-J2-R01 appends dirty arrays and scalar counts after the
+## original 29 fields. The wire order is the declared ordinal order, not source declaration order.
+## The suite detects emission in another order,
 ## including the ASCII key order a dictionary walk would produce.
 
 const SaveCodec := preload("res://scripts/core/save_codec.gd")
@@ -218,7 +217,7 @@ func _refuses(refusal: SaveHeader.Refusal, code: StringName, message: String) ->
 # --- the declared schema ------------------------------------------------------------------------
 
 func test_declared_ordinals_match_the_registry_artifact() -> void:
-	"""REG-R01's 29 declared ordinals, keys, type codes and capacities are what this module emits."""
+	"""REG-R01's 35 declared ordinals, keys, type codes and capacities are what this module emits."""
 	var text: String = FileAccess.get_file_as_string(REGISTRY_PATH)
 	assert_true(text.length() > 0, "the canonical registry artifact is readable")
 	var parsed: Variant = JSON.parse_string(text)
@@ -231,7 +230,7 @@ func test_declared_ordinals_match_the_registry_artifact() -> void:
 			fields = group["fields"] as Array
 			assert_equal(int(group["owner_schema_version"]), Section.OWNER_SCHEMA_VERSION,
 				"section 8 owner schema version")
-	assert_equal(fields.size(), Section.FIELD_COUNT, "section 8 declares 29 fields")
+	assert_equal(fields.size(), Section.FIELD_COUNT, "section 8 declares 35 fields")
 	for entry: Variant in fields:
 		var field: Dictionary = entry as Dictionary
 		var ordinal: int = int(field["ordinal"])
@@ -240,8 +239,12 @@ func test_declared_ordinals_match_the_registry_artifact() -> void:
 		assert_equal(int(field["type_code"]), Section.FIELD_TYPES[ordinal],
 			"ordinal %d type code" % ordinal)
 		var shape: Dictionary = field["shape"] as Dictionary
-		assert_true(String(shape["declared_capacity"]).contains(
-			str(Section.FIELD_EXTENTS[ordinal])), "ordinal %d declared capacity" % ordinal)
+		if field.get("scalar", false):
+			assert_equal(int(shape["count"]), Section.FIELD_EXTENTS[ordinal],
+				"ordinal %d scalar extent" % ordinal)
+		else:
+			assert_true(String(shape["declared_capacity"]).contains(
+				str(Section.FIELD_EXTENTS[ordinal])), "ordinal %d declared capacity" % ordinal)
 
 
 func test_extents_come_from_the_owning_schema() -> void:
@@ -254,7 +257,7 @@ func test_extents_come_from_the_owning_schema() -> void:
 	var distinct: Dictionary = {}
 	for field: int in Section.FIELD_COUNT:
 		distinct[Section.FIELD_EXTENTS[field]] = true
-	assert_equal(distinct.size(), 5, "the block spans five differently sized tables")
+	assert_equal(distinct.size(), 6, "the block spans five table extents plus scalar extent 1")
 	assert_equal(Section.FIELD_EXTENTS[Section.FIELD_DEMAND_ENABLED], 128,
 		"_demand_enabled is a zone column, not a service column")
 
@@ -269,8 +272,8 @@ func test_layout_constants_match_their_recomputation() -> void:
 		"the owner wrapper is 39 bytes")
 	assert_equal(Section.OWNER_KEY_BYTES, Section.OWNER_KEY.to_utf8_buffer().size(),
 		"owner key byte length")
-	assert_equal(Section.PAYLOAD_BYTES, 363112, "pinned payload length")
-	assert_equal(Section.SECTION_BYTES, 363151, "pinned section length")
+	assert_equal(Section.PAYLOAD_BYTES, 384164, "pinned payload length")
+	assert_equal(Section.SECTION_BYTES, 384203, "pinned section length")
 
 
 func test_field_tables_agree_with_each_other() -> void:
@@ -280,10 +283,10 @@ func test_field_tables_agree_with_each_other() -> void:
 			"field %d width" % field)
 		assert_equal(Section.storage_index_of(field), Section.FIELD_STORAGE[field],
 			"field %d storage index" % field)
-	assert_equal(Section.FIELD_KEYS.size(), Section.FIELD_COUNT, "29 keys")
-	assert_equal(Section.FIELD_UNUSED.size(), Section.FIELD_COUNT, "29 unused values")
+	assert_equal(Section.FIELD_KEYS.size(), Section.FIELD_COUNT, "35 keys")
+	assert_equal(Section.FIELD_UNUSED.size(), Section.FIELD_COUNT, "35 unused values")
 	assert_equal(_record.u8_columns.size(), 8, "eight u8 columns")
-	assert_equal(_record.i32_columns.size(), 19, "nineteen i32 columns")
+	assert_equal(_record.i32_columns.size(), 25, "twenty-five i32 columns")
 	assert_equal(_record.i64_columns.size(), 2, "two i64 columns")
 
 
@@ -323,19 +326,19 @@ func test_framing_bytes_are_pinned() -> void:
 	`0020000000000000` is 8192 as a little-endian u64 (0x2000), sitting at byte 23.
 	"""
 	var bytes: PackedByteArray = _encode(_record)
-	assert_equal(bytes.size(), 363151, "section length is the frozen 363151 bytes")
+	assert_equal(bytes.size(), 384203, "section length is the frozen 384203 bytes")
 	assert_equal(bytes.slice(0, WIRE_FRAMING_BYTES).hex_encode(),
 		"01000000"
 		+ "0b000000"
 		+ "6a6f625f706c616e6e6572"
-		+ "01000000"
+		+ "02000000"
 		+ "0020000000000000"
-		+ "688a050000000000",
-		"store count 1, key length 11, 'job_planner', schema 1, primary 8192, payload 363112")
+		+ "a4dc050000000000",
+		"store count 1, key length 11, 'job_planner', schema 2, primary 8192, payload 384164")
 	assert_equal(bytes.slice(WIRE_OFFSET_PRIMARY_COUNT, WIRE_OFFSET_PRIMARY_COUNT + 8).hex_encode(),
 		"0020000000000000", "byte 23 is the designated primary count, 8192 LE")
 	assert_equal(bytes.slice(WIRE_OFFSET_PAYLOAD_LENGTH, WIRE_FRAMING_BYTES).hex_encode(),
-		"688a050000000000", "byte 31 is payload_byte_length 363112")
+		"a4dc050000000000", "byte 31 is payload_byte_length 384164")
 
 
 func test_the_pinned_offsets_are_the_modules_offsets() -> void:
@@ -348,14 +351,14 @@ func test_the_pinned_offsets_are_the_modules_offsets() -> void:
 	assert_equal(Section.OFFSET_PRIMARY_COUNT, WIRE_OFFSET_PRIMARY_COUNT, "primary count at 23")
 	assert_equal(Section.OFFSET_PAYLOAD_BYTE_LENGTH, WIRE_OFFSET_PAYLOAD_LENGTH, "length at 31")
 	assert_equal(Section.FRAMING_BYTES, WIRE_FRAMING_BYTES, "the wrapper is 39 bytes")
-	assert_equal(Section.SECTION_BYTES, 363151, "the section length is unchanged by SAVE-C3-R01")
-	assert_equal(Section.PAYLOAD_BYTES, 363112, "the payload is unchanged by SAVE-C3-R01")
-	assert_equal(Section.FIELD_COUNT, 29, "29 fields, unchanged by SAVE-C3-R01")
-	assert_equal(Section.OWNER_SCHEMA_VERSION, 1, "no gratuitous owner version bump")
+	assert_equal(Section.SECTION_BYTES, 384203, "the section length is advanced by SAVE-J2-R01")
+	assert_equal(Section.PAYLOAD_BYTES, 384164, "the payload is advanced by SAVE-J2-R01")
+	assert_equal(Section.FIELD_COUNT, 35, "35 fields, advanced by SAVE-J2-R01")
+	assert_equal(Section.OWNER_SCHEMA_VERSION, 2, "SAVE-J2-R01 owner version")
 
 
 func test_element_counts_are_each_field_own_extent() -> void:
-	"""Each of the 29 `element_count:u64` prefixes is its OWN table's row count.
+	"""Each of the 35 `element_count:u64` prefixes is its OWN table's row count.
 
 	This is where an extent guessed from the first column dies on the wire: a `_demand_enabled`
 	prefix of 8192 instead of 128 is visible here before any value is read.
@@ -395,12 +398,12 @@ func test_column_major_values_are_pinned() -> void:
 
 
 func test_canonical_bytes_exclude_the_framing() -> void:
-	"""ARCH-HASH-001's contribution is 29 columns of values: no wrapper, no element counts."""
+	"""ARCH-HASH-001's contribution is 35 columns of values: no wrapper, no element counts."""
 	_populate()
 	var out: Section.EncodeResult = Section.EncodeResult.new()
 	assert_true(Section.canonical_bytes_of(_record, out), "canonical bytes encode")
-	assert_equal(out.bytes.size(), Section.CANONICAL_VALUE_BYTES, "362880 value bytes")
-	assert_equal(out.bytes.size(), Section.PAYLOAD_BYTES - 29 * 8, "the 29 counts are excluded")
+	assert_equal(out.bytes.size(), Section.CANONICAL_VALUE_BYTES, "383884 value bytes")
+	assert_equal(out.bytes.size(), Section.PAYLOAD_BYTES - 35 * 8, "the 35 counts are excluded")
 	var expected: PackedByteArray = PackedByteArray()
 	for field: int in Section.FIELD_COUNT:
 		expected.append_array(_record.column_bytes(field))
@@ -414,7 +417,7 @@ func test_canonical_bytes_exclude_the_framing() -> void:
 
 
 func test_round_trip_is_byte_identical() -> void:
-	"""Encode, decode, re-encode: the same 363151 bytes and the same 29 columns."""
+	"""Encode, decode, re-encode: the same 384203 bytes and the same 35 columns."""
 	_populate()
 	var bytes: PackedByteArray = _encode(_record)
 	var decoded: Section.Record = Section.Record.new()
@@ -482,11 +485,11 @@ func test_a_primary_count_that_is_not_the_designated_table_refuses() -> void:
 	for rejected: int in [REJECTED_OLD_FIXTURE, REJECTED_PLOT_CYCLE_TABLE,
 			REJECTED_OWNER_CAPACITY_SUM, REJECTED_ALL_FIVE_EXTENT_SUM, 0]:
 		var forged: PackedByteArray = _patch_u64(bytes, WIRE_OFFSET_PRIMARY_COUNT, rejected)
-		assert_equal(forged.size(), 363151, "the forged section is still full length")
+		assert_equal(forged.size(), 384203, "the forged section is still full length")
 		assert_equal(forged.slice(0, WIRE_OFFSET_PRIMARY_COUNT),
 			bytes.slice(0, WIRE_OFFSET_PRIMARY_COUNT), "only the count word changed")
-		assert_equal(forged.slice(WIRE_OFFSET_PAYLOAD_LENGTH, 363151),
-			bytes.slice(WIRE_OFFSET_PAYLOAD_LENGTH, 363151), "the body is untouched")
+		assert_equal(forged.slice(WIRE_OFFSET_PAYLOAD_LENGTH, 384203),
+			bytes.slice(WIRE_OFFSET_PAYLOAD_LENGTH, 384203), "the body is untouched")
 		_refuses(_decode(forged, loaded), Section.REFUSE_PRIMARY_COUNT,
 			"a header claiming %d is refused" % rejected)
 		assert_true(loaded.equals(before), "the refused decode wrote nothing")
@@ -615,7 +618,7 @@ func test_section_length_refusal_checks_a_descriptor() -> void:
 
 
 func test_a_payload_length_that_disagrees_with_the_body_refuses() -> void:
-	"""The wrapper cannot claim a length the 363112-byte body does not have."""
+	"""The wrapper cannot claim a length the 384164-byte body does not have."""
 	var bytes: PackedByteArray = _encode(_record)
 	var out: Section.Record = Section.Record.new()
 	_refuses(_decode(_patch_u64(bytes, Section.OFFSET_PAYLOAD_BYTE_LENGTH,
@@ -635,8 +638,8 @@ func test_the_owner_wrapper_is_checked_field_by_field() -> void:
 	foreign[Section.OFFSET_OWNER_KEY] = "J".to_utf8_buffer()[0]
 	_refuses(_decode(foreign, out), Section.REFUSE_OWNER_KEY,
 		"'Job_planner' is not this owner")
-	_refuses(_decode(_patch_u32(bytes, Section.OFFSET_OWNER_SCHEMA_VERSION, 2),
-		out), Section.REFUSE_OWNER_SCHEMA_VERSION, "schema 2 is not 1")
+	_refuses(_decode(_patch_u32(bytes, Section.OFFSET_OWNER_SCHEMA_VERSION, 1),
+		out), Section.REFUSE_OWNER_SCHEMA_VERSION, "schema 1 is not 2")
 	_refuses(_decode(_patch_u32(bytes, Section.OFFSET_OWNER_KEY_LENGTH, 12),
 		out), Section.REFUSE_OWNER_KEY, "a key length of 12")
 

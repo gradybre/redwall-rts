@@ -1582,6 +1582,7 @@ func _pop_dirty() -> int:
 	"""Remove and return the most recently marked owner, clearing its membership bit."""
 	_dirty_count -= 1
 	var owner_slot: int = _dirty_rows[_dirty_count]
+	_dirty_rows[_dirty_count] = 0
 	_is_dirty[owner_slot] = 0
 	return owner_slot
 
@@ -2791,6 +2792,7 @@ func _pop_dirty_zone() -> int:
 	"""Remove and return the most recently marked designation, clearing its membership bit."""
 	_dirty_zone_count -= 1
 	var zone_slot: int = _dirty_zone_rows[_dirty_zone_count]
+	_dirty_zone_rows[_dirty_zone_count] = 0
 	_is_zone_dirty[zone_slot] = 0
 	return zone_slot
 
@@ -3454,6 +3456,7 @@ func _pop_dirty_hive() -> int:
 	"""Remove and return the most recently marked hive, clearing its membership bit."""
 	_dirty_hive_count -= 1
 	var hive_slot: int = _dirty_hive_rows[_dirty_hive_count]
+	_dirty_hive_rows[_dirty_hive_count] = 0
 	_is_hive_dirty[hive_slot] = 0
 	return hive_slot
 

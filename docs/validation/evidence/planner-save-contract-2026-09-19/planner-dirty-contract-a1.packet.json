@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "7b3e83b0f448828a43e207eabf946f80ba8207b2",
+  "task": "Independent SAVE-J2-R01 dirty queue persistence contract review",
+  "paths": [
+    "docs/planning/planner_dirty_state_contract.md",
+    "docs/decisions/0157-persist-planner-dirty-order-and-membership.md",
+    "docs/validation/evidence/planner-save-contract-2026-09-19/source-excerpts.json",
+    "docs/validation/evidence/planner-save-contract-2026-09-19/registry-owner-before.json",
+    "docs/validation/evidence/planner-save-contract-2026-09-19/dirty_order_probe.gd",
+    "docs/validation/evidence/planner-save-contract-2026-09-19/dirty-order-probe.log"
+  ],
+  "instructions": "Review proposed bounded format repair before author. Runtime probe shows same29canonicalfields differing nextjobIDs/count solelyexcludedLIFOdirtylists. Verify semanticinference and proposed35fields, counti32/scalar, owner/section1to2/registry4to5, length384203, zero-tailpop, uniqueness/prefix/membershipbits rebuild, no newlivepackedcolumns. Do not silently convert tosorted/makealldirty or implementbulkadapter. Identify smallest concrete blockers or no blocking findings. Explicitly evaluate oldschema1readablepreambleprecedence, genericRecordarray countfields, duplicate queue scratch4096B, domain/row0 etc. Source excerpts limited butparent ownsfullcode. Separate newcanonicalprojectionproof from fullworldhash/saveclaim. Return concise independent review atmost1500words; no code. RawJSONexactkeys status,summary,questions,files,decisionIds;statuscomplete;files exactly [{\"path\":\"docs/validation/evidence/planner-save-contract-2026-09-19/independent-contract-review.md\",\"content\":\"review\",\"baseSha256\":null}]. Oneattempt15min/no-progress3min."
+}

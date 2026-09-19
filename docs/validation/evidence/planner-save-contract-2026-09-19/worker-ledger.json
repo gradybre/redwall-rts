@@ -1,0 +1,35 @@
+[
+  {
+    "attempt": "planner-dirty-contract-a1",
+    "model": "claude-opus-5",
+    "session_id": "37f910b3-fe1f-42d8-b210-bad32b2273b8",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/planner_dirty_state_contract.md",
+        "sha256": "8cbaa8cdd8cbab72d4fffb89ab36b84c15a1292d1a95c1bb0396c5339454400e"
+      },
+      {
+        "path": "docs/decisions/0157-persist-planner-dirty-order-and-membership.md",
+        "sha256": "fd59b9b5e6f5573141ae3bc0124f2ccbacd3a1debebec9b38380e0527f4893ed"
+      },
+      {
+        "path": "docs/validation/evidence/planner-save-contract-2026-09-19/source-excerpts.json",
+        "sha256": "bd88179304b35e4b47b63b3d9f6c1d2b80781a1a3e81ab5976d26a31ceb2c79b"
+      },
+      {
+        "path": "docs/validation/evidence/planner-save-contract-2026-09-19/registry-owner-before.json",
+        "sha256": "499a42aefe96bc089cdf359da7b158b93c415e8e9138ec713f9862f3f50d2d54"
+      },
+      {
+        "path": "docs/validation/evidence/planner-save-contract-2026-09-19/dirty_order_probe.gd",
+        "sha256": "bf3a2a505fb2ef96ae925b95e8b8f49b5f2a7daedddea4339f00a218495badd4"
+      },
+      {
+        "path": "docs/validation/evidence/planner-save-contract-2026-09-19/dirty-order-probe.log",
+        "sha256": "93e56762392440e8be9e46723ec48e709395eaabf30579364dbf14560eb8d713"
+      }
+    ]
+  }
+]

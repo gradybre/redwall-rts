@@ -1,0 +1,583 @@
+diff --git a/godot/scripts/core/job_planner.gd b/godot/scripts/core/job_planner.gd
+index 8b9df7a..3af850f 100644
+--- a/godot/scripts/core/job_planner.gd
++++ b/godot/scripts/core/job_planner.gd
+@@ -1582,6 +1582,7 @@ func _pop_dirty() -> int:
+ 	"""Remove and return the most recently marked owner, clearing its membership bit."""
+ 	_dirty_count -= 1
+ 	var owner_slot: int = _dirty_rows[_dirty_count]
++	_dirty_rows[_dirty_count] = 0
+ 	_is_dirty[owner_slot] = 0
+ 	return owner_slot
+ 
+@@ -2791,6 +2792,7 @@ func _pop_dirty_zone() -> int:
+ 	"""Remove and return the most recently marked designation, clearing its membership bit."""
+ 	_dirty_zone_count -= 1
+ 	var zone_slot: int = _dirty_zone_rows[_dirty_zone_count]
++	_dirty_zone_rows[_dirty_zone_count] = 0
+ 	_is_zone_dirty[zone_slot] = 0
+ 	return zone_slot
+ 
+@@ -3454,6 +3456,7 @@ func _pop_dirty_hive() -> int:
+ 	"""Remove and return the most recently marked hive, clearing its membership bit."""
+ 	_dirty_hive_count -= 1
+ 	var hive_slot: int = _dirty_hive_rows[_dirty_hive_count]
++	_dirty_hive_rows[_dirty_hive_count] = 0
+ 	_is_hive_dirty[hive_slot] = 0
+ 	return hive_slot
+ 
+diff --git a/godot/scripts/core/save_section_job_indexes.gd b/godot/scripts/core/save_section_job_indexes.gd
+index dd05364..76d2aca 100644
+--- a/godot/scripts/core/save_section_job_indexes.gd
++++ b/godot/scripts/core/save_section_job_indexes.gd
+@@ -1,215 +1,12 @@
+ extends RefCounted
+-## ARCH-SAVE-002 section 8 JOB_INDEXES: `job_planner.gd`'s five ledgers, encoded through
+-## `save_codec.gd`'s ARCH-SAVE-001 primitives under SAVE-LAYOUT-R01's owner-block wrapper.
+-##
+-## ## Which generation namespace this is: DIRECTORY, all of it
+-##
+-## The 2026-09-11 addendum records FOUR distinct generation spaces -- `entity_directory.gd`'s slot
+-## generation, `inventory.gd`'s container generation `_c_generation`, `inventory.gd`'s lot
+-## generation `_l_generation`, and `navigation.gd`'s route-descriptor generation -- and
+-## `gear.gd`/`reservations.gd` rows carry NO generation and are addressed by bare row index.
+-##
+-## EVERY generation column in section 8 is the DIRECTORY one, and that is a finding, not an
+-## assumption: `_owner_generation` is the `y` of `farming.ref_of()`, `_job_generation` and
+-## `_demand_job_generation` are the `y` of the `EntityRef` `jobs.create_job()` returns through the
+-## directory, `_demand_owner_generation` is the `y` of a designation's zone `EntityRef`, and
+-## `_hive_owner_generation`/`_hive_job_generation` are the `y` of `orchard_hive.hive_ref_of()` and
+-## of a hive-service Job. All six are validated against `entity_directory.gd`'s DIRECTORY_CAPACITY
+-## and its `(-1, 0)` null pair. There is no container, lot or route generation in this section, and
+-## `_owner_slot`, `_demand_owner_slot`, `_hive_owner_slot`, `_job_slot`, `_demand_job_slot` and
+-## `_hive_job_slot` are DIRECTORY SLOTS, never the typed row index that names them inside
+-## `farming.gd`, `forage.gd`, `orchard_hive.gd` or `jobs.gd`.
+-##
+-## ## What section 8's bytes are
+-##
+-## REG-R01 (2026-09-12): "Use the standard owner wrapper for sections 4/5/6/7/8/9." SAVE-LAYOUT-R01
+-## fixes that wrapper: `section = store_count:u32, store blocks in registered order`;
+-## `store = owner_key:utf8-u32, owner_schema_version:u32, primary_count:u64,
+-## payload_byte_length:u64, payload`; `ordinary column payload = for each schema field:
+-## element_count:u64, tightly packed LE values`. Blocks tile the section with no gaps.
+-##
+-##   | Offset | Type   | Field                                       | Bytes |
+-##   |-------:|--------|---------------------------------------------|------:|
+-##   |      0 | u32    | store_count = 1                             |     4 |
+-##   |      4 | u32    | owner_key byte length = 11                  |     4 |
+-##   |      8 | utf8   | owner_key = "job_planner"                   |    11 |
+-##   |     19 | u32    | owner_schema_version = 1                    |     4 |
+-##   |     23 | u64    | primary_count = 8192 -- SAVE-C3-R01         |     8 |
+-##   |     31 | u64    | payload_byte_length = 363112                |     8 |
+-##   |     39 |        | payload: 29 x (element_count:u64 + values)  |363112 |
+-##   | 363151 |        | end of section                              |       |
+-##
+-## `store_count` is 1 because REG-R01's artifact registers exactly one section-8 owner. The other
+-## module the persistence registry files under section 8, `jobs.gd`, contributes `_live_slots`,
+-## `_bucket_begin`, `_job_persistent_id`, `_agent_persistent_id` and three counters -- and every
+-## one of them is CATEGORY 2, rebuilt and never written. A second block here would need a registry
+-## row first, and would change both `store_count` and OWNER_SCHEMA_VERSION.
+-##
+-## COLUMN-MAJOR, BY RULING AND NOT BY INFERENCE. SAVE-LAYOUT-R01: "Packed stores use column-major
+-## bytes. Field schema order is the outer loop; ascending physical slot is the inner loop. SoA does
+-## not mathematically force a wire order; this ruling explicitly chooses it."
+-##
+-## FIELD ORDER IS THE REGISTRY'S DECLARED ORDINAL, NOT GDSCRIPT DECLARATION ORDER. REG-R01:
+-## "Do not regenerate order from GDScript declaration order, dictionaries, display labels,
+-## directory iteration or this document at runtime." FIELD_KEYS below is transcribed from
+-## `docs/planning/canonical_state_registry.json`'s `section_id 8, owner_key "job_planner"` group in
+-## its declared `ordinal` order; `test_save_section_job_indexes.gd` reads that JSON and asserts the
+-## transcription, so a reordering here fails against the artifact rather than against a comment.
+-## The two orders happen to coincide for the first eleven fields and DIVERGE nowhere -- but they
+-## are not the same list, and only one of them is authoritative.
+-##
+-## ## FIVE DIFFERENTLY SIZED TABLES, FIVE EXPLICIT EXTENTS
+-##
+-## REG-R01: "Explicit field extents come from the owning schema, not the descriptor's row_count.
+-## Module owners containing several differently sized logical tables need an explicitly validated
+-## primary count and child extents before their wire body is frozen; the logical registry does not
+-## authorize guessing these from the first column."
+-##
+-## Section 8 is exactly such an owner. Its five tables are:
+-##
+-##   | Table                      | Extent constant                            | Rows |
+-##   |----------------------------|--------------------------------------------|-----:|
+-##   | Pending service rows       | `job_planner.SERVICE_ROW_COUNT`            | 8192 |
+-##   | Per-plot cycle history     | `job_planner.OWNER_CAPACITY`               | 4096 |
+-##   | Per-designation enablement | `job_planner.ZONE_OWNER_CAPACITY`          |  128 |
+-##   | Forage demand rows         | `job_planner.DEMAND_ROW_COUNT`             |  640 |
+-##   | Hive service rows          | `job_planner.HIVE_OWNER_CAPACITY`          | 1024 |
+-##
+-## NOT ONE of those is inferred from the first column. FIELD_EXTENTS names the owning constant for
+-## every one of the 29 fields, `docs/persistence_state_registry.md` states the same five capacities
+-## per field group, and the registry artifact's `shape.declared_capacity` string names the same
+-## constant again. A field whose extent were taken from `_owner_slot`'s 8192 would make the 128-row
+-## zone table read 8192 zones and consume the hive table's bytes; the suite mutates exactly that.
+-##
+-## ## BLOCKER J1 IS CLOSED: `primary_count` = 8192, THE DESIGNATED PENDING-SERVICE TABLE
+-##
+-## SAVE-C3-R01 (2026-09-14) supplies the number decision 0120 refused to invent, and -- more
+-## importantly than the digits -- it supplies the MEANING, which is what two sections disagreed
+-## about. `primary_count` is "a DECLARED PRIMARY PHYSICAL ROW EXTENT for that owner block, not a
+-## total of every field's extents and not an occupancy count". For a multi-table owner the section
+-## contract must NAME the primary table; section 8 names the PENDING-SERVICE ROW TABLE.
+-##
+-## THE REASON IS OPERATIONAL, NOT ARITHMETIC. Section 8 is the job planner's index. What that index
+-## IS, as a thing a load has to reconstitute, is the pending service ledger: rows 0..8191 of
+-## `SERVICE_ROW_COUNT`, carrying the status, the Job binding, the service day and the sowing gate.
+-## The other four extents describe that ledger's inputs and edges -- 4096 rows of per-plot cycle
+-## history, 128 designation enablement flags, 640 forage demand rows, 1024 hive service rows.
+-## `primary_count` names the block's principal table so a reader knows WHICH physical extent the
+-## framing word refers to; it is not a census of the block. That is exactly why:
+-##
+-##   * 14080, the sum of all five extents, is REFUSED. It is not any table's row extent, so no
+-##     decode could ever check a column against it; a "sum" reading makes the word describe
+-##     nothing, and it is the reading section 9 already rejected for itself.
+-##   * 5248, the sum of the three independent OWNER capacities (4096 + 128 + 1024), is REFUSED for
+-##     the same reason, with the extra defect of being a sum over an arbitrary subset.
+-##   * 4096 is REFUSED: the per-plot cycle history is a secondary table keyed by farm plot, not the
+-##     ledger this section exists to carry.
+-##   * 7 is REFUSED. It was this suite's old fixture, chosen precisely BECAUSE it was not any real
+-##     extent, back when the count was carried rather than chosen. It is evidence of the gap that
+-##     SAVE-C3-R01 closed and is never a compatibility precedent.
+-##
+-## SAVE-C3-R01 also fixes HOW it is enforced: "Writer and decoder must validate against the
+-## compiled constant rather than a caller-supplied positive number." So `encode_section()` no
+-## longer takes the count and `decode_section_into()` no longer takes an expectation; both use
+-## PRIMARY_COUNT, and `primary_count_refusal()` is the public gate that refuses every other value
+-## including all four named above. A caller cannot pick, so two writers cannot disagree.
+-##
+-## THIS DOES NOT REINTERPRET A RELEASED SAVE. Production writing was refused while the count was
+-## unruled, so no file carries a section 8 with a different word there. Section and owner schema
+-## versions therefore BOTH STAY 1 (SAVE-C3-R01, "Version/field disposition"); no gratuitous bump.
+-## The 363112-byte payload and the 363151-byte section length are unchanged, as are all 29 field
+-## ordinals, types and extents.
+-##
+-## THE DESCRIPTOR IS 8192 TOO, and for a stated reason rather than by coincidence: SAVE-LAYOUT-R01
+-## makes a multi-block section's descriptor `row_count` the checked SUM of its blocks' primary
+-## counts, and section 8 holds exactly ONE block, so the sum of one term is that term.
+-## `descriptor_row_count()` takes no argument, exactly as section 9's does.
+-##
+-## ## BLOCKER J2 -- `job_planner.gd` PUBLISHES NO BULK COLUMN API, SO THERE IS NO LIVE ROUND TRIP
+-##
+-## `capture_into()` and `apply()` are the two halves section 3 has, and section 8 cannot have them
+-## yet. The planner's public readers are GATED, deliberately and correctly, for the simulation's
+-## own use: `service_day_into()` refuses a non-daily operation and refuses a FREE row rather than
+-## answering 0; `service_job_of()` answers NULL_REF unless the row is PENDING; `sowing_crop_of()`,
+-## `sowing_field_cycle_of()` and `sowing_gate_reason_of()` address only the SOW row of an owner;
+-## `service_requires_water()` collapses a byte to a bool. A capture built from them would have to
+-## SYNTHESISE the values it cannot read -- "a sowing row's `_service_day` is NO_DAY by
+-## construction" is true today and is exactly the assumption a save must not encode.
+-##
+-## This module therefore does not reach into `store._owner_slot`: no module in this repository
+-## reads another's underscore-prefixed columns, and doing it here would put the planner's
+-## invariants in two files. Section 3 hit the same wall (its BLOCKER D1) and it was closed by the
+-## directory owner adding `copy_columns_into()`/`restore_columns()` under decision 0105;
+-## `save_section_world_runtime.gd` hit it against `sim_clock.gd` and Astra ruled `restore_runtime()`
+-## into existence as RESTORE-R01. Section 8 needs the same pair from the planner owner:
+-##
+-##     func copy_job_index_columns_into(out: Array) -> bool     # 29 columns, registry ordinal order
+-##     func restore_job_index_columns(columns: Array) -> bool   # validating, transactional
+-##
+-## The exact signature is the PLANNER OWNER'S to publish, not this module's to guess, which is why
+-## `capture_into()` and `apply()` below refuse with REFUSE_STORE_NO_COLUMN_API and name the gap
+-## instead of calling a method that does not exist. `capture_record_into()` is the column-level
+-## capture that works TODAY, exactly as section 3's `capture_columns_into()` does: a caller holding
+-## 29 validated columns -- a fixture, a migration, the planner owner once the reader lands -- gets
+-## the same validation and the same all-or-nothing publication.
+-##
+-## ## What is written and what is rebuilt
+-##
+-## `docs/persistence_state_registry.md`'s `job_planner.gd` rows classify every member and this
+-## module follows that classification exactly:
+-##
+-##   * CATEGORY 1, WRITTEN: the 29 columns below. The registry's argument for each is recorded
+-##     there; the sharpest are `_serviced_day` ("losing them re-requests or silently skips a day's
+-##     tending"), `_demand_quantified_milli` ("dropping it re-issues a forage job for goods already
+-##     claimed") and the cycle cursors, which are what keeps "never reuse a field cycle" true.
+-##   * CATEGORY 2, REBUILT AND NEVER WRITTEN: `_dirty_rows`/`_is_dirty`/`_dirty_count` and their
+-##     zone and hive twins -- "a sweep accelerator, not state: a load that marks every owner dirty
+-##     produces the same evaluations in the same order". Only `[0, _dirty_count)` of each list is
+-##     meaningful, so persisting the stale tail would make two identical worlds produce different
+-##     bytes. The twenty-odd observable counters are counts of the columns above them.
+-##   * CATEGORY 3, NOT STATE: `_last_blocker`, `_math` and `_calendar` scratch.
+-##
+-## `Record` is category 3 too, and is this module's own: 362880 bytes of BOUNDED CODEC SCRATCH that
+-## exists only between a capture and an apply. It is NOT a new authoritative column and owes no
+-## ledger row of its own beyond that classification.
+-##
+-## ## Allocate before consume
+-##
+-## Decision 0059. `decode_section_into()` proves the whole extent is present, reads into a LOCAL
+-## Record, validates every framing field, every column domain and every cross-column invariant, and
+-## only then copies into the caller's Record. A refusal -- truncated, or FULL-LENGTH AND INVALID --
+-## leaves the caller's Record byte-identical, and the suite asserts that by byte comparison rather
+-## than by eye. Validate-then-commit, never commit-then-validate.
+-##
+-## ## The int32 sign trap
+-##
+-## GDScript ints are 64-bit, so `0x80000000` is a POSITIVE 2147483648 while `-2147483648` is the
+-## same four bytes read as int32. Every four-byte field here is read SIGNED, through
+-## `PackedByteArray.to_int32_array()`, and every generation, day and cycle column is then refused
+-## if it is negative. A generation whose bytes are `00 00 00 80` therefore decodes as -2147483648
+-## and is REFUSED, rather than being accepted as a plausible 2147483648 that no i32 column could
+-## hold. A real bug has hidden inside the test written to catch this, so the suite builds those
+-## values through `save_codec.gd`'s explicit bit helpers instead of typing a signed literal.
+-##
+-## ## COLD PATH, NO FLOAT
+-##
+-## ARCH-SAVE-003 saves at a completed boundary and loads at a load boundary, so this module
+-## allocates Records and buffers freely; ARCH-MEM-001's per-tick allocation ban applies to
+-## `job_planner.gd`'s columns, which this module only mirrors. ARCH-AUTH-002: there is no float in
+-## this file and there must never be one; the suite greps this source to enforce it.
+-##
+-## ## OPEN, NOT INVENTED
+-##
+-##   * `owner_key` is `"job_planner"`, read off REG-R01's artifact (`owner_key: "job_planner"`),
+-##     not chosen. OWNER_SCHEMA_VERSION is 1, from that artifact's `owner_schema_version` and from
+-##     the baseline section vector `[2,2,1,2,1,1,2,1,2,1,1,2,1,2,1]`, whose eighth entry is 1.
+-##   * The 64-byte DESCRIPTOR is `save_header.gd`'s to write and its CRC-32 is `save_header.gd`'s
+-##     to compute. This module supplies only the one word the header cannot know,
+-##     `descriptor_row_count()`, and produces the bytes the rest protect.
+-##   * `release_save_ready` stays false. SAVE-C3-R01 binds two COUNTS and nothing else: BLOCKER J2
+-##     is open, there is no section 8 capture or restore adapter, and no release-save completeness
+-##     follows. Section 15 is not this module's, and nothing here claims section 8 completes a
+-##     release save.
++## ARCH-SAVE-002 section8 JOB_INDEXES, SAVE-J2-R01 schema2.
++## The original29 declared ordinals retain their layout. Six appended fields preserve exact
++## dirty-list LIFO order and counts, with zero unused tails. Membership bits remain derived.
++## Primary count8192 is the designated pending-service table (SAVE-C3-R01 / decision0146).
++## The descriptor-aware decoder refuses unsupported owner/section versions before full extent.
++## Records and one4096-byte seen array are bounded cold-path scratch, not live world columns.
++## BLOCKER J2 remains: capture/apply refuse until the owner's bulk API is separately contracted.
++## This codec does not claim complete world persistence or cross-owner reference validation.
+ 
+ const SaveCodec := preload("res://scripts/core/save_codec.gd")
+ const SaveHeader := preload("res://scripts/core/save_header.gd")
+@@ -228,7 +25,9 @@ const OWNER_KEY: String = "job_planner"
+ const OWNER_KEY_BYTES: int = 11
+ ## SAVE-LAYOUT-R01: "nonempty ASCII, max 256 bytes".
+ const OWNER_KEY_MAX_BYTES: int = 256
+-const OWNER_SCHEMA_VERSION: int = 1
++const OWNER_SCHEMA_VERSION: int = 2
++const SECTION_SCHEMA_VERSION: int = 2
++const PREAMBLE_BYTES: int = 23
+ 
+ # --- the five table extents, taken from the owning schema -----------------------------------------
+ 
+@@ -275,7 +74,7 @@ const NULL_SLOT: int = EntityDirectoryScript.NULL_SLOT
+ const NULL_GENERATION: int = EntityDirectoryScript.NULL_GENERATION
+ const MAX_INT32: int = EntityDirectoryScript.MAX_INT32
+ 
+-# --- the 29 declared fields, in REG-R01's ordinal order -------------------------------------------
++# --- the 35 declared fields, in REG-R01's ordinal order -------------------------------------------
+ 
+ const FIELD_OWNER_SLOT: int = 0
+ const FIELD_OWNER_GENERATION: int = 1
+@@ -306,7 +105,13 @@ const FIELD_HIVE_JOB_GENERATION: int = 25
+ const FIELD_HIVE_FEED_DEMAND_MILLI: int = 26
+ const FIELD_HIVE_STATUS: int = 27
+ const FIELD_HIVE_BLOCKER: int = 28
+-const FIELD_COUNT: int = 29
++const FIELD_DIRTY_ROWS: int = 29
++const FIELD_DIRTY_COUNT: int = 30
++const FIELD_DIRTY_ZONE_ROWS: int = 31
++const FIELD_DIRTY_ZONE_COUNT: int = 32
++const FIELD_DIRTY_HIVE_ROWS: int = 33
++const FIELD_DIRTY_HIVE_COUNT: int = 34
++const FIELD_COUNT: int = 35
+ 
+ ## SAVE-R09 canonical type codes: 0 = u8, 2 = i32, 4 = i64.
+ const CANONICAL_TYPE_U8: int = 0
+@@ -322,6 +127,8 @@ const FIELD_KEYS: Array[StringName] = [
+ 	&"_demand_job_slot", &"_demand_job_generation", &"_demand_quantified_milli",
+ 	&"_hive_owner_slot", &"_hive_owner_generation", &"_hive_service_day", &"_hive_job_slot",
+ 	&"_hive_job_generation", &"_hive_feed_demand_milli", &"_hive_status", &"_hive_blocker",
++	&"_dirty_rows", &"_dirty_count", &"_dirty_zone_rows", &"_dirty_zone_count",
++	&"_dirty_hive_rows", &"_dirty_hive_count",
+ ]
+ 
+ ## Canonical type code per ordinal, from the artifact's `type_code`.
+@@ -334,11 +141,13 @@ const FIELD_TYPES: Array[int] = [
+ 	CANONICAL_TYPE_I64, CANONICAL_TYPE_I32, CANONICAL_TYPE_I32, CANONICAL_TYPE_I32,
+ 	CANONICAL_TYPE_I32, CANONICAL_TYPE_I32, CANONICAL_TYPE_I64, CANONICAL_TYPE_U8,
+ 	CANONICAL_TYPE_U8,
++	CANONICAL_TYPE_I32, CANONICAL_TYPE_I32, CANONICAL_TYPE_I32, CANONICAL_TYPE_I32, CANONICAL_TYPE_I32, CANONICAL_TYPE_I32,
+ ]
+ 
+ ## Element width in bytes per ordinal. Equals the type code's width; `field_width()` recomputes it.
+ const FIELD_WIDTHS: Array[int] = [
+ 	4, 4, 4, 4, 4, 4, 1, 1, 4, 4, 1, 4, 4, 1, 4, 4, 1, 1, 4, 4, 8, 4, 4, 4, 4, 4, 8, 1, 1,
++	4, 4, 4, 4, 4, 4,
+ ]
+ 
+ ## Row count per ordinal, from the owning schema's five table constants. NEVER from column zero.
+@@ -349,6 +158,7 @@ const FIELD_EXTENTS: Array[int] = [
+ 	ZONE_ROWS, ZONE_ROWS, ZONE_ROWS,
+ 	DEMAND_ROWS, DEMAND_ROWS, DEMAND_ROWS, DEMAND_ROWS, DEMAND_ROWS,
+ 	HIVE_ROWS, HIVE_ROWS, HIVE_ROWS, HIVE_ROWS, HIVE_ROWS, HIVE_ROWS, HIVE_ROWS, HIVE_ROWS,
++	OWNER_ROWS, 1, ZONE_ROWS, 1, HIVE_ROWS, 1,
+ ]
+ 
+ ## SAVE-LAYOUT-R01's DECLARED canonical unused value per ordinal: "Use zero only where the owner
+@@ -359,12 +169,14 @@ const FIELD_UNUSED: Array[int] = [
+ 	NO_CYCLE, NO_CROP, 0, NO_CYCLE, NO_CYCLE, 0, NULL_SLOT, NULL_GENERATION, STATUS_FREE, 0,
+ 	NULL_SLOT, NULL_GENERATION, 0, NULL_SLOT, NULL_GENERATION, NO_DAY, NULL_SLOT,
+ 	NULL_GENERATION, 0, STATUS_FREE, 0,
++	0, 0, 0, 0, 0, 0,
+ ]
+ 
+ ## Index of each field within its own type group, in ordinal order. `Record._init()` produces this
+ ## layout by construction and `storage_index_of()` recomputes it, so the table cannot drift.
+ const FIELD_STORAGE: Array[int] = [
+ 	0, 1, 2, 3, 4, 5, 0, 1, 6, 7, 2, 8, 9, 3, 10, 11, 4, 5, 12, 13, 0, 14, 15, 16, 17, 18, 1, 6, 7,
++	19, 20, 21, 22, 23, 24,
+ ]
+ 
+ ## Fields whose value must be a DIRECTORY slot: -1, or in `[0, DIRECTORY_CAPACITY)`.
+@@ -380,6 +192,8 @@ const NON_NEGATIVE_FIELDS: Array[int] = [
+ 	FIELD_FIELD_CYCLE, FIELD_CYCLE_CURSOR, FIELD_COMPLETED_CYCLE,
+ 	FIELD_DEMAND_OWNER_GENERATION, FIELD_DEMAND_JOB_GENERATION, FIELD_HIVE_OWNER_GENERATION,
+ 	FIELD_HIVE_SERVICE_DAY, FIELD_HIVE_JOB_GENERATION,
++	FIELD_DIRTY_ROWS, FIELD_DIRTY_COUNT, FIELD_DIRTY_ZONE_ROWS, FIELD_DIRTY_ZONE_COUNT,
++	FIELD_DIRTY_HIVE_ROWS, FIELD_DIRTY_HIVE_COUNT,
+ ]
+ 
+ ## The i64 quantity columns, both of which are milli-unit amounts and neither of which may be
+@@ -423,12 +237,12 @@ const FRAMING_BYTES: int = 39
+ ## Each field's payload is `element_count:u64` then its tightly packed LE values.
+ const ELEMENT_COUNT_BYTES: int = 8
+ 
+-## 29 * 8 element counts + the summed column widths. Stated as a constant because a const cannot
++## 35 * 8 element counts + the summed column widths. Stated as a constant because a const cannot
+ ## hold a loop; `payload_bytes()` recomputes it from FIELD_WIDTHS and FIELD_EXTENTS and the suite
+ ## asserts the two agree, so a changed extent cannot leave this literal behind.
+-const CANONICAL_VALUE_BYTES: int = 362880
+-const PAYLOAD_BYTES: int = 363112
+-const SECTION_BYTES: int = 363151
++const CANONICAL_VALUE_BYTES: int = 383884
++const PAYLOAD_BYTES: int = 384164
++const SECTION_BYTES: int = 384203
+ 
+ ## `save_header.gd`'s endian sentinel, reused as the little-endian probe constant. 0x01020304.
+ const BYTE_ORDER_PROBE: int = SaveHeader.ENDIAN_SENTINEL
+@@ -438,6 +252,11 @@ const BYTE_ORDER_PROBE: int = SaveHeader.ENDIAN_SENTINEL
+ const REFUSE_NONE: StringName = SaveHeader.REFUSE_NONE
+ const REFUSE_BYTE_ORDER: StringName = &"SAVE_JOB_BYTE_ORDER"
+ const REFUSE_NEGATIVE_OFFSET: StringName = &"SAVE_JOB_NEGATIVE_OFFSET"
++const REFUSE_SECTION_SCHEMA_VERSION: StringName = &"SAVE_JOB_SECTION_SCHEMA_VERSION"
++const REFUSE_DIRTY_COUNT: StringName = &"SAVE_JOB_DIRTY_COUNT"
++const REFUSE_DIRTY_INDEX: StringName = &"SAVE_JOB_DIRTY_INDEX"
++const REFUSE_DIRTY_DUPLICATE: StringName = &"SAVE_JOB_DIRTY_DUPLICATE"
++const REFUSE_DIRTY_TAIL: StringName = &"SAVE_JOB_DIRTY_TAIL"
+ const REFUSE_TRUNCATED: StringName = &"SAVE_JOB_TRUNCATED"
+ const REFUSE_LENGTH: StringName = &"SAVE_JOB_LENGTH"
+ const REFUSE_RECORD_SHAPE: StringName = &"SAVE_JOB_RECORD_SHAPE"
+@@ -468,23 +287,17 @@ const REFUSE_STORE_NO_COLUMN_API: StringName = &"SAVE_JOB_STORE_NO_COLUMN_API"
+ 
+ 
+ class Record:
+-	"""One decoded section 8: the 29 category-1 columns, each at its own declared extent.
+-
+-	The columns are held in three typed groups rather than 29 named members, because the wire
+-	format walks them by ORDINAL and a named member cannot be indexed by one. `FIELD_STORAGE` maps
+-	an ordinal to its index within its group; `_init()` produces that layout by construction.
++	"""One decoded section8:35 fields held in typed groups, addressed by wire ordinal.
+ 
+-	Allocated once in `_init()`, which is the only place this class resizes anything. There is no
+-	dirty list and no counter here, and that absence is the design: only `[0, _dirty_count)` of a
+-	dirty list is meaningful, so persisting one would make two identical worlds produce different
+-	bytes.
++	The appended counts are extent-1 i32 columns. Dirty arrays retain exact order and zero tails.
++	Record allocation is cold-path scratch; FIELD_STORAGE maps each ordinal to its type group.
+ 	"""
+ 	var u8_columns: Array[PackedByteArray] = []
+ 	var i32_columns: Array[PackedInt32Array] = []
+ 	var i64_columns: Array[PackedInt64Array] = []
+ 
+ 	func _init() -> void:
+-		"""Allocate all 29 columns at their declared extents, then fill the canonical empty state."""
++		"""Allocate all 35 columns at their declared extents, then fill the canonical empty state."""
+ 		for field: int in FIELD_COUNT:
+ 			if FIELD_TYPES[field] == CANONICAL_TYPE_U8:
+ 				var bytes: PackedByteArray = PackedByteArray()
+@@ -526,7 +339,7 @@ class Record:
+ 				i64_columns[index] = longs
+ 
+ 	func copy_from(other: Record) -> void:
+-		"""Overwrite all 29 columns from `other`. C++ copies, one per column, no element loop."""
++		"""Overwrite all 35 columns from `other`. C++ copies, one per column, no element loop."""
+ 		for index: int in other.u8_columns.size():
+ 			u8_columns[index] = other.u8_columns[index].duplicate()
+ 		for index: int in other.i32_columns.size():
+@@ -535,7 +348,7 @@ class Record:
+ 			i64_columns[index] = other.i64_columns[index].duplicate()
+ 
+ 	func equals(other: Record) -> bool:
+-		"""True when all 29 columns are byte-identical. Proves a refusal changed nothing."""
++		"""True when all 35 columns are byte-identical. Proves a refusal changed nothing."""
+ 		return u8_columns == other.u8_columns and i32_columns == other.i32_columns \
+ 			and i64_columns == other.i64_columns
+ 
+@@ -681,7 +494,7 @@ static func storage_index_of(field: int) -> int:
+ 
+ 
+ static func canonical_value_bytes() -> int:
+-	"""Total VALUE bytes of all 29 columns: the section's ARCH-HASH-001 contribution length."""
++	"""Total VALUE bytes of all 35 columns: the section's ARCH-HASH-001 contribution length."""
+ 	var total: int = 0
+ 	for field: int in FIELD_COUNT:
+ 		total += FIELD_WIDTHS[field] * FIELD_EXTENTS[field]
+@@ -689,7 +502,7 @@ static func canonical_value_bytes() -> int:
+ 
+ 
+ static func payload_bytes() -> int:
+-	"""Total payload length: 29 element counts plus every column's values."""
++	"""Total payload length: 35 element counts plus every column's values."""
+ 	return FIELD_COUNT * ELEMENT_COUNT_BYTES + canonical_value_bytes()
+ 
+ 
+@@ -776,7 +589,7 @@ static func section_length_refusal(byte_length: int) -> SaveHeader.Refusal:
+ static func capture_record_into(staged: Record, out: Record) -> SaveHeader.Refusal:
+ 	"""Validate a caller-built Record and copy it into `out`, or leave `out` byte-identical.
+ 
+-	The column-level capture, for a caller that already holds 29 columns rather than a live store:
++	The column-level capture, for a caller that already holds 35 columns rather than a live store:
+ 	a fixture, a migration, or the planner owner once BLOCKER J2's bulk reader lands.
+ 	`capture_into()` is the same step against a live planner and is what a save should call.
+ 	"""
+@@ -828,7 +641,7 @@ static func apply(record: Record, store: JobPlannerScript) -> SaveHeader.Refusal
+ # --- encode ----------------------------------------------------------------------------------------
+ 
+ static func encode_payload(record: Record, out: EncodeResult) -> bool:
+-	"""Materialise the 363112-byte payload: 29 `element_count:u64` prefixes and their columns.
++	"""Materialise the 384164-byte payload: 35 `element_count:u64` prefixes and their columns.
+ 
+ 	Column-major by SAVE-LAYOUT-R01 and in REG-R01's declared ordinal order. Each column is
+ 	appended as one C++ byte-array copy; nothing here walks values one at a time.
+@@ -883,13 +696,13 @@ static func encode_section(record: Record, out: EncodeResult) -> bool:
+ 
+ 
+ static func canonical_bytes_of(record: Record, out: EncodeResult) -> bool:
+-	"""This section's contribution to ARCH-HASH-001: 29 columns of VALUES and nothing else.
++	"""This section's contribution to ARCH-HASH-001: 35 columns of VALUES and nothing else.
+ 
+ 	Every section-8 field carries `hash: true` in REG-R01's artifact, so no column is saved-but-
+ 	not-hashed the way section 1's host debt is. What the digest does NOT include is framing: the
+-	store count, the owner wrapper and the 29 `element_count` prefixes are wire shape, not state.
++	store count, the owner wrapper and the 35 `element_count` prefixes are wire shape, not state.
+ 	SAVE-R09's canonical record is `section_id, owner_key, field_key, type, value_count, values`
+-	and this produces exactly the `values` half of all 29; section 15 owns the record prefixes,
++	and this produces exactly the `values` half of all 35; section 15 owns the record prefixes,
+ 	the concatenation order and the final SHA-256, and none of those is decided here.
+ 	"""
+ 	var invalid: SaveHeader.Refusal = record_refusal(record)
+@@ -908,19 +721,16 @@ static func canonical_bytes_of(record: Record, out: EncodeResult) -> bool:
+ 
+ static func decode_section_into(bytes: PackedByteArray, offset: int,
+ 		out: Record) -> SaveHeader.Refusal:
+-	"""Decode section 8 from `offset`, validating everything before `out` is written at all.
+-
+-	Allocate before consume (decision 0059): the extent is proved, the framing is checked, the 29
+-	columns land in a LOCAL Record, and every domain and cross-column invariant runs against that
+-	local. Only then is `out` overwritten. A FULL-LENGTH section carrying a negative generation, a
+-	PENDING row with no Job or a sowing cycle that disagrees with its cursor therefore leaves `out`
+-	byte-identical -- the extent gate would catch a truncation long before any of those.
+-
+-	SAVE-C3-R01: the expectation is the COMPILED CONSTANT, never a caller-supplied number and
+-	never a column's extent read back out of the body. A wrapper whose `primary_count` word at
+-	byte 23 disagrees with PRIMARY_COUNT is refused before any column is published, so a section 8
+-	written under a different reading of the field cannot load as if it agreed.
+-	"""
++	"""Decode a known current-schema body; full-file callers must pass their actual descriptor."""
++	return decode_section_with_schema_into(bytes, offset, SECTION_SCHEMA_VERSION, out)
++
++
++static func decode_section_with_schema_into(bytes: PackedByteArray, offset: int,
++		section_schema_version: int, out: Record) -> SaveHeader.Refusal:
++	"""Check readable owner/version preamble before extent; stage and validate before publication."""
++	var preamble: SaveHeader.Refusal = _preamble_refusal(bytes, offset, section_schema_version)
++	if not preamble.is_ok():
++		return preamble
+ 	var extent: SaveHeader.Refusal = extent_refusal(bytes, offset)
+ 	if not extent.is_ok():
+ 		return extent
+@@ -936,9 +746,29 @@ static func decode_section_into(bytes: PackedByteArray, offset: int,
+ 	return _decode_columns_into(bytes, reader, out)
+ 
+ 
++static func _preamble_refusal(bytes: PackedByteArray, offset: int,
++		section_schema_version: int) -> SaveHeader.Refusal:
++	"""Never allocate a Record or require a new-schema extent to identify an older owner."""
++	if offset < 0:
++		return SaveHeader.Refusal.new(REFUSE_NEGATIVE_OFFSET, "negative section offset")
++	if offset > bytes.size() or bytes.size() - offset < PREAMBLE_BYTES:
++		return SaveHeader.Refusal.new(REFUSE_TRUNCATED, "section8 preamble requires23 bytes")
++	if bytes.decode_u32(offset) != STORE_COUNT:
++		return SaveHeader.Refusal.new(REFUSE_STORE_COUNT, "section8 requires one owner")
++	if bytes.decode_u32(offset + OFFSET_OWNER_KEY_LENGTH) != OWNER_KEY_BYTES:
++		return SaveHeader.Refusal.new(REFUSE_OWNER_KEY, "owner key length differs")
++	if bytes.slice(offset + OFFSET_OWNER_KEY, offset + OFFSET_OWNER_SCHEMA_VERSION) != OWNER_KEY.to_utf8_buffer():
++		return SaveHeader.Refusal.new(REFUSE_OWNER_KEY, "owner key differs")
++	if bytes.decode_u32(offset + OFFSET_OWNER_SCHEMA_VERSION) != OWNER_SCHEMA_VERSION:
++		return SaveHeader.Refusal.new(REFUSE_OWNER_SCHEMA_VERSION, "requires planner owner schema2")
++	if section_schema_version != SECTION_SCHEMA_VERSION:
++		return SaveHeader.Refusal.new(REFUSE_SECTION_SCHEMA_VERSION, "requires section8 schema2")
++	return SaveHeader.Refusal.new(REFUSE_NONE, "")
++
++
+ static func _decode_columns_into(bytes: PackedByteArray, reader: SaveCodec.Reader,
+ 		out: Record) -> SaveHeader.Refusal:
+-	"""Read the 29 columns into a LOCAL Record, validate it, and only then publish it to `out`."""
++	"""Read the 35 columns into a LOCAL Record, validate it, and only then publish it to `out`."""
+ 	var parsed: Record = Record.new()
+ 	var columns: SaveHeader.Refusal = _read_columns(bytes, reader, parsed)
+ 	if not columns.is_ok():
+@@ -1009,7 +839,7 @@ static func _read_owner(reader: SaveCodec.Reader) -> SaveHeader.Refusal:
+ 
+ static func _read_columns(bytes: PackedByteArray, reader: SaveCodec.Reader,
+ 		parsed: Record) -> SaveHeader.Refusal:
+-	"""Read all 29 `element_count` prefixes and their value runs into `parsed`.
++	"""Read all 35 `element_count` prefixes and their value runs into `parsed`.
+ 
+ 	Each prefix is checked against the OWNING SCHEMA'S extent for that field, never against the
+ 	first column's or against whatever the previous prefix said.
+@@ -1046,7 +876,10 @@ static func record_refusal(record: Record) -> SaveHeader.Refusal:
+ 	var demand: SaveHeader.Refusal = _demand_table_refusal(record)
+ 	if not demand.is_ok():
+ 		return demand
+-	return _hive_table_refusal(record)
++	var hive: SaveHeader.Refusal = _hive_table_refusal(record)
++	if not hive.is_ok():
++		return hive
++	return _dirty_lists_refusal(record)
+ 
+ 
+ static func _shape_refusal(record: Record) -> SaveHeader.Refusal:
+@@ -1482,3 +1315,26 @@ static func _pair_is_shaped(slot: int, generation: int) -> bool:
+ 	nothing and resolves to something.
+ 	"""
+ 	return (slot == NULL_SLOT) == (generation == NULL_GENERATION)
++
++
++static func _dirty_lists_refusal(record: Record) -> SaveHeader.Refusal:
++	"""Validate exact prefixes in farm/zone/hive order, reusing bounded cold-path seen bytes."""
++	var seen: PackedByteArray = PackedByteArray()
++	seen.resize(maxi(OWNER_ROWS, maxi(ZONE_ROWS, HIVE_ROWS)))
++	for field: int in [FIELD_DIRTY_ROWS, FIELD_DIRTY_ZONE_ROWS, FIELD_DIRTY_HIVE_ROWS]:
++		seen.fill(0)
++		var rows: PackedInt32Array = record.i32_column(field)
++		var count: int = record.value_of(field + 1, 0)
++		if count > rows.size():
++			return SaveHeader.Refusal.new(REFUSE_DIRTY_COUNT, "%s count exceeds capacity" % FIELD_KEYS[field])
++		for index: int in count:
++			var row: int = rows[index]
++			if row >= rows.size():
++				return SaveHeader.Refusal.new(REFUSE_DIRTY_INDEX, "%s prefix row outside capacity" % FIELD_KEYS[field])
++			if seen[row] != 0:
++				return SaveHeader.Refusal.new(REFUSE_DIRTY_DUPLICATE, "%s repeats a prefix row" % FIELD_KEYS[field])
++			seen[row] = 1
++		for index: int in range(count, rows.size()):
++			if rows[index] != 0:
++				return SaveHeader.Refusal.new(REFUSE_DIRTY_TAIL, "%s unused tail is nonzero" % FIELD_KEYS[field])
++	return SaveHeader.Refusal.new(REFUSE_NONE, "")

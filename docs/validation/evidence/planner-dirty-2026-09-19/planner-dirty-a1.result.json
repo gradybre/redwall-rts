@@ -1,0 +1,13 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "2477ce11-e2fe-40f4-94f0-b7b1cd37e24d",
+  "usage": null,
+  "elapsedMs": 900417,
+  "pid": 52407,
+  "exitCode": 143,
+  "state": "timeout",
+  "code": "DEADLINE_EXCEEDED",
+  "message": "session exceeded its hard deadline"
+}

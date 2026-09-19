@@ -1,6 +1,6 @@
 {
  "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-15-3",
- "registry_version": 4,
+ "registry_version": 5,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -56,8 +56,8 @@
   "world_init": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 596,
- "packed_source_field_count": 550,
+ "record_count": 602,
+ "packed_source_field_count": 553,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -6859,7 +6859,7 @@
   {
    "section_id": 8,
    "owner_key": "job_planner",
-   "owner_schema_version": 1,
+   "owner_schema_version": 2,
    "fields": [
     {
      "field_key": "_owner_slot",
@@ -7266,6 +7266,90 @@
      },
      "ordinal": 28,
      "source_contract": "C151"
+    },
+    {
+     "field_key": "_dirty_rows",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "job_planner",
+     "source_member": "_dirty_rows",
+     "shape": {
+      "declared_capacity": "`OWNER_CAPACITY` = 4096",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 29,
+     "source_contract": "C173"
+    },
+    {
+     "field_key": "_dirty_count",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "job_planner",
+     "source_member": "_dirty_count",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 30,
+     "scalar": true
+    },
+    {
+     "field_key": "_dirty_zone_rows",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "job_planner",
+     "source_member": "_dirty_zone_rows",
+     "shape": {
+      "declared_capacity": "`ZONE_OWNER_CAPACITY` = 128",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 31,
+     "source_contract": "C173"
+    },
+    {
+     "field_key": "_dirty_zone_count",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "job_planner",
+     "source_member": "_dirty_zone_count",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 32,
+     "scalar": true
+    },
+    {
+     "field_key": "_dirty_hive_rows",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "job_planner",
+     "source_member": "_dirty_hive_rows",
+     "shape": {
+      "declared_capacity": "`HIVE_OWNER_CAPACITY` = 1024",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 33,
+     "source_contract": "C173"
+    },
+    {
+     "field_key": "_dirty_hive_count",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "job_planner",
+     "source_member": "_dirty_hive_count",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 34,
+     "scalar": true
     }
    ]
   },
@@ -9625,6 +9709,10 @@
   "C172": {
    "unused": "`_present` 0 is a free row; `_material_container_slot` -1 with generation 0 is the null ref; `_ref_slot` and `_subject_slot` -1 with generation 0 are the null refs; `_assigned_count` 0 is a project with no builder bound, which is also every paused project; `_paused` 0 is running and `_work_begun` 0 is not yet consumed; `_remaining_mwu` 0 on a live row means the work is finished, not that the row is free; `_type_id` -1 only on a free row; `_delivered_milli` 0 means nothing delivered on that line, and cells at or beyond a project's own bill size are always 0",
    "notes": "REQ-SET-124-127's construction projects, registered on arrival under REG-R01's growth rule; they were classified category 1 in docs/persistence_state_registry.md and implemented in construction.gd but never declared here. `_material_container_slot`/`_material_container_generation` is an INVENTORY CONTAINER reference validated against inventory.gd's `_c_generation`, NOT a directory one; `_ref_*` and `_subject_*` are both DIRECTORY references. A furniture project's subject is stored only here: GDD 4.2 gives Furniture no construction column, so it cannot be rebuilt from the Building store the way a building subject can. `_work_begun` is the sole record that REQ-SET-125's consumption happened and is the only thing moving REQ-SET-126's refund from 100% to 80%; it is not derivable from `_remaining_mwu`, because work can have begun with no milli-WU earned yet. `_refund_policy` is written and then cross-checked by `verify_refund_policies()`, which refuses a mismatch rather than repairing it, so both sides of that comparison must survive a load. `_purpose`, `_type_id` and `_phase` are module ordinals, not compiled catalog domains, so a codec pins them itself. `_delivered_milli` is section 5 CHILD_ARENAS: owner-major at the fixed stride `MATERIAL_SLOTS_PER_PROJECT` = 4, so line k of project row r is cell r * 4 + k, and it is retained after consumption precisely so the 80% case has something to compute from. construction.gd's bill tables (`_build_key`, `_build_milli`, `_build_count`, `_upgrade_*`, `_furniture_*`) are category 2 immutable catalog, recompiled on construction, and are deliberately NOT declared here."
+  },
+  "C173": {
+   "unused": "Zero in every cell at or beyond the saved count.",
+   "notes": "SAVE-J2-R01: prefix preserves exact LIFO push order and membership; row 0 is valid. Count is separately persisted. Membership bits rebuild only from this prefix."
   }
  },
  "section_schema_versions": [
@@ -9635,7 +9723,7 @@
   1,
   1,
   3,
-  1,
+  2,
   2,
   1,
   1,

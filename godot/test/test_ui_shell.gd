@@ -2054,8 +2054,13 @@ func test_the_ordinary_workspace_raises_no_scrim_and_the_compact_one_does() -> v
 	assert_true(_shell.open_workspace_page(UiRegistry.ROSTER_ID), "the roster opens")
 	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
 	assert_false(_shell.hit_test().scrim_is_up(), "an ordinary workspace raises no scrim")
-	assert_true(_shell.hit_test().world_receives(Vector2(1000.0, 300.0)),
-		"and the world beside it is still clickable")
+	var frame: Rect2 = Rect2(_shell.control_for(UiShell.ID_WORKSPACE).position,
+		_shell.control_for(UiShell.ID_WORKSPACE).size)
+	var outside: Vector2 = Vector2(1200.0, 300.0)
+	assert_false(frame.has_point(outside), "the world probe is actually outside the workspace")
+	assert_false(_shell.hit_test().world_receives(frame.get_center()), "the opaque frame consumes")
+	assert_true(_shell.hit_test().world_receives(outside),
+		"and the uncovered world beside it is still clickable")
 	assert_true(_shell.apply_user_scale(UiLayout.USER_SCALE_150), "150 percent applies")
 	assert_true(_shell.layout_for(1280, 720), "the narrow layout computes")
 	assert_true(_shell.hit_test().scrim_is_up(), "the compact variant raises one")

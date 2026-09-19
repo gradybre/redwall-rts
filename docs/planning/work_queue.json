@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-09-14",
+  "updated": "2026-09-19",
   "note": "The dispatchable graph. tools/dispatch_plan.py reads this and emits the largest conflict-free set of ready tasks. Status values: blocked, ready, in_flight, review, done. A task is dispatchable only when every dependency is done, its gate is cleared, and no file it owns is owned by a task already in flight.",
   "gates": {
     "none": "No human decision required. Fully automatic.",
@@ -236,7 +236,7 @@
     {
       "id": "DIGEST-DETERMINISM",
       "title": "Implement the shared canonical inventory projection and strict schema3 codec",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "BASELINE-INTEGRATION",
         "SAVE-REGISTRY-RECONCILE",
@@ -261,7 +261,11 @@
       "astra_request": "docs/rulings/requests/OPEN.md#retired-row-blanking",
       "note": "INV-CANON-R01 answers the question. Source masking only at quiescence; strict loader canonical form; no hot retirement clear, row omission or free-stack sort. Atomic schema3 activation; full continuation tests remain required.",
       "astra_answered": true,
-      "astra_ruling": "docs/rulings/2026-09-14_cycle02_inventory_canonicalization.md"
+      "astra_ruling": "docs/rulings/2026-09-14_cycle02_inventory_canonicalization.md",
+      "pr": 137,
+      "merge_commit": "92caa18de73a0c15f9e7edab3310c0b31d59504e",
+      "merged_at": "2026-09-18T11:41:19Z",
+      "completion_scope": "Merged bounded lane verified against GitHub on 2026-09-19; not full owning-system acceptance."
     },
     {
       "id": "MOVE-ENVELOPES",
@@ -459,7 +463,7 @@
     {
       "id": "PLAN-SAVE-COVERAGE",
       "title": "Materialize every remaining save prerequisite before whole-world capture",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "BASELINE-INTEGRATION"
       ],
@@ -470,7 +474,11 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "Inventory all 15 bodies, each owner capture/restore/hash adapter, header producers, cross-section validators and load orchestration. Include section12 arena-base restore and missing orchard inverse producer. Insert bounded owned tasks and add every implementation prerequisite to SAVE-CAPTURE before marking this planning task done. Publish a validation check that refuses a missing matrix task/dependency; expand ownership for that checker through the integration lead before implementing it. Use merged real paths save_section_inventories.gd and save_section_pending_commands.gd; include INV-CANON-R01 target and present source-state gaps. Include SAVE-C3-R01 and stock-integrity fault/retry/hold continuation. Before SAVE-CAPTURE dispatch, materialize all discovered runtime prerequisites; completed planning tasks alone cannot release it."
+      "acceptance": "Inventory all 15 bodies, each owner capture/restore/hash adapter, header producers, cross-section validators and load orchestration. Include section12 arena-base restore and missing orchard inverse producer. Insert bounded owned tasks and add every implementation prerequisite to SAVE-CAPTURE before marking this planning task done. Publish a validation check that refuses a missing matrix task/dependency; expand ownership for that checker through the integration lead before implementing it. Use merged real paths save_section_inventories.gd and save_section_pending_commands.gd; include INV-CANON-R01 target and present source-state gaps. Include SAVE-C3-R01 and stock-integrity fault/retry/hold continuation. Before SAVE-CAPTURE dispatch, materialize all discovered runtime prerequisites; completed planning tasks alone cannot release it.",
+      "pr": 136,
+      "merge_commit": "cf8e2bfe1eb316d54674b286246b59f29ae2c9d7",
+      "merged_at": "2026-09-18T11:40:45Z",
+      "completion_scope": "Merged bounded lane verified against GitHub on 2026-09-19; not full owning-system acceptance."
     },
     {
       "id": "PLAN-RELEASE-COVERAGE",
@@ -486,7 +494,8 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "Create owned task entries for initial buildings/furniture/stocks, construction commands/jobs/hauling, event domains/producers/consumers, species rendering and UI corrections, shutdown leak investigation and qualification. Preserve all confirmed settlement scope and unresolved gates; no task completion from document existence alone. Explicitly cover one active inventory/economy authority, initial hall/beds/furniture/stocks and12equipped+12storedtools under REQ-SET-009. Preserve ARRIVAL and RELIEF follow-up tasks; do not claim completion from cohort/terrain assertions."
+      "acceptance": "Create owned task entries for initial buildings/furniture/stocks, construction commands/jobs/hauling, event domains/producers/consumers, species rendering and UI corrections, shutdown leak investigation and qualification. Preserve all confirmed settlement scope and unresolved gates; no task completion from document existence alone. Explicitly cover one active inventory/economy authority, initial hall/beds/furniture/stocks and12equipped+12storedtools under REQ-SET-009. Preserve ARRIVAL and RELIEF follow-up tasks; do not claim completion from cohort/terrain assertions. Matrix and 16 owned downstream task entries added on2026-09-19; implementation packets remain explicitly gated pending detailed contracts.",
+      "note": "Coverage index and17owned follow-up entries delivered; exact implementation packets for the remaining release domains are still planning work, so this umbrella is not marked done."
     },
     {
       "id": "PACKET-EVIDENCE",
@@ -651,7 +660,7 @@
     {
       "id": "UI-C3-EVIDENCE",
       "title": "Capture corrected responsive shell and input evidence",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "UI-RESPONSIVE-C3"
       ],
@@ -662,7 +671,11 @@
       ],
       "agent": "user-qa",
       "gate": "none",
-      "acceptance": "All UI-C3-R01 profiles/scales, boundary widths, actual font and physical rounding; paired alert pixels with workspace open; keyboard/focus/world-click isolation and value disclosure. Keep synthetic specimens separate; retain harnesses. Human art verdict remains separate."
+      "acceptance": "All UI-C3-R01 profiles/scales, boundary widths, actual font and physical rounding; paired alert pixels with workspace open; keyboard/focus/world-click isolation and value disclosure. Keep synthetic specimens separate; retain harnesses. Human art verdict remains separate.",
+      "pr": 138,
+      "merge_commit": "47a4da2642912afee4d5249424d31ab6c92f014a",
+      "merged_at": "2026-09-18T11:41:33Z",
+      "completion_scope": "Merged bounded lane verified against GitHub on 2026-09-19; not full owning-system acceptance."
     },
     {
       "id": "SAVE-S8-COUNT",
@@ -703,7 +716,7 @@
     {
       "id": "MOVE-POLICY-REGISTER",
       "title": "Apply adopted Cycle3 policy decisions to the Q2 register",
-      "status": "ready",
+      "status": "done",
       "depends_on": [
         "MOVE-PROFILE-AUTHORING"
       ],
@@ -715,7 +728,11 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "MOVE-C3-R01: separate adopted policy from measured/profile readiness. Bind ford, child voluntaryhazard versus recovery, elder/access and existingHAZ rules with citations. Correct needs/health units and stale claims. Recompute288 leaves; preserve conditional childCLIMB, no production qualified rows without real evidence. No all-null invariant after rulings; no invented dimensions/costs."
+      "acceptance": "MOVE-C3-R01: separate adopted policy from measured/profile readiness. Bind ford, child voluntaryhazard versus recovery, elder/access and existingHAZ rules with citations. Correct needs/health units and stale claims. Recompute288 leaves; preserve conditional childCLIMB, no production qualified rows without real evidence. No all-null invariant after rulings; no invented dimensions/costs.",
+      "pr": 134,
+      "merge_commit": "bc782968c5825ca417f4eb56a25f2b9f68cccf4c",
+      "merged_at": "2026-09-17T12:05:23Z",
+      "completion_scope": "Merged bounded lane verified against GitHub on 2026-09-19; not full owning-system acceptance."
     },
     {
       "id": "MOVE-ENVELOPE-ERROR",
@@ -1007,19 +1024,296 @@
     {
       "id": "UI-DRAWN-WITHOUT-INPUT",
       "title": "Five drawn opaque elements have no input rectangle, so clicks fall through to the world",
-      "status": "ready",
+      "status": "review",
       "depends_on": [
         "UI-C3-EVIDENCE"
       ],
       "owns": [
-        "godot/scripts/ui/ui_shell.gd",
         "godot/scripts/ui/ui_hit_test.gd",
-        "godot/test/test_ui_shell.gd",
-        "godot/test/test_ui_hit_test.gd"
+        "godot/scripts/ui/ui_shell.gd",
+        "godot/test/test_ui_context_gates.gd",
+        "godot/test/test_ui_hit_test.gd",
+        "godot/test/test_ui_shell.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "note": "Found by UI-C3-EVIDENCE's rendered overlays, not by any test. add_visible_region() refuses a region when the \u00a74 Gate is unsatisfied, justified by 'an element whose gate is unsatisfied has no Control at all'. That premise is FALSE for 051 WORKSPACE, 092 BACK, 036 DETAIL, 038 DETAIL_TABS and 098 PIN: the shell draws them anyway, so they are visible, opaque and unclickable. Measured: the centre of the open roster workspace (752,356) and of the open detail panel (1096,416) both resolve to WORLD. The hit table reports WORLD at a visible panel. Actual engine command leakage is not established by that table alone; UI-C4-R01 requires real event routing evidence. Either the gate must also suppress drawing, or a drawn control must claim its rectangle; the current pair is self-contradictory. test_the_gate_decides_before_the_availability_claim_does pins the ordering as correct, and it IS correct given the premise -- which is why no test caught this.",
+      "astra_answered": true,
+      "astra_ruling": "docs/rulings/2026-09-19_cycle04_resumption.md",
+      "acceptance": "UI-C4-R01: synchronize contextual visibility, gates, focus and real consuming rectangles; test workspace/detail open-close and supported scales, plus engine input. No visual approval or full world-input implementation inferred.",
+      "completion_scope": "Bounded visibility/input/focus consistency repair; full UI, Escape/world router, native pointer and ART-UI-12 acceptance remain separate.6engine-routing positive-control cases and final full suite pass; independent B1-B4 closure recorded."
+    },
+    {
+      "id": "REG-C4-ADDITION",
+      "title": "Prove nested capacity sums with a closed int64 grammar",
+      "status": "review",
+      "depends_on": [
+        "REGISTRY-CAPACITY-AUDIT"
+      ],
+      "owns": [
+        "tools/audit_registry_capacities.py",
+        "tools/test_registry_capacity_audit.py",
+        "docs/planning/registry_capacity_audit.json"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "astra_answered": true,
+      "astra_ruling": "docs/rulings/2026-09-19_cycle04_resumption.md",
+      "acceptance": "REG-C4-R01 bounded grammar, source binding and intermediate int64 checks; independent review accepted.190checks470equalities46bounds. Exact-text/metadata transport recoveries and integration repairs recorded in resumption evidence; sidecar2 stays unadopted."
+    },
+    {
+      "id": "INIT-A",
+      "title": "Map starter APIs and physical owners",
+      "status": "review",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/resumption_2026_09_19/starter_binding_manifest.json"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "API names verified from source; owners, existing canonical APIs, duplicate stock, missing bindings, storage-class and transaction limitations explicitly recorded. Runtime activation is not granted by this map."
+    },
+    {
+      "id": "INIT-0",
+      "title": "Compose one inventory authority at boot and new-world creation",
+      "status": "blocked",
+      "depends_on": [
+        "INIT-A"
+      ],
+      "owns": [
+        "godot/scripts/systems/economy_system.gd",
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/main.gd",
+        "godot/scripts/systems/ui_manager.gd",
+        "godot/scripts/ui/ui_world_session.gd",
+        "godot/test/test_starter_inventory_integration.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "acceptance": "Author exact borrow/reset/reseed/refusal contract first. Same inventory instance across UI, aging, construction and gear; no erased seeds, stale refs, double production allocations or equipment duplication. Physical containers require INIT-C/D contract agreement before activation.",
+      "astra_answered": false,
+      "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch"
+    },
+    {
+      "id": "INIT-B",
+      "title": "Seed the twelve residents' initial relationships",
+      "status": "blocked",
+      "depends_on": [
+        "INIT-A"
+      ],
+      "owns": [
+        "godot/scripts/core/starter_relationships.gd",
+        "godot/test/test_starter_relationships.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "acceptance": "Bind GDD six reciprocal Friend pairs through one relationship owner. Refuse capacity or invalid identity before reset; persistent ids1-12 unchanged; no invented bond/family coefficients.",
+      "astra_answered": false,
+      "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch"
+    },
+    {
+      "id": "INIT-C",
+      "title": "Build the seven starter buildings and hall interior",
+      "status": "blocked",
+      "depends_on": [
+        "INIT-A"
+      ],
+      "owns": [
+        "godot/scripts/core/starter_structures.gd",
+        "godot/test/test_starter_structures.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "acceptance": "Exact locations/rooms/furniture per starter_settlement.md; actual topology/doors/contact reachability; no blueprint-only completion, null physical owners or fabricated access.",
+      "astra_answered": false,
+      "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch"
+    },
+    {
+      "id": "INIT-D",
+      "title": "Place starter goods and equip the cohort",
+      "status": "blocked",
+      "depends_on": [
+        "INIT-C"
+      ],
+      "owns": [
+        "godot/scripts/core/starter_goods.gd",
+        "godot/test/test_starter_goods.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "acceptance": "Exact20item quantities, food-first/item-ID placement, real room/furniture/stockpile owners, per-lot ceil mass, 12 equipped +12 stored tools1000durability; capacity/refusal no duplication; class every aging container.",
+      "astra_answered": false,
+      "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch"
+    },
+    {
+      "id": "INIT-E",
+      "title": "Publish one transactional starter world on both entry paths",
+      "status": "blocked",
+      "depends_on": [
+        "INIT-0",
+        "INIT-B",
+        "INIT-C",
+        "INIT-D"
+      ],
+      "owns": [
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/systems/ui_manager.gd",
+        "godot/scripts/ui/ui_world_session.gd",
+        "godot/scripts/main.gd",
+        "godot/test/test_starter_publication.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "acceptance": "One preflight/reset/seed/cohort/physical-world publication; same seed equality; prior valid world/save unchanged on any refusal; exact clocks/RNG/poses/map report bindings; no second full world allocation.",
+      "astra_answered": false,
+      "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch"
+    },
+    {
+      "id": "INIT-F",
+      "title": "Expose actual starter services and first interaction",
+      "status": "blocked",
+      "depends_on": [
+        "INIT-E",
+        "UI-DRAWN-WITHOUT-INPUT"
+      ],
+      "owns": [
+        "godot/scripts/systems/ui_manager.gd",
+        "godot/scripts/ui/ui_shell.gd",
+        "godot/test/test_starter_inspection.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "acceptance": "Real bed/room/stock inspection and capacity, no fictional completed gameplay; collect actual engine input evidence; art acceptance separate.",
+      "astra_answered": false,
+      "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch"
+    },
+    {
+      "id": "PLAN-PC03-SCENARIOS",
+      "title": "Author the complete finite scenario package",
+      "status": "ready",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/scenario_execution_package.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "PC-03/task08.1: finite named roster across original/Abbey/novel-era and founding/restoration/established premises; source-qualified casts; exact maps/stocks/population/objectives/admission/identity/save contracts. Preserve source gaps; explicit authored assumptions; no copied novel text."
+    },
+    {
+      "id": "PLAN-PC04-FAMILIES",
+      "title": "Author fixed life stages, dependents and care",
+      "status": "ready",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/family_execution_package.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "PC-04/task08.2: household/caregiver schema, age-stage species coefficients, schedules, services, safety/interruption/warnings/rescue/consequences. No births/aging, child productive/hazardous work or adults-only fallback; exact integer coefficients and save/replay contracts."
+    },
+    {
+      "id": "PLAN-PC06-PROGRESSION",
+      "title": "Resolve the continuous winter progression contract",
+      "status": "ready",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/progression_execution_package.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "PC-06/task08.6 and ARCH-CONFLICT-004: continuous winter interval, counters/reset conditions, cap/victory/continuation/collapse-save protection and exact tests; no milestone activation without approved finite rules."
+    },
+    {
+      "id": "PLAN-LIVE-CONSTRUCTION",
+      "title": "Specify command, material delivery and service integration",
+      "status": "ready",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/construction_execution_package.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Task06.1-4: existing stores to18remaining commands; job admission/source/destination reservations/hauling/arrival/WU/upgrade/cancel/demolition/occupants/only exit; BUILD-C4-R01 paid package ledger and atomic outputs. Materialize bounded owned implementations after API review."
+    },
+    {
+      "id": "PLAN-LIVE-FOOD",
+      "title": "Specify full seasonal production and need services",
+      "status": "ready",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/food_execution_package.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Task07: active recipe data, WIP/manual/passive batches, meal/water/rest/heat service contact, conservation, equipment, renewable food loops/forecasts/relief, exact integer needs interruption and save continuation. Source candidate is not active balanced data."
+    },
+    {
+      "id": "PLAN-COMMUNITY-EVENTS",
+      "title": "Specify event production and community consumers",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-PC03-SCENARIOS",
+        "PLAN-PC04-FAMILIES",
+        "PLAN-PC06-PROGRESSION"
+      ],
+      "owns": [
+        "docs/planning/community_execution_package.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Task08: finite event domain/payload/capacity/producer/consumer/repeat/save; relationship/memory/grief/care/illness/lifecycle/admission/feasts/chronicle; preserve separate ARRIVAL/RELIEF plans and care-before-progression stage order."
+    },
+    {
+      "id": "PLAN-PRESENTATION-RELEASE",
+      "title": "Specify remaining UI, species, audio and packaging",
+      "status": "ready",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/presentation_release_package.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Task10: all103UIelements/settings/camera/accessibility; approved art refs and height anchors; species/gear/pose/LOD/animation/contact maps; assets/audio provenance; reproducible localMac package. Human art and spend gates remain external, no unauthorized external store publication."
+    },
+    {
+      "id": "QA-SHUTDOWN-LEAKS",
+      "title": "Identify and repair shutdown ownership leaks",
+      "status": "ready",
+      "depends_on": [],
+      "owns": [
+        "docs/validation/evidence/shutdown-ownership/"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Found by UI-C3-EVIDENCE's rendered overlays, not by any test. add_visible_region() refuses a region when the \u00a74 Gate is unsatisfied, justified by 'an element whose gate is unsatisfied has no Control at all'. That premise is FALSE for 051 WORKSPACE, 092 BACK, 036 DETAIL, 038 DETAIL_TABS and 098 PIN: the shell draws them anyway, so they are visible, opaque and unclickable. Measured: the centre of the open roster workspace (752,356) and of the open detail panel (1096,416) both resolve to WORLD. A click in the middle of a visible panel issues a world command -- UX-T04's own failure criterion. Either the gate must also suppress drawing, or a drawn control must claim its rectangle; the current pair is self-contradictory. test_the_gate_decides_before_the_availability_claim_does pins the ordering as correct, and it IS correct given the premise -- which is why no test caught this."
+      "acceptance": "Reproduce4551suite andboot leaks; attribute actual retained object/resource owners with bounded diagnostics; publish exact repair paths before edits. Do not suppress warnings or claim all leaks from count only. One heavy job."
+    },
+    {
+      "id": "PLAN-INTEGRATED-QUALIFICATION",
+      "title": "Define complete release candidate qualification",
+      "status": "ready",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/integrated_qualification_package.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Task10.4-5: fullscenario3yearsurvival, allmovementdomains/construction/needs/savecorruption/replay; nativevisual/keyboard/trackpad/accessibility; perfandmemory actual exportedcandidate onnamedhardware; deferredWindows separatelyreported. Independent reviewer and requirementcoverage per candidate."
+    },
+    {
+      "id": "STOCK-AUTHORITY-LIFETIME",
+      "title": "Remove the verified Inventory/StockAge ownership cycle",
+      "status": "review",
+      "depends_on": [],
+      "owns": [
+        "godot/scripts/core/inventory.gd",
+        "godot/test/test_stock_authority_lifetime.gd",
+        "godot/test/test_inventory.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "astra_ruling",
+      "astra_answered": true,
+      "astra_request": "docs/rulings/2026-09-19_stock_authority_lifetime.md",
+      "acceptance": "STOCK-C4-LIFETIME-R01: borrowed live predicate, orphan fails closed, no canonical state changes; exact lifetime probe and full regression; remaining leak causes distinct."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

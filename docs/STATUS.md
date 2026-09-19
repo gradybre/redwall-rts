@@ -1,5 +1,7 @@
 # Status — the programme, task 03, and the READY_06 answers
 
+**2026-09-19 resumption:** [current verified baseline, Cycle 4 rulings and starter-settlement work](planning/resumption_2026_09_19/README.md). Baseline `47a4da2`: 4551 tests / 158103 assertions / zero failures, with shutdown leak warnings. Actual startup still has two inventory authorities and zero buildings/rooms/furniture. Older status below is historical.
+
 **Cycle3, 2026-09-14:** [current rulings and executor handoff](planning/astra_cycles/cycle_03.md). Integrated base2021444 includes five merges sinceCycle2. Four advisory questions answered; movement policy advanced but production gates remain open. Registry/source validation now passes on merged master.37-task queue; PR122/123 retain review ownership. Older status below is historical.
 
 **Cycle 2, 2026-09-14:** [current decisions and executor handoff](planning/astra_cycles/cycle_02.md). Baseline PR116 is merged; two inventory/goods questions answered, movement partly answered and still gated. PR117/118 remain in review in this cycle’s snapshot. The older local checkout is not the reconciled master baseline.

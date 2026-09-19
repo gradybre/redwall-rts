@@ -1,5 +1,7 @@
 # Next settlement planning package
 
+**2026-09-19 resumption:** [current verified baseline, Cycle 4 rulings and starter-settlement work](resumption_2026_09_19/README.md). Baseline `47a4da2`: 4551 tests / 158103 assertions / zero failures, with shutdown leak warnings. Actual startup still has two inventory authorities and zero buildings/rooms/furniture. Older status below is historical.
+
 **Cycle 2, 2026-09-14:** [current decisions and executor handoff](astra_cycles/cycle_02.md). Baseline PR116 is merged; two inventory/goods questions answered, movement partly answered and still gated. PR117/118 remain in review in this cycle’s snapshot. The older local checkout is not the reconciled master baseline.
 
 

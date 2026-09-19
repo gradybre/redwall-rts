@@ -1,0 +1,64 @@
+diff --git a/godot/scripts/core/inventory.gd b/godot/scripts/core/inventory.gd
+--- a/godot/scripts/core/inventory.gd
++++ b/godot/scripts/core/inventory.gd
+@@ -443,7 +443,10 @@
+ ## STOCK-SEED-R01's seed-consumer eligibility authority: the object publishing
+ ## `refuses_seed_consumption(lot_ref) -> bool`. `stock_age.gd` is the real one. Wiring, not
+ ## simulation state: not journaled, absent from state_bytes(), and it survives clear().
+-var _seed_expiry_authority: Object = null
++## STOCK-C4-LIFETIME-R01: BORROWED, therefore held WEAKLY. `settlement_system.gd` owns both
++## objects and `stock_age.gd` already holds this store strongly, so a strong edge back would
++## close an ownership cycle neither side can break. Still not journaled, still not saved state.
++var _seed_expiry_authority: WeakRef = null
+ ## Cleanup declaration, in the INVENTORY LOT generation namespace (never the container one).
+ ## `release_all_reservations()` sets `_tx_cleanup_lot`; the next operation inside the SAME
+ ## explicit transaction picks it up in `_op_cleanup_lot` and clears the pending one, so a
+@@ -1052,26 +1055,44 @@ func set_seed_expiry_authority(authority: Object) -> OpResult:
+ 	if authority != null and not authority.has_method(SEED_EXPIRY_ATTESTATION_METHOD):
+ 		return _refuse(REFUSE_INVALID_SEED_EXPIRY_AUTHORITY)
+-	_seed_expiry_authority = authority
++	# An explicit unbind and a released binding are DIFFERENT states and stay different: null
++	# enforces nothing, while a dead WeakRef refuses every consumer in the guard below.
++	if authority == null:
++		_seed_expiry_authority = null
++	else:
++		_seed_expiry_authority = weakref(authority)
+ 	return _ok(NULL_REF, 0)
+ 
+ 
+ func has_seed_expiry_authority() -> bool:
+-	"""True when a seed-expiry authority is bound and seed consumption is therefore enforced."""
+-	return _seed_expiry_authority != null
++	"""True when a LIVE seed-expiry authority is bound and seed consumption is enforced.
++
++	False for never bound, for explicitly unbound, AND for a binding whose object has been
++	released -- but only the first two admit anything. The third still REFUSES consumption.
++	"""
++	if _seed_expiry_authority == null:
++		return false
++	return _seed_expiry_authority.get_ref() != null
+ 
+ 
+ func _seed_consumption_refusal(lot_ref: Vector2i) -> StringName:
+ 	"""REFUSE_SEED_PAST_SHELF_LIFE when the bound authority rejects this lot, else REFUSE_NONE.
+ 
+ 	The one place this module asks about seed age. `_attesting` is raised across the call so
+ 	`_guard()` refuses every mutator an authority might re-enter with, and no `_math` or `_plan`
+ 	value may be held across it -- which is why every caller asks before it costs anything.
++
++	STOCK-C4-LIFETIME-R01: the binding is borrowed, so a PREVIOUSLY BOUND authority that has been
++	released fails CLOSED with INVALID_SEED_EXPIRY_AUTHORITY. It never degrades into the unbound
++	case, which enforces nothing. The strong local below holds a live predicate for the call only.
+ 	"""
+ 	if _seed_expiry_authority == null:
+ 		return REFUSE_NONE
++	var authority: Object = _seed_expiry_authority.get_ref()
++	if authority == null:
++		return REFUSE_INVALID_SEED_EXPIRY_AUTHORITY
+ 	_attesting = true
+-	var refuses: bool = bool(_seed_expiry_authority.call(SEED_EXPIRY_ATTESTATION_METHOD, lot_ref))
++	var refuses: bool = bool(authority.call(SEED_EXPIRY_ATTESTATION_METHOD, lot_ref))
+ 	_attesting = false
+ 	if refuses:
+ 		return REFUSE_SEED_PAST_SHELF_LIFE
+ 	return REFUSE_NONE

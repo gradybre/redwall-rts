@@ -1,0 +1,13 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+[Main] resident crowd attached: mesh species_mouse_body_a_lod0.glb
+[Main] boot complete: PAUSED  food-days 5.48 days  ready 408000 NP  fuel-days --
+SCRIPT ERROR: Invalid call. Nonexistent function 'count' in base 'RefCounted (residents.gd)'.
+          at: _probe (res://../docs/validation/evidence/resumption-2026-09-19/startup_probe.gd:14)
+          GDScript backtrace (most recent call first):
+              [0] _probe (res://../docs/validation/evidence/resumption-2026-09-19/startup_probe.gd:14)

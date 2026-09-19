@@ -14,14 +14,11 @@ blocking in `docs/planning/work_queue.json`, which is what releases them to the
 dispatcher.
 
 
-**1 blocking, 3 advisory.** Oldest asked 2026-09-12.
+**1 blocking, 0 advisory.** Oldest asked 2026-09-12.
 
 | Question | Asked | Holding up |
 |---|---|---|
 | [MOVE-G01 Q1 and Q2: clearance classes and per-species modes](#move-g01-clearance-and-modes) | 2026-09-12 | `MOVE-ENVELOPES` |
-| [A tier-2 building's demolition basis is unresolved](#tier-two-demolition-basis) | 2026-09-13 | nothing yet |
-| [ECON-003's excavation phases need compiled ids and a site-phase column](#econ-003-excavation-phase-domain) | 2026-09-13 | nothing yet |
-| [May the capacity resolver allowlist `+` for nested constant definitions?](#capacity-resolver-addition-allowlist) | 2026-09-14 | nothing yet |
 
 <a id="move-g01-clearance-and-modes"></a>
 ## MOVE-G01 Q1 and Q2: clearance classes and per-species modes
@@ -35,39 +32,6 @@ dispatcher.
 **Impact.** MOVE-POLICY-REGISTER, MOVE-ENVELOPE-ERROR and bounded MOVE-FORD-POLICY can proceed under dependencies. Production MOVE-ENVELOPES/05.1b/G01/G02 remain gated; no invented dimensions or bank-step capability.
 
 - Blocks `MOVE-ENVELOPES` — Measured movement envelopes, MOVE-G01 Q1/Q2
-
-<a id="tier-two-demolition-basis"></a>
-## A tier-2 building's demolition basis is unresolved
-
-*Asked 2026-09-13.*
-
-**Question.** REQ-SET-127 prices demolition at 'declared construction WU x 0.25' returning '50% original material costs'. §4.2's upgrade table declares no demolition consequence, so for an upgraded building 'original' is ambiguous: the base §4.1 row, the sum of base plus upgrades, or the current tier's declared cost?
-
-**Why the executor cannot decide it.** Summing the upgrade chain is a rule, not an inference, and inventing it would set refund economics the balance tables never authored.
-
-**Impact.** The store uses the base §4.1 row at every tier and says so in its own header. Whichever way this is ruled, only a constant changes.
-
-<a id="econ-003-excavation-phase-domain"></a>
-## ECON-003's excavation phases need compiled ids and a site-phase column
-
-*Asked 2026-09-13.*
-
-**Question.** ECON-003 names nine excavation phases. They are SITE states and map onto the construction store's five project phases not at all one-for-one: each ECON-003 transition is one project run through the whole lifecycle, with 'consume inputs once at WORK start' = `begin_work()` and 'retain earned work, publish nothing' = PHASE_WORK_DONE. This needs compiled ASCII ids in `catalog.gd` and a site-phase column from the excavation owner. Who owns that column, and are the nine ids a protected or a compiled enum domain?
-
-**Why the executor cannot decide it.** Adding a domain to catalog.gd is a schema change with a digest consequence, and the excavation owner does not exist yet to be asked.
-
-**Impact.** Advisory. The mapping is documented in ADR 0131 so the excavation lane inherits it rather than re-deriving it.
-
-<a id="capacity-resolver-addition-allowlist"></a>
-## May the capacity resolver allowlist `+` for nested constant definitions?
-
-*Asked 2026-09-14.*
-
-**Question.** REG-C3-R01 allowlists "products and qualified constants" for the source-proved capacity resolver. Two of 519 capacities cannot be proved because resolution halts on an addition: `const LINK_CAPACITY = RECIPIENT_CAPACITY * LINKS_PER_RECIPIENT` reaches `const RECIPIENT_CAPACITY = FARM_RECIPIENT_CAPACITY + ORCHARD_CAPACITY`. Source does prove the declared 30720. May `+` join the allowlist for nested constant definitions, or should these two rows stay quarantined?
-
-**Why the executor cannot decide it.** The allowlist is the ruling's, not the executor's. Widening it is a one-line change the audit lane deliberately declined to make, because a resolver that grows its own grammar to resolve more things is no longer proving anything on the ruling's terms.
-
-**Impact.** Exactly 2 of 519 capacities are unproved, both orchard_hive link columns (_link_hive_slot, _link_hive_generation). 517 are proved with zero contradictions. Nothing is blocked; the rows are quarantined in docs/planning/registry_capacity_audit.json rather than guessed.
 
 
 ## What is NOT here

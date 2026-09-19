@@ -1046,9 +1046,9 @@ func encode_record_into(position: int, out: PackedByteArray, byte_offset: int) -
 func restore_sequence(high: int, low: int) -> bool:
 	"""Set the session sequence a loaded world resumes from. Only legal on an empty queue.
 
-	§8.1's save header carries the "Replay command sequence at checkpoint" at offset 216; this is
-	where it comes back. Restoring under a non-empty queue could mint a key already in it, so it
-	refuses instead.
+	This older compatibility hook accepts ordinary u32 pairs only. SAVE-SEQ-R01 section12 loads
+	use restore_pending_window(), including an empty exhausted window. The separate header's
+	replay checkpoint field has no allocator binding here. A non-empty queue still refuses.
 	"""
 	if high < 0 or high > U32_MAX or low < 0 or low > U32_MAX:
 		_last_refusal = REFUSE_SEQUENCE_RANGE

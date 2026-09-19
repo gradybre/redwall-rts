@@ -30,6 +30,7 @@ extends "res://test/framework/test_case.gd"
 const Digest := preload("res://scripts/core/canonical_state_hash.gd")
 const SaveCodec := preload("res://scripts/core/save_codec.gd")
 const Section07 := preload("res://scripts/core/save_section_inventories.gd")
+const Section12 := preload("res://scripts/core/save_section_pending_commands.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 
 const REGISTRY_PATH: String = "res://../docs/planning/canonical_state_registry.json"
@@ -116,7 +117,9 @@ const REGISTRY_PACKED_FIELD_COUNT: int = 550
 const REGISTRY_RECORD_COUNT: int = 596
 const REGISTRY_FIELD_COUNT: int = 604
 const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-15-3"
-const REGISTRY_DECLARATION_VERSION: int = 3
+## SAVE-SEQ-R01 v2 advances declaration version to 4 while retaining this exact namespace.
+## The version is independent of the opaque identity suffix; commands owner becomes 2.
+const REGISTRY_DECLARATION_VERSION: int = 4
 
 ## INV-CANON-R01's two version numbers, pinned as literals and read back from BOTH the registry
 ## JSON and the compiled table. They live in different namespaces -- one is the owner block's
@@ -931,3 +934,36 @@ func test_module_has_no_float_and_no_dictionary() -> void:
 	for banned: String in [": float", "-> float", "Dictionary", "PackedFloat32Array",
 			"PackedFloat64Array", "float(", "JSON."]:
 		assert_false(body.contains(banned), "canonical_state_hash.gd must not contain '%s'" % banned)
+
+
+func test_economic_high_declaration_and_value_preserve_exhaustion() -> void:
+	"""Production ordinal 2 uses u64; a bounded field adapter proves its actual eight-byte emission."""
+	var data: Dictionary = _registry()
+	assert_equal(int((data["section_schema_versions"] as Array)[11]), 3, "registry section12 schema")
+	assert_equal(Section12.SECTION_SCHEMA_VERSION, 3, "codec section12 schema")
+	var declaration: Digest.Declaration = Digest.production_declaration()
+	var owner: int = declaration.find_owner(12, "commands")
+	assert_true(owner >= 0, "commands remains declared")
+	assert_equal(declaration.owner_schema_version(owner), 2, "commands owner schema")
+	assert_equal(declaration.owner_field_count(owner), 20, "no added or removed fields")
+	var index: int = declaration.owner_field_begin(owner) + 2
+	assert_equal(declaration.field_key(index), "_next_sequence_high", "ordinal remains two")
+	assert_equal(declaration.field_type(index), 3, "type is u64")
+	assert_true(declaration.field_is_hashed(index), "allocator remains authoritative")
+	assert_true(declaration.field_has_declared_count(index), "fixed scalar count")
+	assert_equal(declaration.field_declared_count(index), 1, "one scalar")
+	var hashes: Array[PackedByteArray] = []
+	for high: int in [4294967295, 4294967296]:
+		var builder: Digest.Builder = Digest.Builder.new()
+		builder.begin_owner(12, "commands", declaration.owner_schema_version(owner))
+		builder.add_field(declaration.field_key(index), declaration.field_type(index), true, true, 1, 0)
+		var adapter: FixtureAdapter = FixtureAdapter.new()
+		adapter.add("_next_sequence_high", Digest.STORAGE_INT64, PackedInt64Array([high]), 1)
+		var walker: Digest.Walker = Digest.Walker.new(builder.seal("SEQ-FIELD-FIXTURE"))
+		walker.register_owner(12, "commands", adapter)
+		var result: Digest.DigestResult = _walk_fixture(walker, CAPTURE_CAP)
+		var expected: String = "ffffffff00000000" if high == 4294967295 else "0000000001000000"
+		assert_equal(result.captured_stream.slice(result.captured_stream.size() - 8).hex_encode(),
+			expected, "pinned eight-byte value; no u32 truncation")
+		hashes.append(result.digest)
+	assert_true(hashes[0] != hashes[1], "final available high and exhausted high hash differently")

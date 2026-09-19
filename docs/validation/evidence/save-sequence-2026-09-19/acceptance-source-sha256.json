@@ -1,0 +1,11 @@
+{
+  "godot/scripts/core/canonical_state_hash.gd": "92af426647e8102975e7b32728077ea79542b9c1ca3018bc6d289e01cd1944df",
+  "godot/scripts/core/commands.gd": "024f5725f8a23e634a85ce3916b769781c06b4da8fe8abffdf6d5039ad5070bc",
+  "godot/scripts/core/save_section_pending_commands.gd": "55139f2854b66a2b44db628537189d269798c94814eaed2231ebfb910e408c34",
+  "godot/scripts/core/scheduler_events.gd": "b8d7389b6a679f98ff5c0fd1beb6836561c6aa132f7f70dd56800229d908f9ee",
+  "godot/test/test_canonical_state_hash.gd": "7e7e909afd7df4af7abfb03775d3c6c05325a15bf159f662695e0e08a7fca832",
+  "godot/test/test_save_section_pending_commands.gd": "4d133d9fc9ea71413018834b8ae15c1fe76ccf4a096eca6744ee864e60231479",
+  "godot/test/test_scheduler_events.gd": "4676b318cacf300844f0d789436c073b870eb9ef338ba56b21c76210c7a44999",
+  "godot/test/test_economic_sequence_format.gd": "1f2f6bc374bff6232506891faa7b94a5e1d72bc600059103b8251722335f1530",
+  "godot/test/save_sequence_focus.gd": "01cb843245400595af761303c35ee9686d2e73291c2ff301367cd03fa467497a"
+}

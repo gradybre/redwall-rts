@@ -1,0 +1,21 @@
+{
+  "attempt": "save-sequence-contract-a1",
+  "model": "claude-opus-5",
+  "session_id": "f23a30e5-d885-4dd3-9a20-1e6d8d3da3cb",
+  "state": "complete",
+  "owner_stopped": true,
+  "inputs": [
+    {
+      "path": "docs/rulings/2026-09-19_economic_sequence_format.md",
+      "sha256": "727d1c9eec65e9f99ab1736f1101f507c68306d532619f937a4cde0ef6f0a7b6"
+    },
+    {
+      "path": "docs/decisions/0155-widen-saved-economic-sequence-high-word.md",
+      "sha256": "952f05668a0a30a571eabd94ba922b66faa53d825b06896c302cb0729856baba"
+    },
+    {
+      "path": "docs/validation/evidence/save-sequence-contract-2026-09-19/source-excerpts.json",
+      "sha256": "9301094315fb0b2c10558a860e1ee18c6f00d49b9b752fdce71d35d01f63b370"
+    }
+  ]
+}

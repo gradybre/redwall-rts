@@ -186,7 +186,8 @@
         "SAVE-S6-CODEC",
         "SAVE-S7",
         "SAVE-S8-COUNT",
-        "SAVE-W1-PUBLISH"
+        "SAVE-W1-PUBLISH",
+        "PLAN-REPLAY-CHECKPOINT-CONTRACT"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -750,7 +751,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "MOVE-C3-R01 §6: schema2 residual-error semantics, all-axis margins cover residual, zero requires conservative-sweep evidence, outward conversion to micrometres before units. Reject old ambiguous qualification. Reproduce then kill uncovered-error boundary; preserve source hash, negative placement and no-measurement claims.",
+      "acceptance": "MOVE-C3-R01 \u00a76: schema2 residual-error semantics, all-axis margins cover residual, zero requires conservative-sweep evidence, outward conversion to micrometres before units. Reject old ambiguous qualification. Reproduce then kill uncovered-error boundary; preserve source hash, negative placement and no-measurement claims.",
       "pr": 125
     },
     {
@@ -973,7 +974,7 @@
     {
       "id": "SAVE-P2-ARENA-RESTORE",
       "title": "Restore exact pending-command windows with guarded two-owner recovery",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE"
       ],
@@ -986,10 +987,13 @@
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
-      "note": "SAVE-P2-R02 implemented and independently reviewed; full local suite4643/180723/0 plus15static checks passed. Await required PR/CI merge before marking done; evidence docs/validation/evidence/save-pending-2026-09-19/.",
+      "note": "MergedPR144 after finalCI4643tests180723assertions0failures;15staticchecks and independentreview passed. Exact pendingrestore only; separate format/header contracts remain.",
       "astra_answered": true,
       "astra_ruling": "docs/rulings/2026-09-19_pending_command_restore.md",
-      "acceptance": "SAVE-P2-R02: exact span/cursor restoration, ordinary mutation barrier guards, one clock/tick, commands-first two-store apply with checked recovery; schema2 unchanged, exhaustion format separately gated."
+      "acceptance": "SAVE-P2-R02: exact span/cursor restoration, ordinary mutation barrier guards, one clock/tick, commands-first two-store apply with checked recovery; schema2 unchanged, exhaustion format separately gated.",
+      "pr": 144,
+      "merge_commit": "24fe7d6d6749d3d92bfa0da20b299a0c6cd4685f",
+      "merged_at": "2026-09-19T21:25:33Z"
     },
     {
       "id": "SAVE-D2-CURSOR-WRITER",
@@ -1034,7 +1038,8 @@
         "SAVE-S4-CODEC",
         "SAVE-S5-CODEC",
         "SAVE-S6-CODEC",
-        "SAVE-W1-PUBLISH"
+        "SAVE-W1-PUBLISH",
+        "PLAN-REPLAY-CHECKPOINT-CONTRACT"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -1075,7 +1080,7 @@
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
-      "note": "Found by UI-C3-EVIDENCE's rendered overlays, not by any test. add_visible_region() refuses a region when the §4 Gate is unsatisfied, justified by 'an element whose gate is unsatisfied has no Control at all'. That premise is FALSE for 051 WORKSPACE, 092 BACK, 036 DETAIL, 038 DETAIL_TABS and 098 PIN: the shell draws them anyway, so they are visible, opaque and unclickable. Measured: the centre of the open roster workspace (752,356) and of the open detail panel (1096,416) both resolve to WORLD. The hit table reports WORLD at a visible panel. Actual engine command leakage is not established by that table alone; UI-C4-R01 requires real event routing evidence. Either the gate must also suppress drawing, or a drawn control must claim its rectangle; the current pair is self-contradictory. test_the_gate_decides_before_the_availability_claim_does pins the ordering as correct, and it IS correct given the premise -- which is why no test caught this.",
+      "note": "Found by UI-C3-EVIDENCE's rendered overlays, not by any test. add_visible_region() refuses a region when the \u00a74 Gate is unsatisfied, justified by 'an element whose gate is unsatisfied has no Control at all'. That premise is FALSE for 051 WORKSPACE, 092 BACK, 036 DETAIL, 038 DETAIL_TABS and 098 PIN: the shell draws them anyway, so they are visible, opaque and unclickable. Measured: the centre of the open roster workspace (752,356) and of the open detail panel (1096,416) both resolve to WORLD. The hit table reports WORLD at a visible panel. Actual engine command leakage is not established by that table alone; UI-C4-R01 requires real event routing evidence. Either the gate must also suppress drawing, or a drawn control must claim its rectangle; the current pair is self-contradictory. test_the_gate_decides_before_the_availability_claim_does pins the ordering as correct, and it IS correct given the premise -- which is why no test caught this.",
       "astra_answered": true,
       "astra_ruling": "docs/rulings/2026-09-19_cycle04_resumption.md",
       "acceptance": "UI-C4-R01: synchronize contextual visibility, gates, focus and real consuming rectangles; test workspace/detail open-close and supported scales, plus engine input. No visual approval or full world-input implementation inferred.",
@@ -1389,7 +1394,7 @@
     {
       "id": "SAVE-ECONOMIC-SEQUENCE-FORMAT",
       "title": "Version the pending-command format to represent exhausted economic sequence allocation",
-      "status": "blocked",
+      "status": "in_flight",
       "depends_on": [
         "SAVE-P2-ARENA-RESTORE"
       ],
@@ -1404,7 +1409,9 @@
         "docs/persistence_state_registry.md",
         "docs/planning/registry_capacity_audit.json",
         "godot/test/test_scheduler_events.gd",
-        "godot/test/test_canonical_state_hash.gd"
+        "godot/test/test_canonical_state_hash.gd",
+        "godot/test/test_economic_sequence_format.gd",
+        "godot/test/save_sequence_focus.gd"
       ],
       "agent": "game-coder",
       "gate": "astra_ruling",
@@ -1412,7 +1419,20 @@
       "astra_request": "docs/decisions/0154-preserve-pending-command-arena-layout.md; author explicit exhaustion representation and version/migration contract before implementation",
       "acceptance": "Preserve every ordinary u64 sequence including zero, represent exhausted allocation without wrap/reuse, reject or migrate old formats explicitly, update canonical/wire/ledger metadata and prove round-trip plus next-submission refusal.",
       "astra_ruling": "docs/rulings/2026-09-19_economic_sequence_format.md",
-      "note": "Accepted follow-up SAVE-SEQ-R01; activate only after P2 and a bounded source packet. Section12 schema3 prefix28/high-u64; canonical commands owner schema2, registry version4. No active version changed by planning."
+      "note": "SAVE-SEQ-R01 v2 after independent source review: retain exact registry namespace, explicit atomic prefix validation and version recognition, canonical int64 value form, terminal installs only via pending-window API. Header replay checkpoint remains separately gated. Implementation and acceptance are in progress; full-file coordinator remains gated."
+    },
+    {
+      "id": "PLAN-REPLAY-CHECKPOINT-CONTRACT",
+      "title": "Define replay checkpoint header and economic allocator ownership across full save files",
+      "status": "ready",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/replay_checkpoint_contract.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Resolve Header.replay_sequence at216 and unimplemented WorldRuntime.next_command_sequence ownership/meaning, full command sequence domain plus initial/terminal states, versioned bytes and canonical binding, and precise downstream runtime tasks. No scalar alias, silent truncation, sentinel reuse or whole-save claim based only on section12.",
+      "note": "Discovered during SAVE-SEQ-R01 technical review. Header currently uses nonnegative signed-int64 codec values; full-save producer/restore binding is absent. This contract is a full-save prerequisite."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

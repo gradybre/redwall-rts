@@ -1,0 +1,112 @@
+[
+  {
+    "attempt": "save-sequence-wire-a1",
+    "model": "claude-opus-5",
+    "session_id": "a882d130-b620-44f2-adf7-469fe520b46d",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/rulings/2026-09-19_economic_sequence_format.md",
+        "sha256": "7547cc8140fbbae0594fc797eaabd3f30e39ef3e80ec94b28ec38046ca0a91b9"
+      },
+      {
+        "path": "docs/decisions/0155-widen-saved-economic-sequence-high-word.md",
+        "sha256": "952f05668a0a30a571eabd94ba922b66faa53d825b06896c302cb0729856baba"
+      },
+      {
+        "path": "godot/scripts/core/scheduler_events.gd",
+        "sha256": "5981c3c05c454f46968a252bd544da084b9a530b3bbcf26d8041c583e09063bc"
+      },
+      {
+        "path": "godot/scripts/core/save_section_pending_commands.gd",
+        "sha256": "b951e66d49e7023585ddb17010930d088d5d5a16b0375064260f654363234209"
+      },
+      {
+        "path": "godot/scripts/core/save_codec.gd",
+        "sha256": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508"
+      },
+      {
+        "path": "docs/validation/evidence/save-sequence-contract-2026-09-19/source-excerpts.json",
+        "sha256": "9301094315fb0b2c10558a860e1ee18c6f00d49b9b752fdce71d35d01f63b370"
+      },
+      {
+        "path": "docs/validation/evidence/save-sequence-contract-2026-09-19/astra-disposition.md",
+        "sha256": "486cd0d5bcfadec874c72b8d1c3e7d4f608186c00e2fe7b17eb6b1e796b7c51e"
+      }
+    ]
+  },
+  {
+    "attempt": "save-sequence-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "90a4c76a-7754-4049-8a45-1b94b40ba0e6",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/rulings/2026-09-19_economic_sequence_format.md",
+        "sha256": "7547cc8140fbbae0594fc797eaabd3f30e39ef3e80ec94b28ec38046ca0a91b9"
+      },
+      {
+        "path": "docs/decisions/0155-widen-saved-economic-sequence-high-word.md",
+        "sha256": "952f05668a0a30a571eabd94ba922b66faa53d825b06896c302cb0729856baba"
+      },
+      {
+        "path": "godot/scripts/core/commands.gd",
+        "sha256": "024f5725f8a23e634a85ce3916b769781c06b4da8fe8abffdf6d5039ad5070bc"
+      },
+      {
+        "path": "godot/scripts/core/save_section_pending_commands.gd",
+        "sha256": "1aeb4998a77c3d26881b1aec87b62c6be7167b0ac6de82773b10e72a5844b02d"
+      },
+      {
+        "path": "godot/scripts/core/scheduler_events.gd",
+        "sha256": "b8d7389b6a679f98ff5c0fd1beb6836561c6aa132f7f70dd56800229d908f9ee"
+      },
+      {
+        "path": "godot/scripts/core/save_codec.gd",
+        "sha256": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508"
+      },
+      {
+        "path": "godot/scripts/core/canonical_state_hash.gd",
+        "sha256": "92af426647e8102975e7b32728077ea79542b9c1ca3018bc6d289e01cd1944df"
+      },
+      {
+        "path": "docs/planning/canonical_state_registry.json",
+        "sha256": "8816dfb296292adb9e486f1853eb291b28700acf981111f52d55ea3ccc98ed03"
+      },
+      {
+        "path": "godot/test/test_economic_sequence_format.gd",
+        "sha256": "1f2f6bc374bff6232506891faa7b94a5e1d72bc600059103b8251722335f1530"
+      },
+      {
+        "path": "godot/test/test_save_section_pending_commands.gd",
+        "sha256": "4d133d9fc9ea71413018834b8ae15c1fe76ccf4a096eca6744ee864e60231479"
+      },
+      {
+        "path": "godot/test/test_scheduler_events.gd",
+        "sha256": "4676b318cacf300844f0d789436c073b870eb9ef338ba56b21c76210c7a44999"
+      },
+      {
+        "path": "godot/test/test_canonical_state_hash.gd",
+        "sha256": "648a6cbbffcf696c2bed75ca3373659fa8402faaded4a2d169164d1937adbe8d"
+      },
+      {
+        "path": "godot/test/save_sequence_focus.gd",
+        "sha256": "01cb843245400595af761303c35ee9686d2e73291c2ff301367cd03fa467497a"
+      },
+      {
+        "path": "docs/validation/evidence/save-sequence-2026-09-19/integration-notes.md",
+        "sha256": "6c365f9529ce072d619caa9aebd5642babbc09c0f678047a9f1e21950aa3d795"
+      },
+      {
+        "path": "docs/validation/evidence/save-sequence-2026-09-19/focus-second.log",
+        "sha256": "8133a4b164ace77e69a9df19c14e6fc1a2a19a9d5cb6754d4b9bf858cec12323"
+      }
+    ],
+    "post_dispatch_changes": [
+      "docs/decisions/0155-widen-saved-economic-sequence-high-word.md",
+      "godot/test/test_canonical_state_hash.gd"
+    ]
+  }
+]

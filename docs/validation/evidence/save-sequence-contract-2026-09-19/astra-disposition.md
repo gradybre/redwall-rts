@@ -1,0 +1,7 @@
+# Astra disposition of SAVE-SEQ-R01 contract audit
+
+Version2 incorporates atomic prefix validation, early version recognition, all required scalar/range/type updates and stronger fixtures. Most review blockers name changes the implementation is intended to make, not a reason to retain schema2. Two recommendations are explicitly not adopted: the exact registry_id stays the existing opaque namespace while registry_version advances, and the older restore_sequence hook remains u32-only because section12 uses the complete pending-window owner API. The registry has no generated per-field storage member; the existing scalar and hash values already support int64, and tests must use that form without inventing another field.
+
+Astra additionally inspected save_header.gd and the architecture: the header replay_sequence's producer/meaning/domain binding is not implemented, and the older WorldRuntime next_command_sequence row is not a live duplicate authority. A separate replay-checkpoint contract gate now blocks the full save umbrella until those meanings and representability are settled. The section12 repair does not solve the header or claim whole-file exhaustion acceptance.
+
+The source excerpts are exact numbered spans plus full-source hashes, not a claim that the reviewer saw omitted code. The clean contract-review attempt stopped successfully. No format implementation has been applied by this audit.

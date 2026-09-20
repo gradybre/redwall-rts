@@ -1,0 +1,29 @@
+{
+  "scope": "Literal wrapper and column fixtures; not production encoder/runtime acceptance",
+  "fixtures": {
+    "empty8": {
+      "rows": 8,
+      "active": 0,
+      "bytes": 464,
+      "sha256": "3546ebc737c5a32741292f1782cf59c5685b59e1cbf11d685f962bc6bfd0ddaf"
+    },
+    "sparse8": {
+      "rows": 8,
+      "active": 2,
+      "bytes": 464,
+      "sha256": "f6d85dd23fe8f03cdf7da9faeed126d0ded46ae165302e0f8932de8001e8369b"
+    },
+    "empty16384": {
+      "rows": 16384,
+      "active": 0,
+      "bytes": 688256,
+      "sha256": "3bd99b69091e0e55de02c0bbadeb79bfaf25b041ec23fdc58496e7679a83d530"
+    },
+    "full16384": {
+      "rows": 16384,
+      "active": 16384,
+      "bytes": 688256,
+      "sha256": "5e95fc3984d87c115c318666d9b9403df3f33b9f7c5d95645156f4452d5c6d6a"
+    }
+  }
+}

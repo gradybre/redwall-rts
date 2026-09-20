@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/gear.gd": "8b957442e3397708cd8343fc9849b4f6cccb5f4478bd7099d44afe47d3499472",
+  "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+  "godot/scripts/core/inventory.gd": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
+  "godot/scripts/core/item_definitions.gd": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551",
+  "docs/persistence_state_registry.md": "9bbc33d6110113f5732a268d19ad9e3a722c0a1e80a892fd5f29e367d00b4827"
+}

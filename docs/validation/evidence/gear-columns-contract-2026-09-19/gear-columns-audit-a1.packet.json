@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "4115d9b",
+  "task": "Feasibility audit exact Gear owner columns and section7 adapter",
+  "paths": [
+    "docs/validation/evidence/gear-columns-contract-2026-09-19/astra-source-notes.md",
+    "godot/scripts/core/gear.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/item_definitions.gd",
+    "godot/test/test_gear.gd",
+    "docs/persistence_state_registry.md"
+  ],
+  "instructions": "Read-only feasibility, not implementation. Astra nextGearownerboundary: inspectall12canonicalarrays, exact rowidentity, duplicate lotslots, derivedminheap/count/equippedcount, _restoring guard, stale successful_seed_count24vsregistry0, fivecacheditemIDs and immediateequipmentattestation dependency, collaboratorbinding/rebindrestriction, atomic validation/publication. Existing restore_row loses_equipped andcannotbeourbulkAPI. ProposeexactownerAPI/preconditions/refusals and separate1OwnerRecordadapter, no whole6Record or secondInventory. Preservehealthystructuralwire and separatecatalog/world/Equipmentmirror reconciliation; flagreachablecurrentcodecpayloadincompatibilities ratherthanhiding. Boundmemory/algorithm and realfuture equip/unequip/wear/claim/lowestallocationtests. Parentmemo provisional. No tools/source edits; <=2200words exactJSON status complete,summary,questions[],files exactlyone NEW docs/validation/evidence/gear-columns-contract-2026-09-19/feasibility-audit.md baseSha256 null,decisionIds[]."
+}

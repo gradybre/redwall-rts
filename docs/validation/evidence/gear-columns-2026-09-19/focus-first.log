@@ -1,0 +1,182 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_gear_columns.gd
+  PASS  test_exact_payload_restores_without_compacting_rows
+  PASS  test_all_record_and_live_array_shapes_are_total
+  PASS  test_payload_flags_blanks_refs_and_wear_refuse_atomically
+  PASS  test_duplicate_lot_slot_refuses_even_different_generation
+  PASS  test_structural_bounds_preserve_stale_and_unusual_values
+  PASS  test_source_heap_and_native_counts_validate_but_restore_rebuilds
+  PASS  test_cache_refresh_failure_atomicity_and_scratch_preservation
+  PASS  test_restore_window_and_definitions_refuse_without_mutation
+  PASS  test_equipped_tool_survives_exact_restore_and_real_unequip
+  PASS  test_stale_equipped_owner_is_preserved_but_world_audit_refuses
+  PASS  test_completed_starter_seed_residue_does_not_block_capture
+  PASS  test_real_claim_wear_repair_and_allocator_continuation_match
+  PASS  test_aliases_do_not_turn_publication_into_shared_mutable_state
+  PASS  test_adapter_refusal_precedence_busy_and_bound_inventory_identity
+  PASS  test_adapter_all_group_shapes_refuse_before_indexing
+  PASS  test_codec_valid_ref_counterexamples_are_refused_without_repair
+  PASS  test_adapter_success_uses_exact_ordinals_and_independent_arrays
+  PASS  test_default_capacity_and_literal_wire_goldens
+test_gear.gd
+  PASS  test_allocator_and_claim_bytes_match_the_ruling
+  PASS  test_eligibility_predicate_is_not_the_gear_category
+  PASS  test_candle_cannot_be_given_a_gear_instance
+  PASS  test_wear_models_are_assigned_per_item
+  PASS  test_cycle_wear_matches_the_gear_table
+  PASS  test_durability_caps_follow_manufacture_and_model
+  PASS  test_iron_manufacture_belongs_to_tool_alone
+  PASS  test_new_gear_starts_at_its_cap_and_unclaimed
+  PASS  test_gear_lot_must_be_indivisible
+  PASS  test_one_lot_carries_at_most_one_instance
+  PASS  test_create_refuses_inside_an_open_inventory_transaction
+  PASS  test_allocates_through_slot_16383
+  PASS  test_full_pool_creation_refuses_atomically
+  PASS  test_lowest_freed_row_is_reused_deterministically
+  PASS  test_no_row_is_published_before_it_is_initialised
+  PASS  test_stale_lot_handle_fails
+  PASS  test_stale_job_handle_fails
+  PASS  test_stale_owner_handle_fails
+  PASS  test_installed_owner_kinds_are_refused_not_guessed
+  PASS  test_two_jobs_cannot_claim_one_gear_object
+  PASS  test_exact_wear_starts_and_one_below_refuses
+  PASS  test_repeated_completion_cannot_double_debit
+  PASS  test_repeated_cancellation_cannot_double_release
+  PASS  test_repair_and_ownership_change_refused_while_claimed
+  PASS  test_outfit_tier2_keeps_identity_but_never_wears
+  PASS  test_a_broken_general_tool_cannot_start_work
+  PASS  test_general_wear_is_one_point_per_ten_work_units
+  PASS  test_general_wear_preserves_its_remainder_across_tasks
+  PASS  test_repeated_general_wear_cannot_double_debit
+  PASS  test_general_wear_floors_at_zero_and_reports_breaking
+  PASS  test_the_two_wear_models_never_cross
+  PASS  test_general_wear_rejects_an_out_of_range_remainder
+  PASS  test_repair_clamps_to_the_basic_general_cap
+  PASS  test_repair_clamps_to_the_iron_general_cap
+  PASS  test_repair_clamps_to_the_fishing_cap
+  PASS  test_repair_is_not_a_durability_reset
+  PASS  test_the_two_repair_recipes_stay_distinct
+  PASS  test_destroy_refuses_while_the_lot_is_still_live
+  PASS  test_destroy_refuses_while_claimed
+  PASS  test_restore_rebuilds_the_free_heap_ascending
+  PASS  test_restore_refuses_an_impossible_row
+  PASS  test_a_row_is_never_published_without_its_identity
+  PASS  test_state_image_is_row_history_independent
+  PASS  test_a_created_gear_row_is_not_equipped_and_keeps_its_container
+  PASS  test_equip_preserves_identity_age_provenance_quantity_and_durability
+  PASS  test_an_equipped_lot_has_a_null_container_and_charges_no_mass
+  PASS  test_unequip_returns_the_same_lot_without_resetting_durability
+  PASS  test_equip_and_unequip_move_the_equipment_mirror_together
+  PASS  test_wear_and_repair_write_through_to_the_equipment_mirror
+  PASS  test_the_mirror_audit_catches_a_hand_written_mirror
+  PASS  test_the_mirror_audit_catches_a_mirror_with_no_equipped_instance
+  PASS  test_a_refused_equip_leaves_every_store_byte_identical
+  PASS  test_an_equip_that_fails_after_the_mirror_write_rolls_all_three_back
+  PASS  test_an_unequip_that_fails_to_shelve_restores_the_equipped_relation
+  PASS  test_equip_and_unequip_refuse_while_a_job_holds_the_claim
+  PASS  test_set_owner_clear_owner_and_destroy_refuse_while_equipped
+  PASS  test_a_dead_owner_stops_attesting_and_the_inventory_audit_reports_the_orphan
+  PASS  test_only_the_general_tool_may_be_equipped
+  PASS  test_equipping_refuses_an_owner_who_is_not_a_live_resident
+  PASS  test_equip_refuses_without_its_bindings
+  PASS  test_unequip_lands_in_a_reserved_destination
+  PASS  test_rebinding_the_equip_collaborators_refuses_while_gear_is_equipped
+  PASS  test_the_starter_allotment_constants_are_the_gdd_numbers
+  PASS  test_seeding_creates_24_tools_with_12_equipped_and_12_stored
+  PASS  test_every_seeded_tool_starts_at_durability_1000
+  PASS  test_starter_seeding_mints_no_outfit_tier2_item
+  PASS  test_seeding_refuses_a_cohort_that_is_not_twelve_residents
+  PASS  test_seeding_refuses_a_repeated_owner
+  PASS  test_a_seeding_that_runs_out_of_container_space_undoes_itself_whole
+  PASS  test_seeding_refuses_whole_when_the_gear_pool_cannot_hold_24
+  PASS  test_owned_but_unequipped_gear_attests_nothing
+  PASS  test_equipping_a_worn_tool_carries_its_wear_with_it
+  PASS  test_accrued_wear_keeps_the_claim_and_applied_wear_releases_it
+  PASS  test_accrual_carries_the_remainder_exactly_as_the_applied_form_does
+  PASS  test_preflight_general_wear_reports_durability_and_writes_nothing
+  PASS  test_preflight_general_wear_refuses_a_wrong_job_and_a_wrong_wear_model
+  PASS  test_accrual_refuses_a_fishing_model_and_an_out_of_range_remainder
+  PASS  test_accrual_can_break_a_tool_without_giving_the_claim_back
+test_save_section_inventories.gd
+  PASS  test_store_count_and_owner_order_are_ascii
+  PASS  test_owner_schema_versions_match_the_registry
+  PASS  test_section_opens_with_a_store_count_of_six
+  PASS  test_default_capacity_section_has_the_declared_byte_vector
+  PASS  test_small_record_block_arithmetic_is_exact
+  PASS  test_empty_record_round_trips_byte_identically
+  PASS  test_populated_record_round_trips_byte_identically
+  PASS  test_offset_decoding_reads_the_same_section
+  PASS  test_free_stack_order_survives_a_round_trip
+  PASS  test_free_stack_garbage_tail_is_not_persisted
+  PASS  test_declared_slot_list_tail_is_not_persisted
+  PASS  test_free_stack_naming_a_live_slot_is_refused
+  PASS  test_slot_that_is_neither_live_nor_free_must_be_retired
+  PASS  test_free_count_above_capacity_is_refused
+  PASS  test_gear_declares_no_generation_of_its_own
+  PASS  test_reservations_declares_no_generation_of_its_own
+  PASS  test_generation_high_bit_is_read_signed
+  PASS  test_every_published_provenance_member_is_accepted
+  PASS  test_provenance_six_is_refused_not_clamped
+  PASS  test_out_of_domain_provenance_refuses_a_full_length_section_without_writing
+  PASS  test_child_extent_is_not_the_first_column_length
+  PASS  test_only_inventory_declares_a_child_extent
+  PASS  test_child_extent_above_the_compiled_lot_capacity_is_refused
+  PASS  test_primary_count_bounds_are_enforced_per_owner
+  PASS  test_blocks_out_of_ascii_order_are_refused
+  PASS  test_wrong_owner_schema_version_is_refused
+  PASS  test_declared_payload_length_must_match_what_the_block_consumes
+  PASS  test_wrong_element_count_is_refused
+  PASS  test_wrong_store_count_is_refused
+  PASS  test_extent_refusal_is_the_primary_gate
+  PASS  test_truncated_section_leaves_the_target_untouched
+  PASS  test_chunk_cursor_is_bounded_and_reproduces_the_section
+  PASS  test_large_column_is_split_into_bounded_chunks
+  PASS  test_occupancy_byte_above_one_is_refused
+  PASS  test_released_row_residue_is_refused
+  PASS  test_reserved_above_quantity_is_refused
+  PASS  test_negative_age_is_refused
+  PASS  test_container_over_capacity_is_refused
+  PASS  test_storage_class_outside_the_domain_is_refused
+  PASS  test_declared_list_must_match_the_storage_classes
+  PASS  test_undeclared_container_carries_no_declaration_generation
+  PASS  test_source_holds_no_float
+  PASS  test_the_reserved_merge_residue_is_real_in_the_live_store
+  PASS  test_normalized_reserved_merge_residue_at_literal_wire_offsets
+  PASS  test_capture_does_not_touch_one_byte_of_the_live_store
+  PASS  test_one_free_lot_slot_transfer_survives_capture_and_restore
+  PASS  test_save_load_save_is_byte_identical_through_a_live_store
+  PASS  test_two_histories_with_different_residue_produce_identical_bytes
+  PASS  test_meaningful_differences_still_change_the_canonical_stream
+  PASS  test_free_max_live_max_and_retired_max_stay_three_distinct_states
+  PASS  test_final_reuse_of_a_generation_max_slot_is_captured
+  PASS  test_capture_refuses_a_boundary_that_is_not_quiescent
+  PASS  test_capture_refuses_a_store_whose_extents_are_not_the_records
+  PASS  test_generation_zero_on_an_inactive_row_is_refused_under_schema_three
+  PASS  test_every_noncanonical_inactive_value_is_refused_one_at_a_time
+  PASS  test_a_noncanonical_inactive_provenance_is_refused_and_never_mapped_to_ordinary
+  PASS  test_publication_refuses_without_writing_a_byte_of_the_target_store
+  PASS  test_restoration_rebuilds_the_derived_counts_and_scan_bounds
+  PASS  test_the_adapter_supplies_every_declared_field_and_refuses_any_other
+  PASS  test_the_free_stack_fields_hash_only_their_used_prefix
+  PASS  test_residue_only_differences_produce_the_same_digest
+  PASS  test_a_live_difference_still_changes_the_digest
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+WARNING: 310 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
+
+158 test(s), 3273 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

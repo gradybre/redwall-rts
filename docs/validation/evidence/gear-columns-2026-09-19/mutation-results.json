@@ -1,0 +1,34 @@
+{
+  "results": [
+    {
+      "mutant": "drop-equipped-restore",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_equipped_tool_survives_exact_restore_and_real_unequip",
+        "  FAIL  test_completed_starter_seed_residue_does_not_block_capture",
+        "23 test(s), 1267 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "mutant": "skip-duplicate-lot",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_duplicate_lot_slot_refuses_even_different_generation",
+        "  FAIL  test_whole_flag_pass_and_all_rows_precede_duplicate_lot_check",
+        "23 test(s), 1267 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "mutant": "skip-source-derived",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_source_heap_and_native_counts_validate_but_restore_rebuilds",
+        "23 test(s), 1267 assertion(s), 1 failure(s)"
+      ]
+    }
+  ],
+  "restored_source_sha256": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f"
+}

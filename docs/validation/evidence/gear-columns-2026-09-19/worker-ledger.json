@@ -1,0 +1,38 @@
+{
+  "attempts": [
+    {
+      "id": "gear-columns-author-a1",
+      "role": "implementation author",
+      "model": "claude-opus-5",
+      "sessionId": "5c502868-0f9c-4b95-a344-2d504bc61bf6",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/gear_columns_contract.md": "ed91d2e95bfd2c0b8ffcd303e9c1182ebdb32eaeed212e8b88fd22ca4dba68d4",
+        "docs/decisions/0165-restore-exact-gear-equipment-and-claims.md": "7d11207fd2b6257dcb58befae1cf82561c42941e9858a85f2fedee672bbb12be",
+        "docs/validation/evidence/gear-columns-contract-2026-09-19/contract-v1-disposition.md": "a19fba6551b6b2ee3583fca113c0912fca41d10ac6019066dc1ddb9cfb78a13f",
+        "godot/scripts/core/gear.gd": "8b957442e3397708cd8343fc9849b4f6cccb5f4478bd7099d44afe47d3499472",
+        "godot/scripts/core/save_reservations_restore.gd": "3433d48c92fb33f9f727c661f4c4de318d6c38f21812ca6c4eca7409bef6e03b",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "godot/scripts/core/item_definitions.gd": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551"
+      }
+    },
+    {
+      "id": "gear-columns-review-a1",
+      "role": "independent source reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "0fa07940-ff32-4cc2-a69e-2f67e9578c6a",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/gear_columns_contract.md": "ed91d2e95bfd2c0b8ffcd303e9c1182ebdb32eaeed212e8b88fd22ca4dba68d4",
+        "docs/decisions/0165-restore-exact-gear-equipment-and-claims.md": "7d11207fd2b6257dcb58befae1cf82561c42941e9858a85f2fedee672bbb12be",
+        "godot/scripts/core/gear.gd": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f",
+        "godot/scripts/core/save_gear_restore.gd": "da193149f2b79d960c699e69bbfa9faade9edaa409b80da52ff0ee65b676d8dc",
+        "godot/test/test_gear_columns.gd": "c38e51cf7dddfb5a6f5c5d4c35442db1f66678e44dbf498f129f58296c71496e",
+        "docs/persistence_state_registry.md": "c436b7c845d14d95a2cc286230b07dc93d25e035bd52a3297f54ca8512fbc1ac",
+        "docs/validation/evidence/gear-columns-2026-09-19/parent-integration-notes.md": "dbb66847223164e856c27a180ca65bc77d8efc73d2855d41736eab1f83d62bc6"
+      }
+    }
+  ]
+}

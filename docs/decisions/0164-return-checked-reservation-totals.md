@@ -1,6 +1,6 @@
 # 0164 — Return checked reservation totals
 
-Date:2026-09-19 · Status:Implemented after PR154; independent review repaired; full4760tests/186771assertions/0failures; exact-head CI pending
+Date:2026-09-19 · Status:Merged PR155 atd8af51e; independent review repaired; final CI4760tests/186771assertions/0failures
 
 RES-TOTAL-R01v2 fixes a public-API witness where two valid6e18milli claims on
 different item lots produce a negative wrapped job total. Preserve legal claims

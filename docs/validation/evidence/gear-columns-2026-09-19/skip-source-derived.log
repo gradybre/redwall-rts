@@ -1,0 +1,67 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_gear_columns.gd
+  PASS  test_exact_payload_restores_without_compacting_rows
+  PASS  test_all_record_and_live_array_shapes_are_total
+  PASS  test_payload_flags_blanks_refs_and_wear_refuse_atomically
+  PASS  test_duplicate_lot_slot_refuses_even_different_generation
+  PASS  test_structural_bounds_preserve_stale_and_unusual_values
+  FAIL  test_source_heap_and_native_counts_validate_but_restore_rebuilds
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+        capture refuses (expected false, got true)
+        specific capture refusal (expected COLUMN_GEAR_SOURCE_DERIVED, got )
+  PASS  test_cache_refresh_failure_atomicity_and_scratch_preservation
+  PASS  test_restore_window_and_definitions_refuse_without_mutation
+  PASS  test_equipped_tool_survives_exact_restore_and_real_unequip
+  PASS  test_stale_equipped_owner_is_preserved_but_world_audit_refuses
+  PASS  test_completed_starter_seed_residue_does_not_block_capture
+  PASS  test_real_claim_wear_repair_and_allocator_continuation_match
+  PASS  test_aliases_do_not_turn_publication_into_shared_mutable_state
+  PASS  test_adapter_refusal_precedence_busy_and_bound_inventory_identity
+  PASS  test_adapter_all_group_shapes_refuse_before_indexing
+  PASS  test_codec_valid_ref_counterexamples_are_refused_without_repair
+  PASS  test_adapter_success_uses_exact_ordinals_and_independent_arrays
+  PASS  test_default_capacity_and_literal_wire_goldens
+  PASS  test_loaded_catalog_with_unresolved_gear_keys_is_legal
+  PASS  test_success_clears_diagnostics_and_default_constructors_are_exact
+  PASS  test_whole_flag_pass_and_all_rows_precede_duplicate_lot_check
+  PASS  test_bound_refusals_preserve_directory_residents_and_all_borrowed_refs
+  PASS  test_adapter_refusals_carry_useful_detail_and_owner_echo
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+23 test(s), 1267 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

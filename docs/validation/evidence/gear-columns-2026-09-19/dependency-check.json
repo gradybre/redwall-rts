@@ -1,0 +1,50 @@
+{
+  "root": "godot/scripts/core/save_gear_restore.gd",
+  "modules": 29,
+  "cycles": [
+    [
+      "godot/scripts/core/int_math.gd"
+    ],
+    [
+      "godot/scripts/core/save_codec.gd"
+    ],
+    [
+      "godot/scripts/core/canonical_state_hash.gd"
+    ],
+    [
+      "godot/scripts/core/save_section_inventories.gd"
+    ]
+  ],
+  "no_cross_module_cycles": true,
+  "source_sha256": {
+    "godot/scripts/core/save_gear_restore.gd": "da193149f2b79d960c699e69bbfa9faade9edaa409b80da52ff0ee65b676d8dc",
+    "godot/scripts/core/item_definitions.gd": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551",
+    "godot/scripts/core/inventory.gd": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+    "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+    "godot/scripts/core/sim_clock.gd": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a",
+    "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0",
+    "godot/scripts/core/catalog_ids.gd": "63dfd84986c0761316301470c8dfb845a41670a91bb0f34f08cfc2ceeba84afb",
+    "godot/scripts/core/forage.gd": "74694b212993599a8ffc0f488f2e45d6c81acdaba1297c4fd723c0860790dbcb",
+    "godot/scripts/core/jobs.gd": "bf74583b409dd22da8b9100318e224b63bede5ed01c66be09f4ed0ab38809f3c",
+    "godot/scripts/core/schedule.gd": "9da6ee9fde956812017b7d01ccfcef97832145849949d9a92bb000a11fde3ab7",
+    "godot/scripts/core/needs.gd": "31fc6a56d294154024f39ff4f04924d9c2148fc4f08acee388fd6ea94595d553",
+    "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+    "godot/scripts/core/priorities.gd": "ef5cfeb2deb574c3c23a0478dc3b243adcbf8b9cffa964e21d391c29adc90551",
+    "godot/scripts/core/residents.gd": "7ce35ffc7e14ff9e8ba86d70d54a1401e0814751d0b71779d92ba476cd89655c",
+    "godot/scripts/core/rng.gd": "3bfc333d24db8eb239c10cb5a910d00abe9e440eb897219b3894ea1fdafeffef",
+    "godot/scripts/core/farming.gd": "c025f23da0f88ddff8c5ea64bae0f3bb75d7085f83f949bd3877e70443aea773",
+    "godot/scripts/core/save_codec.gd": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508",
+    "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+    "godot/scripts/core/canonical_state_hash.gd": "45c39989274569510570dd71e4324704ef220f66458c9967f069d3f0d2e7e0ae",
+    "godot/scripts/core/fishing.gd": "85f5437585155faab04c140641710014cf4cb477ea82eb08078aa0ac85f34025",
+    "godot/scripts/core/stock_age.gd": "7293272e02e0bb2b0ab0231bdade8d355aeb291abd30c152a9af848cb0405d22",
+    "godot/scripts/core/crop_weather.gd": "cbc7f6683568fc658c5886c8efb2321446c7b0fd65b4e1f37b490e1f55ec956f",
+    "godot/scripts/core/resource_nodes.gd": "033f5255a0904d193a08197c71321f8ff3a8aa58d8274fdd42dd3a54da20de23",
+    "godot/scripts/core/orchard_hive.gd": "bb1e885b046f61aeb03f6939f2c05c7a4597e3238cf412e111abd07be4e3c780",
+    "godot/scripts/core/weather.gd": "f2c1bf034645b897c80edcce861cd488a01b0d280e8eb7dcc5067c9e8aa7ca3e",
+    "godot/scripts/core/ecology.gd": "f52b130c039af592cdef6e8c854b33bc03a0db7c40ebcf41ab7509c7ce820084",
+    "godot/scripts/core/reservations.gd": "53b53155ee42871e08ab102beccea205d39627aec7b699399072fc269ac49659",
+    "godot/scripts/core/gear.gd": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f"
+  }
+}

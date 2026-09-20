@@ -1,0 +1,5 @@
+# Farming public history probe disposition
+
+Actual original-source probe passed434 assertions/0 failures with clean shutdown. No private reads or new capture/getter were used. Positive MAX_I32 family history enters through restore_tile_family_history, mirrors on creation, and a real successful harvest saturates rather than wraps. Public plant accepts MAX_I32 sowday with independently supplied legal season/day; the probe does not establish loaded-world clock agreement.
+
+Cancellation clears crop/growth/sowday while retaining compost2000 and family streak. Age-based ripe expiry preserves health10000 and growth192000 while changing state to WITHERED. Health-loss withering can instead havehealth0/growth0; MAX_I64 nonnegative damage is accepted and clamps safely. Plot destruction makes its health reader refuse; the probe proves retained tile history and recreated current mirrors, not unobservable inactive FarmPlot bytes. Source writer proofs remain necessary for those bytes. Season13 mirror refresh clears compost mirror but retains application season0.

@@ -1,0 +1,79 @@
+{
+  "attempts": [
+    {
+      "id": "farming-validation-source-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "7c72eb4e-d204-4b56-bdcc-d3b566c7cbd4",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/farming_component_validation_contract.md": "fdb886aea11ee2fdf35ab4b3eef57fbf241a9ddbbd89a38fc4292ad1d224c3a3",
+        "docs/decisions/0180-farming-validation-distinguishes-live-crops-and-retained-history.md": "cdb9ecec1b6aa106bb2a4b4fe422cf77635b7ccfdfe40728be1a1207f0982efb",
+        "docs/validation/evidence/farming-component-validation-2026-09-20/candidate-farming.gd": "41439e1beb1d369d299b650e0160f94b2457ade2285dbb7d8f63c636dc77b212",
+        "docs/validation/evidence/farming-component-validation-2026-09-20/candidate-save_owner_farming.gd": "f6a3498279d31c61bf1de43452e574bab50715bf7084fbeffc86d975640a4aea",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "docs/validation/evidence/farming-validation-planning-2026-09-20/parent-test-draft.gd": "d1af82545488b7ae1dbe47dcedc942a7b9cdb7818bf1dec5a532e6b39871e582",
+        "docs/validation/evidence/farming-validation-planning-2026-09-20/parent-metadata-draft.py": "1762fe2015e19a3c3716e920304c0345b18a7d9e8313475ec03c1dc2725e4cd9",
+        "docs/validation/evidence/farming-component-validation-2026-09-20/owner_mutations.py": "735cc8146ce204e449e187455fbd458cc20e50ab04a9bb257e67effbd10a951b",
+        "docs/validation/evidence/farming-component-validation-2026-09-20/run_mutants.py": "4f2d7baf024e10b75f7a08eac8b6a518d23189e5303e5545f3fe476c7264cc38",
+        "docs/validation/evidence/farming-component-validation-2026-09-20/candidate-checks/initial-focus.log": "b42204a3c7e34c0255abd9f2034c88437ae87ad61a11dc4190e9e5635fb0e8d1",
+        "docs/validation/evidence/farming-component-validation-2026-09-20/candidate-harness-disposition.md": "9315f5f76a6254b7f31c07479af2fbff67671d5521f57be9ab78f6bd8af20c61",
+        "docs/validation/evidence/farming-validation-planning-2026-09-20/contract-disposition.md": "f77a1401bff10dc7f3c508b18c66fe68de093218b87ca382988694c272e898a8",
+        "docs/validation/evidence/farming-validation-planning-2026-09-20/mutation-witness-plan.md": "690146cbe563310481a91a05aa7b9985e25fff6ddaae4c2b456cc554056091ef"
+      },
+      "rawOutputLines": 73,
+      "rawOutputWords": 722,
+      "outputLineBudget": 70,
+      "outputWordBudget": 800,
+      "normalization": "Parent removed exactly three blank lines only; all words/nonblank lines unchanged",
+      "normalizedLines": 70,
+      "normalizedWords": 722,
+      "rawSHA256": "7d2f4a049b5b0b917ad3db3ba70d827f6e1dbde9dd208feb484d76ae98227d7b",
+      "normalizedSHA256": "56650e9d69976b82c381635eb914b7c7f3c6b888e1a691ca35bddf14fd345597"
+    },
+    {
+      "id": "farming-validation-owner-a1",
+      "model": "claude-opus-5",
+      "sessionId": "4f1521a2-57a1-417f-b506-0dc52cf1484d",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/farming_component_validation_contract.md": "fdb886aea11ee2fdf35ab4b3eef57fbf241a9ddbbd89a38fc4292ad1d224c3a3",
+        "docs/decisions/0180-farming-validation-distinguishes-live-crops-and-retained-history.md": "cdb9ecec1b6aa106bb2a4b4fe422cf77635b7ccfdfe40728be1a1207f0982efb",
+        "godot/scripts/core/farming.gd": "c025f23da0f88ddff8c5ea64bae0f3bb75d7085f83f949bd3877e70443aea773",
+        "docs/validation/evidence/farming-validation-planning-2026-09-20/contract-disposition.md": "f77a1401bff10dc7f3c508b18c66fe68de093218b87ca382988694c272e898a8",
+        "docs/validation/evidence/farming-validation-planning-2026-09-20/mutation-witness-plan.md": "690146cbe563310481a91a05aa7b9985e25fff6ddaae4c2b456cc554056091ef"
+      },
+      "outputLines": 274,
+      "outputLineBudget": 450,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "df3f97cfe79cc24ad88c06181687ac93e42ba90a"
+    },
+    {
+      "id": "farming-validation-bridge-a1",
+      "model": "claude-opus-5",
+      "sessionId": "890ff2c7-025d-4caa-94f0-db1892fc925d",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/farming_component_validation_contract.md": "fdb886aea11ee2fdf35ab4b3eef57fbf241a9ddbbd89a38fc4292ad1d224c3a3",
+        "docs/decisions/0180-farming-validation-distinguishes-live-crops-and-retained-history.md": "cdb9ecec1b6aa106bb2a4b4fe422cf77635b7ccfdfe40728be1a1207f0982efb",
+        "godot/scripts/core/save_owner_field_policy.gd": "b718dc513cd5068897fffa214c2334969a6ee08989af741555d22f8b73d3a297",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "docs/validation/evidence/farming-component-validation-2026-09-20/candidate-farming.gd": "41439e1beb1d369d299b650e0160f94b2457ade2285dbb7d8f63c636dc77b212",
+        "docs/validation/evidence/farming-validation-planning-2026-09-20/contract-disposition.md": "f77a1401bff10dc7f3c508b18c66fe68de093218b87ca382988694c272e898a8"
+      },
+      "outputLines": 334,
+      "outputLineBudget": 450,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "df3f97cfe79cc24ad88c06181687ac93e42ba90a"
+    }
+  ]
+}

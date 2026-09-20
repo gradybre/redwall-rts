@@ -1,0 +1,5 @@
+# Farming candidate metadata harness correction
+
+The initial normal-autoload candidate focus passed 7 tests / 17,915 assertions with clean shutdown. The first shortened soil-table metadata experiment failed outside the test method: the normal SettlementSystem autoload constructs live CropWeather/Farming, whose constructor assertions and table indexing reject the deliberately malformed source before the cold bridge experiment. The bridge test itself passed, but the supervised runner correctly rejected the stray errors. This is not a mutation kill or a production defect.
+
+The owned metadata clone now removes its autoload configuration section so those source counterfactuals exercise the cold bridge alone. The tool asserts exactly one section was isolated, checks all original sources and the actual project configuration remain byte-identical, and still rejects script/parser errors. Normal focused, import and full-suite checks keep the actual autoload configuration. No production startup or source pin was weakened. Initial failure logs remain archived; fresh metadata and mutation evidence is required.

@@ -1,0 +1,329 @@
+extends RefCounted
+## Owner 2 (`farming`) column validation bridge (FARMING-S4-VALIDATE-R01 v1, ADR 0180).
+##
+## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
+## against the Farming store's own cold column predicate and returns a `SaveHeader.Refusal`.
+## It constructs no live Farming store, no EntityDirectory and no Catalog domain, captures
+## nothing, restores nothing, reads no clock and writes no diagnostic.
+##
+## GATE ORDER:
+##   1. a null record                   -> SAVE_COMPONENT_SHAPE
+##   2. an owner index that is not 2    -> SAVE_COMPONENT_OWNER
+##   3. `Schema.schema_refusal()`       -> forwarded UNCHANGED, both code and detail
+##   4. this owner's compiled metadata and the pinned Farming source constants ->
+##      SAVE_COMPONENT_METADATA, with a detail beginning `Farming owner2 metadata:`
+##   5. `Section.owner_shape_refusal()` -> forwarded UNCHANGED
+##   6. one cold `Farming.Columns` whose FIFTEEN canonical typed accessors are all assigned
+##      explicitly, in declared ordinal order
+##   7. `Farming.columns_refusal()`     -> the EXACT unwrapped column code, for example
+##      COLUMN_STATE, in a detail naming owner 2 and carrying no row identity.
+## Success carries an empty code and an empty detail.
+##
+## LOCAL ACCEPTANCE IS NOT PUBLICATION. An accepted result certifies owner-2 local FarmPlot
+## column domains only. The saved section 1 TileHistory inverse, Directory kind/generation and
+## typed-row joins, the fertility/family/streak mirrors, compost against the loaded season, the
+## ripe tick and growth remainder bindings, and every gameplay lifecycle rule remain
+## FARMING-SAVED-BINDINGS obligations. Farming bulk capture and apply do not exist.
+##
+## MEMORY, CONDITIONALLY. The projection SHARES the caller's packed buffers by assignment: no
+## `duplicate()` runs here. The contract's conservative figure is 565248 logical packed bytes --
+## the 266240-byte caller image, the default Columns buffers and the predicate's two 4096-entry
+## int32 sort copies -- below the 6417408-byte stream allowance. That is allocation arithmetic,
+## not a measured resident set.
+##
+## NO FLOAT. ARCH-AUTH-002: there is no float in this file and there must never be one.
+
+const Farming := preload("res://scripts/core/farming.gd")
+const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
+const Section := preload("res://scripts/core/save_section_component_columns.gd")
+const SaveHeader := preload("res://scripts/core/save_header.gd")
+
+## The section-local owner this bridge accepts, and the compiled metadata it demands of it.
+const OWNER_INDEX: int = 2
+const OWNER_KEY: String = "farming"
+const OWNER_VERSION: int = 1
+const OWNER_PRIMARY_COUNT: int = 4096
+## Owner 2 declares NO independent child extent: every column covers the 4096 primary rows.
+const OWNER_CHILD_EXTENT_COUNT: int = 0
+const OWNER_FIELD_COUNT: int = 15
+## Gate 4's detail prefix. Gate 3 forwards the schema module's own detail unchanged.
+const METADATA_DETAIL_PREFIX: String = "Farming owner2 metadata:"
+## Gate 7's detail prefix. It names the owner and the code, and never a row.
+const COLUMN_DETAIL_PREFIX: String = "Farming owner 2"
+
+## The canonical owner-local field declarations, in registry ordinal order.
+const FIELD_KEYS: Array[StringName] = [
+	&"_present", &"_crop_id", &"_state", &"_soil", &"_fertility",
+	&"_moisture", &"_growth_milli_hours", &"_health", &"_last_family", &"_family_streak",
+	&"_compost_milli", &"_sow_day", &"_tile", &"_ref_slot", &"_ref_generation",
+]
+const FIELD_TYPES: Array[int] = [
+	Schema.TYPE_U8, Schema.TYPE_I32, Schema.TYPE_I32, Schema.TYPE_I32, Schema.TYPE_I32,
+	Schema.TYPE_I32, Schema.TYPE_I64, Schema.TYPE_I32, Schema.TYPE_I32, Schema.TYPE_I32,
+	Schema.TYPE_I64, Schema.TYPE_I32, Schema.TYPE_I32, Schema.TYPE_I32, Schema.TYPE_I32,
+]
+const FIELD_COUNTS: Array[int] = [
+	4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096,
+	4096, 4096, 4096, 4096, 4096, 4096, 4096,
+]
+
+## Owner-local field ordinals, in the order the canonical registry publishes them.
+const FIELD_PRESENT: int = 0
+const FIELD_CROP_ID: int = 1
+const FIELD_STATE: int = 2
+const FIELD_SOIL: int = 3
+const FIELD_FERTILITY: int = 4
+const FIELD_MOISTURE: int = 5
+const FIELD_GROWTH_MILLI_HOURS: int = 6
+const FIELD_HEALTH: int = 7
+const FIELD_LAST_FAMILY: int = 8
+const FIELD_FAMILY_STREAK: int = 9
+const FIELD_COMPOST_MILLI: int = 10
+const FIELD_SOW_DAY: int = 11
+const FIELD_TILE: int = 12
+const FIELD_REF_SLOT: int = 13
+const FIELD_REF_GENERATION: int = 14
+
+## The Farming source constants this bridge pins as contract before it reads a column.
+const SOURCE_FARM_PLOT_CAPACITY: int = 4096
+const SOURCE_TILE_COUNT: int = 16384
+const SOURCE_CROP_NONE: int = -1
+const SOURCE_CROP_COUNT: int = 5
+const SOURCE_SOIL_COUNT: int = 3
+const SOURCE_STATE_COUNT: int = 5
+const SOURCE_FAMILY_NONE: int = -1
+const SOURCE_FAMILY_COUNT: int = 5
+const SOURCE_STREAK_NONE: int = 0
+const SOURCE_STREAK_FIRST: int = 1
+const SOURCE_STREAK_MAX: int = 2147483647
+const SOURCE_VALUE_MIN: int = 0
+const SOURCE_VALUE_MAX: int = 10000
+const SOURCE_INITIAL_HEALTH: int = 10000
+const SOURCE_COMPOST_NONE: int = 0
+const SOURCE_COMPOST_PER_TILE: int = 2000
+const SOURCE_MIN_CALENDAR_DAY: int = 1
+const SOURCE_NO_ROW: int = -1
+const SOURCE_NULL_REF: Vector2i = Vector2i(-1, 0)
+const SOURCE_NULL_SLOT: int = -1
+const SOURCE_NULL_GENERATION: int = 0
+## The GLOBAL Directory capacity, not this owner's 4096: the self-reference rule is bounded by it.
+const SOURCE_DIRECTORY_CAPACITY: int = 352418
+const SOURCE_MILLI_HOURS_PER_HOUR: int = 1000
+## The two crop tables the pure state rule indexes. Their LENGTHS are pinned before any entry is
+## read, and the wire-compatible crop ordinals 0..4 are pinned beside them. These are this schema
+## version's ABI pins, not a second gameplay mapping: Catalog remains the gameplay source.
+const SOURCE_CROP_TABLE_LENGTH: int = 5
+const SOURCE_ALLOWED_SOILS: Array[int] = [3, 3, 5, 3, 5]
+const SOURCE_GROWTH_HOURS: Array[int] = [144, 120, 168, 192, 120]
+
+
+static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Judge one framed owner 2 block against the Farming store's own cold column rules."""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	var metadata: SaveHeader.Refusal = _metadata_refusal()
+	if not metadata.is_ok():
+		return metadata
+	var shape: SaveHeader.Refusal = Section.owner_shape_refusal(record)
+	if not shape.is_ok():
+		return shape
+	var columns: Farming.Columns = Farming.Columns.new()
+	_project_columns(record, columns)
+	var code: StringName = Farming.columns_refusal(columns)
+	if code != Farming.REFUSE_NONE:
+		return _refuse(code, "%s refuses this image with column code %s"
+			% [COLUMN_DETAIL_PREFIX, String(code)])
+	return _accept()
+
+
+static func _metadata_refusal() -> SaveHeader.Refusal:
+	"""Gate 4: compiled owner identity and extents, then the pinned Farming constants."""
+	if Schema.owner_key(OWNER_INDEX) != OWNER_KEY \
+			or Schema.owner_version(OWNER_INDEX) != OWNER_VERSION:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s compiled owner '%s' version %d is not '%s' version %d"
+				% [METADATA_DETAIL_PREFIX, Schema.owner_key(OWNER_INDEX),
+					Schema.owner_version(OWNER_INDEX), OWNER_KEY, OWNER_VERSION])
+	if Schema.primary_count(OWNER_INDEX) != OWNER_PRIMARY_COUNT \
+			or Schema.child_extent_count(OWNER_INDEX) != OWNER_CHILD_EXTENT_COUNT \
+			or Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s %d primaries, %d child extents and %d fields are not %d/%d/%d"
+				% [METADATA_DETAIL_PREFIX, Schema.primary_count(OWNER_INDEX),
+					Schema.child_extent_count(OWNER_INDEX), Schema.field_count(OWNER_INDEX),
+					OWNER_PRIMARY_COUNT, OWNER_CHILD_EXTENT_COUNT, OWNER_FIELD_COUNT])
+	if FIELD_KEYS.size() != OWNER_FIELD_COUNT or FIELD_TYPES.size() != OWNER_FIELD_COUNT \
+			or FIELD_COUNTS.size() != OWNER_FIELD_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s this bridge pins %d/%d/%d field declarations, not %d"
+				% [METADATA_DETAIL_PREFIX, FIELD_KEYS.size(), FIELD_TYPES.size(),
+					FIELD_COUNTS.size(), OWNER_FIELD_COUNT])
+	var source: SaveHeader.Refusal = _source_refusal()
+	if not source.is_ok():
+		return source
+	return _field_parity_refusal()
+
+
+static func _source_refusal() -> SaveHeader.Refusal:
+	"""Gate 4's source half: the two capacities and the crop, soil and crop-state domains."""
+	if Farming.FARM_PLOT_CAPACITY != SOURCE_FARM_PLOT_CAPACITY \
+			or Farming.TILE_COUNT != SOURCE_TILE_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s Farming declares %d plot rows over %d tiles, not %d/%d"
+				% [METADATA_DETAIL_PREFIX, Farming.FARM_PLOT_CAPACITY, Farming.TILE_COUNT,
+					SOURCE_FARM_PLOT_CAPACITY, SOURCE_TILE_COUNT])
+	if Farming.CROP_NONE != SOURCE_CROP_NONE or Farming.CROP_COUNT != SOURCE_CROP_COUNT \
+			or Farming.CROP_BEANS != 0 or Farming.CROP_CABBAGE != 1 \
+			or Farming.CROP_FLAX != 2 or Farming.CROP_GRAIN != 3 or Farming.CROP_ROOTS != 4:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the crop sentinel or the bean/cabbage/flax/grain/root ordinals differ"
+				% METADATA_DETAIL_PREFIX)
+	if Farming.SOIL_LOAM != 0 or Farming.SOIL_CLAY != 1 or Farming.SOIL_SAND != 2 \
+			or Farming.SOIL_COUNT != SOURCE_SOIL_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the soil domain is not the pinned 0/1/2 numbering bounded by %d"
+				% [METADATA_DETAIL_PREFIX, SOURCE_SOIL_COUNT])
+	if Farming.STATE_EMPTY != 0 or Farming.STATE_SOWN != 1 or Farming.STATE_GROWING != 2 \
+			or Farming.STATE_RIPE != 3 or Farming.STATE_WITHERED != 4 \
+			or Farming.STATE_COUNT != SOURCE_STATE_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the crop state domain is not the pinned 0..4 numbering bounded by %d"
+				% [METADATA_DETAIL_PREFIX, SOURCE_STATE_COUNT])
+	return _source_history_refusal()
+
+
+static func _source_history_refusal() -> SaveHeader.Refusal:
+	"""Gate 4: the rotation family wire domain and the streak sentinels the pair rule reads."""
+	if Farming.FAMILY_NONE != SOURCE_FAMILY_NONE or Farming.FAMILY_CEREAL != 0 \
+			or Farming.FAMILY_FIBER != 1 or Farming.FAMILY_LEAF != 2 \
+			or Farming.FAMILY_LEGUME != 3 or Farming.FAMILY_ROOT != 4 \
+			or Farming.FAMILY_COUNT != SOURCE_FAMILY_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the crop family wire ordinals are not the pinned 0..4 bounded by %d"
+				% [METADATA_DETAIL_PREFIX, SOURCE_FAMILY_COUNT])
+	if Farming.STREAK_NONE != SOURCE_STREAK_NONE or Farming.STREAK_FIRST != SOURCE_STREAK_FIRST \
+			or Farming.STREAK_MAX != SOURCE_STREAK_MAX:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the streak sentinels are not %d/%d/%d"
+				% [METADATA_DETAIL_PREFIX, SOURCE_STREAK_NONE, SOURCE_STREAK_FIRST,
+					SOURCE_STREAK_MAX])
+	return _source_scalar_refusal()
+
+
+static func _source_scalar_refusal() -> SaveHeader.Refusal:
+	"""Gate 4: the scalar bounds, the compost mirror values and the empty row sentinels."""
+	if Farming.FERTILITY_MIN != SOURCE_VALUE_MIN or Farming.FERTILITY_MAX != SOURCE_VALUE_MAX \
+			or Farming.MOISTURE_MIN != SOURCE_VALUE_MIN \
+			or Farming.MOISTURE_MAX != SOURCE_VALUE_MAX \
+			or Farming.HEALTH_MIN != SOURCE_VALUE_MIN \
+			or Farming.HEALTH_MAX != SOURCE_VALUE_MAX \
+			or Farming.INITIAL_HEALTH != SOURCE_INITIAL_HEALTH:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s fertility, moisture and health are not bounded %d..%d with full health %d"
+				% [METADATA_DETAIL_PREFIX, SOURCE_VALUE_MIN, SOURCE_VALUE_MAX,
+					SOURCE_INITIAL_HEALTH])
+	if Farming.COMPOST_MIRROR_NONE != SOURCE_COMPOST_NONE \
+			or Farming.COMPOST_MILLI_PER_TILE != SOURCE_COMPOST_PER_TILE \
+			or Farming.MIN_CALENDAR_DAY != SOURCE_MIN_CALENDAR_DAY:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the compost mirror is not %d/%d with a first calendar day of %d"
+				% [METADATA_DETAIL_PREFIX, SOURCE_COMPOST_NONE, SOURCE_COMPOST_PER_TILE,
+					SOURCE_MIN_CALENDAR_DAY])
+	if Farming.NO_ROW != SOURCE_NO_ROW or Farming.NULL_REF != SOURCE_NULL_REF \
+			or Farming.MILLI_HOURS_PER_HOUR != SOURCE_MILLI_HOURS_PER_HOUR:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the empty row is not %d with null reference (%d, %d) and %d milli-hours an hour"
+				% [METADATA_DETAIL_PREFIX, SOURCE_NO_ROW, SOURCE_NULL_REF.x, SOURCE_NULL_REF.y,
+					SOURCE_MILLI_HOURS_PER_HOUR])
+	return _source_directory_refusal()
+
+
+static func _source_directory_refusal() -> SaveHeader.Refusal:
+	"""Gate 4: the global Directory handle that bounds the present self-reference rule."""
+	if Farming.EntityDirectory.NULL_SLOT != SOURCE_NULL_SLOT \
+			or Farming.EntityDirectory.NULL_GENERATION != SOURCE_NULL_GENERATION \
+			or Farming.EntityDirectory.DIRECTORY_CAPACITY != SOURCE_DIRECTORY_CAPACITY:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the null handle is not (%d, %d) over a %d-row global Directory"
+				% [METADATA_DETAIL_PREFIX, SOURCE_NULL_SLOT, SOURCE_NULL_GENERATION,
+					SOURCE_DIRECTORY_CAPACITY])
+	return _source_table_refusal()
+
+
+static func _source_table_refusal() -> SaveHeader.Refusal:
+	"""Gate 4's last half: both crop tables, LENGTHS first, then every entry.
+
+	The pure state rule indexes these two tables and depends on their numeric meaning, so their
+	shape is settled before any entry index is evaluated.
+	"""
+	if Farming.CROP_ALLOWED_SOILS.size() != SOURCE_CROP_TABLE_LENGTH \
+			or Farming.CROP_GROWTH_HOURS.size() != SOURCE_CROP_TABLE_LENGTH:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the soil and growth tables hold %d and %d rows, not %d"
+				% [METADATA_DETAIL_PREFIX, Farming.CROP_ALLOWED_SOILS.size(),
+					Farming.CROP_GROWTH_HOURS.size(), SOURCE_CROP_TABLE_LENGTH])
+	for crop: int in SOURCE_CROP_TABLE_LENGTH:
+		if int(Farming.CROP_ALLOWED_SOILS[crop]) != int(SOURCE_ALLOWED_SOILS[crop]):
+			return _refuse(Section.REFUSE_METADATA, "%s crop %d admits soils %d, not %d"
+				% [METADATA_DETAIL_PREFIX, crop, int(Farming.CROP_ALLOWED_SOILS[crop]),
+					int(SOURCE_ALLOWED_SOILS[crop])])
+		if int(Farming.CROP_GROWTH_HOURS[crop]) != int(SOURCE_GROWTH_HOURS[crop]):
+			return _refuse(Section.REFUSE_METADATA, "%s crop %d grows in %d hours, not %d"
+				% [METADATA_DETAIL_PREFIX, crop, int(Farming.CROP_GROWTH_HOURS[crop]),
+					int(SOURCE_GROWTH_HOURS[crop])])
+	return _accept()
+
+
+static func _field_parity_refusal() -> SaveHeader.Refusal:
+	"""Gate 4's per-field half: key, type code and element count, ordinal by ordinal."""
+	for field: int in OWNER_FIELD_COUNT:
+		if Schema.field_key(OWNER_INDEX, field) != String(FIELD_KEYS[field]):
+			return _refuse(Section.REFUSE_METADATA, "%s field %d is '%s'; owner 2 declares '%s'"
+				% [METADATA_DETAIL_PREFIX, field, Schema.field_key(OWNER_INDEX, field),
+					String(FIELD_KEYS[field])])
+		if Schema.field_type(OWNER_INDEX, field) != int(FIELD_TYPES[field]):
+			return _refuse(Section.REFUSE_METADATA, "%s field %d has type %d; %d is declared"
+				% [METADATA_DETAIL_PREFIX, field, Schema.field_type(OWNER_INDEX, field),
+					int(FIELD_TYPES[field])])
+		if Schema.element_count(OWNER_INDEX, field) != int(FIELD_COUNTS[field]):
+			return _refuse(Section.REFUSE_METADATA, "%s field %d holds %d values; %d are declared"
+				% [METADATA_DETAIL_PREFIX, field, Schema.element_count(OWNER_INDEX, field),
+					int(FIELD_COUNTS[field])])
+	return _accept()
+
+
+static func _project_columns(record: Section.FramedOwner, columns: Farming.Columns) -> void:
+	"""Ordinals 0..14: the 4096-row FarmPlot image, every canonical column assigned explicitly."""
+	columns.present = record.u8_column(FIELD_PRESENT)
+	columns.crop_id = record.i32_column(FIELD_CROP_ID)
+	columns.state = record.i32_column(FIELD_STATE)
+	columns.soil = record.i32_column(FIELD_SOIL)
+	columns.fertility = record.i32_column(FIELD_FERTILITY)
+	columns.moisture = record.i32_column(FIELD_MOISTURE)
+	columns.growth_milli_hours = record.i64_column(FIELD_GROWTH_MILLI_HOURS)
+	columns.health = record.i32_column(FIELD_HEALTH)
+	columns.last_family = record.i32_column(FIELD_LAST_FAMILY)
+	columns.family_streak = record.i32_column(FIELD_FAMILY_STREAK)
+	columns.compost_milli = record.i64_column(FIELD_COMPOST_MILLI)
+	columns.sow_day = record.i32_column(FIELD_SOW_DAY)
+	columns.tile = record.i32_column(FIELD_TILE)
+	columns.ref_slot = record.i32_column(FIELD_REF_SLOT)
+	columns.ref_generation = record.i32_column(FIELD_REF_GENERATION)
+
+
+static func _refuse(code: StringName, detail: String) -> SaveHeader.Refusal:
+	"""Build a refusal carrying an exact code: a section code, or a raw Farming column code."""
+	return SaveHeader.Refusal.new(code, detail)
+
+
+static func _accept() -> SaveHeader.Refusal:
+	"""The accepted result: an empty code and no detail."""
+	return SaveHeader.Refusal.new(SaveHeader.REFUSE_NONE, "")

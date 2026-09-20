@@ -1803,7 +1803,9 @@
         "SAVE-S4-RESIDENTS-VALIDATE",
         "RESIDENTS-SAVED-BINDINGS",
         "SAVE-S4-FIELD-POLICY-VALIDATE",
-        "FIELD-POLICY-SAVED-BINDINGS"
+        "FIELD-POLICY-SAVED-BINDINGS",
+        "SAVE-S4-FARMING-VALIDATE",
+        "FARMING-SAVED-BINDINGS"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -2129,7 +2131,7 @@
     {
       "id": "SAVE-S4-FIELD-POLICY-VALIDATE",
       "title": "Validate FieldPolicy columns while preserving closed-cycle and stale enrollment history",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -2144,7 +2146,10 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance FIELD-POLICY-S4-VALIDATE-R01v1/ADR0179: full4968/444519/0, focus8/42353/0 clean;69required mutations and9metadata bypasses detected,20metadata cases/180assertions;17static checks/import and independent source review pass. Closed/inactive/stale history preserved, exactpresentOPEN ledgercounts validated, fivecropIDs/source domains pinned. No gameplaywriter/bulkAPI changes. Exact-head CI pending; savedbindings/livefieldorchestration remain separate."
+      "note": "Local acceptance FIELD-POLICY-S4-VALIDATE-R01v1/ADR0179: full4968/444519/0, focus8/42353/0 clean;69required mutations and9metadata bypasses detected,20metadata cases/180assertions;17static checks/import and independent source review pass. Closed/inactive/stale history preserved, exactpresentOPEN ledgercounts validated, fivecropIDs/source domains pinned. No gameplaywriter/bulkAPI changes. Merged PR170 after CI35506781316 passed4968/444519/0 and20metadata cases; savedbindings/livefieldorchestration remain separate.",
+      "pr": 170,
+      "merged_at": "2026-09-20T11:28:47Z",
+      "merge_commit": "df3f97cfe79cc24ad88c06181687ac93e42ba90a"
     },
     {
       "id": "FIELD-POLICY-SAVED-BINDINGS",
@@ -2159,6 +2164,40 @@
       "agent": "astra",
       "gate": "none",
       "note": "Required before section4 semantic acceptance: saved Directory/Forage FARMzonekind andtypedrow identity, uniqueness, FarmPlot lifetimes and enrollment joins, lifecyclephase andcommonfileprovenance. Local OPENcounts valid doesnotauthorize worldpublication. Bulk capture/apply and REQ-SET-088 seedreserve/livefieldorchestration remain separate."
+    },
+    {
+      "id": "SAVE-S4-FARMING-VALIDATE",
+      "title": "Validate saved FarmPlot columns and distinguish live crop state from retained history",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/farming.gd",
+        "godot/scripts/core/save_owner_farming.gd",
+        "godot/test/test_save_owner_farming.gd",
+        "godot/test/farming_validation_focus.gd",
+        "tools/test_farming_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance FARMING-S4-VALIDATE-R01v1/ADR0180: full4975/462434/0; focus7/17915/0 clean;50 required code mutations and8 metadata bypasses detected,24metadata cases/216assertions;17static checks/import and independent exact-source review pass. Candidate clone evidence is tied to actual applied owner/bridge/tests/tool by SHA identity. Inactive history, healthy age-withering and health-death distinctions preserved. Full shutdown baseline553objects/33resources unchanged. Exact-head CI pending; saved bindings/bulk APIs/live gameplay remain separate."
+    },
+    {
+      "id": "FARMING-SAVED-BINDINGS",
+      "title": "Reconcile saved FarmPlot columns with TileHistory, Directory and loaded clock",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-FARMING-VALIDATE"
+      ],
+      "owns": [
+        "docs/planning/farming_saved_binding_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Required before semantic acceptance: saved section1 inverse, Directory kind/current generation/typed row, fertility/family/streak mirrors, compost against loaded season, ripe tick/growth remainder/tended/orchard bindings, loaded lifecycle and common-file provenance. Existing section1 live checks do not establish same-file restoration. Full bulk capture/apply and gameplay integration remain separate."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

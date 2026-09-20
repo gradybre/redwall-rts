@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "314b5c057ce1416a8fb83b7cc14c61f36b0327b6",
+  "task": "Farming owner2 framed-column bridge only",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/farming_component_validation_contract.md",
+    "docs/decisions/0180-farming-validation-distinguishes-live-crops-and-retained-history.md",
+    "godot/scripts/core/save_owner_field_policy.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "docs/validation/evidence/farming-component-validation-2026-09-20/candidate-farming.gd",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/contract-disposition.md"
+  ],
+  "instructions": "ImplementONLYnew godot/scripts/core/save_owner_farming.gd peracceptedFARMING-S4-VALIDATE-R01v1/ADR0180. FullreconstructedcandidateFarmingincludesallactualsourceconstants andnewColumns/staticAPI, pendingPR170mergebeforeproduction. 7gateorder null/wrongowner2/schemaunchanged/metadata+sourcepins/shapeunchanged/15explicitcanonicaltypedassignments/staticpredicateexactcode. ColdFarming.Columnsnewonly; no liveFarming/Directory/callback/capture/restore. FourpreloadsFarming/Schema/Section/SaveHeader. Pinsallcontractconstantsactualnamesprovided,cropfamilywirepinsliteral0..4 intentionallyschemaABIcompatibilitynotnewgameplaymapping. Protected soil/state IDs unchanged. Pin CROP_ALLOWED_SOILS and CROP_GROWTH_HOURS lengths5 BEFORE anyentryindex, then exact values[3,3,5,3,5] and[144,120,168,192,120]. DoNOTinstantiateFarming._inittoasserttables. Metadataowner2farmingv1primary4096child0fields15. Parentfaulttool expressionsmustuse Schema.owner_key(OWNER_INDEX) != OWNER_KEY; Schema.owner_version(OWNER_INDEX) != OWNER_VERSION; Schema.primary_count(OWNER_INDEX) != OWNER_PRIMARY_COUNT; Schema.child_extent_count(OWNER_INDEX) != OWNER_CHILD_EXTENT_COUNT; Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT. ArraysFIELD_KEYS:Array[StringName],FIELD_TYPES:Array[int],FIELD_COUNTS:Array[int] andforfieldcomparisons Schema.field_key(OWNER_INDEX, field) != String(FIELD_KEYS[field]), Schema.field_type(OWNER_INDEX, field) != int(FIELD_TYPES[field]), Schema.element_count(OWNER_INDEX, field) != int(FIELD_COUNTS[field]). METADATA_DETAIL_PREFIX exactly Farming owner2 metadata:; columnprefix Farming owner 2 plusrawcode; success empty/empty. SourcecapacityDIRECTORY352418,Tile16384,Farm4096; legacySection1 APIsnotused. Budget565248logicalpackednotRSS. ReturnONE NEW docs/validation/evidence/farming-component-validation-2026-09-20/author-bridge.patch baseSha256nullUNIFIEDDIFFnewfile100644, HARD450actualpatchlines AIM300; nootherfiles/code/tests/docs. Consumecontract/ADR/dispositionexplicitly, summary<=100words, noexecutionclaims. ProperlyescapedRawJSONstatus/summary/questions/files/decisionIds."
+}

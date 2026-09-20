@@ -1,0 +1,58 @@
+Traceback (most recent call last):
+  File "/private/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-farming-integration-candidate-wqqlbub4/tools/test_farming_metadata_preflights.py", line 161, in <module>
+    main()
+  File "/private/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-farming-integration-candidate-wqqlbub4/tools/test_farming_metadata_preflights.py", line 139, in main
+    results.append(execute(clone,name+'-'+fault))
+  File "/private/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-farming-integration-candidate-wqqlbub4/tools/test_farming_metadata_preflights.py", line 106, in execute
+    assert killed if expect_failure else passed,label+'\n'+run.stdout
+AssertionError: CROP_ALLOWED_SOILS-short
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Assertion failed: one soil mask per §5.6 row
+          at: _assert_crop_tables (res://scripts/core/farming.gd:606)
+          GDScript backtrace (most recent call first):
+              [0] _assert_crop_tables (res://scripts/core/farming.gd:606)
+              [1] _init (res://scripts/core/farming.gd:593)
+              [2] _init (res://scripts/core/crop_weather.gd:415)
+              [3] _init (res://scripts/systems/settlement_system.gd:890)
+SCRIPT ERROR: Out of bounds get index '4' (on base: 'Array[int]')
+          at: _assert_stated_relations (res://scripts/core/farming.gd:653)
+          GDScript backtrace (most recent call first):
+              [0] _assert_stated_relations (res://scripts/core/farming.gd:653)
+              [1] _init (res://scripts/core/farming.gd:595)
+              [2] _init (res://scripts/core/crop_weather.gd:415)
+              [3] _init (res://scripts/systems/settlement_system.gd:890)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Assertion failed: one soil mask per §5.6 row
+          at: _assert_crop_tables (res://scripts/core/farming.gd:606)
+          GDScript backtrace (most recent call first):
+              [0] _assert_crop_tables (res://scripts/core/farming.gd:606)
+              [1] _init (res://scripts/core/farming.gd:593)
+              [2] _init (res://scripts/core/crop_weather.gd:415)
+              [3] _init (res://scripts/systems/settlement_system.gd:890)
+SCRIPT ERROR: Out of bounds get index '4' (on base: 'Array[int]')
+          at: _assert_stated_relations (res://scripts/core/farming.gd:653)
+          GDScript backtrace (most recent call first):
+              [0] _assert_stated_relations (res://scripts/core/farming.gd:653)
+              [1] _init (res://scripts/core/farming.gd:595)
+              [2] _init (res://scripts/core/crop_weather.gd:415)
+              [3] _init (res://scripts/systems/settlement_system.gd:890)
+test_farming_metadata_probe.gd
+  PASS  test_actual_metadata_gate
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+  FAIL  <test run>
+        2 script error(s) outside any test method
+
+1 test(s), 9 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+

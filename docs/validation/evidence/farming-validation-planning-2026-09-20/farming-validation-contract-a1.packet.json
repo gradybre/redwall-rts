@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "65eeaf9b3b9e5855afd44f36769d48d274baaa74",
+  "task": "Independent Farming pure-columns validation contract review",
+  "paths": [
+    "AGENTS.md",
+    "godot/scripts/core/farming.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "docs/planning/farming_component_validation_contract.md",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/public-history-probe.log",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/feasibility-disposition.md"
+  ],
+  "instructions": "Read-only independent review of proposed FARMING-S4-VALIDATE-R01v1. Verify all15domains/order, clear/inactive retainedhistory, presentcrop/state/soil, actualprotectedIDs, exact SOWN/GROWING/RIPE/WITHERED constraints (WITHEREDhealth0belowtarget ORpositivehealth>=target), target+999 bound againstallwriters, i64inactiveMAXdomain/pairconsistencyallrows, unique presenttile andselfSLOT even differentgenerations,565248packedbudget, tablelength/valuepins vs no liveconstructors, missingbulkAPI/source1savedbindings. Challenge rules withpubliccounterexamples ifany. Notexecution. Originalprobe434/0 supportsobservableonly. Metadata/mutationplans stillpending explicit dispatch gates; identify any impossible requirement and requiredbounds/performanceconcerns for4096x15addresses. Prove no unguardedsource-table index. Noimpl/gameplaycode. OutputONE NEW docs/validation/evidence/farming-validation-planning-2026-09-20/contract-review.md baseSha256null HARD70lines800words AIM45lines600words. RawJSONstatus/summary/questions/files/decisionIds; concise include trueblockers notunrelatedsavedintegration aslocalblocker."
+}

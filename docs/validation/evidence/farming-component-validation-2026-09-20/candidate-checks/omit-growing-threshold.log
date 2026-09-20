@@ -1,0 +1,55 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_farming.gd
+  PASS  test_layout_clear_defaults_and_conditional_packed_budget
+  FAIL  test_frozen_domains_states_history_and_projection_witnesses
+        growing-at-target pure (expected COLUMN_STATE, got )
+        growing-at-target bridge (expected COLUMN_STATE, got )
+        growing-at-target success (expected false, got true)
+        growing-at-target owner detail (expected true, got false)
+        growing-at-target raw code detail (expected true, got false)
+        state-edge-0-2-1-144000 pure (expected COLUMN_STATE, got )
+        state-edge-0-2-1-144000 bridge (expected COLUMN_STATE, got )
+        state-edge-0-2-1-144000 success (expected false, got true)
+        state-edge-0-2-1-144000 owner detail (expected true, got false)
+        state-edge-0-2-1-144000 raw code detail (expected true, got false)
+        state-edge-1-2-1-120000 pure (expected COLUMN_STATE, got )
+        state-edge-1-2-1-120000 bridge (expected COLUMN_STATE, got )
+        state-edge-1-2-1-120000 success (expected false, got true)
+        state-edge-1-2-1-120000 owner detail (expected true, got false)
+        state-edge-1-2-1-120000 raw code detail (expected true, got false)
+        state-edge-2-2-1-168000 pure (expected COLUMN_STATE, got )
+        state-edge-2-2-1-168000 bridge (expected COLUMN_STATE, got )
+        state-edge-2-2-1-168000 success (expected false, got true)
+        state-edge-2-2-1-168000 owner detail (expected true, got false)
+        state-edge-2-2-1-168000 raw code detail (expected true, got false)
+        state-edge-3-2-1-192000 pure (expected COLUMN_STATE, got )
+        state-edge-3-2-1-192000 bridge (expected COLUMN_STATE, got )
+        state-edge-3-2-1-192000 success (expected false, got true)
+        state-edge-3-2-1-192000 owner detail (expected true, got false)
+        state-edge-3-2-1-192000 raw code detail (expected true, got false)
+        state-edge-4-2-1-120000 pure (expected COLUMN_STATE, got )
+        state-edge-4-2-1-120000 bridge (expected COLUMN_STATE, got )
+        state-edge-4-2-1-120000 success (expected false, got true)
+        state-edge-4-2-1-120000 owner detail (expected true, got false)
+        state-edge-4-2-1-120000 raw code detail (expected true, got false)
+  PASS  test_null_all_extents_and_physical_bucket_shapes
+  PASS  test_every_physical_row_and_every_column_at_head_and_tail
+  PASS  test_full_capacity_unique_identity_and_duplicate_priority
+  PASS  test_retained_inactive_extremes_across_all_physical_rows
+  PASS  test_present_history_and_compost_endpoints_are_accepted
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 17915 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,27 @@
+{
+  "root": "godot/scripts/core/save_owner_farming.gd",
+  "literal_resources": [
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/catalog_ids.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/farming.gd",
+    "godot/scripts/core/forage.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/scripts/core/inventory.gd",
+    "godot/scripts/core/item_definitions.gd",
+    "godot/scripts/core/jobs.gd",
+    "godot/scripts/core/needs.gd",
+    "godot/scripts/core/priorities.gd",
+    "godot/scripts/core/residents.gd",
+    "godot/scripts/core/rng.gd",
+    "godot/scripts/core/save_codec.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_header.gd",
+    "godot/scripts/core/save_owner_farming.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/schedule.gd",
+    "godot/scripts/core/sim_clock.gd"
+  ],
+  "all_resolve": true,
+  "engine_import": "import-first.log"
+}

@@ -1,0 +1,6 @@
+{
+  "scope": "Candidate clone only; production and bridge untouched; includes originalpublicsuite/163images/4096physicalrows",
+  "exit_code": 0,
+  "seconds": 15.319,
+  "candidate_sha256": "41439e1beb1d369d299b650e0160f94b2457ade2285dbb7d8f63c636dc77b212"
+}

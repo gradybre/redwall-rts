@@ -4,11 +4,11 @@ The settlement remains under development and has not passed first-playable accep
 
 ## Accepted work
 
-30 loop PRs, #140–169, have merged after their required checks. The latest merged build passes 4,960 tests and 402,166 assertions. Residents’ null/arrival repairs and component validation passed both exact-head CI checks before merging.
+31 loop PRs, #140–170, have merged after their required checks. The latest merged build passes 4,968 tests and 444,519 assertions. FieldPolicy’s local component validation passed both exact-head CI checks before merging.
 
-This work has reconciled planning and state ownership, repaired several runtime defects, and implemented persistence primitives with explicit contracts, independent reviews and fault tests. Nine of the eighteen component owners now have merged local validation implementations. Local component validation does not establish complete-file consistency or authorize world restoration by itself.
+This work has reconciled planning and state ownership, repaired several runtime defects, and implemented persistence primitives with explicit contracts, independent reviews and fault tests. Ten of the eighteen component owners now have merged local validation implementations. Local component validation does not establish complete-file consistency or authorize world restoration by itself.
 
-Residents is merged after exact-head CI, including all27 metadata cases. FieldPolicy is locally accepted and awaiting exact-head CI: full4,968tests/444,519assertions pass, focused8/42,353 shuts down cleanly,69code mutations plus9metadata bypasses were detected, and independent source review passed. The change preserves stale and closed-cycle history while requiring exact counts for current open cycles. Farming’s contract is accepted and implementation is underway; its public lifecycle probe passes434 assertions. Neither change completes whole-file save/load or the live farming workflow.
+FieldPolicy has merged after exact-head CI. Farming is locally accepted: the full suite passes 4,975 tests and 462,434 assertions, its focused checks pass 7 tests and 17,915 assertions, all 50 code mutations are caught, and all 24 metadata cases pass. Independent review covers the exact applied source bytes. Farming still requires exact-head CI and merge. Fishing is in source-domain planning. These changes do not complete whole-file save/load or the live food-production workflow.
 
 ## Remaining delivery work
 

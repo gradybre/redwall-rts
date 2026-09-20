@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "a97f9e8fc37d331ecdefc531c58d01d17b24c5f0",
+  "task": "Farming owner2 local saved-column domain feasibility audit",
+  "paths": [
+    "AGENTS.md",
+    "godot/scripts/core/farming.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "docs/rulings/2026-09-09_ready06_open_item_answers.md",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/astra-source-note.md",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/public_history_probe.gd",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/public-history-probe.log",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/public-probe-disposition.md"
+  ],
+  "instructions": "Read-only independent feasibility, no finalcontract/code yet. Determine15canonicalowner2 pureColumns domains and allpresent/state/inactive relations against everywriter. VerifyactualCatalogsoil/stateIDs(not assumeASCIIorder), ownerVERSION/counts/value266240/payload266364/block266395. Existing section1 SavedTileHistory isNOT FarmPlot capture; use newcoldColumns15 perADR0132, no liveFarming/Directory constructor, no callback. Source note proposals notaccepted. Probe434/0 onlypublic observables: inactivehistoryunobservable; MAXsowday usespublicindependent season/day, notloadedworldclockagreement. WITHEREDcanhealth10000afterripeexpiry: donotfalselyrequirehealth0. SOWN0growth/fullhealth, GROWINGpositivehealth/belowtarget?, RIPEpositivehealth/targetovershoot?, WITHEREDbothcauses; EMPTYpresenthealth10000/growth0/sowday0 butdestroyinactive canretainotherfields. Discuss strongest justified local growth i64bounds vs retainedinactive broadhistory, crop-soilcompatibility, crop/state, family/streakreusestatichelper, compost0/2000, validtile/selfshape anduniquenessvssection1/Directorysavedbinding. Source possible checkedgrowthoverflow updates tileremainder before refusal onlyinjectedillegalgrowth: distinguishnormalpublicreachability and whetherdomain excludes it before proposingunrelatedrepair. Crosssection1/clock/identity/provenanceremainexplicit. Identifyconcreteproducerdefectsifany withproof, no speculativemajorredesign. OutputONE NEW docs/validation/evidence/farming-validation-planning-2026-09-20/feasibility-review.md baseSha256null HARD80lines850words AIM50lines650words. No inventedtests/execution. RawJSONstatus/summary/questions/files/decisionIds."
+}

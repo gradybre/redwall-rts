@@ -1,0 +1,3000 @@
+{
+  "status": "planned fixtures; no engine execution",
+  "fields": [
+    "present",
+    "crop_id",
+    "state",
+    "soil",
+    "fertility",
+    "moisture",
+    "growth_milli_hours",
+    "health",
+    "last_family",
+    "family_streak",
+    "compost_milli",
+    "sow_day",
+    "tile",
+    "ref_slot",
+    "ref_generation"
+  ],
+  "fixture_row": 4095,
+  "fixtures": {
+    "clear": {},
+    "empty": {
+      "present": 1,
+      "soil": 0,
+      "fertility": 7000,
+      "moisture": 6000,
+      "health": 10000,
+      "tile": 16383,
+      "ref_slot": 352417,
+      "ref_generation": 2147483647
+    },
+    "sown": {
+      "present": 1,
+      "soil": 0,
+      "fertility": 7000,
+      "moisture": 6000,
+      "health": 10000,
+      "tile": 16383,
+      "ref_slot": 352417,
+      "ref_generation": 2147483647,
+      "crop_id": 3,
+      "state": 1,
+      "sow_day": 1
+    },
+    "growing": {
+      "present": 1,
+      "soil": 0,
+      "fertility": 7000,
+      "moisture": 6000,
+      "health": 1,
+      "tile": 16383,
+      "ref_slot": 352417,
+      "ref_generation": 2147483647,
+      "crop_id": 3,
+      "state": 2,
+      "sow_day": 1,
+      "growth_milli_hours": 191999
+    },
+    "ripe": {
+      "present": 1,
+      "soil": 0,
+      "fertility": 7000,
+      "moisture": 6000,
+      "health": 1,
+      "tile": 16383,
+      "ref_slot": 352417,
+      "ref_generation": 2147483647,
+      "crop_id": 3,
+      "state": 3,
+      "sow_day": 1,
+      "growth_milli_hours": 192000
+    },
+    "withered_health": {
+      "present": 1,
+      "soil": 0,
+      "fertility": 7000,
+      "moisture": 6000,
+      "health": 0,
+      "tile": 16383,
+      "ref_slot": 352417,
+      "ref_generation": 2147483647,
+      "crop_id": 3,
+      "state": 4,
+      "sow_day": 1,
+      "growth_milli_hours": 191999
+    },
+    "withered_age": {
+      "present": 1,
+      "soil": 0,
+      "fertility": 7000,
+      "moisture": 6000,
+      "health": 1,
+      "tile": 16383,
+      "ref_slot": 352417,
+      "ref_generation": 2147483647,
+      "crop_id": 3,
+      "state": 4,
+      "sow_day": 1,
+      "growth_milli_hours": 192000
+    },
+    "inactive_history": {
+      "soil": 2,
+      "fertility": 10000,
+      "moisture": 10000,
+      "growth_milli_hours": 9223372036854775807,
+      "health": 10000,
+      "last_family": 4,
+      "family_streak": 2147483647,
+      "compost_milli": 2000,
+      "sow_day": 2147483647
+    }
+  },
+  "physical_coverage": "Every4096physicalrow with faultfield=row%15, plus each15field athead/tail and163domain/stateimages; not a full15x4096Cartesian fault campaign",
+  "cases": [
+    {
+      "name": "accept-clear",
+      "base": "clear",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-empty",
+      "base": "empty",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-sown",
+      "base": "sown",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-growing",
+      "base": "growing",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-ripe",
+      "base": "ripe",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-withered_health",
+      "base": "withered_health",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-withered_age",
+      "base": "withered_age",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-inactive_history",
+      "base": "inactive_history",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "projection-present",
+      "base": "clear",
+      "changes": [
+        [
+          0,
+          4095,
+          2
+        ]
+      ],
+      "code": "COLUMN_PRESENT"
+    },
+    {
+      "name": "projection-crop_id",
+      "base": "clear",
+      "changes": [
+        [
+          1,
+          4095,
+          -2
+        ]
+      ],
+      "code": "COLUMN_ENUM"
+    },
+    {
+      "name": "projection-state",
+      "base": "clear",
+      "changes": [
+        [
+          2,
+          4095,
+          5
+        ]
+      ],
+      "code": "COLUMN_ENUM"
+    },
+    {
+      "name": "projection-soil",
+      "base": "clear",
+      "changes": [
+        [
+          3,
+          4095,
+          3
+        ]
+      ],
+      "code": "COLUMN_ENUM"
+    },
+    {
+      "name": "projection-fertility",
+      "base": "clear",
+      "changes": [
+        [
+          4,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "projection-moisture",
+      "base": "clear",
+      "changes": [
+        [
+          5,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "projection-growth_milli_hours",
+      "base": "clear",
+      "changes": [
+        [
+          6,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "projection-health",
+      "base": "clear",
+      "changes": [
+        [
+          7,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "projection-last_family",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          -2
+        ]
+      ],
+      "code": "COLUMN_HISTORY"
+    },
+    {
+      "name": "projection-family_streak",
+      "base": "clear",
+      "changes": [
+        [
+          9,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_HISTORY"
+    },
+    {
+      "name": "projection-compost_milli",
+      "base": "clear",
+      "changes": [
+        [
+          10,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "projection-sow_day",
+      "base": "clear",
+      "changes": [
+        [
+          11,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "projection-tile",
+      "base": "clear",
+      "changes": [
+        [
+          12,
+          4095,
+          -2
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "projection-ref_slot",
+      "base": "clear",
+      "changes": [
+        [
+          13,
+          4095,
+          -2
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "projection-ref_generation",
+      "base": "clear",
+      "changes": [
+        [
+          14,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "enum-crop_id--2",
+      "base": "clear",
+      "changes": [
+        [
+          1,
+          4095,
+          -2
+        ]
+      ],
+      "code": "COLUMN_ENUM"
+    },
+    {
+      "name": "enum-crop_id-5",
+      "base": "clear",
+      "changes": [
+        [
+          1,
+          4095,
+          5
+        ]
+      ],
+      "code": "COLUMN_ENUM"
+    },
+    {
+      "name": "enum-state--1",
+      "base": "clear",
+      "changes": [
+        [
+          2,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ENUM"
+    },
+    {
+      "name": "enum-state-5",
+      "base": "clear",
+      "changes": [
+        [
+          2,
+          4095,
+          5
+        ]
+      ],
+      "code": "COLUMN_ENUM"
+    },
+    {
+      "name": "enum-soil--1",
+      "base": "clear",
+      "changes": [
+        [
+          3,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ENUM"
+    },
+    {
+      "name": "enum-soil-3",
+      "base": "clear",
+      "changes": [
+        [
+          3,
+          4095,
+          3
+        ]
+      ],
+      "code": "COLUMN_ENUM"
+    },
+    {
+      "name": "range-fertility--1",
+      "base": "clear",
+      "changes": [
+        [
+          4,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "range-fertility-10001",
+      "base": "clear",
+      "changes": [
+        [
+          4,
+          4095,
+          10001
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "range-moisture--1",
+      "base": "clear",
+      "changes": [
+        [
+          5,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "range-moisture-10001",
+      "base": "clear",
+      "changes": [
+        [
+          5,
+          4095,
+          10001
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "range-health--1",
+      "base": "clear",
+      "changes": [
+        [
+          7,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "range-health-10001",
+      "base": "clear",
+      "changes": [
+        [
+          7,
+          4095,
+          10001
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "value-growth_milli_hours--1",
+      "base": "clear",
+      "changes": [
+        [
+          6,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "value-compost_milli--1",
+      "base": "clear",
+      "changes": [
+        [
+          10,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "value-compost_milli-1",
+      "base": "clear",
+      "changes": [
+        [
+          10,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "value-compost_milli-1999",
+      "base": "clear",
+      "changes": [
+        [
+          10,
+          4095,
+          1999
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "value-compost_milli-2001",
+      "base": "clear",
+      "changes": [
+        [
+          10,
+          4095,
+          2001
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "value-compost_milli-9223372036854775807",
+      "base": "clear",
+      "changes": [
+        [
+          10,
+          4095,
+          9223372036854775807
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "value-sow_day--1",
+      "base": "clear",
+      "changes": [
+        [
+          11,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "history--2-1",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          -2
+        ],
+        [
+          9,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_HISTORY"
+    },
+    {
+      "name": "history-5-1",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          5
+        ],
+        [
+          9,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_HISTORY"
+    },
+    {
+      "name": "history--1-1",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          -1
+        ],
+        [
+          9,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_HISTORY"
+    },
+    {
+      "name": "history-0-0",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          0
+        ],
+        [
+          9,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_HISTORY"
+    },
+    {
+      "name": "history-4-0",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          4
+        ],
+        [
+          9,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_HISTORY"
+    },
+    {
+      "name": "history-0--1",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          0
+        ],
+        [
+          9,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_HISTORY"
+    },
+    {
+      "name": "history--1--1",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          -1
+        ],
+        [
+          9,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_HISTORY"
+    },
+    {
+      "name": "accept-family-0-1",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          0
+        ],
+        [
+          9,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-family-0-2147483647",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          0
+        ],
+        [
+          9,
+          4095,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-family-1-1",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          1
+        ],
+        [
+          9,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-family-1-2147483647",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          1
+        ],
+        [
+          9,
+          4095,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-family-2-1",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          2
+        ],
+        [
+          9,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-family-2-2147483647",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          2
+        ],
+        [
+          9,
+          4095,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-family-3-1",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          3
+        ],
+        [
+          9,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-family-3-2147483647",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          3
+        ],
+        [
+          9,
+          4095,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-family-4-1",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          4
+        ],
+        [
+          9,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-family-4-2147483647",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          4095,
+          4
+        ],
+        [
+          9,
+          4095,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "present-identity-tile--1",
+      "base": "empty",
+      "changes": [
+        [
+          12,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "present-identity-tile-16384",
+      "base": "empty",
+      "changes": [
+        [
+          12,
+          4095,
+          16384
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "present-identity-ref_slot--1",
+      "base": "empty",
+      "changes": [
+        [
+          13,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "present-identity-ref_slot-352418",
+      "base": "empty",
+      "changes": [
+        [
+          13,
+          4095,
+          352418
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "present-identity-ref_generation-0",
+      "base": "empty",
+      "changes": [
+        [
+          14,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "present-identity-ref_generation--1",
+      "base": "empty",
+      "changes": [
+        [
+          14,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "inactive-identity-tile",
+      "base": "clear",
+      "changes": [
+        [
+          12,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "inactive-identity-ref_slot",
+      "base": "clear",
+      "changes": [
+        [
+          13,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "inactive-identity-ref_generation",
+      "base": "clear",
+      "changes": [
+        [
+          14,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_IDENTITY"
+    },
+    {
+      "name": "free-crop",
+      "base": "clear",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_FREE_ROW"
+    },
+    {
+      "name": "free-state",
+      "base": "clear",
+      "changes": [
+        [
+          2,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_FREE_ROW"
+    },
+    {
+      "name": "empty-state-crop_id",
+      "base": "empty",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "empty-state-growth_milli_hours",
+      "base": "empty",
+      "changes": [
+        [
+          6,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "empty-state-health",
+      "base": "empty",
+      "changes": [
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "empty-state-health",
+      "base": "empty",
+      "changes": [
+        [
+          7,
+          4095,
+          9999
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "empty-state-sow_day",
+      "base": "empty",
+      "changes": [
+        [
+          11,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "sown-state-crop_id--1",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "sown-state-sow_day-0",
+      "base": "sown",
+      "changes": [
+        [
+          11,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "sown-state-soil-2",
+      "base": "sown",
+      "changes": [
+        [
+          3,
+          4095,
+          2
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "sown-state-growth_milli_hours-1",
+      "base": "sown",
+      "changes": [
+        [
+          6,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "sown-state-health-9999",
+      "base": "sown",
+      "changes": [
+        [
+          7,
+          4095,
+          9999
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "sown-state-health-0",
+      "base": "sown",
+      "changes": [
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "growing-health-zero",
+      "base": "growing",
+      "changes": [
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "growing-at-target",
+      "base": "growing",
+      "changes": [
+        [
+          6,
+          4095,
+          192000
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "ripe-health-zero",
+      "base": "ripe",
+      "changes": [
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "ripe-below-target",
+      "base": "ripe",
+      "changes": [
+        [
+          6,
+          4095,
+          191999
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "ripe-over-maximum",
+      "base": "ripe",
+      "changes": [
+        [
+          6,
+          4095,
+          193000
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "withered-zero-health-at-target",
+      "base": "withered_health",
+      "changes": [
+        [
+          6,
+          4095,
+          192000
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "withered-positive-health-below-target",
+      "base": "withered_age",
+      "changes": [
+        [
+          6,
+          4095,
+          191999
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "withered-over-maximum",
+      "base": "withered_age",
+      "changes": [
+        [
+          6,
+          4095,
+          193000
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "accept-ripe-192000",
+      "base": "ripe",
+      "changes": [
+        [
+          6,
+          4095,
+          192000
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-ripe-192999",
+      "base": "ripe",
+      "changes": [
+        [
+          6,
+          4095,
+          192999
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-withered_age-192000",
+      "base": "withered_age",
+      "changes": [
+        [
+          6,
+          4095,
+          192000
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-withered_age-192999",
+      "base": "withered_age",
+      "changes": [
+        [
+          6,
+          4095,
+          192999
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-health-death-before-growth",
+      "base": "withered_health",
+      "changes": [
+        [
+          6,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "accept-sown-max-day",
+      "base": "sown",
+      "changes": [
+        [
+          11,
+          4095,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "value-before-state",
+      "base": "growing",
+      "changes": [
+        [
+          6,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "global-present-before-early-enum",
+      "base": "clear",
+      "changes": [
+        [
+          3,
+          0,
+          3
+        ],
+        [
+          0,
+          4095,
+          2
+        ]
+      ],
+      "code": "COLUMN_PRESENT"
+    },
+    {
+      "name": "per-row-value-before-later-enum",
+      "base": "clear",
+      "changes": [
+        [
+          4,
+          0,
+          -1
+        ],
+        [
+          3,
+          4095,
+          3
+        ]
+      ],
+      "code": "COLUMN_VALUE"
+    },
+    {
+      "name": "accept-two-identities",
+      "base": "empty",
+      "changes": [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          7,
+          0,
+          10000
+        ],
+        [
+          12,
+          0,
+          0
+        ],
+        [
+          13,
+          0,
+          0
+        ],
+        [
+          14,
+          0,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "duplicate-tile",
+      "base": "empty",
+      "changes": [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          7,
+          0,
+          10000
+        ],
+        [
+          12,
+          0,
+          0
+        ],
+        [
+          13,
+          0,
+          0
+        ],
+        [
+          14,
+          0,
+          1
+        ],
+        [
+          12,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_DUPLICATE_TILE"
+    },
+    {
+      "name": "duplicate-ref-same-generation",
+      "base": "empty",
+      "changes": [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          7,
+          0,
+          10000
+        ],
+        [
+          12,
+          0,
+          0
+        ],
+        [
+          13,
+          0,
+          0
+        ],
+        [
+          14,
+          0,
+          1
+        ],
+        [
+          13,
+          4095,
+          0
+        ],
+        [
+          14,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_DUPLICATE_REF"
+    },
+    {
+      "name": "duplicate-ref-different-generation",
+      "base": "empty",
+      "changes": [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          7,
+          0,
+          10000
+        ],
+        [
+          12,
+          0,
+          0
+        ],
+        [
+          13,
+          0,
+          0
+        ],
+        [
+          14,
+          0,
+          1
+        ],
+        [
+          13,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_DUPLICATE_REF"
+    },
+    {
+      "name": "duplicate-tile-before-ref",
+      "base": "empty",
+      "changes": [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          7,
+          0,
+          10000
+        ],
+        [
+          12,
+          0,
+          0
+        ],
+        [
+          13,
+          0,
+          0
+        ],
+        [
+          14,
+          0,
+          1
+        ],
+        [
+          12,
+          4095,
+          0
+        ],
+        [
+          13,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_DUPLICATE_TILE"
+    },
+    {
+      "name": "crop-soil-0-0",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          3,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "crop-soil-0-1",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          3,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "crop-soil-0-2",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          3,
+          4095,
+          2
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "crop-soil-1-0",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          3,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "crop-soil-1-1",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          3,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "crop-soil-1-2",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          3,
+          4095,
+          2
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "crop-soil-2-0",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          3,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "crop-soil-2-1",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          3,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "crop-soil-2-2",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          3,
+          4095,
+          2
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "crop-soil-3-0",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          3,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "crop-soil-3-1",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          3,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "crop-soil-3-2",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          3,
+          4095,
+          2
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "crop-soil-4-0",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          3,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "crop-soil-4-1",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          3,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "crop-soil-4-2",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          3,
+          4095,
+          2
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-0-2-1-143999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          2,
+          4095,
+          2
+        ],
+        [
+          6,
+          4095,
+          143999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-0-2-1-144000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          2,
+          4095,
+          2
+        ],
+        [
+          6,
+          4095,
+          144000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-0-3-1-144000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          144000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-0-3-1-144999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          144999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-0-3-1-145000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          145000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-0-4-0-143999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          143999
+        ],
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-0-4-0-144000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          144000
+        ],
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-0-4-1-144000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          144000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-0-4-1-143999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          0
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          143999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-1-2-1-119999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          2,
+          4095,
+          2
+        ],
+        [
+          6,
+          4095,
+          119999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-1-2-1-120000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          2,
+          4095,
+          2
+        ],
+        [
+          6,
+          4095,
+          120000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-1-3-1-120000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          120000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-1-3-1-120999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          120999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-1-3-1-121000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          121000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-1-4-0-119999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          119999
+        ],
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-1-4-0-120000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          120000
+        ],
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-1-4-1-120000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          120000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-1-4-1-119999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          1
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          119999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-2-2-1-167999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          2,
+          4095,
+          2
+        ],
+        [
+          6,
+          4095,
+          167999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-2-2-1-168000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          2,
+          4095,
+          2
+        ],
+        [
+          6,
+          4095,
+          168000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-2-3-1-168000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          168000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-2-3-1-168999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          168999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-2-3-1-169000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          169000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-2-4-0-167999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          167999
+        ],
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-2-4-0-168000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          168000
+        ],
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-2-4-1-168000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          168000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-2-4-1-167999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          2
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          167999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-3-2-1-191999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          2,
+          4095,
+          2
+        ],
+        [
+          6,
+          4095,
+          191999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-3-2-1-192000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          2,
+          4095,
+          2
+        ],
+        [
+          6,
+          4095,
+          192000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-3-3-1-192000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          192000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-3-3-1-192999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          192999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-3-3-1-193000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          193000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-3-4-0-191999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          191999
+        ],
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-3-4-0-192000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          192000
+        ],
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-3-4-1-192000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          192000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-3-4-1-191999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          3
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          191999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-4-2-1-119999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          2,
+          4095,
+          2
+        ],
+        [
+          6,
+          4095,
+          119999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-4-2-1-120000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          2,
+          4095,
+          2
+        ],
+        [
+          6,
+          4095,
+          120000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-4-3-1-120000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          120000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-4-3-1-120999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          120999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-4-3-1-121000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          2,
+          4095,
+          3
+        ],
+        [
+          6,
+          4095,
+          121000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-4-4-0-119999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          119999
+        ],
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-4-4-0-120000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          120000
+        ],
+        [
+          7,
+          4095,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "state-edge-4-4-1-120000",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          120000
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "state-edge-4-4-1-119999",
+      "base": "sown",
+      "changes": [
+        [
+          1,
+          4095,
+          4
+        ],
+        [
+          2,
+          4095,
+          4
+        ],
+        [
+          6,
+          4095,
+          119999
+        ],
+        [
+          7,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    }
+  ]
+}

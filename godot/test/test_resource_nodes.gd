@@ -7,8 +7,8 @@ extends "res://test/framework/test_case.gd"
 ## regrowth from §5.9. Calendar days come from `sim_clock.gd`'s own decoder at real tick
 ## boundaries, so the regrowth test crosses a genuine midnight rather than incrementing an int.
 ##
-## GDD §4.2 never states what domain `resource_id` is drawn from (see the module header), so the
-## ids here are opaque small integers and no test asserts a meaning for them.
+## ADR0052 settles resource_id as the extracted output compiled ItemDefinition ID. This generic
+## owner API suite uses opaque fixture IDs; it does not prove published catalog membership.
 
 const ResourceNodes := preload("res://scripts/core/resource_nodes.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -39,7 +39,7 @@ const TREE_REGROW_DAYS: int = 48
 ## them. Zero is the store's "never regrows" period.
 const NON_RENEWABLE: int = 0
 
-## Opaque resource ids; the GDD fixes no domain for them.
+## Generic API fixture IDs, not assertions about the compiled wood/stone/iron catalog IDs.
 const RESOURCE_TREE: int = 0
 const RESOURCE_STONE: int = 1
 const RESOURCE_IRON: int = 2

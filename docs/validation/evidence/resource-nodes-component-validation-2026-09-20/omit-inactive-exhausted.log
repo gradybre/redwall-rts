@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_resource_nodes.gd
+  PASS  test_layout_defaults_and_full_integer_endpoints
+  PASS  test_retained_inactive_history_and_local_duplicate_scope
+  PASS  test_every_physical_position_has_a_value_witness
+  FAIL  test_scalar_extrema_and_all_seventeen_clause_witnesses
+        static exact code (expected COLUMN_INACTIVE, got )
+        framed exact code (expected COLUMN_INACTIVE, got )
+        success channel (expected false, got true)
+        owner identity (expected true, got false)
+        raw code (expected true, got false)
+  PASS  test_tile_and_global_directory_reference_boundaries
+  PASS  test_global_gate_priority_at_opposite_rows
+  PASS  test_every_shape_precedes_values_and_typed_bucket_shapes
+  PASS  test_public_wide_harvest_overflow_regrow_and_destroy_history
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 85132 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

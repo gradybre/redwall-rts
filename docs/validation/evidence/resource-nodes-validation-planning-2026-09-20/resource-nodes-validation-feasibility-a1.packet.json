@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "6bdab15fd57c73252e19c6ba017c2615cef8bfa0",
+  "task": "Read-only ResourceNodes owner13 saved-domain and catalog-split feasibility",
+  "paths": [
+    "AGENTS.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/astra-source-note.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/source-sha256.json",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/authority-excerpts.md",
+    "docs/decisions/0052-resource-ids-are-compiled-item-definition-keys.md",
+    "godot/scripts/core/resource_nodes.gd",
+    "godot/scripts/core/resource_catalog_binding.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/test/test_resource_nodes.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_owner_world_init.gd"
+  ],
+  "instructions": "Independent read-only feasibility; noacceptedResourceNodescontract or implementationyet. Re-deriveowner13version1 (distinctsection1version2),10typedfields/4096 rows,172032values/172116payload/172154block. Allwritersclear/create/deposit/harvest/regrow/destroy; retainedinactiveid/capacity/regrow/plantedday, quantity0/exhausted0/tile/refnull. Presentquantity<=capacity,exhaustionrelation; positivei64capacity includingMAX;day+regrowoverflow alreadyvalidproducerstate leadingexplicitruntime refusal, no normalization. SourceDirectoryglobal352418 bounds vs typedrow4096. Existingsection1crosscheckislive+diagnosticwritingcannotpurebridgecall; propose explicit same-file inverse/Directoryfollowup anddecide localduplicates/scratch onlywithauthority. IMPORTANTauthorityalreadysettledresource_id=compiled output ItemDefinitionwood/stone/iron byGDDruled2026-09-11/ADR0052; oldownerheader/testsayingdomainunstatedstale. Distinguishgenericpubliccreatenonnegative fromvalidpublishedcontent. Recommendexactsplit pure scalar-domain versus savedcatalogmembership andcommonfileverification; no livecatalogconstruction/ownerprojection. Identify whether any numerictuples/retainedfields needtightening withsource/authoritysupport, no speculativeabsentzero. Actual publicreaders hideinactivefields; propose source-ownedfixtures +publichistoryevidence withoutprivategetter. Newstatic10typedargsbridge feasiblezeroextrascratch; noformatschange. OutputONE NEW docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/feasibility-review.md, baseSha256null, HARD80lines AND900words aim45/600. RawJSONstatus/summary/questions/files/decisionIds. No code/otherfiles/runclaims. Nameconcreteblockers/remainingdomainquestions; do notclaimfullsavevalidity."
+}

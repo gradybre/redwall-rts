@@ -1,0 +1,22 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "c8ac39342f2807fe564ac657d4a73179939a2eef",
+  "task": "Final ResourceNodes owner13 scalar validation contract review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/resource_nodes_component_validation_contract.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/metadata-fault-plan.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/proposed-preload-closure.json",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/public_history_probe.gd",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/public-history-probe.log",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/authority-excerpts.md",
+    "godot/scripts/core/resource_nodes.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/resource_catalog_binding.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_owner_work.gd"
+  ],
+  "instructions": "Independent final contract review before production author. Re-derive10fields/4096/version1, geometry, metadatafaulttransfer520Schedulefirstbyteafter10pinnedfields, sourcebounds352418Directoryvs4096rows, fulli64 arithmetic/no sumfit, preservedinactivehistory andglobalgatepriority. Assess30requiredmutants including17clauseomissions for real exact-code witnesses/redundancy; no fakekills. Scalar-domain only with mandatory same-file savedinverse/Directory/catalogmembership followup; no localduplicate/scratch. IMPORTANT source mainheaderALREADYcorrect, only resource_id_of docstring/oldtests stale; feasibilitydisposition supersedes rawreviewerror. Existing publicprobe24assertions0 no privatecaptureclaim. Review exact sourceconstantchains/preloadclosure and actualAPI feasibility. User authorized plan completion; identify technical blockers, not invented human permission. Return ONE NEW docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/contract-review.md, baseSha256null, HARD100lines AND900words aim50lines600words. No code/otherfiles/runclaims. Raw JSON status/summary/questions/files/decisionIds."
+}

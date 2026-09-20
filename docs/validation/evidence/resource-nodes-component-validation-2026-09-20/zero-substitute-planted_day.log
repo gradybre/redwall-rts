@@ -1,0 +1,100 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_resource_nodes.gd
+  FAIL  test_layout_defaults_and_full_integer_endpoints
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+  FAIL  test_retained_inactive_history_and_local_duplicate_scope
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+  PASS  test_every_physical_position_has_a_value_witness
+  FAIL  test_scalar_extrema_and_all_seventeen_clause_witnesses
+        framed exact code (expected COLUMN_PLANTED_DAY, got )
+        success channel (expected false, got true)
+        owner identity (expected true, got false)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_PLANTED_DAY, got )
+        success channel (expected false, got true)
+        owner identity (expected true, got false)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_EXHAUSTION, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_EXHAUSTION, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+  FAIL  test_tile_and_global_directory_reference_boundaries
+        framed exact code (expected COLUMN_TILE, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_TILE, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_TILE, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_TILE, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_REF, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_REF, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_REF, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_REF, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_REF, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_REF, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_REF, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+  FAIL  test_global_gate_priority_at_opposite_rows
+        framed exact code (expected COLUMN_PLANTED_DAY, got COLUMN_STOCK)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_EXHAUSTION, got COLUMN_PRESENT_DAY)
+        raw code (expected true, got false)
+  PASS  test_every_shape_precedes_values_and_typed_bucket_shapes
+  FAIL  test_public_wide_harvest_overflow_regrow_and_destroy_history
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+        framed exact code (expected , got COLUMN_PRESENT_DAY)
+        success channel (expected true, got false)
+        empty success detail (expected , got ResourceNodes owner 13 refuses this image with column code COLUMN_PRESENT_DAY)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 85132 assertion(s), 6 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

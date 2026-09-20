@@ -1,0 +1,545 @@
+diff --git a/godot/scripts/core/resource_nodes.gd b/godot/scripts/core/resource_nodes.gd
+--- a/godot/scripts/core/resource_nodes.gd
++++ b/godot/scripts/core/resource_nodes.gd
+@@ -170,6 +170,23 @@
+ const REFUSE_REGROW_NOT_DUE: StringName = &"REGROW_NOT_DUE"
+ const REFUSE_INVALID_INDEX: StringName = &"INVALID_INDEX"
+ const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
+ 
++## The §4 COMPONENT_COLUMNS owner-13 column codes, one per gate of `columns_refusal()` at the
++## foot of this file. Deliberately distinct from this file's §1 `COLUMN_REFUSE_*` tile-map
++## codes: those judge the 16384-entry `_resource_slot` block at schema version 2, these judge
++## the ten 4096-row §4.2 columns at schema version 1, and neither stands in for the other.
++const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
++const REFUSE_COLUMN_PRESENT_FLAG: StringName = &"COLUMN_PRESENT_FLAG"
++const REFUSE_COLUMN_EXHAUSTED_FLAG: StringName = &"COLUMN_EXHAUSTED_FLAG"
++const REFUSE_COLUMN_RESOURCE_ID: StringName = &"COLUMN_RESOURCE_ID"
++const REFUSE_COLUMN_QUANTITY: StringName = &"COLUMN_QUANTITY"
++const REFUSE_COLUMN_CAPACITY: StringName = &"COLUMN_CAPACITY"
++const REFUSE_COLUMN_REGROW_DAYS: StringName = &"COLUMN_REGROW_DAYS"
++const REFUSE_COLUMN_PLANTED_DAY: StringName = &"COLUMN_PLANTED_DAY"
++const REFUSE_COLUMN_STOCK: StringName = &"COLUMN_STOCK"
++const REFUSE_COLUMN_PRESENT_DAY: StringName = &"COLUMN_PRESENT_DAY"
++const REFUSE_COLUMN_EXHAUSTION: StringName = &"COLUMN_EXHAUSTION"
++const REFUSE_COLUMN_TILE: StringName = &"COLUMN_TILE"
++const REFUSE_COLUMN_REF: StringName = &"COLUMN_REF"
++const REFUSE_COLUMN_INACTIVE: StringName = &"COLUMN_INACTIVE"
++
+ ## A deposit footprint that runs off the 128x128 grid, and a footprint tile held by a node the
+ ## caller did not declare replaceable. Both are deposit-only, so neither can be confused with
+ ## `create_at_tile()`'s single-tile INVALID_TILE and TILE_OCCUPIED.
+@@ -560,9 +577,13 @@
+ func tile_of(slot: int) -> IntMath.IntResult:
+ 	"""The exterior tile a row stands on, or an explicit refusal."""
+ 	return _read(slot, _tile)
+ 
+ 
+ func resource_id_of(slot: int) -> IntMath.IntResult:
+-	"""The row's resource id, or an explicit refusal. See the header on its unstated domain."""
++	"""The row's extracted-output `ItemDefinition` id, or an explicit refusal.
++
++	The domain is SETTLED -- READY_07 §2 and decision 0052, as the header records -- and this
++	store still validates the RANGE only, because an int32 column cannot prove catalog
++	membership. The loaded registry and the verified `catalog_ids.json` behind the binding
++	boundary own that proof.
++	"""
+ 	return _read(slot, _resource_id)
+ 
+ 
+ func regrow_days_of(slot: int) -> IntMath.IntResult:
+@@ -800,3 +821,150 @@
+ func _refuse_section_1(code: StringName, detail: String) -> bool:
+ 	"""Record one §1 column refusal's detail and return false, so callers can `return` it."""
+ 	_section_1_detail = "%s: %s" % [code, detail]
+ 	return false
++
++
++# --- §4 COMPONENT_COLUMNS owner 13: the pure ten-column scalar-domain predicate -----------------
++#
++# RESOURCE-NODES-S4-VALIDATE-R01 v1, decision 0176. `columns_refusal()` judges ONE decoded
++# owner-13 image -- the ten §4.2 columns, every physical row of all 4096, with no living-256 cap
++# anywhere near it -- and returns the first refused gate's code. It is STATIC and pure over its
++# arguments: it allocates nothing, sorts nothing, duplicates no packed array, builds no range
++# Array, constructs no store, reads no clock, consults no directory or catalog instance, writes
++# no diagnostic, and touches not one member of any live ResourceNodes.
++#
++# EACH GATE SCANS THE WHOLE IMAGE BEFORE THE NEXT ONE RUNS. That global order is the contract
++# rather than an optimisation: a paired fault on two different rows must always report the
++# earlier gate's code, whichever row it happens to sit on.
++#
++# `present` MEANS EXACTLY `present[row] == 1`, and inactive means `present[row] != 1`, judged
++# only after gate 2 has proved that column holds nothing but 0 and 1. The exhaustion relation is
++# `(exhausted[row] == 1) == (quantity_milli[row] == 0)`. Both comparisons are pinned so that an
++# isolated flag fault is caught by its own flag gate and not masked by a later one.
++#
++# THE CAPACITY GATE IS REDUNDANT FOR ACCEPTANCE AND IS KEPT ANYWAY. A nonnegative quantity plus
++# `quantity <= capacity` already excludes a negative capacity, so no image is accepted because
++# this gate exists. It exists to fix the REFUSAL IDENTITY: a negative capacity must answer
++# COLUMN_CAPACITY and not COLUMN_STOCK.
++#
++# WHAT ACCEPTANCE IS NOT. Scalar domain only. It does NOT prove the §1 tile-map inverse in
++# either direction, the Directory kind/typed-row/reference agreement, unique tile or unique
++# reference placement, or that a `_resource_id` names a compiled `ItemDefinition` in the same
++# file's catalog -- RESOURCE-NODES-SAVED-BINDINGS owns every one of those, and duplicate valid
++# scalar rows pass here while failing there. Positive int64 capacities up to INT64_MAX are
++# legal, are never converted to float, and are never summed with a quantity; `planted_day` and
++# `regrow_days` extrema stay legal even where the later runtime due-date operation answers
++# OVERFLOW. An inactive row keeps whatever nonnegative resource id, capacity, regrow period and
++# planting date its history left, so a felled stump's record survives a save unaltered.
++
++static func columns_refusal(present: PackedByteArray, resource_id: PackedInt32Array,
++		quantity_milli: PackedInt64Array, capacity_milli: PackedInt64Array,
++		regrow_days: PackedInt32Array, planted_day: PackedInt32Array,
++		exhausted: PackedByteArray, tile: PackedInt32Array, ref_slot: PackedInt32Array,
++		ref_generation: PackedInt32Array) -> StringName:
++	"""The first refused gate's code for one decoded owner-13 image, or REFUSE_NONE.
++
++	Gate order is global and fixed: shape, present flag, exhausted flag, the five nonnegative
++	scalar columns, stock, present planting date, exhaustion, tile, reference, inactive.
++	"""
++	if not _columns_are_row_sized(present, resource_id, quantity_milli, capacity_milli,
++			regrow_days, planted_day, exhausted, tile, ref_slot, ref_generation):
++		return REFUSE_COLUMN_SHAPE
++	var flags: StringName = _column_flag_refusal(present, exhausted)
++	if flags != REFUSE_NONE:
++		return flags
++	var scalars: StringName = _column_scalar_refusal(resource_id, quantity_milli,
++		capacity_milli, regrow_days, planted_day)
++	if scalars != REFUSE_NONE:
++		return scalars
++	return _column_row_refusal(present, quantity_milli, capacity_milli, planted_day, exhausted,
++		tile, ref_slot, ref_generation)
++
++
++static func _columns_are_row_sized(present: PackedByteArray, resource_id: PackedInt32Array,
++		quantity_milli: PackedInt64Array, capacity_milli: PackedInt64Array,
++		regrow_days: PackedInt32Array, planted_day: PackedInt32Array,
++		exhausted: PackedByteArray, tile: PackedInt32Array, ref_slot: PackedInt32Array,
++		ref_generation: PackedInt32Array) -> bool:
++	"""Gate 1: all ten columns are exactly 4096 long, checked before anything indexes one."""
++	return present.size() == RESOURCE_NODE_CAPACITY \
++		and resource_id.size() == RESOURCE_NODE_CAPACITY \
++		and quantity_milli.size() == RESOURCE_NODE_CAPACITY \
++		and capacity_milli.size() == RESOURCE_NODE_CAPACITY \
++		and regrow_days.size() == RESOURCE_NODE_CAPACITY \
++		and planted_day.size() == RESOURCE_NODE_CAPACITY \
++		and exhausted.size() == RESOURCE_NODE_CAPACITY \
++		and tile.size() == RESOURCE_NODE_CAPACITY \
++		and ref_slot.size() == RESOURCE_NODE_CAPACITY \
++		and ref_generation.size() == RESOURCE_NODE_CAPACITY
++
++
++static func _column_flag_refusal(present: PackedByteArray,
++		exhausted: PackedByteArray) -> StringName:
++	"""Gates 2 and 3: both occupancy bytes hold nothing but 0 and 1, each over the whole image."""
++	if present.count(0) + present.count(1) != RESOURCE_NODE_CAPACITY:
++		return REFUSE_COLUMN_PRESENT_FLAG
++	if exhausted.count(0) + exhausted.count(1) != RESOURCE_NODE_CAPACITY:
++		return REFUSE_COLUMN_EXHAUSTED_FLAG
++	return REFUSE_NONE
++
++
++static func _column_scalar_refusal(resource_id: PackedInt32Array,
++		quantity_milli: PackedInt64Array, capacity_milli: PackedInt64Array,
++		regrow_days: PackedInt32Array, planted_day: PackedInt32Array) -> StringName:
++	"""Gates 4..8: five whole-image sweeps, one per nonnegative scalar column, in fixed order."""
++	if _i32_has_negative(resource_id):
++		return REFUSE_COLUMN_RESOURCE_ID
++	if _i64_has_negative(quantity_milli):
++		return REFUSE_COLUMN_QUANTITY
++	if _i64_has_negative(capacity_milli):
++		return REFUSE_COLUMN_CAPACITY
++	if _i32_has_negative(regrow_days):
++		return REFUSE_COLUMN_REGROW_DAYS
++	if _i32_has_negative(planted_day):
++		return REFUSE_COLUMN_PLANTED_DAY
++	return REFUSE_NONE
++
++
++static func _i32_has_negative(column: PackedInt32Array) -> bool:
++	"""True when any of the 4096 int32 values is below zero. Scans, never sorts or duplicates."""
++	for row: int in RESOURCE_NODE_CAPACITY:
++		if column[row] < 0:
++			return true
++	return false
++
++
++static func _i64_has_negative(column: PackedInt64Array) -> bool:
++	"""True when any of the 4096 int64 values is below zero. INT64_MAX is an ordinary value."""
++	for row: int in RESOURCE_NODE_CAPACITY:
++		if column[row] < 0:
++			return true
++	return false
++
++
++static func _column_row_refusal(present: PackedByteArray, quantity_milli: PackedInt64Array,
++		capacity_milli: PackedInt64Array, planted_day: PackedInt32Array,
++		exhausted: PackedByteArray, tile: PackedInt32Array, ref_slot: PackedInt32Array,
++		ref_generation: PackedInt32Array) -> StringName:
++	"""Gates 9..14, each a separate whole-image sweep, never all of them per row."""
++	var stock: StringName = _column_stock_refusal(present, quantity_milli, capacity_milli)
++	if stock != REFUSE_NONE:
++		return stock
++	var day: StringName = _column_present_day_refusal(present, planted_day)
++	if day != REFUSE_NONE:
++		return day
++	var exhaustion: StringName = _column_exhaustion_refusal(present, quantity_milli, exhausted)
++	if exhaustion != REFUSE_NONE:
++		return exhaustion
++	var tiles: StringName = _column_tile_refusal(present, tile)
++	if tiles != REFUSE_NONE:
++		return tiles
++	var refs: StringName = _column_ref_refusal(present, ref_slot, ref_generation)
++	if refs != REFUSE_NONE:
++		return refs
++	return _column_inactive_refusal(present, quantity_milli, exhausted)
++
++
++static func _column_stock_refusal(present: PackedByteArray, quantity_milli: PackedInt64Array,
++		capacity_milli: PackedInt64Array) -> StringName:
++	"""Gate 9: every row holds at most its capacity, and a present row's capacity is positive.
++
++	The bound applies to EVERY physical row, inactive ones included, so a retained stump's
++	history cannot record more stock than the node ever held.
++	"""
++	for row: int in RESOURCE_NODE_CAPACITY:
++		if quantity_milli[row] > capacity_milli[row]:
++			return REFUSE_COLUMN_STOCK
++		if present[row] == 1 and capacity_milli[row] <= 0:
++			return REFUSE_COLUMN_STOCK
++	return REFUSE_NONE
++
++
++static func _column_present_day_refusal(present: PackedByteArray,
++		planted_day: PackedInt32Array) -> StringName:
++	"""Gate 10: a present row's planting or stump date is day 1 or later. Day 0 names no day."""
++	for row: int in RESOURCE_NODE_CAPACITY:
++		if present[row] == 1 and planted_day[row] < MIN_CALENDAR_DAY:
++			return REFUSE_COLUMN_PRESENT_DAY
++	return REFUSE_NONE
++
++
++static func _column_exhaustion_refusal(present: PackedByteArray,
++		quantity_milli: PackedInt64Array, exhausted: PackedByteArray) -> StringName:
++	"""Gate 11: a present row is exhausted EXACTLY when its stock is zero, in both directions."""
++	for row: int in RESOURCE_NODE_CAPACITY:
++		if present[row] != 1:
++			continue
++		if (exhausted[row] == 1) != (quantity_milli[row] == 0):
++			return REFUSE_COLUMN_EXHAUSTION
++	return REFUSE_NONE
++
++
++static func _column_tile_refusal(present: PackedByteArray,
++		tile: PackedInt32Array) -> StringName:
++	"""Gate 12: a present row stands on one of the 16384 tiles; an inactive row holds NO_NODE."""
++	for row: int in RESOURCE_NODE_CAPACITY:
++		if present[row] == 1:
++			if tile[row] < 0 or tile[row] >= TILE_COUNT:
++				return REFUSE_COLUMN_TILE
++		elif tile[row] != NO_NODE:
++			return REFUSE_COLUMN_TILE
++	return REFUSE_NONE
++
++
++static func _column_ref_refusal(present: PackedByteArray, ref_slot: PackedInt32Array,
++		ref_generation: PackedInt32Array) -> StringName:
++	"""Gate 13: a present row carries a GLOBAL directory slot with a positive generation.
++
++	The bound is EntityDirectory.DIRECTORY_CAPACITY, the 352418-slot global arena, and never
++	this store's typed 4096 -- a resource node's reference names a directory row, not a typed
++	one. An inactive row carries exactly the §4.1 null reference (-1, 0).
++	"""
++	for row: int in RESOURCE_NODE_CAPACITY:
++		if present[row] == 1:
++			if ref_slot[row] < 0 \
++					or ref_slot[row] >= EntityDirectory.DIRECTORY_CAPACITY:
++				return REFUSE_COLUMN_REF
++			if ref_generation[row] <= 0:
++				return REFUSE_COLUMN_REF
++		elif ref_slot[row] != EntityDirectory.NULL_SLOT \
++				or ref_generation[row] != EntityDirectory.NULL_GENERATION:
++			return REFUSE_COLUMN_REF
++	return REFUSE_NONE
++
++
++static func _column_inactive_refusal(present: PackedByteArray,
++		quantity_milli: PackedInt64Array, exhausted: PackedByteArray) -> StringName:
++	"""Gate 14: an inactive row holds no stock and no exhaustion flag, exactly as `destroy()` left it.
++
++	Its resource id, capacity, regrow period and planting date are NOT forced to zero: those are
++	retained history, and any independently nonnegative mixture of them is legal.
++	"""
++	for row: int in RESOURCE_NODE_CAPACITY:
++		if present[row] == 1:
++			continue
++		if quantity_milli[row] != 0 or exhausted[row] != 0:
++			return REFUSE_COLUMN_INACTIVE
++	return REFUSE_NONE
+diff --git a/godot/scripts/core/save_owner_resource_nodes.gd b/godot/scripts/core/save_owner_resource_nodes.gd
+new file mode 100644
+--- /dev/null
++++ b/godot/scripts/core/save_owner_resource_nodes.gd
+@@ -0,0 +1,205 @@
++extends RefCounted
++## Owner 13 (`resource_nodes`) framed-column validation bridge
++## (RESOURCE-NODES-S4-VALIDATE-R01 v1, ADR 0176).
++##
++## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
++## against the ResourceNode store's own column rules and returns a `SaveHeader.Refusal`. It
++## constructs no ResourceNodes, Directory, WorldTileMaps or catalog store, consults no live
++## owner, reads no clock, captures nothing, applies nothing, normalises nothing and writes no
++## diagnostic.
++##
++## GATE ORDER:
++##   1. a null record                   -> SAVE_COMPONENT_SHAPE
++##   2. an owner index that is not 13   -> SAVE_COMPONENT_OWNER
++##   3. `Schema.schema_refusal()`       -> forwarded UNCHANGED, both code and detail
++##   4. this owner's compiled metadata and the pinned ResourceNodes source constants ->
++##      SAVE_COMPONENT_METADATA, with a detail beginning `ResourceNodes owner13 metadata:`
++##   5. `Section.owner_shape_refusal()` -> forwarded UNCHANGED
++##   6. the ten explicit typed accessors: u8 at ordinals 0 and 6, i64 at 2 and 3, i32 elsewhere
++##   7. `ResourceNodes.columns_refusal()` -> the EXACT unwrapped column code, for example
++##      COLUMN_STOCK, in a detail naming owner 13 and carrying no row identity.
++## Success carries an empty code and an empty detail.
++##
++## SECTION 1 IS A DIFFERENT BLOCK OF THE SAME NAME. `resource_nodes` also appears in §1 WORLD at
++## owner schema version 2, primary count 16384, holding the single `_resource_slot` tile map.
++## This bridge is the §4 owner at version 1 with 4096 rows and ten fields. Neither block is ever
++## read in place of the other, and the version pin below is what makes confusing them a refusal.
++##
++## WHAT AN ACCEPTED RESULT DOES NOT CERTIFY. Owner-13 scalar-domain validation only. The saved
++## §1 inverse in both directions, the Directory kind/typed-row/reference agreement, unique tile
++## and unique reference placement, verified same-file catalog membership of every
++## `_resource_id`, bulk restoration, derived counts and full-file provenance all remain
++## downstream obligations under RESOURCE-NODES-SAVED-BINDINGS. Duplicate tiles and duplicate
++## references are legal images here.
++##
++## THE METADATA GUARD compares the compiled schema to pinned contract literals and the
++## ResourceNodes source constants to their pinned values. That is not an owner-publication-table
++## parity claim; the independent schema generator and the source-capacity audit still prove the
++## registry. A source mismatch refuses BEFORE any typed column is read.
++##
++## NO FLOAT. ARCH-AUTH-002: there is no float in this file and there must never be one.
++
++const ResourceNodes := preload("res://scripts/core/resource_nodes.gd")
++const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
++const Section := preload("res://scripts/core/save_section_component_columns.gd")
++const SaveHeader := preload("res://scripts/core/save_header.gd")
++
++## The section-local owner this bridge accepts, and the compiled metadata it demands of it.
++const OWNER_INDEX: int = 13
++const OWNER_KEY: String = "resource_nodes"
++const OWNER_VERSION: int = 1
++const OWNER_PRIMARY_COUNT: int = 4096
++const OWNER_CHILD_EXTENT_COUNT: int = 0
++const OWNER_FIELD_COUNT: int = 10
++## Gate 4's detail prefix. Gate 3 forwards the schema module's own detail unchanged.
++const METADATA_DETAIL_PREFIX: String = "ResourceNodes owner13 metadata:"
++## Gate 7's detail prefix. It names the owner and the code, and never a row.
++const COLUMN_DETAIL_PREFIX: String = "ResourceNodes owner 13"
++
++## Owner-local field ordinals, in the canonical order the predicate's arguments take.
++const FIELD_PRESENT: int = 0
++const FIELD_RESOURCE_ID: int = 1
++const FIELD_QUANTITY_MILLI: int = 2
++const FIELD_CAPACITY_MILLI: int = 3
++const FIELD_REGROW_DAYS: int = 4
++const FIELD_PLANTED_DAY: int = 5
++const FIELD_EXHAUSTED: int = 6
++const FIELD_TILE: int = 7
++const FIELD_REF_SLOT: int = 8
++const FIELD_REF_GENERATION: int = 9
++
++## The pinned per-field contract: exact owner-local keys, and the one exact element count.
++const FIELD_PRESENT_KEY: String = "_present"
++const FIELD_RESOURCE_ID_KEY: String = "_resource_id"
++const FIELD_QUANTITY_MILLI_KEY: String = "_quantity_milli"
++const FIELD_CAPACITY_MILLI_KEY: String = "_capacity_milli"
++const FIELD_REGROW_DAYS_KEY: String = "_regrow_days"
++const FIELD_PLANTED_DAY_KEY: String = "_planted_day"
++const FIELD_EXHAUSTED_KEY: String = "_exhausted"
++const FIELD_TILE_KEY: String = "_tile"
++const FIELD_REF_SLOT_KEY: String = "_ref_slot"
++const FIELD_REF_GENERATION_KEY: String = "_ref_generation"
++const ROW_ELEMENT_COUNT: int = 4096
++
++## The ResourceNodes source constants this bridge pins as contract before it reads a column.
++const SOURCE_ROW_CAPACITY: int = 4096
++const SOURCE_MAP_TILES_X: int = 128
++const SOURCE_MAP_TILES_Z: int = 128
++const SOURCE_TILE_COUNT: int = 16384
++const SOURCE_MIN_CALENDAR_DAY: int = 1
++const SOURCE_NO_NODE: int = -1
++const SOURCE_DIRECTORY_CAPACITY: int = 352418
++const SOURCE_NULL_SLOT: int = -1
++const SOURCE_NULL_GENERATION: int = 0
++
++
++static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
++	"""Judge one framed owner 13 block against the ResourceNode store's own column rules.
++
++	Pure over its argument. See the header for the seven gates, and for everything an accepted
++	result deliberately does not certify.
++	"""
++	if record == null:
++		return _refuse(Section.REFUSE_SHAPE,
++			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
++	if record.owner != OWNER_INDEX:
++		return _refuse(Section.REFUSE_OWNER,
++			"owner %d was supplied where owner %d ('%s') is required"
++				% [record.owner, OWNER_INDEX, OWNER_KEY])
++	var schema: SaveHeader.Refusal = Schema.schema_refusal()
++	if not schema.is_ok():
++		return schema
++	var metadata: SaveHeader.Refusal = _metadata_refusal()
++	if not metadata.is_ok():
++		return metadata
++	var shape: SaveHeader.Refusal = Section.owner_shape_refusal(record)
++	if not shape.is_ok():
++		return shape
++	var code: StringName = ResourceNodes.columns_refusal(
++		record.u8_column(FIELD_PRESENT), record.i32_column(FIELD_RESOURCE_ID),
++		record.i64_column(FIELD_QUANTITY_MILLI), record.i64_column(FIELD_CAPACITY_MILLI),
++		record.i32_column(FIELD_REGROW_DAYS), record.i32_column(FIELD_PLANTED_DAY),
++		record.u8_column(FIELD_EXHAUSTED), record.i32_column(FIELD_TILE),
++		record.i32_column(FIELD_REF_SLOT), record.i32_column(FIELD_REF_GENERATION))
++	if code != ResourceNodes.REFUSE_NONE:
++		return _refuse(code, "%s refuses this image with column code %s"
++			% [COLUMN_DETAIL_PREFIX, String(code)])
++	return _accept()
++
++
++static func _metadata_refusal() -> SaveHeader.Refusal:
++	"""Gate 4: compiled owner identity and extents, then the pinned ResourceNodes constants."""
++	if Schema.owner_key(OWNER_INDEX) != OWNER_KEY \
++			or Schema.owner_version(OWNER_INDEX) != OWNER_VERSION:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s compiled owner '%s' version %d is not '%s' version %d"
++				% [METADATA_DETAIL_PREFIX, Schema.owner_key(OWNER_INDEX),
++					Schema.owner_version(OWNER_INDEX), OWNER_KEY, OWNER_VERSION])
++	if Schema.primary_count(OWNER_INDEX) != OWNER_PRIMARY_COUNT \
++			or Schema.child_extent_count(OWNER_INDEX) != OWNER_CHILD_EXTENT_COUNT \
++			or Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s %d primaries, %d child extents and %d fields are not %d, %d and %d"
++				% [METADATA_DETAIL_PREFIX, Schema.primary_count(OWNER_INDEX),
++					Schema.child_extent_count(OWNER_INDEX), Schema.field_count(OWNER_INDEX),
++					OWNER_PRIMARY_COUNT, OWNER_CHILD_EXTENT_COUNT, OWNER_FIELD_COUNT])
++	var source: SaveHeader.Refusal = _source_refusal()
++	if not source.is_ok():
++		return source
++	return _field_parity_refusal()
++
++
++static func _source_refusal() -> SaveHeader.Refusal:
++	"""Gate 4's source half: row capacity, the exterior grid, the calendar floor and the handles.
++
++	Read as constant chains, which construct no collaborator. A mismatch refuses before any
++	typed column is read; the independent capacity audit still owns the registry proof.
++	"""
++	if ResourceNodes.RESOURCE_NODE_CAPACITY != SOURCE_ROW_CAPACITY \
++			or ResourceNodes.MAP_TILES_X != SOURCE_MAP_TILES_X \
++			or ResourceNodes.MAP_TILES_Z != SOURCE_MAP_TILES_Z \
++			or ResourceNodes.TILE_COUNT != SOURCE_TILE_COUNT:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s ResourceNodes declares %d rows and a %dx%d grid of %d tiles"
++				% [METADATA_DETAIL_PREFIX, ResourceNodes.RESOURCE_NODE_CAPACITY,
++					ResourceNodes.MAP_TILES_X, ResourceNodes.MAP_TILES_Z,
++					ResourceNodes.TILE_COUNT])
++	if ResourceNodes.MIN_CALENDAR_DAY != SOURCE_MIN_CALENDAR_DAY \
++			or ResourceNodes.NO_NODE != SOURCE_NO_NODE:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the calendar floor is %d and the empty tile is %d, not %d and %d"
++				% [METADATA_DETAIL_PREFIX, ResourceNodes.MIN_CALENDAR_DAY,
++					ResourceNodes.NO_NODE, SOURCE_MIN_CALENDAR_DAY, SOURCE_NO_NODE])
++	if ResourceNodes.EntityDirectory.DIRECTORY_CAPACITY != SOURCE_DIRECTORY_CAPACITY:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the global directory holds %d slots, not %d"
++				% [METADATA_DETAIL_PREFIX,
++					ResourceNodes.EntityDirectory.DIRECTORY_CAPACITY, SOURCE_DIRECTORY_CAPACITY])
++	if ResourceNodes.EntityDirectory.NULL_SLOT != SOURCE_NULL_SLOT \
++			or ResourceNodes.EntityDirectory.NULL_GENERATION != SOURCE_NULL_GENERATION \
++			or ResourceNodes.NULL_REF.x != SOURCE_NULL_SLOT \
++			or ResourceNodes.NULL_REF.y != SOURCE_NULL_GENERATION:
++		return _refuse(Section.REFUSE_METADATA, "%s the null handle is (%d, %d), not (%d, %d)"
++			% [METADATA_DETAIL_PREFIX, ResourceNodes.NULL_REF.x, ResourceNodes.NULL_REF.y,
++				SOURCE_NULL_SLOT, SOURCE_NULL_GENERATION])
++	return _accept()
++
++
++static func _field_parity_refusal() -> SaveHeader.Refusal:
++	"""Gate 4's per-field half: ten explicit ordinals, two u8 columns, two i64 and six i32."""
++	var head: SaveHeader.Refusal = _field_head_refusal()
++	if not head.is_ok():
++		return head
++	return _field_tail_refusal()
++
++
++static func _field_head_refusal() -> SaveHeader.Refusal:
++	"""Ordinals 0..4: the occupancy byte, the resource id and the two i64 stock columns."""
++	var present: SaveHeader.Refusal = _field_refusal(FIELD_PRESENT, FIELD_PRESENT_KEY,
++		Schema.TYPE_U8, ROW_ELEMENT_COUNT)
++	if not present.is_ok():
++		return present
++	var resource_id: SaveHeader.Refusal = _field_refusal(FIELD_RESOURCE_ID,
++		FIELD_RESOURCE_ID_KEY, Schema.TYPE_I32, ROW_ELEMENT_COUNT)
++	if not resource_id.is_ok():
++		return resource_id
++	var quantity: SaveHeader.Refusal = _field_refusal(FIELD_QUANTITY_MILLI,
++		FIELD_QUANTITY_MILLI_KEY, Schema.TYPE_I64, ROW_ELEMENT_COUNT)
++	if not quantity.is_ok():
++		return quantity
++	var capacity: SaveHeader.Refusal = _field_refusal(FIELD_CAPACITY_MILLI,
++		FIELD_CAPACITY_MILLI_KEY, Schema.TYPE_I64, ROW_ELEMENT_COUNT)
++	if not capacity.is_ok():
++		return capacity
++	return _field_refusal(FIELD_REGROW_DAYS, FIELD_REGROW_DAYS_KEY, Schema.TYPE_I32,
++		ROW_ELEMENT_COUNT)
++
++
++static func _field_tail_refusal() -> SaveHeader.Refusal:
++	"""Ordinals 5..9: the planting date, the exhaustion byte, the tile and the split reference."""
++	var planted: SaveHeader.Refusal = _field_refusal(FIELD_PLANTED_DAY, FIELD_PLANTED_DAY_KEY,
++		Schema.TYPE_I32, ROW_ELEMENT_COUNT)
++	if not planted.is_ok():
++		return planted
++	var exhausted: SaveHeader.Refusal = _field_refusal(FIELD_EXHAUSTED, FIELD_EXHAUSTED_KEY,
++		Schema.TYPE_U8, ROW_ELEMENT_COUNT)
++	if not exhausted.is_ok():
++		return exhausted
++	var tile: SaveHeader.Refusal = _field_refusal(FIELD_TILE, FIELD_TILE_KEY, Schema.TYPE_I32,
++		ROW_ELEMENT_COUNT)
++	if not tile.is_ok():
++		return tile
++	var ref_slot: SaveHeader.Refusal = _field_refusal(FIELD_REF_SLOT, FIELD_REF_SLOT_KEY,
++		Schema.TYPE_I32, ROW_ELEMENT_COUNT)
++	if not ref_slot.is_ok():
++		return ref_slot
++	return _field_refusal(FIELD_REF_GENERATION, FIELD_REF_GENERATION_KEY, Schema.TYPE_I32,
++		ROW_ELEMENT_COUNT)
++
++
++static func _field_refusal(field: int, key: String, type_code: int,
++		count: int) -> SaveHeader.Refusal:
++	"""One pinned field: its owner-local key, its declared type and its exact extent."""
++	if Schema.field_key(OWNER_INDEX, field) != key:
++		return _refuse(Section.REFUSE_METADATA, "%s field %d is '%s'; the contract fixes '%s'"
++			% [METADATA_DETAIL_PREFIX, field, Schema.field_key(OWNER_INDEX, field), key])
++	if Schema.field_type(OWNER_INDEX, field) != type_code:
++		return _refuse(Section.REFUSE_METADATA, "%s field %d has type %d; the contract fixes %d"
++			% [METADATA_DETAIL_PREFIX, field, Schema.field_type(OWNER_INDEX, field), type_code])
++	if Schema.element_count(OWNER_INDEX, field) != count:
++		return _refuse(Section.REFUSE_METADATA, "%s field %d holds %d values; the contract fixes %d"
++			% [METADATA_DETAIL_PREFIX, field, Schema.element_count(OWNER_INDEX, field), count])
++	return _accept()
++
++
++static func _refuse(code: StringName, detail: String) -> SaveHeader.Refusal:
++	"""Build a refusal carrying an exact code: a section code, or a raw ResourceNodes column code."""
++	return SaveHeader.Refusal.new(code, detail)
++
++
++static func _accept() -> SaveHeader.Refusal:
++	"""The accepted result: an empty code and no detail."""
++	return SaveHeader.Refusal.new(SaveHeader.REFUSE_NONE, "")

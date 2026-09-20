@@ -86,6 +86,8 @@ jobs:
 
       - name: Work metadata preflight fault injection
         run: python3 tools/test_work_metadata_preflights.py
+      - name: ResourceNodes metadata preflight fault injection
+        run: python3 tools/test_resource_nodes_metadata_preflights.py
 
       - name: UI refinement contract
         # This one hashes PNGs and asserts their magic bytes. *.png is LFS, so

@@ -1,0 +1,5 @@
+# Additional parent evidence after contract freeze
+
+Legacy live-priority publicprobe14assertions/0failures, clean shutdown. It confirms earlierrow catalogsize wins over laterrow arrival; earlierrow Directory mismatch wins over laterrow species; same-row order species,size,arrival,Directory; allrefusals preserve state. Initial probe launch used the wrong draft path and loaded no script; raw launch-error log preserved, not runtime evidence. Correctedpath generated andran the exactplanned fixture.
+
+Parent metadata harness adds nine publication-drift cases (short,long,value for each existingCOLUMN_KEYS/COLUMN_TYPE_CODES/COLUMN_EXTENTS) to the contract's18schema/bypass/control cases, so planned runtime total27cases/243assertions. No productbehavior change or additional required bypass mutation. IndependentPython arithmetic proved allnine baseline/schemafault images self-consistent with298fields,5childextents,193184primaries and adjustedsectionlengths. Actualnewbridge execution remainspending. The parent draft is loop-session/test_residents_metadata_preflights.py.draft; it will be copied into producttools and reviewed after candidateimplementation exists.

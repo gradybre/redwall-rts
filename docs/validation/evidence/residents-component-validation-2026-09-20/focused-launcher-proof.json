@@ -1,0 +1,9 @@
+{
+  "path": "godot/test/residents_validation_focus.gd",
+  "sha256": "7cd67cb4c4b32059591dfe8a36029ee34f60566da674197e4ac1befba2a40875",
+  "content": "extends \"res://test/run_tests.gd\"\n\nfunc _discover_suites() -> PackedStringArray:\n\treturn PackedStringArray([\"res://test/test_save_owner_residents.gd\"])\n",
+  "actual_execution_log": "focused-final.log",
+  "expected_suite_count": 1,
+  "observed_tests": 9,
+  "scope": "Launcher exists and overrides discovery to the one Residents validation suite; inherited standard runner abort/vacuity behavior retained"
+}

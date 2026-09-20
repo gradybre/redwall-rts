@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/residents.gd": "7ce35ffc7e14ff9e8ba86d70d54a1401e0814751d0b71779d92ba476cd89655c",
+  "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+  "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+  "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+  "godot/test/test_residents_columns.gd": "e0fe9ac4245ef419745c95411ae6def42eab28579439f2401ec3d908d42b65a7"
+}

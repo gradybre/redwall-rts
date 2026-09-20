@@ -1,0 +1,30 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "3be23b32-e18e-4fe5-add8-776bbc23d7c2",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 2108,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 171742,
+    "costEstimateUsd": 1.7701300000000002
+  },
+  "elapsedMs": 29287,
+  "pid": 80427,
+  "exitCode": 0,
+  "state": "complete",
+  "result": {
+    "status": "complete",
+    "summary": "Wrote a read-only feasibility review for Residents owner 12 at docs/validation/evidence/residents-validation-planning-2026-09-20/feasibility-review.md: recommended Columns-based static predicate plus framed bridge, enumerated hazards (gate-order preservation, catalog/Directory-dependent live gates, null guard, negative arrival tick, generic reference domains, cap terminology, transient allocation budget), and listed the decisions still owed. No implementation, no claim of observation.",
+    "questions": [],
+    "files": [
+      {
+        "path": "docs/validation/evidence/residents-validation-planning-2026-09-20/feasibility-review.md",
+        "content": "# Residents owner 12 — independent feasibility review\n\n2026-09-20. Read-only. Everything below is read from the supplied sources; nothing was built, probed\nor executed, so no statement here is observed behaviour. This is a feasibility opinion, not a\ncontract and not dispatch authority.\n\n## Recommended shape\n\nA pure static local predicate plus a framed bridge is feasible, and the `Columns` inner class\nshould carry it. ADR 0132 §2 already rejected positional parameters for this owner — nineteen\nargument lists are not reviewable — so `static func columns_refusal(columns: Columns) -> StringName`\nis the right signature, mirroring the Needs owner-9 pattern rather than inventing a second one.\nThe bridge (`save_owner_needs.gd` shape: null record, owner index, `Schema.schema_refusal`,\nowner-local metadata parity with a distinguishing detail prefix, `Section.owner_shape_refusal`,\nexplicit nineteen-field projection, owner predicate) can instantiate `Columns` alone. It must not\nconstruct `Residents`, which compiles the species and rig catalogs and builds Directory and Needs\ncollaborators.\n\nThe split that makes this work is by dependency, not by convenience. Shape, byte domains, skill\nXP/level/reserved-index, reference well-formedness, the free-row rule and the present-count bound\nare argument-only and extract cleanly. The catalog-error gate, the per-row species-range and\nsize-class cross-check, and the self-reference Directory resolution are not: the first two read the\ninstance's compiled `_species_size`, the third reads a live directory. Keep those in the live\nrestore path, in their current position and order. The saved-side checks should be limited to\nspecies id in 0..15 and arrival tick >= 0, with no catalog size lookup and no Directory resolution;\nsaved catalog, Directory, Needs, name and equipment agreement stay explicitly outstanding.\n\n## Hazards\n\nGate order is load-bearing and currently begins with the catalog-error check before shape.\nExtracting a pure predicate that starts at shape silently changes which code a doubly-bad image\nreports. Either preserve the legacy order by leaving the catalog gate ahead of the shared predicate\nin the live path, or record the reordering as a deliberate decision — do not let it happen as a\nside effect.\n\n`copy_columns_into` and `restore_columns` reach `_columns_are_capacity_sized(out)` and index the\nrecord without a null test; a null argument appears to be a script error rather than a refusal. A\nshared null guard inside the sized predicate, returning the existing `COLUMN_SHAPE` code, is the\nbounded fix and matches what Needs did.\n\n`set_arrival_tick` accepts any signed int64 while restore refuses arrival < 0 on present rows. A\nnegative tick can be written publicly and then rejected on restore. An atomic refusal in the setter\nwith a new `OpResult` code is the clean repair, but it must not erase retained inactive histories\nthat already carry such values; the inactive-row rule does not bound arrival today.\n\nThe generic reference setters accept any non-negative int32 slot with positive generation, which is\nwider than any saved Directory or container identity. Do not tighten them from arena capacities\nalone. `present.count(1) <= 256` and the directory's active-resident cap coexist with dead-but-\npresent rows and end-of-tick release; this reads as a terminology mismatch, not a proven cap bug,\nand declaring one needs lifecycle authority. Storage stays 512, so every physical row matters.\n\nThe transient-defaults allocation in `Columns._init()` — 102912 bytes of values, replaced field by\nfield — is acceptable if charged explicitly, as the Needs contract charged its 135168. Do not call\nit zero-allocation. The existing sorted-copy helper pattern can replace the pure XP count scan, but\nthe 49152-byte int64 copy must be budgeted rather than assumed free.\n\n## Missing decisions\n\nWhether `skill_level_for_xp` becomes static outright, breaking or restyling callers, or stays an\ninstance method delegating to a new static helper. Whether the legacy catalog-first refusal order\nis preserved or deliberately changed. Whether the negative-arrival repair lands in this slice and\nunder which code. Whether inactive rows gain any arrival or species bound at all. Who owns the cap\nand lifecycle reconciliation.\n",
+        "baseSha256": null
+      }
+    ],
+    "decisionIds": []
+  }
+}

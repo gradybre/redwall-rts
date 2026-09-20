@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "46226e8e6fd5a1af4aeaee47fb5164a09dd7afb0",
+  "task": "Residents saved owner12 bridge only; narrow second implementation patch",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/residents_component_validation_contract.md",
+    "docs/decisions/0178-residents-validation-preserves-live-priority-and-retained-history.md",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/bridge-source-excerpts.md",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/contract-disposition.md",
+    "godot/scripts/core/save_owner_needs.gd",
+    "godot/scripts/core/save_owner_injury.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement ONLY NEW godot/scripts/core/save_owner_residents.gd. Separateownerpatch adds Residents.columns_refusal(Columns), no needtoeditowner. AcceptedRESIDENTS-S4-VALIDATE-R01v1/ADR0178 exact. ReturnONEfilesentry docs/validation/evidence/residents-component-validation-2026-09-20/author-bridge.patch baseSha256null, contentUNIFIEDDIFF creatingonlytargetfilemode100644. HARD350actualpatchlines AIM220. CompactvalidJSON, correctlyescapedstrings, noMarkdown/preamble/fullreplacementfiles. UseNeedsbridge7gates null/wrongowner12/schemaforward/metadata+sourcepins/shapeforward/Columnsprojection/staticpredicatewrap; all19explicit typedaccessors canonical order. Pinownerresidentsversion2primary512child0fields19; declarationCOUNTand3arraylengths/parityall19; sourcecapacity/cap/species/size/stage/roles/skills/defaultnull constants listedcontract. Sourceexcerpts lineannotated, notliteralcodecopy. Existingpublic constantsnames verifiedROLE_WARDEN1/SPECIALIST2, LIFE_STAGE_*, SKILL_COUNT/reserved3/max10/factor5000, EntityDirectory.NULL_* andResidents.NULL_REF. OrdinaryColumns.new102912defaultsallowed/caller102912/sort49152=254976; no Residents.new/liveowners/copy/restore/packedduplicates/newpublicationarray. DetailmetadataResidents owner12 metadata:; rawcode detailResidents owner 12 andcode. Only4preloadsResidents/Schema/Section/SaveHeader. Allconstantsimmutable, no schemaedits. Parentowns tests/mutations/sourceaudit/CI. Summary<=120words, consumecontractADR; rawJSONstatus/summary/questions/files/decisionIds."
+}

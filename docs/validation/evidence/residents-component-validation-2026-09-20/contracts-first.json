@@ -1,0 +1,165 @@
+[
+  {
+    "command": [
+      "python3",
+      "docs/validation/decision_numbers.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.026,
+    "output": "decision_numbers: PASS -- 171 records, 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/ready07_arithmetic.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.032,
+    "output": "{\"status\": \"PASS\", \"field_rows\": 144, \"allocation_rows\": 34, \"scheduler_total_bytes\": 8224, \"checked_local_links\": 129, \"runtime_tests\": \"NOT_RUN\"}\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/merge_gate.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.025,
+    "output": "merge_gate: PASS -- ledger only, 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/dispatch_plan.py",
+      "--validate"
+    ],
+    "exit_code": 0,
+    "seconds": 0.024,
+    "output": "dispatch_plan: PASS -- 107 tasks, 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/astra_inbox.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.023,
+    "output": "astra_inbox: PASS -- OPEN.md matches open_items.json\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_save_registry_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "seconds": 0.212,
+    "output": "PASS 31 independent name, cursor, UTF-8 framing and name-section-bound fixtures\nstate_registry_coverage: PASS -- 77 modules, 384 rows, 684 packed columns checked\nPASS source membership/types: 554 persisted packed fields (not semantic adapter validation)\nPASS registry structure: 52 owners, 603 canonical records\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_canonical_state_table.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.024,
+    "output": "PASS generated declaration table matches canonical_state_registry.json\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle01_handoff.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.024,
+    "output": "PASS Cycle 1: nine-owner wire arithmetic; four malformed target refusals; twelve starter-root fixtures; archived answers; queue gates; stable inbox anchors; packet evidence limits.\nScope: planning consistency only; no production codec, physical clearance, art or save-continuation acceptance.\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle02_handoff.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.025,
+    "output": "PASS Cycle 2 contract fixtures: 37 checks; projection, allocator, fit, gate and handoff cases.\nNo production codec, body measurement, movement admission, visual approval or save-continuation result is inferred.\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle03_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "seconds": 0.027,
+    "output": "PASS Cycle3: 76 checks; design geometry/format/grammar/handoff only.\nObserved registry: 603 canonical fields; 520 capacity strings = 474 exact + 46 upper bounds. Source proofs still owned by REGISTRY-CAPACITY-AUDIT.\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.233,
+    "output": "registry: 611 listed fields, 603 canonical, 8 non-hash (0 admitted here)\ncapacity census: 520 prose = 474 equality + 46 upper bound, 83 other canonical shapes, 55 distinct expressions\n  proved_equality                  474\n  proved_upper_bound               46\n  explained drift -- canonical_records: this audit 603, Astra Cycle 3 599 (+4) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot\n  explained drift -- distinct_expressions: this audit 55, Astra Cycle 3 56 (-1) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot\n  explained drift -- equality: this audit 474, Astra Cycle 3 473 (+1) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot\n  explained drift -- other_canonical_shapes: this audit 83, Astra Cycle 3 80 (+3) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot\n  explained drift -- packed_source_fields: this audit 554, Astra Cycle 3 553 (+1) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot\n  explained drift -- prose_records: this audit 520, Astra Cycle 3 519 (+1) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot\ncensus differs from Astra Cycle 3 (388f4f4) only by recorded decisions: reconciled\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 0,
+    "seconds": 2.442,
+    "output": "test_registry_capacity_audit: PASS -- 190 check(s), 0 failure(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/lane_notes.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.027,
+    "output": "lane_notes: PASS -- 54 lane record(s), 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_envelopes.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.39,
+    "output": "test_movement_envelopes: PASS -- 191 check(s), 0 failure(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_profile_policy.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.066,
+    "output": "test_movement_profile_policy: PASS -- 148 check(s), 0 failure(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_component_columns_schema.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.198,
+    "output": "PASS generated component column metadata matches component_columns_layout.json\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_component_columns_schema.py"
+    ],
+    "exit_code": 0,
+    "seconds": 13.65,
+    "output": "test_component_columns_schema: PASS -- 58 checks\n"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "bc78d3215bfb0c405c21a734bd53d41ea92df811",
+  "task": "Independent actual-source Residents validation and producer repair review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/residents_component_validation_contract.md",
+    "docs/decisions/0178-residents-validation-preserves-live-priority-and-retained-history.md",
+    "godot/scripts/core/residents.gd",
+    "godot/scripts/core/save_owner_residents.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/test/test_save_owner_residents.gd",
+    "tools/test_residents_metadata_preflights.py",
+    "docs/validation/evidence/residents-component-validation-2026-09-20/run_mutants.py",
+    "docs/validation/evidence/residents-component-validation-2026-09-20/owner-final.patch",
+    "docs/validation/evidence/residents-component-validation-2026-09-20/focused-final.log",
+    "docs/validation/evidence/residents-component-validation-2026-09-20/owner-early-checks.json",
+    "docs/validation/evidence/residents-component-validation-2026-09-20/parent-owner-findings.md",
+    "docs/validation/evidence/residents-component-validation-2026-09-20/parent-fixture-correction.md",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/additional-parent-evidence.md"
+  ],
+  "instructions": "Review actualapplied Residents+bridge+parenttests/harness against RESIDENTS-S4-VALIDATE-R01v1/ADR0178. Parentfixedowner misleadinghome/bedlivenesscomment and madecurvehelperprivate; owner-final.patch showsactualdelta. Checkpurity/no livecontext of savedpredicate, nineteen mappings,7bridgegates/allsourcepins, fullsignedinactivehistory/genericrefdomains/equipmentmirror/maxXP, sharedprefix vsLIVEcatalog-first+per-row species,size,arrival,Directorypreserved. Negativepublicarrivalguard afterexistingRESIDENT_NOT_PRESENT andbeforewrite; nullcapture/restore safe. No savedcrossownerclaim. Conditional254976budget retainsXPsortcopy; normalcoldColumns/wrappersallocate, no native/RSS/perfclaim. Actualfocus9/47336/0 andearlynull+prioritypassed. FirstparentliteralNOT_PRESENTwaswrong, fixedtorealRESIDENT_NOT_PRESENT; doNOTrequestchangingproductionnamespace. Metadata27cases(18schema/bypasscontrol+9sourcepublication), requiredmutants48(47assertion+1knownnull-runtimeerror) are currentlyrunning/pending; no claimpassed. Inspect oracles soundness all512/6144positions, omissionfixtures freehelpers exactnonmutation, shapeorder/livepriority. Identifyactual defects/blockers, optionalnotes separately. No sourceediting. ReturnONE NEW docs/validation/evidence/residents-component-validation-2026-09-20/source-review.md baseSha256null HARD65lines700words AIM40lines500words. Avoidrepetitivepreamble andno self-inventedtestpasses. RawJSONstatus/summary/questions/files/decisionIds."
+}

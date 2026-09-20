@@ -1,0 +1,7 @@
+{
+  "test_source_sha256": "b8fee2f9a2b686e8d2cf4522e5598f62a6746b7f59b22f20b792d18245054277",
+  "test_count": 9,
+  "baseline_assertions": 47336,
+  "scope": "Exact test source copied into active mutation clone before any optional endpoint additions",
+  "production_sources": "mutation-results.json will record unchanged owner/bridge source hashes"
+}

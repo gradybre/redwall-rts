@@ -1,0 +1,30 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "2e95415d-0f8d-41ee-af89-20c22140c176",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 11995,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 137416,
+    "costEstimateUsd": 1.674045
+  },
+  "elapsedMs": 143488,
+  "pid": 91205,
+  "exitCode": 0,
+  "state": "complete",
+  "result": {
+    "status": "complete",
+    "summary": "Independent source review of residents.gd, save_owner_residents.gd, the focused suite and both harnesses against RESIDENTS-S4-VALIDATE-R01 v1 / ADR 0178. Confirms predicate purity, the seven bridge gates and all source pins, preserved live per-row priority, the producer guard placement, the null shape guard, retained inactive history and the re-derived 254976-byte arithmetic. No production defect found; the recorded blockers are unexecuted mutation/metadata campaigns and one harness dependency (residents_validation_focus.gd) absent from the packet. Optional notes cover acceptance-domain coverage gaps only. One new evidence file, no source edits, no claimed runs.",
+    "questions": [],
+    "files": [
+      {
+        "path": "docs/validation/evidence/residents-component-validation-2026-09-20/source-review.md",
+        "content": "# Independent source review — residents component validation (2026-09-20)\n\nScope: `godot/scripts/core/residents.gd`, `save_owner_residents.gd`, `test/test_save_owner_residents.gd`,\n`tools/test_residents_metadata_preflights.py`, `run_mutants.py`, read against\nRESIDENTS-S4-VALIDATE-R01 v1 and ADR 0178. Reading only; nothing was executed or applied here, and\nno result below is a test outcome produced by this review.\n\n## Confirmed by reading\n\n- `columns_refusal` is static and argument-only: it constructs nothing, mutates nothing, and reads\n  no catalog, Directory or Needs state. It is the shared prefix, then species-then-arrival per\n  present row, exactly as contracted.\n- `_restore_column_refusal` keeps `_catalog_error` first, calls the shared prefix, then the\n  original live walk (species, compiled size, arrival, Directory) per row; the saved predicate is\n  not called from it, so no later-row arrival can outrank an earlier-row size or Directory fault.\n- The prefix preserves the published order and codes: shape before indexing, present/named then\n  size/stage/role byte scans over all 512 physical rows, XP/level/reserved over all 6144, ascending\n  reference and equipment shape, free-row rules, then the 256 present cap with 512 storage.\n- Inactive rows retain full signed species (i32) and arrival (i64) history; nothing normalizes them.\n- `set_arrival_tick` keeps `REFUSE_NOT_PRESENT` first, then the shared scalar rule, then the write;\n  a refusal cannot reach a column. `REFUSE_INVALID_ARRIVAL_TICK` is distinct from the unchanged\n  `COLUMN_ARRIVAL_TICK` spelling. The parent fixture correction to the real `RESIDENT_NOT_PRESENT`\n  constant is right; no production namespace change is requested.\n- The null guard sits in `_columns_are_capacity_sized`, which both `copy_columns_into` and\n  `restore_columns` reach before any member access, so both refuse false/COLUMN_SHAPE without\n  touching a Nil column. `skill_level_for_xp` is now a wrapper over the private static curve.\n- Bridge gates are ordered null, owner!=12, forwarded `Schema.schema_refusal`, metadata plus source\n  pins, forwarded `Section.owner_shape_refusal`, explicit assignment of all nineteen canonical\n  accessors, then the exact raw column code wrapped with `Residents owner 12 `. Preloads are limited\n  to Residents/Schema/Section/SaveHeader; there is no live owner, restore or copy call, and the\n  projection assigns rather than duplicates, so the framed record is not mutated.\n- Budget re-derived from the declarations: 2560 u8 + 22528 i32 + 24576 level + 4096 arrival +\n  49152 XP = 102912; 102912 caller + 102912 transient defaults + 49152 sorted XP copy = 254976,\n  below 6417408. This is allocation arithmetic only; no native, RSS or performance claim is made.\n- Mutation sites enumerate to 47 assertion oracles plus the one null runtime-error oracle, and\n  `run_mutants.py` asserts 52 results and 48 kills, per-run test count and absence of parse errors.\n\n## Defects and blockers\n\n1. Blocker (evidence, not code): the 48 required mutants and 27 metadata cases are pending. No\n   acceptance may be recorded from this packet; the recorded 9/47336/0 focused log and the earlier\n   null and priority probes are prior artifacts, not re-verified here.\n2. Defect (harness): `run_mutants.py` invokes `res://test/residents_validation_focus.gd`, which is\n   neither supplied in this packet nor written by the script, unlike the metadata harness which\n   creates its own focus file. Confirm the runner exists and discovers exactly the one suite, or\n   every run reports invalid execution instead of a kill.\n\n## Optional notes (not blockers)\n\n- Acceptance-domain coverage gaps: equipment `item 0 / durability 0` and a present-row CHILD stage\n  are legal endpoints named by the contract but not exercised as accepted fixtures.\n- The bridge pins the null handle through `Residents.EntityDirectory.NULL_SLOT`; a direct pin on the\n  Directory constants would make that dependency explicit.\n- Nineteen omission witnesses are acceptance-domain kills by design; any that refuse later for a\n  different reason must be labelled honestly in the results file.\n",
+        "baseSha256": null
+      }
+    ],
+    "decisionIds": []
+  }
+}

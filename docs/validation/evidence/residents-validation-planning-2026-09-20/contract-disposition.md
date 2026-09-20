@@ -1,0 +1,7 @@
+# Residents contract review disposition
+
+All three review blockers resolved before author dispatch. The final contract now names all19malformed projection-omission witnesses; inactive/ref/equipment supporting fields are explicit. Original publicrestore benchmark24578/0 completed in3.838seconds, so exhaustiveXP/level addresses fit the180second boundedrun without claiming changed-source performance. Nullguard omission is separately counted as a runtime-error oracle (47assertion +1runtime); normalruns rejectSCRIPTERROR.
+
+Two review statements corrected: countfault borrows ResourceNodes owner13firstu8[4096], not owner10. A legitimate nondefault pair fixture CAN catch one-half omission by turning it into an invalid halfnull pair; malformed per-field witnesses are nevertheless required and now explicit. Sixfreeclauses each have earlier-gate-valid fixtures; redundant freegeneration/durability halves were never required mutants. Metadatafaults modify onlyschema, leaving the existing Residents declaration arrays unchanged; sourcepins and generatorchecks separately freeze productionmetadata.
+
+Astra accepts RESIDENTS-S4-VALIDATE-R01v1/ADR0178 for boundedauthoring. No production Residents change is applied until PR168 completesCIandmerges. The existingColumns API and live diagnostics are preserved; negativepublicarrival and nullscript-errors are narrow defectrepairs. No savedcatalog/Directory/Needs/name/Gear binding or fullworldload acceptance implied.

@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "de150316e3abbdb689379cc4d5bea6d9efd77a98",
+  "task": "Final review of explicit Needs static validation and framed bridge contract",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/needs_component_validation_contract.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/status-gate-review.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/status-consistency-observation.md",
+    "godot/scripts/core/needs.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/test/test_needs_columns.gd"
+  ],
+  "instructions": "Independent final contract review before production author dispatch. Review NEEDS-S4-VALIDATE-R01draft1 exact APIs, gates, nullability, strict death-equivalence repair,20field COW bridge mapping, first refusal, metadata checks,135168 conditional memory and remaining named scope. Prior read-only status review accepted core direction; now identify any actual unresolved implementation ambiguity or unsafe/missing contract, not re-open settled gameplay. Include whether all20omission mutants can have distinct invalid per-field exact-code witnesses. No code/test modifications or run claims. Return exactly ONE NEW report docs/validation/evidence/needs-component-validation-2026-09-20/contract-review.md. Aim60lines/600words; hard120lines AND1200words. RAW JSON status/summary/questions/files/decisionIds only. Concise verdict and actionable findings, do not repeat entire contract."
+}

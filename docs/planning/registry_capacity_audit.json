@@ -25,7 +25,7 @@
       "jobs": "bf74583b409dd22da8b9100318e224b63bede5ed01c66be09f4ed0ab38809f3c",
       "movement": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3",
       "navigation": "00f43ec4f4d834fb836c2a72bdc882cb7eddd5d53e596ecd154a4d83f7caacf2",
-      "needs": "31fc6a56d294154024f39ff4f04924d9c2148fc4f08acee388fd6ea94595d553",
+      "needs": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
       "orchard_hive": "bb1e885b046f61aeb03f6939f2c05c7a4597e3238cf412e111abd07be4e3c780",
       "priorities": "ef5cfeb2deb574c3c23a0478dc3b243adcbf8b9cffa964e21d391c29adc90551",
       "reservations": "53b53155ee42871e08ab102beccea205d39627aec7b699399072fc269ac49659",
@@ -6132,7 +6132,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6144,7 +6144,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 540,
+      "source_resize_line": 544,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6155,8 +6155,8 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY * NEED_COUNT",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
-        "NEED_COUNT -> godot/scripts/core/needs.gd:158 `const NEED_COUNT = 5` = 5"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
+        "NEED_COUNT -> godot/scripts/core/needs.gd:161 `const NEED_COUNT = 5` = 5"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6168,7 +6168,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY * NEED_COUNT",
-      "source_resize_line": 531,
+      "source_resize_line": 535,
       "source_value": 2560,
       "status": "proved_equality"
     },
@@ -6179,8 +6179,8 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY * NEED_COUNT",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
-        "NEED_COUNT -> godot/scripts/core/needs.gd:158 `const NEED_COUNT = 5` = 5"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
+        "NEED_COUNT -> godot/scripts/core/needs.gd:161 `const NEED_COUNT = 5` = 5"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6192,7 +6192,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY * NEED_COUNT",
-      "source_resize_line": 532,
+      "source_resize_line": 536,
       "source_value": 2560,
       "status": "proved_equality"
     },
@@ -6203,7 +6203,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6215,7 +6215,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 533,
+      "source_resize_line": 537,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6226,7 +6226,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6238,7 +6238,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 534,
+      "source_resize_line": 538,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6249,7 +6249,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6261,7 +6261,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 535,
+      "source_resize_line": 539,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6272,7 +6272,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6284,7 +6284,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 536,
+      "source_resize_line": 540,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6295,7 +6295,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6307,7 +6307,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 537,
+      "source_resize_line": 541,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6318,7 +6318,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6330,7 +6330,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 538,
+      "source_resize_line": 542,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6341,7 +6341,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6353,7 +6353,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 539,
+      "source_resize_line": 543,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6364,7 +6364,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6376,7 +6376,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 541,
+      "source_resize_line": 545,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6387,7 +6387,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6399,7 +6399,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 542,
+      "source_resize_line": 546,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6410,7 +6410,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6422,7 +6422,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 543,
+      "source_resize_line": 547,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6433,7 +6433,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6445,7 +6445,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 544,
+      "source_resize_line": 548,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6456,7 +6456,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6468,7 +6468,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 545,
+      "source_resize_line": 549,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6479,7 +6479,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6491,7 +6491,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 546,
+      "source_resize_line": 550,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6502,7 +6502,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6514,7 +6514,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 547,
+      "source_resize_line": 551,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6525,7 +6525,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6537,7 +6537,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 548,
+      "source_resize_line": 552,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6548,7 +6548,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6560,7 +6560,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 549,
+      "source_resize_line": 553,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6571,7 +6571,7 @@
       "owner_key": "needs",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+        "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -6583,7 +6583,7 @@
       "source_module": "needs",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 550,
+      "source_resize_line": 554,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -8277,7 +8277,7 @@
       "owner_key": "work",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
         "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
       ],
       "proof_kind": "compiled_constant",
@@ -8301,7 +8301,7 @@
       "owner_key": "work",
       "parsed_expression": "RESIDENT_CAPACITY * SKILL_COUNT",
       "proof_chain": [
-        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
         "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512",
         "ResidentsScript.SKILL_COUNT -> godot/scripts/core/residents.gd:211 `const SKILL_COUNT = 12` = 12",
         "SKILL_COUNT -> godot/scripts/core/work.gd:239 `const SKILL_COUNT = ResidentsScript.SKILL_COUNT` = 12"
@@ -8327,7 +8327,7 @@
       "owner_key": "work",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
         "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
       ],
       "proof_kind": "compiled_constant",
@@ -8351,7 +8351,7 @@
       "owner_key": "work",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
         "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
       ],
       "proof_kind": "compiled_constant",
@@ -8375,7 +8375,7 @@
       "owner_key": "work",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
         "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
       ],
       "proof_kind": "compiled_constant",
@@ -8399,7 +8399,7 @@
       "owner_key": "work",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
         "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
       ],
       "proof_kind": "compiled_constant",
@@ -8423,7 +8423,7 @@
       "owner_key": "work",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
         "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
       ],
       "proof_kind": "compiled_constant",
@@ -8447,7 +8447,7 @@
       "owner_key": "work",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
         "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
       ],
       "proof_kind": "compiled_constant",
@@ -8471,7 +8471,7 @@
       "owner_key": "work",
       "parsed_expression": "RESIDENT_CAPACITY",
       "proof_chain": [
-        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+        "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:136 `const RESIDENT_CAPACITY = 512` = 512",
         "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
       ],
       "proof_kind": "compiled_constant",

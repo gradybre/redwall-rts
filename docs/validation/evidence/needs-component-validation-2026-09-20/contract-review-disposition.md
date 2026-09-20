@@ -1,0 +1,5 @@
+# Astra disposition — accepted v2
+
+F1: state exact unwrapped Refusal.code explicitly. F2: distinguish gate4 by detail prefix; metadata fault fixtures must also demonstrate which prerequisite remains valid. F3: existing parent witness keeps present1/health100/status7 and asserts COLUMN_ENUM_BYTE, so omission returning COLUMN_HEALTH_STATUS fails the assertion. F4: explicitly forbid bridge duplicate/install calls; existing range-copy budget remains.
+
+Two report inaccuracies are not adopted. Disjoint free/present row predicates CAN mask each other across different rows in one image; explicit first-refusal tests must cover that. The closing list repeats tick-repair and scan-optimization task labels from an earlier review, despite draft1 explicitly declining them. Neither is required or opened without new evidence. The two actual outstanding named Needs domain tasks remain status precedence and departure semantics. This acceptance covers the bounded primitive only, not total Needs or section4 validity.

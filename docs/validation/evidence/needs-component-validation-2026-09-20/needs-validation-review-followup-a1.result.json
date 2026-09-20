@@ -1,0 +1,30 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "cb384f96-6420-4258-bd25-d19876bd109a",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 7561,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 39813,
+    "costEstimateUsd": 0.5871649999999999
+  },
+  "elapsedMs": 101764,
+  "pid": 11026,
+  "exitCode": 0,
+  "state": "complete",
+  "result": {
+    "status": "complete",
+    "summary": "Added one bounded follow-up review note covering the S1/S2/S3 disposition and the revised 19-case metadata fault harness: verified the nine-assertion template, one-fault-at-a-time bypass isolation, schema-fault arithmetic balance, clone/restore ordering, exact gate-3 detail forwarding by equality, and CI wiring; the only medium finding is wall-clock headroom for 19 headless engine launches inside the 30-minute godot job. No blocker; no production change proposed; nothing was run.",
+    "questions": [],
+    "files": [
+      {
+        "path": "docs/validation/evidence/needs-component-validation-2026-09-20/review-followup.md",
+        "content": "# Review follow-up — S1/S2/S3 disposition and the revised metadata fault harness\n\nDate: 2026-09-20. Scope: the disposition's changes only. Production was re-read and is unchanged;\nthe settled source review is not reopened, and no gameplay or future semantics are proposed.\nI ran nothing. The 19-case result file is treated as parent-supplied evidence.\n\n## Verdict\n\n**No blocker.** One medium operational finding, the rest low. S1, S2 and S3 are answered by\nreachable engine assertions rather than by text.\n\n## Confirmed by reading the changed artefacts\n\n- **Assertion count is fail-closed.** `suite()` emits exactly nine assertions and `execute()`\n  pins `^1 test\\(s\\), 9 assertion\\(s\\), (\\d+) failure\\(s\\)$`. An added or dropped assertion\n  breaks every case loudly instead of silently shrinking coverage. `SCRIPT ERROR:` and\n  `Parse Error:` are excluded before a kill counts, so no mutant is killed by a parse failure.\n- **S1 answered.** Every case asserts both `Bridge.METADATA_DETAIL_PREFIX ==\n  \"Needs owner9 metadata:\"` and the `begins_with` outcome in the correct direction: true for the\n  four owner faults and the three publication faults, false for the positive control and for the\n  schema-gate case. Rewidening the prefix now fails in-engine.\n- **S2 answered, and the four bypasses are discriminating.** Each schema fault perturbs one\n  identity only, so bypassing one comparison in a compound `or` leaves the other clause false and\n  gate 4 genuinely accepts; the kill is the changed refusal code, not incidental. I re-derived the\n  balances: primary 8:511/9:513 keeps the 193184-row total; the child move adds 8 bytes to owner 9\n  and removes 8 from owner 10, so `OWNER_OFFSETS[10] = 9336936`, later offsets and `SECTION_BYTES`\n  stay valid, and `CHILD_EXTENTS[4]` is positive. Each case asserts `Schema.schema_refusal().code`\n  is empty first, so gate 4 is proven separate from gate 3.\n- **S3 answered without identity.** The schema-gate case asserts `refusal.detail ==\n  Schema.schema_refusal().detail` across two independent calls — forwarding, not object identity.\n- **Clone isolation and restore order.** One `copytree`; `docs`/`assets` are read-only symlinks;\n  the probe and focus runner are written inside the clone. `needs.gd` is restored after the\n  publication loop, the bridge after each bypass, and the final schema mutation derives from\n  `originals`, not from the faulted clone text. The `finally` block re-checks all three product\n  files byte-for-byte.\n- **CI wiring.** The step sits in the `godot` job after `run_tests.sh`, runs on pull_request and\n  push, and carries no `continue-on-error`. Placement outside `contracts` is correct: it needs an\n  engine.\n- **Evidence cross-check.** `metadata-preflights-review.json` reports 19 cases, 171 assertions,\n  4 `killed_bypass`, 15 passed, matching the disposition. Its recorded sha256 for\n  `save_owner_needs.gd` and the schema equal the inputs supplied here.\n\n## Findings\n\n**F1 — medium, operational. No wall-clock headroom is pinned for 19 engine launches.**\nEach case starts headless Godot with a 90 s per-case timeout inside a job capped at\n`timeout-minutes: 30` that already pays download, editor import, the full suite and a second\nfault-injection tool. The worst case exceeds the job cap. Bounded fix, parent-owned and\nCI-only: raise `timeout-minutes`, or record an observed total for this step once CI runs.\n\n**F2 — low. `needs.gd` assumptions are unverifiable from this packet.** `publication_fault`\ndepends on typed `Array[...]` declarations, exactly twenty tokens, and the identifiers\n`RESIDENT_CAPACITY` and `COLUMN_TYPE_I32`. The file was not supplied here; its sha256 appears\nonly inside the result JSON. Its `assert len(tokens) == 20` fails closed if any of that drifts.\n\n**F3 — low. A failing integrity assert in `finally` would mask the original exception.** Cosmetic;\nboth paths still fail the step.\n\n## Not reopened\n\nProduction source, gate order, projection purity, memory arithmetic, S4/S5/S6, the absence of a\nnormal-suite gate-4 case that cannot mutate compiled constants, and all deferred Needs semantics.\nFull-suite and exact-head CI evidence remain outstanding.\n",
+        "baseSha256": null
+      }
+    ],
+    "decisionIds": []
+  }
+}

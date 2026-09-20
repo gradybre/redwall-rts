@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "b924f2aab8c3a080923060ae2da3a4aeb6b12d3c",
+  "task": "Read-only Needs semantic extraction feasibility and domain audit",
+  "paths": [
+    "AGENTS.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/astra-source-questions.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/authority-excerpts.md",
+    "docs/planning/component_columns_stream_contract.md",
+    "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md",
+    "godot/scripts/core/needs.gd",
+    "godot/test/test_needs_columns.gd",
+    "godot/scripts/core/save_component_columns_schema.gd"
+  ],
+  "instructions": "Claude Opus read-only feasibility and domain audit, not implementation. Answer Astra source questions using actual supplied authorities and code. Trace complete purity/dependency/column mapping/error precedence/memory facts. Identify real plan defects, distinguish old comments from explicit accepted rules, and do not invent departure gameplay. Bound scope to Needs-only next slice;18-owner semantic parent stays incomplete. Output exactly ONE NEW report docs/validation/evidence/needs-component-validation-2026-09-20/feasibility-review.md at most180lines AND1800words. Both limits are strict; prior reviewers exceeded budgets, so use a compact table and omit restating questions. No production edits or test-run claims. RAW JSON status/summary/questions/files/decisionIds without fences/prose."
+}

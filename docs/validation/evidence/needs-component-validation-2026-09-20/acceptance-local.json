@@ -1,0 +1,37 @@
+{
+  "contract": "NEEDS-S4-VALIDATE-R01v2",
+  "decision": "0170",
+  "scope": "Needs owner9 pure framed validation primitive and corrective restore boundary",
+  "focused": {
+    "tests": 39,
+    "assertions": 6432,
+    "failures": 0
+  },
+  "required_mutants_killed": 24,
+  "metadata_bypasses_killed": 4,
+  "metadata_cases": 19,
+  "metadata_assertions": 171,
+  "static_gates": 17,
+  "full_suite": {
+    "tests": 4884,
+    "assertions": 208744,
+    "failures": 0,
+    "shutdown_objects": 553,
+    "shutdown_resources": 33,
+    "diagnostics": "unchanged from PR160"
+  },
+  "ci": "not yet dispatched",
+  "remaining": [
+    "NEEDS-STATUS-PRECEDENCE",
+    "NEEDS-DEPARTURE-DOMAIN",
+    "other17ownersemantics",
+    "ownerbindings",
+    "crossownersavedconsistency",
+    "fullsave/load"
+  ],
+  "reviews": "source and bounded follow-up: no blocker",
+  "production_sha256": {
+    "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+    "godot/scripts/core/save_owner_needs.gd": "eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2"
+  }
+}

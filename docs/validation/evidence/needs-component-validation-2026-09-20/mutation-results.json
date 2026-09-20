@@ -1,0 +1,314 @@
+{
+  "source_sha256": {
+    "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+    "godot/scripts/core/save_owner_needs.gd": "eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2"
+  },
+  "source_unchanged": true,
+  "results": [
+    {
+      "case": "mutant-baseline",
+      "exit_code": 0,
+      "valid_execution": true,
+      "killed": false,
+      "summary": [
+        "39 test(s), 6432 assertion(s), 0 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-present",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_death_equivalence_refuses_all_non_dead_statuses_at_zero_health",
+        "  FAIL  test_normal_injury_activity_and_starvation_history_remain_legal",
+        "  FAIL  test_signed_extrema_and_both_remainder_edges",
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "  FAIL  test_positive_range_limits_and_negative_i64_extrema",
+        "39 test(s), 6432 assertion(s), 7 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-need_value",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_signed_extrema_and_both_remainder_edges",
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "  FAIL  test_positive_range_limits_and_negative_i64_extrema",
+        "39 test(s), 6432 assertion(s), 4 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-need_remainder",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_signed_extrema_and_both_remainder_edges",
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "  FAIL  test_positive_range_limits_and_negative_i64_extrema",
+        "39 test(s), 6432 assertion(s), 4 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-health",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_death_equivalence_refuses_all_non_dead_statuses_at_zero_health",
+        "  FAIL  test_normal_injury_activity_and_starvation_history_remain_legal",
+        "  FAIL  test_signed_extrema_and_both_remainder_edges",
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "  FAIL  test_positive_range_limits_and_negative_i64_extrema",
+        "39 test(s), 6432 assertion(s), 7 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-health_remainder",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_signed_extrema_and_both_remainder_edges",
+        "  FAIL  test_positive_range_limits_and_negative_i64_extrema",
+        "39 test(s), 6432 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-cold_milli_hours",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_positive_range_limits_and_negative_i64_extrema",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-cold_remainder",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_signed_extrema_and_both_remainder_edges",
+        "  FAIL  test_positive_range_limits_and_negative_i64_extrema",
+        "39 test(s), 6432 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-starving_ticks",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_positive_range_limits_and_negative_i64_extrema",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-departure_days",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_signed_extrema_and_both_remainder_edges",
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "39 test(s), 6432 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-status",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_death_equivalence_refuses_all_non_dead_statuses_at_zero_health",
+        "  FAIL  test_normal_injury_activity_and_starvation_history_remain_legal",
+        "  FAIL  test_signed_extrema_and_both_remainder_edges",
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "  FAIL  test_positive_range_limits_and_negative_i64_extrema",
+        "39 test(s), 6432 assertion(s), 7 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-size_class",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-activity",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-comfort_environment",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-social_paired",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "39 test(s), 6432 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-purpose_source",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-cold_environment",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-clothing_tier",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_actual_declared_defaults_pass_but_arbitrary_zero_frame_does_not",
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "39 test(s), 6432 assertion(s), 4 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-infirmary",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-injury_state",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-field-airless",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_field_has_an_independent_invalid_value_witness",
+        "  FAIL  test_every_byte_domain_upper_edge_and_large_byte",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-death-rule",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_death_equivalence_refuses_all_non_dead_statuses_at_zero_health",
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "allow-zero-health-nondead",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_death_equivalence_refuses_all_non_dead_statuses_at_zero_health",
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "39 test(s), 6432 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "allow-positive-health-dead",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_death_equivalence_refuses_all_non_dead_statuses_at_zero_health",
+        "39 test(s), 6432 assertion(s), 1 failure(s)"
+      ]
+    },
+    {
+      "case": "death-before-free-row",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_living_cap_and_first_refusal_across_distinct_rows",
+        "39 test(s), 6432 assertion(s), 1 failure(s)"
+      ]
+    },
+    {
+      "case": "mutant-restored",
+      "exit_code": 0,
+      "valid_execution": true,
+      "killed": false,
+      "summary": [
+        "39 test(s), 6432 assertion(s), 0 failure(s)"
+      ]
+    }
+  ]
+}

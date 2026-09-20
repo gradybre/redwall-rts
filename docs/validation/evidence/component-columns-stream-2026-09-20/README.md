@@ -13,3 +13,5 @@ Active SAVE-S4-STREAM-R01v2 / ADR0169, based on PR159 mergef0d91ba0b34323ea6b8f4
 Independent source review found no blockers; all nine findings have explicit dispositions. The original full regression passed4868tests/202411assertions/0failures with unchanged553object/33resource shutdown diagnostics. Final regression passes4869tests/202461assertions/0failures with the same553object/33resource shutdown diagnostics. Bounded independent follow-up accepts the remedies with no blocker; remaining low findings and the report output-budget exception are dispositioned. Exact-head CI and merge remain pending; no gameplay acceptance is asserted.
 
 Review follow-through adds seven disposable-clone fault cases (56assertions) and kills four additional bypass mutants for the two cursors’ metadata and byte-order guards. These run in CI; no native big-endian host was tested. The generator numeric parity repair preserves legitimate registry policy booleans.
+
+PR160 merged at de150316e3abbdb689379cc4d5bea6d9efd77a98 after exact-head CI35491728462 passed4869/202461/0 and both required checks. CI also passed58generator checks and all7preflight fault cases. See ci-merge.json.

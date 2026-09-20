@@ -1,0 +1,272 @@
+{
+  "changed_leaves": 53,
+  "only_inventory_hash_and_source_locations": true,
+  "capacity_schema_and_value_changes": false,
+  "diff": [
+    [
+      "/audited_source/module_sha256/inventory",
+      "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
+      "c8ec0dc122426a8231b7d00c13279fb1bfd42c5187740f6121692987ba2f1ca9"
+    ],
+    [
+      "/rows/397/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/397/source_resize_line",
+      549,
+      553
+    ],
+    [
+      "/rows/398/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/398/source_resize_line",
+      569,
+      573
+    ],
+    [
+      "/rows/399/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/399/source_resize_line",
+      542,
+      546
+    ],
+    [
+      "/rows/400/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/400/source_resize_line",
+      562,
+      566
+    ],
+    [
+      "/rows/401/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/401/source_resize_line",
+      539,
+      543
+    ],
+    [
+      "/rows/402/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/402/source_resize_line",
+      540,
+      544
+    ],
+    [
+      "/rows/403/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/403/source_resize_line",
+      541,
+      545
+    ],
+    [
+      "/rows/404/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/404/source_resize_line",
+      543,
+      547
+    ],
+    [
+      "/rows/405/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/405/source_resize_line",
+      544,
+      548
+    ],
+    [
+      "/rows/406/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/406/source_resize_line",
+      545,
+      549
+    ],
+    [
+      "/rows/407/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/407/source_resize_line",
+      546,
+      550
+    ],
+    [
+      "/rows/408/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/408/source_resize_line",
+      547,
+      551
+    ],
+    [
+      "/rows/409/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/409/source_resize_line",
+      548,
+      552
+    ],
+    [
+      "/rows/410/proof_chain/1",
+      "_c_capacity -> godot/scripts/core/inventory.gd:529 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376",
+      "_c_capacity -> godot/scripts/core/inventory.gd:533 `clampi(p_container_capacity, 1, CONTAINER_CAPACITY)` max = 101376"
+    ],
+    [
+      "/rows/410/source_resize_line",
+      550,
+      554
+    ],
+    [
+      "/rows/411/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/411/source_resize_line",
+      556,
+      560
+    ],
+    [
+      "/rows/412/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/412/source_resize_line",
+      557,
+      561
+    ],
+    [
+      "/rows/413/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/413/source_resize_line",
+      558,
+      562
+    ],
+    [
+      "/rows/414/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/414/source_resize_line",
+      559,
+      563
+    ],
+    [
+      "/rows/415/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/415/source_resize_line",
+      560,
+      564
+    ],
+    [
+      "/rows/416/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/416/source_resize_line",
+      561,
+      565
+    ],
+    [
+      "/rows/417/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/417/source_resize_line",
+      563,
+      567
+    ],
+    [
+      "/rows/418/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/418/source_resize_line",
+      564,
+      568
+    ],
+    [
+      "/rows/419/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/419/source_resize_line",
+      565,
+      569
+    ],
+    [
+      "/rows/420/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/420/source_resize_line",
+      566,
+      570
+    ],
+    [
+      "/rows/421/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/421/source_resize_line",
+      567,
+      571
+    ],
+    [
+      "/rows/422/proof_chain/1",
+      "_l_capacity -> godot/scripts/core/inventory.gd:530 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384",
+      "_l_capacity -> godot/scripts/core/inventory.gd:534 `clampi(p_lot_capacity, 1, LOT_CAPACITY)` max = 16384"
+    ],
+    [
+      "/rows/422/source_resize_line",
+      568,
+      572
+    ]
+  ]
+}

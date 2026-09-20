@@ -1,0 +1,93 @@
+{
+  "scope": "Two authored semantic faults plus before/after controls; no source mutation in working checkout",
+  "source_sha256": "c8ec0dc122426a8231b7d00c13279fb1bfd42c5187740f6121692987ba2f1ca9",
+  "test_sha256": "eeac24b3e722e441f47bbba5adf195aca6e5fdd15593bedf66c1a66e57f42c4d",
+  "plan_sha256": "a5d5abb434354a19f52d12dc7654a09da30264aae7559485b0f1ef12629f7a7f",
+  "seconds": 10.393,
+  "results": [
+    {
+      "case": "baseline-before",
+      "source_sha256": "c8ec0dc122426a8231b7d00c13279fb1bfd42c5187740f6121692987ba2f1ca9",
+      "exit_code": 0,
+      "counts": [
+        14,
+        133,
+        0
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [],
+      "missing_expected_failures": [],
+      "engine_diagnostics": [],
+      "unexpected_errors": [],
+      "log_sha256": "0902362559f905e4e9bb3dfae9f2a215a411a4b58078e5a3d4816262c1d6e6ef"
+    },
+    {
+      "case": "equipment-authority-strong-ownership-restored",
+      "source_sha256": "9070f6fd1ad5ba437f612f9967dcaaa847df79a1932780791b001734f7034595",
+      "exit_code": 1,
+      "counts": [
+        14,
+        133,
+        7
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_expired_refcounted_authority_refuses_all_four_gates_with_state_unchanged",
+        "test_audit_refuses_orphan_lot_after_authority_expires_without_normalization",
+        "test_explicit_unbind_refuses_with_live_equipped_lots_even_after_authority_expires",
+        "test_a_live_replacement_authority_restores_attestation_after_expiry",
+        "test_a_strong_per_call_local_survives_the_authority_dropping_its_sole_external_owner",
+        "test_real_gear_inventory_residents_mutually_release_without_unbind",
+        "test_real_gear_alone_retains_inventory_and_residents_until_gear_is_dropped"
+      ],
+      "missing_expected_failures": [],
+      "engine_diagnostics": [
+        "ERROR: 5 resources still in use at exit (run with --verbose for details)."
+      ],
+      "unexpected_errors": [],
+      "log_sha256": "57d4e4de92e604b107b58f26a0f7990498257cf4d79e41187ff4ee7b20fbb0e5"
+    },
+    {
+      "case": "equipment-authority-expired-wrapper-admitted",
+      "source_sha256": "f4e9f5299d032c500fc18175575ebcf07878f03821c3007ed17c4cfdd3823518",
+      "exit_code": 1,
+      "counts": [
+        14,
+        133,
+        3
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_expired_refcounted_authority_refuses_all_four_gates_with_state_unchanged",
+        "test_expired_node_authority_refuses_all_four_gates_after_explicit_free",
+        "test_explicit_unbind_refuses_with_live_equipped_lots_even_after_authority_expires"
+      ],
+      "missing_expected_failures": [],
+      "engine_diagnostics": [],
+      "unexpected_errors": [],
+      "log_sha256": "1864879198599ff2c18530752c4005edd95b894377d63b0cb10dff174b7ada89"
+    },
+    {
+      "case": "baseline-after",
+      "source_sha256": "c8ec0dc122426a8231b7d00c13279fb1bfd42c5187740f6121692987ba2f1ca9",
+      "exit_code": 0,
+      "counts": [
+        14,
+        133,
+        0
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [],
+      "missing_expected_failures": [],
+      "engine_diagnostics": [],
+      "unexpected_errors": [],
+      "log_sha256": "0902362559f905e4e9bb3dfae9f2a215a411a4b58078e5a3d4816262c1d6e6ef"
+    }
+  ],
+  "source_unchanged": true,
+  "passed": true
+}

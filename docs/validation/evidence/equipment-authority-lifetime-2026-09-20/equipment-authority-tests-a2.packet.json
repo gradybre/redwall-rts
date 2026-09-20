@@ -1,0 +1,33 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "task": "Close lifetime-test completeness and automatic discovery before independent review",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/equipment_authority_lifetime_contract.md",
+    "docs/decisions/0187-inventory-borrows-equipment-authority.md",
+    "godot/scripts/core/inventory.gd",
+    "godot/test/test_stock_authority_lifetime.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "docs/validation/evidence/shutdown-leak-diagnostic-2026-09-20/equipment-cycle-probe.gd",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/qa-collaborator-excerpts.md",
+    "godot/test/test_equipment_authority_lifetime.gd",
+    "godot/test/equipment_authority_lifetime_focus.gd",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/functional-a1.json"
+  ],
+  "allowedWrites": {
+    "godot/test/test_equipment_authority_lifetime.gd": "bf18600cdecf22ab04fb7bbb976819f1b24162dfe6624d6b28f03b4d5173a2f6",
+    "godot/test/equipment_authority_lifetime_focus.gd": "fdb7c987f382bdca9b7567772143d4d29baa881807aeaceabe1c4a094da1ce56"
+  },
+  "instructions": "Bounded test repair1, same author. Actual candidate suite passed11tests101assertions, no runtime/engine errors. However original packet explicitly required focus to extend run_tests and discover five suites. Your standalone focus moved the TWO decisive real Gear ownership witnesses out of automated full-suite discovery. Correct this: move both real triple lifecycle scenarios into named test_* methods in test_equipment_authority_lifetime.gd, using actual public probe APIs and weakrefs, assert both intermediate and final lifetimes. Change equipment_authority_lifetime_focus.gd into an extends res://test/run_tests.gd runner discovering exactly the lifetime suite, test_inventory.gd, test_gear.gd, test_stock_authority_lifetime.gd, test_settlement_system.gd. No standalone hidden witnesses.\nAdd missing transaction-open binding refusal preserving prior live authority: start actual Inventory transaction, attempt both replacement/unbind, assert existing exact error and unchanged state, rollback then demonstrate original authority still attests and candidate replacement was not used. Add assert_false(op.ok) for each expired gate result alongside exact error/fullbytes. Existing candidate covers liveNode callback via _equip; retain that. Setup helpers currently assert and RETURN even refused handles; make scenarios stop after failed required setup, with cleanup for any Node/holder cycle, so counterfactual execution failures cannot be mistaken for semantic witness success. Keep all eleven existing positive/expiry/audit/reentry tests and same actualproduction API. No implementation edits. <=650total source lines, <=30code-line functions. Return exact TWO full files with their declared base hashes, baseSha256FIRST,path,content; top-levelexactstatus/summary/questions/files/decisionIds. Explain what changed without claiming execution.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/equipment-authority-tests-a1"
+}

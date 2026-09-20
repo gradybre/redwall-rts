@@ -1,0 +1,20 @@
+{
+  "step": "import",
+  "command": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "seconds": 3.135,
+  "exit_code": 0,
+  "counts": null,
+  "expected_counts": null,
+  "passed": true,
+  "error_lines": [],
+  "unexpected_errors": [],
+  "leak_diagnostic_lines": [],
+  "log_sha256": "fe8156c12ca45ff956d6e6a530cc4c5cce2fac83be4d06cef225c859df7d1b4c"
+}

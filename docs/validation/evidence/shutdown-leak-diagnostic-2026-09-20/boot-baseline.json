@@ -1,0 +1,10 @@
+{
+  "scope": "Current game boot/shutdown diagnostic only, not planned refuge or first-playable acceptance",
+  "head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "exit_code": 0,
+  "seconds": 2.066,
+  "script_error": false,
+  "leak_warning_lines": [],
+  "engine_error_lines": [],
+  "log_sha256": "9f4ac45a0fdc4f6f39b63fe27f96c7c4ae91d7a09ce2c9f94a49838341e39ef3"
+}

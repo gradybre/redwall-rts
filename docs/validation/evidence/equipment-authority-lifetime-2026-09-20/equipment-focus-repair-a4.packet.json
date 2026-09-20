@@ -1,0 +1,35 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "task": "Fix actual focused-runner parse failure without changing fourteen passing tests",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/equipment_authority_lifetime_contract.md",
+    "docs/decisions/0187-inventory-borrows-equipment-authority.md",
+    "godot/scripts/core/inventory.gd",
+    "godot/test/test_stock_authority_lifetime.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "docs/validation/evidence/shutdown-leak-diagnostic-2026-09-20/equipment-cycle-probe.gd",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/qa-collaborator-excerpts.md",
+    "godot/test/test_equipment_authority_lifetime.gd",
+    "godot/test/equipment_authority_lifetime_focus.gd",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/functional-a1.json",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/functional-a2.json",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/focus-a2.json",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/focus-a2.log"
+  ],
+  "allowedWrites": {
+    "godot/test/equipment_authority_lifetime_focus.gd": "0450e0625883de3488b2e561131a7d9bc5ab05afa9bb829c1a28fea210a90701"
+  },
+  "instructions": "Bounded syntax repair2. Actual discovered lifetime suite passes14tests133assertions, but YOUR actual focused runner fails import: Assigned value for constant FOCUS_SUITES is not a constant expression. PackedStringArray constructor cannot be used as a GDScript const expression here. Return ONLY the allowed focus file, preserving exact five-suite order and base runner extension; either const Array[String] then runtime PackedStringArray conversion in _discover_suites, or the five literal strings directly inside a runtime PackedStringArray return. No new helper, test alteration or production change. <=25lines. This is an actual failure, not a request to shorten a valid output. AllfileentryexactbaseSha256FIRST,path,content with declared hash; top-levelstatus/summary/questions/files/decisionIds. No execution/acceptance claim.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/equipment-authority-faults-a3"
+}

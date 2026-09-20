@@ -1,0 +1,99 @@
+{
+  "scope": "Isolated equipment candidate only, excludes Construction candidate; full supervised suite plus separate verbose diagnostic",
+  "results": [
+    {
+      "step": "import",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "seconds": 3.135,
+      "exit_code": 0,
+      "counts": null,
+      "expected_counts": null,
+      "passed": true,
+      "error_lines": [],
+      "unexpected_errors": [],
+      "leak_diagnostic_lines": [],
+      "log_sha256": "fe8156c12ca45ff956d6e6a530cc4c5cce2fac83be4d06cef225c859df7d1b4c"
+    },
+    {
+      "step": "focus",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--script",
+        "test/equipment_authority_lifetime_focus.gd"
+      ],
+      "seconds": 41.622,
+      "exit_code": 0,
+      "counts": [
+        422,
+        8265,
+        0
+      ],
+      "expected_counts": [
+        422,
+        8265,
+        0
+      ],
+      "passed": true,
+      "error_lines": [
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'OVERFLOW' at hour tick 750 is unrecovered (retries attempted: 0); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset."
+      ],
+      "unexpected_errors": [],
+      "leak_diagnostic_lines": [],
+      "log_sha256": "985ba78a0efe9d38ea8be19add7c8fc5fd621c975060daea46faa52975e02e64"
+    },
+    {
+      "step": "full",
+      "command": [
+        "./tools/run_tests.sh"
+      ],
+      "seconds": 270.957,
+      "exit_code": 0,
+      "counts": [
+        5060,
+        526482,
+        0
+      ],
+      "expected_counts": [
+        5060,
+        526482,
+        0
+      ],
+      "passed": false,
+      "error_lines": [
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'OVERFLOW' at hour tick 750 is unrecovered (retries attempted: 0); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: ui_frame_builder: UI_FRAME_PANEL_TOO_SMALL for frame 0 at (20.000000, 20.000000)",
+        "ERROR: ui_frame_builder: UI_FRAME_UNKNOWN_FRAME for frame 5 at (300.000000, 120.000000)",
+        "ERROR: ui_frame_builder: UI_FRAME_NULL_PANEL",
+        "ERROR: UIManager.register_hud() was given null; the HUD will not update."
+      ],
+      "unexpected_errors": [
+        "ERROR: ui_frame_builder: UI_FRAME_PANEL_TOO_SMALL for frame 0 at (20.000000, 20.000000)",
+        "ERROR: ui_frame_builder: UI_FRAME_UNKNOWN_FRAME for frame 5 at (300.000000, 120.000000)",
+        "ERROR: ui_frame_builder: UI_FRAME_NULL_PANEL",
+        "ERROR: UIManager.register_hud() was given null; the HUD will not update."
+      ],
+      "leak_diagnostic_lines": [],
+      "log_sha256": "6598a5b25cb8b887358f972cc952c516348cd6f7b598c50f3c1e605e81b97669"
+    }
+  ],
+  "source_unchanged": true,
+  "passed": false
+}

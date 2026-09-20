@@ -1,0 +1,31 @@
+{
+  "attempts": [
+    {
+      "id": "equipment-authority-author-a1",
+      "model": "claude-opus-5",
+      "sessionId": "f1bb5611-babe-4af1-8e95-7e557af37150",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/equipment_authority_lifetime_contract.md": "5cddcf73026d827733797723527033c5de7881a872dd91357831b69cb6de88ec",
+        "docs/decisions/0187-inventory-borrows-equipment-authority.md": "af86e99c71991e778d38b33b441b4ab4a20725d14802bb5a82ac21f172f29429",
+        "docs/rulings/2026-09-19_stock_authority_lifetime.md": "1bce89d0669023de32eff09929b16cc486e0e0a6ea0e4025ccb2acb4a04d8c97",
+        "godot/scripts/core/inventory.gd": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
+        "godot/scripts/core/gear.gd": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f",
+        "godot/scripts/core/residents.gd": "90a99e562e4e0b41da5f2afad5df7ab64f297b93b86f985d21535ebd72c3a06c",
+        "godot/test/test_inventory.gd": "d8728e970d3aaf4aa4eeae25a42c483fd502aaa3574576122488ea3a38b3de02",
+        "godot/test/test_gear.gd": "a65de86810092f58c43cb5c3c957eaf3a66d13048e836cf1c597778dfbdef146",
+        "godot/test/test_settlement_system.gd": "2fc015855bb1064e0a69dd2d4abe91baee7f7432ba824d30bd716ba40f4005df",
+        "godot/test/framework/test_case.gd": "d7ea4c9b45ba1e5b8fbabfeb85ce7723ae54ad83a5f3aac7e1e7efe0fb5430f7",
+        "godot/test/run_tests.gd": "1e4032bafb0a34965a4d184c56ee116f73f0a34941cfc13b37edff21c2a2ecb7",
+        "docs/validation/evidence/shutdown-leak-diagnostic-2026-09-20/equipment-cycle-probe.gd": "36ea8d97b782d5b7a5fa5391c392301743cf12b802ef649d87ea9c68c5e39c37"
+      },
+      "outputLines": 119,
+      "outputLineBudget": 240,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "818197313aa87cae2c1e6cfe091abe27d24817fc"
+    }
+  ]
+}

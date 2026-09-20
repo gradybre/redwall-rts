@@ -1,0 +1,8 @@
+{
+  "command": [
+    "python3",
+    "docs/validation/state_registry_coverage.py"
+  ],
+  "exit_code": 0,
+  "output": "state_registry_coverage: PASS -- 83 modules, 390 rows, 684 packed columns checked\n"
+}

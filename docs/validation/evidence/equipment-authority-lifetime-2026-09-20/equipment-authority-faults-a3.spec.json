@@ -1,0 +1,31 @@
+{
+  "id": "equipment-authority-faults-a3",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/equipment-authority-faults-a3",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/equipment_authority_lifetime_contract.md",
+    "docs/decisions/0187-inventory-borrows-equipment-authority.md",
+    "godot/scripts/core/inventory.gd",
+    "godot/test/test_stock_authority_lifetime.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "docs/validation/evidence/shutdown-leak-diagnostic-2026-09-20/equipment-cycle-probe.gd",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/qa-collaborator-excerpts.md",
+    "godot/test/test_equipment_authority_lifetime.gd",
+    "godot/test/equipment_authority_lifetime_focus.gd",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/functional-a1.json",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/functional-a2.json"
+  ],
+  "instructions": "The revised automatic suite actually passed14tests133assertions with no errors. No production/test code repair requested. Return ONE new semantic-fault-plan.json artifact defining exactly two executable source fault units for Astra's deterministic isolated clone campaign; do not run anything or mutate production. Each entry: id, purpose, replacements[{path,old,new,expected_occurrences:1}], expected_failing_tests. Targets only godot/scripts/core/inventory.gd. Both must compile and run all14 existing new tests with no GDScript/parse errors, causing genuine assertion failures. Unit1 restore only strong ownership of equipment authority while preserving live get_ref semantics and freed-Node validity: a tiny test-only StrongEquipmentReference RefCounted inner class storing Object strongly, get_ref returns target if is_instance_valid else null; change field type and successful setter to this strong holder, leave production gate logic intact. This avoids dangling-Node runtime errors and isolates retention. Exact byte old strings from supplied source, <=50newlines total. Unit2 bypass only expired wrapper's refusal branch in _equipment_authority_refusal (return REFUSE_NONE instead of INVALID on get_ref null), leaving never-bound NO authority and _attests intact; tests must catch expired preflight/attach admission or wrong refusal with unchanged source compiled. Expected failing test names must be actual named tests, with at least one decisive real mutual-release test for unit1 and valid expired preflight/attach witness for unit2. Include baseline source/test SHA256? You can omit hashes because Astra computes them; never invent. JSON is test plan/data not accepted execution. Keep5topkeys status/summary/questions/files/decisionIds; artifact entry3keys baseSha256:null FIRST,path,content. No edits to passing tests.\n\nDispatch audit: {\"base_commit\":\"818197313aa87cae2c1e6cfe091abe27d24817fc\",\"task\":\"Specify two exact valid semantic counterfactuals for the frozen passing lifetime candidate\",\"allowedWrites\":{\"docs/validation/evidence/equipment-authority-lifetime-2026-09-20/semantic-fault-plan.json\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/equipment-authority-tests-a2"
+}

@@ -1,0 +1,220 @@
+WorkerThreadPool: 18 threads, 5 max low-priority.
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+TextServer: Added interface "Dummy"
+TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+SDL: Init OK!
+Using "default" pen tablet driver...
+
+TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+CORE API HASH: 2004498165
+EDITOR API HASH: 1696660745
+SceneTreeFTI: traversal method DEFAULT
+Loading resource: res://scripts/systems/entity_manager.gd remapped: res://scripts/systems/entity_manager.gd
+Completed load for: 'res://scripts/systems/entity_manager.gd' remapped 'res://scripts/systems/entity_manager.gd' at thread -1
+Loading resource: res://scripts/systems/game_manager.gd remapped: res://scripts/systems/game_manager.gd
+Completed load for: 'res://scripts/systems/game_manager.gd' remapped 'res://scripts/systems/game_manager.gd' at thread -1
+Loading resource: res://scripts/systems/settlement_system.gd remapped: res://scripts/systems/settlement_system.gd
+Completed load for: 'res://scripts/systems/settlement_system.gd' remapped 'res://scripts/systems/settlement_system.gd' at thread -1
+Loading resource: res://scripts/systems/economy_system.gd remapped: res://scripts/systems/economy_system.gd
+Completed load for: 'res://scripts/systems/economy_system.gd' remapped 'res://scripts/systems/economy_system.gd' at thread -1
+Loading resource: res://scripts/systems/ui_manager.gd remapped: res://scripts/systems/ui_manager.gd
+Completed load for: 'res://scripts/systems/ui_manager.gd' remapped 'res://scripts/systems/ui_manager.gd' at thread -1
+Loaded system CA certificates
+Loading resource: res://scenes/main.tscn remapped: res://scenes/main.tscn
+Loading resource: res://scripts/main.gd remapped: res://scripts/main.gd
+Completed load for: 'res://scripts/main.gd' remapped 'res://scripts/main.gd' at thread -1
+Loading resource: res://scenes/ui/hud.tscn remapped: res://scenes/ui/hud.tscn
+Completed load for: 'res://scenes/ui/hud.tscn' remapped 'res://scenes/ui/hud.tscn' at thread -1
+Completed load for: 'res://scenes/main.tscn' remapped 'res://scenes/main.tscn' at thread -1
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+Loading resource: res://ui/theme/woodland_theme.tres remapped: res://ui/theme/woodland_theme.tres
+Loading resource: res://ui/fonts/NotoSans-SemiBold.ttf remapped: res://ui/fonts/NotoSans-SemiBold.ttf
+Loading resource: res://.godot/imported/NotoSans-SemiBold.ttf-454f2593c27bd5f674011774b8ad0cd0.fontdata remapped: res://.godot/imported/NotoSans-SemiBold.ttf-454f2593c27bd5f674011774b8ad0cd0.fontdata
+Completed load for: 'res://ui/fonts/NotoSans-SemiBold.ttf' remapped 'res://ui/fonts/NotoSans-SemiBold.ttf' at thread -1
+Loading resource: res://ui/fonts/NotoSans-Regular.ttf remapped: res://ui/fonts/NotoSans-Regular.ttf
+Loading resource: res://.godot/imported/NotoSans-Regular.ttf-65789cdf7f69fc7af5859dd5c23c7915.fontdata remapped: res://.godot/imported/NotoSans-Regular.ttf-65789cdf7f69fc7af5859dd5c23c7915.fontdata
+Completed load for: 'res://ui/fonts/NotoSans-Regular.ttf' remapped 'res://ui/fonts/NotoSans-Regular.ttf' at thread -1
+Loading resource: res://ui/fonts/NotoSans-Bold.ttf remapped: res://ui/fonts/NotoSans-Bold.ttf
+Loading resource: res://.godot/imported/NotoSans-Bold.ttf-592de5e92cec4da88749b0946619f623.fontdata remapped: res://.godot/imported/NotoSans-Bold.ttf-592de5e92cec4da88749b0946619f623.fontdata
+Completed load for: 'res://ui/fonts/NotoSans-Bold.ttf' remapped 'res://ui/fonts/NotoSans-Bold.ttf' at thread -1
+Completed load for: 'res://ui/theme/woodland_theme.tres' remapped 'res://ui/theme/woodland_theme.tres' at thread -1
+Loading resource: res://ui/symbolic16/food.svg remapped: res://ui/symbolic16/food.svg
+Loading resource: res://.godot/imported/food.svg-26ea372f1476bc1635ad3f9303033167.ctex remapped: res://.godot/imported/food.svg-26ea372f1476bc1635ad3f9303033167.ctex
+Completed load for: 'res://ui/symbolic16/food.svg' remapped 'res://ui/symbolic16/food.svg' at thread -1
+Loading resource: res://ui/icons/lock.svg remapped: res://ui/icons/lock.svg
+Loading resource: res://.godot/imported/lock.svg-7d7f4a9bb2f3af79f4e0d10b8d97b9b1.ctex remapped: res://.godot/imported/lock.svg-7d7f4a9bb2f3af79f4e0d10b8d97b9b1.ctex
+Completed load for: 'res://ui/icons/lock.svg' remapped 'res://ui/icons/lock.svg' at thread -1
+Loading resource: res://ui/icons/wood.svg remapped: res://ui/icons/wood.svg
+Loading resource: res://.godot/imported/wood.svg-a4ec60241226a2d558c0b45941db3ec3.ctex remapped: res://.godot/imported/wood.svg-a4ec60241226a2d558c0b45941db3ec3.ctex
+Completed load for: 'res://ui/icons/wood.svg' remapped 'res://ui/icons/wood.svg' at thread -1
+Loading resource: res://ui/icons/stone.svg remapped: res://ui/icons/stone.svg
+Loading resource: res://.godot/imported/stone.svg-2bb1cd206c7a3b6ac41835d2db47faa0.ctex remapped: res://.godot/imported/stone.svg-2bb1cd206c7a3b6ac41835d2db47faa0.ctex
+Completed load for: 'res://ui/icons/stone.svg' remapped 'res://ui/icons/stone.svg' at thread -1
+Loading resource: res://ui/symbolic16/people.svg remapped: res://ui/symbolic16/people.svg
+Loading resource: res://.godot/imported/people.svg-320e09a90ccd49cd56cd9ae31c0c458b.ctex remapped: res://.godot/imported/people.svg-320e09a90ccd49cd56cd9ae31c0c458b.ctex
+Completed load for: 'res://ui/symbolic16/people.svg' remapped 'res://ui/symbolic16/people.svg' at thread -1
+Loading resource: res://ui/icons/ledger.svg remapped: res://ui/icons/ledger.svg
+Loading resource: res://.godot/imported/ledger.svg-55061389c65e92e225c556a35ebbec80.ctex remapped: res://.godot/imported/ledger.svg-55061389c65e92e225c556a35ebbec80.ctex
+Completed load for: 'res://ui/icons/ledger.svg' remapped 'res://ui/icons/ledger.svg' at thread -1
+Loading resource: res://ui/icons/warning.svg remapped: res://ui/icons/warning.svg
+Loading resource: res://.godot/imported/warning.svg-12b96a63044c0ddfd741709c97d68f5e.ctex remapped: res://.godot/imported/warning.svg-12b96a63044c0ddfd741709c97d68f5e.ctex
+Completed load for: 'res://ui/icons/warning.svg' remapped 'res://ui/icons/warning.svg' at thread -1
+Loading resource: res://ui/icons/pause.svg remapped: res://ui/icons/pause.svg
+Loading resource: res://.godot/imported/pause.svg-cb48082e30acc7a312c538cbbaef64ce.ctex remapped: res://.godot/imported/pause.svg-cb48082e30acc7a312c538cbbaef64ce.ctex
+Completed load for: 'res://ui/icons/pause.svg' remapped 'res://ui/icons/pause.svg' at thread -1
+Loading resource: res://ui/icons/calendar.svg remapped: res://ui/icons/calendar.svg
+Loading resource: res://.godot/imported/calendar.svg-4682e7487bd101f79408380d22af506e.ctex remapped: res://.godot/imported/calendar.svg-4682e7487bd101f79408380d22af506e.ctex
+Completed load for: 'res://ui/icons/calendar.svg' remapped 'res://ui/icons/calendar.svg' at thread -1
+Loading resource: res://ui/icons/menu.svg remapped: res://ui/icons/menu.svg
+Loading resource: res://.godot/imported/menu.svg-1d0c403999ee3571747b8e3b978e6b2d.ctex remapped: res://.godot/imported/menu.svg-1d0c403999ee3571747b8e3b978e6b2d.ctex
+Completed load for: 'res://ui/icons/menu.svg' remapped 'res://ui/icons/menu.svg' at thread -1
+Loading resource: res://ui/icons/map.svg remapped: res://ui/icons/map.svg
+Loading resource: res://.godot/imported/map.svg-32fe81edcb013659e2abcd3b53327f9b.ctex remapped: res://.godot/imported/map.svg-32fe81edcb013659e2abcd3b53327f9b.ctex
+Completed load for: 'res://ui/icons/map.svg' remapped 'res://ui/icons/map.svg' at thread -1
+Loading resource: res://ui/painted/cmd_zone.svg remapped: res://ui/painted/cmd_zone.svg
+Loading resource: res://.godot/imported/cmd_zone.svg-0b39f8baa8cb118689ea46d8a9cdbc19.ctex remapped: res://.godot/imported/cmd_zone.svg-0b39f8baa8cb118689ea46d8a9cdbc19.ctex
+Completed load for: 'res://ui/painted/cmd_zone.svg' remapped 'res://ui/painted/cmd_zone.svg' at thread -1
+Loading resource: res://ui/painted/res_population.svg remapped: res://ui/painted/res_population.svg
+Loading resource: res://.godot/imported/res_population.svg-cc819fa0f408893799f43b2a103c65e0.ctex remapped: res://.godot/imported/res_population.svg-cc819fa0f408893799f43b2a103c65e0.ctex
+Completed load for: 'res://ui/painted/res_population.svg' remapped 'res://ui/painted/res_population.svg' at thread -1
+Loading resource: res://ui/icons/cancel.svg remapped: res://ui/icons/cancel.svg
+Loading resource: res://.godot/imported/cancel.svg-817faa01f0f3d0203fa6864f9d00b70d.ctex remapped: res://.godot/imported/cancel.svg-817faa01f0f3d0203fa6864f9d00b70d.ctex
+Completed load for: 'res://ui/icons/cancel.svg' remapped 'res://ui/icons/cancel.svg' at thread -1
+Loading resource: res://ui/ornaments/sprig.svg remapped: res://ui/ornaments/sprig.svg
+Loading resource: res://.godot/imported/sprig.svg-9a4d57b03e53245ef2ca61d147343de6.ctex remapped: res://.godot/imported/sprig.svg-9a4d57b03e53245ef2ca61d147343de6.ctex
+Completed load for: 'res://ui/ornaments/sprig.svg' remapped 'res://ui/ornaments/sprig.svg' at thread -1
+Loading resource: res://ui/frames/resource_tray/resource_tray_edge_top.svg remapped: res://ui/frames/resource_tray/resource_tray_edge_top.svg
+Loading resource: res://.godot/imported/resource_tray_edge_top.svg-031bf899fc0ba1e1aeeeb51579923732.ctex remapped: res://.godot/imported/resource_tray_edge_top.svg-031bf899fc0ba1e1aeeeb51579923732.ctex
+Completed load for: 'res://ui/frames/resource_tray/resource_tray_edge_top.svg' remapped 'res://ui/frames/resource_tray/resource_tray_edge_top.svg' at thread -1
+Loading resource: res://ui/frames/resource_tray/resource_tray_edge_bottom.svg remapped: res://ui/frames/resource_tray/resource_tray_edge_bottom.svg
+Loading resource: res://.godot/imported/resource_tray_edge_bottom.svg-1b06cf48b4b7cafed8a2d3521327f015.ctex remapped: res://.godot/imported/resource_tray_edge_bottom.svg-1b06cf48b4b7cafed8a2d3521327f015.ctex
+Completed load for: 'res://ui/frames/resource_tray/resource_tray_edge_bottom.svg' remapped 'res://ui/frames/resource_tray/resource_tray_edge_bottom.svg' at thread -1
+Loading resource: res://ui/frames/resource_tray/resource_tray_edge_left.svg remapped: res://ui/frames/resource_tray/resource_tray_edge_left.svg
+Loading resource: res://.godot/imported/resource_tray_edge_left.svg-080a2444794f6cc7fc62e8f8fc164378.ctex remapped: res://.godot/imported/resource_tray_edge_left.svg-080a2444794f6cc7fc62e8f8fc164378.ctex
+Completed load for: 'res://ui/frames/resource_tray/resource_tray_edge_left.svg' remapped 'res://ui/frames/resource_tray/resource_tray_edge_left.svg' at thread -1
+Loading resource: res://ui/frames/resource_tray/resource_tray_edge_right.svg remapped: res://ui/frames/resource_tray/resource_tray_edge_right.svg
+Loading resource: res://.godot/imported/resource_tray_edge_right.svg-da56dd2bad8d53244bc2239b66232936.ctex remapped: res://.godot/imported/resource_tray_edge_right.svg-da56dd2bad8d53244bc2239b66232936.ctex
+Completed load for: 'res://ui/frames/resource_tray/resource_tray_edge_right.svg' remapped 'res://ui/frames/resource_tray/resource_tray_edge_right.svg' at thread -1
+Loading resource: res://ui/frames/resource_tray/resource_tray_corner_tl.svg remapped: res://ui/frames/resource_tray/resource_tray_corner_tl.svg
+Loading resource: res://.godot/imported/resource_tray_corner_tl.svg-e71b5fbff297eb8abdf3ef151e52440b.ctex remapped: res://.godot/imported/resource_tray_corner_tl.svg-e71b5fbff297eb8abdf3ef151e52440b.ctex
+Completed load for: 'res://ui/frames/resource_tray/resource_tray_corner_tl.svg' remapped 'res://ui/frames/resource_tray/resource_tray_corner_tl.svg' at thread -1
+Loading resource: res://ui/frames/resource_tray/resource_tray_corner_tr.svg remapped: res://ui/frames/resource_tray/resource_tray_corner_tr.svg
+Loading resource: res://.godot/imported/resource_tray_corner_tr.svg-aefa3ce9cf59e00e6ebabfeeb5653340.ctex remapped: res://.godot/imported/resource_tray_corner_tr.svg-aefa3ce9cf59e00e6ebabfeeb5653340.ctex
+Completed load for: 'res://ui/frames/resource_tray/resource_tray_corner_tr.svg' remapped 'res://ui/frames/resource_tray/resource_tray_corner_tr.svg' at thread -1
+Loading resource: res://ui/frames/resource_tray/resource_tray_corner_bl.svg remapped: res://ui/frames/resource_tray/resource_tray_corner_bl.svg
+Loading resource: res://.godot/imported/resource_tray_corner_bl.svg-09394ee24cec5c709559c76d9e3298ce.ctex remapped: res://.godot/imported/resource_tray_corner_bl.svg-09394ee24cec5c709559c76d9e3298ce.ctex
+Completed load for: 'res://ui/frames/resource_tray/resource_tray_corner_bl.svg' remapped 'res://ui/frames/resource_tray/resource_tray_corner_bl.svg' at thread -1
+Loading resource: res://ui/frames/resource_tray/resource_tray_corner_br.svg remapped: res://ui/frames/resource_tray/resource_tray_corner_br.svg
+Loading resource: res://.godot/imported/resource_tray_corner_br.svg-7bfd80dc16b556728aa44f110fd73c29.ctex remapped: res://.godot/imported/resource_tray_corner_br.svg-7bfd80dc16b556728aa44f110fd73c29.ctex
+Completed load for: 'res://ui/frames/resource_tray/resource_tray_corner_br.svg' remapped 'res://ui/frames/resource_tray/resource_tray_corner_br.svg' at thread -1
+Loading resource: res://ui/frames/time_group/time_group_edge_top.svg remapped: res://ui/frames/time_group/time_group_edge_top.svg
+Loading resource: res://.godot/imported/time_group_edge_top.svg-780e85929ac066bbbf5a63c9b6d41df2.ctex remapped: res://.godot/imported/time_group_edge_top.svg-780e85929ac066bbbf5a63c9b6d41df2.ctex
+Completed load for: 'res://ui/frames/time_group/time_group_edge_top.svg' remapped 'res://ui/frames/time_group/time_group_edge_top.svg' at thread -1
+Loading resource: res://ui/frames/time_group/time_group_edge_bottom.svg remapped: res://ui/frames/time_group/time_group_edge_bottom.svg
+Loading resource: res://.godot/imported/time_group_edge_bottom.svg-f16d50be0a2d5693b940ce51b995ded8.ctex remapped: res://.godot/imported/time_group_edge_bottom.svg-f16d50be0a2d5693b940ce51b995ded8.ctex
+Completed load for: 'res://ui/frames/time_group/time_group_edge_bottom.svg' remapped 'res://ui/frames/time_group/time_group_edge_bottom.svg' at thread -1
+Loading resource: res://ui/frames/time_group/time_group_edge_left.svg remapped: res://ui/frames/time_group/time_group_edge_left.svg
+Loading resource: res://.godot/imported/time_group_edge_left.svg-cedd448af9bff6f8118afbb83627f8bf.ctex remapped: res://.godot/imported/time_group_edge_left.svg-cedd448af9bff6f8118afbb83627f8bf.ctex
+Completed load for: 'res://ui/frames/time_group/time_group_edge_left.svg' remapped 'res://ui/frames/time_group/time_group_edge_left.svg' at thread -1
+Loading resource: res://ui/frames/time_group/time_group_edge_right.svg remapped: res://ui/frames/time_group/time_group_edge_right.svg
+Loading resource: res://.godot/imported/time_group_edge_right.svg-b85f27bf43341ae9e656e166d49e7980.ctex remapped: res://.godot/imported/time_group_edge_right.svg-b85f27bf43341ae9e656e166d49e7980.ctex
+Completed load for: 'res://ui/frames/time_group/time_group_edge_right.svg' remapped 'res://ui/frames/time_group/time_group_edge_right.svg' at thread -1
+Loading resource: res://ui/frames/time_group/time_group_corner_tl.svg remapped: res://ui/frames/time_group/time_group_corner_tl.svg
+Loading resource: res://.godot/imported/time_group_corner_tl.svg-faa834481a8061df96b650143349c2e4.ctex remapped: res://.godot/imported/time_group_corner_tl.svg-faa834481a8061df96b650143349c2e4.ctex
+Completed load for: 'res://ui/frames/time_group/time_group_corner_tl.svg' remapped 'res://ui/frames/time_group/time_group_corner_tl.svg' at thread -1
+Loading resource: res://ui/frames/time_group/time_group_corner_tr.svg remapped: res://ui/frames/time_group/time_group_corner_tr.svg
+Loading resource: res://.godot/imported/time_group_corner_tr.svg-a2a4f03ebc55e047dbf3669cf595d08a.ctex remapped: res://.godot/imported/time_group_corner_tr.svg-a2a4f03ebc55e047dbf3669cf595d08a.ctex
+Completed load for: 'res://ui/frames/time_group/time_group_corner_tr.svg' remapped 'res://ui/frames/time_group/time_group_corner_tr.svg' at thread -1
+Loading resource: res://ui/frames/time_group/time_group_corner_bl.svg remapped: res://ui/frames/time_group/time_group_corner_bl.svg
+Loading resource: res://.godot/imported/time_group_corner_bl.svg-6b7cf4cec52296346d5b86108149850c.ctex remapped: res://.godot/imported/time_group_corner_bl.svg-6b7cf4cec52296346d5b86108149850c.ctex
+Completed load for: 'res://ui/frames/time_group/time_group_corner_bl.svg' remapped 'res://ui/frames/time_group/time_group_corner_bl.svg' at thread -1
+Loading resource: res://ui/frames/time_group/time_group_corner_br.svg remapped: res://ui/frames/time_group/time_group_corner_br.svg
+Loading resource: res://.godot/imported/time_group_corner_br.svg-bd2eb319aa24f077bca6ccc0b2072043.ctex remapped: res://.godot/imported/time_group_corner_br.svg-bd2eb319aa24f077bca6ccc0b2072043.ctex
+Completed load for: 'res://ui/frames/time_group/time_group_corner_br.svg' remapped 'res://ui/frames/time_group/time_group_corner_br.svg' at thread -1
+Loading resource: res://ui/frames/map_folio/map_folio_edge_top.svg remapped: res://ui/frames/map_folio/map_folio_edge_top.svg
+Loading resource: res://.godot/imported/map_folio_edge_top.svg-4bf287f55e38a23c9b5d2fce04d08cb6.ctex remapped: res://.godot/imported/map_folio_edge_top.svg-4bf287f55e38a23c9b5d2fce04d08cb6.ctex
+Completed load for: 'res://ui/frames/map_folio/map_folio_edge_top.svg' remapped 'res://ui/frames/map_folio/map_folio_edge_top.svg' at thread -1
+Loading resource: res://ui/frames/map_folio/map_folio_edge_bottom.svg remapped: res://ui/frames/map_folio/map_folio_edge_bottom.svg
+Loading resource: res://.godot/imported/map_folio_edge_bottom.svg-4cd61528a466afb5c789c0d4aad6726f.ctex remapped: res://.godot/imported/map_folio_edge_bottom.svg-4cd61528a466afb5c789c0d4aad6726f.ctex
+Completed load for: 'res://ui/frames/map_folio/map_folio_edge_bottom.svg' remapped 'res://ui/frames/map_folio/map_folio_edge_bottom.svg' at thread -1
+Loading resource: res://ui/frames/map_folio/map_folio_edge_left.svg remapped: res://ui/frames/map_folio/map_folio_edge_left.svg
+Loading resource: res://.godot/imported/map_folio_edge_left.svg-a0086a2703b59c74a9ba6347653d224b.ctex remapped: res://.godot/imported/map_folio_edge_left.svg-a0086a2703b59c74a9ba6347653d224b.ctex
+Completed load for: 'res://ui/frames/map_folio/map_folio_edge_left.svg' remapped 'res://ui/frames/map_folio/map_folio_edge_left.svg' at thread -1
+Loading resource: res://ui/frames/map_folio/map_folio_edge_right.svg remapped: res://ui/frames/map_folio/map_folio_edge_right.svg
+Loading resource: res://.godot/imported/map_folio_edge_right.svg-93244490aa87a44916e9d68f9c4f0442.ctex remapped: res://.godot/imported/map_folio_edge_right.svg-93244490aa87a44916e9d68f9c4f0442.ctex
+Completed load for: 'res://ui/frames/map_folio/map_folio_edge_right.svg' remapped 'res://ui/frames/map_folio/map_folio_edge_right.svg' at thread -1
+Loading resource: res://ui/frames/map_folio/map_folio_corner_tl.svg remapped: res://ui/frames/map_folio/map_folio_corner_tl.svg
+Loading resource: res://.godot/imported/map_folio_corner_tl.svg-c18f2a00a8a3b07f36c7aedf39b8cc38.ctex remapped: res://.godot/imported/map_folio_corner_tl.svg-c18f2a00a8a3b07f36c7aedf39b8cc38.ctex
+Completed load for: 'res://ui/frames/map_folio/map_folio_corner_tl.svg' remapped 'res://ui/frames/map_folio/map_folio_corner_tl.svg' at thread -1
+Loading resource: res://ui/frames/map_folio/map_folio_corner_tr.svg remapped: res://ui/frames/map_folio/map_folio_corner_tr.svg
+Loading resource: res://.godot/imported/map_folio_corner_tr.svg-aa97de0b568e0ed300268d99233a76ce.ctex remapped: res://.godot/imported/map_folio_corner_tr.svg-aa97de0b568e0ed300268d99233a76ce.ctex
+Completed load for: 'res://ui/frames/map_folio/map_folio_corner_tr.svg' remapped 'res://ui/frames/map_folio/map_folio_corner_tr.svg' at thread -1
+Loading resource: res://ui/frames/map_folio/map_folio_corner_bl.svg remapped: res://ui/frames/map_folio/map_folio_corner_bl.svg
+Loading resource: res://.godot/imported/map_folio_corner_bl.svg-bf8169b968f4b5920dba6ed5bcec1a2f.ctex remapped: res://.godot/imported/map_folio_corner_bl.svg-bf8169b968f4b5920dba6ed5bcec1a2f.ctex
+Completed load for: 'res://ui/frames/map_folio/map_folio_corner_bl.svg' remapped 'res://ui/frames/map_folio/map_folio_corner_bl.svg' at thread -1
+Loading resource: res://ui/frames/map_folio/map_folio_corner_br.svg remapped: res://ui/frames/map_folio/map_folio_corner_br.svg
+Loading resource: res://.godot/imported/map_folio_corner_br.svg-7646d74b3a77fe6dd68afda2100723c6.ctex remapped: res://.godot/imported/map_folio_corner_br.svg-7646d74b3a77fe6dd68afda2100723c6.ctex
+Completed load for: 'res://ui/frames/map_folio/map_folio_corner_br.svg' remapped 'res://ui/frames/map_folio/map_folio_corner_br.svg' at thread -1
+Loading resource: res://ui/frames/journal/journal_edge_top.svg remapped: res://ui/frames/journal/journal_edge_top.svg
+Loading resource: res://.godot/imported/journal_edge_top.svg-69ae0ad7a985e9367cfadab29afae51b.ctex remapped: res://.godot/imported/journal_edge_top.svg-69ae0ad7a985e9367cfadab29afae51b.ctex
+Completed load for: 'res://ui/frames/journal/journal_edge_top.svg' remapped 'res://ui/frames/journal/journal_edge_top.svg' at thread -1
+Loading resource: res://ui/frames/journal/journal_edge_bottom.svg remapped: res://ui/frames/journal/journal_edge_bottom.svg
+Loading resource: res://.godot/imported/journal_edge_bottom.svg-14cec7ae1a4097e3c0edd69c168848fe.ctex remapped: res://.godot/imported/journal_edge_bottom.svg-14cec7ae1a4097e3c0edd69c168848fe.ctex
+Completed load for: 'res://ui/frames/journal/journal_edge_bottom.svg' remapped 'res://ui/frames/journal/journal_edge_bottom.svg' at thread -1
+Loading resource: res://ui/frames/journal/journal_edge_left.svg remapped: res://ui/frames/journal/journal_edge_left.svg
+Loading resource: res://.godot/imported/journal_edge_left.svg-cc6d58307ad287b087d77806bc4a9166.ctex remapped: res://.godot/imported/journal_edge_left.svg-cc6d58307ad287b087d77806bc4a9166.ctex
+Completed load for: 'res://ui/frames/journal/journal_edge_left.svg' remapped 'res://ui/frames/journal/journal_edge_left.svg' at thread -1
+Loading resource: res://ui/frames/journal/journal_edge_right.svg remapped: res://ui/frames/journal/journal_edge_right.svg
+Loading resource: res://.godot/imported/journal_edge_right.svg-d41acee1c4ad2bc70e2350a987e8fe84.ctex remapped: res://.godot/imported/journal_edge_right.svg-d41acee1c4ad2bc70e2350a987e8fe84.ctex
+Completed load for: 'res://ui/frames/journal/journal_edge_right.svg' remapped 'res://ui/frames/journal/journal_edge_right.svg' at thread -1
+Loading resource: res://ui/frames/journal/journal_corner_tl.svg remapped: res://ui/frames/journal/journal_corner_tl.svg
+Loading resource: res://.godot/imported/journal_corner_tl.svg-fcd8d64c55e970d08ba3550056b4290c.ctex remapped: res://.godot/imported/journal_corner_tl.svg-fcd8d64c55e970d08ba3550056b4290c.ctex
+Completed load for: 'res://ui/frames/journal/journal_corner_tl.svg' remapped 'res://ui/frames/journal/journal_corner_tl.svg' at thread -1
+Loading resource: res://ui/frames/journal/journal_corner_tr.svg remapped: res://ui/frames/journal/journal_corner_tr.svg
+Loading resource: res://.godot/imported/journal_corner_tr.svg-6b5bfa00bd52a5f830174383877905ae.ctex remapped: res://.godot/imported/journal_corner_tr.svg-6b5bfa00bd52a5f830174383877905ae.ctex
+Completed load for: 'res://ui/frames/journal/journal_corner_tr.svg' remapped 'res://ui/frames/journal/journal_corner_tr.svg' at thread -1
+Loading resource: res://ui/frames/journal/journal_corner_bl.svg remapped: res://ui/frames/journal/journal_corner_bl.svg
+Loading resource: res://.godot/imported/journal_corner_bl.svg-d126981a879f7ac3b22e28f11f39da94.ctex remapped: res://.godot/imported/journal_corner_bl.svg-d126981a879f7ac3b22e28f11f39da94.ctex
+Completed load for: 'res://ui/frames/journal/journal_corner_bl.svg' remapped 'res://ui/frames/journal/journal_corner_bl.svg' at thread -1
+Loading resource: res://ui/frames/journal/journal_corner_br.svg remapped: res://ui/frames/journal/journal_corner_br.svg
+Loading resource: res://.godot/imported/journal_corner_br.svg-4fd8fa2bff158b438c4b26424899d63a.ctex remapped: res://.godot/imported/journal_corner_br.svg-4fd8fa2bff158b438c4b26424899d63a.ctex
+Completed load for: 'res://ui/frames/journal/journal_corner_br.svg' remapped 'res://ui/frames/journal/journal_corner_br.svg' at thread -1
+Loading resource: res://ui/frames/command_dock/command_dock_edge_top.svg remapped: res://ui/frames/command_dock/command_dock_edge_top.svg
+Loading resource: res://.godot/imported/command_dock_edge_top.svg-83ecb54898b5afb7f8641a77f3c7d078.ctex remapped: res://.godot/imported/command_dock_edge_top.svg-83ecb54898b5afb7f8641a77f3c7d078.ctex
+Completed load for: 'res://ui/frames/command_dock/command_dock_edge_top.svg' remapped 'res://ui/frames/command_dock/command_dock_edge_top.svg' at thread -1
+Loading resource: res://ui/frames/command_dock/command_dock_edge_bottom.svg remapped: res://ui/frames/command_dock/command_dock_edge_bottom.svg
+Loading resource: res://.godot/imported/command_dock_edge_bottom.svg-5ee5f7bd2e0553d1f9ea97c503674d33.ctex remapped: res://.godot/imported/command_dock_edge_bottom.svg-5ee5f7bd2e0553d1f9ea97c503674d33.ctex
+Completed load for: 'res://ui/frames/command_dock/command_dock_edge_bottom.svg' remapped 'res://ui/frames/command_dock/command_dock_edge_bottom.svg' at thread -1
+Loading resource: res://ui/frames/command_dock/command_dock_edge_left.svg remapped: res://ui/frames/command_dock/command_dock_edge_left.svg
+Loading resource: res://.godot/imported/command_dock_edge_left.svg-f694f653030098ac7d12fa2d402d138f.ctex remapped: res://.godot/imported/command_dock_edge_left.svg-f694f653030098ac7d12fa2d402d138f.ctex
+Completed load for: 'res://ui/frames/command_dock/command_dock_edge_left.svg' remapped 'res://ui/frames/command_dock/command_dock_edge_left.svg' at thread -1
+Loading resource: res://ui/frames/command_dock/command_dock_edge_right.svg remapped: res://ui/frames/command_dock/command_dock_edge_right.svg
+Loading resource: res://.godot/imported/command_dock_edge_right.svg-8c4885c43cf638ea4c6ce1b1a621c271.ctex remapped: res://.godot/imported/command_dock_edge_right.svg-8c4885c43cf638ea4c6ce1b1a621c271.ctex
+Completed load for: 'res://ui/frames/command_dock/command_dock_edge_right.svg' remapped 'res://ui/frames/command_dock/command_dock_edge_right.svg' at thread -1
+Loading resource: res://ui/frames/command_dock/command_dock_corner_tl.svg remapped: res://ui/frames/command_dock/command_dock_corner_tl.svg
+Loading resource: res://.godot/imported/command_dock_corner_tl.svg-c846c396252c0ba5058c83e23b74a772.ctex remapped: res://.godot/imported/command_dock_corner_tl.svg-c846c396252c0ba5058c83e23b74a772.ctex
+Completed load for: 'res://ui/frames/command_dock/command_dock_corner_tl.svg' remapped 'res://ui/frames/command_dock/command_dock_corner_tl.svg' at thread -1
+Loading resource: res://ui/frames/command_dock/command_dock_corner_tr.svg remapped: res://ui/frames/command_dock/command_dock_corner_tr.svg
+Loading resource: res://.godot/imported/command_dock_corner_tr.svg-1b6cf9cb20f55697f0bba0f7690a36c5.ctex remapped: res://.godot/imported/command_dock_corner_tr.svg-1b6cf9cb20f55697f0bba0f7690a36c5.ctex
+Completed load for: 'res://ui/frames/command_dock/command_dock_corner_tr.svg' remapped 'res://ui/frames/command_dock/command_dock_corner_tr.svg' at thread -1
+Loading resource: res://ui/frames/command_dock/command_dock_corner_bl.svg remapped: res://ui/frames/command_dock/command_dock_corner_bl.svg
+Loading resource: res://.godot/imported/command_dock_corner_bl.svg-8819a0775f55162d4f9b18e384202783.ctex remapped: res://.godot/imported/command_dock_corner_bl.svg-8819a0775f55162d4f9b18e384202783.ctex
+Completed load for: 'res://ui/frames/command_dock/command_dock_corner_bl.svg' remapped 'res://ui/frames/command_dock/command_dock_corner_bl.svg' at thread -1
+Loading resource: res://ui/frames/command_dock/command_dock_corner_br.svg remapped: res://ui/frames/command_dock/command_dock_corner_br.svg
+Loading resource: res://.godot/imported/command_dock_corner_br.svg-ba103ef4d1771c4cecd28d2be4d8e84b.ctex remapped: res://.godot/imported/command_dock_corner_br.svg-ba103ef4d1771c4cecd28d2be4d8e84b.ctex
+Completed load for: 'res://ui/frames/command_dock/command_dock_corner_br.svg' remapped 'res://ui/frames/command_dock/command_dock_corner_br.svg' at thread -1
+Loading resource: res://assets/units/species_mouse_body_a_lod0.glb remapped: res://assets/units/species_mouse_body_a_lod0.glb
+Loading resource: res://.godot/imported/species_mouse_body_a_lod0.glb-5629f58acf75dbf29915266318b494a2.scn remapped: res://.godot/imported/species_mouse_body_a_lod0.glb-5629f58acf75dbf29915266318b494a2.scn
+Completed load for: 'res://assets/units/species_mouse_body_a_lod0.glb' remapped 'res://assets/units/species_mouse_body_a_lod0.glb' at thread -1
+[Main] resident crowd attached: mesh species_mouse_body_a_lod0.glb
+Loading resource: res://ui/icons/check.svg remapped: res://ui/icons/check.svg
+Loading resource: res://.godot/imported/check.svg-cdba3b11c00e515dcfff71eea6e1fe11.ctex remapped: res://.godot/imported/check.svg-cdba3b11c00e515dcfff71eea6e1fe11.ctex
+Completed load for: 'res://ui/icons/check.svg' remapped 'res://ui/icons/check.svg' at thread -1
+[Main] boot complete: PAUSED  food-days 5.48 days  ready 408000 NP  fuel-days --
+XR: Clearing primary interface
+XR: Removed interface "Native mobile"
+XR: Removed interface "OpenXR"

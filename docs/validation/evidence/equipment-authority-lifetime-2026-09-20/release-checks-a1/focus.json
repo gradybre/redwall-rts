@@ -1,0 +1,34 @@
+{
+  "step": "focus",
+  "command": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--script",
+    "test/equipment_authority_lifetime_focus.gd"
+  ],
+  "seconds": 41.622,
+  "exit_code": 0,
+  "counts": [
+    422,
+    8265,
+    0
+  ],
+  "expected_counts": [
+    422,
+    8265,
+    0
+  ],
+  "passed": true,
+  "error_lines": [
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'OVERFLOW' at hour tick 750 is unrecovered (retries attempted: 0); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset."
+  ],
+  "unexpected_errors": [],
+  "leak_diagnostic_lines": [],
+  "log_sha256": "985ba78a0efe9d38ea8be19add7c8fc5fd621c975060daea46faa52975e02e64"
+}

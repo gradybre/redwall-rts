@@ -1,0 +1,65 @@
+{
+  "scope": "Source-bound diagnosis; repair not yet implemented",
+  "reported_warning_objects": 553,
+  "printed_leaked_instance_entries": 551,
+  "printed_types": {
+    "GDScriptNativeClass": 2,
+    "GDScript": 52,
+    "RefCounted": 495,
+    "WeakRef": 1,
+    "Node": 1
+  },
+  "resource_paths": [
+    "res://scripts/core/sim_clock.gd",
+    "res://scripts/core/entity_directory.gd",
+    "res://scripts/core/needs.gd",
+    "res://scripts/core/residents.gd",
+    "res://scripts/core/priorities.gd",
+    "res://scripts/core/schedule.gd",
+    "res://scripts/core/jobs.gd",
+    "res://scripts/core/inventory.gd",
+    "res://scripts/core/item_definitions.gd",
+    "res://scripts/core/gear.gd",
+    "res://scripts/core/work.gd",
+    "res://scripts/core/reservations.gd",
+    "res://scripts/core/commands.gd",
+    "res://scripts/core/rng.gd",
+    "res://scripts/core/forage.gd",
+    "res://scripts/core/farming.gd",
+    "res://scripts/core/resource_nodes.gd",
+    "res://scripts/core/orchard_hive.gd",
+    "res://scripts/core/job_planner.gd",
+    "res://scripts/core/command_dispatch.gd",
+    "res://scripts/core/fishing.gd",
+    "res://scripts/core/ecology.gd",
+    "res://scripts/core/weather.gd",
+    "res://scripts/core/presentation_extract.gd",
+    "res://scripts/core/crop_weather.gd",
+    "res://scripts/core/world_init.gd",
+    "res://scripts/core/transforms.gd",
+    "res://scripts/core/building_definitions.gd",
+    "res://scripts/core/buildings.gd",
+    "res://scripts/core/construction.gd",
+    "res://scripts/core/stock_age.gd",
+    "res://scripts/utils/perf_timer.gd",
+    "res://scripts/systems/settlement_system.gd"
+  ],
+  "findings": [
+    {
+      "id": "QA-LIFE-01",
+      "evidence": "equipment-cycle-probe.json/log",
+      "fact": "Public Gear.bind_equipment creates Inventory strong authority -> Gear strong Inventory cycle; Inventory, Gear and Residents survive removal of every external strong owner. Explicit authority unbind releases all three, observed without script/engine errors.",
+      "proposed_scope": "Borrowed equipment authority with explicit live/dead handling and strong per-call acquisition, following existing seed authority pattern; lifetime/attestation/transaction regression witnesses required before acceptance."
+    },
+    {
+      "id": "QA-LIFE-02",
+      "source": "godot/test/test_settlement_system.gd:test_a_new_world_reset_leaks_no_pose_into_the_world_that_follows_it",
+      "fact": "Comparison constructs anonymous SettlementSystemScript.new().transforms().state_bytes() and never frees that Node. Source defect; exact share of global leak count remains to be measured after bounded repair.",
+      "proposed_scope": "Name and free the comparison fixture while preserving exact assertion."
+    }
+  ],
+  "limits": [
+    "Printed instance count differs from warning count; do not infer a cause for the two-entry difference.",
+    "No actual repair, shutdown acceptance or performance qualification claimed."
+  ]
+}

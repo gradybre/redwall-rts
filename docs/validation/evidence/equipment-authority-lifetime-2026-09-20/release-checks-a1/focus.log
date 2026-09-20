@@ -1,0 +1,517 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_equipment_authority_lifetime.gd
+  PASS  test_an_object_without_the_method_is_refused_at_bind_time
+  PASS  test_a_failed_bind_preserves_the_previous_live_binding
+  PASS  test_clear_preserves_the_equipment_authority_binding
+  PASS  test_never_bound_and_explicit_unbind_both_refuse_no_equipment_authority
+  PASS  test_binding_refuses_while_a_transaction_is_open_and_preserves_the_prior_authority
+  PASS  test_expired_refcounted_authority_refuses_all_four_gates_with_state_unchanged
+  PASS  test_expired_node_authority_refuses_all_four_gates_after_explicit_free
+  PASS  test_audit_refuses_orphan_lot_after_authority_expires_without_normalization
+  PASS  test_explicit_unbind_refuses_with_live_equipped_lots_even_after_authority_expires
+  PASS  test_a_live_replacement_authority_restores_attestation_after_expiry
+  PASS  test_reentry_during_detach_is_still_refused
+  PASS  test_a_strong_per_call_local_survives_the_authority_dropping_its_sole_external_owner
+  PASS  test_real_gear_inventory_residents_mutually_release_without_unbind
+  PASS  test_real_gear_alone_retains_inventory_and_residents_until_gear_is_dropped
+test_inventory.gd
+  PASS  test_item_masses_match_gdd_5_7
+  PASS  test_item_id_space_does_not_drift_from_the_catalog
+  PASS  test_unregistered_item_is_refused
+  PASS  test_capacity_debit_uses_per_lot_ceiling
+  PASS  test_per_lot_rounding_differs_from_summed_total_rounding
+  PASS  test_merge_recovers_rounding_slack_without_changing_quantity
+  PASS  test_capacity_refusal_is_explicit_and_changes_nothing
+  PASS  test_capacity_is_never_silently_clamped
+  PASS  test_split_refused_when_per_lot_ceiling_would_exceed_capacity
+  PASS  test_reserved_container_mass_counts_against_capacity
+  PASS  test_lot_row_capacity_refusal_is_explicit
+  PASS  test_container_row_capacity_refusal_is_explicit
+  PASS  test_filters_refuse_a_disallowed_category
+  PASS  test_merge_refuses_each_differing_attribute
+  PASS  test_merge_refuses_across_containers
+  PASS  test_merge_adopts_the_older_rounded_age
+  PASS  test_split_refuses_degenerate_quantities
+  PASS  test_split_preserves_every_attribute
+  PASS  test_transfer_conserves_quantity_between_containers
+  PASS  test_transfer_merges_into_a_compatible_destination_lot
+  PASS  test_whole_lot_transfer_retires_the_source_row
+  PASS  test_transfer_refuses_an_over_capacity_destination
+  PASS  test_move_lot_carries_its_reservation
+  PASS  test_reserved_never_exceeds_quantity
+  PASS  test_reservation_cancellation_restores_available_exactly
+  PASS  test_reserved_quantity_cannot_be_transferred_away
+  PASS  test_consume_reserved_reduces_claim_and_quantity_together
+  PASS  test_sink_refuses_to_consume_claimed_quantity
+  PASS  test_failed_single_operation_leaves_state_byte_identical
+  PASS  test_all_or_nothing_under_mid_sequence_failure
+  PASS  test_operations_after_a_poisoned_step_refuse_without_writing
+  PASS  test_committed_transaction_is_durable
+  PASS  test_abort_restores_state_exactly
+  PASS  test_nested_begin_is_refused
+  PASS  test_journal_exhaustion_refuses_and_rolls_back
+  PASS  test_poisoning_does_not_outlive_the_transaction_that_caused_it
+  PASS  test_refusal_names_the_cause_that_actually_blocked_the_operation
+  PASS  test_container_mass_refusals_name_capacity_and_shortfall_separately
+  PASS  test_clear_does_not_let_a_pre_clear_ref_alias_a_rebuilt_row
+  PASS  test_stale_lot_ref_is_rejected_after_retirement
+  PASS  test_destroy_container_refuses_while_it_holds_lots
+  PASS  test_conservation_across_long_deterministic_random_sequence
+  PASS  test_random_sequence_keeps_reserved_within_quantity
+  PASS  test_random_sequence_keeps_container_mass_within_capacity
+  PASS  test_capacity_check_refuses_overflow_instead_of_wrapping
+  PASS  test_reserving_more_than_int64_holds_refuses
+  PASS  test_audit_detects_a_container_over_its_capacity
+  PASS  test_audit_scans_through_to_the_highest_row_ever_allocated
+  PASS  test_audit_detects_a_negative_reserved_mass
+  PASS  test_out_of_range_lot_int32_fields_are_refused_not_truncated
+  PASS  test_out_of_range_container_policy_is_refused_not_truncated
+  PASS  test_int32_boundary_values_are_stored_verbatim
+  PASS  test_unroundable_age_is_refused_at_lot_creation
+  PASS  test_merge_refuses_unroundable_ages_instead_of_calling_them_equal
+  PASS  test_transfer_refuses_when_a_merge_candidate_age_cannot_be_rounded
+  PASS  test_abort_restores_the_lot_free_stack_after_an_allocation_and_a_retirement
+  PASS  test_abort_restores_the_container_free_stack_after_a_destroy
+  PASS  test_module_publishes_no_provenance_or_policy_catalog_numbers
+  PASS  test_unset_provenance_is_the_compatibility_spelling_of_ordinary
+  PASS  test_every_published_member_is_admitted_and_reads_back
+  PASS  test_a_non_member_provenance_is_refused_and_writes_nothing
+  PASS  test_provenance_is_compared_for_equality_across_the_whole_domain
+  PASS  test_a_transfer_produces_exactly_one_surviving_object_per_call
+  PASS  test_a_refusal_never_carries_the_previous_operations_ref_or_value
+  PASS  test_every_refusing_operation_returns_the_null_ref_and_zero
+  PASS  test_a_poisoned_transaction_refuses_later_operations_with_the_first_code
+  PASS  test_audit_reuses_its_conservation_tally_across_repeated_calls
+  PASS  test_a_null_container_lot_refuses_with_no_authority_bound
+  PASS  test_a_null_container_lot_refuses_when_the_authority_does_not_attest
+  PASS  test_an_object_without_an_attestation_method_cannot_be_the_authority
+  PASS  test_unbinding_the_authority_refuses_while_equipped_lots_live
+  PASS  test_an_equipped_lot_is_excluded_from_container_mass
+  PASS  test_an_equipped_lot_is_excluded_from_loose_stock_availability
+  PASS  test_loose_and_equipped_always_partition_the_live_quantity
+  PASS  test_every_lot_mutator_refuses_an_equipped_lot
+  PASS  test_detach_refuses_a_lot_that_still_carries_a_reservation
+  PASS  test_attach_refuses_while_the_authority_still_calls_the_lot_equipped
+  PASS  test_unequip_lands_in_a_reserved_destination_without_losing_its_space
+  PASS  test_attach_from_reserved_mass_refuses_without_enough_reserved
+  PASS  test_a_detach_and_attach_round_trip_preserves_the_whole_lot_row
+  PASS  test_audit_refuses_an_orphaned_null_container_lot
+  PASS  test_audit_refuses_a_shelved_lot_the_authority_still_calls_equipped
+  PASS  test_an_authority_that_re_enters_the_inventory_is_refused
+  PASS  test_a_rolled_back_detach_restores_the_state_byte_for_byte
+  PASS  test_a_rolled_back_attach_restores_the_state_byte_for_byte
+  PASS  test_create_lot_still_demands_a_real_container
+  PASS  test_audit_re_derives_the_equipped_lot_count_instead_of_trusting_it
+  PASS  test_audit_refuses_a_cyclic_lot_list_instead_of_walking_it_forever
+  PASS  test_one_aged_hour_is_the_floor_of_the_two_factors_over_a_thousand
+  PASS  test_a_negative_aging_factor_refuses_instead_of_ageing_backwards
+  PASS  test_an_aged_hour_rolls_back_with_the_transaction_that_refused
+  PASS  test_a_transformed_lot_keeps_its_row_and_moves_both_conservation_ledgers
+  PASS  test_an_equal_mass_transformation_moves_the_containers_charged_mass_by_nothing
+  PASS  test_a_transformation_resets_the_age_so_the_new_item_starts_its_own_shelf_life
+  PASS  test_a_transformation_refuses_a_reserved_lot_rather_than_carrying_the_claim
+  PASS  test_a_transformation_refuses_an_unknown_item_the_same_item_and_an_empty_quantity
+  PASS  test_a_transformation_that_would_overflow_the_container_refuses_and_changes_nothing
+  PASS  test_neither_mutator_will_touch_an_equipped_lot
+  PASS  test_a_seed_expiry_authority_must_publish_the_predicate_it_is_bound_for
+  PASS  test_an_expired_seed_lot_cannot_be_reserved
+  PASS  test_an_expired_seed_lot_cannot_be_withdrawn
+  PASS  test_an_expired_seed_claim_is_revalidated_at_the_commit
+  PASS  test_an_expired_seed_lot_cannot_be_transferred_into_production
+  PASS  test_an_expired_seed_lot_cannot_be_moved_into_another_container
+  PASS  test_an_expired_seed_lot_cannot_be_split_for_seed_selection
+  PASS  test_an_expired_seed_lot_cannot_be_transformed_for_a_consumer
+  PASS  test_a_usable_seed_is_admitted_to_every_one_of_those_paths
+  PASS  test_every_admission_asks_the_authority_again
+  PASS  test_release_and_cancellation_are_never_refused_for_an_expired_seed
+  PASS  test_the_declared_expiry_may_retire_and_transform_what_no_consumer_may_touch
+  PASS  test_a_cleanup_declaration_licenses_exactly_one_following_step
+  PASS  test_a_cleanup_declaration_never_crosses_a_transaction
+  PASS  test_a_spent_declaration_does_not_come_back_in_the_next_transaction
+  PASS  test_an_authority_that_cannot_evaluate_a_lot_refuses_it
+  PASS  test_the_real_expiry_stage_converts_the_seed_its_own_predicate_refuses
+  PASS  test_the_real_expiry_stage_retires_a_zero_yield_seed_through_the_guard
+  PASS  test_a_transfer_preserves_the_source_provenance_on_the_new_row
+  PASS  test_a_whole_lot_move_preserves_provenance
+  PASS  test_a_transfer_never_merges_across_differing_provenance
+  PASS  test_a_rolled_back_transaction_restores_provenance_exactly
+  PASS  test_spoilage_carries_the_origin_onto_the_new_item
+  PASS  test_lot_provenance_into_separates_a_refusal_from_an_answer
+  PASS  test_owner_query_cells_is_two_per_container_row
+  PASS  test_containers_by_owner_lists_one_owners_rows_in_ascending_slot_order
+  PASS  test_containers_by_owner_matches_the_complete_owner_pair
+  PASS  test_containers_by_owner_returns_container_refs_and_not_the_owner_pair
+  PASS  test_containers_by_owner_skips_a_retired_row_that_still_carries_its_owner
+  PASS  test_containers_by_owner_proves_an_empty_result_for_a_live_owner
+  PASS  test_containers_by_owner_refuses_a_malformed_owner_instead_of_matching_unowned_rows
+  PASS  test_containers_by_owner_refuses_an_undersized_buffer_without_truncating
+  PASS  test_containers_by_owner_fills_a_full_store_and_changes_nothing
+  PASS  test_canonical_copy_leaves_the_live_columns_byte_identical
+  PASS  test_canonical_copy_preserves_generations_and_the_used_free_prefix
+  PASS  test_canonical_copy_writes_the_full_unused_payload_on_an_inactive_row
+  PASS  test_canonical_copy_writes_the_unused_container_payload_too
+  PASS  test_a_live_row_is_copied_exactly_and_never_masked
+  PASS  test_the_whole_lot_transfer_that_reuses_its_own_slot_still_works
+  PASS  test_the_canonical_copy_refuses_a_boundary_that_is_not_completed
+  PASS  test_the_canonical_copy_refuses_a_corrupt_allocator_partition
+  PASS  test_a_free_int32_max_slot_is_not_treated_as_retired
+  PASS  test_restore_publishes_without_clearing_or_advancing_a_generation
+  PASS  test_restore_refuses_a_projection_whose_inactive_payload_is_not_canonical
+  PASS  test_restore_refuses_a_projection_with_a_dirty_excluded_tail
+test_gear.gd
+  PASS  test_allocator_and_claim_bytes_match_the_ruling
+  PASS  test_eligibility_predicate_is_not_the_gear_category
+  PASS  test_candle_cannot_be_given_a_gear_instance
+  PASS  test_wear_models_are_assigned_per_item
+  PASS  test_cycle_wear_matches_the_gear_table
+  PASS  test_durability_caps_follow_manufacture_and_model
+  PASS  test_iron_manufacture_belongs_to_tool_alone
+  PASS  test_new_gear_starts_at_its_cap_and_unclaimed
+  PASS  test_gear_lot_must_be_indivisible
+  PASS  test_one_lot_carries_at_most_one_instance
+  PASS  test_create_refuses_inside_an_open_inventory_transaction
+  PASS  test_allocates_through_slot_16383
+  PASS  test_full_pool_creation_refuses_atomically
+  PASS  test_lowest_freed_row_is_reused_deterministically
+  PASS  test_no_row_is_published_before_it_is_initialised
+  PASS  test_stale_lot_handle_fails
+  PASS  test_stale_job_handle_fails
+  PASS  test_stale_owner_handle_fails
+  PASS  test_installed_owner_kinds_are_refused_not_guessed
+  PASS  test_two_jobs_cannot_claim_one_gear_object
+  PASS  test_exact_wear_starts_and_one_below_refuses
+  PASS  test_repeated_completion_cannot_double_debit
+  PASS  test_repeated_cancellation_cannot_double_release
+  PASS  test_repair_and_ownership_change_refused_while_claimed
+  PASS  test_outfit_tier2_keeps_identity_but_never_wears
+  PASS  test_a_broken_general_tool_cannot_start_work
+  PASS  test_general_wear_is_one_point_per_ten_work_units
+  PASS  test_general_wear_preserves_its_remainder_across_tasks
+  PASS  test_repeated_general_wear_cannot_double_debit
+  PASS  test_general_wear_floors_at_zero_and_reports_breaking
+  PASS  test_the_two_wear_models_never_cross
+  PASS  test_general_wear_rejects_an_out_of_range_remainder
+  PASS  test_repair_clamps_to_the_basic_general_cap
+  PASS  test_repair_clamps_to_the_iron_general_cap
+  PASS  test_repair_clamps_to_the_fishing_cap
+  PASS  test_repair_is_not_a_durability_reset
+  PASS  test_the_two_repair_recipes_stay_distinct
+  PASS  test_destroy_refuses_while_the_lot_is_still_live
+  PASS  test_destroy_refuses_while_claimed
+  PASS  test_restore_rebuilds_the_free_heap_ascending
+  PASS  test_restore_refuses_an_impossible_row
+  PASS  test_a_row_is_never_published_without_its_identity
+  PASS  test_state_image_is_row_history_independent
+  PASS  test_a_created_gear_row_is_not_equipped_and_keeps_its_container
+  PASS  test_equip_preserves_identity_age_provenance_quantity_and_durability
+  PASS  test_an_equipped_lot_has_a_null_container_and_charges_no_mass
+  PASS  test_unequip_returns_the_same_lot_without_resetting_durability
+  PASS  test_equip_and_unequip_move_the_equipment_mirror_together
+  PASS  test_wear_and_repair_write_through_to_the_equipment_mirror
+  PASS  test_the_mirror_audit_catches_a_hand_written_mirror
+  PASS  test_the_mirror_audit_catches_a_mirror_with_no_equipped_instance
+  PASS  test_a_refused_equip_leaves_every_store_byte_identical
+  PASS  test_an_equip_that_fails_after_the_mirror_write_rolls_all_three_back
+  PASS  test_an_unequip_that_fails_to_shelve_restores_the_equipped_relation
+  PASS  test_equip_and_unequip_refuse_while_a_job_holds_the_claim
+  PASS  test_set_owner_clear_owner_and_destroy_refuse_while_equipped
+  PASS  test_a_dead_owner_stops_attesting_and_the_inventory_audit_reports_the_orphan
+  PASS  test_only_the_general_tool_may_be_equipped
+  PASS  test_equipping_refuses_an_owner_who_is_not_a_live_resident
+  PASS  test_equip_refuses_without_its_bindings
+  PASS  test_unequip_lands_in_a_reserved_destination
+  PASS  test_rebinding_the_equip_collaborators_refuses_while_gear_is_equipped
+  PASS  test_the_starter_allotment_constants_are_the_gdd_numbers
+  PASS  test_seeding_creates_24_tools_with_12_equipped_and_12_stored
+  PASS  test_every_seeded_tool_starts_at_durability_1000
+  PASS  test_starter_seeding_mints_no_outfit_tier2_item
+  PASS  test_seeding_refuses_a_cohort_that_is_not_twelve_residents
+  PASS  test_seeding_refuses_a_repeated_owner
+  PASS  test_a_seeding_that_runs_out_of_container_space_undoes_itself_whole
+  PASS  test_seeding_refuses_whole_when_the_gear_pool_cannot_hold_24
+  PASS  test_owned_but_unequipped_gear_attests_nothing
+  PASS  test_equipping_a_worn_tool_carries_its_wear_with_it
+  PASS  test_accrued_wear_keeps_the_claim_and_applied_wear_releases_it
+  PASS  test_accrual_carries_the_remainder_exactly_as_the_applied_form_does
+  PASS  test_preflight_general_wear_reports_durability_and_writes_nothing
+  PASS  test_preflight_general_wear_refuses_a_wrong_job_and_a_wrong_wear_model
+  PASS  test_accrual_refuses_a_fishing_model_and_an_out_of_range_remainder
+  PASS  test_accrual_can_break_a_tool_without_giving_the_claim_back
+test_stock_authority_lifetime.gd
+  PASS  test_the_bound_pair_is_released_once_external_references_are_dropped
+  PASS  test_a_live_binding_is_still_consulted_on_every_admission
+  PASS  test_a_live_binding_that_re_enters_the_store_is_still_refused
+  PASS  test_clear_preserves_a_live_binding
+  PASS  test_an_explicit_unbind_enforces_nothing
+  PASS  test_an_expired_binding_refuses_instead_of_admitting
+  PASS  test_an_expired_binding_is_distinguishable_from_an_explicit_unbind
+  PASS  test_rebinding_a_live_authority_restores_enforcement
+test_settlement_system.gd
+  PASS  test_a_fresh_settlement_is_empty
+  PASS  test_creation_spawns_the_gdd_cohort_with_every_component
+  PASS  test_the_reservation_pool_is_owned_and_empty
+  PASS  test_a_second_creation_is_refused_and_changes_nothing
+  PASS  test_reset_empties_every_store_and_the_directory
+  PASS  test_a_settlement_can_be_created_again_after_a_reset
+  PASS  test_a_tick_integrates_needs_by_the_exact_gdd_remainder_rule
+  PASS  test_needs_do_not_move_without_a_tick
+  PASS  test_a_negative_tick_index_is_refused_and_runs_no_stage
+  PASS  test_the_activity_is_resolved_on_the_residents_own_staggered_tick
+  PASS  test_the_resolved_activity_follows_the_schedule_template_hour
+  PASS  test_the_job_queue_is_empty_and_nobody_is_assigned
+  PASS  test_a_queued_job_is_selected_on_the_residents_staggered_tick
+  PASS  test_a_forbidden_job_kind_is_never_assigned
+  PASS  test_a_tick_advances_a_job_in_the_work_state
+  PASS  test_a_job_not_in_the_work_state_takes_no_work
+  PASS  test_productive_work_credits_xp_at_ten_per_completed_work_unit
+  PASS  test_the_accepted_total_is_per_tick_and_not_cumulative
+  PASS  test_a_party_advances_its_shared_row_once_at_the_combined_rate
+  PASS  test_a_winter_day_boundary_applies_the_hunger_multiplier
+  PASS  test_a_non_winter_day_boundary_releases_the_multiplier
+  PASS  test_an_out_of_range_day_boundary_is_refused
+  PASS  test_the_settlement_registers_its_item_catalog_into_its_own_inventory
+  PASS  test_stock_age_runs_on_the_hour_crossing_and_not_on_any_other_tick
+  PASS  test_the_midnight_leg_logs_aging_without_running_a_second_age_pass
+  PASS  test_a_day_boundary_with_no_tick_path_behind_it_runs_the_aging_leg_itself
+  PASS  test_reset_empties_the_stock_layer_and_restores_its_catalog
+  PASS  test_the_boundary_runs_aging_then_the_handover_then_ecology_then_crops
+  PASS  test_the_boundary_advances_the_settlements_own_ecology
+  PASS  test_a_season_that_does_not_belong_to_that_day_is_refused
+  PASS  test_day_one_raises_no_boundary_because_it_opens_at_six_in_the_morning
+  PASS  test_a_replayed_day_boundary_is_refused_rather_than_applied_twice
+  PASS  test_reset_drops_the_ecology_stores_and_the_leg_log
+  PASS  test_the_ecology_shares_the_settlements_one_entity_directory
+  PASS  test_creating_the_settlement_opens_day_ones_weather
+  PASS  test_the_hourly_crop_leg_runs_on_hour_crossings_and_not_only_at_midnight
+  PASS  test_the_hourly_crop_leg_reports_the_hour_it_integrated
+  PASS  test_the_crop_stage_advances_this_settlements_own_stores
+  PASS  test_the_crop_stage_shares_the_settlements_directory_ecology_and_stream_set
+  PASS  test_an_unseeded_settlement_refuses_its_second_seasons_weather_draw
+  PASS  test_a_hive_eligibility_crossing_reaches_the_farm_side_of_the_boundary
+  PASS  test_reset_drops_the_crop_and_weather_stores_and_the_world_seed
+  PASS  test_the_clock_runs_exactly_one_settlement_tick_per_completed_tick
+  PASS  test_a_faster_speed_runs_more_of_the_same_tick
+  PASS  test_a_paused_clock_runs_no_settlement_tick
+  PASS  test_the_first_midnight_reaches_the_settlement_day_boundary
+  PASS  test_a_sublethal_health_event_lowers_health_and_keeps_the_resident_living
+  PASS  test_a_lethal_health_event_records_a_death_and_keeps_the_row
+  PASS  test_health_is_floored_at_zero_by_an_overkill_event
+  PASS  test_treatment_stops_at_the_health_maximum
+  PASS  test_a_dead_resident_refuses_treatment_and_is_skipped_by_the_tick
+  PASS  test_an_out_of_range_resident_row_is_refused_rather_than_answered
+  PASS  test_a_row_inside_capacity_but_outside_the_cohort_is_not_present
+  PASS  test_a_resident_reference_taken_before_a_reset_is_no_longer_valid
+[measure] settlement tick at 12 residents over 300 ticks: mean 147 us, max 277 us
+  PASS  test_a_settlement_tick_at_the_starting_cohort_is_measured
+  PASS  test_the_settlement_runs_the_command_commit_stage_every_tick
+  PASS  test_an_unsupported_command_refuses_in_the_running_settlement
+  PASS  test_the_ecology_kinds_no_longer_refuse_store_not_bound
+  PASS  test_an_unbound_dispatch_still_refuses_store_not_bound
+  PASS  test_the_command_stage_runs_before_the_selection_stage
+  PASS  test_the_command_stage_commits_before_the_selection_stage_can_take_the_job
+  PASS  test_the_command_queue_follows_the_clock_the_game_is_running_on
+  PASS  test_a_reset_settlement_keeps_no_pending_command
+  PASS  test_a_paused_zone_edit_resumes_into_one_intent_one_job_and_cancels
+  PASS  test_the_published_harvest_is_never_advanced_to_job_state_work
+  PASS  test_a_replayed_command_in_the_running_loop_produces_no_second_job
+  PASS  test_a_set_policy_edit_reaches_the_forage_store_in_this_composition
+  PASS  test_repeating_a_policy_edit_creates_no_second_job
+  PASS  test_world_generation_alone_creates_no_job_and_no_intent
+  PASS  test_the_planner_is_composed_over_this_settlements_own_stores
+  PASS  test_the_measured_stage_list_matches_what_actually_runs
+  PASS  test_every_stage_is_measured_on_every_tick
+  PASS  test_the_presentation_extract_captures_every_tick
+  PASS  test_hiding_a_presentation_layer_changes_no_authoritative_value
+  PASS  test_the_planner_day_boundary_is_not_a_req_set_007_leg
+  PASS  test_every_stage_closes_its_window_exactly_once_per_tick
+  PASS  test_the_planner_midnight_is_counted_rather_than_assumed
+  PASS  test_a_repeated_tick_index_is_counted_as_a_refused_extract
+  PASS  test_a_refused_interval_sweep_still_extracts_the_tick
+  PASS  test_a_command_due_at_tick_one_is_not_committed_by_tick_zero
+  PASS  test_generating_a_settlement_produces_the_world_and_the_cohort_together
+  PASS  test_an_ungenerated_settlement_has_neither_world_nor_population
+  PASS  test_the_generated_cohort_is_gdd_5_1s_species_mix
+  PASS  test_the_generated_cohort_starts_at_gdd_5_1s_needs_and_health
+  PASS  test_the_generated_cohort_carries_gdd_5_1s_skills_and_the_reserved_zero
+  PASS  test_only_the_warden_is_named_in_the_generated_cohort
+  PASS  test_every_generated_resident_is_attached_and_ticks
+  PASS  test_generation_seeds_the_rng_the_settlement_could_not_seed_itself
+  PASS  test_generating_resets_the_job_and_command_state_it_was_composed_over
+  PASS  test_generating_resets_the_farm_plots_it_was_composed_over
+  PASS  test_generating_resets_the_hives_it_was_composed_over
+  PASS  test_the_generated_cohort_holds_gdd_5_1s_persistent_ids_one_to_twelve
+  PASS  test_the_world_entities_continue_the_same_counter_from_thirteen
+  PASS  test_every_live_persistent_id_is_unique_across_kinds
+  PASS  test_no_destroyed_persistent_id_is_reissued
+[R-INIT-ID-001] ids consumed by initialization: 1725; next id: 1726
+  PASS  test_the_next_persistent_id_is_derived_from_every_allocation_event
+  PASS  test_the_same_seed_initializes_identically_under_the_new_order
+  PASS  test_generation_refuses_a_settlement_that_already_holds_residents
+  PASS  test_an_unloaded_item_catalog_refuses_and_leaves_the_settlement_empty
+  PASS  test_a_refusal_before_the_transaction_retains_the_previous_valid_world
+  PASS  test_a_cohort_that_refuses_leaves_no_half_settlement_standing
+  PASS  test_a_refused_cohort_preflight_never_enters_the_transaction
+  PASS  test_the_cohort_is_allocated_seeded_and_before_the_world_is_published
+  PASS  test_an_abandoned_transaction_does_not_leave_a_plan_that_can_publish_later
+  PASS  test_a_refused_generation_reports_it_and_spawns_no_cohort
+  PASS  test_resetting_a_generated_settlement_discards_the_world_with_the_cohort
+  PASS  test_a_new_world_restarts_the_id_space_at_rowan
+  PASS  test_the_building_store_is_composed_over_this_settlements_one_directory
+  PASS  test_an_empty_settlement_holds_no_building_room_or_furniture
+  PASS  test_a_placed_building_allocates_a_row_in_the_settlements_directory
+  PASS  test_the_bed_counter_reads_live_furniture_rows_and_falls_when_one_is_removed
+  PASS  test_a_bed_takes_a_resident_of_this_settlement_as_its_user
+  PASS  test_a_bed_refuses_a_directory_row_that_is_not_a_resident
+  PASS  test_resetting_the_settlement_empties_the_building_store_and_its_directory_rows
+  PASS  test_a_generated_settlement_still_places_no_building_and_counts_no_bed
+  PASS  test_a_building_placed_after_generation_takes_the_next_persistent_id
+  PASS  test_the_building_store_adds_no_stage_to_the_tick
+  PASS  test_the_construction_store_shares_this_settlements_building_store
+  PASS  test_a_project_opened_through_the_settlement_names_a_real_building
+  PASS  test_a_generated_settlement_still_holds_no_construction_project
+  PASS  test_resetting_the_settlement_releases_every_project_row
+  PASS  test_the_construction_store_adds_no_stage_to_the_tick
+  PASS  test_a_ledger_failure_in_the_hourly_sweep_raises_the_existing_critical_pause
+  PASS  test_the_faulted_hour_is_retried_exactly_once_and_recovers_the_same_hour
+  PASS  test_a_recovered_retry_clears_the_pause_and_the_fault_together
+ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _halt_stock_integrity (res://scripts/systems/settlement_system.gd:1858)
+       [1] _retry_stock_hour (res://scripts/systems/settlement_system.gd:1779)
+       [2] _age_stock_hour (res://scripts/systems/settlement_system.gd:1749)
+       [3] _age_stocks (res://scripts/systems/settlement_system.gd:1736)
+       [4] _run_stages (res://scripts/systems/settlement_system.gd:1615)
+       [5] run_tick (res://scripts/systems/settlement_system.gd:1580)
+       [6] test_a_retry_that_also_fails_halts_the_simulation_and_is_never_retried_again (res://test/test_settlement_system.gd:2756)
+       [7] _run_test (res://test/run_tests.gd:161)
+       [8] _run_suite (res://test/run_tests.gd:138)
+       [9] _run_worker (res://test/run_tests.gd:91)
+       [10] _initialize (res://test/run_tests.gd:78)
+  PASS  test_a_retry_that_also_fails_halts_the_simulation_and_is_never_retried_again
+ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _halt_stock_integrity (res://scripts/systems/settlement_system.gd:1858)
+       [1] _retry_stock_hour (res://scripts/systems/settlement_system.gd:1779)
+       [2] _age_stock_hour (res://scripts/systems/settlement_system.gd:1749)
+       [3] _age_stocks (res://scripts/systems/settlement_system.gd:1736)
+       [4] _run_stages (res://scripts/systems/settlement_system.gd:1615)
+       [5] run_tick (res://scripts/systems/settlement_system.gd:1580)
+       [6] test_a_halted_tick_runs_no_stage_and_re_asserts_the_shared_critical_bit (res://test/test_settlement_system.gd:2779)
+       [7] _run_test (res://test/run_tests.gd:161)
+       [8] _run_suite (res://test/run_tests.gd:138)
+       [9] _run_worker (res://test/run_tests.gd:91)
+       [10] _initialize (res://test/run_tests.gd:78)
+  PASS  test_a_halted_tick_runs_no_stage_and_re_asserts_the_shared_critical_bit
+ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _halt_stock_integrity (res://scripts/systems/settlement_system.gd:1858)
+       [1] _retry_stock_hour (res://scripts/systems/settlement_system.gd:1779)
+       [2] _age_stock_hour (res://scripts/systems/settlement_system.gd:1749)
+       [3] _age_stocks (res://scripts/systems/settlement_system.gd:1736)
+       [4] _run_stages (res://scripts/systems/settlement_system.gd:1615)
+       [5] run_tick (res://scripts/systems/settlement_system.gd:1580)
+       [6] test_only_a_reset_leaves_a_halted_settlement (res://test/test_settlement_system.gd:2797)
+       [7] _run_test (res://test/run_tests.gd:161)
+       [8] _run_suite (res://test/run_tests.gd:138)
+       [9] _run_worker (res://test/run_tests.gd:91)
+       [10] _initialize (res://test/run_tests.gd:78)
+  PASS  test_only_a_reset_leaves_a_halted_settlement
+  PASS  test_a_later_hours_fault_earns_its_own_single_retry
+  PASS  test_a_cadence_refusal_is_not_an_integrity_fault_and_pauses_nothing
+ERROR: SettlementSystem: stock integrity fault 'OVERFLOW' at hour tick 750 is unrecovered (retries attempted: 0); the simulation is halted until the settlement is reset.
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _halt_stock_integrity (res://scripts/systems/settlement_system.gd:1858)
+       [1] _raise_stock_integrity_fault (res://scripts/systems/settlement_system.gd:1834)
+       [2] _note_stock_hour_result (res://scripts/systems/settlement_system.gd:1808)
+       [3] _age_stock_hour (res://scripts/systems/settlement_system.gd:1756)
+       [4] _age_stocks (res://scripts/systems/settlement_system.gd:1736)
+       [5] _run_stages (res://scripts/systems/settlement_system.gd:1615)
+       [6] run_tick (res://scripts/systems/settlement_system.gd:1580)
+       [7] test_a_per_lot_arithmetic_failure_pauses_and_halts_without_a_retry (res://test/test_settlement_system.gd:2874)
+       [8] _run_test (res://test/run_tests.gd:161)
+       [9] _run_suite (res://test/run_tests.gd:138)
+       [10] _run_worker (res://test/run_tests.gd:91)
+       [11] _initialize (res://test/run_tests.gd:78)
+  PASS  test_a_per_lot_arithmetic_failure_pauses_and_halts_without_a_retry
+  PASS  test_the_daily_aging_leg_raises_and_retries_the_same_fault_as_the_tick_path
+ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _halt_stock_integrity (res://scripts/systems/settlement_system.gd:1858)
+       [1] _retry_stock_hour (res://scripts/systems/settlement_system.gd:1779)
+       [2] _age_stock_hour (res://scripts/systems/settlement_system.gd:1749)
+       [3] _age_stocks (res://scripts/systems/settlement_system.gd:1736)
+       [4] _run_stages (res://scripts/systems/settlement_system.gd:1615)
+       [5] run_tick (res://scripts/systems/settlement_system.gd:1580)
+       [6] test_a_halted_settlement_refuses_the_daily_boundary_before_aging_anything (res://test/test_settlement_system.gd:2919)
+       [7] _run_test (res://test/run_tests.gd:161)
+       [8] _run_suite (res://test/run_tests.gd:138)
+       [9] _run_worker (res://test/run_tests.gd:91)
+       [10] _initialize (res://test/run_tests.gd:78)
+  PASS  test_a_halted_settlement_refuses_the_daily_boundary_before_aging_anything
+  PASS  test_the_retry_runs_inside_the_existing_stock_age_stage_and_adds_no_ninth
+  PASS  test_the_integrity_refusal_class_is_read_from_stock_ages_own_constants
+  PASS  test_the_settlement_binds_its_own_aging_stage_as_the_seed_expiry_authority
+  PASS  test_exact_expiry_is_refused_at_reserve_and_one_milli_hour_short_is_not
+  PASS  test_an_existing_claim_is_revalidated_at_commit_and_refused
+  PASS  test_the_guard_still_lets_the_hourly_pass_convert_the_seed_it_refuses
+  PASS  test_the_wiring_survives_a_settlement_reset
+  PASS  test_the_seed_guard_survives_a_critical_pause_and_its_retry_recovery
+  PASS  test_the_settlement_owns_one_transform_store_bound_to_its_own_directory
+  PASS  test_the_generated_cohort_stands_on_the_authored_assembly_row
+  PASS  test_the_twelve_assembly_tiles_are_distinct_and_are_the_authored_indices
+  PASS  test_the_generated_map_reserves_the_assembly_row_before_resource_placement
+  PASS  test_nothing_static_or_generated_occupies_the_assembly_row
+  PASS  test_the_assembly_row_grants_no_home_bed_or_building
+  PASS  test_placement_happens_against_the_prepared_world_not_a_published_one
+  PASS  test_the_cohort_only_fixture_places_nobody
+  PASS  test_assignment_follows_the_persistent_id_and_not_the_resident_row
+  PASS  test_the_resolver_refuses_a_cohort_that_is_not_exactly_ids_one_to_twelve
+  PASS  test_the_resolver_refuses_an_undersized_output_column_rather_than_resizing_it
+  PASS  test_a_refused_generation_over_a_published_world_leaves_the_poses_byte_identical
+  PASS  test_a_cohort_refusal_inside_the_transaction_leaves_no_pose_standing
+  PASS  test_a_new_world_reset_leaks_no_pose_into_the_world_that_follows_it
+  PASS  test_repeated_presentation_reads_change_no_authoritative_pose_byte
+  PASS  test_the_apron_exclusion_covers_exactly_the_twelve_authored_tiles
+  PASS  test_a_plan_that_puts_a_resource_node_on_the_apron_refuses_the_placement
+  PASS  test_a_plan_clear_of_the_apron_passes_the_exclusion
+  PASS  test_an_unreadable_plan_refuses_rather_than_being_treated_as_empty
+  PASS  test_a_pose_store_that_leaves_a_previous_pose_behind_refuses_the_whole_world
+  PASS  test_a_candidate_row_that_is_already_placed_refuses_before_anything_is_written
+  PASS  test_a_spotless_building_still_refuses_because_containment_cannot_be_proved
+  PASS  test_the_gate_refuses_a_stale_inactive_or_already_demolishing_building
+  PASS  test_the_gate_reports_the_exact_stranded_lots_of_a_building_owned_store
+  PASS  test_a_reserved_lot_is_counted_once_and_not_twice
+  PASS  test_reserved_container_mass_is_an_outstanding_claim_and_never_an_invented_lot
+  PASS  test_goods_under_a_room_or_a_furniture_owner_are_not_missed
+  PASS  test_a_projects_material_container_is_scanned_through_its_inventory_handle
+  PASS  test_a_material_container_reached_twice_is_counted_once
+  PASS  test_an_unprovable_material_container_binding_refuses_as_a_missing_contract
+  PASS  test_a_delivered_project_with_no_container_binding_refuses_as_a_missing_contract
+  PASS  test_the_endpoint_proof_runs_before_the_occupant_recheck
+  PASS  test_stranded_goods_refuse_before_the_occupant_recheck
+  PASS  test_the_resident_half_still_refuses_after_a_proved_empty_goods_scan
+  PASS  test_a_haul_that_clears_the_store_changes_the_refusal_to_the_missing_contract
+  PASS  test_no_demolition_request_changes_one_byte_of_any_store
+  PASS  test_a_spotless_request_changes_nothing_either
+  PASS  test_the_gate_scans_every_container_an_owner_holds_rather_than_a_buffers_worth
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+422 test(s), 8265 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

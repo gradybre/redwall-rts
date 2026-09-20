@@ -1360,14 +1360,21 @@
     {
       "id": "QA-SHUTDOWN-LEAKS",
       "title": "Identify and repair shutdown ownership leaks",
-      "status": "ready",
+      "status": "review",
       "depends_on": [],
       "owns": [
-        "docs/validation/evidence/shutdown-ownership/"
+        "godot/scripts/core/inventory.gd",
+        "godot/test/test_settlement_system.gd",
+        "godot/test/test_equipment_authority_lifetime.gd",
+        "godot/test/equipment_authority_lifetime_focus.gd",
+        "docs/planning/equipment_authority_lifetime_contract.md",
+        "docs/validation/evidence/shutdown-leak-diagnostic-2026-09-20/",
+        "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/"
       ],
-      "agent": "game-coder",
+      "agent": "equipment-authority-author",
       "gate": "none",
-      "acceptance": "Reproduce4551suite andboot leaks; attribute actual retained object/resource owners with bounded diagnostics; publish exact repair paths before edits. Do not suppress warnings or claim all leaks from count only. One heavy job."
+      "acceptance": "EQUIPMENT-LIFETIME-R01v1 / ADR0187. Proven equipment authority cycle and anonymous Node fixture; exact expired-authority refusals, unchanged stock bytes, real lifetime counterfactuals, focused/full/static, boot/shutdown evidence and independent review. No all-leak attribution from count only; one heavy job.",
+      "note": "Candidate independently reviewed; full5060/526482/0 and focused422/8265/0,17staticchecks pass;2semantic faults caught. Verbose full-suite and simple boot have no exit leak warnings. Pending committed identity/exact-head CI/merge."
     },
     {
       "id": "PLAN-INTEGRATED-QUALIFICATION",

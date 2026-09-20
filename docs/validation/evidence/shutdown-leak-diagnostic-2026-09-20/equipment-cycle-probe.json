@@ -1,0 +1,13 @@
+{
+  "scope": "Public-API lifetime diagnosis only; no fix or new production policy",
+  "head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_sha256": {
+    "godot/scripts/core/inventory.gd": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
+    "godot/scripts/core/gear.gd": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f",
+    "godot/scripts/core/residents.gd": "90a99e562e4e0b41da5f2afad5df7ab64f297b93b86f985d21535ebd72c3a06c"
+  },
+  "exit_code": 0,
+  "seconds": 1.221,
+  "script_or_engine_error": false,
+  "log_sha256": "fd62e284fd9fc2bcfe6e3c299b36efad8b7dc27c86e977d4bc37870a8be46bb1"
+}

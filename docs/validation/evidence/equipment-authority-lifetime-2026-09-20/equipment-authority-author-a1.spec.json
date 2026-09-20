@@ -1,0 +1,30 @@
+{
+  "id": "equipment-authority-author-a1",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/equipment-authority-author-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/equipment_authority_lifetime_contract.md",
+    "docs/decisions/0187-inventory-borrows-equipment-authority.md",
+    "docs/rulings/2026-09-19_stock_authority_lifetime.md",
+    "godot/scripts/core/inventory.gd",
+    "godot/scripts/core/gear.gd",
+    "godot/scripts/core/residents.gd",
+    "godot/test/test_inventory.gd",
+    "godot/test/test_gear.gd",
+    "godot/test/test_settlement_system.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "docs/validation/evidence/shutdown-leak-diagnostic-2026-09-20/equipment-cycle-probe.gd"
+  ],
+  "instructions": "Implement exactly EQUIPMENT-LIFETIME-R01v1 / ADR0187. This is a bounded authority repair using the established seed-authority WeakRef pattern, not new gameplay or save state. Return ONE unified patch file at the exact allowed artifact path, modifying only godot/scripts/core/inventory.gd and godot/test/test_settlement_system.gd. The latter only the named anonymous Node fixture in test_a_new_world_reset_leaks_no_pose_into_the_world_that_follows_it. <=240patchlines with3contextlines and trailingnewline. Do not rewrite full files. Inventory WeakRef must distinguish never-bound/explicit-unbound from expired authority; expired refuses INVALID_EQUIPMENT_AUTHORITY at existing authority gate before lot/destination checks in both attach/detach and preflights, preserving all original ordering. Strong local acquisition in _attests through the callback, reentrancy unchanged. Successful live bind weak, invalid/transaction/null-with-equipped-lots preserves existing binding. Clear retains wiring. No new state or weak Gear collaborators, no automatic stock modifications. No tests authored in this packet; independent test author follows frozen candidate. Read actual supplied methods, do not invent names/constants. Summary states changed functions and unresolved concerns; no executed-test/acceptance claim. Allauthorfiles exactly3keys baseSha256:null FIRST,path,content; top-level exactly status,summary,questions,files,decisionIds. Other Construction lane runs concurrently with disjoint source ownership. No production file changes outside the two listed patch targets.\n\nDispatch audit: {\"base_commit\":\"818197313aa87cae2c1e6cfe091abe27d24817fc\",\"task\":\"Repair proven Inventory–Gear lifetime cycle and expired equipment authority gates\",\"allowedWrites\":{\"docs/validation/evidence/equipment-authority-lifetime-2026-09-20/equipment-authority-repair.patch\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized."
+}

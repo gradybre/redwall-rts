@@ -1,0 +1,37 @@
+{
+  "id": "equipment-authority-review-a1",
+  "root": "/Users/brendan/Developer/redwall-rts-equipment-2026-09-20",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/equipment-authority-review-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/equipment_authority_lifetime_contract.md",
+    "docs/decisions/0187-inventory-borrows-equipment-authority.md",
+    "docs/rulings/2026-09-19_stock_authority_lifetime.md",
+    "godot/scripts/core/inventory.gd",
+    "godot/scripts/core/gear.gd",
+    "godot/test/test_equipment_authority_lifetime.gd",
+    "godot/test/equipment_authority_lifetime_focus.gd",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/fixture-final-excerpt.md",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/equipment-authority-repair.patch",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/functional-a2.json",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/author-a1-regression.json",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/author-a1-diagnostic-classification.json",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/semantic-fault-plan.json",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/semantic-faults-a1/result.json",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/isolated-candidate.json"
+  ],
+  "instructions": "Fresh independent reviewer, not an author. Review exact candidate for EQUIPMENT-LIFETIME-R01v1 authority lifetime, correctness/security, rollback/state-preservation and witness quality, plus bounded fixture leak fix. Full final Inventory/Gear and14test suite plus exact changed fixture excerpt are supplied; unchanged surrounding SettlementSystem test is not in scope. Real production candidate hashes in isolated-candidate.json match prior intake. Fourteen new tests133assertions pass;408existingtests8132assertions pass; both actual semantic fault units caught, baselinebefore/after pass, with full real Gear mutual-release failure under strongedge and expiredvalid-gate wrongadmission underbypass. Unit1's5resource-exit diagnostic is an expected effect of deliberate retention, not a parser/runtime error; inspect actual result validity. Originalfocusedrunner constPackedStringArray parsefailure was corrected in actual supplied focus; clean-checkout import/focus/full/static/boot/verbose and CI are still running or pending, not claimed passed. Your verdict concerns code/QA candidate; final acceptance remains Astra after those gates. Inspect possible lifetime TOCTOU/callback reentry, live/expired/null distinctions, frozen refused binding, strong local acquisition, all four gates, actual attach effects, liveGear ownership, audit orphan behavior, all new helper styles, assertions actually discriminate expected faults. Identify any missing decisive tests or unsupported lifecycle claims. No new domain/policy, no warnings suppression, no private-field mutation. Return full concise review in summary and files:[]; no provider tools/execution claims. State candidate/scope, verdict, material findings with exact references, and remaining uncertainty. Existing tests genuinely pass; do not invent blockers merely for advisory wording/length. No author self-acceptance.\n\nDispatch audit: {\"base_commit\":\"043c4da567861d313fb0e23656b4a1363d8cf708\",\"task\":\"Independent combined code/security and QA review of equipment authority lifetime candidate\",\"allowedWrites\":{\"docs/validation/evidence/equipment-authority-lifetime-2026-09-20/independent-code-review.md\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "reviewTarget": {
+    "path": "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/independent-code-review.md",
+    "baseSha256": null
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "task": "Independent functional evidence for equipment authority lifetime and fail-closed expiry",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/equipment_authority_lifetime_contract.md",
+    "docs/decisions/0187-inventory-borrows-equipment-authority.md",
+    "godot/scripts/core/inventory.gd",
+    "godot/test/test_stock_authority_lifetime.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "docs/validation/evidence/shutdown-leak-diagnostic-2026-09-20/equipment-cycle-probe.gd",
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/qa-collaborator-excerpts.md"
+  ],
+  "allowedWrites": {
+    "godot/test/test_equipment_authority_lifetime.gd": null,
+    "godot/test/equipment_authority_lifetime_focus.gd": null
+  },
+  "instructions": "Write the two new allowed test files only against actual candidate Inventory. Independent tests implement every functional witness in EQUIPMENT-LIFETIME-R01v1: real Gear/Inventory/Residents mutual release without unbinding (source-bound probe supplies exact real API), live Gear retains its collaborators until Gear is dropped, live RefCounted and Node callback behavior; clear preserves binding; failed/transaction binding preserves; never-bound/null unbind vs expired; valid fixtures for all4 expired operations (detachpreflight/detach/attachpreflight/attach) with BOTH RefCounted drop and explicit Node.free, exact INVALID_EQUIPMENT_AUTHORITY and full state_bytes unchanged before/after every refusal. Real detached lot audit expires to AUDIT_ORPHAN_LOT without normalization; explicit unbind refuses equipped live lots even expired; replacement authority restores attestation. Preserve reentry evidence. Prove strong per-call acquisition with RefCounted authority that drops its only external owner during callback; avoid a test-created strongcycle. Assert setup results and stop failing scenarios before indexing/using refusedhandles. Use public API, never private fields as oracle; independent constants for errorcodes okay. Live surrogate authority must retain external reference for intended duration after weak binding. Any Nodes must free exactly once.\nReference test_stock_authority_lifetime style, actual supplied Inventory API, immutable test excerpts and real equipment-cycle-probe. No production changes. New tests should expose restoration of originalstrongedge and expired-wrapper-admission mutations; Astra executes those later. No claims you ran tests. Focus extends actual run_tests runner and discovers exactly test_equipment_authority_lifetime.gd, test_inventory.gd, test_gear.gd, test_stock_authority_lifetime.gd, test_settlement_system.gd for existing callback/rollback/fixture regression. Bound total source <=650lines, <=30code-line functions/helpers with typing/docstrings. Allfileentries exactly3keys baseSha256:null FIRST,path,content; top-level exactly status,summary,questions,files,decisionIds. Raise concrete missing API/contract contradiction rather than inventing APIs."
+}

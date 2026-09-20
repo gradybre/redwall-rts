@@ -1,0 +1,42 @@
+{
+  "contract": "EQUIPMENT-LIFETIME-R01v1",
+  "status": "local_candidate_ready_for_CI_not_merged",
+  "tests": 5060,
+  "assertions": 526482,
+  "failures": 0,
+  "focused": [
+    422,
+    8265,
+    0
+  ],
+  "new_lifetime": [
+    14,
+    133,
+    0
+  ],
+  "semantic_fault_units_caught": 2,
+  "static_checks_passed": 17,
+  "registry_coverage": {
+    "modules": 83,
+    "rows": 390,
+    "packed_columns": 684
+  },
+  "verbose_suite_exit_leak_warning_lines": 0,
+  "simple_boot_exit_leak_warning_lines": 0,
+  "before_diagnostic": {
+    "reported_objects": 553,
+    "resources": 33,
+    "printed_instance_lines": 551
+  },
+  "leak_claim_scope": "Observed diagnostics absent in these exact full-suite and simple-boot runs; no universal native-memory qualification",
+  "source_manifest": "release-checks-a1/source-manifest.json",
+  "source_unchanged_through_checks": true,
+  "review": "independent-code-review.md",
+  "review_disposition": "review-disposition.md",
+  "known_negative_test_errors": "release-checks-a1/full-classification.json",
+  "remaining": [
+    "committed identity",
+    "exact-commit CI",
+    "merge"
+  ]
+}

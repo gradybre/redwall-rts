@@ -1,0 +1,16 @@
+{
+  "scope": "Independent equipment integration checkout; excludes unaccepted Construction owner/bridge changes",
+  "source_checkout": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "source_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_checkout": "/Users/brendan/Developer/redwall-rts-equipment-2026-09-20",
+  "integration_base": "043c4da567861d313fb0e23656b4a1363d8cf708",
+  "files": {
+    "godot/scripts/core/inventory.gd": "c8ec0dc122426a8231b7d00c13279fb1bfd42c5187740f6121692987ba2f1ca9",
+    "godot/test/test_settlement_system.gd": "f2ba63eb46f5bb95c22a9c90b5f239b2f1fa40271c087b34a68bd3f33ca29b23",
+    "godot/test/test_equipment_authority_lifetime.gd": "eeac24b3e722e441f47bbba5adf195aca6e5fdd15593bedf66c1a66e57f42c4d",
+    "godot/test/equipment_authority_lifetime_focus.gd": "f73f1bcc8c7aa9101069de7a6cde41d349935214bf936c04a6def84b41c7b03a",
+    "docs/planning/equipment_authority_lifetime_contract.md": "5cddcf73026d827733797723527033c5de7881a872dd91357831b69cb6de88ec",
+    "docs/decisions/0187-inventory-borrows-equipment-authority.md": "af86e99c71991e778d38b33b441b4ab4a20725d14802bb5a82ac21f172f29429"
+  },
+  "all_equal": true
+}

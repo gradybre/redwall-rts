@@ -1,0 +1,5 @@
+{
+  "godot/scripts/core/save_section_event_schedule.gd": "b4e607fd51a55e8229d39fe8f2b7a699ad8dc941fe908fd9217fefbff64b338f",
+  "godot/test/test_save_section_event_schedule.gd": "53c91882d6671903b3439e9aab932c85376ea4673af66215025003042e623a5b",
+  "godot/test/event_schedule_codec_focus.gd": "cf2948de3097dd52c1ba834c40a947c0cac275458e46bdc5b0c6e74c4eb5b859"
+}

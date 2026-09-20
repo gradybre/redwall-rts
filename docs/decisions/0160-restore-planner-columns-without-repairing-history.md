@@ -1,6 +1,6 @@
 # 0160 — Restore planner columns without repairing history
 
-Date: 2026-09-19 · Status: Implemented candidate; independent review findings resolved,4703tests/184136assertions/0failures; CI/merge pending
+Date: 2026-09-19 · Status: Implemented and merged in PR151 (`e2ce392`); independent review and exact-head CI4703/184136/0 passed
 
 [SAVE-J2-R02v2](../planning/job_planner_bulk_columns_contract.md) supplies exact
 35-field capture/restore and the section8 live adapters. Move shared Record,

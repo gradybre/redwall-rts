@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "d495b9cbb7603096a31822d8c2b9078b5020076d",
+  "task": "Implement SAVE-S11-R01v2 section11 event schedule codec",
+  "paths": [
+    "docs/planning/event_schedule_codec_contract.md",
+    "docs/validation/evidence/event-schedule-contract-2026-09-19/astra-contract-disposition.md",
+    "godot/scripts/core/event_schedule.gd",
+    "godot/scripts/core/save_codec.gd",
+    "godot/scripts/core/save_header.gd",
+    "godot/scripts/core/sim_clock.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/scripts/core/save_section_rng.gd"
+  ],
+  "instructions": "Implement accepted SAVE-S11-R01v2 exactly. Return ONE new file godot/scripts/core/save_section_event_schedule.gd. No source owner edits. Parent writes independent tests/docs/registry. This is a bounded existing-wire adapter, no real event kinds/gameplay activation. Use exact static signatures and typed arrays/refusal vocabulary/order. Record copy duplicates buffers; decode stages before publication, subtraction bounds before offset addition. Apply directly delegates atomic owner restore after null/barrier, no extra validation-owner allocation; record_refusal uses temporaryowner for existing validation. EncodeResult StringName refusal and String detail match real codec. Keep cold payload accounting truthful. Need explicit return types, Godot4.7.2 compatible syntax, pure integer operations, no reflection and no tools. If ambiguity report question instead of inventing. Output raw JSON status complete,summary,questions[],files exactly allowed new file with baseSha256 null and full content,decisionIds[]. Output <=600lines source. Independent review/test/CI required before acceptance."
+}

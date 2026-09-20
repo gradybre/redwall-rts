@@ -846,7 +846,7 @@
     {
       "id": "SAVE-COLUMNS-JOBPLANNER",
       "title": "Publish a bulk column API on job_planner; closes BLOCKER J2",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE",
         "SAVE-PLANNER-DIRTY-FORMAT"
@@ -861,7 +861,9 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "SAVE-J2-R02v2 / decision0160 accepted after independent contract review and real stale-job/dirty-order probes. Exact owner snapshot/restore and section8 adapters under implementation; preserve35fields/schema2 and restore history without reconciliation. Independent source review findings resolved; focused260/3625/0, full4703/184136/0,15static gates/import and3targeted mutation checks pass. CI/merge pending."
+      "note": "SAVE-J2-R02v2 / decision0160 accepted after independent contract review and real stale-job/dirty-order probes. Exact owner snapshot/restore and section8 adapters under implementation; preserve35fields/schema2 and restore history without reconciliation. Independent source review findings resolved; focused260/3625/0, full4703/184136/0,15static gates/import and3targeted mutation checks pass. PR151 merged after both checks passed on04791eb; CI35478704594:4703/184136/0.",
+      "merge_commit": "e2ce392b16ec6e224cacc65805fb4f519b8f341e",
+      "pr": 151
     },
     {
       "id": "SAVE-COLUMNS-NAVIGATION",
@@ -927,17 +929,18 @@
     {
       "id": "SAVE-S11-CODEC",
       "title": "Section 11 codec over the existing event_schedule store",
-      "status": "ready",
+      "status": "review",
       "depends_on": [
         "PLAN-SAVE-COVERAGE"
       ],
       "owns": [
         "godot/scripts/core/save_section_event_schedule.gd",
-        "godot/test/test_save_section_event_schedule.gd"
+        "godot/test/test_save_section_event_schedule.gd",
+        "godot/test/event_schedule_codec_focus.gd"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+      "note": "SAVE-S11-R01v2 / decision0161 accepted after independent contract review. Exact8+32N distinct byte form over existing EventSchedule; real event domains/production/consumption remain PLAN-COMMUNITY-EVENTS, not activated by codec. Independent source review found no defect; final focus43/538/0, full local4713/184355/0 before2test-only additions,15static gates/import pass. Exact-head CI/merge pending."
     },
     {
       "id": "SAVE-S13-CODEC",

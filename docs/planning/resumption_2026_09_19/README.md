@@ -10,9 +10,9 @@ snapshot with 356 changed/untracked entries; it was preserved. The [file invento
 
 ## Current verified position
 
-PRs 140–150 are merged. The latest integrated candidate is `d495b9c`; its final CI passed **4686 tests / 183384 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
+PRs 140–151 are merged. The latest integrated candidate is `e2ce392`; its final CI passed **4703 tests / 184136 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
 
-The family planning draft is integrated without runtime activation. A new runtime counterexample proves that planner dirty-list order/membership affects future job IDs despite identical previously declared fields; SAVE-J2-R01 implements the format/classification correction with explicit old-schema refusal, merged in PR148. The full owner bulk adapter remains open.
+The family planning draft is integrated without runtime activation. A new runtime counterexample proves that planner dirty-list order/membership affects future job IDs despite identical previously declared fields; SAVE-J2-R01 implements the format/classification correction with explicit old-schema refusal, merged in PR148. The exact owner bulk adapter and section8 capture/apply merged in PR151; whole-world coordination remains open.
 
 ## Verified baseline
 
@@ -233,4 +233,9 @@ the UI or fix the two inventories; ready NP and composition remain work.
 
 ## Exact planner capture and restore
 
-SAVE-J2-R02v2 / decision0160 is in implementation after independent contract review. Shared schema extraction retains the35fields and exact schema2 wire hashes. Expanded focused tests256/3369/0 cover actual farm/forage/hive owners, stale jobs, dirty-order continuation, malformed outputs, buffer independence, all21diagnostic resets and derived counters. Independent source review findings resolved; final focused260/3625/0, full4703/184136/0,15static gates and import pass, with3targeted mutations killed. CI/merge pending. This closes only the planner boundary; whole-world saving remains open.
+SAVE-J2-R02v2 / decision0160 is in implementation after independent contract review. Shared schema extraction retains the35fields and exact schema2 wire hashes. Expanded focused tests256/3369/0 cover actual farm/forage/hive owners, stale jobs, dirty-order continuation, malformed outputs, buffer independence, all21diagnostic resets and derived counters. Independent source review findings resolved; final focused260/3625/0, full4703/184136/0,15static gates and import pass, with3targeted mutations killed. Merged in [PR151](https://github.com/gradybre/redwall-rts/pull/151) at `e2ce392b16ec6e224cacc65805fb4f519b8f341e`; CI35478704594 passed on exact head04791eb6ad7c99648a90289fbf21dbff42d9a23b with4703/184136/0. This closes only the planner boundary; whole-world saving remains open.
+
+
+## Event schedule byte adapter
+
+SAVE-S11-R01v2 / decision0161 candidate supplies the missing section11codec over the existing64-row owner. It preserves exact sequence allocation and due order, including exhausted or empty schedules, and requires the supplied clock barrier for apply. Independent source review found no defect; final focused43/538/0, full local4713/184355/0 before2review-requested test-only additions,15static gates and import pass. Exact-head CI/merge pending. Real event domains/producers/consumers and full-world saving remain open.

@@ -1,0 +1,334 @@
+{
+  "pr": 164,
+  "url": "https://github.com/gradybre/redwall-rts/pull/164",
+  "head": "7b98c61cb6a1bfdbc38a960b4fe53975cb779ee7",
+  "run": 35497087870,
+  "conclusion": "success",
+  "merge_commit": "38e916e3b7eca7a5adb86709da5dd74c9e584d06",
+  "merged_at": "2026-09-20T07:50:14Z",
+  "log_sha256": "18c7d8d1a3b441db94307779682697af2dea2166805dbf84e784eef5290e14e2",
+  "summary_lines": [
+    "Godot headless suite\tRun the suite\t2026-09-20T07:39:15.5509841Z 4916 test(s), 236229 assertion(s), 0 failure(s)"
+  ],
+  "metadata_step_seconds": 79,
+  "jobs": [
+    {
+      "completedAt": "2026-09-20T07:45:09Z",
+      "conclusion": "success",
+      "databaseId": 106041950487,
+      "name": "Godot headless suite",
+      "startedAt": "2026-09-20T07:31:16Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-20T07:31:17Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-20T07:31:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:24Z",
+          "conclusion": "success",
+          "name": "Check out the repository",
+          "number": 2,
+          "startedAt": "2026-09-20T07:31:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:25Z",
+          "conclusion": "success",
+          "name": "Cache the Godot binary",
+          "number": 3,
+          "startedAt": "2026-09-20T07:31:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:25Z",
+          "conclusion": "skipped",
+          "name": "Download Godot 4.7.2",
+          "number": 4,
+          "startedAt": "2026-09-20T07:31:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:25Z",
+          "conclusion": "success",
+          "name": "Put Godot on PATH",
+          "number": 5,
+          "startedAt": "2026-09-20T07:31:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:25Z",
+          "conclusion": "success",
+          "name": "Report the engine version",
+          "number": 6,
+          "startedAt": "2026-09-20T07:31:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:35Z",
+          "conclusion": "success",
+          "name": "Import the project",
+          "number": 7,
+          "startedAt": "2026-09-20T07:31:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:39:15Z",
+          "conclusion": "success",
+          "name": "Run the suite",
+          "number": 8,
+          "startedAt": "2026-09-20T07:31:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:39:46Z",
+          "conclusion": "success",
+          "name": "Component stream preflight fault injection",
+          "number": 9,
+          "startedAt": "2026-09-20T07:39:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:41:09Z",
+          "conclusion": "success",
+          "name": "Needs metadata preflight fault injection",
+          "number": 10,
+          "startedAt": "2026-09-20T07:39:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:42:28Z",
+          "conclusion": "success",
+          "name": "Priorities metadata preflight fault injection",
+          "number": 11,
+          "startedAt": "2026-09-20T07:41:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:43:47Z",
+          "conclusion": "success",
+          "name": "Schedule metadata preflight fault injection",
+          "number": 12,
+          "startedAt": "2026-09-20T07:42:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:45:06Z",
+          "conclusion": "success",
+          "name": "Transforms metadata preflight fault injection",
+          "number": 13,
+          "startedAt": "2026-09-20T07:43:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:45:06Z",
+          "conclusion": "success",
+          "name": "UI refinement contract",
+          "number": 14,
+          "startedAt": "2026-09-20T07:45:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:45:06Z",
+          "conclusion": "success",
+          "name": "Check the copied hash kernel against the engine",
+          "number": 15,
+          "startedAt": "2026-09-20T07:45:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:45:06Z",
+          "conclusion": "success",
+          "name": "Post Cache the Godot binary",
+          "number": 29,
+          "startedAt": "2026-09-20T07:45:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:45:07Z",
+          "conclusion": "success",
+          "name": "Post Check out the repository",
+          "number": 30,
+          "startedAt": "2026-09-20T07:45:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:45:07Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 31,
+          "startedAt": "2026-09-20T07:45:07Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/35497087870/job/106041950487"
+    },
+    {
+      "completedAt": "2026-09-20T07:32:24Z",
+      "conclusion": "success",
+      "databaseId": 106041950571,
+      "name": "Specification contracts",
+      "startedAt": "2026-09-20T07:31:16Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-20T07:31:17Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-20T07:31:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:22Z",
+          "conclusion": "success",
+          "name": "Check out the repository",
+          "number": 2,
+          "startedAt": "2026-09-20T07:31:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:22Z",
+          "conclusion": "success",
+          "name": "Decision numbers are unique and match their headings",
+          "number": 3,
+          "startedAt": "2026-09-20T07:31:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:22Z",
+          "conclusion": "success",
+          "name": "Memory ledger arithmetic",
+          "number": 4,
+          "startedAt": "2026-09-20T07:31:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:22Z",
+          "conclusion": "success",
+          "name": "Merge gate (ledger chain, double budgets, row arithmetic)",
+          "number": 5,
+          "startedAt": "2026-09-20T07:31:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:22Z",
+          "conclusion": "success",
+          "name": "Dispatch graph is well formed",
+          "number": 6,
+          "startedAt": "2026-09-20T07:31:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:22Z",
+          "conclusion": "success",
+          "name": "Astra inbox index is current",
+          "number": 7,
+          "startedAt": "2026-09-20T07:31:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:22Z",
+          "conclusion": "success",
+          "name": "Canonical registry matches the source it claims to describe",
+          "number": 8,
+          "startedAt": "2026-09-20T07:31:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:22Z",
+          "conclusion": "success",
+          "name": "Compiled declaration table is regenerable from the registry",
+          "number": 9,
+          "startedAt": "2026-09-20T07:31:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:23Z",
+          "conclusion": "success",
+          "name": "Astra cycle handoff contracts",
+          "number": 10,
+          "startedAt": "2026-09-20T07:31:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:31:30Z",
+          "conclusion": "success",
+          "name": "Registry capacity audit sidecar",
+          "number": 11,
+          "startedAt": "2026-09-20T07:31:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:32:02Z",
+          "conclusion": "success",
+          "name": "Component column schema matches source capacities",
+          "number": 12,
+          "startedAt": "2026-09-20T07:31:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:32:02Z",
+          "conclusion": "success",
+          "name": "Lane records are one file each, not appended to a shared checklist",
+          "number": 13,
+          "startedAt": "2026-09-20T07:32:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:32:03Z",
+          "conclusion": "success",
+          "name": "Movement envelope fit arithmetic",
+          "number": 14,
+          "startedAt": "2026-09-20T07:32:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:32:03Z",
+          "conclusion": "success",
+          "name": "Movement profile policy register",
+          "number": 15,
+          "startedAt": "2026-09-20T07:32:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:32:04Z",
+          "conclusion": "success",
+          "name": "State registry covers every packed column",
+          "number": 16,
+          "startedAt": "2026-09-20T07:32:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:32:22Z",
+          "conclusion": "success",
+          "name": "Validator self-tests",
+          "number": 17,
+          "startedAt": "2026-09-20T07:32:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:32:22Z",
+          "conclusion": "success",
+          "name": "Post Check out the repository",
+          "number": 34,
+          "startedAt": "2026-09-20T07:32:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-20T07:32:22Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 35,
+          "startedAt": "2026-09-20T07:32:22Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/35497087870/job/106041950571"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "contract": "FAUNA-S4-VALIDATE-R01v1",
+  "decision": "0174",
+  "base_commit": "38e916e3b7eca7a5adb86709da5dd74c9e584d06",
+  "full_tests": 4924,
+  "full_assertions": 242248,
+  "full_failures": 0,
+  "focus_tests": 8,
+  "focus_assertions": 6019,
+  "metadata_cases": 22,
+  "metadata_assertions": 198,
+  "required_mutants_killed": 19,
+  "metadata_bypasses_killed": 8,
+  "source_sentinel_bypasses_killed": 2,
+  "static_gates": 17,
+  "source_review": "no blocker; tracked source-hash and focus-entry-point items closed by final evidence/Astra read",
+  "shutdown_objects": 553,
+  "shutdown_resources": 33,
+  "exact_head_ci": "pending",
+  "source_sha256": {
+    "godot/scripts/core/world_init.gd": "1b4c7d85a881d8375aa1738ea3502c0231d16e121ac6eec58651b9c66c1e8ede",
+    "godot/scripts/core/save_owner_world_init.gd": "cf4aa28da9f434dd5554697ebc8db8290c290ac4831e281901a7a0db0b08608e",
+    "godot/test/test_save_owner_world_init.gd": "d6671bcefaa34d244d63615a2321f1551878c31cf315498bffe312ec4c256501",
+    "godot/test/fauna_validation_focus.gd": "509d5b68640807312dd0905c9f94749d2a2714a04dc71dbf664688e4786ee5e0",
+    "tools/test_fauna_metadata_preflights.py": "905b704c34f419a8109dec422c317b3ab7634a13fd3e9a091e354634c02ec115"
+  }
+}

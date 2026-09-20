@@ -38,7 +38,7 @@
       "transforms": "0c2a532f0869ee1280f830693f0521d2644148828217af7cf2602a1eeca7d675",
       "weather": "f2c1bf034645b897c80edcce861cd488a01b0d280e8eb7dcc5067c9e8aa7ca3e",
       "work": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
-      "world_init": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a"
+      "world_init": "1b4c7d85a881d8375aa1738ea3502c0231d16e121ac6eec58651b9c66c1e8ede"
     },
     "root": "godot/scripts/core"
   },
@@ -1446,7 +1446,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "TILE_COUNT",
-      "source_resize_line": 701,
+      "source_resize_line": 706,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -1471,7 +1471,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "TILE_COUNT",
-      "source_resize_line": 702,
+      "source_resize_line": 707,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -1496,7 +1496,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "TILE_COUNT",
-      "source_resize_line": 703,
+      "source_resize_line": 708,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -1521,7 +1521,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "TILE_COUNT",
-      "source_resize_line": 704,
+      "source_resize_line": 709,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -1544,7 +1544,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "BASIN_COUNT",
-      "source_resize_line": 710,
+      "source_resize_line": 715,
       "source_value": 7,
       "status": "proved_equality"
     },
@@ -1567,7 +1567,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "BASIN_COUNT",
-      "source_resize_line": 711,
+      "source_resize_line": 716,
       "source_value": 7,
       "status": "proved_equality"
     },
@@ -1590,7 +1590,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "BASIN_COUNT",
-      "source_resize_line": 712,
+      "source_resize_line": 717,
       "source_value": 7,
       "status": "proved_equality"
     },
@@ -8507,7 +8507,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "FAUNA_STOCK_ROWS",
-      "source_resize_line": 723,
+      "source_resize_line": 728,
       "source_value": 384,
       "status": "proved_equality"
     },
@@ -8530,7 +8530,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "FAUNA_STOCK_ROWS",
-      "source_resize_line": 724,
+      "source_resize_line": 729,
       "source_value": 384,
       "status": "proved_equality"
     },
@@ -8553,7 +8553,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "FAUNA_STOCK_ROWS",
-      "source_resize_line": 725,
+      "source_resize_line": 730,
       "source_value": 384,
       "status": "proved_equality"
     },
@@ -8576,7 +8576,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "FAUNA_STOCK_ROWS",
-      "source_resize_line": 726,
+      "source_resize_line": 731,
       "source_value": 384,
       "status": "proved_equality"
     },
@@ -8599,7 +8599,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "FAUNA_STOCK_ROWS",
-      "source_resize_line": 727,
+      "source_resize_line": 732,
       "source_value": 384,
       "status": "proved_equality"
     },
@@ -8622,7 +8622,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "FAUNA_STOCK_ROWS",
-      "source_resize_line": 728,
+      "source_resize_line": 733,
       "source_value": 384,
       "status": "proved_equality"
     },
@@ -8645,7 +8645,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "FAUNA_STOCK_ROWS",
-      "source_resize_line": 729,
+      "source_resize_line": 734,
       "source_value": 384,
       "status": "proved_equality"
     },
@@ -8668,7 +8668,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "FAUNA_STOCK_ROWS",
-      "source_resize_line": 730,
+      "source_resize_line": 735,
       "source_value": 384,
       "status": "proved_equality"
     },
@@ -8691,7 +8691,7 @@
       "source_module": "world_init",
       "source_relation": "eq",
       "source_resize_expression": "FAUNA_STOCK_ROWS",
-      "source_resize_line": 731,
+      "source_resize_line": 736,
       "source_value": 384,
       "status": "proved_equality"
     },

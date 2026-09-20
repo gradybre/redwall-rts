@@ -1,0 +1,27 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "38e916e3b7eca7a5adb86709da5dd74c9e584d06",
+  "task": "Independent source review of reserved-fauna owner17 validation",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/fauna_component_validation_contract.md",
+    "docs/decisions/0174-reject-noncanonical-reserved-fauna-columns.md",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/contract-review-disposition.md",
+    "godot/scripts/core/world_init.gd",
+    "godot/scripts/core/save_owner_world_init.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/test/test_save_owner_world_init.gd",
+    "godot/test/test_world_init.gd",
+    "tools/test_fauna_metadata_preflights.py",
+    ".github/workflows/tests.yml",
+    "docs/persistence_state_registry.md",
+    "docs/validation/evidence/fauna-component-validation-2026-09-20/tests-focus-first.log",
+    "docs/validation/evidence/fauna-component-validation-2026-09-20/metadata-preflights-first.log",
+    "docs/validation/evidence/fauna-component-validation-2026-09-20/run_mutants.py",
+    "docs/validation/evidence/fauna-component-validation-2026-09-20/parent-intake-note.md"
+  ],
+  "instructions": "Independent source/security/correctness review against accepted FAUNA-S4-VALIDATE-R01v1 / ADR0174. Focus 8 tests/6019 assertions/0; actual engine metadata 22 cases/198 assertions, including 8 schema guard bypasses and 2 source-null guard bypasses caught. Required 19 argument/domain/shape mutants next; full suite pending. Verify exact canonical 8 i32 then 1 i64 mapping, all9 extents before count values, null zone slots -1 and every other element0, no i64 rounding, all-zero raw frame rejected. Existing empty reader must delegate private columns correctly; public zone reader/allocation/generation/section1 APIs and diagnostics untouched. No WorldInit construction, projection, mutation, scratch/callback/live state in bridge. Re-derive metadata fault arithmetic including Work last u8[512] descriptor moved after all nine fauna descriptors, +520/-520 lengths, child10 to17, type +1536, extent+4; every counterfactual schema and physical frame coherent before gate4. Source NULL_SLOT/GEN faults must hit metadata before column evaluation; evaluate bypass oracles and fixed fixture -1/0 independence. Review actual owner allocation-only fixture and full existing generation test; do not call it private-column snapshot. Shape/all3456positions/extrema/nonmutation/paired malformed tests and19 required mutants. Source comment allocation writer correction only after first metadata run; final checks will pin final hash. Category3 and15360 caller allowance, no native memory claim. Only output one NEW docs/validation/evidence/fauna-component-validation-2026-09-20/source-review.md, baseSha256 null, hard160lines AND1600words, aim90/900. Raw JSON status/summary/questions/files/decisionIds. No code edits or unsupported execution claims. Report concrete blockers; deferred combined section1/4 restore/fullfile/bulk remain explicit and are not scope defects."
+}

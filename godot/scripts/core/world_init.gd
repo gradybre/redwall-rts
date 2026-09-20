@@ -513,6 +513,11 @@ const FAUNA_STOCK_ROWS: int = 384
 const FAUNA_I32_COLUMNS: int = 8
 const FAUNA_I64_COLUMNS: int = 1
 
+## The two refusal channels of `fauna_columns_refusal()` below (ADR 0174). Shape is decided before
+## any value is read, so a short or long column is never reported as noncanonical reserved data.
+const REFUSE_COLUMN_FAUNA_SHAPE: StringName = &"COLUMN_FAUNA_SHAPE"
+const REFUSE_COLUMN_FAUNA_RESERVED: StringName = &"COLUMN_FAUNA_RESERVED"
+
 const BYTES_PER_BYTE_COLUMN: int = 1
 const BYTES_PER_INT32: int = 4
 const BYTES_PER_INT64: int = 8
@@ -1277,22 +1282,64 @@ func fauna_zone_ref_of(row: int) -> Vector2i:
 	return Vector2i(_fauna_zone_slot[row], _fauna_zone_generation[row])
 
 
+static func fauna_columns_refusal(zone_slot: PackedInt32Array,
+		zone_generation: PackedInt32Array, species_id: PackedInt32Array,
+		population: PackedInt32Array, capacity: PackedInt32Array,
+		tracks: PackedInt32Array, harvest_today: PackedInt32Array,
+		migration_link: PackedInt32Array,
+		birth_remainder: PackedInt64Array) -> StringName:
+	"""REQ-SET-059's reserved fauna image: nine exact extents, then nine exact column defaults.
+
+	GDD §4.2 pins this allocation at "all numeric fields 0, refs (-1,0)", and SET-AMEND-001 §3
+	retired hunting, so these bytes may not be revived or reinterpreted. ALL NINE EXTENTS ARE
+	PROVED FIRST, so a short or long column can never be reported as bad data. Each column is then
+	checked WHOLE with a packed `count()` against its one permitted value -- the null slot, the
+	null generation, or literal zero -- which is why no row identity can leak into the result and
+	no scratch array, projection or range Array is allocated. An all-zero image is REFUSED: a zone
+	slot of 0 is not the null slot.
+
+	Pure over its arguments and read only. The caller freezes its columns for this synchronous
+	read; an accepted and a refused call alike leave every supplied column untouched.
+	"""
+	if zone_slot.size() != FAUNA_STOCK_ROWS or zone_generation.size() != FAUNA_STOCK_ROWS \
+			or species_id.size() != FAUNA_STOCK_ROWS or population.size() != FAUNA_STOCK_ROWS \
+			or capacity.size() != FAUNA_STOCK_ROWS or tracks.size() != FAUNA_STOCK_ROWS \
+			or harvest_today.size() != FAUNA_STOCK_ROWS \
+			or migration_link.size() != FAUNA_STOCK_ROWS \
+			or birth_remainder.size() != FAUNA_STOCK_ROWS:
+		return REFUSE_COLUMN_FAUNA_SHAPE
+	if zone_slot.count(EntityDirectory.NULL_SLOT) != FAUNA_STOCK_ROWS:
+		return REFUSE_COLUMN_FAUNA_RESERVED
+	if zone_generation.count(EntityDirectory.NULL_GENERATION) != FAUNA_STOCK_ROWS:
+		return REFUSE_COLUMN_FAUNA_RESERVED
+	if species_id.count(0) != FAUNA_STOCK_ROWS:
+		return REFUSE_COLUMN_FAUNA_RESERVED
+	if population.count(0) != FAUNA_STOCK_ROWS:
+		return REFUSE_COLUMN_FAUNA_RESERVED
+	if capacity.count(0) != FAUNA_STOCK_ROWS:
+		return REFUSE_COLUMN_FAUNA_RESERVED
+	if tracks.count(0) != FAUNA_STOCK_ROWS:
+		return REFUSE_COLUMN_FAUNA_RESERVED
+	if harvest_today.count(0) != FAUNA_STOCK_ROWS:
+		return REFUSE_COLUMN_FAUNA_RESERVED
+	if migration_link.count(0) != FAUNA_STOCK_ROWS:
+		return REFUSE_COLUMN_FAUNA_RESERVED
+	if birth_remainder.count(0) != FAUNA_STOCK_ROWS:
+		return REFUSE_COLUMN_FAUNA_RESERVED
+	return REFUSE_NONE
+
+
 func fauna_is_canonically_empty() -> bool:
 	"""True while every reserved fauna row still holds §4.2's "all numeric fields 0, refs (-1,0)".
 
-	Nothing in this repository writes these columns, so this is a guard against a future one, not a
-	check on this module's own behaviour.
+	Only allocation writes these columns. This guards against future writers as well as checking
+	the allocated image. THE RULE ITSELF LIVES IN `fauna_columns_refusal()`, over
+	the same nine private columns in the same canonical order, so this live reader and the save
+	bridge cannot drift into two different definitions of "canonically empty".
 	"""
-	for row: int in FAUNA_STOCK_ROWS:
-		if fauna_zone_ref_of(row) != EntityDirectory.NULL_REF:
-			return false
-		if _fauna_species_id[row] != 0 or _fauna_population[row] != 0 \
-				or _fauna_capacity[row] != 0 or _fauna_tracks[row] != 0:
-			return false
-		if _fauna_harvest_today[row] != 0 or _fauna_migration_link[row] != 0 \
-				or _fauna_birth_remainder[row] != 0:
-			return false
-	return true
+	return fauna_columns_refusal(_fauna_zone_slot, _fauna_zone_generation, _fauna_species_id,
+		_fauna_population, _fauna_capacity, _fauna_tracks, _fauna_harvest_today,
+		_fauna_migration_link, _fauna_birth_remainder) == REFUSE_NONE
 
 
 func fauna_reserved_bytes() -> int:

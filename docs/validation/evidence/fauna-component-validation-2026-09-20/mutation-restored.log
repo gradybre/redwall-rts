@@ -1,0 +1,26 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_world_init.gd
+  PASS  test_exact_layout_and_only_canonical_empty_image
+  PASS  test_each_argument_and_default_check_has_an_independent_witness
+  PASS  test_every_reserved_row_in_every_field_is_checked
+  PASS  test_signed_i32_and_i64_extrema_and_wide_values_refuse_unchanged
+  PASS  test_reference_pair_and_numeric_defaults_remain_distinct
+  PASS  test_all_nine_shapes_precede_reserved_value_checks
+  PASS  test_null_owner_and_typed_bucket_guards
+  PASS  test_actual_owner_readers_and_section1_diagnostics_are_preserved
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 6019 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

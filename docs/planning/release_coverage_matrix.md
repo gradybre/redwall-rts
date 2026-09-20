@@ -1,6 +1,6 @@
 # Settlement release coverage and ownership
 
-2026-09-19 · Astra resumption v3 · Initial source baseline `47a4da2`; integrated repairs through `1798854` (PR154).
+2026-09-19 · Astra resumption v3 · Initial source baseline `47a4da2`; integrated repairs through `d8af51e` (PR155).
 
 This matrix accounts for the complete adopted settlement release. Status means
 the observed layer, not requirement completion inferred from filenames or tests.
@@ -24,12 +24,12 @@ the rows below also preserve policy obligations outside that declaration list.
 | Player interface | Authored responsive shell, roster/needs/alerts; UI-C4 visibility/input repair and headless positive-control routing probes accepted | actual selection/camera/input, all management screens, settings/keybinding persistence, onboarding/forecast and accessible keyboard/trackpad flow | Task04.5/10; all 103 registry elements assessed against real state, ART-UI-12 separate |
 | Art and animation | Approved finish concept and five height anchors; one imported mouse body, procedural crowd/lookdev and UI art | Source-backed species/rig/gear/pose families, buildings/terrain/water/canopy/underground assets, LOD and material/animation/contact integration | Task10 + art gates; paid generation needs exact approved spend, no code-side art self-approval |
 | Audio | Direction specified; no complete runtime audio delivery demonstrated | Contextual acoustic/orchestral music, ambience, effects, voices/singing where authored; volume controls and source/provenance | Task10; source reference is not an automatically licensed production audio file |
-| Reliability and qualification | 4752-test integrated CI passes with static contract gates; inventory lifetime leak repaired, 553 objects/33 resources remain in suite shutdown | Investigate leaked objects/resources, profile actual integrated workloads, deterministic negative/race/recovery checks, accessibility/visual review and three-year survival runs | Task10 independent QA; Mac evidence distinct from minimum-spec hardware, Windows remains user-deferred |
+| Reliability and qualification | 4760-test integrated CI passes with static contract gates; inventory lifetime leak repaired, 553 objects/33 resources remain in suite shutdown | Investigate leaked objects/resources, profile actual integrated workloads, deterministic negative/race/recovery checks, accessibility/visual review and three-year survival runs | Task10 independent QA; Mac evidence distinct from minimum-spec hardware, Windows remains user-deferred |
 | Packaging and release | GitHub PR/CI path operational; controller installed for controlled foreground use | Reproducible local Mac game package, manifest/runbook/save compatibility and release observation; configure any additional external distribution target before publication | Task10 release owner; no new public store upload, signing purchase or paid hosting inferred |
 
 ## Dispatch policy
 
-The queue has been reconciled with merged PRs 134/136/137/138 and 140–154. A ready label
+The queue has been reconciled with merged PRs 134/136/137/138 and 140–155. A ready label
 left behind after merge is not permission to repeat a finished lane. PR139 owns
 only the review-packet refresh. Preserve the old dirty source checkout and its
 untracked planning records; transfer only reviewed differences with known bases.

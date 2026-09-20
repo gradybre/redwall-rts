@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "679d360751dcd745a73487256181637637756a4d",
+  "task": "Implement exact Gear owner and single-block adapter SAVE-GEAR-R01v2",
+  "paths": [
+    "docs/planning/gear_columns_contract.md",
+    "docs/decisions/0165-restore-exact-gear-equipment-and-claims.md",
+    "docs/validation/evidence/gear-columns-contract-2026-09-19/contract-v1-disposition.md",
+    "godot/scripts/core/gear.gd",
+    "godot/scripts/core/save_reservations_restore.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/item_definitions.gd"
+  ],
+  "instructions": "Implement accepted SAVE-GEAR-R01v2 exactly; acknowledgev2. TWO NEW outputs only: docs/validation/evidence/gear-columns-2026-09-19/gear-owner-block.gd append fragment to existing gear.gd, noextends/preloads/oldmemberredefinitions; godot/scripts/core/save_gear_restore.gd full new statelessadapter. Each exact keys path/content/baseSha256:null. Parent appends block and owns tests/registry/evidence. <=850totalcode lines, concise comments only. ExplicitGodot4.7.2types. Unique APIs and all12columns exact, totalshape gates nativeextents/groupsbeforeindex; sourcecache/count/heap verification; matchednull and8192claimbounds intentionalstrongerthancodec; arbitrarynonnegativeitem/cap andmanufacture0/1 structuralonly. PureloadedDefslookupfiveIDs, all-1emptycachelegal, nonemptyexactmatch. Onrestoreprivateheap/12independentduplicates plus3counts and5cacheIDs atomicpublication, preservebindings/seedcount24/wearmath/legacyAPIs. Noexistinglive_rebuildhelper/audit/hotmutator/replay/reflection/Dictionary/perrowobjects. Sharedvalidationmaytake12typedarrays withtinycountresult; do notallocateunaccountedfullGearColumnssourceview. Adaptercapture_into/apply defaults exact, forwardcodes, matchingboundInventorypurepredicate, opentransactionorpoisonrefuse,heldclockapply. Literalordinalconstants +storage_index_of mapping, nofull6ownerRecord/secondInventory. Failureonlynew_last_column_refusal whenownerreached; nooutputchangebeforeallchecks. Return exactJSON status complete,summary,questions[],files exactly2allowedpaths,decisionIds[]. No tools. Ifmaterialambiguityreturnquestion notinvent."
+}

@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "1798854a6a6394680d2c78e310952c11a0c6f3f4",
+  "task": "Independent Gear exact owner boundary contract review",
+  "paths": [
+    "docs/planning/gear_columns_contract.md",
+    "docs/validation/evidence/gear-columns-contract-2026-09-19/astra-audit-disposition.md",
+    "godot/scripts/core/gear.gd",
+    "godot/scripts/core/save_reservations_restore.gd",
+    "godot/scripts/core/item_definitions.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "docs/persistence_state_registry.md"
+  ],
+  "instructions": "Review SAVE-GEAR-R01v1 draft against actual APIs. Do not implement. Resolve feasibility/bounds/atomicity/shape precedence/cache catalog refresh/bindings/busy flags/structural versus fullworld guarantees. Check explicit preservation of legacy structural durability domain; matched-null and8192claims stronger than codec intentionally. Do not infer wholeworld acceptance or reinterpret generation domain. Check memory envelopes and exact adapter signatures. Source feasibility audit had false claim is_equipped_record reads cacheIDs; corrected disposition takes precedence. Report exact blocking gaps, ordinary Astra decisions/recommendations and finite acceptance criteria; no preference questions to user. Return one NEW markdown docs/validation/evidence/gear-columns-contract-2026-09-19/contract-v1-review.md <=2200words. Exact JSON status complete,summary,questions[],files path/content/baseSha256:null,decisionIds[]. No tools."
+}

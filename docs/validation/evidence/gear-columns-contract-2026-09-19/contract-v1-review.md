@@ -1,0 +1,198 @@
+# SAVE-GEAR-R01 v1 — independent contract review
+
+Astra · 2026-09-19 · review of `docs/planning/gear_columns_contract.md` v1 against the
+actual APIs in `gear.gd`, `save_section_inventories.gd`, `save_reservations_restore.gd`,
+`item_definitions.gd` and `docs/persistence_state_registry.md`.
+
+Where the source feasibility audit and `astra-audit-disposition.md` disagree, the
+disposition governs. The audit's claim that `is_equipped_record()` reads cached item IDs
+is **false** and is corrected below from source.
+
+**Verdict.** The design is implementable and the arithmetic holds. Seven blocking
+corrections are required before implementation. Nothing in this packet may be read as
+whole-world acceptance, and no generation domain is reinterpreted here.
+
+## 1. Confirmed against source
+
+1. **Record shape.** `gear.gd` holds exactly the twelve columns named, and the draft's
+   wire order is byte-for-byte `KEYS_GEAR` in the codec (`_occupied`, `_lot_slot`,
+   `_lot_generation`, `_item_id`, `_durability`, `_durability_cap`, `_owner_slot`,
+   `_owner_generation`, `_manufacture_recipe`, `_equipped`, `_claim_job_slot`,
+   `_claim_job_generation`). 2×u8 + 10×i32 = 42 bytes per row. `_free_heap` is also R-long.
+2. **Wire arithmetic.** Payload = 4 (child-extent count) + 12×8 (element counts) + 42R =
+   **100 + 42R**. Wrapper = 4 + 4 (`gear`) + 4 + 8 + 8 = **28**. Block = **128 + 42R** =
+   **688256** at R 16384, which is exactly the figure already in the codec's own §7 ledger.
+   No section length, owner schema (1) or section schema (3) changes. Confirmed.
+3. **Canonical blanks.** `clear()`/`_blank_row()` give slots and `_item_id` −1, generations
+   0, durability/cap/manufacture/flags 0. The codec's `BLANK_ORDINALS_GEAR` plus
+   `NEGATIVE_ONE_FILL_KEYS` require the identical shape on a free row. Confirmed.
+4. **Deliberate strengthenings.** The codec's `_gear_refs_refusal()` computes
+   `owner_live = owner_slot != NULL_SLOT` and only then bounds the generation, so a nonzero
+   generation on a null owner or claim slot **is admitted by the codec**. It also bounds
+   `_claim_job_slot` by `DIRECTORY_CAPACITY` (352418) while `claim_for_job()`'s
+   `_check_job_ref()` bounds it by `JOB_CAPACITY` (8192). Both draft claims verified.
+5. **Binding gate.** `bind_equipment()` refuses `GEAR_EQUIPPED` when `_equipped_count > 0`
+   and calls `inventory.set_equipment_authority(self)`, so "bind before restoring equipped
+   rows, never after" is correct and the owner must not call it.
+6. **Attestation.** `is_equipped_record()` reads `_directory_binding`, `_resolve_row()` and
+   `_equipped` only. It does **not** read `_id_*`. The cached IDs govern
+   `_wear_model_of_row()`, `_cycle_wear_of_row()` and `_check_equip()`'s
+   `_item_id[row] != _id_tool`. The draft's "owner does not call `is_equipped_record`" and
+   the disposition's correction are both right.
+7. **Seed residue.** `_seed_lot_slot`/`_seed_lot_generation` are 2×24×4 = **192 bytes**, and
+   `seed_starter_tools()` leaves `_seed_count` at 24 on success. Category 3 residue, not a
+   busy flag. Confirmed.
+8. **Definitions.** `ItemDefinitions.is_loaded()` and `compiled_id(StringName) -> int`
+   (−1 when unknown) support the five-ID read with no mutation. Confirmed.
+
+## 2. Blocking gaps
+
+**B1 — GearColumns constructor contradicts itself.** "Records requested metadata unchanged"
+and "allocates `clampi(requested,1,16384)`" cannot both describe one field. Fix: the record
+stores the **requested** R verbatim and allocates the clamped length; a request of 0 or
+40000 therefore produces a record whose declared R disagrees with its array lengths and is
+refused `COLUMN_GEAR_SHAPE` at first use. Separately, `gear.gd::_init()` already clamps
+`_row_capacity`, so step 1's "native owner R 1..16384" gate has **no reachable
+counterexample** through the public constructor; keep it as a total gate but do not demand
+a failing mutant for it (the codec has precedent for deleting an unreachable comparison
+that mutation testing found surviving).
+
+**B2 — adapter signature diverges from the one shipped precedent.** `save_reservations_restore.gd`
+exposes `block_shape_refusal(block)`, `capture_into(store, out, inventory = null)` and
+`apply(block, store, clock = null, inventory = null)`. The draft's `capture(...)` and its
+non-defaulted `clock` break the convention the packet instructs it to follow. Fix:
+`block_shape_refusal(block)`, `capture_into(store, out, definitions = null, inventory = null)`,
+`apply(block, store, clock = null, definitions = null, inventory = null)`. A null `clock`
+still refuses `SAVE_GEAR_NULL_CLOCK`; a null `definitions` is forwarded and refused by the
+owner as `COLUMN_GEAR_DEFINITIONS`, per the draft's own "no definitions gate ahead of the
+owner gate".
+
+**B3 — "literal ordinals 0..11" is ambiguous and wrong if read as storage positions.**
+Gear's u8 columns are ordinals 0 and 9 (storage 0 and 1) and its i32 columns are ordinals
+1–8, 10, 11 (storage 0–9). Every access must go through named ordinal constants and
+`Codec.storage_index_of(OWNER_GEAR, ORDINAL_*)`, exactly as the reservations adapter does.
+Hard-coding storage indices would compile, pass a round trip and silently transpose
+columns if the declared table ever changes.
+
+**B4 — restore must not reuse `_refill_heap_ascending()`.** That helper writes `_free_heap`
+in place, which breaks "no failure partial write" and "no remaining fallible work after
+publication begins". Fix: build the ascending heap with its −1 tail into a **private**
+`PackedInt32Array` of length R and publish it with the columns. The envelope already counts
+this 4R; the prose does not say it.
+
+**B5 — the published derived scalars are unnamed.** Restore must publish exactly
+`_active_count` (occupied rows), `_free_count` (R − active) and **`_equipped_count`**
+(equipped rows), and must leave `_restoring` false. `_equipped_count` is read by
+`bind_equipment()`, `unequip()`, `equipped_count()` and `audit()`; "derived counts" without
+naming it is the one omission here that corrupts the equip guard silently.
+
+**B6 — the required registry corrections are not specified.** Name them: (a) the gear
+"Starter-seed rollback buffer" row states "`_seed_count` is 0 outside a seeding call",
+which is false — only `clear()` resets it; (b) add `_last_column_refusal` to the gear
+scratch/scalars row as a category 3 `StringName` owing no ledger byte, mirroring
+`entity_directory.gd`, `jobs.gd`, `needs.gd` and `residents.gd`; (c) the
+`save_section_inventories.gd` row says `gear` "still lacks owner capture" and must be
+amended when this lands; (d) the "Gear job claims" note asserting a DIRECTORY generation
+must be marked an open integration question, not licence to widen the slot bound.
+
+**B7 — the claim-slot divergence needs a stated no-repair rule.** Because the codec admits
+0..352417 and nonzero generations on null slots, an owner refusal of a **codec-valid** block
+is reachable from any stream a future writer emits. The contract must say: the adapter
+forwards `COLUMN_GEAR_REF` verbatim; no clamping, masking or normalisation is permitted;
+and such a stream is a load FAILURE pending the separate Jobs/Registry integration ruling,
+not a gear-side repair. This packet does not reinterpret the generation domain.
+
+## 3. Astra decisions (ordinary engineering; no user input required)
+
+- **D1 Names.** `copy_gear_columns_into` / `restore_gear_columns` / `last_column_refusal` /
+  `canonical_detail` / `column_inventory_matches`, per the disposition, not the audit's
+  duck-typed names.
+- **D2 Cache-ID rule** (the disposition's named open item): capture **compares and never
+  writes**; restore **writes all five after validation and never on refusal**. Because
+  `is_equipped_record()` does not read them, the rule protects only wear-model, cycle-wear
+  and equip-kind queries.
+- **D3 "Empty source"** in the SOURCE_CACHE gate means **zero occupied rows**, nothing else.
+- **D4 Heap.** Not captured; rebuilt ascending on restore. Sound because `_pop_min()`
+  returns the minimum, so pop order depends on the free **set**, not the permutation — which
+  is also why the registry classifies `_free_heap` category 2. Capture-side heap validation
+  is defensive, not a persistence requirement.
+- **D5 Precedence.** Owner: SHAPE → RESTORING → DEFINITIONS → per-row → DUPLICATE_LOT →
+  BINDING → SOURCE_CACHE/SOURCE_DERIVED. Adapter: local block shape strictly before
+  `Codec.owner_refusal()` (which assumes a well-shaped block), and no definitions gate.
+- **D6 Atomicity.** One publication point per operation, after all fallible work.
+- **D7 Bindings.** Require `is_equipment_bound()` only when equipped rows exist; never call
+  `bind_equipment()` or `set_equipment_authority()` from either path.
+- **D8 Busy flags.** Adapter-only, in order NULL_INVENTORY → INVENTORY_MISMATCH → BUSY,
+  with open and poisoned transactions sharing BUSY.
+- **D9 Guarantee.** Owner success attests well-formed arrays only. Catalog membership,
+  per-kind caps, equipped-tool subtype, lot item/quantity, owner liveness, mirrors, claim
+  liveness and Work bindings remain full-coordinator checks before resuming.
+
+## 4. Recommendations (non-blocking)
+
+- **R1.** Do **not** bound `item_id` above. The codec checks `>= 0` only; adding
+  `< ITEM_CAPACITY` would be a third divergence with no counterexample the live API can
+  produce, and catalog membership is explicitly the coordinator's.
+- **R2.** Refusal details should name the field and row index, as the codec's do, so a
+  refusal localises without a second pass.
+- **R3.** Name the gate constant for the private heap length (4R) in the adapter docstring;
+  it is the only allocation the prose currently omits.
+
+## 5. Memory envelopes — re-derived, and they check out
+
+Counting disjoint constructor allocations even when reclaimed, excluding object/container
+overhead:
+
+| Call | Terms | Total |
+|---|---|---|
+| owner capture | live 42R + live heap 4R + out ctor 42R + duplicates 42R + heap bitmap R + lot bitmap 16384 | **131R + 16384** |
+| owner restore | live 42R + live heap 4R + input 42R + duplicates 42R + private heap 4R + lot bitmap 16384 | **134R + 16384** |
+| adapter capture | owner capture + staged OwnerRecord 42R + caller block 42R | **215R + 16384** |
+| adapter apply | owner restore + caller block 42R | **176R + 16384** |
+
+At R 16384 that is 2162688 / 2211840 / 3538944 / 2899968 bytes. Every figure in the draft
+reproduces exactly. Add the existing 192-byte seed buffers. These are **allocation
+accounting bounds, not measured peak memory or RSS**, and must be re-verified against the
+implementation before acceptance.
+
+## 6. Finite acceptance criteria
+
+Acceptance requires all of the following, and nothing here constitutes whole-world
+acceptance:
+
+1. B1–B7 applied to the contract text before implementation begins.
+2. Default and bounded R; a GearColumns whose declared R is 0, −1 or 40000 refuses SHAPE at
+   first use with nothing written.
+3. Every input and live shape mismatch refuses SHAPE before any index or derived allocation.
+4. Flag/blank/domain boundary tests: flags 0/1/2; exact blanks; lot 0/16383/16384; owner
+   −1/0/352417/352418; claim −1/0/8191/8192; `durability == cap`, `cap + 1`, `cap = 0`;
+   manufacture 0/1/2; duplicate lot slot at the same and at different generations.
+5. Capture refuses wrong native counts, out-of-range heap entries, duplicate or missing free
+   prefix and a non-min-heap prefix; admits any valid permutation and ignores the tail.
+6. Restore ignores corrupt prior payload and derived values while preserving valid prior
+   array extents and the constructor R.
+7. SOURCE_CACHE: mismatched cache refuses; zero-occupied source accepts all-five-−1 and
+   exact-staged; a refused restore leaves all five IDs unmutated; a successful restore
+   refreshes all five.
+8. All owner fields and the three borrowed collaborator identities snapshot-equal through
+   every refusal and through every successful non-collaborator operation; input/output
+   aliasing and repeat-independence proven.
+9. Real public creation of tool/net/trap/ice-kit/outfit as the shipping catalog permits;
+   claimed fishing wear continuation, general wear plus externally owned remainder, cancel,
+   repair and lowest-free allocation identical before and after. No invented catalog rows.
+10. A real equipped-tool fixture with actual Directory/Residents/Inventory binding: capture
+    preserves the equipped byte, owner and durability; restore into a correctly bound target
+    passes `audit()` and `audit_equipment_mirror()` and supports unequip/equip continuation;
+    a missing binding refuses with no publication; a stale owner is structurally preserved
+    and then **explicitly fails** the subsequent world audit.
+11. Adapter: transaction open/poison guards, foreign-Inventory rejection on a bound store,
+    held-barrier requirement, and codec-admitted counterexamples (null-slot/nonzero-generation
+    pairs, claim slot ≥ 8192) refused by the owner with the code forwarded verbatim.
+12. `_seed_count == 24` residue is legal; wear scratch unchanged; the `_restoring` window
+    refuses both operations.
+13. Empty/sparse/full default-capacity literal goldens, independently constructed, with the
+    688256-byte block asserted at R 16384 and encode/decode exercised where feasible.
+14. Mutants that drop equipped restore, skip the duplicate-lot guard, skip source-heap
+    validation, or hard-code storage indices instead of `storage_index_of()` must fail.
+    Full suite, static checks, editor and exact-head CI green; independent source review;
+    registry corrections B6(a)–(d) landed with the capacity fingerprint.

@@ -830,18 +830,18 @@
       "depends_on": [
         "PLAN-SAVE-COVERAGE",
         "SAVE-STOCK-AGE-COLUMNS",
-        "SAVE-RESERVATIONS-COLUMNS"
+        "SAVE-RESERVATIONS-COLUMNS",
+        "SAVE-GEAR-COLUMNS"
       ],
       "owns": [
         "godot/scripts/core/inventory.gd",
-        "godot/scripts/core/gear.gd",
         "godot/scripts/core/fishing.gd",
         "godot/scripts/core/forage.gd",
         "godot/test/test_inventory_columns.gd"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. StockAge is split into SAVE-STOCK-AGE-COLUMNS under SAVE-AGE-R01v2; umbrella retains other owners and full section7 assembly, so I1 is not closed by that child. Reservations is now separately owned by SAVE-RESERVATIONS-COLUMNS under SAVE-RES-R01v2."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. StockAge is split into SAVE-STOCK-AGE-COLUMNS under SAVE-AGE-R01v2; umbrella retains other owners and full section7 assembly, so I1 is not closed by that child. Reservations is now separately owned by SAVE-RESERVATIONS-COLUMNS under SAVE-RES-R01v2. Gear split to SAVE-GEAR-COLUMNS; umbrella retains Fishing/Forage and fullsection assembly."
     },
     {
       "id": "SAVE-COLUMNS-JOBPLANNER",
@@ -1060,7 +1060,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max. SAVE-RES-R01v2: pass the actual world Inventory, not an arbitrary idle instance; after all owner installs reconcile every Inventory lot including no-row lots with checked reservation sums and validate job mapping. Existing audit skips no-row lots. PLAN-RESERVATION-TOTALS repair must land before enabling external-file loading; do not tighten save row admission to hide unchecked query overflow."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max. SAVE-RES-R01v2: pass the actual world Inventory, not an arbitrary idle instance; after all owner installs reconcile every Inventory lot including no-row lots with checked reservation sums and validate job mapping. Existing audit skips no-row lots. PLAN-RESERVATION-TOTALS repair must land before enabling external-file loading; do not tighten save row admission to hide unchecked query overflow. SAVE-GEAR-R01v2: bind equipment before installing equipped rows; verify catalog/item/cap/manufacture/mirrors/lot quantities and claim domain across Jobs/Work. Gear live8192claim bound differs from codec352418; generation mapping needs explicit integration ruling before resume. Owner preserves structural values and never repairs incompatible refs."
     },
     {
       "id": "SAVE-PROVENANCE-PRODUCER",
@@ -1606,7 +1606,7 @@
     {
       "id": "FIX-RESERVATION-TOTALS",
       "title": "Refuse overflow explicitly in reservation total queries and audit",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "PLAN-RESERVATION-TOTALS",
         "SAVE-RESERVATIONS-COLUMNS"
@@ -1619,7 +1619,25 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "RES-TOTAL-R01v2 / ADR0164. Replace unchecked integer getters with checked cold/into results; migrate all callers; audit checked sum with existingREFUSE_OVERFLOW. Keep valid claims/save domain; actual public6e18+6e18witness. Do not dispatch before predecessor merges."
+      "note": "RES-TOTAL-R01v2 / ADR0164. Replace unchecked integer getters with checked cold/into results; migrate all callers; audit checked sum with existingREFUSE_OVERFLOW. Keep valid claims/save domain; actual public6e18+6e18witness. Do not dispatch before predecessor merges. Merged PR155 atd8af51e, CI4760tests/186771assertions/0failures."
+    },
+    {
+      "id": "SAVE-GEAR-COLUMNS",
+      "title": "Restore exact Gear equipped rows, claims and derived heap",
+      "status": "in_flight",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE",
+        "SAVE-RESERVATIONS-COLUMNS"
+      ],
+      "owns": [
+        "godot/scripts/core/gear.gd",
+        "godot/scripts/core/save_gear_restore.gd",
+        "godot/test/test_gear_columns.gd",
+        "godot/test/gear_columns_focus.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "SAVE-GEAR-R01v2 / ADR0165 accepted after independent feasibility and contract review. Exact12columns, sourceheap/count/cache validation, catalogIDrefresh and boundequipment identities. Fullworld mirrors/jobdomain/rollback separate."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

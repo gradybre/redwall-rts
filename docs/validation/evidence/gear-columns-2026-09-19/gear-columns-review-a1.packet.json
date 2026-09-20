@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "d8af51e849f643a47da4554cdc12f1654146f517",
+  "task": "Independent exact Gear owner and adapter source review SAVE-GEAR-R01v2",
+  "paths": [
+    "docs/planning/gear_columns_contract.md",
+    "docs/decisions/0165-restore-exact-gear-equipment-and-claims.md",
+    "godot/scripts/core/gear.gd",
+    "godot/scripts/core/save_gear_restore.gd",
+    "godot/test/test_gear_columns.gd",
+    "docs/persistence_state_registry.md",
+    "docs/validation/evidence/gear-columns-2026-09-19/parent-integration-notes.md"
+  ],
+  "instructions": "Independent persistence source review, not author. Audit acceptedv2 and implementation: totalshapes/nativeextentfirst, flag/ref/blank/payload order including duplicateSLOT, cachecapture/read versus all5restorepublication, sourceheap/count verification, equippedbinding/mirror scope, no oldhotmutatorchanges, no partial publication or collaborator mutation, descriptorordinals/groupmapping, cold-memory accounting and nonvacuous tests. Identify actual correctnessblockers and acceptancegaps with bounded fixes; separate accepted structuraldomain from fullworld obligations. Existing comments metadata not gameplay evidence. Parent tests/import/full/static/mutants/CI independently required, source review cannot claim runresults. Return one NEW report docs/validation/evidence/gear-columns-2026-09-19/source-review.md <=2400words. ExactJSON status complete,summary,questions[],files[path/content/baseSha256:null],decisionIds[]. No tools."
+}

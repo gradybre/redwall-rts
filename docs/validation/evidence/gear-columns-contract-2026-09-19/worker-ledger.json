@@ -1,0 +1,38 @@
+{
+  "attempts": [
+    {
+      "id": "gear-columns-audit-a1",
+      "role": "feasibility auditor",
+      "model": "claude-opus-5",
+      "sessionId": "dffdb698-92db-48b0-bf3a-b0a27611fdf3",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/validation/evidence/gear-columns-contract-2026-09-19/astra-source-notes.md": "a7cbeca4552de9102fdd670bb7e3dc4b7cb6753a9ee4f3a0d6c537b9437aad6f",
+        "godot/scripts/core/gear.gd": "8b957442e3397708cd8343fc9849b4f6cccb5f4478bd7099d44afe47d3499472",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "godot/scripts/core/item_definitions.gd": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551",
+        "godot/test/test_gear.gd": "a65de86810092f58c43cb5c3c957eaf3a66d13048e836cf1c597778dfbdef146",
+        "docs/persistence_state_registry.md": "9bbc33d6110113f5732a268d19ad9e3a722c0a1e80a892fd5f29e367d00b4827"
+      },
+      "resolved_base_commit": "4115d9b27f28b2fd755309a796e90b26c3b6ec50"
+    },
+    {
+      "id": "gear-columns-contract-a1",
+      "role": "independent contract reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "66849aad-f3ad-4a32-b925-003b9380a8f8",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/gear_columns_contract.md": "13efa094076f3c06d590e2f27be59b4ae53b2e158c50f1ca126d6c7040c793e1",
+        "docs/validation/evidence/gear-columns-contract-2026-09-19/astra-audit-disposition.md": "e472206401cc819bdd226c6fc7662c41cfd05f9069e124b81853b31c77ec4879",
+        "godot/scripts/core/gear.gd": "8b957442e3397708cd8343fc9849b4f6cccb5f4478bd7099d44afe47d3499472",
+        "godot/scripts/core/save_reservations_restore.gd": "3433d48c92fb33f9f727c661f4c4de318d6c38f21812ca6c4eca7409bef6e03b",
+        "godot/scripts/core/item_definitions.gd": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "docs/persistence_state_registry.md": "9bbc33d6110113f5732a268d19ad9e3a722c0a1e80a892fd5f29e367d00b4827"
+      }
+    }
+  ]
+}

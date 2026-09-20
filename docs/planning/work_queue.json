@@ -832,7 +832,8 @@
         "SAVE-STOCK-AGE-COLUMNS",
         "SAVE-RESERVATIONS-COLUMNS",
         "SAVE-GEAR-COLUMNS",
-        "SAVE-RESOURCE-CLAIM-COLUMNS"
+        "SAVE-RESOURCE-CLAIM-COLUMNS",
+        "FIX-FISHING-CLAIM-IDENTITY"
       ],
       "owns": [
         "godot/scripts/core/inventory.gd",
@@ -1052,7 +1053,8 @@
         "PLAN-REPLAY-CHECKPOINT-CONTRACT",
         "SAVE-HEADER-REPLAY-FORMAT",
         "FIX-RESERVATION-TOTALS",
-        "SAVE-CLAIM-RECONCILIATION"
+        "SAVE-CLAIM-RECONCILIATION",
+        "FIX-FISHING-CLAIM-IDENTITY"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -1060,7 +1062,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max. SAVE-RES-R01v2: pass the actual world Inventory, not an arbitrary idle instance; after all owner installs reconcile every Inventory lot including no-row lots with checked reservation sums and validate job mapping. Existing audit skips no-row lots. PLAN-RESERVATION-TOTALS repair must land before enabling external-file loading; do not tighten save row admission to hide unchecked query overflow. SAVE-GEAR-R01v2: bind equipment before installing equipped rows; verify catalog/item/cap/manufacture/mirrors/lot quantities and claim domain across Jobs/Work. Gear live8192claim bound differs from codec352418; generation mapping needs explicit integration ruling before resume. Owner preserves structural values and never repairs incompatible refs. Resource claims require NEW read-only checked aggregate verification against saved section4, exact rowmapping and orderkeyprovenance. Legacy rebuild/validate helpers mutate fields and are forbidden in reconciliation."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max. SAVE-RES-R01v2: pass the actual world Inventory, not an arbitrary idle instance; after all owner installs reconcile every Inventory lot including no-row lots with checked reservation sums and validate job mapping. Existing audit skips no-row lots. PLAN-RESERVATION-TOTALS repair must land before enabling external-file loading; do not tighten save row admission to hide unchecked query overflow. SAVE-GEAR-R01v2: bind equipment before installing equipped rows; verify catalog/item/cap/manufacture/mirrors/lot quantities and claim domain across Jobs/Work. Gear live8192claim bound differs from codec352418; generation mapping needs explicit integration ruling before resume. Owner preserves structural values and never repairs incompatible refs. Resource claims require NEW read-only checked aggregate verification against saved section4, exact rowmapping and orderkeyprovenance. Legacy rebuild/validate helpers mutate fields and are forbidden in reconciliation. FISH-ID-R01v2 requires fishingowner2/section7schema4; call decode_into_versioned with actual descriptor. Old owner identity cannot be reconstructed safely."
     },
     {
       "id": "SAVE-PROVENANCE-PRODUCER",
@@ -1642,7 +1644,7 @@
     {
       "id": "SAVE-RESOURCE-CLAIM-COLUMNS",
       "title": "Restore exact Fishing and Forage section7 claim slices",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE",
         "SAVE-GEAR-COLUMNS"
@@ -1656,21 +1658,23 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "SAVE-CLAIMS-R01v2 / ADR0166 accepted after independent feasibility/contract review. Exactfixed7/11columns, noothersectionmutation; boundquantitiesexistingruntime, canonicalorderingpreserved. Fullsectionassembly/reconciliation separate."
+      "note": "SAVE-CLAIMS-R01v2 / ADR0166 accepted after independent feasibility/contract review. Exactfixed7/11columns, noothersectionmutation; boundquantitiesexistingruntime, canonicalorderingpreserved. Fullsectionassembly/reconciliation separate. Merged PR157 atccb3da6; CI4798tests/189569assertions/0failures, baseline553objects/33resources.",
+      "pr": 157
     },
     {
       "id": "PLAN-CLAIM-RECONCILIATION",
       "title": "Specify read-only checked cross-section resource claim reconciliation",
-      "status": "ready",
+      "status": "blocked",
       "depends_on": [
-        "PLAN-SAVE-COVERAGE"
+        "PLAN-SAVE-COVERAGE",
+        "FIX-FISHING-CLAIM-IDENTITY"
       ],
       "owns": [
         "docs/planning/resource_claim_reconciliation_contract.md"
       ],
       "agent": "astra",
       "gate": "none",
-      "note": "Name exact liveness/rowmapping/provenance policy and checked aggregate comparison against SAVED section4 values. Never use destructive legacy rebuilders or repair keys. Includes missing habitats and zero persistentID on live Jobs."
+      "note": "Name exact liveness/rowmapping/provenance policy and checked aggregate comparison against SAVED section4 values. Never use destructive legacy rebuilders or repair keys. Includes missing habitats and zero persistentID on live Jobs. Feasibility audit confirmed public typed-row/generation owner alias; full identity repair must land before final contract."
     },
     {
       "id": "SAVE-CLAIM-RECONCILIATION",
@@ -1688,6 +1692,42 @@
       "agent": "game-coder",
       "gate": "none",
       "note": "No dispatch until exact contract accepted. Read-only checked totals/identity/provenance, no canonical/scratch mutations or old rebuild helpers. World coordinator required pre-resume gate."
+    },
+    {
+      "id": "FIX-FISHING-CLAIM-IDENTITY",
+      "title": "Preserve the full Expedition reference on Fishing claims",
+      "status": "review",
+      "depends_on": [
+        "SAVE-RESOURCE-CLAIM-COLUMNS"
+      ],
+      "owns": [
+        "godot/scripts/core/fishing.gd",
+        "godot/scripts/core/save_section_inventories.gd",
+        "godot/scripts/core/save_resource_claims_restore.gd",
+        "godot/test/test_fishing_claim_identity.gd",
+        "godot/test/fishing_claim_identity_focus.gd",
+        "godot/test/test_resource_claim_columns.gd",
+        "godot/test/test_save_section_inventories.gd",
+        "docs/planning/fishing_claim_identity_contract.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "FISH-ID-R01v2 / ADR0167. Confirmed A(2,1)->zone(2,2)->B(3,1) row0 alias. One canonical slot array, exact fullpair, owner2/section7schema4/registry6. Normal stale cleanup, no hidden load repair. Includes2048 runtime bytes and223 declaration-ledger correction. Integrated and independently reviewed; finalfocus258/7980/0, full4806/189775/0 before two final tests; four mutants killed, 15static+editor pass. Exact-head CI/merge pending."
+    },
+    {
+      "id": "MEMORY-PROBE-REFRESH",
+      "title": "Reconcile historical 24-row memory probe with current allocation owners",
+      "status": "blocked",
+      "depends_on": [
+        "FIX-FISHING-CLAIM-IDENTITY"
+      ],
+      "owns": [
+        "godot/tools/memory_ledger_rows.gd",
+        "godot/test/test_memory_ledger_probe.gd"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Current probe is explicitly labeled historical decision0066/24rows/60823126bytes. Reconcile attribution and live33-row allocations with actual runtime source, preserve prior evidence and distinguish planned payload from observed engine overhead. Does not replace integrated minimum-spec memory qualification."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

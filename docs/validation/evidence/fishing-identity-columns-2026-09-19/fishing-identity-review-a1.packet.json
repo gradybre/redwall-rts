@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "ccb3da6a6ac58906f44d9c45bcf25b035c690032",
+  "task": "Independent final-source review of full Expedition claim identity repair",
+  "paths": [
+    "docs/planning/fishing_claim_identity_contract.md",
+    "docs/decisions/0167-preserve-the-full-expedition-reference-on-fishing-claims.md",
+    "godot/scripts/core/fishing.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/save_resource_claims_restore.gd",
+    "godot/test/test_fishing_claim_identity.gd",
+    "godot/test/test_resource_claim_columns.gd",
+    "godot/test/test_save_section_inventories.gd",
+    "godot/test/test_canonical_state_hash.gd",
+    "docs/persistence_state_registry.md",
+    "docs/validation/evidence/fishing-identity-columns-2026-09-19/parent-integration-notes.md"
+  ],
+  "instructions": "Independent source review FISH-ID-R01v2/ADR0167, focused256tests/7923assertions/0 already observed by parent, fullsuite running. Review actual integrated source for confirmed old Expedition alias, exact slot/gen/capture/restore/atomicity/blank/shapes/ordinal7/oldschema/newdecoder/Forageunchanged, canonicaldeclaration tests and missed ownership cases. Author patch required mechanical hunk normalization; every old snippet matched uniquely and replacement text unchanged. Parent moved owner slot gate AFTER ordinal6 percontract and updated stale comments. Detect concrete defects or boundedmissingtests, not generic style or inventedwholeworldrequirements. Parent will run four mutants. Return exactly ONE NEW report docs/validation/evidence/fishing-identity-columns-2026-09-19/independent-review.md, baseSha256 null, MAX140lines. Prioritize evidence-based blockers with exactlocation, no tests claimed run by you. Full source inputs supplied; external registry/ledger tools already pass arithmetic, avoid inferring testsnotincluded are absent. MUST output RAW JSON object status/summary/questions/files/decisionIds; NO Markdown code fences and NO surrounding prose."
+}

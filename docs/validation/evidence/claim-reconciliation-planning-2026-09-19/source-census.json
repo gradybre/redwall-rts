@@ -1,0 +1,66 @@
+[
+  {
+    "path": "godot/scripts/core/fishing.gd",
+    "source_sha256": "e0860c41c3883faae1c75b5afbbfe43396651d6fdf3e702ca3cf375536f659bf",
+    "ranges": [
+      [
+        1435,
+        1568
+      ],
+      [
+        1610,
+        1820
+      ]
+    ]
+  },
+  {
+    "path": "godot/scripts/core/forage.gd",
+    "source_sha256": "9252c9085d1d993057215fc794c0eaf9a71892991aa534ff9a922c9d6a9fef6d",
+    "ranges": [
+      [
+        2070,
+        2225
+      ],
+      [
+        2265,
+        2308
+      ],
+      [
+        2400,
+        2560
+      ],
+      [
+        2712,
+        2790
+      ]
+    ]
+  },
+  {
+    "path": "godot/scripts/core/jobs.gd",
+    "source_sha256": "bf74583b409dd22da8b9100318e224b63bede5ed01c66be09f4ed0ab38809f3c",
+    "ranges": [
+      [
+        914,
+        975
+      ],
+      [
+        1019,
+        1065
+      ],
+      [
+        1111,
+        1137
+      ]
+    ]
+  },
+  {
+    "path": "godot/scripts/core/entity_directory.gd",
+    "source_sha256": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+    "ranges": [
+      [
+        210,
+        460
+      ]
+    ]
+  }
+]

@@ -133,9 +133,9 @@ const BOAT_BASE_CATCH: int = 36000
 const MAX_SKILL: int = 10
 
 ## Ruling §5's claim slice is one row per Expedition; §2.1 gives the Expedition store 512 rows.
-## Its payload is six I32 columns plus one B8: 512*6*4 + 512 = 12800 bytes.
+## FISH-ID-R01 adds the full owner slot: seven I32 columns plus B8 = 14848 bytes.
 const EXPECTED_EFFORT_CLAIM_CAPACITY: int = 512
-const EXPECTED_EFFORT_CLAIM_BYTES: int = 12800
+const EXPECTED_EFFORT_CLAIM_BYTES: int = 14848
 ## Decision 0027's ratified addition: effort_used 32*4, restocking 96*1, intensive_harvest 32*1.
 const EXPECTED_FISHING_STATE_BYTES: int = 256
 
@@ -1007,13 +1007,13 @@ func test_effort_claims_need_the_owner_stores() -> void:
 # --- ruling §5: the load path -------------------------------------------------------------------------
 
 func test_the_claim_slice_is_one_row_per_expedition() -> void:
-	"""Ruling §5's 512-row slice and its 12800-byte payload, plus decision 0027's 256 bytes."""
+	"""FISH-ID-R01's 512-row slice and its 14848-byte payload, plus decision 0027's 256 bytes."""
 	assert_equal(Fishing.FISHING_EFFORT_CLAIM_CAPACITY, EXPECTED_EFFORT_CLAIM_CAPACITY,
 		"one claim row per §2.1 Expedition row")
 	assert_equal(EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_EXPEDITION],
 		EXPECTED_EFFORT_CLAIM_CAPACITY, "which the directory sizes at 512")
 	assert_equal(_fishing.effort_claim_payload_bytes(), EXPECTED_EFFORT_CLAIM_BYTES,
-		"six I32 columns plus one B8 over 512 rows")
+		"seven I32 columns plus one B8 over 512 rows")
 	assert_equal(_fishing.fishing_state_addition_bytes(), EXPECTED_FISHING_STATE_BYTES,
 		"decision 0027's effort_used, restocking and intensive_harvest columns")
 	assert_false(_fishing.is_effort_claim_active(EXPECTED_EFFORT_CLAIM_CAPACITY),

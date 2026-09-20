@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "d301562dc766ca315f6c131535827aff41e03ce8",
+  "task": "Independent contract review of confirmed fishing owner identity alias repair",
+  "paths": [
+    "docs/planning/fishing_claim_identity_contract.md",
+    "docs/decisions/0167-preserve-the-full-expedition-reference-on-fishing-claims.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/fishing_identity_probe.gd",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/fishing-identity-probe.log",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/astra-audit-disposition.md",
+    "docs/validation/evidence/fishing-identity-contract-2026-09-19/codec-excerpts.md",
+    "docs/validation/evidence/fishing-identity-contract-2026-09-19/fishing-excerpts.md",
+    "docs/validation/evidence/fishing-identity-contract-2026-09-19/ledger-excerpts.md",
+    "godot/scripts/core/save_resource_claims_restore.gd",
+    "docs/validation/ready07_arithmetic.py",
+    "godot/tools/memory_ledger_rows.gd"
+  ],
+  "instructions": "Independent engineering contract review of FISH-ID-R01v1. Confirmed public alias witness included. Review full storedslot+generation solution, all hot/ownerbulk/adapter/codec surfaces, append ordinal7 schema evolution and explicit oldschema rejection, memory delta2048 plus new metadata44 plus prior drift179, mutable versusimmutable budget, refusal atomicity, tests and anything underspecified. This is planning only, no implementation. Determine concrete schema-aware decoder signature/gate precedence compatible with supplied decode_into. Identify any missing source for completeness instead of asserting facts. Return EXACTLY ONE NEW report docs/validation/evidence/fishing-identity-contract-2026-09-19/contract-v1-review.md, baseSha256 null, MAX150lines. Prioritize blockers and specific resolutions; no generic style review. Output MUST be a raw JSON object with status, summary, questions, files, decisionIds per worker schema. DO NOT wrap JSON in Markdown code fences, do not add any prose outside JSON. No source edits or claims of running checks. Acknowledge version1."
+}

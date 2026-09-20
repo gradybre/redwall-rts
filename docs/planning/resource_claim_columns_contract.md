@@ -202,3 +202,12 @@ array may be behaviorally indistinguishable from COW sharing under public tests;
 source review must verify explicit duplicates without claiming an equivalent
 mutant was killed.
 
+
+## Subsequent identity correction
+
+FISH-ID-R01v2 / decision0167 supersedes only this contract's seven-column Fishing
+representation and associated owner/section versions and byte counts. A public
+Directory-slot reuse witness requires a full stored Expedition slot/generation
+pair: append ordinal7, owner2, section7schema4,8arrays/14848packed/14947block.
+All Forage requirements and claim-only/no-rebuild semantics remain in force.
+See fishing_claim_identity_contract.md for exact behavior and refusal gates.

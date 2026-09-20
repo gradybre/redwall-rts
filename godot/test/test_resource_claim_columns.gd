@@ -10,7 +10,7 @@ const Residents := preload("res://scripts/core/residents.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
 const Priorities := preload("res://scripts/core/priorities.gd")
 const Schedule := preload("res://scripts/core/schedule.gd")
-const FF: Array[String] = ["effort_claim_active","effort_claim_expedition_generation","effort_claim_habitat_slot","effort_claim_habitat_generation","effort_claim_job_slot","effort_claim_job_generation","effort_claim_slot_count"]
+const FF: Array[String] = ["effort_claim_active","effort_claim_expedition_generation","effort_claim_habitat_slot","effort_claim_habitat_generation","effort_claim_job_slot","effort_claim_job_generation","effort_claim_slot_count","effort_claim_expedition_slot"]
 const VF: Array[String] = ["claim_active","claim_job_slot","claim_job_generation","claim_designation_slot","claim_designation_generation","claim_basin_slot","claim_basin_generation","claim_patch_kind","claim_remaining_milli","claim_created_tick","claim_persistent_id"]
 var _fish: Fish
 var _forage: Forage
@@ -67,7 +67,7 @@ func _seed(fishing: bool, full: bool = false) -> void:
 	for row: int in rows:
 		if not full and row != 2 and row != rows-1:
 			continue
-		var values: Array = [1,2,200+row,3,1000+row,4,1+row%6] if fishing else [1,1000+row,2,20000+row,3,100000+row,4,row%5,1+row%1180000,row*101,row+1]
+		var values: Array = [1,2,200+row,3,1000+row,4,1+row%6,200000+row] if fishing else [1,1000+row,2,20000+row,3,100000+row,4,row%5,1+row%1180000,row*101,row+1]
 		for index: int in fields.size():
 			_cell(record,fields[index],row,values[index])
 
@@ -175,7 +175,7 @@ func test_payload_domains_and_inactive_blanks_refuse_on_both_paths() -> void:
 		var record: Object = _fc if fishing else _vc
 		var fields: Array[String] = FF if fishing else VF
 		var prefix: String = "COLUMN_FISH_CLAIM_" if fishing else "COLUMN_FORAGE_CLAIM_"
-		var cases: Array = [[FF[0],2,"OCCUPANCY"],[FF[1],0,"REF"],[FF[2],-1,"REF"],[FF[2],352418,"REF"],[FF[3],0,"REF"],[FF[4],352418,"REF"],[FF[5],0,"REF"],[FF[6],0,"SLOT_COUNT"],[FF[6],7,"SLOT_COUNT"],[FF[6],2147483647,"SLOT_COUNT"]] if fishing else [[VF[0],2,"OCCUPANCY"],[VF[1],-1,"REF"],[VF[1],352418,"REF"],[VF[2],0,"REF"],[VF[3],352418,"REF"],[VF[4],0,"REF"],[VF[5],352418,"REF"],[VF[6],0,"REF"],[VF[7],-1,"KIND"],[VF[7],5,"KIND"],[VF[8],0,"QUANTITY"],[VF[8],1180001,"QUANTITY"],[VF[8],9223372036854775807,"QUANTITY"],[VF[9],-1,"ORDER_KEY"],[VF[10],-1,"ORDER_KEY"]]
+		var cases: Array = [[FF[0],2,"OCCUPANCY"],[FF[1],0,"REF"],[FF[2],-1,"REF"],[FF[2],352418,"REF"],[FF[3],0,"REF"],[FF[4],352418,"REF"],[FF[5],0,"REF"],[FF[6],0,"SLOT_COUNT"],[FF[6],7,"SLOT_COUNT"],[FF[6],2147483647,"SLOT_COUNT"],[FF[7],-1,"REF"],[FF[7],352418,"REF"]] if fishing else [[VF[0],2,"OCCUPANCY"],[VF[1],-1,"REF"],[VF[1],352418,"REF"],[VF[2],0,"REF"],[VF[3],352418,"REF"],[VF[4],0,"REF"],[VF[5],352418,"REF"],[VF[6],0,"REF"],[VF[7],-1,"KIND"],[VF[7],5,"KIND"],[VF[8],0,"QUANTITY"],[VF[8],1180001,"QUANTITY"],[VF[8],9223372036854775807,"QUANTITY"],[VF[9],-1,"ORDER_KEY"],[VF[10],-1,"ORDER_KEY"]]
 		for item: Array in cases:
 			var field: String = item[0]
 			var original: int = record.get(field)[2]
@@ -235,6 +235,8 @@ func test_maximum_ref_and_quantity_fields_are_preserved_without_typed_row_clamp(
 	_fc.effort_claim_habitat_generation[2] = 2147483647
 	_fc.effort_claim_job_generation[2] = 2147483647
 	_fc.effort_claim_slot_count[2] = 6
+	_fc.effort_claim_expedition_slot[2] = 352417
+	_fc.effort_claim_expedition_slot[511] = 0 # Directory minimum accepted structurally, no live lookup.
 	_vc.claim_job_slot[2] = 352417
 	_vc.claim_job_generation[2] = 2147483647
 	_vc.claim_designation_slot[2] = 352417
@@ -389,14 +391,15 @@ func test_adapter_literal_mapping_recapture_and_independent_containers() -> void
 		assert_equal(_fields(recapture),expected,"independent captured arrays")
 
 func test_six_complete_literal_owner_wire_goldens() -> void:
-	# Independent generator/digests: docs/validation/evidence/claim-columns-contract-2026-09-19/literal_wire_goldens.py and .json.
+	# Fishing goldens were generated in the preceding contract lane; the cited artifacts remain there.
+	# Independent generator/digests: docs/validation/evidence/fishing-identity-contract-2026-09-19/literal_wire_goldens.py and .json.
 	# Owner framing probe plus codec regression, not a full-file writer.
 	const Bytes := preload("res://scripts/core/save_codec.gd")
-	var fish_hashes: Array[String] = ["af9ba7a0b9f9f749567be9459cd7b517ab76ec49406df4a0d97c9d26578049e7","61177f0279489529c147dc7d586a05261cf46d48d5d6c31805c352f3b599acd2","8e60834b4be590fc4e3d9dd4316ff92983d7cd4624e8357ca11acd9f10bbe647"]
+	var fish_hashes: Array[String] = ["c5717324ad7c0c301805367ec348b6a5ed51a68de30bc453fac996012b640641","fe8fdc3a7d878a5d131e9b375344ab40a6a1783fbeb8dc79abffa96eac77a849","a7d7b5b2b8ae74317dd187f75573ba56fffe895a67710ea5196be86ba4dd2ad6"]
 	var forage_hashes: Array[String] = ["30bd50093ba8e17671186b5ecea6a04395eedbf0347f3d985265de03e2fb65fd","f80144a350e53d48f8ff2e0e1071be3e148091c76d51331127db20d72d5d1cb1","9b3092df5707b9577fe245511fac11f0d345e3712230f04c9a008d74d1111c31"]
 	for fishing: bool in [true,false]:
 		var rows: int = 512 if fishing else 8192
-		assert_equal(Codec.OWNER_SCHEMA_VERSIONS[0 if fishing else 1],1,"owner schema unchanged")
+		assert_equal(Codec.OWNER_SCHEMA_VERSIONS[0 if fishing else 1],2 if fishing else 1,"explicit identity schema")
 		for variant: int in 3:
 			_fc = Fish.EffortClaimColumns.new()
 			_vc = Forage.ForageClaimColumns.new()
@@ -407,17 +410,17 @@ func test_six_complete_literal_owner_wire_goldens() -> void:
 			assert_true(_block_capture(fishing,block).is_ok(),"fixture capture")
 			var writer: Bytes.Writer = Bytes.Writer.new(40)
 			writer.write_utf8_u32("fishing" if fishing else "forage",256)
-			writer.write_u32(1)
+			writer.write_u32(2 if fishing else 1)
 			writer.write_u64(rows)
 			writer.write_u64(Codec.payload_bytes_of(block))
 			writer.write_u32(0)
 			var raw: PackedByteArray = writer.to_bytes()
-			for ordinal: int in (7 if fishing else 11):
+			for ordinal: int in (8 if fishing else 11):
 				var prefix: Bytes.Writer = Bytes.Writer.new(8)
 				prefix.write_u64(rows)
 				raw.append_array(prefix.to_bytes())
 				raw.append_array(Codec.column_slice(block,ordinal,0,rows))
-			assert_equal(raw.size(),12891 if fishing else 434298,"fixed complete block size")
+			assert_equal(raw.size(),14947 if fishing else 434298,"fixed complete block size")
 			var hash: HashingContext = HashingContext.new()
 			hash.start(HashingContext.HASH_SHA256)
 			hash.update(raw)
@@ -499,3 +502,33 @@ func test_real_stale_claims_survive_slice_restore_until_normal_purge() -> void:
 		assert_equal(forage_released.value,1,"one stale forage owner released")
 	assert_equal(_whole(restored.fish),_whole(uninterrupted.fish),"identical postpurge fishing state")
 	assert_equal(_whole(restored.forage),_whole(uninterrupted.forage),"identical postpurge forage state")
+
+func test_reused_expedition_identity_continues_exactly_after_slice_restore() -> void:
+	var uninterrupted: Dictionary = _public_world()
+	var restored: Dictionary = _public_world()
+	for world: Dictionary in [uninterrupted,restored]:
+		var old_ref: Vector2i = world.expedition
+		var old_row: int = world.fish.directory().get_typed_row(old_ref)
+		assert_true(world.fish.directory().destroy(old_ref),"destroy old Expedition only")
+		var interloper = world.forage.create_zone(2,1,1000,false,true)
+		assert_true(interloper.ok,"valid other kind takes old Directory slot")
+		assert_equal(interloper.ref.x,old_ref.x,"different kind consumes freed slot")
+		world.replacement = world.fish.directory().create(Directory.KIND_EXPEDITION)
+		assert_equal(world.replacement.y,old_ref.y,"new slot shares old generation")
+		assert_equal(world.fish.directory().get_typed_row(world.replacement),old_row,"claim typed row reused")
+		assert_equal(world.fish.effort_claim_expedition_ref_of(old_row),old_ref,"original stale owner survives")
+	_fish = restored.fish
+	_forage = restored.forage
+	var block: Codec.OwnerRecord = _block(true)
+	assert_true(_block_capture(true,block).is_ok(),"capture stale full identity")
+	assert_true(_apply(true,block,_clock).is_ok(),"restore without hidden purge")
+	for world: Dictionary in [uninterrupted,restored]:
+		assert_false(world.fish.release_effort_slots(world.replacement).ok,"replacement cannot release old claim")
+		assert_equal(world.fish.purge_stale_effort_claims().value,1,"normal cleanup releases exactly one")
+		assert_equal(world.fish.purge_stale_effort_claims().value,0,"repeat cleanup releases none")
+		assert_equal(world.fish.effort_claim_count(),0,"no old claim remains")
+		assert_true(world.fish.reserve_effort_slots(world.replacement,world.fish_job,world.habitat,4).ok,"all river effort reusable")
+		assert_true(world.fish.release_effort_slots(world.replacement).ok,"replacement releases own claim")
+	assert_equal(_whole(restored.fish),_whole(uninterrupted.fish),"claims counts aggregates and scratch match uninterrupted state")
+	assert_equal(_whole(restored.forage),_whole(uninterrupted.forage),"interloper and unrelated claims match")
+	assert_equal(restored.fish.directory().state_bytes(),uninterrupted.fish.directory().state_bytes(),"allocator identity matches")

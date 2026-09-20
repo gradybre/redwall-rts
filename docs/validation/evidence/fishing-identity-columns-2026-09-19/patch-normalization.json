@@ -1,0 +1,20 @@
+{
+  "reason": "Git apply rejected authored inaccurate hunk coordinates/context shape. Every old snippet matched exactly once; reconstructed diff has correct context/line counts. No replacement text changed.",
+  "files": [
+    {
+      "path": "godot/scripts/core/fishing.gd",
+      "hunks": 15,
+      "every_old_snippet_unique_exact_match": true
+    },
+    {
+      "path": "godot/scripts/core/save_section_inventories.gd",
+      "hunks": 8,
+      "every_old_snippet_unique_exact_match": true
+    },
+    {
+      "path": "godot/scripts/core/save_resource_claims_restore.gd",
+      "hunks": 4,
+      "every_old_snippet_unique_exact_match": true
+    }
+  ]
+}

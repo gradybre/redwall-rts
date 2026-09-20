@@ -146,7 +146,7 @@ func test_store_count_and_owner_order_are_ascii() -> void:
 
 
 func test_owner_schema_versions_match_the_registry() -> void:
-	"""INV-CANON-R01 takes inventory from owner schema 2 to 3; the other five are still 1.
+	"""Inventory remains owner3; FISH-ID-R01 makes Fishing owner2, other four stay1.
 
 	UPDATED, NOT WEAKENED. This asserted 2 before the canonicalized unused payload landed, and
 	2 is now the wrong answer: a schema-2 reader would accept a retired row still carrying its
@@ -157,13 +157,13 @@ func test_owner_schema_versions_match_the_registry() -> void:
 		"inventory declares owner schema 3")
 	assert_equal(InventoryScript.CANONICAL_OWNER_SCHEMA_VERSION, 3,
 		"the store declares the same owner schema version the codec writes")
-	assert_equal(Section.SECTION_SCHEMA_VERSION, 3,
-		"section 7's descriptor schema moves to 3 in the same activation")
+	assert_equal(Section.SECTION_SCHEMA_VERSION, 4,
+		"section7 schema4 adds the complete Fishing owner reference")
 	for owner: int in Section.OWNER_COUNT:
 		if owner == Section.OWNER_INVENTORY:
 			continue
-		assert_equal(Section.OWNER_SCHEMA_VERSIONS[owner], 1,
-			"owner '%s' declares schema 1" % Section.OWNER_KEYS[owner])
+		assert_equal(Section.OWNER_SCHEMA_VERSIONS[owner], 2 if owner == Section.OWNER_FISHING else 1,
+			"owner '%s' declares its expected schema" % Section.OWNER_KEYS[owner])
 
 
 func test_section_opens_with_a_store_count_of_six() -> void:
@@ -180,13 +180,13 @@ func test_section_opens_with_a_store_count_of_six() -> void:
 func test_default_capacity_section_has_the_declared_byte_vector() -> void:
 	"""Pin the real byte arithmetic at the compiled maxima with every slot free."""
 	var full: Section.Record = Section.empty_record()
-	var sizes: Array[int] = [12891, 434298, 688256, 7481637, 1212520, 608353]
+	var sizes: Array[int] = [14947, 434298, 688256, 7481637, 1212520, 608353]
 	for owner: int in Section.OWNER_COUNT:
 		assert_equal(Section.block_bytes_of(full.of(owner)), sizes[owner],
 			"owner '%s' block is %d bytes" % [Section.OWNER_KEYS[owner], sizes[owner]])
-	assert_equal(Section.section_bytes_of(full), 10437959,
-		"the whole empty section is 10437959 bytes")
-	assert_equal(Section.section_bytes_of(full), 4 + 12891 + 434298 + 688256 + 7481637
+	assert_equal(Section.section_bytes_of(full), 10440015,
+		"the whole empty section is 10440015 bytes")
+	assert_equal(Section.section_bytes_of(full), 4 + 14947 + 434298 + 688256 + 7481637
 		+ 1212520 + 608353, "the six blocks tile the section with no gaps")
 
 
@@ -608,7 +608,7 @@ func test_large_column_is_split_into_bounded_chunks() -> void:
 		count += 1
 	assert_equal(largest, Section.CHUNK_BYTES, "the largest chunk is exactly the 65536-byte bound")
 	assert_equal(cursor.emitted_bytes(), Section.section_bytes_of(full),
-		"the streamed section is the whole 10437959 bytes")
+		"the streamed section is the whole 10440015 bytes")
 
 
 # --- per-owner domain rules ---------------------------------------------------------------------
@@ -724,18 +724,18 @@ func test_source_holds_no_float() -> void:
 ## The `inventory` block offset inside a `_small_record()` section, ADDED UP BY HAND from
 ## SAVE-LAYOUT-R01's framing rather than read out of `block_bytes_of()`. Only THREE owners
 ## precede `inventory` in ASCII order -- `reservations` and `stock_age` follow it:
-##   4 (store_count) + 12891 (fishing, fixed) + 434298 (forage, fixed)
+##   4 (store_count) + 14947 (fishing, fixed) + 434298 (forage, fixed)
 ##   + 464 (gear at 8 rows: 24 + 4 key bytes wrapper, + 4 extent count, + 12*8 element counts,
 ##          + (2*1 + 10*4) * 8 values)
-const INVENTORY_BLOCK_OFFSET: int = 447657
+const INVENTORY_BLOCK_OFFSET: int = 449713
 
 ## Value offsets INSIDE that block, likewise added up by hand: 33 wrapper bytes (24 + 9 key
 ## bytes), 12 extent bytes (a u32 count and one u64 extent), then each earlier field's 8-byte
 ## element count plus its values at 8 containers and 4 lots. Ordinals 0..17 occupy 668 payload
 ## bytes and ordinals 0..24 occupy 852, so `_l_provenance` starts at 33 + 12 + 668 + 8 = 721 and
 ## `_l_reserved_milli` at 33 + 12 + 852 + 8 = 905 bytes into the block.
-const LOT_PROVENANCE_VALUE_OFFSET: int = 448378
-const LOT_RESERVED_VALUE_OFFSET: int = 448562
+const LOT_PROVENANCE_VALUE_OFFSET: int = 450434
+const LOT_RESERVED_VALUE_OFFSET: int = 450618
 
 
 func _live_store() -> InventoryScript:
@@ -1178,3 +1178,58 @@ func test_a_live_difference_still_changes_the_digest() -> void:
 	var generation: InventoryScript = _reserved_merge_store()
 	generation._l_generation[3] = 17
 	assert_false(_digest_of(generation) == baseline, "an inactive row's own generation is hashed")
+
+func _literal_old_fishing_owner_section_prefix() -> PackedByteArray:
+	# Complete old first owner, independently framed; deliberately no other five owners.
+	# Its schema must refuse before the parser could demand any later owner.
+	var writer: SaveCodec.Writer = SaveCodec.Writer.new(12895)
+	writer.write_u32(6)
+	writer.write_utf8_u32("fishing",256)
+	writer.write_u32(1)
+	writer.write_u64(512)
+	writer.write_u64(12860)
+	writer.write_u32(0)
+	for ordinal: int in 7:
+		writer.write_u64(512)
+		for row: int in 512:
+			if ordinal == 0:
+				writer.write_u8(0)
+			else:
+				writer.write_i32(-1 if ordinal == 2 or ordinal == 4 else 0)
+	var bytes: PackedByteArray = writer.to_bytes()
+	assert_equal(bytes.size(),12895,"literal complete old owner plus storecount")
+	return bytes
+
+func test_fishing_old_owner_and_section_versions_refuse_without_publication() -> void:
+	var old: PackedByteArray = _literal_old_fishing_owner_section_prefix()
+	var before: PackedByteArray = _encode(_record)
+	var refused: SaveHeader.Refusal = Section.decode_into_versioned(old,0,old.size(),4,_record)
+	assert_equal(refused.code,Section.REFUSE_OWNER_SCHEMA_VERSION,"old owner1 refuses before missing later owners")
+	assert_false(refused.detail.is_empty(),"old owner refusal explained")
+	assert_equal(_encode(_record),before,"owner version refusal preserves destination")
+	refused = Section.decode_into_versioned(old,0,old.size(),3,_record)
+	assert_equal(refused.code,&"SAVE_INV_SECTION_SCHEMA_VERSION","stale descriptor wins over stale owner")
+	assert_false(refused.detail.is_empty(),"old section refusal explained")
+	assert_equal(_encode(_record),before,"section version refusal preserves destination")
+	assert_equal(Section.decode_into_versioned(old,-1,old.size(),3,_record).code,Section.REFUSE_NEGATIVE_OFFSET,"invalid extent precedes schema")
+	assert_equal(Section.decode_into_versioned(old,0,old.size(),4,null).code,&"SAVE_INV_NULL_RECORD","null output refuses before owner parsing")
+	assert_equal(Section.decode_into_versioned(old,0,old.size(),3,null).code,&"SAVE_INV_SECTION_SCHEMA_VERSION","schema precedes null output")
+	assert_true(Section.decode_into_versioned(before,0,before.size(),4,_record).is_ok(),"explicit current descriptor decodes")
+	assert_equal(_encode(_record),before,"current version round trip")
+
+func test_eighth_fishing_column_has_independent_blank_and_slot_gates() -> void:
+	var block: Section.OwnerRecord = _record.of(Section.OWNER_FISHING)
+	assert_equal(Section.KEYS_FISHING[7],&"_effort_claim_expedition_slot","appended ordinal7")
+	assert_equal(block.i32_column(7)[0],-1,"blank constructor explicit nullslot")
+	_set_cell(block,7,0,0)
+	assert_false(Section.owner_refusal(block).is_ok(),"inactive new slot residue refuses")
+	_set_cell(block,7,0,-1)
+	var values: Array[int] = [1,2,100,3,200,4,1,352417]
+	for ordinal: int in 8:
+		_set_cell(block,ordinal,0,values[ordinal])
+	assert_true(Section.owner_refusal(block).is_ok(),"Directory max accepted, not typed512 bound")
+	_set_cell(block,7,0,0)
+	assert_true(Section.owner_refusal(block).is_ok(),"Directory slot zero accepted structurally")
+	for slot: int in [-1,352418]:
+		_set_cell(block,7,0,slot)
+		assert_false(Section.owner_refusal(block).is_ok(),"active owner slot refuses outside Directory domain")

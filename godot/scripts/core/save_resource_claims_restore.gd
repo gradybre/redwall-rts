@@ -52,7 +52,7 @@ const FORAGE_ROWS: int = ForageScript.FORAGE_CLAIM_CAPACITY
 
 ## How many columns each storage GROUP of a block holds. Checked before any group is indexed.
 const FISHING_U8_COLUMNS: int = 1
-const FISHING_I32_COLUMNS: int = 6
+const FISHING_I32_COLUMNS: int = 7
 const FISHING_I64_COLUMNS: int = 0
 const FORAGE_U8_COLUMNS: int = 1
 const FORAGE_I32_COLUMNS: int = 7
@@ -67,6 +67,8 @@ const FISH_ORDINAL_HABITAT_GENERATION: int = 3
 const FISH_ORDINAL_JOB_SLOT: int = 4
 const FISH_ORDINAL_JOB_GENERATION: int = 5
 const FISH_ORDINAL_SLOT_COUNT: int = 6
+## FISH-ID-R01's appended ordinal 7: the claim owner's stored Directory slot.
+const FISH_ORDINAL_EXPEDITION_SLOT: int = 7
 
 ## REG-R01's declared ordinals for `forage`, in wire order.
 const FORAGE_ORDINAL_ACTIVE: int = 0
@@ -131,6 +133,8 @@ static func capture_fishing_into(store: FishingScript,
 		columns.effort_claim_active
 	staged.i32_columns[Codec.storage_index_of(FISHING_OWNER,
 		FISH_ORDINAL_EXPEDITION_GENERATION)] = columns.effort_claim_expedition_generation
+	staged.i32_columns[Codec.storage_index_of(FISHING_OWNER, FISH_ORDINAL_EXPEDITION_SLOT)] = \
+		columns.effort_claim_expedition_slot
 	staged.i32_columns[Codec.storage_index_of(FISHING_OWNER, FISH_ORDINAL_HABITAT_SLOT)] = \
 		columns.effort_claim_habitat_slot
 	staged.i32_columns[Codec.storage_index_of(FISHING_OWNER, FISH_ORDINAL_HABITAT_GENERATION)] = \
@@ -236,6 +240,8 @@ static func apply_fishing(block: Codec.OwnerRecord, store: FishingScript,
 		block.u8_columns[Codec.storage_index_of(FISHING_OWNER, FISH_ORDINAL_ACTIVE)]
 	columns.effort_claim_expedition_generation = block.i32_columns[Codec.storage_index_of(
 		FISHING_OWNER, FISH_ORDINAL_EXPEDITION_GENERATION)]
+	columns.effort_claim_expedition_slot = \
+		block.i32_columns[Codec.storage_index_of(FISHING_OWNER, FISH_ORDINAL_EXPEDITION_SLOT)]
 	columns.effort_claim_habitat_slot = \
 		block.i32_columns[Codec.storage_index_of(FISHING_OWNER, FISH_ORDINAL_HABITAT_SLOT)]
 	columns.effort_claim_habitat_generation = \

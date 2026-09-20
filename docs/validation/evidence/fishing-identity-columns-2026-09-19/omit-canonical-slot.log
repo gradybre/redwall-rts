@@ -1,0 +1,78 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_canonical_state_hash.gd
+  PASS  test_fixture_record_stream_is_exactly_the_pinned_bytes
+  PASS  test_fixture_digest_is_the_pinned_sha256
+  PASS  test_fixture_digest_matches_sha256_of_the_captured_stream
+  PASS  test_one_changed_value_changes_the_digest
+  PASS  test_alphabetical_field_order_produces_a_different_digest
+  PASS  test_utf8_prefix_is_a_byte_count_not_a_character_count
+  PASS  test_empty_string_value_is_a_zero_length_prefix
+  PASS  test_u32_high_bit_column_emits_its_bit_pattern
+  PASS  test_excluded_field_is_never_consulted_and_never_hashed
+  PASS  test_fixture_result_never_claims_release_coverage
+  PASS  test_generated_table_matches_the_registry_json
+  PASS  test_generated_fields_match_the_registry_json
+  FAIL  test_registry_counts_are_the_ones_the_ruling_reconciled
+        registry persisted packed field count (expected 554, got 553)
+  FAIL  test_the_active_rules_identity_and_counts_match_their_independent_pins
+        compiled record count (expected 603, got 602)
+        compiled field count (expected 611, got 610)
+        registry record count (expected 603, got 602)
+        registry packed source field count (expected 554, got 553)
+  PASS  test_inventory_owner_three_and_section_seven_four_match_registry
+  FAIL  test_section_seven_keeps_its_thirty_inventory_fields_and_adds_no_record
+        no canonical record is added or removed by the schema 3 activation (expected 603, got 602)
+  PASS  test_section_one_resource_nodes_declares_only_the_tile_inverse_at_schema_two
+  PASS  test_production_declaration_validates_and_excludes_section_fifteen
+  PASS  test_world_runtime_exclusions_are_declared_but_unhashed
+  PASS  test_construction_section_four_columns_are_declared_in_order
+  PASS  test_construction_delivered_arena_is_its_own_section_five_owner
+  PASS  test_production_walker_refuses_because_no_owner_has_an_adapter
+  PASS  test_missing_adapter_list_is_in_walk_order_and_names_section_and_owner
+  PASS  test_one_missing_adapter_refuses_the_whole_walk
+  PASS  test_section_fifteen_owner_refuses_self_inclusion
+  PASS  test_section_outside_one_to_fourteen_refuses
+  PASS  test_owners_out_of_ascii_order_refuse
+  PASS  test_sections_out_of_order_refuse
+  PASS  test_duplicate_owner_and_duplicate_field_refuse
+  PASS  test_ascii_compare_is_byte_order_not_case_folded
+  PASS  test_type_five_without_a_declared_cap_refuses
+  PASS  test_type_five_value_over_its_declared_cap_refuses
+  PASS  test_storage_form_must_match_the_declared_type
+  PASS  test_value_count_must_match_a_declared_count
+  PASS  test_u32_logical_value_out_of_range_refuses
+  PASS  test_u32_logical_value_at_the_boundary_is_accepted
+  PASS  test_negative_u64_refuses_rather_than_emitting_a_huge_value
+  PASS  test_adapter_refusal_propagates_and_names_the_field
+  PASS  test_registering_an_undeclared_owner_refuses
+  PASS  test_duplicate_and_malformed_adapter_registration_refuse
+  PASS  test_short_compatibility_digest_refuses
+  PASS  test_engine_identity_line_rules_are_enforced
+  PASS  test_negative_completed_tick_refuses
+  PASS  test_completed_tick_enters_the_prefix_and_changes_the_digest
+  PASS  test_capture_limit_refuses_rather_than_truncating
+  PASS  test_verify_accepts_the_pinned_digest_and_refuses_any_other
+  PASS  test_verify_refuses_a_wrong_length_expected_digest
+  PASS  test_stream_tag_is_eleven_bytes_with_no_terminator
+  PASS  test_module_has_no_float_and_no_dictionary
+  PASS  test_economic_high_declaration_and_value_preserve_exhaustion
+  FAIL  test_full_expedition_slot_is_eighth_hashed_fishing_field
+        one new canonical field (expected 8, got 7)
+        literal append order (expected ["_effort_claim_active", "_effort_claim_expedition_generation", "_effort_claim_habitat_slot", "_effort_claim_habitat_generation", "_effort_claim_job_slot", "_effort_claim_job_generation", "_effort_claim_slot_count", "_effort_claim_expedition_slot"], got ["_effort_claim_active", "_effort_claim_expedition_generation", "_effort_claim_habitat_slot", "_effort_claim_habitat_generation", "_effort_claim_job_slot", "_effort_claim_job_generation", "_effort_claim_slot_count"])
+        changing only Expedition slot changes canonical projection (expected true, got false)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+51 test(s), 3568 assertion(s), 4 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

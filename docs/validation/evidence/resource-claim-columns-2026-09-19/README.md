@@ -32,5 +32,5 @@ Old executable source is unchanged; four historical comments now mark legacy
 load helpers explicitly. Canonical registry remains602fields/553packed columns.
 
 All four required mutants were killed (6/3/2/2 failing tests, each15tests/1531
-assertions); correct production hashes restored. Results are in mutation-results.json. Exact-head CI and
-merge remain pending; whole-section, full-save and first-playable gates stay open.
+assertions); correct production hashes restored. Results are in mutation-results.json. Exact-head CI35485149614 passed4798tests/189569assertions/0failures with
+unchanged553objects/33resources. PR157 merged atccb3da6; whole-section, full-save and first-playable gates stay open.

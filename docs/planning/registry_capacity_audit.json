@@ -4,9 +4,9 @@
   "audit_schema_version": 2,
   "audited_registry": {
     "path": "docs/planning/canonical_state_registry.json",
-    "registry_canonical_json_sha256": "f353a6e602273c8965a96b454d3e64823a6866d1aa7ef7c2cbb7963fffa3171c",
+    "registry_canonical_json_sha256": "c9012b9ef0597169ddba15a24a079400bc1c82bd727bc374a7350d1547c85358",
     "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-15-3",
-    "registry_version": 5
+    "registry_version": 6
   },
   "audited_source": {
     "module_sha256": {
@@ -16,7 +16,7 @@
       "entity_directory": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
       "farming": "c025f23da0f88ddff8c5ea64bae0f3bb75d7085f83f949bd3877e70443aea773",
       "field_policy": "262198e7a04d340c5205007c7ff1124264efe761b675fd99f657fb38a9fb5315",
-      "fishing": "7a82dcea6ce9e8100045d736049ab912b508195eb35aa07c34c76ce3b42c12e9",
+      "fishing": "08ff3b69c64a14c4b7817813b67af52d981e1b4eeaa457c2222f4ada3ffd9469",
       "forage": "8f1be765de10b5adba1a623ce54033c9830bc8d7bd1eedcc3d82712850b8144a",
       "gear": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f",
       "injury": "a0932b0c2fddd8ea32f460d1ca4d88977fa759391fcac6f845957fff433184c2",
@@ -57,22 +57,25 @@
     "astra_cycle_03_taken_at": "388f4f4",
     "disagreements": [],
     "explained_since_census": [
-      "canonical_records: this audit 602, Astra Cycle 3 599 (+3) -- decisions 0142 and 0157: retire three deposit members; persist three dirty lists and three counts",
-      "distinct_expressions: this audit 55, Astra Cycle 3 56 (-1) -- decisions 0142 and 0157: retire three deposit members; persist three dirty lists and three counts",
-      "other_canonical_shapes: this audit 83, Astra Cycle 3 80 (+3) -- decisions 0142 and 0157: retire three deposit members; persist three dirty lists and three counts"
+      "canonical_records: this audit 603, Astra Cycle 3 599 (+4) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot",
+      "distinct_expressions: this audit 55, Astra Cycle 3 56 (-1) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot",
+      "equality: this audit 474, Astra Cycle 3 473 (+1) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot",
+      "other_canonical_shapes: this audit 83, Astra Cycle 3 80 (+3) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot",
+      "packed_source_fields: this audit 554, Astra Cycle 3 553 (+1) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot",
+      "prose_records: this audit 520, Astra Cycle 3 519 (+1) -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot"
     ],
     "observed": {
-      "canonical_records": 602,
+      "canonical_records": 603,
       "distinct_expressions": 55,
-      "equality": 473,
+      "equality": 474,
       "non_hash_fields": 8,
       "non_hash_fields_admitted_to_audit": 0,
       "non_hash_fields_carrying_declared_capacity": 0,
       "other_canonical_shapes": 83,
       "owners": 52,
-      "packed_source_fields": 553,
-      "prose_records": 519,
-      "registry_listed_fields": 610,
+      "packed_source_fields": 554,
+      "prose_records": 520,
+      "registry_listed_fields": 611,
       "upper_bound": 46
     }
   },
@@ -3620,7 +3623,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3632,7 +3635,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 719,
+      "source_resize_line": 726,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3643,9 +3646,9 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_STOCK_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32",
-        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:254 `const SPECIES_PER_HABITAT = 3` = 3",
-        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:256 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3657,7 +3660,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_STOCK_CAPACITY",
-      "source_resize_line": 737,
+      "source_resize_line": 744,
       "source_value": 96,
       "status": "proved_equality"
     },
@@ -3668,7 +3671,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3680,7 +3683,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 720,
+      "source_resize_line": 727,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3691,7 +3694,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3703,7 +3706,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 721,
+      "source_resize_line": 728,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3714,7 +3717,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3726,7 +3729,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 722,
+      "source_resize_line": 729,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3737,7 +3740,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3749,7 +3752,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 723,
+      "source_resize_line": 730,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3760,7 +3763,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3772,7 +3775,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 724,
+      "source_resize_line": 731,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3783,7 +3786,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3795,7 +3798,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 725,
+      "source_resize_line": 732,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3806,7 +3809,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3818,7 +3821,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 726,
+      "source_resize_line": 733,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3829,7 +3832,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3841,7 +3844,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 727,
+      "source_resize_line": 734,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3852,7 +3855,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3864,7 +3867,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 728,
+      "source_resize_line": 735,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3875,7 +3878,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3887,7 +3890,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 729,
+      "source_resize_line": 736,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3898,7 +3901,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3910,7 +3913,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 730,
+      "source_resize_line": 737,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3921,7 +3924,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_HABITAT_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3933,7 +3936,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_HABITAT_CAPACITY",
-      "source_resize_line": 731,
+      "source_resize_line": 738,
       "source_value": 32,
       "status": "proved_equality"
     },
@@ -3944,9 +3947,9 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_STOCK_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32",
-        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:254 `const SPECIES_PER_HABITAT = 3` = 3",
-        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:256 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3958,7 +3961,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_STOCK_CAPACITY",
-      "source_resize_line": 738,
+      "source_resize_line": 745,
       "source_value": 96,
       "status": "proved_equality"
     },
@@ -3969,9 +3972,9 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_STOCK_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32",
-        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:254 `const SPECIES_PER_HABITAT = 3` = 3",
-        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:256 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -3983,7 +3986,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_STOCK_CAPACITY",
-      "source_resize_line": 739,
+      "source_resize_line": 746,
       "source_value": 96,
       "status": "proved_equality"
     },
@@ -3994,9 +3997,9 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_STOCK_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32",
-        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:254 `const SPECIES_PER_HABITAT = 3` = 3",
-        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:256 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4008,7 +4011,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_STOCK_CAPACITY",
-      "source_resize_line": 740,
+      "source_resize_line": 747,
       "source_value": 96,
       "status": "proved_equality"
     },
@@ -4019,9 +4022,9 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_STOCK_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32",
-        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:254 `const SPECIES_PER_HABITAT = 3` = 3",
-        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:256 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4033,7 +4036,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_STOCK_CAPACITY",
-      "source_resize_line": 741,
+      "source_resize_line": 748,
       "source_value": 96,
       "status": "proved_equality"
     },
@@ -4044,9 +4047,9 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_STOCK_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32",
-        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:254 `const SPECIES_PER_HABITAT = 3` = 3",
-        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:256 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4058,7 +4061,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_STOCK_CAPACITY",
-      "source_resize_line": 742,
+      "source_resize_line": 749,
       "source_value": 96,
       "status": "proved_equality"
     },
@@ -4069,9 +4072,9 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_STOCK_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32",
-        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:254 `const SPECIES_PER_HABITAT = 3` = 3",
-        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:256 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4083,7 +4086,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_STOCK_CAPACITY",
-      "source_resize_line": 743,
+      "source_resize_line": 750,
       "source_value": 96,
       "status": "proved_equality"
     },
@@ -4094,9 +4097,9 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_STOCK_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32",
-        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:254 `const SPECIES_PER_HABITAT = 3` = 3",
-        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:256 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4108,7 +4111,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_STOCK_CAPACITY",
-      "source_resize_line": 744,
+      "source_resize_line": 751,
       "source_value": 96,
       "status": "proved_equality"
     },
@@ -4119,9 +4122,9 @@
       "owner_key": "fishing",
       "parsed_expression": "FISH_STOCK_CAPACITY",
       "proof_chain": [
-        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:252 `const FISH_HABITAT_CAPACITY = 32` = 32",
-        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:254 `const SPECIES_PER_HABITAT = 3` = 3",
-        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:256 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+        "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+        "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+        "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -4133,7 +4136,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISH_STOCK_CAPACITY",
-      "source_resize_line": 745,
+      "source_resize_line": 752,
       "source_value": 96,
       "status": "proved_equality"
     },
@@ -9474,7 +9477,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
       "proof_chain": [
-        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:261 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
+        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:260 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9486,7 +9489,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
-      "source_resize_line": 707,
+      "source_resize_line": 713,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9497,7 +9500,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
       "proof_chain": [
-        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:261 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
+        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:260 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9509,7 +9512,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
-      "source_resize_line": 708,
+      "source_resize_line": 714,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9520,7 +9523,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
       "proof_chain": [
-        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:261 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
+        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:260 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9532,7 +9535,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
-      "source_resize_line": 709,
+      "source_resize_line": 716,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9543,7 +9546,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
       "proof_chain": [
-        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:261 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
+        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:260 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9555,7 +9558,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
-      "source_resize_line": 710,
+      "source_resize_line": 717,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9566,7 +9569,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
       "proof_chain": [
-        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:261 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
+        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:260 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9578,7 +9581,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
-      "source_resize_line": 711,
+      "source_resize_line": 718,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9589,7 +9592,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
       "proof_chain": [
-        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:261 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
+        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:260 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9601,7 +9604,7 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
-      "source_resize_line": 712,
+      "source_resize_line": 719,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9612,7 +9615,7 @@
       "owner_key": "fishing",
       "parsed_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
       "proof_chain": [
-        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:261 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
+        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:260 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9624,7 +9627,30 @@
       "source_module": "fishing",
       "source_relation": "eq",
       "source_resize_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
-      "source_resize_line": 713,
+      "source_resize_line": 720,
+      "source_value": 512,
+      "status": "proved_equality"
+    },
+    {
+      "declared_capacity_prose": "`FISHING_EFFORT_CLAIM_CAPACITY` = 512",
+      "field_key": "_effort_claim_expedition_slot",
+      "ordinal": 7,
+      "owner_key": "fishing",
+      "parsed_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
+      "proof_chain": [
+        "FISHING_EFFORT_CLAIM_CAPACITY -> godot/scripts/core/fishing.gd:260 `const FISHING_EFFORT_CLAIM_CAPACITY = 512` = 512"
+      ],
+      "proof_kind": "compiled_constant",
+      "prose_relation": "eq",
+      "prose_value": 512,
+      "quarantine_reason": "",
+      "section_id": 7,
+      "source_file": "godot/scripts/core/fishing.gd",
+      "source_member": "_effort_claim_expedition_slot",
+      "source_module": "fishing",
+      "source_relation": "eq",
+      "source_resize_expression": "FISHING_EFFORT_CLAIM_CAPACITY",
+      "source_resize_line": 715,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -13157,7 +13183,7 @@
     }
   ],
   "status_counts": {
-    "proved_equality": 473,
+    "proved_equality": 474,
     "proved_upper_bound": 46
   },
   "unproved_or_contradicted": []

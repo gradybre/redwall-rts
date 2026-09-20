@@ -1,6 +1,6 @@
 # 0166 — Restore resource claims without rebuilding other sections
 
-Date:2026-09-19 · Status:Implemented and independently reviewed; exact-head CI pending
+Date:2026-09-19 · Status:Merged PR157 atccb3da6; CI4798tests/189569assertions/0failures
 
 SAVE-CLAIMS-R01v2 installs only the7Fishing and11Forage section7 claim arrays and
 derived livecounts. Preserve exact typed-row identities, stale generation pairs

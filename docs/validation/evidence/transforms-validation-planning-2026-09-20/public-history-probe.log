@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+TRANSFORM_HISTORY_PROBE {"presentation_preserves_history":true,"replacement_keeps_count":true,"retained_stale_stamp_and_pose":true,"signed_pose_extrema":true,"signed_yaw_extrema":true,"successor_unplaced":true,"unbind_zeroes_all_columns":true}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

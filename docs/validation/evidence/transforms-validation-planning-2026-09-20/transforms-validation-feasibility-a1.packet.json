@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "546a90714bbcaa2d2af42dfb3065b10eb159a181",
+  "task": "Independent feasibility review of owner15 saved Transform history and retained binding domains",
+  "paths": [
+    "AGENTS.md",
+    "docs/validation/evidence/transforms-validation-planning-2026-09-20/astra-source-note.md",
+    "godot/scripts/core/transforms.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/test/test_transforms.gd",
+    "docs/systems_architecture.md",
+    "docs/persistence_state_registry.md",
+    "docs/planning/movement_contracts.md",
+    "docs/decisions/0053-movement-ground-slice-identity-and-storage.md",
+    "godot/scripts/core/save_owner_schedule.gd",
+    "godot/scripts/core/save_component_columns_schema.gd"
+  ],
+  "instructions": "Read-only feasibility review; no implementation yet. Re-derive source-domain facts and answer five Astra source-note questions; focus reachable stale retained Transform stamps, unrestricted signed pose/yaw domain, zero-bound exact defaults, authority conflict in Previous pose registry note, owner-free API/noDirectory allocations. Determine if binding uniqueness can be omitted from localprimitive but explicitly required in savedcrossworldconsistency without treating local acceptance aswholeworld. Propose exact scalarcodes/gate order and positive/negative/argumentomission tests; do not inventtighteneddomains from assumedmap/yawvalidity. Report blockers and authorities precisely. ReturnONEnew docs/validation/evidence/transforms-validation-planning-2026-09-20/feasibility-review.md; hard180lines AND1800words, aim100/1000. RawJSONstatus/summary/questions/files/decisionIds; baseSha256null; no testsrunclaims or extraoutputfiles."
+}

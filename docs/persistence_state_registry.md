@@ -773,6 +773,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---|---|---|:-:|---|---|
 | Pure owner14 saved-history validator | -- | -- | -- | -- | 3 | -- | Decision0172 / SCHEDULE-S4-VALIDATE-R01v1. No mutable module state, live owner construction or catalog dependency. Six typed caller-owned packed columns feed the static predicate, which shares the existing inactive-row rule. Full physical domain and local history checks preserve customized timetables and resolved activity history. The17920framed bytes are already inside the streaming allowance; no projection, duplicate or sort buffer is added. Native/wrapper overhead is unmeasured. No bulk APIs, present_count rebuild, section2 catalog identity, cross-owner validity or publication is supplied. |
 
+### `godot/scripts/core/save_owner_transforms.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---|---|---|:-:|---|---|
+| Pure owner15 pose and binding validator | -- | -- | -- | -- | 3 | -- | Decision0173 / TRANSFORMS-S4-VALIDATE-R01v1. No mutable module state or live owner/Directory construction. Nine typed caller-owned i32 columns feed the static predicate; positive binding uniqueness uses one private350208-byte duplicate-and-sort. Framed3151872 + scratch350208 + three65536stream windows =3698688logical packed bytes, below existing6417408one-owner stream allowance. Native/wrapper overhead is unmeasured. Preserve all signed pose/yaw values, independent current/previous and legitimate stale bindings. Bulk APIs/nonzero-stamp count rebuild and saved cursor/Directory identity remain separate. |
+
 ### `godot/scripts/core/save_resource_claims_reconcile.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
@@ -818,7 +824,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Current pose | `_x`, `_y`, `_z`, `_yaw` | 4 | `TRANSFORM_CAPACITY` = 87552 | An unbound row holds 0; `_bound_persistent_id == 0` is what marks it unbound | 1 | §4 COMPONENT_COLUMNS | int32 positions in 1/1024 m units, -Z forward, per AGENTS.md. ARCH-HASH-001 requires "current/previous authoritative Transform fields, not first-frame presentation overrides". |
-| Previous pose | `_prev_x`, `_prev_y`, `_prev_z`, `_prev_yaw` | 4 | `TRANSFORM_CAPACITY` = 87552 | Same as the current pose | 1 | §4 COMPONENT_COLUMNS | The interpolation source for the render frame after a load. ARCH-SAVE-004 ends with "present previous=current", so the loader may collapse them -- but ARCH-HASH-001 hashes both, so the collapse must happen after the incoming digest is verified, not before. |
+| Previous pose | `_prev_x`, `_prev_y`, `_prev_z`, `_prev_yaw` | 4 | `TRANSFORM_CAPACITY` = 87552 | Same as the current pose | 1 | §4 COMPONENT_COLUMNS | Canonical current and previous pose fields remain exact across load, digest verification and publication. ARCH-HASH-001 includes both and excludes first-frame presentation overrides; ARCH-SAVE-004 verifies the installed digest again. Load previous=current is a presentation-only override, never a canonical history rewrite (decision0173). |
 | Transform binding | `_bound_persistent_id` | 4 | `TRANSFORM_CAPACITY` = 87552 | 0 = the row is bound to nothing | 1 | §4 COMPONENT_COLUMNS | Decision 0053's TransformBinding: which entity's persistent id owns the row. Persistent ids are never reused, so this survives slot reuse across a reload. |
 | Transform bound count | -- | -- | -- | -- | 2 | §4 COMPONENT_COLUMNS | `_bound_count`, recomputed from the nonzero entries of `_bound_persistent_id`. |
 | Transform refusal code | -- | -- | -- | -- | 3 | -- | `_last_refusal` and the directory handle. |

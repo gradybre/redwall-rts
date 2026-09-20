@@ -4,7 +4,7 @@
   "audit_schema_version": 2,
   "audited_registry": {
     "path": "docs/planning/canonical_state_registry.json",
-    "registry_canonical_json_sha256": "7144505c49230d6b35c3c843a350572365aa26551566e2d69ff15fbef9a7a18c",
+    "registry_canonical_json_sha256": "6dbaf79979a61cc7b290dca38bc56fd81e7cddb49c4f0b650afb65b43ce54488",
     "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-15-3",
     "registry_version": 6
   },
@@ -35,7 +35,7 @@
       "schedule": "1637b4d118cfba1a6f728165c7a092e9d70a3450624464bf78f29442210e78bb",
       "spatial_world": "3825788db07885db94dab7288c832b8219f89e54da22d871d58e98e2d590b26b",
       "stock_age": "7293272e02e0bb2b0ab0231bdade8d355aeb291abd30c152a9af848cb0405d22",
-      "transforms": "e09e5c33201cdfb3b27ef69d9973d01f9369120836dc5ec4b2d1d3c383ef444f",
+      "transforms": "0c2a532f0869ee1280f830693f0521d2644148828217af7cf2602a1eeca7d675",
       "weather": "f2c1bf034645b897c80edcce861cd488a01b0d280e8eb7dcc5067c9e8aa7ca3e",
       "work": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
       "world_init": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a"
@@ -8082,7 +8082,7 @@
       "source_module": "transforms",
       "source_relation": "eq",
       "source_resize_expression": "TRANSFORM_CAPACITY",
-      "source_resize_line": 147,
+      "source_resize_line": 154,
       "source_value": 87552,
       "status": "proved_equality"
     },
@@ -8105,7 +8105,7 @@
       "source_module": "transforms",
       "source_relation": "eq",
       "source_resize_expression": "TRANSFORM_CAPACITY",
-      "source_resize_line": 139,
+      "source_resize_line": 146,
       "source_value": 87552,
       "status": "proved_equality"
     },
@@ -8128,7 +8128,7 @@
       "source_module": "transforms",
       "source_relation": "eq",
       "source_resize_expression": "TRANSFORM_CAPACITY",
-      "source_resize_line": 140,
+      "source_resize_line": 147,
       "source_value": 87552,
       "status": "proved_equality"
     },
@@ -8151,7 +8151,7 @@
       "source_module": "transforms",
       "source_relation": "eq",
       "source_resize_expression": "TRANSFORM_CAPACITY",
-      "source_resize_line": 141,
+      "source_resize_line": 148,
       "source_value": 87552,
       "status": "proved_equality"
     },
@@ -8174,7 +8174,7 @@
       "source_module": "transforms",
       "source_relation": "eq",
       "source_resize_expression": "TRANSFORM_CAPACITY",
-      "source_resize_line": 142,
+      "source_resize_line": 149,
       "source_value": 87552,
       "status": "proved_equality"
     },
@@ -8197,7 +8197,7 @@
       "source_module": "transforms",
       "source_relation": "eq",
       "source_resize_expression": "TRANSFORM_CAPACITY",
-      "source_resize_line": 143,
+      "source_resize_line": 150,
       "source_value": 87552,
       "status": "proved_equality"
     },
@@ -8220,7 +8220,7 @@
       "source_module": "transforms",
       "source_relation": "eq",
       "source_resize_expression": "TRANSFORM_CAPACITY",
-      "source_resize_line": 144,
+      "source_resize_line": 151,
       "source_value": 87552,
       "status": "proved_equality"
     },
@@ -8243,7 +8243,7 @@
       "source_module": "transforms",
       "source_relation": "eq",
       "source_resize_expression": "TRANSFORM_CAPACITY",
-      "source_resize_line": 145,
+      "source_resize_line": 152,
       "source_value": 87552,
       "status": "proved_equality"
     },
@@ -8266,7 +8266,7 @@
       "source_module": "transforms",
       "source_relation": "eq",
       "source_resize_expression": "TRANSFORM_CAPACITY",
-      "source_resize_line": 146,
+      "source_resize_line": 153,
       "source_value": 87552,
       "status": "proved_equality"
     },

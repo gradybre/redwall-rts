@@ -1,0 +1,58 @@
+{
+  "attempts": [
+    {
+      "id": "transforms-validation-author-a1",
+      "model": "claude-opus-5",
+      "sessionId": "4a6f013b-6a14-4862-a4b8-5f6cadad0907",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/transforms_component_validation_contract.md": "a6a285592a1b46d8d95b164473e5c127bb6d7879313b2749ce9e18435b91f178",
+        "docs/decisions/0173-validate-transform-history-and-binding-uniqueness.md": "cbf8d7a6d7fea6d3d9d9d5b23e2c36d453d49aaa18625c89ab658c34cf08ea14",
+        "docs/validation/evidence/transforms-validation-planning-2026-09-20/contract-review-disposition.md": "e7a6dee86d48fbb6dba4542ffa7e7b5a122108ca231620f33ac7a824aff2bed0",
+        "docs/validation/evidence/transforms-validation-planning-2026-09-20/parent-test-matrix.md": "b7c7b9af6ca2a6bb2802ce46c872cbca4006973f88f9e4b25f0ec448a9c5e3aa",
+        "godot/scripts/core/transforms.gd": "e09e5c33201cdfb3b27ef69d9973d01f9369120836dc5ec4b2d1d3c383ef444f",
+        "godot/scripts/core/save_owner_schedule.gd": "1a123674881744ec4d97c510f9b75f5d46e8389dd1cfb6544a555cc10a816697",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      "outputLines": 295,
+      "outputLineBudget": 500,
+      "applied": "Original patch context failed; parent removed exactly one surplus unchanged blank context line. Added/deleted lines unchanged. Normalized patch passed git apply --recount --check then --recount; frozen input hashes and target/mode allowlist verified",
+      "integration_base": "dd68860bb81e1f267ead75f835f359455cb82169"
+    },
+    {
+      "id": "transforms-validation-source-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "45e61b55-6349-4027-9468-5f168452fc2e",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/transforms_component_validation_contract.md": "a6a285592a1b46d8d95b164473e5c127bb6d7879313b2749ce9e18435b91f178",
+        "docs/decisions/0173-validate-transform-history-and-binding-uniqueness.md": "cbf8d7a6d7fea6d3d9d9d5b23e2c36d453d49aaa18625c89ab658c34cf08ea14",
+        "docs/validation/evidence/transforms-validation-planning-2026-09-20/feasibility-disposition.md": "f8f724344bdeff2a5b17e4f97d855897f1acad13072c22d8ea566f65bdf7bb7a",
+        "docs/validation/evidence/transforms-validation-planning-2026-09-20/contract-review-disposition.md": "e7a6dee86d48fbb6dba4542ffa7e7b5a122108ca231620f33ac7a824aff2bed0",
+        "godot/scripts/core/transforms.gd": "0c2a532f0869ee1280f830693f0521d2644148828217af7cf2602a1eeca7d675",
+        "godot/scripts/core/save_owner_transforms.gd": "a82c4df98598a62cc97c84c936c6a00649b2f2f66788ac885cb5ea4378855790",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/test/test_save_owner_transforms.gd": "242f62ad3aa543d4be387a3f9b60544688413c87069beab486edc891a607cf00",
+        "godot/test/test_transforms.gd": "4e24c42363fd3ccc8db949a9480fffab40718242be6da0d8d0e2f751a9a6ba39",
+        "tools/test_transforms_metadata_preflights.py": "0966bc951013beadf4a3641cb90ad2c1b9fb55a05e6726d140424395cc9459fd",
+        ".github/workflows/tests.yml": "89e662f3e02e7db63678d1644e86d639ed30dd9f4edc4aa45a84962324340b5f",
+        "docs/persistence_state_registry.md": "1b9ca916c66cf17bd971fa2f2226f75959895fcc1feffff80d8ced27a43be611",
+        "docs/validation/evidence/transforms-component-validation-2026-09-20/focus-first.log": "00acc15cbaa75a5fc1b74556ea525cc3c6bb7b16d589745f4c6d54b6d201cc60",
+        "docs/validation/evidence/transforms-component-validation-2026-09-20/metadata-preflights-first.json": "0b92e7c9a3412fa2784779b7068c1b87e89e3680db878c297365fea21c474780",
+        "docs/validation/evidence/transforms-component-validation-2026-09-20/run_mutants.py": "166f6c2ed71cea5dc2b4ab5a7d6f0ef019f7c465436aed9c8afeea16a7cee96f",
+        "docs/validation/evidence/transforms-component-validation-2026-09-20/patch-intake-disposition.md": "9f7f7959ee838498178928ba4b4991ea8a7ae495d1729ed40781734fc513bcda"
+      },
+      "outputLines": 138,
+      "outputWords": 1211,
+      "outputLineBudget": 160,
+      "outputWordBudget": 1600
+    }
+  ]
+}

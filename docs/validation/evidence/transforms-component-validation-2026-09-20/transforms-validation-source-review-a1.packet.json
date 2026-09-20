@@ -1,0 +1,26 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "dd68860bb81e1f267ead75f835f359455cb82169",
+  "task": "Independent source review of Transform history validator and owner15 bridge",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/transforms_component_validation_contract.md",
+    "docs/decisions/0173-validate-transform-history-and-binding-uniqueness.md",
+    "docs/validation/evidence/transforms-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/transforms-validation-planning-2026-09-20/contract-review-disposition.md",
+    "godot/scripts/core/transforms.gd",
+    "godot/scripts/core/save_owner_transforms.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/test/test_save_owner_transforms.gd",
+    "godot/test/test_transforms.gd",
+    "tools/test_transforms_metadata_preflights.py",
+    ".github/workflows/tests.yml",
+    "docs/persistence_state_registry.md",
+    "docs/validation/evidence/transforms-component-validation-2026-09-20/focus-first.log",
+    "docs/validation/evidence/transforms-component-validation-2026-09-20/metadata-preflights-first.json",
+    "docs/validation/evidence/transforms-component-validation-2026-09-20/run_mutants.py",
+    "docs/validation/evidence/transforms-component-validation-2026-09-20/patch-intake-disposition.md"
+  ],
+  "instructions": "Independent source/security/correctness review against acceptedTRANSFORMS-S4-VALIDATE-R01v1/ADR0173. Focus34tests3277assertions0; realengine18metadata cases162assertions incl8guardbypasses killed pass. Required14mapping/domain/order mutants running; fullsuitepending. Re-derive9canonicalaccessors, allshapes/order, bindingdomainpositiveuniqueness/repeatedzerosexcluded, private singleduplicate sortinputnonmutation, zero-boundposesall8/freegateglobal, arbitrarysignedhistory/stalestampspreserved. No live Directory, no ownerconstruct/diagnosticwrites, no changesexistingordinarymethods/state_bytes. Verify parent diagnosticstamp-last remapping into canonicalstamp-first and actualpublichistory/diagcountdigest invariance. Check allmetadatafault arithmetic balancedchild/Workfirstfield2056/type\u2212262656/count+4 reachesgate4, exactprefix/schemaforwarding andsamefilesourceproof notconfused. Review memory3698688bound inside6417408underexistingreleaseprotocol only; no extraresidentclaims. Registry previouspose conflictcorrected in suppliedprose. Assess mutationoracles including two pairedorderfaults; bindingsubstitution negativeexactcode AND positiveposewitnesses. Originalpatchcontextformatfix removedonlyunchangedblank, alladded/deletedlinesunchanged. ReturnONEnew docs/validation/evidence/transforms-component-validation-2026-09-20/source-review.md; hard160lines AND1600words aim90/900; baseSha256null; no extraoutput/runclaims. RawJSONstatus/summary/questions/files/decisionIds. Do not reopendeferredfullsave/bulk/crosssectionidentity; reportactualblockers/materialgaps."
+}

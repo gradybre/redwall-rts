@@ -1,0 +1,21 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "bb237d2e05f7c3a921a89e42530fd4b1829ff135",
+  "task": "Final Transform owner15 validation contract review, including local uniqueness scratch bound",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/transforms_component_validation_contract.md",
+    "docs/validation/evidence/transforms-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/transforms-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/transforms-validation-planning-2026-09-20/public_history_probe.gd",
+    "docs/validation/evidence/transforms-validation-planning-2026-09-20/public-history-probe.log",
+    "godot/scripts/core/transforms.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_owner_schedule.gd",
+    "godot/test/test_transforms.gd",
+    "docs/planning/component_columns_stream_contract.md"
+  ],
+  "instructions": "Independent final contract review of TRANSFORMS-S4-VALIDATE-R01draft1, not implementation. Critically rederive exactdomain/localuniqueness choice, stamp-first canonical vs last diagnostic order, proposedrefusalgates/mutantwitnesses, allsignedposehistorypreservation and publicstale stamp case. Astra explicitly rejects uniqueness as mathematically nonlocal: one350208byte duplicate sort can enforce it within existing6417408stream allowance (3151872record+350208scratch+3*65536=3698688). Check existing schema stream record/accessorCOW lifetimes and memorybound; no new residentallocation. Prove uniqueness not valid publiccompleteworld state, distinguish caller rawDirectory resetwithoutTransform reset violatingresetcontract; do not silently inventreuse semantics. Confirm explicit crosssection cursor/identitydefer plus bound_count semantics. Check scope and testability. ReturnONEnew docs/validation/evidence/transforms-validation-planning-2026-09-20/contract-review.md; hard140lines AND1400words aim80/800; baseSha256null; no otherfiles/runclaims. RawJSONstatus/summary/questions/files/decisionIds. Actualblockers only, ordinary API/refusal choices delegatedAstra."
+}

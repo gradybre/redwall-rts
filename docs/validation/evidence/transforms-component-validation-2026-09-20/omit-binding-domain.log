@@ -1,0 +1,71 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_transforms.gd
+  PASS  test_exact_canonical_layout_and_empty_frame
+  FAIL  test_nine_independent_argument_omission_witnesses
+        static exactcode (expected COLUMN_BINDING_ID, got )
+        framed exactcode (expected COLUMN_BINDING_ID, got )
+        success channel (expected false, got true)
+        owner identity (expected true, got false)
+        raw column code (expected true, got false)
+  PASS  test_full_signed_pose_domain_and_independent_previous_history
+  PASS  test_all_pose_fields_at_physical_and_kind_boundaries
+  FAIL  test_binding_sign_uniqueness_and_repeated_zero_rules
+        static exactcode (expected COLUMN_BINDING_ID, got )
+        framed exactcode (expected COLUMN_BINDING_ID, got )
+        success channel (expected false, got true)
+        owner identity (expected true, got false)
+        raw column code (expected true, got false)
+        static exactcode (expected COLUMN_BINDING_ID, got )
+        framed exactcode (expected COLUMN_BINDING_ID, got )
+        success channel (expected false, got true)
+        owner identity (expected true, got false)
+        raw column code (expected true, got false)
+  PASS  test_unsorted_unique_stamps_preserve_order_and_all87552rows_accept
+  FAIL  test_global_refusal_order_with_paired_distinct_faults
+        static exactcode (expected COLUMN_BINDING_ID, got COLUMN_BINDING_DUPLICATE)
+        framed exactcode (expected COLUMN_BINDING_ID, got COLUMN_BINDING_DUPLICATE)
+        raw column code (expected true, got false)
+  PASS  test_public_history_retained_stamps_and_diagnostic_order
+  PASS  test_every_shape_before_values_and_bucket_guards
+test_transforms.gd
+  PASS  test_capacity_is_the_sum_of_the_four_positioned_kinds
+  PASS  test_exactly_four_kinds_are_positioned
+  PASS  test_the_row_is_the_kind_base_plus_the_typed_row
+  PASS  test_the_row_refuses_an_unpositioned_kind_and_a_dead_reference
+  PASS  test_place_sets_previous_equal_to_current
+  PASS  test_advance_rolls_current_into_previous
+  PASS  test_advance_refuses_an_entity_that_was_never_placed
+  PASS  test_a_typed_row_inherited_from_another_slot_reads_as_unbound
+  PASS  test_a_successor_placing_the_row_replaces_the_pose_without_double_counting
+  PASS  test_unbind_clears_the_row_and_the_count
+  PASS  test_place_refuses_a_field_that_does_not_fit_int32
+  PASS  test_set_yaw_rolls_the_previous_yaw
+  PASS  test_yaw_scale_is_the_contracted_65536_units_per_turn
+  PASS  test_shortest_yaw_delta_takes_the_short_way_round
+  PASS  test_interpolation_returns_metres_from_the_two_committed_ticks
+  PASS  test_interpolation_refuses_an_alpha_outside_the_tick
+  PASS  test_interpolation_cannot_change_one_authoritative_field
+  PASS  test_interpolation_refuses_an_unplaced_or_dead_entity
+  PASS  test_identical_stores_digest_identically_and_a_changed_field_does_not
+  PASS  test_an_empty_store_digests_to_zero_and_a_placement_changes_it
+  PASS  test_the_state_image_covers_every_column_not_a_sample_of_them
+  PASS  test_every_written_field_moves_the_state_image
+  PASS  test_the_reset_returns_all_nine_columns_to_a_freshly_allocated_store
+  PASS  test_a_row_reused_after_a_reset_reads_as_unplaced_until_it_is_placed_again
+  PASS  test_a_refused_place_leaves_the_whole_store_byte_identical
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+34 test(s), 3277 assertion(s), 3 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

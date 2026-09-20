@@ -1,0 +1,25 @@
+{
+  "review": "source-review.md",
+  "verdict": "Conditional approval; no production correctness/safety/allocation must-fix",
+  "astra_disposition": "Not accepted yet; reference-loading repair and final packaging/CI remain",
+  "conditions": {
+    "5.1": "Integrated17specification checks already rerun after source/test installation: integrated-static-checks.json. Cold-derived registry entry exists. Commit identity plus exact-head CI will close packaging evidence.",
+    "5.2": "Harness exists at tools/test_starter_structures_metadata.py and matches reviewed evidence hashdaf155ca; actual run used this path. integrated-candidate-identity.json. Recheck commit blob before PR.",
+    "5.3": "No waiver: test author dispatched starter-structures-tests-review-a4 to load/reference-check the frozen JSON with established res://../docs pattern."
+  },
+  "recommendations": {
+    "MEDIUM-1": "Two-output non-aliasing witness included in test follow-up.",
+    "MEDIUM-2": "Astra accepts narrowly recorded style exceptions for current cold module in ADR0184; no runtime refactor needed for acceptance.",
+    "MEDIUM-3": "Decline direct replacement: Catalog.verify_compiled_enum at lines624-629 coerces table values through int(), so it is not behaviorally equivalent to strict integer-type metadata rejection. Current guarded helper preserves contract and tested string-id refusals.",
+    "LOW-1": "Keep current deterministic refusal attribution; hall interior cannot be established from incompatible hall extent. No new public code promise added.",
+    "LOW-2": "walk_tile_count drift witness included in follow-up. Other header codes remain structural-gate owned.",
+    "LOW-3": "Correct adjacent-interior wall witness in follow-up. Out-of-hall wall check is defensive under fixed one-cell wall band; no independent branch-coverage claim.",
+    "LOW-4": "Replace literal tautology in follow-up.",
+    "LOW-5": "Existing compact accessors/inferred integer loop counters covered by the narrowly recorded style exception; new helpers typed/documented.",
+    "LOW-6": "Retain independently safe public preflights and bounded cold scratch; no hot-path/native-memory claim or optimization required.",
+    "LOW-7": "Future materializer must define rotated origin/pivot semantics. All authored rows rotation0; current extent calculation is correct for its bounded role."
+  },
+  "review_correction": "Section7 says _neighbour_candidates returns at most4 entries. That is not a general helper bound: a two-tile interior footprint can have6 distinct adjacent cells; the helper remains bounded by80interior tiles. This does not alter the accepted logical payload or bounded-scratch conclusion.",
+  "test_followup": "review-test-followup-r01.md",
+  "updated_at": "2026-09-20T15:58:17.074306+00:00"
+}

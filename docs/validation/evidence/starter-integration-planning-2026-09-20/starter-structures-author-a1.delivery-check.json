@@ -1,0 +1,18 @@
+{
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-implementation",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "base_commit": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56",
+  "allowedWrites": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd": null
+  },
+  "returnedPaths": [
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd"
+  ],
+  "sourceApplied": false,
+  "approval": "not_granted"
+}

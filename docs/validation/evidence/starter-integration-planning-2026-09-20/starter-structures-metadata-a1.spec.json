@@ -1,0 +1,24 @@
+{
+  "id": "starter-structures-metadata-a1",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-metadata-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-metadata-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-test-plan.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "tools/test_buildings_metadata_preflights.py",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd"
+  ],
+  "instructions": "Author the independent bounded metadata fault harness specified by metadata-test-plan.json. Its final production location will be tools/test_starter_structures_metadata.py. Use the established owned disposable clone approach, disable autoloads only in the owned clone, select exactly one generated suite, capture real summary lines and reject all SCRIPT ERROR/Parse Error/runtime invalid execution even if expected refusal appears. Every case must prove prepare and pure source refusal, last_refusal, all ten output arrays unchanged on rejection; include positive and restored controls. No mutation of original source. Exact named fault injection must assert a unique original token/table and actual changed source. No provider claims of execution. Return one complete Python source artifact. Keep dependencies standard library. Source-preload constant-fold problems must be reported honestly, not counted as catches. Do not add production bypass switches. This packet will only dispatch after the actual candidate passes smoke and source intake. The repaired source has passed actual smoke/import and 17 static checks. source_metadata_refusal() is a public static function; plan_refusal checks null before source metadata and source metadata before plan shape. Include direct source_metadata_refusal agreement as useful. Production source remains unchanged by this harness. CLI output must provide machine-readable aggregate counts and per-case evidence for archiving. Use final installed tools/ path to calculate repository root. Keep this task scoped: 25 planned cases plus restored control; do not copy the unrelated Buildings fault campaign or alter its code.\n\nDispatch audit: {\"base_commit\":\"205e56bc8bed9e9d06ca7abcf77a16629671aecb\",\"task\":\"Starter immutable-source metadata fault witnesses\",\"allowedWrites\":{\"docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures_metadata.py\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized."
+}

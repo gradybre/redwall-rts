@@ -1,0 +1,29 @@
+{
+  "scope": "GLB container metadata inventory only; no posed/swept bounds, fit, rig or art acceptance",
+  "files": [
+    {
+      "path": "godot/assets/units/species_mouse_body_a_lod0.glb",
+      "sha256": "6e71d409142efc2b870c800e68961d77b9ebdd72da81711cd330bc4b40a36b9b",
+      "bytes": 406160,
+      "meshes": 1,
+      "nodes": 1,
+      "skins": 0,
+      "animations": 0,
+      "animation_names": [],
+      "joint_counts": [],
+      "has_joint_weights": false
+    },
+    {
+      "path": "assets/source/test_mouse_warrior.glb",
+      "sha256": "d61e732999767d0555846d6561bd3b5a5a13050e40b1fcf9b2d8d5d3088781ca",
+      "bytes": 406180,
+      "meshes": 1,
+      "nodes": 1,
+      "skins": 0,
+      "animations": 0,
+      "animation_names": [],
+      "joint_counts": [],
+      "has_joint_weights": false
+    }
+  ]
+}

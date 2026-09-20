@@ -1,0 +1,38 @@
+{
+  "id": "starter-structures-tests-coverage-a3",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-tests-coverage-a3",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-author-requirements.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/int_math.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-subclass-reference.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part4-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair4-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-format-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-initial.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-initial.log",
+    "godot/test/buildings_validation_focus.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-coverage-triage-r02.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-syntax-repair.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-syntax-repair.log"
+  ],
+  "instructions": "Close TEST-R02-1 through TEST-R02-7 in functional-coverage-triage-r02.json. The actual syntax-repaired suite passed28tests785assertions, no script errors; preserve all existing tests and independent oracle. Return only full corrected test suite at allowed path/base hash. Keep safe single-line lambda helper pattern from the successful syntax repair. Exercise same FaultProducer instance through success, injected failure, then success with a test-only bool toggle; assert exact EXIT_INTERIOR refusal and clear last_refusal after success. Snapshot all ten arrays before each pure validation, including malformed shapes, and assert no mutation plus same refusal on repeated call. Dirty all ten output arrays before overwrite; compare all ten to independent canonical expectation. For omitted-neighbor case, compact candidate arena and adjust every later offset plus used count/tail coherently so malformed runs are not the reason it refuses. Private graph helper must prove candidate returns across same synthetic edge when changed to door. Add requested max/invalid run witnesses and valid disjoint stockpile relocation reaching only authored-layout refusal. Production source/focus runner unchanged. Do not claim execution; source is available but you have no tools. If an expected gate conflicts with contract explain it instead of weakening acceptance.\n\nDispatch audit: {\"base_commit\":\"205e56bc8bed9e9d06ca7abcf77a16629671aecb\",\"task\":\"Close seven concrete existing-contract functional coverage gaps\",\"allowedWrites\":{\"docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd\":\"0e57be745e3738761a1f3d9e898214cc507b6779fb6ac5ffc5dd325d49dbf3ae\"}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-tests-repair-a2"
+}

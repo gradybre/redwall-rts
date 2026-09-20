@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56",
+  "task": "Independent design review of compact starter refuge preparation",
+  "paths": [
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/structures-preparation-proposal.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/source-excerpts.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/dependency-audit.md",
+    "docs/planning/resumption_2026_09_19/starter_settlement.md",
+    "docs/rulings/2026-09-14_cycle02_movement_envelopes.md"
+  ],
+  "instructions": "Independent design review, not implementation. Assess INIT-C-PREP-R01 finite pure authored layout plan as useful prerequisite for actual refuge. Astra owns decisions. Identify substantive contradictions/missing source facts, exact proposed packed Plan/API budget and deterministic refusals necessary before dispatch. Distinguish room/edge candidate graph from actual physical clearance/profile/contact admission; no inferred dimensions or authority. Review layout-reference arithmetic against supplied GDD, including pantry shelves reached from COMMON, 31floor/33occupied/47walk/8edges, south exit wall band. Exact baseline starter/connectedrelease scope preserved; no fake INIT-C/INIT-E completion. Prefer concrete corrections and minimal bounded contract, no repeated broad audit. Source excerpts have full-fileSHA and line ranges; no filesystem tools. Return ONE new file docs/validation/evidence/starter-integration-planning-2026-09-20/design-review.md baseSha256 null. JSON only without fences: status complete, summary,questions[],files,decisionIds[]. Line/word limits advisory: around100lines1400words but preserve all materialfindings. No executionclaims."
+}

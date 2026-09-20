@@ -1,0 +1,14 @@
+{
+  "attempt": "starter-structures-staged-repair-a3",
+  "candidate_sha256": "e444a03f67b883fb96f045b0dc32885a4da19567857a7081301e5810bdd70bf0",
+  "part": "Room, furniture and complete candidate access checks",
+  "smoke": "1 test, 6 assertions, 0 failures; no script errors",
+  "fixture_identity": "7 immutable fixture comparisons pass against frozen layout/contract",
+  "source_inspection": "Hall key identity; actual80-tile membership; complete footprint geometry/runs/room ownership; increasing12bed list; candidate prefix/tail and exact neighbors; candidate errors routed to ACCESS",
+  "product_acceptance": false,
+  "remaining": [
+    "Edge endpoint ownership and exit range checks",
+    "Final full-source bounds audit",
+    "Independent functional/metadata witnesses and review/full checks/CI"
+  ]
+}

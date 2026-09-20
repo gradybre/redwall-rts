@@ -1,0 +1,33 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "task": "Starter repair part4: edge ownership, exit bounds and final indexing audit",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-staged-repair",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/author-repair-r01.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/initial-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/opus-repair-disposition.json",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part1-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair1-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part2-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair2-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part3-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair3-smoke.log"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair-part4.patch": null
+  },
+  "instructions": "Part3 was intaken, source inspected, and actual smoke passes1test/6assertions/0 with no script errors; seven immutable fixture comparisons also pass. Resume same author checkpoint. Implement remaining author-repair-r01.md requirements5,6,7 only, preserving accepted parts1-3. Edges require the exact eight partition-column pairs and actual endpoint room ordinals with legal kinds; do not require one door at the early edge gate. Replacing sole door with partition must reach WALK_DISCONNECTED; alternate connected door pattern should reach final AUTHORED_LAYOUT. Exit wall/exterior global indices require explicit range checks before coordinate conversion; verify interior ownership and two adjacency segments, wall ring, exterior outside every building with distinct INTERIOR/WALL/EXTERIOR refusals. Audit every plan-driven index and loop against prior bounded checks; no unbounded hostile i32 loops or unchecked packed access. Preserve all-ten-array final comparison, source gate, two-Plan bound, COW publication, 2480byte payload and exact fixture. No public bypass switch. Small private helpers may be exercised by forthcoming synthetic graph tests. Return one unified diff repair-part4.patch at declared path against candidate-starter_structures.gd only. This should close remaining original source findings, but no tests/review acceptance is claimed by author. Strict JSON bundle.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-staged-repair-a3"
+}

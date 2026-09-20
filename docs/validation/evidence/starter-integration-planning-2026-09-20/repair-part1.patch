@@ -1,0 +1,233 @@
+INIT-C-PREP-R01v1 bounded author repair, part 1 of author-repair-r01.md.
+Scope: compile defect (undefined StarterStructures), third Plan allocation in the
+canonical gate, COW publish, honest payload accounting. No other repair item.
+
+--- a/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd
++++ b/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd
+@@ -20,9 +20,9 @@
+ ##
+ ## THE Plan. Exactly ten `PackedInt32Array` payloads, column-major (`column * row_count + row`),
+ ## sized and documented by the named constants below, totalling 2480 logical bytes (under the
+-## 2560 byte cap). `Plan._init()` is the only allocation site; every entry starts at -1 except
+-## the header, which starts at 0. One staged Plan plus one caller Plan is the whole footprint of
+-## a `prepare_into()` call.
++## 2560 byte cap). `Plan._init()` allocates the ten arrays; `prepare_into()` publishes them by
++## copy-on-write reference sharing, so no third payload is ever built. One staged Plan plus one
++## caller Plan is the whole footprint of a `prepare_into()` call.
+ ##
+ ## TRANSACTIONAL OUTPUT. `prepare_into(out)` validates source metadata, builds ONE internal
+ ## staged Plan, validates it with `plan_refusal()`, and publishes all ten arrays into `out` only
+@@ -175,7 +175,8 @@
+ 	const PLAN_VERSION: int = 1
+ 	const PLAN_TOTAL_BYTES: int = 2480
+ 	const PLAN_BYTE_CAP: int = 2560
+ 	const NO_VALUE: int = -1
++	const BYTES_PER_ELEMENT: int = 4
+ 
+ 	var buildings: PackedInt32Array = PackedInt32Array()
+ 	var rooms: PackedInt32Array = PackedInt32Array()
+@@ -211,9 +212,13 @@
+ 		header.resize(HEADER_COLUMN_COUNT * HEADER_ROW_COUNT)
+ 		header.fill(0)
+ 
+-	func total_logical_bytes() -> int:
+-		"""The fixed 2480-byte logical payload size, for tests to assert against."""
+-		return PLAN_TOTAL_BYTES
++	func total_logical_bytes() -> int:
++		"""Actual logical payload bytes: BYTES_PER_ELEMENT times the summed element count of
++		the ten arrays. PLAN_TOTAL_BYTES stays the separately declared budget constant."""
++		var elements: int = buildings.size() + rooms.size() + room_tiles.size() \
++				+ furniture.size() + footprints.size() + candidate_access_tiles.size() \
++				+ edges.size() + exit_tiles.size() + bed_furniture_ordinals.size() \
++				+ header.size()
++		return elements * BYTES_PER_ELEMENT
+ 
+ 	# --- column-major field accessors ---------------------------------------------------------
+ 
+@@ -295,19 +300,19 @@
+ 
+ 
+ func _publish(staged: Plan, out: Plan) -> void:
+-	"""Overwrite every one of `out`'s ten arrays with `staged`'s, completely and atomically
+-	relative to the caller: this runs only after `staged` has already passed `plan_refusal()`.
+-	"""
+-	out.buildings = staged.buildings.duplicate()
+-	out.rooms = staged.rooms.duplicate()
+-	out.room_tiles = staged.room_tiles.duplicate()
+-	out.furniture = staged.furniture.duplicate()
+-	out.footprints = staged.footprints.duplicate()
+-	out.candidate_access_tiles = staged.candidate_access_tiles.duplicate()
+-	out.edges = staged.edges.duplicate()
+-	out.exit_tiles = staged.exit_tiles.duplicate()
+-	out.bed_furniture_ordinals = staged.bed_furniture_ordinals.duplicate()
+-	out.header = staged.header.duplicate()
++	"""Share `staged`'s validated packed buffers into `out` by copy-on-write reference, so no
++	third payload is allocated. Runs only after `staged` has passed `plan_refusal()`.
++	"""
++	out.buildings = staged.buildings
++	out.rooms = staged.rooms
++	out.room_tiles = staged.room_tiles
++	out.furniture = staged.furniture
++	out.footprints = staged.footprints
++	out.candidate_access_tiles = staged.candidate_access_tiles
++	out.edges = staged.edges
++	out.exit_tiles = staged.exit_tiles
++	out.bed_furniture_ordinals = staged.bed_furniture_ordinals
++	out.header = staged.header
+ 
+ 
+ # --- source metadata validation (Catalog / BuildingDefinitions only, no instantiation) -------
+@@ -976,29 +981,127 @@
+ 	return REFUSE_NONE
+ 
+ 
+-static func _matches_authored_fixture(plan: Plan) -> bool:
+-	"""Final gate: compare every array against a freshly built authored reference plan."""
+-	var reference: Plan = Plan.new()
+-	var producer: StarterStructures = StarterStructures.new()
+-	producer._fill_authored_plan(reference)
+-	if plan.buildings != reference.buildings:
+-		return false
+-	if plan.rooms != reference.rooms:
+-		return false
+-	if plan.room_tiles != reference.room_tiles:
+-		return false
+-	if plan.furniture != reference.furniture:
+-		return false
+-	if plan.footprints != reference.footprints:
+-		return false
+-	if plan.candidate_access_tiles != reference.candidate_access_tiles:
+-		return false
+-	if plan.edges != reference.edges:
+-		return false
+-	if plan.exit_tiles != reference.exit_tiles:
+-		return false
+-	if plan.bed_furniture_ordinals != reference.bed_furniture_ordinals:
+-		return false
+-	if plan.header != reference.header:
+-		return false
+-	return true
++static func _matches_authored_fixture(plan: Plan) -> bool:
++	"""Final gate: compare all ten arrays and the header against the immutable authored
++	constants by bounded loops, allocating no reference Plan and no producer instance."""
++	var hall_origin_tile: int = BUILD_ORIGIN_Z[0] * MAP_TILES_X + BUILD_ORIGIN_X[0]
++	var active_state: int = _catalog_int(Catalog.BUILDING_STATE, BUILDING_STATE_ACTIVE_KEY)
++	for row: int in Plan.BUILDING_ROW_COUNT:
++		var building_key: String = BUILD_KEYS[row]
++		var facts: Array = BuildingDefinitions.BUILDING_FACTS[building_key]
++		if plan.building_field(row, Plan.BUILDING_COL_TYPE_ID) \
++				!= _catalog_int(Catalog.BUILDING_DEFINITION, building_key):
++			return false
++		if plan.building_field(row, Plan.BUILDING_COL_GLOBAL_ORIGIN_TILE) \
++				!= BUILD_ORIGIN_Z[row] * MAP_TILES_X + BUILD_ORIGIN_X[row]:
++			return false
++		if plan.building_field(row, Plan.BUILDING_COL_ROTATION) != 0:
++			return false
++		if plan.building_field(row, Plan.BUILDING_COL_TIER) != MIN_TIER:
++			return false
++		if plan.building_field(row, Plan.BUILDING_COL_DESIRED_STATE) != active_state:
++			return false
++		if plan.building_field(row, Plan.BUILDING_COL_FOOTPRINT_X) \
++				!= int(facts[BuildingDefinitions.B_FOOTPRINT_X]):
++			return false
++		if plan.building_field(row, Plan.BUILDING_COL_FOOTPRINT_Z) \
++				!= int(facts[BuildingDefinitions.B_FOOTPRINT_Z]):
++			return false
++		if plan.building_field(row, Plan.BUILDING_COL_REQUIRED_UNLOCK) \
++				!= int(facts[BuildingDefinitions.B_UNLOCK]):
++			return false
++	for room_ordinal: int in Plan.ROOM_ROW_COUNT:
++		if plan.room_field(room_ordinal, Plan.ROOM_COL_TYPE_ID) \
++				!= _catalog_int(Catalog.ROOM_TYPE, ROOM_KEYS[room_ordinal]):
++			return false
++		if plan.room_field(room_ordinal, Plan.ROOM_COL_TILE_OFFSET) != ROOM_TILE_OFFSETS[room_ordinal]:
++			return false
++		if plan.room_field(room_ordinal, Plan.ROOM_COL_TILE_COUNT) != ROOM_TILE_COUNTS[room_ordinal]:
++			return false
++		var bounds: Array = ROOM_LOCAL_BOUNDS[room_ordinal]
++		var read_index: int = ROOM_TILE_OFFSETS[room_ordinal]
++		for z: int in range(int(bounds[2]), int(bounds[3]) + 1):
++			for x: int in range(int(bounds[0]), int(bounds[1]) + 1):
++				if plan.room_tiles[read_index] \
++						!= _local_to_global(z * INTERIOR_WIDTH + x, hall_origin_tile):
++					return false
++				read_index += 1
++		if read_index != ROOM_TILE_OFFSETS[room_ordinal] + ROOM_TILE_COUNTS[room_ordinal]:
++			return false
++	var footprint_read: int = 0
++	var candidate_read: int = 0
++	var bed_index: int = 0
++	for furniture_row: int in Plan.FURNITURE_ROW_COUNT:
++		var entry: Array = FURNITURE_ENTRIES[furniture_row]
++		var symbol_key: String = String(entry[0])
++		var footprint_locals: Array = entry[3]
++		var candidate_locals: Array = entry[4]
++		if plan.furniture_field(furniture_row, Plan.FURNITURE_COL_TYPE_ID) \
++				!= _catalog_int(Catalog.FURNITURE_DEFINITION, symbol_key):
++			return false
++		if plan.furniture_field(furniture_row, Plan.FURNITURE_COL_ROOM_ORDINAL) != int(entry[2]):
++			return false
++		if plan.furniture_field(furniture_row, Plan.FURNITURE_COL_ORIGIN_LOCAL) != int(entry[1]):
++			return false
++		if plan.furniture_field(furniture_row, Plan.FURNITURE_COL_ROTATION) != 0:
++			return false
++		if plan.furniture_field(furniture_row, Plan.FURNITURE_COL_FOOTPRINT_OFFSET) != footprint_read:
++			return false
++		if plan.furniture_field(furniture_row, Plan.FURNITURE_COL_FOOTPRINT_COUNT) != footprint_locals.size():
++			return false
++		for footprint_tile: int in footprint_locals:
++			if plan.footprints[footprint_read] != int(footprint_tile):
++				return false
++			footprint_read += 1
++		if plan.furniture_field(furniture_row, Plan.FURNITURE_COL_CANDIDATE_OFFSET) != candidate_read:
++			return false
++		if plan.furniture_field(furniture_row, Plan.FURNITURE_COL_CANDIDATE_COUNT) != candidate_locals.size():
++			return false
++		for candidate_tile: int in candidate_locals:
++			if plan.candidate_access_tiles[candidate_read] != int(candidate_tile):
++				return false
++			candidate_read += 1
++		if symbol_key == BED_KEY:
++			if bed_index >= Plan.BED_ROW_COUNT:
++				return false
++			if plan.bed_furniture_ordinals[bed_index] != furniture_row:
++				return false
++			bed_index += 1
++	if bed_index != Plan.BED_ROW_COUNT:
++		return false
++	if footprint_read != Plan.FOOTPRINTS_ROW_COUNT:
++		return false
++	if candidate_read != Plan.CANDIDATE_USED_COUNT:
++		return false
++	for tail_index in range(candidate_read, Plan.CANDIDATE_ROW_COUNT):
++		if plan.candidate_access_tiles[tail_index] != Plan.NO_VALUE:
++			return false
++	for edge_row: int in Plan.EDGE_ROW_COUNT:
++		var edge: Array = EDGE_ENTRIES[edge_row]
++		if plan.edge_field(edge_row, Plan.EDGE_COL_TILE_A) != int(edge[0]):
++			return false
++		if plan.edge_field(edge_row, Plan.EDGE_COL_TILE_B) != int(edge[1]):
++			return false
++		if plan.edge_field(edge_row, Plan.EDGE_COL_KIND_ID) \
++				!= _catalog_int(Catalog.FURNITURE_DEFINITION, String(edge[2])):
++			return false
++		if plan.edge_field(edge_row, Plan.EDGE_COL_ROOM_A) != int(edge[3]):
++			return false
++		if plan.edge_field(edge_row, Plan.EDGE_COL_ROOM_B) != int(edge[4]):
++			return false
++	if plan.exit_field(Plan.EXIT_COL_INTERIOR) != EXIT_INTERIOR_LOCAL:
++		return false
++	if plan.exit_field(Plan.EXIT_COL_WALL) != EXIT_WALL_GLOBAL:
++		return false
++	if plan.exit_field(Plan.EXIT_COL_EXTERIOR) != EXIT_EXTERIOR_GLOBAL:
++		return false
++	if plan.header_field(Plan.HEADER_COL_VERSION) != Plan.PLAN_VERSION:
++		return false
++	if plan.header_field(Plan.HEADER_COL_CANDIDATE_USED) != Plan.CANDIDATE_USED_COUNT:
++		return false
++	if plan.header_field(Plan.HEADER_COL_FOOTPRINT_USED) != Plan.FOOTPRINTS_ROW_COUNT:
++		return false
++	if plan.header_field(Plan.HEADER_COL_WALK_TILE_COUNT) \
++			!= INTERIOR_TILE_COUNT - Plan.FOOTPRINTS_ROW_COUNT:
++		return false
++	return true

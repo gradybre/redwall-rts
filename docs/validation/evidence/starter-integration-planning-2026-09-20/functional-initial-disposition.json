@@ -1,0 +1,7 @@
+{
+  "accepted": false,
+  "evidence": "functional-initial.json",
+  "reason": "GDScript parse failure at test suite line243; zero assertions. Counts are runner pseudo-failures, not functional test cases.",
+  "repair": "starter-structures-tests-repair-a2",
+  "scope": "Test-only lambda syntax repair plus established focused-runner inheritance; production source unchanged"
+}

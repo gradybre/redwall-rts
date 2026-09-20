@@ -1,0 +1,46 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_starter_structures.gd
+  PASS  test_plan_row_counts_match_the_contract
+  PASS  test_null_refusals
+  PASS  test_shape_gates
+  PASS  test_building_layout_gates
+  PASS  test_room_layout_gates
+  PASS  test_furniture_layout_gates
+  PASS  test_edge_layout_gates
+  PASS  test_exit_interior_gates
+  PASS  test_exit_wall_gates
+  PASS  test_exit_exterior_gates
+  PASS  test_walk_disconnected_sole_door_replaced
+  PASS  test_access_candidate_gates
+  PASS  test_authored_layout_final_gate_header_drift
+  PASS  test_plan_refusal_accepts_canonical_plan
+  PASS  test_exact_building_contents
+  PASS  test_exact_room_contents
+  PASS  test_exact_furniture_contents
+  PASS  test_exact_edge_contents
+  PASS  test_exact_exit_and_header_contents
+  PASS  test_room_ordinals_are_not_the_protected_room_type_ids
+  PASS  test_pantry_shelves_reach_common_room
+  PASS  test_seats_have_a_vertical_walk_neighbor
+  PASS  test_repeated_preparation_is_byte_identical
+  PASS  test_refusal_after_success_preserves_prior_output
+  PASS  test_source_metadata_refusal_is_stable_across_calls
+  PASS  test_edge_blocks_helper_distinguishes_partition_from_door
+  PASS  test_neighbour_candidates_helper_rejects_across_a_blocked_partition
+  PASS  test_extreme_and_out_of_range_values_refuse_without_crashing
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+28 test(s), 785 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

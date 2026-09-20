@@ -1,0 +1,35 @@
+{
+  "scope": "Read-only follow-on interface audit, not a changed contract or runtime acceptance",
+  "sources": {
+    "godot/scripts/core/buildings.gd": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+    "godot/scripts/core/spatial_world.gd": "3825788db07885db94dab7288c832b8219f89e54da22d871d58e98e2d590b26b"
+  },
+  "findings": [
+    {
+      "id": "EDGE-01",
+      "source": "buildings.gd::_refuse_place_furniture",
+      "finding": "Edge furniture currently returns success after room origin and rotation checks; undirected edge occupancy/overlap is absent. Starter materialization must not bypass this by treating a plan edge as validated live topology."
+    },
+    {
+      "id": "EDGE-02",
+      "source": "buildings.gd::_refuse_edge_reassign",
+      "finding": "Current edge reassignment only requires same building, not actual endpoint adjacency. Future encoding must define canonical undirected key separately from explicit Furniture.room ownership; mask contribution remains only to that declared owner."
+    },
+    {
+      "id": "EDGE-03",
+      "source": "spatial_world.gd::override_static_legality",
+      "finding": "Existing fixture mutator is not an atomic production topology edit and provides no occupied-edge or last-exit safeguards."
+    },
+    {
+      "id": "EDGE-04",
+      "source": "starter_structures_preparation_contract.md",
+      "finding": "The compact plan records endpoint tiles and endpoint room ordinals. Runtime origin/rotation encoding remains a subsequent reviewed consumer contract; no extra exterior-door furniture may be invented."
+    }
+  ],
+  "next_contract_scope": [
+    "Canonical edge encoding for all four rotations and undirected duplicate detection",
+    "Same-building endpoint room ownership and reassignment semantics",
+    "Atomic topology publication with map revision and occupied/last-exit protection",
+    "Real wall opening/support/contact geometry and body-envelope qualification"
+  ]
+}

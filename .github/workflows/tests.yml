@@ -105,6 +105,9 @@ jobs:
       - name: Buildings borrowed-buffer allocation discriminator
         run: python3 tools/test_buildings_allocation.py
 
+      - name: Starter structures metadata fault injection
+        run: python3 tools/test_starter_structures_metadata.py
+
       - name: UI refinement contract
         # This one hashes PNGs and asserts their magic bytes. *.png is LFS, so
         # it runs in this job, whose checkout already sets lfs: true, rather

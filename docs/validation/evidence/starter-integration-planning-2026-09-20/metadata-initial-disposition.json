@@ -1,0 +1,10 @@
+{
+  "actual_result": "metadata-initial.log",
+  "cases": 26,
+  "assertions": 424,
+  "failed": 0,
+  "invalid_execution": 0,
+  "accepted": false,
+  "remaining": "Harden healthy populated-plan validation, exact assertion/observation counts and generic engine-error rejection; rerun before independent review",
+  "attempt": "starter-structures-metadata-hardening-a2"
+}

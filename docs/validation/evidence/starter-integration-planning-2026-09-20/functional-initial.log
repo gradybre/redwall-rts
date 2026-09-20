@@ -1,0 +1,34 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_starter_structures.gd
+SCRIPT ERROR: Parse Error: Unindent doesn't match the previous indentation level.
+          at: GDScript::reload (res://test/test_starter_structures.gd:243)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/starter_structures_focus.gd:60)
+              [1] _run_worker (res://test/starter_structures_focus.gd:47)
+              [2] _initialize (res://test/starter_structures_focus.gd:40)
+ERROR: Failed to load script "res://test/test_starter_structures.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://test/starter_structures_focus.gd:60)
+       [1] _run_worker (res://test/starter_structures_focus.gd:47)
+       [2] _initialize (res://test/starter_structures_focus.gd:40)
+  FAIL  <suite did not load>
+        suite cannot be instantiated (parse error?): res://test/test_starter_structures.gd
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+  FAIL  <test run>
+        1 script error(s) outside any test method
+
+1 test(s), 0 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

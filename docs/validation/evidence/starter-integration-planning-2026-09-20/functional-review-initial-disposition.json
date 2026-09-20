@@ -1,0 +1,9 @@
+{
+  "evidence": "functional-review-initial.json",
+  "tests": 32,
+  "assertions": 3675,
+  "failures": 0,
+  "accepted": false,
+  "remaining": "a4 omitted diagram comparison, complete nested shape guards and compact/typed new helpers from its packet; bounded a5 repair running. Production source unchanged.",
+  "attempt": "starter-structures-tests-review-completion-a5"
+}

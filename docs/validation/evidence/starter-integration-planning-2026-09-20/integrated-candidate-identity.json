@@ -1,0 +1,14 @@
+{
+  "scope": "Current imported candidate/evidence byte identity; commit packaging is checked separately",
+  "integration_base": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "source_sha256": {
+    "godot/scripts/core/starter_structures.gd": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+    "godot/test/test_starter_structures.gd": "75bfc1c3fd04425e644fbbc1e792ed3418d68467ae6952719677fc7198984185",
+    "godot/test/starter_structures_focus.gd": "b82347f7176e1c8158234733ad8b2876163d2c48947f24e6928e93dd1f68178c",
+    "tools/test_starter_structures_metadata.py": "daf155cacef1f0142fea2f0268ccfb13755c24f90893ce62a051761b38bdb831"
+  },
+  "functional_evidence": "functional-coverage-repair.json",
+  "full_suite_evidence": "integrated-full-suite.json",
+  "metadata_evidence": "metadata-hardened.log",
+  "game_script_changes_since_full_run": "None; metadata tool hardening and CI integration only, outside Godot test discovery"
+}

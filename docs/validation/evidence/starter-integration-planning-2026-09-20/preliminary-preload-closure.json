@@ -1,0 +1,33 @@
+{
+  "scope": "Preliminary transitive preload closure of the candidate immutable dependencies; final candidate integration closure must be refreshed",
+  "sources": {
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+    "godot/scripts/core/milestones.gd": "34aabaa1d72187c984c4cbbd1f6772d96f0f9056c7af76bd9b912c1765fb4fc5",
+    "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1"
+  },
+  "edges": [
+    [
+      "godot/scripts/core/building_definitions.gd",
+      "godot/scripts/core/catalog.gd"
+    ],
+    [
+      "godot/scripts/core/building_definitions.gd",
+      "godot/scripts/core/milestones.gd"
+    ],
+    [
+      "godot/scripts/core/milestones.gd",
+      "godot/scripts/core/catalog.gd"
+    ],
+    [
+      "godot/scripts/core/milestones.gd",
+      "godot/scripts/core/int_math.gd"
+    ],
+    [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/int_math.gd"
+    ]
+  ],
+  "mutable_constructor_calls_in_candidate": "Awaiting repaired candidate source inspection; preload closure alone does not establish zero mutable owner construction",
+  "not_memory_measurement": true
+}

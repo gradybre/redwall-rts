@@ -1,0 +1,7 @@
+{
+  "scope": "Immutable source fixture comparison, not runtime validation or physical admission",
+  "candidate_sha256": "4b433c8b3b0fc1046b94b434c54e3071e06722de9672e1e87f5deb57b82e2fd0",
+  "reference_sha256": "924e03d9a9e8a3ac1d3d7fc6ec7a2d81161963a15dd6ff9d7066183c6e6861d6",
+  "checks": 7,
+  "result": "pass"
+}

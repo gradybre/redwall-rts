@@ -1,0 +1,19 @@
+{
+  "attempt": "starter-structures-metadata-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-metadata-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "session_id": "2ad83f57-6199-4528-b7a4-1d17adeaa59c",
+  "owner_stopped": true,
+  "base_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "integration_head": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "source_inputs_reverified": true,
+  "files": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures_metadata.py": "0591ca0b0ed05a3546b1082928ccfbe53eeb158b7415a9037b58beecf0005c36"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

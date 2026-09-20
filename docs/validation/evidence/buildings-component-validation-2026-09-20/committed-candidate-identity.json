@@ -1,0 +1,61 @@
+{
+  "scope": "Explicit-path commit packaging identity only, not test/review acceptance",
+  "commit": "2aba1882e8dfa9428ea7fa33a1216d397272937b",
+  "all_match": true,
+  "files": [
+    {
+      "path": "godot/scripts/core/buildings.gd",
+      "local_sha256": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+      "committed_sha256": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+      "match": true
+    },
+    {
+      "path": "godot/scripts/core/save_owner_buildings.gd",
+      "local_sha256": "d6a44702489b988afe525a56f5f82a5feef272d0877ec0664b99279286681c13",
+      "committed_sha256": "d6a44702489b988afe525a56f5f82a5feef272d0877ec0664b99279286681c13",
+      "match": true
+    },
+    {
+      "path": "godot/test/test_save_owner_buildings.gd",
+      "local_sha256": "d602cfa7aa99606dceec591240c769f9755be07096ea49c6817a3eb772eacd1f",
+      "committed_sha256": "d602cfa7aa99606dceec591240c769f9755be07096ea49c6817a3eb772eacd1f",
+      "match": true
+    },
+    {
+      "path": "tools/test_buildings_metadata_preflights.py",
+      "local_sha256": "81e991f918b5235b463fb3998ea05fade50e228c25c8d0544000ace966a6682e",
+      "committed_sha256": "81e991f918b5235b463fb3998ea05fade50e228c25c8d0544000ace966a6682e",
+      "match": true
+    },
+    {
+      "path": "tools/test_buildings_allocation.py",
+      "local_sha256": "75d873d12888a8e61badb57e7b8d38a9aa9656f53619a5c12e783c0e07b302c7",
+      "committed_sha256": "75d873d12888a8e61badb57e7b8d38a9aa9656f53619a5c12e783c0e07b302c7",
+      "match": true
+    },
+    {
+      "path": "docs/planning/registry_capacity_audit.json",
+      "local_sha256": "928067b4040536da79b1908cde93c75c24b875a7ca505c04b1b2d24aafeb3800",
+      "committed_sha256": "928067b4040536da79b1908cde93c75c24b875a7ca505c04b1b2d24aafeb3800",
+      "match": true
+    },
+    {
+      "path": "godot/scripts/core/save_component_columns_schema.gd",
+      "local_sha256": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+      "committed_sha256": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+      "match": true
+    },
+    {
+      "path": ".github/workflows/tests.yml",
+      "local_sha256": "70dc901077f397927b983834fcf9242119f41f97a00b5550c0b86aac2e996fe1",
+      "committed_sha256": "70dc901077f397927b983834fcf9242119f41f97a00b5550c0b86aac2e996fe1",
+      "match": true
+    },
+    {
+      "path": "docs/persistence_state_registry.md",
+      "local_sha256": "101785087807d8cdff7091f262b60c7a67276b72ea72eb9bde17e0411dd9401f",
+      "committed_sha256": "101785087807d8cdff7091f262b60c7a67276b72ea72eb9bde17e0411dd9401f",
+      "match": true
+    }
+  ]
+}

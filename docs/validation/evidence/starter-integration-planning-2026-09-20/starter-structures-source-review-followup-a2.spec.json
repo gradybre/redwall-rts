@@ -1,0 +1,53 @@
+{
+  "id": "starter-structures-source-review-followup-a2",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-source-review-followup-a2",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-source-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/decisions/0184-prepare-the-authored-refuge-without-fabricating-physical-access.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures_metadata.py",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-preload-closure.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-static-checks.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-test-plan.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-coverage-triage-r02.json",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-coverage-repair.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-coverage-disposition-r02.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/integrated-full-suite.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-hardened.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-patch-normalization.json",
+    ".github/workflows/tests.yml",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/source-review-disposition-r01.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/review-test-followup-r01.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/review-test-followup.patch",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-review-followup.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/integrated-static-checks.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/integrated-candidate-review-followup.json",
+    "docs/persistence_state_registry.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/review-test-completion.patch"
+  ],
+  "instructions": "Continue only your own independent review. Production module and metadata harness unchanged from your approved source hashes; review the bounded test delta and closure of5.1/5.2/5.3, not the unchanged whole module anew. Report a concise verdict, material findings, remaining conditions, and correct any prior inaccurate claims. Astra chose actual frozen-reference loading (not waiver); inspect it against JSON and exact test semantics. Non-aliasing/roomordinal/wallinterior/walkheader/candidate-range witnesses were requested. A current focused execution record is supplied. A new full regression will be running concurrently on this same test candidate; its final result and exact-head CI/committed identity remain Astra acceptance gates and must not be presumed to pass. Post-installation17staticchecks and source/evidence identity are provided, along with the actual cold-derived registry entry and reviewed CI step. Address Astra disposition of non-blocking suggestions: Catalog.verify_compiled_enum int-coerces values so direct substitution cannot retain strict-type semantics; newADR0184 records narrow style exceptions. Your previous <=4 neighbor-candidate bound was too general (two-tile interior footprint can have6; graph still bounded80). Return complete review in summary/files:[] at sole trusted target; no code or claims of execution. Preserve substantive review content but do not repeat unchanged620value audit.\n\nDispatch audit: {\"base_commit\":\"205e56bc8bed9e9d06ca7abcf77a16629671aecb\",\"task\":\"Bounded same-reviewer follow-up on test changes and three acceptance conditions\",\"allowedWrites\":{\"docs/validation/evidence/starter-integration-planning-2026-09-20/source-review-followup.md\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-source-review-a1",
+  "reviewTarget": {
+    "path": "docs/validation/evidence/starter-integration-planning-2026-09-20/source-review-followup.md",
+    "baseSha256": null
+  }
+}

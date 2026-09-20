@@ -1,0 +1,14 @@
+# Next ground-access discovery — planning only
+
+The next player-facing dependency after INIT-C-PREP is actual ground placement, geometry and contact binding. This note adds no runtime permission, dimensions, schema, allocation or movement-gate closure.
+
+- The authored opening cohort is six adult mice, two adult moles, two adult otters and two adult squirrels (GDD §5.1; Residents.INITIAL_SPECIES; Movement.PROFILE_SPECIES_KEYS). All four source-bound profile families are required; the existing static mouse diagnostic cannot qualify the other three.
+- MOVE-C2-R01 explicitly forbids clearance derived from heights, size classes, illustrations, proxy ratios or battle radii. Actual reviewed body/gear source geometry and supported entry/travel/turn/hold/exit/return variants remain required. Final presentation gaps and missing measured admission data are different conditions.
+- The existing static mouse source proves an offset incompatibility at +256, recorded in mouse-static-vertex-diagnostic.json. placement-followup-proposal.md supplies a root-preserving lattice alternative for review only. placement-source-impact.json distinguishes this footprint anchor from Navigation's existing PATH-R02 cache/exact-start anchor fields.
+- movement_contracts.md permits a reviewed ground/shared-interface slice while unrelated profiles remain open, provided its own inputs, finite baseline capacities, typed handles, refusal rules and save obligations are settled. This is sequencing permission, not permission to invent absent physical values or close full G01/G02.
+- The next bounded architecture contract must jointly define root/anchor conversion, profile-specific start/goal/contact lookup, actual wall/door aperture semantics and terrain support, revisioned service contacts, occupied-route recovery and save-version consequences. Existing1536u doorway width and3072u clear height remain authored geometry inputs, not measured passage evidence.
+- Movement.profile_clearance_class_into still explicitly refuses all starter profiles. New positive expectations must follow measured qualification; negative coverage for unqualified rows remains. The full release still includes all adopted connected domains.
+
+The September11 starter-ground document contains historical findings (including a missing life-stage column and macro-anchor detour) and ends with a September12 supersession pointer. Current source has the life-stage column and PATH-R02 exact-start routing. Use current source and its subsequent rulings rather than repeating those historical omissions as current blockers.
+
+Next deliverable: a bounded architectural/source-geometry work package for this ground-access slice, with precise owners and independent review. No new worker is dispatched from this note while the starter-preparation acceptance loop is active.

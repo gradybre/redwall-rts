@@ -1,0 +1,344 @@
+--- a/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd
++++ b/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd
+@@ -573,10 +573,10 @@
+ 	var expected_type_ids: Array = [0, 2, 4, 6]
+ 	for ordinal in 4:
+ 		assert_equal(plan.room_field(ordinal, PlanClass.ROOM_COL_TYPE_ID), expected_type_ids[ordinal],
+ 			"room ordinal %d's stored protected room type id" % ordinal)
+-	for ordinal in range(1, 4):
++	for ordinal: int in range(1, 4):
+ 		var stored_type_id: int = plan.room_field(ordinal, PlanClass.ROOM_COL_TYPE_ID)
+ 		assert_true(stored_type_id != ordinal,
+ 			"room ordinal %d's actual stored protected type id (%d) numerically differs from the ordinal itself" % [ordinal, stored_type_id])
+@@ -719,125 +719,205 @@
+ 		_case("furniture origin_local at int32 max", func(p): p.set_furniture_field(0, PlanClass.FURNITURE_COL_ORIGIN_LOCAL, 2147483647), StarterStructures.REFUSE_FURNITURE_LAYOUT),
+ 	]
+ 	_run_case_matrix(cases)
+-
+-
+-# --- frozen layout-reference.json cross-check (review-test-followup-r01 item 1) ------------------
+-
+-const LAYOUT_REFERENCE_PATH: String = \
+-	"res://../docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json"
+-
+-const FURNITURE_SYMBOL_KEY: Dictionary = {
+-	"B": "bed", "K": "kitchen_bench", "H": "hearth", "T": "seat", "S": "shelf",
+-}
+-
+-
+-func _to_int_array(values: Array) -> Array:
+-	"""Coerce a JSON-parsed numeric Array (floats) into an Array of ints for comparison."""
+-	var out: Array = []
+-	for v in values:
+-		out.append(int(v))
+-	return out
+-
+-
+-func test_frozen_layout_reference_matches_the_literal_oracle() -> void:
+-	"""Executable reference consistency: load the frozen JSON this suite's literal oracle
+-	constants were transcribed from, guard its existence/parse/shape, and cross-check it against
+-	FURNITURE_ORACLE/EDGE_ORACLE/EXIT_INTERIOR_LOCAL. Building/room/header values are not carried
+-	by the JSON and remain explicit contract literals, per review-test-followup-r01.md item 1."""
+-	assert_true(FileAccess.file_exists(LAYOUT_REFERENCE_PATH), "layout-reference.json must exist")
+-	if not FileAccess.file_exists(LAYOUT_REFERENCE_PATH):
+-		return
+-	var raw: String = FileAccess.get_file_as_string(LAYOUT_REFERENCE_PATH)
+-	assert_false(raw.is_empty(), "layout-reference.json must be readable")
+-	if raw.is_empty():
+-		return
+-	var parsed: Variant = JSON.parse_string(raw)
+-	assert_true(parsed is Dictionary, "layout-reference.json must parse to a Dictionary")
+-	if not (parsed is Dictionary):
+-		return
+-	var reference: Dictionary = parsed
+-	var required_keys: Array = ["floor_furniture", "solid_partition_edges", "door_edge",
+-		"exit_interior_tile", "walk_tiles", "reachable_walk_tiles", "diagram"]
+-	for key in required_keys:
+-		assert_true(reference.has(key), "layout-reference.json must carry '%s'" % key)
+-		if not reference.has(key):
+-			return
+-
+-	var loaded_furniture: Array = reference["floor_furniture"]
+-	assert_equal(loaded_furniture.size(), FURNITURE_ORACLE.size(), "furniture entry count agrees with the reference")
+-	for row in range(mini(loaded_furniture.size(), FURNITURE_ORACLE.size())):
+-		var loaded: Dictionary = loaded_furniture[row]
+-		var expected: Dictionary = FURNITURE_ORACLE[row]
+-		var symbol: String = String(loaded["symbol"])
+-		assert_true(FURNITURE_SYMBOL_KEY.has(symbol), "reference furniture %d has a known symbol" % row)
+-		assert_equal(FURNITURE_SYMBOL_KEY.get(symbol, ""), expected["key"], "reference furniture %d key" % row)
+-		assert_equal(int(loaded["origin"]), int(expected["origin"]), "reference furniture %d origin" % row)
+-		assert_equal(int(loaded["room"]), int(expected["room"]), "reference furniture %d room" % row)
+-		assert_equal(_to_int_array(loaded["footprint"]), expected["footprint"], "reference furniture %d footprint" % row)
+-		assert_equal(_to_int_array(loaded["candidate_walk_tiles"]), expected["candidates"], "reference furniture %d candidates" % row)
+-
+-	var loaded_partitions: Array = reference["solid_partition_edges"]
+-	var loaded_door: Array = reference["door_edge"]
+-	assert_equal(loaded_partitions.size() + 1, EDGE_ORACLE.size(), "partition + door edge count agrees with the reference")
+-	var reference_edges: Array = []
+-	for pair in loaded_partitions:
+-		reference_edges.append([int(pair[0]), int(pair[1]), "interior_partition"])
+-	reference_edges.append([int(loaded_door[0]), int(loaded_door[1]), "interior_door"])
+-	reference_edges.sort_custom(func(a, b): return a[0] < b[0])
+-	for row in range(mini(reference_edges.size(), EDGE_ORACLE.size())):
+-		var loaded_edge: Array = reference_edges[row]
+-		var expected_edge: Dictionary = EDGE_ORACLE[row]
+-		assert_equal(loaded_edge[0], expected_edge["a"], "reference edge %d tile_a" % row)
+-		assert_equal(loaded_edge[1], expected_edge["b"], "reference edge %d tile_b" % row)
+-		assert_equal(loaded_edge[2], expected_edge["kind"], "reference edge %d kind" % row)
+-
+-	assert_equal(int(reference["exit_interior_tile"]), EXIT_INTERIOR_LOCAL, "reference exit interior tile agrees with the literal oracle")
+-
+-	var loaded_walk: Array = reference["walk_tiles"]
+-	var loaded_reachable: Array = reference["reachable_walk_tiles"]
+-	assert_equal(_to_int_array(loaded_walk), _to_int_array(loaded_reachable), "reference walk_tiles and reachable_walk_tiles agree with each other")
+-	assert_equal(loaded_walk.size(), 47, "reference walk tile count matches the contract's 47")
+-
+-	var occupied: Dictionary = {}
+-	for entry in FURNITURE_ORACLE:
+-		for tile in entry["footprint"]:
+-			occupied[int(tile)] = true
+-	var walk_from_oracle: Array = []
+-	for local in 80:
+-		if not occupied.has(local):
+-			walk_from_oracle.append(local)
+-	assert_equal(_to_int_array(loaded_walk), walk_from_oracle, "reference walk tiles equal 80 interior tiles minus this oracle's own footprints")
+-
+-
+-# --- same-producer, two-output non-aliasing (review-test-followup-r01 item 2) ---------------------
+-
+-func test_same_producer_two_outputs_do_not_alias() -> void:
+-	var producer := StarterStructures.new()
+-	var plan_a := StarterStructures.Plan.new()
+-	var plan_b := StarterStructures.Plan.new()
+-	assert_true(producer.prepare_into(plan_a), "first output prepares")
+-	assert_true(producer.prepare_into(plan_b), "second output from the same producer prepares")
+-	var snapshot_b := _snapshot_plan(plan_b)
+-
+-	plan_a.buildings[0] = 111
+-	plan_a.rooms[0] = 111
+-	plan_a.room_tiles[0] = 111
+-	plan_a.furniture[0] = 111
+-	plan_a.footprints[0] = 111
+-	plan_a.candidate_access_tiles[0] = 111
+-	plan_a.edges[0] = 111
+-	plan_a.exit_tiles[0] = 111
+-	plan_a.bed_furniture_ordinals[0] = 111
+-	plan_a.header[0] = 111
+-	_assert_plan_matches_snapshot(plan_b, snapshot_b, "mutating A must not alias B")
+-
+-	var snapshot_a := _snapshot_plan(plan_a)
+-	plan_b.buildings[0] = 222
+-	plan_b.rooms[0] = 222
+-	plan_b.room_tiles[0] = 222
+-	plan_b.furniture[0] = 222
+-	plan_b.footprints[0] = 222
+-	plan_b.candidate_access_tiles[0] = 222
+-	plan_b.edges[0] = 222
+-	plan_b.exit_tiles[0] = 222
+-	plan_b.bed_furniture_ordinals[0] = 222
+-	plan_b.header[0] = 222
+-	_assert_plan_matches_snapshot(plan_a, snapshot_a, "mutating B must not alias A")
++
++
++# --- frozen layout-reference.json cross-check (review-test-followup-r01 item 1) ------------------
++
++const LAYOUT_REFERENCE_PATH: String = \
++	"res://../docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json"
++
++const FURNITURE_SYMBOL_KEY: Dictionary = {
++	"B": "bed", "K": "kitchen_bench", "H": "hearth", "T": "seat", "S": "shelf",
++}
++
++## The exact eight frozen diagram rows, transcribed literally from layout-reference.json.
++const DIAGRAM_ORACLE: Array = [
++	"BBBB..KKHH",
++	".........S",
++	"BBBB..TTTT",
++	"..........",
++	"BBBB..TTTT",
++	"......TTTT",
++	"..........",
++	"......SSSS",
++]
++
++
++func _load_layout_reference() -> Dictionary:
++	"""Load and guard the frozen JSON reference: existence, readability, Dictionary parse.
++	Returns an empty Dictionary, having recorded a failure, on any guard miss."""
++	if not FileAccess.file_exists(LAYOUT_REFERENCE_PATH):
++		fail("layout-reference.json must exist")
++		return {}
++	var raw: String = FileAccess.get_file_as_string(LAYOUT_REFERENCE_PATH)
++	if raw.is_empty():
++		fail("layout-reference.json must be readable")
++		return {}
++	var parsed: Variant = JSON.parse_string(raw)
++	if not (parsed is Dictionary):
++		fail("layout-reference.json must parse to a Dictionary")
++		return {}
++	return parsed
++
++
++func _typed_array(reference: Dictionary, key: String) -> Array:
++	"""The Array at `key`, guarded: key present and its value actually an Array. Empty, having
++	recorded a failure, otherwise -- never an unsafe subscript on a missing/wrong-typed key."""
++	if not reference.has(key):
++		fail("layout-reference.json must carry '%s'" % key)
++		return []
++	if not (reference[key] is Array):
++		fail("layout-reference.json's '%s' must be an Array" % key)
++		return []
++	return reference[key]
++
++
++func _int_or_fail(value: Variant, message: String) -> int:
++	"""An int coerced from an integral JSON number. Records a failure and returns 0 for any
++	non-numeric or fractional value, so a malformed element never silently coerces and matches."""
++	if value is int:
++		return value
++	if value is float and float(value) == floor(float(value)):
++		return int(value)
++	fail(message)
++	return 0
++
++
++func _int_array_guarded(values: Array, message: String) -> Array:
++	"""Every element of `values` coerced through _int_or_fail."""
++	var out: Array = []
++	for value: Variant in values:
++		out.append(_int_or_fail(value, message))
++	return out
++
++
++func test_frozen_layout_reference_diagram_matches_the_oracle() -> void:
++	"""The reference's own 'diagram' rows must equal the eight frozen literal oracle rows."""
++	var reference: Dictionary = _load_layout_reference()
++	var loaded: Array = _typed_array(reference, "diagram")
++	assert_equal(loaded.size(), DIAGRAM_ORACLE.size(), "diagram row count")
++	for row: int in range(mini(loaded.size(), DIAGRAM_ORACLE.size())):
++		if not (loaded[row] is String):
++			fail("diagram row %d must be a String" % row)
++			continue
++		assert_equal(String(loaded[row]), DIAGRAM_ORACLE[row], "diagram row %d" % row)
++
++
++func _assert_reference_furniture_row(loaded: Dictionary, expected: Dictionary, row: int) -> void:
++	"""One floor_furniture row, guarded: a Dictionary carrying every field this suite reads."""
++	for key: String in ["symbol", "origin", "room", "footprint", "candidate_walk_tiles"]:
++		if not loaded.has(key):
++			fail("reference furniture %d must carry '%s'" % [row, key])
++			return
++	var symbol: String = String(loaded["symbol"])
++	assert_true(FURNITURE_SYMBOL_KEY.has(symbol), "reference furniture %d has a known symbol" % row)
++	assert_equal(FURNITURE_SYMBOL_KEY.get(symbol, ""), expected["key"], "reference furniture %d key" % row)
++	assert_equal(_int_or_fail(loaded["origin"], "furniture %d origin" % row), int(expected["origin"]), "reference furniture %d origin" % row)
++	assert_equal(_int_or_fail(loaded["room"], "furniture %d room" % row), int(expected["room"]), "reference furniture %d room" % row)
++	if not (loaded["footprint"] is Array) or not (loaded["candidate_walk_tiles"] is Array):
++		fail("reference furniture %d footprint/candidates must be Arrays" % row)
++		return
++	assert_equal(_int_array_guarded(loaded["footprint"], "furniture %d footprint" % row), expected["footprint"], "reference furniture %d footprint" % row)
++	assert_equal(_int_array_guarded(loaded["candidate_walk_tiles"], "furniture %d candidates" % row), expected["candidates"], "reference furniture %d candidates" % row)
++
++
++func test_frozen_layout_reference_furniture_matches_the_oracle() -> void:
++	"""All 31 floor_furniture rows, guarded row-by-row, must equal FURNITURE_ORACLE."""
++	var reference: Dictionary = _load_layout_reference()
++	var loaded: Array = _typed_array(reference, "floor_furniture")
++	assert_equal(loaded.size(), FURNITURE_ORACLE.size(), "furniture entry count agrees with the reference")
++	for row: int in range(mini(loaded.size(), FURNITURE_ORACLE.size())):
++		if not (loaded[row] is Dictionary):
++			fail("reference furniture %d must be a Dictionary" % row)
++			continue
++		_assert_reference_furniture_row(loaded[row], FURNITURE_ORACLE[row], row)
++
++
++func _reference_edge_triples(reference: Dictionary) -> Array:
++	"""Every partition + the one door edge, guarded (length-2 pairs only) and merged into
++	[a, b, kind_key] triples sorted ascending by tile_a, mirroring EDGE_ORACLE's own order."""
++	var partitions: Array = _typed_array(reference, "solid_partition_edges")
++	var door: Array = _typed_array(reference, "door_edge")
++	var triples: Array = []
++	for pair: Variant in partitions:
++		if not (pair is Array) or pair.size() != 2:
++			fail("reference solid_partition_edges entry must be a length-2 pair")
++			continue
++		triples.append([_int_or_fail(pair[0], "edge tile_a"), _int_or_fail(pair[1], "edge tile_b"), "interior_partition"])
++	if door.size() == 2:
++		triples.append([_int_or_fail(door[0], "door tile_a"), _int_or_fail(door[1], "door tile_b"), "interior_door"])
++	else:
++		fail("reference door_edge must be a length-2 pair")
++	triples.sort_custom(func(a, b): return a[0] < b[0])
++	return triples
++
++
++func test_frozen_layout_reference_edges_match_the_oracle() -> void:
++	"""The reference's 7 partitions + 1 door, merged and sorted, must equal all 8 EDGE_ORACLE rows."""
++	var reference: Dictionary = _load_layout_reference()
++	var triples: Array = _reference_edge_triples(reference)
++	assert_equal(triples.size(), EDGE_ORACLE.size(), "partition + door edge count agrees with the reference")
++	for row: int in range(mini(triples.size(), EDGE_ORACLE.size())):
++		var loaded_edge: Array = triples[row]
++		var expected_edge: Dictionary = EDGE_ORACLE[row]
++		assert_equal(loaded_edge[0], expected_edge["a"], "reference edge %d tile_a" % row)
++		assert_equal(loaded_edge[1], expected_edge["b"], "reference edge %d tile_b" % row)
++		assert_equal(loaded_edge[2], expected_edge["kind"], "reference edge %d kind" % row)
++
++
++func _oracle_walk_tiles() -> Array:
++	"""The 80 interior tiles minus every FURNITURE_ORACLE footprint tile, ascending."""
++	var occupied: Dictionary = {}
++	for entry: Dictionary in FURNITURE_ORACLE:
++		for tile: int in entry["footprint"]:
++			occupied[tile] = true
++	var walk: Array = []
++	for local: int in 80:
++		if not occupied.has(local):
++			walk.append(local)
++	return walk
++
++
++func test_frozen_layout_reference_exit_and_walk_tiles_match_the_oracle() -> void:
++	"""The reference's exit_interior_tile and walk/reachable tile sets, guarded, against the
++	literal oracle and against this suite's own footprint-derived reconstruction."""
++	var reference: Dictionary = _load_layout_reference()
++	if reference.has("exit_interior_tile"):
++		assert_equal(_int_or_fail(reference["exit_interior_tile"], "exit_interior_tile"), EXIT_INTERIOR_LOCAL, "reference exit interior tile agrees with the literal oracle")
++	else:
++		fail("layout-reference.json must carry 'exit_interior_tile'")
++	var loaded_walk: Array = _int_array_guarded(_typed_array(reference, "walk_tiles"), "walk_tiles")
++	var loaded_reachable: Array = _int_array_guarded(_typed_array(reference, "reachable_walk_tiles"), "reachable_walk_tiles")
++	assert_equal(loaded_walk, loaded_reachable, "reference walk_tiles and reachable_walk_tiles agree with each other")
++	assert_equal(loaded_walk.size(), 47, "reference walk tile count matches the contract's 47")
++	assert_equal(loaded_walk, _oracle_walk_tiles(), "reference walk tiles equal 80 interior tiles minus this oracle's own footprints")
++
++
++# --- same-producer, two-output non-aliasing (review-test-followup-r01 item 2) ---------------------
++
++func _dirty_all_arrays(p: StarterStructures.Plan, sentinel: int) -> void:
++	"""Write `sentinel` into index 0 of every one of the ten arrays."""
++	p.buildings[0] = sentinel
++	p.rooms[0] = sentinel
++	p.room_tiles[0] = sentinel
++	p.furniture[0] = sentinel
++	p.footprints[0] = sentinel
++	p.candidate_access_tiles[0] = sentinel
++	p.edges[0] = sentinel
++	p.exit_tiles[0] = sentinel
++	p.bed_furniture_ordinals[0] = sentinel
++	p.header[0] = sentinel
++
++
++func test_same_producer_two_outputs_do_not_alias() -> void:
++	"""One producer, two outputs: mutating either must never mutate the other."""
++	var producer := StarterStructures.new()
++	var plan_a := StarterStructures.Plan.new()
++	var plan_b := StarterStructures.Plan.new()
++	assert_true(producer.prepare_into(plan_a), "first output prepares")
++	assert_true(producer.prepare_into(plan_b), "second output from the same producer prepares")
++	var snapshot_b := _snapshot_plan(plan_b)
++	_dirty_all_arrays(plan_a, 111)
++	_assert_plan_matches_snapshot(plan_b, snapshot_b, "mutating A must not alias B")
++
++	var snapshot_a := _snapshot_plan(plan_a)
++	_dirty_all_arrays(plan_b, 222)
++	_assert_plan_matches_snapshot(plan_a, snapshot_a, "mutating B must not alias A")

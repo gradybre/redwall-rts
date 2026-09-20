@@ -1,0 +1,15 @@
+{
+  "attempt": "starter-structures-staged-repair-a1",
+  "candidate_sha256": "730526f1e419d2ded96ba8702b51ad22826159aa3ed4f5e45302166340d1e064",
+  "part": "Compile/allocation repair only",
+  "smoke": "1 test, 6 assertions, 0 failures; no script errors",
+  "evidence": "repair1-smoke.json",
+  "source_inspection": "One production Plan.new at prepare_into; direct immutable canonical comparisons, ten COW assignments, actual payload calculation",
+  "product_acceptance": false,
+  "remaining": [
+    "Metadata safety/source gate",
+    "Room/furniture structural checks",
+    "Edges/exits/access and bounded indexing",
+    "Independent functional/metadata tests and full review/CI"
+  ]
+}

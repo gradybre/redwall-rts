@@ -1,0 +1,288 @@
+INIT-C-PREP-R01v1 bounded author repair, part 2 of author-repair-r01.md.
+Scope: safe and complete immutable source-metadata preflight, shared by prepare_into
+and plan_refusal. Structural repairs 3-7 are not in this patch.
+
+--- a/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd
++++ b/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd
+@@ -14,9 +14,9 @@
+ ## SOURCE PINS. Every id used below is read through `Catalog`'s protected/compiled dictionaries
+ ## and `BuildingDefinitions`' immutable fact tables and named field constants -- never hand
+ ## numbered as a row ordinal, and never obtained by instantiating BuildingDefinitions (its facts
+-## are script-level consts, readable without `.new()`). `_validate_source_metadata()` checks
+-## every dictionary with `has()`/`typeof()` before any indexing, and runs before any
+-## source-derived expected value is constructed.
++## are script-level consts, readable without `.new()`). `source_metadata_refusal()` is the one
++## static gate: it checks every dictionary and fact row with `has()`/`typeof()` before any
++## indexing, and both `prepare_into()` and `plan_refusal()` run it before any source-derived use.
+ ##
+ ## THE Plan. Exactly ten `PackedInt32Array` payloads, column-major (`column * row_count + row`),
+ ## sized and documented by the named constants below, totalling 2480 logical bytes (under the
+@@ -86,7 +86,46 @@
+ const ROOM_PANTRY_KEY: String = "PANTRY"
+ const BUILDING_STATE_ACTIVE_KEY: String = "ACTIVE"
+ 
+ const MIN_TIER: int = 1
++
++# --- expected immutable source shape (pinned before any source-derived value) ----------------
++
++const EXPECTED_BUILDING_DEFINITION_COUNT: int = 30
++const EXPECTED_FURNITURE_DEFINITION_COUNT: int = 9
++const EXPECTED_B_FIELD_COUNT: int = 10
++const EXPECTED_F_FIELD_COUNT: int = 4
++const EXPECTED_B_FOOTPRINT_X_INDEX: int = 0
++const EXPECTED_B_FOOTPRINT_Z_INDEX: int = 1
++const EXPECTED_B_UNLOCK_INDEX: int = 6
++const EXPECTED_F_FLOOR_X_INDEX: int = 0
++const EXPECTED_F_FLOOR_Z_INDEX: int = 1
++const REQUIRED_UNLOCK_ORDINAL: int = 0
++
++## Protected Catalog enums, pinned complete rather than by required key alone.
++const EXPECTED_ROOM_TYPE: Dictionary = {
++	"DORMITORY": 0, "PRIVATE_ROOM": 1, "KITCHEN": 2, "DINING": 3,
++	"COMMON": 4, "INFIRMARY": 5, "PANTRY": 6, "CORRIDOR": 7,
++}
++const EXPECTED_BUILDING_STATE: Dictionary = {
++	"BLUEPRINT": 0, "BUILDING": 1, "ACTIVE": 2, "PAUSED": 3, "DAMAGED": 4, "DEMOLISHING": 5,
++}
++
++## Required source footprint and floor dimensions, per the contract's source pins.
++const REQUIRED_BUILDING_DIMENSIONS: Dictionary = {
++	HALL_KEY: [12, 10], OPEN_STOCKPILE_KEY: [4, 4], WELL_KEY: [2, 2], WORKBENCH_KEY: [3, 3],
++}
++const REQUIRED_FURNITURE_DIMENSIONS: Dictionary = {
++	BED_KEY: [1, 1], SEAT_KEY: [1, 1], SHELF_KEY: [1, 1],
++	KITCHEN_BENCH_KEY: [2, 1], HEARTH_KEY: [2, 1],
++	INTERIOR_PARTITION_KEY: [0, 0], INTERIOR_DOOR_KEY: [0, 0],
++}
++const REQUIRED_BUILDING_KEYS: Array[String] = [
++	HALL_KEY, OPEN_STOCKPILE_KEY, WELL_KEY, WORKBENCH_KEY,
++]
++const REQUIRED_FURNITURE_KEYS: Array[String] = [
++	BED_KEY, SEAT_KEY, SHELF_KEY, KITCHEN_BENCH_KEY, HEARTH_KEY,
++	INTERIOR_PARTITION_KEY, INTERIOR_DOOR_KEY,
++]
+ 
+ 
+ class Plan:
+@@ -284,7 +323,7 @@
+ 	if out == null:
+ 		_last_refusal = REFUSE_PLAN_NULL
+ 		return false
+-	var metadata_refusal: StringName = _validate_source_metadata()
++	var metadata_refusal: StringName = source_metadata_refusal()
+ 	if metadata_refusal != REFUSE_NONE:
+ 		_last_refusal = metadata_refusal
+ 		return false
+@@ -317,60 +356,147 @@
+ 
+ # --- source metadata validation (Catalog / BuildingDefinitions only, no instantiation) -------
+ 
+-func _validate_source_metadata() -> StringName:
+-	"""Confirm every compiled id, protected ordinal and immutable fact this plan depends on
+-	exists with the expected shape, using only `has()`/`typeof()` checks before any indexing.
+-	Never instantiates BuildingDefinitions; its fact tables and field constants are read as
+-	script-level consts.
+-	"""
+-	for key: String in [HALL_KEY, OPEN_STOCKPILE_KEY, WELL_KEY, WORKBENCH_KEY]:
+-		if not Catalog.BUILDING_DEFINITION.has(key):
+-			return REFUSE_SOURCE_METADATA
+-		if typeof(Catalog.BUILDING_DEFINITION[key]) != TYPE_INT:
+-			return REFUSE_SOURCE_METADATA
+-	for key: String in [BED_KEY, SEAT_KEY, SHELF_KEY, KITCHEN_BENCH_KEY, HEARTH_KEY,
+-			INTERIOR_PARTITION_KEY, INTERIOR_DOOR_KEY]:
+-		if not Catalog.FURNITURE_DEFINITION.has(key):
+-			return REFUSE_SOURCE_METADATA
+-		if typeof(Catalog.FURNITURE_DEFINITION[key]) != TYPE_INT:
+-			return REFUSE_SOURCE_METADATA
+-	for key: String in [ROOM_DORMITORY_KEY, ROOM_KITCHEN_KEY, ROOM_COMMON_KEY, ROOM_PANTRY_KEY]:
+-		if not Catalog.ROOM_TYPE.has(key):
+-			return REFUSE_SOURCE_METADATA
+-		if typeof(Catalog.ROOM_TYPE[key]) != TYPE_INT:
+-			return REFUSE_SOURCE_METADATA
+-	if not Catalog.BUILDING_STATE.has(BUILDING_STATE_ACTIVE_KEY):
+-		return REFUSE_SOURCE_METADATA
+-	if typeof(Catalog.BUILDING_STATE[BUILDING_STATE_ACTIVE_KEY]) != TYPE_INT:
+-		return REFUSE_SOURCE_METADATA
+-	var building_footprints: Dictionary = {
+-		HALL_KEY: [12, 10], OPEN_STOCKPILE_KEY: [4, 4], WELL_KEY: [2, 2], WORKBENCH_KEY: [3, 3],
+-	}
+-	for key: String in building_footprints.keys():
+-		if not BuildingDefinitions.BUILDING_FACTS.has(key):
+-			return REFUSE_SOURCE_METADATA
+-		var row: Array = BuildingDefinitions.BUILDING_FACTS[key]
+-		if row.size() != BuildingDefinitions.B_FIELD_COUNT:
+-			return REFUSE_SOURCE_METADATA
+-		var expected: Array = building_footprints[key]
+-		if int(row[BuildingDefinitions.B_FOOTPRINT_X]) != int(expected[0]):
+-			return REFUSE_SOURCE_METADATA
+-		if int(row[BuildingDefinitions.B_FOOTPRINT_Z]) != int(expected[1]):
+-			return REFUSE_SOURCE_METADATA
+-		if int(row[BuildingDefinitions.B_UNLOCK]) != 0:
+-			return REFUSE_SOURCE_METADATA
+-	for key: String in [BED_KEY, SEAT_KEY, SHELF_KEY, KITCHEN_BENCH_KEY, HEARTH_KEY,
+-			INTERIOR_PARTITION_KEY, INTERIOR_DOOR_KEY]:
+-		if not BuildingDefinitions.FURNITURE_FACTS.has(key):
+-			return REFUSE_SOURCE_METADATA
+-		var frow: Array = BuildingDefinitions.FURNITURE_FACTS[key]
+-		if frow.size() != BuildingDefinitions.F_FIELD_COUNT:
+-			return REFUSE_SOURCE_METADATA
+-	if BuildingDefinitions.BUILDING_DEFINITION_COUNT <= 0:
+-		return REFUSE_SOURCE_METADATA
+-	if BuildingDefinitions.FURNITURE_DEFINITION_COUNT <= 0:
+-		return REFUSE_SOURCE_METADATA
+-	return REFUSE_NONE
++static func source_metadata_refusal() -> StringName:
++	"""Validate every immutable Catalog/BuildingDefinitions fact this plan reads, before any
++	source-derived expected value is built. Never instantiates BuildingDefinitions."""
++	if not _catalog_domains_ok():
++		return REFUSE_SOURCE_METADATA
++	if not _definition_metadata_ok():
++		return REFUSE_SOURCE_METADATA
++	if not _building_facts_ok():
++		return REFUSE_SOURCE_METADATA
++	if not _furniture_facts_ok():
++		return REFUSE_SOURCE_METADATA
++	return REFUSE_NONE
++
++
++static func _catalog_domains_ok() -> bool:
++	"""The compiled building/furniture domains are exact ascending-key integer maps carrying
++	every required key, and the protected enums match their documented ordinals."""
++	if not _is_ascending_key_id_map(Catalog.BUILDING_DEFINITION, EXPECTED_BUILDING_DEFINITION_COUNT):
++		return false
++	if not _is_ascending_key_id_map(Catalog.FURNITURE_DEFINITION, EXPECTED_FURNITURE_DEFINITION_COUNT):
++		return false
++	for key: String in REQUIRED_BUILDING_KEYS:
++		if not Catalog.BUILDING_DEFINITION.has(key):
++			return false
++	for key: String in REQUIRED_FURNITURE_KEYS:
++		if not Catalog.FURNITURE_DEFINITION.has(key):
++			return false
++	if not _matches_protected_ordinals(Catalog.ROOM_TYPE, EXPECTED_ROOM_TYPE):
++		return false
++	if not _matches_protected_ordinals(Catalog.BUILDING_STATE, EXPECTED_BUILDING_STATE):
++		return false
++	for key: String in ROOM_KEYS:
++		if not EXPECTED_ROOM_TYPE.has(key):
++			return false
++	return EXPECTED_BUILDING_STATE.has(BUILDING_STATE_ACTIVE_KEY)
++
++
++static func _definition_metadata_ok() -> bool:
++	"""Pin BuildingDefinitions' counts and named field indexes BEFORE any row is indexed."""
++	if BuildingDefinitions.BUILDING_DEFINITION_COUNT != EXPECTED_BUILDING_DEFINITION_COUNT:
++		return false
++	if BuildingDefinitions.FURNITURE_DEFINITION_COUNT != EXPECTED_FURNITURE_DEFINITION_COUNT:
++		return false
++	if BuildingDefinitions.B_FIELD_COUNT != EXPECTED_B_FIELD_COUNT:
++		return false
++	if BuildingDefinitions.F_FIELD_COUNT != EXPECTED_F_FIELD_COUNT:
++		return false
++	if BuildingDefinitions.B_FOOTPRINT_X != EXPECTED_B_FOOTPRINT_X_INDEX:
++		return false
++	if BuildingDefinitions.B_FOOTPRINT_Z != EXPECTED_B_FOOTPRINT_Z_INDEX:
++		return false
++	if BuildingDefinitions.B_UNLOCK != EXPECTED_B_UNLOCK_INDEX:
++		return false
++	if BuildingDefinitions.F_FLOOR_X != EXPECTED_F_FLOOR_X_INDEX:
++		return false
++	if BuildingDefinitions.F_FLOOR_Z != EXPECTED_F_FLOOR_Z_INDEX:
++		return false
++	if typeof(BuildingDefinitions.BUILDING_FACTS) != TYPE_DICTIONARY:
++		return false
++	if typeof(BuildingDefinitions.FURNITURE_FACTS) != TYPE_DICTIONARY:
++		return false
++	if BuildingDefinitions.BUILDING_FACTS.size() != EXPECTED_BUILDING_DEFINITION_COUNT:
++		return false
++	return BuildingDefinitions.FURNITURE_FACTS.size() == EXPECTED_FURNITURE_DEFINITION_COUNT
++
++
++static func _building_facts_ok() -> bool:
++	"""Each required building row is a ten-int array with the pinned footprint and unlock."""
++	for key: String in REQUIRED_BUILDING_KEYS:
++		var row: Array = _int_fact_row(BuildingDefinitions.BUILDING_FACTS, key, EXPECTED_B_FIELD_COUNT)
++		if row.is_empty():
++			return false
++		var wanted: Array = REQUIRED_BUILDING_DIMENSIONS[key]
++		if int(row[BuildingDefinitions.B_FOOTPRINT_X]) != int(wanted[0]):
++			return false
++		if int(row[BuildingDefinitions.B_FOOTPRINT_Z]) != int(wanted[1]):
++			return false
++		if int(row[BuildingDefinitions.B_UNLOCK]) != REQUIRED_UNLOCK_ORDINAL:
++			return false
++	return true
++
++
++static func _furniture_facts_ok() -> bool:
++	"""Each required furniture row is a four-int array with the pinned 1x1/2x1/0x0 floor."""
++	for key: String in REQUIRED_FURNITURE_KEYS:
++		var row: Array = _int_fact_row(BuildingDefinitions.FURNITURE_FACTS, key, EXPECTED_F_FIELD_COUNT)
++		if row.is_empty():
++			return false
++		var wanted: Array = REQUIRED_FURNITURE_DIMENSIONS[key]
++		if int(row[BuildingDefinitions.F_FLOOR_X]) != int(wanted[0]):
++			return false
++		if int(row[BuildingDefinitions.F_FLOOR_Z]) != int(wanted[1]):
++			return false
++	return true
++
++
++static func _int_fact_row(facts: Dictionary, key: String, field_count: int) -> Array:
++	"""The named fact row when it is an Array of exactly `field_count` ints; [] otherwise."""
++	if not facts.has(key):
++		return []
++	if typeof(facts[key]) != TYPE_ARRAY:
++		return []
++	var row: Array = facts[key]
++	if row.size() != field_count:
++		return []
++	for value: Variant in row:
++		if typeof(value) != TYPE_INT:
++			return []
++	return row
++
++
++static func _is_ascending_key_id_map(dict: Dictionary, expected_count: int) -> bool:
++	"""True when `dict` maps exactly `expected_count` String keys to their ascending index."""
++	if dict.size() != expected_count:
++		return false
++	var keys: Array[String] = []
++	for key: Variant in dict.keys():
++		if typeof(key) != TYPE_STRING:
++			return false
++		if typeof(dict[key]) != TYPE_INT:
++			return false
++		keys.append(String(key))
++	keys.sort()
++	for index: int in keys.size():
++		if int(dict[keys[index]]) != index:
++			return false
++	return true
++
++
++static func _matches_protected_ordinals(dict: Dictionary, expected: Dictionary) -> bool:
++	"""True when `dict` carries exactly `expected`'s keys with exactly its integer ordinals."""
++	if dict.size() != expected.size():
++		return false
++	for key: String in expected.keys():
++		if not dict.has(key):
++			return false
++		if typeof(dict[key]) != TYPE_INT:
++			return false
++		if int(dict[key]) != int(expected[key]):
++			return false
++	return true
+ 
+ 
+ static func _catalog_int(dict: Dictionary, key: String) -> int:
+@@ -574,7 +700,10 @@
+ 	access, and independently re-derives room/edge/exit/adjacency structure from `plan`'s own
+ 	arrays before the final exact-match gate.
+ 	"""
+ 	if plan == null:
+ 		return REFUSE_PLAN_NULL
++	var metadata_refusal: StringName = source_metadata_refusal()
++	if metadata_refusal != REFUSE_NONE:
++		return metadata_refusal
+ 	if not _shape_ok(plan):
+ 		return REFUSE_PLAN_SHAPE

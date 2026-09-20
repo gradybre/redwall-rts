@@ -1,0 +1,35 @@
+{
+  "id": "starter-structures-tests-repair-a2",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-tests-repair-a2",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-author-requirements.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/int_math.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-subclass-reference.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part4-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair4-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-format-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-initial.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-initial.log",
+    "godot/test/buildings_validation_focus.gd"
+  ],
+  "instructions": "Bounded test-only repair from actual failed execution. Godot failed to parse test_starter_structures.gd line243: Unindent does not match previous indentation level. Audit all multiline lambdas and repair their syntax consistently while preserving every independent-oracle assertion and required case. Do not alter production source or weaken expected behavior. Replace the copied 241-line focus runner with the established three-line pattern extending res://test/run_tests.gd and overriding _discover_suites to return only res://test/test_starter_structures.gd, as in the provided Buildings focus. Return full corrected files at the exact two allowed paths with the stated base hashes. No local execution is available to you; do not claim tests passed. If any expected code is ambiguous, return a precise question rather than manufacture evidence. Original contract and test-author-requirements remain binding.\n\nDispatch audit: {\"base_commit\":\"205e56bc8bed9e9d06ca7abcf77a16629671aecb\",\"task\":\"Repair observed functional-suite parse failure and reuse existing focused runner\",\"allowedWrites\":{\"docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd\":\"4844827637d2e9fb75ec4aa685475c6ca979159ff7abf368569cf2603fe5afbd\",\"docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd\":\"9b3c4017314cf0d2bad0be78f4b7deab9e39039e6543d4eec3e4c147c1d127ba\"}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-tests-format-repair-a1"
+}

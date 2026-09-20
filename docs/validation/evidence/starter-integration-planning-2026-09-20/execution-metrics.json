@@ -1,0 +1,378 @@
+{
+  "recorded_at": "2026-09-20T16:28:29.400453+00:00",
+  "scope": "All archived stopped starter worker attempts through reviewer follow-up; acceptance remains pending committed identity and CI.",
+  "billing_note": "Subscription provider usage telemetry; costEstimateUsd is not actual billed expense. Missing usage means unknown, not zero.",
+  "efficiency_claim": "No savings claim; initial format failure, test syntax failure and seven coverage gaps required repair.",
+  "attempts": [
+    {
+      "attempt": "starter-structures-author-a1",
+      "state": "complete",
+      "model": "claude-sonnet-5",
+      "session_id": "4efb93d5-38bf-40fc-ae35-0b807cfa1a24",
+      "elapsed_ms": 473664,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 59291,
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 80921,
+        "costEstimateUsd": 0.916598
+      },
+      "context_metrics": {
+        "fullBytes": 157781,
+        "sentBytes": 157781,
+        "omittedFiles": 0
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-author-repair-a1",
+      "state": "timeout",
+      "model": "claude-sonnet-5",
+      "session_id": "4efb93d5-38bf-40fc-ae35-0b807cfa1a24",
+      "elapsed_ms": 900253,
+      "owner_stopped": true,
+      "usage": null,
+      "context_metrics": {
+        "fullBytes": 210070,
+        "sentBytes": 52289,
+        "omittedFiles": 7
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-design-review-a1",
+      "state": "complete",
+      "model": "claude-opus-5",
+      "session_id": "b8a48a5b-8eab-4a42-b60f-1105e7e5e4fb",
+      "elapsed_ms": 200338,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 17282,
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 53685,
+        "costEstimateUsd": 0.9689099999999999
+      },
+      "context_metrics": null,
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-metadata-a1",
+      "state": "complete",
+      "model": "claude-sonnet-5",
+      "session_id": "2ad83f57-6199-4528-b7a4-1d17adeaa59c",
+      "elapsed_ms": 539549,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 58722,
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 96339,
+        "costEstimateUsd": 0.97258
+      },
+      "context_metrics": {
+        "fullBytes": 175664,
+        "sentBytes": 175664,
+        "omittedFiles": 0
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-metadata-hardening-a2",
+      "state": "complete",
+      "model": "claude-sonnet-5",
+      "session_id": "2ad83f57-6199-4528-b7a4-1d17adeaa59c",
+      "elapsed_ms": 190794,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 22486,
+        "cacheReadTokens": 96339,
+        "cacheCreationTokens": 83208,
+        "costEstimateUsd": 0.5769638
+      },
+      "context_metrics": {
+        "fullBytes": 221316,
+        "sentBytes": 45652,
+        "omittedFiles": 8
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-opus-repair-a1",
+      "state": "timeout",
+      "model": "claude-opus-5",
+      "session_id": "a85cdd53-a61f-453f-af54-c81d0cbc59c7",
+      "elapsed_ms": 900273,
+      "owner_stopped": true,
+      "usage": null,
+      "context_metrics": {
+        "fullBytes": 210447,
+        "sentBytes": 210447,
+        "omittedFiles": 0
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-source-review-a1",
+      "state": "complete",
+      "model": "claude-opus-5",
+      "session_id": "e76be55b-3554-4171-8372-4584a635fca5",
+      "elapsed_ms": 469296,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 38422,
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 170030,
+        "costEstimateUsd": 2.6608599999999996
+      },
+      "context_metrics": {
+        "fullBytes": 317704,
+        "sentBytes": 317704,
+        "omittedFiles": 0
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-source-review-followup-a2",
+      "state": "complete",
+      "model": "claude-opus-5",
+      "session_id": "e76be55b-3554-4171-8372-4584a635fca5",
+      "elapsed_ms": 254679,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 20946,
+        "cacheReadTokens": 170030,
+        "cacheCreationTokens": 178869,
+        "costEstimateUsd": 2.3973649999999997
+      },
+      "context_metrics": {
+        "fullBytes": 554928,
+        "sentBytes": 284565,
+        "omittedFiles": 22
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-staged-repair-a1",
+      "state": "complete",
+      "model": "claude-opus-5",
+      "session_id": "9b36ecd9-fba9-4e7e-8e04-0afad59659ad",
+      "elapsed_ms": 283446,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 33634,
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 40455,
+        "costEstimateUsd": 1.2454099999999997
+      },
+      "context_metrics": {
+        "fullBytes": 70345,
+        "sentBytes": 70345,
+        "omittedFiles": 0
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-staged-repair-a2",
+      "state": "complete",
+      "model": "claude-opus-5",
+      "session_id": "9b36ecd9-fba9-4e7e-8e04-0afad59659ad",
+      "elapsed_ms": 194804,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 21930,
+        "cacheReadTokens": 40455,
+        "cacheCreationTokens": 102806,
+        "costEstimateUsd": 1.5965474999999998
+      },
+      "context_metrics": {
+        "fullBytes": 145802,
+        "sentBytes": 120336,
+        "omittedFiles": 5
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-staged-repair-a3",
+      "state": "complete",
+      "model": "claude-opus-5",
+      "session_id": "9b36ecd9-fba9-4e7e-8e04-0afad59659ad",
+      "elapsed_ms": 329626,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 37548,
+        "cacheReadTokens": 143261,
+        "cacheCreationTokens": 58112,
+        "costEstimateUsd": 1.5914604999999997
+      },
+      "context_metrics": {
+        "fullBytes": 151418,
+        "sentBytes": 55567,
+        "omittedFiles": 9
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-staged-repair-a4",
+      "state": "complete",
+      "model": "claude-opus-5",
+      "session_id": "9b36ecd9-fba9-4e7e-8e04-0afad59659ad",
+      "elapsed_ms": 217217,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 23416,
+        "cacheReadTokens": 201373,
+        "cacheCreationTokens": 77391,
+        "costEstimateUsd": 1.4600065
+      },
+      "context_metrics": {
+        "fullBytes": 158420,
+        "sentBytes": 61432,
+        "omittedFiles": 11
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-tests-a1",
+      "state": "invalid_output",
+      "model": "claude-sonnet-5",
+      "session_id": "be4b3f2e-7a8e-4ec2-985c-90f12a4c606b",
+      "elapsed_ms": 636399,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 4,
+        "outputTokens": 81862,
+        "cacheReadTokens": 100327,
+        "cacheCreationTokens": 164390,
+        "costEstimateUsd": 1.4962534
+      },
+      "context_metrics": {
+        "fullBytes": 181439,
+        "sentBytes": 181439,
+        "omittedFiles": 0
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-tests-coverage-a3",
+      "state": "complete",
+      "model": "claude-sonnet-5",
+      "session_id": "be4b3f2e-7a8e-4ec2-985c-90f12a4c606b",
+      "elapsed_ms": 304956,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 42358,
+        "cacheReadTokens": 242006,
+        "cacheCreationTokens": 56544,
+        "costEstimateUsd": 0.6981611999999999
+      },
+      "context_metrics": {
+        "fullBytes": 227387,
+        "sentBytes": 43245,
+        "omittedFiles": 16
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-tests-format-repair-a1",
+      "state": "complete",
+      "model": "claude-sonnet-5",
+      "session_id": "be4b3f2e-7a8e-4ec2-985c-90f12a4c606b",
+      "elapsed_ms": 166324,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 27064,
+        "cacheReadTokens": 100327,
+        "cacheCreationTokens": 84267,
+        "costEstimateUsd": 0.6277774
+      },
+      "context_metrics": {
+        "fullBytes": 181927,
+        "sentBytes": 488,
+        "omittedFiles": 12
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-tests-repair-a2",
+      "state": "complete",
+      "model": "claude-sonnet-5",
+      "session_id": "be4b3f2e-7a8e-4ec2-985c-90f12a4c606b",
+      "elapsed_ms": 202402,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 29701,
+        "cacheReadTokens": 184594,
+        "cacheCreationTokens": 57412,
+        "costEstimateUsd": 0.5635808
+      },
+      "context_metrics": {
+        "fullBytes": 231063,
+        "sentBytes": 49136,
+        "omittedFiles": 13
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-tests-review-a4",
+      "state": "complete",
+      "model": "claude-sonnet-5",
+      "session_id": "be4b3f2e-7a8e-4ec2-985c-90f12a4c606b",
+      "elapsed_ms": 426470,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 61212,
+        "cacheReadTokens": 298550,
+        "cacheCreationTokens": 86672,
+        "costEstimateUsd": 1.018522
+      },
+      "context_metrics": {
+        "fullBytes": 257598,
+        "sentBytes": 79795,
+        "omittedFiles": 19
+      },
+      "accepted_product": false
+    },
+    {
+      "attempt": "starter-structures-tests-review-completion-a5",
+      "state": "complete",
+      "model": "claude-sonnet-5",
+      "session_id": "be4b3f2e-7a8e-4ec2-985c-90f12a4c606b",
+      "elapsed_ms": 271814,
+      "owner_stopped": true,
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 39551,
+        "cacheReadTokens": 385222,
+        "cacheCreationTokens": 94222,
+        "costEstimateUsd": 0.8494464
+      },
+      "context_metrics": {
+        "fullBytes": 266700,
+        "sentBytes": 54687,
+        "omittedFiles": 22
+      },
+      "accepted_product": false
+    }
+  ],
+  "acceptance": {
+    "status": "review_approved_ci_pending",
+    "focused": "35/3674/0",
+    "local_full": "5034/526086/0 at e972ab6f; subsequent cosmetic signature/header checked by focus and pending CI",
+    "metadata": "26 cases/450 assertions/0 failures/0 invalid",
+    "review": "source-review-followup.md",
+    "disposition": "source-review-disposition-r02.json"
+  }
+}

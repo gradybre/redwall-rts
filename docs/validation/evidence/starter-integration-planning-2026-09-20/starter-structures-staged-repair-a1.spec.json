@@ -1,0 +1,22 @@
+{
+  "id": "starter-structures-staged-repair-a1",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-staged-repair-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-staged-repair",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/author-repair-r01.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/initial-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/opus-repair-disposition.json"
+  ],
+  "instructions": "Fresh bounded author session after an incomplete previous attempt, The previous attempt timed out and stopped without delivering a complete bundle; candidate bytes are unchanged. Implement only repair requirement1 from author-repair-r01.md: remove undefined StarterStructures self construction and third Plan allocation from canonical comparison, publish staged packed arrays by COW sharing instead of duplicate, and keep logical payload accounting honest. Do not change source-metadata or structural validation functions in this part. Those remain required follow-up repairs before any acceptance. Exact all-ten-array authored comparison must use immutable fixture loops, not Plan.new or another producer instance. Return one unified diff artifact repair-part1.patch at the declared evidence path targeting only the current candidate-starter_structures.gd. Keep the patch narrowly bounded and omit long explanatory comments. Do not claim tests executed or production acceptance. Full current source content is supplied; you have no omitted prior context. Complete strict JSON bundle.\n\nDispatch audit: {\"base_commit\":\"205e56bc8bed9e9d06ca7abcf77a16629671aecb\",\"task\":\"Starter repair part1: compile and two-plan allocation only\",\"allowedWrites\":{\"docs/validation/evidence/starter-integration-planning-2026-09-20/repair-part1.patch\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized."
+}

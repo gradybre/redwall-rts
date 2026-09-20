@@ -1,0 +1,11 @@
+{
+  "scope": "Deterministic patch framing normalization only; no authored code changed",
+  "reason": "git apply --recount rejected supplied hunk framing; all seven old hunk texts uniquely matched the frozen input in order with no overlap. Rebuilt unified diff using exactly the provider old/new hunk bodies.",
+  "old_sha256": "0591ca0b0ed05a3546b1082928ccfbe53eeb158b7415a9037b58beecf0005c36",
+  "new_sha256": "daf155cacef1f0142fea2f0268ccfb13755c24f90893ce62a051761b38bdb831",
+  "original_patch": "metadata-harness-hardening.patch",
+  "normalized_patch": "metadata-harness-hardening-normalized.patch",
+  "input_hashes_reverified": true,
+  "owner_stopped": true,
+  "product_accepted": false
+}

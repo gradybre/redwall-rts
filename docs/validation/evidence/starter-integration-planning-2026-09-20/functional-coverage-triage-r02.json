@@ -1,0 +1,35 @@
+{
+  "scope": "Astra coverage triage of initial delivered test source; pending syntax repair may change source. These are existing contract requirements, not new scope.",
+  "candidate_sha256": "4844827637d2e9fb75ec4aa685475c6ca979159ff7abf368569cf2603fe5afbd",
+  "findings": [
+    {
+      "id": "TEST-R02-1",
+      "finding": "_run_case_matrix does not snapshot or assert input nonmutation. Add ten-array snapshots and repeated deterministic refusal for every matrix case, plus canonical pure validator nonmutation."
+    },
+    {
+      "id": "TEST-R02-2",
+      "finding": "No fresh-default constructor/refusal test. Assert all nonheader values -1 and header zeros, then the required deterministic invalid-default refusal."
+    },
+    {
+      "id": "TEST-R02-3",
+      "finding": "Repeated preparation uses separate producers/outputs; stale overwrite dirties and checks buildings alone. Exercise the same producer/output, dirty all ten arrays and assert all ten restored; exact refusal and subsequent success must reset last_refusal."
+    },
+    {
+      "id": "TEST-R02-4",
+      "finding": "Only header drift exercises final authored gate. Move one stockpile to another legal disjoint inbounds footprint and require STARTER_AUTHORED_LAYOUT."
+    },
+    {
+      "id": "TEST-R02-5",
+      "finding": "No footprint offset/count malformed run coverage; add negative, zero where invalid and int32max values before indexing, and analogous candidate offset/count extremes."
+    },
+    {
+      "id": "TEST-R02-6",
+      "finding": "Missing legal candidate currently substitutes999, which only proves out-of-range rejection. Remove a valid candidate while keeping all run offsets, used count and tail coherent; require complete-neighbor-set rejection."
+    },
+    {
+      "id": "TEST-R02-7",
+      "finding": "Private neighbor-candidate test proves an unblocked pair and partition, but not reappearance across the same edge relabeled interior_door. Add this explicit witness."
+    }
+  ],
+  "acceptance": "Unresolved; no independent review or test pass inferred"
+}

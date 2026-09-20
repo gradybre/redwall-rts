@@ -1,0 +1,10 @@
+{
+  "source_sha256": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+  "candidate_sha256": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+  "uid": "uid://djf5hu5iktmyx",
+  "registry_category": 3,
+  "godot_import": "pass",
+  "static_checks": "17 pass",
+  "product_acceptance": false,
+  "runtime_startup_wiring": false
+}

@@ -1,0 +1,113 @@
+{
+  "attempts": [
+    {
+      "id": "construction-owner-author-format-a3",
+      "model": "claude-sonnet-5",
+      "sessionId": "d29c3ed8-98a2-4d20-986c-9639a08716bc",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/construction_component_validation_contract.md": "89dc302a4835147e2361dbf40811efe87565231da102f90ec140b88d9400033d",
+        "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md": "2becb2f4acf01342801f5d92411e6abf2109d59f4cd95a44b2f89b1248fa88af",
+        "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json": "9e1fa4710e5e5c56a4e2c0900fd387e9b985ce062440c8ab1042badd32ade298",
+        "docs/validation/evidence/construction-validation-planning-2026-09-20/witness-plan-v2.json": "7e2cbce2b0a75dd6f37dd545f56b8741f8b6544c81e9961343ccf0b3fb9a5e65",
+        "docs/validation/evidence/construction-validation-planning-2026-09-20/review-r02-disposition.md": "6f2e015e7745b20ecf05437b568acf681310ba371af365cddbcb75761ab9b510",
+        "godot/scripts/core/construction.gd": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
+        "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+        "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "docs/validation/evidence/construction-component-validation-2026-09-20/author-format-a2-public-response.json": "59da3cdbf1844de3ace6fbf8ee0e91bae712012fbc1cd0a0ea808404657f896a"
+      },
+      "outputLines": 610,
+      "outputLineBudget": 900,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "818197313aa87cae2c1e6cfe091abe27d24817fc"
+    },
+    {
+      "id": "construction-metadata-author-a2",
+      "model": "claude-opus-5",
+      "sessionId": "6a3abd9e-d877-4418-b139-2c6e02eda2fb",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/construction_component_validation_contract.md": "89dc302a4835147e2361dbf40811efe87565231da102f90ec140b88d9400033d",
+        "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md": "2becb2f4acf01342801f5d92411e6abf2109d59f4cd95a44b2f89b1248fa88af",
+        "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json": "9e1fa4710e5e5c56a4e2c0900fd387e9b985ce062440c8ab1042badd32ade298",
+        "docs/validation/evidence/construction-validation-planning-2026-09-20/witness-plan-v2.json": "7e2cbce2b0a75dd6f37dd545f56b8741f8b6544c81e9961343ccf0b3fb9a5e65",
+        "docs/validation/evidence/construction-component-validation-2026-09-20/immutable-collaborator-excerpts.md": "3eec0c85299161ad8f3c7e0f88c843ed2ac702e18cfb932bcc793c2998dd6c93",
+        "docs/validation/evidence/construction-component-validation-2026-09-20/preliminary-owner-inspection.json": "3cac6594ff2e989165b46e8b8f003f9032442c23a17988f0cb44d7c57e4b0e29",
+        "godot/scripts/core/construction.gd": "fc8f2582b591d24c9d3ca7ca40f9889d9679d5d514b342179762c2292284db8b",
+        "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+        "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-scalars-a1/result.json": "ab551a498edf9eb7806792fa14a76ed7053337f31648084a427d6919fa5d5e1f",
+        "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-scalars-a1/definitions-building_facts-unused-field-type.log": "1dd067f5b2de8d36ffe7e1ba9c877f2357fa3acbaa0b34fa2326a4bae66db426",
+        "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-scalars-a1/definitions-furniture_facts-unused-field-type.log": "1dd067f5b2de8d36ffe7e1ba9c877f2357fa3acbaa0b34fa2326a4bae66db426"
+      },
+      "outputLines": 44,
+      "outputLineBudget": 80,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "818197313aa87cae2c1e6cfe091abe27d24817fc"
+    },
+    {
+      "id": "construction-key-types-author-a1",
+      "model": "claude-opus-5",
+      "sessionId": "cf243be9-7803-4d82-ad51-9a1781c6b622",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/construction_component_validation_contract.md": "447a3c6ad488a3c87684fff42c9aee909574f53dfca17bf1d8223eca5410b705",
+        "godot/scripts/core/construction.gd": "e5d3fd006311c43c3b20b0a3f2209945e5ade12ad08b84ddcaf8d49ef6e3e326",
+        "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+        "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+        "docs/validation/evidence/construction-component-validation-2026-09-20/dictionary-key-types-disposition.md": "d7ca6b22b82d5127896becb6c68410431296d7f7fbb7bdd848a4613d88d9969e",
+        "docs/validation/evidence/construction-component-validation-2026-09-20/dictionary-key-types-a1/result.json": "4083fabcc7a58356d63cce37fd29fa73b90b782130bcadc54f4d2ac0d411ac68"
+      },
+      "outputLines": 53,
+      "outputLineBudget": 110,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "818197313aa87cae2c1e6cfe091abe27d24817fc"
+    },
+    {
+      "id": "construction-negative-phase-author-a4",
+      "model": "claude-sonnet-5",
+      "sessionId": "af0acb5b-8c21-437d-963a-cd81c0ff8a79",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/construction_component_validation_contract.md": "447a3c6ad488a3c87684fff42c9aee909574f53dfca17bf1d8223eca5410b705",
+        "godot/scripts/core/construction.gd": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+        "godot/test/test_construction_columns.gd": "fe8d125c99e6198d3abd4bc3dff15d48fb7c0e836d33bfea9446744ad16a819d",
+        "godot/test/test_save_owner_construction.gd": "d42cc22c680da808ca2659a6815525d03291254221b1664e3aaf58d985605c21",
+        "godot/test/construction_columns_focus.gd": "fd24cdddca0c3c687c23e9234737fe38efb2b638f16b52e3f0989bf8891f0267"
+      },
+      "outputLines": 50,
+      "outputLineBudget": 150,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "818197313aa87cae2c1e6cfe091abe27d24817fc"
+    },
+    {
+      "id": "construction-review-repair-author-a1",
+      "model": "claude-opus-5",
+      "sessionId": "a3e621a2-f72f-454e-a7f6-8fb403af13b2",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/construction_component_validation_contract.md": "90d96f67627873c0f6ff9dc57f861e1f86eab7d369311ad96a2fde5262dddb48",
+        "godot/scripts/core/construction.gd": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+        "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+        "docs/validation/evidence/construction-component-validation-2026-09-20/review-a1-disposition.md": "26239bcc8954b7c13eff7272ed2656482184216e8a00c546af3377ace4bbb830"
+      },
+      "outputLines": 166,
+      "outputLineBudget": 210,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "818197313aa87cae2c1e6cfe091abe27d24817fc"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "construction-review-repair-author-a1",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-review-repair-author-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-review-repair-author",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/save_owner_construction.gd",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/review-a1-disposition.md"
+  ],
+  "instructions": "Fresh bounded source author. Implement ONLY F2/F3/F4 source decisions in supplied Astra disposition: extend storedStringkeyguard4bill/work dictionaries; replace _column_array_refusal dynamicArray table with10explicit ordered calls/groupedhelpers and one typedArray comparator preserving EXACT labels/messages/refusalpriority; document TYPE-beforeWORKERS indexing precondition in existingworkers helper. <=210line unifieddiff artifact review-source-repair.patch targets construction.gd and save_owner_construction.gd only. Preserve ENTIRE first1327lines accepted gameplay prefix, all sourceconstantvalues/arrays/schema/logicalstate/refusalcode values, all existingorderedgates. No other refactoring, tests, harness, docs, outputsourcefiles. Each helper<=30codelines withdocstring. Add correct diff --git boundaries before EACH file, correct contextprefixes includingblanklines, no overlapping/zero-contexthunks. Do not repair prose outsidethis scope. Five-keyJSON artifactbaseSha256null beforepath/content. No execution/acceptanceclaim.\n\nDispatch audit: {\"base_commit\":\"818197313aa87cae2c1e6cfe091abe27d24817fc\",\"task\":\"Bounded Construction independent-review source closure\",\"allowedWrites\":{\"docs/validation/evidence/construction-component-validation-2026-09-20/review-source-repair.patch\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized."
+}

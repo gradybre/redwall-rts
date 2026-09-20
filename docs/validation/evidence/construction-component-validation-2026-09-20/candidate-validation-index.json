@@ -1,0 +1,72 @@
+{
+  "updated_at": "2026-09-20T21:01:13.466404+00:00",
+  "status": "local_source_and_evidence_approved_ci_pending",
+  "current_owner_sha256": "ec758c4fc40746962b50fa7294d9ee7954208cfed579dbe10bfc54e0a2aeff70",
+  "current_test_sha256": "ab28c4f1ba29b13a3f3e7aa08f5767133a49a7ec590ef69b462f28f9ce016638",
+  "functional_last_completed": {
+    "tests": 96,
+    "assertions": 2354,
+    "note": "Final reviewed-repair source isolated focused run passes; release-checks-a2/focus.json"
+  },
+  "campaigns": [
+    {
+      "name": "metadata-scalars-a3",
+      "fault_units": 45,
+      "controls": 2,
+      "additional_guard_bypass": 1,
+      "observations": 240,
+      "note": "Historical source before key-type repair; subsequent55casecampaign verifies repaired source."
+    },
+    {
+      "name": "projection-purity-faults-a1",
+      "fault_units": 26,
+      "controls": 2,
+      "passed": true
+    },
+    {
+      "name": "bridge-metadata-a1",
+      "fault_units": 55,
+      "controls": 2,
+      "passed": true
+    },
+    {
+      "name": "row-semantic-faults-a1",
+      "fault_units": 39,
+      "controls": 2,
+      "passed": true,
+      "seconds": 579.353
+    },
+    {
+      "name": "negative-phase-faults-a1",
+      "fault_units": 6,
+      "controls": 2,
+      "passed": true,
+      "seconds": 95.032
+    },
+    {
+      "name": "allocation-a1",
+      "fault_units": 1,
+      "controls": 2,
+      "passed": true,
+      "note": "Bridge unchanged; owner keyguard added afterward. Final current-source portable allocation rerun pending."
+    }
+  ],
+  "limits": [
+    "Fault units across separate campaigns are not asserted globally distinct; do not sum into exhaustive coverage.",
+    "No whole save, live restoration, native memory qualification or first-playable acceptance."
+  ],
+  "remaining": [
+    "Exact committed identity and both SUCCESS CI checks before merge"
+  ],
+  "current_bridge_sha256": "f275eedebde522821b159cf598bdf5d4aea57564bb974af8667917a338b62a86",
+  "final_source_evidence": {
+    "projection": "projection-purity-faults-a2/result.json:26faults+2controls all pass",
+    "metadata": "metadata-final-a3/result.json:60faults+2controls all pass; all raw logs and exact executed harness retained",
+    "allocation": "release-checks-a2/allocation.log:baseline/mutant/restored all pass",
+    "row_semantic": "39 previously executed; post-review-source-and-target-verification.json and row-semantic-unchanged-code-proof.json explicitly reverify unchanged executable bodies, not a new runtime claim",
+    "phase": "6 previously executed; exact final targets unchanged verified",
+    "full": "release-checks-a2/full.json and pre-run source-manifest.json:5108tests/528323assertions/0failures, sourceunchanged",
+    "static": "static-a3.json:17checks pass"
+  },
+  "campaigns_status": "Historical campaigns below are retained unchanged and superseded for final-source runtime status by final_source_evidence. Their old pending notes are historical, not current open gates."
+}

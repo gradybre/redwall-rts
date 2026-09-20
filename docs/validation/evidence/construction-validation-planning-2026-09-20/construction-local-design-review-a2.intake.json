@@ -1,0 +1,19 @@
+{
+  "attempt": "construction-local-design-review-a2",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-design",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-DESIGN-R01"
+  },
+  "session_id": "9b888f5d-cf75-4d7a-b078-bae2c12ac9ef",
+  "owner_stopped": true,
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_inputs_reverified": true,
+  "files": {
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/independent-design-review-r02.md": "c696f5f149880366f96f7f419e6597a5280023d5216575e3e55b33ab5f293f6c"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

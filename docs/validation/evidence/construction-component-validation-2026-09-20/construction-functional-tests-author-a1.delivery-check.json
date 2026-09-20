@@ -1,0 +1,22 @@
+{
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-functional-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "allowedWrites": {
+    "godot/test/test_construction_columns.gd": null,
+    "godot/test/test_save_owner_construction.gd": null,
+    "godot/test/construction_columns_focus.gd": null
+  },
+  "returnedPaths": [
+    "godot/test/test_construction_columns.gd",
+    "godot/test/test_save_owner_construction.gd",
+    "godot/test/construction_columns_focus.gd"
+  ],
+  "sourceApplied": false,
+  "approval": "not_granted"
+}

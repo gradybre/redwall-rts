@@ -1,0 +1,30 @@
+{
+  "scope": "Source excerpt proving delivered ledger registered for section5, not omitted from design",
+  "source": "docs/planning/canonical_state_registry.json",
+  "sha256": "f3f0c5da6e0ec7a51611e51dd7851792f2a7873fa2d9535753e17bfc0f428801",
+  "owners": [
+    {
+      "section_id": 5,
+      "owner_key": "construction",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "field_key": "_delivered_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "construction",
+          "source_member": "_delivered_milli",
+          "shape": {
+            "declared_capacity": "`DELIVERED_CELLS` = 331776",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 0,
+          "source_contract": "C172"
+        }
+      ]
+    }
+  ],
+  "registry_prose_source": "docs/persistence_state_registry.md:206",
+  "remaining": "SAVE-S5-CODEC and capture/apply/section4+5 binding remain unimplemented; no savability claimed"
+}

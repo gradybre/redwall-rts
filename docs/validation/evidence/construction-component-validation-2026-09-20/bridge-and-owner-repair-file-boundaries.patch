@@ -1,0 +1,500 @@
+diff --git a/godot/scripts/core/construction.gd b/godot/scripts/core/construction.gd
+--- a/godot/scripts/core/construction.gd
++++ b/godot/scripts/core/construction.gd
+@@ -1486,6 +1486,11 @@
+ 		"""`true` (default): allocate the clear image. `false`: leave every property empty."""
+ 		if not allocate_defaults:
+ 			return
++		_resize_columns()
++		_fill_clear_values()
++
++	func _resize_columns() -> void:
++		"""Resize all sixteen properties to ROW_CAPACITY; a borrowed view never reaches it."""
+ 		present.resize(ROW_CAPACITY)
+ 		material_container_slot.resize(ROW_CAPACITY)
+ 		material_container_generation.resize(ROW_CAPACITY)
+@@ -1502,6 +1507,9 @@
+ 		purpose.resize(ROW_CAPACITY)
+ 		type_id.resize(ROW_CAPACITY)
+ 		phase.resize(ROW_CAPACITY)
++
++	func _fill_clear_values() -> void:
++		"""Fill each resized property with its declared clear value, in ordinal order."""
+ 		present.fill(0)
+ 		material_container_slot.fill(-1)
+ 		material_container_generation.fill(0)
+@@ -1772,34 +1780,53 @@
+ 	var scalar_code: StringName = _source_scalar_refusal()
+ 	if scalar_code != REFUSE_NONE:
+ 		return scalar_code
+-	if COLUMN_BUILDING_KEYS.size() != BUILDING_KINDS or COLUMN_BUILDING_WORK_MWU.size() != BUILDING_KINDS \
+-			or COLUMN_BUILDING_MAX_WORKERS.size() != BUILDING_KINDS \
+-			or COLUMN_BUILDING_BILL_PAIR_COUNTS.size() != BUILDING_KINDS:
+-		return REFUSE_COLUMN_SOURCE_METADATA
+-	if COLUMN_FURNITURE_KEYS.size() != FURNITURE_KINDS or COLUMN_FURNITURE_WORK_MWU.size() != FURNITURE_KINDS \
+-			or COLUMN_FURNITURE_BILL_PAIR_COUNTS.size() != FURNITURE_KINDS:
+-		return REFUSE_COLUMN_SOURCE_METADATA
+-	if COLUMN_UPGRADE_IDS.size() != 4 or COLUMN_UPGRADE_WORK_MWU.size() != 4 \
+-			or COLUMN_UPGRADE_BILL_PAIR_COUNTS.size() != 4:
+-		return REFUSE_COLUMN_SOURCE_METADATA
+-	if Catalog.BUILDING_DEFINITION.size() != BUILDING_KINDS or BuildingDefinitions.BUILDING_FACTS.size() != BUILDING_KINDS \
+-			or BUILD_MATERIALS.size() != BUILDING_KINDS:
+-		return REFUSE_COLUMN_SOURCE_METADATA
+-	if Catalog.FURNITURE_DEFINITION.size() != FURNITURE_KINDS or BuildingDefinitions.FURNITURE_FACTS.size() != FURNITURE_KINDS \
+-			or FURNITURE_MATERIALS.size() != FURNITURE_KINDS:
+-		return REFUSE_COLUMN_SOURCE_METADATA
+-	if UPGRADE_MATERIALS.size() != 4 or UPGRADE_WORK_MWU.size() != 4:
+-		return REFUSE_COLUMN_SOURCE_METADATA
+-	for id: int in BUILDING_KINDS:
+-		if _metadata_refusal_building(id, COLUMN_BUILDING_KEYS[id]):
+-			return REFUSE_COLUMN_SOURCE_METADATA
+-	for id: int in FURNITURE_KINDS:
+-		if _metadata_refusal_furniture(id, COLUMN_FURNITURE_KEYS[id]):
+-			return REFUSE_COLUMN_SOURCE_METADATA
+-	for index: int in 4:
+-		if _metadata_refusal_upgrade(index, COLUMN_UPGRADE_IDS[index]):
+-			return REFUSE_COLUMN_SOURCE_METADATA
+-	return REFUSE_NONE
++	if not _gate_array_extents_ok():
++		return REFUSE_COLUMN_SOURCE_METADATA
++	if not _source_dictionary_extents_ok():
++		return REFUSE_COLUMN_SOURCE_METADATA
++	return _source_row_scan_refusal()
++
++
++static func _gate_array_extents_ok() -> bool:
++	"""Exact extents of the ten frozen gate-consumed arrays, before any one of them is indexed."""
++	if COLUMN_BUILDING_KEYS.size() != BUILDING_KINDS or COLUMN_BUILDING_WORK_MWU.size() != BUILDING_KINDS \
++			or COLUMN_BUILDING_MAX_WORKERS.size() != BUILDING_KINDS \
++			or COLUMN_BUILDING_BILL_PAIR_COUNTS.size() != BUILDING_KINDS:
++		return false
++	if COLUMN_FURNITURE_KEYS.size() != FURNITURE_KINDS or COLUMN_FURNITURE_WORK_MWU.size() != FURNITURE_KINDS \
++			or COLUMN_FURNITURE_BILL_PAIR_COUNTS.size() != FURNITURE_KINDS:
++		return false
++	if COLUMN_UPGRADE_IDS.size() != 4 or COLUMN_UPGRADE_WORK_MWU.size() != 4 \
++			or COLUMN_UPGRADE_BILL_PAIR_COUNTS.size() != 4:
++		return false
++	return true
++
++
++static func _source_dictionary_extents_ok() -> bool:
++	"""Exact key counts of every catalog, fact and bill Dictionary the row scan below walks."""
++	if Catalog.BUILDING_DEFINITION.size() != BUILDING_KINDS or BuildingDefinitions.BUILDING_FACTS.size() != BUILDING_KINDS \
++			or BUILD_MATERIALS.size() != BUILDING_KINDS:
++		return false
++	if Catalog.FURNITURE_DEFINITION.size() != FURNITURE_KINDS or BuildingDefinitions.FURNITURE_FACTS.size() != FURNITURE_KINDS \
++			or FURNITURE_MATERIALS.size() != FURNITURE_KINDS:
++		return false
++	if UPGRADE_MATERIALS.size() != 4 or UPGRADE_WORK_MWU.size() != 4:
++		return false
++	return true
++
++
++static func _source_row_scan_refusal() -> StringName:
++	"""Both domains in canonical id order, then the four tier-two upgrade indexes."""
++	for id: int in BUILDING_KINDS:
++		if _metadata_refusal_building(id, COLUMN_BUILDING_KEYS[id]):
++			return REFUSE_COLUMN_SOURCE_METADATA
++	for id: int in FURNITURE_KINDS:
++		if _metadata_refusal_furniture(id, COLUMN_FURNITURE_KEYS[id]):
++			return REFUSE_COLUMN_SOURCE_METADATA
++	for index: int in 4:
++		if _metadata_refusal_upgrade(index, COLUMN_UPGRADE_IDS[index]):
++			return REFUSE_COLUMN_SOURCE_METADATA
++	return REFUSE_NONE
+ 
+ 
+ # --- the ordered pure row predicate ---------------------------------------------------------------
+diff --git a/godot/scripts/core/save_owner_construction.gd b/godot/scripts/core/save_owner_construction.gd
+--- a/godot/scripts/core/save_owner_construction.gd
++++ b/godot/scripts/core/save_owner_construction.gd
+@@ -59,6 +59,8 @@
+ const OWNER_PRIMARY_COUNT: int = 82944
+ const OWNER_CHILD_EXTENT_COUNT: int = 0
+ const OWNER_FIELD_COUNT: int = 16
++## The compiled ordinal this owner's sixteen fields begin at (bridge inspection finding B1).
++const OWNER_FIELD_BEGIN: int = 29
+ ## Gate 4's detail prefix. Gate 3 forwards the schema module's own detail unchanged.
+ const METADATA_DETAIL_PREFIX: String = "Construction owner1 metadata:"
+ ## Gate 7's detail prefix, deliberately spaced, and naming no row.
+@@ -128,6 +130,13 @@
+ const SOURCE_REFUND_POLICY_COUNT: int = 3
+ const SOURCE_BUILDING_KIND_COUNT: int = 30
+ const SOURCE_FURNITURE_KIND_COUNT: int = 9
++## BuildingDefinitions fact-row indexes and row widths, pinned here INDEPENDENTLY of
++## Construction's own SOURCE_* mirror of the same five constants (inspection finding B2).
++const SOURCE_B_WORK_MWU: int = 2
++const SOURCE_B_MAX_BUILDERS: int = 9
++const SOURCE_B_FIELD_COUNT: int = 10
++const SOURCE_F_WORK_MWU: int = 2
++const SOURCE_F_FIELD_COUNT: int = 4
+ const SOURCE_MATERIAL_KEY_COUNT: int = 6
+ const SOURCE_TIER_TWO_COUNT: int = 4
+ 
+@@ -283,7 +292,7 @@
+ 
+ 
+ static func _identity_refusal() -> SaveHeader.Refusal:
+-	"""Compiled owner key, version, primary count, child extents and field count."""
++	"""Compiled owner key, version, primaries, child extents, field count and field begin."""
+ 	if Schema.owner_key(OWNER_INDEX) != OWNER_KEY:
+ 		return _refuse_metadata("compiled owner '%s' is not '%s'"
+ 			% [Schema.owner_key(OWNER_INDEX), OWNER_KEY])
+@@ -299,6 +308,12 @@
+ 	if Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT:
+ 		return _refuse_metadata("%d fields are not %d"
+ 			% [Schema.field_count(OWNER_INDEX), OWNER_FIELD_COUNT])
++	if Schema.OWNER_FIELD_BEGIN.size() != Schema.EXPECTED_STORE_COUNT:
++		return _refuse_metadata("the compiled field-begin column holds %d rows, not %d"
++			% [Schema.OWNER_FIELD_BEGIN.size(), Schema.EXPECTED_STORE_COUNT])
++	if int(Schema.OWNER_FIELD_BEGIN[OWNER_INDEX]) != OWNER_FIELD_BEGIN:
++		return _refuse_metadata("compiled field begin %d is not %d"
++			% [int(Schema.OWNER_FIELD_BEGIN[OWNER_INDEX]), OWNER_FIELD_BEGIN])
+ 	return _accept()
+ 
+ 
+@@ -321,81 +336,267 @@
+ 	return _accept()
+ 
+ 
+-static func _scalar_anchor_refusal() -> SaveHeader.Refusal:
+-	"""Every pinned capacity/ordinal/count, against BOTH Construction's live constant and its own
+-	in-file SOURCE_* mirror, from this bridge's own independent literal -- never from either."""
+-	var checks: Array = [
+-		["row capacity", SOURCE_ROW_CAPACITY, Construction.CONSTRUCTION_CAPACITY],
+-		["row capacity mirror", SOURCE_ROW_CAPACITY, Construction.SOURCE_ROW_CAPACITY],
+-		["columns row capacity", SOURCE_ROW_CAPACITY, Construction.Columns.ROW_CAPACITY],
+-		["material slots", SOURCE_MATERIAL_SLOTS_PER_PROJECT, Construction.MATERIAL_SLOTS_PER_PROJECT],
+-		["material slots mirror", SOURCE_MATERIAL_SLOTS_PER_PROJECT,
+-			Construction.SOURCE_MATERIAL_SLOTS_PER_PROJECT],
+-		["max builders", SOURCE_MAX_BUILDERS, Construction.MAX_BUILDERS],
+-		["max builders mirror", SOURCE_MAX_BUILDERS, Construction.SOURCE_MAX_BUILDERS],
+-		["demolition work num", SOURCE_DEMOLITION_WORK_NUM, Construction.DEMOLITION_WORK_NUM],
+-		["demolition work num mirror", SOURCE_DEMOLITION_WORK_NUM,
+-			Construction.SOURCE_DEMOLITION_WORK_NUM],
+-		["demolition work den", SOURCE_DEMOLITION_WORK_DEN, Construction.DEMOLITION_WORK_DEN],
+-		["demolition work den mirror", SOURCE_DEMOLITION_WORK_DEN,
+-			Construction.SOURCE_DEMOLITION_WORK_DEN],
+-		["int32 max", SOURCE_INT32_MAX, Construction.INT32_MAX],
+-		["int32 max mirror", SOURCE_INT32_MAX, Construction.SOURCE_INT32_MAX],
+-		["null slot", SOURCE_NULL_SLOT, Construction.NULL_REF.x],
+-		["null slot mirror", SOURCE_NULL_SLOT, Construction.SOURCE_NULL_SLOT],
+-		["null generation", SOURCE_NULL_GENERATION, Construction.NULL_REF.y],
+-		["null generation mirror", SOURCE_NULL_GENERATION, Construction.SOURCE_NULL_GENERATION],
+-		["directory capacity", SOURCE_DIRECTORY_CAPACITY,
+-			Construction.EntityDirectory.DIRECTORY_CAPACITY],
+-		["directory capacity mirror", SOURCE_DIRECTORY_CAPACITY, Construction.SOURCE_DIRECTORY_CAPACITY],
+-		["directory capacity gate", SOURCE_DIRECTORY_CAPACITY, Construction.COLUMN_DIRECTORY_CAPACITY],
+-		["purpose build", SOURCE_PURPOSE_BUILD, Construction.PURPOSE_BUILD],
+-		["purpose build mirror", SOURCE_PURPOSE_BUILD, Construction.SOURCE_PURPOSE_BUILD],
+-		["purpose upgrade", SOURCE_PURPOSE_UPGRADE, Construction.PURPOSE_UPGRADE],
+-		["purpose upgrade mirror", SOURCE_PURPOSE_UPGRADE, Construction.SOURCE_PURPOSE_UPGRADE],
+-		["purpose furniture", SOURCE_PURPOSE_FURNITURE, Construction.PURPOSE_FURNITURE],
+-		["purpose furniture mirror", SOURCE_PURPOSE_FURNITURE, Construction.SOURCE_PURPOSE_FURNITURE],
+-		["purpose demolish", SOURCE_PURPOSE_DEMOLISH, Construction.PURPOSE_DEMOLISH],
+-		["purpose demolish mirror", SOURCE_PURPOSE_DEMOLISH, Construction.SOURCE_PURPOSE_DEMOLISH],
+-		["purpose count", SOURCE_PURPOSE_COUNT, Construction.PURPOSE_COUNT],
+-		["purpose count mirror", SOURCE_PURPOSE_COUNT, Construction.SOURCE_PURPOSE_COUNT],
+-		["phase awaiting", SOURCE_PHASE_AWAITING_MATERIALS, Construction.PHASE_AWAITING_MATERIALS],
+-		["phase awaiting mirror", SOURCE_PHASE_AWAITING_MATERIALS,
+-			Construction.SOURCE_PHASE_AWAITING_MATERIALS],
+-		["phase ready", SOURCE_PHASE_READY, Construction.PHASE_READY],
+-		["phase ready mirror", SOURCE_PHASE_READY, Construction.SOURCE_PHASE_READY],
+-		["phase working", SOURCE_PHASE_WORKING, Construction.PHASE_WORKING],
+-		["phase working mirror", SOURCE_PHASE_WORKING, Construction.SOURCE_PHASE_WORKING],
+-		["phase work done", SOURCE_PHASE_WORK_DONE, Construction.PHASE_WORK_DONE],
+-		["phase work done mirror", SOURCE_PHASE_WORK_DONE, Construction.SOURCE_PHASE_WORK_DONE],
+-		["phase refunding", SOURCE_PHASE_REFUNDING, Construction.PHASE_REFUNDING],
+-		["phase refunding mirror", SOURCE_PHASE_REFUNDING, Construction.SOURCE_PHASE_REFUNDING],
+-		["phase count", SOURCE_PHASE_COUNT, Construction.PHASE_COUNT],
+-		["phase count mirror", SOURCE_PHASE_COUNT, Construction.SOURCE_PHASE_COUNT],
+-		["refund full", SOURCE_REFUND_FULL, Construction.REFUND_FULL],
+-		["refund full mirror", SOURCE_REFUND_FULL, Construction.SOURCE_REFUND_FULL],
+-		["refund partial", SOURCE_REFUND_PARTIAL, Construction.REFUND_PARTIAL],
+-		["refund partial mirror", SOURCE_REFUND_PARTIAL, Construction.SOURCE_REFUND_PARTIAL],
+-		["refund demolition", SOURCE_REFUND_DEMOLITION, Construction.REFUND_DEMOLITION],
+-		["refund demolition mirror", SOURCE_REFUND_DEMOLITION, Construction.SOURCE_REFUND_DEMOLITION],
+-		["refund policy count", SOURCE_REFUND_POLICY_COUNT, Construction.REFUND_POLICY_COUNT],
+-		["refund policy count mirror", SOURCE_REFUND_POLICY_COUNT,
+-			Construction.SOURCE_REFUND_POLICY_COUNT],
+-		["building kind count", SOURCE_BUILDING_KIND_COUNT, Construction.BUILDING_KINDS],
+-		["building kind count mirror", SOURCE_BUILDING_KIND_COUNT,
+-			Construction.SOURCE_BUILDING_KIND_COUNT],
+-		["furniture kind count", SOURCE_FURNITURE_KIND_COUNT, Construction.FURNITURE_KINDS],
+-		["furniture kind count mirror", SOURCE_FURNITURE_KIND_COUNT,
+-			Construction.SOURCE_FURNITURE_KIND_COUNT],
+-		["material key count", SOURCE_MATERIAL_KEY_COUNT, Construction.MATERIAL_KEY_COUNT],
+-		["material key count mirror", SOURCE_MATERIAL_KEY_COUNT, Construction.SOURCE_MATERIAL_KEY_COUNT],
+-		["tier two count", SOURCE_TIER_TWO_COUNT, Construction.BuildingDefinitions.TIER_TWO_KEYS.size()],
+-		["tier two count mirror", SOURCE_TIER_TWO_COUNT, Construction.SOURCE_TIER_TWO_COUNT],
+-	]
+-	for check: Array in checks:
+-		if int(check[1]) != int(check[2]):
+-			return _refuse_metadata("%s is %d, not %d" % [String(check[0]), int(check[2]), int(check[1])])
+-	return _accept()
++static func _anchor(label: String, actual: int, expected: int) -> SaveHeader.Refusal:
++	"""One explicit gate-4 scalar disagreement, in the frozen '<label> is A, not B' wording."""
++	return _refuse_metadata("%s is %d, not %d" % [label, actual, expected])
++
++
++static func _scalar_anchor_refusal() -> SaveHeader.Refusal:
++	"""Every pinned scalar, in the frozen group order, against BOTH Construction's live constant
++	and its own in-file SOURCE_* mirror, from this bridge's own independent literal. Explicit
++	comparisons only: no check table is allocated, so no gate can be lost inside one."""
++	var capacity: SaveHeader.Refusal = _capacity_anchor_refusal()
++	if not capacity.is_ok():
++		return capacity
++	var references: SaveHeader.Refusal = _reference_anchor_refusal()
++	if not references.is_ok():
++		return references
++	var purposes: SaveHeader.Refusal = _purpose_anchor_refusal()
++	if not purposes.is_ok():
++		return purposes
++	var phases: SaveHeader.Refusal = _phase_anchor_refusal()
++	if not phases.is_ok():
++		return phases
++	var refunds: SaveHeader.Refusal = _refund_anchor_refusal()
++	if not refunds.is_ok():
++		return refunds
++	var domains: SaveHeader.Refusal = _domain_anchor_refusal()
++	if not domains.is_ok():
++		return domains
++	return _fact_index_anchor_refusal()
++
++
++static func _capacity_anchor_refusal() -> SaveHeader.Refusal:
++	"""Row capacity, the ledger stride, the builder cap and the demolition ratio."""
++	if Construction.CONSTRUCTION_CAPACITY != SOURCE_ROW_CAPACITY:
++		return _anchor("row capacity", Construction.CONSTRUCTION_CAPACITY, SOURCE_ROW_CAPACITY)
++	if Construction.SOURCE_ROW_CAPACITY != SOURCE_ROW_CAPACITY:
++		return _anchor("row capacity mirror", Construction.SOURCE_ROW_CAPACITY, SOURCE_ROW_CAPACITY)
++	if Construction.Columns.ROW_CAPACITY != SOURCE_ROW_CAPACITY:
++		return _anchor("columns row capacity", Construction.Columns.ROW_CAPACITY, SOURCE_ROW_CAPACITY)
++	if Construction.MATERIAL_SLOTS_PER_PROJECT != SOURCE_MATERIAL_SLOTS_PER_PROJECT:
++		return _anchor("material slots", Construction.MATERIAL_SLOTS_PER_PROJECT,
++			SOURCE_MATERIAL_SLOTS_PER_PROJECT)
++	if Construction.SOURCE_MATERIAL_SLOTS_PER_PROJECT != SOURCE_MATERIAL_SLOTS_PER_PROJECT:
++		return _anchor("material slots mirror", Construction.SOURCE_MATERIAL_SLOTS_PER_PROJECT,
++			SOURCE_MATERIAL_SLOTS_PER_PROJECT)
++	if Construction.MAX_BUILDERS != SOURCE_MAX_BUILDERS:
++		return _anchor("max builders", Construction.MAX_BUILDERS, SOURCE_MAX_BUILDERS)
++	if Construction.SOURCE_MAX_BUILDERS != SOURCE_MAX_BUILDERS:
++		return _anchor("max builders mirror", Construction.SOURCE_MAX_BUILDERS, SOURCE_MAX_BUILDERS)
++	if Construction.DEMOLITION_WORK_NUM != SOURCE_DEMOLITION_WORK_NUM:
++		return _anchor("demolition work num", Construction.DEMOLITION_WORK_NUM,
++			SOURCE_DEMOLITION_WORK_NUM)
++	if Construction.SOURCE_DEMOLITION_WORK_NUM != SOURCE_DEMOLITION_WORK_NUM:
++		return _anchor("demolition work num mirror", Construction.SOURCE_DEMOLITION_WORK_NUM,
++			SOURCE_DEMOLITION_WORK_NUM)
++	if Construction.DEMOLITION_WORK_DEN != SOURCE_DEMOLITION_WORK_DEN:
++		return _anchor("demolition work den", Construction.DEMOLITION_WORK_DEN,
++			SOURCE_DEMOLITION_WORK_DEN)
++	if Construction.SOURCE_DEMOLITION_WORK_DEN != SOURCE_DEMOLITION_WORK_DEN:
++		return _anchor("demolition work den mirror", Construction.SOURCE_DEMOLITION_WORK_DEN,
++			SOURCE_DEMOLITION_WORK_DEN)
++	return _accept()
++
++
++static func _reference_anchor_refusal() -> SaveHeader.Refusal:
++	"""The i32 boundary, the null pair and the Directory capacity, live, mirrored and gate-side."""
++	if Construction.INT32_MAX != SOURCE_INT32_MAX:
++		return _anchor("int32 max", Construction.INT32_MAX, SOURCE_INT32_MAX)
++	if Construction.SOURCE_INT32_MAX != SOURCE_INT32_MAX:
++		return _anchor("int32 max mirror", Construction.SOURCE_INT32_MAX, SOURCE_INT32_MAX)
++	if Construction.NULL_REF.x != SOURCE_NULL_SLOT:
++		return _anchor("null slot", Construction.NULL_REF.x, SOURCE_NULL_SLOT)
++	if Construction.SOURCE_NULL_SLOT != SOURCE_NULL_SLOT:
++		return _anchor("null slot mirror", Construction.SOURCE_NULL_SLOT, SOURCE_NULL_SLOT)
++	if Construction.NULL_REF.y != SOURCE_NULL_GENERATION:
++		return _anchor("null generation", Construction.NULL_REF.y, SOURCE_NULL_GENERATION)
++	if Construction.SOURCE_NULL_GENERATION != SOURCE_NULL_GENERATION:
++		return _anchor("null generation mirror", Construction.SOURCE_NULL_GENERATION,
++			SOURCE_NULL_GENERATION)
++	if Construction.EntityDirectory.DIRECTORY_CAPACITY != SOURCE_DIRECTORY_CAPACITY:
++		return _anchor("directory capacity", Construction.EntityDirectory.DIRECTORY_CAPACITY,
++			SOURCE_DIRECTORY_CAPACITY)
++	if Construction.SOURCE_DIRECTORY_CAPACITY != SOURCE_DIRECTORY_CAPACITY:
++		return _anchor("directory capacity mirror", Construction.SOURCE_DIRECTORY_CAPACITY,
++			SOURCE_DIRECTORY_CAPACITY)
++	if Construction.COLUMN_DIRECTORY_CAPACITY != SOURCE_DIRECTORY_CAPACITY:
++		return _anchor("directory capacity gate", Construction.COLUMN_DIRECTORY_CAPACITY,
++			SOURCE_DIRECTORY_CAPACITY)
++	return _accept()
++
++
++static func _purpose_anchor_refusal() -> SaveHeader.Refusal:
++	"""The four purpose ordinals and their count, live and mirrored."""
++	if Construction.PURPOSE_BUILD != SOURCE_PURPOSE_BUILD:
++		return _anchor("purpose build", Construction.PURPOSE_BUILD, SOURCE_PURPOSE_BUILD)
++	if Construction.SOURCE_PURPOSE_BUILD != SOURCE_PURPOSE_BUILD:
++		return _anchor("purpose build mirror", Construction.SOURCE_PURPOSE_BUILD,
++			SOURCE_PURPOSE_BUILD)
++	if Construction.PURPOSE_UPGRADE != SOURCE_PURPOSE_UPGRADE:
++		return _anchor("purpose upgrade", Construction.PURPOSE_UPGRADE, SOURCE_PURPOSE_UPGRADE)
++	if Construction.SOURCE_PURPOSE_UPGRADE != SOURCE_PURPOSE_UPGRADE:
++		return _anchor("purpose upgrade mirror", Construction.SOURCE_PURPOSE_UPGRADE,
++			SOURCE_PURPOSE_UPGRADE)
++	if Construction.PURPOSE_FURNITURE != SOURCE_PURPOSE_FURNITURE:
++		return _anchor("purpose furniture", Construction.PURPOSE_FURNITURE,
++			SOURCE_PURPOSE_FURNITURE)
++	if Construction.SOURCE_PURPOSE_FURNITURE != SOURCE_PURPOSE_FURNITURE:
++		return _anchor("purpose furniture mirror", Construction.SOURCE_PURPOSE_FURNITURE,
++			SOURCE_PURPOSE_FURNITURE)
++	if Construction.PURPOSE_DEMOLISH != SOURCE_PURPOSE_DEMOLISH:
++		return _anchor("purpose demolish", Construction.PURPOSE_DEMOLISH,
++			SOURCE_PURPOSE_DEMOLISH)
++	if Construction.SOURCE_PURPOSE_DEMOLISH != SOURCE_PURPOSE_DEMOLISH:
++		return _anchor("purpose demolish mirror", Construction.SOURCE_PURPOSE_DEMOLISH,
++			SOURCE_PURPOSE_DEMOLISH)
++	if Construction.PURPOSE_COUNT != SOURCE_PURPOSE_COUNT:
++		return _anchor("purpose count", Construction.PURPOSE_COUNT, SOURCE_PURPOSE_COUNT)
++	if Construction.SOURCE_PURPOSE_COUNT != SOURCE_PURPOSE_COUNT:
++		return _anchor("purpose count mirror", Construction.SOURCE_PURPOSE_COUNT,
++			SOURCE_PURPOSE_COUNT)
++	return _accept()
++
++
++static func _phase_anchor_refusal() -> SaveHeader.Refusal:
++	"""The awaiting, ready and working phase ordinals, live and mirrored."""
++	if Construction.PHASE_AWAITING_MATERIALS != SOURCE_PHASE_AWAITING_MATERIALS:
++		return _anchor("phase awaiting", Construction.PHASE_AWAITING_MATERIALS,
++			SOURCE_PHASE_AWAITING_MATERIALS)
++	if Construction.SOURCE_PHASE_AWAITING_MATERIALS != SOURCE_PHASE_AWAITING_MATERIALS:
++		return _anchor("phase awaiting mirror", Construction.SOURCE_PHASE_AWAITING_MATERIALS,
++			SOURCE_PHASE_AWAITING_MATERIALS)
++	if Construction.PHASE_READY != SOURCE_PHASE_READY:
++		return _anchor("phase ready", Construction.PHASE_READY, SOURCE_PHASE_READY)
++	if Construction.SOURCE_PHASE_READY != SOURCE_PHASE_READY:
++		return _anchor("phase ready mirror", Construction.SOURCE_PHASE_READY,
++			SOURCE_PHASE_READY)
++	if Construction.PHASE_WORKING != SOURCE_PHASE_WORKING:
++		return _anchor("phase working", Construction.PHASE_WORKING, SOURCE_PHASE_WORKING)
++	if Construction.SOURCE_PHASE_WORKING != SOURCE_PHASE_WORKING:
++		return _anchor("phase working mirror", Construction.SOURCE_PHASE_WORKING,
++			SOURCE_PHASE_WORKING)
++	return _phase_tail_anchor_refusal()
++
++
++static func _phase_tail_anchor_refusal() -> SaveHeader.Refusal:
++	"""The work-done and refunding ordinals and the phase count, live and mirrored."""
++	if Construction.PHASE_WORK_DONE != SOURCE_PHASE_WORK_DONE:
++		return _anchor("phase work done", Construction.PHASE_WORK_DONE,
++			SOURCE_PHASE_WORK_DONE)
++	if Construction.SOURCE_PHASE_WORK_DONE != SOURCE_PHASE_WORK_DONE:
++		return _anchor("phase work done mirror", Construction.SOURCE_PHASE_WORK_DONE,
++			SOURCE_PHASE_WORK_DONE)
++	if Construction.PHASE_REFUNDING != SOURCE_PHASE_REFUNDING:
++		return _anchor("phase refunding", Construction.PHASE_REFUNDING,
++			SOURCE_PHASE_REFUNDING)
++	if Construction.SOURCE_PHASE_REFUNDING != SOURCE_PHASE_REFUNDING:
++		return _anchor("phase refunding mirror", Construction.SOURCE_PHASE_REFUNDING,
++			SOURCE_PHASE_REFUNDING)
++	if Construction.PHASE_COUNT != SOURCE_PHASE_COUNT:
++		return _anchor("phase count", Construction.PHASE_COUNT, SOURCE_PHASE_COUNT)
++	if Construction.SOURCE_PHASE_COUNT != SOURCE_PHASE_COUNT:
++		return _anchor("phase count mirror", Construction.SOURCE_PHASE_COUNT,
++			SOURCE_PHASE_COUNT)
++	return _accept()
++
++
++static func _refund_anchor_refusal() -> SaveHeader.Refusal:
++	"""The three refund-policy ordinals and their count, live and mirrored."""
++	if Construction.REFUND_FULL != SOURCE_REFUND_FULL:
++		return _anchor("refund full", Construction.REFUND_FULL, SOURCE_REFUND_FULL)
++	if Construction.SOURCE_REFUND_FULL != SOURCE_REFUND_FULL:
++		return _anchor("refund full mirror", Construction.SOURCE_REFUND_FULL, SOURCE_REFUND_FULL)
++	if Construction.REFUND_PARTIAL != SOURCE_REFUND_PARTIAL:
++		return _anchor("refund partial", Construction.REFUND_PARTIAL, SOURCE_REFUND_PARTIAL)
++	if Construction.SOURCE_REFUND_PARTIAL != SOURCE_REFUND_PARTIAL:
++		return _anchor("refund partial mirror", Construction.SOURCE_REFUND_PARTIAL,
++			SOURCE_REFUND_PARTIAL)
++	if Construction.REFUND_DEMOLITION != SOURCE_REFUND_DEMOLITION:
++		return _anchor("refund demolition", Construction.REFUND_DEMOLITION,
++			SOURCE_REFUND_DEMOLITION)
++	if Construction.SOURCE_REFUND_DEMOLITION != SOURCE_REFUND_DEMOLITION:
++		return _anchor("refund demolition mirror", Construction.SOURCE_REFUND_DEMOLITION,
++			SOURCE_REFUND_DEMOLITION)
++	if Construction.REFUND_POLICY_COUNT != SOURCE_REFUND_POLICY_COUNT:
++		return _anchor("refund policy count", Construction.REFUND_POLICY_COUNT,
++			SOURCE_REFUND_POLICY_COUNT)
++	if Construction.SOURCE_REFUND_POLICY_COUNT != SOURCE_REFUND_POLICY_COUNT:
++		return _anchor("refund policy count mirror", Construction.SOURCE_REFUND_POLICY_COUNT,
++			SOURCE_REFUND_POLICY_COUNT)
++	return _accept()
++
++
++static func _domain_anchor_refusal() -> SaveHeader.Refusal:
++	"""Both domain counts, the material key count and the tier-two count, live and mirrored."""
++	if Construction.BUILDING_KINDS != SOURCE_BUILDING_KIND_COUNT:
++		return _anchor("building kind count", Construction.BUILDING_KINDS,
++			SOURCE_BUILDING_KIND_COUNT)
++	if Construction.SOURCE_BUILDING_KIND_COUNT != SOURCE_BUILDING_KIND_COUNT:
++		return _anchor("building kind count mirror", Construction.SOURCE_BUILDING_KIND_COUNT,
++			SOURCE_BUILDING_KIND_COUNT)
++	if Construction.FURNITURE_KINDS != SOURCE_FURNITURE_KIND_COUNT:
++		return _anchor("furniture kind count", Construction.FURNITURE_KINDS,
++			SOURCE_FURNITURE_KIND_COUNT)
++	if Construction.SOURCE_FURNITURE_KIND_COUNT != SOURCE_FURNITURE_KIND_COUNT:
++		return _anchor("furniture kind count mirror", Construction.SOURCE_FURNITURE_KIND_COUNT,
++			SOURCE_FURNITURE_KIND_COUNT)
++	if Construction.MATERIAL_KEY_COUNT != SOURCE_MATERIAL_KEY_COUNT:
++		return _anchor("material key count", Construction.MATERIAL_KEY_COUNT,
++			SOURCE_MATERIAL_KEY_COUNT)
++	if Construction.SOURCE_MATERIAL_KEY_COUNT != SOURCE_MATERIAL_KEY_COUNT:
++		return _anchor("material key count mirror", Construction.SOURCE_MATERIAL_KEY_COUNT,
++			SOURCE_MATERIAL_KEY_COUNT)
++	if Construction.BuildingDefinitions.TIER_TWO_KEYS.size() != SOURCE_TIER_TWO_COUNT:
++		return _anchor("tier two count", Construction.BuildingDefinitions.TIER_TWO_KEYS.size(),
++			SOURCE_TIER_TWO_COUNT)
++	if Construction.SOURCE_TIER_TWO_COUNT != SOURCE_TIER_TWO_COUNT:
++		return _anchor("tier two count mirror", Construction.SOURCE_TIER_TWO_COUNT,
++			SOURCE_TIER_TWO_COUNT)
++	return _accept()
++
++
++static func _fact_index_anchor_refusal() -> SaveHeader.Refusal:
++	"""BuildingDefinition fact-row indexes and row width, live and mirrored (finding B2).
++
++	Construction's own preflight compares its fact rows against ITS OWN in-file mirror of these
++	indexes, so a coordinated source-and-mirror rearrangement survives it. These independent
++	literals do not: they are compared against both sides and derived from neither.
++	"""
++	if Construction.BuildingDefinitions.B_WORK_MWU != SOURCE_B_WORK_MWU:
++		return _anchor("building work index", Construction.BuildingDefinitions.B_WORK_MWU,
++			SOURCE_B_WORK_MWU)
++	if Construction.SOURCE_B_WORK_MWU != SOURCE_B_WORK_MWU:
++		return _anchor("building work index mirror", Construction.SOURCE_B_WORK_MWU,
++			SOURCE_B_WORK_MWU)
++	if Construction.BuildingDefinitions.B_MAX_BUILDERS != SOURCE_B_MAX_BUILDERS:
++		return _anchor("building max builders index",
++			Construction.BuildingDefinitions.B_MAX_BUILDERS, SOURCE_B_MAX_BUILDERS)
++	if Construction.SOURCE_B_MAX_BUILDERS != SOURCE_B_MAX_BUILDERS:
++		return _anchor("building max builders index mirror", Construction.SOURCE_B_MAX_BUILDERS,
++			SOURCE_B_MAX_BUILDERS)
++	if Construction.BuildingDefinitions.B_FIELD_COUNT != SOURCE_B_FIELD_COUNT:
++		return _anchor("building field count", Construction.BuildingDefinitions.B_FIELD_COUNT,
++			SOURCE_B_FIELD_COUNT)
++	if Construction.SOURCE_B_FIELD_COUNT != SOURCE_B_FIELD_COUNT:
++		return _anchor("building field count mirror", Construction.SOURCE_B_FIELD_COUNT,
++			SOURCE_B_FIELD_COUNT)
++	return _furniture_index_anchor_refusal()
++
++
++static func _furniture_index_anchor_refusal() -> SaveHeader.Refusal:
++	"""FurnitureDefinition fact-row index and row width, live and mirrored (finding B2)."""
++	if Construction.BuildingDefinitions.F_WORK_MWU != SOURCE_F_WORK_MWU:
++		return _anchor("furniture work index", Construction.BuildingDefinitions.F_WORK_MWU,
++			SOURCE_F_WORK_MWU)
++	if Construction.SOURCE_F_WORK_MWU != SOURCE_F_WORK_MWU:
++		return _anchor("furniture work index mirror", Construction.SOURCE_F_WORK_MWU,
++			SOURCE_F_WORK_MWU)
++	if Construction.BuildingDefinitions.F_FIELD_COUNT != SOURCE_F_FIELD_COUNT:
++		return _anchor("furniture field count", Construction.BuildingDefinitions.F_FIELD_COUNT,
++			SOURCE_F_FIELD_COUNT)
++	if Construction.SOURCE_F_FIELD_COUNT != SOURCE_F_FIELD_COUNT:
++		return _anchor("furniture field count mirror", Construction.SOURCE_F_FIELD_COUNT,
++			SOURCE_F_FIELD_COUNT)
++	return _accept()
+ 
+ 
+ static func _array_anchor_refusal() -> SaveHeader.Refusal:

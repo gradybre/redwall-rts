@@ -1,0 +1,37 @@
+{
+  "id": "construction-combined-review-a2",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-combined-review-a2",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-combined-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/save_owner_construction.gd",
+    "tools/test_construction_metadata_preflights.py",
+    "tools/test_construction_allocation.py",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/review-a2-input.md",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/review-a1-disposition.md",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/independent-combined-review.md",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/review-followup-fault-proposal.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/post-review-source-and-target-verification.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/row-semantic-unchanged-code-proof.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/optimized-python-refusal.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/candidate-validation-index.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/projection-purity-faults-a2/result.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/release-checks-a2/focus.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/release-checks-a2/metadata.log",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/release-checks-a2/allocation.log"
+  ],
+  "instructions": "Same independent reviewer follow-up to your four medium/eight listed low findings, no author session sharing. Prior sources/contract remain valid except supplied source/harness repairs and evidence, no removed dependency. Read review-a2-input and all changes; state each condition closed or precise residual. Full combined code/security/QA source acceptance verdict scoped to repaired candidate, executionclaims limited to supplied evidence. Final full/static/CI are parent-gated, do not claim pending results. Return full review in summary, files:[], five-keyJSON; runner writes trusted review target. No source edits or acceptance from counts alone.\n\nDispatch audit: {\"base_commit\":\"818197313aa87cae2c1e6cfe091abe27d24817fc\",\"task\":\"Independent code/security/QA review of exact Construction component-validation candidate\",\"allowedWrites\":{\"docs/validation/evidence/construction-component-validation-2026-09-20/independent-combined-review-a2.md\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-combined-review-a1",
+  "reviewTarget": {
+    "path": "docs/validation/evidence/construction-component-validation-2026-09-20/independent-combined-review-a2.md",
+    "baseSha256": null
+  }
+}

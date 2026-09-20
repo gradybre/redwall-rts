@@ -1,0 +1,30 @@
+{
+  "id": "construction-functional-tests-author-a1",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-functional-tests-author-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-functional-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/witness-plan-v2.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/test-author-guidance.md",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/save_owner_construction.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_header.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd"
+  ],
+  "instructions": "Implement independent functional tests against the supplied finalized local candidate, not production changes. Produce exactly the three allowed files. Read the accepted contract, frozen facts and witness-plan-v2: exact independent expected literals, never expected values obtained from Owner.columns_refusal or its gate arrays. Ordinary tests extend the supplied TestCase; focus extends run_tests and discovers exactly the two new suites plus existing test_construction.gd. Keep typed GDScript/helpers <=30 code lines, all test methods assert, no tests execute nothing. No network/tools available; do not claim execution.\nThis bounded tranche covers default/borrowed/null image and all16 clear values/types/extents, all48 field shape faults, all40 manifest scalar cases at five physical positions,3flags with2/255 at all declared positions, row ordering and ordered gate collisions. Manifest cases may be loaded from repository doc via actual FileAccess then strict fixture validation or transcribed literally; no silent skip/default if missing/malformed. Pack every valid purpose/type/phase/work boundary/worker boundary/paused tuple into one image, then a second full82944 mixed image from these tuples. All30build,4upgrade,9furniture,30demolition types; retained variants also covered synthetically. Freeze numeric source facts independently. Include Directory and fulli32 Inventory reference boundary successes. Runtime print a compact JSON marker giving expanded positive tuple count and full tuple data for Astra to retain as actual evidence (one print, not per-loop noisy). Tests must not derive positive policy/phase expectations from implementation under test.\nBridge tests exact owner/metadata shape, null/wrong owner, ordinary framed shape faults, pure-code forwarding with exact detail prefix and empty success detail. Construct actual Section.FramedOwner with real typed field records using its supplied API. Directly call actual private static _project_columns into Columns(false), use distinguishable patterns in each of16 typed columns, assert corresponding output equality (and retain distinct same-type self/subject values). All16 fields individually omitted from a caller-owned projected view should be shape-invalid; later source fault campaign will separately remove actual assignments. Keep direct caller-owned full-column equality on success and representative refusals, plus framed caller full-column equality separately: Godot COW masks view mutation. Must not test a handwritten duplicate mapper.\nActual injected source/schema/semantic/projection/allocation faults and twelve REAL public histories will be separate later packets; do not pretend this tranche closes them. Do not implement a production bypass, private live accessor, altered contract or changed implementation to make tests pass. If frozen expectations conflict with actual APIs, raise a concrete question. All files new: each bundle file exactly3keys baseSha256:null FIRST,path,content; top-level exactly status,summary,questions,files,decisionIds. Bound total source <=1500lines; concise helpers/table-driven cases, preserve required witnesses. No result/evidence file claiming unrun tests.\n\nDispatch audit: {\"base_commit\":\"818197313aa87cae2c1e6cfe091abe27d24817fc\",\"task\":\"Independent Construction local-validator and actual save-adapter functional witnesses\",\"allowedWrites\":{\"godot/test/test_construction_columns.gd\":null,\"godot/test/test_save_owner_construction.gd\":null,\"godot/test/construction_columns_focus.gd\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized."
+}

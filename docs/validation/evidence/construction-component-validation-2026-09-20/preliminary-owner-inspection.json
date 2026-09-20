@@ -1,0 +1,21 @@
+{
+  "status": "preliminary_unaccepted_candidate_inspection",
+  "source_applied": false,
+  "patch_sha256": "fd1f1cf222b57cf17200b77645fc548995afc83de8c4f8197eb5d5fc097e65fb",
+  "positive": "All seven building/furniture gate fact arrays mechanically match frozen-source-facts.json (lengths30/9 and all values). Row predicate reviewed preliminarily; no runtime or independent-source acceptance.",
+  "findings": [
+    {
+      "id": "A1",
+      "severity": "must_fix",
+      "fact": "column_source_metadata_refusal does not pin required scalar indices/ordinals/capacities, demolition numerator/denominator or material key list before fact indexing. Changing B_WORK_MWU to out-of-range or demolition divisor0 can cause runtime error instead of COLUMN_SOURCE_METADATA. Coupled domain counts/array lengths are compared only to mutable source constants, not frozen extents.",
+      "required": "An independently safe scalar/domain preflight before every source-row/index access. Freeze exact semantic constants from contract; validate source counts and all array lengths against literal30/9/4, exact tier-two list extent, known material keys, building index2/max9/count10 and furniture index2/count4."
+    },
+    {
+      "id": "A2",
+      "severity": "format",
+      "fact": "Both emitted file entries omitted mandatory baseSha256, despite exact protocol instructions. Public response recovered from owned CLI session text only; no thinking copied. Final bounded format repair asks explicit baseSha256 first.",
+      "required": "Valid exact file bundle before application. No invented missing fields or relaxed provenance."
+    }
+  ],
+  "next": "After stopped valid delivery, verify original source prefix and regression. Isolate metadata correction as a specialist author packet with concrete source-fault witnesses; final complete validation and independent review still required."
+}

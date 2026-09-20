@@ -1,0 +1,16 @@
+{
+  "step": "metadata",
+  "command": [
+    "python3",
+    "tools/test_construction_metadata_preflights.py"
+  ],
+  "seconds": 40.345,
+  "exit_code": 0,
+  "counts": null,
+  "expected_counts": null,
+  "passed": true,
+  "error_lines": [],
+  "error_multiset_matches_expected": true,
+  "leak_diagnostic_lines": [],
+  "log_sha256": "1345706092042ec0e9cf854b079a65765804013cda894b16e451020d8516c609"
+}

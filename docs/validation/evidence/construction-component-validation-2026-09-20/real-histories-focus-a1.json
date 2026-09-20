@@ -1,0 +1,396 @@
+{
+  "name": "real-histories-focus-a1",
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "e5d3fd006311c43c3b20b0a3f2209945e5ade12ad08b84ddcaf8d49ef6e3e326",
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/test/test_construction.gd": "94238745efb50a2d6a55509ec71b124fddf9e172da5296ce7ee4b4554a42e7f6",
+    "godot/test/test_construction_columns.gd": "fe8d125c99e6198d3abd4bc3dff15d48fb7c0e836d33bfea9446744ad16a819d",
+    "godot/test/test_save_owner_construction.gd": "d42cc22c680da808ca2659a6815525d03291254221b1664e3aaf58d985605c21",
+    "godot/test/test_construction_retired_histories.gd": "8b2bbbfd5795b9086bd4839059636bcaeb2c914199e887fd87933c00f8b4fe1e",
+    "godot/test/construction_columns_focus.gd": "fd24cdddca0c3c687c23e9234737fe38efb2b638f16b52e3f0989bf8891f0267"
+  },
+  "source_unchanged": true,
+  "seconds": 27.732,
+  "exit_code": 0,
+  "counts": [
+    94,
+    2293,
+    0
+  ],
+  "errors": false,
+  "real_histories": [
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "BUILD-C",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 3,
+        "present": 0,
+        "purpose": 0,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 1,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 19,
+        "work_begun": 0
+      },
+      "outcome": "completion",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "stockpile alive, ACTIVE, footprint retained"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "BUILD-B",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 4,
+        "present": 0,
+        "purpose": 0,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 0,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 19,
+        "work_begun": 0
+      },
+      "outcome": "cancel-before-work",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "stockpile destroyed, footprint released"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "BUILD-A",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 4,
+        "present": 0,
+        "purpose": 0,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 1,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 19,
+        "work_begun": 0
+      },
+      "outcome": "cancel-after-work",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "stockpile destroyed, footprint released"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "UPGRADE-C",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 3,
+        "present": 0,
+        "purpose": 1,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 1,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 12,
+        "work_begun": 0
+      },
+      "outcome": "completion",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "hall alive, ACTIVE, tier two"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "UPGRADE-B",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 4,
+        "present": 0,
+        "purpose": 1,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 0,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 12,
+        "work_begun": 0
+      },
+      "outcome": "cancel-before-work",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "hall alive, ACTIVE, tier unchanged"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "UPGRADE-A",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 4,
+        "present": 0,
+        "purpose": 1,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 1,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 12,
+        "work_begun": 0
+      },
+      "outcome": "cancel-after-work",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "hall alive, ACTIVE, tier unchanged"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "FURNITURE-C",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 3,
+        "present": 0,
+        "purpose": 2,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 1,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 0,
+        "work_begun": 0
+      },
+      "outcome": "completion",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "bed, dormitory and hall all alive"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "FURNITURE-B",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 4,
+        "present": 0,
+        "purpose": 2,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 0,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 0,
+        "work_begun": 0
+      },
+      "outcome": "cancel-before-work",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "bed, dormitory and hall all alive"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "FURNITURE-A",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 4,
+        "present": 0,
+        "purpose": 2,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 1,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 0,
+        "work_begun": 0
+      },
+      "outcome": "cancel-after-work",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "bed, dormitory and hall all alive"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "DEMOLISH-C",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 3,
+        "present": 0,
+        "purpose": 3,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 2,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 19,
+        "work_begun": 0
+      },
+      "outcome": "completion",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "stockpile destroyed, footprint released"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "DEMOLISH-B",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 4,
+        "present": 0,
+        "purpose": 3,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 2,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 19,
+        "work_begun": 0
+      },
+      "outcome": "cancel-before-work",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "stockpile alive, ACTIVE restored, tier unchanged"
+    },
+    {
+      "delivered_milli": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "history": "DEMOLISH-A",
+      "live_count": 0,
+      "observed_row": {
+        "assigned_count": 0,
+        "material_container_generation": 0,
+        "material_container_slot": -1,
+        "max_workers": 4,
+        "paused": 0,
+        "phase": 4,
+        "present": 0,
+        "purpose": 3,
+        "ref_generation": 0,
+        "ref_slot": -1,
+        "refund_policy": 2,
+        "remaining_mwu": 0,
+        "subject_generation": 0,
+        "subject_slot": -1,
+        "type_id": 19,
+        "work_begun": 0
+      },
+      "outcome": "cancel-after-work",
+      "scope": "public component lifecycle only; not gameplay, inventory conservation, material hauling or save acceptance",
+      "subject_result": "stockpile alive, ACTIVE restored, tier unchanged"
+    }
+  ],
+  "passed": true
+}

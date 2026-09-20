@@ -1,0 +1,7 @@
+{
+  "base_sha256": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
+  "candidate_sha256": "9b429f0ffc277372892d87dd0b45bc7370945ff0b6628e4b2801c69a8b3d73e8",
+  "existing_source_byte_identical_prefix": true,
+  "added_bytes": 26399,
+  "accepted": false
+}

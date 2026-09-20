@@ -1,0 +1,20 @@
+{
+  "scope": "Engine-bound public snapshot feasibility and retained-history probe only, not Construction validator or save format",
+  "source_sha256": {
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/retired-state-probe.gd": "b5ebdbd286d3ffb72c6083733a32130b1382fe8e5c7f5f168700a6ade84065cc",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/retired-state-probe-focus.gd": "96c544c21603a15a9dfdc0c73da5be3edf801a3abf030f6159d17d6480abbcc9",
+    "godot/scripts/core/construction.gd": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
+    "godot/scripts/core/buildings.gd": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5"
+  },
+  "exit_code": 0,
+  "seconds": 2.361,
+  "counts": [
+    4,
+    75,
+    0
+  ],
+  "script_or_engine_error": false,
+  "passed": true,
+  "raw_log": "retired-probe-a1.log",
+  "log_sha256": "ff420fe3990d1cebe16ff6b9c48008be1286dd09c6aa4bc797f60e4076bdf2c6"
+}

@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+probe=metadata-owner contract=CONSTRUCTION-S4-VALIDATE-R01v2 mode=fault
+check=direct_metadata actual="COLUMN_SOURCE_METADATA" expected="COLUMN_SOURCE_METADATA" match=true
+check=null_image actual="COLUMN_SHAPE" expected="COLUMN_SHAPE" match=true
+check=unallocated_image actual="COLUMN_SHAPE" expected="COLUMN_SHAPE" match=true
+check=clear_image actual="COLUMN_SOURCE_METADATA" expected="COLUMN_SOURCE_METADATA" match=true
+check=invalid_flag_image actual="COLUMN_SOURCE_METADATA" expected="COLUMN_SOURCE_METADATA" match=true
+checks=5 mismatches=0 ok=true
+claim=none: diagnostic observation only; no test pass, acceptance or release claim

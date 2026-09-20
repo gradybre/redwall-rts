@@ -1,0 +1,1479 @@
+{
+  "title": "Proposed Construction bridge metadata/schema fault campaign",
+  "status": "PROPOSAL ONLY; no mutations or Godot execution performed",
+  "contract": "CONSTRUCTION-S4-VALIDATE-R01v2 / ADR0186",
+  "date": "2026-09-20",
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "e5d3fd006311c43c3b20b0a3f2209945e5ade12ad08b84ddcaf8d49ef6e3e326",
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+    "docs/planning/construction_component_validation_contract.md": "89dc302a4835147e2361dbf40811efe87565231da102f90ec140b88d9400033d",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-scalar-fault-plan-v2.json": "4f430f7ec966fb7bf48bb135b411e2bca8cadf4a924a69b66d36e3f7980c62d0",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-scalars-a2/result.json": "2613380b3930c04ee22369c5f8ece9762a9a134b46996249caff62bf92422055",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-owner-probe.gd": "5ef8fab1f129d724fd6079e0539553f81f2fe8da67d5bf63ba8363eb81a4e7ec",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/run_construction_metadata_scalar_faults.py": "7188c8688afcbb7a163adcff6efb5f1ca7d53734b08614decaa5c24abe321290"
+  },
+  "prior_coverage": {
+    "result": "metadata-scalars-a2/result.json",
+    "reported_runs": 48,
+    "unique_source_faults": 45,
+    "other_runs": [
+      "baseline-before",
+      "counterfactual-scalar-guard-bypass",
+      "baseline-after"
+    ],
+    "qualification": "Existing result reports 48 valid runs; 45 are source fault units, not48 unique metadata faults. It exercises static owner APIs, not bridge/schema independent anchors. This proposal did not rerun or accept that evidence.",
+    "excluded_repeats": [
+      "construction-construction_capacity",
+      "construction-material_slots_per_project",
+      "construction-max_builders",
+      "construction-demolition_work_num",
+      "construction-demolition_work_den",
+      "construction-purpose_build",
+      "construction-purpose_upgrade",
+      "construction-purpose_furniture",
+      "construction-purpose_demolish",
+      "construction-purpose_count",
+      "construction-phase_awaiting_materials",
+      "construction-phase_ready",
+      "construction-phase_working",
+      "construction-phase_work_done",
+      "construction-phase_refunding",
+      "construction-phase_count",
+      "construction-refund_full",
+      "construction-refund_partial",
+      "construction-refund_demolition",
+      "construction-refund_policy_count",
+      "construction-int32_max",
+      "construction-null_ref",
+      "construction-building_kinds",
+      "construction-furniture_kinds",
+      "construction-material_key_count",
+      "construction-column_directory_capacity",
+      "building_definitions-building_definition_count",
+      "building_definitions-furniture_definition_count",
+      "building_definitions-b_work_mwu",
+      "building_definitions-b_max_builders",
+      "building_definitions-b_field_count",
+      "building_definitions-f_work_mwu",
+      "building_definitions-f_field_count",
+      "entity_directory-directory_capacity",
+      "entity_directory-null_slot",
+      "entity_directory-null_generation",
+      "construction-material_keys-short",
+      "construction-material_keys-swap-first-two",
+      "building_definitions-tier_two_keys-long",
+      "building_definitions-tier_two_keys-short",
+      "construction-column_building_keys-short",
+      "construction-column_furniture_work_mwu-long",
+      "construction-column_upgrade_ids-short",
+      "definitions-building_facts-unused-field-type",
+      "definitions-furniture_facts-unused-field-type"
+    ]
+  },
+  "frozen_schema": {
+    "owner_index": 1,
+    "owner_key": "construction",
+    "owner_version": 1,
+    "section_version": 2,
+    "primary_count": 82944,
+    "child_extent_count": 0,
+    "field_begin": 29,
+    "field_count": 16,
+    "field_global_ordinals": [
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44
+    ],
+    "field_type_codes": [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      4,
+      0,
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "all_field_extents": 82944,
+    "packed_values_bytes": 4893696,
+    "owner_payload_bytes": 4893828,
+    "owner_block_bytes": 4893864,
+    "owner_offset": 3298593,
+    "section_bytes": 12947565,
+    "descriptor_rows": 193184
+  },
+  "execution_protocol_proposal": [
+    "Astra/QA must inspect and authorize campaign adoption separately. Never edit production checkout for faults. Use a fresh isolated no-autoload clone per fault; do not load live Construction, Buildings, Definitions or Directory.",
+    "Check every original whole-file SHA256 before mutation. Each edit old string is an exact whole-source single occurrence; require count==1 and replace once. Multi-edit coherent cases are ONE fault unit and must apply atomically. Manifest generation checked only these textual assertions, not GDScript parsing/execution.",
+    "All source replacements preserve their declared outer types: untyped Dictionary/Array entries can hold malicious Variant values; typed Array values retain element type. Float literals occur ONLY in isolated refusal probes, never authoritative source adoption. Nevertheless only an actual clean parse/runtime execution can validate a refusal.",
+    "Author a dedicated cold bridge probe; existing metadata-owner-probe.gd expects all source faults to fail pure preflight and is unsuitable for independent-anchor/schema cases. Compare literal expected codes and detail prefixes here, not production REFUSE aliases.",
+    "For every case use Section.FramedOwner.new(-1), then set its PUBLIC owner property to literal1; keep all buckets empty. Section115-126 returns before any allocation for invalid constructor owner. This deliberately malformed owner1 frame reaches metadata/schema before shape without unsafe construction against broken schema. Record unchanged owner/buckets before/after.",
+    "Record Owner.column_source_metadata_refusal() independently. For expected pure-empty independent-anchor cases, explicitly assert it succeeds; otherwise earlier refusal would not prove bridge independence. Also call Owner.columns_refusal(Owner.Columns.new(false)) and require literal COLUMN_SHAPE, demonstrating direct shape-before-source priority.",
+    "For schema-family failures compare Bridge.framed_refusal(record).code AND detail byte-for-byte with a separately obtained Schema.schema_refusal(); also require the frozen code and stated detail prefix. Gate3 details must NOT acquire Construction metadata prefix.",
+    "Baseline-before and baseline-after: Schema and pure metadata empty; empty owner1 frame ->SAVE_COMPONENT_SHAPE; null frame ->SAVE_COMPONENT_SHAPE; owner0 empty ->SAVE_COMPONENT_OWNER. Separately use a canonical full clear frame from existing test_save_owner_construction.gd49-69 and require empty code/detail, with data unchanged. Baseline frame constructor zeros alone are not semantic defaults.",
+    "Each run must print every named observation, actual code/detail and expected result, an exact check count, and exit nonzero on mismatch. SCRIPT ERROR, Parse Error, ERROR, missing summary, timeout or crash means INVALID execution, never caught fault. Keep all raw logs, source hashes, applied patch and isolated clone identity. Restore/recreate baseline after each unit; verify main sources remain unchanged.",
+    "Do not change expectation to actual success if a TYPE_STRING-key case is accepted. Report a contract gap for Astra. No provider calls, production fixes or acceptance claims are part of this proposal."
+  ],
+  "priority_collisions": [
+    {
+      "reuse_case": "build-bill-positive-content",
+      "input": "public owner1 frame with empty buckets",
+      "expected": "SAVE_COMPONENT_METADATA / Construction owner1 metadata: build bills ...",
+      "additional": "Owner.columns_refusal(Columns.new(false)) is COLUMN_SHAPE; demonstrates differing entry-point ordering without a new source fault."
+    },
+    {
+      "combine_existing_cases": [
+        "schema-section-version",
+        "build-bill-positive-content"
+      ],
+      "input": "same empty owner1 frame",
+      "expected": "SAVE_COMPONENT_SCHEMA and exact Schema refusal detail; schema before both source metadata and shape",
+      "counting": "One priority collision, not two additional independent source fault units."
+    }
+  ],
+  "limitations_and_gaps": [
+    "Four StringName actual dictionary-key probes are required-refusal expectations with uncertain current behavior. Contract61 requires TYPE_STRING keys; construction1595-1644 and bridge655-680 do not explicitly inspect stored key types. Textual alias behavior cannot establish passing evidence.",
+    "Fact rows currently type-check every scalar but compare VALUES only at work/max-worker gate indexes. Contract61 wording every fact row exact shape/types/values is broader than contract55 gate-consumed scope. Do not inject unrelated footprint/base-storage value drift and call acceptance complete without Astra resolving that wording; such values do not drive this local validator.",
+    "Incoherent begin/count/child mutations prove generic schema forwarding only. Separate coherent owner partition mutations retain all schema arithmetic and are proposed to reach the independent bridge begin/count/child anchors. Do not disable Schema.schema_refusal to manufacture coverage.",
+    "Independent catalog-bijection branch is partly redundant with pure preflight plus frozen COLUMN key anchors. Ordinary catalog faults correctly stop at pure preflight. Requiring them to reach _catalog_bijection_refusal would give false expectations.",
+    "No claim of full mutation coverage: representative shared helper faults avoid repeating every material key/type failure in each bill family, while one exact-positive-content fault per family proves each bridge bill call is wired.",
+    "Section4 metadata does not prove section5 delivered ledger, saved Directory identity, capture/apply, retirement histories, allocation bounds or gameplay construction. Those remain separate evidence."
+  ],
+  "gate_source_refs": {
+    "bridge_order": "godot/scripts/core/save_owner_construction.gd:242-291",
+    "bridge_identity_fields": "godot/scripts/core/save_owner_construction.gd:294-338",
+    "bridge_fact_pins": "godot/scripts/core/save_owner_construction.gd:559-601",
+    "bridge_catalog_bills": "godot/scripts/core/save_owner_construction.gd:655-725",
+    "owner_safe_fact_bill_preflight": "godot/scripts/core/construction.gd:1552-1660",
+    "owner_scalar_and_row_preflight": "godot/scripts/core/construction.gd:1663-1830",
+    "schema_checks": "godot/scripts/core/save_component_columns_schema.gd:233-357",
+    "frame_public_empty_constructor": "godot/scripts/core/save_section_component_columns.gd:99-126"
+  },
+  "unique_proposed_fault_units": 55,
+  "cases": [
+    {
+      "id": "catalog-building-extra-key",
+      "purpose": "Dictionary domain extent, not BUILDING_KINDS scalar.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/catalog.gd",
+          "line": 302,
+          "occurrences_required": 1,
+          "old": "const BUILDING_DEFINITION: Dictionary = {\n\t\"apiary\": 0, \"boathouse\": 1, \"brewery\": 2,\n\t\"cellar\": 3, \"composter\": 4, \"covered_store\": 5,\n\t\"dirt_path\": 6, \"dryer\": 7, \"fence\": 8,\n\t\"fisher_shelter\": 9, \"forester_lodge\": 10, \"gate\": 11,\n\t\"hall\": 12, \"infirmary\": 13, \"kitchen\": 14,\n\t\"lookout\": 15, \"memorial_garden\": 16, \"mill\": 17,\n\t\"nursery\": 18, \"open_stockpile\": 19, \"paved_path\": 20,\n\t\"preserver\": 21, \"quarry_shed\": 22, \"residence\": 23,\n\t\"saltpan\": 24, \"stone_wall\": 25, \"weir\": 26,\n\t\"well\": 27, \"workbench\": 28, \"workshop\": 29,\n}",
+          "new": "const BUILDING_DEFINITION: Dictionary = {\n\t\"extra_probe\": 30, \"apiary\": 0, \"boathouse\": 1, \"brewery\": 2,\n\t\"cellar\": 3, \"composter\": 4, \"covered_store\": 5,\n\t\"dirt_path\": 6, \"dryer\": 7, \"fence\": 8,\n\t\"fisher_shelter\": 9, \"forester_lodge\": 10, \"gate\": 11,\n\t\"hall\": 12, \"infirmary\": 13, \"kitchen\": 14,\n\t\"lookout\": 15, \"memorial_garden\": 16, \"mill\": 17,\n\t\"nursery\": 18, \"open_stockpile\": 19, \"paved_path\": 20,\n\t\"preserver\": 21, \"quarry_shed\": 22, \"residence\": 23,\n\t\"saltpan\": 24, \"stone_wall\": 25, \"weir\": 26,\n\t\"well\": 27, \"workbench\": 28, \"workshop\": 29,\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "catalog-building-key-missing",
+      "purpose": "Same-sized catalog with missing frozen key.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/catalog.gd",
+          "line": 302,
+          "occurrences_required": 1,
+          "old": "const BUILDING_DEFINITION: Dictionary = {\n\t\"apiary\": 0, \"boathouse\": 1, \"brewery\": 2,\n\t\"cellar\": 3, \"composter\": 4, \"covered_store\": 5,\n\t\"dirt_path\": 6, \"dryer\": 7, \"fence\": 8,\n\t\"fisher_shelter\": 9, \"forester_lodge\": 10, \"gate\": 11,\n\t\"hall\": 12, \"infirmary\": 13, \"kitchen\": 14,\n\t\"lookout\": 15, \"memorial_garden\": 16, \"mill\": 17,\n\t\"nursery\": 18, \"open_stockpile\": 19, \"paved_path\": 20,\n\t\"preserver\": 21, \"quarry_shed\": 22, \"residence\": 23,\n\t\"saltpan\": 24, \"stone_wall\": 25, \"weir\": 26,\n\t\"well\": 27, \"workbench\": 28, \"workshop\": 29,\n}",
+          "new": "const BUILDING_DEFINITION: Dictionary = {\n\t\"apiary_probe\": 0, \"boathouse\": 1, \"brewery\": 2,\n\t\"cellar\": 3, \"composter\": 4, \"covered_store\": 5,\n\t\"dirt_path\": 6, \"dryer\": 7, \"fence\": 8,\n\t\"fisher_shelter\": 9, \"forester_lodge\": 10, \"gate\": 11,\n\t\"hall\": 12, \"infirmary\": 13, \"kitchen\": 14,\n\t\"lookout\": 15, \"memorial_garden\": 16, \"mill\": 17,\n\t\"nursery\": 18, \"open_stockpile\": 19, \"paved_path\": 20,\n\t\"preserver\": 21, \"quarry_shed\": 22, \"residence\": 23,\n\t\"saltpan\": 24, \"stone_wall\": 25, \"weir\": 26,\n\t\"well\": 27, \"workbench\": 28, \"workshop\": 29,\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "catalog-building-id-type",
+      "purpose": "Untyped dictionary admits float literal; TYPE_INT must reject before integer coercion.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/catalog.gd",
+          "line": 302,
+          "occurrences_required": 1,
+          "old": "const BUILDING_DEFINITION: Dictionary = {\n\t\"apiary\": 0, \"boathouse\": 1, \"brewery\": 2,\n\t\"cellar\": 3, \"composter\": 4, \"covered_store\": 5,\n\t\"dirt_path\": 6, \"dryer\": 7, \"fence\": 8,\n\t\"fisher_shelter\": 9, \"forester_lodge\": 10, \"gate\": 11,\n\t\"hall\": 12, \"infirmary\": 13, \"kitchen\": 14,\n\t\"lookout\": 15, \"memorial_garden\": 16, \"mill\": 17,\n\t\"nursery\": 18, \"open_stockpile\": 19, \"paved_path\": 20,\n\t\"preserver\": 21, \"quarry_shed\": 22, \"residence\": 23,\n\t\"saltpan\": 24, \"stone_wall\": 25, \"weir\": 26,\n\t\"well\": 27, \"workbench\": 28, \"workshop\": 29,\n}",
+          "new": "const BUILDING_DEFINITION: Dictionary = {\n\t\"apiary\": 0.0, \"boathouse\": 1, \"brewery\": 2,\n\t\"cellar\": 3, \"composter\": 4, \"covered_store\": 5,\n\t\"dirt_path\": 6, \"dryer\": 7, \"fence\": 8,\n\t\"fisher_shelter\": 9, \"forester_lodge\": 10, \"gate\": 11,\n\t\"hall\": 12, \"infirmary\": 13, \"kitchen\": 14,\n\t\"lookout\": 15, \"memorial_garden\": 16, \"mill\": 17,\n\t\"nursery\": 18, \"open_stockpile\": 19, \"paved_path\": 20,\n\t\"preserver\": 21, \"quarry_shed\": 22, \"residence\": 23,\n\t\"saltpan\": 24, \"stone_wall\": 25, \"weir\": 26,\n\t\"well\": 27, \"workbench\": 28, \"workshop\": 29,\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "catalog-building-duplicate-id",
+      "purpose": "Actual ID permutation check, not range or extent.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/catalog.gd",
+          "line": 302,
+          "occurrences_required": 1,
+          "old": "const BUILDING_DEFINITION: Dictionary = {\n\t\"apiary\": 0, \"boathouse\": 1, \"brewery\": 2,\n\t\"cellar\": 3, \"composter\": 4, \"covered_store\": 5,\n\t\"dirt_path\": 6, \"dryer\": 7, \"fence\": 8,\n\t\"fisher_shelter\": 9, \"forester_lodge\": 10, \"gate\": 11,\n\t\"hall\": 12, \"infirmary\": 13, \"kitchen\": 14,\n\t\"lookout\": 15, \"memorial_garden\": 16, \"mill\": 17,\n\t\"nursery\": 18, \"open_stockpile\": 19, \"paved_path\": 20,\n\t\"preserver\": 21, \"quarry_shed\": 22, \"residence\": 23,\n\t\"saltpan\": 24, \"stone_wall\": 25, \"weir\": 26,\n\t\"well\": 27, \"workbench\": 28, \"workshop\": 29,\n}",
+          "new": "const BUILDING_DEFINITION: Dictionary = {\n\t\"apiary\": 0, \"boathouse\": 0, \"brewery\": 2,\n\t\"cellar\": 3, \"composter\": 4, \"covered_store\": 5,\n\t\"dirt_path\": 6, \"dryer\": 7, \"fence\": 8,\n\t\"fisher_shelter\": 9, \"forester_lodge\": 10, \"gate\": 11,\n\t\"hall\": 12, \"infirmary\": 13, \"kitchen\": 14,\n\t\"lookout\": 15, \"memorial_garden\": 16, \"mill\": 17,\n\t\"nursery\": 18, \"open_stockpile\": 19, \"paved_path\": 20,\n\t\"preserver\": 21, \"quarry_shed\": 22, \"residence\": 23,\n\t\"saltpan\": 24, \"stone_wall\": 25, \"weir\": 26,\n\t\"well\": 27, \"workbench\": 28, \"workshop\": 29,\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "catalog-furniture-wrong-domain-id",
+      "purpose": "Building kitchen ID14 must not stand in for Furniture kitchen_bench ID5.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/catalog.gd",
+          "line": 320,
+          "occurrences_required": 1,
+          "old": "const FURNITURE_DEFINITION: Dictionary = {\n\t\"bed\": 0, \"decoration\": 1, \"hearth\": 2,\n\t\"interior_door\": 3, \"interior_partition\": 4, \"kitchen_bench\": 5,\n\t\"patient_bed\": 6, \"seat\": 7, \"shelf\": 8,\n}",
+          "new": "const FURNITURE_DEFINITION: Dictionary = {\n\t\"bed\": 0, \"decoration\": 1, \"hearth\": 2,\n\t\"interior_door\": 3, \"interior_partition\": 4, \"kitchen_bench\": 14,\n\t\"patient_bed\": 6, \"seat\": 7, \"shelf\": 8,\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "building_definition-actual-key-stringname",
+      "purpose": "Contract line61 requires actual stored key TYPE_STRING. Current .has(String) paths do not explicitly inspect key type; runtime alias behavior is an unresolved discriminating witness.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/catalog.gd",
+          "line": 302,
+          "occurrences_required": 1,
+          "old": "const BUILDING_DEFINITION: Dictionary = {\n\t\"apiary\": 0, \"boathouse\": 1, \"brewery\": 2,\n\t\"cellar\": 3, \"composter\": 4, \"covered_store\": 5,\n\t\"dirt_path\": 6, \"dryer\": 7, \"fence\": 8,\n\t\"fisher_shelter\": 9, \"forester_lodge\": 10, \"gate\": 11,\n\t\"hall\": 12, \"infirmary\": 13, \"kitchen\": 14,\n\t\"lookout\": 15, \"memorial_garden\": 16, \"mill\": 17,\n\t\"nursery\": 18, \"open_stockpile\": 19, \"paved_path\": 20,\n\t\"preserver\": 21, \"quarry_shed\": 22, \"residence\": 23,\n\t\"saltpan\": 24, \"stone_wall\": 25, \"weir\": 26,\n\t\"well\": 27, \"workbench\": 28, \"workshop\": 29,\n}",
+          "new": "const BUILDING_DEFINITION: Dictionary = {\n\t&\"apiary\": 0, \"boathouse\": 1, \"brewery\": 2,\n\t\"cellar\": 3, \"composter\": 4, \"covered_store\": 5,\n\t\"dirt_path\": 6, \"dryer\": 7, \"fence\": 8,\n\t\"fisher_shelter\": 9, \"forester_lodge\": 10, \"gate\": 11,\n\t\"hall\": 12, \"infirmary\": 13, \"kitchen\": 14,\n\t\"lookout\": 15, \"memorial_garden\": 16, \"mill\": 17,\n\t\"nursery\": 18, \"open_stockpile\": 19, \"paved_path\": 20,\n\t\"preserver\": 21, \"quarry_shed\": 22, \"residence\": 23,\n\t\"saltpan\": 24, \"stone_wall\": 25, \"weir\": 26,\n\t\"well\": 27, \"workbench\": 28, \"workshop\": 29,\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "REQUIRED refusal; possible current implementation gap, not an observed pass"
+    },
+    {
+      "id": "furniture_definition-actual-key-stringname",
+      "purpose": "Contract line61 requires actual stored key TYPE_STRING. Current .has(String) paths do not explicitly inspect key type; runtime alias behavior is an unresolved discriminating witness.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/catalog.gd",
+          "line": 320,
+          "occurrences_required": 1,
+          "old": "const FURNITURE_DEFINITION: Dictionary = {\n\t\"bed\": 0, \"decoration\": 1, \"hearth\": 2,\n\t\"interior_door\": 3, \"interior_partition\": 4, \"kitchen_bench\": 5,\n\t\"patient_bed\": 6, \"seat\": 7, \"shelf\": 8,\n}",
+          "new": "const FURNITURE_DEFINITION: Dictionary = {\n\t&\"bed\": 0, \"decoration\": 1, \"hearth\": 2,\n\t\"interior_door\": 3, \"interior_partition\": 4, \"kitchen_bench\": 5,\n\t\"patient_bed\": 6, \"seat\": 7, \"shelf\": 8,\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "REQUIRED refusal; possible current implementation gap, not an observed pass"
+    },
+    {
+      "id": "building_facts-actual-key-stringname",
+      "purpose": "Contract line61 requires actual stored key TYPE_STRING. Current .has(String) paths do not explicitly inspect key type; runtime alias behavior is an unresolved discriminating witness.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 100,
+          "occurrences_required": 1,
+          "old": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}",
+          "new": "const BUILDING_FACTS: Dictionary = {\n\t&\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "REQUIRED refusal; possible current implementation gap, not an observed pass"
+    },
+    {
+      "id": "furniture_facts-actual-key-stringname",
+      "purpose": "Contract line61 requires actual stored key TYPE_STRING. Current .has(String) paths do not explicitly inspect key type; runtime alias behavior is an unresolved discriminating witness.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 135,
+          "occurrences_required": 1,
+          "old": "const FURNITURE_FACTS: Dictionary = {\n\t\"bed\": [1, 1, 20000, 1],\n\t\"decoration\": [1, 1, 12000, 0],\n\t\"hearth\": [2, 1, 60000, 0],\n\t\"interior_door\": [0, 0, 12000, 0],\n\t\"interior_partition\": [0, 0, 8000, 0],\n\t\"kitchen_bench\": [2, 1, 60000, 1],\n\t\"patient_bed\": [1, 1, 24000, 1],\n\t\"seat\": [1, 1, 10000, 1],\n\t\"shelf\": [1, 1, 16000, 0],\n}",
+          "new": "const FURNITURE_FACTS: Dictionary = {\n\t&\"bed\": [1, 1, 20000, 1],\n\t\"decoration\": [1, 1, 12000, 0],\n\t\"hearth\": [2, 1, 60000, 0],\n\t\"interior_door\": [0, 0, 12000, 0],\n\t\"interior_partition\": [0, 0, 8000, 0],\n\t\"kitchen_bench\": [2, 1, 60000, 1],\n\t\"patient_bed\": [1, 1, 24000, 1],\n\t\"seat\": [1, 1, 10000, 1],\n\t\"shelf\": [1, 1, 16000, 0],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "REQUIRED refusal; possible current implementation gap, not an observed pass"
+    },
+    {
+      "id": "building-fact-nonarray",
+      "purpose": "Variant fact container proof before assignment/indexing.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 100,
+          "occurrences_required": 1,
+          "old": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}",
+          "new": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": 180000,\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "building-fact-short",
+      "purpose": "Actual row extent; earlier campaign changed index/width constants instead.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 100,
+          "occurrences_required": 1,
+          "old": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}",
+          "new": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "furniture-fact-short",
+      "purpose": "Separate furniture row helper shape path.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 135,
+          "occurrences_required": 1,
+          "old": "const FURNITURE_FACTS: Dictionary = {\n\t\"bed\": [1, 1, 20000, 1],\n\t\"decoration\": [1, 1, 12000, 0],\n\t\"hearth\": [2, 1, 60000, 0],\n\t\"interior_door\": [0, 0, 12000, 0],\n\t\"interior_partition\": [0, 0, 8000, 0],\n\t\"kitchen_bench\": [2, 1, 60000, 1],\n\t\"patient_bed\": [1, 1, 24000, 1],\n\t\"seat\": [1, 1, 10000, 1],\n\t\"shelf\": [1, 1, 16000, 0],\n}",
+          "new": "const FURNITURE_FACTS: Dictionary = {\n\t\"bed\": [1, 1, 20000],\n\t\"decoration\": [1, 1, 12000, 0],\n\t\"hearth\": [2, 1, 60000, 0],\n\t\"interior_door\": [0, 0, 12000, 0],\n\t\"interior_partition\": [0, 0, 8000, 0],\n\t\"kitchen_bench\": [2, 1, 60000, 1],\n\t\"patient_bed\": [1, 1, 24000, 1],\n\t\"seat\": [1, 1, 10000, 1],\n\t\"shelf\": [1, 1, 16000, 0],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "building-fact-work-drift",
+      "purpose": "Gate-consumed fact value versus owner array; still integer/positive/divisible by4.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 100,
+          "occurrences_required": 1,
+          "old": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}",
+          "new": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180004, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "building-fact-workers-drift",
+      "purpose": "Actual B_MAX_BUILDERS value parity.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 100,
+          "occurrences_required": 1,
+          "old": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}",
+          "new": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 3],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "upgrade-work-type",
+      "purpose": "Upgrade work dictionary has its own TYPE_INT gate.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 189,
+          "occurrences_required": 1,
+          "old": "const UPGRADE_WORK_MWU: Dictionary = {\n\t\"covered_store\": 600000, \"hall\": 1200000, \"residence\": 1200000, \"workshop\": 720000,\n}",
+          "new": "const UPGRADE_WORK_MWU: Dictionary = {\n\t\"covered_store\": 600000.0, \"hall\": 1200000, \"residence\": 1200000, \"workshop\": 720000,\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "build-bill-not-array",
+      "purpose": "TYPE_ARRAY before typed assignment",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": 12000,\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "build-bill-odd",
+      "purpose": "Even length before pair indexing",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\"],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "build-bill-five-pairs",
+      "purpose": "Maximum four pairs before contents",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000, \"stone\", 1000, \"cloth\", 1000, \"iron\", 1000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "build-bill-wrong-pair-count",
+      "purpose": "Authored pair count, despite legal 0..4 size",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "build-bill-key-stringname",
+      "purpose": "Exact TYPE_STRING before StringName membership conversion",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [&\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "build-bill-key-unknown",
+      "purpose": "Known material membership",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"unknown_probe\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "build-bill-quantity-float",
+      "purpose": "Actual integer quantity before coercion",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000.0, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "build-bill-quantity-zero",
+      "purpose": "Strict positive quantity; negative would duplicate this branch",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 0, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "build-bill-positive-content",
+      "purpose": "Pure helper intentionally permits positive quantity drift; bridge must not.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12001, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: build bills bill 'apiary' does not match the frozen contents",
+        "first_gate": "4/independent bill anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "build-bill-order",
+      "purpose": "Same exact materials and quantities in another order.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"rope\", 2000, \"wood\", 12000],\n\t\"boathouse\": [\"wood\", 40000, \"stone\", 16000, \"rope\", 4000],\n\t\"brewery\": [\"wood\", 24000, \"stone\", 12000, \"iron\", 2000],\n\t\"cellar\": [\"wood\", 20000, \"stone\", 60000],\n\t\"composter\": [\"wood\", 10000],\n\t\"covered_store\": [\"wood\", 35000, \"stone\", 10000],\n\t\"dirt_path\": [],\n\t\"dryer\": [\"wood\", 16000, \"rope\", 4000],\n\t\"fence\": [\"wood\", 1000],\n\t\"fisher_shelter\": [\"wood\", 18000, \"rope\", 2000],\n\t\"forester_lodge\": [\"wood\", 20000, \"stone\", 8000],\n\t\"gate\": [\"wood\", 6000, \"iron\", 1000],\n\t\"hall\": [\"wood\", 100000, \"stone\", 60000, \"cloth\", 12000],\n\t\"infirmary\": [\"wood\", 40000, \"stone\", 30000, \"cloth\", 12000],\n\t\"kitchen\": [\"wood\", 30000, \"stone\", 20000, \"iron\", 2000],\n\t\"lookout\": [\"wood\", 12000, \"stone\", 4000],\n\t\"memorial_garden\": [\"wood\", 8000, \"stone\", 12000],\n\t\"mill\": [\"wood\", 25000, \"stone\", 30000],\n\t\"nursery\": [\"wood\", 16000, \"stone\", 8000],\n\t\"open_stockpile\": [\"wood\", 4000],\n\t\"paved_path\": [\"stone\", 1000],\n\t\"preserver\": [\"wood\", 20000, \"stone\", 24000, \"iron\", 2000],\n\t\"quarry_shed\": [\"wood\", 16000, \"stone\", 8000],\n\t\"residence\": [\"wood\", 60000, \"stone\", 24000, \"cloth\", 8000],\n\t\"saltpan\": [\"wood\", 8000, \"stone\", 16000],\n\t\"stone_wall\": [\"stone\", 3000],\n\t\"weir\": [\"wood\", 30000, \"stone\", 12000, \"rope\", 6000],\n\t\"well\": [\"wood\", 10000, \"stone\", 20000],\n\t\"workbench\": [\"wood\", 12000, \"stone\", 4000],\n\t\"workshop\": [\"wood\", 35000, \"stone\", 20000, \"iron\", 4000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: build bills bill 'apiary' does not match the frozen contents",
+        "first_gate": "4/independent bill anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "furniture-bill-positive-content",
+      "purpose": "Separate dictionary call must reach its own anchor after earlier bill families pass.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 194,
+          "occurrences_required": 1,
+          "old": "const FURNITURE_MATERIALS: Dictionary = {\n\t\"bed\": [\"wood\", 2000, \"cloth\", 1000],\n\t\"decoration\": [\"wood\", 1000, \"wax\", 250],\n\t\"hearth\": [\"stone\", 6000],\n\t\"interior_door\": [\"wood\", 2000],\n\t\"interior_partition\": [\"wood\", 1000],\n\t\"kitchen_bench\": [\"wood\", 4000, \"stone\", 4000, \"iron\", 1000],\n\t\"patient_bed\": [\"wood\", 2000, \"cloth\", 2000],\n\t\"seat\": [\"wood\", 1000],\n\t\"shelf\": [\"wood\", 2000],\n}",
+          "new": "const FURNITURE_MATERIALS: Dictionary = {\n\t\"bed\": [\"wood\", 2001, \"cloth\", 1000],\n\t\"decoration\": [\"wood\", 1000, \"wax\", 250],\n\t\"hearth\": [\"stone\", 6000],\n\t\"interior_door\": [\"wood\", 2000],\n\t\"interior_partition\": [\"wood\", 1000],\n\t\"kitchen_bench\": [\"wood\", 4000, \"stone\", 4000, \"iron\", 1000],\n\t\"patient_bed\": [\"wood\", 2000, \"cloth\", 2000],\n\t\"seat\": [\"wood\", 1000],\n\t\"shelf\": [\"wood\", 2000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: furniture bills bill 'bed' does not match the frozen contents",
+        "first_gate": "4/independent bill anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "upgrade-bill-positive-content",
+      "purpose": "Separate dictionary call must reach its own anchor after earlier bill families pass.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 183,
+          "occurrences_required": 1,
+          "old": "const UPGRADE_MATERIALS: Dictionary = {\n\t\"covered_store\": [\"wood\", 25000, \"stone\", 20000],\n\t\"hall\": [\"wood\", 20000, \"stone\", 40000, \"cloth\", 8000],\n\t\"residence\": [\"wood\", 20000, \"stone\", 40000, \"cloth\", 8000],\n\t\"workshop\": [\"wood\", 20000, \"iron\", 8000],\n}",
+          "new": "const UPGRADE_MATERIALS: Dictionary = {\n\t\"covered_store\": [\"wood\", 25001, \"stone\", 20000],\n\t\"hall\": [\"wood\", 20000, \"stone\", 40000, \"cloth\", 8000],\n\t\"residence\": [\"wood\", 20000, \"stone\", 40000, \"cloth\", 8000],\n\t\"workshop\": [\"wood\", 20000, \"iron\", 8000],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: upgrade bills bill 'covered_store' does not match the frozen contents",
+        "first_gate": "4/independent bill anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-building-work",
+      "purpose": "Change live fact and owner gate array together; unmodified bridge is the third independent copy.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 100,
+          "occurrences_required": 1,
+          "old": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}",
+          "new": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180004, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1416,
+          "occurrences_required": 1,
+          "old": "const COLUMN_BUILDING_WORK_MWU: Array[int] = [\n\t180000, 720000, 480000, 900000, 120000, 480000,\n\t2000, 240000, 12000, 240000, 240000, 90000,\n\t2400000, 1000000, 600000, 180000, 240000, 720000,\n\t300000, 60000, 6000, 480000, 240000, 1200000,\n\t240000, 30000, 480000, 240000, 180000, 720000,\n]",
+          "new": "const COLUMN_BUILDING_WORK_MWU: Array[int] = [180004, 720000, 480000, 900000, 120000, 480000, 2000, 240000, 12000, 240000, 240000, 90000, 2400000, 1000000, 600000, 180000, 240000, 720000, 300000, 60000, 6000, 480000, 240000, 1200000, 240000, 30000, 480000, 240000, 180000, 720000]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building work entry 0 does not match the frozen source",
+        "first_gate": "4/independent array anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-building-workers",
+      "purpose": "Change live fact and owner gate array together; unmodified bridge is the third independent copy.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 100,
+          "occurrences_required": 1,
+          "old": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}",
+          "new": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 3],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1423,
+          "occurrences_required": 1,
+          "old": "const COLUMN_BUILDING_MAX_WORKERS: Array[int] = [\n\t4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,\n\t4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,\n]",
+          "new": "const COLUMN_BUILDING_MAX_WORKERS: Array[int] = [3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building max workers entry 0 does not match the frozen source",
+        "first_gate": "4/independent array anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-furniture-work",
+      "purpose": "Change live fact and owner gate array together; unmodified bridge is the third independent copy.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 135,
+          "occurrences_required": 1,
+          "old": "const FURNITURE_FACTS: Dictionary = {\n\t\"bed\": [1, 1, 20000, 1],\n\t\"decoration\": [1, 1, 12000, 0],\n\t\"hearth\": [2, 1, 60000, 0],\n\t\"interior_door\": [0, 0, 12000, 0],\n\t\"interior_partition\": [0, 0, 8000, 0],\n\t\"kitchen_bench\": [2, 1, 60000, 1],\n\t\"patient_bed\": [1, 1, 24000, 1],\n\t\"seat\": [1, 1, 10000, 1],\n\t\"shelf\": [1, 1, 16000, 0],\n}",
+          "new": "const FURNITURE_FACTS: Dictionary = {\n\t\"bed\": [1, 1, 20001, 1],\n\t\"decoration\": [1, 1, 12000, 0],\n\t\"hearth\": [2, 1, 60000, 0],\n\t\"interior_door\": [0, 0, 12000, 0],\n\t\"interior_partition\": [0, 0, 8000, 0],\n\t\"kitchen_bench\": [2, 1, 60000, 1],\n\t\"patient_bed\": [1, 1, 24000, 1],\n\t\"seat\": [1, 1, 10000, 1],\n\t\"shelf\": [1, 1, 16000, 0],\n}"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1438,
+          "occurrences_required": 1,
+          "old": "const COLUMN_FURNITURE_WORK_MWU: Array[int] = [\n\t20000, 12000, 60000, 12000, 8000, 60000, 24000, 10000, 16000,\n]",
+          "new": "const COLUMN_FURNITURE_WORK_MWU: Array[int] = [20001, 12000, 60000, 12000, 8000, 60000, 24000, 10000, 16000]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: furniture work entry 0 does not match the frozen source",
+        "first_gate": "4/independent array anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-upgrade-work",
+      "purpose": "",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 189,
+          "occurrences_required": 1,
+          "old": "const UPGRADE_WORK_MWU: Dictionary = {\n\t\"covered_store\": 600000, \"hall\": 1200000, \"residence\": 1200000, \"workshop\": 720000,\n}",
+          "new": "const UPGRADE_WORK_MWU: Dictionary = {\n\t\"covered_store\": 600001, \"hall\": 1200000, \"residence\": 1200000, \"workshop\": 720000,\n}"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1448,
+          "occurrences_required": 1,
+          "old": "const COLUMN_UPGRADE_WORK_MWU: Array[int] = [600000, 1200000, 1200000, 720000]",
+          "new": "const COLUMN_UPGRADE_WORK_MWU: Array[int] = [600001, 1200000, 1200000, 720000]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: upgrade work entry 0 does not match the frozen source",
+        "first_gate": "4/independent array anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-demolition-numerator",
+      "purpose": "Representative live scalar plus in-file mirror drift; do not repeat all45 owner-only faults.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 242,
+          "occurrences_required": 1,
+          "old": "const DEMOLITION_WORK_NUM: int = 1",
+          "new": "const DEMOLITION_WORK_NUM: int = 2"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1368,
+          "occurrences_required": 1,
+          "old": "const SOURCE_DEMOLITION_WORK_NUM: int = 1",
+          "new": "const SOURCE_DEMOLITION_WORK_NUM: int = 2"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: demolition work num is 2, not 1",
+        "first_gate": "4/independent scalar anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-material-key-order",
+      "purpose": "Bill memberships remain valid; both owner key mirrors agree on wrong order.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 138,
+          "occurrences_required": 1,
+          "old": "const MATERIAL_KEYS: Array[StringName] = [\n\t&\"wood\", &\"stone\", &\"cloth\", &\"iron\", &\"rope\", &\"wax\",\n]",
+          "new": "const MATERIAL_KEYS: Array[StringName] = [&\"stone\", &\"wood\", &\"cloth\", &\"iron\", &\"rope\", &\"wax\"]"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1398,
+          "occurrences_required": 1,
+          "old": "const SOURCE_MATERIAL_KEYS: Array[String] = [\n\t\"wood\", \"stone\", \"cloth\", \"iron\", \"rope\", \"wax\",\n]",
+          "new": "const SOURCE_MATERIAL_KEYS: Array[String] = [\"stone\", \"wood\", \"cloth\", \"iron\", \"rope\", \"wax\"]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: material key 0 is not 'wood'",
+        "first_gate": "4/independent key anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-b_work_mwu",
+      "purpose": "Pure helper remains in-bounds and sees original work/worker values at relocated indexes; no live Definitions constructor is allowed.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 70,
+          "occurrences_required": 1,
+          "old": "const B_WORK_MWU: int = 2",
+          "new": "const B_WORK_MWU: int = 0"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1392,
+          "occurrences_required": 1,
+          "old": "const SOURCE_B_WORK_MWU: int = 2",
+          "new": "const SOURCE_B_WORK_MWU: int = 0"
+        },
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 100,
+          "occurrences_required": 1,
+          "old": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}",
+          "new": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [180000, 3, 3, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [720000, 4, 6, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [480000, 4, 5, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [900000, 6, 6, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [120000, 3, 3, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [480000, 6, 6, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [2000, 1, 1, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [240000, 3, 4, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [12000, 1, 1, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [240000, 3, 4, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [240000, 4, 4, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [90000, 1, 2, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [2400000, 10, 12, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [1000000, 8, 8, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [600000, 6, 6, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [180000, 2, 2, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [240000, 4, 4, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [720000, 5, 5, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [300000, 4, 4, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [60000, 4, 4, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [6000, 1, 1, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [480000, 4, 5, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [240000, 4, 4, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [1200000, 8, 10, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [240000, 4, 4, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [30000, 1, 1, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [480000, 2, 4, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [240000, 2, 2, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [180000, 3, 3, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [720000, 6, 6, 3, 0, 0, 1, 100000, 0, 4],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building work index is 0, not 2",
+        "first_gate": "4/independent fact-index anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-b_max_builders",
+      "purpose": "Pure helper remains in-bounds and sees original work/worker values at relocated indexes; no live Definitions constructor is allowed.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 77,
+          "occurrences_required": 1,
+          "old": "const B_MAX_BUILDERS: int = 9",
+          "new": "const B_MAX_BUILDERS: int = 8"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1393,
+          "occurrences_required": 1,
+          "old": "const SOURCE_B_MAX_BUILDERS: int = 9",
+          "new": "const SOURCE_B_MAX_BUILDERS: int = 8"
+        },
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 100,
+          "occurrences_required": 1,
+          "old": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}",
+          "new": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 4, 0],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 4, 0],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 4, 0],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 4, 0],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 4, 0],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 4, 0],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 4, 0],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 4, 0],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 4, 0],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 4, 0],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 4, 0],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 4, 0],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 4, 0],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 4, 0],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 4, 0],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 4, 0],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 4, 0],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 4, 0],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 4, 0],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 4, 0],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 4, 0],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 4, 0],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 4, 0],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 4, 0],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building max builders index is 8, not 9",
+        "first_gate": "4/independent fact-index anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-b_field_count",
+      "purpose": "Pure helper remains in-bounds and sees original work/worker values at relocated indexes; no live Definitions constructor is allowed.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 78,
+          "occurrences_required": 1,
+          "old": "const B_FIELD_COUNT: int = 10",
+          "new": "const B_FIELD_COUNT: int = 11"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1394,
+          "occurrences_required": 1,
+          "old": "const SOURCE_B_FIELD_COUNT: int = 10",
+          "new": "const SOURCE_B_FIELD_COUNT: int = 11"
+        },
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 100,
+          "occurrences_required": 1,
+          "old": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4],\n}",
+          "new": "const BUILDING_FACTS: Dictionary = {\n\t\"apiary\": [3, 3, 180000, 1, 0, 0, 2, 100000, 0, 4, 0],\n\t\"boathouse\": [6, 4, 720000, 4, 0, 0, 3, 200000, 0, 4, 0],\n\t\"brewery\": [5, 4, 480000, 1, 0, 0, 2, 100000, 4, 4, 0],\n\t\"cellar\": [6, 6, 900000, 2, 0, 0, 1, 1000000, 0, 4, 0],\n\t\"composter\": [3, 3, 120000, 1, 0, 0, 0, 100000, 4, 4, 0],\n\t\"covered_store\": [6, 6, 480000, 2, 0, 0, 0, 1500000, 0, 4, 0],\n\t\"dirt_path\": [1, 1, 2000, 0, 0, 0, 0, 0, 0, 4, 0],\n\t\"dryer\": [4, 3, 240000, 1, 0, 0, 0, 100000, 4, 4, 0],\n\t\"fence\": [1, 1, 12000, 0, 0, 0, 0, 0, 0, 4, 0],\n\t\"fisher_shelter\": [4, 3, 240000, 2, 0, 0, 0, 200000, 0, 4, 0],\n\t\"forester_lodge\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4, 0],\n\t\"gate\": [2, 1, 90000, 0, 0, 0, 0, 0, 0, 4, 0],\n\t\"hall\": [12, 10, 2400000, 2, 1, 80, 0, 0, 0, 4, 0],\n\t\"infirmary\": [8, 8, 1000000, 2, 1, 36, 1, 0, 0, 4, 0],\n\t\"kitchen\": [6, 6, 600000, 2, 0, 0, 0, 100000, 0, 4, 0],\n\t\"lookout\": [2, 2, 180000, 1, 0, 0, 1, 0, 0, 4, 0],\n\t\"memorial_garden\": [4, 4, 240000, 1, 0, 0, 0, 0, 0, 4, 0],\n\t\"mill\": [5, 5, 720000, 2, 0, 0, 1, 100000, 0, 4, 0],\n\t\"nursery\": [4, 4, 300000, 2, 0, 0, 3, 100000, 4, 4, 0],\n\t\"open_stockpile\": [4, 4, 60000, 0, 0, 0, 0, 400000, 0, 4, 0],\n\t\"paved_path\": [1, 1, 6000, 0, 0, 0, 2, 0, 0, 4, 0],\n\t\"preserver\": [5, 4, 480000, 2, 0, 0, 1, 100000, 4, 4, 0],\n\t\"quarry_shed\": [4, 4, 240000, 3, 0, 0, 0, 100000, 0, 4, 0],\n\t\"residence\": [10, 8, 1200000, 0, 1, 48, 0, 0, 0, 4, 0],\n\t\"saltpan\": [4, 4, 240000, 1, 0, 0, 1, 100000, 4, 4, 0],\n\t\"stone_wall\": [1, 1, 30000, 0, 0, 0, 2, 0, 0, 4, 0],\n\t\"weir\": [4, 2, 480000, 1, 0, 0, 2, 100000, 0, 4, 0],\n\t\"well\": [2, 2, 240000, 2, 0, 0, 0, 100000, 0, 4, 0],\n\t\"workbench\": [3, 3, 180000, 2, 0, 0, 0, 100000, 0, 4, 0],\n\t\"workshop\": [6, 6, 720000, 3, 0, 0, 1, 100000, 0, 4, 0],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building field count is 11, not 10",
+        "first_gate": "4/independent fact-index anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-f_work_mwu",
+      "purpose": "Pure helper remains in-bounds and sees original work/worker values at relocated indexes; no live Definitions constructor is allowed.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 83,
+          "occurrences_required": 1,
+          "old": "const F_WORK_MWU: int = 2",
+          "new": "const F_WORK_MWU: int = 0"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1395,
+          "occurrences_required": 1,
+          "old": "const SOURCE_F_WORK_MWU: int = 2",
+          "new": "const SOURCE_F_WORK_MWU: int = 0"
+        },
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 135,
+          "occurrences_required": 1,
+          "old": "const FURNITURE_FACTS: Dictionary = {\n\t\"bed\": [1, 1, 20000, 1],\n\t\"decoration\": [1, 1, 12000, 0],\n\t\"hearth\": [2, 1, 60000, 0],\n\t\"interior_door\": [0, 0, 12000, 0],\n\t\"interior_partition\": [0, 0, 8000, 0],\n\t\"kitchen_bench\": [2, 1, 60000, 1],\n\t\"patient_bed\": [1, 1, 24000, 1],\n\t\"seat\": [1, 1, 10000, 1],\n\t\"shelf\": [1, 1, 16000, 0],\n}",
+          "new": "const FURNITURE_FACTS: Dictionary = {\n\t\"bed\": [20000, 1, 1, 1],\n\t\"decoration\": [12000, 1, 1, 0],\n\t\"hearth\": [60000, 1, 2, 0],\n\t\"interior_door\": [12000, 0, 0, 0],\n\t\"interior_partition\": [8000, 0, 0, 0],\n\t\"kitchen_bench\": [60000, 1, 2, 1],\n\t\"patient_bed\": [24000, 1, 1, 1],\n\t\"seat\": [10000, 1, 1, 1],\n\t\"shelf\": [16000, 1, 1, 0],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: furniture work index is 0, not 2",
+        "first_gate": "4/independent fact-index anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "coherent-f_field_count",
+      "purpose": "Pure helper remains in-bounds and sees original work/worker values at relocated indexes; no live Definitions constructor is allowed.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 85,
+          "occurrences_required": 1,
+          "old": "const F_FIELD_COUNT: int = 4",
+          "new": "const F_FIELD_COUNT: int = 5"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1396,
+          "occurrences_required": 1,
+          "old": "const SOURCE_F_FIELD_COUNT: int = 4",
+          "new": "const SOURCE_F_FIELD_COUNT: int = 5"
+        },
+        {
+          "path": "godot/scripts/core/building_definitions.gd",
+          "line": 135,
+          "occurrences_required": 1,
+          "old": "const FURNITURE_FACTS: Dictionary = {\n\t\"bed\": [1, 1, 20000, 1],\n\t\"decoration\": [1, 1, 12000, 0],\n\t\"hearth\": [2, 1, 60000, 0],\n\t\"interior_door\": [0, 0, 12000, 0],\n\t\"interior_partition\": [0, 0, 8000, 0],\n\t\"kitchen_bench\": [2, 1, 60000, 1],\n\t\"patient_bed\": [1, 1, 24000, 1],\n\t\"seat\": [1, 1, 10000, 1],\n\t\"shelf\": [1, 1, 16000, 0],\n}",
+          "new": "const FURNITURE_FACTS: Dictionary = {\n\t\"bed\": [1, 1, 20000, 1, 0],\n\t\"decoration\": [1, 1, 12000, 0, 0],\n\t\"hearth\": [2, 1, 60000, 0, 0],\n\t\"interior_door\": [0, 0, 12000, 0, 0],\n\t\"interior_partition\": [0, 0, 8000, 0, 0],\n\t\"kitchen_bench\": [2, 1, 60000, 1, 0],\n\t\"patient_bed\": [1, 1, 24000, 1, 0],\n\t\"seat\": [1, 1, 10000, 1, 0],\n\t\"shelf\": [1, 1, 16000, 0, 0],\n}"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: furniture field count is 5, not 4",
+        "first_gate": "4/independent fact-index anchor"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-section-version",
+      "purpose": "Section4 body schema2 is independent of Construction owner version1.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 380,
+          "occurrences_required": 1,
+          "old": "const SECTION_SCHEMA_VERSION: int = 2",
+          "new": "const SECTION_SCHEMA_VERSION: int = 3"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_SCHEMA",
+        "bridge_detail_prefix": "declaration 1 / section schema 3 is not 1 / 2",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-section-byte-budget",
+      "purpose": "Pinned complete section budget.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 381,
+          "occurrences_required": 1,
+          "old": "const SECTION_BYTES: int = 12947565",
+          "new": "const SECTION_BYTES: int = 12947566"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_SCHEMA",
+        "bridge_detail_prefix": "compiled totals 18 owners / 298 fields / 12947566 bytes / 193184 rows are not the pinned body",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-descriptor-row-budget",
+      "purpose": "Pinned complete primary row budget.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 382,
+          "occurrences_required": 1,
+          "old": "const DESCRIPTOR_ROW_COUNT: int = 193184",
+          "new": "const DESCRIPTOR_ROW_COUNT: int = 193185"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_SCHEMA",
+        "bridge_detail_prefix": "compiled totals 18 owners / 298 fields / 12947565 bytes / 193185 rows are not the pinned body",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-owner-begin",
+      "purpose": "Cannot count as bridge begin-anchor coverage: generic schema catches first.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 406,
+          "occurrences_required": 1,
+          "old": "const OWNER_FIELD_BEGIN: Array = [\n\t0, 29, 45, 60, 80, 102, 122, 133, 171, 187, 207, 232, 236, 255, 265, 271, 280, 289\n]",
+          "new": "const OWNER_FIELD_BEGIN: Array = [0, 30, 45, 60, 80, 102, 122, 133, 171, 187, 207, 232, 236, 255, 265, 271, 280, 289]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "owner 1 declares span 30/2 at 3298593; the walk reached 29/2 at 3298593",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-owner-field-count",
+      "purpose": "Owner1 count16 is also constrained by generic payload arithmetic.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 402,
+          "occurrences_required": 1,
+          "old": "const OWNER_FIELD_COUNTS: Array = [\n\t29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9, 9, 9\n]",
+          "new": "const OWNER_FIELD_COUNTS: Array = [29, 15, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9, 9, 9]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "owner 'construction' declares 4893828/4893864 bytes; framing gives",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-owner-child-count",
+      "purpose": "Owner1 zero child extents; generic schema sees added child extent before bridge.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 410,
+          "occurrences_required": 1,
+          "old": "const OWNER_CHILD_COUNTS: Array = [\n\t2, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0\n]",
+          "new": "const OWNER_CHILD_COUNTS: Array = [2, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "owner 'construction' declares 4893828/4893864 bytes; framing gives",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-owner-payload-budget",
+      "purpose": "Owner payload includes4 child-count bytes +16 count-prefixes128 +packed values4893696.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 427,
+          "occurrences_required": 1,
+          "old": "const OWNER_PAYLOAD_BYTES: Array = [\n\t3298556, 4893828, 266364, 44460, 5524, 30500, 21084, 685884, 32900, 57508, 102612, 7716, 103068,\n\t172116, 17972, 3151948, 39500, 15436\n]",
+          "new": "const OWNER_PAYLOAD_BYTES: Array = [3298556, 4893829, 266364, 44460, 5524, 30500, 21084, 685884, 32900, 57508, 102612, 7716, 103068, 172116, 17972, 3151948, 39500, 15436]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "owner 'construction' declares 4893829/4893864 bytes; framing gives 4893828/4893864",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-unsupported-field-type",
+      "purpose": "Unsupported type must refuse without constructing a frame from malformed metadata.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 501,
+          "occurrences_required": 1,
+          "old": "const FIELD_TYPES: Array = [\n\t0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2,\n\t2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2,\n\t2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2,\n\t2, 4, 4, 4, 0, 0, 0, 0, 2, 2, 4, 0, 0, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2,\n\t2, 2, 4, 4, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2,\n\t2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4,\n\t4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4,\n\t4, 4, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0,\n\t2, 4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\n\t0, 2, 2, 2, 2, 2, 2, 2, 2, 4\n]",
+          "new": "const FIELD_TYPES: Array = [0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 2, 2, 4, 0, 0, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2, 2, 2, 4, 4, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 2, 4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_SCHEMA",
+        "bridge_detail_prefix": "field '_present' declares unsupported type 1",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-owner-key",
+      "purpose": "Same12-byte key and ASCII order retain generic arithmetic.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 384,
+          "occurrences_required": 1,
+          "old": "const OWNER_KEYS: Array = [\n\t\"buildings\", \"construction\", \"farming\", \"field_policy\", \"fishing\", \"forage\", \"injury\", \"jobs\",\n\t\"movement\", \"needs\", \"orchard_hive\", \"priorities\", \"residents\", \"resource_nodes\", \"schedule\",\n\t\"transforms\", \"work\", \"world_init\"\n]",
+          "new": "const OWNER_KEYS: Array = [\"buildings\", \"constructiom\", \"farming\", \"field_policy\", \"fishing\", \"forage\", \"injury\", \"jobs\", \"movement\", \"needs\", \"orchard_hive\", \"priorities\", \"residents\", \"resource_nodes\", \"schedule\", \"transforms\", \"work\", \"world_init\"]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: compiled owner 'constructiom' is not 'construction'",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-owner-version",
+      "purpose": "Generic version positivity passes; owner bridge pins exact1.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 394,
+          "occurrences_required": 1,
+          "old": "const OWNER_VERSIONS: Array = [\n\t1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1\n]",
+          "new": "const OWNER_VERSIONS: Array = [1, 2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: compiled owner version 2 is not 1",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-coherent-primary-count",
+      "purpose": "Keep total193184; no field extent is derived from primary counts in schema arithmetic.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 398,
+          "occurrences_required": 1,
+          "old": "const OWNER_PRIMARY_COUNTS: Array = [\n\t1024, 82944, 4096, 128, 32, 128, 512, 8192, 512, 512, 1024, 512, 512, 4096, 512, 87552, 512, 384\n]",
+          "new": "const OWNER_PRIMARY_COUNTS: Array = [1025, 82943, 4096, 128, 32, 128, 512, 8192, 512, 512, 1024, 512, 512, 4096, 512, 87552, 512, 384]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: 82943 primaries are not 82944",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-field-ordinal-swap",
+      "purpose": "Same-type field keys swapped; schema arithmetic unchanged; actual projection mutation campaign is separate.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 437,
+          "occurrences_required": 1,
+          "old": "const FIELD_KEYS: Array = [\n\t\"_b_present\", \"_r_present\", \"_f_present\", \"_b_type_id\", \"_b_tier\", \"_b_origin_tile\",\n\t\"_b_rotation\", \"_b_state\", \"_b_condition\", \"_b_construction_slot\", \"_b_construction_generation\",\n\t\"_b_interior_id\", \"_r_type\", \"_r_building_slot\", \"_r_building_generation\", \"_r_tile_offset\",\n\t\"_r_tile_count\", \"_r_temperature_tenths\", \"_r_furniture_mask\", \"_r_occupants\", \"_r_valid\",\n\t\"_f_type_id\", \"_f_room_slot\", \"_f_room_generation\", \"_f_origin_tile\", \"_f_rotation\",\n\t\"_f_user_slot\", \"_f_user_generation\", \"_f_condition\", \"_present\", \"_material_container_slot\",\n\t\"_material_container_generation\", \"_assigned_count\", \"_max_workers\", \"_refund_policy\",\n\t\"_remaining_mwu\", \"_paused\", \"_work_begun\", \"_ref_slot\", \"_ref_generation\", \"_subject_slot\",\n\t\"_subject_generation\", \"_purpose\", \"_type_id\", \"_phase\", \"_present\", \"_crop_id\", \"_state\",\n\t\"_soil\", \"_fertility\", \"_moisture\", \"_growth_milli_hours\", \"_health\", \"_last_family\",\n\t\"_family_streak\", \"_compost_milli\", \"_sow_day\", \"_tile\", \"_ref_slot\", \"_ref_generation\",\n\t\"_field_present\", \"_zone_slot\", \"_zone_generation\", \"_rotation_ids\", \"_rotation_cursor\",\n\t\"_auto_rotation\", \"_seed_reserve\", \"_cycle_ordinal\", \"_participants\", \"_resolved\", \"_withdrawn\",\n\t\"_completed_cycles\", \"_cancelled_cycles\", \"_requested_crop\", \"_cycle_state\", \"_close_reason\",\n\t\"_request_state\", \"_plot_field_slot\", \"_plot_cycle\", \"_plot_outcome\", \"_habitat_present\",\n\t\"_stock_present\", \"_habitat_type\", \"_habitat_zone_slot\", \"_habitat_zone_generation\",\n\t\"_habitat_effort_slots\", \"_habitat_pollution\", \"_habitat_danger\", \"_habitat_protected_fraction\",\n\t\"_habitat_capacity_milli\", \"_habitat_ref_slot\", \"_habitat_ref_generation\",\n\t\"_habitat_effort_used\", \"_habitat_intensive\", \"_stock_habitat_slot\",\n\t\"_stock_habitat_generation\", \"_stock_species_id\", \"_stock_population_milli\",\n\t\"_stock_capacity_milli\", \"_stock_harvested_today_milli\", \"_stock_closed\", \"_stock_restocking\",\n\t\"_zone_present\", \"_patch_present\", \"_zone_type\", \"_zone_danger\", \"_zone_quota_milli\",\n\t\"_zone_protected\", \"_zone_enabled\", \"_zone_ref_slot\", \"_zone_ref_generation\",\n\t\"_zone_basin_slot\", \"_zone_basin_generation\", \"_zone_harvested_today_milli\",\n\t\"_zone_quota_reserved_milli\", \"_zone_quota_mode\", \"_patch_item_id\", \"_patch_zone_slot\",\n\t\"_patch_zone_generation\", \"_patch_stock_milli\", \"_patch_capacity_milli\",\n\t\"_patch_harvested_year_milli\", \"_present\", \"_kind\", \"_airless_episode\", \"_exhaustion_latch\",\n\t\"_care_context_blocked\", \"_severity\", \"_rescuer_slot\", \"_rescuer_generation\",\n\t\"_untreated_ticks\", \"_care_progress_mwu\", \"_last_incident_ordinal\", \"_job_present\",\n\t\"_agent_present\", \"_kind\", \"_requester_slot\", \"_requester_generation\", \"_destination_slot\",\n\t\"_destination_generation\", \"_source_slot\", \"_source_generation\", \"_priority\", \"_required_skill\",\n\t\"_state\", \"_worker_slot\", \"_worker_generation\", \"_remaining_mwu\", \"_created_tick\",\n\t\"_job_ref_slot\", \"_job_ref_generation\", \"_urgency\", \"_dangerous\", \"_station_gate\", \"_tool_gate\",\n\t\"_unlock_gate\", \"_inputs_gate\", \"_is_coordinator\", \"_agent_job_slot\", \"_agent_job_generation\",\n\t\"_agent_phase\", \"_agent_target_slot\", \"_agent_target_generation\", \"_agent_path_id\",\n\t\"_agent_path_cursor\", \"_agent_lease_expiry\", \"_agent_blocked_tick\", \"_agent_manual_until\",\n\t\"_agent_hazard_locked\", \"_job_scan_cursor\", \"_continuation_bucket\", \"_vx\", \"_vz\",\n\t\"_remainder_x\", \"_remainder_z\", \"_next_x\", \"_next_z\", \"_correction_x\", \"_correction_z\",\n\t\"_radius_u\", \"_desired_yaw\", \"_next_yaw\", \"_grid_next\", \"_grid_cell\", \"_speed_u_per_s\",\n\t\"_movement_phase\", \"_blocked_ticks\", \"_present\", \"_need_value\", \"_need_remainder\", \"_health\",\n\t\"_health_remainder\", \"_cold_milli_hours\", \"_cold_remainder\", \"_starving_ticks\",\n\t\"_departure_days\", \"_status\", \"_size_class\", \"_activity\", \"_comfort_environment\",\n\t\"_social_paired\", \"_purpose_source\", \"_cold_environment\", \"_clothing_tier\", \"_infirmary\",\n\t\"_injury_state\", \"_airless\", \"_o_present\", \"_h_present\", \"_o_species_id\", \"_o_age_days\",\n\t\"_o_health\", \"_o_chill_days\", \"_o_tended_today\", \"_o_harvested_year\", \"_o_origin_x\",\n\t\"_o_origin_z\", \"_o_ref_slot\", \"_o_ref_generation\", \"_h_building_slot\", \"_h_building_generation\",\n\t\"_h_strength\", \"_h_serviced_day\", \"_h_feed_milli\", \"_h_honey_milli\", \"_h_wax_milli\",\n\t\"_h_min_tile_x\", \"_h_min_tile_z\", \"_h_max_tile_x\", \"_h_max_tile_z\", \"_h_ref_slot\",\n\t\"_h_ref_generation\", \"_present\", \"_job_priority\", \"_auto_fallback\", \"_dangerous_work\",\n\t\"_present\", \"_species\", \"_size_class\", \"_named\", \"_life_stage\", \"_arrival_tick\", \"_role\",\n\t\"_home_slot\", \"_home_generation\", \"_bed_slot\", \"_bed_generation\", \"_ref_slot\",\n\t\"_ref_generation\", \"_equip_tool_item_id\", \"_equip_tool_durability\", \"_equip_satchel_slot\",\n\t\"_equip_satchel_generation\", \"_skill_xp\", \"_skill_level\", \"_present\", \"_resource_id\",\n\t\"_quantity_milli\", \"_capacity_milli\", \"_regrow_days\", \"_planted_day\", \"_exhausted\", \"_tile\",\n\t\"_ref_slot\", \"_ref_generation\", \"_present\", \"_hourly_activity\", \"_template\",\n\t\"_current_activity\", \"_sleep_satisfied\", \"_resolved\", \"_bound_persistent_id\", \"_x\", \"_y\", \"_z\",\n\t\"_yaw\", \"_prev_x\", \"_prev_y\", \"_prev_z\", \"_prev_yaw\", \"_potential_remainder\", \"_xp_remainder\",\n\t\"_memory_total\", \"_wear_remainder\", \"_tool_lot_slot\", \"_tool_lot_generation\", \"_tool_job_slot\",\n\t\"_tool_job_generation\", \"_tool_broken\", \"_fauna_zone_slot\", \"_fauna_zone_generation\",\n\t\"_fauna_species_id\", \"_fauna_population\", \"_fauna_capacity\", \"_fauna_tracks\",\n\t\"_fauna_harvest_today\", \"_fauna_migration_link\", \"_fauna_birth_remainder\"\n]",
+          "new": "const FIELD_KEYS: Array = [\"_b_present\", \"_r_present\", \"_f_present\", \"_b_type_id\", \"_b_tier\", \"_b_origin_tile\", \"_b_rotation\", \"_b_state\", \"_b_condition\", \"_b_construction_slot\", \"_b_construction_generation\", \"_b_interior_id\", \"_r_type\", \"_r_building_slot\", \"_r_building_generation\", \"_r_tile_offset\", \"_r_tile_count\", \"_r_temperature_tenths\", \"_r_furniture_mask\", \"_r_occupants\", \"_r_valid\", \"_f_type_id\", \"_f_room_slot\", \"_f_room_generation\", \"_f_origin_tile\", \"_f_rotation\", \"_f_user_slot\", \"_f_user_generation\", \"_f_condition\", \"_present\", \"_material_container_generation\", \"_material_container_slot\", \"_assigned_count\", \"_max_workers\", \"_refund_policy\", \"_remaining_mwu\", \"_paused\", \"_work_begun\", \"_ref_slot\", \"_ref_generation\", \"_subject_slot\", \"_subject_generation\", \"_purpose\", \"_type_id\", \"_phase\", \"_present\", \"_crop_id\", \"_state\", \"_soil\", \"_fertility\", \"_moisture\", \"_growth_milli_hours\", \"_health\", \"_last_family\", \"_family_streak\", \"_compost_milli\", \"_sow_day\", \"_tile\", \"_ref_slot\", \"_ref_generation\", \"_field_present\", \"_zone_slot\", \"_zone_generation\", \"_rotation_ids\", \"_rotation_cursor\", \"_auto_rotation\", \"_seed_reserve\", \"_cycle_ordinal\", \"_participants\", \"_resolved\", \"_withdrawn\", \"_completed_cycles\", \"_cancelled_cycles\", \"_requested_crop\", \"_cycle_state\", \"_close_reason\", \"_request_state\", \"_plot_field_slot\", \"_plot_cycle\", \"_plot_outcome\", \"_habitat_present\", \"_stock_present\", \"_habitat_type\", \"_habitat_zone_slot\", \"_habitat_zone_generation\", \"_habitat_effort_slots\", \"_habitat_pollution\", \"_habitat_danger\", \"_habitat_protected_fraction\", \"_habitat_capacity_milli\", \"_habitat_ref_slot\", \"_habitat_ref_generation\", \"_habitat_effort_used\", \"_habitat_intensive\", \"_stock_habitat_slot\", \"_stock_habitat_generation\", \"_stock_species_id\", \"_stock_population_milli\", \"_stock_capacity_milli\", \"_stock_harvested_today_milli\", \"_stock_closed\", \"_stock_restocking\", \"_zone_present\", \"_patch_present\", \"_zone_type\", \"_zone_danger\", \"_zone_quota_milli\", \"_zone_protected\", \"_zone_enabled\", \"_zone_ref_slot\", \"_zone_ref_generation\", \"_zone_basin_slot\", \"_zone_basin_generation\", \"_zone_harvested_today_milli\", \"_zone_quota_reserved_milli\", \"_zone_quota_mode\", \"_patch_item_id\", \"_patch_zone_slot\", \"_patch_zone_generation\", \"_patch_stock_milli\", \"_patch_capacity_milli\", \"_patch_harvested_year_milli\", \"_present\", \"_kind\", \"_airless_episode\", \"_exhaustion_latch\", \"_care_context_blocked\", \"_severity\", \"_rescuer_slot\", \"_rescuer_generation\", \"_untreated_ticks\", \"_care_progress_mwu\", \"_last_incident_ordinal\", \"_job_present\", \"_agent_present\", \"_kind\", \"_requester_slot\", \"_requester_generation\", \"_destination_slot\", \"_destination_generation\", \"_source_slot\", \"_source_generation\", \"_priority\", \"_required_skill\", \"_state\", \"_worker_slot\", \"_worker_generation\", \"_remaining_mwu\", \"_created_tick\", \"_job_ref_slot\", \"_job_ref_generation\", \"_urgency\", \"_dangerous\", \"_station_gate\", \"_tool_gate\", \"_unlock_gate\", \"_inputs_gate\", \"_is_coordinator\", \"_agent_job_slot\", \"_agent_job_generation\", \"_agent_phase\", \"_agent_target_slot\", \"_agent_target_generation\", \"_agent_path_id\", \"_agent_path_cursor\", \"_agent_lease_expiry\", \"_agent_blocked_tick\", \"_agent_manual_until\", \"_agent_hazard_locked\", \"_job_scan_cursor\", \"_continuation_bucket\", \"_vx\", \"_vz\", \"_remainder_x\", \"_remainder_z\", \"_next_x\", \"_next_z\", \"_correction_x\", \"_correction_z\", \"_radius_u\", \"_desired_yaw\", \"_next_yaw\", \"_grid_next\", \"_grid_cell\", \"_speed_u_per_s\", \"_movement_phase\", \"_blocked_ticks\", \"_present\", \"_need_value\", \"_need_remainder\", \"_health\", \"_health_remainder\", \"_cold_milli_hours\", \"_cold_remainder\", \"_starving_ticks\", \"_departure_days\", \"_status\", \"_size_class\", \"_activity\", \"_comfort_environment\", \"_social_paired\", \"_purpose_source\", \"_cold_environment\", \"_clothing_tier\", \"_infirmary\", \"_injury_state\", \"_airless\", \"_o_present\", \"_h_present\", \"_o_species_id\", \"_o_age_days\", \"_o_health\", \"_o_chill_days\", \"_o_tended_today\", \"_o_harvested_year\", \"_o_origin_x\", \"_o_origin_z\", \"_o_ref_slot\", \"_o_ref_generation\", \"_h_building_slot\", \"_h_building_generation\", \"_h_strength\", \"_h_serviced_day\", \"_h_feed_milli\", \"_h_honey_milli\", \"_h_wax_milli\", \"_h_min_tile_x\", \"_h_min_tile_z\", \"_h_max_tile_x\", \"_h_max_tile_z\", \"_h_ref_slot\", \"_h_ref_generation\", \"_present\", \"_job_priority\", \"_auto_fallback\", \"_dangerous_work\", \"_present\", \"_species\", \"_size_class\", \"_named\", \"_life_stage\", \"_arrival_tick\", \"_role\", \"_home_slot\", \"_home_generation\", \"_bed_slot\", \"_bed_generation\", \"_ref_slot\", \"_ref_generation\", \"_equip_tool_item_id\", \"_equip_tool_durability\", \"_equip_satchel_slot\", \"_equip_satchel_generation\", \"_skill_xp\", \"_skill_level\", \"_present\", \"_resource_id\", \"_quantity_milli\", \"_capacity_milli\", \"_regrow_days\", \"_planted_day\", \"_exhausted\", \"_tile\", \"_ref_slot\", \"_ref_generation\", \"_present\", \"_hourly_activity\", \"_template\", \"_current_activity\", \"_sleep_satisfied\", \"_resolved\", \"_bound_persistent_id\", \"_x\", \"_y\", \"_z\", \"_yaw\", \"_prev_x\", \"_prev_y\", \"_prev_z\", \"_prev_yaw\", \"_potential_remainder\", \"_xp_remainder\", \"_memory_total\", \"_wear_remainder\", \"_tool_lot_slot\", \"_tool_lot_generation\", \"_tool_job_slot\", \"_tool_job_generation\", \"_tool_broken\", \"_fauna_zone_slot\", \"_fauna_zone_generation\", \"_fauna_species_id\", \"_fauna_population\", \"_fauna_capacity\", \"_fauna_tracks\", \"_fauna_harvest_today\", \"_fauna_migration_link\", \"_fauna_birth_remainder\"]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: field 1 is '_material_container_generation'; owner 1 declares '_material_container_slot'",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-balanced-field-types",
+      "purpose": "Swap equal-length u8/i32 fields to preserve total bytes, reaching bridge exact type checks.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 501,
+          "occurrences_required": 1,
+          "old": "const FIELD_TYPES: Array = [\n\t0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2,\n\t2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2,\n\t2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2,\n\t2, 4, 4, 4, 0, 0, 0, 0, 2, 2, 4, 0, 0, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2,\n\t2, 2, 4, 4, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2,\n\t2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4,\n\t4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4,\n\t4, 4, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0,\n\t2, 4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,\n\t0, 2, 2, 2, 2, 2, 2, 2, 2, 4\n]",
+          "new": "const FIELD_TYPES: Array = [0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 2, 2, 4, 0, 0, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2, 2, 2, 4, 4, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 2, 4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: field 0 has type 2; 0 is declared",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-balanced-field-extents",
+      "purpose": "Transfer one i32 element between two columns; same aggregate payload, incorrect independent extents.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 514,
+          "occurrences_required": 1,
+          "old": "const FIELD_COUNTS: Array = [\n\t1024, 16384, 81920, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 16384, 16384, 16384,\n\t16384, 16384, 16384, 16384, 16384, 16384, 81920, 81920, 81920, 81920, 81920, 81920, 81920,\n\t81920, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944,\n\t82944, 82944, 82944, 82944, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096,\n\t4096, 4096, 4096, 4096, 128, 128, 128, 384, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,\n\t128, 128, 128, 4096, 4096, 4096, 32, 96, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 96, 96,\n\t96, 96, 96, 96, 96, 96, 128, 640, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,\n\t640, 640, 640, 640, 640, 640, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 8192, 512,\n\t8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192,\n\t8192, 8192, 8192, 8192, 8192, 8192, 8192, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512,\n\t512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512,\n\t2560, 2560, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512,\n\t1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024,\n\t1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 512, 6144, 512, 512, 512, 512, 512, 512,\n\t512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 6144, 6144, 4096, 4096, 4096,\n\t4096, 4096, 4096, 4096, 4096, 4096, 4096, 512, 12288, 512, 512, 512, 512, 87552, 87552, 87552,\n\t87552, 87552, 87552, 87552, 87552, 87552, 512, 6144, 512, 512, 512, 512, 512, 512, 512, 384,\n\t384, 384, 384, 384, 384, 384, 384, 384\n]",
+          "new": "const FIELD_COUNTS: Array = [1024, 16384, 81920, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 16384, 16384, 16384, 16384, 16384, 16384, 16384, 16384, 16384, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 81920, 82944, 82943, 82945, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 128, 128, 128, 384, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 4096, 4096, 4096, 32, 96, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 96, 96, 96, 96, 96, 96, 96, 96, 128, 640, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 640, 640, 640, 640, 640, 640, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 8192, 512, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 2560, 2560, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 512, 6144, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 6144, 6144, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 512, 12288, 512, 512, 512, 512, 87552, 87552, 87552, 87552, 87552, 87552, 87552, 87552, 87552, 512, 6144, 512, 512, 512, 512, 512, 512, 512, 384, 384, 384, 384, 384, 384, 384, 384, 384]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: field 1 holds 82943 values; 82944 are declared",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "expectation_status": "source-supported expectation"
+    },
+    {
+      "id": "schema-coherent-owner-field-begin",
+      "purpose": "Move global field29 (_present,u8,82944) into owner0 and global field45 (farming _present,u8,4096) into owner1 by shifting partitions. Construction retains16fields. Owner0 gains82952 framed bytes; owner1 loses78848; owner2 loses4104. Total section bytes and field count remain fixed. This reaches actual independent begin anchor, unlike incoherent begin-only case.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 402,
+          "occurrences_required": 1,
+          "old": "const OWNER_FIELD_COUNTS: Array = [\n\t29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9, 9, 9\n]",
+          "new": "const OWNER_FIELD_COUNTS: Array = [30, 16, 14, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9, 9, 9]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 406,
+          "occurrences_required": 1,
+          "old": "const OWNER_FIELD_BEGIN: Array = [\n\t0, 29, 45, 60, 80, 102, 122, 133, 171, 187, 207, 232, 236, 255, 265, 271, 280, 289\n]",
+          "new": "const OWNER_FIELD_BEGIN: Array = [0, 30, 46, 60, 80, 102, 122, 133, 171, 187, 207, 232, 236, 255, 265, 271, 280, 289]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 427,
+          "occurrences_required": 1,
+          "old": "const OWNER_PAYLOAD_BYTES: Array = [\n\t3298556, 4893828, 266364, 44460, 5524, 30500, 21084, 685884, 32900, 57508, 102612, 7716, 103068,\n\t172116, 17972, 3151948, 39500, 15436\n]",
+          "new": "const OWNER_PAYLOAD_BYTES: Array = [3381508, 4814980, 262260, 44460, 5524, 30500, 21084, 685884, 32900, 57508, 102612, 7716, 103068, 172116, 17972, 3151948, 39500, 15436]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 432,
+          "occurrences_required": 1,
+          "old": "const OWNER_BLOCK_BYTES: Array = [\n\t3298589, 4893864, 266395, 44496, 5555, 30530, 21114, 685912, 32932, 57537, 102648, 7750, 103101,\n\t172154, 18004, 3151982, 39528, 15470\n]",
+          "new": "const OWNER_BLOCK_BYTES: Array = [3381541, 4815016, 262291, 44496, 5555, 30530, 21114, 685912, 32932, 57537, 102648, 7750, 103101, 172154, 18004, 3151982, 39528, 15470]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 422,
+          "occurrences_required": 1,
+          "old": "const OWNER_OFFSETS: Array = [\n\t4, 3298593, 8192457, 8458852, 8503348, 8508903, 8539433, 8560547, 9246459, 9279391, 9336928,\n\t9439576, 9447326, 9550427, 9722581, 9740585, 12892567, 12932095\n]",
+          "new": "const OWNER_OFFSETS: Array = [4, 3381545, 8196561, 8458852, 8503348, 8508903, 8539433, 8560547, 9246459, 9279391, 9336928, 9439576, 9447326, 9550427, 9722581, 9740585, 12892567, 12932095]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: compiled field begin 30 is not 29",
+        "first_gate": "4/compiled owner identity after coherent generic schema"
+      },
+      "expectation_status": "source-supported arithmetic expectation; requires execution",
+      "offline_verification": "Literal source table span/child/offset/payload arithmetic recomputed consistently in Python; NOT a runtime schema pass."
+    },
+    {
+      "id": "schema-coherent-owner-field-count",
+      "purpose": "Transfer global field28 (_f_condition,i32,81920) from owner0 to owner1:327688 framed bytes move with it. Total298fields/section bytes unchanged; identity count check precedes begin and field parity.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 402,
+          "occurrences_required": 1,
+          "old": "const OWNER_FIELD_COUNTS: Array = [\n\t29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9, 9, 9\n]",
+          "new": "const OWNER_FIELD_COUNTS: Array = [28, 17, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9, 9, 9]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 406,
+          "occurrences_required": 1,
+          "old": "const OWNER_FIELD_BEGIN: Array = [\n\t0, 29, 45, 60, 80, 102, 122, 133, 171, 187, 207, 232, 236, 255, 265, 271, 280, 289\n]",
+          "new": "const OWNER_FIELD_BEGIN: Array = [0, 28, 45, 60, 80, 102, 122, 133, 171, 187, 207, 232, 236, 255, 265, 271, 280, 289]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 427,
+          "occurrences_required": 1,
+          "old": "const OWNER_PAYLOAD_BYTES: Array = [\n\t3298556, 4893828, 266364, 44460, 5524, 30500, 21084, 685884, 32900, 57508, 102612, 7716, 103068,\n\t172116, 17972, 3151948, 39500, 15436\n]",
+          "new": "const OWNER_PAYLOAD_BYTES: Array = [2970868, 5221516, 266364, 44460, 5524, 30500, 21084, 685884, 32900, 57508, 102612, 7716, 103068, 172116, 17972, 3151948, 39500, 15436]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 432,
+          "occurrences_required": 1,
+          "old": "const OWNER_BLOCK_BYTES: Array = [\n\t3298589, 4893864, 266395, 44496, 5555, 30530, 21114, 685912, 32932, 57537, 102648, 7750, 103101,\n\t172154, 18004, 3151982, 39528, 15470\n]",
+          "new": "const OWNER_BLOCK_BYTES: Array = [2970901, 5221552, 266395, 44496, 5555, 30530, 21114, 685912, 32932, 57537, 102648, 7750, 103101, 172154, 18004, 3151982, 39528, 15470]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 422,
+          "occurrences_required": 1,
+          "old": "const OWNER_OFFSETS: Array = [\n\t4, 3298593, 8192457, 8458852, 8503348, 8508903, 8539433, 8560547, 9246459, 9279391, 9336928,\n\t9439576, 9447326, 9550427, 9722581, 9740585, 12892567, 12932095\n]",
+          "new": "const OWNER_OFFSETS: Array = [4, 2970905, 8192457, 8458852, 8503348, 8508903, 8539433, 8560547, 9246459, 9279391, 9336928, 9439576, 9447326, 9550427, 9722581, 9740585, 12892567, 12932095]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: 17 fields are not 16",
+        "first_gate": "4/compiled owner identity after coherent generic schema"
+      },
+      "expectation_status": "source-supported arithmetic expectation; requires execution",
+      "offline_verification": "Literal source table span/child/offset/payload arithmetic recomputed consistently in Python; NOT a runtime schema pass."
+    },
+    {
+      "id": "schema-coherent-owner-child-count",
+      "purpose": "Transfer one existing child extent81920 from owner0 to owner1 by partition only. Eight framed bytes move; positive child extents and section arithmetic remain valid. Actual field extents do not derive from child partitions in schema checks.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 410,
+          "occurrences_required": 1,
+          "old": "const OWNER_CHILD_COUNTS: Array = [\n\t2, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0\n]",
+          "new": "const OWNER_CHILD_COUNTS: Array = [1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 414,
+          "occurrences_required": 1,
+          "old": "const OWNER_CHILD_BEGIN: Array = [\n\t0, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5\n]",
+          "new": "const OWNER_CHILD_BEGIN: Array = [0, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 427,
+          "occurrences_required": 1,
+          "old": "const OWNER_PAYLOAD_BYTES: Array = [\n\t3298556, 4893828, 266364, 44460, 5524, 30500, 21084, 685884, 32900, 57508, 102612, 7716, 103068,\n\t172116, 17972, 3151948, 39500, 15436\n]",
+          "new": "const OWNER_PAYLOAD_BYTES: Array = [3298548, 4893836, 266364, 44460, 5524, 30500, 21084, 685884, 32900, 57508, 102612, 7716, 103068, 172116, 17972, 3151948, 39500, 15436]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 432,
+          "occurrences_required": 1,
+          "old": "const OWNER_BLOCK_BYTES: Array = [\n\t3298589, 4893864, 266395, 44496, 5555, 30530, 21114, 685912, 32932, 57537, 102648, 7750, 103101,\n\t172154, 18004, 3151982, 39528, 15470\n]",
+          "new": "const OWNER_BLOCK_BYTES: Array = [3298581, 4893872, 266395, 44496, 5555, 30530, 21114, 685912, 32932, 57537, 102648, 7750, 103101, 172154, 18004, 3151982, 39528, 15470]"
+        },
+        {
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "line": 422,
+          "occurrences_required": 1,
+          "old": "const OWNER_OFFSETS: Array = [\n\t4, 3298593, 8192457, 8458852, 8503348, 8508903, 8539433, 8560547, 9246459, 9279391, 9336928,\n\t9439576, 9447326, 9550427, 9722581, 9740585, 12892567, 12932095\n]",
+          "new": "const OWNER_OFFSETS: Array = [4, 3298585, 8192457, 8458852, 8503348, 8508903, 8539433, 8560547, 9246459, 9279391, 9336928, 9439576, 9447326, 9550427, 9722581, 9740585, 12892567, 12932095]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: 1 child extents are not 0",
+        "first_gate": "4/compiled owner identity after coherent generic schema"
+      },
+      "expectation_status": "source-supported arithmetic expectation; requires execution",
+      "offline_verification": "Literal source table span/child/offset/payload arithmetic recomputed consistently in Python; NOT a runtime schema pass."
+    }
+  ]
+}

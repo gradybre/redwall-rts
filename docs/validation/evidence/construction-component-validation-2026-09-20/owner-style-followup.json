@@ -1,0 +1,17 @@
+{
+  "scope": "Append-region function-length inspection only; original gameplay source excluded",
+  "rule": "CLAUDE.md maxfunction30lines; decompose iflonger",
+  "findings": [
+    {
+      "function": "_init",
+      "line": 1485,
+      "body_code_lines_excluding_docs": 34
+    },
+    {
+      "function": "column_source_metadata_refusal",
+      "line": 1763,
+      "body_code_lines_excluding_docs": 31
+    }
+  ],
+  "disposition": "Pending bounded decomposition before acceptance; no blanket production style exception"
+}

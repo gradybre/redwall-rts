@@ -1,0 +1,24 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "task": "Add missing isolated negative Construction phase-relation witnesses",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-functional-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "docs/planning/construction_component_validation_contract.md",
+    "godot/scripts/core/construction.gd",
+    "godot/test/test_construction_columns.gd",
+    "godot/test/test_save_owner_construction.gd",
+    "godot/test/construction_columns_focus.gd"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/construction-component-validation-2026-09-20/negative-phase-witnesses.patch": null
+  },
+  "instructions": "Same QA role, bounded addendum to already passing functional suite. Keep original40frozen cases and all existing positive/collision/purity/shape tests unchanged. Add separate negative phase cases with literal frozenwork60000 and independently valid livebase; exact COLUMN_PHASE, with earlierpolicy madevalid. Need READY begun1 (partialpolicy,remainingW), READY begun0 remainingW-1(fullpolicy); WORKING begun0 remaining1(fullpolicy), WORKING begun1 remainingW+1(partial); WORK_DONE begun0 remaining0(full); REFUND begun1 remainingW+1(partial,assigned0). Exercise each at existing5physicalpositions and first show independent neighboring validcontrol reachesNONE. Any other required untouched fields remain valid. Do not conflate earlierPOLICYfailure withPHASE or derive W from owner arrays. Reuse helper infrastructure; supplemental named test+constant cases rather than modifying count40. Return ONLY newstandardunifieddiff patchatallowedpath editingtest_construction_columns.gd <=150lines. No prod/focuswrites. StrictJSONbaseSha256:nullFIRST,path,content. Sourcewasrevised onlyactualstoredkeyguard since your lastcandidate; contractclarifies priorunchanged numeric scope. Additional realhistorysuite now94/2293passes; fullacceptance notclaimed. No testsrunclaim.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-functional-repair-a3"
+}

@@ -1,0 +1,44 @@
+diff --git a/godot/scripts/core/construction.gd b/godot/scripts/core/construction.gd
+--- a/godot/scripts/core/construction.gd
++++ b/godot/scripts/core/construction.gd
+@@ -1272,6 +1272,22 @@
+ 		if int(pairs[index * 2 + 1]) <= 0:
+ 			return false
+ 	return true
++
++
++static func _fact_row_scalars_typed(fields: Array, expected_count: int) -> bool:
++	"""Exact extent, then EVERY scalar of one immutable fact row is an actual TYPE_INT.
++
++	Shared by both owner fact-row helpers. Extent is proven first, then each of the row's
++	scalars -- not only the gate-consumed work/max-builder indices -- must be an actual
++	integer before any field is interpreted. Types only: no coercion, no value comparison
++	against a numeric mirror, no new dictionary, packed buffer, domain or gate.
++	"""
++	if fields.size() != expected_count:
++		return false
++	for index: int in expected_count:
++		if typeof(fields[index]) != TYPE_INT:
++			return false
++	return true
+ 
+ 
+ static func _metadata_refusal_building(id: int, key: String) -> bool:
+@@ -1287,7 +1303,7 @@
+ 	if typeof(row) != TYPE_ARRAY:
+ 		return true
+ 	var fields: Array = row
+-	if fields.size() != BuildingDefinitions.B_FIELD_COUNT:
++	if not _fact_row_scalars_typed(fields, BuildingDefinitions.B_FIELD_COUNT):
+ 		return true
+ 	if typeof(fields[BuildingDefinitions.B_WORK_MWU]) != TYPE_INT \
+ 			or int(fields[BuildingDefinitions.B_WORK_MWU]) != COLUMN_BUILDING_WORK_MWU[id]:
+@@ -1311,7 +1327,7 @@
+ 	if typeof(row) != TYPE_ARRAY:
+ 		return true
+ 	var fields: Array = row
+-	if fields.size() != BuildingDefinitions.F_FIELD_COUNT:
++	if not _fact_row_scalars_typed(fields, BuildingDefinitions.F_FIELD_COUNT):
+ 		return true
+ 	if typeof(fields[BuildingDefinitions.F_WORK_MWU]) != TYPE_INT \
+ 			or int(fields[BuildingDefinitions.F_WORK_MWU]) != COLUMN_FURNITURE_WORK_MWU[id]:

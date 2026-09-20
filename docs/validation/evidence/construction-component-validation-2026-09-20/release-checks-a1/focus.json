@@ -1,0 +1,28 @@
+{
+  "step": "focus",
+  "command": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--script",
+    "test/construction_columns_focus.gd"
+  ],
+  "seconds": 35.953,
+  "exit_code": 0,
+  "counts": [
+    96,
+    2354,
+    0
+  ],
+  "expected_counts": [
+    96,
+    2354,
+    0
+  ],
+  "passed": true,
+  "error_lines": [],
+  "error_multiset_matches_expected": true,
+  "leak_diagnostic_lines": [],
+  "log_sha256": "9323aab14bb389158bea1ff966b519d2baab0b6b7bd3dcbfb94742e832cac745"
+}

@@ -1,0 +1,27 @@
+{
+  "command": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--script",
+    "test/construction_columns_focus.gd"
+  ],
+  "seconds": 24.112,
+  "exit_code": 0,
+  "counts": [
+    82,
+    1045,
+    0
+  ],
+  "errors": [],
+  "passed": true,
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "e5d3fd006311c43c3b20b0a3f2209945e5ade12ad08b84ddcaf8d49ef6e3e326",
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/test/test_construction_columns.gd": "fe8d125c99e6198d3abd4bc3dff15d48fb7c0e836d33bfea9446744ad16a819d",
+    "godot/test/test_save_owner_construction.gd": "d42cc22c680da808ca2659a6815525d03291254221b1664e3aaf58d985605c21",
+    "godot/test/construction_columns_focus.gd": "79889b617bfcca0a5374ac7b2614d3cdf810bdd8304ffb028f4591b12e4fdd96"
+  },
+  "log_sha256": "6b2e64928af7952e6de6d76aed22e82aeaa25320a12bb9afcf1b3b171e0e0f4f"
+}

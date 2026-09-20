@@ -1,0 +1,8 @@
+{
+  "state": "invalid_output",
+  "reason": "BUNDLE_FILE_KEYS_INVALID",
+  "owner_stopped": true,
+  "source_applied": false,
+  "raw_public_response_retained_by_adapter": false,
+  "recovery": "Owned Claude CLI session public text subsequently recovered; thinking content excluded. Same role format repair failed again because baseSha256 omitted. Second and final bounded repair requested with missing field first."
+}

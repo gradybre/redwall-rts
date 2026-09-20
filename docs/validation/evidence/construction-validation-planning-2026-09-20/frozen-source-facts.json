@@ -1,0 +1,639 @@
+{
+  "scope": "Exact source extraction for pending Construction owner contract, not runtime acceptance",
+  "sources": {
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+    "godot/scripts/core/construction.gd": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1"
+  },
+  "building_rows": [
+    {
+      "key": "apiary",
+      "id": 0,
+      "work_mwu": 180000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        12000,
+        "rope",
+        2000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 45000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "boathouse",
+      "id": 1,
+      "work_mwu": 720000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        40000,
+        "stone",
+        16000,
+        "rope",
+        4000
+      ],
+      "delivery_lines": 3,
+      "demolition_work_mwu": 180000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "brewery",
+      "id": 2,
+      "work_mwu": 480000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        24000,
+        "stone",
+        12000,
+        "iron",
+        2000
+      ],
+      "delivery_lines": 3,
+      "demolition_work_mwu": 120000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "cellar",
+      "id": 3,
+      "work_mwu": 900000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        20000,
+        "stone",
+        60000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 225000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "composter",
+      "id": 4,
+      "work_mwu": 120000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        10000
+      ],
+      "delivery_lines": 1,
+      "demolition_work_mwu": 30000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "covered_store",
+      "id": 5,
+      "work_mwu": 480000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        35000,
+        "stone",
+        10000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 120000,
+      "upgrade_work_mwu": 600000,
+      "upgrade_delivery_bill": [
+        "wood",
+        25000,
+        "stone",
+        20000
+      ]
+    },
+    {
+      "key": "dirt_path",
+      "id": 6,
+      "work_mwu": 2000,
+      "max_workers": 4,
+      "delivery_bill": [],
+      "delivery_lines": 0,
+      "demolition_work_mwu": 500,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "dryer",
+      "id": 7,
+      "work_mwu": 240000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        16000,
+        "rope",
+        4000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 60000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "fence",
+      "id": 8,
+      "work_mwu": 12000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        1000
+      ],
+      "delivery_lines": 1,
+      "demolition_work_mwu": 3000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "fisher_shelter",
+      "id": 9,
+      "work_mwu": 240000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        18000,
+        "rope",
+        2000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 60000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "forester_lodge",
+      "id": 10,
+      "work_mwu": 240000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        20000,
+        "stone",
+        8000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 60000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "gate",
+      "id": 11,
+      "work_mwu": 90000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        6000,
+        "iron",
+        1000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 22500,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "hall",
+      "id": 12,
+      "work_mwu": 2400000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        100000,
+        "stone",
+        60000,
+        "cloth",
+        12000
+      ],
+      "delivery_lines": 3,
+      "demolition_work_mwu": 600000,
+      "upgrade_work_mwu": 1200000,
+      "upgrade_delivery_bill": [
+        "wood",
+        20000,
+        "stone",
+        40000,
+        "cloth",
+        8000
+      ]
+    },
+    {
+      "key": "infirmary",
+      "id": 13,
+      "work_mwu": 1000000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        40000,
+        "stone",
+        30000,
+        "cloth",
+        12000
+      ],
+      "delivery_lines": 3,
+      "demolition_work_mwu": 250000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "kitchen",
+      "id": 14,
+      "work_mwu": 600000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        30000,
+        "stone",
+        20000,
+        "iron",
+        2000
+      ],
+      "delivery_lines": 3,
+      "demolition_work_mwu": 150000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "lookout",
+      "id": 15,
+      "work_mwu": 180000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        12000,
+        "stone",
+        4000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 45000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "memorial_garden",
+      "id": 16,
+      "work_mwu": 240000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        8000,
+        "stone",
+        12000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 60000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "mill",
+      "id": 17,
+      "work_mwu": 720000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        25000,
+        "stone",
+        30000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 180000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "nursery",
+      "id": 18,
+      "work_mwu": 300000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        16000,
+        "stone",
+        8000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 75000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "open_stockpile",
+      "id": 19,
+      "work_mwu": 60000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        4000
+      ],
+      "delivery_lines": 1,
+      "demolition_work_mwu": 15000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "paved_path",
+      "id": 20,
+      "work_mwu": 6000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "stone",
+        1000
+      ],
+      "delivery_lines": 1,
+      "demolition_work_mwu": 1500,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "preserver",
+      "id": 21,
+      "work_mwu": 480000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        20000,
+        "stone",
+        24000,
+        "iron",
+        2000
+      ],
+      "delivery_lines": 3,
+      "demolition_work_mwu": 120000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "quarry_shed",
+      "id": 22,
+      "work_mwu": 240000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        16000,
+        "stone",
+        8000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 60000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "residence",
+      "id": 23,
+      "work_mwu": 1200000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        60000,
+        "stone",
+        24000,
+        "cloth",
+        8000
+      ],
+      "delivery_lines": 3,
+      "demolition_work_mwu": 300000,
+      "upgrade_work_mwu": 1200000,
+      "upgrade_delivery_bill": [
+        "wood",
+        20000,
+        "stone",
+        40000,
+        "cloth",
+        8000
+      ]
+    },
+    {
+      "key": "saltpan",
+      "id": 24,
+      "work_mwu": 240000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        8000,
+        "stone",
+        16000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 60000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "stone_wall",
+      "id": 25,
+      "work_mwu": 30000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "stone",
+        3000
+      ],
+      "delivery_lines": 1,
+      "demolition_work_mwu": 7500,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "weir",
+      "id": 26,
+      "work_mwu": 480000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        30000,
+        "stone",
+        12000,
+        "rope",
+        6000
+      ],
+      "delivery_lines": 3,
+      "demolition_work_mwu": 120000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "well",
+      "id": 27,
+      "work_mwu": 240000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        10000,
+        "stone",
+        20000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 60000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "workbench",
+      "id": 28,
+      "work_mwu": 180000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        12000,
+        "stone",
+        4000
+      ],
+      "delivery_lines": 2,
+      "demolition_work_mwu": 45000,
+      "upgrade_work_mwu": null,
+      "upgrade_delivery_bill": null
+    },
+    {
+      "key": "workshop",
+      "id": 29,
+      "work_mwu": 720000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        35000,
+        "stone",
+        20000,
+        "iron",
+        4000
+      ],
+      "delivery_lines": 3,
+      "demolition_work_mwu": 180000,
+      "upgrade_work_mwu": 720000,
+      "upgrade_delivery_bill": [
+        "wood",
+        20000,
+        "iron",
+        8000
+      ]
+    }
+  ],
+  "furniture_rows": [
+    {
+      "key": "bed",
+      "id": 0,
+      "work_mwu": 20000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        2000,
+        "cloth",
+        1000
+      ],
+      "delivery_lines": 2
+    },
+    {
+      "key": "decoration",
+      "id": 1,
+      "work_mwu": 12000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        1000,
+        "wax",
+        250
+      ],
+      "delivery_lines": 2
+    },
+    {
+      "key": "hearth",
+      "id": 2,
+      "work_mwu": 60000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "stone",
+        6000
+      ],
+      "delivery_lines": 1
+    },
+    {
+      "key": "interior_door",
+      "id": 3,
+      "work_mwu": 12000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        2000
+      ],
+      "delivery_lines": 1
+    },
+    {
+      "key": "interior_partition",
+      "id": 4,
+      "work_mwu": 8000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        1000
+      ],
+      "delivery_lines": 1
+    },
+    {
+      "key": "kitchen_bench",
+      "id": 5,
+      "work_mwu": 60000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        4000,
+        "stone",
+        4000,
+        "iron",
+        1000
+      ],
+      "delivery_lines": 3
+    },
+    {
+      "key": "patient_bed",
+      "id": 6,
+      "work_mwu": 24000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        2000,
+        "cloth",
+        2000
+      ],
+      "delivery_lines": 2
+    },
+    {
+      "key": "seat",
+      "id": 7,
+      "work_mwu": 10000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        1000
+      ],
+      "delivery_lines": 1
+    },
+    {
+      "key": "shelf",
+      "id": 8,
+      "work_mwu": 16000,
+      "max_workers": 4,
+      "delivery_bill": [
+        "wood",
+        2000
+      ],
+      "delivery_lines": 1
+    }
+  ],
+  "upgrade_keys": [
+    "covered_store",
+    "hall",
+    "residence",
+    "workshop"
+  ],
+  "zero_delivery_builds": [
+    "dirt_path"
+  ],
+  "demolition_delivery_lines": 0,
+  "work_units_note": "Demolition floor(base work/4) is current owner behavior; tier2 economic policy unresolved elsewhere."
+}

@@ -1,0 +1,20 @@
+{
+  "attempt": "construction-metadata-author-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-metadata",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "session_id": "6a3abd9e-d877-4418-b139-2c6e02eda2fb",
+  "owner_stopped": true,
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_inputs_reverified": true,
+  "files": {
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-owner-repair.patch": "03bb8e43c8db81e647b019fbe59e5e6847926659cd034059b03e1258b046e636",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-owner-probe.gd": "5ef8fab1f129d724fd6079e0539553f81f2fe8da67d5bf63ba8363eb81a4e7ec"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

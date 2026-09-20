@@ -1,0 +1,3 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CONSTRUCTION_ALLOCATION {"after_peak":101329658,"after_usage":101320966,"ballast_bytes":54138981,"before_peak":101320002,"bridge_code":"","code":"","increment":9656,"lifted_usage":101320002,"limit":1048576,"prior_peak":100271370,"prior_usage":47180965,"status":"PASS"}

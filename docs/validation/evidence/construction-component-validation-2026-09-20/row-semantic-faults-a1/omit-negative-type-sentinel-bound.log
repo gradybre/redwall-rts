@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_construction_columns.gd
+  FAIL  test_single_fault_cases
+        case negative-type_id row 0 (expected COLUMN_VALUE, got COLUMN_TYPE)
+        case negative-type_id row 1 (expected COLUMN_VALUE, got COLUMN_TYPE)
+        case negative-type_id row 41471 (expected COLUMN_VALUE, got COLUMN_TYPE)
+        case negative-type_id row 41472 (expected COLUMN_VALUE, got COLUMN_TYPE)
+        case negative-type_id row 82943 (expected COLUMN_VALUE, got COLUMN_TYPE)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 200 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

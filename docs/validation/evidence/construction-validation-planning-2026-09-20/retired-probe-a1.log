@@ -1,0 +1,22 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+construction_retired_probe.gd
+  PASS  test_dirt_path_build_retires_with_expected_residual_row
+  PASS  test_open_stockpile_cancelled_before_work_retires_full_refund
+  PASS  test_open_stockpile_partial_refund_after_work_begins
+  PASS  test_corrupted_snapshot_length_is_rejected_before_decode
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+4 test(s), 75 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,19 @@
+{
+  "attempt": "construction-combined-review-a2",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-combined-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "session_id": "e530b045-3010-4324-90d5-48cd35496733",
+  "owner_stopped": true,
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_inputs_reverified": true,
+  "files": {
+    "docs/validation/evidence/construction-component-validation-2026-09-20/independent-combined-review-a2.md": "1f765a9bed00f52d156f581d5624eb7ec78a12e46e2dfe1337ed54ed9c439381"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

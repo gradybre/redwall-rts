@@ -1,0 +1,42 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "task": "Bounded owner-specific Construction local validation contract review",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-design",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-DESIGN-R01"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/component_columns_stream_contract.md",
+    "docs/planning/buildings_component_validation_contract.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/proposed-contract-v1.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/immutable-preflight-proposal-v2.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/source-layout.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/memory-arithmetic.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/public-history-probe.gd",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/public-history-probe.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/public-history-probe.log",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/scripts/core/save_owner_buildings.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/independent-design-review.md": null
+  },
+  "reviewTarget": {
+    "path": "docs/validation/evidence/construction-validation-planning-2026-09-20/independent-design-review.md",
+    "baseSha256": null
+  },
+  "instructions": "Fresh independent owner-specific design/correctness/safety review. Existing component stream/borrowed-image family is accepted; do not reopen wire order, replace whole architecture, fabricate runtime, or widen local validation to saved liveness/material conservation. Review exact Construction source against proposed-contract-v1 and immutable-preflight-proposal-v2. Confirm or identify concrete reachable counterexamples to phase/refund/worker/retired-history domains and structural namespace bounds, pure direct-source preflight safety before indexing, exact frozen fact agreement and shape/type drift detection, borrowed16-column bridge gates/prefixes and allocation discriminator. Identify material missing witnesses or contracts before author dispatch, distinguishing required repair from nonblocking detail. Cross-check state_bytes order before recommending retired-byte probes; do not claim existing public getters read retired rows. Evaluate whether the bounded immutable validation oracle approach needs adjustment; propose precise smallest corrections if necessary, no new game-policy numbers. Memory must stay within existing6417408logical stream budget with one4893696callerimage; native overhead remains unmeasured. Output full combined review in summary, files:[], strict five-key bundle. State verdict, actual source scope, must-fix counterexamples, evidence/uncertainty, and concrete remaining contract choices. You have no tools; supplied public-history probe is evidence for only its executed scope, not a validator acceptance. All current work is planning, not author approval or completed save/load."
+}

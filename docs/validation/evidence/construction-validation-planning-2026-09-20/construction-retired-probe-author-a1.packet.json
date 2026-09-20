@@ -1,0 +1,28 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "task": "Author a bounded public state_bytes retained-history feasibility probe",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-retired-state-probe",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-STATE-PROBE-R01"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/public-history-probe.gd",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/retired-state-probe.gd": null,
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/retired-state-probe-focus.gd": null
+  },
+  "instructions": "Author only a diagnostic suite and minimal inherited-runner focus, not production edits or a validator. Two complete newfiles, <=320total lines, strict JSON bundle, no tools/claim execution. Suite extends test/framework/test_case.gd; focus extends test/run_tests.gd selecting only res://test/construction_retired_probe.gd (parent copies the evidence candidate there in an owned clone). No inherited old tests.\nProve public Construction.state_bytes() can be safely observed at the current engine without hardcoded Variant encoding headers/offsets. Use an explicit independently declared serialization-order table matching source state_bytes (NOT section4 ordinal order): material_container_slot,generation,assigned_count,max_workers,refund_policy,remaining_mwu,paused,present,work_begun,ref_slot,ref_generation,subject_slot,subject_generation,purpose,type_id,phase,delivered_milli,live_count. Derive each expected encoded segment byte length at runtime via var_to_bytes of a zeroed packed array of the exact type and extent (82944 except delivered331776 and live_count1). No assumed8byteheader/alignment/type-tag constants. Before slicing, require total observed bytes equals sum of those measured segment lengths. Decode slices with bytes_to_var, verify Variant type and decoded count, then return only requested row scalar values. No dynamic live-field reflection/get(), private owner arrays, added production accessors, raw offset constants, writes to snapshot, or new persisted format. This test decoder is engine-bound diagnostic, not save format. Empty default scalar prototype templates can be reused per type/count; allocations permitted in test only outside any adapter memory measurements.\nUse OpResult.value from successful open_* as public row identity before retirement; after retirement public handle must refuse, while decoded old row is asserted explicitly. Include3real histories each on freshstores: dirt_path BUILD completed after begin_work+work2000+commit_completion =>present0,nullrefs,remaining/assigned/paused/work_begun0,max_workers4,purposeBUILD,type6,phaseWORK_DONE3,refundPARTIAL1; open_stockpile BUILD cancelled beforework =>REFUNDING4/FULL0; same stockpile BUILD deliver4000wood,begin_work,earn1mwu then cancel =>REFUNDING4/PARTIAL1 whilework_begun reset0. Validate retained full16fieldrow expected values and delivered4cellszero pluslive_count0. All ops assert.ok and stop safely on failedsetup/decoder shape/type; no parse/runtime error can be a pass. Add one framing corruption witness (remove finalbyte or appendbyte) rejected beforedecode/index. Constants are fixture/sourcefacts, no newgamepolicy. All helper/functions typed/docstrings and <=30lines where practical; keep bounded diagnostics. The public-history input supplies working fixture calls, but do not copy unused helpers. Source API calls must exist in supplied source; ifmissing surfacequestion."
+}

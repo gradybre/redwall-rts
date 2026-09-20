@@ -1,0 +1,29 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "task": "Construction cold Columns, independent safe source preflight and ordered pure local predicate",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-owner",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/witness-plan-v2.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/review-r02-disposition.md",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/entity_directory.gd"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/construction-component-validation-2026-09-20/author-owner.patch": null
+  },
+  "instructions": "Implement ONLY append-only additions to godot/scripts/core/construction.gd under accepted R01v2/ADR0186. Preserve existing source byte-for-byte. Add16 typed cold Columns properties in canonical order, default clear image and false-before-resize borrowed constructor, exact is_sized; matching11 REFUSE_COLUMN constants; independent safe static column_source_metadata_refusal; ordered read-only columns_refusal/helpers. Frozen gate arrays exact names/types/data from source facts. Pure preflight safe shape/type/length before all indexing, correct TYPE_STRING bill keys then StringName membership, source-key bijections, exact scalar semantic ordinals, gate facts and bill shapes/counts. Independent exact quantity mirrors belong later bridge; no pretend pure mirror. Validate work positivity/building divisibility4; no extra furniture rule. All3 full flag scans before rows; type and ref bounds before indexing; inactive clear shortcut distinct from retained history; container max signed-i32 separate from Directory. Keep worker checks legal for unpaused awaiting/ready/done; preserve retired refund with cleared begun. No gameplay edits, schema/codec coupling, diagnostics, callbacks, live constructors, copied serialized images, new packed scratch, per-row objects, floats or input writes. Small typed documented helpers; normal project style. Source already has many constants: reuse; avoid duplicate declarations. Return ONLY one standard unifieddiff modifying construction.gd in declared patch file, baseSha256 null. Use at least3 context lines/hunk, trailing newline, new code append-only. Resource limit900patch lines; prefer compact straightforward helpers, do not duplicate original source. No bridge/tests in this attempt. No tools/execution claims, no author self-acceptance. If source requirements conflict, return concrete question rather than invent policy. Strict JSON status,summary,questions,files,decisionIds; acknowledge ADR0186."
+}

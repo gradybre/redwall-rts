@@ -1,0 +1,33 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "task": "Fresh bounded specialist repair after confirmed Sonnet deadline; no partial source was applied",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-bridge",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/source-layout.json",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/immutable-collaborator-excerpts.md",
+    "godot/scripts/core/save_owner_construction.gd",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/bridge-a1-inspection.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/owner-style-followup.json"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/construction-component-validation-2026-09-20/bridge-and-owner-repair.patch": null
+  },
+  "instructions": "Fresh author session after previous Sonnet continuation hit15minute deadline, owner confirmed stopped and no source applied. This is bounded repair2. Do not recover or rely on omitted prior-session state. Supplied files are the actual current candidate.  Your567lineadapter is integrated as unaccepted candidate and Godot editor import has0errors. Astra inspection finds B1/B2/B3 in attachedJSON. Fixactualmissing independent fieldbegin29 pin and five BuildingDefinitions fact-index/fieldcount anchors(B_WORK_MWU2/B_MAX_BUILDERS9/B_FIELD_COUNT10/F_WORK_MWU2/F_FIELD_COUNT4). Comparebothactualsource and Construction.SOURCE_*mirrors to independent bridge literals; coordinated changes of source+in-filemirror must notpass. UseactualSchema.OWNER_FIELD_BEGIN[1] after Schema.schema_refusal protects its extent. Preserveall64existing scalar checks/array/bill/key gates and exactprefixes/mapping. Allnewhelpers <=30code lines excludingdocs; decompose giant _scalar_anchor_refusal into shortgroups with explicit comparisons ratherthan dynamically allocating array-of-arrays checktables. Source preflight order andfail-before-index retained.\nAstra extends this bounded patch's source ownership to TWO files already owned by CONSTRUCTION-S4-VALIDATE: bridge plus onlytheappend-region ofconstruction.gd for twomechanicalstyle corrections. Split Columns._init defaultresize/fill calls into shortprivatehelpers; false mustreturnBEFOREhelpers andallallocation. Split column_source_metadata_refusal31code lines into helperswithoutreordering source/scalar/array/key/index checks. Keepthree-line _source_scalar_refusal call atstart unchanged so existingdisabled-guard witnessremains source-bound. No changes tooriginal1327linegameplayprefix, rowpredicate/refusalsemantics/frozenvalues orpublicAPI. Bothcandidatefunctions namedattachedowner-styleJSON. This isnotnewpolicy, no wholevalidatorrewrite.\nReturn ONE file bridge-and-owner-repair.patch unifieddiff modifyingexactly construction.gd and save_owner_construction.gd, <=520lines,3contextlines/trailingnewline. Onefileentry exactly baseSha256:null FIRST,path,content;5toplevelkeysstatus/summary/questions/files/decisionIds. No UID/test/docs edits. No claims of execution oracceptance. Raiseonlyrealcontractcontradictions."
+}

@@ -1,0 +1,9 @@
+{
+  "attempt": "construction-bridge-author-a2",
+  "state": "timeout",
+  "code": "DEADLINE_EXCEEDED",
+  "ownerStopped": true,
+  "source_applied": false,
+  "usage": null,
+  "next": "Fresh Opus specialist bounded repair2 with full relevant source; failed continuation not resumed; no gate changes."
+}

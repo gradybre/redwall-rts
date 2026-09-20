@@ -1,0 +1,53 @@
+diff --git a/godot/scripts/core/construction.gd b/godot/scripts/core/construction.gd
+--- a/godot/scripts/core/construction.gd
++++ b/godot/scripts/core/construction.gd
+@@ -1399,6 +1399,8 @@ static func column_source_metadata_refusal() -> StringName:
+ 	if not _gate_array_extents_ok():
+ 		return REFUSE_COLUMN_SOURCE_METADATA
+ 	if not _source_dictionary_extents_ok():
+ 		return REFUSE_COLUMN_SOURCE_METADATA
++	if not _source_stored_key_types_ok():
++		return REFUSE_COLUMN_SOURCE_METADATA
+ 	return _source_row_scan_refusal()
+ 
+ 
+@@ -1428,6 +1430,31 @@ static func _source_dictionary_extents_ok() -> bool:
+ 	if UPGRADE_MATERIALS.size() != 4 or UPGRADE_WORK_MWU.size() != 4:
+ 		return false
+ 	return true
+ 
+ 
++static func _stored_keys_are_exact_strings(source: Dictionary) -> bool:
++	"""Every ACTUAL stored key of one source dictionary is exact TYPE_STRING.
++
++	Godot aliases String and StringName in dictionary lookup, so `.has(frozen_string)` cannot
++	observe a stored-key type change: the four mutations in dictionary-key-types-a1/result.json
++	executed cleanly and evaded COLUMN_SOURCE_METADATA. Only inspecting the stored keys
++	themselves can see it. Cold and read-only, bounded by the already-pinned key count, with no
++	coercion, no new packed buffer, no live read and no canonical ID/value check replaced.
++	"""
++	for key: Variant in source.keys():
++		if typeof(key) != TYPE_STRING:
++			return false
++	return true
++
++
++static func _source_stored_key_types_ok() -> bool:
++	"""The four source dictionaries the canonical ID walk then looks keys up in.
++
++	Runs after the extent pins and BEFORE `_source_row_scan_refusal()`, so the ID/value walk
++	still proves every ordinal, work, max-worker and bill shape exactly as before; this only
++	removes the aliasing blind spot ahead of it. No gate-consumed value scope changes.
++	"""
++	if not _stored_keys_are_exact_strings(Catalog.BUILDING_DEFINITION):
++		return false
++	if not _stored_keys_are_exact_strings(Catalog.FURNITURE_DEFINITION):
++		return false
++	if not _stored_keys_are_exact_strings(BuildingDefinitions.BUILDING_FACTS):
++		return false
++	return _stored_keys_are_exact_strings(BuildingDefinitions.FURNITURE_FACTS)
++
++
+ static func _source_row_scan_refusal() -> StringName:
+ 	"""Both domains in canonical id order, then the four tier-two upgrade indexes."""
+ 	for id: int in BUILDING_KINDS:

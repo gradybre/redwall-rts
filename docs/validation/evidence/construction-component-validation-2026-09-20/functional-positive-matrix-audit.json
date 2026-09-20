@@ -1,0 +1,10 @@
+{
+  "source_facts_sha256": "9e1fa4710e5e5c56a4e2c0900fd387e9b985ce062440c8ab1042badd32ade298",
+  "actual_marker_file": "functional-positive-matrix-a3.json",
+  "expected_distinct_tuples": 1776,
+  "actual_distinct_tuples": 1776,
+  "missing": [],
+  "extra": [],
+  "passed": true,
+  "scope": "Astra deterministic coverage audit independently enumerated accepted boundary matrix from frozen facts, not production gate arrays. Does not prove real lifecycle reachability."
+}

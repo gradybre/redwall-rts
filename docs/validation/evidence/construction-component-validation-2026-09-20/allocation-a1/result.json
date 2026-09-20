@@ -1,0 +1,72 @@
+{
+  "scope": "Actual bridge default-image allocation discriminator; not total native-memory qualification",
+  "bridge_sha256": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+  "probe_sha256": "632ca9618ca844a6777ede6c00d1c32d51fa6bdc916134b3368f5587c67aeaa6",
+  "mutated_exact_line": "\tvar columns: Construction.Columns = Construction.Columns.new(false)",
+  "results": [
+    {
+      "case": "baseline-before",
+      "valid": true,
+      "expected_outcome": true,
+      "exit_code": 0,
+      "seconds": 0.719,
+      "observation": {
+        "after_peak": 101329658,
+        "after_usage": 101320966,
+        "ballast_bytes": 54138981,
+        "before_peak": 101320002,
+        "bridge_code": "",
+        "code": "",
+        "increment": 9656,
+        "lifted_usage": 101320002,
+        "limit": 1048576,
+        "prior_peak": 100271370,
+        "prior_usage": 47180965,
+        "status": "PASS"
+      }
+    },
+    {
+      "case": "actual-default-constructor",
+      "valid": true,
+      "expected_outcome": true,
+      "exit_code": 1,
+      "seconds": 0.723,
+      "observation": {
+        "after_peak": 106218830,
+        "after_usage": 101320562,
+        "ballast_bytes": 54138621,
+        "before_peak": 101319598,
+        "bridge_code": "",
+        "code": "ALLOCATION_EXTRA_OWNER",
+        "increment": 4899232,
+        "lifted_usage": 101319598,
+        "limit": 1048576,
+        "prior_peak": 100270966,
+        "prior_usage": 47180921,
+        "status": "FAIL"
+      }
+    },
+    {
+      "case": "baseline-after",
+      "valid": true,
+      "expected_outcome": true,
+      "exit_code": 0,
+      "seconds": 0.725,
+      "observation": {
+        "after_peak": 101329658,
+        "after_usage": 101320966,
+        "ballast_bytes": 54138981,
+        "before_peak": 101320002,
+        "bridge_code": "",
+        "code": "",
+        "increment": 9656,
+        "lifted_usage": 101320002,
+        "limit": 1048576,
+        "prior_peak": 100271370,
+        "prior_usage": 47180965,
+        "status": "PASS"
+      }
+    }
+  ],
+  "source_unchanged": true
+}

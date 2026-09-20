@@ -1,0 +1,610 @@
+diff --git a/godot/scripts/core/construction.gd b/godot/scripts/core/construction.gd
+--- a/godot/scripts/core/construction.gd
++++ b/godot/scripts/core/construction.gd
+@@ -903,3 +903,331 @@
+ func _refuse(code: StringName) -> OpResult:
+ 	"""One refused outcome: no value, the null reference, and the code that explains it."""
+ 	return OpResult.new(false, code, 0, NULL_REF)
++
++# =================================================================================================
++# CONSTRUCTION-S4-VALIDATE-R01v2 (ADR 0186): bounded local Columns validation surface.
++#
++# APPEND-ONLY. Everything below this line is additive: a cold `Columns` row-family image, its
++# independent safe source preflight, and the ordered pure `columns_refusal()` predicate the
++# accepted contract (docs/planning/construction_component_validation_contract.md) and its witness
++# manifest (witness-plan-v2.json) describe. No schema, lifecycle, gameplay behavior, packed-state
++# budget or existing declaration above this line is touched. This is LOCAL validation only: it
++# proves one Columns image is internally well-formed against the eleven ordered gates below. It
++# proves nothing about saved identity, delivered materials, capture/apply or a loaded world
++# (section "Saved coverage and integration boundary"), and constructs no live Construction,
++# Buildings, Directory or BuildingDefinitions instance anywhere in this section.
++# =================================================================================================
++
++## The eleven frozen refusal codes this section may return, plus success (REFUSE_NONE, above).
++const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
++const REFUSE_COLUMN_SOURCE_METADATA: StringName = &"COLUMN_SOURCE_METADATA"
++const REFUSE_COLUMN_FLAG: StringName = &"COLUMN_FLAG"
++const REFUSE_COLUMN_ENUM: StringName = &"COLUMN_ENUM"
++const REFUSE_COLUMN_VALUE: StringName = &"COLUMN_VALUE"
++const REFUSE_COLUMN_REF: StringName = &"COLUMN_REF"
++const REFUSE_COLUMN_FREE: StringName = &"COLUMN_FREE"
++const REFUSE_COLUMN_TYPE: StringName = &"COLUMN_TYPE"
++const REFUSE_COLUMN_WORKERS: StringName = &"COLUMN_WORKERS"
++const REFUSE_COLUMN_POLICY: StringName = &"COLUMN_POLICY"
++const REFUSE_COLUMN_PHASE: StringName = &"COLUMN_PHASE"
++
++## The Directory namespace's own capacity, read as a constant (no directory instance needed).
++const COLUMN_DIRECTORY_CAPACITY: int = EntityDirectory.DIRECTORY_CAPACITY
++
++## Frozen gate-consumed arrays, transcribed exactly from frozen-source-facts.json in the same
++## canonical ascending id order Catalog.BUILDING_DEFINITION / Catalog.FURNITURE_DEFINITION assign
++## (both already alphabetical in this project). These are gate facts for the PURE predicate only;
++## exact bill quantity/order mirrors belong to the later bridge's independent SOURCE_* anchors.
++const COLUMN_BUILDING_KEYS: Array[String] = [
++	"apiary", "boathouse", "brewery", "cellar", "composter", "covered_store",
++	"dirt_path", "dryer", "fence", "fisher_shelter", "forester_lodge", "gate",
++	"hall", "infirmary", "kitchen", "lookout", "memorial_garden", "mill",
++	"nursery", "open_stockpile", "paved_path", "preserver", "quarry_shed", "residence",
++	"saltpan", "stone_wall", "weir", "well", "workbench", "workshop",
++]
++const COLUMN_BUILDING_WORK_MWU: Array[int] = [
++	180000, 720000, 480000, 900000, 120000, 480000,
++	2000, 240000, 12000, 240000, 240000, 90000,
++	2400000, 1000000, 600000, 180000, 240000, 720000,
++	300000, 60000, 6000, 480000, 240000, 1200000,
++	240000, 30000, 480000, 240000, 180000, 720000,
++]
++const COLUMN_BUILDING_MAX_WORKERS: Array[int] = [
++	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
++	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
++]
++const COLUMN_BUILDING_BILL_PAIR_COUNTS: Array[int] = [
++	2, 3, 3, 2, 1, 2,
++	0, 2, 1, 2, 2, 2,
++	3, 3, 3, 2, 2, 2,
++	2, 1, 1, 3, 2, 3,
++	2, 1, 3, 2, 2, 3,
++]
++const COLUMN_FURNITURE_KEYS: Array[String] = [
++	"bed", "decoration", "hearth", "interior_door", "interior_partition",
++	"kitchen_bench", "patient_bed", "seat", "shelf",
++]
++const COLUMN_FURNITURE_WORK_MWU: Array[int] = [
++	20000, 12000, 60000, 12000, 8000, 60000, 24000, 10000, 16000,
++]
++const COLUMN_FURNITURE_BILL_PAIR_COUNTS: Array[int] = [
++	2, 2, 1, 1, 1, 3, 2, 1, 1,
++]
++
++## The four tier-2 keys in canonical BuildingDefinition id order (5, 12, 23, 29): covered_store,
++## hall, residence, workshop, matching BuildingDefinitions.TIER_TWO_KEYS' own order.
++const COLUMN_UPGRADE_IDS: Array[int] = [5, 12, 23, 29]
++const COLUMN_UPGRADE_WORK_MWU: Array[int] = [600000, 1200000, 1200000, 720000]
++const COLUMN_UPGRADE_BILL_PAIR_COUNTS: Array[int] = [2, 3, 3, 2]
++
++
++class Columns extends RefCounted:
++	"""The cold 16-column Construction owner image (contract "Exact public surface").
++
++	Sixteen typed packed properties, named by removing the schema key's leading underscore, in the
++	exact ordinal order the owning contract table fixes. `_init(true)` (the default) allocates the
++	CLEAR image: every property resized to ROW_CAPACITY and filled with its declared clear value.
++	`_init(false)` is the borrowed-view constructor: every property stays an empty typed array, for
++	a caller (this file's static preflight, or a future bridge) to assign shaped buffers into.
++	This class performs no validation, no allocation beyond its own properties, no live read, no
++	diagnostics and no serialized copy; `columns_refusal()` below is the sole pure predicate over it.
++	"""
++
++	## Self-contained row count; deliberately a literal so this class never needs to resolve an
++	## outer-scope constant to know its own shape (contract owner1 primary 82944).
++	const ROW_CAPACITY: int = 82944
++
++	var present: PackedByteArray = PackedByteArray()
++	var material_container_slot: PackedInt32Array = PackedInt32Array()
++	var material_container_generation: PackedInt32Array = PackedInt32Array()
++	var assigned_count: PackedInt32Array = PackedInt32Array()
++	var max_workers: PackedInt32Array = PackedInt32Array()
++	var refund_policy: PackedInt32Array = PackedInt32Array()
++	var remaining_mwu: PackedInt64Array = PackedInt64Array()
++	var paused: PackedByteArray = PackedByteArray()
++	var work_begun: PackedByteArray = PackedByteArray()
++	var ref_slot: PackedInt32Array = PackedInt32Array()
++	var ref_generation: PackedInt32Array = PackedInt32Array()
++	var subject_slot: PackedInt32Array = PackedInt32Array()
++	var subject_generation: PackedInt32Array = PackedInt32Array()
++	var purpose: PackedInt32Array = PackedInt32Array()
++	var type_id: PackedInt32Array = PackedInt32Array()
++	var phase: PackedInt32Array = PackedInt32Array()
++
++	func _init(allocate_defaults: bool = true) -> void:
++		"""`true` (default): allocate the clear image. `false`: leave every property empty."""
++		if not allocate_defaults:
++			return
++		present.resize(ROW_CAPACITY)
++		material_container_slot.resize(ROW_CAPACITY)
++		material_container_generation.resize(ROW_CAPACITY)
++		assigned_count.resize(ROW_CAPACITY)
++		max_workers.resize(ROW_CAPACITY)
++		refund_policy.resize(ROW_CAPACITY)
++		remaining_mwu.resize(ROW_CAPACITY)
++		paused.resize(ROW_CAPACITY)
++		work_begun.resize(ROW_CAPACITY)
++		ref_slot.resize(ROW_CAPACITY)
++		ref_generation.resize(ROW_CAPACITY)
++		subject_slot.resize(ROW_CAPACITY)
++		subject_generation.resize(ROW_CAPACITY)
++		purpose.resize(ROW_CAPACITY)
++		type_id.resize(ROW_CAPACITY)
++		phase.resize(ROW_CAPACITY)
++		present.fill(0)
++		material_container_slot.fill(-1)
++		material_container_generation.fill(0)
++		assigned_count.fill(0)
++		max_workers.fill(0)
++		refund_policy.fill(0)
++		remaining_mwu.fill(0)
++		paused.fill(0)
++		work_begun.fill(0)
++		ref_slot.fill(-1)
++		ref_generation.fill(0)
++		subject_slot.fill(-1)
++		subject_generation.fill(0)
++		purpose.fill(0)
++		type_id.fill(-1)
++		phase.fill(0)
++
++	func is_sized() -> bool:
++		"""True only when all sixteen properties are exactly ROW_CAPACITY long."""
++		return present.size() == ROW_CAPACITY \
++			and material_container_slot.size() == ROW_CAPACITY \
++			and material_container_generation.size() == ROW_CAPACITY \
++			and assigned_count.size() == ROW_CAPACITY \
++			and max_workers.size() == ROW_CAPACITY \
++			and refund_policy.size() == ROW_CAPACITY \
++			and remaining_mwu.size() == ROW_CAPACITY \
++			and paused.size() == ROW_CAPACITY \
++			and work_begun.size() == ROW_CAPACITY \
++			and ref_slot.size() == ROW_CAPACITY \
++			and ref_generation.size() == ROW_CAPACITY \
++			and subject_slot.size() == ROW_CAPACITY \
++			and subject_generation.size() == ROW_CAPACITY \
++			and purpose.size() == ROW_CAPACITY \
++			and type_id.size() == ROW_CAPACITY \
++			and phase.size() == ROW_CAPACITY
++
++
++# --- independent safe source preflight -----------------------------------------------------------
++
++static func _bill_shape_ok(bill: Variant, expected_pairs: int) -> bool:
++	"""A compiled bill Array: TYPE_ARRAY, even length, bounded/matched pair count, typed contents.
++
++	Order matches the contract exactly: TYPE_ARRAY, then even length, then pair count 0..4, then
++	each key's exact TYPE_STRING before any StringName(key) membership test, then each quantity's
++	actual integer type and positive value. Bounds and type proof always precede indexing.
++	"""
++	if typeof(bill) != TYPE_ARRAY:
++		return false
++	var pairs: Array = bill
++	if pairs.size() % 2 != 0:
++		return false
++	var pair_count: int = pairs.size() / 2
++	if pair_count < 0 or pair_count > MATERIAL_SLOTS_PER_PROJECT or pair_count != expected_pairs:
++		return false
++	for index: int in pair_count:
++		if typeof(pairs[index * 2]) != TYPE_STRING:
++			return false
++		if not MATERIAL_KEYS.has(StringName(String(pairs[index * 2]))):
++			return false
++		if typeof(pairs[index * 2 + 1]) != TYPE_INT:
++			return false
++		if int(pairs[index * 2 + 1]) <= 0:
++			return false
++	return true
++
++
++static func _metadata_refusal_building(id: int, key: String) -> bool:
++	"""True when one BuildingDefinition id/key pair fails the frozen source comparison."""
++	if not Catalog.BUILDING_DEFINITION.has(key) or typeof(Catalog.BUILDING_DEFINITION[key]) != TYPE_INT:
++		return true
++	if int(Catalog.BUILDING_DEFINITION[key]) != id:
++		return true
++	if not BuildingDefinitions.BUILDING_FACTS.has(key):
++		return true
++	var row: Variant = BuildingDefinitions.BUILDING_FACTS[key]
++	if typeof(row) != TYPE_ARRAY:
++		return true
++	var fields: Array = row
++	if fields.size() != BuildingDefinitions.B_FIELD_COUNT:
++		return true
++	if typeof(fields[BuildingDefinitions.B_WORK_MWU]) != TYPE_INT \
++			or int(fields[BuildingDefinitions.B_WORK_MWU]) != COLUMN_BUILDING_WORK_MWU[id]:
++		return true
++	if typeof(fields[BuildingDefinitions.B_MAX_BUILDERS]) != TYPE_INT \
++			or int(fields[BuildingDefinitions.B_MAX_BUILDERS]) != COLUMN_BUILDING_MAX_WORKERS[id]:
++		return true
++	if COLUMN_BUILDING_WORK_MWU[id] <= 0 or COLUMN_BUILDING_WORK_MWU[id] % DEMOLITION_WORK_DEN != 0:
++		return true
++	if not BUILD_MATERIALS.has(key):
++		return true
++	return not _bill_shape_ok(BUILD_MATERIALS[key], COLUMN_BUILDING_BILL_PAIR_COUNTS[id])
++
++
++static func _metadata_refusal_furniture(id: int, key: String) -> bool:
++	"""True when one FurnitureDefinition id/key pair fails the frozen source comparison."""
++	if not Catalog.FURNITURE_DEFINITION.has(key) or typeof(Catalog.FURNITURE_DEFINITION[key]) != TYPE_INT:
++		return true
++	if int(Catalog.FURNITURE_DEFINITION[key]) != id:
++		return true
++	if not BuildingDefinitions.FURNITURE_FACTS.has(key):
++		return true
++	var row: Variant = BuildingDefinitions.FURNITURE_FACTS[key]
++	if typeof(row) != TYPE_ARRAY:
++		return true
++	var fields: Array = row
++	if fields.size() != BuildingDefinitions.F_FIELD_COUNT:
++		return true
++	if typeof(fields[BuildingDefinitions.F_WORK_MWU]) != TYPE_INT \
++			or int(fields[BuildingDefinitions.F_WORK_MWU]) != COLUMN_FURNITURE_WORK_MWU[id]:
++		return true
++	if COLUMN_FURNITURE_WORK_MWU[id] <= 0:
++		return true
++	if not FURNITURE_MATERIALS.has(key):
++		return true
++	return not _bill_shape_ok(FURNITURE_MATERIALS[key], COLUMN_FURNITURE_BILL_PAIR_COUNTS[id])
++
++
++static func _metadata_refusal_upgrade(index: int, id: int) -> bool:
++	"""True when one tier-2 upgrade index/id pair fails the frozen source comparison."""
++	if index < 0 or index >= BuildingDefinitions.TIER_TWO_KEYS.size():
++		return true
++	var key: String = BuildingDefinitions.TIER_TWO_KEYS[index]
++	if not Catalog.BUILDING_DEFINITION.has(key) or typeof(Catalog.BUILDING_DEFINITION[key]) != TYPE_INT:
++		return true
++	if int(Catalog.BUILDING_DEFINITION[key]) != id:
++		return true
++	if not UPGRADE_WORK_MWU.has(key) or typeof(UPGRADE_WORK_MWU[key]) != TYPE_INT:
++		return true
++	if int(UPGRADE_WORK_MWU[key]) != COLUMN_UPGRADE_WORK_MWU[index] or int(UPGRADE_WORK_MWU[key]) <= 0:
++		return true
++	if not UPGRADE_MATERIALS.has(key):
++		return true
++	return not _bill_shape_ok(UPGRADE_MATERIALS[key], COLUMN_UPGRADE_BILL_PAIR_COUNTS[index])
++
++
++static func column_source_metadata_refusal() -> StringName:
++	"""Independent safe source preflight (contract "Immutable facts and safe source preflight").
++
++	Compares the frozen COLUMN_* gate arrays against BuildingDefinitions' and this file's own
++	static catalog Dictionaries -- never constructing a live Definitions/Buildings/Construction
++	instance, and never calling Catalog.compile_domain or verify_compiled_enum. Every shape/type
++	bound is proven before it is used to index. Protects itself independently of any caller;
++	`columns_refusal()` does not assume this already ran. Returns REFUSE_NONE on success.
++	"""
++	if COLUMN_BUILDING_KEYS.size() != BUILDING_KINDS or COLUMN_BUILDING_WORK_MWU.size() != BUILDING_KINDS \
++			or COLUMN_BUILDING_MAX_WORKERS.size() != BUILDING_KINDS \
++			or COLUMN_BUILDING_BILL_PAIR_COUNTS.size() != BUILDING_KINDS:
++		return REFUSE_COLUMN_SOURCE_METADATA
++	if COLUMN_FURNITURE_KEYS.size() != FURNITURE_KINDS or COLUMN_FURNITURE_WORK_MWU.size() != FURNITURE_KINDS \
++			or COLUMN_FURNITURE_BILL_PAIR_COUNTS.size() != FURNITURE_KINDS:
++		return REFUSE_COLUMN_SOURCE_METADATA
++	if COLUMN_UPGRADE_IDS.size() != 4 or COLUMN_UPGRADE_WORK_MWU.size() != 4 \
++			or COLUMN_UPGRADE_BILL_PAIR_COUNTS.size() != 4:
++		return REFUSE_COLUMN_SOURCE_METADATA
++	if Catalog.BUILDING_DEFINITION.size() != BUILDING_KINDS or BuildingDefinitions.BUILDING_FACTS.size() != BUILDING_KINDS \
++			or BUILD_MATERIALS.size() != BUILDING_KINDS:
++		return REFUSE_COLUMN_SOURCE_METADATA
++	if Catalog.FURNITURE_DEFINITION.size() != FURNITURE_KINDS or BuildingDefinitions.FURNITURE_FACTS.size() != FURNITURE_KINDS \
++			or FURNITURE_MATERIALS.size() != FURNITURE_KINDS:
++		return REFUSE_COLUMN_SOURCE_METADATA
++	if UPGRADE_MATERIALS.size() != 4 or UPGRADE_WORK_MWU.size() != 4:
++		return REFUSE_COLUMN_SOURCE_METADATA
++	for id: int in BUILDING_KINDS:
++		if _metadata_refusal_building(id, COLUMN_BUILDING_KEYS[id]):
++			return REFUSE_COLUMN_SOURCE_METADATA
++	for id: int in FURNITURE_KINDS:
++		if _metadata_refusal_furniture(id, COLUMN_FURNITURE_KEYS[id]):
++			return REFUSE_COLUMN_SOURCE_METADATA
++	for index: int in 4:
++		if _metadata_refusal_upgrade(index, COLUMN_UPGRADE_IDS[index]):
++			return REFUSE_COLUMN_SOURCE_METADATA
++	return REFUSE_NONE
++
++
++# --- the ordered pure row predicate ---------------------------------------------------------------
++
++static func _column_flag_scan_refusal(image: Columns) -> StringName:
++	"""Scan present, paused, work_begun -- that exact order, each in full -- for canonical 0/1."""
++	for value: int in image.present:
++		if value != 0 and value != 1:
++			return REFUSE_COLUMN_FLAG
++	for value: int in image.paused:
++		if value != 0 and value != 1:
++			return REFUSE_COLUMN_FLAG
++	for value: int in image.work_begun:
++		if value != 0 and value != 1:
++			return REFUSE_COLUMN_FLAG
++	return REFUSE_NONE
++
++
++static func _enum_gate_refusal(image: Columns, row: int) -> StringName:
++	"""Gate 1 (ENUM): purpose 0..3, phase 0..4, refund_policy 0..2."""
++	var purpose: int = image.purpose[row]
++	if purpose < PURPOSE_BUILD or purpose >= PURPOSE_COUNT:
++		return REFUSE_COLUMN_ENUM
++	var phase: int = image.phase[row]
++	if phase < PHASE_AWAITING_MATERIALS or phase >= PHASE_COUNT:
++		return REFUSE_COLUMN_ENUM
++	var policy: int = image.refund_policy[row]
++	if policy < REFUND_FULL or policy >= REFUND_POLICY_COUNT:
++		return REFUSE_COLUMN_ENUM
++	return REFUSE_NONE
++
++
++static func _value_gate_refusal(image: Columns, row: int) -> StringName:
++	"""Gate 2 (VALUE): non-negative counters/quantities; type_id no lower than the -1 sentinel."""
++	if image.remaining_mwu[row] < 0 or image.assigned_count[row] < 0:
++		return REFUSE_COLUMN_VALUE
++	if image.max_workers[row] < 0 or image.type_id[row] < -1:
++		return REFUSE_COLUMN_VALUE
++	return REFUSE_NONE
++
++
++static func _ref_pair_refusal(slot: int, generation: int, max_slot: int) -> StringName:
++	"""One reference pair: exactly NULL(-1,0), or slot 0..max_slot with generation 1..MAX_i32."""
++	if slot == NULL_REF.x and generation == NULL_REF.y:
++		return REFUSE_NONE
++	if slot < 0 or slot > max_slot:
++		return REFUSE_COLUMN_REF
++	if generation < 1 or generation > INT32_MAX:
++		return REFUSE_COLUMN_REF
++	return REFUSE_NONE
++
++
++static func _ref_gate_refusal(image: Columns, row: int) -> StringName:
++	"""Gate 3 (REF): self/subject in the Directory namespace, container in Inventory's own."""
++	var max_directory_slot: int = COLUMN_DIRECTORY_CAPACITY - 1
++	var self_code: StringName = _ref_pair_refusal(
++		image.ref_slot[row], image.ref_generation[row], max_directory_slot)
++	if self_code != REFUSE_NONE:
++		return self_code
++	var subject_code: StringName = _ref_pair_refusal(
++		image.subject_slot[row], image.subject_generation[row], max_directory_slot)
++	if subject_code != REFUSE_NONE:
++		return subject_code
++	return _ref_pair_refusal(
++		image.material_container_slot[row], image.material_container_generation[row], INT32_MAX)
++
++
++static func _free_row_refusal(image: Columns, row: int) -> StringName:
++	"""Gate 4 (FREE), inactive-row half: null self/subject/container and zeroed progress, always;
++	the never-used clear shortcut is stricter still, and distinct from retained-row history."""
++	if image.ref_slot[row] != NULL_REF.x or image.ref_generation[row] != NULL_REF.y:
++		return REFUSE_COLUMN_FREE
++	if image.subject_slot[row] != NULL_REF.x or image.subject_generation[row] != NULL_REF.y:
++		return REFUSE_COLUMN_FREE
++	if image.material_container_slot[row] != NULL_REF.x \
++			or image.material_container_generation[row] != NULL_REF.y:
++		return REFUSE_COLUMN_FREE
++	if image.remaining_mwu[row] != 0 or image.assigned_count[row] != 0:
++		return REFUSE_COLUMN_FREE
++	if image.paused[row] != 0 or image.work_begun[row] != 0:
++		return REFUSE_COLUMN_FREE
++	if image.max_workers[row] == 0:
++		if image.purpose[row] != PURPOSE_BUILD or image.type_id[row] != -1:
++			return REFUSE_COLUMN_FREE
++		if image.phase[row] != PHASE_AWAITING_MATERIALS or image.refund_policy[row] != REFUND_FULL:
++			return REFUSE_COLUMN_FREE
++	return REFUSE_NONE
++
++
++static func _free_gate_refusal(image: Columns, row: int) -> StringName:
++	"""Gate 4 (FREE): dispatch by present. Present rows require nonnull self AND subject."""
++	if image.present[row] == 0:
++		return _free_row_refusal(image, row)
++	if image.ref_slot[row] == NULL_REF.x and image.ref_generation[row] == NULL_REF.y:
++		return REFUSE_COLUMN_FREE
++	if image.subject_slot[row] == NULL_REF.x and image.subject_generation[row] == NULL_REF.y:
++		return REFUSE_COLUMN_FREE
++	return REFUSE_NONE
++
++
++static func _type_refusal(purpose: int, type_id: int) -> StringName:
++	"""A validated (non-sentinel) type_id against its purpose's own domain."""
++	match purpose:
++		PURPOSE_BUILD, PURPOSE_DEMOLISH:
++			if type_id < 0 or type_id >= BUILDING_KINDS:
++				return REFUSE_COLUMN_TYPE
++		PURPOSE_FURNITURE:
++			if type_id < 0 or type_id >= FURNITURE_KINDS:
++				return REFUSE_COLUMN_TYPE
++		PURPOSE_UPGRADE:
++			if not COLUMN_UPGRADE_IDS.has(type_id):
++				return REFUSE_COLUMN_TYPE
++	return REFUSE_NONE
++
++
++static func _type_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:
++	"""Gate 5 (TYPE): the -1 sentinel is legal only for the exact never-used clear row."""
++	var type_id: int = image.type_id[row]
++	if type_id == -1:
++		if image.present[row] == 0 and image.max_workers[row] == 0:
++			return REFUSE_NONE
++		return REFUSE_COLUMN_TYPE
++	return _type_refusal(purpose, type_id)
++
++
++static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:
++	"""Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness."""
++	var max_workers_val: int = image.max_workers[row]
++	if image.type_id[row] != -1:
++		var expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \
++			else COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]
++		if max_workers_val != expected_max:
++			return REFUSE_COLUMN_WORKERS
++	if image.assigned_count[row] > max_workers_val:
++		return REFUSE_COLUMN_WORKERS
++	var must_be_idle: bool = image.paused[row] == 1 or image.phase[row] == PHASE_REFUNDING
++	if must_be_idle and image.assigned_count[row] != 0:
++		return REFUSE_COLUMN_WORKERS
++	return REFUSE_NONE
++
++
++static func _policy_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:
++	"""Gate 7 (POLICY): demolition is always DEMOLITION; never recompute from cleared work_begun."""
++	if purpose == PURPOSE_DEMOLISH:
++		if image.refund_policy[row] != REFUND_DEMOLITION:
++			return REFUSE_COLUMN_POLICY
++		return REFUSE_NONE
++	if image.present[row] == 1:
++		var expected: int = REFUND_PARTIAL if image.work_begun[row] == 1 else REFUND_FULL
++		if image.refund_policy[row] != expected:
++			return REFUSE_COLUMN_POLICY
++		return REFUSE_NONE
++	if image.phase[row] == PHASE_WORK_DONE and image.refund_policy[row] != REFUND_PARTIAL:
++		return REFUSE_COLUMN_POLICY
++	if image.phase[row] == PHASE_REFUNDING and image.refund_policy[row] != REFUND_FULL \
++			and image.refund_policy[row] != REFUND_PARTIAL:
++		return REFUSE_COLUMN_POLICY
++	return REFUSE_NONE
++
++
++static func _declared_work_mwu_for_row(purpose: int, type_id: int) -> int:
++	"""Frozen declared work W for a validated purpose/type pair, from the gate arrays alone.
++
++	Callers must have already run the TYPE gate; an out-of-range pair returns 0, which the PHASE
++	gate treats as a refusal rather than a valid zero-work project ("All W are positive").
++	"""
++	match purpose:
++		PURPOSE_BUILD:
++			if type_id < 0 or type_id >= BUILDING_KINDS:
++				return 0
++			return COLUMN_BUILDING_WORK_MWU[type_id]
++		PURPOSE_FURNITURE:
++			if type_id < 0 or type_id >= FURNITURE_KINDS:
++				return 0
++			return COLUMN_FURNITURE_WORK_MWU[type_id]
++		PURPOSE_UPGRADE:
++			var index: int = COLUMN_UPGRADE_IDS.find(type_id)
++			if index < 0:
++				return 0
++			return COLUMN_UPGRADE_WORK_MWU[index]
++		PURPOSE_DEMOLISH:
++			if type_id < 0 or type_id >= BUILDING_KINDS:
++				return 0
++			return COLUMN_BUILDING_WORK_MWU[type_id] * DEMOLITION_WORK_NUM / DEMOLITION_WORK_DEN
++	return 0
++
++
++static func _declared_bill_pairs_for_row(purpose: int, type_id: int) -> int:
++	"""Frozen delivery-bill pair count for a validated purpose/type pair. DEMOLISH is always 0."""
++	match purpose:
++		PURPOSE_BUILD:
++			if type_id < 0 or type_id >= BUILDING_KINDS:
++				return 0
++			return COLUMN_BUILDING_BILL_PAIR_COUNTS[type_id]
++		PURPOSE_FURNITURE:
++			if type_id < 0 or type_id >= FURNITURE_KINDS:
++				return 0
++			return COLUMN_FURNITURE_BILL_PAIR_COUNTS[type_id]
++		PURPOSE_UPGRADE:
++			var index: int = COLUMN_UPGRADE_IDS.find(type_id)
++			if index < 0:
++				return 0
++			return COLUMN_UPGRADE_BILL_PAIR_COUNTS[index]
++	return 0
++
++
++static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,
++		phase: int, w: int) -> StringName:
++	"""The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract §8)."""
++	var begun: int = image.work_begun[row]
++	var remaining: int = image.remaining_mwu[row]
++	match phase:
++		PHASE_AWAITING_MATERIALS:
++			if begun != 0 or remaining != w:
++				return REFUSE_COLUMN_PHASE
++			if _declared_bill_pairs_for_row(purpose, type_id) <= 0:
++				return REFUSE_COLUMN_PHASE
++		PHASE_READY:
++			if begun != 0 or remaining != w:
++				return REFUSE_COLUMN_PHASE
++		PHASE_WORKING:
++			if begun != 1 or remaining < 1 or remaining > w:
++				return REFUSE_COLUMN_PHASE
++		PHASE_WORK_DONE:
++			if begun != 1 or remaining != 0:
++				return REFUSE_COLUMN_PHASE
++		PHASE_REFUNDING:
++			var awaiting_shape: bool = begun == 0 and remaining == w
++			var working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w
++			if not (awaiting_shape or working_shape):
++				return REFUSE_COLUMN_PHASE
++	return REFUSE_NONE
++
++
++static func _phase_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:
++	"""Gate 8 (PHASE): retained rows admit only WORK_DONE/REFUNDING; live rows check W exactly."""
++	var type_id: int = image.type_id[row]
++	if type_id == -1:
++		return REFUSE_NONE
++	var phase: int = image.phase[row]
++	if image.present[row] == 0:
++		if phase != PHASE_WORK_DONE and phase != PHASE_REFUNDING:
++			return REFUSE_COLUMN_PHASE
++		return REFUSE_NONE
++	var w: int = _declared_work_mwu_for_row(purpose, type_id)
++	if w <= 0:
++		return REFUSE_COLUMN_PHASE
++	return _live_phase_shape_refusal(image, row, purpose, type_id, phase, w)
++
++
++static func _row_refusal(image: Columns, row: int) -> StringName:
++	"""One row through gates 1-8 in the frozen order; returns the first gate that refuses."""
++	var enum_code: StringName = _enum_gate_refusal(image, row)
++	if enum_code != REFUSE_NONE:
++		return enum_code
++	var value_code: StringName = _value_gate_refusal(image, row)
++	if value_code != REFUSE_NONE:
++		return value_code
++	var ref_code: StringName = _ref_gate_refusal(image, row)
++	if ref_code != REFUSE_NONE:
++		return ref_code
++	var free_code: StringName = _free_gate_refusal(image, row)
++	if free_code != REFUSE_NONE:
++		return free_code
++	var purpose: int = image.purpose[row]
++	var type_code: StringName = _type_gate_refusal(image, row, purpose)
++	if type_code != REFUSE_NONE:
++		return type_code
++	var workers_code: StringName = _workers_gate_refusal(image, row, purpose)
++	if workers_code != REFUSE_NONE:
++		return workers_code
++	var policy_code: StringName = _policy_gate_refusal(image, row, purpose)
++	if policy_code != REFUSE_NONE:
++		return policy_code
++	return _phase_gate_refusal(image, row, purpose)
++
++
++static func columns_refusal(image: Columns) -> StringName:
++	"""Deterministic local refusal order (contract "Deterministic local refusal order").
++
++	Read-only pure predicate over a caller-owned cold `Columns` image: no diagnostics, live reads,
++	clock, callbacks, serialized copies, packed scratch or per-row objects. Shape fails first, then
++	the independent source preflight, then the three flag buffers are scanned in full (present,
++	paused, work_begun, that order), then rows 0..82943 are visited ascending and the first failing
++	gate on a row is returned. Never relies on any caller having already run the source preflight.
++	Returns REFUSE_NONE on success.
++	"""
++	if image == null or not image.is_sized():
++		return REFUSE_COLUMN_SHAPE
++	var source_code: StringName = column_source_metadata_refusal()
++	if source_code != REFUSE_NONE:
++		return source_code
++	var flag_code: StringName = _column_flag_scan_refusal(image)
++	if flag_code != REFUSE_NONE:
++		return flag_code
++	for row: int in image.present.size():
++		var row_code: StringName = _row_refusal(image, row)
++		if row_code != REFUSE_NONE:
++			return row_code
++	return REFUSE_NONE

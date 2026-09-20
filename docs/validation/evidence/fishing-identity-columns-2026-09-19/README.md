@@ -24,7 +24,8 @@ hashes, terminal worker states and review dispositions are retained.
 Pre-repair public regression failed as expected. Final focus258tests/7980assertions
 passes; full suite before final two tests4806/189775/0, unchanged553objects/33resources.
 All15 static gates and headless editor import pass. Four distinct mutants were
-killed and exact source bytes restored. Final exact-head CI and merge pending.
+killed and exact source bytes restored. Exact-head CI35486828355 passed4808tests/189832assertions/0failures with the same
+shutdown baseline. PR158 merged ate898533; original validated head6b7e53e.
 
 This does not complete section7 assembly, cross-section reconciliation, full save
 or a first playable settlement. Those remain explicit queued dependencies.

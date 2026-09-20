@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "e8985336c13f95cddb291df13a143c8ea17d9130",
+  "task": "Independent source review of integrated read-only resource claim checker",
+  "paths": [
+    "docs/planning/resource_claim_reconciliation_contract.md",
+    "docs/decisions/0168-check-resource-claims-without-repairing-saved-state.md",
+    "godot/scripts/core/save_resource_claims_reconcile.gd",
+    "godot/test/test_save_resource_claims_reconcile.gd",
+    "godot/test/test_resource_claim_lifecycle.gd",
+    "godot/test/test_resource_claim_columns.gd",
+    "docs/validation/evidence/claim-reconciliation-checker-2026-09-19/parent-integration-notes.md",
+    "godot/scripts/core/save_section_directory.gd"
+  ],
+  "instructions": "Independent SOURCE review accepted SAVE-CLAIM-CHECK-R01v2/ADR0168. Parent firstfocus51tests2253assertions0 passed; fullsuite now running. Inspect implementation against exact API/refusalorder/newclasses/read-onlyproperties/privateallocation/identity-future-stale-live/mirrors/provenance/ecology/allaggregate checks. Tests include full8192 maxForage structuralsum, full512Fishcapacityrefusal and lateerrorpriority, preflightshapes/nulls, no-claimtotals, futuregen, stalejobs/Expalias, retiredgeneration and PIDMAX, publicslice continuation. Find concrete defects and meaningful missingtests, not inferred missing-worldintegration alreadyseparatelygated. Parent changed only ZONE_ROWS128 to existingownerconstant128 +falsecommentcorrection; outputfile1155vs950linebudgetoverrun documented afterexactfile/APIinspect. Source references fullDirectory included for alloc/read-only checks; do not count nativeobjectoverhead as packedpayload. Five mutants planned by parent. Exactly ONE NEW report docs/validation/evidence/claim-reconciliation-checker-2026-09-19/independent-review.md max150lines, baseSha256 null. RAW JSON status/summary/questions/files/decisionIds, NO Markdown fences. No tests claimed run by you."
+}

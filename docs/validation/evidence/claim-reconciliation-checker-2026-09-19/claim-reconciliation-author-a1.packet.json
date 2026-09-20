@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "e8985336c13f95cddb291df13a143c8ea17d9130",
+  "task": "Implement accepted read-only resource claim checker over explicit immutable projections",
+  "paths": [
+    "docs/planning/resource_claim_reconciliation_contract.md",
+    "docs/decisions/0168-check-resource-claims-without-repairing-saved-state.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/contract-draft1-disposition.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/accepted-owner-domains.md",
+    "godot/scripts/core/save_section_directory.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/save_resource_claims_restore.gd",
+    "godot/scripts/core/save_identity_restore.gd",
+    "godot/scripts/core/int_math.gd"
+  ],
+  "instructions": "Author exactly ONE NEW production file godot/scripts/core/save_resource_claims_reconcile.gd, baseSha256 null, MAX950lines. Implement accepted SAVE-CLAIM-CHECK-R01v2/ADR0168 literally, including exact classes/fields/API/result locations/gate order, tuple identity and stale/future cases, live order provenance, reverse mirrors, all totals once-if-equal and checked helper. No tests/docs/otherfilechanges; parent authors independent tests and metadata. Pure static checker, no live store instantiation/calls/mutation, no old claim rebuilding. Reuse adapter static shapes and codec validation plus private Directory Derived/rebuild static; preloading scripts is allowed. Own only specified packed totals/privateDerived; Directory validator internally creates two sortcopies already budgeted. Avoid unbudgeted packed caches; calculate kind prefix sums from immutable KIND_CAPACITY as needed with int locals. Underlying preflight refusals preserve codes/details with empty owner/space row-1. Component/claim failures follow exact table. Ordinary result defaults zero, do not expose partial counts on refusal. Use statically typed GDScript and existing reference style; class nested allocations default sizes/blanks correct. No wholeworld/saveactivation claims. Ask only genuine contract ambiguities through structured questions; do not silently expand interfaces. Must output RAW JSON object status/summary/questions/files/decisionIds, NO Markdown fences or surrounding prose."
+}

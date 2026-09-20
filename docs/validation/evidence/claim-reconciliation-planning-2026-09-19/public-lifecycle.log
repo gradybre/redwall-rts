@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_resource_claim_lifecycle.gd
+  PASS  test_claim_order_key_uses_the_owning_job_despite_different_directory_slot
+  PASS  test_destroying_basin_releases_other_designations_claims_first
+  PASS  test_destroying_designation_releases_its_claim_without_resetting_basin_usage
+  PASS  test_rebinding_designation_releases_old_claim_and_retains_old_basin
+  PASS  test_claimed_basin_cannot_be_rebound_away_from_its_patch
+  PASS  test_cancelled_job_claim_waits_for_normal_release_pipeline
+  PASS  test_claim_owner_can_become_member_after_admission
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 95 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

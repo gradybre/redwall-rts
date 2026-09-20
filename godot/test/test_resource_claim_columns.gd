@@ -6,6 +6,8 @@ const Adapter := preload("res://scripts/core/save_resource_claims_restore.gd")
 const Codec := preload("res://scripts/core/save_section_inventories.gd")
 const Clock := preload("res://scripts/core/sim_clock.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
+const DirectoryCodec := preload("res://scripts/core/save_section_directory.gd")
+const ClaimCheck := preload("res://scripts/core/save_resource_claims_reconcile.gd")
 const Residents := preload("res://scripts/core/residents.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
 const Priorities := preload("res://scripts/core/priorities.gd")
@@ -532,3 +534,52 @@ func test_reused_expedition_identity_continues_exactly_after_slice_restore() -> 
 	assert_equal(_whole(restored.fish),_whole(uninterrupted.fish),"claims counts aggregates and scratch match uninterrupted state")
 	assert_equal(_whole(restored.forage),_whole(uninterrupted.forage),"interloper and unrelated claims match")
 	assert_equal(restored.fish.directory().state_bytes(),uninterrupted.fish.directory().state_bytes(),"allocator identity matches")
+
+func _claim_check_components(world: Dictionary) -> ClaimCheck.Components:
+	# Test-only snapshots of exact owner columns; the production section4 producer is separate.
+	var out: ClaimCheck.Components = ClaimCheck.Components.new()
+	for field: String in ["habitat_present","habitat_ref_slot","habitat_ref_generation","habitat_effort_slots","habitat_effort_used"]:
+		out.fish.set(field,world.fish.get("_"+field).duplicate())
+	for field: String in ["zone_present","zone_ref_slot","zone_ref_generation","zone_basin_slot","zone_basin_generation","zone_quota_reserved_milli","patch_present","patch_zone_slot","patch_zone_generation"]:
+		out.forage.set(field,world.forage.get("_"+field).duplicate())
+	for field: String in ["job_present","job_ref_slot","job_ref_generation","created_tick"]:
+		out.jobs.set(field,world.jobs.get("_"+field).duplicate())
+	return out
+
+func test_checker_accepts_real_stale_claim_snapshots_before_exact_restore_and_normal_cleanup() -> void:
+	var uninterrupted: Dictionary = _public_world()
+	var restored: Dictionary = _public_world()
+	for world: Dictionary in [uninterrupted,restored]:
+		assert_true(world.fish.directory().destroy(world.expedition),"destroy Expedition before ordinary sweep")
+		var interloper = world.forage.create_zone(2,1,1000,false,true)
+		assert_true(interloper.ok,"other kind takes freed slot")
+		world.replacement = world.fish.directory().create(Directory.KIND_EXPEDITION)
+		assert_equal(world.replacement.y,world.expedition.y,"same generation in different Directory slot")
+		assert_true(world.jobs.destroy_job(world.jobs.directory().get_typed_row(world.forage_job)).ok,"Forage Job destroyed before ordinary sweep")
+	_fish = restored.fish
+	_forage = restored.forage
+	var fish_block: Codec.OwnerRecord = _block(true)
+	var forage_block: Codec.OwnerRecord = _block(false)
+	assert_true(_block_capture(true,fish_block).is_ok(),"exact fishing snapshot")
+	assert_true(_block_capture(false,forage_block).is_ok(),"exact forage snapshot")
+	var directory: DirectoryCodec.Record = DirectoryCodec.Record.new()
+	assert_true(DirectoryCodec.capture_into(_fish.directory(),directory).is_ok(),"same world's Directory snapshot")
+	var components: ClaimCheck.Components = _claim_check_components(restored)
+	var before_fish: PackedByteArray = _whole(_fish)
+	var before_forage: PackedByteArray = _whole(_forage)
+	var result: ClaimCheck.Result = ClaimCheck.validate(directory,_fish.directory().next_persistent_id(),fish_block,forage_block,components)
+	assert_true(result.is_ok(),"source-backed stale claims are coherent and preserved")
+	assert_equal(result.stale_fishing_expeditions,1,"original Expedition is stale despite replacement")
+	assert_equal(result.stale_forage_jobs,1,"destroyed Job remains stale")
+	assert_equal(_whole(_fish),before_fish,"checker does not mutate source Fishing")
+	assert_equal(_whole(_forage),before_forage,"checker does not mutate source Forage")
+	assert_true(_apply(true,fish_block,_clock).is_ok(),"exact fishing reinstall")
+	assert_true(_apply(false,forage_block,_clock).is_ok(),"exact forage reinstall")
+	for world: Dictionary in [uninterrupted,restored]:
+		assert_equal(world.fish.purge_stale_effort_claims().value,1,"ordinary effort cleanup once")
+		assert_equal(world.forage.purge_stale_claims().value,1,"ordinary Forage cleanup once")
+		assert_true(world.fish.reserve_effort_slots(world.replacement,world.fish_job,world.habitat,4).ok,"new Expedition can use all released capacity")
+		assert_true(world.fish.release_effort_slots(world.replacement).ok,"new owner closes its claim")
+	assert_equal(_whole(restored.fish),_whole(uninterrupted.fish),"same Fishing continuation after checker and restore")
+	assert_equal(_whole(restored.forage),_whole(uninterrupted.forage),"same Forage continuation")
+	assert_equal(restored.fish.directory().state_bytes(),uninterrupted.fish.directory().state_bytes(),"same allocator continuation")

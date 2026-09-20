@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "6b7e53efc9eb7c9622d8d9420c53db12186fe8a5",
+  "task": "Review exact pure claim reconciliation draft and disprove any remaining ungrounded rules",
+  "paths": [
+    "docs/planning/resource_claim_reconciliation_contract.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/contract-complete-calls.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-sources.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-registry-snapshot.json",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-review.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-disposition.md",
+    "godot/test/test_resource_claim_lifecycle.gd",
+    "godot/scripts/core/save_section_directory.gd",
+    "godot/scripts/core/save_identity_restore.gd",
+    "godot/scripts/core/save_resource_claims_restore.gd"
+  ],
+  "instructions": "Independent CONTRACT review SAVE-CLAIM-CHECK-R01draft1. Astra has REFUTED prior review alleged X1/X2/X3 with complete call paths plus7publictests95assertions; do NOT repeat missing-context allegations or assume claim row differs Jobrow. Read correction/source. Now verify exact proposed purechecker NEW typed input classes, domains, liveness/stale/futuregen, live/deadPIDprovenance, all aggregate comparisons, partialpatches, coldallocation, readonlyfailure precedence and split implementation vs filebinding. Section4codec still absent; this contract deliberately specifies a new narrow immutable projection interface so pure checking can be implemented independently, while separate production projection binding remains a blocking activation task. Detect concrete contract gaps, stricter-than-reachable-world errors, hidden allocations/mutation of Directory.rebuild, missing reverse mirrors, unresolved highlevelsemantics. No implementation. Exactly one NEW report docs/validation/evidence/claim-reconciliation-planning-2026-09-19/contract-draft1-review.md max140lines, baseSha256 null. RAW JSON status/summary/questions/files/decisionIds with no Markdown fences. No tests claimed run by you."
+}

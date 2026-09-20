@@ -72,6 +72,13 @@ const REFUSE_NOT_BOUND: StringName = &"TRANSFORM_NOT_PLACED"
 const REFUSE_OUT_OF_INT32: StringName = &"TRANSFORM_FIELD_OUT_OF_INT32"
 const REFUSE_INVALID_ALPHA: StringName = &"PRESENTATION_ALPHA_OUT_OF_RANGE"
 
+## TRANSFORMS-S4-VALIDATE-R01 v1: the INACTIVE saved-image codes `columns_refusal()` returns.
+## They judge a caller's packed columns only; no live path ever stores one in `_last_refusal`.
+const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
+const REFUSE_COLUMN_BINDING_ID: StringName = &"COLUMN_BINDING_ID"
+const REFUSE_COLUMN_BINDING_DUPLICATE: StringName = &"COLUMN_BINDING_DUPLICATE"
+const REFUSE_COLUMN_FREE_ROW: StringName = &"COLUMN_FREE_ROW"
+
 ## Digest modulus: a Mersenne prime, so the rolling product never leaves int64 and the digest is
 ## reproducible without relying on signed overflow behaviour.
 const DIGEST_MODULUS: int = 2147483647
@@ -476,3 +483,66 @@ func state_bytes() -> PackedByteArray:
 func last_refusal() -> StringName:
 	"""The refusal code from the most recent refusing call, or REFUSE_NONE after a success."""
 	return _last_refusal
+
+
+# --- saved-image column validation ------------------------------------------------------------
+
+static func columns_refusal(bound_persistent_id: PackedInt32Array, x: PackedInt32Array,
+		y: PackedInt32Array, z: PackedInt32Array, yaw: PackedInt32Array,
+		prev_x: PackedInt32Array, prev_y: PackedInt32Array, prev_z: PackedInt32Array,
+		prev_yaw: PackedInt32Array) -> StringName:
+	"""Judge one INACTIVE owner 15 image's nine columns, in canonical STAMP-FIRST order.
+
+	Pure and static: no store, no Directory, no live owner, no callback, no I/O, no repair, and
+	no write to `_last_refusal` or any other diagnostic. Every gate completes over ALL rows
+	before the next begins, so the first refusal is global and not merely the first faulty row.
+
+	  1 COLUMN_SHAPE              any column that is not exactly TRANSFORM_CAPACITY long
+	  2 COLUMN_BINDING_ID         any negative binding stamp
+	  3 COLUMN_BINDING_DUPLICATE  a positive stamp repeated; repeated zeros are legal
+	  4 COLUMN_FREE_ROW           a zero-bound row whose eight pose values are not all zero
+
+	All eight pose fields keep the FULL signed int32 domain at a positively bound row: no map,
+	yaw normalisation, speed or current/previous equality rule is applied, and current and
+	previous stay independent canonical history. A positive stamp naming a destroyed entity is
+	legitimate stale history and is accepted; the saved Directory cursor and same-file identity
+	belong to TRANSFORMS-SAVED-IDENTITY. An all-zero image is a valid empty Transform image.
+
+	`state_bytes()` is an existing diagnostic whose stamp comes LAST; its order is unchanged and
+	a fixture built from it must be remapped explicitly into this canonical argument order.
+	"""
+	if bound_persistent_id.size() != TRANSFORM_CAPACITY or x.size() != TRANSFORM_CAPACITY \
+			or y.size() != TRANSFORM_CAPACITY or z.size() != TRANSFORM_CAPACITY \
+			or yaw.size() != TRANSFORM_CAPACITY or prev_x.size() != TRANSFORM_CAPACITY \
+			or prev_y.size() != TRANSFORM_CAPACITY or prev_z.size() != TRANSFORM_CAPACITY \
+			or prev_yaw.size() != TRANSFORM_CAPACITY:
+		return REFUSE_COLUMN_SHAPE
+	for row: int in TRANSFORM_CAPACITY:
+		if bound_persistent_id[row] < 0:
+			return REFUSE_COLUMN_BINDING_ID
+	if _has_duplicate_positive_binding(bound_persistent_id):
+		return REFUSE_COLUMN_BINDING_DUPLICATE
+	for row: int in TRANSFORM_CAPACITY:
+		if bound_persistent_id[row] != 0:
+			continue
+		if x[row] != 0 or y[row] != 0 or z[row] != 0 or yaw[row] != 0 \
+				or prev_x[row] != 0 or prev_y[row] != 0 or prev_z[row] != 0 \
+				or prev_yaw[row] != 0:
+			return REFUSE_COLUMN_FREE_ROW
+	return REFUSE_NONE
+
+
+static func _has_duplicate_positive_binding(bound_persistent_id: PackedInt32Array) -> bool:
+	"""True when any POSITIVE stamp appears twice. Repeated zeros are legal free rows.
+
+	The ONE scratch allocation this validation makes: a single 87552-element copy, 350208 bytes,
+	sorted privately so the caller's column is never reordered and the copy is never retained.
+	Negative stamps are already refused by the earlier global gate.
+	"""
+	var sorted: PackedInt32Array = bound_persistent_id.duplicate()
+	sorted.sort()
+	for index: int in TRANSFORM_CAPACITY - 1:
+		var value: int = sorted[index]
+		if value > 0 and value == sorted[index + 1]:
+			return true
+	return false

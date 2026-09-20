@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "bb237d2e05f7c3a921a89e42530fd4b1829ff135",
+  "task": "Implement Transform owner15 saved-column validation preserving pose history and unique bindings",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/transforms_component_validation_contract.md",
+    "docs/decisions/0173-validate-transform-history-and-binding-uniqueness.md",
+    "docs/validation/evidence/transforms-validation-planning-2026-09-20/contract-review-disposition.md",
+    "docs/validation/evidence/transforms-validation-planning-2026-09-20/parent-test-matrix.md",
+    "godot/scripts/core/transforms.gd",
+    "godot/scripts/core/save_owner_schedule.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement accepted TRANSFORMS-S4-VALIDATE-R01v1/ADR0173 exactly. Return ONE new docs/validation/evidence/transforms-component-validation-2026-09-20/implementation.patch withbaseSha256null; unifiedgitdiff modifyingONLY godot/scripts/core/transforms.gd andNEW godot/scripts/core/save_owner_transforms.gd. Noothertargets/rename/binary/modechanges, new100644ordinarycreationallowed. Hard500patchlines. Accurate suppliedsource/nonoverlappinghunks; parentgitapply--recount--check. Staticninepacked_i32 argumentpredicate canonicalstampfirst thenx,y,z,yaw,prev_x,prev_y,prev_z,prev_yaw. Gatesgloballyshape\u2192nonnegativebindings\u2192uniquepositivebindings\u2192zero-boundall8poseszero. Exactlyone350208bytebindingduplicate sortedinprivatehelper; no otherPackedallocation, newconstArrays/rangeArrays/owner/Directory/callback/diagnosticwrites. Do notcheckmap/yawnormalization/historyequality/staleliveness/cursor. Preserveallordinarygameplay, state_bytes diagnosticstampLAST, allmethodsunchanged. Bridgeowner15 exactmetadata andcapacity87552/9fields/allI32,7gates,exactnineaccessors/rawcolumncode/prefixTransforms owner15 metadata:, column detailTransforms owner 15 . PreloadsonlyTransforms,Schema,Section,SaveHeader. Sourcegenerator/capacityaudit remainsseparate; recordmemory3698688within6417408logicalonly. Concisecomments/styleboundedhelpers. Parentownstests/registrydocconflict/classification/sidecar/queue/CI. No runclaims. RawJSONstatus/summary/questions/files/decisionIds only; acknowledgeacceptedv1, realquestionsonly."
+}

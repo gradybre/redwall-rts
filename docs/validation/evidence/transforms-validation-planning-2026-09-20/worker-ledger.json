@@ -1,0 +1,54 @@
+{
+  "attempts": [
+    {
+      "id": "transforms-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "348b65b8-d469-4a46-8850-a69e8a437723",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/validation/evidence/transforms-validation-planning-2026-09-20/astra-source-note.md": "0b7401eb9bb622889dec0969c7b86b6cd4a948cd1489810e988618aa85d56bb1",
+        "godot/scripts/core/transforms.gd": "e09e5c33201cdfb3b27ef69d9973d01f9369120836dc5ec4b2d1d3c383ef444f",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/test/test_transforms.gd": "4e24c42363fd3ccc8db949a9480fffab40718242be6da0d8d0e2f751a9a6ba39",
+        "docs/systems_architecture.md": "551736de66b7ecc81faa757b2d300c9fa907975419991b0b49848ebdf073d67e",
+        "docs/persistence_state_registry.md": "2670eed5874fa3dbf75d92e098c2b40dd5131fcf4c5283dbe6909abe750eb8f9",
+        "docs/planning/movement_contracts.md": "c6eb7e7b653196bfd444c2d83d6c1b1d6ffc3b9ddb5c4d4c2b2fe1ce216e3b00",
+        "docs/decisions/0053-movement-ground-slice-identity-and-storage.md": "d19521f08ce05c4cbabf86224143bd45d14fe843642d0a28ad4ccd3198c22a88",
+        "godot/scripts/core/save_owner_schedule.gd": "1a123674881744ec4d97c510f9b75f5d46e8389dd1cfb6544a555cc10a816697",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+      },
+      "outputLines": 145,
+      "outputWords": 1402,
+      "outputLineBudget": 180,
+      "outputWordBudget": 1800
+    },
+    {
+      "id": "transforms-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "a9beb700-c4af-42b1-9fec-4e3af601c4f3",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/transforms_component_validation_contract.md": "1d9cf72ded049151357c0dc465cce47821bff77ec147607d26f9d9081e956ac5",
+        "docs/validation/evidence/transforms-validation-planning-2026-09-20/feasibility-review.md": "a48d81f3c734db291ee379ddb280d6c85aee2f151bbaa11125419d9edf04dfa2",
+        "docs/validation/evidence/transforms-validation-planning-2026-09-20/feasibility-disposition.md": "f8f724344bdeff2a5b17e4f97d855897f1acad13072c22d8ea566f65bdf7bb7a",
+        "docs/validation/evidence/transforms-validation-planning-2026-09-20/public_history_probe.gd": "20190871781558a39f7da664e66560a34ba704f567971916c4857c39bfeb4489",
+        "docs/validation/evidence/transforms-validation-planning-2026-09-20/public-history-probe.log": "d6f529f3873da52a3b9d2f343e385ab75c3406ba86322d2a6e9cf922049631b2",
+        "godot/scripts/core/transforms.gd": "e09e5c33201cdfb3b27ef69d9973d01f9369120836dc5ec4b2d1d3c383ef444f",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_owner_schedule.gd": "1a123674881744ec4d97c510f9b75f5d46e8389dd1cfb6544a555cc10a816697",
+        "godot/test/test_transforms.gd": "4e24c42363fd3ccc8db949a9480fffab40718242be6da0d8d0e2f751a9a6ba39",
+        "docs/planning/component_columns_stream_contract.md": "c777f71e566c881b3af784cee54a4b1155983ef4ad8e2777a278ae6ae6c0bfe4"
+      },
+      "outputLines": 120,
+      "outputWords": 1173,
+      "outputLineBudget": 140,
+      "outputWordBudget": 1400
+    }
+  ]
+}

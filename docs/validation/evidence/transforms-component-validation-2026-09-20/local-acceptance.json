@@ -1,0 +1,25 @@
+{
+  "contract": "TRANSFORMS-S4-VALIDATE-R01v1",
+  "decision": "0173",
+  "base_commit": "dd68860bb81e1f267ead75f835f359455cb82169",
+  "full_tests": 4916,
+  "full_assertions": 236229,
+  "full_failures": 0,
+  "focus_tests": 34,
+  "focus_assertions": 3277,
+  "metadata_cases": 18,
+  "metadata_assertions": 162,
+  "required_mutants_killed": 14,
+  "metadata_bypasses_killed": 8,
+  "static_gates": 17,
+  "source_review": "no blocker",
+  "shutdown_objects": 553,
+  "shutdown_resources": 33,
+  "exact_head_ci": "pending",
+  "source_sha256": {
+    "godot/scripts/core/transforms.gd": "0c2a532f0869ee1280f830693f0521d2644148828217af7cf2602a1eeca7d675",
+    "godot/scripts/core/save_owner_transforms.gd": "a82c4df98598a62cc97c84c936c6a00649b2f2f66788ac885cb5ea4378855790",
+    "godot/test/test_save_owner_transforms.gd": "242f62ad3aa543d4be387a3f9b60544688413c87069beab486edc891a607cf00",
+    "tools/test_transforms_metadata_preflights.py": "0966bc951013beadf4a3641cb90ad2c1b9fb55a05e6726d140424395cc9459fd"
+  }
+}

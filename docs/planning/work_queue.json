@@ -1790,7 +1790,9 @@
         "NEEDS-STATUS-PRECEDENCE",
         "NEEDS-DEPARTURE-DOMAIN",
         "SAVE-S4-PRIORITIES-VALIDATE",
-        "SAVE-S4-SCHEDULE-VALIDATE"
+        "SAVE-S4-SCHEDULE-VALIDATE",
+        "SAVE-S4-TRANSFORMS-VALIDATE",
+        "TRANSFORMS-SAVED-IDENTITY"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -1892,7 +1894,7 @@
     {
       "id": "SAVE-S4-SCHEDULE-VALIDATE",
       "title": "Validate saved Schedule history and owner14 columns without live owners",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -1907,7 +1909,41 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance SCHEDULE-S4-VALIDATE-R01v1/ADR0172:4907/233113/0;focused62/17896/0;12mapping/state +8metadata guard mutants killed;18metadata cases;17static gates/import;independent source review no blocker. Saved timetable/current history preserved. Exact-head CI pending. No bulk APIs/catalog identity/crossownerpublication."
+      "note": "Local acceptance SCHEDULE-S4-VALIDATE-R01v1/ADR0172:4907/233113/0;focused62/17896/0;12mapping/state +8metadata guard mutants killed;18metadata cases;17static gates/import;independent source review no blocker. Saved timetable/current history preserved. Merged PR163 commitdd68860 after exact-head CI35496042185 passed4907/233113/0 and18metadata cases. No bulk APIs/catalog identity/crossownerpublication."
+    },
+    {
+      "id": "SAVE-S4-TRANSFORMS-VALIDATE",
+      "title": "Validate Transform saved pose history and unique binding IDs without live owners",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/transforms.gd",
+        "godot/scripts/core/save_owner_transforms.gd",
+        "godot/test/test_save_owner_transforms.gd",
+        "godot/test/transforms_validation_focus.gd",
+        "tools/test_transforms_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance TRANSFORMS-S4-VALIDATE-R01v1/ADR0173: 4916 tests,236229 assertions,0 failures; focus34/3277/0;14 required mutants and8metadata bypasses caught;18metadata cases;17static checks/import and independent source review pass. Preserves signed pose history and stale bindings;350208-byte scratch within existing stream allowance. Exact-head CI pending. No bulk binding or full saved identity acceptance."
+    },
+    {
+      "id": "TRANSFORMS-SAVED-IDENTITY",
+      "title": "Reconcile saved Transform binding IDs with same-file cursor and Directory identity",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-TRANSFORMS-VALIDATE"
+      ],
+      "owns": [
+        "docs/planning/transforms_saved_identity_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Pure savedstate contract required: allpositive stamps below savedsection1cursor, correct savedDirectory/typedrow associations while allowing legitimate stalehistoricalstamps. No liveDirectory lookup or unconditional liveentitymatch; localuniqueness does not proveworldprovenance. Directory.cursor_refusal expectswrongarrayextent forTransform andcannotbereused directly."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

@@ -9457,7 +9457,7 @@
   },
   "C106": {
    "unused": "Same as the current pose",
-   "notes": "The interpolation source for the render frame after a load. ARCH-SAVE-004 ends with \"present previous=current\", so the loader may collapse them -- but ARCH-HASH-001 hashes both, so the collapse must happen after the incoming digest is verified, not before."
+   "notes": "Canonical current and previous pose fields remain exact across load, digest verification and publication. ARCH-HASH-001 includes both and excludes first-frame presentation overrides; ARCH-SAVE-004 verifies the installed digest again. Load previous=current is a presentation-only override, never a canonical history rewrite (decision0173)."
   },
   "C107": {
    "unused": "0 = the row is bound to nothing",

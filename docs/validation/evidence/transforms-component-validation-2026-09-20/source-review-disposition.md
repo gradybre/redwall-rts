@@ -1,0 +1,9 @@
+# Astra disposition of the independent Transform source review
+
+Accepted: no blocker. Frozen input hashes, the stopped worker and the 160-line/1,600-word output limits were verified at intake. The worker ledger records exact counts. The reviewer independently verified the nine canonical accessors, four global gates, private scratch behavior and source-backed history rules. Explicit paired faults and both binding-substitution witnesses resolve the earlier contract review's test concerns.
+
+All 14 required mutations subsequently failed actual assertions. Baseline and restored controls both passed 34 tests and 3,277 assertions, with the expected test count and no parser or script errors. Eight metadata guard bypasses were separately caught across 18 cases and 162 assertions. All 17 static checks and import passed. The full regression suite subsequently passed 4,916 tests and 236,229 assertions with zero failures; exact-head CI remains required.
+
+The review's endianness note applies to production validation over typed columns. The test-only diagnostic byte remap runs on the actual little-endian engine platforms used here; it does not qualify native big-endian save support. The metadata harness edits cloned files only. Its final assertions verify that original product bytes never changed; it does not restore mutated production files.
+
+No code changes were requested. Pose-field swaps are equivalent under these symmetric validation rules, and none is claimed caught. Exact canonical mapping is source-reviewed; future capture and restore work must still prove individual field values are preserved. The framed path reports the section's shape refusal before the owner's direct-call shape refusal. Saved identity, cursor checks, owner bindings and world publication remain downstream requirements.

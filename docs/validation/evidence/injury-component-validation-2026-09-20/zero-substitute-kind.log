@@ -1,0 +1,67 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_injury.gd
+  FAIL  test_layout_cleared_defaults_and_full_i64_endpoints
+        bridge exact code (expected , got COLUMN_KIND_SEVERITY)
+        success channel (expected true, got false)
+        success detail (expected , got Injury owner 6 refuses this image with column code COLUMN_KIND_SEVERITY)
+        bridge exact code (expected , got COLUMN_KIND_SEVERITY)
+        success channel (expected true, got false)
+        success detail (expected , got Injury owner 6 refuses this image with column code COLUMN_KIND_SEVERITY)
+  FAIL  test_every_physical_position_and_each_zero_accessor_witness
+        bridge exact code (expected COLUMN_KIND, got )
+        success channel (expected false, got true)
+        owner identity (expected true, got false)
+        raw code (expected true, got false)
+  PASS  test_severity_signs_references_and_accumulator_extrema
+  FAIL  test_no_injury_history_free_rows_and_exact_pair_uniqueness
+        bridge exact code (expected COLUMN_KIND_SEVERITY, got )
+        success channel (expected false, got true)
+        owner identity (expected true, got false)
+        raw code (expected true, got false)
+        bridge exact code (expected COLUMN_INCIDENT_HISTORY, got COLUMN_KIND_SEVERITY)
+        raw code (expected true, got false)
+        bridge exact code (expected COLUMN_INACTIVE, got COLUMN_KIND_SEVERITY)
+        raw code (expected true, got false)
+        bridge exact code (expected COLUMN_INACTIVE, got COLUMN_KIND_SEVERITY)
+        raw code (expected true, got false)
+        bridge exact code (expected COLUMN_INACTIVE, got COLUMN_KIND_SEVERITY)
+        raw code (expected true, got false)
+        bridge exact code (expected COLUMN_INACTIVE, got COLUMN_KIND_SEVERITY)
+        raw code (expected true, got false)
+  FAIL  test_global_gate_priority_and_inactive_before_duplicate
+        bridge exact code (expected COLUMN_KIND, got COLUMN_SEVERITY)
+        raw code (expected true, got false)
+        bridge exact code (expected COLUMN_KIND_SEVERITY, got COLUMN_NO_INJURY)
+        raw code (expected true, got false)
+  PASS  test_shapes_before_values_null_owner_and_typed_buckets
+  FAIL  test_actual_overflow_refuses_the_entire_sweep_and_reports_first_row
+        bridge exact code (expected , got COLUMN_KIND_SEVERITY)
+        success channel (expected true, got false)
+        success detail (expected , got Injury owner 6 refuses this image with column code COLUMN_KIND_SEVERITY)
+        bridge exact code (expected , got COLUMN_KIND_SEVERITY)
+        success channel (expected true, got false)
+        success detail (expected , got Injury owner 6 refuses this image with column code COLUMN_KIND_SEVERITY)
+  PASS  test_max_minus_one_advances_once_and_dead_or_uninjured_rows_are_skipped
+  FAIL  test_public_care_treatment_latches_and_stale_healthy_rescuer_history
+        bridge exact code (expected , got COLUMN_KIND_SEVERITY)
+        success channel (expected true, got false)
+        success detail (expected , got Injury owner 6 refuses this image with column code COLUMN_KIND_SEVERITY)
+        bridge exact code (expected , got COLUMN_KIND_SEVERITY)
+        success channel (expected true, got false)
+        success detail (expected , got Injury owner 6 refuses this image with column code COLUMN_KIND_SEVERITY)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+9 test(s), 14578 assertion(s), 6 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

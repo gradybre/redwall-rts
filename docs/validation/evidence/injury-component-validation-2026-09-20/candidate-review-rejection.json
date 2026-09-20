@@ -1,0 +1,10 @@
+{
+  "attempt": "injury-validation-candidate-review-a1",
+  "state": "complete",
+  "ownerStopped": true,
+  "accepted": false,
+  "reason": "actual output exceeds hard 100 lines / 1000 words",
+  "actual_lines": 111,
+  "actual_words": 1183,
+  "followup": "bounded shortened report; original findings preserved"
+}

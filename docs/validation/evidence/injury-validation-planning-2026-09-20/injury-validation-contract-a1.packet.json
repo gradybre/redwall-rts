@@ -1,0 +1,25 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f6249f53297f92c4345ef928a04c493dcf53555f",
+  "task": "Final Injury owner6 contract and atomic untreated-overflow repair review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/injury_component_validation_contract.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/metadata-fault-plan.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/proposed-preload-closure.json",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/public_history_probe.gd",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/public-history-probe.log",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/untreated_boundary_probe.gd",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/untreated-boundary-probe.log",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/authority-excerpts.md",
+    "godot/scripts/core/injury.gd",
+    "godot/scripts/core/needs.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_owner_resource_nodes.gd"
+  ],
+  "instructions": "Independent finalcontract review INJURY-S4-VALIDATE-R01draft1 beforeauthor. Sourceorder11fields5byte3i32/3i64; global122..132 notownerlocal. Validateallscalar/free/noinjury/historykind0retainedordinal/latches/healthyrescuer, positiveordinalforactiveorlatched, exactnonnullpairuniquenesswithstaledifferentgenerationsallowed. No liveness/selfcompareglobalSlottoTypedRow. Actualpublicprobe47assertions0. Originalboundarycharacterization12assertions0 deliberatelytest-onlyset(_untreated_ticks) verifiesactualtick_all success7->8/MAX->MINwrap/noerror. No newprodAPI; no publichistory/save-restoreclaim. Proposed2passpreflight skipdead/uninjured/inactive, firstaliveinjuredMAX=>existingOVERFLOW/last_refused_slot beforeANYincrement, canonicalInjuryNeedsbyteidentical; MAX-1->MAX thennextrefuse. Check33requiredmutants11accessors17clauses3order2runtime aremeaningfulincludingexactcodeclasses. Metadatafaultsowner6keyinjurz/version2/primary6+1/7-1;child7->6+8offset7, fieldcountJobsfirstu8[8192]8200transferafter11pinnedfields;type1536/extent1offset7..17. Sourceconstantsfeasible/noextraarrays ornewbridgecycles. Previousfeasibilityincorrectlysaidbridgecouldrestore; currentbridgesvalidateonly, correcteddisposition. ConfirmplannedfullsavedNeeds/Directory/contextidentityfollowup andbulkremainexplicit. OutputONE NEW docs/validation/evidence/injury-validation-planning-2026-09-20/contract-review.md baseSha256null HARD100lines1000words aim60/700; rawJSONstatus/summary/questions/files/decisionIds. Noimplementation/otherfiles/runclaims; concreteblockers only."
+}

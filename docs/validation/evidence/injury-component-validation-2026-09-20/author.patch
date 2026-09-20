@@ -1,0 +1,574 @@
+diff --git a/godot/scripts/core/injury.gd b/godot/scripts/core/injury.gd
+--- a/godot/scripts/core/injury.gd
++++ b/godot/scripts/core/injury.gd
+@@ -700,15 +700,40 @@
+ 	twice in a tick would misreport the hours and calling it never would leave the drain
+ 	running with a frozen counter. The scheduler phase that pairs the two is G02/task08's and
+ 	is not installed from here.
++
++	WHOLE-SWEEP OVERFLOW REFUSAL (ADR 0177). The untreated counter carries the full nonnegative
++	signed-int64 saved domain, so a row already holding INT64_MAX cannot advance. The preflight
++	below inspects EVERY eligible row before any counter moves and refuses the whole sweep, so a
++	lower-index patient never advances while a later one blocks and both this store's and
++	`needs.gd`'s canonical data stay byte-identical on refusal. `last_refused_slot()` reports the
++	first blocked row in ascending order; the null-`Needs` path continues to leave it at -1.
+ 	"""
+ 	_last_refused_slot = -1
+ 	if needs == null:
+ 		return _result(REFUSE_NEEDS_REFUSED)
++	var blocked: int = _first_overflow_row(needs)
++	if blocked >= 0:
++		_last_refused_slot = blocked
++		return _result(REFUSE_OVERFLOW)
+ 	var advanced: int = 0
+ 	for slot: int in RESIDENT_CAPACITY:
+ 		if _present[slot] == 0 or _kind[slot] == KIND_NONE:
+ 			continue
+ 		if not needs.is_alive(slot):
+ 			continue
+ 		_untreated_ticks[slot] += 1
+ 		advanced += 1
+ 	_out_value = advanced
+ 	return _result(REFUSE_NONE)
+ 
+ 
++func _first_overflow_row(needs: Needs) -> int:
++	"""Lowest eligible row whose untreated counter is already INT64_MAX, or -1 when none is.
++
++	Eligibility is exactly the sweep's own: present, carrying an aggregate injury, and living by
++	`needs.gd`'s judgement. Dead, uninjured and inactive rows are skipped here as they are there,
++	so the preflight can never refuse a sweep that would not have touched the row.
++	"""
++	for slot: int in RESIDENT_CAPACITY:
++		if _present[slot] == 0 or _kind[slot] == KIND_NONE:
++			continue
++		if not needs.is_alive(slot):
++			continue
++		if _untreated_ticks[slot] == IntMath.INT64_MAX:
++			return slot
++	return -1
++
++
+ # --- serialization --------------------------------------------------------------------------
+@@ -760,3 +785,178 @@
+ 	image[cursor + 9] = _exhaustion_latch[slot]
+ 	image[cursor + 10] = _care_context_blocked[slot]
+ 	return cursor + IMAGE_FIELDS_PER_ROW
++
++
++# --- ARCH-SAVE-002 section 4 owner 6 column validation (INJURY-S4-VALIDATE-R01 v1, ADR 0177) --
++#
++# ONE PURE PREDICATE over an owner 6 column image. `columns_refusal()` reads no store member,
++# writes none, sets no diagnostic, constructs nothing and allocates no packed scratch. It takes
++# the eleven columns in the canonical owner-local order -- five bytes, three i32, three i64 --
++# and answers REFUSE_NONE or the exact code of the FIRST gate that refuses. Every gate finishes
++# its own complete 512-row scan before the next gate begins; no rule is fused into a single
++# per-row pass, so dropping one clause is observable on its own rather than masked by a neighbour.
++#
++# THE SAVED DOMAINS ARE THE STORE'S. Untreated ticks, care progress and the incident ordinal all
++# admit the full nonnegative signed-int64 range, because existing public writers reach it. There
++# is no recipe work ceiling, no elapsed-time ceiling and no float anywhere in this predicate.
++#
++# RETAINED HISTORY IS LEGAL, NOT AN ERROR. A healthy present row may carry a rescuer, a treated
++# row keeps its incident ordinal and both latches, and a stale rescuer reference survives by
++# design -- current Directory liveness is deliberately unavailable here, and two different
++# generations on one global slot are distinct references that both stay legal.
++#
++# WHAT AN ACCEPTED IMAGE DOES NOT CERTIFY. Saved Needs/resident presence and health agreement,
++# Directory patient and rescuer kind and identity, self-rescue, the movement care context,
++# same-file provenance, bulk capture/restore and derived counts are all INJURY-SAVED-BINDINGS
++# obligations outside this predicate.
++
++const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
++const REFUSE_COLUMN_FLAGS: StringName = &"COLUMN_FLAGS"
++const REFUSE_COLUMN_KIND: StringName = &"COLUMN_KIND"
++const REFUSE_COLUMN_SEVERITY: StringName = &"COLUMN_SEVERITY"
++const REFUSE_COLUMN_RESCUER_REF: StringName = &"COLUMN_RESCUER_REF"
++const REFUSE_COLUMN_UNTREATED_TICKS: StringName = &"COLUMN_UNTREATED_TICKS"
++const REFUSE_COLUMN_CARE_PROGRESS: StringName = &"COLUMN_CARE_PROGRESS"
++const REFUSE_COLUMN_INCIDENT_ORDINAL: StringName = &"COLUMN_INCIDENT_ORDINAL"
++const REFUSE_COLUMN_KIND_SEVERITY: StringName = &"COLUMN_KIND_SEVERITY"
++const REFUSE_COLUMN_NO_INJURY: StringName = &"COLUMN_NO_INJURY"
++const REFUSE_COLUMN_INCIDENT_HISTORY: StringName = &"COLUMN_INCIDENT_HISTORY"
++const REFUSE_COLUMN_INACTIVE: StringName = &"COLUMN_INACTIVE"
++const REFUSE_COLUMN_RESCUER_DUPLICATE: StringName = &"COLUMN_RESCUER_DUPLICATE"
++
++
++static func columns_refusal(present: PackedByteArray, kind: PackedByteArray,
++		airless_episode: PackedByteArray, exhaustion_latch: PackedByteArray,
++		care_context_blocked: PackedByteArray, severity: PackedInt32Array,
++		rescuer_slot: PackedInt32Array, rescuer_generation: PackedInt32Array,
++		untreated_ticks: PackedInt64Array, care_progress_mwu: PackedInt64Array,
++		last_incident_ordinal: PackedInt64Array) -> StringName:
++	"""THE single owner 6 predicate over an Injury column image: REFUSE_NONE, or the exact code.
++
++	Argument-only and pure. The total order is the contract's: all eleven shapes before any
++	indexing, then the scalar domains, then the relations between them, then the inactive-row
++	rule, and last the exact nonnull rescuer-pair uniqueness scan.
++	"""
++	if not _columns_are_capacity_sized(present, kind, airless_episode, exhaustion_latch,
++			care_context_blocked, severity, rescuer_slot, rescuer_generation, untreated_ticks,
++			care_progress_mwu, last_incident_ordinal):
++		return REFUSE_COLUMN_SHAPE
++	var domains: StringName = _column_domain_refusal(present, kind, airless_episode,
++		exhaustion_latch, care_context_blocked, severity, rescuer_slot, rescuer_generation,
++		untreated_ticks, care_progress_mwu, last_incident_ordinal)
++	if domains != REFUSE_NONE:
++		return domains
++	var relations: StringName = _column_relation_refusal(kind, airless_episode, exhaustion_latch,
++		severity, untreated_ticks, care_progress_mwu, last_incident_ordinal)
++	if relations != REFUSE_NONE:
++		return relations
++	var inactive: StringName = _column_inactive_refusal(present, kind, airless_episode,
++		exhaustion_latch, care_context_blocked, severity, rescuer_slot, rescuer_generation,
++		untreated_ticks, care_progress_mwu, last_incident_ordinal)
++	if inactive != REFUSE_NONE:
++		return inactive
++	return _column_rescuer_duplicate_refusal(present, rescuer_slot, rescuer_generation)
++
++
++static func _columns_are_capacity_sized(present: PackedByteArray, kind: PackedByteArray,
++		airless_episode: PackedByteArray, exhaustion_latch: PackedByteArray,
++		care_context_blocked: PackedByteArray, severity: PackedInt32Array,
++		rescuer_slot: PackedInt32Array, rescuer_generation: PackedInt32Array,
++		untreated_ticks: PackedInt64Array, care_progress_mwu: PackedInt64Array,
++		last_incident_ordinal: PackedInt64Array) -> bool:
++	"""Gate 1: all eleven columns hold exactly RESIDENT_CAPACITY values, before any indexed read."""
++	if present.size() != RESIDENT_CAPACITY or kind.size() != RESIDENT_CAPACITY:
++		return false
++	if airless_episode.size() != RESIDENT_CAPACITY \
++			or exhaustion_latch.size() != RESIDENT_CAPACITY \
++			or care_context_blocked.size() != RESIDENT_CAPACITY:
++		return false
++	if severity.size() != RESIDENT_CAPACITY or rescuer_slot.size() != RESIDENT_CAPACITY \
++			or rescuer_generation.size() != RESIDENT_CAPACITY:
++		return false
++	return untreated_ticks.size() == RESIDENT_CAPACITY \
++		and care_progress_mwu.size() == RESIDENT_CAPACITY \
++		and last_incident_ordinal.size() == RESIDENT_CAPACITY
++
++
++static func _column_domain_refusal(present: PackedByteArray, kind: PackedByteArray,
++		airless_episode: PackedByteArray, exhaustion_latch: PackedByteArray,
++		care_context_blocked: PackedByteArray, severity: PackedInt32Array,
++		rescuer_slot: PackedInt32Array, rescuer_generation: PackedInt32Array,
++		untreated_ticks: PackedInt64Array, care_progress_mwu: PackedInt64Array,
++		last_incident_ordinal: PackedInt64Array) -> StringName:
++	"""Gates 2-8: the four flag bytes, the kind byte, severity, the ref pair, the three i64 floors."""
++	if not _byte_column_below(present, 2) or not _byte_column_below(airless_episode, 2) \
++			or not _byte_column_below(exhaustion_latch, 2) \
++			or not _byte_column_below(care_context_blocked, 2):
++		return REFUSE_COLUMN_FLAGS
++	if not _byte_column_below(kind, KIND_COUNT):
++		return REFUSE_COLUMN_KIND
++	if not _i32_column_within(severity, SEVERITY_NONE, SEVERITY_SERIOUS):
++		return REFUSE_COLUMN_SEVERITY
++	if not _rescuer_pairs_valid(rescuer_slot, rescuer_generation):
++		return REFUSE_COLUMN_RESCUER_REF
++	if not _i64_column_nonnegative(untreated_ticks):
++		return REFUSE_COLUMN_UNTREATED_TICKS
++	if not _i64_column_nonnegative(care_progress_mwu):
++		return REFUSE_COLUMN_CARE_PROGRESS
++	if not _i64_column_nonnegative(last_incident_ordinal):
++		return REFUSE_COLUMN_INCIDENT_ORDINAL
++	return REFUSE_NONE
++
++
++static func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
++	"""True when every byte of the whole column is in [0, bound). One C++ count per legal value."""
++	var total: int = 0
++	for value: int in bound:
++		total += column.count(value)
++	return total == column.size()
++
++
++static func _i32_column_within(column: PackedInt32Array, low: int, high: int) -> bool:
++	"""True when every signed i32 entry of the whole column lies in [low, high]."""
++	for row: int in column.size():
++		if column[row] < low or column[row] > high:
++			return false
++	return true
++
++
++static func _i64_column_nonnegative(column: PackedInt64Array) -> bool:
++	"""True when every signed i64 entry is nonnegative; the saved domain runs to INT64_MAX."""
++	for row: int in column.size():
++		if column[row] < 0:
++			return false
++	return true
++
++
++static func _rescuer_pairs_valid(rescuer_slot: PackedInt32Array,
++		rescuer_generation: PackedInt32Array) -> bool:
++	"""True when every pair is exactly NULL_REF, or a directory slot with a positive generation.
++
++	The slot is a GLOBAL directory slot in 0..352417, never a patient row index, so it is never
++	compared against this store's own row to infer a self-rescue.
++	"""
++	for row: int in rescuer_slot.size():
++		var slot: int = rescuer_slot[row]
++		var generation: int = rescuer_generation[row]
++		if slot == NULL_SLOT and generation == NULL_GENERATION:
++			continue
++		if slot < 0 or slot >= EntityDirectory.DIRECTORY_CAPACITY or generation <= 0:
++			return false
++	return true
++
++
++static func _column_relation_refusal(kind: PackedByteArray, airless_episode: PackedByteArray,
++		exhaustion_latch: PackedByteArray, severity: PackedInt32Array,
++		untreated_ticks: PackedInt64Array, care_progress_mwu: PackedInt64Array,
++		last_incident_ordinal: PackedInt64Array) -> StringName:
++	"""Gates 9-11: kind/severity equivalence, the no-injury reset, and positive incident history.
++
++	The history gate constrains an active kind AND either episode latch, and deliberately NOT the
++	care-context byte, which an uninjured row may legally carry. A latched row is never forced to
++	a particular current kind: treatment and later incidents both retain those flags.
++	"""
++	for row: int in kind.size():
++		if (kind[row] == KIND_NONE) != (severity[row] == SEVERITY_NONE):
++			return REFUSE_COLUMN_KIND_SEVERITY
++	for row: int in kind.size():
++		if kind[row] != KIND_NONE:
++			continue
++		if untreated_ticks[row] != 0 or care_progress_mwu[row] != 0:
++			return REFUSE_COLUMN_NO_INJURY
++	for row: int in kind.size():
++		if kind[row] == KIND_NONE and airless_episode[row] == 0 and exhaustion_latch[row] == 0:
++			continue
++		if last_incident_ordinal[row] <= 0:
++			return REFUSE_COLUMN_INCIDENT_HISTORY
++	return REFUSE_NONE
++
++
++static func _column_inactive_refusal(present: PackedByteArray, kind: PackedByteArray,
++		airless_episode: PackedByteArray, exhaustion_latch: PackedByteArray,
++		care_context_blocked: PackedByteArray, severity: PackedInt32Array,
++		rescuer_slot: PackedInt32Array, rescuer_generation: PackedInt32Array,
++		untreated_ticks: PackedInt64Array, care_progress_mwu: PackedInt64Array,
++		last_incident_ordinal: PackedInt64Array) -> StringName:
++	"""Gate 12: an inactive row is canonically all zero with exactly the null rescuer pair.
++
++	Stronger than the ResourceNodes analogue, and rightly so: `_write_empty_row()` and `clear()`
++	both zero every column and write NULL_REF, so an inactive Injury row retains no residue.
++	"""
++	var row: int = present.find(0, 0)
++	while row >= 0:
++		if kind[row] != KIND_NONE or airless_episode[row] != 0 or exhaustion_latch[row] != 0 \
++				or care_context_blocked[row] != 0 or severity[row] != SEVERITY_NONE:
++			return REFUSE_COLUMN_INACTIVE
++		if untreated_ticks[row] != 0 or care_progress_mwu[row] != 0 \
++				or last_incident_ordinal[row] != 0:
++			return REFUSE_COLUMN_INACTIVE
++		if rescuer_slot[row] != NULL_SLOT or rescuer_generation[row] != NULL_GENERATION:
++			return REFUSE_COLUMN_INACTIVE
++		row = present.find(0, row + 1)
++	return REFUSE_NONE
++
++
++static func _column_rescuer_duplicate_refusal(present: PackedByteArray,
++		rescuer_slot: PackedInt32Array, rescuer_generation: PackedInt32Array) -> StringName:
++	"""Gate 13: no exact nonnull rescuer pair is shared by two present rows.
++
++	The same bounded nested ascending scan `_rescuer_patient_count()` already uses, over present
++	rows only, allocating nothing: no temporary packed array, no sort and no map. BOTH halves are
++	compared, so two different generations on one global slot remain distinct stale references.
++	"""
++	for row: int in RESIDENT_CAPACITY:
++		if present[row] == 0 or rescuer_slot[row] == NULL_SLOT:
++			continue
++		for other: int in range(row + 1, RESIDENT_CAPACITY):
++			if present[other] == 0:
++				continue
++			if rescuer_slot[other] == rescuer_slot[row] \
++					and rescuer_generation[other] == rescuer_generation[row]:
++				return REFUSE_COLUMN_RESCUER_DUPLICATE
++	return REFUSE_NONE
+diff --git a/godot/scripts/core/save_owner_injury.gd b/godot/scripts/core/save_owner_injury.gd
+new file mode 100644
+--- /dev/null
++++ b/godot/scripts/core/save_owner_injury.gd
+@@ -0,0 +1,205 @@
++extends RefCounted
++## Owner 6 (`injury`) framed-column validation bridge (INJURY-S4-VALIDATE-R01 v1, ADR 0177).
++##
++## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
++## against the Injury store's own column rules and returns a `SaveHeader.Refusal`. It constructs
++## no Injury, Needs, Directory or catalog store, consults no live owner, reads no clock, captures
++## nothing, applies nothing, normalises nothing and writes no diagnostic.
++##
++## GATE ORDER:
++##   1. a null record                   -> SAVE_COMPONENT_SHAPE
++##   2. an owner index that is not 6    -> SAVE_COMPONENT_OWNER
++##   3. `Schema.schema_refusal()`       -> forwarded UNCHANGED, both code and detail
++##   4. this owner's compiled metadata and the pinned Injury source constants ->
++##      SAVE_COMPONENT_METADATA, with a detail beginning `Injury owner6 metadata:`
++##   5. `Section.owner_shape_refusal()` -> forwarded UNCHANGED
++##   6. the eleven explicit canonical typed accessors: u8 at ordinals 0..4, i32 at 5..7 and
++##      i64 at 8..10
++##   7. `Injury.columns_refusal()`      -> the EXACT unwrapped column code, for example
++##      COLUMN_FLAGS, in a detail naming owner 6 and carrying no row identity.
++## Success carries an empty code and an empty detail.
++##
++## BRIDGES VALIDATE, THEY DO NOT RESTORE. An accepted result certifies owner 6 scalar-domain
++## validation only. Saved Needs and resident presence, health and injury-state agreement,
++## Directory patient and rescuer kind and identity -- without rejecting lawful stale generations
++## -- self-rescue, the movement care context, same-file provenance, bulk capture/restore and
++## derived counts all remain downstream INJURY-SAVED-BINDINGS obligations.
++##
++## THE METADATA GUARD compares the compiled schema to pinned contract literals and the Injury
++## source constants to their pinned values, read as constant chains that instantiate no owner.
++## That is not an owner-publication-table parity claim; the independent schema generator and the
++## source-capacity audit still prove the registry. A source mismatch refuses BEFORE any typed
++## column is read.
++##
++## SECTION 4's `injury` IS VERSION 1 WITH 512 ROWS, NO CHILDREN AND ELEVEN FIELDS. The version
++## and extent pins below are what make a differently shaped `injury` block a refusal rather than
++## a silent acceptance.
++##
++## NO FLOAT. ARCH-AUTH-002: there is no float in this file and there must never be one.
++
++const Injury := preload("res://scripts/core/injury.gd")
++const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
++const Section := preload("res://scripts/core/save_section_component_columns.gd")
++const SaveHeader := preload("res://scripts/core/save_header.gd")
++
++## The section-local owner this bridge accepts, and the compiled metadata it demands of it.
++const OWNER_INDEX: int = 6
++const OWNER_KEY: String = "injury"
++const OWNER_VERSION: int = 1
++const OWNER_PRIMARY_COUNT: int = 512
++const OWNER_CHILD_EXTENT_COUNT: int = 0
++const OWNER_FIELD_COUNT: int = 11
++## Gate 4's detail prefix. Gate 3 forwards the schema module's own detail unchanged.
++const METADATA_DETAIL_PREFIX: String = "Injury owner6 metadata:"
++## Gate 7's detail prefix. It names the owner and the code, and never a row.
++const COLUMN_DETAIL_PREFIX: String = "Injury owner 6"
++
++## Owner-local field ordinals, in the canonical order the predicate's arguments take.
++const FIELD_PRESENT: int = 0
++const FIELD_KIND: int = 1
++const FIELD_AIRLESS_EPISODE: int = 2
++const FIELD_EXHAUSTION_LATCH: int = 3
++const FIELD_CARE_CONTEXT_BLOCKED: int = 4
++const FIELD_SEVERITY: int = 5
++const FIELD_RESCUER_SLOT: int = 6
++const FIELD_RESCUER_GENERATION: int = 7
++const FIELD_UNTREATED_TICKS: int = 8
++const FIELD_CARE_PROGRESS_MWU: int = 9
++const FIELD_LAST_INCIDENT_ORDINAL: int = 10
++
++## The pinned per-field contract: exact owner-local keys, and the one exact element count.
++const FIELD_PRESENT_KEY: String = "_present"
++const FIELD_KIND_KEY: String = "_kind"
++const FIELD_AIRLESS_EPISODE_KEY: String = "_airless_episode"
++const FIELD_EXHAUSTION_LATCH_KEY: String = "_exhaustion_latch"
++const FIELD_CARE_CONTEXT_BLOCKED_KEY: String = "_care_context_blocked"
++const FIELD_SEVERITY_KEY: String = "_severity"
++const FIELD_RESCUER_SLOT_KEY: String = "_rescuer_slot"
++const FIELD_RESCUER_GENERATION_KEY: String = "_rescuer_generation"
++const FIELD_UNTREATED_TICKS_KEY: String = "_untreated_ticks"
++const FIELD_CARE_PROGRESS_MWU_KEY: String = "_care_progress_mwu"
++const FIELD_LAST_INCIDENT_ORDINAL_KEY: String = "_last_incident_ordinal"
++const ROW_ELEMENT_COUNT: int = 512
++
++## The Injury source constants this bridge pins as contract before it reads a column.
++const SOURCE_ROW_CAPACITY: int = 512
++const SOURCE_NEEDS_ROW_CAPACITY: int = 512
++const SOURCE_KIND_NONE: int = 0
++const SOURCE_KIND_CUT: int = 1
++const SOURCE_KIND_BITE: int = 2
++const SOURCE_KIND_FALL: int = 3
++const SOURCE_KIND_EXPOSURE: int = 4
++const SOURCE_KIND_EXHAUSTION: int = 5
++const SOURCE_KIND_COUNT: int = 6
++const SOURCE_SEVERITY_NONE: int = 0
++const SOURCE_SEVERITY_MINOR: int = 1
++const SOURCE_SEVERITY_SERIOUS: int = 2
++const SOURCE_DIRECTORY_CAPACITY: int = 352418
++const SOURCE_NULL_SLOT: int = -1
++const SOURCE_NULL_GENERATION: int = 0
++
++
++static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
++	"""Judge one framed owner 6 block against the Injury store's own column rules.
++
++	Pure over its argument. See the header for the seven gates, and for everything an accepted
++	result deliberately does not certify.
++	"""
++	if record == null:
++		return _refuse(Section.REFUSE_SHAPE,
++			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
++	if record.owner != OWNER_INDEX:
++		return _refuse(Section.REFUSE_OWNER,
++			"owner %d was supplied where owner %d ('%s') is required"
++				% [record.owner, OWNER_INDEX, OWNER_KEY])
++	var schema: SaveHeader.Refusal = Schema.schema_refusal()
++	if not schema.is_ok():
++		return schema
++	var metadata: SaveHeader.Refusal = _metadata_refusal()
++	if not metadata.is_ok():
++		return metadata
++	var shape: SaveHeader.Refusal = Section.owner_shape_refusal(record)
++	if not shape.is_ok():
++		return shape
++	var code: StringName = Injury.columns_refusal(
++		record.u8_column(FIELD_PRESENT), record.u8_column(FIELD_KIND),
++		record.u8_column(FIELD_AIRLESS_EPISODE), record.u8_column(FIELD_EXHAUSTION_LATCH),
++		record.u8_column(FIELD_CARE_CONTEXT_BLOCKED), record.i32_column(FIELD_SEVERITY),
++		record.i32_column(FIELD_RESCUER_SLOT), record.i32_column(FIELD_RESCUER_GENERATION),
++		record.i64_column(FIELD_UNTREATED_TICKS), record.i64_column(FIELD_CARE_PROGRESS_MWU),
++		record.i64_column(FIELD_LAST_INCIDENT_ORDINAL))
++	if code != Injury.REFUSE_NONE:
++		return _refuse(code, "%s refuses this image with column code %s"
++			% [COLUMN_DETAIL_PREFIX, String(code)])
++	return _accept()
++
++
++static func _metadata_refusal() -> SaveHeader.Refusal:
++	"""Gate 4: compiled owner identity and extents, then the pinned Injury source constants."""
++	if Schema.owner_key(OWNER_INDEX) != OWNER_KEY \
++			or Schema.owner_version(OWNER_INDEX) != OWNER_VERSION:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s compiled owner '%s' version %d is not '%s' version %d"
++				% [METADATA_DETAIL_PREFIX, Schema.owner_key(OWNER_INDEX),
++					Schema.owner_version(OWNER_INDEX), OWNER_KEY, OWNER_VERSION])
++	if Schema.primary_count(OWNER_INDEX) != OWNER_PRIMARY_COUNT \
++			or Schema.child_extent_count(OWNER_INDEX) != OWNER_CHILD_EXTENT_COUNT \
++			or Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s %d primaries, %d child extents and %d fields are not %d, %d and %d"
++				% [METADATA_DETAIL_PREFIX, Schema.primary_count(OWNER_INDEX),
++					Schema.child_extent_count(OWNER_INDEX), Schema.field_count(OWNER_INDEX),
++					OWNER_PRIMARY_COUNT, OWNER_CHILD_EXTENT_COUNT, OWNER_FIELD_COUNT])
++	var source: SaveHeader.Refusal = _source_refusal()
++	if not source.is_ok():
++		return source
++	return _field_parity_refusal()
++
++
++static func _source_refusal() -> SaveHeader.Refusal:
++	"""Gate 4's source half: the two row capacities, the kind domain and the severity domain."""
++	if Injury.RESIDENT_CAPACITY != SOURCE_ROW_CAPACITY \
++			or Injury.Needs.RESIDENT_CAPACITY != SOURCE_NEEDS_ROW_CAPACITY:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s Injury declares %d rows against the needs store's %d"
++				% [METADATA_DETAIL_PREFIX, Injury.RESIDENT_CAPACITY,
++					Injury.Needs.RESIDENT_CAPACITY])
++	if Injury.KIND_NONE != SOURCE_KIND_NONE or Injury.KIND_CUT != SOURCE_KIND_CUT \
++			or Injury.KIND_BITE != SOURCE_KIND_BITE or Injury.KIND_FALL != SOURCE_KIND_FALL \
++			or Injury.KIND_EXPOSURE != SOURCE_KIND_EXPOSURE \
++			or Injury.KIND_EXHAUSTION != SOURCE_KIND_EXHAUSTION \
++			or Injury.KIND_COUNT != SOURCE_KIND_COUNT:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the InjuryKind domain is not the pinned six-member numbering"
++				% METADATA_DETAIL_PREFIX)
++	if Injury.SEVERITY_NONE != SOURCE_SEVERITY_NONE \
++			or Injury.SEVERITY_MINOR != SOURCE_SEVERITY_MINOR \
++			or Injury.SEVERITY_SERIOUS != SOURCE_SEVERITY_SERIOUS:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the severity domain is %d/%d/%d, not %d/%d/%d"
++				% [METADATA_DETAIL_PREFIX, Injury.SEVERITY_NONE, Injury.SEVERITY_MINOR,
++					Injury.SEVERITY_SERIOUS, SOURCE_SEVERITY_NONE, SOURCE_SEVERITY_MINOR,
++					SOURCE_SEVERITY_SERIOUS])
++	return _source_handle_refusal()
++
++
++static func _source_handle_refusal() -> SaveHeader.Refusal:
++	"""Gate 4's handle half: the global directory capacity and both spellings of the null pair."""
++	if Injury.EntityDirectory.DIRECTORY_CAPACITY != SOURCE_DIRECTORY_CAPACITY:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the global directory holds %d slots, not %d"
++				% [METADATA_DETAIL_PREFIX, Injury.EntityDirectory.DIRECTORY_CAPACITY,
++					SOURCE_DIRECTORY_CAPACITY])
++	if Injury.EntityDirectory.NULL_SLOT != SOURCE_NULL_SLOT \
++			or Injury.EntityDirectory.NULL_GENERATION != SOURCE_NULL_GENERATION \
++			or Injury.NULL_SLOT != SOURCE_NULL_SLOT \
++			or Injury.NULL_GENERATION != SOURCE_NULL_GENERATION \
++			or Injury.NULL_REF.x != SOURCE_NULL_SLOT \
++			or Injury.NULL_REF.y != SOURCE_NULL_GENERATION:
++		return _refuse(Section.REFUSE_METADATA, "%s the null handle is (%d, %d), not (%d, %d)"
++			% [METADATA_DETAIL_PREFIX, Injury.NULL_REF.x, Injury.NULL_REF.y, SOURCE_NULL_SLOT,
++				SOURCE_NULL_GENERATION])
++	return _accept()
++
++
++static func _field_parity_refusal() -> SaveHeader.Refusal:
++	"""Gate 4's per-field half: eleven explicit ordinals, five u8 columns, three i32 and three i64."""
++	var head: SaveHeader.Refusal = _field_head_refusal()
++	if not head.is_ok():
++		return head
++	return _field_tail_refusal()
++
++
++static func _field_head_refusal() -> SaveHeader.Refusal:
++	"""Ordinals 0..4: the occupancy byte, the kind byte and the three latch/input bytes."""
++	var present: SaveHeader.Refusal = _field_refusal(FIELD_PRESENT, FIELD_PRESENT_KEY,
++		Schema.TYPE_U8, ROW_ELEMENT_COUNT)
++	if not present.is_ok():
++		return present
++	var kind: SaveHeader.Refusal = _field_refusal(FIELD_KIND, FIELD_KIND_KEY, Schema.TYPE_U8,
++		ROW_ELEMENT_COUNT)
++	if not kind.is_ok():
++		return kind
++	var airless: SaveHeader.Refusal = _field_refusal(FIELD_AIRLESS_EPISODE,
++		FIELD_AIRLESS_EPISODE_KEY, Schema.TYPE_U8, ROW_ELEMENT_COUNT)
++	if not airless.is_ok():
++		return airless
++	var exhaustion: SaveHeader.Refusal = _field_refusal(FIELD_EXHAUSTION_LATCH,
++		FIELD_EXHAUSTION_LATCH_KEY, Schema.TYPE_U8, ROW_ELEMENT_COUNT)
++	if not exhaustion.is_ok():
++		return exhaustion
++	return _field_refusal(FIELD_CARE_CONTEXT_BLOCKED, FIELD_CARE_CONTEXT_BLOCKED_KEY,
++		Schema.TYPE_U8, ROW_ELEMENT_COUNT)
++
++
++static func _field_tail_refusal() -> SaveHeader.Refusal:
++	"""Ordinals 5..10: severity, the split rescuer reference and the three i64 counters."""
++	var severity: SaveHeader.Refusal = _field_refusal(FIELD_SEVERITY, FIELD_SEVERITY_KEY,
++		Schema.TYPE_I32, ROW_ELEMENT_COUNT)
++	if not severity.is_ok():
++		return severity
++	var rescuer_slot: SaveHeader.Refusal = _field_refusal(FIELD_RESCUER_SLOT,
++		FIELD_RESCUER_SLOT_KEY, Schema.TYPE_I32, ROW_ELEMENT_COUNT)
++	if not rescuer_slot.is_ok():
++		return rescuer_slot
++	var rescuer_generation: SaveHeader.Refusal = _field_refusal(FIELD_RESCUER_GENERATION,
++		FIELD_RESCUER_GENERATION_KEY, Schema.TYPE_I32, ROW_ELEMENT_COUNT)
++	if not rescuer_generation.is_ok():
++		return rescuer_generation
++	var untreated: SaveHeader.Refusal = _field_refusal(FIELD_UNTREATED_TICKS,
++		FIELD_UNTREATED_TICKS_KEY, Schema.TYPE_I64, ROW_ELEMENT_COUNT)
++	if not untreated.is_ok():
++		return untreated
++	var care: SaveHeader.Refusal = _field_refusal(FIELD_CARE_PROGRESS_MWU,
++		FIELD_CARE_PROGRESS_MWU_KEY, Schema.TYPE_I64, ROW_ELEMENT_COUNT)
++	if not care.is_ok():
++		return care
++	return _field_refusal(FIELD_LAST_INCIDENT_ORDINAL, FIELD_LAST_INCIDENT_ORDINAL_KEY,
++		Schema.TYPE_I64, ROW_ELEMENT_COUNT)
++
++
++static func _field_refusal(field: int, key: String, type_code: int,
++		count: int) -> SaveHeader.Refusal:
++	"""One pinned field: its owner-local key, its declared type and its exact extent."""
++	if Schema.field_key(OWNER_INDEX, field) != key:
++		return _refuse(Section.REFUSE_METADATA, "%s field %d is '%s'; the contract fixes '%s'"
++			% [METADATA_DETAIL_PREFIX, field, Schema.field_key(OWNER_INDEX, field), key])
++	if Schema.field_type(OWNER_INDEX, field) != type_code:
++		return _refuse(Section.REFUSE_METADATA, "%s field %d has type %d; the contract fixes %d"
++			% [METADATA_DETAIL_PREFIX, field, Schema.field_type(OWNER_INDEX, field), type_code])
++	if Schema.element_count(OWNER_INDEX, field) != count:
++		return _refuse(Section.REFUSE_METADATA, "%s field %d holds %d values; the contract fixes %d"
++			% [METADATA_DETAIL_PREFIX, field, Schema.element_count(OWNER_INDEX, field), count])
++	return _accept()
++
++
++static func _refuse(code: StringName, detail: String) -> SaveHeader.Refusal:
++	"""Build a refusal carrying an exact code: a section code, or a raw Injury column code."""
++	return SaveHeader.Refusal.new(code, detail)
++
++
++static func _accept() -> SaveHeader.Refusal:
++	"""The accepted result: an empty code and no detail."""
++	return SaveHeader.Refusal.new(SaveHeader.REFUSE_NONE, "")

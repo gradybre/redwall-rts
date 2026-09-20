@@ -1,0 +1,58 @@
+{
+  "attempts": [
+    {
+      "id": "injury-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "cef4dd76-2fc0-4c28-b11c-2788e1ea4aaa",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/astra-source-note.md": "c1385746e70fd4d3c3758df0dd46d462dc327a4140acabc76a0f0fb9601748ad",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/source-sha256.json": "aa20ba5c5e9e79c1b3169e8e76f7f25a364f5906adfcb7f2b3623a941b26e8fb",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/authority-excerpts.md": "2438b24b7a20323e215604f06a083ea792acf89dc54e8b97ca225e952e0b7374",
+        "godot/scripts/core/injury.gd": "a0932b0c2fddd8ea32f460d1ca4d88977fa759391fcac6f845957fff433184c2",
+        "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/test/test_injury.gd": "e8ce2bc39bd6aaf8fd2506d56dbc9053245bad779591a07bb4f06d50c796efcd",
+        "godot/scripts/core/save_owner_resource_nodes.gd": "599dea37303df8ecdf37f4a77a04d14fbf0a5500c30e1fbca12d5f787e4c03cc"
+      },
+      "outputLines": 73,
+      "outputWords": 741,
+      "outputLineBudget": 100,
+      "outputWordBudget": 1000
+    },
+    {
+      "id": "injury-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "b9556a87-7f42-4de9-b069-28e06020ef05",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/injury_component_validation_contract.md": "fc69aeb0c920b4a392f01242c246321d50abaff32db51ffe2884dc9c8d0e3be1",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/feasibility-review.md": "20d69fdcbe3c030bc0e2cdedeb934d366e719b598647ebba10bb7aeb6486cf53",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/feasibility-disposition.md": "898fccdb8de0468459a6a307e2b457091105365d5c8e8836f3f78f926d44126b",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/metadata-fault-plan.md": "21c03b1f9eddfcdd55de6abb7f77a9ddc70da5abbdbc78d6625a070691bee59d",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/proposed-preload-closure.json": "f8ed5b3409da1f54422a8e36598e4eb21ba9bbad8bf685f8e2bc7e0dced7b699",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/public_history_probe.gd": "ec1cc2247149d3c42c7f9aa206372e6bc756b1f7d98f13035224ae2bbe30c743",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/public-history-probe.log": "01951b16e57e57df06b32a894b3aba3c07619908f42977e2c97f352634b71998",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/untreated_boundary_probe.gd": "2863573fcdb8dbf67a66879f64fe547921ce2f5234d69e0b34d7247a1a4a0661",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/untreated-boundary-probe.log": "30aefb40d7c78b25de6b0317b8ded38da41eca5511c0f5490003ddc3ace6a97e",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/authority-excerpts.md": "2438b24b7a20323e215604f06a083ea792acf89dc54e8b97ca225e952e0b7374",
+        "godot/scripts/core/injury.gd": "a0932b0c2fddd8ea32f460d1ca4d88977fa759391fcac6f845957fff433184c2",
+        "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_owner_resource_nodes.gd": "599dea37303df8ecdf37f4a77a04d14fbf0a5500c30e1fbca12d5f787e4c03cc"
+      },
+      "outputLines": 74,
+      "outputWords": 706,
+      "outputLineBudget": 100,
+      "outputWordBudget": 1000
+    }
+  ]
+}

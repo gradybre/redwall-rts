@@ -1,0 +1,25 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "db1d10b4bff69b51d709c9d11996a658bb425740",
+  "task": "Independent Injury candidate source and parent regression review before integration",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/injury_component_validation_contract.md",
+    "docs/decisions/0177-injury-validation-and-atomic-untreated-overflow.md",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/candidate-injury.gd",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/candidate-save-owner-injury.gd",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/candidate-reconstruction.json",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/parent-test-draft.gd",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/parent-metadata-draft.py",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/pending-author.json",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/public-history-probe.log",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/untreated-boundary-probe.log",
+    "godot/scripts/core/injury.gd",
+    "godot/scripts/core/needs.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/candidate-source-review-rejected-length.md"
+  ],
+  "instructions": "Independent source/test review of EXACT reconstructedpatchcandidate storedasreviewartifacts. ProductionnotapplieduntilPR167merges; candidatehasheswillbecomparedtoactualintake. Sourceanalysiscanbeacceptednow but no runtimeclaims. Review candidate-injury.gd andcandidate-save-owner-injury.gd versusacceptedcontract; originalinjuryprovidedfordiff. Check11typedargs13globalgates/fulli64/inactive/retainedhealthy-stalehistory/nonNullpairuniqueness. Runtime2passfirsteligibleMAXpreflightbeforeANYadvance; diagnosticonlyerror, null-1, dead/uninjuredskip, MAX-1boundary; no newprodAPI. Checkbridge7gatesmetadataallfields/sourceconstants/exacttypedaccessors. Reviewparent-test-draft inclpublicdiagnosticremap(slot+11) andNeeds.state_bytes exists, explicitpackedcopies, singlecolumninjectedboundarynotpublichistory, allfields/33mutantwitnesses and18metadata arithmetic. Findactualbugs, parser/type/API mistakes, weakassertions. Testdraftnotyetexecuted, mustnotclaimpassed; originals47/0 and12/0 characterizepublichistory/oldbugonly. Mentionnoextra packedallocationclaim vsnormalcoldRefusalwrappers. OutputONE NEW docs/validation/evidence/injury-component-validation-2026-09-20/candidate-source-review.md baseSha256null HARD100lines1000words aim60/700. No code/otherfiles/runclaims. RawJSONstatus/summary/questions/files/decisionIds. Previous report REJECTED: actual111lines1183words, not reported74/740. Produce concise replacement independently verifying findings, HARD80lines800words aim50lines600words. Preserve substantive observations, classify actual blocker versus optional clarification. Note per-position snapshot occurs after deliberate fixture construction and BEFORE predicate: this is correct nonmutation check. Shape static check intentionally direct; framed shape has separate code. Inactive whole-gate mutant is specified, not individual redundant subclause omissions. Identify count-loop contract mismatch range(row+1,capacity) and comment claiming untreatedMAX public reachability (only injected test boundary). No runtime claims."
+}

@@ -1,0 +1,9 @@
+{
+  "matches_reviewed_candidate": true,
+  "sha256": {
+    "godot/scripts/core/injury.gd": "b0054c0d49d376b003beb883db44b507746469be21dad0d87364219373724df7",
+    "godot/scripts/core/save_owner_injury.gd": "8c9a1b6320cfce6076fb1a77774ca3198d121b821fb141bc82804f87632d1f6c"
+  },
+  "base": "069822c7fbc9c091241540e155470190ac00ee0c",
+  "scope": "Exact author intake before parent count-loop/comment clarifications"
+}

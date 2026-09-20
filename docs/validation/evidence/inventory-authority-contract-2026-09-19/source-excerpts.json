@@ -1,0 +1,248 @@
+[
+  {
+    "path": "godot/scripts/core/inventory.gd",
+    "sha256": "fb5edbddab8c8852148a544d010ede1b03750016f9432aa0b7a3f93bacb8b848",
+    "functions": [
+      {
+        "name": "is_transaction_open",
+        "found": true,
+        "line": 771,
+        "text": "func is_transaction_open() -> bool:\n\t\"\"\"True while an explicit transaction is accepting operations.\"\"\"\n\treturn _tx_open\n\n\n"
+      },
+      {
+        "name": "is_transaction_poisoned",
+        "found": true,
+        "line": 776,
+        "text": "func is_transaction_poisoned() -> bool:\n\t\"\"\"True when an operation in the OPEN transaction refused, so commit() will roll back.\n\n\tFalse whenever no transaction is open: the flag is cleared as the transaction closes, so\n\tthis predicate never reports a poisoning that belongs to a sequence already finished.\n\t\"\"\"\n\treturn _tx_poisoned\n\n\n"
+      },
+      {
+        "name": "total_live_milli",
+        "found": true,
+        "line": 2923,
+        "text": "func total_live_milli(item_id: int) -> int:\n\t\"\"\"Quantity of an item currently held across every container, re-derived from the rows.\n\n\tDIAGNOSTIC, not a per-tick query: it walks the lot column rather than reading a\n\tmaintained total. The walk is bounded by the highest slot ever allocated, so it costs\n\toccupancy and not the 16384-row capacity, but it is still a linear scan.\n\t\"\"\"\n\tvar total: int = 0\n\tfor slot: int in range(_l_slot_high_water):\n\t\tif _l_live[slot] == 1 and _l_item_id[slot] == item_id:\n\t\t\ttotal += _l_quantity_milli[slot]\n\treturn total\n\n\n"
+      },
+      {
+        "name": "total_equipped_milli",
+        "found": true,
+        "line": 2937,
+        "text": "func total_equipped_milli(item_id: int) -> int:\n\t\"\"\"Quantity of an item currently held as equipment, charged to no container at all.\n\n\tDIAGNOSTIC, like total_live_milli(): a bounded walk of the lot column, not a tick query.\n\t\"\"\"\n\tvar total: int = 0\n\tfor slot: int in range(_l_slot_high_water):\n\t\tif _l_live[slot] != 1 or _l_item_id[slot] != item_id:\n\t\t\tcontinue\n\t\tif _l_container_slot[slot] == NULL_SLOT:\n\t\t\ttotal += _l_quantity_milli[slot]\n\treturn total\n\n\n"
+      },
+      {
+        "name": "total_loose_milli",
+        "found": true,
+        "line": 2951,
+        "text": "func total_loose_milli(item_id: int) -> int:\n\t\"\"\"Loose stock: the quantity of an item sitting in containers and available to be claimed.\n\n\tDERIVED BY SUBTRACTION ON PURPOSE. `loose + equipped == live` then holds by construction\n\trather than by two walks agreeing, so no arrangement of the columns can count one lot as\n\tboth loose stock and equipment. That double count is the defect ruling \u00a74 names, and this is\n\twhat makes it unrepresentable instead of merely tested.\n\t\"\"\"\n\treturn total_live_milli(item_id) - total_equipped_milli(item_id)\n\n\n# --- Audit ------------------------------------------------------------------------------------\n\n"
+      },
+      {
+        "name": "owner_query_cells",
+        "found": true,
+        "line": 2798,
+        "text": "func owner_query_cells() -> int:\n\t\"\"\"How many int32 cells a caller must own to hold this store's largest owner-query result.\n\n\tTwo per container row, because the query writes complete `(slot, generation)` pairs and one\n\towner could in principle key every live container. A caller sizes its scratch from THIS\n\trather than from a number of its own choosing: a hand-picked buffer is a cap on how much\n\tstranded stock a demolition gate can see, and INV-GOODS-R01 requires the query to account\n\tfor the caller's scratch instead of truncating into it.\n\t\"\"\"\n\treturn _c_capacity * 2\n\n\n"
+      },
+      {
+        "name": "containers_by_owner_into",
+        "found": true,
+        "line": 2810,
+        "text": "func containers_by_owner_into(owner_ref: Vector2i, out_pairs: PackedInt32Array,\n\t\tout: IntMath.IntResult) -> bool:\n\t\"\"\"Write every live container whose stored owner equals `owner_ref` into the caller's buffer.\n\n\tINV-GOODS-R01's bounded owner scan, and the whole of it. `owner_ref` is a DIRECTORY ref; the\n\tpairs written are INVENTORY-CONTAINER refs, flat as `slot, generation, slot, generation, ...`\n\tin ascending container-slot order, which is deterministic because it is the row order itself\n\tand not a hash or an insertion order. `out.value` is the number of PAIRS, so the cells\n\twritten are `2 * out.value`; anything past that in the buffer is the caller's own residue and\n\tis neither read nor cleared here.\n\n\tIT REFUSES RATHER THAN MISLEADS. A malformed owner -- the null ref, a negative slot, a\n\tgeneration of 0 -- refuses INVALID_OWNER_REF instead of matching the unvalidated owner\n\tresidue of rows nobody owns. A buffer too small for the COMPLETE result refuses\n\tOWNER_OUTPUT_TOO_SMALL and writes nothing at all, which is why the count is taken in a first\n\tpass before a single cell is written. Both zero `out.value`.\n\n\tRead-only: no column is returned, no live view escapes, no row is touched, and no reverse\n\tindex is built or kept. Costs one pass over the occupied part of the container store per\n\tpass, which is why it belongs on a cold destructive path and not on a tick.\n\t\"\"\"\n\tif owner_ref.x < 0 or owner_ref.y <= 0:\n\t\treturn out.refuse(String(REFUSE_INVALID_OWNER_REF))\n\tvar found: int = _count_containers_of_owner(owner_ref)\n\tif out_pairs.size() < found * 2:\n\t\treturn out.refuse(String(REFUSE_OWNER_OUTPUT_TOO_SMALL))\n\t_write_containers_of_owner(owner_ref, out_pairs)\n\treturn out.succeed(found)\n\n\n"
+      },
+      {
+        "name": "container_first_lot",
+        "found": true,
+        "line": 2878,
+        "text": "func container_first_lot(container_ref: Vector2i) -> Vector2i:\n\t\"\"\"Head of a container's lot list, for deterministic iteration with container_next_lot().\"\"\"\n\tif not is_container_valid(container_ref):\n\t\treturn NULL_REF\n\treturn _lot_ref_of(_c_first_lot[container_ref.x])\n\n\n"
+      },
+      {
+        "name": "container_next_lot",
+        "found": true,
+        "line": 2885,
+        "text": "func container_next_lot(lot_ref: Vector2i) -> Vector2i:\n\t\"\"\"Next lot after `lot_ref` in its container's list, or the null ref at the end.\"\"\"\n\tif not is_lot_valid(lot_ref):\n\t\treturn NULL_REF\n\treturn _lot_ref_of(_l_next[lot_ref.x])\n\n\n"
+      },
+      {
+        "name": "lot_quantity_milli",
+        "found": true,
+        "line": 2681,
+        "text": "func lot_quantity_milli(lot_ref: Vector2i) -> int:\n\t\"\"\"Total quantity on a lot in milli-units, or 0 for an invalid ref.\"\"\"\n\treturn _l_quantity_milli[lot_ref.x] if is_lot_valid(lot_ref) else 0\n\n\n"
+      },
+      {
+        "name": "lot_reserved_milli",
+        "found": true,
+        "line": 2686,
+        "text": "func lot_reserved_milli(lot_ref: Vector2i) -> int:\n\t\"\"\"Claimed quantity on a lot in milli-units, or 0 for an invalid ref.\"\"\"\n\treturn _l_reserved_milli[lot_ref.x] if is_lot_valid(lot_ref) else 0\n\n\n"
+      },
+      {
+        "name": "lot_available_milli",
+        "found": true,
+        "line": 2691,
+        "text": "func lot_available_milli(lot_ref: Vector2i) -> int:\n\t\"\"\"Unclaimed quantity on a lot: quantity_milli - reserved_milli.\"\"\"\n\tif not is_lot_valid(lot_ref):\n\t\treturn 0\n\treturn _l_quantity_milli[lot_ref.x] - _l_reserved_milli[lot_ref.x]\n\n\n"
+      },
+      {
+        "name": "lot_age_milli_hours",
+        "found": true,
+        "line": 2736,
+        "text": "func lot_age_milli_hours(lot_ref: Vector2i) -> int:\n\t\"\"\"Effective storage age of a lot in milli-hours, or -1 for an invalid ref.\"\"\"\n\treturn _l_age_milli_hours[lot_ref.x] if is_lot_valid(lot_ref) else -1\n\n\n"
+      },
+      {
+        "name": "container_reachable",
+        "found": true,
+        "line": 2873,
+        "text": "func container_reachable(container_ref: Vector2i) -> bool:\n\t\"\"\"True when a container is currently reachable for hauling.\"\"\"\n\treturn _c_reachable[container_ref.x] == 1 if is_container_valid(container_ref) else false\n\n\n"
+      },
+      {
+        "name": "canonical_capacities",
+        "found": true,
+        "line": 3329,
+        "text": "func canonical_capacities() -> Vector2i:\n\t\"\"\"This store's `(container_capacity, lot_capacity)`, so a caller can size a buffer.\"\"\"\n\treturn Vector2i(_c_capacity, _l_capacity)\n\n\n"
+      }
+    ]
+  },
+  {
+    "path": "godot/scripts/systems/settlement_system.gd",
+    "sha256": "3f9f6f948a567e387d666107f2360dc9b0d22cbba686e25b79f494f0738a1ec5",
+    "functions": [
+      {
+        "name": "_compose_stock_layer",
+        "found": true,
+        "line": 929,
+        "text": "func _compose_stock_layer() -> void:\n\t\"\"\"Build the InventoryLot store, load its item catalog, and give ARCH-SYS-004 both.\n\n\tThe catalog is loaded INTO this settlement's own inventory because `register_item()` is what\n\tgives a lot row a mass and a category; ARCH-SYS-004 then reads the same catalog for GDD\n\t\u00a75.8's shelf lives. A catalog that fails to load leaves the stage refusing\n\tITEM_CATALOG_NOT_BOUND by its own rule, which is visible in `stock_hour()`, rather than\n\tleaving this node to invent a shelf life.\n\t\"\"\"\n\t_inventory = InventoryScript.new()\n\t_item_definitions = ItemDefinitionsScript.new()\n\t_item_definitions.load_default(_inventory)\n\t_stock_age = StockAgeScript.new(_inventory, _item_definitions)\n\t_bind_seed_expiry_authority()\n\n\n"
+      },
+      {
+        "name": "_clear_stock_layer",
+        "found": true,
+        "line": 1510,
+        "text": "func _clear_stock_layer() -> void:\n\t\"\"\"Empty the lot store and every storage declaration, then re-register the item catalog.\n\n\t`inventory.clear()` drops the item registry as well as the rows -- it is the catalog-time\n\thalf of the same store -- so a settlement reset without this reload would leave every lot\n\toperation refusing UNKNOWN_ITEM. Both generation spaces step forward inside `clear()`, so a\n\tlot or container ref taken before a reset still cannot validate after it.\n\t\"\"\"\n\t_inventory.clear()\n\t_item_definitions.load_default(_inventory)\n\t_stock_age.clear()\n\n\n"
+      },
+      {
+        "name": "create_generated_settlement",
+        "found": true,
+        "line": 1074,
+        "text": "func create_generated_settlement(items: ItemDefinitionsScript,\n\t\tworld_seed: int = WorldInitScript.TUTORIAL_WORLD_SEED) -> bool:\n\t\"\"\"REQ-SET-009 end to end: \u00a75.1's cohort takes ids 1-12, then \u00a75.1's world follows from 13.\n\n\tTHE GAP THIS CLOSES. `world_init.gd` built the world and `create_initial_settlement()` built\n\tthe population, and NOTHING CALLED BOTH -- so generating produced an empty world and booting\n\tproduced a cohort with nowhere to stand. \u00a75.1 states one initialization contract, not two, and\n\tthis is the single operation that satisfies it.\n\n\tTHE ORDER IS THE RULING'S (R-INIT-ID-001, decision 0075), AND IT IS THE REVERSE OF DECISION\n\t0071's. That decision recorded that `world_init._publish()` cleared the directory, forcing the\n\tworld to be created first and leaving the cohort on ids 1714-1725 instead of \u00a75.1's \"IDs 1-12\".\n\tThe specification owner ruled that the clear is a reset BEFORE new-world allocation, not a\n\tsecond reset inside terrain publication. So this operation is now one transaction:\n\n\t  1. PREFLIGHT, changing nothing: the settlement must be empty, the seventeen resource ids must\n\t     bind, the world plan must stage and validate, and the cohort's own catalog, capacities and\n\t     opening-day weather must check out. Every refusal below is decided here.\n\t  2. ENTER THE TRANSACTION: `reset()` once -- stores, directory, allocators, command, job and\n\t     child state -- then seed the nine RNG streams, before any consumer draws.\n\t  3. ALLOCATE THE TWELVE RESIDENTS FIRST, in \u00a75.1's cohort order, through the ordinary\n\t     directory allocator. They receive persistent ids 1-12 and Warden Rowan receives 1.\n\t  4. PUBLISH THE WORLD from the SAME continuing counter, so the first world entity is 13.\n\t     `publish_prepared()` clears and reseeds nothing.\n\n\tALLOCATE BEFORE CONSUME (decision 0059). A populated settlement refuses at step 1 and is\n\tbyte-identical afterwards, which is how \"a refused initialization retains the previous valid\n\tworld\" is honoured: the only world this can overwrite is one with nobody in it. See\n\t`_abandon_transaction()` for what an in-transaction failure can and cannot restore.\n\t\"\"\"\n\tif _residents.population() != 0:\n\t\treturn _refuse(ResidentsScript.REFUSE_SETTLEMENT_NOT_EMPTY)\n\tif _world.is_published():\n\t\treturn _refuse(REFUSE_WORLD_ALREADY_PUBLISHED)\n\tvar built: WorldInitScript.RequestResult = WorldInitScript.bound_request(items, world_seed)\n\tif not built.ok:\n\t\treturn _refuse(built.error)\n\tvar planned: WorldInitScript.GenerateResult = _world.preflight(built.request)\n\tif not planned.ok:\n\t\treturn _refuse(planned.error)\n\tvar cohort: StringName = _refuse_cohort_preflight()\n\tif cohort != REFUSE_NONE:\n\t\t_world.discard_prepared_plan()\n\t\treturn _refuse(cohort)\n\treturn _run_initialization_transaction()\n\n\n"
+      },
+      {
+        "name": "inventory",
+        "found": true,
+        "line": 2313,
+        "text": "func inventory() -> InventoryScript:\n\t\"\"\"The settlement's own InventoryLot/InventoryContainer store, the one ARCH-SYS-004 ages.\"\"\"\n\treturn _inventory\n\n\n"
+      },
+      {
+        "name": "item_definitions",
+        "found": true,
+        "line": 2318,
+        "text": "func item_definitions() -> ItemDefinitionsScript:\n\t\"\"\"The \u00a74.3 item catalog registered into this settlement's inventory.\"\"\"\n\treturn _item_definitions\n\n\n"
+      },
+      {
+        "name": "residents",
+        "found": true,
+        "line": 2498,
+        "text": "func residents() -> ResidentsScript:\n\t\"\"\"The settlement's population. EconomySystem BORROWS this as its food-days divisor.\"\"\"\n\treturn _residents\n\n\n"
+      },
+      {
+        "name": "reset",
+        "found": true,
+        "line": 1473,
+        "text": "func reset() -> void:\n\t\"\"\"Empty every settlement store, index and counter, without reallocating a column.\n\n\t`_clear_stores()`'s `residents.clear()` also clears the directory and needs rows, because this\n\tsystem built the residents store with neither collaborator supplied and it therefore owns both.\n\t\"\"\"\n\t_clear_stores()\n\t_release_critical_pause()\n\t_live_slots.fill(EntityDirectoryScript.NULL_SLOT)\n\t_live_count = 0\n\t_daily_leg_count = 0\n\t_boundary_tick = 0\n\t_clear_counters()\n\n\n"
+      }
+    ]
+  },
+  {
+    "path": "godot/scripts/systems/ui_manager.gd",
+    "sha256": "14cbe44be2246512bd406fa08952ebbc17987086851a554c67eb06d3e56fbe97",
+    "functions": [
+      {
+        "name": "_refresh_counters",
+        "found": true,
+        "line": 607,
+        "text": "func _refresh_counters() -> void:\n\t\"\"\"Push every top-left counter this milestone can honestly derive.\n\n\tFive of the seven are supplied. `Food-days` is now among them: task 2.10 gave GDD \u00a75.8 its\n\tdivisor, so EconomySystem computes the figure whenever a residents store is bound and\n\treturns the unpopulated marker when one is not. Every value crosses this boundary EXACTLY as\n\tthe system produced it -- the two text counters are forwarded verbatim and the three integer\n\tcounters are forwarded unscaled, because a number invented or adjusted here would be\n\tindistinguishable on screen from one the simulation actually derived.\n\n\t`Fuel-days` stays unpopulated: its daily heating demand has no input in any implemented\n\tsystem (see EconomySystem.fuel_days_missing_input()). `Beds` stays unpopulated too, because\n\tit needs a Building/Room/Furniture store that does not exist. `Residents` is now supplied\n\tfrom the residents store's own living count when one is bound.\n\t\"\"\"\n\tif not _has_hud():\n\t\treturn\n\t_hud.set_counter_text(&\"Food-days\", EconomySystem.food_days_text())\n\t_hud.set_counter_text(&\"Fuel-days\", EconomySystem.fuel_days_text())\n\t_hud.set_counter(&\"Ready NP\", EconomySystem.ready_nutrition_points(), \"NP\")\n\t_hud.set_counter(&\"Wood\", EconomySystem.stock_units(&\"wood\"), \"U\")\n\t_hud.set_counter(&\"Stone\", EconomySystem.stock_units(&\"stone\"), \"U\")\n\t_refresh_population()\n\n\n"
+      },
+      {
+        "name": "_on_stocks_changed",
+        "found": true,
+        "line": 673,
+        "text": "func _on_stocks_changed() -> void:\n\t\"\"\"Repaint the top-left counters after a committed change to the stores.\"\"\"\n\t_refresh_counters()\n\n\n"
+      },
+      {
+        "name": "new_settlement",
+        "found": false,
+        "line": null,
+        "text": null
+      }
+    ]
+  },
+  {
+    "path": "godot/scripts/ui/ui_world_session.gd",
+    "sha256": "201ebeb98ad8fc9ac06510360dcd15cd1b8dfbaeeaf86c6c92093a6a8150ae1c",
+    "functions": [
+      {
+        "name": "generate",
+        "found": false,
+        "line": null,
+        "text": null
+      },
+      {
+        "name": "new_settlement",
+        "found": false,
+        "line": null,
+        "text": null
+      },
+      {
+        "name": "create",
+        "found": false,
+        "line": null,
+        "text": null
+      },
+      {
+        "name": "reset",
+        "found": false,
+        "line": null,
+        "text": null
+      }
+    ]
+  },
+  {
+    "path": "godot/scripts/core/item_definitions.gd",
+    "sha256": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551",
+    "functions": [
+      {
+        "name": "is_loaded",
+        "found": true,
+        "line": 430,
+        "text": "func is_loaded() -> bool:\n\t\"\"\"True once load_from_file()/load_default() has fully succeeded on this instance.\"\"\"\n\treturn _loaded\n\n\n"
+      },
+      {
+        "name": "item_count",
+        "found": true,
+        "line": 435,
+        "text": "func item_count() -> int:\n\t\"\"\"Number of items loaded, or 0 before a successful load.\"\"\"\n\treturn _item_count\n\n\n"
+      },
+      {
+        "name": "compiled_id",
+        "found": true,
+        "line": 440,
+        "text": "func compiled_id(item_id: StringName) -> int:\n\t\"\"\"Compiled ItemDefinition id for `item_id`, or -1 if unknown or not yet loaded.\"\"\"\n\tif not _item_ids.has(item_id):\n\t\treturn -1\n\treturn _item_ids[item_id]\n\n\n"
+      },
+      {
+        "name": "nutrition_per_u",
+        "found": true,
+        "line": 461,
+        "text": "func nutrition_per_u(compiled_item_id: int) -> int:\n\t\"\"\"Nutrition per catalog unit for a compiled item id, or 0 if out of range.\"\"\"\n\tif compiled_item_id < 0 or compiled_item_id >= _item_count:\n\t\treturn 0\n\treturn _nutrition_per_u[compiled_item_id]\n\n\n"
+      },
+      {
+        "name": "shelf_hours",
+        "found": true,
+        "line": 468,
+        "text": "func shelf_hours(compiled_item_id: int) -> int:\n\t\"\"\"Shelf life in hours for a compiled item id (0 means unlimited), or 0 if out of range.\"\"\"\n\tif compiled_item_id < 0 or compiled_item_id >= _item_count:\n\t\treturn 0\n\treturn _shelf_hours[compiled_item_id]\n\n\n"
+      },
+      {
+        "name": "is_raw_edible",
+        "found": true,
+        "line": 475,
+        "text": "func is_raw_edible(compiled_item_id: int) -> bool:\n\t\"\"\"True when a compiled item id is directly edible without a recipe.\"\"\"\n\tif compiled_item_id < 0 or compiled_item_id >= _item_count:\n\t\treturn false\n\treturn _raw_edible[compiled_item_id] == 1\n\n\n"
+      },
+      {
+        "name": "is_seed",
+        "found": true,
+        "line": 482,
+        "text": "func is_seed(compiled_item_id: int) -> bool:\n\t\"\"\"True when a compiled item id is plantable seed stock.\"\"\"\n\tif compiled_item_id < 0 or compiled_item_id >= _item_count:\n\t\treturn false\n\treturn _seed[compiled_item_id] == 1\n\n\n"
+      }
+    ]
+  }
+]

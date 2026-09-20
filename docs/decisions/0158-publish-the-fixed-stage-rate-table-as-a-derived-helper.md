@@ -1,6 +1,6 @@
 # 0158 — Publish the fixed-stage rate table as a derived helper
 
-Date: 2026-09-19 · Status: Implemented candidate; source review and final-source tests passed, merge pending
+Date: 2026-09-19 · Status: Implemented and merged in PR149 (ab457e8); exact-head CI passed
 
 Independent review confirms the family hunger/daily-demand arithmetic and the
 exact [FAMILY-RULES-R01](../planning/family_rules_api_contract.md) interface. Publish

@@ -373,3 +373,14 @@ Its eventual composition belongs to the read-only catalog/lookup ownership
 not construct it yet. This record therefore claims no current startup increase
 and no proof that all future catalog owners fit the2097152-byte budget.
 No canonical field or mutable resident snapshot is added by this helper.
+
+
+## 2026-09-19 cold stock-count output
+
+INIT-COUNT-R01v2 / decision0159 adds caller-owned StockCounts: four actual
+PackedInt64Array[256] buffers,8192B, asserted by the dedicated owner query suite.
+One call creates an additional8192B staging payload and one IntResult; successful
+publication adopts those buffers. Peak target+staging is16384B unless callers
+retain older array references, whose lifetime remains caller-owned. Object/header
+overhead is excluded. No Inventory member allocation or current world consumer
+is added. This is not a refresh-latency, RSS or whole-world budget acceptance.

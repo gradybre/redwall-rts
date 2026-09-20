@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "be314d1e0b0ca474984729794cac6ea87c44d460",
+  "task": "Independent INIT-COUNT-R01 contract/source feasibility review",
+  "paths": [
+    "docs/planning/inventory_stock_counts_contract.md",
+    "godot/scripts/core/inventory.gd",
+    "godot/scripts/core/gear.gd",
+    "godot/test/test_gear.gd",
+    "godot/scripts/core/int_math.gd"
+  ],
+  "instructions": "Review exact draft contract against supplied actual owner source. No implementation. Find material blockers to a bounded read-only whole-inventory count primitive; focus equipped/loose biconditional, arbitrary authority callback and reentry, diagnostics not in state_bytes, staging publication aliasing, overflow, highwater, state-vs-overflow precedence, real Gear fixture. Decide necessary narrow adjustments without inventing architecture or demanding full-world validation. API is cold read, no Economy/UI activation. The user authorized end-to-end ordinary development; this packet is a prerequisite, not completion. Return exact raw JSON keys status,summary,questions,files,decisionIds; status complete, questions [], decisionIds []; files exactly one new docs/validation/evidence/inventory-authority-contract-2026-09-19/counts-contract-review.md with baseSha256 null and content concise prioritized review <=1500 words. No tools and no other output files. Escape JSON properly. State source citations/functions and concrete remedy for blockers. One bounded attempt."
+}

@@ -1,0 +1,23 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "069822c7fbc9c091241540e155470190ac00ee0c",
+  "task": "Final independent actual-source Injury implementation/regression review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/injury_component_validation_contract.md",
+    "docs/decisions/0177-injury-validation-and-atomic-untreated-overflow.md",
+    "godot/scripts/core/injury.gd",
+    "godot/scripts/core/save_owner_injury.gd",
+    "godot/scripts/core/needs.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/test/test_save_owner_injury.gd",
+    "tools/test_injury_metadata_preflights.py",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/run_mutants.py",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/focused-first.log",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/candidate-review-disposition.md",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/applied-candidate-identity.json",
+    "docs/validation/evidence/injury-component-validation-2026-09-20/candidate-source-review-a2-rejected-length.md"
+  ],
+  "instructions": "Review ACTUAL applied Injury/bridge/tests against accepted contract ADR0177. Candidate source hashed equal before parent count-loop/comments repairs. Two prior raw reports exceededbounds (actual counts differ estimates); disposition preserves findings. Final review must assess repairedsource independently. Check all13gates,11canonicalaccessors,7bridgegates, correct gateorder/allphysicalrows, explicitcountloop exactpair duplicate, noextra packed scratch/liveowners. RuntimeMAX whole-sweep atomic firsteligible refusal, null diagnostic -1, MAX-1 and dead/uninjuredskip. Focus actually passed9tests14578assertions0; metadata/mutants/full pending do NOT claimpassed. Verify test quality and33required mutation oracles,18metadata arithmetic. Distinguish actual defect/blocker from optional notes. Wrongowner -1/18 normalized duplicate harmless; snapshot after fixture before predicate correct; inactive whole-gate witness intended noindividualredundantclauseclaim. Fullnonnegativei64 savedcontract; untreatedMAXinjected vs public care/ordinalMAX. No claimed measurednative/perf/no genericallocation claim. ReturnONE NEW docs/validation/evidence/injury-component-validation-2026-09-20/source-review.md baseSha256null, HARD60lines650words AIM35lines450words count conservatively. Concise prose/bullets, omit repetitive headings/blanklines. No code/otherfiles. RawJSON status/summary/questions/files/decisionIds."
+}

@@ -1,0 +1,68 @@
+{
+  "scope": "Independent Python arithmetic only; real-engine checks remain required",
+  "cases": [
+    {
+      "case": "control",
+      "section_bytes": 12947565,
+      "owner6_payload": 21084,
+      "owner7_offset": 8560547,
+      "independent_arithmetic": "pass"
+    },
+    {
+      "case": "key",
+      "section_bytes": 12947565,
+      "owner6_payload": 21084,
+      "owner7_offset": 8560547,
+      "independent_arithmetic": "pass"
+    },
+    {
+      "case": "version",
+      "section_bytes": 12947565,
+      "owner6_payload": 21084,
+      "owner7_offset": 8560547,
+      "independent_arithmetic": "pass"
+    },
+    {
+      "case": "primary",
+      "section_bytes": 12947565,
+      "owner6_payload": 21084,
+      "owner7_offset": 8560547,
+      "independent_arithmetic": "pass"
+    },
+    {
+      "case": "children",
+      "section_bytes": 12947565,
+      "owner6_payload": 21092,
+      "owner7_offset": 8560555,
+      "independent_arithmetic": "pass"
+    },
+    {
+      "case": "field_count",
+      "section_bytes": 12947565,
+      "owner6_payload": 29284,
+      "owner7_offset": 8568747,
+      "independent_arithmetic": "pass"
+    },
+    {
+      "case": "field_key",
+      "section_bytes": 12947565,
+      "owner6_payload": 21084,
+      "owner7_offset": 8560547,
+      "independent_arithmetic": "pass"
+    },
+    {
+      "case": "field_type",
+      "section_bytes": 12949101,
+      "owner6_payload": 22620,
+      "owner7_offset": 8562083,
+      "independent_arithmetic": "pass"
+    },
+    {
+      "case": "field_extent",
+      "section_bytes": 12947566,
+      "owner6_payload": 21085,
+      "owner7_offset": 8560548,
+      "independent_arithmetic": "pass"
+    }
+  ]
+}

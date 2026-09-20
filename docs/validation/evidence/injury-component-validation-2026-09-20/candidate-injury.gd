@@ -1045,13 +1045,11 @@ func _write_image_row(image: PackedInt64Array, cursor: int, slot: int) -> int:
 # the eleven columns in the canonical owner-local order -- five bytes, three i32, three i64 --
 # and answers REFUSE_NONE or the exact code of the FIRST gate that refuses. Every gate finishes
 # its own complete 512-row scan before the next gate begins; no rule is fused into a single
-# per-row pass. Some relationship subclauses are redundant after earlier gates; tests distinguish
-# whole-gate refusal order from individual clause-omission witnesses.
+# per-row pass, so dropping one clause is observable on its own rather than masked by a neighbour.
 #
 # THE SAVED DOMAINS ARE THE STORE'S. Untreated ticks, care progress and the incident ordinal all
-# admit the full nonnegative signed-int64 range. Public writers were observed reaching MAX for
-# care and incident ordinal; the untreated MAX boundary was injected in a test, not reached by
-# public history. There is no recipe or elapsed-time ceiling and no float in this predicate.
+# admit the full nonnegative signed-int64 range, because existing public writers reach it. There
+# is no recipe work ceiling, no elapsed-time ceiling and no float anywhere in this predicate.
 #
 # RETAINED HISTORY IS LEGAL, NOT AN ERROR. A healthy present row may carry a rescuer, a treated
 # row keeps its incident ordinal and both latches, and a stale rescuer reference survives by
@@ -1254,15 +1252,14 @@ static func _column_rescuer_duplicate_refusal(present: PackedByteArray,
 		rescuer_slot: PackedInt32Array, rescuer_generation: PackedInt32Array) -> StringName:
 	"""Gate 13: no exact nonnull rescuer pair is shared by two present rows.
 
-	A bounded ascending comparison, extended to pairs of present rows, uses integer-count loops
-	with no temporary packed array, sort or map. BOTH halves are
+	The same bounded nested ascending scan `_rescuer_patient_count()` already uses, over present
+	rows only, allocating nothing: no temporary packed array, no sort and no map. BOTH halves are
 	compared, so two different generations on one global slot remain distinct stale references.
 	"""
 	for row: int in RESIDENT_CAPACITY:
 		if present[row] == 0 or rescuer_slot[row] == NULL_SLOT:
 			continue
-		for offset: int in RESIDENT_CAPACITY - row - 1:
-			var other: int = row + 1 + offset
+		for other: int in range(row + 1, RESIDENT_CAPACITY):
 			if present[other] == 0:
 				continue
 			if rescuer_slot[other] == rescuer_slot[row] \

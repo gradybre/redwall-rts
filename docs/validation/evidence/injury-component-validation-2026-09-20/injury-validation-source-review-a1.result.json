@@ -1,0 +1,33 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "16964d50-25eb-454a-a025-c2f73075b4a2",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 3391,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 159162,
+    "costEstimateUsd": 1.676405
+  },
+  "elapsedMs": 40842,
+  "pid": 79173,
+  "exitCode": 0,
+  "state": "complete",
+  "result": {
+    "status": "complete",
+    "summary": "Independent final source review of the repaired Injury predicate, runtime overflow repair, framed bridge and tests against ADR0177/INJURY-S4-VALIDATE-R01 v1. Verified 13 gates in contract order over all 512 physical rows, 11 explicit canonical typed accessors, 7 bridge gates, explicit integer count-loop exact-pair duplicate scan with no packed scratch or live owner construction, and the whole-sweep atomic first-eligible overflow refusal with null diagnostic -1, MAX-1 single advance and dead/uninjured/inactive skips. Recorded only the 9 focused tests / 14578 assertions / 0 failures as actually passed; metadata, mutant and full-suite runs are recorded as pending, not claimed. No defect or blocker found; four optional notes recorded. One new file returned, baseSha256 null, 37 lines / 447 words.",
+    "questions": [],
+    "files": [
+      {
+        "path": "docs/validation/evidence/injury-component-validation-2026-09-20/source-review.md",
+        "content": "# Independent source review — Injury owner 6 (INJURY-S4-VALIDATE-R01 v1, ADR 0177)\n\n2026-09-20. Reading only of the repaired applied source: `injury.gd`, `save_owner_injury.gd` and `test_save_owner_injury.gd`. Nothing was executed here. The two earlier candidate reports remain raw and rejected on output bounds; this review re-derives its findings from the repaired source independently.\n\n**Predicate.** Eleven arguments match the owner-local table exactly (five u8, three i32, three i64, canonical order). All eleven shapes are proved before any indexed read. Thirteen gates run in contract order — shape, flags, kind, severity, rescuer ref, untreated, care, ordinal, kind/severity equivalence, no-injury reset, incident history, inactive, duplicate — each with its own distinct code and its own complete 512-row scan across all physical rows, including inactive ones. The three i64 columns admit the full nonnegative signed domain: no recipe ceiling, no elapsed-time ceiling, no float. The history gate binds an active kind and either latch and deliberately not the care-context byte, and never forces a latched row to a current kind. Healthy bound rescuers and stale references stay legal; both halves of the pair are compared, so two generations on one global slot remain distinct; the slot is bounded against directory capacity and never compared to the patient row.\n\n**Duplicate scan.** Now an explicit integer count loop (`RESIDENT_CAPACITY - row - 1` with a derived `other`), matching the contract. No temporary packed array, sort or map; no extra packed scratch and no live owner, constructor, callback or diagnostic write anywhere in the predicate.\n\n**Runtime repair.** `_first_overflow_row()` uses character-identical eligibility to the sweep, runs after the diagnostic reset and null-`Needs` refusal and before any increment, records the first blocked row ascending and returns the existing overflow code with value 0. Dead, uninjured and inactive rows stay skipped; the null path leaves the diagnostic at -1; the successful advanced count is unchanged. No new column, public mutator, second health path or partial progress.\n\n**Bridge.** Seven gates in order: null, wrong owner, forwarded schema refusal, metadata and source pins, forwarded section shape, eleven explicit typed accessors, raw unwrapped column code. Only the four permitted preloads; every source pin is a constant chain instantiating no owner. Prefixes, empty success code and empty detail all conform; details name owner 6 and carry no row identity.\n\n**Tests.** Nine focused tests, 14578 assertions, 0 failures are the only passed result. Coverage is real: all 512 positions, eleven zero-accessor witnesses including `care_context_blocked = 2`, signed endpoints, exact-pair duplicate, gate priority, typed-bucket and null/wrong-owner errors, and public tick/refusal/data/diagnostic assertions across two living rows, dead and no-injury skips and the MAX-1/MAX transition. The snapshot follows fixture construction and precedes the predicate, which is correct. The 33 required mutants (11 + 17 + 3 + 2) and the 18 metadata cases at 162 assertions re-derive as specified, but both tools are **pending execution** and are not claimed to have passed.\n\n**Defects or blockers: none found.**\n\nOptional notes: liveness is asked twice per eligible row per tick, correct for atomicity and unmeasured; wrong-owner -1 and 18 normalise to one path; raw `COLUMN_SHAPE` is unreachable through the bridge; the no-injury MAX runtime fixture is deliberately noncanonical. Saved Needs/Directory/movement bindings, bulk capture/restore, generator and preload-closure audits and exact-head CI remain outstanding.\n",
+        "baseSha256": null
+      }
+    ],
+    "decisionIds": [
+      "ADR0177",
+      "INJURY-S4-VALIDATE-R01"
+    ]
+  }
+}

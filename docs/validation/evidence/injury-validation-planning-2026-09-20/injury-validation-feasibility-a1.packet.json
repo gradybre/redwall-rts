@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f6249f53297f92c4345ef928a04c493dcf53555f",
+  "task": "Read-only Injury owner6 saved-domain and untreated-overflow feasibility",
+  "paths": [
+    "AGENTS.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/astra-source-note.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/source-sha256.json",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/authority-excerpts.md",
+    "godot/scripts/core/injury.gd",
+    "godot/scripts/core/needs.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/test/test_injury.gd",
+    "godot/scripts/core/save_owner_resource_nodes.gd"
+  ],
+  "instructions": "Independent read-only feasibility, noacceptedInjurycontractyet. Re-deriveowner6version1 11columns512 5u8/3i32/3i64, fieldbegin andvalues20992/payload21084/block21114. Auditallwriters: freeallzeroexceptrescuer-null; presentkind0iffseverity0; kind0 impliesuntreated/care0but may retainpositiveordinal/airless/exhaustion/contextandhealthyrescuer (setterdoesnotrequireinjury). Activekindimpliesordinal>0. Carefullpositivei64increment no60000/120000cap; ordinalmax accepted; retainedstaleDirectoryrescuer intentional (rescuer_is_live docs). SourceglobalDirectory352418; duplicateexactnonnullpair currentsetterforbids, assessboundednested512scan noallocation versusdeferredsamefileidentity; no accidentalrejectsameSlotdifferentGenerationstalehistory. Needssavedpresence/injurystate/residentidentity/context separateexplicitfollowup. State_bytes var_to_bytes packedI64 count+11perpresentrow, no absentprivatecapture. IMPORTANT tick_all unchecked untreated_ticks+=1 ispotentialoverflowatMAX. Determine source-backed minimal preflight fix (two-passallaliveinjured beforeincrements, exactOVERFLOW/last_refused_slot) and howtoobserveactualboundary withoutprivateproductiongetters/APIexpansion; no claimcurrentlyreproducedviarealpublicreachableMAX. Could separateexplicit followup beforepublication ifboundedprimitiveotherwiseacceptsMAX; compareoptionsandreturntechnicalquestions. Do not silentlyshrinkdomain orfixwithoutcontract. Noimpl/code/runclaims. OutputONE NEW docs/validation/evidence/injury-validation-planning-2026-09-20/feasibility-review.md baseSha256null HARD100lines1000words aim60/700. RawJSONstatus/summary/questions/files/decisionIds. Source maininfoonly, nohumanpermissionclaim."
+}

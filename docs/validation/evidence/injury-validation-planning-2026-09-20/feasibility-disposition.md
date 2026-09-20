@@ -1,0 +1,13 @@
+# Astra Injury feasibility disposition — boundary characterized
+
+The review's table positions 122–132 are GLOBAL field ordinals, not owner-local ordinals. The local ordinals are 0–10. Its suggestion that a framed bridge restores state is also incorrect: existing owner bridges validate only; bulk capture/restore remains separate work. Keep these distinctions in the final contract.
+
+Accept full nonnegative signed-int64 domains for untreated ticks, care progress and incident ordinal. Existing public writers admit care and ordinal extrema. No arbitrary maximum below INT64_MAX is authorized. A healthy present row may retain a rescuer and treated rows retain ordinal/latches; these are intentional current histories, including stale references.
+
+For untreated-tick overflow, choose a whole-sweep refusal before any counter increments, with existing OVERFLOW and last_refused_slot identifying the first affected ascending physical row. Preflight only present, injured, living patients; dead or no-injury rows are skipped as today. Refusal leaves canonical Injury/Needs values unchanged. This uses two bounded scans, no added storage and no new public API. Already checked care accumulation and monotonic ordinal behavior need no change.
+
+Public creation cannot reach the untreated boundary within a practical run. A narrowly labeled test-only injection through the inherited set API can seed this one column, then observe the real tick_all path through public readers/state_bytes. This adds no production getter/setter and does not claim publicly generated history or save restoration. The original-source characterization has now run:12assertions/0. Actual tick_all returned success, advanced the earlier row7->8 and wrapped the injected INT64_MAX counter to INT64_MIN, with last_refused_slot still-1. This is an observed boundary fault in an explicitly injected state, not a public-history reachability claim. Future real bulk restore still needs continuation evidence.
+
+Local exact nonnull rescuer-pair uniqueness is feasible by bounded nested comparison of512physical rows without packed scratch; distinct generations on the same slot remain legal stale history. Self-rescue and full saved Directory/Needs/context identity require saved-file inputs and remain an explicit follow-up, not a live lookup in the local predicate.
+
+The separate public-history probe passed47assertions/0, with clean shutdown. It proves healthy/stale rescue, exact MAXcare and checked overflow, treatment retaining ordinal/latches, MAXordinal, diagnostic remapping and dead-row skipping. Accept these facts as source/domain evidence; the draft contract still requires final independent review before author dispatch.

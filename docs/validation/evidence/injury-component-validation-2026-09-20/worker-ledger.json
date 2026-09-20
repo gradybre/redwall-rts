@@ -1,0 +1,63 @@
+{
+  "attempts": [
+    {
+      "id": "injury-validation-author-a1",
+      "model": "claude-opus-5",
+      "sessionId": "183497e9-f22f-4969-89f5-8790971f4694",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/injury_component_validation_contract.md": "7a235adc8ccdfa093990ce662a9112e11e56fef52d8c4a01289e083841cd0d13",
+        "docs/decisions/0177-injury-validation-and-atomic-untreated-overflow.md": "fd655465c839a51292c9d3e3df1a5b182dd7eb013292e862e40e1823610ae5c7",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/contract-review.md": "4e57e20b64f1cb1a2a90f55c5d50fa54f890313ee208dac7b16c609763a6c605",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/contract-disposition.md": "dc0e8f7d6d9c75d76dd1f5124961c33521abf7442259092d5262187f45f2f014",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/feasibility-disposition.md": "898fccdb8de0468459a6a307e2b457091105365d5c8e8836f3f78f926d44126b",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/metadata-fault-plan.md": "21c03b1f9eddfcdd55de6abb7f77a9ddc70da5abbdbc78d6625a070691bee59d",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/metadata-arithmetic-check.json": "63058b445563871ca1e077628a36dd5579180cb071f3f763c82f52c1d71f5ff8",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/public-history-probe.log": "01951b16e57e57df06b32a894b3aba3c07619908f42977e2c97f352634b71998",
+        "docs/validation/evidence/injury-validation-planning-2026-09-20/untreated-boundary-probe.log": "30aefb40d7c78b25de6b0317b8ded38da41eca5511c0f5490003ddc3ace6a97e",
+        "godot/scripts/core/injury.gd": "a0932b0c2fddd8ea32f460d1ca4d88977fa759391fcac6f845957fff433184c2",
+        "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+        "godot/scripts/core/save_owner_resource_nodes.gd": "599dea37303df8ecdf37f4a77a04d14fbf0a5500c30e1fbca12d5f787e4c03cc",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+      },
+      "outputLines": 574,
+      "outputLineBudget": 700,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "069822c7fbc9c091241540e155470190ac00ee0c"
+    },
+    {
+      "id": "injury-validation-source-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "16964d50-25eb-454a-a025-c2f73075b4a2",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/injury_component_validation_contract.md": "7a235adc8ccdfa093990ce662a9112e11e56fef52d8c4a01289e083841cd0d13",
+        "docs/decisions/0177-injury-validation-and-atomic-untreated-overflow.md": "fd655465c839a51292c9d3e3df1a5b182dd7eb013292e862e40e1823610ae5c7",
+        "godot/scripts/core/injury.gd": "ac8e44454ef156fb80b039a6d86212de1c245dc08965f121f48a4d34b98901fd",
+        "godot/scripts/core/save_owner_injury.gd": "8c9a1b6320cfce6076fb1a77774ca3198d121b821fb141bc82804f87632d1f6c",
+        "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/test/test_save_owner_injury.gd": "a2308ea386170073da7ba967693c1feeddba17d25110d4ab47b7c5ac11ce0162",
+        "tools/test_injury_metadata_preflights.py": "068d91bc6ebfe771216eb2fb37da40468d9712b6acb99d3ccc51571850ba2680",
+        "docs/validation/evidence/injury-component-validation-2026-09-20/run_mutants.py": "add39cf439ccdebb115a6795fde8b0efc9cb0d1645c9ddf49bc64e0060da1aa8",
+        "docs/validation/evidence/injury-component-validation-2026-09-20/focused-first.log": "1cc4d109da482db568e806135b1a3e2de28d1d956acab06c7173d843031545be",
+        "docs/validation/evidence/injury-component-validation-2026-09-20/candidate-review-disposition.md": "5dcd9eecacf6edc8a4c73771b81236750ad8b9c291fe17a930553c1a2df61d87",
+        "docs/validation/evidence/injury-component-validation-2026-09-20/applied-candidate-identity.json": "9ad149e51573899541c64baf9e10b422b66d44cf228eb55bddfe397f000a35c9",
+        "docs/validation/evidence/injury-component-validation-2026-09-20/candidate-source-review-a2-rejected-length.md": "3348a87cf7ae318ac156625ece6f6ce7b1ee003f1cb9093cd6753f6e64bc2bf4"
+      },
+      "outputLines": 17,
+      "outputWords": 529,
+      "outputLineBudget": 60,
+      "outputWordBudget": 650
+    }
+  ]
+}

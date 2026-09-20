@@ -1,0 +1,8 @@
+{
+  "attempt": "injury-validation-candidate-review-a2",
+  "state": "complete",
+  "ownerStopped": true,
+  "accepted": false,
+  "reason": "82actual lines exceeds80line bound;777words within800. Worker self-estimate57/611 incorrect. Findings retained for parent disposition; final actual-source independent review required.",
+  "input_hash_check": "Passed intake before author apply; output-length check rejected"
+}

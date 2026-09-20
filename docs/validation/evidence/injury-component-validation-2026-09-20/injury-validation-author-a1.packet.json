@@ -1,0 +1,26 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "db1d10b4bff69b51d709c9d11996a658bb425740",
+  "task": "Implement Injury owner6 validation and atomic untreated-counter overflow refusal",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/injury_component_validation_contract.md",
+    "docs/decisions/0177-injury-validation-and-atomic-untreated-overflow.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/contract-review.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/metadata-fault-plan.md",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/metadata-arithmetic-check.json",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/public-history-probe.log",
+    "docs/validation/evidence/injury-validation-planning-2026-09-20/untreated-boundary-probe.log",
+    "godot/scripts/core/injury.gd",
+    "godot/scripts/core/needs.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/scripts/core/save_owner_resource_nodes.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_component_columns_schema.gd"
+  ],
+  "instructions": "Implement INJURY-S4-VALIDATE-R01v1 ADR0177 exactly. OutputONE NEW docs/validation/evidence/injury-component-validation-2026-09-20/author.patch baseSha256null, validrawunifiedgitdiff editingONLYgodot/scripts/core/injury.gd andADDINGgodot/scripts/core/save_owner_injury.gd. HARD700patchlines aim500; do notmisestimatecount. Exactsourcecontexthunks, no fabricatedblanklines, rawgitapply--recountmustpass. No tests/docs/otherfiles. Static11typedargs5byte/3i32/3i64 inexactcanonicalorder;13globalgates shape,flags,kind,severity,ref,ticks,care,ordinal,kindseverity,noinjurytimecare,incidenthistory,free,duplicate. Neverper-rowallgatefusion. Useprivatehelpersto~30lines; nobigArray/scratch/sort/defaultprojection/constructor/liveNeedsDirectory/diagnosticwrites inpredicate. Fullnonnegativei64; retainhealthyrescuer/stalegens/treatedlatchesordinal. Episodeflagsimplyordinal>0, contextnot. Freecanonicalallzeroexceptnullrescuer. Nonnull exactrefpairuniqueamongpresent via boundednested512scan, distinctgensallow. RuntimechangeONLYtick_alloverflow: fullascendingpreflightoverpresentinjuredlivingrows beforeanyincrement; MAX=>_last_refused_slot=firstrow andexistingOVERFLOW/value0; nullNeedskeeps-1; successful countunchanged, dead/uninjuredskipped. No publicsetter/getter orcountercap. Existingcheckedcare/ordinalunchanged. Bridgeonlyframed_refusal with7gatesstandard; owner6version1, typedcanonical11accessors, sourcepinsfromcontract, metadata prefix Injury owner6 metadata: andrawdetail Injury owner 6 . FIELDconstants canonicalnames PRESENT,KIND,AIRLESS_EPISODE,EXHAUSTION_LATCH,CARE_CONTEXT_BLOCKED,SEVERITY,RESCUER_SLOT,RESCUER_GENERATION,UNTREATED_TICKS,CARE_PROGRESS_MWU,LAST_INCIDENT_ORDINAL; _field_refusal(field,key,type_code,count) exactcomparisonstringsfromprecedentforfaulttool. Parentowns33mutants,18metadataandtests; deliberatelyinjectedcounterfixtureisNOTpublicreachabilityorrealrestore. Actual originalprobeobservedwrap beforefix. No runclaims. Askuncertaintiesratherthaninventbehavior. Full rawJSONstatus/summary/questions/files/decisionIds. Do notclaimfullsavedidentity/bulkpublication."
+}

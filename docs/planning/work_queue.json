@@ -1797,7 +1797,9 @@
         "SAVE-S4-WORK-VALIDATE",
         "WORK-SAVED-BINDINGS",
         "SAVE-S4-RESOURCE-NODES-VALIDATE",
-        "RESOURCE-NODES-SAVED-BINDINGS"
+        "RESOURCE-NODES-SAVED-BINDINGS",
+        "SAVE-S4-INJURY-VALIDATE",
+        "INJURY-SAVED-BINDINGS"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -2011,7 +2013,7 @@
     {
       "id": "SAVE-S4-RESOURCE-NODES-VALIDATE",
       "title": "Validate ResourceNodes scalar columns while preserving inactive stump history",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -2027,7 +2029,10 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance RESOURCE-NODES-S4-VALIDATE-R01v1/ADR0176:full4942/340166/0;focus8/85132/0;30required mutants and8metadata bypasses caught;18metadata cases;17static gates/import;independent source review no implementation blocker. Fulli64/retainedinactivehistory/globalDirectoryrefs preserved; initial parentfixturealias corrected with fullpackedcopies. Exact-head CI pending; full saved inverse/Directory/catalog and bulk binding remain separate."
+      "note": "Local acceptance RESOURCE-NODES-S4-VALIDATE-R01v1/ADR0176:full4942/340166/0;focus8/85132/0;30required mutants and8metadata bypasses caught;18metadata cases;17static gates/import;independent source review no implementation blocker. Fulli64/retainedinactivehistory/globalDirectoryrefs preserved; initial parentfixturealias corrected with fullpackedcopies. Merged PR167 after CI35501260758 passed4942/340166/0 and18metadata cases; full saved inverse/Directory/catalog and bulk binding remain separate.",
+      "pr": 167,
+      "merge_commit": "069822c7fbc9c091241540e155470190ac00ee0c",
+      "merged_at": "2026-09-20T09:23:13Z"
     },
     {
       "id": "RESOURCE-NODES-SAVED-BINDINGS",
@@ -2042,6 +2047,40 @@
       "agent": "astra",
       "gate": "none",
       "note": "Required before section4 semantics acceptance: same-file section1 inverse both directions, Directory kind/typed-row/ref and unique placement/ownership, resourceID membership in verified compiled wood/stone/iron outputs; no live-world lookup. Resolve complete saved input ownership/common-file provenance before implementation; bulk restoration remains owner-binding task. Local numeric range acceptance cannot authorize published content."
+    },
+    {
+      "id": "SAVE-S4-INJURY-VALIDATE",
+      "title": "Validate Injury columns and refuse untreated-counter overflow atomically",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/injury.gd",
+        "godot/scripts/core/save_owner_injury.gd",
+        "godot/test/test_save_owner_injury.gd",
+        "godot/test/injury_validation_focus.gd",
+        "tools/test_injury_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance INJURY-S4-VALIDATE-R01v1/ADR0177:full4951/354744/0,focus9/14578/0,33required mutants +8metadata bypasses caught,18metadata cases,17static gates/import and final independent source review pass. Atomic untreatedMAX preflight fixes injected originalbug without partial patient progress. Healthy/stale history preserved; no new packed scratch. Exact-head CI pending; saved cross-owner bindings and bulk restoration remain separate."
+    },
+    {
+      "id": "INJURY-SAVED-BINDINGS",
+      "title": "Reconcile saved Injury state with Needs, resident identity, rescuers and movement care context",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-INJURY-VALIDATE"
+      ],
+      "owns": [
+        "docs/planning/injury_saved_binding_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Required before section4 semantic acceptance: same-file Needs/resident presence, health/status agreement, patient/rescuer Directory kind and identity, self-rescue, movement care context and derived counts. No live-world lookups or blanket ban on healthy/stale rescuer history. Define explicit saved projections/provenance before implementation; bulk restore stays separate."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

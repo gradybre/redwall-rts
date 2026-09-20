@@ -17,8 +17,8 @@ module cycle (four pre-existing self-preloads).
 3mutants killed (equipped publication2failures, duplicate-lot2, source-derived1),
 each ran23tests/1267assertions; correct productionSHA restored. Full initial
 shutdown593objects/33resources included40newfixture-cycle leaks. Public fixture
-teardown removes these; focusedcount310->270. FinalCI must confirm fullbaseline
-553objects/33resources alongside final4783tests; no leak fix to production claimed.
+teardown removes these; focusedcount310->270. FinalCI35483822426 confirmed the fullbaseline553objects/33resources and
+4783tests/188038assertions/0failures; no leak fix to production claimed.
 
 Literal independent wire goldens prove block sizes464 atR8 and688256 atR16384,
 exact populated/empty columns and framing. These probes plus codec regression
@@ -27,4 +27,4 @@ verified against source, not measured peak/RSS. Both owner counts and wire
 classification remain within existing canonical602fields/553packed columns.
 
 No first-playable, artwork/native-client, whole-section or full-save acceptance
-follows from this isolated owner change. Exact-head CI pending.
+follows from this isolated owner change. Exact-head CI passed and PR156 merged at52307da.

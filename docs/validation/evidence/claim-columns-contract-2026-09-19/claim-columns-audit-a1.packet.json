@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "d8af51e849f643a47da4554cdc12f1654146f517",
+  "task": "Feasibility audit exact Fishing and Forage claim-only owner columns",
+  "paths": [
+    "docs/validation/evidence/claim-columns-contract-2026-09-19/astra-source-notes.md",
+    "docs/validation/evidence/claim-columns-contract-2026-09-19/fishing-source-excerpts.md",
+    "docs/validation/evidence/claim-columns-contract-2026-09-19/forage-source-excerpts.md",
+    "godot/scripts/core/save_section_inventories.gd",
+    "docs/validation/evidence/claim-columns-contract-2026-09-19/registry-excerpts.md"
+  ],
+  "instructions": "Read-only feasibility audit, no implementation. These owners span sections1/4/5/7; scopednewAPI must restore only7/11 claimarrays and derivedcount, preserve allothercanon/scratch/bindings, no hotrowrestore/rebuildaggregate/collaboratorcall. Determine fixed512/8192 capacity and exact blanks/domains versus codec, typedrowidentity and dirrefs, sourcecount validation, stale refs, canonical orderkeys mislabeledcaches. Critical: oldaggregate methods rewrite OTHERSECTIONcanonicalvalues;Forage refreshesorderkeys. Propose finite contract and tests, identify loader checked-arithmetic needs from broadcodec domain versus realpublic max1..1180000; do NOT claim a publicbug withoutwitness. Distinguish ownerstructuraladmission from later crossworld reconciliation, propose ordinaryAstra ruling onzero/boundquantities. SingleOwnerRecordadapters no fullRecord/no newInventory requirement absentauthorneed; applyheldclock. Exactbytes/memoryalgorithm at fixedcaps, no compression/indexcompaction. Return one NEW markdown docs/validation/evidence/claim-columns-contract-2026-09-19/feasibility-audit.md <=2200words; exactJSON status complete,summary,questions[],files[path/content/baseSha256:null],decisionIds[]. No tools. Flag missing excerpt dependencies precisely."
+}

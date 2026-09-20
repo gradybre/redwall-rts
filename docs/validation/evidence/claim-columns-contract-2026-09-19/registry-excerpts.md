@@ -1,0 +1,48 @@
+# Registry excerpt
+
+Source SHA256 c436b7c845d14d95a2cc286230b07dc93d25e035bd52a3297f54ca8512fbc1ac
+
+### `godot/scripts/core/fishing.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| FishHabitat occupancy | `_habitat_present` | 1 | `FISH_HABITAT_CAPACITY` = 32 | 0 = free row | 1 | §4 COMPONENT_COLUMNS | Occupied bitset. |
+| FishHabitat configuration | `_habitat_type`, `_habitat_zone_slot`, `_habitat_zone_generation`, `_habitat_effort_slots`, `_habitat_pollution`, `_habitat_danger`, `_habitat_protected_fraction` | 4 | `FISH_HABITAT_CAPACITY` = 32 | `_habitat_zone_slot == -1` with generation 0 is the null ref | 1 | §4 COMPONENT_COLUMNS | `_habitat_zone_generation` is a copy of the directory generation for the owning zone. |
+| FishHabitat capacity | `_habitat_capacity_milli` | 8 | `FISH_HABITAT_CAPACITY` = 32 | 0 = no capacity | 1 | §4 COMPONENT_COLUMNS | `quantity_milli` int64 per AGENTS.md. |
+| FishHabitat identity and daily effort | `_habitat_ref_slot`, `_habitat_ref_generation`, `_habitat_effort_used` | 4 | `FISH_HABITAT_CAPACITY` = 32 | `-1`/0 null ref; `_habitat_effort_used == 0` after the daily reset | 1 | §4 COMPONENT_COLUMNS | Effort used today is cleared at the day boundary and is future-affecting at an exact midnight. |
+| FishHabitat intensive flag | `_habitat_intensive` | 1 | `FISH_HABITAT_CAPACITY` = 32 | 0 = not intensive | 1 | §4 COMPONENT_COLUMNS | Per-day policy latch. |
+| FishHabitat active list | `_live_habitat_slots` | 4 | `FISH_HABITAT_CAPACITY` = 32 | Only `[0, _live_habitat_count)` is meaningful | 2 | §4 COMPONENT_COLUMNS | ARCH-SAVE-002 rebuilds active lists ascending. |
+| FishStock occupancy | `_stock_present` | 1 | `FISH_STOCK_CAPACITY` = 96 | 0 = free row | 1 | §4 COMPONENT_COLUMNS | Owner-major at `habitat * 3 + species slot`. |
+| FishStock identity | `_stock_habitat_slot`, `_stock_habitat_generation`, `_stock_species_id` | 4 | `FISH_STOCK_CAPACITY` = 96 | `-1`/0 null ref | 1 | §4 COMPONENT_COLUMNS | `_stock_species_id` indexes `fishing.gd`'s own nine-row `SPECIES_KEYS`, NOT a compiled item id; `resource_catalog_binding.gd` owns the translation and warns that sorting the two together associates the wrong habitats. |
+| FishStock quantities | `_stock_population_milli`, `_stock_capacity_milli`, `_stock_harvested_today_milli` | 8 | `FISH_STOCK_CAPACITY` = 96 | 0 | 1 | §4 COMPONENT_COLUMNS | `_stock_harvested_today_milli` resets daily, so it is future-affecting across a midnight save. |
+| FishStock closure flags | `_stock_closed`, `_stock_restocking` | 1 | `FISH_STOCK_CAPACITY` = 96 | 0 = open / not restocking | 1 | §4 COMPONENT_COLUMNS | Closure survives a reload or a closed fishery reopens itself. |
+| FishingEffortClaim (u8) | `_effort_claim_active` | 1 | `FISHING_EFFORT_CLAIM_CAPACITY` = 512 | `_effort_claim_active == 0` is a free claim row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | A live claim on habitat effort slots: exactly task 09.1's "clocks/leases/claims". Indexed by the OWNING EXPEDITION'S typed row, so the row index itself is identity and the loader must not compact these rows. The owner reference is rebuilt through `entity_directory.owner_slot_of_typed_row()`, which is why only the generation is stored. |
+| FishingEffortClaim (i32) | `_effort_claim_expedition_generation`, `_effort_claim_habitat_slot`, `_effort_claim_habitat_generation`, `_effort_claim_job_slot`, `_effort_claim_job_generation`, `_effort_claim_slot_count` | 4 | `FISHING_EFFORT_CLAIM_CAPACITY` = 512 | `_effort_claim_active == 0` is a free claim row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | See the first row of this group. |
+| Effort tally scratch | `_effort_total_scratch` | 4 | `FISH_HABITAT_CAPACITY` = 32 | Refilled per pass | 3 | -- | Per-habitat running total inside one effort pass. |
+| Fishing scratch | -- | -- | -- | -- | 3 | -- | `_math`, `_math_b`, `_math_c`, `_effort_claim_count`, `_pending_claim_row`, `_pending_habitat_slot`, `_owns_directory`. `_effort_claim_count` is recomputed from `_effort_claim_active`. |
+
+### `godot/scripts/core/forage.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| HarvestZone occupancy | `_zone_present` | 1 | `HARVEST_ZONE_CAPACITY` = 128 | 0 = free row | 1 | §4 COMPONENT_COLUMNS | Occupied bitset. |
+| HarvestZone configuration | `_zone_type`, `_zone_danger` | 4 | `HARVEST_ZONE_CAPACITY` = 128 | None; every live zone has both | 1 | §4 COMPONENT_COLUMNS | `_zone_type` indexes the compiled `ZoneType` domain. |
+| HarvestZone quota | `_zone_quota_milli` | 8 | `HARVEST_ZONE_CAPACITY` = 128 | 0 = no manual quota | 1 | §4 COMPONENT_COLUMNS | Player policy in milli units. |
+| HarvestZone policy flags | `_zone_protected`, `_zone_enabled` | 1 | `HARVEST_ZONE_CAPACITY` = 128 | 0/1 flags with no absence value | 1 | §4 COMPONENT_COLUMNS | Set by SET_POLICY; decision 0030 §4.6. |
+| HarvestZone identity and basin | `_zone_ref_slot`, `_zone_ref_generation`, `_zone_basin_slot`, `_zone_basin_generation` | 4 | `HARVEST_ZONE_CAPACITY` = 128 | `-1` slot with generation 0 is the null ref | 1 | §4 COMPONENT_COLUMNS | Copies of directory pairs; the directory's `_generation` remains authoritative. |
+| HarvestZone daily quota accounting | `_zone_harvested_today_milli`, `_zone_quota_reserved_milli` | 8 | `HARVEST_ZONE_CAPACITY` = 128 | 0 | 1 | §4 COMPONENT_COLUMNS | `_zone_quota_reserved_milli` is quantity promised to live claims; dropping it double-issues a quota after a reload. |
+| HarvestZone quota mode | `_zone_quota_mode` | 1 | `HARVEST_ZONE_CAPACITY` = 128 | Byte enum; 0 is a real mode, not absence | 1 | §4 COMPONENT_COLUMNS | Bounded by `QUOTA_MODE_COUNT` at load. |
+| HarvestZone child heads and counts | `_zone_link_head`, `_zone_tile_count`, `_zone_patch_count` | 4 | `HARVEST_ZONE_CAPACITY` = 128 | `_zone_link_head == -1` (`NO_LINK`) for a zone with no tiles | 1 | §5 CHILD_ARENAS | The head of the zone's tile-link chain. ARCH-SAVE-002 writes child arrays owner-ascending with "explicit variable lengths" before the data, which is what `_zone_tile_count` is. |
+| HarvestZone active list | `_live_zone_slots` | 4 | `HARVEST_ZONE_CAPACITY` = 128 | Only `[0, _live_zone_count)` is meaningful | 2 | §4 COMPONENT_COLUMNS | ARCH-SAVE-002 rebuilds active lists ascending. |
+| Zone/tile link arena | `_link_tile`, `_link_zone`, `_link_tile_next`, `_link_zone_next` | 4 | `ZONE_LINK_CAPACITY` = 16384 | `-1` (`NO_LINK`) terminates either chain; a free link is on the `_link_free_head` list | 1 | §5 CHILD_ARENAS | 16384 links threaded into two intrusive lists. Chain ORDER is insertion order and is observable, so the arena is written as chains rather than re-derived by scanning ascending. |
+| Tile-to-zone index | `_tile_link_head` | 4 | `TILE_COUNT` = 16384 | `-1` (`NO_LINK`) for a tile in no zone | 1 | §1 WORLD | `WorldTileMaps.zone_link_head` in §2's ledger (systems_architecture.md:397), so it is a stored field even though it is reachable from the arena. |
+| ForagePatch columns (u8) | `_patch_present` | 1 | `FORAGE_PATCH_CAPACITY` = 640 | `_patch_present == 0` is a free row | 1 | §4 COMPONENT_COLUMNS | Owner-major at `zone_slot * 5 + kind`. `_patch_item_id` is a compiled `ItemDefinition` id bound by `resource_catalog_binding.gd`. `_patch_harvested_year_milli` is a per-year total, so it must survive a mid-year save. |
+| ForagePatch columns (i32) | `_patch_item_id`, `_patch_zone_slot`, `_patch_zone_generation` | 4 | `FORAGE_PATCH_CAPACITY` = 640 | `_patch_present == 0` is a free row | 1 | §4 COMPONENT_COLUMNS | See the first row of this group. |
+| ForagePatch columns (i64) | `_patch_stock_milli`, `_patch_capacity_milli`, `_patch_harvested_year_milli` | 8 | `FORAGE_PATCH_CAPACITY` = 640 | `_patch_present == 0` is a free row | 1 | §4 COMPONENT_COLUMNS | See the first row of this group. |
+| ForageClaim columns (u8) | `_claim_active` | 1 | `FORAGE_CLAIM_CAPACITY` = 8192 | `_claim_active == 0` is a free claim row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | Live claims against a zone's quota, indexed by the OWNING JOB'S typed row (decision 0030 §4.7). `_claim_remaining_milli` is work-in-progress and `_claim_created_tick` orders expiry: both are exactly what task 09.1 means by cargo/WIP and claims. |
+| ForageClaim columns (i32) | `_claim_job_slot`, `_claim_job_generation`, `_claim_designation_slot`, `_claim_designation_generation`, `_claim_basin_slot`, `_claim_basin_generation`, `_claim_patch_kind` | 4 | `FORAGE_CLAIM_CAPACITY` = 8192 | `_claim_active == 0` is a free claim row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | See the first row of this group. |
+| ForageClaim columns (i64) | `_claim_remaining_milli`, `_claim_created_tick`, `_claim_persistent_id` | 8 | `FORAGE_CLAIM_CAPACITY` = 8192 | `_claim_active == 0` is a free claim row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | See the first row of this group. |
+| Forage link allocator | -- | -- | -- | `_link_free_head == -1` (`NO_LINK`) when the free list is empty | 1 | §5 CHILD_ARENAS | `_link_bump`, `_link_free_head` and `_link_used`. A bump pointer plus a free LIST, not a min-heap: like `inventory.gd`'s stacks and unlike `entity_directory.gd`'s heaps, the order it hands links out depends on the list contents, so it must be written. |
+| Forage live counts | -- | -- | -- | -- | 2 | §4 COMPONENT_COLUMNS | `_live_zone_count` and `_claim_count`, recomputed from `_zone_present` and `_claim_active`. |
+| Forage scratch | -- | -- | -- | `_pending_*` use `-1` / `NULL_SLOT` between calls | 3 | -- | `_math`, `_math_b`, `_math_c`, `_pending_designation_slot`, `_pending_basin_slot`, `_pending_patch_row` and `_owns_directory`. |
+

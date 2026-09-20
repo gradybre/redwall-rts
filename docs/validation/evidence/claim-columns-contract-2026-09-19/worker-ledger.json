@@ -1,0 +1,37 @@
+{
+  "attempts": [
+    {
+      "id": "claim-columns-audit-a1",
+      "role": "independent feasibility auditor",
+      "model": "claude-opus-5",
+      "sessionId": "337293db-64bb-4d92-8e24-aaf1da18911c",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/validation/evidence/claim-columns-contract-2026-09-19/astra-source-notes.md": "a481b68d7162d5def042824ba649334a3f923ab427e0186418e55975d4010750",
+        "docs/validation/evidence/claim-columns-contract-2026-09-19/fishing-source-excerpts.md": "e7e32e697a28fc02fc60a18b612eea333853f571aa26fe679863b9bfa5299ea8",
+        "docs/validation/evidence/claim-columns-contract-2026-09-19/forage-source-excerpts.md": "a00e73e9cb70d64cc21c64f2e415f1a157c0f71c403a3fb591bc73247e644afa",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "docs/validation/evidence/claim-columns-contract-2026-09-19/registry-excerpts.md": "51e508616b8074dd1fee4a5c0c144fcc5b04990e21a09a77ad8474a2f890beec"
+      }
+    },
+    {
+      "id": "claim-columns-contract-a1",
+      "role": "independent contract reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "2118e434-5cc9-4c12-affe-dd37b2f23723",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/resource_claim_columns_contract.md": "13babb88cf35be058877c32a78d4c195c618ef685ce058a593a2c72e2e6a9dce",
+        "docs/validation/evidence/claim-columns-contract-2026-09-19/astra-audit-disposition.md": "2c603209c45be21fc2aa52f480f92116e5d64245ebdaa885523eadc9f90bde8d",
+        "docs/validation/evidence/claim-columns-contract-2026-09-19/fishing-capacity-writer-census.json": "a5a5192e9c5ec2de1ec3cca32ce6e7358ede3f4fe32accd3951ee33920265d8d",
+        "godot/scripts/core/fishing.gd": "85f5437585155faab04c140641710014cf4cb477ea82eb08078aa0ac85f34025",
+        "godot/scripts/core/forage.gd": "74694b212993599a8ffc0f488f2e45d6c81acdaba1297c4fd723c0860790dbcb",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "godot/scripts/core/save_gear_restore.gd": "da193149f2b79d960c699e69bbfa9faade9edaa409b80da52ff0ee65b676d8dc",
+        "docs/planning/canonical_state_registry.json": "228b475fc22ee86a404a4bb54f1b8bea7e1006f6bd1dd9bebe724eb283f4c701"
+      }
+    }
+  ]
+}

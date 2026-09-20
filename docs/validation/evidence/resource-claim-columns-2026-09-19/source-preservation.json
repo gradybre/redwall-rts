@@ -1,0 +1,18 @@
+{
+  "fishing": {
+    "old_bytes": 131759,
+    "old_sha256": "85f5437585155faab04c140641710014cf4cb477ea82eb08078aa0ac85f34025",
+    "old_source_unchanged_prefix": true,
+    "integrated_sha256": "e0860c41c3883faae1c75b5afbbfe43396651d6fdf3e702ca3cf375536f659bf",
+    "after_review_old_executable_text_unchanged": true,
+    "after_review_integrated_sha256": "7a82dcea6ce9e8100045d736049ab912b508195eb35aa07c34c76ce3b42c12e9"
+  },
+  "forage": {
+    "old_bytes": 144135,
+    "old_sha256": "74694b212993599a8ffc0f488f2e45d6c81acdaba1297c4fd723c0860790dbcb",
+    "old_source_unchanged_prefix": true,
+    "integrated_sha256": "9252c9085d1d993057215fc794c0eaf9a71892991aa534ff9a922c9d6a9fef6d",
+    "after_review_old_executable_text_unchanged": true,
+    "after_review_integrated_sha256": "8f1be765de10b5adba1a623ce54033c9830bc8d7bd1eedcc3d82712850b8144a"
+  }
+}

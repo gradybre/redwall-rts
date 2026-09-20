@@ -172,7 +172,7 @@ func test_recipe_reserves_across_five_or_more_lots() -> void:
 	for lot_ref: Vector2i in lots:
 		assert_equal(_inv.lot_reserved_milli(lot_ref), 600, "each lot is reserved")
 		assert_equal(_inv.lot_available_milli(lot_ref), 400, "each lot keeps its remainder available")
-	assert_equal(_pool.job_reserved_total_milli(JOB_A), 4200, "job total")
+	_assert_checked_total(_pool.job_reserved_total_milli(JOB_A), 4200, "job total")
 	assert_equal(_inv.total_live_milli(ITEM_GRAIN), 7000, "reserving moves no quantity")
 	_assert_pool_and_inventory_sound("seven-lot recipe")
 
@@ -292,7 +292,7 @@ func test_a_different_purpose_or_job_gets_its_own_row() -> void:
 	assert_equal(_pool.claim_quantity_milli(JOB_B, lot_ref, PURPOSE_A), 400, "the other job is separate")
 	assert_equal(_pool.lot_claim_count(lot_ref), 3, "the lot lists all three")
 	assert_equal(_inv.lot_reserved_milli(lot_ref), 900, "reserved is the sum of all three")
-	assert_equal(_pool.lot_reserved_total_milli(lot_ref), 900, "the pool re-derives the same sum")
+	_assert_checked_total(_pool.lot_reserved_total_milli(lot_ref), 900, "the pool re-derives the same sum")
 	_assert_pool_and_inventory_sound("distinct keys")
 
 
@@ -390,11 +390,11 @@ func test_reserved_milli_equals_the_sum_of_active_rows() -> void:
 	assert_true(_claim_one(JOB_A, lot_ref, 300, PURPOSE_A).ok, "claim A accepted")
 	assert_true(_claim_one(JOB_B, lot_ref, 500, PURPOSE_A).ok, "claim B accepted")
 	assert_true(_claim_one(JOB_B, lot_ref, 200, PURPOSE_B).ok, "claim B/other purpose accepted")
-	assert_equal(_pool.lot_reserved_total_milli(lot_ref), 1000, "rows sum to 1000")
+	_assert_checked_total(_pool.lot_reserved_total_milli(lot_ref), 1000, "rows sum to 1000")
 	assert_equal(_inv.lot_reserved_milli(lot_ref), 1000, "inventory agrees")
 	assert_true(_inv.lot_reserved_milli(lot_ref) <= _inv.lot_quantity_milli(lot_ref), "reserved never exceeds quantity")
 	assert_true(_pool.release_claim(JOB_B, lot_ref, PURPOSE_A, _inv).ok, "one claim released")
-	assert_equal(_pool.lot_reserved_total_milli(lot_ref), 500, "rows sum to 500")
+	_assert_checked_total(_pool.lot_reserved_total_milli(lot_ref), 500, "rows sum to 500")
 	assert_equal(_inv.lot_reserved_milli(lot_ref), 500, "inventory agrees after the release")
 	_assert_pool_and_inventory_sound("multi-claimant invariant")
 
@@ -608,7 +608,7 @@ func test_replacing_a_party_member_leaves_the_coordinator_claims_intact() -> voi
 	assert_true(departed.ok, "the departing member's claims release (%s)" % departed.error)
 	assert_equal(departed.value, 1, "only the member's own row went")
 	assert_equal(_pool.job_claim_count(COORDINATOR), 3, "the coordinator still holds all three shared claims")
-	assert_equal(_pool.job_reserved_total_milli(COORDINATOR), 2100, "the shared quantity is unchanged")
+	_assert_checked_total(_pool.job_reserved_total_milli(COORDINATOR), 2100, "the shared quantity is unchanged")
 	assert_equal(_total_reserved(shared), 2100, "the shared lots are still reserved")
 	assert_equal(_inv.lot_reserved_milli(tool_one), 0, "the departing member's own claim is gone")
 	assert_equal(_inv.lot_reserved_milli(tool_two), 500, "the remaining member keeps theirs")
@@ -852,3 +852,8 @@ func test_row_accessors_refuse_an_inactive_row() -> void:
 	assert_equal(_pool.row_lot_ref(row), ReservationsScript.NULL_REF, "a freed row claims no lot")
 	assert_equal(_pool.next_job_row(row), ReservationsScript.NULL_ROW, "iteration from a freed row ends")
 	assert_equal(_pool.next_lot_row(row), ReservationsScript.NULL_ROW, "lot iteration from a freed row ends")
+
+
+func _assert_checked_total(result: IntMathScript.IntResult, expected: int, label: String) -> void:
+	assert_true(result.ok, label + " checked success")
+	assert_equal(result.value, expected, label)

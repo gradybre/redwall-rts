@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "1798854a6a6394680d2c78e310952c11a0c6f3f4",
+  "task": "Independent RES-TOTAL-R01v2 source and test review",
+  "paths": [
+    "docs/planning/reservation_totals_contract.md",
+    "docs/decisions/0164-return-checked-reservation-totals.md",
+    "godot/scripts/core/reservations.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/test/test_reservations.gd",
+    "godot/test/test_reservation_totals.gd",
+    "docs/validation/evidence/reservation-totals-2026-09-19/integration.diff"
+  ],
+  "instructions": "Independent specialist source review; do not author implementation. Evaluate exact arithmetic overflow/clearing/null-first semantics, cold/hot agreement, no owner writes in public queries, audit invalid-lot-before-overflow-before-comparisons, retained valid claims, caller migration and meaningful test coverage. Parent owns runtime acceptance separately. Identify blockers with exact function/line and suggested bounded fix; distinguish accepted unchanged semantics/out-of-scope corrupt-index defenses. Inputs immutable. Return one NEW markdown report docs/validation/evidence/reservation-totals-2026-09-19/source-review.md <=200lines. Exact JSON status complete,summary,questions[],files each path/content/baseSha256:null,decisionIds[]. No tools. State accepted/needs repair and remaining evidence clearly."
+}

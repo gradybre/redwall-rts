@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "2f47bc97910282ba93d8dcc835c623d581b60654",
+  "task": "Independent contract review checked reservation totals RES-TOTAL-R01v1",
+  "paths": [
+    "docs/planning/reservation_totals_contract.md",
+    "docs/validation/evidence/reservation-totals-contract-2026-09-19/current-query-excerpts.md",
+    "godot/scripts/core/int_math.gd",
+    "godot/test/test_reservations.gd",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/public_overflow_probe.gd",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/public_overflow_probe.log",
+    "docs/planning/reservations_columns_contract.md"
+  ],
+  "instructions": "Read-only independent contract feasibility/acceptance for a bounded fix to proven unchecked reservation query overflow. No implementation. Parent census says only existing reservationtests call2plainpublicgetters, plus own auditcalls_sum_list; productiongameplayconsumers absent. Proposed existing plainnames change return fromint toIntResult plusnewnonallocating_into methods; allcalls mustinspectok. Admittedclaims acrossdifferentlots remainvalid; releaseopsreturnrowcountsso no newadmissionlimits. Verify exactresult/null/missingref/reusedout semantics, checkedarithmetic, auditREFUSE_OVERFLOW mapping, noowner/scratch mutation query exceptcallerout, no canonical/wirechanges, sufficient actualwitness andsnapshotcontinuationtests. Sourceexcerpts SHA pinned before acceptance refinements to unrelated columns; they include complete relevant query/mutationfunctions. Identify concretecontractissues/blockers and exactresolutions orACCEPT. <=1400words. ExactJSON status complete,summary,questions[],files exactlyone NEW docs/validation/evidence/reservation-totals-contract-2026-09-19/contract-v1-review.md baseSha256 null,decisionIds[]."
+}

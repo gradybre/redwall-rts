@@ -1,0 +1,11 @@
+{
+  "pr": 154,
+  "merge": "1798854a6a6394680d2c78e310952c11a0c6f3f4",
+  "head": "4115d9b27f28b2fd755309a796e90b26c3b6ec50",
+  "run": 35481845659,
+  "both_checks": "SUCCESS",
+  "tests": 4752,
+  "assertions": 186571,
+  "failures": 0,
+  "mergedAt": "2026-09-20T01:48:52Z"
+}

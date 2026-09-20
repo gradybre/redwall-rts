@@ -1,0 +1,15 @@
+{
+  "mutant": "skip checked add, restore unchecked addition",
+  "exit_code": 1,
+  "killed": true,
+  "summary": [
+    "  FAIL  test_real_public_api_job_overflow_refuses_without_narrowing_claims",
+    "  FAIL  test_reused_output_recovers_across_success_overflow_and_missing_refs",
+    "  FAIL  test_public_queries_do_not_mutate_owner_math_or_inventory",
+    "  FAIL  test_cold_results_are_independent_and_outcome_is_not_a_sentinel",
+    "  FAIL  test_checked_query_survives_exact_owner_snapshot_and_restoration",
+    "  FAIL  test_audit_refuses_checked_per_lot_overflow_before_comparison",
+    "8 test(s), 195 assertion(s), 6 failure(s)"
+  ],
+  "restored_source_sha256": "53b53155ee42871e08ab102beccea205d39627aec7b699399072fc269ac49659"
+}

@@ -1,0 +1,41 @@
+godot/scripts/core/reservations.gd:949:func job_reserved_total_milli(job_ref: Vector2i) -> IntMath.IntResult:
+godot/scripts/core/reservations.gd:959:	job_reserved_total_milli_into(job_ref, out)
+godot/scripts/core/reservations.gd:963:func lot_reserved_total_milli(lot_ref: Vector2i) -> IntMath.IntResult:
+godot/scripts/core/reservations.gd:970:	lot_reserved_total_milli_into(lot_ref, out)
+godot/scripts/core/reservations.gd:974:func job_reserved_total_milli_into(job_ref: Vector2i, out: IntMath.IntResult) -> bool:
+godot/scripts/core/reservations.gd:975:	"""Non-allocating job_reserved_total_milli(): sum into caller-owned `out`, return out.ok.
+godot/scripts/core/reservations.gd:987:	return _sum_list_into(_list_head(job_ref, true), true, out)
+godot/scripts/core/reservations.gd:990:func lot_reserved_total_milli_into(lot_ref: Vector2i, out: IntMath.IntResult) -> bool:
+godot/scripts/core/reservations.gd:991:	"""Non-allocating lot_reserved_total_milli(): sum into caller-owned `out`, return out.ok.
+godot/scripts/core/reservations.gd:999:	return _sum_list_into(_list_head(lot_ref, false), false, out)
+godot/scripts/core/reservations.gd:1002:func _sum_list_into(head: int, by_job: bool, out: IntMath.IntResult) -> bool:
+godot/scripts/core/reservations.gd:1204:		if not _sum_list_into(head, false, _math):
+godot/test/test_reservation_totals.gd:52:	assert_false(_pool.job_reserved_total_milli_into(Vector2i(1,1),out),"12e18 exceeds i64")
+godot/test/test_reservation_totals.gd:54:	var cold: Math.IntResult = _pool.job_reserved_total_milli(Vector2i(1,1))
+godot/test/test_reservation_totals.gd:57:		assert_true(_pool.lot_reserved_total_milli_into(lot,out),"individual lot fits")
+godot/test/test_reservation_totals.gd:62:	assert_true(_pool.job_reserved_total_milli_into(Vector2i(1,1),out),"empty query succeeds")
+godot/test/test_reservation_totals.gd:68:	assert_true(_pool.job_reserved_total_milli_into(Vector2i(1,1),out),"exact maximum")
+godot/test/test_reservation_totals.gd:71:	var cold: Math.IntResult = _pool.job_reserved_total_milli(Vector2i(1,1))
+godot/test/test_reservation_totals.gd:75:	assert_true(_pool.job_reserved_total_milli_into(Vector2i(1,1),out),"ordinary")
+godot/test/test_reservation_totals.gd:78:		cold = _pool.lot_reserved_total_milli(_lots[index])
+godot/test/test_reservation_totals.gd:84:	assert_true(_pool.lot_reserved_total_milli_into(_lots[0],out),"success first")
+godot/test/test_reservation_totals.gd:85:	assert_false(_pool.job_reserved_total_milli_into(Vector2i(1,1),out),"then overflow")
+godot/test/test_reservation_totals.gd:89:		assert_true(_pool.job_reserved_total_milli_into(ref,out),"missing job is empty")
+godot/test/test_reservation_totals.gd:94:		assert_true(_pool.lot_reserved_total_milli_into(ref,out),"missing lot is empty")
+godot/test/test_reservation_totals.gd:104:	assert_false(_pool.job_reserved_total_milli_into(Vector2i(1,1),out),"hot overflow")
+godot/test/test_reservation_totals.gd:105:	_assert_refused(_pool.job_reserved_total_milli(Vector2i(1,1)))
+godot/test/test_reservation_totals.gd:106:	assert_true(_pool.lot_reserved_total_milli_into(_lots[0],out),"hot lot")
+godot/test/test_reservation_totals.gd:107:	assert_true(_pool.lot_reserved_total_milli(_lots[1]).ok,"cold lot")
+godot/test/test_reservation_totals.gd:119:	assert_false(_pool.job_reserved_total_milli_into(Vector2i(1,1),null),"null before malformed job index")
+godot/test/test_reservation_totals.gd:120:	assert_false(_pool.lot_reserved_total_milli_into(_lots[0],null),"null before malformed lot index")
+godot/test/test_reservation_totals.gd:124:	var first: Math.IntResult = _pool.lot_reserved_total_milli(_lots[0])
+godot/test/test_reservation_totals.gd:125:	var second: Math.IntResult = _pool.job_reserved_total_milli(Vector2i(1,1))
+godot/test/test_reservation_totals.gd:130:	var zero: Math.IntResult = _pool.job_reserved_total_milli(Vector2i(0,1))
+godot/test/test_reservation_totals.gd:139:	_assert_refused(restored.job_reserved_total_milli(Vector2i(1,1)))
+godot/test/test_reservation_totals.gd:141:		var total: Math.IntResult = restored.lot_reserved_total_milli(lot)
+godot/test/test_reservation_totals.gd:158:	assert_false(_pool.lot_reserved_total_milli_into(_lots[0],out),"forged lot sum overflows")
+godot/test/test_reservations.gd:175:	_assert_checked_total(_pool.job_reserved_total_milli(JOB_A), 4200, "job total")
+godot/test/test_reservations.gd:295:	_assert_checked_total(_pool.lot_reserved_total_milli(lot_ref), 900, "the pool re-derives the same sum")
+godot/test/test_reservations.gd:393:	_assert_checked_total(_pool.lot_reserved_total_milli(lot_ref), 1000, "rows sum to 1000")
+godot/test/test_reservations.gd:397:	_assert_checked_total(_pool.lot_reserved_total_milli(lot_ref), 500, "rows sum to 500")
+godot/test/test_reservations.gd:611:	_assert_checked_total(_pool.job_reserved_total_milli(COORDINATOR), 2100, "the shared quantity is unchanged")

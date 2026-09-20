@@ -10,11 +10,11 @@ snapshot with 356 changed/untracked entries; it was preserved. The [file invento
 
 ## Current verified position
 
-PRs 140–153 are merged. The latest integrated candidate is `2f47bc9`; its final CI passed **4730 tests / 185187 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
+PRs 140–154 are merged. The latest integrated candidate is `1798854`; its final CI passed **4752 tests / 186571 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
 
 The family planning draft is integrated without runtime activation. A new runtime counterexample proves that planner dirty-list order/membership affects future job IDs despite identical previously declared fields; SAVE-J2-R01 implements the format/classification correction with explicit old-schema refusal, merged in PR148. The exact owner bulk adapter and section8 capture/apply merged in PR151; whole-world coordination remains open.
 
-Section11 EventSchedule and exact StockAge declaration restoration are now merged (PR152/153). Reservations is next: its owner contract is under independent review. A public-API probe exposed unchecked cross-lot job-total overflow, tracked as PLAN-RESERVATION-TOTALS; save restoration must preserve admitted rows while that arithmetic repair is specified separately.
+Section11 EventSchedule and exact StockAge declaration restoration are now merged (PR152/153). Exact Reservations row restoration and semantic index reconstruction merged in PR154. Its public-API overflow witness has an accepted checked-result repair contract (RES-TOTAL-R01v2 / ADR0164), now in implementation. Gear, Fishing and Forage owners, full section assembly and world coordination remain open.
 
 ## Verified baseline
 

@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f0d91ba0b34323ea6b8f4b1d41836c40c15a7847",
+  "task": "Implement accepted section4 metadata schema and deterministic generator only",
+  "paths": [
+    "docs/planning/component_columns_stream_contract.md",
+    "docs/planning/component_columns_layout.json",
+    "docs/decisions/0169-stream-component-columns-one-owner-at-a-time.md",
+    "docs/validation/evidence/section4-planning-2026-09-20/generator-source-proof-notes.md",
+    "docs/validation/evidence/section4-planning-2026-09-20/contract-acceptance.md",
+    "godot/scripts/core/canonical_state_hash.gd",
+    "godot/scripts/core/save_header.gd",
+    "tools/audit_registry_capacities.py",
+    "tools/generate_canonical_state_table.py",
+    "CLAUDE.md"
+  ],
+  "instructions": "Claude Opus persistence author. Implement ONLY accepted schema metadata API and authoring generator portion of SAVE-S4-STREAM-R01v2 / ADR0169; the stream cursor is a separate subsequent bounded packet. Return exactly TWO NEW files godot/scripts/core/save_component_columns_schema.gd and tools/generate_component_columns_schema.py, baseSha256 null. No tests, existing-file edits, live owner calls, runtimeJSON, newcanonicalfields, controllerchanges. Source proof integration note names actual callable audit API. Generator must validate fresh298 source equalities before writing the single generated marker region, and --check no writes. Compile initial generated region yourself consistent with generator; parent runs it and verifies. Schema functions exact contract; unsupported indices explicit validity predicates; no numeric error sentinel inference. Keep functions small and comments concise (do not repeat entire spec in source). Budget both files combined at most850lines, including generated region. Report unresolved contract issue instead of guessing. RAW JSON status/summary/questions/files/decisionIds, no outer code fences or prose. Mention added immutable metadata logical payload in summary; no runtime/test claims."
+}

@@ -1,0 +1,7 @@
+# Source-proof integration available to the metadata generator
+
+The existing tools/audit_registry_capacities.py exposes `load_source_index()` and `build_audit(registry, index)`. The new generator can import that module and call both without invoking its CLI or writing the historical sidecar. Filter the returned `rows` to section_id4, keyed by (owner_key,ordinal,field_key). Every one of the298rows currently has status `proved_equality`, source_relation `eq`, and source_value equal to the layout's count. Reject missing/extra/duplicate keys, an upper-bound/unproved status, or any mismatched source value. Never promote the entire sidecar to adopted or infer a capacity from prose alone.
+
+Keys/types/versions/order use canonical_state_registry.json. Exact primary/independent child choices belong to the new section4layout contract; do not infer primary from the first field or import a similarly named section1constant. Check their declared arithmetic against every field selector and the literal protocol totals/independent fixtures. The generator should update a single marked region in the schema GDScript and leave hand-written accessors byte-identical; `--check` must refuse drift without writing. Output only after all proofs and layout checks succeed.
+
+The capacity tool's API and source are supplied to the author. No changes to that tool's grammar or global adoption policy are part of this task. This note supplies an actual callable proof mechanism for the contract's source-parity requirement, not another runtime dependency.

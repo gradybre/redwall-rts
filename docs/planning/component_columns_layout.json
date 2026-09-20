@@ -1,0 +1,2007 @@
+{
+  "status": "Accepted SAVE-S4-STREAM-R01v2 / ADR0169",
+  "base_registry": 6,
+  "section_schema": 2,
+  "descriptor_row_count": 193184,
+  "section_bytes": 12947565,
+  "owners": [
+    {
+      "owner": "buildings",
+      "primary_count": 1024,
+      "child_extents": [
+        16384,
+        81920
+      ],
+      "section_offset": 4,
+      "payload_bytes": 3298556,
+      "block_bytes": 3298589,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_b_present",
+          "type": "u8",
+          "count": 1024
+        },
+        {
+          "ordinal": 1,
+          "key": "_r_present",
+          "type": "u8",
+          "count": 16384
+        },
+        {
+          "ordinal": 2,
+          "key": "_f_present",
+          "type": "u8",
+          "count": 81920
+        },
+        {
+          "ordinal": 3,
+          "key": "_b_type_id",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 4,
+          "key": "_b_tier",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 5,
+          "key": "_b_origin_tile",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 6,
+          "key": "_b_rotation",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 7,
+          "key": "_b_state",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 8,
+          "key": "_b_condition",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 9,
+          "key": "_b_construction_slot",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 10,
+          "key": "_b_construction_generation",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 11,
+          "key": "_b_interior_id",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 12,
+          "key": "_r_type",
+          "type": "i32",
+          "count": 16384
+        },
+        {
+          "ordinal": 13,
+          "key": "_r_building_slot",
+          "type": "i32",
+          "count": 16384
+        },
+        {
+          "ordinal": 14,
+          "key": "_r_building_generation",
+          "type": "i32",
+          "count": 16384
+        },
+        {
+          "ordinal": 15,
+          "key": "_r_tile_offset",
+          "type": "i32",
+          "count": 16384
+        },
+        {
+          "ordinal": 16,
+          "key": "_r_tile_count",
+          "type": "i32",
+          "count": 16384
+        },
+        {
+          "ordinal": 17,
+          "key": "_r_temperature_tenths",
+          "type": "i32",
+          "count": 16384
+        },
+        {
+          "ordinal": 18,
+          "key": "_r_furniture_mask",
+          "type": "i32",
+          "count": 16384
+        },
+        {
+          "ordinal": 19,
+          "key": "_r_occupants",
+          "type": "i32",
+          "count": 16384
+        },
+        {
+          "ordinal": 20,
+          "key": "_r_valid",
+          "type": "u8",
+          "count": 16384
+        },
+        {
+          "ordinal": 21,
+          "key": "_f_type_id",
+          "type": "i32",
+          "count": 81920
+        },
+        {
+          "ordinal": 22,
+          "key": "_f_room_slot",
+          "type": "i32",
+          "count": 81920
+        },
+        {
+          "ordinal": 23,
+          "key": "_f_room_generation",
+          "type": "i32",
+          "count": 81920
+        },
+        {
+          "ordinal": 24,
+          "key": "_f_origin_tile",
+          "type": "i32",
+          "count": 81920
+        },
+        {
+          "ordinal": 25,
+          "key": "_f_rotation",
+          "type": "i32",
+          "count": 81920
+        },
+        {
+          "ordinal": 26,
+          "key": "_f_user_slot",
+          "type": "i32",
+          "count": 81920
+        },
+        {
+          "ordinal": 27,
+          "key": "_f_user_generation",
+          "type": "i32",
+          "count": 81920
+        },
+        {
+          "ordinal": 28,
+          "key": "_f_condition",
+          "type": "i32",
+          "count": 81920
+        }
+      ]
+    },
+    {
+      "owner": "construction",
+      "primary_count": 82944,
+      "child_extents": [],
+      "section_offset": 3298593,
+      "payload_bytes": 4893828,
+      "block_bytes": 4893864,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 82944
+        },
+        {
+          "ordinal": 1,
+          "key": "_material_container_slot",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 2,
+          "key": "_material_container_generation",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 3,
+          "key": "_assigned_count",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 4,
+          "key": "_max_workers",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 5,
+          "key": "_refund_policy",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 6,
+          "key": "_remaining_mwu",
+          "type": "i64",
+          "count": 82944
+        },
+        {
+          "ordinal": 7,
+          "key": "_paused",
+          "type": "u8",
+          "count": 82944
+        },
+        {
+          "ordinal": 8,
+          "key": "_work_begun",
+          "type": "u8",
+          "count": 82944
+        },
+        {
+          "ordinal": 9,
+          "key": "_ref_slot",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 10,
+          "key": "_ref_generation",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 11,
+          "key": "_subject_slot",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 12,
+          "key": "_subject_generation",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 13,
+          "key": "_purpose",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 14,
+          "key": "_type_id",
+          "type": "i32",
+          "count": 82944
+        },
+        {
+          "ordinal": 15,
+          "key": "_phase",
+          "type": "i32",
+          "count": 82944
+        }
+      ]
+    },
+    {
+      "owner": "farming",
+      "primary_count": 4096,
+      "child_extents": [],
+      "section_offset": 8192457,
+      "payload_bytes": 266364,
+      "block_bytes": 266395,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 4096
+        },
+        {
+          "ordinal": 1,
+          "key": "_crop_id",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 2,
+          "key": "_state",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 3,
+          "key": "_soil",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 4,
+          "key": "_fertility",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 5,
+          "key": "_moisture",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 6,
+          "key": "_growth_milli_hours",
+          "type": "i64",
+          "count": 4096
+        },
+        {
+          "ordinal": 7,
+          "key": "_health",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 8,
+          "key": "_last_family",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 9,
+          "key": "_family_streak",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 10,
+          "key": "_compost_milli",
+          "type": "i64",
+          "count": 4096
+        },
+        {
+          "ordinal": 11,
+          "key": "_sow_day",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 12,
+          "key": "_tile",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 13,
+          "key": "_ref_slot",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 14,
+          "key": "_ref_generation",
+          "type": "i32",
+          "count": 4096
+        }
+      ]
+    },
+    {
+      "owner": "field_policy",
+      "primary_count": 128,
+      "child_extents": [
+        4096
+      ],
+      "section_offset": 8458852,
+      "payload_bytes": 44460,
+      "block_bytes": 44496,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_field_present",
+          "type": "u8",
+          "count": 128
+        },
+        {
+          "ordinal": 1,
+          "key": "_zone_slot",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 2,
+          "key": "_zone_generation",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 3,
+          "key": "_rotation_ids",
+          "type": "i32",
+          "count": 384
+        },
+        {
+          "ordinal": 4,
+          "key": "_rotation_cursor",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 5,
+          "key": "_auto_rotation",
+          "type": "u8",
+          "count": 128
+        },
+        {
+          "ordinal": 6,
+          "key": "_seed_reserve",
+          "type": "u8",
+          "count": 128
+        },
+        {
+          "ordinal": 7,
+          "key": "_cycle_ordinal",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 8,
+          "key": "_participants",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 9,
+          "key": "_resolved",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 10,
+          "key": "_withdrawn",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 11,
+          "key": "_completed_cycles",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 12,
+          "key": "_cancelled_cycles",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 13,
+          "key": "_requested_crop",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 14,
+          "key": "_cycle_state",
+          "type": "u8",
+          "count": 128
+        },
+        {
+          "ordinal": 15,
+          "key": "_close_reason",
+          "type": "u8",
+          "count": 128
+        },
+        {
+          "ordinal": 16,
+          "key": "_request_state",
+          "type": "u8",
+          "count": 128
+        },
+        {
+          "ordinal": 17,
+          "key": "_plot_field_slot",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 18,
+          "key": "_plot_cycle",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 19,
+          "key": "_plot_outcome",
+          "type": "u8",
+          "count": 4096
+        }
+      ]
+    },
+    {
+      "owner": "fishing",
+      "primary_count": 32,
+      "child_extents": [],
+      "section_offset": 8503348,
+      "payload_bytes": 5524,
+      "block_bytes": 5555,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_habitat_present",
+          "type": "u8",
+          "count": 32
+        },
+        {
+          "ordinal": 1,
+          "key": "_stock_present",
+          "type": "u8",
+          "count": 96
+        },
+        {
+          "ordinal": 2,
+          "key": "_habitat_type",
+          "type": "i32",
+          "count": 32
+        },
+        {
+          "ordinal": 3,
+          "key": "_habitat_zone_slot",
+          "type": "i32",
+          "count": 32
+        },
+        {
+          "ordinal": 4,
+          "key": "_habitat_zone_generation",
+          "type": "i32",
+          "count": 32
+        },
+        {
+          "ordinal": 5,
+          "key": "_habitat_effort_slots",
+          "type": "i32",
+          "count": 32
+        },
+        {
+          "ordinal": 6,
+          "key": "_habitat_pollution",
+          "type": "i32",
+          "count": 32
+        },
+        {
+          "ordinal": 7,
+          "key": "_habitat_danger",
+          "type": "i32",
+          "count": 32
+        },
+        {
+          "ordinal": 8,
+          "key": "_habitat_protected_fraction",
+          "type": "i32",
+          "count": 32
+        },
+        {
+          "ordinal": 9,
+          "key": "_habitat_capacity_milli",
+          "type": "i64",
+          "count": 32
+        },
+        {
+          "ordinal": 10,
+          "key": "_habitat_ref_slot",
+          "type": "i32",
+          "count": 32
+        },
+        {
+          "ordinal": 11,
+          "key": "_habitat_ref_generation",
+          "type": "i32",
+          "count": 32
+        },
+        {
+          "ordinal": 12,
+          "key": "_habitat_effort_used",
+          "type": "i32",
+          "count": 32
+        },
+        {
+          "ordinal": 13,
+          "key": "_habitat_intensive",
+          "type": "u8",
+          "count": 32
+        },
+        {
+          "ordinal": 14,
+          "key": "_stock_habitat_slot",
+          "type": "i32",
+          "count": 96
+        },
+        {
+          "ordinal": 15,
+          "key": "_stock_habitat_generation",
+          "type": "i32",
+          "count": 96
+        },
+        {
+          "ordinal": 16,
+          "key": "_stock_species_id",
+          "type": "i32",
+          "count": 96
+        },
+        {
+          "ordinal": 17,
+          "key": "_stock_population_milli",
+          "type": "i64",
+          "count": 96
+        },
+        {
+          "ordinal": 18,
+          "key": "_stock_capacity_milli",
+          "type": "i64",
+          "count": 96
+        },
+        {
+          "ordinal": 19,
+          "key": "_stock_harvested_today_milli",
+          "type": "i64",
+          "count": 96
+        },
+        {
+          "ordinal": 20,
+          "key": "_stock_closed",
+          "type": "u8",
+          "count": 96
+        },
+        {
+          "ordinal": 21,
+          "key": "_stock_restocking",
+          "type": "u8",
+          "count": 96
+        }
+      ]
+    },
+    {
+      "owner": "forage",
+      "primary_count": 128,
+      "child_extents": [],
+      "section_offset": 8508903,
+      "payload_bytes": 30500,
+      "block_bytes": 30530,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_zone_present",
+          "type": "u8",
+          "count": 128
+        },
+        {
+          "ordinal": 1,
+          "key": "_patch_present",
+          "type": "u8",
+          "count": 640
+        },
+        {
+          "ordinal": 2,
+          "key": "_zone_type",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 3,
+          "key": "_zone_danger",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 4,
+          "key": "_zone_quota_milli",
+          "type": "i64",
+          "count": 128
+        },
+        {
+          "ordinal": 5,
+          "key": "_zone_protected",
+          "type": "u8",
+          "count": 128
+        },
+        {
+          "ordinal": 6,
+          "key": "_zone_enabled",
+          "type": "u8",
+          "count": 128
+        },
+        {
+          "ordinal": 7,
+          "key": "_zone_ref_slot",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 8,
+          "key": "_zone_ref_generation",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 9,
+          "key": "_zone_basin_slot",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 10,
+          "key": "_zone_basin_generation",
+          "type": "i32",
+          "count": 128
+        },
+        {
+          "ordinal": 11,
+          "key": "_zone_harvested_today_milli",
+          "type": "i64",
+          "count": 128
+        },
+        {
+          "ordinal": 12,
+          "key": "_zone_quota_reserved_milli",
+          "type": "i64",
+          "count": 128
+        },
+        {
+          "ordinal": 13,
+          "key": "_zone_quota_mode",
+          "type": "u8",
+          "count": 128
+        },
+        {
+          "ordinal": 14,
+          "key": "_patch_item_id",
+          "type": "i32",
+          "count": 640
+        },
+        {
+          "ordinal": 15,
+          "key": "_patch_zone_slot",
+          "type": "i32",
+          "count": 640
+        },
+        {
+          "ordinal": 16,
+          "key": "_patch_zone_generation",
+          "type": "i32",
+          "count": 640
+        },
+        {
+          "ordinal": 17,
+          "key": "_patch_stock_milli",
+          "type": "i64",
+          "count": 640
+        },
+        {
+          "ordinal": 18,
+          "key": "_patch_capacity_milli",
+          "type": "i64",
+          "count": 640
+        },
+        {
+          "ordinal": 19,
+          "key": "_patch_harvested_year_milli",
+          "type": "i64",
+          "count": 640
+        }
+      ]
+    },
+    {
+      "owner": "injury",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 8539433,
+      "payload_bytes": 21084,
+      "block_bytes": 21114,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 1,
+          "key": "_kind",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 2,
+          "key": "_airless_episode",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 3,
+          "key": "_exhaustion_latch",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 4,
+          "key": "_care_context_blocked",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 5,
+          "key": "_severity",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 6,
+          "key": "_rescuer_slot",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 7,
+          "key": "_rescuer_generation",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 8,
+          "key": "_untreated_ticks",
+          "type": "i64",
+          "count": 512
+        },
+        {
+          "ordinal": 9,
+          "key": "_care_progress_mwu",
+          "type": "i64",
+          "count": 512
+        },
+        {
+          "ordinal": 10,
+          "key": "_last_incident_ordinal",
+          "type": "i64",
+          "count": 512
+        }
+      ]
+    },
+    {
+      "owner": "jobs",
+      "primary_count": 8192,
+      "child_extents": [
+        512
+      ],
+      "section_offset": 8560547,
+      "payload_bytes": 685884,
+      "block_bytes": 685912,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_job_present",
+          "type": "u8",
+          "count": 8192
+        },
+        {
+          "ordinal": 1,
+          "key": "_agent_present",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 2,
+          "key": "_kind",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 3,
+          "key": "_requester_slot",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 4,
+          "key": "_requester_generation",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 5,
+          "key": "_destination_slot",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 6,
+          "key": "_destination_generation",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 7,
+          "key": "_source_slot",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 8,
+          "key": "_source_generation",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 9,
+          "key": "_priority",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 10,
+          "key": "_required_skill",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 11,
+          "key": "_state",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 12,
+          "key": "_worker_slot",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 13,
+          "key": "_worker_generation",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 14,
+          "key": "_remaining_mwu",
+          "type": "i64",
+          "count": 8192
+        },
+        {
+          "ordinal": 15,
+          "key": "_created_tick",
+          "type": "i64",
+          "count": 8192
+        },
+        {
+          "ordinal": 16,
+          "key": "_job_ref_slot",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 17,
+          "key": "_job_ref_generation",
+          "type": "i32",
+          "count": 8192
+        },
+        {
+          "ordinal": 18,
+          "key": "_urgency",
+          "type": "u8",
+          "count": 8192
+        },
+        {
+          "ordinal": 19,
+          "key": "_dangerous",
+          "type": "u8",
+          "count": 8192
+        },
+        {
+          "ordinal": 20,
+          "key": "_station_gate",
+          "type": "u8",
+          "count": 8192
+        },
+        {
+          "ordinal": 21,
+          "key": "_tool_gate",
+          "type": "u8",
+          "count": 8192
+        },
+        {
+          "ordinal": 22,
+          "key": "_unlock_gate",
+          "type": "u8",
+          "count": 8192
+        },
+        {
+          "ordinal": 23,
+          "key": "_inputs_gate",
+          "type": "u8",
+          "count": 8192
+        },
+        {
+          "ordinal": 24,
+          "key": "_is_coordinator",
+          "type": "u8",
+          "count": 8192
+        },
+        {
+          "ordinal": 25,
+          "key": "_agent_job_slot",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 26,
+          "key": "_agent_job_generation",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 27,
+          "key": "_agent_phase",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 28,
+          "key": "_agent_target_slot",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 29,
+          "key": "_agent_target_generation",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 30,
+          "key": "_agent_path_id",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 31,
+          "key": "_agent_path_cursor",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 32,
+          "key": "_agent_lease_expiry",
+          "type": "i64",
+          "count": 512
+        },
+        {
+          "ordinal": 33,
+          "key": "_agent_blocked_tick",
+          "type": "i64",
+          "count": 512
+        },
+        {
+          "ordinal": 34,
+          "key": "_agent_manual_until",
+          "type": "i64",
+          "count": 512
+        },
+        {
+          "ordinal": 35,
+          "key": "_agent_hazard_locked",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 36,
+          "key": "_job_scan_cursor",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 37,
+          "key": "_continuation_bucket",
+          "type": "u8",
+          "count": 512
+        }
+      ]
+    },
+    {
+      "owner": "movement",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 9246459,
+      "payload_bytes": 32900,
+      "block_bytes": 32932,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_vx",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 1,
+          "key": "_vz",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 2,
+          "key": "_remainder_x",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 3,
+          "key": "_remainder_z",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 4,
+          "key": "_next_x",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 5,
+          "key": "_next_z",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 6,
+          "key": "_correction_x",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 7,
+          "key": "_correction_z",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 8,
+          "key": "_radius_u",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 9,
+          "key": "_desired_yaw",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 10,
+          "key": "_next_yaw",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 11,
+          "key": "_grid_next",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 12,
+          "key": "_grid_cell",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 13,
+          "key": "_speed_u_per_s",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 14,
+          "key": "_movement_phase",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 15,
+          "key": "_blocked_ticks",
+          "type": "i32",
+          "count": 512
+        }
+      ]
+    },
+    {
+      "owner": "needs",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 9279391,
+      "payload_bytes": 57508,
+      "block_bytes": 57537,
+      "owner_schema_version": 2,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 1,
+          "key": "_need_value",
+          "type": "i32",
+          "count": 2560
+        },
+        {
+          "ordinal": 2,
+          "key": "_need_remainder",
+          "type": "i64",
+          "count": 2560
+        },
+        {
+          "ordinal": 3,
+          "key": "_health",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 4,
+          "key": "_health_remainder",
+          "type": "i64",
+          "count": 512
+        },
+        {
+          "ordinal": 5,
+          "key": "_cold_milli_hours",
+          "type": "i64",
+          "count": 512
+        },
+        {
+          "ordinal": 6,
+          "key": "_cold_remainder",
+          "type": "i64",
+          "count": 512
+        },
+        {
+          "ordinal": 7,
+          "key": "_starving_ticks",
+          "type": "i64",
+          "count": 512
+        },
+        {
+          "ordinal": 8,
+          "key": "_departure_days",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 9,
+          "key": "_status",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 10,
+          "key": "_size_class",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 11,
+          "key": "_activity",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 12,
+          "key": "_comfort_environment",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 13,
+          "key": "_social_paired",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 14,
+          "key": "_purpose_source",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 15,
+          "key": "_cold_environment",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 16,
+          "key": "_clothing_tier",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 17,
+          "key": "_infirmary",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 18,
+          "key": "_injury_state",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 19,
+          "key": "_airless",
+          "type": "u8",
+          "count": 512
+        }
+      ]
+    },
+    {
+      "owner": "orchard_hive",
+      "primary_count": 1024,
+      "child_extents": [
+        1024
+      ],
+      "section_offset": 9336928,
+      "payload_bytes": 102612,
+      "block_bytes": 102648,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_o_present",
+          "type": "u8",
+          "count": 1024
+        },
+        {
+          "ordinal": 1,
+          "key": "_h_present",
+          "type": "u8",
+          "count": 1024
+        },
+        {
+          "ordinal": 2,
+          "key": "_o_species_id",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 3,
+          "key": "_o_age_days",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 4,
+          "key": "_o_health",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 5,
+          "key": "_o_chill_days",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 6,
+          "key": "_o_tended_today",
+          "type": "u8",
+          "count": 1024
+        },
+        {
+          "ordinal": 7,
+          "key": "_o_harvested_year",
+          "type": "u8",
+          "count": 1024
+        },
+        {
+          "ordinal": 8,
+          "key": "_o_origin_x",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 9,
+          "key": "_o_origin_z",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 10,
+          "key": "_o_ref_slot",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 11,
+          "key": "_o_ref_generation",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 12,
+          "key": "_h_building_slot",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 13,
+          "key": "_h_building_generation",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 14,
+          "key": "_h_strength",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 15,
+          "key": "_h_serviced_day",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 16,
+          "key": "_h_feed_milli",
+          "type": "i64",
+          "count": 1024
+        },
+        {
+          "ordinal": 17,
+          "key": "_h_honey_milli",
+          "type": "i64",
+          "count": 1024
+        },
+        {
+          "ordinal": 18,
+          "key": "_h_wax_milli",
+          "type": "i64",
+          "count": 1024
+        },
+        {
+          "ordinal": 19,
+          "key": "_h_min_tile_x",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 20,
+          "key": "_h_min_tile_z",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 21,
+          "key": "_h_max_tile_x",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 22,
+          "key": "_h_max_tile_z",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 23,
+          "key": "_h_ref_slot",
+          "type": "i32",
+          "count": 1024
+        },
+        {
+          "ordinal": 24,
+          "key": "_h_ref_generation",
+          "type": "i32",
+          "count": 1024
+        }
+      ]
+    },
+    {
+      "owner": "priorities",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 9439576,
+      "payload_bytes": 7716,
+      "block_bytes": 7750,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 1,
+          "key": "_job_priority",
+          "type": "u8",
+          "count": 6144
+        },
+        {
+          "ordinal": 2,
+          "key": "_auto_fallback",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 3,
+          "key": "_dangerous_work",
+          "type": "u8",
+          "count": 512
+        }
+      ]
+    },
+    {
+      "owner": "residents",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 9447326,
+      "payload_bytes": 103068,
+      "block_bytes": 103101,
+      "owner_schema_version": 2,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 1,
+          "key": "_species",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 2,
+          "key": "_size_class",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 3,
+          "key": "_named",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 4,
+          "key": "_life_stage",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 5,
+          "key": "_arrival_tick",
+          "type": "i64",
+          "count": 512
+        },
+        {
+          "ordinal": 6,
+          "key": "_role",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 7,
+          "key": "_home_slot",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 8,
+          "key": "_home_generation",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 9,
+          "key": "_bed_slot",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 10,
+          "key": "_bed_generation",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 11,
+          "key": "_ref_slot",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 12,
+          "key": "_ref_generation",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 13,
+          "key": "_equip_tool_item_id",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 14,
+          "key": "_equip_tool_durability",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 15,
+          "key": "_equip_satchel_slot",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 16,
+          "key": "_equip_satchel_generation",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 17,
+          "key": "_skill_xp",
+          "type": "i64",
+          "count": 6144
+        },
+        {
+          "ordinal": 18,
+          "key": "_skill_level",
+          "type": "i32",
+          "count": 6144
+        }
+      ]
+    },
+    {
+      "owner": "resource_nodes",
+      "primary_count": 4096,
+      "child_extents": [],
+      "section_offset": 9550427,
+      "payload_bytes": 172116,
+      "block_bytes": 172154,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 4096
+        },
+        {
+          "ordinal": 1,
+          "key": "_resource_id",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 2,
+          "key": "_quantity_milli",
+          "type": "i64",
+          "count": 4096
+        },
+        {
+          "ordinal": 3,
+          "key": "_capacity_milli",
+          "type": "i64",
+          "count": 4096
+        },
+        {
+          "ordinal": 4,
+          "key": "_regrow_days",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 5,
+          "key": "_planted_day",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 6,
+          "key": "_exhausted",
+          "type": "u8",
+          "count": 4096
+        },
+        {
+          "ordinal": 7,
+          "key": "_tile",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 8,
+          "key": "_ref_slot",
+          "type": "i32",
+          "count": 4096
+        },
+        {
+          "ordinal": 9,
+          "key": "_ref_generation",
+          "type": "i32",
+          "count": 4096
+        }
+      ]
+    },
+    {
+      "owner": "schedule",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 9722581,
+      "payload_bytes": 17972,
+      "block_bytes": 18004,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 1,
+          "key": "_hourly_activity",
+          "type": "u8",
+          "count": 12288
+        },
+        {
+          "ordinal": 2,
+          "key": "_template",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 3,
+          "key": "_current_activity",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 4,
+          "key": "_sleep_satisfied",
+          "type": "u8",
+          "count": 512
+        },
+        {
+          "ordinal": 5,
+          "key": "_resolved",
+          "type": "u8",
+          "count": 512
+        }
+      ]
+    },
+    {
+      "owner": "transforms",
+      "primary_count": 87552,
+      "child_extents": [],
+      "section_offset": 9740585,
+      "payload_bytes": 3151948,
+      "block_bytes": 3151982,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_bound_persistent_id",
+          "type": "i32",
+          "count": 87552
+        },
+        {
+          "ordinal": 1,
+          "key": "_x",
+          "type": "i32",
+          "count": 87552
+        },
+        {
+          "ordinal": 2,
+          "key": "_y",
+          "type": "i32",
+          "count": 87552
+        },
+        {
+          "ordinal": 3,
+          "key": "_z",
+          "type": "i32",
+          "count": 87552
+        },
+        {
+          "ordinal": 4,
+          "key": "_yaw",
+          "type": "i32",
+          "count": 87552
+        },
+        {
+          "ordinal": 5,
+          "key": "_prev_x",
+          "type": "i32",
+          "count": 87552
+        },
+        {
+          "ordinal": 6,
+          "key": "_prev_y",
+          "type": "i32",
+          "count": 87552
+        },
+        {
+          "ordinal": 7,
+          "key": "_prev_z",
+          "type": "i32",
+          "count": 87552
+        },
+        {
+          "ordinal": 8,
+          "key": "_prev_yaw",
+          "type": "i32",
+          "count": 87552
+        }
+      ]
+    },
+    {
+      "owner": "work",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 12892567,
+      "payload_bytes": 39500,
+      "block_bytes": 39528,
+      "owner_schema_version": 2,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_potential_remainder",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 1,
+          "key": "_xp_remainder",
+          "type": "i32",
+          "count": 6144
+        },
+        {
+          "ordinal": 2,
+          "key": "_memory_total",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 3,
+          "key": "_wear_remainder",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 4,
+          "key": "_tool_lot_slot",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 5,
+          "key": "_tool_lot_generation",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 6,
+          "key": "_tool_job_slot",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 7,
+          "key": "_tool_job_generation",
+          "type": "i32",
+          "count": 512
+        },
+        {
+          "ordinal": 8,
+          "key": "_tool_broken",
+          "type": "u8",
+          "count": 512
+        }
+      ]
+    },
+    {
+      "owner": "world_init",
+      "primary_count": 384,
+      "child_extents": [],
+      "section_offset": 12932095,
+      "payload_bytes": 15436,
+      "block_bytes": 15470,
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_fauna_zone_slot",
+          "type": "i32",
+          "count": 384
+        },
+        {
+          "ordinal": 1,
+          "key": "_fauna_zone_generation",
+          "type": "i32",
+          "count": 384
+        },
+        {
+          "ordinal": 2,
+          "key": "_fauna_species_id",
+          "type": "i32",
+          "count": 384
+        },
+        {
+          "ordinal": 3,
+          "key": "_fauna_population",
+          "type": "i32",
+          "count": 384
+        },
+        {
+          "ordinal": 4,
+          "key": "_fauna_capacity",
+          "type": "i32",
+          "count": 384
+        },
+        {
+          "ordinal": 5,
+          "key": "_fauna_tracks",
+          "type": "i32",
+          "count": 384
+        },
+        {
+          "ordinal": 6,
+          "key": "_fauna_harvest_today",
+          "type": "i32",
+          "count": 384
+        },
+        {
+          "ordinal": 7,
+          "key": "_fauna_migration_link",
+          "type": "i32",
+          "count": 384
+        },
+        {
+          "ordinal": 8,
+          "key": "_fauna_birth_remainder",
+          "type": "i64",
+          "count": 384
+        }
+      ]
+    }
+  ],
+  "schema": "RWL-COMPONENT-COLUMNS-LAYOUT-1",
+  "declaration_version": 1,
+  "source_count_proof": "docs/validation/evidence/section4-planning-2026-09-20/fixed-column-census.json"
+}

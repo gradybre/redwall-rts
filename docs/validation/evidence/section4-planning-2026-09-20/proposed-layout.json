@@ -1,0 +1,162 @@
+{
+  "status": "draft pending independent feasibility review; not adopted",
+  "base_registry": 6,
+  "section_schema": 2,
+  "descriptor_row_count": 193184,
+  "section_bytes": 12947565,
+  "owners": [
+    {
+      "owner": "buildings",
+      "primary_count": 1024,
+      "child_extents": [
+        16384,
+        81920
+      ],
+      "section_offset": 4,
+      "payload_bytes": 3298556,
+      "block_bytes": 3298589
+    },
+    {
+      "owner": "construction",
+      "primary_count": 82944,
+      "child_extents": [],
+      "section_offset": 3298593,
+      "payload_bytes": 4893828,
+      "block_bytes": 4893864
+    },
+    {
+      "owner": "farming",
+      "primary_count": 4096,
+      "child_extents": [],
+      "section_offset": 8192457,
+      "payload_bytes": 266364,
+      "block_bytes": 266395
+    },
+    {
+      "owner": "field_policy",
+      "primary_count": 128,
+      "child_extents": [
+        4096
+      ],
+      "section_offset": 8458852,
+      "payload_bytes": 44460,
+      "block_bytes": 44496
+    },
+    {
+      "owner": "fishing",
+      "primary_count": 32,
+      "child_extents": [],
+      "section_offset": 8503348,
+      "payload_bytes": 5524,
+      "block_bytes": 5555
+    },
+    {
+      "owner": "forage",
+      "primary_count": 128,
+      "child_extents": [],
+      "section_offset": 8508903,
+      "payload_bytes": 30500,
+      "block_bytes": 30530
+    },
+    {
+      "owner": "injury",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 8539433,
+      "payload_bytes": 21084,
+      "block_bytes": 21114
+    },
+    {
+      "owner": "jobs",
+      "primary_count": 8192,
+      "child_extents": [
+        512
+      ],
+      "section_offset": 8560547,
+      "payload_bytes": 685884,
+      "block_bytes": 685912
+    },
+    {
+      "owner": "movement",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 9246459,
+      "payload_bytes": 32900,
+      "block_bytes": 32932
+    },
+    {
+      "owner": "needs",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 9279391,
+      "payload_bytes": 57508,
+      "block_bytes": 57537
+    },
+    {
+      "owner": "orchard_hive",
+      "primary_count": 1024,
+      "child_extents": [
+        1024
+      ],
+      "section_offset": 9336928,
+      "payload_bytes": 102612,
+      "block_bytes": 102648
+    },
+    {
+      "owner": "priorities",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 9439576,
+      "payload_bytes": 7716,
+      "block_bytes": 7750
+    },
+    {
+      "owner": "residents",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 9447326,
+      "payload_bytes": 103068,
+      "block_bytes": 103101
+    },
+    {
+      "owner": "resource_nodes",
+      "primary_count": 4096,
+      "child_extents": [],
+      "section_offset": 9550427,
+      "payload_bytes": 172116,
+      "block_bytes": 172154
+    },
+    {
+      "owner": "schedule",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 9722581,
+      "payload_bytes": 17972,
+      "block_bytes": 18004
+    },
+    {
+      "owner": "transforms",
+      "primary_count": 87552,
+      "child_extents": [],
+      "section_offset": 9740585,
+      "payload_bytes": 3151948,
+      "block_bytes": 3151982
+    },
+    {
+      "owner": "work",
+      "primary_count": 512,
+      "child_extents": [],
+      "section_offset": 12892567,
+      "payload_bytes": 39500,
+      "block_bytes": 39528
+    },
+    {
+      "owner": "world_init",
+      "primary_count": 384,
+      "child_extents": [],
+      "section_offset": 12932095,
+      "payload_bytes": 15436,
+      "block_bytes": 15470
+    }
+  ]
+}

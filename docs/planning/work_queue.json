@@ -885,17 +885,20 @@
     {
       "id": "SAVE-S4-CODEC",
       "title": "Section 4 COMPONENT_COLUMNS codec across its eighteen owners",
-      "status": "ready",
+      "status": "blocked",
       "depends_on": [
-        "PLAN-SAVE-COVERAGE"
+        "PLAN-SAVE-COVERAGE",
+        "SAVE-S4-STREAM",
+        "SAVE-S4-SEMANTICS",
+        "SAVE-S4-OWNER-BINDINGS"
       ],
       "owns": [
-        "godot/scripts/core/save_section_component_columns.gd",
-        "godot/test/test_save_section_component_columns.gd"
+        "docs/planning/component_columns_acceptance.md",
+        "godot/test/test_component_columns_integration.gd"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+      "note": "Parent acceptance remains blocked until streamed bytes, all18semantic owner validators and real owner capture/apply adapters pass. ADR0169 / SAVE-S4-STREAM-R01v2 only dispatches the bounded envelope; no full-save claim."
     },
     {
       "id": "SAVE-S5-CODEC",
@@ -1680,7 +1683,7 @@
     {
       "id": "SAVE-CLAIM-RECONCILIATION",
       "title": "Validate resource claims against saved world state without repair",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "PLAN-CLAIM-RECONCILIATION",
         "SAVE-RESOURCE-CLAIM-COLUMNS",
@@ -1692,7 +1695,8 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "SAVE-CLAIM-CHECK-R01v2 / ADR0168 candidate passes full4843/190435/0 before five final test additions, final focused56/2465/0, independent review and five mutants. Exact-head CI pending. Pure read-only checker only; SAVE-CLAIM-WORLD-BINDING still owns validated-file projection and activation."
+      "note": "SAVE-CLAIM-CHECK-R01v2 / ADR0168 merged PR159 atf0d91ba0b34323ea6b8f4b1d41836c40c15a7847. Exact-head CI35488733439 passed4848tests/190647assertions/0failures; shutdown553objects/33resourcesunchanged. Five mutants killed, independent review resolved. Pure checker only; actual file/world binding remains SAVE-CLAIM-WORLD-BINDING.",
+      "pr": 159
     },
     {
       "id": "FIX-FISHING-CLAIM-IDENTITY",
@@ -1747,6 +1751,64 @@
       "agent": "game-coder",
       "gate": "none",
       "note": "No dispatch before real section4/5/coordinator interfaces exist and bounded binding contract accepted. Project exact owner fields from SAME validated file, verify actual descriptor/wrapper versions and all owner prerequisites, invoke checker before publication, preserve normal-stage cleanup. Coordinator implementation alone cannot enable external-file publication. Final SAVE-CAPTURE depends on this integration; no token proves common origin."
+    },
+    {
+      "id": "SAVE-S4-STREAM",
+      "title": "Stream section4 fixed component columns one owner at a time",
+      "status": "in_flight",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/save_component_columns_schema.gd",
+        "godot/scripts/core/save_section_component_columns.gd",
+        "tools/generate_component_columns_schema.py",
+        "godot/test/test_save_section_component_columns.gd",
+        "tools/test_component_columns_schema.py",
+        "godot/test/test_save_component_columns_schema.gd",
+        "godot/test/component_columns_focus.gd",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md",
+        "docs/systems_architecture.md",
+        "docs/validation/ready07_arithmetic.py",
+        "tools/test_component_stream_preflights.py"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Accepted SAVE-S4-STREAM-R01v2 / ADR0169 after two contract reviews. Exactly18owners/298fields/12947565bytes; no semantic validity or live owner API. Author packet in section4-planning evidence."
+    },
+    {
+      "id": "SAVE-S4-SEMANTICS",
+      "title": "Validate all18 component owners against explicit saved inputs",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "docs/planning/component_owner_domains.md",
+        "godot/scripts/core/save_component_columns_validate.gd",
+        "godot/test/test_save_component_columns_validate.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Requires source-backed domain packets before dispatch. Preserve retained inactive values and current reserved fields; reuse/extract pure validation without allocating live stores. Cross-section projections from same validated file remain explicit downstream binding."
+    },
+    {
+      "id": "SAVE-S4-OWNER-BINDINGS",
+      "title": "Complete component owner bulk APIs and capture/apply bindings",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-SEMANTICS",
+        "SAVE-S5-CODEC"
+      ],
+      "owns": [
+        "docs/planning/component_owner_binding_manifest.json",
+        "godot/scripts/core/save_component_columns_restore.gd",
+        "godot/test/test_save_component_columns_restore.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "18owner manifest;15missing bulk APIs plus existing residents/needs/jobs. Before dispatch, freeze each owner packet and expand exact module ownership. Preserve all coupled sections and barrier atomicity; no coordinator dependency cycle. Actual same-file publication remains SAVE-CLAIM-WORLD-BINDING/coordinator/final SAVE-CAPTURE."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

@@ -1,0 +1,8 @@
+{"name": "mutation-baseline", "exit_code": 0, "valid_execution": true, "killed": false, "summary": ["21 test(s), 11814 assertion(s), 0 failure(s)"]}
+{"name": "omit-child-extents", "exit_code": 1, "valid_execution": true, "killed": true, "summary": ["  FAIL  test_each_wrapper_member_is_checked_before_owner_allocation", "21 test(s), 11814 assertion(s), 1 failure(s)"]}
+{"name": "omit-payload-length", "exit_code": 1, "valid_execution": true, "killed": true, "summary": ["  FAIL  test_each_wrapper_member_is_checked_before_owner_allocation", "21 test(s), 11814 assertion(s), 1 failure(s)"]}
+{"name": "swap-equal-shape-columns", "exit_code": 1, "valid_execution": true, "killed": true, "summary": ["  FAIL  test_signed_boundary_pattern_stream_preserves_every_column", "21 test(s), 11814 assertion(s), 1 failure(s)"]}
+{"name": "allow-wrong-owner-order", "exit_code": 1, "valid_execution": true, "killed": true, "summary": ["  FAIL  test_encoder_requires_expected_owner_and_complete_shape", "21 test(s), 11814 assertion(s), 1 failure(s)"]}
+{"name": "publish-partial-owner", "exit_code": 1, "valid_execution": true, "killed": true, "summary": ["  FAIL  test_initial_decode_read_sizes_are_literal_protocol_boundaries", "21 test(s), 11814 assertion(s), 1 failure(s)"]}
+{"name": "omit-section-length-preflight", "exit_code": 1, "valid_execution": true, "killed": true, "summary": ["  FAIL  test_descriptor_preflight_refuses_before_any_fragment", "21 test(s), 11814 assertion(s), 1 failure(s)"]}
+{"name": "mutation-restored", "exit_code": 0, "valid_execution": true, "killed": false, "summary": ["21 test(s), 11814 assertion(s), 0 failure(s)"]}

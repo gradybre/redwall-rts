@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "fields": 298,
+  "method": "build_audit(registry,load_source_index()), section4 equality rows matched to proposed layout",
+  "scope": "source-count proof; no runtime codec or semantic acceptance"
+}

@@ -170,10 +170,20 @@ assert DECISION_0138_REMOVED==-3151872
 # row -- which is exactly why they need a ledger row instead of being invisible.
 DECISION_0145_ADDED=(202752*4)+(101376*1)+(2*16384*4)
 assert DECISION_0145_ADDED==1043456
-assert len(allocations)==33 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT
-payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED);live=payload+reserve
-assert payload==70005291
-assert live==78393899 and candidate==63770659 and live+candidate==142164558
+# Decision0169: count actual immutable const Array tables, independently of the generator.
+# Logical int64/key-byte payload; Variant/container/scalar/native overhead is not RSS-qualified.
+import ast
+schema_source=(r/'godot/scripts/core/save_component_columns_schema.gd').read_text()
+schema_arrays=[ast.literal_eval(body) for body in re.findall(r'^const [A-Z_]+: Array = (\[[\s\S]*?\])',schema_source,re.M)]
+schema_ints=sum(isinstance(value,int) for array in schema_arrays for value in array)
+schema_key_bytes=sum(len(value.encode('utf-8')) for array in schema_arrays for value in array if isinstance(value,str))
+assert (len(schema_arrays),schema_ints,schema_key_bytes)==(15,781,4288)
+DECISION_0169_ADDED=schema_ints*8+schema_key_bytes
+assert DECISION_0169_ADDED==10536
+assert len(allocations)==34 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED
+payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
+assert payload==70015827
+assert live==78404435 and candidate==63770659 and live+candidate==142175094
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

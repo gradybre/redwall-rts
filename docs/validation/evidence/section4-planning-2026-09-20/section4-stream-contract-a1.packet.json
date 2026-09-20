@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "eb83b403c5959d1a3389a9312f0ad6673033736c",
+  "task": "Independent exact-contract review of section4 one-owner streaming envelope",
+  "paths": [
+    "docs/planning/component_columns_stream_contract.md",
+    "docs/validation/evidence/section4-planning-2026-09-20/proposed-layout.json",
+    "docs/validation/evidence/section4-planning-2026-09-20/fixed-column-census.json",
+    "docs/validation/evidence/section4-planning-2026-09-20/feasibility-disposition.md",
+    "godot/scripts/core/save_codec.gd",
+    "godot/scripts/core/canonical_state_hash.gd",
+    "godot/scripts/core/save_section_directory.gd"
+  ],
+  "instructions": "Review exact draft contract for implementing a bounded section4 streaming envelope, without semantic validity claims. Find concrete ambiguities, incompatible current APIs, allocation/lifetime leaks, hostile framing, ownership/state transitions and meaningful tests. Source authority corrections in feasibility-disposition supersede earlier reviewer questions. Do not author production. Return exactly one NEW report docs/validation/evidence/section4-planning-2026-09-20/stream-contract-review.md, at most180lines; use concise paragraphs to fit. baseSha256 null. RAW JSON object status/summary/questions/files/decisionIds; no outer code fences. Files entries path/baseSha256/content. No runtime claims."
+}

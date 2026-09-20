@@ -1,0 +1,23 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f0d91ba0b34323ea6b8f4b1d41836c40c15a7847",
+  "task": "Independent adversarial review of section4 streaming implementation and integration",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/component_columns_stream_contract.md",
+    "docs/decisions/0169-stream-component-columns-one-owner-at-a-time.md",
+    "docs/validation/evidence/component-columns-stream-2026-09-20/schema-parent-integration.md",
+    "docs/validation/evidence/component-columns-stream-2026-09-20/metadata-memory-accounting.md",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_codec.gd",
+    "godot/scripts/core/save_header.gd",
+    "godot/test/test_save_component_columns_schema.gd",
+    "godot/test/test_save_section_component_columns.gd",
+    "tools/generate_component_columns_schema.py",
+    "tools/test_component_columns_schema.py",
+    "docs/validation/evidence/section4-planning-2026-09-20/independent_wire_fixture.py",
+    "docs/validation/evidence/component-columns-stream-2026-09-20/stream-focus-first.log"
+  ],
+  "instructions": "Independent Claude Opus adversarial persistence review, separate author session. Review all three new production files, generator and tests against accepted SAVE-S4-STREAM-R01v2 / ADR0169. Parent repaired manual generated table, marker and numeric-token checks; all changes need independent assessment. Focus correctness, hostile framing and allocations, exact signed bits, single-use/sticky errors/first-error order, partial publication and earlier record/input immutability, typed accessor/setter shapes, hidden retained COW buffers, actual conditional6417408 bound and shared10536logical metadata (headers/native remain unmeasured), metadata/generator parity/refusal robustness and test blindspots. Distinguish genuine blockers from excluded caller misuse (e.g. mutating borrowed encoder record or retaining prior owner), gameplay semantics deliberately outside scope, and honest unmeasured runtime limits. First focused run20tests11764assertions0 but do not accept from tests alone. If blockers give exact file/function, witness and smallest repair; rank severity. Also inspect whether function >30lines meaningful rather than comment-only. No production edits/no tool-run claims. Return exactly ONE NEW markdown report docs/validation/evidence/component-columns-stream-2026-09-20/independent-source-review.md <=240lines and <=2500words. RAW JSON status/summary/questions/files/decisionIds, no outer fences/prose. No invented question for settled scope; raise actual unresolved contract only."
+}

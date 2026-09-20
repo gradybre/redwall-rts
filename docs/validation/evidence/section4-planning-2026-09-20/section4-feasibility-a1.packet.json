@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "eb83b403c5959d1a3389a9312f0ad6673033736c",
+  "task": "Review section4 fixed-column framing and bounded decode feasibility",
+  "paths": [
+    "docs/validation/evidence/section4-planning-2026-09-20/astra-feasibility-questions.md",
+    "docs/validation/evidence/section4-planning-2026-09-20/fixed-column-census.json",
+    "docs/validation/evidence/section4-planning-2026-09-20/representative-owner-sources.md",
+    "docs/rulings/2026-09-12_clock_restore_and_layout_followup.md",
+    "docs/rulings/2026-09-12_save_registry_answers.md",
+    "docs/decisions/0122-section-7-frames-six-owners-and-declares-its-extents.md",
+    "godot/scripts/core/save_codec.gd",
+    "godot/scripts/core/save_section_directory.gd"
+  ],
+  "instructions": "Independent read-only feasibility review. Answer the precise Astra questions using the supplied actual sources. Return exactly one NEW report docs/validation/evidence/section4-planning-2026-09-20/feasibility-review.md max220lines, baseSha256 null. No edits or runtime claims. RAW JSON object status/summary/questions/files/decisionIds, no code fences or prose outside JSON. Schema files:[{path,baseSha256,content}]."
+}

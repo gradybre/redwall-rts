@@ -1,0 +1,3256 @@
+{
+  "base_commit": "e8985336c13f95cddb291df13a143c8ea17d9130",
+  "registry_version": 6,
+  "section_schema_versions": [
+    3,
+    2,
+    1,
+    2,
+    1,
+    1,
+    4,
+    2,
+    2,
+    1,
+    1,
+    3,
+    1,
+    2,
+    1
+  ],
+  "owner_count": 18,
+  "field_count": 298,
+  "value_bytes": 12944480,
+  "ordinary_section_bytes": 12947453,
+  "scope": "read-only static fixed-capacity census; not accepted codec layout or runtime allocation",
+  "owners": [
+    {
+      "owner": "buildings",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_b_present",
+          "type": "u8",
+          "count": 1024,
+          "value_bytes": 1024,
+          "capacity_source": [
+            "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:93 `const BUILDING_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_r_present",
+          "type": "u8",
+          "count": 16384,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:94 `const ROOM_CAPACITY = 16384` = 16384"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_f_present",
+          "type": "u8",
+          "count": 81920,
+          "value_bytes": 81920,
+          "capacity_source": [
+            "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:95 `const FURNITURE_CAPACITY = 81920` = 81920"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_b_type_id",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:93 `const BUILDING_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_b_tier",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:93 `const BUILDING_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_b_origin_tile",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:93 `const BUILDING_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_b_rotation",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:93 `const BUILDING_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_b_state",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:93 `const BUILDING_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_b_condition",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:93 `const BUILDING_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_b_construction_slot",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:93 `const BUILDING_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_b_construction_generation",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:93 `const BUILDING_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_b_interior_id",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:93 `const BUILDING_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_r_type",
+          "type": "i32",
+          "count": 16384,
+          "value_bytes": 65536,
+          "capacity_source": [
+            "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:94 `const ROOM_CAPACITY = 16384` = 16384"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_r_building_slot",
+          "type": "i32",
+          "count": 16384,
+          "value_bytes": 65536,
+          "capacity_source": [
+            "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:94 `const ROOM_CAPACITY = 16384` = 16384"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_r_building_generation",
+          "type": "i32",
+          "count": 16384,
+          "value_bytes": 65536,
+          "capacity_source": [
+            "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:94 `const ROOM_CAPACITY = 16384` = 16384"
+          ]
+        },
+        {
+          "ordinal": 15,
+          "key": "_r_tile_offset",
+          "type": "i32",
+          "count": 16384,
+          "value_bytes": 65536,
+          "capacity_source": [
+            "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:94 `const ROOM_CAPACITY = 16384` = 16384"
+          ]
+        },
+        {
+          "ordinal": 16,
+          "key": "_r_tile_count",
+          "type": "i32",
+          "count": 16384,
+          "value_bytes": 65536,
+          "capacity_source": [
+            "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:94 `const ROOM_CAPACITY = 16384` = 16384"
+          ]
+        },
+        {
+          "ordinal": 17,
+          "key": "_r_temperature_tenths",
+          "type": "i32",
+          "count": 16384,
+          "value_bytes": 65536,
+          "capacity_source": [
+            "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:94 `const ROOM_CAPACITY = 16384` = 16384"
+          ]
+        },
+        {
+          "ordinal": 18,
+          "key": "_r_furniture_mask",
+          "type": "i32",
+          "count": 16384,
+          "value_bytes": 65536,
+          "capacity_source": [
+            "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:94 `const ROOM_CAPACITY = 16384` = 16384"
+          ]
+        },
+        {
+          "ordinal": 19,
+          "key": "_r_occupants",
+          "type": "i32",
+          "count": 16384,
+          "value_bytes": 65536,
+          "capacity_source": [
+            "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:94 `const ROOM_CAPACITY = 16384` = 16384"
+          ]
+        },
+        {
+          "ordinal": 20,
+          "key": "_r_valid",
+          "type": "u8",
+          "count": 16384,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:94 `const ROOM_CAPACITY = 16384` = 16384"
+          ]
+        },
+        {
+          "ordinal": 21,
+          "key": "_f_type_id",
+          "type": "i32",
+          "count": 81920,
+          "value_bytes": 327680,
+          "capacity_source": [
+            "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:95 `const FURNITURE_CAPACITY = 81920` = 81920"
+          ]
+        },
+        {
+          "ordinal": 22,
+          "key": "_f_room_slot",
+          "type": "i32",
+          "count": 81920,
+          "value_bytes": 327680,
+          "capacity_source": [
+            "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:95 `const FURNITURE_CAPACITY = 81920` = 81920"
+          ]
+        },
+        {
+          "ordinal": 23,
+          "key": "_f_room_generation",
+          "type": "i32",
+          "count": 81920,
+          "value_bytes": 327680,
+          "capacity_source": [
+            "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:95 `const FURNITURE_CAPACITY = 81920` = 81920"
+          ]
+        },
+        {
+          "ordinal": 24,
+          "key": "_f_origin_tile",
+          "type": "i32",
+          "count": 81920,
+          "value_bytes": 327680,
+          "capacity_source": [
+            "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:95 `const FURNITURE_CAPACITY = 81920` = 81920"
+          ]
+        },
+        {
+          "ordinal": 25,
+          "key": "_f_rotation",
+          "type": "i32",
+          "count": 81920,
+          "value_bytes": 327680,
+          "capacity_source": [
+            "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:95 `const FURNITURE_CAPACITY = 81920` = 81920"
+          ]
+        },
+        {
+          "ordinal": 26,
+          "key": "_f_user_slot",
+          "type": "i32",
+          "count": 81920,
+          "value_bytes": 327680,
+          "capacity_source": [
+            "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:95 `const FURNITURE_CAPACITY = 81920` = 81920"
+          ]
+        },
+        {
+          "ordinal": 27,
+          "key": "_f_user_generation",
+          "type": "i32",
+          "count": 81920,
+          "value_bytes": 327680,
+          "capacity_source": [
+            "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:95 `const FURNITURE_CAPACITY = 81920` = 81920"
+          ]
+        },
+        {
+          "ordinal": 28,
+          "key": "_f_condition",
+          "type": "i32",
+          "count": 81920,
+          "value_bytes": 327680,
+          "capacity_source": [
+            "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:95 `const FURNITURE_CAPACITY = 81920` = 81920"
+          ]
+        }
+      ],
+      "value_bytes": 3298304,
+      "ordinary_block_bytes": 3298569,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "construction",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 82944,
+          "value_bytes": 82944,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_material_container_slot",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_material_container_generation",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_assigned_count",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_max_workers",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_refund_policy",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_remaining_mwu",
+          "type": "i64",
+          "count": 82944,
+          "value_bytes": 663552,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_paused",
+          "type": "u8",
+          "count": 82944,
+          "value_bytes": 82944,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_work_begun",
+          "type": "u8",
+          "count": 82944,
+          "value_bytes": 82944,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_ref_slot",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_ref_generation",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_subject_slot",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_subject_generation",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_purpose",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_type_id",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        },
+        {
+          "ordinal": 15,
+          "key": "_phase",
+          "type": "i32",
+          "count": 82944,
+          "value_bytes": 331776,
+          "capacity_source": [
+            "CONSTRUCTION_CAPACITY -> godot/scripts/core/construction.gd:118 `const CONSTRUCTION_CAPACITY = 82944` = 82944"
+          ]
+        }
+      ],
+      "value_bytes": 4893696,
+      "ordinary_block_bytes": 4893860,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "farming",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 4096,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_crop_id",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_state",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_soil",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_fertility",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_moisture",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_growth_milli_hours",
+          "type": "i64",
+          "count": 4096,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_health",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_last_family",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_family_streak",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_compost_milli",
+          "type": "i64",
+          "count": 4096,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_sow_day",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_tile",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_ref_slot",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_ref_generation",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096"
+          ]
+        }
+      ],
+      "value_bytes": 266240,
+      "ordinary_block_bytes": 266391,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "field_policy",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_field_present",
+          "type": "u8",
+          "count": 128,
+          "value_bytes": 128,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_zone_slot",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_zone_generation",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_rotation_ids",
+          "type": "i32",
+          "count": 384,
+          "value_bytes": 1536,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+            "ROTATION_LENGTH -> godot/scripts/core/field_policy.gd:244 `const ROTATION_LENGTH = 3` = 3"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_rotation_cursor",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_auto_rotation",
+          "type": "u8",
+          "count": 128,
+          "value_bytes": 128,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_seed_reserve",
+          "type": "u8",
+          "count": 128,
+          "value_bytes": 128,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_cycle_ordinal",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_participants",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_resolved",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_withdrawn",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_completed_cycles",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_cancelled_cycles",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_requested_crop",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_cycle_state",
+          "type": "u8",
+          "count": 128,
+          "value_bytes": 128,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 15,
+          "key": "_close_reason",
+          "type": "u8",
+          "count": 128,
+          "value_bytes": 128,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 16,
+          "key": "_request_state",
+          "type": "u8",
+          "count": 128,
+          "value_bytes": 128,
+          "capacity_source": [
+            "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "FIELD_CAPACITY -> godot/scripts/core/field_policy.gd:242 `const FIELD_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+          ]
+        },
+        {
+          "ordinal": 17,
+          "key": "_plot_field_slot",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
+            "PLOT_CAPACITY -> godot/scripts/core/field_policy.gd:246 `const PLOT_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
+          ]
+        },
+        {
+          "ordinal": 18,
+          "key": "_plot_cycle",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
+            "PLOT_CAPACITY -> godot/scripts/core/field_policy.gd:246 `const PLOT_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
+          ]
+        },
+        {
+          "ordinal": 19,
+          "key": "_plot_outcome",
+          "type": "u8",
+          "count": 4096,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
+            "PLOT_CAPACITY -> godot/scripts/core/field_policy.gd:246 `const PLOT_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
+          ]
+        }
+      ],
+      "value_bytes": 44288,
+      "ordinary_block_bytes": 44484,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "fishing",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_habitat_present",
+          "type": "u8",
+          "count": 32,
+          "value_bytes": 32,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_stock_present",
+          "type": "u8",
+          "count": 96,
+          "value_bytes": 96,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+            "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+            "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_habitat_type",
+          "type": "i32",
+          "count": 32,
+          "value_bytes": 128,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_habitat_zone_slot",
+          "type": "i32",
+          "count": 32,
+          "value_bytes": 128,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_habitat_zone_generation",
+          "type": "i32",
+          "count": 32,
+          "value_bytes": 128,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_habitat_effort_slots",
+          "type": "i32",
+          "count": 32,
+          "value_bytes": 128,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_habitat_pollution",
+          "type": "i32",
+          "count": 32,
+          "value_bytes": 128,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_habitat_danger",
+          "type": "i32",
+          "count": 32,
+          "value_bytes": 128,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_habitat_protected_fraction",
+          "type": "i32",
+          "count": 32,
+          "value_bytes": 128,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_habitat_capacity_milli",
+          "type": "i64",
+          "count": 32,
+          "value_bytes": 256,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_habitat_ref_slot",
+          "type": "i32",
+          "count": 32,
+          "value_bytes": 128,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_habitat_ref_generation",
+          "type": "i32",
+          "count": 32,
+          "value_bytes": 128,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_habitat_effort_used",
+          "type": "i32",
+          "count": 32,
+          "value_bytes": 128,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_habitat_intensive",
+          "type": "u8",
+          "count": 32,
+          "value_bytes": 32,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_stock_habitat_slot",
+          "type": "i32",
+          "count": 96,
+          "value_bytes": 384,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+            "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+            "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+          ]
+        },
+        {
+          "ordinal": 15,
+          "key": "_stock_habitat_generation",
+          "type": "i32",
+          "count": 96,
+          "value_bytes": 384,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+            "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+            "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+          ]
+        },
+        {
+          "ordinal": 16,
+          "key": "_stock_species_id",
+          "type": "i32",
+          "count": 96,
+          "value_bytes": 384,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+            "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+            "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+          ]
+        },
+        {
+          "ordinal": 17,
+          "key": "_stock_population_milli",
+          "type": "i64",
+          "count": 96,
+          "value_bytes": 768,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+            "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+            "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+          ]
+        },
+        {
+          "ordinal": 18,
+          "key": "_stock_capacity_milli",
+          "type": "i64",
+          "count": 96,
+          "value_bytes": 768,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+            "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+            "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+          ]
+        },
+        {
+          "ordinal": 19,
+          "key": "_stock_harvested_today_milli",
+          "type": "i64",
+          "count": 96,
+          "value_bytes": 768,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+            "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+            "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+          ]
+        },
+        {
+          "ordinal": 20,
+          "key": "_stock_closed",
+          "type": "u8",
+          "count": 96,
+          "value_bytes": 96,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+            "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+            "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+          ]
+        },
+        {
+          "ordinal": 21,
+          "key": "_stock_restocking",
+          "type": "u8",
+          "count": 96,
+          "value_bytes": 96,
+          "capacity_source": [
+            "FISH_HABITAT_CAPACITY -> godot/scripts/core/fishing.gd:251 `const FISH_HABITAT_CAPACITY = 32` = 32",
+            "SPECIES_PER_HABITAT -> godot/scripts/core/fishing.gd:253 `const SPECIES_PER_HABITAT = 3` = 3",
+            "FISH_STOCK_CAPACITY -> godot/scripts/core/fishing.gd:255 `const FISH_STOCK_CAPACITY = FISH_HABITAT_CAPACITY * SPECIES_PER_HABITAT` = 96"
+          ]
+        }
+      ],
+      "value_bytes": 5344,
+      "ordinary_block_bytes": 5551,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "forage",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_zone_present",
+          "type": "u8",
+          "count": 128,
+          "value_bytes": 128,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_patch_present",
+          "type": "u8",
+          "count": 640,
+          "value_bytes": 640,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
+            "FORAGE_PATCH_CAPACITY -> godot/scripts/core/forage.gd:265 `const FORAGE_PATCH_CAPACITY = HARVEST_ZONE_CAPACITY * PATCHES_PER_ZONE` = 640"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_zone_type",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_zone_danger",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_zone_quota_milli",
+          "type": "i64",
+          "count": 128,
+          "value_bytes": 1024,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_zone_protected",
+          "type": "u8",
+          "count": 128,
+          "value_bytes": 128,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_zone_enabled",
+          "type": "u8",
+          "count": 128,
+          "value_bytes": 128,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_zone_ref_slot",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_zone_ref_generation",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_zone_basin_slot",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_zone_basin_generation",
+          "type": "i32",
+          "count": 128,
+          "value_bytes": 512,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_zone_harvested_today_milli",
+          "type": "i64",
+          "count": 128,
+          "value_bytes": 1024,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_zone_quota_reserved_milli",
+          "type": "i64",
+          "count": 128,
+          "value_bytes": 1024,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_zone_quota_mode",
+          "type": "u8",
+          "count": 128,
+          "value_bytes": 128,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_patch_item_id",
+          "type": "i32",
+          "count": 640,
+          "value_bytes": 2560,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
+            "FORAGE_PATCH_CAPACITY -> godot/scripts/core/forage.gd:265 `const FORAGE_PATCH_CAPACITY = HARVEST_ZONE_CAPACITY * PATCHES_PER_ZONE` = 640"
+          ]
+        },
+        {
+          "ordinal": 15,
+          "key": "_patch_zone_slot",
+          "type": "i32",
+          "count": 640,
+          "value_bytes": 2560,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
+            "FORAGE_PATCH_CAPACITY -> godot/scripts/core/forage.gd:265 `const FORAGE_PATCH_CAPACITY = HARVEST_ZONE_CAPACITY * PATCHES_PER_ZONE` = 640"
+          ]
+        },
+        {
+          "ordinal": 16,
+          "key": "_patch_zone_generation",
+          "type": "i32",
+          "count": 640,
+          "value_bytes": 2560,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
+            "FORAGE_PATCH_CAPACITY -> godot/scripts/core/forage.gd:265 `const FORAGE_PATCH_CAPACITY = HARVEST_ZONE_CAPACITY * PATCHES_PER_ZONE` = 640"
+          ]
+        },
+        {
+          "ordinal": 17,
+          "key": "_patch_stock_milli",
+          "type": "i64",
+          "count": 640,
+          "value_bytes": 5120,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
+            "FORAGE_PATCH_CAPACITY -> godot/scripts/core/forage.gd:265 `const FORAGE_PATCH_CAPACITY = HARVEST_ZONE_CAPACITY * PATCHES_PER_ZONE` = 640"
+          ]
+        },
+        {
+          "ordinal": 18,
+          "key": "_patch_capacity_milli",
+          "type": "i64",
+          "count": 640,
+          "value_bytes": 5120,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
+            "FORAGE_PATCH_CAPACITY -> godot/scripts/core/forage.gd:265 `const FORAGE_PATCH_CAPACITY = HARVEST_ZONE_CAPACITY * PATCHES_PER_ZONE` = 640"
+          ]
+        },
+        {
+          "ordinal": 19,
+          "key": "_patch_harvested_year_milli",
+          "type": "i64",
+          "count": 640,
+          "value_bytes": 5120,
+          "capacity_source": [
+            "HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
+            "PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
+            "FORAGE_PATCH_CAPACITY -> godot/scripts/core/forage.gd:265 `const FORAGE_PATCH_CAPACITY = HARVEST_ZONE_CAPACITY * PATCHES_PER_ZONE` = 640"
+          ]
+        }
+      ],
+      "value_bytes": 30336,
+      "ordinary_block_bytes": 30526,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "injury",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_kind",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_airless_episode",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_exhaustion_latch",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_care_context_blocked",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_severity",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_rescuer_slot",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_rescuer_generation",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_untreated_ticks",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_care_progress_mwu",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_last_incident_ordinal",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/injury.gd:113 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        }
+      ],
+      "value_bytes": 20992,
+      "ordinary_block_bytes": 21110,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "jobs",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_job_present",
+          "type": "u8",
+          "count": 8192,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_agent_present",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_kind",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_requester_slot",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_requester_generation",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_destination_slot",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_destination_generation",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_source_slot",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_source_generation",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_priority",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_required_skill",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_state",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_worker_slot",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_worker_generation",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_remaining_mwu",
+          "type": "i64",
+          "count": 8192,
+          "value_bytes": 65536,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 15,
+          "key": "_created_tick",
+          "type": "i64",
+          "count": 8192,
+          "value_bytes": 65536,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 16,
+          "key": "_job_ref_slot",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 17,
+          "key": "_job_ref_generation",
+          "type": "i32",
+          "count": 8192,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 18,
+          "key": "_urgency",
+          "type": "u8",
+          "count": 8192,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 19,
+          "key": "_dangerous",
+          "type": "u8",
+          "count": 8192,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 20,
+          "key": "_station_gate",
+          "type": "u8",
+          "count": 8192,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 21,
+          "key": "_tool_gate",
+          "type": "u8",
+          "count": 8192,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 22,
+          "key": "_unlock_gate",
+          "type": "u8",
+          "count": 8192,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 23,
+          "key": "_inputs_gate",
+          "type": "u8",
+          "count": 8192,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 24,
+          "key": "_is_coordinator",
+          "type": "u8",
+          "count": 8192,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "JOB_CAPACITY -> godot/scripts/core/jobs.gd:280 `const JOB_CAPACITY = 8192` = 8192"
+          ]
+        },
+        {
+          "ordinal": 25,
+          "key": "_agent_job_slot",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 26,
+          "key": "_agent_job_generation",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 27,
+          "key": "_agent_phase",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 28,
+          "key": "_agent_target_slot",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 29,
+          "key": "_agent_target_generation",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 30,
+          "key": "_agent_path_id",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 31,
+          "key": "_agent_path_cursor",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 32,
+          "key": "_agent_lease_expiry",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 33,
+          "key": "_agent_blocked_tick",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 34,
+          "key": "_agent_manual_until",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 35,
+          "key": "_agent_hazard_locked",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 36,
+          "key": "_job_scan_cursor",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 37,
+          "key": "_continuation_bucket",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "AGENT_CAPACITY -> godot/scripts/core/jobs.gd:282 `const AGENT_CAPACITY = 512` = 512"
+          ]
+        }
+      ],
+      "value_bytes": 685568,
+      "ordinary_block_bytes": 685900,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "movement",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_vx",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_vz",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_remainder_x",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_remainder_z",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_next_x",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_next_z",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_correction_x",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_correction_z",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_radius_u",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_desired_yaw",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_next_yaw",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_grid_next",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_grid_cell",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_speed_u_per_s",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_movement_phase",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 15,
+          "key": "_blocked_ticks",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "ResidentsScript.RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "MOTION_CAPACITY -> godot/scripts/core/movement.gd:147 `const MOTION_CAPACITY = ResidentsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        }
+      ],
+      "value_bytes": 32768,
+      "ordinary_block_bytes": 32928,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "needs",
+      "owner_schema_version": 2,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_need_value",
+          "type": "i32",
+          "count": 2560,
+          "value_bytes": 10240,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "NEED_COUNT -> godot/scripts/core/needs.gd:158 `const NEED_COUNT = 5` = 5"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_need_remainder",
+          "type": "i64",
+          "count": 2560,
+          "value_bytes": 20480,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "NEED_COUNT -> godot/scripts/core/needs.gd:158 `const NEED_COUNT = 5` = 5"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_health",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_health_remainder",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_cold_milli_hours",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_cold_remainder",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_starving_ticks",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_departure_days",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_status",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_size_class",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_activity",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_comfort_environment",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_social_paired",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_purpose_source",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 15,
+          "key": "_cold_environment",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 16,
+          "key": "_clothing_tier",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 17,
+          "key": "_infirmary",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 18,
+          "key": "_injury_state",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 19,
+          "key": "_airless",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        }
+      ],
+      "value_bytes": 57344,
+      "ordinary_block_bytes": 57533,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "orchard_hive",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_o_present",
+          "type": "u8",
+          "count": 1024,
+          "value_bytes": 1024,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_h_present",
+          "type": "u8",
+          "count": 1024,
+          "value_bytes": 1024,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_o_species_id",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_o_age_days",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_o_health",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_o_chill_days",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_o_tended_today",
+          "type": "u8",
+          "count": 1024,
+          "value_bytes": 1024,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_o_harvested_year",
+          "type": "u8",
+          "count": 1024,
+          "value_bytes": 1024,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_o_origin_x",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_o_origin_z",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_o_ref_slot",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_o_ref_generation",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "ORCHARD_CAPACITY -> godot/scripts/core/orchard_hive.gd:211 `const ORCHARD_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_h_building_slot",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_h_building_generation",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_h_strength",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 15,
+          "key": "_h_serviced_day",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 16,
+          "key": "_h_feed_milli",
+          "type": "i64",
+          "count": 1024,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 17,
+          "key": "_h_honey_milli",
+          "type": "i64",
+          "count": 1024,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 18,
+          "key": "_h_wax_milli",
+          "type": "i64",
+          "count": 1024,
+          "value_bytes": 8192,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 19,
+          "key": "_h_min_tile_x",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 20,
+          "key": "_h_min_tile_z",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 21,
+          "key": "_h_max_tile_x",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 22,
+          "key": "_h_max_tile_z",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 23,
+          "key": "_h_ref_slot",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        },
+        {
+          "ordinal": 24,
+          "key": "_h_ref_generation",
+          "type": "i32",
+          "count": 1024,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024"
+          ]
+        }
+      ],
+      "value_bytes": 102400,
+      "ordinary_block_bytes": 102636,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "priorities",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "PRIORITY_CAPACITY -> godot/scripts/core/priorities.gd:64 `const PRIORITY_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_job_priority",
+          "type": "u8",
+          "count": 6144,
+          "value_bytes": 6144,
+          "capacity_source": [
+            "PRIORITY_CAPACITY -> godot/scripts/core/priorities.gd:64 `const PRIORITY_CAPACITY = 512` = 512",
+            "JOB_KIND_COUNT -> godot/scripts/core/priorities.gd:68 `const JOB_KIND_COUNT = 12` = 12"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_auto_fallback",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "PRIORITY_CAPACITY -> godot/scripts/core/priorities.gd:64 `const PRIORITY_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_dangerous_work",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "PRIORITY_CAPACITY -> godot/scripts/core/priorities.gd:64 `const PRIORITY_CAPACITY = 512` = 512"
+          ]
+        }
+      ],
+      "value_bytes": 7680,
+      "ordinary_block_bytes": 7746,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "residents",
+      "owner_schema_version": 2,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_species",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_size_class",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_named",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_life_stage",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_arrival_tick",
+          "type": "i64",
+          "count": 512,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_role",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_home_slot",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_home_generation",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_bed_slot",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 10,
+          "key": "_bed_generation",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 11,
+          "key": "_ref_slot",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 12,
+          "key": "_ref_generation",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 13,
+          "key": "_equip_tool_item_id",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 14,
+          "key": "_equip_tool_durability",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 15,
+          "key": "_equip_satchel_slot",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 16,
+          "key": "_equip_satchel_generation",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 17,
+          "key": "_skill_xp",
+          "type": "i64",
+          "count": 6144,
+          "value_bytes": 49152,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "SKILL_COUNT -> godot/scripts/core/residents.gd:211 `const SKILL_COUNT = 12` = 12"
+          ]
+        },
+        {
+          "ordinal": 18,
+          "key": "_skill_level",
+          "type": "i32",
+          "count": 6144,
+          "value_bytes": 24576,
+          "capacity_source": [
+            "RESIDENT_CAPACITY -> godot/scripts/core/residents.gd:112 `const RESIDENT_CAPACITY = 512` = 512",
+            "SKILL_COUNT -> godot/scripts/core/residents.gd:211 `const SKILL_COUNT = 12` = 12"
+          ]
+        }
+      ],
+      "value_bytes": 102912,
+      "ordinary_block_bytes": 103097,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "resource_nodes",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 4096,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "RESOURCE_NODE_CAPACITY -> godot/scripts/core/resource_nodes.gd:118 `const RESOURCE_NODE_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_resource_id",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "RESOURCE_NODE_CAPACITY -> godot/scripts/core/resource_nodes.gd:118 `const RESOURCE_NODE_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_quantity_milli",
+          "type": "i64",
+          "count": 4096,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "RESOURCE_NODE_CAPACITY -> godot/scripts/core/resource_nodes.gd:118 `const RESOURCE_NODE_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_capacity_milli",
+          "type": "i64",
+          "count": 4096,
+          "value_bytes": 32768,
+          "capacity_source": [
+            "RESOURCE_NODE_CAPACITY -> godot/scripts/core/resource_nodes.gd:118 `const RESOURCE_NODE_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_regrow_days",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "RESOURCE_NODE_CAPACITY -> godot/scripts/core/resource_nodes.gd:118 `const RESOURCE_NODE_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_planted_day",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "RESOURCE_NODE_CAPACITY -> godot/scripts/core/resource_nodes.gd:118 `const RESOURCE_NODE_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_exhausted",
+          "type": "u8",
+          "count": 4096,
+          "value_bytes": 4096,
+          "capacity_source": [
+            "RESOURCE_NODE_CAPACITY -> godot/scripts/core/resource_nodes.gd:118 `const RESOURCE_NODE_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_tile",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "RESOURCE_NODE_CAPACITY -> godot/scripts/core/resource_nodes.gd:118 `const RESOURCE_NODE_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_ref_slot",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "RESOURCE_NODE_CAPACITY -> godot/scripts/core/resource_nodes.gd:118 `const RESOURCE_NODE_CAPACITY = 4096` = 4096"
+          ]
+        },
+        {
+          "ordinal": 9,
+          "key": "_ref_generation",
+          "type": "i32",
+          "count": 4096,
+          "value_bytes": 16384,
+          "capacity_source": [
+            "RESOURCE_NODE_CAPACITY -> godot/scripts/core/resource_nodes.gd:118 `const RESOURCE_NODE_CAPACITY = 4096` = 4096"
+          ]
+        }
+      ],
+      "value_bytes": 172032,
+      "ordinary_block_bytes": 172150,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "schedule",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_present",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "SCHEDULE_CAPACITY -> godot/scripts/core/schedule.gd:94 `const SCHEDULE_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_hourly_activity",
+          "type": "u8",
+          "count": 12288,
+          "value_bytes": 12288,
+          "capacity_source": [
+            "SCHEDULE_CAPACITY -> godot/scripts/core/schedule.gd:94 `const SCHEDULE_CAPACITY = 512` = 512",
+            "HOURS_PER_DAY -> godot/scripts/core/schedule.gd:95 `const HOURS_PER_DAY = 24` = 24"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_template",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "SCHEDULE_CAPACITY -> godot/scripts/core/schedule.gd:94 `const SCHEDULE_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_current_activity",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "SCHEDULE_CAPACITY -> godot/scripts/core/schedule.gd:94 `const SCHEDULE_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_sleep_satisfied",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "SCHEDULE_CAPACITY -> godot/scripts/core/schedule.gd:94 `const SCHEDULE_CAPACITY = 512` = 512"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_resolved",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "SCHEDULE_CAPACITY -> godot/scripts/core/schedule.gd:94 `const SCHEDULE_CAPACITY = 512` = 512"
+          ]
+        }
+      ],
+      "value_bytes": 17920,
+      "ordinary_block_bytes": 18000,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "transforms",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_bound_persistent_id",
+          "type": "i32",
+          "count": 87552,
+          "value_bytes": 350208,
+          "capacity_source": [
+            "TRANSFORM_CAPACITY -> godot/scripts/core/transforms.gd:53 `const TRANSFORM_CAPACITY = 87552` = 87552"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_x",
+          "type": "i32",
+          "count": 87552,
+          "value_bytes": 350208,
+          "capacity_source": [
+            "TRANSFORM_CAPACITY -> godot/scripts/core/transforms.gd:53 `const TRANSFORM_CAPACITY = 87552` = 87552"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_y",
+          "type": "i32",
+          "count": 87552,
+          "value_bytes": 350208,
+          "capacity_source": [
+            "TRANSFORM_CAPACITY -> godot/scripts/core/transforms.gd:53 `const TRANSFORM_CAPACITY = 87552` = 87552"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_z",
+          "type": "i32",
+          "count": 87552,
+          "value_bytes": 350208,
+          "capacity_source": [
+            "TRANSFORM_CAPACITY -> godot/scripts/core/transforms.gd:53 `const TRANSFORM_CAPACITY = 87552` = 87552"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_yaw",
+          "type": "i32",
+          "count": 87552,
+          "value_bytes": 350208,
+          "capacity_source": [
+            "TRANSFORM_CAPACITY -> godot/scripts/core/transforms.gd:53 `const TRANSFORM_CAPACITY = 87552` = 87552"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_prev_x",
+          "type": "i32",
+          "count": 87552,
+          "value_bytes": 350208,
+          "capacity_source": [
+            "TRANSFORM_CAPACITY -> godot/scripts/core/transforms.gd:53 `const TRANSFORM_CAPACITY = 87552` = 87552"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_prev_y",
+          "type": "i32",
+          "count": 87552,
+          "value_bytes": 350208,
+          "capacity_source": [
+            "TRANSFORM_CAPACITY -> godot/scripts/core/transforms.gd:53 `const TRANSFORM_CAPACITY = 87552` = 87552"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_prev_z",
+          "type": "i32",
+          "count": 87552,
+          "value_bytes": 350208,
+          "capacity_source": [
+            "TRANSFORM_CAPACITY -> godot/scripts/core/transforms.gd:53 `const TRANSFORM_CAPACITY = 87552` = 87552"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_prev_yaw",
+          "type": "i32",
+          "count": 87552,
+          "value_bytes": 350208,
+          "capacity_source": [
+            "TRANSFORM_CAPACITY -> godot/scripts/core/transforms.gd:53 `const TRANSFORM_CAPACITY = 87552` = 87552"
+          ]
+        }
+      ],
+      "value_bytes": 3151872,
+      "ordinary_block_bytes": 3151978,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "work",
+      "owner_schema_version": 2,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_potential_remainder",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_xp_remainder",
+          "type": "i32",
+          "count": 6144,
+          "value_bytes": 24576,
+          "capacity_source": [
+            "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512",
+            "ResidentsScript.SKILL_COUNT -> godot/scripts/core/residents.gd:211 `const SKILL_COUNT = 12` = 12",
+            "SKILL_COUNT -> godot/scripts/core/work.gd:239 `const SKILL_COUNT = ResidentsScript.SKILL_COUNT` = 12"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_memory_total",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_wear_remainder",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_tool_lot_slot",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_tool_lot_generation",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_tool_job_slot",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_tool_job_generation",
+          "type": "i32",
+          "count": 512,
+          "value_bytes": 2048,
+          "capacity_source": [
+            "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_tool_broken",
+          "type": "u8",
+          "count": 512,
+          "value_bytes": 512,
+          "capacity_source": [
+            "NeedsScript.RESIDENT_CAPACITY -> godot/scripts/core/needs.gd:133 `const RESIDENT_CAPACITY = 512` = 512",
+            "RESIDENT_CAPACITY -> godot/scripts/core/work.gd:237 `const RESIDENT_CAPACITY = NeedsScript.RESIDENT_CAPACITY` = 512"
+          ]
+        }
+      ],
+      "value_bytes": 39424,
+      "ordinary_block_bytes": 39524,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    },
+    {
+      "owner": "world_init",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "ordinal": 0,
+          "key": "_fauna_zone_slot",
+          "type": "i32",
+          "count": 384,
+          "value_bytes": 1536,
+          "capacity_source": [
+            "FAUNA_STOCK_ROWS -> godot/scripts/core/world_init.gd:512 `const FAUNA_STOCK_ROWS = 384` = 384"
+          ]
+        },
+        {
+          "ordinal": 1,
+          "key": "_fauna_zone_generation",
+          "type": "i32",
+          "count": 384,
+          "value_bytes": 1536,
+          "capacity_source": [
+            "FAUNA_STOCK_ROWS -> godot/scripts/core/world_init.gd:512 `const FAUNA_STOCK_ROWS = 384` = 384"
+          ]
+        },
+        {
+          "ordinal": 2,
+          "key": "_fauna_species_id",
+          "type": "i32",
+          "count": 384,
+          "value_bytes": 1536,
+          "capacity_source": [
+            "FAUNA_STOCK_ROWS -> godot/scripts/core/world_init.gd:512 `const FAUNA_STOCK_ROWS = 384` = 384"
+          ]
+        },
+        {
+          "ordinal": 3,
+          "key": "_fauna_population",
+          "type": "i32",
+          "count": 384,
+          "value_bytes": 1536,
+          "capacity_source": [
+            "FAUNA_STOCK_ROWS -> godot/scripts/core/world_init.gd:512 `const FAUNA_STOCK_ROWS = 384` = 384"
+          ]
+        },
+        {
+          "ordinal": 4,
+          "key": "_fauna_capacity",
+          "type": "i32",
+          "count": 384,
+          "value_bytes": 1536,
+          "capacity_source": [
+            "FAUNA_STOCK_ROWS -> godot/scripts/core/world_init.gd:512 `const FAUNA_STOCK_ROWS = 384` = 384"
+          ]
+        },
+        {
+          "ordinal": 5,
+          "key": "_fauna_tracks",
+          "type": "i32",
+          "count": 384,
+          "value_bytes": 1536,
+          "capacity_source": [
+            "FAUNA_STOCK_ROWS -> godot/scripts/core/world_init.gd:512 `const FAUNA_STOCK_ROWS = 384` = 384"
+          ]
+        },
+        {
+          "ordinal": 6,
+          "key": "_fauna_harvest_today",
+          "type": "i32",
+          "count": 384,
+          "value_bytes": 1536,
+          "capacity_source": [
+            "FAUNA_STOCK_ROWS -> godot/scripts/core/world_init.gd:512 `const FAUNA_STOCK_ROWS = 384` = 384"
+          ]
+        },
+        {
+          "ordinal": 7,
+          "key": "_fauna_migration_link",
+          "type": "i32",
+          "count": 384,
+          "value_bytes": 1536,
+          "capacity_source": [
+            "FAUNA_STOCK_ROWS -> godot/scripts/core/world_init.gd:512 `const FAUNA_STOCK_ROWS = 384` = 384"
+          ]
+        },
+        {
+          "ordinal": 8,
+          "key": "_fauna_birth_remainder",
+          "type": "i64",
+          "count": 384,
+          "value_bytes": 3072,
+          "capacity_source": [
+            "FAUNA_STOCK_ROWS -> godot/scripts/core/world_init.gd:512 `const FAUNA_STOCK_ROWS = 384` = 384"
+          ]
+        }
+      ],
+      "value_bytes": 15360,
+      "ordinary_block_bytes": 15466,
+      "primary_count": "UNSET: exact primary-table mapping still requires ruling"
+    }
+  ]
+}

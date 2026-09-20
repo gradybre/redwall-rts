@@ -743,6 +743,18 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Cell clearance | `_clearance` | 4 | `CELL_COUNT` = 262144 | 0 = no clearance computed yet | 2 | §1 WORLD | A derived distance field over `_walkable`; `_clearance_dirty` exists precisely because it is recomputed. Writing it would let a save disagree with its own passability map. |
 | Map revision and scalars | -- | -- | -- | -- | 1 | §1 WORLD | `_map_revision` is `World.map_revision` in §2's ledger and is compared against `navigation.gd`'s cached `_d_map_revision`/`_r_map_revision`, so a restored world that restarted the revision counter would silently accept stale routes. `_walkable_count` is recomputed, `_clearance_dirty` must be resolved before a save, `_last_refusal` is diagnostic. |
 
+### `godot/scripts/core/save_component_columns_schema.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable component metadata | -- | -- | -- | -- | 3 | -- | Decision0169 / SAVE-S4-STREAM-R01v2. No mutable module state. Fifteen compiled const Arrays:781 integer cells x8 +4288 UTF8 key bytes =10536 logical payload bytes, shared once and ledgered separately. Array/Variant/String headers, scalar constants and native overhead are not measured by this arithmetic. Generator independently checks298 source capacities and canonical field identities. Runtime reads no JSON or live owners. |
+
+### `godot/scripts/core/save_section_component_columns.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Component framing cursors and one-owner record | -- | -- | -- | -- | 3 | -- | Decision0169. No resident module state. FramedOwner contains one owner's exact typed buckets; transient capture/decode transport is not a new canonical owner. Conditional maximum6417408 value/transient bytes assumes callers release every owner reference before feeding the next wrapper. Immutable10536-byte metadata is charged separately. Partial records cannot escape; full physical values remain unchanged. Structural acceptance alone cannot authorize installation: semantic validators, owner adapters, cross-section consistency and coordinator are separate tasks. |
+
 ### `godot/scripts/core/save_resource_claims_reconcile.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

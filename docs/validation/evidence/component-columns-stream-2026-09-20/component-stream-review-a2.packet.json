@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f0d91ba0b34323ea6b8f4b1d41836c40c15a7847",
+  "task": "Verify bounded review follow-through for section4 codec",
+  "paths": [
+    "docs/planning/component_columns_stream_contract.md",
+    "docs/validation/evidence/component-columns-stream-2026-09-20/independent-source-review.md",
+    "docs/validation/evidence/component-columns-stream-2026-09-20/review-disposition.md",
+    "tools/generate_component_columns_schema.py",
+    "tools/test_component_columns_schema.py",
+    "tools/test_component_stream_preflights.py",
+    "godot/test/test_save_section_component_columns.gd",
+    "docs/validation/evidence/component-columns-stream-2026-09-20/preflight-faults.log",
+    "docs/validation/evidence/component-columns-stream-2026-09-20/focus-review.log",
+    "docs/validation/evidence/component-columns-stream-2026-09-20/generator-review-repaired.log",
+    ".github/workflows/tests.yml"
+  ],
+  "instructions": "Independent follow-up review of bounded remedies for M1/M2/L3/L4 and dispositions L5-L9 from prior independent report. Both runtime GDScript files are unchanged from that reviewed version. Focus generator targeted numeric parity checks (registry legitimate policy booleans must remain allowed), new disposable-clone preflight fault test correctness/nonvacuity/actual assertion kill semantics, CI portability, and new Godot coverage. Inspect evidence but make no tool-run claims. Parent chose injected runtime faults over brittle source-call-count test and corrects prior hypothetical mutant interpretation; assess substantive issue. Return exactly ONE NEW report docs/validation/evidence/component-columns-stream-2026-09-20/review-followup.md <=100lines <=1200words. Report only unresolved issues or concise acceptance with limits. RAW JSON status/summary/questions/files/decisionIds without fences/prose. No production edits."
+}

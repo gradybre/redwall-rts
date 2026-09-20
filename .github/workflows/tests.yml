@@ -66,6 +66,9 @@ jobs:
       - name: Run the suite
         run: ./tools/run_tests.sh
 
+      - name: Component stream preflight fault injection
+        run: python3 tools/test_component_stream_preflights.py
+
       - name: UI refinement contract
         # This one hashes PNGs and asserts their magic bytes. *.png is LFS, so
         # it runs in this job, whose checkout already sets lfs: true, rather
@@ -150,6 +153,12 @@ jobs:
           set -euo pipefail
           python3 tools/audit_registry_capacities.py --check
           python3 tools/test_registry_capacity_audit.py
+
+      - name: Component column schema matches source capacities
+        run: |
+          set -euo pipefail
+          python3 tools/generate_component_columns_schema.py --check
+          python3 tools/test_component_columns_schema.py
 
       - name: Lane records are one file each, not appended to a shared checklist
         run: python3 tools/lane_notes.py --check

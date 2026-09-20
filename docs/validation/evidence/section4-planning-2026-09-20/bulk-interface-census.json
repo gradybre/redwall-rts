@@ -1,0 +1,232 @@
+{
+  "scope": "name/signature census, not proof of semantic completeness",
+  "owners": [
+    {
+      "owner": "buildings",
+      "source": "godot/scripts/core/buildings.gd",
+      "sha256": "8f21111b4857714f4ac803c30c3eec46f206c0b5cdedfeeb357a0061ba3f875e",
+      "bulk_interfaces": [
+        {
+          "line": 1775,
+          "signature": "func copy_section_1_columns_into(out_building_slot: PackedInt32Array,"
+        },
+        {
+          "line": 1959,
+          "signature": "func restore_section_1_columns(building_slot: PackedInt32Array, room_slot: PackedInt32Array,"
+        }
+      ],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "construction",
+      "source": "godot/scripts/core/construction.gd",
+      "sha256": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
+      "bulk_interfaces": [],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "farming",
+      "source": "godot/scripts/core/farming.gd",
+      "sha256": "c025f23da0f88ddff8c5ea64bae0f3bb75d7085f83f949bd3877e70443aea773",
+      "bulk_interfaces": [
+        {
+          "line": 2357,
+          "signature": "func copy_section_1_columns_into(out: SavedTileHistory) -> bool:"
+        },
+        {
+          "line": 2513,
+          "signature": "func restore_section_1_columns(state: SavedTileHistory) -> bool:"
+        }
+      ],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "field_policy",
+      "source": "godot/scripts/core/field_policy.gd",
+      "sha256": "262198e7a04d340c5205007c7ff1124264efe761b675fd99f657fb38a9fb5315",
+      "bulk_interfaces": [],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "fishing",
+      "source": "godot/scripts/core/fishing.gd",
+      "sha256": "08ff3b69c64a14c4b7817813b67af52d981e1b4eeaa457c2222f4ada3ffd9469",
+      "bulk_interfaces": [
+        {
+          "line": 2850,
+          "signature": "func copy_effort_claim_columns_into(out: EffortClaimColumns) -> bool:"
+        },
+        {
+          "line": 2882,
+          "signature": "func restore_effort_claim_columns(columns: EffortClaimColumns) -> bool:"
+        }
+      ],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "forage",
+      "source": "godot/scripts/core/forage.gd",
+      "sha256": "8f1be765de10b5adba1a623ce54033c9830bc8d7bd1eedcc3d82712850b8144a",
+      "bulk_interfaces": [
+        {
+          "line": 3029,
+          "signature": "func copy_section_1_columns_into(out_tile_link_head: PackedInt32Array) -> bool:"
+        },
+        {
+          "line": 3154,
+          "signature": "func restore_section_1_columns(tile_link_head: PackedInt32Array) -> bool:"
+        },
+        {
+          "line": 3286,
+          "signature": "func copy_forage_claim_columns_into(out: ForageClaimColumns) -> bool:"
+        },
+        {
+          "line": 3321,
+          "signature": "func restore_forage_claim_columns(cols: ForageClaimColumns) -> bool:"
+        }
+      ],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "injury",
+      "source": "godot/scripts/core/injury.gd",
+      "sha256": "a0932b0c2fddd8ea32f460d1ca4d88977fa759391fcac6f845957fff433184c2",
+      "bulk_interfaces": [],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "jobs",
+      "source": "godot/scripts/core/jobs.gd",
+      "sha256": "bf74583b409dd22da8b9100318e224b63bede5ed01c66be09f4ed0ab38809f3c",
+      "bulk_interfaces": [
+        {
+          "line": 2624,
+          "signature": "func copy_columns_into(out: Columns) -> bool:"
+        },
+        {
+          "line": 2691,
+          "signature": "func restore_columns(columns: Columns) -> bool:"
+        },
+        {
+          "line": 2796,
+          "signature": "func _restore_column_refusal(columns: Columns) -> StringName:"
+        }
+      ],
+      "semantic_status": "existing instance validation behind restore; pure prevalidation extraction required"
+    },
+    {
+      "owner": "movement",
+      "source": "godot/scripts/core/movement.gd",
+      "sha256": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3",
+      "bulk_interfaces": [],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "needs",
+      "source": "godot/scripts/core/needs.gd",
+      "sha256": "31fc6a56d294154024f39ff4f04924d9c2148fc4f08acee388fd6ea94595d553",
+      "bulk_interfaces": [
+        {
+          "line": 1854,
+          "signature": "func copy_columns_into(out: Columns) -> bool:"
+        },
+        {
+          "line": 1896,
+          "signature": "func restore_columns(columns: Columns) -> bool:"
+        },
+        {
+          "line": 1977,
+          "signature": "func _restore_column_refusal(columns: Columns) -> StringName:"
+        }
+      ],
+      "semantic_status": "existing instance validation behind restore; pure prevalidation extraction required"
+    },
+    {
+      "owner": "orchard_hive",
+      "source": "godot/scripts/core/orchard_hive.gd",
+      "sha256": "bb1e885b046f61aeb03f6939f2c05c7a4597e3238cf412e111abd07be4e3c780",
+      "bulk_interfaces": [],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "priorities",
+      "source": "godot/scripts/core/priorities.gd",
+      "sha256": "ef5cfeb2deb574c3c23a0478dc3b243adcbf8b9cffa964e21d391c29adc90551",
+      "bulk_interfaces": [],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "residents",
+      "source": "godot/scripts/core/residents.gd",
+      "sha256": "7ce35ffc7e14ff9e8ba86d70d54a1401e0814751d0b71779d92ba476cd89655c",
+      "bulk_interfaces": [
+        {
+          "line": 1909,
+          "signature": "func copy_columns_into(out: Columns) -> bool:"
+        },
+        {
+          "line": 1950,
+          "signature": "func restore_columns(columns: Columns) -> bool:"
+        },
+        {
+          "line": 2028,
+          "signature": "func _restore_column_refusal(columns: Columns) -> StringName:"
+        }
+      ],
+      "semantic_status": "existing instance validation behind restore; pure prevalidation extraction required"
+    },
+    {
+      "owner": "resource_nodes",
+      "source": "godot/scripts/core/resource_nodes.gd",
+      "sha256": "033f5255a0904d193a08197c71321f8ff3a8aa58d8274fdd42dd3a54da20de23",
+      "bulk_interfaces": [
+        {
+          "line": 990,
+          "signature": "func copy_section_1_columns_into(out_resource_slot: PackedInt32Array) -> bool:"
+        },
+        {
+          "line": 1084,
+          "signature": "func restore_section_1_columns(resource_slot: PackedInt32Array) -> bool:"
+        }
+      ],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "schedule",
+      "source": "godot/scripts/core/schedule.gd",
+      "sha256": "9da6ee9fde956812017b7d01ccfcef97832145849949d9a92bb000a11fde3ab7",
+      "bulk_interfaces": [],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "transforms",
+      "source": "godot/scripts/core/transforms.gd",
+      "sha256": "e09e5c33201cdfb3b27ef69d9973d01f9369120836dc5ec4b2d1d3c383ef444f",
+      "bulk_interfaces": [],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "work",
+      "source": "godot/scripts/core/work.gd",
+      "sha256": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
+      "bulk_interfaces": [],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    },
+    {
+      "owner": "world_init",
+      "source": "godot/scripts/core/world_init.gd",
+      "sha256": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a",
+      "bulk_interfaces": [
+        {
+          "line": 2349,
+          "signature": "func copy_section_1_columns_into(out: SavedMap) -> bool:"
+        },
+        {
+          "line": 2513,
+          "signature": "func restore_section_1_columns(published: int, published_seed: int, state: SavedMap) -> bool:"
+        }
+      ],
+      "semantic_status": "no complete section4 bulk column API found; requires exact owner contract"
+    }
+  ]
+}

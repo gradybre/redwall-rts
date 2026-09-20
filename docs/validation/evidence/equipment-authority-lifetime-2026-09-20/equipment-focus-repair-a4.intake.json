@@ -1,0 +1,19 @@
+{
+  "attempt": "equipment-focus-repair-a4",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "session_id": "dd0b7438-c829-409b-a8d5-5e98a10b7798",
+  "owner_stopped": true,
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_inputs_reverified": true,
+  "files": {
+    "godot/test/equipment_authority_lifetime_focus.gd": "f73f1bcc8c7aa9101069de7a6cde41d349935214bf936c04a6def84b41c7b03a"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

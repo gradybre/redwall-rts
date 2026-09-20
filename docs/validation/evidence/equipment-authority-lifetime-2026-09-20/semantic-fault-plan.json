@@ -1,0 +1,50 @@
+{
+  "scope": "EQUIPMENT-LIFETIME-R01v1 (ADR 0187) semantic counterfactual plan",
+  "purpose": "Two isolated, deterministic source fault units for Astra's clone campaign, proving the frozen passing candidate suite (14 tests / 133 assertions) actually catches the two regressions ADR 0187 exists to prevent: a restored strong ownership cycle, and an expired-authority admission bypass. Data only; nothing here was executed or applied.",
+  "target_file": "godot/scripts/core/inventory.gd",
+  "note_on_hashes": "Baseline source/test SHA256 intentionally omitted; Astra computes them against its own clone rather than trusting an invented value here.",
+  "fault_units": [
+    {
+      "id": "equipment-authority-strong-ownership-restored",
+      "purpose": "Reintroduce the strong Inventory-to-authority edge WeakRef was adopted to remove, while a tiny StrongEquipmentReference.get_ref() keeps returning null for an actually freed Node via is_instance_valid(), so the never-bound and explicit-unbind gate logic is untouched and only the retention behavior changes. Proves the real Gear/Inventory/Residents mutual-release witness, and every stub-authority 'expiry' witness, actually depend on the WeakRef repair rather than passing for an unrelated reason.",
+      "replacements": [
+        {
+          "path": "godot/scripts/core/inventory.gd",
+          "old": "var _equipment_authority: WeakRef = null",
+          "new": "class StrongEquipmentReference extends RefCounted:\n\t\"\"\"SEMANTIC-FAULT UNIT1: restores the strong ownership edge WeakRef was meant to remove.\n\t`get_ref()` mirrors WeakRef's live/freed-Node-safe contract via `is_instance_valid`, so\n\tcallers observe identical behavior right up until the retention cycle itself.\n\t\"\"\"\n\tvar target: Object = null\n\n\tfunc _init(p_target: Object) -> void:\n\t\ttarget = p_target\n\n\tfunc get_ref() -> Object:\n\t\treturn target if is_instance_valid(target) else null\n\nvar _equipment_authority: StrongEquipmentReference = null",
+          "expected_occurrences": 1
+        },
+        {
+          "path": "godot/scripts/core/inventory.gd",
+          "old": "\t\t_equipment_authority = weakref(authority)",
+          "new": "\t\t_equipment_authority = StrongEquipmentReference.new(authority)",
+          "expected_occurrences": 1
+        }
+      ],
+      "expected_failing_tests": [
+        "test_real_gear_inventory_residents_mutually_release_without_unbind",
+        "test_expired_refcounted_authority_refuses_all_four_gates_with_state_unchanged",
+        "test_audit_refuses_orphan_lot_after_authority_expires_without_normalization",
+        "test_explicit_unbind_refuses_with_live_equipped_lots_even_after_authority_expires",
+        "test_a_strong_per_call_local_survives_the_authority_dropping_its_sole_external_owner"
+      ]
+    },
+    {
+      "id": "equipment-authority-expired-wrapper-admitted",
+      "purpose": "Bypass only the expired-wrapper branch of the presence gate in _equipment_authority_refusal(), leaving the never-bound NO_EQUIPMENT_AUTHORITY branch and _attests() itself untouched. Proves the four-gate refusal tests actually pin the gate's fail-closed behavior for an expired binding, not merely that detach/attach happen to refuse for some other reason.",
+      "replacements": [
+        {
+          "path": "godot/scripts/core/inventory.gd",
+          "old": "\tif _equipment_authority.get_ref() == null:\n\t\treturn REFUSE_INVALID_EQUIPMENT_AUTHORITY",
+          "new": "\tif _equipment_authority.get_ref() == null:\n\t\treturn REFUSE_NONE",
+          "expected_occurrences": 1
+        }
+      ],
+      "expected_failing_tests": [
+        "test_expired_refcounted_authority_refuses_all_four_gates_with_state_unchanged",
+        "test_expired_node_authority_refuses_all_four_gates_after_explicit_free",
+        "test_explicit_unbind_refuses_with_live_equipped_lots_even_after_authority_expires"
+      ]
+    }
+  ]
+}

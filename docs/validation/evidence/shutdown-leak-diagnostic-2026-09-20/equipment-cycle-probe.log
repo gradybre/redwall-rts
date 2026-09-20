@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+CYCLE_PROBE {"bind_ok":true,"explicit_unbind_ok":true,"released_after_unbind":[true,true,true],"retained_without_external_owners":[true,true,true]}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

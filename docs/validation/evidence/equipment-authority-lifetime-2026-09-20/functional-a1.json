@@ -1,0 +1,18 @@
+{
+  "scope": "Equipment lifetime candidate functional suite",
+  "source_sha256": {
+    "godot/scripts/core/inventory.gd": "c8ec0dc122426a8231b7d00c13279fb1bfd42c5187740f6121692987ba2f1ca9",
+    "godot/test/test_equipment_authority_lifetime.gd": "bf18600cdecf22ab04fb7bbb976819f1b24162dfe6624d6b28f03b4d5173a2f6",
+    "godot/test/equipment_authority_lifetime_focus.gd": "fdb7c987f382bdca9b7567772143d4d29baa881807aeaceabe1c4a094da1ce56"
+  },
+  "seconds": 2.278,
+  "exit_code": 0,
+  "counts": [
+    11,
+    101,
+    0
+  ],
+  "script_or_engine_error": false,
+  "passed": true,
+  "log_sha256": "9924a94f4435039ace6fc341b467d2166554618f627dccf4be2cf2846fd12240"
+}

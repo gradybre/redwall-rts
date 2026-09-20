@@ -1,0 +1,21 @@
+{
+  "step": "boot",
+  "command": [
+    "godot",
+    "--headless",
+    "--verbose",
+    "--path",
+    "godot",
+    "--quit-after",
+    "120"
+  ],
+  "seconds": 2.275,
+  "exit_code": 0,
+  "counts": null,
+  "expected_counts": null,
+  "passed": true,
+  "error_lines": [],
+  "unexpected_errors": [],
+  "leak_diagnostic_lines": [],
+  "log_sha256": "9f4ac45a0fdc4f6f39b63fe27f96c7c4ae91d7a09ce2c9f94a49838341e39ef3"
+}

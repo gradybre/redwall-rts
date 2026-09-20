@@ -467,7 +467,11 @@ var _plan: TransferPlan = TransferPlan.new()
 
 ## The store that can prove a null-container lot is an equipped record with a live owner. Not
 ## simulation state and not journaled: it is a wiring reference, like `residents.gd`'s directory.
-var _equipment_authority: Object = null
+## EQUIPMENT-LIFETIME-R01v1 (ADR 0187): BORROWED, therefore held WEAKLY, exactly as
+## `_seed_expiry_authority` is. `gear.gd` owns this store strongly through `bind_equipment()`,
+## so a strong edge back would close an ownership cycle neither side can break. Still not
+## journaled, still absent from state_bytes(), and it still survives clear().
+var _equipment_authority: WeakRef = null
 ## Live lots whose container is the null ref. Derived from the columns, maintained like the live
 ## counts and restored the same way on rollback; `audit()` re-derives it.
 var _equipped_lot_count: int = 0
@@ -2438,13 +2442,40 @@ func set_equipment_authority(authority: Object) -> OpResult:
 		return _refuse(REFUSE_INVALID_EQUIPMENT_AUTHORITY)
 	if authority == null and _equipped_lot_count > 0:
 		return _refuse(REFUSE_EQUIPPED_LOTS_LIVE)
-	_equipment_authority = authority
+	# An explicit unbind and a released binding are DIFFERENT states and stay different: null
+	# clears the wrapper, while an expired wrapper is retained and refuses INVALID below.
+	if authority == null:
+		_equipment_authority = null
+	else:
+		_equipment_authority = weakref(authority)
 	return _ok(NULL_REF, _equipped_lot_count)
 
 
 func has_equipment_authority() -> bool:
-	"""True when an equipment authority is bound and a lot may therefore be proved equipped."""
-	return _equipment_authority != null
+	"""True when a LIVE equipment authority is bound and a lot may therefore be proved equipped.
+
+	False for never bound, for explicitly unbound, AND for a binding whose object has been
+	released -- but only the first two have no wrapper at all. The third is a DISTINCT state and
+	refuses every attach/detach gate with INVALID_EQUIPMENT_AUTHORITY.
+	"""
+	if _equipment_authority == null:
+		return false
+	return _equipment_authority.get_ref() != null
+
+
+func _equipment_authority_refusal() -> StringName:
+	"""The existing authority gate, now telling an unbound store from an expired binding.
+
+	REFUSE_NONE only for a live bound target. Never-bound and explicitly-unbound keep the
+	existing REFUSE_NO_EQUIPMENT_AUTHORITY; a previously bound target that has been released
+	fails CLOSED with the existing REFUSE_INVALID_EQUIPMENT_AUTHORITY rather than degrading into
+	the unbound case. An expired wrapper must never satisfy a presence check and admit anything.
+	"""
+	if _equipment_authority == null:
+		return REFUSE_NO_EQUIPMENT_AUTHORITY
+	if _equipment_authority.get_ref() == null:
+		return REFUSE_INVALID_EQUIPMENT_AUTHORITY
+	return REFUSE_NONE
 
 
 func _attests(lot_ref: Vector2i) -> bool:
@@ -2458,8 +2489,14 @@ func _attests(lot_ref: Vector2i) -> bool:
 	"""
 	if _equipment_authority == null:
 		return false
+	# STRONG local acquisition for the duration of the call: a live borrowed target cannot be
+	# released out from under the attestation it is answering. A released target attests
+	# nothing, which is what keeps audit()'s existing orphan-lot refusal intact.
+	var authority: Object = _equipment_authority.get_ref()
+	if authority == null:
+		return false
 	_attesting = true
-	var attested: bool = bool(_equipment_authority.call(EQUIPMENT_ATTESTATION_METHOD, lot_ref))
+	var attested: bool = bool(authority.call(EQUIPMENT_ATTESTATION_METHOD, lot_ref))
 	_attesting = false
 	return attested
 
@@ -2542,8 +2579,11 @@ func _check_detach(lot_ref: Vector2i, require_attestation: bool) -> StringName:
 	`gear.gd` has written the equipped flag and so cannot see the proof yet. Every path that
 	actually writes passes true; a bound authority is required either way.
 	"""
-	if _equipment_authority == null:
-		return REFUSE_NO_EQUIPMENT_AUTHORITY
+	# THE SAME GATE, IN THE SAME POSITION: it precedes every lot and destination check exactly
+	# as the former no-authority gate did, and now also refuses a bound authority that expired.
+	var authority: StringName = _equipment_authority_refusal()
+	if authority != REFUSE_NONE:
+		return authority
 	if not is_lot_valid(lot_ref):
 		return REFUSE_INVALID_LOT
 	if _l_container_slot[lot_ref.x] == NULL_SLOT:
@@ -2612,8 +2652,11 @@ func _check_attach(lot_ref: Vector2i, dest_ref: Vector2i, from_reserved_mass: bo
 	opposite: a lot the authority still calls equipped may not be shelved, because that is
 	precisely the state in which it would charge a container AND count as equipped.
 	"""
-	if _equipment_authority == null:
-		return REFUSE_NO_EQUIPMENT_AUTHORITY
+	# THE SAME GATE, IN THE SAME POSITION: it precedes the lot, destination and filter checks
+	# exactly as the former no-authority gate did, and now also refuses an expired binding.
+	var authority: StringName = _equipment_authority_refusal()
+	if authority != REFUSE_NONE:
+		return authority
 	if not is_lot_valid(lot_ref):
 		return REFUSE_INVALID_LOT
 	if _l_container_slot[lot_ref.x] != NULL_SLOT:

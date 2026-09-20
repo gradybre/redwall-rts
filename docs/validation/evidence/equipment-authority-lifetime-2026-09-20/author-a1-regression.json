@@ -1,0 +1,28 @@
+{
+  "scope": "Existing Inventory/Gear/stock authority/Settlement regression only; new equipment lifetime tests not yet applied",
+  "source_sha256": {
+    "godot/scripts/core/inventory.gd": "c8ec0dc122426a8231b7d00c13279fb1bfd42c5187740f6121692987ba2f1ca9",
+    "godot/test/test_settlement_system.gd": "f2ba63eb46f5bb95c22a9c90b5f239b2f1fa40271c087b34a68bd3f33ca29b23",
+    "godot/scripts/core/gear.gd": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f",
+    "godot/test/test_inventory.gd": "d8728e970d3aaf4aa4eeae25a42c483fd502aaa3574576122488ea3a38b3de02",
+    "godot/test/test_gear.gd": "a65de86810092f58c43cb5c3c957eaf3a66d13048e836cf1c597778dfbdef146",
+    "godot/test/test_stock_authority_lifetime.gd": "399d696e1bec05dd228164a6dd734cd8501cb9e4a24299c396870607f30be155"
+  },
+  "seconds": 41.064,
+  "exit_code": 0,
+  "counts": [
+    408,
+    8132,
+    0
+  ],
+  "script_or_parse_error": false,
+  "engine_diagnostic_lines": [
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'OVERFLOW' at hour tick 750 is unrecovered (retries attempted: 0); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset."
+  ],
+  "passed": true,
+  "log_sha256": "efe42ec655ae4d58b0a6d5e8fffad0dfe4bbc1a8fa02c02dbf7382cfabd0c403"
+}

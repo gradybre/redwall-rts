@@ -1,0 +1,20 @@
+{
+  "attempt": "equipment-authority-tests-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "session_id": "dd0b7438-c829-409b-a8d5-5e98a10b7798",
+  "owner_stopped": true,
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_inputs_reverified": true,
+  "files": {
+    "godot/test/test_equipment_authority_lifetime.gd": "bf18600cdecf22ab04fb7bbb976819f1b24162dfe6624d6b28f03b4d5173a2f6",
+    "godot/test/equipment_authority_lifetime_focus.gd": "fdb7c987f382bdca9b7567772143d4d29baa881807aeaceabe1c4a094da1ce56"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

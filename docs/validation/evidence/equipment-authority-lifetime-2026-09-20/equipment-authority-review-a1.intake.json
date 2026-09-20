@@ -1,0 +1,19 @@
+{
+  "attempt": "equipment-authority-review-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "session_id": "6a22347f-e7eb-4d2e-a297-ead22b7eac7a",
+  "owner_stopped": true,
+  "base_commit": "043c4da567861d313fb0e23656b4a1363d8cf708",
+  "integration_head": "043c4da567861d313fb0e23656b4a1363d8cf708",
+  "source_inputs_reverified": true,
+  "files": {
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/independent-code-review.md": "97664801a229efdb4d9a917dc551e7c8bfd5b9451b530714e1e262f70696455b"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

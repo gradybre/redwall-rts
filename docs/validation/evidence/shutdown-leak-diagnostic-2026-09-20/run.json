@@ -1,0 +1,26 @@
+{
+  "scope": "Read-only diagnostic of the known553ObjectDB/33resource shutdown leak; direct verbose worker, not substitute for supervised acceptance",
+  "head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "command": [
+    "godot",
+    "--headless",
+    "--verbose",
+    "--path",
+    "godot",
+    "--script",
+    "test/run_tests.gd",
+    "--",
+    "--run-suites"
+  ],
+  "exit_code": 0,
+  "seconds": 257.915,
+  "worker_totals": [
+    [
+      "5046",
+      "526349",
+      "0"
+    ]
+  ],
+  "script_error": false,
+  "log_sha256": "79c2ba35d6671aea032f906d5b22769769064095f9bbb78b0d6d8b7ae58d7e49"
+}

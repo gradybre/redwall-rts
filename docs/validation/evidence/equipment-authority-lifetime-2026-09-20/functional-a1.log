@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_equipment_authority_lifetime.gd
+  PASS  test_an_object_without_the_method_is_refused_at_bind_time
+  PASS  test_a_failed_bind_preserves_the_previous_live_binding
+  PASS  test_clear_preserves_the_equipment_authority_binding
+  PASS  test_never_bound_and_explicit_unbind_both_refuse_no_equipment_authority
+  PASS  test_expired_refcounted_authority_refuses_all_four_gates_with_state_unchanged
+  PASS  test_expired_node_authority_refuses_all_four_gates_after_explicit_free
+  PASS  test_audit_refuses_orphan_lot_after_authority_expires_without_normalization
+  PASS  test_explicit_unbind_refuses_with_live_equipped_lots_even_after_authority_expires
+  PASS  test_a_live_replacement_authority_restores_attestation_after_expiry
+  PASS  test_reentry_during_detach_is_still_refused
+  PASS  test_a_strong_per_call_local_survives_the_authority_dropping_its_sole_external_owner
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+11 test(s), 101 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

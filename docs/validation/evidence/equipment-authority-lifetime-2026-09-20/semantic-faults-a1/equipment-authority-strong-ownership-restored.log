@@ -1,0 +1,55 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_equipment_authority_lifetime.gd
+  PASS  test_an_object_without_the_method_is_refused_at_bind_time
+  PASS  test_a_failed_bind_preserves_the_previous_live_binding
+  PASS  test_clear_preserves_the_equipment_authority_binding
+  PASS  test_never_bound_and_explicit_unbind_both_refuse_no_equipment_authority
+  PASS  test_binding_refuses_while_a_transaction_is_open_and_preserves_the_prior_authority
+  FAIL  test_expired_refcounted_authority_refuses_all_four_gates_with_state_unchanged
+        the released target is not live (expected false, got true)
+        detach preflight must not succeed (expected false, got true)
+        detach preflight (expected INVALID_EQUIPMENT_AUTHORITY, got )
+        detach (expected INVALID_EQUIPMENT_AUTHORITY, got NOT_AN_EQUIPPED_RECORD)
+        attach preflight must not succeed (expected false, got true)
+        attach preflight (expected INVALID_EQUIPMENT_AUTHORITY, got )
+        attach (expected INVALID_EQUIPMENT_AUTHORITY, got STILL_AN_EQUIPPED_RECORD)
+  PASS  test_expired_node_authority_refuses_all_four_gates_after_explicit_free
+  FAIL  test_audit_refuses_orphan_lot_after_authority_expires_without_normalization
+        an orphaned equipped lot fails audit (expected false, got true)
+        named (expected AUDIT_ORPHAN_LOT, got )
+  FAIL  test_explicit_unbind_refuses_with_live_equipped_lots_even_after_authority_expires
+        the wrapper still reports no live target (expected false, got true)
+        the wrapper is still bound-but-expired, not cleared to unbound (expected INVALID_EQUIPMENT_AUTHORITY, got )
+  FAIL  test_a_live_replacement_authority_restores_attestation_after_expiry
+        orphaned first (expected AUDIT_ORPHAN_LOT, got )
+  PASS  test_reentry_during_detach_is_still_refused
+  FAIL  test_a_strong_per_call_local_survives_the_authority_dropping_its_sole_external_owner
+        and nothing kept the authority alive once the call returned (expected null, got <RefCounted#-9223371940067014869>)
+  FAIL  test_real_gear_inventory_residents_mutually_release_without_unbind
+        inventory released with no explicit unbind (expected null, got <RefCounted#-9223371939899242721>)
+        gear released (expected null, got <RefCounted#-9223371939697916059>)
+        residents released (expected null, got <RefCounted#-9223371939848911061>)
+  FAIL  test_real_gear_alone_retains_inventory_and_residents_until_gear_is_dropped
+        inventory releases once gear is dropped (expected null, got <RefCounted#-9223371939496589508>)
+        residents release once gear is dropped (expected null, got <RefCounted#-9223371939446257813>)
+        gear releases (expected null, got <RefCounted#-9223371939295262864>)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+WARNING: 37 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
+
+14 test(s), 133 assertion(s), 7 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

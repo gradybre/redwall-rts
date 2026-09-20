@@ -1,0 +1,41 @@
+{
+  "step": "verbose",
+  "command": [
+    "godot",
+    "--headless",
+    "--verbose",
+    "--path",
+    "godot",
+    "--script",
+    "test/run_tests.gd",
+    "--",
+    "--run-suites"
+  ],
+  "seconds": 298.972,
+  "exit_code": 0,
+  "counts": [
+    5060,
+    526482,
+    0
+  ],
+  "expected_counts": [
+    5060,
+    526482,
+    0
+  ],
+  "passed": true,
+  "error_lines": [
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'OVERFLOW' at hour tick 750 is unrecovered (retries attempted: 0); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: ui_frame_builder: UI_FRAME_PANEL_TOO_SMALL for frame 0 at (20.000000, 20.000000)",
+    "ERROR: ui_frame_builder: UI_FRAME_UNKNOWN_FRAME for frame 5 at (300.000000, 120.000000)",
+    "ERROR: ui_frame_builder: UI_FRAME_NULL_PANEL",
+    "ERROR: UIManager.register_hud() was given null; the HUD will not update."
+  ],
+  "unexpected_errors": [],
+  "leak_diagnostic_lines": [],
+  "log_sha256": "909a1fe969d977d28a9bbcafadd336b0333cad53eb5e2ca2c2e7cac02c382767"
+}

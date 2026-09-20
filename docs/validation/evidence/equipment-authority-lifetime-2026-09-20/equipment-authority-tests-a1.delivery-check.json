@@ -1,0 +1,20 @@
+{
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "allowedWrites": {
+    "godot/test/test_equipment_authority_lifetime.gd": null,
+    "godot/test/equipment_authority_lifetime_focus.gd": null
+  },
+  "returnedPaths": [
+    "godot/test/test_equipment_authority_lifetime.gd",
+    "godot/test/equipment_authority_lifetime_focus.gd"
+  ],
+  "sourceApplied": false,
+  "approval": "not_granted"
+}

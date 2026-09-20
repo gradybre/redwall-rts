@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Assigned value for constant "FOCUS_SUITES" isn't a constant expression.
+          at: GDScript::reload (res://test/equipment_authority_lifetime_focus.gd:11)
+ERROR: Failed to load script "res://test/equipment_authority_lifetime_focus.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

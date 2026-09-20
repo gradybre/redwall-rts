@@ -1,0 +1,19 @@
+{
+  "attempt": "equipment-authority-faults-a3",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "equipment-authority-lifetime-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "EQUIPMENT-LIFETIME-R01v1"
+  },
+  "session_id": "dd0b7438-c829-409b-a8d5-5e98a10b7798",
+  "owner_stopped": true,
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_inputs_reverified": true,
+  "files": {
+    "docs/validation/evidence/equipment-authority-lifetime-2026-09-20/semantic-fault-plan.json": "a5d5abb434354a19f52d12dc7654a09da30264aae7559485b0f1ef12629f7a7f"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

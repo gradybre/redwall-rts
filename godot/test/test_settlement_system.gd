@@ -3366,8 +3366,10 @@ func test_a_new_world_reset_leaks_no_pose_into_the_world_that_follows_it() -> vo
 	var first: Vector2i = _settlement.residents().ref_of(_slot_of_persistent_id(1))
 	_settlement.reset()
 	assert_equal(_settlement.transforms().bound_count(), 0, "the reset released every pose")
-	assert_equal(_settlement.transforms().state_bytes(),
-		SettlementSystemScript.new().transforms().state_bytes(),
+	var fresh: SettlementSystemScript = SettlementSystemScript.new()
+	var fresh_bytes: PackedByteArray = fresh.transforms().state_bytes()
+	fresh.free()
+	assert_equal(_settlement.transforms().state_bytes(), fresh_bytes,
 		"leaving the columns byte-identical to a freshly composed store")
 	assert_false(_settlement.transforms().is_bound(first),
 		"and the first world's reference reads as unplaced, not as its old coordinates")

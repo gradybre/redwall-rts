@@ -1,0 +1,72 @@
+[
+  {
+    "attempt": "planner-columns-audit-a1",
+    "model": "claude-opus-5",
+    "session_id": "1871174a-db76-4c40-a587-0ecc94191510",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "godot/scripts/core/job_planner.gd",
+        "sha256": "577c9e9751a0c2ad9683fdc060b69d95265eb0c7e3ac8568acf8c92621dbe244"
+      },
+      {
+        "path": "godot/scripts/core/save_section_job_indexes.gd",
+        "sha256": "02648e6cf631a15fccf149bf9cd9d26a8b2133d77d45f9fbd51c50c590b93e7d"
+      },
+      {
+        "path": "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md",
+        "sha256": "98bd435dbf7482871d33e0bedeb4c16ad99b4c6d5c4aebddd988fd607af16b14"
+      },
+      {
+        "path": "docs/rulings/2026-09-09_task03_planner_rulings.md",
+        "sha256": "ca4f2a46181791864595c205be3a0f60a8f384433fa3cf94dbaca09c6254a38a"
+      },
+      {
+        "path": "docs/decisions/0157-persist-planner-dirty-order-and-membership.md",
+        "sha256": "f755c66d80db1a1b30c088095302d13346b12da18bdbf1ec4e100a94ae5e552e"
+      }
+    ]
+  },
+  {
+    "attempt": "planner-columns-contract-a1",
+    "model": "claude-opus-5",
+    "session_id": "dd9e46a5-0480-4ee3-814d-051e7b0dd433",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/job_planner_bulk_columns_contract.md",
+        "sha256": "caaf3b456400908bd5c8dbb664476effb50be2d198269b598b0bc5939c3e0be2"
+      },
+      {
+        "path": "docs/validation/evidence/planner-columns-contract-2026-09-19/astra-audit-disposition.md",
+        "sha256": "8764ef26a809eabdebf93cc481939d3e38d5d002556573ad9b0a7a23182af51b"
+      },
+      {
+        "path": "docs/validation/evidence/planner-columns-contract-2026-09-19/inheritance_probe.log",
+        "sha256": "bbea6d90e34c4e70fcb33daae7ea799c977c909cc5b1f76b5b6874fec3a9c4c5"
+      },
+      {
+        "path": "docs/validation/evidence/planner-columns-contract-2026-09-19/stale_job_probe.gd",
+        "sha256": "987692856eaf1ef39cca89b4f81210bab425656c872c67412564c66b91d3fcea"
+      },
+      {
+        "path": "docs/validation/evidence/planner-columns-contract-2026-09-19/stale_job_probe.log",
+        "sha256": "7bcf2711e8b19da096ca7c03ba93f286393e401598df248c044101e8fba63a96"
+      },
+      {
+        "path": "godot/scripts/core/job_planner.gd",
+        "sha256": "577c9e9751a0c2ad9683fdc060b69d95265eb0c7e3ac8568acf8c92621dbe244"
+      },
+      {
+        "path": "godot/scripts/core/save_section_job_indexes.gd",
+        "sha256": "02648e6cf631a15fccf149bf9cd9d26a8b2133d77d45f9fbd51c50c590b93e7d"
+      },
+      {
+        "path": "godot/scripts/core/save_identity_restore.gd",
+        "sha256": "dcce8b6977c47ee01130804c6556286c8810ad62cf60a7e790b300daab39da98"
+      }
+    ]
+  }
+]

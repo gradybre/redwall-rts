@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "ab457e8380e8026d1b8768331d33a8119a8f0a86",
+  "task": "Planner bulk capture/restore feasibility audit before SAVE-J2 implementation contract",
+  "paths": [
+    "godot/scripts/core/job_planner.gd",
+    "godot/scripts/core/save_section_job_indexes.gd",
+    "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md",
+    "docs/rulings/2026-09-09_task03_planner_rulings.md",
+    "docs/decisions/0157-persist-planner-dirty-order-and-membership.md"
+  ],
+  "instructions": "Read-only feasibility audit for next exact bulk capture/restore contract. Current section8 schema2 has35 fields (including3dirtylists/counts), 383884canonicalbytes; dirtyorder is future-affecting and must preserve exact prefix/zero-tail. Owner and codec currently preload direction codec->planner. Need full owner + actual codec adapter, no partial completion. Determine exact source-owned cross-reference validity for pending/requested/unmet service/forage/hive rows, legitimate transitional stale references possible at committed boundaries, counters category2 vs diagnostics, and restore dependencies. How to share typed snapshot/domain validator without introducing circular preload? Propose bounded maintainable interface, preserve all existing public codec APIs. Evaluate moving pure schema/Record/validation to dependency-neutral helper, codec inherits/wraps it, owner consumes typed columns; must not move owner-preload dependencies into helper. No claims of verified GDScript inheritance until parent probes. Report concrete gaps requiring Astra decision and exact source functions, not vague blockers. No source edits. Return rawJSON status complete,summary,questions [],files exactly one NEW docs/validation/evidence/planner-columns-contract-2026-09-19/feasibility-audit.md baseSha256 null content <=2000words,decisionIds []. One bounded attempt, no tools. Do not propose silent revalidate_after_load repair as strictrestore."
+}

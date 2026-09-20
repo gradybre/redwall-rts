@@ -1,0 +1,84 @@
+[
+  {
+    "attempt": "planner-columns-a1",
+    "model": "claude-opus-5",
+    "session_id": "4a281674-2b36-4f0a-8db5-7be9f14f3850",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/job_planner_bulk_columns_contract.md",
+        "sha256": "455cb9aaa3ca07f248e0a9ea76ae78dcf1c8cc17968bccb3637202c9aa99e2aa"
+      },
+      {
+        "path": "docs/decisions/0160-restore-planner-columns-without-repairing-history.md",
+        "sha256": "860eca6596832d0f369d16750515c973bd2651480ecb0a1f852cdcfe2da67d12"
+      },
+      {
+        "path": "godot/scripts/core/job_planner.gd",
+        "sha256": "ce989b257ecd71d77fda9513ff72e21c7024f633fa96df202be538e18de28da1"
+      },
+      {
+        "path": "godot/scripts/core/job_index_schema.gd",
+        "sha256": "85a4b77020f063eff147d9d4d45e02f7bd56bcc5441bda828d7877bc3f3e98d4"
+      },
+      {
+        "path": "godot/scripts/core/entity_directory.gd",
+        "sha256": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a"
+      }
+    ]
+  },
+  {
+    "attempt": "planner-columns-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "6db2391d-8c54-4fc9-9552-a4a91e056a66",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/job_planner_bulk_columns_contract.md",
+        "sha256": "455cb9aaa3ca07f248e0a9ea76ae78dcf1c8cc17968bccb3637202c9aa99e2aa"
+      },
+      {
+        "path": "docs/decisions/0160-restore-planner-columns-without-repairing-history.md",
+        "sha256": "860eca6596832d0f369d16750515c973bd2651480ecb0a1f852cdcfe2da67d12"
+      },
+      {
+        "path": "godot/scripts/core/job_index_schema.gd",
+        "sha256": "31e567e2f8c10ecd87170fffa3b8f88e65190e9900f13be1caefa08dff77368f"
+      },
+      {
+        "path": "godot/scripts/core/job_planner.gd",
+        "sha256": "7fe8c1e5c5686df2fcb595532eb9cd5bdbc90541349a56f94b575ca84a8abdc9"
+      },
+      {
+        "path": "godot/scripts/core/save_section_job_indexes.gd",
+        "sha256": "a1df86af66e9d3a524a37b73a08cee3c65f29f968d7b744aa9dce1be7ffc5019"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/scripts/core/entity_directory.gd",
+        "sha256": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a"
+      },
+      {
+        "path": "godot/test/test_job_planner_columns.gd",
+        "sha256": "d6d5af3f9a2ea1c2b1ac52997d40201f25d54a8b6ec12f9539e7f977deb350fb"
+      },
+      {
+        "path": "godot/test/test_save_section_job_indexes.gd",
+        "sha256": "89ac7625b52c20109665a27c55567e90d2a6fb4cb060da2af8dbb51704ddc836"
+      },
+      {
+        "path": "docs/validation/evidence/planner-columns-2026-09-19/focus-expanded.log",
+        "sha256": "97649e1ec14208021583ba6be9cfd7b5576419835a09736a61a45d60e18944b0"
+      },
+      {
+        "path": "docs/validation/evidence/planner-columns-contract-2026-09-19/contract-v1-disposition.md",
+        "sha256": "e9a1e62b81ed4b3ff6bbad8a44e971a3eaf49b624a36c2cac51f00547d3bb339"
+      }
+    ]
+  }
+]

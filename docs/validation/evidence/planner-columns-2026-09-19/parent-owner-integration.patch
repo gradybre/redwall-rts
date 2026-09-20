@@ -1,0 +1,72 @@
+--- returned-owner-block-integrated
++++ validated-source-order-and-shapes
+@@ -3980,8 +3980,8 @@
+ const REFUSE_COLUMN_REFERENCE: StringName = &"COLUMN_JOB_INDEX_REFERENCE"
+ 
+ ## How many outcome diagnostics `_reset_counters()` assigns, and therefore how many trailing
+-## values `state_bytes()` emits. Reports that function rather than defining it; the assertion
+-## in `_assert_column_contracts()` is what keeps the two together.
++## values `state_bytes()` emits. The independent diagnostic-reset test checks the actual assignment list;
++## this constant documents its expected census.
+ const COLUMN_DIAGNOSTIC_COUNT: int = 21
+ 
+ # --- SAVE-J2 owner column diagnostic scalar -------------------------------------------------------
+@@ -4008,8 +4008,8 @@
+ 
+ 	The order is fixed and every step precedes publication: the OUTPUT's shape, then the three
+ 	live dirty counts in their NATIVE range before any narrowing into an extent-1 i32 column,
+-	then an exact staged duplicate of all 35 fields, then the source's own membership and
+-	derived-counter invariants, then the shared record validation, then the resolving-reference
++	then an exact staged duplicate of all 35 fields, then the shared record validation, then the source membership and
++	derived-counter invariants, then the resolving-reference
+ 	rules. Only after all of them does `out` change, and then every buffer is replaced with an
+ 	independent copy: nothing the caller holds afterwards aliases an owner array, and mutating
+ 	the result cannot reach this store.
+@@ -4028,9 +4028,9 @@
+ 	_stage_demand_columns(staged)
+ 	_stage_hive_columns(staged)
+ 	_stage_dirty_columns(staged)
++	if not JobIndexSchema.record_refusal(staged).is_ok():
++		return _refuse_columns(REFUSE_COLUMN_RECORD)
+ 	if not _source_invariants_hold():
+-		return _refuse_columns(REFUSE_COLUMN_RECORD)
+-	if not JobIndexSchema.record_refusal(staged).is_ok():
+ 		return _refuse_columns(REFUSE_COLUMN_RECORD)
+ 	if not _record_references_are_legal(staged):
+ 		return _refuse_columns(REFUSE_COLUMN_REFERENCE)
+@@ -4063,6 +4063,8 @@
+ 		return _refuse_columns(REFUSE_COLUMN_RECORD)
+ 	if not _record_references_are_legal(columns):
+ 		return _refuse_columns(REFUSE_COLUMN_REFERENCE)
++	if not _membership_shapes_are_valid():
++		return _refuse_columns(REFUSE_COLUMN_RECORD)
+ 	_install_service_columns(columns)
+ 	_install_cycle_columns(columns)
+ 	_install_demand_columns(columns)
+@@ -4205,6 +4207,8 @@
+ 	would restore into a different world than the one being captured, so the capture refuses
+ 	rather than exporting a self-inconsistent image.
+ 	"""
++	if not _membership_shapes_are_valid():
++		return false
+ 	if not _membership_agrees(_is_dirty, _dirty_rows, _dirty_count):
+ 		return false
+ 	if not _membership_agrees(_is_zone_dirty, _dirty_zone_rows, _dirty_zone_count):
+@@ -4214,10 +4218,16 @@
+ 	return _derived_counters_agree()
+ 
+ 
++func _membership_shapes_are_valid() -> bool:
++	"""A corrupted derived buffer must refuse before any prefix indexing or restore writes."""
++	return _is_dirty.size() == OWNER_CAPACITY and _is_zone_dirty.size() == ZONE_OWNER_CAPACITY \
++		and _is_hive_dirty.size() == HIVE_OWNER_CAPACITY
++
++
+ func _membership_agrees(bits: PackedByteArray, rows: PackedInt32Array, count: int) -> bool:
+ 	"""True when every byte is 0 or 1, exactly `count` are 1, and each saved prefix entry is 1.
+ 
+-	All three clauses are needed: the byte domain alone permits a 2, the count alone permits a
++	All three clauses are needed: the byte-domain check rejects 2, the count alone permits a
+ 	balanced swap between two rows, and the prefix walk alone permits a marked row that no
+ 	prefix entry names.
+ 	"""

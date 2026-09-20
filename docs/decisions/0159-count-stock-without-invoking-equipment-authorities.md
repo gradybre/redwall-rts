@@ -1,6 +1,6 @@
 # 0159 — Count stock without invoking equipment authorities
 
-Date: 2026-09-19 · Status: Implemented candidate; independent source review and tests passed, merge pending
+Date: 2026-09-19 · Status: Implemented and merged in PR150 (`d495b9c`); independent review and exact-head CI passed
 
 [INIT-COUNT-R01v2](../planning/inventory_stock_counts_contract.md) supplies a cold,
 read-only whole-Inventory count record: live, loose, equipped and unreserved loose

@@ -1,0 +1,2 @@
+FAIL C1 job_index_schema.gd has no registry section -- a new store must be classified
+state_registry_coverage: 1 failure(s)

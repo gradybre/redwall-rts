@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "75032fb5adc7bc361d03561061e8cd2599a34f0b",
+  "task": "Independent SAVE-J2-R02v1 planner bulk/adapter contract review",
+  "paths": [
+    "docs/planning/job_planner_bulk_columns_contract.md",
+    "docs/validation/evidence/planner-columns-contract-2026-09-19/astra-audit-disposition.md",
+    "docs/validation/evidence/planner-columns-contract-2026-09-19/inheritance_probe.log",
+    "docs/validation/evidence/planner-columns-contract-2026-09-19/stale_job_probe.gd",
+    "docs/validation/evidence/planner-columns-contract-2026-09-19/stale_job_probe.log",
+    "godot/scripts/core/job_planner.gd",
+    "godot/scripts/core/save_section_job_indexes.gd",
+    "godot/scripts/core/save_identity_restore.gd"
+  ],
+  "instructions": "Independent exact contract review before implementation. Audit findings disposition and actual probes included. Verify shared-schema extraction can preserve all existing API/wire identities without preload cycle; source constants count21 plusUNMET; dirtycounts arecanonical notderived. Validate stale-reference policy, source derivedinvariantchecks, eightderivedcounters21diagnosticsreset, no mutate collaborator, owneratomicrestore and codecbarrierprecedence. Identify concrete contradictions, missing exactinterfaces/failure behavior or tests; no demand for fullworldcoordinator in this boundedownerpacket. Existing API needs null/group-length shape repair so malformed inputs do not crash. Check memory arithmetic and transient peak; flag overclaims. No source edits. Return rawJSON status complete,summary,questions [],files exactly one NEW docs/validation/evidence/planner-columns-contract-2026-09-19/contract-v1-review.md baseSha256 null content<=1600words,decisionIds []. No tools. One bounded attempt."
+}

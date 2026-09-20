@@ -1,0 +1,35 @@
+[
+  {
+    "bytes": 384203,
+    "fields": 35,
+    "fixture": "empty",
+    "groups": [
+      8,
+      25,
+      2
+    ],
+    "sha256": "46760dad840a3e5480ae15857964dc342306b4bbe3dcf543ca318c2a69beae9d"
+  },
+  {
+    "bytes": 384203,
+    "fields": 35,
+    "fixture": "dirty_farm_0_1",
+    "groups": [
+      8,
+      25,
+      2
+    ],
+    "sha256": "df4a6de700cec9f19728b218d83eb56a47542371763c6e28f7462d13609490df"
+  },
+  {
+    "bytes": 384203,
+    "fields": 35,
+    "fixture": "dirty_farm_1_0",
+    "groups": [
+      8,
+      25,
+      2
+    ],
+    "sha256": "759c361a25320e459657e51f596fe0cd69fb8618d7b4172b282c882ad1588711"
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "godot/scripts/core/job_planner.gd": "577c9e9751a0c2ad9683fdc060b69d95265eb0c7e3ac8568acf8c92621dbe244",
+  "godot/scripts/core/save_section_job_indexes.gd": "02648e6cf631a15fccf149bf9cd9d26a8b2133d77d45f9fbd51c50c590b93e7d",
+  "godot/scripts/core/jobs.gd": "bf74583b409dd22da8b9100318e224b63bede5ed01c66be09f4ed0ab38809f3c",
+  "godot/scripts/core/farming.gd": "c025f23da0f88ddff8c5ea64bae0f3bb75d7085f83f949bd3877e70443aea773",
+  "godot/scripts/core/forage.gd": "74694b212993599a8ffc0f488f2e45d6c81acdaba1297c4fd723c0860790dbcb",
+  "godot/scripts/core/orchard_hive.gd": "bb1e885b046f61aeb03f6939f2c05c7a4597e3238cf412e111abd07be4e3c780"
+}

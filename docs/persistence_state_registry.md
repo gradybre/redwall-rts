@@ -779,6 +779,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---|---|---|:-:|---|---|
 | Pure owner15 pose and binding validator | -- | -- | -- | -- | 3 | -- | Decision0173 / TRANSFORMS-S4-VALIDATE-R01v1. No mutable module state or live owner/Directory construction. Nine typed caller-owned i32 columns feed the static predicate; positive binding uniqueness uses one private350208-byte duplicate-and-sort. Framed3151872 + scratch350208 + three65536stream windows =3698688logical packed bytes, below existing6417408one-owner stream allowance. Native/wrapper overhead is unmeasured. Preserve all signed pose/yaw values, independent current/previous and legitimate stale bindings. Bulk APIs/nonzero-stamp count rebuild and saved cursor/Directory identity remain separate. |
 
+### `godot/scripts/core/save_owner_movement.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---|---|---|:-:|---|---|
+| Movement validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner8 bridge, MOVEMENT-S4-VALIDATE-R01v1/ADR0182. No mutable authoritative state or live owner construction. Caller32768 + cold Columns defaults32768 =65536 conservative logical packed bytes, within6417408 stream allowance; native/transitive preload costs unmeasured. ARRIVED final velocity and zero one-cell targets are retained. Same-file cursor/Residents/navigation/Transforms/clock joins and bulk restoration remain MOVEMENT-SAVED-BINDINGS. |
+
 ### `godot/scripts/core/save_owner_fishing.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

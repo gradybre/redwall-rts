@@ -1,0 +1,13 @@
+{
+  "base_commit": "f36d36644d4983d057183893391937a19d0c5677",
+  "source_sha256": {
+    "godot/scripts/core/movement.gd": "152951b44b02fc91e7c164c6a2baf56dec6bc7407f402dfc0df4051d5bfe8f8e",
+    "godot/scripts/core/save_owner_movement.gd": "e85eef0cae688df79cc14c606a50c7d57dd925984713dd5072913a15b7cbea82",
+    "godot/test/test_save_owner_movement.gd": "e95b7272e0a03cb1879eacefb8af3e8b7bc2984146b44ec19d0648c807fdd9cf",
+    "godot/test/test_movement_readmission.gd": "3d3b8ea12020eaefc6f2f58422d841158f14e956ce6e7e8970e69b3049147380",
+    "godot/test/movement_validation_focus.gd": "5b1b5298079de3b05e16b6ccb7b7267ac1b078e87463cde7b265b3aa15adf5c5",
+    "tools/test_movement_metadata_preflights.py": "908f866c05a1287f12d0fc8f4a60bc52397b3471ed22cbf6b351c2c6a93c5527"
+  },
+  "review_scope": "Exact owner and bridge bytes independently reviewed as reconstructed candidates; actual applied sources are byte-identical",
+  "candidate_tests_scope": "Clone evidence transfers only by identical source/test/tool bytes; actual integration import/static/full/CI still required"
+}

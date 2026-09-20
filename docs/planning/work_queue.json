@@ -1807,7 +1807,9 @@
         "SAVE-S4-FARMING-VALIDATE",
         "FARMING-SAVED-BINDINGS",
         "SAVE-S4-FISHING-VALIDATE",
-        "FISHING-SAVED-BINDINGS"
+        "FISHING-SAVED-BINDINGS",
+        "SAVE-S4-MOVEMENT-VALIDATE",
+        "MOVEMENT-SAVED-BINDINGS"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -2207,7 +2209,7 @@
     {
       "id": "SAVE-S4-FISHING-VALIDATE",
       "title": "Validate saved Fishing habitat and stock columns while preserving hysteresis and basin generations",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -2222,7 +2224,10 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance FISHING-S4-VALIDATE-R01v1/ADR0181: full4982/478664/0; focus7/16230/0 clean;63 required code mutations and8 metadata bypasses detected,31metadata cases/279assertions;17static checks/import and independent exact-source review pass. Candidate clone evidence is tied to actual applied owner/bridge/tests/tool by SHA identity. Hysteresis, inactive habitat history and zone generation distinctions preserved. Full shutdown baseline553objects/33resources unchanged. Exact-head CI pending; saved bindings/bulk APIs/live gameplay remain separate."
+      "note": "Local acceptance FISHING-S4-VALIDATE-R01v1/ADR0181: full4982/478664/0; focus7/16230/0 clean;63 required code mutations and8 metadata bypasses detected,31metadata cases/279assertions;17static checks/import and independent exact-source review pass. Candidate clone evidence is tied to actual applied owner/bridge/tests/tool by SHA identity. Hysteresis, inactive habitat history and zone generation distinctions preserved. Full shutdown baseline553objects/33resources unchanged. Merged PR172 after CI35509927057 passed4982/478664/0 and31metadata cases; saved bindings/bulk APIs/live gameplay remain separate.",
+      "pr": 172,
+      "merged_at": "2026-09-20T12:39:22Z",
+      "merge_commit": "f36d36644d4983d057183893391937a19d0c5677"
     },
     {
       "id": "FISHING-SAVED-BINDINGS",
@@ -2237,6 +2242,41 @@
       "agent": "astra",
       "gate": "none",
       "note": "Required before semantic acceptance: saved Directory kind/current generation/typed row; Forage basin semantics and retained generation history; ItemDefinition mapping; section7 effort totals/claims with Jobs and Expedition; loaded events/clock and common-file provenance. Full habitat/stock capture/apply and live fishing gameplay remain separate."
+    },
+    {
+      "id": "SAVE-S4-MOVEMENT-VALIDATE",
+      "title": "Validate saved Movement columns and repair repeated-admission traveller counts",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/movement.gd",
+        "godot/scripts/core/save_owner_movement.gd",
+        "godot/test/test_save_owner_movement.gd",
+        "godot/test/test_movement_readmission.gd",
+        "godot/test/movement_validation_focus.gd",
+        "tools/test_movement_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance MOVEMENT-S4-VALIDATE-R01v1/ADR0182: full4993/503170/0; focus11/24506/0 clean;50 required code mutations and8 metadata bypasses detected,21metadata cases/189assertions;17static checks/import and independent exact-source review pass. Candidate clone evidence is tied to actual applied owner/bridge/tests/tool by SHA identity. Readmission removes the old traveller contribution once after all refusals; terminal history and legitimate stale-row cleanup preserved. Full shutdown baseline553objects/33resources unchanged. Exact-head CI pending; saved bindings/bulk APIs/connected movement remain separate."
+    },
+    {
+      "id": "MOVEMENT-SAVED-BINDINGS",
+      "title": "Reconcile saved Movement rows with cursor, resident, route and Transform state",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-MOVEMENT-VALIDATE"
+      ],
+      "owns": [
+        "docs/planning/movement_saved_binding_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Required before semantic acceptance: same-file Residents persistent identity; section2 cursor/profile/load/destination terms; navigation request/route generations and readiness; Transforms current/previous pose; loaded tick phase and common provenance. Preserve legitimate pending stale cleanup until owning tick checks. Full16-column capture/apply, travel/work delivery, connected tunnels/swimming/diving/canopy and MOVE-G01\u201305 remain separate."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

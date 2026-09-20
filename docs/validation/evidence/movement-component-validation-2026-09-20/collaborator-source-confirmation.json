@@ -1,0 +1,16 @@
+{
+  "reviewer": "Astra source follow-up for independent review F4/F5",
+  "source_sha256": {
+    "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+    "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  },
+  "findings": [
+    "FramedOwner stores separate typed buckets; i32_column validates field/type then returns stored storage_index without duplicate",
+    "owner_shape_refusal checks every field exact extent and all three bucket counts; preceding schema/metadata gates pin owner8 sixteen i32[512] fields, so legal storage indices are0..15",
+    "set_i32 used only by fixtures checks type/extent/index and duplicates one input column; bridge getters share existing buffers",
+    "SaveHeader.Refusal constructor stores code/detail verbatim; is_ok compares to empty REFUSE_NONE",
+    "Schema.TYPE_I32 is literal2; actual candidate61/21446 and11/24506 runs resolved inner-class constants and collaborator APIs without script/import error"
+  ],
+  "remaining": "Actual integrated import/full/CI still required"
+}

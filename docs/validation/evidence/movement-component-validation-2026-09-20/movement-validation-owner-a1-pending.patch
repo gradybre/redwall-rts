@@ -1,0 +1,265 @@
+diff --git a/godot/scripts/core/movement.gd b/godot/scripts/core/movement.gd
+--- a/godot/scripts/core/movement.gd
++++ b/godot/scripts/core/movement.gd
+@@ -269,4 +269,17 @@
+ const REFUSE_CONTACT_REVISION: StringName = &"CONTACT_DESTINATION_REVISION_STALE"
+ const REFUSE_ROUTE_CONTACT: StringName = &"ROUTE_DOES_NOT_END_AT_CONTACT_APPROACH"
++
++## The nine cold-image refusals of MOVEMENT-S4-VALIDATE-R01, one per gate of `columns_refusal()`.
++## Each names a SAVED-IMAGE domain violation and never a live-admission outcome, so they are a
++## deliberately separate namespace from the REFUSE_* codes above and carry owner 8's exact codes.
++const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
++const REFUSE_COLUMN_PHASE: StringName = &"COLUMN_PHASE"
++const REFUSE_COLUMN_RESERVED: StringName = &"COLUMN_RESERVED"
++const REFUSE_COLUMN_REMAINDER: StringName = &"COLUMN_REMAINDER"
++const REFUSE_COLUMN_SPEED: StringName = &"COLUMN_SPEED"
++const REFUSE_COLUMN_VELOCITY: StringName = &"COLUMN_VELOCITY"
++const REFUSE_COLUMN_CELL: StringName = &"COLUMN_CELL"
++const REFUSE_COLUMN_TARGET: StringName = &"COLUMN_TARGET"
++const REFUSE_COLUMN_STATE: StringName = &"COLUMN_STATE"
+ 
+ const NO_REQUEST: int = -1
+@@ -660,6 +673,11 @@
+ 	var speed: int = _speed_of(resident)
+ 	if speed <= 0:
+ 		_last_refusal = REFUSE_SIZE_CLASS
+ 		return false
++	# MOVEMENT-S4-VALIDATE-R01: this row may ALREADY be a counted traveller. Re-admission resets
++	# and re-attaches it and increments once below, so its old contribution is removed here --
++	# after every refusal above, so a refused admission still leaves row and count untouched.
++	if _movement_phase[row] == MOTION_TRAVELLING:
++		_travelling_count -= 1
+ 	_reset_motion(row)
+ 	_speed_u_per_s[row] = speed
+@@ -995,3 +1013,231 @@
+ func last_refusal() -> StringName:
+ 	"""The refusal code from the most recent refusing call, or REFUSE_NONE after a success."""
+ 	return _last_refusal
++
++
++# --- MOVEMENT-S4-VALIDATE-R01 cold saved-image validation, ADR 0182 ------------------------------
++#
++# THE SIXTEEN COLUMNS BELOW ARE IN CANONICAL SCHEMA ORDER, `Schema.FIELD_KEYS[171..186]`, WHICH IS
++# NOT THIS FILE'S DECLARATION ORDER. The live columns are declared in ARCH-MEM-008's reading order,
++# which puts `_grid_next`/`_grid_cell` ahead of `_radius_u`/`_speed_u_per_s`; owner 8's saved field
++# window does not. Reordering either list to match the other renumbers a persisted field, so both
++# orders stand and the canonical one is named where it is used.
++#
++# VALIDATION IS COLD. No Movement, SpatialWorld, Navigation, Residents, Transforms or Directory
++# instance is built, no callback fires, no clock is read, no diagnostic is emitted, no float
++# appears and no row allocates: the predicate reads its argument and compiled constants only.
++
++class Columns:
++	extends RefCounted
++	## One cold image of owner 8's sixteen i32 motion columns, in canonical schema order.
++	##
++	## Constructed with no arguments and no collaborator, so a saved image can be checked before
++	## anything is bound. Defaults are zero except the two cell columns, whose null value is
++	## NO_REQUEST and not cell 0.
++
++	var vx: PackedInt32Array = PackedInt32Array()
++	var vz: PackedInt32Array = PackedInt32Array()
++	var remainder_x: PackedInt32Array = PackedInt32Array()
++	var remainder_z: PackedInt32Array = PackedInt32Array()
++	var next_x: PackedInt32Array = PackedInt32Array()
++	var next_z: PackedInt32Array = PackedInt32Array()
++	var correction_x: PackedInt32Array = PackedInt32Array()
++	var correction_z: PackedInt32Array = PackedInt32Array()
++	var radius_u: PackedInt32Array = PackedInt32Array()
++	var desired_yaw: PackedInt32Array = PackedInt32Array()
++	var next_yaw: PackedInt32Array = PackedInt32Array()
++	var grid_next: PackedInt32Array = PackedInt32Array()
++	var grid_cell: PackedInt32Array = PackedInt32Array()
++	var speed_u_per_s: PackedInt32Array = PackedInt32Array()
++	var movement_phase: PackedInt32Array = PackedInt32Array()
++	var blocked_ticks: PackedInt32Array = PackedInt32Array()
++
++	func _init() -> void:
++		"""Size all sixteen columns to MOTION_CAPACITY and apply owner 8's documented defaults."""
++		vx.resize(MOTION_CAPACITY)
++		vz.resize(MOTION_CAPACITY)
++		remainder_x.resize(MOTION_CAPACITY)
++		remainder_z.resize(MOTION_CAPACITY)
++		next_x.resize(MOTION_CAPACITY)
++		next_z.resize(MOTION_CAPACITY)
++		correction_x.resize(MOTION_CAPACITY)
++		correction_z.resize(MOTION_CAPACITY)
++		radius_u.resize(MOTION_CAPACITY)
++		desired_yaw.resize(MOTION_CAPACITY)
++		next_yaw.resize(MOTION_CAPACITY)
++		grid_next.resize(MOTION_CAPACITY)
++		grid_cell.resize(MOTION_CAPACITY)
++		speed_u_per_s.resize(MOTION_CAPACITY)
++		movement_phase.resize(MOTION_CAPACITY)
++		blocked_ticks.resize(MOTION_CAPACITY)
++		grid_next.fill(NO_REQUEST)
++		grid_cell.fill(NO_REQUEST)
++
++	func is_sized() -> bool:
++		"""True only when every column holds exactly MOTION_CAPACITY rows."""
++		return vx.size() == MOTION_CAPACITY and vz.size() == MOTION_CAPACITY \
++			and remainder_x.size() == MOTION_CAPACITY and remainder_z.size() == MOTION_CAPACITY \
++			and next_x.size() == MOTION_CAPACITY and next_z.size() == MOTION_CAPACITY \
++			and correction_x.size() == MOTION_CAPACITY and correction_z.size() == MOTION_CAPACITY \
++			and radius_u.size() == MOTION_CAPACITY and desired_yaw.size() == MOTION_CAPACITY \
++			and next_yaw.size() == MOTION_CAPACITY and grid_next.size() == MOTION_CAPACITY \
++			and grid_cell.size() == MOTION_CAPACITY and speed_u_per_s.size() == MOTION_CAPACITY \
++			and movement_phase.size() == MOTION_CAPACITY and blocked_ticks.size() == MOTION_CAPACITY
++
++
++static func columns_refusal(image: Columns) -> StringName:
++	"""The first owner-8 domain violation in a cold column image, or REFUSE_NONE.
++
++	SHAPE IS CHECKED BEFORE ANY INDEX. A null image, or any column that is not exactly
++	MOTION_CAPACITY long, answers REFUSE_COLUMN_SHAPE without reading a row, so a short image
++	cannot be indexed out of range on the way to a more specific code.
++
++	Rows are then examined in ascending physical order and the first refusal wins, so a refusal
++	names the lowest offending row's highest-priority gate. Nothing anywhere is written.
++	"""
++	if image == null or not image.is_sized():
++		return REFUSE_COLUMN_SHAPE
++	for row: int in MOTION_CAPACITY:
++		var refusal: StringName = _column_row_refusal(image, row)
++		if refusal != REFUSE_NONE:
++			return refusal
++	return REFUSE_NONE
++
++
++static func _column_row_refusal(image: Columns, row: int) -> StringName:
++	"""One row's gates in the contract's exact priority: phase, reserved, remainder, speed,
++	velocity, cell, target, then the phase relations."""
++	var phase: int = image.movement_phase[row]
++	if phase < MOTION_IDLE or phase >= MOTION_PHASE_COUNT:
++		return REFUSE_COLUMN_PHASE
++	if not _columns_reserved_clear(image, row):
++		return REFUSE_COLUMN_RESERVED
++	if not _is_remainder(image.remainder_x[row]) or not _is_remainder(image.remainder_z[row]):
++		return REFUSE_COLUMN_REMAINDER
++	var speed: int = image.speed_u_per_s[row]
++	if speed != 0 and ResidentsScript.SIZE_MOVEMENT_U_PER_S.find(speed) < 0:
++		return REFUSE_COLUMN_SPEED
++	var limit: int = (speed + TICKS_PER_SECOND - 1) / TICKS_PER_SECOND
++	if not _is_within(image.vx[row], limit) or not _is_within(image.vz[row], limit):
++		return REFUSE_COLUMN_VELOCITY
++	if not _is_cell(image.grid_cell[row]) or not _is_cell(image.grid_next[row]):
++		return REFUSE_COLUMN_CELL
++	if not _is_target_pair(image.next_x[row], image.next_z[row]):
++		return REFUSE_COLUMN_TARGET
++	return _columns_state_refusal(image, row)
++
++
++static func _columns_reserved_clear(image: Columns, row: int) -> bool:
++	"""True when all six columns the current producer never writes are exactly zero.
++
++	They are RESERVED, not a licence to infer geometry or facing: `correction_*` awaits the
++	separation pass, `radius_u` a body-plus-gear envelope, the two yaws a stated zero reference,
++	and `blocked_ticks` has no producer in this slice."""
++	return image.correction_x[row] == 0 and image.correction_z[row] == 0 \
++		and image.radius_u[row] == 0 and image.desired_yaw[row] == 0 \
++		and image.next_yaw[row] == 0 and image.blocked_ticks[row] == 0
++
++
++static func _is_remainder(value: int) -> bool:
++	"""True for 0..REMAINDER_DENOMINATOR-1, the retained fraction's only legal domain."""
++	return value >= 0 and value < REMAINDER_DENOMINATOR
++
++
++static func _is_within(value: int, limit: int) -> bool:
++	"""True when `-limit <= value <= limit`. Two-sided: reverse travel is negative, not invalid."""
++	return value >= -limit and value <= limit
++
++
++static func _is_cell(cell: int) -> bool:
++	"""True for NO_REQUEST or a cell inside `spatial_world.gd`'s 0..CELL_COUNT-1 domain."""
++	return cell == NO_REQUEST or (cell >= 0 and cell < SpatialWorld.CELL_COUNT)
++
++
++static func _is_centre_coordinate(units: int) -> bool:
++	"""True when one axis of a stored target is an exact cell centre in 1/1024 m units.
++
++	One helper serves both axes because CELLS_X and CELLS_Z are equal; the bound is read from
++	those constants rather than written as 261888, so a resized map cannot leave it behind."""
++	if units < SpatialWorld.CELL_CENTRE_OFFSET_UNITS:
++		return false
++	if units > (SpatialWorld.CELLS_X - 1) * SpatialWorld.CELL_SIZE_UNITS \
++			+ SpatialWorld.CELL_CENTRE_OFFSET_UNITS:
++		return false
++	return (units - SpatialWorld.CELL_CENTRE_OFFSET_UNITS) % SpatialWorld.CELL_SIZE_UNITS == 0
++
++
++static func _is_target_pair(x_units: int, z_units: int) -> bool:
++	"""Both zero (no stored waypoint) or both exact cell centres. A mixed pair is invalid."""
++	if x_units == 0 and z_units == 0:
++		return true
++	return _is_centre_coordinate(x_units) and _is_centre_coordinate(z_units)
++
++
++static func _columns_state_refusal(image: Columns, row: int) -> StringName:
++	"""The phase relations, reached only once every standalone domain above holds.
++
++	Terminal rows RETAIN history: ARRIVED keeps its final bounded displacement and may hold a
++	zero target after a one-cell route, and phases 3..5 keep their fractions and abandoned
++	target while carrying no velocity. IDLE keeps its valid speed and grid cell."""
++	var phase: int = image.movement_phase[row]
++	if phase == MOTION_IDLE:
++		return _columns_idle_refusal(image, row)
++	if phase == MOTION_TRAVELLING:
++		return _columns_travelling_refusal(image, row)
++	if image.speed_u_per_s[row] <= 0 or image.grid_cell[row] < 0 \
++			or image.grid_next[row] != NO_REQUEST:
++		return REFUSE_COLUMN_STATE
++	if phase == MOTION_ARRIVED:
++		return _columns_arrived_refusal(image, row)
++	if image.vx[row] != 0 or image.vz[row] != 0:
++		return REFUSE_COLUMN_STATE
++	return REFUSE_NONE
++
++
++static func _columns_idle_refusal(image: Columns, row: int) -> StringName:
++	"""IDLE carries no motion at all, and is not normalized any further.
++
++	Velocity, both remainders and both target coordinates are zero and no next cell is held. A
++	valid speed and a grid cell are RETAINED history, so a parked or reused row is not rewritten
++	by this validator."""
++	if image.vx[row] != 0 or image.vz[row] != 0:
++		return REFUSE_COLUMN_STATE
++	if image.remainder_x[row] != 0 or image.remainder_z[row] != 0:
++		return REFUSE_COLUMN_STATE
++	if image.next_x[row] != 0 or image.next_z[row] != 0:
++		return REFUSE_COLUMN_STATE
++	if image.grid_next[row] != NO_REQUEST:
++		return REFUSE_COLUMN_STATE
++	return REFUSE_NONE
++
++
++static func _columns_travelling_refusal(image: Columns, row: int) -> StringName:
++	"""TRAVELLING holds a positive speed, both cells, and the exact centre of `grid_next`.
++
++	Zero instantaneous velocity is legal before the row's first tick, and the remainders keep
++	their fractional domain, so neither is constrained further here."""
++	if image.speed_u_per_s[row] <= 0 or image.grid_cell[row] < 0 or image.grid_next[row] < 0:
++		return REFUSE_COLUMN_STATE
++	return _columns_target_is_centre(image, row, image.grid_next[row])
++
++
++static func _columns_arrived_refusal(image: Columns, row: int) -> StringName:
++	"""ARRIVED keeps its bounded final velocity, and may hold no target at all.
++
++	An all-zero target is how a public one-cell route that arrives during admission reads; any
++	other target must be exactly the centre of the cell the body is standing in."""
++	if image.next_x[row] == 0 and image.next_z[row] == 0:
++		return REFUSE_NONE
++	return _columns_target_is_centre(image, row, image.grid_cell[row])
++
++
++static func _columns_target_is_centre(image: Columns, row: int, cell: int) -> StringName:
++	"""REFUSE_NONE when the stored target is exactly `cell`'s centre, else REFUSE_COLUMN_STATE.
++
++	`spatial_world.gd`'s static centre helpers are reused rather than re-derived, and only after
++	the cell-domain gate has accepted `cell`, so neither is ever called on a sentinel."""
++	if image.next_x[row] != SpatialWorld.cell_centre_x_units(cell):
++		return REFUSE_COLUMN_STATE
++	if image.next_z[row] != SpatialWorld.cell_centre_z_units(cell):
++		return REFUSE_COLUMN_STATE
++	return REFUSE_NONE

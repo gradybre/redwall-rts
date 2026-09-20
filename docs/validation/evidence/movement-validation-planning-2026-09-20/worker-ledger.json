@@ -1,0 +1,62 @@
+{
+  "attempts": [
+    {
+      "id": "movement-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "b29da8a4-42e6-4569-8422-9d019d2d010f",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/movement_direction_amendment.md": "e1de4d9e22903f0d2898c7b5d342850c5b61e5cc97d956d53c1cfa0ac991eb38",
+        "godot/scripts/core/movement.gd": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3",
+        "godot/scripts/core/spatial_world.gd": "3825788db07885db94dab7288c832b8219f89e54da22d871d58e98e2d590b26b",
+        "godot/scripts/core/residents.gd": "90a99e562e4e0b41da5f2afad5df7ab64f297b93b86f985d21535ebd72c3a06c",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/astra-source-note.md": "b8a60addda32e00490f16a82b37876eeb8174815aea986705d20e908ff3da400",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/source-layout.json": "48a5428fc9a064970772caa239e02c779e32a5c1a389d543cc279ad6959a8013",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/public_history_probe.gd": "779343c51da4676e956d34cf615d17e7fe07a6f028e0d93a35fc4f127e60e332",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/public-history-probe.log": "2dad4cbe0a6f0c488b095af5f9a3445282c5b32d30b80cf5b3b309a78a5ca90e"
+      },
+      "rawOutputLines": 90,
+      "rawOutputWords": 854,
+      "outputLineBudget": 80,
+      "outputWordBudget": 900,
+      "normalization": "Explicit parent formatting exception removes only 10 blank lines; all words and nonblank lines identical; raw did not meet its bound",
+      "normalizedLines": 80,
+      "rawSHA256": "e007ccd45a7fec6cf323f931739b87b70194da251f6f9aa5a308d86f596a0bba",
+      "normalizedSHA256": "4a40520295d023dd19c380b6921fe360220a18f3b479c8aa7de93401f0df35b0"
+    },
+    {
+      "id": "movement-validation-contract-a2",
+      "model": "claude-opus-5",
+      "sessionId": "ecb07ba3-012e-4ce7-92a9-6eb5d41df404",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/movement_direction_amendment.md": "e1de4d9e22903f0d2898c7b5d342850c5b61e5cc97d956d53c1cfa0ac991eb38",
+        "docs/planning/movement_component_validation_contract.md": "a04a9ae2c40c94192c84c619994223ce1af271d4fbc5ac7af7815c5f2f8a67e1",
+        "godot/scripts/core/movement.gd": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/feasibility-review.md": "4a40520295d023dd19c380b6921fe360220a18f3b479c8aa7de93401f0df35b0",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/feasibility-disposition.md": "1added7f9d608475151d6c828fcb8f1d6174046a0d8ff31e6e925e3ec5f5eb35",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/source-layout.json": "48a5428fc9a064970772caa239e02c779e32a5c1a389d543cc279ad6959a8013",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/metadata-arithmetic-check.json": "0f5da66f149985d5c1f146adce875aaa40f9518f6a6725a38980c5387e9ca377",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/frozen-witnesses.json": "57d76fb35eaa7beab87929095b6434b8d0bd7e38265cd5437cf362427294356c",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/shape-witnesses.json": "fb3ee8e76830cb1587d183da6896309bd8da2188fd65b814fa7b7ced3e55871a",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/mutation-witness-plan.md": "1c16b5ca67d224266f5ca68342c60ad120abf6a33326e34ba38e51e25b79cdb3",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/public-history-probe.log": "2dad4cbe0a6f0c488b095af5f9a3445282c5b32d30b80cf5b3b309a78a5ca90e",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/readmission-original.log": "3bed3e7b09d2cf0a4090f3e8d6c040817a490acdf88af7ccc1f41f7a0b311264",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/dependency-excerpts.md": "367fa5a790a62656d43444d2a95cced2552f2b4ec9cc90ce02ec5127f5216735"
+      },
+      "rawOutputLines": 84,
+      "rawOutputWords": 755,
+      "outputLineBudget": 75,
+      "outputWordBudget": 850,
+      "normalization": "Explicit parent formatting exception removes only 9 blank lines; all words and nonblank lines identical; raw did not meet its bound",
+      "normalizedLines": 75,
+      "rawSHA256": "037c66a3eeb0d50b25531b9c5761fa5854c1da13eb26c309e6ab5aba9c19000b",
+      "normalizedSHA256": "7d2e6b0a59bc86f118b2766d16e82dcef416449ac28fbe76d9c2162a04a6b858"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "scope": "Frozen candidate clone only, not production or full-suite acceptance",
+  "base_commit": "94533f7b7c6814abf6d780601c9d14da1bda2b11",
+  "input_sha256": {
+    "godot/scripts/core/movement.gd": "152951b44b02fc91e7c164c6a2baf56dec6bc7407f402dfc0df4051d5bfe8f8e",
+    "godot/scripts/core/save_owner_movement.gd": "e85eef0cae688df79cc14c606a50c7d57dd925984713dd5072913a15b7cbea82",
+    "godot/test/test_save_owner_movement.gd": "e95b7272e0a03cb1879eacefb8af3e8b7bc2984146b44ec19d0648c807fdd9cf",
+    "godot/test/test_movement_readmission.gd": "3d3b8ea12020eaefc6f2f58422d841158f14e956ce6e7e8970e69b3049147380",
+    "godot/test/movement_validation_focus.gd": "5b1b5298079de3b05e16b6ccb7b7267ac1b078e87463cde7b265b3aa15adf5c5",
+    "tools/test_movement_metadata_preflights.py": "908f866c05a1287f12d0fc8f4a60bc52397b3471ed22cbf6b351c2c6a93c5527"
+  },
+  "runs": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--script",
+        "res://test/movement_validation_focus.gd"
+      ],
+      "log": "focus.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 5.843
+    },
+    {
+      "command": [
+        "python3",
+        "tools/test_movement_metadata_preflights.py"
+      ],
+      "log": "metadata.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 16.123
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/docs/validation/evidence/movement-component-validation-2026-09-20/candidate-checks/run_mutants.py"
+      ],
+      "log": "campaign.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 292.351
+    }
+  ],
+  "frozen_inputs_unchanged": true
+}

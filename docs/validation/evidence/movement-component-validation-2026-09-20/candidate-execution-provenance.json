@@ -1,0 +1,8 @@
+{
+  "scope": "Reconstructed source candidate clone, not the production worktree",
+  "temporary_candidate_root_literal": "'/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-movement-integration-candidate-5ctgyd78'",
+  "lifetime": "Owned TemporaryDirectory, now removed after complete checks; metadata tool created its own nested owned clone and disabled autoloads there",
+  "production_root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "source_input_record": "candidate-checks/acceptance.json",
+  "all_frozen_input_hashes_unchanged": true
+}

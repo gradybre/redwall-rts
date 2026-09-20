@@ -1,0 +1,150 @@
+{
+  "scope": "Planned engine cases, not observed results",
+  "cases": [
+    {
+      "case": "positive-control",
+      "code": "",
+      "schema_code": "",
+      "gate4": false
+    },
+    {
+      "case": "key-fault-refused",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": false
+    },
+    {
+      "case": "key-gate-bypassed",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": true
+    },
+    {
+      "case": "version-fault-refused",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": false
+    },
+    {
+      "case": "version-gate-bypassed",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": true
+    },
+    {
+      "case": "primary-fault-refused",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": false
+    },
+    {
+      "case": "primary-gate-bypassed",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": true
+    },
+    {
+      "case": "children-fault-refused",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": false
+    },
+    {
+      "case": "children-gate-bypassed",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": true
+    },
+    {
+      "case": "field_count-fault-refused",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": false
+    },
+    {
+      "case": "field_count-gate-bypassed",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": true
+    },
+    {
+      "case": "field_key-fault-refused",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": false
+    },
+    {
+      "case": "field_key-gate-bypassed",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": true
+    },
+    {
+      "case": "field_type-fault-refused",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": false
+    },
+    {
+      "case": "field_type-gate-bypassed",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": true
+    },
+    {
+      "case": "field_extent-fault-refused",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": false
+    },
+    {
+      "case": "field_extent-gate-bypassed",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true,
+      "expect_assertion_failure": true
+    },
+    {
+      "case": "schema-first-forwarding",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "SAVE_COMPONENT_METADATA",
+      "gate4": false
+    },
+    {
+      "case": "SIZE_MOVEMENT_U_PER_S-short",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true
+    },
+    {
+      "case": "SIZE_MOVEMENT_U_PER_S-long",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true
+    },
+    {
+      "case": "SIZE_MOVEMENT_U_PER_S-value",
+      "code": "SAVE_COMPONENT_METADATA",
+      "schema_code": "",
+      "gate4": true
+    }
+  ],
+  "assertions_per_case": 9,
+  "total": 21,
+  "assertions": 189
+}

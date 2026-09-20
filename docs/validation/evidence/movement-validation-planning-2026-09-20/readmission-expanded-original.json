@@ -1,0 +1,6 @@
+{
+  "scope": "Normative public regression on original source; failures are evidence of defect, not acceptance",
+  "exit_code": 1,
+  "seconds": 2.398,
+  "source_sha256": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3"
+}

@@ -1,0 +1,50 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_movement.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  FAIL  test_frozen_domains_terminal_history_and_projection_witnesses
+        blocked_ticks--1 bridge (expected COLUMN_RESERVED, got )
+        blocked_ticks--1 success (expected false, got true)
+        blocked_ticks--1 owner detail (expected true, got false)
+        blocked_ticks--1 raw code detail (expected true, got false)
+        blocked_ticks-1 bridge (expected COLUMN_RESERVED, got )
+        blocked_ticks-1 success (expected false, got true)
+        blocked_ticks-1 owner detail (expected true, got false)
+        blocked_ticks-1 raw code detail (expected true, got false)
+        blocked_ticks-2147483647 bridge (expected COLUMN_RESERVED, got )
+        blocked_ticks-2147483647 success (expected false, got true)
+        blocked_ticks-2147483647 owner detail (expected true, got false)
+        blocked_ticks-2147483647 raw code detail (expected true, got false)
+  PASS  test_null_all_extents_and_bucket_shapes
+  FAIL  test_every_field_at_every_physical_row
+        bridge edges bridge (expected COLUMN_RESERVED, got )
+        bridge edges success (expected false, got true)
+        bridge edges owner detail (expected true, got false)
+        bridge edges raw code detail (expected true, got false)
+        bridge edges bridge (expected COLUMN_RESERVED, got )
+        bridge edges success (expected false, got true)
+        bridge edges owner detail (expected true, got false)
+        bridge edges raw code detail (expected true, got false)
+  PASS  test_full_capacity_mixed_phase_and_retained_history
+  PASS  test_row_priority_and_target_before_state
+test_movement_readmission.gd
+  PASS  test_readmitting_one_row_counts_exactly_one_traveller
+  PASS  test_replacing_travel_with_one_cell_arrival_clears_the_count
+  PASS  test_readmitting_reused_row_counts_the_new_owner_once
+  PASS  test_replacement_preserves_other_travellers_and_first_admission
+  PASS  test_rejected_replacement_preserves_cursor_fraction_and_count
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+11 test(s), 24506 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

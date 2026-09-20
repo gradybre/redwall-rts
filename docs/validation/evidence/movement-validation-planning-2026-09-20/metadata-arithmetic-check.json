@@ -1,0 +1,204 @@
+{
+  "kind": "Python arithmetic only; not Godot execution",
+  "schema_sha256": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+  "cases": [
+    {
+      "case": "control",
+      "changes": {},
+      "section_bytes": 12947565,
+      "expected_section_bytes": 12947565,
+      "descriptor_rows": 193184,
+      "fields": 298,
+      "children": 5,
+      "expected_schema_refusal": "",
+      "expected_bridge_refusal": ""
+    },
+    {
+      "case": "key",
+      "changes": {
+        "OWNER_KEYS": {
+          "8": "movemenx"
+        }
+      },
+      "section_bytes": 12947565,
+      "expected_section_bytes": 12947565,
+      "descriptor_rows": 193184,
+      "fields": 298,
+      "children": 5,
+      "expected_schema_refusal": "",
+      "expected_bridge_refusal": "SAVE_COMPONENT_METADATA"
+    },
+    {
+      "case": "version",
+      "changes": {
+        "OWNER_VERSIONS": {
+          "8": 2
+        }
+      },
+      "section_bytes": 12947565,
+      "expected_section_bytes": 12947565,
+      "descriptor_rows": 193184,
+      "fields": 298,
+      "children": 5,
+      "expected_schema_refusal": "",
+      "expected_bridge_refusal": "SAVE_COMPONENT_METADATA"
+    },
+    {
+      "case": "primary",
+      "changes": {
+        "OWNER_PRIMARY_COUNTS": {
+          "8": 513,
+          "9": 511
+        }
+      },
+      "section_bytes": 12947565,
+      "expected_section_bytes": 12947565,
+      "descriptor_rows": 193184,
+      "fields": 298,
+      "children": 5,
+      "expected_schema_refusal": "",
+      "expected_bridge_refusal": "SAVE_COMPONENT_METADATA"
+    },
+    {
+      "case": "children",
+      "changes": {
+        "OWNER_CHILD_COUNTS": {
+          "8": 1,
+          "10": 0
+        },
+        "OWNER_CHILD_BEGIN": {
+          "9": 5,
+          "10": 5
+        },
+        "OWNER_OFFSETS": {
+          "9": 9279399,
+          "10": 9336936
+        },
+        "OWNER_PAYLOAD_BYTES": {
+          "8": 32908,
+          "10": 102604
+        },
+        "OWNER_BLOCK_BYTES": {
+          "8": 32940,
+          "10": 102640
+        }
+      },
+      "section_bytes": 12947565,
+      "expected_section_bytes": 12947565,
+      "descriptor_rows": 193184,
+      "fields": 298,
+      "children": 5,
+      "expected_schema_refusal": "",
+      "expected_bridge_refusal": "SAVE_COMPONENT_METADATA"
+    },
+    {
+      "case": "field_count",
+      "changes": {
+        "OWNER_FIELD_COUNTS": {
+          "8": 17,
+          "9": 19
+        },
+        "OWNER_FIELD_BEGIN": {
+          "9": 188
+        },
+        "OWNER_OFFSETS": {
+          "9": 9279911
+        },
+        "OWNER_PAYLOAD_BYTES": {
+          "8": 33420,
+          "9": 56988
+        },
+        "OWNER_BLOCK_BYTES": {
+          "8": 33452,
+          "9": 57017
+        }
+      },
+      "section_bytes": 12947565,
+      "expected_section_bytes": 12947565,
+      "descriptor_rows": 193184,
+      "fields": 298,
+      "children": 5,
+      "expected_schema_refusal": "",
+      "expected_bridge_refusal": "SAVE_COMPONENT_METADATA"
+    },
+    {
+      "case": "field_key",
+      "changes": {
+        "FIELD_KEYS": {
+          "171": "_changed"
+        }
+      },
+      "section_bytes": 12947565,
+      "expected_section_bytes": 12947565,
+      "descriptor_rows": 193184,
+      "fields": 298,
+      "children": 5,
+      "expected_schema_refusal": "",
+      "expected_bridge_refusal": "SAVE_COMPONENT_METADATA"
+    },
+    {
+      "case": "field_type",
+      "changes": {
+        "OWNER_OFFSETS": {
+          "9": 9277855,
+          "10": 9335392,
+          "11": 9438040,
+          "12": 9445790,
+          "13": 9548891,
+          "14": 9721045,
+          "15": 9739049,
+          "16": 12891031,
+          "17": 12930559
+        },
+        "OWNER_PAYLOAD_BYTES": {
+          "8": 31364
+        },
+        "OWNER_BLOCK_BYTES": {
+          "8": 31396
+        },
+        "FIELD_TYPES": {
+          "171": 0
+        }
+      },
+      "section_bytes": 12946029,
+      "expected_section_bytes": 12946029,
+      "descriptor_rows": 193184,
+      "fields": 298,
+      "children": 5,
+      "expected_schema_refusal": "",
+      "expected_bridge_refusal": "SAVE_COMPONENT_METADATA"
+    },
+    {
+      "case": "field_extent",
+      "changes": {
+        "OWNER_OFFSETS": {
+          "9": 9279395,
+          "10": 9336932,
+          "11": 9439580,
+          "12": 9447330,
+          "13": 9550431,
+          "14": 9722585,
+          "15": 9740589,
+          "16": 12892571,
+          "17": 12932099
+        },
+        "OWNER_PAYLOAD_BYTES": {
+          "8": 32904
+        },
+        "OWNER_BLOCK_BYTES": {
+          "8": 32936
+        },
+        "FIELD_COUNTS": {
+          "171": 513
+        }
+      },
+      "section_bytes": 12947569,
+      "expected_section_bytes": 12947569,
+      "descriptor_rows": 193184,
+      "fields": 298,
+      "children": 5,
+      "expected_schema_refusal": "",
+      "expected_bridge_refusal": "SAVE_COMPONENT_METADATA"
+    }
+  ]
+}

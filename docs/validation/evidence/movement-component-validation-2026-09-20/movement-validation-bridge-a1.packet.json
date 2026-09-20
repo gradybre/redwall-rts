@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "94533f7b7c6814abf6d780601c9d14da1bda2b11",
+  "task": "Movement owner8 framed component validation bridge",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/movement_component_validation_contract.md",
+    "docs/decisions/0182-movement-validation-preserves-terminal-history-and-readmission-counts.md",
+    "docs/validation/evidence/movement-component-validation-2026-09-20/candidate-movement.gd",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/dependency-excerpts.md",
+    "godot/scripts/core/save_owner_farming.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement ONLY new godot/scripts/core/save_owner_movement.gd for MOVEMENT-S4-VALIDATE-R01v1/ADR0182. Fourdirectpreloads Movement/Schema/Section/SaveHeader; indirect Navigation/SpatialWorld/ResidentsScript viaMovement. Seven orderedgates null/wrongowner8/schema passthrough/metadata/source pins/shape passthrough/one coldColumns+16 explicitcanonicali32 assignments/purecode wrapped exactly. Owner8keymovement/version1/primary512/childcount0/16fields, canonical Schema.FIELD_KEYS171..186 order NOT declarationorder. Pin everymetadata and sourceconstant incontract inclALLnamedphases0..5,6count,NO_REQUEST-1, ticks30/denom420/factors14/10,Navcost10/14,map512x512/CELL_COUNT262144,size512/offset256, Residentscapacity512 andspeedtablelength3 BEFOREentries3277/4096/3072. Candidateusesno new aliases. PinbothCELLS_X andZ sincecoordinatehelperusesX forbothaxes. No liveconstruction/callback/clock/diagnostic/inputmutation/float/bulkAPIs. Sharepackedbuffers, no duplicate;65536conservativecaller+constructorbeforemetadata/nativecost. Metadata expressions must exactly use Schema.owner_key(OWNER_INDEX) != OWNER_KEY; Schema.owner_version(OWNER_INDEX) != OWNER_VERSION; Schema.primary_count(OWNER_INDEX) != OWNER_PRIMARY_COUNT; Schema.child_extent_count(OWNER_INDEX) != OWNER_CHILD_EXTENT_COUNT; Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT. Field expressions Schema.field_key(OWNER_INDEX, field) != String(FIELD_KEYS[field]), Schema.field_type(OWNER_INDEX, field) != int(FIELD_TYPES[field]), Schema.element_count(OWNER_INDEX, field) != int(FIELD_COUNTS[field]). PrefixMovement owner8 metadata:; column detailMovement owner 8 plusrawCOLUMNcode; success empty/empty. ReturnONE NEW docs/validation/evidence/movement-component-validation-2026-09-20/author-bridge.patch baseSha256null unifieddiffnewfile100644 HARD400actualpatchlines AIM270. No tests/docs/othercode/executionclaims. StrictJSONstatuscomplete/summary/questions/files/decisionIds."
+}

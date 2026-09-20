@@ -1,0 +1,26 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "94533f7b7c6814abf6d780601c9d14da1bda2b11",
+  "task": "Independent exact Movement candidate source and regression review",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/movement_component_validation_contract.md",
+    "docs/decisions/0182-movement-validation-preserves-terminal-history-and-readmission-counts.md",
+    "docs/validation/evidence/movement-component-validation-2026-09-20/candidate-movement.gd",
+    "docs/validation/evidence/movement-component-validation-2026-09-20/candidate-save_owner_movement.gd",
+    "docs/validation/evidence/movement-component-validation-2026-09-20/movement-validation-owner-a1-pending.patch",
+    "docs/validation/evidence/movement-component-validation-2026-09-20/movement-validation-bridge-a1-pending.patch",
+    "docs/validation/evidence/movement-component-validation-2026-09-20/owner-candidate-probe.json",
+    "docs/validation/evidence/movement-component-validation-2026-09-20/candidate-checks/focus.log",
+    "docs/validation/evidence/movement-component-validation-2026-09-20/candidate-checks/metadata.log",
+    "docs/validation/evidence/movement-component-validation-2026-09-20/mutation-mechanics.md",
+    "docs/validation/evidence/movement-component-validation-2026-09-20/owner_mutations.py",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/parent-test-draft.gd",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/parent-regression-draft.gd",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/parent-metadata-draft.py",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/dependency-excerpts.md"
+  ],
+  "instructions": "Independent code review of exact unapplied Movement owner+bridge candidates under MOVEMENT-S4-VALIDATE-R01v1/ADR0182. Rawpatch265owner/321bridge passed target/mode/hash/rawapplycheck but production intake waitsPR172merge. Owner candidate61tests21446assertions0clean(original54+2pure+5publicregressions); combinedcandidate11/24506/0clean; metadata21/189 with8bypasscatches passed. 50code-unit campaign currentlyrunning; don'tinventfinishedresults. Review exactordered predicate/domain/sourcepins, all16schemaorder projections, coldpurity/nonmutation/nohiddenliveconstructor, bounds/noOOB before allrequiredlengthgates, mapX/Zpin, literalpreloadfeasibility/nativevslogical65536budget. Check narrowreadmissionrepairafterallrefusals removesoldTRAVELcountonce, keepsfirst/nontravelling/otherrowcounts, deferreddespawnunchanged, noothergameplaychanged. Inspect regressions and34owner+16projectioncampaign mechanics for runtime-errorfakekills or equivalentunits; metadataautoloadisolationonlyownedclone/Residentsdependency notproductionedit. Claimmaturity: reconstruction+candidateevidence only, actualintakeidentity/import/full/CIremain. ReturnONE NEW docs/validation/evidence/movement-component-validation-2026-09-20/source-review.md baseSha256null HARD110actuallines1100words AIM65lines850words. Findingsorderedbyseverity; name anymust-fix defect precisely, no scopeexpansion. No codeediting/executionclaims. StrictJSONstatuscomplete/summary/questions/files/decisionIds."
+}

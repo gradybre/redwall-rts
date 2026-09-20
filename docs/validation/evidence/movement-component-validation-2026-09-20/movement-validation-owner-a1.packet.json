@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "94533f7b7c6814abf6d780601c9d14da1bda2b11",
+  "task": "Movement cold Columns predicate and exact successful readmission count repair",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/movement_component_validation_contract.md",
+    "docs/decisions/0182-movement-validation-preserves-terminal-history-and-readmission-counts.md",
+    "godot/scripts/core/movement.gd",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/mutation-witness-plan.md",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/dependency-excerpts.md"
+  ],
+  "instructions": "Implement ONLY godot/scripts/core/movement.gd under accepted MOVEMENT-S4-VALIDATE-R01v1/ADR0182. Append16typed Columns in canonical SCHEMA order, defaults/cold sizing/static argument-only predicate/helpers/exact9 REFUSE_COLUMN_* constants. Preserve existing source byte-for-byte except narrow _attach_route after successful speedcheck before _reset_motion: if current phaseTRAVELLING decrement count exactlyonce. All refusals stay before adjustment. No other gameplay edits/despawn callbacks/clamps/new public APIs or bulk restore. Pure row order shape/phase/reserved/remainder/speedmembership/two-sidedvelocitybounds/celldomain/targetpair/state. ARRIVED retains bounded velocity and mayhavezerotarget; phases3..5 retainfraction/targethistory butvelocity0; IDLE retainsvalidspeed/gridcell. CanonicalFIELD_KEYS171..186 order isNOT declarationorder. Reuseexisting compiledconstants/staticcellhelpers afterdomain checks. Coldno liveowner construction/no callbacks/clock/diagnostics/floats/inputmutation/perrowalloc or packed scratch. Allfields512i32,logical65536caller+defaultsnotRSS. ReturnONE NEW docs/validation/evidence/movement-component-validation-2026-09-20/author-owner.patch baseSha256null unifieddiffonly, HARD450actualpatchlines AIM300. No bridge/tests/docs/fullfile/executionclaims. StrictJSONstatus=complete,summary,questions=[],files=[{path,baseSha256:null,content}],decisionIds. Valid JSON escaping and actual output limits required."
+}

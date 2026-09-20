@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "261095878ef0b668e07f8e1ab4ce57abc7d8bfd8",
+  "task": "Movement section4 source-domain feasibility audit",
+  "paths": [
+    "AGENTS.md",
+    "docs/movement_direction_amendment.md",
+    "godot/scripts/core/movement.gd",
+    "godot/scripts/core/spatial_world.gd",
+    "godot/scripts/core/residents.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/astra-source-note.md",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/source-layout.json",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/public_history_probe.gd",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/public-history-probe.log"
+  ],
+  "instructions": "Read-only feasibility audit before contract/implementation. Re-derive section4owner8 version1 sixteenI32[512] values32768,payload32900,block32932. Check EVERY writer against preliminary domains: reserved correction/radius/yaws/blocked zeros; phase0..5; remainder0..419;speed0 or source3277/4096/3072; targetpair0orcellcentres and cells-1..262143; velocitiesabs<=ceil(speed/30); IDLEzero fractions/velocity/targets but retainedspeed/gridcell; TRAVELvalidcells+target==centregridnext; terminalgridnext-1 butARRIVED finaldisplacement mayNONZERO because _advance_row writes after _settle. One-cell routeimmediateARRIVED keepszero target; phases3..5velocityzero. Residentabsence/reuse not free-row normalization. Publicprobe4tests98assertions0clean observes finalpose/phase/stopspeed/fractions/reusedrow, notprivatevx. Find validpublic counterexample, producerdefect or unjustifiedstrongrelation, recommend exactlocaldomain vs savedsection2/navigation/resident/transform/clockjoin. Do notsilentlynarrow SET-MOVE-001 scope; baselinevalidationdoesnotimplement tunnels/swim/canopy orcloseMOVEgates. Existing headers maybestale ledger claims; do notcopy those asnewblockers. Predicate mustcold/static,no liveconstructors. Suggestsafe sourcepins/overflowbounds/budget65536logical packed notRSS. OutputONE NEW docs/validation/evidence/movement-validation-planning-2026-09-20/feasibility-review.md baseSha256null HARD80actuallines/900words AIM45lines700words. No codeediting/executionclaims. RawJSONstatus/summary/questions/files/decisionIds."
+}

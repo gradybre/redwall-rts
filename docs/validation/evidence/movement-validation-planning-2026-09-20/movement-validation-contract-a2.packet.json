@@ -1,0 +1,22 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "673e0cbc987643b313fad9b87bc04295bf837843",
+  "task": "Independent Movement component validation and readmission contract review",
+  "paths": [
+    "AGENTS.md",
+    "docs/movement_direction_amendment.md",
+    "docs/planning/movement_component_validation_contract.md",
+    "godot/scripts/core/movement.gd",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/source-layout.json",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/metadata-arithmetic-check.json",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/frozen-witnesses.json",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/shape-witnesses.json",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/mutation-witness-plan.md",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/public-history-probe.log",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/readmission-original.log",
+    "docs/validation/evidence/movement-validation-planning-2026-09-20/dependency-excerpts.md"
+  ],
+  "instructions": "Independently review candidate MOVEMENT-S4-VALIDATE-R01v1 before implementation. Verify 16i32[512] layout/fieldbegin171, exact ordered pure domains, every frozen154 image and49 shape witness,50 logical mutation groups and21 metadata cases planned. Public history4tests98assertions0clean; separate public readmission original3tests52assertions3 failingtests confirms persistent traveller-count defect. Review proposed narrow _attach_route adjustment after speed acceptance before reset: remove old TRAVEL contribution exactly once; all refusals atomic; do not repair legitimate deferred despawn cleanup or invent extra world joins. Identify any public writer counterexample to proposed restrictions (especially retained ARRIVED velocity, zero one-cell target, stale fractions, speed/velocity limits), unsafe indexing/overflow, hidden preload/init or metadata malformedtable issues, impossible/equivalent mutation claims, missing discriminating witnesses. Candidate not accepted yet; no execution/mutation claim. All gameplay modes and save bindings remain separate. Output ONE NEW docs/validation/evidence/movement-validation-planning-2026-09-20/contract-review.md baseSha256null, HARD75actual lines/850words; aim45lines650words. Read-only no source edits. RawJSONstatus/summary/questions/files/decisionIds. This is a bounded fresh retry after prior invalid JSON. Return ONLY strict JSON with keys status=\"complete\",summary,questions=[],files=[{path,baseSha256:null,content}],decisionIds=[]. All newlines within content must be JSON escaped. Do not output Markdown fences or prose outside JSON."
+}

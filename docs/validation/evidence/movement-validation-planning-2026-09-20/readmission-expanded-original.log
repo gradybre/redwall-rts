@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_movement_readmission_probe.gd
+  FAIL  test_readmitting_one_row_counts_exactly_one_traveller
+        same row remains one traveller (expected 1, got 2)
+        stop leaves no phantom traveller (expected 0, got 1)
+  FAIL  test_replacing_travel_with_one_cell_arrival_clears_the_count
+        no travelling row remains (expected 0, got 1)
+  FAIL  test_readmitting_reused_row_counts_the_new_owner_once
+        one row, new owner, one traveller (expected 1, got 2)
+        no stale count remains (expected 0, got 1)
+  FAIL  test_replacement_preserves_other_travellers_and_first_admission
+        replacement preserves other contribution (expected 2, got 3)
+        second remains (expected 1, got 2)
+        all stopped (expected 0, got 1)
+  PASS  test_rejected_replacement_preserves_cursor_fraction_and_count
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+5 test(s), 100 assertion(s), 4 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

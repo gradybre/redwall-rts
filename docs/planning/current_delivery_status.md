@@ -4,11 +4,11 @@ The settlement remains under development and has not passed first-playable accep
 
 ## Accepted work
 
-32 loop PRs, #140–171, have merged after their required checks. The latest merged build passes 4,975 tests and 462,434 assertions. Farming’s local component validation passed both exact-head CI checks before merging.
+33 loop PRs, #140–172, have merged after their required checks. The latest merged build passes 4,982 tests and 478,664 assertions. Fishing’s local component validation passed both exact-head CI checks before merging.
 
-This work has reconciled planning and state ownership, repaired several runtime defects, and implemented persistence primitives with explicit contracts, independent reviews and fault tests. Eleven of the eighteen component owners now have merged local validation implementations. Local component validation does not establish complete-file consistency or authorize world restoration by itself.
+This work has reconciled planning and state ownership, repaired several runtime defects, and implemented persistence primitives with explicit contracts, independent reviews and fault tests. Twelve of the eighteen component owners now have merged local validation implementations. Local component validation does not establish complete-file consistency or authorize world restoration by itself.
 
-Farming has merged after exact-head CI. Fishing is locally accepted: the full suite passes 4,982 tests and 478,664 assertions, its focused checks pass 7 tests and 16,230 assertions, all 63 code mutations are caught, and all 31 metadata cases pass. Independent review covers the exact applied source bytes. Fishing still requires exact-head CI and merge. Movement has a candidate validation contract and a reproduced traveller-count defect under independent review. These changes do not complete whole-file save/load or the live food-production workflow.
+Fishing has merged after exact-head CI. Movement is locally accepted: the full suite passes 4,993 tests and 503,170 assertions, its focused checks pass 11 tests and 24,506 assertions, all 50 code mutations are caught, and all 21 metadata cases pass. Successful re-admission now keeps exactly one traveller contribution per row; refusal and other travellers remain unchanged. Independent review covers the exact applied source bytes. Movement still requires exact-head CI and merge. Buildings is in domain and memory-feasibility planning. These changes do not complete whole-file save/load or connected movement gameplay.
 
 ## Remaining delivery work
 

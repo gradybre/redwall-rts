@@ -1,0 +1,2133 @@
+{
+  "scope": "Explicit candidate contract fixtures, not runtime results",
+  "fields": [
+    "vx",
+    "vz",
+    "remainder_x",
+    "remainder_z",
+    "next_x",
+    "next_z",
+    "correction_x",
+    "correction_z",
+    "radius_u",
+    "desired_yaw",
+    "next_yaw",
+    "grid_next",
+    "grid_cell",
+    "speed_u_per_s",
+    "movement_phase",
+    "blocked_ticks"
+  ],
+  "fixture_rule": "All changes target row511 unless explicit. Clear defaults zero with grid_next/grid_cell=-1. Travel fixture speed3277, phase1, grid_cell0/grid_next1,target(768,256), other values0. Arrived phase2,grid_next=-1,target(256,256); one-cell-arrived same but target(0,0). Lost/profile/contact phases3/4/5,grid_next=-1, retained target(768,256). Stopped phase0,speed3277,grid_cell0,target0 andgrid_next=-1.",
+  "cases": [
+    {
+      "name": "accept-clear",
+      "base": "clear",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-stopped",
+      "base": "stopped",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-travel",
+      "base": "travel",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-arrived",
+      "base": "arrived",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-one-cell-arrived",
+      "base": "one-cell-arrived",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-lost",
+      "base": "lost",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-profile-stale",
+      "base": "profile-stale",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-contact-stale",
+      "base": "contact-stale",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "phase--1",
+      "base": "travel",
+      "changes": [
+        [
+          "movement_phase",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_PHASE"
+    },
+    {
+      "name": "phase-6",
+      "base": "travel",
+      "changes": [
+        [
+          "movement_phase",
+          511,
+          6
+        ]
+      ],
+      "code": "COLUMN_PHASE"
+    },
+    {
+      "name": "phase-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "movement_phase",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_PHASE"
+    },
+    {
+      "name": "correction_x--1",
+      "base": "travel",
+      "changes": [
+        [
+          "correction_x",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "correction_x-1",
+      "base": "travel",
+      "changes": [
+        [
+          "correction_x",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "correction_x-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "correction_x",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "correction_z--1",
+      "base": "travel",
+      "changes": [
+        [
+          "correction_z",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "correction_z-1",
+      "base": "travel",
+      "changes": [
+        [
+          "correction_z",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "correction_z-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "correction_z",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "radius_u--1",
+      "base": "travel",
+      "changes": [
+        [
+          "radius_u",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "radius_u-1",
+      "base": "travel",
+      "changes": [
+        [
+          "radius_u",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "radius_u-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "radius_u",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "desired_yaw--1",
+      "base": "travel",
+      "changes": [
+        [
+          "desired_yaw",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "desired_yaw-1",
+      "base": "travel",
+      "changes": [
+        [
+          "desired_yaw",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "desired_yaw-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "desired_yaw",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "next_yaw--1",
+      "base": "travel",
+      "changes": [
+        [
+          "next_yaw",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "next_yaw-1",
+      "base": "travel",
+      "changes": [
+        [
+          "next_yaw",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "next_yaw-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "next_yaw",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "blocked_ticks--1",
+      "base": "travel",
+      "changes": [
+        [
+          "blocked_ticks",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "blocked_ticks-1",
+      "base": "travel",
+      "changes": [
+        [
+          "blocked_ticks",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "blocked_ticks-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "blocked_ticks",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "remainder_x--1",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_REMAINDER"
+    },
+    {
+      "name": "remainder_x-420",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          420
+        ]
+      ],
+      "code": "COLUMN_REMAINDER"
+    },
+    {
+      "name": "remainder_x-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_REMAINDER"
+    },
+    {
+      "name": "remainder_x-accepted-0",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "remainder_x-accepted-419",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          419
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "remainder_z--1",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_z",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_REMAINDER"
+    },
+    {
+      "name": "remainder_z-420",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_z",
+          511,
+          420
+        ]
+      ],
+      "code": "COLUMN_REMAINDER"
+    },
+    {
+      "name": "remainder_z-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_z",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_REMAINDER"
+    },
+    {
+      "name": "remainder_z-accepted-0",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_z",
+          511,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "remainder_z-accepted-419",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_z",
+          511,
+          419
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "speed--1",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_SPEED"
+    },
+    {
+      "name": "speed-1",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_SPEED"
+    },
+    {
+      "name": "speed-3071",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3071
+        ]
+      ],
+      "code": "COLUMN_SPEED"
+    },
+    {
+      "name": "speed-3073",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3073
+        ]
+      ],
+      "code": "COLUMN_SPEED"
+    },
+    {
+      "name": "speed-3276",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3276
+        ]
+      ],
+      "code": "COLUMN_SPEED"
+    },
+    {
+      "name": "speed-3278",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3278
+        ]
+      ],
+      "code": "COLUMN_SPEED"
+    },
+    {
+      "name": "speed-4095",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4095
+        ]
+      ],
+      "code": "COLUMN_SPEED"
+    },
+    {
+      "name": "speed-4097",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4097
+        ]
+      ],
+      "code": "COLUMN_SPEED"
+    },
+    {
+      "name": "speed-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_SPEED"
+    },
+    {
+      "name": "3277-vx--111",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vx",
+          511,
+          -111
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3277-vx--110",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vx",
+          511,
+          -110
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "3277-vx-110",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vx",
+          511,
+          110
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "3277-vx-111",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vx",
+          511,
+          111
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3277-vx--2147483648",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vx",
+          511,
+          -2147483648
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3277-vx-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vx",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3277-vz--111",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vz",
+          511,
+          -111
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3277-vz--110",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vz",
+          511,
+          -110
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "3277-vz-110",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vz",
+          511,
+          110
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "3277-vz-111",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vz",
+          511,
+          111
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3277-vz--2147483648",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vz",
+          511,
+          -2147483648
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3277-vz-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3277
+        ],
+        [
+          "vz",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "4096-vx--138",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vx",
+          511,
+          -138
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "4096-vx--137",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vx",
+          511,
+          -137
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "4096-vx-137",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vx",
+          511,
+          137
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "4096-vx-138",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vx",
+          511,
+          138
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "4096-vx--2147483648",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vx",
+          511,
+          -2147483648
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "4096-vx-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vx",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "4096-vz--138",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vz",
+          511,
+          -138
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "4096-vz--137",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vz",
+          511,
+          -137
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "4096-vz-137",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vz",
+          511,
+          137
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "4096-vz-138",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vz",
+          511,
+          138
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "4096-vz--2147483648",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vz",
+          511,
+          -2147483648
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "4096-vz-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          4096
+        ],
+        [
+          "vz",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3072-vx--104",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vx",
+          511,
+          -104
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3072-vx--103",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vx",
+          511,
+          -103
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "3072-vx-103",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vx",
+          511,
+          103
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "3072-vx-104",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vx",
+          511,
+          104
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3072-vx--2147483648",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vx",
+          511,
+          -2147483648
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3072-vx-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vx",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3072-vz--104",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vz",
+          511,
+          -104
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3072-vz--103",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vz",
+          511,
+          -103
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "3072-vz-103",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vz",
+          511,
+          103
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "3072-vz-104",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vz",
+          511,
+          104
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3072-vz--2147483648",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vz",
+          511,
+          -2147483648
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "3072-vz-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          3072
+        ],
+        [
+          "vz",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "grid_next--2",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          -2
+        ]
+      ],
+      "code": "COLUMN_CELL"
+    },
+    {
+      "name": "grid_next-262144",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          262144
+        ]
+      ],
+      "code": "COLUMN_CELL"
+    },
+    {
+      "name": "grid_next-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_CELL"
+    },
+    {
+      "name": "grid_next--2147483648",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          -2147483648
+        ]
+      ],
+      "code": "COLUMN_CELL"
+    },
+    {
+      "name": "grid_cell--2",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_cell",
+          511,
+          -2
+        ]
+      ],
+      "code": "COLUMN_CELL"
+    },
+    {
+      "name": "grid_cell-262144",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_cell",
+          511,
+          262144
+        ]
+      ],
+      "code": "COLUMN_CELL"
+    },
+    {
+      "name": "grid_cell-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_cell",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_CELL"
+    },
+    {
+      "name": "grid_cell--2147483648",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_cell",
+          511,
+          -2147483648
+        ]
+      ],
+      "code": "COLUMN_CELL"
+    },
+    {
+      "name": "next_x--1",
+      "base": "travel",
+      "changes": [
+        [
+          "next_x",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_x-1",
+      "base": "travel",
+      "changes": [
+        [
+          "next_x",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_x-255",
+      "base": "travel",
+      "changes": [
+        [
+          "next_x",
+          511,
+          255
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_x-257",
+      "base": "travel",
+      "changes": [
+        [
+          "next_x",
+          511,
+          257
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_x-262144",
+      "base": "travel",
+      "changes": [
+        [
+          "next_x",
+          511,
+          262144
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_x-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "next_x",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_x--2147483648",
+      "base": "travel",
+      "changes": [
+        [
+          "next_x",
+          511,
+          -2147483648
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_x-0",
+      "base": "travel",
+      "changes": [
+        [
+          "next_x",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_z--1",
+      "base": "travel",
+      "changes": [
+        [
+          "next_z",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_z-1",
+      "base": "travel",
+      "changes": [
+        [
+          "next_z",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_z-255",
+      "base": "travel",
+      "changes": [
+        [
+          "next_z",
+          511,
+          255
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_z-257",
+      "base": "travel",
+      "changes": [
+        [
+          "next_z",
+          511,
+          257
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_z-262144",
+      "base": "travel",
+      "changes": [
+        [
+          "next_z",
+          511,
+          262144
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_z-2147483647",
+      "base": "travel",
+      "changes": [
+        [
+          "next_z",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_z--2147483648",
+      "base": "travel",
+      "changes": [
+        [
+          "next_z",
+          511,
+          -2147483648
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "next_z-0",
+      "base": "travel",
+      "changes": [
+        [
+          "next_z",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_TARGET"
+    },
+    {
+      "name": "map-last-cell",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          262143
+        ],
+        [
+          "grid_cell",
+          511,
+          262143
+        ],
+        [
+          "next_x",
+          511,
+          261888
+        ],
+        [
+          "next_z",
+          511,
+          261888
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "target-zero-travel",
+      "base": "travel",
+      "changes": [
+        [
+          "next_x",
+          511,
+          0
+        ],
+        [
+          "next_z",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "wrong-waypoint-centre",
+      "base": "travel",
+      "changes": [
+        [
+          "next_x",
+          511,
+          256
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "idle-vx",
+      "base": "stopped",
+      "changes": [
+        [
+          "vx",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "idle-vz",
+      "base": "stopped",
+      "changes": [
+        [
+          "vz",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "idle-remainder_x",
+      "base": "stopped",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "idle-remainder_z",
+      "base": "stopped",
+      "changes": [
+        [
+          "remainder_z",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "idle-grid_next",
+      "base": "stopped",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "idle-valid-nonzero-target",
+      "base": "stopped",
+      "changes": [
+        [
+          "next_x",
+          511,
+          256
+        ],
+        [
+          "next_z",
+          511,
+          256
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "travel-state-speed_u_per_s",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "travel-state-grid_cell",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_cell",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "travel-state-grid_next",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "arrived-state-speed_u_per_s",
+      "base": "one-cell-arrived",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "arrived-state-grid_cell",
+      "base": "one-cell-arrived",
+      "changes": [
+        [
+          "grid_cell",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "arrived-state-grid_next",
+      "base": "one-cell-arrived",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "arrived-wrong-retained-centre",
+      "base": "arrived",
+      "changes": [
+        [
+          "next_x",
+          511,
+          768
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "arrived-retained-fractions",
+      "base": "arrived",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          419
+        ],
+        [
+          "remainder_z",
+          511,
+          419
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lost-retained-fractions",
+      "base": "lost",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          419
+        ],
+        [
+          "remainder_z",
+          511,
+          419
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lost-bad-speed_u_per_s",
+      "base": "lost",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "lost-bad-grid_cell",
+      "base": "lost",
+      "changes": [
+        [
+          "grid_cell",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "lost-bad-grid_next",
+      "base": "lost",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "lost-bad-vx",
+      "base": "lost",
+      "changes": [
+        [
+          "vx",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "lost-bad-vz",
+      "base": "lost",
+      "changes": [
+        [
+          "vz",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "lost-zero-retained-target",
+      "base": "lost",
+      "changes": [
+        [
+          "next_x",
+          511,
+          0
+        ],
+        [
+          "next_z",
+          511,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "profile-stale-retained-fractions",
+      "base": "profile-stale",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          419
+        ],
+        [
+          "remainder_z",
+          511,
+          419
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "profile-stale-bad-speed_u_per_s",
+      "base": "profile-stale",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "profile-stale-bad-grid_cell",
+      "base": "profile-stale",
+      "changes": [
+        [
+          "grid_cell",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "profile-stale-bad-grid_next",
+      "base": "profile-stale",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "profile-stale-bad-vx",
+      "base": "profile-stale",
+      "changes": [
+        [
+          "vx",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "profile-stale-bad-vz",
+      "base": "profile-stale",
+      "changes": [
+        [
+          "vz",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "profile-stale-zero-retained-target",
+      "base": "profile-stale",
+      "changes": [
+        [
+          "next_x",
+          511,
+          0
+        ],
+        [
+          "next_z",
+          511,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "contact-stale-retained-fractions",
+      "base": "contact-stale",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          419
+        ],
+        [
+          "remainder_z",
+          511,
+          419
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "contact-stale-bad-speed_u_per_s",
+      "base": "contact-stale",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "contact-stale-bad-grid_cell",
+      "base": "contact-stale",
+      "changes": [
+        [
+          "grid_cell",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "contact-stale-bad-grid_next",
+      "base": "contact-stale",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "contact-stale-bad-vx",
+      "base": "contact-stale",
+      "changes": [
+        [
+          "vx",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "contact-stale-bad-vz",
+      "base": "contact-stale",
+      "changes": [
+        [
+          "vz",
+          511,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STATE"
+    },
+    {
+      "name": "contact-stale-zero-retained-target",
+      "base": "contact-stale",
+      "changes": [
+        [
+          "next_x",
+          511,
+          0
+        ],
+        [
+          "next_z",
+          511,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "arrived-retains-final-displacement",
+      "base": "arrived",
+      "changes": [
+        [
+          "vx",
+          511,
+          110
+        ],
+        [
+          "vz",
+          511,
+          -110
+        ],
+        [
+          "remainder_x",
+          511,
+          419
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "earlier-reserved-before-later-phase",
+      "base": "clear",
+      "changes": [
+        [
+          "correction_x",
+          0,
+          1
+        ],
+        [
+          "movement_phase",
+          511,
+          6
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "phase-before-reserved",
+      "base": "travel",
+      "changes": [
+        [
+          "movement_phase",
+          511,
+          6
+        ],
+        [
+          "correction_x",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_PHASE"
+    },
+    {
+      "name": "reserved-before-remainder",
+      "base": "travel",
+      "changes": [
+        [
+          "radius_u",
+          511,
+          1
+        ],
+        [
+          "remainder_x",
+          511,
+          420
+        ]
+      ],
+      "code": "COLUMN_RESERVED"
+    },
+    {
+      "name": "remainder-before-speed",
+      "base": "travel",
+      "changes": [
+        [
+          "remainder_x",
+          511,
+          420
+        ],
+        [
+          "speed_u_per_s",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_REMAINDER"
+    },
+    {
+      "name": "speed-before-velocity",
+      "base": "travel",
+      "changes": [
+        [
+          "speed_u_per_s",
+          511,
+          1
+        ],
+        [
+          "vx",
+          511,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_SPEED"
+    },
+    {
+      "name": "velocity-before-cell",
+      "base": "travel",
+      "changes": [
+        [
+          "vx",
+          511,
+          111
+        ],
+        [
+          "grid_next",
+          511,
+          262144
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "cell-before-target",
+      "base": "travel",
+      "changes": [
+        [
+          "grid_next",
+          511,
+          262144
+        ],
+        [
+          "next_x",
+          511,
+          257
+        ]
+      ],
+      "code": "COLUMN_CELL"
+    },
+    {
+      "name": "zero-speed-vx-nonzero",
+      "base": "clear",
+      "changes": [
+        [
+          "vx",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    },
+    {
+      "name": "zero-speed-vz-nonzero",
+      "base": "clear",
+      "changes": [
+        [
+          "vz",
+          511,
+          1
+        ]
+      ],
+      "code": "COLUMN_VELOCITY"
+    }
+  ]
+}

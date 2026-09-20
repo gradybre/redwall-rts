@@ -1,0 +1,80 @@
+{
+  "attempts": [
+    {
+      "id": "movement-validation-source-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "5bb2187e-0de4-4d35-9a31-c8e26c6a4b27",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/movement_component_validation_contract.md": "b1cc8d3fbe6bf08f616304cb784e11b71a0971e80fb3adc2a54d4956f19d65f4",
+        "docs/decisions/0182-movement-validation-preserves-terminal-history-and-readmission-counts.md": "047614e440ea91e9529021a16a33cd8cb0efeefe10696adc7fa46c85ce22fab1",
+        "docs/validation/evidence/movement-component-validation-2026-09-20/candidate-movement.gd": "152951b44b02fc91e7c164c6a2baf56dec6bc7407f402dfc0df4051d5bfe8f8e",
+        "docs/validation/evidence/movement-component-validation-2026-09-20/candidate-save_owner_movement.gd": "e85eef0cae688df79cc14c606a50c7d57dd925984713dd5072913a15b7cbea82",
+        "docs/validation/evidence/movement-component-validation-2026-09-20/movement-validation-owner-a1-pending.patch": "33810c3613583a70548ad4fca078dfcba8ce1ae9813e989825192435b8467538",
+        "docs/validation/evidence/movement-component-validation-2026-09-20/movement-validation-bridge-a1-pending.patch": "864771c3ea8008f951d0367cdea29104821d73c47339a4f6fcf3b6347916ad12",
+        "docs/validation/evidence/movement-component-validation-2026-09-20/owner-candidate-probe.json": "078a57f594a12d01205523917d8297dc70dc57bc02e6407d7ede6b61d6ac4ea1",
+        "docs/validation/evidence/movement-component-validation-2026-09-20/candidate-checks/focus.log": "ca4232ab274304d76f552f9b42cbe4fe4af95e7359fcd6623d8ce73185e11b0e",
+        "docs/validation/evidence/movement-component-validation-2026-09-20/candidate-checks/metadata.log": "6026cf4f8f6f8ade9e1bdb610e451ede749da503640cda5912dd59767782014b",
+        "docs/validation/evidence/movement-component-validation-2026-09-20/mutation-mechanics.md": "abb71a9a353ab8091a6720e23b11777b7fe3b6e43e0f34d4b1eda90ab7a1f9a8",
+        "docs/validation/evidence/movement-component-validation-2026-09-20/owner_mutations.py": "7ac5cd8443f5196050c325b5f5e8fb0fde9e90b19bb0cc6ed4068e967ff61390",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/parent-test-draft.gd": "e95b7272e0a03cb1879eacefb8af3e8b7bc2984146b44ec19d0648c807fdd9cf",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/parent-regression-draft.gd": "3d3b8ea12020eaefc6f2f58422d841158f14e956ce6e7e8970e69b3049147380",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/parent-metadata-draft.py": "908f866c05a1287f12d0fc8f4a60bc52397b3471ed22cbf6b351c2c6a93c5527",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/contract-disposition.md": "9bfdf0d16c3c33ffeea8d142240b27e4698604cbbfccf5a2bd1143a36be58e91",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/dependency-excerpts.md": "367fa5a790a62656d43444d2a95cced2552f2b4ec9cc90ce02ec5127f5216735"
+      },
+      "outputLines": 99,
+      "outputWords": 984,
+      "outputLineBudget": 110,
+      "outputWordBudget": 1100
+    },
+    {
+      "id": "movement-validation-owner-a1",
+      "model": "claude-opus-5",
+      "sessionId": "56d5995b-dc0d-4297-b163-a93b22177fa9",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/movement_component_validation_contract.md": "b1cc8d3fbe6bf08f616304cb784e11b71a0971e80fb3adc2a54d4956f19d65f4",
+        "docs/decisions/0182-movement-validation-preserves-terminal-history-and-readmission-counts.md": "047614e440ea91e9529021a16a33cd8cb0efeefe10696adc7fa46c85ce22fab1",
+        "godot/scripts/core/movement.gd": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/contract-disposition.md": "9bfdf0d16c3c33ffeea8d142240b27e4698604cbbfccf5a2bd1143a36be58e91",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/mutation-witness-plan.md": "1c16b5ca67d224266f5ca68342c60ad120abf6a33326e34ba38e51e25b79cdb3",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/dependency-excerpts.md": "367fa5a790a62656d43444d2a95cced2552f2b4ec9cc90ce02ec5127f5216735"
+      },
+      "outputLines": 265,
+      "outputLineBudget": 450,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "f36d36644d4983d057183893391937a19d0c5677"
+    },
+    {
+      "id": "movement-validation-bridge-a1",
+      "model": "claude-opus-5",
+      "sessionId": "966dfc8f-8c8e-4fda-9684-a87c6329f841",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/movement_component_validation_contract.md": "b1cc8d3fbe6bf08f616304cb784e11b71a0971e80fb3adc2a54d4956f19d65f4",
+        "docs/decisions/0182-movement-validation-preserves-terminal-history-and-readmission-counts.md": "047614e440ea91e9529021a16a33cd8cb0efeefe10696adc7fa46c85ce22fab1",
+        "docs/validation/evidence/movement-component-validation-2026-09-20/candidate-movement.gd": "152951b44b02fc91e7c164c6a2baf56dec6bc7407f402dfc0df4051d5bfe8f8e",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/contract-disposition.md": "9bfdf0d16c3c33ffeea8d142240b27e4698604cbbfccf5a2bd1143a36be58e91",
+        "docs/validation/evidence/movement-validation-planning-2026-09-20/dependency-excerpts.md": "367fa5a790a62656d43444d2a95cced2552f2b4ec9cc90ce02ec5127f5216735",
+        "godot/scripts/core/save_owner_farming.gd": "f6a3498279d31c61bf1de43452e574bab50715bf7084fbeffc86d975640a4aea",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      "outputLines": 321,
+      "outputLineBudget": 400,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "f36d36644d4983d057183893391937a19d0c5677"
+    }
+  ]
+}

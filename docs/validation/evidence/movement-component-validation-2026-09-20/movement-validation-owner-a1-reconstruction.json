@@ -1,0 +1,7 @@
+{
+  "scope": "Exact source reconstruction only; production unapplied and runtime not tested",
+  "pending_production_intake": "PR172 merge",
+  "sha256": {
+    "godot/scripts/core/movement.gd": "152951b44b02fc91e7c164c6a2baf56dec6bc7407f402dfc0df4051d5bfe8f8e"
+  }
+}

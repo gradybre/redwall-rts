@@ -23,7 +23,7 @@
       "inventory": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
       "job_planner": "bff24630c8758ba455cf0925b735970d36c1a5d612e03d1dc45134a752fe1b22",
       "jobs": "bf74583b409dd22da8b9100318e224b63bede5ed01c66be09f4ed0ab38809f3c",
-      "movement": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3",
+      "movement": "152951b44b02fc91e7c164c6a2baf56dec6bc7407f402dfc0df4051d5bfe8f8e",
       "navigation": "00f43ec4f4d834fb836c2a72bdc882cb7eddd5d53e596ecd154a4d83f7caacf2",
       "needs": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
       "orchard_hive": "bb1e885b046f61aeb03f6939f2c05c7a4597e3238cf412e111abd07be4e3c780",
@@ -1613,7 +1613,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "PROFILE_COUNT",
-      "source_resize_line": 446,
+      "source_resize_line": 459,
       "source_value": 4,
       "status": "proved_equality"
     },
@@ -5761,7 +5761,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 396,
+      "source_resize_line": 409,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -5785,7 +5785,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 397,
+      "source_resize_line": 410,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -5809,7 +5809,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 398,
+      "source_resize_line": 411,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -5833,7 +5833,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 399,
+      "source_resize_line": 412,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -5857,7 +5857,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 400,
+      "source_resize_line": 413,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -5881,7 +5881,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 401,
+      "source_resize_line": 414,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -5905,7 +5905,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 402,
+      "source_resize_line": 415,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -5929,7 +5929,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 403,
+      "source_resize_line": 416,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -5953,7 +5953,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 406,
+      "source_resize_line": 419,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -5977,7 +5977,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 408,
+      "source_resize_line": 421,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6001,7 +6001,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 409,
+      "source_resize_line": 422,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6025,7 +6025,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 404,
+      "source_resize_line": 417,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6049,7 +6049,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 405,
+      "source_resize_line": 418,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6073,7 +6073,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 407,
+      "source_resize_line": 420,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6097,7 +6097,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 410,
+      "source_resize_line": 423,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -6121,7 +6121,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 411,
+      "source_resize_line": 424,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -11940,7 +11940,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 424,
+      "source_resize_line": 437,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -11964,7 +11964,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 421,
+      "source_resize_line": 434,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -11988,7 +11988,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 422,
+      "source_resize_line": 435,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -12012,7 +12012,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 423,
+      "source_resize_line": 436,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -12036,7 +12036,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 425,
+      "source_resize_line": 438,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -12060,7 +12060,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 426,
+      "source_resize_line": 439,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -12084,7 +12084,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 427,
+      "source_resize_line": 440,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -12108,7 +12108,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 428,
+      "source_resize_line": 441,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -12132,7 +12132,7 @@
       "source_module": "movement",
       "source_relation": "eq",
       "source_resize_expression": "MOTION_CAPACITY",
-      "source_resize_line": 429,
+      "source_resize_line": 442,
       "source_value": 512,
       "status": "proved_equality"
     },

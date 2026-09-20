@@ -1,0 +1,131 @@
+{
+  "scope": "Clarifying interpretation of unchanged raw metadata.log, not a rerun",
+  "cases": [
+    {
+      "case": "positive-control",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "SIZE_MOVEMENT_U_PER_S-short",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "SIZE_MOVEMENT_U_PER_S-long",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "SIZE_MOVEMENT_U_PER_S-value",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "key-fault-refused",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "key-gate-bypassed",
+      "expected": "assertion failure under deliberate bypass",
+      "observed": "assertion failure",
+      "expectation_met": true
+    },
+    {
+      "case": "version-fault-refused",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "version-gate-bypassed",
+      "expected": "assertion failure under deliberate bypass",
+      "observed": "assertion failure",
+      "expectation_met": true
+    },
+    {
+      "case": "primary-fault-refused",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "primary-gate-bypassed",
+      "expected": "assertion failure under deliberate bypass",
+      "observed": "assertion failure",
+      "expectation_met": true
+    },
+    {
+      "case": "children-fault-refused",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "children-gate-bypassed",
+      "expected": "assertion failure under deliberate bypass",
+      "observed": "assertion failure",
+      "expectation_met": true
+    },
+    {
+      "case": "field_count-fault-refused",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "field_count-gate-bypassed",
+      "expected": "assertion failure under deliberate bypass",
+      "observed": "assertion failure",
+      "expectation_met": true
+    },
+    {
+      "case": "field_key-fault-refused",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "field_key-gate-bypassed",
+      "expected": "assertion failure under deliberate bypass",
+      "observed": "assertion failure",
+      "expectation_met": true
+    },
+    {
+      "case": "field_type-fault-refused",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "field_type-gate-bypassed",
+      "expected": "assertion failure under deliberate bypass",
+      "observed": "assertion failure",
+      "expectation_met": true
+    },
+    {
+      "case": "field_extent-fault-refused",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    },
+    {
+      "case": "field_extent-gate-bypassed",
+      "expected": "assertion failure under deliberate bypass",
+      "observed": "assertion failure",
+      "expectation_met": true
+    },
+    {
+      "case": "schema-first-forwarding",
+      "expected": "successful expected-code assertions",
+      "observed": "passing assertions",
+      "expectation_met": true
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "scope": "Read-only source snapshot; hypotheses require review and runtime probes",
+  "owner_index": 8,
+  "owner_metadata": {
+    "OWNER_KEYS": "movement",
+    "OWNER_KEY_BYTES": 8,
+    "OWNER_VERSIONS": 1,
+    "OWNER_PRIMARY_COUNTS": 512,
+    "OWNER_FIELD_COUNTS": 16,
+    "OWNER_FIELD_BEGIN": 171,
+    "OWNER_CHILD_COUNTS": 0,
+    "OWNER_CHILD_BEGIN": 4,
+    "OWNER_OFFSETS": 9246459,
+    "OWNER_PAYLOAD_BYTES": 32900,
+    "OWNER_BLOCK_BYTES": 32932
+  },
+  "fields": [
+    {
+      "FIELD_KEYS": "_vx",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_vz",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_remainder_x",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_remainder_z",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_next_x",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_next_z",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_correction_x",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_correction_z",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_radius_u",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_desired_yaw",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_next_yaw",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_grid_next",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_grid_cell",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_speed_u_per_s",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_movement_phase",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    },
+    {
+      "FIELD_KEYS": "_blocked_ticks",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 512
+    }
+  ],
+  "value_bytes": 32768,
+  "source_sha256": {
+    "godot/scripts/core/movement.gd": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3",
+    "godot/scripts/core/spatial_world.gd": "3825788db07885db94dab7288c832b8219f89e54da22d871d58e98e2d590b26b",
+    "godot/scripts/core/navigation.gd": "00f43ec4f4d834fb836c2a72bdc882cb7eddd5d53e596ecd154a4d83f7caacf2",
+    "godot/scripts/core/residents.gd": "90a99e562e4e0b41da5f2afad5df7ab64f297b93b86f985d21535ebd72c3a06c",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  }
+}

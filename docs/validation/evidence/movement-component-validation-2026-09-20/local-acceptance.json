@@ -1,0 +1,46 @@
+{
+  "contract": "MOVEMENT-S4-VALIDATE-R01v1",
+  "full": {
+    "tests": 4993,
+    "assertions": 503170,
+    "failures": 0
+  },
+  "focus": {
+    "tests": 11,
+    "assertions": 24506,
+    "failures": 0
+  },
+  "mutations": {
+    "total": 50,
+    "assertion_oracles": 50,
+    "valid_runs": 52,
+    "scope": "Frozen candidate clone; byte-identical owner/bridge/tests verified after raw production intake"
+  },
+  "metadata": {
+    "cases": 21,
+    "assertions": 189,
+    "bypasses_detected": 8,
+    "scope": "Cold metadata clone with autoloads disabled; actual project configuration unchanged; normal focus and integrated full keep autoloads"
+  },
+  "static_checks": 17,
+  "import_exit": 0,
+  "shutdown_baseline": {
+    "objects": 553,
+    "resources": 33
+  },
+  "source_sha256": {
+    "godot/scripts/core/movement.gd": "152951b44b02fc91e7c164c6a2baf56dec6bc7407f402dfc0df4051d5bfe8f8e",
+    "godot/scripts/core/save_owner_movement.gd": "e85eef0cae688df79cc14c606a50c7d57dd925984713dd5072913a15b7cbea82",
+    "godot/test/test_save_owner_movement.gd": "e95b7272e0a03cb1879eacefb8af3e8b7bc2984146b44ec19d0648c807fdd9cf",
+    "godot/test/test_movement_readmission.gd": "3d3b8ea12020eaefc6f2f58422d841158f14e956ce6e7e8970e69b3049147380",
+    "godot/test/movement_validation_focus.gd": "5b1b5298079de3b05e16b6ccb7b7267ac1b078e87463cde7b265b3aa15adf5c5",
+    "tools/test_movement_metadata_preflights.py": "908f866c05a1287f12d0fc8f4a60bc52397b3471ed22cbf6b351c2c6a93c5527",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  },
+  "remaining": [
+    "exact-head CI and merge",
+    "same-file saved Residents/cursor/navigation/Transforms/clock bindings",
+    "bulk16-column motion capture/apply",
+    "live movement/work integration and complete settlement"
+  ]
+}

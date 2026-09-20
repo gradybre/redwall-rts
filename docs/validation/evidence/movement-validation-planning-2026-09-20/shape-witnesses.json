@@ -1,0 +1,392 @@
+{
+  "cases": [
+    {
+      "name": "null",
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 0,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 0,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 0,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 1,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 1,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 1,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 2,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 2,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 2,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 3,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 3,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 3,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 4,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 4,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 4,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 5,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 5,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 5,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 6,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 6,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 6,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 7,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 7,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 7,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 8,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 8,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 8,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 9,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 9,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 9,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 10,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 10,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 10,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 11,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 11,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 11,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 12,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 12,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 12,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 13,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 13,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 13,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 14,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 14,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 14,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 15,
+      "extent": 0,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 15,
+      "extent": 511,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    },
+    {
+      "field": 15,
+      "extent": 513,
+      "paired_phase_row": 0,
+      "paired_phase": 6,
+      "expected": "COLUMN_SHAPE",
+      "note": "For phase field extent0 pair reserved fault instead; do not index empty phase"
+    }
+  ]
+}

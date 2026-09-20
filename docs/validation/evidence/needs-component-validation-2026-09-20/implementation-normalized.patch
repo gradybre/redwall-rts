@@ -1,0 +1,397 @@
+--- a/godot/scripts/core/needs.gd
++++ b/godot/scripts/core/needs.gd
+@@ -105,8 +105,11 @@
+ ##   * Departure (REQ-SET-021..024) and the `departure_days` column. It needs day boundaries,
+ ##     a complete mood (i.e. the deferred MoodMemory store) and a map exit; marking residents
+ ##     for departure off a structurally incomplete mood would be worse than not doing it. The
+-##     column exists, is explicitly zero, and is never written -- the FaunaStockReserved
+-##     pattern from GDD §4.2.
++##     column exists and NO NORMAL PRODUCER WRITES IT: nothing in this module, and nothing on
++##     the tick path, ever sets it, so a live settlement leaves it 0 -- the FaunaStockReserved
++##     pattern from GDD §4.2. That is NOT the claim that the column is always 0: a restored
++##     column set may carry any saved counter in 0..INT32_MAX, and the bulk-column validator
++##     admits exactly that nonnegative domain and nothing wider.
+ ##   * Meal quality factors, NP-per-portion and the food/feast cold reductions (§5.7). Callers
+ ##     pass already-resolved nutrition points to add_food_nutrition().
+ ##   * Per-tick work output (80 milli-WU x factor/1000) and XP: labour, not needs. work_factor()
+@@ -435,7 +438,8 @@
+ ## GDD §4.2's IntegrationRemainders row does not provide one.
+ var _starving_ticks: PackedInt64Array = PackedInt64Array()
+ 
+-## Needs.departure_days. Reserved and explicitly zero: see the GAPS block in the header.
++## Needs.departure_days. No normal producer writes it -- REQ-SET-021..024 are deferred -- so a
++## live settlement reads 0; a restored image may carry any saved counter in 0..INT32_MAX.
+ var _departure_days: PackedInt32Array = PackedInt32Array()
+ 
+ var _status: PackedByteArray = PackedByteArray()
+@@ -829,7 +833,12 @@
+ 
+ 
+ func departure_days_of(slot: int) -> IntMath.IntResult:
+-	"""Needs.departure_days. Reserved and always 0: REQ-SET-021..024 are deferred (header)."""
++	"""Needs.departure_days: a saved counter, not a produced one.
++
++	REQ-SET-021..024 are deferred, so nothing in this module ever writes this column and a live
++	settlement reads 0. A restored image may legitimately carry any value in 0..INT32_MAX, which
++	is the domain the bulk-column validator admits.
++	"""
+ 	var code: StringName = _check_present_slot(slot)
+ 	return _read(code, _departure_days[slot] if code == REFUSE_NONE else 0)
+ 
+@@ -1748,6 +1757,10 @@
+ const REFUSE_COLUMN_NEGATIVE_COUNTER: StringName = &"COLUMN_NEGATIVE_COUNTER"
+ const REFUSE_COLUMN_REMAINDER: StringName = &"COLUMN_REMAINDER"
+ const REFUSE_COLUMN_FREE_ROW: StringName = &"COLUMN_FREE_ROW"
++## GDD §5.2 line 329 requires DEAD at health 0. A PRESENT row must satisfy
++## `(health == 0) == (status == STATUS_DEAD)`: a zero-health non-DEAD row and a positive-health
++## DEAD row are both refused, so no restore can publish that contradiction.
++const REFUSE_COLUMN_HEALTH_STATUS: StringName = &"COLUMN_HEALTH_STATUS"
+ const REFUSE_COLUMN_LIVING_CAP: StringName = &"COLUMN_LIVING_CAP"
+ 
+ 
+@@ -1913,7 +1926,7 @@
+ 	`_winter`, `_hard_freeze` and `_death_count` are NOT touched: the first two are per-tick world
+ 	inputs the caller restates, and the third is a diagnostic. See `last_column_refusal()`.
+ 	"""
+-	var refusal: StringName = _restore_column_refusal(columns)
++	var refusal: StringName = columns_refusal(columns)
+ 	if refusal != REFUSE_NONE:
+ 		_last_column_refusal = refusal
+ 		return false
+@@ -1952,8 +1965,15 @@
+ 	return image
+ 
+ 
+-func _columns_are_capacity_sized(columns: Columns) -> bool:
+-	"""True when every one of the twenty buffers is exactly its declared extent."""
++static func _columns_are_capacity_sized(columns: Columns) -> bool:
++	"""True when a nonnull record holds all twenty buffers at exactly their declared extents.
++
++	THE SHARED NULL GUARD. `restore_columns(null)` and `copy_columns_into(null)` both reach this
++	predicate before any indexed read, so each refuses with its existing COLUMN_SHAPE diagnostic
++	instead of dereferencing null.
++	"""
++	if columns == null:
++		return false
+ 	if columns.need_value.size() != RESIDENT_CAPACITY * NEED_COUNT:
+ 		return false
+ 	if columns.need_remainder.size() != RESIDENT_CAPACITY * NEED_COUNT:
+@@ -1974,8 +1994,21 @@
+ 	return true
+ 
+ 
+-func _restore_column_refusal(columns: Columns) -> StringName:
+-	"""Every rule a restored column set must satisfy, checked before a single column is written."""
++static func columns_refusal(columns: Columns) -> StringName:
++	"""THE single owner predicate over a Needs column image: REFUSE_NONE, or the exact code.
++
++	Argument-only and pure. It reads no store member, writes none and sets no diagnostic; the live
++	`restore_columns()` and the offline owner-9 bridge both call THIS implementation, so one saved
++	image can never be judged by two drifting copies of the same rules.
++
++	Total order, each step resting on the one before it:
++	  1. null and shape -- all twenty extents, before any indexed or domain read,
++	  2. the byte domains: present, flags, clothing tier, then the declared enums,
++	  3. the value domains: needs, health, counters and the three remainders,
++	  4. the inactive-row rule,
++	  5. the present-row death equivalence `(health == 0) == (status == STATUS_DEAD)`,
++	  6. the recomputed living cap of 256.
++	"""
+ 	if not _columns_are_capacity_sized(columns):
+ 		return REFUSE_COLUMN_SHAPE
+ 	var bytes: StringName = _column_byte_domain_refusal(columns)
+@@ -1987,12 +2020,31 @@
+ 	var free_rows: StringName = _column_free_row_refusal(columns)
+ 	if free_rows != REFUSE_NONE:
+ 		return free_rows
++	var deaths: StringName = _column_health_status_refusal(columns)
++	if deaths != REFUSE_NONE:
++		return deaths
+ 	if _living_row_count(columns.present, columns.status) > RESIDENT_LIVING_CAP:
+ 		return REFUSE_COLUMN_LIVING_CAP
+ 	return REFUSE_NONE
+ 
+ 
+-func _column_byte_domain_refusal(columns: Columns) -> StringName:
++static func _column_health_status_refusal(columns: Columns) -> StringName:
++	"""GDD §5.2 line 329: a PRESENT row is dead exactly when its health is 0.
++
++	`(health == 0) == (status == STATUS_DEAD)`, so a zero-health non-DEAD row and a positive-health
++	DEAD row are both refused. A dead-but-present row at health 0 stays legal: this admits the
++	store's own lifecycle output and rejects only the contradiction. Inactive rows are not examined
++	here -- the free-row rule already required DEAD and a cleared health for them.
++	"""
++	var slot: int = columns.present.find(1, 0)
++	while slot >= 0:
++		if (columns.health[slot] == 0) != (columns.status[slot] == STATUS_DEAD):
++			return REFUSE_COLUMN_HEALTH_STATUS
++		slot = columns.present.find(1, slot + 1)
++	return REFUSE_NONE
++
++
++static func _column_byte_domain_refusal(columns: Columns) -> StringName:
+ 	"""Every byte column holds only values its own enumeration declares (ARCH-SAVE-005)."""
+ 	if not _byte_column_below(columns.present, 2):
+ 		return REFUSE_COLUMN_PRESENT_BYTE
+@@ -2022,7 +2074,7 @@
+ 	return REFUSE_NONE
+ 
+ 
+-func _column_value_domain_refusal(columns: Columns) -> StringName:
++static func _column_value_domain_refusal(columns: Columns) -> StringName:
+ 	"""Need, health, counter and remainder domains, over the whole column including free rows.
+ 
+ 	THE INT32 SIGN TRAP. These arrive as int32 and int64 columns, so the bytes `00 00 00 80` are
+@@ -2055,7 +2107,7 @@
+ 	return REFUSE_NONE
+ 
+ 
+-func _column_free_row_refusal(columns: Columns) -> StringName:
++static func _column_free_row_refusal(columns: Columns) -> StringName:
+ 	"""Every `_present == 0` row carries exactly what `despawn()` and `clear()` leave behind.
+ 
+ 	The nine columns checked are the ones both paths zero, plus the DEAD status both write. The
+@@ -2071,7 +2123,7 @@
+ 	return REFUSE_NONE
+ 
+ 
+-func _free_row_is_clear(columns: Columns, slot: int) -> bool:
++static func _free_row_is_clear(columns: Columns, slot: int) -> bool:
+ 	"""True when one inactive row holds the released-row values and the DEAD status."""
+ 	if columns.status[slot] != STATUS_DEAD:
+ 		return false
+@@ -2088,7 +2140,7 @@
+ 	return true
+ 
+ 
+-func _living_row_count(present: PackedByteArray, status: PackedByteArray) -> int:
++static func _living_row_count(present: PackedByteArray, status: PackedByteArray) -> int:
+ 	"""Spawned rows whose resident is not dead. One function, used on the incoming columns to
+ 	enforce the cap and on the installed ones to rebuild the counter, so the two cannot drift."""
+ 	var total: int = 0
+@@ -2131,7 +2183,7 @@
+ 	_last_refused_slot = -1
+ 
+ 
+-func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
++static func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
+ 	"""True when every byte is in [0, bound). One C++ count per legal value, no per-row loop."""
+ 	var total: int = 0
+ 	for value: int in range(bound):
+@@ -2139,14 +2191,14 @@
+ 	return total == column.size()
+ 
+ 
+-func _int32_column_within(column: PackedInt32Array, low: int, high: int) -> bool:
++static func _int32_column_within(column: PackedInt32Array, low: int, high: int) -> bool:
+ 	"""True when every signed int32 entry lies in [low, high]. Sorts a copy and reads both ends."""
+ 	var sorted: PackedInt32Array = column.duplicate()
+ 	sorted.sort()
+ 	return sorted[0] >= low and sorted[sorted.size() - 1] <= high
+ 
+ 
+-func _int64_column_within(column: PackedInt64Array, low: int, high: int) -> bool:
++static func _int64_column_within(column: PackedInt64Array, low: int, high: int) -> bool:
+ 	"""True when every signed int64 entry lies in [low, high]. Sorts a copy and reads both ends."""
+ 	var sorted: PackedInt64Array = column.duplicate()
+ 	sorted.sort()
+--- /dev/null
++++ b/godot/scripts/core/save_owner_needs.gd
+@@ -0,0 +1,197 @@
++extends RefCounted
++## Owner 9 (`needs`) framed-column validation bridge (NEEDS-S4-VALIDATE-R01 v2, decision 0170).
++##
++## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
++## against the Needs store's own restore rules and returns a `SaveHeader.Refusal`. It constructs
++## no live Needs owner, calls no store, captures nothing, applies nothing, and touches no clock,
++## barrier, signal, callback, filesystem, JSON text, reflection API or per-row object.
++##
++## GATE ORDER, and what each gate owns:
++##   1. a null record                 -> SAVE_COMPONENT_SHAPE
++##   2. an owner index that is not 9  -> SAVE_COMPONENT_OWNER
++##   3. `Schema.schema_refusal()`     -> forwarded UNCHANGED, both code and detail
++##   4. this owner's compiled metadata -> SAVE_COMPONENT_METADATA, with a detail beginning
++##      `Needs owner 9 metadata:` so gate 4 is distinguishable from gate 3, which shares the
++##      code. THE CODE ALONE DOES NOT IDENTIFY WHICH METADATA GATE FIRED.
++##   5. `Section.owner_shape_refusal()` -> forwarded UNCHANGED
++##   6. explicit projection of all twenty framed columns into one temporary `Needs.Columns`
++##   7. `Needs.columns_refusal()`     -> the EXACT unwrapped column code, for example
++##      COLUMN_HEALTH_STATUS, with a detail naming owner 9 and that same code.
++## Success carries an empty code and an empty detail. The projection is neither returned nor
++## retained.
++##
++## WHAT AN ACCEPTED RESULT DOES NOT CERTIFY. Common-file provenance, agreement with the entity
++## directory or the Resident store, Injury agreement, cross-owner saved consistency, complete
++## world validity, or permission to install anything into a live store. Capture/apply adapters,
++## the other seventeen owners, total nonfatal status precedence and departure production remain
++## outstanding elsewhere.
++##
++## MEMORY, CONDITIONALLY. The projection SHARES the caller's packed buffers by assignment: no
++## `duplicate()` is called here, `_install_columns()` is never reached, and nothing is captured
++## from a live owner. Only the existing Needs range helpers duplicate and sort their own private
++## temporary copies, so both accepted and refused calls leave every caller array untouched. The
++## contract's conservative figure is 135168 bytes; that is allocation arithmetic, not a measured
++## resident set. The caller keeps and freezes its record for this synchronous call.
++##
++## NO FLOAT. ARCH-AUTH-002: there is no float in this file and there must never be one.
++
++const Needs := preload("res://scripts/core/needs.gd")
++const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
++const Section := preload("res://scripts/core/save_section_component_columns.gd")
++const SaveHeader := preload("res://scripts/core/save_header.gd")
++
++## The section-local owner this bridge accepts, and the compiled metadata it demands of it.
++const OWNER_INDEX: int = 9
++const OWNER_KEY: String = "needs"
++const OWNER_VERSION: int = 2
++const OWNER_PRIMARY_COUNT: int = 512
++const OWNER_CHILD_EXTENT_COUNT: int = 0
++const OWNER_FIELD_COUNT: int = 20
++## Gate 4's detail prefix. Gate 3 forwards the schema module's own detail unchanged.
++const METADATA_DETAIL_PREFIX: String = "Needs owner 9 metadata:"
++
++## Owner-local field ordinals, in the registry order `Needs.COLUMN_KEYS` publishes.
++const FIELD_PRESENT: int = 0
++const FIELD_NEED_VALUE: int = 1
++const FIELD_NEED_REMAINDER: int = 2
++const FIELD_HEALTH: int = 3
++const FIELD_HEALTH_REMAINDER: int = 4
++const FIELD_COLD_MILLI_HOURS: int = 5
++const FIELD_COLD_REMAINDER: int = 6
++const FIELD_STARVING_TICKS: int = 7
++const FIELD_DEPARTURE_DAYS: int = 8
++const FIELD_STATUS: int = 9
++const FIELD_SIZE_CLASS: int = 10
++const FIELD_ACTIVITY: int = 11
++const FIELD_COMFORT_ENVIRONMENT: int = 12
++const FIELD_SOCIAL_PAIRED: int = 13
++const FIELD_PURPOSE_SOURCE: int = 14
++const FIELD_COLD_ENVIRONMENT: int = 15
++const FIELD_CLOTHING_TIER: int = 16
++const FIELD_INFIRMARY: int = 17
++const FIELD_INJURY_STATE: int = 18
++const FIELD_AIRLESS: int = 19
++
++
++static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
++	"""Judge one framed owner 9 block against the Needs store's own column rules.
++
++	Pure over its argument. See the header for the seven gates, and for everything an accepted
++	result deliberately does not certify.
++	"""
++	if record == null:
++		return _refuse(Section.REFUSE_SHAPE,
++			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
++	if record.owner != OWNER_INDEX:
++		return _refuse(Section.REFUSE_OWNER,
++			"owner %d was supplied where owner %d ('%s') is required"
++				% [record.owner, OWNER_INDEX, OWNER_KEY])
++	var schema: SaveHeader.Refusal = Schema.schema_refusal()
++	if not schema.is_ok():
++		return schema
++	var metadata: SaveHeader.Refusal = _metadata_refusal()
++	if not metadata.is_ok():
++		return metadata
++	var shape: SaveHeader.Refusal = Section.owner_shape_refusal(record)
++	if not shape.is_ok():
++		return shape
++	var columns: Needs.Columns = Needs.Columns.new()
++	_project_values(record, columns)
++	_project_bytes(record, columns)
++	var code: StringName = Needs.columns_refusal(columns)
++	if code != Needs.REFUSE_NONE:
++		return _refuse(code,
++			"Needs owner %d refuses this image with column code %s" % [OWNER_INDEX, String(code)])
++	return _accept()
++
++
++static func _metadata_refusal() -> SaveHeader.Refusal:
++	"""Gate 4: this owner's compiled identity and extents, before any per-field comparison."""
++	if Schema.owner_key(OWNER_INDEX) != OWNER_KEY \
++			or Schema.owner_version(OWNER_INDEX) != OWNER_VERSION:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s compiled owner '%s' version %d is not '%s' version %d"
++				% [METADATA_DETAIL_PREFIX, Schema.owner_key(OWNER_INDEX),
++					Schema.owner_version(OWNER_INDEX), OWNER_KEY, OWNER_VERSION])
++	if Schema.primary_count(OWNER_INDEX) != OWNER_PRIMARY_COUNT \
++			or Schema.child_extent_count(OWNER_INDEX) != OWNER_CHILD_EXTENT_COUNT:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s %d primaries and %d child extents are not %d and %d"
++				% [METADATA_DETAIL_PREFIX, Schema.primary_count(OWNER_INDEX),
++					Schema.child_extent_count(OWNER_INDEX), OWNER_PRIMARY_COUNT,
++					OWNER_CHILD_EXTENT_COUNT])
++	if Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT \
++			or Needs.COLUMN_COUNT != OWNER_FIELD_COUNT \
++			or Needs.COLUMN_KEYS.size() != OWNER_FIELD_COUNT \
++			or Needs.COLUMN_TYPE_CODES.size() != OWNER_FIELD_COUNT \
++			or Needs.COLUMN_EXTENTS.size() != OWNER_FIELD_COUNT:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the schema declares %d fields and Needs publishes %d/%d/%d/%d, not %d"
++				% [METADATA_DETAIL_PREFIX, Schema.field_count(OWNER_INDEX), Needs.COLUMN_COUNT,
++					Needs.COLUMN_KEYS.size(), Needs.COLUMN_TYPE_CODES.size(),
++					Needs.COLUMN_EXTENTS.size(), OWNER_FIELD_COUNT])
++	return _field_parity_refusal()
++
++
++static func _field_parity_refusal() -> SaveHeader.Refusal:
++	"""Gate 4's per-field half: key, type code and element count, ordinal by ordinal."""
++	for field: int in OWNER_FIELD_COUNT:
++		if Schema.field_key(OWNER_INDEX, field) != String(Needs.COLUMN_KEYS[field]):
++			return _refuse(Section.REFUSE_METADATA, "%s field %d is '%s'; Needs declares '%s'"
++				% [METADATA_DETAIL_PREFIX, field, Schema.field_key(OWNER_INDEX, field),
++					String(Needs.COLUMN_KEYS[field])])
++		if Schema.field_type(OWNER_INDEX, field) != int(Needs.COLUMN_TYPE_CODES[field]):
++			return _refuse(Section.REFUSE_METADATA, "%s field %d has type %d; Needs declares %d"
++				% [METADATA_DETAIL_PREFIX, field, Schema.field_type(OWNER_INDEX, field),
++					int(Needs.COLUMN_TYPE_CODES[field])])
++		if Schema.element_count(OWNER_INDEX, field) != int(Needs.COLUMN_EXTENTS[field]):
++			return _refuse(Section.REFUSE_METADATA, "%s field %d holds %d values; Needs declares %d"
++				% [METADATA_DETAIL_PREFIX, field, Schema.element_count(OWNER_INDEX, field),
++					int(Needs.COLUMN_EXTENTS[field])])
++	return _accept()
++
++
++static func _project_values(record: Section.FramedOwner, columns: Needs.Columns) -> void:
++	"""Ordinals 0-8: the present flag and every i32/i64 value column, by exact declared type.
++
++	Assignment, never `duplicate()`: the packed buffers stay shared copy-on-write with the
++	caller's frozen record, and validation only reads them.
++	"""
++	columns.present = record.u8_column(FIELD_PRESENT)
++	columns.need_value = record.i32_column(FIELD_NEED_VALUE)
++	columns.need_remainder = record.i64_column(FIELD_NEED_REMAINDER)
++	columns.health = record.i32_column(FIELD_HEALTH)
++	columns.health_remainder = record.i64_column(FIELD_HEALTH_REMAINDER)
++	columns.cold_milli_hours = record.i64_column(FIELD_COLD_MILLI_HOURS)
++	columns.cold_remainder = record.i64_column(FIELD_COLD_REMAINDER)
++	columns.starving_ticks = record.i64_column(FIELD_STARVING_TICKS)
++	columns.departure_days = record.i32_column(FIELD_DEPARTURE_DAYS)
++
++
++static func _project_bytes(record: Section.FramedOwner, columns: Needs.Columns) -> void:
++	"""Ordinals 9-19: the status enum and the ten byte input columns.
++
++	Every one is assigned explicitly, so an omitted field cannot fall back to a constructor
++	default and pass as arbitrary legal wire data.
++	"""
++	columns.status = record.u8_column(FIELD_STATUS)
++	columns.size_class = record.u8_column(FIELD_SIZE_CLASS)
++	columns.activity = record.u8_column(FIELD_ACTIVITY)
++	columns.comfort_environment = record.u8_column(FIELD_COMFORT_ENVIRONMENT)
++	columns.social_paired = record.u8_column(FIELD_SOCIAL_PAIRED)
++	columns.purpose_source = record.u8_column(FIELD_PURPOSE_SOURCE)
++	columns.cold_environment = record.u8_column(FIELD_COLD_ENVIRONMENT)
++	columns.clothing_tier = record.u8_column(FIELD_CLOTHING_TIER)
++	columns.infirmary = record.u8_column(FIELD_INFIRMARY)
++	columns.injury_state = record.u8_column(FIELD_INJURY_STATE)
++	columns.airless = record.u8_column(FIELD_AIRLESS)
++
++
++static func _refuse(code: StringName, detail: String) -> SaveHeader.Refusal:
++	"""Build a refusal carrying an exact code: a section code, or an unwrapped Needs column code."""
++	return SaveHeader.Refusal.new(code, detail)
++
++
++static func _accept() -> SaveHeader.Refusal:
++	"""The accepted result: an empty code and no detail."""
++	return SaveHeader.Refusal.new(SaveHeader.REFUSE_NONE, "")

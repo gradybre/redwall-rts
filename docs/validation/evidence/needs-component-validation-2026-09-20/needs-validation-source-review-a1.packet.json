@@ -1,0 +1,22 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "de150316e3abbdb689379cc4d5bea6d9efd77a98",
+  "task": "Independent source review of Needs offline validation and death restore correction",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/needs_component_validation_contract.md",
+    "docs/decisions/0170-needs-restores-reject-health-status-contradictions.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/contract-review-disposition.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/author-intake.md",
+    "godot/scripts/core/needs.gd",
+    "godot/scripts/core/save_owner_needs.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd",
+    "godot/test/test_save_owner_needs.gd",
+    "godot/test/test_needs_columns.gd",
+    "tools/test_needs_metadata_preflights.py",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/focus-first.log"
+  ],
+  "instructions": "Independent source/security/correctness review, NOT implementation. Accepted NEEDS-S4-VALIDATE-R01v2. Author stopped; parent normalized overlapping patch contexts against exact frozen text and restored explicit metadata prefix. Focus39tests/6432assertions/0. Inspect actual source and parent tests for blockers, meaningful missing tests, compatibility, purity, null/shape/type/code/order, all20explicit assignments, memory assumptions and preserved input/target. Do not reopen excluded gameplay/status/departure/tickoptimization scope or conflate partial owner validator with fullsave. Verify helper call graph reads only columns/constants, no live Needs instance. Metadata faults are now running; mutation/fullsuite evidence not yet available so no run claims. Exactly ONE NEW report docs/validation/evidence/needs-component-validation-2026-09-20/source-review.md, hard160lines AND1600words; aim80/800. Rank findings with exact source anchors, concrete consequence and bounded fix. If no blocker say so; separate genuine correctness issue from low-priority style. Raw JSON status/summary/questions/files/decisionIds only, baseSha256null for new report. No source/test edits."
+}

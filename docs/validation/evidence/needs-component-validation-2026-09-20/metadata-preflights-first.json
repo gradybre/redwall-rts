@@ -1,0 +1,65 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "case": "unmodified-positive-control",
+      "assertions": 7,
+      "passed": true
+    },
+    {
+      "case": "COLUMN_KEYS-short",
+      "assertions": 7,
+      "passed": true
+    },
+    {
+      "case": "COLUMN_KEYS-long",
+      "assertions": 7,
+      "passed": true
+    },
+    {
+      "case": "COLUMN_KEYS-value",
+      "assertions": 7,
+      "passed": true
+    },
+    {
+      "case": "COLUMN_TYPE_CODES-short",
+      "assertions": 7,
+      "passed": true
+    },
+    {
+      "case": "COLUMN_TYPE_CODES-long",
+      "assertions": 7,
+      "passed": true
+    },
+    {
+      "case": "COLUMN_TYPE_CODES-value",
+      "assertions": 7,
+      "passed": true
+    },
+    {
+      "case": "COLUMN_EXTENTS-short",
+      "assertions": 7,
+      "passed": true
+    },
+    {
+      "case": "COLUMN_EXTENTS-long",
+      "assertions": 7,
+      "passed": true
+    },
+    {
+      "case": "COLUMN_EXTENTS-value",
+      "assertions": 7,
+      "passed": true
+    },
+    {
+      "case": "schema-gate-before-owner-parity",
+      "assertions": 7,
+      "passed": true
+    }
+  ],
+  "source_sha256": {
+    "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+    "godot/scripts/core/save_owner_needs.gd": "eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2"
+  }
+}

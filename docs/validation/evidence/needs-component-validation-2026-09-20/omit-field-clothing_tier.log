@@ -1,0 +1,66 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_needs.gd
+  PASS  test_test_mapping_names_match_all_twenty_declared_fields
+  FAIL  test_every_field_has_an_independent_invalid_value_witness
+        framed predicate exact code (expected COLUMN_CLOTHING_TIER, got )
+        success channel agrees (expected false, got true)
+        refusal has detail (expected false, got true)
+  FAIL  test_actual_declared_defaults_pass_but_arbitrary_zero_frame_does_not
+        zero wire is not a valid default world (expected COLUMN_CLOTHING_TIER, got COLUMN_FREE_ROW)
+  PASS  test_death_equivalence_refuses_all_non_dead_statuses_at_zero_health
+  PASS  test_valid_dead_row_does_not_consume_living_capacity
+  PASS  test_normal_injury_activity_and_starvation_history_remain_legal
+  PASS  test_retained_inactive_environment_and_departure_counter_are_not_zeroed
+  PASS  test_signed_extrema_and_both_remainder_edges
+  PASS  test_null_inputs_are_total_and_refused_owner_is_unchanged
+  PASS  test_bridge_owner_and_shape_preflight
+  FAIL  test_living_cap_and_first_refusal_across_distinct_rows
+        framed predicate exact code (expected COLUMN_CLOTHING_TIER, got COLUMN_ENUM_BYTE)
+  FAIL  test_every_byte_domain_upper_edge_and_large_byte
+        framed predicate exact code (expected COLUMN_CLOTHING_TIER, got )
+        success channel agrees (expected false, got true)
+        refusal has detail (expected false, got true)
+  PASS  test_positive_range_limits_and_negative_i64_extrema
+  PASS  test_all_column_shapes_and_bucket_counts_refuse_before_projection
+  PASS  test_each_typed_bucket_requires_its_exact_column_count
+test_needs_columns.gd
+  PASS  test_column_order_matches_the_canonical_registry_artifact
+  PASS  test_the_three_order_tables_are_the_same_length
+  PASS  test_a_populated_store_round_trips_into_a_different_instance
+  PASS  test_a_released_rows_retained_bytes_survive_and_no_reader_can_see_them
+  PASS  test_a_dead_but_present_row_survives_as_present_and_not_living
+  PASS  test_an_empty_columns_object_matches_a_cleared_store
+  PASS  test_a_short_column_refuses_on_shape
+  PASS  test_an_out_of_domain_status_byte_refuses
+  PASS  test_a_need_above_ten_thousand_refuses
+  PASS  test_a_negative_health_refuses_and_the_test_proves_it_is_negative
+  PASS  test_a_remainder_at_its_denominator_refuses
+  PASS  test_the_remainder_bound_is_exclusive_on_both_ends
+  PASS  test_a_negative_starvation_clock_refuses
+  PASS  test_an_occupancy_byte_that_is_neither_zero_nor_one_refuses
+  PASS  test_a_boolean_input_column_holding_two_refuses
+  PASS  test_a_clothing_tier_of_zero_refuses
+  PASS  test_a_free_row_carrying_a_live_value_refuses
+  PASS  test_a_free_row_that_is_not_dead_refuses
+  PASS  test_more_than_the_cap_of_living_residents_refuses
+  PASS  test_exactly_the_cap_of_living_residents_is_accepted
+  PASS  test_a_column_refusal_does_not_touch_the_operation_channel
+  PASS  test_every_published_column_refusal_code_is_prefixed
+  PASS  test_a_successful_restore_clears_the_column_refusal
+  PASS  test_a_restored_store_integrates_exactly_as_the_source_does
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+39 test(s), 6432 assertion(s), 4 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

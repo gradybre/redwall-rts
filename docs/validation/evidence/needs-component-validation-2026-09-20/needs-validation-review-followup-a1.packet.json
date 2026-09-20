@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "de150316e3abbdb689379cc4d5bea6d9efd77a98",
+  "task": "Bounded follow-up review of actual Needs metadata fault and bypass tests",
+  "paths": [
+    "docs/planning/needs_component_validation_contract.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/source-review.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/source-review-disposition.md",
+    "godot/scripts/core/save_owner_needs.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "tools/test_needs_metadata_preflights.py",
+    ".github/workflows/tests.yml",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/metadata-preflights-review.json"
+  ],
+  "instructions": "Independent bounded follow-up ONLY to S1/S2/S3 disposition and changed metadata fault tests. Production unchanged after source review. Actual19engine cases passed, including4comparison bypasses killed by assertion; schema-valid wrong key/version/balancedprimary/movedchild faults prove gate4 separate fromgate3. Check harness assertions, clone isolation, exact detail forwarding and CI wiring for actual remaining blocker. Parent already resolved no need for impossible normal-suite compiled constant mutation. Fixed9assertions failclosed notgeneralframework. Do not repeat settledproductionreview or addfuturegameplay. ReturnONEnew docs/validation/evidence/needs-component-validation-2026-09-20/review-followup.md, hard100lines AND1000words, aim40/400. RawJSON status/summary/questions/files/decisionIds, baseSha256null. No edits orrunclaims."
+}

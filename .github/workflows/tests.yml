@@ -69,6 +69,9 @@ jobs:
       - name: Component stream preflight fault injection
         run: python3 tools/test_component_stream_preflights.py
 
+      - name: Needs metadata preflight fault injection
+        run: python3 tools/test_needs_metadata_preflights.py
+
       - name: UI refinement contract
         # This one hashes PNGs and asserts their magic bytes. *.png is LFS, so
         # it runs in this job, whose checkout already sets lfs: true, rather

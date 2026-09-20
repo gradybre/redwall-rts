@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "b924f2aab8c3a080923060ae2da3a4aeb6b12d3c",
+  "task": "Review new Needs health/status counter witness and corrective semantic boundary",
+  "paths": [
+    "AGENTS.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/astra-source-questions.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/authority-excerpts.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/status-consistency-observation.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/status_probe.gd",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/status-probe.log",
+    "godot/scripts/core/needs.gd",
+    "godot/test/test_needs_columns.gd"
+  ],
+  "instructions": "Independent read-only follow-up before authoring the Needs slice. Parent public witness disproves sufficiency of simply extracting old validation: zero-health ACTIVE restore accepted, then DEAD status but living_count stays1. GDD329 explicitly requires DEAD at0. Review proposed death-equivalence refusal after free-row validation/before living-cap, its null-totality and static extraction; identify any reachable valid image it would wrongly refuse. Assess other required owner-local status/health/activity/injury relationships without inventing LEAVING/TRANSFERRED/departure mechanics. Be explicit what this narrow slice can certify and what needs a separately named follow-up; do not rubber-stamp all-owner/full-save acceptance. Check primitive purity/helper count and conservative projection/sort lifetimes if material. Output exactly ONE new report docs/validation/evidence/needs-component-validation-2026-09-20/status-gate-review.md. Aim80lines/800words; hardlimit120lines AND1200words. Count carefully: previous report191/1811 exceeded180/1800 despite summary claiming within. No production edits/no tool-run claims. RAW JSON status/summary/questions/files/decisionIds only."
+}

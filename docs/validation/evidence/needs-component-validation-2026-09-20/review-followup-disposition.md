@@ -1,0 +1,5 @@
+# Astra follow-up disposition
+
+No blocker; S1/S2/S3 coverage is accepted. F1: keep the existing30-minute job limit and record the actual CI step/job duration before acceptance; a sum of worst-case per-case timeouts is not an expected runtime measurement. F2: the first source review included needs.gd, and19actual engine runs plus exact input/source hashes demonstrate the publication transforms apply. The new focused packet did not repeat that2200-line file; no production rule changed. F3: leave the fail-closed integrity assertion; losing an original exception is diagnostic quality only and cannot turn failure into success.
+
+Precision corrections to the review prose: publication faults are nine cases (three fault forms for each of three arrays), not three cases. The docs/assets symlinks are not OS-enforced read-only mounts; the harness writes only explicit clone paths and never invokes tools that write their targets. The three production sources are verified byte-identical in finally. This is task-owned clone isolation, not a security sandbox claim.

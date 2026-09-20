@@ -1,0 +1,137 @@
+{
+  "attempts": [
+    {
+      "id": "needs-semantics-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "9a5e90de-3c8f-465a-ae1f-5badd65f0934",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/astra-source-questions.md": "9186a74e83db29a1bf12dd2eabaa03dbfd97ac19410b3807772db7ca375166fc",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/authority-excerpts.md": "eefb2cefca8b9403271ccaa6df792d3e7133b0b3bc985f4edc9893950c6910c3",
+        "docs/planning/component_columns_stream_contract.md": "c777f71e566c881b3af784cee54a4b1155983ef4ad8e2777a278ae6ae6c0bfe4",
+        "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md": "98bd435dbf7482871d33e0bedeb4c16ad99b4c6d5c4aebddd988fd607af16b14",
+        "godot/scripts/core/needs.gd": "31fc6a56d294154024f39ff4f04924d9c2148fc4f08acee388fd6ea94595d553",
+        "godot/test/test_needs_columns.gd": "2e1b32416274c6fb3846be6ab28ff149fe33dc0d8961943e56d6ff51f4b18701",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+      },
+      "outputLineBudget": 180,
+      "outputLines": 191,
+      "outputWordBudget": 1800,
+      "outputWords": 1811,
+      "intakeException": "Astra inspected the entire read-only report and accepts11line/11word overrun. Worker summary incorrectly claimed it was within budget. No implementation or plan acceptance follows; new public status witness requires follow-up."
+    },
+    {
+      "id": "needs-status-gate-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "50d02425-839b-40a4-a4d0-12ff41d4de20",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/astra-source-questions.md": "9186a74e83db29a1bf12dd2eabaa03dbfd97ac19410b3807772db7ca375166fc",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/authority-excerpts.md": "eefb2cefca8b9403271ccaa6df792d3e7133b0b3bc985f4edc9893950c6910c3",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/feasibility-review.md": "396df9ae6cc55444f111cd689c1dcec4980e18289966fe116c1c023de8859eca",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/status-consistency-observation.md": "6b1e6f85338eeb6d62616b3a4b8b0221779488fe0ac0bf31518209f122b333ad",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/status_probe.gd": "7f8771fd6103afe37b7c3e9d067baa33ab45b47feb0ccc71aefce0329a98b645",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/status-probe.log": "76370d7ef430aa36c3242fae587958cdfa1878a5a9fec55d8d950fdafe7f1ab5",
+        "godot/scripts/core/needs.gd": "31fc6a56d294154024f39ff4f04924d9c2148fc4f08acee388fd6ea94595d553",
+        "godot/test/test_needs_columns.gd": "2e1b32416274c6fb3846be6ab28ff149fe33dc0d8961943e56d6ff51f4b18701"
+      },
+      "outputLineBudget": 120,
+      "outputLines": 105,
+      "outputWordBudget": 1200,
+      "outputWords": 985
+    },
+    {
+      "id": "needs-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "d824caa2-a0f1-4362-814e-e528b72c91b7",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/needs_component_validation_contract.md": "338ae835bb2412c16fc12df37bfe2aef36afcf88ed17830182da6328c1bfcdbf",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/status-gate-review.md": "5ac96f8964670ef7a5de4486e2b21503d19c9bba15009b640ada6378cf7a4f71",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/status-consistency-observation.md": "6b1e6f85338eeb6d62616b3a4b8b0221779488fe0ac0bf31518209f122b333ad",
+        "godot/scripts/core/needs.gd": "31fc6a56d294154024f39ff4f04924d9c2148fc4f08acee388fd6ea94595d553",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/test/test_needs_columns.gd": "2e1b32416274c6fb3846be6ab28ff149fe33dc0d8961943e56d6ff51f4b18701"
+      },
+      "outputLines": 90,
+      "outputWords": 865,
+      "outputLineBudget": 120,
+      "outputWordBudget": 1200
+    },
+    {
+      "id": "needs-validation-author-a1",
+      "model": "claude-opus-5",
+      "sessionId": "b5a90df2-efef-4975-91ba-f70fc744b6f1",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/needs_component_validation_contract.md": "c36bb968d5413273003c7c246562cc6d6bb6a5feaba240d17258a369e5196c61",
+        "docs/decisions/0170-needs-restores-reject-health-status-contradictions.md": "1e3eb7507fc848f5bc2485a68f57f2c448d4bd1b6932b006115bb3eb496e6f18",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/contract-review-disposition.md": "a750fdca9033c5a93559ca2a8f19e6413d4bdf9cc039ec3d3386e13c7daef15a",
+        "godot/scripts/core/needs.gd": "31fc6a56d294154024f39ff4f04924d9c2148fc4f08acee388fd6ea94595d553",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      "outputLines": 428,
+      "outputLineBudget": 600,
+      "intakeRepair": "Original git apply --recount --check failed at overlapping repeated context in range helpers. Each hunk exact old text matched once against pinned source in memory; regenerated nonoverlapping unified diff passed git apply --check before integration. Original retained. Prefix deviation parent-repaired separately."
+    },
+    {
+      "id": "needs-validation-source-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "d951660b-e71d-40d4-bd08-df5310e841c0",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/needs_component_validation_contract.md": "c36bb968d5413273003c7c246562cc6d6bb6a5feaba240d17258a369e5196c61",
+        "docs/decisions/0170-needs-restores-reject-health-status-contradictions.md": "1e3eb7507fc848f5bc2485a68f57f2c448d4bd1b6932b006115bb3eb496e6f18",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/contract-review-disposition.md": "a750fdca9033c5a93559ca2a8f19e6413d4bdf9cc039ec3d3386e13c7daef15a",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/author-intake.md": "00aeacf9a21086b6f17c475068a95aed85d1353363dc7a4bca88edc6f021ce2c",
+        "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+        "godot/scripts/core/save_owner_needs.gd": "eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0",
+        "godot/test/test_save_owner_needs.gd": "719ccb1b57dd2e2513bb8e1a92293853f52182c3006567969dfe92abda44651a",
+        "godot/test/test_needs_columns.gd": "2e1b32416274c6fb3846be6ab28ff149fe33dc0d8961943e56d6ff51f4b18701",
+        "tools/test_needs_metadata_preflights.py": "7bf573aca2cfd0a9a85630ba54173a7f6ef993a6908e772386a8fc2ca4e7f397",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/focus-first.log": "6cf2e99968bd5232606c844f0b73d577d3c695f7dc92e61cac24c8e092f10cac"
+      },
+      "outputLines": 120,
+      "outputWords": 1098,
+      "outputLineBudget": 160,
+      "outputWordBudget": 1600
+    },
+    {
+      "id": "needs-validation-review-followup-a1",
+      "model": "claude-opus-5",
+      "sessionId": "cb384f96-6420-4258-bd25-d19876bd109a",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/needs_component_validation_contract.md": "c36bb968d5413273003c7c246562cc6d6bb6a5feaba240d17258a369e5196c61",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/source-review.md": "f75f6906199d7b1d41edcd7c2d5d39cad275884f55ee6537766358d7da845fa7",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/source-review-disposition.md": "4529953ec04c9a8fe89d7d6c381ba2023951087fecb1a78e877efa73635afb33",
+        "godot/scripts/core/save_owner_needs.gd": "eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "tools/test_needs_metadata_preflights.py": "7d9f82b7dc528cefaa201ecd977a56abf97cecbd66bbbd8918c323df0428477d",
+        ".github/workflows/tests.yml": "bb2a04d0d08674b731345c67243ef1914492fe8ef7ba0d9d0e7eecc3fbe61504",
+        "docs/validation/evidence/needs-component-validation-2026-09-20/metadata-preflights-review.json": "be66d84ee0692d8d195ac40213d001bc2e76ac6951eab34e846f3d5ece8c166a"
+      },
+      "outputLines": 63,
+      "outputWords": 599,
+      "outputLineBudget": 100,
+      "outputWordBudget": 1000
+    }
+  ]
+}

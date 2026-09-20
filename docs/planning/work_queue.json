@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-09-19",
+  "updated": "2026-09-20",
   "note": "The dispatchable graph. tools/dispatch_plan.py reads this and emits the largest conflict-free set of ready tasks. Status values: blocked, ready, in_flight, review, done. A task is dispatchable only when every dependency is done, its gate is cleared, and no file it owns is owned by a task already in flight.",
   "gates": {
     "none": "No human decision required. Fully automatic.",
@@ -1755,7 +1755,7 @@
     {
       "id": "SAVE-S4-STREAM",
       "title": "Stream section4 fixed component columns one owner at a time",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE"
       ],
@@ -1775,14 +1775,20 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Accepted SAVE-S4-STREAM-R01v2 / ADR0169 after two contract reviews. Exactly18owners/298fields/12947565bytes; no semantic validity or live owner API. Author packet in section4-planning evidence."
+      "note": "Merged PR160 after CI35491728462 passed4869/202461/0,58generator checks and7preflight fault cases. SAVE-S4-STREAM-R01v2/ADR0169 structural framing only; parent section4 semantics/owner bindings remain incomplete.",
+      "pr": 160,
+      "merge_commit": "de150316e3abbdb689379cc4d5bea6d9efd77a98",
+      "merged_at": "2026-09-20T05:36:48Z"
     },
     {
       "id": "SAVE-S4-SEMANTICS",
       "title": "Validate all18 component owners against explicit saved inputs",
       "status": "blocked",
       "depends_on": [
-        "SAVE-S4-STREAM"
+        "SAVE-S4-STREAM",
+        "SAVE-S4-NEEDS-VALIDATE",
+        "NEEDS-STATUS-PRECEDENCE",
+        "NEEDS-DEPARTURE-DOMAIN"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -1809,6 +1815,54 @@
       "agent": "game-coder",
       "gate": "none",
       "note": "18owner manifest;15missing bulk APIs plus existing residents/needs/jobs. Before dispatch, freeze each owner packet and expand exact module ownership. Preserve all coupled sections and barrier atomicity; no coordinator dependency cycle. Actual same-file publication remains SAVE-CLAIM-WORLD-BINDING/coordinator/final SAVE-CAPTURE."
+    },
+    {
+      "id": "SAVE-S4-NEEDS-VALIDATE",
+      "title": "Extract pure Needs framed validation and reject contradictory death status",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/needs.gd",
+        "godot/scripts/core/save_owner_needs.gd",
+        "godot/test/test_save_owner_needs.gd",
+        "godot/test/needs_validation_focus.gd",
+        "tools/test_needs_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance:4884/208744/0,focused39/6432/0,24requiredmutants +4metadata-bypass mutants killed,19metadata cases,17static gates and import pass. Two independent source reviews no blocker. Exact-head CI pending. NEEDS-S4-VALIDATE-R01v2/ADR0170 primitive only; status/departure follow-ups remain incomplete."
+    },
+    {
+      "id": "NEEDS-STATUS-PRECEDENCE",
+      "title": "Resolve saved nonfatal Needs status precedence and departure statuses",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-NEEDS-VALIDATE"
+      ],
+      "owns": [
+        "docs/planning/needs_status_precedence_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Source-backed contract required before implementation; preserve valid injury/activity combinations and settle LEAVING/TRANSFERRED without invented gameplay."
+    },
+    {
+      "id": "NEEDS-DEPARTURE-DOMAIN",
+      "title": "Resolve departure counter production and saved domain authority",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-NEEDS-VALIDATE"
+      ],
+      "owns": [
+        "docs/planning/needs_departure_domain_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Current restore admits nonnegative int32 including retained inactive values. No producer currently writes the counter. Reconcile GDD and registry before any semantic tightening."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

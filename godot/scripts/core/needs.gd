@@ -105,8 +105,11 @@ extends RefCounted
 ##   * Departure (REQ-SET-021..024) and the `departure_days` column. It needs day boundaries,
 ##     a complete mood (i.e. the deferred MoodMemory store) and a map exit; marking residents
 ##     for departure off a structurally incomplete mood would be worse than not doing it. The
-##     column exists, is explicitly zero, and is never written -- the FaunaStockReserved
-##     pattern from GDD §4.2.
+##     column exists and NO NORMAL PRODUCER WRITES IT: nothing in this module, and nothing on
+##     the tick path, ever sets it, so a live settlement leaves it 0 -- the FaunaStockReserved
+##     pattern from GDD §4.2. That is NOT the claim that the column is always 0: a restored
+##     column set may carry any saved counter in 0..INT32_MAX, and the bulk-column validator
+##     admits exactly that nonnegative domain and nothing wider.
 ##   * Meal quality factors, NP-per-portion and the food/feast cold reductions (§5.7). Callers
 ##     pass already-resolved nutrition points to add_food_nutrition().
 ##   * Per-tick work output (80 milli-WU x factor/1000) and XP: labour, not needs. work_factor()
@@ -435,7 +438,8 @@ var _cold_remainder: PackedInt64Array = PackedInt64Array()
 ## GDD §4.2's IntegrationRemainders row does not provide one.
 var _starving_ticks: PackedInt64Array = PackedInt64Array()
 
-## Needs.departure_days. Reserved and explicitly zero: see the GAPS block in the header.
+## Needs.departure_days. No normal producer writes it -- REQ-SET-021..024 are deferred -- so a
+## live settlement reads 0; a restored image may carry any saved counter in 0..INT32_MAX.
 var _departure_days: PackedInt32Array = PackedInt32Array()
 
 var _status: PackedByteArray = PackedByteArray()
@@ -829,7 +833,12 @@ func starving_hours_of(slot: int) -> IntMath.IntResult:
 
 
 func departure_days_of(slot: int) -> IntMath.IntResult:
-	"""Needs.departure_days. Reserved and always 0: REQ-SET-021..024 are deferred (header)."""
+	"""Needs.departure_days: a saved counter, not a produced one.
+
+	REQ-SET-021..024 are deferred, so nothing in this module ever writes this column and a live
+	settlement reads 0. A restored image may legitimately carry any value in 0..INT32_MAX, which
+	is the domain the bulk-column validator admits.
+	"""
 	var code: StringName = _check_present_slot(slot)
 	return _read(code, _departure_days[slot] if code == REFUSE_NONE else 0)
 
@@ -1748,6 +1757,10 @@ const REFUSE_COLUMN_HEALTH_RANGE: StringName = &"COLUMN_HEALTH_RANGE"
 const REFUSE_COLUMN_NEGATIVE_COUNTER: StringName = &"COLUMN_NEGATIVE_COUNTER"
 const REFUSE_COLUMN_REMAINDER: StringName = &"COLUMN_REMAINDER"
 const REFUSE_COLUMN_FREE_ROW: StringName = &"COLUMN_FREE_ROW"
+## GDD §5.2 line 329 requires DEAD at health 0. A PRESENT row must satisfy
+## `(health == 0) == (status == STATUS_DEAD)`: a zero-health non-DEAD row and a positive-health
+## DEAD row are both refused, so no restore can publish that contradiction.
+const REFUSE_COLUMN_HEALTH_STATUS: StringName = &"COLUMN_HEALTH_STATUS"
 const REFUSE_COLUMN_LIVING_CAP: StringName = &"COLUMN_LIVING_CAP"
 
 
@@ -1913,7 +1926,7 @@ func restore_columns(columns: Columns) -> bool:
 	`_winter`, `_hard_freeze` and `_death_count` are NOT touched: the first two are per-tick world
 	inputs the caller restates, and the third is a diagnostic. See `last_column_refusal()`.
 	"""
-	var refusal: StringName = _restore_column_refusal(columns)
+	var refusal: StringName = columns_refusal(columns)
 	if refusal != REFUSE_NONE:
 		_last_column_refusal = refusal
 		return false
@@ -1952,8 +1965,15 @@ func state_bytes() -> PackedByteArray:
 	return image
 
 
-func _columns_are_capacity_sized(columns: Columns) -> bool:
-	"""True when every one of the twenty buffers is exactly its declared extent."""
+static func _columns_are_capacity_sized(columns: Columns) -> bool:
+	"""True when a nonnull record holds all twenty buffers at exactly their declared extents.
+
+	THE SHARED NULL GUARD. `restore_columns(null)` and `copy_columns_into(null)` both reach this
+	predicate before any indexed read, so each refuses with its existing COLUMN_SHAPE diagnostic
+	instead of dereferencing null.
+	"""
+	if columns == null:
+		return false
 	if columns.need_value.size() != RESIDENT_CAPACITY * NEED_COUNT:
 		return false
 	if columns.need_remainder.size() != RESIDENT_CAPACITY * NEED_COUNT:
@@ -1974,8 +1994,21 @@ func _columns_are_capacity_sized(columns: Columns) -> bool:
 	return true
 
 
-func _restore_column_refusal(columns: Columns) -> StringName:
-	"""Every rule a restored column set must satisfy, checked before a single column is written."""
+static func columns_refusal(columns: Columns) -> StringName:
+	"""THE single owner predicate over a Needs column image: REFUSE_NONE, or the exact code.
+
+	Argument-only and pure. It reads no store member, writes none and sets no diagnostic; the live
+	`restore_columns()` and the offline owner-9 bridge both call THIS implementation, so one saved
+	image can never be judged by two drifting copies of the same rules.
+
+	Total order, each step resting on the one before it:
+	  1. null and shape -- all twenty extents, before any indexed or domain read,
+	  2. the byte domains: present, flags, clothing tier, then the declared enums,
+	  3. the value domains: needs, health, counters and the three remainders,
+	  4. the inactive-row rule,
+	  5. the present-row death equivalence `(health == 0) == (status == STATUS_DEAD)`,
+	  6. the recomputed living cap of 256.
+	"""
 	if not _columns_are_capacity_sized(columns):
 		return REFUSE_COLUMN_SHAPE
 	var bytes: StringName = _column_byte_domain_refusal(columns)
@@ -1987,12 +2020,31 @@ func _restore_column_refusal(columns: Columns) -> StringName:
 	var free_rows: StringName = _column_free_row_refusal(columns)
 	if free_rows != REFUSE_NONE:
 		return free_rows
+	var deaths: StringName = _column_health_status_refusal(columns)
+	if deaths != REFUSE_NONE:
+		return deaths
 	if _living_row_count(columns.present, columns.status) > RESIDENT_LIVING_CAP:
 		return REFUSE_COLUMN_LIVING_CAP
 	return REFUSE_NONE
 
 
-func _column_byte_domain_refusal(columns: Columns) -> StringName:
+static func _column_health_status_refusal(columns: Columns) -> StringName:
+	"""GDD §5.2 line 329: a PRESENT row is dead exactly when its health is 0.
+
+	`(health == 0) == (status == STATUS_DEAD)`, so a zero-health non-DEAD row and a positive-health
+	DEAD row are both refused. A dead-but-present row at health 0 stays legal: this admits the
+	store's own lifecycle output and rejects only the contradiction. Inactive rows are not examined
+	here -- the free-row rule already required DEAD and a cleared health for them.
+	"""
+	var slot: int = columns.present.find(1, 0)
+	while slot >= 0:
+		if (columns.health[slot] == 0) != (columns.status[slot] == STATUS_DEAD):
+			return REFUSE_COLUMN_HEALTH_STATUS
+		slot = columns.present.find(1, slot + 1)
+	return REFUSE_NONE
+
+
+static func _column_byte_domain_refusal(columns: Columns) -> StringName:
 	"""Every byte column holds only values its own enumeration declares (ARCH-SAVE-005)."""
 	if not _byte_column_below(columns.present, 2):
 		return REFUSE_COLUMN_PRESENT_BYTE
@@ -2022,7 +2074,7 @@ func _column_byte_domain_refusal(columns: Columns) -> StringName:
 	return REFUSE_NONE
 
 
-func _column_value_domain_refusal(columns: Columns) -> StringName:
+static func _column_value_domain_refusal(columns: Columns) -> StringName:
 	"""Need, health, counter and remainder domains, over the whole column including free rows.
 
 	THE INT32 SIGN TRAP. These arrive as int32 and int64 columns, so the bytes `00 00 00 80` are
@@ -2055,7 +2107,7 @@ func _column_value_domain_refusal(columns: Columns) -> StringName:
 	return REFUSE_NONE
 
 
-func _column_free_row_refusal(columns: Columns) -> StringName:
+static func _column_free_row_refusal(columns: Columns) -> StringName:
 	"""Every `_present == 0` row carries exactly what `despawn()` and `clear()` leave behind.
 
 	The nine columns checked are the ones both paths zero, plus the DEAD status both write. The
@@ -2071,7 +2123,7 @@ func _column_free_row_refusal(columns: Columns) -> StringName:
 	return REFUSE_NONE
 
 
-func _free_row_is_clear(columns: Columns, slot: int) -> bool:
+static func _free_row_is_clear(columns: Columns, slot: int) -> bool:
 	"""True when one inactive row holds the released-row values and the DEAD status."""
 	if columns.status[slot] != STATUS_DEAD:
 		return false
@@ -2088,7 +2140,7 @@ func _free_row_is_clear(columns: Columns, slot: int) -> bool:
 	return true
 
 
-func _living_row_count(present: PackedByteArray, status: PackedByteArray) -> int:
+static func _living_row_count(present: PackedByteArray, status: PackedByteArray) -> int:
 	"""Spawned rows whose resident is not dead. One function, used on the incoming columns to
 	enforce the cap and on the installed ones to rebuild the counter, so the two cannot drift."""
 	var total: int = 0
@@ -2131,7 +2183,7 @@ func _rebuild_counters() -> void:
 	_last_refused_slot = -1
 
 
-func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
+static func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
 	"""True when every byte is in [0, bound). One C++ count per legal value, no per-row loop."""
 	var total: int = 0
 	for value: int in range(bound):
@@ -2139,14 +2191,14 @@ func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
 	return total == column.size()
 
 
-func _int32_column_within(column: PackedInt32Array, low: int, high: int) -> bool:
+static func _int32_column_within(column: PackedInt32Array, low: int, high: int) -> bool:
 	"""True when every signed int32 entry lies in [low, high]. Sorts a copy and reads both ends."""
 	var sorted: PackedInt32Array = column.duplicate()
 	sorted.sort()
 	return sorted[0] >= low and sorted[sorted.size() - 1] <= high
 
 
-func _int64_column_within(column: PackedInt64Array, low: int, high: int) -> bool:
+static func _int64_column_within(column: PackedInt64Array, low: int, high: int) -> bool:
 	"""True when every signed int64 entry lies in [low, high]. Sorts a copy and reads both ends."""
 	var sorted: PackedInt64Array = column.duplicate()
 	sorted.sort()

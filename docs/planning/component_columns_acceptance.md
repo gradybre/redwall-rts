@@ -4,8 +4,8 @@ SAVE-S4-CODEC is incomplete. The accepted streaming contract is SAVE-S4-STREAM-R
 
 | Prerequisite | Current evidence | Remaining acceptance |
 |---|---|---|
-| Streaming envelope | Contract accepted; focused21tests/11814assertions passes; six required mutants and four preflight bypass mutants killed;58 generator checks and17 static gates pass | Both source reviews accepted; full regression4869/202461/0 and import pass; exact-head CI/merge pending |
-| All18 semantic validators | Owner/API census and cross-section map | Source-backed domains, retained unused-value rules, pure validation against saved inputs, adversarial fixtures |
+| Streaming envelope | Contract accepted; focused21tests/11814assertions passes; six required mutants and four preflight bypass mutants killed;58 generator checks and17 static gates pass | Merged PR160 after CI35491728462 passed4869/202461/0 plus generator and fault checks; structural envelope accepted |
+| All18 semantic validators | Owner/API census and cross-section map; owner9 Needs primitive implemented under NEEDS-S4-VALIDATE-R01v2 / ADR0170 with exact-code tests and28killedmutants; local4884/208744/0 and two source reviews accepted; exact-head CI pending | Other17 owner packets, Needs status/departure domains and cross-owner saved consistency remain incomplete |
 | Owner bindings | Bulk APIs exist for Jobs, Needs and Residents; other15 are incomplete for section4 | Atomic capture/apply contracts, complete owner columns, coupled section restoration, refusal/continuation tests |
 | Final section4 integration | Explicit blocked parent task | Integrated tests against real owner APIs and every canonical field; no omitted owner or zero substitute |
 

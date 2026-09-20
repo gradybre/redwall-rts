@@ -1,0 +1,28 @@
+{
+  "pr": 160,
+  "url": "https://github.com/gradybre/redwall-rts/pull/160",
+  "head": "b924f2aab8c3a080923060ae2da3a4aeb6b12d3c",
+  "merge_commit": "de150316e3abbdb689379cc4d5bea6d9efd77a98",
+  "merged_at": "2026-09-20T05:36:48Z",
+  "ci_run": 35491728462,
+  "checks": [
+    "Godot headless suite: SUCCESS",
+    "Specification contracts: SUCCESS"
+  ],
+  "log_sha256": "59cd91f5c3106c5af05fd93be2954531048cccb2faa15cb14af9cbe6df9e3126",
+  "evidence_lines": [
+    "Specification contracts\tComponent column schema matches source capacities\t2026-09-20T05:28:21.8993860Z test_component_columns_schema: PASS -- 58 checks",
+    "Godot headless suite\tRun the suite\t2026-09-20T05:35:41.4227973Z WARNING: 553 ObjectDB instances were leaked at exit (run with `--verbose` for details).",
+    "Godot headless suite\tRun the suite\t2026-09-20T05:35:41.4228293Z ERROR: 33 resources still in use at exit (run with --verbose for details).",
+    "Godot headless suite\tRun the suite\t2026-09-20T05:35:41.4228520Z 4869 test(s), 202461 assertion(s), 0 failure(s)",
+    "Godot headless suite\tRun the suite\t2026-09-20T05:35:41.4229148Z ok: 4869 tests, 202461 assertions, 0 failures.",
+    "Godot headless suite\tComponent stream preflight fault injection\t2026-09-20T05:36:12.4421645Z       \"assertion_failure_killed_bypass\": false,",
+    "Godot headless suite\tComponent stream preflight fault injection\t2026-09-20T05:36:12.4424742Z       \"assertion_failure_killed_bypass\": false,",
+    "Godot headless suite\tComponent stream preflight fault injection\t2026-09-20T05:36:12.4428248Z       \"assertion_failure_killed_bypass\": true,",
+    "Godot headless suite\tComponent stream preflight fault injection\t2026-09-20T05:36:12.4431032Z       \"assertion_failure_killed_bypass\": true,",
+    "Godot headless suite\tComponent stream preflight fault injection\t2026-09-20T05:36:12.4433554Z       \"assertion_failure_killed_bypass\": false,",
+    "Godot headless suite\tComponent stream preflight fault injection\t2026-09-20T05:36:12.4435071Z       \"assertion_failure_killed_bypass\": true,",
+    "Godot headless suite\tComponent stream preflight fault injection\t2026-09-20T05:36:12.4436522Z       \"assertion_failure_killed_bypass\": true,",
+    "Godot headless suite\tComponent stream preflight fault injection\t2026-09-20T05:36:12.4438739Z   \"native_big_endian_tested\": false"
+  ]
+}

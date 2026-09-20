@@ -755,6 +755,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Component framing cursors and one-owner record | -- | -- | -- | -- | 3 | -- | Decision0169. No resident module state. FramedOwner contains one owner's exact typed buckets; transient capture/decode transport is not a new canonical owner. Conditional maximum6417408 value/transient bytes assumes callers release every owner reference before feeding the next wrapper. Immutable10536-byte metadata is charged separately. Partial records cannot escape; full physical values remain unchanged. Structural acceptance alone cannot authorize installation: semantic validators, owner adapters, cross-section consistency and coordinator are separate tasks. |
 
+### `godot/scripts/core/save_owner_needs.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Pure owner9 semantic bridge | -- | -- | -- | -- | 3 | -- | Decision0170 / NEEDS-S4-VALIDATE-R01v2. No mutable module state or live owner construction. A temporary Columns projection shares all20 framed packed buffers and calls the same pure predicate as live restore. Conditional135168 logical bytes conservatively covers framed image57344 + constructor defaults57344 + largest returning range sort-copy20480. Native/wrapper overhead is unmeasured. Exact health/death equivalence prevents the demonstrated living-count drift. No complete Needs/world validity or owner publication follows. |
+
 ### `godot/scripts/core/save_resource_claims_reconcile.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

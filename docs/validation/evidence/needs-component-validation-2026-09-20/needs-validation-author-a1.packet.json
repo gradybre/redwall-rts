@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "de150316e3abbdb689379cc4d5bea6d9efd77a98",
+  "task": "Implement accepted pure Needs framed validator and corrective death restore gate",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/needs_component_validation_contract.md",
+    "docs/decisions/0170-needs-restores-reject-health-status-contradictions.md",
+    "docs/validation/evidence/needs-component-validation-2026-09-20/contract-review-disposition.md",
+    "godot/scripts/core/needs.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement accepted NEEDS-S4-VALIDATE-R01v2 exactly. Return EXACTLY ONE NEW file docs/validation/evidence/needs-component-validation-2026-09-20/implementation.patch with baseSha256 null. Content is valid unified git diff modifying ONLY godot/scripts/core/needs.gd and NEW godot/scripts/core/save_owner_needs.gd. No other targets, binaries, renames, mode changes or shell. Exact supplied source with sufficient context; parent runs git apply --recount --check before integration. Hard600patchlines. Shared static columns_refusal and ten pure helpers incl new present-row health/dead equivalence; null shape guard covers restore and copy; preserve all other domain order/install and diagnostics. Correct three departure comments. New bridge follows seven gates, exact raw column code, distinct gate4 detail prefix, explicit20 typed assignments, no live owner/store/install/capture/duplicate/reflection/I/O. Use actual Schema/Section/Header APIs from supplied sources. Parent owns all tests, registry, metadata, evidence and documentation; do not change them. No tick fix or gameplay expansion. Acknowledgev2; only real unresolved questions. Raw JSON status/summary/questions/files/decisionIds, no fences. Do not claim unrun tests."
+}

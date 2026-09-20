@@ -1,0 +1,35 @@
+{
+  "contract": "PRIORITIES-S4-VALIDATE-R01v1",
+  "decision": "0171",
+  "focused": {
+    "tests": 33,
+    "assertions": 7585,
+    "failures": 0
+  },
+  "full_suite": {
+    "tests": 4895,
+    "assertions": 216053,
+    "failures": 0,
+    "shutdown_objects": 553,
+    "shutdown_resources": 33,
+    "diagnostics": "unchanged"
+  },
+  "required_mutants_killed": 8,
+  "metadata_bypasses_killed": 8,
+  "metadata_cases": 18,
+  "metadata_assertions": 162,
+  "static_gates": 17,
+  "reviews": "source and bounded follow-up: no blocker",
+  "ci": "pending",
+  "production_sha256": {
+    "godot/scripts/core/priorities.gd": "7352fe17f8973655f2f31c8755b0c5c5aa569310662ec649578a9a34f2d7632a",
+    "godot/scripts/core/save_owner_priorities.gd": "82ae61b2cb1afe3b48660a191c52aedab29fb90f723322a22cd62fd308dfca7c"
+  },
+  "remaining": [
+    "bulk capture/apply and present_count rebuild",
+    "other16 owner semantics",
+    "Needs remaining status/departure domains",
+    "cross-owner and same-file catalog agreement",
+    "full save/load"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": [
+    {
+      "id": "priorities-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "477a8f1f-7fad-4187-8571-0c5d82dc46ff",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/validation/evidence/priorities-validation-planning-2026-09-20/authority-excerpts.md": "def3c9168de41538e3d411d5a8b3284860f976606b0baa64a360a961d872ec68",
+        "docs/validation/evidence/priorities-validation-planning-2026-09-20/astra-scope-proposal.md": "c696c23cffd3c6a05867a284fac4f1feeb1ef8457aa2b6394bbd6f7db6cd33f7",
+        "godot/scripts/core/priorities.gd": "ef5cfeb2deb574c3c23a0478dc3b243adcbf8b9cffa964e21d391c29adc90551",
+        "godot/test/test_priorities.gd": "7238b444f4b93e6d8f03fa23b8a5c2734bbfa3f2d284abdd889aa316cd594604",
+        "godot/scripts/core/save_owner_needs.gd": "eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524"
+      },
+      "outputLines": 117,
+      "outputWords": 1178,
+      "outputLineBudget": 140,
+      "outputWordBudget": 1400
+    },
+    {
+      "id": "priorities-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "432382a4-86c8-4696-8435-328681994618",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/priorities_component_validation_contract.md": "feff1bc5cb364b7b4e094737d0c209c2038bed88d45dd13c3a875729f7ba42ec",
+        "docs/validation/evidence/priorities-validation-planning-2026-09-20/authority-excerpts.md": "def3c9168de41538e3d411d5a8b3284860f976606b0baa64a360a961d872ec68",
+        "docs/validation/evidence/priorities-validation-planning-2026-09-20/feasibility-review.md": "bca6797e9741264311e2d9314f43d8f581caf6022fbb8816f9f359d604802ccb",
+        "docs/validation/evidence/priorities-validation-planning-2026-09-20/feasibility-disposition.md": "053043eec814929d3d004561a6b798c11ce1cbfbe2cef872bafa5961c3f49d39",
+        "godot/scripts/core/priorities.gd": "ef5cfeb2deb574c3c23a0478dc3b243adcbf8b9cffa964e21d391c29adc90551",
+        "godot/test/test_priorities.gd": "7238b444f4b93e6d8f03fa23b8a5c2734bbfa3f2d284abdd889aa316cd594604",
+        "godot/scripts/core/save_owner_needs.gd": "eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524"
+      },
+      "outputLines": 69,
+      "outputWords": 730,
+      "outputLineBudget": 100,
+      "outputWordBudget": 1000
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "1369fce5fee64d7c292453f5d4fe8c6123328251",
+  "task": "Independent Priorities static validator and framed bridge source review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/priorities_component_validation_contract.md",
+    "docs/decisions/0171-validate-priorities-columns-without-constructing-an-owner.md",
+    "docs/validation/evidence/priorities-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/priorities-validation-planning-2026-09-20/contract-review-disposition.md",
+    "godot/scripts/core/priorities.gd",
+    "godot/scripts/core/save_owner_priorities.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/test/test_save_owner_priorities.gd",
+    "godot/test/test_priorities.gd",
+    "tools/test_priorities_metadata_preflights.py",
+    ".github/workflows/tests.yml",
+    "docs/validation/evidence/priorities-component-validation-2026-09-20/focus-first.log",
+    "docs/validation/evidence/priorities-component-validation-2026-09-20/metadata-preflights-first.json"
+  ],
+  "instructions": "Independent source/security/correctness review against accepted PRIORITIES-S4-VALIDATE-R01v1/ADR0171. Focus33tests7585assertions0; realengine metadata18cases162assertions incl8bypasses killed passed. Required8projection/domainmutants running separately; fullsuite notyet. Check sharedfreehelper preserves priorpublicreaderguard, exactdomain/order/all5126144 scans, pureargument-only/noownerconstruction/noextra packedmemory, metadataidentity/sourceconstants, fourtypedaccessor mapping, granularflags and genuineadversarialtests. Inspect schema-valid counterfactual faults incl balancedprimary, movedchild, movedfield and recomputedtype/extentbytes; they must reachgate4 nothiddenparseerrors. Tablechanges exist onlyclone, productiongenerator/sourceauditremainpinned. Record actual blockers and materialgaps; do not reopen settledno256cap/defaultchoices/deferredbulk/crossownerpublication. ReturnONEnew docs/validation/evidence/priorities-component-validation-2026-09-20/source-review.md; hard160lines AND1600words, aim80/800. RawJSONstatus/summary/questions/files/decisionIds; newbaseSha256null. No edits or runclaims."
+}

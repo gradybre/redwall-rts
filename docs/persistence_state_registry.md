@@ -761,6 +761,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Pure owner9 semantic bridge | -- | -- | -- | -- | 3 | -- | Decision0170 / NEEDS-S4-VALIDATE-R01v2. No mutable module state or live owner construction. A temporary Columns projection shares all20 framed packed buffers and calls the same pure predicate as live restore. Conditional135168 logical bytes conservatively covers framed image57344 + constructor defaults57344 + largest returning range sort-copy20480. Native/wrapper overhead is unmeasured. Exact health/death equivalence prevents the demonstrated living-count drift. No complete Needs/world validity or owner publication follows. |
 
+### `godot/scripts/core/save_owner_priorities.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Pure owner11 policy validator | -- | -- | -- | -- | 3 | -- | Decision0171 / PRIORITIES-S4-VALIDATE-R01v1. No mutable module state or live owner construction. Four caller-owned byte columns feed the same static predicate reusable by future bulk restore. Exact domains and reserved/free rules preserve player choices. The7680framed bytes are already inside the streaming allowance; no default projection, duplicate or sort buffer is added. Native/wrapper overhead is unmeasured. This does not supply bulk APIs, present_count rebuild or cross-owner/publication validity. |
+
 ### `godot/scripts/core/save_resource_claims_reconcile.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

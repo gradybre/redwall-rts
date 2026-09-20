@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "cbfe060fda278bbbf0e6af57c96230f33d564ad9",
+  "task": "Implement accepted Priorities pure predicate and owner11 framed bridge",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/priorities_component_validation_contract.md",
+    "docs/decisions/0171-validate-priorities-columns-without-constructing-an-owner.md",
+    "docs/validation/evidence/priorities-validation-planning-2026-09-20/contract-review-disposition.md",
+    "godot/scripts/core/priorities.gd",
+    "godot/scripts/core/save_owner_needs.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement accepted PRIORITIES-S4-VALIDATE-R01v1 exactly. Return exactlyONEnew docs/validation/evidence/priorities-component-validation-2026-09-20/implementation.patch with baseSha256null. Unifiedgitdiff ONLYmodifies godot/scripts/core/priorities.gd and adds godot/scripts/core/save_owner_priorities.gd; no othertargets,rename,binary,modechanges. Newfile100644normalcreationallowed. Hard450patchlines. Use exact suppliedsource with accurate context; nonoverlapping hunks (do not repeat overlapping trailing/leading context between adjacent hunks), parentgitapply--check. Ownerstaticfourtypedpackedargs canonicalorder; exactsixgateorder/codesincldistinctflags; noColumns/pubArray/livealloc. Sharedstatic_free_row_is_clear exacttyped helper for validator and existinginactive_row_is_clear preserving address/present guard. Pure range/reserved/free scans all512/6144, no256cap. Bridge seven gates matching existingNeeds style but no projection allocation; exactowner11metadata keys4/u8/counts, sourcecap512/stride12, exact prefix, fourexplicitaccessors, rawcolumncode. No duplicate/sort/newpackedbuffers/liveowner/reflection/I/O or capturedrecord. Keep existing gameplay and staleheadercomments unchanged. Parent owns tests,registry,capacitysidecar/docs/CI; no runclaims. Name contractv1ack; realquestions only. RawJSON status/summary/questions/files/decisionIds only."
+}

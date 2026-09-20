@@ -27,7 +27,7 @@
       "navigation": "00f43ec4f4d834fb836c2a72bdc882cb7eddd5d53e596ecd154a4d83f7caacf2",
       "needs": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
       "orchard_hive": "bb1e885b046f61aeb03f6939f2c05c7a4597e3238cf412e111abd07be4e3c780",
-      "priorities": "ef5cfeb2deb574c3c23a0478dc3b243adcbf8b9cffa964e21d391c29adc90551",
+      "priorities": "7352fe17f8973655f2f31c8755b0c5c5aa569310662ec649578a9a34f2d7632a",
       "reservations": "53b53155ee42871e08ab102beccea205d39627aec7b699399072fc269ac49659",
       "residents": "7ce35ffc7e14ff9e8ba86d70d54a1401e0814751d0b71779d92ba476cd89655c",
       "resource_nodes": "033f5255a0904d193a08197c71321f8ff3a8aa58d8274fdd42dd3a54da20de23",
@@ -7181,7 +7181,7 @@
       "source_module": "priorities",
       "source_relation": "eq",
       "source_resize_expression": "PRIORITY_CAPACITY",
-      "source_resize_line": 166,
+      "source_resize_line": 179,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -7205,7 +7205,7 @@
       "source_module": "priorities",
       "source_relation": "eq",
       "source_resize_expression": "PRIORITY_CAPACITY * JOB_KIND_COUNT",
-      "source_resize_line": 163,
+      "source_resize_line": 176,
       "source_value": 6144,
       "status": "proved_equality"
     },
@@ -7228,7 +7228,7 @@
       "source_module": "priorities",
       "source_relation": "eq",
       "source_resize_expression": "PRIORITY_CAPACITY",
-      "source_resize_line": 164,
+      "source_resize_line": 177,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -7251,7 +7251,7 @@
       "source_module": "priorities",
       "source_relation": "eq",
       "source_resize_expression": "PRIORITY_CAPACITY",
-      "source_resize_line": 165,
+      "source_resize_line": 178,
       "source_value": 512,
       "status": "proved_equality"
     },

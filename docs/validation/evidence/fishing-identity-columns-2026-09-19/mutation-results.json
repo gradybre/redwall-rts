@@ -1,0 +1,58 @@
+{
+  "results": [
+    {
+      "mutant": "omit-slot-equality",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_different_directory_slot_equal_generation_cannot_inherit_claim",
+        "  FAIL  test_structural_restore_keeps_stale_full_pair_before_normal_cleanup",
+        "  FAIL  test_reused_expedition_identity_continues_exactly_after_slice_restore",
+        "22 test(s), 1754 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "mutant": "reconstruct-reverse-map",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_different_directory_slot_equal_generation_cannot_inherit_claim",
+        "  FAIL  test_structural_restore_keeps_stale_full_pair_before_normal_cleanup",
+        "  FAIL  test_reused_expedition_identity_continues_exactly_after_slice_restore",
+        "22 test(s), 1754 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "mutant": "omit-restored-slot",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_defaults_sparse_last_row_and_independent_arrays_are_exact",
+        "  FAIL  test_other_section_aggregates_scratch_and_order_keys_are_never_rebuilt",
+        "  FAIL  test_source_count_and_old_payload_refusal_rules_are_distinct",
+        "  FAIL  test_maximum_ref_and_quantity_fields_are_preserved_without_typed_row_clamp",
+        "  FAIL  test_adapter_forwards_codec_and_stronger_owner_refusals_atomically",
+        "  FAIL  test_adapter_literal_mapping_recapture_and_independent_containers",
+        "  FAIL  test_six_complete_literal_owner_wire_goldens",
+        "22 test(s), 1754 assertion(s), 7 failure(s)"
+      ]
+    },
+    {
+      "mutant": "omit-canonical-slot",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_registry_counts_are_the_ones_the_ruling_reconciled",
+        "  FAIL  test_the_active_rules_identity_and_counts_match_their_independent_pins",
+        "  FAIL  test_section_seven_keeps_its_thirty_inventory_fields_and_adds_no_record",
+        "  FAIL  test_full_expedition_slot_is_eighth_hashed_fishing_field",
+        "51 test(s), 3568 assertion(s), 4 failure(s)"
+      ]
+    }
+  ],
+  "restored_source_sha256": {
+    "godot/scripts/core/fishing.gd": "08ff3b69c64a14c4b7817813b67af52d981e1b4eeaa457c2222f4ada3ffd9469",
+    "docs/planning/canonical_state_registry.json": "b9b9832bb3f8ccc12c59272533a77919912e905b63ec989d5625780cc8ee861b",
+    "godot/scripts/core/canonical_state_hash.gd": "5bdfa90937e87fbf0e45f0f8d60ebfa1eee2dc3f078ef4cb1c59300e84c7070b"
+  }
+}

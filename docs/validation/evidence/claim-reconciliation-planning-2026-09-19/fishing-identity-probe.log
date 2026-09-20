@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+{"alias_reproduced":true,"diagnostic_witness_only":true,"new_expedition":"(3, 1)","original_expedition":"(2, 1)","purged_count":0,"reconstructed_claim_owner":"(3, 1)","replacement_zone":"(2, 2)","typed_row":0,"unrelated_expedition_can_release":true}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

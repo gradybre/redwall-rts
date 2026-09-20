@@ -1,0 +1,10 @@
+{
+  "attempt": "fishing-identity-review-a1",
+  "state": "complete",
+  "ownerStopped": true,
+  "sessionId": "08727890-f5b8-4a7d-b1be-4f9a7e95b437",
+  "input_sha256_verified": 11,
+  "exact_output_allowlist": [
+    "docs/validation/evidence/fishing-identity-columns-2026-09-19/independent-review.md"
+  ]
+}

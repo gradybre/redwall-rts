@@ -26,7 +26,7 @@ for l in s[a:b].splitlines():
 # +1 row for decision 0055's Weather absolute-season columns (16 B). Decision 0054's scheduler
 # queue is an allocation row only: a control block, not per-entity columns, so no field row moves.
 # +1 row for decision 0095's Resident life_stage column (512 B, B8 x RESIDENT_CAPACITY).
-assert len(fields)==144 and sum(fields)==25036642
+assert len(fields)==144 and sum(fields)==25038690
 # §3's printed rows must sum to the "Auxiliary payload" allocation row.
 #
 # THE HOLE THIS CLOSES. `fields` above slices on the '## 2.3' boundary, so it covers §2.2 ONLY --
@@ -128,8 +128,17 @@ assert DECISION_0114_ADDED==144
 # of key text across the two PackedStringArrays -- computed from canonical_state_registry.json
 # rather than adjusted to match the old total. A row that names its own arithmetic and is never
 # re-run is a row that silently decays.
-DECISION_0127_ADDED=(52*4*4)+(604*3*1)+(604*8)+(604*4)+8933
-assert DECISION_0127_ADDED==18825
+# Decision0167: derive the current census, so unledgered future growth fails loudly.
+registry=json.loads((r/'docs/planning/canonical_state_registry.json').read_text())
+registry_owners=registry['owners']
+registry_fields=[f for owner in registry_owners for f in owner['fields']]
+registry_key_bytes=sum(len(owner['owner_key'].encode('utf-8')) for owner in registry_owners)+sum(len(f['field_key'].encode('utf-8')) for f in registry_fields)
+assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(52,611,9051)
+DECISION_0127_ADDED=len(registry_owners)*16+len(registry_fields)*15+registry_key_bytes
+assert DECISION_0127_ADDED==19048
+# 179 prior omitted bytes plus44 new field metadata enter the term above ONCE.
+DECISION_0167_CLAIM_SLOT=512*4
+assert DECISION_0167_CLAIM_SLOT==2048
 # decision 0130: the resident render path. 512*100 instance buffer (48 B of PackedFloat32Array
 # transform, 4 B of owner slot and the RenderingServer's own 48 B TRANSFORM_3D instance, counted
 # rather than assumed free) plus 87552*36 for a SECOND transforms.gd instance. That second store
@@ -161,10 +170,10 @@ assert DECISION_0138_REMOVED==-3151872
 # row -- which is exactly why they need a ledger row instead of being invisible.
 DECISION_0145_ADDED=(202752*4)+(101376*1)+(2*16384*4)
 assert DECISION_0145_ADDED==1043456
-assert len(allocations)==33 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED
-payload=sum(allocations);reserve=8388608;candidate=payload-6215584;live=payload+reserve
-assert payload==70003020
-assert live==78391628 and candidate==63787436 and live+candidate==142179064
+assert len(allocations)==33 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT
+payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED);live=payload+reserve
+assert payload==70005291
+assert live==78393899 and candidate==63770659 and live+candidate==142164558
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

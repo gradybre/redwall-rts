@@ -1,7 +1,9 @@
 extends RefCounted
-## ARCH-MEM-010's 24 printed allocation rows, transcribed, plus the columns each one claims.
+## Historical snapshot: decision0066, 2026-09-11, 24 rows / 60823126 bytes.
+## Not current budget acceptance: the live architecture now has33 rows.
+## MEMORY-PROBE-REFRESH owns reconciliation; ready07_arithmetic.py checks the live ledger.
 ##
-## This file is a TRANSCRIPTION of `docs/systems_architecture.md` §2.3 as it stands, not a
+## This file is a TRANSCRIPTION of `docs/systems_architecture.md` §2.3 as it stood at that snapshot, not a
 ## second opinion about it. `declared` is the row's own "Bytes" cell copied verbatim. The
 ## `owner` and `columns` fields are this file's reading of which code the row describes,
 ## taken from the row's own derivation text where it names a file (`world_init.gd`,

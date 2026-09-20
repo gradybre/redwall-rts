@@ -1,0 +1,25 @@
+{
+  "attempts": [
+    {
+      "id": "fishing-identity-contract-a1",
+      "role": "independent contract reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "54ae0bf6-1fbb-484f-b7c4-2c4fb9ffd8b9",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/fishing_claim_identity_contract.md": "2ba44c410d42e2036237ba18ed12916a9ff4c0672ea20668503fc4e78e0a46e2",
+        "docs/decisions/0167-preserve-the-full-expedition-reference-on-fishing-claims.md": "072365e3ffe1731db5e810ab9f5a163c564f7f36aa37a0715c08d5f86fd19fb0",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/fishing_identity_probe.gd": "e71657e2ebe4cb0c32db059785ee9b4dd273d9ae1dd52bc0858b3975bd0e7b2f",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/fishing-identity-probe.log": "85cb95ec590ac992eb0e9cb8d69fff64f4566a775367a89e4737a51a715cdd52",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/astra-audit-disposition.md": "0c7a23d1653318680c94f53aa2cbfe78d3e75a4143b92bb483a4508e051a362a",
+        "docs/validation/evidence/fishing-identity-contract-2026-09-19/codec-excerpts.md": "029273adcacaaff20033bcb8c59110f028b0c21023508f92be4cd637023f3d8c",
+        "docs/validation/evidence/fishing-identity-contract-2026-09-19/fishing-excerpts.md": "57cbd7bc742a272fa030748e04b5f622f355052902d9d577bc7a02e0adc3386f",
+        "docs/validation/evidence/fishing-identity-contract-2026-09-19/ledger-excerpts.md": "f507b27fe6b4ddab62f8086a7adf1a01c3bbbf329d48303072dad3fcda647432",
+        "godot/scripts/core/save_resource_claims_restore.gd": "79e375f2d4fde24337d45e32a627254eccbf70ba3a20040c9a1290cb653f9460",
+        "docs/validation/ready07_arithmetic.py": "2155755a7e2ff70bc39e51dcf99151c9425448a33f838bfb8b155fb671ce3f18",
+        "godot/tools/memory_ledger_rows.gd": "402ce6beb8f32d860d8fabbde5adb9cf927049c053ae10a819ab365d5bcee0e7"
+      }
+    }
+  ]
+}

@@ -1,0 +1,439 @@
+diff --git a/godot/scripts/core/fishing.gd b/godot/scripts/core/fishing.gd
+--- a/godot/scripts/core/fishing.gd
++++ b/godot/scripts/core/fishing.gd
+@@ -147,7 +147,11 @@
+ ## Ruling §5: the FishingEffortClaim slice is indexed by EXPEDITION TYPED ROW, so its length is
+ ## entity_directory.gd's KIND_EXPEDITION capacity and never a number of its own. `_init()` asserts
+ ## the two agree.
+ const FISHING_EFFORT_CLAIM_CAPACITY: int = 512
+ 
++## FISH-ID-R01: the section 7 `fishing` owner schema. Appending the stored Expedition slot at
++## ordinal 7 advances it 1 -> 2; the codec reads it here as it reads Inventory's version.
++const CANONICAL_OWNER_SCHEMA_VERSION: int = 2
++
+ ## §4.3 ZoneType.FISH, read from catalog.gd's protected table (decision 0018), never mirrored.
+ const ZONE_TYPE_FISH: int = Catalog.ZONE_TYPE["FISH"]
+@@ -560,5 +564,8 @@
+ var _effort_claim_active: PackedByteArray = PackedByteArray()
+ var _effort_claim_expedition_generation: PackedInt32Array = PackedInt32Array()
++## FISH-ID-R01: the OWNER'S Directory slot, stored beside its generation so a typed row reused by
++## a later Expedition can never alias this claim. Blank -1; never rebuilt from the reverse map.
++var _effort_claim_expedition_slot: PackedInt32Array = PackedInt32Array()
+ var _effort_claim_habitat_slot: PackedInt32Array = PackedInt32Array()
+ var _effort_claim_habitat_generation: PackedInt32Array = PackedInt32Array()
+ var _effort_claim_job_slot: PackedInt32Array = PackedInt32Array()
+@@ -700,5 +707,6 @@
+ 	_effort_claim_active.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 	_effort_claim_expedition_generation.resize(FISHING_EFFORT_CLAIM_CAPACITY)
++	_effort_claim_expedition_slot.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 	_effort_claim_habitat_slot.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 	_effort_claim_habitat_generation.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 	_effort_claim_job_slot.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+@@ -760,5 +768,6 @@
+ 	_effort_claim_active.fill(0)
+ 	_effort_claim_expedition_generation.fill(EntityDirectory.NULL_GENERATION)
++	_effort_claim_expedition_slot.fill(EntityDirectory.NULL_SLOT)
+ 	_effort_claim_habitat_slot.fill(EntityDirectory.NULL_SLOT)
+ 	_effort_claim_habitat_generation.fill(EntityDirectory.NULL_GENERATION)
+ 	_effort_claim_job_slot.fill(EntityDirectory.NULL_SLOT)
+@@ -1250,7 +1259,9 @@
+ 	var row: int = _directory.get_typed_row(expedition_ref)
+ 	if _effort_claim_active[row] == 1:
+-		if _effort_claim_expedition_generation[row] == expedition_ref.y:
++		# FISH-ID-R01: only the EXACT stored slot/generation pair is this expedition's own claim.
++		if _effort_claim_expedition_slot[row] == expedition_ref.x \
++				and _effort_claim_expedition_generation[row] == expedition_ref.y:
+ 			return REFUSE_EFFORT_CLAIM_PRESENT
+ 		return REFUSE_EFFORT_CLAIM_STALE
+ 	_pending_claim_row = row
+ 	return _refuse_effort_claim_job(job_ref)
+@@ -1290,5 +1301,6 @@
+ 	_effort_claim_expedition_generation[row] = expedition_ref.y
++	_effort_claim_expedition_slot[row] = expedition_ref.x
+ 	_effort_claim_habitat_slot[row] = habitat_ref.x
+ 	_effort_claim_habitat_generation[row] = habitat_ref.y
+ 	_effort_claim_job_slot[row] = job_ref.x
+ 	_effort_claim_job_generation[row] = job_ref.y
+@@ -1305,5 +1317,6 @@
+ 	_effort_claim_active[row] = 0
+ 	_effort_claim_expedition_generation[row] = EntityDirectory.NULL_GENERATION
++	_effort_claim_expedition_slot[row] = EntityDirectory.NULL_SLOT
+ 	_effort_claim_habitat_slot[row] = EntityDirectory.NULL_SLOT
+ 	_effort_claim_habitat_generation[row] = EntityDirectory.NULL_GENERATION
+ 	_effort_claim_job_slot[row] = EntityDirectory.NULL_SLOT
+@@ -1400,6 +1413,8 @@
+ 	var row: int = _directory.get_typed_row(expedition_ref)
+ 	if _effort_claim_active[row] != 1:
+ 		return out.refuse(String(REFUSE_NO_EFFORT_CLAIM))
+-	if _effort_claim_expedition_generation[row] != expedition_ref.y:
++	# FISH-ID-R01: BOTH stored fields, after the live Directory validation and the row lookup.
++	if _effort_claim_expedition_slot[row] != expedition_ref.x \
++			or _effort_claim_expedition_generation[row] != expedition_ref.y:
+ 		return out.refuse(String(REFUSE_EFFORT_CLAIM_STALE))
+ 	return out.succeed(row)
+@@ -1430,12 +1445,10 @@
+ func effort_claim_expedition_ref_of(row: int) -> Vector2i:
+-	"""The Expedition owning a live claim, rebuilt from the directory's reverse map.
+-
+-	The claim slice stores only the generation (ruling §5's six I32 columns); the slot comes back
+-	from EntityDirectory.owner_slot_of_typed_row(), which reads a column that already exists.
++	"""The Expedition owning a live claim, exactly as it was STORED at publication.
++
++	FISH-ID-R01: the full slot/generation pair is a column, so a stale owner reports as ITSELF
++	and is never rebuilt from the directory's reverse map, which a later Expedition may occupy.
++	NULL_REF means only that `row` is out of range or inactive, never that the owner is dead.
+ 	"""
+ 	if not is_effort_claim_active(row):
+ 		return NULL_REF
+-	var slot: int = _directory.owner_slot_of_typed_row(EntityDirectory.KIND_EXPEDITION, row)
+-	if slot == EntityDirectory.NULL_SLOT:
+-		return NULL_REF
+-	return Vector2i(slot, _effort_claim_expedition_generation[row])
++	return Vector2i(_effort_claim_expedition_slot[row], _effort_claim_expedition_generation[row])
+@@ -1620,7 +1633,8 @@
+ func effort_claim_payload_bytes() -> int:
+-	"""Ruling §5's 12800-byte claim slice, measured off the real column sizes."""
+-	return (_effort_claim_active.size() * BYTES_PER_BYTE_COLUMN
+-		+ (_effort_claim_expedition_generation.size() + _effort_claim_habitat_slot.size()
+-			+ _effort_claim_habitat_generation.size() + _effort_claim_job_slot.size()
+-			+ _effort_claim_job_generation.size() + _effort_claim_slot_count.size())
++	"""The claim slice, measured off the real column sizes: 14848 bytes after FISH-ID-R01."""
++	return (_effort_claim_active.size() * BYTES_PER_BYTE_COLUMN
++		+ (_effort_claim_expedition_generation.size() + _effort_claim_expedition_slot.size()
++			+ _effort_claim_habitat_slot.size() + _effort_claim_habitat_generation.size()
++			+ _effort_claim_job_slot.size() + _effort_claim_job_generation.size()
++			+ _effort_claim_slot_count.size())
+ 			* BYTES_PER_INT32)
+@@ -1900,30 +1914,34 @@
+ class EffortClaimColumns:
+-	"""The seven fixed claim columns, 512 cells each, with no metadata and no count field.
++	"""The eight fixed claim columns, 512 cells each, with no metadata and no count field.
+ 
+ 	The constructor takes no arguments: 512 is the native Expedition row capacity and cannot be
+ 	reconfigured by a record. A freshly constructed record is the exact blank table.
+ 	"""
+ 	var effort_claim_active: PackedByteArray = PackedByteArray()
+ 	var effort_claim_expedition_generation: PackedInt32Array = PackedInt32Array()
++	## FISH-ID-R01's appended wire ordinal 7: the owner's stored Directory slot.
++	var effort_claim_expedition_slot: PackedInt32Array = PackedInt32Array()
+ 	var effort_claim_habitat_slot: PackedInt32Array = PackedInt32Array()
+ 	var effort_claim_habitat_generation: PackedInt32Array = PackedInt32Array()
+ 	var effort_claim_job_slot: PackedInt32Array = PackedInt32Array()
+ 	var effort_claim_job_generation: PackedInt32Array = PackedInt32Array()
+ 	var effort_claim_slot_count: PackedInt32Array = PackedInt32Array()
+ 
+ 	func _init() -> void:
+-		"""Allocate all seven columns at 512 cells and fill each with its exact blank."""
++		"""Allocate all eight columns at 512 cells and fill each with its exact blank."""
+ 		effort_claim_active.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 		effort_claim_expedition_generation.resize(FISHING_EFFORT_CLAIM_CAPACITY)
++		effort_claim_expedition_slot.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 		effort_claim_habitat_slot.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 		effort_claim_habitat_generation.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 		effort_claim_job_slot.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 		effort_claim_job_generation.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 		effort_claim_slot_count.resize(FISHING_EFFORT_CLAIM_CAPACITY)
+ 		effort_claim_active.fill(0)
+ 		effort_claim_expedition_generation.fill(CLAIM_COLUMN_BLANK_GENERATION)
++		effort_claim_expedition_slot.fill(CLAIM_COLUMN_BLANK_SLOT)
+ 		effort_claim_habitat_slot.fill(CLAIM_COLUMN_BLANK_SLOT)
+ 		effort_claim_habitat_generation.fill(CLAIM_COLUMN_BLANK_GENERATION)
+ 		effort_claim_job_slot.fill(CLAIM_COLUMN_BLANK_SLOT)
+ 		effort_claim_job_generation.fill(CLAIM_COLUMN_BLANK_GENERATION)
+ 		effort_claim_slot_count.fill(CLAIM_COLUMN_BLANK_SLOT_COUNT)
+@@ -1955,23 +1973,24 @@
+ func copy_effort_claim_columns_into(out: EffortClaimColumns) -> bool:
+-	"""Publish seven independent duplicates of the live claim table, or refuse touching nothing.
++	"""Publish eight independent duplicates of the live claim table, or refuse touching nothing.
+ 
+ 	Order is deterministic and the first gate wins: caller null or any caller/live array length
+ 	mismatch; the whole table's active bytes; ascending rows; and only THEN the native count
+ 	against the rows actually counted. The source is read-only apart from this diagnostic.
+ 	"""
+ 	if out == null:
+ 		return _refuse_claim_column(COLUMN_FISH_CLAIM_SHAPE)
+ 	if not _effort_claim_record_shape_ok(out) or not _effort_claim_live_shape_ok():
+ 		return _refuse_claim_column(COLUMN_FISH_CLAIM_SHAPE)
+ 	var tally: EffortClaimTally = EffortClaimTally.new()
+-	var code: StringName = _effort_claim_payload_code(_effort_claim_active,
+-		_effort_claim_expedition_generation, _effort_claim_habitat_slot,
+-		_effort_claim_habitat_generation, _effort_claim_job_slot, _effort_claim_job_generation,
+-		_effort_claim_slot_count, tally)
++	var code: StringName = _effort_claim_payload_code(_effort_claim_active,
++		_effort_claim_expedition_generation, _effort_claim_expedition_slot,
++		_effort_claim_habitat_slot, _effort_claim_habitat_generation, _effort_claim_job_slot,
++		_effort_claim_job_generation, _effort_claim_slot_count, tally)
+ 	if code != REFUSE_NONE:
+ 		return _refuse_claim_column(code)
+ 	if _effort_claim_count != tally.active_rows:
+ 		return _refuse_claim_column(COLUMN_FISH_CLAIM_SOURCE_COUNT)
+ 	out.effort_claim_active = _effort_claim_active.duplicate()
+ 	out.effort_claim_expedition_generation = _effort_claim_expedition_generation.duplicate()
++	out.effort_claim_expedition_slot = _effort_claim_expedition_slot.duplicate()
+ 	out.effort_claim_habitat_slot = _effort_claim_habitat_slot.duplicate()
+@@ -1990,31 +2009,34 @@
+ func restore_effort_claim_columns(columns: EffortClaimColumns) -> bool:
+ 	"""Install a validated claim table and its derived count, or refuse changing nothing.
+ 
+ 	The prior payload and the prior count are IGNORED: only the live array shapes are required.
+ 	Every generation pair and row index is preserved verbatim, including stale ones; nothing is
+-	sorted, compacted, clamped or repaired. All seven arrays are duplicated privately first, so
++	sorted, compacted, clamped or repaired. All eight arrays are duplicated privately first, so
+ 	no fallible work remains once publication begins and a later mutation of the input cannot
+ 	leak across this boundary.
+ 	"""
+ 	if columns == null:
+ 		return _refuse_claim_column(COLUMN_FISH_CLAIM_SHAPE)
+ 	if not _effort_claim_record_shape_ok(columns) or not _effort_claim_live_shape_ok():
+ 		return _refuse_claim_column(COLUMN_FISH_CLAIM_SHAPE)
+ 	var tally: EffortClaimTally = EffortClaimTally.new()
+-	var code: StringName = _effort_claim_payload_code(columns.effort_claim_active,
+-		columns.effort_claim_expedition_generation, columns.effort_claim_habitat_slot,
+-		columns.effort_claim_habitat_generation, columns.effort_claim_job_slot,
+-		columns.effort_claim_job_generation, columns.effort_claim_slot_count, tally)
++	var code: StringName = _effort_claim_payload_code(columns.effort_claim_active,
++		columns.effort_claim_expedition_generation, columns.effort_claim_expedition_slot,
++		columns.effort_claim_habitat_slot, columns.effort_claim_habitat_generation,
++		columns.effort_claim_job_slot, columns.effort_claim_job_generation,
++		columns.effort_claim_slot_count, tally)
+ 	if code != REFUSE_NONE:
+ 		return _refuse_claim_column(code)
+ 	var active: PackedByteArray = columns.effort_claim_active.duplicate()
+ 	var expedition_generation: PackedInt32Array = \
+ 		columns.effort_claim_expedition_generation.duplicate()
++	var expedition_slot: PackedInt32Array = columns.effort_claim_expedition_slot.duplicate()
+ 	var habitat_slot: PackedInt32Array = columns.effort_claim_habitat_slot.duplicate()
+ 	var habitat_generation: PackedInt32Array = columns.effort_claim_habitat_generation.duplicate()
+ 	var job_slot: PackedInt32Array = columns.effort_claim_job_slot.duplicate()
+ 	var job_generation: PackedInt32Array = columns.effort_claim_job_generation.duplicate()
+ 	var slot_count: PackedInt32Array = columns.effort_claim_slot_count.duplicate()
+ 	_effort_claim_active = active
+ 	_effort_claim_expedition_generation = expedition_generation
++	_effort_claim_expedition_slot = expedition_slot
+ 	_effort_claim_habitat_slot = habitat_slot
+@@ -2035,20 +2057,22 @@
+ func _effort_claim_record_shape_ok(columns: EffortClaimColumns) -> bool:
+-	"""True when all SEVEN caller arrays are 512 cells. Checked before anything indexes them."""
++	"""True when all EIGHT caller arrays are 512 cells. Checked before anything indexes them."""
+ 	return columns.effort_claim_active.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and columns.effort_claim_expedition_generation.size() == FISHING_EFFORT_CLAIM_CAPACITY \
++		and columns.effort_claim_expedition_slot.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and columns.effort_claim_habitat_slot.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and columns.effort_claim_habitat_generation.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and columns.effort_claim_job_slot.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and columns.effort_claim_job_generation.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and columns.effort_claim_slot_count.size() == FISHING_EFFORT_CLAIM_CAPACITY
+ 
+ 
+ func _effort_claim_live_shape_ok() -> bool:
+-	"""True when all seven LIVE claim arrays are 512 cells. No other section array is read."""
++	"""True when all eight LIVE claim arrays are 512 cells. No other section array is read."""
+ 	return _effort_claim_active.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and _effort_claim_expedition_generation.size() == FISHING_EFFORT_CLAIM_CAPACITY \
++		and _effort_claim_expedition_slot.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and _effort_claim_habitat_slot.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and _effort_claim_habitat_generation.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and _effort_claim_job_slot.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and _effort_claim_job_generation.size() == FISHING_EFFORT_CLAIM_CAPACITY \
+ 		and _effort_claim_slot_count.size() == FISHING_EFFORT_CLAIM_CAPACITY
+@@ -2060,33 +2084,36 @@
+-func _effort_claim_payload_code(active: PackedByteArray,
+-		expedition_generation: PackedInt32Array, habitat_slot: PackedInt32Array,
+-		habitat_generation: PackedInt32Array, job_slot: PackedInt32Array,
+-		job_generation: PackedInt32Array, slot_count: PackedInt32Array,
+-		tally: EffortClaimTally) -> StringName:
+-	"""The one payload validator, over seven typed arrays. REFUSE_NONE leaves the tally usable.
++func _effort_claim_payload_code(active: PackedByteArray,
++		expedition_generation: PackedInt32Array, expedition_slot: PackedInt32Array,
++		habitat_slot: PackedInt32Array, habitat_generation: PackedInt32Array,
++		job_slot: PackedInt32Array, job_generation: PackedInt32Array,
++		slot_count: PackedInt32Array, tally: EffortClaimTally) -> StringName:
++	"""The one payload validator, over eight typed arrays. REFUSE_NONE leaves the tally usable.
+ 
+ 	Every active byte is validated across the WHOLE table before any per-row field is read, so a
+ 	single stray flag cannot be masked by an earlier row's blank or field failure. Active rows
+-	are then validated in wire order: the Expedition generation the row's typed identity is
+-	paired with, the habitat reference, the Job reference and the slot count. No directory lookup
+-	and no per-habitat capacity lookup occurs here.
++	are then validated in wire order: the Expedition generation and FISH-ID-R01's appended stored
++	owner slot the row's typed identity is paired with, the habitat reference, the Job reference
++	and the slot count. No directory lookup and no per-habitat capacity lookup occurs here.
+ 	"""
+ 	for row: int in FISHING_EFFORT_CLAIM_CAPACITY:
+ 		if active[row] > 1:
+ 			return COLUMN_FISH_CLAIM_OCCUPANCY
+ 	var counted: int = 0
+ 	var slot_ceiling: int = _max_effort_slot_capacity()
+ 	for row: int in FISHING_EFFORT_CLAIM_CAPACITY:
+ 		if active[row] == 0:
+ 			if expedition_generation[row] != CLAIM_COLUMN_BLANK_GENERATION \
++					or expedition_slot[row] != CLAIM_COLUMN_BLANK_SLOT \
+ 					or habitat_slot[row] != CLAIM_COLUMN_BLANK_SLOT \
+ 					or habitat_generation[row] != CLAIM_COLUMN_BLANK_GENERATION \
+ 					or job_slot[row] != CLAIM_COLUMN_BLANK_SLOT \
+ 					or job_generation[row] != CLAIM_COLUMN_BLANK_GENERATION \
+ 					or slot_count[row] != CLAIM_COLUMN_BLANK_SLOT_COUNT:
+ 				return COLUMN_FISH_CLAIM_BLANK
+ 			continue
+ 		counted += 1
+ 		if expedition_generation[row] <= 0:
+ 			return COLUMN_FISH_CLAIM_REF
++		if expedition_slot[row] < 0 or expedition_slot[row] > CLAIM_COLUMN_DIRECTORY_SLOT_MAX:
++			return COLUMN_FISH_CLAIM_REF
+ 		if habitat_slot[row] < 0 or habitat_slot[row] > CLAIM_COLUMN_DIRECTORY_SLOT_MAX:
+ 			return COLUMN_FISH_CLAIM_REF
+diff --git a/godot/scripts/core/save_section_inventories.gd b/godot/scripts/core/save_section_inventories.gd
+--- a/godot/scripts/core/save_section_inventories.gd
++++ b/godot/scripts/core/save_section_inventories.gd
+@@ -103,7 +103,9 @@
+-## REG-R01's `owner_schema_version` per owner. INV-CANON-R01 takes `inventory` from 2 to **3**
+-## with the canonicalized unused payload; the other five are still 1. The 3 is READ from
+-## `inventory.gd`, which declares it beside the projection it describes, rather than restated
++## REG-R01's `owner_schema_version` per owner. INV-CANON-R01 takes `inventory` from 2 to **3**
++## with the canonicalized unused payload; FISH-ID-R01 takes `fishing` from 1 to **2** with the
++## appended Expedition slot, and the other four are still 1. Both numbers are READ from the
++## store that owns each, beside the exact columns it describes, rather than restated
+ ## here: two modules naming the version independently is two numbers that can disagree.
+ const OWNER_SCHEMA_VERSIONS: Array[int] = [
+-	1, 1, 1, InventoryScript.CANONICAL_OWNER_SCHEMA_VERSION, 1, 1,
++	FishingScript.CANONICAL_OWNER_SCHEMA_VERSION, 1, 1,
++	InventoryScript.CANONICAL_OWNER_SCHEMA_VERSION, 1, 1,
+ ]
+@@ -112,3 +114,4 @@
+ ## `save_header.gd` carries the number and does not interpret it, so the section owner publishes
+ ## it -- exactly as `save_section_world_runtime.gd` publishes section 1's.
+-const SECTION_SCHEMA_VERSION: int = 3
++## FISH-ID-R01 moves it 3 -> **4** with the appended `fishing` ordinal 7; schema 3 is refused.
++const SECTION_SCHEMA_VERSION: int = 4
+@@ -140,10 +143,15 @@
+ const KEYS_FISHING: Array[StringName] = [
+ 	&"_effort_claim_active", &"_effort_claim_expedition_generation",
+ 	&"_effort_claim_habitat_slot", &"_effort_claim_habitat_generation",
+ 	&"_effort_claim_job_slot", &"_effort_claim_job_generation", &"_effort_claim_slot_count",
++	&"_effort_claim_expedition_slot",
+ ]
+-const TYPES_FISHING: Array[int] = [TYPE_U8, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32]
++## FISH-ID-R01 APPENDS ordinal 7 and renumbers nothing: ordinals 0..6 keep their wire positions.
++const TYPES_FISHING: Array[int] = [
++	TYPE_U8, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32,
++]
+ const EXTENTS_FISHING: Array[int] = [
+ 	EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY,
++	EXT_PRIMARY,
+ ]
+-const COUNT_FIELDS_FISHING: Array[int] = [-1, -1, -1, -1, -1, -1, -1]
++const COUNT_FIELDS_FISHING: Array[int] = [-1, -1, -1, -1, -1, -1, -1, -1]
+@@ -240,3 +248,5 @@
+ const REFUSE_OWNER_SCHEMA_VERSION: StringName = &"SAVE_INV_OWNER_SCHEMA_VERSION"
++const REFUSE_SECTION_SCHEMA_VERSION: StringName = &"SAVE_INV_SECTION_SCHEMA_VERSION"
++const REFUSE_NULL_RECORD: StringName = &"SAVE_INV_NULL_RECORD"
+ const REFUSE_PRIMARY_COUNT: StringName = &"SAVE_INV_PRIMARY_COUNT"
+ const REFUSE_CHILD_EXTENT_COUNT: StringName = &"SAVE_INV_CHILD_EXTENT_COUNT"
+@@ -640,6 +650,7 @@
+ const NEGATIVE_ONE_FILL_KEYS: Array[StringName] = [
+-	&"_effort_claim_habitat_slot", &"_effort_claim_job_slot", &"_claim_job_slot",
++	&"_effort_claim_expedition_slot", &"_effort_claim_habitat_slot",
++	&"_effort_claim_job_slot", &"_claim_job_slot",
+ 	&"_claim_designation_slot", &"_claim_basin_slot", &"_claim_patch_kind", &"_lot_slot",
+ 	&"_item_id", &"_owner_slot", &"_r_job_slot", &"_r_lot_slot", &"_c_owner_slot",
+ 	&"_c_first_lot", &"_l_container_slot", &"_l_next", &"_l_prev",
+ ]
+@@ -840,18 +851,39 @@
+ static func decode_into(bytes: PackedByteArray, offset: int, byte_length: int,
+ 		out: Record) -> SaveHeader.Refusal:
+-	"""Decode section 7 from `offset`, validating everything before `out` is written at all.
+-
+-	Allocate before consume (decision 0059): the extent is proved, every owner wrapper is
+-	checked, each primary count and child extent is bounded against the compiled maximum BEFORE
+-	its `OwnerRecord` is allocated, the six blocks land in a LOCAL Record, and every column
+-	domain and cross-column invariant runs against that local. Only then is `out` overwritten.
+-	A full-length section carrying a provenance of 6, a free stack naming a live slot or blocks
+-	in the wrong ASCII order therefore leaves `out` byte-identical.
+-	"""
++	"""Decode section 7 at the CURRENT section schema version, by delegation.
++
++	There is no defaulted version argument and no old-layout fallback: a coordinator holding a
++	descriptor passes the version it actually read to `decode_into_versioned()`.
++	"""
++	return decode_into_versioned(bytes, offset, byte_length, SECTION_SCHEMA_VERSION, out)
++
++
++static func decode_into_versioned(bytes: PackedByteArray, offset: int, byte_length: int,
++		section_schema_version: int, out: Record) -> SaveHeader.Refusal:
++	"""Decode section 7 from `offset`, validating everything before `out` is written at all.
++
++	Allocate before consume (decision 0059): the extent is proved, every owner wrapper is
++	checked, each primary count and child extent is bounded against the compiled maximum BEFORE
++	its `OwnerRecord` is allocated, the six blocks land in a LOCAL Record, and every column
++	domain and cross-column invariant runs against that local. Only then is `out` overwritten.
++	A full-length section carrying a provenance of 6, a free stack naming a live slot or blocks
++	in the wrong ASCII order therefore leaves `out` byte-identical.
++
++	GATE ORDER, fixed: an invalid extent wins over everything, then byte order, then the
++	descriptor's section schema, then a null output. FISH-ID-R01 refuses the old schema outright
++	rather than reading an old-layout `fishing` body, and nothing is staged before these gates.
++	"""
+ 	var extent: SaveHeader.Refusal = extent_refusal(bytes, offset, byte_length)
+ 	if not extent.is_ok():
+ 		return extent
+ 	var order: SaveHeader.Refusal = byte_order_refusal()
+ 	if not order.is_ok():
+ 		return order
++	if section_schema_version != SECTION_SCHEMA_VERSION:
++		return SaveHeader.Refusal.new(REFUSE_SECTION_SCHEMA_VERSION,
++			"section 7 declares schema %d, not the supported %d; no old-layout body is read"
++				% [section_schema_version, SECTION_SCHEMA_VERSION])
++	if out == null:
++		return SaveHeader.Refusal.new(REFUSE_NULL_RECORD,
++			"section 7 decode needs a caller-owned Record; nothing is decoded into nothing")
+ 	var reader: SaveCodec.Reader = SaveCodec.Reader.new(bytes)
+@@ -1080,3 +1112,3 @@
+ ## Ordinals every released row of the four blanking owners must carry at its canonical value.
+-const BLANK_ORDINALS_FISHING: Array[int] = [1, 2, 3, 4, 5, 6]
++const BLANK_ORDINALS_FISHING: Array[int] = [1, 2, 3, 4, 5, 6, 7]
+ const BLANK_ORDINALS_FORAGE: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+@@ -1120,10 +1152,14 @@
+ static func _fishing_row_refusal(block: OwnerRecord, row: int) -> SaveHeader.Refusal:
+-	"""Validate one live effort claim: three references and a positive slot count."""
++	"""Validate one live claim: the stored owner pair, both references and the slot count.
++
++	Ordinal 7 is FISH-ID-R01's appended owner slot, validated at its wire position with no live
++	Directory lookup: 0..DIRECTORY_CAPACITY-1 while active, and the blank -1 while it is not.
++	"""
+ 	for ordinal: int in [1, 3, 5]:
+ 		var generation: SaveHeader.Refusal = _generation_refusal(block.i32_column(ordinal)[row],
+ 			true, block.owner, ordinal, row)
+ 		if not generation.is_ok():
+ 			return generation
+-	for ordinal: int in [2, 4]:
++	for ordinal: int in [2, 4, 7]:
+ 		var slot: SaveHeader.Refusal = _slot_refusal(block.i32_column(ordinal)[row], true,
+ 			DIRECTORY_CAPACITY, block.owner, ordinal, row)
+diff --git a/godot/scripts/core/save_resource_claims_restore.gd b/godot/scripts/core/save_resource_claims_restore.gd
+--- a/godot/scripts/core/save_resource_claims_restore.gd
++++ b/godot/scripts/core/save_resource_claims_restore.gd
+@@ -45,3 +45,3 @@
+ const FISHING_U8_COLUMNS: int = 1
+-const FISHING_I32_COLUMNS: int = 6
++const FISHING_I32_COLUMNS: int = 7
+ const FISHING_I64_COLUMNS: int = 0
+@@ -70,3 +70,5 @@
+ const FISH_ORDINAL_SLOT_COUNT: int = 6
++## FISH-ID-R01's appended ordinal 7: the claim owner's stored Directory slot.
++const FISH_ORDINAL_EXPEDITION_SLOT: int = 7
+ 
+ ## REG-R01's declared ordinals for `forage`, in wire order.
+@@ -140,4 +142,6 @@
+ 	staged.i32_columns[Codec.storage_index_of(FISHING_OWNER,
+ 		FISH_ORDINAL_EXPEDITION_GENERATION)] = columns.effort_claim_expedition_generation
++	staged.i32_columns[Codec.storage_index_of(FISHING_OWNER, FISH_ORDINAL_EXPEDITION_SLOT)] = \
++		columns.effort_claim_expedition_slot
+ 	staged.i32_columns[Codec.storage_index_of(FISHING_OWNER, FISH_ORDINAL_HABITAT_SLOT)] = \
+ 		columns.effort_claim_habitat_slot
+@@ -230,4 +234,6 @@
+ 	columns.effort_claim_expedition_generation = block.i32_columns[Codec.storage_index_of(
+ 		FISHING_OWNER, FISH_ORDINAL_EXPEDITION_GENERATION)]
++	columns.effort_claim_expedition_slot = \
++		block.i32_columns[Codec.storage_index_of(FISHING_OWNER, FISH_ORDINAL_EXPEDITION_SLOT)]
+ 	columns.effort_claim_habitat_slot = \
+ 		block.i32_columns[Codec.storage_index_of(FISHING_OWNER, FISH_ORDINAL_HABITAT_SLOT)]

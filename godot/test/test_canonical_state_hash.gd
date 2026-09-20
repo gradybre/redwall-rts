@@ -102,7 +102,7 @@ const NAME_CAP_BYTES: int = 128
 ## two numbers that moved in that activation are the (7, 'inventory') owner schema and section
 ## 7's descriptor schema, both 2 -> 3, pinned separately below.
 ## SAVE-J2-R01 adds three packed lists and three scalar counts: +6 records, +3 packed.
-const REGISTRY_PACKED_FIELD_COUNT: int = 553
+const REGISTRY_PACKED_FIELD_COUNT: int = 554
 
 ## Pinned as LITERALS, deliberately not read from the JSON or from `Digest.*`. Every other
 ## assertion in this suite compares the compiled table against the registry it was generated
@@ -115,20 +115,20 @@ const REGISTRY_PACKED_FIELD_COUNT: int = 553
 ## that normalizes its inactive payload accepts a strictly smaller set of states than schema 2
 ## did, and leaving the name still would let a stricter codec ship under the old identity while
 ## every self-referential check in this file stayed green.
-const REGISTRY_RECORD_COUNT: int = 602
-const REGISTRY_FIELD_COUNT: int = 610
+const REGISTRY_RECORD_COUNT: int = 603
+const REGISTRY_FIELD_COUNT: int = 611
 const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-15-3"
 ## SAVE-SEQ-R01 v2 advances declaration version to 4 while retaining this exact namespace.
 ## The version is independent of the opaque identity suffix; commands owner becomes 2.
-## SAVE-J2-R01 advances version 5 and planner owner/section schema 2.
-const REGISTRY_DECLARATION_VERSION: int = 5
+## SAVE-J2-R01 advances version5; FISH-ID-R01 advances registry6 and Fishing owner2/section7schema4.
+const REGISTRY_DECLARATION_VERSION: int = 6
 
 ## INV-CANON-R01's two version numbers, pinned as literals and read back from BOTH the registry
 ## JSON and the compiled table. They live in different namespaces -- one is the owner block's
 ## `owner_schema_version`, the other the 64-byte descriptor's `schema_version` -- and the whole
 ## point of the activation is that they move together with the codec.
 const INVENTORY_OWNER_SCHEMA_VERSION: int = 3
-const SECTION_SEVEN_SCHEMA_VERSION: int = 3
+const SECTION_SEVEN_SCHEMA_VERSION: int = 4
 
 ## Section 7 `inventory`'s thirty declared field keys in DECLARED ORDINAL ORDER, pinned outside
 ## the JSON. REG-R01's order interleaves container and lot columns and is explicitly not
@@ -434,7 +434,7 @@ func _assert_field_shape(declaration: Digest.Declaration, field: Dictionary, ind
 
 
 func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
-	"""602 canonical records over 52 owners, 553 persisted packed fields, release_save_ready false."""
+	"""603 canonical records over 52 owners, 554 persisted packed fields, release_save_ready false."""
 	var data: Dictionary = _registry()
 	assert_equal(int(data["record_count"]), Digest.CANONICAL_RECORD_COUNT, "registry record_count")
 	assert_equal(int(data["packed_source_field_count"]), REGISTRY_PACKED_FIELD_COUNT,
@@ -442,7 +442,7 @@ func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
 	assert_equal(String(data["registry_id"]), Digest.DECLARATION_ID, "registry id")
 	assert_false(bool(data["release_save_ready"]), "release_save_ready stays false")
 	assert_equal(Digest.production_declaration().record_count(), Digest.CANONICAL_RECORD_COUNT,
-		"the compiled declaration counts the same 602 records")
+		"the compiled declaration counts the same 603 records")
 
 
 func test_the_active_rules_identity_and_counts_match_their_independent_pins() -> void:
@@ -461,7 +461,7 @@ func test_the_active_rules_identity_and_counts_match_their_independent_pins() ->
 		"R-WORLD-S1-001 takes section 1 to schema version 3 in the active registry")
 
 
-func test_inventory_owner_and_section_seven_schemas_activate_together_at_three() -> void:
+func test_inventory_owner_three_and_section_seven_four_match_registry() -> void:
 	"""INV-CANON-R01: the registry, the compiled table and the §7 codec all read 3, or none do.
 
 	FOUR INDEPENDENT SOURCES, deliberately. The registry JSON and the compiled table are
@@ -969,3 +969,43 @@ func test_economic_high_declaration_and_value_preserve_exhaustion() -> void:
 			expected, "pinned eight-byte value; no u32 truncation")
 		hashes.append(result.digest)
 	assert_true(hashes[0] != hashes[1], "final available high and exhausted high hash differently")
+
+func _fishing_identity_fixture_digest(owner_slot: int) -> PackedByteArray:
+	# Projection of the production Fishing declaration only, not a complete-world digest.
+	var production: Digest.Declaration = Digest.production_declaration()
+	var owner: int = production.find_owner(7,"fishing")
+	var begin: int = production.owner_field_begin(owner)
+	var builder: Digest.Builder = Digest.Builder.new()
+	builder.begin_owner(7,"fishing",production.owner_schema_version(owner))
+	var adapter: FixtureAdapter = FixtureAdapter.new()
+	var values: Array[int] = [1,2,202,3,1002,4,3,owner_slot]
+	for ordinal: int in production.owner_field_count(owner):
+		var key: String = production.field_key(begin+ordinal)
+		builder.add_field(key,production.field_type(begin+ordinal),production.field_is_hashed(begin+ordinal),true,512,0)
+		if ordinal == 0:
+			var active: PackedByteArray = PackedByteArray()
+			active.resize(512)
+			active[2] = 1
+			adapter.add(key,Digest.STORAGE_BYTE,active,512)
+		else:
+			var column: PackedInt32Array = PackedInt32Array()
+			column.resize(512)
+			column.fill(-1 if [2,4,7].has(ordinal) else 0)
+			column[2] = values[ordinal]
+			adapter.add(key,Digest.STORAGE_INT32,column,512)
+	var walker: Digest.Walker = Digest.Walker.new(builder.seal("RWL-FISHING-IDENTITY-FIXTURE"))
+	assert_true(walker.register_owner(7,"fishing",adapter).is_ok(),"fixture owner supplied")
+	var result: Digest.DigestResult = _walk_fixture(walker,0)
+	assert_false(result.covers_release_state,"owner projection is not release state")
+	return result.digest
+
+func test_full_expedition_slot_is_eighth_hashed_fishing_field() -> void:
+	var production: Digest.Declaration = Digest.production_declaration()
+	var owner: int = production.find_owner(7,"fishing")
+	assert_equal(production.owner_schema_version(owner),2,"full identity owner schema")
+	assert_equal(production.owner_field_count(owner),8,"one new canonical field")
+	var fields: PackedStringArray = PackedStringArray()
+	for index: int in production.owner_field_count(owner):
+		fields.append(production.field_key(production.owner_field_begin(owner)+index))
+	assert_equal(fields,PackedStringArray(["_effort_claim_active","_effort_claim_expedition_generation","_effort_claim_habitat_slot","_effort_claim_habitat_generation","_effort_claim_job_slot","_effort_claim_job_generation","_effort_claim_slot_count","_effort_claim_expedition_slot"]),"literal append order")
+	assert_true(_fishing_identity_fixture_digest(2) != _fishing_identity_fixture_digest(3),"changing only Expedition slot changes canonical projection")

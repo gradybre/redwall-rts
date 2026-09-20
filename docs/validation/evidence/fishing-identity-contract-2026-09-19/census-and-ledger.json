@@ -1,0 +1,17 @@
+{
+  "scope": "planned payload arithmetic, not measured memory",
+  "owners": 52,
+  "listed_fields": 611,
+  "canonical_records": 603,
+  "packed_canonical": 554,
+  "key_bytes": 9051,
+  "declaration_bytes": 19048,
+  "new_claim_bytes": 2048,
+  "prior_declaration_omission": 179,
+  "new_field_declaration": 44,
+  "resident_delta": 2271,
+  "planned_payload": 70005291,
+  "live_plus_reserve": 78393899,
+  "candidate_mutable": 63770659,
+  "rejected_two_world_peak": 142164558
+}

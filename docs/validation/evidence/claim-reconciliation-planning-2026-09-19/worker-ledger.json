@@ -1,0 +1,24 @@
+{
+  "attempts": [
+    {
+      "id": "claim-reconciliation-audit-a1",
+      "role": "feasibility audit",
+      "model": "claude-opus-5",
+      "sessionId": "46d8e11f-927d-41e7-b9b0-16c70a572272",
+      "state": "invalid_output",
+      "ownerStopped": true,
+      "recovery": "One outer code fence removed from owned session public assistant text; parsed exact one-new-file bundle and validated all input hashes; original invalid result retained.",
+      "inputHashes": {
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/astra-source-notes.md": "48f67ad9007fbe5297334520214ccf6ad01b4ef7bbb06ce8a6bb0f3fc6f5596a",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/architecture-excerpts.md": "b7198c1688e406a1aa21d58cebd1941436c97984fb9d2bccce6ee2529b9f5239",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/fishing-excerpts.md": "96fc505da5bd08e59081d54edd7c35f586d9f3401a5530b9538c3e2c316e3b4e",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/forage-excerpts.md": "7830df3e6a3666ec89fd3f91f4e9a1fcc5043eeb07da160a88c470c98f615780",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/jobs-excerpts.md": "97a4f3b402770a09f5417d3502dcd2c7f64719b35b8c19365d6878fc3ee4d3aa",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/entity_directory-excerpts.md": "3bf48151c525eef1226f60635a007464a9fdfbc8a94d4842452d68ee46dfc707",
+        "docs/planning/resource_claim_columns_contract.md": "6dcd34ca8fbf7b99190ade7d69bc10169d69b553ef904433411ab12d9fc4c50e",
+        "docs/rulings/2026-09-11_save_codec_contract.md": "ff83ad9cad824fca0a31390ae30061b1e3a09cb2feedbd0f90416b876c4901a4",
+        "docs/planning/save_implementation_matrix.md": "a7da6f0d7b1e8fb1f32b624a1188270a4344844b0647cffe9c8f1975c2943497"
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "attempts": [
+    {
+      "id": "fishing-identity-author-a1",
+      "role": "implementation author",
+      "model": "claude-opus-5",
+      "sessionId": "cdc86d57-d6fd-41ae-819f-fd94d86ace70",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/fishing_claim_identity_contract.md": "7cf091fd768710f355f52c4b26408c6c97ab62dffe9e7064198ba41f5767fb4f",
+        "docs/decisions/0167-preserve-the-full-expedition-reference-on-fishing-claims.md": "ccc56c318ff6625588c051b3fc95f89bda3232aefc3e03ea6a65c444145031da",
+        "docs/validation/evidence/fishing-identity-contract-2026-09-19/contract-v1-disposition.md": "92004ea079cb2af5c987a3d619fff2c0e98062e7f35bff5858b117777bc0e9b3",
+        "godot/scripts/core/fishing.gd": "7a82dcea6ce9e8100045d736049ab912b508195eb35aa07c34c76ce3b42c12e9",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "godot/scripts/core/save_resource_claims_restore.gd": "79e375f2d4fde24337d45e32a627254eccbf70ba3a20040c9a1290cb653f9460"
+      }
+    },
+    {
+      "id": "fishing-identity-review-a1",
+      "role": "independent source reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "08727890-f5b8-4a7d-b1be-4f9a7e95b437",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/fishing_claim_identity_contract.md": "7cf091fd768710f355f52c4b26408c6c97ab62dffe9e7064198ba41f5767fb4f",
+        "docs/decisions/0167-preserve-the-full-expedition-reference-on-fishing-claims.md": "ccc56c318ff6625588c051b3fc95f89bda3232aefc3e03ea6a65c444145031da",
+        "godot/scripts/core/fishing.gd": "08ff3b69c64a14c4b7817813b67af52d981e1b4eeaa457c2222f4ada3ffd9469",
+        "godot/scripts/core/save_section_inventories.gd": "dc2698fe65253fc1978e1d01e4950c6d147f0c853b75e7a39a79582bce4d04cf",
+        "godot/scripts/core/save_resource_claims_restore.gd": "66baf9549b5d3584a33dbf89aa22fd2c03ce8a11bd8fe9ba40ebd694527c45fa",
+        "godot/test/test_fishing_claim_identity.gd": "cb32ecc3221ebc28a51c54e2f544db13aa812b984faabd1a5d264890ec99a851",
+        "godot/test/test_resource_claim_columns.gd": "fe06d53776e08425d3c3a22e45ad19dac1613076fa5f867dfa692e62551bf352",
+        "godot/test/test_save_section_inventories.gd": "fc2f2defc3267b176f1ee4840449c41ca3728078d31b6a22c837e108cdf0119a",
+        "godot/test/test_canonical_state_hash.gd": "4789164a8bec413c2c76077595a423412d976c028bac1750c1acb6f3831f6377",
+        "docs/persistence_state_registry.md": "6f1fce5223be51af8c72828a00be89b185ba9b3d8896c06eed835c6a02248e53",
+        "docs/validation/evidence/fishing-identity-columns-2026-09-19/parent-integration-notes.md": "676f87009272c4a356f6d76290e8e4ee973f6e54105cd237e2eb978802353a65"
+      }
+    }
+  ]
+}

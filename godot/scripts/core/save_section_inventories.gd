@@ -16,10 +16,10 @@ extends RefCounted
 ##   | Offset | Type | Field                                             | Bytes |
 ##   |-------:|------|---------------------------------------------------|------:|
 ##   |      0 | u32  | store_count = 6                                   |     4 |
-##   |      4 |      | block 0 `fishing`, owner schema 1                 |       |
+##   |      4 |      | block 0 `fishing`, owner schema 2                 |       |
 ##   |        |      | block 1 `forage`, owner schema 1                  |       |
 ##   |        |      | block 2 `gear`, owner schema 1                    |       |
-##   |        |      | block 3 `inventory`, owner schema 2                |       |
+##   |        |      | block 3 `inventory`, owner schema 3                |       |
 ##   |        |      | block 4 `reservations`, owner schema 1             |       |
 ##   |        |      | block 5 `stock_age`, owner schema 1                |       |
 ##
@@ -29,7 +29,7 @@ extends RefCounted
 ## `element_count:u64` followed by its tightly packed little-endian values. COLUMN-MAJOR, by
 ## SAVE-LAYOUT-R01's explicit choice and not by inference from SoA storage.
 ##
-## `inventory`'s owner schema version is 2 and every other owner's is 1, read off REG-R01's
+## Current owner versions are Fishing2, Inventory3 and the other four1, from REG-R01's
 ## `owners` array. REG-R01's baseline SECTION version vector `[2,2,1,2,1,1,2,1,2,1,1,2,1,2,1]`
 ## gives section 7 version 2 "for protected provenance"; that number lives in the 64-byte
 ## descriptor `save_header.gd` carries and is deliberately NOT written by this module.
@@ -104,7 +104,7 @@ extends RefCounted
 ##
 ## ## Size: chunked, because ARCH-SAVE-003 says large sections are
 ##
-## At the compiled maxima with every slot free this section is 10437959 bytes -- larger than
+## At the compiled maxima with every slot free this section is 10440015 bytes -- larger than
 ## section 3. ARCH-SAVE-003: "stream Chronicle and large sections in 65536-byte chunks,
 ## calculating CRC/digest incrementally." `ChunkCursor` is that stream, field-aligned so no chunk
 ## straddles two columns or two owners, following `save_section_directory.gd`'s precedent exactly.
@@ -201,11 +201,13 @@ const OWNER_KEYS: Array[String] = [
 ]
 
 ## REG-R01's `owner_schema_version` per owner. INV-CANON-R01 takes `inventory` from 2 to **3**
-## with the canonicalized unused payload; the other five are still 1. The 3 is READ from
-## `inventory.gd`, which declares it beside the projection it describes, rather than restated
+## with the canonicalized unused payload; FISH-ID-R01 takes `fishing` from 1 to **2** with the
+## appended Expedition slot, and the other four are still 1. Both numbers are READ from the
+## store that owns each, beside the exact columns it describes, rather than restated
 ## here: two modules naming the version independently is two numbers that can disagree.
 const OWNER_SCHEMA_VERSIONS: Array[int] = [
-	1, 1, 1, InventoryScript.CANONICAL_OWNER_SCHEMA_VERSION, 1, 1,
+	FishingScript.CANONICAL_OWNER_SCHEMA_VERSION, 1, 1,
+	InventoryScript.CANONICAL_OWNER_SCHEMA_VERSION, 1, 1,
 ]
 
 ## The 64-byte descriptor's section schema version. REG-R01's baseline vector gave section 7
@@ -213,7 +215,8 @@ const OWNER_SCHEMA_VERSIONS: Array[int] = [
 ## that takes the `inventory` OWNER to 3. Those are different namespaces and both move here.
 ## `save_header.gd` carries the number and does not interpret it, so the section owner publishes
 ## it -- exactly as `save_section_world_runtime.gd` publishes section 1's.
-const SECTION_SCHEMA_VERSION: int = 3
+## FISH-ID-R01 moves it 3 -> **4** with the appended `fishing` ordinal 7; schema 3 is refused.
+const SECTION_SCHEMA_VERSION: int = 4
 
 ## SAVE-LAYOUT-R01 / S2: owner keys are nonempty ASCII, at most 256 bytes.
 const OWNER_KEY_MAX_BYTES: int = 256
@@ -238,12 +241,17 @@ const KEYS_FISHING: Array[StringName] = [
 	&"_effort_claim_active", &"_effort_claim_expedition_generation",
 	&"_effort_claim_habitat_slot", &"_effort_claim_habitat_generation",
 	&"_effort_claim_job_slot", &"_effort_claim_job_generation", &"_effort_claim_slot_count",
+	&"_effort_claim_expedition_slot",
 ]
-const TYPES_FISHING: Array[int] = [TYPE_U8, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32]
+## FISH-ID-R01 APPENDS ordinal 7 and renumbers nothing: ordinals 0..6 keep their wire positions.
+const TYPES_FISHING: Array[int] = [
+	TYPE_U8, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32,
+]
 const EXTENTS_FISHING: Array[int] = [
 	EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY,
+	EXT_PRIMARY,
 ]
-const COUNT_FIELDS_FISHING: Array[int] = [-1, -1, -1, -1, -1, -1, -1]
+const COUNT_FIELDS_FISHING: Array[int] = [-1, -1, -1, -1, -1, -1, -1, -1]
 
 const KEYS_FORAGE: Array[StringName] = [
 	&"_claim_active", &"_claim_job_slot", &"_claim_job_generation", &"_claim_designation_slot",
@@ -393,6 +401,8 @@ const REFUSE_STORE_COUNT: StringName = &"SAVE_INV_STORE_COUNT"
 const REFUSE_OWNER_KEY: StringName = &"SAVE_INV_OWNER_KEY"
 const REFUSE_OWNER_ORDER: StringName = &"SAVE_INV_OWNER_ORDER"
 const REFUSE_OWNER_SCHEMA_VERSION: StringName = &"SAVE_INV_OWNER_SCHEMA_VERSION"
+const REFUSE_SECTION_SCHEMA_VERSION: StringName = &"SAVE_INV_SECTION_SCHEMA_VERSION"
+const REFUSE_NULL_RECORD: StringName = &"SAVE_INV_NULL_RECORD"
 const REFUSE_PRIMARY_COUNT: StringName = &"SAVE_INV_PRIMARY_COUNT"
 const REFUSE_CHILD_EXTENT_COUNT: StringName = &"SAVE_INV_CHILD_EXTENT_COUNT"
 const REFUSE_CHILD_EXTENT: StringName = &"SAVE_INV_CHILD_EXTENT"
@@ -812,7 +822,8 @@ static func canonical_fill_of(owner: int, ordinal: int) -> int:
 ## Field keys whose empty value is -1 rather than 0, across all six owners. `_item_id` is
 ## `gear.gd`'s only -1 item column; `inventory._l_item_id` legitimately holds 0 on a free row.
 const NEGATIVE_ONE_FILL_KEYS: Array[StringName] = [
-	&"_effort_claim_habitat_slot", &"_effort_claim_job_slot", &"_claim_job_slot",
+	&"_effort_claim_expedition_slot", &"_effort_claim_habitat_slot",
+	&"_effort_claim_job_slot", &"_claim_job_slot",
 	&"_claim_designation_slot", &"_claim_basin_slot", &"_claim_patch_kind", &"_lot_slot",
 	&"_item_id", &"_owner_slot", &"_r_job_slot", &"_r_lot_slot", &"_c_owner_slot",
 	&"_c_first_lot", &"_l_container_slot", &"_l_next", &"_l_prev",
@@ -1151,6 +1162,16 @@ static func extent_refusal(bytes: PackedByteArray, offset: int,
 
 static func decode_into(bytes: PackedByteArray, offset: int, byte_length: int,
 		out: Record) -> SaveHeader.Refusal:
+	"""Decode section 7 at the CURRENT section schema version, by delegation.
+
+	There is no defaulted version argument and no old-layout fallback: a coordinator holding a
+	descriptor passes the version it actually read to `decode_into_versioned()`.
+	"""
+	return decode_into_versioned(bytes, offset, byte_length, SECTION_SCHEMA_VERSION, out)
+
+
+static func decode_into_versioned(bytes: PackedByteArray, offset: int, byte_length: int,
+		section_schema_version: int, out: Record) -> SaveHeader.Refusal:
 	"""Decode section 7 from `offset`, validating everything before `out` is written at all.
 
 	Allocate before consume (decision 0059): the extent is proved, every owner wrapper is
@@ -1159,6 +1180,10 @@ static func decode_into(bytes: PackedByteArray, offset: int, byte_length: int,
 	domain and cross-column invariant runs against that local. Only then is `out` overwritten.
 	A full-length section carrying a provenance of 6, a free stack naming a live slot or blocks
 	in the wrong ASCII order therefore leaves `out` byte-identical.
+
+	GATE ORDER, fixed: an invalid extent wins over everything, then byte order, then the
+	descriptor's section schema, then a null output. FISH-ID-R01 refuses the old schema outright
+	rather than reading an old-layout `fishing` body, and nothing is staged before these gates.
 	"""
 	var extent: SaveHeader.Refusal = extent_refusal(bytes, offset, byte_length)
 	if not extent.is_ok():
@@ -1166,6 +1191,13 @@ static func decode_into(bytes: PackedByteArray, offset: int, byte_length: int,
 	var order: SaveHeader.Refusal = byte_order_refusal()
 	if not order.is_ok():
 		return order
+	if section_schema_version != SECTION_SCHEMA_VERSION:
+		return SaveHeader.Refusal.new(REFUSE_SECTION_SCHEMA_VERSION,
+			"section 7 declares schema %d, not the supported %d; no old-layout body is read"
+				% [section_schema_version, SECTION_SCHEMA_VERSION])
+	if out == null:
+		return SaveHeader.Refusal.new(REFUSE_NULL_RECORD,
+			"section 7 decode needs a caller-owned Record; nothing is decoded into nothing")
 	var reader: SaveCodec.Reader = SaveCodec.Reader.new(bytes)
 	if not reader.seek(offset):
 		return SaveHeader.Refusal.new(REFUSE_TRUNCATED, reader.detail())
@@ -1649,7 +1681,7 @@ static func _cell_of(block: OwnerRecord, ordinal: int, row: int) -> int:
 
 
 ## Ordinals every released row of the four blanking owners must carry at its canonical value.
-const BLANK_ORDINALS_FISHING: Array[int] = [1, 2, 3, 4, 5, 6]
+const BLANK_ORDINALS_FISHING: Array[int] = [1, 2, 3, 4, 5, 6, 7]
 const BLANK_ORDINALS_FORAGE: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const BLANK_ORDINALS_GEAR: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 const BLANK_ORDINALS_RESERVATIONS: Array[int] = [1, 2, 3, 4, 5, 6, 7]
@@ -1680,13 +1712,17 @@ static func _fishing_refusal(block: OwnerRecord) -> SaveHeader.Refusal:
 
 
 static func _fishing_row_refusal(block: OwnerRecord, row: int) -> SaveHeader.Refusal:
-	"""Validate one live effort claim: three references and a positive slot count."""
+	"""Validate one live claim: the stored owner pair, both references and the slot count.
+
+	Ordinal 7 is FISH-ID-R01's appended owner slot, validated at its wire position with no live
+	Directory lookup: 0..DIRECTORY_CAPACITY-1 while active, and the blank -1 while it is not.
+	"""
 	for ordinal: int in [1, 3, 5]:
 		var generation: SaveHeader.Refusal = _generation_refusal(block.i32_column(ordinal)[row],
 			true, block.owner, ordinal, row)
 		if not generation.is_ok():
 			return generation
-	for ordinal: int in [2, 4]:
+	for ordinal: int in [2, 4, 7]:
 		var slot: SaveHeader.Refusal = _slot_refusal(block.i32_column(ordinal)[row], true,
 			DIRECTORY_CAPACITY, block.owner, ordinal, row)
 		if not slot.is_ok():

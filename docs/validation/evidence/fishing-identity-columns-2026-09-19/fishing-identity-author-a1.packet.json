@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "ccb3da6a6ac58906f44d9c45bcf25b035c690032",
+  "task": "Implement confirmed fishing full identity repair FISH-ID-R01v2",
+  "paths": [
+    "docs/planning/fishing_claim_identity_contract.md",
+    "docs/decisions/0167-preserve-the-full-expedition-reference-on-fishing-claims.md",
+    "docs/validation/evidence/fishing-identity-contract-2026-09-19/contract-v1-disposition.md",
+    "godot/scripts/core/fishing.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/save_resource_claims_restore.gd"
+  ],
+  "instructions": "Implement accepted FISH-ID-R01v2 exactly. Output EXACTLY ONE NEW file docs/validation/evidence/fishing-identity-columns-2026-09-19/implementation.patch with baseSha256 null. Its content must be a valid unified git diff patch modifying ONLY godot/scripts/core/fishing.gd, godot/scripts/core/save_section_inventories.gd, godot/scripts/core/save_resource_claims_restore.gd. No other file changes inside patch, no shell, no binaries, no rename, no mode changes. Use exact supplied source as patch base and sufficient context; parent will git apply --check and review before intake. Max750 patch lines, concise comments. Parent owns tests, registry, generated code, metadata, memory ledger, docs and evidence; DO NOT modify those. Add full stored expedition slot array into allocation/clear/write/query/exact ownership checks/getter/payload measurement and 8-array bulk API exact blank/shape/duplicate/typedvalidation; fix ownership alias without Directory policy changes. Codec append ordinal7, owner2 via Fishing constant, section4, blank/slot rules, decode_into_versioned API with explicit gates/nulloutput from contract. Adapter namedordinal7 and7i32 columns. Keep old unrelated gameplay methods exact except necessary identity surface; no hidden purge/repair, no Forage behavior edits, preserve no-cycle ownership. Acknowledgev2, questions only for real unresolved ambiguity. MUST return raw JSON object status/summary/questions/files/decisionIds, no Markdown code fences or text outside JSON. No claimed tests or CI."
+}

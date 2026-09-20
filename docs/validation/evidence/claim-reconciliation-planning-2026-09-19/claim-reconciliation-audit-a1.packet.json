@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "52307daa31488f2e1bf154479f2a9dfce88b666f",
+  "task": "Read-only feasibility audit for checked cross-section claim reconciliation",
+  "paths": [
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/astra-source-notes.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/architecture-excerpts.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/fishing-excerpts.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/forage-excerpts.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/jobs-excerpts.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/entity_directory-excerpts.md",
+    "docs/planning/resource_claim_columns_contract.md",
+    "docs/rulings/2026-09-11_save_codec_contract.md",
+    "docs/planning/save_implementation_matrix.md"
+  ],
+  "instructions": "Read-only feasibility review, no source implementation. Astra will author contract after your audit. Examine supplied source excerpts and architecture for SAVE-CLAIM-RECONCILIATION: exact owner restore is structural only; new readonly checked totals vs SAVED other-section columns and Forage orderkey provenance required before worldresume. Focus stale owner/typed-row/generation cases, legitimate public destroy-before-purge continuation, must cancel stale mandatory refs through normal pipeline and exact-save prohibition on hidden repair, missing ecology refs, identical basin/designation counted once, live job created_tick/persistent_id check, zero-PID anomaly, no-claims aggregate mismatch, codec prerequisite and typed source interfaces. Identify decisions Astra must make and missing source needed. Distinguish demonstrable defects, probable constraints and unproven assumptions. Do not infer public overflow from forged codec input. Do not claim actual world coordination exists. Return exactly ONE NEW markdown docs/validation/evidence/claim-reconciliation-planning-2026-09-19/feasibility-review.md, baseSha256 null, max180lines. Bounded report; list source citations and concrete test witnesses needed. No arbitrary tighter product rules or silent release shrink. Status complete if audit complete; unresolved design questions can be documented in report."
+}

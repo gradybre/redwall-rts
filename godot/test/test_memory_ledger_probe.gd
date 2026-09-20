@@ -205,7 +205,7 @@ func test_empty_string_slots_are_measured_not_assumed() -> void:
 
 
 func test_transcribed_rows_reproduce_the_printed_payload() -> void:
-	"""The transcription must add to §2.3's own printed 60823126 across 24 rows."""
+	"""Historical decision0066 transcription stays60823126 across24rows; not current budget acceptance."""
 	assert_equal(_rows.rows().size(), PRINTED_ROW_COUNT, "twenty-four allocation rows")
 	assert_equal(_rows.declared_total(), PRINTED_PAYLOAD, "sum of the printed rows")
 

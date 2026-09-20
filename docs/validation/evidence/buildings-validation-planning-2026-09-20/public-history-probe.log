@@ -1,0 +1,21 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_buildings_public_history_probe.gd
+  PASS  test_public_building_domains_and_retained_external_reference
+  PASS  test_public_room_temperature_occupants_validity_and_removal
+  PASS  test_public_furniture_user_atomic_refusal_and_removal
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+3 test(s), 40 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

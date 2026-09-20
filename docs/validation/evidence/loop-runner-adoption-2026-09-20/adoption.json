@@ -1,0 +1,23 @@
+{
+  "adopted_at": "2026-09-20T13:46:58.831185+00:00",
+  "release": "0.1.2",
+  "source": "d46467f9d72a66f2080ea1145657271defbe2472",
+  "installed_worker": "/Users/brendan/.local/bin/loop-worker",
+  "project_entrypoint": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/worker.mjs",
+  "legacy_rollback": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/worker_legacy_0_1_1.mjs",
+  "last_legacy_attempt": "starter-structures-design-review-a1",
+  "last_owner_stopped": true,
+  "active_model_workers": 0,
+  "heavy_test_campaign_uninterrupted": true,
+  "compatibility": "Preserves id/model/packet CLI and native result bundle. New packets require explicit scope/allowedWrites/base_commit. Review uses reviewTarget. Intake reads both legacy input and new files snapshots and preserves provider/context/delivery evidence.",
+  "first_new_runner_attempt": "starter-structures-author-a1",
+  "automatic_product_application": false,
+  "unattended": false,
+  "hashes": {
+    "worker.mjs": "f9f25139083f0357d11cf032f16dbfb7b8ae55ae1dbe76b3eef18c71d642c4dd",
+    "worker_legacy_0_1_1.mjs": "3f5f081c1424086a86c28e9dc422f8ad8d79cedccebf55c391c69768f4a30d74",
+    "intake_review_advisory.py": "7de4090f41185e0daff002876044cbcbfa84f0e0c132faabc879a42b00100eea",
+    "intake_patch.py": "1c3cdc634a8d7fb5dc2084b4d7c5f9831f60026ec57707f1f956669339cc9462"
+  },
+  "first_dispatch": "actual full-context7file author session; completion not yet recorded"
+}

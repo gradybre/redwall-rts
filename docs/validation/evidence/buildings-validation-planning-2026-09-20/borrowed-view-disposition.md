@@ -1,0 +1,9 @@
+# Borrowed-view feasibility result
+
+This is a synthetic29-field typed object with the same extents and binding assignments, not an implemented Buildings validator. The initial script used Image as its class name, colliding with Godot's native Image class; it failed to parse and produced no measurement. The original source/log are preserved. Renaming only the experiment class to BorrowedColumnsModel produced the successful run.
+
+With autoloads disabled only in the disposable clone, the Godot4.7.2 OS static-allocator methods exist. Held ballast moves current usage above earlier peaks so the next allocation is observable. Borrowed construction increased static peak by3724bytes, full default construction by3302692bytes, then borrowed construction again by3724bytes. The temporary ballast was57886484/58938084/63288652bytes; it is measurement apparatus, not game state or part of the production envelope. Peak totals near100MB are not a claim about the complete game budget.
+
+For the future actual adapter test, freeze a1048576-byte maximum incremental static peak across a valid full-capacity framed call after ballast setup. This is deliberately between the observed small overhead and full-image allocation. A bridge default-constructor mutant must fail that bound, while the unallocated borrowing path passes. Actual adapter measurement remains required and may reveal other transient costs; this experiment only establishes a discriminating method. No RSS or final native-memory qualification is inferred.
+
+The separate public zero-user-slot probe passes1test/16assertions for decoration and interior_partition. Its success describes current API behavior, not approval of future gameplay occupancy policy. Persistence domains preserve this structural possibility until the relevant gameplay/binding contract is implemented.

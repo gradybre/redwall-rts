@@ -1,0 +1,63 @@
+{
+  "attempts": [
+    {
+      "id": "buildings-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "f8272739-1785-4dc4-9b12-30a895ab59b2",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "godot/scripts/core/buildings.gd": "8f21111b4857714f4ac803c30c3eec46f206c0b5cdedfeeb357a0061ba3f875e",
+        "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/catalog-excerpts.md": "9580d76d9bc6d9d783e8cea6975005489a2de1ea59bef2c7b79e63b7f6048464",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/source-layout.json": "bb8151cfb4b74b1913cc80be91b1febf1e6d48066d7cb592ba4be5faf6016c33",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/initial-audit-note.md": "f39bff1431ecc329561ce20f9b99f954483f86e53954dff26f56844792c9bf9c",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/public_history_probe.gd": "d6337016cb93191b3ef0394f1b4fd7e458d308636f9eda629abf079f54e0d080",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/public-history-probe.log": "ba0db69fdf64eeedd3998812f0064f342868183a15e4e640b65c3b02c71c52c0",
+        "docs/planning/component_columns_stream_contract.md": "c777f71e566c881b3af784cee54a4b1155983ef4ad8e2777a278ae6ae6c0bfe4"
+      },
+      "rawOutputLines": 138,
+      "rawOutputWords": 1231,
+      "outputLineBudget": 120,
+      "outputWordBudget": 1300,
+      "normalization": "Explicit parent formatting exception removes only 18 blank lines; all words and nonblank lines identical; raw did not meet its bound",
+      "normalizedLines": 120,
+      "rawSHA256": "8f021237c8a4e43f4c33c41ded292e527509a531ec1b37c04141f9055f665592",
+      "normalizedSHA256": "99d09b9f46b052f9a5aee18648c14c557f51a25e935e9db53f3458985c141262"
+    },
+    {
+      "id": "buildings-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "97e57d05-24db-4007-af7d-bb0bbbec0dc4",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/buildings_component_validation_contract.md": "87751ac48922a9f5af2f29b6e06dd3332c79e78bdb0462cee8daaf878bd2e5cf",
+        "godot/scripts/core/buildings.gd": "8f21111b4857714f4ac803c30c3eec46f206c0b5cdedfeeb357a0061ba3f875e",
+        "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+        "docs/planning/component_columns_stream_contract.md": "c777f71e566c881b3af784cee54a4b1155983ef4ad8e2777a278ae6ae6c0bfe4",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/source-layout.json": "bb8151cfb4b74b1913cc80be91b1febf1e6d48066d7cb592ba4be5faf6016c33",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/catalog-excerpts.md": "9580d76d9bc6d9d783e8cea6975005489a2de1ea59bef2c7b79e63b7f6048464",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/directory-excerpts.md": "060c936ad59f779799adea1ce97cd402140dd1a511e807b98cb9608bce914be8",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-source-facts.json": "efeb2100fd1555594915037d9875852f2cac3ed08579c6ff1b2474a49636dfe9",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/feasibility-review.md": "99d09b9f46b052f9a5aee18648c14c557f51a25e935e9db53f3458985c141262",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/feasibility-disposition.md": "42e3f98c04d0d486203f6af0ed9bcb4fb961e0f62fb5b773b74f69ea41d370e3",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-witnesses.json": "1a19845b5e84f45f66767f6b9640f71c82a1c357f62a8ff79c7d9caf51bb9b3f",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/shape-witnesses.json": "3bba5a366d8322074f9c5da985cd055b14fa0bd9f8ae229ea389422f1bc11151",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/mutation-witness-plan.md": "d930105219926edb361e6ab58a228d386f1ee4fe852d0d252e54ffecad8d733d",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/metadata-arithmetic-check.json": "133b2c59fb6a8e58c3518be26412cf7f8107beb7f2340f5da1c3c64158e3b3fa",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/metadata-cases.json": "e64a965c1557c99b3f6e00e1798c9826d77126379998dcacbef36883437c17d5",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/borrowed-view-feasibility-probe.gd": "9c1e3e2b6d27392a5841715c17babadfdd18dd3682c53eed5e6bd3f8acaaa568",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/borrowed-view-feasibility.json": "ca20422c89b0b07c644631e4dc8171e34a77eafd053459d2fbc809c726026fcb",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/borrowed-view-disposition.md": "0aa7674a393dffb5bc13cc244fa1195f46c5fdc3d50ea37e35fd7509d59165e9",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/public-user-binding-probe.log": "a940cb062c904196a9a20f9f11085b5f2ef10703639269763fa8414c882dbe73"
+      },
+      "outputLines": 99,
+      "outputWords": 941,
+      "outputLineBudget": 130,
+      "outputWordBudget": 1400
+    }
+  ]
+}

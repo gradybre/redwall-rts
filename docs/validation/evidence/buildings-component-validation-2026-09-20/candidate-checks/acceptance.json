@@ -1,0 +1,59 @@
+{
+  "scope": "Frozen candidate clone only, not production or full-suite acceptance",
+  "base_commit": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56",
+  "input_sha256": {
+    "godot/scripts/core/buildings.gd": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+    "godot/scripts/core/save_owner_buildings.gd": "9bb578433930ded6535169fbd932c9494366510d2972a08e342e93298a8d1012",
+    "godot/test/test_save_owner_buildings.gd": "d602cfa7aa99606dceec591240c769f9755be07096ea49c6817a3eb772eacd1f",
+    "godot/test/buildings_validation_focus.gd": "7106b220e0586a8f5291aaf48b19524f209d632722c620f0bdbf6ee980b29312",
+    "tools/test_buildings_metadata_preflights.py": "686dacb79d590a34a63864c040b0eff02f34b82bc0740c35145c13f37a857ce6",
+    "tools/test_buildings_allocation.py": "75d873d12888a8e61badb57e7b8d38a9aa9656f53619a5c12e783c0e07b302c7"
+  },
+  "runs": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--script",
+        "res://test/buildings_validation_focus.gd"
+      ],
+      "log": "focus.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 19.576
+    },
+    {
+      "command": [
+        "python3",
+        "tools/test_buildings_metadata_preflights.py"
+      ],
+      "log": "metadata.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 47.585
+    },
+    {
+      "command": [
+        "python3",
+        "tools/test_buildings_allocation.py"
+      ],
+      "log": "allocation.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 2.14
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-checks/run_mutants.py"
+      ],
+      "log": "campaign.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 1283.648
+    }
+  ],
+  "frozen_inputs_unchanged": true
+}

@@ -1,0 +1,54 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_buildings.gd
+  PASS  test_layout_defaults_and_borrowed_constructor
+  FAIL  test_frozen_scalar_history_geometry_and_priority_images
+        clear-r_type-1 pure (expected COLUMN_ROOM_FREE, got )
+        clear-r_type-1 bridge (expected COLUMN_ROOM_FREE, got )
+        clear-r_type-1 success (expected false, got true)
+        clear-r_type-1 owner detail (expected true, got false)
+        clear-r_type-1 raw code detail (expected true, got false)
+        clear-r_temperature_tenths-1 pure (expected COLUMN_ROOM_FREE, got )
+        clear-r_temperature_tenths-1 bridge (expected COLUMN_ROOM_FREE, got )
+        clear-r_temperature_tenths-1 success (expected false, got true)
+        clear-r_temperature_tenths-1 owner detail (expected true, got false)
+        clear-r_temperature_tenths-1 raw code detail (expected true, got false)
+        clear-r_occupants-1 pure (expected COLUMN_ROOM_FREE, got )
+        clear-r_occupants-1 bridge (expected COLUMN_ROOM_FREE, got )
+        clear-r_occupants-1 success (expected false, got true)
+        clear-r_occupants-1 owner detail (expected true, got false)
+        clear-r_occupants-1 raw code detail (expected true, got false)
+  PASS  test_null_unallocated_all_extents_and_bucket_shapes
+  FAIL  test_each_field_at_first_midpoint_and_last_physical_row
+        sampled field17 row0 pure (expected COLUMN_ROOM_FREE, got )
+        sampled field17 row0 bridge (expected COLUMN_ROOM_FREE, got )
+        sampled field17 row0 success (expected false, got true)
+        sampled field17 row0 owner detail (expected true, got false)
+        sampled field17 row0 raw code detail (expected true, got false)
+        sampled field17 row8192 pure (expected COLUMN_ROOM_FREE, got )
+        sampled field17 row8192 bridge (expected COLUMN_ROOM_FREE, got )
+        sampled field17 row8192 success (expected false, got true)
+        sampled field17 row8192 owner detail (expected true, got false)
+        sampled field17 row8192 raw code detail (expected true, got false)
+        sampled field17 row16383 pure (expected COLUMN_ROOM_FREE, got )
+        sampled field17 row16383 bridge (expected COLUMN_ROOM_FREE, got )
+        sampled field17 row16383 success (expected false, got true)
+        sampled field17 row16383 owner detail (expected true, got false)
+        sampled field17 row16383 raw code detail (expected true, got false)
+  PASS  test_all_catalog_geometries_at_rotated_map_boundary
+  PASS  test_full_capacity_mixed_live_retired_and_never_used_rows
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 19242 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

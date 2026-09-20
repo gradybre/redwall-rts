@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "94533f7b7c6814abf6d780601c9d14da1bda2b11",
+  "task": "Buildings section4 source-domain and streaming-memory feasibility review",
+  "paths": [
+    "AGENTS.md",
+    "godot/scripts/core/buildings.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/catalog-excerpts.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/source-layout.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/initial-audit-note.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/public_history_probe.gd",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/public-history-probe.log",
+    "docs/planning/component_columns_stream_contract.md"
+  ],
+  "instructions": "Read-only feasibility audit before contract/implementation. Re-derive owner0 Buildings29fields1024/16384/81920rows; sourcevalue3298304/payload3298556. Audit EVERYwriter for valid local scalar/ref/shape/history domains, distinguish never-used defaults vs destroyed retained rows. Self identities/child chains/tilemaps/RoomTileLinks sections1/5 are not these29fields; fullcommonfile joins remain separate. Building/furnitureconditionnonnegativei32,roomtemperaturefullsignedi32,interior-1oranynonnegativei32,roomoccupants0..256,externalroomvalid independentoflocalfurniture. Check historicalfreebuilding/furniture/roomfields and activecatalogtier/footprints; should coldlocaldomain use static immutablekeyedfacts without liveDefinitions construction? Propose exactsafe sourcepins/length-before-index/dictionarytypechecks. Identify any producerdefect with publiccounterexample, do not inventcleanupofstaleexternalrefs. Existingpublicprobe3tests40assertions0clean, privateinactivebytes onlysource-backed. Criticalmemorygap: defaultfullcaller+Columns6596608 exceeds6417408by179200 andcontractforbidssecondfullowner. Review proposal Columns optionalallocate_defaults=true defaultclear, bridgeColumns.new(false)emptytypedviewthen29shareassignments, purepredicate; would keepstreamallowance, nativeunmeasured. Name risk/alternative rather than silentlyraisingbudget. Avoid quadratic everyrowfaulttests for81920; suggest boundedstrong witnesses/realbenchmark. ReturnONE NEW docs/validation/evidence/buildings-validation-planning-2026-09-20/feasibility-review.md baseSha256null HARD120lines1300words AIM70lines1000words. No codechanges/executionclaim. StrictJSONstatuscomplete/summary/questions/files/decisionIds."
+}

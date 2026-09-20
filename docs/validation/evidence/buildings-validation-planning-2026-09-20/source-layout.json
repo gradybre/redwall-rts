@@ -1,0 +1,170 @@
+{
+  "scope": "Read-only source snapshot, not an accepted contract",
+  "owner_index": 0,
+  "owner_metadata": {
+    "OWNER_KEYS": "buildings",
+    "OWNER_KEY_BYTES": 9,
+    "OWNER_VERSIONS": 1,
+    "OWNER_PRIMARY_COUNTS": 1024,
+    "OWNER_FIELD_COUNTS": 29,
+    "OWNER_FIELD_BEGIN": 0,
+    "OWNER_CHILD_COUNTS": 2,
+    "OWNER_CHILD_BEGIN": 0,
+    "OWNER_OFFSETS": 4,
+    "OWNER_PAYLOAD_BYTES": 3298556,
+    "OWNER_BLOCK_BYTES": 3298589
+  },
+  "fields": [
+    {
+      "FIELD_KEYS": "_b_present",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 1024
+    },
+    {
+      "FIELD_KEYS": "_r_present",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 16384
+    },
+    {
+      "FIELD_KEYS": "_f_present",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 81920
+    },
+    {
+      "FIELD_KEYS": "_b_type_id",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 1024
+    },
+    {
+      "FIELD_KEYS": "_b_tier",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 1024
+    },
+    {
+      "FIELD_KEYS": "_b_origin_tile",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 1024
+    },
+    {
+      "FIELD_KEYS": "_b_rotation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 1024
+    },
+    {
+      "FIELD_KEYS": "_b_state",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 1024
+    },
+    {
+      "FIELD_KEYS": "_b_condition",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 1024
+    },
+    {
+      "FIELD_KEYS": "_b_construction_slot",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 1024
+    },
+    {
+      "FIELD_KEYS": "_b_construction_generation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 1024
+    },
+    {
+      "FIELD_KEYS": "_b_interior_id",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 1024
+    },
+    {
+      "FIELD_KEYS": "_r_type",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 16384
+    },
+    {
+      "FIELD_KEYS": "_r_building_slot",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 16384
+    },
+    {
+      "FIELD_KEYS": "_r_building_generation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 16384
+    },
+    {
+      "FIELD_KEYS": "_r_tile_offset",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 16384
+    },
+    {
+      "FIELD_KEYS": "_r_tile_count",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 16384
+    },
+    {
+      "FIELD_KEYS": "_r_temperature_tenths",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 16384
+    },
+    {
+      "FIELD_KEYS": "_r_furniture_mask",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 16384
+    },
+    {
+      "FIELD_KEYS": "_r_occupants",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 16384
+    },
+    {
+      "FIELD_KEYS": "_r_valid",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 16384
+    },
+    {
+      "FIELD_KEYS": "_f_type_id",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 81920
+    },
+    {
+      "FIELD_KEYS": "_f_room_slot",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 81920
+    },
+    {
+      "FIELD_KEYS": "_f_room_generation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 81920
+    },
+    {
+      "FIELD_KEYS": "_f_origin_tile",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 81920
+    },
+    {
+      "FIELD_KEYS": "_f_rotation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 81920
+    },
+    {
+      "FIELD_KEYS": "_f_user_slot",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 81920
+    },
+    {
+      "FIELD_KEYS": "_f_user_generation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 81920
+    },
+    {
+      "FIELD_KEYS": "_f_condition",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 81920
+    }
+  ],
+  "value_bytes": 3298304,
+  "source_sha256": {
+    "godot/scripts/core/buildings.gd": "8f21111b4857714f4ac803c30c3eec46f206c0b5cdedfeeb357a0061ba3f875e",
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  }
+}

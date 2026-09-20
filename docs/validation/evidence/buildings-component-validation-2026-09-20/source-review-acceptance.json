@@ -1,0 +1,50 @@
+{
+  "accepted_by": "Astra",
+  "scope": "Independent exact-source review disposition and final focused acceptance; full suite/import/static/exact-head CI remain separate",
+  "must_fix_open": 0,
+  "reviewers": [
+    "70fb322f-709f-415c-b81f-391f27386362"
+  ],
+  "reports": [
+    "source-review.md",
+    "source-review-followup.md"
+  ],
+  "findings": [
+    {
+      "id": "M1",
+      "disposition": "Independent reviewer withdrew; exact one-suite6-test focus, executable171 full-content equality;65-test owner probe was separate"
+    },
+    {
+      "id": "M2",
+      "disposition": "Independent reviewer verified ROOM_TYPE shape/type/key/ordinal fix; final77case engine passes including all new dictionary counterfactuals"
+    },
+    {
+      "id": "M3",
+      "disposition": "Independent reviewer withdrew; fixed child extents and source constants both pinned; retain required bypass expressions"
+    },
+    {
+      "id": "F1",
+      "disposition": "Added exact requested size-preserving rename-key cases for both dictionaries; final actual77cases/693assertions; v2 retains first75 entries unchanged; Astra reviewed mechanical Sonnet diff"
+    },
+    {
+      "id": "F2",
+      "disposition": "Final hash focus/allocation/metadata rerun; all29 changed bridge projection units rerun;46 byte-identical owner mutants retain actual pure-owner witnesses, no duplicate unique-unit count"
+    },
+    {
+      "id": "CASES",
+      "disposition": "Archived executable checker compares all171 CASES values with frozen JSON; actual run passed"
+    },
+    {
+      "id": "counts",
+      "disposition": "89pure shapes plus separately counted bridge null/wrongowner/5bucket faults;87 sampled field-row faults; no exhaustive row claim"
+    }
+  ],
+  "source_sha256": {
+    "godot/scripts/core/buildings.gd": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+    "godot/scripts/core/save_owner_buildings.gd": "d6a44702489b988afe525a56f5f82a5feef272d0877ec0664b99279286681c13",
+    "godot/test/test_save_owner_buildings.gd": "d602cfa7aa99606dceec591240c769f9755be07096ea49c6817a3eb772eacd1f",
+    "godot/test/buildings_validation_focus.gd": "7106b220e0586a8f5291aaf48b19524f209d632722c620f0bdbf6ee980b29312",
+    "tools/test_buildings_metadata_preflights.py": "81e991f918b5235b463fb3998ea05fade50e228c25c8d0544000ace966a6682e",
+    "tools/test_buildings_allocation.py": "75d873d12888a8e61badb57e7b8d38a9aa9656f53619a5c12e783c0e07b302c7"
+  }
+}

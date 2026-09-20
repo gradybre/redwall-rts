@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Class "Image" hides a native class.
+          at: GDScript::reload (res://test/borrowed_view_probe.gd:3)
+SCRIPT ERROR: Parse Error: Cannot assign a value of type Image to variable "out" with specified type Image.
+          at: GDScript::reload (res://test/borrowed_view_probe.gd:66)
+ERROR: Failed to load script "res://test/borrowed_view_probe.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

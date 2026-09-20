@@ -1,0 +1,7 @@
+{
+  "scope": "Counterexample probe of current user binding on zero-user-slot kinds; not policy approval",
+  "exit_code": 0,
+  "seconds": 2.099,
+  "source_sha256": "8f21111b4857714f4ac803c30c3eec46f206c0b5cdedfeeb357a0061ba3f875e",
+  "probe_sha256": "f2e3858f986d77326f0b3436dfebb8bce56c18968f0ada01dd6f376f5db2be12"
+}

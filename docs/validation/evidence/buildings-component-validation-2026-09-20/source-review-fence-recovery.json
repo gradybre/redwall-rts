@@ -1,0 +1,13 @@
+{
+  "original_state": "invalid_output",
+  "ownerStopped": true,
+  "sessionId": "70fb322f-709f-415c-b81f-391f27386362",
+  "normalization": "Only unambiguous outer ```json and closing ``` removed. Internal JSON/report unchanged. Strict parseWorkerBundle then frozen input/path/base hash validation passed.",
+  "policy": "Brendan-approved September20 efficient-execution: deterministic whole-response fence recovery; no rerun or textual shortening",
+  "raw_sha256": "ddbd21922ce372498cf558ac77a323a05b09bb04ebf3ecc51a483b8ef372f7da",
+  "normalized_sha256": "88cf71b29e8611fc22dd5008a58456ac14ad63acf9bd389458a785a764e558f9",
+  "full_report_preserved": true,
+  "lines": 154,
+  "words": 1584,
+  "accepted": false
+}

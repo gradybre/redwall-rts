@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "updated_at": "2026-09-20T13:19:36.780280+00:00",
+  "policy_source": "/Users/brendan/Documents/Codex/2026-09-18/help-me-build-out-and-define/skills/loop-engineering/references/efficient-execution.md",
+  "policy_sha256": "ec007d1261dcfff0a11b26bd0e1599c94c5350818b11a74f5052b87e983103e9",
+  "product_scope": "Complete adopted settlement release; no campaign/battle expansion",
+  "next_user_milestone": {
+    "id": "FP-01-12",
+    "journey": "Start the authored refuge, inspect real beds and stocks, designate safe roots, resume and observe legal travel/work/cargo/delivery with needs interruption and failure recovery",
+    "status": "not_accepted",
+    "acceptance": "docs/planning/first_playable_acceptance.md",
+    "near_term": [
+      "Finish current Buildings exact-source review, fault campaign, actual integration and exact-head CI",
+      "Close INIT-C spatial/door/contact preparation and INIT-D goods/equipment contracts from the current source",
+      "Develop separately scoped empty-world preparation/boot where authorized; retain INIT-E prior-world replacement dependency on full disk rollback",
+      "Finish remaining persistence owner domains and same-file binding/assembly needed for safe replacement"
+    ],
+    "completion": {
+      "merged_loop_prs": 34,
+      "last_merged_pr": 173,
+      "last_merged_candidate": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56",
+      "first_playable_cases_passed": 0,
+      "first_playable_cases_executed": 0
+    },
+    "blockers": [
+      "Starter topology/contacts, relationship schema and actual physical storage not integrated",
+      "All starter movement clearance profiles still refuse: source-bound swept envelopes, margins and real contact producers are required; presentation rig gaps alone must not gate admission",
+      "Movement/work/hauling/need-service production loop absent",
+      "INIT-E existing-world replacement needs complete capture/apply/disk rollback",
+      "Visual/input checkpoint and complete release qualification unexecuted"
+    ]
+  },
+  "active": {
+    "id": "SAVE-S4-BUILDINGS-VALIDATE",
+    "status": "locally_accepted_pending_exact_head_ci",
+    "local_evidence": "docs/validation/evidence/buildings-component-validation-2026-09-20/",
+    "required_remaining": [
+      "exact-head CI and merge"
+    ]
+  },
+  "runner": {
+    "current": "CLI-compatible loop-session/worker.mjs invoking installed /Users/brendan/.local/bin/loop-worker",
+    "shared_runner": "0.1.2 installed and adopted at stopped boundary",
+    "source": "d46467f9d72a66f2080ea1145657271defbe2472",
+    "unattended": false
+  }
+}

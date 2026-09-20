@@ -1,0 +1,18 @@
+# 0183 — Buildings validation borrows columns and preserves retired history
+
+Date:2026-09-20. Status: Accepted for bounded implementation.
+
+BUILDINGS-S4-VALIDATE-R01v1 validates the29 existing building/room/furniture columns at capacities1024/16384/81920. Never-used and retired rows have distinct source-backed forms: retired buildings keep tier/type/geometry and may retain stale construction references; retired rooms retain parent/type/temperature/occupants but clear tile span/mask/valid; retired furniture retains parent/type/geometry/condition but has null user. Present users on zero-user-slot furniture remain locally admissible because current public APIs permit them. No gameplay occupancy policy changes are implied.
+
+The owner exposes a cold typed Columns image and ordered pure predicate with17 refusal codes. Its default constructor creates the clear image; allocate_defaults=false returns before all resize/fill. The adapter borrows all29 already-shaped buffers using that path, avoiding a second3298304-byte owner image and keeping codec concepts outside the owner. Static fact arrays are pinned against existing compiled catalogs/definition dictionaries with safe length/type checks before indexing. Logical envelope4150272 fits existing6417408; this does not qualify native overhead or process memory.
+
+Independent feasibility and contract reviews are dispositioned. Public probes3tests/40assertions and1/16 support current behavior. Frozen171 value cases,89 shapes,87 sampled physical field/row faults, full geometry/capacity images,76 named semantic units and69 metadata cases/621assertions are required planned evidence. Allocation testing of the actual adapter must fail closed for unavailable readings or ineffective ballast, pass below1048576 incremental static bytes normally, and catch a full-default constructor mutation. The synthetic experiment is not adapter acceptance.
+
+BUILDINGS-SAVED-BINDINGS still joins Directory self identity, section5 chains/arena/kind counts, section1 tile maps, mask equality, construction/user links, loaded tick and provenance. Bulk capture/apply, full persistence and live construction are separate gates. Existing gameplay/source behavior, section1 APIs and schema/registry versions stay unchanged.
+
+
+## Independent source-review refinement — September 20
+
+The frozen69-case metadata plan is retained as historical evidence. Review M2 requires exact state/room dictionary size, key membership, integer type and ordinal gates; the bridge now checks all six BUILDING_STATE and eight ROOM_TYPE keys before projection. Revision2 adds missing/extra/last-id-type faults for both dictionaries (75cases/675assertions); follow-up F1 adds one size-preserving last-key rename per dictionary (revision3:77cases/693assertions). The10existing schema-bypass catches remain unchanged. CORRIDOR missing/type/rename cases preserve only the existing integer7 alias in owned cold clones to reach runtime metadata; production aliases and dictionaries remain unchanged. This extends evidence for the same frozen source-domain contract, not a new saved schema.
+
+Final bridge verification runs focus, all77metadata cases, allocation and all29projection units against its final hash. The46unchanged-owner functional units may retain their original valid runs only with byte-identical owner/test inputs and a recorded pure-owner assertion witness independent of bridge metadata for every unit. There remain75unique functional units plus1allocation unit;77initial and31final functional executions are distinct runs, not108unique mutants. Executable171-case content equality is archived beside its output. Actual full-suite/import/static/CI acceptance remains required.

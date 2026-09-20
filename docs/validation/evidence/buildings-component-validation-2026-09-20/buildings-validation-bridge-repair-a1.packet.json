@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "aa541f4885b2a0b8ac94c2d8c527ac9a2bfec406",
+  "task": "Complete protected Buildings state metadata pins",
+  "paths": [
+    "CLAUDE.md",
+    "docs/planning/buildings_component_validation_contract.md",
+    "docs/decisions/0183-buildings-validation-borrows-columns-and-preserves-retired-history.md",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-save_owner_buildings.gd",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/catalog-excerpts.md"
+  ],
+  "instructions": "Bounded corrective patchONLY godot/scripts/core/save_owner_buildings.gd ONTO suppliedcandidatebridge. Astra sourceinspection finds _source_ordinal_refusal pins ONLY Buildings.STATE_BLUEPRINT, whileacceptedcontract pinsall sixprotectedCatalog.BUILDING_STATEordinals BLUEPRINT0 BUILDING1 ACTIVE2 PAUSED3 DAMAGED4 DEMOLISHING5. Existing69caseplanincludesCatalog.BUILDING_STATE-last-ordinal (DEMOLISHING6), whichcandidatewouldmiss. Noobservedengineclaimyet. Addsafe metadata preflight for exactlysixstatekeys using compiled immutable Catalogdictionary throughBuildings.Catalog: checksize6,has(key),typeofID==TYPE_INT/valueexpected0..5beforecoercionuse. Small typedconstantArray[String] ofsixkeysisacceptable; no perrowalloc. Preserveallothercodebytes/29projection/falseconstructor/sourcechecks/expressions/prefixes, keep existingBLUEPRINTpin ifdesired. No unrelated room changes. ErrorprefixsameMETADATA_DETAIL_PREFIXandSection.REFUSE_METADATA. ReturnONE NEW docs/validation/evidence/buildings-component-validation-2026-09-20/author-bridge-repair.patch baseSha256null unifieddiffmodifyingONLYbridge HARD90actualpatchlines AIM40. No tests/docs/fullfile/executionclaims. StrictJSONstatuscomplete/summary/questions/files/decisionIds; acknowledgeADR0183."
+}

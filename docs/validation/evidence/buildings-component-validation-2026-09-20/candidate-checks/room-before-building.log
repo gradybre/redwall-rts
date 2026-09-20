@@ -1,0 +1,27 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_buildings.gd
+  PASS  test_layout_defaults_and_borrowed_constructor
+  FAIL  test_frozen_scalar_history_geometry_and_priority_images
+        building-before-room pure (expected COLUMN_BUILDING_ENUM, got COLUMN_ROOM_ENUM)
+        building-before-room bridge (expected COLUMN_BUILDING_ENUM, got COLUMN_ROOM_ENUM)
+        building-before-room raw code detail (expected true, got false)
+  PASS  test_null_unallocated_all_extents_and_bucket_shapes
+  PASS  test_each_field_at_first_midpoint_and_last_physical_row
+  PASS  test_all_catalog_geometries_at_rotated_map_boundary
+  PASS  test_full_capacity_mixed_live_retired_and_never_used_rows
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 19242 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,20 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "aa541f4885b2a0b8ac94c2d8c527ac9a2bfec406",
+  "task": "Buildings cold borrowed-capable Columns and ordered local validator",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/buildings_component_validation_contract.md",
+    "docs/decisions/0183-buildings-validation-borrows-columns-and-preserves-retired-history.md",
+    "godot/scripts/core/buildings.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/source-layout.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/catalog-excerpts.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/directory-excerpts.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/mutation-witness-plan.md"
+  ],
+  "instructions": "Implement ONLY godot/scripts/core/buildings.gd under accepted BUILDINGS-S4-VALIDATE-R01v1/ADR0183. Preserve ALL existing source byte-for-byte: append new code/constants/class only. Add29 typed Columns properties in canonical schema order with constructor(allocate_defaults:bool=true); false returns BEFORE any resize/fill, all members initialized empty typed arrays; normal path exact defaults (7 columns -1). is_sized checks29 exact extents.17 matching REFUSE_COLUMN_* codes and pure static columns_refusal/helpers: shape,4 full canonical flag scans in fixed b_present/r_present/f_present/r_valid order,ascending building rows,room rows,furniture rows; enum/value/ref/free/state within each. No gameplay edits,live constructors,callbacks,clock,diagnostics,floats,input writes,per-row objects or packed scratch. Seven exact immutable fact arrays named in contract, frozen canonical contents. Reuse existing constants/preloads when compatible; no new scalar aliases unless unavoidable. Tier1 all valid types; tier2 only5/12/23/29. Retired nonnull construction refs legal; retired room valid0/offsetcountmask0 with parent/history retained. Zero-user-slot present furniture can have structural user. Bounds before fact indexing; rotated floor/footprint geometry,0x0 edge footprint handled. No cross-section self identity/liveness/mask equality. Keep owner independent of save codec. ReturnONE NEW docs/validation/evidence/buildings-component-validation-2026-09-20/author-owner.patch baseSha256null unifieddiff modifyingONLYbuildings.gd, HARD650 actualpatchlines AIM420. No bridge/tests/docs/fullfile/executionclaims. Strict JSONstatuscomplete/summary/questions/files/decisionIds. Acknowledge ADR0183."
+}

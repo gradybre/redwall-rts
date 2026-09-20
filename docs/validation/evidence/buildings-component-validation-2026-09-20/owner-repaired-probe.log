@@ -1,0 +1,84 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_buildings.gd
+  PASS  test_the_column_lengths_are_the_specified_capacities
+  PASS  test_a_building_publishes_a_blueprint_at_tier_one
+  PASS  test_the_footprint_claims_its_tiles_and_refuses_an_overlap
+  PASS  test_rotation_swaps_the_two_extents
+  PASS  test_a_footprint_off_the_grid_refuses
+  PASS  test_an_unknown_type_or_rotation_refuses
+  PASS  test_placement_is_gated_on_the_definitions_own_earned_bit
+  PASS  test_a_sparse_mask_does_not_unlock_an_earlier_milestones_building
+  PASS  test_an_illegal_mask_places_nothing_at_all
+  PASS  test_the_starter_rooms_have_section_5_9s_tile_counts
+  PASS  test_one_tile_belongs_to_exactly_one_room
+  PASS  test_a_room_must_lie_inside_its_buildings_interior
+  PASS  test_only_a_managed_building_accepts_rooms
+  PASS  test_a_seventeenth_room_refuses
+  PASS  test_an_empty_or_duplicated_tile_list_refuses
+  PASS  test_removing_a_room_releases_its_tiles_and_compacts_the_arena
+  PASS  test_a_room_holding_furniture_refuses_removal
+  PASS  test_a_building_holding_rooms_refuses_demolition
+  PASS  test_demolition_releases_the_footprint_and_the_reference
+  PASS  test_an_empty_room_has_mask_zero
+  PASS  test_the_starter_kitchen_is_the_rulings_292_vector
+  PASS  test_bed_hearth_shelf_is_261
+  PASS  test_all_nine_kinds_make_mask_511
+  PASS  test_two_beds_still_yield_one_bit_and_removing_one_keeps_it
+  PASS  test_a_damaged_row_still_contributes_its_bit
+  PASS  test_a_refused_placement_leaves_the_mask_untouched
+  PASS  test_furniture_outside_its_room_refuses
+  PASS  test_a_stale_room_reference_cannot_place_or_be_read
+  PASS  test_a_reused_room_slot_cannot_inherit_the_old_rooms_bits
+  PASS  test_an_edge_piece_contributes_to_its_declared_owner_only
+  PASS  test_reassigning_an_edge_piece_moves_the_bit_between_both_masks
+  PASS  test_reassigning_a_floor_piece_out_of_its_tiles_refuses
+  PASS  test_reassigning_to_the_same_room_refuses
+  PASS  test_an_occupied_piece_refuses_removal
+  PASS  test_a_user_reference_must_name_a_live_resident
+  PASS  test_verify_room_masks_agrees_with_every_live_room
+  PASS  test_recompute_furniture_mask_is_the_same_answer
+  PASS  test_count_furniture_of_kind_reads_rows_and_not_the_mask
+  PASS  test_live_furniture_of_kind_counts_the_whole_settlement
+  PASS  test_the_starter_pantry_is_exactly_200000_grams
+  PASS  test_an_invalid_pantry_supplies_no_capacity
+  PASS  test_the_hall_bench_supplies_one_kitchen_slot_and_no_double_count
+  PASS  test_an_exterior_kitchen_supplies_its_two_slots
+  PASS  test_two_benches_bind_separately
+  PASS  test_an_invalid_room_provides_no_station_slots
+  PASS  test_station_slots_refuse_an_unknown_service
+  PASS  test_the_authored_starter_rooms_pass_their_countable_rules
+  PASS  test_a_dormitory_needs_three_tiles_per_bed
+  PASS  test_a_kitchen_needs_six_tiles_a_bench_and_a_hearth
+  PASS  test_a_pantry_needs_four_tiles_and_a_shelf
+  PASS  test_a_private_room_takes_exactly_one_bed
+  PASS  test_dining_and_common_seat_rules
+  PASS  test_an_infirmary_counts_patient_beds_and_a_shelf
+  PASS  test_state_tier_condition_and_interior_id_validate_their_inputs
+  PASS  test_a_mill_refuses_tier_two
+  PASS  test_occupancy_and_temperature_validate_their_bounds
+  PASS  test_a_construction_reference_must_be_a_live_construction_row
+  PASS  test_clear_empties_every_store_and_releases_the_directory
+  PASS  test_a_shared_directory_is_not_cleared_by_this_store
+test_buildings_owner_candidate.gd
+  PASS  test_layout_defaults_and_borrowed_constructor
+  PASS  test_frozen_scalar_history_geometry_and_priority_images
+  PASS  test_null_unallocated_all_extents_and_bucket_shapes
+  PASS  test_each_field_at_first_midpoint_and_last_physical_row
+  PASS  test_all_catalog_geometries_at_rotated_map_boundary
+  PASS  test_full_capacity_mixed_live_retired_and_never_used_rows
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+65 test(s), 11511 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

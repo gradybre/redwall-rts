@@ -1,0 +1,13 @@
+# Astra source review disposition — bounded correction
+
+The complete review was recovered by removing only a whole-response JSON code fence and passing the unchanged strict parser. All160lines/approximately1800words are retained; length is advisory. Original invalid process result remains evidence, not overwritten.
+
+M1 is a packet-context omission, not an observed harness defect: candidate-focus.gd discovers exactly test_save_owner_buildings.gd, with6tests. The separate owner probe intentionally discovers59legacy+6owner tests. Actual combined baseline6/19242/0 and ongoing valid6-test mutation runs establish the distinction. Supply the focus and runner creation script to the same reviewer follow-up and pin the suite path explicitly in the final harness; do not rerun source analysis from scratch.
+
+M2 is accepted: close the ROOM_TYPE dictionary domain-shape/type gap using length8, expectedkeys,has,TYPE_INT andexactordinals beforeprojection. Add source counterfactuals for room missing/extra/last-id-type and state missing/extra/last-id-type (their existing last-ordinal cases remain).69→75metadata cases,621→675assertions. Onlymissing/type room-key counterfactuals may preserve the old integer alias in an owned cold clone to avoid an unrelated compile-time alias failure; production aliases remain unchanged. Record exact isolation and frozen69 history. Author only this source repair now, tests remain Astra-owned existing harness extensions.
+
+M3 is not a current correctness defect: the literal16384/81920 comparisons are independently frozen by the accepted contract and specific bypass expressions; named sourceconstants are also pinned to actual ownercapacities. Allvalues currently agree and drift ofthe ownerstillrefusesMETADATA. Changing these bounds is a contract/schema/source revision requiring requalification, not a casual constant correction. Keep the existing expressions and annotate their rationale; diagnostic additionalobservedvalues is optional readability, not an acceptance blocker.
+
+Shape accounting89 means pure null+unallocatedtypedview+87resizes. Fivebridgebucketfaults andbridge null/wrongowner are additional separatechecks. Publish mapping withoutchangingthe89count. CASES is generatedfromfrozenJSON; add a deterministic full-content equality check before finalacceptance rather thanonlysize171 (which misses same-countcontentdrift).
+
+The active75functional campaign remains unchanged. Finalreviewmust reconcile the narrowmetadata-only bridge delta, new75case engine run, fresh combinedfocus/allocation/static/import/full evidence and applicablemutationcoverage. No current Buildingsteam milestoneacceptance is granted here.

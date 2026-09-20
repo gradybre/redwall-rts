@@ -1,0 +1,2582 @@
+{
+  "scope": "Explicit candidate-contract images, not runtime evidence",
+  "fields": [
+    "b_present",
+    "r_present",
+    "f_present",
+    "b_type_id",
+    "b_tier",
+    "b_origin_tile",
+    "b_rotation",
+    "b_state",
+    "b_condition",
+    "b_construction_slot",
+    "b_construction_generation",
+    "b_interior_id",
+    "r_type",
+    "r_building_slot",
+    "r_building_generation",
+    "r_tile_offset",
+    "r_tile_count",
+    "r_temperature_tenths",
+    "r_furniture_mask",
+    "r_occupants",
+    "r_valid",
+    "f_type_id",
+    "f_room_slot",
+    "f_room_generation",
+    "f_origin_tile",
+    "f_rotation",
+    "f_user_slot",
+    "f_user_generation",
+    "f_condition"
+  ],
+  "fixture_rules": "Every fixture starts with exact29field clear defaults. building sets b_present0=1,b_type12,b_tier1,b_origin0; retired-building same presence0. room sets r_present0=1,r_building_slot0=0,generation1,tile_count1; retired-room same presence0,count0. furniture sets f_present0=1,f_room_slot0=0,generation1,f_origin0; retired-furniture same presence0. Other rows stay clear. Acceptance is local structure only, never a coherent playable full world.",
+  "cases": [
+    {
+      "name": "accept-clear",
+      "base": "clear",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-building",
+      "base": "building",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-retired-building",
+      "base": "retired-building",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-room",
+      "base": "room",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-retired-room",
+      "base": "retired-room",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-furniture",
+      "base": "furniture",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-retired-furniture",
+      "base": "retired-furniture",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "clear-b_present-2",
+      "base": "clear",
+      "changes": [
+        [
+          "b_present",
+          1023,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "clear-b_present-255",
+      "base": "clear",
+      "changes": [
+        [
+          "b_present",
+          1023,
+          255
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "clear-r_present-2",
+      "base": "clear",
+      "changes": [
+        [
+          "r_present",
+          16383,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "clear-r_present-255",
+      "base": "clear",
+      "changes": [
+        [
+          "r_present",
+          16383,
+          255
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "clear-f_present-2",
+      "base": "clear",
+      "changes": [
+        [
+          "f_present",
+          81919,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "clear-f_present-255",
+      "base": "clear",
+      "changes": [
+        [
+          "f_present",
+          81919,
+          255
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "clear-r_valid-2",
+      "base": "clear",
+      "changes": [
+        [
+          "r_valid",
+          16383,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "clear-r_valid-255",
+      "base": "clear",
+      "changes": [
+        [
+          "r_valid",
+          16383,
+          255
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "building-b_type_id--1",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_ENUM"
+    },
+    {
+      "name": "building-b_type_id-30",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          30
+        ]
+      ],
+      "code": "COLUMN_BUILDING_ENUM"
+    },
+    {
+      "name": "building-b_tier--1",
+      "base": "building",
+      "changes": [
+        [
+          "b_tier",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_ENUM"
+    },
+    {
+      "name": "building-b_tier-3",
+      "base": "building",
+      "changes": [
+        [
+          "b_tier",
+          0,
+          3
+        ]
+      ],
+      "code": "COLUMN_BUILDING_ENUM"
+    },
+    {
+      "name": "building-b_rotation--1",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_ENUM"
+    },
+    {
+      "name": "building-b_rotation-4",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          4
+        ]
+      ],
+      "code": "COLUMN_BUILDING_ENUM"
+    },
+    {
+      "name": "building-b_state--1",
+      "base": "building",
+      "changes": [
+        [
+          "b_state",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_ENUM"
+    },
+    {
+      "name": "building-b_state-6",
+      "base": "building",
+      "changes": [
+        [
+          "b_state",
+          0,
+          6
+        ]
+      ],
+      "code": "COLUMN_BUILDING_ENUM"
+    },
+    {
+      "name": "building-b_origin_tile--2",
+      "base": "building",
+      "changes": [
+        [
+          "b_origin_tile",
+          0,
+          -2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_VALUE"
+    },
+    {
+      "name": "building-b_origin_tile-16384",
+      "base": "building",
+      "changes": [
+        [
+          "b_origin_tile",
+          0,
+          16384
+        ]
+      ],
+      "code": "COLUMN_BUILDING_VALUE"
+    },
+    {
+      "name": "building-b_condition--1",
+      "base": "building",
+      "changes": [
+        [
+          "b_condition",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_VALUE"
+    },
+    {
+      "name": "building-b_interior_id--2",
+      "base": "building",
+      "changes": [
+        [
+          "b_interior_id",
+          0,
+          -2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_VALUE"
+    },
+    {
+      "name": "building-b_condition-2147483647",
+      "base": "building",
+      "changes": [
+        [
+          "b_condition",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "building-b_interior_id-2147483647",
+      "base": "building",
+      "changes": [
+        [
+          "b_interior_id",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "building-b_construction-ref--2-0",
+      "base": "building",
+      "changes": [
+        [
+          "b_construction_slot",
+          0,
+          -2
+        ],
+        [
+          "b_construction_generation",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_BUILDING_REF"
+    },
+    {
+      "name": "building-b_construction-ref-352418-1",
+      "base": "building",
+      "changes": [
+        [
+          "b_construction_slot",
+          0,
+          352418
+        ],
+        [
+          "b_construction_generation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_REF"
+    },
+    {
+      "name": "building-b_construction-ref--1-1",
+      "base": "building",
+      "changes": [
+        [
+          "b_construction_slot",
+          0,
+          -1
+        ],
+        [
+          "b_construction_generation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_REF"
+    },
+    {
+      "name": "building-b_construction-ref-0-0",
+      "base": "building",
+      "changes": [
+        [
+          "b_construction_slot",
+          0,
+          0
+        ],
+        [
+          "b_construction_generation",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_BUILDING_REF"
+    },
+    {
+      "name": "building-b_construction-ref-0--1",
+      "base": "building",
+      "changes": [
+        [
+          "b_construction_slot",
+          0,
+          0
+        ],
+        [
+          "b_construction_generation",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_REF"
+    },
+    {
+      "name": "building-b_construction-max-ref",
+      "base": "building",
+      "changes": [
+        [
+          "b_construction_slot",
+          0,
+          352417
+        ],
+        [
+          "b_construction_generation",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "room-r_building-ref--2-0",
+      "base": "room",
+      "changes": [
+        [
+          "r_building_slot",
+          0,
+          -2
+        ],
+        [
+          "r_building_generation",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_ROOM_REF"
+    },
+    {
+      "name": "room-r_building-ref-352418-1",
+      "base": "room",
+      "changes": [
+        [
+          "r_building_slot",
+          0,
+          352418
+        ],
+        [
+          "r_building_generation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_ROOM_REF"
+    },
+    {
+      "name": "room-r_building-ref--1-1",
+      "base": "room",
+      "changes": [
+        [
+          "r_building_slot",
+          0,
+          -1
+        ],
+        [
+          "r_building_generation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_ROOM_REF"
+    },
+    {
+      "name": "room-r_building-ref-0-0",
+      "base": "room",
+      "changes": [
+        [
+          "r_building_slot",
+          0,
+          0
+        ],
+        [
+          "r_building_generation",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_ROOM_REF"
+    },
+    {
+      "name": "room-r_building-ref-0--1",
+      "base": "room",
+      "changes": [
+        [
+          "r_building_slot",
+          0,
+          0
+        ],
+        [
+          "r_building_generation",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ROOM_REF"
+    },
+    {
+      "name": "room-r_building-max-ref",
+      "base": "room",
+      "changes": [
+        [
+          "r_building_slot",
+          0,
+          352417
+        ],
+        [
+          "r_building_generation",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "furniture-f_room-ref--2-0",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_room_slot",
+          0,
+          -2
+        ],
+        [
+          "f_room_generation",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_REF"
+    },
+    {
+      "name": "furniture-f_room-ref-352418-1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_room_slot",
+          0,
+          352418
+        ],
+        [
+          "f_room_generation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_REF"
+    },
+    {
+      "name": "furniture-f_room-ref--1-1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_room_slot",
+          0,
+          -1
+        ],
+        [
+          "f_room_generation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_REF"
+    },
+    {
+      "name": "furniture-f_room-ref-0-0",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_room_slot",
+          0,
+          0
+        ],
+        [
+          "f_room_generation",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_REF"
+    },
+    {
+      "name": "furniture-f_room-ref-0--1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_room_slot",
+          0,
+          0
+        ],
+        [
+          "f_room_generation",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_REF"
+    },
+    {
+      "name": "furniture-f_room-max-ref",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_room_slot",
+          0,
+          352417
+        ],
+        [
+          "f_room_generation",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "furniture-f_user-ref--2-0",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_user_slot",
+          0,
+          -2
+        ],
+        [
+          "f_user_generation",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_REF"
+    },
+    {
+      "name": "furniture-f_user-ref-352418-1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_user_slot",
+          0,
+          352418
+        ],
+        [
+          "f_user_generation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_REF"
+    },
+    {
+      "name": "furniture-f_user-ref--1-1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_user_slot",
+          0,
+          -1
+        ],
+        [
+          "f_user_generation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_REF"
+    },
+    {
+      "name": "furniture-f_user-ref-0-0",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_user_slot",
+          0,
+          0
+        ],
+        [
+          "f_user_generation",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_REF"
+    },
+    {
+      "name": "furniture-f_user-ref-0--1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_user_slot",
+          0,
+          0
+        ],
+        [
+          "f_user_generation",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_REF"
+    },
+    {
+      "name": "furniture-f_user-max-ref",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_user_slot",
+          0,
+          352417
+        ],
+        [
+          "f_user_generation",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "clear-b_type_id-1",
+      "base": "clear",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_FREE"
+    },
+    {
+      "name": "clear-b_origin_tile-0",
+      "base": "clear",
+      "changes": [
+        [
+          "b_origin_tile",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_BUILDING_FREE"
+    },
+    {
+      "name": "clear-b_rotation-1",
+      "base": "clear",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_FREE"
+    },
+    {
+      "name": "clear-b_state-1",
+      "base": "clear",
+      "changes": [
+        [
+          "b_state",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_FREE"
+    },
+    {
+      "name": "clear-b_condition-1",
+      "base": "clear",
+      "changes": [
+        [
+          "b_condition",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_FREE"
+    },
+    {
+      "name": "clear-b_interior_id-0",
+      "base": "clear",
+      "changes": [
+        [
+          "b_interior_id",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_BUILDING_FREE"
+    },
+    {
+      "name": "clear-building-nonnull-construction",
+      "base": "clear",
+      "changes": [
+        [
+          "b_construction_slot",
+          0,
+          0
+        ],
+        [
+          "b_construction_generation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_FREE"
+    },
+    {
+      "name": "building-b_tier-0",
+      "base": "building",
+      "changes": [
+        [
+          "b_tier",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-0",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          0
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-1",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          1
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-2",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          2
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-3",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          3
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-4",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          4
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-5",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          5
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "tier2-type-6",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          6
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-7",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          7
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-8",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          8
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-9",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          9
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-10",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          10
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-11",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          11
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-12",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          12
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "tier2-type-13",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          13
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-14",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          14
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-15",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          15
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-16",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          16
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-17",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          17
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-18",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          18
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-19",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          19
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-20",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          20
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-21",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          21
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-22",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          22
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-23",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          23
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "tier2-type-24",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          24
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-25",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          25
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-26",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          26
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-27",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          27
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-28",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          28
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "tier2-type-29",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          29
+        ],
+        [
+          "b_tier",
+          0,
+          2
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "hall-edge-fit-rot0",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          0
+        ],
+        [
+          "b_origin_tile",
+          0,
+          15220
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "hall-offmap-x-rot0",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          0
+        ],
+        [
+          "b_origin_tile",
+          0,
+          15221
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "hall-offmap-z-rot0",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          0
+        ],
+        [
+          "b_origin_tile",
+          0,
+          15348
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "hall-edge-fit-rot1",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          1
+        ],
+        [
+          "b_origin_tile",
+          0,
+          14966
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "hall-offmap-x-rot1",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          1
+        ],
+        [
+          "b_origin_tile",
+          0,
+          14967
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "hall-offmap-z-rot1",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          1
+        ],
+        [
+          "b_origin_tile",
+          0,
+          15094
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "hall-edge-fit-rot2",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          2
+        ],
+        [
+          "b_origin_tile",
+          0,
+          15220
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "hall-offmap-x-rot2",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          2
+        ],
+        [
+          "b_origin_tile",
+          0,
+          15221
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "hall-offmap-z-rot2",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          2
+        ],
+        [
+          "b_origin_tile",
+          0,
+          15348
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "hall-edge-fit-rot3",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          3
+        ],
+        [
+          "b_origin_tile",
+          0,
+          14966
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "hall-offmap-x-rot3",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          3
+        ],
+        [
+          "b_origin_tile",
+          0,
+          14967
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "hall-offmap-z-rot3",
+      "base": "building",
+      "changes": [
+        [
+          "b_rotation",
+          0,
+          3
+        ],
+        [
+          "b_origin_tile",
+          0,
+          15094
+        ]
+      ],
+      "code": "COLUMN_BUILDING_STATE"
+    },
+    {
+      "name": "one-tile-building-final-tile",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          6
+        ],
+        [
+          "b_origin_tile",
+          0,
+          16383
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "retired-building-b_tier-0",
+      "base": "retired-building",
+      "changes": [
+        [
+          "b_tier",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_BUILDING_FREE"
+    },
+    {
+      "name": "room-r_type--1",
+      "base": "room",
+      "changes": [
+        [
+          "r_type",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ROOM_ENUM"
+    },
+    {
+      "name": "room-r_type-8",
+      "base": "room",
+      "changes": [
+        [
+          "r_type",
+          0,
+          8
+        ]
+      ],
+      "code": "COLUMN_ROOM_ENUM"
+    },
+    {
+      "name": "room-r_tile_offset--1",
+      "base": "room",
+      "changes": [
+        [
+          "r_tile_offset",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ROOM_VALUE"
+    },
+    {
+      "name": "room-r_tile_offset-16385",
+      "base": "room",
+      "changes": [
+        [
+          "r_tile_offset",
+          0,
+          16385
+        ]
+      ],
+      "code": "COLUMN_ROOM_VALUE"
+    },
+    {
+      "name": "room-r_tile_count--1",
+      "base": "room",
+      "changes": [
+        [
+          "r_tile_count",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ROOM_VALUE"
+    },
+    {
+      "name": "room-r_tile_count-16385",
+      "base": "room",
+      "changes": [
+        [
+          "r_tile_count",
+          0,
+          16385
+        ]
+      ],
+      "code": "COLUMN_ROOM_VALUE"
+    },
+    {
+      "name": "room-r_furniture_mask--1",
+      "base": "room",
+      "changes": [
+        [
+          "r_furniture_mask",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ROOM_VALUE"
+    },
+    {
+      "name": "room-r_furniture_mask-512",
+      "base": "room",
+      "changes": [
+        [
+          "r_furniture_mask",
+          0,
+          512
+        ]
+      ],
+      "code": "COLUMN_ROOM_VALUE"
+    },
+    {
+      "name": "room-r_occupants--1",
+      "base": "room",
+      "changes": [
+        [
+          "r_occupants",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ROOM_VALUE"
+    },
+    {
+      "name": "room-r_occupants-257",
+      "base": "room",
+      "changes": [
+        [
+          "r_occupants",
+          0,
+          257
+        ]
+      ],
+      "code": "COLUMN_ROOM_VALUE"
+    },
+    {
+      "name": "room-r_temperature_tenths--2147483648",
+      "base": "room",
+      "changes": [
+        [
+          "r_temperature_tenths",
+          0,
+          -2147483648
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "room-r_temperature_tenths-2147483647",
+      "base": "room",
+      "changes": [
+        [
+          "r_temperature_tenths",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "room-r_occupants-256",
+      "base": "room",
+      "changes": [
+        [
+          "r_occupants",
+          0,
+          256
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "room-r_furniture_mask-511",
+      "base": "room",
+      "changes": [
+        [
+          "r_furniture_mask",
+          0,
+          511
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "room-r_valid-1",
+      "base": "room",
+      "changes": [
+        [
+          "r_valid",
+          0,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "present-room-null-parent",
+      "base": "room",
+      "changes": [
+        [
+          "r_building_slot",
+          0,
+          -1
+        ],
+        [
+          "r_building_generation",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_ROOM_STATE"
+    },
+    {
+      "name": "room-r_tile_count-0",
+      "base": "room",
+      "changes": [
+        [
+          "r_tile_count",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_ROOM_STATE"
+    },
+    {
+      "name": "room-r_tile_offset-16384",
+      "base": "room",
+      "changes": [
+        [
+          "r_tile_offset",
+          0,
+          16384
+        ]
+      ],
+      "code": "COLUMN_ROOM_STATE"
+    },
+    {
+      "name": "room-r_tile_offset-16383",
+      "base": "room",
+      "changes": [
+        [
+          "r_tile_offset",
+          0,
+          16383
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "local-span-whole-arena-not-whole-world-acceptance",
+      "base": "room",
+      "changes": [
+        [
+          "r_tile_count",
+          0,
+          16384
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "retired-room-r_tile_offset-1",
+      "base": "retired-room",
+      "changes": [
+        [
+          "r_tile_offset",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_ROOM_FREE"
+    },
+    {
+      "name": "retired-room-r_tile_count-1",
+      "base": "retired-room",
+      "changes": [
+        [
+          "r_tile_count",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_ROOM_FREE"
+    },
+    {
+      "name": "retired-room-r_furniture_mask-1",
+      "base": "retired-room",
+      "changes": [
+        [
+          "r_furniture_mask",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_ROOM_FREE"
+    },
+    {
+      "name": "retired-room-r_valid-1",
+      "base": "retired-room",
+      "changes": [
+        [
+          "r_valid",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_ROOM_FREE"
+    },
+    {
+      "name": "clear-r_type-1",
+      "base": "clear",
+      "changes": [
+        [
+          "r_type",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_ROOM_FREE"
+    },
+    {
+      "name": "clear-r_temperature_tenths-1",
+      "base": "clear",
+      "changes": [
+        [
+          "r_temperature_tenths",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_ROOM_FREE"
+    },
+    {
+      "name": "clear-r_occupants-1",
+      "base": "clear",
+      "changes": [
+        [
+          "r_occupants",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_ROOM_FREE"
+    },
+    {
+      "name": "retired-room-keeps-history",
+      "base": "retired-room",
+      "changes": [
+        [
+          "r_type",
+          0,
+          7
+        ],
+        [
+          "r_temperature_tenths",
+          0,
+          -2147483648
+        ],
+        [
+          "r_occupants",
+          0,
+          256
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "furniture-f_type_id--1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_ENUM"
+    },
+    {
+      "name": "furniture-f_type_id-9",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          9
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_ENUM"
+    },
+    {
+      "name": "furniture-f_rotation--1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_rotation",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_ENUM"
+    },
+    {
+      "name": "furniture-f_rotation-4",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_rotation",
+          0,
+          4
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_ENUM"
+    },
+    {
+      "name": "furniture-f_origin_tile--2",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_origin_tile",
+          0,
+          -2
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_VALUE"
+    },
+    {
+      "name": "furniture-f_origin_tile-16384",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_origin_tile",
+          0,
+          16384
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_VALUE"
+    },
+    {
+      "name": "furniture-f_condition--1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_condition",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_VALUE"
+    },
+    {
+      "name": "furniture-f_condition-2147483647",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_condition",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "present-furniture-null-room",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_room_slot",
+          0,
+          -1
+        ],
+        [
+          "f_room_generation",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_STATE"
+    },
+    {
+      "name": "retired-furniture-user-forbidden",
+      "base": "retired-furniture",
+      "changes": [
+        [
+          "f_user_slot",
+          0,
+          0
+        ],
+        [
+          "f_user_generation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_FREE"
+    },
+    {
+      "name": "clear-f_type_id-1",
+      "base": "clear",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_FREE"
+    },
+    {
+      "name": "clear-f_origin_tile-0",
+      "base": "clear",
+      "changes": [
+        [
+          "f_origin_tile",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_FREE"
+    },
+    {
+      "name": "clear-f_rotation-1",
+      "base": "clear",
+      "changes": [
+        [
+          "f_rotation",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_FREE"
+    },
+    {
+      "name": "clear-f_condition-1",
+      "base": "clear",
+      "changes": [
+        [
+          "f_condition",
+          0,
+          1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_FREE"
+    },
+    {
+      "name": "retired-furniture-f_origin_tile--1",
+      "base": "retired-furniture",
+      "changes": [
+        [
+          "f_origin_tile",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_STATE"
+    },
+    {
+      "name": "edge-furniture-3-rot0",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          3
+        ],
+        [
+          "f_rotation",
+          0,
+          0
+        ],
+        [
+          "f_origin_tile",
+          0,
+          16383
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "edge-furniture-3-rot1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          3
+        ],
+        [
+          "f_rotation",
+          0,
+          1
+        ],
+        [
+          "f_origin_tile",
+          0,
+          16383
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "edge-furniture-3-rot2",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          3
+        ],
+        [
+          "f_rotation",
+          0,
+          2
+        ],
+        [
+          "f_origin_tile",
+          0,
+          16383
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "edge-furniture-3-rot3",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          3
+        ],
+        [
+          "f_rotation",
+          0,
+          3
+        ],
+        [
+          "f_origin_tile",
+          0,
+          16383
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "edge-furniture-4-rot0",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          4
+        ],
+        [
+          "f_rotation",
+          0,
+          0
+        ],
+        [
+          "f_origin_tile",
+          0,
+          16383
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "edge-furniture-4-rot1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          4
+        ],
+        [
+          "f_rotation",
+          0,
+          1
+        ],
+        [
+          "f_origin_tile",
+          0,
+          16383
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "edge-furniture-4-rot2",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          4
+        ],
+        [
+          "f_rotation",
+          0,
+          2
+        ],
+        [
+          "f_origin_tile",
+          0,
+          16383
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "edge-furniture-4-rot3",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          4
+        ],
+        [
+          "f_rotation",
+          0,
+          3
+        ],
+        [
+          "f_origin_tile",
+          0,
+          16383
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "hearth-offmap",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          2
+        ],
+        [
+          "f_origin_tile",
+          0,
+          127
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_STATE"
+    },
+    {
+      "name": "rotated-hearth-fits",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          2
+        ],
+        [
+          "f_origin_tile",
+          0,
+          127
+        ],
+        [
+          "f_rotation",
+          0,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "zero-user-slots-type1",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          1
+        ],
+        [
+          "f_user_slot",
+          0,
+          352417
+        ],
+        [
+          "f_user_generation",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "zero-user-slots-type4",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          4
+        ],
+        [
+          "f_user_slot",
+          0,
+          352417
+        ],
+        [
+          "f_user_generation",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "later-flag-before-building-enum",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          30
+        ],
+        [
+          "f_present",
+          81919,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "building-before-room",
+      "base": "clear",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          30
+        ],
+        [
+          "r_type",
+          0,
+          8
+        ]
+      ],
+      "code": "COLUMN_BUILDING_ENUM"
+    },
+    {
+      "name": "room-before-furniture",
+      "base": "clear",
+      "changes": [
+        [
+          "r_type",
+          0,
+          8
+        ],
+        [
+          "f_type_id",
+          0,
+          9
+        ]
+      ],
+      "code": "COLUMN_ROOM_ENUM"
+    },
+    {
+      "name": "earlier-building-row-before-later-enum",
+      "base": "clear",
+      "changes": [
+        [
+          "b_condition",
+          0,
+          -1
+        ],
+        [
+          "b_type_id",
+          1023,
+          30
+        ]
+      ],
+      "code": "COLUMN_BUILDING_VALUE"
+    },
+    {
+      "name": "building-enum-before-value",
+      "base": "building",
+      "changes": [
+        [
+          "b_type_id",
+          0,
+          -1
+        ],
+        [
+          "b_condition",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_BUILDING_ENUM"
+    },
+    {
+      "name": "building-value-before-reference",
+      "base": "building",
+      "changes": [
+        [
+          "b_condition",
+          0,
+          -1
+        ],
+        [
+          "b_construction_slot",
+          0,
+          -2
+        ]
+      ],
+      "code": "COLUMN_BUILDING_VALUE"
+    },
+    {
+      "name": "room-enum-before-value",
+      "base": "room",
+      "changes": [
+        [
+          "r_type",
+          0,
+          -1
+        ],
+        [
+          "r_occupants",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ROOM_ENUM"
+    },
+    {
+      "name": "room-value-before-reference",
+      "base": "room",
+      "changes": [
+        [
+          "r_occupants",
+          0,
+          -1
+        ],
+        [
+          "r_building_slot",
+          0,
+          -2
+        ]
+      ],
+      "code": "COLUMN_ROOM_VALUE"
+    },
+    {
+      "name": "furniture-enum-before-value",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_type_id",
+          0,
+          -1
+        ],
+        [
+          "f_condition",
+          0,
+          -1
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_ENUM"
+    },
+    {
+      "name": "furniture-value-before-reference",
+      "base": "furniture",
+      "changes": [
+        [
+          "f_condition",
+          0,
+          -1
+        ],
+        [
+          "f_room_slot",
+          0,
+          -2
+        ]
+      ],
+      "code": "COLUMN_FURNITURE_VALUE"
+    },
+    {
+      "name": "retired-building-keeps-nonnull-construction",
+      "base": "retired-building",
+      "changes": [
+        [
+          "b_construction_slot",
+          0,
+          352417
+        ],
+        [
+          "b_construction_generation",
+          0,
+          2147483647
+        ]
+      ],
+      "code": ""
+    }
+  ]
+}

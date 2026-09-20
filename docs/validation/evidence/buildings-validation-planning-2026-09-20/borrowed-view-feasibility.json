@@ -1,0 +1,34 @@
+{
+  "scope": "Synthetic typed-view allocation experiment only; no Buildings validator implemented or actual adapter qualified",
+  "seconds": 0.449,
+  "cases": [
+    {
+      "after_peak": 100076484,
+      "allocate_defaults": false,
+      "ballast_bytes": 57886484,
+      "before_peak": 100072760,
+      "increment": 3724
+    },
+    {
+      "after_peak": 104427776,
+      "allocate_defaults": true,
+      "ballast_bytes": 58938084,
+      "before_peak": 101125084,
+      "increment": 3302692
+    },
+    {
+      "after_peak": 105480100,
+      "allocate_defaults": false,
+      "ballast_bytes": 63288652,
+      "before_peak": 105476376,
+      "increment": 3724
+    }
+  ],
+  "api": "Godot OS static allocator current/peak; not process RSS or full-world budget",
+  "clone": "autoloads removed only from owned disposable clone",
+  "source_sha256": {
+    "godot/project.godot": "3bdf9bd24e40e46dcf07b2fa84a065ea663146a3cd25bb9fb92529f1ebc85a2a",
+    "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  }
+}

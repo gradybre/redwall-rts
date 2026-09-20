@@ -1,0 +1,50 @@
+Traceback (most recent call last):
+  File "/private/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-buildings-initial-meta-3qtbvn6z/tools/test_buildings_metadata_preflights.py", line 212, in <module>
+    main()
+  File "/private/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-buildings-initial-meta-3qtbvn6z/tools/test_buildings_metadata_preflights.py", line 183, in main
+    results.append(execute(clone,label))
+  File "/private/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-buildings-initial-meta-3qtbvn6z/tools/test_buildings_metadata_preflights.py", line 126, in execute
+    assert killed if expect_failure else passed,label+'\n'+run.stdout
+AssertionError: Catalog.FURNITURE_DEFINITION-missing
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_buildings_metadata_probe.gd
+SCRIPT ERROR: Parse Error: Cannot get index "shelf" from "{ "bed": 0, "decoration": 1, "hearth": 2, "interior_door": 3, "interior_partition": 4, "kitchen_bench": 5, "patient_bed": 6, "seat": 7 }".
+          at: GDScript::reload (res://scripts/core/building_definitions.gd:493)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://scripts/core/buildings.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://scripts/core/save_owner_buildings.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://test/test_buildings_metadata_probe.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+ERROR: Failed to load script "res://test/test_buildings_metadata_probe.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://test/run_tests.gd:125)
+       [1] _run_worker (res://test/run_tests.gd:91)
+       [2] _initialize (res://test/run_tests.gd:78)
+  PASS  test_actual_metadata_gate
+
+  FAIL  <test run>
+        4 script error(s) outside any test method
+
+1 test(s), 9 assertion(s), 1 failure(s)
+

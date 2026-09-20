@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "scope": "Cold actual-adapter incremental Godot static allocation; ballast is apparatus, not game budget or process RSS",
+  "cases": [
+    {
+      "after_peak": 100999391,
+      "after_usage": 100993719,
+      "ballast_bytes": 56774937,
+      "before_peak": 100992755,
+      "bridge_code": "",
+      "code": "",
+      "increment": 6636,
+      "lifted_usage": 100992755,
+      "limit": 1048576,
+      "prior_peak": 99944123,
+      "prior_usage": 44217762,
+      "status": "PASS",
+      "case": "baseline"
+    },
+    {
+      "after_peak": 104297935,
+      "after_usage": 100993315,
+      "ballast_bytes": 56774577,
+      "before_peak": 100992351,
+      "bridge_code": "",
+      "code": "ALLOCATION_EXTRA_OWNER",
+      "increment": 3305584,
+      "lifted_usage": 100992351,
+      "limit": 1048576,
+      "prior_peak": 99943719,
+      "prior_usage": 44217718,
+      "status": "FAIL",
+      "case": "forbidden-default-constructor"
+    },
+    {
+      "after_peak": 100999391,
+      "after_usage": 100993719,
+      "ballast_bytes": 56774937,
+      "before_peak": 100992755,
+      "bridge_code": "",
+      "code": "",
+      "increment": 6636,
+      "lifted_usage": 100992755,
+      "limit": 1048576,
+      "prior_peak": 99944123,
+      "prior_usage": 44217762,
+      "status": "PASS",
+      "case": "restored"
+    }
+  ],
+  "source_sha256": {
+    "godot/scripts/core/save_owner_buildings.gd": "9bb578433930ded6535169fbd932c9494366510d2972a08e342e93298a8d1012",
+    "godot/scripts/core/buildings.gd": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+    "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+    "godot/project.godot": "3bdf9bd24e40e46dcf07b2fa84a065ea663146a3cd25bb9fb92529f1ebc85a2a",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/parent-allocation-probe.gd": "98b3fc92b49bad67650964ea5867ad7e2ef5cb5ad48198e3555c4877591923dd"
+  }
+}

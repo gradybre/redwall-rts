@@ -1,0 +1,47 @@
+diff --git a/godot/scripts/core/save_owner_buildings.gd b/godot/scripts/core/save_owner_buildings.gd
+--- a/godot/scripts/core/save_owner_buildings.gd
++++ b/godot/scripts/core/save_owner_buildings.gd
+@@ -157,3 +157,7 @@
+ const SOURCE_ROOM_TYPE_PANTRY: int = 6
+ const SOURCE_ROOM_TYPE_CORRIDOR: int = 7
++const SOURCE_ROOM_TYPE_KEYS: Array[String] = [
++	"DORMITORY", "PRIVATE_ROOM", "KITCHEN", "DINING",
++	"COMMON", "INFIRMARY", "PANTRY", "CORRIDOR",
++]
+ ## The fact-row column ordinals and tier-two key order this bridge indexes through.
+@@ -393,8 +397,33 @@ static func _source_state_refusal() -> SaveHeader.Refusal:
+ 		var state_id: Variant = Buildings.Catalog.BUILDING_STATE[key]
+ 		if typeof(state_id) != TYPE_INT or int(state_id) != ordinal:
+ 			return _refuse(Section.REFUSE_METADATA, "%s '%s' is not integer state ordinal %d"
+ 				% [METADATA_DETAIL_PREFIX, key, ordinal])
+-	return _tier_two_refusal()
++	return _source_room_type_refusal()
++
++
++static func _source_room_type_refusal() -> SaveHeader.Refusal:
++	"""Gate 4: ALL EIGHT protected RoomType ordinals, from the compiled catalog dictionary.
++
++	The ROOM_TYPE_* alias pins above stay. Size, key existence and integer type are proven
++	before any id is coerced, so a renumbered or truncated ROOM_TYPE refuses METADATA here,
++	before gate 5 projects or indexes a single column.
++	"""
++	if SOURCE_ROOM_TYPE_KEYS.size() != SOURCE_ROOM_TYPE_COUNT:
++		return _refuse(Section.REFUSE_METADATA, "%s this bridge pins %d room type keys, not %d"
++			% [METADATA_DETAIL_PREFIX, SOURCE_ROOM_TYPE_KEYS.size(), SOURCE_ROOM_TYPE_COUNT])
++	if Buildings.Catalog.ROOM_TYPE.size() != SOURCE_ROOM_TYPE_COUNT:
++		return _refuse(Section.REFUSE_METADATA, "%s ROOM_TYPE holds %d room types, not %d"
++			% [METADATA_DETAIL_PREFIX, Buildings.Catalog.ROOM_TYPE.size(),
++				SOURCE_ROOM_TYPE_COUNT])
++	for ordinal: int in SOURCE_ROOM_TYPE_COUNT:
++		var key: String = SOURCE_ROOM_TYPE_KEYS[ordinal]
++		if not Buildings.Catalog.ROOM_TYPE.has(key):
++			return _refuse(Section.REFUSE_METADATA, "%s ROOM_TYPE has no '%s' key"
++				% [METADATA_DETAIL_PREFIX, key])
++		var room_id: Variant = Buildings.Catalog.ROOM_TYPE[key]
++		if typeof(room_id) != TYPE_INT or int(room_id) != ordinal:
++			return _refuse(Section.REFUSE_METADATA, "%s '%s' is not integer room ordinal %d"
++				% [METADATA_DETAIL_PREFIX, key, ordinal])
++	return _tier_two_refusal()
+ 
+ 
+ static func _tier_two_refusal() -> SaveHeader.Refusal:

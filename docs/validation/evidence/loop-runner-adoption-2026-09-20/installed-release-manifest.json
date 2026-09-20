@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "version": "0.1.2",
+  "recordedAt": "2026-09-20T13:44:22.984542+00:00",
+  "scope": "controlled local foreground efficiency release",
+  "sourceCommit": "d46467f9d72a66f2080ea1145657271defbe2472",
+  "archive": {
+    "path": "artifacts/astra-claude-loop-0.1.2.tgz",
+    "sha256": "c0b9cdccbe0494214fd802b01f8d6ee3fc40676b9f9a7be16f9a6463ee4f882d",
+    "bytes": 363598
+  },
+  "installation": {
+    "version": "0.1.2",
+    "installedAt": "2026-09-20T13:43:44.805864+00:00",
+    "sourceCommit": "d46467f9d72a66f2080ea1145657271defbe2472",
+    "releaseDirectory": "/Users/brendan/Library/Application Support/AstraClaudeLoop/releases/local-d46467f9d72a",
+    "launcher": "/Users/brendan/.local/bin/loopctl",
+    "workerLauncher": "/Users/brendan/.local/bin/loop-worker",
+    "previousLauncher": "/Users/brendan/Library/Application Support/AstraClaudeLoop/releases/local-8d4242de0f6a/loopctl",
+    "skillBackup": "/Users/brendan/.codex/skill-backups/loop-engineering-d46467f9d72a",
+    "archive": "/Users/brendan/Documents/Codex/2026-09-18/help-me-build-out-and-define/artifacts/astra-claude-loop-0.1.2.tgz",
+    "archiveSha256": "c0b9cdccbe0494214fd802b01f8d6ee3fc40676b9f9a7be16f9a6463ee4f882d",
+    "doctor": {
+      "productionReady": false,
+      "nodeVersion": "v26.0.0",
+      "protocolVersion": 1,
+      "status": "development",
+      "toolWorkersEnabled": false
+    },
+    "backgroundServiceActive": false,
+    "toolWorkersEnabled": false,
+    "productionScheduleActive": false,
+    "messagesEnabled": false,
+    "desktopImportVerified": false
+  },
+  "validation": {
+    "fullSuite": {
+      "passed": 661,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "path": "validation/efficiency/full-tests.log",
+      "sha256": "0513201ec897a63a515be1b324c072013e8e44c9615b713f0214e7ca52631138"
+    },
+    "liveProofs": [
+      {
+        "path": "validation/evidence/runtime-service-a2.json",
+        "sha256": "2509400889476038bcdf4a274494f2977fee763050e560bcd8ed75fe02a22986"
+      },
+      {
+        "path": "validation/evidence/runtime-clarification-a3.json",
+        "sha256": "e741c6fdab6c314821122acd91fd20cfb7ab42175024f7a2512afcf599e6c3c3"
+      },
+      {
+        "path": "validation/evidence/runtime-visual-a3.json",
+        "sha256": "8f0d2955a96e92136e46f46252bfe03eee559af795ba52e54807e9b23cfb16d4"
+      },
+      {
+        "path": "validation/evidence/milestone-pipeline.json",
+        "sha256": "451608456970aa06cf7bfbf8671d1c3b09278522cdac7adb5c1bd4768fecd398"
+      }
+    ],
+    "independentReview": {
+      "verdict": "accepted controlled local scope",
+      "path": "docs/reviews/local-disposition-verification.md",
+      "sha256": "90386c0d123288920de24fe0e1bdae6a1e000741675a606537d33df2adba230a"
+    },
+    "typecheck": "passed in final full-suite TypeScript build",
+    "desktopGrouping": [
+      {
+        "path": "validation/evidence/desktop-grouping-a1.json",
+        "sha256": "66ff24da3fcbf6c7b6f2fefa76f21f705668ffee4ed6d8ceaf3d255eaf55ea17"
+      },
+      {
+        "path": "validation/evidence/desktop-grouped-a1.json",
+        "sha256": "e3523e42e362b4e00b4a879c6c41e2475f571539406cf72d709ac864950585ee"
+      }
+    ],
+    "groupingReview": {
+      "path": "docs/reviews/desktop-grouping.md",
+      "sha256": "81aa41ca2770ca8b1a9e9b2dee07631833725e2bfe88daa227dd9dba0f6f740b"
+    },
+    "efficiency": {
+      "evidence": "validation/evidence/efficiency-validation.json",
+      "installedCheck": "validation/evidence/efficiency-installed-check.json",
+      "independentReview": {
+        "verdict": "accept, no blockers",
+        "path": "docs/reviews/efficiency-verification.md",
+        "sha256": "f7614c7f6e7c7d18dbebeebbf42e4c2335a0be8302b7ff3d1307b8181798fda0",
+        "model": "claude-opus-5",
+        "sessionId": "4368a4a6-e6f3-4cc4-ad5d-77360a06b927"
+      },
+      "liveProof": {
+        "path": "validation/evidence/efficiency-live.json",
+        "sha256": "765eecdf47935cc69cf0cc017a54ce43c7579d5a08f777ea4cb7d37f40cec0c1"
+      }
+    }
+  },
+  "passedCapabilities": [
+    "Durable authenticated local service and bounded scheduler",
+    "Actual Claude author, contained checks and independent code/security review",
+    "Actual same-session clarification consumption",
+    "Static HTML browser capture and actual image-backed independent UX review",
+    "Candidate evidence milestone gate",
+    "Same-task bounded idle wake exercise; test schedule paused",
+    "Installed launcher doctor check",
+    "Observed Claude session directory, bounded to 256 with explicit truncation metadata",
+    "Actual persisted concise Claude session names and one project session directory",
+    "Strict whole-response JSON framing normalization with schema/provenance unchanged",
+    "Shared foreground runner with same-role context deltas and single-use continuation checkpoints",
+    "Real same-session unchanged-source recall and changed-file consumption",
+    "Full review evidence retention with explicit no-approval delivery",
+    "Global loop-worker launcher and efficiency skill installed; source parity verified"
+  ],
+  "openGates": [
+    "Concrete first project and approved project plan",
+    "Live GitHub PR, CI and merge target and acceptance",
+    "Concrete deployment driver/target and live release acceptance",
+    "Unattended supervisor installation and production wake/notification lifecycle",
+    "Per-project feedback verification and platform-specific tooling/capture",
+    "Claude Desktop import awaiting specific approval after automatic approval review rejected /resume submission"
+  ],
+  "productionReady": false,
+  "backgroundServiceActive": false,
+  "productionScheduleActive": false,
+  "idleTestSchedule": "PAUSED",
+  "messagesEnabled": false,
+  "notes": [
+    "Documentation metadata may follow the source commit; archive hash identifies installed package exactly.",
+    "Live probes used disposable local fixtures, not a deployed product.",
+    "Static visual acceptance does not establish native, game or interactive application coverage.",
+    "No paid API fallback is configured."
+  ],
+  "previousRelease": {
+    "version": "0.1.1",
+    "sourceCommit": "8d4242de0f6ad569511ce83a61de6b1a10b7c193",
+    "archive": {
+      "path": "artifacts/astra-claude-loop-0.1.1.tgz",
+      "sha256": "b523cb8e7fdbd1a406c6306e0589c5db86bfee8f180142bd407d28bc515a50e8",
+      "bytes": 351501
+    },
+    "installation": {
+      "installedAt": "2026-09-18T23:42:14.187040+00:00",
+      "version": "0.1.1",
+      "sourceCommit": "8d4242de0f6ad569511ce83a61de6b1a10b7c193",
+      "releaseDirectory": "/Users/brendan/Library/Application Support/AstraClaudeLoop/releases/local-8d4242de0f6a",
+      "launcher": "/Users/brendan/.local/bin/loopctl",
+      "previousLauncher": "/Users/brendan/Library/Application Support/AstraClaudeLoop/releases/local-2d93b0c2299f/loopctl",
+      "archive": "/Users/brendan/Documents/Codex/2026-09-18/help-me-build-out-and-define/artifacts/astra-claude-loop-0.1.1.tgz",
+      "archiveSha256": "b523cb8e7fdbd1a406c6306e0589c5db86bfee8f180142bd407d28bc515a50e8",
+      "doctor": {
+        "productionReady": false,
+        "nodeVersion": "v26.0.0",
+        "protocolVersion": 1,
+        "status": "development",
+        "toolWorkersEnabled": false
+      },
+      "installExitCode": 0,
+      "doctorExitCode": 0,
+      "backgroundServiceActive": false,
+      "productionScheduleActive": false,
+      "messagesEnabled": false,
+      "desktopImportVerified": false
+    }
+  },
+  "sidebarCleanup": {
+    "projectsGrouped": 13,
+    "workerPagesArchived": 48,
+    "section": "Loop validation",
+    "historyDeleted": false
+  },
+  "efficiencyAdoption": {
+    "status": "installed_project_adoption_pending",
+    "projects": [
+      "Hearth",
+      "redwall-rts"
+    ],
+    "instruction": "Switch at a stopped-attempt boundary; preserve legacy launchers/results and product gates."
+  }
+}

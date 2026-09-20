@@ -1,0 +1,54 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_buildings.gd
+  PASS  test_layout_defaults_and_borrowed_constructor
+  FAIL  test_frozen_scalar_history_geometry_and_priority_images
+        furniture-f_type_id--1 pure (expected COLUMN_FURNITURE_ENUM, got )
+        furniture-f_type_id--1 bridge (expected COLUMN_FURNITURE_ENUM, got )
+        furniture-f_type_id--1 success (expected false, got true)
+        furniture-f_type_id--1 owner detail (expected true, got false)
+        furniture-f_type_id--1 raw code detail (expected true, got false)
+        furniture-f_type_id-9 pure (expected COLUMN_FURNITURE_ENUM, got )
+        furniture-f_type_id-9 bridge (expected COLUMN_FURNITURE_ENUM, got )
+        furniture-f_type_id-9 success (expected false, got true)
+        furniture-f_type_id-9 owner detail (expected true, got false)
+        furniture-f_type_id-9 raw code detail (expected true, got false)
+        furniture-enum-before-value pure (expected COLUMN_FURNITURE_ENUM, got )
+        furniture-enum-before-value bridge (expected COLUMN_FURNITURE_ENUM, got )
+        furniture-enum-before-value success (expected false, got true)
+        furniture-enum-before-value owner detail (expected true, got false)
+        furniture-enum-before-value raw code detail (expected true, got false)
+  PASS  test_null_unallocated_all_extents_and_bucket_shapes
+  FAIL  test_each_field_at_first_midpoint_and_last_physical_row
+        sampled field21 row0 pure (expected COLUMN_FURNITURE_ENUM, got )
+        sampled field21 row0 bridge (expected COLUMN_FURNITURE_ENUM, got )
+        sampled field21 row0 success (expected false, got true)
+        sampled field21 row0 owner detail (expected true, got false)
+        sampled field21 row0 raw code detail (expected true, got false)
+        sampled field21 row40960 pure (expected COLUMN_FURNITURE_ENUM, got )
+        sampled field21 row40960 bridge (expected COLUMN_FURNITURE_ENUM, got )
+        sampled field21 row40960 success (expected false, got true)
+        sampled field21 row40960 owner detail (expected true, got false)
+        sampled field21 row40960 raw code detail (expected true, got false)
+        sampled field21 row81919 pure (expected COLUMN_FURNITURE_ENUM, got )
+        sampled field21 row81919 bridge (expected COLUMN_FURNITURE_ENUM, got )
+        sampled field21 row81919 success (expected false, got true)
+        sampled field21 row81919 owner detail (expected true, got false)
+        sampled field21 row81919 raw code detail (expected true, got false)
+  PASS  test_all_catalog_geometries_at_rotated_map_boundary
+  PASS  test_full_capacity_mixed_live_retired_and_never_used_rows
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 19242 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

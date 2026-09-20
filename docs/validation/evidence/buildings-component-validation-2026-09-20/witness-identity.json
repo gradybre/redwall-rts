@@ -1,0 +1,27 @@
+{
+  "scope": "Deterministic source/fixture mapping; actual runtime in candidate-checks/focus.log and campaign.log",
+  "frozen_case_count": 171,
+  "full_generated_case_content_equal": true,
+  "compiled_suite_bytes_equal_to_draft": true,
+  "focus_exact_suites": [
+    "res://test/test_save_owner_buildings.gd"
+  ],
+  "expected_test_count": 6,
+  "owner_probe_separate_suites": [
+    "res://test/test_buildings.gd",
+    "res://test/test_buildings_owner_candidate.gd"
+  ],
+  "owner_probe_test_count": 65,
+  "shape_mapping": {
+    "contract89": "1 pure null +1 unallocated typed Columns in layout test +29fields*3extents=87",
+    "additional_bridge_faults": "5 malformed bucket shapes plus bridge null and wrong owner; not part of the pure89",
+    "physical_sampling": "29fields*first/midpoint/last=87; no exhaustive per-row claim"
+  },
+  "sha256": {
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-witnesses.json": "db931a9c00b7cc7aa42750596fea6d14f10f7be96dd0215d45bc67b3d3dce0f5",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/parent-test-draft.gd": "d602cfa7aa99606dceec591240c769f9755be07096ea49c6817a3eb772eacd1f",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-focus.gd": "7106b220e0586a8f5291aaf48b19524f209d632722c620f0bdbf6ee980b29312",
+    "godot/test/test_save_owner_buildings.gd": "d602cfa7aa99606dceec591240c769f9755be07096ea49c6817a3eb772eacd1f",
+    "godot/test/buildings_validation_focus.gd": "7106b220e0586a8f5291aaf48b19524f209d632722c620f0bdbf6ee980b29312"
+  }
+}

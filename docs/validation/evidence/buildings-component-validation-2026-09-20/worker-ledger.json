@@ -1,0 +1,143 @@
+{
+  "attempts": [
+    {
+      "id": "buildings-validation-owner-a1",
+      "model": "claude-opus-5",
+      "sessionId": "8b56ebb3-46a4-455c-80e3-0fc5d21580a4",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/buildings_component_validation_contract.md": "4d865f5d8ae6204f49afd9b4e2bfd802e2652409ba3e0711bf0d59d86669e540",
+        "docs/decisions/0183-buildings-validation-borrows-columns-and-preserves-retired-history.md": "cc8e2e88469ad7bbc2bf741f9157f186e957f37406b5815c11981efb9f2ba4c2",
+        "godot/scripts/core/buildings.gd": "8f21111b4857714f4ac803c30c3eec46f206c0b5cdedfeeb357a0061ba3f875e",
+        "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/contract-disposition.md": "c95e8d623b1a59dc291fb5ac74d82b5aeada9a5c2d4e2bd187b1eeaa09a3d8c3",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/source-layout.json": "bb8151cfb4b74b1913cc80be91b1febf1e6d48066d7cb592ba4be5faf6016c33",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-source-facts.json": "efeb2100fd1555594915037d9875852f2cac3ed08579c6ff1b2474a49636dfe9",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/catalog-excerpts.md": "9580d76d9bc6d9d783e8cea6975005489a2de1ea59bef2c7b79e63b7f6048464",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/directory-excerpts.md": "060c936ad59f779799adea1ce97cd402140dd1a511e807b98cb9608bce914be8",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/mutation-witness-plan.md": "d9f9e40b7172d7d281ae72d4f2d259a6ab5cd6b74b34035b76c395bf201b30df"
+      },
+      "outputLines": 447,
+      "outputLineBudget": 650,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56"
+    },
+    {
+      "id": "buildings-validation-owner-repair-a1",
+      "model": "claude-opus-5",
+      "sessionId": "51c65f3f-974f-4180-b457-c6f85f75eb76",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/buildings_component_validation_contract.md": "4d865f5d8ae6204f49afd9b4e2bfd802e2652409ba3e0711bf0d59d86669e540",
+        "docs/decisions/0183-buildings-validation-borrows-columns-and-preserves-retired-history.md": "cc8e2e88469ad7bbc2bf741f9157f186e957f37406b5815c11981efb9f2ba4c2",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-buildings.gd": "44af6c26a3d6e50f6fb25d6083dfb69f45106ad1c0dc2c8441003ca84d0abcdc",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/owner-candidate-probe.log": "7c513164789dfc9ff6c4ff8e485f5cd19a057a351c3aa23d31840ce79792b051",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/owner-candidate-probe.json": "228620759847b81fb390b32d888aa1d4b66e481d8867e47f6318f24f361d4b4e"
+      },
+      "outputLines": 22,
+      "outputLineBudget": 60,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56"
+    },
+    {
+      "id": "buildings-validation-bridge-a1",
+      "model": "claude-opus-5",
+      "sessionId": "b9a1dad6-b704-4b1c-862d-d079a5f193ce",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/buildings_component_validation_contract.md": "4d865f5d8ae6204f49afd9b4e2bfd802e2652409ba3e0711bf0d59d86669e540",
+        "docs/decisions/0183-buildings-validation-borrows-columns-and-preserves-retired-history.md": "cc8e2e88469ad7bbc2bf741f9157f186e957f37406b5815c11981efb9f2ba4c2",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-buildings.gd": "44af6c26a3d6e50f6fb25d6083dfb69f45106ad1c0dc2c8441003ca84d0abcdc",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/contract-disposition.md": "c95e8d623b1a59dc291fb5ac74d82b5aeada9a5c2d4e2bd187b1eeaa09a3d8c3",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/source-layout.json": "bb8151cfb4b74b1913cc80be91b1febf1e6d48066d7cb592ba4be5faf6016c33",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-source-facts.json": "efeb2100fd1555594915037d9875852f2cac3ed08579c6ff1b2474a49636dfe9",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/catalog-excerpts.md": "9580d76d9bc6d9d783e8cea6975005489a2de1ea59bef2c7b79e63b7f6048464",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/directory-excerpts.md": "060c936ad59f779799adea1ce97cd402140dd1a511e807b98cb9608bce914be8",
+        "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+        "godot/scripts/core/save_owner_fishing.gd": "6a46d2be1c7bc0c3b364ccaea29a39af51193647757ea15467bd42cd41a4bc6d",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      "outputLines": 565,
+      "outputLineBudget": 650,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56"
+    },
+    {
+      "id": "buildings-validation-bridge-repair-a1",
+      "model": "claude-opus-5",
+      "sessionId": "7e311ef6-89d7-48c2-9512-1f1a20dc2412",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/buildings_component_validation_contract.md": "4d865f5d8ae6204f49afd9b4e2bfd802e2652409ba3e0711bf0d59d86669e540",
+        "docs/decisions/0183-buildings-validation-borrows-columns-and-preserves-retired-history.md": "cc8e2e88469ad7bbc2bf741f9157f186e957f37406b5815c11981efb9f2ba4c2",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-save_owner_buildings.gd": "65c07676115721aeafd29034e3f96f0bc86f0b793139dddede66fe4d3f5e2a1d",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/catalog-excerpts.md": "9580d76d9bc6d9d783e8cea6975005489a2de1ea59bef2c7b79e63b7f6048464"
+      },
+      "outputLines": 47,
+      "outputLineBudget": 90,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56"
+    },
+    {
+      "id": "buildings-validation-room-metadata-repair-a1",
+      "model": "claude-opus-5",
+      "sessionId": "7e311ef6-89d7-48c2-9512-1f1a20dc2412",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-save_owner_buildings-repaired.gd": "9bb578433930ded6535169fbd932c9494366510d2972a08e342e93298a8d1012",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/review-followup-decision.md": "75f5b57a83ceb2031b240fba8e58b31542787a09c6e588f1bb47376bd8f8d071"
+      },
+      "outputLines": 47,
+      "outputLineBudget": 100,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56"
+    },
+    {
+      "id": "buildings-validation-source-review-followup-a1",
+      "model": "claude-opus-5",
+      "sessionId": "70fb322f-709f-415c-b81f-391f27386362",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-save_owner_buildings-final.gd": "d6a44702489b988afe525a56f5f82a5feef272d0877ec0664b99279286681c13",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/author-room-metadata-repair.patch": "e324bf380ac9108dec969b6cba8bd80e70f0a3067e8feae3d912a2190534cea5",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/review-followup-decision.md": "75f5b57a83ceb2031b240fba8e58b31542787a09c6e588f1bb47376bd8f8d071",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/review-followup-count-erratum.md": "961329c3f5871236d1132c3057a2682030c2bc9a8d39a336c23528c588e1db49",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/witness-identity.json": "6f2506a17da4a537c4889934fb3078c1b826df953ba9c173f18d2f633b685e05",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-focus.gd": "7106b220e0586a8f5291aaf48b19524f209d632722c620f0bdbf6ee980b29312",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-checks/focus.log": "739a85be1dc9fd3a38e07a4af2782dc08b2f90c7f8f71febf484e836be6e597c",
+        "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-checks/allocation.log": "eb8c016dff7e20538a69ab429e81c18b0831518f579f92908a521092f1150331",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/parent-metadata-v2.py": "4053aa4d62a6d2b626c56531128b7b5d54e49603b9d8f502157065ca31777604",
+        "docs/validation/evidence/buildings-validation-planning-2026-09-20/metadata-cases-v2.json": "2e61a89723c112269961f7ac1d20abe3b16f88d669d4c8738821228c518771c5"
+      },
+      "outputLines": 120,
+      "outputWords": 1181,
+      "outputLineBudget": 160,
+      "outputWordBudget": 1800,
+      "length_targets_advisory": true,
+      "length_target_exceeded": false,
+      "full_text_preserved": true
+    },
+    {
+      "id": "buildings-metadata-witnesses-a1",
+      "model": "claude-sonnet-5",
+      "sessionId": "8e0d13bc-9649-416b-a028-855d720dab65",
+      "state": "complete",
+      "ownerStopped": true,
+      "scope": "two mechanical rename-key witnesses; frozen75 cases retained"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_buildings.gd
+  PASS  test_layout_defaults_and_borrowed_constructor
+  FAIL  test_frozen_scalar_history_geometry_and_priority_images
+        hall-offmap-x-rot0 pure (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-x-rot0 bridge (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-x-rot0 success (expected false, got true)
+        hall-offmap-x-rot0 owner detail (expected true, got false)
+        hall-offmap-x-rot0 raw code detail (expected true, got false)
+        hall-offmap-z-rot0 pure (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-z-rot0 bridge (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-z-rot0 success (expected false, got true)
+        hall-offmap-z-rot0 owner detail (expected true, got false)
+        hall-offmap-z-rot0 raw code detail (expected true, got false)
+        hall-offmap-x-rot1 pure (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-x-rot1 bridge (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-x-rot1 success (expected false, got true)
+        hall-offmap-x-rot1 owner detail (expected true, got false)
+        hall-offmap-x-rot1 raw code detail (expected true, got false)
+        hall-offmap-z-rot1 pure (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-z-rot1 bridge (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-z-rot1 success (expected false, got true)
+        hall-offmap-z-rot1 owner detail (expected true, got false)
+        hall-offmap-z-rot1 raw code detail (expected true, got false)
+        hall-offmap-x-rot2 pure (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-x-rot2 bridge (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-x-rot2 success (expected false, got true)
+        hall-offmap-x-rot2 owner detail (expected true, got false)
+        hall-offmap-x-rot2 raw code detail (expected true, got false)
+        hall-offmap-z-rot2 pure (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-z-rot2 bridge (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-z-rot2 success (expected false, got true)
+        hall-offmap-z-rot2 owner detail (expected true, got false)
+        hall-offmap-z-rot2 raw code detail (expected true, got false)
+        hall-offmap-x-rot3 pure (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-x-rot3 bridge (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-x-rot3 success (expected false, got true)
+        hall-offmap-x-rot3 owner detail (expected true, got false)
+        hall-offmap-x-rot3 raw code detail (expected true, got false)
+        hall-offmap-z-rot3 pure (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-z-rot3 bridge (expected COLUMN_BUILDING_STATE, got )
+        hall-offmap-z-rot3 success (expected false, got true)
+        hall-offmap-z-rot3 owner detail (expected true, got false)
+        hall-offmap-z-rot3 raw code detail (expected true, got false)
+  PASS  test_null_unallocated_all_extents_and_bucket_shapes
+  PASS  test_each_field_at_first_midpoint_and_last_physical_row
+  PASS  test_all_catalog_geometries_at_rotated_map_boundary
+  PASS  test_full_capacity_mixed_live_retired_and_never_used_rows
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 19242 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

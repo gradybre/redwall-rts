@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56",
+  "task": "Independent Buildings review bounded M1 M2 M3 follow-up",
+  "paths": [
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-save_owner_buildings-final.gd",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/author-room-metadata-repair.patch",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/review-followup-decision.md",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/review-followup-count-erratum.md",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/witness-identity.json",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-focus.gd",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-checks/focus.log",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-checks/allocation.log",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/parent-metadata-v2.py",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/metadata-cases-v2.json"
+  ],
+  "resume_attempt": "buildings-validation-source-review-a1",
+  "instructions": "Resume your OWN independent reviewer role, distinct fromallauthor sessions. Your complete154line1584word review was recovered by strippingONLYwhole-responseJSONfence withstrictparser, not rerun/reworded. BoundedfollowupONLYM1/M2/M3andcountmapping. Unchangedowner,contract,originalhelpers remainpreviouscontext; currentfinalbridge/newroompinpatch+v2metatests supplied. M1missingpacketcontext: actualfocusedrunnerlistsONE test_save_owner_buildings.gd;actual6tests19242assertionspass. Separateownerprobe59+6 intentionally65. Deterministicfull171casecontentcomparison and89pure-shapes+additionalbridgefaultmapping supplied. M2implementedroomdictlength/keys/types/ordinals; newstate+roommissing/extra/last-id-type cases give75/675 from69/621. Ownedcoldharnessroommissing/stringcase preservesexistingCORRIDORintegeralias7 onlytoavoidcompiletimealiasbeforemetadatagate; productionaliasesunchanged. M3Astra dispositionkeepscontract-requiredliteralcomparisons bothindependentlyfrozen withactualsourceconstants pinned; arguewithconcretecurrentcounterexampleifstillmustfix. No runtimeclaimfornew75caseversionyet. Existing69metadata/allocation/focuspassedoldbridge;75functionalcampaignstillrunningunchanged. Finalmetadata/focus/allocation/applicablemutationcoverage/static/import/full/CI remainAstra obligation. DoNOT repeatfullunchangedreview. ReturnONE NEW docs/validation/evidence/buildings-component-validation-2026-09-20/source-review-followup.md baseSha256null, conciseverdictandmaterialremainingfindings; advisory80lines1000words, preservecomplete findings iflonger. JSON only, NO Markdownfence. Strictstatuscomplete/summary/questions/files/decisionIds. Noexecutionclaims."
+}

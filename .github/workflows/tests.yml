@@ -20,7 +20,7 @@ jobs:
   godot:
     name: Godot headless suite
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     env:
       # docs/ENVIRONMENT.md: 4.7 is the only version anything has been run
       # against. Pin it rather than tracking latest, so an engine release
@@ -100,6 +100,10 @@ jobs:
         run: python3 tools/test_fishing_metadata_preflights.py
       - name: Movement metadata preflight fault injection
         run: python3 tools/test_movement_metadata_preflights.py
+      - name: Buildings metadata preflight fault injection
+        run: python3 tools/test_buildings_metadata_preflights.py
+      - name: Buildings borrowed-buffer allocation discriminator
+        run: python3 tools/test_buildings_allocation.py
 
       - name: UI refinement contract
         # This one hashes PNGs and asserts their magic bytes. *.png is LFS, so

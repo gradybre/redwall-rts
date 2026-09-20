@@ -1,0 +1,7 @@
+{
+  "scope": "Exact source reconstruction only; production unapplied and runtime not tested",
+  "pending_production_intake": "PR173 merge",
+  "sha256": {
+    "godot/scripts/core/save_owner_buildings.gd": "65c07676115721aeafd29034e3f96f0bc86f0b793139dddede66fe4d3f5e2a1d"
+  }
+}

@@ -1,0 +1,67 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_buildings.gd
+  PASS  test_layout_defaults_and_borrowed_constructor
+  FAIL  test_frozen_scalar_history_geometry_and_priority_images
+        building-b_construction-ref--2-0 pure (expected COLUMN_BUILDING_REF, got )
+        building-b_construction-ref--2-0 bridge (expected COLUMN_BUILDING_REF, got )
+        building-b_construction-ref--2-0 success (expected false, got true)
+        building-b_construction-ref--2-0 owner detail (expected true, got false)
+        building-b_construction-ref--2-0 raw code detail (expected true, got false)
+        building-b_construction-ref-352418-1 pure (expected COLUMN_BUILDING_REF, got )
+        building-b_construction-ref-352418-1 bridge (expected COLUMN_BUILDING_REF, got )
+        building-b_construction-ref-352418-1 success (expected false, got true)
+        building-b_construction-ref-352418-1 owner detail (expected true, got false)
+        building-b_construction-ref-352418-1 raw code detail (expected true, got false)
+        building-b_construction-ref--1-1 pure (expected COLUMN_BUILDING_REF, got )
+        building-b_construction-ref--1-1 bridge (expected COLUMN_BUILDING_REF, got )
+        building-b_construction-ref--1-1 success (expected false, got true)
+        building-b_construction-ref--1-1 owner detail (expected true, got false)
+        building-b_construction-ref--1-1 raw code detail (expected true, got false)
+        building-b_construction-ref-0-0 pure (expected COLUMN_BUILDING_REF, got )
+        building-b_construction-ref-0-0 bridge (expected COLUMN_BUILDING_REF, got )
+        building-b_construction-ref-0-0 success (expected false, got true)
+        building-b_construction-ref-0-0 owner detail (expected true, got false)
+        building-b_construction-ref-0-0 raw code detail (expected true, got false)
+        building-b_construction-ref-0--1 pure (expected COLUMN_BUILDING_REF, got )
+        building-b_construction-ref-0--1 bridge (expected COLUMN_BUILDING_REF, got )
+        building-b_construction-ref-0--1 success (expected false, got true)
+        building-b_construction-ref-0--1 owner detail (expected true, got false)
+        building-b_construction-ref-0--1 raw code detail (expected true, got false)
+  PASS  test_null_unallocated_all_extents_and_bucket_shapes
+  FAIL  test_each_field_at_first_midpoint_and_last_physical_row
+        sampled field9 row0 pure (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field9 row0 bridge (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field9 row0 raw code detail (expected true, got false)
+        sampled field9 row512 pure (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field9 row512 bridge (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field9 row512 raw code detail (expected true, got false)
+        sampled field9 row1023 pure (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field9 row1023 bridge (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field9 row1023 raw code detail (expected true, got false)
+        sampled field10 row0 pure (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field10 row0 bridge (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field10 row0 raw code detail (expected true, got false)
+        sampled field10 row512 pure (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field10 row512 bridge (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field10 row512 raw code detail (expected true, got false)
+        sampled field10 row1023 pure (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field10 row1023 bridge (expected COLUMN_BUILDING_REF, got COLUMN_BUILDING_FREE)
+        sampled field10 row1023 raw code detail (expected true, got false)
+  PASS  test_all_catalog_geometries_at_rotated_map_boundary
+  PASS  test_full_capacity_mixed_live_retired_and_never_used_rows
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 19242 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

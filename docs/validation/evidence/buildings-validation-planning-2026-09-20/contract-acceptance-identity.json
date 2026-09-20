@@ -1,0 +1,15 @@
+{
+  "status": "accepted_for_bounded_implementation_not_runtime",
+  "before": {
+    "docs/planning/buildings_component_validation_contract.md": "87751ac48922a9f5af2f29b6e06dd3332c79e78bdb0462cee8daaf878bd2e5cf",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-witnesses.json": "1a19845b5e84f45f66767f6b9640f71c82a1c357f62a8ff79c7d9caf51bb9b3f",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/mutation-witness-plan.md": "d930105219926edb361e6ab58a228d386f1ee4fe852d0d252e54ffecad8d733d"
+  },
+  "after": {
+    "docs/planning/buildings_component_validation_contract.md": "4d865f5d8ae6204f49afd9b4e2bfd802e2652409ba3e0711bf0d59d86669e540",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-witnesses.json": "db931a9c00b7cc7aa42750596fea6d14f10f7be96dd0215d45bc67b3d3dce0f5",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/mutation-witness-plan.md": "d9f9e40b7172d7d281ae72d4f2d259a6ab5cd6b74b34035b76c395bf201b30df"
+  },
+  "planned_value_cases": 171,
+  "planned_semantic_units": 76
+}

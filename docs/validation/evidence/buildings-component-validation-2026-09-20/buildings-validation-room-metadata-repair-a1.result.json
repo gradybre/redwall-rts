@@ -1,0 +1,32 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "7e311ef6-89d7-48c2-9512-1f1a20dc2412",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 5373,
+    "cacheReadTokens": 32403,
+    "cacheCreationTokens": 33521,
+    "costEstimateUsd": 0.4857465
+  },
+  "elapsedMs": 51573,
+  "pid": 62754,
+  "exitCode": 0,
+  "state": "complete",
+  "result": {
+    "status": "complete",
+    "summary": "Follow-up authoring only, continuing my prior bridge-repair role. Produced one new evidence patch, docs/validation/evidence/buildings-component-validation-2026-09-20/author-room-metadata-repair.patch (baseSha256 null), a unified diff over ONLY godot/scripts/core/save_owner_buildings.gd applied onto the supplied current bridge (candidate-save_owner_buildings-repaired.gd, which already carries my BUILDING_STATE pin). It implements exactly Astra disposition M2 and nothing else. Hunk 1 adds one typed constant Array[String] SOURCE_ROOM_TYPE_KEYS holding the eight protected keys in ordinal order (DORMITORY, PRIVATE_ROOM, KITCHEN, DINING, COMMON, INFIRMARY, PANTRY, CORRIDOR), placed immediately after the existing SOURCE_ROOM_TYPE_CORRIDOR pin; the eight integer ROOM_TYPE_* alias constants and their existing rooms_ok comparison block are untouched. Hunk 2 mirrors the state block: _source_state_refusal's tail now returns the new _source_room_type_refusal(), which pins the bridge's own key-array length against SOURCE_ROOM_TYPE_COUNT (8), then Buildings.Catalog.ROOM_TYPE.size() == 8, then per key has(key), typeof(id) == TYPE_INT and value == the exact expected ordinal 0..7, coercing only after the type check, and then returns _tier_two_refusal() so the existing source chain order (ordinal -> state -> room type -> tier two -> dictionary sizes -> building facts -> furniture facts) is preserved and still completes before gate 5 projection or any column indexing. All refusals use Section.REFUSE_METADATA with the unchanged METADATA_DETAIL_PREFIX literal; the distinct gate-7 prefix and its spacing are untouched. This is a bounded eight-iteration preflight over the compiled immutable dictionary reached through the existing Buildings preload, with no per-row allocation, no new preload, no live Buildings/Definitions/Directory construction, no float, and no duplicate/resize/serialisation. Per M3, the existing literal 16384/81920 child-extent comparisons and every other expression, docstring, constant and the 29 projection assignments are byte-preserved; no test, harness, doc or case-count change is included, since those remain Astra-owned. Patch body is 46 lines total across two hunks (hard bound 100, aim 50). Diff text is authored only; nothing was run, applied, imported, measured or verified here, and no engine-observed result is claimed.",
+    "questions": [],
+    "files": [
+      {
+        "path": "docs/validation/evidence/buildings-component-validation-2026-09-20/author-room-metadata-repair.patch",
+        "content": "diff --git a/godot/scripts/core/save_owner_buildings.gd b/godot/scripts/core/save_owner_buildings.gd\n--- a/godot/scripts/core/save_owner_buildings.gd\n+++ b/godot/scripts/core/save_owner_buildings.gd\n@@ -157,3 +157,7 @@\n const SOURCE_ROOM_TYPE_PANTRY: int = 6\n const SOURCE_ROOM_TYPE_CORRIDOR: int = 7\n+const SOURCE_ROOM_TYPE_KEYS: Array[String] = [\n+\t\"DORMITORY\", \"PRIVATE_ROOM\", \"KITCHEN\", \"DINING\",\n+\t\"COMMON\", \"INFIRMARY\", \"PANTRY\", \"CORRIDOR\",\n+]\n ## The fact-row column ordinals and tier-two key order this bridge indexes through.\n@@ -393,8 +397,33 @@ static func _source_state_refusal() -> SaveHeader.Refusal:\n \t\tvar state_id: Variant = Buildings.Catalog.BUILDING_STATE[key]\n \t\tif typeof(state_id) != TYPE_INT or int(state_id) != ordinal:\n \t\t\treturn _refuse(Section.REFUSE_METADATA, \"%s '%s' is not integer state ordinal %d\"\n \t\t\t\t% [METADATA_DETAIL_PREFIX, key, ordinal])\n-\treturn _tier_two_refusal()\n+\treturn _source_room_type_refusal()\n+\n+\n+static func _source_room_type_refusal() -> SaveHeader.Refusal:\n+\t\"\"\"Gate 4: ALL EIGHT protected RoomType ordinals, from the compiled catalog dictionary.\n+\n+\tThe ROOM_TYPE_* alias pins above stay. Size, key existence and integer type are proven\n+\tbefore any id is coerced, so a renumbered or truncated ROOM_TYPE refuses METADATA here,\n+\tbefore gate 5 projects or indexes a single column.\n+\t\"\"\"\n+\tif SOURCE_ROOM_TYPE_KEYS.size() != SOURCE_ROOM_TYPE_COUNT:\n+\t\treturn _refuse(Section.REFUSE_METADATA, \"%s this bridge pins %d room type keys, not %d\"\n+\t\t\t% [METADATA_DETAIL_PREFIX, SOURCE_ROOM_TYPE_KEYS.size(), SOURCE_ROOM_TYPE_COUNT])\n+\tif Buildings.Catalog.ROOM_TYPE.size() != SOURCE_ROOM_TYPE_COUNT:\n+\t\treturn _refuse(Section.REFUSE_METADATA, \"%s ROOM_TYPE holds %d room types, not %d\"\n+\t\t\t% [METADATA_DETAIL_PREFIX, Buildings.Catalog.ROOM_TYPE.size(),\n+\t\t\t\tSOURCE_ROOM_TYPE_COUNT])\n+\tfor ordinal: int in SOURCE_ROOM_TYPE_COUNT:\n+\t\tvar key: String = SOURCE_ROOM_TYPE_KEYS[ordinal]\n+\t\tif not Buildings.Catalog.ROOM_TYPE.has(key):\n+\t\t\treturn _refuse(Section.REFUSE_METADATA, \"%s ROOM_TYPE has no '%s' key\"\n+\t\t\t\t% [METADATA_DETAIL_PREFIX, key])\n+\t\tvar room_id: Variant = Buildings.Catalog.ROOM_TYPE[key]\n+\t\tif typeof(room_id) != TYPE_INT or int(room_id) != ordinal:\n+\t\t\treturn _refuse(Section.REFUSE_METADATA, \"%s '%s' is not integer room ordinal %d\"\n+\t\t\t\t% [METADATA_DETAIL_PREFIX, key, ordinal])\n+\treturn _tier_two_refusal()\n \n \n static func _tier_two_refusal() -> SaveHeader.Refusal:\n",
+        "baseSha256": null
+      }
+    ],
+    "decisionIds": [
+      "0183"
+    ]
+  }
+}

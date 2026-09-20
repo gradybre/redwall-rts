@@ -1,0 +1,69 @@
+[
+  {
+    "attempt": "stock-age-columns-audit-a1",
+    "model": "claude-opus-5",
+    "session_id": "61ffdc65-0e2b-4ad1-9c03-c2bf73d4e84b",
+    "state": "invalid_output",
+    "intake": "parent-validated new-file metadata recovery",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/validation/evidence/stock-age-columns-contract-2026-09-19/astra-source-notes.md",
+        "sha256": "37cfeaabe894ec609b65fdcf81a50eae717c7d855c2f7344a085dc68fc78d2f9"
+      },
+      {
+        "path": "godot/scripts/core/stock_age.gd",
+        "sha256": "339b85a374bdabe1242474f25fbbf4b16ffd42e077c52156d49db1fe5fecd557"
+      },
+      {
+        "path": "godot/scripts/core/save_section_inventories.gd",
+        "sha256": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567"
+      },
+      {
+        "path": "godot/test/test_stock_age.gd",
+        "sha256": "ba96adf98ef405ccd0dc4131c24f7297fa0dd126f925ebe84964a6cbbcfcf140"
+      },
+      {
+        "path": "docs/persistence_state_registry.md",
+        "sha256": "f2ebb34ef20de1f691c89026c5ec1e9e3aa1851ee4ced1a49901d9b49338e421"
+      }
+    ]
+  },
+  {
+    "attempt": "stock-age-columns-contract-a1",
+    "model": "claude-opus-5",
+    "session_id": "46d58c0b-7286-49f6-8b37-de928d5ceb65",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/stock_age_columns_contract.md",
+        "sha256": "cdaae1a8f29a727ea8bc6e8abc98834451b80968475510b2351b54323b94c721"
+      },
+      {
+        "path": "docs/validation/evidence/stock-age-columns-contract-2026-09-19/astra-audit-disposition.md",
+        "sha256": "f8b601ccfec04732e1f4592b677a879fc8de2359d2192e06662e75c5b17d7068"
+      },
+      {
+        "path": "docs/validation/evidence/stock-age-columns-contract-2026-09-19/probe-disposition.md",
+        "sha256": "7cf2c3f5323d395a5aa5bcaa96a30081d695b839effc98f22707c61ccaf61789"
+      },
+      {
+        "path": "docs/validation/evidence/stock-age-columns-contract-2026-09-19/order_probe.log",
+        "sha256": "897804a961403cffa32c9e79c55c83de8bc87b9cfd38d3b615c29ec7cd998df8"
+      },
+      {
+        "path": "godot/scripts/core/stock_age.gd",
+        "sha256": "339b85a374bdabe1242474f25fbbf4b16ffd42e077c52156d49db1fe5fecd557"
+      },
+      {
+        "path": "godot/scripts/core/save_section_inventories.gd",
+        "sha256": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567"
+      },
+      {
+        "path": "godot/scripts/core/item_definitions.gd",
+        "sha256": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551"
+      }
+    ]
+  }
+]

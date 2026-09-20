@@ -1,0 +1,42 @@
+{
+  "attempts": [
+    {
+      "id": "stock-age-columns-a1",
+      "role": "author",
+      "model": "claude-opus-5",
+      "sessionId": "aac5055c-a1e9-47e3-bd05-01c894676cf7",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/stock_age_columns_contract.md": "c3d82a316e445211749c0101609aa5b1dc3aa34cdc8258435e0c67b8bbdd2ae9",
+        "docs/decisions/0162-restore-storage-aging-order-and-hour-latch-exactly.md": "b620a81f050f2e658bbc843e63b1651628f46acdd2d835c4f9061c9c2123dc67",
+        "docs/validation/evidence/stock-age-columns-contract-2026-09-19/contract-v1-disposition.md": "fb54b38988898717ae6c18f065cffc128389eeb0fa9360c8be5d073f29f6f009",
+        "docs/validation/evidence/stock-age-columns-contract-2026-09-19/bound-api-excerpts.md": "385949b5e77d5431b875425e46193e77a934745d93bc7314a5b797c5296e4c86",
+        "godot/scripts/core/stock_age.gd": "339b85a374bdabe1242474f25fbbf4b16ffd42e077c52156d49db1fe5fecd557",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      "intake": "Exact two-file allowlist, absent targets and every input SHA verified; fragment appended verbatim."
+    },
+    {
+      "id": "stock-age-columns-review-a1",
+      "role": "independent reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "12028bec-b8dd-4f67-ae3f-b166811f7dfe",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/stock_age_columns_contract.md": "c3d82a316e445211749c0101609aa5b1dc3aa34cdc8258435e0c67b8bbdd2ae9",
+        "docs/decisions/0162-restore-storage-aging-order-and-hour-latch-exactly.md": "b620a81f050f2e658bbc843e63b1651628f46acdd2d835c4f9061c9c2123dc67",
+        "godot/scripts/core/stock_age.gd": "61bcce6b34ac847786b64d26696a900850e194951ee5a8a18b287b75ec674d08",
+        "godot/scripts/core/save_stock_age_restore.gd": "39e2071d3c4b4e8324d682464cf4a8523611a9d35de9cdf81da42717a7c081c9",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "docs/validation/evidence/stock-age-columns-contract-2026-09-19/bound-api-excerpts.md": "385949b5e77d5431b875425e46193e77a934745d93bc7314a5b797c5296e4c86",
+        "godot/test/test_stock_age_columns.gd": "6b68610e74e029a035cf417324aa7672d63ab31ff67691d18a4d430c75462f04",
+        "docs/validation/evidence/stock-age-columns-2026-09-19/focus-second.log": "8a7ca228f0198a6cdd71d0a98c85cfe9019ac4d61dd28e93ea61311d5286ab1b",
+        "docs/validation/evidence/stock-age-columns-contract-2026-09-19/wire-baseline.json": "482b2143a53fa1b828716d1a19c517de70e38e24d78878dc7f0fded495ccd07f"
+      },
+      "intake": "Exact new review path and every input SHA verified."
+    }
+  ]
+}

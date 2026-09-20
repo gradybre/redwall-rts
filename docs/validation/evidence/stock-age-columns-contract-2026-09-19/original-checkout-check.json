@@ -1,0 +1,7 @@
+{
+  "original_head": "3e094e927c822056b51953aac4168b77acdee814",
+  "porcelain_status_lines": 358,
+  "rename_entries": 0,
+  "inventoried_changed_files": [],
+  "note": "Read-only check. All previously hashed differing/local-only files unchanged; head unchanged. Current status has358entries versus356reported initially; .agents/ and .codex/ local configuration directories are present and were left untouched. No source-change inference from status count alone."
+}

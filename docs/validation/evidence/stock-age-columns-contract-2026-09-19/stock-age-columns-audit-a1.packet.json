@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "04791eb6ad7c99648a90289fbf21dbff42d9a23b",
+  "task": "Read-only feasibility audit for exact StockAge owner columns and section7 adapter",
+  "paths": [
+    "docs/validation/evidence/stock-age-columns-contract-2026-09-19/astra-source-notes.md",
+    "godot/scripts/core/stock_age.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/test/test_stock_age.gd",
+    "docs/persistence_state_registry.md"
+  ],
+  "instructions": "Read-only bounded feasibility audit. Astra will author exact contract next. Need close one of5remainingI1owners without making fullsection7/worldsave claims. Inspect allStockAge futureaffectingstate, naturalstale declarations, exact dense-list order/tails/hour latch, binds/catalogcaches, failure/transaction/refusal behavior and actual section7shape. Recommend concrete owner-nested typed Columns API plus separate adapter accepting only Codec.OwnerRecord (avoid allocatingall6owners and avoidcycle). Enumerate exact scalar/arraytypes/extents, validationdomains/refusalorder, reference/latch rules consistent withnaturalruntime andexistingwire, successscratch/cachepolicy, failureatomicity, coldmemorypayload and independentcontinuationtests including lotfree-stack order. Identify contract gaps or source bugs needed before author dispatch; do notinventgameplay or require ordinary userapprovals. No source edits/tools. Return exactJSON status complete,summary,questions[],files exactly one NEW docs/validation/evidence/stock-age-columns-contract-2026-09-19/feasibility-audit.md baseSha256 null content<=2200words,decisionIds[]."
+}

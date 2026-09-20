@@ -779,6 +779,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---|---|---|:-:|---|---|
 | Pure owner15 pose and binding validator | -- | -- | -- | -- | 3 | -- | Decision0173 / TRANSFORMS-S4-VALIDATE-R01v1. No mutable module state or live owner/Directory construction. Nine typed caller-owned i32 columns feed the static predicate; positive binding uniqueness uses one private350208-byte duplicate-and-sort. Framed3151872 + scratch350208 + three65536stream windows =3698688logical packed bytes, below existing6417408one-owner stream allowance. Native/wrapper overhead is unmeasured. Preserve all signed pose/yaw values, independent current/previous and legitimate stale bindings. Bulk APIs/nonzero-stamp count rebuild and saved cursor/Directory identity remain separate. |
 
+### `godot/scripts/core/save_owner_residents.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---|---|---|:-:|---|---|
+| Residents saved validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner12 bridge, RESIDENTS-S4-VALIDATE-R01v1/ADR0178. No mutable authoritative state or live Residents construction. Existing caller Columns projection shares framed buffers; conservatively caller102912 + transient defaults102912 + existingXPsort49152 =254976logical packedbytes within6417408stream allowance, not measuredRSS. Native/wrapper overhead unmeasured. Catalog/Directory/Needs/names/equipment and complete restore remain RESIDENTS-SAVED-BINDINGS. |
+
 ### `godot/scripts/core/save_owner_injury.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

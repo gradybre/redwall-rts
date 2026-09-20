@@ -1,0 +1,54 @@
+{
+  "attempts": [
+    {
+      "id": "residents-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "3be23b32-e18e-4fe5-add8-776bbc23d7c2",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md": "98bd435dbf7482871d33e0bedeb4c16ad99b4c6d5c4aebddd988fd607af16b14",
+        "godot/scripts/core/residents.gd": "7ce35ffc7e14ff9e8ba86d70d54a1401e0814751d0b71779d92ba476cd89655c",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+        "godot/scripts/core/save_owner_needs.gd": "eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/test/test_residents_columns.gd": "e0fe9ac4245ef419745c95411ae6def42eab28579439f2401ec3d908d42b65a7",
+        "docs/validation/evidence/residents-validation-planning-2026-09-20/astra-source-note.md": "4e223e9ca2c322c89fb5ea226fe9b4cb9e11bc26055b92ff7c77aeb150c1c379",
+        "docs/planning/needs_component_validation_contract.md": "c36bb968d5413273003c7c246562cc6d6bb6a5feaba240d17258a369e5196c61"
+      },
+      "outputLines": 63,
+      "outputWords": 629,
+      "outputLineBudget": 70,
+      "outputWordBudget": 700
+    },
+    {
+      "id": "residents-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "2faa5288-f27b-4670-8504-30633e70464e",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/residents_component_validation_contract.md": "06974d8c1b7cdcbaca510f5efcbdc9e4d7f038edee75947ef2b4ebb8cc20aa1b",
+        "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md": "98bd435dbf7482871d33e0bedeb4c16ad99b4c6d5c4aebddd988fd607af16b14",
+        "godot/scripts/core/residents.gd": "7ce35ffc7e14ff9e8ba86d70d54a1401e0814751d0b71779d92ba476cd89655c",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/save_owner_needs.gd": "eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/test/test_residents_columns.gd": "e0fe9ac4245ef419745c95411ae6def42eab28579439f2401ec3d908d42b65a7",
+        "docs/validation/evidence/residents-validation-planning-2026-09-20/feasibility-review.md": "f1963e9601335808ec0ed457ca269c35575c6b97a88c2fce15cd585d530d3156",
+        "docs/validation/evidence/residents-validation-planning-2026-09-20/feasibility-disposition.md": "b2f7df7a1f58726ca9d88742dc349558280ee7e3a129ebf4bd13bb3266c03d52",
+        "docs/validation/evidence/residents-validation-planning-2026-09-20/probe-disposition.md": "d4ade234ae8b3b1474cea5ec44836264ae45a61fafb108a35e137633bf0816e6",
+        "docs/validation/evidence/residents-validation-planning-2026-09-20/public-history-probe.log": "d59be2269ab5052cafeced3013587fbbfbf024f2ef7244022d065592fa61de5e",
+        "docs/validation/evidence/residents-validation-planning-2026-09-20/null-capture-probe.log": "4d3d100dde93259e141fe6099b29816cf68d205c8a5ab633b393fb30143b9517",
+        "docs/validation/evidence/residents-validation-planning-2026-09-20/null-restore-probe.log": "b46e17eaf86a98a3c97cce86a786bb7203293def4d6fbfc54191db202c8cbcd9"
+      },
+      "outputLines": 77,
+      "outputWords": 674,
+      "outputLineBudget": 80,
+      "outputWordBudget": 800
+    }
+  ]
+}

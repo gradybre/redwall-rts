@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "46226e8e6fd5a1af4aeaee47fb5164a09dd7afb0",
+  "task": "Residents existing-store implementation only; bounded retry after invalid combined output",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/residents_component_validation_contract.md",
+    "docs/decisions/0178-residents-validation-preserves-live-priority-and-retained-history.md",
+    "godot/scripts/core/residents.gd",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/contract-disposition.md"
+  ],
+  "instructions": "Implement ONLY existing godot/scripts/core/residents.gd portions of accepted RESIDENTS-S4-VALIDATE-R01v1/ADR0178. Separateworkerwillauthorbridge. Previouscombinedworker outputBUNDLE_NOT_JSON, nothingapplied. Return compact validJSON onefilesentry path docs/validation/evidence/residents-component-validation-2026-09-20/author-owner.patch baseSha256null contentUNIFIEDDIFF. HARD400actualpatchlines AIM220. Do NOTemitfullfile, testcode or bridge. KeepJSONstringscorrectlyescaped; nopreamble/Markdown. Addstaticcolumns_refusal(Columns), sharedstaticprefix retainingexistingsequence, savedpresentrowloop withsharedspeciesrange/arrivalhelpers. LIVErestore catalogfirst\u2192prefix\u2192EXISTINGperrowspecies/size/arrival/Directory inoriginalpositions using scalarhelpers. DoNOTcallwholesavedpredicatefromliverestore. Publicinstance skill_level_for_xp wrapsone staticcurvehelper, restunchanged; existing sortedXPcopy. Sharedshape nullguard safe capture/restore. AddINVALID_ARRIVAL_TICK OpResult constant and guard AFTERNOT_PRESENT BEFOREwriteusing sharedarrivalpolicy. Preservefullsignedinactivehistory/shapeonlyrefs/presentcap. Convert argument-only helpers tostatic asnecessarywithoutunrelatedrewrites; fix wronghome/bedlivenesscomment toactualself-only. Contract48mutants/bridge/testownedbyparent. No newpublicgetters/schema/capturechanges. Summary<=120words; questionsonlyifactualblocker. RawJSONstatus/summary/questions/files/decisionIds. Consume0178andcontractexplicitly."
+}

@@ -1,0 +1,22 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "46226e8e6fd5a1af4aeaee47fb5164a09dd7afb0",
+  "task": "Implement Residents owner12 pure validation and bounded arrival/null repairs",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/residents_component_validation_contract.md",
+    "docs/decisions/0178-residents-validation-preserves-live-priority-and-retained-history.md",
+    "godot/scripts/core/residents.gd",
+    "godot/scripts/core/save_owner_needs.gd",
+    "godot/scripts/core/save_owner_injury.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/contract-review.md",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/probe-disposition.md",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/parent-test-draft.gd"
+  ],
+  "instructions": "IMPLEMENT accepted RESIDENTS-S4-VALIDATE-R01v1/ADR0178 exactly. Only modify godot/scripts/core/residents.gd and add godot/scripts/core/save_owner_residents.gd. Parentowns tests/metadata/registry/CI. Preserve existingColumns API and live catalog-first thenPER-ROWspecies,size,arrival,Directorypriority. Add staticcolumns_refusal, sharedstaticprefix +sharedspecies/arrival scalarhelpers reusedinlivewalker; doNOTcallwholesavedpredicateinliverestore. Keep publicinstancecurvewrapper\u2192staticpurehelper, existingXPsortedcopy budget254976, freehistorysigneddomains/globalshapeonlyrefs/current256presentcap. Sharedshape nullguard; newOpResultINVALID_ARRIVAL_TICK afterNOT_PRESENT using samearrivalrulebeforewrite. Correct source reference-helper comment falselyclaiminglivehome/bedresolution (actualonlyself) and no unrelatedcode. Newbridge7gatesNeedsstyle, all19explicit typed mappings, allsourcepins/metadata/declarationarrayparity contract; ordinarycoldwrapper/Columnsallocation acknowledged, noResidentsconstructor/livecontext. Hardoutput750actualpatchlines aim500; oneNEW docs/validation/evidence/residents-component-validation-2026-09-20/author.patch baseSha256null with unifiedgitpatch, plus structuredsummary/questions. DoNOTwrite files directly, no tools/runningclaim, no tests edits/new getters/schema changes. Valid hunk context/counts; parentgitapply--recount--check. State consumed contract/ADR. Parenttestdraft is notpassed evidence and may needcorrection independently. No patch outside2targetpaths. ReturnrawJSONstatus/summary/questions/files/decisionIds."
+}

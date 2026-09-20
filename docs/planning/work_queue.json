@@ -1799,7 +1799,9 @@
         "SAVE-S4-RESOURCE-NODES-VALIDATE",
         "RESOURCE-NODES-SAVED-BINDINGS",
         "SAVE-S4-INJURY-VALIDATE",
-        "INJURY-SAVED-BINDINGS"
+        "INJURY-SAVED-BINDINGS",
+        "SAVE-S4-RESIDENTS-VALIDATE",
+        "RESIDENTS-SAVED-BINDINGS"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -2051,7 +2053,7 @@
     {
       "id": "SAVE-S4-INJURY-VALIDATE",
       "title": "Validate Injury columns and refuse untreated-counter overflow atomically",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -2066,7 +2068,10 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance INJURY-S4-VALIDATE-R01v1/ADR0177:full4951/354744/0,focus9/14578/0,33required mutants +8metadata bypasses caught,18metadata cases,17static gates/import and final independent source review pass. Atomic untreatedMAX preflight fixes injected originalbug without partial patient progress. Healthy/stale history preserved; no new packed scratch. Exact-head CI pending; saved cross-owner bindings and bulk restoration remain separate."
+      "note": "Local acceptance INJURY-S4-VALIDATE-R01v1/ADR0177:full4951/354744/0,focus9/14578/0,33required mutants +8metadata bypasses caught,18metadata cases,17static gates/import and final independent source review pass. Atomic untreatedMAX preflight fixes injected originalbug without partial patient progress. Healthy/stale history preserved; no new packed scratch. Merged PR168 after CI35502705165 passed4951/354744/0 and18metadata cases; saved cross-owner bindings and bulk restoration remain separate.",
+      "pr": 168,
+      "merge_commit": "bc78d3215bfb0c405c21a734bd53d41ea92df811",
+      "merged_at": "2026-09-20T09:56:00Z"
     },
     {
       "id": "INJURY-SAVED-BINDINGS",
@@ -2081,6 +2086,40 @@
       "agent": "astra",
       "gate": "none",
       "note": "Required before section4 semantic acceptance: same-file Needs/resident presence, health/status agreement, patient/rescuer Directory kind and identity, self-rescue, movement care context and derived counts. No live-world lookups or blanket ban on healthy/stale rescuer history. Define explicit saved projections/provenance before implementation; bulk restore stays separate."
+    },
+    {
+      "id": "SAVE-S4-RESIDENTS-VALIDATE",
+      "title": "Validate Residents columns while preserving live restore priority and inactive history",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/residents.gd",
+        "godot/scripts/core/save_owner_residents.gd",
+        "godot/test/test_save_owner_residents.gd",
+        "godot/test/residents_validation_focus.gd",
+        "tools/test_residents_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance RESIDENTS-S4-VALIDATE-R01v1/ADR0178: full4960/402166/0, focus9/47422/0;48required mutations detected (47assertion +1knownnull-runtimeerror),8metadata bypasses,27metadata cases/243assertions;17static gates/import and independent source review pass. Mutation campaign used frozen47336assertion tests before two additive valid endpoints. Negative arrival/null producer defects repaired with legacy refusal order and inactive signed history preserved. Exact-head CI pending; saved bindings remain separate."
+    },
+    {
+      "id": "RESIDENTS-SAVED-BINDINGS",
+      "title": "Reconcile saved Residents with catalog, Directory, Needs, names and equipment ownership",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-RESIDENTS-VALIDATE"
+      ],
+      "owns": [
+        "docs/planning/residents_saved_binding_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Required before section4 semantic acceptance: verified compiled species-size, Directory self kind/typed-row/unique identity and target policies for home/bed, same-file Needs/death commit barrier, section14 named/string agreement, Gear/item/container ownership and provenance. Preserve legitimate stale/inactive history; genericref shape doesnotproveidentity. Existing256present cap preserved locally; lifecycle reconciliation remains explicit. Existing live capture/restore APIs do not establish complete saved-world publication."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

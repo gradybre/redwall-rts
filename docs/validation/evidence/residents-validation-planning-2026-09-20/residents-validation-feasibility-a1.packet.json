@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "069822c7fbc9c091241540e155470190ac00ee0c",
+  "task": "Residents owner12 pure saved validation feasibility and producer-domain review",
+  "paths": [
+    "AGENTS.md",
+    "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md",
+    "godot/scripts/core/residents.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/needs.gd",
+    "godot/scripts/core/save_owner_needs.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/test/test_residents_columns.gd",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/astra-source-note.md",
+    "docs/planning/needs_component_validation_contract.md"
+  ],
+  "instructions": "Read-only independent feasibility, noimplementation. Owner12v2 19columns102912bytes existingColumns API ADR0132 explicitly favorsColumns over19positionalparams. Needpurestaticlocalvalidation/sharedrules with existinglive restore but no liveDirectory/catalog construction in framedbridge. Recommend API and gate structure preserving existing live restore catalogfirst and final PER-ROW speciesrange,sizecatalog,arrival,Directory priority while savedlocalchecks include present species0..15 and arrival>=0, but no catalogsize/Directorylookup. Shared prefix +shared scalar helper boundaries may avoid duplicating policy; do not silently change legacyrefusalorder. Fixed transient Columns defaults102912 accepted if budget explicit; existing skillXPsortcopy49152 can replace pure count scan, no silentmemoryclaim. Bridge can instantiate Columns only notResidents, assign19canonicaltypedarrays. Domainsfree retained species/all signedarrival/home/bed/skills; presentcount<=256 currentlysameDirectoryactivecap; donotdeclarecapbugwithout lifecycleauthority. Genericreferencepairs anynonnegativei32slot/positivegen, notglobalcap; selfrefs savedidentitydeferred. Publicarrival setter currentlyallowsnegative thenrestore rejects; propose atomic invalidtickrefusal new OpResultcode without erasing oldinactivehistories. copy_columns_into/nullrestore unguarded shape mayscript-error; nullguard needed. Sourceonly so actualprobespending, doNOTsayobserved. Consider whether moving skill_level_for_xp tostatic breakscallers/style vs statichelperdelegate. Enumerate hazards, exact feasible approach, missingdecisions; no fullcontract needed. OutputONE NEW docs/validation/evidence/residents-validation-planning-2026-09-20/feasibility-review.md baseSha256null HARD70lines700words AIM40lines450words. Output compact paragraphs, countconservatively. RawJSONstatus/summary/questions/files/decisionIds."
+}

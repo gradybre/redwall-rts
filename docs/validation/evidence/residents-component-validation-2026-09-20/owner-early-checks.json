@@ -1,0 +1,20 @@
+[
+  {
+    "case": "null-capture-after",
+    "exit_code": 0,
+    "expected": "returned=false diagnostic=COLUMN_SHAPE",
+    "script_errors": false
+  },
+  {
+    "case": "null-restore-after",
+    "exit_code": 0,
+    "expected": "returned=false diagnostic=COLUMN_SHAPE",
+    "script_errors": false
+  },
+  {
+    "case": "live-priority-after",
+    "exit_code": 0,
+    "expected": "assertions=14 failures=0",
+    "script_errors": false
+  }
+]

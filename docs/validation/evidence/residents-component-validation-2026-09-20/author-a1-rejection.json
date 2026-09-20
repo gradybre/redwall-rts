@@ -1,0 +1,8 @@
+{
+  "attempt": "residents-validation-author-a1",
+  "state": "invalid_output",
+  "ownerStopped": true,
+  "reason": "BUNDLE_NOT_JSON",
+  "applied": false,
+  "recovery": "Two smaller bounded source-only patches, sequential workers, no partial original output recovered or applied"
+}

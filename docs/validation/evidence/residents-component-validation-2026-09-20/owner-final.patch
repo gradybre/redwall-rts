@@ -1,0 +1,261 @@
+diff --git a/godot/scripts/core/residents.gd b/godot/scripts/core/residents.gd
+index e8d1b56..d240163 100644
+--- a/godot/scripts/core/residents.gd
++++ b/godot/scripts/core/residents.gd
+@@ -292,6 +292,8 @@ const REFUSE_UNKNOWN_SPECIES: StringName = &"UNKNOWN_SPECIES"
+ const REFUSE_INVALID_ROLE: StringName = &"INVALID_ROLE"
+ const REFUSE_INVALID_SKILL: StringName = &"INVALID_SKILL"
+ const REFUSE_INVALID_XP: StringName = &"INVALID_XP"
++## ADR0178: a negative arrival tick, refused at the producer before any write.
++const REFUSE_INVALID_ARRIVAL_TICK: StringName = &"INVALID_ARRIVAL_TICK"
+ const REFUSE_INVALID_COUNT: StringName = &"INVALID_COUNT"
+ ## NAME-R02's five name refusals. Five codes and not one, because a load report that said only
+ ## "bad name" could not tell an over-long alias from a corrupted flag/string pair.
+@@ -1194,10 +1196,20 @@ func skill_level_into(slot: int, skill: int, out: IntMath.IntResult) -> bool:
+ 
+ 
+ func skill_level_for_xp(xp: int) -> int:
+-	"""GDD §5.3 level curve: the largest L <= 10 with xp >= 5000*L*L.
++	"""GDD §5.3 level curve for one XP total. A wrapper; the rule is `_skill_level_curve()`.
++
++	Kept as the public instance method every existing caller already uses, so validation,
++	`set_skill_xp()` and the starter cohort all read one curve and not three transcriptions.
++	"""
++	return _skill_level_curve(xp)
++
++
++static func _skill_level_curve(xp: int) -> int:
++	"""The bounded integer curve itself: the largest L <= 10 with xp >= 5000*L*L.
+ 
+ 	Equivalent to min(10, floor_sqrt(floor(xp/5000))) without a square root, so the cumulative
+ 	table 0, 5000, 20000, 45000, ... 500000 is reproduced exactly in integers.
++	Negative XP still answers level 0, and nothing here multiplies by unbounded XP.
+ 	"""
+ 	if xp < 0:
+ 		return 0
+@@ -1410,9 +1422,18 @@ func set_selected(slot: int, selected: bool) -> OpResult:
+ 
+ 
+ func set_arrival_tick(slot: int, tick: int) -> OpResult:
+-	"""Record the tick a resident joined the settlement."""
++	"""Record the tick a resident joined the settlement, refusing a negative tick (ADR0178).
++
++	NOT_PRESENT stays FIRST, so an absent row still reports absence rather than a tick problem.
++	The tick rule is the shared one `_arrival_tick_is_valid()` publishes, checked before any
++	write, so a refused call leaves every canonical byte of the row untouched. Retained INACTIVE
++	rows are outside the rule: a departed row keeps its full signed history and is never
++	normalized here. The column diagnostic spelling stays COLUMN_ARRIVAL_TICK.
++	"""
+ 	if not is_present(slot):
+ 		return _refuse(REFUSE_NOT_PRESENT)
++	if not _arrival_tick_is_valid(tick):
++		return _refuse(REFUSE_INVALID_ARRIVAL_TICK)
+ 	_arrival_tick[slot] = tick
+ 	return _succeed(tick, ref_of(slot))
+ 
+@@ -2004,8 +2025,16 @@ func state_bytes() -> PackedByteArray:
+ 	return image
+ 
+ 
+-func _columns_are_capacity_sized(columns: Columns) -> bool:
+-	"""True when every one of the nineteen buffers is exactly its declared extent."""
++static func _columns_are_capacity_sized(columns: Columns) -> bool:
++	"""True when `columns` exists and all nineteen buffers are exactly their declared extents.
++
++	THE NULL GUARD IS THE ADR0178 REPAIR. `copy_columns_into(null)` and `restore_columns(null)`
++	already answered false with COLUMN_SHAPE, but only after indexing a Nil `skill_xp`, which
++	emitted a SCRIPT ERROR first. Refusing a null image before any member access removes that
++	error and leaves the answer and the code exactly as they were.
++	"""
++	if columns == null:
++		return false
+ 	if columns.skill_xp.size() != RESIDENT_CAPACITY * SKILL_COUNT:
+ 		return false
+ 	if columns.skill_level.size() != RESIDENT_CAPACITY * SKILL_COUNT:
+@@ -2025,10 +2054,36 @@ func _columns_are_capacity_sized(columns: Columns) -> bool:
+ 	return true
+ 
+ 
+-func _restore_column_refusal(columns: Columns) -> StringName:
+-	"""Every rule a restored column set must satisfy, checked before a single column is written."""
+-	if _catalog_error != "":
+-		return REFUSE_COLUMN_CATALOG
++static func columns_refusal(columns: Columns) -> StringName:
++	"""THE pure §4 residents column predicate (ADR0178). REFUSE_NONE when admissible.
++
++	Argument-only: it constructs no store, mutates nothing, and reads no catalog, Directory or
++	Needs row, so a framed bridge can validate a captured image with no live owner. It is the
++	shared local prefix followed by the two per-present-row scalar rules in that order, species
++	then arrival. Live restore retains its compiled-size and Directory self checks. Saved
++	catalog, Directory and other cross-owner agreement remain RESIDENTS-SAVED-BINDINGS.
++	"""
++	var prefix: StringName = _columns_local_prefix_refusal(columns)
++	if prefix != REFUSE_NONE:
++		return prefix
++	var slot: int = columns.present.find(1, 0)
++	while slot >= 0:
++		if not _species_id_in_range(columns.species[slot]):
++			return REFUSE_COLUMN_SPECIES
++		if not _arrival_tick_is_valid(columns.arrival_tick[slot]):
++			return REFUSE_COLUMN_ARRIVAL_TICK
++		slot = columns.present.find(1, slot + 1)
++	return REFUSE_NONE
++
++
++static func _columns_local_prefix_refusal(columns: Columns) -> StringName:
++	"""Shape, byte domains, skills, reference and equipment shape, free rows, present cap.
++
++	Extracted UNCHANGED from `_restore_column_refusal()`'s sequence between the catalog error
++	and the per-live-row walk, in its original order, so the live path keeps every published
++	diagnostic. Null handling lives in the shared shape helper, which is what makes
++	`copy_columns_into(null)` and `restore_columns(null)` refuse safely.
++	"""
+ 	if not _columns_are_capacity_sized(columns):
+ 		return REFUSE_COLUMN_SHAPE
+ 	var bytes: StringName = _column_byte_domain_refusal(columns)
+@@ -2045,11 +2100,50 @@ func _restore_column_refusal(columns: Columns) -> StringName:
+ 		return free_rows
+ 	if columns.present.count(1) > RESIDENT_LIVING_CAP:
+ 		return REFUSE_COLUMN_LIVING_CAP
++	return REFUSE_NONE
++
++
++static func _species_id_in_range(species_id_value: int) -> bool:
++	"""True for a compiled species id inside the release-1 catalog's 0..15 domain.
++
++	RANGE ONLY. Whether a present row's size class agrees with that species is the compiled
++	catalog's question and stays in the live restore, which is the only path that holds one.
++	"""
++	return species_id_value >= 0 and species_id_value < SPECIES_COUNT
++
++
++static func _arrival_tick_is_valid(tick: int) -> bool:
++	"""ADR0178's ONE arrival policy: a present row's tick is 0..INT64_MAX, never negative.
++
++	Shared by `set_arrival_tick()`, the pure predicate and the live restore, so the producer and
++	both consumers cannot drift apart. Retained INACTIVE rows are deliberately outside it: a
++	departed row keeps its full signed history and nothing normalizes it.
++	"""
++	return tick >= 0
++
++
++func _restore_column_refusal(columns: Columns) -> StringName:
++	"""Every rule a restored column set must satisfy, checked before one column is written.
++
++	Catalog error first, then the shared local prefix, then the ORIGINAL per-live-row walk. The
++	whole saved predicate is deliberately NOT called here: hoisting its arrival scan ahead of
++	this walk would let a later row's tick outrank an earlier row's size class or Directory
++	fault and silently change the diagnostics this path already publishes.
++	"""
++	if _catalog_error != "":
++		return REFUSE_COLUMN_CATALOG
++	var prefix: StringName = _columns_local_prefix_refusal(columns)
++	if prefix != REFUSE_NONE:
++		return prefix
+ 	return _column_live_row_refusal(columns)
+ 
+ 
+-func _column_byte_domain_refusal(columns: Columns) -> StringName:
+-	"""Every byte column holds only values its own enumeration declares (ARCH-SAVE-005)."""
++static func _column_byte_domain_refusal(columns: Columns) -> StringName:
++	"""Every byte column holds only values its own enumeration declares (ARCH-SAVE-005).
++
++	Argument-only, so it is static and the pure predicate shares it. The five scans, their order
++	and their codes are unchanged, and each one still covers every physical row.
++	"""
+ 	if not _byte_column_below(columns.present, 2):
+ 		return REFUSE_COLUMN_PRESENT_BYTE
+ 	if not _byte_column_below(columns.named, 2):
+@@ -2063,18 +2157,18 @@ func _column_byte_domain_refusal(columns: Columns) -> StringName:
+ 	return REFUSE_NONE
+ 
+ 
+-func _column_skill_refusal(columns: Columns) -> StringName:
++static func _column_skill_refusal(columns: Columns) -> StringName:
+ 	"""XP is non-negative, every level is the §5.3 curve's own answer, and index 3 stays empty.
+ 
+ 	Checked over the WHOLE column and not the live rows alone: `despawn()` leaves the skills of a
+ 	released row untouched, so a free row still carries a consistent pair and a load that broke
+-	one would otherwise pass. The level rule reuses `skill_level_for_xp()`, so the restore path
+-	and `set_skill_xp()` cannot drift apart.
++	one would otherwise pass. The level rule reuses the STATIC `_skill_level_curve()`, so the
++	restore path, `set_skill_xp()` and the pure predicate cannot drift apart.
+ 	"""
+ 	if not _int64_column_within(columns.skill_xp, 0, IntMath.INT64_MAX):
+ 		return REFUSE_COLUMN_SKILL_XP
+ 	for index: int in RESIDENT_CAPACITY * SKILL_COUNT:
+-		if columns.skill_level[index] != skill_level_for_xp(columns.skill_xp[index]):
++		if columns.skill_level[index] != _skill_level_curve(columns.skill_xp[index]):
+ 			return REFUSE_COLUMN_SKILL_LEVEL
+ 	for slot: int in RESIDENT_CAPACITY:
+ 		var reserved: int = slot * SKILL_COUNT + SKILL_RESERVED_INDEX
+@@ -2083,13 +2177,15 @@ func _column_skill_refusal(columns: Columns) -> StringName:
+ 	return REFUSE_NONE
+ 
+ 
+-func _column_reference_refusal(columns: Columns) -> StringName:
++static func _column_reference_refusal(columns: Columns) -> StringName:
+ 	"""Shape of every stored reference pair and of the Equipment mirror, over the whole column.
+ 
+-	SHAPE ONLY, and by namespace. The home, bed and self references are DIRECTORY pairs and are
+-	resolved against the directory for live rows in `_column_live_row_refusal()`; the satchel pair
+-	is an `inventory.gd` CONTAINER pair and is checked here for well-formedness and nowhere for
+-	liveness, because this store holds no inventory to resolve it against.
++	SHAPE ONLY, and by namespace. Home, bed and self are DIRECTORY pairs, but this COLUMN
++	validation path resolves only SELF in `_column_live_row_refusal()`. The separate public
++	`home_is_live()` and `bed_is_live()` readers still query current Directory liveness; they
++	are not called here. The satchel pair is an `inventory.gd` CONTAINER pair and is shape-only
++	here too. Saved target identity and ownership require explicit same-file bindings.
++	Argument-only, so it is static and the pure predicate shares it.
+ 	"""
+ 	for slot: int in RESIDENT_CAPACITY:
+ 		if not _is_well_formed_pair(columns.home_slot[slot], columns.home_generation[slot]):
+@@ -2110,14 +2206,14 @@ func _column_reference_refusal(columns: Columns) -> StringName:
+ 	return REFUSE_NONE
+ 
+ 
+-func _is_well_formed_pair(slot: int, generation: int) -> bool:
++static func _is_well_formed_pair(slot: int, generation: int) -> bool:
+ 	"""True for the §4.1 null pair `(-1, 0)` or any pair with slot >= 0 and generation > 0."""
+ 	if slot == EntityDirectory.NULL_SLOT:
+ 		return generation == EntityDirectory.NULL_GENERATION
+ 	return slot >= 0 and generation > 0
+ 
+ 
+-func _column_free_row_refusal(columns: Columns) -> StringName:
++static func _column_free_row_refusal(columns: Columns) -> StringName:
+ 	"""Every `_present == 0` row carries exactly what `despawn()` and `clear()` leave behind.
+ 
+ 	The species, size class, arrival tick, home, bed and skills are NOT here, deliberately:
+@@ -2152,11 +2248,11 @@ func _column_live_row_refusal(columns: Columns) -> StringName:
+ 	var slot: int = columns.present.find(1, 0)
+ 	while slot >= 0:
+ 		var species_id: int = columns.species[slot]
+-		if species_id < 0 or species_id >= SPECIES_COUNT:
++		if not _species_id_in_range(species_id):
+ 			return REFUSE_COLUMN_SPECIES
+ 		if columns.size_class[slot] != _species_size[species_id]:
+ 			return REFUSE_COLUMN_SIZE_CLASS
+-		if columns.arrival_tick[slot] < 0:
++		if not _arrival_tick_is_valid(columns.arrival_tick[slot]):
+ 			return REFUSE_COLUMN_ARRIVAL_TICK
+ 		var ref: Vector2i = Vector2i(columns.ref_slot[slot], columns.ref_generation[slot])
+ 		if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_RESIDENT):
+@@ -2206,7 +2302,7 @@ func _rebuild_live_slots() -> void:
+ 		slot = _present.find(1, slot + 1)
+ 
+ 
+-func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
++static func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
+ 	"""True when every byte is in [0, bound). One C++ count per legal value, no per-row loop."""
+ 	var total: int = 0
+ 	for value: int in range(bound):
+@@ -2214,7 +2310,7 @@ func _byte_column_below(column: PackedByteArray, bound: int) -> bool:
+ 	return total == column.size()
+ 
+ 
+-func _int64_column_within(column: PackedInt64Array, low: int, high: int) -> bool:
++static func _int64_column_within(column: PackedInt64Array, low: int, high: int) -> bool:
+ 	"""True when every signed int64 entry lies in [low, high]. Sorts a copy and reads both ends.
+ 
+ 	The int32/int64 sign trap lives here: these arrive already read as SIGNED, so the bytes

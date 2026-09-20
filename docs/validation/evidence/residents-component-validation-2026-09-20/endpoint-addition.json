@@ -1,0 +1,7 @@
+{
+  "prior_test_sha256": "b8fee2f9a2b686e8d2cf4522e5598f62a6746b7f59b22f20b792d18245054277",
+  "final_test_sha256": "ae62bf0f83203d647472ce79242e3b4a09585fe6684f3a2c229c81b26efce83f",
+  "change": "Added accepted present CHILD and item0/durability0 fixtures; every existing assertion retained",
+  "production_source_unchanged": true,
+  "mutation_evidence_scope": "48site campaign ran archived mutation-test-input.gd. These additions cannot erase or weaken any prior mutation oracle. Re-run final focus/full suite; do not claim campaign used addedfixtures."
+}

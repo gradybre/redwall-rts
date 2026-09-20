@@ -1,0 +1,22 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "46226e8e6fd5a1af4aeaee47fb5164a09dd7afb0",
+  "task": "Independent Residents owner12 final contract and mutation-oracle review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/residents_component_validation_contract.md",
+    "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md",
+    "godot/scripts/core/residents.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/save_owner_needs.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/test/test_residents_columns.gd",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/probe-disposition.md",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/public-history-probe.log",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/null-capture-probe.log",
+    "docs/validation/evidence/residents-validation-planning-2026-09-20/null-restore-probe.log"
+  ],
+  "instructions": "Review draft RESIDENTS-S4-VALIDATE-R01v1 for exactsourcefeasibility; doNOTimplement. Confirm existing19Columns order/domains, pure sharedprefix/static scalarhelpers retaining LIVE per-row species,size,arrival,Directorypriority pluscatalogfirst, publicskillcurvewrapper, nullguard, negativearrivalproducerrepair and fullsignedinactivehistory. Actual39/0 publicprobe and nullSCRIPTERROR observed (exit0 notsuccess). Verify254976packedbudget retaining49152sortcopy, bridge metadata parity plusconstantpins no19args/liveowner, source roleWARDEN1/SPECIALIST2. Check listed metadata rebalancing all19fieldspreserved. Analyze requiredmutants count/oracles/likelyequivalents:19projectionomissions,5byte,3skill,4refs,3equipment,6free,1cap,2scalar,2priority,1producer,1null-runtimeerror,1legacyreorder=48. Nullguardexception mustdetect knownruntimeerrornotparser and normaltestsrejectallerrors. Ensure eachprojection omission default values is observably caught including free refs/skillarrays. All6144positions could be slow; bounded originalrestorebenchmark pending, suggest necessaryscope withoutclaimmeasurements. Check declarations array parity cannotconspire in faulttests, unresolvedsavedbindings/lifecycle separated. List blockers and boundedrepairs or no blockers, optionalitemsseparate. OutputONE NEW docs/validation/evidence/residents-validation-planning-2026-09-20/contract-review.md baseSha256null HARD80lines800words AIM45lines550words; countconservatively. RawJSONstatus/summary/questions/files/decisionIds."
+}

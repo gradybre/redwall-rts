@@ -1,0 +1,23 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+SCRIPT ERROR: Invalid access to property or key 'skill_xp' on a base object of type 'Nil'.
+          at: _columns_are_capacity_sized (res://scripts/core/residents.gd:2036)
+          GDScript backtrace (most recent call first):
+              [0] _columns_are_capacity_sized (res://scripts/core/residents.gd:2036)
+              [1] copy_columns_into (res://scripts/core/residents.gd:1940)
+              [2] _run (res://test/residents_null_mutation_probe.gd:7)
+NULL_CAPTURE returned=false diagnostic=COLUMN_SHAPE
+SCRIPT ERROR: Invalid access to property or key 'skill_xp' on a base object of type 'Nil'.
+          at: _columns_are_capacity_sized (res://scripts/core/residents.gd:2036)
+          GDScript backtrace (most recent call first):
+              [0] _columns_are_capacity_sized (res://scripts/core/residents.gd:2036)
+              [1] _columns_local_prefix_refusal (res://scripts/core/residents.gd:2085)
+              [2] _restore_column_refusal (res://scripts/core/residents.gd:2133)
+              [3] restore_columns (res://scripts/core/residents.gd:1989)
+              [4] _run (res://test/residents_null_mutation_probe.gd:9)
+NULL_RESTORE returned=false diagnostic=COLUMN_SHAPE

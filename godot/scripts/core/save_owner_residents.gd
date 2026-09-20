@@ -1,0 +1,278 @@
+extends RefCounted
+## Owner 12 (`residents`) framed-column validation bridge (RESIDENTS-S4-VALIDATE-R01 v1, ADR 0178).
+##
+## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
+## against the Residents store's own saved column predicate and returns a `SaveHeader.Refusal`.
+## It constructs no live Residents owner, reads no catalog, Directory, Needs or name pool,
+## captures nothing, restores nothing, copies nothing and writes no diagnostic.
+##
+## GATE ORDER:
+##   1. a null record                   -> SAVE_COMPONENT_SHAPE
+##   2. an owner index that is not 12   -> SAVE_COMPONENT_OWNER
+##   3. `Schema.schema_refusal()`       -> forwarded UNCHANGED, both code and detail
+##   4. this owner's compiled metadata and the pinned Residents source constants ->
+##      SAVE_COMPONENT_METADATA, with a detail beginning `Residents owner12 metadata:`
+##   5. `Section.owner_shape_refusal()` -> forwarded UNCHANGED
+##   6. one temporary `Residents.Columns` whose NINETEEN canonical typed accessors are all
+##      assigned explicitly, in declared ordinal order
+##   7. `Residents.columns_refusal()`   -> the EXACT unwrapped column code, for example
+##      COLUMN_FREE_ROW, in a detail naming owner 12 and carrying no row identity.
+## Success carries an empty code and an empty detail.
+##
+## LOCAL ACCEPTANCE IS NOT PUBLICATION. An accepted result certifies owner-12 local column
+## domains only. The compiled species-size catalog, saved Directory self identity and
+## uniqueness, home and bed targets, Needs and the death barrier, section 14 name pairs and
+## equipment ownership remain saved-bindings obligations, as does installing anything live.
+##
+## MEMORY, CONDITIONALLY. The projection SHARES the caller's packed buffers by assignment: no
+## `duplicate()` runs here and no live owner is constructed. The contract's conservative figure
+## is 254976 logical packed bytes -- the 102912-byte caller image, the transient default Columns
+## buffers and the existing sorted XP scratch copy -- below the 6417408-byte stream allowance.
+## That is allocation arithmetic, not a measured resident set.
+##
+## NO FLOAT. ARCH-AUTH-002: there is no float in this file and there must never be one.
+
+const Residents := preload("res://scripts/core/residents.gd")
+const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
+const Section := preload("res://scripts/core/save_section_component_columns.gd")
+const SaveHeader := preload("res://scripts/core/save_header.gd")
+
+## The section-local owner this bridge accepts, and the compiled metadata it demands of it.
+const OWNER_INDEX: int = 12
+const OWNER_KEY: String = "residents"
+const OWNER_VERSION: int = 2
+const OWNER_PRIMARY_COUNT: int = 512
+const OWNER_CHILD_EXTENT_COUNT: int = 0
+const OWNER_FIELD_COUNT: int = 19
+## Gate 4's detail prefix. Gate 3 forwards the schema module's own detail unchanged.
+const METADATA_DETAIL_PREFIX: String = "Residents owner12 metadata:"
+## Gate 7's detail prefix. It names the owner and the code, and never a row.
+const COLUMN_DETAIL_PREFIX: String = "Residents owner 12"
+
+## Owner-local field ordinals, in the registry order `Residents.COLUMN_KEYS` publishes.
+const FIELD_PRESENT: int = 0
+const FIELD_SPECIES: int = 1
+const FIELD_SIZE_CLASS: int = 2
+const FIELD_NAMED: int = 3
+const FIELD_LIFE_STAGE: int = 4
+const FIELD_ARRIVAL_TICK: int = 5
+const FIELD_ROLE: int = 6
+const FIELD_HOME_SLOT: int = 7
+const FIELD_HOME_GENERATION: int = 8
+const FIELD_BED_SLOT: int = 9
+const FIELD_BED_GENERATION: int = 10
+const FIELD_REF_SLOT: int = 11
+const FIELD_REF_GENERATION: int = 12
+const FIELD_EQUIP_TOOL_ITEM_ID: int = 13
+const FIELD_EQUIP_TOOL_DURABILITY: int = 14
+const FIELD_EQUIP_SATCHEL_SLOT: int = 15
+const FIELD_EQUIP_SATCHEL_GENERATION: int = 16
+const FIELD_SKILL_XP: int = 17
+const FIELD_SKILL_LEVEL: int = 18
+
+## The Residents source constants this bridge pins as contract before it reads a column.
+const SOURCE_ROW_CAPACITY: int = 512
+const SOURCE_LIVING_CAP: int = 256
+const SOURCE_SPECIES_COUNT: int = 16
+const SOURCE_SIZE_SMALL: int = 0
+const SOURCE_SIZE_MEDIUM: int = 1
+const SOURCE_SIZE_LARGE: int = 2
+const SOURCE_SIZE_COUNT: int = 3
+const SOURCE_LIFE_STAGE_ADULT: int = 0
+const SOURCE_LIFE_STAGE_CHILD: int = 1
+const SOURCE_LIFE_STAGE_ELDER: int = 2
+const SOURCE_LIFE_STAGE_COUNT: int = 3
+const SOURCE_ROLE_RESIDENT: int = 0
+const SOURCE_ROLE_WARDEN: int = 1
+const SOURCE_ROLE_SPECIALIST: int = 2
+const SOURCE_ROLE_COUNT: int = 3
+const SOURCE_SKILL_COUNT: int = 12
+const SOURCE_SKILL_RESERVED_INDEX: int = 3
+const SOURCE_SKILL_LEVEL_MAX: int = 10
+const SOURCE_SKILL_XP_PER_LEVEL_SQUARE: int = 5000
+const SOURCE_NO_TOOL_ITEM: int = -1
+const SOURCE_NULL_SLOT: int = -1
+const SOURCE_NULL_GENERATION: int = 0
+
+
+static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
+	"""Judge one framed owner 12 block against the Residents store's own saved column rules.
+
+	Pure over its argument. See the header for the seven gates, and for everything an accepted
+	result deliberately does not certify.
+	"""
+	if record == null:
+		return _refuse(Section.REFUSE_SHAPE,
+			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
+	if record.owner != OWNER_INDEX:
+		return _refuse(Section.REFUSE_OWNER,
+			"owner %d was supplied where owner %d ('%s') is required"
+				% [record.owner, OWNER_INDEX, OWNER_KEY])
+	var schema: SaveHeader.Refusal = Schema.schema_refusal()
+	if not schema.is_ok():
+		return schema
+	var metadata: SaveHeader.Refusal = _metadata_refusal()
+	if not metadata.is_ok():
+		return metadata
+	var shape: SaveHeader.Refusal = Section.owner_shape_refusal(record)
+	if not shape.is_ok():
+		return shape
+	var columns: Residents.Columns = Residents.Columns.new()
+	_project_rows(record, columns)
+	_project_refs(record, columns)
+	var code: StringName = Residents.columns_refusal(columns)
+	if code != Residents.REFUSE_NONE:
+		return _refuse(code, "%s refuses this image with column code %s"
+			% [COLUMN_DETAIL_PREFIX, String(code)])
+	return _accept()
+
+
+static func _metadata_refusal() -> SaveHeader.Refusal:
+	"""Gate 4: compiled owner identity and extents, then the pinned Residents source constants."""
+	if Schema.owner_key(OWNER_INDEX) != OWNER_KEY \
+			or Schema.owner_version(OWNER_INDEX) != OWNER_VERSION:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s compiled owner '%s' version %d is not '%s' version %d"
+				% [METADATA_DETAIL_PREFIX, Schema.owner_key(OWNER_INDEX),
+					Schema.owner_version(OWNER_INDEX), OWNER_KEY, OWNER_VERSION])
+	if Schema.primary_count(OWNER_INDEX) != OWNER_PRIMARY_COUNT \
+			or Schema.child_extent_count(OWNER_INDEX) != OWNER_CHILD_EXTENT_COUNT \
+			or Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s %d primaries, %d child extents and %d fields are not %d, %d and %d"
+				% [METADATA_DETAIL_PREFIX, Schema.primary_count(OWNER_INDEX),
+					Schema.child_extent_count(OWNER_INDEX), Schema.field_count(OWNER_INDEX),
+					OWNER_PRIMARY_COUNT, OWNER_CHILD_EXTENT_COUNT, OWNER_FIELD_COUNT])
+	if Residents.COLUMN_COUNT != OWNER_FIELD_COUNT \
+			or Residents.COLUMN_KEYS.size() != OWNER_FIELD_COUNT \
+			or Residents.COLUMN_TYPE_CODES.size() != OWNER_FIELD_COUNT \
+			or Residents.COLUMN_EXTENTS.size() != OWNER_FIELD_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s Residents publishes %d/%d/%d/%d declarations, not %d"
+				% [METADATA_DETAIL_PREFIX, Residents.COLUMN_COUNT, Residents.COLUMN_KEYS.size(),
+					Residents.COLUMN_TYPE_CODES.size(), Residents.COLUMN_EXTENTS.size(),
+					OWNER_FIELD_COUNT])
+	var source: SaveHeader.Refusal = _source_refusal()
+	if not source.is_ok():
+		return source
+	return _field_parity_refusal()
+
+
+static func _source_refusal() -> SaveHeader.Refusal:
+	"""Gate 4's source half: both capacities, the species count and the size and stage domains."""
+	if Residents.RESIDENT_CAPACITY != SOURCE_ROW_CAPACITY \
+			or Residents.RESIDENT_LIVING_CAP != SOURCE_LIVING_CAP \
+			or Residents.SPECIES_COUNT != SOURCE_SPECIES_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s Residents declares %d rows, a %d living cap and %d species, not %d/%d/%d"
+				% [METADATA_DETAIL_PREFIX, Residents.RESIDENT_CAPACITY,
+					Residents.RESIDENT_LIVING_CAP, Residents.SPECIES_COUNT, SOURCE_ROW_CAPACITY,
+					SOURCE_LIVING_CAP, SOURCE_SPECIES_COUNT])
+	if Residents.SIZE_SMALL != SOURCE_SIZE_SMALL or Residents.SIZE_MEDIUM != SOURCE_SIZE_MEDIUM \
+			or Residents.SIZE_LARGE != SOURCE_SIZE_LARGE \
+			or Residents.SIZE_COUNT != SOURCE_SIZE_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the size domain is not the pinned 0/1/2 numbering bounded by %d"
+				% [METADATA_DETAIL_PREFIX, SOURCE_SIZE_COUNT])
+	if Residents.LIFE_STAGE_ADULT != SOURCE_LIFE_STAGE_ADULT \
+			or Residents.LIFE_STAGE_CHILD != SOURCE_LIFE_STAGE_CHILD \
+			or Residents.LIFE_STAGE_ELDER != SOURCE_LIFE_STAGE_ELDER \
+			or Residents.LIFE_STAGE_COUNT != SOURCE_LIFE_STAGE_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the life stage domain is not the pinned 0/1/2 numbering bounded by %d"
+				% [METADATA_DETAIL_PREFIX, SOURCE_LIFE_STAGE_COUNT])
+	return _source_skill_refusal()
+
+
+static func _source_skill_refusal() -> SaveHeader.Refusal:
+	"""Gate 4's second half: the role domain, the skill curve, the tool blank and the null pair."""
+	if Residents.ROLE_RESIDENT != SOURCE_ROLE_RESIDENT \
+			or Residents.ROLE_WARDEN != SOURCE_ROLE_WARDEN \
+			or Residents.ROLE_SPECIALIST != SOURCE_ROLE_SPECIALIST \
+			or Residents.ROLE_COUNT != SOURCE_ROLE_COUNT:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the role domain is not the pinned 0/1/2 numbering bounded by %d"
+				% [METADATA_DETAIL_PREFIX, SOURCE_ROLE_COUNT])
+	if Residents.SKILL_COUNT != SOURCE_SKILL_COUNT \
+			or Residents.SKILL_RESERVED_INDEX != SOURCE_SKILL_RESERVED_INDEX \
+			or Residents.SKILL_LEVEL_MAX != SOURCE_SKILL_LEVEL_MAX \
+			or Residents.SKILL_XP_PER_LEVEL_SQUARE != SOURCE_SKILL_XP_PER_LEVEL_SQUARE:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the skill set is %d wide with reserved %d, max level %d and factor %d"
+				% [METADATA_DETAIL_PREFIX, Residents.SKILL_COUNT,
+					Residents.SKILL_RESERVED_INDEX, Residents.SKILL_LEVEL_MAX,
+					Residents.SKILL_XP_PER_LEVEL_SQUARE])
+	if Residents.NO_TOOL_ITEM != SOURCE_NO_TOOL_ITEM \
+			or Residents.EntityDirectory.NULL_SLOT != SOURCE_NULL_SLOT \
+			or Residents.EntityDirectory.NULL_GENERATION != SOURCE_NULL_GENERATION \
+			or Residents.NULL_REF.x != SOURCE_NULL_SLOT \
+			or Residents.NULL_REF.y != SOURCE_NULL_GENERATION:
+		return _refuse(Section.REFUSE_METADATA,
+			"%s the tool blank is %d and the null handle is (%d, %d)"
+				% [METADATA_DETAIL_PREFIX, Residents.NO_TOOL_ITEM, Residents.NULL_REF.x,
+					Residents.NULL_REF.y])
+	return _accept()
+
+
+static func _field_parity_refusal() -> SaveHeader.Refusal:
+	"""Gate 4's per-field half: key, type code and element count, ordinal by ordinal."""
+	for field: int in OWNER_FIELD_COUNT:
+		if Schema.field_key(OWNER_INDEX, field) != String(Residents.COLUMN_KEYS[field]):
+			return _refuse(Section.REFUSE_METADATA, "%s field %d is '%s'; Residents declares '%s'"
+				% [METADATA_DETAIL_PREFIX, field, Schema.field_key(OWNER_INDEX, field),
+					String(Residents.COLUMN_KEYS[field])])
+		if Schema.field_type(OWNER_INDEX, field) != int(Residents.COLUMN_TYPE_CODES[field]):
+			return _refuse(Section.REFUSE_METADATA, "%s field %d has type %d; Residents declares %d"
+				% [METADATA_DETAIL_PREFIX, field, Schema.field_type(OWNER_INDEX, field),
+					int(Residents.COLUMN_TYPE_CODES[field])])
+		if Schema.element_count(OWNER_INDEX, field) != int(Residents.COLUMN_EXTENTS[field]):
+			return _refuse(Section.REFUSE_METADATA,
+				"%s field %d holds %d values; Residents declares %d"
+					% [METADATA_DETAIL_PREFIX, field, Schema.element_count(OWNER_INDEX, field),
+						int(Residents.COLUMN_EXTENTS[field])])
+	return _accept()
+
+
+static func _project_rows(record: Section.FramedOwner, columns: Residents.Columns) -> void:
+	"""Ordinals 0..6: the occupancy byte, species, the three enum bytes and the arrival tick.
+
+	Assignment, never `duplicate()`: the packed buffers stay shared copy-on-write with the
+	caller's frozen record, and validation only reads them.
+	"""
+	columns.present = record.u8_column(FIELD_PRESENT)
+	columns.species = record.i32_column(FIELD_SPECIES)
+	columns.size_class = record.u8_column(FIELD_SIZE_CLASS)
+	columns.named = record.u8_column(FIELD_NAMED)
+	columns.life_stage = record.u8_column(FIELD_LIFE_STAGE)
+	columns.arrival_tick = record.i64_column(FIELD_ARRIVAL_TICK)
+	columns.role = record.u8_column(FIELD_ROLE)
+
+
+static func _project_refs(record: Section.FramedOwner, columns: Residents.Columns) -> void:
+	"""Ordinals 7..18: the three reference pairs, the equipment columns and both skill arrays.
+
+	Every one is assigned explicitly, so an omitted field cannot fall back to a constructor
+	default and pass as arbitrary legal wire data.
+	"""
+	columns.home_slot = record.i32_column(FIELD_HOME_SLOT)
+	columns.home_generation = record.i32_column(FIELD_HOME_GENERATION)
+	columns.bed_slot = record.i32_column(FIELD_BED_SLOT)
+	columns.bed_generation = record.i32_column(FIELD_BED_GENERATION)
+	columns.ref_slot = record.i32_column(FIELD_REF_SLOT)
+	columns.ref_generation = record.i32_column(FIELD_REF_GENERATION)
+	columns.equip_tool_item_id = record.i32_column(FIELD_EQUIP_TOOL_ITEM_ID)
+	columns.equip_tool_durability = record.i32_column(FIELD_EQUIP_TOOL_DURABILITY)
+	columns.equip_satchel_slot = record.i32_column(FIELD_EQUIP_SATCHEL_SLOT)
+	columns.equip_satchel_generation = record.i32_column(FIELD_EQUIP_SATCHEL_GENERATION)
+	columns.skill_xp = record.i64_column(FIELD_SKILL_XP)
+	columns.skill_level = record.i32_column(FIELD_SKILL_LEVEL)
+
+
+static func _refuse(code: StringName, detail: String) -> SaveHeader.Refusal:
+	"""Build a refusal carrying an exact code: a section code, or a raw Residents column code."""
+	return SaveHeader.Refusal.new(code, detail)
+
+
+static func _accept() -> SaveHeader.Refusal:
+	"""The accepted result: an empty code and no detail."""
+	return SaveHeader.Refusal.new(SaveHeader.REFUSE_NONE, "")

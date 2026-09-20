@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_residents.gd
+  FAIL  test_layout_defaults_and_every_projection_omission_witness
+        bridge exactcode (expected COLUMN_ENUM_BYTE, got )
+        success channel (expected false, got true)
+        owner detail (expected true, got false)
+        raw code detail (expected true, got false)
+  PASS  test_every_physical_scalar_and_skill_address
+  PASS  test_full_signed_inactive_history_and_present_species_arrival_domains
+  PASS  test_curve_boundaries_reserved_skills_and_present_cap
+  PASS  test_reference_shapes_equipment_and_each_free_row_rule
+  PASS  test_shapes_null_records_and_typed_bucket_counts
+  PASS  test_saved_per_row_priority_and_prefix_refusal_order
+  PASS  test_public_arrival_refusals_null_safety_and_capture_restore
+  PASS  test_legacy_live_row_priority_remains_species_size_arrival_directory
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+9 test(s), 47336 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

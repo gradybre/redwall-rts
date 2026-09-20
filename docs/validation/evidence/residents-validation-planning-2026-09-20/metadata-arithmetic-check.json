@@ -1,0 +1,71 @@
+{
+  "scope": "Python independent arithmetic only; real bridge fault runs pending",
+  "images": [
+    {
+      "fault": "baseline",
+      "fields": 298,
+      "child_extents": 5,
+      "bytes": 12947565,
+      "valid": true
+    },
+    {
+      "fault": "key",
+      "fields": 298,
+      "child_extents": 5,
+      "bytes": 12947565,
+      "valid": true
+    },
+    {
+      "fault": "version",
+      "fields": 298,
+      "child_extents": 5,
+      "bytes": 12947565,
+      "valid": true
+    },
+    {
+      "fault": "primary",
+      "fields": 298,
+      "child_extents": 5,
+      "bytes": 12947565,
+      "valid": true
+    },
+    {
+      "fault": "children",
+      "fields": 298,
+      "child_extents": 5,
+      "bytes": 12947565,
+      "valid": true
+    },
+    {
+      "fault": "field_count",
+      "fields": 298,
+      "child_extents": 5,
+      "bytes": 12947565,
+      "valid": true
+    },
+    {
+      "fault": "field_key",
+      "fields": 298,
+      "child_extents": 5,
+      "bytes": 12947565,
+      "valid": true
+    },
+    {
+      "fault": "field_type",
+      "fields": 298,
+      "child_extents": 5,
+      "bytes": 12949101,
+      "valid": true
+    },
+    {
+      "fault": "field_extent",
+      "fields": 298,
+      "child_extents": 5,
+      "bytes": 12947566,
+      "valid": true
+    }
+  ],
+  "additional_publication_faults": 9,
+  "planned_runtime_cases": 27,
+  "planned_runtime_assertions": 243
+}

@@ -1,0 +1,44 @@
+{
+  "contract": "RESIDENTS-S4-VALIDATE-R01v1",
+  "full": {
+    "tests": 4960,
+    "assertions": 402166,
+    "failures": 0
+  },
+  "focus": {
+    "tests": 9,
+    "assertions": 47422,
+    "failures": 0
+  },
+  "mutation_input_focus_assertions": 47336,
+  "required_mutations": {
+    "total": 48,
+    "assertion_oracles": 47,
+    "known_null_runtime_error_oracles": 1,
+    "valid_runs": 52
+  },
+  "metadata": {
+    "cases": 27,
+    "assertions": 243,
+    "bypasses_detected": 8
+  },
+  "static_checks": 17,
+  "import_exit": 0,
+  "shutdown_baseline": {
+    "objects": 553,
+    "resources": 33
+  },
+  "source_sha256": {
+    "godot/scripts/core/residents.gd": "90a99e562e4e0b41da5f2afad5df7ab64f297b93b86f985d21535ebd72c3a06c",
+    "godot/scripts/core/save_owner_residents.gd": "730cff604dd0c4d7f39caabfd96169c0438b503d3242cf5ccbe7681bb6b31785",
+    "godot/test/test_save_owner_residents.gd": "ae62bf0f83203d647472ce79242e3b4a09585fe6684f3a2c229c81b26efce83f",
+    "godot/test/residents_validation_focus.gd": "7cd67cb4c4b32059591dfe8a36029ee34f60566da674197e4ac1befba2a40875",
+    "tools/test_residents_metadata_preflights.py": "48b910f30f0d19d29abe84c3877a7878bc3810904284e7f51ff87c46d993a870",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  },
+  "remaining": [
+    "exact-head CI and merge",
+    "saved cross-owner bindings",
+    "complete save/load and settlement delivery"
+  ]
+}

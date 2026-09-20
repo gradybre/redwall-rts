@@ -1,0 +1,45 @@
+{
+  "contract": "FARMING-S4-VALIDATE-R01v1",
+  "full": {
+    "tests": 4975,
+    "assertions": 462434,
+    "failures": 0
+  },
+  "focus": {
+    "tests": 7,
+    "assertions": 17915,
+    "failures": 0
+  },
+  "mutations": {
+    "total": 50,
+    "assertion_oracles": 50,
+    "valid_runs": 52,
+    "scope": "Frozen candidate clone; byte-identical owner/bridge/tests verified after raw production intake"
+  },
+  "metadata": {
+    "cases": 24,
+    "assertions": 216,
+    "bypasses_detected": 8,
+    "scope": "Cold metadata clone with autoloads disabled; actual project configuration unchanged; normal focus and integrated full keep autoloads"
+  },
+  "static_checks": 17,
+  "import_exit": 0,
+  "shutdown_baseline": {
+    "objects": 553,
+    "resources": 33
+  },
+  "source_sha256": {
+    "godot/scripts/core/farming.gd": "41439e1beb1d369d299b650e0160f94b2457ade2285dbb7d8f63c636dc77b212",
+    "godot/scripts/core/save_owner_farming.gd": "f6a3498279d31c61bf1de43452e574bab50715bf7084fbeffc86d975640a4aea",
+    "godot/test/test_save_owner_farming.gd": "d1af82545488b7ae1dbe47dcedc942a7b9cdb7818bf1dec5a532e6b39871e582",
+    "godot/test/farming_validation_focus.gd": "2a2dd02768126b2a342f9b92bee2063bc37eb0ef3d0db053c44383d26f27884a",
+    "tools/test_farming_metadata_preflights.py": "1762fe2015e19a3c3716e920304c0345b18a7d9e8313475ec03c1dc2725e4cd9",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  },
+  "remaining": [
+    "exact-head CI and merge",
+    "same-file saved TileHistory/Directory/clock/mirror bindings",
+    "bulk FarmPlot capture/apply",
+    "live food-production integration and complete settlement"
+  ]
+}

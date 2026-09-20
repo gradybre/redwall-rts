@@ -1,0 +1,274 @@
+--- a/godot/scripts/core/farming.gd
++++ b/godot/scripts/core/farming.gd
+@@ -1601,4 +1601,268 @@ func _refuse_section_1(code: StringName, detail: String) -> bool:
+ func _refuse_section_1_code(code: StringName, detail: String) -> StringName:
+ 	"""Record one §1 column refusal's detail and hand the code straight back to a `return`."""
+ 	_section_1_detail = "%s: %s" % [code, detail]
+ 	return code
++
++
++# --- FARMING-S4-VALIDATE-R01 cold column image and pure predicate (ADR 0180) ---------------------
++#
++# A cold, argument-only validation image of the fifteen §4.2 FarmPlot columns above. No live
++# store, directory, catalog, callback or clock is touched: `columns_refusal()` is static, reads
++# only its argument, mutates nothing and allocates nothing per row. The image's defaults mirror
++# `_clear_plot_columns()`, NOT `create_plot_at_tile()`'s live health/moisture/fertility values.
++
++const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
++const REFUSE_COLUMN_PRESENT: StringName = &"COLUMN_PRESENT"
++const REFUSE_COLUMN_ENUM: StringName = &"COLUMN_ENUM"
++const REFUSE_COLUMN_VALUE: StringName = &"COLUMN_VALUE"
++const REFUSE_COLUMN_HISTORY: StringName = &"COLUMN_HISTORY"
++const REFUSE_COLUMN_IDENTITY: StringName = &"COLUMN_IDENTITY"
++const REFUSE_COLUMN_FREE_ROW: StringName = &"COLUMN_FREE_ROW"
++const REFUSE_COLUMN_STATE: StringName = &"COLUMN_STATE"
++const REFUSE_COLUMN_DUPLICATE_TILE: StringName = &"COLUMN_DUPLICATE_TILE"
++const REFUSE_COLUMN_DUPLICATE_REF: StringName = &"COLUMN_DUPLICATE_REF"
++
++
++class Columns:
++	"""The fifteen FarmPlot columns as one cold image, defaulted exactly as `clear()` leaves them.
++
++	A carrier for validation and framed save bridging only; it is never the live store, and the
++	property order below is this owner's canonical field order.
++	"""
++	var present: PackedByteArray = PackedByteArray()
++	var crop_id: PackedInt32Array = PackedInt32Array()
++	var state: PackedInt32Array = PackedInt32Array()
++	var soil: PackedInt32Array = PackedInt32Array()
++	var fertility: PackedInt32Array = PackedInt32Array()
++	var moisture: PackedInt32Array = PackedInt32Array()
++	var growth_milli_hours: PackedInt64Array = PackedInt64Array()
++	var health: PackedInt32Array = PackedInt32Array()
++	var last_family: PackedInt32Array = PackedInt32Array()
++	var family_streak: PackedInt32Array = PackedInt32Array()
++	var compost_milli: PackedInt64Array = PackedInt64Array()
++	var sow_day: PackedInt32Array = PackedInt32Array()
++	var tile: PackedInt32Array = PackedInt32Array()
++	var ref_slot: PackedInt32Array = PackedInt32Array()
++	var ref_generation: PackedInt32Array = PackedInt32Array()
++
++	func _init() -> void:
++		"""Size all fifteen columns once and fill each with its cleared default."""
++		present.resize(FARM_PLOT_CAPACITY)
++		crop_id.resize(FARM_PLOT_CAPACITY)
++		state.resize(FARM_PLOT_CAPACITY)
++		soil.resize(FARM_PLOT_CAPACITY)
++		fertility.resize(FARM_PLOT_CAPACITY)
++		moisture.resize(FARM_PLOT_CAPACITY)
++		growth_milli_hours.resize(FARM_PLOT_CAPACITY)
++		health.resize(FARM_PLOT_CAPACITY)
++		last_family.resize(FARM_PLOT_CAPACITY)
++		family_streak.resize(FARM_PLOT_CAPACITY)
++		compost_milli.resize(FARM_PLOT_CAPACITY)
++		sow_day.resize(FARM_PLOT_CAPACITY)
++		tile.resize(FARM_PLOT_CAPACITY)
++		ref_slot.resize(FARM_PLOT_CAPACITY)
++		ref_generation.resize(FARM_PLOT_CAPACITY)
++		crop_id.fill(CROP_NONE)
++		state.fill(STATE_EMPTY)
++		soil.fill(SOIL_LOAM)
++		last_family.fill(FAMILY_NONE)
++		tile.fill(NO_ROW)
++		ref_slot.fill(EntityDirectory.NULL_SLOT)
++		ref_generation.fill(EntityDirectory.NULL_GENERATION)
++
++	func is_sized() -> bool:
++		"""True when every one of the fifteen columns is exactly FARM_PLOT_CAPACITY long."""
++		return (present.size() == FARM_PLOT_CAPACITY and crop_id.size() == FARM_PLOT_CAPACITY
++			and state.size() == FARM_PLOT_CAPACITY and soil.size() == FARM_PLOT_CAPACITY
++			and fertility.size() == FARM_PLOT_CAPACITY and moisture.size() == FARM_PLOT_CAPACITY
++			and growth_milli_hours.size() == FARM_PLOT_CAPACITY
++			and health.size() == FARM_PLOT_CAPACITY and last_family.size() == FARM_PLOT_CAPACITY
++			and family_streak.size() == FARM_PLOT_CAPACITY
++			and compost_milli.size() == FARM_PLOT_CAPACITY and sow_day.size() == FARM_PLOT_CAPACITY
++			and tile.size() == FARM_PLOT_CAPACITY and ref_slot.size() == FARM_PLOT_CAPACITY
++			and ref_generation.size() == FARM_PLOT_CAPACITY)
++
++
++static func columns_refusal(image: Columns) -> StringName:
++	"""The FarmPlot column image's refusal code, or REFUSE_NONE. Pure: nothing outside is read.
++
++	The order is exactly the contract's: global shape, then the global presence byte, then every
++	row ascending (enum, value, history, identity, then the free-row or present-state rules), then
++	unique present tile values and finally unique present self slots. Shape is settled before any
++	indexing, and the two uniqueness passes each sort a private copy, leaving the argument alone.
++	"""
++	if image == null or not image.is_sized():
++		return REFUSE_COLUMN_SHAPE
++	for row: int in FARM_PLOT_CAPACITY:
++		if image.present[row] > 1:
++			return REFUSE_COLUMN_PRESENT
++	for row: int in FARM_PLOT_CAPACITY:
++		var code: StringName = _columns_row_refusal(image, row)
++		if code != REFUSE_NONE:
++			return code
++	if _columns_has_duplicate(image.tile):
++		return REFUSE_COLUMN_DUPLICATE_TILE
++	if _columns_has_duplicate(image.ref_slot):
++		return REFUSE_COLUMN_DUPLICATE_REF
++	return REFUSE_NONE
++
++
++static func _columns_row_refusal(image: Columns, row: int) -> StringName:
++	"""Every per-row rule of one row, in the contract's stated order."""
++	var code: StringName = _columns_enum_refusal(image, row)
++	if code != REFUSE_NONE:
++		return code
++	code = _columns_value_refusal(image, row)
++	if code != REFUSE_NONE:
++		return code
++	code = _columns_history_refusal(image, row)
++	if code != REFUSE_NONE:
++		return code
++	code = _columns_identity_refusal(image, row)
++	if code != REFUSE_NONE:
++		return code
++	if image.present[row] == 0:
++		return _columns_free_row_refusal(image, row)
++	return _columns_state_refusal(image, row)
++
++
++static func _columns_enum_refusal(image: Columns, row: int) -> StringName:
++	"""The three enum domains of one row, read from the protected Catalog ordinals above."""
++	if image.crop_id[row] < CROP_NONE or image.crop_id[row] >= CROP_COUNT:
++		return REFUSE_COLUMN_ENUM
++	if image.state[row] < STATE_EMPTY or image.state[row] >= STATE_COUNT:
++		return REFUSE_COLUMN_ENUM
++	if image.soil[row] < SOIL_LOAM or image.soil[row] >= SOIL_COUNT:
++		return REFUSE_COLUMN_ENUM
++	return REFUSE_NONE
++
++
++static func _columns_value_refusal(image: Columns, row: int) -> StringName:
++	"""The scalar domains of one row. Growth keeps its whole nonnegative int64 domain."""
++	if image.fertility[row] < FERTILITY_MIN or image.fertility[row] > FERTILITY_MAX:
++		return REFUSE_COLUMN_VALUE
++	if image.moisture[row] < MOISTURE_MIN or image.moisture[row] > MOISTURE_MAX:
++		return REFUSE_COLUMN_VALUE
++	if image.health[row] < HEALTH_MIN or image.health[row] > HEALTH_MAX:
++		return REFUSE_COLUMN_VALUE
++	if image.growth_milli_hours[row] < 0:
++		return REFUSE_COLUMN_VALUE
++	if image.compost_milli[row] != COMPOST_MIRROR_NONE \
++			and image.compost_milli[row] != COMPOST_MILLI_PER_TILE:
++		return REFUSE_COLUMN_VALUE
++	if image.sow_day[row] < 0:
++		return REFUSE_COLUMN_VALUE
++	return REFUSE_NONE
++
++
++static func _columns_history_refusal(image: Columns, row: int) -> StringName:
++	"""READY_06 §7's pair rule, reusing the shipped predicate once both halves are in range."""
++	if image.last_family[row] < FAMILY_NONE or image.last_family[row] >= FAMILY_COUNT:
++		return REFUSE_COLUMN_HISTORY
++	if image.family_streak[row] < STREAK_NONE:
++		return REFUSE_COLUMN_HISTORY
++	if not is_history_pair_consistent(image.last_family[row], image.family_streak[row]):
++		return REFUSE_COLUMN_HISTORY
++	return REFUSE_NONE
++
++
++static func _columns_identity_refusal(image: Columns, row: int) -> StringName:
++	"""The tile link and owning reference of one row.
++
++	Kind, generation liveness and the typed-row join stay saved bindings; only the local domains
++	are settled here, and an inactive row must carry exactly NO_ROW and the null reference.
++	"""
++	if image.present[row] == 0:
++		if image.tile[row] != NO_ROW or image.ref_slot[row] != EntityDirectory.NULL_SLOT \
++				or image.ref_generation[row] != EntityDirectory.NULL_GENERATION:
++			return REFUSE_COLUMN_IDENTITY
++		return REFUSE_NONE
++	if image.tile[row] < 0 or image.tile[row] >= TILE_COUNT:
++		return REFUSE_COLUMN_IDENTITY
++	if image.ref_slot[row] < 0 or image.ref_slot[row] >= EntityDirectory.DIRECTORY_CAPACITY:
++		return REFUSE_COLUMN_IDENTITY
++	if image.ref_generation[row] <= EntityDirectory.NULL_GENERATION:
++		return REFUSE_COLUMN_IDENTITY
++	return REFUSE_NONE
++
++
++static func _columns_free_row_refusal(image: Columns, row: int) -> StringName:
++	"""An inactive row carries no crop and no state, and nothing else is required of it.
++
++	`destroy()` above clears presence, crop, state, tile and reference and PRESERVES the rest, so
++	retained soil, moisture, growth, health, history, compost and sow day stay valid here.
++	"""
++	if image.crop_id[row] != CROP_NONE or image.state[row] != STATE_EMPTY:
++		return REFUSE_COLUMN_FREE_ROW
++	return REFUSE_NONE
++
++
++static func _columns_state_refusal(image: Columns, row: int) -> StringName:
++	"""The producer relations a PRESENT row must satisfy for the state it carries.
++
++	The §5.6 source tables are indexed only after the crop and soil ranges above have passed. One
++	hourly step releases at most MILLI_HOURS_PER_HOUR and GROWING stops below the crop's target,
++	so no present non-empty row can stand beyond `target + MILLI_HOURS_PER_HOUR - 1`.
++	"""
++	var crop: int = image.crop_id[row]
++	if image.state[row] == STATE_EMPTY:
++		if crop != CROP_NONE or image.growth_milli_hours[row] != 0 \
++				or image.health[row] != INITIAL_HEALTH or image.sow_day[row] != 0:
++			return REFUSE_COLUMN_STATE
++		return REFUSE_NONE
++	if crop < 0 or crop >= CROP_COUNT:
++		return REFUSE_COLUMN_STATE
++	if image.sow_day[row] < MIN_CALENDAR_DAY:
++		return REFUSE_COLUMN_STATE
++	if (CROP_ALLOWED_SOILS[crop] & (1 << image.soil[row])) == 0:
++		return REFUSE_COLUMN_STATE
++	var target: int = CROP_GROWTH_HOURS[crop] * MILLI_HOURS_PER_HOUR
++	if image.growth_milli_hours[row] > target + MILLI_HOURS_PER_HOUR - 1:
++		return REFUSE_COLUMN_STATE
++	return _columns_crop_state_refusal(image.state[row], image.growth_milli_hours[row],
++		image.health[row], target)
++
++
++static func _columns_crop_state_refusal(state: int, growth: int, health: int,
++		target: int) -> StringName:
++	"""One present non-empty state against its growth and health.
++
++	WITHERED has the two causes ADR 0180 states: health death below the target, or ripe expiry at
++	or above it with health still positive. A healthy WITHERED row is therefore valid.
++	"""
++	if state == STATE_SOWN:
++		if growth != 0 or health != INITIAL_HEALTH:
++			return REFUSE_COLUMN_STATE
++		return REFUSE_NONE
++	if state == STATE_GROWING:
++		if health <= HEALTH_MIN or growth >= target:
++			return REFUSE_COLUMN_STATE
++		return REFUSE_NONE
++	if state == STATE_RIPE:
++		if health <= HEALTH_MIN or growth < target:
++			return REFUSE_COLUMN_STATE
++		return REFUSE_NONE
++	if health == HEALTH_MIN:
++		if growth >= target:
++			return REFUSE_COLUMN_STATE
++		return REFUSE_NONE
++	if growth < target:
++		return REFUSE_COLUMN_STATE
++	return REFUSE_NONE
++
++
++static func _columns_has_duplicate(column: PackedInt32Array) -> bool:
++	"""True when one int32 column repeats a nonnegative value. The argument is not modified.
++
++	Identity has already proved every inactive row carries -1, so skipping negatives leaves
++	exactly the present rows. A private sorted copy makes the scan adjacent-only; at most two such
++	copies are alive across the two uniqueness passes.
++	"""
++	var sorted: PackedInt32Array = column.duplicate()
++	sorted.sort()
++	var previous: int = NO_ROW
++	for index: int in sorted.size():
++		var value: int = sorted[index]
++		if value < 0:
++			continue
++		if value == previous:
++			return true
++		previous = value
++	return false

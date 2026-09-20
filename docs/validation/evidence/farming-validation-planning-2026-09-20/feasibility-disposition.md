@@ -1,0 +1,5 @@
+# Farming feasibility disposition
+
+Accepted source review confirms layout, protected explicit Soil/CropState ordinals and source-writer lifecycle. Its "present rows only" heading applies to current-crop state relationships, not all following items: family/streak consistency is preserved on inactive rows as well, and inactive deletion defaults cropNONE/stateEMPTY/tileNULL/selfNULL must be required explicitly. Draft contract states those rules.
+
+Astra proposes present-only target+999 growth bound and the two-cause WITHERED relation, retaining broad nonnegativei64 inactive growth where crop context was cleared. Local tile/selfslot uniqueness uses two4096i32sortedcopies; global Directory single-generation semantics rule out same slot with differing generations. Conservative packedbudget565248; no native measurement. All choices await independent contract review. Saved clock agreement is deferred, not globally forbidden by the public probe. No producer mutation is proposed for injected illegal-growth overflow.

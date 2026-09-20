@@ -1,0 +1,23 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "314b5c057ce1416a8fb83b7cc14c61f36b0327b6",
+  "task": "Independent exact-source Farming owner and bridge review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/farming_component_validation_contract.md",
+    "docs/decisions/0180-farming-validation-distinguishes-live-crops-and-retained-history.md",
+    "docs/validation/evidence/farming-component-validation-2026-09-20/candidate-farming.gd",
+    "docs/validation/evidence/farming-component-validation-2026-09-20/candidate-save_owner_farming.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/parent-test-draft.gd",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/parent-metadata-draft.py",
+    "docs/validation/evidence/farming-component-validation-2026-09-20/owner_mutations.py",
+    "docs/validation/evidence/farming-component-validation-2026-09-20/run_mutants.py",
+    "docs/validation/evidence/farming-component-validation-2026-09-20/candidate-checks/initial-focus.log",
+    "docs/validation/evidence/farming-component-validation-2026-09-20/candidate-harness-disposition.md",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/mutation-witness-plan.md"
+  ],
+  "instructions": "Independently review the two exact reconstructed candidate sources against FARMING-S4-VALIDATE-R01v1/ADR0180. They are not yet applied to production: PR170 CI is running, raw patches are validated and will be applied only after merge, then SHA identity will be checked. If identical, this review covers those source bytes; any substantive change requires affected rereview. Check all 15 projections, typed defaults, shape/globalpresent/PERROW domain-history-identity-state order, healthyWITHERED vs healthdeath, strictpresentgrowth/broadinactivehistory, tile/selfSLOT duplicate priority, pure no-world validation, source pins and both table lengths BEFORE any indexing. Conservative565248 packed estimate is not RSS. Source table shortening first failed live autoload startup outside test; corrected metadata clone explicitly disables autoloads, while focus/full/import retain normal startup. Initial focus 7 tests/17915 assertions/0 clean. 24 metadata cases and50 mutations currently running: no invented result. Review witnesses and35owner+15projection mutation units; runtime/parser errors never kills. Identify production defects vs optional coverage. Existing missing whole-file bindings/bulk capture/apply/gameplay remain; don't treat local predicate as wholecodec. Output ONE NEW docs/validation/evidence/farming-component-validation-2026-09-20/source-review.md baseSha256 null HARD70lines/800words AIM45lines/650words. No edits/execution claims. RawJSON status/summary/questions/files/decisionIds."
+}

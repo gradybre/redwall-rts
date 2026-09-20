@@ -779,6 +779,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---|---|---|:-:|---|---|
 | Pure owner15 pose and binding validator | -- | -- | -- | -- | 3 | -- | Decision0173 / TRANSFORMS-S4-VALIDATE-R01v1. No mutable module state or live owner/Directory construction. Nine typed caller-owned i32 columns feed the static predicate; positive binding uniqueness uses one private350208-byte duplicate-and-sort. Framed3151872 + scratch350208 + three65536stream windows =3698688logical packed bytes, below existing6417408one-owner stream allowance. Native/wrapper overhead is unmeasured. Preserve all signed pose/yaw values, independent current/previous and legitimate stale bindings. Bulk APIs/nonzero-stamp count rebuild and saved cursor/Directory identity remain separate. |
 
+### `godot/scripts/core/save_owner_farming.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---|---|---|:-:|---|---|
+| FarmPlot saved validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner2 bridge, FARMING-S4-VALIDATE-R01v1/ADR0180. No mutable authoritative state or live owner construction. Caller266240 + cold Columns defaults266240 + two4096 i32 sort copies32768 =565248 conservative logical packed bytes, within6417408 stream allowance; native/RSS unmeasured. Present crop-state relations differ from broad inactive retained history. Same-file TileHistory/Directory/clock bindings and bulk restoration remain FARMING-SAVED-BINDINGS. |
+
 ### `godot/scripts/core/save_owner_field_policy.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

@@ -1,0 +1,48 @@
+{
+  "scope": "Frozen candidate clone only, not production or full-suite acceptance",
+  "base_commit": "314b5c057ce1416a8fb83b7cc14c61f36b0327b6",
+  "input_sha256": {
+    "godot/scripts/core/farming.gd": "41439e1beb1d369d299b650e0160f94b2457ade2285dbb7d8f63c636dc77b212",
+    "godot/scripts/core/save_owner_farming.gd": "f6a3498279d31c61bf1de43452e574bab50715bf7084fbeffc86d975640a4aea",
+    "godot/test/test_save_owner_farming.gd": "d1af82545488b7ae1dbe47dcedc942a7b9cdb7818bf1dec5a532e6b39871e582",
+    "godot/test/farming_validation_focus.gd": "2a2dd02768126b2a342f9b92bee2063bc37eb0ef3d0db053c44383d26f27884a",
+    "tools/test_farming_metadata_preflights.py": "1762fe2015e19a3c3716e920304c0345b18a7d9e8313475ec03c1dc2725e4cd9"
+  },
+  "runs": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--script",
+        "res://test/farming_validation_focus.gd"
+      ],
+      "log": "focus.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 14.816
+    },
+    {
+      "command": [
+        "python3",
+        "tools/test_farming_metadata_preflights.py"
+      ],
+      "log": "metadata.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 15.674
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/docs/validation/evidence/farming-component-validation-2026-09-20/candidate-checks/run_mutants.py"
+      ],
+      "log": "campaign.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 760.208
+    }
+  ],
+  "frozen_inputs_unchanged": true
+}

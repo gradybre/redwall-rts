@@ -1,0 +1,7 @@
+{
+  "scope": "Exact source reconstruction only; production unapplied and runtime not tested",
+  "pending_production_intake": "PR170 merge",
+  "sha256": {
+    "godot/scripts/core/farming.gd": "41439e1beb1d369d299b650e0160f94b2457ade2285dbb7d8f63c636dc77b212"
+  }
+}

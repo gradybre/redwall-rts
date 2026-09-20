@@ -1,0 +1,16 @@
+# Farming frozen mutation witnesses
+
+frozen-witnesses.json163 cases records exact fields/physicaltailvalues and expected codes. The candidate test suite additionally covers null/all15zero/short/long extents and malformed buckets, every4096physicalrow with faultfield=row%15, everyfield athead/tail, all4096present uniqueEMPTY rows, and nonmutation via deep packed snapshots. This is not claimed as all15fields at all4096fault addresses. Benchmark actualfocusedruntime before fixing the campaign timeout.
+
+Required50 logical code mutation units:
+
+1. Fifteen canonical projection assignment omissions. Each projection-* malformedtailcase leaves a different valid clear default when omitted; accepted nondefault inactivehistory/presentSOWN/GROWING/RIPE/WITHERED and identity images preserve legitimate values.15units.
+2. Global present-byte gate; each crop/state/soil enum clause; each fertility/moisture/growth/health/compost/sowday scalar clause; family range and history-pair consistency.1+3+6+2=12units. Family-range witness(-2,1) is necessary because (-2,0) also violates pairconsistency. Negative-streak range alone is redundant with validfamily+pairconsistency and is not separately claimed killed.
+3. Present identity domain as a group and inactive exact-null tile/ref group; separate inactive cropNONE and stateEMPTY clauses.4units. All constituent bounds have exactcode fixtures even when the mutation removes the whole structural rule.
+4. Present state units: EMPTY reset relation; nonEMPTY crop requirement; nonEMPTY positive sowday; crop-soil compatibility; target+999 upper bound; SOWN growth0; SOWN health10000; GROWING positivehealth; GROWING belowtarget; RIPE positivehealth; RIPE at/above target; WITHERED health0 requiresbelowtarget; WITHERED positivehealth requiresat/above target.13units. Cases span allfivecrops and all15crop-soil pairs. Replacing rules must remain index-safe; malformedcropNONE bypass may reach Python/Godot negativeindex semantics but unrelated index/runtime errors never count as kills.
+5. Tile uniqueness and selfslot uniqueness, separately.2units. Same slot/differentgeneration is explicitly invalid; two distinctpresentidentityrows are accepted.
+6. Four priority mutations: flagsbeforeallshapes; rowenum before globalpresent; hoisted later-rowenum before earlier-rowvalue; refduplicate beforetileduplicate. Explicit pairedfault cases separate exactrefusal identity from acceptance-domain kills.4units.
+
+Total15+12+4+13+2+4=50, plus8schema-pin bypasses. Six additional source-table short/long/value cases are faultpreflight checks, not mutant-kill counts. Every mutation must yield a valid focused-run summary and assertion failures with no parser/SCRIPT ERROR. Restoredsource/baseline must pass, sourcesunchanged. If helperfactoring changes textsites, preserve these semanticunits and real witnesses; equivalent omissions require explicit disposition, not a falsekill claim.
+
+Growth MAX_I64 inactive/history MAX_I32 acceptance is synthetic/source-backed; no public full FarmPlot capture exists. Publicprobe434/0 is separately archived. The state-specific target+999 bound does not constrain inactive retainedgrowth. Exact source-table/data version pins protect the validator before tableindexing; no liveconstructor may be used to trigger existing _init assertions instead.

@@ -1,0 +1,7 @@
+# Farming source review disposition
+
+No production defect identified. The raw report has73lines/722words against70/800 (the worker self-estimate52/636 was incorrect); strict intake rejected it. Parent removed exactly three blank lines, preserving all words and nonblank lines, yielding70/722. Both versions, hashes and four worker archives are retained; raw output did not meet its line bound.
+
+Review is of the exact reconstructed source candidates; raw production intake has established byte identity with both reviewed candidates. Shape refusal coverage directly tests Columns, while the bridge forwards earlier section shape checks. Enum minima are explicitly pinned. Shared packed arrays are read-only throughout validation; the565248 estimate remains conservative logical arithmetic, not native/RSS measurement. Bridge metadata guards malformed source-table experiments before projection; the direct pure predicate operates under the pinned compiled-source contract, not arbitrary malformed source code.
+
+The report records frozen execution status. Metadata now passes24cases/216assertions including8bypass catches; All50 code mutations are caught by assertion oracles in52 valid runs. Exact source/test/tool identities were checked against actual integration. All17 static gates, actual import and full4975/462434/0 now pass; exact-head CI remains outstanding. Cross-section saved bindings, bulk capture/apply and farming gameplay remain explicit later work.

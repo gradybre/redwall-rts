@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "65eeaf9b3b9e5855afd44f36769d48d274baaa74",
+  "task": "Farming owner-only cold typed Columns and pure validation",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/farming_component_validation_contract.md",
+    "docs/decisions/0180-farming-validation-distinguishes-live-crops-and-retained-history.md",
+    "godot/scripts/core/farming.gd",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/farming-validation-planning-2026-09-20/mutation-witness-plan.md"
+  ],
+  "instructions": "Implement ONLY existing godot/scripts/core/farming.gd accepted FARMING-S4-VALIDATE-R01v1/ADR0180. Addcold15typedColumns clear-defaults plusstaticcolumns_refusal andsmallargument-onlyhelpers,10newCOLUMN_* refusalconstants. PreserveALLgameplaywriters, existingSavedTileHistory/section1APIs, existingis_history_pair_consistent helper (reuseafterranges). No liveFarming/Directory/catalogconstructor/callback/capture/getter/restorechanges. Exactorder globalshape,globalpresent,PERROWenum/value/history/identity/freeORpresentstate,thenuniquetile,uniqueselfSLOT via privatecopies/sort, inputunchanged. No perrowallocation/float. Presentstate precise bounds inclhealthyWITHEREDtwo-cause rule; fullnonnegativeinactivegrowthMAX accepted. Correctsourcecapacity352418. Sourcearrays guardedbycrop/soil beforeindex; bridgeauthorwillpinlength/values. Conservative565248packed budget allows2simultaneous4096i32sortcopies, nativeunmeasured. Existing publicfalse/throwbehaviorunchanged. Return ONE NEW docs/validation/evidence/farming-component-validation-2026-09-20/author-owner.patch baseSha256null withUNIFIEDDIFF onlycontent, HARD450actualpatchlines AIM280. No fullfile/bridge/tests/docs. Parenttests/faults50units ownedelsewhere. ProperJSONescaping; consumecontract/ADR/disposition, summary<=100words, noexecutionclaims. RawJSONstatus/summary/questions/files/decisionIds."
+}

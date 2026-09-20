@@ -21,7 +21,7 @@
       "gear": "8b957442e3397708cd8343fc9849b4f6cccb5f4478bd7099d44afe47d3499472",
       "injury": "a0932b0c2fddd8ea32f460d1ca4d88977fa759391fcac6f845957fff433184c2",
       "inventory": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
-      "job_planner": "577c9e9751a0c2ad9683fdc060b69d95265eb0c7e3ac8568acf8c92621dbe244",
+      "job_planner": "bff24630c8758ba455cf0925b735970d36c1a5d612e03d1dc45134a752fe1b22",
       "jobs": "bf74583b409dd22da8b9100318e224b63bede5ed01c66be09f4ed0ab38809f3c",
       "movement": "d2497deeaeb32b208eda7b41eaa5885631b611fe3098ac7ba3355a09e87e4cc3",
       "navigation": "00f43ec4f4d834fb836c2a72bdc882cb7eddd5d53e596ecd154a4d83f7caacf2",
@@ -11065,9 +11065,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11079,7 +11080,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1108,
+      "source_resize_line": 1109,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11091,9 +11092,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11105,7 +11107,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1108,
+      "source_resize_line": 1109,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11117,9 +11119,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11131,7 +11134,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1108,
+      "source_resize_line": 1109,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11143,9 +11146,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11157,7 +11161,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1108,
+      "source_resize_line": 1109,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11169,9 +11173,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11183,7 +11188,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1108,
+      "source_resize_line": 1109,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11195,9 +11200,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11209,7 +11215,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1108,
+      "source_resize_line": 1109,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11221,9 +11227,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11235,7 +11242,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1111,
+      "source_resize_line": 1112,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11247,9 +11254,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11261,7 +11269,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1111,
+      "source_resize_line": 1112,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11273,9 +11281,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11287,7 +11296,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1108,
+      "source_resize_line": 1109,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11299,9 +11308,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11313,7 +11323,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1108,
+      "source_resize_line": 1109,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11325,9 +11335,10 @@
       "parsed_expression": "SERVICE_ROW_COUNT",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
-        "OPERATION_COUNT -> godot/scripts/core/job_planner.gd:567 `const OPERATION_COUNT = 2` = 2",
-        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:598 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192"
+        "OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OPERATION_COUNT -> godot/scripts/core/job_index_schema.gd:14 `const OPERATION_COUNT = 2` = 2",
+        "JobIndexSchema.SERVICE_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:16 `const SERVICE_ROW_COUNT = OWNER_CAPACITY * OPERATION_COUNT` = 8192",
+        "SERVICE_ROW_COUNT -> godot/scripts/core/job_planner.gd:599 `const SERVICE_ROW_COUNT = JobIndexSchema.SERVICE_ROW_COUNT` = 8192"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11339,7 +11350,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "SERVICE_ROW_COUNT",
-      "source_resize_line": 1111,
+      "source_resize_line": 1112,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11351,7 +11362,8 @@
       "parsed_expression": "OWNER_CAPACITY",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
+        "JobIndexSchema.OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:597 `const OWNER_CAPACITY = JobIndexSchema.OWNER_CAPACITY` = 4096"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11363,7 +11375,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "OWNER_CAPACITY",
-      "source_resize_line": 1113,
+      "source_resize_line": 1114,
       "source_value": 4096,
       "status": "proved_equality"
     },
@@ -11375,7 +11387,8 @@
       "parsed_expression": "OWNER_CAPACITY",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
+        "JobIndexSchema.OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:597 `const OWNER_CAPACITY = JobIndexSchema.OWNER_CAPACITY` = 4096"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11387,7 +11400,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "OWNER_CAPACITY",
-      "source_resize_line": 1113,
+      "source_resize_line": 1114,
       "source_value": 4096,
       "status": "proved_equality"
     },
@@ -11399,7 +11412,8 @@
       "parsed_expression": "ZONE_OWNER_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:600 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "JobIndexSchema.ZONE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:17 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:601 `const ZONE_OWNER_CAPACITY = JobIndexSchema.ZONE_OWNER_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11411,7 +11425,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "ZONE_OWNER_CAPACITY",
-      "source_resize_line": 1135,
+      "source_resize_line": 1136,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -11423,7 +11437,8 @@
       "parsed_expression": "ZONE_OWNER_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:600 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "JobIndexSchema.ZONE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:17 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:601 `const ZONE_OWNER_CAPACITY = JobIndexSchema.ZONE_OWNER_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11435,7 +11450,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "ZONE_OWNER_CAPACITY",
-      "source_resize_line": 1132,
+      "source_resize_line": 1133,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -11447,7 +11462,8 @@
       "parsed_expression": "ZONE_OWNER_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:600 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "JobIndexSchema.ZONE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:17 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:601 `const ZONE_OWNER_CAPACITY = JobIndexSchema.ZONE_OWNER_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11459,7 +11475,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "ZONE_OWNER_CAPACITY",
-      "source_resize_line": 1132,
+      "source_resize_line": 1133,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -11471,10 +11487,11 @@
       "parsed_expression": "DEMAND_ROW_COUNT",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:600 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:17 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
         "ForageScript.PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
-        "PATCH_KIND_COUNT -> godot/scripts/core/job_planner.gd:603 `const PATCH_KIND_COUNT = ForageScript.PATCHES_PER_ZONE` = 5",
-        "DEMAND_ROW_COUNT -> godot/scripts/core/job_planner.gd:605 `const DEMAND_ROW_COUNT = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT` = 640"
+        "PATCH_KIND_COUNT -> godot/scripts/core/job_index_schema.gd:18 `const PATCH_KIND_COUNT = ForageScript.PATCHES_PER_ZONE` = 5",
+        "JobIndexSchema.DEMAND_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:19 `const DEMAND_ROW_COUNT = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT` = 640",
+        "DEMAND_ROW_COUNT -> godot/scripts/core/job_planner.gd:606 `const DEMAND_ROW_COUNT = JobIndexSchema.DEMAND_ROW_COUNT` = 640"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11486,7 +11503,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "DEMAND_ROW_COUNT",
-      "source_resize_line": 1139,
+      "source_resize_line": 1140,
       "source_value": 640,
       "status": "proved_equality"
     },
@@ -11498,10 +11515,11 @@
       "parsed_expression": "DEMAND_ROW_COUNT",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:600 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:17 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
         "ForageScript.PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
-        "PATCH_KIND_COUNT -> godot/scripts/core/job_planner.gd:603 `const PATCH_KIND_COUNT = ForageScript.PATCHES_PER_ZONE` = 5",
-        "DEMAND_ROW_COUNT -> godot/scripts/core/job_planner.gd:605 `const DEMAND_ROW_COUNT = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT` = 640"
+        "PATCH_KIND_COUNT -> godot/scripts/core/job_index_schema.gd:18 `const PATCH_KIND_COUNT = ForageScript.PATCHES_PER_ZONE` = 5",
+        "JobIndexSchema.DEMAND_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:19 `const DEMAND_ROW_COUNT = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT` = 640",
+        "DEMAND_ROW_COUNT -> godot/scripts/core/job_planner.gd:606 `const DEMAND_ROW_COUNT = JobIndexSchema.DEMAND_ROW_COUNT` = 640"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11513,7 +11531,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "DEMAND_ROW_COUNT",
-      "source_resize_line": 1139,
+      "source_resize_line": 1140,
       "source_value": 640,
       "status": "proved_equality"
     },
@@ -11525,10 +11543,11 @@
       "parsed_expression": "DEMAND_ROW_COUNT",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:600 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:17 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
         "ForageScript.PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
-        "PATCH_KIND_COUNT -> godot/scripts/core/job_planner.gd:603 `const PATCH_KIND_COUNT = ForageScript.PATCHES_PER_ZONE` = 5",
-        "DEMAND_ROW_COUNT -> godot/scripts/core/job_planner.gd:605 `const DEMAND_ROW_COUNT = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT` = 640"
+        "PATCH_KIND_COUNT -> godot/scripts/core/job_index_schema.gd:18 `const PATCH_KIND_COUNT = ForageScript.PATCHES_PER_ZONE` = 5",
+        "JobIndexSchema.DEMAND_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:19 `const DEMAND_ROW_COUNT = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT` = 640",
+        "DEMAND_ROW_COUNT -> godot/scripts/core/job_planner.gd:606 `const DEMAND_ROW_COUNT = JobIndexSchema.DEMAND_ROW_COUNT` = 640"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11540,7 +11559,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "DEMAND_ROW_COUNT",
-      "source_resize_line": 1137,
+      "source_resize_line": 1138,
       "source_value": 640,
       "status": "proved_equality"
     },
@@ -11552,10 +11571,11 @@
       "parsed_expression": "DEMAND_ROW_COUNT",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:600 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:17 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
         "ForageScript.PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
-        "PATCH_KIND_COUNT -> godot/scripts/core/job_planner.gd:603 `const PATCH_KIND_COUNT = ForageScript.PATCHES_PER_ZONE` = 5",
-        "DEMAND_ROW_COUNT -> godot/scripts/core/job_planner.gd:605 `const DEMAND_ROW_COUNT = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT` = 640"
+        "PATCH_KIND_COUNT -> godot/scripts/core/job_index_schema.gd:18 `const PATCH_KIND_COUNT = ForageScript.PATCHES_PER_ZONE` = 5",
+        "JobIndexSchema.DEMAND_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:19 `const DEMAND_ROW_COUNT = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT` = 640",
+        "DEMAND_ROW_COUNT -> godot/scripts/core/job_planner.gd:606 `const DEMAND_ROW_COUNT = JobIndexSchema.DEMAND_ROW_COUNT` = 640"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11567,7 +11587,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "DEMAND_ROW_COUNT",
-      "source_resize_line": 1137,
+      "source_resize_line": 1138,
       "source_value": 640,
       "status": "proved_equality"
     },
@@ -11579,10 +11599,11 @@
       "parsed_expression": "DEMAND_ROW_COUNT",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:600 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:17 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
         "ForageScript.PATCHES_PER_ZONE -> godot/scripts/core/forage.gd:263 `const PATCHES_PER_ZONE = 5` = 5",
-        "PATCH_KIND_COUNT -> godot/scripts/core/job_planner.gd:603 `const PATCH_KIND_COUNT = ForageScript.PATCHES_PER_ZONE` = 5",
-        "DEMAND_ROW_COUNT -> godot/scripts/core/job_planner.gd:605 `const DEMAND_ROW_COUNT = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT` = 640"
+        "PATCH_KIND_COUNT -> godot/scripts/core/job_index_schema.gd:18 `const PATCH_KIND_COUNT = ForageScript.PATCHES_PER_ZONE` = 5",
+        "JobIndexSchema.DEMAND_ROW_COUNT -> godot/scripts/core/job_index_schema.gd:19 `const DEMAND_ROW_COUNT = ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT` = 640",
+        "DEMAND_ROW_COUNT -> godot/scripts/core/job_planner.gd:606 `const DEMAND_ROW_COUNT = JobIndexSchema.DEMAND_ROW_COUNT` = 640"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11594,7 +11615,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "DEMAND_ROW_COUNT",
-      "source_resize_line": 1141,
+      "source_resize_line": 1142,
       "source_value": 640,
       "status": "proved_equality"
     },
@@ -11606,7 +11627,8 @@
       "parsed_expression": "HIVE_OWNER_CAPACITY",
       "proof_chain": [
         "OrchardHiveScript.HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024",
-        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:608 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024"
+        "JobIndexSchema.HIVE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:20 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024",
+        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:609 `const HIVE_OWNER_CAPACITY = JobIndexSchema.HIVE_OWNER_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11618,7 +11640,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "HIVE_OWNER_CAPACITY",
-      "source_resize_line": 1122,
+      "source_resize_line": 1123,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -11630,7 +11652,8 @@
       "parsed_expression": "HIVE_OWNER_CAPACITY",
       "proof_chain": [
         "OrchardHiveScript.HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024",
-        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:608 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024"
+        "JobIndexSchema.HIVE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:20 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024",
+        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:609 `const HIVE_OWNER_CAPACITY = JobIndexSchema.HIVE_OWNER_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11642,7 +11665,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "HIVE_OWNER_CAPACITY",
-      "source_resize_line": 1122,
+      "source_resize_line": 1123,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -11654,7 +11677,8 @@
       "parsed_expression": "HIVE_OWNER_CAPACITY",
       "proof_chain": [
         "OrchardHiveScript.HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024",
-        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:608 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024"
+        "JobIndexSchema.HIVE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:20 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024",
+        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:609 `const HIVE_OWNER_CAPACITY = JobIndexSchema.HIVE_OWNER_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11666,7 +11690,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "HIVE_OWNER_CAPACITY",
-      "source_resize_line": 1122,
+      "source_resize_line": 1123,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -11678,7 +11702,8 @@
       "parsed_expression": "HIVE_OWNER_CAPACITY",
       "proof_chain": [
         "OrchardHiveScript.HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024",
-        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:608 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024"
+        "JobIndexSchema.HIVE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:20 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024",
+        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:609 `const HIVE_OWNER_CAPACITY = JobIndexSchema.HIVE_OWNER_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11690,7 +11715,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "HIVE_OWNER_CAPACITY",
-      "source_resize_line": 1122,
+      "source_resize_line": 1123,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -11702,7 +11727,8 @@
       "parsed_expression": "HIVE_OWNER_CAPACITY",
       "proof_chain": [
         "OrchardHiveScript.HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024",
-        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:608 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024"
+        "JobIndexSchema.HIVE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:20 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024",
+        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:609 `const HIVE_OWNER_CAPACITY = JobIndexSchema.HIVE_OWNER_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11714,7 +11740,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "HIVE_OWNER_CAPACITY",
-      "source_resize_line": 1122,
+      "source_resize_line": 1123,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -11726,7 +11752,8 @@
       "parsed_expression": "HIVE_OWNER_CAPACITY",
       "proof_chain": [
         "OrchardHiveScript.HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024",
-        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:608 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024"
+        "JobIndexSchema.HIVE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:20 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024",
+        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:609 `const HIVE_OWNER_CAPACITY = JobIndexSchema.HIVE_OWNER_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11738,7 +11765,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "HIVE_OWNER_CAPACITY",
-      "source_resize_line": 1127,
+      "source_resize_line": 1128,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -11750,7 +11777,8 @@
       "parsed_expression": "HIVE_OWNER_CAPACITY",
       "proof_chain": [
         "OrchardHiveScript.HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024",
-        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:608 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024"
+        "JobIndexSchema.HIVE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:20 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024",
+        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:609 `const HIVE_OWNER_CAPACITY = JobIndexSchema.HIVE_OWNER_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11762,7 +11790,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "HIVE_OWNER_CAPACITY",
-      "source_resize_line": 1125,
+      "source_resize_line": 1126,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -11774,7 +11802,8 @@
       "parsed_expression": "HIVE_OWNER_CAPACITY",
       "proof_chain": [
         "OrchardHiveScript.HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024",
-        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:608 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024"
+        "JobIndexSchema.HIVE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:20 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024",
+        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:609 `const HIVE_OWNER_CAPACITY = JobIndexSchema.HIVE_OWNER_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11786,7 +11815,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "HIVE_OWNER_CAPACITY",
-      "source_resize_line": 1125,
+      "source_resize_line": 1126,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -11798,7 +11827,8 @@
       "parsed_expression": "OWNER_CAPACITY",
       "proof_chain": [
         "FarmingScript.FARM_PLOT_CAPACITY -> godot/scripts/core/farming.gd:238 `const FARM_PLOT_CAPACITY = 4096` = 4096",
-        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:596 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096"
+        "JobIndexSchema.OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:15 `const OWNER_CAPACITY = FarmingScript.FARM_PLOT_CAPACITY` = 4096",
+        "OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:597 `const OWNER_CAPACITY = JobIndexSchema.OWNER_CAPACITY` = 4096"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11810,7 +11840,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "OWNER_CAPACITY",
-      "source_resize_line": 1113,
+      "source_resize_line": 1114,
       "source_value": 4096,
       "status": "proved_equality"
     },
@@ -11822,7 +11852,8 @@
       "parsed_expression": "ZONE_OWNER_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:600 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "JobIndexSchema.ZONE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:17 `const ZONE_OWNER_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128",
+        "ZONE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:601 `const ZONE_OWNER_CAPACITY = JobIndexSchema.ZONE_OWNER_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11834,7 +11865,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "ZONE_OWNER_CAPACITY",
-      "source_resize_line": 1132,
+      "source_resize_line": 1133,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -11846,7 +11877,8 @@
       "parsed_expression": "HIVE_OWNER_CAPACITY",
       "proof_chain": [
         "OrchardHiveScript.HIVE_CAPACITY -> godot/scripts/core/orchard_hive.gd:213 `const HIVE_CAPACITY = 1024` = 1024",
-        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:608 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024"
+        "JobIndexSchema.HIVE_OWNER_CAPACITY -> godot/scripts/core/job_index_schema.gd:20 `const HIVE_OWNER_CAPACITY = OrchardHiveScript.HIVE_CAPACITY` = 1024",
+        "HIVE_OWNER_CAPACITY -> godot/scripts/core/job_planner.gd:609 `const HIVE_OWNER_CAPACITY = JobIndexSchema.HIVE_OWNER_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -11858,7 +11890,7 @@
       "source_module": "job_planner",
       "source_relation": "eq",
       "source_resize_expression": "HIVE_OWNER_CAPACITY",
-      "source_resize_line": 1122,
+      "source_resize_line": 1123,
       "source_value": 1024,
       "status": "proved_equality"
     },

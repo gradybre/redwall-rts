@@ -846,18 +846,22 @@
     {
       "id": "SAVE-COLUMNS-JOBPLANNER",
       "title": "Publish a bulk column API on job_planner; closes BLOCKER J2",
-      "status": "blocked",
+      "status": "review",
       "depends_on": [
         "PLAN-SAVE-COVERAGE",
         "SAVE-PLANNER-DIRTY-FORMAT"
       ],
       "owns": [
         "godot/scripts/core/job_planner.gd",
-        "godot/test/test_job_planner_columns.gd"
+        "godot/test/test_job_planner_columns.gd",
+        "godot/scripts/core/job_index_schema.gd",
+        "godot/scripts/core/save_section_job_indexes.gd",
+        "godot/test/test_save_section_job_indexes.gd",
+        "godot/test/planner_columns_focus.gd"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. 2026-09-19: SAVE-J2-R01 fixes missing future-affecting dirty order first. Exact bulk snapshot/reference-validation/atomic restore contract must be accepted before implementation; revalidate_after_load must not silently repair strict restoration."
+      "note": "SAVE-J2-R02v2 / decision0160 accepted after independent contract review and real stale-job/dirty-order probes. Exact owner snapshot/restore and section8 adapters under implementation; preserve35fields/schema2 and restore history without reconciliation. Independent source review findings resolved; focused260/3625/0, full4703/184136/0,15static gates/import and3targeted mutation checks pass. CI/merge pending."
     },
     {
       "id": "SAVE-COLUMNS-NAVIGATION",
@@ -1527,7 +1531,7 @@
     {
       "id": "INIT-COUNT",
       "title": "Add read-only whole-inventory stock count snapshot",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "INIT-A"
       ],
@@ -1538,7 +1542,9 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "INIT-COUNT-R01v2 / decision0159. Independent contract review disposition accepted. Unbound owner primitive; no Economy/UI/startup activation."
+      "note": "INIT-COUNT-R01v2 / decision0159. Independent contract review disposition accepted. Unbound owner primitive; no Economy/UI/startup activation. PR150 merged after exact-head CI35477230365:4686tests/183384assertions/0failures.",
+      "merge_commit": "d495b9cbb7603096a31822d8c2b9078b5020076d",
+      "pr": 150
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

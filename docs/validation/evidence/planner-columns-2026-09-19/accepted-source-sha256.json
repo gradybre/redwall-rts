@@ -1,0 +1,8 @@
+{
+  "godot/scripts/core/job_planner.gd": "bff24630c8758ba455cf0925b735970d36c1a5d612e03d1dc45134a752fe1b22",
+  "godot/scripts/core/job_index_schema.gd": "31e567e2f8c10ecd87170fffa3b8f88e65190e9900f13be1caefa08dff77368f",
+  "godot/scripts/core/save_section_job_indexes.gd": "8bed3ef1c0c6a068a0b8e96821fc286a3a5d68bc5f92cfb82a72f6b1b4ff1eb3",
+  "godot/test/test_job_planner_columns.gd": "a376cd2a8e656261c9f84ecb09fb65e3bf23d00d07fa927686efad80eeabc3f7",
+  "godot/test/test_save_section_job_indexes.gd": "89ac7625b52c20109665a27c55567e90d2a6fb4cb060da2af8dbb51704ddc836",
+  "godot/test/planner_columns_focus.gd": "2f7a44c46dc6b695998763e6cf97f1de235659e446c22d1fa513e9a3a8e071d2"
+}

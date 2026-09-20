@@ -1,0 +1,23 @@
+{
+  "restored_sha256": "bff24630c8758ba455cf0925b735970d36c1a5d612e03d1dc45134a752fe1b22",
+  "results": [
+    {
+      "mutant": "capture-reference-guard",
+      "exit_code": 1,
+      "killed": true,
+      "seconds": 9.729
+    },
+    {
+      "mutant": "diagnostic-gate-omission",
+      "exit_code": 1,
+      "killed": true,
+      "seconds": 9.624
+    },
+    {
+      "mutant": "diagnostic-counter-swap",
+      "exit_code": 1,
+      "killed": true,
+      "seconds": 9.423
+    }
+  ]
+}

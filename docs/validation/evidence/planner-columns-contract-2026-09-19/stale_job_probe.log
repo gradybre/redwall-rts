@@ -1,0 +1,9 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+pending=1 ref=(1, 1) resolves=false structural_refusal=
+natural_reconcile_new_ref=(1, 2) pending=1
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

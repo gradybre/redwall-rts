@@ -1,0 +1,123 @@
+{
+  "roots": [
+    "save_header",
+    "entity_directory",
+    "farming",
+    "forage",
+    "orchard_hive"
+  ],
+  "transitive_modules": [
+    "catalog",
+    "catalog_ids",
+    "entity_directory",
+    "farming",
+    "forage",
+    "int_math",
+    "inventory",
+    "item_definitions",
+    "jobs",
+    "needs",
+    "orchard_hive",
+    "priorities",
+    "residents",
+    "resource_nodes",
+    "rng",
+    "save_codec",
+    "save_header",
+    "schedule",
+    "sim_clock"
+  ],
+  "edges": {
+    "orchard_hive": [
+      "int_math",
+      "catalog",
+      "sim_clock",
+      "entity_directory",
+      "farming",
+      "resource_nodes"
+    ],
+    "resource_nodes": [
+      "int_math",
+      "entity_directory"
+    ],
+    "entity_directory": [],
+    "int_math": [
+      "int_math"
+    ],
+    "farming": [
+      "int_math",
+      "catalog",
+      "sim_clock",
+      "entity_directory"
+    ],
+    "sim_clock": [
+      "int_math"
+    ],
+    "catalog": [],
+    "forage": [
+      "int_math",
+      "entity_directory",
+      "catalog",
+      "rng",
+      "sim_clock",
+      "jobs"
+    ],
+    "jobs": [
+      "int_math",
+      "catalog",
+      "entity_directory",
+      "needs",
+      "residents",
+      "priorities",
+      "schedule"
+    ],
+    "schedule": [
+      "int_math",
+      "catalog",
+      "needs"
+    ],
+    "needs": [
+      "int_math",
+      "entity_directory"
+    ],
+    "priorities": [
+      "int_math",
+      "catalog",
+      "needs"
+    ],
+    "residents": [
+      "int_math",
+      "entity_directory",
+      "needs",
+      "catalog"
+    ],
+    "rng": [
+      "int_math"
+    ],
+    "save_header": [
+      "save_codec",
+      "catalog_ids",
+      "int_math"
+    ],
+    "catalog_ids": [
+      "catalog",
+      "item_definitions",
+      "residents",
+      "farming",
+      "schedule",
+      "forage"
+    ],
+    "item_definitions": [
+      "catalog",
+      "inventory"
+    ],
+    "inventory": [
+      "int_math",
+      "catalog"
+    ],
+    "save_codec": [
+      "save_codec"
+    ]
+  },
+  "planner_or_codec_reached": false
+}

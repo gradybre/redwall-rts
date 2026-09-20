@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "d495b9cbb7603096a31822d8c2b9078b5020076d",
+  "task": "Independent acceptance SAVE-J2-R02v2 actual owner and codec integration",
+  "paths": [
+    "docs/planning/job_planner_bulk_columns_contract.md",
+    "docs/decisions/0160-restore-planner-columns-without-repairing-history.md",
+    "godot/scripts/core/job_index_schema.gd",
+    "godot/scripts/core/job_planner.gd",
+    "godot/scripts/core/save_section_job_indexes.gd",
+    "godot/scripts/core/sim_clock.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/test/test_job_planner_columns.gd",
+    "godot/test/test_save_section_job_indexes.gd",
+    "docs/validation/evidence/planner-columns-2026-09-19/focus-expanded.log",
+    "docs/validation/evidence/planner-columns-contract-2026-09-19/contract-v1-disposition.md"
+  ],
+  "instructions": "Independent persistence source acceptance against authoritative SAVE-J2-R02v2. Author Opus separate session; parent integrated owner block and codec and tests. Audit exact35field copy ordering/types and byte format preservation; no aliasing; atomic failures (including malformed source shape before membership indexing); stale refs preserved but resolving refs correct kind/typed row; restoration derives3bits8counters and resets21diagnostics without repairing history/collaborator writes. Actual clock barrier refusal order; decode target shape; shared pure schema no cycles. Tests256/3369/0 focused pass, full suite underway. Identify concrete defects with reproduction and bounded correction; no speculative whole-world claims. Reference owner restore order/world consistency remains coordinator obligation accepted. No tools. Return exact raw JSON status complete,summary,questions [],files exactly one NEW docs/validation/evidence/planner-columns-2026-09-19/independent-review.md baseSha256 null content <=2200words,decisionIds[]. No source edits."
+}

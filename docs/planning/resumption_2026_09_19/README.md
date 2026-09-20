@@ -10,7 +10,7 @@ snapshot with 356 changed/untracked entries; it was preserved. The [file invento
 
 ## Current verified position
 
-PRs 140–149 are merged. The latest integrated candidate is `ab457e8`; its final CI passed **4675 tests / 181984 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
+PRs 140–150 are merged. The latest integrated candidate is `d495b9c`; its final CI passed **4686 tests / 183384 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
 
 The family planning draft is integrated without runtime activation. A new runtime counterexample proves that planner dirty-list order/membership affects future job IDs despite identical previously declared fields; SAVE-J2-R01 implements the format/classification correction with explicit old-schema refusal, merged in PR148. The full owner bulk adapter remains open.
 
@@ -227,5 +227,10 @@ with checked live/loose/equipped/unreserved-loose totals and atomic output. Elev
 new tests include real Gear equip/unequip and aliased caller outputs. Final local
 suite4686/183384/0, focused232/3515/0,15static checks and independent review pass.
 [Evidence](../../validation/evidence/inventory-counts-2026-09-19/) retains the
-contract corrections and actual array-alias probe. This candidate does not bind
+contract corrections and actual array-alias probe. Merged in [PR150](https://github.com/gradybre/redwall-rts/pull/150) at `d495b9cbb7603096a31822d8c2b9078b5020076d`; CI35477230365 repeated4686/183384/0 on exact head `efc80939c29697a66ca35b5bc8f4ca7f9ca54793`. This primitive does not bind
 the UI or fix the two inventories; ready NP and composition remain work.
+
+
+## Exact planner capture and restore
+
+SAVE-J2-R02v2 / decision0160 is in implementation after independent contract review. Shared schema extraction retains the35fields and exact schema2 wire hashes. Expanded focused tests256/3369/0 cover actual farm/forage/hive owners, stale jobs, dirty-order continuation, malformed outputs, buffer independence, all21diagnostic resets and derived counters. Independent source review findings resolved; final focused260/3625/0, full4703/184136/0,15static gates and import pass, with3targeted mutations killed. CI/merge pending. This closes only the planner boundary; whole-world saving remains open.

@@ -42,6 +42,7 @@ extends "res://test/framework/test_case.gd"
 
 const SaveCodec := preload("res://scripts/core/save_codec.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
+const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const Section := preload("res://scripts/core/save_section_job_indexes.gd")
 const JobPlannerScript := preload("res://scripts/core/job_planner.gd")
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
@@ -508,43 +509,35 @@ func test_the_encoder_writes_the_ruled_count_unconditionally() -> void:
 	assert_equal(scalar.value, RULED_PRIMARY_COUNT, "a populated section still declares 8192")
 
 
-func test_production_write_is_refused_while_the_store_has_no_column_api() -> void:
-	"""SAVE-C3-R01 closes J1 but tells this lane to keep refusing production writes for J2.
-
-	Binding a count is not a capture adapter. The refusal must therefore still fire, and must now
-	name the REMAINING hole rather than the closed one.
-	"""
-	var refusal: SaveHeader.Refusal = Section.production_write_refusal()
-	assert_false(refusal.is_ok(), "writing section 8 into a save file is still refused")
-	assert_equal(refusal.code, Section.REFUSE_STORE_NO_COLUMN_API, "it is BLOCKER J2's code")
-	assert_true(refusal.detail.contains("copy_job_index_columns_into"),
-		"the refusal names the reader the planner owner must add")
-	assert_true(refusal.detail.contains(str(RULED_PRIMARY_COUNT)),
-		"and records that the count itself is settled")
+func test_production_write_is_ready_for_the_implemented_section8_owner() -> void:
+	"""The owner boundary is implemented; this gate makes no whole-world readiness claim."""
+	assert_true(Section.production_write_refusal().is_ok(), "section8 writer ready")
+	assert_equal(Section.REFUSE_STORE_NO_COLUMN_API, &"SAVE_JOB_STORE_NO_COLUMN_API",
+		"legacy diagnostic symbol remains compatible")
 
 
-# --- BLOCKER J2: no live store round trip yet -------------------------------------------------------
-
-func test_capture_and_apply_refuse_without_a_planner_column_api() -> void:
-	"""`job_planner.gd` publishes no bulk column reader or writer, so both halves refuse."""
+func test_capture_and_apply_use_the_real_planner_column_api() -> void:
+	"""Read actual owner columns and install them only with a real load barrier."""
 	var planner: JobPlannerScript = JobPlannerScript.new()
 	var out: Section.Record = Section.Record.new()
-	var captured: SaveHeader.Refusal = Section.capture_into(planner, out)
-	_refuses(captured, Section.REFUSE_STORE_NO_COLUMN_API, "capture_into refuses")
-	assert_true(captured.detail.contains("copy_job_index_columns_into"),
-		"the refusal names the reader the planner owner must add")
-	assert_true(out.equals(Section.Record.new()), "a refused capture wrote nothing")
-	_populate()
-	_refuses(Section.apply(_record, planner), Section.REFUSE_STORE_NO_COLUMN_API,
-		"apply refuses a valid record for want of a writer")
+	assert_true(Section.capture_into(planner, out).is_ok(), "owner capture")
+	assert_true(out.equals(Section.Record.new()), "empty owner is exactly the empty record")
+	_refuses(Section.apply(out, planner), Section.REFUSE_NULL_CLOCK, "clock is required")
+	var clock: SimClockScript = SimClockScript.new()
+	assert_true(clock.acquire_load_barrier().is_ok(), "barrier acquired")
+	assert_true(Section.apply(out, planner, clock).is_ok(), "actual owner restore")
+	assert_true(clock.is_load_barrier_held(), "adapter never releases barrier")
 
 
-func test_apply_reports_an_invalid_record_before_the_blocker() -> void:
-	"""A caller with a corrupt Record learns that first; the blocker is not a catch-all."""
+func test_apply_reports_semantic_errors_after_participants_and_barrier() -> void:
+	"""Preserve corrupt-record coverage under the explicitly updated apply precedence."""
 	var planner: JobPlannerScript = JobPlannerScript.new()
 	_write(Section.FIELD_STATUS, 0, JobPlannerScript.STATUS_COUNT)
-	_refuses(Section.apply(_record, planner), Section.REFUSE_STATUS_DOMAIN,
-		"validation runs before the blocker")
+	_refuses(Section.apply(_record, planner), Section.REFUSE_NULL_CLOCK, "participant first")
+	var clock: SimClockScript = SimClockScript.new()
+	assert_true(clock.acquire_load_barrier().is_ok(), "barrier acquired")
+	_refuses(Section.apply(_record, planner, clock), Section.REFUSE_STATUS_DOMAIN,
+		"semantic validation still refuses the corrupt status")
 
 
 func test_capture_record_into_is_all_or_nothing() -> void:

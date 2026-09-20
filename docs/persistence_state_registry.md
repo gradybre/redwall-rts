@@ -395,6 +395,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Compiled item facts (u8) | `_raw_edible`, `_seed` | 1 | `count` runtime | `_effect_id` holds the compiled `none` effect for items with no effect | 2 | §2 CATALOG_IDS | See the first row of this group. |
 | Catalog dictionaries and load flag | -- | -- | -- | -- | 2 | §2 CATALOG_IDS | `_item_ids`, `_category_ids`, `_effect_ids`, `_item_count`, `_loaded`. Same argument: rebuilt by `load()` against the verified artifact. |
 
+### `godot/scripts/core/job_index_schema.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Shared planner record schema | -- | -- | -- | -- | 3 | -- | Decision0160: pure shared layout, cold typed Record and structural validation. No live owner state. Planner and section8 codec consume the same definitions without a cycle. |
+
 ### `godot/scripts/core/job_planner.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
@@ -421,7 +427,8 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Dirty-list count scalar | -- | 4 | 1 scalar | 0 = empty | 1 | §8 JOB_INDEXES | `_dirty_count` in 0..4096; SAVE-J2-R01 persists the exact prefix length, encoded as one i32 element. |
 | Dirty-list count scalar | -- | 4 | 1 scalar | 0 = empty | 1 | §8 JOB_INDEXES | `_dirty_zone_count` in 0..128; SAVE-J2-R01 persists the exact prefix length, encoded as one i32 element. |
 | Dirty-list count scalar | -- | 4 | 1 scalar | 0 = empty | 1 | §8 JOB_INDEXES | `_dirty_hive_count` in 0..1024; SAVE-J2-R01 persists the exact prefix length, encoded as one i32 element. |
-| Planner counters and scratch | -- | -- | -- | -- | 3 | -- | Outcome diagnostics, `_last_blocker`, `_math` and `_calendar`. The three dirty-list counts are canonical scalars above; `_dropped_on_load_count` remains diagnostic. |
+| Status-derived counts | -- | 8 | 8 scalars | 0 | 2 | §8 JOB_INDEXES | Decision0160: rebuild `_pending_count`, `_unmet_count`, `_requested_count`, `_demand_enabled_count`, `_demand_pending_count`, `_demand_unmet_count`, `_hive_pending_count`, `_hive_unmet_count` from the saved status/enablement columns. |
+| Planner counters and scratch | -- | -- | -- | -- | 3 | -- | The21session outcome diagnostics, `_last_blocker`, `_last_column_refusal`, `_math` and `_calendar`. The three dirty-list counts are canonical scalars above; `_dropped_on_load_count` remains diagnostic. |
 
 ### `godot/scripts/core/jobs.gd`
 
